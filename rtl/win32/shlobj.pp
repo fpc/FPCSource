@@ -1,5 +1,5 @@
-{ 
-  $Id$ 
+{
+  $Id$
 }
 unit shlobj;
 
@@ -10,6 +10,7 @@ unit shlobj;
 end.
 {
   $Log$
-  Revision 1.1  2004-08-16 20:53:27  florian
-    * inital empty revision
+  Revision 1.2  2005-02-14 17:13:32  peter
+    * truncate log
+
 }

@@ -157,7 +157,7 @@ asm
         jnz         .LFPC_STRCMP_LOOP
 
         xorq        %rax, %rax
-	jmp .Lexit
+        jmp .Lexit
 
 .LFPC_STRCMP_NEG:
         movq        $1, %rax
@@ -168,22 +168,7 @@ end;
 
 {
   $Log$
-  Revision 1.6  2004-12-12 12:41:46  peter
-    * updated for latest rtl changes
+  Revision 1.7  2005-02-14 17:13:32  peter
+    * truncate log
 
-  Revision 1.5  2004/11/02 15:34:10  florian
-    * fixed strcomp
-
-  Revision 1.4  2004/05/01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.3  2004/02/18 22:00:59  peter
-    * use SizeInt instead of longint
-
-  Revision 1.2  2003/04/30 22:11:06  florian
-    + for a lot of x86-64 dependend files mostly dummies added
-
-  Revision 1.1  2003/04/30 16:36:39  florian
-    + support for generic pchar routines added
-    + some basic rtl stuff for x86-64 added
 }

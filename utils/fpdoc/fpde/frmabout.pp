@@ -18,7 +18,7 @@ Type
     Constructor Create;
     Procedure CreateWindow;
   end;
-  
+
 Implementation
 
 uses fpdemsg;

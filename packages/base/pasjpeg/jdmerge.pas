@@ -9,19 +9,19 @@ Unit JdMerge;
   (ie, box filtering), we can save some work in color conversion by
   calculating all the output pixels corresponding to a pair of chroma
   samples at one time.  In the conversion equations
- 	R := Y           + K1 * Cr
- 	G := Y + K2 * Cb + K3 * Cr
- 	B := Y + K4 * Cb
+        R := Y           + K1 * Cr
+        G := Y + K2 * Cb + K3 * Cr
+        B := Y + K4 * Cb
   only the Y term varies among the group of pixels corresponding to a pair
   of chroma samples, so the rest of the terms can be calculated just once.
   At typical sampling ratios, this eliminates half or three-quarters of the
   multiplications needed for color conversion.
 
   This file currently provides implementations for the following cases:
- 	YCbCr => RGB color conversion only.
- 	Sampling ratios of 2h1v or 2h2v.
- 	No scaling needed at upsample time.
- 	Corner-aligned (non-CCIR601) sampling alignment.
+        YCbCr => RGB color conversion only.
+        Sampling ratios of 2h1v or 2h2v.
+        No scaling needed at upsample time.
+        Corner-aligned (non-CCIR601) sampling alignment.
   Other special cases could be added, but in most applications these are
   the only common cases.  (For uncommon cases we fall back on the more
   general code in jdsample.c and jdcolor.c.) }
@@ -61,19 +61,19 @@ type  { the same definition as in JdColor }
 type
   my_upsample_ptr = ^my_upsampler;
     my_upsampler = record
-    pub : jpeg_upsampler;	{ public fields }
+    pub : jpeg_upsampler;       { public fields }
 
     { Pointer to routine to do actual upsampling/conversion of one row group }
     upmethod : procedure (cinfo : j_decompress_ptr;
-			  input_buf : JSAMPIMAGE;
+                          input_buf : JSAMPIMAGE;
                           in_row_group_ctr : JDIMENSION;
-			  output_buf : JSAMPARRAY);
+                          output_buf : JSAMPARRAY);
 
     { Private state for YCC->RGB conversion }
-    Cr_r_tab : int_CConvertPtr;		{ => table for Cr to R conversion }
-    Cb_b_tab : int_CConvertPtr;		{ => table for Cb to B conversion }
-    Cr_g_tab : INT32_CConvertPtr;	{ => table for Cr to G conversion }
-    Cb_g_tab : INT32_CConvertPtr;	{ => table for Cb to G conversion }
+    Cr_r_tab : int_CConvertPtr;         { => table for Cr to R conversion }
+    Cb_b_tab : int_CConvertPtr;         { => table for Cb to B conversion }
+    Cr_g_tab : INT32_CConvertPtr;       { => table for Cr to G conversion }
+    Cb_g_tab : INT32_CConvertPtr;       { => table for Cb to G conversion }
 
     { For 2:1 vertical sampling, we produce two output rows at a time.
       We need a "spare" row buffer to hold the second output row if the
@@ -81,15 +81,15 @@ type
       to discard the dummy last row if the image height is odd. }
 
     spare_row : JSAMPROW;
-    spare_full : boolean;		{ TRUE if spare buffer is occupied }
+    spare_full : boolean;               { TRUE if spare buffer is occupied }
 
-    out_row_width : JDIMENSION;	{ samples per output row }
-    rows_to_go : JDIMENSION;	{ counts rows remaining in image }
+    out_row_width : JDIMENSION; { samples per output row }
+    rows_to_go : JDIMENSION;    { counts rows remaining in image }
   end; {my_upsampler;}
 
 
 const
-  SCALEBITS = 16;	{ speediest right-shift on some machines }
+  SCALEBITS = 16;       { speediest right-shift on some machines }
   ONE_HALF  = (INT32(1) shl (SCALEBITS-1));
 
 
@@ -114,16 +114,16 @@ begin
 
   upsample^.Cr_r_tab := int_CConvertPtr (
     cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				(MAXJSAMPLE+1) * SIZEOF(int)) );
+                                (MAXJSAMPLE+1) * SIZEOF(int)) );
   upsample^.Cb_b_tab := int_CConvertPtr (
     cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				(MAXJSAMPLE+1) * SIZEOF(int)) );
+                                (MAXJSAMPLE+1) * SIZEOF(int)) );
   upsample^.Cr_g_tab := INT32_CConvertPtr (
     cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				(MAXJSAMPLE+1) * SIZEOF(INT32)) );
+                                (MAXJSAMPLE+1) * SIZEOF(INT32)) );
   upsample^.Cb_g_tab := INT32_CConvertPtr (
     cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				(MAXJSAMPLE+1) * SIZEOF(INT32)) );
+                                (MAXJSAMPLE+1) * SIZEOF(INT32)) );
 
   x := -CENTERJSAMPLE;
   for i := 0 to pred(MAXJSAMPLE) do
@@ -132,7 +132,7 @@ begin
     { The Cb or Cr value we are thinking of is x := i - CENTERJSAMPLE }
     { Cr=>R value is nearest int to 1.40200 * x }
     {upsample^.Cr_r_tab^[i] := int(
-		    RIGHT_SHIFT(FIX_1_40200 * x + ONE_HALF, SCALEBITS) );}
+                    RIGHT_SHIFT(FIX_1_40200 * x + ONE_HALF, SCALEBITS) );}
     shift_temp := FIX_1_40200  * x + ONE_HALF;
     if shift_temp < 0 then  { SHIFT arithmetic RIGHT }
       upsample^.Cr_r_tab^[i] := int((shift_temp shr SCALEBITS)
@@ -143,7 +143,7 @@ begin
 
     { Cb=>B value is nearest int to 1.77200 * x }
     {upsample^.Cb_b_tab^[i] := int(
-		    RIGHT_SHIFT(FIX_1_77200 * x + ONE_HALF, SCALEBITS) );}
+                    RIGHT_SHIFT(FIX_1_77200 * x + ONE_HALF, SCALEBITS) );}
     shift_temp := FIX_1_77200 * x + ONE_HALF;
     if shift_temp < 0 then  { SHIFT arithmetic RIGHT }
       upsample^.Cb_b_tab^[i] := int((shift_temp shr SCALEBITS)
@@ -183,7 +183,7 @@ end;
 
 {METHODDEF}
 procedure merged_2v_upsample (cinfo : j_decompress_ptr;
-		              input_buf : JSAMPIMAGE;
+                              input_buf : JSAMPIMAGE;
                               var in_row_group_ctr : JDIMENSION;
                               in_row_groups_avail : JDIMENSION;
                               output_buf : JSAMPARRAY;
@@ -193,7 +193,7 @@ procedure merged_2v_upsample (cinfo : j_decompress_ptr;
 var
   upsample : my_upsample_ptr;
   work_ptrs : array[0..2-1] of JSAMPROW;
-  num_rows : JDIMENSION;		{ number of rows returned to caller }
+  num_rows : JDIMENSION;                { number of rows returned to caller }
 begin
   upsample := my_upsample_ptr (cinfo^.upsample);
 
@@ -245,12 +245,12 @@ end;
 
 {METHODDEF}
 procedure merged_1v_upsample (cinfo : j_decompress_ptr;
-		             input_buf : JSAMPIMAGE;
+                             input_buf : JSAMPIMAGE;
                              var in_row_group_ctr : JDIMENSION;
-		             in_row_groups_avail : JDIMENSION;
-		             output_buf : JSAMPARRAY;
+                             in_row_groups_avail : JDIMENSION;
+                             output_buf : JSAMPARRAY;
                              var out_row_ctr : JDIMENSION;
-		             out_rows_avail : JDIMENSION); far;
+                             out_rows_avail : JDIMENSION); far;
 { 1:1 vertical sampling case: much easier, never need a spare row. }
 var
   upsample : my_upsample_ptr;
@@ -259,7 +259,7 @@ begin
 
   { Just do the upsampling. }
   upsample^.upmethod (cinfo, input_buf, in_row_group_ctr,
-			 JSAMPARRAY(@ output_buf^[out_row_ctr]));
+                         JSAMPARRAY(@ output_buf^[out_row_ctr]));
   { Adjust counts }
   Inc(out_row_ctr);
   Inc(in_row_group_ctr);
@@ -278,9 +278,9 @@ end;
 
 {METHODDEF}
 procedure h2v1_merged_upsample (cinfo : j_decompress_ptr;
-		                input_buf : JSAMPIMAGE;
+                                input_buf : JSAMPIMAGE;
                                 in_row_group_ctr : JDIMENSION;
-		                output_buf : JSAMPARRAY); far;
+                                output_buf : JSAMPARRAY); far;
 var
   upsample : my_upsample_ptr;
   {register} y, cred, cgreen, cblue : int;
@@ -367,9 +367,9 @@ end;
 
 {METHODDEF}
 procedure h2v2_merged_upsample (cinfo : j_decompress_ptr;
-		                input_buf : JSAMPIMAGE;
+                                input_buf : JSAMPIMAGE;
                                 in_row_group_ctr : JDIMENSION;
-		                output_buf : JSAMPARRAY); far;
+                                output_buf : JSAMPARRAY); far;
 var
   upsample : my_upsample_ptr;
   {register} y, cred, cgreen, cblue : int;
@@ -484,7 +484,7 @@ var
 begin
   upsample := my_upsample_ptr (
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_upsampler)) );
+                                SIZEOF(my_upsampler)) );
   cinfo^.upsample := jpeg_upsampler_ptr (upsample);
   upsample^.pub.start_pass := start_pass_merged_upsample;
   upsample^.pub.need_context_rows := FALSE;
@@ -498,7 +498,7 @@ begin
     { Allocate a spare row buffer }
     upsample^.spare_row := JSAMPROW(
       cinfo^.mem^.alloc_large ( j_common_ptr(cinfo), JPOOL_IMAGE,
-		size_t (upsample^.out_row_width * SIZEOF(JSAMPLE))) );
+                size_t (upsample^.out_row_width * SIZEOF(JSAMPLE))) );
   end
   else
   begin

@@ -23,31 +23,31 @@ unit doublebuffer;
 
 
 {
-	DoubleBuffer.p
+        DoubleBuffer.p
 
-	These routines provide a very simple double buffer
-	mechanism, mainly by being a bit inflexible with the
-	choice of screens and windows.
+        These routines provide a very simple double buffer
+        mechanism, mainly by being a bit inflexible with the
+        choice of screens and windows.
 
-	The first thing to do is to set up a NewScreen structure,
-	just like you would do for OpenScreen.  This can be any
-	sort of screen.  Then call OpenDoubleBuffer, which will
-	return a pointer to a full-screen, borderless backdrop
-	window, or Nil if something went wrong.
+        The first thing to do is to set up a NewScreen structure,
+        just like you would do for OpenScreen.  This can be any
+        sort of screen.  Then call OpenDoubleBuffer, which will
+        return a pointer to a full-screen, borderless backdrop
+        window, or Nil if something went wrong.
 
-	If you write into the window's RastPort, it won't be
-	visible until you call SwapBuffers.  By the way, you
-	can always write into the same RastPort - you don't
-	need to reinitialize after SwapBuffers.  All the
-	buffer swapping takes place at the level of BitMaps,
-	so it's transparent to RastPorts.
+        If you write into the window's RastPort, it won't be
+        visible until you call SwapBuffers.  By the way, you
+        can always write into the same RastPort - you don't
+        need to reinitialize after SwapBuffers.  All the
+        buffer swapping takes place at the level of BitMaps,
+        so it's transparent to RastPorts.
 
-	When you have finished, call CloseDoubleBuffer.  If you
-	close the window and screen seperately it might crash
-	(I'm not sure), but you'll definitely lose memory.
+        When you have finished, call CloseDoubleBuffer.  If you
+        close the window and screen seperately it might crash
+        (I'm not sure), but you'll definitely lose memory.
 
-	One last point: GfxBase must be open before you call
-			OpenDoubleBuffer
+        One last point: GfxBase must be open before you call
+                        OpenDoubleBuffer
 }
 
 {
@@ -55,13 +55,13 @@ unit doublebuffer;
      This is just an translation of DoubleBuffer.p from PCQ pascal
      to FPC Pascal.
      28 Aug 2000.
-     
+
      Added the define use_amiga_smartlink.
      13 Jan 2003.
 
      Changed integer > smallint.
      10 Feb 2003.
-     
+
      nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -111,57 +111,57 @@ var
 begin
     s := OpenScreen(ns);
     if s = Nil then
-	OpenDoubleBuffer := Nil;
+        OpenDoubleBuffer := Nil;
 
     ShowTitle(s, 0);
 
     with s^ do begin
-	nw.LeftEdge := LeftEdge;
-	nw.TopEdge  := TopEdge;
-	nw.Width    := Width;
-	nw.Height   := Height;
+        nw.LeftEdge := LeftEdge;
+        nw.TopEdge  := TopEdge;
+        nw.Width    := Width;
+        nw.Height   := Height;
     end;
 
     with nw do begin
-	DetailPen := 0;
-	BlockPen  := 0;
-	IDCMPFlags := 0;
-	Flags     := WFLG_BACKDROP + WFLG_BORDERLESS + WFLG_ACTIVATE;
-	FirstGadget := Nil;
-	CheckMark := Nil;
-	Title := nil;
-	Screen := s;
-	BitMap := Nil;
-	WType := CUSTOMSCREEN_f;
+        DetailPen := 0;
+        BlockPen  := 0;
+        IDCMPFlags := 0;
+        Flags     := WFLG_BACKDROP + WFLG_BORDERLESS + WFLG_ACTIVATE;
+        FirstGadget := Nil;
+        CheckMark := Nil;
+        Title := nil;
+        Screen := s;
+        BitMap := Nil;
+        WType := CUSTOMSCREEN_f;
     end;
 
     w := OpenWindow(Addr(nw));
     if w = Nil then begin
-	CloseScreen(s);
-	OpenDoubleBuffer := Nil;
+        CloseScreen(s);
+        OpenDoubleBuffer := Nil;
     end;
 
     bm := AllocMem(SizeOf(tBitMap), MEMF_PUBLIC);
     if bm = Nil then begin
-	CloseWindow(w);
-	CloseScreen(s);
-	OpenDoubleBuffer := Nil;
+        CloseWindow(w);
+        CloseScreen(s);
+        OpenDoubleBuffer := Nil;
     end;
 
     bm^ := s^.BitMap;
 
     with bm^ do
-	for i := 0 to Pred(Depth) do begin
-	    Planes[i] := AllocRaster(s^.Width, s^.Height);
-	    if Planes[i] = Nil then begin
-		if i > 0 then
-		    for j := 0 to Pred(i) do
-			FreeRaster(Planes[j], s^.Width, s^.Height);
-		CloseWindow(w);
-		CloseScreen(s);
-		OpenDoubleBuffer := Nil;
-	    end;
-	end;
+        for i := 0 to Pred(Depth) do begin
+            Planes[i] := AllocRaster(s^.Width, s^.Height);
+            if Planes[i] = Nil then begin
+                if i > 0 then
+                    for j := 0 to Pred(i) do
+                        FreeRaster(Planes[j], s^.Width, s^.Height);
+                CloseWindow(w);
+                CloseScreen(s);
+                OpenDoubleBuffer := Nil;
+            end;
+        end;
 
     rp := w^.RPort;
     rp^.bitMap := bm;
@@ -187,7 +187,7 @@ begin
     rp := w^.RPort;
     bm1 := rp^.bitMap;
     bm2 := addr(s^.BitMap);
-    {Temp := bm2^.Planes; 
+    {Temp := bm2^.Planes;
     This is really stupid I can't assign
     bm2^.Planes to Temp, Sigh
     }
@@ -199,14 +199,14 @@ begin
     Temp[5] := bm2^.Planes[5];
     Temp[6] := bm2^.Planes[6];
     Temp[7] := bm2^.Planes[7];
-   
+
     bm2^.Planes := bm1^.Planes;
    { bm1^.Planes := Temp;
      And this one to, stupid
    }
     bm1^.Planes[0] := Temp[0];
     bm1^.Planes[1] := Temp[1];
-    bm1^.Planes[2] := Temp[2]; 
+    bm1^.Planes[2] := Temp[2];
     bm1^.Planes[3] := Temp[3];
     bm1^.Planes[4] := Temp[4];
     bm1^.Planes[5] := Temp[5];
@@ -234,8 +234,8 @@ begin
     bm := rp^.bitMap;
     rp^.bitMap := addr(s^.BitMap);
     with bm^ do
-	for i := 0 to Pred(Depth) do
-	    FreeRaster(Planes[i], s^.Width, s^.Height);
+        for i := 0 to Pred(Depth) do
+            FreeRaster(Planes[i], s^.Width, s^.Height);
     FreeMem(bm, SizeOf(tBitMap));
     CloseWindow(w);
     CloseScreen(s);
@@ -245,16 +245,9 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.2  2003/01/13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+

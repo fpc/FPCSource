@@ -19,11 +19,11 @@
 
 {
    This includefile sets the define use_amiga_smartlink.
-   
+
    This way I can be sure that all units that reads
    this includefile is compiled with smartlink.
 
-   If you don't want smartlink just put a space before 
+   If you don't want smartlink just put a space before
    $define use_amiga_smartlink.
 
    11 Jan 2003.
@@ -40,4 +40,4 @@
   $Log
 }
 
-  
+

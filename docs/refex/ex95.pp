@@ -10,18 +10,18 @@ ResourceString
 
 Var I,J : Longint;
     S : AnsiString;
-    
-Function Translate (Name,Value : AnsiString; Hash : longint): AnsiString;    
- 
+
+Function Translate (Name,Value : AnsiString; Hash : longint): AnsiString;
+
 begin
   Writeln ('Translate (',Name,') => ',Value);
   Write   ('->');
-  Readln  (Result); 
-end; 
-    
+  Readln  (Result);
+end;
+
 begin
-  SetResourceStrings(@Translate);  
-  Writeln ('Translated strings : ');    
+  SetResourceStrings(@Translate);
+  Writeln ('Translated strings : ');
   For I:=0 to ResourceStringTableCount-1 do
     For J:=0 to ResourceStringCount(i)-1 do
       begin

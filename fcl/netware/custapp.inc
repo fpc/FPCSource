@@ -4,7 +4,7 @@
     Copyright (c) 2004 by the Free Pascal development team
 
     Netware Clibc version of custom app object routines.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

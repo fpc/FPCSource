@@ -149,8 +149,8 @@ begin
 writeln('GetWidget.Width (123)?:',GetWidget.Width);
 if GetWidget.Width<>123 then
   begin
-  	writeln('error');
-  	halt(1);
+        writeln('error');
+        halt(1);
   end;
 end.
 

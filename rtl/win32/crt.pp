@@ -831,31 +831,11 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.23  2005-01-03 18:16:12  peter
+  Revision 1.24  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.23  2005/01/03 18:16:12  peter
   fix clrscr with windowsize<>screensize
   fix cursorbig
-
-  Revision 1.22  2004/05/02 13:05:39  marco
-   * Fixes for numeric keypad enter and /
-
-  Revision 1.21  2004/02/08 16:22:20  michael
-  + Moved CRT interface to common include file
-
-  Revision 1.20  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.19  2002/12/15 20:23:30  peter
-    * fix empty string in readln when not at end of string
-    * fix alt-xyz in readkey
-
-  Revision 1.18  2002/10/06 20:00:22  peter
-    * Use Widechar in the Windows unit
-
-  Revision 1.17  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.16  2002/01/19 11:56:34  peter
-    * fixed clrscr for small windows
-    * no turnoffmouse
 
 }

@@ -1250,106 +1250,14 @@ end;
 END.
 {
   $Log$
-  Revision 1.37  2005-01-08 11:43:18  florian
+  Revision 1.38  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.37  2005/01/08 11:43:18  florian
     + vector unit window
 
   Revision 1.36  2005/01/07 21:52:23  florian
     * proper stepping in disassembler window now possible
     + disassembler window to menu added
-
-  Revision 1.35  2004/12/22 15:24:07  peter
-    * fixed NODEBUG
-    * set default target to the default target of the compiler
-
-  Revision 1.34  2004/12/19 20:38:35  hajny
-    + confirmation box after video mode switch (bug 2933)
-
-  Revision 1.33  2004/11/20 14:21:19  florian
-    * implemented reload menu item
-    * increased file history to 9 files
-
-  Revision 1.32  2004/11/14 21:45:28  florian
-    * fixed non working mouse after tools call
-    * better handling of source/target info
-    * more info in about dialog
-    * better info in compiler status dialiog
-
-  Revision 1.31  2004/11/08 21:55:09  peter
-    * fixed run directory
-    * Open dialog starts in dir of last editted file
-
-  Revision 1.30  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.29  2004/11/06 22:02:49  peter
-    * fixed resize helptext
-
-  Revision 1.28  2004/11/04 20:57:59  peter
-  sysmsgs is always available
-
-  Revision 1.27  2004/11/02 23:53:19  peter
-    * fixed crashes with ide and 1.9.x
-
-  Revision 1.26  2003/09/29 14:36:59  peter
-    * win32 fixed
-
-  Revision 1.25  2003/01/31 11:01:00  pierre
-   * fix a bug in cmQuitApp handling
-
-  Revision 1.24  2002/12/12 00:06:41  pierre
-   Use fpregs unit
-
-  Revision 1.23  2002/11/28 12:58:15  pierre
-   + remote support additions
-
-  Revision 1.22  2002/10/12 19:43:07  hajny
-    * missing HasSignal conditionals added (needed for FPC/2)
-
-  Revision 1.21  2002/09/13 07:16:56  pierre
-   * avoid RTE 201 if closing file with position outside integer bounds
-
-  Revision 1.20  2002/09/09 06:58:51  pierre
-   + adapted to FastBufStream.readline method
-
-  Revision 1.19  2002/09/07 15:40:43  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.18  2002/09/03 13:58:05  pierre
-   * fix bug about Recent file list not updated correctly when opening a file from the list
-
-  Revision 1.17  2002/08/26 13:02:15  pierre
-   * avoid a crash with fvision
-
-  Revision 1.16  2002/08/13 08:59:12  pierre
-   + Run menu changes depending on wether the debuggee is running or not
-
-  Revision 1.15  2002/07/12 14:17:39  pierre
-   * try to avoid memory corruption if UserScreen is smaller than IDE screen on win32
-
-  Revision 1.14  2002/06/10 08:12:17  pierre
-   * System messages must be handled by the application directly
-
-  Revision 1.13  2002/05/30 15:03:23  pierre
-   + ResizeApplication pethod for fvision
-
-  Revision 1.12  2002/05/29 22:38:13  pierre
-   Asciitab now in fvision
-
-  Revision 1.11  2002/04/25 13:34:17  pierre
-   * fix the disappearing desktop for win32
-
-  Revision 1.10  2002/04/12 08:58:22  pierre
-   + add RTE(250) for Ctrl+F11 in DEBUG mode
-
-  Revision 1.9  2002/03/20 14:52:01  pierre
-   + deliberatly generate a SIGSEGV if Alt+F11 is pressed (DEBUG code)
-
-  Revision 1.8  2002/01/24 09:21:42  pierre
-   * only disable Alt-X in Options|Compiler dialog
 
 }

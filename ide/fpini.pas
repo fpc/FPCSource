@@ -639,36 +639,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2004-11-08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.11  2002/12/12 00:03:14  pierre
-   * fix problem with breakpoint conditions that showed up again after exit
-
-  Revision 1.10  2002/11/28 12:55:06  pierre
-   + save/retrieve remote support variables
-
-  Revision 1.9  2002/11/21 00:37:56  pierre
-   + some cross gdb enhancements
-
-  Revision 1.8  2002/10/23 18:01:50  hajny
-    * mistyping fixed
-
-  Revision 1.7  2002/10/18 17:58:48  hajny
-    * added missing include
-
-  Revision 1.6  2002/09/07 15:40:43  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/08/13 07:12:08  pierre
-   * use normal strings for ChoiceBox function
-
-  Revision 1.4  2002/04/02 14:06:50  pierre
-   * avoid a problem if resetting debuggee redirection
+  Revision 1.13  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

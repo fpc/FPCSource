@@ -12,7 +12,7 @@ Var R : Longint;
 begin
   R:=CompareStr(S1,S2);
   Write ('"',S1,'" is ');
-  If R<0 then 
+  If R<0 then
     write ('less than ')
   else If R=0 then
     Write ('equal to ')
@@ -24,6 +24,6 @@ end;
 Begin
   Testit('One string','One smaller string');
   Testit('One string','one string');
-  Testit('One string','One string');  
+  Testit('One string','One string');
   Testit('One string','One tall string');
 End.

@@ -52,22 +52,13 @@ asm
         xchgq   %rdi,%rsi
         lock
         xaddl   %edi, (%rsi)
-	movl	%edi,%eax
+        movl    %edi,%eax
 end;
 
 
 {
   $Log$
-  Revision 1.5  2004-11-01 20:37:49  florian
-    * fixed some x86-64 multithreading stuff
+  Revision 1.6  2005-02-14 17:13:32  peter
+    * truncate log
 
-  Revision 1.4  2004/11/01 20:31:35  florian
-    * another fix for locked reference counting
-
-  Revision 1.2  2004/03/05 12:17:50  marco
-   * interlocked* changed to longints, including winapi. (which was a bug)
-
-  Revision 1.1  2004/02/20 22:15:16  florian
-    + x86_64 dependend sysutils part added
-    * some 64 bit adaptions
 }

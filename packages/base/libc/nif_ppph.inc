@@ -34,7 +34,7 @@ const
    SC_RCV_B7_0 = $01000000;
    SC_DC_FERROR = $00800000;
    SC_DC_ERROR = $00400000;
-   
+
 type
    Pnpioctl = ^npioctl;
    npioctl = record
@@ -61,7 +61,7 @@ type
         stats : ppp_comp_stats;
      end;
 
-function PPPIOCGFLAGS: Cardinal; 
+function PPPIOCGFLAGS: Cardinal;
 function PPPIOCSFLAGS: Cardinal;
 function PPPIOCGASYNCMAP: Cardinal;
 function PPPIOCSASYNCMAP: Cardinal;
@@ -91,4 +91,4 @@ function PPPIOCGIDLE: Cardinal;
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

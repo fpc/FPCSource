@@ -261,23 +261,7 @@
 
 {
   $Log$
-  Revision 1.6  2004-11-21 16:41:16  florian
-    * fixed div by zero check for qword mod qword
-
-  Revision 1.5  2004/09/26 08:52:51  florian
-    * fixed overflow checking in qword multiplication
-
-  Revision 1.4  2004/07/25 11:50:39  florian
-    * assembler version of mod_qword_word reactivated
-
-  Revision 1.3  2004/05/10 20:58:20  florian
-    * fpc_mul_qword uses always the assembler implementation
-
-  Revision 1.2  2003/12/23 23:09:43  peter
-    * fix call to handleerror for regcall
-
-  Revision 1.1  2003/09/14 11:34:13  peter
-    * moved int64 asm code to int64p.inc
-    * save ebx,esi
+  Revision 1.7  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

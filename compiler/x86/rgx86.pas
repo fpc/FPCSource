@@ -323,46 +323,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2004-11-01 17:30:17  florian
-    + added sse instruction being not be able writing to a memory location
-
-  Revision 1.10  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.9  2004/10/10 16:30:26  peter
-    * optimized spilling writing when the reg operand can be
-      replaced by reference
-
-  Revision 1.8  2004/10/05 20:41:02  peter
-    * more spilling rewrites
-
-  Revision 1.7  2004/10/04 20:46:22  peter
-    * spilling code rewritten for x86. It now used the generic
-      spilling routines. Special x86 optimization still needs
-      to be added.
-    * Spilling fixed when both operands needed to be spilled
-    * Cleanup of spilling routine, do_spill_readwritten removed
-
-  Revision 1.6  2004/09/27 14:49:45  peter
-    * handle 3 operand opcodes the same as 2 operand opcodes, the
-      third operand can only be a const or register CL, so it doesn't
-      affect spilling
-    * support shrd/shld that don't allow memory operands
-
-  Revision 1.5  2004/09/26 07:15:07  florian
-    * ie checking in spilling code improved
-
-  Revision 1.4  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.3  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.2.2.1  2004/04/10 12:36:42  peter
-    * fixed alignment issues
-
-  Revision 1.2  2004/01/12 16:37:59  peter
-    * moved spilling code from taicpu to rg
+  Revision 1.12  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

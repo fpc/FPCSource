@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     TFPCustomImage implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -380,8 +380,8 @@ Procedure TFPCustomImage.Progress(Sender: TObject; Stage: TProgressStage;
 begin
   If Assigned(FOnProgress) then
     FonProgress(Sender,Stage,PercentDone,RedrawNow,R,Msg,Continue);
-end;                         
-                         
+end;
+
 Procedure TFPCustomImage.Assign(Source: TPersistent);
 
 Var
@@ -401,18 +401,18 @@ begin
       Palette.Count:=0;
       Palette.Build(Src);
       end;
-    // Copy image.  
+    // Copy image.
     SetSize(Src.Width,Src.height);
     If UsePalette then
       For x:=0 to Src.Width-1 do
         For y:=0 to src.Height-1 do
           pixels[X,Y]:=src.pixels[X,Y]
-    else  
+    else
       For x:=0 to Src.Width-1 do
         For y:=0 to src.Height-1 do
           self[X,Y]:=src[X,Y];
     end
-  else  
+  else
     Inherited Assign(Source);
 end;
 

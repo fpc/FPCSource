@@ -222,33 +222,7 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-11-08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.10  2004/09/15 19:23:26  hajny
-    * corrections for debug mode
-
-  Revision 1.9  2003/09/29 14:36:59  peter
-    * win32 fixed
-
-  Revision 1.8  2003/09/27 14:03:45  peter
-    * fixed for unix
-
-  Revision 1.7  2003/04/23 09:49:26  peter
-    * unix signal handler needs longint
-
-  Revision 1.6  2002/09/07 21:04:41  carl
-    * fix range check errors for version 1.1 compilation
-
-  Revision 1.5  2002/09/07 15:40:42  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/03/20 14:48:27  pierre
-   * moved StopJmp buffer to fpcatch unit
+  Revision 1.12  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

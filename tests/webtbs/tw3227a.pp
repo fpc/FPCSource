@@ -1,5 +1,5 @@
 {$mode objfpc}
-uses 
+uses
   Variants;
 
 var

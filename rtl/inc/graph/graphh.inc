@@ -787,13 +787,7 @@ Function GetDriverName: string;
 
 {
   $Log$
-  Revision 1.8  2002-09-07 15:07:47  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/09/07 12:43:03  carl
-    - unit cleanup (removed unused defines)
-
-  Revision 1.6  2002/07/18 07:11:11  pierre
-   merged from FIXES branch: DrawTextBackground support
+  Revision 1.9  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

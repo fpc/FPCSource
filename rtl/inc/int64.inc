@@ -294,7 +294,7 @@
       begin
         fpc_mul_qword:=0;
         bitpos:=1;
-	f1overflowed:=false;
+        f1overflowed:=false;
 
         for l:=0 to 63 do
           begin
@@ -366,56 +366,7 @@
 
 {
   $Log$
-  Revision 1.28  2004-09-26 07:37:49  florian
-    * fixed overflow checking for qword
-
-  Revision 1.27  2004/09/26 07:15:34  florian
-    * tried to fix overflow checking in qword multiplication
-
-  Revision 1.26  2004/05/23 14:09:43  peter
-    * shr/shl use and 63 for the shift value
-
-  Revision 1.25  2004/04/29 18:59:43  peter
-    * str() helpers now also use valint/valuint
-    * int64/qword helpers disabled for cpu64
-
-  Revision 1.24  2004/04/24 17:14:09  florian
-    * prt0.as exit code handling fixed
-    * int64 mod int64 for negative numbers fixed
-
-  Revision 1.23  2004/01/23 15:14:04  florian
-    + implemented software shl/shr for 64 bit ints
-
-  Revision 1.22  2003/09/14 11:34:13  peter
-    * moved int64 asm code to int64p.inc
-    * save ebx,esi
-
-  Revision 1.21  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
-
-  Revision 1.20  2003/05/12 11:17:55  florian
-    * fixed my commit, strange, it didn't give any conflicts with Jonas patch
-
-  Revision 1.19  2003/05/12 11:16:21  florian
-    * qword division fixed (MSB/LSB problem)
-
-  Revision 1.18  2003/05/12 07:19:04  jonas
-    * fixed for big endian systems (since Florian doesn't seem to want to
-      commit this fix :)
-
-  Revision 1.17  2002/09/07 21:21:42  carl
-    - remove FPUInt64 variable
-
-  Revision 1.16  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.15  2002/09/01 14:44:01  peter
-    * renamed conditional to insert optimized mod_qword for i386. The
-      code is broken
-
-  Revision 1.14  2002/07/01 16:29:05  peter
-    * sLineBreak changed to normal constant like Kylix
+  Revision 1.29  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -45,14 +45,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.10  2005-01-30 14:43:40  florian
+  Revision 1.11  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.10  2005/01/30 14:43:40  florian
     * fixed compilation of arm compiler
-
-  Revision 1.9  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.8  2004/03/21 22:40:15  florian
-    + added interface support for the arm
-    * added  FPC_REQUIRES_PROPER_ALIGNMENT define for targets which require proper alignment
 
 }

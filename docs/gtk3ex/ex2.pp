@@ -13,11 +13,11 @@ end;
 
 procedure menu(widget : pGtkWidget ; data: pgpointer ); cdecl;
 
-Var 
+Var
   TheLabel : PgtkWidget;
   LabelText : Pchar;
   S : AnsiString;
-  
+
 begin
   TheLabel  := g_list_nth_data(gtk_container_children(GTK_CONTAINER(Widget)),0);
   gtk_label_get(gtk_Label(theLabel),@LabelText);
@@ -25,14 +25,14 @@ begin
   gtk_label_set_text(GTK_LABEL(data),pchar(S));
 end;
 
-Function AddMenuToMenuBar (MenuBar : PGtkMenuBar; 
+Function AddMenuToMenuBar (MenuBar : PGtkMenuBar;
                            ShortCuts : PGtkAccelGroup;
                            Caption : AnsiString;
                            CallBack : TgtkSignalFunc;
                            CallBackdata : Pointer;
                            AlignRight : Boolean;
                            Var MenuItem : PgtkMenuItem
-                           ) : PGtkMenu; 
+                           ) : PGtkMenu;
 
 Var
   Key : guint;
@@ -47,29 +47,29 @@ begin
   If Key<>0 then
     gtk_widget_add_accelerator(PGtkWidget(MenuItem),'activate_item',
                                Shortcuts,Key,
-                               GDK_MOD1_MASK,GTK_ACCEL_LOCKED);         
+                               GDK_MOD1_MASK,GTK_ACCEL_LOCKED);
   Result:=PGtkMenu(gtk_menu_new);
   If CallBack<>Nil then
     gtk_signal_connect(PGtkObject(result),'activate',
                         CallBack,CallBackdata);
-  gtk_widget_show(PgtkWidget(MenuItem));  
+  gtk_widget_show(PgtkWidget(MenuItem));
   gtk_menu_item_set_submenu(MenuItem, PgtkWidget(Result));
   gtk_menu_bar_append(MenuBar,PgtkWidget(MenuItem));
 end;
 
-Function AddItemToMenu (Menu : PGtkMenu; 
+Function AddItemToMenu (Menu : PGtkMenu;
                         ShortCuts : PGtkAccelGroup;
                         Caption : AnsiString;
                         ShortCut : AnsiString;
                         CallBack : TgtkSignalFunc;
                         CallBackdata : Pointer
-                       ) : PGtkMenuItem; 
+                       ) : PGtkMenuItem;
 
 Var
   Key,Modifiers : guint;
-  LocalAccelGroup : PGtkAccelGroup;                      
+  LocalAccelGroup : PGtkAccelGroup;
   TheLabel : PGtkLabel;
-  
+
 begin
   Result:=pgtkmenuitem(gtk_menu_item_new_with_label(''));
   TheLabel:=GTK_LABEL(GTK_BIN(Result)^.child);
@@ -79,21 +79,21 @@ begin
      LocalAccelGroup:=gtk_menu_ensure_uline_accel_group(Menu);
      gtk_widget_add_accelerator(PGtkWidget(result),'activate_item',
                                 LocalAccelGroup,Key,
-                                0,TGtkAccelFlags(0));         
+                                0,TGtkAccelFlags(0));
      end;
   gtk_menu_append(Menu,pgtkWidget(result));
-  If (ShortCut<>'') and (ShortCuts<>Nil) then  
+  If (ShortCut<>'') and (ShortCuts<>Nil) then
     begin
     gtk_accelerator_parse (pchar(ShortCut), @key, @modifiers);
     gtk_widget_add_accelerator(PGtkWidget(result),'activate_item',
                                ShortCuts,Key,
                                modifiers, GTK_ACCEL_VISIBLE);
     end;
-  If CallBack<>Nil then  
+  If CallBack<>Nil then
     gtk_signal_connect(PGtkObject(result),'activate',
                        CallBack,CallBackdata);
-  gtk_widget_show(PgtkWidget(result));  
-end;                       
+  gtk_widget_show(PgtkWidget(result));
+end;
 
 Function AddSeparatorToMenu(Menu : PgtkMenu) : PgtkMenuItem;
 
@@ -112,11 +112,11 @@ var
   DisplayLabel : PgtkWidget;
   HelpMenu     : PgtkMenu;
   Accel        : PGtkAccelGroup;
-    
+
 begin
   gtk_init (@argc, @argv);
   window := gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW(Window),'Menu made manually');  
+  gtk_window_set_title (GTK_WINDOW(Window),'Menu made manually');
   gtk_widget_set_usize (Window, 300, 200);
   gtk_signal_connect (PGTKOBJECT (window), 'destroy',
                     GTK_SIGNAL_FUNC (@destroy), NULL);

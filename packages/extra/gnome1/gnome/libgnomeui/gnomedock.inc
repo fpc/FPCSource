@@ -42,7 +42,7 @@ const
    bp__GnomeDockItem_is_floating = 1;
    bm__GnomeDockItem_in_drag = $4;
    bp__GnomeDockItem_in_drag = 2;
-   
+
 function float_window_mapped(var a : TGnomeDockItem) : gboolean;
 procedure set_float_window_mapped(var a : TGnomeDockItem; __float_window_mapped : gboolean);
 function is_floating(var a : TGnomeDockItem) : gboolean;
@@ -197,7 +197,7 @@ function GNOME_IS_DOCK_LAYOUT_CLASS(klass : pointer) : boolean;
 
 function gnome_dock_layout_new:PGnomeDockLayout;cdecl;external libgnomeuidll name 'gnome_dock_layout_new';
 function gnome_dock_layout_get_type:TGTKType;cdecl;external libgnomeuidll name 'gnome_dock_layout_get_type';
-function gnome_dock_layout_add_item(layout:PGnomeDockLayout; item:PGnomeDockItem; placement:TGnomeDockPlacement; band_num:gint; band_position:gint; 
+function gnome_dock_layout_add_item(layout:PGnomeDockLayout; item:PGnomeDockItem; placement:TGnomeDockPlacement; band_num:gint; band_position:gint;
            offset:gint):gboolean;cdecl;external libgnomeuidll name 'gnome_dock_layout_add_item';
 function gnome_dock_layout_add_floating_item(layout:PGnomeDockLayout; item:PGnomeDockItem; x:gint; y:gint; orientation:TGtkOrientation):gboolean;cdecl;external libgnomeuidll name 'gnome_dock_layout_add_floating_item';
 function gnome_dock_layout_get_item(layout:PGnomeDockLayout; item:PGnomeDockItem):PGnomeDockLayoutItem;cdecl;external libgnomeuidll name 'gnome_dock_layout_get_item';
@@ -236,12 +236,12 @@ function GNOME_IS_DOCK_CLASS(klass : Pointer) : Boolean;
 function gnome_dock_new:PGtkWidget;cdecl;external libgnomeuidll name 'gnome_dock_new';
 function gnome_dock_get_type:TGTKType;cdecl;external libgnomeuidll name 'gnome_dock_get_type';
 procedure gnome_dock_allow_floating_items(dock:PGnomeDock; enable:gboolean);cdecl;external libgnomeuidll name 'gnome_dock_allow_floating_items';
-procedure gnome_dock_add_item(dock:PGnomeDock; item:PGnomeDockItem; placement:TGnomeDockPlacement; band_num:guint; position:gint; 
+procedure gnome_dock_add_item(dock:PGnomeDock; item:PGnomeDockItem; placement:TGnomeDockPlacement; band_num:guint; position:gint;
             offset:guint; in_new_band:gboolean);cdecl;external libgnomeuidll name 'gnome_dock_add_item';
 procedure gnome_dock_add_floating_item(dock:PGnomeDock; widget:PGnomeDockItem; x:gint; y:gint; orientation:TGtkOrientation);cdecl;external libgnomeuidll name 'gnome_dock_add_floating_item';
 procedure gnome_dock_set_client_area(dock:PGnomeDock; widget:PGtkWidget);cdecl;external libgnomeuidll name 'gnome_dock_set_client_area';
 function gnome_dock_get_client_area(dock:PGnomeDock):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_dock_get_client_area';
-function gnome_dock_get_item_by_name(dock:PGnomeDock; name:Pgchar; placement_return:PGnomeDockPlacement; num_band_return:Pguint; band_position_return:Pguint; 
+function gnome_dock_get_item_by_name(dock:PGnomeDock; name:Pgchar; placement_return:PGnomeDockPlacement; num_band_return:Pguint; band_position_return:Pguint;
            offset_return:Pguint):PGnomeDockItem;cdecl;external libgnomeuidll name 'gnome_dock_get_item_by_name';
 function gnome_dock_get_layout(dock:PGnomeDock):PGnomeDockLayout;cdecl;external libgnomeuidll name 'gnome_dock_get_layout';
 function gnome_dock_add_from_layout(dock:PGnomeDock; layout:PGnomeDockLayout):gboolean;cdecl;external libgnomeuidll name 'gnome_dock_add_from_layout';

@@ -8,7 +8,7 @@ uses cdrom,sysutils;
 Var
   Drives : Array[1..10] of String;
   I,Count : Integer;
-  
+
 begin
   Try
     Count:=GetCDRomDevices(Drives);

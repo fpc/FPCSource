@@ -731,8 +731,7 @@ begin
 end.
 {
  $Log$
- Revision 1.5  2004-12-19 20:22:44  hajny
-   * TTab.Load/Store implemented
-
+ Revision 1.6  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

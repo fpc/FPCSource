@@ -126,7 +126,7 @@ begin
       if apptype = app_cui then
           Add('"{PPCLibraries}PPCSIOW.o" '#182);
 
-      {Even GUI apps must link to PPCToolLibs, because of the System unit 
+      {Even GUI apps must link to PPCToolLibs, because of the System unit
        which can be used by MPW tools as well as by GUI apps.}
       Add('"{PPCLibraries}PPCToolLibs.o" '#182);
       Add('"{SharedLibraries}InterfaceLib" '#182);
@@ -164,7 +164,7 @@ begin
          * it is signaled it is a 32 bit app. (perhaps not nessecary on PowerPC)
          * heapsize  }
       if apptype <> app_tool then
-        Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr + 
+        Add('Echo "data ''SIZE'' (-1) '#182'{ $'#182'"1080 ' + heapsizestr + ' ' + heapsizestr +
                                          #182'" '#182'};" | Rez -a -o ' + ScriptFixFileName(current_module.exefilename^));
       Add('Exit If "{Status}" != 0');
 
@@ -235,16 +235,16 @@ begin
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
 
-	WriteResponseFile(false);
+        WriteResponseFile(false);
 
-	success:= true;
-	if cs_link_on_target in aktglobalswitches then
-		success:=DoExec('SetFile', ' -c ''MPS '' -t ''TEXT'' ' +
-								 ScriptFixFileName(outputexedir+Info.ResName),true,false);
+        success:= true;
+        if cs_link_on_target in aktglobalswitches then
+                success:=DoExec('SetFile', ' -c ''MPS '' -t ''TEXT'' ' +
+                                                                 ScriptFixFileName(outputexedir+Info.ResName),true,false);
 
 { Call linker }
-	if success then
-		success:=DoExec('Execute',CmdStr,true,false);
+        if success then
+                success:=DoExec('Execute',CmdStr,true,false);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
@@ -272,7 +272,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.20  2005-02-08 22:30:32  olle
+  Revision 1.21  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.20  2005/02/08 22:30:32  olle
     + added SIZE resource facilities
 
   Revision 1.19  2005/01/24 17:53:12  olle
@@ -280,43 +283,5 @@ end.
 
   Revision 1.18  2005/01/09 16:35:41  olle
     + linker response file is now removed after linking
-
-  Revision 1.17  2004/12/28 22:00:15  olle
-    + suppression of link varning of 'qd'
-
-  Revision 1.16  2004/12/22 16:32:46  peter
-    * maybequoted() added
-
-  Revision 1.15  2004/11/19 16:30:24  peter
-    * fixed setting of mangledname when importing
-
-  Revision 1.14  2004/11/11 19:31:33  peter
-    * fixed compile of powerpc,sparc,arm
-
-  Revision 1.13  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.12  2004/09/13 16:13:04  olle
-    + When link on target, the script sets file type on link.res
-
-  Revision 1.11  2004/08/20 10:30:00  olle
-    + made fpc work as an MPW tool, by itself calling asm and link.
-
-  Revision 1.10  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.9  2004/05/11 18:24:39  olle
-    + added GUI apptype to MacOS
-
-  Revision 1.8  2004/04/06 22:44:22  olle
-    + Status checks in scripts
-    + Scripts support apptype tool
-    + Added some ScriptFixFileName
-
-  Revision 1.7  2004/02/19 20:40:20  olle
-    + Support for Link on target especially for MacOS
-    + TLinkerMPW
-    + TAsmScriptMPW
 
 }

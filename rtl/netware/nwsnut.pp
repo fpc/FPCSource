@@ -61,7 +61,7 @@ uses libc;
      SMINWIDTH  = 1;
      SMINHEIGHT = 2;
   { palettes to set screen colors.
-  	background and foreground can be reversed with VREVERSE }
+        background and foreground can be reversed with VREVERSE }
      BW_PALETTE      = 0;  // white and black
      NORMAL_PALETTE  = 1;  // white and dark blue
      INIT_PALETTE    = 2;  // light blue and dark blue
@@ -988,19 +988,19 @@ type TfFormat  = procedure (field:Pfielddef; text:pchar; buffLen:longint); cdecl
   { Data & Xtra field release routine  }
   function NWSAppendToForm(
              fline,
-	     fcol,
-	     fwidth,
+             fcol,
+             fwidth,
              fattr:longint;
-	     fFormat:TfFormat;
+             fFormat:TfFormat;
              fControl:TfControl;
-	     fVerify:TfVerify;
-	     fRelease:TfRelease;
-	     fData:pointer;
-	     fXtra:pointer;
+             fVerify:TfVerify;
+             fRelease:TfRelease;
+             fData:pointer;
+             fXtra:pointer;
              fflags:longint;
              fActivateKeys:longint;
              fhelp:longint;
-	     handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendToForm';
+             handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendToForm';
 
   function NWSAppendPromptField(line,column,promptnum:longint; handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendPromptField';
 
@@ -1055,7 +1055,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
              column,
              fflag:longint;
              displayString:pchar;
-	     SpotAction:TSpotActionFunc;
+             SpotAction:TSpotActionFunc;
              handle:PNUTInfo):PFIELD;cdecl;external External_library name 'NWSAppendHotSpotField';
 
   function NWSInitMenuField
@@ -1063,7 +1063,7 @@ type TSpotActionFunc = function (fp:PFIELD; selectKey:longint; var changedField:
              cLine,
              cCol:longint;
              action:TActionFunc;
-	     nutInfo:PNUTInfo;
+             nutInfo:PNUTInfo;
              args:array of const):PMFCONTROL;cdecl;external External_library name 'NWSInitMenuField';
 
   function NWSInitMenuField
@@ -1173,12 +1173,12 @@ type TSSFEntryProc = procedure (para1:PFIELD; para2:pointer; para3:PNUTInfo); cd
 
   procedure NWSSetFieldFunctionPtr(fp:PFIELD;
               Format : TSSFFormat;
-	      Control: TSSFControlFunc;
-	      Verify : TSSFVerifyFunc;
-	      Release: TSSFReleaseProc;
+              Control: TSSFControlFunc;
+              Verify : TSSFVerifyFunc;
+              Release: TSSFReleaseProc;
               Entry  : TSSFEntryProc;
-	      customDataRelease
-	             : TSSFCustomDataReleaseProc);cdecl;external External_library name 'NWSSetFieldFunctionPtr';
+              customDataRelease
+                     : TSSFCustomDataReleaseProc);cdecl;external External_library name 'NWSSetFieldFunctionPtr';
 
 
 type TCompareFunc = function (el1:PLIST; el2:PLIST):longint; cdecl;
@@ -1212,11 +1212,11 @@ type TentryProcedure = procedure (element:PLIST; displayLine:longint; handle:PNU
 type TcdReleaseProc = procedure (theData:pointer; handle:PNUTInfo); cdecl;
   procedure NWSSetHandleCustomData(handle:PNUTInfo;
                                    customData:pointer;
-				   customDataRelease:TcdReleaseProc);cdecl;external External_library name 'NWSSetHandleCustomData';
+                                   customDataRelease:TcdReleaseProc);cdecl;external External_library name 'NWSSetHandleCustomData';
 
   procedure NWSGetHandleCustomData(handle:PNUTInfo;
                                    customData:Ppointer;
-				   customDataRelease:TcdReleaseProc);cdecl;external External_library name 'NWSGetHandleCustomData';
+                                   customDataRelease:TcdReleaseProc);cdecl;external External_library name 'NWSGetHandleCustomData';
 
   procedure NWSSetErrorLabelDisplayFlag(flag:longint;
                                         handle:PNUTInfo);cdecl;external External_library name 'NWSSetErrorLabelDisplayFlag';
@@ -1274,8 +1274,8 @@ type TSSFInsertFunc = function (_string:pchar; maxLen:longint; parameters:pointe
 
   procedure NWSShowLineAttribute(line,
                                  column:longint;
-				 text:pchar;
-				 attribute,
+                                 text:pchar;
+                                 attribute,
                                  length:longint;
                                  screenID:TScr);cdecl;external External_library name 'NWSShowLineAttribute';
 
@@ -1535,11 +1535,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2005-01-04 11:25:33  armin
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.2  2005/01/04 11:25:33  armin
   * rtl code cleanup, compat fixes between clib and libc
-
-  Revision 1.1  2003/02/16 17:45:08  armin
-  * added nwsnut, nwconio and nwthreads for netware
-
 
 }

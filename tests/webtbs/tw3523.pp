@@ -1,4 +1,4 @@
-procedure ttt(i1:integer;s1:string[255];b1:byte;i2:integer; 
+procedure ttt(i1:integer;s1:string[255];b1:byte;i2:integer;
   i3:integer;i4:integer;c1:char;s2,s3,s4,s5:string[255]);
 
 begin
@@ -16,7 +16,7 @@ begin
       halt(1);
 end;
 
-begin     
+begin
 ttt(1,'test1',1,2,3,4,'A','test2','test3','test4','test5');
 end.
 

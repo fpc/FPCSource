@@ -31,7 +31,7 @@ type
     FOnHeaderReceived: TNotifyEvent;
     FOnStreamReceived: TNotifyEvent;
     FOnDestroy: TNotifyEvent;
-    RecvSize: Integer;	// How many bytes are still to be read. -1 if unknown.
+    RecvSize: Integer;  // How many bytes are still to be read. -1 if unknown.
     DataAvailableNotifyHandle: Pointer;
     ReceivedHTTPVersion: String;
 
@@ -85,7 +85,7 @@ type
     FOnHeaderReceived: TNotifyEvent;
     FOnStreamReceived: TNotifyEvent;
     FOnDestroy: TNotifyEvent;
-    RecvSize: Integer;	// How many bytes are still to be read. -1 if unknown.
+    RecvSize: Integer;  // How many bytes are still to be read. -1 if unknown.
     DataAvailableNotifyHandle: Pointer;
     ReceivedHTTPVersion: String;
 
@@ -176,10 +176,10 @@ begin
       if RecvSize > 0 then
         Dec(RecvSize, BytesInBuffer);
       if BytesInBuffer = ReceivedHeader.ContentLength then
-	NeedMoreData := False
+        NeedMoreData := False
       else
         NeedMoreData := (not ReceivedHeader.InheritsFrom(THttpRequestHeader)) or
-	  (THttpRequestHeader(ReceivedHeader).Command <> 'GET');
+          (THttpRequestHeader(ReceivedHeader).Command <> 'GET');
     end;
   end else
     NeedMoreData := False;
@@ -307,13 +307,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-02-02 17:12:01  sg
-  * Some small fixes to get the code at least compiling again; the HTTP
-    client class is not expected to work at the moment, and the XML-RPC
-    client has been fully disabled for now.
-
-  Revision 1.1  2004/01/31 19:13:14  sg
-  * Splittet old HTTP unit into httpbase and httpclient
-  * Many improvements in fpSock (e.g. better disconnection detection)
+  Revision 1.3  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

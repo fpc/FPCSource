@@ -20,6 +20,6 @@ begin
       For E:=etInfo to etDebug do
         Log(E,'An event log message of type '+EventTypeToString(E));
     finally
-      Free;  
+      Free;
     end;
 end.

@@ -90,38 +90,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:21  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.6  2005/02/13 20:01:37  peter
     * include file cleanup
-
-  Revision 1.5  2003/09/27 13:04:58  peter
-    * fpISxxx renamed
-
-  Revision 1.4  2003/09/17 11:52:05  marco
-   * stat macro fixes voor BSD
-
-  Revision 1.3  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.2  2003/01/21 15:34:59  marco
-   * fix octal that broke 1.0.x
-
-  Revision 1.1  2003/01/05 19:01:28  marco
-   * FreeBSD compiles now with baseunix mods.
-
-  Revision 1.4  2002/11/12 14:19:46  marco
-   * fixes to macro
-
-  Revision 1.3  2002/10/26 18:27:51  marco
-   * First series POSIX calls commits. Including getcwd.
-
-  Revision 1.2  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/19 12:29:11  marco
-   * First working POSIX *BSD system unit.
-
 
 }

@@ -20,7 +20,7 @@ function getaliasbyname_r(__name:Pchar; __result_buf:Paliasent; __buffer:Pchar; 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TAliasEntry = aliasent;
   PAliasEntry = ^TAliasEntry;
 

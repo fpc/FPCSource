@@ -9,7 +9,7 @@
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
-    This file was adapted from 
+    This file was adapted from
 Guardian:/usr/local/src/glibc-2.2.3/sysdeps/sparc/sparc32# more setjmp.S
 Guardian:/usr/local/src/glibc-2.2.3/sysdeps/sparc/sparc32# more __longjmp.S
     Copyright (C) 1991, 93, 94, 96, 97, 98 Free Software Foundation, Inc.
@@ -46,13 +46,13 @@ Guardian:/usr/local/src/glibc-2.2.3/sysdeps/sparc/sparc32# more __longjmp.S
 {$ifdef needsigprocmask}
 const
   jmpbufsigmaskwords = 128 div 32;
-  
+
 type
   tjmpsigset=array[0..jmpbufsigmaskwords-1] of longint;
   pjmpsigset=^tjmpsigset;
 {$endif needsigprocmask}
-  
-type  
+
+type
   jmp_buf=packed record
     {stack pointer}
     JB_SP,
@@ -60,32 +60,21 @@ type
     JB_FP,
     {program counter}
     JB_PV:Pointer;
-    
+
 {$ifdef needsigprocmask}
     sigmask : tjmpsigset;
 {$endif needsigprocmask}
   end;
   Pjmp_buf=^jmp_buf;
-  
+
 function setjmp(var S:jmp_buf):longint;
 procedure longjmp(var S:jmp_buf;value:longint);
 {
   $Log$
-  Revision 1.6  2005-01-20 16:38:28  peter
+  Revision 1.7  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.6  2005/01/20 16:38:28  peter
     * restore sigprocmask for linux
 
-  Revision 1.5  2004/09/12 12:04:23  peter
-    * restore traps when returning with longjmp
-
-  Revision 1.4  2003/01/05 21:32:35  mazen
-  * fixing several bugs compiling the RTL
-
-  Revision 1.3  2003/01/01 18:24:41  mazen
-  * just put register pointers
-
-  Revision 1.2  2002/11/24 18:19:44  mazen
-  + setjmp and longjmp
-
-  Revision 1.1  2002/11/16 20:10:31  florian
-    + sparc specific rtl skeleton added
 }

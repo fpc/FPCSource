@@ -170,31 +170,10 @@
 
 {
   $Log$
-  Revision 1.17  2005-01-20 16:38:45  peter
+  Revision 1.18  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.17  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
-
-  Revision 1.16  2004/12/12 10:50:34  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.15  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.14  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.13  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.12.2.1  2004/04/20 16:35:58  peter
-    * generate dwarf for stackframe entry
-
-  Revision 1.12  2004/02/05 18:28:37  peter
-    * x86_64 fixes for opsize
-
-  Revision 1.11  2004/01/14 23:39:05  florian
-    * another bunch of x86-64 fixes mainly calling convention and
-      assembler reader related
 
 }

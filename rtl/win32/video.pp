@@ -449,33 +449,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.16  2004-12-22 15:29:26  peter
-    * always restore original window/buffersize for the console at exit
-
-  Revision 1.15  2004/10/03 20:16:43  armin
-  * SysUpdateScreen modified esi and edi
-
-  Revision 1.14  2004/09/15 18:59:40  hajny
-    + resolution switching fully works now
-
-  Revision 1.13  2004/09/13 20:58:57  hajny
-    * SysSetVideoMode corrected to reflect SysVideoModeSelector result
-
-  Revision 1.12  2004/09/11 21:45:13  hajny
-    + experimental patch to support more resolutions in text-mode IDE under Win32
-
-  Revision 1.11  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.10  2002/12/15 20:22:56  peter
-    * fix updatescreen compare that was wrong when the last char was
-      different
-
-  Revision 1.9  2002/10/06 20:00:22  peter
-    * Use Widechar in the Windows unit
-
-  Revision 1.8  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.17  2005-02-14 17:13:32  peter
+    * truncate log
 
 }
 

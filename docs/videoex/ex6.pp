@@ -7,7 +7,7 @@ Uses video,keyboard,vidutil;
 Var
   I : Longint;
   S : String;
-  
+
 begin
   InitVideo;
   InitKeyboard;
@@ -16,7 +16,7 @@ begin
   Randomize;
   For I:=0 to Random(10)+1 do
     LockScreenUpdate;
-  I:=0;  
+  I:=0;
   While GetLockScreenCount<>0 do
     begin
     Inc(I);

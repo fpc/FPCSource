@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Console and system log version of debug server.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -19,19 +19,19 @@
 
 program debugserver;
 
-Uses 
+Uses
   msgintf,debugserverintf,linux,classes,sysutils,getopts,systemlog;
 
 resourcestring
   SUnknownOption = 'Unknown option : %s';
   SMessageFrom   = '%s [%s] : %s ';
-  
+
 Var
-  UseSyslog : Boolean;  
-  
+  UseSyslog : Boolean;
+
 Const
   LogLevel  : Integer = log_debug;
-  
+
 Procedure LogEvent(Const Event: TDebugEvent);
 
 Var
@@ -45,14 +45,14 @@ begin
       Syslog(LogLevel,Pchar(S),[])
     else
       Writeln(S);
-    end;  
+    end;
 end;
-  
+
 Function GetFDS(Var AFDS : tfdset) : Integer;
 
 Var
   I : Integer;
-  
+
 begin
   Result:=0;
   fd_zero(AFDS);
@@ -63,7 +63,7 @@ begin
         Result:=Handle;
       fd_set(Handle,AFDS);
       end;
-  Inc(Result);    
+  Inc(Result);
 end;
 
 Procedure StartReading;
@@ -107,9 +107,9 @@ begin
   Repeat
     If CheckNewConnection<>Nil then
       StartReading
-    else  
-      Wait; 
-  Until quit;  
+    else
+      Wait;
+  Until quit;
 end;
 
 Var
@@ -132,15 +132,15 @@ begin
     SIGINT  : OH:=OldINTHandler.handler.sh;
   else
     OH:=Nil;
-  end;    
+  end;
   If (OH<>SignalHandler(SIG_DFL)) then
-    OH(Sig);  
+    OH(Sig);
 end;
 
 Procedure SetupSignals;
-  
+
   Procedure SetupSig (Sig : Longint; Var OH : SigactionRec);
-  
+
   Var
     Act : SigActionRec;
   begin
@@ -160,7 +160,7 @@ begin
   SetupSig(SIGQUIT,OldQUITHandler);
   SetupSig(SIGINT,OldINTHandler);
   SetupSig(SIGHUP,OldHUPHandler);
-end;  
+end;
 
 Procedure Usage;
 
@@ -178,7 +178,7 @@ Procedure ProcessOptions;
 Var
   C : Char;
   I : Integer;
-  
+
 begin
   UseSyslog:=False;
   Repeat
@@ -195,13 +195,13 @@ begin
             Usage;
             end;
     end;
-  Until (C=EndOfOptions);  
+  Until (C=EndOfOptions);
   if OptInd<=ParamCount then
     begin
     For I:=OptInd to ParamCount do
        Writeln(Format(SUnknownOption,[Paramstr(i)]));
-    Usage;   
-    end;   
+    Usage;
+    end;
 end;
 
 Procedure SetupSysLog;
@@ -229,7 +229,7 @@ begin
   DebugLogCallback:=@LogEvent;
   Try
     HandleConnections;
-  Finally  
+  Finally
     CloseDebugServer;
     If UseSyslog then
       CloseSyslog;

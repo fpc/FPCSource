@@ -83,7 +83,7 @@ begin
     begin
       { Call progress monitor hook if present }
       if (cinfo^.progress <> NIL) then
-	cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
+        cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
       { Absorb some more input }
       retcode := cinfo^.inputctl^.consume_input (cinfo);
       if (retcode = JPEG_SUSPENDED) then
@@ -92,17 +92,17 @@ begin
         exit;
       end;
       if (retcode = JPEG_REACHED_EOI) then
-	break;
+        break;
       { Advance progress counter if appropriate }
       if (cinfo^.progress <> NIL) and
-	 ((retcode = JPEG_ROW_COMPLETED) or (retcode = JPEG_REACHED_SOS)) then
+         ((retcode = JPEG_ROW_COMPLETED) or (retcode = JPEG_REACHED_SOS)) then
       begin
         Inc(cinfo^.progress^.pass_counter);
-	if (cinfo^.progress^.pass_counter >= cinfo^.progress^.pass_limit) then
+        if (cinfo^.progress^.pass_counter >= cinfo^.progress^.pass_limit) then
         begin
-	  { startup underestimated number of scans; ratchet up one scan }
-	  Inc(cinfo^.progress^.pass_limit, long(cinfo^.total_iMCU_rows));
-	end;
+          { startup underestimated number of scans; ratchet up one scan }
+          Inc(cinfo^.progress^.pass_limit, long(cinfo^.total_iMCU_rows));
+        end;
       end;
     end;
     { Set state so that jpeg_finish_decompress does the right thing }

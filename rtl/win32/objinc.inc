@@ -185,14 +185,7 @@ END;
 
 {
   $Log$
-  Revision 1.7  2003-09-17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.6  2002/09/07 21:28:10  carl
-    - removed os_types
-    * fix range check errors
-
-  Revision 1.5  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

@@ -11,12 +11,7 @@ end.
 
 {
  $Log$
- Revision 1.2  2002-10-20 11:44:15  carl
-   + setstring testing
-   * args checking is not interactive
-   + zero and negative length checking for move/fillchar
-
- Revision 1.1  2002/10/19 22:22:33  carl
-   * small test for argv/argc checking
+ Revision 1.3  2005-02-14 17:13:37  peter
+   * truncate log
 
 }

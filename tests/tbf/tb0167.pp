@@ -1,9 +1,9 @@
 { %fail }
 
 procedure p(var a);
-begin 
-end; 
+begin
+end;
 
 begin
-  p([1]); 
-end. 
+  p([1]);
+end.

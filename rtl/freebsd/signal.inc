@@ -196,32 +196,12 @@ const
 
 {
   $Log$
-  Revision 1.10  2005-01-30 18:01:15  peter
+  Revision 1.11  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.10  2005/01/30 18:01:15  peter
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
-
-  Revision 1.9  2004/12/30 12:52:43  marco
-   * tsignalhandler added"
-
-  Revision 1.8  2003/10/27 17:12:45  marco
-   * fixes for signal handling.
-
-  Revision 1.7  2003/01/05 19:02:29  marco
-   * Should now work with baseunx. (gmake all works)
-
-  Revision 1.6  2002/10/26 18:27:52  marco
-   * First series POSIX calls commits. Including getcwd.
-
-  Revision 1.5  2002/10/18 12:19:59  marco
-   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
-     support. Still problems left in fexpand. (inoutres?) Therefore fixed
-     sysposix not yet commited
-
-  Revision 1.4  2002/10/16 18:50:22  marco
-   * sigset back at 16 bytes
-
-  Revision 1.3  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
 
 }

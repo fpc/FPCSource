@@ -4495,7 +4495,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.57  2005-01-16 00:43:03  florian
+  Revision 1.58  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.57  2005/01/16 00:43:03  florian
     * fixed disassembly window on sparc
 
   Revision 1.56  2005/01/08 13:43:44  florian
@@ -4506,142 +4509,5 @@ END.
 
   Revision 1.54  2005/01/07 19:09:28  florian
     * highlight keywords of all language modes
-
-  Revision 1.53  2004/12/22 15:24:07  peter
-    * fixed NODEBUG
-    * set default target to the default target of the compiler
-
-  Revision 1.52  2004/12/19 13:55:42  florian
-    * x86_64 compilation fixed
-
-  Revision 1.51  2004/11/20 14:21:19  florian
-    * implemented reload menu item
-    * increased file history to 9 files
-
-  Revision 1.50  2004/11/14 21:45:29  florian
-    * fixed non working mouse after tools call
-    * better handling of source/target info
-    * more info in about dialog
-    * better info in compiler status dialiog
-
-  Revision 1.49  2004/11/11 15:20:52  florian
-    * applied Peter's patch from yesterday
-
-  Revision 1.48  2004/11/08 21:55:09  peter
-    * fixed run directory
-    * Open dialog starts in dir of last editted file
-
-  Revision 1.47  2004/11/08 20:28:29  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.46  2004/11/06 17:22:52  peter
-    * fixes for new fv
-
-  Revision 1.45  2004/11/05 00:21:56  peter
-  version info at startup
-
-  Revision 1.44  2004/05/03 21:12:54  peter
-    * 64bit fixes
-
-  Revision 1.43  2004/03/20 22:02:41  florian
-    * compilation on arm fixed
-
-  Revision 1.42  2003/05/07 21:33:22  peter
-    * 1.1 has rax86
-
-  Revision 1.41  2003/02/09 23:50:10  pierre
-   + i386 openbsd target added
-
-  Revision 1.40  2003/01/22 00:27:58  pierre
-   * implement reloadfile if changed
-
-  Revision 1.39  2002/12/16 15:16:15  pierre
-   * try to fix the moving of breakpoints
-
-  Revision 1.38  2002/12/12 00:09:08  pierre
-   * move line breakpoints if lines added or deleted in editor window
-
-  Revision 1.37  2002/11/30 01:56:52  pierre
-   + powerpc cpu support started
-
-  Revision 1.36  2002/09/19 22:15:45  pierre
-   * fix compilation failure for m68k target
-
-  Revision 1.35  2002/09/13 22:28:08  pierre
-   * Update copyright
-
-  Revision 1.34  2002/09/12 22:07:46  pierre
-   * Enable go32v2 graph support in fixes branchfpusrscr.pas
-
-  Revision 1.33  2002/09/12 08:49:10  pierre
-   * fix typo bug in last commit
-
-  Revision 1.32  2002/09/12 08:42:07  pierre
-   * removed lots of unnecessary copies of strings for syntax highlighting
-
-  Revision 1.31  2002/09/11 11:23:48  pierre
-   * more changes to speed syntax highlighting up
-
-  Revision 1.30  2002/09/11 10:05:10  pierre
-   * try to speed up syntax highlighting
-
-  Revision 1.29  2002/09/07 15:40:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.28  2002/09/05 10:57:08  pierre
-   * fix small bug in previous commit
-
-  Revision 1.27  2002/09/05 10:49:48  pierre
-   + FindMatchingDelimiter for pascal keywords with level counting
-
-  Revision 1.26  2002/09/05 05:58:58  pierre
-   + use '*' as special name for noload and also no 'nonamexx.pas title
-
-  Revision 1.25  2002/09/04 08:50:59  pierre
-   * TranslateCodeTemplate Shortcut is now a var parameter
-
-  Revision 1.24  2002/08/26 13:00:08  pierre
-   * fix bug report 2094 by restoring nonamexx.pas name if file name is incorrect
-
-  Revision 1.23  2002/06/13 11:52:01  pierre
-   * try to avoid crash with fvision library
-
-  Revision 1.22  2002/06/13 10:54:54  pierre
-   * avoid random colors in Screen view
-
-  Revision 1.21  2002/06/06 08:15:29  pierre
-   * fix GDBwindow indicator bug
-
-  Revision 1.20  2002/06/01 20:08:42  marco
-   * Renamefest
-
-  Revision 1.19  2002/05/31 12:37:10  pierre
-   + register asciitable char
-
-  Revision 1.18  2002/05/30 15:02:39  pierre
-   * avoid ugly border draw on windows without owners in fvision
-
-  Revision 1.17  2002/05/29 22:38:13  pierre
-   Asciitab now in fvision
-
-  Revision 1.16  2002/05/24 21:15:31  pierre
-   * add FV suffix in About dialog if using FVision library
-
-  Revision 1.15  2002/04/17 11:10:13  pierre
-   * fix last commit for corss compilation fir 1.1 IDE from 1.0.6
-
-  Revision 1.14  2002/04/16 18:12:35  carl
-  + compilation problems bugfixes
-
-  Revision 1.13  2002/04/02 11:17:40  pierre
-   * Use new SetWidth method for GDB window
-
-  Revision 1.12  2002/01/09 09:48:00  pierre
-   try to fix bug 1732
 
 }

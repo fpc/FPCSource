@@ -16,7 +16,7 @@
  *    September 12, 1994   Created by Art Lamb
  *
  *****************************************************************************)
- 
+
 unit fatalalert;
 
 interface

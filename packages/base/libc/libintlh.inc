@@ -16,4 +16,4 @@ function bind_textdomain_codeset(__domainname:Pchar; __codeset:Pchar):Pchar;cdec
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

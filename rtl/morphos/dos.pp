@@ -6,7 +6,7 @@
     Heavily based on the Commodore Amiga/m68k RTL by Nils Sjoholm and
     Carl Eric Codere
 
-    MorphOS port was done on a free Pegasos II/G4 machine 
+    MorphOS port was done on a free Pegasos II/G4 machine
     provided by Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -296,20 +296,20 @@ var
     TimeReq : pTimeRequest;
 begin
     TimerPort := CreatePort(Nil, 0);
-    if TimerPort = Nil then 
+    if TimerPort = Nil then
   Create_Timer := Nil;
     TimeReq := pTimeRequest(CreateExtIO(TimerPort,sizeof(tTimeRequest)));
     if TimeReq = Nil then begin
   DeletePort(TimerPort);
   Create_Timer := Nil;
-    end; 
+    end;
     Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
     if Error <> 0 then begin
   DeleteExtIO(pIORequest(TimeReq));
   DeletePort(TimerPort);
   Create_Timer := Nil;
     end;
-    TimerBase := pointer(TimeReq^.tr_Node.io_Device); 
+    TimerBase := pointer(TimeReq^.tr_Node.io_Device);
     Create_Timer := pTimeRequest(TimeReq);
 end;
 
@@ -317,7 +317,7 @@ Procedure Delete_Timer(WhichTimer : pTimeRequest);
 var
     WhichPort : pMsgPort;
 begin
-    
+
     WhichPort := WhichTimer^.tr_Node.io_Message.mn_ReplyPort;
     if assigned(WhichTimer) then begin
         CloseDevice(pIORequest(WhichTimer));
@@ -335,7 +335,7 @@ begin
 
     { non zero return says error }
     if tr = nil then set_new_time := -1;
-  
+
     tr^.tr_time.tv_secs := secs;
     tr^.tr_time.tv_micro := micro;
     tr^.tr_node.io_Command := TR_SETSYSTIME;
@@ -594,7 +594,7 @@ begin
 
   Result:=MatchFirst(@tmpStr,Anchor);
   f.AnchorPtr:=Anchor;
-  if Result = ERROR_NO_MORE_ENTRIES then 
+  if Result = ERROR_NO_MORE_ENTRIES then
     DosError:=18
   else
     if Result<>0 then DosError:=3;
@@ -637,9 +637,9 @@ var
 begin
   DosError:=0;
   Result:=MatchNext(f.AnchorPtr);
-  if Result = ERROR_NO_MORE_ENTRIES then 
+  if Result = ERROR_NO_MORE_ENTRIES then
     DosError:=18
-  else 
+  else
     if Result <> 0 then DosError:=3;
 
   if DosError=0 then begin
@@ -693,7 +693,7 @@ begin
   { No wildcards allowed in these things }
   if (pos('?',path)<>0) or (pos('*',path)<>0) or (path='') then
     FSearch:=''
-  else begin  
+  else begin
     repeat
       p1:=pos(';',dirlist);
       if p1<>0 then begin
@@ -1003,46 +1003,7 @@ End.
 
 {
   $Log$
-  Revision 1.13  2004-12-07 13:35:53  karoly
-    * more cleanup in FindFirst/FindNext
-    * implemented FindClose, no more leaking of file locks
-
-  Revision 1.12  2004/12/06 20:01:20  karoly
-
-    * made it compile again after changes by Tomas
-    * cleaned up FindFirst mess (still more things to do, as usual)
-
-  Revision 1.11  2004/12/05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.10  2004/11/23 02:57:58  karoly
-    * Fixed missing $INLINE
-
-  Revision 1.9  2004/11/18 22:30:33  karoly
-    * Some cleanup, leap year calculation fixed
-
-  Revision 1.8  2004/10/27 01:31:40  karoly
-    * GetEnv fixed
-
-  Revision 1.7  2004/08/03 15:59:41  karoly
-    * more cleanup & more includes
-
-  Revision 1.6  2004/06/26 20:48:24  karoly
-    * more cleanup + changes to use new includes
-
-  Revision 1.5  2004/06/13 22:51:08  karoly
-    * cleanup and changes to use new includes
-
-  Revision 1.4  2004/05/16 00:24:19  karoly
-    * some cleanup
-
-  Revision 1.3  2004/05/13 00:48:52  karoly
-    * fixed a typo
-
-  Revision 1.2  2004/05/13 00:42:29  karoly
-    * getpathstring displayed dos messages, fixed
-
-  Revision 1.1  2004/05/12 20:27:29  karoly
-    * first implementation of MorphOS DOS unit, based on Amiga version
+  Revision 1.14  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

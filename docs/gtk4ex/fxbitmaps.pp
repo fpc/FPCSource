@@ -6,7 +6,7 @@ Interface
 
 uses glib,gdk,gtk;
 
-Const 
+Const
   DeleteXpmHeight=16;
   DeleteXpmColors=2;
   DeleteXpmArraySize=DeleteXpmHeight+DeleteXpmColors+1;

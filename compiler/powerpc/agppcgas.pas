@@ -365,38 +365,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.46  2004-12-28 02:25:44  olle
-    * fixed compilation for PowerPC
-
-  Revision 1.45  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.44  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.43  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.42  2004/03/02 17:32:12  florian
-    * make cycle fixed
-    + pic support for darwin
-    + support of importing vars from shared libs on darwin implemented
-
-  Revision 1.41  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.40  2004/01/04 21:17:51  jonas
-    + added log message for last commit
-
-  Revision 1.39  2004/01/04 21:12:47  jonas
-    + as_darwin assembler type (labels start with L)
-    * never generate register->number mappings for Darwin
-    * always use real register names for Darwin
+  Revision 1.47  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

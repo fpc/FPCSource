@@ -41,7 +41,7 @@ type
 
 const
    X86_FXSR_MAGIC = $0000;
-   
+
 type
    Psigcontext = ^sigcontext;
    sigcontext = record
@@ -80,10 +80,10 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
   TFPreg = _fpreg;
-  PFPreg = ^TFPreg;  
-  
+  PFPreg = ^TFPreg;
+
   TFPstate = _fpstate;
   PFPstate = ^TFPstate;
-  
+
   TSigContext = sigcontext;
-  
+

@@ -20,11 +20,11 @@
 
  ****************************************************************************}
 
-{$define usestime} 		// Use stime() syscall instead of settimeofday
-{$define oldreaddir}		// Keep using readdir system call instead
-				// of userland getdents stuff.
-{$define usedomain}		// Allow uname with "domain" entry.
-				// (which is a GNU extension)
+{$define usestime}              // Use stime() syscall instead of settimeofday
+{$define oldreaddir}            // Keep using readdir system call instead
+                                // of userland getdents stuff.
+{$define usedomain}             // Allow uname with "domain" entry.
+                                // (which is a GNU extension)
 {$ifdef FPC_USE_LIBC}
   {$define usegetcwd}
 {$endif}
@@ -32,7 +32,10 @@
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.1  2005/02/13 20:01:38  peter

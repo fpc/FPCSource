@@ -111,7 +111,7 @@ unit ncpuset;
 
         jmpreg:=cg.getaddressregister(exprasmlist);
 
-	reference_reset(href);
+        reference_reset(href);
         href.index:=indexreg;
         href.base:=basereg;
         cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,jmpreg);
@@ -134,15 +134,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-12-04 15:23:00  florian
-    * fixed compilation
+  Revision 1.5  2005-02-14 17:13:10  peter
+    * truncate log
 
-  Revision 1.3  2004/10/31 14:24:47  florian
-    * fixed jump table for sparc
-
-  Revision 1.2  2004/10/30 22:01:11  florian
-    * jmp table code generation for case statement on sparc
-
-  Revision 1.1  2004/10/30 17:50:53  florian
-    * initial revision, not yet enabled
 }

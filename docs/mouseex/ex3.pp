@@ -7,7 +7,7 @@ Uses mouse;
 
 Var
   Event : TMouseEvent;
-  
+
 begin
   InitMouse;
   Writeln('Play with mouse. Press right mouse button to end.');
@@ -31,7 +31,7 @@ begin
       Write('Button(s)');
       Writeln(' at ',X,',',Y,'.');
       end;
-  Until (Event.Buttons=MouseRightButton) and 
+  Until (Event.Buttons=MouseRightButton) and
         (Event.Action=MouseActionDown);
   DoneMouse;
 end.

@@ -579,67 +579,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  2005-01-10 15:56:13  peter
+  Revision 1.34  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.33  2005/01/10 15:56:13  peter
     * generate export jmps in .text section
-
-  Revision 1.32  2004/12/22 16:32:46  peter
-    * maybequoted() added
-
-  Revision 1.31  2004/12/19 14:03:16  florian
-    * dyn. linker path fixed for x86_64
-
-  Revision 1.30  2004/11/17 22:22:12  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.29  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.28  2004/11/05 12:27:27  florian
-    * fixed dyn. linker handling
-
-  Revision 1.27  2004/11/05 11:04:23  florian
-    * path of dyn. linker on arm for linux fixed
-
-  Revision 1.26  2004/10/24 13:36:26  peter
-    * gc-sections added when section smartlinking is used
-
-  Revision 1.25  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.24  2004/09/25 18:44:12  florian
-    * fixed dyn. linker name for sparc
-
-  Revision 1.23  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.21  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.20.4.1  2004/09/20 15:24:42  peter
-    * remove gc-sections option until it really works
-
-  Revision 1.20  2004/07/08 14:42:54  daniel
-    * Uclibc detection
-
-  Revision 1.19  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.18  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.17.2.3  2004/05/10 21:28:35  peter
-    * section_smartlink enabled for gas under linux
-
-  Revision 1.17.2.2  2004/05/03 20:18:52  peter
-    * fixes for tprintf
-
-  Revision 1.17.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
-
-  Revision 1.17  2004/03/06 20:35:20  florian
-    * fixed arm compilation
-    * cleaned up code generation for exported linux procedures
 
 }

@@ -13,24 +13,24 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 {
     History
-    
+
     Updated to triton 2.0. Added function with array of const.
     09 Jan 2003.
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     12 Jan 2003.
-    
+
     Changed integer > smallint.
     Changed cardinal > longword.
     Changed startcode for unit.
     11 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
-    
+
 }
 
 {$mode objfpc}
@@ -93,7 +93,7 @@ TYPE
          grouptype  : ULONG;
          itemdata   : ULONG;
          backfilltype : ULONG;
-         {* The following elements have to be set by the object and read by 
+         {* The following elements have to be set by the object and read by
 class_DisplayObject *}
          parseargs  : BOOL;
      end;
@@ -138,7 +138,7 @@ class_DisplayObject *}
          trc_Node     : tMinNode;         {* PRIVATE! *}
          trc_SuperClass : pTR_Class;
      end;
-     
+
 
 
 
@@ -159,7 +159,7 @@ class_DisplayObject *}
          trd_Zoomed        : BOOL;
          reserved          : ARRAY [0..2] OF Word;
      END; {* TR_Dimensions *}
-     
+
 
 {* ////////////////////////////////////////////////////////////////////// *}
 {* ///////////////////////////// Default classes, attributes and flags // *}
@@ -173,7 +173,7 @@ class_DisplayObject *}
          Project : pTR_Project;    {* The object's project *}
          Reserved : array [0..5] of ULONG;
      end;
-     
+
 
 
      pTROD_DisplayObject = ^tTROD_DisplayObject;
@@ -192,11 +192,11 @@ class_DisplayObject *}
          QuickHelpString : STRPTR;        {* QuickHelp string *}
          Shortcut    : smallint;           {* The object's shortcut *}
          Backfilltype : ULONG;            {* The object's backfill type *}
-         Installed   : BOOL;              {* Does the object have an on-screen 
+         Installed   : BOOL;              {* Does the object have an on-screen
 representation? *}
          Reserved    : array [0..3] of ULONG;   {* Private! *}
      end;
-   
+
 
 {* Data for TROM_HIT *}
      pTROM_HitData = ^tTROM_HitData;
@@ -205,7 +205,7 @@ representation? *}
          y : ULONG;
          tr_object : pTROD_DisplayObject;
      end;
-     
+
 
 {* ------------------------------------------------------------------------------ *}
 {* The Projects Structure                                                         *}
@@ -213,29 +213,29 @@ representation? *}
 
      tTR_Project = RECORD
          tro_SC_Object                : tTROD_Object;          {* PRIVATE *}
-         trp_App                      : pTR_App;            {* Our application            
+         trp_App                      : pTR_App;            {* Our application
 *}
          trp_MemPool                  : Pointer;              {* The memory pool *}
          trp_ID                       : ULONG;                {* The project's ID *}
          trp_IDCMPFlags               : ULONG;                {* The IDCMP flags *}
          trp_Window                   : pWindow;            {* The default window *}
-         trp_AspectFixing             : Word;                 {* Pixel aspect 
+         trp_AspectFixing             : Word;                 {* Pixel aspect
 correction factor *}
-     END;                                               {* End of TR_Projects               
+     END;                                               {* End of TR_Projects
 *}
 
 {* Message classes *}
 CONST   TRMS_CLOSEWINDOW        = 1;  {* The window should be closed *}
         TRMS_ERROR              = 2;  {* An error occured. Error code in trm_Data *}
-        TRMS_NEWVALUE           = 3;  {* Object's VALUE has changed. New VALUE in 
+        TRMS_NEWVALUE           = 3;  {* Object's VALUE has changed. New VALUE in
 trm_Data *}
         TRMS_ACTION             = 4;  {* Object has triggered an action *}
-        TRMS_ICONDROPPED        = 5;  {* Icon dropped over window (ID=0) or DropBox. 
+        TRMS_ICONDROPPED        = 5;  {* Icon dropped over window (ID=0) or DropBox.
 AppMessage* in trm_Data *}
-        TRMS_KEYPRESSED         = 6;  {* Key pressed. trm_Data contains ASCII code,  
+        TRMS_KEYPRESSED         = 6;  {* Key pressed. trm_Data contains ASCII code,
 trm_Code raw code and *}
                                       {* trm_Qualifier contains qualifiers *}
-        TRMS_HELP               = 7;  {* The user requested help for the specified ID 
+        TRMS_HELP               = 7;  {* The user requested help for the specified ID
 *}
         TRMS_DISKINSERTED       = 8;  {* A disk has been inserted into a drive *}
         TRMS_DISKREMOVED        = 9;  {* A disk has been removed from a drive *}
@@ -267,7 +267,7 @@ trm_Code raw code and *}
 {* ////////////////////////////////////////////////////////////////////// *}
 
         TROM_NEW                = 1;         {* Create object *}
-        TROM_INSTALL            = 2;         {* Tell object to install itself in the 
+        TROM_INSTALL            = 2;         {* Tell object to install itself in the
 window *}
         TROM_REFRESH            = 4;         {* Refresh object *}
         TROM_REMOVE             = 6;         {* Remove object from window *}
@@ -283,7 +283,7 @@ window *}
         TROM_KEYCANCELLED       = 16;        {* Key cancelled *}
         TROM_CREATECLASS        = 17;        {* Create class-specific data *}
         TROM_DISPOSECLASS       = 18;        {* Dispose class-specific data *}
-        TROM_HIT                = 22;        {* Find an object for a coordinate pair 
+        TROM_HIT                = 22;        {* Find an object for a coordinate pair
 *}
         TROM_ACTIVATE           = 23;        {* Activate an object *}
 
@@ -306,15 +306,15 @@ window *}
 {* Window/Project *}
         TRWI_Title              = (TRTG_PAT+$01); {* STRPTR: The window title *}
         TRWI_Flags              = (TRTG_PAT+$02); {* See below for window flags *}
-        TRWI_Underscore         = (TRTG_PAT+$03); {* BYTE *: The underscore for menu 
+        TRWI_Underscore         = (TRTG_PAT+$03); {* BYTE *: The underscore for menu
 and gadget shortcuts *}
         TRWI_Position           = (TRTG_PAT+$04); {* Window position,  see below *}
         TRWI_CustomScreen       = (TRTG_PAT+$05); {* STRUCT Screen * *}
-        TRWI_PubScreen          = (TRTG_PAT+$06); {* STRUCT Screen *,  must have been 
+        TRWI_PubScreen          = (TRTG_PAT+$06); {* STRUCT Screen *,  must have been
 locked! *}
-        TRWI_PubScreenName      = (TRTG_PAT+$07); {* ADDRESS,  Triton is doing the 
+        TRWI_PubScreenName      = (TRTG_PAT+$07); {* ADDRESS,  Triton is doing the
 locking *}
-        TRWI_PropFontAttr       = (TRTG_PAT+$08); {* STRUCT TextAttr *: The 
+        TRWI_PropFontAttr       = (TRTG_PAT+$08); {* STRUCT TextAttr *: The
 proportional font *}
         TRWI_FixedWidthFontAttr = (TRTG_PAT+$09); {* STRUCT TextAttr *: The fixed-
 width font *}
@@ -345,35 +345,35 @@ width font *}
 {* ////////////////////////////////////////////////////// Window flags // *}
 {* ////////////////////////////////////////////////////////////////////// *}
 
-        TRWF_BACKDROP           = $00000001;     {* Create a backdrop borderless 
+        TRWF_BACKDROP           = $00000001;     {* Create a backdrop borderless
 window *}
         TRWF_NODRAGBAR          = $00000002;     {* Don't use a dragbar *}
         TRWF_NODEPTHGADGET      = $00000004;     {* Don't use a depth-gadget *}
         TRWF_NOCLOSEGADGET      = $00000008;     {* Don't use a close-gadget *}
         TRWF_NOACTIVATE         = $00000010;     {* Don't activate window *}
-        TRWF_NOESCCLOSE         = $00000020;     {* Don't send TRMS_CLOSEWINDOW when 
+        TRWF_NOESCCLOSE         = $00000020;     {* Don't send TRMS_CLOSEWINDOW when
 Esc is pressed *}
-        TRWF_NOPSCRFALLBACK     = $00000040;     {* Don't fall back onto default 
+        TRWF_NOPSCRFALLBACK     = $00000040;     {* Don't fall back onto default
 PubScreen *}
         TRWF_NOZIPGADGET        = $00000080;     {* Don't use a zip-gadget *}
-        TRWF_ZIPCENTERTOP       = $00000100;     {* Center the zipped window on the 
+        TRWF_ZIPCENTERTOP       = $00000100;     {* Center the zipped window on the
 title bar *}
-        TRWF_NOMINTEXTWIDTH     = $00000200;     {* Minimum window width not according 
+        TRWF_NOMINTEXTWIDTH     = $00000200;     {* Minimum window width not according
 to title text *}
         TRWF_NOSIZEGADGET       = $00000400;     {* Don't use a sizing-gadget *}
         TRWF_NOFONTFALLBACK     = $00000800;     {* Don't fall back to topaz.8 *}
-        TRWF_NODELZIP           = $00001000;     {* Don't zip the window when Del is 
+        TRWF_NODELZIP           = $00001000;     {* Don't zip the window when Del is
 pressed *}
         TRWF_SIMPLEREFRESH      = $00002000;     {* *** OBSOLETE *** (V3+) *}
-        TRWF_ZIPTOCURRENTPOS    = $00004000;     {* Will zip the window at the current 
+        TRWF_ZIPTOCURRENTPOS    = $00004000;     {* Will zip the window at the current
 position (OS3.0+) *}
-        TRWF_APPWINDOW          = $00008000;     {* Create an AppWindow without using 
+        TRWF_APPWINDOW          = $00008000;     {* Create an AppWindow without using
 class_dropbox *}
-        TRWF_ACTIVATESTRGAD     = $00010000;     {* Activate the first string gadget 
+        TRWF_ACTIVATESTRGAD     = $00010000;     {* Activate the first string gadget
 after opening the window *}
-        TRWF_HELP               = $00020000;     {* Pressing <Help> will create a 
+        TRWF_HELP               = $00020000;     {* Pressing <Help> will create a
 TRMS_HELP message (V4) *}
-        TRWF_SYSTEMACTION       = $00040000;     {* System status messages will be 
+        TRWF_SYSTEMACTION       = $00040000;     {* System status messages will be
 sent (V4) *}
 
 
@@ -382,7 +382,7 @@ sent (V4) *}
 {* ////////////////////////////////////////////////////////////////////// *}
 
         TRMF_CHECKIT            = $00000001;     {* Leave space for a checkmark *}
-        TRMF_CHECKED            = $00000002;     {* Check the item (includes 
+        TRMF_CHECKED            = $00000002;     {* Check the item (includes
 TRMF_CHECKIT) *}
         TRMF_DISABLED           = $00000004;     {* Ghost the menu/item *}
 
@@ -391,20 +391,20 @@ TRMF_CHECKIT) *}
 {* ////////////////////////////////////////////////// Window positions // *}
 {* ////////////////////////////////////////////////////////////////////// *}
 
-        TRWP_DEFAULT            = 0;              {* Let Triton choose a good position 
+        TRWP_DEFAULT            = 0;              {* Let Triton choose a good position
 *}
-        TRWP_BELOWTITLEBAR      = 1;              {* Left side of screen,  below title 
+        TRWP_BELOWTITLEBAR      = 1;              {* Left side of screen,  below title
 bar *}
-        TRWP_CENTERTOP          = 1025;           {* Top of screen,  centered on the 
+        TRWP_CENTERTOP          = 1025;           {* Top of screen,  centered on the
 title bar *}
         TRWP_TOPLEFTSCREEN      = 1026;           {* Top left corner of screen *}
         TRWP_CENTERSCREEN       = 1027;           {* Centered on the screen *}
-        TRWP_CENTERDISPLAY      = 1028;           {* Centered on the currently 
+        TRWP_CENTERDISPLAY      = 1028;           {* Centered on the currently
 displayed clip *}
         TRWP_MOUSEPOINTER       = 1029;           {* Under the mouse pointer *}
-        TRWP_ABOVECOORDS        = 2049;           {* Above coordinates from the 
+        TRWP_ABOVECOORDS        = 2049;           {* Above coordinates from the
 dimensions STRUCT *}
-        TRWP_BELOWCOORDS        = 2050;           {* Below coordinates from the 
+        TRWP_BELOWCOORDS        = 2050;           {* Below coordinates from the
 dimensions STRUCT *}
 
 
@@ -415,19 +415,19 @@ dimensions STRUCT *}
         TRBF_WINDOWBACK         = $00000000;     {* Window backfill *}
         TRBF_REQUESTERBACK      = $00000001;     {* Requester backfill *}
 
-        TRBF_NONE               = $00000002;     {* No backfill (= Fill with 
+        TRBF_NONE               = $00000002;     {* No backfill (= Fill with
 BACKGROUNDPEN) *}
         TRBF_SHINE              = $00000003;     {* Fill with SHINEPEN *}
         TRBF_SHINE_SHADOW       = $00000004;     {* Fill with SHINEPEN + SHADOWPEN *}
         TRBF_SHINE_FILL         = $00000005;     {* Fill with SHINEPEN + FILLPEN *}
-        TRBF_SHINE_BACKGROUND   = $00000006;     {* Fill with SHINEPEN + BACKGROUNDPEN 
+        TRBF_SHINE_BACKGROUND   = $00000006;     {* Fill with SHINEPEN + BACKGROUNDPEN
 *}
         TRBF_SHADOW             = $00000007;     {* Fill with SHADOWPEN *}
         TRBF_SHADOW_FILL        = $00000008;     {* Fill with SHADOWPEN + FILLPEN *}
-        TRBF_SHADOW_BACKGROUND  = $00000009;     {* Fill with SHADOWPEN + 
+        TRBF_SHADOW_BACKGROUND  = $00000009;     {* Fill with SHADOWPEN +
 BACKGROUNDPEN *}
         TRBF_FILL               = $0000000A;     {* Fill with FILLPEN *}
-        TRBF_FILL_BACKGROUND    = $0000000B;     {* Fill with FILLPEN + BACKGROUNDPEN 
+        TRBF_FILL_BACKGROUND    = $0000000B;     {* Fill with FILLPEN + BACKGROUNDPEN
 *}
 
         TRSI_USBUTTONBACK       = $00010002;     {* Unselected button backfill *}
@@ -478,10 +478,10 @@ BACKGROUNDPEN *}
 
 {* General flags *}
         TROF_RAISED             = $00000001;     {* Raised object *}
-        TROF_HORIZ              = $00000002;     {* Horizontal object \ Works 
+        TROF_HORIZ              = $00000002;     {* Horizontal object \ Works
 automatically *}
         TROF_VERT               = $00000004;     {* Vertical object   / in groups *}
-        TROF_RIGHTALIGN         = $00000008;     {* Align object to the right border 
+        TROF_RIGHTALIGN         = $00000008;     {* Align object to the right border
 if available *}
         TROF_GENERAL_MASK       = $000000FF;     {* PRIVATE *}
 
@@ -491,7 +491,7 @@ if available *}
         TRTX_3D                 = $00000400;     {* 3D design *}
         TRTX_BOLD               = $00000800;     {* Softstyle 'bold' *}
         TRTX_TITLE              = $00001000;     {* A title (e.g. of a group) *}
-        TRTX_MULTILINE          = $00002000;     {* A multi-line text. See 
+        TRTX_MULTILINE          = $00002000;     {* A multi-line text. See
 TR_PrintText() autodoc clip *}
         TRTX_RIGHTALIGN         = TROF_RIGHTALIGN;
         TRTX_CENTER             = $00004000;     {* Center text *}
@@ -554,20 +554,20 @@ TR_PrintText() autodoc clip *}
         TROB_String             = (TRTG_CLS+$37); {* A string gadget *}
         TRST_Filter             = (TRTG_OAT+$1E4);
 
-        TRST_INVISIBLE          = $00010000;     {* A password gadget -> invisible 
+        TRST_INVISIBLE          = $00010000;     {* A password gadget -> invisible
 typing *}
-        TRST_NORETURNBROADCAST  = $00020000;     {* <Return> keys will not be 
+        TRST_NORETURNBROADCAST  = $00020000;     {* <Return> keys will not be
 broadcast to the window *}
-        TRST_FLOAT              = $00040000;     {* Separators "." and "," will be 
+        TRST_FLOAT              = $00040000;     {* Separators "." and "," will be
 accepted only once *}
 
 {* class_Cycle *}
 
         TROB_Cycle              = (TRTG_CLS+$36); {* A cycle gadget *}
 
-        TRCY_MX                 = $00010000;     {* Unfold the cycle gadget to a MX 
+        TRCY_MX                 = $00010000;     {* Unfold the cycle gadget to a MX
 gadget *}
-        TRCY_RIGHTLABELS        = $00020000;     {* Put the labels to the right of a 
+        TRCY_RIGHTLABELS        = $00020000;     {* Put the labels to the right of a
 MX gadget *}
 
 {* class_Palette *}
@@ -584,20 +584,20 @@ MX gadget *}
         TRGR_Vert               = (TAG_USER+202);  {* Vertical group *}
         TRGR_End                = (TRTG_OAT2+$4B); {* End of a group *}
 
-        TRGR_PROPSHARE          = $00000000;     {* Default: Divide objects 
+        TRGR_PROPSHARE          = $00000000;     {* Default: Divide objects
 proportionally *}
         TRGR_EQUALSHARE         = $00000001;     {* Divide objects equally *}
         TRGR_PROPSPACES         = $00000002;     {* Divide spaces proportionally *}
         TRGR_ARRAY              = $00000004;     {* Top-level array group *}
 
-        TRGR_ALIGN              = $00000008;     {* Align resizeable objects in 
+        TRGR_ALIGN              = $00000008;     {* Align resizeable objects in
 secondary dimension *}
-        TRGR_CENTER             = $00000010;     {* Center unresizeable objects in 
+        TRGR_CENTER             = $00000010;     {* Center unresizeable objects in
 secondary dimension *}
 
         TRGR_FIXHORIZ           = $00000020;     {* Don't allow horizontal resizing *}
         TRGR_FIXVERT            = $00000040;     {* Don't allow vertical resizing *}
-        TRGR_INDEP              = $00000080;     {* Group is independant of 
+        TRGR_INDEP              = $00000080;     {* Group is independant of
 surrounding array *}
 
 {* class_Line *}
@@ -624,7 +624,7 @@ surrounding array *}
         TRLV_NOCURSORKEYS       = $00080000;     {* Don't use arrow keys *}
         TRLV_NONUMPADKEYS       = $00100000;     {* Don't use numeric keypad keys *}
         TRLV_FWFONT             = $00200000;     {* Use the fixed-width font *}
-        TRLV_NOGAP              = $00400000;     {* Don't leave a gap below the list 
+        TRLV_NOGAP              = $00400000;     {* Don't leave a gap below the list
 *}
 
 {* class_Progress *}
@@ -654,7 +654,7 @@ surrounding array *}
         TRBU_ESCOK              = $00020000;     {* <Esc> answers the button *}
         TRBU_SHIFTED            = $00040000;     {* Shifted shortcut only *}
         TRBU_UNSHIFTED          = $00080000;     {* Unshifted shortcut only *}
-        TRBU_YRESIZE            = $00100000;     {* Button resizeable in Y direction 
+        TRBU_YRESIZE            = $00100000;     {* Button resizeable in Y direction
 *}
         TRBT_TEXT               = 0;              {* Text button *}
         TRBT_GETFILE            = 1;              {* GetFile button *}
@@ -727,15 +727,15 @@ FUNCTION TR_NumOccurances(ch : BYTE; str : pCHAR) : LONGINT;
 FUNCTION TR_NumOccurances(ch : BYTE; str : String) : LONGINT;
 FUNCTION TR_ObtainWindow(project : pTR_Project) : pWindow;
 FUNCTION TR_OpenProject(app : pTR_App; taglist : pTagItem) : pTR_Project;
-PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : pCHAR; x : ULONG; 
+PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : pCHAR; x : ULONG;
 y : ULONG; width : ULONG; flags : ULONG);
 PROCEDURE TR_PrintText(project : pTR_Project; rp : pRastPort; txt : String; x : ULONG;
 y : ULONG; width : ULONG; flags : ULONG);
 PROCEDURE TR_ReleaseWindow(window : pWindow);
 PROCEDURE TR_ReplyMsg(message : pTR_Message);
-FUNCTION TR_SendMessage(project : pTR_Project; objectid : ULONG; messageid : ULONG; 
+FUNCTION TR_SendMessage(project : pTR_Project; objectid : ULONG; messageid : ULONG;
 messagedata : POINTER) : ULONG;
-PROCEDURE TR_SetAttribute(project : pTR_Project; ID : ULONG; attribute : ULONG; value 
+PROCEDURE TR_SetAttribute(project : pTR_Project; ID : ULONG; attribute : ULONG; value
 : ULONG);
 FUNCTION TR_TextHeight(project : pTR_Project; txt : pCHAR; flags : ULONG) : ULONG;
 FUNCTION TR_TextHeight(project : pTR_Project; txt : String; flags : ULONG) : ULONG;
@@ -884,20 +884,20 @@ end;
 FUNCTION TR_AddClass(app : pTR_App; d0arg : longword; supertag : longword; defaultmethod : LONGINT; datasize : longword; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	app,A1
-	MOVE.L	d0arg,D0
-	MOVE.L	supertag,D1
-	MOVEA.L	defaultmethod,A2
-	MOVE.L	datasize,D2
-	MOVEA.L	tags,A0
-	MOVEA.L	TritonBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L app,A1
+        MOVE.L  d0arg,D0
+        MOVE.L  supertag,D1
+        MOVEA.L defaultmethod,A2
+        MOVE.L  datasize,D2
+        MOVEA.L tags,A0
+        MOVEA.L TritonBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 

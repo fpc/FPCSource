@@ -41,7 +41,7 @@ function posix_fallocate64(__fd:longint; __offset:__off64_t; __len:size_t):longi
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function fcntl(Handle: Integer; Command: Integer; var Lock: TFlock): Integer; cdecl; external clib name 'fcntl';
 function fcntl(Handle: Integer; Command: Integer; Arg: Longint): Integer; cdecl;external clib name 'fcntl';
 

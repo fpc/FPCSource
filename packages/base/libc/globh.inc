@@ -23,10 +23,10 @@ Const
   GLOB_ABEND = GLOB_ABORTED;
 
 Type
-  TGlobCloseDirProc = procedure(Param: Pointer); cdecl; 
-  TGlobReadDirFunc = function(Param: Pointer): PDirEnt; cdecl; 
-  TGlobOpenDirFunc = function(Param: PChar): __ptr_t; cdecl; 
-  TGlobStatFunc = function(Param1: PChar; Param2: PStatBuf): longint; cdecl; 
+  TGlobCloseDirProc = procedure(Param: Pointer); cdecl;
+  TGlobReadDirFunc = function(Param: Pointer): PDirEnt; cdecl;
+  TGlobOpenDirFunc = function(Param: PChar): __ptr_t; cdecl;
+  TGlobStatFunc = function(Param1: PChar; Param2: PStatBuf): longint; cdecl;
 
    Pglob_t = ^glob_t;
    glob_t = record
@@ -42,7 +42,7 @@ Type
    end;
 
   TGlobReadDir64Func = function(Param: Pointer): PDirEnt64; cdecl;
-  TGlobStat64Func = function(Param1: PChar; Param2: PStatBuf64): longint; cdecl; 
+  TGlobStat64Func = function(Param1: PChar; Param2: PStatBuf64): longint; cdecl;
 
   Pglob64_t = ^glob64_t;
   glob64_t = record
@@ -56,9 +56,9 @@ Type
     gl_lstat: TGlobStat64Func;
     gl_stat: TGlobStat64Func;
   end;
-    
+
   TGlobErrFunc = function(PathName: PChar; ErrNo: longint): longint; cdecl;
-    
+
 function glob(__pattern:Pchar; __flags:longint; __errfunc:TGlobErrFunc; __pglob:Pglob_t):longint;cdecl;external clib name 'glob';
 procedure globfree(__pglob:Pglob_t);cdecl;external clib name 'globfree';
 
@@ -72,10 +72,10 @@ function glob_pattern_p(__pattern: PChar; __quote: longint): longint; cdecl;exte
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TGlobData = glob_t;
   PGlobData = ^TGlobData;
-    
+
   TGlob64Data = glob_t;
   PGlob64Data = ^TGlob64Data;
 

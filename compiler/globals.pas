@@ -2289,7 +2289,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.171  2005-02-08 22:33:51  olle
+  Revision 1.172  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.171  2005/02/08 22:33:51  olle
     * fixed compilation on MacOS
 
   Revision 1.170  2005/02/07 21:30:25  florian
@@ -2320,134 +2323,5 @@ end.
 
   Revision 1.162  2005/01/23 21:09:11  florian
     + added pi bit pattern to the compiler, so pi should always be correct
-
-  Revision 1.161  2005/01/20 16:38:45  peter
-    * load jmp_buf_size from system unit
-
-  Revision 1.160  2005/01/09 20:24:43  olle
-    * rework of macro subsystem
-    + exportable macros for mode macpas
-
-  Revision 1.159  2005/01/06 13:40:41  florian
-    * 1.0.10 starting patch from Peter
-
-  Revision 1.158  2005/01/06 09:20:36  karoly
-    * made Shell() work correctly on MorphOS
-
-  Revision 1.157  2005/01/04 17:40:33  karoly
-    + sysv style syscalls added for MorphOS
-
-  Revision 1.156  2005/01/04 16:20:51  florian
-    * fixed nan et al. handling on arm
-
-  Revision 1.155  2004/12/28 20:43:01  hajny
-    * 8.3 fixes (short target name in paths)
-
-  Revision 1.154  2004/12/15 16:06:47  marco
-   * introduction "cleanpath" (=fexpand), fixfilename(paramstr(0)) + search $PREFIX/etc/fpc.cfg
-
-  Revision 1.153  2004/11/05 13:14:30  florian
-    * fixed arm compilation
-
-  Revision 1.152  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.151  2004/10/31 19:09:54  peter
-    * default paths fixed
-
-  Revision 1.150  2004/10/31 18:54:24  peter
-    * $fpctarget expands to <cpu>-<os>
-    * allow * in middle of the path to support ../*/units/$fpctarget
-
-  Revision 1.149  2004/10/26 15:11:01  peter
-    * -Ch for heapsize added again
-    * __heapsize contains the heapsize
-
-  Revision 1.148  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.147  2004/10/16 22:46:14  olle
-   * Fixed printing of filedates
-
-  Revision 1.146  2004/10/16 13:03:13  olle
-    + added more support for macos
-
-  Revision 1.145  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.144  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.143  2004/10/10 15:42:22  peter
-    * default optimization cpu changed to CLassPentium3
-
-  Revision 1.142  2004/10/09 11:27:59  olle
-    + Added CurDirRelPath
-    * Exchanged hardcoded "./" to CurDirRelPath
-
-  Revision 1.141  2004/09/21 23:33:43  hajny
-    * better PathExists, fix for too long command line, correction of message
-
-  Revision 1.140  2004/09/21 19:59:51  peter
-    * x86_64 fixes
-    * cleanup of fpcdefs.icn
-
-  Revision 1.139  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.138  2004/09/08 11:23:31  michael
-  + Check if outputdir exists,  Fix exitcode when displaying help pages
-
-  Revision 1.137  2004/08/31 22:02:30  olle
-    + support for quoting of paths in TSearchPathList.AddPath so that
-      compiler directives which take paths, will support quotes.
-    * uppdated TranslateMacPath
-
-  Revision 1.136.4.2  2004/09/12 18:31:26  peter
-    * fpu exception support for sparc and x86_64
-
-  Revision 1.136.4.1  2004/09/12 15:30:16  peter
-    * cache currentdir
-
-  Revision 1.136  2004/08/28 20:25:25  peter
-    * optimized search for noncasesensitive names. It now searches
-      first for NormalCase and skips double tests
-
-  Revision 1.135  2004/08/20 10:29:31  olle
-    + made fpc work as an MPW tool, by itself calling asm and link.
-    * bugfix in fp exception flag settings routine
-
-  Revision 1.134  2004/08/02 07:15:54  michael
-  + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
-
-  Revision 1.133  2004/07/17 15:51:57  jonas
-    * shell now returns an exitcode
-    * print an error if linking failed when linking was done using a script
-
-  Revision 1.132  2004/07/05 23:28:24  olle
-    + FixFileName now handles Mac OS paths
-
-  Revision 1.131  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.130  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.129  2004/05/11 18:20:52  olle
-    * changed $mode mac to $mode macpas
-    * changed macmodeswitches to be more faithful to the mac dialect
-
-  Revision 1.128  2004/04/29 19:56:36  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.127  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.126.2.4  2004/05/09 15:47:21  peter
-    * fix typecast from word->set
 
 }

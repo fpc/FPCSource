@@ -588,9 +588,7 @@ end;
 
 {
   $Log$
-  Revision 1.9  2002-09-07 15:07:47  peter
-    * old logs removed and tabs fixed
+  Revision 1.10  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.8  2002/09/07 12:37:19  carl
-    - unit cleanup (removed unused defines)
 }

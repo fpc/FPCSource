@@ -90,34 +90,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2005-01-19 21:10:15  peter
+  Revision 1.31  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.30  2005/01/19 21:10:15  peter
     * build wordversion from constants
 
   Revision 1.29  2005/01/02 10:20:08  florian
     * version and copyright increased
-
-  Revision 1.28  2004/12/30 19:01:29  peter
-    * back to 1.9.5 for HEAD
-
-  Revision 1.27  2004/12/30 18:37:27  peter
-    * 1.9.6
-
-  Revision 1.26  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.25  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.24  2004/05/31 12:00:56  peter
-    * 1.9.5 for CVS HEAD
-
-  Revision 1.23  2004/05/29 23:46:50  michael
-  + Version 1.9.4
-
-  Revision 1.22.2.1  2004/04/28 21:46:56  peter
-    * compile fixes for x86-64
-
-  Revision 1.22  2004/01/11 20:59:41  florian
-    * version changed to 1.9.3
 
 }

@@ -3,10 +3,10 @@ uses wincd;
 
 Function ReadCDTOC(Device : String; Var CDTOC : Array of TTocEntry) : Integer;
 
-Var 
+Var
   Toc :  TToc;
   I,Res : Integer;
-  
+
 begin
  Res:=ReadTOC(Device,TOC);
  If Res<0 then

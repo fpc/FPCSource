@@ -490,22 +490,7 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-05-02 14:46:45  marco
-   * some confusion over createfont, cleaned up (bug 3056)
-
-  Revision 1.8  2002/12/12 17:34:35  peter
-    * Renaming INT type to WINT
-
-  Revision 1.7  2002/09/15 17:53:44  peter
-    * Remove Float type, use Single instead
-
-  Revision 1.6  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/05/09 08:31:43  carl
-  * Merges from Fixes branch
-
-  Revision 1.1.2.3  2002/01/19 11:48:20  peter
-    * more functions added from webbugs
+  Revision 1.10  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

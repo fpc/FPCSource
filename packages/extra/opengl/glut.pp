@@ -127,17 +127,17 @@ const
   GLUT_OVERLAY                    = 1;
 
   // Stroke font constants (use these in GLUT program).
-  GLUT_STROKE_ROMAN		  = Pointer(0);
-  GLUT_STROKE_MONO_ROMAN	  = Pointer(1);
+  GLUT_STROKE_ROMAN               = Pointer(0);
+  GLUT_STROKE_MONO_ROMAN          = Pointer(1);
 
   // Bitmap font constants (use these in GLUT program).
-  GLUT_BITMAP_9_BY_15		  = Pointer(2);
-  GLUT_BITMAP_8_BY_13		  = Pointer(3);
-  GLUT_BITMAP_TIMES_ROMAN_10	  = Pointer(4);
-  GLUT_BITMAP_TIMES_ROMAN_24	  = Pointer(5);
-  GLUT_BITMAP_HELVETICA_10	  = Pointer(6);
-  GLUT_BITMAP_HELVETICA_12	  = Pointer(7);
-  GLUT_BITMAP_HELVETICA_18	  = Pointer(8);
+  GLUT_BITMAP_9_BY_15             = Pointer(2);
+  GLUT_BITMAP_8_BY_13             = Pointer(3);
+  GLUT_BITMAP_TIMES_ROMAN_10      = Pointer(4);
+  GLUT_BITMAP_TIMES_ROMAN_24      = Pointer(5);
+  GLUT_BITMAP_HELVETICA_10        = Pointer(6);
+  GLUT_BITMAP_HELVETICA_12        = Pointer(7);
+  GLUT_BITMAP_HELVETICA_18        = Pointer(8);
 
   // glutGet parameters.
   GLUT_WINDOW_X                   = 100;

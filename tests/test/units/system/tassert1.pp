@@ -3,8 +3,8 @@ program tassert1;
 
 var
  global_boolean : boolean;
- 
-const 
+
+const
   RESULT_BOOLEAN = true;
 
 function get_boolean : boolean;
@@ -17,7 +17,7 @@ procedure test_assert_reference_global;
   global_boolean:=RESULT_BOOLEAN;
   assert(global_boolean);
  end;
- 
+
 procedure test_assert_reference_local;
  var
   b: boolean;
@@ -25,8 +25,8 @@ procedure test_assert_reference_local;
   b:=RESULT_BOOLEAN;
   assert(b);
  end;
- 
- 
+
+
 procedure test_assert_register;
  var
   b: boolean;
@@ -43,14 +43,14 @@ procedure test_assert_flags;
   j:=-12;
   assert(i > j);
  end;
- 
+
 procedure test_assert_constant;
   begin
     assert(RESULT_BOOLEAN);
   end;
-  
- 
- 
+
+
+
 begin
   Write('Assert test (TRUE)...');
   test_assert_reference_global;
@@ -63,7 +63,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-16 19:16:36  carl
-    * several new routines have a testsuit.
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

@@ -32,16 +32,10 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
 {
   $Log$
-  Revision 1.3  2005-02-06 20:31:35  florian
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.3  2005/02/06 20:31:35  florian
     + GlobalNameSpace
-
-  Revision 1.2  2004/03/05 12:17:50  marco
-   * interlocked* changed to longints, including winapi. (which was a bug)
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.3  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
 
 }

@@ -19,9 +19,9 @@ type
 var
   image_line : array[0..MaxLines-1,0..MaxWidth-1] of RGB_pixel;
 var
-  image_buffer : JSAMPROW;	{ Points to large array of R,G,B-order data }
-  image_height : int;	        { Number of rows in image }
-  image_width : int;		{ Number of columns in image }
+  image_buffer : JSAMPROW;      { Points to large array of R,G,B-order data }
+  image_height : int;           { Number of rows in image }
+  image_width : int;            { Number of columns in image }
 var
   current_line : int;
 type

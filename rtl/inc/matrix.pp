@@ -15,7 +15,7 @@ unit matrix;
 
 {This unit provides some common matrix and vector operations on vectors and
  matrixes with dimensions of 2, 3 and 4 which are the most common ones in
- computer graphics, and all routines provided in variations with single, 
+ computer graphics, and all routines provided in variations with single,
  double and extended precision.
 
  The goal of this unit is also to invite some standardisation
@@ -830,10 +830,7 @@ end.
 {$endif VER1_0}
 {
   $Log$
-  Revision 1.3  2004-07-08 10:16:21  daniel
-    * Doesn't compile with 1.0 :(
-
-  Revision 1.2  2004/07/07 21:37:30  daniel
-    * Matrix unit included in build process
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

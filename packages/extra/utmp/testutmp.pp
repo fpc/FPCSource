@@ -29,10 +29,7 @@ begin
       Writeln ('.',ip_address[3],'.',ip_address[4]);
       end;
 end.  $Log$
-end.  Revision 1.2  2002-09-07 15:43:06  peter
-end.    * old logs removed and tabs fixed
-end.
-end.  Revision 1.1  2002/01/29 17:55:23  peter
-end.    * splitted to base and extra
+end.  Revision 1.3  2005-02-14 17:13:21  peter
+end.    * truncate log
 end.
 }

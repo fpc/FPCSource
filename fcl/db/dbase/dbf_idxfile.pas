@@ -290,7 +290,7 @@ type
     procedure WalkLast;
     function  WalkPrev: boolean;
     function  WalkNext: boolean;
-    
+
     procedure TranslateToANSI(Src, Dest: PChar);
     function  CompareKeyNumericNDX(Key: PChar): Integer;
     function  CompareKeyNumericMDX(Key: PChar): Integer;
@@ -2806,7 +2806,7 @@ begin
       // DB4 MDX
       NumDecimals := 0;
       case ResultType of
-        etInteger: 
+        etInteger:
           begin
             IntSrc := PInteger(Result)^;
             // handle zero differently: no decimals
@@ -3466,7 +3466,7 @@ begin
 
   // we now know cursor position, resync possible range
   ResyncRange(false);
-  
+
   // go to cursor position
   case action of
     0: WalkFirst;

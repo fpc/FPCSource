@@ -8,13 +8,13 @@ Var
   Y,W,D : Word;
   B : Boolean;
 
-Begin 
+Begin
   For Y:=2000 to 2004 do
     begin
     B:=True;
     For W:=4 to 6 do
       For D:=1 to 7 do
-        If B then 
+        If B then
           begin
           B:=IsValidDateMonthWeek(Y,12,W,D);
           If Not B then

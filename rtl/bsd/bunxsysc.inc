@@ -138,7 +138,7 @@ begin
         time_to_sleep.tv_nsec := 0;
         if (FPnanosleep(@time_to_sleep, @time_remaining) <> -1) Then
          Exit(0);
-        if (fpgeterrno <> ESysEINTR) Then	// EAGAIN?
+        if (fpgeterrno <> ESysEINTR) Then       // EAGAIN?
          Exit (seconds);                     { best guess }
         FPsleep:= time_remaining.tv_sec;
         if   (time_remaining.tv_nsec <> 0) Then
@@ -536,73 +536,10 @@ end;
 
 {
  $Log$
- Revision 1.1  2005-02-13 20:01:37  peter
+ Revision 1.2  2005-02-14 17:13:21  peter
+   * truncate log
+
+ Revision 1.1  2005/02/13 20:01:37  peter
    * include file cleanup
 
- Revision 1.10  2004/11/19 13:15:14  marco
-  * external rework. Mostly done.
-
- Revision 1.9  2004/11/14 12:21:08  marco
-  * moved some calls from unix to baseunix. Darwin untested.
-
- Revision 1.8  2004/01/22 13:46:14  marco
- bsd
-
- Revision 1.7  2003/12/30 12:26:21  marco
-  * FPC_USE_LIBC
-
- Revision 1.6  2003/11/18 10:12:25  marco
-  * Small fixes for EAGAIN. bunxfunc only has comments added.
-
- Revision 1.5  2003/10/26 17:01:04  marco
-  * moved sigprocmask to system
-
- Revision 1.4  2003/09/27 13:45:58  peter
-   * fpnanosleep exported in baseunix
-   * fpnanosleep has pointer arguments to be C compliant
-
- Revision 1.3  2003/09/14 20:15:01  marco
-  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
- Revision 1.2  2003/01/05 19:10:05  marco
-  * Small sigprocmask fix
-
- Revision 1.1  2003/01/05 19:01:28  marco
-  * FreeBSD compiles now with baseunix mods.
-
- Revision 1.11  2002/11/14 13:25:27  marco
-  * Fix setitimer.
-
- Revision 1.10  2002/11/14 12:34:20  marco
-  * took out the generic sethandling.
-
- Revision 1.9  2002/11/13 18:15:08  marco
-  * sigset functions more flexible, small changes to FPtime
-
- Revision 1.8  2002/10/27 17:21:29  marco
-  * Only "difficult" functions + execvp + termios + rewinddir left to do
-
- Revision 1.7  2002/10/27 11:58:29  marco
-  * Modifications from Saturday.
-
- Revision 1.6  2002/10/26 18:27:51  marco
-  * First series POSIX calls commits. Including getcwd.
-
- Revision 1.5  2002/10/25 15:46:48  marco
-  * Should be alias.
-
- Revision 1.4  2002/09/08 16:20:27  marco
-  * Forgot external name's
-
- Revision 1.3  2002/09/08 16:11:59  marco
-  * Added GetDomainName and that other one ..
-
- Revision 1.2  2002/09/07 16:01:17  peter
-   * old logs removed and tabs fixed
-
- Revision 1.1  2002/08/21 07:03:16  marco
-  * Fixes from Tuesday.
-
- Revision 1.1  2002/08/08 11:39:30  marco
-  * Initial versions, to allow support for uname in posix.pp
 }

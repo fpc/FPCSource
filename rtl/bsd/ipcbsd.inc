@@ -20,10 +20,10 @@ function ftok(path:Pchar; id:cint):key_t;
 var st:stat;
 
 begin
-  if fpstat(path,st)<0 then 
+  if fpstat(path,st)<0 then
    ftok:=key_t(-1)
  else
-   ftok:=key_t( byte(id) shl 24 + ((st.st_dev and 255) shl 16) + (st.st_ino and $ffff)); 
+   ftok:=key_t( byte(id) shl 24 + ((st.st_dev and 255) shl 16) + (st.st_ino and $ffff));
 end;
 
 function shmget(key:key_t;size:cint;flag:cint):cint;
@@ -85,8 +85,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-04-25 19:15:43  marco
-   * IPC reform
-
+  Revision 1.2  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

@@ -259,27 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-01-08 11:43:18  florian
+  Revision 1.8  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.7  2005/01/08 11:43:18  florian
     + vector unit window
-
-  Revision 1.6  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.5  2004/11/06 22:02:49  peter
-    * fixed resize helptext
-
-  Revision 1.4  2002/09/07 15:40:44  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/06/07 14:09:56  pierre
-   * try to get resizing to work
-
-  Revision 1.2  2002/05/30 15:03:24  pierre
-   + ResizeApplication pethod for fvision
 
 }

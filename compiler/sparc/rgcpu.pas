@@ -164,51 +164,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.30  2004/10/05 21:29:29  florian
-    * fixed generation of refs wiht large offsets, code still broken though
-
-  Revision 1.29  2004/10/05 20:41:02  peter
-    * more spilling rewrites
-
-  Revision 1.28  2004/10/04 20:46:22  peter
-    * spilling code rewritten for x86. It now used the generic
-      spilling routines. Special x86 optimization still needs
-      to be added.
-    * Spilling fixed when both operands needed to be spilled
-    * Cleanup of spilling routine, do_spill_readwritten removed
-
-  Revision 1.27  2004/10/01 17:33:47  peter
-    * indents
-
-  Revision 1.26  2004/09/28 20:19:36  peter
-    * fixed crash
-
-  Revision 1.25  2004/09/27 21:23:26  peter
-    * fixed spilling code
-
-  Revision 1.24  2004/08/24 21:02:33  florian
-    * fixed longbool(<int64>) on sparc
-
-  Revision 1.23  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.22  2004/06/20 08:47:33  florian
-    * spilling of doubles on sparc fixed
-
-  Revision 1.21  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.20.2.4  2004/06/13 20:38:38  florian
-    * fixed floating point register spilling on sparc
-
-  Revision 1.20.2.3  2004/06/13 10:51:17  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.20.2.2  2004/06/03 19:23:41  florian
-    * fixed some spilling issues
+  Revision 1.32  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

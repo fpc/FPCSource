@@ -10,4 +10,4 @@ function __strfmon_l(__s:Pchar; __maxsize:size_t; loc:__locale_t; __format:Pchar
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -1480,7 +1480,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.106  2005-02-13 18:55:19  florian
+  Revision 1.107  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.106  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.105  2005/01/27 20:32:51  florian
@@ -1502,96 +1505,5 @@ end.
 
   Revision 1.100  2005/01/01 13:19:09  florian
     * improved code generation for OP_MUL/OP_IMUL
-
-  Revision 1.99  2004/12/18 15:48:06  florian
-    * fixed some alignment trouble
-
-  Revision 1.98  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.97  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.96  2004/10/24 11:53:45  peter
-    * fixed compilation with removed loadref
-
-  Revision 1.95  2004/10/10 20:51:46  peter
-    * fixed sparc compile
-    * fixed float regvar loading
-
-  Revision 1.94  2004/10/10 20:31:48  peter
-    * concatcopy_unaligned maps by default to concatcopy, sparc will
-      override it with call to fpc_move
-
-  Revision 1.93  2004/09/29 18:55:40  florian
-    * fixed more sparc overflow stuff
-    * fixed some op64 stuff for sparc
-
-  Revision 1.92  2004/09/27 21:24:17  peter
-    * fixed passing of flaot parameters. The general size is still float,
-      only the size of the locations is now OS_32
-
-  Revision 1.91  2004/09/26 21:04:35  florian
-    + partial overflow checking on sparc; multiplication still missing
-
-  Revision 1.90  2004/09/26 17:36:12  florian
-    + a_jmp_name for sparc added
-
-  Revision 1.89  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.88  2004/09/21 20:33:00  peter
-    * don't remove MOV reg1,reg1 it is needed for the RA
-
-  Revision 1.87  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.86.4.5  2004/09/20 20:43:15  peter
-    * implement reg_ref/ref_reg for 64bit to prevent loading the
-      address symbol twice
-
-  Revision 1.86.4.4  2004/09/17 17:19:26  peter
-    * fixed 64 bit unaryminus for sparc
-    * fixed 64 bit inlining
-    * signness of not operation
-
-  Revision 1.86.4.3  2004/09/12 21:31:03  peter
-    * sign extension added
-
-  Revision 1.86.4.2  2004/09/12 13:36:40  peter
-    * fixed alignment issues
-
-  Revision 1.86.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.86  2004/08/25 20:40:04  florian
-    * fixed absolute on sparc
-
-  Revision 1.85  2004/08/24 21:02:32  florian
-    * fixed longbool(<int64>) on sparc
-
-  Revision 1.84  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.83  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.82.2.9  2004/06/02 19:05:16  peter
-    * use a_load_const_reg to load const
-
-  Revision 1.82.2.8  2004/06/02 16:07:40  peter
-    * implement op64_reg_reg_reg
-
-  Revision 1.82.2.7  2004/05/31 22:07:54  peter
-    * don't use float in concatcopy
-
-  Revision 1.82.2.6  2004/05/30 17:54:14  florian
-    + implemented cmp64bit
-    * started to fix spilling
-    * fixed int64 sub partially
 
 }

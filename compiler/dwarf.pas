@@ -421,27 +421,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-10-31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.3  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.2  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.1.2.6  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.1.2.5  2004/04/27 18:18:25  peter
-    * aword -> aint
-
-  Revision 1.1.2.4  2004/04/20 16:35:58  peter
-    * generate dwarf for stackframe entry
-
-  Revision 1.1.2.3  2004/04/12 19:34:45  peter
-    * basic framework for dwarf CFI
+  Revision 1.5  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

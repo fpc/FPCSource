@@ -122,21 +122,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-11-01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.8  2004/10/24 07:54:25  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.7  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.6  2004/03/13 18:45:40  florian
-    * floating compares fixed
-    * unary minus for floats fixed
-
-  Revision 1.5  2004/01/28 15:36:47  florian
-    * fixed another couple of arm bugs
+  Revision 1.10  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

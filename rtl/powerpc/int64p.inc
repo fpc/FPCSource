@@ -126,7 +126,7 @@
 
 {$define FPC_SYSTEM_HAS_MOD_QWORD}
     function int_div_qword(n,z : qword) : qword;external name 'FPC_DIV_QWORD';
-    
+
     function fpc_mod_qword(n,z : qword) : qword;assembler;[public,alias: 'FPC_MOD_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
       assembler;
       var
@@ -150,7 +150,7 @@
       asm
         // (r3:r4) = (r3:r4) * (r5:r6),  checkoverflow is in r7
         //   res        f1        f2
-        
+
         or.     r8,r3,r5    // are both msw's 0?
         mulhwu  r8,r4,r6    // msw of product of lsw's
         cntlzw  r11,r3      // count leading zeroes of msw1
@@ -200,24 +200,7 @@
 
 {
   $Log$
-  Revision 1.6  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.5  2004/10/19 18:51:15  jonas
-    + "nostackframe" modifier, because the automatic detection in the
-      compiler to determine that a stack frame is not needed no longer works
-
-  Revision 1.4  2004/05/29 21:35:54  jonas
-    * fixed overflow checking for qword multiplication
-
-  Revision 1.3  2004/01/12 21:35:51  jonas
-    + assembler FPC_MUL_QWORD routine
-
-  Revision 1.2  2004/01/12 18:03:30  jonas
-    + ppc implementation of fpc_mod/div_qword (from ppc compiler writers guide)
-
-  Revision 1.1  2003/09/14 11:34:13  peter
-    * moved int64 asm code to int64p.inc
-    * save ebx,esi
+  Revision 1.7  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -271,28 +271,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-09-26 19:25:49  armin
-  * exiting threads at nlm unload
-
-  Revision 1.2  2004/07/30 15:05:25  armin
-  make netware rtl compilable under 1.9.5
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.3  2003/10/06 17:06:55  florian
-    * applied Johannes Berg's patch for exception handling in threads
-
-  Revision 1.2  2003/03/27 17:14:27  armin
-  * more platform independent thread routines, needs to be implemented for unix
-
-  Revision 1.1  2003/03/25 17:56:19  armin
-  * first fcl implementation for netware
-
-  Revision 1.7  2002/12/18 20:44:36  peter
-    * use fillchar to clear sigset
-
-  Revision 1.6  2002/09/07 15:15:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -44,7 +44,7 @@ asm
   mtfsb0 21
   mtfsb0 22
   mtfsb0 23
-  
+
 {$endif fpc_mtfsb0_corrected}
 
   { enable invalid operations and division by zero exceptions. }
@@ -1047,17 +1047,17 @@ asm
    cmplwi  r3,0
    beq     .Lcaller_addr_frame_null
 {$ifdef MACOS}
-   rlwinm	r4,r3,0,31,31
-   cmpwi	r4,0
-   bne	cr0,.Lcaller_addr_frame_null
+   rlwinm       r4,r3,0,31,31
+   cmpwi        r4,0
+   bne  cr0,.Lcaller_addr_frame_null
 {$endif MACOS}
    lwz r3,0(r3)
    cmplwi  r3,0
    beq     .Lcaller_addr_frame_null
 {$ifdef MACOS}
-   rlwinm	r4,r3,0,31,31
-   cmpwi	r4,0
-   bne	cr0,.Lcaller_addr_frame_null
+   rlwinm       r4,r3,0,31,31
+   cmpwi        r4,0
+   bne  cr0,.Lcaller_addr_frame_null
 {$endif MACOS}
 {$ifdef FPC_ABI_AIX}
    lwz r3,8(r3)
@@ -1074,9 +1074,9 @@ asm
     cmplwi  r3,0
     beq     .Lcaller_frame_null
 {$ifdef MACOS}
-    rlwinm	r4,r3,0,31,31
-    cmpwi	r4,0
-    bne	cr0,.Lcaller_frame_null
+    rlwinm      r4,r3,0,31,31
+    cmpwi       r4,0
+    bne cr0,.Lcaller_frame_null
 {$endif MACOS}
     lwz  r3,0(r3)
 .Lcaller_frame_null:
@@ -1156,244 +1156,10 @@ end;
 
 {
   $Log$
-  Revision 1.74  2005-01-31 20:57:41  olle
+  Revision 1.75  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.74  2005/01/31 20:57:41  olle
     * Fixed stack frame access for macos
-
-  Revision 1.73  2004/11/20 15:49:21  jonas
-    * some compilation fixes for powerpc after all the internconst and
-      internproc changes, still crashes with internalerror(88) for ppc1
-      on real2str.inc(193,39)
-
-  Revision 1.72  2004/11/08 08:54:51  jonas
-    * use "round to nearest" rounding mode again, just like C (affects
-      results of divisions as well)
-
-  Revision 1.71  2004/10/24 14:43:26  jonas
-    * fixed redzone usage in fillchar
-
-  Revision 1.70  2004/10/24 14:20:21  jonas
-    * fixed default rounding mode
-
-  Revision 1.69  2004/10/19 18:51:15  jonas
-    + "nostackframe" modifier, because the automatic detection in the
-      compiler to determine that a stack frame is not needed no longer works
-
-  Revision 1.68  2004/10/09 21:00:46  jonas
-    + cgenmath with libc math functions. Faster than the routines in genmath
-      and also have full double support (exp() only has support for values in
-      the single range in genmath, for example). Used in FPC_USE_LIBC is
-      defined
-    * several fixes to allow compilation with -dHASINLINE, but internalerrors
-      because of missing support for inlining assembler code
-
-  Revision 1.67  2004/05/01 17:02:37  jonas
-    * use some more string routines from libc if FPC_USE_LIBC is used
-
-  Revision 1.66  2004/04/29 20:00:47  peter
-    * inclocked_longint ifdef fixed
-
-  Revision 1.65  2004/01/11 11:10:07  jonas
-    + cgeneric.inc: implementations of rtl routines based on libc
-    * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
-      FPC_USE_LIBC is defined
-    * powerpc.inc, i386.inc: check whether the routines they implement aren't
-      implemented yet in another include file (cgeneric.inc)
-
-  Revision 1.64  2004/01/10 00:16:20  jonas
-    * fixed mtfsb0 instruction for assembler reader/writer
-    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
-      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
-      requiring to start with a cross compiler)
-
-  Revision 1.63  2004/01/03 19:46:29  jonas
-    * fixed syntax error caught by Mac OS X' as :)
-
-  Revision 1.62  2004/01/02 17:21:50  jonas
-    + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
-      initialises
-    + fpu exceptions for invalid operations and division by zero enabled for
-      ppc
-
-  Revision 1.61  2003/12/28 21:06:56  jonas
-    * fixed fillchar for SYSV abi
-
-  Revision 1.60  2003/12/21 21:23:09  florian
-    * fixed compilation with sysv calling conventions
-
-  Revision 1.59  2003/12/09 20:08:30  jonas
-    * fixed buffer overflow bug in fpc_shortstr_append_shortstr in case
-      the result was already 255 characters long
-
-  Revision 1.58  2003/12/07 14:27:45  jonas
-    * fixed buffer overrun error in fillchar
-
-  Revision 1.57  2003/12/07 13:29:02  jonas
-    + added FPC_MOVE alias to move for open array support
-
-  Revision 1.56  2003/11/23 17:34:27  jonas
-    * fixed some label names
-
-  Revision 1.55  2003/11/15 19:01:27  florian
-    * fixed rtl to work with the integrated fpc ppc assembler reader
-
-  Revision 1.54  2003/09/14 20:33:28  jonas
-    * renamed sp to r1, gnu as doesn't understand sp
-
-  Revision 1.53  2003/09/06 10:44:41  olle
-    + Used macros ABI_AIX and ABI_SYSV exchanged to FPC_ABI_AIX and FPC_ABI_SYSV.
-
-  Revision 1.52  2003/08/24 20:47:49  olle
-    + added support for ABI_AIX in get_caller_addr
-
-  Revision 1.51  2003/06/14 12:41:08  jonas
-    * fixed compilation problems (removed unnecessary modified registers
-      lists from procedures)
-
-  Revision 1.50  2003/06/01 14:50:17  jonas
-    * fpc_shortstr_append_shortstr has to use high(s1) instead of 255 as
-      maxlen
-    + ppc version of fpc_shortstr_append_shortstr
-
-  Revision 1.49  2003/05/29 21:17:27  jonas
-    * compile with -dppc603 to not use unaligned float loads in move() and
-      g_concatcopy, because the 603 and 604 take an exception for those
-      (and netbsd doesn't even handle those in the kernel). There are
-      still some of those left that could cause problems though (e.g.
-      in the set helpers)
-
-  Revision 1.48  2003/05/29 14:32:54  jonas
-    * changed dcbst to dcbtst (former means "flush cache block to memory,
-      the latter means "I will soon store something to that cache block")
-
-  Revision 1.47  2003/05/29 12:14:02  jonas
-    * move() now uses dcbz if possible
-
-  Revision 1.46  2003/05/17 00:19:51  jonas
-    * fixed inclocked
-
-  Revision 1.45  2003/05/14 19:47:35  jonas
-    * fixed stupid bug in filldword
-
-  Revision 1.44  2003/05/13 20:39:26  florian
-    * uncommented shortstring compare, buggy
-
-  Revision 1.43  2003/05/12 19:39:33  jonas
-    * fixed final fillchar error (tfillchr passes now)
-
-  Revision 1.42  2003/05/12 19:00:50  jonas
-    * fixed bug in fillchar
-
-  Revision 1.41  2003/05/10 20:33:39  jonas
-    * fixed get_caller_frame and get_caller_addr
-
-  Revision 1.40  2003/05/10 17:33:06  jonas
-    * final (? :) fix to move, passes new tests/test/tmove test
-
-  Revision 1.39  2003/05/02 19:03:25  jonas
-    * fixed some bugs in move()
-
-  Revision 1.38  2003/04/27 16:24:44  jonas
-    - disabled fpc_shortstr_concat because it's called differently than that
-      routine is declared
-
-  Revision 1.37  2003/04/26 20:37:17  jonas
-    * fixed and re-enabled routines commented out by Florian :)
-
-  Revision 1.36  2003/04/26 17:46:49  florian
-    * commented out not working routines
-    * reactivated assembler fillchar
-
-  Revision 1.35  2003/04/26 17:35:15  jonas
-    * fixed FillChar
-
-  Revision 1.34  2003/04/26 12:05:10  florian
-    * removed object/class helpers, the compiler uses the generic ones
-
-  Revision 1.33  2003/04/26 11:55:52  florian
-    * fixed newlines
-
-  Revision 1.32  2003/04/23 21:04:48  florian
-    * fixed fpc_shortstr_to_shortstr
-
-  Revision 1.31  2003/03/17 14:30:11  peter
-    * changed address parameter/return values to pointer instead
-      of longint
-
-  Revision 1.30  2003/03/12 19:21:29  jonas
-    + implemented get_frame()
-    * fixed bug in IndexDWord()
-
-  Revision 1.29  2003/01/09 20:14:35  florian
-    * fixed helper declarations
-
-  Revision 1.28  2003/01/09 13:38:56  florian
-    * dec/inclocked got defines
-
-  Revision 1.27  2002/11/07 15:23:13  jonas
-    * always use code that was between 'ifdef mt', since that define is
-      deprecated now
-
-  Revision 1.26  2002/11/01 13:27:55  jonas
-    * changed "dcbtst r0,x" to "dcbtst 0,x"
-
-  Revision 1.25  2002/10/23 15:26:00  olle
-    * excluded saverestorereg for target macos
-
-  Revision 1.24  2002/10/20 13:40:55  jonas
-    * move/fill*/index*/comp* routines immediately exit if length is negative
-
-  Revision 1.23  2002/10/17 10:12:50  jonas
-    * fixed return value of declocked()
-
-  Revision 1.22  2002/10/05 14:20:16  peter
-    * fpc_pchar_length compilerproc and strlen alias
-
-  Revision 1.21  2002/10/02 18:21:52  peter
-    * Copy() changed to internal function calling compilerprocs
-    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
-      new copy functions
-
-  Revision 1.20  2002/09/10 21:30:34  jonas
-    * disabled powerpc-specific fpc_shortstr_concat for now, it was
-      completely wrong
-
-  Revision 1.19  2002/09/10 17:47:20  jonas
-    * fixed bug with concatting 0-length shortstrings
-
-  Revision 1.18  2002/09/07 16:01:26  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.17  2002/08/31 21:29:57  florian
-    * several PC related fixes
-
-  Revision 1.16  2002/08/31 16:08:36  florian
-    * fixed undefined labels
-
-  Revision 1.15  2002/08/31 13:11:11  florian
-    * several fixes for Linux/PPC compilation
-
-  Revision 1.14  2002/08/18 22:11:10  florian
-    * fixed remaining assembler errors
-
-  Revision 1.13  2002/08/18 21:37:48  florian
-    * several errors in inline assembler fixed
-
-  Revision 1.12  2002/08/10 17:14:36  jonas
-    * various fixes, mostly changing the names of the modifies registers to
-      upper case since that seems to be required by the compiler
-
-  Revision 1.11  2002/07/30 17:29:53  florian
-    + dummy setjmp and longjmp added
-    + dummy implemtation of the destructor helper
-
-  Revision 1.10  2002/07/28 21:39:29  florian
-    * made abs a compiler proc if it is generic
-
-  Revision 1.9  2002/07/28 20:43:49  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
-
-  Revision 1.8  2002/07/26 15:45:56  florian
-    * changed multi threading define: it's MT instead of MTRTL
 
 }

@@ -9,14 +9,14 @@ Uses math;
 
 Type
   TExArray = Array[1..100] of Integer;
-  
+
 Var
   I : Integer;
-  ExArray : TExArray; 
-    
+  ExArray : TExArray;
+
 begin
   Randomize;
-  for I:=1 to 100 do 
+  for I:=1 to 100 do
     ExArray[i]:=Random(I)-Random(100);
-  Writeln(MaxIntValue(ExArray));  
+  Writeln(MaxIntValue(ExArray));
 end.

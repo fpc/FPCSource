@@ -2501,13 +2501,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-11-05 22:32:28  peter
-    * merged xml updates from lazarus
-
-  Revision 1.2  2003/03/17 14:32:15  peter
-    * Change ASText return to DOMString in implementation
-
-  Revision 1.1  2003/03/16 22:10:57  sg
-  * Added XPath unit
+  Revision 1.4  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

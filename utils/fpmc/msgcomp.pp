@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Windows message compiler unit.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -98,7 +98,7 @@ Resourcestring
   SWrotePasFile = 'Wrote %d constants to unit "%s"';
   SWritingRCFile = 'Writing rc file.';
   SErrNoNumber = 'Not a valid integer: %s';
-  
+
 procedure TMessageCompiler.ClearList(MsgList: Tlist);
 
 Var
@@ -128,11 +128,11 @@ Begin
         begin
         If Assigned(Msg) then
           WriteMsgFile(MsgList,Msg);
-        if Assigned(Pas) then  
+        if Assigned(Pas) then
           WritePasFile(MsgList,Pas);
-        if Assigned(RC) then  
+        if Assigned(RC) then
           WriteRCFile(MsgList,RC);
-        end;  
+        end;
     Finally
       Lines.Free;
     end;
@@ -228,10 +228,10 @@ Var
         end
       else
         MsgID:=StrToIntDef(S,-1);
-      If (MsgID=-1) then  
+      If (MsgID=-1) then
         CompileError(Format(SErrNoNumber,[S]),Line,T)
       else
-        begin  
+        begin
         Me:=TMessageENtry.Create;
         Me.MessageID:=MsgID;
         end;
@@ -428,7 +428,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-14 21:59:21  michael
+  Revision 1.2  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.1  2003/02/14 21:59:21  michael
   + Initial implementation
 
 }

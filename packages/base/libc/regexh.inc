@@ -12,7 +12,7 @@ type
 
 Const
    RE_BACKSLASH_ESCAPE_IN_LISTS = dword(1);
-   
+
 const
    RE_BK_PLUS_QM = RE_BACKSLASH_ESCAPE_IN_LISTS shl 1;
    RE_CHAR_CLASSES = RE_BK_PLUS_QM shl 1;
@@ -35,7 +35,7 @@ const
    RE_NO_GNU_OPS = RE_NO_POSIX_BACKTRACKING shl 1;
    RE_DEBUG = RE_NO_GNU_OPS shl 1;
    RE_INVALID_INTERVAL_ORD = RE_DEBUG shl 1;
-   
+
 var
   re_syntax_options : reg_syntax_t;cvar;external;
 
@@ -57,7 +57,7 @@ const
 
 const
    // Already in posix2_limh.inc:
-   //   RE_DUP_MAX = $7fff;  
+   //   RE_DUP_MAX = $7fff;
    REG_EXTENDED = 1;
    REG_ICASE = REG_EXTENDED shl 1;
    REG_NEWLINE = REG_ICASE shl 1;
@@ -109,7 +109,7 @@ type
   end;
   regex_t = re_pattern_buffer;
   pregex_t = ^regex_t;
-  
+
   Pregoff_t = ^regoff_t;
   regoff_t = longint;
   Pre_registers = ^re_registers;
@@ -121,7 +121,7 @@ type
 
 const
   RE_NREGS = 30;
-  
+
 type
   Pregmatch_t = ^regmatch_t;
   regmatch_t = record
@@ -132,12 +132,12 @@ type
 function re_set_syntax(syntax:reg_syntax_t):reg_syntax_t;cdecl;external clib name 're_set_syntax';
 function re_compile_pattern(pattern:Pchar; length:size_t; buffer:Pre_pattern_buffer):Pchar;cdecl;external clib name 're_compile_pattern';
 function re_compile_fastmap(buffer:Pre_pattern_buffer):longint;cdecl;external clib name 're_compile_fastmap';
-function re_search(buffer:Pre_pattern_buffer; _string:Pchar; length:longint; start:longint; range:longint; 
+function re_search(buffer:Pre_pattern_buffer; _string:Pchar; length:longint; start:longint; range:longint;
            regs:Pre_registers):longint;cdecl;external clib name 're_search';
-function re_search_2(buffer:Pre_pattern_buffer; string1:Pchar; length1:longint; string2:Pchar; length2:longint; 
+function re_search_2(buffer:Pre_pattern_buffer; string1:Pchar; length1:longint; string2:Pchar; length2:longint;
            start:longint; range:longint; regs:Pre_registers; stop:longint):longint;cdecl;external clib name 're_search_2';
 function re_match(buffer:Pre_pattern_buffer; _string:Pchar; length:longint; start:longint; regs:Pre_registers):longint;cdecl;external clib name 're_match';
-function re_match_2(buffer:Pre_pattern_buffer; string1:Pchar; length1:longint; string2:Pchar; length2:longint; 
+function re_match_2(buffer:Pre_pattern_buffer; string1:Pchar; length1:longint; string2:Pchar; length2:longint;
            start:longint; regs:Pre_registers; stop:longint):longint;cdecl;external clib name 're_match_2';
 procedure re_set_registers(buffer:Pre_pattern_buffer; regs:Pre_registers; num_regs:dword; starts:Pregoff_t; ends:Pregoff_t);cdecl;external clib name 're_set_registers';
 function regcomp(__preg:Pregex_t; __pattern:Pchar; __cflags:longint):longint;cdecl;external clib name 'regcomp';
@@ -150,7 +150,7 @@ procedure regfree(__preg:Pregex_t);cdecl;external clib name 'regfree';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TRePatternBuffer = re_pattern_buffer;
   PRePatternBuffer = ^TRePatternBuffer;
 

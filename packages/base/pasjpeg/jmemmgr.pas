@@ -33,7 +33,7 @@ uses
    jutils,
 {$IFDEF VER70}
 {$ifndef NO_GETENV}
-   Dos,                 	{ DOS unit should declare getenv() }
+   Dos,                         { DOS unit should declare getenv() }
                                 { function GetEnv(name : string) : string; }
 {$endif}
    jmemdos;                     { import the system-dependent declarations }
@@ -125,7 +125,7 @@ type
 type
   my_mem_ptr = ^my_memory_mgr;
   my_memory_mgr = record
-    pub : jpeg_memory_mgr;	{ public fields }
+    pub : jpeg_memory_mgr;      { public fields }
 
     { Each pool identifier (lifetime class) names a linked list of pools. }
     small_list : array[0..JPOOL_NUMPOOLS-1] of small_pool_ptr ;
@@ -145,10 +145,10 @@ type
     { alloc_sarray and alloc_barray set this value for use by virtual
       array routines. }
 
-    last_rowsperchunk : JDIMENSION;	{ from most recent alloc_sarray/barray }
+    last_rowsperchunk : JDIMENSION;     { from most recent alloc_sarray/barray }
   end; {my_memory_mgr;}
 
-  {$ifndef AM_MEMORY_MANAGER}	{ only jmemmgr.c defines these }
+  {$ifndef AM_MEMORY_MANAGER}   { only jmemmgr.c defines these }
 
 { The control blocks for virtual arrays.
   Note that these blocks are allocated in the "small" pool area.
@@ -156,39 +156,39 @@ type
   inside the backing_store_info struct. }
 type
   jvirt_sarray_control = record
-    mem_buffer : JSAMPARRAY;	{ => the in-memory buffer }
-    rows_in_array : JDIMENSION;	{ total virtual array height }
-    samplesperrow : JDIMENSION;	{ width of array (and of memory buffer) }
-    maxaccess : JDIMENSION;	{ max rows accessed by access_virt_sarray }
-    rows_in_mem : JDIMENSION;	{ height of memory buffer }
-    rowsperchunk : JDIMENSION;	{ allocation chunk size in mem_buffer }
-    cur_start_row : JDIMENSION;	{ first logical row # in the buffer }
-    first_undef_row : JDIMENSION;	{ row # of first uninitialized row }
-    pre_zero : boolean;		{ pre-zero mode requested? }
-    dirty : boolean;		{ do current buffer contents need written? }
-    b_s_open : boolean;		{ is backing-store data valid? }
-    next : jvirt_sarray_ptr;	{ link to next virtual sarray control block }
-    b_s_info : backing_store_info;	{ System-dependent control info }
+    mem_buffer : JSAMPARRAY;    { => the in-memory buffer }
+    rows_in_array : JDIMENSION; { total virtual array height }
+    samplesperrow : JDIMENSION; { width of array (and of memory buffer) }
+    maxaccess : JDIMENSION;     { max rows accessed by access_virt_sarray }
+    rows_in_mem : JDIMENSION;   { height of memory buffer }
+    rowsperchunk : JDIMENSION;  { allocation chunk size in mem_buffer }
+    cur_start_row : JDIMENSION; { first logical row # in the buffer }
+    first_undef_row : JDIMENSION;       { row # of first uninitialized row }
+    pre_zero : boolean;         { pre-zero mode requested? }
+    dirty : boolean;            { do current buffer contents need written? }
+    b_s_open : boolean;         { is backing-store data valid? }
+    next : jvirt_sarray_ptr;    { link to next virtual sarray control block }
+    b_s_info : backing_store_info;      { System-dependent control info }
   end;
 
   jvirt_barray_control = record
-    mem_buffer : JBLOCKARRAY;	{ => the in-memory buffer }
-    rows_in_array : JDIMENSION;	{ total virtual array height }
-    blocksperrow : JDIMENSION;	{ width of array (and of memory buffer) }
-    maxaccess : JDIMENSION;	{ max rows accessed by access_virt_barray }
-    rows_in_mem : JDIMENSION;	{ height of memory buffer }
-    rowsperchunk : JDIMENSION;	{ allocation chunk size in mem_buffer }
-    cur_start_row : JDIMENSION;	{ first logical row # in the buffer }
-    first_undef_row : JDIMENSION;	{ row # of first uninitialized row }
-    pre_zero : boolean;		{ pre-zero mode requested? }
-    dirty : boolean;		{ do current buffer contents need written? }
-    b_s_open : boolean;		{ is backing-store data valid? }
-    next : jvirt_barray_ptr;	{ link to next virtual barray control block }
-    b_s_info : backing_store_info;	{ System-dependent control info }
+    mem_buffer : JBLOCKARRAY;   { => the in-memory buffer }
+    rows_in_array : JDIMENSION; { total virtual array height }
+    blocksperrow : JDIMENSION;  { width of array (and of memory buffer) }
+    maxaccess : JDIMENSION;     { max rows accessed by access_virt_barray }
+    rows_in_mem : JDIMENSION;   { height of memory buffer }
+    rowsperchunk : JDIMENSION;  { allocation chunk size in mem_buffer }
+    cur_start_row : JDIMENSION; { first logical row # in the buffer }
+    first_undef_row : JDIMENSION;       { row # of first uninitialized row }
+    pre_zero : boolean;         { pre-zero mode requested? }
+    dirty : boolean;            { do current buffer contents need written? }
+    b_s_open : boolean;         { is backing-store data valid? }
+    next : jvirt_barray_ptr;    { link to next virtual barray control block }
+    b_s_info : backing_store_info;      { System-dependent control info }
   end;
   {$endif}  { AM_MEMORY_MANAGER}
 
-{$ifdef MEM_STATS}      	{ optional extra stuff for statistics }
+{$ifdef MEM_STATS}              { optional extra stuff for statistics }
 
 {LOCAL}
 procedure print_mem_stats (cinfo : j_common_ptr; pool_id : int);
@@ -204,13 +204,13 @@ begin
     This is helpful because message parm array can't handle longs. }
 
   WriteLn(output, 'Freeing pool ', pool_id,', total space := ',
-	   mem^.total_space_allocated);
+           mem^.total_space_allocated);
 
   lhdr_ptr := mem^.large_list[pool_id];
   while (lhdr_ptr <> NIL) do
   begin
     WriteLn(output, '  Large chunk used ',
-	    long (lhdr_ptr^.hdr.bytes_used));
+            long (lhdr_ptr^.hdr.bytes_used));
     lhdr_ptr := lhdr_ptr^.hdr.next;
   end;
 
@@ -234,7 +234,7 @@ procedure out_of_memory (cinfo : j_common_ptr; which : int);
 { If we compiled MEM_STATS support, report alloc requests before dying }
 begin
 {$ifdef MEM_STATS}
-  cinfo^.err^.trace_level := 2;	{ force self_destruct to report stats }
+  cinfo^.err^.trace_level := 2; { force self_destruct to report stats }
 {$endif}
   ERREXIT1(cinfo, JERR_OUT_OF_MEMORY, which);
 end;
@@ -253,16 +253,16 @@ end;
 
 const
   first_pool_slop : array[0..JPOOL_NUMPOOLS-1] of size_t  =
-	(1600,			{ first PERMANENT pool }
-	16000);			{ first IMAGE pool }
+        (1600,                  { first PERMANENT pool }
+        16000);                 { first IMAGE pool }
 
 const
   extra_pool_slop : array[0..JPOOL_NUMPOOLS-1] of size_t =
-	(0,			{ additional PERMANENT pools }
-	5000);			{ additional IMAGE pools }
+        (0,                     { additional PERMANENT pools }
+        5000);                  { additional IMAGE pools }
 
 const
-  MIN_SLOP = 50;		{ greater than 0 to avoid futile looping }
+  MIN_SLOP = 50;                { greater than 0 to avoid futile looping }
 
 
 {METHODDEF}
@@ -282,7 +282,7 @@ begin
 
   { Check for unsatisfiable request (do now to ensure no overflow below) }
   if (sizeofobject > size_t(MAX_ALLOC_CHUNK-SIZEOF(small_pool_hdr))) then
-    out_of_memory(cinfo, 1);	{ request exceeds malloc's ability }
+    out_of_memory(cinfo, 1);    { request exceeds malloc's ability }
 
   { Round up the requested size to a multiple of SIZEOF(ALIGN_TYPE) }
   odd_bytes := sizeofobject mod SIZEOF(ALIGN_TYPE);
@@ -291,13 +291,13 @@ begin
 
   { See if space is available in any existing pool }
   if (pool_id < 0) or (pool_id >= JPOOL_NUMPOOLS) then
-    ERREXIT1(j_common_ptr(cinfo), JERR_BAD_POOL_ID, pool_id);	{ safety check }
+    ERREXIT1(j_common_ptr(cinfo), JERR_BAD_POOL_ID, pool_id);   { safety check }
   prev_hdr_ptr := NIL;
   hdr_ptr := mem^.small_list[pool_id];
   while (hdr_ptr <> NIL) do
   begin
     if (hdr_ptr^.hdr.bytes_left >= sizeofobject) then
-      break;			{ found pool with enough space }
+      break;                    { found pool with enough space }
     prev_hdr_ptr := hdr_ptr;
     hdr_ptr := hdr_ptr^.hdr.next;
   end;
@@ -307,7 +307,7 @@ begin
   begin
     { min_request is what we need now, slop is what will be leftover }
     min_request := sizeofobject + SIZEOF(small_pool_hdr);
-    if (prev_hdr_ptr = NIL) then	{ first pool in class? }
+    if (prev_hdr_ptr = NIL) then        { first pool in class? }
       slop := first_pool_slop[pool_id]
     else
       slop := extra_pool_slop[pool_id];
@@ -319,10 +319,10 @@ begin
     begin
       hdr_ptr := small_pool_ptr(jpeg_get_small(cinfo, min_request + slop));
       if (hdr_ptr <> NIL) then
-	break;
+        break;
       slop := slop div 2;
       if (slop < MIN_SLOP) then   { give up when it gets real small }
-	out_of_memory(cinfo, 2);  { jpeg_get_small failed }
+        out_of_memory(cinfo, 2);  { jpeg_get_small failed }
     end;
     Inc(mem^.total_space_allocated, min_request + slop);
     { Success, initialize the new pool header and add to end of list }
@@ -374,7 +374,7 @@ begin
 
   { Check for unsatisfiable request (do now to ensure no overflow below) }
   if (sizeofobject > size_t (MAX_ALLOC_CHUNK-SIZEOF(large_pool_hdr))) then
-    out_of_memory(cinfo, 3);	{ request exceeds malloc's ability }
+    out_of_memory(cinfo, 3);    { request exceeds malloc's ability }
 
   { Round up the requested size to a multiple of SIZEOF(ALIGN_TYPE) }
   odd_bytes := sizeofobject mod SIZEOF(ALIGN_TYPE);
@@ -383,12 +383,12 @@ begin
 
   { Always make a new pool }
   if (pool_id < 0) or (pool_id >= JPOOL_NUMPOOLS) then
-    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id);	{ safety check }
+    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id); { safety check }
 
   hdr_ptr := large_pool_ptr (jpeg_get_large(cinfo, sizeofobject +
-					    SIZEOF(large_pool_hdr)));
+                                            SIZEOF(large_pool_hdr)));
   if (hdr_ptr = NIL) then
-    out_of_memory(cinfo, 4);	{ jpeg_get_large failed }
+    out_of_memory(cinfo, 4);    { jpeg_get_large failed }
   Inc(mem^.total_space_allocated, sizeofobject + SIZEOF(large_pool_hdr));
 
   { Success, initialize the new pool header and add to list }
@@ -421,7 +421,7 @@ end;
 {METHODDEF}
 function alloc_sarray (cinfo : j_common_ptr;
                        pool_id : int;
-	               samplesperrow : JDIMENSION;
+                       samplesperrow : JDIMENSION;
                        numrows : JDIMENSION) : JSAMPARRAY; far;
 { Allocate a 2-D sample array }
 var
@@ -435,7 +435,7 @@ begin
 
   { Calculate max # of rows allowed in one allocation chunk }
   ltemp := (MAX_ALLOC_CHUNK-SIZEOF(large_pool_hdr)) div
-	  (long(samplesperrow) * SIZEOF(JSAMPLE));
+          (long(samplesperrow) * SIZEOF(JSAMPLE));
   if (ltemp <= 0) then
     ERREXIT(cinfo, JERR_WIDTH_OVERFLOW);
   if (ltemp < long(numrows)) then
@@ -446,7 +446,7 @@ begin
 
   { Get space for row pointers (small object) }
   the_result := JSAMPARRAY (alloc_small(cinfo, pool_id,
-				    size_t (numrows * SIZEOF(JSAMPROW))));
+                                    size_t (numrows * SIZEOF(JSAMPROW))));
 
   { Get the rows themselves (large objects) }
   currow := 0;
@@ -457,8 +457,8 @@ begin
       rowsperchunk := numrows - currow;
 
     workspace := JSAMPROW (alloc_large(cinfo, pool_id,
-	size_t (size_t(rowsperchunk) * size_t(samplesperrow)
-		  * SIZEOF(JSAMPLE))) );
+        size_t (size_t(rowsperchunk) * size_t(samplesperrow)
+                  * SIZEOF(JSAMPLE))) );
     for i := pred(rowsperchunk) downto 0 do
     begin
       the_result^[currow] := workspace;
@@ -477,7 +477,7 @@ end;
 {METHODDEF}
 function alloc_barray (cinfo : j_common_ptr;
                        pool_id : int;
-	               blocksperrow : JDIMENSION;
+                       blocksperrow : JDIMENSION;
                        numrows : JDIMENSION) : JBLOCKARRAY; far;
 { Allocate a 2-D coefficient-block array }
 var
@@ -491,7 +491,7 @@ begin
 
   { Calculate max # of rows allowed in one allocation chunk }
   ltemp := (MAX_ALLOC_CHUNK-SIZEOF(large_pool_hdr)) div
-	  (long(blocksperrow) * SIZEOF(JBLOCK));
+          (long(blocksperrow) * SIZEOF(JBLOCK));
   if (ltemp <= 0) then
     ERREXIT(cinfo, JERR_WIDTH_OVERFLOW);
   if (ltemp < long(numrows)) then
@@ -502,7 +502,7 @@ begin
 
   { Get space for row pointers (small object) }
   the_result := JBLOCKARRAY (alloc_small(cinfo, pool_id,
-				     size_t (numrows * SIZEOF(JBLOCKROW))) );
+                                     size_t (numrows * SIZEOF(JBLOCKROW))) );
 
   { Get the rows themselves (large objects) }
   currow := 0;
@@ -513,8 +513,8 @@ begin
       rowsperchunk := numrows - currow;
 
     workspace := JBLOCKROW (alloc_large(cinfo, pool_id,
-	size_t (size_t(rowsperchunk) * size_t(blocksperrow)
-		  * SIZEOF(JBLOCK))) );
+        size_t (size_t(rowsperchunk) * size_t(blocksperrow)
+                  * SIZEOF(JBLOCK))) );
     for i := rowsperchunk downto 1 do
     begin
       the_result^[currow] := workspace;
@@ -566,9 +566,9 @@ end;
 function request_virt_sarray (cinfo : j_common_ptr;
                               pool_id : int;
                               pre_zero : boolean;
-		              samplesperrow : JDIMENSION;
+                              samplesperrow : JDIMENSION;
                               numrows : JDIMENSION;
-		              maxaccess : JDIMENSION) : jvirt_sarray_ptr; far;
+                              maxaccess : JDIMENSION) : jvirt_sarray_ptr; far;
 { Request a virtual 2-D sample array }
 var
   mem : my_mem_ptr;
@@ -578,18 +578,18 @@ begin
 
   { Only IMAGE-lifetime virtual arrays are currently supported }
   if (pool_id <> JPOOL_IMAGE) then
-    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id);	{ safety check }
+    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id); { safety check }
 
   { get control block }
   the_result := jvirt_sarray_ptr (alloc_small(cinfo, pool_id,
-				  SIZEOF(jvirt_sarray_control)) );
+                                  SIZEOF(jvirt_sarray_control)) );
 
-  the_result^.mem_buffer := NIL;	{ marks array not yet realized }
+  the_result^.mem_buffer := NIL;        { marks array not yet realized }
   the_result^.rows_in_array := numrows;
   the_result^.samplesperrow := samplesperrow;
   the_result^.maxaccess := maxaccess;
   the_result^.pre_zero := pre_zero;
-  the_result^.b_s_open := FALSE;	{ no associated backing-store object }
+  the_result^.b_s_open := FALSE;        { no associated backing-store object }
   the_result^.next := mem^.virt_sarray_list; { add to list of virtual arrays }
   mem^.virt_sarray_list := the_result;
 
@@ -601,9 +601,9 @@ end;
 function request_virt_barray (cinfo : j_common_ptr;
                               pool_id : int;
                               pre_zero : boolean;
-		              blocksperrow : JDIMENSION;
+                              blocksperrow : JDIMENSION;
                               numrows : JDIMENSION;
-		              maxaccess : JDIMENSION) : jvirt_barray_ptr; far;
+                              maxaccess : JDIMENSION) : jvirt_barray_ptr; far;
 { Request a virtual 2-D coefficient-block array }
 var
   mem : my_mem_ptr;
@@ -613,18 +613,18 @@ begin
 
   { Only IMAGE-lifetime virtual arrays are currently supported }
   if (pool_id <> JPOOL_IMAGE) then
-    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id);	{ safety check }
+    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id); { safety check }
 
   { get control block }
   the_result := jvirt_barray_ptr(alloc_small(cinfo, pool_id,
-				  SIZEOF(jvirt_barray_control)) );
+                                  SIZEOF(jvirt_barray_control)) );
 
-  the_result^.mem_buffer := NIL;	{ marks array not yet realized }
+  the_result^.mem_buffer := NIL;        { marks array not yet realized }
   the_result^.rows_in_array := numrows;
   the_result^.blocksperrow := blocksperrow;
   the_result^.maxaccess := maxaccess;
   the_result^.pre_zero := pre_zero;
-  the_result^.b_s_open := FALSE;	{ no associated backing-store object }
+  the_result^.b_s_open := FALSE;        { no associated backing-store object }
   the_result^.next := mem^.virt_barray_list; { add to list of virtual arrays }
   mem^.virt_barray_list := the_result;
 
@@ -655,9 +655,9 @@ begin
     if (sptr^.mem_buffer = NIL) then
     begin { if not realized yet }
       Inc(space_per_minheight, long(sptr^.maxaccess) *
-			     long(sptr^.samplesperrow) * SIZEOF(JSAMPLE));
+                             long(sptr^.samplesperrow) * SIZEOF(JSAMPLE));
       Inc(maximum_space, long(sptr^.rows_in_array) *
-		       long(sptr^.samplesperrow) * SIZEOF(JSAMPLE));
+                       long(sptr^.samplesperrow) * SIZEOF(JSAMPLE));
     end;
     sptr := sptr^.next;
   end;
@@ -667,19 +667,19 @@ begin
     if (bptr^.mem_buffer = NIL) then
     begin { if not realized yet }
       Inc(space_per_minheight, long(bptr^.maxaccess) *
-			     long(bptr^.blocksperrow) * SIZEOF(JBLOCK));
+                             long(bptr^.blocksperrow) * SIZEOF(JBLOCK));
       Inc(maximum_space, long(bptr^.rows_in_array) *
-		       long(bptr^.blocksperrow) * SIZEOF(JBLOCK));
+                       long(bptr^.blocksperrow) * SIZEOF(JBLOCK));
     end;
     bptr := bptr^.next;
   end;
 
   if (space_per_minheight <= 0) then
-    exit;			{ no unrealized arrays, no work }
+    exit;                       { no unrealized arrays, no work }
 
   { Determine amount of memory to actually use; this is system-dependent. }
   avail_mem := jpeg_mem_available(cinfo, space_per_minheight, maximum_space,
-				 mem^.total_space_allocated);
+                                 mem^.total_space_allocated);
 
   { If the maximum space needed is available, make all the buffers full
     height; otherwise parcel it out with the same number of minheights
@@ -706,22 +706,22 @@ begin
       minheights := (long(sptr^.rows_in_array) - long(1)) div sptr^.maxaccess + long(1);
       if (minheights <= max_minheights) then
       begin
-	{ This buffer fits in memory }
-	sptr^.rows_in_mem := sptr^.rows_in_array;
+        { This buffer fits in memory }
+        sptr^.rows_in_mem := sptr^.rows_in_array;
       end
       else
       begin
-	{ It doesn't fit in memory, create backing store. }
-	sptr^.rows_in_mem := JDIMENSION (max_minheights * sptr^.maxaccess);
-	jpeg_open_backing_store(cinfo,
+        { It doesn't fit in memory, create backing store. }
+        sptr^.rows_in_mem := JDIMENSION (max_minheights * sptr^.maxaccess);
+        jpeg_open_backing_store(cinfo,
                                 @sptr^.b_s_info,
-				long(sptr^.rows_in_array) *
-				long(sptr^.samplesperrow) *
-				long(SIZEOF(JSAMPLE)));
-	sptr^.b_s_open := TRUE;
+                                long(sptr^.rows_in_array) *
+                                long(sptr^.samplesperrow) *
+                                long(SIZEOF(JSAMPLE)));
+        sptr^.b_s_open := TRUE;
       end;
       sptr^.mem_buffer := alloc_sarray(cinfo, JPOOL_IMAGE,
-				      sptr^.samplesperrow, sptr^.rows_in_mem);
+                                      sptr^.samplesperrow, sptr^.rows_in_mem);
       sptr^.rowsperchunk := mem^.last_rowsperchunk;
       sptr^.cur_start_row := 0;
       sptr^.first_undef_row := 0;
@@ -738,22 +738,22 @@ begin
       minheights := (long(bptr^.rows_in_array) - long(1)) div bptr^.maxaccess + long(1);
       if (minheights <= max_minheights) then
       begin
-	{ This buffer fits in memory }
-	bptr^.rows_in_mem := bptr^.rows_in_array;
+        { This buffer fits in memory }
+        bptr^.rows_in_mem := bptr^.rows_in_array;
       end
       else
       begin
-	{ It doesn't fit in memory, create backing store. }
-	bptr^.rows_in_mem := JDIMENSION (max_minheights * bptr^.maxaccess);
-	jpeg_open_backing_store(cinfo,
+        { It doesn't fit in memory, create backing store. }
+        bptr^.rows_in_mem := JDIMENSION (max_minheights * bptr^.maxaccess);
+        jpeg_open_backing_store(cinfo,
                                 @bptr^.b_s_info,
-				long(bptr^.rows_in_array) *
-				long(bptr^.blocksperrow) *
-				long(SIZEOF(JBLOCK)));
-	bptr^.b_s_open := TRUE;
+                                long(bptr^.rows_in_array) *
+                                long(bptr^.blocksperrow) *
+                                long(SIZEOF(JBLOCK)));
+        bptr^.b_s_open := TRUE;
       end;
       bptr^.mem_buffer := alloc_barray(cinfo, JPOOL_IMAGE,
-				      bptr^.blocksperrow, bptr^.rows_in_mem);
+                                      bptr^.blocksperrow, bptr^.rows_in_mem);
       bptr^.rowsperchunk := mem^.last_rowsperchunk;
       bptr^.cur_start_row := 0;
       bptr^.first_undef_row := 0;
@@ -801,13 +801,13 @@ begin
     if (writing) then
       ptr^.b_s_info.write_backing_store (cinfo,
                                         @ptr^.b_s_info,
-					pointer {FAR} (ptr^.mem_buffer^[i]),
-					file_offset, byte_count)
+                                        pointer {FAR} (ptr^.mem_buffer^[i]),
+                                        file_offset, byte_count)
     else
       ptr^.b_s_info.read_backing_store (cinfo,
                                         @ptr^.b_s_info,
-					pointer {FAR} (ptr^.mem_buffer^[i]),
-					file_offset, byte_count);
+                                        pointer {FAR} (ptr^.mem_buffer^[i]),
+                                        file_offset, byte_count);
     Inc(file_offset, byte_count);
     Inc(i, ptr^.rowsperchunk);
   end;
@@ -843,19 +843,19 @@ begin
     if (rows > long (ptr^.rows_in_array - thisrow)) then
       rows := long (ptr^.rows_in_array - thisrow);
 
-    if (rows <= 0) then		{ this chunk might be past end of file! }
+    if (rows <= 0) then         { this chunk might be past end of file! }
       break;
     byte_count := rows * bytesperrow;
     if (writing) then
       ptr^.b_s_info.write_backing_store (cinfo,
                                          @ptr^.b_s_info,
-	                                 {FAR} pointer(ptr^.mem_buffer^[i]),
-					  file_offset, byte_count)
+                                         {FAR} pointer(ptr^.mem_buffer^[i]),
+                                          file_offset, byte_count)
     else
       ptr^.b_s_info.read_backing_store (cinfo,
                                         @ptr^.b_s_info,
-					{FAR} pointer(ptr^.mem_buffer^[i]),
-					file_offset, byte_count);
+                                        {FAR} pointer(ptr^.mem_buffer^[i]),
+                                        file_offset, byte_count);
     Inc(file_offset, byte_count);
     Inc(i, ptr^.rowsperchunk);
   end;
@@ -865,9 +865,9 @@ end;
 {METHODDEF}
 function access_virt_sarray (cinfo : j_common_ptr;
                              ptr : jvirt_sarray_ptr;
-		             start_row : JDIMENSION;
+                             start_row : JDIMENSION;
                              num_rows : JDIMENSION;
-		             writable : boolean ) : JSAMPARRAY; far;
+                             writable : boolean ) : JSAMPARRAY; far;
 { Access the part of a virtual sample array starting at start_row }
 { and extending for num_rows rows.  writable is true if  }
 { caller intends to modify the accessed area. }
@@ -914,7 +914,7 @@ begin
 
       ltemp := long(end_row) - long(ptr^.rows_in_mem);
       if (ltemp < 0) then
-	ltemp := 0;		{ don't fall off front end of file }
+        ltemp := 0;             { don't fall off front end of file }
       ptr^.cur_start_row := JDIMENSION(ltemp);
     end;
     { Read in the selected part of the array.
@@ -930,9 +930,9 @@ begin
   begin
     if (ptr^.first_undef_row < start_row) then
     begin
-      if (writable) then	{ writer skipped over a section of array }
-	ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
-      undef_row := start_row;	{ but reader is allowed to read ahead }
+      if (writable) then        { writer skipped over a section of array }
+        ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
+      undef_row := start_row;   { but reader is allowed to read ahead }
     end
     else
     begin
@@ -947,14 +947,14 @@ begin
       Dec(end_row, ptr^.cur_start_row);
       while (undef_row < end_row) do
       begin
-	jzero_far({FAR} pointer(ptr^.mem_buffer^[undef_row]), bytesperrow);
-	Inc(undef_row);
+        jzero_far({FAR} pointer(ptr^.mem_buffer^[undef_row]), bytesperrow);
+        Inc(undef_row);
       end;
     end
     else
     begin
-      if (not writable) then	{ reader looking at undefined data }
-	ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
+      if (not writable) then    { reader looking at undefined data }
+        ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
     end;
   end;
   { Flag the buffer dirty if caller will write in it }
@@ -968,9 +968,9 @@ end;
 {METHODDEF}
 function access_virt_barray (cinfo : j_common_ptr;
                              ptr : jvirt_barray_ptr;
-		             start_row : JDIMENSION;
+                             start_row : JDIMENSION;
                              num_rows : JDIMENSION;
-		             writable : boolean) : JBLOCKARRAY; far;
+                             writable : boolean) : JBLOCKARRAY; far;
 { Access the part of a virtual block array starting at start_row }
 { and extending for num_rows rows.  writable is true if  }
 { caller intends to modify the accessed area. }
@@ -1017,7 +1017,7 @@ begin
 
       ltemp := long(end_row) - long(ptr^.rows_in_mem);
       if (ltemp < 0) then
-	ltemp := 0;		{ don't fall off front end of file }
+        ltemp := 0;             { don't fall off front end of file }
       ptr^.cur_start_row := JDIMENSION (ltemp);
     end;
     { Read in the selected part of the array.
@@ -1034,9 +1034,9 @@ begin
   begin
     if (ptr^.first_undef_row < start_row) then
     begin
-      if (writable) then	{ writer skipped over a section of array }
-	ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
-      undef_row := start_row;	{ but reader is allowed to read ahead }
+      if (writable) then        { writer skipped over a section of array }
+        ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
+      undef_row := start_row;   { but reader is allowed to read ahead }
     end
     else
     begin
@@ -1051,14 +1051,14 @@ begin
       Dec(end_row, ptr^.cur_start_row);
       while (undef_row < end_row) do
       begin
-	jzero_far({FAR}pointer(ptr^.mem_buffer^[undef_row]), bytesperrow);
-	Inc(undef_row);
+        jzero_far({FAR}pointer(ptr^.mem_buffer^[undef_row]), bytesperrow);
+        Inc(undef_row);
       end;
     end
     else
     begin
-      if (not writable) then	{ reader looking at undefined data }
-	ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
+      if (not writable) then    { reader looking at undefined data }
+        ERREXIT(cinfo, JERR_BAD_VIRTUAL_ACCESS);
     end;
   end;
   { Flag the buffer dirty if caller will write in it }
@@ -1088,7 +1088,7 @@ begin
   mem := my_mem_ptr(cinfo^.mem);
 
   if (pool_id < 0) or (pool_id >= JPOOL_NUMPOOLS) then
-    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id);	{ safety check }
+    ERREXIT1(cinfo, JERR_BAD_POOL_ID, pool_id); { safety check }
 
 {$ifdef MEM_STATS}
   if (cinfo^.err^.trace_level > 1) then
@@ -1102,9 +1102,9 @@ begin
     while (sptr <> NIL) do
     begin
       if (sptr^.b_s_open) then
-      begin	{ there may be no backing store }
-	sptr^.b_s_open := FALSE;	{ prevent recursive close if error }
-	sptr^.b_s_info.close_backing_store (cinfo, @sptr^.b_s_info);
+      begin     { there may be no backing store }
+        sptr^.b_s_open := FALSE;        { prevent recursive close if error }
+        sptr^.b_s_info.close_backing_store (cinfo, @sptr^.b_s_info);
       end;
       sptr := sptr^.next;
     end;
@@ -1113,9 +1113,9 @@ begin
     while (bptr <> NIL) do
     begin
       if (bptr^.b_s_open) then
-      begin	{ there may be no backing store }
-	bptr^.b_s_open := FALSE;	{ prevent recursive close if error }
-	bptr^.b_s_info.close_backing_store (cinfo, @bptr^.b_s_info);
+      begin     { there may be no backing store }
+        bptr^.b_s_open := FALSE;        { prevent recursive close if error }
+        bptr^.b_s_info.close_backing_store (cinfo, @bptr^.b_s_info);
       end;
       bptr := bptr^.next;
     end;
@@ -1130,8 +1130,8 @@ begin
   begin
     next_lhdr_ptr := lhdr_ptr^.hdr.next;
     space_freed := lhdr_ptr^.hdr.bytes_used +
-		  lhdr_ptr^.hdr.bytes_left +
-		  SIZEOF(large_pool_hdr);
+                  lhdr_ptr^.hdr.bytes_left +
+                  SIZEOF(large_pool_hdr);
     jpeg_free_large(cinfo, {FAR} pointer(lhdr_ptr), space_freed);
     Dec(mem^.total_space_allocated, space_freed);
     lhdr_ptr := next_lhdr_ptr;
@@ -1145,8 +1145,8 @@ begin
   begin
     next_shdr_ptr := shdr_ptr^.hdr.next;
     space_freed := shdr_ptr^.hdr.bytes_used +
-		  shdr_ptr^.hdr.bytes_left +
-		  SIZEOF(small_pool_hdr);
+                  shdr_ptr^.hdr.bytes_left +
+                  SIZEOF(small_pool_hdr);
     jpeg_free_small(cinfo, pointer(shdr_ptr), space_freed);
     Dec(mem^.total_space_allocated, space_freed);
     shdr_ptr := next_shdr_ptr;
@@ -1173,9 +1173,9 @@ begin
 
   { Release the memory manager control block too. }
   jpeg_free_small(cinfo, pointer(cinfo^.mem), SIZEOF(my_memory_mgr));
-  cinfo^.mem := NIL;		{ ensures I will be called only once }
+  cinfo^.mem := NIL;            { ensures I will be called only once }
 
-  jpeg_mem_term(cinfo);		{ system-dependent cleanup }
+  jpeg_mem_term(cinfo);         { system-dependent cleanup }
 end;
 
 
@@ -1195,7 +1195,7 @@ var
   code : integer;
 {$endif}
 begin
-  cinfo^.mem := NIL;		{ for safety if init fails }
+  cinfo^.mem := NIL;            { for safety if init fails }
 
   { Check for configuration errors.
     SIZEOF(ALIGN_TYPE) should be a power of 2; otherwise, it probably
@@ -1222,7 +1222,7 @@ begin
 
   if (mem = NIL) then
   begin
-    jpeg_mem_term(cinfo);	{ system-dependent cleanup }
+    jpeg_mem_term(cinfo);       { system-dependent cleanup }
     ERREXIT1(cinfo, JERR_OUT_OF_MEMORY, 0);
   end;
 

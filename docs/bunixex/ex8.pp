@@ -6,7 +6,7 @@ Uses Unix, strings;
 
 Const Arg0 : PChar = '/bin/ls';
       Arg1 : Pchar = '-l';
-      
+
 Var PP : PPchar;
 
 

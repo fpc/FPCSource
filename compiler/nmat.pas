@@ -855,23 +855,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2004-06-20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.64  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.63  2004/05/28 21:14:34  peter
-    * fixed div qword
-
-  Revision 1.62  2004/05/19 23:29:25  peter
-    * don't change sign for unsigned shl/shr operations
-    * cleanup for u32bit
-
-  Revision 1.61.2.1  2004/05/03 16:27:38  peter
-    * fixed shl for x86-64
-
-  Revision 1.61  2004/03/29 14:44:10  peter
-    * fixes to previous constant integer commit
+  Revision 1.66  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

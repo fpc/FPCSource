@@ -32,10 +32,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-05-02 12:11:44  peter
-    * fixed linefeeds
-
-  Revision 1.1  2002/09/21 13:28:06  carl
-   + division by zero testing
+  Revision 1.3  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

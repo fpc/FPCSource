@@ -16,15 +16,15 @@
 
 {
     History:
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib. Implemented openingcode
     for the library
     13 Jan 2003.
-    
+
     Changed startcode for library.
     1 Feb 2003.
-    
+
     Changed integer > smallint,
             cardinal > longword.
     09 Feb 2003.

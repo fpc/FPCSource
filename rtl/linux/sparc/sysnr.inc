@@ -279,7 +279,7 @@ Const
 
 {
   $Log$
-  Revision 1.1  2003-07-06 21:12:30  peter
-    * Syscall number is architecture dependent
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

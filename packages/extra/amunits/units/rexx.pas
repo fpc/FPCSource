@@ -18,7 +18,7 @@
     Added overlay functions for Pchar->Strings, functions
     and procedures.
     14 Jul 2000.
-    
+
     Removed amigaoverlays, use smartlink instead.
     05 Nov 2002.
 
@@ -30,7 +30,7 @@
     Changed integer > smallint,
             cardinal > longword.
     09 Feb 2003.
-    	    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -189,7 +189,7 @@ Const
     RXCODEMASK      = $FF000000;
     RXARGMASK       = $0000000F;
 
-{ The RexxRsrc structure is used to manage global resources.  Each node 
+{ The RexxRsrc structure is used to manage global resources.  Each node
  * has a name string created as a RexxArg structure, and the total size
  * of the node is saved in the "rr_Size" field.  The REXX systems library
  * provides functions to allocate and release resource nodes.  If special
@@ -469,7 +469,7 @@ Const
     CTB_REXXSPC = 5;            { REXX special symbols          }
     CTB_UPPER   = 6;            { UPPERCASE alphabetic          }
     CTB_LOWER   = 7;            { lowercase alphabetic          }
-                                                                      
+
 { Attribute flags                                                      }
 
     CTF_SPACE   = 1;
@@ -769,21 +769,8 @@ END. (* UNIT REXXSYSLIB *)
 
 {
   $Log$
-  Revision 1.6  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.5  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.4  2003/01/14 18:46:04  nils
-  * added defines use_amia_smartlink and use_auto_openlib
-
-  * implemented autoopening of library
-
-  Revision 1.3  2002/11/19 18:47:47  nils
-    * update check internal log
+  Revision 1.7  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 

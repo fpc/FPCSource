@@ -64,7 +64,7 @@ type
   VFSPOSEMountParamTag = record
     vfsMountParam: VFSAnyMountParamType; // mountClass = VFSMountClass_POSE = 'pose'
     poseSlotNum: UInt8;
-  end;  
+  end;
   VFSPOSEMountParamType = VFSPOSEMountParamTag;
 
 (* For Example...
@@ -79,7 +79,7 @@ type
     attributes: UInt32;
     nameP: PChar;       // buffer to receive full name; pass NULL to avoid getting name
     nameBufLen: UInt16; // size of nameP buffer, in bytes
-  end;  
+  end;
   FileInfoType = FileInfoTag;
   FileInfoPtr = ^FileInfoType;
 
@@ -798,7 +798,7 @@ begin
  asm
   move.l #$vfsTrapFileDBInfo, D2;
  end;
- VFSFileDBInfo := __VFSFileDBInfo(ref, nameP, attributesP, versionP, crDateP, modDateP, 
+ VFSFileDBInfo := __VFSFileDBInfo(ref, nameP, attributesP, versionP, crDateP, modDateP,
                   bckUpDateP, modNumP, appInfoHP, sortInfoHP, typeP, creatorP, numRecordsP);
 end;
 

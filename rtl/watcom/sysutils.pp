@@ -749,13 +749,13 @@ Function GetEnvironmentVariableCount : Integer;
 begin
   Result:=FPCCountEnvVar(EnvP);
 end;
-  
+
 Function GetEnvironmentString(Index : Integer) : String;
-  
+
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);
 end;
-    
+
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 
@@ -783,7 +783,7 @@ end;
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
 
-var 
+var
   CommandLine: AnsiString;
   I: integer;
 
@@ -820,8 +820,8 @@ end;
 
 procedure initdelay;assembler;
 asm
-	pushl %ebx
-	pushl %edi
+        pushl %ebx
+        pushl %edi
         { for some reason, using int $31/ax=$901 doesn't work here }
         { and interrupts are always disabled at this point when    }
         { running a program inside gdb(pas). Web bug 1345 (JM)     }
@@ -841,15 +841,15 @@ asm
         movl    $55,%ecx
         divl    %ecx
         movl    %eax,DelayCnt
-	popl %edi
-	popl %ebx
+        popl %edi
+        popl %ebx
 end;
 
 
 procedure Sleep(MilliSeconds: Cardinal);assembler;
 asm
-	pushl %ebx
-	pushl %edi
+        pushl %ebx
+        pushl %edi
         movl  MilliSeconds,%ecx
         jecxz   .LDelay2
         movl    $0x400,%edi
@@ -860,8 +860,8 @@ asm
         call    DelayLoop
         loop    .LDelay1
 .LDelay2:
-	popl %edi
-	popl %ebx
+        popl %edi
+        popl %ebx
 end;
 
 {****************************************************************************
@@ -878,23 +878,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-12-11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.5  2004/02/15 21:36:10  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.4  2004/01/20 23:12:49  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.3  2003/12/15 15:57:49  peter
-    * patches from wiktor
-
-  Revision 1.2  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.1  2003/11/17 19:55:13  hajny
-    * Wiktor Sywula: LFN detection uncommented in system, new units added
-
+  Revision 1.7  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

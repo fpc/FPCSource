@@ -463,40 +463,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
 
-  Revision 1.7  2004/10/24 20:10:08  peter
-    * -Or fixes
-
-  Revision 1.6  2004/10/01 17:32:16  peter
-    * fix resizing of LOC_CREGISTER
-
-  Revision 1.5  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.4  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.3  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.2.2.1  2004/04/28 18:35:42  peter
-    * cardinal fixes for x86-64
-
-  Revision 1.2  2004/02/27 10:21:06  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.1  2004/02/22 12:04:04  florian
-    + nx86set added
-    * some more x86-64 fixes
  }

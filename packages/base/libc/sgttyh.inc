@@ -13,5 +13,5 @@ function stty(__fd:longint; __params:Psgttyb):longint;cdecl;external clib name '
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSgTTyB = sgttyb;

@@ -34,13 +34,7 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-11-22 12:47:07  sg
-  * Fixed Marco's fix to make the pipes unit compiling in both branches again
-
-  Revision 1.6  2003/11/14 11:08:50  marco
-   * assignpipe fix
-
-  Revision 1.5  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

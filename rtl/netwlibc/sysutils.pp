@@ -683,7 +683,7 @@ procedure Sleep(milliseconds: Cardinal);
 begin
   libc._delay (milliseconds);
 end;
-  
+
 
 
 {****************************************************************************
@@ -699,38 +699,10 @@ end.
 {
 
   $Log$
-  Revision 1.8  2005-01-04 11:25:34  armin
+  Revision 1.9  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.8  2005/01/04 11:25:34  armin
   * rtl code cleanup, compat fixes between clib and libc
-
-  Revision 1.7  2004/12/16 12:42:55  armin
-  * added NetWare Alert
-  * added sysutils.sleep
-
-  Revision 1.6  2004/12/14 19:23:22  armin
-  * dont copy imp files with a rule because this always builds system.pp
-  * implemented GetEnvironmentVariableCount and GetEnvironmentString
-  * removed dependency from dos unit
-
-  Revision 1.5  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.4  2004/09/26 19:23:34  armin
-  * exiting threads at nlm unload
-  * renamed some libc functions
-
-  Revision 1.3  2004/09/19 20:06:37  armin
-  * removed get/free video buf from video.pp
-  * implemented sockets
-  * basic library support
-  * threadvar memory leak removed
-  * fixes (ide now starts and editor is usable)
-  * support for lineinfo
-
-  Revision 1.2  2004/09/12 20:51:22  armin
-  * added keyboard and video
-  * a lot of fixes
-
-  Revision 1.1  2004/09/05 20:58:47  armin
-  * first rtl version for netwlibc
 
 }

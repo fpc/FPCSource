@@ -744,13 +744,13 @@ Function GetEnvironmentVariableCount : Integer;
 begin
   Result:=FPCCountEnvVar(EnvP);
 end;
-    
+
 Function GetEnvironmentString(Index : Integer) : String;
-    
+
 begin
   Result:=FPCGetEnvStrFromP(Envp,Index);
 end;
-       
+
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
@@ -777,7 +777,7 @@ end;
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
 
-var 
+var
   CommandLine: AnsiString;
   I: integer;
 
@@ -832,64 +832,7 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.26  2004-12-18 20:22:17  hajny
-    * FileOpen fixes for DR-DOS, resourcestring in ExecuteProcess, implementation of Sleep changed to give up timeslices
-
-  Revision 1.25  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.24  2004/02/15 21:34:06  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.23  2004/01/25 13:05:08  jonas
-    * fixed compilation errors
-
-  Revision 1.22  2004/01/20 23:09:14  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.21  2004/01/10 20:25:14  michael
-  + Added rtlconst dependency to classes.ppu and implemented sysutils.sleep
-
-  Revision 1.20  2004/01/10 10:49:24  jonas
-    * fixed compilation
-
-  Revision 1.19  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.18  2003/11/05 11:42:27  florian
-    * applied patch from Joe da Silva to fix OpenFile on older DOS versions
-
-  Revision 1.17  2003/10/25 23:42:35  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.16  2003/06/03 07:54:27  michael
-  + Patch from Peter for millisecond timing
-
-  Revision 1.15  2003/04/02 15:18:28  peter
-    * fix argument names
-
-  Revision 1.14  2003/04/01 15:57:41  peter
-    * made THandle platform dependent and unique type
-
-  Revision 1.13  2003/03/29 18:21:42  hajny
-    * DirectoryExists declaration changed to that one from fixes branch
-
-  Revision 1.12  2003/03/28 19:06:59  peter
-    * directoryexists added
-
-  Revision 1.11  2003/01/03 20:41:04  peter
-    * FileCreate(string,mode) overload added
-
-  Revision 1.10  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/05/09 08:42:24  carl
-  * Merges from Fixes branch
-
-  Revision 1.8  2002/01/25 16:23:03  peter
-    * merged filesearch() fix
-
-  Revision 1.7  2002/01/19 11:57:55  peter
-    * merged fixes
+  Revision 1.27  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -44,8 +44,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-06-20 08:55:31  florian
-    * logs truncated
+  Revision 1.3  2005-02-14 17:13:09  peter
+    * truncate log
 
 }
 

@@ -7,7 +7,7 @@ Uses SysUtils,DateUtils;
 Var
   Y,DoY : Word;
   TS : TDateTime;
-  
+
 Begin
   DecodeDateDay(Now,Y,DoY);
   TS:=EncodeDateDay(Y,DoY);

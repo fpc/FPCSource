@@ -82,10 +82,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-17 19:27:00  peter
-    * fixed for 1.1 compiler
-
-  Revision 1.1  2002/09/16 19:16:36  carl
-    * several new routines have a testsuit.
+  Revision 1.3  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

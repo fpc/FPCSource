@@ -529,29 +529,7 @@ end.
 
 {
    $Log$
-   Revision 1.8  2003-10-05 21:19:10  peter
-     * oldfpccall typo
-
-   Revision 1.7  2003/10/05 14:39:31  florian
-     * fixed oldfpcall directives; was oldfpcall
-
-   Revision 1.6  2003/10/03 14:46:37  peter
-     * popstack to oldfpccall
-
-   Revision 1.5  2003/05/15 20:34:29  peter
-     * removed po_containsself tests
-
-   Revision 1.4  2003/01/16 22:14:49  peter
-     * fixed wrong methodpointer loads
-
-   Revision 1.3  2003/01/05 18:21:30  peter
-     * removed more conflicting calling directives
-
-   Revision 1.2  2002/09/07 15:40:54  peter
-     * old logs removed and tabs fixed
-
-   Revision 1.1  2002/05/05 13:58:50  carl
-   + finished procedural variable testsuit
-   + finished method testsuit
+   Revision 1.9  2005-02-14 17:13:37  peter
+     * truncate log
 
 }

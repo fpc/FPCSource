@@ -23,7 +23,7 @@ unit rect;
 
 interface
 
-uses palmos, coretraps; 
+uses palmos, coretraps;
 
 type
   AbsRectType = record

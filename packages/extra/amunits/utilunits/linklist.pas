@@ -26,10 +26,10 @@ unit linklist;
    for Amiga. Can also be used for other platforms
    as it is. I hope.
    27 Oct 1998.
-   
+
    Added the define use_amiga_smartlink.
    13 Jan 2003.
-   
+
    nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -276,13 +276,13 @@ BEGIN
     END ELSE BEGIN
        CopyList := templist;
     END;
-END;                        
+END;
 
 PROCEDURE CreateList(VAR fpclist : pList);
 BEGIN
     New(fpclist);
     NewList(fpclist);
-END;                         
+END;
 
 PROCEDURE DeleteNode(ANode : pFPCNode);
 BEGIN
@@ -314,18 +314,18 @@ BEGIN
            dummy := RemHead(fpclist);
            {$ifdef showall}
               writeln('Disposing node');
-           {$endif}  
+           {$endif}
            Dispose(tempnode);
        end;
    END;
    if Assigned(fpclist) then begin
       {$ifdef showall}
           writeln('Disposing of list');
-      {$endif} 
+      {$endif}
       Dispose(fpclist);
       fpclist := nil;
-   end; 
-END;                                    
+   end;
+END;
 
 FUNCTION FindNodeData(fpclist : pList; data : PChar): pFPCNode;
 VAR
@@ -387,7 +387,7 @@ BEGIN
     if tail^.ln_Pred <> nil then begin
         GetLastNode := pFPCNode(tail);
     end else GetLastNode := nil;
-END;       
+END;
 
 FUNCTION GetNextNode( ANode : pFPCNode): pFPCNode;
 var
@@ -397,7 +397,7 @@ BEGIN
     if next^.ln_Succ <> nil then begin
        GetNextNode := pFPCNode(next);
     end else GetNextNode := nil;
-END;   
+END;
 
 FUNCTION GetNodeData(Anode : pFPCNode): PChar;
 BEGIN
@@ -424,7 +424,7 @@ BEGIN
     END ELSE BEGIN
        GetNodeNumber := NIL;
     END;
-END;                        
+END;
 
 FUNCTION GetPrevNode( ANode : pFPCNode): pFPCNode;
 var
@@ -434,7 +434,7 @@ BEGIN
     if prev^.ln_Pred <> nil then begin
        GetPrevNode := pFPCNode(prev);
     end else GetPrevNode := nil;
-END;   
+END;
 
 FUNCTION InsertNewNode(var fpclist : pList; data : PChar; Anode : pFPCNode): pFPCNode;
 VAR
@@ -591,7 +591,7 @@ BEGIN
         INC(i);
     END;
     NodesInList := i;
-END;                    
+END;
 
 PROCEDURE PrintList(fpclist : pList);
 VAR
@@ -609,7 +609,7 @@ BEGIN
        END;
        tempnode := pFPCNode(tempnode^.ln_Succ);
    END;
-END;                        
+END;
 
 PROCEDURE RemoveDupNode( VAR fpclist :  pList);
 VAR
@@ -638,7 +638,7 @@ BEGIN
    end;
    dummy := RemTail(fpclist);
    Dispose(tempnode);
-END;                       
+END;
 
 { get the total size allocated by list }
 { size is WITH ';' between the strings }
@@ -811,14 +811,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 

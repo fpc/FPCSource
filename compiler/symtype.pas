@@ -1454,51 +1454,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.50  2005-01-19 22:19:41  peter
+  Revision 1.51  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.50  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
-
-  Revision 1.49  2004/12/15 21:09:06  peter
-    * 64bit typecast
-
-  Revision 1.48  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.47  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.46  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.45  2004/10/12 14:34:49  peter
-    * fixed visibility for procsyms
-    * fixed override check when there was no entry yet
-
-  Revision 1.44  2004/07/09 22:17:32  peter
-    * revert has_localst patch
-    * replace aktstaticsymtable/aktglobalsymtable with current_module
-
-  Revision 1.43  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.42  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.41  2004/05/23 15:23:30  peter
-    * fixed qword(longint) that removed sign from the number
-    * removed code in the compiler that relied on wrong qword(longint)
-      code generation
-
-  Revision 1.40.2.1  2004/04/12 14:45:11  peter
-    * tai_const_symbol and tai_const merged
-
-  Revision 1.40  2004/02/27 13:04:22  daniel
-    * Removed unused concatstabto
-
-  Revision 1.39  2004/02/11 19:59:06  peter
-    * fix compilation without GDB
 
 }
 

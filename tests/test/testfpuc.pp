@@ -11,7 +11,7 @@ function ccos(f : double) : double; cdecl; external 'm' name 'cos';
 Type
   TTest = Class(TObject)
     Constructor Create(Max : Integer);
-  end; 
+  end;
 
 Constructor TTest.Create(Max : Integer);
 
@@ -19,7 +19,7 @@ Var
   I,J : integer;
   F : single;
   buf : ansistring;
-  
+
 begin
   For I:=1 to Max do
     begin
@@ -41,6 +41,6 @@ begin
 end;
 
 begin
-  DoTest;    
+  DoTest;
 end.
 

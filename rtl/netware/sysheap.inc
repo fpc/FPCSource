@@ -54,8 +54,8 @@ begin
       for i := 1 to HeapSbrkLastUsed do
         if (HeapSbrkBlockList^[i] = nil) then
         begin  // reuse free slot
-	  HeapSbrkBlockList^[i] := Sbrk;
-	  exit;
+          HeapSbrkBlockList^[i] := Sbrk;
+          exit;
         end;
     if (HeapSbrkLastUsed = HeapSbrkAllocated) then
     begin  { grow }
@@ -109,9 +109,9 @@ begin
     for i := 1 to HeapSbrkLastUsed do
       if (HeapSbrkBlockList^[i] = p) then
       begin
-	_free (p);
-	HeapSbrkBlockList^[i] := nil;
-	exit;
+        _free (p);
+        HeapSbrkBlockList^[i] := nil;
+        exit;
       end;
   HandleError (204);  // invalid pointer operation
 end;
@@ -136,7 +136,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-06 16:57:18  peter
+   Revision 1.2  2005-02-14 17:13:30  peter
+     * truncate log
+
+   Revision 1.1  2005/02/06 16:57:18  peter
      * threads for go32v2,os,emx,netware
 
    Revision 1.1  2005/02/06 13:06:20  peter

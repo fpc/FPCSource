@@ -7,7 +7,7 @@ Uses SysUtils,DateUtils;
 Var
   I : Integer;
   D : TDateTime;
-  
+
 Begin
   For I:=1 to 3 do
     begin

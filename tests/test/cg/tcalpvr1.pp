@@ -522,22 +522,7 @@ end.
 
 {
    $Log$
-   Revision 1.6  2003-05-15 20:34:29  peter
-     * removed po_containsself tests
-
-   Revision 1.5  2003/01/16 22:14:49  peter
-     * fixed wrong methodpointer loads
-
-   Revision 1.4  2002/09/07 15:40:54  peter
-     * old logs removed and tabs fixed
-
-   Revision 1.3  2002/04/15 14:40:45  carl
-   +fixed class creation problem
-
-   Revision 1.2  2002/04/13 21:04:10  carl
-   * fixed stupid typo
-
-   Revision 1.1  2002/04/13 11:04:40  carl
-   + procedure variable testing (stil not sure about class/object proc. variables)
+   Revision 1.7  2005-02-14 17:13:37  peter
+     * truncate log
 
 }

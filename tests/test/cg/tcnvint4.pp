@@ -187,10 +187,7 @@ end.
 {
 
  $Log$
- Revision 1.2  2002-09-07 15:40:55  peter
-   * old logs removed and tabs fixed
-
- Revision 1.1  2002/08/10 08:27:43  carl
-   + mre tests for cg testuit
+ Revision 1.3  2005-02-14 17:13:37  peter
+   * truncate log
 
 }

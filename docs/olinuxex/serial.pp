@@ -16,13 +16,13 @@ uses oldlinux, Crt;
 Const DTR : Cardinal = TIOCM_DTR;
 Const RTS : Cardinal = TIOCM_RTS;
 
-Var	FD		: Longint;
-	InChr		: String[1];
-	InStr		: String[80];
-	Quit		: Boolean;
-	InLen, Loop	: Integer;
-	tios		: Termios;
-	fds		: FDSet;
+Var     FD              : Longint;
+        InChr           : String[1];
+        InStr           : String[80];
+        Quit            : Boolean;
+        InLen, Loop     : Integer;
+        tios            : Termios;
+        fds             : FDSet;
 
 
 Procedure DumpFlags;
@@ -58,23 +58,23 @@ End;
 
 Procedure SendToRemote(OutString : String);
 Begin
-Rs485TX;	{Switch Buss to Transmit}
-if fdWrite(FD,OutString[1],Length(OutString)) <> Length(OutString) then 
-	Writeln('Write Error');
+Rs485TX;        {Switch Buss to Transmit}
+if fdWrite(FD,OutString[1],Length(OutString)) <> Length(OutString) then
+        Writeln('Write Error');
 {Write(OutString);} {Uncomment for Local Echo}
-TCDrain(FD);	{Block Program until all data sent out port has left UART}
-RS485RX;	{Switch Buss back to Recieve}
+TCDrain(FD);    {Block Program until all data sent out port has left UART}
+RS485RX;        {Switch Buss back to Recieve}
 End;
 
 
 { Not limited to baud selection I have here, it's just all I use }
 Procedure SetBaudrate;
-Var	NewBaud : LongInt;
+Var     NewBaud : LongInt;
 Begin
 Writeln;
 Writeln('New Baud Rate (300,1200,2400,4800, 9600,19200,38400) ? ');
 Readln(NewBaud);
-Case NewBaud of 
+Case NewBaud of
    300 : NewBaud := B300;
   1200 : NewBaud := B1200;
   2400 : NewBaud := B2400;
@@ -83,23 +83,23 @@ Case NewBaud of
  19200 : NewBaud := B19200;
  38400 : NewBaud := B38400;
 Else
-	Begin
-	Writeln('Invalid Baud Rate. Baud not Changed');
-	Writeln;
-	NewBaud := 0;
-	End;
+        Begin
+        Writeln('Invalid Baud Rate. Baud not Changed');
+        Writeln;
+        NewBaud := 0;
+        End;
 End;
 
 { Sets Baud Rate Here }
-If NewBaud <> 0 then 
-	Begin
-		IOCtl(FD,TCGETS,@tios);		{Get IOCTL TermIOS Settings}
-		CFSetOSpeed(tios,NewBaud);	{Set Relevant Bits}
-		IOCtl(FD,TCSETS,@tios);		{Put them back with IOCTL}
-		Writeln('New Baudrate ',HexStr(NewBaud,2),' Set');
-		{This line just prints what the constant equates to for
-		 Information Only}
-	End;
+If NewBaud <> 0 then
+        Begin
+                IOCtl(FD,TCGETS,@tios);         {Get IOCTL TermIOS Settings}
+                CFSetOSpeed(tios,NewBaud);      {Set Relevant Bits}
+                IOCtl(FD,TCSETS,@tios);         {Put them back with IOCTL}
+                Writeln('New Baudrate ',HexStr(NewBaud,2),' Set');
+                {This line just prints what the constant equates to for
+                 Information Only}
+        End;
 End;
 
 
@@ -134,34 +134,34 @@ tios.c_oflag := 0;
 tios.c_iflag := 0;
 IOCtl(FD,TCSETS,@tios);
 
-DumpFlags;	{This is for information only and dumps the contents of
-		 the Termios registers}
+DumpFlags;      {This is for information only and dumps the contents of
+                 the Termios registers}
 
 Repeat
-FD_Zero (FDS);		{Clear File Descriptors Array}
-FD_Set (0,FDS);		{Input from Keyboard}
-FD_SET (FD,FDS);	{Input from Serial Port}
+FD_Zero (FDS);          {Clear File Descriptors Array}
+FD_Set (0,FDS);         {Input from Keyboard}
+FD_SET (FD,FDS);        {Input from Serial Port}
 
-Select(FD+1,@FDS,nil,nil,nil);	{Will Wait for input from above}
+Select(FD+1,@FDS,nil,nil,nil);  {Will Wait for input from above}
 
-If FD_ISSET(0,FDS) then		{Has there been a key pressed ?}
-	If fdRead(0,InChr[1],80) <> 0 then
-		Begin
-       		if InChr[1] = Chr(3) then Quit := True;
-		if InChr[1] = Chr(4) then SetBaudRate;
-		SendToRemote(InChr[1]);
-		End;
+If FD_ISSET(0,FDS) then         {Has there been a key pressed ?}
+        If fdRead(0,InChr[1],80) <> 0 then
+                Begin
+                if InChr[1] = Chr(3) then Quit := True;
+                if InChr[1] = Chr(4) then SetBaudRate;
+                SendToRemote(InChr[1]);
+                End;
 
-If FD_ISSET(FD,FDS) then	{Have we data waiting in UART ? }
-	Begin
-		InLen := fdRead(FD,InStr[1],80); 
-		If InLen > 0 then 
-		For Loop := 1 to Inlen do
-        	Write(InStr[Loop]);
-	End;
-Until Quit = True;	{Were Outa Here}
-FLock(FD,LOCK_UN);	{Unlock Port}
-fdClose(FD);		{Close Port}
+If FD_ISSET(FD,FDS) then        {Have we data waiting in UART ? }
+        Begin
+                InLen := fdRead(FD,InStr[1],80);
+                If InLen > 0 then
+                For Loop := 1 to Inlen do
+                Write(InStr[Loop]);
+        End;
+Until Quit = True;      {Were Outa Here}
+FLock(FD,LOCK_UN);      {Unlock Port}
+fdClose(FD);            {Close Port}
 End
-Else Writeln('Open Port Error');	{We failed to Open/Lock the UART}
+Else Writeln('Open Port Error');        {We failed to Open/Lock the UART}
 End.

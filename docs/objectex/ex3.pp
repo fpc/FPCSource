@@ -6,7 +6,7 @@ Uses objects;
 
 
 Var ARect,BRect,CRect : TRect;
-    
+
 begin
   ARect.Assign(10,10,20,20);
   BRect.Assign(15,15,25,25);

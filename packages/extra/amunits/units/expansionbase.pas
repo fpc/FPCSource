@@ -15,12 +15,12 @@
  **********************************************************************}
 {
     History:
-    
+
     Typo in ExpansionBase Record.
     11 Nov. 2002
-    
+
     nils.sjoholm@mailbox.swipnet.se
-}    
+}
 
 
 unit expansionbase;
@@ -97,12 +97,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-18 20:53:16  nils
-    * update check internal log
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 
 
 

@@ -23,14 +23,14 @@
           uid       : word;
           gid       : word;
           rdev      : word;
-	  __pad2    : word;
+          __pad2    : word;
           st_size   : longint;
           st_atime  : longint;
-	  st_atime_nsecs : cardinal;
+          st_atime_nsecs : cardinal;
           st_mtime  : longint;
-	  st_mtime_nsecs : cardinal;
+          st_mtime_nsecs : cardinal;
           st_ctime  : longint;
-	  st_ctime_nsecs : cardinal;
+          st_ctime_nsecs : cardinal;
           st_blksize : longint;
           st_blocks  : longint;
           __unused1,
@@ -44,7 +44,7 @@
           uid_dummy,
           gid_dummy,
           rdev_dummy      : word;
-	  __pad4 : word;
+          __pad4 : word;
           size   : longint;
           atime,
           __unused1_dummy,
@@ -61,13 +61,7 @@
 
 {
   $Log$
-  Revision 1.3  2004-05-27 23:15:14  peter
-    * remove warnign
+  Revision 1.4  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.2  2004/05/27 23:15:02  peter
-    * startup argc,argv,envp fix
-    * stat fixed
-
-  Revision 1.1  2003/05/23 22:36:39  florian
-    * fixed compilation of sparc system unit
 }

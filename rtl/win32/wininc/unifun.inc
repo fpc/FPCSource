@@ -492,34 +492,7 @@ end;
 
 {
   $Log$
-  Revision 1.12  2004-12-18 20:00:59  michael
-  Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
-
-  Revision 1.11  2004/11/07 20:46:27  marco
-   * fix for 3299
-
-  Revision 1.10  2004/11/07 20:25:02  marco
-   * fixes for bug 3303 (devmodew)
-
-  Revision 1.9  2004/08/08 16:52:52  florian
-    * tried to fix some wsprintf issues
-    + now compiled in objfpc mode
-      so some integer => smallint changes where necessary; hopefully,
-      I didn't forget one
-
-  Revision 1.8  2004/05/02 14:46:46  marco
-   * some confusion over createfont, cleaned up (bug 3056)
-
-  Revision 1.7  2002/12/12 17:34:36  peter
-    * Renaming INT type to WINT
-
-  Revision 1.6  2002/09/15 17:53:45  peter
-    * Remove Float type, use Single instead
-
-  Revision 1.5  2002/09/07 16:01:32  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/01/19 11:58:22  peter
-    * more functions from webbugs
+  Revision 1.13  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

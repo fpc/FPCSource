@@ -3,7 +3,7 @@
 
 Const
 //  __UNKNOWN_10646_CHAR = wchar_t($fffd);
-  
+
   __GCONV_OK = 0;
   __GCONV_NOCONV = 1;
   __GCONV_NODB = 2;
@@ -17,7 +17,7 @@ Const
 
   __GCONV_IS_LAST = $0001;
   __GCONV_IGNORE_ERRORS = $0002;
-     
+
 type
    // Forward definitions.
    P__gconv_step = ^__gconv_step;
@@ -26,14 +26,14 @@ type
    P__gconv_trans_data = ^__gconv_trans_data;
 
 
-   __gconv_fct = function (_para1:P__gconv_step; _para2:P__gconv_step_data; _para3:PPbyte; _para4:Pbyte; _para5:PPbyte; 
+   __gconv_fct = function (_para1:P__gconv_step; _para2:P__gconv_step_data; _para3:PPbyte; _para4:Pbyte; _para5:PPbyte;
                 _para6:Psize_t; _para7:longint; _para8:longint):longint;cdecl;
 
    __gconv_init_fct = function (_para1:P__gconv_step):longint;cdecl;
 
    __gconv_end_fct = procedure (_para1:P__gconv_step);cdecl;
 
-   __gconv_trans_fct = function (_para1:P__gconv_step; _para2:P__gconv_step_data; _para3:pointer; _para4:Pbyte; _para5:PPbyte; 
+   __gconv_trans_fct = function (_para1:P__gconv_step; _para2:P__gconv_step_data; _para3:pointer; _para4:Pbyte; _para5:PPbyte;
                 _para6:Pbyte; _para7:PPbyte; _para8:Psize_t):longint;cdecl;
 
    __gconv_trans_context_fct = function (_para1:pointer; _para2:Pbyte; _para3:Pbyte; _para4:Pbyte; _para5:Pbyte):longint;cdecl;
@@ -94,16 +94,16 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TGConvStep = __gconv_step;
   PGConvStep = ^__gconv_step;
-  
+
   TGConvStepData = __gconv_step_data;
   PGConvStepData = ^TGConvStepData;
-  
+
   TGConvTransData = __gconv_trans_data;
   PGConvTransData = ^TGConvTransData;
 
   TGConvInfo = __gconv_info;
   PGConvInfo = ^TGConvInfo;
-  
+

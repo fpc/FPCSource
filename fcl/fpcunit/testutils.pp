@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec
-    
-    Port to Free Pascal of the JUnit framework. 
+
+    Port to Free Pascal of the JUnit framework.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -30,10 +30,10 @@ type
     function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-  end; 
-  {$M-}   
-  
-procedure FreeObjects(List: TList);  
+  end;
+  {$M-}
+
+procedure FreeObjects(List: TList);
 procedure GetMethodList( AObject: TObject; AList: TStrings ); overload;
 procedure GetMethodList( AClass: TClass; AList: TStrings ); overload;
 
@@ -53,7 +53,7 @@ end;
 function TNoRefCountObject._Release: Integer;stdcall;
 begin
   Result := -1;
-end;  
+end;
 
 // been to the dentist and suffered a lot
 // Hack Alert! see objpas.inc
@@ -93,9 +93,9 @@ begin
       for i := 0 to MethodTable^.count - 1 do
       begin
         idx := aList.IndexOf(MethodTable^.entries[i].name^);
-        if (idx <> - 1) then 
-	//found overridden method so delete it
-	  aList.Delete(idx);
+        if (idx <> - 1) then
+        //found overridden method so delete it
+          aList.Delete(idx);
         aList.AddObject(MethodTable^.entries[i].name^, TObject(MethodTable^.entries[i].addr));
       end;
     end;
@@ -109,7 +109,7 @@ var
 begin
   for i:= 0 to List.Count - 1 do
     TObject(List.Items[i]).Free;
-end;  
+end;
 
 end.
- 
+

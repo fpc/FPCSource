@@ -32,7 +32,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-09-05 19:39:44  armin
-  * first version of fcl for netwlibc
+  Revision 1.2  2005-02-14 17:13:16  peter
+    * truncate log
 
 }

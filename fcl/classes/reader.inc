@@ -914,7 +914,7 @@ var
   Skip: Boolean;
   Handled: Boolean;
   OldPropName: String;
-  
+
   function HandleMissingProperty(IsPath: Boolean): boolean;
   begin
     Result:=true;
@@ -934,7 +934,7 @@ var
       end;
     end;
   end;
-  
+
 begin
   try
     Path := FDriver.BeginProperty;
@@ -1310,27 +1310,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-12-27 13:53:27  michael
-  + Patch for localization of string properties
-
-  Revision 1.2  2003/12/15 08:57:24  michael
-  Patch from Darek Mazur for reading idents from property stream
-
-  Revision 1.2  2003/12/15 08:55:56  michael
-  Patch from Darek Mazur for reading idents from property stream
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.8  2003/08/16 15:50:47  michael
-  + Fix from Mattias gaertner for IDE support
-
-  Revision 1.7  2002/12/02 12:04:07  sg
-  * Fixed handling of zero-length strings (classes.inc: When converting
-    empty strings from text forms to binary forms; reader.inc: When reading
-    an empty string from a binary serialization)
-
-  Revision 1.6  2002/09/07 15:15:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

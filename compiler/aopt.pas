@@ -252,14 +252,7 @@ end.
 
 {
  $Log$
- Revision 1.8  2004-10-31 21:45:02  peter
-   * generic tlocation
-   * move tlocation to cgutils
+ Revision 1.9  2005-02-14 17:13:06  peter
+   * truncate log
 
- Revision 1.7  2004/10/30 15:21:37  florian
-   * fixed generic optimizer
-   * enabled generic optimizer for sparc
-
- Revision 1.6  2004/06/20 08:55:28  florian
-   * logs truncated
 }

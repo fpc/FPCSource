@@ -326,13 +326,7 @@ End.
 
 {
   $Log$
-  Revision 1.3  2003-02-15 18:44:55  hajny
-    * mmtk directory corrected to lowercase
-
-  Revision 1.1  2003/02/15 16:59:09  hajny
-    * mmtk directory corrected to lowercase
-
-  Revision 1.1  2003/02/09 13:49:06  hajny
-    + mmtk added
+  Revision 1.4  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

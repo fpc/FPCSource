@@ -1889,7 +1889,7 @@ begin
       begin
         Inc(CP);
         if (CP<=length(S)) and
-	   (S[CP]=TAB) then
+           (S[CP]=TAB) then
           Inc(RX,TabSize-(RX mod TabSize))
         else
           Inc(RX);
@@ -2239,7 +2239,7 @@ var
         if (C='.') then
           begin
             if (X>=length(LineText)) or
-	       (LineText[X+1]='.') then
+               (LineText[X+1]='.') then
               cc:=ccSymbol
             else
               cc:=ccRealNumber;
@@ -2247,7 +2247,7 @@ var
         else {'E','e'}
           begin
             if (X>=length(LineText)) or
-	       (LineText[X+1]in ['+','-','0'..'9']) then
+               (LineText[X+1]in ['+','-','0'..'9']) then
               cc:=ccRealNumber
             else
               cc:=ccAlpha
@@ -7190,114 +7190,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.51  2005-01-07 18:29:48  florian
+  Revision 1.52  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.51  2005/01/07 18:29:48  florian
     * fixed endian dependend code
-
-  Revision 1.50  2004/12/06 16:35:26  peter
-  fix ioerror when last save had invalid dir
-
-  Revision 1.49  2004/12/06 16:23:43  peter
-  fix codecomplete in overwrite mode
-
-  Revision 1.48  2004/11/08 20:28:29  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.47  2004/11/06 17:22:53  peter
-    * fixes for new fv
-
-  Revision 1.46  2004/11/03 12:08:30  peter
-    * fixed newline broken by valgrind patch
-
-  Revision 1.45  2004/11/02 23:53:19  peter
-    * fixed crashes with ide and 1.9.x
-
-  Revision 1.44  2004/02/13 06:53:57  pierre
-   * fix for webbug 2940
-
-  Revision 1.43  2004/02/10 07:16:28  pierre
-  * fix webbug 2932
-
-  Revision 1.42  2003/01/31 12:04:50  pierre
-   * try to fix the selection extension better
-
-  Revision 1.41  2003/01/29 00:29:14  pierre
-   * attempt to fix webbugs 2346-2348
-
-  Revision 1.40  2003/01/21 11:03:56  pierre
-   * fix problem with Paste from Menu web bug 2173
-
-  Revision 1.39  2002/12/18 01:18:10  pierre
-   + Cut/Copy/Paste added to TEditorInputLine
-
-  Revision 1.38  2002/12/17 13:48:28  pierre
-   * fix web bug 2012
-
-  Revision 1.37  2002/12/16 15:13:58  pierre
-   + added some missing word separator chars
-
-  Revision 1.36  2002/09/12 08:42:07  pierre
-   * removed lots of unnecessary copies of strings for syntax highlighting
-
-  Revision 1.35  2002/09/11 13:11:54  pierre
-   * speed up by using fixed char sets in GetCharClass
-
-  Revision 1.34  2002/09/11 11:23:48  pierre
-   * more changes to speed syntax highlighting up
-
-  Revision 1.33  2002/09/11 10:05:10  pierre
-   * try to speed up syntax highlighting
-
-  Revision 1.32  2002/09/11 08:39:44  pierre
-   * avoid lots of useless calls by reordering conditions in DoUpdateAttrs
-
-  Revision 1.31  2002/09/10 12:19:14  pierre
-   * use faster method for loading files by default
-
-  Revision 1.30  2002/09/09 06:58:28  pierre
-   + FastBufStream.readline method added
-
-  Revision 1.29  2002/09/07 15:40:48  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.28  2002/09/04 14:02:54  pierre
-   * changed CodeCompleteMinLen type from a const to a variable
-
-  Revision 1.27  2002/09/04 08:39:55  pierre
-   * only suppress current word in CodeTemplate if it matches Template name
-
-  Revision 1.26  2002/09/03 13:56:21  pierre
-   * declare TEditorInputLine in interface and use it in Replace dialog
-
-  Revision 1.25  2002/09/02 10:33:37  pierre
-   * fix web bug report 2099
-
-  Revision 1.24  2002/08/26 14:00:48  pierre
-   * fix for bug report 2025
-
-  Revision 1.23  2002/08/26 13:01:38  pierre
-   + fill the Now field for Editor actions
-
-  Revision 1.22  2002/06/13 14:50:35  pierre
-   * try to improove tabs handling in DelChar and InsertLine methods
-
-  Revision 1.21  2002/06/06 07:04:00  pierre
-   * use inherited ResetCursor for fvision lib
-
-  Revision 1.20  2002/05/31 12:33:49  pierre
-   * fix fvision dialog problem due to DataSize differences
-
-  Revision 1.19  2002/05/30 22:01:12  pierre
-   * fix ResetCursor for fvision
-
-  Revision 1.18  2002/04/16 08:27:01  pierre
-   * fix for bug report 1869
-
-  Revision 1.17  2002/01/25 14:15:35  pierre
-   * fix bug 1774
 
 }

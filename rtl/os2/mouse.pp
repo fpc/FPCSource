@@ -102,9 +102,9 @@ var
  TempHandle: word;
 begin
  MouOpen (nil, TempHandle);
- if MouGetNumButtons (Buttons, TempHandle) = 0 then 
+ if MouGetNumButtons (Buttons, TempHandle) = 0 then
    SysDetectMouse := Buttons
- else 
+ else
    SysDetectMouse := 0;
  MouClose (TempHandle);
 end;
@@ -145,8 +145,8 @@ function SysGetMouseX: word;
 var
  Event: TMouseEvent;
 begin
- if Handle = NoMouse then 
-   SysGetMouseX := 0 
+ if Handle = NoMouse then
+   SysGetMouseX := 0
  else
    begin
    PollMouseEvent (Event);
@@ -158,8 +158,8 @@ function SysGetMouseY: word;
 var
  Event: TMouseEvent;
 begin
- if Handle = NoMouse then 
-   SysGetMouseY := 0 
+ if Handle = NoMouse then
+   SysGetMouseY := 0
  else
    begin
    PollMouseEvent (Event);
@@ -406,11 +406,11 @@ Const
   );
 
 Begin
-  SetMouseDriver(SysMouseDriver);  
+  SetMouseDriver(SysMouseDriver);
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

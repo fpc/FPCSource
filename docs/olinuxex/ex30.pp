@@ -3,14 +3,14 @@ program Example30;
 { Program to demonstrate the FSStat function. }
 
 uses oldlinux;
-    
-var s : string; 
+
+var s : string;
     info : statfs;
-    
+
 begin
   writeln ('Info about current partition : ');
   s:='.';
-  while s<>'q' do 
+  while s<>'q' do
     begin
     if not fsstat (s,info) then
        begin

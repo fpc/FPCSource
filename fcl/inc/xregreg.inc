@@ -46,7 +46,7 @@ function TRegistry.SysGetData(const Name: String; Buffer: Pointer;
 Var
   DataType : TDataType;
   BS : Integer;
-  
+
 begin
   If TXmlregistry(FSysData).GetValueData(Name,DataType,Buffer^,BS) then
     begin
@@ -77,7 +77,7 @@ begin
       end
   else
     With Value do
-      begin    
+      begin
       Case Info.DataType of
         dtUnknown: RegData:=rdUnknown;
         dtDword  : Regdata:=rdInteger;
@@ -85,7 +85,7 @@ begin
         dtBinary : RegData:=rdBinary;
       end;
       DataSize:=Info.DataSize;
-      end;  
+      end;
 end;
 
 function TRegistry.GetKey(const Key: String): HKEY;
@@ -210,7 +210,7 @@ end;
 procedure TRegistry.SetRootKey(Value: HKEY);
 
 Var
-  S: String; 
+  S: String;
 
 begin
   If (Value=HKEY_CLASSES_ROOT) then
@@ -228,7 +228,7 @@ begin
   else if (Value=HKEY_DYN_DATA) then
     S:='HKEY_DYN_DATA'
   else
-    S:=Format('Key%d',[Value]);  
+    S:=Format('Key%d',[Value]);
   TXmlRegistry(FSysData).SetRootKey(S);
   fRootKey := Value;
 end;

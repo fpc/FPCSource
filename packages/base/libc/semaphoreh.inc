@@ -27,10 +27,10 @@ function sem_getvalue(__sem:Psem_t; __sval:Plongint):longint;cdecl;external thre
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSemaphore = sem_t;
   PSemaphore = ^TSemaphore;
-  
+
 function sem_init(var __sem: sem_t; __pshared:longint; __value:dword):longint;cdecl;external threadslib name 'sem_init';
 function sem_destroy(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_destroy';
 function sem_close(var __sem: sem_t):longint;cdecl;external threadslib name 'sem_close';

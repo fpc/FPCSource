@@ -23,8 +23,8 @@ unit cthreads;
 interface
 {$S-}
 
-{$ifndef dynpthreads}	// If you have problems compiling this on FreeBSD 5.x
- {$linklib c}		// try adding -Xf
+{$ifndef dynpthreads}   // If you have problems compiling this on FreeBSD 5.x
+ {$linklib c}           // try adding -Xf
  {$ifndef Darwin}
    {$linklib pthread}
  {$endif darwin}
@@ -331,12 +331,12 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
             { No recursive mutex support :/ }
             res := pthread_mutex_init(@CS,NIL);
         end
-      else 
+      else
         res:= pthread_mutex_init(@CS,NIL);
       pthread_mutexattr_destroy(@MAttr);
       if res <> 0 then
         runerror(6);
-    end;                           
+    end;
 
     procedure CEnterCriticalSection(var CS);
       begin
@@ -404,15 +404,15 @@ type
          FSem: Pointer;
          FManualReset: Boolean;
          FEventSection: TPthreadMutex;
-	end;
-     plocaleventstate = ^tbasiceventstate;  
+        end;
+     plocaleventstate = ^tbasiceventstate;
 //     peventstate=pointer;
 
-Const 
-	wrSignaled = 0;
-	wrTimeout  = 1;
-	wrAbandoned= 2;
-	wrError	   = 3;
+Const
+        wrSignaled = 0;
+        wrTimeout  = 1;
+        wrAbandoned= 2;
+        wrError    = 3;
 
 function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 
@@ -531,7 +531,7 @@ procedure intRTLEventStartWait(AEvent: PRTLEvent);
 var p:pintrtlevent;
 
 begin
-  p:=pintrtlevent(aevent);  
+  p:=pintrtlevent(aevent);
   pthread_mutex_lock(@p^.mutex);
 end;
 
@@ -539,7 +539,7 @@ procedure intRTLEventWaitFor(AEvent: PRTLEvent);
 var p:pintrtlevent;
 
 begin
-  p:=pintrtlevent(aevent);  
+  p:=pintrtlevent(aevent);
   pthread_cond_wait(@p^.condvar, @p^.mutex);
   pthread_mutex_unlock(@p^.mutex);
 end;
@@ -595,7 +595,7 @@ Function CInitThreads : Boolean;
 begin
 {$ifdef DEBUG_MT}
   Writeln('Entering InitThreads.');
-{$endif}  
+{$endif}
 {$ifndef dynpthreads}
   Result:=True;
 {$else}
@@ -616,7 +616,7 @@ Function CDoneThreads : Boolean;
 
 begin
   {$ifndef ver1_0}
-    DoneCriticalSection(SynchronizeCritSect);  
+    DoneCriticalSection(SynchronizeCritSect);
     RtlEventDestroy(ExecuteEvent);
   {$endif}
 {$ifndef dynpthreads}
@@ -657,18 +657,18 @@ begin
     AllocateThreadVars     :=@CAllocateThreadVars;
     ReleaseThreadVars      :=@CReleaseThreadVars;
 {$endif}
-    BasicEventCreate       :=@intBasicEventCreate;       
+    BasicEventCreate       :=@intBasicEventCreate;
     BasicEventDestroy      :=@intBasicEventDestroy;
     BasicEventResetEvent   :=@intBasicEventResetEvent;
     BasicEventSetEvent     :=@intBasicEventSetEvent;
     BasiceventWaitFor      :=@intBasiceventWaitFor;
-    rtlEventCreate         :=@intrtlEventCreate;       
+    rtlEventCreate         :=@intrtlEventCreate;
     rtlEventDestroy        :=@intrtlEventDestroy;
     rtlEventSetEvent       :=@intrtlEventSetEvent;
     rtlEventStartWait      :=@intrtlEventStartWait;
     rtleventWaitFor        :=@intrtleventWaitFor;
     rtleventsync           :=trtleventsynchandler(@intrtleventsync);
-    rtlchksyncunix	   :=@checksynchronize;
+    rtlchksyncunix         :=@checksynchronize;
     end;
   SetThreadManager(CThreadManager);
   InitHeapMutexes;
@@ -681,145 +681,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.20  2005-02-06 11:20:52  peter
+  Revision 1.21  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.20  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
-
-  Revision 1.19  2004/12/28 14:20:03  marco
-   * tthread patch from neli
-
-  Revision 1.18  2004/12/27 15:28:40  marco
-   * checksynchronize now in interface win32 uses the default impl.
-       unix uses systhrds, rest empty implementation.
-
-  Revision 1.17  2004/12/23 20:20:30  michael
-  + Fixed tmt1 test bug
-
-  Revision 1.16  2004/12/23 15:08:59  marco
-   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
-     only showed on make install should be fixed now.
-
-  Revision 1.15  2004/12/22 21:29:24  marco
-   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
-  	Check work: ask Neli.
-
-  Revision 1.14  2004/12/12 14:30:27  peter
-    * x86_64 updates
-
-  Revision 1.13  2004/10/14 17:39:33  florian
-    + added system.align
-    + threadvars are now aligned
-
-  Revision 1.12  2004/09/09 20:29:06  jonas
-    * fixed definition of pthread_mutex_t for non-linux targets (and for
-      linux as well, actually).
-    * base libpthread definitions are now in ptypes.inc, included in unixtype
-      They sometimes have an extra underscore in front of their name, in
-      case they were also exported by the packages/base/pthreads unit, so
-      they can keep their original name there
-    * cthreadds unit now imports systuils, because it uses exceptions (it
-      already did so before as well)
-    * fixed many linux definitions of libpthread functions in pthrlinux.inc
-      (integer -> cint etc)
-    + added culonglong type to ctype.inc
-
-  Revision 1.11  2004/05/23 15:30:42  marco
-   * basicevent, still untested.
-
-  Revision 1.10  2004/03/03 22:00:28  peter
-    * $ifdef debug code
-
-  Revision 1.9  2004/02/22 16:48:39  florian
-    * several 64 bit issues fixed
-
-  Revision 1.8  2004/02/15 16:33:32  marco
-   * linklibs fixed for new pthread mechanism on FreeBSD
-
-  Revision 1.7  2004/01/20 23:13:53  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.6  2004/01/07 17:40:56  jonas
-    * Darwin does not have a lib_r, libc itself is already reentrant
-
-  Revision 1.5  2003/12/16 09:43:04  daniel
-    * Use of 0 instead of nil fixed
-
-  Revision 1.4  2003/11/29 17:34:14  michael
-  + Removed dummy variable from SetCthreadManager
-
-  Revision 1.3  2003/11/27 20:24:53  michael
-  + Compiles on BSD too now
-
-  Revision 1.2  2003/11/27 20:16:59  michael
-  + Make works with 1.0.10 too
-
-  Revision 1.1  2003/11/26 20:10:59  michael
-  + New threadmanager implementation
-
-  Revision 1.20  2003/11/19 10:54:32  marco
-   * some simple restructures
-
-  Revision 1.19  2003/11/18 22:36:12  marco
-   * Last patch was ok, problem was somewhere else. Moved *BSD part of pthreads to freebsd/pthreads.inc
-
-  Revision 1.18  2003/11/18 22:35:09  marco
-   * Last patch was ok, problem was somewhere else. Moved *BSD part of pthreads to freebsd/pthreads.inc
-
-  Revision 1.17  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.16  2003/11/17 08:27:50  marco
-   * pthreads based ttread from Johannes Berg
-
-  Revision 1.15  2003/10/01 21:00:09  peter
-    * GetCurrentThreadHandle renamed to GetCurrentThreadId
-
-  Revision 1.14  2003/10/01 20:53:08  peter
-    * GetCurrentThreadId implemented
-
-  Revision 1.13  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.12  2003/09/16 13:17:03  marco
-   * Wat cleanup, ouwe syscalls nu via baseunix e.d.
-
-  Revision 1.11  2003/09/16 13:00:02  marco
-   * small BSD gotcha removed (typing mmap params)
-
-  Revision 1.10  2003/09/15 20:08:49  marco
-   * small fixes. FreeBSD now cycles
-
-  Revision 1.9  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.8  2003/03/27 17:14:27  armin
-  * more platform independent thread routines, needs to be implemented for unix
-
-  Revision 1.7  2003/01/05 19:11:32  marco
-   * small changes originating from introduction of Baseunix to FreeBSD
-
-  Revision 1.6  2002/11/11 21:41:06  marco
-   * syscall.inc -> syscallo.inc
-
-  Revision 1.5  2002/10/31 13:45:21  carl
-    * threadvar.inc -> threadvr.inc
-
-  Revision 1.4  2002/10/26 18:27:52  marco
-   * First series POSIX calls commits. Including getcwd.
-
-  Revision 1.3  2002/10/18 18:05:06  marco
-   * $I pthread.inc instead of pthreads.inc
-
-  Revision 1.2  2002/10/18 12:19:59  marco
-   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
-     support. Still problems left in fexpand. (inoutres?) Therefore fixed
-     sysposix not yet commited
-
-  Revision 1.1  2002/10/16 06:22:56  michael
-  Threads renamed from threads to systhrds
-
-  Revision 1.1  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
 
 }
 

@@ -461,39 +461,7 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-05-31 20:25:04  peter
-    * removed warnings
-
-  Revision 1.15  2004/03/13 18:47:57  florian
-    * "improved" behavior of real2str for arm, still needs fixing
-
-  Revision 1.14  2004/03/13 18:33:52  florian
-    * fixed some arm related real stuff
-
-  Revision 1.13  2003/12/29 19:19:21  jonas
-    * fixed NaN/Inf detection for single/double
-
-  Revision 1.12  2003/12/08 17:45:00  peter
-    * currency support
-    * dropped fixed16/32 support
-
-  Revision 1.11  2003/10/26 16:56:44  jonas
-    * fixed web bug 2643
-
-  Revision 1.10  2003/09/06 17:06:59  florian
-    * fixed Nan and +Inf string
-
-  Revision 1.9  2003/09/06 16:48:35  florian
-    * fixed real2str for -Inf and Inf
-
-  Revision 1.8  2003/05/16 23:22:31  jonas
-    * moved all loal variables to one block (necessary for ppc until nested
-      procedures are properly supported)
-
-  Revision 1.7  2002/10/04 16:41:17  jonas
-    * fixed web bug 2131
-
-  Revision 1.6  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
+  Revision 1.17  2005-02-14 17:13:26  peter
+    * truncate log
 
 }

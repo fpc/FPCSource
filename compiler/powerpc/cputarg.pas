@@ -64,10 +64,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2004-06-20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.7  2004/02/24 16:06:08  karoly
-   + morphos target added
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

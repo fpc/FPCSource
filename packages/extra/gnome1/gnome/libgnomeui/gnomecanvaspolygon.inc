@@ -30,7 +30,7 @@ const
    bp__GnomeCanvasPolygon_outline_set = 1;
    bm__GnomeCanvasPolygon_width_pixels = $4;
    bp__GnomeCanvasPolygon_width_pixels = 2;
-   
+
 function fill_set(var a : TGnomeCanvasPolygon) : guint;
 procedure set_fill_set(var a : TGnomeCanvasPolygon; __fill_set : guint);
 function outline_set(var a : TGnomeCanvasPolygon) : guint;

@@ -107,11 +107,8 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-19 14:57:12  nils
-  * removed mode objfpc
-
-  Revision 1.1  2002/11/28 19:42:27  nils
-    * initial release
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 

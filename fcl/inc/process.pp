@@ -207,7 +207,7 @@ Procedure TProcess.SetWindowColumns (Value : Cardinal);
 begin
   if Value<>0 then
     Include(FStartUpOptions,suoUseCountChars);
-  dwXCountChars:=Value;  
+  dwXCountChars:=Value;
 end;
 
 
@@ -216,7 +216,7 @@ Procedure TProcess.SetWindowHeight (Value : Cardinal);
 begin
   if Value<>0 then
     include(FStartUpOptions,suoUsePosition);
-  dwYSize:=Value;  
+  dwYSize:=Value;
 end;
 
 Procedure TProcess.SetWindowLeft (Value : Cardinal);
@@ -232,14 +232,14 @@ Procedure TProcess.SetWindowTop (Value : Cardinal);
 begin
   if Value<>0 then
     Include(FStartUpOptions,suoUsePosition);
-  dwy:=Value;  
+  dwy:=Value;
 end;
 
 Procedure TProcess.SetWindowWidth (Value : Cardinal);
 begin
   If (Value<>0) then
     Include(FStartUpOptions,suoUseSize);
-  dwXSize:=Value;  
+  dwXSize:=Value;
 end;
 
 Function TProcess.GetWindowRect : TRect;
@@ -309,40 +309,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2004-09-11 22:26:40  michael
-  * Added ThreadID, ProcessID properties
-
-  Revision 1.23  2004/09/09 13:47:38  michael
-  + Patch from Vincent Snijders to correctly handle PeekExitStatus
-
-  Revision 1.22  2004/09/08 18:17:23  michael
-  + Removed extra handle on process.
-
-  Revision 1.21  2004/08/12 14:33:55  michael
-  + New split of process.pp
-
-  Revision 1.20  2004/07/30 12:55:42  michael
-  Closing process handles in Windows. Patch from Vincent Snijders
-
-  Revision 1.19  2004/02/03 08:12:22  michael
-  + Patch from Vincent Snijders to fix passing environment vars in win32
-
-  Revision 1.18  2003/10/30 20:34:47  florian
-    * fixed inherited destroy; call of tprocess
-
-  Revision 1.17  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.16  2003/08/12 13:49:42  michael
-  + Freed streams were not closed correctly
-
-  Revision 1.15  2003/05/08 20:04:16  armin
-  * Dont close FStartupInfo.hStdError if options include poStdErrToOutPut
-
-  Revision 1.14  2003/04/27 21:21:42  sg
-  * Added typecast to prevent range check error in TProcess.WaitOnExit
-
-  Revision 1.13  2002/09/07 15:15:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.25  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

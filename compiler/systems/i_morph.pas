@@ -102,21 +102,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-12-11 14:39:03  florian
-    * made some target short names look more nicer
-
-  Revision 1.4  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.3  2004/04/08 00:03:51  karoly
-   * mos uses sysv abi, not aix
-
-  Revision 1.2  2004/03/15 07:26:44  karoly
-   * added abi field into TSystemInfo to fix IE
-
-  Revision 1.1  2004/02/13 05:46:26  karoly
-   * added powerpc-morphos target
-
+  Revision 1.6  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

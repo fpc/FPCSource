@@ -5,10 +5,10 @@ uses exec, triton, tritonmacros, linklist,
 
 {
    A demo in FPC Pascal using triton.library
-   
+
    Updated for fpc 1.0.7
    09 Jan 2003.
-   
+
    nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -38,7 +38,7 @@ PROCEDURE CleanExit(errstring : STRING; rc : Longint);
 BEGIN
     IF assigned(Project) THEN TR_CloseProject(Project);
     IF Assigned(mylist) THEN DestroyList(mylist);
-    IF Assigned(llist) THEN DestroyList(llist); 
+    IF Assigned(llist) THEN DestroyList(llist);
     IF errstring <> '' THEN WriteLn(errstring);
     Halt(rc)
 END;
@@ -103,7 +103,7 @@ BEGIN
    buffer := @strbuf;
    num := TR_GetValue(Project,LibListGadID);
    mynode := GetNodeNumber(mylist,num);
-   
+
    dummy := TR_EasyRequestTags(Triton_App,'Sure you want to delete'+#10+
                             strpas(GetNodeData(mynode)),'_Remove|_Cancel',[
                             TREZ_LockProject,Project,
@@ -281,6 +281,6 @@ END.
 
 
 
-                
-                                         
+
+
 

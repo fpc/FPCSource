@@ -8,7 +8,7 @@ const
   MonthStr:array[1..12] of string[3]=('Jan','Feb','Mar','Apr','May','Jun',
                                       'Jul','Aug','Sep','Oct','Nov','Dec');
 var
-  Year,Month,Day,WDay : word;				      
+  Year,Month,Day,WDay : word;
 begin
   GetDate(Year,Month,Day,WDay);
   WriteLn('Current date');

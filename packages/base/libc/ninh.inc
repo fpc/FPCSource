@@ -103,10 +103,10 @@ Function IN_BADCLASS(a: in_addr_t): Boolean;
 
 const
   IN_LOOPBACKNET = 127;
-  INADDR_LOOPBACK = in_addr_t($7f000001); 
+  INADDR_LOOPBACK = in_addr_t($7f000001);
   INADDR_UNSPEC_GROUP = in_addr_t($e0000000);
   INADDR_ALLHOSTS_GROUP = in_addr_t($e0000001);
-  INADDR_ALLRTRS_GROUP = in_addr_t($0000002); 
+  INADDR_ALLRTRS_GROUP = in_addr_t($0000002);
   INADDR_MAX_LOCAL_GROUP = in_addr_t($e00000ff);
 
 type
@@ -128,7 +128,7 @@ type
 
 
 Const
-  IN6ADDR_ANY_INIT : in6_addr = ( in6_u : (U6_addr8 : (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 )) ); 
+  IN6ADDR_ANY_INIT : in6_addr = ( in6_u : (U6_addr8 : (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 )) );
   IN6ADDR_LOOPBACK_INIT : in6_addr = ( in6_u : (U6_addr8 : ( 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 )));
 
 const

@@ -1541,61 +1541,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  2005-02-01 20:22:50  florian
+  Revision 1.20  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.19  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
-
-  Revision 1.18  2004/12/05 14:36:38  hajny
-    + GetProcessID added
-
-  Revision 1.17  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.16  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.15  2004/09/03 19:27:16  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.14  2004/06/17 16:16:14  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.13  2004/04/22 21:10:56  peter
-    * do_read/do_write addr argument changed to pointer
-
-  Revision 1.12  2004/01/20 23:12:49  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.11  2004/01/11 23:08:39  hajny
-    * merged Jonas fix from GO32v2
-
-  Revision 1.10  2004/01/11 22:54:44  hajny
-    * 'conservative' version of the do_open patch by Joe da Silva
-
-  Revision 1.9  2003/12/15 15:57:48  peter
-    * patches from wiktor
-
-  Revision 1.8  2003/11/17 19:55:13  hajny
-    * Wiktor Sywula: LFN detection uncommented in system, new units added
-
-  Revision 1.7  2003/10/18 09:31:59  hajny
-    * Wiktor Sywula: environment and arguments support added
-
-  Revision 1.6  2003/10/16 15:43:13  peter
-    * THandle is platform dependent
-
-  Revision 1.5  2003/10/03 21:59:28  peter
-    * stdcall fixes
-
-  Revision 1.4  2003/09/29 18:52:36  hajny
-    * append fix applied to Amiga, Atari, EMX, GO32v2, OS/2 and Watcom
-
-  Revision 1.3  2003/09/27 11:52:36  peter
-    * sbrk returns pointer
-
-  Revision 1.2  2003/09/07 22:29:26  hajny
-    * syswat renamed to system, CVS log added
-
 
 }

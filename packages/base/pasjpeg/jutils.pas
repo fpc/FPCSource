@@ -77,7 +77,7 @@ function jround_up (a : long; b : long) : long;
 procedure jcopy_sample_rows (input_array : JSAMPARRAY;
                              source_row : int;
                              output_array : JSAMPARRAY; dest_row : int;
-		             num_rows : int; num_cols : JDIMENSION);
+                             num_rows : int; num_cols : JDIMENSION);
 
 {GLOBAL}
 procedure jcopy_block_row (input_row : JBLOCKROW;
@@ -143,7 +143,7 @@ end;
 {GLOBAL}
 procedure jcopy_sample_rows (input_array : JSAMPARRAY; source_row : int;
                              output_array : JSAMPARRAY; dest_row : int;
-		             num_rows : int; num_cols : JDIMENSION);
+                             num_rows : int; num_cols : JDIMENSION);
 { Copy some rows of samples from one place to another.
   num_rows rows are copied from input_array[source_row++]
   to output_array[dest_row++]; these areas may overlap for duplication.

@@ -506,32 +506,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2005-01-25 18:48:15  peter
+  Revision 1.16  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.15  2005/01/25 18:48:15  peter
     * tf_pic_uses_got added
-
-  Revision 1.14  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.13  2004/09/12 20:33:21  olle
-    * Updated compiler status
-
-  Revision 1.12  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.11  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.10.2.1  2004/05/11 17:07:55  marco
-   * x86_64 freebsd target support
-
-  Revision 1.10  2004/03/29 21:17:39  florian
-    * fixed dyn. lib extension on darwin
-
-  Revision 1.9  2004/02/08 20:03:05  jonas
-    * corrected first_param_offset for darwin
-
-  Revision 1.8  2004/01/29 15:48:10  marco
-   * fix added as comment till I can test (8 byte C alignment on netbsd/ppc)
 
 }

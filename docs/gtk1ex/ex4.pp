@@ -21,13 +21,13 @@ var
   window,
   maintable:  PgtkWidget;
 
-procedure AddToTable(Widget : PGtkWidget; 
+procedure AddToTable(Widget : PGtkWidget;
                      Left,Right, Top,Bottom : guint);
 begin
   gtk_table_attach_defaults (GTK_TABLE(MainTable),Widget,
                              Left,right,top,bottom);
-end;                     
-   
+end;
+
 begin
   gtk_init (@argc, @argv);
   window := gtk_window_new (GTK_WINDOW_TOPLEVEL);

@@ -189,26 +189,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-11-21 17:17:03  florian
-    * changed funcret location back to tlocation
+  Revision 1.6  2005-02-14 17:13:06  peter
+    * truncate log
 
-  Revision 1.4  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.3  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.2  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.1  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
 }

@@ -230,10 +230,10 @@ begin
       DecIndent;
       case CurVisibility of
         visPrivate: wrtln('private');
-	visProtected: wrtln('protected');
-	visPublic: wrtln('public');
-	visPublished: wrtln('published');
-	visAutomated: wrtln('automated');
+        visProtected: wrtln('protected');
+        visPublic: wrtln('public');
+        visPublished: wrtln('published');
+        visAutomated: wrtln('automated');
       end;
       IncIndent;
       LastVisibility := CurVisibility;
@@ -268,19 +268,19 @@ begin
       with TPasArgument(AProc.ProcType.Args[i]) do
       begin
         if i > 0 then
-	  wrt('; ');
+          wrt('; ');
         case Access of
-	  argConst: wrt('const ');
-	  argVar: wrt('var ');
-	end;
-	wrt(Name);
-	if Assigned(ArgType) then
-	begin
-	  wrt(': ');
-	  WriteElement(ArgType);
-	end;
-	if Value <> '' then
-	  wrt(' = ' + Value);
+          argConst: wrt('const ');
+          argVar: wrt('var ');
+        end;
+        wrt(Name);
+        if Assigned(ArgType) then
+        begin
+          wrt(': ');
+          WriteElement(ArgType);
+        end;
+        if Value <> '' then
+          wrt(' = ' + Value);
       end;
     wrt(')');
   end;
@@ -329,19 +329,19 @@ begin
       with TPasArgument(AProc.ProcType.Args[i]) do
       begin
         if i > 0 then
-	  wrt('; ');
+          wrt('; ');
         case Access of
-	  argConst: wrt('const ');
-	  argVar: wrt('var ');
-	end;
-	wrt(Name);
-	if Assigned(ArgType) then
-	begin
-	  wrt(': ');
-	  WriteElement(ArgType);
-	end;
-	if Value <> '' then
-	  wrt(' = ' + Value);
+          argConst: wrt('const ');
+          argVar: wrt('var ');
+        end;
+        wrt(Name);
+        if Assigned(ArgType) then
+        begin
+          wrt(': ');
+          WriteElement(ArgType);
+        end;
+        if Value <> '' then
+          wrt(' = ' + Value);
       end;
     wrt(')');
   end;
@@ -478,7 +478,7 @@ begin
       if (Length(s) >= 2) and (s[1] = '/') and (s[2] = '/') then
         wrtln(s)
       else
-	wrtln(s + ';');
+        wrtln(s + ';');
   end;
 end;
 
@@ -497,7 +497,7 @@ begin
     if (AIfElse.IfBranch.ClassType = TPasImplCommands) or
       (AIfElse.IfBranch.ClassType = TPasImplBlock) then
       if Assigned(AIfElse.ElseBranch) then
-	wrt('end ')
+        wrt('end ')
       else
         wrtln('end;')
     else
@@ -521,7 +521,7 @@ begin
       WriteImplElement(AIfElse.ElseBranch, True);
       if (not Assigned(AIfElse.Parent)) or
         (AIfElse.Parent.ClassType <> TPasImplIfElse) or
-	(TPasImplIfElse(AIfElse.Parent).IfBranch <> AIfElse) then
+        (TPasImplIfElse(AIfElse.Parent).IfBranch <> AIfElse) then
         wrtln(';');
       DecIndent;
     end;
@@ -618,10 +618,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-12-06 08:53:47  michael
-  + Fix from Dave Strodtman to properly support packed
-
-  Revision 1.1  2003/03/13 21:47:42  sg
-  * First version as part of FCL
+  Revision 1.3  2005-02-14 17:13:16  peter
+    * truncate log
 
 }

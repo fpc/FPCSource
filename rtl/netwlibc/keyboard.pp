@@ -136,15 +136,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-09-12 20:51:22  armin
-  * added keyboard and video
-  * a lot of fixes
-
-  Revision 1.4  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/03/08 19:02:59  armin
-  Changes for new style (TKeyboardDriver record)
-
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -13,7 +13,7 @@ Begin
     begin
     Repeat
       Inc(Count);
-      With Info do 
+      With Info do
         begin
         If (Attr and faDirectory) = faDirectory then
           Write('Dir : ');
@@ -23,5 +23,5 @@ Begin
     end;
   FindClose(Info);
   Writeln ('Finished search. Found ',Count,' matches');
-  
+
 End.

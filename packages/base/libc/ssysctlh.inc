@@ -1,6 +1,6 @@
 
 
-function sysctl(__name:Plongint; __nlen:longint; __oldval:pointer; __oldlenp:Psize_t; __newval:pointer; 
+function sysctl(__name:Plongint; __nlen:longint; __oldval:pointer; __oldlenp:Psize_t; __newval:pointer;
            __newlen:size_t):longint;cdecl;external clib name 'sysctl';
 
 
@@ -8,4 +8,4 @@ function sysctl(__name:Plongint; __nlen:longint; __oldval:pointer; __oldlenp:Psi
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

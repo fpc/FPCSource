@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Basic canvas definitions.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -192,7 +192,7 @@ type
     function  DoAllowPen (APen : TFPCustomPen) : boolean; virtual;
     function  DoAllowBrush (ABrush : TFPCustomBrush) : boolean; virtual;
     procedure SetColor (x,y:integer; const Value:TFPColor); Virtual; abstract;
-    function  GetColor (x,y:integer) : TFPColor; Virtual; abstract;    
+    function  GetColor (x,y:integer) : TFPColor; Virtual; abstract;
     procedure SetHeight (AValue : integer); virtual; abstract;
     function  GetHeight : integer; virtual; abstract;
     procedure SetWidth (AValue : integer); virtual; abstract;

@@ -6,7 +6,7 @@ Uses sysutils;
 
 Var S : AnsiString;
     L : Longint;
-    
+
 Begin
   S:='This is an ansistring.';
   Writeln ('Last character of S is : ',AnsiLastChar(S));

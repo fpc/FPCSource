@@ -288,26 +288,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2005-01-27 21:27:02  florian
+  Revision 1.10  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.9  2005/01/27 21:27:02  florian
     * sparc got correct errnos
-
-  Revision 1.8  2004/03/04 13:10:29  olle
-    + added comment to ETXTBSY
-    * changed i386 -> cpui386, m68k -> cpum68k
-
-  Revision 1.7  2003/05/17 13:06:22  marco
-   * done.
-
-  Revision 1.6  2003/01/02 23:57:32  marco
-   * small patch
-
-  Revision 1.5  2002/12/18 16:50:39  marco
-   * Unix RTL generic parts. Linux working, *BSD will follow shortly
-
-  Revision 1.4  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/03/11 19:10:33  peter
-    * Regenerated with updated fpcmake
 
 }

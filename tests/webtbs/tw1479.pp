@@ -15,7 +15,7 @@ begin
   rewrite(f);
   writeln(f,'hello');
   close(f);
-  
+
   fn:=FileSearch(fname,PathSeparator);
   writeln('found: ',fn);
   if fn<>fname then

@@ -16,7 +16,7 @@
   {$IFNDEF ver1_9_4}
     {$INLINE ON}
     {$define HASINLINE}
-  {$endif}  
+  {$endif}
 {$ENDIF}
 
 Type
@@ -24,7 +24,7 @@ Type
     sa_family_t=cuchar;
 {$else}
     sa_family_t=cushort;
-{$endif} 
+{$endif}
 
 Const
   { Socket types }
@@ -74,10 +74,10 @@ const
 
 Type
   in_addr = packed record
-	     s_addr  : cuint32;		// inaddr_t=cuint32
-            end; 
+             s_addr  : cuint32;         // inaddr_t=cuint32
+            end;
 
-  in_addrbytes = packed array [1..4] of byte;	
+  in_addrbytes = packed array [1..4] of byte;
 
   TSockAddr = packed Record
   {$ifdef SOCK_HAS_SINLEN}
@@ -87,16 +87,16 @@ Type
      sa_data    : array [0..13] of char;
     end;
   PSockAddr = ^TSockAddr;
-  Sockaddr  = TSockAddr;		// Kylix compat	
+  Sockaddr  = TSockAddr;                // Kylix compat
 
   TInetSockAddr = packed Record
-    case boolean of   
+    case boolean of
      false : (
-  {$ifdef SOCK_HAS_SINLEN} 
+  {$ifdef SOCK_HAS_SINLEN}
      sin_len     : cuchar;
   {$endif}
      sin_family  : sa_family_t;
-     sin_port    : cushort;   
+     sin_port    : cushort;
      sin_addr    : in_addr;
      xpad         : array [0..7] of char; { to get to the size of sockaddr... }
       );
@@ -108,10 +108,10 @@ Type
      port    : cushort;
      addr    : cardinal;
      pad         : array [0..7] of char; { to get to the size of sockaddr... }
-      );                
+      );
     end;
   pInetSockAddr = ^TInetSockAddr;
-  TInAddr 	=  TInetSockAddr; 
+  TInAddr       =  TInetSockAddr;
 
   Tin6_addr = packed record
   case byte of
@@ -140,27 +140,27 @@ Type
   psockaddr_in6 = ^sockaddr_in6;
 
   TSockPairArray = Array[0..1] of Longint;
-  TSockArray     = Array[1..2] of Longint; 		//legacy
+  TSockArray     = Array[1..2] of Longint;              //legacy
 
 
 Var
   SocketError:cint;
 
-function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint; 
-function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; 
-function  fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; 
-function  fpsend        (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; 
-function  fpsendto      (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; 
-function  fpbind        (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  
-function  fplisten      (s:cint; backlog : cint):cint;                          
-function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
-function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  
-function  fpshutdown    (s:cint; how:cint):cint; 
-function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; 
-function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; 
-function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
-function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint; 
-function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
+function  fpsocket      (domain:cint; xtype:cint; protocol: cint):cint;
+function  fprecv        (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
+function  fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
+function  fpsend        (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
+function  fpsendto      (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
+function  fpbind        (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
+function  fplisten      (s:cint; backlog : cint):cint;
+function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
+function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;
+function  fpshutdown    (s:cint; how:cint):cint;
+function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
+function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
+function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
+function  fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : tsocklen):cint;
+function  fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 
 {Basic Socket Functions}
 Function Socket(Domain,SocketType,Protocol:Longint):Longint;
@@ -196,7 +196,7 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 { Utility routines}
 function htonl( host : longint):longint;  {$ifdef HASINLINE} inline; {$endif}
 Function NToHl( Net : Longint) : Longint; {$ifdef HASINLINE} inline; {$endif}
-function htons( host : word):word;	  {$ifdef HASINLINE} inline; {$endif}
+function htons( host : word):word;        {$ifdef HASINLINE} inline; {$endif}
 Function NToHs( Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
 
 function NetAddrToStr (Entry : in_addr) : AnsiString;
@@ -215,12 +215,15 @@ Function ShortNetToHost(Net  : Word) : Word;
 // ipv6
 function HostAddrToStr6(Entry : Tin6_addr) : AnsiString;
 function StrToHostAddr6(IP   : String) : Tin6_addr;     // not implemented?!?
-function NetAddrToStr6 (Entry: Tin6_addr) : AnsiString; 
+function NetAddrToStr6 (Entry: Tin6_addr) : AnsiString;
 function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
 
 {
   $Log$
-  Revision 1.24  2005-02-13 21:10:31  marco
+  Revision 1.25  2005-02-14 17:13:26  peter
+    * truncate log
+
+  Revision 1.24  2005/02/13 21:10:31  marco
    * in_addr_bytes to easily put an array over the byte type
 
   Revision 1.23  2005/02/13 19:59:57  marco
@@ -228,50 +231,5 @@ function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
 
   Revision 1.22  2005/02/12 17:34:56  marco
    * some kylix stuf
-
-  Revision 1.21  2004/12/23 18:32:26  marco
-   * cdecl stuff removed. Now works on FreeBSD with and without FPC_USE_LIBC
-
-  Revision 1.20  2004/12/21 14:36:18  marco
-   * more maybelibc removal
-
-  Revision 1.19  2004/12/21 09:48:14  michael
-  + Removed maybelibc macro
-
-  Revision 1.18  2004/11/01 19:39:19  peter
-    * disable inline for 1.9.4
-
-  Revision 1.17  2004/11/01 17:35:22  marco
-   * typo fixed, aarght
-
-  Revision 1.16  2004/11/01 17:29:47  marco
-   * inline problems fixed
-
-  Revision 1.15  2004/11/01 16:23:15  marco
-   * htons etc
-
-  Revision 1.14  2004/03/16 19:15:57  marco
-   * sockaddr is now a union between the old and new struct as grace period
-
-  Revision 1.13  2004/03/16 18:03:37  marco
-   * first changes sockets units
-
-  Revision 1.12  2003/11/23 11:00:07  michael
-  + Added IPV6 patch from Johannes Berg
-
-  Revision 1.11  2003/11/22 16:28:56  michael
-  + Added several constants
-
-  Revision 1.10  2003/11/09 21:43:15  michael
-  + Added some missing socket options and the shut_* constants
-
-  Revision 1.9  2003/03/23 17:47:15  armin
-  * CloseSocket added
-
-  Revision 1.8  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/02/04 21:29:34  michael
-  + merged missing sendto/rcvfrom functions
 
 }

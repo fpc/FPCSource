@@ -21,13 +21,13 @@ begin
         Finally
           Free;
         end;
-      Result:=S2.DataString;  
+      Result:=S2.DataString;
     finally
       S2.Free;
     end;
  finally
    S1.Free;
- end;  
+ end;
 end;
 
 Var

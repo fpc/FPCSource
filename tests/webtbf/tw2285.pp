@@ -32,5 +32,5 @@ Begin
     begin
       writeln('Error!');
       halt(1);
-    end;  
+    end;
 End.

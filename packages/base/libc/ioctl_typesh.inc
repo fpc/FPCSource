@@ -57,6 +57,6 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TWinSize = winsize;
-  
+

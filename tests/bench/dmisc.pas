@@ -817,23 +817,7 @@ End;
 end.
 {
   $Log$
-  Revision 1.1  2002-08-16 20:41:32  florian
-  no message
-
-  Revision 1.10  2002/08/12 15:08:39  carl
-    + stab register indexes for powerpc (moved from gdb to cpubase)
-    + tprocessor enumeration moved to cpuinfo
-    + linker in target_info is now a class
-    * many many updates for m68k (will soon start to compile)
-    - removed some ifdef or correct them for correct cpu
-
-  Revision 1.9  2002/05/18 13:34:07  peter
-    * readded missing revisions
-
-  Revision 1.8  2002/05/16 19:46:36  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.2  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

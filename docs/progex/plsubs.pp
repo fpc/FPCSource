@@ -1,7 +1,7 @@
 program testsubs;
 
 Type
-  TSubStrFunc = 
+  TSubStrFunc =
     function(const CString:PChar;FromPos,ToPos: longint):PChar;cdecl;
 
 Function dlopen(name: pchar;mode: longint):pointer;cdecl;external 'dl';
@@ -13,7 +13,7 @@ var
   FromPos, ToPos: Integer;
   lib : pointer;
   SubStr : TSubStrFunc;
-  
+
 begin
   s := 'Test';
   FromPos := 2;

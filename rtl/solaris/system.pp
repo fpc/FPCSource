@@ -235,7 +235,10 @@ End.
 
 {
  $Log$
- Revision 1.5  2005-02-14 16:32:41  peter
+ Revision 1.6  2005-02-14 17:13:31  peter
+   * truncate log
+
+ Revision 1.5  2005/02/14 16:32:41  peter
    * solaris updates
 
  Revision 1.4  2005/02/13 22:13:20  peter
@@ -253,9 +256,4 @@ End.
  Revision 1.4  2005/02/01 20:22:50  florian
    * improved widestring infrastructure manager
 
- Revision 1.3  2004/12/05 14:36:38  hajny
-   + GetProcessID added
-
- Revision 1.2  2004/11/06 22:22:28  florian
-   * some sunos stuff from 1.0.x merged
 }

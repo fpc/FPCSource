@@ -6,10 +6,10 @@ uses video,keyboard,vidutil;
 {$error This example only works on intel 80x86 machines}
 {$endif}
 
-Var 
+Var
   i : longint;
   k : TkeyEvent;
-  
+
 begin
   InitVideo;
   InitKeyboard;
@@ -18,7 +18,7 @@ begin
   UpdateScreen(false);
   K:=GetKeyEvent;
   ClearScreen;
-  TextOut(1,1,'Cleared screen. Press any key to end');  
+  TextOut(1,1,'Cleared screen. Press any key to end');
   UpdateScreen(true);
   K:=GetKeyEvent;
   DoneKeyBoard;

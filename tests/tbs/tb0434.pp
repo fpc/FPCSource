@@ -8,7 +8,7 @@ var
  x:function:longint;
  x2:function:longint;
  y:pointer absolute x;
- y2:pointer absolute x2; 
+ y2:pointer absolute x2;
 begin
   x2:=@dummy;
   if (y<>nil) or (y2<>pointer(@dummy)) then

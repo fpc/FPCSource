@@ -287,7 +287,7 @@ Begin
       PDebug('Reading Console');
       Readln(Command);
       If Command='quit' Then quit := True;
-{	Else Writeln(DB_Query(Command));}
+{       Else Writeln(DB_Query(Command));}
       Command := '';
      End;
    End;

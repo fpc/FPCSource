@@ -781,56 +781,14 @@ unit cg64f32;
 end.
 {
   $Log$
-  Revision 1.68  2005-02-13 18:55:19  florian
+  Revision 1.69  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.68  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.67  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
-
-  Revision 1.66  2004/12/03 15:58:11  peter
-    * LOC_CREGISTER fix
-
-  Revision 1.65  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.64  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.63  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.62  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.61.4.2  2004/09/20 20:46:34  peter
-    * register allocation optimized for 64bit loading of parameters
-      and return values
-
-  Revision 1.61.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.61  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.60  2004/06/18 15:16:46  peter
-    * remove obsolete cardinal() typecasts
-
-  Revision 1.59  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.58  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.57.2.5  2004/06/13 10:51:16  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.57.2.4  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
 
 }

@@ -242,16 +242,7 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-12-05 11:21:46  hajny
-    * common implementation of unit printer - fix for bug 3421
-
-  Revision 1.6  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.5  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.4  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -22,10 +22,7 @@ begin
       end;
   until mode=0;
 end.  $Log$
-end.  Revision 1.2  2002-09-07 15:43:05  peter
-end.    * old logs removed and tabs fixed
-end.
-end.  Revision 1.1  2002/01/29 17:55:22  peter
-end.    * splitted to base and extra
+end.  Revision 1.3  2005-02-14 17:13:21  peter
+end.    * truncate log
 end.
 }

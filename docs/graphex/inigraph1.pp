@@ -31,7 +31,7 @@ begin
   { Write a nice message in the center of the screen }
   setTextStyle(defaultFont,horizDir,1);
   tw:=TextWidth(TheLine);
-  th:=TextHeight(TheLine);  
+  th:=TextHeight(TheLine);
   outTextXY((getMaxX - TW) div 2,
             (getMaxY - TH) div 2,TheLine);
   { Wait for return }

@@ -196,20 +196,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-11-27 16:16:02  florian
-    * some m68k stuff updated
-
-  Revision 1.8  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.7  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.6  2004/05/12 13:28:01  karoly
-   * added some basic code for later syscall support on M68k/Amiga
-
-  Revision 1.5  2004/01/30 12:17:18  florian
-    * fixed some m68k compilation problems
+  Revision 1.10  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

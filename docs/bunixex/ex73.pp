@@ -1,12 +1,12 @@
 program example73;
 
-{ Program to demonstrate the FpSleep function. } 
+{ Program to demonstrate the FpSleep function. }
 
 uses BaseUnix;
 
 Var
   Res : Longint;
-  
+
 begin
   Write('Sleep returned : ');
   Flush(Output);

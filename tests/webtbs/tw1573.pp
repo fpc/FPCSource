@@ -3,12 +3,12 @@
 {$mode objfpc}
 
 type
-	TCheck=class(TObject);
+        TCheck=class(TObject);
 
 
 var
-	vlA : TCheck;
-	vlB : TObject;
+        vlA : TCheck;
+        vlB : TObject;
 
 procedure aa(const ParXX :array of TObject);
 begin
@@ -21,8 +21,8 @@ begin
 end;
 
 begin
-	vlB := TObject.Create;
-	vlA := TCheck.Create;
-	aa([vlA,vlB]);
+        vlB := TObject.Create;
+        vlA := TCheck.Create;
+        aa([vlA,vlB]);
 end.
 

@@ -83,7 +83,7 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,
 
     ta      3
     mov     %g1,%o1         // use %o1, since %g1 will be destroyed by the call below
-    
+
     ld      [%o1], %fp      // Set saved SP on restore below.
     sub     %fp, 64, %sp    // Allocate a register frame.
     st      %g3, [%fp+48]   // Set saved FP on restore below.
@@ -95,7 +95,7 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,
 {$endif needsigprocmask}
 
     ld      [%o1+8], %o7    // Set return PC.
-    
+
     retl
     restore %g2, 0, %o0     // Restore values from above register frame.
 
@@ -121,46 +121,20 @@ function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC
     call   savesigmask
     nop
 {$endif needsigprocmask}
-            
+
     ld      [%o0+8], %o7
     mov     %g0, %o0
   end;
 
 {
   $Log$
-  Revision 1.11  2005-02-13 20:01:38  peter
+  Revision 1.12  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.11  2005/02/13 20:01:38  peter
     * include file cleanup
 
   Revision 1.10  2005/01/20 16:38:28  peter
     * restore sigprocmask for linux
 
-  Revision 1.9  2004/09/12 12:04:22  peter
-    * restore traps when returning with longjmp
-
-  Revision 1.8  2004/05/31 10:43:00  peter
-    * don't create stackframes so we can retrieve the info from
-      the caller
-
-  Revision 1.7  2004/05/30 12:08:32  florian
-    * setjmp on sparc improved
-
-  Revision 1.6  2004/05/25 21:38:11  peter
-    * fixed input registers
-
-  Revision 1.5  2004/05/18 19:36:37  florian
-    * started to fix set/longjmp on sparc
-
-  Revision 1.4  2003/01/05 21:32:35  mazen
-  * fixing several bugs compiling the RTL
-
-  Revision 1.3  2002/12/24 21:30:20  mazen
-  - some writeln(s) removed in compiler
-  + many files added to RTL
-  * some errors fixed in RTL
-
-  Revision 1.2  2002/11/24 18:19:44  mazen
-  + setjmp and longjmp
-
-  Revision 1.1  2002/11/16 20:10:31  florian
-    + sparc specific rtl skeleton added
 }

@@ -136,26 +136,7 @@ end;
 
 {
    $Log$
-   Revision 1.4  2004-07-09 21:41:47  peter
-     * revert back isatty
-
-   Revision 1.2  2004/02/05 14:00:45  jonas
-     + some declarations added from other bsds and /usr/include/sys/termios.h
-       to termios.inc and termiosproc.inc (by Karl-Michael Schindler)
-     + added crt, mouse (because required by keyboard), keyboard, termio,
-       console to Darwin makefile (thanks to the above they now compile,
-       functionality untested)
-     * fixed wrong dependency for sysconst unit (it was always recompiled)
-
-   Revision 1.1  2004/01/04 20:05:38  jonas
-     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-       Several non-essential units are still missing, but make cycle works
-
-   Revision 1.2  2003/12/16 19:43:53  marco
-    * nil <-> 0 changes
-
-   Revision 1.1  2003/11/19 17:15:31  marco
-    * termio new includefile
-
+   Revision 1.5  2005-02-14 17:13:22  peter
+     * truncate log
 
 }

@@ -3,10 +3,10 @@
 Unit resolve;
 
 {$ifndef win32}
-// Here till BSD supports the netbsd unit. 
+// Here till BSD supports the netbsd unit.
 // MvdV: NetBSD unit? Where?
 {$ifdef Unix}
-// Undefine this to use the C library resolve routines. 
+// Undefine this to use the C library resolve routines.
 // Don't use under win32, netdb does not work on Win32 (yet) !!
 {$define usenetdb}
 {$endif Unix}
@@ -30,10 +30,10 @@ Unit resolve;
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
   ------------------------------------------------------------------- }
-  
+
 interface
 
-uses 
+uses
   Classes,UriParser;
 
 Type
@@ -66,7 +66,7 @@ Type
 { ---------------------------------------------------------------------
     TResolver
   ---------------------------------------------------------------------}
-  
+
   TResolver = Class (TComponent)
   Private
     FName : String;
@@ -123,7 +123,7 @@ Type
 { ---------------------------------------------------------------------
     TNetResolver
   ---------------------------------------------------------------------}
-  
+
   TNetResolver = Class(TResolver)
   Private
     FNetAddress : TNetAddr;
@@ -175,13 +175,13 @@ Type
     FParams: String;
     FBookmark: String;
     FURI : String;
-  Protected  
+  Protected
     Procedure SetElement (Index : Integer; Value : String);Virtual;
     Function GetElement(Index : Integer) : String;
     Procedure SetPort(Value : Word);
     Procedure SetURI(Value : String);
-  Public  
-    Procedure Clear;   
+  Public
+    Procedure Clear;
     Procedure ParseUri(AURI : String);
     Function ComposeURI : String;
   Published
@@ -194,7 +194,7 @@ Type
     Property Document: String index 5 read GetElement Write SetElement;
     Property Params: String   Index 6 read GetElement Write SetElement;
     Property Bookmark: String Index 7 Read GetElement Write SetElement;
-    Property URI : String Read FURI write SetURI; 
+    Property URI : String Read FURI write SetURI;
     Property Active : Boolean Read FActive Write FActive;
   end;
 
@@ -205,7 +205,7 @@ Resourcestring
   SErrNetByName  = 'Net by name';
   SErrServByName = 'Service by name';
   SErrServByPort = 'Service by port';
-  
+
 Implementation
 
 { ---------------------------------------------------------------------
@@ -214,7 +214,7 @@ Implementation
 
 {$ifdef usenetdb}
 uses netdb;
-{$else}  
+{$else}
 {$i resolve.inc}
 {$endif}
 
@@ -229,14 +229,14 @@ begin
    begin
    Str(Entry[I],Dummy);
    HostAddrToStr:=HostAddrToStr+Dummy;
-   If I<4 Then 
+   If I<4 Then
      HostAddrToStr:=HostAddrToStr+'.';
    end;
 end;
 
 function StrToHostAddr(IP : String) : THostAddr ;
 
-Var 
+Var
     Dummy : String;
     I     : Longint;
     J     : Integer;
@@ -249,7 +249,7 @@ begin
    If I<4 Then
      begin
      J:=Pos('.',IP);
-     If J=0 then 
+     If J=0 then
        exit;
      Dummy:=Copy(IP,1,J-1);
      Delete (IP,1,J);
@@ -273,7 +273,7 @@ begin
    begin
    Str(Entry[I],Dummy);
    NetAddrToStr:=NetAddrToStr+Dummy;
-   If I>1 Then 
+   If I>1 Then
      NetAddrToStr:=NetAddrToStr+'.';
    end;
 end;
@@ -475,7 +475,7 @@ Procedure THostResolver.SaveHostEntry(Entry : Pointer);
 Var
   PH : ^THostEntry;
   I : Integer;
-  
+
 begin
   PH:=ENtry;
   FName:=PH^.Name;
@@ -523,13 +523,13 @@ begin
     While H_Addr[FAddressCount]<>Nil do
       Inc(FAddressCount);
     If FAddressCount>0 then
-      begin  
+      begin
       GetMem(FAddresses,FAddressCount*SizeOf(THostAddr));
       For I:=0 to FAddressCount-1 do
         FAddresses[I]:=PHostAddr(H_Addr[I])^;
       FHostAddress:=FAddresses[0];
       end;
-    SaveAliases(H_Aliases);  
+    SaveAliases(H_Aliases);
     end;
 end;
 
@@ -652,7 +652,7 @@ begin
   ClearData;
 {$ifndef win32}
   FNetEntry:=GetNetByAddr(Longint(HostToNet(Address)),AF_INET);
-{$else}  
+{$else}
   FNetEntry:=Nil;
 {$endif}
   Result:=FNetEntry<>Nil;
@@ -698,7 +698,7 @@ end;
 { ---------------------------------------------------------------------
     TServiceResolver
   ---------------------------------------------------------------------}
-  
+
 Function TServiceResolver.NameLookup (Const S : String) : Boolean;
 
 begin
@@ -762,7 +762,7 @@ begin
   Result:=FServiceEntry<>Nil;
   If Result then
     SaveServiceEntry(FServiceEntry)
-  else  
+  else
     begin
     FLastError:=GetDNSError;
     CheckOperation(SErrServByName);
@@ -780,7 +780,7 @@ begin
   FProtoCol:=Proto;
   If (Proto='') then
     FServiceEntry:=GetServByPort(APort,Nil)
-  else  
+  else
     FServiceEntry:=GetServByPort(APort,pchar(Proto));
   Result:=FServiceEntry<>Nil;
   If Result then
@@ -801,7 +801,7 @@ begin
    FPort:=ShortHostToNet(S_port);
    FProtocol:=strpas(s_proto);
    SaveAliases(S_aliases);
-   end;    
+   end;
 end;
 {$endif}
 
@@ -822,7 +822,7 @@ end;
 { ---------------------------------------------------------------------
     TURIParser
   ---------------------------------------------------------------------}
-  
+
 
 Procedure TURIParser.SetElement (Index : Integer; Value : String);
 
@@ -836,7 +836,7 @@ begin
    5  : FDocument := Value;
    6  : FParams   := Value;
    7  : FBookmark := Value;
-  else  
+  else
   end;
   If FActive and not (csLoading in ComponentState) then
     FURI:=ComposeURI;
@@ -854,9 +854,9 @@ begin
   5  : Result := FDocument;
   6  : Result := FParams  ;
   7  : Result := FBookmark;
-  else  
+  else
     Result:='';
-  end;  
+  end;
 end;
 
 Procedure TURIParser.SetPort(Value : Word);
@@ -875,10 +875,10 @@ begin
     Clear;
     ParseUri(Value);
     end;
-  FURI:=Value;  
+  FURI:=Value;
 end;
 
-Procedure TURIParser.Clear;   
+Procedure TURIParser.Clear;
 
 begin
    FProtocol :='';
@@ -897,7 +897,7 @@ Procedure TURIParser.ParseUri(AURI : String);
 
 Var
   U : TURI;
-  
+
 begin
   U:=UriParser.ParseURI(AUri);
   FProtocol := u.Protocol;
@@ -935,48 +935,24 @@ end;
 Procedure InitResolve;
 
 begin
-end; 
+end;
 
 Procedure FinalResolve;
 
 begin
-end; 
+end;
 {$endif}
 
 Initialization
   InitResolve;
-  
+
 Finalization
   FinalResolve;
 
 end.
 {
    $Log$
-   Revision 1.9  2004-02-03 10:37:32  michael
-   + Fixed win32 compilation
-
-   Revision 1.8  2004/02/02 14:42:00  marco
-    * more small fixes
-
-   Revision 1.7  2004/01/31 19:02:50  sg
-   * Tries to first resolve names locally before contacting the DNS server
-
-   Revision 1.6  2003/12/11 09:23:50  marco
-    * patch from peter
-
-   Revision 1.5  2003/12/10 15:50:50  marco
-    * fpgetcerrno introduction
-
-   Revision 1.4  2003/05/17 21:52:37  michael
-   + Added TURIParser class
-
-   Revision 1.3  2003/03/07 20:33:33  michael
-   Use native pascal netdb on Linux
-
-   Revision 1.2  2003/02/03 10:14:12  michael
-   + Added init/final routines to initialize winsock library
-
-   Revision 1.1  2003/02/01 16:50:38  michael
-   + Added resolve unit for WIndows/unix
+   Revision 1.10  2005-02-14 17:13:15  peter
+     * truncate log
 
 }

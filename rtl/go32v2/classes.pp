@@ -45,21 +45,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2004-01-22 17:11:23  peter
-    * classes uses types to import TPoint and TRect
-
-  Revision 1.2  2004/01/10 20:13:19  michael
-  + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.3  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

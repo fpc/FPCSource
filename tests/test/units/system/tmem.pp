@@ -158,8 +158,8 @@ procedure test_fillword;
   fillword(dst_arrayword, -1, FILL_VALUE);
   writeln('Passed!');
  end;
- 
- 
+
+
 procedure test_filldword;
  var
   i: integer;
@@ -198,8 +198,8 @@ procedure test_filldword;
   filldword(dst_arraylongword, -1, FILL_VALUE);
   writeln('Passed!');
  end;
- 
- 
+
+
 procedure test_movechar0;
 begin
   { non-aligned count }
@@ -280,15 +280,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-10-20 11:44:15  carl
-    + setstring testing
-    * args checking is not interactive
-    + zero and negative length checking for move/fillchar
-
-  Revision 1.2  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/03/05 21:52:00  carl
-  basic mem testing
+  Revision 1.4  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec
-    
-    Port to Free Pascal of the JUnit framework. 
+
+    Port to Free Pascal of the JUnit framework.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,11 +19,11 @@ unit asserttest;
 
 interface
 
-uses 
+uses
   fpcunit;
 
 type
-  
+
   TAssertTest = class(TTestCase)
   published
     procedure TestFail;
@@ -47,9 +47,9 @@ begin
     fail('Wrong or no exception raised with fail');
   except
     on E: EAssertionfailedError do
-      Exit;  
-  end;     
-  raise EAssertionFailedError.Create; 
+      Exit;
+  end;
+  raise EAssertionFailedError.Create;
 end;
 
 procedure TAssertTest.TestAssertSame;
@@ -63,13 +63,13 @@ begin
   try
     AssertSame(o, o1);
   except
-    on E: EAssertionFailedError do  
+    on E: EAssertionFailedError do
     begin
       o.Free;
       o1.Free;
       Exit;
-    end;  
-  end;    
+    end;
+  end;
   o.Free;
   o1.Free;
   Fail('Wrong or no exception raised');
@@ -97,7 +97,7 @@ begin
   except
     on E: EAssertionFailedError do
     Exit;
-  end;  
+  end;
   fail('error: nil should equal nil');
 end;
 
@@ -114,13 +114,13 @@ begin
   try
     AssertSame(nil, obj);
   except
-    on E: EAssertionFailedError do  
+    on E: EAssertionFailedError do
     begin
       obj.Free;
       Exit;
-    end;  
-  end; 
-  Fail('error comparing a valid obj instance with nil');   
+    end;
+  end;
+  Fail('error comparing a valid obj instance with nil');
 end;
 
 procedure TAssertTest.TestAssertNull;
@@ -132,14 +132,14 @@ begin
   try
     AssertNull(obj);
   except
-    on E: EAssertionFailedError do  
+    on E: EAssertionFailedError do
     begin
       obj.Free;
       Exit;
-    end;  
-  end; 
+    end;
+  end;
   obj.Free;
-  Fail('failure: obj is not null!');   
+  Fail('failure: obj is not null!');
 end;
 
 procedure TAssertTest.TestAssertNotNull;
@@ -151,12 +151,12 @@ begin
   try
     AssertNotNull(nil);
   except
-    on E: EAssertionFailedError do  
+    on E: EAssertionFailedError do
     begin
       obj.Free;
       Exit;
-    end;  
-  end; 
+    end;
+  end;
   obj.Free;
   Fail('error: nil is not a valid object');
 end;
@@ -169,7 +169,7 @@ begin
   except
     on E: EAssertionFailedError do
     Exit;
-  end;  
+  end;
   fail('error asserting true');
 end;
 
@@ -181,7 +181,7 @@ begin
   except
     on E: EAssertionFailedError do
     Exit;
-  end;  
+  end;
   fail('error asserting false');
 end;
 
@@ -204,11 +204,11 @@ begin
       obj1.Free;
       Exit;
     end;
-  end;  
+  end;
   obj.Free;
   obj1.Free;
   Fail('Error: Objects are the same!');
 end;
 
 end.
- 
+

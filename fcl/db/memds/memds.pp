@@ -14,10 +14,10 @@
 {$mode objfpc}
 {$H+}
 {
-  TMemDataset : In-memory dataset. 
+  TMemDataset : In-memory dataset.
   - Has possibility to copy Structure/Data from other dataset.
   - Can load/save to/from stream.
-  
+
   Ideas taken from THKMemTab Component by Harri Kasulke - Hamburg/Germany
   E-mail: harri.kasulke@okay.net
 }
@@ -37,7 +37,7 @@ Const
   smEOF       = 0;
   smFieldDefs = 1;
   smData      = 2;
-   
+
 type
   MDSError=class(Exception);
 
@@ -103,8 +103,8 @@ type
     Procedure RaiseError(Fmt : String; Args : Array of const);
     Procedure CheckMarker(F : TStream; Marker : Integer);
     Procedure WriteMarker(F : TStream; Marker : Integer);
-    procedure ReadFieldDefsFromStream(F : TStream); 
-    procedure SaveFieldDefsToStream(F : TStream); 
+    procedure ReadFieldDefsFromStream(F : TStream);
+    procedure SaveFieldDefsToStream(F : TStream);
     // These should be overridden if you want to load more data.
     // E.g. index defs.
     Procedure LoadDataFromStream(F : TStream); virtual;
@@ -138,7 +138,7 @@ type
     Procedure LoadFromFile(AFileName : String);
     Procedure CopyFromDataset(DataSet : TDataSet);
     Procedure CopyFromDataset(DataSet : TDataSet; CopyData : Boolean);
-    
+
     Property Modified : Boolean Read FModified;
 
   published
@@ -177,7 +177,7 @@ ResourceString
   SErrInvalidDataStream     = 'Error in data stream at position %d';
   SErrInvalidMarkerAtPos    = 'Wrong data stream marker at position %d. Got %d, expected %d';
   SErrNoFileName            = 'Filename must not be empty.';
-  
+
 { ---------------------------------------------------------------------
     Stream functions
   ---------------------------------------------------------------------}
@@ -217,12 +217,12 @@ begin
   If (L<>0) then
     S.WriteBuffer(Value[1],L);
 end;
-  
+
 { ---------------------------------------------------------------------
     TMemDataset
   ---------------------------------------------------------------------}
-    
-  
+
+
 constructor TMemDataset.Create(AOwner:tComponent);
 
 begin
@@ -243,16 +243,16 @@ begin
   inherited Destroy;
 end;
 
-function TMemDataset.MDSGetRecordOffset(ARecNo: integer): longint;   
+function TMemDataset.MDSGetRecordOffset(ARecNo: integer): longint;
 begin
   Result:=FRecSize*ARecNo
 end;
 
 function TMemDataset.MDSGetFieldOffset(FieldNo: integer): integer;
 
-var 
+var
   I : integer;
-  
+
 begin
   Result:=0;
   for I:=1 to FieldNo-1 do
@@ -265,7 +265,7 @@ begin
   Raise MDSError.CreateFmt(Fmt,Args);
 end;
 
-function TMemDataset.MDSGetFieldSize(FieldNo: integer): integer;   
+function TMemDataset.MDSGetFieldSize(FieldNo: integer): integer;
 
 begin
   case FieldDefs.Items[FieldNo-1].Datatype of
@@ -277,27 +277,27 @@ begin
    ftInteger:  result:=SizeOf(Integer);
    ftDate:     result:=SizeOf(TDateTime);
    ftTime:     result:=SizeOf(TDateTime);
- else 
+ else
    RaiseError(SErrFieldTypeNotSupported,[FieldDefs.Items[FieldNo-1].Name]);
  end;
 end;
 
-function TMemDataset.MDSGetActiveBuffer(var Buffer: PChar): Boolean; 
+function TMemDataset.MDSGetActiveBuffer(var Buffer: PChar): Boolean;
 
 begin
  case State of
    dsBrowse:
-     if IsEmpty then 
+     if IsEmpty then
        Buffer:=nil
      else
        Buffer:=ActiveBuffer;
 
-  dsEdit, 
-  dsInsert: 
+  dsEdit,
+  dsInsert:
      Buffer:=ActiveBuffer;
-  dsFilter:         
+  dsFilter:
      Buffer:=FFilterBuffer;
- else 
+ else
    Buffer:=nil;
  end;
  Result:=(Buffer<>nil);
@@ -336,7 +336,7 @@ end;
 
 procedure TMemDataset.InternalInitRecord(Buffer: PChar);
 
-var 
+var
   I : integer;
 
 begin
@@ -360,12 +360,12 @@ procedure TMemDataset.InternalDelete;
 Var
   TS : TMemoryStream;
   OldPos,NewPos,CopySize1,CopySize2 : Cardinal;
-  
+
 begin
   if (FCurrRecNo<0) or (FCurrRecNo>=FRecCount) then
     Exit;
-  // Very inefficient. We should simply move the last part closer to the beginning in 
-  // The FStream.  
+  // Very inefficient. We should simply move the last part closer to the beginning in
+  // The FStream.
   TS:=TMemoryStream.Create;
   Try
     if FCurrRecNo>0 then
@@ -377,17 +377,17 @@ begin
         FStream.Position:=MDSGetRecordOffset(FCurrRecNo+1);
         TS.CopyFrom(FStream,(MDSGetRecordOffset(FRecCount))-MDSGetRecordOffset(FCurrRecNo+1));
         end
-      else 
+      else
         TS.CopyFrom(FStream,MDSGetRecordOffset(FRecCount-1));
       end
-    else 
+    else
       begin                                  //Delete first Rec
       FStream.Position:=MDSGetRecordOffset(FCurrRecNo+1);
       TS.CopyFrom(FStream,(MDSGetRecordOffset(FRecCount))-MDSGetRecordOffset(FCurrRecNo+1));
       end;
-    FStream.loadFromStream(TS);  
+    FStream.loadFromStream(TS);
     Dec(FRecCount);
-    if FRecCount=0 then 
+    if FRecCount=0 then
       FCurrRecNo:=-1
     else
       if FCurrRecNo>=FRecCount then FCurrRecNo:=FRecCount-1;
@@ -414,11 +414,11 @@ begin
   If F.Read(I,MarkerSize)<>MarkerSize then
     RaiseError(SErrInvalidDataStream,[P])
   else
-    if (I<>Marker) then  
+    if (I<>Marker) then
       RaiseError(SErrInvalidMarkerAtPos,[P,I,Marker]);
 end;
 
-procedure TMemDataset.ReadFieldDefsFromStream(F : TStream); 
+procedure TMemDataset.ReadFieldDefsFromStream(F : TStream);
 
 Var
   I,ACount : Integer;
@@ -426,7 +426,7 @@ Var
   FS : Integer;
   B : Boolean;
   FT : TFieldType;
-    
+
 begin
   CheckMarker(F,smFieldDefs);
   FieldDefs.Clear;
@@ -439,7 +439,7 @@ begin
     B:=ReadInteger(F)<>0;
     TFieldDef.Create(FieldDefs,FN,ft,FS,B,I);
     end;
-  CreateTable;  
+  CreateTable;
 end;
 
 procedure TMemDataset.InternalFirst;
@@ -458,9 +458,9 @@ procedure TMemDataset.InternalOpen;
 begin
   If (FFileName<>'') then
     FOpenStream:=TFileStream.Create(FFileName,fmOpenRead);
-  Try  
+  Try
     InternalInitFieldDefs;
-    if DefaultFields then 
+    if DefaultFields then
       CreateFields;
     BindFields(True);
     FCurrRecNo:=-1;
@@ -478,7 +478,7 @@ end;
 Procedure TMemDataSet.LoadDataFromStream(F : TStream);
 
 Var
-  Size : Integer; 
+  Size : Integer;
 
 begin
   CheckMarker(F,smData);
@@ -517,7 +517,7 @@ end;
 Procedure TMemDataset.SaveToFile(AFileName : String);
 
 begin
-  SaveToFile(AFileName,True);  
+  SaveToFile(AFileName,True);
 end;
 
 Procedure TMemDataset.SaveToFile(AFileName : String; SaveData : Boolean);
@@ -554,7 +554,7 @@ begin
   SaveFieldDefsToStream(F);
   If SaveData then
     SaveDataToStream(F,SaveData);
-  WriteMarker(F,smEOF);  
+  WriteMarker(F,smEOF);
 end;
 
 Procedure TMemDataset.SaveFieldDefsToStream(F : TStream);
@@ -566,7 +566,7 @@ Var
   B : Boolean;
   FT : TFieldType;
   FD : TFieldDef;
-    
+
 begin
   WriteMarker(F,smFieldDefs);
   WriteInteger(F,FieldDefs.Count);
@@ -606,18 +606,18 @@ begin
   FIsOpen:=False;
   FModified:=False;
   BindFields(False);
-  if DefaultFields then 
+  if DefaultFields then
     DestroyFields;
 end;
 
 procedure TMemDataset.InternalPost;
 begin
   CheckActive;
-  if ((State<>dsEdit) and (State<>dsInsert)) then 
+  if ((State<>dsEdit) and (State<>dsInsert)) then
     Exit;
-  if (State=dsEdit) then 
+  if (State=dsEdit) then
     MDSWriteRecord(ActiveBuffer, FCurrRecNo)
-  else 
+  else
     InternalAddRecord(ActiveBuffer,True);
 end;
 
@@ -629,7 +629,7 @@ end;
 
 function TMemDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
-var 
+var
   Accepted: Boolean;
 
 begin
@@ -643,17 +643,17 @@ begin
   repeat
     case GetMode of
       gmCurrent:
-        if (FCurrRecNo>=FRecCount) or (FCurrRecNo<0) then 
+        if (FCurrRecNo>=FRecCount) or (FCurrRecNo<0) then
           Result:=grError;
       gmNext:
-        if (FCurrRecNo<FRecCount-1) then 
+        if (FCurrRecNo<FRecCount-1) then
           Inc(FCurrRecNo)
-        else 
+        else
           Result:=grEOF;
       gmPrior:
-        if (FCurrRecNo>0) then 
+        if (FCurrRecNo>0) then
           Dec(FCurrRecNo)
-        else 
+        else
           result:=grBOF;
     end;
     if result=grOK then
@@ -661,11 +661,11 @@ begin
       MDSReadRecord(Buffer, FCurrRecNo);
       PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=FCurrRecNo;
       PRecInfo(Buffer+FRecInfoOffset)^.BookmarkFlag:=bfCurrent;
-      if (Filtered) then 
+      if (Filtered) then
         Accepted:=MDSFilterRecord(Buffer) //Filtering
-      else 
+      else
         Accepted:=True;
-      if (GetMode=gmCurrent) and not Accepted then 
+      if (GetMode=gmCurrent) and not Accepted then
         result:=grError;
       end;
   until (result<>grOK) or Accepted;
@@ -673,12 +673,12 @@ end;
 
 function TMemDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
-var 
+var
   SrcBuffer: PChar;
 
 begin
  result:=False;
- if not MDSGetActiveBuffer(SrcBuffer) then 
+ if not MDSGetActiveBuffer(SrcBuffer) then
    Exit;
  if (Field.FieldNo>0) and (Assigned(Buffer)) and (Assigned(SrcBuffer)) then
    begin
@@ -689,7 +689,7 @@ end;
 
 procedure TMemDataset.SetFieldData(Field: TField; Buffer: Pointer);
 
-var 
+var
   DestBuffer: PChar;
 
 begin
@@ -706,20 +706,20 @@ end;
 
 procedure TMemDataset.InternalGotoBookmark(ABookmark: Pointer);
 
-var 
+var
   ReqBookmark: integer;
 
 begin
   ReqBookmark:=PInteger(ABookmark)^;
-  if (ReqBookmark>=0) and (ReqBookmark<FRecCount) then 
+  if (ReqBookmark>=0) and (ReqBookmark<FRecCount) then
     FCurrRecNo:=ReqBookmark
-  else 
+  else
     RaiseError(SErrBookMarkNotFound,[ReqBookmark]);
 end;
 
 procedure TMemDataset.InternalSetToRecord(Buffer: PChar);
 
-var 
+var
   ReqBookmark: integer;
 
 begin
@@ -742,27 +742,27 @@ end;
 procedure TMemDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
 
 begin
-  if Data<>nil then 
+  if Data<>nil then
     PInteger(Data)^:=PRecInfo(Buffer+FRecInfoOffset)^.Bookmark;
 end;
 
 procedure TMemDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
 
 begin
-  if Data<>nil then 
+  if Data<>nil then
     PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=PInteger(Data)^
-  else 
+  else
     PRecInfo(Buffer+FRecInfoOffset)^.Bookmark:=0;
 end;
 
 function TMemDataset.MDSFilterRecord(Buffer: PChar): Boolean;
 
-var 
+var
   SaveState: TDatasetState;
-  
+
 begin
   Result:=True;
-  if not Assigned(OnFilterRecord) then 
+  if not Assigned(OnFilterRecord) then
     Exit;
   SaveState:=SetTempState(dsFilter);
   FFilterBuffer:=Buffer;
@@ -804,9 +804,9 @@ end;
 
 procedure TMemDataset.CreateTable;
 
-var 
+var
   I : integer;
-  
+
 begin
   FStream.Clear;
   FRecCount:=0;
@@ -842,9 +842,9 @@ Function TMemDataset.GetRecNo: Longint;
 
 begin
   UpdateCursorPos;
-  if (FCurrRecNo<0) then 
+  if (FCurrRecNo<0) then
     Result:=1
-  else 
+  else
     Result:=FCurrRecNo+1;
 end;
 
@@ -868,7 +868,7 @@ Var
   F,F1,F2 : TField;
   L1,L2  : TList;
   N : String;
-    
+
 begin
   Clear(True);
   // NOT from fielddefs. The data may not be available in buffers !!
@@ -877,7 +877,7 @@ begin
     F:=Dataset.Fields[I];
     TFieldDef.Create(FieldDefs,F.FieldName,F.DataType,F.Size,F.Required,F.FieldNo);
     end;
-  CreateTable;  
+  CreateTable;
   If CopyData then
     begin
     Open;
@@ -894,7 +894,7 @@ begin
           L2.Add(F2);
           end;
         Dataset.DisableControls;
-        Try 
+        Try
           Dataset.Open;
           While not Dataset.EOF do
             begin
@@ -914,23 +914,23 @@ begin
                 ftTime     : F1.AsDateTime:=F2.AsDateTime;
               end;
               end;
-            Try  
-              Post;  
+            Try
+              Post;
             except
               Cancel;
               Raise;
-            end;  
+            end;
             Dataset.Next;
             end;
         Finally
           Dataset.EnableControls;
-        end;  
+        end;
       finally
-        L2.Free;    
+        L2.Free;
       end;
     finally
       l1.Free;
-    end;       
+    end;
     end;
 end;
 

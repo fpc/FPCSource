@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Linux version of custom app object routines.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,9 +18,9 @@ Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 
 Var
   P : PPChar;
-  S : String;  
+  S : String;
   I : Integer;
-  
+
 begin
   List.Clear;
   P:=EnvP;

@@ -2471,7 +2471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.159  2005-02-04 16:30:56  peter
+  Revision 1.160  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.159  2005/02/04 16:30:56  peter
     * low(var) var must be valid
 
   Revision 1.158  2005/01/23 21:47:14  florian
@@ -2479,93 +2482,5 @@ end.
 
   Revision 1.157  2005/01/23 21:09:12  florian
     + added pi bit pattern to the compiler, so pi should always be correct
-
-  Revision 1.156  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.155  2004/11/26 22:33:00  peter
-    * fixed read temp for result
-
-  Revision 1.154  2004/11/21 21:27:31  peter
-    * add checks for filedef type to prevent crashes
-
-  Revision 1.153  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.152  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.151  2004/11/09 23:10:22  peter
-    * use helper call to retrieve address of input/output to reduce
-      code that is generated in the main program for loading the
-      threadvar
-
-  Revision 1.150  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.149  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.148  2004/11/01 18:26:52  florian
-    - removed unnecessary printnode
-
-  Revision 1.147  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.146  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.145  2004/09/16 16:32:27  peter
-    * another fix for reading of subranges
-
-  Revision 1.144  2004/09/13 20:32:06  peter
-    * fix for read(subranges) with subrange typ already being sinttype
-
-  Revision 1.143  2004/08/25 15:56:35  peter
-    * fix sqr() and abs() constant range check errors
-
-  Revision 1.142  2004/08/08 16:00:56  florian
-    * constant floating point assignments etc. are now overflow checked
-      if Q+ or R+ is turned on
-
-  Revision 1.141  2004/07/15 19:55:39  jonas
-    + (incomplete) node_complexity function to assess the complexity of a
-      tree
-    + support for inlining value and const parameters at the node level
-      (all procedures without local variables and without formal parameters
-       can now be inlined at the node level)
-
-  Revision 1.140  2004/07/14 21:40:52  olle
-    + added Ord(pointer) for macpas
-
-  Revision 1.139  2004/07/14 14:38:35  jonas
-    * fix for web bug 3210
-
-  Revision 1.138  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.137  2004/06/18 15:16:46  peter
-    * remove obsolete cardinal() typecasts
-
-  Revision 1.136  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.135  2004/05/28 21:15:20  peter
-    * inc(x,y) makes y always of type x to prevent 64bit operations
-      when x is a u32bit and y is signed
-
-  Revision 1.134  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.133.2.9  2004/05/03 16:49:00  peter
-    * sizeof fixed
 
 }

@@ -113,11 +113,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-06-20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.3  2004/03/13 18:45:40  florian
-    * floating compares fixed
-    * unary minus for floats fixed
+  Revision 1.5  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

@@ -226,28 +226,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2005-02-13 18:55:19  florian
+  Revision 1.15  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.14  2005/02/13 18:55:19  florian
     + overflow checking for the arm
-
-  Revision 1.13  2004/11/01 12:10:26  florian
-    * fixed currency division
-
-  Revision 1.12  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.11  2004/10/24 07:54:25  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.10  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.9  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.8  2004/01/22 20:13:18  florian
-    * fixed several issues with flags
 
 }

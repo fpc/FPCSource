@@ -130,10 +130,7 @@ Const
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.4  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -1406,30 +1406,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2004-12-19 13:55:42  florian
-    * x86_64 compilation fixed
-
-  Revision 1.11  2004/11/08 20:28:29  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.10  2003/01/18 01:36:23  pierre
-   * fix web bug 1649
-
-  Revision 1.9  2002/09/07 15:40:49  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/03/25 14:37:45  pierre
-   +handle hscDirect
-
-  Revision 1.7  2002/03/20 17:10:04  pierre
-   * avoid to cut a part of an image
-
-  Revision 1.6  2002/03/20 11:15:51  pierre
-   * possible fix for the IDE prerelease crash
+  Revision 1.13  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

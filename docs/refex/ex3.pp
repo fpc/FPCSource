@@ -9,7 +9,7 @@ begin
   Rewrite (f);            { file is opened for write, and emptied }
   Writeln (F,'This is the first line of text.txt');
   close (f);
-  Append(f);              { file is opened for write, but NOT emptied. 
+  Append(f);              { file is opened for write, but NOT emptied.
                             any text written to it is appended.}
   Writeln (f,'This is the second line of text.txt');
   close (f);

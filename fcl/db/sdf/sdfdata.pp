@@ -405,7 +405,7 @@ procedure TFixedFormatDataSet.InternalHandleException;
 begin
 {$ifndef fpc}
    Application.HandleException(Self);
-{$endif}   
+{$endif}
 end;
 
 // Loads Data from a stream.

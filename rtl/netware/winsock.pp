@@ -235,13 +235,13 @@ unit winsock;
        sockaddr_in = record
           case integer of
              0 : ( (* equals to sockaddr_in, size is 16 byte *)
-	          sin_family : SmallInt;                      (* 2 byte *)
+                  sin_family : SmallInt;                      (* 2 byte *)
                   sin_port : u_short;                         (* 2 byte *)
                   sin_addr : TInAddr;                         (* 4 byte *)
                   sin_zero : array[0..7] of char;             (* 8 byte *)
                  );
              1 : ( (* equals to sockaddr, size is 16 byte *)
-	          sa_family : SmallInt;                       (* 2 byte *)
+                  sa_family : SmallInt;                       (* 2 byte *)
                   sa_data : array[0..13] of char;             (* 14 byte *)
                  );
 
@@ -1824,7 +1824,7 @@ a "pointer" will be passed to the "var" version. (bug 3142).
 So if there are var/const versions:
 - To keep ported unix code working, there must be "pointer" variants (ANSI)
 - To keep Delphi/ported C Winsock code working there must be pchar variants
-	(K&R)
+        (K&R)
 IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 
     {$ifdef netware}
@@ -2440,23 +2440,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.5  2004-09-26 19:25:49  armin
-  * exiting threads at nlm unload
-
-  Revision 1.4  2004/09/18 23:45:43  armin
-  * make winsock more compatible to win32 version
-
-  Revision 1.3  2003/10/25 23:42:35  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.2  2003/03/30 12:35:43  armin
-  * removed uses netware from winsock, DirectoryExists implemented
-
-  Revision 1.1  2003/03/25 18:17:54  armin
-  * support for fcl, support for linking without debug info
-  * renamed winsock2 to winsock for win32 compatinility
-  * new sockets unit for netware
-  * changes for compiler warnings
-
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -1,7 +1,7 @@
 {$mode objfpc}{$H+}{$r+}
 
 uses
-  Classes, SysUtils; 
+  Classes, SysUtils;
 
 type
   TMyEvent = class(TObject)

@@ -23,14 +23,14 @@ uses
 {GLOBAL}
 procedure jpeg_add_quant_table (cinfo : j_compress_ptr;
                                 which_tbl : int;
-		                const basic_table : array of uInt;
-		                scale_factor : int;
+                                const basic_table : array of uInt;
+                                scale_factor : int;
                                 force_baseline : boolean);
 
 {GLOBAL}
 procedure jpeg_set_linear_quality (cinfo : j_compress_ptr;
                                    scale_factor : int;
-			           force_baseline : boolean);
+                                   force_baseline : boolean);
 { Set or change the 'quality' (quantization) setting, using default tables
   and a straight percentage-scaling quality scale.  In most cases it's better
   to use jpeg_set_quality (below); this entry point is provided for
@@ -79,8 +79,8 @@ implementation
 {GLOBAL}
 procedure jpeg_add_quant_table (cinfo : j_compress_ptr;
                       which_tbl : int;
-		      const basic_table : array of uInt;
-		      scale_factor : int;
+                      const basic_table : array of uInt;
+                      scale_factor : int;
                       force_baseline : boolean);
 { Define a quantization table equal to the basic_table times
   a scale factor (given as a percentage).
@@ -112,7 +112,7 @@ begin
     if (temp > long(32767)) then
       temp := long(32767); { max quantizer needed for 12 bits }
     if (force_baseline) and (temp > long(255)) then
-      temp := long(255);		{ limit to baseline range if requested }
+      temp := long(255);                { limit to baseline range if requested }
     (qtblptr^)^.quantval[i] := UINT16 (temp);
   end;
 
@@ -124,7 +124,7 @@ end;
 {GLOBAL}
 procedure jpeg_set_linear_quality (cinfo : j_compress_ptr;
                                    scale_factor : int;
-			           force_baseline : boolean);
+                                   force_baseline : boolean);
 { Set or change the 'quality' (quantization) setting, using default tables
   and a straight percentage-scaling quality scale.  In most cases it's better
   to use jpeg_set_quality (below); this entry point is provided for
@@ -158,9 +158,9 @@ const
 begin
   { Set up two quantization tables using the specified scaling }
   jpeg_add_quant_table(cinfo, 0, std_luminance_quant_tbl,
-		       scale_factor, force_baseline);
+                       scale_factor, force_baseline);
   jpeg_add_quant_table(cinfo, 1, std_chrominance_quant_tbl,
-		       scale_factor, force_baseline);
+                       scale_factor, force_baseline);
 end;
 
 
@@ -307,13 +307,13 @@ procedure std_huff_tables (cinfo : j_compress_ptr);
       $f9, $fa );
 begin
   add_huff_table(cinfo, cinfo^.dc_huff_tbl_ptrs[0],
-		 bits_dc_luminance, val_dc_luminance);
+                 bits_dc_luminance, val_dc_luminance);
   add_huff_table(cinfo, cinfo^.ac_huff_tbl_ptrs[0],
-		 bits_ac_luminance, val_ac_luminance);
+                 bits_ac_luminance, val_ac_luminance);
   add_huff_table(cinfo, cinfo^.dc_huff_tbl_ptrs[1],
-		 bits_dc_chrominance, val_dc_chrominance);
+                 bits_dc_chrominance, val_dc_chrominance);
   add_huff_table(cinfo, cinfo^.ac_huff_tbl_ptrs[1],
-		 bits_ac_chrominance, val_ac_chrominance);
+                 bits_ac_chrominance, val_ac_chrominance);
 end;
 
 
@@ -403,8 +403,8 @@ begin
 
   cinfo^.JFIF_major_version := 1; { Default JFIF version = 1.01 }
   cinfo^.JFIF_minor_version := 1;
-  cinfo^.density_unit := 0;	{ Pixel size is unknown by default }
-  cinfo^.X_density := 1;		{ Pixel aspect ratio is square by default }
+  cinfo^.density_unit := 0;     { Pixel size is unknown by default }
+  cinfo^.X_density := 1;                { Pixel aspect ratio is square by default }
   cinfo^.Y_density := 1;
 
   { Choose JPEG colorspace based on input space, set defaults accordingly }
@@ -555,7 +555,7 @@ end;
 {LOCAL}
 function fill_scans (scanptr : jpeg_scan_info_ptr;
                      ncomps : int;
-	             Ss : int; Se : int;
+                     Ss : int; Se : int;
                      Ah : int; Al : int) : jpeg_scan_info_ptr;
 { Support routine: generate one scan for each component }
 var
@@ -631,9 +631,9 @@ begin
   begin
     { All-purpose script for other color spaces. }
     if (ncomps > MAX_COMPS_IN_SCAN) then
-      nscans := 6 * ncomps	{ 2 DC + 4 AC scans per component }
+      nscans := 6 * ncomps      { 2 DC + 4 AC scans per component }
     else
-      nscans := 2 + 4 * ncomps;	{ 2 DC scans; 4 AC scans per component }
+      nscans := 2 + 4 * ncomps; { 2 DC scans; 4 AC scans per component }
   end;
 
   { Allocate space for script.
@@ -652,7 +652,7 @@ begin
 
     cinfo^.script_space := jpeg_scan_info_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-		cinfo^.script_space_size * SIZEOF(jpeg_scan_info)) );
+                cinfo^.script_space_size * SIZEOF(jpeg_scan_info)) );
   end;
   scanptr := cinfo^.script_space;
 

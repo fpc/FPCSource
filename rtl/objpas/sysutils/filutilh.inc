@@ -21,12 +21,12 @@ Type
     Attr : Longint;
     Name : TFileName;
     ExcludeAttr : Longint;
-{$ifdef unix}    
+{$ifdef unix}
     FindHandle : Pointer;
     Mode : TMode;
 {$else unix}
     FindHandle : THandle;
-{$endif unix}    
+{$endif unix}
 {$ifdef Win32}
     FindData : TWin32FindData;
 {$endif}
@@ -89,53 +89,17 @@ Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : String) : Boolean;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 Function FileSearch (Const Name, DirList : String) : String;
-Function FileIsReadOnly(const FileName: String): Boolean; 
+Function FileIsReadOnly(const FileName: String): Boolean;
 
 Function GetFileHandle(var f : File):Longint;
 Function GetFileHandle(var f : Text):Longint;
 
 {
   $Log$
-  Revision 1.9  2005-01-24 18:25:46  olle
+  Revision 1.10  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.9  2005/01/24 18:25:46  olle
     + a tiny bit of support for macos
-
-  Revision 1.8  2004/12/19 18:03:29  michael
-  + Added mode field to TSearchRec for Kylix compatibility
-
-  Revision 1.7  2004/10/03 20:27:00  armin
-  * changed defines for netware
-
-  Revision 1.6  2004/09/05 00:02:40  armin
-  * added target netwlibc
-
-  Revision 1.5  2004/05/01 11:56:25  marco
-   * fileno -> getfilehandle
-
-  Revision 1.4  2004/05/01 11:04:34  marco
-   * fileno
-
-  Revision 1.3  2004/04/28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.2  2004/02/08 14:50:51  michael
-  + Added fileIsReadOnly
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.10  2003/04/01 15:57:41  peter
-    * made THandle platform dependent and unique type
-
-  Revision 1.9  2003/03/29 18:21:41  hajny
-    * DirectoryExists declaration changed to that one from fixes branch
-
-  Revision 1.8  2003/03/28 19:06:59  peter
-    * directoryexists added
-
-  Revision 1.7  2003/01/03 20:41:04  peter
-    * FileCreate(string,mode) overload added
-
-  Revision 1.6  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
 
 }

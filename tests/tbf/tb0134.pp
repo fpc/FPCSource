@@ -7,13 +7,13 @@ type
   tmyclass = class
     constructor create; cdecl;
   end;
-  
-  
+
+
   constructor tmyclass.create;cdecl;
   begin
   end;
-  
+
 
 Begin
 end.
-  
+

@@ -5,7 +5,7 @@
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
     BMP writer implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -22,7 +22,7 @@ interface
 uses FPImage, classes, sysutils;
 
 type
-   
+
   TFPWriterBMP = class (TFPCustomImageWriter)
   private
     FBytesPerPixel : Byte;
@@ -83,7 +83,7 @@ function TFPWriterBMP.SaveHeader(Stream:TStream; Img : TFPCustomImage):boolean;
 var
   BFH:TBitMapFileHeader;
   BFI:TBitMapInfoHeader;
-  
+
 begin
   Result:=False;
   with BFI do
@@ -119,7 +119,7 @@ var
   Row,Col,nBpLine,WriteSize:Integer;
   aLine: PByte;
   S : Integer;
-  
+
 begin
   If Not (BytesPerPixel in [3,4]) then
     Raise FPImageException.Create('Only 24 or 32 bit images are currently supported.');
@@ -135,12 +135,12 @@ begin
               PColorRGB(aLine)[Col]:=FPColorToRGB(img.colors[Col,Row]);
         4 : for Col:=0 to img.Width-1 do
               PColorRGBA(aLine)[Col]:=FPColorToRGBA(img.colors[Col,Row]);
-      end;       
+      end;
       Stream.Write(aLine[0],WriteSize);
       end;
   Finally
     FreeMem(aLine);
-  end;  
+  end;
 end;
 
 initialization
@@ -148,27 +148,7 @@ initialization
 end.
 {
 $Log$
-Revision 1.6  2004-02-20 23:52:49  michael
-+ Added support for 32-bit writing. Standard is still 24 bit.
-
-Revision 1.5  2003/09/09 11:28:23  mazen
-* fixing copyright section in the file header
-
-Revision 1.4  2003/09/08 14:08:48  mazen
-- all common defintions are now included into bmpcomn unit
-- removed erronous code (causing exception)
-
-Revision 1.3  2003/09/08 10:38:56  luk
-- removed debug info
-* prevented exceptions when using non indexed images
-
-Revision 1.2  2003/09/04 22:29:43  luk
-* correct color conversion (prevent range check errors)
-
-Revision 1.1  2003/09/04 12:02:21  mazen
-+ fpwritebmp.pas renamed to fpwritebmp.pp
-
-Revision 1.1  2003/09/04 08:44:32  mazen
-+ Adds support of writing BMP files
+Revision 1.7  2005-02-14 17:13:12  peter
+  * truncate log
 
 }

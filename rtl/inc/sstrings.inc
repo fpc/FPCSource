@@ -865,53 +865,7 @@ end;
 
 {
   $Log$
-  Revision 1.32  2004-11-17 22:19:04  peter
-  internconst, internproc and some external declarations moved to interface
-
-  Revision 1.31  2004/11/02 22:38:58  jonas
-    * fixed endianess bug in fpc_val_int64_shortstr() (webtbf/tw2128)
-
-  Revision 1.30  2004/05/01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.29  2004/05/01 20:52:50  peter
-    * ValSInt fixed for 64 bit
-
-  Revision 1.28  2004/04/29 18:59:43  peter
-    * str() helpers now also use valint/valuint
-    * int64/qword helpers disabled for cpu64
-
-  Revision 1.27  2003/02/26 20:04:47  jonas
-    * fixed shortstring version of setstring
-
-  Revision 1.26  2002/10/21 19:52:47  jonas
-    * fixed some buffer overflow errors in SetString (both short and
-      ansistring versions) (merged)
-
-  Revision 1.25  2002/10/19 17:06:50  michael
-  + Added check for nil buffer to setstring
-
-  Revision 1.24  2002/10/02 18:21:51  peter
-    * Copy() changed to internal function calling compilerprocs
-    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
-      new copy functions
-
-  Revision 1.23  2002/09/14 11:20:50  carl
-    * Delphi compatibility fix (with string routines)
-
-  Revision 1.22  2002/09/07 21:19:00  carl
-    * cardinal -> longword
-
-  Revision 1.21  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.20  2002/09/02 19:24:41  peter
-    * array of char support for Str()
-
-  Revision 1.19  2002/08/06 20:53:38  michael
-    + Added support for octal strings (using &)
-
-  Revision 1.18  2002/01/24 18:27:06  peter
-    * lowercase() overloaded
+  Revision 1.33  2005-02-14 17:13:27  peter
+    * truncate log
 
 }

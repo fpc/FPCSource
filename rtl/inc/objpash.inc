@@ -312,7 +312,10 @@
 
 {
   $Log$
-  Revision 1.27  2005-02-01 19:32:14  florian
+  Revision 1.28  2005-02-14 17:13:26  peter
+    * truncate log
+
+  Revision 1.27  2005/02/01 19:32:14  florian
     + tmethod
 
   Revision 1.26  2005/01/31 19:41:39  peter
@@ -322,38 +325,5 @@
     * retrieve backtrace when exception is raised
     * RaiseMaxFrameCount added to limit the number of backtraces, setting
       it to 0 disables backtraces. Default is 16
-
-  Revision 1.24  2004/04/28 19:52:41  peter
-    * vtype changed to ptrint
-
-  Revision 1.23  2004/04/26 21:06:00  peter
-    * class size changed to aint
-
-  Revision 1.22  2004/04/25 16:32:31  florian
-    * fixed vmt issues on 64 bit systems
-
-  Revision 1.21  2003/12/06 00:02:34  florian
-    * widechars in tvarrec fixed for big endian machines as well
-
-  Revision 1.20  2003/12/05 23:54:04  jonas
-    * changed tvarrec so chars and booleans work on big endian machines
-
-  Revision 1.19  2003/11/30 19:48:20  florian
-    * fixed some arm stuff
-
-  Revision 1.18  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.17  2003/10/06 15:59:20  florian
-    + applied patch for ref. counted exceptions by Johannes Berg
-
-  Revision 1.16  2003/03/17 20:55:58  peter
-    * ClassType changed to class method
-
-  Revision 1.15  2002/09/26 14:43:24  florian
-    + tvarrec field vcurrency for compilers with hascurrency released
-
-  Revision 1.14  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
 
 }

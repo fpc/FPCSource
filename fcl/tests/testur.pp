@@ -5,24 +5,24 @@ uses resolve;
 
 var
   U : TURIParser;
-  
+
 Procedure DumpURI(U : TURIParser);
 
 begin
-  With U do 
+  With U do
     begin
-    Writeln('Protocol :',Protocol); 
-    Writeln('Username :',Username); 
-    Writeln('Password :',Password); 
-    Writeln('Host     :',Host    ); 
-    Writeln('Port     :',Port    ); 
-    Writeln('Path     :',Path    ); 
-    Writeln('Document :',Document); 
-    Writeln('Params   :',Params  ); 
-    Writeln('Bookmark :',Bookmark); 
+    Writeln('Protocol :',Protocol);
+    Writeln('Username :',Username);
+    Writeln('Password :',Password);
+    Writeln('Host     :',Host    );
+    Writeln('Port     :',Port    );
+    Writeln('Path     :',Path    );
+    Writeln('Document :',Document);
+    Writeln('Params   :',Params  );
+    Writeln('Bookmark :',Bookmark);
     Writeln('URI      :',URI);
     end;
-end;  
+end;
 
 begin
   U:=TURIParser.Create(Nil);
@@ -34,7 +34,7 @@ begin
     Writeln('Setting URI : http://www.lazarus.freepascal.org/main.php');
     U.URI:='http://www.lazarus.freepascal.org/main.php';
     DumpUri(U);
-  finally  
+  finally
     U.Free;
-  end;  
+  end;
 end.

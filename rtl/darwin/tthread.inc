@@ -19,14 +19,14 @@
   What follows, is a short description on my implementation of TThread.
   Most information can also be found by reading the source and accompanying
   comments.
-  
+
   A thread is created using BeginThread, which in turn calls
   pthread_create. So the threads here are always posix threads.
   Posix doesn't define anything for suspending threads as this is
   inherintly unsafe. Just don't suspend threads at points they cannot
   control. Therefore, I didn't implement .Suspend() if its called from
   outside the threads execution flow (except on Linux _without_ NPTL).
-  
+
   The implementation for .suspend uses a semaphore, which is initialized
   at thread creation. If the thread tries to suspend itself, we simply
   let it wait on the semaphore until it is unblocked by someone else
@@ -37,7 +37,7 @@
   are possible.
   1) the system has the LinuxThreads pthread implementation
   2) the system has NPTL as the pthread implementation.
-  
+
   In the first case, each thread is a process on its own, which as far as
   know actually violates posix with respect to signal handling.
   But we can detect this case, because getpid(2) will
@@ -48,10 +48,10 @@
   PID across all threads, which is detected, and TThread.Suspend() does
   nothing in that case. This should probably be changed, but I know of
   no way to suspend a thread when using NPTL.
-  
+
   If the symbol LINUX is not defined, then the unimplemented
   function SuspendThread is called.
-  
+
   Johannes Berg <johannes@sipsolutions.de>, Sunday, November 16 2003
 }
 
@@ -291,47 +291,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-03-04 12:42:44  jonas
-    - removed legacy code
-
-  Revision 1.2  2004/03/04 12:34:36  jonas
-    * fixed compilation
-
-  Revision 1.1  2004/01/04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
-
-  Revision 1.7  2003/11/22 11:04:08  marco
-   * Johill: suspend fix
-
-  Revision 1.6  2003/11/19 10:12:02  marco
-   * more cleanups
-
-  Revision 1.5  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.4  2003/11/17 08:27:49  marco
-   * pthreads based ttread from Johannes Berg
-
-  Revision 1.3  2003/11/10 16:54:28  marco
-   * new oldlinux unit. 1_0 defines killed in some former FCL parts.
-
-  Revision 1.2  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.9  2003/10/06 17:06:55  florian
-    * applied Johannes Berg's patch for exception handling in threads
-
-  Revision 1.8  2003/09/20 15:10:30  marco
-   * small fixes. fcl now compiles
-
-  Revision 1.7  2002/12/18 20:44:36  peter
-    * use fillchar to clear sigset
-
-  Revision 1.6  2002/09/07 15:15:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

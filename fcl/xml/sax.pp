@@ -934,15 +934,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-01-05 15:55:16  florian
-    * fixed type = type ...; statement for 1.1
-
-  Revision 1.2  2002/12/12 13:43:38  michael
-  + Patches from peter to fix 1.1 compile
-
-  Revision 1.1  2002/12/11 21:06:07  sg
-  * Small cleanups
-  * Replaced htmldoc unit with dom_html unit
-  * Added SAX parser framework and SAX HTML parser
+  Revision 1.4  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -52,7 +52,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.59  2004-01-14 23:39:05  florian
-    * another bunch of x86-64 fixes mainly calling convention and
-      assembler reader related
+  Revision 1.60  2005-02-14 17:13:10  peter
+    * truncate log
+
 }

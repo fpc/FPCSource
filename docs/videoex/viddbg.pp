@@ -29,7 +29,7 @@ Function TimeStamp : String;
 begin
   TimeStamp:=FormatDateTime('hh:nn:ss',Time());
 end;
-  
+
 Procedure StartVideoLogging;
 
 begin
@@ -68,7 +68,7 @@ begin
   For I:=0 to VideoBufSize div SizeOf(TVideoCell) do
     begin
     If VideoBuf^[i]<>OldVideoBuf^[i] then
-      begin 
+      begin
       Inc(Count);
       Inc(ColUpd[I mod ScreenWidth]);
       Inc(RowUpd[I div ScreenHeight]);
@@ -76,13 +76,13 @@ begin
     end;
   Write(VideoLog,Count,' videocells differed divided over ');
   Count:=0;
-  For I:=0 to ScreenWidth-1 do 
-    If ColUpd[I]<>0 then 
+  For I:=0 to ScreenWidth-1 do
+    If ColUpd[I]<>0 then
       Inc(Count);
   Write(VideoLog,Count,' columns and ');
   Count:=0;
-  For I:=0 to ScreenHeight-1 do 
-    If RowUpd[I]<>0 then 
+  For I:=0 to ScreenHeight-1 do
+    If RowUpd[I]<>0 then
       Inc(Count);
   Writeln(VideoLog,Count,' rows.');
   If DetailedVideoLogging Then
@@ -93,7 +93,7 @@ begin
    For I:=0 to ScreenHeight-1 do
      If (RowUpd[I]<>0) then
        Writeln(VideoLog,'Row ',i,' : ',RowUpd[I]:3,' colums changed');
-   end;      
+   end;
 end;
 
 Procedure LogUpdateScreen(Force : Boolean);

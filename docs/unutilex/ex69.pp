@@ -5,7 +5,7 @@ Program Example69;
 Uses unixutil;
 
   Procedure TestMatch(Pattern,Name : String);
-  
+
   begin
     Write ('"',Name,'" ');
     If FNMatch (Pattern,Name) then
@@ -14,7 +14,7 @@ Uses unixutil;
       Write ('does not match');
     Writeln(' "',Pattern,'".');
   end;
-  
+
 begin
   TestMatch('*','FileName');
   TestMatch('.*','FileName');

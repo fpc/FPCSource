@@ -27,16 +27,16 @@ type
 
   THttpSession = class
   public
-    property Attributes[const AName: String]: TObject;	// !!!: Implement this	rw
-    property CreationTime: TDateTime;	// !!!: Implement this
-    property ID: String;		// !!!: Implement this
-    property LastAccessedTime: TDateTime;	// !!!: Implement this
-    property MaxInactiveInterval: TDateTime;	// !!!: Implement this	rw
-    property ServletContext: TServletContext;	// !!!: Implement this
-    property IsNew: Boolean;		// !!!: Implement this
+    property Attributes[const AName: String]: TObject;  // !!!: Implement this  rw
+    property CreationTime: TDateTime;   // !!!: Implement this
+    property ID: String;                // !!!: Implement this
+    property LastAccessedTime: TDateTime;       // !!!: Implement this
+    property MaxInactiveInterval: TDateTime;    // !!!: Implement this  rw
+    property ServletContext: TServletContext;   // !!!: Implement this
+    property IsNew: Boolean;            // !!!: Implement this
 
-    // procedure Invalidate;		// !!!: Implement this
-    // procedure RemoveAttribute(const AName: String);	// !!!: Implement this
+    // procedure Invalidate;            // !!!: Implement this
+    // procedure RemoveAttribute(const AName: String);  // !!!: Implement this
   end;
 
   THttpServletRequest = class(TServletRequest)
@@ -54,26 +54,26 @@ type
       const AScheme, APathInfo: String);
     // GetSession
 
-    // function IsRequestedSessionIdFromCookie: Boolean;	// !!!: Implement this
-    // function IsRequestedSessionIdFromURL: Boolean;	// !!!: Implement this
-    // function IsRequestedSessionIdValid: Boolean;	// !!!: Implement this
+    // function IsRequestedSessionIdFromCookie: Boolean;        // !!!: Implement this
+    // function IsRequestedSessionIdFromURL: Boolean;   // !!!: Implement this
+    // function IsRequestedSessionIdValid: Boolean;     // !!!: Implement this
 
-    property AuthType: String;		// !!!: How to implement?
-    property ContextPath: String;	// !!!: How to implement?
-    property CookieCount: Integer;	// !!!: How to implement?
-    property Cookies[Index: Integer]: Pointer;	// !!!: How to implement?
-    property DateHeaders[const AName: String]: TDateTime;	// !!!: Implement this
-    property Headers[const AName: String]: String;	// !!!: Implement this
-    property IntHeaders[const AName: String]: Integer;	// !!!: Implement this
+    property AuthType: String;          // !!!: How to implement?
+    property ContextPath: String;       // !!!: How to implement?
+    property CookieCount: Integer;      // !!!: How to implement?
+    property Cookies[Index: Integer]: Pointer;  // !!!: How to implement?
+    property DateHeaders[const AName: String]: TDateTime;       // !!!: Implement this
+    property Headers[const AName: String]: String;      // !!!: Implement this
+    property IntHeaders[const AName: String]: Integer;  // !!!: Implement this
     property Method: String read GetMethod;
     property PathInfo: String read FPathInfo;
-    property PathTranslated: String;	// !!!: How to implement?
+    property PathTranslated: String;    // !!!: How to implement?
     property QueryString: String read GetQueryString;
-    property RemoteUser: String;	// !!!: How to implement?
-    property RequestedSessionID: String;	// !!!: How to implement?
+    property RemoteUser: String;        // !!!: How to implement?
+    property RequestedSessionID: String;        // !!!: How to implement?
     property RequestURI: String read GetRequestURI;
-    property RequestURL: String;	// !!!: How to implement?
-    property ServletPath: String;	// !!!: How to implement?
+    property RequestURL: String;        // !!!: How to implement?
+    property ServletPath: String;       // !!!: How to implement?
   end;
 
   THttpServletResponse = class(TServletResponse)
@@ -85,21 +85,21 @@ type
   public
     constructor Create(AResponseHeader: THTTPResponseHeader;
       AOutputStream: TStream);
-    // procedure AddCookie(Cookie: TCookie);	// !!!: Implement this
-    // procedure AddDateHeader(const AName: String; ADate: TDateTime);	// !!!: Implement this
-    // procedure AddHeader(const AName, AValue: String);	// !!!: Implement this
-    // procedure AddIntHeader(const AName: String; AValue: Int64);	// !!!: Implement this
-    // function ContainsHeader(const AName: String): Boolean;	// !!!: Implement this
-    // function EncodeRedirectURL(const URL: String): String;	// !!!: Implement this
-    // function EncodeURL(const URL: String): String;	// !!!: Implement this
-    // procedure SendError(StatusCode: Integer);	// !!!: Implement this
-    // procedure SendError(StatusCode: Integer; const Msg: String);	// !!!: Implement this
-    // procedure SendRedirect(const Location: String);	// !!!: Implement this
-    // procedure SetDateHeader(const AName: String; ADate: TDateTime);	// !!!: Implement this
-    // procedure SetHeader(const AName, AValue: String);	// !!!: Implement this
-    // procedure SetIntHeader(const AName: String; AValue: Int64);	// !!!: Implement this
-    // procedure SetStatus(StatusCode: Integer);	// !!!: Implement this
-    // procedure SetStatus(StatusCode: Integer; const Msg: String);	// !!!: Implement this
+    // procedure AddCookie(Cookie: TCookie);    // !!!: Implement this
+    // procedure AddDateHeader(const AName: String; ADate: TDateTime);  // !!!: Implement this
+    // procedure AddHeader(const AName, AValue: String);        // !!!: Implement this
+    // procedure AddIntHeader(const AName: String; AValue: Int64);      // !!!: Implement this
+    // function ContainsHeader(const AName: String): Boolean;   // !!!: Implement this
+    // function EncodeRedirectURL(const URL: String): String;   // !!!: Implement this
+    // function EncodeURL(const URL: String): String;   // !!!: Implement this
+    // procedure SendError(StatusCode: Integer);        // !!!: Implement this
+    // procedure SendError(StatusCode: Integer; const Msg: String);     // !!!: Implement this
+    // procedure SendRedirect(const Location: String);  // !!!: Implement this
+    // procedure SetDateHeader(const AName: String; ADate: TDateTime);  // !!!: Implement this
+    // procedure SetHeader(const AName, AValue: String);        // !!!: Implement this
+    // procedure SetIntHeader(const AName: String; AValue: Int64);      // !!!: Implement this
+    // procedure SetStatus(StatusCode: Integer);        // !!!: Implement this
+    // procedure SetStatus(StatusCode: Integer; const Msg: String);     // !!!: Implement this
   end;
 
   THttpServlet = class(TGenericServlet)
@@ -160,7 +160,7 @@ type
 
   THttpServer = class(TCustomTCPServer)
   private
-    Connections: TList;		// List of THttpServerConnection objects
+    Connections: TList;         // List of THttpServerConnection objects
     FServletMappings: TServletMappings;
   protected
     procedure DoConnect(AStream: TSocketStream); override;
@@ -290,7 +290,7 @@ begin
       LastStart := i + 1
     else if (i = LastStart) and (s[i] = '.') and (i < Length(s)) and
       (s[i + 1] = '..') then
-      exit;		// !!!: are ".." allowed in URLs?
+      exit;             // !!!: are ".." allowed in URLs?
     Inc(i);
   end;
 
@@ -466,21 +466,21 @@ begin
     try
       if Assigned(Servlet) then
         if Servlet.InheritsFrom(THttpServlet) then
-	  THttpServlet(Servlet).Service(Request, Response)
-	else
+          THttpServlet(Servlet).Service(Request, Response)
+        else
           Servlet.Service(Request, Response)
       else
       begin
         ResponseHeader.ContentType := 'text/plain';
-	s := 'Invalid URL';
-	ResponseStream.Write(s[1], Length(s));
+        s := 'Invalid URL';
+        ResponseStream.Write(s[1], Length(s));
       end;
     except
       on e: Exception do
       begin
         s := 'An error occured: ' + ' ' + e.Message;
-	ResponseHeader.ContentType := 'text/plain';
-	ResponseStream.Write(s[1], Length(s));
+        ResponseHeader.ContentType := 'text/plain';
+        ResponseStream.Write(s[1], Length(s));
       end;
     end;
 
@@ -593,10 +593,10 @@ function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boo
       BinStream := nil;
       try
         try
-	  TextStream := TFileStream.Create(Filename, fmOpenRead);
-	except
-	  exit;
-	end;
+          TextStream := TFileStream.Create(Filename, fmOpenRead);
+        except
+          exit;
+        end;
         BinStream := TMemoryStream.Create;
         ObjectTextToBinary(TextStream, BinStream);
         BinStream.Position := 0;
@@ -604,7 +604,7 @@ function InitInheritedComponent(Instance: TComponent; RootAncestor: TClass): Boo
         Result := True;
       finally
         TextStream.Free;
-	BinStream.Free;
+        BinStream.Free;
       end;
     end;
   end;
@@ -633,19 +633,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-01-31 19:13:14  sg
-  * Splittet old HTTP unit into httpbase and httpclient
-  * Many improvements in fpSock (e.g. better disconnection detection)
-
-  Revision 1.3  2003/11/22 12:01:18  sg
-  * Adaptions to new version of HTTP unit: All server functionality now is
-    in this unit, and not http.pp anymore
-
-  Revision 1.2  2003/06/25 08:53:51  sg
-  * Inform the server socket object that it runs non-blocking
-
-  Revision 1.1  2002/04/25 19:30:29  sg
-  * First version (with exception of the HTTP unit: This is an improved version
-    of the old asyncio HTTP unit, now adapted to fpAsync)
+  Revision 1.5  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

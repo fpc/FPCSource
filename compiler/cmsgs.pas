@@ -414,25 +414,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2004-10-15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.12  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.11  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.10.2.1  2004/05/02 14:09:54  peter
-    * fix case 64bit issues
-
-  Revision 1.10  2004/02/20 19:49:21  daniel
-    * Message system uses open arrays internally
-    * Bugfix for string handling in array constructor node
-    * Micro code reductions in pdecl.pas
-
-  Revision 1.9  2004/01/28 15:36:46  florian
-    * fixed another couple of arm bugs
+  Revision 1.14  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

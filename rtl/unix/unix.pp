@@ -45,7 +45,7 @@ Const
   LOCK_NB = 4;
 
 Type
-  Tpipe = baseunix.tfildes;	// compability.
+  Tpipe = baseunix.tfildes;     // compability.
 
 {******************************************************************************
                             Procedure/Functions
@@ -60,7 +60,7 @@ var
   tzname     : array[boolean] of pchar;
 
 {$IFNDEF DONT_READ_TIMEZONE}  // allows to disable linking in and trying for platforms
- 		       // it doesn't (yet) work for.
+                       // it doesn't (yet) work for.
 
 { timezone support }
 procedure GetLocalTimezone(timer:cint;var leap_correct,leap_hit:cint);
@@ -102,7 +102,7 @@ Function W_STOPCODE (Signal: Integer): Integer;
 Function  fsync (fd : cint) : cint;
 Function  fpFlock   (fd,mode : cint)   : cint ;
 Function  fStatFS (Fd: cint;Var Info:tstatfs):cint;
-Function  StatFS  (Path:pchar;Var Info:tstatfs):cint; 
+Function  StatFS  (Path:pchar;Var Info:tstatfs):cint;
 {$endif}
 
 Function  fpFlock   (var T : text;mode : cint) : cint;
@@ -180,9 +180,9 @@ const
 ***************************}
 
 Type
-	TFSearchOption  = (NoCurrentDirectory,
-		           CurrentDirectoryFirst,
-	                   CurrentDirectoryLast);
+        TFSearchOption  = (NoCurrentDirectory,
+                           CurrentDirectoryFirst,
+                           CurrentDirectoryLast);
 
 Function  FSearch  (const path:AnsiString;dirlist:Ansistring;CurrentDirStrategy:TFSearchOption):AnsiString;
 Function  FSearch  (const path:AnsiString;dirlist:AnsiString):AnsiString;
@@ -254,7 +254,7 @@ function intFpExecVEMaybeP (Const PathName:AnsiString;Args,MyEnv:ppchar;SearchPa
 // execv variants call this directly, execl variants indirectly via
 //     intfpexecl
 
-Var 
+Var
   NewCmd  : ansistring;
   ThePath : AnsiString;
   Error   : cint;
@@ -270,25 +270,25 @@ Begin
       ThePath:=fpgetenv('PATH');
       if thepath='' then
         thepath:='.';     // FreeBSD uses _PATH_DEFPATH = /usr/bin:/bin
-			  // but a quick check showed that _PATH_DEFPATH 
-			  // varied from OS to OS
-			
+                          // but a quick check showed that _PATH_DEFPATH
+                          // varied from OS to OS
+
       newcmd:=FSearch(pathname,thepath,NoCurrentDirectory);
       // FreeBSD libc keeps on trying till a file is successfully run.
       // Stevens says "try each path prefix"
-	
+
       // execp puts newcmd here.
         args^:=pchar(newcmd);
    End else
       newcmd:=pathname;
  // repeat
-//	if searchpath then args^:=pchar(commandtorun)
+//      if searchpath then args^:=pchar(commandtorun)
 
   IntFpExecVEMaybeP:=fpExecVE(newcmd,Args,MyEnv);
-{ 
-// Code that if exec fails due to permissions, tries to run it with sh 
+{
+// Code that if exec fails due to permissions, tries to run it with sh
 // Should we deallocate p on fail? -> no fpexit is run no matter what
-// 
+//
 }
 // if intfpexecvemaybep=-1 then zoekvolgende file.
 // until (Goexit) or SearchExit;
@@ -300,23 +300,23 @@ Begin
       Error:=fpGetErrno
       Case Error of
         ESysE2Big  : Exit(-1);
-	ESysELoop,
-	  : Exit(-1);	
+        ESysELoop,
+          : Exit(-1);
 
 }
 end;
 
 function intFpExecl (Const PathName:AnsiString;const s:array of ansistring;MyEnv:ppchar;SearchPath:Boolean):cint;
-{ Handles the array of ansistring -> ppchar conversion. 
+{ Handles the array of ansistring -> ppchar conversion.
   Base for the the "l" variants.
 }
 var p:ppchar;
 
 begin
-  If PathName='' Then 
+  If PathName='' Then
     Begin
       fpsetErrno(ESysEnoEnt);
-      Exit(-1);			// Errno?
+      Exit(-1);                 // Errno?
     End;
   p:=ArrayStringToPPchar(s,1);
   if p=NIL Then
@@ -375,7 +375,7 @@ Begin
 End;
 
 // exect and execvP (ExecCapitalP) are not implement
-// Non POSIX anyway.  
+// Non POSIX anyway.
 // Exect turns on tracing for the process
 // execvP has the searchpath as array of ansistring ( const char *search_path)
 
@@ -410,7 +410,7 @@ begin
      {$ifndef FPC_USE_FPEXEC}
        fpExecve(p^,p,envp);
      {$else}
-      fpexecl('/bin/sh',['-c',Command]);	
+      fpexecl('/bin/sh',['-c',Command]);
      {$endif}
      fpExit(127);  // was Exit(127)
    end
@@ -440,10 +440,10 @@ begin { Changes as above }
   if pid=0 then // We are in the Child
    begin
     {$ifdef FPC_USE_FPEXEC}
-      fpexecl('/bin/sh',['-c',Command]);	
+      fpexecl('/bin/sh',['-c',Command]);
     {$else}
      fpExecve(p^,p,envp);
-    {$endif}   
+    {$endif}
      fpExit(127); // was exit(127)!! We must exit the Process, not the function
    end
   else if (pid<>-1) then // Successfull started
@@ -470,14 +470,14 @@ Function fpSystem(const Command:AnsiString):cint;
 }
 var
   pid,savedpid   : cint;
-  pstat		 : cint;
+  pstat          : cint;
   ign,intact,
-  quitact 	 : SigactionRec;
+  quitact        : SigactionRec;
   newsigblock,
-  oldsigblock	 : tsigset;
+  oldsigblock    : tsigset;
 
 begin { Changes as above }
-  if command='' then exit(1); 
+  if command='' then exit(1);
   ign.sa_handler:=SigActionHandler(SIG_IGN);
   fpsigemptyset(ign.sa_mask);
   ign.sa_flags:=0;
@@ -490,26 +490,26 @@ begin { Changes as above }
   if pid=0 then // We are in the Child
    begin
      fpsigaction(SIGINT,@intact,NIL);
-     fpsigaction(SIGQUIT,@quitact,NIL);     
+     fpsigaction(SIGQUIT,@quitact,NIL);
      fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
-     fpexecl('/bin/sh',['-c',Command]);	
+     fpexecl('/bin/sh',['-c',Command]);
      fpExit(127); // was exit(127)!! We must exit the Process, not the function
    end
   else if (pid<>-1) then // Successfull started
      begin
         savedpid:=pid;
-	repeat
+        repeat
           pid:=fpwaitpid(savedpid,@pstat,0);
         until (pid<>-1) and (fpgeterrno()<>ESysEintr);
-        if pid=-1 Then 
- 	 fpsystem:=-1 
-	else
-	 fpsystem:=pstat;
-     end 
+        if pid=-1 Then
+         fpsystem:=-1
+        else
+         fpsystem:=pstat;
+     end
   else // no success
    fpsystem:=-1;
   fpsigaction(SIGINT,@intact,NIL);
-  fpsigaction(SIGQUIT,@quitact,NIL);     
+  fpsigaction(SIGQUIT,@quitact,NIL);
   fpsigprocmask(SIG_SETMASK,@oldsigblock,NIL);
 end;
 {$endif}
@@ -760,7 +760,7 @@ begin
    end;
   if AssignPipe(pipi,pipo)=-1 Then
     Exit(-1);
-  pid:=fpfork;		// vfork in FreeBSD.
+  pid:=fpfork;          // vfork in FreeBSD.
   if pid=-1 then
    begin
      close(pipi);
@@ -786,8 +786,8 @@ begin
         if ret=-1 then
          halt(127);
       end;
-     {$ifdef FPC_USE_FPEXEC} 
-     fpexecl('/bin/sh',['-c',Prog]);	
+     {$ifdef FPC_USE_FPEXEC}
+     fpexecl('/bin/sh',['-c',Prog]);
      {$else}
      pp:=createshellargv(prog);
      fpExecve(pp^,pp,envp);
@@ -870,7 +870,7 @@ begin
          halt(127);
       end;
      {$ifdef FPC_USE_FPEXEC}
-     fpexecl('/bin/sh',['-c',Prog]);	
+     fpexecl('/bin/sh',['-c',Prog]);
      {$else}
      getmem(pp,sizeof(pchar)*4);
      temp:='/bin/sh'#0'-c'#0+prog+#0;
@@ -1105,7 +1105,7 @@ begin
   if intGetDomainName(@getdomainname[1],255)=-1 then
    getdomainname:=''
   else
-   getdomainname[0]:=chr(strlen(@getdomainname[1])); 
+   getdomainname[0]:=chr(strlen(@getdomainname[1]));
 end;
 {$endif}
 
@@ -1151,14 +1151,14 @@ Var
   mydir,NewDir : ansistring;
   p1     : cint;
   Info   : Stat;
-  i,j      : cint; 
+  i,j      : cint;
   p      : pchar;
 Begin
 
  if CurrentDirStrategy=CurrentDirectoryFirst Then
-     Dirlist:='.:'+dirlist;		{Make sure current dir is first to be searched.}
+     Dirlist:='.:'+dirlist;             {Make sure current dir is first to be searched.}
  if CurrentDirStrategy=CurrentDirectoryLast Then
-     Dirlist:=dirlist+':.';		{Make sure current dir is last to be searched.}
+     Dirlist:=dirlist+':.';             {Make sure current dir is last to be searched.}
 
 {Replace ':' and ';' with #0}
 
@@ -1217,7 +1217,10 @@ End.
 
 {
   $Log$
-  Revision 1.83  2005-02-13 21:47:56  peter
+  Revision 1.84  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.83  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.82  2005/02/13 20:01:38  peter
@@ -1234,186 +1237,5 @@ End.
 
   Revision 1.79  2005/01/22 20:56:11  michael
   + Patch for intFpExecVEMaybeP to use the right path (From Colin Western)
-
-  Revision 1.78  2004/11/21 11:28:21  peter
-    * fixed bootstrap with 1.0.10 and 1.9.4
-
-  Revision 1.77  2004/11/19 13:15:15  marco
-   * external rework. Mostly done.
-
-  Revision 1.76  2004/11/03 15:00:43  marco
-   * Pathstr eliminated
-
-  Revision 1.75  2004/10/30 20:55:54  marco
-   * unix interface cleanup
-
-  Revision 1.74  2004/07/18 14:54:42  jonas
-    * fixed BSD getdomainname for FPC_USE_LIBC
-
-  Revision 1.73  2004/07/18 11:27:54  marco
-   * small fix for BSD getdomainname. BSD version is based on Sysctl
-
-  Revision 1.72  2004/07/03 13:18:06  daniel
-    * Better fix.
-
-  Revision 1.71  2004/07/03 13:15:51  daniel
-    * Compilation fix in fsearch
-
-  Revision 1.70  2004/04/23 19:16:25  marco
-   * flock -> fpflock because of conflicting structure name
-
-  Revision 1.69  2004/04/22 17:17:13  peter
-    * x86-64 fixes
-
-  Revision 1.68  2004/03/04 22:15:17  marco
-   * UnixType changes. Please report problems to me.
-
-  Revision 1.66  2004/02/16 13:21:18  marco
-   * fpexec for popen
-
-  Revision 1.65  2004/02/14 21:12:14  marco
-   * provisorische fix voor Michael's problemen
-
-  Revision 1.64  2004/02/14 18:22:15  marco
-   * fpsystem, and some FPC_USE_LIBC fixes. (FreeBSD needs systypes.inc, also when FPC_USE_LIBC, it only contains types like statfs
-
-  Revision 1.63  2004/02/13 10:50:22  marco
-   * Hopefully last large changes to fpexec and friends.
-  	- naming conventions changes from Michael.
-  	- shell functions get alternative under ifdef.
-  	- arraystring function moves to unixutil
-  	- unixutil now regards quotes in stringtoppchar.
-  	- sysutils/unix get executeprocess(ansi,array of ansi), and
-  		both executeprocess functions are fixed
-   	- Sysutils/win32 get executeprocess(ansi,array of ansi)
-
-  Revision 1.62  2004/02/12 16:20:58  marco
-   * currentpath stuff fixed for fsearch
-
-  Revision 1.61  2004/02/12 15:31:06  marco
-   * First version of fpexec change. Still under ifdef or silently overloaded
-
-  Revision 1.60  2004/01/23 08:11:18  jonas
-    * only include systypes.inc if FPC_USE_LIBC is not defined
-
-  Revision 1.59  2004/01/22 13:46:14  marco
-  bsd
-
-  Revision 1.58  2004/01/04 21:05:01  jonas
-    * declare C-library routines as external in libc so we generate proper
-      import entries for Darwin
-
-  Revision 1.57  2004/01/04 20:53:02  jonas
-    * don't use systypes if FPC_USE_LIBC is defined
-
-  Revision 1.56  2004/01/04 16:24:05  jonas
-    * fixed WaitProcess in case of SysEintr
-
-  Revision 1.55  2003/12/31 20:24:25  marco
-   * export statfs(pchar)
-
-  Revision 1.54  2003/12/30 15:43:20  marco
-   * linux now compiles with FPC_USE_LIBC
-
-  Revision 1.53  2003/12/30 12:24:01  marco
-   * FPC_USE_LIBC
-
-  Revision 1.52  2003/12/08 17:16:30  peter
-    * fsearch should only find files
-
-  Revision 1.51  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.50  2003/11/19 10:54:32  marco
-   * some simple restructures
-
-  Revision 1.49  2003/11/17 11:28:08  marco
-   * Clone moved to linux, + few small unit unix changes
-
-  Revision 1.48  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.47  2003/11/14 17:30:14  marco
-   * weeehoo linuxerror is no more :-)
-
-  Revision 1.46  2003/11/14 16:44:48  marco
-   * stream functions converted to work without linuxerror
-
-  Revision 1.45  2003/11/13 18:44:06  marco
-   * small fi
-
-  Revision 1.44  2003/11/12 22:19:45  marco
-   * more linuxeror fixes
-
-  Revision 1.43  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.42  2003/10/30 16:42:58  marco
-   * fixes for old syscall() convention removing
-
-  Revision 1.41  2003/10/12 19:40:43  marco
-   * ioctl fixes. IDE now starts, but
-
-  Revision 1.40  2003/09/29 14:36:06  peter
-    * fixed for stricter compiler
-
-  Revision 1.39  2003/09/27 12:51:33  peter
-    * fpISxxx macros renamed to C compliant fpS_ISxxx
-
-  Revision 1.38  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.37  2003/09/17 19:07:44  marco
-   * more fixes for Unix<->unixutil
-
-  Revision 1.36  2003/09/17 17:30:46  marco
-   * Introduction of unixutil
-
-  Revision 1.35  2003/09/16 21:46:27  marco
-   * small fixes, checking things on linux
-
-  Revision 1.34  2003/09/16 20:52:24  marco
-   * small cleanups. Mostly killing of already commented code in unix etc
-
-  Revision 1.33  2003/09/16 16:13:56  marco
-   * fdset functions renamed to fp<posix name>
-
-  Revision 1.32  2003/09/15 20:08:49  marco
-   * small fixes. FreeBSD now cycles
-
-  Revision 1.31  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.30  2003/07/08 21:23:24  peter
-    * sparc fixes
-
-  Revision 1.29  2003/05/30 19:58:40  marco
-   * Getting NetBSD/i386 to compile.
-
-  Revision 1.28  2003/05/29 19:16:16  marco
-   * fixed a small *BSD gotcha
-
-  Revision 1.27  2003/05/24 20:39:54  jonas
-    * fixed ExitCode translation in WaitProcess for Linux and Darwin (and
-      probably other BSD's as well)
-
-  Revision 1.26  2003/03/11 08:27:59  michael
-  * stringtoppchar should use tabs instead of backspace as delimiter
-
-  Revision 1.25  2002/12/18 16:50:39  marco
-   * Unix RTL generic parts. Linux working, *BSD will follow shortly
-
-  Revision 1.24  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.23  2002/08/06 13:30:46  sg
-  * replaced some Longints with Cardinals, to mach the C headers
-  * updated the termios record
-
-  Revision 1.22  2002/03/05 20:04:25  michael
-  + Patch from Sebastian for FCNTL call
-
-  Revision 1.21  2002/01/02 12:22:54  marco
-   * Removed ifdef arround getepoch.
 
 }

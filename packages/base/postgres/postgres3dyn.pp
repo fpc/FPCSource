@@ -23,7 +23,7 @@ uses
     pqlib = 'libpq.dll';
 {$ENDIF}
 
-  
+
 {$PACKRECORDS C}
 
 {$i postgres3types.inc}
@@ -33,7 +33,7 @@ var
 * Exported functions of libpq
 * ----------------
 }
-{ ===	in fe-connect.c ===  }
+{ ===   in fe-connect.c ===  }
 { make a new client connection to the backend  }
 { Asynchronous (non-blocking)  }
 (* Const before type ignored *)
@@ -229,7 +229,7 @@ begin
       RefCount := 0;
       Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+pqlib+')');
       end;
-      
+
     pointer(PQconnectStart) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectStart');
     pointer(PQconnectPoll) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectPoll');
     pointer(PQconnectdb) := GetProcedureAddress(Postgres3LibraryHandle,'PQconnectdb');
@@ -330,7 +330,7 @@ begin
     pointer(lo_export) := GetProcedureAddress(Postgres3LibraryHandle,'lo_export');
     pointer(PQmblen) := GetProcedureAddress(Postgres3LibraryHandle,'PQmblen');
     pointer(PQenv2encoding) := GetProcedureAddress(Postgres3LibraryHandle,'PQenv2encoding');
-      
+
     InitialiseDllist;
     end;
 end;

@@ -94,7 +94,7 @@ function decompress_data (cinfo : j_decompress_ptr;
 function smoothing_ok (cinfo : j_decompress_ptr) : boolean; forward;
 
 {METHODDEF}
-function decompress_smooth_data	(cinfo : j_decompress_ptr;
+function decompress_smooth_data (cinfo : j_decompress_ptr;
                                  output_buf : JSAMPIMAGE) : int; far; forward;
 {$endif}
 
@@ -194,13 +194,13 @@ begin
     begin
       { Try to fetch an MCU.  Entropy decoder expects buffer to be zeroed. }
       jzero_far( coef^.MCU_buffer[0],
-		size_t (cinfo^.blocks_in_MCU * SIZEOF(JBLOCK)));
+                size_t (cinfo^.blocks_in_MCU * SIZEOF(JBLOCK)));
       if (not cinfo^.entropy^.decode_mcu (cinfo, coef^.MCU_buffer)) then
       begin
-	{ Suspension forced; update state counters and exit }
-	coef^.MCU_vert_offset := yoffset;
-	coef^.MCU_ctr := MCU_col_num;
-	decompress_onepass := JPEG_SUSPENDED;
+        { Suspension forced; update state counters and exit }
+        coef^.MCU_vert_offset := yoffset;
+        coef^.MCU_ctr := MCU_col_num;
+        decompress_onepass := JPEG_SUSPENDED;
         exit;
       end;
       { Determine where data should go in output_buf and do the IDCT thing.
@@ -208,42 +208,42 @@ begin
         incremented past them!).  Note the inner loop relies on having
         allocated the MCU_buffer[] blocks sequentially. }
 
-      blkn := 0;			{ index of current DCT block within MCU }
+      blkn := 0;                        { index of current DCT block within MCU }
       for ci := 0 to pred(cinfo^.comps_in_scan) do
       begin
-	compptr := cinfo^.cur_comp_info[ci];
-	{ Don't bother to IDCT an uninteresting component. }
-	if (not compptr^.component_needed) then
+        compptr := cinfo^.cur_comp_info[ci];
+        { Don't bother to IDCT an uninteresting component. }
+        if (not compptr^.component_needed) then
         begin
-	  Inc(blkn, compptr^.MCU_blocks);
-	  continue;
-	end;
-	inverse_DCT := cinfo^.idct^.inverse_DCT[compptr^.component_index];
+          Inc(blkn, compptr^.MCU_blocks);
+          continue;
+        end;
+        inverse_DCT := cinfo^.idct^.inverse_DCT[compptr^.component_index];
         if (MCU_col_num < last_MCU_col) then
           useful_width := compptr^.MCU_width
         else
           useful_width := compptr^.last_col_width;
 
-	output_ptr := JSAMPARRAY(@ output_buf^[compptr^.component_index]^
+        output_ptr := JSAMPARRAY(@ output_buf^[compptr^.component_index]^
                                    [yoffset * compptr^.DCT_scaled_size]);
-	start_col := MCU_col_num * compptr^.MCU_sample_width;
-	for yindex := 0 to pred(compptr^.MCU_height) do
+        start_col := MCU_col_num * compptr^.MCU_sample_width;
+        for yindex := 0 to pred(compptr^.MCU_height) do
         begin
-	  if (cinfo^.input_iMCU_row < last_iMCU_row) or
+          if (cinfo^.input_iMCU_row < last_iMCU_row) or
              (yoffset+yindex < compptr^.last_row_height) then
           begin
-	    output_col := start_col;
-	    for xindex := 0 to pred(useful_width) do
+            output_col := start_col;
+            for xindex := 0 to pred(useful_width) do
             begin
-	      inverse_DCT (cinfo, compptr,
-			   JCOEFPTR(coef^.MCU_buffer[blkn+xindex]),
-			   output_ptr, output_col);
-	      Inc(output_col, compptr^.DCT_scaled_size);
-	    end;
-	  end;
-	  Inc(blkn, compptr^.MCU_width);
-	  Inc(JSAMPROW_PTR(output_ptr), compptr^.DCT_scaled_size);
-	end;
+              inverse_DCT (cinfo, compptr,
+                           JCOEFPTR(coef^.MCU_buffer[blkn+xindex]),
+                           output_ptr, output_col);
+              Inc(output_col, compptr^.DCT_scaled_size);
+            end;
+          end;
+          Inc(blkn, compptr^.MCU_width);
+          Inc(JSAMPROW_PTR(output_ptr), compptr^.DCT_scaled_size);
+        end;
       end;
     end;
     { Completed an MCU row, but perhaps not an iMCU row }
@@ -269,7 +269,7 @@ end;
 {METHODDEF}
 function dummy_consume_data (cinfo : j_decompress_ptr) : int; far;
 begin
-  dummy_consume_data := JPEG_SUSPENDED;	{ Always indicate nothing was done }
+  dummy_consume_data := JPEG_SUSPENDED; { Always indicate nothing was done }
 end;
 
 
@@ -313,29 +313,29 @@ begin
     for MCU_col_num := coef^.MCU_ctr to pred(cinfo^.MCUs_per_row) do
     begin
       { Construct list of pointers to DCT blocks belonging to this MCU }
-      blkn := 0;		{ index of current DCT block within MCU }
+      blkn := 0;                { index of current DCT block within MCU }
       for ci := 0 to pred(cinfo^.comps_in_scan) do
       begin
-	compptr := cinfo^.cur_comp_info[ci];
-	start_col := MCU_col_num * compptr^.MCU_width;
-	for yindex := 0 to pred(compptr^.MCU_height) do
+        compptr := cinfo^.cur_comp_info[ci];
+        start_col := MCU_col_num * compptr^.MCU_width;
+        for yindex := 0 to pred(compptr^.MCU_height) do
         begin
-	  buffer_ptr := JBLOCKROW(@ buffer[ci]^[yindex+yoffset]^[start_col]);
-	  for xindex := 0 to pred(compptr^.MCU_width) do
+          buffer_ptr := JBLOCKROW(@ buffer[ci]^[yindex+yoffset]^[start_col]);
+          for xindex := 0 to pred(compptr^.MCU_width) do
           begin
-	    coef^.MCU_buffer[blkn] := buffer_ptr;
+            coef^.MCU_buffer[blkn] := buffer_ptr;
             Inc(blkn);
             Inc(JBLOCK_PTR(buffer_ptr));
-	  end;
-	end;
+          end;
+        end;
       end;
       { Try to fetch the MCU. }
       if (not cinfo^.entropy^.decode_mcu (cinfo, coef^.MCU_buffer)) then
       begin
-	{ Suspension forced; update state counters and exit }
-	coef^.MCU_vert_offset := yoffset;
-	coef^.MCU_ctr := MCU_col_num;
-	consume_data := JPEG_SUSPENDED;
+        { Suspension forced; update state counters and exit }
+        coef^.MCU_vert_offset := yoffset;
+        coef^.MCU_ctr := MCU_col_num;
+        consume_data := JPEG_SUSPENDED;
         exit;
       end;
     end;
@@ -382,8 +382,8 @@ begin
 
   { Force some input to be done if we are getting ahead of the input. }
   while (cinfo^.input_scan_number < cinfo^.output_scan_number) or
-	 ((cinfo^.input_scan_number = cinfo^.output_scan_number) and
-	  (cinfo^.input_iMCU_row <= cinfo^.output_iMCU_row)) do
+         ((cinfo^.input_scan_number = cinfo^.output_scan_number) and
+          (cinfo^.input_iMCU_row <= cinfo^.output_iMCU_row)) do
   begin
     if (cinfo^.inputctl^.consume_input(cinfo) = JPEG_SUSPENDED) then
     begin
@@ -423,10 +423,10 @@ begin
       output_col := 0;
       for block_num := 0 to pred(compptr^.width_in_blocks) do
       begin
-	inverse_DCT (cinfo, compptr, JCOEFPTR (buffer_ptr),
-			output_ptr, output_col);
-	Inc(JBLOCK_PTR(buffer_ptr));
-	Inc(output_col, compptr^.DCT_scaled_size);
+        inverse_DCT (cinfo, compptr, JCOEFPTR (buffer_ptr),
+                        output_ptr, output_col);
+        Inc(JBLOCK_PTR(buffer_ptr));
+        Inc(output_col, compptr^.DCT_scaled_size);
       end;
       Inc(JSAMPROW_PTR(output_ptr), compptr^.DCT_scaled_size);
     end;
@@ -528,7 +528,7 @@ begin
     begin
       coef_bits_latch^[coefi] := coef_bits^[coefi];
       if (coef_bits^[coefi] <> 0) then
-	smoothing_useful := TRUE;
+        smoothing_useful := TRUE;
     end;
     Inc(coef_bits_latch {SAVED_COEFS});
     Inc(compptr);
@@ -583,7 +583,7 @@ begin
       else
         delta := 0;
       if (cinfo^.input_iMCU_row > cinfo^.output_iMCU_row+delta) then
-	break;
+        break;
     end;
     if (cinfo^.inputctl^.consume_input(cinfo) = JPEG_SUSPENDED) then
     begin
@@ -620,17 +620,17 @@ begin
     begin
       Inc(access_rows, compptr^.v_samp_factor); { prior iMCU row too }
       buffer := cinfo^.mem^.access_virt_barray
-	(j_common_ptr (cinfo), coef^.whole_image[ci],
-	 (cinfo^.output_iMCU_row - 1) * compptr^.v_samp_factor,
-	 JDIMENSION (access_rows), FALSE);
+        (j_common_ptr (cinfo), coef^.whole_image[ci],
+         (cinfo^.output_iMCU_row - 1) * compptr^.v_samp_factor,
+         JDIMENSION (access_rows), FALSE);
       Inc(JBLOCKROW_PTR(buffer), compptr^.v_samp_factor); { point to current iMCU row }
       first_row := FALSE;
     end
     else
     begin
       buffer := cinfo^.mem^.access_virt_barray
-	(j_common_ptr (cinfo), coef^.whole_image[ci],
-	 JDIMENSION (0), JDIMENSION (access_rows), FALSE);
+        (j_common_ptr (cinfo), coef^.whole_image[ci],
+         JDIMENSION (0), JDIMENSION (access_rows), FALSE);
       first_row := TRUE;
     end;
     { Fetch component-dependent info }
@@ -650,13 +650,13 @@ begin
     begin
       buffer_ptr := buffer^[block_row];
       if (first_row) and (block_row = 0) then
-	prev_block_row := buffer_ptr
+        prev_block_row := buffer_ptr
       else
-	prev_block_row := buffer^[block_row-1];
+        prev_block_row := buffer^[block_row-1];
       if (last_row) and (block_row = block_rows-1) then
-	next_block_row := buffer_ptr
+        next_block_row := buffer_ptr
       else
-	next_block_row := buffer^[block_row+1];
+        next_block_row := buffer^[block_row+1];
       { We fetch the surrounding DC values using a sliding-register approach.
         Initialize all nine here so as to do the right thing on narrow pics.}
 
@@ -673,130 +673,130 @@ begin
       last_block_column := compptr^.width_in_blocks - 1;
       for block_num := 0 to last_block_column do
       begin
-	{ Fetch current DCT block into workspace so we can modify it. }
-	jcopy_block_row(buffer_ptr, JBLOCKROW (@workspace), JDIMENSION(1));
-	{ Update DC values }
-	if (block_num < last_block_column) then
+        { Fetch current DCT block into workspace so we can modify it. }
+        jcopy_block_row(buffer_ptr, JBLOCKROW (@workspace), JDIMENSION(1));
+        { Update DC values }
+        if (block_num < last_block_column) then
         begin
-	  DC3 := int (prev_block_row^[1][0]);
-	  DC6 := int (buffer_ptr^[1][0]);
-	  DC9 := int (next_block_row^[1][0]);
-	end;
-	{ Compute coefficient estimates per K.8.
-	  An estimate is applied only if coefficient is still zero,
-	  and is not known to be fully accurate. }
+          DC3 := int (prev_block_row^[1][0]);
+          DC6 := int (buffer_ptr^[1][0]);
+          DC9 := int (next_block_row^[1][0]);
+        end;
+        { Compute coefficient estimates per K.8.
+          An estimate is applied only if coefficient is still zero,
+          and is not known to be fully accurate. }
 
-	{ AC01 }
-	Al := coef_bits^[1];
-	if (Al <> 0) and (workspace[1] = 0) then
+        { AC01 }
+        Al := coef_bits^[1];
+        if (Al <> 0) and (workspace[1] = 0) then
         begin
-	  num := 36 * Q00 * (DC4 - DC6);
-	  if (num >= 0) then
+          num := 36 * Q00 * (DC4 - DC6);
+          if (num >= 0) then
           begin
-	    pred := int (((Q01 shl 7) + num) div (Q01 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	  end
+            pred := int (((Q01 shl 7) + num) div (Q01 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+          end
           else
           begin
-	    pred := int (((Q01 shl 7) - num) div (Q01 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	    pred := -pred;
-	  end;
-	  workspace[1] := JCOEF (pred);
-	end;
-	{ AC10 }
-	Al := coef_bits^[2];
-	if (Al <> 0) and (workspace[8] = 0) then
+            pred := int (((Q01 shl 7) - num) div (Q01 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+            pred := -pred;
+          end;
+          workspace[1] := JCOEF (pred);
+        end;
+        { AC10 }
+        Al := coef_bits^[2];
+        if (Al <> 0) and (workspace[8] = 0) then
         begin
-	  num := 36 * Q00 * (DC2 - DC8);
-	  if (num >= 0) then
+          num := 36 * Q00 * (DC2 - DC8);
+          if (num >= 0) then
           begin
-	    pred := int (((Q10 shl 7) + num) div (Q10 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	  end
+            pred := int (((Q10 shl 7) + num) div (Q10 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+          end
           else
           begin
-	    pred := int (((Q10 shl 7) - num) div (Q10 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	    pred := -pred;
-	  end;
-	  workspace[8] := JCOEF (pred);
-	end;
-	{ AC20 }
-	Al := coef_bits^[3];
-	if (Al <> 0) and (workspace[16] = 0) then
+            pred := int (((Q10 shl 7) - num) div (Q10 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+            pred := -pred;
+          end;
+          workspace[8] := JCOEF (pred);
+        end;
+        { AC20 }
+        Al := coef_bits^[3];
+        if (Al <> 0) and (workspace[16] = 0) then
         begin
-	  num := 9 * Q00 * (DC2 + DC8 - 2*DC5);
-	  if (num >= 0) then
+          num := 9 * Q00 * (DC2 + DC8 - 2*DC5);
+          if (num >= 0) then
           begin
-	    pred := int (((Q20 shl 7) + num) div (Q20 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	  end
+            pred := int (((Q20 shl 7) + num) div (Q20 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+          end
           else
           begin
-	    pred := int (((Q20 shl 7) - num) div (Q20 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	    pred := -pred;
-	  end;
-	  workspace[16] := JCOEF (pred);
-	end;
-	{ AC11 }
-	Al := coef_bits^[4];
-	if (Al <> 0) and (workspace[9] = 0) then
+            pred := int (((Q20 shl 7) - num) div (Q20 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+            pred := -pred;
+          end;
+          workspace[16] := JCOEF (pred);
+        end;
+        { AC11 }
+        Al := coef_bits^[4];
+        if (Al <> 0) and (workspace[9] = 0) then
         begin
-	  num := 5 * Q00 * (DC1 - DC3 - DC7 + DC9);
-	  if (num >= 0) then
+          num := 5 * Q00 * (DC1 - DC3 - DC7 + DC9);
+          if (num >= 0) then
           begin
-	    pred := int (((Q11 shl 7) + num) div (Q11 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	  end
+            pred := int (((Q11 shl 7) + num) div (Q11 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+          end
           else
           begin
-	    pred := int (((Q11 shl 7) - num) div (Q11 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	    pred := -pred;
-	  end;
-	  workspace[9] := JCOEF (pred);
-	end;
-	{ AC02 }
-	Al := coef_bits^[5];
-	if (Al <> 0) and (workspace[2] = 0) then
+            pred := int (((Q11 shl 7) - num) div (Q11 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+            pred := -pred;
+          end;
+          workspace[9] := JCOEF (pred);
+        end;
+        { AC02 }
+        Al := coef_bits^[5];
+        if (Al <> 0) and (workspace[2] = 0) then
         begin
-	  num := 9 * Q00 * (DC4 + DC6 - 2*DC5);
-	  if (num >= 0) then
+          num := 9 * Q00 * (DC4 + DC6 - 2*DC5);
+          if (num >= 0) then
           begin
-	    pred := int (((Q02 shl 7) + num) div (Q02 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	  end
+            pred := int (((Q02 shl 7) + num) div (Q02 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+          end
           else
           begin
-	    pred := int (((Q02 shl 7) - num) div (Q02 shl 8));
-	    if (Al > 0) and (pred >= (1 shl Al)) then
-	      pred := (1 shl Al)-1;
-	    pred := -pred;
-	  end;
-	  workspace[2] := JCOEF (pred);
-	end;
-	{ OK, do the IDCT }
-	inverse_DCT (cinfo, compptr, JCOEFPTR (@workspace),
-			output_ptr, output_col);
-	{ Advance for next column }
-	DC1 := DC2; DC2 := DC3;
-	DC4 := DC5; DC5 := DC6;
-	DC7 := DC8; DC8 := DC9;
-	Inc(JBLOCK_PTR(buffer_ptr));
+            pred := int (((Q02 shl 7) - num) div (Q02 shl 8));
+            if (Al > 0) and (pred >= (1 shl Al)) then
+              pred := (1 shl Al)-1;
+            pred := -pred;
+          end;
+          workspace[2] := JCOEF (pred);
+        end;
+        { OK, do the IDCT }
+        inverse_DCT (cinfo, compptr, JCOEFPTR (@workspace),
+                        output_ptr, output_col);
+        { Advance for next column }
+        DC1 := DC2; DC2 := DC3;
+        DC4 := DC5; DC5 := DC6;
+        DC7 := DC8; DC8 := DC9;
+        Inc(JBLOCK_PTR(buffer_ptr));
         Inc(JBLOCK_PTR(prev_block_row));
         Inc(JBLOCK_PTR(next_block_row));
-	Inc(output_col, compptr^.DCT_scaled_size);
+        Inc(output_col, compptr^.DCT_scaled_size);
       end;
       Inc(JSAMPROW_PTR(output_ptr), compptr^.DCT_scaled_size);
     end;
@@ -833,7 +833,7 @@ var
 begin
   coef := my_coef_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				SIZEOF(my_coef_controller)) );
+                                SIZEOF(my_coef_controller)) );
   cinfo^.coef := jpeg_d_coef_controller_ptr(coef);
   coef^.pub.start_input_pass := start_input_pass;
   coef^.pub.start_output_pass := start_output_pass;
@@ -856,15 +856,15 @@ begin
 {$ifdef BLOCK_SMOOTHING_SUPPORTED}
       { If block smoothing could be used, need a bigger window }
       if (cinfo^.progressive_mode) then
-	access_rows := access_rows * 3;
+        access_rows := access_rows * 3;
 {$endif}
       coef^.whole_image[ci] := cinfo^.mem^.request_virt_barray
-	(j_common_ptr (cinfo), JPOOL_IMAGE, TRUE,
-	 JDIMENSION (jround_up( long(compptr^.width_in_blocks),
+        (j_common_ptr (cinfo), JPOOL_IMAGE, TRUE,
+         JDIMENSION (jround_up( long(compptr^.width_in_blocks),
                                 long(compptr^.h_samp_factor) )),
-	 JDIMENSION (jround_up( long(compptr^.height_in_blocks),
-				long(compptr^.v_samp_factor) )),
-	 JDIMENSION (access_rows));
+         JDIMENSION (jround_up( long(compptr^.height_in_blocks),
+                                long(compptr^.v_samp_factor) )),
+         JDIMENSION (access_rows));
       Inc(compptr);
     end;
     coef^.pub.consume_data := consume_data;
@@ -880,7 +880,7 @@ begin
     { We only need a single-MCU buffer. }
     buffer := JBLOCK_PTR (
       cinfo^.mem^.alloc_large (j_common_ptr (cinfo), JPOOL_IMAGE,
-				  D_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK)) );
+                                  D_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK)) );
     for i := 0 to pred(D_MAX_BLOCKS_IN_MCU) do
     begin
       coef^.MCU_buffer[i] := JBLOCKROW(buffer);

@@ -4,5 +4,5 @@ var
 
 begin
   anattr := 1.0 or 5;
-  
+
 end.

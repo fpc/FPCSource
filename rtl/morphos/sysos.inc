@@ -116,7 +116,7 @@ begin
     tmppos:=pos('../',path);
     while tmppos<>0 do begin
       { delete .. to have / as parent dir sign }
-      delete(path,tmppos,2); 
+      delete(path,tmppos,2);
       tmppos:=pos('../',path);
     end;
     { convert current directories }
@@ -141,7 +141,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-07 21:30:12  peter
+   Revision 1.2  2005-02-14 17:13:30  peter
+     * truncate log
+
+   Revision 1.1  2005/02/07 21:30:12  peter
      * system unit updated
 
    Revision 1.1  2005/02/06 16:57:18  peter

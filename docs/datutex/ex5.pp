@@ -11,6 +11,6 @@ Begin
   For Y:=2000 to 2004 do
    For M:=1 to 12 do
      For D:=1 to 31 do
-       If Not IsValidDate(Y,M,D) then 
+       If Not IsValidDate(Y,M,D) then
          Writeln(D,' is not a valid day in ',Y,'/',M);
 End.

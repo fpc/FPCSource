@@ -4,8 +4,8 @@
 
     exec functions (V50) for MorphOS/PowerPC
     Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
-    
-    Free Pascal conversion 
+
+    Free Pascal conversion
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -20,31 +20,31 @@
 function Supervisor(userFunction: Pointer location 'a5'): Cardinal;
 SysCall MOS_ExecBase 030;
 
-procedure InitCode(startClass: Cardinal location 'd0'; 
+procedure InitCode(startClass: Cardinal location 'd0';
                    version   : Cardinal location 'd1');
 SysCall MOS_ExecBase 072;
 
-procedure InitStruct(initTable: Pointer  location 'a1'; 
-                     memory   : Pointer  location 'a2'; 
+procedure InitStruct(initTable: Pointer  location 'a1';
+                     memory   : Pointer  location 'a2';
                      size     : Cardinal location 'd0');
 SysCall MOS_ExecBase 078;
 
-function MakeLibrary(funcInit  : Pointer  location 'a0';  
-                     structInit: Pointer  location 'a1'; 
-                     libInit   : Pointer  location 'a2'; 
-                     dataSize  : Cardinal location 'd0'; 
+function MakeLibrary(funcInit  : Pointer  location 'a0';
+                     structInit: Pointer  location 'a1';
+                     libInit   : Pointer  location 'a2';
+                     dataSize  : Cardinal location 'd0';
                      segList   : Cardinal location 'd1'): PLibrary;
 SysCall MOS_ExecBase 084;
 
-procedure MakeFunctions(target       : Pointer location 'a0';  
-                        functionArray: Pointer location 'a1'; 
+procedure MakeFunctions(target       : Pointer location 'a0';
+                        functionArray: Pointer location 'a1';
                         funcDispBase : Pointer location 'a2');
 SysCall MOS_ExecBase 090;
 
 function FindResident(name: PChar location 'a1'): PResident;
 SysCall MOS_ExecBase 096;
 
-function InitResident(resident: PResident location 'a1'; 
+function InitResident(resident: PResident location 'a1';
                       segList : Cardinal  location 'd1'): Pointer;
 SysCall MOS_ExecBase 102;
 
@@ -66,7 +66,7 @@ SysCall MOS_ExecBase 132;
 procedure Permit;
 SysCall MOS_ExecBase 138;
 
-function SetSR(newSR: Cardinal location 'd0'; 
+function SetSR(newSR: Cardinal location 'd0';
                mask : Cardinal location 'd1'): Cardinal;
 SysCall MOS_ExecBase 144;
 
@@ -76,41 +76,41 @@ SysCall MOS_ExecBase 150;
 procedure UserState(sysStack: Pointer location 'd0');
 SysCall MOS_ExecBase 156;
 
-function SetIntVector(intNumber: LongInt    location 'd0'; 
+function SetIntVector(intNumber: LongInt    location 'd0';
                       interrupt: PInterrupt location 'a1'): PInterrupt;
 SysCall MOS_ExecBase 162;
 
-procedure AddIntServer(intNumber: LongInt    location 'd0'; 
+procedure AddIntServer(intNumber: LongInt    location 'd0';
                        interrupt: PInterrupt location 'a1');
 SysCall MOS_ExecBase 168;
 
-procedure RemIntServer(intNumber: LongInt    location 'd0'; 
+procedure RemIntServer(intNumber: LongInt    location 'd0';
                        interrupt: PInterrupt location 'a1');
 SysCall MOS_ExecBase 174;
 
 procedure Cause(interrupt: PInterrupt location 'a1');
 SysCall MOS_ExecBase 180;
 
-function Allocate(freeList: PMemHeader location 'a0'; 
+function Allocate(freeList: PMemHeader location 'a0';
                   byteSize: Cardinal   location 'd0'): Pointer;
 SysCall MOS_ExecBase 186;
 
-procedure Deallocate(freeList   : PMemHeader location 'a0'; 
-                     memoryBlock: Pointer    location 'a1'; 
+procedure Deallocate(freeList   : PMemHeader location 'a0';
+                     memoryBlock: Pointer    location 'a1';
                      byteSize   : Cardinal   location 'd0');
 SysCall MOS_ExecBase 192;
 
 { * Name changed to avoid conflict with heap manager... * }
-function execAllocMem(byteSize    : Cardinal location 'd0'; 
+function execAllocMem(byteSize    : Cardinal location 'd0';
                       requirements: Cardinal location 'd1'): Pointer;
 SysCall MOS_ExecBase 198;
 
-function AllocAbs(byteSize: Cardinal location 'd0'; 
+function AllocAbs(byteSize: Cardinal location 'd0';
                   location: Pointer  location 'a1'): Pointer;
 SysCall MOS_ExecBase 204;
 
 { * Name changed to avoid conflict with heap manager... * }
-procedure execFreeMem(memoryBlock: Pointer  location 'a1'; 
+procedure execFreeMem(memoryBlock: Pointer  location 'a1';
                       byteSize   : Cardinal location 'd0');
 SysCall MOS_ExecBase 210;
 
@@ -124,16 +124,16 @@ procedure FreeEntry(entry: PMemList location 'a0');
 SysCall MOS_ExecBase 228;
 
 { * Name changed to avoid conflict with other System unit call... * }
-procedure execInsert(list: PList location 'a0'; 
-                     node: PNode location 'a1'; 
+procedure execInsert(list: PList location 'a0';
+                     node: PNode location 'a1';
                      pred: PNode location 'a2');
 SysCall MOS_ExecBase 234;
 
-procedure AddHead(list: PList location 'a0'; 
+procedure AddHead(list: PList location 'a0';
                   node: PNode location 'a1');
 SysCall MOS_ExecBase 240;
 
-procedure AddTail(list: PList location 'a0'; 
+procedure AddTail(list: PList location 'a0';
                   node: PNode location 'a1');
 SysCall MOS_ExecBase 246;
 
@@ -146,16 +146,16 @@ SysCall MOS_ExecBase 258;
 function RemTail(list: PList location 'a0'): PNode;
 SysCall MOS_ExecBase 264;
 
-procedure Enqueue(list: PList location 'a0'; 
+procedure Enqueue(list: PList location 'a0';
                   node: PNode location 'a1');
 SysCall MOS_ExecBase 270;
 
-function FindName(list: PList location 'a0';  
+function FindName(list: PList location 'a0';
                   name: PChar location 'a1'): PNode;
 SysCall MOS_ExecBase 276;
 
-function AddTask(task   : PTask   location 'a1';  
-                 initPC : Pointer location 'a2';  
+function AddTask(task   : PTask   location 'a1';
+                 initPC : Pointer location 'a2';
                  finalPC: Pointer location 'a3'): Pointer;
 SysCall MOS_ExecBase 282;
 
@@ -165,29 +165,29 @@ SysCall MOS_ExecBase 288;
 function FindTask(name: PChar location 'a1'): PTask;
 SysCall MOS_ExecBase 294;
 
-function SetTaskPri(task    : PTask   location 'a1'; 
+function SetTaskPri(task    : PTask   location 'a1';
                     priority: LongInt location 'd0'): ShortInt;
 SysCall MOS_ExecBase 300;
 
-function SetSignal(newSignals: Cardinal location 'd0'; 
+function SetSignal(newSignals: Cardinal location 'd0';
                    signalSet : Cardinal location 'd1'): Cardinal;
 SysCall MOS_ExecBase 306;
 
-function SetExcept(newSignals: Cardinal location 'd0'; 
+function SetExcept(newSignals: Cardinal location 'd0';
                    signalSet : Cardinal location 'd1'): Cardinal;
 SysCall MOS_ExecBase 312;
 
 function Wait(signalSet: Cardinal location 'd0'): Cardinal;
 SysCall MOS_ExecBase 318;
 
-procedure Signal(task     : PTask    location 'a1'; 
+procedure Signal(task     : PTask    location 'a1';
                  signalSet: Cardinal location 'd0');
 SysCall MOS_ExecBase 324;
 
-function AllocSignal(signalNum: LongInt location 'd0'): ShortInt; 
+function AllocSignal(signalNum: LongInt location 'd0'): ShortInt;
 SysCall MOS_ExecBase 330;
 
-procedure FreeSignal(signalNum: LongInt location 'd0'); 
+procedure FreeSignal(signalNum: LongInt location 'd0');
 SysCall MOS_ExecBase 336;
 
 function AllocTrap(trapNum: LongInt location 'd0'): LongInt;
@@ -196,23 +196,23 @@ SysCall MOS_ExecBase 342;
 procedure FreeTrap(trapNum: LongInt location 'd0');
 SysCall MOS_ExecBase 348;
 
-procedure AddPort(port: PMsgPort location 'a1'); 
+procedure AddPort(port: PMsgPort location 'a1');
 SysCall MOS_ExecBase 354;
 
-procedure RemPort(port: PMsgPort location 'a1'); 
+procedure RemPort(port: PMsgPort location 'a1');
 SysCall MOS_ExecBase 360;
 
-procedure PutMsg(port   : PMsgPort location 'a0'; 
+procedure PutMsg(port   : PMsgPort location 'a0';
                  message: PMessage location 'a1');
 SysCall MOS_ExecBase 366;
 
-function GetMsg(port: PMsgPort location 'a0'): PMessage; 
+function GetMsg(port: PMsgPort location 'a0'): PMessage;
 SysCall MOS_ExecBase 372;
 
 procedure ReplyMsg(message : PMessage location 'a1');
 SysCall MOS_ExecBase 378;
 
-function WaitPort(port: PMsgPort location 'a0'): PMessage; 
+function WaitPort(port: PMsgPort location 'a0'): PMessage;
 SysCall MOS_ExecBase 384;
 
 function FindPort(name: PChar location 'a1'): PMsgPort;
@@ -230,8 +230,8 @@ SysCall MOS_ExecBase 408;
 procedure CloseLibrary(libHandle: PLibrary location 'a1');
 SysCall MOS_ExecBase 414;
 
-function SetFunction(libHandle  : PLibrary location 'a1'; 
-                     funcOffset : LongInt  location 'a0'; 
+function SetFunction(libHandle  : PLibrary location 'a1';
+                     funcOffset : LongInt  location 'a0';
                      newFunction: Pointer  location 'd0'): Pointer;
 SysCall MOS_ExecBase 420;
 
@@ -244,16 +244,16 @@ SysCall MOS_ExecBase 432;
 procedure RemDevice(device: PDevice location 'a1');
 SysCall MOS_ExecBase 438;
 
-function OpenDevice(devName  : PChar      location 'a0'; 
-                    numunit  : Cardinal   location 'd0'; 
-                    ioRequest: pIORequest location 'a1'; 
+function OpenDevice(devName  : PChar      location 'a0';
+                    numunit  : Cardinal   location 'd0';
+                    ioRequest: pIORequest location 'a1';
                     flags    : Cardinal   location 'd1'): ShortInt;
 SysCall MOS_ExecBase 444;
 
-procedure CloseDevice(ioRequest: PIORequest location 'a1'); 
+procedure CloseDevice(ioRequest: PIORequest location 'a1');
 SysCall MOS_ExecBase 450;
 
-function DoIO(ioRequest: PIORequest location 'a1'): ShortInt; 
+function DoIO(ioRequest: PIORequest location 'a1'): ShortInt;
 SysCall MOS_ExecBase 456;
 
 procedure SendIO(ioRequest: PIORequest location 'a1');
@@ -286,9 +286,9 @@ SysCall MOS_ExecBase 510;
 procedure RawPutChar(d0arg: Char location 'd0');
 SysCall MOS_ExecBase 516;
 
-function RawDoFmt(formatString: PChar   location 'a0';  
-                  dataStream  : Pointer location 'a1';  
-                  putChProc   : Pointer location 'a2'; 
+function RawDoFmt(formatString: PChar   location 'a0';
+                  dataStream  : Pointer location 'a1';
+                  putChProc   : Pointer location 'a2';
                   putChData   : Pointer location 'a3'): Pointer;
 SysCall MOS_ExecBase 522;
 
@@ -298,16 +298,16 @@ SysCall MOS_ExecBase 528;
 function TypeOfMem(address: Pointer location 'a1'): Cardinal;
 SysCall MOS_ExecBase 534;
 
-function Procure(sigSem: PSignalSemaphore  location 'a0'; 
+function Procure(sigSem: PSignalSemaphore  location 'a0';
                  bidMsg: PSemaphoreMessage location 'a1'): Cardinal;
 SysCall MOS_ExecBase 540;
 
-procedure Vacate(sigSem: PSignalSemaphore  location 'a0'; 
+procedure Vacate(sigSem: PSignalSemaphore  location 'a0';
                  bidMsg: PSemaphoreMessage location 'a1');
 SysCall MOS_ExecBase 546;
 
-function OpenLibrary(libname: PChar    location 'a1'; 
-                     libver : Cardinal location 'd0'): Pointer; 
+function OpenLibrary(libname: PChar    location 'a1';
+                     libver : Cardinal location 'd0'): Pointer;
 SysCall MOS_ExecBase 552;
 
 procedure InitSemaphore(sigSem: PSignalSemaphore location 'a0');
@@ -340,36 +340,36 @@ SysCall MOS_ExecBase 606;
 function SumKickData: Cardinal;
 SysCall MOS_ExecBase 612;
 
-procedure AddMemList(size      : Cardinal location 'd0'; 
-                     attributes: Cardinal location 'd1'; 
-                     pri       : LongInt  location 'd2'; 
-                     base      : Pointer  location 'a0';  
+procedure AddMemList(size      : Cardinal location 'd0';
+                     attributes: Cardinal location 'd1';
+                     pri       : LongInt  location 'd2';
+                     base      : Pointer  location 'a0';
                      name      : PChar    location 'a1');
 SysCall MOS_ExecBase 618;
 
-procedure CopyMem(source: Pointer  location 'a0'; 
-                  dest  : Pointer  location 'a1'; 
+procedure CopyMem(source: Pointer  location 'a0';
+                  dest  : Pointer  location 'a1';
                   size  : Cardinal location 'd0');
 SysCall MOS_ExecBase 624;
 
-procedure CopyMemQuick(source: Pointer  location 'a0'; 
-                       dest  : Pointer  location 'a1'; 
+procedure CopyMemQuick(source: Pointer  location 'a0';
+                       dest  : Pointer  location 'a1';
                        size  : Cardinal location 'd0');
 SysCall MOS_ExecBase 630;
 
 procedure CacheClearU;
 SysCall MOS_ExecBase 636;
 
-procedure CacheClearE(address: Pointer  location 'a0'; 
-                      length : Cardinal location 'd0'; 
+procedure CacheClearE(address: Pointer  location 'a0';
+                      length : Cardinal location 'd0';
                       caches : Cardinal location 'd1');
 SysCall MOS_ExecBase 642;
 
-function CacheControl(cacheBits: Cardinal location 'd0'; 
+function CacheControl(cacheBits: Cardinal location 'd0';
                       cacheMask: Cardinal location 'd1'): Cardinal;
 SysCall MOS_ExecBase 648;
 
-function CreateIORequest(port: PMsgPort location 'a0'; 
+function CreateIORequest(port: PMsgPort location 'a0';
                          size: Cardinal location 'd0'): Pointer;
 SysCall MOS_ExecBase 654;
 
@@ -385,23 +385,23 @@ SysCall MOS_ExecBase 672;
 procedure ObtainSemaphoreShared(sigSem: PSignalSemaphore location 'a0');
 SysCall MOS_ExecBase 678;
 
-function AllocVec(byteSize    : Cardinal location 'd0'; 
+function AllocVec(byteSize    : Cardinal location 'd0';
                   requirements: Cardinal location 'd1'): Pointer;
 SysCall MOS_ExecBase 684;
 
 procedure FreeVec(memoryBlock: Pointer location 'a1');
 SysCall MOS_ExecBase 690;
 
-function CreatePool(requirements: Cardinal location 'd0'; 
-                    puddleSize  : Cardinal location 'd1'; 
+function CreatePool(requirements: Cardinal location 'd0';
+                    puddleSize  : Cardinal location 'd1';
                     threshSize  : Cardinal location 'd2'): Pointer;
 SysCall MOS_ExecBase 696;
 
-procedure DeletePool(poolHeader: Pointer location 'a0'); 
+procedure DeletePool(poolHeader: Pointer location 'a0');
 SysCall MOS_ExecBase 702;
 
 function AllocPooled(poolHeader: Pointer  location 'a0';
-                     memSize   : Cardinal location 'd0'): Pointer; 
+                     memSize   : Cardinal location 'd0'): Pointer;
 SysCall MOS_ExecBase 708;
 
 function FreePooled(poolHeader: Pointer  location 'a0';
@@ -418,27 +418,27 @@ SysCall MOS_ExecBase 726;
 procedure StackSwap(newStack: PStackSwapStruct location 'a0');
 SysCall MOS_ExecBase 732;
 
-function NewGetTaskAttrsA(Task    : PTask    location 'a0'; 
-                          Data    : Pointer  location 'a1'; 
-                          DataSize: Cardinal location 'd0'; 
-                          TType   : Cardinal location 'd1'; 
+function NewGetTaskAttrsA(Task    : PTask    location 'a0';
+                          Data    : Pointer  location 'a1';
+                          DataSize: Cardinal location 'd0';
+                          TType   : Cardinal location 'd1';
                           Tags    : PTagItem location 'a2'): Cardinal;
 SysCall MOS_ExecBase 738;
 
-function NewSetTaskAttrsA(Task    : PTask    location 'a0'; 
-                          Data    : Pointer  location 'a1'; 
-                          DataSize: Cardinal location 'd0'; 
-                          TType   : Cardinal location 'd1'; 
+function NewSetTaskAttrsA(Task    : PTask    location 'a0';
+                          Data    : Pointer  location 'a1';
+                          DataSize: Cardinal location 'd0';
+                          TType   : Cardinal location 'd1';
                           Tags    : PTagItem location 'a2'): Cardinal;
 SysCall MOS_ExecBase 744;
 
-function CachePreDMA(address   : Pointer  location 'a0'; 
-                     var length: Cardinal location 'a1'; 
+function CachePreDMA(address   : Pointer  location 'a0';
+                     var length: Cardinal location 'a1';
                      flags     : Cardinal location 'd0'): Pointer;
 SysCall MOS_ExecBase 762;
 
-procedure CachePostDMA(address   : Pointer  location 'a0'; 
-                       var length: Cardinal location 'a1'; 
+procedure CachePostDMA(address   : Pointer  location 'a0';
+                       var length: Cardinal location 'a1';
                        flags     : Cardinal location 'd0');
 SysCall MOS_ExecBase 768;
 
@@ -451,17 +451,17 @@ SysCall MOS_ExecBase 780;
 function ObtainQuickVector(interruptCode: Pointer location 'a0'): Cardinal;
 SysCall MOS_ExecBase 786;
 
-function NewSetFunction(libHandle  : PLibrary location 'a0'; 
-                        newfunction: Pointer  location 'a1'; 
-                        offset     : LongInt  location 'd0'; 
+function NewSetFunction(libHandle  : PLibrary location 'a0';
+                        newfunction: Pointer  location 'a1';
+                        offset     : LongInt  location 'd0';
                         tags       : PTagItem location 'a2'): Pointer;
 SysCall MOS_ExecBase 792;
 
 function NewCreateLibrary(tags: PTagItem location 'a0'): PLibrary;
 SysCall MOS_ExecBase 798;
 
-function NewPPCStackSwap(newStack : PStackSwapStruct  location 'a0'; 
-                         sfunction: Pointer           location 'a1'; 
+function NewPPCStackSwap(newStack : PStackSwapStruct  location 'a0';
+                         sfunction: Pointer           location 'a1';
                          args     : PPPCStackSwapArgs location 'a2'): Cardinal;
 SysCall MOS_ExecBase 804;
 
@@ -471,36 +471,36 @@ SysCall MOS_ExecBase 810;
 function ReadGayle: Cardinal;
 SysCall MOS_ExecBase 816;
 
-function VNewRawDoFmt(FmtString: PChar; 
-                      PutChProc: Pointer; 
-                      PutChData: PChar; 
+function VNewRawDoFmt(FmtString: PChar;
+                      PutChProc: Pointer;
+                      PutChData: PChar;
                       args     : PChar): PChar;
 SysCall BaseSysV MOS_ExecBase 822;
 
-procedure CacheFlushDataArea(Address: Pointer  location 'a0'; 
+procedure CacheFlushDataArea(Address: Pointer  location 'a0';
                              Size   : Cardinal location 'd0');
 SysCall MOS_ExecBase 828;
 
-procedure CacheInvalidInstArea(Address: Pointer  location 'a0'; 
+procedure CacheInvalidInstArea(Address: Pointer  location 'a0';
                                Size   : Cardinal location 'd0');
 SysCall MOS_ExecBase 834;
 
-procedure CacheInvalidDataArea(Address: Pointer  location 'a0'; 
+procedure CacheInvalidDataArea(Address: Pointer  location 'a0';
                                Size   : Cardinal location 'd0');
 SysCall MOS_ExecBase 840;
 
-procedure CacheFlushDataInstArea(Address: Pointer  location 'a0'; 
+procedure CacheFlushDataInstArea(Address: Pointer  location 'a0';
                                  Size   : Cardinal location 'd0');
 SysCall MOS_ExecBase 846;
 
-procedure CacheTrashCacheArea(Address: Pointer  location 'a0'; 
+procedure CacheTrashCacheArea(Address: Pointer  location 'a0';
                               Size   : Cardinal location 'd0');
 SysCall MOS_ExecBase 852;
 
 function AllocTaskPooled(Size: Cardinal location 'd0'): Pointer;
 SysCall MOS_ExecBase 858;
 
-procedure FreeTaskPooled(Address: Pointer  location 'a1'; 
+procedure FreeTaskPooled(Address: Pointer  location 'a1';
                          Size   : Cardinal location 'd0');
 SysCall MOS_ExecBase 864;
 
@@ -516,40 +516,40 @@ SysCall MOS_ExecBase 882;
 procedure FlushTaskPool;
 SysCall MOS_ExecBase 888;
 
-function AllocVecPooled(poolHeader: Pointer  location 'a0'; 
+function AllocVecPooled(poolHeader: Pointer  location 'a0';
                         memSize   : Cardinal location 'd0'): Pointer;
 SysCall MOS_ExecBase 894;
 
-function NewGetSystemAttrsA(Data    : Pointer  location 'a0'; 
-                            DataSize: Cardinal location 'd0'; 
-                            TType   : Cardinal location 'd1'; 
+function NewGetSystemAttrsA(Data    : Pointer  location 'a0';
+                            DataSize: Cardinal location 'd0';
+                            TType   : Cardinal location 'd1';
                             Tags    : PTagItem location 'a1'): Cardinal;
 SysCall MOS_ExecBase 906;
 
-function NewSetSystemAttrsA(Data    : Pointer  location 'a0'; 
-                            DataSize: Cardinal location 'd0'; 
-                            TType   : Cardinal location 'd1'; 
+function NewSetSystemAttrsA(Data    : Pointer  location 'a0';
+                            DataSize: Cardinal location 'd0';
+                            TType   : Cardinal location 'd1';
                             Tags    : PTagItem location 'a1'): Cardinal;
 SysCall MOS_ExecBase 912;
 
 function NewCreateTaskA(Tags: PTagItem location 'a0'): PTask;
 SysCall MOS_ExecBase 918;
 
-function AllocateAligned(memHeader  : pMemHeader; 
-                         byteSize   : Cardinal; 
-                         alignSize  : Cardinal; 
+function AllocateAligned(memHeader  : pMemHeader;
+                         byteSize   : Cardinal;
+                         alignSize  : Cardinal;
                          alignOffset: Cardinal): Pointer;
 SysCall BaseSysV MOS_ExecBase 930;
 
-function AllocMemAligned(byteSize   : Cardinal; 
-                         attributes : Cardinal; 
-                         alignSize  : Cardinal; 
+function AllocMemAligned(byteSize   : Cardinal;
+                         attributes : Cardinal;
+                         alignSize  : Cardinal;
                          alignOffset: Cardinal): Pointer;
 SysCall BaseSysV MOS_ExecBase 936;
 
-function AllocVecAligned(byteSize   : Cardinal; 
-                         attributes : Cardinal; 
-                         alignSize  : Cardinal; 
+function AllocVecAligned(byteSize   : Cardinal;
+                         attributes : Cardinal;
+                         alignSize  : Cardinal;
                          alignOffset: Cardinal): Pointer;
 SysCall BaseSysV MOS_ExecBase 942;
 
@@ -559,24 +559,24 @@ SysCall BaseSysV MOS_ExecBase 948;
 procedure RemExecNotify(hook: PHook);
 SysCall BaseSysV MOS_ExecBase 954;
 
-function FindExecNode(ttype: Cardinal location 'd0';  
+function FindExecNode(ttype: Cardinal location 'd0';
                       name : PChar    location 'a0'): PNode;
 SysCall MOS_ExecBase 960;
 
-function AddExecNodeA(innode  : Pointer  location 'a0'; 
+function AddExecNodeA(innode  : Pointer  location 'a0';
                       TagItems: PTagItem location 'a1'): Pointer;
 SysCall MOS_ExecBase 966;
 
-function AllocVecDMA(byteSize    : Cardinal location 'd0'; 
+function AllocVecDMA(byteSize    : Cardinal location 'd0';
                      requirements: Cardinal location 'd1'): Pointer;
 SysCall MOS_ExecBase 972;
 
 procedure FreeVecDMA(memoryBlock: Pointer location 'a1');
 SysCall MOS_ExecBase 978;
 
-function AllocPooledAligned(poolHeader : Pointer; 
-                            byteSize   : Cardinal; 
-                            alignSize  : Cardinal; 
+function AllocPooledAligned(poolHeader : Pointer;
+                            byteSize   : Cardinal;
+                            alignSize  : Cardinal;
                             alignOffset: Cardinal): Pointer;
 SysCall BaseSysV MOS_ExecBase 984;
 
@@ -589,19 +589,10 @@ SysCall BaseSysV MOS_ExecBase 996;
 
 {
   $Log$
-  Revision 1.5  2005-01-30 03:02:36  karoly
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.5  2005/01/30 03:02:36  karoly
     * syscalls with basesysv abi fixed
-
-  Revision 1.4  2004/08/21 22:24:58  karoly
-    + added ReplyMsg, which was accidentally still missing
-
-  Revision 1.3  2004/08/03 14:48:48  karoly
-    + added missing calls
-
-  Revision 1.2  2004/06/23 13:23:57  karoly
-    + added a few more calls
-
-  Revision 1.1  2004/06/13 22:38:08  karoly
-    * initial revision
 
 }

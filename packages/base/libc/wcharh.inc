@@ -3,7 +3,7 @@ type
   Pmbstate_t = ^mbstate_t;
   P__FILE = PFILE;
   __GNUC_VA_LIST = pointer;
- 
+
 function wcscpy(__dest:Pwchar_t; __src:Pwchar_t):Pwchar_t;cdecl;external clib name 'wcscpy';
 function wcsncpy(__dest:Pwchar_t; __src:Pwchar_t; __n:size_t):Pwchar_t;cdecl;external clib name 'wcsncpy';
 function wcscat(__dest:Pwchar_t; __src:Pwchar_t):Pwchar_t;cdecl;external clib name 'wcscat';
@@ -119,4 +119,4 @@ function wcsftime(__s:Pwchar_t; __maxsize:size_t; __format:Pwchar_t; __tp:Ptm):s
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -8,7 +8,7 @@ uses exec, triton, tritonmacros, utility, amigalib,amigautils, linklist;
    Update for fpc 1.0.7.
    Removed the use of vartags and pas2c.
    09 Jan 2003.
-   
+
    nils.sjoholm@mailbox.swipnet.se
 }
 

@@ -435,7 +435,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.55  2005-02-13 20:11:16  peter
+  Revision 1.56  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.55  2005/02/13 20:11:16  peter
     * sunos to solaris
 
   Revision 1.54  2005/02/13 18:55:19  florian
@@ -451,28 +454,5 @@ end.
   Revision 1.51  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.50  2004/11/22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.49  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.48  2004/10/14 17:17:25  mazen
-  * use SysUtils unit instead of Dos Unit
-
-  Revision 1.47  2004/09/08 11:23:31  michael
-  + Check if outputdir exists,  Fix exitcode when displaying help pages
-
-  Revision 1.46  2004/09/04 21:18:47  armin
-  * target netwlibc added (libc is preferred for newer netware versions)
-
-  Revision 1.45  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.44  2004/01/14 23:39:05  florian
-    * another bunch of x86-64 fixes mainly calling convention and
-      assembler reader related
 
 }

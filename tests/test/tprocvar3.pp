@@ -146,10 +146,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2004-12-04 17:15:36  peter
-    * delphi mode procvar
-
-  Revision 1.6  2002/09/07 15:40:49  peter
-    * old logs removed and tabs fixed
+  Revision 1.2  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

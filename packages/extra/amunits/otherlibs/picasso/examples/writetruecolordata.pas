@@ -47,7 +47,7 @@ Var
     width,
     height,
     depth       :   Longint;
-   
+
     quit        :   Boolean;
     reddata,
     greendata,
@@ -55,7 +55,7 @@ Var
     tci         :   tTrueColorInfo;
     fh          :   FileHandle;
     imsg        :   pIntuiMessage;
-   
+
 
 procedure CleanUp(why : string);
 begin
@@ -80,37 +80,37 @@ Begin
  End;
 
  DisplayID := p96BestModeIDTags([P96BIDTAG_NominalWidth, width,
-			         P96BIDTAG_NominalHeight, height,
-			         P96BIDTAG_Depth, depth,
-			         P96BIDTAG_FormatsAllowed, UsefulFormats,
-			         TAG_DONE]);
+                                 P96BIDTAG_NominalHeight, height,
+                                 P96BIDTAG_Depth, depth,
+                                 P96BIDTAG_FormatsAllowed, UsefulFormats,
+                                 TAG_DONE]);
 
 
  sc := p96OpenScreenTags([P96SA_DisplayID, DisplayID,
-			  P96SA_Width, width,
-			  P96SA_Height, height,
-			  P96SA_Depth, depth,
-			  P96SA_AutoScroll, lTRUE,
-			  P96SA_Pens, @Pens,
-			  P96SA_Title, 'WriteTrueColorData Test',
-			  TAG_DONE]);
+                          P96SA_Width, width,
+                          P96SA_Height, height,
+                          P96SA_Depth, depth,
+                          P96SA_AutoScroll, lTRUE,
+                          P96SA_Pens, @Pens,
+                          P96SA_Title, 'WriteTrueColorData Test',
+                          TAG_DONE]);
 
 if sc = nil then CleanUp('Can''t open screen');
 
- 
-   
+
+
 
  win := OpenWindowTags(Nil,[WA_CustomScreen, sc,
-			    WA_Backdrop, lTRUE,
-			    WA_Borderless, lTRUE,
-			    WA_SimpleRefresh, lTRUE,
-			    WA_RMBTrap, lTRUE,
-			    WA_Activate, lTRUE,
-			    WA_IDCMP, IDCMP_RAWKEY or IDCMP_MOUSEBUTTONS,
-			    TAG_END]);
+                            WA_Backdrop, lTRUE,
+                            WA_Borderless, lTRUE,
+                            WA_SimpleRefresh, lTRUE,
+                            WA_RMBTrap, lTRUE,
+                            WA_Activate, lTRUE,
+                            WA_IDCMP, IDCMP_RAWKEY or IDCMP_MOUSEBUTTONS,
+                            TAG_END]);
 
- if win = nil then CleanUp('Can''t open window');  
- 
+ if win = nil then CleanUp('Can''t open window');
+
  quit:=False;
  reddata:=AllocVec(DataWidth*DataHeight, MEMF_ANY);
  greendata:=AllocVec(DataWidth*DataHeight, MEMF_ANY);
@@ -165,7 +165,7 @@ if sc = nil then CleanUp('Can''t open screen');
          End;
      End;
 
-  CleanUp(''); 
+  CleanUp('');
 End.
 
 {

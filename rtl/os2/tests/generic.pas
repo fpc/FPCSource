@@ -10,11 +10,11 @@ program generic;
 
   uses
      os2def,pmwin,bsedos;
-     
+
   function clientwndproc(window : HWND;msg : longint;mp1,mp2 : MParam) :
     MResult;export;
 
-    var  
+    var
        ps : HPS;
        rcl : RECTL;
 
@@ -27,13 +27,13 @@ program generic;
           else clientwndproc:=WinDefWindowProc(window,msg,mp1,mp2);
        end;
     end;
-    
+
   var
      frame,client : HWND;
      ab : HAB;
      mq : HMQ;
      msg : QMSG;
-     
+
   const
      frameflags : longint = FCF_TITLEBAR+
                             FCF_SYSMENU+
@@ -43,10 +43,10 @@ program generic;
                             FCF_SHELLPOSITION+
                             FCF_TASKLIST+
                             FCF_MENU;
-                            
+
      winclass = 'GENERIC';
      wintitle = '';
-                            
+
  begin
     ab:=WinInitialize(0);
     mq:=WinCreateMsgQueue(ab,0);

@@ -142,9 +142,9 @@ type
 
 procedure gnome_accelerators_sync;cdecl;external libgnomeuidll name 'gnome_accelerators_sync';
 procedure gnome_app_fill_menu(menu_shell:PGtkMenuShell; uiinfo:PGnomeUIInfo; accel_group:PGtkAccelGroup; uline_accels:gboolean; pos:gint);cdecl;external libgnomeuidll name 'gnome_app_fill_menu';
-procedure gnome_app_fill_menu_with_data(menu_shell:PGtkMenuShell; uiinfo:PGnomeUIInfo; accel_group:PGtkAccelGroup; uline_accels:gboolean; pos:gint; 
+procedure gnome_app_fill_menu_with_data(menu_shell:PGtkMenuShell; uiinfo:PGnomeUIInfo; accel_group:PGtkAccelGroup; uline_accels:gboolean; pos:gint;
             user_data:gpointer);cdecl;external libgnomeuidll name 'gnome_app_fill_menu_with_data';
-procedure gnome_app_fill_menu_custom(menu_shell:PGtkMenuShell; uiinfo:PGnomeUIInfo; uibdata:PGnomeUIBuilderData; accel_group:PGtkAccelGroup; uline_accels:gboolean; 
+procedure gnome_app_fill_menu_custom(menu_shell:PGtkMenuShell; uiinfo:PGnomeUIInfo; uibdata:PGnomeUIBuilderData; accel_group:PGtkAccelGroup; uline_accels:gboolean;
             pos:gint);cdecl;external libgnomeuidll name 'gnome_app_fill_menu_custom';
 procedure gnome_app_ui_configure_configurable(uiinfo:PGnomeUIInfo);cdecl;external libgnomeuidll name 'gnome_app_ui_configure_configurable';
 procedure gnome_app_create_menus(app:PGnomeApp; uiinfo:PGnomeUIInfo);cdecl;external libgnomeuidll name 'gnome_app_create_menus';
@@ -164,7 +164,7 @@ procedure gnome_app_remove_menu_range(app:PGnomeApp; path:Pgchar; start:gint; it
 procedure gnome_app_insert_menus_custom(app:PGnomeApp; path:Pgchar; menuinfo:PGnomeUIInfo; uibdata:PGnomeUIBuilderData);cdecl;external libgnomeuidll name 'gnome_app_insert_menus_custom';
 procedure gnome_app_insert_menus(app:PGnomeApp; path:Pgchar; menuinfo:PGnomeUIInfo);cdecl;external libgnomeuidll name 'gnome_app_insert_menus';
 procedure gnome_app_insert_menus_with_data(app:PGnomeApp; path:Pgchar; menuinfo:PGnomeUIInfo; data:gpointer);cdecl;external libgnomeuidll name 'gnome_app_insert_menus_with_data';
-procedure gnome_app_insert_menus_interp(app:PGnomeApp; path:Pgchar; menuinfo:PGnomeUIInfo; relay_func:TGtkCallbackMarshal; data:gpointer; 
+procedure gnome_app_insert_menus_interp(app:PGnomeApp; path:Pgchar; menuinfo:PGnomeUIInfo; relay_func:TGtkCallbackMarshal; data:gpointer;
             destroy_func:TGtkDestroyNotify);cdecl;external libgnomeuidll name 'gnome_app_insert_menus_interp';
 procedure gnome_app_install_appbar_menu_hints(appbar:PGnomeAppBar; uiinfo:PGnomeUIInfo);cdecl;external libgnomeuidll name 'gnome_app_install_appbar_menu_hints';
 procedure gnome_app_install_statusbar_menu_hints(bar:PGtkStatusbar; uiinfo:PGnomeUIInfo);cdecl;external libgnomeuidll name 'gnome_app_install_statusbar_menu_hints';
@@ -175,8 +175,8 @@ procedure gnome_app_install_menu_hints(app:PGnomeApp; uinfo:PGnomeUIInfo);cdecl;
 {$Ifdef read_implementation}
 
 
-function GETGNOMEUIINFO(thetype : TGnomeUIInfoType; thelabel : Pgchar; hint : Pgchar; moreinfo : gpointer; 
-  user_data : gpointer;unused_data : gpointer; pixmap_type : TGnomeUIPixmapType; pixmap_info : Pgchar; 
+function GETGNOMEUIINFO(thetype : TGnomeUIInfoType; thelabel : Pgchar; hint : Pgchar; moreinfo : gpointer;
+  user_data : gpointer;unused_data : gpointer; pixmap_type : TGnomeUIPixmapType; pixmap_info : Pgchar;
   accelerator_key : guint; ac_mods : TGdkModifierType;widget : PGtkWidget) : TGnomeUIInfo;
 begin
   Result.thetype := thetype;

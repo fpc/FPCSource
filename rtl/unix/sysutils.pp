@@ -88,7 +88,7 @@ Begin
      inc(YYear);
      dec(TempMonth,12);
    End;
-  inc(TempMonth,3);  
+  inc(TempMonth,3);
   Month := TempMonth;
   Year:=YYear+(JulianDN*100);
 end;
@@ -227,12 +227,12 @@ Function UnixToWinAge(UnixAge : time_t): Longint;
 
 Var
   Y,M,D,hh,mm,ss : word;
-  
+
 begin
   EpochToLocal(UnixAge,y,m,d,hh,mm,ss);
   Result:=DateTimeToFileDate(EncodeDate(y,m,d)+EncodeTime(hh,mm,ss,0));
 end;
-    
+
 
 Function FileAge (Const FileName : String): Longint;
 
@@ -1025,7 +1025,7 @@ end;
 { ---------------------------------------------------------------------
     Application config files
   ---------------------------------------------------------------------}
-  
+
 
 Function GetHomeDir : String;
 
@@ -1040,7 +1040,7 @@ Function GetAppConfigDir(Global : Boolean) : String;
 begin
   If Global then
     Result:=SysConfigDir
-  else  
+  else
     Result:=GetHomeDir+ApplicationName;
 end;
 
@@ -1053,7 +1053,7 @@ begin
     if SubDir then
       Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
     Result:=Result+ApplicationName+ConfigExtension;
-    end 
+    end
   else
     begin
     if SubDir then
@@ -1061,7 +1061,7 @@ begin
       Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(False));
       Result:=Result+ApplicationName+ConfigExtension;
       end
-    else  
+    else
       begin
       Result:=GetHomeDir;
       Result:=Result+'.'+ApplicationName;
@@ -1080,13 +1080,13 @@ begin
   If Assigned(OnGetTempDir) then
     Result:=OnGetTempDir(Global)
   else
-    begin  
+    begin
     Result:=GetEnvironmentVariable('TEMP');
     If (Result='') Then
       Result:=GetEnvironmentVariable('TMP');
     if (Result='') then
       Result:='/tmp/' // fallback.
-    end;  
+    end;
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
@@ -1105,16 +1105,9 @@ end.
 {
 
   $Log$
-  Revision 1.56  2004-12-19 18:03:29  michael
-  + Added mode field to TSearchRec for Kylix compatibility
+  Revision 1.57  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.55  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.54  2004/11/14 15:10:44  marco
-   * resolution of now increased to ms
-
-  Revision 1.53  2004/11/06 17:24:07  marco
    * getenv had ansistring as param due to {$H+} now shortstring.
 
   Revision 1.52  2004/11/02 13:59:42  marco

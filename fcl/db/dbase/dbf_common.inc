@@ -35,15 +35,15 @@
 //------------------------------------------------------
 
 
-{$ifdef VER80}          //	Delphi 1.0
+{$ifdef VER80}          //      Delphi 1.0
   #ERROR tDbf needs Delphi or C++ Builder 3 minimum.
 {$endif}
 
-{$ifdef VER90}          //	 Delphi 2.0
+{$ifdef VER90}          //       Delphi 2.0
   #ERROR tDbf needs Delphi or C++ Builder 3 minimum.
 {$endif}
 
-{$ifdef VER93}          //	 is BCB++ 1.0
+{$ifdef VER93}          //       is BCB++ 1.0
   #ERROR tDbf needs Delphi or C++ Builder 3 minimum.
 {$endif}
 

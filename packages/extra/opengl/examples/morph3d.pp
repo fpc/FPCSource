@@ -916,28 +916,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-11-24 20:49:03  jonas
-    + added glutInit() calls where they were missing
-    * made sure that the glutDisplayFunc() is registered in time (new check
-      as of glut 3.0)
-    -> all demos now work under Mac OS X!
-
-  Revision 1.2  2002/12/18 13:33:20  pierre
-   * objfpc mode added to be able to compile the demos correctly from IDE
-
-  Revision 1.1  2002/10/13 14:01:45  sg
-  * added the new, adapted OpenGL examples...
-
-  Revision 1.4  2002/09/07 15:43:05  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/08/06 09:09:17  michael
-  + Fixed missing @
-
-  Revision 1.2  2002/05/31 11:54:33  marco
-  * Renamefest for 1.0, many 1.1.x spots patched also.
-
-  Revision 1.1  2002/01/29 17:55:19  peter
-    * splitted to base and extra
+  Revision 1.4  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

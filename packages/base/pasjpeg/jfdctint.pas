@@ -29,7 +29,7 @@ uses
   jinclude,
   jutils,
   jpeglib,
-  jdct;		{ Private declarations for DCT subsystem }
+  jdct;         { Private declarations for DCT subsystem }
 
 
 { Perform the forward DCT on one block of samples. }
@@ -85,7 +85,7 @@ const
 {$else}
 const
   CONST_BITS = 13;
-  PASS1_BITS = 1;	{ lose a little precision to avoid overflow }
+  PASS1_BITS = 1;       { lose a little precision to avoid overflow }
 {$endif}
 
 const
@@ -192,9 +192,9 @@ begin
 
     z1 := MULTIPLY(tmp12 + tmp13, FIX_0_541196100);
     dataptr^[2] := DCTELEM (DESCALE(z1 + MULTIPLY(tmp13, FIX_0_765366865),
-				   CONST_BITS-PASS1_BITS));
+                                   CONST_BITS-PASS1_BITS));
     dataptr^[6] := DCTELEM (DESCALE(z1 + MULTIPLY(tmp12, - FIX_1_847759065),
-				   CONST_BITS-PASS1_BITS));
+                                   CONST_BITS-PASS1_BITS));
 
     { Odd part per figure 8 --- note paper omits factor of sqrt(2).
       cK represents cos(K*pi/16).
@@ -223,7 +223,7 @@ begin
     dataptr^[3] := DCTELEM(DESCALE(tmp6 + z2 + z3, CONST_BITS-PASS1_BITS));
     dataptr^[1] := DCTELEM(DESCALE(tmp7 + z1 + z4, CONST_BITS-PASS1_BITS));
 
-    Inc(DCTELEMPTR(dataptr), DCTSIZE);	{ advance pointer to next row }
+    Inc(DCTELEMPTR(dataptr), DCTSIZE);  { advance pointer to next row }
   end;
 
   { Pass 2: process columns.
@@ -255,14 +255,14 @@ begin
 
     z1 := MULTIPLY(tmp12 + tmp13, FIX_0_541196100);
     dataptr^[DCTSIZE*2] := DCTELEM (DESCALE(z1 + MULTIPLY(tmp13, FIX_0_765366865),
-					   CONST_BITS+PASS1_BITS));
+                                           CONST_BITS+PASS1_BITS));
     dataptr^[DCTSIZE*6] := DCTELEM (DESCALE(z1 + MULTIPLY(tmp12, - FIX_1_847759065),
-					   CONST_BITS+PASS1_BITS));
+                                           CONST_BITS+PASS1_BITS));
 
     { Odd part per figure 8 --- note paper omits factor of sqrt(2).
       cK represents cos(K*pi/16).
       i0..i3 in the paper are tmp4..tmp7 here. }
-    
+
     z1 := tmp4 + tmp7;
     z2 := tmp5 + tmp6;
     z3 := tmp4 + tmp6;
@@ -282,15 +282,15 @@ begin
     Inc(z4, z5);
 
     dataptr^[DCTSIZE*7] := DCTELEM (DESCALE(tmp4 + z1 + z3,
-					   CONST_BITS+PASS1_BITS));
+                                           CONST_BITS+PASS1_BITS));
     dataptr^[DCTSIZE*5] := DCTELEM (DESCALE(tmp5 + z2 + z4,
-					   CONST_BITS+PASS1_BITS));
+                                           CONST_BITS+PASS1_BITS));
     dataptr^[DCTSIZE*3] := DCTELEM (DESCALE(tmp6 + z2 + z3,
-					   CONST_BITS+PASS1_BITS));
+                                           CONST_BITS+PASS1_BITS));
     dataptr^[DCTSIZE*1] := DCTELEM (DESCALE(tmp7 + z1 + z4,
-					   CONST_BITS+PASS1_BITS));
+                                           CONST_BITS+PASS1_BITS));
 
-    Inc(DCTELEMPTR(dataptr));	{ advance pointer to next column }
+    Inc(DCTELEMPTR(dataptr));   { advance pointer to next column }
   end;
 end;
 

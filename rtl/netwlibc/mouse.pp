@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2004 Armin Diehl, member of the 
+    Copyright (c) 1999-2004 Armin Diehl, member of the
     Free Pascal development team
 
     Dummy Mouse unit for netware
@@ -116,7 +116,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
-  * first rtl version for netwlibc
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

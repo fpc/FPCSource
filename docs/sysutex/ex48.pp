@@ -4,7 +4,7 @@ Program Example48;
 
 Uses sysutils;
 
-Const 
+Const
   S = 'This is a string'#13'with embedded'#10'linefeed and'+
        #13'CR characters';
 

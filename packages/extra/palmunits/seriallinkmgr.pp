@@ -13,7 +13,7 @@
  *    Source for Serial Link Routines on Pilot
  *
  * History:
- *    2/6/95 replaces DSerial.h from Debugger 
+ *    2/6/95 replaces DSerial.h from Debugger
  *
  *****************************************************************************)
 

@@ -99,7 +99,7 @@ procedure if_freenameindex(__ptr:Pif_nameindex);cdecl;external clib name 'if_fre
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TIfNameIndex = _if_nameindex;
   PIfNameIndex = ^TIfNameIndex;
 

@@ -147,7 +147,7 @@ implementation
          objectlibrary.getlabel(continuelabel);
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(exprasmlist,OS_S32,OC_NE,0,denum,continuelabel);
-//	 paraloc1.init;
+//       paraloc1.init;
 //         cg.a_param_const(exprasmlist,OS_S32,200,paramanager.getintparaloc(pocall_default,1,paraloc1));
 
          cg.a_call_name(exprasmlist,'FPC_HANDLEERROR');
@@ -249,23 +249,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2005-01-08 04:11:26  karoly
+  Revision 1.13  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.12  2005/01/08 04:11:26  karoly
     * made m68k to compile again
-
-  Revision 1.11  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.10  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.9  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.8  2004/04/25 21:26:16  florian
-    * some m68k stuff fixed
 
 }

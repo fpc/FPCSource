@@ -528,13 +528,7 @@ end;
 
 end.
   $Log$
-  Revision 1.5  2004-12-15 21:15:04  peter
-    * 64bit fixes
-
-  Revision 1.4  2004/05/02 21:23:18  peter
-    * use ptrint
-
-  Revision 1.3  2002/09/07 15:15:23  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:12  peter
+    * truncate log
 
 }

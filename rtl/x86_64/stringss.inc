@@ -19,7 +19,7 @@
 
 {
   $Log$
-  Revision 1.1  2004-02-18 21:40:41  peter
-    * dummy added
+  Revision 1.2  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

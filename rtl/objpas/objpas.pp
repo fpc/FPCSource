@@ -391,22 +391,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2005-01-24 18:03:19  peter
+  Revision 1.14  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.13  2005/01/24 18:03:19  peter
     * pinteger in non-delphi/objfpc mode is psmallint
-
-  Revision 1.12  2003/05/29 08:43:52  michael
-  + Paramstr(0) must return binary name
-
-  Revision 1.11  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1.2.3  2003/05/29 08:42:23  michael
-  + Paramstr(0) must return binary name
-
-  Revision 1.10  2002/01/25 17:41:25  peter
-    * delphi compatible array types
-
-  Revision 1.9  2002/01/06 21:59:13  peter
-    * regenerated
 
 }

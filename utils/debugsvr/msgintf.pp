@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Debugclient/server interface definition.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -25,7 +25,7 @@ Const
   DebugHostName        : String = 'localhost';
   DebugPort            : Word   = 4321;
   DebugConnection      : TDebugConnection = dcunix;
-  
+
   lctStop        = -1;
   lctInformation = 0;
   lctWarning     = 1;
@@ -45,7 +45,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:44:29  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:44:29  michael
   + Initial implementation
 
 }

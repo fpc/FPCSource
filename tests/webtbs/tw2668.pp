@@ -29,10 +29,10 @@ const
    );
 
 asm
-	MOV ECX,0
-	MOV EDX,0
+        MOV ECX,0
+        MOV EDX,0
         MOVZX   EAX, TFloatingPointClass(FPClasses[EDX])
         MOVZX   EAX, TFloatingPointClass([ECX].FPClasses[EDX])
-	LEA ECX,FPClasses
+        LEA ECX,FPClasses
         MOVZX   EAX, TFloatingPointClass([ECX].1+2[EDX])
 end.

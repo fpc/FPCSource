@@ -20,7 +20,7 @@ type
   To reuse this code in another application, you might need to change these. }
 
 var
-  infile : TBufStream;	{ input JPEG file }
+  infile : TBufStream;  { input JPEG file }
 
 { Return next input byte, or EOF if no more }
 
@@ -214,7 +214,7 @@ var
   process : string;
   ci: int;
 begin
-  length := read_2_bytes;	{ usual parameter length count }
+  length := read_2_bytes;       { usual parameter length count }
 
   data_precision := read_1_byte;
   image_height := read_2_bytes;
@@ -249,9 +249,9 @@ begin
 
   for ci := 0 to pred(num_components) do
   begin
-    read_1_byte;	{ Component ID code }
-    read_1_byte;	{ H, V sampling factors }
-    read_1_byte;	{ Quantization table number }
+    read_1_byte;        { Component ID code }
+    read_1_byte;        { H, V sampling factors }
+    read_1_byte;        { Quantization table number }
   end;
 end;
 
@@ -276,31 +276,31 @@ begin
   repeat
     marker := next_marker;
     case marker of
-    M_SOF0,		{ Baseline }
-    M_SOF1,		{ Extended sequential, Huffman }
-    M_SOF2,		{ Progressive, Huffman }
-    M_SOF3,		{ Lossless, Huffman }
-    M_SOF5,		{ Differential sequential, Huffman }
-    M_SOF6,		{ Differential progressive, Huffman }
-    M_SOF7,		{ Differential lossless, Huffman }
-    M_SOF9,		{ Extended sequential, arithmetic }
-    M_SOF10,		{ Progressive, arithmetic }
-    M_SOF11,		{ Lossless, arithmetic }
-    M_SOF13,		{ Differential sequential, arithmetic }
-    M_SOF14,		{ Differential progressive, arithmetic }
-    M_SOF15:		{ Differential lossless, arithmetic }
+    M_SOF0,             { Baseline }
+    M_SOF1,             { Extended sequential, Huffman }
+    M_SOF2,             { Progressive, Huffman }
+    M_SOF3,             { Lossless, Huffman }
+    M_SOF5,             { Differential sequential, Huffman }
+    M_SOF6,             { Differential progressive, Huffman }
+    M_SOF7,             { Differential lossless, Huffman }
+    M_SOF9,             { Extended sequential, arithmetic }
+    M_SOF10,            { Progressive, arithmetic }
+    M_SOF11,            { Lossless, arithmetic }
+    M_SOF13,            { Differential sequential, arithmetic }
+    M_SOF14,            { Differential progressive, arithmetic }
+    M_SOF15:            { Differential lossless, arithmetic }
       if (verbose) then
-	process_SOFn(marker)
+        process_SOFn(marker)
       else
-	skip_variable;
+        skip_variable;
 
-    M_SOS:			{ stop before hitting compressed data }
+    M_SOS:                      { stop before hitting compressed data }
     begin
       scan_JPEG_header := marker;
       exit;
     end;
 
-    M_EOI:			{ in case it's a tables-only JPEG stream }
+    M_EOI:                      { in case it's a tables-only JPEG stream }
     begin
       scan_JPEG_header := marker;
       exit;
@@ -309,8 +309,8 @@ begin
     M_COM:
       process_COM;
 
-    else			{ Anything else just gets skipped }
-      skip_variable;		{ we assume it has a parameter count... }
+    else                        { Anything else just gets skipped }
+      skip_variable;            { we assume it has a parameter count... }
     end;
   until false; { end loop }
 end;
@@ -347,7 +347,7 @@ begin
 
   progname := ParamStr(0);
   if (progname = '')  then
-    progname := 'rdjpgcom';	{ in case C library doesn't provide it }
+    progname := 'rdjpgcom';     { in case C library doesn't provide it }
 
   { Parse switches, if any }
   for argn := 1 to Pred(ParamCount) do
@@ -375,7 +375,7 @@ begin
   scan_JPEG_header(verbose);
 
   infile.done;
-  
+
   { All done. }
   Halt(EXIT_SUCCESS);
 end.

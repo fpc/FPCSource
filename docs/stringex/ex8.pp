@@ -7,7 +7,7 @@ Uses strings;
 Const P1 : PChar = 'This is the first string.';
       P2 : PCHar = 'This is the second string.';
 
-Var L : Longint; 
+Var L : Longint;
 
 begin
   Write ('P1 and P2 are ');

@@ -16,7 +16,7 @@
 { OS handling utilities }
 
 {$ifdef HAS_OSERROR}
-Function GetLastOSError : Integer; 
+Function GetLastOSError : Integer;
 {$endif}
 Procedure RaiseLastOSError;
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
@@ -31,7 +31,7 @@ function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiStri
 
 Function GetTempDir(Global : Boolean) : String;
 Function GetTempDir : String;
-Function GetTempFileName(Const Dir,Prefix : String) : String; 
+Function GetTempFileName(Const Dir,Prefix : String) : String;
 Function GetTempFileName : String;
 Function GetAppConfigDir(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean) : String;
@@ -40,9 +40,9 @@ Function ApplicationName : String;
 
 Const
   ConfigExtension : String = '.cfg';
-  SysConfigDir    : String = '';   
-  
-Type 
+  SysConfigDir    : String = '';
+
+Type
   TGetAppNameEvent  = Function : String;
   TGetTempDirEvent  = Function (Global : Boolean) : String;
   TGetTempFileEvent = Function (Const Dir,Prefix : String) : String;
@@ -55,34 +55,7 @@ Var
 
 {
   $Log$
-  Revision 1.9  2004-12-11 11:33:15  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.8  2004/10/10 10:28:34  michael
-  + Implementation of GetTempDir and GetTempFileName
-
-  Revision 1.7  2004/08/05 07:28:01  michael
-  + Added getappconfigdir calls
-
-  Revision 1.6  2004/02/13 13:02:21  marco
-   * addition of second executeprocess prototype
-
-  Revision 1.5  2004/02/08 11:02:40  michael
-  + Implemented RaiseLastOSError
-
-  Revision 1.4  2004/01/10 17:34:36  michael
-  + Implemented sleep() on Unix.
-
-  Revision 1.3  2004/01/05 22:37:24  florian
-    * changed sysutils.exec to ExecuteProcess
-
-  Revision 1.2  2004/01/03 08:55:58  marco
-   * Exec(ansistring) function
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.3  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.10  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -24,15 +24,15 @@ Unit JIDctAsm;
   ; JIDCTINT.ASM
   ; 80386 protected mode assembly translation of JIDCTINT.C
   ; **** Optimized to all hell by Jason M. Felice (jasonf@apk.net) ****
-  ; **** E-mail welcome											 ****
+  ; **** E-mail welcome                                                                                  ****
   ;
   ; ** This code does not make O/S calls -- use it for OS/2, Win95, WinNT,
   ; ** DOS prot. mode., Linux, whatever... have fun.
   ;
   ; ** Note, this code is dependant on the structure member order in the .h
   ; ** files for the following structures:
-  ;	-- amazingly NOT j_decompress_struct... cool.
-  ;	-- jpeg_component_info (dependant on position of dct_table element)
+  ;     -- amazingly NOT j_decompress_struct... cool.
+  ;     -- jpeg_component_info (dependant on position of dct_table element)
   ;
   ; Originally created with the /Fa option of MSVC 4.0 (why work when you
   ; don't have to?)
@@ -68,8 +68,8 @@ uses
 {GLOBAL}
 procedure jpeg_idct_islow (cinfo : j_decompress_ptr;
                           compptr : jpeg_component_info_ptr;
-		          coef_block : JCOEFPTR;
-		          output_buf : JSAMPARRAY;
+                          coef_block : JCOEFPTR;
+                          output_buf : JSAMPARRAY;
                           output_col : JDIMENSION);
 
 implementation
@@ -118,7 +118,7 @@ const
   PASS1_BITS = 2;
 {$else}
 const
-  PASS1_BITS = 1;	{ lose a little precision to avoid overflow }
+  PASS1_BITS = 1;       { lose a little precision to avoid overflow }
 {$endif}
 
 const
@@ -150,8 +150,8 @@ const
 {GLOBAL}
 procedure jpeg_idct_islow (cinfo : j_decompress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           coef_block : JCOEFPTR;
-		           output_buf : JSAMPARRAY;
+                           coef_block : JCOEFPTR;
+                           output_buf : JSAMPARRAY;
                            output_col : JDIMENSION);
 type
   PWorkspace = ^TWorkspace;
@@ -181,7 +181,7 @@ asm
   push  esi
   push  ebx
 
-  cld	{ The only direction we use, might as well set it now, as opposed }
+  cld   { The only direction we use, might as well set it now, as opposed }
         { to inside 2 loops. }
 
 { Each IDCT routine is responsible for range-limiting its results and
@@ -192,25 +192,25 @@ asm
   prepare_range_limit_table (in jdmaster.c) for more info. }
 
   {range_limit := JSAMPROW(@(cinfo^.sample_range_limit^[CENTERJSAMPLE]));}
-  mov	eax, [eax].jpeg_decompress_struct.sample_range_limit {eax=cinfo}
-  add	eax, (MAXJSAMPLE+1 + CENTERJSAMPLE)*(Type JSAMPLE)
-  mov	range_limit, eax
+  mov   eax, [eax].jpeg_decompress_struct.sample_range_limit {eax=cinfo}
+  add   eax, (MAXJSAMPLE+1 + CENTERJSAMPLE)*(Type JSAMPLE)
+  mov   range_limit, eax
 
   { Pass 1: process columns from input, store into work array. }
   { Note results are scaled up by sqrt(8) compared to a true IDCT; }
   { furthermore, we scale the results by 2**PASS1_BITS. }
 
   {inptr := coef_block;}
-  mov	esi, ecx     { ecx=coef_block }
+  mov   esi, ecx     { ecx=coef_block }
   {quantptr := ISLOW_MULT_TYPE_FIELD_PTR (compptr^.dct_table);}
-  mov	edi, [edx].jpeg_component_info.dct_table  { edx=compptr }
+  mov   edi, [edx].jpeg_component_info.dct_table  { edx=compptr }
 
   {wsptr := PWorkspace(@workspace);}
-  lea	ecx, workspace
+  lea   ecx, workspace
 
   {for ctr := pred(DCTSIZE) downto 0 do
   begin}
-  mov	ctr, DCTSIZE
+  mov   ctr, DCTSIZE
 @loop518:
     { Due to quantization, we will usually find that many of the input
       coefficients are zero, especially the AC terms.  We can exploit this
@@ -221,25 +221,25 @@ asm
       column DCT calculations can be simplified this way. }
 
     {if ((inptr^[DCTSIZE*1]) or (inptr^[DCTSIZE*2]) or (inptr^[DCTSIZE*3]) or
-	(inptr^[DCTSIZE*4]) or (inptr^[DCTSIZE*5]) or (inptr^[DCTSIZE*6]) or
-	(inptr^[DCTSIZE*7]) = 0) then
+        (inptr^[DCTSIZE*4]) or (inptr^[DCTSIZE*5]) or (inptr^[DCTSIZE*6]) or
+        (inptr^[DCTSIZE*7]) = 0) then
     begin}
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*1]
-  or	eax, DWORD PTR [esi+coefDCTSIZE*2]
-  or	eax, DWORD PTR [esi+coefDCTSIZE*3]
-  mov	edx, DWORD PTR [esi+coefDCTSIZE*4]
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*1]
+  or    eax, DWORD PTR [esi+coefDCTSIZE*2]
+  or    eax, DWORD PTR [esi+coefDCTSIZE*3]
+  mov   edx, DWORD PTR [esi+coefDCTSIZE*4]
   or    eax, edx
-  or	eax, DWORD PTR [esi+coefDCTSIZE*5]
-  or	eax, DWORD PTR [esi+coefDCTSIZE*6]
-  or	eax, DWORD PTR [esi+coefDCTSIZE*7]
-  jne	@loop520
+  or    eax, DWORD PTR [esi+coefDCTSIZE*5]
+  or    eax, DWORD PTR [esi+coefDCTSIZE*6]
+  or    eax, DWORD PTR [esi+coefDCTSIZE*7]
+  jne   @loop520
 
       { AC terms all zero }
       {dcval := ISLOW_MULT_TYPE(inptr^[DCTSIZE*0]) *
                (quantptr^[DCTSIZE*0]) shl PASS1_BITS;}
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*0]
-  imul	eax, DWORD PTR [edi+wrkDCTSIZE*0]
-  shl	eax, PASS1_BITS
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*0]
+  imul  eax, DWORD PTR [edi+wrkDCTSIZE*0]
+  shl   eax, PASS1_BITS
 
   {wsptr^[DCTSIZE*0] := dcval;
   wsptr^[DCTSIZE*1] := dcval;
@@ -250,26 +250,26 @@ asm
   wsptr^[DCTSIZE*6] := dcval;
   wsptr^[DCTSIZE*7] := dcval;}
 
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*0], eax
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*1], eax
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*2], eax
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*3], eax
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*4], eax
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*5], eax
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*6], eax
-  mov	DWORD PTR [ecx+ wrkDCTSIZE*7], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*0], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*1], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*2], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*3], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*4], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*5], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*6], eax
+  mov   DWORD PTR [ecx+ wrkDCTSIZE*7], eax
 
-      {Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+      {Inc(JCOEF_PTR(inptr));           { advance pointers to next column }
       {Inc(ISLOW_MULT_TYPE_PTR(quantptr));
       Inc(int_ptr(wsptr));
       continue;}
-  dec	ctr
-  je	@loop519
+  dec   ctr
+  je    @loop519
 
   add   esi, Type JCOEF
-  add	edi, Type ISLOW_MULT_TYPE
-  add	ecx, Type int  { int_ptr }
-  jmp	@loop518
+  add   edi, Type ISLOW_MULT_TYPE
+  add   ecx, Type int  { int_ptr }
+  jmp   @loop518
 
 @loop520:
 
@@ -285,11 +285,11 @@ asm
     tmp2 := z1 + INT32(z3) * INT32(- FIX_1_847759065);
     tmp3 := z1 + INT32(z2) * INT32(FIX_0_765366865);}
 
-  mov	edx, DWORD PTR [esi+coefDCTSIZE*2]
-  imul	edx, DWORD PTR [edi+wrkDCTSIZE*2]  {z2}
+  mov   edx, DWORD PTR [esi+coefDCTSIZE*2]
+  imul  edx, DWORD PTR [edi+wrkDCTSIZE*2]  {z2}
 
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*6]
-  imul	eax, DWORD PTR [edi+wrkDCTSIZE*6]  {z3}
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*6]
+  imul  eax, DWORD PTR [edi+wrkDCTSIZE*6]  {z3}
 
   lea   ebx, [eax+edx]
   imul  ebx, FIX_0_541196100               {z1}
@@ -305,11 +305,11 @@ asm
     {z2 := ISLOW_MULT_TYPE(inptr^[DCTSIZE*0]) * quantptr^[DCTSIZE*0];
     z3 := ISLOW_MULT_TYPE(inptr^[DCTSIZE*4]) * quantptr^[DCTSIZE*4];}
 
-  mov	edx, DWORD PTR [esi+coefDCTSIZE*4]
-  imul	edx, DWORD PTR [edi+wrkDCTSIZE*4]      { z3 = edx }
+  mov   edx, DWORD PTR [esi+coefDCTSIZE*4]
+  imul  edx, DWORD PTR [edi+wrkDCTSIZE*4]      { z3 = edx }
 
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*0]
-  imul	eax, DWORD PTR [edi+wrkDCTSIZE*0]      { z2 = eax }
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*0]
+  imul  eax, DWORD PTR [edi+wrkDCTSIZE*0]      { z2 = eax }
 
     {tmp0 := (z2 + z3) shl CONST_BITS;
     tmp1 := (z2 - z3) shl CONST_BITS;}
@@ -334,54 +334,54 @@ asm
   mov   tmp12, eax
   add   ebx, ebx
   add   eax, ebx
-  mov	tmp11, eax
+  mov   tmp11, eax
 
     { Odd part per figure 8; the matrix is unitary and hence its
       transpose is its inverse.  i0..i3 are y7,y5,y3,y1 respectively. }
 
     {tmp0 := ISLOW_MULT_TYPE(inptr^[DCTSIZE*7]) * quantptr^[DCTSIZE*7];}
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*7]
-  imul	eax, DWORD PTR [edi+wrkDCTSIZE*7]
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*7]
+  imul  eax, DWORD PTR [edi+wrkDCTSIZE*7]
   mov   edx, eax                            { edx = tmp0 }
     {tmp0 := (tmp0) * INT32(FIX_0_298631336); { sqrt(2) * (-c1+c3+c5-c7) }
   imul  eax, FIX_0_298631336
-  mov	tmp0, eax
+  mov   tmp0, eax
 
     {tmp3 := ISLOW_MULT_TYPE(inptr^[DCTSIZE*1]) * quantptr^[DCTSIZE*1];}
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*1]
-  imul	eax, DWORD PTR [edi+wrkDCTSIZE*1]
-  mov	tmp3, eax
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*1]
+  imul  eax, DWORD PTR [edi+wrkDCTSIZE*1]
+  mov   tmp3, eax
 
     {z1 := tmp0 + tmp3;}
     {z1 := (z1) * INT32(- FIX_0_899976223); { sqrt(2) * (c7-c3) }
-  add	eax, edx
+  add   eax, edx
   imul eax, (-FIX_0_899976223)
   mov  z1, eax
 
     {tmp1 := ISLOW_MULT_TYPE(inptr^[DCTSIZE*5]) * quantptr^[DCTSIZE*5];}
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*5]
-  imul	eax, DWORD PTR [edi+wrkDCTSIZE*5]
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*5]
+  imul  eax, DWORD PTR [edi+wrkDCTSIZE*5]
   mov ebx, eax                            { ebx = tmp1 }
     {tmp1 := (tmp1) * INT32(FIX_2_053119869); { sqrt(2) * ( c1+c3-c5+c7) }
   imul  eax, FIX_2_053119869
-  mov	tmp1, eax
+  mov   tmp1, eax
 
     {tmp2 := ISLOW_MULT_TYPE(inptr^[DCTSIZE*3]) * quantptr^[DCTSIZE*3];}
-  mov	eax, DWORD PTR [esi+coefDCTSIZE*3]
-  imul	eax, DWORD PTR [edi+wrkDCTSIZE*3]
-  mov	tmp2, eax
+  mov   eax, DWORD PTR [esi+coefDCTSIZE*3]
+  imul  eax, DWORD PTR [edi+wrkDCTSIZE*3]
+  mov   tmp2, eax
 
     {z3 := tmp0 + tmp2;}
-  add	edx, eax                              { edx = z3 }
+  add   edx, eax                              { edx = z3 }
 
     {z2 := tmp1 + tmp2;}
     {z2 := (z2) * INT32(- FIX_2_562915447); { sqrt(2) * (-c1-c3) }
-  add	eax, ebx
+  add   eax, ebx
   imul  eax, (-FIX_2_562915447)
-  mov	z2, eax
+  mov   z2, eax
 
     {z4 := tmp1 + tmp3;}
-  add	ebx, tmp3                             { ebx = z4 }
+  add   ebx, tmp3                             { ebx = z4 }
 
     {z5 := INT32(z3 + z4) * INT32(FIX_1_175875602); { sqrt(2) * c3 }
   lea   eax, [edx+ebx]
@@ -400,17 +400,17 @@ asm
 
     {Inc(tmp0, z1 + z3);}
   mov   ebx, z1
-  add	ebx, eax
-  add	tmp0, ebx
+  add   ebx, eax
+  add   tmp0, ebx
 
     {tmp2 := (tmp2) * INT32(FIX_3_072711026); { sqrt(2) * ( c1+c3+c5-c7) }
     {Inc(tmp2, z2 + z3);}
   mov   ebx, tmp2
   imul  ebx, FIX_3_072711026
-  mov	edx, z2                        { z2 = edx }
+  mov   edx, z2                        { z2 = edx }
   add   ebx, edx
   add   eax, ebx
-  mov	tmp2, eax
+  mov   tmp2, eax
 
     {Inc(tmp1, z2 + z4);}
   mov   eax, z4                        { z4 = eax }
@@ -419,76 +419,76 @@ asm
 
     {tmp3 := (tmp3) * INT32(FIX_1_501321110); { sqrt(2) * ( c1+c3-c5-c7) }
     {Inc(tmp3, z1 + z4);}
-  mov	edx, tmp3
+  mov   edx, tmp3
   imul  edx, FIX_1_501321110
 
-  add	edx, eax
+  add   edx, eax
   add   edx, z1                        { tmp3 = edx }
 
     { Final output stage: inputs are tmp10..tmp13, tmp0..tmp3 }
 
     {wsptr^[DCTSIZE*0] := int (DESCALE(tmp10 + tmp3, CONST_BITS-PASS1_BITS));}
-    {wsptr^[DCTSIZE*7] := int (DESCALE(tmp10 - tmp3, CONST_BITS-PASS1_BITS));}    
-  mov	eax, tmp10
+    {wsptr^[DCTSIZE*7] := int (DESCALE(tmp10 - tmp3, CONST_BITS-PASS1_BITS));}
+  mov   eax, tmp10
   add   eax, ROUND_CONST
   lea   ebx, [eax+edx]
-  sar	ebx, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*0], ebx
+  sar   ebx, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*0], ebx
 
-  sub	eax, edx
-  sar	eax, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*7], eax
+  sub   eax, edx
+  sar   eax, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*7], eax
 
     {wsptr^[DCTSIZE*1] := int (DESCALE(tmp11 + tmp2, CONST_BITS-PASS1_BITS));}
     {wsptr^[DCTSIZE*6] := int (DESCALE(tmp11 - tmp2, CONST_BITS-PASS1_BITS));}
-  mov	eax, tmp11
+  mov   eax, tmp11
   add   eax, ROUND_CONST
   mov   edx, tmp2
-  lea	ebx, [eax+edx]
-  sar	ebx, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*1], ebx
+  lea   ebx, [eax+edx]
+  sar   ebx, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*1], ebx
 
-  sub	eax, edx
-  sar	eax, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*6], eax
+  sub   eax, edx
+  sar   eax, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*6], eax
 
     {wsptr^[DCTSIZE*2] := int (DESCALE(tmp12 + tmp1, CONST_BITS-PASS1_BITS));}
     {wsptr^[DCTSIZE*5] := int (DESCALE(tmp12 - tmp1, CONST_BITS-PASS1_BITS));}
-  mov	eax, tmp12
+  mov   eax, tmp12
   add   eax, ROUND_CONST
   mov   edx, tmp1
-  lea	ebx, [eax+edx]
-  sar	ebx, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*2], ebx
+  lea   ebx, [eax+edx]
+  sar   ebx, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*2], ebx
 
-  sub	eax, edx
-  sar	eax, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*5], eax
+  sub   eax, edx
+  sar   eax, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*5], eax
 
     {wsptr^[DCTSIZE*3] := int (DESCALE(tmp13 + tmp0, CONST_BITS-PASS1_BITS));}
-    {wsptr^[DCTSIZE*4] := int (DESCALE(tmp13 - tmp0, CONST_BITS-PASS1_BITS));}    
-  mov	eax, tmp13
+    {wsptr^[DCTSIZE*4] := int (DESCALE(tmp13 - tmp0, CONST_BITS-PASS1_BITS));}
+  mov   eax, tmp13
   add   eax, ROUND_CONST
   mov   edx, tmp0
   lea   ebx, [eax+edx]
-  sar	ebx, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*3], ebx
+  sar   ebx, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*3], ebx
 
-  sub	eax, edx
-  sar	eax, CONST_BITS-PASS1_BITS
-  mov	DWORD PTR [ecx+wrkDCTSIZE*4], eax
+  sub   eax, edx
+  sar   eax, CONST_BITS-PASS1_BITS
+  mov   DWORD PTR [ecx+wrkDCTSIZE*4], eax
 
-    {Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+    {Inc(JCOEF_PTR(inptr));             { advance pointers to next column }
     {Inc(ISLOW_MULT_TYPE_PTR(quantptr));
     Inc(int_ptr(wsptr));}
-  dec	ctr
-  je	@loop519
+  dec   ctr
+  je    @loop519
 
   add   esi, Type JCOEF
-  add	edi, Type ISLOW_MULT_TYPE
-  add	ecx, Type int  { int_ptr }
+  add   edi, Type ISLOW_MULT_TYPE
+  add   ecx, Type int  { int_ptr }
   {end;}
-	jmp	@loop518
+        jmp     @loop518
 @loop519:
   { Save to memory what we've registerized for the preceding loop. }
 
@@ -497,20 +497,20 @@ asm
   { and also undo the PASS1_BITS scaling. }
 
   {wsptr := @workspace;}
-  lea	esi, workspace
+  lea   esi, workspace
 
   {for ctr := 0 to pred(DCTSIZE) do
   begin}
-  mov	ctr, 0
+  mov   ctr, 0
 @loop523:
 
     {outptr := output_buf^[ctr];}
-  mov	eax, ctr
-  mov	ebx, output_buf
-  mov	edi, DWORD PTR [ebx+eax*4]           { 4 = SizeOf(pointer) }
+  mov   eax, ctr
+  mov   ebx, output_buf
+  mov   edi, DWORD PTR [ebx+eax*4]           { 4 = SizeOf(pointer) }
 
     {Inc(JSAMPLE_PTR(outptr), output_col);}
-  add	edi, output_col
+  add   edi, output_col
 
     { Rows of zeroes can be exploited in the same way as we did with columns.
       However, the column calculation has created many nonzero AC terms, so
@@ -523,25 +523,25 @@ asm
     {if ((wsptr^[1]) or (wsptr^[2]) or (wsptr^[3]) or (wsptr^[4]) or
         (wsptr^[5]) or (wsptr^[6]) or (wsptr^[7]) = 0) then
     begin}
-	mov	eax, DWORD PTR [esi+4*1]
-	or	eax, DWORD PTR [esi+4*2]
-	or	eax, DWORD PTR [esi+4*3]
+        mov     eax, DWORD PTR [esi+4*1]
+        or      eax, DWORD PTR [esi+4*2]
+        or      eax, DWORD PTR [esi+4*3]
         jne     @loop525            { Nomssi: early exit path may help }
-	or	eax, DWORD PTR [esi+4*4]
-	or	eax, DWORD PTR [esi+4*5]
-	or	eax, DWORD PTR [esi+4*6]
-	or	eax, DWORD PTR [esi+4*7]
-	jne	@loop525
+        or      eax, DWORD PTR [esi+4*4]
+        or      eax, DWORD PTR [esi+4*5]
+        or      eax, DWORD PTR [esi+4*6]
+        or      eax, DWORD PTR [esi+4*7]
+        jne     @loop525
 
       { AC terms all zero }
       {JSAMPLE(dcval_) := range_limit^[int(DESCALE(INT32(wsptr^[0]),
                           PASS1_BITS+3)) and RANGE_MASK];}
-	mov	eax, DWORD PTR [esi+4*0]
-	add	eax, (INT32(1) shl (PASS1_BITS+3-1))
-	sar	eax, PASS1_BITS+3
-	and	eax, RANGE_MASK
+        mov     eax, DWORD PTR [esi+4*0]
+        add     eax, (INT32(1) shl (PASS1_BITS+3-1))
+        sar     eax, PASS1_BITS+3
+        and     eax, RANGE_MASK
         mov     ebx, range_limit
-	mov	al, BYTE PTR [ebx+eax]
+        mov     al, BYTE PTR [ebx+eax]
         mov     ah, al
 
       {outptr^[0] := dcval_;
@@ -553,18 +553,18 @@ asm
       outptr^[6] := dcval_;
       outptr^[7] := dcval_;}
 
-	stosw
-	stosw
-	stosw
-	stosw
+        stosw
+        stosw
+        stosw
+        stosw
 
-      {Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+      {Inc(int_ptr(wsptr), DCTSIZE);    { advance pointer to next row }
       {continue;}
-	add esi, wrkDCTSIZE
-	inc	ctr
-	cmp	ctr, DCTSIZE
-	jl	@loop523
-	jmp @loop524
+        add esi, wrkDCTSIZE
+        inc     ctr
+        cmp     ctr, DCTSIZE
+        jl      @loop523
+        jmp @loop524
     {end;}
 @loop525:
 {$endif}
@@ -574,48 +574,48 @@ asm
     { The rotator is sqrt(2)*c(-6). }
 
     {z2 := INT32 (wsptr^[2]);}
-  mov	edx, DWORD PTR [esi+4*2]                   { z2 = edx }
+  mov   edx, DWORD PTR [esi+4*2]                   { z2 = edx }
 
     {z3 := INT32 (wsptr^[6]);}
-  mov	ecx, DWORD PTR [esi+4*6]                   { z3 = ecx }
+  mov   ecx, DWORD PTR [esi+4*6]                   { z3 = ecx }
 
     {z1 := (z2 + z3) * INT32(FIX_0_541196100);}
   lea   eax, [edx+ecx]
   imul  eax, FIX_0_541196100
-  mov	ebx, eax                                   { z1 = ebx }
+  mov   ebx, eax                                   { z1 = ebx }
 
     {tmp2 := z1 + (z3) * INT32(- FIX_1_847759065);}
   imul  ecx, (-FIX_1_847759065)
-  add	ecx, ebx                                   { tmp2 = ecx }
+  add   ecx, ebx                                   { tmp2 = ecx }
 
     {tmp3 := z1 + (z2) * INT32(FIX_0_765366865);}
   imul  edx, FIX_0_765366865
-  add	ebx, edx                                   { tmp3 = ebx }
+  add   ebx, edx                                   { tmp3 = ebx }
 
     {tmp0 := (INT32(wsptr^[0]) + INT32(wsptr^[4])) shl CONST_BITS;}
     {tmp1 := (INT32(wsptr^[0]) - INT32(wsptr^[4])) shl CONST_BITS;}
-  mov	edx, DWORD PTR [esi+4*4]
+  mov   edx, DWORD PTR [esi+4*4]
   mov   eax, DWORD PTR [esi+4*0]
   sub   eax, edx
   add   edx, edx
   add   edx, eax
-  shl	edx, CONST_BITS              { tmp0 = edx }
-  shl	eax, CONST_BITS              { tmp1 = eax }
+  shl   edx, CONST_BITS              { tmp0 = edx }
+  shl   eax, CONST_BITS              { tmp1 = eax }
 
     {tmp10 := tmp0 + tmp3;}
     {tmp13 := tmp0 - tmp3;}
   sub   edx, ebx
-  mov	tmp13, edx
+  mov   tmp13, edx
   add   ebx, ebx
   add   edx, ebx
-  mov	tmp10, edx
+  mov   tmp10, edx
 
     {tmp11 := tmp1 + tmp2;}
     {tmp12 := tmp1 - tmp2;}
   lea   ebx, [ecx+eax]
-  mov	tmp11, ebx
-  sub	eax, ecx
-  mov	tmp12, eax
+  mov   tmp11, ebx
+  sub   eax, ecx
+  mov   tmp12, eax
 
     { Odd part per figure 8; the matrix is unitary and hence its
       transpose is its inverse.  i0..i3 are y7,y5,y3,y1 respectively. }
@@ -630,29 +630,29 @@ asm
 
     {z2 := tmp1 + tmp2;}
     {z2 := (z2) * INT32(- FIX_2_562915447); { sqrt(2) * (-c1-c3) }
-  mov	ebx, DWORD PTR [esi+4*3]              { tmp2 }
+  mov   ebx, DWORD PTR [esi+4*3]              { tmp2 }
   mov   ecx, DWORD PTR [esi+4*5]              { tmp1 }
   lea   eax, [ebx+ecx]
   imul  eax, (-FIX_2_562915447)
-  mov	z2, eax
+  mov   z2, eax
 
     {z3 := tmp0 + tmp2;}
-  mov	edx, DWORD PTR [esi+4*7]              { tmp0 }
+  mov   edx, DWORD PTR [esi+4*7]              { tmp0 }
   add   ebx, edx                              { old z3 = ebx }
-  mov	eax, ebx
+  mov   eax, ebx
     {z3 := (z3) * INT32(- FIX_1_961570560); { sqrt(2) * (-c3-c5) }
   imul eax, (-FIX_1_961570560)
-  mov	z3, eax
+  mov   z3, eax
 
     {z1 := tmp0 + tmp3;}
     {z1 := (z1) * INT32(- FIX_0_899976223); { sqrt(2) * (c7-c3) }
-  mov	eax, DWORD PTR [esi+4*1]               { tmp3 }
-  add	edx, eax
+  mov   eax, DWORD PTR [esi+4*1]               { tmp3 }
+  add   edx, eax
   imul  edx, (-FIX_0_899976223)                { z1 = edx }
 
     {z4 := tmp1 + tmp3;}
-  add	eax, ecx                              { +tmp1 }
-  add	ebx, eax                              { z3 + z4 = ebx }
+  add   eax, ecx                              { +tmp1 }
+  add   ebx, eax                              { z3 + z4 = ebx }
     {z4 := (z4) * INT32(- FIX_0_390180644); { sqrt(2) * (c5-c3) }
   imul eax, (-FIX_0_390180644)                { z4 = eax }
 
@@ -671,7 +671,7 @@ asm
   imul  eax, FIX_0_298631336
   add   eax, edx
   add   eax, ecx
-  mov	tmp0, eax
+  mov   tmp0, eax
 
     {tmp1 := (tmp1) * INT32(FIX_2_053119869); { sqrt(2) * ( c1+c3-c5+c7) }
     {Inc(tmp1, z2 + z4);}
@@ -683,14 +683,14 @@ asm
 
     {tmp2 := (tmp2) * INT32(FIX_3_072711026); { sqrt(2) * ( c1+c3+c5-c7) }
     {Inc(tmp2, z2 + z3);}
-  mov	eax, DWORD PTR [esi+4*3]
+  mov   eax, DWORD PTR [esi+4*3]
   imul  eax, FIX_3_072711026
   add   eax, z2
   add   ecx, eax                      { ecx = tmp2 }
 
     {tmp3 := (tmp3) * INT32(FIX_1_501321110); { sqrt(2) * ( c1+c3-c5-c7) }
     {Inc(tmp3, z1 + z4);}
-  mov	eax, DWORD PTR [esi+4*1]
+  mov   eax, DWORD PTR [esi+4*1]
   imul  eax, FIX_1_501321110
   add   eax, edx
   add   ebx, eax                   { ebx = tmp3 }
@@ -702,86 +702,86 @@ asm
     {outptr^[7] := range_limit^[ int(DESCALE(tmp10 - tmp3,
                         CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
 
-  mov	edx, tmp10
+  mov   edx, tmp10
   add   edx, ROUND_CONST_2
-  lea	eax, [ebx+edx]
+  lea   eax, [ebx+edx]
   sub   edx, ebx
 
-  shr	eax, CONST_BITS+PASS1_BITS+3
-  and	eax, RANGE_MASK
+  shr   eax, CONST_BITS+PASS1_BITS+3
+  and   eax, RANGE_MASK
   mov   ebx, range_limit           { once for all }
-  mov	al, BYTE PTR [ebx+eax]
+  mov   al, BYTE PTR [ebx+eax]
   mov   [edi+0], al
 
-  shr	edx, CONST_BITS+PASS1_BITS+3
-  and	edx, RANGE_MASK
-  mov	al, BYTE PTR [ebx+edx]
+  shr   edx, CONST_BITS+PASS1_BITS+3
+  and   edx, RANGE_MASK
+  mov   al, BYTE PTR [ebx+edx]
   mov   [edi+7], al
 
     {outptr^[1] := range_limit^[ int(DESCALE(tmp11 + tmp2,
                         CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
-  mov	eax, tmp11
+  mov   eax, tmp11
   add   eax, ROUND_CONST_2
-  lea	edx, [eax+ecx]
-  shr	edx, CONST_BITS+PASS1_BITS+3
-  and	edx, RANGE_MASK
-  mov	dl, BYTE PTR [ebx+edx]
+  lea   edx, [eax+ecx]
+  shr   edx, CONST_BITS+PASS1_BITS+3
+  and   edx, RANGE_MASK
+  mov   dl, BYTE PTR [ebx+edx]
   mov   [edi+1], dl
 
     {outptr^[6] := range_limit^[ int(DESCALE(tmp11 - tmp2,
-			CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
-  sub	eax, ecx
-  shr	eax, CONST_BITS+PASS1_BITS+3
-  and	eax, RANGE_MASK
-  mov	al, BYTE PTR [ebx+eax]
+                        CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
+  sub   eax, ecx
+  shr   eax, CONST_BITS+PASS1_BITS+3
+  and   eax, RANGE_MASK
+  mov   al, BYTE PTR [ebx+eax]
   mov   [edi+6], al
 
     {outptr^[2] := range_limit^[ int(DESCALE(tmp12 + tmp1,
-			CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
-  mov	eax, tmp12
+                        CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
+  mov   eax, tmp12
   add   eax, ROUND_CONST_2
   mov   ecx, tmp1
-  lea	edx, [eax+ecx]
-  shr	edx, CONST_BITS+PASS1_BITS+3
-  and	edx, RANGE_MASK
-  mov	dl, BYTE PTR [ebx+edx]
+  lea   edx, [eax+ecx]
+  shr   edx, CONST_BITS+PASS1_BITS+3
+  and   edx, RANGE_MASK
+  mov   dl, BYTE PTR [ebx+edx]
   mov   [edi+2], dl
 
     {outptr^[5] := range_limit^[ int(DESCALE(tmp12 - tmp1,
-			CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
-  sub	eax, ecx
-  shr	eax, CONST_BITS+PASS1_BITS+3
-  and	eax, RANGE_MASK
-  mov	al, BYTE PTR [ebx+eax]
+                        CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
+  sub   eax, ecx
+  shr   eax, CONST_BITS+PASS1_BITS+3
+  and   eax, RANGE_MASK
+  mov   al, BYTE PTR [ebx+eax]
   mov   [edi+5], al
 
     {outptr^[3] := range_limit^[ int(DESCALE(tmp13 + tmp0,
-			CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
-  mov	eax, tmp13
+                        CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
+  mov   eax, tmp13
   add   eax, ROUND_CONST_2
   mov   ecx, tmp0
   lea   edx, [eax+ecx]
-  shr	edx, CONST_BITS+PASS1_BITS+3
-  and	edx, RANGE_MASK
-  mov	dl, BYTE PTR [ebx+edx]
+  shr   edx, CONST_BITS+PASS1_BITS+3
+  and   edx, RANGE_MASK
+  mov   dl, BYTE PTR [ebx+edx]
   mov   [edi+3], dl
 
     {outptr^[4] := range_limit^[ int(DESCALE(tmp13 - tmp0,
-			CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
-  sub	eax, ecx
-  shr	eax, CONST_BITS+PASS1_BITS+3
-  and	eax, RANGE_MASK
-  mov	al, BYTE PTR [ebx+eax]
+                        CONST_BITS+PASS1_BITS+3)) and RANGE_MASK];}
+  sub   eax, ecx
+  shr   eax, CONST_BITS+PASS1_BITS+3
+  and   eax, RANGE_MASK
+  mov   al, BYTE PTR [ebx+eax]
   mov   [edi+4], al
 
-    {Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
-  add	esi, wrkDCTSIZE
-  add	edi, DCTSIZE
+    {Inc(int_ptr(wsptr), DCTSIZE);      { advance pointer to next row }
+  add   esi, wrkDCTSIZE
+  add   edi, DCTSIZE
 
   {end;}
-  inc	ctr
-  cmp	ctr, DCTSIZE
-  jl	@loop523
+  inc   ctr
+  cmp   ctr, DCTSIZE
+  jl    @loop523
 
 @loop524:
 @loop496:

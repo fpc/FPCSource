@@ -184,33 +184,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.16  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.15  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.14.2.2  2004/05/03 20:18:52  peter
-    * fixes for tprintf
-
-  Revision 1.14.2.1  2004/04/27 18:18:26  peter
-    * aword -> aint
-
-  Revision 1.14  2004/03/02 17:32:12  florian
-    * make cycle fixed
-    + pic support for darwin
-    + support of importing vars from shared libs on darwin implemented
-
-  Revision 1.13  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
+  Revision 1.18  2005-02-14 17:13:07  peter
+    * truncate log
 
 }

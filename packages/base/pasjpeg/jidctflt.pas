@@ -41,15 +41,15 @@ uses
   jmorecfg,
   jinclude,
   jpeglib,
-  jdct;         	{ Private declarations for DCT subsystem }
+  jdct;                 { Private declarations for DCT subsystem }
 
 { Perform dequantization and inverse DCT on one block of coefficients. }
 
 {GLOBAL}
 procedure jpeg_idct_float (cinfo : j_decompress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           coef_block : JCOEFPTR;
-		           output_buf : JSAMPARRAY;
+                           coef_block : JCOEFPTR;
+                           output_buf : JSAMPARRAY;
                            output_col : JDIMENSION);
 
 implementation
@@ -94,8 +94,8 @@ end;
 {GLOBAL}
 procedure jpeg_idct_float (cinfo : j_decompress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           coef_block : JCOEFPTR;
-		           output_buf : JSAMPARRAY;
+                           coef_block : JCOEFPTR;
+                           output_buf : JSAMPARRAY;
                            output_col : JDIMENSION);
 type
   PWorkspace = ^TWorkspace;
@@ -156,7 +156,7 @@ begin
       wsptr^[DCTSIZE*6] := dcval;
       wsptr^[DCTSIZE*7] := dcval;
 
-      Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+      Inc(JCOEF_PTR(inptr));            { advance pointers to next column }
       Inc(FLOAT_MULT_TYPE_PTR(quantptr));
       Inc(FAST_FLOAT_PTR(wsptr));
       continue;
@@ -169,13 +169,13 @@ begin
     tmp2 := DEQUANTIZE(inptr^[DCTSIZE*4], quantptr^[DCTSIZE*4]);
     tmp3 := DEQUANTIZE(inptr^[DCTSIZE*6], quantptr^[DCTSIZE*6]);
 
-    tmp10 := tmp0 + tmp2;	{ phase 3 }
+    tmp10 := tmp0 + tmp2;       { phase 3 }
     tmp11 := tmp0 - tmp2;
 
-    tmp13 := tmp1 + tmp3;	{ phases 5-3 }
+    tmp13 := tmp1 + tmp3;       { phases 5-3 }
     tmp12 := (tmp1 - tmp3) * ({FAST_FLOAT}(1.414213562)) - tmp13; { 2*c4 }
 
-    tmp0 := tmp10 + tmp13;	{ phase 2 }
+    tmp0 := tmp10 + tmp13;      { phase 2 }
     tmp3 := tmp10 - tmp13;
     tmp1 := tmp11 + tmp12;
     tmp2 := tmp11 - tmp12;
@@ -187,19 +187,19 @@ begin
     tmp6 := DEQUANTIZE(inptr^[DCTSIZE*5], quantptr^[DCTSIZE*5]);
     tmp7 := DEQUANTIZE(inptr^[DCTSIZE*7], quantptr^[DCTSIZE*7]);
 
-    z13 := tmp6 + tmp5;		{ phase 6 }
+    z13 := tmp6 + tmp5;         { phase 6 }
     z10 := tmp6 - tmp5;
     z11 := tmp4 + tmp7;
     z12 := tmp4 - tmp7;
 
-    tmp7 := z11 + z13;		{ phase 5 }
+    tmp7 := z11 + z13;          { phase 5 }
     tmp11 := (z11 - z13) * ({FAST_FLOAT}(1.414213562)); { 2*c4 }
 
     z5 := (z10 + z12) * ({FAST_FLOAT}(1.847759065)); { 2*c2 }
     tmp10 := ({FAST_FLOAT}(1.082392200)) * z12 - z5; { 2*(c2-c6) }
     tmp12 := ({FAST_FLOAT}(-2.613125930)) * z10 + z5; { -2*(c2+c6) }
 
-    tmp6 := tmp12 - tmp7;	{ phase 2 }
+    tmp6 := tmp12 - tmp7;       { phase 2 }
     tmp5 := tmp11 - tmp6;
     tmp4 := tmp10 + tmp5;
 
@@ -212,7 +212,7 @@ begin
     wsptr^[DCTSIZE*4] := tmp3 + tmp4;
     wsptr^[DCTSIZE*3] := tmp3 - tmp4;
 
-    Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+    Inc(JCOEF_PTR(inptr));              { advance pointers to next column }
     Inc(FLOAT_MULT_TYPE_PTR(quantptr));
     Inc(FAST_FLOAT_PTR(wsptr));
   end;
@@ -263,23 +263,23 @@ begin
     { Final output stage: scale down by a factor of 8 and range-limit }
 
     outptr^[0] := range_limit^[ int(DESCALE( INT32(Round((tmp0 + tmp7))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[7] := range_limit^[ int(DESCALE( INT32(Round((tmp0 - tmp7))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[1] := range_limit^[ int(DESCALE( INT32(Round((tmp1 + tmp6))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[6] := range_limit^[ int(DESCALE( INT32(Round((tmp1 - tmp6))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[2] := range_limit^[ int(DESCALE( INT32(Round((tmp2 + tmp5))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[5] := range_limit^[ int(DESCALE( INT32(Round((tmp2 - tmp5))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[4] := range_limit^[ int(DESCALE( INT32(Round((tmp3 + tmp4))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[3] := range_limit^[ int(DESCALE( INT32(Round((tmp3 - tmp4))), 3))
-			    and RANGE_MASK];
+                            and RANGE_MASK];
 
-    Inc(FAST_FLOAT_PTR(wsptr), DCTSIZE);	{ advance pointer to next row }
+    Inc(FAST_FLOAT_PTR(wsptr), DCTSIZE);        { advance pointer to next row }
   end;
 end;
 

@@ -139,9 +139,7 @@ interface
 end.
 {
   $Log$
-  Revision 1.2  2004-04-27 13:54:10  florian
-    * fixed using new reg. tables
+  Revision 1.3  2005-02-14 17:13:10  peter
+    * truncate log
 
-  Revision 1.1  2004/04/27 05:43:42  florian
-    * initial revision
 }

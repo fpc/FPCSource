@@ -21,4 +21,4 @@ function fnmatch(__pattern:Pchar; __name:Pchar; __flags:longint):longint;cdecl;e
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

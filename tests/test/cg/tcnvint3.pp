@@ -415,16 +415,7 @@ end.
 {
 
  $Log$
- Revision 1.4  2002-09-08 20:27:37  jonas
-   * getu32bit() now has a longword result instead of a longint
-
- Revision 1.3  2002/09/07 15:40:55  peter
-   * old logs removed and tabs fixed
-
- Revision 1.2  2002/05/13 13:45:38  peter
-   * updated to compile tests with kylix
-
- Revision 1.1  2002/03/18 20:20:13  carl
- + int_int type conversion tests
+ Revision 1.5  2005-02-14 17:13:37  peter
+   * truncate log
 
 }

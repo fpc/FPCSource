@@ -72,13 +72,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2004-10-13 21:12:51  peter
-    * -Or fixes for open array
-
-  Revision 1.43  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.42  2004/01/12 16:39:40  peter
-    * sparc updates, mostly float related
+  Revision 1.45  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

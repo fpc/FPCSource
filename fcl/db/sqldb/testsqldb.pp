@@ -5,7 +5,7 @@ program testsqldb;
   Usage:
   remove the defines for the databases whose clients aren't installed, or
   the linking will fail.
-  
+
   The following parameters are used, in given order:
 
     parameter1 = databasetype (mysql,interbase,postgresql - case sensitive)
@@ -13,10 +13,10 @@ program testsqldb;
     parameter3 = tablename
     parameter4 = username, optional
     parameter5 = password, optional
-    
+
   This example will only display the data for each record in the given table.
   Examples:
-  
+
   ./testsqldb postgresql testdb fpdev
   ./testsqldb interbase /home/firebird/dbtest.fdb fpdev sysdba 123456
 }
@@ -57,10 +57,10 @@ begin
   connection.UserName := paramstr(4);
   connection.Password := paramstr(5);
   connection.open;
-  
+
   transaction := tsqltransaction.create(nil);
   transaction.database := connection;
-  
+
   query := tsqlquery.Create(nil);
   query.DataBase := connection;
   query.transaction := transaction;
@@ -69,7 +69,7 @@ begin
       SQL.clear;
       sql.add('select * from ' + paramstr(3));
       open;
-  
+
       while not eof do
         begin
         for tel := 0 to query.FieldCount -1 do

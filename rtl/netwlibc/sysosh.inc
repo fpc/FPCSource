@@ -18,7 +18,7 @@
 
 type
    THandle = DWord;
-   
+
    PRTLCriticalSection = ^TRTLCriticalSection;
    TRTLCriticalSection = packed record
         mutex : pointer;
@@ -27,7 +27,10 @@ type
 
 {
    $Log$
-   Revision 1.1  2005-02-06 16:57:18  peter
+   Revision 1.2  2005-02-14 17:13:30  peter
+     * truncate log
+
+   Revision 1.1  2005/02/06 16:57:18  peter
      * threads for go32v2,os,emx,netware
 
    Revision 1.1  2005/02/06 13:06:20  peter

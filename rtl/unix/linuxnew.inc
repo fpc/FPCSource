@@ -147,20 +147,7 @@ end.
 
 {
    $Log$
-   Revision 1.5  2004-05-01 16:35:13  peter
-     * ptrint
-
-   Revision 1.4  2003/12/30 12:24:01  marco
-    * FPC_USE_LIBC
-
-   Revision 1.3  2003/11/17 11:28:08  marco
-    * Clone moved to linux, + few small unit unix changes
-
-   Revision 1.2  2003/09/15 20:08:49  marco
-    * small fixes. FreeBSD now cycles
-
-   Revision 1.1  2003/09/15 14:12:17  marco
-    * moved linux.pp contents to linuxold etc
-
+   Revision 1.6  2005-02-14 17:13:31  peter
+     * truncate log
 
 }

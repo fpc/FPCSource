@@ -413,28 +413,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2004-11-15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.28  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.27  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.26  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.25  2004/02/08 23:10:21  jonas
-    * taicpu.is_same_reg_move() now gets a regtype parameter so it only
-      removes moves of that particular register type. This is necessary so
-      we don't remove the live_start instruction of a register before it
-      has been processed
-
-  Revision 1.24  2004/02/08 20:15:42  jonas
-    - removed taicpu.is_reg_move because it's not used anymore
-    + support tracking fpu register moves by rgobj for the ppc
+  Revision 1.30  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

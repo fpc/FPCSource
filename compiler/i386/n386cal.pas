@@ -96,24 +96,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.102  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.101  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.100  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.99.2.1  2004/05/02 12:45:32  peter
-    * enabled cpuhasfixedstack for x86-64 again
-    * fixed size of temp allocation for parameters
+  Revision 1.104  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

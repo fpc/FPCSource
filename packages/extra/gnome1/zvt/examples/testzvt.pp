@@ -3,7 +3,7 @@
 
    TestZVT - An FPC Example Program demonstrating the most common use
              of ZVTTerm in a GNOME application.
-             
+
    Copyright (C) 2002 Andrew Johnson <aj_genius@hotmail.com>
 
    This program is free software; you can redistribute it and/or
@@ -29,13 +29,13 @@ Program TestZVT;
 
 Uses
   SysUtils,
-  
+
   { Linux/UNIX Unit, for execvp }
   {$IfDef ver1_0}linux{$Else}Unix{$EndIF},
 
   { Standard GTK+ 1.x Interface }
   glib, gdk, gtk,
-  
+
   { Standard GNOME 1.x Interface }
   libgnome, libgnomeui,
 
@@ -46,11 +46,11 @@ const
   (* what to execvp in terminal widget *)
   {$Ifdef exec_mc}
     Command : PChar = 'mc';
-    Params : array[0..1] of PChar = ('TERM=xterm', nil); 
+    Params : array[0..1] of PChar = ('TERM=xterm', nil);
   {$else}
     Command : PChar = 'sh';
-    Params : array[0..0] of PChar = (nil); 
-  {$EndIf}  
+    Params : array[0..0] of PChar = (nil);
+  {$EndIf}
   Terminals : Longint = 0;//# of terminals currently open
 
   (* Program Information for GNOME & About Box *)
@@ -70,7 +70,7 @@ begin
   (* Quite Main Loop *)
   gtk_main_quit;
 end;
-  
+
 Procedure exit_terminal(Widget : PGTKWidget; Data : Pointer); cdecl;
 begin
   (* Destroy terminal on process exit, and quit if only terminal open *)
@@ -92,7 +92,7 @@ end;
 
 Procedure about_testzvt(Widget : PGTKWidget; Data : Pointer); cdecl;
 var
-  AboutBox : Pointer;  
+  AboutBox : Pointer;
 begin
   (* Create and Run an About Box *)
   AboutBox := gnome_about_new(gnome_app_id, ProgramVersion, Copyright,
@@ -106,7 +106,7 @@ begin
   (* fork terminal process, and Exec Command *)
   If zvt_term_forkpty(ZVT_TERM(Widget), ZVT_TERM_DO_UTMP_LOG or ZVT_TERM_DO_WTMP_LOG or ZVT_TERM_DO_LASTLOG) = 0 then
     execvp (Command, @Command, @Params[0]);
-    
+
   (* close app when fork'ed terminal process finishes/dies *)
   gtk_signal_connect (GTK_OBJECT(Widget), 'child_died', GTK_SIGNAL_FUNC (@exit_terminal), Data);
 end;
@@ -138,7 +138,7 @@ begin
   gtk_box_pack_start(hBox, term, TRUE, TRUE, 0);
   gtk_box_pack_start(hBox, sb, FALSE, TRUE, 0);
   gtk_object_set_data(hbox, 'caption', Pchar('Terminal #' + IntToStr(Terminals)));
-  gtk_widget_show_all(hBox);  
+  gtk_widget_show_all(hBox);
   NewTerminalView := hBox;
   Inc(Terminals);
 end;
@@ -196,7 +196,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-10-17 14:15:50  peter
-    * zvt conversion by Andrew Johnson
+  Revision 1.2  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

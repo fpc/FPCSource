@@ -1,6 +1,6 @@
 uses
   initc;
-  
+
 const
   { Net type }
   socklib = 'c';

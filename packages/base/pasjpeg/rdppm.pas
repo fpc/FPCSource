@@ -95,8 +95,8 @@ type
   ppm_source_struct = record
     pub : cjpeg_source_struct; { public fields }
 
-    iobuffer : U_CHARptr;		{ non-FAR pointer to I/O buffer }
-    pixrow : JSAMPROW;	                { FAR pointer to same }
+    iobuffer : U_CHARptr;               { non-FAR pointer to I/O buffer }
+    pixrow : JSAMPROW;                  { FAR pointer to same }
     buffer_width : size_t;              { width of I/O buffer }
     rescale : JSAMPROW;                 { => maxval-remapping array, or NIL }
   end;
@@ -402,10 +402,10 @@ begin
 
   { detect unsupported variants (ie, PBM) before trying to read header }
   case (c) of
-  '2',			{ it's a text-format PGM file }
-  '3',			{ it's a text-format PPM file }
-  '5',			{ it's a raw-format PGM file }
-  '6':;			{ it's a raw-format PPM file }
+  '2',                  { it's a text-format PGM file }
+  '3',                  { it's a text-format PPM file }
+  '5',                  { it's a raw-format PGM file }
+  '6':;                 { it's a raw-format PPM file }
   else
     ERREXIT(j_common_ptr(cinfo), JERR_PPM_NOT);
   end;
@@ -423,12 +423,12 @@ begin
   cinfo^.image_height := JDIMENSION (h);
 
   { initialize flags to most common settings }
-  need_iobuffer := TRUE;		{ do we need an I/O buffer? }
-  use_raw_buffer := FALSE;	{ do we map input buffer onto I/O buffer? }
-  need_rescale := TRUE;		{ do we need a rescale array? }
+  need_iobuffer := TRUE;                { do we need an I/O buffer? }
+  use_raw_buffer := FALSE;      { do we map input buffer onto I/O buffer? }
+  need_rescale := TRUE;         { do we need a rescale array? }
 
   case (c) of
-  '2':			{ it's a text-format PGM file }
+  '2':                  { it's a text-format PGM file }
     begin
       cinfo^.input_components := 1;
       cinfo^.in_color_space := JCS_GRAYSCALE;
@@ -439,7 +439,7 @@ begin
       need_iobuffer := FALSE;
     end;
 
-  '3':			{ it's a text-format PPM file }
+  '3':                  { it's a text-format PPM file }
     begin
       cinfo^.input_components := 3;
       cinfo^.in_color_space := JCS_RGB;
@@ -450,7 +450,7 @@ begin
       need_iobuffer := FALSE;
     end;
 
-  '5':			{ it's a raw-format PGM file }
+  '5':                  { it's a raw-format PGM file }
     begin
       cinfo^.input_components := 1;
       cinfo^.in_color_space := JCS_GRAYSCALE;
@@ -472,7 +472,7 @@ begin
         end;
     end;
 
-  '6':			{ it's a raw-format PPM file }
+  '6':                  { it's a raw-format PPM file }
     begin
       cinfo^.input_components := 3;
       cinfo^.in_color_space := JCS_RGB;
@@ -509,7 +509,7 @@ begin
 
     source^.iobuffer := U_CHARptr (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  source^.buffer_width) );
+                                  source^.buffer_width) );
   end;
 
   { Create compressor input buffer. }
@@ -537,7 +537,7 @@ begin
     { On 16-bit-int machines we have to be careful of maxval := 65535 }
     source^.rescale := JSAMPROW (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-			  size_t ((long(maxval) + long(1)) * SIZEOF(JSAMPLE))) );
+                          size_t ((long(maxval) + long(1)) * SIZEOF(JSAMPLE))) );
     half_maxval := maxval div 2;
     for val := 0 to INT32(maxval) do
     begin
@@ -568,7 +568,7 @@ begin
   { Create module interface object }
   source := ppm_source_ptr (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(ppm_source_struct)) );
+                                  SIZEOF(ppm_source_struct)) );
   { Fill in method ptrs, except get_pixel_rows which start_input sets }
   source^.pub.start_input := start_input_ppm;
   source^.pub.finish_input := finish_input_ppm;

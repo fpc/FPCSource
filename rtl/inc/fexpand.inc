@@ -578,31 +578,7 @@ end;
 
 {
   $Log$
-  Revision 1.17  2004-11-21 14:45:17  hajny
-    + MacOS support
-
-  Revision 1.16  2004/05/29 18:25:21  hajny
-    * description of individual conditional defines added
-
-  Revision 1.15  2002/12/07 16:26:39  hajny
-    * '//' behaviour for Amiga corrected
-
-  Revision 1.14  2002/12/01 20:46:44  hajny
-    * Amiga support hopefully finished
-
-  Revision 1.13  2002/11/25 21:03:57  hajny
-    * Amiga fixes (among others)
-
-  Revision 1.12  2002/11/24 15:49:22  hajny
-    * make use of constants available in the system unit
-
-  Revision 1.11  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.10  2002/05/14 19:25:24  hajny
-    * fix for bug 1964 merged
-
-  Revision 1.9  2002/03/03 15:19:36  carl
-  * fixes unix conversion of slashes
+  Revision 1.18  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

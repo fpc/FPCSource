@@ -360,16 +360,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  2005-02-07 17:28:09  peter
+  Revision 1.7  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.6  2005/02/07 17:28:09  peter
   moved $calling to interface
-
-  Revision 1.5  2003/10/03 21:46:25  peter
-    * stdcall fixes
-
-  Revision 1.4  2002/09/07 21:30:00  carl
-    - removed mousecheck define
-
-  Revision 1.3  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
 
 }

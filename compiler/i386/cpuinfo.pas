@@ -97,32 +97,7 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.27  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.26  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.25  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.24  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.23.2.2  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.23.2.1  2004/04/26 21:00:37  peter
-    * AInt fixed, PAInt added
-
-  Revision 1.23  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
+  Revision 1.28  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

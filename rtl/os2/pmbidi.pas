@@ -595,10 +595,7 @@ end.
 
 {
 $Log$
-Revision 1.2  2003-06-26 17:20:04  yuri
-* Misstyping fixed
-
-Revision 1.1  2003/06/26 17:11:23  yuri
-* Initial import
+Revision 1.3  2005-02-14 17:13:31  peter
+  * truncate log
 
 }

@@ -16,6 +16,7 @@
 
 {
   $Log$
-  Revision 1.1  2003-04-30 22:11:06  florian
-    + for a lot of x86-64 dependend files mostly dummies added
+  Revision 1.2  2005-02-14 17:13:32  peter
+    * truncate log
+
 }

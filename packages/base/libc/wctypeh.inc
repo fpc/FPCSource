@@ -51,4 +51,4 @@ function __towctrans_l(__wc:wint_t; __desc:wctrans_t; __locale:__locale_t):wint_
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

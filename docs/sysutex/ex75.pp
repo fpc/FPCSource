@@ -8,7 +8,7 @@ Procedure Testit (S : String);
 
 begin
   Write ('"',S,'" is ');
-  If not IsVAlidIdent(S) then 
+  If not IsVAlidIdent(S) then
     Write('NOT ');
   Writeln ('a valid identifier');
 end;

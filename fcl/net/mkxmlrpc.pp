@@ -100,13 +100,13 @@ function TParserEngine.FindElement(const AName: String): TPasElement;
       begin
         Found := False;
         for j := 0 to UsedModules.Count - 1 do
-	  if CompareText(TPasModule(UsedModules[j]).Name, AModule.Name) = 0 then
-	  begin
-	    Found := True;
-	    break;
-	  end;
-	if not Found then
-	  UsedModules.Add(AModule);
+          if CompareText(TPasModule(UsedModules[j]).Name, AModule.Name) = 0 then
+          begin
+            Found := True;
+            break;
+          end;
+        if not Found then
+          UsedModules.Add(AModule);
         exit;
       end;
     end;
@@ -131,12 +131,12 @@ begin
       for i := CurModule.InterfaceSection.UsesList.Count - 1 downto 0 do
       begin
         Module := TPasElement(CurModule.InterfaceSection.UsesList[i]);
-	if Module.ClassType = TPasModule then
-	begin
+        if Module.ClassType = TPasModule then
+        begin
           Result := FindInModule(TPasModule(Module), AName);
-	  if Assigned(Result) then
-	    exit;
-	end;
+          if Assigned(Result) then
+            exit;
+        end;
       end;
   {end;}
 end;
@@ -230,7 +230,7 @@ type
       Result := TPasProperty(TPasClassType(AArrayProp.Parent).Members[i]);
       if (Result.ClassType = TPasProperty) and (Result.Visibility = visPublic)
         and (CompareStr(Result.Name, Name) = 0) then
-	exit;
+        exit;
     end;
 
     Name := AArrayProp.Name + 'Count';
@@ -239,7 +239,7 @@ type
       Result := TPasProperty(TPasClassType(AArrayProp.Parent).Members[i]);
       if (Result.ClassType = TPasProperty) and (Result.Visibility = visPublic)
         and (CompareStr(Result.Name, Name) = 0) then
-	exit;
+        exit;
     end;
     Result := nil;
   end;
@@ -259,9 +259,9 @@ type
       if Assigned(ArraySizeProp) then
       begin
         Result.ConverterName := MakeArrayConverter(TPasProperty(Element),
-	  ArraySizeProp, ProcImpl, Referrer).Name;
-	Result.ArgIsParent := True;
-	exit;
+          ArraySizeProp, ProcImpl, Referrer).Name;
+        Result.ArgIsParent := True;
+        exit;
       end else
         Element := TPasProperty(Element).VarType;
     end;
@@ -271,15 +271,15 @@ type
       s := UpperCase(Element.Name);
       if (s = 'BYTE') or (s = 'SHORTINT') or (S = 'SMALLINT') or
         (s = 'INTEGER') or (s = 'LONGINT') or (s = 'CARDINAL') or
-	(s = 'INT64') or (s = 'QUADWORD') then
-	Result.ConverterName := 'AWriter.CreateIntValue'
+        (s = 'INT64') or (s = 'QUADWORD') then
+        Result.ConverterName := 'AWriter.CreateIntValue'
       else if (s = 'BOOLEAN') or (s = 'WORDBOOL') or (s = 'LONGBOOL') then
         Result.ConverterName := 'AWriter.CreateBooleanValue'
       else if s = 'STRING' then
         Result.ConverterName := 'AWriter.CreateStringValue'
       else if (s = 'FLOAT') or (s = 'SINGLE') or (s = 'DOUBLE') or
         (s = 'EXTENDED') then
-	Result.ConverterName := 'AWriter.CreateDoubleValue'
+        Result.ConverterName := 'AWriter.CreateDoubleValue'
       else if s = 'TDATETIME' then
         Result.ConverterName := 'AWriter.CreateDateTimeValue';
     end else if Element.ClassType = TPasClassType then
@@ -326,15 +326,15 @@ type
       s := UpperCase(PasType.Name);
       if (s = 'BYTE') or (s = 'SHORTINT') or (S = 'SMALLINT') or
         (s = 'INTEGER') or (s = 'LONGINT') or (s = 'CARDINAL') or
-	(s = 'INT64') or (s = 'QUADWORD') then
-	Result := 'Int'
+        (s = 'INT64') or (s = 'QUADWORD') then
+        Result := 'Int'
       else if (s = 'BOOLEAN') or (s = 'WORDBOOL') or (s = 'LONGBOOL') then
         Result := 'Boolean'
       else if s = 'STRING' then
         Result := 'String'
       else if (s = 'FLOAT') or (s = 'SINGLE') or (s = 'DOUBLE') or
         (s = 'EXTENDED') then
-	Result := 'Double'
+        Result := 'Double'
       else if s = 'TDATETIME' then
         Result := 'DateTime';
     end;
@@ -354,15 +354,15 @@ type
       if Result.Name = ProcName then
       begin
         j := Method.Locals.IndexOf(Referrer);
-	if (j >= 0) and (i >= j) then
-	begin
-	  // Move existing converter to the top and exit
-	  Method.Locals.Delete(i);
-	  j := Method.Locals.IndexOf(ProcImpl);
-	  if j < 0 then
-	    j := 0;
-	  Method.Locals.Insert(j, Result);
-	end;
+        if (j >= 0) and (i >= j) then
+        begin
+          // Move existing converter to the top and exit
+          Method.Locals.Delete(i);
+          j := Method.Locals.IndexOf(ProcImpl);
+          if j < 0 then
+            j := 0;
+          Method.Locals.Insert(j, Result);
+        end;
         exit;
       end;
     end;
@@ -404,13 +404,13 @@ type
       if LocalMember.ClassType = TPasProperty then
       begin
         ConversionInfo := GetConversionInfo(LocalMember, Result);
-	if ConversionInfo.ArgIsParent then
-	  s := 'Inst'
-	else
-	  s := 'Inst.' + LocalMember.Name;
-	s := 'AWriter.AddStructMember(Result, ''' + LocalMember.Name + ''', ' +
-	  MakeAccessor(ConversionInfo, s, '') + ')';
-	Commands.Commands.Add(s);
+        if ConversionInfo.ArgIsParent then
+          s := 'Inst'
+        else
+          s := 'Inst.' + LocalMember.Name;
+        s := 'AWriter.AddStructMember(Result, ''' + LocalMember.Name + ''', ' +
+          MakeAccessor(ConversionInfo, s, '') + ')';
+        Commands.Commands.Add(s);
       end;
     end;
   end;
@@ -519,8 +519,8 @@ var
         for i := 0 to Args.Count - 1 do
         begin
           if i > 0 then
-	    Result := Result + ', ';
-	  Result := Result + 'AParser.GetPrev' + GetParseValueFnName(TPasType(Args[i]));
+            Result := Result + ', ';
+          Result := Result + 'AParser.GetPrev' + GetParseValueFnName(TPasType(Args[i]));
         end;
         Result := Result + ')';
       end;
@@ -548,7 +548,7 @@ var
         MakeProcArgs(TPasProcedure(Member).ProcType.Args);
       Commands.Commands.Add('AWriter.WriteResponse(' +
         MakeAccessor(GetConversionInfo(TPasFunctionType(TPasFunction(Member).
-	  ProcType).ResultEl.ResultType, ProcImpl), s, '') + ')');
+          ProcType).ResultEl.ResultType, ProcImpl), s, '') + ')');
     end;
   end;
 
@@ -570,11 +570,11 @@ var
       IsStruct := Member.VarType.ClassType = TPasClassType;
 
       if IsStruct then
-	s := CreateDispatcher(TPasClassType(Member.VarType), ProcImpl).Name +
-	  '(' + MethodPrefix + Member.Name;
+        s := CreateDispatcher(TPasClassType(Member.VarType), ProcImpl).Name +
+          '(' + MethodPrefix + Member.Name;
 
       if NestingLevel = 0 then
-	s2 := '1'
+        s2 := '1'
       else
         s2 := 'Level + 1';
 
@@ -587,57 +587,57 @@ var
 
       if IsStruct then
         if IsArray then
-	begin
-	  LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
-	  TPasImplCommand(LocalIfElse.IfBranch).Command :=
-	    'AWriter.WriteResponse(' +
-	    MakeAccessor(GetConversionInfo(Member, ProcImpl),
-	      Copy(MethodPrefix, 1, Length(MethodPrefix) - 1), '') + ')';
+        begin
+          LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
+          TPasImplCommand(LocalIfElse.IfBranch).Command :=
+            'AWriter.WriteResponse(' +
+            MakeAccessor(GetConversionInfo(Member, ProcImpl),
+              Copy(MethodPrefix, 1, Length(MethodPrefix) - 1), '') + ')';
 
-	  LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
-	  TPasImplCommand(LocalIfElse.ElseBranch).Command :=
-	    s + '[AParser.GetNext' +
-	    GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType) + '], ' +
-	    s2 + ')';
-	end else
+          LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
+          TPasImplCommand(LocalIfElse.ElseBranch).Command :=
+            s + '[AParser.GetNext' +
+            GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType) + '], ' +
+            s2 + ')';
+        end else
         begin
           if Member.Args.Count = 0 then
-	  begin
-	    LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
-	    TPasImplCommand(LocalIfElse.IfBranch).Command :=
-	       'AWriter.WriteResponse(' +
-	       MakeAccessor(GetConversionInfo(Member, ProcImpl),
-	         MethodPrefix + Member.Name, '') + ')';
-	    LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
-	    TPasImplCommand(LocalIfElse.ElseBranch).Command := s + ', ' + s2 + ')';
-	  end else
-	  begin
+          begin
+            LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
+            TPasImplCommand(LocalIfElse.IfBranch).Command :=
+               'AWriter.WriteResponse(' +
+               MakeAccessor(GetConversionInfo(Member, ProcImpl),
+                 MethodPrefix + Member.Name, '') + ')';
+            LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
+            TPasImplCommand(LocalIfElse.ElseBranch).Command := s + ', ' + s2 + ')';
+          end else
+          begin
             IfElse.IfBranch := TPasImplCommand.Create('', IfElse);
             TPasImplCommand(IfElse.IfBranch).Command := s + '[AParser.GetNext' +
-	    GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType) + '], ' +
-	    s2 + ')';
-	  end;
+            GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType) + '], ' +
+            s2 + ')';
+          end;
         end
       else if IsArray then
       begin
-	LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
-	TPasImplCommand(LocalIfElse.IfBranch).Command :=
-	   'AWriter.WriteResponse(' +
-	   MakeAccessor(GetConversionInfo(Member, ProcImpl),
-	     Copy(MethodPrefix, 1, Length(MethodPrefix) - 1), '') + ')';
+        LocalIfElse.IfBranch := TPasImplCommand.Create('', LocalIfElse);
+        TPasImplCommand(LocalIfElse.IfBranch).Command :=
+           'AWriter.WriteResponse(' +
+           MakeAccessor(GetConversionInfo(Member, ProcImpl),
+             Copy(MethodPrefix, 1, Length(MethodPrefix) - 1), '') + ')';
 
-	LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
-	TPasImplCommand(LocalIfElse.ElseBranch).Command :=
-	  'AWriter.WriteResponse(' +
+        LocalIfElse.ElseBranch := TPasImplCommand.Create('', LocalIfElse);
+        TPasImplCommand(LocalIfElse.ElseBranch).Command :=
+          'AWriter.WriteResponse(' +
           MakeAccessor(GetConversionInfo(Member.VarType, ProcImpl),
-	    MethodPrefix + Member.Name, 'AParser.GetNext' +
-	    GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType)) + ')';
+            MethodPrefix + Member.Name, 'AParser.GetNext' +
+            GetParseValueFnName(TPasArgument(Member.Args[0]).ArgType)) + ')';
       end else
       begin
         IfElse.IfBranch := TPasImplCommand.Create('', IfElse);
         TPasImplCommand(IfElse.IfBranch).Command := 'AWriter.WriteResponse(' +
           MakeAccessor(GetConversionInfo(Member.VarType, ProcImpl),
-	    MethodPrefix + Member.Name, '') + ')';
+            MethodPrefix + Member.Name, '') + ')';
       end;
     end;
 
@@ -721,49 +721,49 @@ begin
     for i := 0 to RPCList.ServerClasses.Count - 1 do
       with TServerClass(RPCList.ServerClasses[i]) do
       begin
-	ServerClass := TPasClassType.Create('T' + ImplName + 'XMLRPCServlet',
-	  InterfaceSection);
+        ServerClass := TPasClassType.Create('T' + ImplName + 'XMLRPCServlet',
+          InterfaceSection);
         InterfaceSection.Declarations.Add(ServerClass);
-	ServerClass.ObjKind := okClass;
-	ServerClass.AncestorType :=
-	  TPasUnresolvedTypeRef.Create('TXMLRPCServlet', ServerClass);
+        ServerClass.ObjKind := okClass;
+        ServerClass.AncestorType :=
+          TPasUnresolvedTypeRef.Create('TXMLRPCServlet', ServerClass);
 
-	// Create private field which holds the implementation instance
-	VarMember := TPasVariable.Create('F' + ImplName, ServerClass);
-	VarMember.Visibility := visPrivate;
-	VarMember.VarType := TPasUnresolvedTypeRef.Create(Element.Name, VarMember);
-	ServerClass.Members.Add(VarMember);
+        // Create private field which holds the implementation instance
+        VarMember := TPasVariable.Create('F' + ImplName, ServerClass);
+        VarMember.Visibility := visPrivate;
+        VarMember.VarType := TPasUnresolvedTypeRef.Create(Element.Name, VarMember);
+        ServerClass.Members.Add(VarMember);
 
-	// Create dispatcher method
+        // Create dispatcher method
         ProcMember := TPasProcedure.Create('Dispatch', ServerClass);
-	ProcMember.Visibility := visProtected;
-	ProcMember.IsOverride := True;
-	ProcMember.ProcType := TPasProcedureType.Create('', ProcMember);
-	ProcMember.ProcType.CreateArgument('AParser', 'TXMLRPCParser').
-	  Visibility := visPublic;
-	ProcMember.ProcType.CreateArgument('AWriter', 'TXMLRPCWriter').
-	  Visibility := visPublic;
-	ProcMember.ProcType.CreateArgument('APath', 'TStrings').
-	  Visibility := visPublic;
-	ServerClass.Members.Add(ProcMember);
+        ProcMember.Visibility := visProtected;
+        ProcMember.IsOverride := True;
+        ProcMember.ProcType := TPasProcedureType.Create('', ProcMember);
+        ProcMember.ProcType.CreateArgument('AParser', 'TXMLRPCParser').
+          Visibility := visPublic;
+        ProcMember.ProcType.CreateArgument('AWriter', 'TXMLRPCWriter').
+          Visibility := visPublic;
+        ProcMember.ProcType.CreateArgument('APath', 'TStrings').
+          Visibility := visPublic;
+        ServerClass.Members.Add(ProcMember);
 
-	// Create published property for implementation instance
-	PropertyMember := TPasProperty.Create(ImplName, ServerClass);
-	PropertyMember.Visibility := visPublished;
-	PropertyMember.VarType := VarMember.VarType;
-	VarMember.VarType.AddRef;
-	PropertyMember.ReadAccessorName := 'F' + ImplName;
-	PropertyMember.WriteAccessorName := 'F' + ImplName;
-	ServerClass.Members.Add(PropertyMember);
+        // Create published property for implementation instance
+        PropertyMember := TPasProperty.Create(ImplName, ServerClass);
+        PropertyMember.Visibility := visPublished;
+        PropertyMember.VarType := VarMember.VarType;
+        VarMember.VarType.AddRef;
+        PropertyMember.ReadAccessorName := 'F' + ImplName;
+        PropertyMember.WriteAccessorName := 'F' + ImplName;
+        ServerClass.Members.Add(PropertyMember);
 
-	// Create dispatcher implementation
+        // Create dispatcher implementation
         ProcImpl := TPasProcedureImpl.Create('Dispatch', ServerClass);
         ImplementationSection.Declarations.Add(ProcImpl);
-	ProcImpl.ProcType := ProcMember.ProcType;
-	ProcMember.ProcType.AddRef;
+        ProcImpl.ProcType := ProcMember.ProcType;
+        ProcMember.ProcType.AddRef;
         ProcImpl.ProcType.AddRef;
         WriteClassServerSource(Element, ImplementationSection, ProcImpl,
-	  ProcImpl, ImplName + '.', 0);
+          ProcImpl, ImplName + '.', 0);
       end;
 
     for i := 0 to Engine.UsedModules.Count - 1 do
@@ -771,11 +771,11 @@ begin
       Found := False;
       for j := 0 to RPCList.UsedModules.Count - 1 do
         if CompareText(RPCList.UsedModules[j],
-	  TPasModule(Engine.UsedModules[i]).Name) = 0 then
-	begin
-	  Found := True;
-	  break;
-	end;
+          TPasModule(Engine.UsedModules[i]).Name) = 0 then
+        begin
+          Found := True;
+          break;
+        end;
       if not Found then
         ImplementationSection.AddUnitToUsesList(
           TPasModule(Engine.UsedModules[i]).Name);
@@ -854,7 +854,7 @@ begin
       RPCList := TRPCList.Create;
       try
         for i := 0 to ClassList.Count - 1 do
-	  RPCList.AddServerClass(ClassList[i]);
+          RPCList.AddServerClass(ClassList[i]);
         WriteFPCServerSource;
       finally
         RPCList.Free;
@@ -871,24 +871,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-02-02 16:53:07  sg
-  * Small fix in GetConversionInfo (result was not fully cleared)
-
-  Revision 1.4  2003/11/22 12:08:32  sg
-  * Better error reporting with line numbers
-  * Array properties: The size property now can just match the name of the
-    array property as well; so it now also works without a plural "s" after
-    the base name
-  * Added support for TDateTime parameters and results
-
-  Revision 1.3  2003/06/25 08:56:26  sg
-  * Added support for reading set properties
-
-  Revision 1.2  2003/06/12 19:00:53  michael
-  * Supports usage of declarations from other units (as long as mkxmlrpc
-     parsed these units due to a --input=unitname command)
-
-  Revision 1.1  2003/04/26 16:42:10  sg
-  * Added mkxmlrpc
+  Revision 1.6  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

@@ -23,11 +23,11 @@
 {$ifdef SUPPORT_DOUBLE}
     function c_trunc(d: double): double; cdecl; external 'c' name 'trunc';
 
-  {$ifdef INTERNCONSTINTF}    
+  {$ifdef INTERNCONSTINTF}
     function fpc_int_real(d: double): double;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}  
+  {$else}
     function int(d: double): double; {$ifdef MATHINLINE}inline;{$endif}[internconst:fpc_in_const_int];
-  {$endif}  
+  {$endif}
     begin
       result := c_trunc(d);
     end;
@@ -36,10 +36,10 @@
 {$else SUPPORT_DOUBLE}
 
     function c_truncf(d: real): double; cdecl; external 'c' name 'truncf';
-    
-  {$ifdef INTERNCONSTINTF}    
+
+  {$ifdef INTERNCONSTINTF}
     function fpc_int_real(d: real): real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}  
+  {$else}
     function int(d: real) : real;[internconst:fpc_in_const_int];
   {$endif}
       begin
@@ -84,12 +84,12 @@
 
   {$ifdef INTERNCONSTINTF}
     function fpc_sqrt_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}    
+  {$else}
     {$ifdef hascompilerproc}
     function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
     {$endif hascompilerproc}
     function sqrt(d:Real):Real;[internconst:fpc_in_const_sqrt];[public, alias: 'FPC_SQRT_REAL']; {$ifdef MATHINLINE}inline;{$endif}
-  {$endif}  
+  {$endif}
     begin
       result := c_sqrt(d);
     end;
@@ -103,9 +103,9 @@
 
   {$ifdef INTERNCONSTINTF}
     function fpc_Exp_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}  
+  {$else}
     function Exp(d:Real):Real;[internconst:fpc_in_const_exp]; {$ifdef MATHINLINE}inline;{$endif}
-  {$endif}  
+  {$endif}
     begin
       result := c_exp(d);
     end;
@@ -144,9 +144,9 @@ Not supported on Mac OS X 10.1
 
   {$ifdef INTERNCONSTINTF}
     function fpc_Ln_real(d:Real):Real;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
-  {$else}  
+  {$else}
     function Ln(d:Real):Real;[internconst:fpc_in_const_ln];{$ifdef MATHINLINE}inline;{$endif}
-  {$endif}  
+  {$endif}
     begin
       result := c_log(d);
     end;
@@ -159,9 +159,9 @@ Not supported on Mac OS X 10.1
 
   {$ifdef INTERNCONSTINTF}
     function fpc_Sin_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}  
+  {$else}
     function Sin(d:Real):Real;[internconst:fpc_in_const_sin]; {$ifdef MATHINLINE}inline;{$endif}
-  {$endif}  
+  {$endif}
     begin
       result := c_sin(d);
     end;
@@ -175,9 +175,9 @@ Not supported on Mac OS X 10.1
 
   {$ifdef INTERNCONSTINTF}
     function fpc_Cos_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}  
+  {$else}
     function Cos(d:Real):Real;[internconst:fpc_in_const_cos];{$ifdef MATHINLINE}inline;{$endif}
-  {$endif}  
+  {$endif}
     begin
       result := c_cos(d);
     end;
@@ -191,9 +191,9 @@ Not supported on Mac OS X 10.1
 
   {$ifdef INTERNCONSTINTF}
     function fpc_ArcTan_real(d:Real):Real;compilerproc; {$ifdef MATHINLINE}inline;{$endif}
-  {$else}  
+  {$else}
     function ArcTan(d:Real):Real;[internconst:fpc_in_const_arctan];{$ifdef MATHINLINE}inline;{$endif}
-  {$endif}  
+  {$endif}
     begin
       result := c_atan(d);
     end;
@@ -203,26 +203,7 @@ Not supported on Mac OS X 10.1
 
 {
   $Log$
-  Revision 1.5  2004-11-21 16:14:59  jonas
-    * fixed remaining compilation problems
-
-  Revision 1.4  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.3  2004/11/20 15:49:21  jonas
-    * some compilation fixes for powerpc after all the internconst and
-      internproc changes, still crashes with internalerror(88) for ppc1
-      on real2str.inc(193,39)
-
-  Revision 1.2  2004/10/12 07:08:33  jonas
-    - disabled llround, not present under Mac OS X 10.1
-
-  Revision 1.1  2004/10/09 21:00:46  jonas
-    + cgenmath with libc math functions. Faster than the routines in genmath
-      and also have full double support (exp() only has support for values in
-      the single range in genmath, for example). Used in FPC_USE_LIBC is
-      defined
-    * several fixes to allow compilation with -dHASINLINE, but internalerrors
-      because of missing support for inlining assembler code
+  Revision 1.6  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

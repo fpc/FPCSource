@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -80,14 +80,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-03-04 13:10:32  olle
-    + added comment to ETXTBSY
-    * changed i386 -> cpui386, m68k -> cpum68k
-
-  Revision 1.1  2004/01/04 15:30:19  marco
-   * working version
-
-  Revision 1.1  2004/01/03 12:29:36  marco
-   * now separately.
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

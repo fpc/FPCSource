@@ -134,7 +134,7 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   Tstrbuf = strbuf;
-  
-  
+
+

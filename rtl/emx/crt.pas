@@ -21,7 +21,7 @@ interface
 
 {cemodeset means that the procedure textmode has failed to set up a mode.}
 
-type    
+type
   cexxxx=(cenoerror,cemodeset);
 
 var
@@ -960,17 +960,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-03-21 20:28:43  hajny
-    + Cursor* implemented
-
-  Revision 1.3  2004/02/08 16:22:20  michael
-  + Moved CRT interface to common include file
-
-  Revision 1.2  2003/10/19 09:35:28  hajny
-    * fixes from OS/2 merged to EMX
-
-  Revision 1.1  2003/03/23 23:11:17  hajny
-    + emx target added
-
+  Revision 1.5  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

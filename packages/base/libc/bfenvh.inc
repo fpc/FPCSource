@@ -42,12 +42,12 @@ const
 const
   FE_DFL_ENV = Pfenv_t(-1);
   FE_NOMASK_ENV = Pfenv_t(-2);
-    
+
 { ---------------------------------------------------------------------
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TExceptionFlags = fexcept_t;
   PExceptionFlags = ^TExceptionFlags;
 

@@ -18,6 +18,7 @@
 
 {
   $Log$
-  Revision 1.1  2003-11-21 00:40:06  florian
-    * some arm issues fixed
+  Revision 1.2  2005-02-14 17:13:21  peter
+    * truncate log
+
 }

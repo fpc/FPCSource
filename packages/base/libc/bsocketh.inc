@@ -2,7 +2,7 @@
 type
   SOCKLEN_T = __socklen_t;
   PSOCKLEN_T = ^SOCKLEN_T;
-  
+
 const
 
   INVALID_SOCKET = -1;
@@ -20,7 +20,7 @@ Type
   SOCK_SEQPACKET := 5,
   SOCK_PACKET := 10
   );
-  
+
 Const
   PF_UNSPEC = 0;
   PF_LOCAL = 1;
@@ -100,7 +100,7 @@ const
    _SS_PADSIZE = _SS_SIZE - (2 * SizeOf(__ss_aligntype));
 
 type
- {  // replaced by structure down below. 
+ {  // replaced by structure down below.
     // Why borland decided to change it is a mystery to me :/
    sockaddr = record
      sa_family : sa_family_t ;
@@ -173,8 +173,8 @@ const
   SCM_RIGHTS    = $01;
   SCM_CREDENTIALS = $02;
   SCM_CONNECT   = $03;
-      
-      
+
+
 
 type
   Pucred = ^ucred;
@@ -189,10 +189,10 @@ type
     l_onoff : longint;
     l_linger : longint;
   end;
-  
-  
-            
-            
+
+
+
+
 
 
 { ---------------------------------------------------------------------
@@ -201,14 +201,14 @@ type
 
 type
   SunB = record
-    s_b1, 
-    s_b2, 
-    s_b3, 
+    s_b1,
+    s_b2,
+    s_b3,
     s_b4: u_char;
   end;
 
   SunW = record
-    s_w1, 
+    s_w1,
     s_w2: u_short;
   end;
 
@@ -235,17 +235,17 @@ type
 
   TMessageHeader = msghdr;
   PMessageHeader = ^TMessageHeader;
-    
+
   TCMessageHeader = cmsghdr;
   PCMessageHeader = ^TCMessageHeader;
 
-  sockaddr_in = sockaddr;             
-  Psockaddr_in = ^sockaddr;             
+  sockaddr_in = sockaddr;
+  Psockaddr_in = ^sockaddr;
   TSockAddrIn = sockaddr_in;
   PSockAddrIn = ^TSockAddrIn;
-  
+
   TSocket = longint;
-      
+
 function SA_LEN(const buf): Cardinal; // Untyped buffer; this is *unsafe*.
 function __libc_sa_len(__af: sa_family_t): Integer; cdecl;external clib name '__libc_sa_len';
-        
+

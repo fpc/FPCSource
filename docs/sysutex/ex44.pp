@@ -6,7 +6,7 @@ Uses sysutils;
 
 Var F : Longint;
     S : String;
-    
+
 Begin
   S:='Some short file.';
   F:=FileCreate ('test.dap');

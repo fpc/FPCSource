@@ -200,22 +200,7 @@ end.
 
 {
    $Log$
-   Revision 1.7  2004-05-02 12:11:44  peter
-     * fixed linefeeds
-
-   Revision 1.6  2002/09/29 14:37:22  carl
-     * must more 64-bit testing (to detect endian specific problems)
-
-   Revision 1.5  2002/09/27 17:46:01  carl
-     + big-endian testing
-
-   Revision 1.4  2002/09/07 15:40:55  peter
-     * old logs removed and tabs fixed
-
-   Revision 1.3  2002/05/13 13:45:38  peter
-     * updated to compile tests with kylix
-
-   Revision 1.2  2002/03/29 12:36:03  peter
-     * add check if tests are successfull or not
+   Revision 1.8  2005-02-14 17:13:37  peter
+     * truncate log
 
 }

@@ -4,7 +4,7 @@ Program Example36;
 
 Var S : String;
     I : Integer;
-    
+
 begin
   S:='';
   for i:=1 to 10 do

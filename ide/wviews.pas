@@ -1663,11 +1663,11 @@ begin
     else
       begin
         if not IsSeparator(P) and
-	   Application^.CommandEnabled(P^.Command) then
-	  begin
+           Application^.CommandEnabled(P^.Command) then
+          begin
             p^.disabled:=false;
             IsEnabled:=true;
-	  end;
+          end;
        end;
     P:=P^.Next;
   end;
@@ -2343,7 +2343,7 @@ end;
 
 procedure AddFormatParamStr(const S: string);
 begin
-  Inc(FormatParamStrCount); 
+  Inc(FormatParamStrCount);
   FormatParamStrs[FormatParamStrCount]:=S;
   AddFormatParam(@FormatParamStrs[FormatParamStrCount]);
 end;
@@ -2378,8 +2378,8 @@ function FormatStrStr3(const Format, Param1,Param2,Param3: string): string;
 var S: string;
     P: array[1..3] of pointer;
 begin
-  P[1]:=@Param1; 
-  P[2]:=@Param2; 
+  P[1]:=@Param1;
+  P[2]:=@Param2;
   P[3]:=@Param3;
   FormatStr(S,Format,P);
   FormatStrStr3:=S;
@@ -2552,42 +2552,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2004-12-19 19:11:11  florian
-    * fixed 64 bit issues
-
-  Revision 1.12  2004/12/06 20:53:55  peter
-  Handle cmUpdate for all DlgWindows
-
-  Revision 1.11  2004/12/06 19:23:30  peter
-  dropdownlistbox works better with Enter key
-
-  Revision 1.10  2004/11/08 20:28:29  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.9  2004/11/06 17:22:53  peter
-    * fixes for new fv
-
-  Revision 1.8  2004/02/13 06:26:46  pierre
-  * try to fix webbug 2931 completely
-
-  Revision 1.7  2004/02/10 07:16:28  pierre
-  * fix webbug 2932
-
-  Revision 1.6  2002/09/09 07:06:53  pierre
-   * avoid a int64 warning
-
-  Revision 1.5  2002/09/07 15:40:50  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/13 07:12:08  pierre
-   * use normal strings for ChoiceBox function
-
-  Revision 1.3  2002/04/12 08:59:00  pierre
-   + new function OKCancelBox added
+  Revision 1.14  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

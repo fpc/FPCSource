@@ -100,13 +100,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2002-05-18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.4  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.6  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -41,35 +41,7 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.12  2004/05/01 17:02:37  jonas
-    * use some more string routines from libc if FPC_USE_LIBC is used
-
-  Revision 1.11  2003/11/29 16:27:19  jonas
-    * fixed several ppc assembler reader related problems
-    * local vars in assembler procedures now start at offset 4
-    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
-
-  Revision 1.10  2003/07/07 20:23:46  peter
-    * added defines to override generic implementations
-
-  Revision 1.9  2003/06/14 12:41:09  jonas
-    * fixed compilation problems (removed unnecessary modified registers
-      lists from procedures)
-
-  Revision 1.8  2002/09/11 07:49:40  jonas
-    * fixed assembler errors
-
-  Revision 1.7  2002/09/07 16:01:26  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/09/06 16:58:43  jonas
-    * fixed wrong references (used r0 as base register)
-
-  Revision 1.5  2002/08/10 17:14:36  jonas
-    * various fixes, mostly changing the names of the modifies registers to
-      upper case since that seems to be required by the compiler
+  Revision 1.14  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

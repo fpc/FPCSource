@@ -74,6 +74,6 @@ procedure __freelocale(__dataset:__locale_t);cdecl;external clib name '__freeloc
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TLConv = lconv;
   _lconv = lconv;

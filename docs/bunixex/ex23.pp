@@ -13,7 +13,7 @@ begin
   Writeln (f,'#!/bin/sh');
   Writeln (f,'echo Some text for this file');
   Close (F);
-  fpChmod ('testex21',&777); 
+  fpChmod ('testex21',&777);
   { File is now executable  }
-  execl ('./testex21');    
+  execl ('./testex21');
 end.

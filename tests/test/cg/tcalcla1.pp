@@ -4011,16 +4011,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-05-15 20:38:11  peter
-    * remove po_containsself tests
-
-  Revision 1.3  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.2  2002/09/07 15:40:49  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/05/05 19:15:52  carl
-  + complete class method call testing (secondcalln())
+  Revision 1.5  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

@@ -1058,17 +1058,7 @@ end.
 
 {
 $Log$
-Revision 1.4  2004-09-13 21:12:29  hajny
-  * fix for loop variable assignment error
-
-Revision 1.3  2003/10/05 20:03:58  hajny
-  * two calling conventions specified (stdcall and cdecl)
-
-Revision 1.2  2003/08/15 10:53:43  yuri
-+ Winsock unit added
-* PMWSock unit updated (to be less or more compitilbe with win32 winsock)
-
-Revision 1.1  2003/04/04 12:02:21  yuri
-+ Initial import
+Revision 1.5  2005-02-14 17:13:31  peter
+  * truncate log
 
 }

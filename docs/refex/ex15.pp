@@ -2,7 +2,7 @@ Program Example15;
 
 { Program to demonstrate the Delete function. }
 
-Var 
+Var
   S : String;
 
 begin

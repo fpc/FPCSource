@@ -93,10 +93,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.4  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.2  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

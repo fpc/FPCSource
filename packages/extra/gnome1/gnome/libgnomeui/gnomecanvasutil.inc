@@ -14,10 +14,10 @@ function gnome_canvas_points_ref(points:PGnomeCanvasPoints):PGnomeCanvasPoints;c
 procedure gnome_canvas_points_unref(points:PGnomeCanvasPoints);cdecl;external libgnomeuidll name 'gnome_canvas_points_free';
 procedure gnome_canvas_points_free(points:PGnomeCanvasPoints);cdecl;external libgnomeuidll name 'gnome_canvas_points_free';
 
-function gnome_canvas_get_miter_points(x1:double; y1:double; x2:double; y2:double; x3:double; 
-           y3:double; width:double; mx1:Pdouble; my1:Pdouble; mx2:Pdouble; 
+function gnome_canvas_get_miter_points(x1:double; y1:double; x2:double; y2:double; x3:double;
+           y3:double; width:double; mx1:Pdouble; my1:Pdouble; mx2:Pdouble;
            my2:Pdouble):longint;cdecl;external libgnomeuidll name 'gnome_canvas_get_miter_points';
-procedure gnome_canvas_get_butt_points(x1:double; y1:double; x2:double; y2:double; width:double; 
+procedure gnome_canvas_get_butt_points(x1:double; y1:double; x2:double; y2:double; width:double;
             project:longint; bx1:Pdouble; by1:Pdouble; bx2:Pdouble; by2:Pdouble);cdecl;external libgnomeuidll name 'gnome_canvas_get_butt_points';
 function gnome_canvas_polygon_to_point(poly:Pdouble; num_points:longint; x:double; y:double):double;cdecl;external libgnomeuidll name 'gnome_canvas_polygon_to_point';
 procedure gnome_canvas_render_svp(buf:PGnomeCanvasBuf; svp:PArtSVP; rgba:guint32);cdecl;external libgnomeuidll name 'gnome_canvas_render_svp';

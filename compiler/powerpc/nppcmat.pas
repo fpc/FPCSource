@@ -213,7 +213,7 @@ implementation
                  shiftval := shiftval and 63;
 {
               I think the statements below is much more correct instead of the hack above,
-              but then we fail tshlshr.pp :/ 
+              but then we fail tshlshr.pp :/
 
                  if shiftval > 63 then
                    begin
@@ -526,28 +526,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2004-12-06 17:53:43  jonas
-    * introduced bug (x shl 65 = x shl 1 when shifting with a  constant, but
-      still 0 otherwise) to pass tshlshr
-
-  Revision 1.42  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.41  2004/10/25 15:36:47  peter
-    * save standard registers moved to tcgobj
-
-  Revision 1.40  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.39  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.38  2004/01/01 17:58:16  jonas
-    + integer division-by-zero detection support for ppc
-    + compilerproc FPC_DIVBYZERO
+  Revision 1.44  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -544,47 +544,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2005-01-20 16:38:45  peter
+  Revision 1.96  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.95  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
 
   Revision 1.94  2005/01/10 21:48:45  jonas
     - removed deprecated constants
-
-  Revision 1.93  2004/12/28 02:25:43  olle
-    * fixed compilation for PowerPC
-
-  Revision 1.92  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.91  2004/10/26 18:22:04  jonas
-    * fixed tlocation record again for big endian
-    * fixed (currently unused) saved_standard_registers array
-
-  Revision 1.90  2004/10/25 15:36:47  peter
-    * save standard registers moved to tcgobj
-
-  Revision 1.89  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.88  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.87  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.86.2.1  2004/05/01 11:12:24  florian
-    * spilling of registers with size<>4 fixed
-
-  Revision 1.86  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.85  2004/02/09 22:45:49  florian
-    * compilation fixed
 
 }

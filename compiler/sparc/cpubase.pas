@@ -449,56 +449,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2005-01-20 16:38:45  peter
+  Revision 1.77  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.76  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
-
-  Revision 1.75  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.74  2004/10/30 15:21:38  florian
-    * fixed generic optimizer
-    * enabled generic optimizer for sparc
-
-  Revision 1.73  2004/10/25 17:04:51  peter
-    * add saved_standard_registers
-
-  Revision 1.72  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.71.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.71  2004/08/24 21:02:33  florian
-    * fixed longbool(<int64>) on sparc
-
-  Revision 1.70  2004/08/15 13:30:18  florian
-    * fixed alignment of variant records
-    * more alignment problems fixed
-
-  Revision 1.69  2004/08/14 14:50:42  florian
-    * fixed several sparc alignment issues
-    + Jonas' inline node patch; non functional yet
-
-  Revision 1.68  2004/07/26 04:00:35  mazen
-  * fix compile problem
-
-  Revision 1.67  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.66  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.65.2.5  2004/06/13 20:38:38  florian
-    * fixed floating point register spilling on sparc
-
-  Revision 1.65.2.4  2004/05/28 22:21:48  peter
-    * fixed sparc compile
-
-  Revision 1.65.2.3  2004/05/28 20:29:50  florian
-    * fixed currency trouble on x86-64
-
-  Revision 1.65.2.2  2004/05/13 20:58:47  florian
-    * fixed register addressed jumps in interface wrappers
 
 }

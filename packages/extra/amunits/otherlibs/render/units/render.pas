@@ -17,14 +17,14 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   16 Jan 2003.
-  
+
   Changed cardinal > longword.
   Changed startcode for unit.
   12 Feb 2003
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -55,8 +55,8 @@ const
   const
      RND_TAGBASE = TAG_USER + $1000;
   {
-  
-  	memhandler
+
+        memhandler
 
                                                                           }
   { type of memhandler, see below  }
@@ -70,7 +70,7 @@ const
   { to pass a memhandler as an argument  }
      RND_RMHandler = RND_TAGBASE + 12;
   {
-    	memhandler types
+        memhandler types
     }
   { v39 exec dynamic pool  }
      RMHTYPE_POOL = 1;
@@ -80,7 +80,7 @@ const
      RMHTYPE_PUBLIC = 3;
   {
 
-  	palette
+        palette
 
                                                                           }
   { palette import/export format  }
@@ -94,7 +94,7 @@ const
   { quantization factors  }
      RND_RGBWeight = RND_TAGBASE + 11;
   {
-    	palette format types
+        palette format types
     }
   { ULONG red,green,blue  }
      PALFMT_RGB32 = 1;
@@ -105,40 +105,40 @@ const
   { render.library palette  }
      PALFMT_PALETTE = 4;
   {
-    	palette sort mode types
-    	for the use with SortPalette()
+        palette sort mode types
+        for the use with SortPalette()
     }
   { no particular order  }
      PALMODE_NONE = $0000;
   { sort palette entries by brightness  }
      PALMODE_BRIGHTNESS = $0001;
   { sort palette entries by the number of pixels that they represent.
-  	   You must supply the RND_Histogram taglist argument.  }
+           You must supply the RND_Histogram taglist argument.  }
      PALMODE_POPULARITY = $0002;
   { sort palette entries by the number of histogram entries that they
-  	   represent. You must supply the RND_Histogram taglist argument.  }
+           represent. You must supply the RND_Histogram taglist argument.  }
      PALMODE_REPRESENTATION = $0003;
   { sort palette entries by their optical significance for the human
-  	   eye. Implementation is unknown to you and may change.
-  	   You must supply the RND_Histogram taglist argument.  }
+           eye. Implementation is unknown to you and may change.
+           You must supply the RND_Histogram taglist argument.  }
      PALMODE_SIGNIFICANCE = $0004;
   { sort palette entries by color intensity  }
      PALMODE_SATURATION = $0005;
   { By default, sort direction is descending, i.e. the precedence is
-  	   more-to-less. Combine with this flag to invert the sort direction.  }
+           more-to-less. Combine with this flag to invert the sort direction.  }
      PALMODE_ASCENDING = $0008;
   {
-  
-  	histogram related
-  
+
+        histogram related
+
                                                                           }
   { histogram type, see below  }
      RND_HSType = RND_TAGBASE + 4;
   { a histogram as an argument  }
      RND_Histogram = RND_TAGBASE + 9;
   {
-    	Histogram / Palette types
-    	to be specified with RND_HSType
+        Histogram / Palette types
+        to be specified with RND_HSType
     }
   { 12bit dynamic histogram  }
      HSTYPE_12BIT = 4;
@@ -157,16 +157,16 @@ const
   { 18bit tabular histogram  }
      HSTYPE_18BIT_TURBO = 22;
   {
-    	tags that can be queried via QueryHistogram()
+        tags that can be queried via QueryHistogram()
     }
   { # pixels in a histogram  }
      RND_NumPixels = RND_TAGBASE + 5;
   { # colors in a histogram  }
      RND_NumColors = RND_TAGBASE + 6;
   {
-  
-  	rendering and conversions
-  
+
+        rendering and conversions
+
                                                                           }
   { color mode, see below  }
      RND_ColorMode = RND_TAGBASE + 7;
@@ -177,8 +177,8 @@ const
   { first color index to be output  }
      RND_OffsetColorZero = RND_TAGBASE + 10;
   {
-    	color mode types
-    	to be specified with RND_ColorMode
+        color mode types
+        to be specified with RND_ColorMode
     }
   { normal palette lookup  }
      COLORMODE_CLUT = $0000;
@@ -189,8 +189,8 @@ const
   { mask to determine COLORMODE  }
      COLORMODE_MASK = $0003;
   {
-    	dither mode types
-    	to be specified with RND_DitherMode
+        dither mode types
+        to be specified with RND_DitherMode
     }
   { no dither  }
      DITHERMODE_NONE = $0000;
@@ -200,9 +200,9 @@ const
      DITHERMODE_RANDOM = $0002;
   { EDD dither  }
      DITHERMODE_EDD = $0003;
-  {                                                                       
+  {
 
-  	miscellaneous
+        miscellaneous
 
                                                                           }
   { progress callback hook  }
@@ -234,9 +234,9 @@ const
   { backpen for filling  }
      RND_BGPen = RND_TAGBASE + 44;
   {
-  
-  	alpha-channel and masking
-  
+
+        alpha-channel and masking
+
                                                                           }
   { custom alpha-channel  }
      RND_AlphaChannel = RND_TAGBASE + 32;
@@ -258,9 +258,9 @@ const
      RND_AlphaModulo2 = RND_TAGBASE + 40;
   { width of a second alpha-channel array  }
      RND_AlphaWidth2 = RND_TAGBASE + 41;
-  {                                                                       
+  {
 
-  	PixelFormat
+        PixelFormat
 
                                                                           }
   { pixel format, see below  }
@@ -271,8 +271,8 @@ const
      PIXFMT_CHUNKY_CLUT = (1 shl PIXFMTB_CHUNKY) + COLORMODE_CLUT;
      PIXFMT_0RGB_32 = (1 shl PIXFMTB_RGB) + 0;
   {
-    	these types are currently not used by render.library, but
-    	some of them are applicable for guigfx.library functions:
+        these types are currently not used by render.library, but
+        some of them are applicable for guigfx.library functions:
     }
      PIXFMT_CHUNKY_HAM8 = (1 shl PIXFMTB_CHUNKY) + COLORMODE_HAM8;
      PIXFMT_CHUNKY_HAM6 = (1 shl PIXFMTB_CHUNKY) + COLORMODE_HAM6;
@@ -281,16 +281,16 @@ const
      PIXFMT_BITMAP_HAM6 = (1 shl PIXFMTB_BITMAP) + COLORMODE_HAM6;
      PIXFMT_RGB_24 = (1 shl PIXFMTB_RGB) + 1;
   {
-    	strictly internal:
+        strictly internal:
     }
      PIXFMT_BITMAP_RGB = (1 shl PIXFMTB_BITMAP) + (1 shl PIXFMTB_RGB);
   {
-  
-  	ExtractPalette return codes
-  
-  	You must at least check for EXTP_SUCCESS.
-  	EXTP_NO_DATA indicates that there were no colors
-  	in the histogram.
+
+        ExtractPalette return codes
+
+        You must at least check for EXTP_SUCCESS.
+        EXTP_NO_DATA indicates that there were no colors
+        in the histogram.
 
                                                                           }
      EXTP_SUCCESS = 0;
@@ -298,25 +298,25 @@ const
      EXTP_CALLBACK_ABORTED = 2;
      EXTP_NO_DATA = 3;
   {
-  
-  	AddRGB, AddRGBImage and AddChunkyImage return codes
-  
-  	You must at least check for ADDH_SUCCESS.
-  	If not delivered, the histogram might be
-  	inaccurate.
-  
+
+        AddRGB, AddRGBImage and AddChunkyImage return codes
+
+        You must at least check for ADDH_SUCCESS.
+        If not delivered, the histogram might be
+        inaccurate.
+
                                                                           }
      ADDH_SUCCESS = 0;
      ADDH_NOT_ENOUGH_MEMORY = 1;
      ADDH_CALLBACK_ABORTED = 2;
      ADDH_NO_DATA = 3;
-  {                                                                       
+  {
 
-  	Render return codes
+        Render return codes
 
-  	You must at least check for REND_SUCCESS.
-  	If not delivered, the image has not been
-  	rendered completely.
+        You must at least check for REND_SUCCESS.
+        If not delivered, the image has not been
+        rendered completely.
 
                                                                           }
      REND_SUCCESS = 0;
@@ -324,13 +324,13 @@ const
      REND_CALLBACK_ABORTED = 2;
      REND_NO_VALID_PALETTE = 3;
      REND_NO_DATA = 3;
-  {                                                                       
+  {
 
-  	SortPalette return codes
+        SortPalette return codes
 
-  	You must at least check for SORTP_SUCCESS.
-  	SORTP_NO_DATA indicates that there were data missing,
-  	e.g. you specified no histogram or the histogram was empty.
+        You must at least check for SORTP_SUCCESS.
+        SORTP_NO_DATA indicates that there were data missing,
+        e.g. you specified no histogram or the histogram was empty.
 
                                                                           }
      SORTP_SUCCESS = 0;
@@ -338,11 +338,11 @@ const
      SORTP_NOT_ENOUGH_MEMORY = 2;
      SORTP_NOT_IMPLEMENTED = 3;
   {
-  
-  	conversion return codes
-  
-  	These return codes apply to conversion functions
-  	such as Chunky2RGB and ConvertChunky.
+
+        conversion return codes
+
+        These return codes apply to conversion functions
+        such as Chunky2RGB and ConvertChunky.
 
                                                                           }
      CONV_SUCCESS = 0;
@@ -351,7 +351,7 @@ const
      CONV_NO_DATA = 3;
 
 
-    
+
 
 
 FUNCTION AddChunkyImageA(histogram : POINTER; chunky : pByte; width : WORD; height : WORD; palette : POINTER; taglist : pTagItem) : longword;
@@ -455,658 +455,658 @@ tagsarray;
 FUNCTION AddChunkyImageA(histogram : POINTER; chunky : pByte; width : WORD; height : WORD; palette : POINTER; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram,A0
-	MOVEA.L	chunky,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	palette,A2
-	MOVEA.L	taglist,A3
-	MOVEA.L	RenderBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram,A0
+        MOVEA.L chunky,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L palette,A2
+        MOVEA.L taglist,A3
+        MOVEA.L RenderBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AddHistogramA(histogram1 : POINTER; histogram2 : POINTER; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram1,A0
-	MOVEA.L	histogram2,A1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-222(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram1,A0
+        MOVEA.L histogram2,A1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -222(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AddRGB(histogram : POINTER; RGB : longword; count : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram,A0
-	MOVE.L	RGB,D0
-	MOVE.L	count,D1
-	MOVEA.L	RenderBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram,A0
+        MOVE.L  RGB,D0
+        MOVE.L  count,D1
+        MOVEA.L RenderBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AddRGBImageA(histogram : POINTER; rgb : pULONG; width : WORD; height : WORD; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram,A0
-	MOVEA.L	rgb,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram,A0
+        MOVEA.L rgb,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AllocRenderMem(rendermemhandler : POINTER; size : longword) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rendermemhandler,A0
-	MOVE.L	size,D0
-	MOVEA.L	RenderBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rendermemhandler,A0
+        MOVE.L  size,D0
+        MOVEA.L RenderBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AllocRenderVec(rendermemhandler : POINTER; size : longword) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rendermemhandler,A0
-	MOVE.L	size,D0
-	MOVEA.L	RenderBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rendermemhandler,A0
+        MOVE.L  size,D0
+        MOVEA.L RenderBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AllocRenderVecClear(rendermemhandler : POINTER; size : longword) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rendermemhandler,A0
-	MOVE.L	size,D0
-	MOVEA.L	RenderBase,A6
-	JSR	-306(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rendermemhandler,A0
+        MOVE.L  size,D0
+        MOVEA.L RenderBase,A6
+        JSR     -306(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE ApplyAlphaChannelA(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	sourcearray,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	destarray,A1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-294(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L sourcearray,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L destarray,A1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -294(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION BestPen(palette : POINTER; rgb : longword) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	palette,A0
-	MOVE.L	rgb,D0
-	MOVEA.L	RenderBase,A6
-	JSR	-204(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L palette,A0
+        MOVE.L  rgb,D0
+        MOVEA.L RenderBase,A6
+        JSR     -204(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE Chunky2BitMapA(chunky : pByte; sx : WORD; sy : WORD; width : WORD; height : WORD; bitmap : pBitMap; dx : WORD; dy : WORD; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	chunky,A0
-	MOVE.L	sx,D0
-	MOVE.L	sy,D1
-	MOVE.L	width,D2
-	MOVE.L	height,D3
-	MOVEA.L	bitmap,A1
-	MOVE.L	dx,D4
-	MOVE.L	dy,D5
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L chunky,A0
+        MOVE.L  sx,D0
+        MOVE.L  sy,D1
+        MOVE.L  width,D2
+        MOVE.L  height,D3
+        MOVEA.L bitmap,A1
+        MOVE.L  dx,D4
+        MOVE.L  dy,D5
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION Chunky2RGBA(chunky : pByte; width : WORD; height : WORD; rgb : pULONG; palette : POINTER; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	chunky,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	rgb,A1
-	MOVEA.L	palette,A2
-	MOVEA.L	taglist,A3
-	MOVEA.L	RenderBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L chunky,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L rgb,A1
+        MOVEA.L palette,A2
+        MOVEA.L taglist,A3
+        MOVEA.L RenderBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ChunkyArrayDiversityA(chunky : pByte; palette : POINTER; width : WORD; height : WORD; taglist : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	chunky,A0
-	MOVEA.L	palette,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-270(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L chunky,A0
+        MOVEA.L palette,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -270(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ConvertChunkyA(source : pByte; oldpalette : POINTER; width : WORD; height : WORD; dest : pByte; newpalette : POINTER; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	source,A0
-	MOVEA.L	oldpalette,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	dest,A2
-	MOVEA.L	newpalette,A3
-	MOVEA.L	taglist,A4
-	MOVEA.L	RenderBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L source,A0
+        MOVEA.L oldpalette,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L dest,A2
+        MOVEA.L newpalette,A3
+        MOVEA.L taglist,A4
+        MOVEA.L RenderBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CountRGB(histogram : POINTER; rgb : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram,A0
-	MOVE.L	rgb,D0
-	MOVEA.L	RenderBase,A6
-	JSR	-198(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram,A0
+        MOVE.L  rgb,D0
+        MOVEA.L RenderBase,A6
+        JSR     -198(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE CreateAlphaArrayA(rgbarray : pULONG; width : WORD; height : WORD; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rgbarray,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-312(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rgbarray,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -312(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION CreateHistogramA(taglist : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CreateMapEngineA(palette : POINTER; taglist : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	palette,A0
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-246(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L palette,A0
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -246(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CreatePaletteA(taglist : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-174(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE CreatePenTableA(chunky : pByte; oldpalette : POINTER; width : WORD; height : WORD; newpalette : POINTER; convtab : pByte; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	chunky,A0
-	MOVEA.L	oldpalette,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	newpalette,A2
-	MOVEA.L	convtab,A3
-	MOVEA.L	taglist,A4
-	MOVEA.L	RenderBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L chunky,A0
+        MOVEA.L oldpalette,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L newpalette,A2
+        MOVEA.L convtab,A3
+        MOVEA.L taglist,A4
+        MOVEA.L RenderBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION CreateRMHandlerA(taglist : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CreateScaleEngineA(sourcewidth : WORD; sourceheight : WORD; destwidth : WORD; destheight : WORD; taglist : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	sourcewidth,D0
-	MOVE.L	sourceheight,D1
-	MOVE.L	destwidth,D2
-	MOVE.L	destheight,D3
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-144(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  sourcewidth,D0
+        MOVE.L  sourceheight,D1
+        MOVE.L  destwidth,D2
+        MOVE.L  destheight,D3
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE DeleteHistogram(histogram : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram,A0
-	MOVEA.L	RenderBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram,A0
+        MOVEA.L RenderBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE DeleteMapEngine(engine : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	engine,A0
-	MOVEA.L	RenderBase,A6
-	JSR	-252(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L engine,A0
+        MOVEA.L RenderBase,A6
+        JSR     -252(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE DeletePalette(palette : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	palette,A0
-	MOVEA.L	RenderBase,A6
-	JSR	-180(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L palette,A0
+        MOVEA.L RenderBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE DeleteRMHandler(rmh : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rmh,A0
-	MOVEA.L	RenderBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rmh,A0
+        MOVEA.L RenderBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE DeleteScaleEngine(engine : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	engine,A0
-	MOVEA.L	RenderBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L engine,A0
+        MOVEA.L RenderBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE ExportPaletteA(palette : POINTER; coltab : POINTER; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	palette,A0
-	MOVEA.L	coltab,A1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-192(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L palette,A0
+        MOVEA.L coltab,A1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -192(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE ExtractAlphaChannelA(rgbarray : pULONG; width : WORD; height : WORD; chunkyarray : pByte; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rgbarray,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	chunkyarray,A1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-288(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rgbarray,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L chunkyarray,A1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -288(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION ExtractPaletteA(histogram : POINTER; palette : pULONG; numcolors : WORD; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram,A0
-	MOVEA.L	palette,A1
-	MOVE.L	numcolors,D0
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram,A0
+        MOVEA.L palette,A1
+        MOVE.L  numcolors,D0
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE FlushPalette(palette : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	palette,A0
-	MOVEA.L	RenderBase,A6
-	JSR	-210(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L palette,A0
+        MOVEA.L RenderBase,A6
+        JSR     -210(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE FreeRenderMem(rendermemhandler : POINTER; mem : POINTER; size : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rendermemhandler,A0
-	MOVEA.L	mem,A1
-	MOVE.L	size,D0
-	MOVEA.L	RenderBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rendermemhandler,A0
+        MOVEA.L mem,A1
+        MOVE.L  size,D0
+        MOVEA.L RenderBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE FreeRenderVec(mem : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mem,A0
-	MOVEA.L	RenderBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mem,A0
+        MOVEA.L RenderBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE ImportPaletteA(palette : POINTER; coltab : POINTER; numcols : WORD; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	palette,A0
-	MOVEA.L	coltab,A1
-	MOVE.L	numcols,D0
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-186(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L palette,A0
+        MOVEA.L coltab,A1
+        MOVE.L  numcols,D0
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE InsertAlphaChannelA(maskarray : pByte; width : WORD; height : WORD; rgbarray : pULONG; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	maskarray,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	rgbarray,A1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-282(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L maskarray,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L rgbarray,A1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -282(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MapChunkyArrayA(engine : POINTER; source : pByte; palette : POINTER; width : WORD; height : WORD; dest : pByte; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	engine,A0
-	MOVEA.L	source,A1
-	MOVEA.L	palette,A2
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	dest,A3
-	MOVEA.L	taglist,A4
-	MOVEA.L	RenderBase,A6
-	JSR	-276(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L engine,A0
+        MOVEA.L source,A1
+        MOVEA.L palette,A2
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L dest,A3
+        MOVEA.L taglist,A4
+        MOVEA.L RenderBase,A6
+        JSR     -276(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MapRGBArrayA(engine : POINTER; rgb : pULONG; width : WORD; height : WORD; chunky : pByte; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	engine,A0
-	MOVEA.L	rgb,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	chunky,A2
-	MOVEA.L	taglist,A3
-	MOVEA.L	RenderBase,A6
-	JSR	-258(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L engine,A0
+        MOVEA.L rgb,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L chunky,A2
+        MOVEA.L taglist,A3
+        MOVEA.L RenderBase,A6
+        JSR     -258(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE MixAlphaChannelA(source1 : pULONG; source2 : pULONG; width : WORD; height : WORD; dest : pULONG; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	source1,A0
-	MOVEA.L	source2,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	dest,A2
-	MOVEA.L	taglist,A3
-	MOVEA.L	RenderBase,A6
-	JSR	-318(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L source1,A0
+        MOVEA.L source2,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L dest,A2
+        MOVEA.L taglist,A3
+        MOVEA.L RenderBase,A6
+        JSR     -318(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MixRGBArrayA(sourcearray : pULONG; width : WORD; height : WORD; destarray : pULONG; ratio : WORD; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	sourcearray,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	destarray,A1
-	MOVE.L	ratio,D2
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-300(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L sourcearray,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L destarray,A1
+        MOVE.L  ratio,D2
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -300(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE Planar2ChunkyA(planetab : pPLANEPTR; bytewidth : WORD; height : WORD; depth : WORD; bytesperrow : WORD; chunky : pByte; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	planetab,A0
-	MOVE.L	bytewidth,D0
-	MOVE.L	height,D1
-	MOVE.L	depth,D2
-	MOVE.L	bytesperrow,D3
-	MOVEA.L	chunky,A1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L planetab,A0
+        MOVE.L  bytewidth,D0
+        MOVE.L  height,D1
+        MOVE.L  depth,D2
+        MOVE.L  bytesperrow,D3
+        MOVEA.L chunky,A1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION QueryHistogram(histogram : POINTER; d0arg : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	histogram,A0
-	MOVE.L	d0arg,D0
-	MOVEA.L	RenderBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L histogram,A0
+        MOVE.L  d0arg,D0
+        MOVEA.L RenderBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION RenderA(rgb : pULONG; width : WORD; height : WORD; chunky : pByte; palette : POINTER; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rgb,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	chunky,A1
-	MOVEA.L	palette,A2
-	MOVEA.L	taglist,A3
-	MOVEA.L	RenderBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rgb,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L chunky,A1
+        MOVEA.L palette,A2
+        MOVEA.L taglist,A3
+        MOVEA.L RenderBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION RGBArrayDiversityA(rgb : pULONG; width : WORD; height : WORD; taglist : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rgb,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-264(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rgb,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -264(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ScaleA(engine : POINTER; source : POINTER; dest : POINTER; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	engine,A0
-	MOVEA.L	source,A1
-	MOVEA.L	dest,A2
-	MOVEA.L	taglist,A3
-	MOVEA.L	RenderBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L engine,A0
+        MOVEA.L source,A1
+        MOVEA.L dest,A2
+        MOVEA.L taglist,A3
+        MOVEA.L RenderBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ScaleOrdinate(source : WORD; dest : WORD; ordinate : WORD) : WORD;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	source,D0
-	MOVE.L	dest,D1
-	MOVE.L	ordinate,D2
-	MOVEA.L	RenderBase,A6
-	JSR	-228(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  source,D0
+        MOVE.L  dest,D1
+        MOVE.L  ordinate,D2
+        MOVEA.L RenderBase,A6
+        JSR     -228(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION SortPaletteA(palette : POINTER; mode : longword; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	palette,A0
-	MOVE.L	mode,D0
-	MOVEA.L	taglist,A1
-	MOVEA.L	RenderBase,A6
-	JSR	-216(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L palette,A0
+        MOVE.L  mode,D0
+        MOVEA.L taglist,A1
+        MOVEA.L RenderBase,A6
+        JSR     -216(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE TintRGBArrayA(source : pULONG; width : WORD; height : WORD; RGB : longword; ratio : WORD; dest : pULONG; taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	source,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVE.L	RGB,D2
-	MOVE.L	ratio,D3
-	MOVEA.L	dest,A1
-	MOVEA.L	taglist,A2
-	MOVEA.L	RenderBase,A6
-	JSR	-324(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L source,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVE.L  RGB,D2
+        MOVE.L  ratio,D3
+        MOVEA.L dest,A1
+        MOVEA.L taglist,A2
+        MOVEA.L RenderBase,A6
+        JSR     -324(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 

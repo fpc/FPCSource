@@ -16,8 +16,8 @@
  **********************************************************************}
 {
  Origin of this file: copied from linux/x86_64 dir, blended with the
-	freebsd x86 changes and checked against objdump of a
-	x86_64/freebsdprog
+        freebsd x86 changes and checked against objdump of a
+        x86_64/freebsdprog
 - jge directly behind the syscall to branch on non-error
 - rcx is used as scratch reg (fpc/Linux-x86_64 uses edx)
 - More 6 and 7 param dosyscall because of the __syscall problem
@@ -239,7 +239,7 @@ procedure actualsyscall; assembler; {inline requires a dummy push IIRC}
    .LNoThread:
      movq  $-1,%rax
      movq  rax,%rdx
-   .LSyscOK: 
+   .LSyscOK:
 end;
 
 function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; {$ifndef VER1_0} oldfpccall;{$endif}  external name 'FPC_DOSYS8';
@@ -259,14 +259,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-05-18 20:05:01  marco
-   * errno+4 becomes errno+8
-
-  Revision 1.2  2004/05/16 21:01:23  marco
-   * syscallnr for __syscall entered
-
-  Revision 1.1  2004/05/16 20:48:32  marco
-   * Initial versions
-
+  Revision 1.4  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

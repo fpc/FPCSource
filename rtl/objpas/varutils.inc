@@ -712,7 +712,10 @@ end;
 {$endif HASVARIANT}
 {
   $Log$
-  Revision 1.18  2005-02-08 21:17:25  florian
+  Revision 1.19  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.18  2005/02/08 21:17:25  florian
     * fixed variant copy for interfaces
 
   Revision 1.17  2005/02/08 07:25:26  marco
@@ -732,17 +735,5 @@ end;
 
   Revision 1.12  2005/01/08 16:19:42  florian
     * made some variants stuff more readable
-
-  Revision 1.11  2004/04/28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.10  2002/11/22 16:30:05  peter
-    * Widestring->PWidechar requires a typecast
-
-  Revision 1.9  2002/10/11 12:21:55  florian
-    * fixes for new widestring handling
-
-  Revision 1.8  2002/09/07 16:01:23  peter
-    * old logs removed and tabs fixed
 
 }

@@ -412,16 +412,7 @@ End;
 
 {
   $Log$
-  Revision 1.8  2004-04-22 21:10:56  peter
-    * do_read/do_write addr argument changed to pointer
-
-  Revision 1.7  2003/11/29 14:07:52  peter
-    * do not overwrite Inoutres in blockwrite with 101
-
-  Revision 1.6  2002/12/07 14:36:14  carl
-    - avoid warnings (add typecast)
-
-  Revision 1.5  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

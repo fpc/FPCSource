@@ -247,25 +247,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-11-29 00:06:24  florian
-    * AMD CPUs could have SSE as well
-
-  Revision 1.9  2002/09/23 18:55:19  hajny
-    * Opcode syntax corrected
-
-  Revision 1.8  2002/09/23 18:25:55  hajny
-    * femms replaced with opcode to allow older as
-
-  Revision 1.7  2002/09/07 21:33:05  carl
-    - removed unused defines
-
-  Revision 1.6  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/03/16 12:01:24  peter
-    * femms added
-
-  Revision 1.4  2002/03/16 11:51:50  peter
-    * sse and 3dnow extensions from Michail added
+  Revision 1.11  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -48,7 +48,7 @@ type
     FCharSet             : string;
     FDialect             : integer;
     FRole                : String;
-    
+
     procedure SetDBDialect;
     procedure SetTransaction(Value : TIBTransaction);
   protected
@@ -97,7 +97,7 @@ type
       path looks like this: <server_name>:<path_on_server>, where server_name
       is absolute IP address, or name of server in DNS or hosts file, path_on_server
       is absolute path to the file again }
-    Property Role :  String read FRole write FRole;  
+    Property Role :  String read FRole write FRole;
     property DatabaseName;
     property KeepConnection;
     property LoginPrompt;
@@ -1214,31 +1214,7 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-09-26 00:21:10  michael
-  + Patch from Jesus Reyes to fix the change to TField.AsFloat (double)
-
-  Revision 1.13  2004/07/25 11:32:40  michael
-  * Patches from Joost van der Sluis
-    interbase.pp:
-        * Removed unused Fprepared
-        * Changed the error message 'database connect string not filled
-          in' to 'database connect string (databasename) not filled in'
-        * Preparestatement and execute now checks if transaction is
-          assigned (in stead of crashing if it isn't) and if the
-          transaction isn't started, it calls starttransaction.
-
-     dataset.inc:
-        * In DoInternalOpen the buffers are now initialised before the
-          dataset is set into browse-state
-
-     database.inc and db.pp:
-        * If the dataset is created from a stream, the database is opened
-          after the dataset is read completely
-
-  Revision 1.12  2004/05/01 23:56:59  michael
-  + Published TDataset properties
-
-  Revision 1.11  2003/12/07 23:13:34  sg
-  * Added Log entries to end of file
+  Revision 1.15  2005-02-14 17:13:12  peter
+    * truncate log
 
 }

@@ -16,7 +16,7 @@
 
 {
     History:
-   
+
     Added functions and procedures with array of const.
     For use with fpc 1.0.7. They are in systemvartags.
     10 Nov 2002.
@@ -30,7 +30,7 @@
     Added a const and a member to record tXRef;
     Changed startupcode for library.
     26 Jan 2003.
-    
+
     Changed cardinal to longword.
     09 Feb 2003.
 
@@ -83,7 +83,7 @@ const
  AGA_ARexxPortName      = (AGA_Dummy+10);
    { (STRPTR) Used to specify the ARexx port name (V40) (not copied) }
 
- AGA_Secure		= (AGA_Dummy+11);
+ AGA_Secure             = (AGA_Dummy+11);
    { (BOOL) Disable "ONOPEN", "ONCLOSE" and "LINK RX", "LINK RXS", "LINK SYSTEM" commands (V41) }
 
 Type
@@ -598,21 +598,8 @@ END. (* UNIT AMIGAGUIDE *)
 
 {
    $Log$
-   Revision 1.5  2003-02-10 17:59:46  nils
-   *  fixes for delphi mode
+   Revision 1.6  2005-02-14 17:13:20  peter
+     * truncate log
    
-   Revision 1.4  2003/02/07 20:48:36  nils
-   * update for amigaos 3.9
-   
-   * changed startcode for library
-   
-   Revision 1.3  2003/01/14 18:46:04  nils
-   * added defines use_amia_smartlink and use_auto_openlib
-
-   * implemented autoopening of library
-
-   Revision 1.2  2002/11/17 20:28:53  nils
-   * added functions with array of const
-
 }
 

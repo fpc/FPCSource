@@ -20,18 +20,18 @@ uses db,memds,classes,sysutils;
 
 Procedure DoTest;
 
-var 
+var
   I,ACount : integer;
   D   : TDateTime;
   M1,M2 : TMemDataSet;
-    
+
 begin
   M1:=TMemDataset.Create(Nil);
   Try
     M2:=TMemDataset.Create(Nil);
     Try
       M1.FileName:=ParamStr(1);
-      M1.Open; 
+      M1.Open;
       Writeln('Copying');
       M2.CopyFromDataSet(M1);
       Writeln('Copied');
@@ -46,18 +46,18 @@ begin
           Writeln('------------------------');
           For I:=0 to FieldCount-1 do
             Writeln(Fields[I].FieldName,' : ',Fields[I].AsString);
-          Writeln;  
-          Next;  
+          Writeln;
+          Next;
           end;
         Writeln('Total data size : ',DataSize);
         Close;
         end;
     finally
       M2.Free;
-    end;     
+    end;
   finally
     M1.Free;
-  end;     
+  end;
 end;
 
 begin

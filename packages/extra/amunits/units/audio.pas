@@ -16,13 +16,13 @@
 
 {
     History:
-    
+
     Changed integer > smallint.
     09 Feb 2003.
 
     nils.sjoholm@mailbox.swipnet.se
 }
-    
+
 unit audio;
 
 INTERFACE

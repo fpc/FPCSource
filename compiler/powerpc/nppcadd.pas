@@ -1462,56 +1462,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2005-02-13 18:55:19  florian
+  Revision 1.57  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.56  2005/02/13 18:55:19  florian
     + overflow checking for the arm
-
-  Revision 1.55  2004/12/24 11:58:33  jonas
-    - removed unused variables
-
-  Revision 1.54  2004/11/26 12:30:47  jonas
-    * fixed intermittent bug in overflow checking of subtractions
-
-  Revision 1.53  2004/11/26 12:17:04  jonas
-    * fixed overflow checking of unsigned multiplications
-
-  Revision 1.52  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.51  2004/10/26 18:22:31  jonas
-    * fixed bugs due to change of the value field of tlocation from aword to
-      aint
-
-  Revision 1.50  2004/10/25 15:36:47  peter
-    * save standard registers moved to tcgobj
-
-  Revision 1.49  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.48  2004/08/30 09:28:40  jonas
-    * only specially handle 64bit operations on ordinals
-
-  Revision 1.47  2004/07/21 15:09:10  jonas
-    * do a resulttypepass of left in the overloaded pass_1 before checking
-      its resulttype
-
-  Revision 1.46  2004/07/17 14:47:16  jonas
-    - removed useless maybe_pushfpu code for ppc
-
-  Revision 1.45  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.44  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.43  2004/03/18 16:19:03  peter
-    * fixed operator overload allowing for pointer-string
-    * replaced some type_e_mismatch with more informational messages
-
-  Revision 1.42  2004/01/06 21:37:41  peter
-    * fixed too long ie number
 
 }

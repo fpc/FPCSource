@@ -2081,7 +2081,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.194  2005-02-13 18:55:19  florian
+  Revision 1.195  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.194  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.193  2005/01/29 00:32:53  peter
@@ -2105,112 +2108,5 @@ end.
   Revision 1.188  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
-
-  Revision 1.187  2004/11/30 18:13:39  jonas
-    * patch from Peter to fix inlining of case statements
-
-  Revision 1.186  2004/11/08 21:47:39  florian
-    * better code generation for copying of open arrays
-
-  Revision 1.185  2004/11/08 20:23:29  florian
-    * fixed open arrays when using register variables
-
-  Revision 1.184  2004/11/02 17:25:36  florian
-    * <signed type> to qword range check for 64 bit targets fixed
-
-  Revision 1.183  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.182  2004/10/25 15:36:47  peter
-    * save standard registers moved to tcgobj
-
-  Revision 1.181  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.180  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.179  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.178  2004/10/13 21:12:51  peter
-    * -Or fixes for open array
-
-  Revision 1.177  2004/10/11 15:46:45  peter
-    * length parameter for copyvaluearray changed to tlocation
-
-  Revision 1.176  2004/10/10 20:31:48  peter
-    * concatcopy_unaligned maps by default to concatcopy, sparc will
-      override it with call to fpc_move
-
-  Revision 1.175  2004/10/10 20:22:53  peter
-    * symtable allocation rewritten
-    * loading of parameters to local temps/regs cleanup
-    * regvar support for parameters
-    * regvar support for staticsymtable (main body)
-
-  Revision 1.174  2004/10/05 20:41:01  peter
-    * more spilling rewrites
-
-  Revision 1.173  2004/09/29 18:55:40  florian
-    * fixed more sparc overflow stuff
-    * fixed some op64 stuff for sparc
-
-  Revision 1.172  2004/09/26 21:04:35  florian
-    + partial overflow checking on sparc; multiplication still missing
-
-  Revision 1.171  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.170  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.169  2004/09/21 17:25:12  peter
-    * cgpara branch merged
-
-  Revision 1.168.4.4  2004/09/20 20:45:57  peter
-    * remove cg64.a_reg_alloc, it should not be used since it
-      create more register conflicts
-
-  Revision 1.168.4.3  2004/09/18 20:22:40  jonas
-    * allocate the volatile fpu registers around procedures that might use
-      them (e.g. FPCMOVE may use them)
-
-  Revision 1.168.4.2  2004/09/12 13:36:40  peter
-    * fixed alignment issues
-
-  Revision 1.168.4.1  2004/08/31 20:43:06  peter
-    * cgpara patch
-
-  Revision 1.168  2004/07/09 23:41:04  jonas
-    * support register parameters for inlined procedures + some inline
-      cleanups
-
-  Revision 1.167  2004/07/03 11:47:04  peter
-    * fix rangecheck error when assigning u32bit=s32bit
-
-  Revision 1.166  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.165  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.164  2004/05/22 23:34:27  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.163  2004/04/29 19:56:36  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.162  2004/04/18 07:52:43  florian
-    * fixed web bug 3048: comparision of dyn. arrays
-
-  Revision 1.161.2.17  2004/06/13 10:51:16  florian
-    * fixed several register allocator problems (sparc/arm)
 
 }

@@ -502,17 +502,17 @@ end;
 
 Function TStrings.IndexOfName(const Name: string): Integer;
 
-Var 
+Var
   len : longint;
   S : String;
-  
+
 begin
   Result:=0;
   while (Result<Count) do
     begin
     S:=Strings[Result];
     len:=pos('=',S)-1;
-    if (len>0) and (CompareText(Name,Copy(S,1,Len))=0) then 
+    if (len>0) and (CompareText(Name,Copy(S,1,Len))=0) then
       exit;
     inc(result);
     end;
@@ -1051,27 +1051,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-04-18 19:38:56  michael
-  + Patch from Colin Western
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.15  2003/05/29 23:13:57  michael
-  fixed case insensitivity of TStrings.IndexOf
-
-  Revision 1.14  2002/12/10 21:05:44  michael
-  + IndexOfName is case insensitive
-
-  Revision 1.13  2002/10/10 12:50:40  michael
-  + Fix for handling of double quotes in getquotedstring from Luk Vandelaer (luk.vandelaer@wisa.be)
-
-  Revision 1.12  2002/09/07 15:15:25  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.11  2002/07/17 11:52:01  florian
-    * at and frame addresses in raise statements changed to pointer; fixed
+  Revision 1.3  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

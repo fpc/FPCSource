@@ -132,13 +132,13 @@ function jpeg_huff_decode(var state : bitread_working_state;
 procedure jpeg_make_d_derived_tbl (cinfo : j_decompress_ptr;
                                    isDC : boolean;
                                    tblno : int;
-			           var pdtbl : d_derived_tbl_ptr);
+                                   var pdtbl : d_derived_tbl_ptr);
 
 { Load up the bit buffer to a depth of at least nbits }
 
-function jpeg_fill_bit_buffer	(var state : bitread_working_state;
+function jpeg_fill_bit_buffer   (var state : bitread_working_state;
                                  get_buffer : bit_buf_type;  {register}
-	                         bits_left : int; {register}
+                                 bits_left : int; {register}
                                  nbits : int) : boolean;
 
 implementation
@@ -147,22 +147,22 @@ implementation
 
 { Macros to declare and load/save bitread local variables. }
 {$define BITREAD_STATE_VARS}
-	get_buffer : bit_buf_type ; {register}
-	bits_left : int; {register}
-	br_state : bitread_working_state;
+        get_buffer : bit_buf_type ; {register}
+        bits_left : int; {register}
+        br_state : bitread_working_state;
 
 {$define BITREAD_LOAD_STATE(cinfop,permstate)}
-	br_state.cinfo := cinfop;
-	br_state.next_input_byte := cinfop^.src^.next_input_byte;
-	br_state.bytes_in_buffer := cinfop^.src^.bytes_in_buffer;
-	get_buffer := permstate.get_buffer;
-	bits_left := permstate.bits_left;
+        br_state.cinfo := cinfop;
+        br_state.next_input_byte := cinfop^.src^.next_input_byte;
+        br_state.bytes_in_buffer := cinfop^.src^.bytes_in_buffer;
+        get_buffer := permstate.get_buffer;
+        bits_left := permstate.bits_left;
 
 {$define BITREAD_SAVE_STATE(cinfop,permstate) }
-	cinfop^.src^.next_input_byte := br_state.next_input_byte;
-	cinfop^.src^.bytes_in_buffer := br_state.bytes_in_buffer;
-	permstate.get_buffer := get_buffer;
-	permstate.bits_left := bits_left;
+        cinfop^.src^.next_input_byte := br_state.next_input_byte;
+        cinfop^.src^.bytes_in_buffer := br_state.bytes_in_buffer;
+        permstate.get_buffer := get_buffer;
+        permstate.bits_left := bits_left;
 
 
 { These macros provide the in-line portion of bit fetching.
@@ -170,14 +170,14 @@ implementation
   before using GET_BITS, PEEK_BITS, or DROP_BITS.
   The variables get_buffer and bits_left are assumed to be locals,
   but the state struct might not be (jpeg_huff_decode needs this).
- 	CHECK_BIT_BUFFER(state,n,action);
- 		Ensure there are N bits in get_buffer; if suspend, take action.
+        CHECK_BIT_BUFFER(state,n,action);
+                Ensure there are N bits in get_buffer; if suspend, take action.
        val = GET_BITS(n);
- 		Fetch next N bits.
+                Fetch next N bits.
        val = PEEK_BITS(n);
- 		Fetch next N bits without removing them from the buffer.
- 	DROP_BITS(n);
- 		Discard next N bits.
+                Fetch next N bits without removing them from the buffer.
+        DROP_BITS(n);
+                Discard next N bits.
   The value N should be a simple variable, not an expression, because it
   is evaluated multiple times. }
 
@@ -196,14 +196,14 @@ implementation
 
 
 {$define GET_BITS(nbits)}
-	Dec(bits_left, (nbits));
-	( (int(get_buffer shr bits_left)) and ( pred(1 shl (nbits)) ) )
+        Dec(bits_left, (nbits));
+        ( (int(get_buffer shr bits_left)) and ( pred(1 shl (nbits)) ) )
 
 {$define PEEK_BITS(nbits)}
-	int(get_buffer shr (bits_left -  (nbits))) and pred(1 shl (nbits))
+        int(get_buffer shr (bits_left -  (nbits))) and pred(1 shl (nbits))
 
 {$define DROP_BITS(nbits)}
-	Dec(bits_left, nbits);
+        Dec(bits_left, nbits);
 
 
 
@@ -295,8 +295,8 @@ type
     { These fields are loaded into local variables at start of each MCU.
       In case of suspension, we exit WITHOUT updating them. }
 
-    bitstate : bitread_perm_state;	{ Bit buffer at start of MCU }
-    saved : savable_state;		{ Other state at start of MCU }
+    bitstate : bitread_perm_state;      { Bit buffer at start of MCU }
+    saved : savable_state;              { Other state at start of MCU }
 
     { These fields are NOT loaded into local working state. }
     restarts_to_go : uInt;              { MCUs left in this restart interval }
@@ -344,9 +344,9 @@ begin
     { Compute derived values for Huffman tables }
     { We may do this more than once for a table, but it's not expensive }
     jpeg_make_d_derived_tbl(cinfo, TRUE, dctbl,
-			    entropy^.dc_derived_tbls[dctbl]);
+                            entropy^.dc_derived_tbls[dctbl]);
     jpeg_make_d_derived_tbl(cinfo, FALSE, actbl,
-			    entropy^.ac_derived_tbls[actbl]);
+                            entropy^.ac_derived_tbls[actbl]);
     { Initialize DC predictions to 0 }
     entropy^.saved.last_dc_val[ci] := 0;
   end;
@@ -392,7 +392,7 @@ end;
 procedure jpeg_make_d_derived_tbl (cinfo : j_decompress_ptr;
                                    isDC : boolean;
                                    tblno : int;
-	                           var pdtbl : d_derived_tbl_ptr);
+                                   var pdtbl : d_derived_tbl_ptr);
 var
   htbl : JHUFF_TBL_PTR;
   dtbl : d_derived_tbl_ptr;
@@ -421,9 +421,9 @@ begin
   if (pdtbl = NIL) then
     pdtbl := d_derived_tbl_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(d_derived_tbl)) );
+                                  SIZEOF(d_derived_tbl)) );
   dtbl := pdtbl;
-  dtbl^.pub := htbl;		{ fill in back link }
+  dtbl^.pub := htbl;            { fill in back link }
 
   { Figure C.1: make table of Huffman code length for each symbol }
 
@@ -483,7 +483,7 @@ begin
     end
     else
     begin
-      dtbl^.maxcode[l] := -1;	{ -1 if no codes of this length }
+      dtbl^.maxcode[l] := -1;   { -1 if no codes of this length }
     end;
   end;
   dtbl^.maxcode[17] := long($FFFFF); { ensures jpeg_huff_decode terminates }
@@ -506,9 +506,9 @@ begin
       lookbits := huffcode[p] shl (HUFF_LOOKAHEAD-l);
       for ctr := pred(1 shl (HUFF_LOOKAHEAD-l)) downto 0 do
       begin
-	dtbl^.look_nbits[lookbits] := l;
-	dtbl^.look_sym[lookbits] := htbl^.huffval[p];
-	Inc(lookbits);
+        dtbl^.look_nbits[lookbits] := l;
+        dtbl^.look_sym[lookbits] := htbl^.huffval[p];
+        Inc(lookbits);
       end;
       Inc(p);
     end;
@@ -526,7 +526,7 @@ begin
     begin
       sym := htbl^.huffval[i];
       if (sym < 0) or (sym > 15) then
-	ERREXIT(j_common_ptr(cinfo), JERR_BAD_HUFF_TABLE);
+        ERREXIT(j_common_ptr(cinfo), JERR_BAD_HUFF_TABLE);
     end;
   end;
 end;
@@ -547,7 +547,7 @@ end;
 
 {$ifdef SLOW_SHIFT_32}
 const
-  MIN_GET_BITS = 15;	{ minimum allowable value }
+  MIN_GET_BITS = 15;    { minimum allowable value }
 {$else}
 const
   MIN_GET_BITS = (BIT_BUF_SIZE-7);
@@ -556,9 +556,9 @@ const
 
 {GLOBAL}
 function jpeg_fill_bit_buffer (var state : bitread_working_state;
-		              {register} get_buffer : bit_buf_type;
+                              {register} get_buffer : bit_buf_type;
                               {register} bits_left : int;
-		              nbits  : int) : boolean;
+                              nbits  : int) : boolean;
 label
   no_more_bytes;
 { Load up the bit buffer to a depth of at least nbits }
@@ -579,20 +579,20 @@ begin
   { (It is assumed that no request will be for more than that many bits.) }
   { We fail to do so only if we hit a marker or are forced to suspend. }
 
-  if (cinfo^.unread_marker = 0) then	{ cannot advance past a marker }
+  if (cinfo^.unread_marker = 0) then    { cannot advance past a marker }
   begin
     while (bits_left < MIN_GET_BITS) do
     begin
       { Attempt to read a byte }
       if (bytes_in_buffer = 0) then
       begin
-	if not cinfo^.src^.fill_input_buffer(cinfo) then
+        if not cinfo^.src^.fill_input_buffer(cinfo) then
         begin
-	  jpeg_fill_bit_buffer := FALSE;
+          jpeg_fill_bit_buffer := FALSE;
           exit;
         end;
-	next_input_byte := cinfo^.src^.next_input_byte;
-	bytes_in_buffer := cinfo^.src^.bytes_in_buffer;
+        next_input_byte := cinfo^.src^.next_input_byte;
+        bytes_in_buffer := cinfo^.src^.bytes_in_buffer;
       end;
       Dec(bytes_in_buffer);
       c := GETJOCTET(next_input_byte^);
@@ -603,45 +603,45 @@ begin
       if (c = $FF) then
       begin
         { Loop here to discard any padding FF's on terminating marker,
-	  so that we can save a valid unread_marker value.  NOTE: we will
-	  accept multiple FF's followed by a 0 as meaning a single FF data
-	  byte.  This data pattern is not valid according to the standard. }
+          so that we can save a valid unread_marker value.  NOTE: we will
+          accept multiple FF's followed by a 0 as meaning a single FF data
+          byte.  This data pattern is not valid according to the standard. }
 
         repeat
-	  if (bytes_in_buffer = 0) then
+          if (bytes_in_buffer = 0) then
           begin
-	    if (not state.cinfo^.src^.fill_input_buffer (state.cinfo)) then
+            if (not state.cinfo^.src^.fill_input_buffer (state.cinfo)) then
             begin
-	      jpeg_fill_bit_buffer := FALSE;
+              jpeg_fill_bit_buffer := FALSE;
               exit;
             end;
-	    next_input_byte := state.cinfo^.src^.next_input_byte;
-	    bytes_in_buffer := state.cinfo^.src^.bytes_in_buffer;
-	  end;
-	  Dec(bytes_in_buffer);
-	  c := GETJOCTET(next_input_byte^);
+            next_input_byte := state.cinfo^.src^.next_input_byte;
+            bytes_in_buffer := state.cinfo^.src^.bytes_in_buffer;
+          end;
+          Dec(bytes_in_buffer);
+          c := GETJOCTET(next_input_byte^);
           Inc(next_input_byte);
         Until (c <> $FF);
 
         if (c = 0) then
         begin
-	  { Found FF/00, which represents an FF data byte }
-	  c := $FF;
+          { Found FF/00, which represents an FF data byte }
+          c := $FF;
         end
         else
         begin
-	  { Oops, it's actually a marker indicating end of compressed data.
+          { Oops, it's actually a marker indicating end of compressed data.
             Save the marker code for later use.
-	    Fine point: it might appear that we should save the marker into
-	    bitread working state, not straight into permanent state.  But
-	    once we have hit a marker, we cannot need to suspend within the
-	    current MCU, because we will read no more bytes from the data
-	    source.  So it is OK to update permanent state right away. }
+            Fine point: it might appear that we should save the marker into
+            bitread working state, not straight into permanent state.  But
+            once we have hit a marker, we cannot need to suspend within the
+            current MCU, because we will read no more bytes from the data
+            source.  So it is OK to update permanent state right away. }
 
-	  cinfo^.unread_marker := c;
+          cinfo^.unread_marker := c;
           { See if we need to insert some fake zero bits. }
-	  goto no_more_bytes;
-	end;
+          goto no_more_bytes;
+        end;
       end;
 
       { OK, load c into get_buffer }
@@ -665,8 +665,8 @@ begin
 
       if not cinfo^.entropy^.insufficient_data then
       begin
-	WARNMS(j_common_ptr(cinfo), JWRN_HIT_MARKER);
-	cinfo^.entropy^.insufficient_data := TRUE;
+        WARNMS(j_common_ptr(cinfo), JWRN_HIT_MARKER);
+        cinfo^.entropy^.insufficient_data := TRUE;
       end;
       { Fill the buffer with zero bits }
       get_buffer := get_buffer shl (MIN_GET_BITS - bits_left);
@@ -689,9 +689,9 @@ end;
 
 {GLOBAL}
 function jpeg_huff_decode (var state : bitread_working_state;
-		          {register} get_buffer : bit_buf_type;
+                          {register} get_buffer : bit_buf_type;
                           {register} bits_left : int;
-		          htbl : d_derived_tbl_ptr;
+                          htbl : d_derived_tbl_ptr;
                           min_bits : int) : int;
 var
   {register} l : int;
@@ -752,7 +752,7 @@ begin
   if (l > 16) then
   begin
     WARNMS(j_common_ptr(state.cinfo), JWRN_HUFF_BAD_CODE);
-    jpeg_huff_decode := 0;	{ fake a zero as the safest result }
+    jpeg_huff_decode := 0;      { fake a zero as the safest result }
     exit;
   end;
 
@@ -976,9 +976,9 @@ begin
 
       if (entropy^.dc_needed[blkn]) then
       begin
-	{ Convert DC difference to actual value, update last_dc_val }
+        { Convert DC difference to actual value, update last_dc_val }
         ci := cinfo^.MCU_membership[blkn];
-	Inc(s, state.last_dc_val[ci]);
+        Inc(s, state.last_dc_val[ci]);
         state.last_dc_val[ci] := s;
         { Output the DC coefficient (assumes jpeg_natural_order[0] := 0) }
         block^[0] := JCOEF (s);
@@ -987,9 +987,9 @@ begin
       if (entropy^.ac_needed[blkn]) then
       begin
 
-	{ Section F.2.2.2: decode the AC coefficients }
-	{ Since zeroes are skipped, output area must be cleared beforehand }
-	k := 1;
+        { Section F.2.2.2: decode the AC coefficients }
+        { Since zeroes are skipped, output area must be cleared beforehand }
+        k := 1;
         while (k < DCTSIZE2) do         { Nomssi: k is incr. in the loop }
         begin
           {HUFF_DECODE(s, br_state, actbl, return FALSE, label2);}
@@ -1034,8 +1034,8 @@ begin
             bits_left := br_state.bits_left;
           end;
 
-	  r := s shr 4;
-	  s := s and 15;
+          r := s shr 4;
+          s := s and 15;
 
           if (s <> 0) then
           begin
@@ -1084,7 +1084,7 @@ begin
         k := 1;
         while (k < DCTSIZE2) do
         begin
-	  {HUFF_DECODE(s, br_state, actbl, return FALSE, label3);}
+          {HUFF_DECODE(s, br_state, actbl, return FALSE, label3);}
           if (bits_left < HUFF_LOOKAHEAD) then
           begin
             if (not jpeg_fill_bit_buffer(br_state,get_buffer,bits_left, 0)) then
@@ -1108,7 +1108,7 @@ begin
           if (nb <> 0) then
           begin
             {DROP_BITS(nb);}
-	    Dec(bits_left, nb);
+            Dec(bits_left, nb);
 
             s := actbl^.look_sym[look];
           end
@@ -1126,13 +1126,13 @@ begin
             bits_left := br_state.bits_left;
           end;
 
-	  r := s shr 4;
-	  s := s and 15;
+          r := s shr 4;
+          s := s and 15;
 
-	  if (s <> 0) then
+          if (s <> 0) then
           begin
-	    Inc(k, r);
-	    {CHECK_BIT_BUFFER(br_state, s, return FALSE);}
+            Inc(k, r);
+            {CHECK_BIT_BUFFER(br_state, s, return FALSE);}
             if (bits_left < s) then
             begin
               if (not jpeg_fill_bit_buffer(br_state,get_buffer,bits_left,s)) then
@@ -1144,15 +1144,15 @@ begin
               bits_left := br_state.bits_left;
             end;
 
-	    {DROP_BITS(s);}
+            {DROP_BITS(s);}
             Dec(bits_left, s);
-	  end
+          end
           else
           begin
-	    if (r <> 15) then
-	      break;
-	    Inc(k, 15);
-	  end;
+            if (r <> 15) then
+              break;
+            Inc(k, 15);
+          end;
           Inc(k);
         end;
 
@@ -1188,7 +1188,7 @@ var
 begin
   entropy := huff_entropy_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(huff_entropy_decoder)) );
+                                SIZEOF(huff_entropy_decoder)) );
   cinfo^.entropy := jpeg_entropy_decoder_ptr (entropy);
   entropy^.pub.start_pass := start_pass_huff_decoder;
   entropy^.pub.decode_mcu := decode_mcu;

@@ -28,15 +28,15 @@ const
   M_SOF9  = $c9;
   M_SOF10 = $ca;
   M_SOF11 = $cb;
-  
+
   M_SOF13 = $cd;
   M_SOF14 = $ce;
   M_SOF15 = $cf;
-  
+
   M_DHT   = $c4;
-  
+
   M_DAC   = $cc;
-  
+
   M_RST0  = $d0;
   M_RST1  = $d1;
   M_RST2  = $d2;
@@ -45,7 +45,7 @@ const
   M_RST5  = $d5;
   M_RST6  = $d6;
   M_RST7  = $d7;
-  
+
   M_SOI   = $d8;
   M_EOI   = $d9;
   M_SOS   = $da;
@@ -54,7 +54,7 @@ const
   M_DRI   = $dd;
   M_DHP   = $de;
   M_EXP   = $df;
-  
+
   M_APP0  = $e0;
   M_APP1  = $e1;
   M_APP2  = $e2;
@@ -190,7 +190,7 @@ begin
       { The table entries must be emitted in zigzag order. }
       qval := qtbl^.quantval[jpeg_natural_order[i]];
       if (prec <> 0) then
-	emit_byte(cinfo, int(qval shr 8));
+        emit_byte(cinfo, int(qval shr 8));
       emit_byte(cinfo, int(qval and $FF));
     end;
 
@@ -302,7 +302,7 @@ procedure emit_dri (cinfo : j_compress_ptr);
 begin
   emit_marker(cinfo, M_DRI);
 
-  emit_2bytes(cinfo, 4);	{ fixed length }
+  emit_2bytes(cinfo, 4);        { fixed length }
 
   emit_2bytes(cinfo, int(cinfo^.restart_interval));
 end;
@@ -369,13 +369,13 @@ begin
 
       if (cinfo^.Ss = 0) then
       begin
-	ta := 0;                { DC scan }
-	if (cinfo^.Ah <> 0) and not cinfo^.arith_code then
-	  td := 0;              { no DC table either }
+        ta := 0;                { DC scan }
+        if (cinfo^.Ah <> 0) and not cinfo^.arith_code then
+          td := 0;              { no DC table either }
       end
       else
       begin
-	td := 0;			{ AC scan }
+        td := 0;                        { AC scan }
       end;
     end;
     emit_byte(cinfo, (td shl 4) + ta);
@@ -391,22 +391,22 @@ end;
 procedure emit_jfif_app0 (cinfo : j_compress_ptr);
 { Emit a JFIF-compliant APP0 marker }
 {
- Length of APP0 block	(2 bytes)
- Block ID			(4 bytes - ASCII "JFIF")
- Zero byte			(1 byte to terminate the ID string)
+ Length of APP0 block   (2 bytes)
+ Block ID                       (4 bytes - ASCII "JFIF")
+ Zero byte                      (1 byte to terminate the ID string)
  Version Major, Minor   (2 bytes - major first)
- Units			(1 byte - $00 = none, $01 = inch, $02 = cm)
- Xdpu			(2 bytes - dots per unit horizontal)
- Ydpu			(2 bytes - dots per unit vertical)
- Thumbnail X size		(1 byte)
- Thumbnail Y size		(1 byte)
+ Units                  (1 byte - $00 = none, $01 = inch, $02 = cm)
+ Xdpu                   (2 bytes - dots per unit horizontal)
+ Ydpu                   (2 bytes - dots per unit vertical)
+ Thumbnail X size               (1 byte)
+ Thumbnail Y size               (1 byte)
 }
 begin
   emit_marker(cinfo, M_APP0);
 
   emit_2bytes(cinfo, 2 + 4 + 1 + 2 + 1 + 2 + 2 + 1 + 1); { length }
 
-  emit_byte(cinfo, $4A);	{ Identifier: ASCII "JFIF" }
+  emit_byte(cinfo, $4A);        { Identifier: ASCII "JFIF" }
   emit_byte(cinfo, $46);
   emit_byte(cinfo, $49);
   emit_byte(cinfo, $46);
@@ -416,7 +416,7 @@ begin
   emit_byte(cinfo, cinfo^.density_unit); { Pixel size information }
   emit_2bytes(cinfo, int(cinfo^.X_density));
   emit_2bytes(cinfo, int(cinfo^.Y_density));
-  emit_byte(cinfo, 0);		{ No thumbnail image }
+  emit_byte(cinfo, 0);          { No thumbnail image }
   emit_byte(cinfo, 0);
 end;
 
@@ -425,12 +425,12 @@ end;
 procedure emit_adobe_app14 (cinfo : j_compress_ptr);
 { Emit an Adobe APP14 marker }
 {
-  Length of APP14 block	(2 bytes)
-  Block ID			(5 bytes - ASCII "Adobe")
-  Version Number		(2 bytes - currently 100)
-  Flags0			(2 bytes - currently 0)
-  Flags1			(2 bytes - currently 0)
-  Color transform		(1 byte)
+  Length of APP14 block (2 bytes)
+  Block ID                      (5 bytes - ASCII "Adobe")
+  Version Number                (2 bytes - currently 100)
+  Flags0                        (2 bytes - currently 0)
+  Flags1                        (2 bytes - currently 0)
+  Color transform               (1 byte)
 
   Although Adobe TN 5116 mentions Version = 101, all the Adobe files
   now in circulation seem to use Version = 100, so that's what we write.
@@ -444,21 +444,21 @@ begin
 
   emit_2bytes(cinfo, 2 + 5 + 2 + 2 + 2 + 1); { length }
 
-  emit_byte(cinfo, $41);	{ Identifier: ASCII "Adobe" }
+  emit_byte(cinfo, $41);        { Identifier: ASCII "Adobe" }
   emit_byte(cinfo, $64);
   emit_byte(cinfo, $6F);
   emit_byte(cinfo, $62);
   emit_byte(cinfo, $65);
-  emit_2bytes(cinfo, 100);	{ Version }
-  emit_2bytes(cinfo, 0);	{ Flags0 }
-  emit_2bytes(cinfo, 0);	{ Flags1 }
+  emit_2bytes(cinfo, 100);      { Version }
+  emit_2bytes(cinfo, 0);        { Flags0 }
+  emit_2bytes(cinfo, 0);        { Flags1 }
   case (cinfo^.jpeg_color_space) of
   JCS_YCbCr:
-    emit_byte(cinfo, 1);	{ Color transform = 1 }
+    emit_byte(cinfo, 1);        { Color transform = 1 }
   JCS_YCCK:
-    emit_byte(cinfo, 2);	{ Color transform = 2 }
+    emit_byte(cinfo, 2);        { Color transform = 2 }
   else
-    emit_byte(cinfo, 0);	{ Color transform = 0 }
+    emit_byte(cinfo, 0);        { Color transform = 0 }
   end;
 end;
 
@@ -480,7 +480,7 @@ begin
 
   emit_marker(cinfo, JPEG_MARKER(marker));
 
-  emit_2bytes(cinfo, int(datalen + 2));	{ total length }
+  emit_2bytes(cinfo, int(datalen + 2)); { total length }
 end;
 
 {METHODDEF}
@@ -507,12 +507,12 @@ var
 begin
   marker := my_marker_ptr(cinfo^.marker);
 
-  emit_marker(cinfo, M_SOI);	 { first the SOI }
+  emit_marker(cinfo, M_SOI);     { first the SOI }
 
   { SOI is defined to reset restart interval to 0 }
   marker^.last_restart_interval := 0;
 
-  if (cinfo^.write_JFIF_header)	then { next an optional JFIF APP0 }
+  if (cinfo^.write_JFIF_header) then { next an optional JFIF APP0 }
     emit_jfif_app0(cinfo);
   if (cinfo^.write_Adobe_marker) then { next an optional Adobe APP14 }
     emit_adobe_app14(cinfo);
@@ -560,7 +560,7 @@ begin
     for ci := 0 to Pred(cinfo^.num_components) do
     begin
       if (compptr^.dc_tbl_no > 1) or (compptr^.ac_tbl_no > 1) then
-	is_baseline := FALSE;
+        is_baseline := FALSE;
       Inc(compptr);
     end;
     if (prec <> 0) and (is_baseline) then
@@ -576,16 +576,16 @@ begin
   { Emit the proper SOF marker }
   if (cinfo^.arith_code) then
   begin
-    emit_sof(cinfo, M_SOF9);	{ SOF code for arithmetic coding }
+    emit_sof(cinfo, M_SOF9);    { SOF code for arithmetic coding }
   end
   else
   begin
     if (cinfo^.progressive_mode) then
-      emit_sof(cinfo, M_SOF2)	{ SOF code for progressive Huffman }
+      emit_sof(cinfo, M_SOF2)   { SOF code for progressive Huffman }
     else if (is_baseline) then
-      emit_sof(cinfo, M_SOF0)	{ SOF code for baseline implementation }
+      emit_sof(cinfo, M_SOF0)   { SOF code for baseline implementation }
     else
-      emit_sof(cinfo, M_SOF1);	{ SOF code for non-baseline Huffman file }
+      emit_sof(cinfo, M_SOF1);  { SOF code for non-baseline Huffman file }
   end;
 end;
 
@@ -618,22 +618,22 @@ begin
       compptr := cinfo^.cur_comp_info[i];
       if (cinfo^.progressive_mode) then
       begin
-	{ Progressive mode: only DC or only AC tables are used in one scan }
-	if (cinfo^.Ss = 0) then
+        { Progressive mode: only DC or only AC tables are used in one scan }
+        if (cinfo^.Ss = 0) then
         begin
-	  if (cinfo^.Ah = 0) then  { DC needs no table for refinement scan }
-	    emit_dht(cinfo, compptr^.dc_tbl_no, FALSE);
-	end
+          if (cinfo^.Ah = 0) then  { DC needs no table for refinement scan }
+            emit_dht(cinfo, compptr^.dc_tbl_no, FALSE);
+        end
         else
         begin
-	  emit_dht(cinfo, compptr^.ac_tbl_no, TRUE);
-	end;
+          emit_dht(cinfo, compptr^.ac_tbl_no, TRUE);
+        end;
       end
       else
       begin
-	{ Sequential mode: need both DC and AC tables }
-	emit_dht(cinfo, compptr^.dc_tbl_no, FALSE);
-	emit_dht(cinfo, compptr^.ac_tbl_no, TRUE);
+        { Sequential mode: need both DC and AC tables }
+        emit_dht(cinfo, compptr^.dc_tbl_no, FALSE);
+        emit_dht(cinfo, compptr^.ac_tbl_no, TRUE);
       end;
     end;
   end;
@@ -686,9 +686,9 @@ begin
     for i := 0 to Pred(NUM_HUFF_TBLS) do
     begin
       if (cinfo^.dc_huff_tbl_ptrs[i] <> NIL) then
-	emit_dht(cinfo, i, FALSE);
+        emit_dht(cinfo, i, FALSE);
       if (cinfo^.ac_huff_tbl_ptrs[i] <> NIL) then
-	emit_dht(cinfo, i, TRUE);
+        emit_dht(cinfo, i, TRUE);
     end;
   end;
 
@@ -706,7 +706,7 @@ begin
   { Create the subobject }
   marker := my_marker_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_marker_writer)) );
+                                SIZEOF(my_marker_writer)) );
   cinfo^.marker := jpeg_marker_writer_ptr(marker);
   { Initialize method pointers }
   marker^.pub.write_file_header := write_file_header;

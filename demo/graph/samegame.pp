@@ -601,7 +601,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.9  2004-06-21 07:03:36  marco
+  Revision 1.10  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.9  2004/06/21 07:03:36  marco
    * 2nd recommendation 3177
 
   Revision 1.8  2004/06/21 07:01:34  marco
@@ -609,7 +612,7 @@ END.
 
   Revision 1.7  2004/02/18 16:43:29  marco
    *  added an API call to avoid the "Graph Window" window title, and readded previously removed variable
-  	It was used in usegraph
+        It was used in usegraph
 
   Revision 1.6  2003/09/06 14:14:12  marco
    * removed unused var reported in bug 2170

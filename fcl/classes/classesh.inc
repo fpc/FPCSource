@@ -837,7 +837,7 @@ type
   TReadWriteStringPropertyEvent = procedure(Sender:TObject;
     const Instance: TPersistent; PropInfo: PPropInfo;
     var Content:string) of object;
-    
+
   TReader = class(TFiler)
   private
     FDriver: TAbstractObjectReader;
@@ -1478,42 +1478,7 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.4  2004-12-27 13:53:27  michael
-  + Patch for localization of string properties
-
-  Revision 1.3  2004/08/07 16:32:52  florian
-    * tcomponent.destroying is now called in tcomponent.beforedestruction
-
-  Revision 1.2  2003/10/07 19:41:11  marco
-   * 1.0.x compability fix
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.25  2003/08/16 15:50:47  michael
-  + Fix from Mattias gaertner for IDE support
-
-  Revision 1.24  2003/06/04 15:27:24  michael
-  + TDataModule en InitInheritedComponent erbij voor Delphi 6 compatibility
-
-  Revision 1.23  2002/10/14 19:46:50  peter
-    * use FPC_THREADING define for removing thread dependent code
-
-  Revision 1.22  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.21  2002/07/16 13:32:51  florian
-    + skeleton for TInterfaceList added
-
-  Revision 1.20  2002/07/15 18:35:04  florian
-    + IInterfaceList added
-
-  Revision 1.19  2002/03/28 12:08:47  michael
-  + Added sstriple and ssquad in shiftstate
-
-  Revision 1.18  2002/01/06 21:54:49  peter
-    * action classes added
+  Revision 1.5  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

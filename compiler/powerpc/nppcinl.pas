@@ -147,29 +147,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.16  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.15  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.14  2004/05/31 11:57:48  jonas
-    * fixed second_sqr_real (mainly for regvars)
-
-  Revision 1.13  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.12  2004/02/02 21:22:19  jonas
-    + implemented second_prefetch
+  Revision 1.18  2005-02-14 17:13:10  peter
+    * truncate log
 
 }
 

@@ -718,7 +718,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.102  2005-02-13 20:11:16  peter
+  Revision 1.103  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.102  2005/02/13 20:11:16  peter
     * sunos to solaris
 
   Revision 1.101  2005/02/06 00:05:56  florian
@@ -726,52 +729,5 @@ end.
 
   Revision 1.100  2005/01/25 18:48:15  peter
     * tf_pic_uses_got added
-
-  Revision 1.99  2004/12/28 20:43:00  hajny
-    * 8.3 fixes (short target name in paths)
-
-  Revision 1.98  2004/12/12 00:35:19  florian
-    * check if the selected assembler supports current target improved
-
-  Revision 1.97  2004/12/12 00:31:52  florian
-    * check if the selected assembler supports current target
-
-  Revision 1.96  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.95  2004/11/01 15:42:00  florian
-    * default target for x86_64 is linux
-
-  Revision 1.94  2004/10/31 19:09:54  peter
-    * default paths fixed
-
-  Revision 1.93  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.92  2004/09/04 21:18:47  armin
-  * target netwlibc added (libc is preferred for newer netware versions)
-
-  Revision 1.91  2004/06/29 21:00:08  peter
-    * only enable dwarf for supported platforms
-
-  Revision 1.90  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.89  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.88  2004/05/20 21:54:33  florian
-    + <pointer> - <pointer> result is divided by the pointer element size now
-      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
-
-  Revision 1.87.2.6  2004/05/18 20:27:44  marco
-   * initsystems fix
-
-  Revision 1.87.2.5  2004/05/11 16:57:20  marco
-   * freebsd target
-
-  Revision 1.87.2.4  2004/05/10 21:28:34  peter
-    * section_smartlink enabled for gas under linux
 
 }

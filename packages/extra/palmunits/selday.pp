@@ -10,7 +10,7 @@
  * Release: Palm OS SDK 4.0 (63220)
  *
  * Description:
- *   This file defines the date picker month object's  structures 
+ *   This file defines the date picker month object's  structures
  *   and routines.
  *
  * History:

@@ -1080,53 +1080,7 @@ end.
 
 {
   $Log$
-  Revision 1.16  2004-12-05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.15  2004/03/21 20:35:24  hajny
-    * Exec cleanup
-
-  Revision 1.14  2004/03/08 22:31:00  hajny
-    * exec fix
-
-  Revision 1.13  2004/02/22 15:01:49  hajny
-    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
-
-  Revision 1.12  2004/02/17 17:37:26  daniel
-    * Enable threadvars again
-
-  Revision 1.11  2004/02/16 22:16:58  hajny
-    * LastDosExitCode changed back from threadvar temporarily
-
-  Revision 1.10  2004/02/15 21:26:37  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.9  2004/02/09 12:03:16  michael
-  + Switched to single interface in dosh.inc
-
-  Revision 1.8  2003/12/26 22:20:44  hajny
-    * regcall fixes
-
-  Revision 1.7  2003/10/25 22:45:37  hajny
-    * file handling related fixes
-
-  Revision 1.6  2003/10/07 21:33:24  hajny
-    * stdcall fixes and asm routines cleanup
-
-  Revision 1.5  2003/10/04 17:53:08  hajny
-    * stdcall changes merged to EMX
-
-  Revision 1.4  2003/06/26 17:12:29  yuri
-  * pmbidi added
-  * some cosmetic changes
-
-  Revision 1.3  2003/03/23 23:11:17  hajny
-    + emx target added
-
-  Revision 1.2  2002/12/15 22:50:29  hajny
-    * GetEnv fix merged from os2 target
-
-  Revision 1.1  2002/11/17 16:22:53  hajny
-    + RTL for emx target
+  Revision 1.17  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

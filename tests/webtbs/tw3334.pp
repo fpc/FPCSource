@@ -5,11 +5,11 @@ program project1;
 
 {$mode objfpc}{$H+}
 
-uses 
+uses
   erroru,
   Classes;
 
-procedure p1;  
+procedure p1;
 type
  integerarty = array of integer;
 var

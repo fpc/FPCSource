@@ -53,10 +53,10 @@ uses
 type
   my_src_ptr = ^my_source_mgr;
   my_source_mgr = record
-    pub    : jpeg_source_mgr;	{public fields}
-    infile : TStream;		{source stream}
-    buffer : JOCTET_FIELD_PTR;	{start of buffer}
-    start_of_file : boolean;	{have we gotten any data yet?}
+    pub    : jpeg_source_mgr;   {public fields}
+    infile : TStream;           {source stream}
+    buffer : JOCTET_FIELD_PTR;  {start of buffer}
+    start_of_file : boolean;    {have we gotten any data yet?}
   end;
 
 const
@@ -122,11 +122,11 @@ begin
   if (cinfo^.src = nil) then begin {first time for this JPEG object?}
     cinfo^.src := jpeg_source_mgr_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-				  SIZEOF(my_source_mgr)) );
+                                  SIZEOF(my_source_mgr)) );
     src := my_src_ptr (cinfo^.src);
     src^.buffer := JOCTET_FIELD_PTR(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-				  INPUT_BUF_SIZE * SIZEOF(JOCTET)) );
+                                  INPUT_BUF_SIZE * SIZEOF(JOCTET)) );
   end;
   src := my_src_ptr (cinfo^.src);
   {override pub's method pointers}
@@ -150,7 +150,7 @@ type
   my_dest_ptr = ^my_destination_mgr;
   my_destination_mgr = record
     pub     : jpeg_destination_mgr;  {public fields}
-    outfile : TStream;	             {target stream}
+    outfile : TStream;               {target stream}
     buffer  : JOCTET_FIELD_PTR;      {start of buffer}
   end;
 
@@ -164,7 +164,7 @@ begin
   dest := my_dest_ptr(cinfo^.dest);
   dest^.buffer := JOCTET_FIELD_PTR(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  OUTPUT_BUF_SIZE * SIZEOF(JOCTET)) );
+                                  OUTPUT_BUF_SIZE * SIZEOF(JOCTET)) );
   dest^.pub.next_output_byte := JOCTETptr(dest^.buffer);
   dest^.pub.free_in_buffer := OUTPUT_BUF_SIZE;
 end;
@@ -203,7 +203,7 @@ begin
   if (cinfo^.dest = nil) then begin {first time for this JPEG object?}
     cinfo^.dest := jpeg_destination_mgr_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-				  SIZEOF(my_destination_mgr)) );
+                                  SIZEOF(my_destination_mgr)) );
   end;
   dest := my_dest_ptr (cinfo^.dest);
   {override pub's method pointers}
@@ -245,7 +245,7 @@ type
     outfile : TStream;              {Stream to write to}
     inmemory : boolean;             {keep whole image in memory}
     {image info}
-    data_width : JDIMENSION;	    {JSAMPLEs per row}
+    data_width : JDIMENSION;        {JSAMPLEs per row}
     row_width : JDIMENSION;         {physical width of one row in the BMP file}
     pad_bytes : INT;                {number of padding bytes needed per row}
     grayscale : boolean;            {grayscale or quantized color table ?}
@@ -448,7 +448,7 @@ var
 begin
   dest := bmp_dest_ptr (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(bmp_dest_struct)) );
+                                  SIZEOF(bmp_dest_struct)) );
   dest^.outfile := outfile;
   dest^.inmemory := inmemory;
   {image info}
@@ -527,7 +527,7 @@ var
   end;
 
 begin
-  cmap_entrysize := 0;		{ 0 indicates no colormap }
+  cmap_entrysize := 0;          { 0 indicates no colormap }
 
   {bitmap file header:}
   if source^.infile.Read(bmpfileheader, SizeOf(bmpfileheader))
@@ -579,7 +579,7 @@ begin
     source^.bits_per_pixel := bmpinfoheader.biBitCount;
     case source^.bits_per_pixel of
        8: begin {colormapped image}
-            cmap_entrysize := 4;	{Windows uses RGBQUAD colormap}
+            cmap_entrysize := 4;        {Windows uses RGBQUAD colormap}
             TRACEMS2( j_common_ptr(cinfo), 1, JTRC_BMP_MAPPED,
               int (bmpinfoheader.biWidth), int(bmpinfoheader.biHeight) );
           end;
@@ -598,7 +598,7 @@ begin
       {Set JFIF density parameters from the BMP data}
       cinfo^.X_density := bmpinfoheader.biXPelsPerMeter div 100; {100 cm per meter}
       cinfo^.Y_density := bmpinfoheader.biYPelsPerMeter div 100;
-      cinfo^.density_unit := 2;	{ dots/cm }
+      cinfo^.density_unit := 2; { dots/cm }
     end;
   end else
     ERREXIT(j_common_ptr(cinfo), JERR_BMP_BADHEADER);

@@ -14,18 +14,18 @@
 type
  tp=procedure;
 var
-  err : boolean; 
+  err : boolean;
 procedure expect(l1,l2:longint);
 begin
   if l1<>l2 then
     begin
       writeln('ERROR got ',l1,' expected ',l2);
       err:=true;
-    end  
+    end
   else
     writeln(l1);
 end;
- 
+
 var
  p:tp;
  pp:pointer absolute p;

@@ -630,7 +630,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2005-02-03 20:04:49  peter
+  Revision 1.66  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.65  2005/02/03 20:04:49  peter
     * push_addr_param must be defined per target
 
   Revision 1.64  2005/01/30 11:03:22  peter
@@ -644,60 +647,5 @@ end.
     + support for passing records in registers under darwin
     * tcgpara now also has an intsize field, which contains the size in
       bytes of the whole parameter
-
-  Revision 1.60  2004/11/22 22:01:19  peter
-    * fixed varargs
-    * replaced dynarray with tlist
-
-  Revision 1.59  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.58  2004/11/21 17:17:04  florian
-    * changed funcret location back to tlocation
-
-  Revision 1.57  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.56  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.55  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.54.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.54  2004/07/09 23:30:13  jonas
-    *  changed first_sse_imreg to first_mm_imreg
-
-  Revision 1.53  2004/07/09 23:09:02  peter
-    * varargs calculation fixed, it's now the same as the other
-      targets
-
-  Revision 1.52  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.51  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.50.2.3  2004/05/02 21:37:35  florian
-    * setting of func. ret. for i386 fixed
-
-  Revision 1.50.2.2  2004/05/02 12:45:32  peter
-    * enabled cpuhasfixedstack for x86-64 again
-    * fixed size of temp allocation for parameters
-
-  Revision 1.50.2.1  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.50  2004/02/09 22:14:17  peter
-    * more x86_64 parameter fixes
-    * tparalocation.lochigh is now used to indicate if register64.reghi
-      is used and what the type is
 
 }

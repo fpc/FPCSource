@@ -15,7 +15,7 @@ Type
   UInt64 = Int64; // Must be unsigned.
 {$else}
   UInt64 = 0..High(Int64); // Must be unsigned.
-{$endif}  
+{$endif}
   wchar_t = widechar;
   Pwchar_t = ^wchar_t;
   PPwchar_t = ^Pwchar_t;
@@ -28,30 +28,30 @@ Type
 
 Type
   __sighandler_t = procedure(SigNum: Integer); cdecl;
-  
+
   timespec = record
-    tv_sec: Longint;           
-    tv_nsec: Longint;          
+    tv_sec: Longint;
+    tv_nsec: Longint;
   end;
-                
+
   wint_t = Cardinal;
   __mbstate_t = record
-    count: Integer; 
+    count: Integer;
     case { __value } Integer of
       0: (__wch: wint_t);
       1: (__wchb: packed array[0..4 - 1] of Char);
     end;
   mbstate_t = __mbstate_t;
   P__mbstate_t = ^__mbstate_t;
-  
+
 { ---------------------------------------------------------------------
     Borland compatibility types for forward declarations.
   ---------------------------------------------------------------------}
-  
+
   TSignalHandler = __sighandler_t;
   TTimeSpec = timespec;
   PTimeSpec = ^TTimeSpec;
   TMultiByteState = __mbstate_t;
   PMultiByteState = ^TMultiByteState;
-                
-        
+
+

@@ -22,10 +22,10 @@
 }
 
 
-const           
+const
       syscall_nr_exit   =   $3F;
-      syscall_nr_chdir  =   $57; 
-      syscall_nr_mkdir  =   $1E; 
+      syscall_nr_chdir  =   $57;
+      syscall_nr_mkdir  =   $1E;
       syscall_nr_unlink =   $27;
       syscall_nr_rmdir  =   $60;
       syscall_nr_close  =   $01;
@@ -57,12 +57,12 @@ type
   twstat = packed record
 {00}   filler : array[1..3] of longint;
 {12}   newmode : mode_t;     { chmod mode_t parameter }
-{16}   unknown1 : longint;  
-{20}   newuser : uid_t;      { chown uid_t parameter  } 
+{16}   unknown1 : longint;
+{20}   newuser : uid_t;      { chown uid_t parameter  }
 {24}   newgroup : gid_t;     { chown gid_t parameter  }
 {28}   trunc_offset : off_t; { ftrucnate parameter    }
 {36}   unknown2 : array[1..2] of longint;
-{44}   utime_param: int64;  
+{44}   utime_param: int64;
 {52}   unknown3 : array[1..2] of longint;
   end;
 
@@ -72,7 +72,7 @@ type
 
 
     { These routines are currently not required for BeOS }
-    function sys_fork : pid_t; 
+    function sys_fork : pid_t;
     begin
     end;
 
@@ -97,42 +97,42 @@ type
 
     function S_ISDIR(m : mode_t): boolean;
     begin
-	 if (m and S_IFDIR)= S_IFDIR then
-	   S_ISDIR := true
-	 else
-	   S_ISDIR := false;
+         if (m and S_IFDIR)= S_IFDIR then
+           S_ISDIR := true
+         else
+           S_ISDIR := false;
     end;
 
     function S_ISCHR(m : mode_t): boolean;
     begin
-	  if (m and S_IFCHR) = S_IFCHR then
-	    S_ISCHR := true
-	  else
-	   S_ISCHR := false;
+          if (m and S_IFCHR) = S_IFCHR then
+            S_ISCHR := true
+          else
+           S_ISCHR := false;
     end;
 
     function S_ISBLK(m : mode_t): boolean;
       begin
         if (m and S_IFBLK) = S_IFBLK then
           S_ISBLK := true
-	    else
-	      S_ISBLK := false;
+            else
+              S_ISBLK := false;
       end;
 
     function S_ISREG(m : mode_t): boolean;
       begin
        if (m and S_IFREG) = S_IFREG then
-	     S_ISREG := true
+             S_ISREG := true
        else
-	     S_ISREG := false;
+             S_ISREG := false;
       end;
 
     function S_ISFIFO(m : mode_t): boolean;
       begin
-	   if (m and S_IFIFO) = S_IFIFO then
-	     S_ISFIFO := true
+           if (m and S_IFIFO) = S_IFIFO then
+             S_ISFIFO := true
        else
-	     S_ISFIFO := false;
+             S_ISFIFO := false;
       end;
 
     function wifexited(status : cint): cint;
@@ -154,7 +154,7 @@ type
      begin
        if (((status) shr 8) and $ff) <> 0 then
          wifsignaled := 1
-       else  
+       else
          wifsignaled := 0;
      end;
 
@@ -209,11 +209,11 @@ type
   begin
     if assigned(dirp) then
       begin
-	args.param[1] := dirp^.fd;
-	sys_closedir := SysCall(syscall_nr_closedir,args);
-	Dispose(dirp);
-	dirp := nil;
-	exit;
+        args.param[1] := dirp^.fd;
+        sys_closedir := SysCall(syscall_nr_closedir,args);
+        Dispose(dirp);
+        dirp := nil;
+        exit;
       end;
     Errno := Sys_EBADF;
     sys_closedir := -1;
@@ -230,21 +230,21 @@ type
       { just in case }
       FillChar(dirp^,sizeof(dir),#0);
       if assigned(dirp) then
-	  begin
-	    args.param[1] := $FFFFFFFF;
-	    args.param[2] := cint(dirname);
-	    args.param[3] := 0;
+          begin
+            args.param[1] := $FFFFFFFF;
+            args.param[2] := cint(dirname);
+            args.param[3] := 0;
         fd:=SysCall(syscall_nr_opendir,args);
-	    if fd = -1 then
-	      begin
-	        Dispose(dirp);
-	        sys_opendir := nil;
-	        exit;
-	      end;
-	    dirp^.fd := fd;
-	    sys_opendir := dirp;
-	    exit;
-	  end;
+            if fd = -1 then
+              begin
+                Dispose(dirp);
+                sys_opendir := nil;
+                exit;
+              end;
+            dirp^.fd := fd;
+            sys_opendir := dirp;
+            exit;
+          end;
       Errno := Sys_EMFILE;
       sys_opendir := nil;
    end;
@@ -388,7 +388,7 @@ type
     end;
 
 
-    function sys_open(const path: pchar; flags : cint; mode: mode_t):cint; 
+    function sys_open(const path: pchar; flags : cint; mode: mode_t):cint;
     var
      args: SysCallArgs;
     begin
@@ -397,7 +397,7 @@ type
       args.param[3] := flags;
       args.param[4] := cint(mode);
       args.param[5] := 0;               { close on execute flag }
-      sys_open:= SysCall(syscall_nr_open, args);   
+      sys_open:= SysCall(syscall_nr_open, args);
     end;
 
 
@@ -424,13 +424,13 @@ type
     end;
 
 
-    function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t; 
+    function sys_lseek(fd : cint; offset : off_t; whence : cint): off_t;
     var
      args: SysCallArgs;
 
     begin
       args.param[1] := fd;
-      args.param[2] := cint(offset and $FFFFFFFF);      
+      args.param[2] := cint(offset and $FFFFFFFF);
       args.param[3] := cint((offset shr 32) and $FFFFFFFF);
       args.param[4] := whence;
       { we currently only support seeks upto 32-bit in length }
@@ -455,51 +455,10 @@ type
       Dispose(wstat);
     end;
 
-{ 
+{
 
   $Log$
-  Revision 1.2  2003-01-08 22:32:28  marco
-   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-      but it could crash hard, since there are lots of unimplemented funcs.
-
-  Revision 1.1.2.13  2001/12/17 02:14:28  carl
-  + wifsignaled() added
-
-  Revision 1.1.2.12  2001/12/03 03:11:05  carl
-  * update for new posix prototype (caused problem with other OS)
-
-  Revision 1.1.2.11  2001/08/22 02:38:12  carl
-  - sys_exit now written in assembler
-
-  Revision 1.1.2.10  2001/08/15 01:01:51  carl
-  - moved SysCall to syscall.inc
-
-  Revision 1.1.2.9  2001/08/13 09:40:43  carl
-  * bugfix of problems of changing signs with errno!
-  * changed prototype of sys_readdir() to conform to POSIX
-
-  Revision 1.1.2.8  2001/08/13 05:57:53  carl
-  * corrected written/read value returned for sys_read() and sys_write(). errno now correctly set.
-
-  Revision 1.1.2.7  2001/08/12 15:15:21  carl
-  * bugfix of call to sys_time (would always return weird results)
-
-  Revision 1.1.2.6  2001/08/09 01:12:46  carl
-  * fstat() call now correct
-  + ftruncate() support
-
-  Revision 1.1.2.5  2001/08/08 01:55:43  carl
-  * bugfix of sys_opendir()
-  * bugfix of sys_readdir() should be var parameter not const :(
-
-  Revision 1.1.2.4  2001/07/14 04:20:33  carl
-  + sys_lseek()
-  + sys_open()
-  * bugfix of sys_write()
-  * bugfix of sys_readdir()
-  + started testing
-
-  Revision 1.1.2.3  2001/07/13 03:14:55  carl
-  + more syscalls (not all verified) working
+  Revision 1.3  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

@@ -2,7 +2,7 @@ program changeit;
 
 uses sysutils;
 
-var 
+var
   S : String;
 
 begin

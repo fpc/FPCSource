@@ -943,13 +943,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.7  2005-02-03 20:48:56  florian
+  Revision 1.8  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.7  2005/02/03 20:48:56  florian
     * fixed SHGetFileInfo
 
-  Revision 1.6  2004/08/08 14:26:56  florian
-    * removed ifdefs for unicode; handled by overloading
-    * smartlinked by default because it contains winxp only functions
-
-  Revision 1.5  2004/05/21 11:08:18  florian
-    + shellapi to makefile added
 }

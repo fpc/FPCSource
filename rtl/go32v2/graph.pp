@@ -2780,16 +2780,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-03-06 23:18:02  hajny
-    * proper regcall fixes
-
-  Revision 1.11  2003/12/04 21:42:07  peter
-    * register calling updates
-
-  Revision 1.10  2003/10/03 21:46:25  peter
-    * stdcall fixes
-
-  Revision 1.9  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
+  Revision 1.13  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

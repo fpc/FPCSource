@@ -10,7 +10,7 @@ ResourceString
 { ---------------------------------------------------------------------
     Strings which appear in the program
   ---------------------------------------------------------------------}
-  
+
 
   SFPDE        = 'Free Pascal documentation editor';
   SName        = 'Name';
@@ -56,11 +56,11 @@ ResourceString
   SOptMaxRecentUsed = 'Items in MRU list';
   SAboutText = 'fpdoc editor 1.0'#10'(c) 2002 Michael Van Canneyt'#10+
                'See http://www.freepascal.org/';
-  
+
 { ---------------------------------------------------------------------
     Menu strings
   ---------------------------------------------------------------------}
-  
+
   SMenuOpen          = '_Open';
   SMenuNew           = '_New';
   SMenuNewFromSource = 'New from so_urce';
@@ -70,7 +70,7 @@ ResourceString
   SMenuClose         = '_Close';
   SMenuExit          = 'E_xit';
   SMenuFile          = 'File';
-  
+
   SMenuInsert          = 'Insert';
   SMenuInsertPackage   = '_Package';
   SMenuInsertModule    = '_Module';
@@ -97,32 +97,32 @@ ResourceString
 
   SMenuHelp             = 'Help';
   SMenuHelpAbout            = 'About';
-    
+
 { ---------------------------------------------------------------------
-    Hint strings  
+    Hint strings
   ---------------------------------------------------------------------}
   SHintFileNew       = 'New file';
   SHintFileOpen      = 'Open file';
   SHintFileSave      = 'Save file';
   SHintFileSaveAs    = 'Save file as';
-  
+
   SHintInsertPackage = 'New package';
   SHintInsertModule  = 'New module';
   SHintInsertTopic   = 'New topic';
   SHintInsertElement = 'New element';
   SHintInsertLink    = 'Insert link';
   ShintInsertTable   = 'Insert table';
-  
+
   SMarkSelection     = 'Mark selection %s';
-  
+
   SHMenuExtraOptions = 'Show options dialog';
-  SHMenuHelpAbout        = 'About this program';   
-   
+  SHMenuHelpAbout        = 'About this program';
+
 { ---------------------------------------------------------------------
     Error messages.
   ---------------------------------------------------------------------}
-  
-  
+
+
   SErrNoPackageForModule = 'No package found to insert module "%s"';
   SErrNoNodeForTopic     = 'No parent node found to insert topic "%s"';
   SErrNoNodeForPackage   = 'No node found for package "%s"';

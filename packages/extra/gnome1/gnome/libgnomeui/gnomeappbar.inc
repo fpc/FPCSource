@@ -16,7 +16,7 @@ type
 const
    bm__GnomeAppBar_interactive = $1;
    bp__GnomeAppBar_interactive = 0;
-   
+
 function interactive(var a : TGnomeAppBar) : gboolean;
 procedure set_interactive(var a : TGnomeAppBar; __interactive : gboolean);
 

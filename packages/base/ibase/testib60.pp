@@ -3,7 +3,7 @@
 }
 program testib;
 
-{$IFDEF Linux}	// not for *BSD
+{$IFDEF Linux}  // not for *BSD
 {$LINKLIB dl}
 {$ENDIF}
 
@@ -154,7 +154,9 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2003-08-09 15:18:30  marco
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
+
    * the exception that proves the rule: {$ifdef unix} replaced by {$ifdef linux} :-)
 
   Revision 1.2  2002/09/07 15:42:52  peter

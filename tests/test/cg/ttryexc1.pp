@@ -820,12 +820,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-01 14:45:54  peter
-    * updates to compile with kylix
-    * fixed some tests
-
-  Revision 1.1  2002/08/03 11:05:14  carl
-    + exception handling testing
-       (still missing raise / on node testing)
+  Revision 1.3  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

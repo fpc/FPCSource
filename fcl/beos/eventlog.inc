@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Generic event logging facility.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -17,13 +17,13 @@
 { ---------------------------------------------------------------------
     Include event log that maps to file event log.
   ---------------------------------------------------------------------}
-  
+
 {$i felog.inc}
 
 {
   $Log$
-  Revision 1.1  2003-04-06 13:37:50  carl
-    * Fix compilation problems for some targets
+  Revision 1.2  2005-02-14 17:13:11  peter
+    * truncate log
 
 }
-  
+

@@ -346,39 +346,15 @@ begin
 end;
 {
   $Log$
-  Revision 1.18  2005-01-29 17:01:18  peter
+  Revision 1.19  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.18  2005/01/29 17:01:18  peter
     * fix crash with backtrace if invalid frame is passed
 
   Revision 1.17  2005/01/26 17:07:10  peter
     * retrieve backtrace when exception is raised
     * RaiseMaxFrameCount added to limit the number of backtraces, setting
       it to 0 disables backtraces. Default is 16
-
-  Revision 1.16  2004/10/24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.15  2004/04/27 18:47:51  florian
-    * exception addr record size for 64 bit systems fixed
-
-  Revision 1.14  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
-
-  Revision 1.13  2003/11/26 20:12:08  michael
-  + New runerror 231 (exception stack error) and 232 (nothread support)
-
-  Revision 1.12  2003/10/06 15:59:20  florian
-    + applied patch for ref. counted exceptions by Johannes Berg
-
-  Revision 1.11  2003/09/06 21:56:29  marco
-   * one VIRTUALPASCAL
-
-  Revision 1.10  2003/05/01 08:05:23  florian
-    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
-
-  Revision 1.9  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
-
-  Revision 1.8  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
 
 }

@@ -56,11 +56,11 @@ Function  FpGetcwd :AnsiString;
 
 Var
   Buf : Array[0..PATH_MAX+1]  of char;
-Begin 
-  Buf[PATH_MAX+1]:=#0; 
+Begin
+  Buf[PATH_MAX+1]:=#0;
   If FpGetcwd(@Buf[0],PATH_MAX)=Nil then
     FpGetcwd:=''
-  else  
+  else
     FpGetcwd:=Buf;
 End;
 
@@ -165,13 +165,13 @@ function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; cdecl; externa
 function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
 {$endif}
 
-Function  FpRead	   (fd : cInt;var buf; nbytes : TSize): TSsize;
+Function  FpRead           (fd : cInt;var buf; nbytes : TSize): TSsize;
 
 begin
   FPRead:=xFpRead(fd,pchar(@buf),nbytes);
 end;
 
-Function  FpWrite	   (fd : cInt;const buf; nbytes : TSize): TSsize;
+Function  FpWrite          (fd : cInt;const buf; nbytes : TSize): TSsize;
 begin
  FpWrite:=FpWrite(fd,pchar(@buf),nbytes);
 end;
@@ -372,60 +372,12 @@ end;
 
 {
  $Log$
- Revision 1.17  2005-01-30 18:01:15  peter
+ Revision 1.18  2005-02-14 17:13:31  peter
+   * truncate log
+
+ Revision 1.17  2005/01/30 18:01:15  peter
    * signal cleanup for linux
    * sigactionhandler instead of tsigaction for bsds
    * sigcontext moved to cpu dir
-
- Revision 1.16  2004/11/25 12:18:35  jonas
-   * fixed invalid type conversion
-
- Revision 1.15  2004/11/23 08:40:34  michael
- + Added overloaded functions
-
- Revision 1.14  2004/11/19 13:15:14  marco
-  * external rework. Mostly done.
-
- Revision 1.13  2004/11/14 12:21:08  marco
-  * moved some calls from unix to baseunix. Darwin untested.
-
- Revision 1.12  2004/11/02 14:49:48  florian
-   * fixed baseunix.signal for CPU using rt_sigaction
-   * fixed it for x86_64 too
-
- Revision 1.11  2004/06/01 10:30:03  jonas
-   * fixed missing cdecl procedure directive
-
- Revision 1.10  2004/03/28 19:36:19  marco
-  * fix for recursive fpc.exe ?
-
- Revision 1.9  2004/01/04 21:04:08  jonas
-   * declare C-library routines as external in libc for Darwin (so we
-     generate proper import entries)
-
- Revision 1.8  2003/12/30 12:24:01  marco
-  * FPC_USE_LIBC
-
- Revision 1.7  2003/10/27 17:12:45  marco
-  * fixes for signal handling.
-
- Revision 1.6  2003/10/13 11:37:57  marco
-  * more small fixes
-
- Revision 1.5  2003/10/12 14:37:10  marco
-  * small bug fixed in opendir that core dumped the IDE. Now the IDE SIGFPE's in FV.
-
- Revision 1.4  2003/09/16 16:13:56  marco
-  * fdset functions renamed to fp<posix name>
-
- Revision 1.3  2003/09/14 20:15:01  marco
-  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
- Revision 1.2  2003/06/01 16:28:41  marco
-  * Enhancements to make the compiler baseunix using.
-
- Revision 1.1  2002/12/18 16:49:02  marco
-  * New RTL. Linux system unit and baseunix operational.
-
 
 }

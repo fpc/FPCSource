@@ -1187,85 +1187,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.144  2005-02-11 16:25:26  peter
+  Revision 1.145  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.144  2005/02/11 16:25:26  peter
     * fix IE with array of const in array of conts
 
   Revision 1.143  2005/01/23 17:14:21  florian
     + optimized code generation on sparc
     + some stuff for pic code on sparc added
-
-  Revision 1.142  2004/12/26 16:21:39  peter
-    * resourcestring does not need exception frame
-
-  Revision 1.141  2004/12/07 13:52:54  michael
-    * Convert array of widechar to pwidechar instead of pchar
-
-  Revision 1.140  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.139  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.138  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.137  2004/11/01 15:32:12  peter
-    * support @labelsym
-
-  Revision 1.136  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.135  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.134  2004/10/12 14:35:14  peter
-    * fixed crash when current_procinfo was not yet available
-
-  Revision 1.133  2004/10/11 15:48:15  peter
-    * small regvar for para fixes
-    * function tvarsym.is_regvar added
-    * tvarsym.getvaluesize removed, use getsize instead
-
-  Revision 1.132  2004/10/10 20:22:53  peter
-    * symtable allocation rewritten
-    * loading of parameters to local temps/regs cleanup
-    * regvar support for parameters
-    * regvar support for staticsymtable (main body)
-
-  Revision 1.131  2004/10/08 17:09:43  peter
-    * tvarsym.varregable added, split vo_regable from varoptions
-
-  Revision 1.130  2004/10/06 19:26:50  jonas
-    * regvar fixes from Peter
-
-  Revision 1.129  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.128  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.127  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.126  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.125.2.1  2004/04/28 19:55:51  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.125  2004/03/02 17:32:12  florian
-    * make cycle fixed
-    + pic support for darwin
-    + support of importing vars from shared libs on darwin implemented
-
-  Revision 1.124  2004/02/20 22:15:26  peter
-    * fixed compiler err
 
 }

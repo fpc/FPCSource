@@ -23,7 +23,7 @@ interface
 
 uses
   jmorecfg,
-  cdjpeg,		{ Common decls for cjpeg/djpeg applications }
+  cdjpeg,               { Common decls for cjpeg/djpeg applications }
   jdeferr,
   jerror,
   jpeglib;
@@ -78,7 +78,7 @@ begin
     if (GETJSAMPLE(colormap0^[index]) = R) and
        (GETJSAMPLE(colormap1^[index]) = G) and
        (GETJSAMPLE(colormap2^[index]) = B) then
-      exit;			{ color is already in map }
+      exit;                     { color is already in map }
   end;
 
   { Check for map overflow. }
@@ -128,9 +128,9 @@ begin
     if (count <> 3) then
       ERREXIT(j_common_ptr(cinfo), JERR_BAD_CMAP_FILE);
     add_map_entry(cinfo,
-		  color.R shl (BITS_IN_JSAMPLE-8),
-		  color.G shl (BITS_IN_JSAMPLE-8),
-		  color.B shl (BITS_IN_JSAMPLE-8));
+                  color.R shl (BITS_IN_JSAMPLE-8),
+                  color.G shl (BITS_IN_JSAMPLE-8),
+                  color.B shl (BITS_IN_JSAMPLE-8));
   end;
 end;
 
@@ -200,7 +200,7 @@ var
   R, G, B : int;
 begin
   { Initial 'P' has already been read by read_color_map }
-  c := getc(infile);		{ save format discriminator for a sec }
+  c := getc(infile);            { save format discriminator for a sec }
 
   { while we fetch the remaining header info }
   w := read_pbm_integer(cinfo, infile);
@@ -215,29 +215,29 @@ begin
     ERREXIT(j_common_ptr(cinfo), JERR_BAD_CMAP_FILE);
 
   case (c) of
-  '3':			{ it's a text-format PPM file }
+  '3':                  { it's a text-format PPM file }
     for row := 0 to pred(h) do
     begin
       for col := 0 to pred(w) do
       begin
-	R := read_pbm_integer(cinfo, infile);
-	G := read_pbm_integer(cinfo, infile);
-	B := read_pbm_integer(cinfo, infile);
-	add_map_entry(cinfo, R, G, B);
+        R := read_pbm_integer(cinfo, infile);
+        G := read_pbm_integer(cinfo, infile);
+        B := read_pbm_integer(cinfo, infile);
+        add_map_entry(cinfo, R, G, B);
       end;
     end;
 
-  '6':			{ it's a raw-format PPM file }
+  '6':                  { it's a raw-format PPM file }
     for row := 0 to pred(h) do
     begin
       for col := 0 to pred(w) do
       begin
-	R := pbm_getc(infile);
-	G := pbm_getc(infile);
-	B := pbm_getc(infile);
-	if (R = EOF) or (G = EOF) or (B = EOF) then
-	  ERREXIT(j_common_ptr(cinfo), JERR_BAD_CMAP_FILE);
-	add_map_entry(cinfo, R, G, B);
+        R := pbm_getc(infile);
+        G := pbm_getc(infile);
+        B := pbm_getc(infile);
+        if (R = EOF) or (G = EOF) or (B = EOF) then
+          ERREXIT(j_common_ptr(cinfo), JERR_BAD_CMAP_FILE);
+        add_map_entry(cinfo, R, G, B);
       end;
     end;
 

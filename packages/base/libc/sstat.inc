@@ -1,7 +1,7 @@
 { ---------------------------------------------------------------------
     Macros from sys/stat.h
   ---------------------------------------------------------------------}
-  
+
 function __S_ISTYPE(mode,mask : __mode_t) : boolean;
 begin
   __S_ISTYPE:=(mode and __S_IFMT) = mask;

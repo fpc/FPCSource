@@ -63,7 +63,7 @@ type
      end;
 
 const
-  __S_IFMT        = $F000; 
+  __S_IFMT        = $F000;
   __S_IFDIR       = $4000;
   __S_IFCHR       = $2000;
   __S_IFBLK       = $6000;
@@ -72,12 +72,12 @@ const
   __S_IFLNK       = $A000;
   __S_IFSOCK      = $C000;
 
-  __S_ISUID       = $800;  
-  __S_ISGID       = $400;  
-  __S_ISVTX       = $200;  
-  __S_IREAD       = $100;  
-  __S_IWRITE      = $80;   
-  __S_IEXEC       = $40;  
+  __S_ISUID       = $800;
+  __S_ISGID       = $400;
+  __S_ISVTX       = $200;
+  __S_IREAD       = $100;
+  __S_IWRITE      = $80;
+  __S_IEXEC       = $40;
 
 { ---------------------------------------------------------------------
     Borland compatibility types
@@ -86,8 +86,8 @@ const
 Type
   TStatBuf = _stat;
   PStatBuf = ^TStatBuf;
-    
+
   TStatBuf64 = _stat64;
   PStatBuf64 = ^TStatBuf64;
-    
-        
+
+

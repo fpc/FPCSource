@@ -154,23 +154,23 @@ var
   i: Integer;
 
 begin
-  if FInVerBatim=True then 
+  if FInVerBatim=True then
     Result:=S
-  else  
-    begin    
+  else
+    begin
     SetLength(Result, 0);
     for i := 1 to Length(S) do
       case S[i] of
-        '&','{','}','#','_','$','%':		// Escape these characters
+        '&','{','}','#','_','$','%':            // Escape these characters
           Result := Result + '\' + S[i];
         '~','^':
           Result := Result + '\'+S[i]+' ';
-        '\': 
-          Result:=Result+'$\backslash$'  
+        '\':
+          Result:=Result+'$\backslash$'
         else
           Result := Result + S[i];
       end;
-    end;  
+    end;
 end;
 
 Function TLatexWriter.StripText(S : String) : String;
@@ -372,7 +372,7 @@ begin
   // !!!: How do we set the border?
   Write('\begin{FPCltable}{');
   for i := 1 to ColCount do
-    Write('l');  
+    Write('l');
   write('}{');
   TableCaptionWritten:=False;
 end;
@@ -453,10 +453,10 @@ begin
     Writeln('');
     Writeln('\begin{verbatim}');
     end
-  else  
+  else
     if Frames then
       Writelnf('\begin{lstlisting}{%s}',[StripText(Name)])
-    else  
+    else
       Writelnf('\begin{lstlisting}[frame=]{%s}',[StripText(Name)]);
 end;
 
@@ -465,13 +465,13 @@ begin
   FInVerbatim:=False;
   If LaTexHighLight then
     Writeln('\end{lstlisting}')
-  else  
+  else
     Writeln('\end{verbatim}')
 end;
 
 procedure TLatexWriter.WriteCommentLine;
 const
-  CommentLine = 
+  CommentLine =
     '%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%';
 begin
   Writeln(CommentLine);
@@ -690,7 +690,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2005-01-12 21:11:41  michael
+  Revision 1.10  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.9  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.8  2005/01/09 15:59:50  michael

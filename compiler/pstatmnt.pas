@@ -1182,7 +1182,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.154  2005-02-11 16:24:59  peter
+  Revision 1.155  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.154  2005/02/11 16:24:59  peter
     * don't set varstate to vs_used for record in with at start yet
 
   Revision 1.153  2005/02/08 21:25:14  florian
@@ -1197,70 +1200,5 @@ end.
   Revision 1.150  2005/01/31 16:16:21  peter
     * for-node cleanup, checking for uninitialzed from and to values
       is now supported
-
-  Revision 1.149  2004/12/26 16:22:01  peter
-    * fix lineinfo for with blocks
-
-  Revision 1.148  2004/12/07 16:11:52  peter
-    * set vo_explicit_paraloc flag
-
-  Revision 1.147  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.146  2004/11/30 18:13:39  jonas
-    * patch from Peter to fix inlining of case statements
-
-  Revision 1.145  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.144  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.143  2004/10/15 10:35:23  mazen
-  * remove non needed parathesys as  in 1.140
-
-  Revision 1.141  2004/09/27 15:15:52  peter
-    * register loopvarsym for fields instead of record variable
-    * don't allow class fields as loop var
-
-  Revision 1.140  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.139  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.138  2004/09/21 16:00:50  peter
-    * no difference for withnode when debuginfo is generated
-
-  Revision 1.137  2004/09/13 20:28:27  peter
-    * for loop variable assignment is not allowed anymore
-
-  Revision 1.136.4.1  2004/09/21 16:01:54  peter
-    * withnode debug disabled
-
-  Revision 1.136  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.135  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.134  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.133  2004/05/23 11:39:38  peter
-    * give error when goto jumps to label outside current proc scope
-
-  Revision 1.132.2.2  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.132.2.1  2004/04/28 19:55:52  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
 }

@@ -56,7 +56,7 @@ const
    IPVERSION = 4;
    IP_MAXPACKET = 65535;
    IPTOS_TOS_MASK = $1E;
-   
+
 function IPTOS_TOS(tos : longint) : longint;
 
 
@@ -83,7 +83,7 @@ const
    IPOPT_COPY = $80;
    IPOPT_CLASS_MASK = $60;
    IPOPT_NUMBER_MASK = $1f;
-   
+
 function IPOPT_COPIED(o : longint) : longint;
 
 function IPOPT_CLASS(o : longint) : longint;
@@ -137,4 +137,4 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -13,6 +13,6 @@ begin
      Sound(i);
      Delay(100);
    end;
-  WriteLn('Quiet now!'); 
-  NoSound; {Stop noise}      
+  WriteLn('Quiet now!');
+  NoSound; {Stop noise}
 end.

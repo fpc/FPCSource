@@ -382,8 +382,8 @@ end;
 
 procedure initdelay;assembler;
 asm
-	pushl %ebx
-	pushl %edi
+        pushl %ebx
+        pushl %edi
         { for some reason, using int $31/ax=$901 doesn't work here }
         { and interrupts are always disabled at this point when    }
         { running a program inside gdb(pas). Web bug 1345 (JM)     }
@@ -403,15 +403,15 @@ asm
         movl    $55,%ecx
         divl    %ecx
         movl    %eax,DelayCnt
-	popl %edi
-	popl %ebx
+        popl %edi
+        popl %ebx
 end;
 
 
 procedure Delay(MS: Word);assembler;
 asm
-	pushl %ebx
-	pushl %edi
+        pushl %ebx
+        pushl %edi
         movzwl  MS,%ecx
         jecxz   .LDelay2
         movl    $0x400,%edi
@@ -422,8 +422,8 @@ asm
         call    DelayLoop
         loop    .LDelay1
 .LDelay2:
-	popl %edi
-	popl %ebx
+        popl %edi
+        popl %ebx
 end;
 
 
@@ -770,22 +770,7 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-02-08 16:22:20  michael
-  + Moved CRT interface to common include file
-
-  Revision 1.10  2003/10/03 21:56:36  peter
-    * stdcall fixes
-
-  Revision 1.9  2003/03/17 18:13:13  peter
-    * exported ScreenHeight, ScreenWidth
-
-  Revision 1.8  2002/12/15 20:22:24  peter
-    * fix making string empty in readln when cursor is not at the end
-
-  Revision 1.7  2002/09/10 10:38:04  pierre
-   * merged from fixes: fix bug report 1974
-
-  Revision 1.6  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
+  Revision 1.12  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

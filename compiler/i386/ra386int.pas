@@ -2060,7 +2060,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2005-01-31 17:07:50  peter
+  Revision 1.89  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.88  2005/01/31 17:07:50  peter
     * fix [regpara] in intel assembler
 
   Revision 1.87  2005/01/25 18:48:34  peter
@@ -2075,57 +2078,5 @@ end.
 
   Revision 1.84  2005/01/19 20:21:51  peter
     * support labels in references
-
-  Revision 1.83  2004/12/22 17:09:55  peter
-    * support sizeof()
-    * fix typecasting a constant like dword(4)
-
-  Revision 1.82  2004/11/29 18:50:15  peter
-    * os2 fixes for import
-    * asmsymtype support for intel reader
-
-  Revision 1.81  2004/11/21 21:36:13  peter
-    * allow spaces before : of a label
-
-  Revision 1.80  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.79  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.78  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.77  2004/09/13 20:25:52  peter
-    * support byte() typecast
-    * support array index
-
-  Revision 1.76  2004/07/06 19:47:19  peter
-    * fixed parsing of strings in db
-
-  Revision 1.75  2004/06/23 14:54:46  peter
-    * align directive added
-
-  Revision 1.74  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.73  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.72  2004/05/20 21:54:33  florian
-    + <pointer> - <pointer> result is divided by the pointer element size now
-      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
-
-  Revision 1.71.2.3  2004/05/02 00:31:33  peter
-    * fixedi i386 compile
-
-  Revision 1.71.2.2  2004/05/01 23:36:47  peter
-    * assembler reader 64bit fixes
-
-  Revision 1.71.2.1  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
 
 }

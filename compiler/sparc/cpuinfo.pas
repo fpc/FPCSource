@@ -71,33 +71,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.19  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.18.4.1  2004/09/12 12:04:41  peter
-    * sigset_t is now also in jmp_buf
-
-  Revision 1.18  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.17  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.16  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.15.2.2  2004/05/30 21:42:13  peter
-    * fix JMP_BUF_SIZE
-
-  Revision 1.15.2.1  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.15  2004/03/12 08:18:11  mazen
-  - revert '../' from include path
+  Revision 1.21  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

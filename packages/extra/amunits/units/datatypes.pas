@@ -20,7 +20,7 @@
     Added functions and procedures with array of const.
     For use with fpc 1.0.7. They are in systemvartags.
     11 Nov 2001.
-    
+
     Update for AmigaOs 3.9.
     Added some new const.
     tadtNewFormatFrame is a new record.
@@ -42,7 +42,7 @@
     Changed integer > smallint,
             cardinal > longword.
     09 Feb 2003.
-    	    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -249,7 +249,7 @@ const
  DTERROR_INVALID_DATA                  =  2008;
 
 { New for V44 }
- DTERROR_NOT_AVAILABLE		       =  2009;
+ DTERROR_NOT_AVAILABLE                 =  2009;
 
 { Offset for types }
  DTMSG_TYPE_OFFSET                     =  2100;
@@ -365,15 +365,15 @@ const
         { New for V44. Address of a DTST_MEMORY source type
          * object (APTR).
          }
-  DTA_SourceAddress	=  (DTA_Dummy+39);
+  DTA_SourceAddress     =  (DTA_Dummy+39);
 
         { New for V44. Size of a DTST_MEMORY source type
          * object (ULONG).
         }
-  DTA_SourceSize	=  (DTA_Dummy+40);
+  DTA_SourceSize        =  (DTA_Dummy+40);
 
         { Reserved tag; DO NOT USE (V44) }
-  DTA_Reserved		=  (DTA_Dummy+41);
+  DTA_Reserved          =  (DTA_Dummy+41);
 
 { DTObject attributes }
   DTA_Name              =  (DTA_Dummy+100);
@@ -434,7 +434,7 @@ const
   DTST_FILE             =  2;
   DTST_CLIPBOARD        =  3;
   DTST_HOTLINK          =  4;
-  DTST_MEMORY		=  5;	{ New for V44 }
+  DTST_MEMORY           =  5;   { New for V44 }
 
 {***************************************************************************}
 
@@ -690,10 +690,10 @@ const
          * is called }
 { Picture colour table (struct ColorRegister *) }
    PDTA_ColorRegisters   =  (DTA_Dummy + 203);
-   
+
 { Color table to use with SetRGB32CM() (ULONG *) }
    PDTA_CRegs            =  (DTA_Dummy + 204);
-   
+
 { Color table; this table is initialized during the layout
  * process and will contain the colours the picture will use
  * after remapping. If no remapping takes place, these colours
@@ -705,7 +705,7 @@ const
  * process while the picture is being remapped (UBYTE *).
  }
    PDTA_ColorTable       =  (DTA_Dummy + 206);
-   
+
 { Shared pen table; in most places this table will be identical to
  * the PDTA_ColorTable table. Some of the colours in this table might
  * match the original colour palette a little better than the colours
@@ -713,13 +713,13 @@ const
  * during remapping, alternating for each pixel (UBYTE *).
  }
    PDTA_ColorTable2      =  (DTA_Dummy + 207);
-   
+
 { OBSOLETE; DO NOT USE }
    PDTA_Allocated        =  (DTA_Dummy + 208);
-   
+
 { Number of colors used by the picture. (UWORD) }
    PDTA_NumColors        =  (DTA_Dummy + 209);
-   
+
 { Number of colors allocated by the picture (UWORD) }
    PDTA_NumAlloc         =  (DTA_Dummy + 210);
 
@@ -752,25 +752,25 @@ const
          * This array must contain as many entries as there
          * are colors specified with PDTA_NumSparse }
 
-	 { Index number of the picture to load (ULONG). (V44) }
-   PDTA_WhichPicture	 = (DTA_Dummy + 219);
+         { Index number of the picture to load (ULONG). (V44) }
+   PDTA_WhichPicture     = (DTA_Dummy + 219);
 
 { Get the number of pictures stored in the file (ULONG *). (V44) }
-   PDTA_GetNumPictures	 = (DTA_Dummy + 220);
+   PDTA_GetNumPictures   = (DTA_Dummy + 220);
 
 { Maximum number of colours to use for dithering (ULONG). (V44) }
-   PDTA_MaxDitherPens	 = (DTA_Dummy + 221);
+   PDTA_MaxDitherPens    = (DTA_Dummy + 221);
 
 { Quality of the dithering algorithm to be used during colour
  * quantization (ULONG). (V44)
  }
-   PDTA_DitherQuality	 = (DTA_Dummy + 222);
+   PDTA_DitherQuality    = (DTA_Dummy + 222);
 
 { Pointer to the allocated pen table (UBYTE *). (V44) }
-   PDTA_AllocatedPens	 = (DTA_Dummy + 223);
+   PDTA_AllocatedPens    = (DTA_Dummy + 223);
 
 { Quality for scaling. (V45) }
-   PDTA_ScaleQuality	 = (DTA_Dummy + 224);
+   PDTA_ScaleQuality     = (DTA_Dummy + 224);
 
 {***************************************************************************}
 
@@ -784,22 +784,22 @@ const
 { V43 extensions (attributes) }
 
 { Set the sub datatype interface mode (LONG); see "Interface modes" below }
-   PDTA_SourceMode		= (DTA_Dummy + 250);
+   PDTA_SourceMode              = (DTA_Dummy + 250);
 
 { Set the app datatype interface mode (LONG); see "Interface modes" below }
-   PDTA_DestMode		= (DTA_Dummy + 251);
+   PDTA_DestMode                = (DTA_Dummy + 251);
 
 { Allocates the resulting bitmap as a friend bitmap (BOOL) }
-   PDTA_UseFriendBitMap	        = (DTA_Dummy + 255);
+   PDTA_UseFriendBitMap         = (DTA_Dummy + 255);
 
 { NULL or mask plane for use with BltMaskBitMapRastPort() (PLANEPTR) }
-   PDTA_MaskPlane		= (DTA_Dummy + 258);
+   PDTA_MaskPlane               = (DTA_Dummy + 258);
 
 {***************************************************************************}
 
 { Interface modes }
-  PMODE_V42 = (0);	{ Compatibility mode }
-  PMODE_V43 = (1);	{ Extended mode }
+  PMODE_V42 = (0);      { Compatibility mode }
+  PMODE_V43 = (1);      { Extended mode }
 
 {***************************************************************************}
 
@@ -906,7 +906,7 @@ const
  *               SDTA_SignalBitNumber below.
  *}
    SDTA_SignalBit        =  (SDTA_Dummy + 8);
-   SDTA_SignalBitMask	 = SDTA_SignalBit;
+   SDTA_SignalBitMask    = SDTA_SignalBit;
     { (BYTE) Signal bit to use on completion or -1 to disable }
 
    SDTA_Continuous       =  (SDTA_Dummy + 9);
@@ -916,23 +916,23 @@ const
 { The following tags are new for V44 }
 
 { (BYTE) Signal bit to use on completion or -1 to disable }
-   SDTA_SignalBitNumber	 =  (SDTA_Dummy + 10);
+   SDTA_SignalBitNumber  =  (SDTA_Dummy + 10);
 
 { (UWORD) Samples per second }
-   SDTA_SamplesPerSec	 = (SDTA_Dummy + 11);
+   SDTA_SamplesPerSec    = (SDTA_Dummy + 11);
 
 { (struct timeval *) Sample replay period }
-   SDTA_ReplayPeriod	 = (SDTA_Dummy + 12);
+   SDTA_ReplayPeriod     = (SDTA_Dummy + 12);
 
 { (BYTE *) Sample data }
-   SDTA_LeftSample	 = (SDTA_Dummy + 13);
-   SDTA_RightSample	 = (SDTA_Dummy + 14);
+   SDTA_LeftSample       = (SDTA_Dummy + 13);
+   SDTA_RightSample      = (SDTA_Dummy + 14);
 
 { (BYTE) Stereo panning }
-   SDTA_Pan		 = (SDTA_Dummy + 15);
+   SDTA_Pan              = (SDTA_Dummy + 15);
 
 { (BOOL) FreeVec() all sample data upon OM_DISPOSE. }
-   SDTA_FreeSampleData	 = (SDTA_Dummy + 16);
+   SDTA_FreeSampleData   = (SDTA_Dummy + 16);
 
 { (BOOL) Wait for the current sample to be played back before
  * switching to the new sample data.
@@ -961,9 +961,9 @@ Type
 const
 
 { Channel allocation }
-   SAMPLETYPE_Left	= (2);
-   SAMPLETYPE_Right	= (4);
-   SAMPLETYPE_Stereo	= (6);
+   SAMPLETYPE_Left      = (2);
+   SAMPLETYPE_Right     = (4);
+   SAMPLETYPE_Stereo    = (6);
 
 { IFF types }
    ID_8SVX = 944985688;
@@ -1082,7 +1082,7 @@ const
         {  (LONG) Amount to change frame by when fast forwarding or
          * rewinding.  Defaults to 10. }
 
-   ADTA_PreloadFrameCount = (ADTA_Dummy + 8);	{ (V44) }
+   ADTA_PreloadFrameCount = (ADTA_Dummy + 8);   { (V44) }
 {  Sound attributes }
    ADTA_Sample           =  SDTA_Sample      ;
    ADTA_SampleLength     =  SDTA_SampleLength;
@@ -1090,9 +1090,9 @@ const
    ADTA_Volume           =  SDTA_Volume      ;
    ADTA_Cycles           =  SDTA_Cycles      ;
 
-   ADTA_LeftSample	 =  SDTA_LeftSample;		{ (V44) }
-   ADTA_RightSample	 =  SDTA_RightSample;	{ (V44) }
-   ADTA_SamplesPerSec	 =  SDTA_SamplesPerSec;	{ (V44) }
+   ADTA_LeftSample       =  SDTA_LeftSample;            { (V44) }
+   ADTA_RightSample      =  SDTA_RightSample;   { (V44) }
+   ADTA_SamplesPerSec    =  SDTA_SamplesPerSec; { (V44) }
 
 { ***************************************************************************}
 
@@ -1203,7 +1203,7 @@ const
     {  Used to locate a frame in the animation (as set by a slider...) }
 
     { Used to load a new format frame of the animation (V44) }
-   ADTM_LOADNEWFORMATFRAME =	($707);
+   ADTM_LOADNEWFORMATFRAME =    ($707);
 
     { Used to unload a new format frame of the animation (V44) }
    ADTM_UNLOADNEWFORMATFRAME  = ($708);
@@ -1238,7 +1238,7 @@ Type
      tadtNewFormatFrame = record
           MethodID : ULONG;
           alf_TimeStamp : ULONG;     { Timestamp of frame to load }
-	  { The following fields are filled in by the ADTM_NEWLOADFRAME method, }
+          { The following fields are filled in by the ADTM_NEWLOADFRAME method, }
     { and are read-only for any other methods. }
           alf_Frame : ULONG;         { Frame number }
           alf_Duration : ULONG;      { Duration of frame }
@@ -1272,13 +1272,13 @@ const
 {
     Just a note.
     You will see a lot of pObject_ here, pObject is
-    defined in intuition. 
-    
+    defined in intuition.
+
     In c it's object * but we can't have object in fpc.
     typedef object ULONG
 
     pObject_ is just pULONG.
-    
+
 }
 
 FUNCTION AddDTObject(win : pWindow; req : pRequester; o : pObject_; pos : LONGINT) : LONGINT;
@@ -1521,45 +1521,45 @@ END;
 FUNCTION ObtainDTDrawInfoA( o : pObject_; attrs : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	o,A0
-	MOVEA.L	attrs,A1
-	MOVEA.L	DataTypesBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L o,A0
+        MOVEA.L attrs,A1
+        MOVEA.L DataTypesBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION DrawDTObjectA(rp : pRastPort;  o : pObject_; x : LONGINT; y : LONGINT; w : LONGINT; h : LONGINT; th : LONGINT; tv : LONGINT; attrs : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A0
-	MOVEA.L	o,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVE.L	w,D2
-	MOVE.L	h,D3
-	MOVE.L	th,D4
-	MOVE.L	tv,D5
-	MOVEA.L	attrs,A2
-	MOVEA.L	DataTypesBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A0
+        MOVEA.L o,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVE.L  w,D2
+        MOVE.L  h,D3
+        MOVE.L  th,D4
+        MOVE.L  tv,D5
+        MOVEA.L attrs,A2
+        MOVEA.L DataTypesBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE ReleaseDTDrawInfo( o : pObject_; handle : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	o,A0
-	MOVEA.L	handle,A1
-	MOVEA.L	DataTypesBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L o,A0
+        MOVEA.L handle,A1
+        MOVEA.L DataTypesBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
@@ -1651,21 +1651,8 @@ END. (* UNIT DATATYPES *)
 
 {
   $Log$
-  Revision 1.5  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.4  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.3  2003/01/14 18:46:04  nils
-  * added defines use_amia_smartlink and use_auto_openlib
-
-  * implemented autoopening of library
-
-  Revision 1.2  2002/11/18 20:52:28  nils
-    * update check internal log
+  Revision 1.6  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 

@@ -16,7 +16,7 @@ unit Crt;
 
 Interface
 
-{$i crth.inc}  
+{$i crth.inc}
 
 Const
   { Controlling consts }
@@ -25,7 +25,7 @@ Const
   ConsoleMaxY  = 1024;
   ScreenHeight : longint = 25;
   ScreenWidth  : longint = 80;
-  
+
 Type
   TCharAttr=packed record
     ch   : char;
@@ -112,16 +112,16 @@ Begin
    begin
      if x=ox then
       begin
-	// this workaround should improve behaviour on some terminals.
-	// debian bug 216057 but I also observed this with video on FreeBSD
-	if x=screenwidth then
- 	  XY2Ansi:=#27'['+Str(y)+';'+Str(x)+'H'
-	else
+        // this workaround should improve behaviour on some terminals.
+        // debian bug 216057 but I also observed this with video on FreeBSD
+        if x=screenwidth then
+          XY2Ansi:=#27'['+Str(y)+';'+Str(x)+'H'
+        else
        // end workaround
           XY2Ansi:='';
         exit;
       end;
-    {$ifdef Linux}	// linux CRT shortcut
+    {$ifdef Linux}      // linux CRT shortcut
      if x=1 then
       begin
         XY2Ansi:=#13;
@@ -152,7 +152,7 @@ Begin
         exit;
       end;
    end;
-  {$ifdef Linux}			// this shortcut isn't for everybody 
+  {$ifdef Linux}                        // this shortcut isn't for everybody
   if (x=1) and (oy+1=y) then
    XY2Ansi:=#13#10
   else
@@ -1557,7 +1557,7 @@ begin
     ScreenWidth:=Wininfo.ws_col;
     ScreenHeight:=Wininfo.ws_row;
     end;
-  // Set some arbitrary defaults which make some sense...  
+  // Set some arbitrary defaults which make some sense...
   If (ScreenWidth=0) then
      ScreenWidth:=80;
   If (ScreenHeight=0) then
@@ -1622,40 +1622,7 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.21  2004-12-26 16:15:44  peter
-    * restore rawmode only if not redirected
-
-  Revision 1.20  2004/07/20 09:26:04  marco
-   * some updates to xy2ansi
-
-  Revision 1.19  2004/07/09 19:03:35  peter
-    * isatty return cint again
-
-  Revision 1.17  2004/02/08 16:22:20  michael
-  + Moved CRT interface to common include file
-
-  Revision 1.16  2003/11/24 22:27:25  michael
-  + Bugfix for bug 2741
-
-  Revision 1.15  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.14  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.13  2003/09/16 20:52:24  marco
-   * small cleanups. Mostly killing of already commented code in unix etc
-
-  Revision 1.12  2003/09/16 16:13:56  marco
-   * fdset functions renamed to fp<posix name>
-
-  Revision 1.11  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.10  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/05/31 13:37:24  marco
-   * more Renamefest
+  Revision 1.22  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -46,39 +46,39 @@ type
       for one-pass operation, a strip buffer is sufficient. }
 
     whole_image : jvirt_sarray_ptr;   { virtual array, or NIL if one-pass }
-    buffer : JSAMPARRAY;		{ strip buffer, or current strip of virtual }
-    strip_height : JDIMENSION;	{ buffer size in rows }
+    buffer : JSAMPARRAY;                { strip buffer, or current strip of virtual }
+    strip_height : JDIMENSION;  { buffer size in rows }
     { for two-pass mode only: }
-    starting_row : JDIMENSION;	{ row # of first row in current strip }
-    next_row : JDIMENSION;		{ index of next row to fill/empty in strip }
+    starting_row : JDIMENSION;  { row # of first row in current strip }
+    next_row : JDIMENSION;              { index of next row to fill/empty in strip }
   end;
 
 { Forward declarations }
 {METHODDEF}
 procedure post_process_1pass(cinfo : j_decompress_ptr;
-		             input_buf : JSAMPIMAGE;
+                             input_buf : JSAMPIMAGE;
                              var in_row_group_ctr : JDIMENSION;
-		             in_row_groups_avail : JDIMENSION;
-		             output_buf : JSAMPARRAY;
+                             in_row_groups_avail : JDIMENSION;
+                             output_buf : JSAMPARRAY;
                              var out_row_ctr : JDIMENSION;
-		             out_rows_avail : JDIMENSION); far; forward;
+                             out_rows_avail : JDIMENSION); far; forward;
 {$ifdef QUANT_2PASS_SUPPORTED}
 {METHODDEF}
 procedure post_process_prepass(cinfo : j_decompress_ptr;
-		               input_buf : JSAMPIMAGE;
+                               input_buf : JSAMPIMAGE;
                                var in_row_group_ctr : JDIMENSION;
-		               in_row_groups_avail : JDIMENSION;
-		               output_buf : JSAMPARRAY;
+                               in_row_groups_avail : JDIMENSION;
+                               output_buf : JSAMPARRAY;
                                var out_row_ctr : JDIMENSION;
-		               out_rows_avail : JDIMENSION); far;  forward;
+                               out_rows_avail : JDIMENSION); far;  forward;
 {METHODDEF}
 procedure post_process_2pass(cinfo : j_decompress_ptr;
- 		             input_buf : JSAMPIMAGE;
+                             input_buf : JSAMPIMAGE;
                              var in_row_group_ctr : JDIMENSION;
-		             in_row_groups_avail : JDIMENSION;
-		             output_buf : JSAMPARRAY;
+                             in_row_groups_avail : JDIMENSION;
+                             output_buf : JSAMPARRAY;
                              var out_row_ctr : JDIMENSION;
-		             out_rows_avail : JDIMENSION); far;  forward;
+                             out_rows_avail : JDIMENSION); far;  forward;
 {$endif}
 
 
@@ -103,9 +103,9 @@ begin
         allocate a strip buffer.  Use the virtual-array buffer as workspace. }
       if (post^.buffer = NIL) then
       begin
-	post^.buffer := cinfo^.mem^.access_virt_sarray
-	  (j_common_ptr(cinfo), post^.whole_image,
-	   JDIMENSION(0), post^.strip_height, TRUE);
+        post^.buffer := cinfo^.mem^.access_virt_sarray
+          (j_common_ptr(cinfo), post^.whole_image,
+           JDIMENSION(0), post^.strip_height, TRUE);
       end;
     end
     else
@@ -145,12 +145,12 @@ end;
 
 {METHODDEF}
 procedure post_process_1pass (cinfo : j_decompress_ptr;
-		              input_buf : JSAMPIMAGE;
+                              input_buf : JSAMPIMAGE;
                               var in_row_group_ctr : JDIMENSION;
-		              in_row_groups_avail : JDIMENSION;
-		              output_buf : JSAMPARRAY;
+                              in_row_groups_avail : JDIMENSION;
+                              output_buf : JSAMPARRAY;
                               var out_row_ctr : JDIMENSION;
-		              out_rows_avail : JDIMENSION);
+                              out_rows_avail : JDIMENSION);
 var
   post : my_post_ptr;
   num_rows, max_rows : JDIMENSION;
@@ -164,16 +164,16 @@ begin
     max_rows := post^.strip_height;
   num_rows := 0;
   cinfo^.upsample^.upsample (cinfo,
-		             input_buf,
+                             input_buf,
                              in_row_group_ctr,
                              in_row_groups_avail,
-		             post^.buffer,
+                             post^.buffer,
                              num_rows,  { var }
                              max_rows);
   { Quantize and emit data. }
 
   cinfo^.cquantize^.color_quantize (cinfo,
-		post^.buffer,
+                post^.buffer,
                 JSAMPARRAY(@ output_buf^[out_row_ctr]),
                 int(num_rows));
 
@@ -187,12 +187,12 @@ end;
 
 {METHODDEF}
 procedure post_process_prepass (cinfo : j_decompress_ptr;
-                               	input_buf : JSAMPIMAGE;
+                                input_buf : JSAMPIMAGE;
                                 var in_row_group_ctr : JDIMENSION;
-		                in_row_groups_avail : JDIMENSION;
-		                output_buf : JSAMPARRAY;
+                                in_row_groups_avail : JDIMENSION;
+                                output_buf : JSAMPARRAY;
                                 var out_row_ctr : JDIMENSION;
-		                out_rows_avail:JDIMENSION);
+                                out_rows_avail:JDIMENSION);
 var
   post : my_post_ptr;
   old_next_row, num_rows : JDIMENSION;
@@ -203,15 +203,15 @@ begin
   if (post^.next_row = 0) then
   begin
     post^.buffer := cinfo^.mem^.access_virt_sarray
-	(j_common_ptr(cinfo), post^.whole_image,
-	 post^.starting_row, post^.strip_height, TRUE);
+        (j_common_ptr(cinfo), post^.whole_image,
+         post^.starting_row, post^.strip_height, TRUE);
   end;
 
   { Upsample some data (up to a strip height's worth). }
   old_next_row := post^.next_row;
   cinfo^.upsample^.upsample (cinfo,
-		input_buf, in_row_group_ctr, in_row_groups_avail,
-		post^.buffer, post^.next_row, post^.strip_height);
+                input_buf, in_row_group_ctr, in_row_groups_avail,
+                post^.buffer, post^.next_row, post^.strip_height);
 
   { Allow quantizer to scan new data.  No data is emitted, }
   { but we advance out_row_ctr so outer loop can tell when we're done. }
@@ -222,7 +222,7 @@ begin
 
     cinfo^.cquantize^.color_quantize (cinfo,
                       JSAMPARRAY(@ post^.buffer^[old_next_row]),
-			JSAMPARRAY(NIL),
+                        JSAMPARRAY(NIL),
                         int(num_rows));
     Inc(out_row_ctr, num_rows);
   end;
@@ -240,12 +240,12 @@ end;
 
 {METHODDEF}
 procedure post_process_2pass (cinfo : j_decompress_ptr;
-		              input_buf : JSAMPIMAGE;
+                              input_buf : JSAMPIMAGE;
                               var in_row_group_ctr : JDIMENSION;
-		              in_row_groups_avail : JDIMENSION;
-		              output_buf : JSAMPARRAY;
+                              in_row_groups_avail : JDIMENSION;
+                              output_buf : JSAMPARRAY;
                               var out_row_ctr : JDIMENSION;
-		              out_rows_avail : JDIMENSION);
+                              out_rows_avail : JDIMENSION);
 var
   post : my_post_ptr;
   num_rows, max_rows : JDIMENSION;
@@ -256,8 +256,8 @@ begin
   if (post^.next_row = 0) then
   begin
     post^.buffer := cinfo^.mem^.access_virt_sarray
-	(j_common_ptr(cinfo), post^.whole_image,
-	 post^.starting_row, post^.strip_height, FALSE);
+        (j_common_ptr(cinfo), post^.whole_image,
+         post^.starting_row, post^.strip_height, FALSE);
   end;
 
   { Determine number of rows to emit. }
@@ -274,7 +274,7 @@ begin
   cinfo^.cquantize^.color_quantize (cinfo,
                 JSAMPARRAY(@ post^.buffer^[post^.next_row]),
                 JSAMPARRAY(@ output_buf^[out_row_ctr]),
-		int(num_rows));
+                int(num_rows));
   Inc(out_row_ctr, num_rows);
 
   { Advance if we filled the strip. }
@@ -299,11 +299,11 @@ var
 begin
   post := my_post_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_post_controller)) );
+                                SIZEOF(my_post_controller)) );
   cinfo^.post := jpeg_d_post_controller_ptr (post);
   post^.pub.start_pass := start_pass_dpost;
-  post^.whole_image := NIL;	{ flag for no virtual arrays }
-  post^.buffer := NIL;		{ flag for no strip buffer }
+  post^.whole_image := NIL;     { flag for no virtual arrays }
+  post^.buffer := NIL;          { flag for no strip buffer }
 
   { Create the quantization buffer, if needed }
   if (cinfo^.quantize_colors) then
@@ -319,11 +319,11 @@ begin
       { We round up the number of rows to a multiple of the strip height. }
 {$ifdef QUANT_2PASS_SUPPORTED}
       post^.whole_image := cinfo^.mem^.request_virt_sarray
-	(j_common_ptr(cinfo), JPOOL_IMAGE, FALSE,
-	 cinfo^.output_width * cinfo^.out_color_components,
-	 JDIMENSION (jround_up( long(cinfo^.output_height),
-				long(post^.strip_height)) ),
-	 post^.strip_height);
+        (j_common_ptr(cinfo), JPOOL_IMAGE, FALSE,
+         cinfo^.output_width * cinfo^.out_color_components,
+         JDIMENSION (jround_up( long(cinfo^.output_height),
+                                long(post^.strip_height)) ),
+         post^.strip_height);
 {$else}
       ERREXIT(j_common_ptr(cinfo), JERR_BAD_BUFFER_MODE);
 {$endif} { QUANT_2PASS_SUPPORTED }
@@ -332,9 +332,9 @@ begin
     begin
       { One-pass color quantization: just make a strip buffer. }
       post^.buffer := cinfo^.mem^.alloc_sarray
-	(j_common_ptr (cinfo), JPOOL_IMAGE,
-	 cinfo^.output_width * cinfo^.out_color_components,
-	 post^.strip_height);
+        (j_common_ptr (cinfo), JPOOL_IMAGE,
+         cinfo^.output_width * cinfo^.out_color_components,
+         post^.strip_height);
     end;
   end;
 end;

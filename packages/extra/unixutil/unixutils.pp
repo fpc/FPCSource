@@ -18,13 +18,13 @@ Unit UnixUtils;
 
 Interface
 
-uses 
+uses
   SysUtils,Libc,Classes;
 
 { ---------------------------------------------------------------------
     Error handling
   ---------------------------------------------------------------------}
-  
+
 
 Type
   EUnixOperationFailed = Class(Exception)
@@ -41,7 +41,7 @@ Function  CheckUnixError (Error : Integer) : Integer;
 { ---------------------------------------------------------------------
     File handling
   ---------------------------------------------------------------------}
-  
+
 
 Const
   PathSeparator = '/';
@@ -76,14 +76,14 @@ Const
 Type
  TPermissionString = String[9];
 
-Type 
+Type
   TGlobFlag = (gfErr,gfMark,gfNoSort,gfNoCheck,gfAppend,gfNoEscape,
                gfPeriod,gfBrace,gfNoMagic,gfTilde,gfOnlyDir,gfTildeCheck);
   TGlobFlags = Set of TGlobFlag;
-  
-  TFnmFlag = (fnmNoEscape,fnmPathName,fnmPeriod,fnmLeadingDir,fnmCaseFold); 
+
+  TFnmFlag = (fnmNoEscape,fnmPathName,fnmPeriod,fnmLeadingDir,fnmCaseFold);
   TFnmFlags = Set of TFnmFlag;
-  
+
 Procedure Stat  (Const FileName : String; Var StatInfo : TStatBuf);
 Procedure LStat  (Const FileName : String; Var StatInfo : TStatBuf);
 Procedure StatFS  (Const FileName : String; Var StatInfo : TStatFS);
@@ -114,12 +114,12 @@ Procedure Mount(Const Device,Directory,FileSystemType : String; Flags : Cardinal
 Procedure Umount(Const FileName);
 Function  FSTypeToString(FSType : Integer) : String;
 Procedure fcntl(Handle: Integer; Command: Integer; Var Lock: TFlock);
-Procedure  Dup2(Stream1,Stream2 : THandleStream); 
+Procedure  Dup2(Stream1,Stream2 : THandleStream);
 Function  Dup(Stream : THandleStream) : THandleStream;
 
 
 { ---------------------------------------------------------------------
-  Process management routines.  
+  Process management routines.
   ---------------------------------------------------------------------}
 
 function SetUID(UID: __uid_t):Boolean;
@@ -144,14 +144,14 @@ Procedure Execlp(ProgName : String; Args : Array of string);
 { ---------------------------------------------------------------------
     User/group management routines
   ---------------------------------------------------------------------}
-  
+
 Type
   EUserLookupError = Class(Exception);
   EGroupLookupError = Class(Exception);
   EShadowLookupError = Class(Exception);
-  
-{ User functions }  
-  
+
+{ User functions }
+
 Function  getpwnam(Const UserName: String) : PPasswordRecord;
 Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord); overload;
 Procedure GetUserData(Uid : Integer; Var Data : TPasswordRecord); overload;
@@ -163,7 +163,7 @@ function  GetUserDescription(Const UserName : String): String;
 Procedure GetUserList(List : Tstrings);overload;
 Procedure GetUserList(List : TStrings; WithIDs : Boolean);overload;
 
-{ Group functions }  
+{ Group functions }
 
 Function  getgrnam(Const GroupName: String) : PGroup;
 Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
@@ -182,7 +182,7 @@ function sgetspent(Line : String): PPasswordFileEntry;
 Procedure GetUserShadowData(Const UserName : String; Var Data : TPasswordFileEntry);overload;
 Procedure GetUserShadowData(UID : Integer; Var Data : TPasswordFileEntry);overload;
 
-{ Extra functions }  
+{ Extra functions }
 
 Function GetUserGroup(Const UserName : String) : String;
 
@@ -207,9 +207,9 @@ ResourceString
   EShadowNotPermitted = 'Not enough permissions to access shadow password file';
 
 { ---------------------------------------------------------------------
-    Error handling 
+    Error handling
   ---------------------------------------------------------------------}
-  
+
 
 Function StrError(Error:longint):string;
 
@@ -233,7 +233,7 @@ begin
 end;
 
 
-Procedure Stat(Const FileName : String; Var StatInfo : TStatBuf); 
+Procedure Stat(Const FileName : String; Var StatInfo : TStatBuf);
 
 begin
   CheckUnixError(Libc.Stat(Pchar(FileName),StatInfo));
@@ -314,7 +314,7 @@ end;
 
 Function  PermStringToMask (Const Perm : TPermissionstring) : __mode_t;
 
-Var 
+Var
   I : integer;
 
 begin
@@ -352,9 +352,9 @@ end;
 
 Procedure Glob(Const Pattern : String; Flags : TGlobFlags; List : TStrings);
 
-Const 
+Const
   // Append and offset are masked to 0, since they're useless.
-  GF : Array[TGlobFlag] of Integer 
+  GF : Array[TGlobFlag] of Integer
      = (GLOB_ERR,GLOB_MARK,GLOB_NOSORT,GLOB_NOCHECK,0,
         GLOB_NOESCAPE,GLOB_PERIOD,GLOB_BRACE,GLOB_NOMAGIC,
         GLOB_TILDE,GLOB_ONLYDIR, GLOB_TILDE_CHECK);
@@ -362,7 +362,7 @@ Const
 Type
   TPCharArray = Array[Word] of PChar;
   PPCharArray = ^TPcharArray;
-Var 
+Var
   gd : TGlobData;
   i  : TGlobFlag;
   f  : Integer;
@@ -381,7 +381,7 @@ begin
       List.add(Strpas(PPCharArray(gd.gl_pathv)^[f]));
   finally
     globFree(@gd);
-  end;    
+  end;
 end;
 
 Function OpenDir(Const Dir : String) : PDirectoryStream;
@@ -579,7 +579,7 @@ begin
     $5346544E : Result:='ntfs';
   else
     Result:=Format(SUnknownFileSystemType,[FStype]);
-  end;  
+  end;
 end;
 
 Procedure fcntl(Handle: Integer; Command: Integer; Var Lock: TFlock);
@@ -588,7 +588,7 @@ begin
   CheckUnixError(Libc.fcntl(Handle,Command,Lock));
 end;
 
-Procedure Dup2(Stream1,Stream2 : THandleStream); 
+Procedure Dup2(Stream1,Stream2 : THandleStream);
 
 begin
   CheckUnixError(Libc.Dup2(Stream1.Handle,Stream2.Handle));
@@ -655,7 +655,7 @@ end;
 { ---------------------------------------------------------------------
     Process utilities
   ---------------------------------------------------------------------}
-  
+
 function SetUID(UID: __uid_t):Boolean;
 
 begin
@@ -908,7 +908,7 @@ end;
 { ---------------------------------------------------------------------
     User/Group management routines.
   ---------------------------------------------------------------------}
-  
+
 
 Function getpwnam(Const UserName: String) : PPasswordRecord;
 
@@ -921,7 +921,7 @@ Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord);
 Var P : PPasswordRecord;
 
 begin
-  P:=Getpwnam(UserName); 
+  P:=Getpwnam(UserName);
   If P<>Nil then
     Data:=P^
   else
@@ -933,7 +933,7 @@ Procedure GetUserData(Uid : Integer; Var Data : TPasswordRecord);
 Var P : PPasswordRecord;
 
 begin
-  P:=Getpwuid(Uid); 
+  P:=Getpwuid(Uid);
   If P<>Nil then
     Data:=P^
   else
@@ -946,13 +946,13 @@ Var
   UserData : TPasswordRecord;
 
 begin
-  GetuserData(UID,UserData);   
+  GetuserData(UID,UserData);
   Result:=strpas(UserData.pw_Name);
 end;
 
 function  GetUserId(Const UserName : String) : Integer;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -962,7 +962,7 @@ end;
 
 function  GetUserGId(Const UserName : String) : Integer;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -972,7 +972,7 @@ end;
 
 function GetUserDir(Const UserName : String): String;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -982,7 +982,7 @@ end;
 
 function  GetUserDescription(Const UserName : String): String;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -1012,18 +1012,18 @@ begin
         If WithIDs then
           List.Add(Format('%d=%s',[P^.pw_uid,strpas(p^.pw_name)]))
         else
-          List.Add(strpas(p^.pw_name));  
+          List.Add(strpas(p^.pw_name));
         end;
-    until (P=Nil); 
+    until (P=Nil);
   finally
     endpwent;
-  end;   
-end;  
+  end;
+end;
 
 { ---------------------------------------------------------------------
     Group Functions
   ---------------------------------------------------------------------}
-  
+
 
 Function  getgrnam(Const GroupName: String) : PGroup;
 
@@ -1036,7 +1036,7 @@ Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
 Var P : PGroup;
 
 begin
-  P:=Getgrnam(GroupName); 
+  P:=Getgrnam(GroupName);
   If P<>Nil then
     Data:=P^
   else
@@ -1048,7 +1048,7 @@ Procedure GetGroupData(Gid : Integer; Var Data : TGroup); overload;
 Var P : PGroup;
 
 begin
-  P:=Getgrgid(gid); 
+  P:=Getgrgid(gid);
   If P<>Nil then
     Data:=P^
   else
@@ -1097,12 +1097,12 @@ begin
         If WithIDs then
           List.Add(Format('%d=%s',[G^.gr_gid,strpas(G^.gr_name)]))
         else
-          List.Add(strpas(G^.gr_name));  
+          List.Add(strpas(G^.gr_name));
         end;
-    until (G=Nil); 
+    until (G=Nil);
   finally
     endgrent;
-  end;   
+  end;
 end;
 
 Function PCharListToStrings(P : PPChar; List : TStrings) : Integer;
@@ -1114,13 +1114,13 @@ begin
     List.Add(StrPas(P^));
     P:=PPChar(PChar(P)+SizeOf(PChar));
     end;
-  Result:=List.Count;  
+  Result:=List.Count;
 end;
 
 
 Procedure GetGroupMembers(GID : Integer;List : TStrings);
 
-Var 
+Var
   G : TGroup;
 
 begin
@@ -1130,7 +1130,7 @@ end;
 
 Procedure GetGroupMembers(Const GroupName : String;List : TStrings);
 
-Var 
+Var
   G : TGroup;
 
 begin
@@ -1140,7 +1140,7 @@ end;
 
 { Shadow password functions }
 
-function getspnam(UserName : String): PPasswordFileEntry; 
+function getspnam(UserName : String): PPasswordFileEntry;
 
 begin
   result:=Libc.getspnam(Pchar(UserName));
@@ -1154,7 +1154,7 @@ end;
 
 Procedure GetUserShadowData(Const UserName : String; Var Data : TPasswordFileEntry);
 
-Var 
+Var
   P : PPasswordFileEntry;
 
 begin
@@ -1162,7 +1162,7 @@ begin
   If P=Nil then
     If (GetUID<>0) and (GetEUID<>0) then
       Raise EShadowLookupError.Create(EShadowNotPermitted)
-    else  
+    else
       Raise EShadowLookupError.CreateFmt(ENoShadowEntry,[UserName])
   else
     Data:=P^;
@@ -1174,7 +1174,7 @@ begin
   GetUserShadowData(GetUserName(UID),Data);
 end;
 
-{ Extra functions }  
+{ Extra functions }
 
 Function GetUserGroup(Const UserName : String) : String;
 

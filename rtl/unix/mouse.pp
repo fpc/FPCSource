@@ -429,31 +429,7 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-11-06 20:06:19  peter
-    * mouse works again
-
-  Revision 1.13  2004/11/03 16:51:05  peter
-    * fixed valgrind issues
-
-  Revision 1.12  2003/10/24 18:09:56  marco
-   * 1.0.x fixes merged
-
-  Revision 1.11  2003/09/16 16:13:56  marco
-   * fdset functions renamed to fp<posix name>
-
-  Revision 1.10  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.9  2002/10/14 18:37:15  peter
-    * use Unix unit
-
-  Revision 1.8  2002/09/15 17:52:30  peter
-    * Updates from the fixes branch
-
-  Revision 1.2.2.9  2002/09/11 06:49:59  pierre
-   * use gpm_fs in FD_SET
-
-  Revision 1.2.2.8  2002/09/02 13:48:48  pierre
-   * mouse event for consoles hopefully fixed
+  Revision 1.15  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

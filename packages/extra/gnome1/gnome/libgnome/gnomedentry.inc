@@ -15,13 +15,13 @@ type
         geometry : Pchar;
         flag0 : word;
      end;
-     
+
 const
    bm_GnomeDesktopEntry_multiple_args = $1;
    bp_GnomeDesktopEntry_multiple_args = 0;
    bm_GnomeDesktopEntry_is_kde = $2;
    bp_GnomeDesktopEntry_is_kde = 1;
-   
+
 function multiple_args(var a : TGnomeDesktopEntry) : Boolean;
 procedure set_multiple_args(var a : TGnomeDesktopEntry; __multiple_args : Boolean);
 function is_kde(var a : TGnomeDesktopEntry) : Boolean;

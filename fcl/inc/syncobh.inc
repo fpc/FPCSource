@@ -51,13 +51,13 @@ type
    public
       constructor Create(EventAttributes : PSecurityAttributes;
         AManualReset,InitialState : Boolean;const Name : string);
-      destructor destroy; override;  
+      destructor destroy; override;
       procedure ResetEvent;
       procedure SetEvent;
       function WaitFor(Timeout : Cardinal) : TWaitResult;
       Property ManualReset : Boolean read FManualReset;
    end;
-   
+
    TEvent = TEventObject;
 
    TSimpleEvent = class(TEventObject)
@@ -66,13 +66,7 @@ type
 
 {
   $Log$
-  Revision 1.6  2003-06-14 19:14:58  michael
-  + Some improvements for the Linux version
-
-  Revision 1.5  2003/06/11 12:00:09  michael
-  + Implemented Win32 of syncobjs
-
-  Revision 1.4  2002/09/07 15:15:26  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

@@ -132,12 +132,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-12-11 21:11:58  sg
-  * TXHTMLDocument is now derived from THTMLDocument instead of TXMLDocument.
-    Probably future versions of DOM_HTML will be able to completely replace
-    this unit.
-
-  Revision 1.2  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc} 
+{$mode objfpc}
 {$h+}
 unit syncobjs;
 
@@ -103,7 +103,7 @@ begin
         FLastError := GetLastError;
        end;
   else
-    Result := wrError;    
+    Result := wrError;
   end;
 end;
 
@@ -117,16 +117,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-06-17 07:35:58  michael
-  + Renamed ManualReset parameter to TEventObject constructor
-
-  Revision 1.5  2003/06/14 19:16:50  michael
-  + Some improvements for the Linux version
-
-  Revision 1.4  2003/06/11 11:59:52  michael
-  + Implemented Win32 of syncobjs
-
-  Revision 1.3  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

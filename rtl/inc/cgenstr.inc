@@ -131,17 +131,7 @@
 
 {
   $Log$
-  Revision 1.4  2004-11-21 16:14:59  jonas
-    * fixed remaining compilation problems
-
-  Revision 1.3  2004/08/24 11:49:56  jonas
-    * made strlen wrapper inline
-
-  Revision 1.2  2004/05/01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.1  2004/05/01 15:26:33  jonas
-    * use some more string routines from libc if FPC_USE_LIBC is used
-
+  Revision 1.5  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

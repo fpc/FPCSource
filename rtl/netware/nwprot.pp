@@ -1350,18 +1350,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-08-01 20:02:48  armin
-  * changed dir separator from \ to /
-  * long namespace by default
-  * dos.exec implemented
-  * getenv ('PATH') is now supported
-  * changed FExpand to global version
-  * fixed heaplist growth error
-  * support SysOSFree
-  * stackcheck was without saveregisters
-  * fpc can compile itself on netware
-
-  Revision 1.1  2003/02/23 18:41:42  armin
-  * added nwprot, contains types/imports for netware server protocol library
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

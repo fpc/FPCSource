@@ -4,17 +4,17 @@ program breakout;
 
 uses glib,gdk,gtk,blocks;
 
-Type 
+Type
   TBreakOutWindow = Class(TObject)
   Public
-    window, 
+    window,
     area : PGtkWidget;
     BreakOut : TBreakOut;
   end;
 
 Var
   GameWindow : TBreakOutWindow;
-  
+
 Function Close( widget : PGtkWidget ;
                 event : PGdkEvent;
                 data : gpointer) : boolean; cdecl;
@@ -24,7 +24,7 @@ Begin
 End;
 
 function Exposed(Widget: PGtkWidget;
-                 event : PGdkEventExpose; 
+                 event : PGdkEventExpose;
                  Data : gpointer) : Integer; cdecl;
 
 begin
@@ -33,7 +33,7 @@ begin
 end;
 
 function KeyPress (Widget: PGtkWidget;
-                   event : PGdkEventKey; 
+                   event : PGdkEventKey;
                    Data : gpointer) : Integer; cdecl;
 
 begin
@@ -43,8 +43,8 @@ begin
       gdk_right : Pad.GoRight;
       gdk_down  : Pad.Stop;
       Ord(' ')  : NextBall;
-    end;    
-  Result:=0; 
+    end;
+  Result:=0;
 end;
 
 function Step (data : Gpointer): integer;cdecl;
@@ -59,7 +59,7 @@ begin
       begin
       Step;
       Draw(Nil);
-      end; 
+      end;
     end;
   Result:=integer(True);
 end;
@@ -92,9 +92,9 @@ Begin
     gtk_signal_connect(PGTKObject(Window),'key_press_event',
                        GTK_SIGNAL_FUNC(@KeyPress),GameWindow);
     gtk_timeout_add(50,@Step,GameWindow);
-    gtk_widget_show_all( window ); 
+    gtk_widget_show_all( window );
     gtk_main();
     end;
 End.
-  
+
 end.

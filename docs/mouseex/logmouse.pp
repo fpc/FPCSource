@@ -24,7 +24,7 @@ Function TimeStamp : String;
 begin
   TimeStamp:=FormatDateTime('hh:nn:ss',Time());
 end;
-  
+
 Procedure StartMouseLogging;
 
 begin
@@ -72,7 +72,7 @@ begin
           Write(MouseLog,'Right ');
         If (Buttons and MouseMiddlebutton)<>0 then
           Write(MouseLog,'Middle ');
-        end;  
+        end;
       Writeln(MouseLog);
       end;
     end;

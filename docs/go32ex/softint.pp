@@ -1,12 +1,12 @@
 uses
-	go32;
+        go32;
 
 var
-	r : trealregs;
+        r : trealregs;
 
 begin
-	r.ah := $30;
-	r.al := $01;
-	realintr($21, r);
-	Writeln('DOS v', r.al,'.',r.ah, ' detected');
+        r.ah := $30;
+        r.al := $01;
+        realintr($21, r);
+        Writeln('DOS v', r.al,'.',r.ah, ' detected');
 end.

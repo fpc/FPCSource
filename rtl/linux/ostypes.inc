@@ -304,44 +304,10 @@ CONST
 
 {
   $Log$
-  Revision 1.11  2005-02-13 21:47:56  peter
+  Revision 1.12  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.11  2005/02/13 21:47:56  peter
     * include file cleanup part 2
-
-  Revision 1.10  2004/09/12 15:20:23  peter
-    * sparc has different values for O_ flags
-
-  Revision 1.9  2004/03/04 22:15:16  marco
-   * UnixType changes. Please report problems to me.
-
-  Revision 1.8  2004/02/22 15:00:27  marco
-   * genfdset word count added. Small fix for libc maxsigsetsize
-
-  Revision 1.7  2004/01/31 16:17:38  florian
-    * removed packed directive from Dir type because it's not properly aligned
-      and it's never passed to the OS
-
-  Revision 1.6  2003/12/31 20:17:06  marco
-   * sigset size adaption for FPC_USE_LIBC
-
-  Revision 1.5  2003/12/02 00:04:34  sg
-  * Fixed ln2bitmask
-
-  Revision 1.4  2003/11/19 10:56:15  marco
-   * some constants moved from System
-
-  Revision 1.3  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.2  2003/05/15 22:50:50  jonas
-    * the stat type is processor-dependent
-    * the dev_t tpye is processor dependent. Don't use it in the stat type
-      however, as that one is also used at a time where dev_t is already
-      defined as qword
-
-  Revision 1.1  2002/12/18 16:43:26  marco
-   * new unix rtl, linux part.....
-
-  Revision 1.1  2002/11/12 14:37:59  marco
-   * Parts of new unix rtl
 
 }

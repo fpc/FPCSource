@@ -18,7 +18,7 @@ type
   DIR = record end;
    __dirstream = DIR;
   PDIR = ^DIR;
-  
+
 function opendir(__name:Pchar):PDIR;cdecl;external clib name 'opendir';
 function closedir(__dirp:PDIR):longint;cdecl;external clib name 'closedir';
 
@@ -41,7 +41,7 @@ Type
   TSelectorFunc   = function(const p1: PDirEnt): Integer; cdecl;
   TSelectorFunc64 = function(const p1: PDirEnt64): Integer; cdecl;
   TCompareFunc    = function(const p1, p2: Pointer): Integer; cdecl;
-  
+
 function scandir(__dir:Pchar; __namelist:PPPdirent; __selector:TSelectorfunc; __cmp:TComparefunc):longint;cdecl;external clib name 'scandir';
 function scandir64(__dir:Pchar; __namelist:PPPdirent64; __selector:TSelectorFunc64; __cmp:TCompareFunc):longint;cdecl;external clib name 'scandir64';
 
@@ -55,8 +55,8 @@ function getdirentries64(__fd:longint; __buf:Pchar; __nbytes:size_t; __basep:P__
 Type
   TDirectoryStream = DIR;
   PDirectoryStream = ^TDirectoryStream;
-    
-  TSelectorProc   = TSelectorFunc;    
+
+  TSelectorProc   = TSelectorFunc;
   TSelectorProc64 = TSelectorFunc64;
   TCompareProc    = TCompareFunc;
 
@@ -65,4 +65,4 @@ function scandir64(__dir:Pchar; var __namelist:PPdirent64; __selector:TSelectorF
 
 function getdirentries(__fd:longint; __buf:Pchar; __nbytes:size_t; var __basep:__off_t):__ssize_t;cdecl;external clib name 'getdirentries';
 function getdirentries64(__fd:longint; __buf:Pchar; __nbytes:size_t; var __basep: __off64_t):__ssize_t;cdecl;external clib name 'getdirentries64';
-  
+

@@ -4,7 +4,7 @@ uses triton, tritonmacros, utility;
 
 {
    A demo in FPC Pascal using triton.library
-   
+
    Updated for fpc 1.0.7
    11 Jan 2003.
 
@@ -36,7 +36,7 @@ begin
                      TRCA_Release,' 1.0' ,
                      TRCA_Date,' 03-08-1998' ,
                      TAG_DONE]);
-     
+
     if Triton_App <> nil then begin
       ProjectStart;
       WindowID(1);

@@ -15,12 +15,12 @@
  **********************************************************************}
 {
     History:
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib. Implemented autoopening
     of the library.
     13 Jan 2003.
-    
+
     Update for AmigaOS 3.9.
        FUNCTION GetDiskFontCtrl
        PROCEDURE SetDiskFontCtrlA
@@ -31,7 +31,7 @@
 
     Changed cardinal > longword.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -238,23 +238,23 @@ END;
 FUNCTION GetDiskFontCtrl(tagid : LONGINT) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	tagid,D0
-	MOVEA.L	DiskfontBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  tagid,D0
+        MOVEA.L DiskfontBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE SetDiskFontCtrlA(taglist : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	taglist,A0
-	MOVEA.L	DiskfontBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L taglist,A0
+        MOVEA.L DiskfontBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
@@ -344,21 +344,8 @@ END. (* UNIT DISKFONT *)
 
 {
   $Log$
-  Revision 1.5  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.4  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.3  2003/01/14 18:46:04  nils
-  * added defines use_amia_smartlink and use_auto_openlib
-
-  * implemented autoopening of library
-
-  Revision 1.2  2002/11/18 20:52:58  nils
-    * added diskfontname
+  Revision 1.6  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 

@@ -32,7 +32,7 @@ const
    AX25_DIGI_INBAND = $01;
    AX25_DIGI_XBAND = $02;
    AX25_MAX_DIGIS = 8;
-   
+
 type
 
    Pax25_address = ^ax25_address;
@@ -141,4 +141,4 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

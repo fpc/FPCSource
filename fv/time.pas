@@ -467,10 +467,7 @@ END.
 
 {
  $Log$
- Revision 1.13  2004-11-06 19:19:31  armin
- * added targets netware and netwlibc
-
- Revision 1.12  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.14  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

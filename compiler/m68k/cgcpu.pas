@@ -432,7 +432,7 @@ unit cgcpu;
                    begin
                      r:=NR_D0;
                      r2:=NR_D1;
-		     cg.getcpuregister(list,NR_D0);
+                     cg.getcpuregister(list,NR_D0);
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
@@ -440,7 +440,7 @@ unit cgcpu;
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
-		     
+
                    end
                   else
                     begin
@@ -1320,45 +1320,11 @@ end.
 
 {
   $Log$
-  Revision 1.33  2005-01-08 04:10:36  karoly
+  Revision 1.34  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.33  2005/01/08 04:10:36  karoly
     * made m68k to compile again
-
-  Revision 1.32  2004/11/27 16:16:02  florian
-    * some m68k stuff updated
-
-  Revision 1.31  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.30  2004/10/11 15:48:15  peter
-    * small regvar for para fixes
-    * function tvarsym.is_regvar added
-    * tvarsym.getvaluesize removed, use getsize instead
-
-  Revision 1.29  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.28  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.27  2004/05/20 21:54:33  florian
-    + <pointer> - <pointer> result is divided by the pointer element size now
-      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
-
-  Revision 1.26  2004/05/06 22:01:54  florian
-    * register numbers for address registers fixed
-
-  Revision 1.25  2004/05/06 20:30:51  florian
-    * m68k compiler compilation fixed
-
-  Revision 1.24  2004/04/19 21:15:12  florian
-    * fixed compilation
-
-  Revision 1.23  2004/04/18 21:13:59  florian
-    * more adaptions for m68k
 
 }
 

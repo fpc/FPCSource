@@ -17,7 +17,7 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TRawConfigRequest = raw_config_request;
   PRawConfigRequest = ^TRawConfigRequest;
-  
+

@@ -204,7 +204,10 @@ type
 
 {
   $Log$
-  Revision 1.25  2005-02-05 22:53:43  peter
+  Revision 1.26  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.25  2005/02/05 22:53:43  peter
     * use typecasted sigactionhandler, needed for arm
 
   Revision 1.24  2005/02/05 22:45:54  peter
@@ -214,65 +217,6 @@ type
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
-
-  Revision 1.22  2004/08/04 19:27:10  florian
-    * fixed floating point and integer exception handling on sparc/linux
-
-  Revision 1.21  2004/05/31 09:08:14  peter
-    * added siginfo const
-
-  Revision 1.20  2004/05/27 23:15:43  peter
-    * sparc signals added between $ifdef cpusparc
-
-  Revision 1.19  2004/05/01 15:59:17  florian
-    * x86_64 exception handling fixed
-
-  Revision 1.18  2004/04/27 20:47:00  florian
-    * tried to fix x86-64 signal handling
-
-  Revision 1.17  2004/03/27 14:35:13  florian
-    * structs for arm adapted
-
-  Revision 1.16  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
-
-  Revision 1.15  2004/01/01 16:28:16  jonas
-    * fixed signal handling
-
-  Revision 1.14  2003/11/21 00:40:06  florian
-    * some arm issues fixed
-
-  Revision 1.13  2003/11/02 14:53:06  jonas
-    + sighand and associated record definitions for ppc. Untested.
-
-  Revision 1.12  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.11  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
-
-  Revision 1.10  2003/08/21 22:24:52  olle
-    - removed parameter from fpc_iocheck
-
-  Revision 1.9  2002/12/24 21:30:20  mazen
-  - some writeln(s) removed in compiler
-  + many files added to RTL
-  * some errors fixed in RTL
-
-  Revision 1.8  2002/12/18 16:43:26  marco
-   * new unix rtl, linux part.....
-
-  Revision 1.7  2002/11/12 14:51:44  marco
-   * signal.
-
-  Revision 1.6  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/07/28 20:43:48  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
 
 }
 

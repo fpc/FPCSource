@@ -69,8 +69,8 @@ program test_fail;
   begin
      require_error(210);
 
-	 mem:=0;
-	 DoMem(mem);
+         mem:=0;
+         DoMem(mem);
      new(pa1,init(false));
      writeln('After successful new(pa1,init)');
      new(pa2,init(true));

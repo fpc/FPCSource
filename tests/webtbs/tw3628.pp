@@ -6,7 +6,7 @@
 {$else}
 type
   ptrint = longint;
-{$endif}  
+{$endif}
 var
   s: string='12223445';
 begin

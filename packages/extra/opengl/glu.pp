@@ -371,7 +371,7 @@ implementation
 
 var
   hDLL: THandle;
-  
+
 procedure FreeGLu;
 begin
 
@@ -436,7 +436,7 @@ procedure LoadGLu(const dll: String);
 begin
 
   FreeGLu;
-  
+
   hDLL := LoadLibrary(PChar(dll));
   if hDLL = 0 then raise Exception.Create('Could not load GLu from ' + dll);
 
@@ -493,7 +493,7 @@ begin
   @gluBeginPolygon := GetProcAddress(hDLL, 'gluBeginPolygon');
   @gluNextContour := GetProcAddress(hDLL, 'gluNextContour');
   @gluEndPolygon := GetProcAddress(hDLL, 'gluEndPolygon');
-  
+
 end;
 
 initialization
@@ -522,20 +522,8 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-11-25 11:42:50  jonas
-    - removed call to getlastdlerror
-    * changed some Mac OS X paths to be more generic
-
-  Revision 1.3  2004/11/24 20:04:09  jonas
-    + basic Mac OS X support, only bounce works for now though
-
-  Revision 1.2  2002/10/13 14:36:47  sg
-  * Win32 fix: The OS symbol is called "Win32", not "Windows"
-
-  Revision 1.1  2002/10/13 13:57:31  sg
-  * Finally, the new units are available: Match the C headers more closely;
-    support for OpenGL extensions, and much more. Based on the Delphi units
-    by Tom Nuydens of delphi3d.net
+  Revision 1.5  2005-02-14 17:13:21  peter
+    * truncate log
 
 }
 

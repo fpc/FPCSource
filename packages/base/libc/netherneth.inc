@@ -39,8 +39,8 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TEtherAddr = ether_addr;
   PEtherAddr = ^TEtherAddr;
-    
-    
+
+

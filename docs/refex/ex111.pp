@@ -5,34 +5,34 @@ program Example111;
 Type
   TEnumA = (aOne,aTwo,aThree);
   TEnumAs = Set of TEnumA;
-  
+
 Var
   SA : TEnumAs;
 
   Procedure PrintSet(S : TEnumAs);
-  
-  var 
+
+  var
     B : Boolean;
-    
+
     procedure DoEl(A : TEnumA; Desc : String);
-    
+
     begin
       If A in S then
         begin
-        If B then 
+        If B then
           Write(',');
         B:=True;
         Write(Desc);
         end;
     end;
-    
+
   begin
     Write('[');
     B:=False;
     DoEl(aOne,'aOne');
     DoEl(aTwo,'aTwo');
     DoEl(aThree,'aThree');
-    Writeln(']')  
+    Writeln(']')
   end;
 
 begin
@@ -47,5 +47,5 @@ begin
   PrintSet(SA);
   Exclude(SA,aThree);
   PrintSet(SA);
-end.      
+end.
     

@@ -3,7 +3,7 @@
 }
 library subs;
 
-function SubStr(CString: PChar;FromPos,ToPos: Longint): PChar; 
+function SubStr(CString: PChar;FromPos,ToPos: Longint): PChar;
    cdecl; export;
 
 var

@@ -15,5 +15,5 @@ function ftime(__timebuf:Ptimeb):longint;cdecl;external clib name 'ftime';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function ftime(var __timebuf:timeb):longint;cdecl;external clib name 'ftime';

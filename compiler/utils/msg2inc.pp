@@ -816,28 +816,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2005-01-24 17:41:57  olle
+  Revision 1.15  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.14  2005/01/24 17:41:57  olle
     + added support for macos
 
   Revision 1.13  2005/01/09 16:13:09  peter
     * don't force to add .tex
-
-  Revision 1.12  2004/06/06 15:39:49  karoly
-    * added support for morphos
-
-  Revision 1.11  2003/03/16 23:10:04  pierre
-   * merge from fixes branch
-
-  Revision 1.1.2.6  2003/02/03 16:34:57  pierre
-   * use EOL_ONE_CHAR to set eollen variable, also define it for amiga
-
-  Revision 1.10  2002/05/18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.9  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
 
 }

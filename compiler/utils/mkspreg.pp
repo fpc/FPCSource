@@ -302,25 +302,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-06-16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.5.2.1  2004/05/11 21:07:21  peter
-    * dwarf reg
-
-  Revision 1.5  2004/01/12 16:39:41  peter
-    * sparc updates, mostly float related
-
-  Revision 1.4  2003/09/03 20:33:28  peter
-    * fixed sorting of register number
-
-  Revision 1.3  2003/09/03 16:28:16  peter
-    * also generate superregisters
-
-  Revision 1.2  2003/09/03 15:55:02  peter
-    * NEWRA branch merged
-
-  Revision 1.1.2.1  2003/08/31 21:08:16  peter
-    * first batch of sparc fixes
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

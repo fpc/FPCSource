@@ -5,14 +5,14 @@ program ex6;
 uses
  glib,gtk;
 
-Type 
-  TButtonSignalState = Record 
+Type
+  TButtonSignalState = Record
     Obj : PgtkObject;
     SignalID : longint;
     Disable : Boolean;
   end;
   PButtonSignalState = ^TButtonSignalState;
-  
+
 procedure destroy(widget : pGtkWidget ; data: pgpointer ); cdecl;
 begin
   gtk_main_quit();
@@ -29,7 +29,7 @@ begin
      gtk_signal_handler_block(Obj,SignalID)
    else
      gtk_signal_handler_unblock(Obj,SignalID);
-   disable:=Not disable;  
+   disable:=Not disable;
    end;
 end;
 
@@ -40,7 +40,7 @@ var
   windowbox : PGTKWidget;
   quitsignal : guint;
   QuitState : TButtonSignalState;
-   
+
 begin
   gtk_init (@argc, @argv);
   window := gtk_window_new (GTK_WINDOW_TOPLEVEL);

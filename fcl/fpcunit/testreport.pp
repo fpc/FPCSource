@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
-    
-    an example of a console test runner of FPCUnit tests. 
+
+    an example of a console test runner of FPCUnit tests.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,7 +19,7 @@ unit testreport;
 
 interface
 
-uses 
+uses
   classes, SysUtils, fpcunit, testutils;
 
 type
@@ -33,8 +33,8 @@ type
     procedure StartTest(ATest: TTest);
     procedure EndTest(ATest: TTest);
   end;
-  
- { 
+
+ {
   TLatexResultsWriter = class(TNoRefCountObject, ITestListener)
   public
     procedure AddFailure(ATest: TTest; AFailure: TTestFailure);
@@ -61,7 +61,7 @@ end;
 
 procedure TXMLResultsWriter.WriteResult(aResult: TTestResult);
 begin
-  writeln('</testlisting>'); 
+  writeln('</testlisting>');
   writeln(TestResultAsXML(aResult));
   writeln('</testresults>');
 end;
@@ -73,7 +73,7 @@ begin
   writeln('<message>', AFailure.ExceptionMessage, '</message>');
   writeln('</failure>');
 end;
-    
+
 procedure TXMLResultsWriter.AddError(ATest: TTest; AError: TTestFailure);
 begin
 writeln('<error ExceptionClassName="', AError.ExceptionClassName, '">');
@@ -83,13 +83,13 @@ writeln('<error ExceptionClassName="', AError.ExceptionClassName, '">');
   writeln('<linenumber>', AError.LineNumber, '</linenumber>');
   writeln('</error>');
 end;
-    
+
 procedure TXMLResultsWriter.StartTest(ATest: TTest);
 begin
   writeln('<test name="' , ATest.TestSuiteName + '.' + ATest.TestName, '">');
 end;
-    
-procedure TXMLResultsWriter.EndTest(ATest: TTest);  
+
+procedure TXMLResultsWriter.EndTest(ATest: TTest);
 begin
   writeln('</test>');
 end;
@@ -103,11 +103,11 @@ begin
   Result := '<TestSuite name="' + ASuite.TestName + '">' + System.sLineBreak;
   for i := 0 to aSuite.Tests.Count - 1 do
     if TTest(aSuite.Tests.Items[i]) is TTestSuite then
-      Result := Result + TestSuiteAsXML(TTestSuite(aSuite.Tests.Items[i])) 
+      Result := Result + TestSuiteAsXML(TTestSuite(aSuite.Tests.Items[i]))
     else
       if TTest(aSuite.Tests.Items[i]) is TTestCase then
         Result := Result +'<test>' + TTestcase(aSuite.Tests.Items[i]).TestName + '</test>' + System.sLineBreak;
-  Result := Result + '</TestSuite>' + System.sLineBreak;    
+  Result := Result + '</TestSuite>' + System.sLineBreak;
 end;
 
 function TestSuiteAsLatex(aSuite:TTestSuite): string;
@@ -118,15 +118,15 @@ begin
   Result := '\flushleft' + System.sLineBreak;
   for i := 0 to aSuite.Tests.Count - 1 do
   begin
-    s := TTestSuite(ASuite.Tests.Items[i]); 
+    s := TTestSuite(ASuite.Tests.Items[i]);
     Result := Result + s.TestSuiteName + System.sLineBreak;
     Result := Result + '\begin{itemize}'+ System.sLineBreak;
     for j := 0 to s.Tests.Count - 1 do
-      if TTest(s.Tests.Items[j]) is TTestCase then   
+      if TTest(s.Tests.Items[j]) is TTestCase then
         Result := Result + '\item[-] ' + TTestcase(s.Tests.Items[j]).TestName  + System.sLineBreak;
-    Result := Result +'\end{itemize}' + System.sLineBreak; 
-  end;    
-end;  
+    Result := Result +'\end{itemize}' + System.sLineBreak;
+  end;
+end;
 
 function GetSuiteAsXML(aSuite: TTestSuite): string;
 begin
@@ -183,7 +183,7 @@ begin
         Result := Result + '  <LineNumber>' + IntToStr(f.LineNumber) + '</LineNumber>' + System.sLineBreak;
         Result := Result + '  <MethodName>' + f.MethodName + '</MethodName>' + System.sLineBreak;
         Result := Result + '</Error>' + System.sLineBreak;
-      end;  
+      end;
       Result := Result + '</ListOfErrors>';
     end;
     if NumberOfFailures <> 0 then
@@ -198,7 +198,7 @@ begin
         Result := Result + '  <ExceptionClass>' + f.ExceptionClassName + '</ExceptionClass>' + System.sLineBreak;
         Result := Result + '  <ExceptionMessage>' + f.ExceptionMessage + '</ExceptionMessage>' + System.sLineBreak;
         Result := Result + '</Failure>' + System.sLineBreak;
-      end;  
+      end;
       Result := Result + '</ListOfFailures>';
     end;
   end;

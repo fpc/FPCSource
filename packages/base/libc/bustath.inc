@@ -14,6 +14,6 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TUStat = _ustat;
   PUStat = ^TUStat;

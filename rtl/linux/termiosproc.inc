@@ -151,13 +151,7 @@ end;
 
 {
   $Log$
-  Revision 1.6  2004-12-28 12:45:54  florian
-    * fixed CFMakeRaw
-
-  Revision 1.5  2004/11/03 10:03:39  peter
-    * fix isatty, ioctl returns 0 on success, but isatty needs to return 1
-
-  Revision 1.4  2004/07/09 19:03:35  peter
-    * isatty return cint again
+  Revision 1.7  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

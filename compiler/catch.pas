@@ -94,21 +94,14 @@ end.
 
 {
   $Log$
-  Revision 1.22  2005-01-31 21:30:56  olle
+  Revision 1.23  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.22  2005/01/31 21:30:56  olle
     + Added fake Exception classes, only for MACOS.
 
   Revision 1.21  2005/01/26 16:23:28  peter
     * detect arithmetic overflows for constants at compile time
     * use try..except instead of setjmp
-
-  Revision 1.20  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.19  2004/09/09 08:19:47  olle
-    + Added argument to Stop
-
-  Revision 1.18  2004/06/20 08:55:28  florian
-    * logs truncated
 
 }

@@ -23,7 +23,7 @@ interface
 uses exec;
 
 var
-  Get9Base: Pointer; 
+  Get9Base: Pointer;
 
 const
   GET9NAME : PChar = 'get9.library';
@@ -68,7 +68,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2005-01-06 08:28:41  karoly
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/01/06 08:28:41  karoly
     * initial revision
 
 }

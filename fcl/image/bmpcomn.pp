@@ -5,7 +5,7 @@
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
     BMP reader/writer common code.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -35,7 +35,7 @@ type
       bfOffset:longint;
    end;
    PBitMapFileHeader = ^TBitMapFileHeader;
-   
+
    TBitMapInfoHeader = packed record
 {14+04 : Size of the bitmap info header : sould be 40=$28}
       Size:longint;
@@ -61,19 +61,19 @@ type
       ClrImportant:longint;
    end;
    PBitMapInfoHeader = ^TBitMapInfoHeader;
-   
+
    TColorRGB=packed record
      B,G,R:Byte;
    end;
    PColorRGB = ^TColorRGB;
-   
+
    TColorRGBA=packed record
    case Boolean of
       False:(B,G,R,A:Byte);
       True:(RGB:TColorRGB);
    end;
-   PColorRGBA = ^TColorRGBA; 
-    
+   PColorRGBA = ^TColorRGBA;
+
 {54+?? : Color map : Lenght of color map is 4 bytes + the rest until the beginning of image data fixed in BFH.bfOffset}
     TColorMap=TColorRGBA;
 
@@ -82,14 +82,7 @@ implementation
 end.
 {
 $Log$
-Revision 1.4  2004-02-20 22:42:44  michael
-+ More modular reading of BMP for easier overriding in descendents
-
-Revision 1.3  2004/02/15 20:59:06  michael
-+ Patch from Colin Western
-
-Revision 1.2  2003/09/09 11:22:30  mazen
-+ adding comment for type defintion in the fpdoc style
-* fixing copyright section in the file header
+Revision 1.5  2005-02-14 17:13:12  peter
+  * truncate log
 
 }

@@ -20,8 +20,8 @@ interface
 
 Uses BaseUnix;
 
-function ReadPortB (Port : Longint): Byte; 
-function ReadPortW (Port : Longint): Word; 
+function ReadPortB (Port : Longint): Byte;
+function ReadPortW (Port : Longint): Word;
 function ReadPortL (Port : Longint): Longint;
 Procedure ReadPort (Port : Longint; Var Value : Byte);
 Procedure ReadPort (Port : Longint; Var Value : Longint);
@@ -384,7 +384,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2005-02-05 20:07:19  michael
+  Revision 1.7  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.6  2005/02/05 20:07:19  michael
   + Fix for compilation with version 1.0.10
 
   Revision 1.5  2005/02/05 10:44:01  marco
@@ -392,8 +395,5 @@ end.
 
   Revision 1.4  2005/02/05 08:42:24  marco
    * regvars problem fixed
-
-  Revision 1.3  2004/04/12 10:31:58  marco
-   * ioperm/iopl added from linuxold. Untested but will probably work
 
 }

@@ -103,14 +103,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-12-28 20:43:01  hajny
-    * 8.3 fixes (short target name in paths)
-
-  Revision 1.5  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.4  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

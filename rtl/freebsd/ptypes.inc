@@ -59,7 +59,7 @@ type
     size_t   = cuint32;         { as definied in the C standard}
 {$endif}
     TSize    = size_t;
-    pSize    = ^size_t;		
+    pSize    = ^size_t;
 
 {$ifdef CPU64}
     ssize_t  = cint64;          { used by function for returning number of bytes }
@@ -67,23 +67,23 @@ type
     ssize_t  = cint32;          { used by function for returning number of bytes}
 {$endif}
     TsSize   = ssize_t;
-    psSize   = ^ssize_t;		
+    psSize   = ^ssize_t;
 
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = Uid_t;
     pUid     = ^Uid_t;
 
-{$ifdef CPU64} 
-    clock_t  = cuint32;		// 32-bit even on Athlon64
+{$ifdef CPU64}
+    clock_t  = cuint32;         // 32-bit even on Athlon64
 {$else}
     clock_t  = culong;
 {$endif}
     TClock   = clock_t;
     pClock   = ^clock_t;
 
-    time_t   = clong;           { used for returning the time, clong 
-					is 64-bit on AMD64}
-    TTime    = time_t; 
+    time_t   = clong;           { used for returning the time, clong
+                                        is 64-bit on AMD64}
+    TTime    = time_t;
     pTime    = ^time_t;
     ptime_t =  ^time_t;
 
@@ -98,7 +98,7 @@ type
   TTimeVal = timeval;
 
   timespec = packed record
-    tv_sec   : time_t;			// should be time_t, bug compability
+    tv_sec   : time_t;                  // should be time_t, bug compability
     tv_nsec  : clong;
   end;
   ptimespec= ^timespec;
@@ -107,25 +107,25 @@ type
    pthread_t            = pointer;
    pthread_attr_t       = pointer;
    pthread_mutex_t      = pointer;
-   pthread_mutexattr_t 	= pointer;
+   pthread_mutexattr_t  = pointer;
    pthread_cond_t       = pointer;
-   pthread_condattr_t 	= pointer;
+   pthread_condattr_t   = pointer;
    pthread_key_t        = cint;
-   pthread_rwlock_t 	= pointer;
+   pthread_rwlock_t     = pointer;
    pthread_rwlockattr_t = pointer;
 
-   sem_t		= pointer;
+   sem_t                = pointer;
 
   {
      Mutex types (Single UNIX Specification, Version 2, 1997).
-    
+
      Note that a mutex attribute with one of the following types:
-    
+
      PTHREAD_MUTEX_NORMAL
      PTHREAD_MUTEX_RECURSIVE
      MUTEX_TYPE_FAST (deprecated)
      MUTEX_TYPE_COUNTING_FAST (deprecated)
-      
+
        will deviate from POSIX specified semantics.
       }
 
@@ -140,8 +140,8 @@ type
   );
 
 
-Const 
-     MNAMLEN = 80; 	// slightly machine specific.
+Const
+     MNAMLEN = 80;      // slightly machine specific.
 
 type
 
@@ -159,15 +159,15 @@ type
     ftype          : cint;
     fflags         : cint; {copy of mount flags}
     fsyncwrites,
-    fasyncwrites   : cint;	
+    fasyncwrites   : cint;
     fstypename     : array[0..15] of char;
     mountpoint     : array[0..MNAMLEN-1] of char;
     fsyncreads,            { count of sync reads since mount }
     fasyncreads    : clong;
-    fspares1	   : cshort;  
+    fspares1       : cshort;
     mnfromname     : array[0..MNAMLEN-1] of char;
-    fspares2	   : cshort;
-    fspare3	   : array[0..1] of clong; 
+    fspares2       : cshort;
+    fspare3        : array[0..1] of clong;
   end;
   PStatFS=^TStatFS;
 
@@ -192,8 +192,8 @@ const
 
     SYS_NMLN = 32;              {BSD utsname struct limit, kernel mode}
 
-    SIG_MAXSIG      = 128;	// highest signal version
-//   wordsinsigset   = 4;		// words in sigset_t
+    SIG_MAXSIG      = 128;      // highest signal version
+//   wordsinsigset   = 4;               // words in sigset_t
 
 
   { For getting/setting priority }
@@ -203,53 +203,7 @@ const
 
 {
   $Log$
-  Revision 1.16  2004-11-14 12:21:08  marco
-   * moved some calls from unix to baseunix. Darwin untested.
-
-  Revision 1.15  2004/10/31 14:34:14  marco
-   * statfs moved and updated
-
-  Revision 1.14  2004/09/09 20:29:06  jonas
-    * fixed definition of pthread_mutex_t for non-linux targets (and for
-      linux as well, actually).
-    * base libpthread definitions are now in ptypes.inc, included in unixtype
-      They sometimes have an extra underscore in front of their name, in
-      case they were also exported by the packages/base/pthreads unit, so
-      they can keep their original name there
-    * cthreadds unit now imports systuils, because it uses exceptions (it
-      already did so before as well)
-    * fixed many linux definitions of libpthread functions in pthrlinux.inc
-      (integer -> cint etc)
-    + added culonglong type to ctype.inc
-
-  Revision 1.13  2004/08/25 21:42:11  jonas
-    * fixed pthread type definitions for darwin and made them generic
-
-  Revision 1.12  2004/05/18 19:33:45  marco
-   * left a comment unmatched
-
-  Revision 1.11  2004/05/17 19:18:38  marco
-   * first x86-64 changes
-
-  Revision 1.10  2004/03/04 22:15:16  marco
-   * UnixType changes. Please report problems to me.
-
-  Revision 1.9  2004/01/04 20:08:45  jonas
-    * moved SIG_MAXSIG and wordsinsigset constants from bunxtype.inc to
-      ptypes.inc (already there for Darwin)
-
-  Revision 1.8  2003/12/30 12:32:30  marco
-  *** empty log message ***
-
-  Revision 1.7  2003/09/27 13:45:58  peter
-    * fpnanosleep exported in baseunix
-    * fpnanosleep has pointer arguments to be C compliant
-
-  Revision 1.6  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.5  2003/01/03 13:11:32  marco
-   * split into ptypes and ctypes
-
+  Revision 1.17  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

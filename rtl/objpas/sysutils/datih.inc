@@ -128,23 +128,7 @@ Procedure GetLocalTime(var SystemTime: TSystemTime);
 
 {
   $Log$
-  Revision 1.2  2003-11-26 20:15:46  michael
-  TwoDigitYearCenturyWindow is 50
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.8  2003/01/18 23:45:37  michael
-  + Fixed EncodeDate/Time so they use TryEncodeDate/Time
-
-  Revision 1.7  2002/12/25 01:03:48  peter
-    * some date constants added
-
-  Revision 1.6  2002/10/02 21:04:06  peter
-    * For win32 use the tsystemtime from the windows unit, that is changed
-      to a variant record with compatibile field names
-
-  Revision 1.5  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

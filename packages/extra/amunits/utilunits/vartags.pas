@@ -23,9 +23,9 @@ unit vartags;
 
 {
 
-  This is I hope, a unit that will go away when fpc 
+  This is I hope, a unit that will go away when fpc
   have array of const. For now it will help to create
-  taglists for the functions that need it. 
+  taglists for the functions that need it.
   25 Jan 2000.
 
   Added const ltrue and lfalse, for work with taglists.
@@ -38,7 +38,7 @@ unit vartags;
 
   Use tagsarray instead.
   09 Nov 2002.
-  
+
   Added the define use_amiga_smartlink.
   13 Jan 2003.
 
@@ -49,7 +49,7 @@ unit vartags;
 
 {
   Here is an example on how to use TAGS.
-  
+
     win := OpenWindowTagList(NIL, TAGS(
                              WA_Width,  400,
                              WA_Activate,    ltrue,
@@ -58,7 +58,7 @@ unit vartags;
                              WA_Title,  Longstr('Menu Test Window'),
                              WA_IDCMP,  IDCMP_CLOSEWINDOW or IDCMP_MENUPICK,
                              TAG_END));
-    
+
 }
 
 interface
@@ -68,7 +68,7 @@ uses utility;
 type long = longint;
 
 const
-{  
+{
    This consts is for taglists, no need to cast
    longint(byte(true)). Just use ltrue instead.
 }
@@ -127,7 +127,7 @@ begin
        ti_Tag := item;
        ti_Data := data;
     end;
-end; 
+end;
 
 function TagItem(item, data : Longint): tTagItem;
 var
@@ -574,16 +574,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 
 
 

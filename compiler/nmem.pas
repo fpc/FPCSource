@@ -931,53 +931,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2004-12-26 16:22:01  peter
-    * fix lineinfo for with blocks
-
-  Revision 1.92  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.91  2004/11/29 17:32:56  peter
-    * prevent some IEs with delphi methodpointers
-
-  Revision 1.90  2004/11/26 22:33:24  peter
-    * don't allow @method in tp procvar mode
-
-  Revision 1.89  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.88  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.87  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.86  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.85  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.84  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.83  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.82.2.1  2004/04/28 19:55:51  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.82  2004/03/29 14:42:52  peter
-    * variant array support
-
-  Revision 1.81  2004/03/18 16:19:03  peter
-    * fixed operator overload allowing for pointer-string
-    * replaced some type_e_mismatch with more informational messages
+  Revision 1.94  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

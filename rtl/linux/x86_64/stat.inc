@@ -69,9 +69,7 @@
 
 {
   $Log$
-  Revision 1.2  2004-05-09 15:42:50  peter
-    * added aliases
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.1  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
 }

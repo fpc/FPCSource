@@ -9,12 +9,12 @@ Function Mb(L : Longint) : longint;
 begin
   Mb:=L div (1024*1024);
 end;
-   
+
 Var Info : TSysInfo;
     D,M,Secs,H : longint;
 
 begin
-  If Not SysInfo(Info) then 
+  If Not SysInfo(Info) then
     Halt(1);
   With Info do
     begin

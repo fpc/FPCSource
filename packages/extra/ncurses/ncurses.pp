@@ -21,7 +21,7 @@ unit ncurses;
 interface
 
 {$packrecords C}
-{$ifdef OpenBSD}		// openbsd curses=ncurses. Openbsd ocurses=old curses.
+{$ifdef OpenBSD}                // openbsd curses=ncurses. Openbsd ocurses=old curses.
 {$linklib curses}
 {$else}
 {$linklib ncurses}
@@ -84,7 +84,7 @@ var
 {$else darwin}
     acs_map : tacs_map; external libncurses name 'acs_map';
 {$endif darwin}
-    
+
     function ACS_ULCORNER : chtype;
     function ACS_LLCORNER : chtype;
     function ACS_URCORNER : chtype;
@@ -218,16 +218,16 @@ var
        stdscr  : PWINDOW; cvar; external;
        curscr  : PWINDOW; cvar; external;
        newscr  : PWINDOW; cvar; external;
-       LINES   : longint; cvar; external; 
-       COLS    : longint; cvar; external; 
+       LINES   : longint; cvar; external;
+       COLS    : longint; cvar; external;
        TABSIZE : longint; cvar; external;
        ESCDELAY: longint; cvar; external;
 {$else darwin}
        stdscr  : PWINDOW; external libncurses name 'stdscr';
        curscr  : PWINDOW; external libncurses name 'curscr';
        newscr  : PWINDOW; external libncurses name 'newscr';
-       LINES   : longint; external libncurses name 'LINES'; 
-       COLS    : longint; external libncurses name 'COLS'; 
+       LINES   : longint; external libncurses name 'LINES';
+       COLS    : longint; external libncurses name 'COLS';
        TABSIZE : longint; external libncurses name 'TABSIZE';
        ESCDELAY: longint; external libncurses name 'ESCDELAY';
 {$endif darwin}
@@ -1709,28 +1709,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2004-12-15 21:25:31  peter
-    * x86_64 fixes
-
-  Revision 1.7  2004/05/08 20:50:19  jonas
-    * Darwin fixes by mischi
-
-  Revision 1.6  2003/10/15 17:04:40  florian
-    + some print functions added
-
-  Revision 1.5  2003/02/09 19:10:13  marco
-   OpenBSD links curses, not ncurses
-
-  Revision 1.4  2003/02/09 19:05:05  marco
-   * And now with new refreshing "external;" added.
-
-  Revision 1.3  2003/02/09 16:22:51  marco
-   * xx : thetype; external name ='xx'; to xx :thetype; cvar;
-
-  Revision 1.2  2002/09/07 15:43:01  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:55:17  peter
-    * splitted to base and extra
+  Revision 1.9  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

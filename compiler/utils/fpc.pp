@@ -95,7 +95,7 @@ program fpc;
 
 
   var
-     s		    : ansistring;
+     s              : ansistring;
      processorname,
      ppcbin,
      versionStr,
@@ -137,7 +137,7 @@ program fpc;
      ppcbin:='ppcia64';
      processorname:='ia64';
 {$endif ia64}
-     versionstr:='';			  { Default is just the name }
+     versionstr:='';                      { Default is just the name }
      for i:=1 to paramcount do
        begin
           s:=paramstr(i);
@@ -208,52 +208,10 @@ program fpc;
   end.
 {
   $Log$
-  Revision 1.18  2005-01-14 21:04:44  armin
+  Revision 1.19  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.18  2005/01/14 21:04:44  armin
   * added .nlm extension for netware
-
-  Revision 1.17  2004/09/10 21:00:53  jonas
-    * fixed wrong error message
-
-  Revision 1.16  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.15  2004/06/06 01:18:47  karoly
-   * morphos has no .exe just like amiga
-
-  Revision 1.14  2004/06/05 10:14:42  marco
-   * fix for bug 3127
-
-  Revision 1.13.2.1  2004/05/02 20:53:09  peter
-    * ppcx64 support
-
-  Revision 1.13  2004/03/20 22:29:37  florian
-    + arm, ia64, x86_64 and sparc supported added
-
-  Revision 1.12  2004/01/26 20:34:24  florian
-    * improved error message
-
-  Revision 1.11  2004/01/05 22:41:20  florian
-    * changed sysutils.exec to ExecuteProcess
-
-  Revision 1.10  2004/01/03 09:20:45  marco
-   * errorhandling fixed
-
-  Revision 1.9  2004/01/03 09:12:23  marco
-   * unix does ansistring exec
-
-  Revision 1.8  2003/10/08 19:16:50  peter
-    * -Q back to -P, -L back to -V
-
-  Revision 1.7  2003/09/30 17:25:01  marco
-   * -Q=-P and -L=-V
-
-  Revision 1.6  2003/09/30 11:24:59  marco
-   * -V support
-
-  Revision 1.5  2003/04/08 16:01:40  peter
-    * amiga has also no .exe
-
-  Revision 1.4  2002/05/18 13:34:27  peter
-    * readded missing revisions
 
 }

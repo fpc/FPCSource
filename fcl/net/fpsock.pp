@@ -1,7 +1,7 @@
 {
     $Id$
 
-    Socket communication components    
+    Socket communication components
     Copyright (c) 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
 
@@ -78,7 +78,7 @@ type
   private
     FOnStateChange: TConnectionStateChangeEvent;
     FRetries: Integer;
-    FRetryDelay: Integer;	// Delay between retries in ms
+    FRetryDelay: Integer;       // Delay between retries in ms
     RetryCounter: Integer;
     RetryTimerNotifyHandle: Pointer;
     CanWriteNotifyHandle: Pointer;
@@ -335,7 +335,7 @@ begin
         if Assigned(RetryTimerNotifyHandle) then
         begin
           EventLoop.RemoveTimerNotify(RetryTimerNotifyHandle);
-	  RetryTimerNotifyHandle := nil;
+          RetryTimerNotifyHandle := nil;
         end;
       finally
         SetConnectionState(connDisconnected);
@@ -380,16 +380,16 @@ begin
       Error, ErrorLen);
     if GetResult <> 0 then
       raise ESocketError.CreateFmt(SSocketConnectFailed,
-	[GetPeerName, StrError(GetResult)]);
+        [GetPeerName, StrError(GetResult)]);
     if Error <> 0 then
       if (RetryCounter >= Retries) and (Retries >= 0) then
         raise ESocketError.CreateFmt(SSocketConnectFailed,
-	  [GetPeerName, StrError(Error)])
+          [GetPeerName, StrError(Error)])
       else begin
         Active := False;
-	RetryTimerNotifyHandle := EventLoop.AddTimerNotify(RetryDelay, False,
-	  @RetryTimerNotify, Self);
-	Inc(RetryCounter);
+        RetryTimerNotifyHandle := EventLoop.AddTimerNotify(RetryDelay, False,
+          @RetryTimerNotify, Self);
+        Inc(RetryCounter);
       end
     else
     begin
@@ -557,7 +557,7 @@ begin
       Socket := Sockets.Socket(AF_INET, SOCK_STREAM, 0);
       if Socket = -1 then
         raise ESocketError.CreateFmt(SSocketCreationError,
-	  [StrError(SocketError)]);
+          [StrError(SocketError)]);
       TrueValue := 1;
       Sockets.SetSocketOptions(Socket, SOL_SOCKET, SO_REUSEADDR,
         TrueValue, SizeOf(TrueValue));
@@ -567,7 +567,7 @@ begin
       Addr.Addr := 0;
       if not Bind(Socket, Addr, SizeOf(Addr)) then
         raise ESocketError.CreateFmt(SSocketBindingError,
-	  [Port, StrError(SocketError)]);
+          [Port, StrError(SocketError)]);
       Listen(Socket, 5);
       if not Assigned(EventLoop) then
         raise ESocketError.Create(SSocketNoEventLoopAssigned);
@@ -588,21 +588,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-08-14 20:31:54  sg
-  * Sockets now use REUSE_ADDR by default, to enable fast restarts of server
-    applications
-
-  Revision 1.4  2004/02/20 20:46:21  michael
-  + Fixes for 1.1 - revised from Marcos stuff
-
-  Revision 1.3  2004/02/02 14:39:48  marco
-   * 1.0.x problems fixed
-
-  Revision 1.2  2004/01/31 19:13:14  sg
-  * Splittet old HTTP unit into httpbase and httpclient
-  * Many improvements in fpSock (e.g. better disconnection detection)
-
-  Revision 1.1  2003/11/22 11:55:28  sg
-  * First version, a simple starting point for further development
+  Revision 1.6  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

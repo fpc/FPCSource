@@ -11,7 +11,7 @@ const
     WriteLn('Failed!');
     halt(1);
   end;
- 
+
 var
  value : real;
  _result : boolean;
@@ -27,12 +27,12 @@ Begin
      _result := false;
   if not _result then
      fail;
-  WriteLn('Success!');     
+  WriteLn('Success!');
 end.
 
 {
   $Log$
-  Revision 1.1  2002-09-16 19:15:54  carl
-    * several new routines have a testsuit.
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
-}  
+}

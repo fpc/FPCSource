@@ -345,30 +345,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.54  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.53  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.52  2004/05/19 22:26:46  jonas
-    * fixed web bug 3103: the fpu conversion code couldn't deal with offsets
-      outside the smallint range
-
-  Revision 1.51  2004/03/17 20:06:56  jonas
-    * fixed missing restoring of true/falselabels in case of explicit
-      integer to same-sized boolean conversions
-
-  Revision 1.50  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+  Revision 1.56  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

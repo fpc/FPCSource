@@ -2272,22 +2272,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-11-09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.5  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.4  2004/05/20 21:54:33  florian
-    + <pointer> - <pointer> result is divided by the pointer element size now
-      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
-
-  Revision 1.3  2004/05/06 20:30:51  florian
-    * m68k compiler compilation fixed
-
-  Revision 1.14  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
 
 }
 

@@ -1,13 +1,13 @@
 program example72;
 
-{ Program to demonstrate the NanoSleep function. } 
+{ Program to demonstrate the NanoSleep function. }
 
 uses oldlinux;
 
 Var
   Req,Rem : TimeSpec;
   Res : Longint;
-  
+
 begin
   With Req do
     begin

@@ -814,59 +814,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2004-12-05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.28  2004/04/07 09:26:23  michael
-  + Patch for findfirst (bug 3042) from Peter Vreman
-
-  Revision 1.27  2004/03/14 18:43:21  peter
-    * reset searchrec info in findfirst
-
-  Revision 1.26  2004/02/17 17:37:26  daniel
-    * Enable threadvars again
-
-  Revision 1.25  2004/02/16 22:18:44  hajny
-    * LastDosExitCode changed back from threadvar temporarily
-
-  Revision 1.24  2004/02/15 21:36:10  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.23  2004/02/09 12:03:16  michael
-  + Switched to single interface in dosh.inc
-
-  Revision 1.22  2004/01/06 00:58:35  florian
-    * fixed fsearch
-
-  Revision 1.21  2003/10/27 15:27:47  peter
-    * fixed setfattr with volumeid
-
-  Revision 1.20  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.19  2003/06/10 11:16:15  jonas
-    * fix from Peter
-
-  Revision 1.18  2002/12/24 15:35:15  peter
-    * error code fixes
-
-  Revision 1.17  2002/12/15 20:23:53  peter
-    * map error 87 to 13 to be compatible with dos
-
-  Revision 1.16  2002/12/04 21:35:50  carl
-    * bugfixes for dos.exec() : it would not be able to execute 16-bit apps
-    * doserror was not reset to zero in dos.exec
-
-  Revision 1.15  2002/12/03 20:39:14  carl
-     * fix for dos.exec with non-microsoft shells
-
-  Revision 1.14  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.13  2002/07/06 11:48:09  carl
-  + fsearch bugfix for Win9X systems
-
-  Revision 1.12  2002/05/16 19:32:57  carl
-  * fix range check error
+  Revision 1.30  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

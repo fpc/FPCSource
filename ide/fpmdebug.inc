@@ -258,26 +258,14 @@ end;
 
 {
   $Log$
-  Revision 1.8  2005-01-08 11:43:18  florian
+  Revision 1.9  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.8  2005/01/08 11:43:18  florian
     + vector unit window
 
   Revision 1.7  2005/01/07 21:52:23  florian
     * proper stepping in disassembler window now possible
     + disassembler window to menu added
-
-  Revision 1.6  2002/11/28 12:57:00  pierre
-   + TransferRemote method added
-
-  Revision 1.5  2002/10/30 22:07:11  pierre
-   * only handle direction keys specially if buffer is bigger than window
-
-  Revision 1.4  2002/09/07 15:40:43  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/09/03 13:59:09  pierre
-   * don't use LowerCaseStr for AddWatch as it confuses line completion
-
-  Revision 1.2  2002/09/02 09:27:35  pierre
-   * avoid 100 CPU usage when AltF5 is used
 
 }

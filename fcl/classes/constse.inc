@@ -276,15 +276,7 @@ const
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.8  2003/06/04 17:37:52  michael
-  en InitInheritedComponent erbij voor Delphi 6 compatibiliteit
-
-  Revision 1.7  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.2  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

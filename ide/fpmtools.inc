@@ -384,17 +384,7 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-12-18 01:21:42  pierre
-   + Use TEditorInputLine instead of TInputLine
-
-  Revision 1.5  2002/09/07 15:40:44  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/29 10:06:33  pierre
-   * adapt to changes in fptools.pas unit
-   + support $CAP_MSG() without filter
-
-  Revision 1.3  2002/05/29 22:38:13  pierre
-   Asciitab now in fvision
+  Revision 1.7  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

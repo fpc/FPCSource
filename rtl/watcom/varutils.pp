@@ -40,8 +40,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-11-17 19:55:13  hajny
-    * Wiktor Sywula: LFN detection uncommented in system, new units added
-
+  Revision 1.2  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

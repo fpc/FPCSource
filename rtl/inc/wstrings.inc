@@ -83,19 +83,19 @@ end;
 
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
 begin
-	manager:=widestringmanager;
+        manager:=widestringmanager;
 end;
 
 
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
 begin
-	Old:=widestringmanager;
-	widestringmanager:=New;
+        Old:=widestringmanager;
+        widestringmanager:=New;
 end;
 
 Procedure SetWideStringManager (Const New : TWideStringManager);
 begin
-	widestringmanager:=New;
+        widestringmanager:=New;
 end;
 
 (*
@@ -1425,7 +1425,10 @@ procedure initwidestringmanager;
 
 {
   $Log$
-  Revision 1.50  2005-02-06 09:38:45  florian
+  Revision 1.51  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.50  2005/02/06 09:38:45  florian
     +  StrCharLength infrastructure
 
   Revision 1.49  2005/02/03 18:40:50  florian
@@ -1436,109 +1439,5 @@ procedure initwidestringmanager;
 
   Revision 1.47  2005/01/06 13:31:06  florian
     * widecharray patch from Peter
-
-  Revision 1.46  2004/11/17 22:19:04  peter
-  internconst, internproc and some external declarations moved to interface
-
-  Revision 1.45  2004/10/24 20:01:42  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.44  2004/09/29 14:55:49  mazen
-  * widestring conversion routines takes a widechar so no
-  information is lost
-
-  Revision 1.43  2004/09/18 10:23:08  jonas
-    - removed unused local variable
-    * fixed bug in Utf8ToUnicode (use of uninitialised variable)
-
-  Revision 1.42  2004/07/18 20:21:44  florian
-    + several unicode (to/from utf-8 conversion) stuff added
-    * some longint -> SizeInt changes
-
-  Revision 1.41  2004/07/12 17:58:19  peter
-    * remove maxlen field from ansistring/widestrings
-
-  Revision 1.40  2004/07/02 21:21:09  peter
-    * decr ref doesn't reset pointer
-    * finalize resets pointer for astring,wstring
-
-  Revision 1.39  2004/05/31 14:31:57  peter
-    * remove comment warnings
-
-  Revision 1.38  2004/05/29 15:39:08  florian
-    * the decr functions set the data now to nil
-
-  Revision 1.37  2004/05/01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.36  2004/04/29 18:59:43  peter
-    * str() helpers now also use valint/valuint
-    * int64/qword helpers disabled for cpu64
-
-  Revision 1.35  2004/01/22 22:09:05  peter
-    * finalize needs to reset to nil after decr_ref
-
-  Revision 1.34  2003/11/29 17:27:05  michael
-  + Added overloaded version of SetWideStringManager without old parameter
-
-  Revision 1.33  2003/11/28 20:36:13  michael
-  + Added WideStringManager
-
-  Revision 1.32  2003/11/05 15:33:51  florian
-    * made Index* usage consistent with astrings.inc
-
-  Revision 1.31  2003/06/17 19:24:08  jonas
-    * fixed conversion of fpc_*str_unique to compilerproc
-
-  Revision 1.30  2003/06/17 16:38:53  jonas
-    * fpc_ansistr|widestr_unique is now a function so it can be used as
-      compilerproc
-
-  Revision 1.29  2003/05/01 08:05:23  florian
-    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
-
-  Revision 1.28  2002/12/29 16:59:17  peter
-    * implemented some more conversions
-
-  Revision 1.27  2002/12/15 22:33:12  peter
-    * SetString(WideString,[PChar|PWideChar],Len) added
-
-  Revision 1.26  2002/12/14 19:16:45  sg
-  * Ported improvements from the AnsiString equivalents to NewWideString and
-    fpc_WideStr_SetLength
-
-  Revision 1.25  2002/12/07 14:35:34  carl
-    - avoid warnings (add typecast)
-
-  Revision 1.24  2002/10/10 16:08:50  florian
-    + several widestring/pwidechar related helpers added
-
-  Revision 1.23  2002/10/02 18:21:52  peter
-    * Copy() changed to internal function calling compilerprocs
-    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
-      new copy functions
-
-  Revision 1.22  2002/09/26 21:50:38  florian
-    + some WideString<->AnsiString conversion functions added
-
-  Revision 1.21  2002/09/14 11:20:50  carl
-    * Delphi compatibility fix (with string routines)
-
-  Revision 1.20  2002/09/07 21:16:45  carl
-    * cardinal -> longword
-
-  Revision 1.19  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.18  2002/07/29 21:28:17  florian
-    * several fixes to get further with linux/ppc system unit compilation
-
-  Revision 1.17  2002/04/26 15:19:05  peter
-    * use saveregisters for incr routines, saves also problems with
-      the optimizer
-
-  Revision 1.16  2002/04/25 20:14:57  peter
-    * updated compilerprocs
-    * incr ref count has now a value argument instead of var
 
 }

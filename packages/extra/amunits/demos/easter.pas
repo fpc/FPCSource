@@ -5,7 +5,7 @@ Program easter;
     © 1995 by Andreas Tetzl
     FREEWARE
 
-    
+
     This is a little program to calculate the date of
     easter for years between 1583 and 2299.
 
@@ -77,9 +77,9 @@ END.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:26  nils
-    * initial release
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+

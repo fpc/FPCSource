@@ -15,7 +15,7 @@ type
 
 var
   err : boolean;
-  
+
 constructor TAncestor.Create;
 begin
   writeln('TAnscestor.Create');

@@ -13,17 +13,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
  {
- 	History:
-	
-	Made this unit to help porting from HS Pascal
-	to fpc. Feel free to add more stuff.
-	09 Nov 2002.
-	
-	Added the define use_amiga_smartlink.
+        History:
+
+        Made this unit to help porting from HS Pascal
+        to fpc. Feel free to add more stuff.
+        09 Nov 2002.
+
+        Added the define use_amiga_smartlink.
         13 Jan 2003.
-	nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
+        nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
 {$I useamigasmartlink.inc}
@@ -46,12 +46,12 @@ const
     FALSE_ = 0;
 
 procedure MakeMenu(var mnm: tNewMenu;
-	nmType: byte;
-	nmLabel: string;
-	nmCommKey: string;
-	nmFlags: word;
-	nmMutualExclude: longint;
-	nmUserData: longint); 
+        nmType: byte;
+        nmLabel: string;
+        nmCommKey: string;
+        nmFlags: word;
+        nmMutualExclude: longint;
+        nmUserData: longint);
 
 function ptrtopas(s : pchar): string;
 function FExpandLock( l : BPTR): String;
@@ -65,12 +65,12 @@ implementation
  *
  *)
 procedure MakeMenu(var mnm: tNewMenu;
-	nmType: byte;
-	nmLabel: string;
-	nmCommKey: string;
-	nmFlags: word;
-	nmMutualExclude: longint;
-	nmUserData: longint); 
+        nmType: byte;
+        nmLabel: string;
+        nmCommKey: string;
+        nmFlags: word;
+        nmMutualExclude: longint;
+        nmUserData: longint);
 begin
         mnm.nm_Type := nmType;
         if nmLabel <> '' then
@@ -101,13 +101,13 @@ end;
 
 Function CSCPAR(rk : pRemember; s : String) : STRPTR;
 VAR
-	p : STRPTR;
-	
+        p : STRPTR;
+
 begin
   s := s + #0;
   p := AllocRemember(rk, length(s), MEMF_CLEAR);
   if p <> nil then
-  	move(s[1], p^, length(s));
+        move(s[1], p^, length(s));
   CSCPAR := p;
 end;
 
@@ -115,13 +115,9 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+

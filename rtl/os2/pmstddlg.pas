@@ -18,11 +18,11 @@
 
 {Warning: This code is alfa. Future versions of this unit will propably
  not be compatible.}
- 
+
 unit PMStdDlg;
 
   interface
-  
+
     uses
        os2def,doscalls,pmwin,pmgpi;
 
@@ -1206,10 +1206,10 @@ unit PMStdDlg;
        PPageSelectNotify = ^PageSelectNotify;
 
   implementation
-  
+
     function WinFileDlg(hwndP : HWnd;hwndO : HWnd;pfild : PFileDlg) : HWnd; cdecl;
         external 'PMCTLS' index 4;
-    function WinDefFileDlgProc(hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl; 
+    function WinDefFileDlgProc(hwnd : HWnd;msg : cardinal;mp1 : MParam;mp2 : MParam) : MResult; cdecl;
         external 'PMCTLS' index 5;
     function WinFreeFileDlgList(papszFQFilename : PAPSZ) : Longbool; cdecl;
         external 'PMCTLS' index 6;
@@ -1233,7 +1233,7 @@ unit PMStdDlg;
         external 'PMDRAG' index 44;
     function DrgQueryDragitemCount(pdinfo : PDragInfo) : cardinal; cdecl;
         external 'PMDRAG' index 45;
-    function DrgQueryDragitemPtr(pdinfo : PDragInfo;i : cardinal) : PDragItem; cdecl; 
+    function DrgQueryDragitemPtr(pdinfo : PDragInfo;i : cardinal) : PDragItem; cdecl;
         external 'PMDRAG' index 46;
     function DrgQueryNativeRMF(pditem : PDragItem;cbBuffer : cardinal;pBuffer : PCHAR) : Longbool; cdecl;
         external 'PMDRAG' index 47;
@@ -1259,7 +1259,7 @@ unit PMStdDlg;
         external 'PMDRAG' index 32;
     function DrgAddStrHandle(PSZ : PChar) : HStr; cdecl;
         external 'PMDRAG' index 33;
-    function DrgDeleteDraginfoStrHandles(pdinfo : PDragInfo) : Longbool; cdecl; 
+    function DrgDeleteDraginfoStrHandles(pdinfo : PDragInfo) : Longbool; cdecl;
         external 'PMDRAG' index 36;
     function DrgDeleteStrHandle(hstr : HStr) : Longbool; cdecl;
         external 'PMDRAG' index 37;
@@ -1287,14 +1287,7 @@ unit PMStdDlg;
 end.
 {
   $Log$
-  Revision 1.4  2002-10-18 17:37:15  hajny
-    * headers corrected
-
-  Revision 1.3  2002/10/05 18:35:05  hajny
-    * mistyping corrected
-
-  Revision 1.2  2002/10/05 18:33:14  hajny
-    + Finally made usable by Yuri Prokushev
-
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -32,22 +32,22 @@ implementation
 
 type
   c_pass_type = (
-	main_pass,		{ input data, also do first output step }
-	huff_opt_pass,		{ Huffman code optimization pass }
-	output_pass		{ data output pass }
+        main_pass,              { input data, also do first output step }
+        huff_opt_pass,          { Huffman code optimization pass }
+        output_pass             { data output pass }
                 );
 
 type
   my_master_ptr = ^my_comp_master;
   my_comp_master = record
-    pub : jpeg_comp_master;	{ public fields }
+    pub : jpeg_comp_master;     { public fields }
 
-    pass_type : c_pass_type; 	{ the type of the current pass }
+    pass_type : c_pass_type;    { the type of the current pass }
 
-    pass_number : int;		{ # of passes completed }
-    total_passes : int;		{ total # of passes needed }
+    pass_number : int;          { # of passes completed }
+    total_passes : int;         { total # of passes needed }
 
-    scan_number : int;		{ current index in scan_info[] }
+    scan_number : int;          { current index in scan_info[] }
   end;
 
 
@@ -87,7 +87,7 @@ begin
   { Check that number of components won't exceed internal array sizes }
   if (cinfo^.num_components > MAX_COMPONENTS) then
     ERREXIT2(j_common_ptr(cinfo), JERR_COMPONENT_COUNT, cinfo^.num_components,
-	     MAX_COMPONENTS);
+             MAX_COMPONENTS);
 
   { Compute maximum sampling factors; check factor validity }
   cinfo^.max_h_samp_factor := 1;
@@ -122,17 +122,17 @@ begin
     { Size in DCT blocks }
     compptr^.width_in_blocks := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_width) * long (compptr^.h_samp_factor),
-		    long (cinfo^.max_h_samp_factor * DCTSIZE)) );
+                    long (cinfo^.max_h_samp_factor * DCTSIZE)) );
     compptr^.height_in_blocks := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_height) * long (compptr^.v_samp_factor),
-		    long (cinfo^.max_v_samp_factor * DCTSIZE)) );
+                    long (cinfo^.max_v_samp_factor * DCTSIZE)) );
     { Size in samples }
     compptr^.downsampled_width := JDIMENSION (
       jdiv_round_up(long(cinfo^.image_width) * long(compptr^.h_samp_factor),
-		    long(cinfo^.max_h_samp_factor)) );
+                    long(cinfo^.max_h_samp_factor)) );
     compptr^.downsampled_height := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_height) * long(compptr^.v_samp_factor),
-		    long (cinfo^.max_v_samp_factor)) );
+                    long (cinfo^.max_v_samp_factor)) );
     { Mark component needed (this flag isn't actually used for compression) }
     compptr^.component_needed := TRUE;
     Inc(compptr);
@@ -143,7 +143,7 @@ begin
 
   cinfo^.total_iMCU_rows := JDIMENSION (
     jdiv_round_up(long (cinfo^.image_height),
-		  long (cinfo^.max_v_samp_factor*DCTSIZE)) );
+                  long (cinfo^.max_v_samp_factor*DCTSIZE)) );
 end;
 
 
@@ -197,7 +197,7 @@ begin
     for ci := 0 to pred(cinfo^.num_components) do
       for coefi := 0 to pred(DCTSIZE2) do
       begin
-	last_bitpos_int_ptr^ := -1;
+        last_bitpos_int_ptr^ := -1;
         Inc(last_bitpos_int_ptr);
       end;
 {$else}
@@ -221,10 +221,10 @@ begin
     begin
       thisi := scanptr^.component_index[ci];
       if (thisi < 0) or (thisi >= cinfo^.num_components) then
-	ERREXIT1(j_common_ptr(cinfo), JERR_BAD_SCAN_SCRIPT, scanno);
+        ERREXIT1(j_common_ptr(cinfo), JERR_BAD_SCAN_SCRIPT, scanno);
       { Components must appear in SOF order within each scan }
       if (ci > 0) and (thisi <= scanptr^.component_index[ci-1]) then
-	ERREXIT1(j_common_ptr(cinfo), JERR_BAD_SCAN_SCRIPT, scanno);
+        ERREXIT1(j_common_ptr(cinfo), JERR_BAD_SCAN_SCRIPT, scanno);
     end;
     { Validate progression parameters }
     Ss := scanptr^.Ss;
@@ -235,43 +235,43 @@ begin
     begin
 {$ifdef C_PROGRESSIVE_SUPPORTED}
       if (Ss < 0) or (Ss >= DCTSIZE2) or (Se < Ss) or (Se >= DCTSIZE2) or
-	 (Ah < 0) or (Ah > MAX_AH_AL) or (Al < 0) or (Al > MAX_AH_AL) then
-	ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+         (Ah < 0) or (Ah > MAX_AH_AL) or (Al < 0) or (Al > MAX_AH_AL) then
+        ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
 
       if (Ss < 0) or (Ss >= DCTSIZE2) or (Se < Ss) or (Se >= DCTSIZE2)
        or (Ah < 0) or (Ah > MAX_AH_AL) or (Al < 0) or (Al > MAX_AH_AL) then
-	ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+        ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
       if (Ss = 0) then
       begin
-	if (Se <> 0) then	{ DC and AC together not OK }
-	  ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+        if (Se <> 0) then       { DC and AC together not OK }
+          ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
       end
       else
       begin
-	if (ncomps <> 1) then  { AC scans must be for only one component }
-	  ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+        if (ncomps <> 1) then  { AC scans must be for only one component }
+          ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
       end;
       for ci := 0 to pred(ncomps) do
       begin
-	last_bitpos_ptr := @( last_bitpos[scanptr^.component_index[ci]]);
-	if (Ss <> 0) and (last_bitpos_ptr^[0] < 0) then { AC without prior DC scan }
-	  ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
-	for coefi := Ss to Se do
+        last_bitpos_ptr := @( last_bitpos[scanptr^.component_index[ci]]);
+        if (Ss <> 0) and (last_bitpos_ptr^[0] < 0) then { AC without prior DC scan }
+          ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+        for coefi := Ss to Se do
         begin
-	  if (last_bitpos_ptr^[coefi] < 0) then
+          if (last_bitpos_ptr^[coefi] < 0) then
           begin
-	    { first scan of this coefficient }
-	    if (Ah <> 0) then
-	      ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
-	  end
+            { first scan of this coefficient }
+            if (Ah <> 0) then
+              ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+          end
           else
           begin
-	    { not first scan }
-	    if (Ah <> last_bitpos_ptr^[coefi]) or (Al <> Ah-1) then
-	      ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
-	  end;
-	  last_bitpos_ptr^[coefi] := Al;
-	end;
+            { not first scan }
+            if (Ah <> last_bitpos_ptr^[coefi]) or (Al <> Ah-1) then
+              ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+          end;
+          last_bitpos_ptr^[coefi] := Al;
+        end;
       end;
 {$endif}
     end
@@ -279,14 +279,14 @@ begin
     begin
       { For sequential JPEG, all progression parameters must be these: }
       if (Ss <> 0) or (Se <> DCTSIZE2-1) or (Ah <> 0) or (Al <> 0) then
-	ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
+        ERREXIT1(j_common_ptr(cinfo), JERR_BAD_PROG_SCRIPT, scanno);
       { Make sure components are not sent twice }
       for ci := 0 to pred(ncomps) do
       begin
-	thisi := scanptr^.component_index[ci];
-	if (component_sent[thisi]) then
-	  ERREXIT1(j_common_ptr(cinfo), JERR_BAD_SCAN_SCRIPT, scanno);
-	component_sent[thisi] := TRUE;
+        thisi := scanptr^.component_index[ci];
+        if (component_sent[thisi]) then
+          ERREXIT1(j_common_ptr(cinfo), JERR_BAD_SCAN_SCRIPT, scanno);
+        component_sent[thisi] := TRUE;
       end;
     end;
     Inc(scanptr);
@@ -304,7 +304,7 @@ begin
     for ci := 0 to pred(cinfo^.num_components) do
     begin
       if (last_bitpos[ci][0] < 0) then
-	ERREXIT(j_common_ptr(cinfo), JERR_MISSING_DATA);
+        ERREXIT(j_common_ptr(cinfo), JERR_MISSING_DATA);
     end;
 {$endif}
   end
@@ -313,7 +313,7 @@ begin
     for ci := 0 to pred(cinfo^.num_components) do
     begin
       if (not component_sent[ci]) then
-	ERREXIT(j_common_ptr(cinfo), JERR_MISSING_DATA);
+        ERREXIT(j_common_ptr(cinfo), JERR_MISSING_DATA);
     end;
   end;
 end;
@@ -357,7 +357,7 @@ begin
     { Prepare for single sequential-JPEG scan containing all components }
     if (cinfo^.num_components > MAX_COMPS_IN_SCAN) then
       ERREXIT2(j_common_ptr(cinfo), JERR_COMPONENT_COUNT, cinfo^.num_components,
-	       MAX_COMPS_IN_SCAN);
+               MAX_COMPS_IN_SCAN);
     cinfo^.comps_in_scan := cinfo^.num_components;
     comp_infos := cinfo^.comp_info;
     for ci := 0 to pred(cinfo^.num_components) do
@@ -404,15 +404,15 @@ begin
     if (tmp = 0) then
       tmp := compptr^.v_samp_factor;
     compptr^.last_row_height := tmp;
-    
+
     { Prepare array describing MCU composition }
     cinfo^.blocks_in_MCU := 1;
     cinfo^.MCU_membership[0] := 0;
-    
+
   end
   else
   begin
-    
+
     { Interleaved (multi-component) scan }
     if (cinfo^.comps_in_scan <= 0) or
        (cinfo^.comps_in_scan > MAX_COMPS_IN_SCAN) then
@@ -422,10 +422,10 @@ begin
     { Overall image size in MCUs }
     cinfo^.MCUs_per_row := JDIMENSION (
       jdiv_round_up( long (cinfo^.image_width),
-		     long (cinfo^.max_h_samp_factor*DCTSIZE)) );
+                     long (cinfo^.max_h_samp_factor*DCTSIZE)) );
     cinfo^.MCU_rows_in_scan := JDIMENSION (
       jdiv_round_up( long (cinfo^.image_height),
-		     long (cinfo^.max_v_samp_factor*DCTSIZE)) );
+                     long (cinfo^.max_v_samp_factor*DCTSIZE)) );
 
     cinfo^.blocks_in_MCU := 0;
 
@@ -449,11 +449,11 @@ begin
       { Prepare array describing MCU composition }
       mcublks := compptr^.MCU_blocks;
       if (cinfo^.blocks_in_MCU + mcublks > C_MAX_BLOCKS_IN_MCU) then
-	ERREXIT(j_common_ptr(cinfo), JERR_BAD_MCU_SIZE);
+        ERREXIT(j_common_ptr(cinfo), JERR_BAD_MCU_SIZE);
       while (mcublks > 0) do
       begin
         Dec(mcublks);
-	cinfo^.MCU_membership[cinfo^.blocks_in_MCU] := ci;
+        cinfo^.MCU_membership[cinfo^.blocks_in_MCU] := ci;
         Inc(cinfo^.blocks_in_MCU);
       end;
     end;
@@ -650,7 +650,7 @@ var
 begin
   master := my_master_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(my_comp_master)) );
+                                  SIZEOF(my_comp_master)) );
   cinfo^.master := jpeg_comp_master_ptr(master);
   master^.pub.prepare_for_pass := prepare_for_pass;
   master^.pub.pass_startup := pass_startup;

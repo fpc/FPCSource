@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Main form of GTK debugserver
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -20,19 +20,19 @@ unit frmmain;
 
 Interface
 
-uses 
+uses
   fpgtk,fpgtkext,glib,gtk,gdk,debugserverintf,sysutils,msgintf,classes,inifiles;
- 
-Type 
+
+Type
   TClientCList = Class(TFPGtkScrollClist)
-  Protected 
+  Protected
     FTabLabel : TFPgtkLabel;
     FClient : TClient;
-  Public   
+  Public
     Constructor Create (AClient : TClient);
-    Property Client : TClient Read FClient Write FClient;  
+    Property Client : TClient Read FClient Write FClient;
     Property TabLabel : TFPgtkLabel Read FTabLabel Write FTabLabel;
-  end;  
+  end;
 
   TMainForm = Class (TFPGtkWindow)
   Private
@@ -79,9 +79,9 @@ Type
     FRunButton : TFPgtkButton;
     FRunImages : Array[Boolean] of PgdkPixmap;
     FRunMasks : Array[Boolean] of Pgdkbitmap;
-  Public 
-    // General 
-    Constructor Create;  
+  Public
+    // General
+    Constructor Create;
     Procedure CreateWindow;
     Procedure LoadSettings;
     Procedure SaveSettings;
@@ -89,7 +89,7 @@ Type
     Procedure SetupDebugServer;
     Procedure ShutdownDebugServer;
     // List/Client management
-    Procedure SaveToFile(C : TClientCList; FN : String); 
+    Procedure SaveToFile(C : TClientCList; FN : String);
     Function  NewList(Client : TClient) : TClientCList;
     Function  GetList(Client : TClient) : TClientClist;
     Procedure HaveData(Handle : Gint);
@@ -112,12 +112,12 @@ Type
     Procedure HelpAboutClick(Sender : TFPGtkObject; Data : Pointer);
     Function  OnDeleteEvent(Sender:TFPgtkWidget; Event:PGdkEvent; data:pointer): boolean;
   end;
-  
-  
-Implementation  
+
+
+Implementation
 
 uses frmabout,bitmapdata;
- 
+
 ResourceString
   SCaption        = 'FPC Debug server';
 
@@ -134,7 +134,7 @@ ResourceString
   SMenuOptionsCloseOnDisconnect = '_Close client on disconnect';
   SMenuHelp       = '_Help';
   SMenuHelpAbout  = '_About';
- 
+
   SHintFileClear  = 'Clear current list';
   SHintFileSave   = 'Save current list to disk';
   SHintFilePause  = 'Discard new messages';
@@ -144,23 +144,23 @@ ResourceString
   SMessageFrom    = '[%s] : %s';
   SSaveFileTitle  = 'Save list to file:';
   SNeedsRestart   = 'Restart debugserver for this option to take effect.';
-  
+
 Const
   SKeyParameters        = 'Parameters';
   SKeySinglePage        = 'SinglePage';
   SKeyCloseOnDisconnect = 'CloseOnDisconnect';
   SkeyInsertNew         = 'InsertNewMessages';
-  SConfigFile           = 'debugserver.cnf'; 
+  SConfigFile           = 'debugserver.cnf';
 
   DefaultSinglePage     = True;
   DefaultCloseOnConnect = False;
   DefaultInsertNew      = True;
-  
+
 Const
   DefaultTooltips = True;
   DefaultToolBarStyle = GTK_TOOLBAR_ICONS;
   DefaultToolbarRelief = GTK_RELIEF_NONE;
-        
+
 
 { ---------------------------------------------------------------------
     TClientCList
@@ -187,20 +187,20 @@ end;
 
 // Cludge to go around TFPgtkBin.Child not being public...
 
-Type 
+Type
   TMyBin = Class(TFPgtkBin)
   Public
-    Property Child; 
+    Property Child;
   end;
-        
+
 Procedure TMainForm.CreateWindow;
 
 Var
   V : TFPGtkHBox;
   FAccelGroup: Integer;
-    
+
 begin
-  
+
   { File Menu }
   Title:=SCaption;
   FAccelGroup:=AccelGroupNew;
@@ -224,18 +224,18 @@ begin
   FOptionsCloseOnDisconnect := NewCheckMenuItem(SMenuOptionsCloseOnDisconnect,'','', @OptionsClick,@FCloseOnDisconnect);
   FOptionsCloseOnDisconnect.active:=FCloseOnDisconnect;
   FOptions := NewSubMenu(SMenuOptions,'','',[FOptionsInsertNew,FOptionsSinglePage,FOptionsCloseOnDisconnect]);
-  
+
   { Help Menu }
-  
+
   FHelpAbout:=NewMenuItem(SMenuHelpAbout ,'','',@HelpAboutClick,Nil);
   FHelp := NewSubMenu(SMenuHelp,'','',[FHelpAbout]);
-  
+
   { Menu bar }
-  
+
   FMainMenu:=NewMenuBar([FFile,FOptions,FHelp]);
-  
+
   { Toolbar images }
-  
+
   FClearImage:=PixmapFromFile('clear');
   FPauseImage:=PixmapFromFile('pause');
   FRunImage:=PixmapFromFile('run');
@@ -247,7 +247,7 @@ begin
   FRunImages[True]:=FRunImage.PixMap;
   FRunMasks[True]:=FRunImage.Mask;
   SetRunButtonBitmaps;
-  
+
   { Message images }
 
   FConnectImage:=PixMapFromFile('connect');
@@ -257,7 +257,7 @@ begin
   FErrorImage:=PixmapFromFile('error');
 
   { Save references for quick lookup}
-  
+
   FMsgImages[-1]:=FDisconnectImage.PixMap;
   FMsgImages[0]:=FinfoImage.PixMap;
   FMsgImages[1]:=FWarningImage.PixMap;
@@ -268,9 +268,9 @@ begin
   FMsgMasks[1]:=FWarningImage.Mask;
   FMsgMasks[2]:=FErrorImage.Mask;
   FMsgMasks[3]:=FConnectImage.Mask;
-  
+
   { Toolbar }
-  
+
   FMainToolBar:=TFPGtkToolbar.Create;
   With FMainToolbar do
     begin
@@ -283,12 +283,12 @@ begin
     AppendItem(SMenuFileClose,SHintFileClose,'',FCloseImage,@FileCloseClick,Nil);
     end;
 
-  { place left aligned on frame }  
+  { place left aligned on frame }
   V:=TFPGtkHBox.Create;
   V.PackStart(FMainToolbar,False,False,2);
   FToolbarFrame:=TFPGtkFrame.Create;
   FtoolbarFrame.Add(V);
-    
+
   { For Pages }
 
 //  FPages:=TFPGtkNoteBook.Create;
@@ -302,14 +302,14 @@ begin
   FVBox.PackStart(FToolBarFrame,false, true, 0);
   If FSinglePage then
     FVBox.PackStart(FList,true, true, 0)
-  else  
+  else
     FVBox.PackStart(FPages,true, true, 0);
   Self.add(FVBox);
   Setusize(640,480);
   ConnectDeleteEvent(@OnDeleteEvent,Nil);
-end;                   
+end;
 
-Constructor TMainForm.Create;  
+Constructor TMainForm.Create;
 
 begin
   Inherited Create(gtk_window_dialog);
@@ -319,9 +319,9 @@ begin
   FCreating:=True;
   Try
     CreateWindow;
-  Finally  
+  Finally
     FCreating:=False;
-  end;  
+  end;
   SetUpDebugServer;
 end;
 
@@ -340,7 +340,7 @@ begin
   Home:=GetEnvironmentVariable('HOME');
   If (Home<>'') then
     Result:=IncludeTrailingBackslash(Home)+'.'+SConfigFile
-  else  
+  else
     Result:=SConfigFile;
 end;
 
@@ -441,7 +441,7 @@ Function TMainForm.CheckForNewClient : TClient;
 Var
   IHandle : gint;
   L : TClientCList;
-  
+
 begin
 //  Writeln('Checking new client');
   Result:=CheckNewConnection;
@@ -460,23 +460,23 @@ begin
       end;
     IHandle:=gdk_input_add(Result.Handle,GDK_INPUT_READ,@GtkHaveInput,self);
     Result.Data:=Pointer(IHandle);
-    end;  
+    end;
 end;
 
 // Add event data to the appropriate list.
 
 Procedure TMainForm.AddEventToList(Event : TDebugEvent);
- 
+
 Const
   MsgTypeStrings : Array[-1..3] of String = ('*','?','!','!','.');
-   
+
 Var
   T,D,S : String;
   L : TClientCList;
   TL : TFPgtkWidget;
   SL : TStringList;
   Index : Integer;
-    
+
 begin
   With Event do
     begin
@@ -485,8 +485,8 @@ begin
     If FSinglePage or (logcode<>lctIdentify) then
       S:=Format(SMessageFrom,[Client.Peer,Event])
     else
-      S:=Event;  
-    L:=Nil;   
+      S:=Event;
+    L:=Nil;
     If Assigned(Client) then
       L:=GetList(Client);
     If L=Nil then
@@ -494,16 +494,16 @@ begin
     else
       begin
       If (LogCode=lctIdentify) then
-        If Not FSinglePage then 
+        If Not FSinglePage then
           L.TabLabel.Text:=Event;
-      If Not FPaused then    
+      If Not FPaused then
         begin
         If FInsertNew then
           begin
           Index:=0;
           L.CList.Prepend([T,D,S]);
           end
-        else  
+        else
           Index:=L.CList.Append([T,D,S]);
         L.Clist.SetPixMap(Index,0,FMsgImages[logCode],FmsgMasks[LogCode]);
         end;
@@ -515,7 +515,7 @@ begin
         end;
       end;
     end;
-  CheckForNewClient;  
+  CheckForNewClient;
 end;
 
 // Create new list.
@@ -525,7 +525,7 @@ Function  TMainForm.NewList(Client : TClient) : TClientCList;
 begin
   Result:=TClientCList.Create(Client);
   If Client<>Nil then
-    Result.TabLabel:=TfpGtkLabel.Create(SNewClient);  
+    Result.TabLabel:=TfpGtkLabel.Create(SNewClient);
 end;
 
 // Get page index on which messages for client are shown.
@@ -533,9 +533,9 @@ end;
 
 Function TMainForm.GetClientPageIndex(Client : TClient) : Integer;
 
-Var 
+Var
   P : TFPgtkWidget;
- 
+
 begin
   With FPages,Children do
     begin
@@ -560,7 +560,7 @@ Var
   P : TFPgtkWidget;
 
 begin
-  If FSinglePage then 
+  If FSinglePage then
     Result:=FList
   else
     begin
@@ -574,8 +574,8 @@ begin
             Result:=TClientClist(P);
             exit
             end;
-       end;     
-    end;  
+       end;
+    end;
 end;
 
 // Return current list.
@@ -583,7 +583,7 @@ end;
 Function  TMainForm.CurrentList : TClientClist;
 
 begin
-  If FSinglePage then 
+  If FSinglePage then
     Result:=FList
   else
     Result:=FPages.Page as TClientCList;
@@ -591,7 +591,7 @@ end;
 
 // Write list contents to file.
 
-Procedure TMainForm.SaveToFile(C : TClientCList; FN : String); 
+Procedure TMainForm.SaveToFile(C : TClientCList; FN : String);
 
 Var
   F : System.text;
@@ -599,7 +599,7 @@ Var
   S,T : String;
   P : PGdkPixmap;
   M : PGdkBitmap;
-  
+
 begin
   Assign(F,FN);
   rewrite(F);
@@ -616,40 +616,40 @@ begin
         end;
   finally
     System.Close(f);
-  end;        
+  end;
 end;
- 
-                                              
+
+
 { ---------------------------------------------------------------------
     Callbacks for user events.
   ---------------------------------------------------------------------}
-  
+
 
 Procedure TMainForm.FileClearClick(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   L:TClientClist;
-  
+
 begin
   L:=CurrentList;
   If L<>Nil then
-    L.Clist.Clear;  
+    L.Clist.Clear;
 end;
 
 Procedure TMainForm.DialogSetFilename(Sender : TFPGtkWindow;Data : Pointer; Action : Integer;Initiator : TFPGtkObject);
 
 type
   PString = ^AnsiString;
-  
+
 begin
   PString(Data)^:=(Sender as TFPgtkFileSelection).Filename;
 end;
 
 Function TMainForm.GetFileName(ATitle : String) : String;
- 
+
 var
   FS : TFPgtkFileSelection;
-    
+
 begin
   FS := TFPgtkFileSelection.Create (gtk_window_dialog);
   Result:='';
@@ -662,13 +662,13 @@ begin
        Result:='';
     end;
 end;
-    
+
 Procedure TMainForm.FileSaveClick(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   L:TClientClist;
   FN : String;
-  
+
 begin
   L:=CurrentList;
   If L<>Nil then
@@ -718,7 +718,7 @@ Procedure TMainForm.OptionsClick(Sender : TFPGtkObject; Data : Pointer);
 
 Type
   PBoolean = ^boolean;
-  
+
 begin
   If not FCreating then
     begin
@@ -726,7 +726,7 @@ begin
     SaveSettings;
     If (@FLoadSinglePage=Data) then
       ShowMessage(SCaption,SNeedsRestart);
-    end;  
+    end;
 end;
 
 Procedure TMainForm.HelpAboutClick(Sender : TFPGtkObject; Data : Pointer);
@@ -747,7 +747,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:36:25  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:36:25  michael
   + Initial implementation
 
 }

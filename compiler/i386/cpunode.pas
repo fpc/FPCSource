@@ -60,15 +60,11 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.22  2005-01-24 22:08:32  peter
+  Revision 1.23  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.22  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
-
-  Revision 1.21  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.20  2004/02/22 12:04:04  florian
-    + nx86set added
-    * some more x86-64 fixes
 
 }

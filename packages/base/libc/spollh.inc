@@ -18,6 +18,6 @@ function poll(__fds: Ppollfd; __nfds:nfds_t; __timeout:longint):longint;cdecl;ex
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TPollFD = pollfd;
-  
+

@@ -787,31 +787,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-10-28 22:04:29  michael
-  + Fixed private seeksupport stuff
-
-  Revision 1.2  2003/10/26 14:52:29  michael
-  + Fixed TStream.CopyFrom with Count=0
-
-  Revision 1.13  2003/07/26 16:20:50  michael
-  + Fixed readstring from TStringStream (
-
-  Revision 1.12  2002/04/25 19:14:13  sg
-  * Fixed TStringStream.ReadString
-
-  Revision 1.11  2002/12/18 16:45:33  peter
-    * set function result in TStream.Seek(int64) found by Mattias Gaertner
-
-  Revision 1.10  2002/12/18 16:35:59  peter
-    * fix crash in Seek()
-
-  Revision 1.9  2002/12/18 15:51:52  michael
-  + Hopefully fixed some issues with int64 seek
-
-  Revision 1.8  2002/10/22 09:38:39  michael
-  + Fixed TmemoryStream.LoadFromStream, reported by Mattias Gaertner
-
-  Revision 1.7  2002/09/07 15:15:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:11  peter
+    * truncate log
 
  }

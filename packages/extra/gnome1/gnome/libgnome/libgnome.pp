@@ -41,8 +41,8 @@ Type
     tm_isdst : integer;
     tm_gmtoff : Pchar;
     tm_zone : Pchar;
-  end;  
-  
+  end;
+
 var
   gnome_user_home_dir : Pchar;cvar;external;
   gnome_user_dir : Pchar;cvar;external;

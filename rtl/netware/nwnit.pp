@@ -12,8 +12,8 @@
   The C-NDK and Documentation can be found here:
     http://developer.novell.com
 
-  This program is distributed in the hope that it will be useful,but WITHOUT 
-  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+  This program is distributed in the hope that it will be useful,but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE.
 
   Do not blame Novell if there are errors in this file, instead
@@ -805,7 +805,7 @@ function NWGetExtendedVolumeInfo         (volNumber:longint;
                                           volInfo:PNWVolExtendedInfo):longint;cdecl;external Clib name 'NWGetExtendedVolumeInfo';
 function NWGetExtendedVolumeInfo         (volNumber:longint;
                                           volName:Pchar;
-                                      var volInfo:TNWVolExtendedInfo):longint;cdecl;external Clib name 'NWGetExtendedVolumeInfo';                                          
+                                      var volInfo:TNWVolExtendedInfo):longint;cdecl;external Clib name 'NWGetExtendedVolumeInfo';
 function NWVolumeIsCDROM                 (volNumber:longint;
                                           isCDROM:PLongint):longint;cdecl;external Clib name 'NWVolumeIsCDROM';
 function NWVolumeIsCDROM                 (volNumber:longint;
@@ -962,7 +962,7 @@ function GetServerConfigurationInfo      (var serverType:Longint;
 function GetServerInformation            (returnSize:longint;
                                           serverInfo:PFILE_SERV_INFO):longint;cdecl;external Clib name 'GetServerInformation';
 function GetServerInformation            (returnSize:longint;
-                                      var serverInfo:TFILE_SERV_INFO):longint;cdecl;external Clib name 'GetServerInformation';                                          
+                                      var serverInfo:TFILE_SERV_INFO):longint;cdecl;external Clib name 'GetServerInformation';
 function GetServerMemorySize:longint;cdecl;external Clib name 'GetServerMemorySize';
 function GetServerUtilization:longint;cdecl;external Clib name 'GetServerUtilization';
 function SendConsoleBroadcast(msg:Pchar;
@@ -3159,8 +3159,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-22 18:23:26  armin
-  * removed nwstdio and nwthread
-  * added nwnit.pp and nwserv.pp containing nearly all netware server structures/function definitions available in the c sdk
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -250,7 +250,7 @@ type
  UInt16 doingDialog :1; // FrmDoDialog is using for nested event loop
  UInt16 exitDialog  :1; // tells FrmDoDialog to bail out and stop using this form
  UInt16 attnIndicator :1;   // Set if attention indicator is supported
- UInt16 reserved      :6;   // pad to 16                                
+ UInt16 reserved      :6;   // pad to 16
 }
     reserved2: UInt16;    // FormAttrType now explicitly 32-bits wide.
   {$endif}

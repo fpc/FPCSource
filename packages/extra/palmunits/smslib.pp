@@ -101,7 +101,7 @@ const
  *
  ****************************************************************************)
 
-const kSmsErrMaxSizeExceeded = smsErrorClass or $01; // Message exceeds maximum size supported by network 
+const kSmsErrMaxSizeExceeded = smsErrorClass or $01; // Message exceeds maximum size supported by network
 
 (****************************************************************************
  *

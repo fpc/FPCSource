@@ -14,7 +14,7 @@ begin
   Writeln(FormatDateTime(Fmt,D2),' : ',SameDateTime(D1,D2));
 end;
 
-Var 
+Var
   D,N : TDateTime;
 
 Begin

@@ -28,7 +28,7 @@ resourcestring
   SExtraIdentifier = 'Extra identifier in file "%s" : Name: %s';
   SExtraTypedIdentifier = 'Extra identifier in file "%s" : Type %s, Name: %s';
   SIdenticalUnits = 'Unit interfaces are identical.';
-  
+
 type
   TCmdLineAction = (actionHelp, actionDiff,ActionList);
 
@@ -71,7 +71,7 @@ var
   DisableProtected,
   DisablePrivate,
   DisableFunctionResults: Boolean;
-  
+
   OutputName: String;
   f: Text;
 
@@ -81,7 +81,7 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
 
   Function ExamineThisNode(APasElement : TPasElement)  : Boolean;
-  
+
   begin
     Result:=Assigned(AParent) and (Length(AName) > 0) and
             (not DisableArguments or (APasElement.ClassType <> TPasArgument)) and
@@ -89,7 +89,7 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
             (not DisablePrivate or (AVisibility<>visPrivate)) and
             (not DisableProtected or (AVisibility<>visProtected));
   end;
-  
+
 begin
   Result := AClass.Create(AName, AParent);
   if AClass.InheritsFrom(TPasModule) then
@@ -142,7 +142,7 @@ begin
       begin
       Cmd := Copy(s, 1, i - 1);
       Arg := Copy(s, i + 1, Length(s));
-      end 
+      end
     else
       begin
       Cmd := s;
@@ -191,7 +191,7 @@ begin
       writeln('NOTE: unable to find tranlation file ',MOFilename);
     // Translate internal documentation strings
     TranslateDocStrings(DocLang);
-    end;  
+    end;
   if (cmdLineAction<>ActionHelp) and (InputFile1='') and (InputFile2='') then
   begin
     Writeln(StdErr,SErrNoInputFile);
@@ -209,7 +209,7 @@ begin
   If Assigned(El) then
     Result:=El.ElementTypeName
   else
-    Result:='(unknown)';  
+    Result:='(unknown)';
 end;
 
 Procedure ListIdentifiers(Fn : String; List : TStrings);
@@ -223,7 +223,7 @@ begin
     begin
     If Not SparseList then
       Write(GetTypeDescription(TPasElement(List.Objects[i])),' : ');
-    Writeln(List[i]);  
+    Writeln(List[i]);
     end;
 end;
 
@@ -232,18 +232,18 @@ Procedure WriteExtra(FN,Id : String; El: TPaselement);
 begin
   If SparseList then
      Writeln(F,Format(SExtraIdentifier,[FN,ID]))
-  else   
+  else
      Writeln(F,Format(SExtraTypedIdentifier,[FN,GetTypeDescription(El),ID]));
 end;
 
-Procedure DoExtra(FN : String; L : TStrings); 
+Procedure DoExtra(FN : String; L : TStrings);
 
 Var
   I,Len : Integer;
   S : String;
 
 begin
-  I:=0;  
+  I:=0;
   While (I<L.Count) do
     begin
     WriteExtra(FN,L[I],TPasElement(L.Objects[I]));
@@ -261,7 +261,7 @@ Procedure DiffIdentifiers(List1,List2 : TStrings);
 Var
   L1,L2 : TStrings;
   I,J : Integer;
-  
+
 begin
   L1:=List1;
   L2:=List2;
@@ -283,9 +283,9 @@ begin
   If (List1.Count=0) and (List2.Count=0) then
     Writeln(F,SIdenticalUnits)
   else
-    begin  
+    begin
     DoExtra(InputFile1,List1);
-    DoExtra(InputFile2,List2); 
+    DoExtra(InputFile2,List2);
     end;
 end;
 
@@ -317,17 +317,17 @@ begin
               ListIdentifiers(InputFile2,Engine2.FList);
               end
             else
-              DiffIdentifiers(Engine1.Flist,Engine2.Flist);  
+              DiffIdentifiers(Engine1.Flist,Engine2.Flist);
           finally
             Engine2.Free;
-          end;  
+          end;
           end
         else
-          ListIdentifiers(InputFile1,Engine1.FList); 
+          ListIdentifiers(InputFile1,Engine1.FList);
       Finally
         Engine1.Free;
-      end;    
-    Finally  
+      end;
+    Finally
       Close(f);
     end;
     end;
@@ -336,7 +336,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2005-01-01 19:56:29  armin
+  Revision 1.5  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.4  2005/01/01 19:56:29  armin
   * fixed access violation without file on command line
 
   Revision 1.3  2004/11/15 18:03:28  michael
@@ -371,7 +374,7 @@ end.
 
   Revision 1.6  2004/05/01 20:13:40  marco
    * got fed up with exceptions on file not found.  Fileresolver now raises a
-  	EFileNotFound error, and makeskel catches and exists gracefully
+        EFileNotFound error, and makeskel catches and exists gracefully
 
   Revision 1.5  2003/11/28 12:51:37  sg
   * Added support for source references

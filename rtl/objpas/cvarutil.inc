@@ -587,19 +587,7 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-11-04 23:15:58  michael
-  Support for ansistring and better debug outpu
-
-  Revision 1.9  2003/11/04 22:53:55  michael
-  + Removed debug statements
-
-  Revision 1.8  2003/11/04 22:27:43  michael
-  + Some fixes for string support
-
-  Revision 1.7  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/07/01 16:25:10  peter
-    * currency updates
+  Revision 1.11  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

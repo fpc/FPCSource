@@ -12,6 +12,6 @@ begin
   P2:=StrAlloc (StrLen(P1)*2+1);
   P2^:=#0; { Zero length }
   StrCat (P2,P1);
-  StrLCat (P2,P1,5); 
+  StrLCat (P2,P1,5);
   Writeln ('P2 = ',P2);
 end.

@@ -88,24 +88,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-11-01 17:40:29  florian
-    + added cgutils uses clause
+  Revision 1.6  2005-02-14 17:13:10  peter
+    * truncate log
 
-  Revision 1.4  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.3  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.2.2.1  2004/04/26 15:54:33  peter
-    * small x86-64 fixes
-
-  Revision 1.2  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
-
-  Revision 1.1  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
 }

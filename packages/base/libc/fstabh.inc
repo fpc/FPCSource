@@ -32,6 +32,6 @@ procedure endfsent;cdecl;external clib name 'endfsent';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TFSTab = fstab;
-      
+

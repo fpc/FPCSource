@@ -14,7 +14,7 @@ type
      function _Release: Integer; override;
     end;
 
-function TIntfPersistent._Release: Integer; 
+function TIntfPersistent._Release: Integer;
 begin
 end;
 

@@ -123,7 +123,7 @@ const
    bp_TZvtTerm_swap_del_key = 9;
    bm_TZvtTerm_del_is_del = $400;
    bp_TZvtTerm_del_is_del = 10;
-   
+
 function cursor_on(var a : TZvtTerm) : dword;
 procedure set_cursor_on(var a : TZvtTerm; __cursor_on : dword);
 function cursor_filled(var a : TZvtTerm) : dword;
@@ -188,7 +188,7 @@ function zvt_term_killchild(term:PZvtTerm; signal:longint):longint;cdecl;externa
 procedure zvt_term_bell(zvt_term:pointer);cdecl;external libzvtdll name 'zvt_term_bell';
 function zvt_term_get_type:guint;cdecl;external libzvtdll name 'zvt_term_get_type';
 procedure zvt_term_set_scrollback(term:PZvtTerm; lines:longint);cdecl;external libzvtdll name 'zvt_term_set_scrollback';
-function zvt_term_get_buffer(term:PZvtTerm; len:Plongint; thetype:longint; sx:longint; sy:longint; 
+function zvt_term_get_buffer(term:PZvtTerm; len:Plongint; thetype:longint; sx:longint; sy:longint;
            ex:longint; ey:longint):Pchar;cdecl;external libzvtdll name 'zvt_term_get_buffer';
 procedure zvt_term_set_font_name(term:PZvtTerm; thename:Pchar);cdecl;external libzvtdll name 'zvt_term_set_font_name';
 procedure zvt_term_set_fonts(term:PZvtTerm; font:PGdkFont; font_bold:PGdkFont);cdecl;external libzvtdll name 'zvt_term_set_fonts';

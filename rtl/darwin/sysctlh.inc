@@ -6,15 +6,15 @@
 
   {
      Copyright (c) 2000-2003 Apple Computer, Inc. All rights reserved.
-    
+
      @APPLE_LICENSE_HEADER_START@
-     
+
      The contents of this file constitute Original Code as defined in and
      are subject to the Apple Public Source License Version 1.1 (the
      "License").  You may not use this file except in compliance with the
      License.  Please obtain a copy of the License at
      http://www.apple.com/publicsource and read it before using this file.
-     
+
      This Original Code and all software distributed under the License are
      distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, EITHER
      EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -22,17 +22,17 @@
      FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT.  Please see the
      License for the specific language governing rights and limitations
      under the License.
-     
+
      @APPLE_LICENSE_HEADER_END@
     }
   { Copyright (c) 1995 NeXT Computer, Inc. All Rights Reserved  }
   {
      Copyright (c) 1989, 1993
-    	The Regents of the University of California.  All rights reserved.
-    
+        The Regents of the University of California.  All rights reserved.
+
      This code is derived from software contributed to Berkeley by
      Mike Karels at Berkeley Software Design, Inc.
-    
+
      Redistribution and use in source and binary forms, with or without
      modification, are permitted provided that the following conditions
      are met:
@@ -43,12 +43,12 @@
         documentation and/or other materials provided with the distribution.
      3. All advertising materials mentioning features or use of this software
         must display the following acknowledgement:
-    	This product includes software developed by the University of
-    	California, Berkeley and its contributors.
+        This product includes software developed by the University of
+        California, Berkeley and its contributors.
      4. Neither the name of the University nor the names of its contributors
         may be used to endorse or promote products derived from this software
         without specific prior written permission.
-    
+
      THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
      ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
      IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -60,8 +60,8 @@
      LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
      OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
      SUCH DAMAGE.
-    
-    	@(#)sysctl.h	8.1 (Berkeley) 6/2/93
+
+        @(#)sysctl.h    8.1 (Berkeley) 6/2/93
     }
   {
      These are for the eproc structure defined below.
@@ -80,7 +80,7 @@
      CTL_MAXNAME = 12;
   {
      Each subsystem defined by sysctl defines a list of variables
-     for that subsystem. Each name is either a node with further 
+     for that subsystem. Each name is either a node with further
      levels defined below it, or it is a leaf of some particular
      type given below. Each sysctl level defines a set of name/type
      pairs to be used by sysctl(1) in manipulating the subsystem.
@@ -319,7 +319,7 @@
     { int: max num of undo entries per process  }
        KSYSV_SEMUNE = 10;
        error1 = 1;
-    { 
+    {
        KERN_PROC subtypes
       }
     { everything  }
@@ -336,7 +336,7 @@
        KERN_PROC_UID = 5;
     { by real uid  }
        KERN_PROC_RUID = 6;
-    { 
+    {
        KERN_PROC subtype ops return arrays of augmented proc structures:
       }
     {
@@ -432,51 +432,51 @@
     {
        These are the support HW selectors for sysctlbyname.  Parameters that are byte count or frequencies are 64 bit numbers.
        All other parameters are 32 bit numbers.
-      
+
          hw.memsize                - The number of bytes of physical memory in the system.
-      
+
          hw.ncpu                   - The number maximum number of processor that could be available this boot.
                                      Use this value for sizing of static per processor arrays; i.e. processor load statistics.
-      
+
          hw.activecpu              - The number of cpus currently available for executing threads.
                                      Use this number to determine the number threads to create in SMP aware applications.
                                      This number can change when power management modes are changed.
-         
+
          hw.tbfrequency            - This gives the time base frequency used by the OS and is the basis of all timing services.
                                      In general is is better to use mach's or higher level timing services, but this value
                                      is needed to convert the PPC Time Base registers to real time.
-      
+
          hw.cpufrequency           - These values provide the current, min and max cpu frequency.  The min and max are for
          hw.cpufrequency_max       - all power management modes.  The current frequency is the max frequency in the current mode.
          hw.cpufrequency_min       - All frequencies are in Hz.
-      
+
          hw.busfrequency           - These values provide the current, min and max bus frequency.  The min and max are for
          hw.busfrequency_max       - all power management modes.  The current frequency is the max frequency in the current mode.
          hw.busfrequency_min       - All frequencies are in Hz.
-      
+
          hw.cputype                - These values provide the mach-o cpu type and subtype.  A complete list is in <mach/machine.h>
          hw.cpusubtype             - These values should be used to determine what processor family the running cpu is from so that
                                      the best binary can be chosen, or the best dynamic code generated.  They should not be used
                                      to determine if a given processor feature is available.
-      
+
          hw.byteorder              - Gives the byte order of the processor.  4321 for big endian, 1234 for little.
-      
+
          hw.pagesize               - Gives the size in bytes of the pages used by the processor and VM system.
-      
+
          hw.cachelinesize          - Gives the size in bytes of the processor's cache lines.
                                      This value should be use to control the strides of loops that use cache control instructions
                                      like dcbz, dcbt or dcbst.
-      
+
          hw.l1dcachesize           - These values provide the size in bytes of the L1, L2 and L3 caches.  If a cache is not present
          hw.l1icachesize           - then the selector will return and error.
          hw.l2cachesize            -
          hw.l3cachesize            -
-      
-      
+
+
        These are the selectors for optional processor features.  Selectors that return errors are not support on the system.
        Supported features will return 1 if they are recommended or 0 if they are supported but are not expected to help performance.
        Future versions of these selectors may return larger values as necessary so it is best to test for non zero.
-      
+
          hw.optional.floatingpoint - Floating Point Instructions
          hw.optional.altivec       - AltiVec Instructions
          hw.optional.graphicsops   - Graphics Operations
@@ -486,7 +486,7 @@
          hw.optional.dcba          - Data Cache Block Allocate Instruction
          hw.optional.datastreams   - Data Streams Instructions
          hw.optional.dcbtstreams   - Data Cache Block Touch Steams Instruction Form
-      
+
       }
     {
        CTL_USER definitions
@@ -535,9 +535,7 @@
 
 {
   $Log$
-  Revision 1.1  2004-01-04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
-
+  Revision 1.2  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

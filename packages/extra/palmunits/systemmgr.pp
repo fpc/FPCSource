@@ -13,7 +13,7 @@
  *    Pilot system equates
  *
  * History:
- *    10/27/94 RM    Created by Ron Marianetti 
+ *    10/27/94 RM    Created by Ron Marianetti
  *    10/07/96 SCL   Added sysAppLaunchFlagDataRelocated flag
  *    11/13/96 vmk   Added sysErrDelayWakened error code
  *    08/12/98 dia   Added sysFtrNumGremlinsSupportGlobals.
@@ -28,7 +28,7 @@
  *    11/01/99 kwk   Moved SysWantEvent to SystemPrv.h
  *    12/03/99 SCL   Moved SysAppInfoType, SysAppStartup, and SysAppExit
  *                   here from SystemPrv.h (for StartupCode/Runtime)
- *    07/19/00 gap   Added launch code sysAppLaunchCmdAttention for use by 
+ *    07/19/00 gap   Added launch code sysAppLaunchCmdAttention for use by
  *                   Attention Manager
  *    7/26/00  jhl   Integrate HSIMgr functionality
  *    09/22/00 BGT   Integrated sysAppLaunchNppiNoUI and sysAppLaunchNppiUI
@@ -665,7 +665,7 @@ type
 (************************************************************
  * System Errors
  *************************************************************)
- 
+
 const
   sysErrTimeout         = sysErrorClass or 1;
   sysErrParamErr        = sysErrorClass or 2;

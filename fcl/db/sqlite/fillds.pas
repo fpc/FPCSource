@@ -10,10 +10,10 @@ uses
 {$endif}
   crt,sysutils,SqliteDS;
 
-var 
+var
   dsTest:TSQliteDataset;
 
-begin 
+begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput('heaplog.txt');
   {$endif}
@@ -22,7 +22,7 @@ begin
   Begin
     FileName:='New.db';
     TableName:='NewTable';
-    Sql:= 'SELECT _ROWID_,* FROM NewTable'; 
+    Sql:= 'SELECT _ROWID_,* FROM NewTable';
     Open;
     Append;
     FieldByName('Code').AsInteger:=100;

@@ -53,7 +53,7 @@ CONST
       s         : pScreen  = Nil;
       MenuStrip : pMenu    = Nil;
       vi        : Pointer  = Nil;
-    
+
 
       modenames : Array[0..7] of string[10] = (
                                 'Heapsort',
@@ -72,52 +72,52 @@ CONST
       }
 
       nm : array[0..21] of tNewMenu = (
-      (nm_Type: NM_TITLE; nm_Label: 'Demo';nm_CommKey: NIL; nm_Flags: 0; 
+      (nm_Type: NM_TITLE; nm_Label: 'Demo';nm_CommKey: NIL; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Start';nm_CommKey: 'S'; nm_Flags: 0; 
+      (nm_Type: NM_ITEM;  nm_Label: 'Start';nm_CommKey: 'S'; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Stop';nm_CommKey: 'H'; nm_Flags: 0; 
+      (nm_Type: NM_ITEM;  nm_Label: 'Stop';nm_CommKey: 'H'; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
 
       { this will be a barlabel, have to set this one later }
-      (nm_Type: NM_ITEM;  nm_Label: NIL; nm_CommKey: NIL; nm_Flags: 0; 
+      (nm_Type: NM_ITEM;  nm_Label: NIL; nm_CommKey: NIL; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
 
-      (nm_Type: NM_ITEM;  nm_Label: 'Quit';  nm_CommKey: 'Q'; nm_Flags: 0; 
+      (nm_Type: NM_ITEM;  nm_Label: 'Quit';  nm_CommKey: 'Q'; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_TITLE; nm_Label: 'Algorithm'; nm_CommKey: NIL; nm_Flags: 0; 
+      (nm_Type: NM_TITLE; nm_Label: 'Algorithm'; nm_CommKey: NIL; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'HeapSort'; nm_CommKey: '1'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'HeapSort'; nm_CommKey: '1'; nm_Flags:
        CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 254; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'ShellSort'; nm_CommKey: '2'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'ShellSort'; nm_CommKey: '2'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 253; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Pick out'; nm_CommKey: '3'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'Pick out'; nm_CommKey: '3'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 251; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Insert'; nm_CommKey: '4'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'Insert'; nm_CommKey: '4'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 247; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'ShakerSort'; nm_CommKey: '5'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'ShakerSort'; nm_CommKey: '5'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 239; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'BubbleSort'; nm_CommKey: '6'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'BubbleSort'; nm_CommKey: '6'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 223; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'QuickSort'; nm_CommKey: '7'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'QuickSort'; nm_CommKey: '7'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 191; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'MergeSort'; nm_CommKey: '8'; nm_Flags: 
+      (nm_Type: NM_ITEM;  nm_Label: 'MergeSort'; nm_CommKey: '8'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 127; nm_UserData: NIL),
-      (nm_Type: NM_TITLE; nm_Label: 'Preferences'; nm_CommKey: NIL; nm_Flags: 0; 
+      (nm_Type: NM_TITLE; nm_Label: 'Preferences'; nm_CommKey: NIL; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Data'; nm_CommKey: NIL; nm_Flags: 0; 
+      (nm_Type: NM_ITEM;  nm_Label: 'Data'; nm_CommKey: NIL; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Random'; nm_CommKey: 'R'; nm_Flags: 
+      (nm_Type: NM_SUB;   nm_Label: 'Random'; nm_CommKey: 'R'; nm_Flags:
        CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 2; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Malicious'; nm_CommKey: 'M'; nm_Flags: 
+      (nm_Type: NM_SUB;   nm_Label: 'Malicious'; nm_CommKey: 'M'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 1; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Diagram'; nm_CommKey: NIL; nm_Flags: 0; 
+      (nm_Type: NM_ITEM;  nm_Label: 'Diagram'; nm_CommKey: NIL; nm_Flags: 0;
        nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Needles'; nm_CommKey: 'N'; nm_Flags: 
+      (nm_Type: NM_SUB;   nm_Label: 'Needles'; nm_CommKey: 'N'; nm_Flags:
        CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 2; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Dots'; nm_CommKey: 'D'; nm_Flags: 
+      (nm_Type: NM_SUB;   nm_Label: 'Dots'; nm_CommKey: 'D'; nm_Flags:
        CHECKIT+MENUTOGGLE; nm_MutualExclude: 1; nm_UserData: NIL),
-      (nm_Type: NM_END;   nm_Label: NIL; nm_CommKey: NIL; nm_Flags: 
+      (nm_Type: NM_END;   nm_Label: NIL; nm_CommKey: NIL; nm_Flags:
        0;nm_MutualExclude:0;nm_UserData:NIL));
 
 
@@ -499,7 +499,7 @@ begin
     if vi = nil then CleanUp('No visual info',10);
 
     w := OpenWindowTags(NIL, [
-                WA_IDCMP,         IDCMP_CLOSEWINDOW or IDCMP_MENUPICK or 
+                WA_IDCMP,         IDCMP_CLOSEWINDOW or IDCMP_MENUPICK or
 IDCMP_NEWSIZE,
                 WA_Left,          0,
                 WA_Top,           s^.BarHeight+1,
@@ -639,13 +639,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-01-19 14:57:12  nils
-  * removed mode objfpc
-
-  Revision 1.2  2002/11/28 19:40:45  nils
-    * update
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+
 

@@ -876,35 +876,13 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2005-02-07 17:25:28  peter
+  Revision 1.38  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.37  2005/02/07 17:25:28  peter
   -vz for output to stderr
 
   Revision 1.36  2005/01/20 17:29:07  peter
     * fixed -vv
-
-  Revision 1.35  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.34  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.33  2004/09/08 11:23:31  michael
-  + Check if outputdir exists,  Fix exitcode when displaying help pages
-
-  Revision 1.32  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.31  2004/02/23 15:59:46  peter
-    * fix crashes with 1.0.x
-
-  Revision 1.30  2004/02/20 19:49:21  daniel
-    * Message system uses open arrays internally
-    * Bugfix for string handling in array constructor node
-    * Micro code reductions in pdecl.pas
-
-  Revision 1.29  2004/02/15 12:17:59  peter
-    * reset compiling_module, fixes crash in ide with second compile
 
 }

@@ -47,14 +47,14 @@ Begin
     End;
 
     DisplayID := p96RequestModeIDTags([P96MA_MinWidth, width,
-				       P96MA_MinHeight, height,
-				       P96MA_MinDepth, depth,
-				       P96MA_WindowTitle, 'RequestModeID Test',
-				       P96MA_FormatsAllowed, (RGBFF_CLUT or RGBFF_R5G6B5 or RGBFF_R8G8B8 or RGBFF_A8R8G8B8),
-				       TAG_DONE]);
+                                       P96MA_MinHeight, height,
+                                       P96MA_MinDepth, depth,
+                                       P96MA_WindowTitle, 'RequestModeID Test',
+                                       P96MA_FormatsAllowed, (RGBFF_CLUT or RGBFF_R5G6B5 or RGBFF_R8G8B8 or RGBFF_A8R8G8B8),
+                                       TAG_DONE]);
 
     Writeln ('DisplayID:', hexstr(DisplayID,8));
-   
+
     If DisplayID <> INVALID_ID Then Begin
         If GetDisplayInfoData(Nil, @dim ,SizeOf(tDimensionInfo),DTAG_DIMS,DisplayID) <> 0 Then
             Writeln('Dimensions: ',dim.Nominal.MaxX-dim.Nominal.MinX+1,'x',dim.Nominal.MaxY-dim.Nominal.MinY+1,'x',dim.MaxDepth)

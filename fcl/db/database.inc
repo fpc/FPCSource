@@ -444,76 +444,7 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-12-05 00:05:38  michael
-  patch to enable RecNo and DisplayFormat
-
-  Revision 1.8  2004/11/05 08:32:02  michael
-  TBufDataset.inc:
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  Database.inc:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Gives an error if the database of an active transaction is changed
-
-  Dataset.inc
-    - Don't distribute events if FDisableControlsCount > 0
-    - Replaced FActive by FState<>dsInactive
-    - Set EOF after append
-
-  db.pp:
-    - Removed duplicate definition of TAlignment
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Replaced FActive by FState<>dsInactive
-    - Gives an error if the database of an active transaction is changed
-
-  sqldb:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  IBConnection:
-    - Moved FSQLDAAllocated to the cursor
-
-  PQConnection:
-    - Don't try to free the statement if a fatal error occured
-
-  Revision 1.7  2004/10/27 07:23:13  michael
-  + Patch from Joost Van der Sluis to fix transactions
-
-  Revision 1.6  2004/09/26 16:55:24  michael
-  * big patch from Joost van der Sluis
-   bufdataset.inc:
-    fix getrecord (prior)
-    getcanmodify default false
-  database.inc / db.inc:
-    Added transactions
-  dataset.inc:
-    raise error if trying to insert into an readonly dataset
-  db.inc:
-    remove published properties from bufdataset
-    changed ancestor of tbufdataset to tdbdataset
-
-  Revision 1.5  2004/07/25 11:32:40  michael
-  * Patches from Joost van der Sluis
-    interbase.pp:
-        * Removed unused Fprepared
-        * Changed the error message 'database connect string not filled
-          in' to 'database connect string (databasename) not filled in'
-        * Preparestatement and execute now checks if transaction is
-          assigned (in stead of crashing if it isn't) and if the
-          transaction isn't started, it calls starttransaction.
-
-     dataset.inc:
-        * In DoInternalOpen the buffers are now initialised before the
-          dataset is set into browse-state
-
-     database.inc and db.pp:
-        * If the dataset is created from a stream, the database is opened
-          after the dataset is read completely
-
-  Revision 1.4  2003/08/16 16:42:21  michael
-  + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
-
-  Revision 1.3  2002/09/07 15:15:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.10  2005-02-14 17:13:12  peter
+    * truncate log
 
 }

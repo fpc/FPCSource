@@ -24,30 +24,7 @@ function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe'
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';
 {
    $Log$
-   Revision 1.6  2004-12-22 13:53:51  marco
-    * fpgettimeofday moved from baseunix to unix
-
-   Revision 1.5  2004/11/14 12:21:08  marco
-    * moved some calls from unix to baseunix. Darwin untested.
-
-   Revision 1.4  2004/04/23 19:16:25  marco
-    * flock -> fpflock because of conflicting structure name
-
-   Revision 1.3  2004/01/04 21:05:01  jonas
-     * declare C-library routines as external in libc so we generate proper
-       import entries for Darwin
-
-   Revision 1.2  2004/01/01 14:09:14  marco
-    * FPC_USE_LIBC fixes
-
-   Revision 1.1  2003/12/30 12:29:16  marco
-    * FPC_USE_LIBC
-
-   Revision 1.1  2003/06/01 15:23:46  marco
-    * Shared for now
-
-   Revision 1.1  2002/12/18 16:43:26  marco
-    * new unix rtl, linux part.....
-
+   Revision 1.7  2005-02-14 17:13:31  peter
+     * truncate log
 
 }

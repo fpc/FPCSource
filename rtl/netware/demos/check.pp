@@ -46,12 +46,8 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-09-07 16:01:21  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/03/30 09:12:15  armin
-  + demo for netware check-funcktion
-
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }
 

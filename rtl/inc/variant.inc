@@ -95,13 +95,13 @@ function fpc_dynarray_to_variant(dynarr : pointer;typeinfo : pointer) : variant;
 
 function fpc_variant_to_interface(const v : variant) : iinterface;compilerproc;
   begin
-  	variantmanager.vartointf(result,v);
+        variantmanager.vartointf(result,v);
   end;
 
 
 function fpc_interface_to_variant(const i : iinterface) : variant;compilerproc;
   begin
-  	variantmanager.varfromintf(result,i);
+        variantmanager.varfromintf(result,i);
   end;
 
 
@@ -595,7 +595,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.23  2005-02-01 20:22:24  florian
+  Revision 1.24  2005-02-14 17:13:29  peter
+    * truncate log
+
+  Revision 1.23  2005/02/01 20:22:24  florian
     + interface <-> variant conversion from Danny Milosavljevic
 
   Revision 1.22  2005/01/15 18:47:26  florian
@@ -606,52 +609,5 @@ procedure initvariantmanager;
 
   Revision 1.20  2005/01/07 21:15:46  florian
     + basic rtl support for variant <-> interface implemented
-
-  Revision 1.19  2004/12/05 11:49:06  florian
-    * implemented helper for variant<->dyn. array type cast
-
-  Revision 1.18  2004/08/18 21:03:35  florian
-    * sparc uses wait4 as well
-
-  Revision 1.17  2004/05/31 20:25:04  peter
-    * removed warnings
-
-  Revision 1.16  2003/12/10 01:36:39  florian
-    * real functions ifdef'ed depending on the supported types
-
-  Revision 1.15  2003/11/05 15:26:37  florian
-    + currency type can be assigned to variants now
-
-  Revision 1.14  2003/10/04 23:40:42  florian
-    * write helper comproc for variants fixed
-
-  Revision 1.13  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
-
-  Revision 1.12  2002/10/10 19:24:28  florian
-    + write(ln) support for variants added
-
-  Revision 1.11  2002/10/09 20:13:26  florian
-    * hopefully last fix to get things working :/
-
-  Revision 1.10  2002/10/09 19:56:01  florian
-    * variant assignments don't work yet, commented out
-
-  Revision 1.9  2002/10/09 19:08:22  florian
-    + Variant constants Unassigned and Null added
-
-  Revision 1.8  2002/10/07 15:10:45  florian
-    + variant wrappers for cmp operators added
-
-  Revision 1.7  2002/10/07 10:27:45  florian
-    + more variant wrappers added
-
-  Revision 1.6  2002/10/06 22:13:55  florian
-    * wrappers for xor, or and and operator with variants added
-
-  Revision 1.5  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
 
 }

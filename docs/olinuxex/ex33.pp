@@ -17,7 +17,7 @@ begin
   Writeln ('Press <ENTER> key in less than 2 seconds...');
   FD_Zero (FDS);
   FD_Set (0,FDS);
-  if Select (1,@FDS,nil,nil,2000)>0 then 
+  if Select (1,@FDS,nil,nil,2000)>0 then
     Writeln ('Thank you !')
     { FD_ISSET(0,FDS) would be true here. }
   else

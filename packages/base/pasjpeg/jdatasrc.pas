@@ -38,11 +38,11 @@ implementation
 type
   my_src_ptr = ^my_source_mgr;
   my_source_mgr = record
-    pub : jpeg_source_mgr;	{ public fields }
+    pub : jpeg_source_mgr;      { public fields }
 
-    infile : FILEPTR;		{ source stream }
-    buffer : JOCTET_FIELD_PTR;	{ start of buffer }
-    start_of_file : boolean;	{ have we gotten any data yet? }
+    infile : FILEPTR;           { source stream }
+    buffer : JOCTET_FIELD_PTR;  { start of buffer }
+    start_of_file : boolean;    { have we gotten any data yet? }
   end; {my_source_mgr;}
 
 const
@@ -200,14 +200,14 @@ begin
     manager serially with the same JPEG object.  Caveat programmer. }
 
   if (cinfo^.src = NIL) then
-  begin	{ first time for this JPEG object? }
+  begin { first time for this JPEG object? }
     cinfo^.src := jpeg_source_mgr_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-				  SIZEOF(my_source_mgr)) );
+                                  SIZEOF(my_source_mgr)) );
     src := my_src_ptr (cinfo^.src);
     src^.buffer := JOCTET_FIELD_PTR(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-				  INPUT_BUF_SIZE * SIZEOF(JOCTET)) );
+                                  INPUT_BUF_SIZE * SIZEOF(JOCTET)) );
   end;
 
   src := my_src_ptr (cinfo^.src);

@@ -93,7 +93,7 @@ begin
       if size<0 then
         runerror(204);
       exit;
-    end;  	
+    end;
   if (p <> nil) then
     begin
       if (size <> pptrint(p-sizeof(ptrint))^) then
@@ -183,65 +183,7 @@ end.
 
 {
  $Log$
- Revision 1.11  2004-11-22 19:34:58  peter
-   * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
- Revision 1.10  2004/11/21 21:14:14  peter
-   * Freemem(p,0) does nothing
-
- Revision 1.9  2004/09/19 19:04:11  olle
-   * added $if defined(..) for 2.0.
-
- Revision 1.8  2004/09/19 08:16:03  olle
-   * reverted to $ifdef style, so 1.0.x can eat it.
-
- Revision 1.7  2004/09/18 08:40:26  olle
-   + added support for macos
-
- Revision 1.6  2004/09/15 20:37:42  armin
-   * add support for netware libc
-
- Revision 1.5  2004/05/05 13:00:43  jonas
-   * fixed reallocmem (bug noted by Vincent Snijders)
-
- Revision 1.4  2004/03/23 22:35:20  peter
-   * dec ptr before free in reallocmem
-
- Revision 1.3  2004/03/17 12:50:53  michael
-   * Fixed: Macavail -> CMaxAvail (from Marc Weustinc)
-
- Revision 1.2  2004/03/16 15:25:16  peter
-   * adaption to compile with 1.0.x in new rtl
-
- Revision 1.1  2004/03/15 21:48:26  peter
-   * cmem moved to rtl
-   * longint replaced with ptrint in heapmanagers
-
- Revision 1.9  2004/03/12 13:08:08  jonas
-   + added memsize() support (needed to use cmem with the compiler)
-
- Revision 1.8  2003/03/17 15:40:05  armin
-   + LibName for netware
-
- Revision 1.7  2002/11/01 17:56:39  peter
-   * needlock field added for 1.1
-
- Revision 1.6  2002/09/08 15:43:47  michael
-   + Fixed calling conventions
-
- Revision 1.5  2002/09/07 15:42:54  peter
-   * old logs removed and tabs fixed
-
- Revision 1.4  2002/07/01 16:24:04  peter
-   * updates for 1.0 compiler
-
- Revision 1.3  2002/06/13 05:01:44  michael
-   + Added windows msvcrt support
-
- Revision 1.2  2002/06/13 04:54:47  michael
-   + Fixed parameter type mismatch
-
- Revision 1.1  2002/01/29 17:54:59  peter
-   * splitted to base and extra
+ Revision 1.12  2005-02-14 17:13:22  peter
+   * truncate log
 
 }

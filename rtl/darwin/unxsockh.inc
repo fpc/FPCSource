@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -6,8 +6,8 @@
 
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
-   
-   OS dependant part of the header.   
+
+   OS dependant part of the header.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY;without even the implied warranty of
@@ -71,14 +71,8 @@ Const
 
 {
    $Log$
-   Revision 1.1  2004-03-16 18:24:03  marco
-    * copied from FreeBSD, needs checking
-
-   Revision 1.2  2004/03/16 18:03:37  marco
-    * first changes sockets units
-
-   Revision 1.1  2004/03/09 19:40:52  marco
-    * header for sockets unit
+   Revision 1.2  2005-02-14 17:13:22  peter
+     * truncate log
 
 }
 

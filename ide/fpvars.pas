@@ -128,37 +128,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.11  2005-01-08 11:43:18  florian
+  Revision 1.12  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.11  2005/01/08 11:43:18  florian
     + vector unit window
-
-  Revision 1.10  2004/12/22 15:24:07  peter
-    * fixed NODEBUG
-    * set default target to the default target of the compiler
-
-  Revision 1.9  2004/11/08 20:28:28  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.8  2002/12/12 00:06:41  pierre
-   Use fpregs unit
-
-  Revision 1.7  2002/11/28 12:53:10  pierre
-   + global vars used for remote debugging
-
-  Revision 1.6  2002/09/10 12:19:14  pierre
-   * use faster method for loading files by default
-
-  Revision 1.5  2002/09/07 15:40:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/09/04 14:06:36  pierre
-   + new variables for Unit symbols code complete
-
-  Revision 1.3  2002/05/29 22:33:23  pierre
-   Asciitab now in fvision
 
 }

@@ -242,42 +242,7 @@ initialization
 end.
 {
 $Log$
-Revision 1.12  2004-03-01 23:46:38  michael
-+ Corrected alpha in colormap
-
-Revision 1.11  2004/02/25 02:36:51  pierre
-* fix compilation with 1.0 compiler
-
-Revision 1.10  2004/02/20 23:12:57  michael
-+ Read/WriteScanline virtual, as intended
-
-Revision 1.9  2004/02/20 23:07:44  michael
-+ Small improvements. More cosmetic in nature
-
-Revision 1.8  2004/02/20 23:00:35  michael
-+ Small improvements. More cosmetic in nature
-
-Revision 1.7  2004/02/20 22:42:44  michael
-+ More modular reading of BMP for easier overriding in descendents
-
-Revision 1.6  2004/02/15 20:59:06  michael
-+ Patch from Colin Western
-
-Revision 1.5  2003/09/30 14:17:05  luk
-* better color conversion (White didn't stay white)
-
-Revision 1.4  2003/09/30 06:17:38  mazen
-- all common defintions are now included into bmpcomn unit
-
-Revision 1.3  2003/09/15 11:39:01  mazen
-* fixed InternalRead method to load BMP files.
-  But still too long to load images.
-
-Revision 1.2  2003/09/09 11:26:59  mazen
-+ setting image attributes when loading images
-* fixing copyright section in the file header
-
-Revision 1.1  2003/09/08 14:10:10  mazen
-+ adding support for loading bmp images
+Revision 1.13  2005-02-14 17:13:12  peter
+  * truncate log
 
 }

@@ -113,26 +113,14 @@ type
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.11  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
-
-  Revision 1.10  2004/11/14 12:21:08  marco
-   * moved some calls from unix to baseunix. Darwin untested.
-
-  Revision 1.9  2003/11/19 10:12:02  marco
-   * more cleanups
-
-  Revision 1.8  2003/11/17 16:56:20  marco
-   * tiocgeta fixed
-
-  Revision 1.7  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/05/06 09:35:09  marco
-   * Some stuff from 1.0.x ported
 
 }

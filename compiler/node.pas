@@ -1127,53 +1127,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2005-01-04 16:39:46  peter
+  Revision 1.96  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.95  2005/01/04 16:39:46  peter
     * set nf_is_self node flag when self is loaded
 
   Revision 1.94  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
-
-  Revision 1.93  2004/12/26 16:22:01  peter
-    * fix lineinfo for with blocks
-
-  Revision 1.92  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.91  2004/12/02 19:26:15  peter
-    * disable pass2inline
-
-  Revision 1.90  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.89  2004/11/01 17:15:47  peter
-    * no checkpointer code for dynarr to openarr
-
-  Revision 1.88  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.87  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.86  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.85  2004/05/24 20:39:41  florian
-    * stricter handling of formal const parameters and IE fixed
-
-  Revision 1.84  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.83  2004/05/23 15:06:21  peter
-    * implicit_finally flag must be set in pass1
-    * add check whether the implicit frame is generated when expected
-
-  Revision 1.82  2004/05/20 21:54:33  florian
-    + <pointer> - <pointer> result is divided by the pointer element size now
-      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
 
 }

@@ -9,24 +9,24 @@ compared to hooking a hardware interrupt.
 }
 
 uses
-	crt,
-	go32;
+        crt,
+        go32;
 
 const
-	{ interrupt number we want to hook }
-	int1c = $1c;
+        { interrupt number we want to hook }
+        int1c = $1c;
 
 var
-	{ 48 bit pointer to old interrupt handler }
-	oldint1c : tseginfo;
-	{ 48 bit pointer to new interrupt handler }
-	newint1c : tseginfo;
+        { 48 bit pointer to old interrupt handler }
+        oldint1c : tseginfo;
+        { 48 bit pointer to new interrupt handler }
+        newint1c : tseginfo;
 
-	{ increased every time the interrupt is called  }
-	int1c_counter : Longint;
+        { increased every time the interrupt is called  }
+        int1c_counter : Longint;
 
-	{ the current data selector }
-	int1c_ds : Word; external name '___v2prt0_ds_alias';
+        { the current data selector }
+        int1c_ds : Word; external name '___v2prt0_ds_alias';
 
 { the actual handler code }
 procedure int1c_handler; assembler;

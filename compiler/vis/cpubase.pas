@@ -80,7 +80,7 @@ uses
       {# Set type definition for registers }
       tregisterset = set of Toldregister;
       Tnewregister=word;
-      
+
       tregister=record
         enum:toldregister;
         number:Tnewregister;
@@ -139,7 +139,7 @@ uses
 
       std_reg2str : treg2strtable = ('',
         'r0','r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','ccr',
-        'sp','fp','pc','fp0','fp1','fp2','fp3','fp4','fp5','fp6','fp7', 
+        'sp','fp','pc','fp0','fp1','fp2','fp3','fp4','fp5','fp6','fp7',
         'fp8','fp9','fp10','fp11','fp12','fp13','fp14','fp15','',''
       );
 
@@ -186,7 +186,7 @@ uses
           F_C,            { carry flag             }
           F_NC,           { !carry flag            }
           F_A,            { greater (unsigned)     }
-          F_AE,          
+          F_AE,
           F_B,            { less (unsigned)        }
           F_BE
          );
@@ -400,8 +400,8 @@ uses
       mmregs     = [];
       usableregsmm  = [];
       c_countusableregsmm  = 0;
-      
-      { no distinction on this platform }      
+
+      { no distinction on this platform }
       maxaddrregs = 0;
       addrregs    = [];
       usableregsaddr = [];
@@ -425,7 +425,7 @@ uses
                  R_FP7,R_FP8,R_FP9,
                  R_FP10,R_FP11,R_FP12,
                  R_FP13,R_FP14,R_FP15);
-                 
+
 
       max_param_regs_int = 0;
 
@@ -458,7 +458,7 @@ uses
 
       {# Register indexes for stabs information, when some
          parameters or variables are stored in registers.
-  
+
          Currently unsupported by abstract machine
       }
 
@@ -496,7 +496,7 @@ uses
       NR_SELF_POINTER_REG = NR_R11;
       RS_SELF_POINTER_REG = RS_R11;
       {# Register for addressing absolute data in a position independant way,
-         such as in PIC code. The exact meaning is ABI specific. 
+         such as in PIC code. The exact meaning is ABI specific.
       }
       pic_offset_reg = R_R10;
       {# Results are returned in this register (32-bit values) }
@@ -585,10 +585,10 @@ implementation
     function flags_to_cond(const f: TResFlags) : TAsmCond;
         const flags2cond : array[tresflags] of tasmcond =
         (
-         {F_E}  C_EQ,  
-         {F_NE} C_NE,  
-         {F_G } C_GT,  
-         {F_L } C_LT,  
+         {F_E}  C_EQ,
+         {F_NE} C_NE,
+         {F_G } C_GT,
+         {F_L } C_LT,
          {F_GE} C_GE,
          {F_LE} C_LE,
          {F_C}  C_CS,
@@ -644,11 +644,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.6  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.8  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -841,28 +841,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  2004-12-05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.21  2004/02/17 17:37:26  daniel
-    * Enable threadvars again
-
-  Revision 1.20  2004/02/16 22:16:59  hajny
-    * LastDosExitCode changed back from threadvar temporarily
-
-  Revision 1.19  2004/02/15 21:34:06  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.18  2004/02/09 12:03:16  michael
-  + Switched to single interface in dosh.inc
-
-  Revision 1.17  2004/01/06 00:58:35  florian
-    * fixed fsearch
-
-  Revision 1.16  2003/10/03 21:46:25  peter
-    * stdcall fixes
-
-  Revision 1.15  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
+  Revision 1.23  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

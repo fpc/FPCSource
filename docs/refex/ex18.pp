@@ -18,5 +18,5 @@ begin
     write (t2,C);
     end;
   Close (t1);
-  Close (t2);  
+  Close (t2);
 end.

@@ -2,21 +2,21 @@ Program Example99;
 
 { Program to demonstrate the CompareByte function. }
 
-Const 
+Const
   ArraySize     = 100;
   HalfArraySize = ArraySize Div 2;
-  
-Var 
+
+Var
   Buf1,Buf2 : Array[1..ArraySize] of byte;
   I : longint;
-  
+
   Procedure CheckPos(Len : Longint);
-  
+
   Begin
     Write('First ',Len,' positions are ');
     if CompareByte(Buf1,Buf2,Len)<>0 then
       Write('NOT ');
-    Writeln('equal');  
+    Writeln('equal');
   end;
 
 
@@ -28,7 +28,7 @@ begin
       Buf2[I]:=I
     else
       Buf2[i]:=HalfArraySize-I;
-    end; 
+    end;
   CheckPos(HalfArraySize div 2);
   CheckPos(HalfArraySize);
   CheckPos(HalfArraySize+1);

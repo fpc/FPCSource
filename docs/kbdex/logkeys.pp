@@ -24,7 +24,7 @@ Function TimeStamp : String;
 begin
   TimeStamp:=FormatDateTime('hh:nn:ss',Time());
 end;
-  
+
 Procedure StartKeyLogging;
 
 begin
@@ -57,7 +57,7 @@ begin
     Write(KeyLog,TimeStamp,': Key event: ');
     Writeln(KeyLog,KeyEventToString(TranslateKeyEvent(K)));
     end;
-  LogGetKeyEvent:=K;  
+  LogGetKeyEvent:=K;
 end;
 
 Procedure LogInitKeyBoard;

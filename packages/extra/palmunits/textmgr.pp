@@ -141,7 +141,7 @@ const
 // and string length calcs. Note that this can only be used with low-ascii
 // characters, as anything else might be the high byte of a double-byte char.
 
-//!!! sizeOf7BitChar(c) = 1;                               
+//!!! sizeOf7BitChar(c) = 1;
 
 // Maximum size a single WChar character will occupy in a text string.
   maxCharBytes = 3;
@@ -246,7 +246,7 @@ function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; 
 // for ^0...^3 in <inTemplate>, and return the locked result. If a parameter
 // is NULL, replace the corresponding substring in the template with "".
 
-function TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar; 
+function TxtParamString(const inTemplate, param0, param1, param2, param3: PChar): PChar;
 
 // Return the bounds of the character at <inOffset> in the <inText>
 // text, via the <outStart> & <outEnd> offsets, and also return the
@@ -420,7 +420,7 @@ function __TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UI
 function __TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
                     const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; syscall sysTrapIntlDispatch;
 
-function TxtByteAttr(inByte: UInt8): UInt8; 
+function TxtByteAttr(inByte: UInt8): UInt8;
 begin
  asm
   move.l #$intlTxtByteAttr, D2;
@@ -428,7 +428,7 @@ begin
  TxtByteAttr := TxtByteAttr(inByte);
 end;
 
-function TxtCharAttr(inChar: WChar): UInt16; 
+function TxtCharAttr(inChar: WChar): UInt16;
 begin
  asm
   move.l #$intlTxtCharAttr, D2;
@@ -436,7 +436,7 @@ begin
  TxtCharAttr := __TxtCharAttr(inChar);
 end;
 
-function TxtCharXAttr(inChar: WChar): UInt16; 
+function TxtCharXAttr(inChar: WChar): UInt16;
 begin
  asm
   move.l #$intlTxtCharXAttr, D2;
@@ -444,7 +444,7 @@ begin
  TxtCharXAttr := __TxtCharXAttr(inChar);
 end;
 
-function TxtCharSize(inChar: WChar): UInt16; 
+function TxtCharSize(inChar: WChar): UInt16;
 begin
  asm
   move.l #$intlTxtCharSize, D2;
@@ -452,7 +452,7 @@ begin
  TxtCharSize := TxtCharSize(inChar);
 end;
 
-function TxtCharWidth(inChar: WChar): Int16; 
+function TxtCharWidth(inChar: WChar): Int16;
 begin
  asm
   move.l #$intlTxtCharWidth, D2;
@@ -460,7 +460,7 @@ begin
  TxtCharWidth := TxtCharWidth(inChar);
 end;
 
-function TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; 
+function TxtGetPreviousChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
 begin
  asm
   move.l #$intlTxtGetPreviousChar, D2;
@@ -468,7 +468,7 @@ begin
  TxtGetPreviousChar := __TxtGetPreviousChar(inText, inOffset, outChar);
 end;
 
-function TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16; 
+function TxtGetNextChar(const inText: PChar; inOffset: UInt32; outChar: WCharPtr): UInt16;
 begin
  asm
   move.l #$intlTxtGetNextChar, D2;
@@ -476,7 +476,7 @@ begin
  TxtGetNextChar := __TxtGetNextChar(inText, inOffset, outChar);
 end;
 
-function TxtGetChar(const inText: PChar; inOffset: UInt32): WChar; 
+function TxtGetChar(const inText: PChar; inOffset: UInt32): WChar;
 begin
  asm
   move.l #$intlTxtGetChar, D2;
@@ -484,7 +484,7 @@ begin
  TxtGetChar := __TxtGetChar(inText, inOffset);
 end;
 
-function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16; 
+function TxtSetNextChar(ioText: PChar; inOffset: UInt32; inChar: WChar): UInt16;
 begin
  asm
   move.l #$intlTxtSetNextChar, D2;
@@ -492,7 +492,7 @@ begin
  TxtSetNextChar := __TxtSetNextChar(ioText, inOffset, inChar);
 end;
 
-function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16; 
+function TxtReplaceStr(ioStr: PChar; inMaxLen: UInt16; const inParamStr: PChar; inParamNum: UInt16): UInt16;
 begin
  asm
   move.l #$intlTxtReplaceStr, D2;
@@ -534,7 +534,7 @@ begin
 end;
 
 function TxtWordBounds(const inText: PChar; inLength, inOffset: UInt32;
-                       var outStart, outEnd: UInt32): Boolean; 
+                       var outStart, outEnd: UInt32): Boolean;
 begin
  asm
   move.l #$intlTxtWordBounds, D2;
@@ -558,15 +558,15 @@ begin
  TxtCharEncoding := __TxtCharEncoding(inChar);
 end;
 
-function TxtStrEncoding(const inStr: PChar): CharEncodingType; 
-begin 
+function TxtStrEncoding(const inStr: PChar): CharEncodingType;
+begin
  asm
   move.l #$intlTxtStrEncoding, D2;
  end;
  TxtStrEncoding := __TxtStrEncoding(inStr);
 end;
 
-function TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType; 
+function TxtMaxEncoding(a, b: CharEncodingType): CharEncodingType;
 begin
  asm
   move.l #$intlTxtMaxEncoding, D2;
@@ -591,28 +591,28 @@ begin
 end;
 
 function TxtTransliterate(const inSrcText: PChar; inSrcLength: UInt16; outDstText: PChar;
-                          var ioDstLength: UInt16; inOp: TranslitOpType): Err; 
+                          var ioDstLength: UInt16; inOp: TranslitOpType): Err;
 begin
  asm
   move.l #$intlTxtTransliterate, D2;
  end;
  TxtTransliterate := __TxtTransliterate(inSrcText, inSrcLength, outDstText, ioDstLength, inOp);
 end;
- 
+
 function TxtConvertEncoding(newConversion: Boolean; var ioStateP: TxtConvertStateType;
          const srcTextP: PChar; var ioSrcBytes: UInt16; srcEncoding: CharEncodingType;
          dstTextP: PChar; var ioDstBytes: UInt16; dstEncoding: CharEncodingType;
-         const substitutionStr: PChar; substitutionLen: UInt16): Err; 
+         const substitutionStr: PChar; substitutionLen: UInt16): Err;
 begin
  asm
   move.l #$intlTxtConvertEncoding, D2;
  end;
  TxtConvertEncoding := __TxtConvertEncoding(newConversion, ioStateP, srcTextP, ioSrcBytes,
                                             srcEncoding, dstTextP, ioDstBytes, dstEncoding,
-                                            substitutionStr, substitutionLen); 
+                                            substitutionStr, substitutionLen);
 end;
 
-function TxtCharIsValid(inChar: WChar): Boolean; 
+function TxtCharIsValid(inChar: WChar): Boolean;
 begin
  asm
   move.l #$intlTxtCharIsValid, D2;
@@ -621,7 +621,7 @@ begin
 end;
 
 function TxtCaselessCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                            const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; 
+                            const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
 begin
  asm
   move.l #$intlTxtCaselessCompare, D2;
@@ -630,7 +630,7 @@ begin
 end;
 
 function TxtCompare(const s1: PChar; s1Len: UInt16; var s1MatchLen: UInt16;
-                    const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16; 
+                    const s2: PChar; s2Len: UInt16; var s2MatchLen: UInt16): Int16;
 begin
  asm
   move.l #$intlTxtCompare, D2;

@@ -75,8 +75,8 @@ Type
 
 // Kylix compat types
     u_long  = culong;
-    u_short = cushort;	
- 
+    u_short = cushort;
+
 implementation
 
 
@@ -84,7 +84,10 @@ end.
 
 {
  $Log$
- Revision 1.2  2005-02-12 17:35:18  marco
+ Revision 1.3  2005-02-14 17:13:22  peter
+   * truncate log
+
+ Revision 1.2  2005/02/12 17:35:18  marco
   * some kylix stuf
 
  Revision 1.1  2005/01/10 10:32:50  marco

@@ -628,37 +628,7 @@ end;
 
 {
   $Log$
-  Revision 1.17  2004-11-21 16:33:55  peter
-    * external fixes
+  Revision 1.18  2005-02-14 17:13:22  peter
+    * truncate log
 
-  Revision 1.16  2004/11/04 20:57:33  peter
-  fixed result of strlcopy
-
-  Revision 1.15  2004/06/13 10:49:50  florian
-    * fixed some bootstrapping problems as well as some 64 bit stuff
-
-  Revision 1.14  2004/05/01 15:26:33  jonas
-    * use some more string routines from libc if FPC_USE_LIBC is used
-
-  Revision 1.13  2003/12/19 09:28:00  michael
-  + Patch from Peter to fix strlcomp
-
-  Revision 1.12  2003/12/17 21:56:33  peter
-    * win32 regcall patches
-
-  Revision 1.11  2003/11/23 16:50:49  peter
-    * register calling updates
-
-  Revision 1.10  2003/11/11 21:08:17  peter
-    * REGCALL define added
-
-  Revision 1.9  2003/09/08 18:21:37  peter
-    * save edi,esi,ebx
-
-  Revision 1.8  2003/04/30 16:36:39  florian
-    + support for generic pchar routines added
-    + some basic rtl stuff for x86-64 added
-
-  Revision 1.7  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
 }

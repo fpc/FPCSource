@@ -168,7 +168,7 @@ type
                                   { type for the 2nd-level pointers }
   hist2d = ^hist1d_field;
   hist2d_field = array[0..HIST_C0_ELEMS-1] of hist2d;
-  hist3d = ^hist2d_field;	  { type for top-level pointer }
+  hist3d = ^hist2d_field;         { type for top-level pointer }
 
 
 { Declarations for Floyd-Steinberg dithering.
@@ -176,8 +176,8 @@ type
   Errors are accumulated into the array fserrors[], at a resolution of
   1/16th of a pixel count.  The error at a given pixel is propagated
   to its not-yet-processed neighbors using the standard F-S fractions,
- 		...	(here)	7/16
- 		3/16	5/16	1/16
+                ...     (here)  7/16
+                3/16    5/16    1/16
   We work left-to-right on even rows, right-to-left on odd rows.
 
   We can get away with a single array (holding one row's worth of errors)
@@ -232,7 +232,7 @@ type
     pub : jpeg_color_quantizer; { public fields }
 
     { Space for the eventually created colormap is stashed here }
-    sv_colormap : JSAMPARRAY;	{ colormap allocated at init time }
+    sv_colormap : JSAMPARRAY;   { colormap allocated at init time }
     desired : int;              { desired # of colors = size of colormap }
 
     { Variables for accumulating image statistics }
@@ -281,11 +281,11 @@ begin
       { get pixel value and index into the histogram }
       histp := @(histogram^[GETJSAMPLE(ptr^.r) shr C0_SHIFT]^
                            [GETJSAMPLE(ptr^.g) shr C1_SHIFT]
-			   [GETJSAMPLE(ptr^.b) shr C2_SHIFT]);
+                           [GETJSAMPLE(ptr^.b) shr C2_SHIFT]);
       { increment, check for overflow and undo increment if so. }
       Inc(histp^);
       if (histp^ <= 0) then
-	Dec(histp^);
+        Dec(histp^);
       Inc(ptr);
     end;
   end;
@@ -394,15 +394,15 @@ begin
     for c0 := c0min to c0max do
       for c1 := c1min to c1max do
       begin
-	histp := @(histogram^[c0]^[c1][c2min]);
-	for c2 := c2min to c2max do
+        histp := @(histogram^[c0]^[c1][c2min]);
+        for c2 := c2min to c2max do
         begin
-	  if (histp^ <> 0) then
+          if (histp^ <> 0) then
           begin
             c0min := c0;
-	    boxp.c0min := c0min;
-	    goto have_c0min;
-	  end;
+            boxp.c0min := c0min;
+            goto have_c0min;
+          end;
           Inc(histp);
         end;
       end;
@@ -411,15 +411,15 @@ begin
     for c0 := c0max downto c0min do
       for c1 := c1min to c1max do
       begin
-	histp := @(histogram^[c0]^[c1][c2min]);
-	for c2 := c2min to c2max do
+        histp := @(histogram^[c0]^[c1][c2min]);
+        for c2 := c2min to c2max do
         begin
-	  if ( histp^ <> 0) then
+          if ( histp^ <> 0) then
           begin
             c0max := c0;
-	    boxp.c0max := c0;
-	    goto have_c0max;
-	  end;
+            boxp.c0max := c0;
+            goto have_c0max;
+          end;
           Inc(histp);
         end;
       end;
@@ -428,15 +428,15 @@ begin
     for c1 := c1min to c1max do
       for c0 := c0min to c0max do
       begin
-	histp := @(histogram^[c0]^[c1][c2min]);
-	for c2 := c2min to c2max do
+        histp := @(histogram^[c0]^[c1][c2min]);
+        for c2 := c2min to c2max do
         begin
-	  if (histp^ <> 0) then
+          if (histp^ <> 0) then
           begin
             c1min := c1;
-	    boxp.c1min := c1;
-	    goto have_c1min;
-	  end;
+            boxp.c1min := c1;
+            goto have_c1min;
+          end;
           Inc(histp);
         end;
       end;
@@ -445,15 +445,15 @@ begin
     for c1 := c1max downto c1min do
       for c0 := c0min to c0max do
       begin
-	histp := @(histogram^[c0]^[c1][c2min]);
-	for c2 := c2min to c2max do
+        histp := @(histogram^[c0]^[c1][c2min]);
+        for c2 := c2min to c2max do
         begin
-	  if (histp^ <> 0) then
+          if (histp^ <> 0) then
           begin
             c1max := c1;
-	    boxp.c1max := c1;
-	    goto have_c1max;
-	  end;
+            boxp.c1max := c1;
+            goto have_c1max;
+          end;
           Inc(histp);
         end;
       end;
@@ -462,15 +462,15 @@ begin
     for c2 := c2min to c2max do
       for c0 := c0min to c0max do
       begin
-	histp := @(histogram^[c0]^[c1min][c2]);
-	for c1 := c1min to c1max do
+        histp := @(histogram^[c0]^[c1min][c2]);
+        for c1 := c1min to c1max do
         begin
-	  if (histp^ <> 0) then
+          if (histp^ <> 0) then
           begin
-	    c2min := c2;
-	    boxp.c2min := c2min;
-	    goto have_c2min;
-	  end;
+            c2min := c2;
+            boxp.c2min := c2min;
+            goto have_c2min;
+          end;
           Inc(histp, HIST_C2_ELEMS);
         end;
       end;
@@ -479,15 +479,15 @@ begin
     for c2 := c2max downto c2min do
       for c0 := c0min to c0max do
       begin
-	histp := @(histogram^[c0]^[c1min][c2]);
-	for c1 := c1min to c1max do
+        histp := @(histogram^[c0]^[c1min][c2]);
+        for c1 := c1min to c1max do
         begin
-	  if (histp^ <> 0) then
+          if (histp^ <> 0) then
           begin
-	    c2max := c2;
-	    boxp.c2max := c2max;
-	    goto have_c2max;
-	  end;
+            c2max := c2;
+            boxp.c2max := c2max;
+            goto have_c2max;
+          end;
           Inc(histp, HIST_C2_ELEMS);
         end;
       end;
@@ -514,8 +514,8 @@ begin
       histp := @(histogram^[c0]^[c1][c2min]);
       for c2 := c2min to c2max do
       begin
-	if (histp^ <> 0) then
-	  Inc(ccount);
+        if (histp^ <> 0) then
+          Inc(ccount);
         Inc(histp);
       end;
     end;
@@ -544,7 +544,7 @@ begin
 
     if (b1 = NIL) then          { no splittable boxes left! }
       break;
-    b2 := @(boxlist^[numboxes]);	{ where new box will go }
+    b2 := @(boxlist^[numboxes]);        { where new box will go }
     { Copy the color bounds to the new box. }
     b2^.c0max := b1^.c0max; b2^.c1max := b1^.c1max; b2^.c2max := b1^.c2max;
     b2^.c0min := b1^.c0min; b2^.c1min := b1^.c1min; b2^.c2min := b1^.c2min;
@@ -645,15 +645,15 @@ begin
       histp := @(histogram^[c0]^[c1][c2min]);
       for c2 := c2min to c2max do
       begin
-	count := histp^;
+        count := histp^;
         Inc(histp);
-	if (count <> 0) then
+        if (count <> 0) then
         begin
-	  Inc(total, count);
-	  Inc(c0total, ((c0 shl C0_SHIFT) + ((1 shl C0_SHIFT) shr 1)) * count);
-	  Inc(c1total, ((c1 shl C1_SHIFT) + ((1 shl C1_SHIFT) shr 1)) * count);
-	  Inc(c2total, ((c2 shl C2_SHIFT) + ((1 shl C2_SHIFT) shr 1)) * count);
-	end;
+          Inc(total, count);
+          Inc(c0total, ((c0 shl C0_SHIFT) + ((1 shl C0_SHIFT) shr 1)) * count);
+          Inc(c1total, ((c1 shl C1_SHIFT) + ((1 shl C1_SHIFT) shr 1)) * count);
+          Inc(c2total, ((c2 shl C2_SHIFT) + ((1 shl C2_SHIFT) shr 1)) * count);
+        end;
       end;
     end;
 
@@ -773,7 +773,7 @@ const
 {LOCAL}
 function find_nearby_colors (cinfo : j_decompress_ptr;
                              minc0 : int; minc1 : int; minc2 : int;
-		             var colorlist : array of JSAMPLE) : int;
+                             var colorlist : array of JSAMPLE) : int;
 { Locate the colormap entries close enough to an update box to be candidates
   for the nearest entry to some cell(s) in the update box.  The update box
   is specified by the center coordinates of its first cell.  The number of
@@ -789,7 +789,7 @@ var
   i, x, ncolors : int;
   minmaxdist, min_dist, max_dist, tdist : INT32;
   mindist : array[0..MAXNUMCOLORS-1] of INT32;
-  	{ min distance to colormap entry i }
+        { min distance to colormap entry i }
 begin
   numcolors := cinfo^.actual_number_of_colors;
 
@@ -872,13 +872,13 @@ begin
         { within cell range so no contribution to min_dist }
         if (x <= centerc1) then
         begin
-	  tdist := (x - maxc1) * C1_SCALE;
-	  Inc(max_dist, tdist*tdist);
+          tdist := (x - maxc1) * C1_SCALE;
+          Inc(max_dist, tdist*tdist);
         end
         else
         begin
-	  tdist := (x - minc1) * C1_SCALE;
-	  Inc(max_dist, tdist*tdist);
+          tdist := (x - minc1) * C1_SCALE;
+          Inc(max_dist, tdist*tdist);
         end
       end;
 
@@ -903,17 +903,17 @@ begin
         { within cell range so no contribution to min_dist }
         if (x <= centerc2) then
         begin
-	  tdist := (x - maxc2) * C2_SCALE;
-	  Inc(max_dist, tdist*tdist);
+          tdist := (x - maxc2) * C2_SCALE;
+          Inc(max_dist, tdist*tdist);
         end
         else
         begin
-	  tdist := (x - minc2) * C2_SCALE;
-	  Inc(max_dist, tdist*tdist);
+          tdist := (x - minc2) * C2_SCALE;
+          Inc(max_dist, tdist*tdist);
         end;
       end;
 
-    mindist[i] := min_dist;	{ save away the results }
+    mindist[i] := min_dist;     { save away the results }
     if (max_dist < minmaxdist) then
       minmaxdist := max_dist;
   end;
@@ -957,10 +957,10 @@ var
   {register} bptr : INT32PTR;     { pointer into bestdist[] array }
   cptr : JSAMPLE_PTR;              { pointer into bestcolor[] array }
   dist0, dist1 : INT32;         { initial distance values }
-  {register} dist2 : INT32;	{ current distance in inner loop }
+  {register} dist2 : INT32;     { current distance in inner loop }
   xx0, xx1 : INT32;             { distance increments }
   {register} xx2 : INT32;
-  inc0, inc1, inc2 : INT32;	{ initial values for increments }
+  inc0, inc1, inc2 : INT32;     { initial values for increments }
   { This array holds the distance to the nearest-so-far color for each cell }
   bestdist : array[0..BOX_C0_ELEMS * BOX_C1_ELEMS * BOX_C2_ELEMS-1] of INT32;
 begin
@@ -998,22 +998,22 @@ begin
       xx1 := inc1;
       for ic1 := BOX_C1_ELEMS-1 downto 0 do
       begin
-	dist2 := dist1;
-	xx2 := inc2;
-	for ic2 := BOX_C2_ELEMS-1 downto 0 do
+        dist2 := dist1;
+        xx2 := inc2;
+        for ic2 := BOX_C2_ELEMS-1 downto 0 do
         begin
-	  if (dist2 < bptr^) then
+          if (dist2 < bptr^) then
           begin
-	    bptr^ := dist2;
-	    cptr^ := JSAMPLE (icolor);
-	  end;
-	  Inc(dist2, xx2);
-	  Inc(xx2, 2 * STEP_C2 * STEP_C2);
-	  Inc(bptr);
-	  Inc(cptr);
-	end;
-	Inc(dist1, xx1);
-	Inc(xx1, 2 * STEP_C1 * STEP_C1);
+            bptr^ := dist2;
+            cptr^ := JSAMPLE (icolor);
+          end;
+          Inc(dist2, xx2);
+          Inc(xx2, 2 * STEP_C2 * STEP_C2);
+          Inc(bptr);
+          Inc(cptr);
+        end;
+        Inc(dist1, xx1);
+        Inc(xx1, 2 * STEP_C1 * STEP_C1);
       end;
       Inc(dist0, xx0);
       Inc(xx0, 2 * STEP_C0 * STEP_C0);
@@ -1033,11 +1033,11 @@ var
   histogram : hist3d;
   minc0, minc1, minc2 : int;    { lower left corner of update box }
   ic0, ic1, ic2 : int;
-  {register} cptr : JSAMPLE_PTR;	{ pointer into bestcolor[] array }
-  {register} cachep : histptr;	{ pointer into main cache array }
+  {register} cptr : JSAMPLE_PTR;        { pointer into bestcolor[] array }
+  {register} cachep : histptr;  { pointer into main cache array }
   { This array lists the candidate colormap indexes. }
   colorlist : array[0..MAXNUMCOLORS-1] of JSAMPLE;
-  numcolors : int;		{ number of candidate colors }
+  numcolors : int;              { number of candidate colors }
   { This array holds the actually closest colormap index for each cell. }
   bestcolor : array[0..BOX_C0_ELEMS * BOX_C1_ELEMS * BOX_C2_ELEMS-1] of JSAMPLE;
 begin
@@ -1064,10 +1064,10 @@ begin
 
   { Determine the actually nearest colors. }
   find_best_colors(cinfo, minc0, minc1, minc2, numcolors, colorlist,
-		   bestcolor);
+                   bestcolor);
 
   { Save the best color numbers (plus 1) in the main cache array }
-  c0 := c0 shl BOX_C0_LOG;		{ convert ID back to base cell indexes }
+  c0 := c0 shl BOX_C0_LOG;              { convert ID back to base cell indexes }
   c1 := c1 shl BOX_C1_LOG;
   c2 := c2 shl BOX_C2_LOG;
   cptr := @(bestcolor[0]);
@@ -1077,7 +1077,7 @@ begin
       cachep := @(histogram^[c0+ic0]^[c1+ic1][c2]);
       for ic2 := 0 to pred(BOX_C2_ELEMS) do
       begin
-	cachep^ := histcell (GETJSAMPLE(cptr^) + 1);
+        cachep^ := histcell (GETJSAMPLE(cptr^) + 1);
         Inc(cachep);
         Inc(cptr);
       end;
@@ -1089,7 +1089,7 @@ end;
 
 {METHODDEF}
 procedure pass2_no_dither (cinfo : j_decompress_ptr;
-		           input_buf : JSAMPARRAY;
+                           input_buf : JSAMPARRAY;
                            output_buf : JSAMPARRAY;
                            num_rows : int); far;
 { This version performs no dithering }
@@ -1123,7 +1123,7 @@ begin
       { If we have not seen this color before, find nearest colormap entry }
       { and update the cache }
       if (cachep^ = 0) then
-	fill_inverse_cmap(cinfo, c0,c1,c2);
+        fill_inverse_cmap(cinfo, c0,c1,c2);
       { Now emit the colormap index for this cell }
       outptr^ := JSAMPLE (cachep^ - 1);
       Inc(outptr);
@@ -1134,22 +1134,22 @@ end;
 
 {METHODDEF}
 procedure pass2_fs_dither (cinfo : j_decompress_ptr;
-		           input_buf : JSAMPARRAY;
+                           input_buf : JSAMPARRAY;
                            output_buf : JSAMPARRAY;
                            num_rows : int); far;
 { This version performs Floyd-Steinberg dithering }
 var
   cquantize : my_cquantize_ptr;
   histogram : hist3d;
-  {register} cur : LOCRGB_FSERROR;	{ current error or pixel value }
+  {register} cur : LOCRGB_FSERROR;      { current error or pixel value }
   belowerr : LOCRGB_FSERROR; { error for pixel below cur }
   bpreverr : LOCRGB_FSERROR; { error for below/prev col }
   prev_errorptr,
-  {register} errorptr : RGB_FSERROR_PTR;	{ => fserrors[] at column before current }
-  inptr : RGBptr;		{ => current input pixel }
-  outptr : JSAMPLE_PTR;		{ => current output pixel }
+  {register} errorptr : RGB_FSERROR_PTR;        { => fserrors[] at column before current }
+  inptr : RGBptr;               { => current input pixel }
+  outptr : JSAMPLE_PTR;         { => current output pixel }
   cachep : histptr;
-  dir : int;			{ +1 or -1 depending on direction }
+  dir : int;                    { +1 or -1 depending on direction }
   row : int;
   col : JDIMENSION;
   width : JDIMENSION;
@@ -1206,7 +1206,7 @@ begin
     for col := pred(width) downto 0 do
     begin
       prev_errorptr := errorptr;
-      Inc(errorptr, dir);	{ advance errorptr to current column }
+      Inc(errorptr, dir);       { advance errorptr to current column }
 
       { curN holds the error propagated from the previous pixel on the
         current line.  Add the error propagated from the previous line
@@ -1243,7 +1243,7 @@ begin
       { If we have not seen this color before, find nearest colormap }
       { entry and update the cache }
       if (cachep^ = 0) then
-	fill_inverse_cmap(cinfo, cur.r shr C0_SHIFT,
+        fill_inverse_cmap(cinfo, cur.r shr C0_SHIFT,
                                  cur.g shr C1_SHIFT,
                                  cur.b shr C2_SHIFT);
       { Now emit the colormap index for this cell }
@@ -1260,36 +1260,36 @@ begin
         Add these into the running sums, and simultaneously shift the
         next-line error sums left by 1 column. }
 
-      bnexterr := cur.r;	{ Process component 0 }
+      bnexterr := cur.r;        { Process component 0 }
       delta := cur.r * 2;
-      Inc(cur.r, delta);		{ form error * 3 }
+      Inc(cur.r, delta);                { form error * 3 }
       prev_errorptr^.r := FSERROR (bpreverr.r + cur.r);
-      Inc(cur.r, delta);		{ form error * 5 }
+      Inc(cur.r, delta);                { form error * 5 }
       bpreverr.r := belowerr.r + cur.r;
       belowerr.r := bnexterr;
-      Inc(cur.r, delta);		{ form error * 7 }
-      bnexterr := cur.g;	{ Process component 1 }
+      Inc(cur.r, delta);                { form error * 7 }
+      bnexterr := cur.g;        { Process component 1 }
       delta := cur.g * 2;
-      Inc(cur.g, delta);		{ form error * 3 }
+      Inc(cur.g, delta);                { form error * 3 }
       prev_errorptr^.g := FSERROR (bpreverr.g + cur.g);
-      Inc(cur.g, delta);		{ form error * 5 }
+      Inc(cur.g, delta);                { form error * 5 }
       bpreverr.g := belowerr.g + cur.g;
       belowerr.g := bnexterr;
-      Inc(cur.g, delta);		{ form error * 7 }
-      bnexterr := cur.b;	{ Process component 2 }
+      Inc(cur.g, delta);                { form error * 7 }
+      bnexterr := cur.b;        { Process component 2 }
       delta := cur.b * 2;
-      Inc(cur.b, delta);		{ form error * 3 }
+      Inc(cur.b, delta);                { form error * 3 }
       prev_errorptr^.b := FSERROR (bpreverr.b + cur.b);
-      Inc(cur.b, delta);		{ form error * 5 }
+      Inc(cur.b, delta);                { form error * 5 }
       bpreverr.b := belowerr.b + cur.b;
       belowerr.b := bnexterr;
-      Inc(cur.b, delta);		{ form error * 7 }
+      Inc(cur.b, delta);                { form error * 7 }
 
       { At this point curN contains the 7/16 error value to be propagated
         to the next pixel on the current line, and all the errors for the
         next line have been shifted over.  We are therefore ready to move on.}
 
-      Inc(inptr, dir);		{ Advance pixel pointers to next column }
+      Inc(inptr, dir);          { Advance pixel pointers to next column }
       Inc(outptr, dir);
     end;
     { Post-loop cleanup: we must unload the final error values into the
@@ -1431,16 +1431,16 @@ begin
     if (cinfo^.dither_mode = JDITHER_FS) then
     begin
       arraysize := size_t ((cinfo^.output_width + 2) *
-				   (3 * SIZEOF(FSERROR)));
+                                   (3 * SIZEOF(FSERROR)));
       { Allocate Floyd-Steinberg workspace if we didn't already. }
       if (cquantize^.fserrors = NIL) then
-	cquantize^.fserrors := FS_ERROR_FIELD_PTR (cinfo^.mem^.alloc_large
-	  (j_common_ptr(cinfo), JPOOL_IMAGE, arraysize));
+        cquantize^.fserrors := FS_ERROR_FIELD_PTR (cinfo^.mem^.alloc_large
+          (j_common_ptr(cinfo), JPOOL_IMAGE, arraysize));
       { Initialize the propagated errors to zero. }
       jzero_far(cquantize^.fserrors, arraysize);
       { Make the error-limit table if we didn't already. }
       if (cquantize^.error_limiter = NIL) then
-	init_error_limit(cinfo);
+        init_error_limit(cinfo);
       cquantize^.on_odd_row := FALSE;
     end;
 
@@ -1451,7 +1451,7 @@ begin
     for i := 0 to pred(HIST_C0_ELEMS) do
     begin
       jzero_far( histogram^[i],
-		HIST_C1_ELEMS*HIST_C2_ELEMS * SIZEOF(histcell));
+                HIST_C1_ELEMS*HIST_C2_ELEMS * SIZEOF(histcell));
     end;
     cquantize^.needs_zeroed := FALSE;
   end;
@@ -1485,11 +1485,11 @@ var
 begin
   cquantize := my_cquantize_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_cquantizer)));
+                                SIZEOF(my_cquantizer)));
   cinfo^.cquantize := jpeg_color_quantizer_ptr(cquantize);
   cquantize^.pub.start_pass := start_pass_2_quant;
   cquantize^.pub.new_color_map := new_color_map_2_quant;
-  cquantize^.fserrors := NIL;	{ flag optional arrays not allocated }
+  cquantize^.fserrors := NIL;   { flag optional arrays not allocated }
   cquantize^.error_limiter := NIL;
 
   { Make sure jdmaster didn't give me a case I can't handle }

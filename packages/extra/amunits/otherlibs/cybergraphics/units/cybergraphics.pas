@@ -17,17 +17,17 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   15 Jan 2003.
-  
+
   Changed cardinal > longword.
   Changed startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-  
+
 {$mode objfpc}
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
@@ -45,11 +45,11 @@ const
     CYBERGRAPHICSNAME : PChar = 'cybergraphics.library';
 
 {
-    	$VER: cybergraphics.h 41.18 (21.02.1998)
+        $VER: cybergraphics.h 41.18 (21.02.1998)
 
-    	include file for cybergraphics.library
+        include file for cybergraphics.library
 
-    	Copyright © 1996-1998 by phase5 digital products
+        Copyright © 1996-1998 by phase5 digital products
           All Rights reserved.
 
    }
@@ -95,7 +95,7 @@ const
   { returns -1 if supplied bitmap is linear accessable  }
      CYBRMATTR_ISLINEARMEM = $80000009;
   {
-     Parameters for GetCyberIDAttr()  
+     Parameters for GetCyberIDAttr()
                                       }
   { the pixel format is returned  }
      CYBRIDATTR_PIXFMT = $80000001;
@@ -107,11 +107,11 @@ const
      CYBRIDATTR_DEPTH = $80000004;
   { BytesPerPixel shall be returned  }
      CYBRIDATTR_BPPIX = $80000005;
-  {                               
+  {
      Tags for CyberModeRequest()
                                    }
      CYBRMREQ_TB = TAG_USER + $40000;
-  {             
+  {
      FilterTags
                  }
   { Minimum depth for displayed screenmode  }
@@ -143,7 +143,7 @@ const
      CYBRBIDTG_MonitorID = CYBRBIDTG_TB + 3;
      CYBRBIDTG_BoardName = CYBRBIDTG_TB + 5;
   {
-     definition of divers pixel formats  
+     definition of divers pixel formats
                                          }
      PIXFMT_LUT8 = 0;
      PIXFMT_RGB15 = 1;
@@ -159,7 +159,7 @@ const
      PIXFMT_ARGB32 = 11;
      PIXFMT_BGRA32 = 12;
      PIXFMT_RGBA32 = 13;
-  {                                                         
+  {
      SrcRectangle formats defines for xxxPixelArray calls()
                                                              }
      RECTFMT_RGB = 0;
@@ -167,7 +167,7 @@ const
      RECTFMT_ARGB = 2;
      RECTFMT_LUT8 = 3;
      RECTFMT_GREY8 = 4;
-  {                                     
+  {
      Parameters for CVideoCtrlTagList()
                                          }
      SETVC_DPMSLevel = $88002001;
@@ -180,7 +180,7 @@ const
   { Lowest level of power consumption           }
      DPMS_OFF = 3;
   {
-     Tags for LockBitMapTagList()  
+     Tags for LockBitMapTagList()
                                    }
      LBMI_WIDTH = $84001001;
      LBMI_HEIGHT = $84001002;
@@ -189,14 +189,14 @@ const
      LBMI_BYTESPERPIX = $84001005;
      LBMI_BYTESPERROW = $84001006;
      LBMI_BASEADDRESS = $84001007;
-  {                                 
+  {
      Tags for UnLockBitMapTagList()
                                      }
      UBMI_UPDATERECTS = $85001001;
      UBMI_REALLYUNLOCK = $85001002;
   {
-     Message passed to the DoCDrawMethodTagList() hook function	 
-    								 }
+     Message passed to the DoCDrawMethodTagList() hook function
+                                                                 }
 
   type
      PCDrawMsg = ^tCDrawMsg;
@@ -211,16 +211,16 @@ const
           cdm_ColorModel : UWORD;
        end;
 
-  {							 
+  {
      Colour Table source formats for WriteLUTPixelArray()
-    							 }
+                                                         }
   { ULONG [] table  }
 
   const
      CTABFMT_XRGB8 = 0;
-  {							 
-    	graphics.library/AllocBitMap() extended flags
-    							 }
+  {
+        graphics.library/AllocBitMap() extended flags
+                                                         }
      BMB_SPECIALFMT = 7;
      BMF_SPECIALFMT = 1 shl BMB_SPECIALFMT;
 
@@ -280,333 +280,333 @@ tagsarray;
 FUNCTION AllocCModeListTagList(ModeListTags : pTagItem) : pList;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ModeListTags,A1
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ModeListTags,A1
+        MOVEA.L CyberGfxBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION BestCModeIDTagList(BestModeIDTags : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	BestModeIDTags,A0
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L BestModeIDTags,A0
+        MOVEA.L CyberGfxBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CModeRequestTagList(ModeRequest : POINTER; ModeRequestTags : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ModeRequest,A0
-	MOVEA.L	ModeRequestTags,A1
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ModeRequest,A0
+        MOVEA.L ModeRequestTags,A1
+        MOVEA.L CyberGfxBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE CVideoCtrlTagList(ViewPort : pViewPort; TagList : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ViewPort,A0
-	MOVEA.L	TagList,A1
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L ViewPort,A0
+        MOVEA.L TagList,A1
+        MOVEA.L CyberGfxBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE DoCDrawMethodTagList(Hook : pHook; a1arg : pRastPort; TagList : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Hook,A0
-	MOVEA.L	a1arg,A1
-	MOVEA.L	TagList,A2
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Hook,A0
+        MOVEA.L a1arg,A1
+        MOVEA.L TagList,A2
+        MOVEA.L CyberGfxBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION ExtractColor(a0arg : pRastPort; BitMap : pBitMap; Colour : longword; SrcX : longword; SrcY : longword; Width : longword; Height : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a0arg,A0
-	MOVEA.L	BitMap,A1
-	MOVE.L	Colour,D0
-	MOVE.L	SrcX,D1
-	MOVE.L	SrcY,D2
-	MOVE.L	Width,D3
-	MOVE.L	Height,D4
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-186(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a0arg,A0
+        MOVEA.L BitMap,A1
+        MOVE.L  Colour,D0
+        MOVE.L  SrcX,D1
+        MOVE.L  SrcY,D2
+        MOVE.L  Width,D3
+        MOVE.L  Height,D4
+        MOVEA.L CyberGfxBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION FillPixelArray(a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; ARGB : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a1arg,A1
-	MOVE.L	DestX,D0
-	MOVE.L	DestY,D1
-	MOVE.L	SizeX,D2
-	MOVE.L	SizeY,D3
-	MOVE.L	ARGB,D4
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a1arg,A1
+        MOVE.L  DestX,D0
+        MOVE.L  DestY,D1
+        MOVE.L  SizeX,D2
+        MOVE.L  SizeY,D3
+        MOVE.L  ARGB,D4
+        MOVEA.L CyberGfxBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE FreeCModeList(ModeList : pList);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ModeList,A0
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L ModeList,A0
+        MOVEA.L CyberGfxBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION GetCyberIDAttr(CyberIDAttr : longword; CyberDisplayModeID : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	CyberIDAttr,D0
-	MOVE.L	CyberDisplayModeID,D1
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  CyberIDAttr,D0
+        MOVE.L  CyberDisplayModeID,D1
+        MOVEA.L CyberGfxBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GetCyberMapAttr(CyberGfxBitmap : pBitMap; CyberAttrTag : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	CyberGfxBitmap,A0
-	MOVE.L	CyberAttrTag,D0
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L CyberGfxBitmap,A0
+        MOVE.L  CyberAttrTag,D0
+        MOVEA.L CyberGfxBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION InvertPixelArray(a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a1arg,A1
-	MOVE.L	DestX,D0
-	MOVE.L	DestY,D1
-	MOVE.L	SizeX,D2
-	MOVE.L	SizeY,D3
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-144(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a1arg,A1
+        MOVE.L  DestX,D0
+        MOVE.L  DestY,D1
+        MOVE.L  SizeX,D2
+        MOVE.L  SizeY,D3
+        MOVEA.L CyberGfxBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IsCyberModeID(displayID : longword) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	displayID,D0
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  displayID,D0
+        MOVEA.L CyberGfxBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION LockBitMapTagList(BitMap : POINTER; TagList : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	BitMap,A0
-	MOVEA.L	TagList,A1
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L BitMap,A0
+        MOVEA.L TagList,A1
+        MOVEA.L CyberGfxBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MovePixelArray(SrcX : WORD; SrcY : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	SrcX,D0
-	MOVE.L	SrcY,D1
-	MOVEA.L	a1arg,A1
-	MOVE.L	DestX,D2
-	MOVE.L	DestY,D3
-	MOVE.L	SizeX,D4
-	MOVE.L	SizeY,D5
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  SrcX,D0
+        MOVE.L  SrcY,D1
+        MOVEA.L a1arg,A1
+        MOVE.L  DestX,D2
+        MOVE.L  DestY,D3
+        MOVE.L  SizeX,D4
+        MOVE.L  SizeY,D5
+        MOVEA.L CyberGfxBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ReadPixelArray(destRect : POINTER; destX : WORD; destY : WORD; destMod : WORD; a1arg : pRastPort; SrcX : WORD; SrcY : WORD; SizeX : WORD; SizeY : WORD; DestFormat : byte) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	destRect,A0
-	MOVE.L	destX,D0
-	MOVE.L	destY,D1
-	MOVE.L	destMod,D2
-	MOVEA.L	a1arg,A1
-	MOVE.L	SrcX,D3
-	MOVE.L	SrcY,D4
-	MOVE.L	SizeX,D5
-	MOVE.L	SizeY,D6
-	MOVE.L	DestFormat,D7
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L destRect,A0
+        MOVE.L  destX,D0
+        MOVE.L  destY,D1
+        MOVE.L  destMod,D2
+        MOVEA.L a1arg,A1
+        MOVE.L  SrcX,D3
+        MOVE.L  SrcY,D4
+        MOVE.L  SizeX,D5
+        MOVE.L  SizeY,D6
+        MOVE.L  DestFormat,D7
+        MOVEA.L CyberGfxBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ReadRGBPixel(a1arg : pRastPort; x : WORD; y : WORD) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a1arg,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a1arg,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVEA.L CyberGfxBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ScalePixelArray(srcRect : POINTER; SrcW : WORD; SrcH : WORD; SrcMod : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; DestW : WORD; DestH : WORD; SrcFormat : byte) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	srcRect,A0
-	MOVE.L	SrcW,D0
-	MOVE.L	SrcH,D1
-	MOVE.L	SrcMod,D2
-	MOVEA.L	a1arg,A1
-	MOVE.L	DestX,D3
-	MOVE.L	DestY,D4
-	MOVE.L	DestW,D5
-	MOVE.L	DestH,D6
-	MOVE.L	SrcFormat,D7
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L srcRect,A0
+        MOVE.L  SrcW,D0
+        MOVE.L  SrcH,D1
+        MOVE.L  SrcMod,D2
+        MOVEA.L a1arg,A1
+        MOVE.L  DestX,D3
+        MOVE.L  DestY,D4
+        MOVE.L  DestW,D5
+        MOVE.L  DestH,D6
+        MOVE.L  SrcFormat,D7
+        MOVEA.L CyberGfxBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE UnLockBitMap(Handle : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Handle,A0
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-174(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Handle,A0
+        MOVEA.L CyberGfxBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE UnLockBitMapTagList(Handle : POINTER; TagList : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Handle,A0
-	MOVEA.L	TagList,A1
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-180(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Handle,A0
+        MOVEA.L TagList,A1
+        MOVEA.L CyberGfxBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION WriteLUTPixelArray(srcRect : POINTER; SrcX : WORD; SrcY : WORD; SrcMod : WORD; a1arg : pRastPort; ColorTab : POINTER; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; CTFormat : byte) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	srcRect,A0
-	MOVE.L	SrcX,D0
-	MOVE.L	SrcY,D1
-	MOVE.L	SrcMod,D2
-	MOVEA.L	a1arg,A1
-	MOVEA.L	ColorTab,A2
-	MOVE.L	DestX,D3
-	MOVE.L	DestY,D4
-	MOVE.L	SizeX,D5
-	MOVE.L	SizeY,D6
-	MOVE.L	CTFormat,D7
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-198(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L srcRect,A0
+        MOVE.L  SrcX,D0
+        MOVE.L  SrcY,D1
+        MOVE.L  SrcMod,D2
+        MOVEA.L a1arg,A1
+        MOVEA.L ColorTab,A2
+        MOVE.L  DestX,D3
+        MOVE.L  DestY,D4
+        MOVE.L  SizeX,D5
+        MOVE.L  SizeY,D6
+        MOVE.L  CTFormat,D7
+        MOVEA.L CyberGfxBase,A6
+        JSR     -198(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION WritePixelArray(srcRect : POINTER; SrcX : WORD; SrcY : WORD; SrcMod : WORD; a1arg : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD; SrcFormat : byte) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	srcRect,A0
-	MOVE.L	SrcX,D0
-	MOVE.L	SrcY,D1
-	MOVE.L	SrcMod,D2
-	MOVEA.L	a1arg,A1
-	MOVE.L	DestX,D3
-	MOVE.L	DestY,D4
-	MOVE.L	SizeX,D5
-	MOVE.L	SizeY,D6
-	MOVE.L	SrcFormat,D7
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L srcRect,A0
+        MOVE.L  SrcX,D0
+        MOVE.L  SrcY,D1
+        MOVE.L  SrcMod,D2
+        MOVEA.L a1arg,A1
+        MOVE.L  DestX,D3
+        MOVE.L  DestY,D4
+        MOVE.L  SizeX,D5
+        MOVE.L  SizeY,D6
+        MOVE.L  SrcFormat,D7
+        MOVEA.L CyberGfxBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION WriteRGBPixel(a1arg : pRastPort; x : WORD; y : WORD; argb : longword) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a1arg,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVE.L	argb,D2
-	MOVEA.L	CyberGfxBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a1arg,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVE.L  argb,D2
+        MOVEA.L CyberGfxBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

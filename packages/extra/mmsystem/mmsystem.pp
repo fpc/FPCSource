@@ -2858,8 +2858,7 @@ function DIBINDEX(n: longint): longint;
 end.
 {
   $Log$
-  Revision 1.6  2004-11-22 22:09:12  peter
-    * fix external (patch from Tomas)
-
+  Revision 1.7  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

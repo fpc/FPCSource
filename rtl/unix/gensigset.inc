@@ -3,7 +3,7 @@
    This file is part of the Free Pascal run time library.
    (c) 2002 by Marco van de Voort
    members of the Free Pascal development team.
-   
+
    Generic POSIX signal functions draft. Based on a few constants.
 
    See the file COPYING.FPC, included in this distribution,
@@ -25,7 +25,7 @@ Begin
      End;
    nset[(signo-1) shr ln2bitsinword]:=nset[(signo-1) shr ln2bitsinword] OR (1 shl ((signo-1) and ln2bitmask));
    fpsigaddset:=0;
-End;   
+End;
 
 function fpsigdelset(var nset : tsigset;signo:cint): cint;
 
@@ -67,23 +67,13 @@ Begin
      End;
     if ((nset[(signo-1) shr ln2bitsinword]) and (1 shl ((signo-1) and ln2bitmask)))>0 Then
      fpsigismember:=1
-    else 
+    else
      fpsigismember:=0;
-End;      
+End;
 
 {
    $Log$
-   Revision 1.4  2003-12-30 12:24:01  marco
-    * FPC_USE_LIBC
-
-   Revision 1.3  2003/06/01 16:28:41  marco
-    * Enhancements to make the compiler baseunix using.
-
-   Revision 1.2  2002/12/18 16:50:39  marco
-    * Unix RTL generic parts. Linux working, *BSD will follow shortly
-
-   Revision 1.1  2002/11/14 12:20:30  marco
-    * initial version, taken from bsdfunc.inc, since both linux and bsd use it
-
+   Revision 1.5  2005-02-14 17:13:31  peter
+     * truncate log
 
 }

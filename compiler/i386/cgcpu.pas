@@ -743,7 +743,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2005-02-13 18:55:19  florian
+  Revision 1.67  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.66  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.65  2005/02/03 17:10:21  peter
@@ -756,71 +759,5 @@ end.
   Revision 1.63  2005/01/18 22:19:20  peter
     * multiple location support for i386 a_param_ref
     * remove a_param_copy_ref for i386
-
-  Revision 1.62  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.61  2004/11/21 17:17:04  florian
-    * changed funcret location back to tlocation
-
-  Revision 1.60  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.59  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.58  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.57  2004/10/15 09:16:21  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.56  2004/10/13 21:12:51  peter
-    * -Or fixes for open array
-
-  Revision 1.55  2004/10/11 15:46:45  peter
-    * length parameter for copyvaluearray changed to tlocation
-
-  Revision 1.54  2004/10/05 20:41:01  peter
-    * more spilling rewrites
-
-  Revision 1.53  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.52  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.51.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.51  2004/07/09 23:30:13  jonas
-    *  changed first_sse_imreg to first_mm_imreg
-
-  Revision 1.50  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.49  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.48  2004/04/09 14:36:05  peter
-    * A_MOVSL renamed to A_MOVSD
-
-  Revision 1.47.2.9  2004/05/30 10:45:50  peter
-    * merged fixes from main branch
-
-  Revision 1.47.2.8  2004/05/02 21:34:01  florian
-    * i386 compilation fixed
-
-  Revision 1.47.2.7  2004/05/02 12:45:32  peter
-    * enabled cpuhasfixedstack for x86-64 again
-    * fixed size of temp allocation for parameters
 
 }

@@ -10,17 +10,17 @@ uses resolve;
 Var
   I : integer;
   S,P : String;
-  
-  
+
+
 begin
   If (ParamCount>0) then
     S:=Paramstr(1)
   else
-    S:='telnet';  
+    S:='telnet';
   If (ParamCount>1) then
     P:=Paramstr(2)
   else
-    P:='';  
+    P:='';
   With TServiceResolver.Create(Nil) do
     try
       If Not NameLookup(S,P) then
@@ -31,9 +31,9 @@ begin
         Writeln('Protocol      : ',Protocol);
         Writeln('Port          : ',port);
         Writeln('Aliases       : ',AliasCount);
-        For I:=0 to AliasCount-1 do 
+        For I:=0 to AliasCount-1 do
           Writeln('Alias ',i:2,'  : ',Aliases[I]);
-        end;    
+        end;
     finally
       Free;
     end;

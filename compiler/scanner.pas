@@ -3259,7 +3259,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.99  2005-01-20 17:05:53  peter
+  Revision 1.100  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.99  2005/01/20 17:05:53  peter
     * use val() for decoding integers
 
   Revision 1.98  2005/01/09 20:24:43  olle
@@ -3268,74 +3271,5 @@ end.
 
   Revision 1.97  2005/01/04 16:34:03  peter
     * give error when reading identifier > 255 chars
-
-  Revision 1.96  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.95  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.94  2004/10/31 18:54:25  peter
-    * $fpctarget expands to <cpu>-<os>
-    * allow * in middle of the path to support ../*/units/$fpctarget
-
-  Revision 1.93  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.92  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.91  2004/10/09 11:29:15  olle
-    * Exchanged hardcoded "./" to CurDirRelPath
-
-  Revision 1.90  2004/09/29 06:52:43  mazen
-  * revert last change : removal of dos unit
-
-  Revision 1.88  2004/09/12 20:46:58  olle
-    * Minor bugfix in $IFOPT
-
-  Revision 1.87  2004/08/22 23:16:06  olle
-    + added flag to TMacro denoting mac style compiler variable
-    * fixed $DEFINEC
-    * improved robustness of macro facility
-
-  Revision 1.85  2004/08/02 20:45:40  florian
-    * sizeof in the preprocessor handles types now as well
-
-  Revision 1.84  2004/08/02 07:15:54  michael
-  + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
-
-  Revision 1.83  2004/07/23 00:25:05  olle
-    + Added compile time function OPTION(x) for MacPas
-    * Saved file as text and not binary (I hope)
-
-  Revision 1.81  2004/07/05 23:25:34  olle
-    + adding operators "|" and "&" for macpas
-
-  Revision 1.80  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.79  2004/05/23 20:55:38  peter
-    * support sizeof() in preprocessor
-
-  Revision 1.78  2004/05/19 23:29:56  peter
-    * $message directive compatible with delphi
-
-  Revision 1.77  2004/05/16 13:55:26  peter
-    * report about illegal chars in preproctoken instead of end of
-      expression
-    * support realnumbers in preproctoken parser
-
-  Revision 1.76  2004/05/03 10:06:38  olle
-    + added language constructs UNIV, C, ... for mode mac
-    * consolidated macro expression to conform to Pascal
-    * macro true is defined as <> 0
-
-  Revision 1.75  2004/03/04 17:23:10  peter
-    * $elseif support
-    * conditiotnal in // returns warning isntead of error
 
 }

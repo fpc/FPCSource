@@ -11,14 +11,13 @@ interface
 resourcestring
   First = 'This is is a small test of a unit for resource strings';
   Second = 'This is also a small test';
-  
-implementation  
-  
-end.  
+
+implementation
+
+end.
 {
    $Log$
-   Revision 1.1  2002-10-21 21:12:13  carl
-     * resource string table simple compilation test
-       (align of table)
+   Revision 1.2  2005-02-14 17:13:35  peter
+     * truncate log
 
 }

@@ -1,13 +1,13 @@
 
 type
    P_sigaction = ^_sigaction;
-   _sigaction = record // Renamed, avoid conflict with sigaction function 
+   _sigaction = record // Renamed, avoid conflict with sigaction function
      sa_handler : __sighandler_t;
      sa_mask : __sigset_t;
      sa_flags : longint;
      sa_restorer : procedure ;cdecl;
    end;
-  
+
 
 const
    SA_NOCLDSTOP = 1;
@@ -34,11 +34,11 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSigAction = _sigaction;
   PSigAction = ^TSigAction;
-  
-  TRestoreHandler = procedure; cdecl; 
-   
-         
-      
+
+  TRestoreHandler = procedure; cdecl;
+
+
+

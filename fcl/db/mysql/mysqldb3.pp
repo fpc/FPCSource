@@ -129,7 +129,7 @@ type
     property LastInsertID: Integer read FLastInsertID;
   published
     property Active;
-    property Database;  
+    property Database;
     property SQL: TStrings read FSQL write SetSQL;
     property BeforeOpen;
     property AfterOpen;
@@ -164,7 +164,7 @@ Resourcestring
   SErrExecuting = 'Error executing query: %s';
   SErrFetchingdata = 'Error fetching row data: %s';
   SErrGettingResult = 'Error getting result set: %s';
-  
+
 Procedure MySQlError(R : PMySQL;Msg: String;Comp : TComponent);
 
 Var
@@ -229,7 +229,7 @@ var
   I, FC: Integer;
   fld: TMYSQL_FIELD;
   CurBuf: PChar;
-  
+
 begin
   Result := False;
   CurBuf := ActiveBuffer;
@@ -357,7 +357,7 @@ var
   DFT: TFieldType;
   DFS: Integer;
   WasClosed: Boolean;
-  
+
 begin
   if FLoadingFieldDefs then Exit;
   FLoadingFieldDefs := True;
@@ -534,7 +534,7 @@ var
   I, FC, CT: Integer;
   field: TMYSQL_FIELD;
   row: TMYSQL_ROW;
-  
+
 begin
   mysql_data_seek(FMYSQLRES, FCurrentRecord);
   row := mysql_fetch_row(FMYSQLRES);
@@ -578,12 +578,12 @@ end;
 
 function TMySQLDataset.MySQLWriteFieldData(AType: enum_field_types;
   ASize: Integer; Source, Dest: PChar): Integer;
-  
+
 var
   VI: Integer;
   VF: Double;
   VD: TDateTime;
-  
+
 begin
   Result := 0;
   case AType of
@@ -658,7 +658,7 @@ function TMySQLDataset.InternalStrToFloat(S: string): Extended;
 var
   I: Integer;
   Tmp: string;
-  
+
 begin
   Tmp := '';
   for I := 1 to Length(S) do
@@ -675,7 +675,7 @@ function TMySQLDataset.InternalStrToDate(S: string): TDateTime;
 
 var
   EY, EM, ED: Word;
-  
+
 begin
   EY := StrToInt(Copy(S,1,4));
   EM := StrToInt(Copy(S,6,2));
@@ -691,7 +691,7 @@ function TMySQLDataset.InternalStrToDateTime(S: string): TDateTime;
 var
   EY, EM, ED: Word;
   EH, EN, ES: Word;
-  
+
 begin
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 6, 2));
@@ -723,7 +723,7 @@ function TMySQLDataset.InternalStrToTimeStamp(S: string): TDateTime;
 var
   EY, EM, ED: Word;
   EH, EN, ES: Word;
-  
+
 begin
   EY := StrToInt(Copy(S, 1, 4));
   EM := StrToInt(Copy(S, 5, 2));
@@ -751,7 +751,7 @@ end;
 procedure TMySQLDataset.DoQuery;
 var
   Query: PChar;
-  
+
 begin
   Query := FSQL.GetText;
   try
@@ -879,7 +879,7 @@ begin
   if Disconnect then
     ConnectToServer;
   try
-    if mysql_create_db(FMySQL,Pchar(DatabaseName))<>0 then 
+    if mysql_create_db(FMySQL,Pchar(DatabaseName))<>0 then
       MySQLError(FMySQL,SErrDatabaseCreate,Self);
   Finally
     If Disconnect then
@@ -918,24 +918,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-09-30 19:36:00  michael
-  + Split out in version 3 and 4
-
-  Revision 1.6  2004/09/29 20:26:48  michael
-  + Adapted to version 4 of mysql
-
-  Revision 1.5  2004/09/20 07:13:38  michael
-  + Database property published
-
-  Revision 1.4  2003/08/16 16:42:21  michael
-  + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
-
-  Revision 1.3  2002/11/07 14:27:59  sg
-  * AffectedRows now is a QWord (to match recent MySQL versions)
-  * Result strings for enums etc. are now correctly terminated
-  * Fixed a memory leak in DoQuery: The query string didn't get released
-
-  Revision 1.2  2002/09/07 15:15:23  peter
-    * old logs removed and tabs fixed
+  Revision 1.2  2005-02-14 17:13:12  peter
+    * truncate log
 
 }

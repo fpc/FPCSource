@@ -683,40 +683,23 @@ Begin
  TestSplit;
  RmDir(TestDir);
  PauseScreen;
- 
+
  { Cleanup }
  {$I-}
   assign(f,TestFName);
   erase(f);
   assign(f,TestFName1);
   erase(f);
- {$I+}  
+ {$I+}
  if ioresult<>0 then;
- 
+
  if has_errors then
    halt(1);
 end.
 
 {
   $Log$
-  Revision 1.12  2002-12-06 16:38:15  peter
-    * cleanup tempfiles
-
-  Revision 1.11  2002/12/06 16:36:17  peter
-    * made more tests go32v2 specific because they expect (buggy?) Dos
-      findfirst behaviour
-
-  Revision 1.10  2002/11/27 16:41:46  peter
-    * volumeid is dos specific
-
-  Revision 1.9  2002/11/18 09:49:49  pierre
-   * tried to make as many as possible tests non interactive
-
-  Revision 1.8  2002/11/08 21:01:18  carl
-    * separated some tests
-    * make tfexpand more portable
-
-  Revision 1.7  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
+  Revision 1.13  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

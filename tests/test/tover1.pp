@@ -6,7 +6,7 @@ const
   RESULT_SHORT = 'shortstring parameter call';
   RESULT_WIDE  = 'widestring parameter call';
 
-{ This tests method overloads, to verify 
+{ This tests method overloads, to verify
   if they conform to correct type conversion
 }
 function test_string(s: shortstring): shortstring;
@@ -38,12 +38,12 @@ procedure fail;
    Halt(1);
  end;
 
-var 
+var
   short_string : shortstring;
   ansi_string : ansistring;
-{$ifndef ver1_0}  
+{$ifndef ver1_0}
   wide_string : widestring;
-{$endif}  
+{$endif}
   p_string : pchar;
   s: shortstring;
 Begin
@@ -61,11 +61,11 @@ Begin
   s:=test_string(ansi_string);
   if s <> RESULT_ANSI then
     fail;
-{$ifndef ver1_0}    
+{$ifndef ver1_0}
   s:=test_string(wide_string);
   if s <> RESULT_WIDE then
     fail;
-{$endif}    
+{$endif}
   s:=test_string(p_string);
   if s <> RESULT_PCHAR then
     fail;
@@ -74,7 +74,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-16 19:07:17  carl
-    * overloaded string routines testing
+  Revision 1.2  2005-02-14 17:13:35  peter
+    * truncate log
 
-}  
+}

@@ -55,8 +55,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-11-16 17:27:20  hajny
-    + test for FSearch added
-
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

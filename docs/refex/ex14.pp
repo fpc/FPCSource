@@ -2,7 +2,7 @@ Program Example14;
 
 { Program to demonstrate the Dec function. }
 
-Var 
+Var
   I  : Integer;
   L  : Longint;
   W  : Word;

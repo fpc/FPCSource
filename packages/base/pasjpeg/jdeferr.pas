@@ -109,8 +109,8 @@ type
     JERR_WIDTH_OVERFLOW,
     JERR_XMS_READ,
     JERR_XMS_WRITE,
-    JMSG_COPYRIGHT, 
-    JMSG_VERSION, 
+    JMSG_COPYRIGHT,
+    JMSG_VERSION,
     JTRC_16BIT_TABLES,
     JTRC_ADOBE,
     JTRC_APP0,
@@ -186,7 +186,7 @@ type
      JERR_GIF_NOT,  { Not a GIF file }
      JTRC_GIF,  { %dx%dx%d GIF image }
      JTRC_GIF_BADVERSION,
-	      { Warning: unexpected GIF version number '%c%c%c' }
+              { Warning: unexpected GIF version number '%c%c%c' }
      JTRC_GIF_EXTENSION,  { Ignoring GIF extension block of type 0x%02x }
      JTRC_GIF_NONSQUARE,  { Caution: nonsquare pixels in input }
      JWRN_GIF_BADDATA,  { Corrupt data in GIF file }
@@ -234,13 +234,13 @@ type
    {$endif} { TARGA_SUPPORTED }
 
      JERR_BAD_CMAP_FILE,
-	    { Color map file is invalid or of unsupported format }
+            { Color map file is invalid or of unsupported format }
      JERR_TOO_MANY_COLORS,
-	    { Output file format cannot handle %d colormap entries }
+            { Output file format cannot handle %d colormap entries }
      JERR_UNGETC_FAILED,  { ungetc failed }
    {$ifdef TARGA_SUPPORTED}
      JERR_UNKNOWN_FORMAT,
-	    { Unrecognized input file format --- perhaps you need -targa }
+            { Unrecognized input file format --- perhaps you need -targa }
    {$else}
      JERR_UNKNOWN_FORMAT,  { Unrecognized input file format }
    {$endif}
@@ -262,7 +262,7 @@ const
 
 { For maintenance convenience, list is alphabetical by message code name }
   { JERR_ARITH_NOTIMPL }
-	 'Sorry, there are legal restrictions on arithmetic coding',
+         'Sorry, there are legal restrictions on arithmetic coding',
   { JERR_BAD_ALIGN_TYPE } 'ALIGN_TYPE is wrong, please fix',
   { JERR_BAD_ALLOC_CHUNK } 'MAX_ALLOC_CHUNK is wrong, please fix',
   { JERR_BAD_BUFFER_MODE } 'Bogus buffer control mode',
@@ -274,19 +274,19 @@ const
   { JERR_BAD_J_COLORSPACE } 'Bogus JPEG colorspace',
   { JERR_BAD_LENGTH } 'Bogus marker length',
   { JERR_BAD_LIB_VERSION }
-	 'Wrong JPEG library version: library is %d, caller expects %d',
+         'Wrong JPEG library version: library is %d, caller expects %d',
   { JERR_BAD_MCU_SIZE } 'Sampling factors too large for interleaved scan',
   { JERR_BAD_POOL_ID } 'Invalid memory pool code %d',
   { JERR_BAD_PRECISION } 'Unsupported JPEG data precision %d',
   { JERR_BAD_PROGRESSION }
-	 'Invalid progressive parameters Ss=%d Se=%d Ah=%d Al=%d',
+         'Invalid progressive parameters Ss=%d Se=%d Ah=%d Al=%d',
   { JERR_BAD_PROG_SCRIPT }
-	 'Invalid progressive parameters at scan script entry %d',
+         'Invalid progressive parameters at scan script entry %d',
   { JERR_BAD_SAMPLING } 'Bogus sampling factors',
   { JERR_BAD_SCAN_SCRIPT } 'Invalid scan script at entry %d',
   { JERR_BAD_STATE } 'Improper call to JPEG library in state %d',
   { JERR_BAD_STRUCT_SIZE }
-	 'JPEG parameter struct mismatch: library thinks size is %d, caller expects %d',
+         'JPEG parameter struct mismatch: library thinks size is %d, caller expects %d',
   { JERR_BAD_VIRTUAL_ACCESS } 'Bogus virtual array access',
   { JERR_BUFFER_SIZE } 'Buffer passed to JPEG library is too small',
   { JERR_CANT_SUSPEND } 'Suspension not allowed here',
@@ -311,7 +311,7 @@ const
   { JERR_INPUT_EMPTY } 'Empty input file',
   { JERR_INPUT_EOF } 'Premature end of input file',
   { JERR_MISMATCHED_QUANT_TABLE }
-	 'Cannot transcode due to multiple use of quantization table %d',
+         'Cannot transcode due to multiple use of quantization table %d',
   { JERR_MISSING_DATA } 'Scan script does not transmit all data',
   { JERR_MODE_CHANGE } 'Invalid color quantization mode change',
   { JERR_NOTIMPL } 'Not implemented yet',
@@ -323,7 +323,7 @@ const
   { JERR_NO_SOI } 'Not a JPEG file: starts with $%02x $%02x',
   { JERR_OUT_OF_MEMORY } 'Insufficient memory (case %d)',
   { JERR_QUANT_COMPONENTS }
-	 'Cannot quantize more than %d color components',
+         'Cannot quantize more than %d color components',
   { JERR_QUANT_FEW_COLORS } 'Cannot quantize to fewer than %d colors',
   { JERR_QUANT_MANY_COLORS } 'Cannot quantize to more than %d colors',
   { JERR_SOF_DUPLICATE } 'Invalid JPEG file structure: two SOF markers',
@@ -335,7 +335,7 @@ const
   { JERR_TFILE_READ } 'Read failed on temporary file',
   { JERR_TFILE_SEEK } 'Seek failed on temporary file',
   { JERR_TFILE_WRITE }
-	 'Write failed on temporary file --- out of disk space?',
+         'Write failed on temporary file --- out of disk space?',
   { JERR_TOO_LITTLE_DATA } 'Application transferred too few scanlines',
   { JERR_UNKNOWN_MARKER } 'Unsupported marker type $%02x',
   { JERR_VIRTUAL_BUG } 'Virtual array controller messed up',
@@ -345,9 +345,9 @@ const
   { JMSG_COPYRIGHT }  JCOPYRIGHT,
   { JMSG_VERSION } JVERSION,
   { JTRC_16BIT_TABLES }
-	 'Caution: quantization tables are too coarse for baseline JPEG',
+         'Caution: quantization tables are too coarse for baseline JPEG',
   { JTRC_ADOBE }
-	 'Adobe APP14 marker: version %d, flags $%04x $%04x, transform %d',
+         'Adobe APP14 marker: version %d, flags $%04x $%04x, transform %d',
   { JTRC_APP0 } 'Unknown APP0 marker (not JFIF), length %d',
   { JTRC_APP14 } 'Unknown APP14 marker (not Adobe), length %d',
   { JTRC_DAC } 'Define Arithmetic Table $%02x: $%02x',
@@ -360,7 +360,7 @@ const
   { JTRC_HUFFBITS } '        %3d %3d %3d %3d %3d %3d %3d %3d',
   { JTRC_JFIF } 'JFIF APP0 marker, density %dx%d  %d',
   { JTRC_JFIF_BADTHUMBNAILSIZE }
-	 'Warning: thumbnail image size does not match data length %d',
+         'Warning: thumbnail image size does not match data length %d',
   { JTRC_JFIF_EXTENSION } 'JFIF extension marker: type 0x%02x, length %u',
   { JTRC_JFIF_THUMBNAIL } '    with %d x %d thumbnail image',
   { JTRC_MISC_MARKER } 'Skipping marker $%02x, length %d',
@@ -372,7 +372,7 @@ const
   { JTRC_RECOVERY_ACTION } 'At marker $%02x, recovery action %d',
   { JTRC_RST } 'RST%d',
   { JTRC_SMOOTH_NOTIMPL }
-	 'Smoothing not supported with nonstandard sampling ratios',
+         'Smoothing not supported with nonstandard sampling ratios',
   { JTRC_SOF } 'Start Of Frame $%02x: width=%d, height=%d, components=%d',
   { JTRC_SOF_COMPONENT } '    Component %d: %dhx%dv q=%d',
   { JTRC_SOI } 'Start of Image',
@@ -382,26 +382,26 @@ const
   { JTRC_TFILE_CLOSE } 'Closed temporary file %s',
   { JTRC_TFILE_OPEN } 'Opened temporary file %s',
   { JTRC_THUMB_JPEG }
-	 'JFIF extension marker: JPEG-compressed thumbnail image, length %u',
+         'JFIF extension marker: JPEG-compressed thumbnail image, length %u',
   { JMESSAGE(JTRC_THUMB_PALETTE }
-	 'JFIF extension marker: palette thumbnail image, length %u',
+         'JFIF extension marker: palette thumbnail image, length %u',
   { JMESSAGE(JTRC_THUMB_RGB }
-	 'JFIF extension marker: RGB thumbnail image, length %u',
+         'JFIF extension marker: RGB thumbnail image, length %u',
   { JTRC_UNKNOWN_IDS }
-	 'Unrecognized component IDs %d %d %d, assuming YCbCr',
+         'Unrecognized component IDs %d %d %d, assuming YCbCr',
   { JTRC_XMS_CLOSE } 'Freed XMS handle %d',
   { JTRC_XMS_OPEN } 'Obtained XMS handle %d',
   { JWRN_ADOBE_XFORM } 'Unknown Adobe color transform code %d',
   { JWRN_BOGUS_PROGRESSION }
-	 'Inconsistent progression sequence for component %d coefficient %d',
+         'Inconsistent progression sequence for component %d coefficient %d',
   { JWRN_EXTRANEOUS_DATA }
-	 'Corrupt JPEG data: %d extraneous bytes before marker $%02x',
+         'Corrupt JPEG data: %d extraneous bytes before marker $%02x',
   { JWRN_HIT_MARKER } 'Corrupt JPEG data: premature end of data segment',
   { JWRN_HUFF_BAD_CODE } 'Corrupt JPEG data: bad Huffman code',
   { JWRN_JFIF_MAJOR } 'Warning: unknown JFIF revision number %d.%02d',
   { JWRN_JPEG_EOF } 'Premature end of JPEG file',
   { JWRN_MUST_RESYNC }
-	 'Corrupt JPEG data: found marker $%02x instead of RST%d',
+         'Corrupt JPEG data: found marker $%02x instead of RST%d',
   { JWRN_NOT_SEQUENTIAL } 'Invalid SOS parameters for sequential JPEG',
   { JWRN_TOO_MUCH_DATA } 'Application transferred too many scanlines',
 
@@ -429,7 +429,7 @@ const
   { JERR_GIF_NOT } 'Not a GIF file',
   { JTRC_GIF } '%dx%dx%d GIF image',
   { JTRC_GIF_BADVERSION }
-	   'Warning: unexpected GIF version number "%c%c%c"',
+           'Warning: unexpected GIF version number "%c%c%c"',
   { JTRC_GIF_EXTENSION } 'Ignoring GIF extension block of type 0x%02x',
   { JTRC_GIF_NONSQUARE } 'Caution: nonsquare pixels in input',
   { JWRN_GIF_BADDATA } 'Corrupt data in GIF file',
@@ -477,13 +477,13 @@ const
 {$endif} { TARGA_SUPPORTED }
 
   { JERR_BAD_CMAP_FILE }
-	 'Color map file is invalid or of unsupported format',
+         'Color map file is invalid or of unsupported format',
   { JERR_TOO_MANY_COLORS }
-	 'Output file format cannot handle %d colormap entries',
+         'Output file format cannot handle %d colormap entries',
   { JERR_UNGETC_FAILED } 'ungetc failed',
 {$ifdef TARGA_SUPPORTED}
   { JERR_UNKNOWN_FORMAT }
-	 'Unrecognized input file format --- perhaps you need -targa',
+         'Unrecognized input file format --- perhaps you need -targa',
 {$else}
   { JERR_UNKNOWN_FORMAT } 'Unrecognized input file format',
 {$endif}

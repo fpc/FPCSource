@@ -1677,16 +1677,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2004-11-02 23:53:19  peter
-    * fixed crashes with ide and 1.9.x
-
-  Revision 1.5  2002/11/28 08:44:19  pierre
-   * Correct the wrong code commented out by last commit
-
-  Revision 1.4  2002/11/27 20:07:03  peter
-    * removed wrong fillchar statement
-
-  Revision 1.3  2002/09/07 15:40:50  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

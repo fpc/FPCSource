@@ -3,11 +3,11 @@ program example28;
 { Program to demonstrate the FStat function. }
 
 uses oldlinux;
-    
-var f : text;    
+
+var f : text;
     i : byte;
     info : stat;
-    
+
 begin
   { Make a file }
   assign (f,'test.fil');
@@ -15,7 +15,7 @@ begin
   for i:=1 to 10 do writeln (f,'Testline # ',i);
   close (f);
   { Do the call on made file. }
-  if not fstat ('test.fil',info) then 
+  if not fstat ('test.fil',info) then
      begin
      writeln('Fstat failed. Errno : ',linuxerror);
      halt (1);
@@ -34,6 +34,6 @@ begin
   writeln ('atime   : ',info.atime);
   writeln ('mtime   : ',info.mtime);
   writeln ('ctime   : ',info.ctime);
-  { Remove file }  
-  erase (f);    
+  { Remove file }
+  erase (f);
 end.

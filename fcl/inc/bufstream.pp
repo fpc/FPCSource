@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Implement a buffered stream.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -103,7 +103,7 @@ procedure TBufStream.FillBuffer;
 Var
   RCount : Integer;
   P : PChar;
-  
+
 begin
   P:=Pchar(FBuffer);
   // Reset at beginning if empty.
@@ -172,7 +172,7 @@ function TReadBufStream.Seek(Offset: Longint; Origin: Word): Longint;
 var
   I: Integer;
   Buf: array [0..4095] of Char;
-  
+
 begin
   // Emulate forward seek if possible.
   if ((Offset>=0) and (Origin = soFromCurrent)) or
@@ -197,7 +197,7 @@ function TReadBufStream.Read(var ABuffer; ACount: LongInt): Integer;
 Var
   P,PB : PChar;
   Avail,MSize,RCount : Integer;
-  
+
 begin
   Result:=0;
   P:=PChar(@ABuffer);

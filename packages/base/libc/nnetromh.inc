@@ -10,7 +10,7 @@ const
    NETROM_KILL = 99;
    NETROM_NEIGH = 0;
    NETROM_NODE = 1;
-   
+
 type
    Pnr_route_struct = ^nr_route_struct;
    nr_route_struct = record
@@ -32,7 +32,7 @@ const
    SIOCNRDECOBS = SIOCPROTOPRIVATE + 2;
    SIOCNRRTCTL = SIOCPROTOPRIVATE + 3;
    SIOCNRCTLCON = SIOCPROTOPRIVATE + 4;
-   
+
 type
    Pnr_parms_struct = ^nr_parms_struct;
    nr_parms_struct = record
@@ -60,4 +60,4 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -24,16 +24,16 @@ uses
   jcomapi,
   jpeglib;
 
-const	                { JPEG marker codes }
+const                   { JPEG marker codes }
   M_SOF0  = $c0;
   M_SOF1  = $c1;
   M_SOF2  = $c2;
   M_SOF3  = $c3;
-  
+
   M_SOF5  = $c5;
   M_SOF6  = $c6;
   M_SOF7  = $c7;
-  
+
   M_JPG   = $c8;
   M_SOF9  = $c9;
   M_SOF10 = $ca;
@@ -42,11 +42,11 @@ const	                { JPEG marker codes }
   M_SOF13 = $cd;
   M_SOF14 = $ce;
   M_SOF15 = $cf;
-  
+
   M_DHT   = $c4;
-  
+
   M_DAC   = $cc;
-  
+
   M_RST0  = $d0;
   M_RST1  = $d1;
   M_RST2  = $d2;
@@ -55,7 +55,7 @@ const	                { JPEG marker codes }
   M_RST5  = $d5;
   M_RST6  = $d6;
   M_RST7  = $d7;
-  
+
   M_SOI   = $d8;
   M_EOI   = $d9;
   M_SOS   = $da;
@@ -64,7 +64,7 @@ const	                { JPEG marker codes }
   M_DRI   = $dd;
   M_DHP   = $de;
   M_EXP   = $df;
-  
+
   M_APP0  = $e0;
   M_APP1  = $e1;
   M_APP2  = $e2;
@@ -81,7 +81,7 @@ const	                { JPEG marker codes }
   M_APP13 = $ed;
   M_APP14 = $ee;
   M_APP15 = $ef;
-  
+
   M_JPG0  = $f0;
   M_JPG13 = $fd;
   M_COM   = $fe;
@@ -109,8 +109,8 @@ type
     length_limit_APPn : array[0..16-1] of uint;
 
     { Status of COM/APPn marker saving }
-    cur_marker : jpeg_saved_marker_ptr;	{ NIL if not processing a marker }
-    bytes_read : uint;		{ data bytes read so far in marker }
+    cur_marker : jpeg_saved_marker_ptr; { NIL if not processing a marker }
+    bytes_read : uint;          { data bytes read so far in marker }
     { Note: cur_marker is not linked into marker_list until it's all read. }
   end;
 
@@ -125,13 +125,13 @@ procedure jinit_marker_reader (cinfo : j_decompress_ptr);
 {GLOBAL}
 procedure jpeg_save_markers (cinfo : j_decompress_ptr;
                              marker_code : int;
-		             length_limit : uint);
+                             length_limit : uint);
 {$ENDIF}
 
 {GLOBAL}
 procedure jpeg_set_marker_processor (cinfo : j_decompress_ptr;
                                      marker_code : int;
-	                             routine : jpeg_marker_parser_method);
+                                     routine : jpeg_marker_parser_method);
 
 implementation
 
@@ -406,8 +406,8 @@ begin
 
   {$IFDEF DEBUG}
   TRACEMS4(j_common_ptr(cinfo), 1, JTRC_SOF, cinfo^.unread_marker,
-	   int(cinfo^.image_width), int(cinfo^.image_height),
-	   cinfo^.num_components);
+           int(cinfo^.image_width), int(cinfo^.image_height),
+           cinfo^.num_components);
   {$ENDIF}
 
   if (cinfo^.marker^.saw_SOF) then
@@ -500,8 +500,8 @@ begin
 
     {$IFDEF DEBUG}
     TRACEMS4(j_common_ptr(cinfo), 1, JTRC_SOF_COMPONENT,
-	     compptr^.component_id, compptr^.h_samp_factor,
-	     compptr^.v_samp_factor, compptr^.quant_tbl_no);
+             compptr^.component_id, compptr^.h_samp_factor,
+             compptr^.v_samp_factor, compptr^.quant_tbl_no);
     {$ENDIF}
 
     Inc(compptr);
@@ -660,7 +660,7 @@ begin
     for ci := 0 to Pred(cinfo^.num_components) do
     begin
       if (cc = compptr^.component_id) then
-	goto id_found;
+        goto id_found;
       Inc(compptr);
     end;
 
@@ -674,7 +674,7 @@ begin
 
     {$IFDEF DEBUG}
     TRACEMS3(j_common_ptr(cinfo), 1, JTRC_SOS_COMPONENT, cc,
-	     compptr^.dc_tbl_no, compptr^.ac_tbl_no);
+             compptr^.dc_tbl_no, compptr^.ac_tbl_no);
     {$ENDIF}
   end;
 
@@ -748,7 +748,7 @@ begin
 
   {$IFDEF DEBUG}
   TRACEMS4(j_common_ptr(cinfo), 1, JTRC_SOS_PARAMS, cinfo^.Ss, cinfo^.Se,
-	   cinfo^.Ah, cinfo^.Al);
+           cinfo^.Ah, cinfo^.Al);
   {$ENDIF}
 
   { Prepare to scan data & restart markers }
@@ -957,7 +957,7 @@ begin
       cinfo^.arith_dc_L[index] := UINT8(val and $0F);
       cinfo^.arith_dc_U[index] := UINT8(val shr 4);
       if (cinfo^.arith_dc_L[index] > cinfo^.arith_dc_U[index]) then
-	ERREXIT1(j_common_ptr(cinfo) , JERR_DAC_VALUE, val);
+        ERREXIT1(j_common_ptr(cinfo) , JERR_DAC_VALUE, val);
     end;
   end;
 
@@ -1098,11 +1098,11 @@ begin
 
     {$IFDEF DEBUG}
     TRACEMS8(j_common_ptr(cinfo), 2, JTRC_HUFFBITS,
-	     bits[1], bits[2], bits[3], bits[4],
-	     bits[5], bits[6], bits[7], bits[8]);
+             bits[1], bits[2], bits[3], bits[4],
+             bits[5], bits[6], bits[7], bits[8]);
     TRACEMS8(j_common_ptr(cinfo), 2, JTRC_HUFFBITS,
-	     bits[9], bits[10], bits[11], bits[12],
-	     bits[13], bits[14], bits[15], bits[16]);
+             bits[9], bits[10], bits[11], bits[12],
+             bits[13], bits[14], bits[15], bits[16]);
     {$ENDIF}
 
     { Here we just do minimal validation of the counts to avoid walking
@@ -1340,11 +1340,11 @@ begin
       while i < Pred(DCTSIZE2) do
       begin
         {$IFDEF DEBUG}
-	TRACEMS8(j_common_ptr(cinfo), 2, JTRC_QUANTVALS,
-		 quant_ptr^.quantval[i],   quant_ptr^.quantval[i+1],
-		 quant_ptr^.quantval[i+2], quant_ptr^.quantval[i+3],
-		 quant_ptr^.quantval[i+4], quant_ptr^.quantval[i+5],
-		 quant_ptr^.quantval[i+6], quant_ptr^.quantval[i+7]);
+        TRACEMS8(j_common_ptr(cinfo), 2, JTRC_QUANTVALS,
+                 quant_ptr^.quantval[i],   quant_ptr^.quantval[i+1],
+                 quant_ptr^.quantval[i+2], quant_ptr^.quantval[i+3],
+                 quant_ptr^.quantval[i+4], quant_ptr^.quantval[i+5],
+                 quant_ptr^.quantval[i+6], quant_ptr^.quantval[i+7]);
         {$ENDIF}
         Inc(i, 8);
       end;
@@ -1484,7 +1484,7 @@ end;  { get_dri }
   JFIF and Adobe markers, respectively. }
 
 const
-  APP0_DATA_LEN	= 14;   { Length of interesting data in APP0 }
+  APP0_DATA_LEN = 14;   { Length of interesting data in APP0 }
   APP14_DATA_LEN = 12;  { Length of interesting data in APP14 }
   APPN_DATA_LEN = 14;   { Must be the largest of the above!! }
 
@@ -1502,7 +1502,7 @@ procedure examine_app0 (cinfo : j_decompress_ptr;
 {$IFDEF DEBUG}
 var
   totallen : INT32;
-{$ENDIF}  
+{$ENDIF}
 begin
   {$IFDEF DEBUG}
   totallen := INT32(datalen) + remaining;
@@ -1529,19 +1529,19 @@ begin
 
     if (cinfo^.JFIF_major_version <> 1) then
       WARNMS2(j_common_ptr(cinfo), JWRN_JFIF_MAJOR,
-	      cinfo^.JFIF_major_version, cinfo^.JFIF_minor_version);
+              cinfo^.JFIF_major_version, cinfo^.JFIF_minor_version);
     { Generate trace messages }
     {$IFDEF DEBUG}
     TRACEMS5(j_common_ptr(cinfo), 1, JTRC_JFIF,
-	     cinfo^.JFIF_major_version, cinfo^.JFIF_minor_version,
-	     cinfo^.X_density, cinfo^.Y_density, cinfo^.density_unit);
+             cinfo^.JFIF_major_version, cinfo^.JFIF_minor_version,
+             cinfo^.X_density, cinfo^.Y_density, cinfo^.density_unit);
     { Validate thumbnail dimensions and issue appropriate messages }
     if (GETJOCTET(data[12]) or GETJOCTET(data[13])) <> 0 then
       TRACEMS2(j_common_ptr(cinfo), 1, JTRC_JFIF_THUMBNAIL,
-	       GETJOCTET(data[12]), GETJOCTET(data[13]));
+               GETJOCTET(data[12]), GETJOCTET(data[13]));
     Dec(totallen, APP0_DATA_LEN);
     if (totallen <>
-	( INT32(GETJOCTET(data[12])) * INT32(GETJOCTET(data[13])) * INT32(3) )) then
+        ( INT32(GETJOCTET(data[12])) * INT32(GETJOCTET(data[13])) * INT32(3) )) then
       TRACEMS1(j_common_ptr(cinfo), 1, JTRC_JFIF_BADTHUMBNAILSIZE, int(totallen));
     {$ENDIF}
   end
@@ -1566,7 +1566,7 @@ begin
           TRACEMS1(j_common_ptr(cinfo), 1, JTRC_THUMB_RGB, int(totallen));
         else
           TRACEMS2(j_common_ptr(cinfo), 1, JTRC_JFIF_EXTENSION,
-	           GETJOCTET(data[5]), int(totallen));
+                   GETJOCTET(data[5]), int(totallen));
       end;
       {$ENDIF}
     end
@@ -1583,7 +1583,7 @@ end;
 {LOCAL}
 procedure examine_app14 (cinfo : j_decompress_ptr;
                          var data : array of JOCTET;
-	                 datalen : uint;
+                         datalen : uint;
                          remaining : INT32);
 { Examine first few bytes from an APP14.
   Take appropriate action if it is an Adobe marker.
@@ -1814,18 +1814,18 @@ begin
 
     Dec(length, 2);
     if (length >= 0) then
-    begin		{ watch out for bogus length word }
+    begin               { watch out for bogus length word }
       { figure out how much we want to save }
 
       if (cinfo^.unread_marker = int(M_COM)) then
-	limit := marker^.length_limit_COM
+        limit := marker^.length_limit_COM
       else
-	limit := marker^.length_limit_APPn[cinfo^.unread_marker - int(M_APP0)];
+        limit := marker^.length_limit_APPn[cinfo^.unread_marker - int(M_APP0)];
       if (uint(length) < limit) then
-	limit := uint(length);
+        limit := uint(length);
       { allocate and initialize the marker item }
       cur_marker := jpeg_saved_marker_ptr(
-	cinfo^.mem^.alloc_large (j_common_ptr(cinfo), JPOOL_IMAGE,
+        cinfo^.mem^.alloc_large (j_common_ptr(cinfo), JPOOL_IMAGE,
                                SIZEOF(jpeg_marker_struct) + limit) );
       cur_marker^.next := NIL;
       cur_marker^.marker := UINT8 (cinfo^.unread_marker);
@@ -1890,7 +1890,7 @@ begin
 
   { Done reading what we want to read }
   if (cur_marker <> NIL) then
-  begin	{ will be NIL if bogus length word }
+  begin { will be NIL if bogus length word }
     { Add new marker to end of list }
     if (cinfo^.marker_list = NIL) then
     begin
@@ -1900,7 +1900,7 @@ begin
     begin
       prev := cinfo^.marker_list;
       while (prev^.next <> NIL) do
-	prev := prev^.next;
+        prev := prev^.next;
       prev^.next := cur_marker;
     end;
     { Reset pointer & calc remaining data length }
@@ -1919,7 +1919,7 @@ begin
   else
     {$IFDEF DEBUG}
     TRACEMS2(j_common_ptr(cinfo), 1, JTRC_MISC_MARKER, cinfo^.unread_marker,
-	     int(data_length + length));
+             int(data_length + length));
     {$ENDIF}
   end;
 
@@ -2039,7 +2039,7 @@ begin
       Inc(next_input_byte);
     Until (c <> $FF);
     if (c <> 0) then
-      break;			{ found a valid marker, exit loop }
+      break;                    { found a valid marker, exit loop }
     { Reach here if we found a stuffed-zero data sequence (FF/00).
       Discard it and loop back to try again. }
 
@@ -2300,7 +2300,7 @@ begin
           exit;
         end;
 
-      M_RST0,		{ these are all parameterless }
+      M_RST0,           { these are all parameterless }
       M_RST1,
       M_RST2,
       M_RST3,
@@ -2315,14 +2315,14 @@ begin
         {$ENDIF}
         ;
 
-      M_DNL:		{ Ignore DNL ... perhaps the wrong thing }
+      M_DNL:            { Ignore DNL ... perhaps the wrong thing }
         if not skip_variable(cinfo) then
         begin
           read_markers := JPEG_SUSPENDED;
           exit;
         end;
 
-      else			{ must be DHP, EXP, JPGn, or RESn }
+      else                      { must be DHP, EXP, JPGn, or RESn }
         { For now, we treat the reserved markers as fatal errors since they are
           likely to be used to signal incompatible JPEG Part 3 extensions.
           Once the JPEG 3 version-number marker is well defined, this code
@@ -2568,7 +2568,7 @@ end; { jinit_marker_reader }
 {GLOBAL}
 procedure jpeg_save_markers (cinfo : j_decompress_ptr;
                              marker_code : int;
-		             length_limit : uint);
+                             length_limit : uint);
 var
   marker : my_marker_ptr;
   maxlength : long;
@@ -2627,7 +2627,7 @@ end;
 
 procedure jpeg_set_marker_processor (cinfo : j_decompress_ptr;
                                      marker_code : int;
-			             routine : jpeg_marker_parser_method);
+                                     routine : jpeg_marker_parser_method);
 var
   marker : my_marker_ptr;
 begin

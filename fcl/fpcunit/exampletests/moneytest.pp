@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, money;
-  
+
 type
 
   TMoneyTest = class(TTestCase)
@@ -45,8 +45,8 @@ type
     procedure testSimpleSubtract;
     procedure testOperators;
   end;
-    
-    
+
+
 
 implementation
 

@@ -21,7 +21,7 @@ var
   window,
   totalbox,
   hbox,vbox : PgtkWidget;
-   
+
 begin
   gtk_init (@argc, @argv);
   window := gtk_window_new (GTK_WINDOW_TOPLEVEL);

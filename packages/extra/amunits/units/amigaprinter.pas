@@ -29,15 +29,15 @@ Const
     PRD_QUERY           = CMD_NONSTD + 3;
 
 { V44 commands }
-    PRD_RESETPREFS	= (CMD_NONSTD+4);	{ PRIVATE: do not use! }
-    PRD_LOADPREFS	= (CMD_NONSTD+5);	{ PRIVATE: do not use! }
-    PRD_USEPREFS	= (CMD_NONSTD+6);	{ PRIVATE: do not use! }
-    PRD_SAVEPREFS	= (CMD_NONSTD+7);	{ PRIVATE: do not use! }
-    PRD_READPREFS	= (CMD_NONSTD+8);
-    PRD_WRITEPREFS	= (CMD_NONSTD+9);
-    PRD_EDITPREFS	= (CMD_NONSTD+10);
-    PRD_SETERRHOOK	= (CMD_NONSTD+11);
-    PRD_DUMPRPORTTAGS	= (CMD_NONSTD+12);
+    PRD_RESETPREFS      = (CMD_NONSTD+4);       { PRIVATE: do not use! }
+    PRD_LOADPREFS       = (CMD_NONSTD+5);       { PRIVATE: do not use! }
+    PRD_USEPREFS        = (CMD_NONSTD+6);       { PRIVATE: do not use! }
+    PRD_SAVEPREFS       = (CMD_NONSTD+7);       { PRIVATE: do not use! }
+    PRD_READPREFS       = (CMD_NONSTD+8);
+    PRD_WRITEPREFS      = (CMD_NONSTD+9);
+    PRD_EDITPREFS       = (CMD_NONSTD+10);
+    PRD_SETERRHOOK      = (CMD_NONSTD+11);
+    PRD_DUMPRPORTTAGS   = (CMD_NONSTD+12);
 
 
 { printer command definitions }
@@ -258,17 +258,17 @@ Const
 
     PDERR_TOOKCONTROL   = 8;            { Took control in case 0 of render }
 
-    PDERR_BADPREFERENCES = 9;	{ preferences file corrupt }
+    PDERR_BADPREFERENCES = 9;   { preferences file corrupt }
 
 {
-	Note: all error codes < 32 are reserved for printer.device.
-	All error codes >= 32 and < 127 are reserved for driver specific
-	errors. Negative errors are reserved for system use (standard I/O
-	errors) and error code 127 is reserved for future expansion.
+        Note: all error codes < 32 are reserved for printer.device.
+        All error codes >= 32 and < 127 are reserved for driver specific
+        errors. Negative errors are reserved for system use (standard I/O
+        errors) and error code 127 is reserved for future expansion.
 }
-    PDERR_LASTSTANDARD	= 31;
-    PDERR_FIRSTCUSTOM	= 32;
-    PDERR_LASTCUSTOM	= 126;
+    PDERR_LASTSTANDARD  = 31;
+    PDERR_FIRSTCUSTOM   = 32;
+    PDERR_LASTCUSTOM    = 126;
 { internal use }
 
     SPECIAL_DENSITYMASK = $0700;        { masks out density values }
@@ -286,9 +286,9 @@ Const
 
 { The following tags are not implemented but reserved for future use. }
 
-    DRPA_ICCProfile	= (DRPA_Dummy+1); { APTR }
-    DRPA_ICCName	= (DRPA_Dummy+2); { STRPTR }
-    DRPA_NoColCorrect	= (DRPA_Dummy+3); { LBOOL }
+    DRPA_ICCProfile     = (DRPA_Dummy+1); { APTR }
+    DRPA_ICCName        = (DRPA_Dummy+2); { STRPTR }
+    DRPA_NoColCorrect   = (DRPA_Dummy+3); { LBOOL }
 
 {**************************************************************************}
 
@@ -300,9 +300,9 @@ Const
 { The source hook (DRPA_SourceHook) is called with object NULL and
    message is a pointer to the following struct.
 
-		VOID hook(struct Hook * hook,
-		          APTR dummy,
-		          struct DRPSourceMsg * drpm);
+                VOID hook(struct Hook * hook,
+                          APTR dummy,
+                          struct DRPSourceMsg * drpm);
 }
 
 type
@@ -345,8 +345,8 @@ const
        end;
 
 const
-    PPRA_Window	  = (PPRA_Dummy+1); { struct Window * }
-    PPRA_Screen	  = (PPRA_Dummy+2); { struct Screen * }
+    PPRA_Window   = (PPRA_Dummy+1); { struct Window * }
+    PPRA_Screen   = (PPRA_Dummy+2); { struct Screen * }
     PPRA_PubScreen  = (PPRA_Dummy+3); { STRPTR }
 
 {**************************************************************************}
@@ -354,8 +354,8 @@ const
 { Request to set error hook (for PRD_SETERRHOOK; V44)}
 
 {
-#define PDHOOK_NONE	((struct Hook *) NULL)
-#define PDHOOK_STD	((struct Hook *) 1)
+#define PDHOOK_NONE     ((struct Hook *) NULL)
+#define PDHOOK_STD      ((struct Hook *) 1)
 }
 
 
@@ -374,13 +374,13 @@ const
 {**************************************************************************}
 
 {
-	The error hook is called with the IORequest that caused the error as
-	object (2nd Parameter) and a pointer to struct PrtErrMsg as message
-	(3rd Parameter):
+        The error hook is called with the IORequest that caused the error as
+        object (2nd Parameter) and a pointer to struct PrtErrMsg as message
+        (3rd Parameter):
 
-		VOID hook(struct Hook * hook,
-		          struct printerIO * ior,
-		          struct PrtErrMsg * pem);
+                VOID hook(struct Hook * hook,
+                          struct printerIO * ior,
+                          struct PrtErrMsg * pem);
 }
 
 

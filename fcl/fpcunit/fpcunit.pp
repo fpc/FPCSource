@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
-    
-    Port to Free Pascal of the JUnit framework. 
+
+    Port to Free Pascal of the JUnit framework.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -23,21 +23,21 @@ interface
 
 uses
   {$ifdef SHOWLINEINFO}
-  LineInfo, 
+  LineInfo,
   {$endif}
   SysUtils, Classes;
 
 type
-  
+
   EAssertionFailedError = class(Exception)
     constructor Create; overload;
     constructor Create(const msg :string); overload;
   end;
-  
+
   TRunMethod = procedure of object;
-  
+
   TTestResult = class;
-  
+
   {$M+}
   TTest = class(TObject)
   protected
@@ -45,13 +45,13 @@ type
     function GetTestSuiteName: string; virtual;
     procedure SetTestSuiteName(const aName: string); virtual; abstract;
   public
-    function CountTestCases: integer; virtual; 
+    function CountTestCases: integer; virtual;
     procedure Run(AResult: TTestResult); virtual;
   published
     property TestName: string read GetTestName;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
-  end; 
-  {$M-}   
+  end;
+  {$M-}
 
   TAssert = class(TTest)
   public
@@ -97,7 +97,7 @@ type
     class procedure AssertException(const AMessage: string; AExceptionClass: ExceptClass; AMethod: TRunMethod); overload;
     class procedure AssertException(AExceptionClass: ExceptClass; AMethod: TRunMethod); overload;
   end;
-  
+
   TTestFailure = class(TObject)
   private
     FTestName: string;
@@ -123,7 +123,7 @@ type
     property LineNumber: longint read FLineNumber write FLineNumber;
     property MethodName: string read FMethodName write FMethodName;
   end;
-  
+
   ITestListener = interface
   ['{0CE9D3AE-882A-D811-9401-ADEB5E4C7FC1}']
     procedure AddFailure(ATest: TTest; AFailure: TTestFailure);
@@ -131,7 +131,7 @@ type
     procedure StartTest(ATest: TTest);
     procedure EndTest(ATest: TTest);
   end;
-  
+
   TTestCase = class(TAssert)
   private
     FName: string;
@@ -158,9 +158,9 @@ type
   published
     property TestName: string read GetTestName write SetTestName;
   end;
-  
+
   TTestClass = Class of TTestCase;
-  
+
   TTestSuite = class(TTest)
   private
     FTests: TList;
@@ -185,12 +185,12 @@ type
     procedure AddTest(ATest: TTest); overload; virtual;
     procedure AddTestSuiteFromClass(ATestClass: TClass); virtual;
     class function Warning(const aMessage: string): TTestCase;
-    property Test[Index: integer]: TTest read GetTest; default;    
+    property Test[Index: integer]: TTest read GetTest; default;
     property TestSuiteName: string read GetTestSuiteName write SetTestSuiteName;
     property TestName: string read GetTestName write SetTestName;
     property Tests: TList read FTests;
   end;
-  
+
   TTestResult = class(TObject)
   private
   protected
@@ -223,8 +223,8 @@ type
     property NumberOfFailures: integer read GetNumFailures;
   end;
 
-  function ComparisonMsg(const aExpected: string; const aActual: string): string;  
-  
+  function ComparisonMsg(const aExpected: string; const aActual: string): string;
+
 Resourcestring
 
   SCompare = ' expected: <%s> but was: <%s>';
@@ -233,8 +233,8 @@ Resourcestring
   SMethodNotFound = 'Method <%s> not found';
   SNoValidInheritance = ' does not inherit from TTestCase';
   SNoValidTests = 'No valid tests found in ';
-  
-  
+
+
 implementation
 
 uses
@@ -248,17 +248,17 @@ type
   protected
     procedure RunTest; override;
   end;
-  
+
 procedure TTestWarning.RunTest;
 begin
   Fail(FMessage);
-end;  
+end;
 
 function ComparisonMsg(const aExpected: string; const aActual: string): string;
 begin
   Result := format(SCompare, [aExpected, aActual]);
 end;
-  
+
 constructor EAssertionFailedError.Create;
 begin
   inherited Create('');
@@ -293,7 +293,7 @@ function TTestFailure.GetExceptionClassName: string;
 begin
   Result := FRaisedExceptionClass.ClassName;
 end;
-    
+
 function TTestFailure.GetExceptionMessage: string;
 begin
   Result := FRaisedExceptionMessage;
@@ -319,14 +319,14 @@ end;
 function TTest.CountTestCases: integer;
 begin
   Result := 0;
-end; 
+end;
 
 procedure TTest.Run(AResult: TTestResult);
 begin
 end;
 
 { TAssert }
-  
+
 class procedure TAssert.Fail(const AMessage: String);
 begin
   raise EAssertionFailedError.Create(AMessage);
@@ -368,7 +368,7 @@ begin
   AssertNotNull('', AString);
 end;
 
-class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: integer); 
+class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: integer);
 begin
   AssertTrue(AMessage + ComparisonMsg(IntToStr(Expected), IntToStr(Actual)), Expected = Actual);
 end;
@@ -401,7 +401,7 @@ end;
 
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual, Delta: double);
 begin
-  AssertTrue(AMessage + ComparisonMsg(FloatToStr(Expected),FloatToStr(Actual)), 
+  AssertTrue(AMessage + ComparisonMsg(FloatToStr(Expected),FloatToStr(Actual)),
     (Abs(Expected - Actual) <= Delta));
 end;
 
@@ -412,9 +412,9 @@ end;
 
 class procedure TAssert.AssertNotNull(const AMessage, AString: string);
 begin
-  AssertTrue(AMessage, AString <> ''); 
+  AssertTrue(AMessage, AString <> '');
 end;
- 
+
 class procedure TAssert.AssertEquals(const AMessage: string; Expected, Actual: boolean);
 begin
   AssertTrue(AMessage + ComparisonMsg(BoolToStr(Expected), BoolToStr(Actual)), Expected = Actual);
@@ -447,7 +447,7 @@ end;
 
 class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: TObject);
 begin
-  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))), 
+  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))),
     Expected = Actual);
 end;
 
@@ -458,7 +458,7 @@ end;
 
 class procedure TAssert.AssertSame(const AMessage: string; Expected, Actual: Pointer);
 begin
-  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))), 
+  AssertTrue(AMessage + ComparisonMsg(IntToStr(PtrInt(Expected)), IntToStr(PtrInt(Actual))),
     Expected = Actual);
 end;
 
@@ -558,7 +558,7 @@ end;
 constructor TTestCase.Create;
 begin
   inherited Create;
-end;   
+end;
 
 constructor TTestCase.CreateWithName(const AName: string);
 begin
@@ -639,16 +639,16 @@ var
 begin
   AssertNotNull(FName);
   pMethod := Self.MethodAddress(FName);
-  if (Assigned(pMethod)) then 
+  if (Assigned(pMethod)) then
   begin
     m.Code := pMethod;
     m.Data := self;
     RunMethod := TRunMethod(m);
     RunMethod;
   end
-  else 
+  else
     begin
-      Fail(format(SMethodNotFound, [FName])); 
+      Fail(format(SMethodNotFound, [FName]));
     end;
 end;
 
@@ -695,7 +695,7 @@ begin
     AddTest(Warning(SNoValidTests + AClass.ClassName));
 end;
 
-constructor TTestSuite.Create(AClassArray: Array of TClass); 
+constructor TTestSuite.Create(AClassArray: Array of TClass);
 var
   i: integer;
 begin
@@ -761,7 +761,7 @@ begin
   end;
 end;
 
-procedure TTestSuite.Run(AResult: TTestResult); 
+procedure TTestSuite.Run(AResult: TTestResult);
 var
   i: integer;
 begin
@@ -781,7 +781,7 @@ begin
     ATest.TestSuiteName := Self.TestName;
 end;
 
-procedure TTestSuite.AddTestSuiteFromClass(ATestClass: TClass); 
+procedure TTestSuite.AddTestSuiteFromClass(ATestClass: TClass);
 begin
   AddTest(TTestSuite.Create(ATestClass));
 end;
@@ -918,7 +918,7 @@ begin
   FRunTests := FRunTests + count;
   for i := 0 to FListeners.Count - 1 do
     ITestListener(FListeners[i]).StartTest(ATest);
-  //unlock mutex  
+  //unlock mutex
 end;
 
 function TTestResult.WasSuccessful: boolean;

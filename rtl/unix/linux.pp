@@ -6,7 +6,7 @@
    members of the Free Pascal development team.
 
    This unit contains only fully linux specific code and calls under 1.1.x
-   When compiled with the 1.0.x series it contains a somewhat 1.0.x 
+   When compiled with the 1.0.x series it contains a somewhat 1.0.x
      compatible linux code to allow bootstrap.
 
    See the file COPYING.FPC, included in this distribution,
@@ -26,7 +26,7 @@
 
 {
    $Log$
-   Revision 1.32  2003-09-15 14:12:17  marco
-    * moved linux.pp contents to linuxold etc
+   Revision 1.33  2005-02-14 17:13:31  peter
+     * truncate log
 
 }

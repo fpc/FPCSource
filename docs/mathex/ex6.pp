@@ -5,7 +5,7 @@ Program Example6;
 Uses math;
 
   Procedure WriteRadDeg(X : float);
-  
+
   begin
     Writeln(X:8:5,' rad = ',radtodeg(x):8:5,' degrees.')
   end;

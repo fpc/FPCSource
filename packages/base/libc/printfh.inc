@@ -40,6 +40,6 @@ function printf_size_info(__info:Pprintf_info; __n:size_t; __argtypes:Plongint):
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TPrintfInfo = printf_info;
   PPrintfInfo = ^TPrintfInfo;

@@ -12,14 +12,14 @@ end;
 Function ICMP_INFOTYPE(_type: cardinal): Boolean;
 
 begin
-  Result := (_type=ICMP_ECHOREPLY) or 
-            (_type=ICMP_ECHO) or    
-            (_type=ICMP_ROUTERADVERT) or 
+  Result := (_type=ICMP_ECHOREPLY) or
+            (_type=ICMP_ECHO) or
+            (_type=ICMP_ROUTERADVERT) or
             (_type=ICMP_ROUTERSOLICIT) or
-            (_type=ICMP_TSTAMP) or 
+            (_type=ICMP_TSTAMP) or
             (_type=ICMP_TSTAMPREPLY) or
-            (_type=ICMP_IREQ) or 
+            (_type=ICMP_IREQ) or
             (_type=ICMP_IREQREPLY) or
-            (_type=ICMP_MASKREQ) or 
+            (_type=ICMP_MASKREQ) or
             (_type=ICMP_MASKREPLY);
 end;

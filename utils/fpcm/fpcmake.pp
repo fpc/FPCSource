@@ -258,7 +258,7 @@ end;
 procedure printVersion;
 begin
   writeln (TitleDate);
-  halt(0);	
+  halt(0);
 end;
 
 
@@ -303,7 +303,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2005-01-31 19:26:47  peter
+  Revision 1.14  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.13  2005/01/31 19:26:47  peter
     * show version+date if -v is used
 
   Revision 1.12  2005/01/11 21:13:12  armin

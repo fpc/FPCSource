@@ -4,7 +4,7 @@ type
    PGnomePaper = ^TGnomePaper;
    TGnomePaper = Record
    end;
-   
+
    PGnomeUnit = ^TGnomeUnit;
    TGnomeUnit = Record
    end;

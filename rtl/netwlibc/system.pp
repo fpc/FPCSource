@@ -559,7 +559,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.13  2005-02-06 16:57:18  peter
+  Revision 1.14  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.13  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.12  2005/02/01 20:22:49  florian
@@ -567,42 +570,5 @@ End.
 
   Revision 1.11  2005/01/04 11:25:34  armin
   * rtl code cleanup, compat fixes between clib and libc
-
-  Revision 1.10  2004/12/07 11:40:43  armin
-  * implemented GetProcessId, defined TimeVal and TimeZone in addition to TTimeVal, TTimeZone, Makefile defaults to binutilsprefix i386-netware
-
-  Revision 1.9  2004/12/05 14:36:38  hajny
-    + GetProcessID added
-
-  Revision 1.8  2004/11/25 12:38:17  armin
-  * adapted to new compiler check for externals
-
-  Revision 1.7  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.6  2004/10/25 18:11:49  armin
-  * saveregisters no longer supported by compiler, for now save all registers in stackcheck
-
-  Revision 1.5  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.4  2004/09/26 19:23:34  armin
-  * exiting threads at nlm unload
-  * renamed some libc functions
-
-  Revision 1.3  2004/09/19 20:06:37  armin
-  * removed get/free video buf from video.pp
-  * implemented sockets
-  * basic library support
-  * threadvar memory leak removed
-  * fixes (ide now starts and editor is usable)
-  * support for lineinfo
-
-  Revision 1.2  2004/09/12 20:51:22  armin
-  * added keyboard and video
-  * a lot of fixes
-
-  Revision 1.1  2004/09/05 20:58:47  armin
-  * first rtl version for netwlibc
 
 }

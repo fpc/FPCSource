@@ -781,7 +781,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2005-02-13 19:12:05  florian
+  Revision 1.43  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.42  2005/02/13 19:12:05  florian
     * setup ovlov correctly
 
   Revision 1.41  2005/02/13 18:55:19  florian
@@ -798,46 +801,5 @@ end.
 
   Revision 1.37  2005/01/01 14:32:53  florian
     * maybe_constant means also that a loc can be CREGISTER
-
-  Revision 1.36  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.35  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.34  2004/09/29 18:55:40  florian
-    * fixed more sparc overflow stuff
-    * fixed some op64 stuff for sparc
-
-  Revision 1.33  2004/09/26 21:04:35  florian
-    + partial overflow checking on sparc; multiplication still missing
-
-  Revision 1.32  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.31  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.30  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.29.2.5  2004/06/13 10:51:16  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.29.2.4  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.29.2.3  2004/06/02 20:59:05  peter
-    * fix negative consts
-
-  Revision 1.29.2.2  2004/05/30 17:54:14  florian
-    + implemented cmp64bit
-    * started to fix spilling
-    * fixed int64 sub partially
 
 }

@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Convert .html to htm files, together with links.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -23,7 +23,7 @@ Var
   Verbose    : Boolean;
   FileCount  : Boolean;
   DeleteHtml : Boolean;
-  
+
 Procedure ConvertFile (FileName : String);
 
 Var
@@ -37,7 +37,7 @@ begin
     If Verbose then
       Writeln('Converting ',FileName,' to ',OFileName)
     else
-      Write('.');  
+      Write('.');
     Assign(InFile,FileName);
     Assign(OutFile,OFileName);
     Reset(Infile);
@@ -55,7 +55,7 @@ begin
       end;
     finally
       Close(InFile);
-    end;  
+    end;
     If DeleteHtml then
       begin
       If Verbose then
@@ -65,7 +65,7 @@ begin
   except
     On E : Exception do
       Writeln('Error converting ',FileName,' to ',OFileName,' : ',E.Message);
-  end;  
+  end;
 end;
 
 Function DoDirectory(DirName : String; Recurse : Boolean) : Integer;
@@ -85,7 +85,7 @@ begin
     Finally
       FindClose(Info);
     end;
-  If Recurse then  
+  If Recurse then
     If FindFirst(Dirname+'*',faDirectory,Info)=0 then
        Try
          Repeat
@@ -104,7 +104,7 @@ Var
   I     : integer;
   Count,Total : Integer;
   Dir   : String;
-  
+
 begin
   Total:=0;
   for I:=1 to ParamCount do
@@ -118,8 +118,8 @@ begin
       Writeln('Directory ',Dir,' : ',Count,' files.');
       Total:=Total+Count;
       end;
-    end;  
-  Writeln('Total files ',Total);    
+    end;
+  Writeln('Total files ',Total);
 end;
 
 Procedure DoParams;

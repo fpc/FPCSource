@@ -1581,8 +1581,7 @@ const
 
 {
   $Log$
-  Revision 1.2  2004-07-17 10:13:09  hajny
-    + missing CVS logs added
-
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

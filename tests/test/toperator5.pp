@@ -127,10 +127,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-12-22 15:14:02  peter
-    * ucomplex will be delivered with 1.1
+  Revision 1.3  2005-02-14 17:13:35  peter
+    * truncate log
 
-  Revision 1.1  2002/09/08 11:54:23  carl
-    * operator overloading interactive tests
-
-}  
+}

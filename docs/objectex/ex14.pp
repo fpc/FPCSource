@@ -7,7 +7,7 @@ Uses Objects;
 Var L : String;
     P : PString;
     S : PDosStream; { Only one with Close implemented. }
-    
+
 begin
   L:='Some constant string';
   S:=New(PDosStream,Init('test.dat',stcreate));

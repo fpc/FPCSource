@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     reads and dumps a message file to screen.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -25,7 +25,7 @@ Var
   PO,PI : PCardinal;
   I,J,Count,C,S : Cardinal;
   Buf : String;
-  
+
 begin
   Assign(F,Paramstr(1));
   Reset(F);
@@ -65,7 +65,7 @@ begin
     SetLength(Buf,J);
     Writeln('String (',J,') : ',Buf);
     end;
-  Writeln('Seqential read : ');  
+  Writeln('Seqential read : ');
   Seek(F,PO[1] div 4);
   For I:=1 to Count do
     begin
@@ -81,13 +81,16 @@ begin
       dec(J);
     SetLength(Buf,J);
     Writeln('String (',J,') : ',Buf);
-    end; 
+    end;
   Close(F);
 end.
 
 {
   $Log$
-  Revision 1.1  2003-02-14 21:59:21  michael
+  Revision 1.2  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.1  2003/02/14 21:59:21  michael
   + Initial implementation
 
 }

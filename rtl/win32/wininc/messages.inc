@@ -1155,36 +1155,36 @@
      WM_KEYLAST = 264;
      WM_MOUSEFIRST = 512;
      WM_MOUSELAST     = 525;
-     WM_XBUTTONDOWN   = 523; 
-     WM_XBUTTONUP     = 524;             
+     WM_XBUTTONDOWN   = 523;
+     WM_XBUTTONUP     = 524;
      WM_XBUTTONDBLCLK = 525;
 
 Type
 {$ifdef MESSAGESUNIT}
 
-    MSG 		= Windows.MSG;
-    TMessage 		= Windows.TMessage;
-    TWMSize 		= Windows.TWMSize;
-    TWMNoParams 	= Windows.TWMNoParams;
-    TWMScroll 		= Windows.TWMScroll;
-    TWMGetText 		= Windows.TWMGetText;
-    TWMKillFocus 	= Windows.TWMKillFocus;
-    TWMSetCursor 	= Windows.TWMSetCursor;
-    TWMSetFocus 	= Windows.TWMSetFocus;
-    TWMSetFont 		= Windows.TWMSetFont;
-    TWMShowWindow 	= Windows.TWMShowWindow;
-    TWMEraseBkgnd 	= Windows.TWMEraseBkgnd;
-    LPMSG 		= Windows.MSG;
-    tagMSG 		= Windows.tagMSG;
-    TMSG 		= Windows.TMSG;
-    PMSG 		= Windows.PMSG;
-    PMessage 		= Windows.PMessage;
-    TWMGetDlgCode 	= TWMNoParams;
-    TWMFontChange 	= TWMNoParams;
-    TWMGetFont 		= TWMNoParams;
-    TWMHScroll 		= TWMScroll;
-    TWMVScroll 		= TWMScroll;
-    TWMGetTextLength 	= TWMNoParams;
+    MSG                 = Windows.MSG;
+    TMessage            = Windows.TMessage;
+    TWMSize             = Windows.TWMSize;
+    TWMNoParams         = Windows.TWMNoParams;
+    TWMScroll           = Windows.TWMScroll;
+    TWMGetText          = Windows.TWMGetText;
+    TWMKillFocus        = Windows.TWMKillFocus;
+    TWMSetCursor        = Windows.TWMSetCursor;
+    TWMSetFocus         = Windows.TWMSetFocus;
+    TWMSetFont          = Windows.TWMSetFont;
+    TWMShowWindow       = Windows.TWMShowWindow;
+    TWMEraseBkgnd       = Windows.TWMEraseBkgnd;
+    LPMSG               = Windows.MSG;
+    tagMSG              = Windows.tagMSG;
+    TMSG                = Windows.TMSG;
+    PMSG                = Windows.PMSG;
+    PMessage            = Windows.PMessage;
+    TWMGetDlgCode       = TWMNoParams;
+    TWMFontChange       = TWMNoParams;
+    TWMGetFont          = TWMNoParams;
+    TWMHScroll          = TWMScroll;
+    TWMVScroll          = TWMScroll;
+    TWMGetTextLength    = TWMNoParams;
 
 {$else}
 
@@ -1296,7 +1296,7 @@ Type
       Status : LongInt;
       Result : LongInt;
     end;
-    
+
     TWMEraseBkgnd = packed record
       Msg: Cardinal;
       DC: HDC;
@@ -1310,39 +1310,7 @@ Type
 
 {
   $Log$
-  Revision 1.13  2004-11-09 14:20:26  marco
-    * patch from vincent
-
-  Revision 1.12  2004/08/22 11:12:24  marco
-   * including in both messages and windows caused problems (expected
-  	windows.msg, got message.msg and vice versa. Solved by aliasing
-
-  Revision 1.11  2003/12/06 15:56:35  marco
-   * typo fix
-
-  Revision 1.10  2003/12/06 15:53:21  marco
-   * mouse_last fixes for bug 2784
-
-  Revision 1.9  2003/11/28 17:21:40  peter
-    * TWMEraseBkgnd added
-
-  Revision 1.8  2003/11/09 13:49:28  michael
-  + TMessage result member is a longint, not a cardinal (from Micha Nelissen, verified in D6).
-
-  Revision 1.7  2003/10/08 16:24:47  florian
-    * fixed some variant issues
-    * improved type declarations
-
-  Revision 1.6  2003/10/06 23:52:53  florian
-    * some data types cleaned up
-
-  Revision 1.5  2003/01/02 22:07:00  peter
-    * missing items
-
-  Revision 1.4  2002/11/04 12:17:42  marco
-   * Added some of the tmsg/tmessage records.
-
-  Revision 1.3  2002/09/07 16:01:31  peter
-    * old logs removed and tabs fixed
+  Revision 1.14  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

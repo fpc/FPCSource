@@ -1,6 +1,6 @@
 Program Example35;
 
-{ Program to demonstrate the 
+{ Program to demonstrate the
   OpenDir,ReadDir, SeekDir and TellDir functions. }
 
 Uses oldlinux;
@@ -11,7 +11,7 @@ Var TheDir : PDir;
 
 begin
   TheDir:=OpenDir('./.');
-  Repeat 
+  Repeat
     Entry:=TellDir(TheDir);
     ADirent:=ReadDir (TheDir);
     If ADirent<>Nil then
@@ -27,7 +27,7 @@ begin
   Repeat
     Write ('Entry No. you would like to see again (-1 to stop): ');
     ReadLn (Entry);
-    If Entry<>-1 then 
+    If Entry<>-1 then
       begin
       SeekDir (TheDir,Entry);
       ADirent:=ReadDir (TheDir);

@@ -206,35 +206,11 @@ begin
 end.
 {
     $Log$
-    Revision 1.31  2005-01-23 17:14:21  florian
+    Revision 1.32  2005-02-14 17:13:10  peter
+      * truncate log
+
+    Revision 1.31  2005/01/23 17:14:21  florian
       + optimized code generation on sparc
       + some stuff for pic code on sparc added
-
-    Revision 1.30  2004/10/31 21:45:04  peter
-      * generic tlocation
-      * move tlocation to cgutils
-
-    Revision 1.29  2004/10/03 12:42:22  florian
-      * made sqrt, sqr and abs internal for the sparc
-
-    Revision 1.28  2004/06/20 08:55:32  florian
-      * logs truncated
-
-    Revision 1.27  2004/06/20 07:11:32  florian
-      - offsetfixup removed
-
-    Revision 1.26  2004/06/16 20:07:10  florian
-      * dwarf branch merged
-
-    Revision 1.25.2.3  2004/05/30 17:54:14  florian
-      + implemented cmp64bit
-      * started to fix spilling
-      * fixed int64 sub partially
-
-    Revision 1.25.2.2  2004/05/25 21:38:53  peter
-      * assembler reader/writer updates
-
-    Revision 1.25.2.1  2004/05/11 21:06:51  peter
-      * sparc compiler fixed
 
 }

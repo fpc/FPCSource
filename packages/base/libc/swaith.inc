@@ -26,7 +26,7 @@ function wait4(__pid:__pid_t; __stat_loc: Plongint; __options:longint; __usage:P
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function wait(var __stat_loc: Longint):__pid_t;cdecl;external clib name 'wait';
 function waitpid(__pid:__pid_t; var __stat_loc:longint; __options:longint):__pid_t;cdecl;external clib name 'waitpid';
 function waitid(__idtype:idtype_t; __id:__id_t; var __infop: siginfo_t; __options:longint):longint;cdecl;external clib name 'waitid';

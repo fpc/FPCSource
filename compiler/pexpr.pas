@@ -2527,7 +2527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.180  2005-02-06 20:29:12  florian
+  Revision 1.181  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.180  2005/02/06 20:29:12  florian
     * fixed precedence of is-operator
 
   Revision 1.179  2005/01/20 17:05:53  peter
@@ -2535,91 +2538,5 @@ end.
 
   Revision 1.178  2005/01/04 16:38:07  peter
     * don't allow properties in C style operators
-
-  Revision 1.177  2004/12/26 16:22:01  peter
-    * fix lineinfo for with blocks
-
-  Revision 1.176  2004/12/06 19:23:05  peter
-  implicit load of variants unit
-
-  Revision 1.175  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.174  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.173  2004/11/17 22:21:35  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.172  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.171  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.170  2004/11/04 17:57:58  peter
-  added checking for token=_ID after _POINT is parsed
-
-  Revision 1.169  2004/11/01 15:32:12  peter
-    * support @labelsym
-
-  Revision 1.168  2004/11/01 10:33:01  peter
-    * symlist typeconv for absolute fixed
-
-  Revision 1.167  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.166  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.165  2004/10/12 19:51:13  peter
-    * all checking for visibility is now done by is_visible_for_object
-
-  Revision 1.164  2004/10/12 14:35:47  peter
-    * cstyle operators with calln in the tree now use a temp
-
-  Revision 1.163  2004/08/25 15:58:36  peter
-    * fix crash with calling method pointer from class procedure
-
-  Revision 1.162  2004/07/05 23:25:34  olle
-    + adding operators "|" and "&" for macpas
-
-  Revision 1.161  2004/07/05 21:49:43  olle
-    + macpas style: exit, cycle, leave
-    + macpas compiler directive: PUSH POP
-
-  Revision 1.160  2004/06/29 20:59:43  peter
-    * don't allow assigned(tobject) anymore, it is useless since it
-      is always true
-
-  Revision 1.159  2004/06/28 14:38:36  michael
-  + Patch from peter to fix typinfo for classes
-
-  Revision 1.158  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.157  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.156  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.155  2004/05/16 15:03:48  florian
-    + support for assigned(<dyn. array>) added
-
-  Revision 1.154  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.153  2004/04/12 18:59:32  florian
-    * small x86_64 fixes
 
 }

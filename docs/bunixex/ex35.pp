@@ -1,6 +1,6 @@
 Program Example35;
 
-{ Program to demonstrate the 
+{ Program to demonstrate the
   OpenDir,ReadDir, SeekDir and TellDir functions. }
 
 Uses BaseUnix;
@@ -11,7 +11,7 @@ Var TheDir : PDir;
 
 begin
   TheDir:=fpOpenDir('./.');
-  Repeat 
+  Repeat
 //    Entry:=fpTellDir(TheDir);
     ADirent:=fpReadDir (TheDir^);
     If ADirent<>Nil then
@@ -27,9 +27,9 @@ begin
   Repeat
     Write ('Entry No. you would like to see again (-1 to stop): ');
     ReadLn (Entry);
-    If Entry<>-1 then 
+    If Entry<>-1 then
       begin
-//      fpSeekDir (TheDir,Entry);		// not implemented for various platforms
+//      fpSeekDir (TheDir,Entry);               // not implemented for various platforms
       ADirent:=fpReadDir (TheDir^);
       If ADirent<>Nil then
         With ADirent^ do

@@ -8,7 +8,7 @@
  * Release: Palm OS SDK 4.0 (63220)
  *
  * Description:
- *    Include file for Error Management 
+ *    Include file for Error Management
  *
  * History:
  *    10/25/94 RM    Created by Ron Marianetti
@@ -36,7 +36,7 @@
  *       // Recover or cleanup after a failure in the above Try block.
  *       // "inErr" is an ExceptionCode identifying the reason
  *       // for the failure.
- *       
+ *
  *       // You may call Throw() if you want to jump out to
  *       // the next Catch block.
  *
@@ -76,7 +76,7 @@
  *    Throw calls longjmp, which restores the registers and jumps
  *    to the beginning of the Catch block. Therefore, any changes
  *    in the Try block to variables stored in registers will not
- *    be retained when entering the Catch block. 
+ *    be retained when entering the Catch block.
  *
  *    The solution is to declare variables that you want to use
  *    in both the Try and Catch blocks as "volatile". For example:
@@ -88,7 +88,7 @@
  *    }
  *
  *    ErrCatch(inErr) {
- *       if (x > 1) {            // Use local variable in Catch   
+ *       if (x > 1) {            // Use local variable in Catch
  *          SysBeep(1);
  *       }
  *    } ErrEndCatch

@@ -13,7 +13,7 @@ Var
 Begin
   Y:=YearOf(Today);
   M:=MonthOf(Today);
-  D:=DayOf(Today); 
+  D:=DayOf(Today);
   Writeln(FormatDateTime(Fmt,EndOfADay(Y,M,D)));
   DecodeDateDay(Today,Y,D);
   Writeln(FormatDateTime(Fmt,EndOfADay(Y,D)));

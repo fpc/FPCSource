@@ -128,7 +128,7 @@
         WRITE_DEBUG('Jumping to thread function'#13#10);
         ThreadMain:=pointer(ti.f(ti.p));
         DoneThread;
-	//pthread_detach(pointer(pthread_self));
+        //pthread_detach(pointer(pthread_self));
         pthread_exit (nil);
       end;
 
@@ -314,15 +314,15 @@ type
          FSem: Pointer;
          FManualReset: Boolean;
          FEventSection: ppthread_mutex_t;
-	end;
+        end;
      plocaleventstate = ^tbasiceventstate;
 //     peventstate=pointer;
 
 Const
-	wrSignaled = 0;
-	wrTimeout  = 1;
-	wrAbandoned= 2;
-	wrError	   = 3;
+        wrSignaled = 0;
+        wrTimeout  = 1;
+        wrAbandoned= 2;
+        wrError    = 3;
 
 function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 
@@ -449,7 +449,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-06 16:57:18  peter
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.1  2005/02/06 13:06:20  peter

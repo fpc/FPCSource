@@ -23,7 +23,7 @@ program pmdemo1;
      ab : cardinal;
      mq : cardinal;
      msg : QMSG;
-     
+
   const
      frameflags : longint = FCF_TITLEBAR+FCF_SYSMENU+FCF_SIZEBORDER+
                             FCF_MINBUTTON+FCF_MAXBUTTON+FCF_SHELLPOSITION+
@@ -31,10 +31,10 @@ program pmdemo1;
 
   function clientwndproc(window : cardinal;msg : longint;mp1,mp2 : pointer) :
     pointer; cdecl; export;
-  
+
     const
        text = 'Hello world by OS/2 and FPC';
-       
+
     var
        ps : cardinal;
        rcl : RECTL;
@@ -46,7 +46,7 @@ program pmdemo1;
           WM_PAINT : begin
                         ps:=WinBeginPaint(window,0,nil);
                         WinQueryWindowRect(window,@rcl);
-                        WinDrawText(ps,-1,text,@rcl,0,7,$8500); 
+                        WinDrawText(ps,-1,text,@rcl,0,7,$8500);
                         WinEndPaint(ps);
                      end;
           WM_COMMAND : case lo(longint(mp1)) of
@@ -58,13 +58,13 @@ program pmdemo1;
                        end;
        else
           clientwndproc:=WinDefWindowProc(window,msg,mp1,mp2);
-       end;                                                        
+       end;
     end;
 
  begin
     ab:=WinInitialize(0);
     mq:=WinCreateMsgQueue(ab,0);
-    WinRegisterClass(ab,'HELLOPM',proc(@clientwndproc),4,0);    
+    WinRegisterClass(ab,'HELLOPM',proc(@clientwndproc),4,0);
     frame:=WinCreateStdWindow(cardinal(1),WS_VISIBLE,@frameflags,'HELLOPM',
       'PMDemo 1',WS_VISIBLE,0,1,@client);
     while WinGetMsg(ab,@msg,0,0,0) do
@@ -75,7 +75,7 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -29,7 +29,7 @@ uses palmos, coretraps, errorbase;
  * the constant dmErrorClass is defined in ErrorBase.h
  *************************************************************)
 
-const 
+const
   fileErrMemError            = fileErrorClass or 1;  // out of memory error
   fileErrInvalidParam        = fileErrorClass or 2;  // invalid parameter value passed
   fileErrCorruptFile         = fileErrorClass or 3;  // the file is corrupted/invalid/not a stream file

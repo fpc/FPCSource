@@ -250,6 +250,6 @@ end;
 function AlmGetProcAlarm(procP: AlmAlarmProc; var refP: UInt32): UInt32;
 begin
   AlmGetProcAlarm := AlmGetAlarm(almProcAlarmCardNo, LocalID(procP), refP);
-end;  
+end;
 
 end.

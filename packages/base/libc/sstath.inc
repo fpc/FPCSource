@@ -8,7 +8,7 @@ const
    S_IFIFO  = __S_IFIFO;
    S_IFLNK  = __S_IFLNK;
    S_IFSOCK = __S_IFSOCK;
-    
+
 
 function __S_ISTYPE(mode,mask : __mode_t) : boolean;
 function S_ISDIR(mode : __mode_t) : boolean;
@@ -80,7 +80,7 @@ function __xmknod(__ver:longint; __path:Pchar; __mode:__mode_t; __dev:P__dev_t):
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function stat(__file:Pchar; var __buf:_stat):longint;cdecl;external clib name 'stat';
 function fstat(__fd:longint; var __buf:_stat):longint;cdecl;external clib name 'fstat';
 

@@ -38,8 +38,8 @@ uses
 {GLOBAL}
 procedure jpeg_idct_islow (cinfo : j_decompress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           coef_block : JCOEFPTR;
-		           output_buf : JSAMPARRAY;
+                           coef_block : JCOEFPTR;
+                           output_buf : JSAMPARRAY;
                            output_col : JDIMENSION);
 
 implementation
@@ -87,7 +87,7 @@ const
 {$else}
 const
   CONST_BITS = 13;
-  PASS1_BITS = 1;	{ lose a little precision to avoid overflow }
+  PASS1_BITS = 1;       { lose a little precision to avoid overflow }
 {$endif}
 
 const
@@ -178,8 +178,8 @@ end;
 {GLOBAL}
 procedure jpeg_idct_islow (cinfo : j_decompress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           coef_block : JCOEFPTR;
-		           output_buf : JSAMPARRAY;
+                           coef_block : JCOEFPTR;
+                           output_buf : JSAMPARRAY;
                            output_col : JDIMENSION);
 type
   PWorkspace = ^TWorkspace;
@@ -231,7 +231,7 @@ begin
     if ((inptr^[DCTSIZE*1]=0) and (inptr^[DCTSIZE*2]=0) and
         (inptr^[DCTSIZE*3]=0) and (inptr^[DCTSIZE*4]=0) and
         (inptr^[DCTSIZE*5]=0) and (inptr^[DCTSIZE*6]=0) and
-	(inptr^[DCTSIZE*7]=0)) then
+        (inptr^[DCTSIZE*7]=0)) then
     begin
       { AC terms all zero }
       dcval := DEQUANTIZE(inptr^[DCTSIZE*0], quantptr^[DCTSIZE*0]) shl PASS1_BITS;
@@ -245,7 +245,7 @@ begin
       wsptr^[DCTSIZE*6] := dcval;
       wsptr^[DCTSIZE*7] := dcval;
 
-      Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+      Inc(JCOEF_PTR(inptr));            { advance pointers to next column }
       Inc(ISLOW_MULT_TYPE_PTR(quantptr));
       Inc(int_ptr(wsptr));
       continue;
@@ -314,7 +314,7 @@ begin
     wsptr^[DCTSIZE*3] := int (DESCALE(tmp13 + tmp0, CONST_BITS-PASS1_BITS));
     wsptr^[DCTSIZE*4] := int (DESCALE(tmp13 - tmp0, CONST_BITS-PASS1_BITS));
 
-    Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+    Inc(JCOEF_PTR(inptr));              { advance pointers to next column }
     Inc(ISLOW_MULT_TYPE_PTR(quantptr));
     Inc(int_ptr(wsptr));
   end;
@@ -352,7 +352,7 @@ begin
       outptr^[6] := dcval_;
       outptr^[7] := dcval_;
 
-      Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+      Inc(int_ptr(wsptr), DCTSIZE);     { advance pointer to next row }
       continue;
     end;
 {$endif}
@@ -409,14 +409,14 @@ begin
     { Final output stage: inputs are tmp10..tmp13, tmp0..tmp3 }
 
     outptr^[0] := range_limit^[ int(DESCALE(tmp10 + tmp3,
-					  CONST_BITS+PASS1_BITS+3))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3))
+                            and RANGE_MASK];
     outptr^[7] := range_limit^[ int(DESCALE(tmp10 - tmp3,
-					  CONST_BITS+PASS1_BITS+3))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3))
+                            and RANGE_MASK];
     outptr^[1] := range_limit^[ int(DESCALE(tmp11 + tmp2,
-					  CONST_BITS+PASS1_BITS+3))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3))
+                            and RANGE_MASK];
     outptr^[6] := range_limit^[ int(DESCALE(tmp11 - tmp2,
                                           CONST_BITS+PASS1_BITS+3))
                             and RANGE_MASK];
@@ -433,7 +433,7 @@ begin
                                           CONST_BITS+PASS1_BITS+3))
                             and RANGE_MASK];
 
-    Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+    Inc(int_ptr(wsptr), DCTSIZE);       { advance pointer to next row }
   end;
 end;
 

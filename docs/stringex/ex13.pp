@@ -4,7 +4,7 @@ Uses strings;
 
 { Program to demonstrate the StrScan and StrRScan functions. }
 
-Const P : PChar = 'This is a PCHAR string.'; 
+Const P : PChar = 'This is a PCHAR string.';
       S : Char = 's' ;
 
 begin

@@ -48,31 +48,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2004-01-22 17:11:23  peter
-    * classes uses types to import TPoint and TRect
-
-  Revision 1.3  2004/01/10 20:14:05  michael
-  + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
-
-  Revision 1.2  2003/11/05 09:13:59  yuri
-  * exec fix
-  * unused units removed
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.7  2003/09/02 19:49:16  hajny
-    * compilation fix (typinfo needed already in interface now)
-
-  Revision 1.6  2002/09/07 15:15:27  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/02/10 13:38:14  hajny
-    * DosCalls dependency removed to avoid type redefinitions
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

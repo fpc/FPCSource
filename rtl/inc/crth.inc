@@ -102,13 +102,7 @@ procedure cursorbig;
 
 {
   $Log$
-  Revision 1.3  2004-06-17 14:51:38  peter
-  fix compile for 1.0.x
-
-  Revision 1.2  2004/06/12 14:18:06  michael
-  + Initialized some constants
-
-  Revision 1.1  2004/02/08 16:23:10  michael
-  + Moved CRT interface to common include file
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

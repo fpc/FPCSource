@@ -497,44 +497,7 @@ unit cpubase;
 end.
 {
   $Log$
-  Revision 1.37  2004-11-01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.36  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.35  2004/10/31 12:37:11  florian
-    * another couple of arm fixed
-
-  Revision 1.34  2004/10/24 17:32:53  florian
-    * fixed several arm compiler bugs
-
-  Revision 1.33  2004/10/22 16:36:57  florian
-    * first arm fixes for new paraloc handling
-
-  Revision 1.32  2004/10/15 09:15:34  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.31  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.30  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.29.2.3  2004/06/13 10:51:17  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.29.2.2  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.29.2.1  2004/05/01 11:12:23  florian
-    * spilling of registers with size<>4 fixed
-
-  Revision 1.29  2004/03/23 21:03:50  florian
-    * arm assembler instructions can have 4 operands
-    * qword comparisations fixed
+  Revision 1.38  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

@@ -3,7 +3,7 @@ program testv1;
 
 uses varutils;
 
-Var 
+Var
   Varia : TVardata;
 
 begin

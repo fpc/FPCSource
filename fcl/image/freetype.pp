@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Basic canvas definitions.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -198,7 +198,7 @@ begin
   Mgr := aMgr;
   FSizes := TList.create;
   LastSize := nil;
-  Try 
+  Try
     FTCheck(FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font),format (sErrLoadFont,[anindex,afilename]));
   except
     Font:=Nil;
@@ -666,8 +666,8 @@ begin
         begin
         height := bitmap.rows;
         width := bitmap.width;
-        x := (pos.x shr 6) + left;   // transformed bitmap has correct x,y             
-        y := (pos.y shr 6) - top;    // not transformed has only a relative correction 
+        x := (pos.x shr 6) + left;   // transformed bitmap has correct x,y
+        y := (pos.y shr 6) - top;    // not transformed has only a relative correction
         buf := PByteArray(bitmap.buffer);
         reverse := (bitmap.pitch < 0);
         if reverse then

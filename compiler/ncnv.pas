@@ -2595,7 +2595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.176  2005-02-03 18:43:59  florian
+  Revision 1.177  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.176  2005/02/03 18:43:59  florian
     * in delphi mode const sets from enumerations with values > 255 are allowed if these elements aren't used
 
   Revision 1.175  2005/01/30 11:26:40  peter
@@ -2615,94 +2618,5 @@ end.
 
   Revision 1.170  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
-
-  Revision 1.169  2004/12/27 16:54:29  peter
-    * also don't call procvar when converting to procvar
-
-  Revision 1.168  2004/12/26 16:22:01  peter
-    * fix lineinfo for with blocks
-
-  Revision 1.167  2004/12/07 16:11:52  peter
-    * set vo_explicit_paraloc flag
-
-  Revision 1.166  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.165  2004/12/05 12:15:11  florian
-    * fixed compiler side of variant <-> dyn. array conversion
-
-  Revision 1.164  2004/11/26 22:34:28  peter
-    * internal flag for compare_defs_ext
-
-  Revision 1.163  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.162  2004/11/02 20:15:53  jonas
-    * copy totype field in ttypeconvnode.getcopy()
-
-  Revision 1.161  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.160  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.159  2004/11/01 17:15:47  peter
-    * no checkpointer code for dynarr to openarr
-
-  Revision 1.158  2004/11/01 15:31:58  peter
-    * -Or fix for absolute
-
-  Revision 1.157  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.156  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.155  2004/10/12 14:33:41  peter
-    * give error when converting class to interface are not related
-
-  Revision 1.154  2004/10/11 15:48:15  peter
-    * small regvar for para fixes
-    * function tvarsym.is_regvar added
-    * tvarsym.getvaluesize removed, use getsize instead
-
-  Revision 1.153  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.152  2004/08/08 16:00:56  florian
-    * constant floating point assignments etc. are now overflow checked
-      if Q+ or R+ is turned on
-
-  Revision 1.151  2004/06/29 20:57:50  peter
-    * fix pchar:=char
-    * fix longint(smallset)
-
-  Revision 1.150  2004/06/23 16:22:45  peter
-    * include unit name in error messages when types are the same
-
-  Revision 1.149  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.148  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.147  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.146  2004/05/23 15:03:40  peter
-    * some typeconvs don't allow assignment or passing to var para
-
-  Revision 1.145  2004/05/23 14:14:18  florian
-    + added set of widechar support (limited to 256 chars, is delphi compatible)
-
-  Revision 1.144  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
 
 }

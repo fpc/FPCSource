@@ -6,12 +6,12 @@ uses Unix,BaseUnix;
 
 Var
    oa,na : PSigActionRec;
-   
+
 Procedure DoSig(sig : Longint);cdecl;
 
 begin
    writeln('Receiving signal: ',sig);
-end; 
+end;
 
 begin
    new(na);
@@ -20,7 +20,7 @@ begin
    fillchar(na^.Sa_Mask,sizeof(na^.Sa_Mask),#0);
    na^.Sa_Flags:=0;
    {$ifdef Linux}
-   // this member is linux only, and afaik even there arcane 	
+   // this member is linux only, and afaik even there arcane
    na^.Sa_Restorer:=Nil;
    {$endif}
    if fpSigAction(SigUsr1,na,oa)<>0 then

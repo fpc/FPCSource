@@ -8,20 +8,20 @@ program tb0164;
 {$GOTO ON}
 
   procedure foo;
-  
+
     label 999;
-  
+
     procedure bar;
-  
+
     begin
       goto 999
     end;
-  
+
   begin
     bar;
     999:
   end;
-  
+
 begin
   foo;
 end.

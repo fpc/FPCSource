@@ -80,15 +80,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-08 22:32:28  marco
-   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-      but it could crash hard, since there are lots of unimplemented funcs.
-
-  Revision 1.1.2.2  2001/12/17 02:13:52  carl
-  + wifsignaled() added
-
-  Revision 1.1.2.1  2001/12/05 02:49:14  carl
-  + posix unit is now OS specific but with same interface
-
+  Revision 1.3  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

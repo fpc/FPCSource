@@ -5,7 +5,7 @@ Program Example7;
 begin
   {$I-}
   ChDir (ParamStr(1));
-  if IOresult<>0 then 
+  if IOresult<>0 then
     Writeln ('Cannot change to directory : ',paramstr (1));
 end.
 

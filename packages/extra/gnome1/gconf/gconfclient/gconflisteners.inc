@@ -2,7 +2,7 @@
 
 type
    PGConfListeners = ^TGConfListeners;
-   
+
    TGConfListeners = Record
    end;
 

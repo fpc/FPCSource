@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -6,7 +6,7 @@
 
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
-   
+
    socket call implementations for FreeBSD
 
    This program is distributed in the hope that it will be useful,
@@ -129,18 +129,15 @@ Const
          SO_TIMESTAMP    = 29;
          SCM_TIMESTAMP   = SO_TIMESTAMP;
          SO_ACCEPTCONN   = 30;
-         
-                  
+
+
         SHUT_RD         =0;             { shut down the reading side }
         SHUT_WR         =1;             { shut down the writing side }
         SHUT_RDWR       =2;             { shut down both sides }
 
 {
    $Log$
-   Revision 1.2  2004-03-16 18:03:37  marco
-    * first changes sockets units
-
-   Revision 1.1  2004/03/09 19:41:31  marco
-    * header for sockets unit
+   Revision 1.3  2005-02-14 17:13:30  peter
+     * truncate log
 
 }

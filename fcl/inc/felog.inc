@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Generic implementation of 'system log' event mechanism which maps to file log.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -64,15 +64,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2003-10-09 15:53:21  peter
-    * moved
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.1  2003/02/19 20:25:16  michael
-  + Added event log
+  Revision 1.4  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

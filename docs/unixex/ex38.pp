@@ -7,19 +7,19 @@ Uses BaseUnix,Unix;
 Var Si,So : Text;
     S : String;
     i : longint;
-        
+
 begin
   if not (paramstr(1)='-son') then
     begin
     Writeln ('Calling son');
     Assignstream (Si,So,'./ex38 -son');
-    if fpgeterrno<>0 then 
+    if fpgeterrno<>0 then
       begin
       writeln ('AssignStream failed !');
       halt(1);
       end;
     Writeln ('Speaking to son');
-    For i:=1 to 10 do 
+    For i:=1 to 10 do
       begin
       writeln (so,'Hello son !');
       if ioresult<>0 then writeln ('Can''t speak to son...');
@@ -38,14 +38,14 @@ begin
   Else
     begin
     Writeln ('This is the son ');
-    While not eof (input) do 
+    While not eof (input) do
       begin
       readln (s);
       if pos ('Hello son !',S)<>0 then
          Writeln ('Hello Dad !')
-      else 
+      else
          writeln ('Who are you ?');
       end;
     close (output);
-    end 
+    end
 end.

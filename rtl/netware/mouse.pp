@@ -115,10 +115,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:20  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/03/08 19:04:36  armin
-  make it compilable with fpc 1.1
+  Revision 1.4  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

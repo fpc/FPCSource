@@ -17,16 +17,7 @@ function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYS
 
 {
   $Log$
-  Revision 1.7  2004-11-14 12:21:08  marco
-   * moved some calls from unix to baseunix. Darwin untested.
-
-  Revision 1.6  2004/11/03 15:00:43  marco
-   * Pathstr eliminated
-
-  Revision 1.5  2004/01/01 17:07:21  marco
-   * few small freebsd fixes backported from debugging linux
-
-  Revision 1.4  2003/12/30 12:26:21  marco
-   * FPC_USE_LIBC
+  Revision 1.8  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

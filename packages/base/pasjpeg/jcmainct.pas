@@ -43,10 +43,10 @@ type
   my_main_controller = record
     pub : jpeg_c_main_controller; { public fields }
 
-    cur_iMCU_row : JDIMENSION;	{ number of current iMCU row }
-    rowgroup_ctr : JDIMENSION;	{ counts row groups received in iMCU row }
-    suspended : boolean;		{ remember if we suspended output }
-    pass_mode : J_BUF_MODE;		{ current operating mode }
+    cur_iMCU_row : JDIMENSION;  { number of current iMCU row }
+    rowgroup_ctr : JDIMENSION;  { counts row groups received in iMCU row }
+    suspended : boolean;                { remember if we suspended output }
+    pass_mode : J_BUF_MODE;             { current operating mode }
 
     { If using just a strip buffer, this points to the entire set of buffers
       (we allocate one for each component).  In the full-image case, this
@@ -93,10 +93,10 @@ begin
   if (cinfo^.raw_data_in) then
     exit;
 
-  main^.cur_iMCU_row := 0;	{ initialize counters }
+  main^.cur_iMCU_row := 0;      { initialize counters }
   main^.rowgroup_ctr := 0;
   main^.suspended := FALSE;
-  main^.pass_mode := pass_mode;	{ save mode for use by process_data }
+  main^.pass_mode := pass_mode; { save mode for use by process_data }
 
   case (pass_mode) of
   JBUF_PASS_THRU:
@@ -129,7 +129,7 @@ end;
 
 {METHODDEF}
 procedure process_data_simple_main (cinfo : j_compress_ptr;
-			            input_buf : JSAMPARRAY;
+                                    input_buf : JSAMPARRAY;
                                     var in_row_ctr : JDIMENSION;
                                     in_rows_avail : JDIMENSION);
 var
@@ -145,9 +145,9 @@ begin
                                      input_buf,
                                      in_row_ctr,
                                      in_rows_avail,
-				     JSAMPIMAGE(@main^.buffer),
+                                     JSAMPIMAGE(@main^.buffer),
                                      main^.rowgroup_ctr,
-				     JDIMENSION(DCTSIZE));
+                                     JDIMENSION(DCTSIZE));
 
     { If we don't have a full iMCU row buffered, return to application for
       more data.  Note that preprocessor will always pad to fill the iMCU row
@@ -166,8 +166,8 @@ begin
 
       if (not main^.suspended) then
       begin
-	Dec(in_row_ctr);
-	main^.suspended := TRUE;
+        Dec(in_row_ctr);
+        main^.suspended := TRUE;
       end;
       exit;
     end;
@@ -192,9 +192,9 @@ end;
 
 {METHODDEF}
 procedure process_data_buffer_main (cinfo : j_compress_ptr;
-			            input_buf : JSAMPARRAY;
+                                    input_buf : JSAMPARRAY;
                                     var in_row_ctr : JDIMENSION;
-			            in_rows_avail : JDIMENSION);
+                                    in_rows_avail : JDIMENSION);
 var
   main : my_main_ptr;
   ci : int;
@@ -212,17 +212,17 @@ begin
       compptr := cinfo^.comp_info;
       for ci := 0 to pred(cinfo^.num_components) do
       begin
-	main^.buffer[ci] := cinfo^.mem^.access_virt_sarray
-	  (j_common_ptr (cinfo), main^.whole_image[ci],
-	   main^.cur_iMCU_row * (compptr^.v_samp_factor * DCTSIZE),
-	   JDIMENSION (compptr^.v_samp_factor * DCTSIZE), writing);
+        main^.buffer[ci] := cinfo^.mem^.access_virt_sarray
+          (j_common_ptr (cinfo), main^.whole_image[ci],
+           main^.cur_iMCU_row * (compptr^.v_samp_factor * DCTSIZE),
+           JDIMENSION (compptr^.v_samp_factor * DCTSIZE), writing);
         Inc(compptr);
       end;
       { In a read pass, pretend we just read some source data. }
       if (not writing) then
       begin
-	Inc(in_row_ctr, cinfo^.max_v_samp_factor * DCTSIZE);
-	main^.rowgroup_ctr := DCTSIZE;
+        Inc(in_row_ctr, cinfo^.max_v_samp_factor * DCTSIZE);
+        main^.rowgroup_ctr := DCTSIZE;
       end;
     end;
 
@@ -232,13 +232,13 @@ begin
     begin
       cinfo^.prep^.pre_process_data (cinfo,
                                      input_buf, in_row_ctr, in_rows_avail,
-				     JSAMPIMAGE(@main^.buffer),
+                                     JSAMPIMAGE(@main^.buffer),
                                      main^.rowgroup_ctr,
-				     JDIMENSION (DCTSIZE));
+                                     JDIMENSION (DCTSIZE));
 
       { Return to application if we need more data to fill the iMCU row. }
       if (main^.rowgroup_ctr < DCTSIZE) then
-	exit;
+        exit;
     end;
 
     { Emit data, unless this is a sink-only pass. }
@@ -247,26 +247,26 @@ begin
       if (not cinfo^.coef^.compress_data (cinfo,
                                           JSAMPIMAGE(@main^.buffer))) then
       begin
-	{ If compressor did not consume the whole row, then we must need to
-	  suspend processing and return to the application.  In this situation
-	  we pretend we didn't yet consume the last input row; otherwise, if
-	  it happened to be the last row of the image, the application would
-	  think we were done. }
+        { If compressor did not consume the whole row, then we must need to
+          suspend processing and return to the application.  In this situation
+          we pretend we didn't yet consume the last input row; otherwise, if
+          it happened to be the last row of the image, the application would
+          think we were done. }
 
-	if (not main^.suspended) then
+        if (not main^.suspended) then
         begin
-	  Dec(in_row_ctr);
-	  main^.suspended := TRUE;
-	end;
-	exit;
+          Dec(in_row_ctr);
+          main^.suspended := TRUE;
+        end;
+        exit;
       end;
       { We did finish the row.  Undo our little suspension hack if a previous
         call suspended; then mark the main buffer empty. }
 
       if (main^.suspended) then
       begin
-	Inc(in_row_ctr);
-	main^.suspended := FALSE;
+        Inc(in_row_ctr);
+        main^.suspended := FALSE;
       end;
     end;
 
@@ -291,7 +291,7 @@ var
 begin
   main := my_main_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_main_controller)) );
+                                SIZEOF(my_main_controller)) );
   cinfo^.main := jpeg_c_main_controller_ptr(main);
   main^.pub.start_pass := start_pass_main;
 
@@ -311,11 +311,11 @@ begin
     for ci := 0 to pred(cinfo^.num_components) do
     begin
       main^.whole_image[ci] := cinfo^.mem^.request_virt_sarray
-	(j_common_ptr(cinfo), JPOOL_IMAGE, FALSE,
-	 compptr^.width_in_blocks * DCTSIZE,
-	 JDIMENSION (jround_up( long (compptr^.height_in_blocks),
-				long (compptr^.v_samp_factor)) * DCTSIZE),
-	 JDIMENSION (compptr^.v_samp_factor * DCTSIZE));
+        (j_common_ptr(cinfo), JPOOL_IMAGE, FALSE,
+         compptr^.width_in_blocks * DCTSIZE,
+         JDIMENSION (jround_up( long (compptr^.height_in_blocks),
+                                long (compptr^.v_samp_factor)) * DCTSIZE),
+         JDIMENSION (compptr^.v_samp_factor * DCTSIZE));
       Inc(compptr);
     end;
 {$else}
@@ -332,9 +332,9 @@ begin
     for ci := 0 to pred(cinfo^.num_components) do
     begin
       main^.buffer[ci] := cinfo^.mem^.alloc_sarray
-	(j_common_ptr(cinfo), JPOOL_IMAGE,
-	 compptr^.width_in_blocks * DCTSIZE,
-	 JDIMENSION (compptr^.v_samp_factor * DCTSIZE));
+        (j_common_ptr(cinfo), JPOOL_IMAGE,
+         compptr^.width_in_blocks * DCTSIZE,
+         JDIMENSION (compptr^.v_samp_factor * DCTSIZE));
       Inc(compptr);
     end;
   end;

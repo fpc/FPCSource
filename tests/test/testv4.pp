@@ -38,7 +38,7 @@ end;
 
 Procedure TestLongInt;
 
-Var 
+Var
   V : Variant;
   I : LongInt;
 
@@ -50,7 +50,7 @@ end;
 
 Procedure TestSmallInt;
 
-Var 
+Var
   V : Variant;
   I : SmallInt;
 
@@ -62,7 +62,7 @@ end;
 
 Procedure TestShortInt;
 
-Var 
+Var
   V : Variant;
   I : ShortInt;
 
@@ -74,7 +74,7 @@ end;
 
 Procedure TestCardinal;
 
-Var 
+Var
   V : Variant;
   C : Cardinal;
 
@@ -87,7 +87,7 @@ end;
 Procedure TestWord;
 
 
-Var 
+Var
   V : Variant;
   W : Word;
 
@@ -100,7 +100,7 @@ end;
 Procedure TestByte;
 
 
-Var 
+Var
   V : Variant;
   B : Byte;
 
@@ -114,7 +114,7 @@ end;
 
 Procedure TestInt64;
 
-Var 
+Var
   V : Variant;
   I : int64;
 
@@ -127,7 +127,7 @@ end;
 
 Procedure TestQWord;
 
-Var 
+Var
   V : Variant;
   Q : QWord;
 
@@ -144,6 +144,6 @@ begin
   TestCardinal;
   TestWord;
   TestByte;
-  TestInt64;  
+  TestInt64;
   TestQWord;
 end.

@@ -6,7 +6,7 @@ uses exec, timer, amigados, amigalib;
 
 
 { manifest constants -- 'never will change' }
-const  
+const
      SECSPERMIN   = (60);
      SECSPERHOUR  = (60*60);
      SECSPERDAY   = (60*60*24);
@@ -25,20 +25,20 @@ var
     TimeReq : pTimeRequest;
 begin
     TimerPort := CreatePort(Nil, 0);
-    if TimerPort = Nil then 
-	Create_Timer := Nil;
+    if TimerPort = Nil then
+        Create_Timer := Nil;
     TimeReq := pTimeRequest(CreateExtIO(TimerPort,sizeof(tTimeRequest)));
     if TimeReq = Nil then begin
-	DeletePort(TimerPort);
-	Create_Timer := Nil;
-    end; 
+        DeletePort(TimerPort);
+        Create_Timer := Nil;
+    end;
     Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
     if Error <> 0 then begin
-	DeleteExtIO(pIORequest(TimeReq));
-	DeletePort(TimerPort);
-	Create_Timer := Nil;
+        DeleteExtIO(pIORequest(TimeReq));
+        DeletePort(TimerPort);
+        Create_Timer := Nil;
     end;
-    TimerBase := pointer(TimeReq^.tr_Node.io_Device); 
+    TimerBase := pointer(TimeReq^.tr_Node.io_Device);
     Create_Timer := pTimeRequest(TimeReq);
 end;
 
@@ -46,7 +46,7 @@ Procedure Delete_Timer(WhichTimer : pTimeRequest);
 var
     WhichPort : pMsgPort;
 begin
-    
+
     WhichPort := WhichTimer^.tr_Node.io_Message.mn_ReplyPort;
     if assigned(WhichTimer) then begin
         CloseDevice(pIORequest(WhichTimer));
@@ -94,7 +94,7 @@ begin
 
     { non zero return says error }
     if tr = nil then set_new_time := -1;
-  
+
     tr^.tr_time.tv_secs := secs;
     tr^.tr_time.tv_micro := 0;
     tr^.tr_node.io_Command := TR_SETSYSTIME;
@@ -212,9 +212,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:27  nils
-    * initial release
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+

@@ -14,14 +14,14 @@ PROGRAM RTDemo;
 
 {
     History:
-    
+
     Changed to use the new stuff in unit reqtools.pas.
     Removed the array values, will use unit longarray
     instead. Cleaned up the code a bit.
-    
+
     09 Dec 2002.
     nils.sjoholm@mailbox.swipnet.se
-    
+
 }
 
 uses reqtools, strings, utility,longarray;
@@ -228,7 +228,7 @@ BEGIN
                         'E.g. at the top left of the screen, like this.' + #10 +
                         'This works for all requesters, not just rtEZRequest()!',
                         '_Amazing', NIL,NIL,[
-			RT_ReqPos, REQPOS_TOPLEFTSCR,
+                        RT_ReqPos, REQPOS_TOPLEFTSCR,
                         TAG_MORE,@undertag]);
 
     rtEZRequest('Alternatively, you can center the' + #10 +
@@ -255,7 +255,7 @@ BEGIN
         IF (ret)<>0 THEN begin
             rtEZRequestA('You picked the file:' + #10 + '%s' + #10 + 'in directory:'
                                 + #10 + '%s', 'Right', NIL, readinlongs([
-				                          filename,filereq^.Dir]),NIL);
+                                                          filename,filereq^.Dir]),NIL);
         END
         ELSE
             rtEZRequestA('You didn''t pick a file.', 'No', NIL, NIL, NIL);
@@ -325,7 +325,7 @@ BEGIN
              rtEZRequestA('You picked the font:' + #10 + '%s' + #10 + 'with size:' +
                           #10 + '%ld',
                          'Right', NIL, readinlongs([fontreq^.Attr.ta_Name,
-			                            fontreq^.Attr.ta_YSize]),NIL);
+                                                    fontreq^.Attr.ta_YSize]),NIL);
          end ELSE
              ret := rtEZRequestA('You didn''t pick a font','I know', NIL, NIL, NIL);
          rtFreeRequest(fontreq);
@@ -389,8 +389,8 @@ BEGIN
                          'Depth   : %ld' + #10 +
                          'Overscan: %ld' + #10 +
                          'AutoScroll %s',
-                         'Right', NIL, 
-			 readinlongs([scrnreq^.DisplayID,
+                         'Right', NIL,
+                         readinlongs([scrnreq^.DisplayID,
                                       scrnreq^.DisplayWidth,
                                       scrnreq^.DisplayHeight,
                                       scrnreq^.DisplayDepth,

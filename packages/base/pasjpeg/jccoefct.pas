@@ -46,9 +46,9 @@ type
   my_coef_controller = record
     pub : jpeg_c_coef_controller; { public fields }
 
-    iMCU_row_num : JDIMENSION;	{ iMCU row # within image }
-    mcu_ctr : JDIMENSION;	{ counts MCUs processed in current row }
-    MCU_vert_offset : int;	{ counts MCU rows within iMCU row }
+    iMCU_row_num : JDIMENSION;  { iMCU row # within image }
+    mcu_ctr : JDIMENSION;       { counts MCUs processed in current row }
+    MCU_vert_offset : int;      { counts MCU rows within iMCU row }
     MCU_rows_per_iMCU_row : int;  { number of such rows needed }
 
     { For single-pass compression, it's sufficient to buffer just one MCU
@@ -163,7 +163,7 @@ function compress_data (cinfo : j_compress_ptr;
                         input_buf : JSAMPIMAGE) : boolean;
 var
   coef : my_coef_ptr;
-  MCU_col_num : JDIMENSION;	{ index of current MCU within row }
+  MCU_col_num : JDIMENSION;     { index of current MCU within row }
   last_MCU_col : JDIMENSION;
   last_iMCU_row : JDIMENSION;
   blkn, bi, ci, yindex, yoffset, blockcnt : int;
@@ -191,57 +191,57 @@ begin
       blkn := 0;
       for ci := 0 to pred(cinfo^.comps_in_scan) do
       begin
-	compptr := cinfo^.cur_comp_info[ci];
+        compptr := cinfo^.cur_comp_info[ci];
         if (MCU_col_num < last_MCU_col)  then
           blockcnt := compptr^.MCU_width
         else
           blockcnt := compptr^.last_col_width;
-	xpos := MCU_col_num * compptr^.MCU_sample_width;
-	ypos := yoffset * DCTSIZE;      { ypos = (yoffset+yindex) * DCTSIZE }
-	for yindex := 0 to pred(compptr^.MCU_height) do
+        xpos := MCU_col_num * compptr^.MCU_sample_width;
+        ypos := yoffset * DCTSIZE;      { ypos = (yoffset+yindex) * DCTSIZE }
+        for yindex := 0 to pred(compptr^.MCU_height) do
         begin
-	  if (coef^.iMCU_row_num < last_iMCU_row) or
-	     (yoffset+yindex < compptr^.last_row_height) then
+          if (coef^.iMCU_row_num < last_iMCU_row) or
+             (yoffset+yindex < compptr^.last_row_height) then
           begin
-	    cinfo^.fdct^.forward_DCT (cinfo, compptr,
-				      input_buf^[compptr^.component_index],
-				      coef^.MCU_buffer[blkn],
-				      ypos, xpos, JDIMENSION (blockcnt));
+            cinfo^.fdct^.forward_DCT (cinfo, compptr,
+                                      input_buf^[compptr^.component_index],
+                                      coef^.MCU_buffer[blkn],
+                                      ypos, xpos, JDIMENSION (blockcnt));
 
-	    if (blockcnt < compptr^.MCU_width) then
+            if (blockcnt < compptr^.MCU_width) then
             begin
-	      { Create some dummy blocks at the right edge of the image. }
-	      jzero_far({FAR}pointer(coef^.MCU_buffer[blkn + blockcnt]),
-			(compptr^.MCU_width - blockcnt) * SIZEOF(JBLOCK));
-	      for bi := blockcnt to pred(compptr^.MCU_width) do
+              { Create some dummy blocks at the right edge of the image. }
+              jzero_far({FAR}pointer(coef^.MCU_buffer[blkn + blockcnt]),
+                        (compptr^.MCU_width - blockcnt) * SIZEOF(JBLOCK));
+              for bi := blockcnt to pred(compptr^.MCU_width) do
               begin
-		coef^.MCU_buffer[blkn+bi]^[0][0] := coef^.MCU_buffer[blkn+bi-1]^[0][0];
-	      end;
-	    end;
-	  end
+                coef^.MCU_buffer[blkn+bi]^[0][0] := coef^.MCU_buffer[blkn+bi-1]^[0][0];
+              end;
+            end;
+          end
           else
           begin
-	    { Create a row of dummy blocks at the bottom of the image. }
-	    jzero_far({FAR}pointer(coef^.MCU_buffer[blkn]),
-		      compptr^.MCU_width * SIZEOF(JBLOCK));
-	    for bi := 0 to pred(compptr^.MCU_width) do
+            { Create a row of dummy blocks at the bottom of the image. }
+            jzero_far({FAR}pointer(coef^.MCU_buffer[blkn]),
+                      compptr^.MCU_width * SIZEOF(JBLOCK));
+            for bi := 0 to pred(compptr^.MCU_width) do
             begin
-	      coef^.MCU_buffer[blkn+bi]^[0][0] := coef^.MCU_buffer[blkn-1]^[0][0];
-	    end;
-	  end;
-	  Inc(blkn, compptr^.MCU_width);
-	  Inc(ypos, DCTSIZE);
-	end;
+              coef^.MCU_buffer[blkn+bi]^[0][0] := coef^.MCU_buffer[blkn-1]^[0][0];
+            end;
+          end;
+          Inc(blkn, compptr^.MCU_width);
+          Inc(ypos, DCTSIZE);
+        end;
       end;
       { Try to write the MCU.  In event of a suspension failure, we will
         re-DCT the MCU on restart (a bit inefficient, could be fixed...) }
 
       if (not cinfo^.entropy^.encode_mcu (cinfo, JBLOCKARRAY(@coef^.MCU_buffer)^)) then
       begin
-	{ Suspension forced; update state counters and exit }
-	coef^.MCU_vert_offset := yoffset;
-	coef^.mcu_ctr := MCU_col_num;
-	compress_data := FALSE;
+        { Suspension forced; update state counters and exit }
+        coef^.MCU_vert_offset := yoffset;
+        coef^.mcu_ctr := MCU_col_num;
+        compress_data := FALSE;
         exit;
       end;
     end;
@@ -323,26 +323,26 @@ begin
     begin
       thisblockrow := buffer^[block_row];
       cinfo^.fdct^.forward_DCT (cinfo, compptr,
-	                        input_buf^[ci],
+                                input_buf^[ci],
                                 thisblockrow,
-				JDIMENSION (block_row * DCTSIZE),
-				JDIMENSION (0),
+                                JDIMENSION (block_row * DCTSIZE),
+                                JDIMENSION (0),
                                 blocks_across);
       if (ndummy > 0) then
       begin
-	{ Create dummy blocks at the right edge of the image. }
-	Inc(JBLOCK_PTR(thisblockrow), blocks_across); { => first dummy block }
-	jzero_far({FAR}pointer(thisblockrow), ndummy * SIZEOF(JBLOCK));
-	{lastDC := thisblockrow^[-1][0];}
+        { Create dummy blocks at the right edge of the image. }
+        Inc(JBLOCK_PTR(thisblockrow), blocks_across); { => first dummy block }
+        jzero_far({FAR}pointer(thisblockrow), ndummy * SIZEOF(JBLOCK));
+        {lastDC := thisblockrow^[-1][0];}
         { work around Range Checking }
         Dec(JBLOCK_PTR(thisblockrow));
         lastDC := thisblockrow^[0][0];
         Inc(JBLOCK_PTR(thisblockrow));
 
-	for bi := 0 to pred(ndummy) do
+        for bi := 0 to pred(ndummy) do
         begin
-	  thisblockrow^[bi][0] := lastDC;
-	end;
+          thisblockrow^[bi][0] := lastDC;
+        end;
       end;
     end;
     { If at end of image, create dummy block rows as needed.
@@ -356,20 +356,20 @@ begin
       MCUs_across := blocks_across div h_samp_factor;
       for block_row := block_rows to pred(compptr^.v_samp_factor) do
       begin
-	thisblockrow := buffer^[block_row];
-	lastblockrow := buffer^[block_row-1];
-	jzero_far({FAR} pointer(thisblockrow),
-		  size_t(blocks_across * SIZEOF(JBLOCK)));
-	for MCUindex := 0 to pred(MCUs_across) do
+        thisblockrow := buffer^[block_row];
+        lastblockrow := buffer^[block_row-1];
+        jzero_far({FAR} pointer(thisblockrow),
+                  size_t(blocks_across * SIZEOF(JBLOCK)));
+        for MCUindex := 0 to pred(MCUs_across) do
         begin
-	  lastDC := lastblockrow^[h_samp_factor-1][0];
-	  for bi := 0 to pred(h_samp_factor) do
+          lastDC := lastblockrow^[h_samp_factor-1][0];
+          for bi := 0 to pred(h_samp_factor) do
           begin
-	    thisblockrow^[bi][0] := lastDC;
-	  end;
-	  Inc(JBLOCK_PTR(thisblockrow), h_samp_factor); { advance to next MCU in row }
-	  Inc(JBLOCK_PTR(lastblockrow), h_samp_factor);
-	end;
+            thisblockrow^[bi][0] := lastDC;
+          end;
+          Inc(JBLOCK_PTR(thisblockrow), h_samp_factor); { advance to next MCU in row }
+          Inc(JBLOCK_PTR(lastblockrow), h_samp_factor);
+        end;
       end;
     end;
     Inc(compptr);
@@ -396,7 +396,7 @@ function compress_output (cinfo : j_compress_ptr;
                           input_buf : JSAMPIMAGE) : boolean;
 var
   coef : my_coef_ptr;
-  MCU_col_num : JDIMENSION;	{ index of current MCU within row }
+  MCU_col_num : JDIMENSION;     { index of current MCU within row }
   blkn, ci, xindex, yindex, yoffset : int;
   start_col : JDIMENSION;
   buffer : array[0..MAX_COMPS_IN_SCAN-1] of JBLOCKARRAY;
@@ -424,29 +424,29 @@ begin
     for MCU_col_num := coef^.mcu_ctr to pred(cinfo^.MCUs_per_row) do
     begin
       { Construct list of pointers to DCT blocks belonging to this MCU }
-      blkn := 0;			{ index of current DCT block within MCU }
+      blkn := 0;                        { index of current DCT block within MCU }
       for ci := 0 to pred(cinfo^.comps_in_scan) do
       begin
-	compptr := cinfo^.cur_comp_info[ci];
-	start_col := MCU_col_num * compptr^.MCU_width;
-	for yindex := 0 to pred(compptr^.MCU_height) do
+        compptr := cinfo^.cur_comp_info[ci];
+        start_col := MCU_col_num * compptr^.MCU_width;
+        for yindex := 0 to pred(compptr^.MCU_height) do
         begin
-	  buffer_ptr := JBLOCKROW(@ buffer[ci]^[yindex+yoffset]^[start_col]);
-	  for xindex := 0 to pred(compptr^.MCU_width) do
+          buffer_ptr := JBLOCKROW(@ buffer[ci]^[yindex+yoffset]^[start_col]);
+          for xindex := 0 to pred(compptr^.MCU_width) do
           begin
-	    coef^.MCU_buffer[blkn] := buffer_ptr;
-	    Inc(blkn);
+            coef^.MCU_buffer[blkn] := buffer_ptr;
+            Inc(blkn);
             Inc(JBLOCK_PTR(buffer_ptr));
-	  end;
-	end;
+          end;
+        end;
       end;
       { Try to write the MCU. }
       if (not cinfo^.entropy^.encode_mcu (cinfo, coef^.MCU_buffer)) then
       begin
-	{ Suspension forced; update state counters and exit }
-	coef^.MCU_vert_offset := yoffset;
-	coef^.mcu_ctr := MCU_col_num;
-	compress_output := FALSE;
+        { Suspension forced; update state counters and exit }
+        coef^.MCU_vert_offset := yoffset;
+        coef^.mcu_ctr := MCU_col_num;
+        compress_output := FALSE;
         exit;
       end;
     end;
@@ -478,7 +478,7 @@ var
 begin
   coef := my_coef_ptr (
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_coef_controller)) );
+                                SIZEOF(my_coef_controller)) );
   cinfo^.coef := jpeg_c_coef_controller_ptr(coef);
   coef^.pub.start_pass := start_pass_coef;
 
@@ -493,12 +493,12 @@ begin
     for ci := 0 to pred(cinfo^.num_components) do
     begin
       coef^.whole_image[ci] := cinfo^.mem^.request_virt_barray
-	(j_common_ptr(cinfo), JPOOL_IMAGE, FALSE,
-	 JDIMENSION (jround_up( long (compptr^.width_in_blocks),
-				long (compptr^.h_samp_factor) )),
-	 JDIMENSION (jround_up(long (compptr^.height_in_blocks),
-				long (compptr^.v_samp_factor))),
-	 JDIMENSION (compptr^.v_samp_factor));
+        (j_common_ptr(cinfo), JPOOL_IMAGE, FALSE,
+         JDIMENSION (jround_up( long (compptr^.width_in_blocks),
+                                long (compptr^.h_samp_factor) )),
+         JDIMENSION (jround_up(long (compptr^.height_in_blocks),
+                                long (compptr^.v_samp_factor))),
+         JDIMENSION (compptr^.v_samp_factor));
       Inc(compptr);
     end;
 {$else}
@@ -510,7 +510,7 @@ begin
     { We only need a single-MCU buffer. }
     buffer := JBLOCKROW (
       cinfo^.mem^.alloc_large (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK)) );
+                                  C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK)) );
     for i := 0 to pred(C_MAX_BLOCKS_IN_MCU) do
     begin
       coef^.MCU_buffer[i] := JBLOCKROW(@ buffer^[i]);

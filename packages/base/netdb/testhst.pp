@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     test netdb unit, hosts part.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -38,7 +38,7 @@ begin
   If GetHostByAddr(StrToHostAddr(Addr),H) then
     DumpHostEntry(H)
   else
-    Writeln('No entry for address ',Addr)  
+    Writeln('No entry for address ',Addr)
 end;
 
 Procedure TestName(Const N : string);
@@ -50,7 +50,7 @@ begin
   If GetHostByName(N,H) then
     DumpHostEntry(H)
   else
-    Writeln('No entry for hostname ',N)  
+    Writeln('No entry for hostname ',N)
 end;
 
 begin
@@ -64,7 +64,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-05-17 20:54:03  michael
-  + uriparser unit added. Header/Footer blocks added
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

@@ -4,11 +4,11 @@ Program Example71;
 
 Var F : File of longint;
     I,L : Longint;
-    
+
 begin
   Assign (F,'test.tmp');
   Rewrite (F);
-  For I:=1 to 10 Do 
+  For I:=1 to 10 Do
     Write (F,I);
   Writeln ('Filesize before Truncate : ',FileSize(F));
   Close (f);

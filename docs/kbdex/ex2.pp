@@ -15,7 +15,7 @@ begin
     K:=TranslateKeyEvent(K);
     If (GetKeyEventFlags(K)<>KbfnKey) then
       Writeln('Not a function key')
-    else  
+    else
       begin
       Write('Got key (',GetKeyEventCode(K));
       Writeln(') : ',KeyEventToString(K));

@@ -681,14 +681,14 @@ unit winsock;
     const
        winsockdll = 'wsock32.dll';
 
-{ 
+{
 Winsock types all buffers as pchar (char *), modern POSIX does it the ANSI
 C way with pointer (void *). If the pointer overloaded version doesn't exist,
-a "pointer" will be passed to the "var" version. (bug 3142). 
+a "pointer" will be passed to the "var" version. (bug 3142).
 So if there are var/const versions:
 - To keep ported unix code working, there must be "pointer" variants (ANSI)
 - To keep Delphi/ported C Winsock code working there must be pchar variants
-	(K&R)
+        (K&R)
 IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 
     function accept(s:TSocket; addr: PSockAddr; addrlen : ptOS_INT) : TSocket;stdcall;external winsockdll name 'accept';
@@ -911,32 +911,7 @@ IOW, there _must_ be 3 versions then: var/const, pchar and pointer}
 end.
 {
   $Log$
-  Revision 1.15  2004-09-18 16:19:18  marco
-   *  GetAcceptExSockaddrs corrected. Double indirection.
-
-  Revision 1.14  2004/06/14 08:27:06  michael
-  + Fix for bug 3166 by Michalis Kamburelis
-
-  Revision 1.13  2004/06/06 04:01:45  marco
-   * fix for 3142 (I hope).
-
-  Revision 1.12  2003/01/01 14:34:22  peter
-    * sendto overload
-
-  Revision 1.11  2002/12/25 01:04:03  peter
-    * sendto overload added
-
-  Revision 1.10  2002/09/07 21:28:10  carl
-    - removed os_types
-    * fix range check errors
-
-  Revision 1.9  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/08/12 14:18:53  florian
-    * ioctlselect overloaded to take a longint is second parameter
-
-  Revision 1.7  2002/01/19 11:58:20  peter
-    * more functions from webbugs
+  Revision 1.16  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

@@ -57,8 +57,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-12-05 11:21:46  hajny
-    * common implementation of unit printer - fix for bug 3421
-
+  Revision 1.2  2005-02-14 17:13:26  peter
+    * truncate log
 
 }

@@ -7,7 +7,7 @@ Uses heaptrc;
 Var P1 : ^Longint;
     P2 : Pointer;
     I : longint;
-        
+
 begin
   New(P1);
   // causes previous allocation not to be de-allocated
@@ -19,7 +19,7 @@ begin
     // When I is even, deallocate block. We loose 5 times 128
     // bytes this way.
     If (I mod 2) = 0 Then FreeMem(P2,128);
-    end;  
+    end;
   GetMem(P2,128);
   // This will provoke an error and a memory dump
   Freemem (P2,64);

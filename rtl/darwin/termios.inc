@@ -7,15 +7,15 @@
 
   {
      Copyright (c) 2000 Apple Computer, Inc. All rights reserved.
-    
+
      @APPLE_LICENSE_HEADER_START@
-     
+
      The contents of this file constitute Original Code as defined in and
      are subject to the Apple Public Source License Version 1.1 (the
      "License").  You may not use this file except in compliance with the
      License.  Please obtain a copy of the License at
      http://www.apple.com/publicsource and read it before using this file.
-     
+
      This Original Code and all software distributed under the License are
      distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, EITHER
      EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
@@ -23,14 +23,14 @@
      FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT.  Please see the
      License for the specific language governing rights and limitations
      under the License.
-     
+
      @APPLE_LICENSE_HEADER_END@
     }
   { Copyright (c) 1997 Apple Computer, Inc. All Rights Reserved  }
   {
      Copyright (c) 1988, 1989, 1993, 1994
-    	The Regents of the University of California.  All rights reserved.
-    
+        The Regents of the University of California.  All rights reserved.
+
      Redistribution and use in source and binary forms, with or without
      modification, are permitted provided that the following conditions
      are met:
@@ -46,7 +46,7 @@
      4. Neither the name of the University nor the names of its contributors
         may be used to endorse or promote products derived from this software
         without specific prior written permission.
-    
+
      THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
      ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
      IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -58,17 +58,17 @@
      LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
      OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
      SUCH DAMAGE.
-    
-    	@(#)termios.h	8.3 (Berkeley) 3/28/94
+
+        @(#)termios.h   8.3 (Berkeley) 3/28/94
     }
 {$ifndef _SYS_TERMIOS_H_}
 {$define _SYS_TERMIOS_H_}
   {
      Special Control Characters
-    
+
      Index into c_cc[] character array.
-    
-    	Name	     Subscript	Enabled by
+
+        Name         Subscript  Enabled by
     }
   { ICANON  }
 
@@ -102,7 +102,7 @@
   const
      VREPRINT = 6;
 {$endif}
-  {			7	   spare 1  }
+  {                     7          spare 1  }
   { ISIG  }
 
   const
@@ -142,7 +142,7 @@
 
   const
      VSTATUS = 18;
-  {			19	   spare 2  }
+  {                     19         spare 2  }
 {$endif}
 
   const
@@ -167,7 +167,7 @@ Type
 {$ifndef _POSIX_SOURCE}
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
 //  function CCEQ(val,c : longint) : longint;
 // as in freebsd netbsd and openbsd and in /usr/include/sys/termios.h
 {
@@ -281,7 +281,7 @@ Type
 {$endif}
   {
      "Local" flags - dumping ground for other state
-    
+
      Warning: some flags in this structure begin with
      the letter "I" and look like they belong in the
      input flag.
@@ -436,9 +436,9 @@ Type
      TCIOFF = 3;
      TCION = 4;
 
-// as in freebsd netbsd and openbsd and in 
+// as in freebsd netbsd and openbsd and in
 // /usr/include/sys/ttycom.h und ioccom.h
-     
+
        IOCTLREAD        = $40000000;
        IOCTLWRITE       = $80000000;
        IOCTLVOID        = $20000000;
@@ -499,8 +499,8 @@ Type
         TIOCSWINSZ       =IOCTLWRITE+$87400+ 103;       { set window size }
         TIOCUCNTL        =IOCTLWRITE+$47400+ 102;       { pty: set/clr usr cntl mode }
         TIOCSTAT         =IOCTLVOID+$7400+ 101;         { simulate ^T status message }
-  //                       UIOCCMD(n)   _IO('u', n)     { usr cntl op "n" }	    		
-        TIOCSCONS        =IOCTLWRITE+$47400+ 99;		{ 4.2 compatibility } // added from ttycom.h
+  //                       UIOCCMD(n)   _IO('u', n)     { usr cntl op "n" }
+        TIOCSCONS        =IOCTLWRITE+$47400+ 99;                { 4.2 compatibility } // added from ttycom.h
         TIOCCONS         =IOCTLWRITE+$47400+ 98;        { become virtual console }
         TIOCSCTTY        =IOCTLVOID+$7400+ 97;          { become controlling tty }
         TIOCEXT          =IOCTLWRITE+$47400+ 96;        { pty: external processing }
@@ -517,7 +517,7 @@ Type
         TIOCDSIMICROCODE =IOCTLREAD+$47400+ 85; { download microcode to DSI Softmodem } // added from ttycom.h
 
         TTYDISC          =0;            { termios tty line discipline }
-        TABLDISC	     =3;		    { tablet discipline } // added from ttycom.h
+        TABLDISC             =3;                    { tablet discipline } // added from ttycom.h
         SLIPDISC         =4;            { serial IP discipline }
         PPPDISC          =5;            { PPP discipline }
         NETGRAPHDISC     =6;            { Netgraph tty node discipline }
@@ -572,17 +572,7 @@ Type
 
 {
   $Log$
-  Revision 1.2  2004-02-05 14:00:45  jonas
-    + some declarations added from other bsds and /usr/include/sys/termios.h
-      to termios.inc and termiosproc.inc (by Karl-Michael Schindler)
-    + added crt, mouse (because required by keyboard), keyboard, termio,
-      console to Darwin makefile (thanks to the above they now compile,
-      functionality untested)
-    * fixed wrong dependency for sysconst unit (it was always recompiled)
-
-
-  Revision 1.1  2004/01/04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
+  Revision 1.3  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

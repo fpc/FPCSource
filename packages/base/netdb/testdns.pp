@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     test netdb unit, host part
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -41,7 +41,7 @@ begin
   If ResolveHostByAddr(StrToHostAddr(Addr),H) then
     DumpHostEntry(H)
   else
-    Writeln('No entry for address ',Addr)  
+    Writeln('No entry for address ',Addr)
 end;
 
 Procedure TestName(Const N : string);
@@ -53,7 +53,7 @@ begin
   If ResolveHostByName(N,H) then
     DumpHostEntry(H)
   else
-    Writeln('No entry for hostname ',N)  
+    Writeln('No entry for hostname ',N)
 end;
 
 Var
@@ -66,7 +66,7 @@ Var
 
 begin
   Writeln('Resolving name ');
-  l:=ResolveName('db.wisa.be',Ans);  
+  l:=ResolveName('db.wisa.be',Ans);
   Writeln('Got : ',l,' answers');
   For I:=1 to l do
     Writeln(i:2,': ',hostAddrtostr(Ans[i]));
@@ -76,18 +76,15 @@ begin
   Writeln('Got : ',l,' answers');
   For I:=1 to l do
     Writeln(i:2,': ',NAns[i]);
-  Writeln('ResolveHostByName:');  
+  Writeln('ResolveHostByName:');
   testname('malpertuus.wisa.be');
-  Writeln('ResolveHostByAddr:');  
+  Writeln('ResolveHostByAddr:');
   testaddr('212.224.143.202');
 end.
 
 {
   $Log$
-  Revision 1.3  2003-11-22 23:17:50  michael
-  Patch for ipv6 and CNAME record support from Johannes Berg
-
-  Revision 1.2  2003/05/17 20:54:03  michael
-  + uriparser unit added. Header/Footer blocks added
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

@@ -21,36 +21,39 @@
 
 function WideUpperCase(const s : WideString) : WideString;
   begin
-  	result:=widestringmanager.UpperWideStringProc(s);
+        result:=widestringmanager.UpperWideStringProc(s);
   end;
 
 
 function WideLowerCase(const s : WideString) : WideString;
   begin
-  	result:=widestringmanager.LowerWideStringProc(s);
+        result:=widestringmanager.LowerWideStringProc(s);
   end;
 
 
 function WideCompareStr(const s1, s2 : WideString) : PtrInt;
   begin
-  	result:=widestringmanager.CompareWideStringProc(s1,s2);
+        result:=widestringmanager.CompareWideStringProc(s1,s2);
   end;
 
 
 function WideSameStr(const s1, s2 : WideString) : Boolean;
   begin
-  	result:=widestringmanager.SameWideStringProc(s1,s2);
+        result:=widestringmanager.SameWideStringProc(s1,s2);
   end;
 
 
 function WideCompareText(const s1, s2 : WideString) : PtrInt;
   begin
-  	result:=widestringmanager.CompareTextWideStringProc(s1,s2);
+        result:=widestringmanager.CompareTextWideStringProc(s1,s2);
   end;
 
 {
   $Log$
-  Revision 1.2  2005-02-03 18:40:02  florian
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.2  2005/02/03 18:40:02  florian
     * compilation with 1.0.x fixed
     + infrastructure for WideCompareText implemented
 

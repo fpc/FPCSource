@@ -144,30 +144,7 @@ end;
 
 {
  $Log$
- Revision 1.1  2004-12-05 16:43:40  hajny
-   * dos.inc renamed to dos_beos.inc
-
- Revision 1.2  2003/01/08 22:32:28  marco
-  * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-     but it could crash hard, since there are lots of unimplemented funcs.
-
- Revision 1.1.2.6  2002/05/01 14:08:53  carl
- + TZ is now taken from GetTimezoneSitrng instead of getenv
-
- Revision 1.1.2.5  2001/12/17 02:14:50  carl
- * bugfix for more than default drives
-
- Revision 1.1.2.4  2001/08/15 01:01:29  carl
- + added missing file include
-
- Revision 1.1.2.3  2001/08/13 05:57:01  carl
- * renamed routine names (names are same as documented in the Be Book)
-
- Revision 1.1.2.2  2001/08/12 15:14:54  carl
- + GetTimeZoneFileName()
-
- Revision 1.1.2.1  2001/08/04 05:26:08  carl
- + Exec() works
- + DiskFree() / DiskSize() works
+ Revision 1.2  2005-02-14 17:13:21  peter
+   * truncate log
 
 }

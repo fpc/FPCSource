@@ -43,7 +43,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2004-07-30 14:51:21  armin
-  first version for netware
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

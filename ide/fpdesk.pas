@@ -960,43 +960,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  2005-01-08 11:43:18  florian
+  Revision 1.15  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.14  2005/01/08 11:43:18  florian
     + vector unit window
-
-  Revision 1.13  2004/12/29 20:12:25  florian
-    * packed removed for sparc and co.
-
-  Revision 1.12  2004/12/22 15:24:07  peter
-    * fixed NODEBUG
-    * set default target to the default target of the compiler
-
-  Revision 1.11  2004/11/11 15:20:52  florian
-    * applied Peter's patch from yesterday
-
-  Revision 1.10  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.9  2004/11/05 16:39:37  peter
-    * uninitialized var
-
-  Revision 1.8  2004/11/02 23:53:19  peter
-    * fixed crashes with ide and 1.9.x
-
-  Revision 1.7  2002/02/09 00:32:27  pierre
-   * fix error when loading breakpoints, try to load other items even after an error
-
-  Revision 1.6  2002/09/07 15:40:42  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/09/04 14:03:52  pierre
-   * MinDesktopVersion increased because of CodeComplete changes
-
-  Revision 1.4  2002/05/31 12:37:09  pierre
-   + register asciitable char
 
 }

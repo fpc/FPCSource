@@ -1,7 +1,7 @@
 program browseds;
 {$Mode ObjFpc}
 {$define DEBUGHEAP}
-uses 
+uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
 {$endif}
@@ -10,7 +10,7 @@ uses
 {$endif}
   crt,sysutils,sqliteds,db;
 
-var 
+var
   dsTest:TSQliteDataset;
   I:Integer;
 
@@ -29,10 +29,10 @@ begin
     end;
     end;
   writeln('------------------');
-  //Readkey;  
-end;  
-  
-begin 
+  //Readkey;
+end;
+
+begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput('heaplog.txt');
   {$endif}
@@ -41,13 +41,13 @@ begin
   Begin
     FileName:='New.db';
     TableName:='NewTable';
-    Sql:= 'SELECT _ROWID_,* FROM NewTable'; 
+    Sql:= 'SELECT _ROWID_,* FROM NewTable';
     Open;
     WriteLn('RecordCount: ',RecordCount);
     First;
     while not Eof do
     begin
-      writeln(':::: Press a key to see data from record ',RecNo,' ::::');  
+      writeln(':::: Press a key to see data from record ',RecNo,' ::::');
       Readkey;
       For I:=0 to FieldCount-1 do
         DumpFieldData(Fields[I]);

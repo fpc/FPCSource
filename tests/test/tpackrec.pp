@@ -4,12 +4,12 @@ type
     a,b : byte;
     l :longint
   end;
-  
+
   SCSI_ADAPTER_BUS_INFO = record
     NumberOfBuses: char;
     BusData : array[0..0] of tr;
   end;
-  
+
 var
   p1,p2 : pchar;
   r : SCSI_ADAPTER_BUS_INFO;

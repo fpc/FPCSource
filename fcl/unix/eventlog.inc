@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Unix implementation of event mechanism
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -53,7 +53,7 @@ procedure closelog;cdecl;external;
 procedure openlog(__ident:pchar; __option:longint; __facilit:longint);cdecl;external;
 function setlogmask(__mask:longint):longint;cdecl;external;
 procedure syslog(__pri:longint; __fmt:pchar; args:array of const);cdecl;external;
-        
+
 Function TEventLog.DefaultFileName : String;
 
 begin
@@ -82,7 +82,7 @@ procedure TEventLog.WriteSystemLog(EventType : TEventType; Msg : String);
 Var
   P,PT : PChar;
   T : String;
-  
+
 begin
   P:=PChar(Msg);
   T:=EventTypeToString(EventType);

@@ -33,7 +33,7 @@
 
     Compiler had problems with Text, changed to GText.
     24 Aug 2000.
-    
+
     Added functions and procedures with array of const.
     For use with fpc 1.0.7. They are in systemvartags.
     11 Nov 2002.
@@ -41,7 +41,7 @@
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     13 Jan 2003.
-    
+
     Update for AmifaOS 3.9.
     Changed start code for unit.
     Bugs in ChangeSprite, GetRGB32, LoadRGB32,
@@ -51,7 +51,7 @@
     Changed integer > smallint,
             cardinal > longword.
     09 Feb 2003.
-    	    
+
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -4777,24 +4777,12 @@ END. (* UNIT GRAPHICS *)
 
 {
   $Log$
-  Revision 1.5  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.4  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.3  2003/01/13 20:36:00  nils
-  * added the defines use_amiga_smartlink
-  * and use_auto_openlib
-
-  Revision 1.2  2002/11/18 20:54:01  nils
-    * update check internal log
+  Revision 1.6  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 
 
 

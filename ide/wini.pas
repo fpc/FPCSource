@@ -257,10 +257,10 @@ begin
       P:=Entries^.At(I);
       if (P^.TagHash=Hash) and (UpcaseStr(P^.GetTag)=Tag) then
         begin
-	  SearchEntry:=P;
-	  break;
-	end;
-    end;	
+          SearchEntry:=P;
+          break;
+        end;
+    end;
 end;
 
 procedure TINISection.DeleteEntry(Tag: string);
@@ -405,10 +405,10 @@ begin
       P:=Sections^.At(I);
       if (P^.NameHash=Hash) and (UpcaseStr(P^.GetName)=Section) then
         begin
-	  SearchSection:=P;
-	  break;
-	end;
-    end;	
+          SearchSection:=P;
+          break;
+        end;
+    end;
 end;
 
 function TINIFile.SearchEntry(const Section, Tag: string): PINIEntry;
@@ -509,13 +509,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2004-11-06 17:22:53  peter
-    * fixes for new fv
-
-  Revision 1.4  2004/11/02 23:53:19  peter
-    * fixed crashes with ide and 1.9.x
-
-  Revision 1.3  2002/09/07 15:40:50  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

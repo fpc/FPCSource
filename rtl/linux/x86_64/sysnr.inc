@@ -302,12 +302,7 @@ const
 
 {
     $Log$
-    Revision 1.2  2004-04-20 20:27:01  florian
-      * x86_64 syscall numbers fixed
+    Revision 1.3  2005-02-14 17:13:30  peter
+      * truncate log
 
-    Revision 1.1  2003/07/06 21:12:30  peter
-      * Syscall number is architecture dependent
-
-    Revision 1.4  2002/11/12 14:46:46  marco
-     * 2.4.18 version.
 }

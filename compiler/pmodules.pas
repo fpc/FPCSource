@@ -1622,7 +1622,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.184  2005-02-06 21:33:28  peter
+  Revision 1.185  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.184  2005/02/06 21:33:28  peter
     * -Fa option added, it'll load the units before the uses
       line is parsed. Can be used to load cthreads from the commandline.
       Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
@@ -1644,92 +1647,5 @@ end.
   Revision 1.179  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.178  2004/12/06 19:23:05  peter
-  implicit load of variants unit
-
-  Revision 1.177  2004/11/29 18:50:15  peter
-    * os2 fixes for import
-    * asmsymtype support for intel reader
-
-  Revision 1.176  2004/11/19 08:17:02  michael
-  * Split po_public into po_public and po_global (Peter)
-
-  Revision 1.175  2004/11/16 20:32:40  peter
-  * fixes for win32 mangledname
-
-  Revision 1.174  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.173  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.172  2004/11/05 20:04:49  florian
-    * THREADVARLIST is now aligned
-
-  Revision 1.171  2004/11/04 23:59:13  peter
-  use filepos of main when generating the module stabs
-
-  Revision 1.170  2004/11/04 17:09:54  peter
-  fixed debuginfo for variables in staticsymtable
-
-  Revision 1.169  2004/10/31 15:29:39  olle
-    + All sections get names in macos
-
-  Revision 1.168  2004/10/26 15:11:01  peter
-    * -Ch for heapsize added again
-    * __heapsize contains the heapsize
-
-  Revision 1.167  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.166  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.165  2004/10/04 18:26:51  peter
-    * debuginfo fixes
-
-  Revision 1.164  2004/09/14 16:33:46  peter
-    * release localsymtables when module is compiled
-
-  Revision 1.163  2004/09/04 21:18:47  armin
-  * target netwlibc added (libc is preferred for newer netware versions)
-
-  Revision 1.162  2004/09/03 16:12:32  armin
-  * dont create main for netware (only PASCALMAIN)
-
-  Revision 1.161  2004/08/16 22:52:35  olle
-    + Added automatic use of unit macpas under mode macpas
-
-  Revision 1.160  2004/07/06 20:23:25  peter
-    * remove unused and not loaded units before linking
-
-  Revision 1.159  2004/06/29 21:00:08  peter
-    * only enable dwarf for supported platforms
-
-  Revision 1.158  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.157  2004/06/18 15:16:27  peter
-    * fixed debuginfo symbol
-
-  Revision 1.156  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.155  2004/05/23 20:56:42  peter
-    * initialize errorsym/errortype.def.owner to prevent crashes
-
-  Revision 1.154  2004/05/23 15:06:21  peter
-    * implicit_finally flag must be set in pass1
-    * add check whether the implicit frame is generated when expected
-
-  Revision 1.153  2004/05/19 21:16:13  peter
-    * add DEBUGINFO symbol to reference the .o file that includes the
-      stabs info for types and global/static variables
-    * debuginfo flag added to ppu to indicate whether debuginfo is
-      generated or not
 
 }

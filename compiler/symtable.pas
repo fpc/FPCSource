@@ -2463,7 +2463,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.170  2005-01-20 16:38:45  peter
+  Revision 1.171  2005-02-14 17:13:08  peter
+    * truncate log
+
+  Revision 1.170  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
 
   Revision 1.169  2005/01/19 22:19:41  peter
@@ -2473,87 +2476,5 @@ end.
   Revision 1.168  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.167  2004/12/27 16:35:48  peter
-    * set flag if a procedure references a symbol in staticsymtable
-
-  Revision 1.166  2004/12/21 08:38:16  michael
-  + Enable local debug info in methods
-
-  Revision 1.165  2004/12/15 15:59:54  peter
-    * fix visibility of protected/private
-
-  Revision 1.164  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.163  2004/11/09 23:10:22  peter
-    * use helper call to retrieve address of input/output to reduce
-      code that is generated in the main program for loading the
-      threadvar
-
-  Revision 1.162  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.161  2004/11/05 21:16:55  peter
-    * rename duplicate symbols and insert with unique name in the
-      symtable
-
-  Revision 1.160  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.159  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.158  2004/10/12 19:51:13  peter
-    * all checking for visibility is now done by is_visible_for_object
-
-  Revision 1.157  2004/10/11 15:48:15  peter
-    * small regvar for para fixes
-    * function tvarsym.is_regvar added
-    * tvarsym.getvaluesize removed, use getsize instead
-
-  Revision 1.156  2004/10/08 17:09:43  peter
-    * tvarsym.varregable added, split vo_regable from varoptions
-
-  Revision 1.155  2004/08/17 16:29:21  jonas
-    + padalgingment field for recordsymtables (saved by recorddefs)
-    + support for Macintosh PowerPC alignment (if the first field of a record
-      or union has an alignment > 4, then the record or union size must be
-      padded to a multiple of this size)
-
-  Revision 1.154  2004/08/15 15:05:16  peter
-    * fixed padding of records to alignment
-
-  Revision 1.153  2004/08/15 13:30:18  florian
-    * fixed alignment of variant records
-    * more alignment problems fixed
-
-  Revision 1.152  2004/07/09 22:17:32  peter
-    * revert has_localst patch
-    * replace aktstaticsymtable/aktglobalsymtable with current_module
-
-  Revision 1.151  2004/06/23 16:22:45  peter
-    * include unit name in error messages when types are the same
-
-  Revision 1.150  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.149  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.148  2004/05/25 18:50:50  peter
-    * check for 2gb limit when inserting record fields
-
-  Revision 1.147  2004/05/23 20:56:14  peter
-    * don't generate incompatible types when there is an errordef
-
-  Revision 1.146  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.145  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
 
 }

@@ -19,7 +19,7 @@ Uses UnixType;
 {$endif}
 
 {$ifdef FreeBSD}
-{$DEFINE SOCK_HAS_SINLEN}		// BSD definition of scoketaddr
+{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of scoketaddr
 {$endif}
 
 {$i unxsockh.inc}
@@ -31,8 +31,8 @@ type
                     sa_len     : cuchar;
                  {$endif}
                   family       : sa_family_t;
-	          path:array[0..107] of char;    //104 total for freebsd.
-                  end;				 
+                  path:array[0..107] of char;    //104 total for freebsd.
+                  end;
 
 
 { unix socket specific functions }
@@ -44,7 +44,7 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
 Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
 
 //function  fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; maybelibc
-//function  fpbind 	(s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
+//function  fpbind      (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  maybelibc
 //function  fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  maybelibc
 
 Implementation
@@ -59,7 +59,7 @@ Uses BaseUnix,{$ifndef FPC_USE_LIBC}SysCall{$else}initc{$endif};
 ******************************************************************************}
 
 {$ifndef FPC_USE_LIBC}
-{$i unixsock.inc} 
+{$i unixsock.inc}
 {$else}
 {$i stdsock.inc}
 {$endif}
@@ -70,19 +70,7 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-12-21 09:48:14  michael
-  + Removed maybelibc macro
-
-  Revision 1.9  2004/03/16 18:03:37  marco
-   * first changes sockets units
-
-  Revision 1.8  2003/11/25 15:13:28  marco
-   * somebody added fields to socketsh.inc that were already under ifdef bsd
-
-  Revision 1.7  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.6  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.11  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

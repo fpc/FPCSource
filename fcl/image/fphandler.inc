@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     TImageHandlers implementations
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -195,7 +195,7 @@ end;
 
 procedure TFPCustomImageHandler.Progress(Stage: TProgressStage;
                          PercentDone: Byte;  RedrawNow: Boolean; const R: TRect;
-                         const Msg: AnsiString; var Continue: Boolean); 
+                         const Msg: AnsiString; var Continue: Boolean);
 
 begin
   If Assigned(FOnProgress) then

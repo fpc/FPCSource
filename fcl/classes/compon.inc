@@ -540,27 +540,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-08-07 16:32:52  florian
-    * tcomponent.destroying is now called in tcomponent.beforedestruction
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.9  2003/04/27 21:16:11  sg
-  * Fixed TComponent.ValidateRename
-
-  Revision 1.8  2002/10/15 20:06:19  michael
-  + Fixed SetAncestor. Index was getting too big
-
-  Revision 1.7  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/01/09 10:40:24  michael
-  + re-enabled Top/Left property writing
-
-  Revision 1.5  2002/01/06 21:54:50  peter
-    * action classes added
+  Revision 1.3  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

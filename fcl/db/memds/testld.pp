@@ -20,15 +20,15 @@ uses db,memds,classes,sysutils;
 
 Procedure DoTest;
 
-var 
+var
   I,ACount : integer;
   D   : TDateTime;
-  
+
 begin
   with TMemDataset.Create(Nil) do
     Try
       LoadFromFile(ParamStr(1));
-      Open; 
+      Open;
       First;
       ACount:=0;
       While Not EOF do
@@ -38,14 +38,14 @@ begin
         Writeln('------------------------');
         For I:=0 to FieldCount-1 do
           Writeln(Fields[I].FieldName,' : ',Fields[I].AsString);
-        Writeln;  
-        Next;  
+        Writeln;
+        Next;
         end;
       Writeln('Total data size : ',DataSize);
       Close;
   finally
     Free;
-  end;     
+  end;
 end;
 
 begin

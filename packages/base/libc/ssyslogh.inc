@@ -10,13 +10,13 @@ const
    LOG_INFO = 6;
    LOG_DEBUG = 7;
    LOG_PRIMASK = $07;
-   
+
 function LOG_PRI(p : longint) : longint;
 function LOG_MAKEPRI(fac,pri : longint) : longint;
 
 const
    INTERNAL_NOPRI = $10;
-   INTERNAL_MARK  = 24 shl 3; 
+   INTERNAL_MARK  = 24 shl 3;
 
 type
 
@@ -36,7 +36,7 @@ Const
     (c_name: 'debug';   c_val: LOG_DEBUG),
     (c_name: 'emerg';   c_val: LOG_EMERG),
     (c_name: 'err';     c_val: LOG_ERR),
-    (c_name: 'error';   c_val: LOG_ERR), 
+    (c_name: 'error';   c_val: LOG_ERR),
     (c_name: 'info';    c_val: LOG_INFO),
     (c_name: 'none';    c_val: INTERNAL_NOPRI),
     (c_name: 'notice';  c_val: LOG_NOTICE),
@@ -123,5 +123,5 @@ procedure vsyslog(__pri: Integer; Fmt: PChar; Arg: Pointer);cdecl; external clib
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSysLogCode = _code;

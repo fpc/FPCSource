@@ -37,10 +37,7 @@
 
 {
   $Log$
-  Revision 1.2  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.1  2003/07/07 20:22:05  peter
-    * generic string routines added
+  Revision 1.3  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

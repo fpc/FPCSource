@@ -17,14 +17,14 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   15 Jan 2003.
-  
+
   Changed cardinal > longword.
   Changed startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -49,12 +49,12 @@ const
         $VER: guigfx.h 17.2 (9.2.2000)
 
         guigfx.library definitions
-    
+
         © 1997-2000 TEK neoscientists
    }
 
   {
-    	Tags
+        Tags
     }
 
   const
@@ -98,7 +98,7 @@ const
      GGFX_RastLock = GGFX_Dummy + 34;
      GGFX_FormatName = GGFX_Dummy + 35;
   {
-    	Picture Attributes
+        Picture Attributes
     }
      PICATTR_Dummy = 123 + TAG_USER;
      PICATTR_Width = PICATTR_Dummy + 0;
@@ -109,7 +109,7 @@ const
      PICATTR_AspectY = PICATTR_Dummy + 5;
      PICATTR_AlphaPresent = PICATTR_Dummy + 6;
   {
-    	Picture Methods
+        Picture Methods
     }
      PICMTHD_CROP = 1;
      PICMTHD_RENDER = 2;
@@ -131,19 +131,19 @@ const
      PICMTHD_AUTOCROP = 18;
      PICMTHD_CONVOLVE = 19;
   {
-    	hook message types
+        hook message types
     }
      GGFX_MSGTYPE_LINEDRAWN = 1;
   {
-    	picture locking
+        picture locking
     }
      LOCKMODE_DRAWHANDLE = 1;
      LOCKMODE_FORCE = 1 shl 8;
      LOCKMODE_MASK = $ff;
 
   {
-    	bitmap attributes
-    	(strictly internal)
+        bitmap attributes
+        (strictly internal)
     }
 
   const
@@ -227,373 +227,373 @@ tagsarray,longarray;
 FUNCTION AddPaletteA(psm : POINTER; palette : POINTER; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	psm,A0
-	MOVEA.L	palette,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L psm,A0
+        MOVEA.L palette,A1
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AddPictureA(psm : POINTER; pic : POINTER; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	psm,A0
-	MOVEA.L	pic,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L psm,A0
+        MOVEA.L pic,A1
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AddPixelArrayA(psm : POINTER; _array : POINTER; width : WORD; height : WORD; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	psm,A0
-	MOVEA.L	_array,A1
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L psm,A0
+        MOVEA.L _array,A1
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ClonePictureA(pic : POINTER; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pic,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L pic,A0
+        MOVEA.L tags,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CreateDirectDrawHandleA(drawhandle : POINTER; sw : WORD; sh : WORD; dw : WORD; dh : WORD; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	drawhandle,A0
-	MOVE.L	sw,D0
-	MOVE.L	sh,D1
-	MOVE.L	dw,D2
-	MOVE.L	dh,D3
-	MOVEA.L	tags,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L drawhandle,A0
+        MOVE.L  sw,D0
+        MOVE.L  sh,D1
+        MOVE.L  dw,D2
+        MOVE.L  dh,D3
+        MOVEA.L tags,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CreatePenShareMapA(tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tags,A0
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L tags,A0
+        MOVEA.L GuiGFXBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CreatePictureBitMapA(drawhandle : POINTER; pic : POINTER; tags : pTagItem) : pBitMap;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	drawhandle,A0
-	MOVEA.L	pic,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L drawhandle,A0
+        MOVEA.L pic,A1
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION CreatePictureMaskA(pic : POINTER; mask : pCHAR; maskwidth : WORD; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pic,A0
-	MOVEA.L	mask,A1
-	MOVE.L	maskwidth,D0
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-186(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L pic,A0
+        MOVEA.L mask,A1
+        MOVE.L  maskwidth,D0
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE DeleteDirectDrawHandle(ddh : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ddh,A0
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-174(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L ddh,A0
+        MOVEA.L GuiGFXBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE DeletePenShareMap(psm : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	psm,A0
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L psm,A0
+        MOVEA.L GuiGFXBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE DeletePicture(pic : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pic,A0
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L pic,A0
+        MOVEA.L GuiGFXBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION DirectDrawTrueColorA(ddh : POINTER; _array : pULONG; x : WORD; y : WORD; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ddh,A0
-	MOVEA.L	_array,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-180(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ddh,A0
+        MOVEA.L _array,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION DoPictureMethodA(pic : POINTER; method : longword; arguments : pULONG) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pic,A0
-	MOVE.L	method,D0
-	MOVEA.L	arguments,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L pic,A0
+        MOVE.L  method,D0
+        MOVEA.L arguments,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION DrawPictureA(drawhandle : POINTER; pic : POINTER; x : WORD; y : WORD; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	drawhandle,A0
-	MOVEA.L	pic,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L drawhandle,A0
+        MOVEA.L pic,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION GetPictureAttrsA(pic : POINTER; tags : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pic,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-144(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L pic,A0
+        MOVEA.L tags,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IsPictureA(filename : pCHAR; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	filename,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L filename,A0
+        MOVEA.L tags,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION LoadPictureA(filename : pCHAR; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	filename,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L filename,A0
+        MOVEA.L tags,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION LockPictureA(pic : POINTER; mode : longword; args : pULONG) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pic,A0
-	MOVE.L	mode,D0
-	MOVEA.L	args,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L pic,A0
+        MOVE.L  mode,D0
+        MOVEA.L args,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MakePictureA(_array : POINTER; width : WORD; height : WORD; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	_array,A0
-	MOVE.L	width,D0
-	MOVE.L	height,D1
-	MOVEA.L	tags,A1
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L _array,A0
+        MOVE.L  width,D0
+        MOVE.L  height,D1
+        MOVEA.L tags,A1
+        MOVEA.L GuiGFXBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MapPaletteA(drawhandle : POINTER; palette : POINTER; pentab : pCHAR; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	drawhandle,A0
-	MOVEA.L	palette,A1
-	MOVEA.L	pentab,A2
-	MOVEA.L	tags,A3
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L drawhandle,A0
+        MOVEA.L palette,A1
+        MOVEA.L pentab,A2
+        MOVEA.L tags,A3
+        MOVEA.L GuiGFXBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION MapPenA(drawhandle : POINTER; rgb : longword; tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	drawhandle,A0
-	MOVEA.L	rgb,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L drawhandle,A0
+        MOVEA.L rgb,A1
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ObtainDrawHandleA(psm : POINTER; a1arg : pRastPort; cm : pColorMap; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	psm,A0
-	MOVEA.L	a1arg,A1
-	MOVEA.L	cm,A2
-	MOVEA.L	tags,A3
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L psm,A0
+        MOVEA.L a1arg,A1
+        MOVEA.L cm,A2
+        MOVEA.L tags,A3
+        MOVEA.L GuiGFXBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ReadPictureA(a0arg : pRastPort; colormap : pColorMap; x : WORD; y : WORD; width : WORD; height : WORD; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a0arg,A0
-	MOVEA.L	colormap,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVE.L	width,D2
-	MOVE.L	height,D3
-	MOVEA.L	tags,A2
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a0arg,A0
+        MOVEA.L colormap,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVE.L  width,D2
+        MOVE.L  height,D3
+        MOVEA.L tags,A2
+        MOVEA.L GuiGFXBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE ReleaseDrawHandle(drawhandle : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	drawhandle,A0
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L drawhandle,A0
+        MOVEA.L GuiGFXBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE RemColorHandle(colorhandle : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	colorhandle,A0
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L colorhandle,A0
+        MOVEA.L GuiGFXBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE UnLockPicture(pic : POINTER; mode : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pic,A0
-	MOVE.L	mode,D0
-	MOVEA.L	GuiGFXBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L pic,A0
+        MOVE.L  mode,D0
+        MOVEA.L GuiGFXBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 

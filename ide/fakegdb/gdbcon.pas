@@ -161,8 +161,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:40:51  peter
-    * old logs removed and tabs fixed
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 

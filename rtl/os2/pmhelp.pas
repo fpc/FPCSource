@@ -17,7 +17,7 @@
 
 {Warning: This code is alfa. Future versions
  of this unit might not be compatible.}
- 
+
 unit pmhelp;
 
 interface
@@ -27,17 +27,17 @@ interface
 uses
   os2def;
 
-resourcestring  
+resourcestring
   msg_failedtodisplay='Failed to display help panel.';
   msg_failedtoload='Failed to load help manager.';
-  
+
 //************************************************************************/
 //* HelpSubTable entry structure                                         */
 //************************************************************************/
 type
   HelpSubTable=Word;
   PHelpSubTable=^HelpSubTable;
-    
+
 //************************************************************************/
 //* HelpTable entry structure                                            */
 //*                                                                      */
@@ -53,8 +53,8 @@ type
     phstHelpSubTable: PHelpSubTable;
     idExtPanel: Word;
   End;
-   
-   
+
+
 //************************************************************************/
 //* IPF Initialization Structure used on the                             */
 //* WinCreateHelpInstance() call.                                        */
@@ -75,14 +75,14 @@ type
      fShowPanelId: cardinal;
      pszHelpLibraryName: PChar;
    End;
-   
+
 //************************************************************************/
 //* Search parent chain indicator for HM_SET_ACTIVE_WINDOW message.      */
 //************************************************************************/
-   
+
 const
   HWnd_Parent = 0;
-  
+
 //************************************************************************/
 //* Constants used to define whether user wants to display panel using   */
 //* panel number or panel name.                                          */
@@ -94,8 +94,8 @@ const
 
   HMPanelType_Number  =0;
   HMPanelType_Name    =1;
-     
-//************************************************************************/ 
+
+//************************************************************************/
 //* Constants used to define how the panel IDs are displayed on          */
 //* help panels.                                                         */
 //************************************************************************/
@@ -142,7 +142,7 @@ const
 //************************************************************************/
 //* Constants used to query the info from IPF in HM_QUERY message        */
 //************************************************************************/
-   
+
 //* Hi word in lParam 1 */
 const
   HMQW_COVERPAGE           =$0001;
@@ -169,7 +169,7 @@ const
 //************************************************************************/
 //* Predefined Control IDs                                               */
 //************************************************************************/
-   
+
 const
   CTRL_PREVIOUS_ID             =$0001;
   CTRL_SEARCH_ID               =$0002;
@@ -186,7 +186,7 @@ const
 //* Messages the IPF sends to the applications active window             */
 //* as defined by the IPF.                                               */
 //************************************************************************/
-   
+
 const
   HM_ERROR                       =HM_Msg_Base+$000e;
   HM_HELPSUBITEM_NOT_FOUND       =HM_Msg_Base+$000f;
@@ -383,7 +383,7 @@ const
   REFERENCE_BY_ID     =0;
   REFERENCE_BY_RES    =1;
 
-// DdfBeginList formatting flags 
+// DdfBeginList formatting flags
   HMBT_NONE           =1;
   HMBT_ALL            =2;
   HMBT_FIT            =3;
@@ -426,7 +426,7 @@ const
 //************************************************************************/
 //* Window Help API declarations.                                        */
 //************************************************************************/
-                                     
+
 function WinDestroyHelpInstance(hwndHelpInstance: HWND): Longbool; cdecl;
 function WinCreateHelpInstance(ahab: HAB; var phinitHMInitStructure: HELPINIT): HWND; cdecl;
 function WinAssociateHelpInstance(hwndHelpInstance, hwndApp: HWND): Longbool; cdecl;
@@ -453,7 +453,7 @@ implementation
 
 const
   HELPMGRDLL='HELPMGR';
-  
+
 function WinDestroyHelpInstance(hwndHelpInstance: HWND): Longbool; cdecl;
     external HELPMGRDLL index 52;
 function WinCreateHelpInstance(ahab: HAB; var phinitHMInitStructure: HELPINIT): HWND; cdecl;
@@ -500,8 +500,7 @@ function DdfBitmap(ahddf: HDDF; hbm: HBITMAP; fAlign: cardinal): Longbool; cdecl
 end.
 {
   $Log$
-  Revision 1.4  2002-10-17 18:54:24  hajny
-    + added missing CVS log
-
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -30,5 +30,5 @@ function get_avphys_pages:longint;cdecl;external clib name 'get_avphys_pages';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSysInfo = _sysinfo;

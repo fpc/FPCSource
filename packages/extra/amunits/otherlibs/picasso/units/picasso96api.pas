@@ -30,7 +30,7 @@
     Changed cardinal > longword.
     Changed startcode for unit.
     11 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -77,7 +77,7 @@ USES Exec, utility, graphics, intuition;
        RGBFB_Y4U1V1,
        RGBFB_MaxFormats);
 
-                                                                      
+
 
   const
      RGBFF_NONE = 1 shl 0;
@@ -104,10 +104,10 @@ USES Exec, utility, graphics, intuition;
     }
     BMF_USERPRIVATE = $8000;
     { private user bitmap that will never
-  	be put to a board, but may be used as a temporary render buffer and accessed
-  	with OS blit functions, too. Bitmaps allocated with this flag do not need to
-  	be locked.  }
-     
+        be put to a board, but may be used as a temporary render buffer and accessed
+        with OS blit functions, too. Bitmaps allocated with this flag do not need to
+        be locked.  }
+
   {                                                                       }
   { Attributes for p96GetBitMapAttr
     }
@@ -124,11 +124,11 @@ USES Exec, utility, graphics, intuition;
       P96BMA_BOARDMEMBASE = 10;
       P96BMA_BOARDIOBASE = 11;
       P96BMA_BOARDMEMIOBASE = 12;
- 
+
   {                                                                       }
   { Attributes for p96GetModeIDAttr
     }
-    
+
        P96IDA_WIDTH = 0;
        P96IDA_HEIGHT = 1;
        P96IDA_DEPTH = 2;
@@ -143,7 +143,7 @@ USES Exec, utility, graphics, intuition;
        P96IDA_VIDEOCOMPATIBLE = 11;
        P96IDA_PABLOIVCOMPATIBLE = 12;
        P96IDA_PALOMAIVCOMPATIBLE = 13;
- 
+
      {                                                                       }
      { Tags for p96BestModeIDTagList
      }
@@ -221,7 +221,7 @@ USES Exec, utility, graphics, intuition;
      P96SA_Exclusive = P96SA_Dummy + $0025;
      P96SA_ConstantBytesPerRow = P96SA_Dummy + $0026;
      {                                                                       }
-     { 
+     {
      }
      MODENAMELENGTH = 48;
 
@@ -241,7 +241,7 @@ USES Exec, utility, graphics, intuition;
 
      {                                                                       }
      { Structure to describe graphics data
-    
+
        short description of the entries:
        Memory:        pointer to graphics data
        BytesPerRow:   distance in bytes between one pixel and its neighbour up
@@ -259,7 +259,7 @@ USES Exec, utility, graphics, intuition;
 
      {                                                                       }
      { Structure for p96WriteTrueColorData() and p96ReadTrueColorData()
-    
+
        short description of the entries:
        PixelDistance: distance in bytes between the red (must be the same as
                       for the green or blue) component of one pixel and its
@@ -269,7 +269,7 @@ USES Exec, utility, graphics, intuition;
                       next neighbour up or down.
        RedData:       pointer to the red component of the upper left pixel.
        GreenData, BlueData: the same as above.
-    
+
        examples (for an array width of 640 pixels):
        a) separate arrays for each color:
            (1, 640, red, green, blue );
@@ -372,7 +372,7 @@ USES Exec, utility, graphics, intuition;
      PIPERR_NOMEMORY = 1;
      { Failed to attach to a screen  }
      PIPERR_ATTACHFAIL = 2;
-     { PIP not available for other reason	 }
+     { PIP not available for other reason        }
      PIPERR_NOTAVAILABLE = 3;
      { couldn't get a free pen for occlusion  }
      PIPERR_OUTOFPENS = 4;
@@ -469,362 +469,362 @@ tagsarray;
 FUNCTION p96AllocBitMap(SizeX : Ulong; SizeY : Ulong; Depth : Ulong; Flags : Ulong; Friend : pBitMap; RGBFormat : RGBFTYPE) : pBitMap;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	SizeX,D0
-	MOVE.L	SizeY,D1
-	MOVE.L	Depth,D2
-	MOVE.L	Flags,D3
-	MOVEA.L	Friend,A0
-	MOVE.L	RGBFormat,D7
-	MOVEA.L	P96Base,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  SizeX,D0
+        MOVE.L  SizeY,D1
+        MOVE.L  Depth,D2
+        MOVE.L  Flags,D3
+        MOVEA.L Friend,A0
+        MOVE.L  RGBFormat,D7
+        MOVEA.L P96Base,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE p96FreeBitMap(BitMap : pBitMap);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	BitMap,A0
-	MOVEA.L	P96Base,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L BitMap,A0
+        MOVEA.L P96Base,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION p96GetBitMapAttr(BitMap : pBitMap; Attribute : Ulong) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	BitMap,A0
-	MOVE.L	Attribute,D0
-	MOVEA.L	P96Base,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L BitMap,A0
+        MOVE.L  Attribute,D0
+        MOVEA.L P96Base,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96LockBitMap(BitMap : pBitMap; Buffer : pCHAR; Size : Ulong) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	BitMap,A0
-	MOVEA.L	Buffer,A1
-	MOVE.L	Size,D0
-	MOVEA.L	P96Base,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L BitMap,A0
+        MOVEA.L Buffer,A1
+        MOVE.L  Size,D0
+        MOVEA.L P96Base,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE p96UnlockBitMap(BitMap : pBitMap; Lock : LONGINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	BitMap,A0
-	MOVE.L	Lock,D0
-	MOVEA.L	P96Base,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L BitMap,A0
+        MOVE.L  Lock,D0
+        MOVEA.L P96Base,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION p96BestModeIDTagList(Tags : pTagItem) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Tags,A0
-	MOVEA.L	P96Base,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Tags,A0
+        MOVEA.L P96Base,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96RequestModeIDTagList(Tags : pTagItem) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Tags,A0
-	MOVEA.L	P96Base,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Tags,A0
+        MOVEA.L P96Base,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96AllocModeListTagList(Tags : pTagItem) : pList;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Tags,A0
-	MOVEA.L	P96Base,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Tags,A0
+        MOVEA.L P96Base,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE p96FreeModeList(List : pList);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	List,A0
-	MOVEA.L	P96Base,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L List,A0
+        MOVEA.L P96Base,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION p96GetModeIDAttr(Mode : Ulong; Attribute : Ulong) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Mode,D0
-	MOVE.L	Attribute,D1
-	MOVEA.L	P96Base,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  Mode,D0
+        MOVE.L  Attribute,D1
+        MOVEA.L P96Base,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96OpenScreenTagList(Tags : pTagItem) : pScreen;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Tags,A0
-	MOVEA.L	P96Base,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Tags,A0
+        MOVEA.L P96Base,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96CloseScreen(Screen : pScreen) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Screen,A0
-	MOVEA.L	P96Base,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Screen,A0
+        MOVEA.L P96Base,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE p96WritePixelArray(ri : pRenderInfo; SrcX : WORD; SrcY : WORD; rp : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ri,A0
-	MOVE.L	SrcX,D0
-	MOVE.L	SrcY,D1
-	MOVEA.L	rp,A1
-	MOVE.L	DestX,D2
-	MOVE.L	DestY,D3
-	MOVE.L	SizeX,D4
-	MOVE.L	SizeY,D5
-	MOVEA.L	P96Base,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L ri,A0
+        MOVE.L  SrcX,D0
+        MOVE.L  SrcY,D1
+        MOVEA.L rp,A1
+        MOVE.L  DestX,D2
+        MOVE.L  DestY,D3
+        MOVE.L  SizeX,D4
+        MOVE.L  SizeY,D5
+        MOVEA.L P96Base,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE p96ReadPixelArray(ri : pRenderInfo; DestX : WORD; DestY : WORD; rp : pRastPort; SrcX : WORD; SrcY : WORD; SizeX : WORD; SizeY : WORD);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ri,A0
-	MOVE.L	DestX,D0
-	MOVE.L	DestY,D1
-	MOVEA.L	rp,A1
-	MOVE.L	SrcX,D2
-	MOVE.L	SrcY,D3
-	MOVE.L	SizeX,D4
-	MOVE.L	SizeY,D5
-	MOVEA.L	P96Base,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L ri,A0
+        MOVE.L  DestX,D0
+        MOVE.L  DestY,D1
+        MOVEA.L rp,A1
+        MOVE.L  SrcX,D2
+        MOVE.L  SrcY,D3
+        MOVE.L  SizeX,D4
+        MOVE.L  SizeY,D5
+        MOVEA.L P96Base,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION p96WritePixel(rp : pRastPort; x : WORD; y : WORD; color : Ulong) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVE.L	color,D2
-	MOVEA.L	P96Base,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVE.L  color,D2
+        MOVEA.L P96Base,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96ReadPixel(rp : pRastPort; x : WORD; y : WORD) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVEA.L	P96Base,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVEA.L P96Base,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE p96RectFill(rp : pRastPort; MinX : WORD; MinY : WORD; MaxX : WORD; MaxY : WORD; color : Ulong);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVE.L	MinX,D0
-	MOVE.L	MinY,D1
-	MOVE.L	MaxX,D2
-	MOVE.L	MaxY,D3
-	MOVE.L	color,D4
-	MOVEA.L	P96Base,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVE.L  MinX,D0
+        MOVE.L  MinY,D1
+        MOVE.L  MaxX,D2
+        MOVE.L  MaxY,D3
+        MOVE.L  color,D4
+        MOVEA.L P96Base,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE p96WriteTrueColorData(tci : pTrueColorInfo; SrcX : WORD; SrcY : WORD; rp : pRastPort; DestX : WORD; DestY : WORD; SizeX : WORD; SizeY : WORD);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tci,A0
-	MOVE.L	SrcX,D0
-	MOVE.L	SrcY,D1
-	MOVEA.L	rp,A1
-	MOVE.L	DestX,D2
-	MOVE.L	DestY,D3
-	MOVE.L	SizeX,D4
-	MOVE.L	SizeY,D5
-	MOVEA.L	P96Base,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L tci,A0
+        MOVE.L  SrcX,D0
+        MOVE.L  SrcY,D1
+        MOVEA.L rp,A1
+        MOVE.L  DestX,D2
+        MOVE.L  DestY,D3
+        MOVE.L  SizeX,D4
+        MOVE.L  SizeY,D5
+        MOVEA.L P96Base,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE p96ReadTrueColorData(tci : pTrueColorInfo; DestX : WORD; DestY : WORD; rp : pRastPort; SrcX : WORD; SrcY : WORD; SizeX : WORD; SizeY : WORD);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tci,A0
-	MOVE.L	DestX,D0
-	MOVE.L	DestY,D1
-	MOVEA.L	rp,A1
-	MOVE.L	SrcX,D2
-	MOVE.L	SrcY,D3
-	MOVE.L	SizeX,D4
-	MOVE.L	SizeY,D5
-	MOVEA.L	P96Base,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L tci,A0
+        MOVE.L  DestX,D0
+        MOVE.L  DestY,D1
+        MOVEA.L rp,A1
+        MOVE.L  SrcX,D2
+        MOVE.L  SrcY,D3
+        MOVE.L  SizeX,D4
+        MOVE.L  SizeY,D5
+        MOVEA.L P96Base,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION p96PIP_OpenTagList(Tags : pTagItem) : pWindow;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Tags,A0
-	MOVEA.L	P96Base,A6
-	JSR	-144(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Tags,A0
+        MOVEA.L P96Base,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96PIP_Close(Window : pWindow) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Window,A0
-	MOVEA.L	P96Base,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Window,A0
+        MOVEA.L P96Base,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION p96PIP_SetTagList(Window : pWindow; Tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Window,A0
-	MOVEA.L	Tags,A1
-	MOVEA.L	P96Base,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Window,A0
+        MOVEA.L Tags,A1
+        MOVEA.L P96Base,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96PIP_GetTagList(Window : pWindow; Tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Window,A0
-	MOVEA.L	Tags,A1
-	MOVEA.L	P96Base,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Window,A0
+        MOVEA.L Tags,A1
+        MOVEA.L P96Base,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96GetRTGDataTagList(Tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Tags,A0
-	MOVEA.L	P96Base,A6
-	JSR	-180(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Tags,A0
+        MOVEA.L P96Base,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96GetBoardDataTagList(Board : Ulong; Tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Board,D0
-	MOVEA.L	Tags,A0
-	MOVEA.L	P96Base,A6
-	JSR	-186(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  Board,D0
+        MOVEA.L Tags,A0
+        MOVEA.L P96Base,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION p96EncodeColor(RGBFormat : RGBFTYPE; Color : Ulong) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	RGBFormat,D0
-	MOVE.L	Color,D1
-	MOVEA.L	P96Base,A6
-	JSR	-192(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  RGBFormat,D0
+        MOVE.L  Color,D1
+        MOVEA.L P96Base,A6
+        JSR     -192(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

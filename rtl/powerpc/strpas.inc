@@ -55,33 +55,7 @@ end;
 
 {
   $Log$
-  Revision 1.11  2003-11-15 19:01:27  florian
-    * fixed rtl to work with the integrated fpc ppc assembler reader
-
-  Revision 1.10  2003/06/14 12:41:09  jonas
-    * fixed compilation problems (removed unnecessary modified registers
-      lists from procedures)
-
-  Revision 1.9  2003/04/27 16:25:08  jonas
-    * support nil as parameter and some other fixes
-
-  Revision 1.8  2002/10/17 10:14:46  jonas
-    * fixed srwi's after cntlzw instructions (should be 5 instead of 31)
-
-  Revision 1.7  2002/09/11 07:49:40  jonas
-    * fixed assembler errors
-
-  Revision 1.6  2002/09/07 16:01:26  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/08/18 22:11:10  florian
-    * fixed remaining assembler errors
-
-  Revision 1.4  2002/08/18 21:37:48  florian
-    * several errors in inline assembler fixed
-
-  Revision 1.3  2002/08/10 17:14:36  jonas
-    * various fixes, mostly changing the names of the modifies registers to
-      upper case since that seems to be required by the compiler
+  Revision 1.12  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

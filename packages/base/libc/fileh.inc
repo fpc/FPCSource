@@ -12,4 +12,4 @@ function __flock(__fd:longint; __operation:longint):longint;cdecl;external clib 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

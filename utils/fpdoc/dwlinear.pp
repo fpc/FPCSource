@@ -406,7 +406,7 @@ begin
         L:=StripText(GetLabel(Member));
         N:=EscapeText(Member.Name);
         DocNode := Engine.FindDocNode(Member);
-        If Assigned(DocNode) then 
+        If Assigned(DocNode) then
           S:=GetDescrString(Member, DocNode.ShortDescr)
         else
           S:='';
@@ -1075,47 +1075,47 @@ constructor TLinearWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       if InterfaceSection.Classes.Count > 0 then
       begin
         for i := 0 to InterfaceSection.Classes.Count - 1 do
-	begin
-	  ClassEl := TPasClassType(InterfaceSection.Classes[i]);
+        begin
+          ClassEl := TPasClassType(InterfaceSection.Classes[i]);
           AddLabel(ClassEl);
 
           for j := 0 to ClassEl.Members.Count - 1 do
           begin
             FPEl := TPasElement(ClassEl.Members[j]);
             if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-	      ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
-	      continue;
+              ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
+              continue;
 
             DocNode := Engine.FindDocNode(FPEl);
             if not Assigned(DocNode) then
             begin
               DidAutolink := False;
-	      if Assigned(ClassEl.AncestorType) and
-	        (ClassEl.AncestorType.ClassType = TPasClassType) then
-	      begin
-	        for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
-	        begin
-	          AncestorMemberEl :=
-	            TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
-	          if AncestorMemberEl.Name = FPEl.Name then
-	          begin
-	            DocNode := Engine.FindDocNode(AncestorMemberEl);
-	            if Assigned(DocNode) then
-	            begin
-	              DidAutolink := True;
-		      Engine.AddLink(FPEl.PathName,
-	    		Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
-	              break;
-	            end;
-	          end;
-	        end;
-	      end;
-	      if not DidAutolink then
-	        AddLabel(FPEl);
-	    end else
-    	      AddLabel(FPEl);
-    	  end;
-	end;
+              if Assigned(ClassEl.AncestorType) and
+                (ClassEl.AncestorType.ClassType = TPasClassType) then
+              begin
+                for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
+                begin
+                  AncestorMemberEl :=
+                    TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
+                  if AncestorMemberEl.Name = FPEl.Name then
+                  begin
+                    DocNode := Engine.FindDocNode(AncestorMemberEl);
+                    if Assigned(DocNode) then
+                    begin
+                      DidAutolink := True;
+                      Engine.AddLink(FPEl.PathName,
+                        Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
+                      break;
+                    end;
+                  end;
+                end;
+              end;
+              if not DidAutolink then
+                AddLabel(FPEl);
+            end else
+              AddLabel(FPEl);
+          end;
+        end;
       end;
       AddList(AModule, InterfaceSection.Functions);
       AddList(AModule, InterfaceSection.Variables);

@@ -10,7 +10,7 @@ uses
   mmx;
 type
         vector4 = array[0..3] of single;
-        
+
 {$maxalignment 8}
 var
         a,b,c :vector4;

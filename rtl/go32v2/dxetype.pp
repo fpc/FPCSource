@@ -36,7 +36,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2004-09-15 19:20:51  hajny
-    * dxegen compilable for any target now
+  Revision 1.2  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

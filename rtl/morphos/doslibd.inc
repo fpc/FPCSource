@@ -4,8 +4,8 @@
 
     dos definitions (V50) for MorphOS/PowerPC
     Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
-    
-    Free Pascal conversion 
+
+    Free Pascal conversion
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -80,7 +80,7 @@ type
     fib_NumBlocks   : LongInt;
     fib_Date        : TDateStamp;
     fib_Comment     : Array[0..79] Of Char;
-    
+
     fib_OwnerUID    : Word;
     fib_OwnerGID    : Word;
 
@@ -127,7 +127,7 @@ const
   FAULT_MAX = 82;
 
 
-type 
+type
   BPTR = LongInt;
   BSTR = LongInt;
 
@@ -310,7 +310,7 @@ type
     pr_Pad           : Word;
     pr_SegList       : DWord;    { BPTR }
     pr_StackSize     : LongInt;  { 68k stacksize! }
-    pr_GlobVec       : Pointer; 
+    pr_GlobVec       : Pointer;
     pr_TaskNum       : LongInt;
     pr_StackBase     : DWord;    { BPTR }
     pr_Result2       : LongInt;
@@ -383,9 +383,9 @@ type
           dp_Status2: Longint;
           dp_BufAddr: Longint;
         );
-    1 : ( dp_Type: Longint;      
-          dp_Res1: Longint;      
-          dp_Res2: Longint;      
+    1 : ( dp_Type: Longint;
+          dp_Res1: Longint;
+          dp_Res2: Longint;
           dp_Arg1: Longint;
           dp_Arg2: Longint;
           dp_Arg3: Longint;
@@ -543,11 +543,11 @@ type
     0 : ( di_ResList: DWord; { BPTR }
         );
     1 : ( di_McName    : DWord; { BPTR }
-          di_DevInfo   : DWord; { BPTR }          
-          di_Devices   : DWord; { BPTR }          
-          di_Handlers  : DWord; { BPTR }          
-          di_NetHand   : Pointer;       
-          di_DevLock   : TSignalSemaphore;                      
+          di_DevInfo   : DWord; { BPTR }
+          di_Devices   : DWord; { BPTR }
+          di_Handlers  : DWord; { BPTR }
+          di_NetHand   : Pointer;
+          di_DevLock   : TSignalSemaphore;
           di_EntryLock : TSignalSemaphore;
           di_DeleteLock: TSignalSemaphore;
         );
@@ -574,20 +574,20 @@ const
 type
   PCommandLineInterface = ^TCommandLineInterface;
   TCommandLineInterface = packed record
-    cli_Result2       : LongInt;       
+    cli_Result2       : LongInt;
     cli_SetName       : DWord;   { BSTR }
     cli_CommandDir    : DWord;   { BPTR }
-    cli_ReturnCode    : LongInt;       
+    cli_ReturnCode    : LongInt;
     cli_CommandName   : DWord;   { BSTR }
-    cli_FailLevel     : LongInt;       
+    cli_FailLevel     : LongInt;
     cli_Prompt        : DWord;   { BSTR }
     cli_StandardInput : DWord;   { BPTR }
     cli_CurrentInput  : DWord;   { BPTR }
     cli_CommandFile   : DWord;   { BSTR }
-    cli_Interactive   : LongInt;       
-    cli_Background    : LongInt;       
+    cli_Interactive   : LongInt;
+    cli_Background    : LongInt;
     cli_CurrentOutput : DWord;   { BPTR }
-    cli_DefaultStack  : LongInt;       
+    cli_DefaultStack  : LongInt;
     cli_StandardOutput: DWord;   { BPTR }
     cli_Module        : DWord;   { BPTR }
   end;
@@ -600,7 +600,7 @@ type
     dl_Task      : PMsgPort;
     dl_Lock      : DWord;      { BPTR }
     dl_VolumeDate: TDateStamp;
-    dl_LockList  : DWord;      { BPTR }  
+    dl_LockList  : DWord;      { BPTR }
     dl_DiskType  : LongInt;
     dl_unused    : LongInt;
     dl_Name      : DWord;      { BSTR }
@@ -619,10 +619,10 @@ type
     dvi_Startup  : LongInt;
     dvi_SegList  : DWord; { BPTR }
     dvi_GlobVec  : DWord; { BPTR }
-    dvi_Name     : DWord; { BSTR }  
+    dvi_Name     : DWord; { BSTR }
   end;
 
-type 
+type
   PAssignList = ^TAssignList;
   TAssignList = packed record
     al_Next: PAssignList;
@@ -632,10 +632,10 @@ type
 type
   PDOSList = ^TDOSList;
   TDOSList = packed record
-    dol_Next: DWord;    { BPTR }      
+    dol_Next: DWord;    { BPTR }
     dol_Type: LongInt;
     dol_Task: PMsgPort;
-    dol_Lock: DWord;    { BPTR }      
+    dol_Lock: DWord;    { BPTR }
     case Byte of
     0: ( dol_handler : record
            dol_Handler  : DWord;    { BSTR }
@@ -648,13 +648,13 @@ type
        );
     1: ( dol_volume : record
            dol_VolumeDate: TDateStamp;
-           dol_LockList  : DWord;   { BPTR } 
+           dol_LockList  : DWord;   { BPTR }
            dol_DiskType  : LongInt;
          end;
        );
     2: ( dol_assign : record
            dol_AssignName: PChar;
-           dol_List      : PAssignList;    
+           dol_List      : PAssignList;
          end;
        );
     3: ( dol_Misc: array[0..23] of Byte;
@@ -677,7 +677,7 @@ type
   TDevProc = packed record
     dvp_Port   : PMsgPort;
     dvp_Lock   : DWord;    { BPTR }
-    dvp_Flags  : DWord;       
+    dvp_Flags  : DWord;
     dvp_DevNode: PDOSList;
   end;
 
@@ -718,10 +718,10 @@ type
   PFileLock = ^TFileLock;
   TFileLock = packed record
     fl_Link  : DWord;   { BPTR }
-    fl_Key   : LongInt;         
-    fl_Access: LongInt;         
-    fl_Task  : PMsgPort;  
-    fl_Volume: DWord;   { BPTR } 
+    fl_Key   : LongInt;
+    fl_Access: LongInt;
+    fl_Task  : PMsgPort;
+    fl_Volume: DWord;   { BPTR }
   end;
 
 
@@ -777,9 +777,9 @@ type
           ap_Last : PAChain;
         );
     1 : ( ap_Base      : PAChain;
-          ap_Current   : PAChain;   
+          ap_Current   : PAChain;
           ap_BreakBits : LongInt;
-          ap_FoundBreak: LongInt;  
+          ap_FoundBreak: LongInt;
           ap_Flags     : ShortInt;
           ap_Reserved  : ShortInt;
           ap_Strlen    : SmallInt;
@@ -976,7 +976,7 @@ type
     ed_Ticks   : Cardinal;
     ed_Comment : PChar;
     ed_OwnerUID: Word;
-    ed_OwnerGID: Word;   
+    ed_OwnerGID: Word;
   end;
 
 type
@@ -1009,7 +1009,7 @@ type
     rec_FH    : LongInt;
     rec_Offset: Cardinal;
     rec_Length: Cardinal;
-    rec_Mode  : Cardinal; 
+    rec_Mode  : Cardinal;
   end;
 
 
@@ -1224,7 +1224,7 @@ type
     de_DosType       : Cardinal;
     de_Baud          : Cardinal;
     de_Control       : Cardinal;
-    de_BootBlocks    : Cardinal;   
+    de_BootBlocks    : Cardinal;
   end;
 
 
@@ -1274,7 +1274,7 @@ type
     dn_Startup  : LongInt;
     dn_SegList  : LongInt;
     dn_GlobalVec: LongInt;
-    dn_Name     : LongInt; 
+    dn_Name     : LongInt;
   end;
 
 
@@ -1358,7 +1358,7 @@ type
   PSegSem = ^TSegSem;
   TSegSem = packed record
     seg_Semaphore: TSignalSemaphore;
-    seg_Find     : Procedure; { Name = seg_Find(REG(a0, ULONG Address), REG(a1, ULONG *SegNum), REG(a2, ULONG *Offset)) }   
+    seg_Find     : Procedure; { Name = seg_Find(REG(a0, ULONG Address), REG(a1, ULONG *SegNum), REG(a2, ULONG *Offset)) }
     seg_List     : TMinList;
   end;
 
@@ -1381,16 +1381,13 @@ type
 
 {
   $Log$
-  Revision 1.4  2005-01-12 07:59:05  karoly
+  Revision 1.5  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.4  2005/01/12 07:59:05  karoly
     * Integers changed to SmallInt to be compatible with all modes
 
   Revision 1.3  2005/01/10 04:58:52  karoly
     * fixed alignment problem in TDosList
-
-  Revision 1.2  2004/08/09 00:10:19  karoly
-    + added most of missing stuff
-
-  Revision 1.1  2004/06/26 20:46:17  karoly
-    * initial revision
 
 }

@@ -69,8 +69,8 @@ procedure __malloc_check_init;cdecl;external clib name '__malloc_check_init';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TMallocInfo = _mallinfo;
   PMallocInfo = ^TMallocInfo;
-    
-    
+
+

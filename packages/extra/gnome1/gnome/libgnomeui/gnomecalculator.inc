@@ -26,7 +26,7 @@ const
    bp__GnomeCalculator_error = 1;
    bm__GnomeCalculator_invert = $4;
    bp__GnomeCalculator_invert = 2;
-   
+
 function add_digit(var a : TGnomeCalculator) : guint;
 procedure set_add_digit(var a : TGnomeCalculator; __add_digit : guint);
 function error(var a : TGnomeCalculator) : guint;

@@ -24,9 +24,9 @@ function vtimes(__current:Pvtimes; __child:Pvtimes):longint;cdecl;external clib 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   Tvtimes = _vtimes;
-  
+
 function vtimes(var __current: _vtimes; var __child: _vtimes):longint;cdecl;external clib name 'vtimes';
 function vtimes(var __current: _vtimes; __child: pvtimes):longint;cdecl;external clib name 'vtimes';
 function vtimes( __current: pvtimes; var __child: _vtimes):longint;cdecl;external clib name 'vtimes';

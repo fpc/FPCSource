@@ -19,7 +19,7 @@ Var
   E : Extended;
   S : Single;
   Bo : Boolean;
-  
+
 begin
   DumpVariant(TVarData(V));
   I64:=V;
@@ -53,7 +53,7 @@ end;
 
 Procedure TestReal(R : Real);
 
-Var 
+Var
   V : Variant;
 
 begin
@@ -65,7 +65,7 @@ end;
 
 Procedure TestDouble(R : Double);
 
-Var 
+Var
   V : Variant;
 
 begin
@@ -77,7 +77,7 @@ end;
 
 Procedure TestSingle(R : Single);
 
-Var 
+Var
   V : Variant;
 
 begin
@@ -89,7 +89,7 @@ end;
 
 Procedure TestExtended(R : Extended);
 
-Var 
+Var
   V : Variant;
 
 begin

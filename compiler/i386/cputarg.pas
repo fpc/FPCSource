@@ -94,10 +94,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2004-09-04 21:18:47  armin
-  * target netwlibc added (libc is preferred for newer netware versions)
-
-  Revision 1.14  2004/06/20 08:55:31  florian
-    * logs truncated
+  Revision 1.16  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

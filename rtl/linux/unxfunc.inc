@@ -59,77 +59,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.1  2005/02/13 20:01:38  peter
     * include file cleanup
-
-  Revision 1.27  2004/04/28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.26  2004/04/23 19:16:24  marco
-   * flock -> fpflock because of conflicting structure name
-
-  Revision 1.25  2004/01/02 22:46:29  marco
-   * fix from Marc W.
-
-  Revision 1.24  2003/12/31 20:23:31  marco
-   * small fixes for exporting statfs(pchar,..)
-
-  Revision 1.23  2003/12/30 15:43:20  marco
-   * linux now compiles with FPC_USE_LIBC
-
-  Revision 1.22  2003/12/30 12:36:56  marco
-   * FPC_USE_LIBC
-
-  Revision 1.21  2003/11/19 11:46:55  marco
-   * changes due to the previous *BSD changes. Mainly moving constants from
-     unix to systypes.inc (which acts as unxtypes.inc)
-
-  Revision 1.20  2003/11/17 10:21:47  marco
-   * small fixes for changing unit unix again
-
-  Revision 1.19  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.18  2003/11/13 17:40:12  marco
-   * small fixes
-
-  Revision 1.17  2003/11/13 13:36:23  marco
-   * Linuxerror removed
-
-  Revision 1.16  2003/11/09 13:48:55  marco
-   * small fix
-
-  Revision 1.15  2003/10/30 16:42:25  marco
-   * Killing off old syscall convention anywhere except for oldlinux
-
-  Revision 1.14  2003/10/17 22:11:28  olle
-    * changed i386 to cpui386
-
-  Revision 1.13  2003/09/20 12:45:34  marco
-   * Small fix. Cycle works
-
-  Revision 1.12  2003/09/16 21:46:27  marco
-   * small fixes, checking things on linux
-
-  Revision 1.11  2003/09/15 21:07:32  marco
-   * second round of linux fixes. oldlinux now works
-
-  Revision 1.10  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.9  2003/07/08 21:23:24  peter
-    * sparc fixes
-
-  Revision 1.8  2002/12/18 16:43:26  marco
-   * new unix rtl, linux part.....
-
-  Revision 1.7  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/03/05 20:04:25  michael
-  + Patch from Sebastian for FCNTL call
 
 }

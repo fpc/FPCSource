@@ -34,7 +34,7 @@ type
     pub : jpeg_color_converter; { public fields }
 
     { Private state for RGB -> YCC conversion }
-    rgb_ycc_tab : INT32_FIELD_PTR;	{ => table for RGB to YCbCr conversion }
+    rgb_ycc_tab : INT32_FIELD_PTR;      { => table for RGB to YCbCr conversion }
   end; {my_color_converter;}
 
 
@@ -44,9 +44,9 @@ type
   YCbCr is defined per CCIR 601-1, except that Cb and Cr are
   normalized to the range 0..MAXJSAMPLE rather than -0.5 .. 0.5.
   The conversion equations to be implemented are therefore
- 	Y  =  0.29900 * R + 0.58700 * G + 0.11400 * B
- 	Cb = -0.16874 * R - 0.33126 * G + 0.50000 * B  + CENTERJSAMPLE
- 	Cr =  0.50000 * R - 0.41869 * G - 0.08131 * B  + CENTERJSAMPLE
+        Y  =  0.29900 * R + 0.58700 * G + 0.11400 * B
+        Cb = -0.16874 * R - 0.33126 * G + 0.50000 * B  + CENTERJSAMPLE
+        Cr =  0.50000 * R - 0.41869 * G - 0.08131 * B  + CENTERJSAMPLE
   (These numbers are derived from TIFF 6.0 section 21, dated 3-June-92.)
   Note: older versions of the IJG code used a zero offset of MAXJSAMPLE/2,
   rather than CENTERJSAMPLE, for Cb and Cr.  This gave equal positive and
@@ -67,7 +67,7 @@ type
   The CENTERJSAMPLE offsets and the rounding fudge-factor of 0.5 are included
   in the tables to save adding them separately in the inner loop. }
 const
-  SCALEBITS   =  16;	{ speediest right-shift on some machines }
+  SCALEBITS   =  16;    { speediest right-shift on some machines }
   CBCR_OFFSET = INT32(CENTERJSAMPLE shl SCALEBITS);
   ONE_HALF    = INT32(1) shl (SCALEBITS-1);
 
@@ -112,7 +112,7 @@ begin
   { Allocate and fill in the conversion tables. }
   rgb_ycc_tab := INT32_FIELD_PTR(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				(TABLE_SIZE * SIZEOF(INT32))) );
+                                (TABLE_SIZE * SIZEOF(INT32))) );
   cconvert^.rgb_ycc_tab := rgb_ycc_tab;
 
   for i := 0 to MAXJSAMPLE do
@@ -148,9 +148,9 @@ end;
 
 {METHODDEF}
 procedure rgb_ycc_convert (cinfo : j_compress_ptr;
-		           input_buf : JSAMPARRAY;
+                           input_buf : JSAMPARRAY;
                            output_buf :  JSAMPIMAGE;
-		           output_row : JDIMENSION;
+                           output_row : JDIMENSION;
                            num_rows : int); far;
 var
   cconvert : my_cconvert_ptr;
@@ -187,16 +187,16 @@ begin
 
       { Y }
       outptr0^[col] := JSAMPLE(
-		((ctab^[r+R_Y_OFF] + ctab^[g+G_Y_OFF] + ctab^[b+B_Y_OFF])
-		 shr SCALEBITS) );
+                ((ctab^[r+R_Y_OFF] + ctab^[g+G_Y_OFF] + ctab^[b+B_Y_OFF])
+                 shr SCALEBITS) );
       { Cb }
       outptr1^[col] := JSAMPLE(
-		((ctab^[r+R_CB_OFF] + ctab^[g+G_CB_OFF] + ctab^[b+B_CB_OFF])
-		 shr SCALEBITS) );
+                ((ctab^[r+R_CB_OFF] + ctab^[g+G_CB_OFF] + ctab^[b+B_CB_OFF])
+                 shr SCALEBITS) );
       { Cr }
       outptr2^[col] := JSAMPLE(
-		((ctab^[r+R_CR_OFF] + ctab^[g+G_CR_OFF] + ctab^[b+B_CR_OFF])
-		 shr SCALEBITS) );
+                ((ctab^[r+R_CR_OFF] + ctab^[g+G_CR_OFF] + ctab^[b+B_CR_OFF])
+                 shr SCALEBITS) );
     end;
   end;
 end;
@@ -212,9 +212,9 @@ end;
 
 {METHODDEF}
 procedure rgb_gray_convert (cinfo : j_compress_ptr;
-		            input_buf : JSAMPARRAY;
+                            input_buf : JSAMPARRAY;
                             output_buf : JSAMPIMAGE;
-		            output_row : JDIMENSION;
+                            output_row : JDIMENSION;
                             num_rows : int); far;
 var
   cconvert : my_cconvert_ptr;
@@ -244,8 +244,8 @@ begin
       Inc(JSAMPLE_PTR(inptr), RGB_PIXELSIZE);
       { Y }
       outptr^[col] := JSAMPLE (
-		((ctab^[r+R_Y_OFF] + ctab^[g+G_Y_OFF] + ctab^[b+B_Y_OFF])
-		 shr SCALEBITS) );
+                ((ctab^[r+R_Y_OFF] + ctab^[g+G_Y_OFF] + ctab^[b+B_Y_OFF])
+                 shr SCALEBITS) );
     end;
   end;
 end;
@@ -259,9 +259,9 @@ end;
 
 {METHODDEF}
 procedure cmyk_ycck_convert (cinfo : j_compress_ptr;
-		             input_buf : JSAMPARRAY;
+                             input_buf : JSAMPARRAY;
                              output_buf : JSAMPIMAGE;
-		             output_row : JDIMENSION;
+                             output_row : JDIMENSION;
                              num_rows : int); far;
 var
   cconvert : my_cconvert_ptr;
@@ -292,7 +292,7 @@ begin
       g := MAXJSAMPLE - GETJSAMPLE(inptr^[1]);
       b := MAXJSAMPLE - GETJSAMPLE(inptr^[2]);
       { K passes through as-is }
-      outptr3^[col] := inptr^[3];	{ don't need GETJSAMPLE here }
+      outptr3^[col] := inptr^[3];       { don't need GETJSAMPLE here }
       Inc(JSAMPLE_PTR(inptr), 4);
       { If the inputs are 0..MAXJSAMPLE, the outputs of these equations
         must be too; we do not need an explicit range-limiting operation.
@@ -301,16 +301,16 @@ begin
 
       { Y }
       outptr0^[col] := JSAMPLE (
-		((ctab^[r+R_Y_OFF] + ctab^[g+G_Y_OFF] + ctab^[b+B_Y_OFF])
-		 shr SCALEBITS) );
+                ((ctab^[r+R_Y_OFF] + ctab^[g+G_Y_OFF] + ctab^[b+B_Y_OFF])
+                 shr SCALEBITS) );
       { Cb }
       outptr1^[col] := JSAMPLE(
-		((ctab^[r+R_CB_OFF] + ctab^[g+G_CB_OFF] + ctab^[b+B_CB_OFF])
-		 shr SCALEBITS) );
+                ((ctab^[r+R_CB_OFF] + ctab^[g+G_CB_OFF] + ctab^[b+B_CB_OFF])
+                 shr SCALEBITS) );
       { Cr }
       outptr2^[col] := JSAMPLE (
-		((ctab^[r+R_CR_OFF] + ctab^[g+G_CR_OFF] + ctab^[b+B_CR_OFF])
-		 shr SCALEBITS) );
+                ((ctab^[r+R_CR_OFF] + ctab^[g+G_CR_OFF] + ctab^[b+B_CR_OFF])
+                 shr SCALEBITS) );
     end;
   end;
 end;
@@ -345,7 +345,7 @@ begin
     Inc(output_row);
     for col := 0 to pred(num_cols) do
     begin
-      outptr^[col] := inptr^[0];	{ don't need GETJSAMPLE() here }
+      outptr^[col] := inptr^[0];        { don't need GETJSAMPLE() here }
       Inc(JSAMPLE_PTR(inptr), instride);
     end;
   end;
@@ -358,7 +358,7 @@ end;
 
 {METHODDEF}
 procedure null_convert (cinfo : j_compress_ptr;
-	                input_buf : JSAMPARRAY;
+                        input_buf : JSAMPARRAY;
                         output_buf : JSAMPIMAGE;
                         output_row : JDIMENSION;
                         num_rows : int); far;
@@ -383,8 +383,8 @@ begin
       outptr := output_buf^[ci]^[output_row];
       for col := 0 to pred(num_cols) do
       begin
-	outptr^[col] := inptr^[ci]; { don't need GETJSAMPLE() here }
-	Inc(JSAMPLE_PTR(inptr), nc);
+        outptr^[col] := inptr^[ci]; { don't need GETJSAMPLE() here }
+        Inc(JSAMPLE_PTR(inptr), nc);
       end;
     end;
     Inc(JSAMPROW_PTR(input_buf));
@@ -411,7 +411,7 @@ var
 begin
   cconvert := my_cconvert_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_color_converter)) );
+                                SIZEOF(my_color_converter)) );
   cinfo^.cconvert := jpeg_color_converter_ptr(cconvert);
   { set start_pass to null method until we find out differently }
   cconvert^.pub.start_pass := null_method;
@@ -438,7 +438,7 @@ begin
     if (cinfo^.input_components <> 4) then
       ERREXIT(j_common_ptr(cinfo), JERR_BAD_IN_COLORSPACE);
 
-  else			{ JCS_UNKNOWN can be anything }
+  else                  { JCS_UNKNOWN can be anything }
     if (cinfo^.input_components < 1) then
       ERREXIT(j_common_ptr(cinfo), JERR_BAD_IN_COLORSPACE);
   end;
@@ -516,10 +516,10 @@ begin
           ERREXIT(j_common_ptr(cinfo), JERR_CONVERSION_NOTIMPL);
     end;
 
-  else		{ allow null conversion of JCS_UNKNOWN }
+  else          { allow null conversion of JCS_UNKNOWN }
     begin
       if (cinfo^.jpeg_color_space <> cinfo^.in_color_space) or
-	 (cinfo^.num_components <> cinfo^.input_components) then
+         (cinfo^.num_components <> cinfo^.input_components) then
         ERREXIT(j_common_ptr(cinfo), JERR_CONVERSION_NOTIMPL);
       cconvert^.pub.color_convert := null_convert;
     end;

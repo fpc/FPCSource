@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Interactive test for debugserver.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -19,7 +19,7 @@ uses dbugintf;
 
 Var
  S : String;
- 
+
 begin
   Repeat
     Writeln('Enter message to send to debug server (STOP exits): ');
@@ -31,7 +31,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:44:29  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:44:29  michael
   + Initial implementation
 
 }

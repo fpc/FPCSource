@@ -3294,23 +3294,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2003-10-05 00:01:15  florian
-    * fixed line feeds
-
-  Revision 1.5  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.4  2003/01/05 18:21:30  peter
-    * removed more conflicting calling directives
-
-  Revision 1.3  2002/09/07 15:40:53  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/05/05 19:13:19  carl
-  + withsymtable checking
-
-  Revision 1.1  2002/05/05 13:58:50  carl
-  + finished procedural variable testsuit
-  + finished method testsuit
+  Revision 1.7  2005-02-14 17:13:36  peter
+    * truncate log
 
 }

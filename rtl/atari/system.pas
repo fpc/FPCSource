@@ -772,33 +772,7 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-12-05 14:36:37  hajny
-    + GetProcessID added
-
-  Revision 1.11  2004/09/03 19:25:21  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.10  2004/01/20 23:05:31  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.9  2003/10/25 23:42:35  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.8  2003/09/29 18:52:36  hajny
-    * append fix applied to Amiga, Atari, EMX, GO32v2, OS/2 and Watcom
-
-  Revision 1.7  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.6  2002/10/20 12:00:52  carl
-    - remove objinc.inc (unused file)
-    * update makefiles accordingly
-
-  Revision 1.5  2002/10/13 09:25:23  florian
-    + call to initvariantmanager inserted
-
-  Revision 1.4  2002/09/07 16:01:16  peter
-    * old logs removed and tabs fixed
+  Revision 1.13  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

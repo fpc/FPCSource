@@ -7,7 +7,7 @@ Uses Objects;
 Var L : String;
     P : PString;
     S : PDosStream; { Only one with Truncate implemented. }
-    
+
 begin
   L:='Some constant string';
   { Buffer size of 100 }

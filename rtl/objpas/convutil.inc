@@ -42,19 +42,19 @@ var
   auSquareHectometers,
   auSquareKilometers,
   auSquareInches,
-  auSquareFeet	,
-  auSquareYards	,
+  auSquareFeet  ,
+  auSquareYards ,
   auSquareMiles,
-  auAcres	,
-  auCentares	,
-  auAres	,
-  auHectares	,
-  auSquareRods 	,
+  auAcres       ,
+  auCentares    ,
+  auAres        ,
+  auHectares    ,
+  auSquareRods  ,
 
 {cbDistance family}
 
   duMicromicrons,
-  duAngstroms 	,
+  duAngstroms   ,
   duMillimicrons,
   duMicrons,
   duMillimeters,
@@ -69,7 +69,7 @@ var
   duInches,
   duFeet,
   duYards,
-  duMiles 	,
+  duMiles       ,
   duNauticalMiles,
   duAstronomicalUnits,
   duLightYears,
@@ -223,11 +223,11 @@ ResourceString  // Note, designations for FFU's are guesses.
   txtauSquareMiles         = 'Square miles  (mi^2)';
   txtauAcres               = 'Square acres (acre^2)';
   txtauCentares            = 'Centares (care^2)';
-  txtauAres                = 'Ares (are=dam^2)';  	
+  txtauAres                = 'Ares (are=dam^2)';
   txtauHectares            = 'Hectares (ha=hm^2)';
   txtauSquareRods          = 'Square Rods (sqr)';
   txtduMicromicrons        = 'micro microms (mumum)';
-  txtduAngstroms 	   = 'Aengstroem (ang)';
+  txtduAngstroms           = 'Aengstroem (ang)';
   txtduMillimicrons        = 'millimicroms (mmum)';
   txtduMicrons             = 'microns (um)';
   txtduMillimeters         = 'millimeters (mm)';
@@ -242,7 +242,7 @@ ResourceString  // Note, designations for FFU's are guesses.
   txtduInches              = 'inches (in)';
   txtduFeet                = 'feet (ft)';
   txtduYards               = 'yards (yd)';
-  txtduMiles 	           = 'miles (mi)';
+  txtduMiles               = 'miles (mi)';
   txtduNauticalMiles       = 'nautical miles (nmi)';
   txtduAstronomicalUnits   = 'astronomical units (au)';
   txtduLightYears          = 'light years (ly)';
@@ -256,7 +256,7 @@ ResourceString  // Note, designations for FFU's are guesses.
   txtduChains              = 'Chains (ch)';
   txtduLinks               = 'Links (lnk)';
   txtduPicas               = 'Pica''s (pc)';
-  txtduPoints              = 'Points (pnts)';		// carat/Karaat 2E-6 gram ?
+  txtduPoints              = 'Points (pnts)';           // carat/Karaat 2E-6 gram ?
   txtmuNanograms           = 'nanograms (ng)';
   txtmuMicrograms          = 'micrograms (um)';
   txtmuMilligrams          = 'milligrams (mg)';
@@ -272,13 +272,13 @@ ResourceString  // Note, designations for FFU's are guesses.
   txtmuLongTons            = 'longton (??)';
   txtmuTons                = 'imperial ton (??)'; // calling metric ton "ton" is normal in metric countries
   txtmuOunces              = 'ounce (??)';
-  txtmuPounds              = 'pounds (??)';	// what kind? Metric pound =0.5
+  txtmuPounds              = 'pounds (??)';     // what kind? Metric pound =0.5
   txtmuStones              = 'stones (??)';
   txttuCelsius             = 'degrees Celsius (degC)';
-  txttuKelvin		   = 'degrees Kelvin (K)';
-  txttuFahrenheit	   = 'degrees Fahrenheit (degF)';
+  txttuKelvin              = 'degrees Kelvin (K)';
+  txttuFahrenheit          = 'degrees Fahrenheit (degF)';
   txttuRankine             = 'degrees Rankine (degR)';
-  txttuReamur 		   = 'degrees Reamur (degReam)';			
+  txttuReamur              = 'degrees Reamur (degReam)';
   txttuMilliSeconds        = 'milli seconds (ms)';
   txttuSeconds             = 'seconds (s)';
   txttuMinutes             = 'minutes (min)';
@@ -345,10 +345,10 @@ ResourceString  // Note, designations for FFU's are guesses.
   txtvuUKBushels           = 'UK bushels (dr bushels)';
 
 Type ResourceData = record
-		      Description : String;
-		      Value       : TConvUtilFloat;
-	              Fam	  : TConvFamily;
-		     end;
+                      Description : String;
+                      Value       : TConvUtilFloat;
+                      Fam         : TConvFamily;
+                     end;
 
 
 var TheUnits    : array of ResourceData =nil;
@@ -393,14 +393,14 @@ var i,l1 : Longint;
 
 begin
   If NOT CheckFamily(Fam) Then exit(-1); // family not registered.
-  if (value+1.0)<macheps then		 // not properly defined yet.
+  if (value+1.0)<macheps then            // not properly defined yet.
     exit(-1);
   l1:=length(theunits);
   Setlength(theunits,l1+1);
   theunits[l1].description:=s;
   theunits[l1].value:=value;
   theunits[l1].fam:=fam;
-  Result:=l1;	
+  Result:=l1;
 end;
 
 function SearchConvert(TheType:TConvType; var r:ResourceData):Boolean;
@@ -422,9 +422,9 @@ var
 
 begin
   if not SearchConvert(fromtype,fromrec) then
-   exit(-1.0);					// raise exception?
+   exit(-1.0);                                  // raise exception?
   if not SearchConvert(totype,torec) then
-   exit(-1.0);					// raise except?
+   exit(-1.0);                                  // raise except?
   if fromrec.fam<>torec.fam then
    exit(-1.0);
   result:=Measurement*fromrec.value/torec.value;
@@ -437,13 +437,13 @@ var
 
 begin
   if not SearchConvert(fromtype1,fromrec1) then
-   exit(-1.0);					// raise exception?
+   exit(-1.0);                                  // raise exception?
   if not SearchConvert(totype1,torec1) then
-   exit(-1.0);					// raise except?
+   exit(-1.0);                                  // raise except?
   if not SearchConvert(fromtype2,fromrec2) then
-   exit(-1.0);					// raise exception?
+   exit(-1.0);                                  // raise exception?
   if not SearchConvert(totype2,torec2) then
-   exit(-1.0);					// raise except?
+   exit(-1.0);                                  // raise except?
   if (fromrec1.fam<>torec1.fam) or (fromrec1.fam<>torec1.fam) then
    exit(-1.0);
   result:=Measurement*(fromrec1.value/fromrec2.value)/(torec1.value/torec2.value);
@@ -465,21 +465,21 @@ begin
   auSquareHectometers := RegisterConversionType(cbArea,txtauSquareHectometers,1E4);
   auSquareKilometers  := RegisterConversionType(cbArea,txtauSquareKilometers,1E6);
   auSquareInches      := RegisterConversionType(cbArea,txtauSquareInches,0.00064516);
-  auSquareFeet	      := RegisterConversionType(cbArea,txtauSquareFeet,0.092903040);
-  auSquareYards	      := RegisterConversionType(cbArea,txtauSquareYards,0.83612736);
+  auSquareFeet        := RegisterConversionType(cbArea,txtauSquareFeet,0.092903040);
+  auSquareYards       := RegisterConversionType(cbArea,txtauSquareYards,0.83612736);
   auSquareMiles       := RegisterConversionType(cbArea,txtauSquareMiles,2589988.11034);
-  auAcres	      := RegisterConversionType(cbArea,txtauAcres,4046.87260987);
-  auCentares	      := RegisterConversionType(cbArea,txtauCentares,-1);
-  auAres	      := RegisterConversionType(cbArea,txtauAres,100);
-  auHectares	      := RegisterConversionType(cbArea,txtauHectares,10000);
-  auSquareRods 	      := RegisterConversionType(cbArea,txtauSquareRods,25.2929538117);
+  auAcres             := RegisterConversionType(cbArea,txtauAcres,4046.87260987);
+  auCentares          := RegisterConversionType(cbArea,txtauCentares,-1);
+  auAres              := RegisterConversionType(cbArea,txtauAres,100);
+  auHectares          := RegisterConversionType(cbArea,txtauHectares,10000);
+  auSquareRods        := RegisterConversionType(cbArea,txtauSquareRods,25.2929538117);
 end;
 
 procedure RegisterLengths;
 
 begin
   duMicromicrons      := RegisterConversionType(cbDistance,txtduMicromicrons,1E-12);
-  duAngstroms 	      := RegisterConversionType(cbDistance,txtduAngstroms,1E-10);
+  duAngstroms         := RegisterConversionType(cbDistance,txtduAngstroms,1E-10);
   duMillimicrons      := RegisterConversionType(cbDistance,txtduMillimicrons,1E-9);
   duMicrons           := RegisterConversionType(cbDistance,txtduMicrons,1E-6);
   duMillimeters       := RegisterConversionType(cbDistance,txtduMillimeters,1E-3);
@@ -494,7 +494,7 @@ begin
   duInches            := RegisterConversionType(cbDistance,txtduInches,0.0254);
   duFeet              := RegisterConversionType(cbDistance,txtduFeet,0.3048);
   duYards             := RegisterConversionType(cbDistance,txtduYards,0.9144);
-  duMiles 	      := RegisterConversionType(cbDistance,txtduMiles,1609.344);
+  duMiles             := RegisterConversionType(cbDistance,txtduMiles,1609.344);
   duNauticalMiles     := RegisterConversionType(cbDistance,txtduNauticalMiles,1852);
   duAstronomicalUnits := RegisterConversionType(cbDistance,txtduAstronomicalUnits,149597900000.0);
   duLightYears        := RegisterConversionType(cbDistance,txtduLightYears,9.46052840488E15);
@@ -536,8 +536,8 @@ end;
 procedure RegisterTemperature;
 begin
  tuCelsius    := RegisterConversionType(cbTemperature,txttuCelsius,1);
- tuKelvin     := RegisterConversionType(cbTemperature,txttuKelvin,1);		
- tuFahrenheit := RegisterConversionType(cbTemperature,txttuFahrenheit,5/9);	
+ tuKelvin     := RegisterConversionType(cbTemperature,txttuKelvin,1);
+ tuFahrenheit := RegisterConversionType(cbTemperature,txttuFahrenheit,5/9);
  tuRankine    := RegisterConversionType(cbTemperature,txttuRankine,0.5555556);
  tuReamur     := RegisterConversionType(cbTemperature,txttuReamur,10/8);   // Reaumur?
 end;
@@ -588,8 +588,8 @@ begin
   vuHectoLiters           := RegisterConversionType(cbVolume,txtvuHectoLiters,1E-1);
   vuKiloLiters            := RegisterConversionType(cbVolume,txtvuKiloLiters,1);
   vuAcreFeet              := RegisterConversionType(cbVolume,txtvuAcreFeet,          -1);
-  vuAcreInches            := RegisterConversionType(cbVolume,txtvuAcreInches,	     -1);
-  vuCords                 := RegisterConversionType(cbVolume,txtvuCords,128*0.028316847);	
+  vuAcreInches            := RegisterConversionType(cbVolume,txtvuAcreInches,        -1);
+  vuCords                 := RegisterConversionType(cbVolume,txtvuCords,128*0.028316847);
   vuCordFeet              := RegisterConversionType(cbVolume,txtvuCordFeet,128*0.028316847);
   vuDecisteres            := RegisterConversionType(cbVolume,txtvuDecisteres,0.1);
   vuSteres                := RegisterConversionType(cbVolume,txtvuSteres,1);
@@ -652,13 +652,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-07-18 21:41:34  hajny
-    + support 8.3
-
-  Revision 1.2  2004/04/27 17:29:04  florian
-    * compilation with 1.0.10 fixed
-
-  Revision 1.1  2004/03/20 23:41:34  marco
-   * Initial version
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -561,14 +561,7 @@ End.
 
 {
   $Log$
-  Revision 1.4  2004-05-02 12:11:44  peter
-    * fixed linefeeds
-
-  Revision 1.3  2002/10/02 19:26:49  carl
-    + added much much more testing of different string types
-    * str() format depends on size of real
-
-  Revision 1.2  2002/09/07 15:40:55  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

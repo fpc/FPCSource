@@ -4,7 +4,7 @@ Program Example28;
 
 Var P : Pointer;
     MM : Longint;
-    
+
 begin
   { Get memory for P }
   MM:=MemAvail;
@@ -15,7 +15,7 @@ begin
   Writeln (' or ',MM,' bytes less than before the call.');
   { fill it with spaces }
   FillChar (P^,80,' ');
-  { Free the memory again }                       
+  { Free the memory again }
   FreeMem (P,80);
   Writeln ('Memory available after FreeMem : ',MemAvail);
 end.

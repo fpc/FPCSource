@@ -12,10 +12,10 @@ Var
 
 Const
   ConstSet = 'mefirst,methird';
-  
+
 Var
   S : TMyEnums;
-  
+
 begin
   O:=TMyTestObject.Create;
   O.SetField:=[mefirst,meSecond,meThird];

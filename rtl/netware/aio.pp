@@ -464,8 +464,8 @@ function AIOGetPortConfiguration(portHandle:longint; pPortConfig:PAIOPORTCONFIG;
 function AIOGetPortStatus(portHandle:longint; writeCount:PLongint; writeState:PWORD; readCount:PLongint; readState:PWORD;
            extStatus:PLongint; chgdExtStatus:PLongint):longint;cdecl;external aionlm name 'AIOGetPortStatus';
 function AIOGetPortStatus(portHandle:longint; var writeCount:Longint; var writeState:WORD; var readCount:Longint; var readState:WORD;
-           var extStatus,chgdExtStatus:Longint):longint;cdecl;external aionlm name 'AIOGetPortStatus';	   
-	   
+           var extStatus,chgdExtStatus:Longint):longint;cdecl;external aionlm name 'AIOGetPortStatus';
+
 function AIOGetReadBufferSize(portHandle:longint; readSize:PLongint):longint;cdecl;external aionlm name 'AIOGetReadBufferSize';
 function AIOGetReadBufferSize(portHandle:longint; var readSize:Longint):longint;cdecl;external aionlm name 'AIOGetReadBufferSize';
 
@@ -506,14 +506,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-05-10 21:38:22  armin
-  * added declarations with var parameters
-
-  Revision 1.2  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/03/19 19:33:36  armin
-  + fist version of aio added
-
+  Revision 1.4  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

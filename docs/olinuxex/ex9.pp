@@ -6,7 +6,7 @@ Uses oldlinux, strings;
 
 Const Arg0 : PChar = 'ls';
       Arg1 : Pchar = '-l';
-      
+
 Var PP : PPchar;
 
 

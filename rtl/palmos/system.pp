@@ -109,14 +109,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-12-05 18:57:05  hajny
-    + GetProcessID added
-
-  Revision 1.5  2004/09/03 19:26:52  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.4  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -7,13 +7,13 @@ type
   tmyclass = object
     destructor done; cdecl;
   end;
-  
-  
+
+
   destructor tmyclass.done;cdecl;
   begin
   end;
-  
+
 
 Begin
 end.
-  
+

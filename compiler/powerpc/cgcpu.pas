@@ -2420,7 +2420,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.194  2005-02-13 18:55:19  florian
+  Revision 1.195  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.194  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.193  2005/01/24 22:08:32  peter
@@ -2440,95 +2443,4 @@ end.
   Revision 1.190  2005/01/05 19:01:53  karoly
     * sysv abi also uses F0-F13 as volatile registers
 
-  Revision 1.189  2004/12/24 11:51:55  jonas
-    * fixed a_jmp_name() for darwin
-
-  Revision 1.188  2004/12/11 12:42:28  jonas
-    * fixed synchronising 64bit regvars on 32bit systems at the start and
-      end of procedures
-    * hack for ppc for loading of paras from their callee location to local
-      temps
-
-  Revision 1.187  2004/12/04 21:47:46  jonas
-    * modifications to work with the generic code to copy LOC_REFERENCE
-      parameters to local temps (fixes tests/test/cg/tmanypara)
-
-  Revision 1.186  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.185  2004/11/11 19:31:33  peter
-    * fixed compile of powerpc,sparc,arm
-
-  Revision 1.184  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.183  2004/10/26 18:21:29  jonas
-    + empty g_save_standard_registers/g_restore_standard_registers overrides
-      (their work was/is done by g_proc_entry/g_proc_exit, and the generic
-       version saves the registers in the wrong place)
-
-  Revision 1.182  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.181  2004/10/24 11:53:45  peter
-    * fixed compilation with removed loadref
-
-  Revision 1.180  2004/10/20 07:32:42  jonas
-    + support for nostackframe directive
-
-  Revision 1.179  2004/10/11 07:13:14  jonas
-    * include pi_do_call if we generate a call instead of internalerroring
-      (workaround)
-
-  Revision 1.178  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.177  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.176.4.2  2004/09/18 20:21:08  jonas
-    * fixed ppc, but still needs fix in tgobj
-
-  Revision 1.176.4.1  2004/09/10 11:10:08  florian
-    * first part of ppc fixes
-
-  Revision 1.176  2004/07/17 14:48:20  jonas
-    * fixed op_const_reg_reg for (OP_ADD,0,reg1,reg2)
-
-  Revision 1.175  2004/07/09 21:45:24  jonas
-    * fixed passing of fpu paras on the stack
-    * fixed number of fpu parameters passed in registers
-    * skip corresponding integer registers when using an fpu register for a
-      parameter under the AIX abi
-
-  Revision 1.174  2004/07/01 18:00:00  jonas
-    * fixed several errors due to aword -> aint change
-
-  Revision 1.173  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.172  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.171  2004/06/02 17:18:10  jonas
-    * parameters passed on the stack now also work as register variables
-
-  Revision 1.170  2004/05/31 18:08:41  jonas
-    * changed calling of external procedures to be the same as under gcc
-      (don't worry about all the generated stubs, they're optimized away
-       by the linker)
-      -> side effect: no need anymore to use special declarations for
-         external C functions under Darwin compared to other platforms
-         (it's still necessary for variables though)
-
-  Revision 1.169  2004/04/04 17:50:36  olle
-    * macos: fixed large offsets in references
-
-  Revision 1.168  2004/03/06 21:37:45  florian
-    * fixed ppc compilation
 }

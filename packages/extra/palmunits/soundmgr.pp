@@ -180,7 +180,7 @@ type
     reserved: SndCallbackInfoType;       // RESERVED -- SET ALL FIELDS TO ZERO BEFORE PASSING
   end;
   SndSmfCallbacksPtr = ^SndSmfCallbacksType;
-  
+
 const
   sndSmfPlayAllMilliSec = $FFFFFFFF;
 

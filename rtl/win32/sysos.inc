@@ -65,7 +65,7 @@ const
    VER_PLATFORM_WIN32s = 0;
    VER_PLATFORM_WIN32_WINDOWS = 1;
    VER_PLATFORM_WIN32_NT = 2;
-   
+
   { These constants are used for conversion of error codes }
   { from win32 i/o errors to tp i/o errors                 }
   { errors 1 to 18 are the same as in Turbo Pascal         }
@@ -202,7 +202,7 @@ var
 
   function GetCurrentProcessId:DWORD;
     stdcall; external 'kernel32' name 'GetCurrentProcessId';
- 
+
   function Win32GetCurrentThreadId:DWORD;
     stdcall; external 'kernel32' name 'GetCurrentThreadId';
 
@@ -281,7 +281,10 @@ var
 
 {
    $Log$
-   Revision 1.1  2005-02-06 13:06:20  peter
+   Revision 1.2  2005-02-14 17:13:32  peter
+     * truncate log
+
+   Revision 1.1  2005/02/06 13:06:20  peter
      * moved file and dir functions to sysfile/sysdir
      * win32 thread in systemunit
 

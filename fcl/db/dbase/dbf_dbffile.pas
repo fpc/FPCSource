@@ -10,8 +10,8 @@ uses
   Windows,
 {$else}
 {$ifdef KYLIX}
-  Libc, 
-{$endif}  
+  Libc,
+{$endif}
   Types, Dbf_Wtil,
 {$endif}
   Db,
@@ -72,7 +72,7 @@ type
     function GetLanguageStr: string;
     function GetUseFloatFields: Boolean;
     procedure SetUseFloatFields(NewUse: Boolean);
-    
+
   protected
     procedure ConstructFieldDefs;
     procedure UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; Action: TUpdateNullField);
@@ -163,7 +163,7 @@ type
     FDefaultCreateLangId: Byte;
     FUserName: string;
     FUserNameLen: DWORD;
-	
+
     function  GetDefaultCreateCodePage: Integer;
     procedure SetDefaultCreateCodePage(NewCodePage: Integer);
     procedure InitUserName;
@@ -591,7 +591,7 @@ begin
       // write language string
       StrPLCopy(
         @PAfterHdrVII(PChar(Header)+SizeOf(rDbfHdr)).LanguageDriverName[32],
-        ConstructLangName(FFileCodePage, lLocaleID, false), 
+        ConstructLangName(FFileCodePage, lLocaleID, false),
         63-32);
       lFieldDescPtr := @lFieldDescVII;
     end else begin
@@ -701,10 +701,10 @@ begin
     // update header
     PDbfHdr(Header).RecordSize := lFieldOffset;
     PDbfHdr(Header).FullHdrSize := HeaderSize + RecordSize * FieldDefs.Count + 1;
-    // add empty "back-link" info, whatever it is: 
-    { A 263-byte range that contains the backlink, which is the relative path of 
-      an associated database (.dbc) file, information. If the first byte is 0x00, 
-      the file is not associated with a database. Therefore, database files always 
+    // add empty "back-link" info, whatever it is:
+    { A 263-byte range that contains the backlink, which is the relative path of
+      an associated database (.dbc) file, information. If the first byte is 0x00,
+      the file is not associated with a database. Therefore, database files always
       contain 0x00. }
     if FDbfVersion = xFoxPro then
       Inc(PDbfHdr(Header).FullHdrSize, 263);
@@ -849,7 +849,7 @@ begin
         lSize := lFieldDescIII.FieldSize;
         lPrec := lFieldDescIII.FieldPrecision;
         lNativeFieldType := lFieldDescIII.FieldType;
-        lCanHoldNull := (FDbfVersion = xFoxPro) and 
+        lCanHoldNull := (FDbfVersion = xFoxPro) and
           ((lFieldDescIII.FoxProFlags and $2) <> 0) and
           (lFieldName <> '_NULLFLAGS');
       end;
@@ -1143,16 +1143,16 @@ begin
       begin
         // get minimum field length
         lFieldSize := Min(TempSrcDef.Precision, TempDstDef.Precision) +
-          Min(TempSrcDef.Size - TempSrcDef.Precision, 
+          Min(TempSrcDef.Size - TempSrcDef.Precision,
             TempDstDef.Size - TempDstDef.Precision);
         // if one has dec separator, but other not, we lose one digit
-        if (TempDstDef.Precision > 0) xor 
+        if (TempDstDef.Precision > 0) xor
           ((TempSrcDef.NativeFieldType in ['F', 'N']) and (TempSrcDef.Precision > 0)) then
           Dec(lFieldSize);
         // should not happen, but check nevertheless (maybe corrupt data)
         if lFieldSize < 0 then
           lFieldSize := 0;
-        srcOffset := TempSrcDef.Size - TempSrcDef.Precision - 
+        srcOffset := TempSrcDef.Size - TempSrcDef.Precision -
           (TempDstDef.Size - TempDstDef.Precision);
         if srcOffset < 0 then
         begin
@@ -1446,7 +1446,7 @@ begin
     Result := (PByte(Src)^ and (1 shl (AFieldDef.NullPosition and $7))) <> 0;
     exit;
   end;
-  
+
   FieldOffset := AFieldDef.Offset;
   FieldSize := AFieldDef.Size;
   Src := PChar(Src) + FieldOffset;
@@ -1612,7 +1612,7 @@ begin
   end;
 end;
 
-procedure TDbfFile.UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef; 
+procedure TDbfFile.UpdateNullField(Buffer: Pointer; AFieldDef: TDbfFieldDef;
   Action: TUpdateNullField);
 var
   NullDst: pbyte;
@@ -1819,11 +1819,11 @@ var
 begin
   // clear buffer (assume all string, fix specific fields later)
   FillChar(DestBuf^, RecordSize,' ');
-  
+
   // set nullflags field so that all fields are null
   if FNullField <> nil then
     FillChar(PChar(DestBuf+FNullField.Offset)^, FNullField.Size, $FF);
-    
+
   // check binary and default fields
   for I := 0 to FFieldDefs.Count-1 do
   begin
@@ -1863,7 +1863,7 @@ begin
       if (TempFieldDef.NativeFieldType = '+') then
       begin
         // read current auto inc, from header or field, depending on sharing
-        lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rAfterHdrVII) + 
+        lAutoIncOffset := sizeof(rDbfHdr) + sizeof(rAfterHdrVII) +
           FieldDescVII_AutoIncOffset + I * sizeof(rFieldDescVII);
         // TODO: big-endianness
         if NeedLocks then
@@ -1882,7 +1882,7 @@ begin
 
     // write modified header (new autoinc values) to file
     WriteHeader;
-    
+
     // release lock if locked
     if NeedLocks then
       UnlockPage(0);
@@ -2587,12 +2587,12 @@ begin
 //  Windows.GetUserName(@FUserName[0], FUserNameLen);
   Windows.GetComputerName(PChar(FUserName), FUserNameLen);
   SetLength(FUserName, FUserNameLen);
-{$else}  
+{$else}
 {$ifdef FPC}
   FpUname(TempName);
   FUserName := TempName.machine;
   FUserNameLen := Length(FUserName);
-{$endif}  
+{$endif}
 {$endif}
 end;
 

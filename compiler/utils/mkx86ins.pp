@@ -404,16 +404,16 @@ begin
         while not(s[i] in [' ',#9,#13,#10]) and (i<=length(s)) do
           begin
              hs:=readstr;
-	     if x86_64 then
-	       begin
+             if x86_64 then
+               begin
                  if (upcase(hs)='NOX86_64') then
-		   skip:=true;
-	       end
-	     else  
-	       begin
+                   skip:=true;
+               end
+             else
+               begin
                  if (upcase(hs)='X86_64') then
-  		   skip:=true;
-	       end;
+                   skip:=true;
+               end;
              if hs<>'ND' then
               begin
                 if flags<>'' then
@@ -426,8 +426,8 @@ begin
               break;
           end;
         { write instruction }
-	if not skip then
-	  begin
+        if not skip then
+          begin
             if not(first) then
               writeln(insfile,',')
             else
@@ -440,7 +440,7 @@ begin
             writeln(insfile,'    flags   : ',flags);
             write(insfile,'  )');
             inc(insns);
-	  end;  
+          end;
      end;
    close(infile);
    closeinc(insfile);
@@ -455,33 +455,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-02-09 20:30:48  peter
-    * support X86_64 and NOX86_64 flags
-
-  Revision 1.5  2004/02/03 16:50:51  peter
-    * linux path separators
-
-  Revision 1.4  2004/01/15 14:01:32  florian
-    + x86 instruction tables for x86-64 extended
-
-  Revision 1.3  2003/09/09 12:54:45  florian
-    * x86 instruction table updated to nasm 0.98.37:
-        - sse3 aka prescott support
-        - small fixes
-
-  Revision 1.2  2003/09/03 15:55:02  peter
-    * NEWRA branch merged
-
-  Revision 1.1.2.1  2003/08/27 19:13:10  peter
-    * new tools
-
-  Revision 1.5  2002/05/18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.4  2002/05/16 19:46:54  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

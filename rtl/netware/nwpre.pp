@@ -152,10 +152,7 @@ END;
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 16:01:20  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/03/17 17:57:33  armin
-  + threads and winsock2 implemented
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -5,13 +5,13 @@ begin
   Result:=d div __NFDBITS;
 end;
 
-  
+
 Function __FDMASK(d: longint): __fd_mask;
 begin
   Result:=1 shl (d mod __NFDBITS);
 end;
 
-    
+
 Function FD_ISSET(fd: longint; const fdset: _fd_set): Boolean;
 
 begin
@@ -37,7 +37,7 @@ Procedure FD_ZERO(var fdset: _fd_set);
 
 var
   I: Integer;
-  
+
 begin
   with fdset do
     for I:=Low(fds_bits) to High(fds_bits) do

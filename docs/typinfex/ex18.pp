@@ -9,8 +9,8 @@ uses rttiobj,typinfo;
 Var
   O : TMyTestObject;
   PI : PPropInfo;
-  I : longint;    
-  
+  I : longint;
+
 begin
   O:=TMyTestObject.Create;
   PI:=GetPropInfo(O,'SetField');

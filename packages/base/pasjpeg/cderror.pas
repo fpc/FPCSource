@@ -48,7 +48,7 @@ type
      JERR_GIF_NOT,  { Not a GIF file }
      JTRC_GIF,  { %ux%ux%d GIF image }
      JTRC_GIF_BADVERSION,
-	      { Warning: unexpected GIF version number '%c%c%c' }
+              { Warning: unexpected GIF version number '%c%c%c' }
      JTRC_GIF_EXTENSION,  { Ignoring GIF extension block of type 0x%02x }
      JTRC_GIF_NONSQUARE,  { Caution: nonsquare pixels in input }
      JWRN_GIF_BADDATA,  { Corrupt data in GIF file }
@@ -96,13 +96,13 @@ type
    {$endif} { TARGA_SUPPORTED }
 
      JERR_BAD_CMAP_FILE,
-	    { Color map file is invalid or of unsupported format }
+            { Color map file is invalid or of unsupported format }
      JERR_TOO_MANY_COLORS,
-	    { Output file format cannot handle %d colormap entries }
+            { Output file format cannot handle %d colormap entries }
      JERR_UNGETC_FAILED,  { ungetc failed }
    {$ifdef TARGA_SUPPORTED}
      JERR_UNKNOWN_FORMAT,
-	    { Unrecognized input file format --- perhaps you need -targa }
+            { Unrecognized input file format --- perhaps you need -targa }
    {$else}
      JERR_UNKNOWN_FORMAT,  { Unrecognized input file format }
    {$endif}
@@ -140,7 +140,7 @@ const
   { JERR_GIF_NOT } 'Not a GIF file',
   { JTRC_GIF } '%ux%ux%d GIF image',
   { JTRC_GIF_BADVERSION }
-	   'Warning: unexpected GIF version number "%c%c%c"',
+           'Warning: unexpected GIF version number "%c%c%c"',
   { JTRC_GIF_EXTENSION } 'Ignoring GIF extension block of type 0x%02x',
   { JTRC_GIF_NONSQUARE } 'Caution: nonsquare pixels in input',
   { JWRN_GIF_BADDATA } 'Corrupt data in GIF file',
@@ -188,13 +188,13 @@ const
 {$endif} { TARGA_SUPPORTED }
 
   { JERR_BAD_CMAP_FILE }
-	 'Color map file is invalid or of unsupported format',
+         'Color map file is invalid or of unsupported format',
   { JERR_TOO_MANY_COLORS }
-	 'Output file format cannot handle %d colormap entries',
+         'Output file format cannot handle %d colormap entries',
   { JERR_UNGETC_FAILED } 'ungetc failed',
 {$ifdef TARGA_SUPPORTED}
   { JERR_UNKNOWN_FORMAT }
-	 'Unrecognized input file format --- perhaps you need -targa',
+         'Unrecognized input file format --- perhaps you need -targa',
 {$else}
   { JERR_UNKNOWN_FORMAT } 'Unrecognized input file format',
 {$endif}

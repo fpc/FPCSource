@@ -233,7 +233,7 @@ begin
    begin
      Str(array4int(j)[i],Dummy);
      NetAddrToStr:=NetAddrToStr+Dummy;
-     If I>1 Then 
+     If I>1 Then
        NetAddrToStr:=NetAddrToStr+'.';
    end;
 end;
@@ -249,19 +249,19 @@ end;
 
 function StrToHostAddr(IP : AnsiString) : in_addr ;
 
-Var 
+Var
     Dummy : AnsiString;
     I,j,k     : Longint;
     Temp : in_addr;
 
 begin
-  strtohostaddr.s_addr:=0;		//:=NoAddress;
+  strtohostaddr.s_addr:=0;              //:=NoAddress;
   For I:=1 to 4 do
     begin
       If I<4 Then
         begin
           J:=Pos('.',IP);
-          If J=0 then 
+          If J=0 then
             exit;
           Dummy:=Copy(IP,1,J-1);
           Delete (IP,1,J);
@@ -379,7 +379,7 @@ begin
     if HostAddrToStr6 = ''
       then HostAddrToStr6 := '::'
       else HostAddrToStr6 := HostAddrToStr6 + ':';
-                                                                                
+
   if HostAddrToStr6 = '' then HostAddrToStr6 := '::';
   if not (7 in zr1) then
     SetLength(HostAddrToStr6, Length(HostAddrToStr6)-1);
@@ -402,43 +402,10 @@ end;
 
 {
   $Log$
-  Revision 1.15  2005-02-13 19:59:57  marco
+  Revision 1.16  2005-02-14 17:13:26  peter
+    * truncate log
+
+  Revision 1.15  2005/02/13 19:59:57  marco
    * More htons like functionality. IPV6 string support still missing
-
-  Revision 1.14  2004/11/01 19:39:19  peter
-    * disable inline for 1.9.4
-
-  Revision 1.13  2004/11/01 17:29:47  marco
-   * inline problems fixed
-
-  Revision 1.12  2004/11/01 16:23:15  marco
-   * htons etc
-
-  Revision 1.11  2003/11/23 10:57:15  michael
-  + Changed mode to output for file sockets
-
-  Revision 1.10  2003/11/22 21:58:09  marco
-   * johill changed his mind
-
-  Revision 1.9  2003/11/22 10:59:58  marco
-   fix for last one
-
-  Revision 1.8  2003/11/22 10:33:38  marco
-   fix from johill for 2801
-
-  Revision 1.7  2003/11/22 10:32:41  marco
-   fix from johill
-
-  Revision 1.6  2003/09/15 07:55:29  marco
-   * fixed typo
-
-  Revision 1.5  2003/09/15 07:51:09  marco
-   * fix
-
-  Revision 1.4  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.3  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
 
 }

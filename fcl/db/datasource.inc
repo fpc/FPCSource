@@ -88,12 +88,12 @@ begin
     If aMin < 0 Then aMin:= 0;
     aMax:= Dataset.FBufferCount - FBufferCount;
     If aMax < 0 then aMax:= 0;
-        
+
     If aMax>DataSet.FActiveRecord Then aMax:=DataSet.FActiveRecord;
-        
+
     If FFirstRecord < aMin Then FFirstRecord:= aMin;
     If FFirstrecord > aMax Then FFirstRecord:= aMax;
-        
+
     If (FfirstRecord<>0) And
        (DataSet.FActiveRecord - FFirstRecord < FBufferCount -1) Then
         Dec(FFirstRecord, 1);
@@ -244,7 +244,7 @@ begin
       FBufferCount:=Value;
       if Active then begin
         DataSet.RecalcBufListSize;
-	CalcRange;
+        CalcRange;
       end;
     end;
 end;
@@ -264,14 +264,14 @@ Procedure TDataLink.SetDataSource(Value : TDatasource);
 begin
   if not FDataSourceFixed then
     begin
-    if Assigned(DataSource) then 
+    if Assigned(DataSource) then
       Begin
       DataSource.UnregisterDatalink(Self);
       FDataSource := nil;
       CheckActiveAndEditing;
       End;
     FDataSource := Value;
-    if Assigned(DataSource) then 
+    if Assigned(DataSource) then
       begin
       DataSource.RegisterDatalink(Self);
       CheckActiveAndEditing;
@@ -454,13 +454,13 @@ end;
 
 procedure TDatasource.SetDataSet(ADataSet: TDataSet);
 begin
-  If FDataset<>Nil Then 
+  If FDataset<>Nil Then
     Begin
     FDataset.UnRegisterDataSource(Self);
     FDataSet:=nil;
     ProcessEvent(deUpdateState,0);
     End;
-  If ADataset<>Nil Then 
+  If ADataset<>Nil Then
     begin
     ADataset.RegisterDatasource(Self);
     FDataSet:=ADataset;

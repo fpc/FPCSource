@@ -791,14 +791,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:07:47  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/09/07 12:36:15  carl
-    - unit cleanup (removed unused defines)
-    * compilation options are restored
-
-  Revision 1.3  2002/07/18 07:11:11  pierre
-   merged from FIXES branch: DrawTextBackground support
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

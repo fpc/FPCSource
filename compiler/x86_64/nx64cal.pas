@@ -54,11 +54,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2004-06-16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.1.2.1  2004/05/09 15:32:57  peter
-    * new file for x86_64
+  Revision 1.3  2005-02-14 17:13:10  peter
+    * truncate log
 
 }
 

@@ -406,10 +406,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-03-01 09:46:42  michael
-  + Fixed bug reported by Tomasz Lipinski (2997)
-
-  Revision 1.4  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

@@ -161,14 +161,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-01-13 18:14:57  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.2  2002/11/19 18:47:47  nils
-    * update check internal log
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
-  
+
 
 
 

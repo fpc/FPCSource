@@ -44,14 +44,13 @@ Type
     pcushort= UnixType.pcushort;
     pcunsigned = UnixType.pcunsigned;
 
-{   
+{
    $Log$
-   Revision 1.2  2005-02-05 23:02:37  florian
+   Revision 1.3  2005-02-14 17:13:31  peter
+     * truncate log
+
+   Revision 1.2  2005/02/05 23:02:37  florian
      + added some missing c types
-
-   Revision 1.1  2004/03/04 22:15:16  marco
-    * UnixType changes. Please report problems to me.
-
 
 }
 

@@ -1187,13 +1187,7 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-10-03 21:46:25  peter
-    * stdcall fixes
-
-  Revision 1.6  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/09/07 12:31:16  carl
-    - removed support_ports option (cleanup)
+  Revision 1.8  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

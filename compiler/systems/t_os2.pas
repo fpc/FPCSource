@@ -517,41 +517,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.19  2004-12-30 17:41:27  hajny
-    * missing utilsprefix added
-
-  Revision 1.18  2004/12/28 20:39:12  hajny
-    * don't put quoted paths in link.res for OS/2
-
-  Revision 1.17  2004/12/22 16:32:46  peter
-    * maybequoted() added
-
-  Revision 1.16  2004/12/05 12:25:48  hajny
-    * fix for compilation on 8.3 filesystems
-
-  Revision 1.15  2004/11/17 22:22:12  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.14  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.13  2004/10/15 09:24:38  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.12  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.11  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.9  2004/09/08 11:23:31  michael
-  + Check if outputdir exists,  Fix exitcode when displaying help pages
-
-  Revision 1.8  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.20  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

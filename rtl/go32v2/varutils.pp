@@ -40,8 +40,8 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:19  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }
 

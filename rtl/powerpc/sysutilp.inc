@@ -75,27 +75,7 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-03-05 12:17:50  marco
-   * interlocked* changed to longints, including winapi. (which was a bug)
-
-  Revision 1.7  2004/01/04 20:09:36  jonas
-    * renamed "r0" usages as base register to 0
-
-  Revision 1.6  2003/12/28 20:55:57  jonas
-    * fixed *locked* routines
-
-  Revision 1.5  2003/11/29 16:27:19  jonas
-    * fixed several ppc assembler reader related problems
-    * local vars in assembler procedures now start at offset 4
-    * fixed second_int_to_bool (apparently an longint can be in  LOC_JUMP??)
-
-  Revision 1.4  2003/08/24 20:50:11  olle
-    * changed used scratchreg from r0 to r10
-
-  Revision 1.3  2003/04/24 12:13:23  florian
-    * fixed assembler errors
-
-  Revision 1.2  2002/09/07 16:01:26  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

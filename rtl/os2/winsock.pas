@@ -22,8 +22,7 @@ unit winsock;
 
 {
 $Log$
-Revision 1.1  2003-08-15 10:53:43  yuri
-+ Winsock unit added
-* PMWSock unit updated (to be less or more compitilbe with win32 winsock)
+Revision 1.2  2005-02-14 17:13:31  peter
+  * truncate log
 
 }

@@ -21,7 +21,7 @@ uses
   jdeferr,
   jerror,
   jutils,
-  jdhuff;		{ Declarations shared with jdhuff.c }
+  jdhuff;               { Declarations shared with jdhuff.c }
 
 
 {GLOBAL}
@@ -50,8 +50,8 @@ type
     { These fields are loaded into local variables at start of each MCU.
       In case of suspension, we exit WITHOUT updating them. }
 
-    bitstate : bitread_perm_state;	{ Bit buffer at start of MCU }
-    saved : savable_state;		{ Other state at start of MCU }
+    bitstate : bitread_perm_state;      { Bit buffer at start of MCU }
+    saved : savable_state;              { Other state at start of MCU }
 
     { These fields are NOT loaded into local working state. }
     restarts_to_go : uInt;              { MCUs left in this restart interval }
@@ -132,7 +132,7 @@ begin
 
   if (bad) then
     ERREXIT4(j_common_ptr(cinfo), JERR_BAD_PROGRESSION,
-	     cinfo^.Ss, cinfo^.Se, cinfo^.Ah, cinfo^.Al);
+             cinfo^.Ss, cinfo^.Se, cinfo^.Ah, cinfo^.Al);
   { Update progression status, and verify that scan order is legal.
     Note that inter-scan inconsistencies are treated as warnings
     not fatal errors ... not clear if this is right way to behave. }
@@ -152,7 +152,7 @@ begin
       else
         expected := coef_bit_ptr^[coefi];
       if (cinfo^.Ah <> expected) then
-	WARNMS2(j_common_ptr(cinfo), JWRN_BOGUS_PROGRESSION, cindex, coefi);
+        WARNMS2(j_common_ptr(cinfo), JWRN_BOGUS_PROGRESSION, cindex, coefi);
       coef_bit_ptr^[coefi] := cinfo^.Al;
     end;
   end;
@@ -182,17 +182,17 @@ begin
     if (is_DC_band) then
     begin
       if (cinfo^.Ah = 0) then
-      begin	{ DC refinement needs no table }
-	tbl := compptr^.dc_tbl_no;
-	jpeg_make_d_derived_tbl(cinfo, TRUE, tbl,
-				 entropy^.derived_tbls[tbl]);
+      begin     { DC refinement needs no table }
+        tbl := compptr^.dc_tbl_no;
+        jpeg_make_d_derived_tbl(cinfo, TRUE, tbl,
+                                 entropy^.derived_tbls[tbl]);
       end;
     end
     else
     begin
       tbl := compptr^.ac_tbl_no;
       jpeg_make_d_derived_tbl(cinfo, FALSE, tbl,
-			       entropy^.derived_tbls[tbl]);
+                               entropy^.derived_tbls[tbl]);
       { remember the single active table }
       entropy^.ac_derived_tbl := entropy^.derived_tbls[tbl];
     end;
@@ -250,7 +250,7 @@ const
 {LOCAL}
 function process_restart (cinfo : j_decompress_ptr) : boolean;
 var
-  entropy : phuff_entropy_ptr; 
+  entropy : phuff_entropy_ptr;
   ci : int;
 begin
   entropy := phuff_entropy_ptr (cinfo^.entropy);
@@ -337,7 +337,7 @@ begin
     if (entropy^.restarts_to_go = 0) then
       if (not process_restart(cinfo)) then
       begin
-	decode_mcu_DC_first := FALSE;
+        decode_mcu_DC_first := FALSE;
         exit;
       end;
   end;
@@ -497,7 +497,7 @@ begin
     if (entropy^.restarts_to_go = 0) then
       if (not process_restart(cinfo)) then
       begin
-	decode_mcu_AC_first := FALSE;
+        decode_mcu_AC_first := FALSE;
         exit;
       end;
   end;
@@ -600,21 +600,21 @@ begin
           else
             s := r;
 
-	  { Scale and output coefficient in natural (dezigzagged) order }
+          { Scale and output coefficient in natural (dezigzagged) order }
           block^[jpeg_natural_order[k]] := JCOEF (s shl Al);
         end
         else
         begin
           if (r = 15) then
-          begin		{ ZRL }
-            Inc(k, 15);	{ skip 15 zeroes in band }
+          begin         { ZRL }
+            Inc(k, 15); { skip 15 zeroes in band }
           end
           else
-          begin		{ EOBr, run length is 2^r + appended bits }
+          begin         { EOBr, run length is 2^r + appended bits }
             EOBRUN := 1 shl r;
             if (r <> 0) then
-            begin		{ EOBr, r > 0 }
-	      {CHECK_BIT_BUFFER(br_state, r, return FALSE);}
+            begin               { EOBr, r > 0 }
+              {CHECK_BIT_BUFFER(br_state, r, return FALSE);}
               if (bits_left < r) then
               begin
                 if (not jpeg_fill_bit_buffer(br_state,get_buffer,bits_left,r)) then
@@ -632,9 +632,9 @@ begin
 
               Inc(EOBRUN, r);
             end;
-	    Dec(EOBRUN);          { this band is processed at this moment }
-	    break;                { force end-of-band }
-	  end;
+            Dec(EOBRUN);          { this band is processed at this moment }
+            break;                { force end-of-band }
+          end;
         end;
         Inc(k);
       end;
@@ -684,7 +684,7 @@ begin
     if (entropy^.restarts_to_go = 0) then
       if (not process_restart(cinfo)) then
       begin
-	decode_mcu_DC_refine := FALSE;
+        decode_mcu_DC_refine := FALSE;
         exit;
       end;
   end;
@@ -771,8 +771,8 @@ var
 begin
   entropy := phuff_entropy_ptr (cinfo^.entropy);
   Se := cinfo^.Se;
-  p1 := 1 shl cinfo^.Al;	{ 1 in the bit position being coded }
-  m1 := (-1) shl cinfo^.Al;	{ -1 in the bit position being coded }
+  p1 := 1 shl cinfo^.Al;        { 1 in the bit position being coded }
+  m1 := (-1) shl cinfo^.Al;     { -1 in the bit position being coded }
 
   { Process restart marker if needed; may have to suspend }
   if (cinfo^.restart_interval <> 0) then
@@ -780,7 +780,7 @@ begin
     if (entropy^.restarts_to_go = 0) then
       if (not process_restart(cinfo)) then
       begin
-	decode_mcu_AC_refine := FALSE;
+        decode_mcu_AC_refine := FALSE;
         exit;
       end;
   end;
@@ -858,8 +858,8 @@ begin
         s := s and 15;
         if (s <> 0) then
         begin
-	  if (s <> 1) then	{ size of new coef should always be 1 }
-	    WARNMS(j_common_ptr(cinfo), JWRN_HUFF_BAD_CODE);
+          if (s <> 1) then      { size of new coef should always be 1 }
+            WARNMS(j_common_ptr(cinfo), JWRN_HUFF_BAD_CODE);
           {CHECK_BIT_BUFFER(br_state, 1, goto undoit);}
           if (bits_left < 1) then
           begin
@@ -872,18 +872,18 @@ begin
           {if (GET_BITS(1)) then}
           Dec(bits_left);
           if (int(get_buffer shr bits_left)) and ( pred(1 shl 1) )<>0 then
-	    s := p1		{ newly nonzero coef is positive }
-	  else
-	    s := m1;		{ newly nonzero coef is negative }
+            s := p1             { newly nonzero coef is positive }
+          else
+            s := m1;            { newly nonzero coef is negative }
         end
         else
         begin
-	  if (r <> 15) then
+          if (r <> 15) then
           begin
-	    EOBRUN := 1 shl r;	{ EOBr, run length is 2^r + appended bits }
-	    if (r <> 0) then
+            EOBRUN := 1 shl r;  { EOBr, run length is 2^r + appended bits }
+            if (r <> 0) then
             begin
-	      {CHECK_BIT_BUFFER(br_state, r, goto undoit);}
+              {CHECK_BIT_BUFFER(br_state, r, goto undoit);}
               if (bits_left < r) then
               begin
                 if (not jpeg_fill_bit_buffer(br_state,get_buffer,bits_left,r)) then
@@ -892,25 +892,25 @@ begin
                 bits_left := br_state.bits_left;
               end;
 
-	      {r := GET_BITS(r);}
+              {r := GET_BITS(r);}
               Dec(bits_left, r);
               r := (int(get_buffer shr bits_left)) and ( pred(1 shl r) );
 
-	      Inc(EOBRUN, r);
-	    end;
-	    break;		{ rest of block is handled by EOB logic }
-	  end;
-	  { note s := 0 for processing ZRL }
+              Inc(EOBRUN, r);
+            end;
+            break;              { rest of block is handled by EOB logic }
+          end;
+          { note s := 0 for processing ZRL }
         end;
         { Advance over already-nonzero coefs and r still-zero coefs,
           appending correction bits to the nonzeroes.  A correction bit is 1
           if the absolute value of the coefficient must be increased. }
 
         repeat
-	  thiscoef :=@(block^[jpeg_natural_order[k]]);
-	  if (thiscoef^ <> 0) then
+          thiscoef :=@(block^[jpeg_natural_order[k]]);
+          if (thiscoef^ <> 0) then
           begin
-	    {CHECK_BIT_BUFFER(br_state, 1, goto undoit);}
+            {CHECK_BIT_BUFFER(br_state, 1, goto undoit);}
             if (bits_left < 1) then
             begin
               if (not jpeg_fill_bit_buffer(br_state,get_buffer,bits_left,1)) then
@@ -919,34 +919,34 @@ begin
               bits_left := br_state.bits_left;
             end;
 
-	    {if (GET_BITS(1)) then}
+            {if (GET_BITS(1)) then}
             Dec(bits_left);
             if (int(get_buffer shr bits_left)) and ( pred(1 shl 1) )<>0 then
             begin
-	      if ((thiscoef^ and p1) = 0) then
+              if ((thiscoef^ and p1) = 0) then
               begin { do nothing if already set it }
-	        if (thiscoef^ >= 0) then
-		  Inc(thiscoef^, p1)
-	        else
-		  Inc(thiscoef^, m1);
-	      end;
-	    end;
-	  end
+                if (thiscoef^ >= 0) then
+                  Inc(thiscoef^, p1)
+                else
+                  Inc(thiscoef^, m1);
+              end;
+            end;
+          end
           else
           begin
             Dec(r);
-	    if (r < 0) then
-	      break;		{ reached target zero coefficient }
-	  end;
-	  Inc(k);
+            if (r < 0) then
+              break;            { reached target zero coefficient }
+          end;
+          Inc(k);
         until (k > Se);
         if (s <> 0) then
         begin
-	  pos := jpeg_natural_order[k];
-	  { Output newly nonzero coefficient }
-	  block^[pos] := JCOEF (s);
-	  { Remember its position in case we have to suspend }
-	  newnz_pos[num_newnz] := pos;
+          pos := jpeg_natural_order[k];
+          { Output newly nonzero coefficient }
+          block^[pos] := JCOEF (s);
+          { Remember its position in case we have to suspend }
+          newnz_pos[num_newnz] := pos;
           Inc(num_newnz);
         end;
         Inc(k);
@@ -965,7 +965,7 @@ begin
         thiscoef := @(block^[jpeg_natural_order[k]]);
         if (thiscoef^ <> 0) then
         begin
-	  {CHECK_BIT_BUFFER(br_state, 1, goto undoit);}
+          {CHECK_BIT_BUFFER(br_state, 1, goto undoit);}
           if (bits_left < 1) then
           begin
             if (not jpeg_fill_bit_buffer(br_state,get_buffer,bits_left,1)) then
@@ -974,18 +974,18 @@ begin
             bits_left := br_state.bits_left;
           end;
 
-	  {if (GET_BITS(1)) then}
+          {if (GET_BITS(1)) then}
           Dec(bits_left);
           if (int(get_buffer shr bits_left)) and ( pred(1 shl 1) )<>0 then
           begin
-	    if ((thiscoef^ and p1) = 0) then
+            if ((thiscoef^ and p1) = 0) then
             begin { do nothing if already changed it }
-	      if (thiscoef^ >= 0) then
-	        Inc(thiscoef^, p1)
-	      else
-	        Inc(thiscoef^, m1);
-	    end;
-	  end;
+              if (thiscoef^ >= 0) then
+                Inc(thiscoef^, p1)
+              else
+                Inc(thiscoef^, m1);
+            end;
+          end;
         end;
         Inc(k);
       end;
@@ -1032,7 +1032,7 @@ var
 begin
   entropy := phuff_entropy_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				SIZEOF(phuff_entropy_decoder)) );
+                                SIZEOF(phuff_entropy_decoder)) );
   cinfo^.entropy := jpeg_entropy_decoder_ptr (entropy);
   entropy^.pub.start_pass := start_pass_phuff_decoder;
 
@@ -1045,7 +1045,7 @@ begin
   { Create progression status table }
   cinfo^.coef_bits := coef_bits_ptrrow (
      cinfo^.mem^.alloc_small ( j_common_ptr (cinfo), JPOOL_IMAGE,
-				cinfo^.num_components*DCTSIZE2*SIZEOF(int)) );
+                                cinfo^.num_components*DCTSIZE2*SIZEOF(int)) );
   coef_bit_ptr := @cinfo^.coef_bits^[0][0];
   for ci := 0 to pred(cinfo^.num_components) do
     for i := 0 to pred(DCTSIZE2) do

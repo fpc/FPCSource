@@ -1,6 +1,6 @@
 program qtest;
 
-uses 
+uses
   mysql4;
 
 Const
@@ -84,19 +84,7 @@ begin
   halt(0);
 end.
   $Log$
-  Revision 1.1  2004-09-30 19:34:47  michael
-  + Split everything in version 3 and version 4
-
-  Revision 1.4  2004/09/28 19:08:09  michael
-  + Some compatibility issues fixed
-
-  Revision 1.3  2002/09/07 15:42:53  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/05/31 11:54:33  marco
-  * Renamefest for 1.0, many 1.1.x spots patched also.
-
-  Revision 1.1  2002/01/29 17:54:54  peter
-    * splitted to base and extra
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

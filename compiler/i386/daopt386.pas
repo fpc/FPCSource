@@ -2795,74 +2795,11 @@ end.
 
 {
   $Log$
-  Revision 1.80  2005-01-03 14:59:28  jonas
+  Revision 1.81  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.80  2005/01/03 14:59:28  jonas
     * remove "release subregA; allocate other_subreg_of_A" sequences so the
       register renaming doesn't stop early
-
-  Revision 1.79  2004/12/30 13:49:42  jonas
-    * fixed checking of overlapping references
-
-  Revision 1.78  2004/12/28 18:01:41  jonas
-    * fixed several regvar related bugs, cycle with -OZp3r doesn't work
-      yet though
-
-  Revision 1.77  2004/12/18 15:16:10  jonas
-    * fixed tracking of usage of flags register
-    * fixed destroying of "memwrite"'s
-    * fixed checking of entire sequences in all cases (previously this was
-      only guaranteed if the new sequence was longer than the old one, and
-      not if vice versa)
-    * fixed wrong removal of sequences if a register load was already
-      completely removed in the previous sequence (because in that case,
-      that register has to be removed and renamed in the new sequence as
-      well before removing the new sequence)
-
-  Revision 1.76  2004/12/18 14:07:35  jonas
-    * fixed compilation with -dcsdebug -dallocregdebug
-
-  Revision 1.75  2004/12/12 10:50:34  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.74  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.73  2004/10/10 15:01:19  jonas
-    * several fixes to allocregbetween()
-
-  Revision 1.72  2004/10/06 19:24:38  jonas
-    * take into account the size of a write to determine whether a write to
-      one reference influences the contents of another reference
-
-  Revision 1.71  2004/10/05 20:41:01  peter
-    * more spilling rewrites
-
-  Revision 1.70  2004/10/04 20:46:22  peter
-    * spilling code rewritten for x86. It now used the generic
-      spilling routines. Special x86 optimization still needs
-      to be added.
-    * Spilling fixed when both operands needed to be spilled
-    * Cleanup of spilling routine, do_spill_readwritten removed
-
-  Revision 1.69  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.68  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.67  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.66  2004/02/27 19:55:23  jonas
-    * fixed optimizer for new treference fields
-
-  Revision 1.65  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
 
 }

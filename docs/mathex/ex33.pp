@@ -7,10 +7,10 @@ Uses math;
 Type
   TVector = Array[1..10] of Float;
 
-Var 
+Var
   AVector : Tvector;
   I : longint;
-   
+
 begin
  for I:=1 to 10 do
    Avector[i]:=Random;

@@ -256,8 +256,7 @@ end.
 
 {
  $Log$
- Revision 1.1  2004-12-19 20:25:11  hajny
-   + TTimedDialog and TimedMessageBox added
-
+ Revision 1.2  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

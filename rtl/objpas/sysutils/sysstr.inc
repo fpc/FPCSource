@@ -2346,7 +2346,10 @@ const
 
 {
   $Log$
-  Revision 1.28  2005-02-07 08:29:00  michael
+  Revision 1.29  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.28  2005/02/07 08:29:00  michael
   + Patch from peter to fix 1.0 compile
 
   Revision 1.27  2005/02/06 09:38:45  florian
@@ -2357,135 +2360,5 @@ const
 
   Revision 1.25  2005/01/16 17:53:27  michael
   + Patch from Colin Western to implemenet TryStrToFLoat
-
-  Revision 1.24  2004/12/26 13:04:30  peter
-    * fix bugs 3477, 3478, 3479
-
-  Revision 1.23  2004/12/19 17:55:38  michael
-  + Implemented wraptext
-
-  Revision 1.22  2004/12/01 10:34:46  michael
-  + Patch from Pete: Dont support widestrings when compiled with 1.0.x and  Add additional typecasts to Widestring for widechar/pwidechar
-
-  Revision 1.21  2004/11/30 20:56:27  michael
-  + Fix from Alexey Barkovoy for bug 3302
-
-  Revision 1.20  2004/11/22 05:53:44  marco
-   * fixed little 1.0.xism
-
-  Revision 1.19  2004/11/21 19:33:20  marco
-   * %x 64-bit support
-
-  Revision 1.18  2004/11/21 16:44:01  marco
-   * %u
-
-  Revision 1.17  2004/11/16 18:30:35  marco
-   * updated ansiexctractquotedstring (more delphi compat, both interface and code)
-
-  Revision 1.16  2004/08/30 18:00:12  michael
-  + Extra index check in IsDelimiter
-
-  Revision 1.15  2004/08/07 19:32:35  florian
-    * fixed CompareStr with a patch from Michalis Kamburelis
-
-  Revision 1.14  2004/08/07 16:56:28  florian
-    + TryStrToInt* added
-
-  Revision 1.13  2004/06/13 10:49:50  florian
-    * fixed some bootstrapping problems as well as some 64 bit stuff
-
-  Revision 1.12  2004/06/12 13:57:18  michael
-  + Enhanced FloatToStrF to 18 digits (Delphi compatibility, bug 3106
-
-  Revision 1.11  2004/06/12 13:23:17  michael
-  + Fixed currency<->string conversion support
-
-  Revision 1.10  2004/04/28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.9  2004/02/26 08:46:21  michael
-  + Added AnsiSameStr
-
-  Revision 1.8  2003/11/26 22:17:42  michael
-  + Merged fixbranch fixes, missing in main branch
-
-  Revision 1.7  2003/11/22 17:18:53  marco
-   * johill patch applied
-
-  Revision 1.6  2003/11/22 16:17:26  michael
-  + Small optimization in comparemem
-
-  Revision 1.5  2003/11/22 15:46:48  michael
-  + Patched CompareMem for case when length is 0
-
-  Revision 1.4  2003/11/09 13:37:42  michael
-  + Position specifier in format string affects all later specifiers
-
-  Revision 1.3  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.2  2003/10/07 12:02:47  marco
-   * sametext and ansisametext added. (simple (ansi)comparetext wrappers)
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.26  2003/09/06 21:22:07  marco
-   * More objpas fixes
-
-  Revision 1.25  2002/12/23 23:26:08  florian
-    + addition to previous commit, forgot to save in the editor
-
-  Revision 1.23  2002/11/28 22:26:30  michael
-  + Fixed float<>string conversion routines
-
-  Revision 1.22  2002/11/28 20:29:26  michael
-  + made it compile again
-
-  Revision 1.21  2002/11/28 20:15:37  michael
-  + Fixed comparestr (merge from fix)
-
-  Revision 1.20  2002/09/15 17:50:35  peter
-    * Fixed AnsiStrComp crashes
-  Revision 1.1.2.16  2002/11/28 22:25:01  michael
-  + Fixed float<>string conversion routines
-
-  Revision 1.1.2.15  2002/11/28 20:24:11  michael
-  + merged some fixes from mainbranch
-
-  Revision 1.19  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-  Revision 1.1.2.14  2002/11/28 20:13:10  michael
-  + Fixed comparestr
-
-  Revision 1.1.2.13  2002/10/29 23:41:06  michael
-  + Added lots of D4 functions
-
-  Revision 1.18  2002/09/02 06:07:16  michael
-  + Fix for formatbuf not applied correct
-
-  Revision 1.17  2002/08/29 10:04:48  michael
-  + Fix for bug report 2097 in formatbuf
-
-  Revision 1.16  2002/08/29 10:04:25  michael
-  + Fix for bug report 2097 in formatbuf
-
-  Revision 1.15  2002/07/06 12:14:03  daniel
-  - Changes from Strasbourg
-
-  Revision 1.14  2002/01/24 12:33:53  jonas
-    * adapted ranges of native types to int64 (e.g. high cardinal is no
-      longer longint($ffffffff), but just $fffffff in psystem)
-    * small additional fix in 64bit rangecheck code generation for 32 bit
-      processors
-    * adaption of ranges required the matching talgorithm used for selecting
-      which overloaded procedure to call to be adapted. It should now always
-      select the closest match for ordinal parameters.
-    + inttostr(qword) in sysstr.inc/sysstrh.inc
-    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
-      fixes were required to be able to add them)
-    * is_in_limit() moved from ncal to types unit, should always be used
-      instead of direct comparisons of low/high values of orddefs because
-      qword is a special case
 
 }

@@ -54,7 +54,7 @@ function pwrite64(__fd:longint; __buf:pointer; __n:size_t; __offset:__off64_t):s
 Type
   TPipes = Array[0..1] of longint;
   PPipes = ^TPipes;
-  
+
 function pipe(var __pipedes: TPipes):longint;cdecl;external clib name 'pipe';
 function pipe(__pipedes: Plongint):longint;cdecl;external clib name 'pipe';
 function alarm(__seconds:dword):dword;cdecl;external clib name 'alarm';
@@ -190,7 +190,7 @@ Type
     ReadDes: Integer;
     WriteDes: Integer;
   end;
-  PPipeDescriptors = ^TPipeDescriptors;            
+  PPipeDescriptors = ^TPipeDescriptors;
 
 function pipe(var PipeDes: TPipeDescriptors): Integer; cdecl; external clib name 'pipe';
 function __read(Handle: Integer; var Buffer; Count: size_t): ssize_t; cdecl;external clib name 'read';
@@ -199,4 +199,4 @@ function __close(Handle: Integer): Integer; cdecl;external clib name 'close';
 
 
 
-            
+

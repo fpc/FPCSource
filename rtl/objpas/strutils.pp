@@ -5,8 +5,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team
 
-    Delphi/Kylix compatibility unit: String handling routines. 
-    
+    Delphi/Kylix compatibility unit: String handling routines.
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -71,15 +71,15 @@ Function AnsiRightStr(const AText: AnsiString; const ACount: Integer): AnsiStrin
 Function AnsiMidStr(const AText: AnsiString; const AStart, ACount: Integer): AnsiString;
 {$ifndef ver1_0}
 Function LeftBStr(const AText: AnsiString; const AByteCount: Integer): AnsiString;
-Function LeftStr(const AText: WideString; const ACount: Integer): WideString; 
-Function RightStr(const AText: WideString; const ACount: Integer): WideString; 
+Function LeftStr(const AText: WideString; const ACount: Integer): WideString;
+Function RightStr(const AText: WideString; const ACount: Integer): WideString;
 Function MidStr(const AText: WideString; const AStart, ACount: Integer): WideString;
 {$endif}
 
 { ---------------------------------------------------------------------
     Extended search and replace
   ---------------------------------------------------------------------}
-  
+
 const
   { Default word delimiters are any character except the core alphanumerics. }
   WordDelimiters: set of Char = [#0..#255] - ['a'..'z','A'..'Z','1'..'9','0'];
@@ -128,7 +128,7 @@ Const
 { ---------------------------------------------------------------------
     Other functions, based on RxStrUtils.
   ---------------------------------------------------------------------}
-  
+
 function IsEmptyStr(const S: string; const EmptyChars: TSysCharSet): Boolean;
 function DelSpace(const S: string): string;
 function DelChars(const S: string; Chr: Char): string;
@@ -316,7 +316,7 @@ begin
     Exit;
   for i:=low(AValues) to High(Avalues) do
      if (avalues[i]=AText) Then
-       exit(i);					// make sure it is the first val.
+       exit(i);                                 // make sure it is the first val.
 end;
 
 
@@ -389,7 +389,7 @@ end;
 
 
 
-Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string; 
+Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;
 
 begin
   if avalue then
@@ -628,7 +628,7 @@ begin
         If (Len=0) then
           Result:=Nil;
         end;
-      end;  
+      end;
     end;
 end;
 
@@ -649,7 +649,7 @@ begin
   if (offset<1) or (offset>length(s)) then exit(0);
   i:=strpos(@s[offset],@substr[1]);
   if i=nil then
-    PosEx:=0   
+    PosEx:=0
   else
     PosEx:=succ(i-pchar(s));
 end;
@@ -671,7 +671,7 @@ begin
   while (offset<=l) and (s[offset]<>c) do inc(offset);
   if offset>l then
    posex:=0
-  else 
+  else
    posex:=offset;
 {$else}
   posex:=offset+indexbyte(s[offset],l-offset+1);
@@ -695,8 +695,8 @@ SScore : array[1..255] of Char =
       '0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', // 155..186
       '0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', // 187..218
       '0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0', // 219..250
-      '0','0','0','0','0'); // 251..255 
-                    
+      '0','0','0','0','0'); // 251..255
+
 
 
 Function Soundex(const AText: string; ALength: TSoundexLength): string;
@@ -704,7 +704,7 @@ Function Soundex(const AText: string; ALength: TSoundexLength): string;
 Var
   S,PS : Char;
   I,L : integer;
-  
+
 begin
   Result:='';
   PS:=#0;
@@ -720,11 +720,11 @@ begin
         Result:=Result+S;
       If (S<>'i') then
         PS:=S;
-      Inc(I);  
+      Inc(I);
       end;
     end;
   L:=Length(Result);
-  If (L<ALength) then  
+  If (L<ALength) then
     Result:=Result+StringOfChar('0',Alength-L);
 end;
 
@@ -914,10 +914,10 @@ function DelSpace1(const S: string): string;
 
 var
   i: Integer;
-  
+
 begin
   Result:=S;
-  for i:=Length(Result) downto 2 do 
+  for i:=Length(Result) downto 2 do
     if (Result[i]=' ') and (Result[I-1]=' ') then
       Delete(Result,I,1);
 end;
@@ -926,14 +926,14 @@ function Tab2Space(const S: string; Numb: Byte): string;
 
 var
   I: Integer;
-  
+
 begin
   I:=1;
   Result:=S;
-  while I <= Length(Result) do 
-    if Result[I]<>Chr(9) then 
+  while I <= Length(Result) do
+    if Result[I]<>Chr(9) then
       inc(I)
-    else  
+    else
       begin
       Result[I]:=' ';
       If (Numb>1) then
@@ -1005,7 +1005,7 @@ var
 
 begin
   p:=Pos(Symb,S);
-  if p=0 then 
+  if p=0 then
     p:=Length(S)+1;
   Result:=Copy(S,1,p-1);
 end;
@@ -1047,7 +1047,7 @@ begin
       inc(P);
     end;
 end;
-                                                    
+
 function WordCount(const S: string; const WordDelims: TSysCharSet): Integer;
 
 var
@@ -1067,7 +1067,7 @@ begin
       inc(P);
     end;
 end;
-                                                  
+
 function WordPosition(const N: Integer; const S: string; const WordDelims: TSysCharSet): Integer;
 
 var
@@ -1098,7 +1098,7 @@ function ExtractWord(N: Integer; const S: string; const WordDelims: TSysCharSet)
 
 var
   i: Integer;
-  
+
 begin
   Result:=ExtractWordPos(N,S,WordDelims,i);
 end;
@@ -1168,7 +1168,7 @@ function isWordPresent(const W, S: string; const WordDelims: TSysCharSet): Boole
 
 var
   i,Count : Integer;
-  
+
 begin
   Result:=False;
   Count:=WordCount(S, WordDelims);
@@ -1222,26 +1222,26 @@ function Dec2Numb(N: Longint; Len, Base: Byte): string;
 var
   C: Integer;
   Number: Longint;
-  
+
 begin
-  if N=0 then 
+  if N=0 then
     Result:='0'
-  else 
+  else
     begin
     Number:=N;
     Result:='';
-    while Number>0 do 
+    while Number>0 do
       begin
       C:=Number mod Base;
-      if C>9 then 
+      if C>9 then
         C:=C+55
-      else 
+      else
         C:=C+48;
       Result:=Chr(C)+Result;
       Number:=Number div Base;
       end;
     end;
-  if (Result<>'') then 
+  if (Result<>'') then
     Result:=AddChar('0',Result,Len);
 end;
 
@@ -1270,7 +1270,7 @@ function RomanToint(const S: string): Longint;
 
 const
   RomanChars  = ['C','D','i','L','M','V','X'];
-  RomanValues : array['C'..'X'] of Word 
+  RomanValues : array['C'..'X'] of Word
               = (100,500,0,0,0,0,1,0,0,50,1000,0,0,0,0,0,0,0,0,5,0,10);
 
 var
@@ -1282,16 +1282,16 @@ begin
   Result:=0;
   i:=0;
   Negative:=(Length(S)>0) and (S[1]='-');
-  if Negative then 
+  if Negative then
     inc(i);
-  l:=Length(S);  
-  while (i<l) do 
+  l:=Length(S);
+  while (i<l) do
     begin
     inc(i);
     index:=UpCase(S[i]);
     if index in RomanChars then
       begin
-      if Succ(i)<=l then 
+      if Succ(i)<=l then
         Next:=UpCase(S[i+1])
       else
         Next:=#0;
@@ -1301,7 +1301,7 @@ begin
         Dec(Result, RomanValues[index]);
         inc(i);
         end
-      else 
+      else
         inc(Result, RomanValues[index]);
       end
     else
@@ -1310,24 +1310,24 @@ begin
       Exit;
       end;
     end;
-  if Negative then 
+  if Negative then
     Result:=-Result;
 end;
 
 function intToRoman(Value: Longint): string;
 
 const
-  Arabics : Array[1..13] of Integer 
+  Arabics : Array[1..13] of Integer
           = (1,4,5,9,10,40,50,90,100,400,500,900,1000);
-  Romans  :  Array[1..13] of String 
+  Romans  :  Array[1..13] of String
           = ('i','iV','V','iX','X','XL','L','XC','C','CD','D','CM','M');
 
 var
   i: Integer;
-  
+
 begin
   for i:=13 downto 1 do
-    while (Value >= Arabics[i]) do 
+    while (Value >= Arabics[i]) do
       begin
       Value:=Value-Arabics[i];
       Result:=Result+Romans[i];
@@ -1486,7 +1486,7 @@ var
 
 begin
   Result:='';
-  for i:=1 to Length(Source) do 
+  for i:=1 to Length(Source) do
     begin
     if Length(Key) > 0 then
       C:=Byte(Key[1 + ((i - 1) mod Length(Key))]) xor Byte(Source[i])
@@ -1502,7 +1502,7 @@ var
   C: Char;
 begin
   Result:='';
-  for i:=0 to Length(Source) div 2 - 1 do 
+  for i:=0 to Length(Source) div 2 - 1 do
     begin
     C:=Chr(StrTointDef('$' + Copy(Source, (i * 2) + 1, 2), Ord(' ')));
     if Length(Key) > 0 then
@@ -1518,14 +1518,14 @@ var
 begin
   i:=1;
   Result:='';
-  while (Result='') and (i<=ParamCount) do 
+  while (Result='') and (i<=ParamCount) do
     begin
     S:=ParamStr(i);
     if (SwitchChars=[]) or ((S[1] in SwitchChars) and (Length(S) > 1)) and
-       (AnsiCompareText(Copy(S,2,Length(S)-1),Switch)=0) then 
+       (AnsiCompareText(Copy(S,2,Length(S)-1),Switch)=0) then
       begin
       inc(i);
-      if i<=ParamCount then 
+      if i<=ParamCount then
         Result:=ParamStr(i);
       end;
     inc(i);
@@ -1577,7 +1577,7 @@ begin
   llen:=Length(SubStr);
   maxlen:=length(source);
   if (llen>0) and (maxlen>0) and ( llen<=maxlen) then
-   begin 
+   begin
  //    i:=maxlen;
      pc:=@source[maxlen];
      pc2:=@source[llen-1];
@@ -1606,7 +1606,7 @@ begin
   maxlen:=length(source);
   if offs<maxlen then maxlen:=offs;
   if (llen>0) and (maxlen>0) and ( llen<=maxlen)  then
-   begin 
+   begin
 //     i:=maxlen;
      pc:=@source[maxlen];
      pc2:=@source[llen-1];
@@ -1631,11 +1631,11 @@ Const HexDigits='0123456789ABCDEF';
 var i :integer;
 begin
   for i:=0 to binbufsize-1 do
-    begin  
+    begin
       HexValue[0]:=hexdigits[(ord(binvalue^) and 15)];
       HexValue[1]:=hexdigits[(ord(binvalue^) shr 4)];
       inc(hexvalue,2);
-      inc(binvalue);		
+      inc(binvalue);
     end;
 end;
 
@@ -1649,16 +1649,16 @@ function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
 var i,j : integer;
 
 begin
- i:=binbufsize; 
+ i:=binbufsize;
  while (i>0) do
-   begin 
+   begin
      if hexvalue^ IN ['A'..'F','a'..'f'] then
        j:=(ord(hexvalue^)+9) and 15
      else
        if hexvalue^ IN ['0'..'9'] then
          j:=(ord(hexvalue^)) and 15
      else
-       break;   
+       break;
      inc(hexvalue);
      if hexvalue^ IN ['A'..'F','a'..'f'] then
        j:=((ord(hexvalue^)+9) and 15)+ (j shl 4)
@@ -1671,7 +1671,7 @@ begin
      binvalue^:=chr(j);
      inc(binvalue);
      dec(i);
-   end;     
+   end;
   result:=binbufsize-i;
 end;
 
@@ -1679,7 +1679,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2005-02-03 21:38:17  marco
+  Revision 1.14  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.13  2005/02/03 21:38:17  marco
    * committed bintohex and hextobin
 
   Revision 1.12  2005/01/26 11:05:09  marco
@@ -1687,29 +1690,5 @@ end.
 
   Revision 1.11  2005/01/01 18:45:25  marco
    * rpos and rposex, both two versions
-
-  Revision 1.10  2004/12/30 18:12:43  michael
-  + Fix for extractdelimited
-
-  Revision 1.9  2004/07/21 20:37:03  michael
-  + Implemented all functions
-
-  Revision 1.8  2004/07/13 18:42:39  michael
-  + Added some RxStrUtils functions for Rx compatibility
-
-  Revision 1.7  2004/07/01 15:42:18  peter
-    * fix 1.0.x compile
-
-  Revision 1.6  2004/06/29 19:37:17  marco
-   * updates from B. Tierens
-
-  Revision 1.5  2004/05/17 07:33:01  marco
-   * fixes from Luiz Am?rico
-
-  Revision 1.4  2004/03/19 12:54:22  marco
-   * more strutils small things
-
-  Revision 1.3  2004/03/18 16:55:47  marco
-   * more simple implementations done, based on copy() Largely untested
 
 }

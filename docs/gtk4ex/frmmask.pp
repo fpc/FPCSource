@@ -30,7 +30,7 @@ Const
   SNewMask : PChar = 'New mask';
   SOK : PChar = ' OK ';
   SCancel : PChar = ' Cancel ';
-  
+
 Procedure ApplyMask(Widget : PGtkWidget; Window : PMaskForm);cdecl;
 
 begin
@@ -39,7 +39,7 @@ begin
     Mask:=StrPas(gtk_entry_get_text(EMask));
     If (CallBack<>Nil) then
       CallBack(Mask,CallBackData);
-    end;  
+    end;
 end;
 
 Procedure DestroyMaskForm(Widget : PGtkWidget; Window : PMaskForm);cdecl;
@@ -81,7 +81,7 @@ begin
     gtk_signal_connect(PgtkObject(Window),'destroy',
                       TGtkSignalFunc(@DestroyMaskForm),Result);
     CallBack:=Nil;
-    CallBackdata:=Nil;                  
+    CallBackdata:=Nil;
     end;
 end;
 

@@ -140,7 +140,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-09-11 20:07:17  michael
-    + Fixed log
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

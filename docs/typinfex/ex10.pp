@@ -6,10 +6,10 @@ program example10;
 
 uses rttiobj,typinfo;
 
-Var 
+Var
   O : TMyTestObject;
   PI : PPropInfo;
-  
+
 begin
   O:=TMyTestObject.Create;
   Writeln('Property tests    : ');

@@ -30,7 +30,7 @@ uses
 type
   { TFPReaderJPEG }
   { This is a FPImage reader for jpeg images. }
-  
+
   TFPReaderJPEG = class;
 
   PFPJPEGProgressManager = ^TFPJPEGProgressManager;
@@ -160,13 +160,13 @@ end;
 procedure TFPReaderJPEG.InternalRead(Str: TStream; Img: TFPCustomImage);
 var
   MemStream: TMemoryStream;
-  
+
   procedure SetSource;
   begin
     MemStream.Position:=0;
     jpeg_stdio_src(@FInfo, @MemStream);
   end;
-  
+
   procedure ReadHeader;
   begin
     jpeg_read_header(@FInfo, TRUE);
@@ -175,7 +175,7 @@ var
     FGrayscale := FInfo.jpeg_color_space = JCS_GRAYSCALE;
     FProgressiveEncoding := jpeg_has_multiple_scans(@FInfo);
   end;
-  
+
   procedure InitReadingPixels;
   begin
     FInfo.scale_num := 1;
@@ -200,7 +200,7 @@ var
       FInfo.buffered_image := True;
     end;
   end;
-  
+
   procedure ReadPixels;
   var
     Continue: Boolean;
@@ -212,13 +212,13 @@ var
     y: Integer;
   begin
     InitReadingPixels;
-    
+
     Continue:=true;
     Progress(psStarting, 0, False, Rect(0,0,0,0), '', Continue);
     if not Continue then exit;
-    
+
     jpeg_start_decompress(@FInfo);
-    
+
     Img.SetSize(FInfo.output_width,FInfo.output_height);
 
     // read one line per call
@@ -249,7 +249,7 @@ var
 
     Progress(psEnding, 100, false, Rect(0,0,0,0), '', Continue);
   end;
-  
+
 begin
   FWidth:=0;
   FHeight:=0;

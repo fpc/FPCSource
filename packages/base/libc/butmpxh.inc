@@ -34,8 +34,8 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TUserTmpX = utmpx;
   PUserTmpX = ^TUserTmpX;
-    
-    
+
+

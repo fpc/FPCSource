@@ -96,63 +96,11 @@
 
 {
   $Log$
-  Revision 1.21  2005-02-08 20:25:28  florian
+  Revision 1.22  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.21  2005/02/08 20:25:28  florian
     - killed power from system unit
     * move operator ** to math unit
-
-  Revision 1.20  2004/12/02 08:11:22  marco
-   * patch from peter.
-
-  Revision 1.19  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.18  2004/11/18 10:03:36  michael
-  + Patch from peter to fix pasjpeg compile
-
-  Revision 1.17  2004/11/17 22:19:04  peter
-  internconst, internproc and some external declarations moved to interface
-
-  Revision 1.16  2004/10/09 21:00:46  jonas
-    + cgenmath with libc math functions. Faster than the routines in genmath
-      and also have full double support (exp() only has support for values in
-      the single range in genmath, for example). Used in FPC_USE_LIBC is
-      defined
-    * several fixes to allow compilation with -dHASINLINE, but internalerrors
-      because of missing support for inlining assembler code
-
-  Revision 1.15  2004/02/08 15:33:50  florian
-    * linking problems fixed
-    + abi tag added
-
-  Revision 1.14  2004/01/02 17:19:04  jonas
-    * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
-    + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
-      defined
-    * if currency = orddef, prefer currency -> int64/qword conversion over
-      currency -> float conversions
-    * optimized currency/currency if currency = orddef
-    * TODO: write FPC_DIV_CURRENCY and FPC_MUL_CURRENCY routines to prevent
-        precision loss if currency=int64 and bestreal = double
-
-  Revision 1.13  2003/01/21 19:36:36  mazen
-  - fpc_int64_to_double removed as not supported by most cpu targets
-
-  Revision 1.12  2003/01/20 22:21:36  mazen
-  * many stuff related to RTL fixed
-
-  Revision 1.11  2003/01/15 00:40:18  peter
-    * power returns int64
-
-  Revision 1.10  2003/01/03 20:34:02  peter
-    * i386 fpu controlword functions added
-
-  Revision 1.9  2002/10/06 21:26:18  peter
-    * round returns int64
-
-  Revision 1.8  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/07/26 22:46:06  florian
-    * interface of system unit for Linux/PowerPC compiles
 
 }

@@ -53,22 +53,13 @@ end;
 
 {
   $Log$
-  Revision 1.5  2005-01-30 18:01:15  peter
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.5  2005/01/30 18:01:15  peter
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
 
-  Revision 1.4  2004/01/02 17:57:16  jonas
-    * re-enable fpu exceptions in signal handler, they're turned off by the
-      kernel
-
-  Revision 1.3  2004/01/01 16:28:16  jonas
-    * fixed signal handling
-
-  Revision 1.2  2003/11/21 00:40:06  florian
-    * some arm issues fixed
-
-  Revision 1.1  2003/11/02 14:53:06  jonas
-    + sighand and associated record definitions for ppc. Untested.
 }
 

@@ -1627,7 +1627,7 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-11-05 22:32:28  peter
-    * merged xml updates from lazarus
+  Revision 1.15  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

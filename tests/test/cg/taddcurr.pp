@@ -273,10 +273,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-01-02 14:41:30  jonas
-    * expanded and corrected test
-
-  Revision 1.1  2002/09/18 18:29:07  carl
-    * currency cg tests (tested againt Delphi 3)
+  Revision 1.3  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

@@ -18,9 +18,9 @@
 {
   First version of this unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
-}  
+}
 
 {$mode objfpc}
 {$I useamigasmartlink.inc}
@@ -38,11 +38,11 @@ const
 
 
   {
-    	$VER: xadmaster.h 12.0 (24.06.2002)
-    	xadmaster.library defines and structures
+        $VER: xadmaster.h 12.0 (24.06.2002)
+        xadmaster.library defines and structures
 
-    	Copyright © 1998-2002 by Dirk Stöcker
-    	All Rights Reserved.
+        Copyright © 1998-2002 by Dirk Stöcker
+        All Rights Reserved.
    }
 
 
@@ -55,8 +55,8 @@ const
        library base structure
 
                                                                           }
- 
- 
+
+
 
   type
      PxadMasterBase = ^txadMasterBase;
@@ -264,10 +264,10 @@ const
   { pointer which should hold buf size (V12)  }
      XAD_REQUIREDBUFFERSIZE = TAG_USER + 284;
   { Places 300-339 used for dates!  }
-  {                                                                       
+  {
 
-       objects for xadAllocObjectA					 
-   									 
+       objects for xadAllocObjectA
+
                                                                           }
   { struct xadArchiveInfo  }
      XADOBJ_ARCHIVEINFO = $0001;
@@ -297,16 +297,16 @@ const
   { private type  }
   { an typed XAD string (V12)  }
      XADOBJ_STRING = $0101;
-  {                                                                       
+  {
 
-       modes for xadCalcCRC126 and xadCalcCRC32				 
-   									 
+       modes for xadCalcCRC126 and xadCalcCRC32
+
                                                                           }
      XADCRC16_ID1 = $A001;
      XADCRC32_ID1 = $EDB88320;
   {
-   									 
-       hook related stuff 						 
+
+       hook related stuff
 
                                                                           }
   { read data into buffer  }
@@ -325,7 +325,7 @@ const
      XADHC_FULLSIZE = 7;
   { return disk image info (V4)  }
      XADHC_IMAGEINFO = 8;
- 
+
   type
      PxadHookParam = ^txadHookParam;
      txadHookParam = record
@@ -363,14 +363,14 @@ const
   type
      PxadDate = ^txadDate;
      txadDate = record
-          xd_Micros : ULONG;  { values 0 to 999999	   }
+          xd_Micros : ULONG;  { values 0 to 999999         }
           xd_Year : LONG;     { values 1 to 2147483648  }
-          xd_Month : UBYTE;   { values 1 to 12	   }
-          xd_WeekDay : UBYTE; { values 1 to 7	   }
-          xd_Day : UBYTE;     { values 1 to 31	   }
-          xd_Hour : UBYTE;    { values 0 to 23	   }
-          xd_Minute : UBYTE;  { values 0 to 59	   }
-          xd_Second : UBYTE;  { values 0 to 59	   }
+          xd_Month : UBYTE;   { values 1 to 12     }
+          xd_WeekDay : UBYTE; { values 1 to 7      }
+          xd_Day : UBYTE;     { values 1 to 31     }
+          xd_Hour : UBYTE;    { values 0 to 23     }
+          xd_Minute : UBYTE;  { values 0 to 59     }
+          xd_Second : UBYTE;  { values 0 to 59     }
        end;
 
   { monday is the first day and  }
@@ -384,21 +384,21 @@ const
      XADDAY_SATURDAY = 6;
   { sunday the last day of a week  }
      XADDAY_SUNDAY = 7;
- 
+
   type
      PxadDeviceInfo = ^txadDeviceInfo;
-     txadDeviceInfo = record         { for XAD_OUTDEVICE tag  }                       
-          xdi_DeviceName : STRPTR;   { name of device  }                              
-          xdi_Unit : ULONG;	     { unit of device  }                              
-          xdi_DOSName : STRPTR;	     { instead of Device+Unit, dos name without ':'  }
+     txadDeviceInfo = record         { for XAD_OUTDEVICE tag  }
+          xdi_DeviceName : STRPTR;   { name of device  }
+          xdi_Unit : ULONG;          { unit of device  }
+          xdi_DOSName : STRPTR;      { instead of Device+Unit, dos name without ':'  }
        end;
 
      PxadSplitFile = ^txadSplitFile;
-     txadSplitFile = record           { for XAD_INSPLITTED  }    
-          xsf_Next : PxadSplitFile;                                           
-          xsf_Type : ULONG;	      { XAD_INFILENAME, XAD_INFILEHANDLE, XAD_INMEMORY, XAD_INHOOK  }  
-          xsf_Size : ULONG;	      { necessary for XAD_INMEMORY, useful for others  }               
-          xsf_Data : ULONG;	      { FileName, Filehandle, Hookpointer or Memory  }               
+     txadSplitFile = record           { for XAD_INSPLITTED  }
+          xsf_Next : PxadSplitFile;
+          xsf_Type : ULONG;           { XAD_INFILENAME, XAD_INFILEHANDLE, XAD_INMEMORY, XAD_INHOOK  }
+          xsf_Size : ULONG;           { necessary for XAD_INMEMORY, useful for others  }
+          xsf_Data : ULONG;           { FileName, Filehandle, Hookpointer or Memory  }
        end;
 
      PxadSkipInfo = ^txadSkipInfo;
@@ -409,11 +409,11 @@ const
        end;
 
      PxadImageInfo = ^txadImageInfo;
-     txadImageInfo = record          { for XADHC_IMAGEINFO  }   
-          xii_SectorSize : ULONG;    { usually 512  }           
-          xii_FirstSector : ULONG;   { of the image file  }     
-          xii_NumSectors : ULONG;    { of the image file  }     
-          xii_TotalSectors : ULONG;  { of this device type  }   
+     txadImageInfo = record          { for XADHC_IMAGEINFO  }
+          xii_SectorSize : ULONG;    { usually 512  }
+          xii_FirstSector : ULONG;   { of the image file  }
+          xii_NumSectors : ULONG;    { of the image file  }
+          xii_TotalSectors : ULONG;  { of this device type  }
        end;
 
    type
@@ -436,13 +436,13 @@ const
 
   { function interface
   ASM(BOOL) xc_RecogData(REG(d0, ULONG size), REG(a0, STRPTR data),
-  		REG(a6, struct xadMasterBase  xadMasterBase));
+                REG(a6, struct xadMasterBase  xadMasterBase));
   ASM(LONG) xc_GetInfo(REG(a0, struct xadArchiveInfo  ai),
-  		REG(a6, struct xadMasterBase  xadMasterBase));
+                REG(a6, struct xadMasterBase  xadMasterBase));
   ASM(LONG) xc_UnArchive(REG(a0, struct xadArchiveInfo  ai),
-  		REG(a6, struct xadMasterBase  xadMasterBase));
+                REG(a6, struct xadMasterBase  xadMasterBase));
   ASM(void) xc_Free(REG(a0, struct xadArchiveInfo  ai),
-  		REG(a6, struct xadMasterBase  xadMasterBase));
+                REG(a6, struct xadMasterBase  xadMasterBase));
    }
   { xc_RecogData returns 1 when recognized and 0 when not, all the others
      return 0 when ok and XADERR values on error. xc_Free has no return
@@ -474,7 +474,7 @@ const
           xfis_FileType : UBYTE;       { File type XADCBM8BITTYPE_xxx  }
           xfis_RecordLength : UBYTE;   { record length if relative file  }
        end;
- 
+
   type
      PxadSpecial = ^txadSpecial;
      txadSpecial = record
@@ -504,29 +504,29 @@ const
      PxadFileInfo = ^txadFileInfo;
      txadFileInfo = record
           xfi_Next : PxadFileInfo;
-          xfi_EntryNumber : ULONG;       { number of entry  }                         
-          xfi_EntryInfo : STRPTR;	 { additional archiver text  }                
-          xfi_PrivateInfo : APTR;	 { client private, see XAD_OBJPRIVINFOSIZE  } 
-          xfi_Flags : ULONG;		 { see XADFIF_xxx defines  }                  
-          xfi_FileName : STRPTR;	 { see XAD_OBJNAMESIZE tag  }                 
-          xfi_Comment : STRPTR;		 { see XAD_OBJCOMMENTSIZE tag  }              
-          xfi_Protection : ULONG;	 { OS 3 bits (including multiuser)  }         
-          xfi_OwnerUID : ULONG;		 { user ID  }                                 
-          xfi_OwnerGID : ULONG;		 { group ID  }                                
-          xfi_UserName : STRPTR;	 { user name  }                               
-          xfi_GroupName : STRPTR;	 { group name  }                              
-          xfi_Size : ULONG;		 { size of this file  }                       
-          xfi_GroupCrSize : ULONG;	 { crunched size of group  }                  
-          xfi_CrunchSize : ULONG;	 { crunched size  }                           
-          xfi_LinkName : STRPTR;	 { name and path of link  }                   
+          xfi_EntryNumber : ULONG;       { number of entry  }
+          xfi_EntryInfo : STRPTR;        { additional archiver text  }
+          xfi_PrivateInfo : APTR;        { client private, see XAD_OBJPRIVINFOSIZE  }
+          xfi_Flags : ULONG;             { see XADFIF_xxx defines  }
+          xfi_FileName : STRPTR;         { see XAD_OBJNAMESIZE tag  }
+          xfi_Comment : STRPTR;          { see XAD_OBJCOMMENTSIZE tag  }
+          xfi_Protection : ULONG;        { OS 3 bits (including multiuser)  }
+          xfi_OwnerUID : ULONG;          { user ID  }
+          xfi_OwnerGID : ULONG;          { group ID  }
+          xfi_UserName : STRPTR;         { user name  }
+          xfi_GroupName : STRPTR;        { group name  }
+          xfi_Size : ULONG;              { size of this file  }
+          xfi_GroupCrSize : ULONG;       { crunched size of group  }
+          xfi_CrunchSize : ULONG;        { crunched size  }
+          xfi_LinkName : STRPTR;         { name and path of link  }
           xfi_Date : txadDate;
-          xfi_Generation : UWORD;        { File Generation [0...0xFFFF] (V3)  }             
-          xfi_DataPos : ULONG;		 { crunched data position (V3)  }                   
-          xfi_MacFork : PxadFileInfo;	 { pointer to 2nd fork for Mac (V7)  }              
-          xfi_UnixProtect : UWORD;	 { protection bits for Unix (V11)  }                
-          xfi_DosProtect : UBYTE;	 { protection bits for MS-DOS (V11)  }              
-          xfi_FileType : UBYTE;		 { XADFILETYPE to define type of exe files (V11)  } 
-          xfi_Special : PxadSpecial;	 { pointer to special data (V11)  }                 
+          xfi_Generation : UWORD;        { File Generation [0...0xFFFF] (V3)  }
+          xfi_DataPos : ULONG;           { crunched data position (V3)  }
+          xfi_MacFork : PxadFileInfo;    { pointer to 2nd fork for Mac (V7)  }
+          xfi_UnixProtect : UWORD;       { protection bits for Unix (V11)  }
+          xfi_DosProtect : UBYTE;        { protection bits for MS-DOS (V11)  }
+          xfi_FileType : UBYTE;          { XADFILETYPE to define type of exe files (V11)  }
+          xfi_Special : PxadSpecial;     { pointer to special data (V11)  }
        end;
 
  { NOTE: the texts passed with that structure must not always be printable.
@@ -535,7 +535,7 @@ const
      So when printing this texts do it on a byte for byte base including
      printability checks.
    }
-  
+
  type
      PxadTextInfo = ^txadTextInfo;
      txadTextInfo = record
@@ -543,29 +543,29 @@ const
           xti_Size : ULONG;      { maybe zero - no text - e.g. when crypted  }
           xti_Text : STRPTR;     { and there is no password in xadGetInfo()  }
           xti_Flags : ULONG;     { see XADTIF_xxx defines  }
- 
-       end;  
+
+       end;
 
   type
      PxadDiskInfo = ^txadDiskInfo;
      txadDiskInfo = record
           xdi_Next : PxadDiskInfo;
-          xdi_EntryNumber : ULONG;    { number of entry  }                            
-          xdi_EntryInfo : STRPTR;     { additional archiver text  }                   
-          xdi_PrivateInfo : APTR;     { client private, see XAD_OBJPRIVINFOSIZE  }    
-          xdi_Flags : ULONG;	      { see XADDIF_xxx defines  }                     
+          xdi_EntryNumber : ULONG;    { number of entry  }
+          xdi_EntryInfo : STRPTR;     { additional archiver text  }
+          xdi_PrivateInfo : APTR;     { client private, see XAD_OBJPRIVINFOSIZE  }
+          xdi_Flags : ULONG;          { see XADDIF_xxx defines  }
           xdi_SectorSize : ULONG;
-          xdi_TotalSectors : ULONG;   { see devices/trackdisk.h  }      
-          xdi_Cylinders : ULONG;      { to find out what these  }      
-          xdi_CylSectors : ULONG;     { fields mean, they are equal  } 
-          xdi_Heads : ULONG;	      { to struct DriveGeometry  }     
+          xdi_TotalSectors : ULONG;   { see devices/trackdisk.h  }
+          xdi_Cylinders : ULONG;      { to find out what these  }
+          xdi_CylSectors : ULONG;     { fields mean, they are equal  }
+          xdi_Heads : ULONG;          { to struct DriveGeometry  }
           xdi_TrackSectors : ULONG;
-          xdi_LowCyl : ULONG;         { lowest cylinder stored  }                              
-          xdi_HighCyl : ULONG;	      { highest cylinder stored  }                             
-          xdi_BlockInfoSize : ULONG;  { number of BlockInfo entries  }                         
-          xdi_BlockInfo : Pointer;    { see XADBIF_xxx defines and XAD_OBJBLOCKENTRIES tag  }  
-          xdi_TextInfo : PxadTextInfo;{ linked list with info texts  }                         
-          xdi_DataPos : ULONG;	      { crunched data position (V3)  }                         
+          xdi_LowCyl : ULONG;         { lowest cylinder stored  }
+          xdi_HighCyl : ULONG;        { highest cylinder stored  }
+          xdi_BlockInfoSize : ULONG;  { number of BlockInfo entries  }
+          xdi_BlockInfo : Pointer;    { see XADBIF_xxx defines and XAD_OBJBLOCKENTRIES tag  }
+          xdi_TextInfo : PxadTextInfo;{ linked list with info texts  }
+          xdi_DataPos : ULONG;        { crunched data position (V3)  }
        end;
 
   { BlockInfo points to a UBYTE field for every track from first sector of
@@ -587,25 +587,25 @@ const
                                                                           }
      PxadArchiveInfo = ^txadArchiveInfo;
      txadArchiveInfo = record
-          xai_Client : PxadClient;         { pointer to unarchiving client  }                     
-          xai_PrivateClient : APTR;	   { private client data  }                               
-          xai_Password : STRPTR;	   { password for crypted archives  }                     
-          xai_Flags : ULONG;		   { read only XADAIF_ flags  }                           
-          xai_LowCyl : ULONG;		   { lowest cylinder to unarchive  }                      
-          xai_HighCyl : ULONG;		   { highest cylinder to unarchive  }                     
-          xai_InPos : ULONG;		   { input position, read only  }                         
-          xai_InSize : ULONG;		   { input size, read only  }                             
-          xai_OutPos : ULONG;		   { output position, read only  }                        
-          xai_OutSize : ULONG;		   { output file size, read only  }                       
-          xai_FileInfo : PxadFileInfo;	   { data pointer for file arcs  }                        
-          xai_DiskInfo : PxadDiskInfo;	   { data pointer for disk arcs  }                        
-          xai_CurFile : PxadFileInfo;	   { data pointer for current file arc  }                 
-          xai_CurDisk : PxadDiskInfo;	   { data pointer for current disk arc  }                 
-          xai_LastError : LONG;		   { last error, when XADAIF_FILECORRUPT (V2)  }          
-          xai_MultiVolume : PULONG;	   { array of start offsets from parts (V2)  }            
-          xai_SkipInfo : PxadSkipInfo;	   { linked list of skip entries (V3)  }                  
-          xai_ImageInfo : PxadImageInfo;   { for filesystem clients (V5)  }                       
-          xai_InName : STRPTR;		   { Input archive name if available (V7)  }              
+          xai_Client : PxadClient;         { pointer to unarchiving client  }
+          xai_PrivateClient : APTR;        { private client data  }
+          xai_Password : STRPTR;           { password for crypted archives  }
+          xai_Flags : ULONG;               { read only XADAIF_ flags  }
+          xai_LowCyl : ULONG;              { lowest cylinder to unarchive  }
+          xai_HighCyl : ULONG;             { highest cylinder to unarchive  }
+          xai_InPos : ULONG;               { input position, read only  }
+          xai_InSize : ULONG;              { input size, read only  }
+          xai_OutPos : ULONG;              { output position, read only  }
+          xai_OutSize : ULONG;             { output file size, read only  }
+          xai_FileInfo : PxadFileInfo;     { data pointer for file arcs  }
+          xai_DiskInfo : PxadDiskInfo;     { data pointer for disk arcs  }
+          xai_CurFile : PxadFileInfo;      { data pointer for current file arc  }
+          xai_CurDisk : PxadDiskInfo;      { data pointer for current disk arc  }
+          xai_LastError : LONG;            { last error, when XADAIF_FILECORRUPT (V2)  }
+          xai_MultiVolume : PULONG;        { array of start offsets from parts (V2)  }
+          xai_SkipInfo : PxadSkipInfo;     { linked list of skip entries (V3)  }
+          xai_ImageInfo : PxadImageInfo;   { for filesystem clients (V5)  }
+          xai_InName : STRPTR;             { Input archive name if available (V7)  }
        end;
 
 
@@ -694,10 +694,10 @@ const
      XADSPECIALTYPE_AMIGAADDRESS = 2;
   { xadSpecial entry is xadSpecialCBM8bit  }
      XADSPECIALTYPE_CBM8BIT = 3;
- 
 
 
-  {	  Unknown / Unused  }
+
+  {       Unknown / Unused  }
 
   const
      XADCBM8BITTYPE_UNKNOWN = $00;
@@ -719,7 +719,7 @@ const
      XADCBM8BITTYPE_REL = $84;
   { Disk - CBM (partition) "CBM"  }
      XADCBM8BITTYPE_CBM = $85;
- 
+
 
 
   { entry is crypted  }
@@ -787,7 +787,7 @@ const
      XADFIF_XADSTRFILENAME = 1 shl XADFIB_XADSTRFILENAME;
      XADFIF_XADSTRLINKNAME = 1 shl XADFIB_XADSTRLINKNAME;
      XADFIF_XADSTRCOMMENT = 1 shl XADFIB_XADSTRCOMMENT;
- 
+
 
 
   { entry is empty, as data was crypted  }
@@ -877,23 +877,23 @@ const
      XADBIF_CLEARED = 1 shl XADBIB_CLEARED;
      XADBIF_UNUSED = 1 shl XADBIB_UNUSED;
   {
-   									 
+
        progress report stuff
-   									 }
+                                                                         }
   type
      PxadProgressInfo = ^txadProgressInfo;
      txadProgressInfo = record
-          xpi_Mode : ULONG;                { work modus  }                             
-          xpi_Client : PxadClient;	   { the client doing the work  }              
-          xpi_DiskInfo : PxadDiskInfo;	   { current diskinfo, for disks  }            
-          xpi_FileInfo : PxadFileInfo;	   { current info for files  }                 
-          xpi_CurrentSize : ULONG;	   { current filesize  }                       
-          xpi_LowCyl : ULONG;		   { for disks only  }                         
-          xpi_HighCyl : ULONG;		   { for disks only  }                         
-          xpi_Status : ULONG;		   { see XADPIF flags  }                       
-          xpi_Error : LONG;		   { any of the error codes  }                 
-          xpi_FileName : STRPTR;	   { name of file to overwrite (V2)  }         
-          xpi_NewName : STRPTR;		   { new name buffer, passed by hook (V2)  }   
+          xpi_Mode : ULONG;                { work modus  }
+          xpi_Client : PxadClient;         { the client doing the work  }
+          xpi_DiskInfo : PxadDiskInfo;     { current diskinfo, for disks  }
+          xpi_FileInfo : PxadFileInfo;     { current info for files  }
+          xpi_CurrentSize : ULONG;         { current filesize  }
+          xpi_LowCyl : ULONG;              { for disks only  }
+          xpi_HighCyl : ULONG;             { for disks only  }
+          xpi_Status : ULONG;              { see XADPIF flags  }
+          xpi_Error : LONG;                { any of the error codes  }
+          xpi_FileName : STRPTR;           { name of file to overwrite (V2)  }
+          xpi_NewName : STRPTR;            { new name buffer, passed by hook (V2)  }
        end;
 
   { NOTE: For disks CurrentSize is Sector SectorSize, where SectorSize can
@@ -931,9 +931,9 @@ const
      XADPIF_RENAME = 1 shl XADPIB_RENAME;
      XADPIF_OK = 1 shl XADPIB_OK;
      XADPIF_SKIP = 1 shl XADPIB_SKIP;
-  {                                                                       
+  {
 
-       errors								 
+       errors
 
                                                                           }
   { no error  }
@@ -988,9 +988,9 @@ const
      XADERR_SHORTBUFFER = $0018;
   { text encoding was defective  }
      XADERR_ENCODING = $0019;
-  {                                                                       
+  {
 
-       characterset and filename conversion				 
+       characterset and filename conversion
 
                                                                           }
   { this is the ONLY destination setting for clients!  }
@@ -1032,9 +1032,9 @@ const
      CHARSET_CODEPAGE_437 = 400;
   { Windows Codepage 1252 charset  }
      CHARSET_CODEPAGE_1252 = 401;
-  {                                                                       
+  {
 
-       client related stuff						 
+       client related stuff
 
                                                                           }
   type
@@ -1055,7 +1055,7 @@ const
   { 'XADF' identification ID  }
      XADFOREMAN_ID = $58414446;
      XADFOREMAN_VERSION = 1;
- 
+
 
 
   const
@@ -1113,7 +1113,7 @@ const
   single file data clients.  }
   {
 
-       client ID's							 
+       client ID's
 
                                                                           }
   { If an external client has set the xc_Identifier field, the internal
@@ -1254,332 +1254,332 @@ tagsarray;
 FUNCTION xadAddDiskEntryA(di : pxadDiskInfo; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	di,A0
-	MOVEA.L	ai,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	xadMasterBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L di,A0
+        MOVEA.L ai,A1
+        MOVEA.L tags,A2
+        MOVEA.L xadMasterBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadAddFileEntryA(fi : pxadFileInfo; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	fi,A0
-	MOVEA.L	ai,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	xadMasterBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L fi,A0
+        MOVEA.L ai,A1
+        MOVEA.L tags,A2
+        MOVEA.L xadMasterBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadAllocObjectA(_type : LONGINT; CONST tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	_type,D0
-	MOVEA.L	tags,A0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  _type,D0
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadAllocVec(size : longword; flags : longword) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	size,D0
-	MOVE.L	flags,D1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  size,D0
+        MOVE.L  flags,D1
+        MOVEA.L xadMasterBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadCalcCRC16(id : longword; init : longword; size : longword; buffer : pCHAR) : WORD;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	id,D0
-	MOVE.L	init,D1
-	MOVE.L	size,D2
-	MOVEA.L	buffer,A0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  id,D0
+        MOVE.L  init,D1
+        MOVE.L  size,D2
+        MOVEA.L buffer,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadCalcCRC32(id : longword; init : longword; size : longword; buffer : pCHAR) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	id,D0
-	MOVE.L	init,D1
-	MOVE.L	size,D2
-	MOVEA.L	buffer,A0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  id,D0
+        MOVE.L  init,D1
+        MOVE.L  size,D2
+        MOVEA.L buffer,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadConvertDatesA(CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tags,A0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadConvertNameA(charset : longword; CONST tags : pTagItem) : pCHAR;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	charset,D0
-	MOVEA.L	tags,A0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-174(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  charset,D0
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadConvertProtectionA(CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tags,A0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L tags,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE xadCopyMem(src : POINTER; dest : POINTER; size : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	src,A0
-	MOVEA.L	dest,A1
-	MOVE.L	size,D0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L src,A0
+        MOVEA.L dest,A1
+        MOVE.L  size,D0
+        MOVEA.L xadMasterBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION xadDiskFileUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadDiskUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadFileUnArcA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadFreeHookAccessA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE xadFreeInfo(ai : pxadArchiveInfo);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L xadMasterBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE xadFreeObjectA(obj : POINTER; CONST tags : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	obj,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L obj,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION xadGetClientInfo : pxadClient;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	xadMasterBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L xadMasterBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadGetDiskInfoA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadGetErrorText(errnum : longword) : pCHAR;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	errnum,D0
-	MOVEA.L	xadMasterBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  errnum,D0
+        MOVEA.L xadMasterBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadGetFilenameA(buffersize : longword; buffer : pCHAR; path : pCHAR; name : pCHAR; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	buffersize,D0
-	MOVEA.L	buffer,A0
-	MOVEA.L	path,A1
-	MOVEA.L	name,A2
-	MOVEA.L	tags,A3
-	MOVEA.L	xadMasterBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  buffersize,D0
+        MOVEA.L buffer,A0
+        MOVEA.L path,A1
+        MOVEA.L name,A2
+        MOVEA.L tags,A3
+        MOVEA.L xadMasterBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadGetHookAccessA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-144(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadGetInfoA(ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ai,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ai,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadHookAccess(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	command,D0
-	MOVE.L	data,D1
-	MOVEA.L	buffer,A0
-	MOVEA.L	ai,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  command,D0
+        MOVE.L  data,D1
+        MOVEA.L buffer,A0
+        MOVEA.L ai,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadHookTagAccessA(command : longword; data : LONGINT; buffer : POINTER; ai : pxadArchiveInfo; CONST tags : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	command,D0
-	MOVE.L	data,D1
-	MOVEA.L	buffer,A0
-	MOVEA.L	ai,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	xadMasterBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  command,D0
+        MOVE.L  data,D1
+        MOVEA.L buffer,A0
+        MOVEA.L ai,A1
+        MOVEA.L tags,A2
+        MOVEA.L xadMasterBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION xadRecogFileA(size : longword; memory : POINTER; CONST tags : pTagItem) : pxadClient;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	size,D0
-	MOVEA.L	memory,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	xadMasterBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  size,D0
+        MOVEA.L memory,A0
+        MOVEA.L tags,A1
+        MOVEA.L xadMasterBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

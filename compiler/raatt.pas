@@ -1523,43 +1523,14 @@ end.
 
 {
   $Log$
-  Revision 1.18  2005-01-20 17:05:53  peter
+  Revision 1.19  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.18  2005/01/20 17:05:53  peter
     * use val() for decoding integers
 
   Revision 1.17  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
-
-  Revision 1.16  2004/12/22 17:09:55  peter
-    * support sizeof()
-    * fix typecasting a constant like dword(4)
-
-  Revision 1.15  2004/11/29 18:50:15  peter
-    * os2 fixes for import
-    * asmsymtype support for intel reader
-
-  Revision 1.14  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.13  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.12  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.11  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.10.2.3  2004/05/01 23:36:47  peter
-    * assembler reader 64bit fixes
-
-  Revision 1.10.2.2  2004/04/10 12:36:41  peter
-    * fixed alignment issues
-
-  Revision 1.10.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
-
-  Revision 1.10  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
 
 }

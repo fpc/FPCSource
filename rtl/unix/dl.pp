@@ -3,7 +3,7 @@ Unit dl;
 Interface
 
 Const
- {$ifdef BSD}	// dlopen is in libc on FreeBSD.
+ {$ifdef BSD}   // dlopen is in libc on FreeBSD.
   LibDL = 'c';
  {$else}
   LibDL = 'dl';
@@ -12,7 +12,7 @@ Const
   RTLD_LAZY         = $001;
   RTLD_NOW          = $002;
   RTLD_BINDING_MASK = $003;
-  RTLD_GLOBAL	    = $100;
+  RTLD_GLOBAL       = $100;
   {$ifdef BSD}
   RTLD_MODEMASK     = RTLD_BINDING_MASK;
   {$endif}

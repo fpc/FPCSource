@@ -196,28 +196,7 @@ end.
 
 {
   $Log$
-  Revision 1.17  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.16  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.15  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.14  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.13  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.12  2004/01/31 17:45:17  peter
-    * Change several $ifdef i386 to x86
-    * Change several OS_32 to OS_INT/OS_ADDR
+  Revision 1.18  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

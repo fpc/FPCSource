@@ -49,10 +49,10 @@ unit pcq;
 
      Added the define use_amiga_smartlink.
      13 Jan 2003.
-     
+
      Changed integer > smallint.
      10 Feb 2003.
-     
+
      Nils Sjoholm < nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -68,40 +68,40 @@ Function isupper(c : Char) : Boolean;
     Returns True if the character is in A..Z
 }
 
-Function islower(c : Char) : Boolean;   
+Function islower(c : Char) : Boolean;
 {
     Returns True if the character is in a..z
 }
 
-Function isalpha(c : Char) : Boolean;    
+Function isalpha(c : Char) : Boolean;
 {
     Returns True if the character is in A..Z or a..z
 }
 
-Function isdigit(c : Char) : Boolean;    
+Function isdigit(c : Char) : Boolean;
 {
     Returns True if the character is in 0..9
 }
 
-Function isalnum(c : Char) : Boolean;    
+Function isalnum(c : Char) : Boolean;
 {
     Returns True if isalpha or isdigit is true
 }
 
-Function isspace(c : Char) : Boolean;  
+Function isspace(c : Char) : Boolean;
 {
     Returns true if the character is "white space", like a space,
     form feed, line feed, carraige return, tab, whatever.
 }
 
-Function toupper(c : Char) : Char;   
+Function toupper(c : Char) : Char;
 {
     If the character is in a..z, the function returns the capital.
     Otherwise it returns c. Not true, this function use the utility.library
     to make the conversion.
 }
 
-Function tolower(c : Char) : Char;   
+Function tolower(c : Char) : Char;
 {
     If c is in A..Z, the function returns the lower case letter.
     Otherwise it returns c. Not true this function use the utility.library
@@ -132,30 +132,30 @@ function uppercase(c: pchar): pchar;
     Will turn the pchar till capital letters.
 }
 
-Function streq(s1, s2 : pchar) : Boolean;    
+Function streq(s1, s2 : pchar) : Boolean;
 {
     Returns True if s1 and s2 are the same.
 }
 
-Function strneq(s1, s2 : pchar; n : longint) : Boolean;    
+Function strneq(s1, s2 : pchar; n : longint) : Boolean;
 {
     Returns True if the first n characters of s1 and s2 are identical.
 }
 
-Function strieq(s1, s2 : pchar) : Boolean;    
+Function strieq(s1, s2 : pchar) : Boolean;
 {
     The same as streq(), but is case insensitive.
 }
 
-Function strnieq(s1, s2 : pchar; n : longint) : Boolean;    
+Function strnieq(s1, s2 : pchar; n : longint) : Boolean;
 {
     The same as strneq(), but case insensitive.
 }
 
-Function strcmp(s1, s2 : pchar) : longint;    
+Function strcmp(s1, s2 : pchar) : longint;
 {
     Returns an longint < 0 if s1 < s2, zero if they are equal, and > 0
-    if s1 > s2.  
+    if s1 > s2.
 }
 
 Function stricmp(s1, s2 : pchar) : longint;
@@ -163,50 +163,50 @@ Function stricmp(s1, s2 : pchar) : longint;
     The same as strcmp, but not case sensitive
 }
 
-Function strncmp(s1, s2 : pchar; n : longint) : longint;   
+Function strncmp(s1, s2 : pchar; n : longint) : longint;
 {
     Same as strcmp(), but only considers the first n characters.
 }
 
-Function strnicmp(s1, s2 : pchar; n : longint) : longint;    
+Function strnicmp(s1, s2 : pchar; n : longint) : longint;
 {
     Same as strncmp, but not case sensitive
 }
 
-Procedure strcpy(s1, s2 : pchar);   
+Procedure strcpy(s1, s2 : pchar);
 {
     Copies s2 into s1, appending a trailing zero.  This is the same
-    as C, but opposite from 1.0.  
+    as C, but opposite from 1.0.
 }
-Procedure strncpy(s1, s2 : pchar; n : smallint);    
+Procedure strncpy(s1, s2 : pchar; n : smallint);
 {
     Copies s2 into s1, with a maximum of n characters.  Appends a
     trailing zero.
 }
 
-Procedure strncat(s1, s2 : pchar; n : smallint);   
+Procedure strncat(s1, s2 : pchar; n : smallint);
 {
     Appends at most n characters from s2 onto s1.
 }
 
-Function strdup(s : pchar) : pchar;   
+Function strdup(s : pchar) : pchar;
 {
     This allocates a copy of the pchar 's', and returns a ptr
 }
 
-Function strpos(s1 : pchar; c : Char) : longint;   
+Function strpos(s1 : pchar; c : Char) : longint;
 {
     Return the position, starting at zero, of the first (leftmost)
     occurance of c in s1.  If there is no c, it returns -1.
 }
 
-Function strrpos(s1 : pchar; c : Char) : longint;   
+Function strrpos(s1 : pchar; c : Char) : longint;
 {
     Returns the longint position of the right-most occurance of c in s1.
     If c is not in s1, it returns -1.
 }
 
-Function AllocString(l : longint) : pchar;    
+Function AllocString(l : longint) : pchar;
 {
     Allocates l bytes, and returns a pointer to the allocated memory.
 This memory is allocated through the new() function, so it will be returned
@@ -214,7 +214,7 @@ to the system at the end of your program.  Note that the proper amount of RAM
 to allocate is strlen(s) + 1.
 }
 
-Procedure FreeString(s : pchar);   
+Procedure FreeString(s : pchar);
 {
     This returns memory allocated by AllocString to the system.  Since
 the Amiga is a multitasking computer, you should always return memory you
@@ -242,14 +242,14 @@ begin
      else isupper := false;
 end;
 
-Function islower(c : Char) : Boolean;   
+Function islower(c : Char) : Boolean;
 begin
      if ((ord(c) >= 224) and (ord(c) <= 254)) or ((c >= 'a') and (c <= 'z'))
          then islower := true
      else islower := false;
 end;
 
-Function isalpha(c : Char) : Boolean;    
+Function isalpha(c : Char) : Boolean;
 begin
      if ((ord(c) >= 192) and (ord(c) <= 223)) or ((c >= 'A') and (c <= 'Z'))
      or ((ord(c) >= 224) and (ord(c) <= 254)) or ((c >= 'a') and (c <= 'z'))
@@ -257,25 +257,25 @@ begin
      else isalpha := false;
 end;
 
-Function isdigit(c : Char) : Boolean;    
+Function isdigit(c : Char) : Boolean;
 begin
      if c in ['0'..'9'] then isdigit := true
      else isdigit := false;
 end;
 
-Function isalnum(c : Char) : Boolean;    
+Function isalnum(c : Char) : Boolean;
 begin
      if isalpha(c) or isdigit(c) then isalnum := true
      else isalnum := false;
 end;
 
-Function isspace(c : Char) : Boolean;  
+Function isspace(c : Char) : Boolean;
 begin
      if c in [#9..#13,#32] then isspace := true
      else isspace := false;
 end;
 
-Function toupper(c : Char) : Char;   
+Function toupper(c : Char) : Char;
 begin
     if ((ord(c) >= 224) and (ord(c) <= 254)) or ((c >= 'a') and (c <= 'z'))
         then c := char(ord(c)-32);
@@ -323,31 +323,31 @@ begin
     uppercase := c;
 end;
 
-Function streq(s1, s2 : pchar) : Boolean;    
+Function streq(s1, s2 : pchar) : Boolean;
 begin
     streq := (strcomp(s1,s2) = 0);
 end;
 
-Function strneq(s1, s2 : pchar; n : longint) : Boolean;    
+Function strneq(s1, s2 : pchar; n : longint) : Boolean;
 begin
     strneq := (strlcomp(s1,s2,n) = 0);
 end;
 
-Function strieq(s1, s2 : pchar) : Boolean;    
+Function strieq(s1, s2 : pchar) : Boolean;
 begin
     s1 := uppercase(s1);
     s2 := uppercase(s2);
     strieq := (strcomp(s1,s2)=0);
 end;
 
-Function strnieq(s1, s2 : pchar; n : longint) : Boolean;    
+Function strnieq(s1, s2 : pchar; n : longint) : Boolean;
 begin
     s1 := uppercase(s1);
     s2 := uppercase(s2);
     strnieq := (strlcomp(s1,s2,n)=0);
 end;
 
-Function strcmp(s1, s2 : pchar) : longint;    
+Function strcmp(s1, s2 : pchar) : longint;
 begin
     strcmp := strcomp(s1,s2);
 end;
@@ -359,24 +359,24 @@ begin
     stricmp := strcomp(s1,s2);
 end;
 
-Function strncmp(s1, s2 : pchar; n : longint) : longint;   
+Function strncmp(s1, s2 : pchar; n : longint) : longint;
 begin
     strncmp := strlcomp(s1,s2,n);
 end;
 
-Function strnicmp(s1, s2 : pchar; n : longint) : longint;    
+Function strnicmp(s1, s2 : pchar; n : longint) : longint;
 begin
     s1 := uppercase(s1);
     s2 := uppercase(s2);
     strnicmp := strlcomp(s1,s2,n);
 end;
 
-Procedure strcpy(s1, s2 : pchar);   
+Procedure strcpy(s1, s2 : pchar);
 begin
     strcopy(s1,s2)
 end;
 
-Procedure strncpy(s1, s2 : pchar; n : smallint);    
+Procedure strncpy(s1, s2 : pchar; n : smallint);
 begin
     strlcopy(s1,s2,n);
 end;
@@ -386,12 +386,12 @@ begin
     strlcat(s1,s2,n);
 end;
 
-Function strdup(s : pchar) : pchar;   
+Function strdup(s : pchar) : pchar;
 begin
-    strdup := StrNew(s); 
+    strdup := StrNew(s);
 end;
 
-Function strpos(s1 : pchar; c : Char) : longint;   
+Function strpos(s1 : pchar; c : Char) : longint;
   Var
      count: Longint;
   Begin
@@ -418,7 +418,7 @@ Function strpos(s1 : pchar; c : Char) : longint;
  end;
 
 
-Function strrpos(s1 : pchar; c : Char) : longint;   
+Function strrpos(s1 : pchar; c : Char) : longint;
 Var
   count: Longint;
   index: Longint;
@@ -444,12 +444,12 @@ Var
  end;
 
 
-Function AllocString(l : longint) : pchar;    
+Function AllocString(l : longint) : pchar;
 begin
     AllocString := StrAlloc(l);
 end;
 
-Procedure FreeString(s : pchar);   
+Procedure FreeString(s : pchar);
 begin
     StrDispose(s);
 end;
@@ -458,17 +458,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.2  2003/01/13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 

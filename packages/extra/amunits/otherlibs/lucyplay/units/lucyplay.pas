@@ -17,14 +17,14 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this library.
   16 Jan 2003.
 
   Changed cardinal > longword.
   Changed startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -64,7 +64,7 @@ const
           Blue : UBYTE;      {  for 2-button sticks/pads         }
           Green : UBYTE;     {  for CD32 compatible pads only    }
           Yellow : UBYTE;    {  for CD32 compatible pads only    }
-	  Reverse : UBYTE;   {  for CD32 compatible pads only    }
+          Reverse : UBYTE;   {  for CD32 compatible pads only    }
           Forward : UBYTE;   {  for CD32 compatible pads only    }
           Play : UBYTE;      {  for CD32 compatible pads only    }
           Error : UBYTE;     {  hope this is always FALSE ;)     }
@@ -133,155 +133,155 @@ uses msgbox;
 PROCEDURE lucAudioFree(smp : pLucyPlaySample);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	smp,A0
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L smp,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION lucAudioInit : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE lucAudioKill;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION lucAudioLoad(fname : pCHAR) : pLucyPlaySample;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	fname,A0
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L fname,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE lucAudioPlay(smp : pLucyPlaySample);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	smp,A0
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L smp,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE lucAudioStop;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE lucAudioWait;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION lucBestModeID(w : longword; h : longword; d : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	w,D0
-	MOVE.L	h,D1
-	MOVE.L	d,D2
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  w,D0
+        MOVE.L  h,D1
+        MOVE.L  d,D2
+        MOVEA.L LucyPlayBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION lucError : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION lucJoyInit : pLucyPlayJoystick;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION lucJoyInitForce : pLucyPlayJoystick;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE lucJoyKill(joy : pLucyPlayJoystick);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	joy,A0
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L joy,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE lucJoyRead(joy : pLucyPlayJoystick);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	joy,A0
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L joy,A0
+        MOVEA.L LucyPlayBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION lucJoyReadBool : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LucyPlayBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L LucyPlayBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

@@ -154,13 +154,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2002-10-31 08:03:39  michael
-  + Added some missing methods
-
-  Revision 1.2  2002/09/07 15:42:59  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:55:11  peter
-    * splitted to base and extra
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

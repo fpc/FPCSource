@@ -3,19 +3,19 @@
   the package tdbf_l 0.0.
 }
 
-unit tdbf_l; 
+unit tdbf_l;
 
 interface
 
 uses
-  Dbf, Dbf_Reg, LazarusPackageIntf; 
+  Dbf, Dbf_Reg, LazarusPackageIntf;
 
 implementation
 
-procedure Register; 
+procedure Register;
 begin
-  RegisterUnit('Dbf', @Dbf_Reg.Register); 
-end; 
+  RegisterUnit('Dbf', @Dbf_Reg.Register);
+end;
 
 initialization
   RegisterPackage('tdbf_l', @Register)

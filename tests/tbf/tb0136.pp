@@ -7,13 +7,13 @@ type
   tmyclass = class
     destructor destroy; cdecl;
   end;
-  
-  
+
+
   destructor tmyclass.destroy;cdecl;
   begin
   end;
-  
+
 
 Begin
 end.
-  
+

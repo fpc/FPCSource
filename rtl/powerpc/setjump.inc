@@ -111,34 +111,7 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.9  2004-10-19 18:51:15  jonas
-    + "nostackframe" modifier, because the automatic detection in the
-      compiler to determine that a stack frame is not needed no longer works
+  Revision 1.10  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.8  2003/04/26 20:00:24  florian
-    * fixed previous commit of setjmp
-
-  Revision 1.7  2003/04/26 19:52:07  florian
-    + implemented longjmp
-
-  Revision 1.6  2003/04/26 18:54:30  florian
-    + implemented setjmp record and longjmp
-
-  Revision 1.5  2002/09/07 16:01:26  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/31 14:27:40  florian
-    + public and alias directive added to *jmp
-
-  Revision 1.3  2002/08/10 17:14:36  jonas
-    * various fixes, mostly changing the names of the modifies registers to
-      upper case since that seems to be required by the compiler
-
-  Revision 1.2  2002/07/30 17:29:53  florian
-    + dummy setjmp and longjmp added
-    + dummy implemtation of the destructor helper
-
-  Revision 1.1  2002/07/28 20:43:49  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
 }

@@ -5,7 +5,7 @@
 {$MODE OBJFPC}
 
 { This tests that non-implemented abstract methods which are
-  overloaded (but not in all cases) will still give out a 
+  overloaded (but not in all cases) will still give out a
   warning
  }
 type
@@ -19,7 +19,7 @@ type
   end;
 
 
-  procedure tmyclass2.myabstract(x: integer); 
+  procedure tmyclass2.myabstract(x: integer);
    begin
    end;
 
@@ -32,8 +32,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-26 19:24:30  carl
-    * some small fixes
-    + added several new tests
+  Revision 1.2  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

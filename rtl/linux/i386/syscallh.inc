@@ -46,34 +46,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):T
 
 {
   $Log$
-  Revision 1.6  2003-09-14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.4  2003/07/06 21:26:10  peter
-    * syscall6 alias fixed
-
-  Revision 1.3  2002/12/18 20:41:33  peter
-    * Threadvar support for Errno
-    * Fixed syscall error return check
-    * Uncommented Syscall with 6 parameters, only 5 were really set
-
-  Revision 1.2  2002/12/18 16:46:37  marco
-   * Some mods.
-
-  Revision 1.1  2002/11/16 15:37:47  marco
-   * TSysParam + result moved to -h
-
-  Revision 1.4  2002/10/16 18:44:00  marco
-   * and again for ftruncate (sigh)
-
-  Revision 1.3  2002/10/16 18:41:14  marco
-   * the 7 param syscall (for lseek and truncate) now returns a int64.
-
-  Revision 1.2  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/20 08:28:14  marco
-   * Updates for new errno scheme.
-
+  Revision 1.7  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

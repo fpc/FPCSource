@@ -225,32 +225,7 @@ end;
 
 {
   $Log$
-  Revision 1.9  2004-11-08 21:55:09  peter
-    * fixed run directory
-    * Open dialog starts in dir of last editted file
-
-  Revision 1.8  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.7  2002/10/12 19:43:07  hajny
-    * missing HasSignal conditionals added (needed for FPC/2)
-
-  Revision 1.6  2002/09/07 15:40:43  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/08/29 09:58:04  pierre
-   * remove wrong log line
-
-  Revision 1.4  2002/08/29 09:31:53  pierre
-   * set modified flag to false before prompt
-     dialog are executed in NewFromTemplate
-
-  Revision 1.3  2002/04/10 22:38:11  pierre
-   * allow to open non existant file
+  Revision 1.10  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

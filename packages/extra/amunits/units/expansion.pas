@@ -15,19 +15,19 @@
  **********************************************************************}
 {
     History:
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib. Implemented autoopening of
     the library.
     14 Jan 2003.
-    
+
     Update for AmigaOS 3.9.
     Changed start code for unit.
     01 Feb 2003.
-    
+
     Changed cardinal > longword.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 

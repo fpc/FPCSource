@@ -530,16 +530,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2002-11-15 01:13:42  peter
-    * merged verbosity check
-
-  Revision 1.8  2002/05/18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.7  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
+  Revision 1.10  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -56,7 +56,7 @@ type
    siginfo_t = siginfo;
    Psiginfo_t = ^siginfo_t;
    Tsiginfo_t = siginfo_t;
-   
+
 Const
 
   SI_ASYNCNL = -(6);
@@ -112,18 +112,18 @@ Const
 
 __SIGEV_MAX_SIZE = 64;
 __SIGEV_PAD_SIZE = (__SIGEV_MAX_SIZE div SizeOf(Integer)) - 3;
-  
+
 type
   // Glue structures.
-  _se_pad = packed array[0..__SIGEV_PAD_SIZE-1] of Integer; 
-  TSignalEventStartProc = procedure(Param: sigval_t); cdecl; 
-    
-  _se_sigev_thread = {packed} record 
+  _se_pad = packed array[0..__SIGEV_PAD_SIZE-1] of Integer;
+  TSignalEventStartProc = procedure(Param: sigval_t); cdecl;
+
+  _se_sigev_thread = {packed} record
     _function: TSignalEventStartProc;  { Function to start.  }
     _attribute: Pointer;               { Really pthread_attr_t.  }
   end;
-                
-                
+
+
 
   Psigevent = ^sigevent;
   sigevent = record
@@ -149,11 +149,11 @@ Const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSigval = sigval_t;
-     
+
   TSigInfo = siginfo;
-    
+
   TSigEvent = sigevent;
-      
-             
+
+

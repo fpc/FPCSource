@@ -1,7 +1,7 @@
 { ---------------------------------------------------------------------
     'h2pas -S -c -D -l libc -i' from endian.h and bits/endian.h
   ---------------------------------------------------------------------}
-  
+
 const
   External_library='libc'; {Setup as you need}
 

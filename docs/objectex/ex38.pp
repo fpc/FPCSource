@@ -8,7 +8,7 @@ Var C : PStrCollection;
     S : String;
     I : longint;
     P : Pchar;
-    
+
 begin
   Randomize;
   C:=New(PStrCollection,Init(120,10));
@@ -23,7 +23,7 @@ begin
     end;
   For I:=0 to 98 do
     With C^ do
-      If Compare (At(I),At(I+1))=0 then 
+      If Compare (At(I),At(I+1))=0 then
         Writeln ('Duplicate string found at position ',I);
   Dispose(C,Done);
 end.

@@ -47,9 +47,9 @@ begin
          sv_CyScreen) - 200, 200, 200, swp_Move + swp_Size + swp_Activate +
                                                                      swp_Show);
  (* Play a wave file set to valid window handle *)
- 
+
   mciPlayFile(Frame, 'movie.avi', MCI_ASYNC, 'MMPM/2 TEST MOVIE', 0);
-  
+
   while WinGetMsg (Anchor, Message, 0, 0, 0) do
                                               WinDispatchMsg (Anchor, Message);
 

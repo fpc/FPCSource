@@ -32,7 +32,7 @@ interface
 
 type
    PFile = Pointer;
-   
+
    Pspwd = ^spwd;
    spwd = record
         sp_namp : pchar;

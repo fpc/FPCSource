@@ -297,55 +297,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2004-10-15 22:54:53  florian
-    * fixed currency to float conversion
-
-  Revision 1.33  2004/10/03 19:21:56  florian
-    * fixed dword->single/double on sparc
-
-  Revision 1.32  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.31  2004/08/25 20:40:04  florian
-    * fixed absolute on sparc
-
-  Revision 1.30  2004/08/24 21:02:33  florian
-    * fixed longbool(<int64>) on sparc
-
-  Revision 1.29  2004/08/23 20:45:52  florian
-    * fixed boolean(<int>) on sparc
-
-  Revision 1.28  2004/08/22 20:11:38  florian
-    * morphos now takes any pointer var. as libbase
-    * alignment for sparc fixed
-    * int -> double conversion on sparc fixed
-
-  Revision 1.27  2004/08/01 19:01:10  florian
-    * float to float and int to float fixed
-
-  Revision 1.26  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.25  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.24.2.1  2004/05/31 16:39:42  peter
-    * add ungetiftemp in a few locations
-
-  Revision 1.24  2004/03/15 14:37:06  mazen
-  + support for LongBool(Int64) type cast
-
-  Revision 1.23  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.22  2004/01/12 22:11:39  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
+  Revision 1.35  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -7,7 +7,7 @@ Uses objects;
 Var P : PString;
     L : String;
     S1,S2 : PStream;
-    
+
 begin
   L:='Constant string line';
   Writeln ('Writing to stream 1 : "',L,'"');

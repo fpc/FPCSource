@@ -5,7 +5,7 @@ Program Example50;
 Var S : String;
     C : Char;
     F : File of char;
-    
+
 begin
   Assign (F,'ex50.pp');
   Reset (F);
@@ -16,10 +16,10 @@ begin
     Read (F,C);
     Write (C);
     end;
- Writeln;   
+ Writeln;
  Close (F);
  Writeln ('Type some words. An empty line ends the program.');
- repeat 
+ repeat
    Readln (S);
- until S='';  
+ until S='';
 end.

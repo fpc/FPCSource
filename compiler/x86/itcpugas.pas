@@ -137,17 +137,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-12-12 10:50:35  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.4  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.3  2004/02/05 18:28:37  peter
-    * x86_64 fixes for opsize
-
-  Revision 1.2  2004/01/15 14:01:32  florian
-    + x86 instruction tables for x86-64 extended
+  Revision 1.6  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
     Demonstrates DiscID unit usage.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 program getdiscid;
 
 uses cdrom,discid;
@@ -22,10 +22,10 @@ Var
   Tracks, i : Integer;
   Entries : Array[1..100] of TTocEntry;
   Device : string;
-  
+
 begin
   Case ParamCount of
-    0 : Device:='/dev/cdrom'; 
+    0 : Device:='/dev/cdrom';
     1 : Device:=Paramstr(1);
   else
     Writeln('Usage: getdiscid [devicefile]');
@@ -35,7 +35,7 @@ begin
   If Tracks<0 then
     Writeln('Error reading TOC of device ',device)
   else
-    begin  
+    begin
     Writeln('Disk has ',tracks,' tracks.');
     TheDiscID := CDDBDiscID(Entries,Tracks);
     Writeln('Disc ID : ',lowercase(HexStr(theDiscID,8)));
@@ -45,7 +45,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-08 14:03:31  michael
-  + Initial implementation on Linux/win32
+  Revision 1.2  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

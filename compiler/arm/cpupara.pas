@@ -449,7 +449,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.30  2005-02-03 20:04:49  peter
+  Revision 1.31  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.30  2005/02/03 20:04:49  peter
     * push_addr_param must be defined per target
 
   Revision 1.29  2005/01/15 21:45:35  florian
@@ -457,52 +460,5 @@ end.
 
   Revision 1.28  2005/01/01 19:30:17  florian
     * ie with array of const;cdecl; fixed
-
-  Revision 1.27  2004/11/24 22:03:26  florian
-    * fixed arm compilation
-
-  Revision 1.26  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.25  2004/11/06 17:44:47  florian
-    + additional extdebug check for wrong add_reg_instructions added
-    * too long manglednames are cut off at 200 chars using a crc
-
-  Revision 1.24  2004/11/01 09:23:01  florian
-    * fixed handling of stack parameters on the arm
-
-  Revision 1.23  2004/10/31 12:37:11  florian
-    * another couple of arm fixed
-
-  Revision 1.22  2004/10/24 17:32:53  florian
-    * fixed several arm compiler bugs
-
-  Revision 1.21  2004/10/24 07:54:25  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.20  2004/10/22 16:36:57  florian
-    * first arm fixes for new paraloc handling
-
-  Revision 1.19  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.18  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.17.2.1  2004/06/13 20:38:38  florian
-    * fixed floating point register spilling on sparc
-
-  Revision 1.17  2004/03/20 21:11:01  florian
-    + float parameters can be on the stack now as well
-
-  Revision 1.16  2004/03/20 20:55:36  florian
-    + implemented cdecl'd varargs on arm
-    + -dCMEM supported by the compiler
-    * label/goto asmsymbol type with -dextdebug fixed
-
-  Revision 1.15  2004/03/07 00:16:59  florian
-    * compilation of arm rtl fixed
 
 }

@@ -37,13 +37,13 @@ begin
     if setOpVal = 0 then begin
       writeln('Warning, QSetOp failed.');
       end;
-        
+
     {Close the connection}
     freeSessionVal := QFreeSession(session);
-    
+
 end.
 
 {
   $Log
 }
-  
+

@@ -25,12 +25,12 @@
     use_auto_openlib. Implemented autoopening
     of the library.
     15 Jan 2003.
-    
+
     Changed integer > smallint.
     Changed cardinal > longword.
     Changed startcode for unit.
     12 Feb 2003.
-     
+
     nils.sjoholm@mailbox.swipnet.se
 }
 {$mode objfpc}
@@ -43,17 +43,17 @@ unit mui;
 
 interface
 
-  {                                                                          
-    
+  {
+
      MUI - MagicUserInterface
      (c) 1993-1997 Stefan Stuntz
-    
+
      Main Header File
-    
-                                                                              
+
+
      Class Tree
-                                                                              
-    
+
+
      rootclass                    (BOOPSI's base class)
      +--Notify                   (implements notification mechanism)
      !  +--Family                (handles multiple children)
@@ -118,15 +118,15 @@ interface
         +--Applist               (private)
         +--Dataspace             (handles general purpose data spaces)
            \--Configdata         (private)
-    
-                                                                              
+
+
      General Header File Information
-                                                                              
-    
+
+
      All macro and structure definitions follow these rules:
-    
+
      Name                       Meaning
-    
+
      MUIC_<class>               Name of a class
      MUIM_<class>_<method>      Method
      MUIP_<class>_<method>      Methods parameter structure
@@ -137,13 +137,13 @@ interface
      MUII_<name>                Standard MUI image
      MUIX_<code>                Control codes for text strings
      MUIO_<name>                Object type for MUI_MakeObject()
-    
+
      MUIA_... attribute definitions are followed by a comment
      consisting of the three possible letters I, S and G.
      I: it's possible to specify this attribute at object creation time.
      S: it's possible to change this attribute with SetAttrs().
      G: it's possible to get this attribute with GetAttr().
-    
+
      Items marked with "Custom Class" are for use in custom classes only!
    }
 
@@ -161,12 +161,12 @@ uses exec, intuition,utility,graphics,iffparse;
      be sure to open muimaster.library with MUIMASTER_VMIN as version number.
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    }
- 
-  {                                                                        
+
+  {
      Config items for MUIM_GetConfigItem
                                                                            }
      MUICFG_PublicScreen = 36;
-  {                                                                        
+  {
      Black box specification structures for images, pens, frames
                                                                            }
 
@@ -177,8 +177,8 @@ uses exec, intuition,utility,graphics,iffparse;
           buf : array[0..31] of char;
        end;
      pMUI_PenSpec = ^tMUI_PenSpec;
-     
-  {                                                                        
+
+  {
      Public Screen Stuff
                                                                            }
   {
@@ -215,7 +215,7 @@ uses exec, intuition,utility,graphics,iffparse;
           green : ULONG;
           blue : ULONG;
        end;
-     
+
      pMUI_RGBColor = ^tMUI_RGBColor;
 
      tMUI_PubScreenDesc = record
@@ -255,7 +255,7 @@ uses exec, intuition,utility,graphics,iffparse;
        end;
      pMUIS_InfoClient = ^tMUIS_InfoClient;
 
-  {                                                                          
+  {
      Object Types for MUI_MakeObject()
                                                                              }
   { STRPTR label, ULONG flags  }
@@ -301,7 +301,7 @@ uses exec, intuition,utility,graphics,iffparse;
      MUIO_Label_FreeVert = 1 shl 12;
   { check for "localized" menu items such as "O\0Open"  }
      MUIO_MenustripNM_CommandKeyCheck = 1 shl 0;
-  {                                                                          
+  {
      ARexx Interface
                                                                              }
 
@@ -324,7 +324,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MUI_RXERR_OUTOFMEMORY = -(2);
        MUI_RXERR_UNKNOWNCOMMAND = -(3);
        MUI_RXERR_BADSYNTAX = -(4);
-    {                                                                          
+    {
        Return values for MUI_Error()
                                                                                }
        MUIE_OK = 0;
@@ -334,7 +334,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MUIE_MissingLibrary = 4;
        MUIE_NoARexx = 5;
        MUIE_SingleTask = 6;
-    {                                                                          
+    {
        Standard MUI Images & Backgrounds
                                                                                }
     { These images are configured    }
@@ -408,7 +408,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MUII_MARKHALFSHINE = 144;
        MUII_MARKBACKGROUND = 145;
        MUII_LASTPAT = 145;
-    {                                                                          
+    {
        Special values for some methods
                                                                                }
        MUIV_TriggerValue = $49893131;
@@ -418,7 +418,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MUIV_Notify_Window = 2;
        MUIV_Notify_Application = 3;
        MUIV_Notify_Parent = 4;
- 
+
 
     const
        MUIV_Application_ReturnID_Quit = -(1);
@@ -466,7 +466,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MUIV_DragReport_Continue = 1;
        MUIV_DragReport_Lock = 2;
        MUIV_DragReport_Refresh = 3;
-    {                                                                          
+    {
        Control codes for text strings
                                                                                }
     { right justified  }
@@ -487,7 +487,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MUIX_PT : PChar = '\0332';
     { highlight text pen  }
        MUIX_PH : PChar = '\0338';
-    {                                                                          
+    {
        Parameter structures for some classes
                                                                                }
 
@@ -569,8 +569,8 @@ uses exec, intuition,utility,graphics,iffparse;
     { see below  }
     { x offset of mouse click relative to column start  }
     { y offset of mouse click from center of line
-    	                  (negative values mean click was above center,
-    	                   positive values mean click was below center)  }
+                          (negative values mean click was above center,
+                           positive values mean click was below center)  }
 
     type
        tMUI_List_TestPos_Result = record
@@ -581,28 +581,28 @@ uses exec, intuition,utility,graphics,iffparse;
             yoffset : WORD;
          end;
        pMUI_List_TestPos_Result = ^tMUI_List_TestPos_Result;
-   
+
     const
        MUI_LPR_ABOVE = 1 shl 0;
        MUI_LPR_BELOW = 1 shl 1;
        MUI_LPR_LEFT = 1 shl 2;
        MUI_LPR_RIGHT = 1 shl 3;
- 
-    {                                                                          
-      
+
+    {
+
        For Boopsi Image Implementors Only:
-      
+
        If MUI is using a boopsi image object, it will send a special method
        immediately after object creation. This method has a parameter structure
        where the boopsi can fill in its minimum and maximum size and learn if
        its used in a horizontal or vertical context.
-      
+
        The boopsi image must use the method id (MUIM_BoopsiQuery) as return
        value. That's how MUI sees that the method is implemented.
-      
+
        Note: MUI does not depend on this method. If the boopsi image doesn't
              implement it, minimum size will be 0 and maximum size unlimited.
-      
+
                                                                                }
     { this is send to the boopsi and  }
 
@@ -647,10 +647,10 @@ uses exec, intuition,utility,graphics,iffparse;
             mbq_DefHeight : LONG;
             mbq_RenderInfo : PMUI_RenderInfo;
          end;
-       pMUI_BoopsiQuery = ^tMUI_BoopsiQuery; 
+       pMUI_BoopsiQuery = ^tMUI_BoopsiQuery;
     { old structure name  }
 
-   
+
        MUIP_BoopsiQuery = tMUI_BoopsiQuery;
 
      const
@@ -1047,7 +1047,7 @@ uses exec, intuition,utility,graphics,iffparse;
             ihnode : PMUI_InputHandlerNode;
          end;
        pMUIP_Application_AddInputHandler = ^tMUIP_Application_AddInputHandler;
-       
+
        tMUIP_Application_CheckRefresh = record
             MethodID : ULONG;
          end;
@@ -1106,7 +1106,7 @@ uses exec, intuition,utility,graphics,iffparse;
             ihnode : PMUI_InputHandlerNode;
          end;
        pMUIP_Application_RemInputHandler = ^tMUIP_Application_RemInputHandler;
-       
+
        tMUIP_Application_ReturnID = record
             MethodID : ULONG;
             retid : ULONG;
@@ -1138,7 +1138,7 @@ uses exec, intuition,utility,graphics,iffparse;
             stat : LONG;
          end;
        pMUIP_Application_SetMenuState = ^tMUIP_Application_SetMenuState;
-       
+
        tMUIP_Application_ShowHelp = record
             MethodID : ULONG;
             window : pObject_;
@@ -1278,7 +1278,7 @@ uses exec, intuition,utility,graphics,iffparse;
             MethodID : ULONG;
          end;
        pMUIP_Window_ScreenToFront = ^tMUIP_Window_ScreenToFront;
-       
+
        tMUIP_Window_SetCycleChain = record
             MethodID : ULONG;
             obj : array[0..0] of pObject_;
@@ -1406,7 +1406,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MUIV_Window_ActiveObject_None = 0;
        MUIV_Window_ActiveObject_Next = -(1);
        MUIV_Window_ActiveObject_Prev = -(2);
-  
+
 
     const
        MUIV_Window_AltHeight_Scaled = -(1000);
@@ -1419,11 +1419,11 @@ uses exec, intuition,utility,graphics,iffparse;
 
     const
        MUIV_Window_AltTopEdge_NoChange = -(1000);
-  
+
 
     const
        MUIV_Window_AltWidth_Scaled = -(1000);
-  
+
 
 
     const
@@ -1436,7 +1436,7 @@ uses exec, intuition,utility,graphics,iffparse;
     const
        MUIV_Window_TopEdge_Centered = -(1);
        MUIV_Window_TopEdge_Moused = -(2);
-  
+
 
     const
        MUIV_Window_Width_Scaled = -(1000);
@@ -2194,7 +2194,7 @@ uses exec, intuition,utility,graphics,iffparse;
             pos : LONG;
          end;
        pMUIP_List_InsertSingle = ^tMUIP_List_InsertSingle;
-       
+
        tMUIP_List_Jump = record
             MethodID : ULONG;
             pos : LONG;
@@ -2207,7 +2207,7 @@ uses exec, intuition,utility,graphics,iffparse;
             too : LONG;
          end;
        pMUIP_List_Move = ^tMUIP_List_Move;
-       
+
        tMUIP_List_NextSelected = record
             MethodID : ULONG;
             pos : PLONG;
@@ -2219,7 +2219,7 @@ uses exec, intuition,utility,graphics,iffparse;
             pos : LONG;
          end;
        pMUIP_List_Redraw = ^tMUIP_List_Redraw;
-       
+
        tMUIP_List_Remove = record
             MethodID : ULONG;
             pos : LONG;
@@ -3118,7 +3118,7 @@ uses exec, intuition,utility,graphics,iffparse;
             MethodID : ULONG;
          end;
        pMUIP_Semaphore_Obtain = ^tMUIP_Semaphore_Obtain;
-       
+
        tMUIP_Semaphore_ObtainShared = record
             MethodID : ULONG;
          end;
@@ -3243,16 +3243,16 @@ uses exec, intuition,utility,graphics,iffparse;
     {                                        }
     { End of automatic header file creation  }
     {                                        }
-    {                                                                        
+    {
        Structures and Macros for creating custom classes.
                                                                              }
     {
        GENERAL NOTES:
-      
+
        - Everything described in this header file is only valid within
          MUI classes. You may never use any of these things out of
          a class, e.g. in a traditional MUI application.
-      
+
        - Except when otherwise stated, all structures are strictly read only.
      }
     { Global information for every object  }
@@ -3276,7 +3276,7 @@ uses exec, intuition,utility,graphics,iffparse;
             priv4 : ULONG;
          end;
        pMUI_NotifyData = ^tMUI_NotifyData;
-   
+
 
     { use this if a dimension is not limited.  }
 
@@ -3356,7 +3356,7 @@ uses exec, intuition,utility,graphics,iffparse;
        MPEN_COUNT = 8;
     { Mask for pens from MUI_ObtainPen()  }
        MUIPEN_MASK = $0000ffff;
-  
+
 
     { Information on display environment  }
     { valid between MUIM_Setup/MUIM_Cleanup  }
@@ -3368,7 +3368,7 @@ uses exec, intuition,utility,graphics,iffparse;
     { valid between MUIM_Setup/MUIM_Cleanup  }
     { ... private data follows ...  }
 
-   
+
 
     {
        If mri_Flags & MUIMRI_RECTFILL, RectFill() is quicker
@@ -3403,35 +3403,35 @@ uses exec, intuition,utility,graphics,iffparse;
             mad : tMUI_AreaData;
          end;
        p__dummyXFC2__ = ^t__dummyXFC2__;
-   
+
 
     const
 
         MUIKEY_RELEASE = -2;
-	MUIKEY_NONE    = -1;
-	MUIKEY_PRESS   = 0;
-	MUIKEY_TOGGLE  = 1;
-	MUIKEY_UP      = 2;
-	MUIKEY_DOWN    = 3;
-	MUIKEY_PAGEUP  = 4;
-	MUIKEY_PAGEDOWN = 5;
-	MUIKEY_TOP      = 6;
-	MUIKEY_BOTTOM   = 7;
-	MUIKEY_LEFT     = 8;
-	MUIKEY_RIGHT    = 9;
-	MUIKEY_WORDLEFT = 10;
-	MUIKEY_WORDRIGHT = 11;
-	MUIKEY_LINESTART = 12;
-	MUIKEY_LINEEND   = 13;
-	MUIKEY_GADGET_NEXT = 14;
-	MUIKEY_GADGET_PREV = 15;
-	MUIKEY_GADGET_OFF  = 16;
-	MUIKEY_WINDOW_CLOSE = 17;
-	MUIKEY_WINDOW_NEXT  = 18;
-	MUIKEY_WINDOW_PREV  = 19;
-	MUIKEY_HELP         = 20;
-	MUIKEY_POPUP        = 21;
-	MUIKEY_COUNT        = 22;
+        MUIKEY_NONE    = -1;
+        MUIKEY_PRESS   = 0;
+        MUIKEY_TOGGLE  = 1;
+        MUIKEY_UP      = 2;
+        MUIKEY_DOWN    = 3;
+        MUIKEY_PAGEUP  = 4;
+        MUIKEY_PAGEDOWN = 5;
+        MUIKEY_TOP      = 6;
+        MUIKEY_BOTTOM   = 7;
+        MUIKEY_LEFT     = 8;
+        MUIKEY_RIGHT    = 9;
+        MUIKEY_WORDLEFT = 10;
+        MUIKEY_WORDRIGHT = 11;
+        MUIKEY_LINESTART = 12;
+        MUIKEY_LINEEND   = 13;
+        MUIKEY_GADGET_NEXT = 14;
+        MUIKEY_GADGET_PREV = 15;
+        MUIKEY_GADGET_OFF  = 16;
+        MUIKEY_WINDOW_CLOSE = 17;
+        MUIKEY_WINDOW_NEXT  = 18;
+        MUIKEY_WINDOW_PREV  = 19;
+        MUIKEY_HELP         = 20;
+        MUIKEY_POPUP        = 21;
+        MUIKEY_COUNT        = 22;
 
        MUIKEYF_PRESS = 1 shl MUIKEY_PRESS;
        MUIKEYF_TOGGLE = 1 shl MUIKEY_TOGGLE;
@@ -3506,7 +3506,7 @@ PROCEDURE MUI_EndRefresh(mri : pMUI_RenderInfo; flags : ULONG);
 
 
 (*
-** some procedures to get some information about our object 
+** some procedures to get some information about our object
 *)
 
 function MUINotifyData(obj : APTR) : pMUI_NotifyData;
@@ -3782,7 +3782,7 @@ begin
     OBJ_DefHeight := pMUI_AreaData(obj)^.mad_MinMax.DefHeight;
 end;
 
-function OBJ_Flags(obj : APTR) : ULONG; 
+function OBJ_Flags(obj : APTR) : ULONG;
 begin
     OBJ_Flags := pMUI_AreaData(obj)^.mad_Flags;
 end;
@@ -3876,335 +3876,335 @@ end;
 FUNCTION MUI_NewObjectA(class_ : pCHar; tags : pTagItem) : pObject_;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	class_,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L class_,A0
+        MOVEA.L tags,A1
+        MOVEA.L MUIMasterBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE MUI_DisposeObject(obj : pObject_);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	obj,A0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L obj,A0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MUI_RequestA(app : POINTER; win : POINTER; flags : LONGBITS; title : pCHar; gadgets : pChar; format : pChar; params : POINTER) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	app,D0
-	MOVE.L	win,D1
-	MOVE.L	flags,D2
-	MOVEA.L	title,A0
-	MOVEA.L	gadgets,A1
-	MOVEA.L	format,A2
-	MOVEA.L	params,A3
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  app,D0
+        MOVE.L  win,D1
+        MOVE.L  flags,D2
+        MOVEA.L title,A0
+        MOVEA.L gadgets,A1
+        MOVEA.L format,A2
+        MOVEA.L params,A3
+        MOVEA.L MUIMasterBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_AllocAslRequest(typ : ULONG; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	typ,D0
-	MOVEA.L	tags,A0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  typ,D0
+        MOVEA.L tags,A0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_AslRequest(req : POINTER; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	req,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L req,A0
+        MOVEA.L tags,A1
+        MOVEA.L MUIMasterBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE MUI_FreeAslRequest(req : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	req,A0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L req,A0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MUI_Error : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L MUIMasterBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_SetError(errnum : LONGINT) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	errnum,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  errnum,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_GetClass(name : pChar) : pIClass;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE MUI_FreeClass(cl : pIClass);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	cl,A0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L cl,A0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MUI_RequestIDCMP(obj : pObject_; flags : ULONG);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	obj,A0
-	MOVE.L	flags,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L obj,A0
+        MOVE.L  flags,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MUI_RejectIDCMP(obj : pObject_; flags : ULONG);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	obj,A0
-	MOVE.L	flags,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L obj,A0
+        MOVE.L  flags,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MUI_Redraw(obj : pObject_; flags : ULONG);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	obj,A0
-	MOVE.L	flags,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L obj,A0
+        MOVE.L  flags,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MUI_CreateCustomClass(base : pLibrary; supername : pChar; supermcc : pMUI_CustomClass; datasize : LONGINT; dispatcher : POINTER) : pMUI_CustomClass;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	base,A0
-	MOVEA.L	supername,A1
-	MOVEA.L	supermcc,A2
-	MOVE.L	datasize,D0
-	MOVEA.L	dispatcher,A3
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L base,A0
+        MOVEA.L supername,A1
+        MOVEA.L supermcc,A2
+        MOVE.L  datasize,D0
+        MOVEA.L dispatcher,A3
+        MOVEA.L MUIMasterBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_DeleteCustomClass(mcc : pMUI_CustomClass) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mcc,A0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L mcc,A0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_MakeObjectA(typ : LONGINT; params : pULONG) : pObject_;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	typ,D0
-	MOVEA.L	params,A0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  typ,D0
+        MOVEA.L params,A0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_Layout(obj : pObject_; l : LONGINT; t : LONGINT; w : LONGINT; h : LONGINT; flags : ULONG) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	obj,A0
-	MOVE.L	l,D0
-	MOVE.L	t,D1
-	MOVE.L	w,D2
-	MOVE.L	h,D3
-	MOVE.L	flags,D4
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L obj,A0
+        MOVE.L  l,D0
+        MOVE.L  t,D1
+        MOVE.L  w,D2
+        MOVE.L  h,D3
+        MOVE.L  flags,D4
+        MOVEA.L MUIMasterBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION MUI_ObtainPen(mri : pMUI_RenderInfo; spec : pMUI_PenSpec; flags : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVEA.L	spec,A1
-	MOVE.L	flags,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVEA.L spec,A1
+        MOVE.L  flags,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE MUI_ReleasePen(mri : pMUI_RenderInfo; pen : LONGINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVE.L	pen,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVE.L  pen,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MUI_AddClipping(mri : pMUI_RenderInfo; l : smallint; t : smallint; w : smallint; h : smallint) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVE.L	l,D0
-	MOVE.L	t,D1
-	MOVE.L	w,D2
-	MOVE.L	h,D3
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVE.L  l,D0
+        MOVE.L  t,D1
+        MOVE.L  w,D2
+        MOVE.L  h,D3
+        MOVEA.L MUIMasterBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE MUI_RemoveClipping(mri : pMUI_RenderInfo; h : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVEA.L	h,A1
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-174(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVEA.L h,A1
+        MOVEA.L MUIMasterBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MUI_AddClipRegion(mri : pMUI_RenderInfo; region : pRegion) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVEA.L	region,A1
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-180(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVEA.L region,A1
+        MOVEA.L MUIMasterBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE MUI_RemoveClipRegion(mri : pMUI_RenderInfo; region : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVEA.L	region,A1
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-186(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVEA.L region,A1
+        MOVEA.L MUIMasterBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MUI_BeginRefresh(mri : pMUI_RenderInfo; flags : ULONG) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVE.L	flags,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-192(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVE.L  flags,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -192(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE MUI_EndRefresh(mri : pMUI_RenderInfo; flags : ULONG);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mri,A0
-	MOVE.L	flags,D0
-	MOVEA.L	MUIMasterBase,A6
-	JSR	-198(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mri,A0
+        MOVE.L  flags,D0
+        MOVEA.L MUIMasterBase,A6
+        JSR     -198(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 

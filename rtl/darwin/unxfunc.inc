@@ -62,20 +62,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.1  2005/02/13 20:01:37  peter
     * include file cleanup
-
-  Revision 1.3  2004/07/01 18:34:53  jonas
-    * adapted second pclose as well
-
-  Revision 1.2  2004/07/01 18:28:15  jonas
-    * fixed returning of proper exit status after pclose
-
-  Revision 1.1  2004/01/04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
 
 }

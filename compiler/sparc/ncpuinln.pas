@@ -150,19 +150,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.10  2004/10/03 12:42:22  florian
-    * made sqrt, sqr and abs internal for the sparc
-
-  Revision 1.9  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.8  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+  Revision 1.12  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

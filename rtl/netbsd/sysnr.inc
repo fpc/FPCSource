@@ -533,46 +533,7 @@ const
 
 {
   $Log$
-  Revision 1.2  2003-01-21 15:39:45  marco
-   * NetBSD first rtl. Still not 100%, but close
-
-  Revision 1.1.2.1  2001/08/10 11:07:17  pierre
-   New NetBSD files taken and adapted from FreeBSD
-
-  Revision 1.1.2.4  2001/03/14 17:19:10  marco
-   * Readdir compiles (some conflicts in Linux). Untested. Use NewReaddir to enable
-
-  Revision 1.1.2.3  2001/01/23 06:38:50  marco
-   * ioperm for FreeBSD. I/O back to Linux
-
-  Revision 1.1.2.2  2000/10/24 12:13:22  pierre
-   + syscall_nr_nanosleep
-
-  Revision 1.1.2.1  2000/09/16 11:19:08  marco
-   * Moved files from BSD to FreeBSD directory, with some small changes
-
-  Revision 1.1.2.1  2000/09/10 16:12:14  marco
-  Initial signals, sockets and clone
-
-  Revision 1.1  2000/07/13 06:30:33  michael
-  + Initial import
-
-  Revision 1.4  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.2  2000/04/05 13:59:10  marco
-   * added constants for syscall.inc
-
-  Revision 1.1  2000/04/05 13:06:24  marco
-   * Initial version. (copied from linux.) Patch for BSD not ready yeT
-
-  Revision 1.5  2000/02/09 16:59:32  peter
-    * truncated log
-
-  Revision 1.4  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

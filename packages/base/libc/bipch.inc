@@ -33,8 +33,8 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TIpcPermission = ipc_perm;
   PIpcPermission = ^TIpcPermission;
-    
-    
+
+

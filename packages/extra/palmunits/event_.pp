@@ -94,7 +94,7 @@ type
     pControl: ControlPtr;
   end;
 
-  ctlExit = record                
+  ctlExit = record
     controlID: UInt16;
     pControl: ControlPtr;
   end;

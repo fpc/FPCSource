@@ -182,26 +182,7 @@ end.
 
 {
   $Log$
-  Revision 1.30  2004-11-08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.29  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.28  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.27  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.26  2004/04/24 17:32:05  peter
-  index number generation for mixed index-nonindexed fixed, patch by Pavel V. Ozerski
-
-  Revision 1.25.2.1  2004/05/03 14:59:57  peter
-    * no dlltool needed for win32 linking executables
-
-  Revision 1.25  2004/04/08 11:07:05  michael
-  indexed exports needs to be sorted (patch from Pavel)
+  Revision 1.31  2005-02-14 17:13:07  peter
+    * truncate log
 
 }

@@ -842,31 +842,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-12-05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.8  2004/02/17 17:37:26  daniel
-    * Enable threadvars again
-
-  Revision 1.7  2004/02/16 22:18:44  hajny
-    * LastDosExitCode changed back from threadvar temporarily
-
-  Revision 1.6  2004/02/15 21:36:10  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.5  2004/02/09 12:03:16  michael
-  + Switched to single interface in dosh.inc
-
-  Revision 1.4  2003/10/18 09:18:29  hajny
-    * Wiktor Sywula: transfer_buffer changed to tb
-
-  Revision 1.3  2003/10/03 21:59:28  peter
-    * stdcall fixes
-
-  Revision 1.2  2003/09/07 22:29:26  hajny
-    * syswat renamed to system, CVS log added
-
-  Revision 1.1  2003/09/05 18:09:35  florian
-    * added initial watcom extender files; they need to be cleaned up
+  Revision 1.10  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

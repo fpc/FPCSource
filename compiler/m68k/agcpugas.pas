@@ -355,25 +355,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2005-01-08 04:10:36  karoly
+  Revision 1.15  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.14  2005/01/08 04:10:36  karoly
     * made m68k to compile again
-
-  Revision 1.13  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.12  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.11  2004/05/01 23:29:01  florian
-    * continued to fix m68k compiler compilation
-
-  Revision 1.10  2004/04/27 15:46:01  florian
-    * several updates for compilation
-
-  Revision 1.9  2004/04/27 15:00:37  florian
-    - removed offsetfixup reference
-
-  Revision 1.8  2004/04/25 21:26:16  florian
-    * some m68k stuff fixed
 
 }

@@ -3,17 +3,17 @@ Program Example16;
 { Program to demonstrate the Dispose and New functions. }
 
 Type SS = String[20];
-     
+
      AnObj = Object
        I : integer;
        Constructor Init;
        Destructor Done;
        end;
 
-Var 
+Var
   P : ^SS;
   T : ^AnObj;
-  
+
 Constructor Anobj.Init;
 
 begin
@@ -25,7 +25,7 @@ Destructor AnObj.Done;
 begin
   Writeln ('Destroying an instance of AnObj !');
 end;
-  
+
 begin
   New (P);
   P^:='Hello, World !';

@@ -6,4 +6,4 @@ function klogctl(__type:longint; __bufp:Pchar; __len:longint):longint;cdecl;exte
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

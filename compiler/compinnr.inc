@@ -107,17 +107,7 @@ const
 
 {
   $Log$
-  Revision 1.15  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.14  2004/07/05 21:49:43  olle
-    + macpas style: exit, cycle, leave
-    + macpas compiler directive: PUSH POP
-
-  Revision 1.13  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.12  2004/02/02 20:41:59  florian
-    + added prefetch(const mem) support
+  Revision 1.16  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

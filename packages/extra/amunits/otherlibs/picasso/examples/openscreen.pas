@@ -2,7 +2,7 @@
 PROGRAM OpenScreen;
 
 {***********************************************************************
-* This is an example that shows how to open a p96 Screen and a Window 
+* This is an example that shows how to open a p96 Screen and a Window
 * to get input events and how to paint on that screen.
 * Program terminates when space bar or any mouse button is pressed!
 *
@@ -23,7 +23,7 @@ PROGRAM OpenScreen;
 uses exec, amigados, graphics, intuition, picasso96api, utility,systemvartags;
 
 Const
-    
+
     Pens        :   Array [0..0] Of integer = (NOT(0));
     template    :   pchar  =   'Width=W/N,Height=H/N,Depth=D/N';
     ScreenTitle :   pchar  =   'Picasso96 API Test';
@@ -31,7 +31,7 @@ Const
     ltrue       :   longint = 1;
 
 Var
-    
+
     sc      :   pScreen;
     wdf,
     wdp     :   pWindow;
@@ -74,16 +74,16 @@ BEGIN
     End;
 
     sc:=p96OpenScreenTags([P96SA_Width, Width,
-			   P96SA_Height, Height,
-			   P96SA_Depth, Depth,
-			   P96SA_AutoScroll, lTRUE,
-			   P96SA_Pens, @Pens,
-			   P96SA_Title, ScreenTitle,
-			   TAG_DONE]);
+                           P96SA_Height, Height,
+                           P96SA_Depth, Depth,
+                           P96SA_AutoScroll, lTRUE,
+                           P96SA_Pens, @Pens,
+                           P96SA_Title, ScreenTitle,
+                           TAG_DONE]);
 
 
     If sc=Nil Then CleanUp('Unable to open screen.');
-  
+
     Dimensions[0]:=0;
     Dimensions[1]:=sc^.BarHeight+1;
     Dimensions[2]:=sc^.Width;
@@ -95,58 +95,58 @@ BEGIN
                              WA_Top, (sc^.Height-sc^.BarHeight-300) DIV 2,
                              WA_Zoom, @Dimensions,
                              WA_Width, 200,
-	                     WA_Height, 300,
-	                     WA_MinWidth, 100,
-	                     WA_MinHeight, 100,
-	                     WA_MaxWidth, -1,
-	                     WA_MaxHeight, -1,
-	                     WA_SimpleRefresh, lTRUE,
-	                     WA_RMBTrap, lTRUE,
-	                     WA_Activate, lTRUE,
-	                     WA_CloseGadget, lTRUE,
-	                     WA_DepthGadget, lTRUE,
-	                     WA_DragBar, lTRUE,
-	                     WA_SizeGadget, lTRUE,
-	                     WA_SizeBBottom, lTRUE,
-	                     WA_GimmeZeroZero, lTRUE,
-	                     WA_ScreenTitle,ScreenTitle,
-	                     WA_IDCMP, IDCMP_RAWKEY + IDCMP_CLOSEWINDOW,
-	                     TAG_DONE]);
+                             WA_Height, 300,
+                             WA_MinWidth, 100,
+                             WA_MinHeight, 100,
+                             WA_MaxWidth, -1,
+                             WA_MaxHeight, -1,
+                             WA_SimpleRefresh, lTRUE,
+                             WA_RMBTrap, lTRUE,
+                             WA_Activate, lTRUE,
+                             WA_CloseGadget, lTRUE,
+                             WA_DepthGadget, lTRUE,
+                             WA_DragBar, lTRUE,
+                             WA_SizeGadget, lTRUE,
+                             WA_SizeBBottom, lTRUE,
+                             WA_GimmeZeroZero, lTRUE,
+                             WA_ScreenTitle,ScreenTitle,
+                             WA_IDCMP, IDCMP_RAWKEY + IDCMP_CLOSEWINDOW,
+                             TAG_DONE]);
 
     If wdp = Nil Then CleanUp('Unable to open window 1.');
-    
+
     wdf:=OpenWindowTags(NIL,[WA_CustomScreen,sc,
                              WA_Title, 'FillRect',
                              WA_Left,(sc^.Width div 2-200) div 2,
                              WA_Top,(sc^.Height-sc^.BarHeight-300)div 2,
                              WA_Zoom, @Dimensions,
                              WA_Width, 200,
-	                     WA_Height, 300,
-	                     WA_MinWidth, 100,
-	                     WA_MinHeight, 100,
-	                     WA_MaxWidth, -1,
-	                     WA_MaxHeight, -1,
-	                     WA_SimpleRefresh, lTRUE,
-	                     WA_RMBTrap, lTRUE,
-	                     WA_Activate, lTRUE,
-	                     WA_CloseGadget, lTRUE,
-	                     WA_DepthGadget, lTRUE,
-	                     WA_DragBar, lTRUE,
-	                     WA_SizeGadget, lTRUE,
-	                     WA_SizeBBottom, lTRUE,
-	                     WA_GimmeZeroZero, lTRUE,
-	                     WA_ScreenTitle, ScreenTitle,
-	                     WA_IDCMP, IDCMP_RAWKEY or IDCMP_CLOSEWINDOW,
-	                     TAG_DONE]);
+                             WA_Height, 300,
+                             WA_MinWidth, 100,
+                             WA_MinHeight, 100,
+                             WA_MaxWidth, -1,
+                             WA_MaxHeight, -1,
+                             WA_SimpleRefresh, lTRUE,
+                             WA_RMBTrap, lTRUE,
+                             WA_Activate, lTRUE,
+                             WA_CloseGadget, lTRUE,
+                             WA_DepthGadget, lTRUE,
+                             WA_DragBar, lTRUE,
+                             WA_SizeGadget, lTRUE,
+                             WA_SizeBBottom, lTRUE,
+                             WA_GimmeZeroZero, lTRUE,
+                             WA_ScreenTitle, ScreenTitle,
+                             WA_IDCMP, IDCMP_RAWKEY or IDCMP_CLOSEWINDOW,
+                             TAG_DONE]);
 
     If wdf = Nil Then CleanUp('Unable to open window 2.');
-    
+
     rpf:=wdf^.RPort;
     rpp:=wdp^.RPort;
     terminate:=False;
     signals:= longint((1 shl wdf^.UserPort^.mp_SigBit) or (1 shl wdp^.UserPort^.mp_SigBit));
     format:= RGBFTYPE(p96GetBitMapAttr (sc^.RastPort.BitMap, P96BMA_RGBFORMAT));
-    
+
     Randomize;
 
     Repeat
@@ -167,16 +167,16 @@ BEGIN
 
        x3:=Random (wdp^.Width);
        y3:=Random (wdp^.Height);
-      
-       If format=RGBFB_CLUT Then Begin 
+
+       If format=RGBFB_CLUT Then Begin
           SetAPen (rpf, Random (255));
           RectFill (rpf,x1,y1,x2,y2);
           SetAPen (rpp, Random (255));
           WritePixel (rpp,x3,y3);
-       End Else Begin 
+       End Else Begin
           p96RectFill (rpf, x1, y1, x2, y2,(Random(255) shl 16)+(Random(255) shl 8)+(Random (255)));
           p96WritePixel (rpp, x3, y3, ((Random(255)) shl 16) or ((Random(255)) shl 8) or (Random(255)));
-       End; 
+       End;
 
        Repeat
          imsg:=pIntuiMessage(GetMsg (wdf^.UserPort));

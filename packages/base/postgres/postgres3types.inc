@@ -163,7 +163,7 @@ Type
    * PQArgBlock -- structure for PQfn() arguments
    * ----------------
     }
-  { can't use void (dec compiler barfs)	  }
+  { can't use void (dec compiler barfs)   }
 
      PPQArgBlock = ^PQArgBlock;
      PQArgBlock = record

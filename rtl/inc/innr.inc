@@ -140,22 +140,7 @@ const
 
 {
   $Log$
-  Revision 1.9  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.8  2004/11/17 22:19:04  peter
-  internconst, internproc and some external declarations moved to interface
-
-  Revision 1.7  2004/07/05 21:59:18  olle
-    * updated according to compiler/compinnr.inc
-
-  Revision 1.6  2004/02/02 20:39:27  florian
-    + added prefetch(const mem)
-
-  Revision 1.5  2002/11/18 18:33:51  peter
-    * Swap(QWord) constant support
-
-  Revision 1.4  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.10  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -4650,35 +4650,10 @@ END.
 
 {
  $Log$
- Revision 1.56  2005-01-07 22:29:48  florian
+ Revision 1.57  2005-02-14 17:13:18  peter
+   * truncate log
+
+ Revision 1.56  2005/01/07 22:29:48  florian
    + tview.draw clears the back ground
-
- Revision 1.55  2004/12/26 16:14:08  peter
-   * force redraw tgroup after changebounds
-
- Revision 1.54  2004/12/22 15:28:22  peter
-   * TGroup.ClipChildes added
-
- Revision 1.53  2004/12/21 18:53:41  peter
- cmCursorChange event
-
- Revision 1.52  2004/12/19 20:20:48  hajny
-   * ObjType references constants from fvconsts
-
- Revision 1.51  2004/12/15 19:14:11  peter
-   * goptions removed
-   * small patches from antonio talamini
-
- Revision 1.50  2004/11/24 21:03:05  florian
-   * increased max. possible screen/view width to 255
-
- Revision 1.49  2004/11/06 23:24:37  peter
-   * fixed button click
-
- Revision 1.48  2004/11/06 22:03:06  peter
-   * fixed mouse
-
- Revision 1.47  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
 
 }

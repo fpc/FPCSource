@@ -19,7 +19,7 @@ type
 
 class function TBLA.X: Boolean;
 begin
-  
+
 end;
 
 begin

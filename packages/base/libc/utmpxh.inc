@@ -20,7 +20,7 @@ procedure getutmpx(__utmp:Putmp; __utmpx:Putmpx);cdecl;external clib name 'getut
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function getutxid(const __id:utmpx):Putmpx;cdecl;external clib name 'getutxid';
 function getutxline(const __line:utmpx):Putmpx;cdecl;external clib name 'getutxline';
 function pututxline(const __utmpx:utmpx):Putmpx;cdecl;external clib name 'pututxline';

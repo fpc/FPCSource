@@ -80,7 +80,7 @@ procedure getdir(drivenr : byte;var dir : shortstring);
 var
 {$ifdef usegetcwd}
   buf          : array[0..254] of char;
-{$else}  
+{$else}
   cwdinfo      : stat;
   rootinfo     : stat;
   thedir,dummy : string[255];
@@ -153,7 +153,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-13 20:01:38  peter
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.2  2005/02/13 20:01:38  peter
     * include file cleanup
 
   Revision 1.1  2005/02/07 22:04:55  peter

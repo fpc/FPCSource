@@ -159,4 +159,4 @@ Function ICMP_INFOTYPE(_type: cardinal): boolean;
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -17,14 +17,14 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   16 Jan 2003.
-  
+
   Changed cardinal > longword.
   Changed startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -242,197 +242,197 @@ tagsarray;
 FUNCTION TT_AllocRequest : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	TTEngineBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L TTEngineBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE TT_CloseFont(font : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	font,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L font,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE TT_DoneRastPort(rp : pRastPort);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	TTEngineBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L TTEngineBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE TT_FreePixmap(pixmap : pTT_Pixmap);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	pixmap,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L pixmap,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE TT_FreeRequest(request : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	request,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L request,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION TT_GetAttrsA(rp : pRastPort; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	taglist,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION TT_GetPixmapA(font : POINTER; _string : POINTER; count : longword; taglist : pTagItem) : pTT_Pixmap;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	font,A1
-	MOVEA.L	_string,A2
-	MOVE.L	count,D0
-	MOVEA.L	taglist,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L font,A1
+        MOVEA.L _string,A2
+        MOVE.L  count,D0
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION TT_OpenFontA(taglist : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	taglist,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION TT_RequestA(request : POINTER; taglist : pTagItem) : pTagItem;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	request,A0
-	MOVEA.L	taglist,A1
-	MOVEA.L	TTEngineBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L request,A0
+        MOVEA.L taglist,A1
+        MOVEA.L TTEngineBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION TT_SetAttrsA(rp : pRastPort; taglist : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	taglist,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L taglist,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION TT_SetFont(rp : pRastPort; font : POINTER) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	font,A0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L font,A0
+        MOVEA.L TTEngineBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE TT_Text(rp : pRastPort; _string : POINTER; count : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	_string,A0
-	MOVE.L	count,D0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L TTEngineBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE TT_TextExtent(rp : pRastPort; _string : POINTER; count : LONGINT; te : pTextExtent);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	_string,A0
-	MOVE.L	count,D0
-	MOVEA.L	te,A2
-	MOVEA.L	TTEngineBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L te,A2
+        MOVEA.L TTEngineBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION TT_TextFit(rp : pRastPort; _string : POINTER; count : longword; te : pTextExtent; tec : pTextExtent; dir : LONGINT; cwidth : longword; cheight : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	_string,A0
-	MOVE.L	count,D0
-	MOVEA.L	te,A2
-	MOVEA.L	tec,A3
-	MOVE.L	dir,D1
-	MOVE.L	cwidth,D2
-	MOVE.L	cheight,D3
-	MOVEA.L	TTEngineBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L te,A2
+        MOVEA.L tec,A3
+        MOVE.L  dir,D1
+        MOVE.L  cwidth,D2
+        MOVE.L  cheight,D3
+        MOVEA.L TTEngineBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION TT_TextLength(rp : pRastPort; _string : POINTER; count : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A1
-	MOVEA.L	_string,A0
-	MOVE.L	count,D0
-	MOVEA.L	TTEngineBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A1
+        MOVEA.L _string,A0
+        MOVE.L  count,D0
+        MOVEA.L TTEngineBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

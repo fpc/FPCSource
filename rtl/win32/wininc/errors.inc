@@ -1166,10 +1166,7 @@
 
 {
   $Log$
-  Revision 1.5  2004-05-07 13:26:31  marco
-   * COM related fixes from bug 3090
-
-  Revision 1.4  2002/09/07 16:01:31  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

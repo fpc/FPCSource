@@ -206,12 +206,12 @@
 
   {
      ppc_exception_state
-    
+
      This structure corresponds to some additional state of the user
      registers as saved in the PCB upon kernel entry. They are only
      available if an exception is passed out of the kernel, and even
      then not all are guaranteed to be updated.
-    
+
      Some padding is included in this structure which allows space for
      servers to store temporary values if need be, to maintain binary
      compatiblity.
@@ -268,15 +268,7 @@
 
 {
   $Log$
-  Revision 1.2  2004-01-08 21:52:34  jonas
-    * fixed signal handling under 10.3.2, still have to verify whether it's
-      backwards compatible
-
-  Revision 1.1  2004/01/04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
-
-  Revision 1.1  2002/09/08 09:01:48  jonas
-    + initial revision
+  Revision 1.3  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

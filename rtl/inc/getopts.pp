@@ -506,14 +506,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-02-22 16:48:39  florian
-    * several 64 bit issues fixed
-
-  Revision 1.5  2002/11/20 14:31:22  jonas
-    * applied fix from Maxim Artemev (bert_raccoon@freemail.ru)
-
-  Revision 1.4  2002/03/28 20:54:25  carl
-  * merged fixes from version 1.0.x branch
-
+  Revision 1.7  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

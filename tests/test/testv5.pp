@@ -5,10 +5,10 @@ uses variants,varutils;
 
 Procedure TestLongInt(I : Longint);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
-  
+
 begin
   Write('Longint to boolean assignment: ');
   V:=I;
@@ -18,10 +18,10 @@ end;
 
 Procedure TestSmallInt(I : SmallInt);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
-  
+
 begin
   Write('Smallint to boolean assignment: ');
   V:=I;
@@ -31,7 +31,7 @@ end;
 
 Procedure TestShortInt(I : ShortInt);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
 
@@ -44,7 +44,7 @@ end;
 
 Procedure TestCardinal(I : Cardinal);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
 
@@ -57,7 +57,7 @@ end;
 
 Procedure TestWord(I : Word);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
 
@@ -70,7 +70,7 @@ end;
 
 Procedure TestByte(I : Byte);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
 
@@ -85,7 +85,7 @@ end;
 
 Procedure TestInt64(I : Int64);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
 
@@ -99,7 +99,7 @@ end;
 
 Procedure TestQWord(I : QWord);
 
-Var 
+Var
   V : Variant;
   B : Boolean;
 
@@ -117,7 +117,7 @@ begin
   TestCardinal(0);
   TestWord(0);
   TestByte(0);
-  TestInt64(0);  
+  TestInt64(0);
   TestQWord(0);
   TestLongint(-1);
   TestSmallInt(-1);
@@ -125,7 +125,7 @@ begin
   TestCardinal(-1);
   TestWord(-1);
   TestByte(-1);
-  TestInt64(-1);  
+  TestInt64(-1);
   TestQWord(-1);
   TestLongint(1);
   TestSmallInt(1);
@@ -133,6 +133,6 @@ begin
   TestCardinal(1);
   TestWord(1);
   TestByte(1);
-  TestInt64(1);  
+  TestInt64(1);
   TestQWord(1);
 end.

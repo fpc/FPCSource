@@ -101,7 +101,7 @@ Resourcestring
   SErrFetchingdata = 'Error fetching row data: %s';
   SErrGettingResult = 'Error getting result set: %s';
   SErrNoQueryResult = 'No result from query.';
-  
+
 Procedure MySQlError(R : PMySQL;Msg: String;Comp : TComponent);
 
 Var
@@ -251,7 +251,7 @@ procedure TMySQLConnection.FreeFldBuffers(cursor: TSQLHandle);
 
 Var
   C : TMySQLCursor;
-  
+
 begin
   C:=Cursor as TMysqlCursor;
   If (C.FRes<>Nil) then
@@ -263,7 +263,7 @@ end;
 
 procedure TMySQLConnection.Execute(cursor: TSQLHandle;
   atransaction: tSQLtransaction);
-  
+
 Var
   C : TMySQLCursor;
 
@@ -326,7 +326,7 @@ end;
 
 procedure TMySQLConnection.AddFieldDefs(cursor: TSQLHandle;
   FieldDefs: TfieldDefs);
-  
+
 var
   C : TMySQLCursor;
   I, FC: Integer;

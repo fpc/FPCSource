@@ -635,31 +635,7 @@ END.
 
 {
  $Log$
- Revision 1.14  2004-11-08 20:28:26  peter
-   * Breakpoints are now deleted when removed from source, disabling is
-     still possible from the breakpoint list
-   * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-     FV and 1.9.x compilers
-   * Run directory added to Run menu
-   * Useless programinfo window removed
-
- Revision 1.13  2004/03/04 05:37:14  pierre
-  * fix a possibly uninitiated var
-
- Revision 1.12  2002/12/18 01:19:20  pierre
-  + Use TEditorInputLine instead of TInputLine
-
- Revision 1.11  2002/09/26 13:00:41  pierre
-  * avoid RTE 213
-
- Revision 1.10  2002/09/11 13:12:42  pierre
-  * fix CodeComplete loading and use a unit for standard units code complete
-
- Revision 1.9  2002/09/09 06:53:54  pierre
-  * avoid to save file used by codecomplete
-
- Revision 1.8  2002/09/09 06:22:45  pierre
-  * get it to load old and new desktops
-
+ Revision 1.15  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

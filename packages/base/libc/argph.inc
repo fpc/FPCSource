@@ -47,7 +47,7 @@ const
 type
   Pargp_state = ^argp_state;
   Pargp_child = ^argp_child;
-    
+
   argp_parser_t = function (key:longint; arg:Pchar; state:Pargp_state):error_t;cdecl;
 
    Pargp = ^argp;
@@ -88,12 +88,12 @@ type
 
 type
   TArgPProgramVersionHook = procedure(__stream: PFILE; __state: pargp_state); cdecl;
-  
-  
 
-function argp_parse(__argp:Pargp; __argc:longint; __argv:PPchar; __flags:dword; __arg_index:Plongint; 
+
+
+function argp_parse(__argp:Pargp; __argc:longint; __argv:PPchar; __flags:dword; __arg_index:Plongint;
            __input:pointer):error_t;cdecl;external clib name 'argp_parse';
-function __argp_parse(__argp:Pargp; __argc:longint; __argv:PPchar; __flags:dword; __arg_index:Plongint; 
+function __argp_parse(__argp:Pargp; __argc:longint; __argv:PPchar; __flags:dword; __arg_index:Plongint;
            __input:pointer):error_t;cdecl;external clib name '__argp_parse';
 var
   argp_program_version : Pchar;cvar;external;
@@ -142,7 +142,7 @@ function __argp_input(__argp:Pargp; __state:Pargp_state):pointer;cdecl;external 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TArgP = argp;
 
   TArgPOption = argp_option;
@@ -152,4 +152,4 @@ Type
   PArgPState = ^TArgPState;
   TArgPChild = argp_child;
   PArgPChild = ^TArgPChild;
-    
+

@@ -4,10 +4,10 @@ program tassert6;
 
 var
  global_boolean : boolean;
- 
-const 
+
+const
   RESULT_BOOLEAN = false;
-  
+
 
 
 procedure test_assert_reference_global;
@@ -15,17 +15,17 @@ procedure test_assert_reference_global;
   global_boolean:=RESULT_BOOLEAN;
   assert(global_boolean);
  end;
- 
-   
 
- 
+
+
+
 begin
   test_assert_reference_global;
 end.
 
 {
   $Log$
-  Revision 1.1  2002-09-16 19:16:36  carl
-    * several new routines have a testsuit.
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

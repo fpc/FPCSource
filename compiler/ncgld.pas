@@ -956,7 +956,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.138  2005-02-13 19:57:15  florian
+  Revision 1.139  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.138  2005/02/13 19:57:15  florian
     * better alignment checking
 
   Revision 1.137  2005/02/10 21:54:36  peter
@@ -969,89 +972,5 @@ end.
 
   Revision 1.135  2005/01/04 16:37:09  peter
     * don't release temps for array of ansistring
-
-  Revision 1.134  2004/12/18 15:48:27  florian
-    * fixed some alignment trouble
-
-  Revision 1.133  2004/11/29 17:32:56  peter
-    * prevent some IEs with delphi methodpointers
-
-  Revision 1.132  2004/11/09 17:26:47  peter
-    * fixed wrong typecasts
-
-  Revision 1.131  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.130  2004/11/01 15:32:12  peter
-    * support @labelsym
-
-  Revision 1.129  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.128  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.127  2004/10/10 20:21:18  peter
-    * passing a var parameter to var parameter is now also allowed
-      for register locations (=regvars)
-
-  Revision 1.126  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.125  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.124  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.123  2004/09/13 20:33:41  peter
-    * pwidechar support in array of const
-
-  Revision 1.122.4.3  2004/09/12 18:31:50  peter
-    * use normal concatcopy when data < sizeof(aint)
-
-  Revision 1.122.4.2  2004/09/12 13:36:40  peter
-    * fixed alignment issues
-
-  Revision 1.122.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.122  2004/08/15 13:30:18  florian
-    * fixed alignment of variant records
-    * more alignment problems fixed
-
-  Revision 1.121  2004/07/15 20:47:53  jonas
-    - disabled temp-to-temp copy optimization, because it can cause errors
-      now that the local variables are temps as well (it can cause local
-      variables to be "freed" in the middle of a procedure)
-
-  Revision 1.120  2004/07/03 10:26:35  peter
-    * always pass right before left when type needs refcnt
-
-  Revision 1.119  2004/06/29 20:57:03  peter
-    * redundant freetemp removed
-
-  Revision 1.118  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.117  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.116  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.115  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.114.2.8  2004/06/13 10:51:16  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.114.2.7  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
 
 }

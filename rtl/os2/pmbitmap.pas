@@ -159,10 +159,10 @@ type    TBitmapInfoHeader=record
 const   CBD_COMPRESSION         =       1;
         CBD_DECOMPRESSION       =       2;
         CBD_BITS                =       0;
-        
+
 { Flags for compression/decompression option }
         CBD_COLOR_CONVERSION    =$0000001;
-        
+
 { Compression scheme in the ulCompression field of the bitmapinfo structure }
         BCA_UNCOMP              =       0;
         BCA_HUFFMAN1D           =       3;
@@ -206,22 +206,19 @@ function PicPrint (ahab: longint; var pszFilename: PChar; lType: longint;
 function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PChar;
                                               lType: longint): Longbool; cdecl;
 
-    
+
 implementation
 
 function PicPrint (ahab: longint; var pszFilename: PChar; lType: longint;
              var pszParams: PChar): Longbool; cdecl; external 'PMPIC' index 11;
-                  
+
 function PicIchg (ahab: longint; var pszFilename1, pszFilename2: PChar;
                    lType: longint): Longbool; cdecl; external 'PMPIC' index 12;
 
 end.
 {
   $Log$
-  Revision 1.4  2002-11-02 11:16:38  hajny
-    + PMPIC.DLL functions added
-
-  Revision 1.3  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

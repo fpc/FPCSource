@@ -1,4 +1,4 @@
-{ Program to test system unit setstring routines 
+{ Program to test system unit setstring routines
   Tested against Delphi 3 and (where possible)
   against Borland Pascal v7.01
   Copyright (c) 2002 Carl Eric Codere
@@ -37,15 +37,15 @@ const
   PCHAR_NULL = nil;
   PCHAR_EMPTY : pchar = #0;
   PCHAR_NORMAL : pchar = HELLO_STRING;
-  
+
 
 var
    arr: array[0..255] of byte;
    str1 : shortstring;
    str2 : ansistring;
-{$ifdef haswidestring}   
+{$ifdef haswidestring}
    str3 : widestring;
-{$endif}   
+{$endif}
 
 procedure fail;
  begin
@@ -87,7 +87,7 @@ begin
   for i := 1 to length(str1) do
     if str1[i] <> 'a' then
       _failed := true;
-  str1:='';  
+  str1:='';
   setstring(str1,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str1 <> HELLO_STRING then
     _failed := true;
@@ -122,7 +122,7 @@ begin
   setstring(str2, PCHAR_NORMAL, 0);
   if str2 <> '' then
     _failed := true;
-  str2:='';  
+  str2:='';
   setstring(str2,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str2 <> HELLO_STRING then
     _failed := true;
@@ -157,7 +157,7 @@ begin
   setstring(str3, PCHAR_NORMAL, 0);
   if str3 <> '' then
     _failed := true;
-  str3:='';  
+  str3:='';
   setstring(str3,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str3 <> HELLO_STRING then
     _failed := true;
@@ -172,24 +172,13 @@ Begin
   test_shortstring;
   test_ansistring;
 {$ifdef haswidestring}
-  test_widestring; 
+  test_widestring;
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.3  2004-04-25 13:42:11  olle
-    * changed to $APPTYPE TOOL on MacOS
-
-  Revision 1.2  2003/03/04 18:19:48  jonas
-    * adapted tests to fixed implementation
-
-  Revision 1.1  2002/10/21 09:02:25  pierre
-   * tsetstr.pp duplicated with $H+
-
-  Revision 1.1  2002/10/20 11:44:15  carl
-    + setstring testing
-    * args checking is not interactive
-    + zero and negative length checking for move/fillchar
+  Revision 1.4  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

@@ -35,7 +35,7 @@ function ulckpwdf:longint;cdecl;external clib name 'ulckpwdf';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TPasswordFileEntry = spwd;
   PPasswordFileEntry = ^TPasswordFileEntry;
 

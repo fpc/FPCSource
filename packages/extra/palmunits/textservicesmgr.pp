@@ -87,7 +87,7 @@ const
 
 // Return the current mode for the active FEP. The <nullParam> parameter
 // is unused and must be set to NULL.
-function TsmGetFepMode(nullParam: Pointer): TsmFepModeType; 
+function TsmGetFepMode(nullParam: Pointer): TsmFepModeType;
 
 // Set the mode for the active FEP to be <inNewMode>. The previous mode
 // is returned. The <nullParam> parameter is unused and must be set

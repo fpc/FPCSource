@@ -1462,50 +1462,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.43  2005-02-08 22:46:00  olle
+  Revision 1.44  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.43  2005/02/08 22:46:00  olle
     * fixed erroneous asm line directive
-
-  Revision 1.42  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.41  2004/10/31 15:32:13  olle
-    + Change of the way global variables, with multiple entrypoints,
-      are referenced, fixes a lot of failed tests
-
-  Revision 1.40  2004/10/15 09:30:13  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.39  2004/10/09 10:48:34  olle
-    * minor fix
-
-  Revision 1.38  2004/09/10 11:23:52  olle
-    * floating point constants is now written as byte pattern, to have exact control of each bit.
-
-  Revision 1.37  2004/07/26 22:26:39  olle
-    * made target macos really work again after the dwarf merge
-
-  Revision 1.36  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.35  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.34  2004/03/17 12:03:31  olle
-    * bugfix for multiline string constants
-
-  Revision 1.33  2004/03/02 00:57:01  olle
-    + adding missing log msg: misc fixes
-
-  Revision 1.32  2004/03/02 00:36:33  olle
-
-  Revision 1.31  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
 
 }

@@ -1,8 +1,9 @@
 {
     $Id$
-    Copyright (c) 1998-2002 by The FPC Development Team
+    Copyright (c) 1998-2004 by Jonas Maebe
 
-    This unit implements the 680x0 optimizer object
+    This unit calls the optimization procedures to optimize the assembler
+    code for sparc
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,24 +22,27 @@
  ****************************************************************************
 }
 
+unit aoptcpu;
 
-Unit aoptcpu;
+{$i fpcdefs.inc}
 
-Interface
+  Interface
 
-uses cpubase, aoptobj, aoptcpub;
+    uses
+      cpubase, aoptobj, aoptcpub, aopt;
 
-Type
-  TAOptCpu = Object(TAoptObj)
-    { uses the same constructor as TAopObj }
-  End;
+    Type
+      TCpuAsmOptimizer = class(TAsmOptimizer)
+      End;
 
-Implementation
+  Implementation
 
-End.
+begin
+  casmoptimizer:=TCpuAsmOptimizer;
+end.
 {
- $Log$
- Revision 1.3  2004-06-20 08:55:31  florian
-   * logs truncated
+  $Log$
+  Revision 1.4  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

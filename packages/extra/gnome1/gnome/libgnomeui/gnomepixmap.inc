@@ -26,9 +26,9 @@ function gnome_pixmap_new_from_xpm_d(xpm_data:PPchar):PGtkWidget;cdecl;external 
 function gnome_pixmap_new_from_xpm_d_at_size(xpm_data:PPchar; width:longint; height:longint):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_new_from_xpm_d_at_size';
 function gnome_pixmap_new_from_rgb_d(data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_new_from_rgb_d';
 function gnome_pixmap_new_from_rgb_d_shaped(data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; shape_color:PGdkImlibColor):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_new_from_rgb_d_shaped';
-function gnome_pixmap_new_from_rgb_d_shaped_at_size(data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; width:longint; 
+function gnome_pixmap_new_from_rgb_d_shaped_at_size(data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; width:longint;
            height:longint; shape_color:PGdkImlibColor):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_new_from_rgb_d_shaped_at_size';
-function gnome_pixmap_new_from_rgb_d_at_size(data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; width:longint; 
+function gnome_pixmap_new_from_rgb_d_at_size(data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; width:longint;
            height:longint):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_new_from_rgb_d_at_size';
 function gnome_pixmap_new_from_gnome_pixmap(gpixmap:PGnomePixmap):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_new_from_gnome_pixmap';
 function gnome_pixmap_new_from_imlib(image:PGdkImlibImage):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_pixmap_new_from_imlib';
@@ -38,11 +38,11 @@ procedure gnome_pixmap_load_file_at_size(gpixmap:PGnomePixmap; filename:Pchar; w
 procedure gnome_pixmap_load_xpm_d(gpixmap:PGnomePixmap; xpm_data:PPchar);cdecl;external libgnomeuidll name 'gnome_pixmap_load_xpm_d';
 procedure gnome_pixmap_load_xpm_d_at_size(gpixmap:PGnomePixmap; xpm_data:PPchar; width:longint; height:longint);cdecl;external libgnomeuidll name 'gnome_pixmap_load_xpm_d_at_size';
 procedure gnome_pixmap_load_rgb_d(gpixmap:PGnomePixmap; data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint);cdecl;external libgnomeuidll name 'gnome_pixmap_load_rgb_d';
-procedure gnome_pixmap_load_rgb_d_shaped(gpixmap:PGnomePixmap; data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; 
+procedure gnome_pixmap_load_rgb_d_shaped(gpixmap:PGnomePixmap; data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint;
             shape_color:PGdkImlibColor);cdecl;external libgnomeuidll name 'gnome_pixmap_load_rgb_d_shaped';
-procedure gnome_pixmap_load_rgb_d_shaped_at_size(gpixmap:PGnomePixmap; data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; 
+procedure gnome_pixmap_load_rgb_d_shaped_at_size(gpixmap:PGnomePixmap; data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint;
             width:longint; height:longint; shape_color:PGdkImlibColor);cdecl;external libgnomeuidll name 'gnome_pixmap_load_rgb_d_shaped_at_size';
-procedure gnome_pixmap_load_rgb_d_at_size(gpixmap:PGnomePixmap; data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint; 
+procedure gnome_pixmap_load_rgb_d_at_size(gpixmap:PGnomePixmap; data:Pbyte; alpha:Pbyte; rgb_width:longint; rgb_height:longint;
             width:longint; height:longint);cdecl;external libgnomeuidll name 'gnome_pixmap_load_rgb_d_at_size';
 procedure gnome_pixmap_load_imlib(gpixmap:PGnomePixmap; image:PGdkImlibImage);cdecl;external libgnomeuidll name 'gnome_pixmap_load_imlib';
 procedure gnome_pixmap_load_imlib_at_size(gpixmap:PGnomePixmap; image:PGdkImlibImage; width:longint; height:longint);cdecl;external libgnomeuidll name 'gnome_pixmap_load_imlib_at_size';

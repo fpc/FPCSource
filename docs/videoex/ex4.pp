@@ -8,7 +8,7 @@ Var
   W: Word;
 
   Procedure TestCap(Cap: Word; Msg : String);
-  
+
   begin
     Write(Msg,' : ');
     If (W and Cap=Cap) then

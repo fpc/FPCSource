@@ -273,22 +273,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.30  2005-01-19 22:19:41  peter
+  Revision 1.31  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.30  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
-
-  Revision 1.29  2004/08/08 12:06:38  florian
-    * finally is an "endtoken" as well
-
-  Revision 1.28  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.27  2004/02/21 20:10:27  daniel
-    - Comment out unused tokenstring function
-
-  Revision 1.26  2004/01/22 17:24:49  peter
-    * except is also an end of block token
-    * after a label don't try to parse a statement when the next token
-      is an end token
 
 }

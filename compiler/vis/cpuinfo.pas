@@ -57,17 +57,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.4  2005-01-20 16:38:45  peter
+  Revision 1.5  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.4  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
-
-  Revision 1.3  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.2  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.1.2.1  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
 
 }

@@ -18,7 +18,7 @@ end;
 
 Function Positive (Which : Integer) : Boolean;
 
-{ This function demonstrates the extra FPC feature of Exit : 
+{ This function demonstrates the extra FPC feature of Exit :
   You can specify a return value for the function }
 
 begin
@@ -26,14 +26,14 @@ begin
     exit (True)
   else
     exit (False);
-end;   
+end;
 
 begin
   { This call will go to the end }
   DoAnExit (False);
   { This call will bail out early }
   DoAnExit (True);
-  if Positive (-1) then 
+  if Positive (-1) then
     Writeln ('The compiler is nuts, -1 is not positive.')
   else
     Writeln ('The compiler is not so bad, -1 seems to be negative.');

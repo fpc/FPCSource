@@ -3,7 +3,7 @@
 type
    TGnomeMDIMode = (GNOME_MDI_NOTEBOOK,GNOME_MDI_TOPLEVEL,
      GNOME_MDI_MODAL,GNOME_MDI_DEFAULT_MODE := 42);
-   
+
    PGnomeMDI = ^TGnomeMDI;
    TGnomeMDI = record
         theobject : TGtkObject;

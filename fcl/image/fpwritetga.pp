@@ -5,7 +5,7 @@
     Copyright (c) 2003 by Michael Van Canneyt of the Free Pascal development team
 
     TARGA writer implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -22,7 +22,7 @@ interface
 uses FPImage, classes, sysutils;
 
 type
-   
+
   TFPWriterTarga = class (TFPCustomImageWriter)
   protected
     function  SaveHeader(Stream:TStream; Img: TFPCustomImage):boolean; virtual;
@@ -39,7 +39,7 @@ function TFPWriterTarga.SaveHeader(Stream:TStream; Img : TFPCustomImage):boolean
 var
   Header : TTargaHeader;
   ID : ShortString;
-  
+
 begin
   Result:=False;
   ID:=Img.Extra[KeyIdentification];
@@ -71,7 +71,7 @@ var
   Row,Col,WriteSize:Integer;
   Aline,P: PByte;
   C : TFPColor;
-  
+
 begin
   SaveHeader(Stream,Img);
   WriteSize:=Img.Width*3;
@@ -94,7 +94,7 @@ begin
       end;
   Finally
     FreeMem(aLine);
-  end;  
+  end;
 end;
 
 initialization
@@ -102,7 +102,7 @@ initialization
 end.
 {
 $Log$
-Revision 1.1  2004-03-02 21:26:17  michael
-+ Implemented TARGA writing. Currently only 24 bit
+Revision 1.2  2005-02-14 17:13:12  peter
+  * truncate log
 
 }

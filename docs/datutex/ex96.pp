@@ -6,11 +6,11 @@ Uses SysUtils,DateUtils;
 
 Const
   Fmt = 'dddd dd mmmm yyyy hh:nn:ss';
-  
+
 Var
   S : AnsiString;
   D : TDateTime ;
-  
+
 Begin
   D:=Now;
   D:=RecodeDateTime(D,2000,2,RecodeLeaveFieldAsIs,0,0,0,0);

@@ -26,7 +26,7 @@ unit timerutils;
 
    First version of this unit.
    06 Sep 2000.
-   
+
    Added the define use_amiga_smartlink.
    13 Jan 2003.
    nils.sjoholm@mailbox.swipnet.se
@@ -40,9 +40,9 @@ uses exec, timer, amigalib;
 
 Function CreateTimer(theUnit : longint) : pTimeRequest;
 Function SetTimer(WhichTimer : pTimeRequest;
-			Seconds, Microseconds : longint) : pMsgPort;
+                        Seconds, Microseconds : longint) : pMsgPort;
 Procedure WaitTimer(WhichTimer : pTimeRequest;
-			Seconds, Microseconds : longint);
+                        Seconds, Microseconds : longint);
 Procedure DeleteTimer(WhichTimer : pTimeRequest);
 
 implementation
@@ -54,20 +54,20 @@ var
     TimeReq : pTimeRequest;
 begin
     TimerPort := CreatePort(Nil, 0);
-    if TimerPort = Nil then 
-	CreateTimer := Nil;
+    if TimerPort = Nil then
+        CreateTimer := Nil;
     TimeReq := pTimeRequest(CreateExtIO(TimerPort,sizeof(tTimeRequest)));
     if TimeReq = Nil then begin
-	DeletePort(TimerPort);
-	CreateTimer := Nil;
-    end; 
+        DeletePort(TimerPort);
+        CreateTimer := Nil;
+    end;
     Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
     if Error <> 0 then begin
-	DeleteExtIO(pIORequest(TimeReq));
-	DeletePort(TimerPort);
-	CreateTimer := Nil;
+        DeleteExtIO(pIORequest(TimeReq));
+        DeletePort(TimerPort);
+        CreateTimer := Nil;
     end;
-    TimerBase := pointer(TimeReq^.tr_Node.io_Device); 
+    TimerBase := pointer(TimeReq^.tr_Node.io_Device);
     CreateTimer := pTimeRequest(TimeReq);
 end;
 
@@ -76,25 +76,25 @@ var
     TempPort : pMsgPort;
 begin
     with WhichTimer^ do begin
-	TempPort := tr_Node.io_Message.mn_ReplyPort;
-	tr_Node.io_Command := TR_ADDREQUEST;	{ add a new timer request }
-	tr_Time.tv_Secs := Seconds;		{ seconds }
-	tr_Time.tv_Micro := Microseconds;		{ microseconds }
+        TempPort := tr_Node.io_Message.mn_ReplyPort;
+        tr_Node.io_Command := TR_ADDREQUEST;    { add a new timer request }
+        tr_Time.tv_Secs := Seconds;             { seconds }
+        tr_Time.tv_Micro := Microseconds;               { microseconds }
         SendIO(pIORequest(WhichTimer));
-	SetTimer := TempPort;
+        SetTimer := TempPort;
     end;
 end;
 
 Procedure WaitTimer(WhichTimer : pTimeRequest;
-			Seconds, Microseconds : longint);
+                        Seconds, Microseconds : longint);
 var
     Error : Integer;
 begin
     with WhichTimer^ do begin
-	tr_Node.io_Command := TR_ADDREQUEST;	{ add a new timer request }
-	tr_Time.tv_Secs := Seconds;		{ seconds }
-	tr_Time.tv_Micro := Microseconds;		{ microseconds }
-	Error := DoIO(pIORequest(WhichTimer));
+        tr_Node.io_Command := TR_ADDREQUEST;    { add a new timer request }
+        tr_Time.tv_Secs := Seconds;             { seconds }
+        tr_Time.tv_Micro := Microseconds;               { microseconds }
+        Error := DoIO(pIORequest(WhichTimer));
     end;
 end;
 
@@ -102,7 +102,7 @@ Procedure DeleteTimer(WhichTimer : pTimeRequest);
 var
     WhichPort : pMsgPort;
 begin
-    
+
     WhichPort := WhichTimer^.tr_Node.io_Message.mn_ReplyPort;
     if assigned(WhichTimer) then begin
         CloseDevice(pIORequest(WhichTimer));
@@ -116,13 +116,9 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+

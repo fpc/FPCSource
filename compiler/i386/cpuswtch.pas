@@ -116,10 +116,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-06-20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.12  2004/01/12 16:39:40  peter
-    * sparc updates, mostly float related
+  Revision 1.14  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

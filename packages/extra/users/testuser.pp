@@ -5,7 +5,7 @@ uses users,classes;
 var
   Ulist,GList : TStringlist;
   i : longint;
-  
+
 begin
   Ulist:=TStringList.Create;
   Glist:=TStringList.Create;
@@ -21,7 +21,7 @@ begin
   finally
     Ulist.Free;
     Glist.Free;
-  end;  
+  end;
 end.
-            
-            
+
+

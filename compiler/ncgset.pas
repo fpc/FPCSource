@@ -870,65 +870,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2005-01-04 20:14:40  florian
+  Revision 1.75  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.74  2005/01/04 20:14:40  florian
     * better commenting
-
-  Revision 1.73  2004/12/11 01:04:26  jonas
-    * fixed regvar problem due to emit_bit_test() changing a register that
-      was allowed to be a LOC_CREGISTER
-
-  Revision 1.72  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.71  2004/11/30 18:13:39  jonas
-    * patch from Peter to fix inlining of case statements
-
-  Revision 1.70  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.69  2004/10/30 22:01:11  florian
-    * jmp table code generation for case statement on sparc
-
-  Revision 1.68  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.67  2004/08/25 11:51:31  jonas
-    * fixed rare case bug (see tests/test/tb0478.pp)
-
-  Revision 1.66  2004/08/16 21:00:15  peter
-    * range checks fixed
-
-  Revision 1.65  2004/07/22 10:07:09  jonas
-    * fixed relabeling (nextaltnr was never increased)
-    * fixed inlining of case statements at the node level
-
-  Revision 1.64  2004/07/04 12:38:55  jonas
-    * fixed regvar bug in tcginnode.pass_2
-
-  Revision 1.63  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.62  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.61  2004/05/30 21:18:22  jonas
-    * some optimizations and associated fixes for better regvar code
-
-  Revision 1.60.2.5  2004/05/02 16:49:12  peter
-    * 64 bit fixes
-
-  Revision 1.60.2.4  2004/05/02 14:09:54  peter
-    * fix case 64bit issues
-
-  Revision 1.60.2.3  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
 
 }

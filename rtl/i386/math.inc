@@ -288,46 +288,7 @@
 
 {
   $Log$
-  Revision 1.21  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.20  2004/11/17 22:19:04  peter
-  internconst, internproc and some external declarations moved to interface
-
-  Revision 1.19  2004/07/09 23:06:11  peter
-    * add fclex for fpu exceptions to round/trunc
-
-  Revision 1.18  2003/11/29 16:40:12  jonas
-    * fix power() for negative base
-
-  Revision 1.17  2003/11/24 21:57:43  michael
-  + Patch from Johannes Berg for bug 2759
-
-  Revision 1.16  2003/11/11 21:08:17  peter
-    * REGCALL define added
-
-  Revision 1.15  2003/09/08 18:21:37  peter
-    * save edi,esi,ebx
-
-  Revision 1.14  2003/04/23 21:28:21  peter
-    * fpc_round added, needed for int64 currency
-
-  Revision 1.13  2003/02/05 19:53:17  carl
-    * round bugfix with -Or switch
-
-  Revision 1.12  2003/01/15 00:45:17  peter
-    * use generic int64 power
-
-  Revision 1.11  2003/01/15 00:40:18  peter
-    * power returns int64
-
-  Revision 1.10  2003/01/03 20:34:02  peter
-    * i386 fpu controlword functions added
-
-  Revision 1.9  2002/10/06 21:26:17  peter
-    * round returns int64
-
-  Revision 1.8  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
+  Revision 1.22  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -3321,32 +3321,8 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.9  2004-12-26 15:43:33  peter
-    * remove crt dependency
-
-  Revision 1.8  2004/05/03 20:52:50  peter
-    * 64 bit fixes
-
-  Revision 1.7  2003/11/03 09:34:42  marco
-   * fix from peter for 1.9 release problem
-
-  Revision 1.6  2002/09/07 15:43:06  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/05/31 11:54:33  marco
-  * Renamefest for 1.0, many 1.1.x spots patched also.
-
-  Revision 1.4  2002/03/19 13:03:43  pierre
-   * fix the setftime for all targets
-
-  Revision 1.3  2002/03/15 11:33:33  pierre
-   * fix the win32 time stamp bug
-
-  Revision 1.2  2002/03/13 17:29:50  carl
-  * arithmetic overflow bugfix
-
-  Revision 1.1  2002/01/29 17:55:23  peter
-    * splitted to base and extra
+  Revision 1.10  2005-02-14 17:13:21  peter
+    * truncate log
 
 }
 

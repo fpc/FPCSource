@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     User interface for debug server.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -22,7 +22,7 @@ unit dbugintf;
 
 interface
 
-uses 
+uses
 {$ifdef fpc}
    linux,
 {$else}
@@ -34,7 +34,7 @@ uses
 
 Type
   TDebugLevel = (dlInformation,dlWarning,dlError);
-  
+
 {$ifdef fpc}
   pid_t = longint;
 {$endif}
@@ -49,7 +49,7 @@ procedure SendMethodExit(const MethodName: string);
 procedure SendSeparator;
 procedure SendDebugFmt(const Msg: string; const Args: array of const);
 procedure SendDebugFmtEx(const Msg: string; const Args: array of const; MType: TDebugLevel);
- 
+
 { low-level routines }
 
 procedure SendDebugMessage(Const Msg : TDebugMessage);
@@ -59,7 +59,7 @@ Procedure InitDebugStream;
 
 Const
   SendError       : String = '';
-  
+
 ResourceString
   SProcessID = 'Process %d: %s';
   SEntering = '> Entering ';
@@ -224,13 +224,13 @@ begin
       tv.tv_sec:=1;
       tv.tv_nsec:=0;
       nanosleep(tv,tr);
-{$endif}        
+{$endif}
       end;
 {$ifdef fpc}
   Result:=TUnixSocket.Create(SocketFile);
 {$else}
   Result:=TUnixSocket.CreateFromFile(SocketFile);
-{$endif}  
+{$endif}
 end;
 
 Function CreateInetDebugStream (HostName : String; Port : Word) : TStream;
@@ -246,10 +246,10 @@ Var
   Msg : TDebugMessage;
 
 begin
-  Case DebugConnection of 
+  Case DebugConnection of
     dcUnix : Result:=CreateUnixDebugStream(DebugSocket);
     dcInet : Result:=CreateInetDebugStream(DebugHostName,DebugPort);
-  end;  
+  end;
   Msg.MsgType:=lctIdentify;
   Msg.MsgTimeStamp:=Now;
   Msg.Msg:=Format(SProcessID,[getPID,ExtractFileName(Paramstr(0))]);
@@ -284,7 +284,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:44:29  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:44:29  michael
   + Initial implementation
 
 }

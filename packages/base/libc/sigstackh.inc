@@ -28,11 +28,11 @@ Type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSigStack = _sigstack;
   PSigStack = ^TSigStack;
-    
+
   TStack = stack_t;
   PStack = ^TStack;
-    
-    
+
+

@@ -16,7 +16,7 @@ begin
     fst d3
   end;
   if d3<>2 then
-    begin  
+    begin
       writeln(d3);
       halt(1);
     end;

@@ -400,29 +400,8 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {
  $Log$
- Revision 1.14  2004-11-06 19:19:31  armin
- * added targets netware and netwlibc
-
- Revision 1.13  2004/11/04 20:57:58  peter
- sysmsgs is always available
-
- Revision 1.12  2004/11/03 20:33:05  peter
-   * removed unnecesasry graphfv stuff
-
- Revision 1.11  2004/02/06 20:59:29  jonas
-   + darwin support
-
- Revision 1.10  2002/09/07 15:06:38  peter
-   * old logs removed and tabs fixed
-
- Revision 1.9  2002/06/07 14:15:10  pierre
-  * add window resizing support for unix
-
- Revision 1.8  2002/06/02 08:32:51  marco
-  * renamefest
-
- Revision 1.7  2002/05/21 12:02:02  pierre
-  define HASSYSMSGUNIT for go32v2 and win32
+ Revision 1.15  2005-02-14 17:13:18  peter
+   * truncate log
 
 }
 

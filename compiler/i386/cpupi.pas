@@ -67,8 +67,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2004-06-20 08:55:31  florian
-    * logs truncated
+  Revision 1.18  2005-02-14 17:13:09  peter
+    * truncate log
 
 }
 

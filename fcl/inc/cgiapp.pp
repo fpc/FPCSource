@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     TCGIApplication class.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -13,7 +13,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+
 {$mode objfpc}
 {$H+}
 
@@ -27,16 +27,16 @@ uses
 Const
   CGIVarCount = 23;
 
-Type  
+Type
   TCGIVarArray = Array[1..CGIVarCount] of String;
-  
-Const   
-  CgiVarNames : TCGIVarArray = 
+
+Const
+  CgiVarNames : TCGIVarArray =
    ('AUTH_TYPE',
     'CONTENT_LENGTH',
-    'CONTENT_TYPE', 
-    'GATEWAY_INTERFACE', 
-    'PATH_INFO', 
+    'CONTENT_TYPE',
+    'GATEWAY_INTERFACE',
+    'PATH_INFO',
     'PATH_TRANSLATED',
     'QUERY_STRING', 'REMOTE_ADDR',
     'REMOTE_HOST',
@@ -55,8 +55,8 @@ Const
     'HTTP_REFERER',
     'HTTP_USER_AGENT');
 
-Type 
-  
+Type
+
   TCgiApplication = Class(TCustomApplication)
   Private
     FResponse : TStream;
@@ -114,7 +114,7 @@ Type
     Property ScriptName : String Index 13 read GetCGIVar;
     Property ServerName : String Index 14 read GetCGIVar;
     Property ServerPort : Word Read GetServerPort; // Index 15
-    Property ServerProtocol : String Index 16 read GetCGIVar; 
+    Property ServerProtocol : String Index 16 read GetCGIVar;
     Property ServerSoftware : String Index 17 read GetCGIVar;
     Property HTTPAccept : String Index 18 read GetCGIVar;
     Property HTTPAcceptCharset : String Index 19 read GetCGIVar;
@@ -130,7 +130,7 @@ Type
   end;
 
 ResourceString
-  SWebMaster = 'webmaster';  
+  SWebMaster = 'webmaster';
   SCGIError  = 'CGI Error';
   SAppEncounteredError = 'The application encountered the following error:';
   SError     = 'Error: ';
@@ -139,10 +139,10 @@ ResourceString
   SErrUnsupportedContentType = 'Unsupported content type: "%s"';
   SErrNoRequestMethod = 'No REQUEST_METHOD passed from server.';
   SErrInvalidRequestMethod = 'Invalid REQUEST_METHOD passed from server.';
-  
+
 Implementation
 
-uses 
+uses
   iostream;
 
 {$ifdef cgidebug}
@@ -165,7 +165,7 @@ Procedure InitLog;
 
 begin
   Assign(flog,'/tmp/cgi.log');
-  Rewrite(flog);  
+  Rewrite(flog);
   Log('---- Start of log session ---- ');
 end;
 
@@ -204,7 +204,7 @@ Procedure TCgiApplication.InitCGIVars;
 Var
   I : Integer;
   L : TStrings;
-  
+
 begin
   L:=TStringList.Create;
   Try
@@ -213,7 +213,7 @@ begin
       FCGIVars[i]:=L.Values[CGIVarNames[i]];
   Finally
     L.Free;
-  end;  
+  end;
 end;
 
 Function TCgiApplication.GetTempCGIFileName : String;
@@ -227,7 +227,7 @@ Procedure TCgiApplication.DeleteFormFiles;
 Var
   I,P : Integer;
   FN : String;
-  
+
 begin
   For I:=0 to FFormFiles.Count-1 do
     begin
@@ -239,7 +239,7 @@ begin
     end;
 end;
 
-Procedure TCgiApplication.Initialize; 
+Procedure TCgiApplication.Initialize;
 
 begin
   StopOnException:=True;
@@ -253,7 +253,7 @@ Procedure TCgiApplication.GetCGIVarList(List : TStrings);
 
 Var
   I : Integer;
-  
+
 begin
   List.Clear;
   For I:=1 to cgiVarCount do
@@ -271,7 +271,7 @@ Procedure TCgiApplication.GetRequestVarList(List : TStrings; NamesOnly : Boolean
 Var
   I,J : Integer;
   S : String;
-  
+
 begin
   List.BeginUpdate;
   Try
@@ -289,7 +289,7 @@ begin
           end;
         List.Add(S);
         end;
-  finally 
+  finally
     List.EndUpdate;
   end;
 end;
@@ -324,7 +324,7 @@ Function TCgiApplication.EmitContentType : Boolean;
 
 Var
   S: String;
-  
+
 begin
   Result:=Not FContentTypeEmitted;
   If result then
@@ -368,7 +368,7 @@ Function TCgiApplication.GetEmail : String;
 
 Var
   H : String;
-  
+
 begin
   If (FEmail='') then
     begin
@@ -376,10 +376,10 @@ begin
     If (H<>'') then
       Result:=Administrator+'@'+H
     else
-      Result:='';  
+      Result:='';
     end
   else
-    Result:=Email;  
+    Result:=Email;
 end;
 
 Function TCgiApplication.GetAdministrator : String;
@@ -395,7 +395,7 @@ Procedure TCgiApplication.InitRequestVars;
 
 var
   R : String;
-   
+
 begin
   R:=RequestMethod;
   if (R='') then
@@ -413,14 +413,14 @@ Procedure TCgiApplication.ProcessURLEncoded(M : TMemoryStream);
 
 var
   FQueryString : String;
-  
+
 begin
   SetLength(FQueryString,M.Size); // Skip added Null.
   M.Read(FQueryString[1],M.Size);
   ProcessQueryString(FQueryString);
 end;
 
-Type 
+Type
   TFormItem = Class(TObject)
     DisPosition : String;
     Name : String;
@@ -435,26 +435,26 @@ Type
 Procedure TFormItem.Process;
 
   Function GetLine(Var S : String) : String;
-  
+
   Var
     P : Integer;
-  
+
   begin
     P:=Pos(#13#10,S);
     If (P<>0) then
       begin
       Result:=Copy(S,1,P-1);
       Delete(S,1,P+1);
-      end;  
+      end;
   end;
 
   Function GetWord(Var S : String) : String;
 
   Var
-    I,len : Integer;  
+    I,len : Integer;
     Quoted : Boolean;
     C : Char;
-      
+
   begin
     len:=length(S);
     quoted:=false;
@@ -465,17 +465,17 @@ Procedure TFormItem.Process;
       if (c='"') then
         Quoted:=Not Quoted
       else
-        begin  
+        begin
         if not (c in [' ','=',';',':']) or Quoted then
           Result:=Result+C;
-        if (c in [';',':','=']) and (not quoted) then 
+        if (c in [';',':','=']) and (not quoted) then
           begin
           Delete(S,1,I);
           Exit;
           end;
         end;
-      end;  
-     S:='';  
+      end;
+     S:='';
   end;
 
 Var
@@ -485,7 +485,7 @@ Var
   c : char;
   S : string;
   quoted : boolean;
-  
+
 begin
   Line:=GetLine(Data);
   While (Line<>'') do
@@ -500,11 +500,11 @@ begin
       else if CompareText(S,'filename')=0 then
         begin
         FileName:=GetWord(Line);
-        isFile:=True; 
+        isFile:=True;
         end
       else if CompareText(S,'Content-Type')=0 then
         ContentType:=GetWord(Line);
-      S:=GetWord(Line);  
+      S:=GetWord(Line);
       end;
     Line:=GetLine(Data);
     end;
@@ -525,11 +525,11 @@ end;
 procedure FormSplit(var Cnt : String; boundary: String; List : TList);
 
 // Splits the form into items
-var 
+var
   Sep : string;
   Clen,slen, p:longint;
   FI : TFormItem;
-  
+
 begin
   Sep:='--'+boundary+#13+#10;
   Slen:=length(Sep);
@@ -548,7 +548,7 @@ begin
       P:=CLen+1;
     FI.Data:=Copy(Cnt,1,P-1);
     delete(Cnt,1,P+SLen-1);
-    CLen:=Length(Cnt);  
+    CLen:=Length(Cnt);
     end;
 end;
 
@@ -556,8 +556,8 @@ function GetNextLine(Var Data: String):string;
 
 Var
   p : Integer;
-  
-begin  
+
+begin
   P:=Pos(#13#10,Data);
   If (P<>0) then
     begin
@@ -575,12 +575,12 @@ Var
   S,FF,key, Value : String;
   FI : TFormItem;
   F : TStream;
-  
+
 begin
   i:=Pos('=',Boundary);
   B:=Copy(Boundary,I+1,Length(Boundary)-I);
   I:=Length(B);
-  If (I>0) and (B[1]='"') then 
+  If (I>0) and (B[1]='"') then
     B:=Copy(B,2,I-2);
   L:=TList.Create;
   Try
@@ -594,23 +594,23 @@ begin
       FI.Process;
       If (FI.Name='') then
         Raise Exception.CreateFmt('Invalid multipart encoding: %s',[FI.Data]);
-      Key:=FI.Name;  
+      Key:=FI.Name;
       If Not FI.IsFile Then
         begin
         Value:=FI.Data
         end
       else
-        begin  
+        begin
         Value:=FI.FileName;
         FF:=GetTempCGIFileName;
         FFormFiles.Add(Key+'='+FF);
         F:=TFileStream.Create(FF,fmCreate);
         Try
           if Length(FI.Data)>0 then
-            F.Write(FI.Data[1],Length(FI.Data)); 
+            F.Write(FI.Data[1],Length(FI.Data));
         finally
           F.Free;
-        end;  
+        end;
         FI.Free;
         L[i]:=Nil;
         end;
@@ -625,7 +625,7 @@ end;
 
 Type
   TCapacityStream = Class(TMemoryStream)
-  Public 
+  Public
     Property Capacity;
   end;
 
@@ -636,7 +636,7 @@ Var
   I  : TIOStream;
   Cl : Integer;
   B  : Byte;
-      
+
 begin
   CL:=ContentLength;
   M:=TCapacityStream.Create;
@@ -652,19 +652,19 @@ begin
         begin
         While (I.Read(B,1)>0) do
           M.Write(B,1)
-        end;  
+        end;
     Finally
       I.Free;
-    end;  
-    if Pos(ContentType,'MULTIPART/FORM-DATA')=0 then  
+    end;
+    if Pos(ContentType,'MULTIPART/FORM-DATA')=0 then
       ProcessMultiPart(M,ContentType)
     else if CompareText(ContentType,'APPLICATION/X-WWW-FORM-URLENCODED')=0 then
       ProcessUrlEncoded(M)
-    else  
+    else
       Raise Exception.CreateFmt(SErrUnsupportedContentType,[ContentType]);
   finally
     M.Free;
-  end;    
+  end;
 end;
 
 Procedure TCgiApplication.InitGetVars;
@@ -680,7 +680,7 @@ end;
 
 const
    hexTable = '0123456789ABCDEF';
-   
+
 Procedure TCgiApplication.ProcessQueryString(Const FQueryString : String);
 
 
@@ -697,7 +697,7 @@ var
 
   var
     B : Byte;
-    
+
   begin
     B:=(Pos(upcase(h1),hexTable)-1)*16;
     B:=B+Pos(upcase(h2),hexTable)-1;
@@ -710,7 +710,7 @@ var
     index : Integer;
 
   begin
-    Index:=Length(QueryItem);    
+    Index:=Length(QueryItem);
     While (Index>0) do
       begin
       If QueryItem[Index]='+' then
@@ -720,12 +720,12 @@ var
         QueryItem[Index]:=hexConverter(QueryItem[Index+1],QueryItem[index+2]);
         System.Delete(QueryItem,Index+1,2);
         end;
-      dec(Index);  
+      dec(Index);
       end;
   end;
 
   procedure InitToken(aStr, aSep : String);
-  
+
   begin
     aString := aStr;
     aSepStr := aSep;
@@ -742,7 +742,7 @@ var
     BoT : Integer;
     EoT : Integer;
     isSep : Boolean;
- 
+
   begin
     BoT:=aPos;
     EoT:=aPos;
@@ -856,7 +856,7 @@ end;
 Function TCGIApplication.VariableIsUploadedFile(Const VarName : String) : boolean;
 
 begin
-  Result:=FFormFiles.IndexOfName(VarName)<>-1;  
+  Result:=FFormFiles.IndexOfName(VarName)<>-1;
 end;
 
 Function TCGIApplication.UploadedFileName(Const VarName : String) : String;
@@ -868,7 +868,7 @@ end;
 {$ifdef cgidebug}
 Initialization
   initLog;
-  
+
 Finalization
   DoneLog;
 {$endif}

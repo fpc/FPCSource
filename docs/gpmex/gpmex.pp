@@ -9,7 +9,7 @@ uses gpm;
 var
   connect : TGPMConnect;
   event : tgpmevent;
- 
+
 begin
   connect.EventMask:=GPM_MOVE or GPM_DRAG or GPM_DOWN or GPM_UP;
   connect.DefaultMask:=0;
@@ -32,15 +32,15 @@ begin
           write('right ');
         if (buttons and Gpm_b_middle)<>0 then
           Write('middle ');
-        Write(') Event : ');   
+        Write(') Event : ');
         Case EventType and $F of
           GPM_MOVE: write('Move');
           GPM_DRAG: write('Drag');
           GPM_DOWN: write('Down');
           GPM_UP: write('Up');
-        end;  
+        end;
         Writeln;
-      end;  
+      end;
   Until (Event.Buttons and gpm_b_right)<>0;
   gpm_close;
 end.

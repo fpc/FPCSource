@@ -43,6 +43,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):T
 
 {
   $Log$
-  Revision 1.1  2003-08-28 00:08:29  florian
-    * syscall skeleton
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
 }

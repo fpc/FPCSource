@@ -355,70 +355,10 @@ procedure fpc_dynarray_copy(var pdest : pointer;psrc : pointer;ti : pointer;
 
 {
   $Log$
-  Revision 1.35  2005-01-24 21:32:48  florian
+  Revision 1.36  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.35  2005/01/24 21:32:48  florian
     * fixed copy(dyn. array of ansistring)
 
-  Revision 1.34  2004/11/07 18:31:50  jonas
-    * fixed getting pointer to nested dynarray types
-
-  Revision 1.33  2004/11/07 18:02:47  jonas
-    * fixed pointer arithmetic errors
-
-  Revision 1.32  2004/11/06 15:29:19  florian
-    * fixed fpc_dynarry_copy for arm/sparc
-
-  Revision 1.31  2004/11/03 10:54:36  florian
-    * fixed dyn. array handling for 32 bit architectures requiering proper alignment
-
-  Revision 1.30  2004/10/24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.29  2004/09/15 07:28:09  michael
-  + Fix crash when resizing dynamic array
-
-  Revision 1.28  2004/05/31 20:25:04  peter
-    * removed warnings
-
-  Revision 1.27  2004/05/31 14:31:57  peter
-    * remove comment warnings
-
-  Revision 1.26  2004/05/24 07:18:17  michael
-  + Patch from peter to fix crash
-
-  Revision 1.25  2004/05/20 15:56:32  florian
-    * fixed <dyn. array>:=nil;
-
-  Revision 1.24  2004/05/02 15:15:58  peter
-    * use freemem() without size
-
-  Revision 1.23  2003/10/29 21:00:34  peter
-    * fixed a:=copy(b)
-
-  Revision 1.22  2003/10/25 22:52:07  florian
-    * fixed copy(<dynarray>, ...)
-
-  Revision 1.21  2002/11/26 23:02:07  peter
-    * fixed dynarray copy
-
-  Revision 1.20  2002/10/09 20:24:30  florian
-    + range checking for dyn. arrays
-
-  Revision 1.19  2002/10/02 18:21:51  peter
-    * Copy() changed to internal function calling compilerprocs
-    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
-      new copy functions
-
-  Revision 1.18  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.17  2002/04/26 15:19:05  peter
-    * use saveregisters for incr routines, saves also problems with
-      the optimizer
-
-  Revision 1.16  2002/04/25 20:14:56  peter
-    * updated compilerprocs
-    * incr ref count has now a value argument instead of var
-
-  Revision 1.15  2002/01/21 20:16:08  peter
-    * updated for dynarr:=nil
 }

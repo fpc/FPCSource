@@ -117,7 +117,7 @@ End.
 
 {
  $Log$
- Revision 1.6  2004-06-20 08:55:31  florian
-   * logs truncated
+ Revision 1.7  2005-02-14 17:13:10  peter
+   * truncate log
 
 }

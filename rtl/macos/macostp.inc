@@ -22,7 +22,7 @@
 in MacOS Universal Headers. The prefix is to avoid name clashes
 with FPC types.}
 
-{For a future possiblity of compiling the RTL under Carbon, 
+{For a future possiblity of compiling the RTL under Carbon,
  sections containing Carbon only code should be under
  ifdef TARGET_API_MAC_CARBON, at the moment it is always undefinded: }
 
@@ -130,7 +130,7 @@ procedure SetHandleSize (h: Mac_Handle; newSize: Size);
 external 'InterfaceLib';
 function GetHandleSize (h: Mac_Handle): Size;
 external 'InterfaceLib';
- 
+
 function Mac_FreeMem: Longint;
 external 'InterfaceLib' name 'FreeMem';
 PROCEDURE MaxApplZone;

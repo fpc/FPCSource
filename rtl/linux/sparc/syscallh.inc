@@ -43,32 +43,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):T
 
 {
   $Log$
-  Revision 1.4  2003-07-06 21:26:10  peter
-    * syscall6 alias fixed
-
-  Revision 1.3  2003/05/23 22:36:39  florian
-    * fixed compilation of sparc system unit
-
-  Revision 1.2  2003/01/05 21:32:35  mazen
-  * fixing several bugs compiling the RTL
-
-  Revision 1.1  2002/12/24 21:30:20  mazen
-  - some writeln(s) removed in compiler
-  + many files added to RTL
-  * some errors fixed in RTL
-
-  Revision 1.1  2002/12/22 16:00:28  jonas
-    + added syscallh.inc, adapted syscall.inc
-
-  Revision 1.3  2002/12/18 20:41:33  peter
-    * Threadvar support for Errno
-    * Fixed syscall error return check
-    * Uncommented Syscall with 6 parameters, only 5 were really set
-
-  Revision 1.2  2002/12/18 16:46:37  marco
-   * Some mods.
-
-  Revision 1.1  2002/11/16 15:37:47  marco
-   * TSysParam + result moved to -h
+  Revision 1.5  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

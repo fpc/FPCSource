@@ -1431,25 +1431,7 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-10-24 20:01:42  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.6  2004/05/02 12:11:44  peter
-    * fixed linefeeds
-
-  Revision 1.5  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.4  2002/09/27 17:44:50  carl
-    * add testing for window-page size 4K, so as to test stack corruption
-
-  Revision 1.3  2002/09/07 15:40:51  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/05/13 13:45:37  peter
-    * updated to compile tests with kylix
-
-  Revision 1.1  2002/04/13 17:47:57  carl
-  + function calling withy saveregisters convention
+  Revision 1.8  2005-02-14 17:13:36  peter
+    * truncate log
 
 }

@@ -80,8 +80,8 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TUserContext = ucontext_t;
   PUserContext = ^TUserContext;
-  
-  
+
+

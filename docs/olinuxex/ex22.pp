@@ -6,7 +6,7 @@ Uses oldlinux;
 
 Var F : Text;
     S : String;
-    
+
 begin
   Assign (F,'test.txt');
   Rewrite (F);
@@ -26,7 +26,7 @@ begin
   Reset (F);
   {$i+}
   If IOResult=0 then
-    Writeln ('This shouldn''t happen'); 
+    Writeln ('This shouldn''t happen');
  { Now remove new.txt also }
  If not Unlink ('new.txt') then
    Writeln ('Error when unlinking !');

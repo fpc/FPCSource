@@ -17,9 +17,9 @@ Interface
 
 Uses
   macostp;
-  
 
-Const 
+
+Const
   FileNameLen = 255;
 
 Type
@@ -216,7 +216,7 @@ Procedure Fpc_WriteBuffer(var f:Text;const b;len:longint);[external name 'FPC_WR
 {declared in text.inc}
 
 procedure WriteAEDescTypeCharToFile(desc: AEDesc; var f: Text);
-  
+
 begin
   if desc.descriptorType = FourCharCodeToLongword(typeChar) then
     begin
@@ -226,7 +226,7 @@ begin
       HUnLock(desc.dataHandle);
     end;
 end;
-  
+
 function ExecuteToolserverScript(scriptText: PChar; var statusCode: Longint): OSErr;
 
   var
@@ -237,10 +237,10 @@ function ExecuteToolserverScript(scriptText: PChar; var statusCode: Longint): OS
     result: AEDesc;
     applFileSpec: FSSpec;
     p: SignedByte;
-   
+
   const
     applCreator = 'MPSX'; {Toolserver}
-    
+
 begin
   statusCode:= 3; //3 according to MPW.
   err:= CreateDoScriptEvent (FourCharCodeToLongword(applCreator), scriptText, theEvent);
@@ -258,33 +258,33 @@ begin
         end;
 
       if err = noErr then
-        begin    
+        begin
           err:= AEGetParamDesc(reply, FourCharCodeToLongword('stat'),
                     FourCharCodeToLongword(typeLongInteger), result);
-          
+
           if err = noErr then
             if result.descriptorType = FourCharCodeToLongword(typeLongInteger) then
               statusCode:= LongintPtr(result.dataHandle^)^;
-          
+
           {If there is no output below, we get a non zero error code}
-          
+
           err2:= AEGetParamDesc(reply, FourCharCodeToLongword('----'),
-                    FourCharCodeToLongword(typeChar), result);        
+                    FourCharCodeToLongword(typeChar), result);
           if err2 = noErr then
              WriteAEDescTypeCharToFile(result, stdout);
-          
+
           err2:= AEGetParamDesc(reply, FourCharCodeToLongword('diag'),
                     FourCharCodeToLongword(typeChar), result);
           if err2 = noErr then
             WriteAEDescTypeCharToFile(result, stderr);
-          
+
           AEDisposeDesc(reply);
-        
+
           {$IFDEF TARGET_API_MAC_CARBON }
           {$ERROR FIXME AEDesc data is not allowed to be directly accessed}
           {$ENDIF}
         end;
-        
+
       AEDisposeDesc(theEvent);
     end;
 
@@ -296,17 +296,17 @@ var
   s: AnsiString;
   err: OSErr;
   wdpath: AnsiString;
-  
+
 Begin
   {Make ToolServers working directory in sync with our working directory}
   PathArgToFullPath(':', wdpath);
   wdpath:= 'Directory ' + wdpath;
   err:= ExecuteToolserverScript(PChar(wdpath), LastDosExitCode);
-    {TODO Only change path when actually needed. But this requires some 
+    {TODO Only change path when actually needed. But this requires some
      change counter to be incremented each time wd is changed. }
 
   s:= path + ' ' + comline;
-  
+
   err:= ExecuteToolserverScript(PChar(s), LastDosExitCode);
   if err = afpItemNotFound then
     DosError := 900
@@ -408,18 +408,18 @@ End;
       while Found and (i <= LenPat) do
         begin
           case Pattern[i] of
-            '?': 
+            '?':
               Found := (j <= LenName);
-            '*': 
+            '*':
               begin
                                 {find the next character in pattern, different of ? and *}
                 while Found and (i < LenPat) do
                   begin
                     i := i + 1;
                     case Pattern[i] of
-                      '*': 
+                      '*':
                         ;
-                      '?': 
+                      '?':
                         begin
                           j := j + 1;
                           Found := (j <= LenName);
@@ -513,7 +513,7 @@ End;
 
         (*
         if isNameLocked then
-          attr := (attr or sysfile); 
+          attr := (attr or sysfile);
         *)
 
         GetFileAttrFromPB := attr;
@@ -814,7 +814,7 @@ End;
       spec: FSSpec;
       paramBlock: CInfoPBRec;
       d: DateTimeRec; {Mac OS datastructure}
-      t: datetime; 
+      t: datetime;
       macfiletime: UInt32;
 
   begin

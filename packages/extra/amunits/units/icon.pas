@@ -44,10 +44,10 @@
          FUNCTION PutIconTagList
     Changed start code for unit.
     02 Feb 2003.
-    
+
     Changed cardinal > longword.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -183,7 +183,7 @@ uses exec, workbench,utility,amigados,graphics,intuition,datatypes;
 { Tags for use with GetIconTagList() }
 
 { Default icon type to retrieve (LONG) }
-     ICONGETA_GetDefaultType	= ICONA_Dummy+45;
+     ICONGETA_GetDefaultType    = ICONA_Dummy+45;
 
 { Retrieve default icon for the given name (STRPTR) }
        ICONGETA_GetDefaultName = ICONA_Dummy + 46;
@@ -210,7 +210,7 @@ uses exec, workbench,utility,amigados,graphics,intuition,datatypes;
 
     { Screen to remap the icon to (struct Screen  ).  }
        ICONGETA_Screen = ICONA_Dummy + 69;
-  
+
     {**************************************************************************}
 
     { Tags for use with PutIconTagList()  }
@@ -271,14 +271,14 @@ uses exec, workbench,utility,amigados,graphics,intuition,datatypes;
             iim_UtilityBase : PLibrary;
             iim_IconBase : PLibrary;
 
-	    { File context information. }
+            { File context information. }
             iim_FileLock : BPTR;           { Lock on the object to return an icon for. }
             iim_ParentLock : BPTR;         { Lock on the object's parent directory, if available. }
             iim_FIB : PFileInfoBlock;      { Already initialized for you. }
             iim_FileHandle : BPTR;         { If non-NULL, pointer to the file to examine,
-						 * positioned right at the first byte, ready
-						 * for you to use.
-						 }
+                                                 * positioned right at the first byte, ready
+                                                 * for you to use.
+                                                 }
             iim_Tags : PTagItem;           { Tags passed to GetIconTagList(). }
          end;
 
@@ -588,132 +588,132 @@ END;
 FUNCTION DupDiskObjectA(CONST diskObject : pDiskObject; CONST tags : pTagItem) : pDiskObject;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	diskObject,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	IconBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L diskObject,A0
+        MOVEA.L tags,A1
+        MOVEA.L IconBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IconControlA(icon : pDiskObject; CONST tags : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	icon,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	IconBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L icon,A0
+        MOVEA.L tags,A1
+        MOVEA.L IconBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE DrawIconStateA(rp : pRastPort; CONST icon : pDiskObject; CONST label_ : pCHAR; leftOffset : LONGINT; topOffset : LONGINT; state : longword; CONST tags : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A0
-	MOVEA.L	icon,A1
-	MOVEA.L	label_,A2
-	MOVE.L	leftOffset,D0
-	MOVE.L	topOffset,D1
-	MOVE.L	state,D2
-	MOVEA.L	tags,A3
-	MOVEA.L	IconBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A0
+        MOVEA.L icon,A1
+        MOVEA.L label_,A2
+        MOVE.L  leftOffset,D0
+        MOVE.L  topOffset,D1
+        MOVE.L  state,D2
+        MOVEA.L tags,A3
+        MOVEA.L IconBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION GetIconRectangleA(rp : pRastPort; CONST icon : pDiskObject; CONST label_ : pCHAR; rect : pRectangle; CONST tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	rp,A0
-	MOVEA.L	icon,A1
-	MOVEA.L	label_,A2
-	MOVEA.L	rect,A3
-	MOVEA.L	tags,A4
-	MOVEA.L	IconBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L rp,A0
+        MOVEA.L icon,A1
+        MOVEA.L label_,A2
+        MOVEA.L rect,A3
+        MOVEA.L tags,A4
+        MOVEA.L IconBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION NewDiskObject(type_ : LONGINT) : pDiskObject;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	type_,D0
-	MOVEA.L	IconBase,A6
-	JSR	-174(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  type_,D0
+        MOVEA.L IconBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GetIconTagList(CONST name : pCHAR; CONST tags : pTagItem) : pDiskObject;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	IconBase,A6
-	JSR	-180(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L tags,A1
+        MOVEA.L IconBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION PutIconTagList(CONST name : pCHAR; CONST icon : pDiskObject; CONST tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	icon,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	IconBase,A6
-	JSR	-186(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L icon,A1
+        MOVEA.L tags,A2
+        MOVEA.L IconBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION LayoutIconA(icon : pDiskObject; screen : pScreen; tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	icon,A0
-	MOVEA.L	screen,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	IconBase,A6
-	JSR	-192(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L icon,A0
+        MOVEA.L screen,A1
+        MOVEA.L tags,A2
+        MOVEA.L IconBase,A6
+        JSR     -192(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE ChangeToSelectedIconColor(cr : pColorRegister);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	cr,A0
-	MOVEA.L	IconBase,A6
-	JSR	-198(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L cr,A0
+        MOVEA.L IconBase,A6
+        JSR     -198(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
@@ -749,7 +749,7 @@ end;
 
 FUNCTION GetDiskObjectNew(const name : string) : pDiskObject;
 begin
-      GetDiskObjectNew := GetDiskObjectNew(pas2c(name)); 
+      GetDiskObjectNew := GetDiskObjectNew(pas2c(name));
 end;
 
 FUNCTION MatchToolValue(const typeString : string;const value : pCHAR) : BOOLEAN;
@@ -868,21 +868,8 @@ END. (* UNIT ICON *)
 
 {
   $Log$
-  Revision 1.5  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.4  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.3  2003/01/14 18:46:04  nils
-  * added defines use_amia_smartlink and use_auto_openlib
-
-  * implemented autoopening of library
-
-  Revision 1.2  2002/11/18 20:54:32  nils
-    * update check internal log
+  Revision 1.6  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 

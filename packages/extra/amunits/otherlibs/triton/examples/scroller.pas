@@ -4,10 +4,10 @@ uses triton, tritonmacros, utility;
 
 {
    A demo in FPC Pascal using triton.library
-   
+
    Updated for fpc 1.0.7
    11 Jan 2003.
-   
+
    nils.sjoholm@mailbox.swipnet.se
 }
 

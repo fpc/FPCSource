@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     OS/2 event logging facility.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -32,7 +32,7 @@ const
 
   ErrLog_Service = 1;
   ErrLog_Version = 1;
- 
+
   lf_Bit_ProcName = 1;    {used to indicate whether the current error log}
                           {entry packet contains space in which the error}
                           {logging facility can place a long process name}
@@ -57,7 +57,7 @@ const
   lf_Bit_Remote_Fail = 256;
 
   MaxDataSize = 3400;
- 
+
 type
   Str3 = string [3];
 
@@ -88,7 +88,7 @@ type
   end;
   LogRecord = TLogRecord;
   PLogRecord = ^TLogRecord;
- 
+
   TLogEntryRec = record
     Version: word;                      {this version is 1}
     Count: word;                        {number of log records in this buffer}
@@ -96,7 +96,7 @@ type
   end;
   LogEntryRec = TLogEntryRec;
   PLogEntryRec = ^TLogEntryRec;
- 
+
 
 function DosQueryRASInfo (Index: cardinal; var PBuffer: pointer): longint;
                                           cdecl; external 'DOSCALLS' index 112;
@@ -258,16 +258,7 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-03-25 21:08:10  michael
-  + Added support for custom log event type
-
-  Revision 1.3  2003/03/20 20:15:27  hajny
-    * range checking has to be disabled
-
-  Revision 1.2  2003/03/02 02:01:35  hajny
-    + support for OS/2 system log added
-
-  Revision 1.1  2003/02/19 20:25:16  michael
-  + Added event log
+  Revision 1.5  2005-02-14 17:13:16  peter
+    * truncate log
 
 }

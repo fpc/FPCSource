@@ -3,8 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2003 by the Free Pascal development team
 
-    CustomApplication class. 
-    
+    CustomApplication class.
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -23,7 +23,7 @@ uses SysUtils,Classes;
 
 Type
   TExceptionEvent = Procedure (Sender : TObject; E : Exception) Of Object;
-  
+
   TCustomApplication = Class(TComponent)
   Private
     FOnException: TExceptionEvent;
@@ -49,7 +49,7 @@ Type
     // Some Delphi methods.
     procedure HandleException(Sender: TObject); virtual;
     procedure Initialize; virtual;
-    procedure Run; 
+    procedure Run;
     procedure ShowException(E: Exception);virtual;
     procedure Terminate; virtual;
     // Extra methods.
@@ -80,7 +80,7 @@ Type
     Property CaseSensitiveOptions : Boolean Read FCaseSensitiveOptions Write FCaseSensitiveOptions;
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
   end;
-  
+
 Implementation
 
 {$i custapp.inc}
@@ -214,7 +214,7 @@ Var
   B : Boolean;
   I,P : integer;
   O : String;
-  
+
 begin
   Result:='';
   I:=FindOptionIndex(C,B);
@@ -253,12 +253,12 @@ function TCustomApplication.FindOptionIndex(Const S : String; Var Longopt : Bool
 Var
   SO,O : String;
   I,P : Integer;
-  
+
 begin
   If Not CaseSensitiveOptions then
     SO:=UpperCase(S)
   else
-    SO:=S;  
+    SO:=S;
   Result:=-1;
   I:=ParamCount;
   While (Result=-1) and (I>0) do
@@ -304,19 +304,19 @@ ResourceString
   SErrInvalidOption = 'Invalid option at position %d: "%s"';
   SErrNoOptionAllowed = 'Option at position %d does not allow an argument: %s';
   SErrOptionNeeded = 'Option at position %d needs an argument : %s';
-  
+
 Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Longopts : TStrings; Opts,NonOpts : TStrings) : String;
 
 Var
   I,J,L,P : Integer;
   O,OV,SO : String;
   HaveArg : Boolean;
-  
+
   Function FindLongOpt(S : String) : boolean;
-  
+
   Var
     I : integer;
-  
+
   begin
     If CaseSensitiveOptions then
       begin
@@ -330,10 +330,10 @@ Var
       I:=LongOpts.Count-1;
       While (I>=0) and (UpperCase(LongOpts[i])<>S) do
         Dec(i);
-      end;  
+      end;
     Result:=(I<>-1);
   end;
-  
+
 begin
   If CaseSensitiveOptions then
     SO:=Shortoptions
@@ -347,7 +347,7 @@ begin
     If (Length(O)=0) or (O[1]<>FOptionChar) then
       begin
       If Assigned(NonOpts) then
-        NonOpts.Add(O)  
+        NonOpts.Add(O)
       end
     else
       begin
@@ -369,7 +369,7 @@ begin
             Delete(OV,1,J);
             O:=Copy(O,1,J-1);
             end;
-          // Switch Option   
+          // Switch Option
           If FindLongopt(O) then
             begin
             If HaveArg then
@@ -387,7 +387,7 @@ begin
               If not FindLongOpt(O+'::') then
                 Result:=Format(SErrInvalidOption,[I,O]);
               end;
-            end;  
+            end;
           end
         else // Short Option.
           begin
@@ -412,9 +412,9 @@ begin
                 If ((P+1)=Length(ShortOptions)) or (Shortoptions[P+2]<>':') Then
                   If (J<L) or not haveArg then // Must be last in multi-opt !!
                     Result:=Format(SErrOptionNeeded,[I,O[J]]);
-                O:=O[j]; // O is added to arguments.  
+                O:=O[j]; // O is added to arguments.
                 end;
-              end;  
+              end;
             Inc(J);
             end;
           If HaveArg then
@@ -422,12 +422,12 @@ begin
             Inc(I); // Skip argument.
             O:=O[Length(O)]; // O is added to arguments !
             end;
-          end;  
+          end;
         If HaveArg and (Result='') then
           If Assigned(Opts) then
             Opts.Add(O+'='+OV);
-        end;  
-      end; 
+        end;
+      end;
     Inc(I);
     end;
 end;
@@ -437,16 +437,16 @@ Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const Long
 Var
   L : TStringList;
   I : Integer;
-  
+
 begin
   L:=TStringList.Create;
   Try
     For I:=0 to High(LongOpts) do
       L.Add(LongOpts[i]);
-    Result:=CheckOptions(ShortOptions,L);  
+    Result:=CheckOptions(ShortOptions,L);
   Finally
     L.Free;
-  end;      
+  end;
 end;
 
 Function TCustomApplication.CheckOptions(Const ShortOptions : String; Const LongOpts : String) : String;
@@ -457,7 +457,7 @@ Const
 Var
   L : TStringList;
   Len,I,J : Integer;
-  
+
 begin
   L:=TStringList.Create;
   Try
@@ -465,15 +465,15 @@ begin
     Len:=Length(LongOpts);
     While I<=Len do
       begin
-      While Isdelimiter(SepChars,LongOpts,I) do 
+      While Isdelimiter(SepChars,LongOpts,I) do
         Inc(I);
-      J:=I;  
+      J:=I;
       While (J<=Len) and Not IsDelimiter(SepChars,LongOpts,J) do
         Inc(J);
       If (I<=J) then
         L.Add(Copy(LongOpts,I,(J-I)));
-      I:=J+1;  
-      end;  
+      I:=J+1;
+      end;
     Result:=CheckOptions(Shortoptions,L);
   Finally
     L.Free;
@@ -484,9 +484,7 @@ end.
 
 {
    $Log$
-   Revision 1.6  2003-06-01 14:40:05  marco
-    * Fix to get it to build "name" was considered dup ident. Changed to
-       envname and added logs
-
+   Revision 1.7  2005-02-14 17:13:15  peter
+     * truncate log
 
 }

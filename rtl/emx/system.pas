@@ -575,7 +575,7 @@ begin
     inoutres:=0;
 
     InitSystemThreads;
-    
+
 {$ifdef HASVARIANT}
     initvariantmanager;
 {$endif HASVARIANT}
@@ -592,106 +592,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2005-02-06 16:57:18  peter
+  Revision 1.34  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.33  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
-
-  Revision 1.32  2004/12/12 21:08:29  hajny
-    * ThreadID is shared
-
-  Revision 1.31  2004/12/05 14:36:37  hajny
-    + GetProcessID added
-
-  Revision 1.30  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.29  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.28  2004/09/18 11:12:49  hajny
-    * handle type changed to thandle in do_isdevice
-
-  Revision 1.27  2004/09/03 19:25:41  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.26  2004/07/24 01:15:25  hajny
-    * simulated support for new heap manager
-
-  Revision 1.25  2004/05/16 20:39:59  hajny
-    * handle in do_* changed to THandle
-
-  Revision 1.24  2004/04/22 21:10:56  peter
-    * do_read/do_write addr argument changed to pointer
-
-  Revision 1.23  2004/01/20 23:05:31  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.22  2003/12/26 22:20:44  hajny
-    * regcall fixes
-
-  Revision 1.21  2003/12/17 22:52:39  hajny
-    * fix for stackbottom change to pointer
-
-  Revision 1.20  2003/11/06 23:21:51  hajny
-    * cardinal2pointer changes
-
-  Revision 1.19  2003/11/01 19:25:50  hajny
-    * fix of previous mistyping
-
-  Revision 1.18  2003/10/25 22:45:37  hajny
-    * file handling related fixes
-
-  Revision 1.17  2003/10/19 12:13:41  hajny
-    * UnusedHandle value made the same as with other targets
-
-  Revision 1.16  2003/10/19 09:35:28  hajny
-    * fixes from OS/2 merged to EMX
-
-  Revision 1.15  2003/10/16 15:43:13  peter
-    * THandle is platform dependent
-
-  Revision 1.14  2003/10/12 18:07:30  hajny
-    * wrong use of Intel syntax
-
-  Revision 1.13  2003/10/12 17:59:40  hajny
-    * wrong use of Intel syntax
-
-  Revision 1.12  2003/10/12 17:52:28  hajny
-    * wrong use of Intel syntax
-
-  Revision 1.11  2003/10/12 10:45:36  hajny
-    * sbrk error handling corrected
-
-  Revision 1.10  2003/10/07 21:33:24  hajny
-    * stdcall fixes and asm routines cleanup
-
-  Revision 1.9  2003/10/04 17:53:08  hajny
-    * stdcall changes merged to EMX
-
-  Revision 1.8  2003/09/29 18:39:59  hajny
-    * append fix applied to GO32v2, OS/2 and EMX
-
-  Revision 1.7  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.6  2003/09/24 11:13:09  yuri
-  * Cosmetic changes
-  * Slightly improved emx.pas
-
-  Revision 1.5  2003/06/26 17:12:29  yuri
-  * pmbidi added
-  * some cosmetic changes
-
-  Revision 1.4  2003/03/23 23:11:17  hajny
-    + emx target added
-
-  Revision 1.3  2002/12/15 22:46:29  hajny
-    * First_Meg fixed + Environment initialization under Dos
-
-  Revision 1.2  2002/11/17 22:32:05  hajny
-    * type corrections (longing x cardinal)
-
-  Revision 1.1  2002/11/17 16:22:54  hajny
-    + RTL for emx target
 
 }

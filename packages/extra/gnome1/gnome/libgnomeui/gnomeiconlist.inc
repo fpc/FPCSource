@@ -35,13 +35,13 @@ type
         pad26 : gpointer;
      end;
    GNOME_ICON_LIST = ^TGnomeIconList;
-     
+
 const
    bm_GnomeIconList_pad14 = $1;
    bp_GnomeIconList_pad14 = 0;
    bm_GnomeIconList_pad15 = $2;
    bp_GnomeIconList_pad15 = 1;
-   
+
 function pad14(var a : TGnomeIconList) : dword;
 procedure set_pad14(var a : TGnomeIconList; __pad14 : dword);
 function pad15(var a : TGnomeIconList) : dword;

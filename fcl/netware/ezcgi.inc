@@ -32,8 +32,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-03-25 17:56:19  armin
-  * first fcl implementation for netware
-
+  Revision 1.2  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

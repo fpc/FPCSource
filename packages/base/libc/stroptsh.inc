@@ -11,4 +11,4 @@ function fdetach(__path:Pchar):longint;cdecl;external clib name 'fdetach';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

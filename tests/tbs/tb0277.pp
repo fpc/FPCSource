@@ -56,12 +56,12 @@ type
 
 const
 {$ifdef cpu68k}
-  { GNU C only aligns at word boundaries 
+  { GNU C only aligns at word boundaries
     for m68k cpu PM }
   correct_size = 18;
 {$else }
   correct_size = 20;
-{$endif }  
+{$endif }
 begin
   if sizeof(INPUT_RECORD)<>correct_size then
    begin

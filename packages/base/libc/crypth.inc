@@ -28,8 +28,8 @@ procedure encrypt_r(__block:Pchar; __edflag:longint; __data:Pcrypt_data);cdecl;e
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TCryptData = crypt_data;
   PCryptData = ^TCryptData;
-    
-    
+
+

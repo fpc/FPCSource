@@ -7,6 +7,6 @@ Uses sysutils;
 Begin
   If SetCurrentDir ('..') Then
     Writeln ('Now in directory ',GetCurrentDir)
-  else 
+  else
     Writeln ('Change directory to .. failed.');
 End.

@@ -91,27 +91,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.11  2005-01-20 16:38:45  peter
+  Revision 1.12  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.11  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
-
-  Revision 1.10  2004/07/04 15:22:34  florian
-    * fixed float spilling to use sfm/lfm instead of stf/ldf
-
-  Revision 1.9  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.8  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.7  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.6.2.1  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.6  2004/03/06 20:35:19  florian
-    * fixed arm compilation
-    * cleaned up code generation for exported linux procedures
 
 }

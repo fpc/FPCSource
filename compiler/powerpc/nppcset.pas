@@ -156,19 +156,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2004-11-30 18:13:39  jonas
-    * patch from Peter to fix inlining of case statements
-
-  Revision 1.16  2004/10/25 15:36:47  peter
-    * save standard registers moved to tcgobj
-
-  Revision 1.15  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.14  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.18  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

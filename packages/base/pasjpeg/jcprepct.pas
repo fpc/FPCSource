@@ -68,12 +68,12 @@ type
 
     color_buf : array[0..MAX_COMPONENTS-1] of JSAMPARRAY;
 
-    rows_to_go : JDIMENSION;	{ counts rows remaining in source image }
-    next_buf_row : int;		{ index of next row to store in color_buf }
+    rows_to_go : JDIMENSION;    { counts rows remaining in source image }
+    next_buf_row : int;         { index of next row to store in color_buf }
 
-  {$ifdef CONTEXT_ROWS_SUPPORTED}	{ only needed for context case }
+  {$ifdef CONTEXT_ROWS_SUPPORTED}       { only needed for context case }
     this_row_group : int;         { starting row index of group to process }
-    next_buf_stop : int;	        { downsample when we reach this index }
+    next_buf_stop : int;                { downsample when we reach this index }
   {$endif}
   end; {my_prep_controller;}
 
@@ -111,7 +111,7 @@ end;
 {LOCAL}
 procedure expand_bottom_edge (image_data : JSAMPARRAY;
                               num_cols : JDIMENSION;
-		              input_rows : int;
+                              input_rows : int;
                               output_rows : int);
 var
   {register} row : int;
@@ -119,7 +119,7 @@ begin
   for row := input_rows to pred(output_rows) do
   begin
     jcopy_sample_rows(image_data, input_rows-1, image_data, row,
-		      1, num_cols);
+                      1, num_cols);
   end;
 end;
 
@@ -133,10 +133,10 @@ end;
 
 {METHODDEF}
 procedure pre_process_data (cinfo : j_compress_ptr;
-		           input_buf : JSAMPARRAY;
+                           input_buf : JSAMPARRAY;
                            var in_row_ctr : JDIMENSION;
-		           in_rows_avail : JDIMENSION;
-		           output_buf : JSAMPIMAGE;
+                           in_rows_avail : JDIMENSION;
+                           output_buf : JSAMPIMAGE;
                            var out_row_group_ctr : JDIMENSION;
                            out_row_groups_avail : JDIMENSION); far;
 var
@@ -150,7 +150,7 @@ begin
   prep := my_prep_ptr (cinfo^.prep);
 
   while (in_row_ctr < in_rows_avail) and
-	(out_row_group_ctr < out_row_groups_avail) do
+        (out_row_group_ctr < out_row_groups_avail) do
   begin
     { Do color conversion to fill the conversion buffer. }
     inrows := in_rows_avail - in_row_ctr;
@@ -161,8 +161,8 @@ begin
     local_input_buf := JSAMPARRAY(@(input_buf^[in_row_ctr]));
     cinfo^.cconvert^.color_convert (cinfo, local_input_buf,
                                     JSAMPIMAGE(@prep^.color_buf),
-				    JDIMENSION(prep^.next_buf_row),
-				    numrows);
+                                    JDIMENSION(prep^.next_buf_row),
+                                    numrows);
     Inc(in_row_ctr, numrows);
     Inc(prep^.next_buf_row, numrows);
     Dec(prep^.rows_to_go, numrows);
@@ -172,8 +172,8 @@ begin
     begin
       for ci := 0 to pred(cinfo^.num_components) do
       begin
-	expand_bottom_edge(prep^.color_buf[ci], cinfo^.image_width,
-			   prep^.next_buf_row, cinfo^.max_v_samp_factor);
+        expand_bottom_edge(prep^.color_buf[ci], cinfo^.image_width,
+                           prep^.next_buf_row, cinfo^.max_v_samp_factor);
       end;
       prep^.next_buf_row := cinfo^.max_v_samp_factor;
     end;
@@ -183,7 +183,7 @@ begin
       cinfo^.downsample^.downsample (cinfo,
                                      JSAMPIMAGE(@prep^.color_buf),
                                      JDIMENSION (0),
-				     output_buf,
+                                     output_buf,
                                      out_row_group_ctr);
       prep^.next_buf_row := 0;
       Inc(out_row_group_ctr);;
@@ -196,14 +196,14 @@ begin
       compptr := jpeg_component_info_ptr(cinfo^.comp_info);
       for ci := 0 to pred(cinfo^.num_components) do
       begin
-	expand_bottom_edge(output_buf^[ci],
-		   compptr^.width_in_blocks * DCTSIZE,
+        expand_bottom_edge(output_buf^[ci],
+                   compptr^.width_in_blocks * DCTSIZE,
                    int (out_row_group_ctr * compptr^.v_samp_factor),
-		   int (out_row_groups_avail * compptr^.v_samp_factor));
+                   int (out_row_groups_avail * compptr^.v_samp_factor));
         Inc(compptr);
       end;
       out_row_group_ctr := out_row_groups_avail;
-      break;			{ can exit outer loop without test }
+      break;                    { can exit outer loop without test }
     end;
   end;
 end;
@@ -215,12 +215,12 @@ end;
 
 {METHODDEF}
 procedure pre_process_context (cinfo : j_compress_ptr;
-		              input_buf : JSAMPARRAY;
+                              input_buf : JSAMPARRAY;
                               var in_row_ctr : JDIMENSION;
-		              in_rows_avail : JDIMENSION;
-		              output_buf : JSAMPIMAGE;
+                              in_rows_avail : JDIMENSION;
+                              output_buf : JSAMPIMAGE;
                               var out_row_group_ctr : JDIMENSION;
-		              out_row_groups_avail : JDIMENSION); far;
+                              out_row_groups_avail : JDIMENSION); far;
 var
   prep : my_prep_ptr;
   numrows, ci : int;
@@ -246,20 +246,20 @@ begin
       cinfo^.cconvert^.color_convert (cinfo,
                                       JSAMPARRAY(@input_buf^[in_row_ctr]),
                                       JSAMPIMAGE(@prep^.color_buf),
-				      JDIMENSION (prep^.next_buf_row),
-				      numrows);
+                                      JDIMENSION (prep^.next_buf_row),
+                                      numrows);
       { Pad at top of image, if first time through }
       if (prep^.rows_to_go = cinfo^.image_height) then
       begin
-	for ci := 0 to pred(cinfo^.num_components) do
+        for ci := 0 to pred(cinfo^.num_components) do
         begin
-	  for row := 1 to cinfo^.max_v_samp_factor do
+          for row := 1 to cinfo^.max_v_samp_factor do
           begin
-	    jcopy_sample_rows(prep^.color_buf[ci], 0,
-			      prep^.color_buf[ci], -row,
-			      1, cinfo^.image_width);
-	  end;
-	end;
+            jcopy_sample_rows(prep^.color_buf[ci], 0,
+                              prep^.color_buf[ci], -row,
+                              1, cinfo^.image_width);
+          end;
+        end;
       end;
       Inc(in_row_ctr, numrows);
       Inc(prep^.next_buf_row, numrows);
@@ -269,16 +269,16 @@ begin
     begin
       { Return for more data, unless we are at the bottom of the image. }
       if (prep^.rows_to_go <> 0) then
-	break;
+        break;
       { When at bottom of image, pad to fill the conversion buffer. }
       if (prep^.next_buf_row < prep^.next_buf_stop) then
       begin
-	for ci := 0 to pred(cinfo^.num_components) do
+        for ci := 0 to pred(cinfo^.num_components) do
         begin
-	  expand_bottom_edge(prep^.color_buf[ci], cinfo^.image_width,
-			     prep^.next_buf_row, prep^.next_buf_stop);
-	end;
-	prep^.next_buf_row := prep^.next_buf_stop;
+          expand_bottom_edge(prep^.color_buf[ci], cinfo^.image_width,
+                             prep^.next_buf_row, prep^.next_buf_stop);
+        end;
+        prep^.next_buf_row := prep^.next_buf_stop;
       end;
     end;
     { If we've gotten enough data, downsample a row group. }
@@ -286,16 +286,16 @@ begin
     begin
       cinfo^.downsample^.downsample (cinfo,
                                      JSAMPIMAGE(@prep^.color_buf),
-				     JDIMENSION(prep^.this_row_group),
-				     output_buf,
+                                     JDIMENSION(prep^.this_row_group),
+                                     output_buf,
                                      out_row_group_ctr);
       Inc(out_row_group_ctr);
       { Advance pointers with wraparound as necessary. }
       Inc(prep^.this_row_group, cinfo^.max_v_samp_factor);
       if (prep^.this_row_group >= buf_height) then
-	prep^.this_row_group := 0;
+        prep^.this_row_group := 0;
       if (prep^.next_buf_row >= buf_height) then
-	prep^.next_buf_row := 0;
+        prep^.next_buf_row := 0;
       prep^.next_buf_stop := prep^.next_buf_row + cinfo^.max_v_samp_factor;
     end;
   end;
@@ -320,8 +320,8 @@ begin
 
   fake_buffer := JSAMPARRAY(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				(cinfo^.num_components * 5 * rgroup_height) *
-				SIZEOF(JSAMPROW)) );
+                                (cinfo^.num_components * 5 * rgroup_height) *
+                                SIZEOF(JSAMPROW)) );
 
   compptr := jpeg_component_info_ptr(cinfo^.comp_info);
   for ci := 0 to pred(cinfo^.num_components) do
@@ -332,11 +332,11 @@ begin
     true_buffer := cinfo^.mem^.alloc_sarray
       (j_common_ptr(cinfo), JPOOL_IMAGE,
        JDIMENSION (( long(compptr^.width_in_blocks) * DCTSIZE *
-		      cinfo^.max_h_samp_factor) div compptr^.h_samp_factor),
+                      cinfo^.max_h_samp_factor) div compptr^.h_samp_factor),
        JDIMENSION (3 * rgroup_height));
     { Copy true buffer row pointers into the middle of the fake row array }
     MEMCOPY(JSAMPARRAY(@ fake_buffer^[rgroup_height]), true_buffer,
-	    3 * rgroup_height * SIZEOF(JSAMPROW));
+            3 * rgroup_height * SIZEOF(JSAMPROW));
     { Fill in the above and below wraparound pointers }
     for i := 0 to pred(rgroup_height) do
     begin
@@ -363,12 +363,12 @@ var
   compptr : jpeg_component_info_ptr;
 begin
 
-  if (need_full_buffer)	then    { safety check }
+  if (need_full_buffer) then    { safety check }
     ERREXIT(j_common_ptr(cinfo), JERR_BAD_BUFFER_MODE);
 
   prep := my_prep_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_prep_controller)) );
+                                SIZEOF(my_prep_controller)) );
   cinfo^.prep := jpeg_c_prep_controller_ptr(prep);
   prep^.pub.start_pass := start_pass_prep;
 
@@ -394,10 +394,10 @@ begin
     for ci := 0 to pred(cinfo^.num_components) do
     begin
       prep^.color_buf[ci] := cinfo^.mem^.alloc_sarray
-	(j_common_ptr(cinfo), JPOOL_IMAGE,
-	 JDIMENSION (( long(compptr^.width_in_blocks) * DCTSIZE *
-			cinfo^.max_h_samp_factor) div compptr^.h_samp_factor),
-	 JDIMENSION(cinfo^.max_v_samp_factor) );
+        (j_common_ptr(cinfo), JPOOL_IMAGE,
+         JDIMENSION (( long(compptr^.width_in_blocks) * DCTSIZE *
+                        cinfo^.max_h_samp_factor) div compptr^.h_samp_factor),
+         JDIMENSION(cinfo^.max_v_samp_factor) );
       Inc(compptr);
     end;
   end;

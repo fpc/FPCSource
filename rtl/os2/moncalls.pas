@@ -275,11 +275,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-11-05 09:14:00  yuri
-  * exec fix
-  * unused units removed
-
-  Revision 1.2  2002/09/07 16:01:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

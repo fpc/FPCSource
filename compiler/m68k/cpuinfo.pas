@@ -77,27 +77,7 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.14  2004-11-09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.13  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.12  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.11  2004/05/01 23:29:01  florian
-    * continued to fix m68k compiler compilation
-
-  Revision 1.10  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.9  2004/04/18 21:13:59  florian
-    * more adaptions for m68k
-
-  Revision 1.8.2.1  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
+  Revision 1.15  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

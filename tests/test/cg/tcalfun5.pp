@@ -1402,19 +1402,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-05-02 12:11:44  peter
-    * fixed linefeeds
-
-  Revision 1.4  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.3  2002/09/07 15:40:51  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/05/13 13:45:36  peter
-    * updated to compile tests with kylix
-
-  Revision 1.1  2002/04/13 07:45:49  carl
-  + Function calling tests , for different calling conventions.
+  Revision 1.6  2005-02-14 17:13:36  peter
+    * truncate log
 
 }

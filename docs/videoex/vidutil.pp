@@ -8,7 +8,7 @@ uses
 Procedure TextOut(X,Y : Word;Const S : String);
 
 Implementation
-  
+
 Procedure TextOut(X,Y : Word;Const S : String);
 
 Var
@@ -22,5 +22,5 @@ begin
   For I:=1 to M do
     VideoBuf^[P+I-1]:=Ord(S[i])+($07 shl 8);
 end;
-  
+
 end.  

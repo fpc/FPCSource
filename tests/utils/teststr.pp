@@ -47,23 +47,7 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-05-02 09:31:52  peter
-    * remove failed_to_execute_ strings, use the failed_to_run
-
-  Revision 1.6  2004/04/29 21:41:44  peter
-    * test result of execution and report as failure with iostatus displayed
-
-  Revision 1.5  2003/10/13 14:19:02  peter
-    * digest updated for max version limit
-
-  Revision 1.4  2002/12/24 21:47:49  peter
-    * NeedTarget, SkipTarget, SkipCPU added
-    * Retrieve compiler info in a single call for 1.1 compiler
-
-  Revision 1.3  2002/11/18 16:42:43  pierre
-   + KNOWNRUNERROR added
-
-  Revision 1.2  2002/11/13 15:26:24  pierre
-   + digest program added
+  Revision 1.8  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

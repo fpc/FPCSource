@@ -6,11 +6,11 @@ Interface
 
 uses glib,gdk,gtk;
 
-Type 
+Type
   TAboutForm = Record
     Window : PGtkDialog;
     OkButton : PgtkButton;
-    InfoLabel : PGtkLabel;    
+    InfoLabel : PGtkLabel;
   end;
   PAboutForm = ^TAboutForm;
 
@@ -22,7 +22,7 @@ Implementation
 Const
   SInfo : PChar = 'File explorer demo'#10'Florian Klaempfl'#10'Michael Van Canneyt';
   SAboutTitle : Pchar = 'About File explorer';
-  
+
 procedure DestroyAbout(Widget : PGtkWidget; About : PAboutForm);cdecl;
 
 begin

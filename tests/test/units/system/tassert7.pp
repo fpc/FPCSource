@@ -16,15 +16,14 @@ Begin
     assert(false);
   except
     on EAssertionFailed do Success;
-  end;  
+  end;
   WriteLn('Failed!');
   Halt(1);
 end.
 
 {
   $Log$
-  Revision 1.1  2002-09-18 18:30:30  carl
-    + currency testing
-    * more system unit routine testing
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

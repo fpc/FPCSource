@@ -3,10 +3,10 @@ program smallplay;
 {****************************************
 
  PT-Player 2.0   © 1994 BetaSoft
- 
+
  uses PTReplay.library also by BetaSoft
  and Andreas [Pucko] Pålsson
- 
+
 ****************************************}
 uses exec, amigados, ptreplay;
 
@@ -26,15 +26,15 @@ end;
 
 begin
     module := nil;
-    if ParamCount > 1 then 
-       CleanUp('Specify one module only',20); 
+    if ParamCount > 1 then
+       CleanUp('Specify one module only',20);
     if ParamCount < 0 then
        CleanUp('Play what module?',20);
 
     module := PTLoadModule(ParamStr[1]);
     if not assigned(module) then
        CleanUp('Couldn''t open/load module',20);
-    
+
     SigBit := AllocSignal(-1);
     if SigBit = -1 then
        CleanUp('Couldn''t allocate signal',10);

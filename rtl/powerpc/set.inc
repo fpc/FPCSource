@@ -523,47 +523,7 @@ end;
 
 {
   $Log$
-  Revision 1.23  2003-11-15 19:01:27  florian
-    * fixed rtl to work with the integrated fpc ppc assembler reader
-
-  Revision 1.22  2003/06/14 12:41:08  jonas
-    * fixed compilation problems (removed unnecessary modified registers
-      lists from procedures)
-
-  Revision 1.21  2003/05/29 14:32:54  jonas
-    * changed dcbst to dcbtst (former means "flush cache block to memory,
-      the latter means "I will soon store something to that cache block")
-
-  Revision 1.20  2003/05/11 11:06:34  jonas
-    * fixed fpc_set_set_byte and fpc_set_unset_byte
-
-  Revision 1.19  2003/05/02 15:10:53  jonas
-    * fixed fpc_set_set_range
-
-  Revision 1.18  2003/04/26 15:29:34  jonas
-    * fixed fpc_set_in_byte
-
-  Revision 1.17  2003/04/26 12:40:33  florian
-    + set_in_byte needed FPC_SET_IN_BYTE alias
-
-  Revision 1.16  2002/10/17 10:14:46  jonas
-    * fixed srwi's after cntlzw instructions (should be 5 instead of 31)
-
-  Revision 1.15  2002/09/07 16:01:26  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.14  2002/08/18 22:11:10  florian
-    * fixed remaining assembler errors
-
-  Revision 1.13  2002/08/18 21:37:48  florian
-    * several errors in inline assembler fixed
-
-  Revision 1.12  2002/08/10 17:14:36  jonas
-    * various fixes, mostly changing the names of the modifies registers to
-      upper case since that seems to be required by the compiler
-
-  Revision 1.11  2002/07/28 20:43:49  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
+  Revision 1.24  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -17,14 +17,14 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   17 Jan 2003.
-  
+
   Changed cardinal > longword.
   Changed startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -86,141 +86,141 @@ uses msgbox;
 FUNCTION GZ_Close(handle : POINTER) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	handle,A0
-	MOVEA.L	ZLibBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L handle,A0
+        MOVEA.L ZLibBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_CompressMem(srcbuf : POINTER; srclen : longword; destbuf : POINTER; destlen : longword; strategy : longword; level : longword; VAR poutlen : longword) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	srcbuf,A0
-	MOVE.L	srclen,D0
-	MOVEA.L	destbuf,A1
-	MOVE.L	destlen,D1
-	MOVE.L	strategy,D2
-	MOVE.L	level,D3
-	MOVEA.L	poutlen,A2
-	MOVEA.L	ZLibBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L srcbuf,A0
+        MOVE.L  srclen,D0
+        MOVEA.L destbuf,A1
+        MOVE.L  destlen,D1
+        MOVE.L  strategy,D2
+        MOVE.L  level,D3
+        MOVEA.L poutlen,A2
+        MOVEA.L ZLibBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_DecompressMem(srcbuf : POINTER; srclen : longword; destbuf : POINTER; destlen : longword) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	srcbuf,A0
-	MOVE.L	srclen,D0
-	MOVEA.L	destbuf,A1
-	MOVE.L	destlen,D1
-	MOVEA.L	ZLibBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L srcbuf,A0
+        MOVE.L  srclen,D0
+        MOVEA.L destbuf,A1
+        MOVE.L  destlen,D1
+        MOVEA.L ZLibBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_FGetC(handle : POINTER) : pLONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	handle,A0
-	MOVEA.L	ZLibBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L handle,A0
+        MOVEA.L ZLibBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_FGetS(handle : POINTER; buf : pCHAR; len : longword) : pCHAR;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	handle,A0
-	MOVEA.L	buf,A1
-	MOVE.L	len,D0
-	MOVEA.L	ZLibBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L handle,A0
+        MOVEA.L buf,A1
+        MOVE.L  len,D0
+        MOVEA.L ZLibBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_FileLength(handle : POINTER) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	handle,A0
-	MOVEA.L	ZLibBase,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L handle,A0
+        MOVEA.L ZLibBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_Open(filename : pCHAR; openmode : longword; strategy : longword; level : longword) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	filename,A0
-	MOVE.L	openmode,D0
-	MOVE.L	strategy,D1
-	MOVE.L	level,D2
-	MOVEA.L	ZLibBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L filename,A0
+        MOVE.L  openmode,D0
+        MOVE.L  strategy,D1
+        MOVE.L  level,D2
+        MOVEA.L ZLibBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_OpenFromFH(fh : LONGINT; openmode : longword; strategy : longword; level : longword) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	fh,A0
-	MOVE.L	openmode,D0
-	MOVE.L	strategy,D1
-	MOVE.L	level,D2
-	MOVEA.L	ZLibBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L fh,A0
+        MOVE.L  openmode,D0
+        MOVE.L  strategy,D1
+        MOVE.L  level,D2
+        MOVEA.L ZLibBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_Read(handle : POINTER; buf : POINTER; len : longword) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	handle,A0
-	MOVEA.L	buf,A1
-	MOVE.L	len,D0
-	MOVEA.L	ZLibBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L handle,A0
+        MOVEA.L buf,A1
+        MOVE.L  len,D0
+        MOVEA.L ZLibBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GZ_Write(handle : POINTER; buf : POINTER; len : longword) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	handle,A0
-	MOVEA.L	buf,A1
-	MOVE.L	len,D0
-	MOVEA.L	ZLibBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L handle,A0
+        MOVEA.L buf,A1
+        MOVE.L  len,D0
+        MOVEA.L ZLibBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

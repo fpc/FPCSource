@@ -117,8 +117,8 @@ const
   Errors are accumulated into the array fserrors[], at a resolution of
   1/16th of a pixel count.  The error at a given pixel is propagated
   to its not-yet-processed neighbors using the standard F-S fractions,
- 		...	(here)	7/16
- 		3/16	5/16	1/16
+                ...     (here)  7/16
+                3/16    5/16    1/16
   We work left-to-right on even rows, right-to-left on odd rows.
 
   We can get away with a single array (holding one row's worth of errors)
@@ -225,7 +225,7 @@ begin
   iroot := 1;
   repeat
     Inc(iroot);
-    temp := iroot;		{ set temp = iroot ** nc }
+    temp := iroot;              { set temp = iroot ** nc }
     for i := 1 to pred(nc) do
       temp := temp * iroot;
   until (temp > long(max_colors)); { repeat till iroot exceeds root }
@@ -261,8 +261,8 @@ begin
       temp := total_colors div Ncolors[j];
       temp := temp * (Ncolors[j]+1);   { done in long arith to avoid oflo }
       if (temp > long(max_colors)) then
-	break;                  { won't fit, done with this pass }
-      Inc(Ncolors[j]);		{ OK, apply the increment }
+        break;                  { won't fit, done with this pass }
+      Inc(Ncolors[j]);          { OK, apply the increment }
       total_colors := int(temp);
       changed := TRUE;
     end;
@@ -319,8 +319,8 @@ begin
   {$IFDEF DEBUG}
   if (cinfo^.out_color_components = 3) then
     TRACEMS4(j_common_ptr(cinfo), 1, JTRC_QUANT_3_NCOLORS,
-	     total_colors, cquantize^.Ncolors[0],
-	     cquantize^.Ncolors[1], cquantize^.Ncolors[2])
+             total_colors, cquantize^.Ncolors[0],
+             cquantize^.Ncolors[1], cquantize^.Ncolors[2])
   else
     TRACEMS1(j_common_ptr(cinfo), 1, JTRC_QUANT_NCOLORS, total_colors);
   {$ENDIF}
@@ -350,14 +350,14 @@ begin
       ptr := j * blksize;
       while (ptr < total_colors) do
       begin
-	{ fill in blksize entries beginning at ptr }
-	for k := 0 to pred(blksize) do
+        { fill in blksize entries beginning at ptr }
+        for k := 0 to pred(blksize) do
           colormap^[i]^[ptr+k] := JSAMPLE(val);
 
         Inc(ptr, blkdist);
       end;
     end;
-    blkdist := blksize;		{ blksize of this color is blkdist of next }
+    blkdist := blksize;         { blksize of this color is blkdist of next }
   end;
 
   { Save the colormap in private storage,
@@ -422,7 +422,7 @@ begin
       while (j > k) do          { advance val if past boundary }
       begin
         Inc(val);
-	k := largest_input_value(cinfo, i, val, nci-1);
+        k := largest_input_value(cinfo, i, val, nci-1);
       end;
       { premultiply so that no multiplication needed in main processing }
       indexptr^[j] := JSAMPLE (val * blksize);
@@ -458,7 +458,7 @@ var
 begin
   odither := ODITHER_MATRIX_PTR (
         cinfo^.mem^.alloc_small(j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(ODITHER_MATRIX)));
+                                SIZEOF(ODITHER_MATRIX)));
   { The inter-value distance for this color is MAXJSAMPLE/(ncolors-1).
     Hence the dither value for the matrix cell with fill order f
     (f=0..N-1) should be (N-1-2*f)/(2*N) * MAXJSAMPLE/(ncolors-1).
@@ -470,7 +470,7 @@ begin
     for k := 0 to pred(ODITHER_SIZE) do
     begin
       num := ( INT32(ODITHER_CELLS-1 - 2*( int(base_dither_matrix[j][k]))))
-	    * MAXJSAMPLE;
+            * MAXJSAMPLE;
       { Ensure round towards zero despite C's lack of consistency
         about rounding negative values in integer division... }
 
@@ -500,16 +500,16 @@ begin
   for i := 0 to pred(cinfo^.out_color_components) do
   begin
     nci := cquantize^.Ncolors[i]; { # of distinct values for this color }
-    odither := NIL;		  { search for matching prior component }
+    odither := NIL;               { search for matching prior component }
     for j := 0 to pred(i) do
     begin
       if (nci = cquantize^.Ncolors[j]) then
       begin
-	odither := cquantize^.odither[j];
-	break;
+        odither := cquantize^.odither[j];
+        break;
       end;
     end;
-    if (odither = NIL)	then { need a new table? }
+    if (odither = NIL)  then { need a new table? }
       odither := make_odither_array(cinfo, nci);
     cquantize^.odither[i] := odither;
   end;
@@ -521,7 +521,7 @@ end;
 {METHODDEF}
 procedure color_quantize (cinfo : j_decompress_ptr;
                           input_buf : JSAMPARRAY;
-		          output_buf : JSAMPARRAY;
+                          output_buf : JSAMPARRAY;
                           num_rows : int); far;
 { General case, no dithering }
 var
@@ -548,7 +548,7 @@ begin
       pixcode := 0;
       for ci := 0 to pred(nc) do
       begin
-	Inc(pixcode, GETJSAMPLE(colorindex^[ci]^[GETJSAMPLE(ptrin^)]) );
+        Inc(pixcode, GETJSAMPLE(colorindex^[ci]^[GETJSAMPLE(ptrin^)]) );
         Inc(ptrin);
       end;
       ptrout^ := JSAMPLE (pixcode);
@@ -561,7 +561,7 @@ end;
 {METHODDEF}
 procedure color_quantize3 (cinfo : j_decompress_ptr;
                            input_buf : JSAMPARRAY;
-		           output_buf : JSAMPARRAY;
+                           output_buf : JSAMPARRAY;
                            num_rows : int); far;
 { Fast path for out_color_components=3, no dithering }
 var
@@ -603,7 +603,7 @@ end;
 {METHODDEF}
 procedure quantize_ord_dither (cinfo : j_decompress_ptr;
                                input_buf :  JSAMPARRAY;
-		               output_buf : JSAMPARRAY;
+                               output_buf : JSAMPARRAY;
                                num_rows : int); far;
 { General case, with ordered dithering }
 var
@@ -635,7 +635,7 @@ begin
   begin
     { Initialize output values to 0 so can process components separately }
     jzero_far( {far} pointer(output_buf^[row]),
-	      size_t(width * SIZEOF(JSAMPLE)));
+              size_t(width * SIZEOF(JSAMPLE)));
     row_index := cquantize^.row_index;
     for ci := 0 to pred(nc) do
     begin
@@ -650,19 +650,19 @@ begin
 
       for col := pred(width) downto 0 do
       begin
-	{ Form pixel value + dither, range-limit to 0..MAXJSAMPLE,
-	  select output value, accumulate into output code for this pixel.
-	  Range-limiting need not be done explicitly, as we have extended
-	  the colorindex table to produce the right answers for out-of-range
-	  inputs.  The maximum dither is +- MAXJSAMPLE; this sets the
-	  required amount of padding. }
+        { Form pixel value + dither, range-limit to 0..MAXJSAMPLE,
+          select output value, accumulate into output code for this pixel.
+          Range-limiting need not be done explicitly, as we have extended
+          the colorindex table to produce the right answers for out-of-range
+          inputs.  The maximum dither is +- MAXJSAMPLE; this sets the
+          required amount of padding. }
 
-	Inc(output_ptr^,
+        Inc(output_ptr^,
             colorindex_ci^[GETJSAMPLE(input_ptr^)+ pad_offset +
                                          dither^[col_index]]);
         Inc(output_ptr);
-	Inc(input_ptr, nc);
-	col_index := (col_index + 1) and ODITHER_MASK;
+        Inc(input_ptr, nc);
+        col_index := (col_index + 1) and ODITHER_MASK;
       end;
     end;
     { Advance row index for next row }
@@ -674,7 +674,7 @@ end;
 {METHODDEF}
 procedure quantize3_ord_dither (cinfo : j_decompress_ptr;
                                 input_buf : JSAMPARRAY;
-		                output_buf : JSAMPARRAY;
+                                output_buf : JSAMPARRAY;
                                 num_rows : int); far;
 { Fast path for out_color_components=3, with ordered dithering }
 var
@@ -746,7 +746,7 @@ end;
 {METHODDEF}
 procedure quantize_fs_dither (cinfo : j_decompress_ptr;
                               input_buf : JSAMPARRAY;
-		              output_buf : JSAMPARRAY;
+                              output_buf : JSAMPARRAY;
                               num_rows : int); far;
 { General case, with Floyd-Steinberg dithering }
 var
@@ -764,8 +764,8 @@ var
   colormap_ci : JSAMPROW;
   pixcode : int;
   nc : int;
-  dir : int;			{ 1 for left-to-right, -1 for right-to-left }
-  dirnc : int;			{ dir * nc }
+  dir : int;                    { 1 for left-to-right, -1 for right-to-left }
+  dirnc : int;                  { dir * nc }
   ci : int;
   row : int;
   col : JDIMENSION;
@@ -789,18 +789,18 @@ begin
       errorptr := FSERRORPTR(cquantize^.fserrors[ci]); { => entry before first column }
       if (cquantize^.on_odd_row) then
       begin
-	{ work right to left in this row }
-	Inc(input_ptr, (width-1) * nc); { so point to rightmost pixel }
-	Inc(output_ptr, width-1);
-	dir := -1;
-	dirnc := -nc;
-	Inc(errorptr, (width+1)); { => entry after last column }
+        { work right to left in this row }
+        Inc(input_ptr, (width-1) * nc); { so point to rightmost pixel }
+        Inc(output_ptr, width-1);
+        dir := -1;
+        dirnc := -nc;
+        Inc(errorptr, (width+1)); { => entry after last column }
       end
       else
       begin
-	{ work left to right in this row }
-	dir := 1;
-	dirnc := nc;
+        { work left to right in this row }
+        dir := 1;
+        dirnc := nc;
         {errorptr := cquantize^.fserrors[ci];}
       end;
 
@@ -816,49 +816,49 @@ begin
       for col := pred(width) downto 0 do
       begin
         prev_errorptr := errorptr;
-	Inc(errorptr, dir);  { advance errorptr to current column }
+        Inc(errorptr, dir);  { advance errorptr to current column }
 
-	{ cur holds the error propagated from the previous pixel on the
-	  current line.  Add the error propagated from the previous line
-	  to form the complete error correction term for this pixel, and
-	  round the error term (which is expressed * 16) to an integer.
-	  RIGHT_SHIFT rounds towards minus infinity, so adding 8 is correct
-	  for either sign of the error value.
-	  Note: errorptr points to *previous* column's array entry. }
+        { cur holds the error propagated from the previous pixel on the
+          current line.  Add the error propagated from the previous line
+          to form the complete error correction term for this pixel, and
+          round the error term (which is expressed * 16) to an integer.
+          RIGHT_SHIFT rounds towards minus infinity, so adding 8 is correct
+          for either sign of the error value.
+          Note: errorptr points to *previous* column's array entry. }
 
         cur := (cur + errorptr^ + 8) div 16;
 
-	{ Form pixel value + error, and range-limit to 0..MAXJSAMPLE.
-	  The maximum error is +- MAXJSAMPLE; this sets the required size
-	  of the range_limit array. }
+        { Form pixel value + error, and range-limit to 0..MAXJSAMPLE.
+          The maximum error is +- MAXJSAMPLE; this sets the required size
+          of the range_limit array. }
 
-	Inc( cur, GETJSAMPLE(input_ptr^));
-	cur := GETJSAMPLE(range_limit^[cur]);
-	{ Select output value, accumulate into output code for this pixel }
-	pixcode := GETJSAMPLE(colorindex_ci^[cur]);
-	Inc(output_ptr^, JSAMPLE (pixcode));
-	{ Compute actual representation error at this pixel }
-	{ Note: we can do this even though we don't have the final }
-	{ pixel code, because the colormap is orthogonal. }
-	Dec(cur, GETJSAMPLE(colormap_ci^[pixcode]));
-	{ Compute error fractions to be propagated to adjacent pixels.
-	  Add these into the running sums, and simultaneously shift the
-	  next-line error sums left by 1 column. }
+        Inc( cur, GETJSAMPLE(input_ptr^));
+        cur := GETJSAMPLE(range_limit^[cur]);
+        { Select output value, accumulate into output code for this pixel }
+        pixcode := GETJSAMPLE(colorindex_ci^[cur]);
+        Inc(output_ptr^, JSAMPLE (pixcode));
+        { Compute actual representation error at this pixel }
+        { Note: we can do this even though we don't have the final }
+        { pixel code, because the colormap is orthogonal. }
+        Dec(cur, GETJSAMPLE(colormap_ci^[pixcode]));
+        { Compute error fractions to be propagated to adjacent pixels.
+          Add these into the running sums, and simultaneously shift the
+          next-line error sums left by 1 column. }
 
-	bnexterr := cur;
-	delta := cur * 2;
-	Inc(cur, delta);        { form error * 3 }
-	prev_errorptr^ := FSERROR (bpreverr + cur);
-	Inc(cur, delta);        { form error * 5 }
-	bpreverr := belowerr + cur;
-	belowerr := bnexterr;
-	Inc(cur, delta);        { form error * 7 }
-	{ At this point cur contains the 7/16 error value to be propagated
-	  to the next pixel on the current line, and all the errors for the
-	  next line have been shifted over. We are therefore ready to move on. }
+        bnexterr := cur;
+        delta := cur * 2;
+        Inc(cur, delta);        { form error * 3 }
+        prev_errorptr^ := FSERROR (bpreverr + cur);
+        Inc(cur, delta);        { form error * 5 }
+        bpreverr := belowerr + cur;
+        belowerr := bnexterr;
+        Inc(cur, delta);        { form error * 7 }
+        { At this point cur contains the 7/16 error value to be propagated
+          to the next pixel on the current line, and all the errors for the
+          next line have been shifted over. We are therefore ready to move on. }
 
-	Inc(input_ptr, dirnc);  { advance input ptr to next column }
-	Inc(output_ptr, dir);   { advance output ptr to next column }
+        Inc(input_ptr, dirnc);  { advance input ptr to next column }
+        Inc(output_ptr, dir);   { advance output ptr to next column }
 
       end;
       { Post-loop cleanup: we must unload the final error value into the
@@ -977,13 +977,13 @@ var
 begin
   cquantize := my_cquantize_ptr(
      cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_cquantizer)));
+                                SIZEOF(my_cquantizer)));
   cinfo^.cquantize := jpeg_color_quantizer_ptr(cquantize);
   cquantize^.pub.start_pass := start_pass_1_quant;
   cquantize^.pub.finish_pass := finish_pass_1_quant;
   cquantize^.pub.new_color_map := new_color_map_1_quant;
   cquantize^.fserrors[0] := NIL; { Flag FS workspace not allocated }
-  cquantize^.odither[0] := NIL;	{ Also flag odither arrays not allocated }
+  cquantize^.odither[0] := NIL; { Also flag odither arrays not allocated }
 
   { Make sure my internal arrays won't overflow }
   if (cinfo^.out_color_components > MAX_Q_COMPS) then

@@ -114,7 +114,7 @@ function gnome_config_assemble_vector(argc:longint; argv:PPchar):pchar;cdecl;ext
 
 Type
   TGnomeConfigHandler = procedure (param : pointer); cdecl;
-  
+
 procedure gnome_config_set_set_handler(func : TGnomeConfigHandler; data:pointer);cdecl;external libgnomedll name 'gnome_config_set_set_handler';
 procedure gnome_config_set_sync_handler(func:TGnomeConfigHandler; data:pointer);cdecl;external libgnomedll name 'gnome_config_set_sync_handler';
 

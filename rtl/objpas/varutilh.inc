@@ -81,7 +81,7 @@ Procedure DumpVariant(Var F : Text; Const VArgSrc : TVarData);
 
 const
   VAR_OK            = HRESULT($00000000);
-  VAR_PARAMNOTFOUND = HRESULT($80020004);   
+  VAR_PARAMNOTFOUND = HRESULT($80020004);
   VAR_TYPEMISMATCH  = HRESULT($80020005);
   VAR_BADVARTYPE    = HRESULT($80020008);
   VAR_EXCEPTION     = HRESULT($80020009);
@@ -104,13 +104,7 @@ const
 
 {
   $Log$
-  Revision 1.8  2004-04-16 10:07:44  michael
-  + Case change (bug 3050)
-
-  Revision 1.7  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.6  2002/09/07 16:01:23  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

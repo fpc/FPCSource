@@ -5,7 +5,7 @@
     Copyright (c) 2003 by Michael Van Canneyt of the Free Pascal development team
 
     TARGA common definitions.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -54,13 +54,13 @@ Function FromWord(AWord : Word) : TWordRec;
 implementation
 
 Function ToWord(AWord : TWordRec) : Word;
-  
+
 begin
   Result:=(AWord.Lo) or (AWord.Hi shl 8);
 end;
 
 Function FromWord(AWord : Word) : TWordRec;
-  
+
 begin
   Result.Lo:=AWord and $FF;
   Result.Hi:=(AWord shr 8) and $FF;

@@ -150,23 +150,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-10-09 21:00:46  jonas
-    + cgenmath with libc math functions. Faster than the routines in genmath
-      and also have full double support (exp() only has support for values in
-      the single range in genmath, for example). Used in FPC_USE_LIBC is
-      defined
-    * several fixes to allow compilation with -dHASINLINE, but internalerrors
-      because of missing support for inlining assembler code
-
-  Revision 1.2  2004/05/01 15:26:33  jonas
-    * use some more string routines from libc if FPC_USE_LIBC is used
-
-  Revision 1.1  2004/01/11 11:10:07  jonas
-    + cgeneric.inc: implementations of rtl routines based on libc
-    * system.inc: include cgeneric.inc before powerpc.inc/i386.inc/... if
-      FPC_USE_LIBC is defined
-    * powerpc.inc, i386.inc: check whether the routines they implement aren't
-      implemented yet in another include file (cgeneric.inc)
-
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

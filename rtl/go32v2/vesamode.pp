@@ -244,10 +244,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2004-09-14 20:11:31  hajny
-    * fix incorrect reuse of for loop counter
-
-  Revision 1.3  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -24,7 +24,7 @@ unit applaunchcmd;
 interface
 
 uses  palmos, systemmgr;
- 
+
 (*
 #define LaunchWithCommand(type, creator, command, commandParams) \
 { \

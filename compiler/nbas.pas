@@ -1026,55 +1026,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.93  2005-01-31 16:15:17  peter
+  Revision 1.94  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.93  2005/01/31 16:15:17  peter
     * fix laststatement()
-
-  Revision 1.92  2004/12/03 16:04:47  peter
-    * use tlocation for tempnodes
-
-  Revision 1.91  2004/11/28 19:16:53  jonas
-    * fixed check for regvar-ability of tempnodes
-
-  Revision 1.90  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.89  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.88  2004/10/12 14:36:38  peter
-    * gen high tree makes copy in temp when there is a calln
-
-  Revision 1.87  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.86  2004/07/16 19:45:15  jonas
-    + temps can now also hold fpu values in registers (take care with use,
-      bacause of the x86 fpu stack)
-    * fpu parameters to node-inlined procedures can now also be put in
-      a register
-
-  Revision 1.85  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.84  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.83  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.82  2004/05/23 15:06:20  peter
-    * implicit_finally flag must be set in pass1
-    * add check whether the implicit frame is generated when expected
-
-  Revision 1.81.2.1  2004/04/28 19:55:51  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.81  2004/03/10 20:41:17  peter
-    * maybe_in_reg moved to tempinfo
-    * fixed expectloc for maybe_in_reg
 
 }

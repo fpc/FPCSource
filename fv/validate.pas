@@ -1059,10 +1059,7 @@ END.
 
 {
  $Log$
- Revision 1.10  2004-12-19 20:20:48  hajny
-   * ObjType references constants from fvconsts
-
- Revision 1.9  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.11  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

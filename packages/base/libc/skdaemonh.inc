@@ -5,4 +5,4 @@ function bdflush(__func:longint; __data:longint):longint;cdecl;external clib nam
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -5,7 +5,7 @@
     Original author: Sebastian Guenther
 
     Unit to parse complete URI in its parts or to reassemble an URI
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -58,7 +58,7 @@ function EncodeURI(const URI: TURI): String;
       if not (s[i] in ['0'..'9', 'A'..'Z', 'a'..'z', ',', '-', '.', '_',
         '/', '\']) then
         Result := Result + '%' + HexTable[Ord(s[i]) shr 4] +
-	  HexTable[Ord(s[i]) and $f]
+          HexTable[Ord(s[i]) and $f]
       else
         Result := Result + s[i];
   end;
@@ -127,11 +127,11 @@ function ParseURI(const URI, DefaultProtocol: String; DefaultPort: Word):  TURI;
       if s[i] = '%' then
       begin
         Result[RealLength] := Chr(HexValue(s[i + 1]) shl 4 or HexValue(s[i + 2]));
-	Inc(i, 3);
+        Inc(i, 3);
       end else
       begin
         Result[RealLength] := s[i];
-	Inc(i);
+        Inc(i);
       end;
     end;
     SetLength(Result, RealLength);
@@ -195,14 +195,14 @@ begin
   LastValidPos := 0;
   for i := Length(s) downto 1 do
     if (s[i] = '/')
-       and ((I>1) and (S[i-1]<>'/')) 
+       and ((I>1) and (S[i-1]<>'/'))
        and ((I<Length(S)) and (S[I+1]<>'/')) then
       LastValidPos := i
     else if s[i] in [':', '@'] then
       break;
 
-  if (LastValidPos > 0) and 
-     (Length(S)>LastValidPos) and 
+  if (LastValidPos > 0) and
+     (Length(S)>LastValidPos) and
      (S[LastValidPos+1]<>'/') then
   begin
     Result.Path := Unescape(Copy(s, LastValidPos, Length(s)));
@@ -244,10 +244,10 @@ begin
       else
       begin
         Result.Username := Copy(s, 1, i - 1);
-	Result.Password := Copy(s, i + 1, Length(s));
+        Result.Password := Copy(s, i + 1, Length(s));
       end;
     end;
-  end; 
+  end;
 end;
 
 end.

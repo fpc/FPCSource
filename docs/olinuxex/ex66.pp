@@ -8,12 +8,12 @@ Var S : String;
     fd,Len : Longint;
     args : tmmapargs;
     P : PChar;
-        
+
 begin
   S:='This is a string'#0;
   Len:=Length(S);
   fd:=fdOpen('testfile.txt',Open_wrOnly or open_creat);
-  If fd=-1 then 
+  If fd=-1 then
     Halt(1);
   If fdWrite(fd,S[1],Len)=-1 then
     Halt(2);

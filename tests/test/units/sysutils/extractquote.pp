@@ -9,7 +9,7 @@ var testok : boolean;
 procedure dotest(str,val2,val3:string);
 
 var p: pchar;
-    s2:string;	
+    s2:string;
     b: boolean;
 begin
   Write('testing: *',str,'*: ');
@@ -19,18 +19,18 @@ begin
   if s2<>val2 then
      begin
        write(' return value wrong:*',s2,'*');
-       b:=false; 
+       b:=false;
      end;
-  if ansistring(p)<>val3 then 
+  if ansistring(p)<>val3 then
      begin
        write(' left in str wrong:*',ansistring(p),'*');
-       b:=false; 
+       b:=false;
      end;
   if b then writeln('ok') else begin testok:=false; writeln; end;
 end;
 
 var str : string;
-    p   : pchar;                      
+    p   : pchar;
 
 begin
   testok:=true;

@@ -2139,7 +2139,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.139  2005-01-31 21:30:56  olle
+  Revision 1.140  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.139  2005/01/31 21:30:56  olle
     + Added fake Exception classes, only for MACOS.
 
   Revision 1.138  2005/01/31 16:15:04  peter
@@ -2160,52 +2163,5 @@ end.
 
   Revision 1.133  2005/01/02 17:31:07  peter
   unsigned*unsigned will also have unsigned result.
-
-  Revision 1.132  2004/12/06 15:57:22  peter
-  * fix methodpointer compare, compare only the proc field
-
-  Revision 1.131  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.130  2004/11/01 12:43:28  peter
-    * shortstr compare with empty string fixed
-    * removed special i386 code
-
-  Revision 1.129  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.128  2004/09/13 20:32:53  peter
-    * only make both operands the same for xor,and,or when both are
-      integer types
-
-  Revision 1.127.4.1  2004/09/19 18:08:30  peter
-    * int64 compare fixed
-
-  Revision 1.127  2004/08/17 19:04:36  jonas
-    * fixed "if @procvar_of_object <> nil" in Delphi/TP mode for for non-x86
-
-  Revision 1.126  2004/08/08 15:22:29  florian
-    * fixed several ie9999s when illegal operators were used
-
-  Revision 1.125  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.124  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.123  2004/05/28 21:13:44  peter
-    * fix cardinal+constint
-
-  Revision 1.122  2004/05/23 14:14:18  florian
-    + added set of widechar support (limited to 256 chars, is delphi compatible)
-
-  Revision 1.121  2004/05/23 14:08:39  peter
-    * only convert widechar to widestring when both operands are
-      constant
-    * support widechar-widechar operations in orddef part
-
-  Revision 1.120  2004/05/21 13:08:14  florian
-    * fixed <ordinal>+<pointer>
 
 }

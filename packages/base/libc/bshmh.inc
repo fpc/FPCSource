@@ -64,7 +64,7 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSharedMemIdDescriptor = shmid_ds;
   PSharedMemIdDescriptor = ^TSharedMemIdDescriptor;
 

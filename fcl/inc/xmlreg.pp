@@ -7,7 +7,7 @@ Interface
 
 uses
   sysutils,classes,dom,xmlread,xmlwrite;
-  
+
 Type
 
   TDataType = (dtUnknown,dtDWORD,dtString,dtBinary);
@@ -15,7 +15,7 @@ Type
     DataType : TDataType;
     DataSize : Integer;
   end;
-  
+
   TKeyInfo = record
     SubKeys,
     SubKeyLen,
@@ -24,7 +24,7 @@ Type
     DataLen   : Integer;
     FTime     : TDateTime;
   end;
-                            
+
 
   TXmlRegistry = Class(TObject)
   Private
@@ -48,7 +48,7 @@ Type
     Function  BufToHex(Const Buf; Len : Integer) : String;
     Function  hexToBuf(Const Str : String; Var Buf; Var Len : Integer ) : Integer;
     Procedure MaybeFlush;
-    Property  Document : TXMLDocument Read FDocument;  
+    Property  Document : TXMLDocument Read FDocument;
     Property  Dirty : Boolean Read FDirty write FDirty;
   Public
     Constructor Create(AFileName : String);
@@ -70,20 +70,20 @@ Type
     Procedure Load;
     Function GetValueData(Name : String; Var DataType : TDataType; Var Data; Var DataSize : Integer) : Boolean;
     Function SetValueData(Name : String; DataType : TDataType; Const Data; DataSize : Integer) : Boolean;
-    Property FileName : String Read FFileName Write SetFileName;    
+    Property FileName : String Read FFileName Write SetFileName;
     Property RootKey : String Read FRootKey Write SetRootkey;
     Property AutoFlush : Boolean Read FAutoFlush Write FAutoFlush;
-  end;  
+  end;
 
 // used Key types
-  
+
 Const
   SXmlReg = 'XMLReg';
   SKey    = 'Key';
   SValue  = 'Value';
   SName   = 'Name';
   SType   = 'Type';
-  SData   = 'Data'; 
+  SData   = 'Data';
 
 Implementation
 
@@ -96,7 +96,7 @@ begin
   If (AFileName<>'') then
     Load
   else
-    CreateEmptyDoc;  
+    CreateEmptyDoc;
 end;
 
 Procedure TXmlRegistry.SetFileName(Value : String);
@@ -115,10 +115,10 @@ Const
   template = '<?xml version="1.0" encoding="ISO8859-1"?>'+LineEnding+
              '<'+SXMLReg+'>'+LineEnding+
              '</'+SXMLReg+'>'+LineEnding;
-                            
+
 Var
   S : TStream;
- 
+
 begin
   S:=TStringStream.Create(Template);
   S.Seek(0,soFromBeginning);
@@ -126,9 +126,9 @@ begin
     LoadFromStream(S);
   Finally
     S.Free;
-  end;  
+  end;
 end;
- 
+
 Function TXmlRegistry.NormalizeKey(KeyPath : String) : String;
 
 Var
@@ -140,19 +140,19 @@ begin
   If (L>0) and (Result[L]<>'/') then
     Result:=Result+'/';
 end;
- 
+
 Function TXmlRegistry.SetKey(KeyPath : String; AllowCreate : Boolean) : boolean;
 
 Var
   SubKey,ResultKey : String;
   P : Integer;
   Node,Node2 : TDomElement;
-  
+
 begin
   Result:=(Length(KeyPath)>0);
   If Not Result then
     Exit;
-  KeyPath:=NormalizeKey(KeyPath);  
+  KeyPath:=NormalizeKey(KeyPath);
   If (KeyPath[1]<>'/') then
     begin
     Node:=FCurrentElement;
@@ -164,9 +164,9 @@ begin
     Node:=FDocument.DocumentElement;
     If (FRootKey<>'') then
       KeyPath:=FRootKey+KeyPath;
-    ResultKey:='';  
+    ResultKey:='';
     end;
-  Result:=True;   
+  Result:=True;
   repeat
     P:=Pos('/',KeyPath);
     If (P<>0) then
@@ -186,7 +186,7 @@ begin
           If Result Then
             Node:=Node2;
           end;
-        end;  
+        end;
       If Result then
         ResultKey:=ResultKey+SubKey+'/';
       end;
@@ -196,9 +196,9 @@ begin
     FCurrentkey:=ResultKey;
     FCurrentElement:=Node;
     end;
-  MaybeFlush;  
+  MaybeFlush;
 end;
- 
+
 Procedure TXmlRegistry.SetRootKey(Value : String);
 
 begin
@@ -208,12 +208,12 @@ begin
   FCurrentKey:='';
   FCurrentElement:=Nil;
 end;
- 
+
 Function TXmlRegistry.DeleteKey(KeyPath : String) : Boolean;
 
 Var
   N : TDomElement;
-  
+
 begin
  N:=FindKey(KeyPath);
  Result:=(N<>Nil);
@@ -224,19 +224,19 @@ begin
    MaybeFlush;
    end;
 end;
- 
+
 Function TXmlRegistry.CreateKey(KeyPath : String) : Boolean;
 
 Var
   SubKey : String;
   P : Integer;
   Node,Node2 : TDomElement;
-  
+
 begin
   Result:=(Length(KeyPath)>0);
   If Not Result then
     Exit;
-  KeyPath:=NormalizeKey(KeyPath);  
+  KeyPath:=NormalizeKey(KeyPath);
   If (KeyPath[1]<>'/') then
     Node:=FCurrentElement
   else
@@ -246,7 +246,7 @@ begin
     If (FRootKey<>'') then
       KeyPath:=FRootKey+KeyPath;
     end;
-  Result:=True;   
+  Result:=True;
   repeat
     P:=Pos('/',KeyPath);
     If (P<>0) then
@@ -262,12 +262,12 @@ begin
         Node2:=CreateSubKey(SubKey,Node);
         Result:=Node2<>Nil;
         Node:=Node2
-        end;  
+        end;
       end;
   Until (Not Result) or (Length(KeyPath)=0);
-  MaybeFlush;  
+  MaybeFlush;
 end;
- 
+
 Function TXmlRegistry.GetValueData(Name : String; Var DataType : TDataType; Var Data; Var DataSize : Integer) : Boolean;
 
 Type
@@ -279,7 +279,7 @@ Var
   ND : Integer;
   Dt : TDataType;
   S : AnsiString;
-  
+
 begin
   Node:=FindValueKey(Name);
   Result:=Node<>Nil;
@@ -300,22 +300,22 @@ begin
                     DataSize:=SizeOf(Cardinal);
                     end;
           dtString : begin
-                     S:=DataNode.NodeValue; // Convert to ansistring 
+                     S:=DataNode.NodeValue; // Convert to ansistring
                      DataSize:=Length(S);
                      If (DataSize>0) then
                        Move(S[1],Data,DataSize);
-                     end;  
+                     end;
           dtBinary : begin
                      DataSize:=Length(DataNode.NodeValue);
                      If (DataSize>0) then
                        HexToBuf(DataNode.NodeValue,Data,DataSize);
                      end;
         end;
-        end;  
-      end;  
+        end;
+      end;
     end;
 end;
- 
+
 Function TXmlRegistry.SetValueData(Name : String; DataType : TDataType; Const Data; DataSize : Integer) : Boolean;
 
 Type
@@ -327,7 +327,7 @@ Var
   ND : Integer;
   Dt : TDataType;
   S : String;
-  
+
 begin
   Node:=FindValueKey(Name);
   If Node=Nil then
@@ -348,16 +348,16 @@ begin
       dtBinary : begin
                  S:=BufToHex(Data,DataSize);
                  DataNode.NodeValue:=S;
-                 end;           
+                 end;
     end;
     end;
   If Result then
     begin
-    FDirty:=True;  
+    FDirty:=True;
     MaybeFlush;
     end;
 end;
- 
+
 Function TXmlRegistry.FindSubKey (S : String; N : TDomElement) : TDomElement;
 
 Var
@@ -374,8 +374,8 @@ begin
         If CompareText(TDomElement(Node)[SName],S)=0 then
           Result:=TDomElement(Node);
       Node:=Node.NextSibling;
-      end;    
-    end;  
+      end;
+    end;
 end;
 
 Function TXmlRegistry.CreateSubKey (S : String; N : TDomElement) : TDomElement;
@@ -403,8 +403,8 @@ begin
         If CompareText(TDomElement(Node)[SName],S)=0 then
           Result:=TDomElement(Node);
       Node:=Node.NextSibling;
-      end;    
-    end;  
+      end;
+    end;
 end;
 
 Function  TXmlRegistry.CreateValueKey (S : String) : TDomElement;
@@ -420,19 +420,19 @@ begin
     FDirty:=True;
     end
   else
-    Result:=Nil;  
+    Result:=Nil;
 end;
- 
+
 Procedure TXMLregistry.MaybeFlush;
- 
+
 begin
   If FAutoFlush then
     Flush;
-end; 
- 
+end;
+
 Procedure TXmlRegistry.Flush;
 
-Var 
+Var
   S : TStream;
 
 begin
@@ -444,7 +444,7 @@ begin
       FDirty:=False;
     finally
       S.Free;
-    end;  
+    end;
     end;
 end;
 
@@ -452,12 +452,12 @@ Procedure TXmlRegistry.Load;
 
 Var
   S : TStream;
- 
+
 begin
   If Not FileExists(FFileName) then
     CreateEmptyDoc
   else
-    begin   
+    begin
     S:=TFileStream.Create(FFileName,fmOpenReadWrite);
     try
       LoadFromStream(S);
@@ -470,13 +470,13 @@ end;
 Procedure TXmlRegistry.LoadFromStream(S : TStream);
 
 begin
-  If Assigned(FDocument) then 
+  If Assigned(FDocument) then
     begin
     FDocument.Free;
     FDocument:=Nil;
     end;
   ReadXMLFile(FDocument,S);
-  if (FDocument=Nil) then 
+  if (FDocument=Nil) then
     CreateEmptyDoc;
   FCurrentElement:=Nil;
   FCurrentKey:='';
@@ -490,7 +490,7 @@ Var
   P : PByte;
   S : String;
   I : Integer;
-    
+
 begin
   SetLength(Result,Len*2);
   P:=@Buf;
@@ -509,7 +509,7 @@ Var
   S : String;
   B : Byte;
   Code : Integer;
-  
+
 begin
   P:=@Buf;
   Len:= Length(Str) div 2;
@@ -522,13 +522,13 @@ begin
       Inc(Result);
       B:=0;
       end;
-    P[I]:=B;  
+    P[I]:=B;
     end;
 end;
 
 Function TXMLRegistry.DeleteValue(S : String) : Boolean;
 
-Var 
+Var
   N : TDomElement;
 
 begin
@@ -568,7 +568,7 @@ end;
 
 Function TXMLRegistry.GetValueInfo(Name : String; Var Info : TDataInfo) : Boolean;
 
-Var 
+Var
   N  : TDomElement;
   DN : TDomNode;
 begin
@@ -589,7 +589,7 @@ begin
         dtBinary  : DataSize:=Length(DN.NodeValue) div 2;
       end;
       end;
-    end;  
+    end;
 end;
 
 Function  TXMLRegistry.GetKeyInfo(Var Info : TKeyInfo) : Boolean;
@@ -597,7 +597,7 @@ Function  TXMLRegistry.GetKeyInfo(Var Info : TKeyInfo) : Boolean;
 Var
   Node,DataNode : TDOMNode;
   L    : Integer;
-  
+
 begin
   FillChar(Info,SizeOf(Info),0);
   Result:=FCurrentElement<>Nil;
@@ -632,13 +632,13 @@ begin
                 dtBinary  : L:=Length(DataNode.NodeValue) div 2;
               end
             else
-              L:=0;  
+              L:=0;
             If (L>DataLen) Then
-              DataLen:=L;  
+              DataLen:=L;
             end;
         Node:=Node.NextSibling;
         end;
-      end;  
+      end;
 end;
 
 Function TXMLRegistry.EnumSubKeys(List : TStrings) : Integer;
@@ -659,7 +659,7 @@ begin
       Node:=Node.NextSibling;
       end;
     Result:=List.Count;
-    end;  
+    end;
 end;
 
 Function TXMLRegistry.EnumValues(List : TStrings) : Integer;
@@ -680,7 +680,7 @@ begin
       Node:=Node.NextSibling;
       end;
     Result:=List.Count;
-    end;  
+    end;
 end;
 
 Function TXMLRegistry.KeyExists(KeyPath : String) : Boolean;
@@ -691,7 +691,7 @@ end;
 
 Function TXMLRegistry.RenameValue(Const OldName,NewName : String) : Boolean;
 
-Var 
+Var
   N : TDomElement;
 
 begin
@@ -710,12 +710,12 @@ Var
   SubKey : String;
   P : Integer;
   Node : TDomElement;
-  
+
 begin
   Result:=Nil;
   If (Length(S)=0) then
     Exit;
-  S:=NormalizeKey(S);  
+  S:=NormalizeKey(S);
   If (S[1]<>'/') then
     Node:=FCurrentElement
   else

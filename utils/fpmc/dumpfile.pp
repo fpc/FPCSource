@@ -4,7 +4,7 @@ Var
   F : File of Byte;
   Col : Integer;
   B : Byte;
-  
+
 begin
   Assign(F,Paramstr(1));
   Reset(F);
@@ -20,8 +20,8 @@ begin
       Col:=1;
       end;
     end;
-  Close(f);  
-  If Col<>1 then  
+  Close(f);
+  If Col<>1 then
     Writeln;
 end.
     

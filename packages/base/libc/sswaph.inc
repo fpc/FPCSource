@@ -11,4 +11,4 @@ function swapoff(__path:Pchar):longint;cdecl;external clib name 'swapoff';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -154,7 +154,7 @@ type
   end;
 
   _IO_FILE = {packed} record
-    _flags: Longint;  
+    _flags: Longint;
     _IO_read_ptr: PChar;
     _IO_read_end: PChar;
     _IO_read_base: PChar;
@@ -162,7 +162,7 @@ type
     _IO_write_ptr: PChar;
     _IO_write_end: PChar;
     _IO_buf_base: PChar;
-    _IO_buf_end: PChar; 
+    _IO_buf_end: PChar;
     _IO_save_base: PChar;
     _IO_backup_base: PChar;
     _IO_save_end: PChar;
@@ -173,7 +173,7 @@ type
     _old_offset: _IO_off_t;
     _cur_column: word;
     _vtable_offset: shortint;
-    _shortbuf: packed array[0..1-1] of Char; 
+    _shortbuf: packed array[0..1-1] of Char;
     _lock: P_IO_Lock;
     _offset: _IO_off64_t;
     _codecvt: ^_IO_codecvt;
@@ -181,7 +181,7 @@ type
     _mode: longint;
     _unused2: packed array[0..(15*SizeOf(Integer) - 2*SizeOf(Pointer))-1] of Byte;
   end;
-                  
+
    P_IO_FILE_complete = ^_IO_FILE_complete;
    _IO_FILE_complete = record
      _file : _IO_FILE;
@@ -286,20 +286,20 @@ procedure _IO_free_backup_area(_para1:P_IO_FILE);cdecl;external clib name '_IO_f
     Borland compatibility types
   ---------------------------------------------------------------------}
 
- Type  
+ Type
   TIOLock = _IO_lock_t;
   PIOLock = ^TIOLock;
-    
+
   TIOCodeVect = _IO_codecvt;
   PIOCodeVect = ^TIOCodeVect;
 
-  TCodeCvtDoOutProc =   TCodeCvtDoOutFunc; 
-  TCodeCvtDoUnshiftProc =   TCodeCvtDoUnshiftFunc; 
-  TCodeCvtDoInProc =   TCodeCvtDoInFunc; 
-  TCodeCvtDoEncodingProc =   TCodeCvtDoEncodingFunc; 
-  TCodeCvtDoAlwaysNoConvProc =   TCodeCvtDoAlwaysNoConvFunc; 
-  TCodeCvtDoLengthProc =   TCodeCvtDoLengthFunc; 
-  TCodeCvtDoMaxLengthProc =   TCodeCvtDoMaxLengthFunc; 
+  TCodeCvtDoOutProc =   TCodeCvtDoOutFunc;
+  TCodeCvtDoUnshiftProc =   TCodeCvtDoUnshiftFunc;
+  TCodeCvtDoInProc =   TCodeCvtDoInFunc;
+  TCodeCvtDoEncodingProc =   TCodeCvtDoEncodingFunc;
+  TCodeCvtDoAlwaysNoConvProc =   TCodeCvtDoAlwaysNoConvFunc;
+  TCodeCvtDoLengthProc =   TCodeCvtDoLengthFunc;
+  TCodeCvtDoMaxLengthProc =   TCodeCvtDoMaxLengthFunc;
 
   TIOFile = _IO_FILE;
   PIOFile = ^TIOFile;

@@ -12,7 +12,7 @@ begin
    begin
      Writeln(Dir.Name+Space(40-Length(Dir.Name)),Dir.Size:9);
      FindNext(Dir);
-   end;     
-  FindClose(Dir); 
+   end;
+  FindClose(Dir);
 end.
 

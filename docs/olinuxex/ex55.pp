@@ -20,7 +20,7 @@ begin
   TCGetAttr(1,tios);
   ShowTermios(tios);
   oldios:=tios;
-  Writeln('Setting raw terminal mode');  
+  Writeln('Setting raw terminal mode');
   CFMakeRaw(tios);
   TCSetAttr(1,TCSANOW,tios);
   WriteLn('Current attributes:');

@@ -41,7 +41,7 @@ begin
       Result:=-1
     else
       Result:=0;
-    end 
+    end
   else
     begin
     if a.tv_sec>b.tv_sec then

@@ -66,7 +66,7 @@ begin
 end.
 
   $Log$
-  Revision 1.4  2002-05-18 13:34:27  peter
-    * readded missing revisions
+  Revision 1.5  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

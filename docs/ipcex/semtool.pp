@@ -52,7 +52,7 @@ Function CreateSem (Key : TKey; Members : Longint) : Longint;
 
 Var Count : Longint;
     Semopts : TSemun;
-    
+
 begin
   If members>semmsl then
     DoError ('Sorry, maximum number of semaphores in set exceeded');
@@ -61,7 +61,7 @@ begin
   If CreateSem=-1 then
     DoError ('Semaphore set already exists.');
   Semopts.val:=MaxSemValue; { Initial value of semaphores }
-  For Count:=0 to Members-1 do 
+  For Count:=0 to Members-1 do
     semctl(CreateSem,count,setval,semopts);
 end;
 
@@ -70,7 +70,7 @@ Procedure lockSem (ID,Member: Longint);
 Var lock : TSEMbuf;
 
 begin
-  With lock do 
+  With lock do
     begin
     sem_num:=0;
     sem_op:=-1;
@@ -84,9 +84,9 @@ begin
    Writeln ('Attempting to lock member ',member, ' of semaphore ',ID);
    if not semop(Id,@lock,1) then
      DoError ('Lock failed')
-   else  
+   else
      Writeln ('Semaphore resources decremented by one');
-   dispval(ID,Member);  
+   dispval(ID,Member);
 end;
 
 Procedure UnlockSem (ID,Member: Longint);
@@ -94,7 +94,7 @@ Procedure UnlockSem (ID,Member: Longint);
 Var Unlock : TSEMbuf;
 
 begin
-  With Unlock do 
+  With Unlock do
     begin
     sem_num:=0;
     sem_op:=1;
@@ -108,9 +108,9 @@ begin
    Writeln ('Attempting to unlock member ',member, ' of semaphore ',ID);
    if not semop(Id,@unlock,1) then
      DoError ('Unlock failed')
-   else  
+   else
      Writeln ('Semaphore resources incremented by one');
-   dispval(ID,Member);  
+   dispval(ID,Member);
 end;
 
 Procedure RemoveSem (ID : longint);
@@ -121,7 +121,7 @@ begin
   If semctl(Id,0,IPC_RMID,s)<>-1 then
     Writeln ('Semaphore removed')
   else
-    DoError ('Couldn''t remove semaphore'); 
+    DoError ('Couldn''t remove semaphore');
 end;
 
 
@@ -130,7 +130,7 @@ Procedure ChangeMode (ID,Mode : longint);
 Var rc : longint;
     opts : TSEMun;
     semds : TSEMid_ds;
-    
+
 begin
   opts.buf:=@semds;
   If not semctl (Id,0,IPC_STAT,opts)<>-1 then
@@ -182,7 +182,7 @@ Var Key : TKey;
 begin
   If ParamCount<1 then USage;
   key:=ftok('.','s');
-  Case UpCase(Paramstr(1)[1]) of 
+  Case UpCase(Paramstr(1)[1]) of
    'C' : begin
          if paramcount<>2 then usage;
          CreateSem (key,strtoint(paramstr(2)));

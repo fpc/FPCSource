@@ -49,7 +49,7 @@ begin
     end;
 end.
   $Log$
-  Revision 1.3  2002-09-07 15:15:28  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -20,8 +20,8 @@ type
      __sched_priority : longint;
    end;
 
-  TCloneFunc = function(Arg: Pointer): Integer; cdecl; // For translation 
-  
+  TCloneFunc = function(Arg: Pointer): Integer; cdecl; // For translation
+
 
 function clone(__fn:tclonefunc; __child_stack:pointer; __flags:longint; __arg:pointer):longint;cdecl;external clib name 'clone';
 
@@ -30,13 +30,13 @@ function clone(__fn:tclonefunc; __child_stack:pointer; __flags:longint; __arg:po
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
    __sched_param = sched_param;
    P__sched_param = ^__sched_param;
    TSchedParam = __sched_param;
    PSchedParam = ^TSchedParam;
-   
-   TCloneProc = TCloneFunc; 
 
-     
-      
+   TCloneProc = TCloneFunc;
+
+
+

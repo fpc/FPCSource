@@ -4,9 +4,9 @@ Program Example23;
 
 Var F : File of Longint;
     L,FP : longint;
-    
+
 begin
-  { Fill a file with data : 
+  { Fill a file with data :
     Each position contains the position ! }
   Assign (F,'test.tmp');
   Rewrite (F);
@@ -22,7 +22,7 @@ begin
     begin
     FP:=FilePos (F);
     Read (F,L);
-    if L<>FP then 
+    if L<>FP then
       Writeln ('Something wrong: Got ',l,' on pos ',FP);
     end;
   Close (F);

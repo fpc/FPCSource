@@ -19,7 +19,7 @@
 unit cwstring;
 interface
 
- {$linklib c}		// try adding -Xf
+ {$linklib c}           // try adding -Xf
 
 Procedure SetCWidestringManager;
 
@@ -30,36 +30,36 @@ Uses
   BaseUnix,
   unix,
   unixtype;
-  
+
 { maybe this needs to be splitted in an os depend way later }
 function towlower(__wc:wint_t):wint_t;cdecl;external clib name 'towlower';
-function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';  
-  
+function towupper(__wc:wint_t):wint_t;cdecl;external clib name 'towupper';
+
 function LowerWideCase(const s : WideString) : WideString;
   begin
   end;
-  
-  
+
+
 function UpperWideCase(const s : WideString) : WideString;
   begin
   end;
-  
-  
+
+
 function CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
   end;
-  
-  
+
+
 function SameWideString(const s1, s2 : WideString) : Boolean;
   begin
   end;
-  
-  
+
+
 function CompareTextWideString(const s1, s2 : WideString): PtrInt;
   begin
   end;
 
-  
+
 Var
   CWideStringManager : TWideStringManager;
 
@@ -81,7 +81,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2005-02-03 18:40:57  florian
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.2  2005/02/03 18:40:57  florian
     + infrastructure for WideCompareText implemented
 
   Revision 1.1  2005/02/01 20:22:50  florian

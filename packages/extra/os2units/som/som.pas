@@ -1425,7 +1425,7 @@ Function somva_SOMObject_somDispatchL(somSelf: PSOMObject;
                 descriptor: somId;
                 args: array of const): Longint; cdecl;
   external 'som' name 'somva_SOMObject_somDispatchL'; {index 98}
-  
+
 Function va_SOMObject_somDispatch(somSelf: PSOMObject;
                 retValue: PsomToken;
                 methodId: somId;
@@ -1466,7 +1466,7 @@ Function somva_SOMObject_somClassDispatch(somSelf: PSOMObject;
                 methodId: somId;
                 args: array of const): boolean; cdecl;
   external 'som' name 'somva_SOMObject_somClassDispatch'; {index 101}
-  
+
 Implementation
 
 Function exception_id(ev:Environment):PChar; cdecl;
@@ -1525,19 +1525,7 @@ End.
 
 {
 $Log$
-Revision 1.5  2004-12-23 05:16:31  yuri
-* Fixed compilation
-
-Revision 1.4  2004/12/23 05:04:38  yuri
-* Porting finished.
-
-Revision 1.3  2004/05/26 16:38:58  yuri
-* Some functions updated.
-
-Revision 1.2  2003/11/30 08:13:14  yuri
-* more ported functions
-
-Revision 1.1  2003/09/22 13:52:59  yuri
-+ Initial import. Mostly backup.
+Revision 1.6  2005-02-14 17:13:21  peter
+  * truncate log
 
 }

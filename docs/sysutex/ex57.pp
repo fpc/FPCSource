@@ -11,7 +11,7 @@ Var R : Longint;
 begin
   R:=AnsiStrLIComp(S1,S2,L);
   Write ('First ',L,' characters of "',S1,'" are ');
-  If R<0 then 
+  If R<0 then
     write ('less than ')
   else If R=0 then
     Write ('equal to ')
@@ -23,6 +23,6 @@ end;
 Begin
   Testit('One string','One smaller string',255);
   Testit('ONE STRING','one String',4);
-  Testit('One string','1 STRING',0);  
+  Testit('One string','1 STRING',0);
   Testit('One STRING','one string.',9);
 End.

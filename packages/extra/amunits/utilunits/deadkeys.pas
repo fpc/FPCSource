@@ -15,9 +15,9 @@
 
  **********************************************************************}
 {
-	DeadKeyConvert
+        DeadKeyConvert
 
-	When you want Intuition to send you keystrokes, you either get just
+        When you want Intuition to send you keystrokes, you either get just
     the simple key-cap type keys (i.e. no cursor or function keys) or you
     get keycodes, which tell you nothing about what was on the key the
     user pressed.  DeadKeyConvert allows you to receive RAWKEY messages,
@@ -25,12 +25,12 @@
     cooked keys, and a single keystroke might be converted into as many as
     four characters (including the CSI).  See the ROM Kernel Manual and the
     Enhancer manual for details.
-	The difference between this and RawKeyConvert is that this also
+        The difference between this and RawKeyConvert is that this also
     handles the deadkeys - for example, pressing ALT-K, releasing it, and
     pressing o gives you an o with an umlaut.
-	Also note that some keys will come back with a length of zero - the
+        Also note that some keys will come back with a length of zero - the
     shift and alt keys, for example.  You can probably ignore them.
-	Finally, I'll point out that, since this function calls RawKeyConvert,
+        Finally, I'll point out that, since this function calls RawKeyConvert,
     you need to call OpenConsoleDevice (defined in ConsoleUtils) before using
     it.
 }
@@ -84,7 +84,7 @@ begin
    CloseDevice(Addr(ConsoleRequest));
 end;
 
-begin   
+begin
    ConsoleDevice := nil;
    OpenDevice(pchar('console.device'#0),-1,Addr(ConsoleRequest),0);
    ConsoleDevice := ConsoleRequest.io_Device;
@@ -96,4 +96,4 @@ end.
   $Log
 }
 
-  
+

@@ -37,8 +37,8 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     ppthread_mutexattr_t = ^pthread_mutexattr_t;
     ppthread_mutex_attr_t = ^pthread_mutexattr_t;
 
-    sem_t	    = cint;
-    psem_t	    = ^sem_t;
+    sem_t           = cint;
+    psem_t          = ^sem_t;
     TSemaphore         = sem_t;
     PSemaphore         = ^TSemaphore;
 
@@ -81,34 +81,7 @@ function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cin
 
 {
   $Log$
-  Revision 1.6  2004-12-22 21:29:24  marco
-   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
-  	Check work: ask Neli.
-
-  Revision 1.5  2004/09/10 15:15:45  marco
-   * small glitch fixes
-
-  Revision 1.4  2004/09/09 20:29:06  jonas
-    * fixed definition of pthread_mutex_t for non-linux targets (and for
-      linux as well, actually).
-    * base libpthread definitions are now in ptypes.inc, included in unixtype
-      They sometimes have an extra underscore in front of their name, in
-      case they were also exported by the packages/base/pthreads unit, so
-      they can keep their original name there
-    * cthreadds unit now imports systuils, because it uses exceptions (it
-      already did so before as well)
-    * fixed many linux definitions of libpthread functions in pthrlinux.inc
-      (integer -> cint etc)
-    + added culonglong type to ctype.inc
-
-  Revision 1.3  2004/05/23 15:30:55  marco
-   * basicevent, still untested
-
-  Revision 1.2  2003/11/27 20:24:10  michael
-  + Redefined ppthread_mutex_t
-
-  Revision 1.1  2003/11/18 22:33:42  marco
-   * moved from systhrds.pp
-
+  Revision 1.7  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

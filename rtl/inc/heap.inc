@@ -1286,109 +1286,11 @@ end;
 
 {
   $Log$
-  Revision 1.42  2005-01-30 11:56:29  peter
+  Revision 1.43  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.42  2005/01/30 11:56:29  peter
     * allow Freemem(nil)
-
-  Revision 1.41  2004/12/19 13:45:56  peter
-    * fixed overflow when reusing a memory block for fixed size chunks
-
-  Revision 1.40  2004/11/26 22:22:58  peter
-    * fix currheapused
-
-  Revision 1.39  2004/11/22 22:26:21  peter
-    * typo for GetHeapStatus
-
-  Revision 1.38  2004/11/22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.37  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.36  2004/08/10 18:58:36  jonas
-    * changed formatting to conform to the rest of the compiler/rtl
-    * fixed SysMaxAvail so it also looks at the free fixed size blocks
-
-  Revision 1.35  2004/06/29 20:50:32  peter
-    * readded support for ReturnIfGrowHeapFails
-
-  Revision 1.34  2004/06/27 19:47:27  florian
-    * fixed heap corruption on sparc
-
-  Revision 1.33  2004/06/27 11:57:18  florian
-    * finally (hopefully) fixed sysalloc trouble
-
-  Revision 1.32  2004/06/18 14:40:55  peter
-    * moved padding for sparc
-
-  Revision 1.31  2004/06/17 16:16:13  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.30  2004/05/31 12:18:16  peter
-    * sparc needs alignment on 8 bytes to allow doubles
-
-  Revision 1.29  2004/04/26 16:20:54  peter
-    * 64bit fixes
-
-  Revision 1.28  2004/03/15 21:48:26  peter
-    * cmem moved to rtl
-    * longint replaced with ptrint in heapmanagers
-
-  Revision 1.27  2004/03/15 20:42:39  peter
-    * exit with rte 204 instead of looping infinite when a heap record
-      size is overwritten with 0
-
-  Revision 1.26  2004/01/29 22:45:25  jonas
-    * improved beforeheapend inheritance (remove flag again when possible,
-      sometimes resulting in more opportunities for try_concat_free_chunk)
-
-  Revision 1.25  2003/12/15 21:39:16  daniel
-    * Small microoptimization
-
-  Revision 1.24  2003/10/02 14:03:24  marco
-   * *memORY overloads
-
-  Revision 1.23  2003/09/28 12:43:48  peter
-    * fixed wrong check when allocation of a block > 1mb failed
-
-  Revision 1.22  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.21  2003/05/23 14:53:48  peter
-    * check newpos < 0 instead of = -1
-
-  Revision 1.20  2003/05/01 08:05:23  florian
-    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
-
-  Revision 1.19  2002/11/01 17:38:04  peter
-    * fix setmemorymutexmanager to call mutexdone on the already
-      installed manager instead of the passed manager
-
-  Revision 1.18  2002/10/30 20:39:13  peter
-    * MemoryManager record has a field NeedLock if the wrapper functions
-      need to provide locking for multithreaded programs
-
-  Revision 1.17  2002/10/30 19:54:19  peter
-    * remove wrong lock from SysMemSize, MemSize() does the locking
-      already.
-
-  Revision 1.16  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
-
-  Revision 1.15  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.14  2002/06/17 08:33:04  jonas
-    * heap manager now fragments the heap much less
-
-  Revision 1.13  2002/04/21 18:56:59  peter
-    * fpc_freemem and fpc_getmem compilerproc
-
-  Revision 1.12  2002/02/10 15:33:45  carl
-  * fixed some missing IsMultiThreaded variables
-
-  Revision 1.11  2002/01/02 13:43:09  jonas
-    * fix for web bug 1727 from Peter (corrected)
 
 }
 

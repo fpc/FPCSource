@@ -715,13 +715,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.9  2005-01-28 10:05:44  armin
+  Revision 1.10  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.9  2005/01/28 10:05:44  armin
   * applied packed record fix from Tomas
-
-  Revision 1.8  2002/09/07 15:40:47  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/05/29 22:39:51  pierre
-   + FreeVesaModes
 
 }

@@ -4,12 +4,12 @@ Program Example72;
 
 Uses sysutils;
 
-Var 
+Var
   S : ShortString;
 
-Const 
+Const
   Fmt : ShortString =  'For some nice examples of fomatting see %s.';
-    
+
 Begin
   S:='';
   SetLength(S,FormatBuf (S[1],255,Fmt[1],Length(Fmt),['Format']));

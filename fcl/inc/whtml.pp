@@ -315,12 +315,12 @@ end;
 Procedure THTMLWriter.EmitInput(Const Name,Value, Attrs : String);
 
 Var
-  A : String; 
- 
+  A : String;
+
 begin
   A:='NAME="'+Name+'"';
   If (Value<>'') then
-    A:=A+' VALUE="'+Value+'"'; 
+    A:=A+' VALUE="'+Value+'"';
   If (Attrs<>'') then
     A:=A+' '+Attrs;
   TagStart('INPUT',A);
@@ -360,21 +360,21 @@ begin
   If Checked then
     A:=A+' CHECKED=1';
   TagStart('INPUT',A);
-  
+
 end;
 
 Procedure THTMLWriter.EmitArea(Const Name,Value : String; Rows,Cols : Integer);
 
 Var
   A : String;
-  
+
 begin
   A:='NAME="'+Name+'"';
   If (Rows<>0) and (cols<>0) then
     A:=A+Format(' ROWS=%d COLS=%d',[Rows,Cols]);
   TagStart('TEXTAREA',A);
   Write(Value);
-  TagEnd('TEXTAREA'); 
+  TagEnd('TEXTAREA');
 end;
 
 Procedure THTMLWriter.EmitComboBox(Const Name, Value : String; Items : TStrings);
@@ -388,7 +388,7 @@ Procedure THTMLWriter.EmitComboBox(Const Name, Value : String; Items : TStrings;
 Var
   A,S,V : String;
   I,P : Integer;
-  
+
 begin
   TagStart('SELECT','NAME='+Name+'"');
   A:='';
@@ -412,9 +412,9 @@ begin
       end;
     If (Value<>'') and (V=Value) then
       A:=A+' SELECTED';
-    TagStart('OPTION',A);  
+    TagStart('OPTION',A);
     end;
-  TagEnd('SELECT')  
+  TagEnd('SELECT')
 end;
 
 Procedure THTMLWriter.EmitSubmitButton(Const Name,Value : String);
@@ -450,20 +450,14 @@ Var
 
 begin
   A:='TYPE="hidden" NAME="'+Name+'" VALUE="'+Value+'"';
-  TagStart('INPUT',A);  
+  TagStart('INPUT',A);
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.3  2003-11-30 00:06:19  olle
-    * bugfix start tag of lists
-
-  Revision 1.2  2003/10/03 08:42:22  michael
-  + Form support.
-
-  Revision 1.1  2003/10/01 20:49:29  michael
-  + Initial implementation
+  Revision 1.4  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

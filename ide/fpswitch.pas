@@ -1212,60 +1212,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2004-12-22 15:24:07  peter
-    * fixed NODEBUG
-    * set default target to the default target of the compiler
-
-  Revision 1.20  2004/11/20 10:10:32  florian
-    * renamed Delphi 2 extensions on to Object pascal support
-
-  Revision 1.19  2004/11/14 21:45:29  florian
-    * fixed non working mouse after tools call
-    * better handling of source/target info
-    * more info in about dialog
-    * better info in compiler status dialiog
-
-  Revision 1.18  2004/11/03 12:05:54  florian
-    + supported targets are now read dynamically from the included compiler
-
-  Revision 1.17  2004/09/14 20:46:13  hajny
-    * compilation fix - for loop counter issues
-
-  Revision 1.16  2004/09/04 23:33:39  armin
-  * makefiles regenerated
-  * ide: added target netwlibc
-
-  Revision 1.15  2004/03/08 00:07:26  marco
-   * Darwin target added
-
-  Revision 1.14  2003/02/09 23:50:10  pierre
-   + i386 openbsd target added
-
-  Revision 1.13  2002/12/15 14:08:29  peter
-    * more stable default target setting
-
-  Revision 1.12  2002/11/30 01:56:52  pierre
-   + powerpc cpu support started
-
-  Revision 1.11  2002/11/21 00:37:56  pierre
-   + some cross gdb enhancements
-
-  Revision 1.10  2002/09/07 15:40:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/06/01 20:08:42  marco
-   * Renamefest
-
-  Revision 1.8  2002/04/11 06:42:54  pierre
-   * Add allow spaces for directories entries
-
-  Revision 1.7  2002/04/10 22:41:05  pierre
-   * remove switches that have no command line option
-
-  Revision 1.6  2002/03/16 14:53:23  armin
-  + add netware target
-
-  Revision 1.5  2002/02/20 15:06:52  pierre
-   avoid to insert options in .cfg file if the option has no command line
+  Revision 1.22  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -10,7 +10,7 @@ uses exec, triton, tritonmacros, linklist, utility;
 
    Updated for fpc1.0.7
    11 Jan 2003.
-   
+
    nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -51,8 +51,8 @@ begin
                      TRCA_Name,'Triton ListView',
                      TRCA_Release,'1.0',
                      TRCA_Date,'03-02-1998',
-                     TAG_DONE]); 
-    
+                     TAG_DONE]);
+
     if Triton_App = nil then Cleanexit('Can''t create application',20);
 
     CreateList(mylist);

@@ -23,13 +23,13 @@ unit consoleio;
     Just AttachConsole to a window and you have your
     own console.
     12 Sep 2000.
-    
+
     Added the define use_amiga_smartlink.
     13 Jan 2003.
-    
+
     Changed integer > smallint.
     10 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -45,19 +45,19 @@ uses exec, intuition, console, amigalib, conunit;
 
 TYPE
     tConsoleSet = record
-		     WritePort,
-		     ReadPort	: pMsgPort;
-		     WriteRequest,
-		     ReadRequest : pIOStdReq;
-		     Window	: pWindow; { not yet used }
-		     Buffer	: Char;
-		 end;
+                     WritePort,
+                     ReadPort   : pMsgPort;
+                     WriteRequest,
+                     ReadRequest : pIOStdReq;
+                     Window     : pWindow; { not yet used }
+                     Buffer     : Char;
+                 end;
     pConsoleSet = ^tConsoleSet;
 
 {
-	ConsoleIO.p
+        ConsoleIO.p
 
-	This file implements all the normal console.device stuff for
+        This file implements all the normal console.device stuff for
 dealing with windows.  They are pulled from the ROM Kernel Manual.
 See ConsoleTest.p for an example of using these routines.
 }
@@ -67,7 +67,7 @@ Procedure ConWrite(Request : pIOStdReq; Str : pchar; length : longint);
 Procedure ConPutStr(Request : pIOStdReq; Str : pchar);
 Procedure QueueRead(Request : pIOStdReq; Where : pchar);
 Function ConGetChar(consolePort : pMsgPort; Request : pIOStdReq;
-			WhereTo : pchar) : Char;
+                        WhereTo : pchar) : Char;
 Procedure CleanSet(con : pConsoleSet);
 Function AttachConsole(w : pWindow) : pConsoleSet;
 Function ReadKey(con : pConsoleSet) : Char;
@@ -133,14 +133,14 @@ begin
 end;
 
 Function ConGetChar(consolePort : pMsgPort; Request : pIOStdReq;
-			WhereTo : pchar) : Char;
+                        WhereTo : pchar) : Char;
 var
     Temp : Char;
     TempMsg : pMessage;
 begin
     if GetMsg(consolePort) = Nil then begin
-	TempMsg := WaitPort(consolePort);
-	TempMsg := GetMsg(consolePort);
+        TempMsg := WaitPort(consolePort);
+        TempMsg := GetMsg(consolePort);
     end;
     Temp := WhereTo^;
     QueueRead(Request, WhereTo);
@@ -150,14 +150,14 @@ end;
 Procedure CleanSet(con : pConsoleSet);
 begin
     with con^ do begin
-	if ReadRequest <> Nil then
-	    DeleteStdIO(ReadRequest);
-	if WriteRequest <> Nil then
-	    DeleteStdIO(WriteRequest);
-	if ReadPort <> Nil then
-	    DeletePort(ReadPort);
-	if WritePort <> Nil then
-	    DeletePort(WritePort);
+        if ReadRequest <> Nil then
+            DeleteStdIO(ReadRequest);
+        if WriteRequest <> Nil then
+            DeleteStdIO(WriteRequest);
+        if ReadPort <> Nil then
+            DeletePort(ReadPort);
+        if WritePort <> Nil then
+            DeletePort(WritePort);
     end;
 end;
 
@@ -168,39 +168,39 @@ var
 begin
     New(con);
     if con = Nil then
-	AttachConsole := Nil;
+        AttachConsole := Nil;
     with Con^ do begin
-	WritePort := CreatePort(Nil, 0);
-	Error := WritePort = Nil;
-	ReadPort  := CreatePort(Nil, 0);
-	Error := Error or (ReadPort = Nil);
-	if not Error then begin
-	    WriteRequest := CreateStdIO(WritePort);
-	    Error := Error or (WriteRequest = Nil);
-	    ReadRequest := CreateStdIO(ReadPort);
-	    Error := Error or (ReadRequest = Nil);
-	end;
-	if Error then begin
-	    CleanSet(con);
-	    Dispose(con);
-	    AttachConsole := Nil;
-	end;
-	Window := w;
+        WritePort := CreatePort(Nil, 0);
+        Error := WritePort = Nil;
+        ReadPort  := CreatePort(Nil, 0);
+        Error := Error or (ReadPort = Nil);
+        if not Error then begin
+            WriteRequest := CreateStdIO(WritePort);
+            Error := Error or (WriteRequest = Nil);
+            ReadRequest := CreateStdIO(ReadPort);
+            Error := Error or (ReadRequest = Nil);
+        end;
+        if Error then begin
+            CleanSet(con);
+            Dispose(con);
+            AttachConsole := Nil;
+        end;
+        Window := w;
     end;
     with con^.WriteRequest^ do begin
-	io_Data := pointer(w);
-	io_Length := SizeOf(tWindow);
+        io_Data := pointer(w);
+        io_Length := SizeOf(tWindow);
     end;
     Error := OpenDevice('console.device', 0,
-			pIORequest(con^.WriteRequest), 0) <> 0;
+                        pIORequest(con^.WriteRequest), 0) <> 0;
     if Error then begin
-	CleanSet(con);
-	Dispose(con);
-	AttachConsole := Nil;
+        CleanSet(con);
+        Dispose(con);
+        AttachConsole := Nil;
     end;
     with con^ do begin
-	ReadRequest^.io_Device := WriteRequest^.io_Device;
-	ReadRequest^.io_Unit := WriteRequest^.io_Unit;
+        ReadRequest^.io_Device := WriteRequest^.io_Device;
+        ReadRequest^.io_Unit := WriteRequest^.io_Unit;
     end;
     QueueRead(con^.ReadRequest, Addr(con^.Buffer));
     AttachConsole := Con;
@@ -209,13 +209,13 @@ end;
 Function ReadKey(con : pConsoleSet) : Char;
 begin
     with con^ do
-	ReadKey := ConGetChar(ReadPort, ReadRequest, Addr(Buffer));
+        ReadKey := ConGetChar(ReadPort, ReadRequest, Addr(Buffer));
 end;
 
 Function KeyPressed(con : pConsoleSet) : Boolean;
 begin
     with con^ do
-	KeyPressed := CheckIO(pIORequest(ReadRequest)) <> Nil;
+        KeyPressed := CheckIO(pIORequest(ReadRequest)) <> Nil;
 end;
 
 Procedure WriteString(con : pConsoleSet; Str : Pchar);
@@ -285,15 +285,15 @@ var
     TempMsg : pMessage;
 begin
     with con^ do begin
-	Forbid;
-	if CheckIO(pIORequest(ReadRequest)) = Nil then begin
-	    AbortIO(pIORequest(ReadRequest));
-	    Permit;
-	    TempMsg := WaitPort(ReadPort);
-	    TempMsg := GetMsg(ReadPort);
-	end else
-	    Permit;
-	CloseDevice(pIORequest(WriteRequest));
+        Forbid;
+        if CheckIO(pIORequest(ReadRequest)) = Nil then begin
+            AbortIO(pIORequest(ReadRequest));
+            Permit;
+            TempMsg := WaitPort(ReadPort);
+            TempMsg := GetMsg(ReadPort);
+        end else
+            Permit;
+        CloseDevice(pIORequest(WriteRequest));
     end;
     CleanSet(con);
     Dispose(con);
@@ -381,7 +381,7 @@ end;
 
 
 {
-	These routines just open and close the Console device without
+        These routines just open and close the Console device without
 attaching it to any window.  They update ConsoleBase, and are thus required
 for RawKeyConvert and DeadKeyConvert.
 }
@@ -389,12 +389,12 @@ for RawKeyConvert and DeadKeyConvert.
 
 
 var
-    
+
     ConsoleRequest : tIOStdReq;
 
 Procedure OpenConsoleDevice;
 {
-	This procedure initializes ConsoleDevice, which is required for
+        This procedure initializes ConsoleDevice, which is required for
     CDInputHandler and RawKeyConvert.
 }
 var
@@ -413,15 +413,8 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.2  2003/01/13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
-  
+

@@ -11,7 +11,7 @@ var PP : PChar;
 begin
   PP:=StrAlloc(Strlen(P)+1);
   STrCopy (PP,P);
-  If StrComp (PP,P)<>0 then 
+  If StrComp (PP,P)<>0 then
     Writeln ('Oh-oh problems...')
   else
     Writeln ('All is well : PP=',PP);

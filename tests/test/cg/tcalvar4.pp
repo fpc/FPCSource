@@ -718,36 +718,7 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-03-27 19:38:50  florian
-    * alignment fixed
-
-  Revision 1.9  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.8  2002/12/29 15:30:55  peter
-    * updated for 1.1 compiler that does not allow calling conventions
-      for constructor/destructor
-
-  Revision 1.7  2002/12/05 15:54:20  pierre
-   * update as openstrings are transformed into normal string in cdecl'ared functions
-
-  Revision 1.6  2002/11/20 19:39:21  carl
-  - high() cannot be used in cdecle'd routines
-
-  Revision 1.5  2002/11/09 21:47:37  carl
-    + updated tests for correct parsing (array of const now allowed with high!)
-
-  Revision 1.4  2002/09/22 09:08:41  carl
-    * gets64bit was not returning an int64!
-
-  Revision 1.3  2002/09/07 15:40:55  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/05/13 13:45:38  peter
-    * updated to compile tests with kylix
-
-  Revision 1.1  2002/04/13 17:51:00  carl
-  + var parameter passing for different calling conventions
-
+  Revision 1.11  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

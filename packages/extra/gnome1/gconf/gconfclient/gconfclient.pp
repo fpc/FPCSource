@@ -43,7 +43,7 @@ type
 
    TGConfClientErrorHandlingMode = (GCONF_CLIENT_HANDLE_NONE,GCONF_CLIENT_HANDLE_UNRETURNED,
      GCONF_CLIENT_HANDLE_ALL);
-   
+
 
    PGConfClient  = ^TGConfClient;
    TGConfClient = record
@@ -69,7 +69,7 @@ type
    TGConfClientNotifyFunc = procedure (client:PGConfClient; cnxn_id:guint; entry:PGConfEntry; user_data:gpointer);cdecl;
 
    TGConfClientErrorHandlerFunc = procedure (client:PGConfClient; error:PGError);cdecl;
-   
+
 function GCONF_TYPE_CLIENT : TGTKType;
 
 function GCONF_IS_CLIENT(obj : Pointer) : Boolean;
@@ -80,7 +80,7 @@ function gconf_client_get_default:PGConfClient;cdecl;external gconfclientdll nam
 function gconf_client_get_for_engine(engine:PGConfEngine):PGConfClient;cdecl;external gconfclientdll name 'gconf_client_get_for_engine';
 procedure gconf_client_add_dir(client:PGConfClient; dir:Pgchar; preload:TGConfClientPreloadType; err:PPGError);cdecl;external gconfclientdll name 'gconf_client_add_dir';
 procedure gconf_client_remove_dir(client:PGConfClient; dir:Pgchar; err:PPGError);cdecl;external gconfclientdll name 'gconf_client_remove_dir';
-function gconf_client_notify_add(client:PGConfClient; namespace_section:Pgchar; func:TGConfClientNotifyFunc; user_data:gpointer; destroy_notify:TGFreeFunc; 
+function gconf_client_notify_add(client:PGConfClient; namespace_section:Pgchar; func:TGConfClientNotifyFunc; user_data:gpointer; destroy_notify:TGFreeFunc;
            err:PPGError):guint;cdecl;external gconfclientdll name 'gconf_client_notify_add';
 procedure gconf_client_notify_remove(client:PGConfClient; cnxn:guint);cdecl;external gconfclientdll name 'gconf_client_notify_remove';
 procedure gconf_client_set_error_handling(client:PGConfClient; mode:TGConfClientErrorHandlingMode);cdecl;external gconfclientdll name 'gconf_client_set_error_handling';
@@ -104,7 +104,7 @@ function gconf_client_get_string(client:PGConfClient; key:Pgchar; err:PPGError):
 function gconf_client_get_bool(client:PGConfClient; key:Pgchar; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_get_bool';
 function gconf_client_get_schema(client:PGConfClient; key:Pgchar; err:PPGError):PGConfSchema;cdecl;external gconfclientdll name 'gconf_client_get_schema';
 function gconf_client_get_list(client:PGConfClient; key:Pgchar; list_type:TGConfValueType; err:PPGError):PGSList;cdecl;external gconfclientdll name 'gconf_client_get_list';
-function gconf_client_get_pair(client:PGConfClient; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; car_retloc:gpointer; 
+function gconf_client_get_pair(client:PGConfClient; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; car_retloc:gpointer;
            cdr_retloc:gpointer; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_get_pair';
 function gconf_client_set_float(client:PGConfClient; key:Pgchar; val:gdouble; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_set_float';
 function gconf_client_set_int(client:PGConfClient; key:Pgchar; val:gint; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_set_int';
@@ -112,7 +112,7 @@ function gconf_client_set_string(client:PGConfClient; key:Pgchar; val:Pgchar; er
 function gconf_client_set_bool(client:PGConfClient; key:Pgchar; val:gboolean; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_set_bool';
 function gconf_client_set_schema(client:PGConfClient; key:Pgchar; val:PGConfSchema; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_set_schema';
 function gconf_client_set_list(client:PGConfClient; key:Pgchar; list_type:TGConfValueType; list:PGSList; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_set_list';
-function gconf_client_set_pair(client:PGConfClient; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; const address_of_car:gpointer; 
+function gconf_client_set_pair(client:PGConfClient; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; const address_of_car:gpointer;
            const address_of_cdr:gpointer; err:PPGError):gboolean;cdecl;external gconfclientdll name 'gconf_client_set_pair';
 procedure gconf_client_error(client:PGConfClient; error:PGError);cdecl;external gconfclientdll name 'gconf_client_error';
 procedure gconf_client_unreturned_error(client:PGConfClient; error:PGError);cdecl;external gconfclientdll name 'gconf_client_unreturned_error';

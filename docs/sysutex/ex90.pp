@@ -6,9 +6,9 @@ Program Example90;
 
 Uses SysUtils;
 
-Const 
+Const
   NrValues = 5;
-  TestStr : Array[1..NrValues] of string = 
+  TestStr : Array[1..NrValues] of string =
            ('1,1','-0,2','1,2E-4','0','1E4');
 
 Procedure Testit;
@@ -16,7 +16,7 @@ Procedure Testit;
 Var
   I : Integer;
   E : Extended;
-  
+
 begin
   Writeln('Using DecimalSeparator : ',DecimalSeparator);
   For I:=1 to NrValues do

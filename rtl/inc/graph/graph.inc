@@ -2132,13 +2132,7 @@ begin
 end;
 {
   $Log$
-  Revision 1.9  2002-09-07 15:07:47  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/09/07 12:43:02  carl
-    - unit cleanup (removed unused defines)
-
-  Revision 1.7  2002/06/01 19:42:02  marco
-   * Renamefest
+  Revision 1.10  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

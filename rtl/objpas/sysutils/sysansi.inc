@@ -72,18 +72,7 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-06-17 16:23:50  peter
-    * use sizeint
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.3  2004/06/13 10:49:50  florian
-    * fixed some bootstrapping problems as well as some 64 bit stuff
-
-  Revision 1.2  2003/11/26 22:17:42  michael
-  + Merged fixbranch fixes, missing in main branch
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.1  2002/10/07 19:43:24  florian
-    + empty prototypes for the AnsiStr* multi byte functions added
 }

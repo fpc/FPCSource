@@ -986,40 +986,7 @@ var
 end.
 {
   $Log$
-  Revision 1.61  2004-10-24 13:35:25  peter
-    * support rodata like data when writing ordinal cosnts
-
-  Revision 1.60  2004/10/14 16:49:14  mazen
-  * Merge is complete for this file, cycles !
-
-  Revision 1.59  2004/09/26 17:45:29  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.58  2004/08/27 20:53:52  peter
-  don't lowercase filenames in stabs
-
-  Revision 1.57  2004/07/18 22:04:55  hajny
-    * fix for OS/2 and EMX - .section not supported by as.exe
-
-  Revision 1.56  2004/07/01 18:16:10  jonas
-    * Darwin fixes
-
-  Revision 1.55  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.54  2004/06/16 20:07:06  florian
-    * dwarf branch merged
-
-  Revision 1.53  2004/05/28 21:13:08  peter
-    * fix wrong regalloc comments
-
-  Revision 1.52  2004/05/22 23:34:27  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.51  2004/04/27 13:38:24  florian
-    * fixed wrong commit from yesterday
-
-  Revision 1.50  2004/04/25 21:26:16  florian
-    * some m68k stuff fixed
+  Revision 1.62  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Windows specific versions of Borland SysUtils routines.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -20,18 +20,18 @@ Interface
 
 Uses Windows,SysUtils;
 
-const  
+const
   Win32Platform     : Integer = 0;
   Win32MajorVersion : Integer = 0;
   Win32MinorVersion : Integer = 0;
   Win32BuildNumber  : Integer = 0;
-                          
+
   Win32CSDVersion   : string = '';
- 
+
 function CheckWin32Version(Major,Minor : Integer ): Boolean;
 function CheckWin32Version(Major : Integer): Boolean;
-Function Win32Check(RetVal: BOOL): BOOL; 
-Procedure RaiseLastWin32Error; 
+Function Win32Check(RetVal: BOOL): BOOL;
+Procedure RaiseLastWin32Error;
 
 Implementation
 
@@ -41,10 +41,10 @@ begin
   RaiseLastOSError;
 end;
 
-Function Win32Check(RetVal: BOOL): BOOL; 
+Function Win32Check(RetVal: BOOL): BOOL;
 
 begin
-  if Not RetVal then 
+  if Not RetVal then
     RaiseLastOSError;
   Result := RetVal;
 end;
@@ -53,7 +53,7 @@ procedure InitVersion;
 
 var
   Info: TOSVersionInfo;
-  
+
 begin
   Info.dwOSVersionInfoSize := SizeOf(Info);
   if GetVersionEx(Info) then

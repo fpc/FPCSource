@@ -8,7 +8,7 @@ Var
   D : Double;
   E : Extended;
   F : File of Real48;
-  
+
 begin
   Assign(F,'reals.dat');
   Reset(f);
@@ -22,5 +22,5 @@ begin
     E:=R;
     Writeln('Real (direct to Extended) ',i,' : ',E);
     end;
-  Close(f);  
+  Close(f);
 end.

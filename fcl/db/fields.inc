@@ -428,7 +428,7 @@ end;
 
 procedure TField.SetAlignment(const AValue: TAlignMent);
 begin
-  if FAlignment <> AValue then 
+  if FAlignment <> AValue then
     begin
     FAlignment := Avalue;
     PropertyChanged(false);
@@ -632,7 +632,7 @@ end;
 
 procedure TField.SetDisplayLabel(const AValue: string);
 begin
-  if FDisplayLabel<>Avalue then 
+  if FDisplayLabel<>Avalue then
     begin
     FDisplayLabel:=Avalue;
     PropertyChanged(true);
@@ -641,7 +641,7 @@ end;
 
 procedure TField.SetDisplayWidth(const AValue: Longint);
 begin
-  if FDisplayWidth<>AValue then 
+  if FDisplayWidth<>AValue then
     begin
     FDisplayWidth:=AValue;
     PropertyChanged(True);
@@ -658,7 +658,7 @@ end;
 
 procedure TField.SetReadOnly(const AValue: Boolean);
 begin
-  if (FReadOnly<>Avalue) then 
+  if (FReadOnly<>Avalue) then
     begin
     FReadOnly:=AValue;
     PropertyChanged(True);
@@ -667,7 +667,7 @@ end;
 
 procedure TField.SetVisible(const AValue: Boolean);
 begin
-  if FVisible<>Avalue then 
+  if FVisible<>Avalue then
     begin
     FVisible:=AValue;
     PropertyChanged(True);
@@ -2204,7 +2204,10 @@ end;
 
 {
   $Log$
-  Revision 1.22  2005-02-07 11:22:23  joost
+  Revision 1.23  2005-02-14 17:13:12  peter
+    * truncate log
+
+  Revision 1.22  2005/02/07 11:22:23  joost
     - Implemented TField.DisplayName
 
   Revision 1.21  2005/01/12 10:29:54  michael
@@ -2212,52 +2215,5 @@ end;
      - removed some duplicate definitions
      - restructured SetDataset
      - implemented UpdateMode, ProviderFlags
-
-  Revision 1.20  2004/12/29 20:27:08  michael
-  + Patch from Joost van der Sluis to correct AsVariant
-
-  Revision 1.19  2004/12/13 19:20:42  michael
-    * Patch from Joost van der Sluis
-    - fixed bug #3180, TFields.Clear implemented
-    - implemented TLargeintField
-
-  Revision 1.18  2004/12/05 00:05:38  michael
-  patch to enable RecNo and DisplayFormat
-
-  Revision 1.17  2004/12/04 22:43:56  michael
-    - implemented TBCDFields
-
-  Revision 1.16  2004/11/30 21:18:34  michael
-  + Fix from Jesus Reyes to fix TfieldDefs.Assign
-
-  Revision 1.15  2004/08/21 21:10:00  michael
-  * Patch from Joost van der Sluis
-    - Empty recordsets don't show any bogus data anymore
-    - Floatfiels.gettext fix
-    - SetBufListsize fix forTDBGrid
-
-  Revision 1.14  2004/08/01 13:00:29  michael
-  + Patch for Tlongintfield by Joost van der Sluis
-
-  Revision 1.13  2004/07/19 20:27:29  michael
-  + Fixes from Jesus Reyes to implement DisplayWith, DisplayLabel, Visibility
-
-  Revision 1.12  2004/07/18 13:16:50  michael
-  + Changed extended to double for better Delphi compatibility
-
-  Revision 1.11  2004/05/02 21:23:18  peter
-    * use ptrint
-
-  Revision 1.10  2004/03/25 20:43:39  michael
-  Some compatibility additions
-
-  Revision 1.9  2004/02/25 16:29:26  michael
-  + Added AsInteger to TField. Maps to AsLongint for now
-
-  Revision 1.8  2003/09/14 13:22:14  michael
-  + Fixed error in TField.GetCanModify reported by Andrew Johnson
-
-  Revision 1.7  2002/09/07 15:15:23  peter
-    * old logs removed and tabs fixed
 
 }

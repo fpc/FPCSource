@@ -101,7 +101,7 @@ const
   serDevModemPort     = $00000008; // Serial deivce drives modem connection.
   serDevCncMgrVisible = $00000010; // Serial device port name string to be displayed in Connection Mgr panel.
   serDevConsolePort   = $00000020; // Serial device is the default console port.
-  serDevUSBCapable    = $00000040; // USB driver for USB hardware connected to the cradle connector of the handheld. 
+  serDevUSBCapable    = $00000040; // USB driver for USB hardware connected to the cradle connector of the handheld.
 type
   DeviceInfoType = record
     serDevCreator: UInt32;             // Four Character creator type for serial driver ('sdrv')
@@ -217,7 +217,7 @@ const
   srmCtlEmuSetBlockingHook = Succ(srmCtlRxDisable); // Set a blocking hook routine FOR EMULATION
                                                     // MODE ONLY - NOT SUPPORTED ON THE PILOT
                                                     //PASS:
-                                                    // valueP = Pointer to SerCallbackEntryType 
+                                                    // valueP = Pointer to SerCallbackEntryType
                                                     // *valueLenP = sizeof(SerCallbackEntryType)
                                                     //RETURNS:
                                                     // the old settings in the first argument
@@ -279,7 +279,7 @@ const
   sysSerialPrimeWakeupHandler = Succ(sysSerialSetWakeupHandler);
   sysSerialOpenV4 = Succ(sysSerialPrimeWakeupHandler);
   sysSerialOpenBkgndV4 = Succ(sysSerialOpenV4);
-  sysSerialCustomControl = Succ(sysSerialOpenBkgndV4);   
+  sysSerialCustomControl = Succ(sysSerialOpenBkgndV4);
 // Used by SerialMgrDispatch.c
   maxSerialSelector = sysSerialCustomControl;
 function SerialMgrInstall: Err;

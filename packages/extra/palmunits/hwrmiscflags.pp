@@ -25,7 +25,7 @@ interface
 (**************************************************************************
  * General Equates
  ***************************************************************************)
- 
+
 // ----------------------------------------------------------------------
 // NOTE: In some ROMs between 3.0 and 3.3 (inclusive), OEMs may have
 // ROM tokens present in the ROM that were detected by the boot code

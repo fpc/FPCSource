@@ -32,14 +32,14 @@ const
 
 Function DoEncodeDate(Year, Month, Day: Word): longint;
 
-Var 
+Var
   D : TDateTime;
 
 begin
   If TryEncodeDate(Year,Month,Day,D) then
     Result:=Trunc(D)
-  else 
-    Result:=0;   
+  else
+    Result:=0;
 end;
 
 function DoEncodeTime(Hour, Minute, Second, MilliSecond: word): longint;
@@ -51,7 +51,7 @@ begin
   If TryEncodeTime(Hour,Minute,Second,MilliSecond,T) then
     Result:=trunc(T*MSecsPerDay)
   else
-    Result:=0;  
+    Result:=0;
 end;
 
 {==============================================================================}
@@ -172,7 +172,7 @@ begin
     end;
   year:=ly;
   month:=lm;
-  day:=ld; 
+  day:=ld;
 end;
 
 
@@ -321,7 +321,7 @@ var
 {$IFDEF VIRTUALPASCAL}
    c:longint;
 {$ELSE}
-   c:word; 
+   c:word;
 {$ENDIF}
    dp,mp,yp,which : Byte;
    s1:string[4];
@@ -431,8 +431,8 @@ var
 
    function GetElement: integer;
    var
-     j: integer; 
-     {$IFDEF VIRTUALPASCAL}	
+     j: integer;
+     {$IFDEF VIRTUALPASCAL}
      c: longint;
      {$ELSE}
      c: word;
@@ -647,8 +647,8 @@ var
                         end ;
                      'H': begin
                         if Clock12 then begin
-			   tmp:=hour mod 12;   
-		           if tmp=0 then tmp:=12;
+                           tmp:=hour mod 12;
+                           if tmp=0 then tmp:=12;
                            if Count = 1 then StoreInt(tmp, 0)
                            else StoreInt(tmp, 2);
                            end
@@ -740,34 +740,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2004-11-05 13:02:21  marco
-   * now correct proc patched
-
-  Revision 1.4  2004/11/05 12:10:04  marco
-   * fix for 3357, introducing some local vars.
-
-  Revision 1.3  2004/05/02 13:40:55  marco
-   * fix to AM/PM behaviour of formatdatetime around noon
-
-  Revision 1.2  2003/11/24 23:00:56  michael
-  + Fix for bug 2476
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.10  2003/09/06 21:52:24  marco
-   * commited.
-
-  Revision 1.9  2003/01/18 23:45:37  michael
-  + Fixed EncodeDate/Time so they use TryEncodeDate/Time
-
-  Revision 1.8  2002/12/25 01:03:48  peter
-    * some date constants added
-
-  Revision 1.7  2002/09/07 21:06:51  carl
-    * bugfix 1867 (merged)
-
-  Revision 1.6  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

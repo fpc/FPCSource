@@ -21,7 +21,7 @@ procedure test_cseg;
    else
      WriteLn('Success!');
  end;
- 
+
 procedure test_dseg;
  begin
    Write('Testing DSeg()...');
@@ -30,7 +30,7 @@ procedure test_dseg;
    else
      WriteLn('Success!');
  end;
- 
+
 procedure test_sseg;
  begin
    Write('Testing SSeg()...');
@@ -39,7 +39,7 @@ procedure test_sseg;
    else
      WriteLn('Success!');
  end;
- 
+
 procedure test_seg;
  var
    x : longint;
@@ -53,12 +53,12 @@ procedure test_seg;
      _result := false;
    if seg(variable) <> 0 then
      _result := false;
-   if not _result then  
+   if not _result then
      fail
    else
      WriteLn('Success!');
  end;
- 
+
 Begin
   test_cseg;
   test_dseg;
@@ -68,7 +68,7 @@ end.
 
 {
  $Log$
- Revision 1.1  2002-09-16 19:15:54  carl
-   * several new routines have a testsuit.
+ Revision 1.2  2005-02-14 17:13:37  peter
+   * truncate log
 
-} 
+}

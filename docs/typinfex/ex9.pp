@@ -9,7 +9,7 @@ uses rttiobj,typinfo;
 Var
   O : TMyTestObject;
   TI : PTypeInfo;
-  
+
 begin
   O:=TMyTestObject.Create;
   TI:=GetPropInfo(O,'MyEnumField')^.PropType;

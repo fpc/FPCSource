@@ -40,18 +40,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):T
 
 {
   $Log$
-  Revision 1.5  2004-05-16 11:04:27  marco
-   * comment removed and four dud instrcutions
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.4  2004/04/22 17:17:23  peter
-    * x86-64 fixes
-
-  Revision 1.3  2004/02/06 15:58:21  florian
-    * fixed x86-64 assembler problems
-
-  Revision 1.2  2003/05/01 08:05:23  florian
-    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
-
-  Revision 1.1  2003/04/30 22:11:06  florian
-    + for a lot of x86-64 dependend files mostly dummies added
 }

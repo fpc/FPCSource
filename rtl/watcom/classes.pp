@@ -44,11 +44,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2004-01-10 20:15:21  michael
-  + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
-
-  Revision 1.1  2003/11/17 19:55:13  hajny
-    * Wiktor Sywula: LFN detection uncommented in system, new units added
-
+  Revision 1.3  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

@@ -1572,21 +1572,21 @@ is in practice already 0 *)
     bfd_getx64:           function (const Pbfd_byte): bfd_vma; cdecl;
     bfd_getx_signed_64:   function (const Pbfd_byte):bfd_signed_vma; cdecl;
     bfd_putx64:           procedure(a: bfd_vma; b: Pbfd_byte); cdecl;
-    bfd_getx32:           function (const Pbfd_byte):bfd_vma; cdecl; 
+    bfd_getx32:           function (const Pbfd_byte):bfd_vma; cdecl;
     bfd_getx_signed_32:   function (const Pbfd_byte):bfd_signed_vma; cdecl;
-    bfd_putx32:           procedure(a: bfd_vma; b: Pbfd_byte); cdecl; 
-    bfd_getx16:           function (const Pbfd_byte):bfd_vma; cdecl; 
-    bfd_getx_signed_16:   function (const Pbfd_byte):bfd_signed_vma; cdecl; 
+    bfd_putx32:           procedure(a: bfd_vma; b: Pbfd_byte); cdecl;
+    bfd_getx16:           function (const Pbfd_byte):bfd_vma; cdecl;
+    bfd_getx_signed_16:   function (const Pbfd_byte):bfd_signed_vma; cdecl;
     bfd_putx16:           procedure(a: bfd_vma; b: Pbfd_byte); cdecl;
-    bfd_h_getx64:         function (const Pbfd_byte):bfd_vma; cdecl; 
+    bfd_h_getx64:         function (const Pbfd_byte):bfd_vma; cdecl;
     bfd_h_getx_signed_64: function (const Pbfd_byte):bfd_signed_vma; cdecl;
-    bfd_h_putx64:         procedure(a: bfd_vma; b: Pbfd_byte); cdecl; 
-    bfd_h_getx32:         function (const Pbfd_byte):bfd_vma; cdecl; 
+    bfd_h_putx64:         procedure(a: bfd_vma; b: Pbfd_byte); cdecl;
+    bfd_h_getx32:         function (const Pbfd_byte):bfd_vma; cdecl;
     bfd_h_getx_signed_32: function (const Pbfd_byte):bfd_signed_vma; cdecl;
-    bfd_h_putx32:         procedure(a: bfd_vma; b: Pbfd_byte); cdecl; 
-    bfd_h_getx16:         function (const Pbfd_byte):bfd_vma; cdecl; 
-    bfd_h_getx_signed_16: function (const Pbfd_byte):bfd_signed_vma; cdecl; 
-    bfd_h_putx16:         procedure(a: bfd_vma; b: Pbfd_byte); cdecl; 
+    bfd_h_putx32:         procedure(a: bfd_vma; b: Pbfd_byte); cdecl;
+    bfd_h_getx16:         function (const Pbfd_byte):bfd_vma; cdecl;
+    bfd_h_getx_signed_16: function (const Pbfd_byte):bfd_signed_vma; cdecl;
+    bfd_h_putx16:         procedure(a: bfd_vma; b: Pbfd_byte); cdecl;
     _bfd_check_format:   array [bfd_format] of check_format_proc;
     _bfd_set_format:     array [bfd_format] of set_format_proc;
     _bfd_write_contents: array [bfd_format] of write_contents_proc;
@@ -1594,121 +1594,121 @@ is in practice already 0 *)
     (* Generic entry points.  *)
 
     (* Called when the BFD is being closed to do any necessary cleanup.  *)
-    _close_and_cleanup:     function(a: PBFD  ):bfd_boolean;cdecl; 
+    _close_and_cleanup:     function(a: PBFD  ):bfd_boolean;cdecl;
     (* Ask the BFD to free all cached information.  *)
-    _bfd_free_cached_info:  function(a: PBFD  ):bfd_boolean;cdecl; 
+    _bfd_free_cached_info:  function(a: PBFD  ):bfd_boolean;cdecl;
     (* Called when a new section is created.  *)
-    _new_section_hook:      function(a: PBFD; b: PSec):bfd_boolean;cdecl; 
+    _new_section_hook:      function(a: PBFD; b: PSec):bfd_boolean;cdecl;
     (* Read the contents of a section.  *)
-    _bfd_get_section_contents:  function(a: PBFD; b: PSec; c: pointer; d: file_ptr; e: bfd_size_type):bfd_boolean;cdecl; 
-    _bfd_get_section_contents_in_window: function(a: PBFD; b: PSec; c: Pbfd_window; d:file_ptr; e: bfd_size_type):bfd_boolean;cdecl; 
+    _bfd_get_section_contents:  function(a: PBFD; b: PSec; c: pointer; d: file_ptr; e: bfd_size_type):bfd_boolean;cdecl;
+    _bfd_get_section_contents_in_window: function(a: PBFD; b: PSec; c: Pbfd_window; d:file_ptr; e: bfd_size_type):bfd_boolean;cdecl;
 
     (* Entry points to copy private data.  *)
 
     (* Called to copy BFD general private data from one object file
        to another.  *)
-    _bfd_copy_private_bfd_data:  function(a: PBFD; b: PBFD  ):bfd_boolean;cdecl; 
+    _bfd_copy_private_bfd_data:  function(a: PBFD; b: PBFD  ):bfd_boolean;cdecl;
     (* Called to merge BFD general private data from one object file
        to a common output file when linking.  *)
-    _bfd_merge_private_bfd_data:  function(a: PBFD; b: PBFD  ):bfd_boolean;cdecl; 
+    _bfd_merge_private_bfd_data:  function(a: PBFD; b: PBFD  ):bfd_boolean;cdecl;
     (* Called to copy BFD private section data from one object file
        to another.  *)
-    _bfd_copy_private_section_data: function(a: PBFD; b:PSec; c: PBFD; d: PSec):bfd_boolean;cdecl; 
+    _bfd_copy_private_section_data: function(a: PBFD; b:PSec; c: PBFD; d: PSec):bfd_boolean;cdecl;
     (* Called to copy BFD private symbol data from one symbol
        to another.  *)
-    _bfd_copy_private_symbol_data: function(a: PBFD; b: Pasymbol; c: PBFD; d: Pasymbol):bfd_boolean;cdecl; 
+    _bfd_copy_private_symbol_data: function(a: PBFD; b: Pasymbol; c: PBFD; d: Pasymbol):bfd_boolean;cdecl;
     (* Called to set private backend flags *)
-    _bfd_set_private_flags: function(a: PBFD; b:flagword):bfd_boolean; cdecl; 
+    _bfd_set_private_flags: function(a: PBFD; b:flagword):bfd_boolean; cdecl;
 
     (* Called to print private BFD data *)
-    _bfd_print_private_bfd_data: function(a: PBFD; b: pointer):bfd_boolean; cdecl; 
+    _bfd_print_private_bfd_data: function(a: PBFD; b: pointer):bfd_boolean; cdecl;
 
     (* Core file entry points.  *)
 
     (* Archive entry points.  *)
 
-    _bfd_slurp_armap: function(a: PBFD):bfd_boolean;cdecl; 
-    _bfd_slurp_extended_name_table: function(a: PBFD  ):bfd_boolean;cdecl; 
-    _bfd_construct_extended_name_table: function(a: PBFD; b: Ppchar; c: Pbfd_size_type; d: Ppchar):bfd_boolean;cdecl; 
-    _bfd_truncate_arname: procedure (a: PBFD; b: pchar; c: pchar);cdecl; 
-    write_armap: function(arch: PBFD; elength: LongWord; map: Porl; orl_count: LongWord; stridx: integer):bfd_boolean;cdecl; 
-    _bfd_read_ar_hdr_fn: function(a: PBFD  ):pointer;cdecl; 
-    openr_next_archived_file: function(arch: PBFD; prev: PBFD):PBFD;cdecl; 
+    _bfd_slurp_armap: function(a: PBFD):bfd_boolean;cdecl;
+    _bfd_slurp_extended_name_table: function(a: PBFD  ):bfd_boolean;cdecl;
+    _bfd_construct_extended_name_table: function(a: PBFD; b: Ppchar; c: Pbfd_size_type; d: Ppchar):bfd_boolean;cdecl;
+    _bfd_truncate_arname: procedure (a: PBFD; b: pchar; c: pchar);cdecl;
+    write_armap: function(arch: PBFD; elength: LongWord; map: Porl; orl_count: LongWord; stridx: integer):bfd_boolean;cdecl;
+    _bfd_read_ar_hdr_fn: function(a: PBFD  ):pointer;cdecl;
+    openr_next_archived_file: function(arch: PBFD; prev: PBFD):PBFD;cdecl;
 
 
-    _bfd_get_elt_at_index: function(a: PBFD; b: symindex):PBFD;cdecl; 
-    _bfd_stat_arch_elt: function(a: PBFD; b: Pstat ):integer;cdecl; 
-    _bfd_update_armap_timestamp: function(a: PBFD  ):bfd_boolean;cdecl; 
+    _bfd_get_elt_at_index: function(a: PBFD; b: symindex):PBFD;cdecl;
+    _bfd_stat_arch_elt: function(a: PBFD; b: Pstat ):integer;cdecl;
+    _bfd_update_armap_timestamp: function(a: PBFD  ):bfd_boolean;cdecl;
 
     (* Entry points used for symbols.  *)
 
-    _bfd_get_symtab_upper_bound: function(a: PBFD  ):LongInt;cdecl; 
-    _bfd_canonicalize_symtab: function(a: PBFD; b: PPsymbol_cache_entry):LongInt;cdecl; 
+    _bfd_get_symtab_upper_bound: function(a: PBFD  ):LongInt;cdecl;
+    _bfd_canonicalize_symtab: function(a: PBFD; b: PPsymbol_cache_entry):LongInt;cdecl;
 
 
-    _bfd_make_empty_symbol: function(a: PBFD  ): PPsymbol_cache_entry;cdecl; 
+    _bfd_make_empty_symbol: function(a: PBFD  ): PPsymbol_cache_entry;cdecl;
 
-    _bfd_print_symbol: procedure(a: PBFD; b: pointer; c: Psymbol_cache_entry; d: bfd_print_symbol);cdecl; 
-    _bfd_get_symbol_info: procedure (a: PBFD; b: Psymbol_cache_entry; c:Psymbol_info);cdecl; 
-    _bfd_is_local_label_name: function(a: PBFD; b: pchar):bfd_boolean;cdecl; 
+    _bfd_print_symbol: procedure(a: PBFD; b: pointer; c: Psymbol_cache_entry; d: bfd_print_symbol);cdecl;
+    _bfd_get_symbol_info: procedure (a: PBFD; b: Psymbol_cache_entry; c:Psymbol_info);cdecl;
+    _bfd_is_local_label_name: function(a: PBFD; b: pchar):bfd_boolean;cdecl;
 
-    _get_lineno: function( a: PBFD; b: Psymbol_cache_entry):Palent;cdecl; 
-    _bfd_find_nearest_line: function(abfd: PBFD; section: Psec; symbols: PPsymbol_cache_entry; offset: bfd_vma; fil: pchar; func: Ppchar;  lin: PLongWord):bfd_boolean;cdecl; 
+    _get_lineno: function( a: PBFD; b: Psymbol_cache_entry):Palent;cdecl;
+    _bfd_find_nearest_line: function(abfd: PBFD; section: Psec; symbols: PPsymbol_cache_entry; offset: bfd_vma; fil: pchar; func: Ppchar;  lin: PLongWord):bfd_boolean;cdecl;
    (* Back-door to allow format-aware applications to create debug symbols
       while using BFD for everything else.  Currently used by the assembler
       when creating COFF files.  *)
-    _bfd_make_debug_symbol: function( abfd: PBFD ; ptr: pointer; size: LongWord ):Pasymbol;cdecl; 
-    _read_minisymbols:   function(a: PBFD; b: bfd_boolean; c: PPointer; d: PLongWord):LongInt;cdecl; 
-    _minisymbol_to_symbol: function(a: PBFD; b:bfd_boolean; c: pointer; d: Pasymbol):Pasymbol;cdecl; 
+    _bfd_make_debug_symbol: function( abfd: PBFD ; ptr: pointer; size: LongWord ):Pasymbol;cdecl;
+    _read_minisymbols:   function(a: PBFD; b: bfd_boolean; c: PPointer; d: PLongWord):LongInt;cdecl;
+    _minisymbol_to_symbol: function(a: PBFD; b:bfd_boolean; c: pointer; d: Pasymbol):Pasymbol;cdecl;
 
     (* Routines for relocs.  *)
 
-    _get_reloc_upper_bound: function(a: PBFD; b: PSec):LongInt;cdecl; 
-    _bfd_canonicalize_reloc: function(a: PBFD; b: PSec;c: PParelent; d: PPsymbol_cache_entry ):LongInt;cdecl; 
+    _get_reloc_upper_bound: function(a: PBFD; b: PSec):LongInt;cdecl;
+    _bfd_canonicalize_reloc: function(a: PBFD; b: PSec;c: PParelent; d: PPsymbol_cache_entry ):LongInt;cdecl;
     (* See documentation on reloc types.  *)
 
-    reloc_type_lookup: function(abfd: PBFD ; code: bfd_reloc_code_real): PPreloc_howto;cdecl; 
+    reloc_type_lookup: function(abfd: PBFD ; code: bfd_reloc_code_real): PPreloc_howto;cdecl;
 
     (* Routines used when writing an object file.  *)
 
-    _bfd_set_arch_mach: function( a: PBFD; b:bfd_architecture; c:LongWord): bfd_boolean;cdecl; 
+    _bfd_set_arch_mach: function( a: PBFD; b:bfd_architecture; c:LongWord): bfd_boolean;cdecl;
 
-    _bfd_set_section_contents: function(a: PBFD; b: PSec; c: pointer; d: file_ptr; e: bfd_size_type):bfd_boolean;cdecl; 
+    _bfd_set_section_contents: function(a: PBFD; b: PSec; c: pointer; d: file_ptr; e: bfd_size_type):bfd_boolean;cdecl;
 
     (* Routines used by the linker.  *)
 
-    _bfd_sizeof_headers: function(a: PBFD ; b: bfd_boolean):integer;cdecl; 
-    _bfd_get_relocated_section_contents: function(a: PBFD ; b: Pbfd_link_info; c: Pbfd_link_order; data: Pbfd_byte; relocateable: bfd_boolean; ce: PPsymbol_cache_entry):Pbfd_byte;cdecl; 
+    _bfd_sizeof_headers: function(a: PBFD ; b: bfd_boolean):integer;cdecl;
+    _bfd_get_relocated_section_contents: function(a: PBFD ; b: Pbfd_link_info; c: Pbfd_link_order; data: Pbfd_byte; relocateable: bfd_boolean; ce: PPsymbol_cache_entry):Pbfd_byte;cdecl;
 
-    _bfd_relax_section: function(a: PBFD ; b: Psec; c: Pbfd_link_info; again: Pboolean):bfd_boolean;cdecl; 
+    _bfd_relax_section: function(a: PBFD ; b: Psec; c: Pbfd_link_info; again: Pboolean):bfd_boolean;cdecl;
 
     (* Create a hash table for the linker.  Different backends store
        different information in this table.  *)
-    _bfd_link_hash_table_create: function( a: PBFD  ):Pbfd_link_hash_table;cdecl; 
+    _bfd_link_hash_table_create: function( a: PBFD  ):Pbfd_link_hash_table;cdecl;
 
     (* Add symbols from this object file into the hash table.  *)
-    _bfd_link_add_symbols: function(a: PBFD ; b: Pbfd_link_info):bfd_boolean;cdecl; 
+    _bfd_link_add_symbols: function(a: PBFD ; b: Pbfd_link_info):bfd_boolean;cdecl;
 
     (* Do a link based on the link_order structures attached to each
        section of the BFD.  *)
-    _bfd_final_link: function(a: PBFD; b: Pbfd_link_info):bfd_boolean;cdecl; 
+    _bfd_final_link: function(a: PBFD; b: Pbfd_link_info):bfd_boolean;cdecl;
 
     (* Should this section be split up into smaller pieces during linking.  *)
-    _bfd_link_split_section: function(a: PBFD; b: Psec):bfd_boolean;cdecl; 
+    _bfd_link_split_section: function(a: PBFD; b: Psec):bfd_boolean;cdecl;
 
     (* Remove sections that are not referenced from the output.  *)
-    _bfd_gc_sections: function(a: PBFD ; b: Pbfd_link_info):bfd_boolean;cdecl; 
+    _bfd_gc_sections: function(a: PBFD ; b: Pbfd_link_info):bfd_boolean;cdecl;
 
     (* Routines to handle dynamic symbols and relocs.  *)
 
     (* Get the amount of memory required to hold the dynamic symbols. *)
-    _bfd_get_dynamic_symtab_upper_bound: function(a: PBFD  ):LongInt;cdecl; 
+    _bfd_get_dynamic_symtab_upper_bound: function(a: PBFD  ):LongInt;cdecl;
     (* Read in the dynamic symbols.  *)
-    _bfd_canonicalize_dynamic_symtab: function(a: PBFD ; b: PPsymbol_cache_entry):LongInt;cdecl; 
+    _bfd_canonicalize_dynamic_symtab: function(a: PBFD ; b: PPsymbol_cache_entry):LongInt;cdecl;
     (* Get the amount of memory required to hold the dynamic relocs.  *)
-    _bfd_get_dynamic_reloc_upper_bound: function(a: PBFD  ):LongInt;cdecl; 
+    _bfd_get_dynamic_reloc_upper_bound: function(a: PBFD  ):LongInt;cdecl;
     (* Read in the dynamic relocs.  *)
-    _bfd_canonicalize_dynamic_reloc: function(a: PBFD ; b: PParelent; c: PPsymbol_cache_entry):LongInt;cdecl; 
+    _bfd_canonicalize_dynamic_reloc: function(a: PBFD ; b: PParelent; c: PPsymbol_cache_entry):LongInt;cdecl;
 
     (* Opposite endian version of this target.  *)
     alternative_target: Pbfd_target;
@@ -1809,7 +1809,7 @@ is in practice already 0 *)
                                 data: pointer;
                                 input_section: Pasection;
                                 output_bfd: PBFD;
-                                error_message: ppchar):  bfd_reloc_status;cdecl; 
+                                error_message: ppchar):  bfd_reloc_status;cdecl;
 
          (* The textual name of the relocation type. *)
     name: pchar;
@@ -1868,8 +1868,8 @@ is in practice already 0 *)
     (* True if this is the default machine for the architecture.  *)
     the_default: bfd_boolean;
 
-    compatible: function(a: Pbfd_arch_info; b: Pbfd_arch_info):Pbfd_arch_info;cdecl; 
-    scan: function(a: Pbfd_arch_info; b: pchar): bfd_boolean;cdecl; 
+    compatible: function(a: Pbfd_arch_info; b: Pbfd_arch_info):Pbfd_arch_info;cdecl;
+    scan: function(a: Pbfd_arch_info; b: pchar): bfd_boolean;cdecl;
 
     next: Pbfd_arch_info;
   end; { bfd_arch_info }
@@ -2684,7 +2684,7 @@ const
 //todo:bfd_boolean bfd_set_section_flags (PBFD abfd, asection *sec, flagword flags));
 
 type
-  bfd_map_over_sections_proc = procedure( abfd: PBFD; sect: Pasection; obj: pointer ); cdecl; 
+  bfd_map_over_sections_proc = procedure( abfd: PBFD; sect: Pasection; obj: pointer ); cdecl;
 
 procedure bfd_map_over_sections( abfd: PBFD; func: bfd_map_over_sections_proc; obj: pointer ); cdecl; external BFD_LIB_NAME;
 

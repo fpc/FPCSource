@@ -20,4 +20,4 @@ function inet_nsap_ntoa(__len:longint; __cp:Pbyte; __buf:Pchar):Pchar;cdecl;exte
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -668,52 +668,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.94  2005-01-24 22:08:32  peter
+  Revision 1.95  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.94  2005/01/24 22:08:32  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
 
   Revision 1.93  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
-
-  Revision 1.92  2004/11/16 20:32:40  peter
-  * fixes for win32 mangledname
-
-  Revision 1.91  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.90  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.89  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.88  2004/09/13 20:33:17  peter
-    * use realname in error msg
-
-  Revision 1.87  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.86  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.85.2.1  2004/04/28 19:55:52  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.85  2004/03/23 22:34:49  peter
-    * constants ordinals now always have a type assigned
-    * integer constants have the smallest type, unsigned prefered over
-      signed
-
-  Revision 1.84  2004/03/20 20:55:36  florian
-    + implemented cdecl'd varargs on arm
-    + -dCMEM supported by the compiler
-    * label/goto asmsymbol type with -dextdebug fixed
-
-  Revision 1.83  2004/03/08 22:07:47  peter
-    * stabs updates to write stabs for def for all implictly used
-      units
 
 }

@@ -193,7 +193,10 @@ CONST
 
 {
   $Log$
-  Revision 1.3  2005-02-14 16:32:41  peter
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.3  2005/02/14 16:32:41  peter
     * solaris updates
 
   Revision 1.2  2005/02/13 22:13:20  peter
@@ -202,6 +205,4 @@ CONST
   Revision 1.1  2005/02/10 17:30:54  peter
     * renamed to solaris
 
-  Revision 1.1  2004/11/06 22:22:28  florian
-    * some sunos stuff from 1.0.x merged
 }

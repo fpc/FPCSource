@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -6,7 +6,7 @@
 
    See the file COPYING.FPC, included in this distribution,
    for details about the copyright.
-   
+
    socket call implementations for FreeBSD
 
    This program is distributed in the hope that it will be useful,
@@ -18,19 +18,19 @@
                           Basic Socket Functions
 ******************************************************************************}
 
-function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint; 
+function  fpsocket (domain:cint; xtype:cint; protocol: cint):cint;
 Begin
   fpSocket:=Do_Syscall(syscall_nr_socket,Domain,xtype,Protocol);
   socketerror:=fpgeterrno;
 End;
 
-function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; 
+function  fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
   fpSend:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,0,0);
   socketerror:=fpgeterrno;
 end;
 
-function  fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; 
+function  fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
   fpSendto:=do_syscall(syscall_nr_sendto,S,TSysParam(msg),Len,Flags,TSysParam(tox),tolen);
   socketerror:=fpgeterrno;
@@ -42,49 +42,49 @@ begin
   socketerror:=fpgeterrno;
 end;
 
-function  fprecvfrom (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; 
+function  fprecvfrom (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 begin
   fpRecvFrom:=do_syscall(syscall_nr_Recvfrom,S,TSysParam(buf),len,flags,TSysParam(from),TSysParam(fromlen));
   socketerror:=fpgeterrno;
 end;
 
-function  fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint; 
+function  fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 begin
   fpBind:=do_syscall(syscall_nr_Bind,S,TSysParam(addrx),addrlen);
   socketerror:=fpgeterrno;
 end;
 
-function  fplisten (s:cint; backlog : cint):cint;                          
+function  fplisten (s:cint; backlog : cint):cint;
 begin
   fpListen:=do_syscall(syscall_nr_Listen,S,backlog);
   socketerror:=fpgeterrno;
 end;
 
-function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
+function  fpaccept (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
   fpAccept:=do_syscall(syscall_nr_accept,S,TSysParam(addrx),TSysParam(addrlen));
   socketerror:=fpgeterrno;
 end;
 
-function  fpconnect (s:cint; name  : psockaddr; namelen : tsocklen):cint; 
+function  fpconnect (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 begin
   fpConnect:=do_syscall(syscall_nr_connect,S,TSysParam(name),namelen);
   socketerror:=fpgeterrno;
 end;
 
-function  fpshutdown (s:cint; how:cint):cint; 
+function  fpshutdown (s:cint; how:cint):cint;
 begin
   fpShutDown:=do_syscall(syscall_nr_shutdown,S,how);
   socketerror:=fpgeterrno;
 end;
 
-function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+function  fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetSockName:=do_syscall(syscall_nr_GetSockName,S,TSysParam(name),TSysParam(namelen));
   socketerror:=fpgeterrno;
 end;
 
-function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+function  fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetPeerName:=do_syscall(syscall_nr_GetPeerName,S,TSysParam(name),TSysParam(namelen));
   socketerror:=fpgeterrno;
@@ -96,13 +96,13 @@ begin
   socketerror:=fpgeterrno;
 end;
 
-function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
+function  fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
   fpGetSockOpt:=do_syscall(syscall_nr_GetSockOpt,S,level,TSysParam(optname),TSysParam(optval),TSysParam(optlen));
   socketerror:=fpgeterrno;
 end;
 
-function  fpsocketpair (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
+function  fpsocketpair (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 
 begin
   fpSocketPair:=do_syscall(syscall_nr_SocketPair,d,xtype,protocol,TSysParam(sv));
@@ -111,22 +111,7 @@ end;
 
 {
  $Log$
- Revision 1.10  2004-03-16 18:03:37  marco
-  * first changes sockets units
-
- Revision 1.9  2004/01/03 12:18:29  marco
-  * a lot of copyright notices and CVS logs added and fixed
-
- Revision 1.8  2003/09/15 07:09:58  marco
-  * small fixes, round 1
-
- Revision 1.7  2003/03/23 17:47:15  armin
- * CloseSocket added
-
- Revision 1.6  2002/09/07 16:01:18  peter
-   * old logs removed and tabs fixed
-
- Revision 1.5  2002/02/05 07:54:34  marco
-  * Fixed typo
+ Revision 1.11  2005-02-14 17:13:22  peter
+   * truncate log
 
 }

@@ -4151,13 +4151,13 @@ type
 {$ifndef INCLUDED_FROM_SYSTEM}
 procedure NetWareAlert(nlmHandle      : TNLMHandle;
                        nwAlert        : PNetWareAlertStructure;
-		       parameterCount : longint;
-		       args           : array of const); cdecl; external system_nlm name 'NetWareAlert';
+                       parameterCount : longint;
+                       args           : array of const); cdecl; external system_nlm name 'NetWareAlert';
 {$endif}
 
 procedure NetWareAlert(nlmHandle      : TNLMHandle;
                        nwAlert        : PNetWareAlertStructure;
-		       parameterCount : longint); cdecl; external system_nlm name 'NetWareAlert';
+                       parameterCount : longint); cdecl; external system_nlm name 'NetWareAlert';
 
 type
 
@@ -9225,23 +9225,13 @@ end.
 
 {
   $Log$
-  Revision 1.10  2005-02-06 16:57:18  peter
+  Revision 1.11  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.10  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.9  2005/01/04 11:25:33  armin
   * rtl code cleanup, compat fixes between clib and libc
-
-  Revision 1.8  2004/12/29 13:01:43  armin
-  * made commandParser more compatible between clib and libc
-
-  Revision 1.7  2004/12/16 12:42:55  armin
-  * added NetWare Alert
-  * added sysutils.sleep
-
-  Revision 1.6  2004/12/07 14:13:42  armin
-  * added syncobj for netwlibc
-
-  Revision 1.5  2004/12/07 11:40:43  armin
-  * implemented GetProcessId, defined TimeVal and TimeZone in addition to TTimeVal, TTimeZone, Makefile defaults to binutilsprefix i386-netware
 
 }

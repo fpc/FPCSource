@@ -1638,7 +1638,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2005-02-03 22:18:08  peter
+  Revision 1.11  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.10  2005/02/03 22:18:08  peter
     * fix generic cpu compile
 
   Revision 1.9  2005/01/16 00:26:43  florian
@@ -1653,21 +1656,5 @@ end.
 
   Revision 1.6  2005/01/08 11:43:18  florian
     + vector unit window
-
-  Revision 1.5  2004/12/22 15:24:07  peter
-    * fixed NODEBUG
-    * set default target to the default target of the compiler
-
-  Revision 1.4  2004/11/11 15:20:52  florian
-    * applied Peter's patch from yesterday
-
-  Revision 1.3  2004/02/06 21:34:43  jonas
-    * fixed ppc compilation error
-
-  Revision 1.2  2002/12/16 15:51:13  pierre
-   * added unknown cpu register windows
-
-  Revision 1.1  2002/12/12 00:01:59  pierre
-    Register window code separated in a new unit
 
 }

@@ -281,33 +281,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2005-02-06 00:05:56  florian
+  Revision 1.19  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.18  2005/02/06 00:05:56  florian
     + x86_64 pic draft
-
-  Revision 1.17  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.16  2004/06/29 21:00:08  peter
-    * only enable dwarf for supported platforms
-
-  Revision 1.15  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.14  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.13.2.6  2004/05/10 21:28:35  peter
-    * section_smartlink enabled for gas under linux
-
-  Revision 1.13.2.5  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.13.2.4  2004/04/27 18:18:26  peter
-    * aword -> aint
-
-  Revision 1.13.2.3  2004/04/26 21:04:04  peter
-    * write aint
 
 }

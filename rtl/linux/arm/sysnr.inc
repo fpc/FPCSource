@@ -273,15 +273,7 @@ Const
 
 {
     $Log$
-    Revision 1.4  2004-01-31 16:25:14  florian
-      - deleted unsupported syscall waitpid
+    Revision 1.5  2005-02-14 17:13:30  peter
+      * truncate log
 
-    Revision 1.3  2004/01/22 20:12:37  florian
-      * fixed syscall number
-
-    Revision 1.2  2004/01/21 01:25:19  florian
-      * corrected syscall numbers
-
-    Revision 1.1  2003/08/28 00:08:29  florian
-      * syscall skeleton
 }

@@ -298,7 +298,7 @@ end;
 
 function GetProcessID: SizeUInt;
 begin
- GetProcessID:=SizeUInt(FindTask(NIL)); 
+ GetProcessID:=SizeUInt(FindTask(NIL));
 end;
 
 
@@ -335,7 +335,10 @@ end.
 
 {
   $Log$
-  Revision 1.31  2005-02-07 21:30:12  peter
+  Revision 1.32  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.31  2005/02/07 21:30:12  peter
     * system unit updated
 
   Revision 1.30  2005/02/01 20:22:49  florian
@@ -347,86 +350,4 @@ end.
   Revision 1.28  2005/01/11 17:43:14  karoly
     * some cleanup, more sanity checks and updates for sysutils
 
-  Revision 1.27  2004/12/14 21:01:16  karoly
-    * GetProcessID implemented
-
-  Revision 1.26  2004/12/07 10:07:50  karoly
-    * removed debug code accidentally left in
-
-  Revision 1.25  2004/12/07 09:55:46  karoly
-    * previous change broke PathConv, fixed
-
-  Revision 1.24  2004/12/06 20:09:55  karoly
-    * added a public alias to PathConv for use in DOS unit
-
-  Revision 1.23  2004/12/05 14:36:37  hajny
-    + GetProcessID added
-
-  Revision 1.22  2004/11/15 23:18:16  karoly
-   * Reworked path handling to be less messy
-
-  Revision 1.21  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.20  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.19  2004/09/03 19:26:15  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.18  2004/08/09 00:12:40  karoly
-    * changes to work with updated doslib includes
-
-  Revision 1.17  2004/08/03 15:59:41  karoly
-    * more cleanup & more includes
-
-  Revision 1.16  2004/06/26 20:48:24  karoly
-    * more cleanup + changes to use new includes
-
-  Revision 1.15  2004/06/23 13:27:32  karoly
-    * fixed system unit for the new heap manager
-
-  Revision 1.14  2004/06/17 16:16:14  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.13  2004/06/13 22:50:47  karoly
-    * cleanup and changes to use new includes
-
-  Revision 1.12  2004/06/06 23:31:13  karoly
-    * fixed dos_UnLockDosList from being nonsense, and some cleanup
-
-  Revision 1.11  2004/06/06 19:18:05  karoly
-    + added support for paramstr(0)
-
-  Revision 1.10  2004/06/05 19:49:19  karoly
-    + added console I/O support when running from Ambient
-
-  Revision 1.9  2004/05/12 23:18:54  karoly
-    * fixed do_read and dos_Read from being nonsense
-
-  Revision 1.8  2004/05/12 20:26:04  karoly
-    + added syscalls and structures necessary for DOS unit
-
-  Revision 1.7  2004/05/12 15:34:16  karoly
-    * fixed startup code from endless wait when not started from Ambient
-
-  Revision 1.6  2004/05/09 14:42:59  karoly
-    * again, few more new things added
-
-  Revision 1.5  2004/05/09 02:02:42  karoly
-    * more things got implemented
-
-  Revision 1.4  2004/05/02 02:06:57  karoly
-    + most of file I/O calls implemented
-
-  Revision 1.3  2004/05/01 15:09:47  karoly
-    * first working system unit (very limited yet)
-
-  Revision 1.2  2004/04/08 06:28:29  karoly
-    * first steps to have a morphos system unit
-
-  Revision 1.1  2004/02/13 07:19:53  karoly
-    * quick hack from Linux system unit
 }

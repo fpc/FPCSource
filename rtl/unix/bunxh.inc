@@ -104,50 +104,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
 {
   $Log$
-  Revision 1.15  2005-02-13 20:01:38  peter
+  Revision 1.16  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.15  2005/02/13 20:01:38  peter
     * include file cleanup
-
-  Revision 1.14  2004/11/21 11:28:21  peter
-    * fixed bootstrap with 1.0.10 and 1.9.4
-
-  Revision 1.13  2004/11/19 13:15:14  marco
-   * external rework. Mostly done.
-
-  Revision 1.12  2004/11/14 12:21:08  marco
-   * moved some calls from unix to baseunix. Darwin untested.
-
-  Revision 1.11  2003/12/30 12:24:01  marco
-   * FPC_USE_LIBC
-
-  Revision 1.10  2003/09/27 13:49:41  peter
-    * fpnanosleep exported
-
-  Revision 1.9  2003/09/27 12:51:33  peter
-    * fpISxxx macros renamed to C compliant fpS_ISxxx
-
-  Revision 1.8  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.7  2003/09/17 11:24:46  marco
-   * fixes for new macro's
-
-  Revision 1.6  2003/09/17 11:14:25  marco
-   * two extra FPIS added
-
-  Revision 1.5  2003/09/16 16:13:56  marco
-   * fdset functions renamed to fp<posix name>
-
-  Revision 1.4  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.3  2003/06/01 16:28:41  marco
-   * Enhancements to make the compiler baseunix using.
-
-  Revision 1.2  2003/01/05 19:11:32  marco
-   * small changes originating from introduction of Baseunix to FreeBSD
-
-  Revision 1.1  2002/12/18 16:49:02  marco
-   * New RTL. Linux system unit and baseunix operational.
-
 
 }

@@ -8,7 +8,7 @@ Uses sysutils;
 Const S  = 'Some nice string';
 
 Var P : Pchar;
-    
+
 Begin
    P:=StrAlloc(Length(S)+1);
    StrPCopy(P,S);

@@ -15,7 +15,7 @@ type
      end;
   sigset_t = __sigset_t;
   Psigset_t = ^sigset_t;
-  
+
 function __sigismember(_para1:P__sigset_t; _para2:longint):longint;cdecl;external clib name '__sigismember';
 function __sigaddset(_para1:P__sigset_t; _para2:longint):longint;cdecl;external clib name '__sigaddset';
 function __sigdelset(_para1:P__sigset_t; _para2:longint):longint;cdecl;external clib name '__sigdelset';
@@ -24,8 +24,8 @@ function __sigdelset(_para1:P__sigset_t; _para2:longint):longint;cdecl;external 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSigset = __sigset_t;
   PSigset = ^TSigset;
-    
-    
+
+

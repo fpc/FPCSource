@@ -2,7 +2,7 @@ Program Example41;
 
 { Program to demonstrate the MemAvail function. }
 
-Var  
+Var
   P, PP : Pointer;
 
 begin
@@ -11,7 +11,7 @@ begin
   FreeMem (P,100);
   { Due to the heap fragmentation introduced
     By the previous calls, the maximum amount of memory
-    isn't equal to the maximum block size available. } 
+    isn't equal to the maximum block size available. }
   Writeln ('Total heap available    (Bytes) : ',MemAvail);
-  Writeln ('Largest block available (Bytes) : ',MaxAvail);  
+  Writeln ('Largest block available (Bytes) : ',MaxAvail);
 end.

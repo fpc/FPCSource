@@ -1611,7 +1611,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.66  2005-01-19 22:19:41  peter
+  Revision 1.67  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.66  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
@@ -1621,53 +1624,5 @@ end.
   Revision 1.64  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.63  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.62  2004/09/13 20:27:27  peter
-    * remove check for shortunitname, it broke units with 8 and 9 chars
-      with the first 8 chars being equal
-
-  Revision 1.61  2004/08/28 20:01:09  peter
-    * print realmodulename in fatal errors
-
-  Revision 1.60  2004/08/27 21:59:26  peter
-  browser disabled
-  uf_local_symtable ppu flag when a localsymtable is stored
-
-  Revision 1.59  2004/07/09 22:17:31  peter
-    * revert has_localst patch
-    * replace aktstaticsymtable/aktglobalsymtable with current_module
-
-  Revision 1.58  2004/07/06 20:23:25  peter
-    * remove unused and not loaded units before linking
-
-  Revision 1.57  2004/07/06 19:52:04  peter
-    * fix storing of localst in ppu
-
-  Revision 1.56  2004/07/05 21:26:28  olle
-    + allow fileextension .p, in mode macpas
-
-  Revision 1.55  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.54  2004/03/17 12:12:59  olle
-    * bugfix in [read|write]asmsymbols for data and address labels
-
-  Revision 1.53  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.52  2004/02/03 16:14:13  peter
-    * fix remembering path of main source file
-
-  Revision 1.51  2004/01/26 16:12:27  daniel
-    * reginfo now also only allocated during register allocation
-    * third round of gdb cleanups: kick out most of concatstabto
-
-  Revision 1.50  2004/01/22 17:23:56  peter
-    * also check in the same dir as the unit we are loading from, this
-      makes UNITPATH working better
 
 }

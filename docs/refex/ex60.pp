@@ -1,7 +1,7 @@
 Program Example60;
 
 { Program to demonstrate the Seg function. }
-Var 
+Var
   W : Word;
 
 begin

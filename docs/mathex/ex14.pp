@@ -16,7 +16,7 @@ begin
   write(x,' has ');
   Writeln('mantissa ',man,' and exponent ',exp);
 end;
-  
+
 
 begin
 //   dofrexp(1.00);

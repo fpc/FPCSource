@@ -6,7 +6,7 @@ Uses sysutils;
 
 Var P : Pchar;
     L : Longint;
-    
+
 Begin
   P:='This is an PChar string.';
   Writeln ('Last character of P is : ',AnsiStrLastChar(P));

@@ -25,14 +25,14 @@ program process;
 
 uses exec, utility, doslib;
 
-type 
+type
   pMyMsg = ^tMyMsg;
   tMyMsg = Record
     mm_MsgNode : tMessage;
-    mm_Command : DWord;     
+    mm_Command : DWord;
   end;
 
-var 
+var
   ThMsg       : tMyMsg;
   ThStartupMsg: tMyMsg;
   ThChildPort : pMsgPort;
@@ -43,7 +43,7 @@ var
 const
   SUBPROCESS_NAME : PChar = 'FPC subprocess';
 
-const 
+const
   TCMD_HELLO = 1;
   TCMD_WORLD = 2;
   TCMD_SPACE = 3;
@@ -57,9 +57,9 @@ begin
  if assigned(ThReplyPort) then DeleteMsgPort(ThReplyPort);
  if assigned(ThPort) then DeleteMsgPort(ThPort);
 
- if Err<>'' then begin 
+ if Err<>'' then begin
    writeln(Err);
-   halt(1); 
+   halt(1);
  end else
    halt(0);
 end;
@@ -67,7 +67,7 @@ end;
 { * This is our subtask procedure * }
 { * Our subtask do exists until this procedure exits. * }
 procedure MyProcess;
-var 
+var
   thisThread: pProcess;
   startupMsg: pMyMsg;
   mainMsg   : pMyMsg;
@@ -84,9 +84,9 @@ begin
                  TASKINFOTYPE_TASKMSGPORT,[TAG_DONE]);
 
  finish:=False;
- repeat 
+ repeat
    mainMsg:=pMyMsg(GetMsg(mainPort));
-   if mainMsg<>NIL then begin     
+   if mainMsg<>NIL then begin
      { * Using write in such an example is not really elegant * }
      { * since write is not reentrant yet, so if more tasks   * }
      { * use it in the same time, it will make troubles.      * }
@@ -98,7 +98,7 @@ begin
        TCMD_EXCL : write('!');
        TCMD_NEWL : writeln;
        TCMD_QUIT : finish:=True;
-     end; 
+     end;
      Inc(startupMsg^.mm_Command);
      ReplyMsg(pMessage(mainMsg));
    end;
@@ -134,7 +134,7 @@ end;
 begin
  ThReplyPort:=CreateMsgPort;
  ThPort:=CreateMsgPort;
- if (ThReplyPort=NIL) or (ThPort=NIL) then 
+ if (ThReplyPort=NIL) or (ThPort=NIL) then
    ShutDown('Can''t create message ports.');
 
  { * Setting up StartupMsg * }
@@ -172,10 +172,10 @@ begin
 
  SendMsg(TCMD_NEWL);
  WaitPort(ThPort); GetMsg(ThPort);
- 
+
  SendMsg(TCMD_QUIT);
  WaitPort(ThPort); GetMsg(ThPort);
- 
+
  { * Wait our subprocess to exit... * }
  WaitPort(ThReplyPort); GetMsg(ThReplyPort);
  writeln('Subtask got ',ThStartupMsg.mm_Command,' message(s).');
@@ -185,7 +185,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-12-14 21:54:23  karoly
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2004/12/14 21:54:23  karoly
     * initial revision
 
 }

@@ -79,7 +79,7 @@ interface
      APBLOCK_MAJOR = 38;
   { AP1000 DDV block device  }
      DDV_MAJOR = 39;
-  { Network block device	 }
+  { Network block device         }
      NBD_MAJOR = 43;
      RISCOM8_NORMAL_MAJOR = 48;
   { 48..55  }

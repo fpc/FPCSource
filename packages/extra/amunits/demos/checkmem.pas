@@ -17,12 +17,12 @@ begin
 
   chipfirst := AvailMem(MEMF_CHIP);
   fastfirst := AvailMem(MEMF_FAST);
- 
+
 
   if Execute(ParamStr(1),0,0) then begin
      chipsecond := AvailMem(MEMF_CHIP);
      fastsecond := AvailMem(MEMF_FAST);
-    
+
      writeln('Memory loss (Chip): ',chipsecond-chipfirst);
      writeln('Memory loss (Fast): ',fastsecond-fastfirst);
      halt;
@@ -31,9 +31,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:26  nils
-    * initial release
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+

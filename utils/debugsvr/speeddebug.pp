@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     speed test for debug server.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -22,7 +22,7 @@ uses dbugintf,sysutils;
 Var
   i : integer;
   S : String;
- 
+
 begin
   For I:=1 to 10000 do
     begin
@@ -33,7 +33,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:44:29  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:44:29  michael
   + Initial implementation
 
 }

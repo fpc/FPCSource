@@ -37,91 +37,91 @@ const
 type
 {----- General Errors ----------------------------------------}
 tgeneralerrors=  (
-	B_NO_MEMORY := B_GENERAL_ERROR_BASE,
-	B_IO_ERROR,
-	B_PERMISSION_DENIED,
-	B_BAD_INDEX,
-	B_BAD_TYPE,
-	B_BAD_VALUE,
-	B_MISMATCHED_VALUES,
-	B_NAME_NOT_FOUND,
-	B_NAME_IN_USE,
-	B_TIMED_OUT,
+        B_NO_MEMORY := B_GENERAL_ERROR_BASE,
+        B_IO_ERROR,
+        B_PERMISSION_DENIED,
+        B_BAD_INDEX,
+        B_BAD_TYPE,
+        B_BAD_VALUE,
+        B_MISMATCHED_VALUES,
+        B_NAME_NOT_FOUND,
+        B_NAME_IN_USE,
+        B_TIMED_OUT,
     B_INTERRUPTED,
-	B_WOULD_BLOCK,
+        B_WOULD_BLOCK,
     B_CANCELED,
-	B_NO_INIT,
-	B_BUSY,
-	B_NOT_ALLOWED,
+        B_NO_INIT,
+        B_BUSY,
+        B_NOT_ALLOWED,
 
-	B_ERROR := -1,
-	B_OK := 0,
-	B_NO_ERROR := 0
+        B_ERROR := -1,
+        B_OK := 0,
+        B_NO_ERROR := 0
 );
 
 {----- Kernel Kit Errors -------------------------------------}
 tkernelerror  = (
-	B_BAD_SEM_ID := B_OS_ERROR_BASE,
-	B_NO_MORE_SEMS,
+        B_BAD_SEM_ID := B_OS_ERROR_BASE,
+        B_NO_MORE_SEMS,
 
-	B_BAD_THREAD_ID := B_OS_ERROR_BASE + $100,
-	B_NO_MORE_THREADS,
-	B_BAD_THREAD_STATE,
-	B_BAD_TEAM_ID,
-	B_NO_MORE_TEAMS,
+        B_BAD_THREAD_ID := B_OS_ERROR_BASE + $100,
+        B_NO_MORE_THREADS,
+        B_BAD_THREAD_STATE,
+        B_BAD_TEAM_ID,
+        B_NO_MORE_TEAMS,
 
-	B_BAD_PORT_ID := B_OS_ERROR_BASE + $200,
-	B_NO_MORE_PORTS,
+        B_BAD_PORT_ID := B_OS_ERROR_BASE + $200,
+        B_NO_MORE_PORTS,
 
-	B_BAD_IMAGE_ID := B_OS_ERROR_BASE + $300,
-	B_BAD_ADDRESS,
-	B_NOT_AN_EXECUTABLE,
-	B_MISSING_LIBRARY,
-	B_MISSING_SYMBOL,
+        B_BAD_IMAGE_ID := B_OS_ERROR_BASE + $300,
+        B_BAD_ADDRESS,
+        B_NOT_AN_EXECUTABLE,
+        B_MISSING_LIBRARY,
+        B_MISSING_SYMBOL,
 
-	B_DEBUGGER_ALREADY_INSTALLED := B_OS_ERROR_BASE + $400
+        B_DEBUGGER_ALREADY_INSTALLED := B_OS_ERROR_BASE + $400
 );
 
 
 {----- Application Kit Errors --------------------------------}
 tapperrors =
 (
-	B_BAD_REPLY := B_APP_ERROR_BASE,
-	B_DUPLICATE_REPLY,
-	B_MESSAGE_TO_SELF,
-	B_BAD_HANDLER,
-	B_ALREADY_RUNNING,
-	B_LAUNCH_FAILED,
-	B_AMBIGUOUS_APP_LAUNCH,
-	B_UNKNOWN_MIME_TYPE,
-	B_BAD_SCRIPT_SYNTAX,
-	B_LAUNCH_FAILED_NO_RESOLVE_LINK,
-	B_LAUNCH_FAILED_EXECUTABLE,
-	B_LAUNCH_FAILED_APP_NOT_FOUND,
-	B_LAUNCH_FAILED_APP_IN_TRASH,
-	B_LAUNCH_FAILED_NO_PREFERRED_APP,
-	B_LAUNCH_FAILED_FILES_APP_NOT_FOUND
+        B_BAD_REPLY := B_APP_ERROR_BASE,
+        B_DUPLICATE_REPLY,
+        B_MESSAGE_TO_SELF,
+        B_BAD_HANDLER,
+        B_ALREADY_RUNNING,
+        B_LAUNCH_FAILED,
+        B_AMBIGUOUS_APP_LAUNCH,
+        B_UNKNOWN_MIME_TYPE,
+        B_BAD_SCRIPT_SYNTAX,
+        B_LAUNCH_FAILED_NO_RESOLVE_LINK,
+        B_LAUNCH_FAILED_EXECUTABLE,
+        B_LAUNCH_FAILED_APP_NOT_FOUND,
+        B_LAUNCH_FAILED_APP_IN_TRASH,
+        B_LAUNCH_FAILED_NO_PREFERRED_APP,
+        B_LAUNCH_FAILED_FILES_APP_NOT_FOUND
 );
 
 
 {----- Storage Kit/File System Errors ------------------------}
 tfserrors= (
-	B_FILE_ERROR :=B_STORAGE_ERROR_BASE,
-	B_FILE_NOT_FOUND,       { discouraged; use B_ENTRY_NOT_FOUND in new code }
-	B_FILE_EXISTS,
-	B_ENTRY_NOT_FOUND,
-	B_NAME_TOO_LONG,
-	B_NOT_A_DIRECTORY,
-	B_DIRECTORY_NOT_EMPTY,
-	B_DEVICE_FULL,
-	B_READ_ONLY_DEVICE,
-	B_IS_A_DIRECTORY,
-	B_NO_MORE_FDS,
-	B_CROSS_DEVICE_LINK,
-	B_LINK_LIMIT,
-	B_BUSTED_PIPE,
-	B_UNSUPPORTED,
-	B_PARTITION_TOO_SMALL
+        B_FILE_ERROR :=B_STORAGE_ERROR_BASE,
+        B_FILE_NOT_FOUND,       { discouraged; use B_ENTRY_NOT_FOUND in new code }
+        B_FILE_EXISTS,
+        B_ENTRY_NOT_FOUND,
+        B_NAME_TOO_LONG,
+        B_NOT_A_DIRECTORY,
+        B_DIRECTORY_NOT_EMPTY,
+        B_DEVICE_FULL,
+        B_READ_ONLY_DEVICE,
+        B_IS_A_DIRECTORY,
+        B_NO_MORE_FDS,
+        B_CROSS_DEVICE_LINK,
+        B_LINK_LIMIT,
+        B_BUSTED_PIPE,
+        B_UNSUPPORTED,
+        B_PARTITION_TOO_SMALL
 );
 
 
@@ -209,11 +209,7 @@ const
 
 {
  $Log$
- Revision 1.2  2003-01-08 22:32:28  marco
-  * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-     but it could crash hard, since there are lots of unimplemented funcs.
-
- Revision 1.1.2.4  2001/07/13 03:15:12  carl
- * updated log and header of file
+ Revision 1.3  2005-02-14 17:13:21  peter
+   * truncate log
 
 }

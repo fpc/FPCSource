@@ -19,7 +19,7 @@ begin
     Writeln ('Error when unlinking !');
   Assign (f,'new.txt');
   Reset (F);
-  While not EOF(f) do 
+  While not EOF(f) do
     begin
     Readln(F,S);
     Writeln ('> ',s);

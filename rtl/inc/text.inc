@@ -1291,44 +1291,7 @@ end;
 
 {
   $Log$
-  Revision 1.28  2004-11-17 22:19:04  peter
-  internconst, internproc and some external declarations moved to interface
-
-  Revision 1.27  2004/11/09 23:10:22  peter
-    * use helper call to retrieve address of input/output to reduce
-      code that is generated in the main program for loading the
-      threadvar
-
-  Revision 1.26  2004/09/21 23:36:51  hajny
-    * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
-
-  Revision 1.25  2004/08/20 10:04:39  olle
-  * prefixed write[buffer|blanks] with fpc_ and made them externally visible
-
-  Revision 1.24  2004/06/21 18:48:48  olle
-    + handles mac line endings without blocking the console, on Mac OS only
-
-  Revision 1.23  2004/05/01 20:52:50  peter
-    * ValSInt fixed for 64 bit
-
-  Revision 1.22  2004/04/29 18:59:43  peter
-    * str() helpers now also use valint/valuint
-    * int64/qword helpers disabled for cpu64
-
-  Revision 1.21  2004/04/22 21:10:56  peter
-    * do_read/do_write addr argument changed to pointer
-
-  Revision 1.20  2002/11/29 16:26:52  peter
-    * fixed ignorespaces which was broken by the previous commit
-      when a line started with spaces
-
-  Revision 1.19  2002/11/29 15:50:27  peter
-    * fix for tw1896
-
-  Revision 1.18  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.17  2002/07/01 16:29:05  peter
-    * sLineBreak changed to normal constant like Kylix
+  Revision 1.29  2005-02-14 17:13:29  peter
+    * truncate log
 
 }

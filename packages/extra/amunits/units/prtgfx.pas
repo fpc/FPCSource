@@ -16,13 +16,13 @@
 
 {
     History:
-    
+
     Update for AmigaOS 3.9.
     31 Jan 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
-     
+
 unit prtgfx;
 
 INTERFACE
@@ -92,8 +92,8 @@ Type
         pi_threshold    : Word;         { threshold value (from prefs) }
         pi_tempwidth    : Word;         { PRIVATE - DO NOT USE! }
         pi_flags        : Word;         { PRIVATE - DO NOT USE! }
-	{ V44 additions }
-	pi_ReduceBuf : PUWORD;          { PRIVATE - DO NOT USE! }
+        { V44 additions }
+        pi_ReduceBuf : PUWORD;          { PRIVATE - DO NOT USE! }
         pi_ReduceBufSize : UWORD;       { PRIVATE - DO NOT USE! }
         pi_SourceHook : PHook;          { PRIVATE - DO NOT USE! }
         pi_InvertHookBuf : PULONG;      { RESERVED - DO NOT USE! }

@@ -17,16 +17,16 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   17 Jan 2003.
-  
+
   Changed cardinal > longword.
   Changed startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
-}  
+}
 
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
@@ -166,140 +166,140 @@ uses msgbox;
 FUNCTION AllocPrefsHandle(name : pCHAR) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	PreferencesBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L PreferencesBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION FindPreferences(PrefsHandle : POINTER; ID : longword; d1arg : longword) : pPrefsStruct;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVE.L	ID,D0
-	MOVE.L	d1arg,D1
-	MOVEA.L	PreferencesBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVE.L  ID,D0
+        MOVE.L  d1arg,D1
+        MOVEA.L PreferencesBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE FreePrefsHandle(PrefsHandle : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVEA.L	PreferencesBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVEA.L PreferencesBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION GetEntry(PrefsHandle : POINTER; ID : longword; d1arg : longword; a1arg : POINTER; Struct_Size : WORD; Entry : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVE.L	ID,D0
-	MOVE.L	d1arg,D1
-	MOVEA.L	a1arg,A1
-	MOVE.L	Struct_Size,D2
-	MOVE.L	Entry,D3
-	MOVEA.L	PreferencesBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVE.L  ID,D0
+        MOVE.L  d1arg,D1
+        MOVEA.L a1arg,A1
+        MOVE.L  Struct_Size,D2
+        MOVE.L  Entry,D3
+        MOVEA.L PreferencesBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION GetPreferences(PrefsHandle : POINTER; ID : longword; d1arg : longword; a1arg : POINTER; Struct_Size : WORD) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVE.L	ID,D0
-	MOVE.L	d1arg,D1
-	MOVEA.L	a1arg,A1
-	MOVE.L	Struct_Size,D2
-	MOVEA.L	PreferencesBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVE.L  ID,D0
+        MOVE.L  d1arg,D1
+        MOVEA.L a1arg,A1
+        MOVE.L  Struct_Size,D2
+        MOVEA.L PreferencesBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE ReadPrefsHandle(PrefsHandle : POINTER; Filename : pCHAR);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVEA.L	Filename,A1
-	MOVEA.L	PreferencesBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVEA.L Filename,A1
+        MOVEA.L PreferencesBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION RemEntry(PrefsHandle : POINTER; ID : longword; d1arg : longword; Entry : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVE.L	ID,D0
-	MOVE.L	d1arg,D1
-	MOVE.L	Entry,D2
-	MOVEA.L	PreferencesBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVE.L  ID,D0
+        MOVE.L  d1arg,D1
+        MOVE.L  Entry,D2
+        MOVEA.L PreferencesBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE SetEntry(PrefsHandle : POINTER; ID : longword; d1arg : longword; a1arg : POINTER; Struct_Size : WORD; Entry : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVE.L	ID,D0
-	MOVE.L	d1arg,D1
-	MOVEA.L	a1arg,A1
-	MOVE.L	Struct_Size,D2
-	MOVE.L	Entry,D3
-	MOVEA.L	PreferencesBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVE.L  ID,D0
+        MOVE.L  d1arg,D1
+        MOVEA.L a1arg,A1
+        MOVE.L  Struct_Size,D2
+        MOVE.L  Entry,D3
+        MOVEA.L PreferencesBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE SetPreferences(PrefsHandle : POINTER; ID : longword; d1arg : longword; a1arg : POINTER; Struct_Size : WORD);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVE.L	ID,D0
-	MOVE.L	d1arg,D1
-	MOVEA.L	a1arg,A1
-	MOVE.L	Struct_Size,D2
-	MOVEA.L	PreferencesBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVE.L  ID,D0
+        MOVE.L  d1arg,D1
+        MOVEA.L a1arg,A1
+        MOVE.L  Struct_Size,D2
+        MOVEA.L PreferencesBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE WritePrefsHandle(PrefsHandle : POINTER; Filename : pCHAR);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PrefsHandle,A0
-	MOVEA.L	Filename,A1
-	MOVEA.L	PreferencesBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L PrefsHandle,A0
+        MOVEA.L Filename,A1
+        MOVEA.L PreferencesBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 

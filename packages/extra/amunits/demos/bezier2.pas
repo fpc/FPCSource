@@ -59,13 +59,13 @@ Var
 Procedure CleanUpAndDie;
 begin
     if w <> Nil then begin
-	Forbid;
-	repeat until GetMsg(w^.UserPort) = Nil;
-	CloseWindow(w);
-	Permit;
+        Forbid;
+        repeat until GetMsg(w^.UserPort) = Nil;
+        CloseWindow(w);
+        Permit;
     end;
     if s <> Nil then
-	CloseScreen(s);
+        CloseScreen(s);
     halt(0);
 end;
 
@@ -79,7 +79,7 @@ end;
 Procedure GetPoints;
 var
     LastSeconds,
-    LastMicros	: longint;
+    LastMicros  : longint;
     IM : pIntuiMessage;
     StoreMsg : tIntuiMessage;
     Leave : Boolean;
@@ -89,47 +89,47 @@ var
 
     Procedure AddPoint;
     begin
-	Inc(PointCount);
-	with Points[PointCount] do begin
-	    X := StoreMsg.MouseX;
-	    Y := StoreMsg.MouseY;
-	end;
-	with StoreMsg do begin
-	    LastX := MouseX;
-	    LastY := MouseY;
-	    LastSeconds := Seconds;
-	    LastMicros := Micros;
-	end;
-	SetAPen(rp, 2);
-	SetDrMd(rp, JAM1);
-	DrawEllipse(rp, LastX, LastY, 5, 3);
-	SetAPen(rp, 3);
-	SetDrMd(rp, COMPLEMENT);
-	DrawLine;
+        Inc(PointCount);
+        with Points[PointCount] do begin
+            X := StoreMsg.MouseX;
+            Y := StoreMsg.MouseY;
+        end;
+        with StoreMsg do begin
+            LastX := MouseX;
+            LastY := MouseY;
+            LastSeconds := Seconds;
+            LastMicros := Micros;
+        end;
+        SetAPen(rp, 2);
+        SetDrMd(rp, JAM1);
+        DrawEllipse(rp, LastX, LastY, 5, 3);
+        SetAPen(rp, 3);
+        SetDrMd(rp, COMPLEMENT);
+        DrawLine;
     end;
 
     Function CheckForExit : Boolean;
     {   This function determines whether the user wanted to stop
-	entering points.  I added the position tests because my
-	doubleclick time is too long, and I was too lazy to dig
-	out Preferences to change it. }
+        entering points.  I added the position tests because my
+        doubleclick time is too long, and I was too lazy to dig
+        out Preferences to change it. }
     begin
-	with StoreMsg do
-	    CheckForExit := DoubleClick(LastSeconds, LastMicros,
-					Seconds, Micros) and
-			    (Abs(MouseX - Points[PointCount].X) < 5) and
-			    (Abs(MouseY - Points[PointCount].Y) < 3);
+        with StoreMsg do
+            CheckForExit := DoubleClick(LastSeconds, LastMicros,
+                                        Seconds, Micros) and
+                            (Abs(MouseX - Points[PointCount].X) < 5) and
+                            (Abs(MouseY - Points[PointCount].Y) < 3);
     end;
 
     Procedure ClearIt;
     {  This just clears the screen when you enter your first point }
     begin
-	SetDrMd(rp, JAM1);
-	SetAPen(rp, 0);
-	RectFill(rp, BorderLeft, BorderTop,
-		     BorderRight, BorderBottom);
-	SetDrMd(rp, COMPLEMENT);
-	SetAPen(rp, 3);
+        SetDrMd(rp, JAM1);
+        SetAPen(rp, 0);
+        RectFill(rp, BorderLeft, BorderTop,
+                     BorderRight, BorderBottom);
+        SetDrMd(rp, COMPLEMENT);
+        SetAPen(rp, 3);
     end;
 
 begin
@@ -153,27 +153,27 @@ begin
         ReplyMsg(pMessage(IM));
         case StoreMsg.IClass of
            IDCMP_MOUSEMOVE : if PointCount > 0 then begin
-			     if not OutOfBounds then
-				 DrawLine;
-           		     LastX := StoreMsg.MouseX;
-           		     LastY := StoreMsg.MouseY;
-			     if (LastX > BorderLeft) and
-				(LastX < BorderRight) and
-				(LastY > BorderTop) and
-				(LastY < BorderBottom) then begin
-				 DrawLine;
-				 OutOfBounds := False;
-			     end else
-				 OutOfBounds := True;
-           		 end;
+                             if not OutOfBounds then
+                                 DrawLine;
+                             LastX := StoreMsg.MouseX;
+                             LastY := StoreMsg.MouseY;
+                             if (LastX > BorderLeft) and
+                                (LastX < BorderRight) and
+                                (LastY > BorderTop) and
+                                (LastY < BorderBottom) then begin
+                                 DrawLine;
+                                 OutOfBounds := False;
+                             end else
+                                 OutOfBounds := True;
+                         end;
            IDCMP_MOUSEBUTTONS : if StoreMsg.Code = SELECTUP then begin
-           			if PointCount > 0 then
-				    Leave := CheckForExit
-				else
-				    ClearIt;
-           			if (not Leave) and (not OutOfBounds) then
-				    AddPoint;
-           		    end;
+                                if PointCount > 0 then
+                                    Leave := CheckForExit
+                                else
+                                    ClearIt;
+                                if (not Leave) and (not OutOfBounds) then
+                                    AddPoint;
+                            end;
            IDCMP_CLOSEWINDOW : CleanUpAndDie;
         end;
     until Leave or (PointCount > 14);
@@ -189,7 +189,7 @@ end;
 algorithm, which looks like:
 
          r            r-1         r-1
-	B  = (1-t) * B    +  t * B
+        B  = (1-t) * B    +  t * B
          i            i           i+1
 
    Where r and i are meant to be subscripts and superscripts.  R is
@@ -203,17 +203,17 @@ algorithm, which looks like:
 Function BezierX(r, i : integer) : Real;
 begin
     if r = 0 then
-	BezierX := real(Points[i].X)
+        BezierX := real(Points[i].X)
     else
-	BezierX := tprime * BezierX(Pred(r), i) + t * BezierX(Pred(r), Succ(i));
+        BezierX := tprime * BezierX(Pred(r), i) + t * BezierX(Pred(r), Succ(i));
 end;
 
 Function BezierY(r, i : integer) : Real;
 begin
     if r = 0 then
-	BezierY := real(Points[i].Y)
+        BezierY := real(Points[i].Y)
     else
-	BezierY := tprime * BezierY(Pred(r), i) + t * BezierY(Pred(r), Succ(i));
+        BezierY := tprime * BezierY(Pred(r), i) + t * BezierY(Pred(r), Succ(i));
 end;
 
 Procedure DrawBezier;
@@ -224,21 +224,21 @@ begin
     t := 0.0;
     tprime := 1.0;
     Move(rp, Trunc(BezierX(Pred(PointCount), 1)),
-	     Trunc(BezierY(Pred(PointCount), 1)));
+             Trunc(BezierY(Pred(PointCount), 1)));
     t := t + increment;
     tprime := 1.0 - t;
     while t <= 1.0 do begin
-	Draw(rp, Trunc(BezierX(Pred(PointCount), 1)),
-		 Trunc(BezierY(Pred(PointCount), 1)));
-	t := t + increment;
-	tprime := 1.0 - t;
-	if GetMsg(w^.UserPort) <> Nil then
-	    CleanUpAndDie;
+        Draw(rp, Trunc(BezierX(Pred(PointCount), 1)),
+                 Trunc(BezierY(Pred(PointCount), 1)));
+        t := t + increment;
+        tprime := 1.0 - t;
+        if GetMsg(w^.UserPort) <> Nil then
+            CleanUpAndDie;
     end;
     t := 1.0;
     tprime := 0.0;
     Draw(rp, Trunc(BezierX(Pred(PointCount), 1)),
-	     Trunc(BezierY(Pred(PointCount), 1)));
+             Trunc(BezierY(Pred(PointCount), 1)));
 end;
 
 begin
@@ -268,26 +268,23 @@ begin
 
     IF w=NIL THEN CleanUpAndDie;
 
-	    	rp := w^.RPort;
-	    	GetPoints;
-	    	DrawBezier;
-		m := WaitPort(w^.UserPort);
-		Forbid;
-		repeat
-		    m := GetMsg(w^.UserPort);
-		until m = nil;
-		Permit;
+                rp := w^.RPort;
+                GetPoints;
+                DrawBezier;
+                m := WaitPort(w^.UserPort);
+                Forbid;
+                repeat
+                    m := GetMsg(w^.UserPort);
+                until m = nil;
+                Permit;
      CleanUpAndDie;
 end.
 
 {
   $Log$
-  Revision 1.2  2003-01-19 14:57:12  nils
-  * removed mode objfpc
-
-  Revision 1.1  2002/11/28 19:42:26  nils
-    * initial release
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+

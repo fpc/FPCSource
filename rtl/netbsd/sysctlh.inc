@@ -880,14 +880,7 @@ const
 {
 
   $Log$
-  Revision 1.1  2003-01-21 15:39:45  marco
-   * NetBSD first rtl. Still not 100%, but close
-
-  Revision 1.2  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/08 11:40:05  marco
-   * Initial versions.
-
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

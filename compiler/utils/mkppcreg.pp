@@ -397,25 +397,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-06-17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.7  2003/12/16 21:49:47  florian
-    * fixed ppc compilation
-
-  Revision 1.6  2003/12/10 22:19:28  florian
-    + short gas register names for smartlinking added
-
-  Revision 1.5  2003/09/03 20:33:28  peter
-    * fixed sorting of register number
-
-  Revision 1.4  2003/09/03 19:37:07  peter
-    * powerpc reg update
-
-  Revision 1.2  2003/09/03 15:55:01  peter
-    * NEWRA branch merged
-
-  Revision 1.1.2.1  2003/09/02 20:48:22  peter
-    * powerpc registers
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

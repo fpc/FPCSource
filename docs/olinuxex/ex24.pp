@@ -6,9 +6,9 @@ Uses oldlinux;
 
 Var UID,GID : Longint;
     F : Text;
-    
+
 begin
-  
+
   Writeln ('This will only work if you are root.');
   Write ('Enter a UID : ');readln(UID);
   Write ('Enter a GID : ');readln(GID);

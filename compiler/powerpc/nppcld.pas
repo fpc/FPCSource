@@ -125,7 +125,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2005-01-24 18:13:46  jonas
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.8  2005/01/24 18:13:46  jonas
     * fixed bug introduced in revision 1.6
 
   Revision 1.7  2005/01/20 17:47:01  peter
@@ -135,22 +138,4 @@ end.
     * unit mapping rewrite
     * new derefmap added
 
-  Revision 1.5  2004/11/11 19:31:33  peter
-    * fixed compile of powerpc,sparc,arm
-
-  Revision 1.4  2004/07/19 12:45:43  jonas
-    * fixed loading external procedure addresses
-
-  Revision 1.3  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.2  2004/03/05 22:17:11  jonas
-    * fixed importing of variables from shared libraries, but disabled
-      PIC support for now. You have to save/restore r31 when you us it! :)
-      Also, it's not necessary to support the imported variables
-
-  Revision 1.1  2004/03/02 17:32:12  florian
-    * make cycle fixed
-    + pic support for darwin
-    + support of importing vars from shared libs on darwin implemented
 }

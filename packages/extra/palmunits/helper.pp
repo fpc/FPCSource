@@ -17,7 +17,7 @@ unit helper;
 interface
 
 uses palmos;
- 
+
 //------------------------------------------------------------------------
 // HelperNotifyEventType structure
 // This structure is passed as the notifyDetailsP field of SysNotifyParamType with

@@ -17,7 +17,7 @@ begin
   Writeln ('Press <ENTER> key in less than 2 seconds...');
   Fpfd_zero(FDS);
   FpFd_set (0,FDS);
-  if fpSelect (1,@FDS,nil,nil,2000)>0 then 
+  if fpSelect (1,@FDS,nil,nil,2000)>0 then
     Writeln ('Thank you !')
     { FD_ISSET(0,FDS) would be true here. }
   else

@@ -327,7 +327,7 @@ type
     wAck: UInt32;      // third argument to SysMailboxSend()
                        // sends NetSocketNoticeMailboxType message to specified mailboxID
   end;
-  
+
 type
   callback = record
     callbackP: NetSocketNoticeCallbackPtr; // Callback proc pointer

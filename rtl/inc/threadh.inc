@@ -40,12 +40,12 @@ type
   TRelocateThreadVarHandler = Function(offset : dword) : pointer;
   TAllocateThreadVarsHandler = Procedure;
   TReleaseThreadVarsHandler = Procedure;
-  TBasicEventHandler	    = procedure(state:peventstate);
+  TBasicEventHandler        = procedure(state:peventstate);
   TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate):longint;
   TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
-  TRTLEventHandler	    = procedure(AEvent:PRTLEvent);
-  TRTLCreateEventHandler    = function:PRTLEvent;	
-  TRTLEventSyncHandler	    = procedure (m:trtlmethod;p:tprocedure);
+  TRTLEventHandler          = procedure(AEvent:PRTLEvent);
+  TRTLCreateEventHandler    = function:PRTLEvent;
+  TRTLEventSyncHandler      = procedure (m:trtlmethod;p:tprocedure);
   TRTLCheckSyncUnixHandler  = procedure;
 
   // TThreadManager interface.
@@ -70,18 +70,18 @@ type
     RelocateThreadVar      : TRelocateThreadVarHandler;
     AllocateThreadVars     : TAllocateThreadVarsHandler;
     ReleaseThreadVars      : TReleaseThreadVarsHandler;
-    BasicEventCreate	   : TBasicEventCreateHandler;      // left in for a while.
-    BasicEventDestroy	   : TBasicEventHandler;	    // we might need BasicEvent
-    BasicEventResetEvent   : TBasicEventHandler;	    // for a real TEvent	
+    BasicEventCreate       : TBasicEventCreateHandler;      // left in for a while.
+    BasicEventDestroy      : TBasicEventHandler;            // we might need BasicEvent
+    BasicEventResetEvent   : TBasicEventHandler;            // for a real TEvent
     BasicEventSetEvent     : TBasicEventHandler;
-    BasiceventWaitFOr	   : TBasicEventWaitForHandler;
-    RTLEventCreate	   : TRTLCreateEventHandler;
-    RTLEventDestroy	   : TRTLEventHandler;
+    BasiceventWaitFOr      : TBasicEventWaitForHandler;
+    RTLEventCreate         : TRTLCreateEventHandler;
+    RTLEventDestroy        : TRTLEventHandler;
     RTLEventSetEvent       : TRTLEventHandler;
-    RTLEventStartWait	   : TRTLEventHandler;
-    RTLEventWaitFor	   : TRTLEventHandler;
-    RTLEventSync	   : TRTLEventSyncHandler;
-    RTLChkSyncUnix	   : TRTLCheckSyncUnixHandler;
+    RTLEventStartWait      : TRTLEventHandler;
+    RTLEventWaitFor        : TRTLEventHandler;
+    RTLEventSync           : TRTLEventSyncHandler;
+    RTLChkSyncUnix         : TRTLCheckSyncUnixHandler;
   end;
 
 {*****************************************************************************
@@ -153,71 +153,14 @@ procedure RTLchecksynchronize;
 
 {
   $Log$
-  Revision 1.26  2005-02-06 11:20:52  peter
+  Revision 1.27  2005-02-14 17:13:29  peter
+    * truncate log
+
+  Revision 1.26  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
 
   Revision 1.25  2005/01/21 21:43:12  armin
   * applied patch to compile go32v2 from Tomas (tested by John)
 
-  Revision 1.24  2004/12/28 14:20:03  marco
-   * tthread patch from neli
-
-  Revision 1.23  2004/12/27 15:28:40  marco
-   * checksynchronize now in interface win32 uses the default impl.
-       unix uses systhrds, rest empty implementation.
-
-  Revision 1.22  2004/12/23 15:08:58  marco
-   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
-     only showed on make install should be fixed now.
-
-  Revision 1.21  2004/12/22 21:29:24  marco
-   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
-  	Check work: ask Neli.
-
-  Revision 1.20  2004/12/12 14:30:27  peter
-    * x86_64 updates
-
-  Revision 1.19  2004/09/19 18:55:30  armin
-  * added define DISABLE_NO_THREAD_MANAGER to avoid warnings if thread manager is always present
-
-  Revision 1.18  2004/05/23 20:26:20  marco
-   * wrappers and nothread prototypes for the basic* functions
-
-  Revision 1.17  2004/05/23 15:30:29  marco
-   * first try basicevent
-
-  Revision 1.16  2004/02/22 23:22:49  florian
-    * fixed BeginThread on unix
-
-  Revision 1.15  2004/02/22 16:48:39  florian
-    * several 64 bit issues fixed
-
-  Revision 1.14  2003/11/29 17:29:32  michael
-  + Added overloaded version of SetThreadManager without old parameter
-
-  Revision 1.13  2003/11/27 10:28:41  michael
-  + Patch from peter to fix make cycle
-
-  Revision 1.12  2003/11/26 20:10:59  michael
-  + New threadmanager implementation
-
-  Revision 1.11  2003/10/01 21:00:09  peter
-    * GetCurrentThreadHandle renamed to GetCurrentThreadId
-
-  Revision 1.10  2003/03/27 17:14:27  armin
-  * more platform independent thread routines, needs to be implemented for unix
-
-  Revision 1.9  2002/10/16 19:04:27  michael
-  + More system-independent thread routines
-
-  Revision 1.8  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
-
-  Revision 1.7  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/07/28 20:43:48  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
 }

@@ -6,8 +6,8 @@ Program cjpeg;
 
 { Two different command line styles are permitted, depending on the
   compile-time switch TWO_FILE_COMMANDLINE:
- 	cjpeg [options]  inputfile outputfile
- 	cjpeg [options]  [inputfile]
+        cjpeg [options]  inputfile outputfile
+        cjpeg [options]  [inputfile]
   In the second style, output is always to standard output, which you'd
   normally redirect to a file or pipe to some other program.  Input is
   either from a named file or from standard input (typically redirected).
@@ -15,7 +15,7 @@ Program cjpeg;
   don't support pipes.  Also, you MUST use the first style if your system
   doesn't do binary I/O to stdin/stdout.
   To simplify script writing, the "-outfile" switch is provided.  The syntax
- 	cjpeg [options]  -outfile outputfile  inputfile
+        cjpeg [options]  -outfile outputfile  inputfile
   works regardless of which command line style is used. }
 
 {$I jconfig.inc}
@@ -23,7 +23,7 @@ Program cjpeg;
 
 uses
   jmorecfg,
-  cdjpeg,		{ Common decls for cjpeg/djpeg applications }
+  cdjpeg,               { Common decls for cjpeg/djpeg applications }
   {jversion,}           { for version message }
   jpeglib,
 
@@ -63,7 +63,7 @@ uses
 
 
 var
- is_targa : boolean;	{ records user -targa switch }
+ is_targa : boolean;    { records user -targa switch }
 
 function GetFirstChar(cinfo : j_compress_ptr;
                       fptr : fileptr) : char;
@@ -102,7 +102,7 @@ begin
 
   c := GetFirstChar(cinfo, @infile);
 
-  select_file_type := NIL;	{ suppress compiler warnings }
+  select_file_type := NIL;      { suppress compiler warnings }
   case c of
 {$ifdef BMP_SUPPORTED}
   'B': select_file_type := jinit_read_bmp(cinfo);
@@ -133,8 +133,8 @@ end;
 
 
 var
-  progname,	{ program name for error messages }
-  outfilename : string[79];	{ for -outfile switch }
+  progname,     { program name for error messages }
+  outfilename : string[79];     { for -outfile switch }
 
 
 {LOCAL}
@@ -205,7 +205,7 @@ end;
 
 {LOCAL}
 function parse_switches (cinfo : j_compress_ptr;
-		         last_file_arg_seen : int;
+                         last_file_arg_seen : int;
                          for_real : boolean) : int;
 { Parse optional switches.
   Returns argv[] index of first file-name argument (== argc if none).
@@ -223,8 +223,8 @@ var
   value : int;
   code : integer;
 var
-  quality : int;		{ -quality parameter }
-  q_scale_factor : int;		{ scaling percentage for -qtables }
+  quality : int;                { -quality parameter }
+  q_scale_factor : int;         { scaling percentage for -qtables }
   force_baseline : boolean;
   simple_progressive : boolean;
   qtablefile,                  { saves -qtables filename if any }
@@ -247,9 +247,9 @@ begin
   { Note that default -quality level need not, and does not,
     match the default scaling for an explicit -qtables argument. }
 
-  quality := 75;			{ default -quality value }
-  q_scale_factor := 100;		{ default to no scaling for -qtables }
-  force_baseline := FALSE;	{ by default, allow 16-bit quantizers }
+  quality := 75;                        { default -quality value }
+  q_scale_factor := 100;                { default to no scaling for -qtables }
+  force_baseline := FALSE;      { by default, allow 16-bit quantizers }
   simple_progressive := FALSE;
   is_targa := FALSE;
   outfilename := '';
@@ -269,12 +269,12 @@ begin
       { Not a switch, must be a file name argument }
       if (argn <= last_file_arg_seen) then
       begin
-	outfilename := '';	{ -outfile applies to just one input file }
-	continue;		{ ignore this name if previously processed }
+        outfilename := '';      { -outfile applies to just one input file }
+        continue;               { ignore this name if previously processed }
       end;
-      break;			{ else done parsing switches }
+      break;                    { else done parsing switches }
     end;
-    {Inc(arg);			- advance past switch marker character }
+    {Inc(arg);                  - advance past switch marker character }
 
     if (keymatch(arg, '-arithmetic', 2)) then
     begin
@@ -299,24 +299,24 @@ begin
     begin
       { Select DCT algorithm. }
       Inc(argn);
-      if (argn >= argc) then	{ advance to next argument }
-	usage;
+      if (argn >= argc) then    { advance to next argument }
+        usage;
       if (keymatch(ParamStr(argn), 'int', 1)) then
       begin
-	cinfo^.dct_method := JDCT_ISLOW;
+        cinfo^.dct_method := JDCT_ISLOW;
       end
       else
         if (keymatch(ParamStr(argn), 'fast', 2)) then
         begin
-	  cinfo^.dct_method := JDCT_IFAST;
+          cinfo^.dct_method := JDCT_IFAST;
         end
         else
           if (keymatch(ParamStr(argn), 'float', 2)) then
           begin
-	    cinfo^.dct_method := JDCT_FLOAT;
+            cinfo^.dct_method := JDCT_FLOAT;
           end
           else
-	    usage;
+            usage;
 
     end
     else
@@ -327,10 +327,10 @@ begin
 
         if (not printed_version) then
         begin
-	  WriteLn(output, 'Independent JPEG Group''s CJPEG, version ', JVERSION);
+          WriteLn(output, 'Independent JPEG Group''s CJPEG, version ', JVERSION);
           WriteLn(output, JCOPYRIGHT);
           WriteLn(output, JNOTICE);
-	  printed_version := TRUE;
+          printed_version := TRUE;
         end;
         Inc(cinfo^.err^.trace_level);
 
@@ -348,8 +348,8 @@ begin
           ch := 'x';
 
           Inc(argn);
-          if (argn >= argc) then	{ advance to next argument }
-	    usage;
+          if (argn >= argc) then        { advance to next argument }
+            usage;
 
           arg := ParamStr(argn);
           if (length(arg) > 1) and (arg[length(arg)] in ['m','M']) then
@@ -359,9 +359,9 @@ begin
           end;
           Val(arg, lval, code);
           if (code <> 1) then
-	    usage;
+            usage;
           if (ch = 'm') or (ch = 'M') then
-	    lval := lval * long(1000);
+            lval := lval * long(1000);
           cinfo^.mem^.max_memory_to_use := lval * long(1000);
 
         end
@@ -382,9 +382,9 @@ begin
             begin
               { Set output file name. }
               Inc(argn);
-              if (argn >= argc) then	{ advance to next argument }
-	        usage;
-              outfilename := ParamStr(argn);	{ save it away for later use }
+              if (argn >= argc) then    { advance to next argument }
+                usage;
+              outfilename := ParamStr(argn);    { save it away for later use }
 
             end
             else
@@ -405,11 +405,11 @@ begin
                 begin
                   { Quality factor (quantization table scaling factor). }
                   Inc(argn);
-                  if (argn >= argc) then	{ advance to next argument }
-	            usage;
+                  if (argn >= argc) then        { advance to next argument }
+                    usage;
                   Val(ParamStr(argn), quality, code);
                   if code <> 0 then
-	            usage;
+                    usage;
 
                   { Change scale factor in case -qtables is present. }
                   q_scale_factor := jpeg_quality_scaling(quality);
@@ -420,8 +420,8 @@ begin
                   begin
                     { Quantization table slot numbers. }
                     Inc(argn);
-                    if (argn >= argc) then	{ advance to next argument }
-	              usage;
+                    if (argn >= argc) then      { advance to next argument }
+                      usage;
                     qslotsarg := ParamStr(argn);
                     { Must delay setting qslots until after we have processed any
                       colorspace-determining switches, since jpeg_set_colorspace sets
@@ -433,8 +433,8 @@ begin
                     begin
                       { Quantization tables fetched from file. }
                       Inc(argn);
-                      if (argn >= argc) then	{ advance to next argument }
-	                usage;
+                      if (argn >= argc) then    { advance to next argument }
+                        usage;
                       qtablefile := ParamStr(argn);
                       { We postpone actually reading the file in case -quality comes later. }
 
@@ -446,8 +446,8 @@ begin
                         ch := 'x';
 
                         Inc(argn);
-                        if (argn >= argc) then	{ advance to next argument }
-	                  usage;
+                        if (argn >= argc) then  { advance to next argument }
+                          usage;
 
                         arg := ParamStr(argn);
                         if (length(arg) > 1) and (arg[length(arg)] in ['b','B']) then
@@ -458,18 +458,18 @@ begin
 
                         Val(arg, lval, Code);
                         if (code <> 1) then
-	                  usage;
+                          usage;
                         if (lval < 0) or (lval > long(65535)) then
-	                  usage;
+                          usage;
                         if (ch = 'b') or (ch = 'B') then
                         begin
-	                  cinfo^.restart_interval := uInt (lval);
-	                  cinfo^.restart_in_rows := 0; { else prior '-restart n' overrides me }
+                          cinfo^.restart_interval := uInt (lval);
+                          cinfo^.restart_in_rows := 0; { else prior '-restart n' overrides me }
                         end
                         else
                         begin
-	                  cinfo^.restart_in_rows := int (lval);
-	                  { restart_interval will be computed during startup }
+                          cinfo^.restart_in_rows := int (lval);
+                          { restart_interval will be computed during startup }
                         end;
                       end
                       else
@@ -477,8 +477,8 @@ begin
                         begin
                           { Set sampling factors. }
                           Inc(argn);
-                          if (argn >= argc) then	{ advance to next argument }
-	                    usage;
+                          if (argn >= argc) then        { advance to next argument }
+                            usage;
                           samplearg := ParamStr(argn);
                           { Must delay setting sample factors until after we have processed any
                             colorspace-determining switches, since jpeg_set_colorspace sets
@@ -491,8 +491,8 @@ begin
                             { Set scan script. }
                       {$ifdef C_MULTISCAN_FILES_SUPPORTED}
                             Inc(argn);
-                            if (argn >= argc) then	{ advance to next argument }
-	                      usage;
+                            if (argn >= argc) then      { advance to next argument }
+                              usage;
                             scansarg := ParamStr(argn);
                             { We must postpone reading the file in case -progressive appears. }
                       {$else}
@@ -507,12 +507,12 @@ begin
                               { Set input smoothing factor. }
 
                               Inc(argn);
-                              if (argn >= argc) then	{ advance to next argument }
-	                        usage;
+                              if (argn >= argc) then    { advance to next argument }
+                                usage;
                               Val(ParamStr(argn), value, code);
                               if (value < 0) or (value > 100)
                                  or (code <> 0) then
-	                        usage;
+                                usage;
                               cinfo^.smoothing_factor := value;
 
                             end
@@ -525,7 +525,7 @@ begin
                               end
                               else
                               begin
-                                usage;			{ bogus switch }
+                                usage;                  { bogus switch }
                               end;
   end;
 
@@ -539,35 +539,35 @@ begin
     jpeg_set_quality(cinfo, quality, force_baseline);
 
 {$IFDEF EXT_SWITCH}
-    if (qtablefile <> '') then	{ process -qtables if it was present }
+    if (qtablefile <> '') then  { process -qtables if it was present }
       if (not read_quant_tables(cinfo, qtablefile,
-			      q_scale_factor, force_baseline)) then
-	usage;
+                              q_scale_factor, force_baseline)) then
+        usage;
 
-    if (qslotsarg <> '') then	{ process -qslots if it was present }
+    if (qslotsarg <> '') then   { process -qslots if it was present }
       if (not set_quant_slots(cinfo, qslotsarg)) then
-	usage;
+        usage;
 
-    if (samplearg <> '') then	{ process -sample if it was present }
+    if (samplearg <> '') then   { process -sample if it was present }
       if (not set_sample_factors(cinfo, samplearg)) then
-	usage;
+        usage;
 {$ENDIF}
 
 {$ifdef C_PROGRESSIVE_SUPPORTED}
-    if (simple_progressive) then	{ process -progressive; -scans can override }
+    if (simple_progressive) then        { process -progressive; -scans can override }
       jpeg_simple_progression(cinfo);
 {$endif}
 
 {$IFDEF EXT_SWITCH}
 {$ifdef C_MULTISCAN_FILES_SUPPORTED}
-    if (scansarg <> '') then	{ process -scans if it was present }
+    if (scansarg <> '') then    { process -scans if it was present }
       if (not read_scan_script(cinfo, scansarg)) then
-	usage;
+        usage;
 {$endif}
 {$ENDIF}
   end;
 
-  parse_switches := argn;	{ return index of next arg (file name) }
+  parse_switches := argn;       { return index of next arg (file name) }
 end;
 
 

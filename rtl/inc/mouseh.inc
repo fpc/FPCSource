@@ -107,7 +107,7 @@ Procedure GetMouseDriver(Var Driver : TMouseDriver);
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:25  peter
+    * truncate log
 
 }

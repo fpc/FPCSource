@@ -1683,65 +1683,7 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.83  2004-12-22 16:32:45  peter
-    * maybequoted() added
-
-  Revision 1.82  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.81  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.80  2004/10/14 14:47:52  mazen
-  * Merge is complete for this file, cycles !
-
-  Revision 1.79  2004/10/13 17:58:54  peter
-    * reverted USE_SYSUTILS patch until  ll patches are readyt
-
-  Revision 1.77  2004/10/08 15:52:40  florian
-    + non writeable unit output directory produces a nice error message now
-
-  Revision 1.76  2004/10/04 18:26:51  peter
-    * debuginfo fixes
-
-  Revision 1.75  2004/10/04 15:48:11  peter
-    * AB_COMMON symbols need special relocation in stabs
-
-  Revision 1.74  2004/08/27 20:53:52  peter
-  don't lowercase filenames in stabs
-
-  Revision 1.73  2004/08/25 15:55:32  peter
-    * fixed win32 that was broken by previous fix
-
-  Revision 1.72  2004/08/24 19:31:44  hajny
-    * binary writer fix for GO32v2 from Peter
-
-  Revision 1.71  2004/07/01 18:28:54  jonas
-    + detect assembler errors when using -ap
-
-  Revision 1.70  2004/07/01 15:42:53  peter
-    * fix wrong calculation of .bss section
-
-  Revision 1.69  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.68  2004/06/16 20:07:06  florian
-    * dwarf branch merged
-
-  Revision 1.67  2004/05/21 22:43:36  peter
-    * set correct n_line type when starting new .o file by passing
-      the current section type
-
-  Revision 1.66.2.7  2004/05/03 14:59:57  peter
-    * no dlltool needed for win32 linking executables
-
-  Revision 1.66.2.6  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.66.2.5  2004/04/29 23:30:28  peter
-    * fix i386 compiler
+  Revision 1.84  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

@@ -22,7 +22,7 @@ function argz_next(__argz:Pchar; __argz_len:size_t; __entry:Pchar):Pchar;cdecl;e
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function argz_create(__argv:PPchar; var __argz: Pchar; var __len: size_t):error_t;cdecl;external clib name 'argz_create';
 function argz_create_sep(__string:Pchar; __sep:longint; var __argz: Pchar; var __len: size_t):error_t;cdecl;external clib name 'argz_create_sep';
 function argz_append(var __argz: Pchar; var __argz_len: size_t; __buf:Pchar; __buf_len:size_t):error_t;cdecl;external clib name 'argz_append';

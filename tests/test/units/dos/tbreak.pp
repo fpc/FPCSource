@@ -87,14 +87,7 @@ Begin
 end.
 {
   $Log$
-  Revision 1.3  2002-11-18 09:49:49  pierre
-   * tried to make as many as possible tests non interactive
-
-  Revision 1.2  2002/11/09 23:08:07  carl
-    * fix compilation problems
-
-  Revision 1.1  2002/11/08 21:01:18  carl
-    * separated some tests
-    * make tfexpand more portable
+  Revision 1.4  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

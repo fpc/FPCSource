@@ -94,7 +94,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2002-05-21 11:59:57  pierre
-   + system messages unit added
+  Revision 1.2  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

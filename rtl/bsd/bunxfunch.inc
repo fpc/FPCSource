@@ -22,7 +22,7 @@
 
 //Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt;
 //Function FPKill(Pid:pid_t;Sig:cint):cint;
-//function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; 
+//function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;
 //Function FPSigPending(var nset: sigset_t):cint;
 //function FPsigsuspend(const sigmask:sigset_t):cint;
 Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
@@ -32,7 +32,7 @@ Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
 //function sigpause(sigmask:cint):cint;
 //function FPpause:cint;
 //function FPsleep(seconds:cuint):cuint;
-//function FPuname(var name:utsname):cint; 
+//function FPuname(var name:utsname):cint;
 //function FPwait(var stat_loc:cint): pid_t;
 //function FPgetpid : pid_t;
 //function FPgetppid : pid_t;
@@ -62,8 +62,7 @@ function FPgetrusage(who:cint;var ru : rusage):cint;
 
 {
  $Log$
- Revision 1.1  2003-09-14 20:15:01  marco
-  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
+ Revision 1.2  2005-02-14 17:13:21  peter
+   * truncate log
 
 }

@@ -7,7 +7,7 @@ Uses SysUtils,DateUtils;
 Var
   Y,W,Dow : Word;
   TS : TDateTime;
-  
+
 Begin
   DecodeDateWeek(Now,Y,W,Dow);
   TS:=EncodeDateWeek(Y,W,Dow);

@@ -70,10 +70,10 @@ type
         map : procedure (item:PGnomeCanvasItem);cdecl;
         unmap : procedure (item:PGnomeCanvasItem);cdecl;
         coverage : function (item:PGnomeCanvasItem):PArtUta;cdecl;
-        draw : procedure (item:PGnomeCanvasItem; drawable:PGdkDrawable; x:longint; y:longint; width:longint; 
+        draw : procedure (item:PGnomeCanvasItem; drawable:PGdkDrawable; x:longint; y:longint; width:longint;
                       height:longint);cdecl;
         render : procedure (item:PGnomeCanvasItem; buf:PGnomeCanvasBuf);cdecl;
-        point : function (item:PGnomeCanvasItem; x:double; y:double; cx:longint; cy:longint; 
+        point : function (item:PGnomeCanvasItem; x:double; y:double; cx:longint; cy:longint;
                      actual_item:PPGnomeCanvasItem):double;cdecl;
         translate : procedure (item:PGnomeCanvasItem; dx:double; dy:double);cdecl;
         bounds : procedure (item:PGnomeCanvasItem; x1:Pdouble; y1:Pdouble; x2:Pdouble; y2:Pdouble);cdecl;

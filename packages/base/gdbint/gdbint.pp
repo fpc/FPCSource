@@ -206,7 +206,7 @@ type
 
 const
  k=1;
- 
+
 type
 {$if defined(CPUSPARC) and defined(LINUX)}
   CORE_ADDR = qword;
@@ -2468,100 +2468,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2005-01-07 18:47:33  florian
+  Revision 1.29  2005-02-14 17:13:19  peter
+    * truncate log
+
+  Revision 1.28  2005/01/07 18:47:33  florian
     * sparc/linux uses 64 bit CORE_ADDR always it seems
 
   Revision 1.27  2005/01/02 12:40:42  florian
     * set default GDB version to 6
-
-  Revision 1.26  2004/12/19 21:00:00  florian
-    * 64 bit adaptions
-
-  Revision 1.25  2004/12/19 18:35:56  florian
-    * fixed for gdb 6.3.x
-
-  Revision 1.24  2004/12/04 23:06:38  peter
-    * fix buffer overflow
-
-  Revision 1.23  2004/11/06 17:58:35  peter
-    * use full static libnames for linux
-
-  Revision 1.22  2004/11/05 17:57:04  peter
-    * inferior ptid enabled by default
-
-  Revision 1.21  2004/11/05 12:30:27  peter
-  fixed win32 libraries
-
-  Revision 1.20  2004/11/04 23:58:08  peter
-  6.2.1 has extra field in symtab
-
-  Revision 1.19  2004/11/04 17:56:36  peter
-  drop 4.x support, fixed 6.2.x support
-
-  Revision 1.18  2004/10/04 17:59:19  armin
-  * added support for gdb 6.0 and 6.2.1
-
-  Revision 1.17  2003/11/05 15:41:30  florian
-   * GDB_V5 define fixed
-
-  Revision 1.16  2003/09/18 16:34:19  marco
-   * unix reform
-
-  Revision 1.15  2003/03/30 11:15:51  armin
-  * the ide somtimes crashed in annotate_frame_end
-
-  Revision 1.14  2003/03/25 22:50:29  armin
-  * added GDB_HAS_SYSROOT, needed for gdb-Versions >= 20030324
-
-  Revision 1.13  2003/02/09 23:08:38  marco
-   * ncurses to curses for openbsd rename
-
-  Revision 1.12  2002/12/02 13:59:56  pierre
-   + add sim library for powerpc cpu
-
-  Revision 1.11  2002/11/21 00:42:27  pierre
-   * prepare for gdb 5.3
-
-  Revision 1.10  2002/09/27 17:49:09  pierre
-   * fix not i386 typo bug
-
-  Revision 1.9  2002/09/17 20:20:05  pierre
-   * mask all fpu exceptions in GDB commands as GDB relies on that
-
-  Revision 1.8  2002/09/07 15:42:52  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/07/30 16:40:41  marco
-   * Gdbint openbsd support
-
-  Revision 1.6  2002/05/31 11:54:32  marco
-  * Renamefest for 1.0, many 1.1.x spots patched also.
-
-  Revision 1.5  2002/05/13 13:45:35  peter
-    * updated to compile tests with kylix
-
-  Revision 1.4  2002/03/26 16:24:49  pierre
-   * set signal names to nil at start
-
-  Revision 1.3  2002/02/06 14:42:45  pierre
-   + code to handle signals
-
-  Revision 1.2  2002/02/05 11:03:59  marco
-   * library fix, and define GDB_V502 for BSD
-
-  Revision 1.1  2002/01/29 17:54:49  peter
-    * splitted to base and extra
-
-  Revision 1.13  2002/01/25 22:39:29  pierre
-   * fix problem with 5.0 lib version
-
-  Revision 1.12  2002/01/24 12:31:51  pierre
-   * fix go32v2 compilation for gdb 5.1
-
-  Revision 1.11  2002/01/24 09:14:39  pierre
-   * adapt to GDB 5.1
-
-  Revision 1.10  2002/01/07 10:31:57  pierre
-   * avoid problem if gdb start generates output
 
 }

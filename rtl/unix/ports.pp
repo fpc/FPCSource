@@ -103,10 +103,7 @@ end;
 
 end.
   $Log$
-  Revision 1.5  2003-09-20 18:10:28  marco
-   * More fixes
-
-  Revision 1.4  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

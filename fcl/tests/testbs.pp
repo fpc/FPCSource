@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Test for TBufstream.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -27,7 +27,7 @@ Var
   SBCapacity : Integer = 1024*16;
 
 procedure TestRead(Buffer : PChar; ACapacity : Integer);
-  
+
 Var
   F2 : TFileStream;
   B : TReadBufSTream;

@@ -747,66 +747,7 @@
 
 {
   $Log$
-  Revision 1.45  2004-12-05 21:09:54  florian
-    * fixed memory release in TInterfacedObject._Release
-
-  Revision 1.44  2004/11/03 11:33:50  florian
-    * fixed dyn. array handling for 32 bit architectures requiering proper alignment
-
-  Revision 1.42  2004/10/24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.41  2004/10/10 19:18:31  florian
-    * fixed aligntoptr
-
-  Revision 1.40  2004/10/05 20:21:23  florian
-    * bootstrapping with rtti alignment fixed
-
-  Revision 1.39  2004/10/04 21:26:16  florian
-    * rtti alignment fixed
-
-  Revision 1.38  2004/04/29 21:33:22  florian
-    * fixed tobject.dispatch for 64 bit cpus
-
-  Revision 1.37  2004/04/28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.36  2004/03/22 22:19:36  florian
-    * more alignment fixes
-
-  Revision 1.35  2004/03/21 22:41:29  florian
-    * CleanupInstance takes now care of FPC_REQUIRES_PROPER_ALIGNMENT
-
-  Revision 1.34  2004/02/26 16:19:01  peter
-    * tkclass removed from finalize()
-    * cleanupinstance now parses the tkclass rtti entry itself and
-      calls finalize() for the rtti members
-
-  Revision 1.33  2003/07/19 11:19:07  michael
-  + fix from Ivan Shikhalev for QueryInterface to return ancestor methods
-
-  Revision 1.32  2003/05/01 08:05:23  florian
-    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
-
-  Revision 1.31  2003/03/17 20:55:58  peter
-    * ClassType changed to class method
-
-  Revision 1.30  2002/10/19 15:53:20  peter
-    * 'inlined' some more calls
-
-  Revision 1.29  2002/10/15 19:29:49  peter
-    * manual inline classparent calls in the loops
-
-  Revision 1.28  2002/10/11 14:05:21  florian
-    * initinterfacepointers improved
-
-  Revision 1.27  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.26  2002/09/07 11:08:58  carl
-    - remove logs
-
-  Revision 1.25  2002/08/31 13:11:11  florian
-    * several fixes for Linux/PPC compilation
+  Revision 1.46  2005-02-14 17:13:26  peter
+    * truncate log
 
 }

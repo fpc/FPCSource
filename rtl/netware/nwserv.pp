@@ -767,7 +767,7 @@ type
 const
    MERIDLEN = 5;
    L_MB_LEN_MAX = 2;    // multibyte character length maximum is 2
-   NWSINGLE_BYTE = 1;	// returned from NWCharType()...
+   NWSINGLE_BYTE = 1;   // returned from NWCharType()...
    NWDOUBLE_BYTE = 2;
 { country/language ID definitions (field 'country_id' in struct Llconv)...   }
    ARABIC = 785;
@@ -1290,7 +1290,7 @@ type
    end;
 
 {-------------------------------------------------------------------------
-  	Definition of setSizeFlags
+        Definition of setSizeFlags
  ------------------------------------------------------------------------- }
 
 const
@@ -3740,18 +3740,19 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
        threadCustomDataPtr : pointer;cvar;external;
        threadCustomDataSize : longint;cvar;external;
        threadGroupCustomDataPtr : pointer;cvar;external;
-       threadGroupCustomDataSize : longint;cvar;external; }
+       threadGroupCustomDataSize : longint;cvar;external;
+ }
 
 
   function AtUnload(func:Tprocedure):longint;                       cdecl;external ThreadsNlm name 'AtUnload';
   function BeginThread(func:TThreadFunc;
                        stackP:pointer;
-		       stackSize:dword;
-		       arg:pointer):longint;                        cdecl;external ThreadsNlm name 'BeginThread';
+                       stackSize:dword;
+                       arg:pointer):longint;                        cdecl;external ThreadsNlm name 'BeginThread';
   function BeginThreadGroup(func:TThreadFunc;
                             stackP:pointer;
-			    stackSize:dword;
-			    arg:pointer):longint;                   cdecl;external ThreadsNlm name 'BeginThreadGroup';
+                            stackSize:dword;
+                            arg:pointer):longint;                   cdecl;external ThreadsNlm name 'BeginThreadGroup';
   function Breakpoint(arg:longint):longint;                         cdecl;external Lib0Nlm name 'Breakpoint';
   procedure CancelNoSleepAESProcessEvent(EventNode:PAESProcessStructure);cdecl;external ThreadsNlm name 'CancelNoSleepAESProcessEvent';
   procedure CancelSleepAESProcessEvent  (EventNode:PAESProcessStructure);cdecl;external ThreadsNlm name 'CancelSleepAESProcessEvent';
@@ -3770,10 +3771,10 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   function GetNLMIDFromThreadID(threadID:longint;fileName:Pchar):longint;cdecl;external ThreadsNlm name 'GetNLMIDFromThreadID';
   function GetNLMNameFromNLMID(NLMID:longint;
                                fileName:Pchar;
-			       description:Pchar):longint;               cdecl;external ThreadsNlm name 'GetNLMNameFromNLMID';
+                               description:Pchar):longint;               cdecl;external ThreadsNlm name 'GetNLMNameFromNLMID';
   function GetNLMNameFromNLMHandle(NLMHandle:TNlmHandle;
                                    LDFileName:Pchar;
-				   LDName:Pchar):longint;                cdecl;external ThreadsNlm name 'GetNLMNameFromNLMHandle';
+                                   LDName:Pchar):longint;                cdecl;external ThreadsNlm name 'GetNLMNameFromNLMHandle';
   function GetThreadContextSpecifier(threadID:longint):longint;          cdecl;external ThreadsNlm name 'GetThreadContextSpecifier';
   function GetThreadGroupID:longint;                                     cdecl;external ThreadsNlm name 'GetThreadGroupID';
   function __GetThreadIDFromPCB(PCB:longint):longint;                    cdecl;external Lib0Nlm name '__GetThreadIDFromPCB';
@@ -3790,18 +3791,18 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   function ResumeThread(threadID:longint):longint;                       cdecl;external ThreadsNlm name 'ResumeThread';
   function ReturnNLMVersionInfoFromFile(pathName:pchar;
                                         majorVersion:Plongint;
-					minorVersion:Plongint;
-					revision:Plongint;
-					year:Plongint;
+                                        minorVersion:Plongint;
+                                        revision:Plongint;
+                                        year:Plongint;
                                         month:Plongint;
-					day:Plongint;
-					copyrightString:pchar;
-					description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
+                                        day:Plongint;
+                                        copyrightString:pchar;
+                                        description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
   function ReturnNLMVersionInfoFromFile(pathName:pchar;
                                         var majorVersion,minorVersion,revision:longint;
-					var year,month,day:longint;
-					copyrightString:pchar;
-					description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
+                                        var year,month,day:longint;
+                                        copyrightString:pchar;
+                                        description:pchar):longint;      cdecl;external NlmLibNlm name 'ReturnNLMVersionInfoFromFile';
 
   function ReturnNLMVersionInformation(NLMHandle:TNlmHandle;
                                        majorVersion,minorVersion,revision,year,month,day:Plongint;
@@ -3816,7 +3817,7 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
 
   function ScheduleWorkToDo(ProcedureToCall:TWorkToDoProc;
                             workData       :pointer;
-			    workToDo       :PWorkToDo):longint;            cdecl;external ThreadsNlm name 'ScheduleWorkToDo';
+                            workToDo       :PWorkToDo):longint;            cdecl;external ThreadsNlm name 'ScheduleWorkToDo';
   function SetNLMDontUnloadFlag(NLMID:longint):longint;                    cdecl;external ThreadsNlm name 'SetNLMDontUnloadFlag';
   function SetNLMID(newNLMID:longint):longint;                             cdecl;external ThreadsNlm name 'SetNLMID';
   function SetThreadContextSpecifier(threadID,
@@ -3825,7 +3826,7 @@ procedure TicksToSeconds(Ticks:longint; Seconds:Plongint; TenthsOfSeconds:Plongi
   procedure SetThreadHandicap(threadID, handicap:longint);                 cdecl;external ThreadsNlm name 'SetThreadHandicap';
   function spawnlp(mode:longint;
                    path,arg0:Pchar;
-		   args:array of const):longint;                           cdecl;external ThreadsNlm name 'spawnlp';
+                   args:array of const):longint;                           cdecl;external ThreadsNlm name 'spawnlp';
   function spawnlp(mode:longint;
                    path,arg0:Pchar):longint;                               cdecl;external ThreadsNlm name 'spawnlp';
   function spawnvp(mode:longint;
@@ -5385,27 +5386,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2005-01-04 11:25:33  armin
+  Revision 1.8  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.7  2005/01/04 11:25:33  armin
   * rtl code cleanup, compat fixes between clib and libc
-
-  Revision 1.6  2004/12/29 13:01:42  armin
-  * made commandParser more compatible between clib and libc
-
-  Revision 1.5  2004/12/16 12:42:55  armin
-  * added NetWare Alert
-  * added sysutils.sleep
-
-  Revision 1.4  2004/11/06 19:57:06  armin
-  * added some fp* functions
-
-  Revision 1.3  2004/09/26 19:25:49  armin
-  * exiting threads at nlm unload
-
-  Revision 1.2  2003/03/25 18:09:25  armin
-  * removed cvars because of problems with nlmconv
-
-  Revision 1.1  2003/02/22 18:23:26  armin
-  * removed nwstdio and nwthread
-  * added nwnit.pp and nwserv.pp containing nearly all netware server structures/function definitions available in the c sdk
 
 }

@@ -1569,7 +1569,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.103  2005-01-31 17:07:50  peter
+  Revision 1.104  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.103  2005/01/31 17:07:50  peter
     * fix [regpara] in intel assembler
 
   Revision 1.102  2005/01/20 17:05:53  peter
@@ -1581,63 +1584,5 @@ end.
 
   Revision 1.100  2005/01/05 15:22:39  florian
     * added support of shifter ops in arm inline assembler
-
-  Revision 1.99  2004/12/22 17:09:55  peter
-    * support sizeof()
-    * fix typecasting a constant like dword(4)
-
-  Revision 1.98  2004/12/12 10:50:34  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.97  2004/11/29 18:50:15  peter
-    * os2 fixes for import
-    * asmsymtype support for intel reader
-
-  Revision 1.96  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.95  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.94  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.93  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.92  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.91  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.90  2004/10/08 17:09:43  peter
-    * tvarsym.varregable added, split vo_regable from varoptions
-
-  Revision 1.89  2004/09/27 15:14:34  peter
-    * reference local varsyms can't be regvar
-
-  Revision 1.88  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.87  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.86  2004/05/06 20:30:51  florian
-    * m68k compiler compilation fixed
-
-  Revision 1.85.2.7  2004/05/25 21:38:53  peter
-    * assembler reader/writer updates
-
-  Revision 1.85.2.6  2004/05/18 20:24:03  florian
-    * fixed crash with unknown symbols
-
-  Revision 1.85.2.5  2004/05/02 00:13:16  peter
-    * remove limit of 15 digits
 
 }

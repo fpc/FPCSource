@@ -238,30 +238,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2004-11-06 17:44:47  florian
-    + additional extdebug check for wrong add_reg_instructions added
-    * too long manglednames are cut off at 200 chars using a crc
-
-  Revision 1.22  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.21  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.20  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.19.2.1  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.19  2004/03/29 19:19:35  florian
-    + arm floating point register saving implemented
-    * hopefully stabs generation for MacOSX fixed
-    + some defines for arm added
-
-  Revision 1.18  2004/03/06 20:35:19  florian
-    * fixed arm compilation
-    * cleaned up code generation for exported linux procedures
+  Revision 1.24  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

@@ -6,5 +6,5 @@ begin
   ppointer(_self+vmt_pos)^:=0;
 end.
 
- 
- 
+
+

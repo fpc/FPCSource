@@ -152,12 +152,12 @@ type
 { Declarations for both compression & decompression }
 
 type
-  J_BUF_MODE = (		{ Operating modes for buffer controllers }
-	JBUF_PASS_THRU,		{ Plain stripwise operation }
-	{ Remaining modes require a full-image buffer to have been created }
-	JBUF_SAVE_SOURCE,	{ Run source subobject only, save output }
-	JBUF_CRANK_DEST,	{ Run dest subobject only, using saved data }
-	JBUF_SAVE_AND_PASS	{ Run both subobjects, save output }
+  J_BUF_MODE = (                { Operating modes for buffer controllers }
+        JBUF_PASS_THRU,         { Plain stripwise operation }
+        { Remaining modes require a full-image buffer to have been created }
+        JBUF_SAVE_SOURCE,       { Run source subobject only, save output }
+        JBUF_CRANK_DEST,        { Run dest subobject only, using saved data }
+        JBUF_SAVE_AND_PASS      { Run both subobjects, save output }
                );
 
 { Values of global_state field (jdapi.c has some dependencies on ordering!) }
@@ -282,21 +282,21 @@ type
 
 type
   J_COLOR_SPACE = (
-	JCS_UNKNOWN,            { error/unspecified }
-	JCS_GRAYSCALE,          { monochrome }
-	JCS_RGB,                { red/green/blue }
-	JCS_YCbCr,              { Y/Cb/Cr (also known as YUV) }
-	JCS_CMYK,               { C/M/Y/K }
-	JCS_YCCK                { Y/Cb/Cr/K }
+        JCS_UNKNOWN,            { error/unspecified }
+        JCS_GRAYSCALE,          { monochrome }
+        JCS_RGB,                { red/green/blue }
+        JCS_YCbCr,              { Y/Cb/Cr (also known as YUV) }
+        JCS_CMYK,               { C/M/Y/K }
+        JCS_YCCK                { Y/Cb/Cr/K }
                   );
 
 { DCT/IDCT algorithm options. }
 
 type
   J_DCT_METHOD = (
-	JDCT_ISLOW,		{ slow but accurate integer algorithm }
-	JDCT_IFAST,		{ faster, less accurate integer method }
-	JDCT_FLOAT		{ floating-point: accurate, fast on fast HW }
+        JDCT_ISLOW,             { slow but accurate integer algorithm }
+        JDCT_IFAST,             { faster, less accurate integer method }
+        JDCT_FLOAT              { floating-point: accurate, fast on fast HW }
                  );
 
 const
@@ -370,7 +370,7 @@ type
   j_compress_ptr = ^jpeg_compress_struct;
   j_decompress_ptr = ^jpeg_decompress_struct;
 
-  {$ifdef AM_MEMORY_MANAGER}	{ only jmemmgr.c defines these }
+  {$ifdef AM_MEMORY_MANAGER}    { only jmemmgr.c defines these }
 
 { This structure holds whatever state is needed to access a single
   backing-store object.  The read/write/close method pointers are called
@@ -382,18 +382,18 @@ type
   backing_store_info = record
   { Methods for reading/writing/closing this backing-store object }
     read_backing_store : procedure (cinfo : j_common_ptr;
-				    info : backing_store_ptr;
-				    buffer_address : pointer; {far}
-				    file_offset : long;
+                                    info : backing_store_ptr;
+                                    buffer_address : pointer; {far}
+                                    file_offset : long;
                                     byte_count : long);
     write_backing_store : procedure (cinfo : j_common_ptr;
-				     info : backing_store_ptr;
-				     buffer_address : pointer;  {far}
-				     file_offset : long;
+                                     info : backing_store_ptr;
+                                     buffer_address : pointer;  {far}
+                                     file_offset : long;
                                      byte_count : long);
 
     close_backing_store : procedure (cinfo : j_common_ptr;
-				     info : backing_store_ptr);
+                                     info : backing_store_ptr);
 
   { Private fields for system-dependent backing-store management }
   {$ifdef USE_MSDOS_MEMMGR}
@@ -434,7 +434,7 @@ type
   jvirt_barray_control = record
     mem_buffer : JBLOCKARRAY;   { => the in-memory buffer }
     rows_in_array : JDIMENSION; { total virtual array height }
-    blocksperrow : JDIMENSION;	{ width of array (and of memory buffer) }
+    blocksperrow : JDIMENSION;  { width of array (and of memory buffer) }
     maxaccess : JDIMENSION;     { max rows accessed by access_virt_barray }
     rows_in_mem : JDIMENSION;   { height of memory buffer }
     rowsperchunk : JDIMENSION;  { allocation chunk size in mem_buffer }
@@ -470,7 +470,7 @@ type
     process_data : procedure(cinfo : j_compress_ptr;
                              input_buf : JSAMPARRAY;
                              var in_row_ctr : JDIMENSION;
-			     in_rows_avail : JDIMENSION);
+                             in_rows_avail : JDIMENSION);
   end;
 
 { Compression preprocessing (downsampling input buffer control) }
@@ -478,12 +478,12 @@ type
   jpeg_c_prep_controller = record
     start_pass : procedure(cinfo : j_compress_ptr; pass_mode : J_BUF_MODE);
     pre_process_data : procedure(cinfo : j_compress_ptr;
-				 input_buf : JSAMPARRAY;
-				 var in_row_ctr : JDIMENSION;
-				 in_rows_avail : JDIMENSION;
-				 output_buf : JSAMPIMAGE;
-				 var out_row_group_ctr : JDIMENSION;
-				 out_row_groups_avail : JDIMENSION);
+                                 input_buf : JSAMPARRAY;
+                                 var in_row_ctr : JDIMENSION;
+                                 in_rows_avail : JDIMENSION;
+                                 output_buf : JSAMPIMAGE;
+                                 var out_row_group_ctr : JDIMENSION;
+                                 out_row_groups_avail : JDIMENSION);
   end;
 
 { Coefficient buffer control }
@@ -501,7 +501,7 @@ type
     color_convert : procedure(cinfo : j_compress_ptr;
                               input_buf : JSAMPARRAY;
                               output_buf : JSAMPIMAGE;
-			      output_row : JDIMENSION;
+                              output_row : JDIMENSION;
                               num_rows : int);
   end;
 
@@ -510,10 +510,10 @@ type
   jpeg_downsampler = record
     start_pass : procedure(cinfo : j_compress_ptr);
     downsample : procedure(cinfo : j_compress_ptr;
-			   input_buf : JSAMPIMAGE;
+                           input_buf : JSAMPIMAGE;
                            in_row_index :  JDIMENSION;
-			   output_buf : JSAMPIMAGE;
-			   out_row_group_index: JDIMENSION);
+                           output_buf : JSAMPIMAGE;
+                           out_row_group_index: JDIMENSION);
     need_context_rows : Boolean;  { TRUE if need rows above & below }
   end;
 
@@ -523,12 +523,12 @@ type
     start_pass : procedure(cinfo : j_compress_ptr);
     { perhaps this should be an array??? }
     forward_DCT : procedure(cinfo : j_compress_ptr;
-			    compptr : jpeg_component_info_ptr;
-			    sample_data : JSAMPARRAY;
+                            compptr : jpeg_component_info_ptr;
+                            sample_data : JSAMPARRAY;
                             coef_blocks : JBLOCKROW;
-			    start_row : JDIMENSION;
+                            start_row : JDIMENSION;
                             start_col : JDIMENSION;
-			    num_blocks : JDIMENSION);
+                            num_blocks : JDIMENSION);
   end;
 
 { Entropy encoding }
@@ -553,7 +553,7 @@ type
    { Probably only COM and APPn markers should be written this way }
     write_marker_header : procedure (cinfo : j_compress_ptr;
                                      marker : int;
-				     datalen : uint);
+                                     datalen : uint);
     write_marker_byte : procedure (cinfo : j_compress_ptr; val : int);
   end;
 
@@ -566,7 +566,7 @@ type
     finish_output_pass : procedure(cinfo : j_decompress_ptr);
 
     { State variables made visible to other modules }
-    is_dummy_pass : Boolean;	{ True during 1st pass for 2-pass quant }
+    is_dummy_pass : Boolean;    { True during 1st pass for 2-pass quant }
   end;
 
 { Input control module }
@@ -590,7 +590,7 @@ type
     process_data : procedure(cinfo : j_decompress_ptr;
                              output_buf : JSAMPARRAY;
                              var out_row_ctr : JDIMENSION;
-	                     out_rows_avail : JDIMENSION);
+                             out_rows_avail : JDIMENSION);
   end;
 
 { Coefficient buffer control }
@@ -613,12 +613,12 @@ type
     start_pass : procedure(cinfo : j_decompress_ptr;
                            pass_mode : J_BUF_MODE);
     post_process_data : procedure(cinfo : j_decompress_ptr;
-				  input_buf : JSAMPIMAGE;
-				  var in_row_group_ctr : JDIMENSION;
-				  in_row_groups_avail : JDIMENSION;
-				  output_buf : JSAMPARRAY;
-				  var out_row_ctr : JDIMENSION;
-				  out_rows_avail : JDIMENSION);
+                                  input_buf : JSAMPIMAGE;
+                                  var in_row_group_ctr : JDIMENSION;
+                                  in_row_groups_avail : JDIMENSION;
+                                  output_buf : JSAMPARRAY;
+                                  var out_row_ctr : JDIMENSION;
+                                  out_rows_avail : JDIMENSION);
   end;
 
 
@@ -662,8 +662,8 @@ type
 { Inverse DCT (also performs dequantization) }
   inverse_DCT_method_ptr = procedure(cinfo : j_decompress_ptr;
                  compptr : jpeg_component_info_ptr;
-		 coef_block : JCOEFPTR;
-		 output_buf : JSAMPARRAY; output_col : JDIMENSION);
+                 coef_block : JCOEFPTR;
+                 output_buf : JSAMPARRAY; output_col : JDIMENSION);
 
   jpeg_inverse_dct_ptr = ^jpeg_inverse_dct;
   jpeg_inverse_dct = record
@@ -678,11 +678,11 @@ type
     start_pass : procedure(cinfo : j_decompress_ptr);
     upsample : procedure(cinfo : j_decompress_ptr;
                    input_buf : JSAMPIMAGE;
-		   var in_row_group_ctr : JDIMENSION;  { array of }
-		   in_row_groups_avail : JDIMENSION;
-		   output_buf : JSAMPARRAY;
-		   var out_row_ctr : JDIMENSION;
-		   out_rows_avail : JDIMENSION);
+                   var in_row_group_ctr : JDIMENSION;  { array of }
+                   in_row_groups_avail : JDIMENSION;
+                   output_buf : JSAMPARRAY;
+                   var out_row_ctr : JDIMENSION;
+                   out_rows_avail : JDIMENSION);
 
     need_context_rows : boolean;  { TRUE if need rows above & below }
   end;
@@ -783,7 +783,7 @@ type
 
     pass_counter : long;        { work units completed in this pass }
     pass_limit : long;          { total number of work units in this pass }
-    completed_passes : int;	{ passes completed so far }
+    completed_passes : int;     { passes completed so far }
     total_passes : int;         { total number of passes expected }
   end;
 
@@ -831,9 +831,9 @@ type
   jpeg_memory_mgr = record
     { Method pointers }
     alloc_small : function (cinfo : j_common_ptr; pool_id : int;
-				  sizeofobject : size_t) : pointer;
+                                  sizeofobject : size_t) : pointer;
     alloc_large : function (cinfo : j_common_ptr; pool_id : int;
-				  sizeofobject : size_t) : pointer; {far}
+                                  sizeofobject : size_t) : pointer; {far}
     alloc_sarray : function (cinfo : j_common_ptr; pool_id : int;
                              samplesperrow : JDIMENSION;
                              numrows : JDIMENSION) : JSAMPARRAY;
@@ -862,7 +862,7 @@ type
                                    ptr : jvirt_sarray_ptr;
                                    start_row : JDIMENSION;
                                    num_rows : JDIMENSION;
-				   writable : boolean) : JSAMPARRAY;
+                                   writable : boolean) : JSAMPARRAY;
 
     access_virt_barray : function (cinfo : j_common_ptr;
                                    ptr : jvirt_barray_ptr;
@@ -953,7 +953,7 @@ type
     arith_dc_U : Array[0..NUM_ARITH_TBLS-1] of UINT8; { U values for DC arith-coding tables }
     arith_ac_K : Array[0..NUM_ARITH_TBLS-1] of UINT8; { Kx values for AC arith-coding tables }
 
-    num_scans : int;		 { # of entries in scan_info array }
+    num_scans : int;             { # of entries in scan_info array }
     scan_info : jpeg_scan_info_ptr; { script for multi-scan file, or NIL }
     { The default value of scan_info is NIL, which causes a single-scan
       sequential JPEG file to be emitted.  To create a multi-scan file,
@@ -1053,7 +1053,7 @@ type
 
   jpeg_decompress_struct = record
   { Fields shared with jpeg_compress_struct }
-    err : jpeg_error_mgr_ptr;	   { Error handler module }
+    err : jpeg_error_mgr_ptr;      { Error handler module }
     mem : jpeg_memory_mgr_ptr;        { Memory manager module }
     progress : jpeg_progress_mgr_ptr; { Progress monitor, or NIL if none }
     client_data : voidp;              { Available for use by application }
@@ -1192,7 +1192,7 @@ type
 
     saw_JFIF_marker : boolean;  { TRUE iff a JFIF APP0 marker was found }
     { Data copied from JFIF marker; only valid if saw_JFIF_marker is TRUE: }
-    JFIF_major_version : UINT8;	{ JFIF version number }
+    JFIF_major_version : UINT8; { JFIF version number }
     JFIF_minor_version : UINT8;
     density_unit : UINT8;       { JFIF code for pixel size units }
     X_density : UINT16;         { Horizontal pixel density }

@@ -2,7 +2,7 @@ program fx;
 
 uses glib,gdk,gtk,frmmain,sysutils;
 
-Var 
+Var
   MainWindow : PMainWindow;
 
 begin

@@ -2335,71 +2335,7 @@ end;
 
 {
   $Log$
-  Revision 1.23  2004-11-15 21:12:57  marco
-   * fix
-
-  Revision 1.22  2004/11/14 19:49:13  marco
-   * setlayeredwindowattributes (2000+) added.
-
-  Revision 1.21  2004/11/14 18:05:54  marco
-   * fillrect var -> const (bug 3268)
-
-  Revision 1.20  2004/08/26 15:57:23  michael
-  + Some missing functions/defines as per bug 3270 from Frank Kintrup
-
-  Revision 1.19  2004/02/08 17:11:34  marco
-   * getsystemtimeasfiletime
-
-  Revision 1.18  2003/01/02 22:07:00  peter
-    * missing items
-
-  Revision 1.17  2002/12/27 18:13:38  peter
-    * fix ChoosePixelFormat
-
-  Revision 1.16  2002/12/15 20:24:17  peter
-    * some more C style functions
-
-  Revision 1.15  2002/11/29 16:40:49  sg
-  * Added wgl* functions (moved from opengl32 unit, to get more compatible
-    to Delphi)
-
-  Revision 1.14  2002/10/11 09:40:43  michael
-  + Fixed globalmemorystatus (bug 2076)
-
-  Revision 1.13  2002/10/11 09:37:40  michael
-  + Fixed getlocaltime incompatibility (bug 2075)
-
-  Revision 1.12  2002/10/02 19:30:52  florian
-    + GetSystemTime with var parameter added
-
-  Revision 1.11  2002/09/26 10:38:10  florian
-    + added RedrawWindow with LPRECT as second parameter
-
-  Revision 1.10  2002/09/15 17:53:45  peter
-    * Remove Float type, use Single instead
-
-  Revision 1.9  2002/09/07 16:01:31  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/09/03 10:26:11  pierre
-   * fix for bug 1779 merged
-
-  Revision 1.1.2.9  2002/09/03 10:22:03  pierre
-   * fix web bug 1779
-
-  Revision 1.7  2002/05/09 08:31:44  carl
-  * Merges from Fixes branch
-
-  Revision 1.1.2.8  2002/02/18 23:46:21  pierre
-   * add a workaround for bug 1807
-
-  Revision 1.1.2.7  2002/02/15 08:42:20  pierre
-   * fix bug 1808
-
-  Revision 1.1.2.6  2002/01/21 09:02:34  pierre
-   * fix correctly bug 1398
-
-  Revision 1.1.2.5  2002/01/19 11:48:20  peter
-    * more functions added from webbugs
+  Revision 1.24  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

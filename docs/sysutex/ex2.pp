@@ -5,5 +5,5 @@ Program Example2;
 Uses sysutils;
 
 Begin
-  Writeln ('FileTime of now would be: ',DateTimeToFileDate (Now)); 
+  Writeln ('FileTime of now would be: ',DateTimeToFileDate (Now));
 End.

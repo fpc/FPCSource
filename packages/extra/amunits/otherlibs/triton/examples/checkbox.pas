@@ -34,9 +34,9 @@ begin
                               TRCA_Release,'1.0',
                               TRCA_Date,'03-06-1998',
                               TAG_DONE]);
-     
+
      if App = nil then CleanUp('Can''t create application',20);
-     
+
       ProjectStart;
       WindowID(1);
       WindowTitle('CheckBox');
@@ -64,7 +64,7 @@ begin
             IF (trmsg^.trm_Project = Project) THEN BEGIN
                CASE trmsg^.trm_Class OF
                  TRMS_CLOSEWINDOW : begin
-                                     if TR_GetCheckBox(Project,10) then 
+                                     if TR_GetCheckBox(Project,10) then
 writeln('CheckBox was on')
                                         else writeln('CheckBox was off');
                                      close_me := True;
@@ -72,7 +72,7 @@ writeln('CheckBox was on')
                  TRMS_ERROR:        WriteLN(TR_GetErrorString(trmsg^.trm_Data));
                  TRMS_NEWVALUE    : begin
                                       IF trmsg^.trm_ID = 10 then begin
-                                          if trmsg^.trm_Data = 0 then 
+                                          if trmsg^.trm_Data = 0 then
 writeln('CheckBox off')
                                             else writeln('CheckBox on');
                                       end;

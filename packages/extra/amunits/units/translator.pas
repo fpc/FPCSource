@@ -15,12 +15,12 @@
  **********************************************************************}
 {
     History:
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib. Implemented autoopening
     of the library.
     14 Jan 2003.
-    
+
     Changed startcode for unit.
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }

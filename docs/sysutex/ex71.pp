@@ -58,7 +58,7 @@ begin
 end;
 
 Procedure TestPointer;
-     
+
 begin
   P:=Pointer(1234567);
   try
@@ -199,7 +199,7 @@ begin
   TestPointer;
   TestExponential;
   TestNegativeExponential;
-  TestSmallExponential;  
-  TestSmallNegExponential;  
+  TestSmallExponential;
+  TestSmallNegExponential;
   teststring;
 end.

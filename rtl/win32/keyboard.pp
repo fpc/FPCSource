@@ -876,25 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2005-01-07 18:59:22  florian
+  Revision 1.13  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.12  2005/01/07 18:59:22  florian
     * AltGr fixed
-
-  Revision 1.11  2004/11/21 12:38:45  marco
-   * altgr handling now gets OS information. Works for default layout, not for manually (tray) changed layouts
-
-  Revision 1.10  2003/10/27 15:28:07  peter
-    * set inited boolean to prevent crashes
-
-  Revision 1.9  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/07/17 07:28:21  pierre
-   * avoid constant evaluation problems if cycling with -Cr
-
-  Revision 1.7  2002/05/09 08:28:23  carl
-  * Merges from Fixes branch
-
-  Revision 1.2.2.5  2002/01/25 23:12:38  pierre
-   * fix bugs from web 1602
 
 }

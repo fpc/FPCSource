@@ -24,7 +24,7 @@
 
     Added functions and procedures with array of const.
     For use with fpc 1.0.
-    07 Dec 2002.   
+    07 Dec 2002.
 
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
@@ -32,7 +32,7 @@
 
     Changed startcode for unit.
     11 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -119,7 +119,7 @@ CONST
 ***********************}
 
 Const
-    
+
     REQTOOLSNAME  : PChar = 'reqtools.library';
     REQTOOLSVERSION = 38;
 
@@ -159,7 +159,7 @@ Type
         ReqToolsPrefs    : tReqToolsPrefs;
         prefspad          : WORD;
     end;
-  
+
 
 Const
 
@@ -204,7 +204,7 @@ type
          ReqHeight   : WORD;     { READ ONLY! Use RTFI_Height tag! }
          { Private data follows! HANDS OFF }
     end;
-   
+
 
 { returned by rtFileRequestA() if multiselect is enabled,
   free list with rtFreeFileList() }
@@ -215,7 +215,7 @@ type
          StrLen  : ULONG;        { -1 for directories }
          Name    : STRPTR;
     end;
-   
+
 { structure passed to RTFI_FilterFunc callback hook by
    volume requester (see RTFI_VolumeRequest tag) }
 
@@ -253,7 +253,7 @@ type
          ReqHeight     : WORD; { READ ONLY!  Use RTFO_Height tag! }
          { Private data follows! HANDS OFF }
     end;
-    
+
 
 {*************************
 *                        *
@@ -287,7 +287,7 @@ type
          AutoScroll  : ULONG;  { READ ONLY! }
          { Private data follows! HANDS OFF }
     end;
-    
+
 
 {***********************
 *                      *
@@ -314,7 +314,7 @@ type
          IntuiMsgFunc: pHook;
          { structure may be extended in future }
      end;
-    
+
 
 {***********************
 *                      *
@@ -332,7 +332,7 @@ type
          DoNotWait : ULONG;
          { Private data follows, HANDS OFF }
     end;
-    
+
 
 Const
 
@@ -351,42 +351,42 @@ Const
 { *** tags understood by most requester functions *** }
 
 RT_Window       = $80000001; { Optional pointer to window }
-RT_IDCMPFlags   = $80000002; { idcmp flags requester should abort on (useful for 
+RT_IDCMPFlags   = $80000002; { idcmp flags requester should abort on (useful for
 IDCMP_DISKINSERTED) }
-RT_ReqPos       = $80000003; { position of requester window (see below) - default 
+RT_ReqPos       = $80000003; { position of requester window (see below) - default
 REQPOS_POINTER }
 RT_LeftOffset   = $80000004; { signal mask to wait for abort signal }
-RT_TopOffset    = $80000005; { topedge offset of requester relative to position 
+RT_TopOffset    = $80000005; { topedge offset of requester relative to position
 specified by RT_ReqPos }
-RT_PubScrName   = $80000006; { name of public screen to put requester on (Kickstart 
+RT_PubScrName   = $80000006; { name of public screen to put requester on (Kickstart
 2.0 only!) }
 RT_Screen       = $80000007; { address of screen to put requester on }
 RT_ReqHandler   = $80000008; { tagdata must hold the address of (!) an APTR variable }
-RT_DefaultFont  = $80000009; { font to use when screen font is rejected, _MUST_ be 
+RT_DefaultFont  = $80000009; { font to use when screen font is rejected, _MUST_ be
 fixed-width font! pTextFont , not pTextAttr ) - default GfxBase^.DefaultFont }
 
-RT_WaitPointer  = $8000000A; { boolean to set the standard wait pointer in window - 
+RT_WaitPointer  = $8000000A; { boolean to set the standard wait pointer in window -
 default FALSE }
-RT_Underscore   = $8000000B; { (V38) char preceding keyboard shortcut characters (will 
+RT_Underscore   = $8000000B; { (V38) char preceding keyboard shortcut characters (will
 be underlined) }
 RT_ShareIDCMP   = $8000000C; { (V38) share IDCMP port with window - default FALSE }
-RT_LockWindow   = $8000000D; { (V38) lock window and set standard wait pointer - 
+RT_LockWindow   = $8000000D; { (V38) lock window and set standard wait pointer -
 default FALSE }
-RT_ScreenToFront= $8000000E; { (V38) boolean to make requester's screen pop to front - 
+RT_ScreenToFront= $8000000E; { (V38) boolean to make requester's screen pop to front -
 default TRUE }
-RT_TextAttr     = $8000000F; { (V38) Requester should use this font - default: screen 
+RT_TextAttr     = $8000000F; { (V38) Requester should use this font - default: screen
 font }
-RT_IntuiMsgFunc = $80000010; { (V38) call this hook for every IDCMP message not for 
+RT_IntuiMsgFunc = $80000010; { (V38) call this hook for every IDCMP message not for
 requester }
 RT_Locale       = $80000011; { (V38) Locale ReqTools should use for text }
 
 { *** tags specific to rtEZRequestA *** }
-RTEZ_ReqTitle   = $80000014; { title of requester window - english default "Request" 
+RTEZ_ReqTitle   = $80000014; { title of requester window - english default "Request"
 or "Information" }
                              { ($80000015) reserved }
 RTEZ_Flags      = $80000016; { various flags (see below) }
 RTEZ_DefaultResponse
-                = $80000017; { default response (activated by pressing RETURN) - 
+                = $80000017; { default response (activated by pressing RETURN) -
 default TRUE }
 
 
@@ -395,7 +395,7 @@ RTGL_Min        = $8000001E; { minimum allowed value - default MININT }
 RTGL_Max        = $8000001F; { maximum allowed value - default MAXINT }
 RTGL_Width      = $80000020; { suggested width of requester window (in pixels) }
 RTGL_ShowDefault= $80000021; { boolean to show the default value - default TRUE }
-RTGL_GadFmt     = $80000022; { (V38) string with possible responses - english default 
+RTGL_GadFmt     = $80000022; { (V38) string with possible responses - english default
 " _Ok |_Cancel" }
 RTGL_GadFmtArgs = $80000023; { (V38) optional arguments for RTGL_GadFmt }
 RTGL_Invisible  = $80000024; { (V38) invisible typing - default FALSE }
@@ -406,11 +406,11 @@ RTGL_Flags = RTEZ_Flags;     { (V38) various flags (see below) }
 
 
 { *** tags specific to rtGetStringA *** }
-RTGS_Width      = RTGL_Width;       { suggested width of requester window (in pixels) 
+RTGS_Width      = RTGL_Width;       { suggested width of requester window (in pixels)
 }
-RTGS_AllowEmpty = $80000050;        { allow empty string to be accepted - default 
+RTGS_AllowEmpty = $80000050;        { allow empty string to be accepted - default
 FALSE }
-RTGS_GadFmt     = RTGL_GadFmt;      { (V38) string with possible responses - english 
+RTGS_GadFmt     = RTGL_GadFmt;      { (V38) string with possible responses - english
 default " _Ok |_Cancel" }
 RTGS_GadFmtArgs = RTGL_GadFmtArgs;  { (V38) optional arguments for RTGS_GadFmt }
 RTGS_Invisible  = RTGL_Invisible;   { (V38) invisible typing - default FALSE }
@@ -424,7 +424,7 @@ RTGS_Flags      = RTEZ_Flags;       { (V38) various flags (see below) }
 RTFI_Flags      = $80000028; { various flags (see below) }
 RTFI_Height     = $80000029; { suggested height of file requester }
 RTFI_OkText     = $8000002A; { replacement text for 'Ok' gadget (max 6 chars) }
-RTFI_VolumeRequest=$8000002B;{ (V38) bring up volume requester, tag data holds flags 
+RTFI_VolumeRequest=$8000002B;{ (V38) bring up volume requester, tag data holds flags
 (see below) }
 RTFI_FilterFunc = $8000002C; { (V38) call this hook for every file in the directory }
 RTFI_AllowEmpty = $8000002D; { (V38) allow empty file to be accepted - default FALSE }
@@ -434,7 +434,7 @@ RTFI_AllowEmpty = $8000002D; { (V38) allow empty file to be accepted - default F
 RTFO_Flags      = RTFI_Flags;  { various flags (see below) }
 RTFO_Height     = RTFI_Height; { suggested height of font requester }
 RTFO_OkText     = RTFI_OkText; { replacement text for 'Ok' gadget (max 6 chars) }
-RTFO_SampleHeight=$8000003C;   { suggested height of font sample display - default 24 
+RTFO_SampleHeight=$8000003C;   { suggested height of font sample display - default 24
 }
 RTFO_MinHeight  = $8000003D;   { minimum height of font displayed }
 RTFO_MaxHeight  = $8000003E;   { maximum height of font displayed }
@@ -447,7 +447,7 @@ RTSC_Flags         = RTFI_Flags;{ various flags (see below) }
 RTSC_Height        = RTFI_Height;{ suggested height of screenmode requester }
 RTSC_OkText        = RTFI_OkText;{ replacement text for 'Ok' gadget (max 6 chars) }
 RTSC_PropertyFlags = $8000005A;{ property flags (see also RTSC_PropertyMask) }
-RTSC_PropertyMask  = $8000005B;{ property mask - default all bits in 
+RTSC_PropertyMask  = $8000005B;{ property mask - default all bits in
 RTSC_PropertyFlags considered }
 RTSC_MinWidth      = $8000005C;{ minimum display width allowed }
 RTSC_MaxWidth      = $8000005D;{ maximum display width allowed }
@@ -462,20 +462,20 @@ RTSC_FilterFunc    = RTFI_FilterFunc;{ call this hook for every display mode id 
 RTFI_Dir = $80000032;{ file requester - set directory }
 RTFI_MatchPat = $80000033;{ file requester - set wildcard pattern }
 RTFI_AddEntry = $80000034;{ file requester - add a file or directory to the buffer }
-RTFI_RemoveEntry = $80000035;{ file requester - remove a file or directory from the 
+RTFI_RemoveEntry = $80000035;{ file requester - remove a file or directory from the
 buffer }
 RTFO_FontName = $8000003F;{ font requester - set font name of selected font }
 RTFO_FontHeight = $80000040;{ font requester - set font size }
 RTFO_FontStyle = $80000041;{ font requester - set font style }
 RTFO_FontFlags = $80000042;{ font requester - set font flags }
-RTSC_ModeFromScreen = $80000050;{ (V38) screenmode requester - get display attributes 
+RTSC_ModeFromScreen = $80000050;{ (V38) screenmode requester - get display attributes
 from screen }
-RTSC_DisplayID = $80000051;{ (V38) screenmode requester - set display mode id (32-bit 
+RTSC_DisplayID = $80000051;{ (V38) screenmode requester - set display mode id (32-bit
 extended) }
 RTSC_DisplayWidth = $80000052;{ (V38) screenmode requester - set display width }
 RTSC_DisplayHeight = $80000053;{ (V38) screenmode requester - set display height }
 RTSC_DisplayDepth = $80000054;{ (V38) screenmode requester - set display depth }
-RTSC_OverscanType = $80000055;{ (V38) screenmode requester - set overscan type, 0 for 
+RTSC_OverscanType = $80000055;{ (V38) screenmode requester - set overscan type, 0 for
 regular size }
 RTSC_AutoScroll = $80000056;{ (V38) screenmode requester - set autoscroll }
 
@@ -500,7 +500,7 @@ RTSC_AutoScroll = $80000056;{ (V38) screenmode requester - set autoscroll }
     REQPOS_CENTERSCR  = 2;
     REQPOS_TOPLEFTWIN = 3;
     REQPOS_TOPLEFTSCR = 4;
-    
+
 {******************
 * RTRH_EndRequest *
 ******************}
@@ -606,7 +606,7 @@ RTSC_AutoScroll = $80000056;{ (V38) screenmode requester - set autoscroll }
     FREQF_DOWILDFUNC  = 2048;
 
 VAR ReqToolsBase : pLibrary;
-   
+
 
 FUNCTION rtAllocRequestA(typ : ULONG; taglist : pTagItem) : POINTER;
 FUNCTION rtChangeReqAttrA(req : POINTER; taglist : pTagItem) : LONGINT;
@@ -730,7 +730,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtEZRequestA(bodyfmt : PChar; gadfmt : PChar; reqinfo : prtReqInfo; argarray 
+FUNCTION rtEZRequestA(bodyfmt : PChar; gadfmt : PChar; reqinfo : prtReqInfo; argarray
 : POINTER; taglist : pTagItem) : ULONG;
 BEGIN
   ASM
@@ -747,7 +747,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PChar; title : PChar; 
+FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PChar; title : PChar;
 taglist : pTagItem) : POINTER;
 BEGIN
   ASM
@@ -763,7 +763,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtFontRequestA(fontreq : prtFontRequester; title : PChar; taglist : pTagItem) 
+FUNCTION rtFontRequestA(fontreq : prtFontRequester; title : PChar; taglist : pTagItem)
 : ULONG;
 BEGIN
   ASM
@@ -811,7 +811,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtGetLongA(VAR longptr : ULONG; title : PChar; reqinfo : prtReqInfo; taglist 
+FUNCTION rtGetLongA(VAR longptr : ULONG; title : PChar; reqinfo : prtReqInfo; taglist
 : pTagItem) : ULONG;
 BEGIN
   ASM
@@ -828,7 +828,7 @@ BEGIN
 END;
 
 
-FUNCTION rtGetStringA(buffer : pCHAR; maxchars : ULONG; title : PChar; reqinfo : 
+FUNCTION rtGetStringA(buffer : pCHAR; maxchars : ULONG; title : PChar; reqinfo :
 prtReqInfo; taglist : pTagItem) : ULONG;
 BEGIN
   ASM
@@ -845,7 +845,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtGetVScreenSize(screen : pScreen; VAR widthptr : ULONG; VAR heightptr : 
+FUNCTION rtGetVScreenSize(screen : pScreen; VAR widthptr : ULONG; VAR heightptr :
 ULONG) : ULONG;
 BEGIN
   ASM
@@ -872,7 +872,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtPaletteRequestA(title : PChar; reqinfo : prtReqInfo; taglist : pTagItem) : 
+FUNCTION rtPaletteRequestA(title : PChar; reqinfo : prtReqInfo; taglist : pTagItem) :
 LONGINT;
 BEGIN
   ASM
@@ -887,7 +887,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtReqHandlerA(handlerinfo : prtHandlerInfo; sigs : ULONG; taglist : pTagItem) 
+FUNCTION rtReqHandlerA(handlerinfo : prtHandlerInfo; sigs : ULONG; taglist : pTagItem)
 : ULONG;
 BEGIN
   ASM
@@ -902,7 +902,7 @@ BEGIN
   END;
 END;
 
-FUNCTION rtScreenModeRequestA(screenmodereq : prtScreenModeRequester; title : PChar; 
+FUNCTION rtScreenModeRequestA(screenmodereq : prtScreenModeRequester; title : PChar;
 taglist : pTagItem) : ULONG;
 BEGIN
   ASM
@@ -928,7 +928,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE rtSetReqPosition(reqpos : ULONG; newwindow : pNewWindow; screen : pScreen; 
+PROCEDURE rtSetReqPosition(reqpos : ULONG; newwindow : pNewWindow; screen : pScreen;
 window : pWindow);
 BEGIN
   ASM
@@ -954,7 +954,7 @@ BEGIN
   END;
 END;
 
-PROCEDURE rtSpread(VAR posarray : ULONG; VAR sizearray : ULONG; length : ULONG; min : 
+PROCEDURE rtSpread(VAR posarray : ULONG; VAR sizearray : ULONG; length : ULONG; min :
 ULONG; max : ULONG; num : ULONG);
 BEGIN
   ASM
@@ -983,44 +983,44 @@ BEGIN
   END;
 END;
 
-FUNCTION rtEZRequestA(bodyfmt : PChar; gadfmt : String; reqinfo : prtReqInfo; argarray 
+FUNCTION rtEZRequestA(bodyfmt : PChar; gadfmt : String; reqinfo : prtReqInfo; argarray
 : POINTER; taglist : pTagItem) : ULONG;
 BEGIN
     rtEZRequestA := rtEZRequestA(bodyfmt,pas2c(gadfmt),reqinfo,argarray,taglist);
 END;
 
-FUNCTION rtEZRequestA(bodyfmt : String; gadfmt : PChar; reqinfo : prtReqInfo; argarray 
+FUNCTION rtEZRequestA(bodyfmt : String; gadfmt : PChar; reqinfo : prtReqInfo; argarray
 : POINTER; taglist : pTagItem) : ULONG;
 BEGIN
     rtEZRequestA := rtEZRequestA(pas2c(bodyfmt),gadfmt,reqinfo,argarray,taglist);
 END;
 
-FUNCTION rtEZRequestA(bodyfmt : String; gadfmt : String; reqinfo : prtReqInfo; 
+FUNCTION rtEZRequestA(bodyfmt : String; gadfmt : String; reqinfo : prtReqInfo;
 argarray : POINTER; taglist : pTagItem) : ULONG;
 BEGIN
-    rtEZRequestA := 
+    rtEZRequestA :=
 rtEZRequestA(pas2c(bodyfmt),pas2c(gadfmt),reqinfo,argarray,taglist);
 END;
 
-FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PChar; title : String; 
+FUNCTION rtFileRequestA(filereq : prtFileRequester; filebuf : PChar; title : String;
 taglist : pTagItem) : POINTER;
 BEGIN
     rtFileRequestA := rtFileRequestA(filereq,filebuf,pas2c(title),taglist);
 END;
 
-FUNCTION rtFontRequestA(fontreq : prtFontRequester; title : String; taglist : 
+FUNCTION rtFontRequestA(fontreq : prtFontRequester; title : String; taglist :
 pTagItem) : ULONG;
 BEGIN
     rtFontRequestA := rtFontRequestA(fontreq,pas2c(title),taglist);
 END;
 
-FUNCTION rtGetLongA(VAR longptr : ULONG; title : String; reqinfo : prtReqInfo; taglist 
+FUNCTION rtGetLongA(VAR longptr : ULONG; title : String; reqinfo : prtReqInfo; taglist
 : pTagItem) : ULONG;
 BEGIN
     rtGetLongA := rtGetLongA(longptr,pas2c(title),reqinfo,taglist);
 END;
 
-FUNCTION rtGetStringA(buffer : pCHAR; maxchars : ULONG; title : String; reqinfo : 
+FUNCTION rtGetStringA(buffer : pCHAR; maxchars : ULONG; title : String; reqinfo :
 prtReqInfo; taglist : pTagItem) : ULONG;
 BEGIN
     rtGetStringA := rtGetStringA(buffer,maxchars,pas2c(title),reqinfo,taglist);

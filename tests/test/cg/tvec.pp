@@ -428,11 +428,8 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/03/05 21:56:44  carl
-  * Adapted for automated testing
+  Revision 1.6  2005-02-14 17:13:37  peter
+    * truncate log
 
 }
 

@@ -18,12 +18,12 @@
 
 function cshmget(key:key_t;size:cint;shmflg:cint):cint; cdecl; external;
 Function cshmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer; cdecl;external;
-Function cshmdt (shmaddr:pointer):cint;  cdecl; external; 
+Function cshmdt (shmaddr:pointer):cint;  cdecl; external;
 Function cshmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint; cdecl; external;
 Function csemget(key:Tkey; nsems:cint; semflg:cint): cint;  cdecl; external;
 Function csemop(semid:cint; sops: psembuf; nsops: cuint): cint;  cdecl; external;
 Function csemctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;  cdecl; external;
-Function cmsgget(key: TKey; msgflg:cint):cint;  cdecl; external; 
+Function cmsgget(key: TKey; msgflg:cint):cint;  cdecl; external;
 Function cmsgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint;  cdecl; external;
 Function cmsgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint;  cdecl; external;
 Function cmsgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;  cdecl; external;
@@ -97,7 +97,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-04-25 20:33:50  marco
-   * intiial
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

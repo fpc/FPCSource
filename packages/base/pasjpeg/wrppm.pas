@@ -103,11 +103,11 @@ const
 type
   ppm_dest_ptr = ^ppm_dest_struct;
   ppm_dest_struct = record
-    pub : djpeg_dest_struct;	{ public fields }
+    pub : djpeg_dest_struct;    { public fields }
 
     { Usually these two pointers point to the same place: }
     iobuffer : CharPtr;          { fwrite's I/O buffer }
-    pixrow : JSAMPROW;	         { decompressor output buffer }
+    pixrow : JSAMPROW;           { decompressor output buffer }
     buffer_width : size_t;       { width of I/O buffer }
     samples_per_row : JDIMENSION; { JSAMPLEs per output row }
   end;
@@ -122,9 +122,9 @@ type
 {METHODDEF}
 procedure put_pixel_rows (cinfo : j_decompress_ptr;
                           dinfo : djpeg_dest_ptr;
-		          rows_supplied : JDIMENSION); far;
+                          rows_supplied : JDIMENSION); far;
 var
-  dest : ppm_dest_ptr; 
+  dest : ppm_dest_ptr;
 begin
   dest := ppm_dest_ptr(dinfo);
   {void} JFWRITE(dest^.pub.output_file, dest^.iobuffer, dest^.buffer_width);
@@ -196,7 +196,7 @@ end;
 {METHODDEF}
 procedure put_demapped_gray (cinfo : j_decompress_ptr;
                              dinfo : djpeg_dest_ptr;
-		             rows_supplied : JDIMENSION); far;
+                             rows_supplied : JDIMENSION); far;
 var
   dest : ppm_dest_ptr;
   {register} bufferptr : CharPtr;
@@ -246,7 +246,7 @@ begin
       { emit header for raw PGM format }
       header := 'P5'+LF+LongToStr(cinfo^.output_width)+' '+
                 LongToStr(cinfo^.output_height)+LF+
-	        LongToStr(Long(PPM_MAXVAL)) + LF;
+                LongToStr(Long(PPM_MAXVAL)) + LF;
       JFWRITE(dest^.pub.output_file, @header[1], Length(header));
     end;
   JCS_RGB:
@@ -254,7 +254,7 @@ begin
       { emit header for raw PPM format }
       header := 'P6'+LF+LongToStr(cinfo^.output_width)+' '+
                 LongToStr(cinfo^.output_height)+LF+
-	        LongToStr(Long(PPM_MAXVAL)) + LF;
+                LongToStr(Long(PPM_MAXVAL)) + LF;
       JFWRITE(dest^.pub.output_file, @header[1], Length(header));
     end;
   else
@@ -285,7 +285,7 @@ begin
   { Create module interface object, fill in method pointers }
   dest := ppm_dest_ptr (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(ppm_dest_struct)) );
+                                  SIZEOF(ppm_dest_struct)) );
   dest^.pub.start_output := start_output_ppm;
   dest^.pub.finish_output := finish_output_ppm;
 

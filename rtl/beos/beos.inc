@@ -230,14 +230,14 @@ extern _IMPEXP_ROOT status_t  _get_next_thread_info(team_id tmid, int32 *cookie,
 
 
 
-extern _IMPEXP_ROOT status_t  send_data(thread_id thread, 
-                    int32 code, 
-                    const void *buf, 
+extern _IMPEXP_ROOT status_t  send_data(thread_id thread,
+                    int32 code,
+                    const void *buf,
                     size_t buffer_size);
 
 
-extern _IMPEXP_ROOT status_t  receive_data(thread_id *sender, 
-                   void *buf, 
+extern _IMPEXP_ROOT status_t  receive_data(thread_id *sender,
+                   void *buf,
                    size_t buffer_size);
 
 
@@ -335,7 +335,7 @@ const
    B_SYSTEM_IMAGE  = 4;
 type
     image_info = packed record
-     id      : image_id;   
+     id      : image_id;
      _type   : longint;
      sequence: longint;
      init_order: longint;
@@ -349,8 +349,8 @@ type
      text_size: longint;
      data_size: longint;
     end;
-    
-    
+
+
 
   function get_next_image_info(team : team_id; var cookie: longint;var info : image_info): status_t;
      var
@@ -361,7 +361,7 @@ type
        args.param[3] := cint(@info);
        args.param[4] := cint(sizeof(image_info));
        get_next_image_info := SysCall(syscall_nr_get_next_image_info, args);
-   end;       
+   end;
 
 {
 extern _IMPEXP_ROOT image_id  load_add_on(const char *path);
@@ -544,28 +544,7 @@ _IMPEXP_ROOT dev_t    next_dev(int32 *pos);
 
 {
  $Log$
- Revision 1.2  2003-01-08 22:32:28  marco
-  * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-     but it could crash hard, since there are lots of unimplemented funcs.
-
- Revision 1.1.2.6  2002/02/15 18:15:00  carl
- + added get_next_image_info
-
- Revision 1.1.2.5  2001/08/13 05:56:35  carl
- * renamed routine names (names are same as documented in the Be Book)
-
- Revision 1.1.2.4  2001/08/12 15:14:24  carl
- + added kget_tzfilename() kernel call to get timezone info.
-
- Revision 1.1.2.3  2001/08/04 06:14:15  carl
- - remove crappy tab characters
-
- Revision 1.1.2.2  2001/08/04 05:25:03  carl
- + added much more system headers and system calls
-
-
- Revision 1.1.2.1  2001/08/03 01:57:36  carl
- * beos types and system inteface (minimalistic for the moment)
-
+ Revision 1.3  2005-02-14 17:13:21  peter
+   * truncate log
 
 }

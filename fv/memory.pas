@@ -635,11 +635,11 @@ BEGIN
      CacheList := Cache;                              { Hold cache ptr }
      Cache^.Size := Size;                             { Hold cache size }
      Cache^.Master := @P;                             { Hold master ptr }
-{$ifdef fpc}     
+{$ifdef fpc}
      Inc(Pointer(Cache), SizeOf(TCache));             { Set cache offset }
 {$else fpc}
      Inc(PtrRec(Cache).Ofs, SizeOf(TCache));          { Set cache offset }
-{$endif fpc}     
+{$endif fpc}
    End;
    P := Cache;                                        { Return pointer }
 END;
@@ -737,16 +737,16 @@ BEGIN
    Dec(PtrRec(P).Seg);                                { Segment prior }
    GetBufferSize := PBuffer(P)^.Size;                 { Size of this buffer }
    {$ELSE}                                            { DPMI/WIN/NT/OS2 CODE }
-   If (P <> Nil) Then                                 { Check pointer }		
-     Begin                           
-{$ifdef fpc}     
+   If (P <> Nil) Then                                 { Check pointer }
+     Begin
+{$ifdef fpc}
        Dec(Pointer(P),SizeOf(TBuffer));                 { Correct to buffer }
-{$else fpc}     
+{$else fpc}
        Dec(PtrRec(P).Ofs,SizeOf(TBuffer));              { Correct to buffer }
-{$endif fpc}     
+{$endif fpc}
        GetBufferSize := PBuffer(P)^.Size;               { Return buffer size }
-     End 
-   Else 
+     End
+   Else
      GetBufferSize := 0;                       { Invalid pointer }
    {$ENDIF}
 END;
@@ -783,9 +783,9 @@ BEGIN
      Dec(PtrRec(P).Seg);                              { Prior segement }
      SetBufSize(P, 0);                                { Release memory }
      {$ELSE}                                          { DPMI/WIN/NT/OS2 CODE }
-{$ifdef fpc}     
+{$ifdef fpc}
      Dec(Pointer(P), SizeOf(TBuffer));                { Actual buffer pointer }
-{$else fpc}     
+{$else fpc}
      Dec(PtrRec(P).Ofs, SizeOf(TBuffer));             { Actual buffer pointer }
 {$endif fpc}
      Buffer := BufferList;                            { Start on first }
@@ -871,10 +871,7 @@ END.
 
 {
  $Log$
- Revision 1.10  2004-12-19 13:05:56  florian
-   * fixed x86_64 compilation
-
- Revision 1.9  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.11  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

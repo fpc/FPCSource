@@ -13,6 +13,6 @@ begin
   Assign (L,paramstr (1));
   Reset (L);
   Writeln ('File size in Longints : ',FileSize(L));
-  Close (f);  
+  Close (f);
 end.
 

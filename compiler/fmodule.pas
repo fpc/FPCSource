@@ -832,35 +832,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2005-01-19 22:19:41  peter
+  Revision 1.53  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.52  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
   Revision 1.51  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.50  2004/12/28 20:43:01  hajny
-    * 8.3 fixes (short target name in paths)
-
-  Revision 1.49  2004/11/04 23:59:13  peter
-  use filepos of main when generating the module stabs
-
-  Revision 1.48  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.47  2004/10/14 17:30:09  mazen
-  * use SysUtils unit instead of Dos Unit
-
-  Revision 1.46  2004/08/30 20:23:33  peter
-    * use realmodulename in unit not used msg
-
-  Revision 1.45  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.44  2004/03/08 22:07:46  peter
-    * stabs updates to write stabs for def for all implictly used
-      units
 
 }

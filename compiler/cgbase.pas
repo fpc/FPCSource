@@ -597,69 +597,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.100  2004-12-27 15:54:54  florian
-    * fixed class field info alignment
-
-  Revision 1.99  2004/12/12 10:50:34  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.98  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.97  2004/11/09 16:18:12  peter
-    * indexword can't be used for 1.9.4
-
-  Revision 1.96  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.95  2004/10/14 10:59:58  michael
-  * fix clearing of superregset (from Peter)
-
-  Revision 1.94  2004/08/24 21:02:32  florian
-    * fixed longbool(<int64>) on sparc
-
-  Revision 1.93  2004/07/19 19:21:02  florian
-    * indexword in 1.0.x is broken
-
-  Revision 1.92  2004/07/18 15:14:59  jonas
-    * use indexword() in tsuperregisterworklist.delete, greatly speeds up
-      compilation of tw2242
-
-  Revision 1.91  2004/07/07 17:35:26  daniel
-    * supregset_reset clears 8kb of memory. However, it is being called in
-      inner loops, see for example colour_registers. According to profile data
-      this causes fillchar to be the most time consuming procedure.
-      Some modifications done to make it clear less than 8kb of memory each
-      call. Divides time spent in fillchar by two, but it still is the no.1
-      procedure.
-
-  Revision 1.90  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.89  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.88.2.2  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.88.2.1  2004/04/27 18:18:25  peter
-    * aword -> aint
-
-  Revision 1.88  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.87  2004/02/09 22:14:17  peter
-    * more x86_64 parameter fixes
-    * tparalocation.lochigh is now used to indicate if register64.reghi
-      is used and what the type is
+  Revision 1.101  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

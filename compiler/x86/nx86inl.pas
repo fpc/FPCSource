@@ -344,33 +344,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.6  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.5  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.4  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.3  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.2.2.4  2004/05/02 16:49:12  peter
-    * 64 bit fixes
-
-  Revision 1.2.2.3  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.2.2.2  2004/04/29 19:07:22  peter
-    * compile fixes
+  Revision 1.8  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -12,4 +12,4 @@ procedure verrx(__status: Integer; __format: Pchar; Arg: Pointer); cdecl; extern
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

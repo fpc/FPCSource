@@ -941,57 +941,10 @@ type
 
 {
   $Log$
-  Revision 1.24  2005-02-06 11:22:38  florian
+  Revision 1.25  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.24  2005/02/06 11:22:38  florian
     + TAtom
-
-  Revision 1.23  2004/11/28 15:27:14  marco
-   * PRESULT added
-
-  Revision 1.22  2004/08/08 16:52:52  florian
-    * tried to fix some wsprintf issues
-    + now compiled in objfpc mode
-      so some integer => smallint changes where necessary; hopefully,
-      I didn't forget one
-
-  Revision 1.21  2003/12/08 21:23:24  peter
-    * hmodule added
-
-  Revision 1.20  2003/12/05 11:53:12  marco
-   * ttokeninformationclass alias for delphi compat
-
-  Revision 1.19  2003/10/06 23:52:53  florian
-    * some data types cleaned up
-
-  Revision 1.18  2003/08/20 23:12:32  marco
-   * HSTR fix
-
-  Revision 1.17  2003/04/23 11:35:00  peter
-    * wndproc definition fixed
-
-  Revision 1.16  2003/04/01 15:37:17  peter
-    * HResult is alias for System.HResult
-    * Handle is unique type of Cardinal
-
-  Revision 1.15  2002/12/12 17:34:35  peter
-    * Renaming INT type to WINT
-
-  Revision 1.14  2002/11/27 20:08:21  peter
-    * added PBOOL
-
-  Revision 1.13  2002/10/09 20:45:12  florian
-    - NULL definition removed, the system unit contains now a NULL variant
-
-  Revision 1.12  2002/10/06 20:00:22  peter
-    * Use Widechar in the Windows unit
-
-  Revision 1.11  2002/09/15 17:53:45  peter
-    * Remove Float type, use Single instead
-
-  Revision 1.10  2002/09/07 16:01:30  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/07/16 13:52:14  florian
-    * LARGE_INT and ULARGE_INT types fixed
-    * LONGLONG defined properly
 
 }

@@ -473,41 +473,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2005-02-13 18:55:19  florian
+  Revision 1.32  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.31  2005/02/13 18:55:19  florian
     + overflow checking for the arm
-
-  Revision 1.30  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.29  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.28  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.27.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.27  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.26  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.25.2.4  2004/06/02 19:04:51  peter
-    * fixed minusunary for float
-
-  Revision 1.25.2.3  2004/05/31 16:39:42  peter
-    * add ungetiftemp in a few locations
-
-  Revision 1.25.2.2  2004/05/30 17:07:07  peter
-    * fix shl shr for sparc
-
-  Revision 1.25.2.1  2004/04/27 18:18:25  peter
-    * aword -> aint
 
 }

@@ -37,7 +37,7 @@ uses
   jmorecfg,
   jinclude,
   jpeglib,
-  jdct;   		{ Private declarations for DCT subsystem }
+  jdct;                 { Private declarations for DCT subsystem }
 
 
 { Perform dequantization and inverse DCT on one block of coefficients. }
@@ -45,8 +45,8 @@ uses
 {GLOBAL}
 procedure jpeg_idct_ifast (cinfo : j_decompress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           coef_block : JCOEFPTR;
-		           output_buf : JSAMPARRAY;
+                           coef_block : JCOEFPTR;
+                           output_buf : JSAMPARRAY;
                            output_col : JDIMENSION);
 
 implementation
@@ -87,7 +87,7 @@ const
 {$else}
 const
   CONST_BITS = 8;
-  PASS1_BITS = 1;	{ lose a little precision to avoid overflow }
+  PASS1_BITS = 1;       { lose a little precision to avoid overflow }
 {$endif}
 
 
@@ -158,10 +158,10 @@ end;
 function IDESCALE(x : DCTELEM; n : int) : int;
 {$ifdef BITS_IN_JSAMPLE_IS_8}
 const
-  DCTELEMBITS = 16;	{ DCTELEM may be 16 or 32 bits }
+  DCTELEMBITS = 16;     { DCTELEM may be 16 or 32 bits }
 {$else}
 const
-  DCTELEMBITS = 32;	{ DCTELEM must be 32 bits }
+  DCTELEMBITS = 32;     { DCTELEM must be 32 bits }
 {$endif}
 var
   ishift_temp : DCTELEM;
@@ -191,8 +191,8 @@ end;
 {GLOBAL}
 procedure jpeg_idct_ifast (cinfo : j_decompress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           coef_block : JCOEFPTR;
-		           output_buf : JSAMPARRAY;
+                           coef_block : JCOEFPTR;
+                           output_buf : JSAMPARRAY;
                            output_col : JDIMENSION);
 type
   PWorkspace = ^TWorkspace;
@@ -208,8 +208,8 @@ var
   range_limit : JSAMPROW;
   ctr : int;
   workspace : TWorkspace;        { buffers data between passes }
-  {SHIFT_TEMPS}			{ for DESCALE }
-  {ISHIFT_TEMPS}		{ for IDESCALE }
+  {SHIFT_TEMPS}                 { for DESCALE }
+  {ISHIFT_TEMPS}                { for IDESCALE }
 var
   dcval : int;
 var
@@ -254,7 +254,7 @@ begin
       wsptr^[DCTSIZE*6] := dcval;
       wsptr^[DCTSIZE*7] := dcval;
 
-      Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+      Inc(JCOEF_PTR(inptr));            { advance pointers to next column }
       Inc(IFAST_MULT_TYPE_PTR(quantptr));
       Inc(int_ptr(wsptr));
       continue;
@@ -267,17 +267,17 @@ begin
     tmp2 := DEQUANTIZE(inptr^[DCTSIZE*4], quantptr^[DCTSIZE*4]);
     tmp3 := DEQUANTIZE(inptr^[DCTSIZE*6], quantptr^[DCTSIZE*6]);
 
-    tmp10 := tmp0 + tmp2;	{ phase 3 }
+    tmp10 := tmp0 + tmp2;       { phase 3 }
     tmp11 := tmp0 - tmp2;
 
-    tmp13 := tmp1 + tmp3;	{ phases 5-3 }
+    tmp13 := tmp1 + tmp3;       { phases 5-3 }
     tmp12 := MULTIPLY(tmp1 - tmp3, FIX_1_414213562) - tmp13; { 2*c4 }
 
-    tmp0 := tmp10 + tmp13;	{ phase 2 }
+    tmp0 := tmp10 + tmp13;      { phase 2 }
     tmp3 := tmp10 - tmp13;
     tmp1 := tmp11 + tmp12;
     tmp2 := tmp11 - tmp12;
-    
+
     { Odd part }
 
     tmp4 := DEQUANTIZE(inptr^[DCTSIZE*1], quantptr^[DCTSIZE*1]);
@@ -285,19 +285,19 @@ begin
     tmp6 := DEQUANTIZE(inptr^[DCTSIZE*5], quantptr^[DCTSIZE*5]);
     tmp7 := DEQUANTIZE(inptr^[DCTSIZE*7], quantptr^[DCTSIZE*7]);
 
-    z13 := tmp6 + tmp5;		{ phase 6 }
+    z13 := tmp6 + tmp5;         { phase 6 }
     z10 := tmp6 - tmp5;
     z11 := tmp4 + tmp7;
     z12 := tmp4 - tmp7;
 
-    tmp7 := z11 + z13;		{ phase 5 }
+    tmp7 := z11 + z13;          { phase 5 }
     tmp11 := MULTIPLY(z11 - z13, FIX_1_414213562); { 2*c4 }
 
     z5 := MULTIPLY(z10 + z12, FIX_1_847759065); { 2*c2 }
     tmp10 := MULTIPLY(z12, FIX_1_082392200) - z5; { 2*(c2-c6) }
     tmp12 := MULTIPLY(z10, - FIX_2_613125930) + z5; { -2*(c2+c6) }
 
-    tmp6 := tmp12 - tmp7;	{ phase 2 }
+    tmp6 := tmp12 - tmp7;       { phase 2 }
     tmp5 := tmp11 - tmp6;
     tmp4 := tmp10 + tmp5;
 
@@ -310,7 +310,7 @@ begin
     wsptr^[DCTSIZE*4] := int (tmp3 + tmp4);
     wsptr^[DCTSIZE*3] := int (tmp3 - tmp4);
 
-    Inc(JCOEF_PTR(inptr));		{ advance pointers to next column }
+    Inc(JCOEF_PTR(inptr));              { advance pointers to next column }
     Inc(IFAST_MULT_TYPE_PTR(quantptr));
     Inc(int_ptr(wsptr));
   end;
@@ -347,7 +347,7 @@ begin
       outptr^[6] := dcval_;
       outptr^[7] := dcval_;
 
-      Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+      Inc(int_ptr(wsptr), DCTSIZE);     { advance pointer to next row }
       continue;
     end;
 {$endif}
@@ -359,7 +359,7 @@ begin
 
     tmp13 := (DCTELEM(wsptr^[2]) + DCTELEM(wsptr^[6]));
     tmp12 := MULTIPLY(DCTELEM(wsptr^[2]) - DCTELEM(wsptr^[6]), FIX_1_414213562)
-	    - tmp13;
+            - tmp13;
 
     tmp0 := tmp10 + tmp13;
     tmp3 := tmp10 - tmp13;
@@ -373,37 +373,37 @@ begin
     z11 := DCTELEM(wsptr^[1]) + DCTELEM(wsptr^[7]);
     z12 := DCTELEM(wsptr^[1]) - DCTELEM(wsptr^[7]);
 
-    tmp7 := z11 + z13;		{ phase 5 }
+    tmp7 := z11 + z13;          { phase 5 }
     tmp11 := MULTIPLY(z11 - z13, FIX_1_414213562); { 2*c4 }
 
     z5 := MULTIPLY(z10 + z12, FIX_1_847759065); { 2*c2 }
     tmp10 := MULTIPLY(z12, FIX_1_082392200) - z5; { 2*(c2-c6) }
     tmp12 := MULTIPLY(z10, - FIX_2_613125930) + z5; { -2*(c2+c6) }
 
-    tmp6 := tmp12 - tmp7;	{ phase 2 }
+    tmp6 := tmp12 - tmp7;       { phase 2 }
     tmp5 := tmp11 - tmp6;
     tmp4 := tmp10 + tmp5;
 
     { Final output stage: scale down by a factor of 8 and range-limit }
 
     outptr^[0] := range_limit^[IDESCALE(tmp0 + tmp7, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[7] := range_limit^[IDESCALE(tmp0 - tmp7, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[1] := range_limit^[IDESCALE(tmp1 + tmp6, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[6] := range_limit^[IDESCALE(tmp1 - tmp6, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[2] := range_limit^[IDESCALE(tmp2 + tmp5, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[5] := range_limit^[IDESCALE(tmp2 - tmp5, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[4] := range_limit^[IDESCALE(tmp3 + tmp4, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
     outptr^[3] := range_limit^[IDESCALE(tmp3 - tmp4, PASS1_BITS+3)
-			    and RANGE_MASK];
+                            and RANGE_MASK];
 
-    Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+    Inc(int_ptr(wsptr), DCTSIZE);       { advance pointer to next row }
   end;
 end;
 

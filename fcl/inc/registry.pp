@@ -1,6 +1,6 @@
 Unit registry;
 
-{$mode objfpc} 
+{$mode objfpc}
 {$H+}
 
 interface
@@ -13,7 +13,7 @@ Uses
   {$ifndef XMLREG}
     Windows,
   {$endif XMLREG}
-    Classes, 
+    Classes,
     SysUtils;
 
   {$I regdef.inc}
@@ -158,7 +158,7 @@ implementation
 { ---------------------------------------------------------------------
     Include implementation-dependent code
   ---------------------------------------------------------------------}
-  
+
 
 {$ifdef XMLREG}
 {$i xregreg.inc}
@@ -169,7 +169,7 @@ implementation
 { ---------------------------------------------------------------------
     Generic, implementation-independent code.
   ---------------------------------------------------------------------}
- 
+
 
 Constructor TRegistry.Create;
 
@@ -193,14 +193,14 @@ function TRegistry.CreateKey(const Key: String): Boolean;
 
 begin
   Result:=SysCreateKey(Key);
-  If Not Result Then 
+  If Not Result Then
     Raise ERegistryException.CreateFmt(SRegCreateFailed, [Key]);
 end;
 
 function TRegistry.GetBaseKey(Relative: Boolean): HKey;
 begin
   If Relative Then
-    Result := CurrentKey 
+    Result := CurrentKey
   else
     Result := RootKey;
 end;
@@ -229,7 +229,7 @@ Var
 
 begin
   If GetDataInfo(ValueName,Info) Then
-    Result := Info.DataSize 
+    Result := Info.DataSize
   else
     Result := -1;
 end;
@@ -248,7 +248,7 @@ Function TRegistry.HasSubKeys: Boolean;
 
 Var
   Info : TRegKeyInfo;
-  
+
 begin
   Result:=GetKeyInfo(Info);
   If Result then
@@ -327,7 +327,7 @@ begin
     begin
     If StringSizeIncludesNull then
       SetLength(Result, Info.DataSize-1)
-    else  
+    else
       SetLength(Result, Info.DataSize);
     GetData(Name,@Result[1],Info.DataSize,Info.RegData);
     end;
@@ -402,8 +402,8 @@ end;
 { ---------------------------------------------------------------------
     Include TRegIniFile implementation
   ---------------------------------------------------------------------}
-  
+
 
 {$i regini.inc}
-  
+
 end.

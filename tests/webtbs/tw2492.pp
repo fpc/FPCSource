@@ -28,5 +28,5 @@ begin
   writeln('PropertyCount=',
     GetTypeData(MyClassA.ClassInfo)^.PropCount);
   if GetTypeData(MyClassA.ClassInfo)^.PropCount<>2 then
-    halt(1);  
+    halt(1);
 end.

@@ -1,5 +1,5 @@
 {
-  $Id$ 
+  $Id$
 }
 program firework;
 uses
@@ -137,10 +137,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2004-12-24 15:41:19  jonas
-    - removed unnecessary dependency on linux unit
-
-  Revision 1.3  2002/09/10 20:07:51  michael
-  + Reinstated dissapeared code
+  Revision 1.5  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

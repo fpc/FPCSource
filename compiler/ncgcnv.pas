@@ -567,76 +567,11 @@ end.
 
 {
   $Log$
-  Revision 1.72  2005-01-09 15:05:29  peter
+  Revision 1.73  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.72  2005/01/09 15:05:29  peter
     * fix interface vtbl optimization
     * replace ugly pointer construct of ioffset()
-
-  Revision 1.71  2004/12/26 20:09:35  peter
-    * typecast float to non-float needs a move to memory
-
-  Revision 1.70  2004/12/25 12:29:08  florian
-    * fixed extended->double/single conversion when using sse
-
-  Revision 1.69  2004/12/25 10:48:17  florian
-    * optimized float to float conversion
-
-  Revision 1.68  2004/12/11 15:25:40  jonas
-    - removed superfluous location_force_reg() in second_nothing
-
-  Revision 1.67  2004/12/10 23:38:54  jonas
-    * fixed type conversion between same-size ints with different signs in
-      case the value is already in a register
-
-  Revision 1.66  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.65  2004/11/29 21:02:08  peter
-    * location_force_reg in second_nothing can reuse LOC_CREGISTER
-
-  Revision 1.64  2004/11/29 17:32:56  peter
-    * prevent some IEs with delphi methodpointers
-
-  Revision 1.63  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.62  2004/11/01 15:31:58  peter
-    * -Or fix for absolute
-
-  Revision 1.61  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.60  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.59  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.58  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.57  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.56.2.1  2004/04/27 18:18:25  peter
-    * aword -> aint
-
-  Revision 1.56  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.55  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
 
 }

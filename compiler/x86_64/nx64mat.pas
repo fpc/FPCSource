@@ -205,31 +205,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2004-11-01 17:40:29  florian
-    + added cgutils uses clause
-
-  Revision 1.7  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.6  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.5  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.4.2.3  2004/05/03 16:27:38  peter
-    * fixed shl for x86-64
-
-  Revision 1.4.2.2  2004/04/26 15:54:33  peter
-    * small x86-64 fixes
-
-  Revision 1.4.2.1  2004/04/24 16:02:19  florian
-    * sign extension for int div int fixed
-
-  Revision 1.4  2004/02/05 18:28:37  peter
-    * x86_64 fixes for opsize
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

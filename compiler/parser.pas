@@ -648,7 +648,7 @@ implementation
                       end;
 {$endif BrowserLog}
                      { Write Browser Collections, also used by the TextMode IDE to
-		       retrieve a list of sourcefiles }
+                       retrieve a list of sourcefiles }
                      do_extractsymbolinfo{$ifdef FPC}(){$endif};
                    end;
                 end;
@@ -665,7 +665,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2005-02-10 20:06:34  peter
+  Revision 1.75  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.74  2005/02/10 20:06:34  peter
     * fixed call to build sourcefiles needed for ide
 
   Revision 1.73  2005/02/01 08:46:13  michael
@@ -685,37 +688,5 @@ end.
   Revision 1.69  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.68  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.67  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.66  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.65  2004/05/12 13:21:09  karoly
-    * few small changes to add syscall support to M68k/Amiga target
-
-  Revision 1.64  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.63  2004/03/16 16:20:49  peter
-    * reset current_module,current_procinfo so the destroy routines
-      can't access their info anymore, because that can be already
-      destroyed
-
-  Revision 1.62  2004/03/14 20:08:37  peter
-    * packrecords fixed for settings from $PACKRECORDS
-    * default packrecords now uses value 0 and uses info from aligment
-      structure only, initpackrecords removed
-
-  Revision 1.61  2004/03/02 17:32:12  florian
-    * make cycle fixed
-    + pic support for darwin
-    + support of importing vars from shared libs on darwin implemented
 
 }

@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Interface to shfolder.dll
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -15,16 +15,16 @@
  **********************************************************************}
 
 { ---------------------------------------------------------------------
-  shfolder.dll is distributed standard with IE5.5, so it should ship 
-  with 2000/XP or higher but is likely to be installed on NT/95/98 or 
+  shfolder.dll is distributed standard with IE5.5, so it should ship
+  with 2000/XP or higher but is likely to be installed on NT/95/98 or
   ME as well.  It works on all these systems.
-  
+
   The info found here is also in the registry:
-  HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders\ 
-  HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders\ 
-  
+  HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders\
+  HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders\
+
   Note that not all CSIDL_* constants are supported by shlfolder.dll,
-  they should be supported by the shell32.dll, though again not on all 
+  they should be supported by the shell32.dll, though again not on all
   systems.
   ---------------------------------------------------------------------}
 
@@ -46,7 +46,7 @@ Const
   CSIDL_STARTUP                 = $0007; { %USERPROFILE%\Start menu\Programs\Startup                        }
   CSIDL_RECENT                  = $0008; { %USERPROFILE%\Recent                                             }
   CSIDL_SENDTO                  = $0009; { %USERPROFILE%\Sendto                                             }
-  CSIDL_STARTMENU               = $000B; { %USERPROFILE%\Start menu                                         } 
+  CSIDL_STARTMENU               = $000B; { %USERPROFILE%\Start menu                                         }
   CSIDL_MYMUSIC                 = $000D; { %USERPROFILE%\Documents\My Music                                 }
   CSIDL_MYVIDEO                 = $000E; { %USERPROFILE%\Documents\My Videos                                }
   CSIDL_DESKTOPDIRECTORY        = $0010; { %USERPROFILE%\Desktop                                            }
@@ -70,15 +70,15 @@ Const
   CSIDL_MYPICTURES              = $0027; { %USERPROFILE%\My Documents\My Pictures                           }
   CSIDL_PROFILE                 = $0028; { %USERPROFILE%                                                    }
   CSIDL_PROGRAM_FILES_COMMON    = $002B; { %SYSTEMDRIVE%\Program Files\Common                               }
-  CSIDL_COMMON_TEMPLATES        = $002D; { %PROFILEPATH%\All Users\Templates                                } 
+  CSIDL_COMMON_TEMPLATES        = $002D; { %PROFILEPATH%\All Users\Templates                                }
   CSIDL_COMMON_DOCUMENTS        = $002E; { %PROFILEPATH%\All Users\Documents                                }
   CSIDL_COMMON_ADMINTOOLS       = $002F; { %PROFILEPATH%\All Users\Start Menu\Programs\Administrative Tools }
-  CSIDL_ADMINTOOLS              = $0030; { %USERPROFILE%\Start Menu\Programs\Administrative Tools           } 
+  CSIDL_ADMINTOOLS              = $0030; { %USERPROFILE%\Start Menu\Programs\Administrative Tools           }
   CSIDL_COMMON_MUSIC            = $0035; { %PROFILEPATH%\All Users\Documents\my music                       }
   CSIDL_COMMON_PICTURES         = $0036; { %PROFILEPATH%\All Users\Documents\my pictures                    }
   CSIDL_COMMON_VIDEO            = $0037; { %PROFILEPATH%\All Users\Documents\my videos                      }
   CSIDL_CDBURN_AREA             = $003B; { %USERPROFILE%\Local Settings\Application Data\Microsoft\CD Burning }
-  CSIDL_PROFILES                = $003E; { %PROFILEPATH%                                                    } 
+  CSIDL_PROFILES                = $003E; { %PROFILEPATH%                                                    }
 
   CSIDL_FLAG_CREATE             = $8000; { (force creation of requested folder if it doesn't exist yet)     }
 
@@ -109,10 +109,7 @@ const
 end.
 {
   $Log$
-  Revision 1.3  2004-02-01 00:12:11  michael
-  + Added all known CSIDL constants.
-
-  Revision 1.2  2004/01/31 23:34:37  michael
-  + Added header/log footer
+  Revision 1.4  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

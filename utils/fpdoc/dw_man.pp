@@ -10,7 +10,7 @@ uses
 Const
   DefaultManSection = 3;
   MaxListLevel      = 4;
-  
+
   // Suffixes for overview man pages.
   SManConsts  = 'consts';
   SManVars    = 'variables';
@@ -23,7 +23,7 @@ Const
   SManDocDescription     = 'DESCRIPTION';
   SManDocErrors          = 'ERRORS';
   SManDocSeeAlso         = 'SEE ALSO';
-  
+
   // FPDoc man sections.
   SManDocPackageUnits    = 'PACKAGE UNITS';
   SManDocUsedUnits       = 'USED UNITS';
@@ -43,10 +43,10 @@ Const
 
   // Used to start listing
   SManDocListing         = 'Listing:';
-  
+
 Type
   { TManWriter }
-   
+
   TManWriter = Class(TFPDocWriter)
     SkipUnitPrefix,
     FSkipTrim : Boolean;
@@ -95,7 +95,7 @@ Type
     Function  GetDescrString(AContext: TPasElement; DescrNode: TDOMElement) : String;
     function  ConstValue(ConstDecl: TPasConst): String; virtual;
     procedure WriteCommentLine;
-    procedure WriteComment(Comment : String); 
+    procedure WriteComment(Comment : String);
     Procedure WriteExampleFile(FN : String); virtual;
     Class Function FileNameExtension : String;virtual;
     procedure WriteExample(ADocNode: TDocNode);
@@ -255,47 +255,47 @@ constructor TManWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       if InterfaceSection.Classes.Count > 0 then
       begin
         for i := 0 to InterfaceSection.Classes.Count - 1 do
-	begin
-	  ClassEl := TPasClassType(InterfaceSection.Classes[i]);
+        begin
+          ClassEl := TPasClassType(InterfaceSection.Classes[i]);
           AddLabel(ClassEl);
 
           for j := 0 to ClassEl.Members.Count - 1 do
           begin
             FPEl := TPasElement(ClassEl.Members[j]);
             if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-	      ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
-	      continue;
+              ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
+              continue;
 
             DocNode := Engine.FindDocNode(FPEl);
             if not Assigned(DocNode) then
             begin
               DidAutolink := False;
-	      if Assigned(ClassEl.AncestorType) and
-	        (ClassEl.AncestorType.ClassType = TPasClassType) then
-	      begin
-	        for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
-	        begin
-	          AncestorMemberEl :=
-	            TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
-	          if AncestorMemberEl.Name = FPEl.Name then
-	          begin
-	            DocNode := Engine.FindDocNode(AncestorMemberEl);
-	            if Assigned(DocNode) then
-	            begin
-	              DidAutolink := True;
-		      Engine.AddLink(FPEl.PathName,
-	    		Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
-	              break;
-	            end;
-	          end;
-	        end;
-	      end;
-	      if not DidAutolink then
-	        AddLabel(FPEl);
-	    end else
-    	      AddLabel(FPEl);
-    	  end;
-	end;
+              if Assigned(ClassEl.AncestorType) and
+                (ClassEl.AncestorType.ClassType = TPasClassType) then
+              begin
+                for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
+                begin
+                  AncestorMemberEl :=
+                    TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
+                  if AncestorMemberEl.Name = FPEl.Name then
+                  begin
+                    DocNode := Engine.FindDocNode(AncestorMemberEl);
+                    if Assigned(DocNode) then
+                    begin
+                      DidAutolink := True;
+                      Engine.AddLink(FPEl.PathName,
+                        Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
+                      break;
+                    end;
+                  end;
+                end;
+              end;
+              if not DidAutolink then
+                AddLabel(FPEl);
+            end else
+              AddLabel(FPEl);
+          end;
+        end;
       end;
       AddList(AModule, InterfaceSection.Functions);
       AddList(AModule, InterfaceSection.Variables);
@@ -352,7 +352,7 @@ begin
     begin
     If (L>=LEOL) then
       FAtLineStart:=(Copy(W,L-LEOL+1,LEOL)=LineEnding);
-    end;    
+    end;
 end;
 
 Procedure TManWriter.NewLine;
@@ -441,7 +441,7 @@ procedure TManWriter.DescrWriteKeywordEl(const AText: DOMString);
 
 Var
   S : AnsiString;
-  
+
 begin
   NewLine;
   S:=AText;
@@ -452,7 +452,7 @@ procedure TManWriter.DescrWriteVarEl(const AText: DOMString);
 
 Var
   S : AnsiString;
-  
+
 begin
   NewLine;
   S:=AText;
@@ -709,7 +709,7 @@ end;
 { ---------------------------------------------------------------------
   Formatting routines
   ---------------------------------------------------------------------}
-  
+
 procedure TManWriter.WriteTP;
 
 begin
@@ -1000,7 +1000,7 @@ var
   M : TPasModule;
   I : Integer;
   L : TStringList;
-  
+
 begin
   DocNode:=Engine.FindDocNode(Package);
   If (PackageDescr='') then
@@ -1037,7 +1037,7 @@ begin
     Finally
       L.Free;
     end;
-  Finally  
+  Finally
     EndManPage;
   end;
   ProcessTopics(DocNode,True);
@@ -1202,7 +1202,7 @@ end;
 { ---------------------------------------------------------------------
   Classes man pages
   ---------------------------------------------------------------------}
-  
+
 procedure TManWriter.WriteUnitClassesOverview(ASection: TPasSection);
 
 var
@@ -1233,7 +1233,7 @@ procedure TManWriter.WriteUnitClasses(ASection: TPasSection);
 
 var
   i: Integer;
-  
+
 begin
   if (ASection.Classes.Count > 0) then
     begin
@@ -1353,7 +1353,7 @@ begin
         end;
       StartSection(SDocSeeAlso);
       WriteModuleSeealso(False);
-    Finally  
+    Finally
       EndManPage;
     end;
     end;
@@ -1402,7 +1402,7 @@ var
   i: Integer;
   TypeDecl: TPasType;
   DocNode : TDocNode;
-  
+
 begin
   if ASection.Types.Count > 0 then
     begin
@@ -1467,7 +1467,7 @@ var
   VarDecl: TPasVariable;
   i: Integer;
   DocNode : TDocNode;
-  
+
 begin
   if ASection.Variables.Count > 0 then
     begin
@@ -1504,7 +1504,7 @@ var
   i       : Integer;
   DocNode : TDocNode;
   PDecl      : TPasProcedureBase;
-  
+
 begin
   // Overview page
   if ASection.Functions.Count > 0 then
@@ -1634,7 +1634,7 @@ procedure TManWriter.AppendFunctionResultSection(Element: TPasFunctionType);
 Var
   ResultEl: TPasResultElement;
   DocNode: TDocNode;
-  
+
 begin
   If Not Assigned(Element) then
     exit;
@@ -1661,7 +1661,7 @@ procedure TManWriter.WritePropertyPage(PropDecl : TPasProperty);
 var
   DocNode: TDocNode;
   N,D: String;
-  
+
 begin
   DocNode := Engine.FindDocNode(PropDecl);
   StartManpage(PropDecl,DocNode);
@@ -1727,13 +1727,13 @@ begin
   List.Sort(@CompareElements);
 end;
 
-procedure TManWriter.WriteCommentLine; 
+procedure TManWriter.WriteCommentLine;
 
 begin
   WriteComment('-------------------------------------------------------');
 end;
 
-procedure TManWriter.WriteComment(Comment : String); 
+procedure TManWriter.WriteComment(Comment : String);
 
 begin
   Writeln('." '+Comment);

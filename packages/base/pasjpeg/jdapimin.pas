@@ -128,12 +128,12 @@ var
   client_data : voidp;
 begin
   { Guard against version mismatches between library and caller. }
-  cinfo^.mem := NIL;		{ so jpeg_destroy knows mem mgr not called }
+  cinfo^.mem := NIL;            { so jpeg_destroy knows mem mgr not called }
   if (version <> JPEG_LIB_VERSION) then
     ERREXIT2(j_common_ptr(cinfo), JERR_BAD_LIB_VERSION, JPEG_LIB_VERSION, version);
   if (structsize <> SIZEOF(jpeg_decompress_struct)) then
     ERREXIT2(j_common_ptr(cinfo), JERR_BAD_STRUCT_SIZE,
-	     int(SIZEOF(jpeg_decompress_struct)), int(structsize));
+             int(SIZEOF(jpeg_decompress_struct)), int(structsize));
 
   { For debugging purposes, we zero the whole master structure.
     But the application has already set the err pointer, and may have set
@@ -228,7 +228,7 @@ begin
            1: cinfo^.jpeg_color_space := JCS_YCbCr;
            else
              begin
-	       WARNMS1(j_common_ptr(cinfo), JWRN_ADOBE_XFORM, cinfo^.Adobe_transform);
+               WARNMS1(j_common_ptr(cinfo), JWRN_ADOBE_XFORM, cinfo^.Adobe_transform);
                cinfo^.jpeg_color_space := JCS_YCbCr; { assume it's YCbCr }
              end;
            end;
@@ -241,14 +241,14 @@ begin
            cid2 := cinfo^.comp_info^[2].component_id;
 
            if (cid0 = 1) and (cid1 = 2) and (cid2 = 3) then
-	     cinfo^.jpeg_color_space := JCS_YCbCr { assume JFIF w/out marker }
+             cinfo^.jpeg_color_space := JCS_YCbCr { assume JFIF w/out marker }
            else
              if (cid0 = 82) and (cid1 = 71) and (cid2 = 66) then
                cinfo^.jpeg_color_space := JCS_RGB { ASCII 'R', 'G', 'B' }
              else
              begin
                {$IFDEF DEBUG}
-	       TRACEMS3(j_common_ptr(cinfo), 1, JTRC_UNKNOWN_IDS, cid0, cid1, cid2);
+               TRACEMS3(j_common_ptr(cinfo), 1, JTRC_UNKNOWN_IDS, cid0, cid1, cid2);
                {$ENDIF}
                cinfo^.jpeg_color_space := JCS_YCbCr; { assume it's YCbCr }
              end;
@@ -286,7 +286,7 @@ begin
   end;
 
   { Set defaults for other decompression parameters. }
-  cinfo^.scale_num := 1;		{ 1:1 scaling }
+  cinfo^.scale_num := 1;                { 1:1 scaling }
   cinfo^.scale_denom := 1;
   cinfo^.output_gamma := 1.0;
   cinfo^.buffered_image := FALSE;
@@ -491,7 +491,7 @@ begin
   begin
     if (cinfo^.inputctl^.consume_input (cinfo) = JPEG_SUSPENDED) then
     begin
-      jpeg_finish_decompress := FALSE;	{ Suspend, come back later }
+      jpeg_finish_decompress := FALSE;  { Suspend, come back later }
       exit;
     end;
   end;

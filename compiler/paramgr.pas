@@ -387,7 +387,10 @@ end.
 
 {
    $Log$
-   Revision 1.87  2005-02-08 16:40:16  florian
+   Revision 1.88  2005-02-14 17:13:07  peter
+     * truncate log
+
+   Revision 1.87  2005/02/08 16:40:16  florian
      * dyn. arrays are returned in registers
 
    Revision 1.86  2005/02/03 20:04:49  peter
@@ -404,52 +407,6 @@ end.
      + support for passing records in registers under darwin
      * tcgpara now also has an intsize field, which contains the size in
        bytes of the whole parameter
-
-   Revision 1.82  2004/11/21 17:17:03  florian
-     * changed funcret location back to tlocation
-
-   Revision 1.81  2004/11/15 23:35:31  peter
-     * tparaitem removed, use tparavarsym instead
-     * parameter order is now calculated from paranr value in tparavarsym
-
-   Revision 1.80  2004/10/31 21:45:03  peter
-     * generic tlocation
-     * move tlocation to cgutils
-
-   Revision 1.79  2004/09/25 14:23:54  peter
-     * ungetregister is now only used for cpuregisters, renamed to
-       ungetcpuregister
-     * renamed (get|unget)explicitregister(s) to ..cpuregister
-     * removed location-release/reference_release
-
-   Revision 1.78  2004/09/21 17:25:12  peter
-     * paraloc branch merged
-
-   Revision 1.77.4.1  2004/08/31 20:43:06  peter
-     * paraloc patch
-
-   Revision 1.77  2004/07/09 23:41:04  jonas
-     * support register parameters for inlined procedures + some inline
-       cleanups
-
-   Revision 1.76  2004/06/20 08:55:30  florian
-     * logs truncated
-
-   Revision 1.75  2004/06/16 20:07:09  florian
-     * dwarf branch merged
-
-   Revision 1.74  2004/04/18 15:22:24  florian
-     + location support for arguments, currently PowerPC/MorphOS only
-
-   Revision 1.73.2.5  2004/05/03 20:18:52  peter
-     * fixes for tprintf
-
-   Revision 1.73.2.4  2004/05/02 20:20:59  florian
-     * started to fix callee side result value handling
-
-   Revision 1.73.2.3  2004/05/02 12:45:32  peter
-     * enabled cpuhasfixedstack for x86-64 again
-     * fixed size of temp allocation for parameters
 
 }
 

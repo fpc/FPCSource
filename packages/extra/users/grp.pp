@@ -35,7 +35,7 @@ type
   __gid_t = Longint;
   P__gid_t = ^__gid_t;
   size_t = longint;
-  
+
   PGroup = ^group;
   group = record
     gr_name : Pchar;
@@ -45,7 +45,7 @@ type
   end;
   TGroup = Group;
   PPGROUP = ^PGroup;
-   
+
 procedure setgrent;cdecl;external External_library name 'setgrent';
 procedure endgrent;cdecl;external External_library name 'endgrent';
 function getgrent:Pgroup;cdecl;external External_library name 'getgrent';

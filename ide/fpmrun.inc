@@ -512,34 +512,11 @@ end;
 
 {
   $Log$
-  Revision 1.10  2005-01-07 21:52:23  florian
+  Revision 1.11  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.10  2005/01/07 21:52:23  florian
     * proper stepping in disassembler window now possible
     + disassembler window to menu added
-
-  Revision 1.9  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.8  2002/12/18 01:21:42  pierre
-   + Use TEditorInputLine instead of TInputLine
-
-  Revision 1.7  2002/12/16 09:06:08  pierre
-   * don't insert breakpoints in unsaved sources
-
-  Revision 1.6  2002/10/12 19:43:07  hajny
-    * missing HasSignal conditionals added (needed for FPC/2)
-
-  Revision 1.5  2002/09/07 15:40:44  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/09/05 08:45:59  pierre
-   * try to fix recompilation on changes problems
-
-  Revision 1.3  2002/08/13 08:59:12  pierre
-   + Run menu changes depending on wether the debuggee is running or not
 
 }

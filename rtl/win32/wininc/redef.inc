@@ -1058,81 +1058,14 @@ end;
 
 {
   $Log$
-  Revision 1.30  2005-02-06 13:06:20  peter
+  Revision 1.31  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.30  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 
   Revision 1.29  2005/01/15 11:44:48  marco
    * scrollwindow(ex) added at Neli's request
-
-  Revision 1.28  2004/12/18 20:00:59  michael
-  Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
-
-  Revision 1.27  2004/11/07 20:46:27  marco
-   * fix for 3299
-
-  Revision 1.26  2004/11/07 20:25:02  marco
-   * fixes for bug 3303 (devmodew)
-
-  Revision 1.25  2004/08/08 16:52:52  florian
-    * tried to fix some wsprintf issues
-    + now compiled in objfpc mode
-      so some integer => smallint changes where necessary; hopefully,
-      I didn't forget one
-
-  Revision 1.24  2004/07/26 06:48:30  michael
-  + Added trackmouseevent call and structures
-
-  Revision 1.23  2004/05/09 10:46:34  peter
-  fix compile with 1.0.x
-
-  Revision 1.22  2004/05/07 13:26:31  marco
-   * COM related fixes from bug 3090
-
-  Revision 1.21  2004/05/05 20:08:38  marco
-   * getdiskfreespaceex pointer overloads added
-
-  Revision 1.20  2004/03/05 12:17:50  marco
-   * interlocked* changed to longints, including winapi. (which was a bug)
-
-  Revision 1.19  2004/02/08 17:13:11  marco
-   * getsystemtimeasfiletime
-
-  Revision 1.18  2004/02/07 00:21:10  marco
-   * small fix
-
-  Revision 1.17  2004/01/19 19:29:11  michael
-  + Added HFILE_ERROR
-
-  Revision 1.16  2003/11/06 22:05:06  marco
-   * fixed
-
-  Revision 1.15  2003/10/03 20:55:12  florian
-    + added some language related stuff
-
-  Revision 1.14  2003/04/07 18:28:53  armin
-  * corrected BuildCommDCBAndTimeouts, the external is BuildCommDCBAndTimeoutsA not BuildCommDCBAndTimeouts
-
-  Revision 1.13  2003/03/20 14:25:39  armin
-  + reactivated delphi compatible versions of SetCommTimeouts,SetCommState,BuildCommDCB*
-
-  Revision 1.12  2003/01/02 22:07:00  peter
-    * missing items
-
-  Revision 1.11  2002/12/27 18:13:38  peter
-    * fix ChoosePixelFormat
-
-  Revision 1.10  2002/12/15 20:24:17  peter
-    * some more C style functions
-
-  Revision 1.9  2002/10/14 17:18:44  florian
-    + some critical section related stuff added
-
-  Revision 1.8  2002/09/07 16:01:31  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/03/23 20:13:53  marco
-   * Some macro functions fixed. Didn't commit win32platform first because
-      of mandatory init.
 
 }

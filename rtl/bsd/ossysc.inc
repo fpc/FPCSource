@@ -90,8 +90,8 @@ Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_
 
 begin
   Fpmmap:=pointer(longint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
-	{$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
-	{$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif}
+        {$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
+        {$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif}
         )));
 end;
 
@@ -534,7 +534,10 @@ end;
 
 {
  $Log$
- Revision 1.23  2005-02-13 21:47:56  peter
+ Revision 1.24  2005-02-14 17:13:21  peter
+   * truncate log
+
+ Revision 1.23  2005/02/13 21:47:56  peter
    * include file cleanup part 2
 
  Revision 1.22  2005/02/13 20:01:37  peter
@@ -542,107 +545,5 @@ end;
 
  Revision 1.21  2005/02/06 12:16:52  peter
    * bsd thread updates
-
- Revision 1.20  2004/11/14 12:21:08  marco
-  * moved some calls from unix to baseunix. Darwin untested.
-
- Revision 1.19  2004/07/18 11:32:24  marco
-  * small 1.0.x fix to earlier patch
-
- Revision 1.18  2004/07/17 16:02:58  marco
-  * generalised the $ifdef cpu_i386 ..powerpc stuff to FPC_BIG_ENDIAN and
- FPC_LITTLE_ENDIAN
-
- Revision 1.17  2004/02/06 20:47:00  jonas
-   + fpnanosleep for oscdeclh.inc
-   - removed obsolete darwin remarks from bsd/ossysc.inc
-
- Revision 1.16  2003/12/30 12:26:21  marco
-  * FPC_USE_LIBC
-
- Revision 1.15  2003/12/16 19:43:59  marco
-  * nil <-> 0 changes
-
- Revision 1.14  2003/10/26 17:01:04  marco
-  * moved sigprocmask to system
-
- Revision 1.13  2003/10/17 22:10:30  olle
-   * changed i386 to cpui386
-
- Revision 1.12  2003/09/27 13:45:58  peter
-   * fpnanosleep exported in baseunix
-   * fpnanosleep has pointer arguments to be C compliant
-
- Revision 1.10  2003/09/20 12:38:29  marco
-  * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
- Revision 1.9  2003/09/17 16:02:31  marco
-  * ostype include moved to top
-
- Revision 1.8  2003/09/16 12:45:49  marco
-  * mmap typing fixes
-
- Revision 1.7  2003/09/15 20:08:49  marco
-  * small fixes. FreeBSD now cycles
-
- Revision 1.6  2003/09/14 20:15:01  marco
-  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
- Revision 1.5  2003/08/21 22:23:34  olle
-   - removed parameter from fpc_iocheck
-
- Revision 1.4  2003/05/29 21:45:23  marco
-  * Some other workaround
-
- Revision 1.3  2003/05/29 20:52:55  marco
-  * only moved around the off_t calls, and made an exception (includefile)
- for NetBSD/powerpc
-
- Revision 1.2  2003/05/26 21:29:16  jonas
-   - disabled nanosleep for darwin for now
-   + getcwd for darwin
-
- Revision 1.1  2003/01/05 19:01:28  marco
-  * FreeBSD compiles now with baseunix mods.
-
- Revision 1.9  2002/11/13 18:15:08  marco
-  * sigset functions more flexible, small changes to sys_ktime
-
- Revision 1.8  2002/10/27 17:21:29  marco
-  * Only "difficult" functions + execvp + termios + rewinddir left to do
-
- Revision 1.7  2002/10/27 11:58:29  marco
-  * Modifications from Saturday.
-
- Revision 1.6  2002/10/26 18:27:51  marco
-  * First series POSIX calls commits. Including getcwd.
-
- Revision 1.5  2002/10/18 12:19:58  marco
-  * Fixes to get the generic *BSD RTL compiling again + fixes for thread
-    support. Still problems left in fexpand. (inoutres?) Therefore fixed
-    sysposix not yet commited
-
- Revision 1.4  2002/10/16 18:44:18  marco
-  * Lseek and ftruncate 64-bit fix
-
- Revision 1.3  2002/09/07 16:01:17  peter
-   * old logs removed and tabs fixed
-
- Revision 1.2  2002/08/21 07:03:16  marco
-  * Fixes from Tuesday.
-
- Revision 1.1  2002/08/19 12:29:11  marco
-  * First working POSIX *BSD system unit.
-
-
- Revision 1.2  2002/08/04 04:29:34  marco
-  * More POSIX updates. Small changes to lseek and ftruncate in osposix.inc
-    Initial versions of the type includefiles
-
- Revision 1.1  2002/08/03 19:34:19  marco
-  * Initial *BSD versions. Seems that OpenBSD doesn't need much change,
-     NetBSD may need some fixes to stat record and ftruncate and lseek.
-     It is all close together, and it should be doable to have just one copy
-     of these for *BSD.
 
 }

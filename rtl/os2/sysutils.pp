@@ -1004,7 +1004,7 @@ end;
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
 
-var 
+var
   CommandLine: AnsiString;
   I: integer;
 
@@ -1033,109 +1033,7 @@ end.
 
 {
   $Log$
-  Revision 1.48  2004-12-11 17:32:34  hajny
-    * GetEnvironmentVariableCount uses EnvC under OS/2 and EMX
-
-  Revision 1.47  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.46  2004/12/06 22:11:47  hajny
-    * one more fix for ExecuteProcess
-
-  Revision 1.45  2004/12/06 18:50:21  hajny
-    * fix for ExecuteProcess
-
-  Revision 1.44  2004/12/05 19:33:08  hajny
-    * ExecuteProcess update - run VIO apps in the same window
-
-  Revision 1.43  2004/02/22 15:01:49  hajny
-    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
-
-  Revision 1.42  2004/02/15 21:36:10  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.41  2004/02/15 08:02:44  yuri
-  * fixes for dosh.inc
-  * Executeprocess iverloaded function
-  * updated todo
-
-  Revision 1.40  2004/01/20 23:11:20  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.39  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.38  2003/11/23 15:50:07  yuri
-  * Now native
-
-  Revision 1.37  2003/11/05 09:14:00  yuri
-  * exec fix
-  * unused units removed
-
-  Revision 1.36  2003/10/27 12:19:20  yuri
-  * GetLocatTime now also native
-
-  Revision 1.35  2003/10/27 11:43:40  yuri
-  * New set of native functions
-
-  Revision 1.34  2003/10/18 16:58:39  hajny
-    * stdcall fixes again
-
-  Revision 1.33  2003/10/13 21:17:31  hajny
-    * longint to cardinal corrections
-
-  Revision 1.32  2003/10/08 05:22:47  yuri
-  * Some emx code removed
-
-  Revision 1.31  2003/10/07 21:26:34  hajny
-    * stdcall fixes and asm routines cleanup
-
-  Revision 1.30  2003/10/03 21:46:41  peter
-    * stdcall fixes
-
-  Revision 1.29  2003/06/06 23:34:40  hajny
-    * better fix for bug 2518
-
-  Revision 1.28  2003/06/06 23:31:17  hajny
-    * fix for bug 2518 applied to OS/2 as well
-
-  Revision 1.27  2003/04/01 15:57:41  peter
-    * made THandle platform dependent and unique type
-
-  Revision 1.26  2003/03/31 02:18:39  yuri
-  FileClose bug fixed (again ;))
-
-  Revision 1.25  2003/03/29 19:14:16  yuri
-    * Directoryexists function header changed back.
-
-  Revision 1.24  2003/03/29 18:53:10  yuri
-    * Fixed DirectoryExists function header
-
-  Revision 1.23  2003/03/29 15:01:20  hajny
-    + DirectoryExists added for main branch OS/2 too
-
-  Revision 1.22  2003/03/01 21:19:14  hajny
-    * FileClose bug fixed
-
-  Revision 1.21  2003/01/04 16:25:08  hajny
-    * modified to make use of the common GetEnv code
-
-  Revision 1.20  2003/01/03 20:41:04  peter
-    * FileCreate(string,mode) overload added
-
-  Revision 1.19  2002/11/18 19:51:00  hajny
-    * another bunch of type corrections
-
-  Revision 1.18  2002/09/23 17:42:37  hajny
-    * AnsiString to PChar typecast
-
-  Revision 1.17  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.16  2002/07/11 16:00:05  hajny
-    * FindFirst fix (invalid attribute bits masked out)
-
-  Revision 1.15  2002/01/25 16:23:03  peter
-    * merged filesearch() fix
+  Revision 1.49  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -59,7 +59,7 @@ type
     FHostName            : string;
     FCharSet             : string;
     FRole                : String;
-    
+
     procedure SetTransaction(Value : TSQLTransaction);
   protected
     function StrToStatementType(s : string) : TStatementType; virtual;
@@ -508,10 +508,10 @@ Var
   S       : string;
 
   function GetStatement(var StartP : PChar) : PChar;
-  
+
   var p        : pchar;
       Cmt, Stm : boolean;
-  
+
   begin
     p := StartP;
     Cmt := false;
@@ -586,7 +586,7 @@ begin
     Setlength(S,P-PS);
     Move(PS^,S[1],(P-PS));
     S:=Lowercase(S);
-    
+
     if (s = 'where') or (s='order') then break;
     end;
 
@@ -655,7 +655,7 @@ begin
 // Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
 // (variants) set it to upWhereKeyOnly
   FUpdateMode := upWhereKeyOnly;
-  
+
   FUsePrimaryKeyAsKey := True;
 end;
 
@@ -748,7 +748,7 @@ var
     s : string;
 
   procedure UpdateWherePart(var sql_where : string;x : integer);
-  
+
   begin
     if (pfInKey in Fields[x].ProviderFlags) or
        ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
@@ -887,7 +887,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2005-02-07 11:23:41  joost
+  Revision 1.14  2005-02-14 17:13:12  peter
+    * truncate log
+
+  Revision 1.13  2005/02/07 11:23:41  joost
     - implemented TSQLQuery.SetSchemaInfo
     - added support for delete and insert
 
@@ -905,77 +908,5 @@ end.
        providerflags
        of fields that are in the primary index of the underlying table)
      - Added support for updates on date-fields
-
-  Revision 1.10  2004/12/29 14:31:27  michael
-    + Patch from Joost van der Sluis:
-    - implemented support for modifying queries, with a simple parser
-    - implemented ApplyRecUpdate
-
-  Revision 1.9  2004/12/13 19:22:16  michael
-    * Ptahc from Joost van der Sluis
-    - moved IsCursorOpen from TSQLQuery to tbufdataset
-    - moved SetFieldData from TSQLQuery to TBufDataset
-    - very first start for support of cached updates
-
-  Revision 1.8  2004/12/04 22:43:38  michael
-    * Patch from Joost van der Sluis
-    - replaced checkactive in commit and rollback for 'if active'
-    - fixed a warning
-    - adapted for the changes in TBuffDataset
-
-  Revision 1.7  2004/11/05 08:32:02  michael
-  TBufDataset.inc:
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  Database.inc:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Gives an error if the database of an active transaction is changed
-
-  Dataset.inc
-    - Don't distribute events if FDisableControlsCount > 0
-    - Replaced FActive by FState<>dsInactive
-    - Set EOF after append
-
-  db.pp:
-    - Removed duplicate definition of TAlignment
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Replaced FActive by FState<>dsInactive
-    - Gives an error if the database of an active transaction is changed
-
-  sqldb:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  IBConnection:
-    - Moved FSQLDAAllocated to the cursor
-
-  PQConnection:
-    - Don't try to free the statement if a fatal error occured
-
-  Revision 1.6  2004/10/27 07:23:13  michael
-  + Patch from Joost Van der Sluis to fix transactions
-
-  Revision 1.5  2004/10/10 14:45:52  michael
-  + Use of dbconst for resource strings
-
-  Revision 1.4  2004/10/10 14:24:22  michael
-  * Large patch from Joost Van der Sluis.
-  * Float fix in interbase
-  + Commit and commitretaining for pqconnection
-  + Preparestatement and prepareselect joined.
-  + Freestatement and FreeSelect joined
-  + TSQLQuery.GetSQLStatementType implemented
-  + TBufDataset.AllocBuffer now no longer does a realloc
-  + Fetch=True means succesfully got data. False means end of data.
-  + Default implementation of GetFieldData implemented/
-
-  Revision 1.3  2004/10/02 14:52:25  michael
-  + Added mysql connection
-
-  Revision 1.2  2004/09/26 16:56:32  michael
-  + Further fixes from Joost van der sluis for Postgresql
-
-  Revision 1.1  2004/08/31 09:49:47  michael
-  + initial implementation of TSQLQuery
 
 }

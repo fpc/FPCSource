@@ -977,7 +977,7 @@ end;
       Dos.Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
     else
       begin
-        if LocateExeFile(progname) then 
+        if LocateExeFile(progname) then
           {$ifndef macos}
           Dos.Exec(ProgName,Comline)
           {$else}
@@ -1017,46 +1017,10 @@ finalization
 End.
 {
   $Log$
-  Revision 1.20  2005-01-26 22:05:06  olle
+  Revision 1.21  2005-02-14 17:13:37  peter
+    * truncate log
+
+  Revision 1.20  2005/01/26 22:05:06  olle
     + added support for macos
-
-  Revision 1.19  2004/05/25 15:52:48  peter
-    * executeresult changed to longint instead of word
-
-  Revision 1.18  2004/05/16 20:13:04  peter
-    * remote execute updates, see readme.txt
-
-  Revision 1.17  2004/05/03 14:48:51  peter
-    * support redir from stderr to stdout so the same file can be used
-
-  Revision 1.16  2003/10/14 08:30:37  peter
-    * go32v2 fixed
-
-  Revision 1.15  2003/09/29 14:36:39  peter
-    * win32 fixed
-
-  Revision 1.14  2003/09/25 16:48:18  peter
-    * fixed for 1.1 unix
-
-  Revision 1.13  2003/06/05 20:03:22  peter
-    * Shell return adapted for 1.1
-
-  Revision 1.12  2003/01/12 19:46:50  hajny
-    + newer functions made available under OS/2
-
-  Revision 1.11  2002/12/05 16:03:04  pierre
-   + UseComSpec boolean added to be able to not use ComSpec
-
-  Revision 1.10  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/06/03 19:07:55  pierre
-   * fix compilation failure
-
-  Revision 1.8  2002/06/01 19:08:52  marco
-   * Renamefest
-
-  Revision 1.7  2002/02/24 20:07:23  hajny
-    * dummy implementation for OS/2
 
 }

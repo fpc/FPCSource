@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     About form for debug server
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -33,7 +33,7 @@ Type
     Constructor Create;
     Procedure CreateWindow;
   end;
-  
+
 Implementation
 
 Resourcestring
@@ -41,7 +41,7 @@ Resourcestring
   SAbout2     = '(c) 2003, Michael Van Canneyt';
   SOK         = 'OK';
   SCancel     = 'Cancel';
-  
+
 Constructor TAboutForm.Create;
 
 begin
@@ -51,9 +51,9 @@ end;
 
 Procedure TAboutForm.CreateWindow;
 
-Var 
+Var
   S : String;
-  
+
 
 begin
   FVBox:=TFPGtkVBox.Create;
@@ -79,11 +79,14 @@ begin
   FVBox.PackStart(FButtonBox,false,false,0);
 end;
 
-end.  
+end.
 
 {
   $Log$
-  Revision 1.1  2003-02-14 21:59:21  michael
+  Revision 1.2  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.1  2003/02/14 21:59:21  michael
   + Initial implementation
 
   Revision 1.1  2003/01/02 14:36:25  michael

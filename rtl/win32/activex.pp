@@ -1151,7 +1151,7 @@ TYPE
    LPCLIPFORMAT                 = ^TCLIPFORMAT;
    TCLIPFORMAT                  = Word;
    CLIPFORMAT                   = TCLIPFORMAT;
-   PClipFormat									= LPCLIPFORMAT;
+   PClipFormat                                                                  = LPCLIPFORMAT;
 
    tagFORMATETC                 = Record
                                     CfFormat :  Word {TCLIPFORMAT};
@@ -1163,7 +1163,7 @@ TYPE
    FORMATETC                    = TagFORMATETC;
    TFORMATETC                   = FORMATETC;
    LPFORMATETC                  = ^FORMATETC;
-   PFormatEtc	                = LPFORMATETC;
+   PFormatEtc                   = LPFORMATETC;
 
     // Stats for data; used by several enumerations and by at least one
     // implementation of IDataAdviseHolder; if a field is not used, it
@@ -1194,7 +1194,7 @@ TYPE
                                       End;
    USTGMEDIUM                   = TagSTGMEDIUM;
    STGMEDIUM                    = USTGMEDIUM;
-   TStgMedium										= TagSTGMEDIUM;
+   TStgMedium                                                                           = TagSTGMEDIUM;
    PStgMedium                   = ^TStgMedium;
 
 //
@@ -2703,42 +2703,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2005-02-03 18:41:12  florian
+  Revision 1.14  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.13  2005/02/03 18:41:12  florian
     * more clx compilation fixed
-
-  Revision 1.12  2004/05/07 13:26:31  marco
-   * COM related fixes from bug 3090
-
-  Revision 1.11  2003/10/05 20:30:09  florian
-    + necessary declarations for dx8 headers added
-
-  Revision 1.10  2003/10/05 19:10:31  florian
-    * fixed some delphi compatibilty issues
-    * improved makefile dependencies
-
-  Revision 1.9  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.8  2002/12/12 17:52:35  peter
-    * INT renamed to WINT
-
-  Revision 1.7  2002/10/10 16:10:45  florian
-    + declarations of objbase.h added
-
-  Revision 1.6  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/07/28 20:43:49  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
-
-  Revision 1.4  2002/03/01 12:42:42  peter
-    * fixed HASINTF
-
-  Revision 1.3  2002/02/28 13:52:59  marco
-   * has_intf and oaidl
-
-  Revision 1.2  2002/02/26 10:30:01  marco
-   * Merged objidl.idl translation. Most of wtypes.idl also included. Size slightly     increased.
 
 }

@@ -147,27 +147,7 @@ const
 
 {
   $Log$
-  Revision 1.16  2004-12-12 12:56:18  peter
-    * compile fixes for x86_64
-
-  Revision 1.15  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.14  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.13.2.3  2004/05/02 19:08:01  florian
-    * rewrote tcgcallnode.handle_return_value
-
-  Revision 1.13.2.2  2004/04/24 18:30:12  florian
-    * extended parameters shouldn't be poped by the callee on x86-64 either
-
-  Revision 1.13.2.1  2004/04/20 17:39:52  peter
-    * return_address_reg added
-
-  Revision 1.13  2004/02/09 22:14:17  peter
-    * more x86_64 parameter fixes
-    * tparalocation.lochigh is now used to indicate if registerhigh
-      is used and what the type is
+  Revision 1.17  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

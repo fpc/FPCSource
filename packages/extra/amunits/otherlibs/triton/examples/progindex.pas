@@ -115,7 +115,7 @@ begin
                 TRCA_Name,'trProgIndDemo',
                 TRCA_Version,'1.0',
                 TAG_END]);
-  
+
   if Triton_App <> nil then begin
     do_main;
     TR_DeleteApp(Triton_App);

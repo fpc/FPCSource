@@ -39,7 +39,7 @@ uses
   jmorecfg,
   jinclude,
   jpeglib,
-  jdct;		{ Private declarations for DCT subsystem }
+  jdct;         { Private declarations for DCT subsystem }
 
 
 { Perform the forward DCT on one block of samples.}
@@ -86,7 +86,7 @@ begin
 
     { Even part }
 
-    tmp10 := tmp0 + tmp3;	{ phase 2 }
+    tmp10 := tmp0 + tmp3;       { phase 2 }
     tmp13 := tmp0 - tmp3;
     tmp11 := tmp1 + tmp2;
     tmp12 := tmp1 - tmp2;
@@ -95,12 +95,12 @@ begin
     dataptr^[4] := tmp10 - tmp11;
 
     z1 := (tmp12 + tmp13) * ({FAST_FLOAT}(0.707106781)); { c4 }
-    dataptr^[2] := tmp13 + z1;	{ phase 5 }
+    dataptr^[2] := tmp13 + z1;  { phase 5 }
     dataptr^[6] := tmp13 - z1;
 
     { Odd part }
 
-    tmp10 := tmp4 + tmp5;	{ phase 2 }
+    tmp10 := tmp4 + tmp5;       { phase 2 }
     tmp11 := tmp5 + tmp6;
     tmp12 := tmp6 + tmp7;
 
@@ -110,10 +110,10 @@ begin
     z4 := {FAST_FLOAT}(1.306562965) * tmp12 + z5; { c2+c6 }
     z3 := tmp11 * {FAST_FLOAT} (0.707106781); { c4 }
 
-    z11 := tmp7 + z3;		{ phase 5 }
+    z11 := tmp7 + z3;           { phase 5 }
     z13 := tmp7 - z3;
 
-    dataptr^[5] := z13 + z2;	{ phase 6 }
+    dataptr^[5] := z13 + z2;    { phase 6 }
     dataptr^[3] := z13 - z2;
     dataptr^[1] := z11 + z4;
     dataptr^[7] := z11 - z4;
@@ -137,7 +137,7 @@ begin
 
     { Even part }
 
-    tmp10 := tmp0 + tmp3;	{ phase 2 }
+    tmp10 := tmp0 + tmp3;       { phase 2 }
     tmp13 := tmp0 - tmp3;
     tmp11 := tmp1 + tmp2;
     tmp12 := tmp1 - tmp2;
@@ -151,7 +151,7 @@ begin
 
     { Odd part }
 
-    tmp10 := tmp4 + tmp5;	{ phase 2 }
+    tmp10 := tmp4 + tmp5;       { phase 2 }
     tmp11 := tmp5 + tmp6;
     tmp12 := tmp6 + tmp7;
 
@@ -161,7 +161,7 @@ begin
     z4 := {FAST_FLOAT} (1.306562965) * tmp12 + z5; { c2+c6 }
     z3 := tmp11 * {FAST_FLOAT} (0.707106781); { c4 }
 
-    z11 := tmp7 + z3;		{ phase 5 }
+    z11 := tmp7 + z3;           { phase 5 }
     z13 := tmp7 - z3;
 
     dataptr^[DCTSIZE*5] := z13 + z2; { phase 6 }

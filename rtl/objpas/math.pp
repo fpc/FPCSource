@@ -1393,7 +1393,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2005-02-08 20:49:16  florian
+  Revision 1.32  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.31  2005/02/08 20:49:16  florian
     * operator **(int64,int64) returns int64 now
 
   Revision 1.30  2005/02/08 20:25:28  florian
@@ -1408,68 +1411,5 @@ end.
 
   Revision 1.27  2005/01/04 16:47:05  florian
     * compilation on ARM fixed
-
-  Revision 1.26  2004/12/05 16:52:34  jonas
-    * also invalid argument if trying to calculate 0^0 with intpower()
-
-  Revision 1.25  2004/12/05 16:43:57  jonas
-    * fixed power() in genmath.inc (code duplication from math.pp for **
-      support!)
-    * fixed power() in math.pp to give an error from 0^0
-
-  Revision 1.24  2004/12/04 23:38:59  florian
-    * fixed power(float,float) for negative exponents
-
-  Revision 1.23  2004/07/25 16:46:08  michael
-  + Implemented DivMod
-
-  Revision 1.22  2004/05/29 12:28:59  florian
-    * fixed IsNan and IsInf for big endian systems
-
-  Revision 1.21  2004/04/08 16:37:08  peter
-    * disable range,overflow check when generating Nan/Inf
-
-  Revision 1.20  2004/02/20 20:10:44  florian
-    + added Inf/Nan stuff
-
-  Revision 1.19  2004/02/09 18:53:09  florian
-    * compilation on ppc fixed
-
-  Revision 1.18  2004/02/09 17:21:04  marco
-   * 1.0 compilation fixes
-
-  Revision 1.17  2004/02/09 09:11:46  michael
-  + Implemented SameValue
-
-  Revision 1.16  2004/02/09 08:55:45  michael
-  + Missing functions IsZero,InRange,EnsureRange implemented
-
-  Revision 1.15  2003/11/09 21:52:54  michael
-  + Added missing sign functions
-
-  Revision 1.14  2003/10/29 19:10:07  jonas
-    * fixed arctan2
-
-  Revision 1.13  2003/10/26 15:58:05  florian
-    * fixed arctan2 to handle x=0 correctly as well
-
-  Revision 1.12  2003/09/01 20:46:59  peter
-    * small fixes for sparc
-
-  Revision 1.11  2003/04/24 09:38:12  florian
-    * min/max must check the compiler capabilities
-
-  Revision 1.10  2003/04/24 09:21:59  florian
-    + moved cpu dependend code to mathuh.inc and mathu.inc
-
-  Revision 1.9  2003/01/03 20:34:02  peter
-    * i386 fpu controlword functions added
-
-  Revision 1.8  2002/09/07 21:06:12  carl
-    * cleanup of parameters
-    - remove assembler code
-
-  Revision 1.7  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
 
 }

@@ -13,4 +13,4 @@ function ulimit(__cmd:longint):longint;cdecl;external clib name 'ulimit';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

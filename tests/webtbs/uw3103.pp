@@ -7,7 +7,7 @@ const MaxArt = 2000;
 type
    WordArr = array[1..MaxArt] of word;
 
-var 
+var
    RefList  : array[1..MaxArt] of string;
    Theorems : array[- 1..MaxArt,1..2] of byte;
 

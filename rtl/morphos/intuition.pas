@@ -25,7 +25,7 @@ unit intuition;
 
 interface
 
-uses 
+uses
   exec, graphics, utility, inputevent, timer, layers;
 
 
@@ -2925,15 +2925,15 @@ Type
 { Gadget Class attributes      }
 CONST
     GA_Dummy           =  (TAG_USER +$30000);
-    
+
     { (LONG) Left edge of the gadget relative to the left edge of
      * the window }
     GA_Left            =  (GA_Dummy + $0001);
-    
+
     { (LONG) Left edge of the gadget relative to the right edge of
      * the window }
     GA_RelRight        =  (GA_Dummy + $0002);
-    
+
     { (LONG) Top edge of the gadget relative to the top edge of
      * the window }
     GA_Top             =  (GA_Dummy + $0003);
@@ -2941,97 +2941,97 @@ CONST
     { (LONG) Top edge of the gadget relative to the bottom edge
      * of the window }
     GA_RelBottom       =  (GA_Dummy + $0004);
-    
+
     { (LONG) Width of the gadget }
     GA_Width           =  (GA_Dummy + $0005);
-    
+
     { (LONG) Width of the gadget relative to the width of the
      * window }
     GA_RelWidth        =  (GA_Dummy + $0006);
-    
+
     { (LONG) Height of the gadget }
     GA_Height          =  (GA_Dummy + $0007);
 
     { (LONG) Height of the gadget relative to the height of
      * the window }
     GA_RelHeight       =  (GA_Dummy + $0008);
-    
+
     { (PChar) Gadget imagry is NULL terminated string }
     GA_Text            =  (GA_Dummy + $0009); { ti_Data is (UBYTE *) }
-    
+
     { (struct Image *) Gadget imagry is an image }
     GA_Image           =  (GA_Dummy + $000A);
-    
+
     { (struct Border *) Gadget imagry is a border }
     GA_Border          =  (GA_Dummy + $000B);
 
     { (struct Image *) Selected gadget imagry }
     GA_SelectRender    =  (GA_Dummy + $000C);
-    
+
     { (UWORD) One of GFLG_GADGHNONE, GFLG_GADGHBOX, GFLG_GADGHCOMP,
      * or GFLG_GADGHIMAGE }
     GA_Highlight       =  (GA_Dummy + $000D);
-    
+
     { (BOOL) Indicate whether gadget is disabled or not.
      * Defaults to FALSE. }
     GA_Disabled        =  (GA_Dummy + $000E);
-    
+
     { (BOOL) Indicate whether the gadget is for
      * WFLG_GIMMEZEROZERO window borders or not.  Defaults
      * to FALSE. }
     GA_GZZGadget       =  (GA_Dummy + $000F);
-    
+
     { (UWORD) Gadget ID assigned by the application }
     GA_ID              =  (GA_Dummy + $0010);
-    
+
     { (APTR) Application specific data }
     GA_UserData        =  (GA_Dummy + $0011);
-    
+
     { (APTR) Gadget specific data }
     GA_SpecialInfo     =  (GA_Dummy + $0012);
-    
+
     { (BOOL) Indicate whether the gadget is selected or not.
      * Defaults to FALSE }
     GA_Selected        =  (GA_Dummy + $0013);
-    
+
     { (BOOL) When set tells the system that when this gadget
      * is selected causes the requester that it is in to be
      * ended.  Defaults to FALSE. }
     GA_EndGadget       =  (GA_Dummy + $0014);
-    
+
     { (BOOL) When set indicates that the gadget is to
      * notify the application when it becomes active.  Defaults
      * to FALSE. }
     GA_Immediate       =  (GA_Dummy + $0015);
-    
+
     { (BOOL) When set indicates that the application wants to
      * verify that the pointer was still over the gadget when
      * the select button is released.  Defaults to FALSE. }
     GA_RelVerify       =  (GA_Dummy + $0016);
-    
+
     { (BOOL) When set indicates that the application wants to
      * be notified of mouse movements while the gadget is active.
      * It is recommmended that GA_Immediate and GA_RelVerify are
      * also used so that the active gadget can be tracked by the
      * application.  Defaults to FALSE. }
     GA_FollowMouse     =  (GA_Dummy + $0017);
-    
+
     { (BOOL) Indicate whether the gadget is in the right border
      * or not.  Defaults to FALSE. }
     GA_RightBorder     =  (GA_Dummy + $0018);
-    
+
     { (BOOL) Indicate whether the gadget is in the left border
      * or not.  Defaults to FALSE. }
     GA_LeftBorder      =  (GA_Dummy + $0019);
-    
+
     { (BOOL) Indicate whether the gadget is in the top border
      * or not.  Defaults to FALSE. }
     GA_TopBorder       =  (GA_Dummy + $001A);
-    
+
     { (BOOL) Indicate whether the gadget is in the bottom border
      * or not.  Defaults to FALSE. }
     GA_BottomBorder    =  (GA_Dummy + $001B);
-    
+
     { (BOOL) Indicate whether the gadget is toggle-selected
      * or not.  Defaults to FALSE. }
     GA_ToggleSelect    =  (GA_Dummy + $001C);
@@ -3039,7 +3039,7 @@ CONST
     { (BOOL) Reserved for system use to indicate that the
      * gadget belongs to the system.  Defaults to FALSE. }
     GA_SysGadget       =  (GA_Dummy + $001D);
-    
+
     { (UWORD) Reserved for system use to indicate the
      * gadget type. }
     GA_SysGType        =  (GA_Dummy + $001E);
@@ -3087,7 +3087,7 @@ CONST
     }
     GA_RelSpecial         =  (GA_Dummy + $0027);
 
-    
+
      GA_TextAttr = GA_Dummy + 40;
   { (struct TextAttr  ) Indicate the font to use for the gadget.
          New for V42.  }
@@ -3114,7 +3114,7 @@ CONST
 
      GA_UserInput = GA_Dummy + 46;
   { (BOOL) Notification tag indicates this notification is from the activite
-  	   gadget receiving user input - an attempt to make IDCMPUPDATE more efficient.
+           gadget receiving user input - an attempt to make IDCMPUPDATE more efficient.
          Defaults to FALSE. New for V44.  }
 { PROPGCLASS attributes }
 
@@ -3172,7 +3172,7 @@ CONST
  LAYOUTA_LayoutObj      = (LAYOUTA_Dummy + $0001);
  LAYOUTA_Spacing        = (LAYOUTA_Dummy + $0002);
  LAYOUTA_Orientation    = (LAYOUTA_Dummy + $0003);
- 
+
  LAYOUTA_ChildMaxWidth = LAYOUTA_Dummy + $0004;
   { (BOOL) Child objects are of equal width.  Should default to TRUE for
          gadgets with a horizontal orientation.  New for V42.  }
@@ -3373,7 +3373,7 @@ Type
 
 { GM_KEYTEST send this message.
  }
- 
+
   type
      PgpKeyTest = ^tgpKeyTest;
      tgpKeyTest = record
@@ -3393,7 +3393,7 @@ Type
  * If a gadget returns zero for this method, it will subsequently be
  * activated via ActivateGadget() with a NULL IEvent.
  }
- 
+
      PgpKeyInput = ^tgpKeyInput;
      tgpKeyInput = record
           MethodID : Cardinal;        { GM_KEYGOACTIVE }
@@ -3538,31 +3538,31 @@ CONST
 
      IA_Underscore = IA_Dummy + $1c;
   { V44, Indicate underscore keyboard shortcut for image labels.
-  		       (UBYTE) Defaults to '_'
-  		      }
+                       (UBYTE) Defaults to '_'
+                      }
 
      IA_Scalable = IA_Dummy + $1d;
   { V44, Attribute indicates this image is allowed
-  			   to/can scale its rendering.
-  		       (BOOL) Defaults to FALSE.
-  		      }
+                           to/can scale its rendering.
+                       (BOOL) Defaults to FALSE.
+                      }
 
      IA_ActivateKey = IA_Dummy + $1e;
   { V44, Used to get an underscored label shortcut.
-  		       Useful for labels attached to string gadgets.
-  		       (UBYTE) Defaults to NULL.
-  		      }
+                       Useful for labels attached to string gadgets.
+                       (UBYTE) Defaults to NULL.
+                      }
 
      IA_Screen = IA_Dummy + $1f;
   { V44 Screen pointer, may be useful/required by certain classes.
-  		       (struct Screen  )
-  		      }
+                       (struct Screen  )
+                      }
 
      IA_Precision = IA_Dummy + $20;
   { V44 Precision value, typically pen precision but may be
-  		       used for similar custom purposes.
-  		       (Cardinal)
-  		      }
+                       used for similar custom purposes.
+                       (Cardinal)
+                      }
 
 {* next attribute: (IA_Dummy + $1c)   *}
 
@@ -3596,15 +3596,15 @@ CONST
 { Data values for IA_FrameType (recognized by FrameIClass)
  *
  * FRAME_DEFAULT:  The standard V37-type frame, which has
- *	thin edges.
+ *      thin edges.
  * FRAME_BUTTON:  Standard button gadget frames, having thicker
- *	sides and nicely edged corners.
+ *      sides and nicely edged corners.
  * FRAME_RIDGE:  A ridge such as used by standard string gadgets.
- *	You can recess the ridge to get a groove image.
+ *      You can recess the ridge to get a groove image.
  * FRAME_ICONDROPBOX: A broad ridge which is the standard imagery
- *	for areas in AppWindows where icons may be dropped.
+ *      for areas in AppWindows where icons may be dropped.
  }
- 
+
      FRAME_DEFAULT = 0;
      FRAME_BUTTON = 1;
      FRAME_RIDGE = 2;
@@ -4039,7 +4039,7 @@ CONST
 const
   INTUITIONNAME : PChar = 'intuition.library';
 
-var 
+var
   intuitionbase : PIntuitionBase;
 
 
@@ -4610,7 +4610,7 @@ end;
 
 FUNCTION MakeClass(classID : pCHAR;superClassID : string;superClassPtr : pIClass; instanceSize : Cardinal; flags : Cardinal) : pIClass;
 begin
-      MakeClass := MakeClass(classID,pas2c(superClassID),superClassPtr,instanceSize,flags); 
+      MakeClass := MakeClass(classID,pas2c(superClassID),superClassPtr,instanceSize,flags);
 end;
 
 FUNCTION MakeClass(classID : string;superClassID : string;superClassPtr : pIClass; instanceSize : Cardinal; flags : Cardinal) : pIClass;
@@ -4625,7 +4625,7 @@ end;
 
 PROCEDURE SetDefaultPubScreen(name : string);
 begin
-      SetDefaultPubScreen(pas2c(name)); 
+      SetDefaultPubScreen(pas2c(name));
 end;
 
 PROCEDURE SetWindowTitles(window : pWindow;windowTitle : string;screenTitle : pCHAR);
@@ -4690,10 +4690,10 @@ end. (* UNIT INTUITION *)
 
 {
   $Log$
-  Revision 1.2  2005-01-30 19:00:09  karoly
-    * changes for ASL and AHI support
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.1  2004/12/07 19:30:13  karoly
-    * initial revision
+  Revision 1.2  2005/01/30 19:00:09  karoly
+    * changes for ASL and AHI support
 
 }

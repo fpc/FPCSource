@@ -113,7 +113,7 @@ const
 
 Type
   TFlock = flock;
-    
+
   TFlock64 = Flock64;
-    
-        
+
+

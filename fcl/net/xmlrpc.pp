@@ -58,10 +58,10 @@ type
   end;
 
   TXMLRPCPostType = (
-    xmlrpcInvalid,		// Invalid post type
-    xmlrpcMethodCall,		// Method call
-    xmlrpcResponse,		// Method call response (successfull)
-    xmlrpcFaultResponse);	// Method call response (failed)
+    xmlrpcInvalid,              // Invalid post type
+    xmlrpcMethodCall,           // Method call
+    xmlrpcResponse,             // Method call response (successfull)
+    xmlrpcFaultResponse);       // Method call response (failed)
 
   TXMLRPCParser = class
   private
@@ -665,7 +665,7 @@ begin
       begin
         if Assigned(Node.FirstChild) and
           (CompareText(Node.FirstChild.NodeValue, AMemberName) = 0) then
-          exit; 
+          exit;
       end;
       Node := Node.NextSibling;
     end;
@@ -740,26 +740,26 @@ begin
         Connection := TCustomHttpClient.Create(LocalEventLoop, Socket);
         try
           Connection.HeaderToSend := THttpRequestHeader.Create;
-	  with THttpRequestHeader(Connection.HeaderToSend) do
-	  begin
-	    Command := 'POST';
-	    URI := '/xmlrpc';
-	    UserAgent := 'Free Pascal XML-RPC';
-	    ContentType := 'text/xml';
-	    ContentLength := RequestStream.Size;
-	  end;
+          with THttpRequestHeader(Connection.HeaderToSend) do
+          begin
+            Command := 'POST';
+            URI := '/xmlrpc';
+            UserAgent := 'Free Pascal XML-RPC';
+            ContentType := 'text/xml';
+            ContentLength := RequestStream.Size;
+          end;
           Connection.StreamToSend := RequestStream;
-	  Connection.ReceivedHeader := THttpResponseHeader.Create;
-	  Connection.ReceivedStream := ResponseStream;
-	  Connection.OnStreamSent := @StreamSent;
-	  Connection.Send;
-	  LocalEventLoop.Run;
+          Connection.ReceivedHeader := THttpResponseHeader.Create;
+          Connection.ReceivedStream := ResponseStream;
+          Connection.OnStreamSent := @StreamSent;
+          Connection.Send;
+          LocalEventLoop.Run;
         finally
           if Assigned(Connection) then
-	  begin
+          begin
             Connection.HeaderToSend.Free;
             Connection.ReceivedHeader.Free;
-	  end;
+          end;
           Connection.Free;
         end;
       finally
@@ -808,16 +808,16 @@ begin
             vtExtended: Writer.AddParam(Params, Writer.CreateDoubleValue(VExtended^));
             vtString: Writer.AddParam(Params, Writer.CreateStringValue(VString^));
             vtPChar: Writer.AddParam(Params, Writer.CreateStringValue(VPChar));
-}	    {$IFDEF HasWideStrings}
+}           {$IFDEF HasWideStrings}
 {            vtWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VWideChar));
             vtPWideChar: Writer.AddParam(Params, Writer.CreateStringValue(VPWideChar));
-}	    {$ENDIF}
+}           {$ENDIF}
 {            vtAnsiString: Writer.AddParam(Params, Writer.CreateStringValue(String(VAnsiString)));
             // vtCurrency: ?
             // vtVariant: ?
-}	    {$IFDEF HasWideStrings}
+}           {$IFDEF HasWideStrings}
 {            vtWideString: Writer.AddParam(Params, Writer.CreateStringValue(WideString(VWideString)));
-}	    {$ENDIF}
+}           {$ENDIF}
 {            vtInt64: Writer.AddParam(Params, Writer.CreateIntValue(VInt64^));
           else
             raise Exception.Create('Unsupported data type in RPC argument list');
@@ -894,34 +894,34 @@ begin
     try
       try
         // ...Header auswerten und zum Dispatcher springen...
-	PathStr := Parser.GetMethodName + '.';
+        PathStr := Parser.GetMethodName + '.';
         Path := TStringList.Create;
         try
           LastDot := 1;
           for i := 1 to Length(PathStr) do
             if PathStr[i] = '.' then
-	    begin
-    	      Path.Add(UpperCase(Copy(PathStr, LastDot, i - LastDot)));
-	      LastDot := i + 1;
-	    end;
-	  ExecCall := True;
-	  if Assigned(OnCheckCall) then
-	    OnCheckCall(Parser, Path, ExecCall);
-	  if ExecCall then
+            begin
+              Path.Add(UpperCase(Copy(PathStr, LastDot, i - LastDot)));
+              LastDot := i + 1;
+            end;
+          ExecCall := True;
+          if Assigned(OnCheckCall) then
+            OnCheckCall(Parser, Path, ExecCall);
+          if ExecCall then
             Dispatch(Parser, Writer, Path)
-	  else
-	    Writer.WriteFaultResponse(2, 'May not execute request');
+          else
+            Writer.WriteFaultResponse(2, 'May not execute request');
         finally
           Path.Free;
         end;
       except
         on e: Exception do
-	begin
-	  if Assigned(OnException) then
-	    OnException(e);
-	  Writer.WriteFaultResponse(2,
-	    'Execution error: ' + e.ClassName + ': ' + e.Message);
-	end;
+        begin
+          if Assigned(OnException) then
+            OnException(e);
+          Writer.WriteFaultResponse(2,
+            'Execution error: ' + e.ClassName + ': ' + e.Message);
+        end;
       end;
 
       AnswerStream := Writer.MakeStream;
@@ -945,26 +945,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-08-14 20:33:45  sg
-  * Added callback for RPC filtering etc. for XML-RPC servlets
-
-  Revision 1.5  2004/02/02 17:12:01  sg
-  * Some small fixes to get the code at least compiling again; the HTTP
-    client class is not expected to work at the moment, and the XML-RPC
-    client has been fully disabled for now.
-
-  Revision 1.4  2003/11/27 11:28:44  sg
-  * Debugging output is now enabled when the symbol "XMLRPCDebug" exists,
-    and not generally when compiled in debug mode
-
-  Revision 1.3  2003/11/22 12:10:27  sg
-  * Just a small adaption to chages in HTTP unit
-
-  Revision 1.2  2003/06/25 08:49:21  sg
-  * Added OnException event to TXMLRPCServlet
-
-  Revision 1.1  2002/04/25 19:30:29  sg
-  * First version (with exception of the HTTP unit: This is an improved version
-    of the old asyncio HTTP unit, now adapted to fpAsync)
+  Revision 1.7  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

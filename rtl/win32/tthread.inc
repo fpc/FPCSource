@@ -265,29 +265,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.5  2005-02-06 13:06:20  peter
+  Revision 1.6  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.5  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
-
-  Revision 1.4  2004/12/26 13:46:45  peter
-    * tthread uses systhrds
-
-  Revision 1.3  2004/12/23 09:42:42  marco
-   * first tthread.synchronize support (merged neli's patches)
-
-  Revision 1.2  2004/01/29 16:58:28  marco
-   * threadproc is passed to OS and must be stdcall;
-
-  Revision 1.1  2003/10/06 21:01:07  peter
-    * moved classes unit to rtl
-
-  Revision 1.8  2003/10/06 17:06:55  florian
-    * applied Johannes Berg's patch for exception handling in threads
-
-  Revision 1.7  2003/04/23 11:35:30  peter
-    * wndproc definition fix
-
-  Revision 1.6  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
 
 }

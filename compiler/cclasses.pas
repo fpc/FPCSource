@@ -2367,41 +2367,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  2004-11-22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.39  2004/11/15 23:35:30  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.38  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.37  2004/10/04 20:43:28  peter
-    * insertlistbefore added
-
-  Revision 1.36  2004/09/13 20:26:26  peter
-    * stringlist.find case insensitive
-
-  Revision 1.35  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.34  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.33  2004/05/24 17:30:09  peter
-    * allow setting of name in dictionary always. Otherwise it is never
-      possible to create an item with a name and rename before insert
-      this is used in the symtable to hide the current symbol
-
-  Revision 1.32  2004/05/23 14:31:31  peter
-    * count fixes for tlinkedlist
-
-  Revision 1.31  2004/04/28 18:02:54  peter
-    * add TList to cclasses, remove classes dependency from t_win32
-
-  Revision 1.30.2.3  2004/05/02 14:27:21  peter
-    * use sizeof(pointer) instead of 4
+  Revision 1.41  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

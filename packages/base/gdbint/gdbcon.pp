@@ -347,25 +347,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2004-11-08 21:55:09  peter
-    * fixed run directory
-    * Open dialog starts in dir of last editted file
-
-  Revision 1.5  2002/09/17 20:57:04  pierre
-    * increment in_command before calling CommandBegin
-      and after calling CommandEnd to be able to count
-      command levels inside these methods.
-
-  Revision 1.4  2002/09/07 15:42:51  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/04/03 09:09:22  pierre
-   * fix UniwDir for win32 gdbcon.pp
-
-  Revision 1.2  2002/03/26 16:23:14  pierre
-   * get IDE to work with dirs containing spaces for win32
-
-  Revision 1.1  2002/01/29 17:54:49  peter
-    * splitted to base and extra
+  Revision 1.7  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

@@ -4,9 +4,9 @@ program DumpMethods;
 
 uses
   Classes,  SysUtils;
-  
+
 const
-  VMT_COUNT = 100;                  
+  VMT_COUNT = 100;
 
 
 type
@@ -20,10 +20,10 @@ type
     Entries: packed array[0..9999999] of TMethodNameTableEntry;
   end;
   PMethodNameTable =  ^TMethodNameTable;
-  
+
   TPointerArray = packed array[0..9999999] of Pointer;
   PPointerArray = ^TPointerArray;
-  
+
 {$M+}
   TMyTest = class(TObject)
 //  published
@@ -43,28 +43,28 @@ type
     procedure P1; virtual;
     procedure P2; virtual;
   end;
-  
-procedure TMyTest.P1; 
+
+procedure TMyTest.P1;
 begin
 end;
 
-procedure TMyTest.P2; 
+procedure TMyTest.P2;
 begin
 end;
 
-procedure TMyTest2.P2; 
+procedure TMyTest2.P2;
 begin
 end;
 
-procedure TMyTest2.P3; 
+procedure TMyTest2.P3;
 begin
 end;
 
-procedure TMyPersistent.P1; 
+procedure TMyPersistent.P1;
 begin
 end;
 
-procedure TMyPersistent.P2; 
+procedure TMyPersistent.P2;
 begin
 end;
 
@@ -75,7 +75,7 @@ var
   Indent: String;
   n, idx: Integer;
   SearchAddr: Pointer;
-begin 
+begin
   WriteLn('---------------------------------------------');
   WriteLn('Dump of ', AClass.ClassName);
   WriteLn('---------------------------------------------');
@@ -90,11 +90,11 @@ begin
       WriteLn(Indent, 'Method count: ', IntToStr(Cmnt^.Count));
 
       Cvmt := Pointer(AClass) + vmtMethodStart;
-          
+
       for n := 0 to Cmnt^.Count - 1 do
-      begin                
+      begin
         WriteLn(Indent, 'Search: ', Cmnt^.Entries[n].Name^);
-         
+
         SearchAddr := Cmnt^.Entries[n].Addr;
         for idx := 0 to VMT_COUNT - 1 do
         begin
@@ -114,7 +114,7 @@ begin
     AClass := AClass.ClassParent;
   end;
 end;
-  
+
 begin
   DumpClass(TMyTest);
   DumpClass(TMyTest2);

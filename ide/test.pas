@@ -162,7 +162,7 @@ var i,j : longint;
 BEGIN
 {$ifdef m68k}
   asm
-    beq	@L13
+    beq @L13
     bhi @L13
     blo @L13
     dbeq d0,@L13

@@ -46,16 +46,7 @@ Function SameFileName(const S1, S2: string): Boolean;
 
 {
   $Log$
-  Revision 1.2  2004-02-08 15:05:50  michael
-  + Made SameFileName Public
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.8  2002/10/22 21:57:54  michael
-  + Added some missing path functions
-
-  Revision 1.7  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

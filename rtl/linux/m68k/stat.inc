@@ -15,7 +15,7 @@
 
   Stat = Packed Record  // No unix typing because of differences
                               // kernel <->libc
-    case byte of   
+    case byte of
       0: (st_dev     : word;
           pad1       : word;
           st_ino     : longint;
@@ -62,10 +62,7 @@
 
 {
   $Log$
-  Revision 1.1  2003-05-15 22:50:50  jonas
-    * the stat type is processor-dependent
-    * the dev_t tpye is processor dependent. Don't use it in the stat type
-      however, as that one is also used at a time where dev_t is already
-      defined as qword
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -36,7 +36,7 @@ begin
       HexValue[0]:=hexdigits[(ord(binvalue^) and 15)];
       HexValue[1]:=hexdigits[(ord(binvalue^) shr 4)];
       inc(hexvalue,2);
-      inc(binvalue);		
+      inc(binvalue);
     end;
 end;
 
@@ -47,7 +47,7 @@ function HexToBin(HexValue, BinValue: PChar; BinBufSize: Integer): Integer;
 // a..f    1100001
 // 0..9     110000
 var
-	i,j : integer;
+        i,j : integer;
 begin
  i:=binbufsize;
  while (i>0) do
@@ -77,13 +77,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-03 20:17:05  florian
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.2  2005/02/03 20:17:05  florian
     + BinToHex and HexToBin from Marco added
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.3  2002/09/07 15:15:26  peter
-    * old logs removed and tabs fixed
 
 }

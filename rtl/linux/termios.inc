@@ -84,7 +84,7 @@ Const
   TIOCPKT_START     = $8;
   TIOCPKT_NOSTOP    = $10;
   TIOCPKT_DOSTOP    = $20;
-  
+
 {c_cc characters}
   VINTR = 0;
   VQUIT = 1;
@@ -173,7 +173,7 @@ Const
   TIOCPKT_START      = 8;
   TIOCPKT_NOSTOP     = 16;
   TIOCPKT_DOSTOP     = 32;
-  
+
 {c_cc characters}
   VINTR    = 0;
   VQUIT    = 1;
@@ -262,7 +262,7 @@ Const
   TIOCPKT_START = $8;
   TIOCPKT_NOSTOP = $10;
   TIOCPKT_DOSTOP = $20;
-  
+
 {c_cc characters}
   VINTR = 0;
   VQUIT = 1;
@@ -351,7 +351,7 @@ Const
   TIOCPKT_NOSTOP =              16;
   TIOCPKT_DOSTOP =              32;
   TIOCSER_TEMT =    $01;
-  
+
 {c_cc characters}
   VINTR    = 0;
   VQUIT    = 1;
@@ -437,7 +437,7 @@ Const
   TIOCPKT_START      = 8;
   TIOCPKT_NOSTOP     = 16;
   TIOCPKT_DOSTOP     = 32;
-  
+
 {c_cc characters}
   VINTR    = 0;
   VQUIT    = 1;
@@ -621,22 +621,7 @@ const
 
 {
   $Log$
-  Revision 1.12  2004-12-28 15:30:04  florian
-    * fixed raw mode for non i386 targets
-    * fixed some alignment issues
+  Revision 1.13  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.11  2004/11/03 12:24:56  peter
-    * remove comment level 2 warning
-
-  Revision 1.10  2004/10/31 16:05:23  florian
-    + added ioctl constants for arm
-
-  Revision 1.9  2004/10/04 21:06:45  florian
-    + added x84_64 ioctls
-
-  Revision 1.8  2004/10/03 17:43:47  florian
-    * fixedPreviousFramePointer on sparc
-
-  Revision 1.7  2004/02/21 16:24:47  marco
-   * ppc ioctl nr fixed
 }

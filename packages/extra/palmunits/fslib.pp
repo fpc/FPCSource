@@ -45,7 +45,7 @@ interface
 
 uses palmos, libtraps, vfsmgr;
 
-// When building the PalmOS 3.5 version of ExpansionMgr, 
+// When building the PalmOS 3.5 version of ExpansionMgr,
 // since this constant was not in the 3.5 SystemResources.h...
 const
   sysFileTFileSystem = RSC('libf'); // File type for file system libraries
@@ -131,7 +131,7 @@ function FSFilesystemType(fsLibRefNum: UInt16; var filesystemTypeP: UInt32): Err
 (********************************************************************
  * File Stream APIs:
  ********************************************************************)
- 
+
 function FSFileCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PChar): Err; syscall FSTrapFileCreate;
 
 function FSFileOpen(fsLibRefNum: UInt16; volRefNum: UInt16; const pathNameP: PChar;
@@ -171,7 +171,7 @@ function FSFileSize(fsLibRefNum: UInt16; fileRef: FileRef; var fileSizeP: UInt32
 (********************************************************************
  * Directory APIs:
  ********************************************************************)
- 
+
 function FSDirCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PChar): Err; syscall FSTrapDirCreate;
 
 (************************************************************
@@ -187,11 +187,11 @@ function FSDirCreate(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PCh
  *  RETURNS:   errNone              -- no error
  *          expErrNotOpen        -- FS driver library has not been opened
  *          vfsErrFileStillOpen     -- Directory is still open
- *          vfsErrFileNotFound      -- the file could not be found 
+ *          vfsErrFileNotFound      -- the file could not be found
  *          vfsErrVolumeBadRef      -- the volume has not been mounted with FSVolumeMount
  *
  *************************************************************)
- 
+
 function FSDirDelete(fsLibRefNum: UInt16; volRefNum: UInt16; const dirNameP: PChar): Err;
 
 function FSDirEntryEnumerate(fsLibRefNum: UInt16; dirRef: FileRef; var dirEntryIteratorP: UInt32; var infoP: FileInfoType): Err; syscall FSTrapDirEntryEnumerate;

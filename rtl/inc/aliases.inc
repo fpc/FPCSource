@@ -33,10 +33,7 @@ procedure int_FinalizeArray(data,typeinfo : pointer;count,size : longint); [exte
 
 {
   $Log$
-  Revision 1.3  2004-10-24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.2  2002/09/07 15:07:44  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

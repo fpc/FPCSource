@@ -235,7 +235,7 @@ BEGIN
      Inc(PChar(CurString), 2);                        { Move to string }
      if (P^<>#0) then
        RunError(215);
-     Inc(P);  
+     Inc(P);
      If (P^ = Chr(CurId)) Then Exit;                    { Found the string }
    End;
 END;
@@ -418,13 +418,7 @@ END.
 
 {
  $Log$
- Revision 1.14  2004-12-26 13:26:52  peter
-   * remove phistrec usage
-
- Revision 1.13  2004/12/22 15:45:34  peter
-   * fixed overflow when histsize=0
-
- Revision 1.12  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.15  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

@@ -27,7 +27,7 @@
     IsListEmpty and
     IsMsgPortEmpty.
     22 Aug 2000.
-    
+
     Bug found in
     AllocSignal,
     OpenDevice,
@@ -52,23 +52,23 @@
     Added some consts and a record.
     Functions added.
          PROCEDURE NewMinList
-	 FUNCTION AVL_AddNode
-	 FUNCTION AVL_RemNodeByAddress
-	 FUNCTION AVL_RemNodeByKey
-	 FUNCTION AVL_FindNode
-	 FUNCTION AVL_FindPrevNodeByAddress
-	 FUNCTION AVL_FindPrevNodeByKey
-	 FUNCTION AVL_FindNextNodeByAddress
-	 FUNCTION AVL_FindNextNodeByKey
-	 FUNCTION AVL_FindFirstNode
-	 FUNCTION AVL_FindLastNode
+         FUNCTION AVL_AddNode
+         FUNCTION AVL_RemNodeByAddress
+         FUNCTION AVL_RemNodeByKey
+         FUNCTION AVL_FindNode
+         FUNCTION AVL_FindPrevNodeByAddress
+         FUNCTION AVL_FindPrevNodeByKey
+         FUNCTION AVL_FindNextNodeByAddress
+         FUNCTION AVL_FindNextNodeByKey
+         FUNCTION AVL_FindFirstNode
+         FUNCTION AVL_FindLastNode
 
     05 Feb 2003.
-    
+
     Changed integer > smallint.
     Retyped ULONG to longword
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -91,7 +91,7 @@ INTERFACE
 
     Added UWORD, WORDBITS, LONGBITS, PLONGBITS,
           UBYTE, PULONG, PAPTR, PLONG.
-	  For use with MUI.
+          For use with MUI.
     17 Jul 2000.
 
     nils.sjoholm@mailbox.swipnet.se
@@ -1343,7 +1343,7 @@ end;
 
 function IsMsgPortEmpty( mp : pMsgPort): boolean;
 begin
-     with mp^ do 
+     with mp^ do
          IsMsgPortEmpty := mp_MsgList.lh_TailPred = pNode(@mp_MsgList);
 end;
 
@@ -2762,142 +2762,142 @@ END;
 PROCEDURE NewMinList(minlist : pMinList);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	minlist,A0
-	MOVEA.L	_ExecBase,A6
-	JSR	-828(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L minlist,A0
+        MOVEA.L _ExecBase,A6
+        JSR     -828(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION AVL_AddNode(root : ppAVLNode; node : pAVLNode; func : POINTER) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	node,A1
-	MOVEA.L	func,A2
-	MOVEA.L	_ExecBase,A6
-	JSR	-852(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L node,A1
+        MOVEA.L func,A2
+        MOVEA.L _ExecBase,A6
+        JSR     -852(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_RemNodeByAddress(root : ppAVLNode; node : pAVLNode) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	node,A1
-	MOVEA.L	_ExecBase,A6
-	JSR	-858(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L node,A1
+        MOVEA.L _ExecBase,A6
+        JSR     -858(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_RemNodeByKey(root : ppAVLNode; key : POINTER; func : POINTER) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	key,A1
-	MOVEA.L	func,A2
-	MOVEA.L	_ExecBase,A6
-	JSR	-864(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L key,A1
+        MOVEA.L func,A2
+        MOVEA.L _ExecBase,A6
+        JSR     -864(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_FindNode(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	key,A1
-	MOVEA.L	func,A2
-	MOVEA.L	_ExecBase,A6
-	JSR	-870(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L key,A1
+        MOVEA.L func,A2
+        MOVEA.L _ExecBase,A6
+        JSR     -870(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_FindPrevNodeByAddress(CONST node : pAVLNode) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	node,A0
-	MOVEA.L	_ExecBase,A6
-	JSR	-876(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L node,A0
+        MOVEA.L _ExecBase,A6
+        JSR     -876(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_FindPrevNodeByKey(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	key,A1
-	MOVEA.L	func,A2
-	MOVEA.L	_ExecBase,A6
-	JSR	-882(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L key,A1
+        MOVEA.L func,A2
+        MOVEA.L _ExecBase,A6
+        JSR     -882(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_FindNextNodeByAddress(CONST node : pAVLNode) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	node,A0
-	MOVEA.L	_ExecBase,A6
-	JSR	-888(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L node,A0
+        MOVEA.L _ExecBase,A6
+        JSR     -888(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_FindNextNodeByKey(CONST root : pAVLNode; key : POINTER; func : POINTER) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	key,A1
-	MOVEA.L	func,A2
-	MOVEA.L	_ExecBase,A6
-	JSR	-894(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L key,A1
+        MOVEA.L func,A2
+        MOVEA.L _ExecBase,A6
+        JSR     -894(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_FindFirstNode(CONST root : pAVLNode) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	_ExecBase,A6
-	JSR	-900(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L _ExecBase,A6
+        JSR     -900(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AVL_FindLastNode(CONST root : pAVLNode) : pAVLNode;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	root,A0
-	MOVEA.L	_ExecBase,A6
-	JSR	-906(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L root,A0
+        MOVEA.L _ExecBase,A6
+        JSR     -906(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
@@ -2952,40 +2952,9 @@ END. (* UNIT EXEC *)
 
 {
   $Log$
-  Revision 1.3  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
-  Revision 1.2  2003/02/07 20:45:08  nils
-  * update for amigaos 3.9
-
-  Revision 1.1.2.2  2001/07/24 07:34:30  pierre
-   * amigaoverlays include file insertion commented out as it does seem necessary
-
-  Revision 1.1.2.1  2001/03/27 03:10:54  carl
-  + Fixes from Nils
-
-  Revision 1.3  1998/09/14 20:22:32  carl
-    * Several bugfixes by Nils Sjoholm
-
-  Revision 1.1.1.1  1998/03/25 11:18:47  root
-  * Restored version
-
-  Revision 1.3  1998/01/26 12:02:42  michael
-  + Added log at the end
-
-
-
-  Working file: rtl/amiga/exec.pp
-  description:
-  ----------------------------
-  revision 1.2
-  date: 1997/12/14 19:02:47;  author: carl;  state: Exp;  lines: +11 -10
-  * small bugfixes
-  ----------------------------
-  revision 1.1
-  date: 1997/12/10 13:48:45;  author: carl;  state: Exp;
-  + exec dynamic library definitions and calls.
-  =============================================================================
 }
 
 

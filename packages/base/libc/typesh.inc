@@ -9,7 +9,7 @@ type
    __u_long = dword;
    __u_quad_t = qword;
    __quad_t = int64;
-   
+
    __int8_t = char;
    __uint8_t = byte;
    __int16_t = smallint;
@@ -18,7 +18,7 @@ type
    __uint32_t = dword;
    __int64_t = Int64;
    __uint64_t = Qword;
-   
+
    __qaddr_t = __quad_t;
    __dev_t = __u_quad_t;
    __uid_t = __u_int;
@@ -46,18 +46,18 @@ type
    __clockid_t = longint;
    __timer_t = longint;
    __fd_mask = dWord;
-   
+
 const
   __FD_SETSIZE = 1024;
   __NFDBITS       = 8 * sizeof(__fd_mask);
-   
+
 type
-  __fd_set = record 
+  __fd_set = record
      fds_bits: packed array[0..(__FD_SETSIZE div __NFDBITS)-1] of __fd_mask;
   end;
   TFdSet = __fd_set;
   PFdSet = ^TFdSet;
-        
+
 
 type
   __key_t = longint;
@@ -211,4 +211,4 @@ Type
 
 
 { fd_set for select and pselect.  }
-               
+

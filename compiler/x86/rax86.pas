@@ -743,31 +743,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2005-01-31 17:07:50  peter
+  Revision 1.22  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.21  2005/01/31 17:07:50  peter
     * fix [regpara] in intel assembler
-
-  Revision 1.20  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.19  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.18  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.17.2.3  2004/05/01 23:36:47  peter
-    * assembler reader 64bit fixes
-
-  Revision 1.17.2.2  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.17.2.1  2004/04/27 18:18:26  peter
-    * aword -> aint
-
-  Revision 1.17  2004/01/22 16:29:11  peter
-    * give warning that DWORD is used as size in delphi mode when no
-      size was specified
 
 }

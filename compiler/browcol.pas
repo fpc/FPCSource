@@ -2144,29 +2144,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.42  2004-11-15 23:35:30  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.41  2004/11/09 16:46:05  peter
-    * fixed compile
-
-  Revision 1.40  2004/10/14 16:53:26  mazen
-  * use SysUtils unit instead of Dos Unit
-  + overload Replace to use AnsiString
-
-  Revision 1.39  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.38  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.37.2.1  2004/05/03 21:08:56  peter
-    * use ptrint
-
-  Revision 1.37  2004/03/23 22:34:49  peter
-    * constants ordinals now always have a type assigned
-    * integer constants have the smallest type, unsigned prefered over
-      signed
+  Revision 1.43  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

@@ -67,9 +67,9 @@ implementation
 {$IFDEF TEST}
 {extern}
 var
-  image_buffer : JSAMPROW;	{ Points to large array of R,G,B-order data }
-  image_height : int;	        { Number of rows in image }
-  image_width : int;		{ Number of columns in image }
+  image_buffer : JSAMPROW;      { Points to large array of R,G,B-order data }
+  image_height : int;           { Number of rows in image }
+  image_width : int;            { Number of columns in image }
 
 {$ENDIF}
 
@@ -95,9 +95,9 @@ var
 
   jerr : jpeg_error_mgr;
   { More stuff }
-  outfile : FILE;		{ target file }
-  row_pointer : array[0..0] of JSAMPROW ;	{ pointer to JSAMPLE row[s] }
-  row_stride : int;		{ physical row width in image buffer }
+  outfile : FILE;               { target file }
+  row_pointer : array[0..0] of JSAMPROW ;       { pointer to JSAMPLE row[s] }
+  row_stride : int;             { physical row width in image buffer }
 begin
   { Step 1: allocate and initialize JPEG compression object }
 
@@ -136,10 +136,10 @@ begin
   { First we supply a description of the input image.
     Four fields of the cinfo struct must be filled in: }
 
-  cinfo.image_width := image_width; 	{ image width and height, in pixels }
+  cinfo.image_width := image_width;     { image width and height, in pixels }
   cinfo.image_height := image_height;
-  cinfo.input_components := 3;		{ # of color components per pixel }
-  cinfo.in_color_space := JCS_RGB; 	{ colorspace of input image }
+  cinfo.input_components := 3;          { # of color components per pixel }
+  cinfo.in_color_space := JCS_RGB;      { colorspace of input image }
   { Now use the library's routine to set default compression parameters.
     (You must set at least cinfo.in_color_space before calling this,
     since the defaults depend on the source color space.) }
@@ -165,7 +165,7 @@ begin
     To keep things simple, we pass one scanline per call; you can pass
     more if you wish, though. }
 
-  row_stride := image_width * 3;	{ JSAMPLEs per row in image_buffer }
+  row_stride := image_width * 3;        { JSAMPLEs per row in image_buffer }
 
   while (cinfo.next_scanline < cinfo.image_height) do
   begin
@@ -281,9 +281,9 @@ type
 type
   my_error_ptr = ^my_error_mgr;
   my_error_mgr = record
-    pub : jpeg_error_mgr;	{ "public" fields }
+    pub : jpeg_error_mgr;       { "public" fields }
 
-    setjmp_buffer : jmp_buf;	{ for return to caller }
+    setjmp_buffer : jmp_buf;    { for return to caller }
   end;
 
 
@@ -323,9 +323,9 @@ var
 
   jerr  : my_error_mgr;
   { More stuff }
-  infile : FILE;		{ source file }
-  buffer : JSAMPARRAY;		{ Output row buffer }
-  row_stride : int;		{ physical row width in output buffer }
+  infile : FILE;                { source file }
+  buffer : JSAMPARRAY;          { Output row buffer }
+  row_stride : int;             { physical row width in output buffer }
 begin
 
   { In this example we want to open the input file before doing anything else,
@@ -349,7 +349,7 @@ begin
   { We set up the normal JPEG error routines, then override error_exit. }
   cinfo.err := jpeg_std_error(jerr.pub);
   jerr.pub.error_exit := my_error_exit;
-  jerr.pub.trace_level := 3;	{ I'm debbuging a lot (Nomssi) }
+  jerr.pub.trace_level := 3;    { I'm debbuging a lot (Nomssi) }
   { Establish the setjmp return context for my_error_exit to use. }
   if (setjmp(jerr.setjmp_buffer)<>0) then
   begin
@@ -383,7 +383,7 @@ begin
   { the defaults are set by jpeg_read_header(),
     we could choose to do nothing here. }
   cinfo.scale_num := 1;
-  cinfo.scale_denom := 1;	{ 1:1 scaling }
+  cinfo.scale_denom := 1;       { 1:1 scaling }
   cinfo.dct_method := JDCT_IFAST;
   cinfo.quantize_colors := TRUE;
   cinfo.two_pass_quantize := TRUE;
@@ -405,7 +405,7 @@ begin
   row_stride := cinfo.output_width * cinfo.output_components;
   { Make a one-row-high sample array that will go away when done with image }
   buffer := cinfo.mem^.alloc_sarray
-		(j_common_ptr(@cinfo), JPOOL_IMAGE, row_stride, 1);
+                (j_common_ptr(@cinfo), JPOOL_IMAGE, row_stride, 1);
 
   { Step 6: while (scan lines remain to be read) }
   {           jpeg_read_scanlines(...); }

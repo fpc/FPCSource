@@ -2035,7 +2035,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.116  2005-02-14 16:45:00  peter
+  Revision 1.117  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.116  2005/02/14 16:45:00  peter
     * allow more operations on integers with a typecast to pointer
 
   Revision 1.115  2005/02/13 20:33:57  peter
@@ -2066,66 +2069,5 @@ end.
 
   Revision 1.107  2005/01/07 16:22:47  peter
     * handle string-open array of (wide)char without variants
-
-  Revision 1.106  2004/12/05 12:28:10  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.105  2004/11/29 21:40:54  peter
-    * fixed wrong calculation for checking default parameters
-
-  Revision 1.104  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.103  2004/11/08 22:09:58  peter
-    * tvarsym splitted
-
-  Revision 1.102  2004/11/01 16:58:57  peter
-    * give IE instead of crash when no procsym is passed for calln
-
-  Revision 1.101  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.100  2004/10/12 14:34:49  peter
-    * fixed visibility for procsyms
-    * fixed override check when there was no entry yet
-
-  Revision 1.99  2004/10/08 17:09:43  peter
-    * tvarsym.varregable added, split vo_regable from varoptions
-
-  Revision 1.98  2004/09/27 15:15:52  peter
-    * register loopvarsym for fields instead of record variable
-    * don't allow class fields as loop var
-
-  Revision 1.97  2004/09/13 20:28:27  peter
-    * for loop variable assignment is not allowed anymore
-
-  Revision 1.96  2004/08/22 11:24:09  peter
-    * fix error when passing constant to var parameter
-
-  Revision 1.95  2004/06/23 16:22:45  peter
-    * include unit name in error messages when types are the same
-
-  Revision 1.94  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.93  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.92  2004/05/25 21:27:35  florian
-    * fixed another formal const problem caused by yesterday's changes
-
-  Revision 1.91  2004/05/24 21:24:40  florian
-    * properties are allowed as formal const parameters as well
-
-  Revision 1.90  2004/05/24 21:04:31  florian
-    * fixed more formal const problems
-
-  Revision 1.89  2004/05/24 20:39:41  florian
-    * stricter handling of formal const parameters and IE fixed
 
 }

@@ -58,10 +58,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-10-30 15:21:38  florian
-    * fixed generic optimizer
-    * enabled generic optimizer for sparc
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
 
-  Revision 1.5  2004/06/20 08:55:32  florian
-    * logs truncated
 }

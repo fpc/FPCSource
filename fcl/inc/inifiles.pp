@@ -790,17 +790,7 @@ end.
 
 {
   $Log$
-  Revision 1.7  2002-10-04 19:00:33  peter
-    * remove section from sectionlist in erasesection, patch from
-      webbug 2161
-
-  Revision 1.6  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/08/13 06:51:06  michael
-  + Fixed memory leak reported by A. Chuchko (bug report 2079)
-
-  Revision 1.4  2002/06/13 17:28:41  michael
-  + Destructor was not freeing all memory. This is now fixed.
+  Revision 1.8  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

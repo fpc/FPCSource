@@ -1,7 +1,7 @@
 {$IfDef read_interface}
 type
   PGnomeDialog = ^TGnomeDialog;
-  
+
   TGnomeDialog = record
       window : TGtkWindow;
       vbox : PGtkWidget;
@@ -18,7 +18,7 @@ const
    bp_TGnomeDialog_click_closes = 0;
    bm_TGnomeDialog_just_hide = $2;
    bp_TGnomeDialog_just_hide = 1;
-   
+
 function click_closes(var a : TGnomeDialog) : Boolean;
 procedure set_click_closes(var a : TGnomeDialog; __click_closes : Boolean);
 function just_hide(var a : TGnomeDialog) : Boolean;

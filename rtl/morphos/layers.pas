@@ -233,7 +233,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-12-07 20:07:25  karoly
-    + added missing InitLayersLibrary helper
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

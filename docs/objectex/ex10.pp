@@ -1,14 +1,14 @@
 Program ex10;
 
-{ 
-Program to demonstrate the TStream.StrRead TStream.StrWrite functions 
+{
+Program to demonstrate the TStream.StrRead TStream.StrWrite functions
 }
 
 Uses objects;
 
 Var P : PChar;
     S : PStream;
-    
+
 begin
   P:='Constant Pchar string';
   Writeln ('Writing to stream : "',P,'"');

@@ -14,7 +14,7 @@
  *    11/14/94  RM - Created by Ron Marianetti
  *
  *****************************************************************************)
- 
+
 unit featuremgr;
 
 interface

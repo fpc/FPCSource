@@ -36,14 +36,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-10-04 20:46:22  peter
-    * spilling code rewritten for x86. It now used the generic
-      spilling routines. Special x86 optimization still needs
-      to be added.
-    * Spilling fixed when both operands needed to be spilled
-    * Cleanup of spilling routine, do_spill_readwritten removed
-
-  Revision 1.3  2004/06/20 08:55:31  florian
-    * logs truncated
+  Revision 1.5  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

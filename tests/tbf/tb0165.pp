@@ -7,11 +7,11 @@ type
     function f : widestring;
     procedure p(var v);
   end;
-    
-procedure tmyclass.p(var v);  
+
+procedure tmyclass.p(var v);
   begin
   end;
-  
+
  function tmyclass.f2 : ansistring;
   begin
     p(pchar(result));
@@ -21,6 +21,6 @@ function tmyclass.f : widestring;
   begin
     p(pwidechar(result));
   end;
-  
+
 begin
 end.

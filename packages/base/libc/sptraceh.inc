@@ -22,7 +22,7 @@ type
      PTRACE_SETFPXREGS := 19,
      PTRACE_SYSCALL := 24
   );
-  
+
 Const
    PT_TRACE_ME = PTRACE_TRACEME;
    PT_READ_I = PTRACE_PEEKTEXT;
@@ -54,4 +54,4 @@ function ptrace(__request: __ptrace_request; PID: pid_t; Address: Pointer; Data:
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

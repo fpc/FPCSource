@@ -19,4 +19,4 @@ function vlimit(__resource:__vlimit_resource; __value:longint):longint;cdecl;ext
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

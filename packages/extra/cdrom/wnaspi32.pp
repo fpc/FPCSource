@@ -22,11 +22,11 @@ const
   SRB_DATA_SG_LIST          = $02; // Data buffer points to scatter-gather list
 
   WM_ASPIPOST               = $4D42; // ASPI Post message
-  
+
 { ---------------------------------------------------------------------
-  ASPI Command Definitions  
+  ASPI Command Definitions
   ---------------------------------------------------------------------}
-    
+
   SC_HA_INQUIRY     = $00; // Host adapter inquiry
   SC_GET_DEV_TYPE   = $01; // Get device type
   SC_EXEC_SCSI_CMD  = $02; // Execute SCSI command
@@ -35,7 +35,7 @@ const
   SC_GET_DISK_INFO  = $06; // Get Disk information
 
 { ---------------------------------------------------------------------
-  SRB Status  
+  SRB Status
   ---------------------------------------------------------------------}
 
   SS_PENDING        = $00; // SRB being processed
@@ -57,15 +57,15 @@ const
 { ---------------------------------------------------------------------
     Host Adapter Status
   ---------------------------------------------------------------------}
-  
-  HASTAT_OK                   = $00; // Host adapter did not detect an 															// error
+
+  HASTAT_OK                   = $00; // Host adapter did not detect an                                                                                                                  // error
   HASTAT_SEL_TO               = $11; // Selection Timeout
   HASTAT_DO_DU                = $12; // Data overrun data underrun
   HASTAT_BUS_FREE             = $13; // Unexpected bus free
-  HASTAT_PHASE_ERR            = $14; // Target bus phase sequence 																// failure
-  HASTAT_TIMEOUT              = $09; // Timed out while SRB was 																	waiting to beprocessed.
+  HASTAT_PHASE_ERR            = $14; // Target bus phase sequence                                                                                                                               // failure
+  HASTAT_TIMEOUT              = $09; // Timed out while SRB was                                                                                                                                         waiting to beprocessed.
   HASTAT_COMMAND_TIMEOUT      = $0B; // While processing the SRB, the adapter timed out.
-  HASTAT_MESSAGE_REJECT       = $0D; // While processing SRB, the 																// adapter received a MESSAGE 															// REJECT.
+  HASTAT_MESSAGE_REJECT       = $0D; // While processing SRB, the                                                                                                                               // adapter received a MESSAGE                                                                                                                   // REJECT.
   HASTAT_BUS_RESET            = $0E; // A bus reset was detected.
   HASTAT_PARITY_ERROR         = $0F; // A parity error was detected.
   HASTAT_REQUEST_SENSE_FAILED = $10; // The adapter failed in issuing
@@ -73,7 +73,7 @@ const
 { ---------------------------------------------------------------------
     SRB - HOST ADAPTER INQUIRY - SC_HA_INQUIRY
   ---------------------------------------------------------------------}
-  
+
 type
 
   SRB_HAInquiry = record
@@ -96,7 +96,7 @@ type
 { ---------------------------------------------------------------------
      SRB - GET DEVICE TYPE - SC_GET_DEV_TYPE
   ---------------------------------------------------------------------}
-  
+
   SRB_GDEVBlock = record
     SRB_Cmd,              // ASPI command code = SC_GET_DEV_TYPE
     SRB_Status,           // ASPI command status byte
@@ -115,7 +115,7 @@ type
 { ---------------------------------------------------------------------
     SRB - EXECUTE SCSI COMMAND - SC_EXEC_SCSI_CMD
   ---------------------------------------------------------------------}
-  
+
   SRB_ExecSCSICmd = record
     SRB_Cmd,                   // ASPI command code = SC_EXEC_SCSI_CMD
     SRB_Status,                // ASPI command status byte
@@ -145,7 +145,7 @@ type
 { ---------------------------------------------------------------------
     SRB - ABORT AN SRB - SC_ABORT_SRB
   ---------------------------------------------------------------------}
-  
+
   SRB_Abort = record
     SRB_Cmd,               // ASPI command code = SC_EXEC_SCSI_CMD
     SRB_Status,            // ASPI command status byte
@@ -207,7 +207,7 @@ type
 type
   TSendASPI32Command = function( LPSRB : Pointer ) : DWORD; cdecl;
   TGetASPI32SupportInfo = function : DWORD; cdecl;
-  
+
 Const
   SendASPI32Command : TSendASPI32Command = nil;
   GetASPI32SupportInfo : TGetASPI32SupportInfo = nil;

@@ -46,7 +46,7 @@ Var
   S : String;
   L : TStringList;
   C : TFPDocWriterClass;
-  
+
 begin
   Writeln(Format(SCmdLineHelp,[ExtractFileName(Paramstr(0))]));
   Writeln(SUsageOption010);
@@ -149,7 +149,7 @@ procedure ParseOption(const s: String);
 var
   i: Integer;
   Cmd, Arg: String;
-  
+
 begin
   if (s = '-h') or (s = '--help') then
     Usage(0)
@@ -210,7 +210,7 @@ procedure ParseCommandLine;
 
 var
   i: Integer;
-  
+
 begin
   for i := 1 to ParamCount do
     ParseOption(ParamStr(i));
@@ -229,7 +229,7 @@ var
   i: Integer;
   WriterClass : TFPDocWriterClass;
   Writer : TFPDocWriter;
-  
+
 begin
   for i := 0 to DescrFiles.Count - 1 do
     Engine.AddDocFile(DescrFiles[i]);
@@ -284,7 +284,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2005-02-05 12:30:08  michael
+  Revision 1.10  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.9  2005/02/05 12:30:08  michael
   + Fixed bug report from Ales Katona
 
   Revision 1.8  2005/01/14 17:55:07  michael

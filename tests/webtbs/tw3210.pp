@@ -1,9 +1,9 @@
 Const
-    N	= 10000;
+    N   = 10000;
 
 Var
-    count	: array[0..200] of int64;
-    i , tot	: longint;
+    count       : array[0..200] of int64;
+    i , tot     : longint;
 
 Begin
     fillchar(count , sizeof(count) , 0);

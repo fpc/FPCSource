@@ -9,8 +9,8 @@ uses
   Windows;
 {$else}
 {$ifdef KYLIX}
-  Libc, 
-{$endif}  
+  Libc,
+{$endif}
   Types, Dbf_Wtil;
 {$endif}
 

@@ -73,7 +73,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-13 22:13:20  peter
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 22:13:20  peter
     * get solaris back in shape
 
   Revision 1.8  2005/02/05 23:46:12  peter
@@ -86,31 +89,6 @@ end;
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
-
-  Revision 1.5  2004/11/06 22:48:16  florian
-    * fixed errno setting in mt sparc/linux mt programs
-
-  Revision 1.4  2004/08/04 19:27:10  florian
-    * fixed floating point and integer exception handling on sparc/linux
-
-  Revision 1.3  2004/05/31 20:25:04  peter
-    * removed warnings
-
-  Revision 1.2  2003/11/06 16:28:52  peter
-    * compile fix
-
-  Revision 1.1  2003/11/06 16:22:01  peter
-    * sparc
-
-  Revision 1.1  2003/11/02 14:53:06  jonas
-    + sighand and associated record definitions for ppc. Untested.
-
-  Revision 1.2  2003/11/01 01:58:11  marco
-   * more small fixes.
-
-  Revision 1.1  2003/11/01 01:27:20  marco
-   * initial version from 1.0.x branch
-
 
 }
 

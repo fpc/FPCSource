@@ -66,7 +66,7 @@ type
 
   TPasMemberVisibility = (visDefault, visPrivate, visProtected, visPublic,
     visPublished, visAutomated);
-    
+
   TPasMemberVisibilities = set of TPasMemberVisibility;
 
 
@@ -83,8 +83,8 @@ type
     constructor Create(const AName: String; AParent: TPasElement); virtual;
     procedure AddRef;
     procedure Release;
-    function FullName: String;		// Name including parent's names
-    function PathName: String;		// = Module.Name + FullName
+    function FullName: String;          // Name including parent's names
+    function PathName: String;          // = Module.Name + FullName
     function GetModule: TPasModule;
     function ElementTypeName: String; virtual;
     function GetDeclaration(full : Boolean) : String; virtual;
@@ -100,7 +100,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: String; override;
     procedure AddUnitToUsesList(const AUnitName: String);
-    UsesList: TList;		// TPasUnresolvedTypeRef or TPasModule elements
+    UsesList: TList;            // TPasUnresolvedTypeRef or TPasModule elements
     Declarations, ResStrings, Types, Consts, Classes,
       Functions, Variables: TList;
   end;
@@ -119,7 +119,7 @@ type
     constructor Create(const AName: String; AParent: TPasElement); override;
     destructor Destroy; override;
     function ElementTypeName: String; override;
-    Modules: TList;	// List of TPasModule objects
+    Modules: TList;     // List of TPasModule objects
   end;
 
   TPasResString = class(TPasElement)
@@ -193,7 +193,7 @@ type
      function ElementTypeName: String; override;
     function GetDeclaration(full : boolean) : String; override;
     Procedure GetEnumNames(Names : TStrings);
-    Values: TList;	// List of TPasEnumValue objects
+    Values: TList;      // List of TPasEnumValue objects
   end;
 
   TPasSetType = class(TPasType)
@@ -211,7 +211,7 @@ type
     function ElementTypeName: String; override;
     function GetDeclaration(full : boolean) : String; override;
     IsPacked: Boolean;
-    Members: TList;	// array of TPasVariable elements
+    Members: TList;     // array of TPasVariable elements
   end;
 
 
@@ -223,9 +223,9 @@ type
     destructor Destroy; override;
     function ElementTypeName: String; override;
     ObjKind: TPasObjKind;
-    AncestorType: TPasType;	// TPasClassType or TPasUnresolvedTypeRef
+    AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsPacked: Boolean;        // 12/04/04 - Dave - Added
-    Members: TList;	// array of TPasElement objects
+    Members: TList;     // array of TPasElement objects
   end;
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut);
@@ -251,7 +251,7 @@ type
     procedure GetArguments(List : TStrings);
     function CreateArgument(const AName, AUnresolvedTypeName: String):
       TPasArgument;
-    Args: TList;	// List of TPasArgument objects
+    Args: TList;        // List of TPasArgument objects
   end;
 
   TPasResultElement = class(TPasElement)
@@ -304,7 +304,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: String; override;
     function GetDeclaration(full : boolean) : String; override;
-    Args: TList;	// List of TPasArgument objects
+    Args: TList;        // List of TPasArgument objects
     IndexValue, ReadAccessorName, WriteAccessorName,
       StoredAccessorName, DefaultValue: String;
     IsDefault, IsNodefault: Boolean;
@@ -321,7 +321,7 @@ type
     destructor Destroy; override;
     function ElementTypeName: String; override;
     function TypeName: String; override;
-    Overloads: TList;		// List of TPasProcedure nodes
+    Overloads: TList;           // List of TPasProcedure nodes
   end;
 
   TPasProcedure = class(TPasProcedureBase)
@@ -419,13 +419,13 @@ type
     function AddIfElse(const ACondition: String): TPasImplIfElse;
     function AddForLoop(AVar: TPasVariable;
       const AStartValue, AEndValue: String): TPasImplForLoop;
-    Elements: TList;	// TPasImplElement objects
+    Elements: TList;    // TPasImplElement objects
   end;
 
 
 const
   AccessNames: array[TArgumentAccess] of String[6] = ('', 'const ', 'var ', 'out ');
-  AllVisibilities: TPasMemberVisibilities = 
+  AllVisibilities: TPasMemberVisibilities =
      [visDefault, visPrivate, visProtected, visPublic,
       visPublished, visAutomated];
 
@@ -434,7 +434,7 @@ const
 
   ObjKindNames: array[TPasObjKind] of String = (
     'object', 'class', 'interface');
-  
+
 
 implementation
 
@@ -560,7 +560,7 @@ function TPasElement.GetDeclaration (full : boolean): String;
 begin
   if Full then
     Result := Name
-  else  
+  else
     Result := '';
 end;
 
@@ -685,7 +685,7 @@ begin
       Names.Add(TPasEnumValue(Items[i]).Name + ',');
     if Count > 0 then
       Names.Add(TPasEnumValue(Items[Count - 1]).Name);
-  end;  
+  end;
 end;
 
 
@@ -1045,7 +1045,7 @@ function TPasRangeType.GetDeclaration (full : boolean) : string;
 begin
   Result:=RangeStart+'..'+RangeEnd;
   If Full then
-    Result:=Name+' = '+Result;  
+    Result:=Name+' = '+Result;
 end;
 
 function TPasArrayType.GetDeclaration (full : boolean) : string;
@@ -1066,7 +1066,7 @@ Function IndentStrings(S : TStrings; indent : Integer) : String;
 
 Var
   I,CurrLen,CurrPos : Integer;
-  
+
 
 begin
   Result:='';
@@ -1090,20 +1090,20 @@ function TPasEnumType.GetDeclaration (full : boolean) : string;
 Var
   S : TStringList;
   i : integer;
-    
+
 begin
   S:=TStringList.Create;
   Try
     If Full then
       S.Add(Name+' = (')
-    else  
+    else
       S.Add('(');
-    GetEnumNames(S);  
+    GetEnumNames(S);
     S[S.Count-1]:=S[S.Count-1]+')';
-    If Full then      
+    If Full then
       Result:=IndentStrings(S,Length(Name)+4)
     else
-      Result:=IndentStrings(S,1);  
+      Result:=IndentStrings(S,1);
   finally
     S.Free;
   end;
@@ -1114,7 +1114,7 @@ function TPasSetType.GetDeclaration (full : boolean) : string;
 Var
   S : TStringList;
   i : Integer;
-  
+
 begin
   If EnumType is TPasEnumType then
     begin
@@ -1122,11 +1122,11 @@ begin
     Try
       If Full then
         S.Add(Name+'= Set of (')
-      else  
+      else
         S.Add('Set of (');
       TPasEnumType(EnumType).GetEnumNames(S);
       S[S.Count-1]:=S[S.Count-1]+')';
-      I:=Pos('(',S[0]);  
+      I:=Pos('(',S[0]);
       Result:=IndentStrings(S,i);
     finally
       S.Free;
@@ -1146,7 +1146,7 @@ Var
   S,T : TStringList;
   temp : String;
   I,J : integer;
-    
+
 begin
   S:=TStringList.Create;
   T:=TstringList.Create;
@@ -1171,13 +1171,13 @@ begin
         end
       else
         S.Add('  '+Temp+';');
-      end;  
+      end;
     S.Add('end');
-    Result:=S.Text;  
+    Result:=S.Text;
   finally
     S.free;
     T.free;
-  end;  
+  end;
 end;
 
 procedure TPasProcedureType.GetArguments(List : TStrings);
@@ -1185,7 +1185,7 @@ procedure TPasProcedureType.GetArguments(List : TStrings);
 Var
   T : String;
   I : Integer;
-  
+
 begin
   For I:=0 to Args.Count-1 do
     begin
@@ -1196,28 +1196,28 @@ begin
     If I<Args.Count-1 then
       List.Add(T+';')
     else
-      List.Add(T+')');  
-    end;  
-end;    
+      List.Add(T+')');
+    end;
+end;
 
 function TPasProcedureType.GetDeclaration (full : boolean) : string;
 
 Var
   S : TStringList;
-    
+
 begin
   S:=TStringList.Create;
   Try
-    If Full then 
+    If Full then
       S.Add(Format('%s = ',[Name]));
     S.Add(TypeName);
     GetArguments(S);
-    If IsOfObject then 
+    If IsOfObject then
       S.Add(' of object');
-    If Full then  
+    If Full then
       Result:=IndentStrings(S,Length(S[0])+Length(S[1])+1)
     else
-      Result:=IndentStrings(S,Length(S[0])+1);  
+      Result:=IndentStrings(S,Length(S[0])+1);
   finally
     S.Free;
   end;
@@ -1228,11 +1228,11 @@ function TPasFunctionType.GetDeclaration (full : boolean) : string;
 Var
   S : TStringList;
   T : String;
-    
+
 begin
   S:=TStringList.Create;
   Try
-    If Full then 
+    If Full then
       S.Add(Format('%s = ',[Name]));
     S.Add(TypeName);
     GetArguments(S);
@@ -1243,14 +1243,14 @@ begin
         T:=T+ResultEl.ResultType.Name
       else
         T:=T+ResultEl.ResultType.GetDeclaration(False);
-      S.Add(T);  
-      end;  
-    If IsOfObject then 
+      S.Add(T);
+      end;
+    If IsOfObject then
       S.Add(' of object');
-    If Full then  
+    If Full then
       Result:=IndentStrings(S,Length(S[0])+Length(S[1])+1)
     else
-      Result:=IndentStrings(S,Length(S[0])+1);  
+      Result:=IndentStrings(S,Length(S[0])+1);
   finally
     S.Free;
   end;
@@ -1274,7 +1274,7 @@ begin
     end
   else
     Result:=Value;
-  If Full then 
+  If Full then
     Result:=Name+' '+Seps[Assigned(VarType)]+' '+Result;
 end;
 
@@ -1283,7 +1283,7 @@ function TPasProperty.GetDeclaration (full : boolean) : string;
 Var
   S : String;
   I : Integer;
-  
+
 begin
   If Assigned(VarType) then
     begin
@@ -1306,18 +1306,18 @@ begin
     end;
   If S<>'' then
     S:='['+S+']'
-  else  
+  else
     S:=' ';
-  If Full then 
+  If Full then
     Result:=Name+S+': '+Result;
-  If IsDefault then 
+  If IsDefault then
     Result:=Result+'; default'
 end;
 
 Procedure TPasProcedure.GetModifiers(List : TStrings);
- 
+
   Procedure DoAdd(B : Boolean; S : String);
-  
+
   begin
     if B then
       List.add('; '+S);
@@ -1326,7 +1326,7 @@ Procedure TPasProcedure.GetModifiers(List : TStrings);
 begin
   Doadd(IsVirtual,' Virtual');
   DoAdd(IsDynamic,' Dynamic');
-  DoAdd(IsOverride,' Override');    
+  DoAdd(IsOverride,' Override');
   DoAdd(IsAbstract,' Abstract');
   DoAdd(IsOverload,' Overload');
   DoAdd(IsMessage,' Message');
@@ -1355,7 +1355,7 @@ function TPasFunction.GetDeclaration (full : boolean) : string;
 Var
   S : TStringList;
   T : String;
-  
+
 begin
   S:=TStringList.Create;
   try
@@ -1370,8 +1370,8 @@ begin
           T:=T+Name
         else
           T:=T+GetDeclaration(False);
-        S.Add(T);  
-        end;  
+        S.Add(T);
+        end;
     GetModifiers(S);
     Result:=IndentStrings(S,Length(S[0]));
   finally
@@ -1386,14 +1386,14 @@ begin
     begin
     If ArgType.Name<>'' then
       Result:=ArgType.Name
-    else   
+    else
       Result:=ArgType.GetDeclaration(False);
     If Full then
       Result:=Name+': '+Result;
     end
   else If Full then
     Result:=Name
-  else    
+  else
     Result:='';
 end;
 
@@ -1402,23 +1402,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-12-06 08:53:48  michael
-  + Fix from Dave Strodtman to properly support packed
-
-  Revision 1.5  2004/07/24 00:03:13  michael
-  + Fixed getdeclaration of TPasRecordType (semicolons not/wrongly placed)
-
-  Revision 1.4  2004/07/23 23:42:02  michael
-  + Worked around bug in compiler that finalizes constants in subroutines
-
-  Revision 1.3  2004/07/23 21:43:54  michael
-  + Fixed error (never-ending loops) in trecordtype.GetDeclaration
-
-  Revision 1.2  2003/11/22 12:12:38  sg
-  * Parse tree elements now can store a line number and source file for the
-    position of their declaration
-
-  Revision 1.1  2003/03/13 21:47:42  sg
-  * First version as part of FCL
+  Revision 1.7  2005-02-14 17:13:16  peter
+    * truncate log
 
 }

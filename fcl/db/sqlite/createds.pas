@@ -1,7 +1,7 @@
 program createds;
 {$Mode ObjFpc}
 {$define DEBUGHEAP}
-uses 
+uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
 {$endif}
@@ -10,10 +10,10 @@ uses
 {$endif}
   crt,sysutils,db,SqliteDS;
 
-var 
+var
   dsTest:TSQliteDataset;
 
-begin 
+begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput('heaplog.txt');
   {$endif}
@@ -29,13 +29,13 @@ begin
       Clear;
       Add('Code',ftInteger,0,False);
       Add('Name',ftString,0,False);
-      Add('Bool',ftBoolean,0,False); 
+      Add('Bool',ftBoolean,0,False);
       Add('Float',ftFloat,0,False);
       Add('Word',ftWord,0,False);
       Add('DateTime',ftDateTime,0,False);
       Add('Date',ftDate,0,False);
       Add('Time',ftTime,0,False);
-    end; 
+    end;
     CreateTable;
     writeln('SqliteReturnString after CreateTable: ',SqliteReturnString);
     Destroy;

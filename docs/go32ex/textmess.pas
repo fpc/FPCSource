@@ -24,60 +24,60 @@ cells per line
 }
 
 uses
-	crt,
-	go32;
+        crt,
+        go32;
 
 const
-	{ number of columns on screen }
-	columns = 80;
-	{ number of rows on screen }
-	rows = 25;
-	screensize = rows*columns*2;
+        { number of columns on screen }
+        columns = 80;
+        { number of rows on screen }
+        rows = 25;
+        screensize = rows*columns*2;
 
-	{ sample text string }
-	text = '! Hello world !';
+        { sample text string }
+        text = '! Hello world !';
 
 var
-	textofs : Longint;
-	{ this variable holds the entire screen contents }
-	save_screen : array[0..screensize-1] of byte;
-	{ These two hold the previous cursor coordinates }
+        textofs : Longint;
+        { this variable holds the entire screen contents }
+        save_screen : array[0..screensize-1] of byte;
+        { These two hold the previous cursor coordinates }
     curx, cury : Integer;
 
 begin
-	randomize;
-	{ save screen contents to save_screen variable }
-	dosmemget($B800, 0, save_screen, screensize);
-	{ save current cursor coordinates }
-	curx := wherex; cury := wherey;
-	{ This is our demo text }
-	gotoxy(1, 1); Write(text);
-	{ calculate the address in offscreen memory (to be sure it will
-	not be overwritten by the copy process later, we don't put it
-	exactly at the end of the visible screen area) }
-	textofs := screensize + length(text)*2;
-	{ copy it to offscreen memory }
-	dosmemmove($B800, 0, $B800, textofs, length(text)*2);
-	{ clear the screen by writing zeros on the whole visible screen}
-	dosmemfillchar($B800, 0, screensize, #0);
-	while (not keypressed) do begin
-		{ set the attribute field (byte 2 of every cell) of the
-		text in offscreen memory to random values }
-		dosmemfillchar($B800, textofs + random(length(text))*2 + 1,
-			1, char(random(255)));
-		{ copy the string from offscreen to visibly screen by calculating
-		it's destination address randomly }
-		dosmemmove($B800, textofs, $B800,
-			random(columns)*2+random(rows)*columns*2,
-			length(text)*2);
-		{ small delay, else it is too fast }
-		delay(1);
-	end;
-	{ clear the keyboard buffer }
-	readkey;
-	{ wait for a keypress }
-	readkey;
-	{ restore old screen contents afterwards }
-	dosmemput($B800, 0, save_screen, screensize);
-	gotoxy(curx, cury);
+        randomize;
+        { save screen contents to save_screen variable }
+        dosmemget($B800, 0, save_screen, screensize);
+        { save current cursor coordinates }
+        curx := wherex; cury := wherey;
+        { This is our demo text }
+        gotoxy(1, 1); Write(text);
+        { calculate the address in offscreen memory (to be sure it will
+        not be overwritten by the copy process later, we don't put it
+        exactly at the end of the visible screen area) }
+        textofs := screensize + length(text)*2;
+        { copy it to offscreen memory }
+        dosmemmove($B800, 0, $B800, textofs, length(text)*2);
+        { clear the screen by writing zeros on the whole visible screen}
+        dosmemfillchar($B800, 0, screensize, #0);
+        while (not keypressed) do begin
+                { set the attribute field (byte 2 of every cell) of the
+                text in offscreen memory to random values }
+                dosmemfillchar($B800, textofs + random(length(text))*2 + 1,
+                        1, char(random(255)));
+                { copy the string from offscreen to visibly screen by calculating
+                it's destination address randomly }
+                dosmemmove($B800, textofs, $B800,
+                        random(columns)*2+random(rows)*columns*2,
+                        length(text)*2);
+                { small delay, else it is too fast }
+                delay(1);
+        end;
+        { clear the keyboard buffer }
+        readkey;
+        { wait for a keypress }
+        readkey;
+        { restore old screen contents afterwards }
+        dosmemput($B800, 0, save_screen, screensize);
+        gotoxy(curx, cury);
 end.

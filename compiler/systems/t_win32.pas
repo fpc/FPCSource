@@ -1623,59 +1623,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.46  2004-12-05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.45  2004/11/18 10:06:19  michael
-  + Fix for win32 cycle
-
-  Revision 1.44  2004/11/17 22:22:12  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.43  2004/11/16 20:32:41  peter
-  * fixes for win32 mangledname
-
-  Revision 1.42  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.41  2004/11/04 17:12:52  peter
-  linking with cygwin fixed
-
-  Revision 1.40  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.39  2004/10/15 09:24:38  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.38  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.37  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.35  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.34  2004/06/18 15:16:46  peter
-    * remove obsolete cardinal() typecasts
-
-  Revision 1.33  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.32  2004/04/28 18:02:54  peter
-    * add TList to cclasses, remove classes dependency from t_win32
-
-  Revision 1.31  2004/04/24 17:32:05  peter
-  index number generation for mixed index-nonindexed fixed, patch by Pavel V. Ozerski
-
-  Revision 1.30.2.5  2004/05/03 14:59:58  peter
-    * no dlltool needed for win32 linking executables
+  Revision 1.47  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -189,24 +189,18 @@ begin
         Log('Closing Dataset');
         Close;
         Log('End.');
-      Finally  
+      Finally
         Free;
       end;
   Finally
     Writeln('Freeing database');
     DBase.free;
-  end;    
+  end;
 end.
 
 {
    $Log$
-   Revision 1.4  2004-09-30 19:36:00  michael
-   + Split out in version 3 and 4
-
-   Revision 1.3  2003/08/16 16:42:21  michael
-   + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
-
-   Revision 1.2  2002/09/07 15:15:23  peter
-     * old logs removed and tabs fixed
+   Revision 1.5  2005-02-14 17:13:12  peter
+     * truncate log
 
 }

@@ -44,8 +44,8 @@ const
 
 
 EXTERN procedure jpeg_open_backing_store (cinfo : j_common_ptr;
-					  info : backing_store_ptr;
-					  total_bytes_needed : long);
+                                          info : backing_store_ptr;
+                                          total_bytes_needed : long);
 
 
 { These routines take care of any system-dependent initialization and
@@ -92,18 +92,18 @@ type
   backing_store_info = record
   { Methods for reading/writing/closing this backing-store object }
     read_backing_store : procedure (cinfo : j_common_ptr;
-				    info : backing_store_ptr;
-				    buffer_address : pointer; {far}
-				    file_offset : long;
+                                    info : backing_store_ptr;
+                                    buffer_address : pointer; {far}
+                                    file_offset : long;
                                     byte_count : long);
     write_backing_store : procedure (cinfo : j_common_ptr;
-				     info : backing_store_ptr;
-				     buffer_address : pointer; {far}
-				     file_offset : long;
+                                     info : backing_store_ptr;
+                                     buffer_address : pointer; {far}
+                                     file_offset : long;
                                      byte_count : long);
 
     close_backing_store : procedure (cinfo : j_common_ptr;
-				     info : backing_store_ptr);
+                                     info : backing_store_ptr);
 
   { Private fields for system-dependent backing-store management }
   {$ifdef USE_MSDOS_MEMMGR}
@@ -130,7 +130,7 @@ EXTERN function jpeg_get_small (cinfo : j_common_ptr;
                                 sizeofobject : size_t) : pointer;
 EXTERN procedure jpeg_free_small (cinfo : j_common_ptr;
                                   object : pointer;
-				  sizeofobject : size_t);
+                                  sizeofobject : size_t);
 
 { These two functions are used to allocate and release large chunks of
   memory (up to the total free space designated by jpeg_mem_available).
@@ -140,11 +140,11 @@ EXTERN procedure jpeg_free_small (cinfo : j_common_ptr;
   in case a different allocation strategy is desirable for large chunks. }
 
 EXTERN function jpeg_get_large (cinfo : j_common_ptr cinfo;
-				sizeofobject : size_t) : pointer; {far}
+                                sizeofobject : size_t) : pointer; {far}
 
 EXTERN procedure jpeg_free_large (cinfo : j_common_ptr;
                                   object : pointer; {far}
-				  sizeofobject : size_t);
+                                  sizeofobject : size_t);
 
 
 { This routine computes the total space still available for allocation by
@@ -169,9 +169,9 @@ EXTERN procedure jpeg_free_large (cinfo : j_common_ptr;
 
 
 EXTERN function jpeg_mem_available (cinfo : j_common_ptr;
-				     min_bytes_needed : long;
-				     max_bytes_needed : long;
-				     already_allocated : long) : long;
+                                     min_bytes_needed : long;
+                                     max_bytes_needed : long;
+                                     already_allocated : long) : long;
 
 
 end.

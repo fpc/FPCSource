@@ -16,7 +16,7 @@ begin
  for l:=1 to 100 do
    writeln('Hello world');
  close(f);
-   
+
  assign(F,'tb0084.tmp');           { Assign F to itself }
  reset(F);                             { Open it (as a textfile) }
  ReadLn(F);                            { Just read some lines }

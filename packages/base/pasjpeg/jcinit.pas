@@ -77,7 +77,7 @@ begin
 
   { Need a full-image coefficient buffer in any multi-pass mode. }
   jinit_c_coef_controller(cinfo,
-			  (cinfo^.num_scans > 1) or (cinfo^.optimize_coding));
+                          (cinfo^.num_scans > 1) or (cinfo^.optimize_coding));
   jinit_c_main_controller(cinfo, FALSE { never need full buffer here });
 
   jinit_marker_writer(cinfo);

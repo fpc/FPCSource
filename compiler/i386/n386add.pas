@@ -653,39 +653,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.102  2005-02-13 18:55:19  florian
+  Revision 1.103  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.102  2005/02/13 18:55:19  florian
     + overflow checking for the arm
-
-  Revision 1.101  2004/11/01 12:43:29  peter
-    * shortstr compare with empty string fixed
-    * removed special i386 code
-
-  Revision 1.100  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.99  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.98  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.97  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.96  2004/05/19 23:30:18  peter
-    * extra typecast to prevent range check
-
-  Revision 1.95.2.1  2004/04/29 19:07:22  peter
-    * compile fixes
-
-  Revision 1.95  2004/02/04 19:22:27  peter
-  *** empty log message ***
-
-  Revision 1.94  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
 
 }

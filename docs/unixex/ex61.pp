@@ -10,7 +10,7 @@ Var
   S: String;
   PP : PPchar;
    I : longint;
-    
+
 begin
   S:='script -a -b -c -d -e fghijk';
   PP:=CreateShellArgV(S);

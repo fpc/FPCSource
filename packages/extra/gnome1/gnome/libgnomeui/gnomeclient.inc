@@ -63,7 +63,7 @@ Type
    PGnomeClientClass = ^TGnomeClientClass;
    TGnomeClientClass = record
         parent_class : TGtkObjectClass;
-        save_yourself : function (client:PGnomeClient; phase:gint; save_style:TGnomeSaveStyle; shutdown:gint; interact_style:TGnomeInteractStyle; 
+        save_yourself : function (client:PGnomeClient; phase:gint; save_style:TGnomeSaveStyle; shutdown:gint; interact_style:TGnomeInteractStyle;
                      fast:gint):gboolean; cdecl;
         die : procedure (client:PGnomeClient); cdecl;
         save_complete : procedure (client:PGnomeClient); cdecl;
@@ -100,7 +100,7 @@ procedure gnome_client_set_user_id(client:PGnomeClient; user_id:Pgchar);cdecl;ex
 procedure gnome_client_save_any_dialog(client:PGnomeClient; dialog:PGnomeDialog);cdecl;external libgnomeuidll name 'gnome_client_save_any_dialog';
 procedure gnome_client_save_error_dialog(client:PGnomeClient; dialog:PGnomeDialog);cdecl;external libgnomeuidll name 'gnome_client_save_error_dialog';
 procedure gnome_client_request_phase_2(client:PGnomeClient);cdecl;external libgnomeuidll name 'gnome_client_request_phase_2';
-procedure gnome_client_request_save(client:PGnomeClient; save_style:TGnomeSaveStyle; shutdown:gboolean; interact_style:TGnomeInteractStyle; fast:gboolean; 
+procedure gnome_client_request_save(client:PGnomeClient; save_style:TGnomeSaveStyle; shutdown:gboolean; interact_style:TGnomeInteractStyle; fast:gboolean;
             global:gboolean);cdecl;external libgnomeuidll name 'gnome_client_request_save';
 procedure gnome_client_flush(client:PGnomeClient);cdecl;external libgnomeuidll name 'gnome_client_flush';
 procedure gnome_client_disable_master_connection;cdecl;external libgnomeuidll name 'gnome_client_disable_master_connection';

@@ -236,7 +236,7 @@ Function WinLoadFileIconN(pszFileName: PChar;
 
 {
 $Log$
-Revision 1.1  2003-03-28 13:36:02  yuri
-  * Initial import
+Revision 1.2  2005-02-14 17:13:31  peter
+  * truncate log
 
 }

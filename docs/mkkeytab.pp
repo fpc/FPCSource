@@ -2,7 +2,7 @@ program mkkeytab;
 
 {
  This program takes the keyboard scan code definitions, (the const section
- of the rtl/unix/keyboard.pp file) and outputs a 
+ of the rtl/unix/keyboard.pp file) and outputs a
  latex table. The final output is done with some reformatting with the
  following sed commands:
 
@@ -14,10 +14,10 @@ uses sysutils,classes;
 
 Function ScanLine (S: String) : String;
 
-Var 
+Var
   I : Integer;
   KN,KC : String;
-  
+
 begin
   I:=Pos('=',S);
   Result:='';
@@ -32,8 +32,8 @@ begin
       KC:=Trim(Copy(S,1,I-1));
       Delete(KC,1,1);
       Result:= KC+' & '+KN;
-      end;  
-    end;      
+      end;
+    end;
 end;
 
 Var
@@ -54,7 +54,7 @@ begin
       List.Add(S);
     end;
   RowCount:=List.Count div 3;
-  if (List.Count mod 3)<>0 then 
+  if (List.Count mod 3)<>0 then
     begin
     Inc(RowCount);
     List.Add('');

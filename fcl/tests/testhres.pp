@@ -10,13 +10,13 @@ uses resolve;
 Var
   I : integer;
   S : String;
-  
-  
+
+
 begin
   If (ParamCount>0) then
     S:=Paramstr(1)
   else
-    S:='www.freepascal.org';  
+    S:='www.freepascal.org';
   With THostResolver.Create(Nil) do
     try
       If Not NameLookup(S) then
@@ -29,9 +29,9 @@ begin
         For I:=0 to AddressCount-1 do
           Writeln('Adress ',I:2,'     : ',HostAddrToStr(Addresses[I]));
         Writeln('Alias count   : ',AliasCount);
-        For I:=0 to AliasCount-1 do 
+        For I:=0 to AliasCount-1 do
           Writeln('Alias ',i:2,'  : ',Aliases[I]);
-        end;    
+        end;
     finally
       Free;
     end;

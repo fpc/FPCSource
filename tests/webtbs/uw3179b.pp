@@ -8,7 +8,7 @@ unit uw3179b;
 interface
 uses
  uw3179a;
- 
+
 type
  tclass2 = class(tclass1)
   public

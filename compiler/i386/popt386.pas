@@ -2003,42 +2003,7 @@ end.
 
 {
   $Log$
-  Revision 1.66  2004-12-18 15:21:56  florian
-    * the optimization fstp f;fld f to fst f disabled; leads to rounding problems
-
-  Revision 1.65  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.64  2004/10/10 15:01:19  jonas
-    * several fixes to allocregbetween()
-
-  Revision 1.63  2004/10/05 20:41:02  peter
-    * more spilling rewrites
-
-  Revision 1.62  2004/10/05 17:31:41  peter
-    * range check errors fixed
-
-  Revision 1.61  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.60  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.59.2.1  2004/04/29 23:30:28  peter
-    * fix i386 compiler
-
-  Revision 1.59  2004/03/14 18:42:32  jonas
-    * fixed refaddr bug that caused go32v2 cycle failure
-
-  Revision 1.58  2004/02/28 16:59:02  jonas
-    * fixed bug in ref_addr changes
-
-  Revision 1.57  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
+  Revision 1.67  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

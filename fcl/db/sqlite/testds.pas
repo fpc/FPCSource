@@ -1,7 +1,7 @@
 program testds;
 {$Mode ObjFpc}
 {$define DEBUGHEAP}
-uses 
+uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
 {$endif}
@@ -10,7 +10,7 @@ uses
 {$endif}
   crt,sysutils,db,SqliteDS;
 
-var 
+var
   dsTest:TSQliteDataset;
   I:Integer;
 
@@ -30,11 +30,11 @@ begin
     Writeln ('ReadOnly  : ',ReadOnly);
     Writeln ('Visible   : ',Visible);
     end;
-  writeln('-------- Press a key to continue ----------'); 
-  readkey; 
+  writeln('-------- Press a key to continue ----------');
+  readkey;
 end;
 
-begin 
+begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput('heaplog.txt');
   {$endif}
@@ -90,18 +90,18 @@ begin
     Writeln('RowId:',Fields[0].AsInteger);
     WriteLn('Code: ',FieldbyName('Code').AsInteger);
     WriteLn('Name: ',FieldbyName('Name').AsString);
-    
+
     WriteLn('Try to find record with code = 22222');
     First;
     While Not Eof do
-    begin  
+    begin
       if FieldbyName('Code').AsInteger = 22222 then
         Writeln('Record Found: It Should Not Occur')
       else
-        Writeln('Record NOT Found: It''s OK');  
-      Next;  
+        Writeln('Record NOT Found: It''s OK');
+      Next;
     end;
-    readkey; 
+    readkey;
     ApplyUpdates;
     writeln('SqliteReturnString after ApplyUpdates: ',SqliteReturnString);
     Close;

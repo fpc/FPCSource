@@ -4,8 +4,8 @@
 
     utility definitions (V50) for MorphOS/PowerPC
     Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
-    
-    Free Pascal conversion, second part 
+
+    Free Pascal conversion, second part
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -54,7 +54,7 @@ type
 
 {
   $Log$
-  Revision 1.1  2004-08-03 14:26:10  karoly
-    * initial revision
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -20,7 +20,7 @@
 
     Added the define use_amiga_smartlink.
     13 Jan 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se  Nils Sjoholm
 }
 

@@ -34,14 +34,14 @@ function GetPrecisionMode: TFPUPrecisionMode;
   begin
     result:=pmDouble;
   end;
-  
-  
+
+
 function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
   begin
     result:=pmDouble;
   end;
-  
-  
+
+
 function GetExceptionMask: TFPUExceptionMask;
   var
     fsr : dword;
@@ -68,7 +68,7 @@ function GetExceptionMask: TFPUExceptionMask;
     if (fsr and (1 shl 23))=0 then
       include(result,exPrecision);
   end;
-    
+
 
 
 function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
@@ -76,7 +76,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     fsr : dword;
   begin
     fsr:=get_fsr;
-    
+
     { invalid operation: bit 27 }
     if (exInvalidOp in mask) then
       fsr:=fsr and not(1 shl 27)
@@ -106,11 +106,11 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
       fsr:=fsr and not(1 shl 23)
     else
       fsr:=fsr or (1 shl 23);
-      
+
     { update control register contents }
     set_fsr(fsr);
   end;
-  
+
 
 procedure ClearExceptions(RaisePending: Boolean {$ifndef VER1_0}=true{$endif});
   begin
@@ -119,12 +119,10 @@ procedure ClearExceptions(RaisePending: Boolean {$ifndef VER1_0}=true{$endif});
 
 {
   $Log$
-  Revision 1.2  2005-02-13 18:58:27  florian
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.2  2005/02/13 18:58:27  florian
     + FPU controll routines in math unit
 
-  Revision 1.1  2003/09/01 20:46:32  peter
-    * new dummies
-
-  Revision 1.1  2003/04/24 09:14:22  florian
-    * initial implementation
 }

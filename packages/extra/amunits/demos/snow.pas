@@ -70,7 +70,7 @@ begin
     if paramcount <> 1 then usage;
     cycles := ord(paramstr(1)[1]) - ord('0');
     if (cycles > 6) or (cycles < 1) then
-	usage;
+        usage;
     readcycles := cycles;
 end;
 
@@ -93,17 +93,17 @@ begin
     rd[6] := 2;
 
     for n := 0 to 6 do
-	ln[n] := 1.0 / 3.0;
+        ln[n] := 1.0 / 3.0;
     ln[2] := sqrt(ln[1]);
     a := 0.0;
     for n := 6 to 11 do begin
-	dy[n] := sin(a);
-	dx[n] := cos(a);
+        dy[n] := sin(a);
+        dx[n] := cos(a);
         a := a + 0.52359;
     end;
     for n := 0 to 5 do begin
-	dx[n] := -(dx[n + 6]);
-	dy[n] := -(dy[n + 6]);
+        dx[n] := -(dx[n + 6]);
+        dy[n] := -(dy[n + 6]);
     end;
     x := 534.0;
     y := 151.0;
@@ -119,7 +119,7 @@ begin
       SA_DisplayID, HIRES_KEY,
       SA_Title,     'Simple Fractal SnowFlakes',
       TAG_END]);
-    
+
     if s = NIL then CleanUp('No screen',20);
 
       w := OpenWindowTags(nil, [
@@ -140,47 +140,47 @@ begin
 
     if w = nil then CleanUp('No window',20);
 
-	rp := w^.RPort;
+        rp := w^.RPort;
         SetAPen(rp,2);
-	for n := 0 to nc do
-	    sn[n] := 0;
+        for n := 0 to nc do
+            sn[n] := 0;
 
-	Move(rp, trunc(x), trunc(y));
+        Move(rp, trunc(x), trunc(y));
 
-	repeat
-	    d := 0;
-	    l := t;
-	    ns := 0;
+        repeat
+            d := 0;
+            l := t;
+            ns := 0;
 
-	    for n := 1 to nc do begin
-		i := sn[n];
-		l := l * ln[i];
-		j := sn[n - 1];
-		ns := ns + sd[j];
-		if odd(ns) then
-		    d := (d + 12 - rd[i]) mod 12
-		else
-		    d := (d + rd[i]) mod 12;
-	    end;
+            for n := 1 to nc do begin
+                i := sn[n];
+                l := l * ln[i];
+                j := sn[n - 1];
+                ns := ns + sd[j];
+                if odd(ns) then
+                    d := (d + 12 - rd[i]) mod 12
+                else
+                    d := (d + rd[i]) mod 12;
+            end;
 
-	    x := x + 1.33 * l * dx[d];
-	    y := y - 0.5 * l * dy[d];
+            x := x + 1.33 * l * dx[d];
+            y := y - 0.5 * l * dy[d];
 
-	    Draw(rp, trunc(x), trunc(y));
-	    sn[nc] := sn[nc] + 1;
-	    n := nc;
-	    while (n >= 1) and (sn[n] = 7) do begin
-		sn[n] := 0;
-		sn[n - 1] := sn[n - 1] + 1;
-		n := n - 1;
-	    end;
-	until sn[0] <> 0;
-	m := WaitPort(w^.UserPort);
-	forbid;
-	repeat
-	    m := GetMsg(w^.UserPort);
-	until m = nil;
-	permit;
+            Draw(rp, trunc(x), trunc(y));
+            sn[nc] := sn[nc] + 1;
+            n := nc;
+            while (n >= 1) and (sn[n] = 7) do begin
+                sn[n] := 0;
+                sn[n - 1] := sn[n - 1] + 1;
+                n := n - 1;
+            end;
+        until sn[0] <> 0;
+        m := WaitPort(w^.UserPort);
+        forbid;
+        repeat
+            m := GetMsg(w^.UserPort);
+        until m = nil;
+        permit;
         CleanUp('',0);
-  
+
 end.

@@ -145,15 +145,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.36  2004-10-15 09:30:13  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.35  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.34  2004/02/19 17:07:42  florian
-    * fixed arg. area calculation
+  Revision 1.37  2005-02-14 17:13:10  peter
+    * truncate log
 
 }
 

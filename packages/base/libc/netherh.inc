@@ -15,4 +15,4 @@ function ether_line(__line:Pchar; __addr:Pether_addr; __hostname:Pchar):longint;
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

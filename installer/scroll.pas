@@ -266,22 +266,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.6  2004-12-22 15:28:48  peter
-    * more fixes for win32 installer
-
-  Revision 1.5  2004/12/21 18:52:31  peter
-  checkbox mask works, scrollbox still not
-
-  Revision 1.4  2004/12/20 18:27:00  peter
-    * win32 fixes
-
-  Revision 1.3  2002/09/07 15:40:59  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/01/29 22:01:17  peter
-    * support fvision
-
-  Revision 1.1  2002/01/29 17:59:15  peter
-    * moved installer
+  Revision 1.7  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

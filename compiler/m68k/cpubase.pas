@@ -462,36 +462,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2005-01-20 16:38:45  peter
+  Revision 1.36  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.35  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
 
   Revision 1.34  2005/01/08 04:10:36  karoly
     * made m68k to compile again
-
-  Revision 1.33  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.32  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.31  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.30  2004/06/20 08:47:33  florian
-    * spilling of doubles on sparc fixed
-
-  Revision 1.29  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.28  2004/05/06 22:01:54  florian
-    * register numbers for address registers fixed
-
-  Revision 1.27  2004/05/06 20:30:51  florian
-    * m68k compiler compilation fixed
-
-  Revision 1.26  2004/04/25 21:26:16  florian
-    * some m68k stuff fixed
 
 }

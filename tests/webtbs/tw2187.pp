@@ -5,7 +5,7 @@
 type x = record
             s : string;
             a : ^byte;
-         end; 
+         end;
 
 var a: array [1..2] of x;
 

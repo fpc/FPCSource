@@ -1,7 +1,7 @@
 
 Type
   error_t = Integer;
-  
+
 var
 {$ifdef LIBC_OLDERRNO}
   errno : error_t; cvar; external;
@@ -9,14 +9,14 @@ var
   program_invocation_name : Pchar;cvar;external;
 
 {$ifndef LIBC_OLDERRNO}
-  function errno : error_t; 
-  procedure seterrno (value : error_t); 
+  function errno : error_t;
+  procedure seterrno (value : error_t);
 {$endif}
 { ---------------------------------------------------------------------
     asm/errno.inc
   ---------------------------------------------------------------------}
-    
-  
+
+
 const
    EPERM = 1;
    ENOENT = 2;
@@ -146,12 +146,12 @@ const
 { ---------------------------------------------------------------------
     bits/errno.h
   ---------------------------------------------------------------------}
-  
+
 
 const
    ENOTSUP = EOPNOTSUPP;
    ECANCELED = 125;
 
 function __errno_location: PInteger; cdecl;external clib name '__errno_location';
-  
+
 

@@ -32,13 +32,7 @@ end.
 
 {
    $Log$
-   Revision 1.5  2002-09-07 15:15:28  peter
-     * old logs removed and tabs fixed
-
-   Revision 1.4  2002/05/31 11:33:49  marco
-    * 1.0.x renamefest
-
-     Revision 1.3  2002/05/18 13:38:30  michael
-     + Fixed test program to new interface
+   Revision 1.6  2005-02-14 17:13:18  peter
+     * truncate log
 
 }

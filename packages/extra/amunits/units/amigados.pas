@@ -27,20 +27,20 @@
 
     Added functions and procedures with array of const.
     For use with fpc 1.0.7
-    
+
     You have to use systemvartags. Check out that unit.
     09 Nov 2002.
 
     Added the define use_amiga_smartlink.
     13 Jan 2003.
-    
+
     Update for AmigaOS 3.9.
     Added some const.
     26 Jan 2003.
-    
+
     Changed integer > smallint.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -362,10 +362,10 @@ CONST
  FORMAT_USA     = 2;               { mm-dd-yy  }
  FORMAT_CDN     = 3;               { dd-mm-yy  }
  FORMAT_MAX     = FORMAT_CDN;
- FORMAT_DEF	= 4;		{ use default format, as defined
-					   by locale; if locale not
-					   available, use FORMAT_DOS
-					   instead }
+ FORMAT_DEF     = 4;            { use default format, as defined
+                                           by locale; if locale not
+                                           available, use FORMAT_DOS
+                                           instead }
 
 {**********************************************************************
 ************************ PATTERN MATCHING ******************************
@@ -4521,21 +4521,8 @@ END. (* UNIT DOS *)
 
 {
    $Log$
-   Revision 1.7  2003-02-10 17:59:46  nils
-   *  fixes for delphi mode
-   
-   Revision 1.6  2003/02/07 20:45:08  nils
-   * update for amigaos 3.9
-   
-   Revision 1.5  2003/01/13 18:14:56  nils
-   * added the define use_amiga_smartlink
-   
-   Revision 1.4  2002/11/28 19:39:30  nils
-     * removed var in datestamp
-   
-   Revision 1.3  2002/11/17 20:31:24  nils
-   
-   * added log
+   Revision 1.8  2005-02-14 17:13:20  peter
+     * truncate log
    
 }
 

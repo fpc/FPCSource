@@ -57,11 +57,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2005-01-07 16:22:54  florian
-    + implemented abi compliant handling of strucutured functions results on sparc platform
+  Revision 1.16  2005-02-14 17:13:10  peter
+    * truncate log
 
-  Revision 1.14  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.15  2005/01/07 16:22:54  florian
+    + implemented abi compliant handling of strucutured functions results on sparc platform
 
 }
 

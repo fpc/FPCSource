@@ -52,21 +52,13 @@ begin
   pt:=pchar(widestr);
   test((ptruint(pt) mod sizeof(pointer))=0);
 {$endif}
-end.  
+end.
 {
    $Log$
-   Revision 1.4  2005-01-04 20:30:09  olle
+   Revision 1.5  2005-02-14 17:13:35  peter
+     * truncate log
+
+   Revision 1.4  2005/01/04 20:30:09  olle
      - removed unnecessary mode switch
-
-   Revision 1.3  2004/04/29 21:04:58  peter
-     * 64 bit fixes
-
-   Revision 1.2  2002/11/09 21:19:21  carl
-     * now check address of tc's also and give error.
-     + 1.1 only
-
-   Revision 1.1  2002/11/09 13:18:25  carl
-     * more alignment checking
-
 
 }

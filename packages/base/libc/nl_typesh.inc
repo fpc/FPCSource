@@ -19,4 +19,4 @@ function catclose(__catalog:nl_catd):longint;cdecl;external clib name 'catclose'
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

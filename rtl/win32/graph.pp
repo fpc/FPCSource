@@ -2222,19 +2222,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2003-04-23 11:35:00  peter
-    * wndproc definition fixed
-
-  Revision 1.11  2003/04/23 11:08:09  florian
-    * fixed parameter types
-
-  Revision 1.10  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/01/06 15:37:20  florian
-    * log fixed
-
-  Revision 1.8  2002/01/06 15:23:42  florian
-    * SetRGBColor with cached pens fixed
+  Revision 1.13  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

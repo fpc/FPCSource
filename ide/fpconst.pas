@@ -474,61 +474,13 @@ implementation
 END.
 {
   $Log$
-  Revision 1.20  2005-01-08 13:43:44  florian
+  Revision 1.21  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.20  2005/01/08 13:43:44  florian
     * updated version and copyright
 
   Revision 1.19  2005/01/08 11:43:18  florian
     + vector unit window
-
-  Revision 1.18  2004/12/30 16:14:13  florian
-    * ide version to 1.0.0 changed
-
-  Revision 1.17  2004/11/21 20:53:26  peter
-    * fixed breakpoint dialog
-
-  Revision 1.16  2004/11/20 14:21:19  florian
-    * implemented reload menu item
-    * increased file history to 9 files
-
-  Revision 1.15  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.14  2004/11/05 00:21:56  peter
-  version info at startup
-
-  Revision 1.13  2003/01/22 00:27:58  pierre
-   * implement reloadfile if changed
-
-  Revision 1.12  2002/11/30 01:53:02  pierre
-   + cross-powerpc specific filenames
-
-  Revision 1.11  2002/11/28 12:52:14  pierre
-   * cross cpu IDE use different config/ini and cfg files
-
-  Revision 1.10  2002/09/11 13:12:42  pierre
-   * fix CodeComplete loading and use a unit for standard units code complete
-
-  Revision 1.9  2002/09/07 15:40:42  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/09/03 13:57:05  pierre
-   + hidWatchDialog and hidBreakpointDialog added
-
-  Revision 1.7  2002/09/02 10:18:09  pierre
-   * fix problems with breakpoint lists
-
-  Revision 1.6  2002/03/28 16:25:16  peter
-    * use < for left arrow under unix
-
-  Revision 1.5  2002/01/24 09:21:41  pierre
-   * only disable Alt-X in Options|Compiler dialog
-
-  Revision 1.4  2002/01/22 16:33:51  pierre
-   Change IDE version to 0.9.2
 
 }

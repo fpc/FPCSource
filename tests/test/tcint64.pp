@@ -10,7 +10,7 @@ const
    u2 : qword = -1;
    i2 : int64 = -1;
 var
-  l : longint;   
+  l : longint;
 begin
   l:=-1;
   Writeln(' qword($ffffffff) = ',u1);
@@ -23,7 +23,7 @@ begin
       Writeln('generates a wrong int64 constant');
       RunError(1);
     end;
-    
+
   if u2<>qword(int64(l)) then
     begin
       Writeln('"const u2 : qword = -1;" code');

@@ -751,41 +751,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2005-01-31 19:41:01  peter
+  Revision 1.49  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.48  2005/01/31 19:41:01  peter
     * another guid range check error
-
-  Revision 1.47  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.46  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.45  2004/08/08 16:00:56  florian
-    * constant floating point assignments etc. are now overflow checked
-      if Q+ or R+ is turned on
-
-  Revision 1.44  2004/07/12 17:58:19  peter
-    * remove maxlen field from ansistring/widestrings
-
-  Revision 1.43  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.42  2004/06/18 15:16:46  peter
-    * remove obsolete cardinal() typecasts
-
-  Revision 1.41  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.40  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.39.2.9  2004/06/13 10:51:16  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.39.2.8  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
 
 }
 

@@ -319,25 +319,7 @@ syscall_nr_getdirentries                =196;
 
 {
   $Log$
-  Revision 1.11  2004-10-31 14:27:51  marco
-   * settimeofday now used, apparantly forget to fix this in 1.1
-
-  Revision 1.10  2004/04/25 15:07:59  marco
-   * IPC syscalls moved
-
-  Revision 1.9  2002/10/27 17:21:29  marco
-   * Only "difficult" functions + execvp + termios + rewinddir left to do
-
-  Revision 1.8  2002/10/26 18:27:52  marco
-   * First series POSIX calls commits. Including getcwd.
-
-  Revision 1.7  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/08/19 12:32:34  marco
-   * again fixes.
-
-  Revision 1.5  2002/05/06 09:35:09  marco
-   * Some stuff from 1.0.x ported
+  Revision 1.12  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -880,11 +880,7 @@ const
 {
 
   $Log$
-  Revision 1.2  2002-09-07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/08 11:40:05  marco
-   * Initial versions.
-
+  Revision 1.3  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

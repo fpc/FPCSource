@@ -1533,31 +1533,7 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.51  2004-12-23 16:19:57  peter
- add uses dos for OS_DOS
-
- Revision 1.50  2004/12/22 15:27:30  peter
-   * call giveuptimeslice to prevent busy loop with idle
-
- Revision 1.49  2004/12/18 16:18:47  peter
- win32 fixes
-
- Revision 1.48  2004/12/06 19:23:55  peter
- don't set CP 437
-
- Revision 1.47  2004/12/04 23:06:52  peter
-   * fix valgrind warning in formatstr
-
- Revision 1.46  2004/12/04 18:40:47  peter
-   * FormatStr fixed to prevent buffer overflows
-
- Revision 1.45  2004/11/24 21:03:05  florian
-   * increased max. possible screen/view width to 255
-
- Revision 1.44  2004/11/06 19:19:30  armin
- * added targets netware and netwlibc
-
- Revision 1.43  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.52  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

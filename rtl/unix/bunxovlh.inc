@@ -38,7 +38,7 @@ Function  FpRmdir   (path : AnsiString): cInt;
 Function  FpRename  (old  : AnsiString;newpath: AnsiString): cInt;
 Function  FpStat    (path: AnsiString; var buf : stat): cInt;
 Function  FpStat    (path: String; var buf : stat): cInt;
-Function  FpAccess  (pathname : AnsiString; aMode : cInt): cInt; 
+Function  FpAccess  (pathname : AnsiString; aMode : cInt): cInt;
 function  FpWaitPid (pid : TPid; Var Status : cInt; Options : cint) : TPid;
 
 Function  FPFStat   (var F:Text;Var Info:stat):Boolean;
@@ -49,7 +49,7 @@ Function  FPFStat   (var F:File;Var Info:stat):Boolean;
 Function  FpSignal  (signum:longint;Handler:signalhandler):signalhandler;
 Function  FpRead    (fd : cInt; var buf; nbytes : TSize): TSsize;
 Function  FpWrite   (fd : cInt; const buf; nbytes : TSize): TSsize;
-Function  FpDup	    (var oldfile,newfile:text):cint;
+Function  FpDup     (var oldfile,newfile:text):cint;
 Function  FpDup     (var oldfile,newfile:file):cint;
 Function  FpDup2    (var oldfile,newfile:text):cint;
 Function  FpDup2    (var oldfile,newfile:file):cint;
@@ -93,28 +93,12 @@ Function  wtermsig     (Status : cInt): cInt;
 Function fpReadLink(Name:ansistring):ansistring;
 {
  $Log$
- Revision 1.7  2005-02-13 20:01:38  peter
+ Revision 1.8  2005-02-14 17:13:31  peter
+   * truncate log
+
+ Revision 1.7  2005/02/13 20:01:38  peter
    * include file cleanup
-
- Revision 1.6  2004/11/23 08:40:34  michael
- + Added overloaded functions
-
- Revision 1.5  2004/11/14 12:21:08  marco
-  * moved some calls from unix to baseunix. Darwin untested.
-
- Revision 1.4  2003/12/30 12:24:01  marco
-  * FPC_USE_LIBC
-
- Revision 1.3  2003/09/14 20:15:01  marco
-  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
- Revision 1.2  2003/06/01 16:28:41  marco
-  * Enhancements to make the compiler baseunix using.
-
- Revision 1.1  2002/12/18 16:49:02  marco
-  * New RTL. Linux system unit and baseunix operational.
-
 
 }
 
- 
+

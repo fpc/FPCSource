@@ -546,46 +546,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2005-02-04 16:30:40  peter
+  Revision 1.78  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.77  2005/02/04 16:30:40  peter
     * disable longstring
 
   Revision 1.76  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
-
-  Revision 1.75  2004/12/07 16:11:52  peter
-    * set vo_explicit_paraloc flag
-
-  Revision 1.74  2004/12/07 13:52:54  michael
-    * Convert array of widechar to pwidechar instead of pchar
-
-  Revision 1.73  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.72  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.71  2004/07/05 21:49:43  olle
-    + macpas style: exit, cycle, leave
-    + macpas compiler directive: PUSH POP
-
-  Revision 1.70  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.69  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.68  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.67.2.3  2004/04/12 19:34:46  peter
-    * basic framework for dwarf CFI
-
-  Revision 1.67.2.2  2004/04/12 14:45:11  peter
-    * tai_const_symbol and tai_const merged
-
-  Revision 1.67.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
 
 }

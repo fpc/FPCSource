@@ -322,7 +322,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2005-01-20 17:47:01  peter
+  Revision 1.55  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.54  2005/01/20 17:47:01  peter
     * remove copy_value_on_stack and a_param_copy_ref
 
   Revision 1.53  2005/01/10 21:50:05  jonas
@@ -332,78 +335,5 @@ end.
 
   Revision 1.52  2005/01/07 16:22:54  florian
     + implemented abi compliant handling of strucutured functions results on sparc platform
-
-  Revision 1.51  2004/11/22 22:01:19  peter
-    * fixed varargs
-    * replaced dynarray with tlist
-
-  Revision 1.50  2004/11/21 18:13:31  peter
-    * fixed funcretloc for sparc
-
-  Revision 1.49  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.48  2004/11/21 17:17:04  florian
-    * changed funcret location back to tlocation
-
-  Revision 1.47  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.46  2004/11/07 00:33:45  florian
-    * marked o* registers as volatile
-
-  Revision 1.45  2004/10/24 17:32:53  florian
-    * fixed several arm compiler bugs
-
-  Revision 1.44  2004/10/05 20:41:02  peter
-    * more spilling rewrites
-
-  Revision 1.43  2004/09/27 21:24:17  peter
-    * fixed passing of flaot parameters. The general size is still float,
-      only the size of the locations is now OS_32
-
-  Revision 1.42  2004/09/25 20:28:39  florian
-    * handling of C styled varargs fixed
-
-  Revision 1.41  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.40.4.4  2004/09/19 18:08:15  peter
-    * fixed order of 64 bit funcret registers
-
-  Revision 1.40.4.3  2004/09/17 17:19:26  peter
-    * fixed 64 bit unaryminus for sparc
-    * fixed 64 bit inlining
-    * signness of not operation
-
-  Revision 1.40.4.2  2004/09/12 13:36:40  peter
-    * fixed alignment issues
-
-  Revision 1.40.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.40  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.39  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.38.2.2  2004/05/31 22:08:21  peter
-    * fix passing of >6 arguments
-
-  Revision 1.38.2.1  2004/05/25 21:38:35  peter
-    * constructors return self
-
-  Revision 1.38  2004/03/15 14:39:56  mazen
-  * make sparc para manager quite similar to ppc one to help
-    copying evolutions.
-  + Add support to var args in registers. need to be verfied as it
-    was just copying ppc's one
-
-  Revision 1.37  2004/03/09 13:05:49  mazen
-  + give location for 64bit to fix IE 200402061
 
 }

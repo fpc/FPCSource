@@ -4,7 +4,7 @@
     Copyright (c) 2004 by the Free Pascal development team
 
     Some RTTI utils, based on RX rtti utils.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -14,18 +14,18 @@
 
  **********************************************************************}
 { **********************************************************************
- 
-  Based on the rttiutils unit that comes with RXLib. 
+
+  Based on the rttiutils unit that comes with RXLib.
   Adapted to work with FCL, free of VCL dependencies.
   Fixed some errors along the way as well. MVC.
 
-  To make it work across the 'Root Component' (Form/Datamodule etc), 
+  To make it work across the 'Root Component' (Form/Datamodule etc),
   you MUST set the FindGlobalComponentCallBack event handler.
-  
-  Original copyright:                                   
-         Delphi VCL Extensions (RX)                    
-         Copyright (c) 1995, 1996 AO ROSNO            
-         Copyright (c) 1997 Master-Bank                
+
+  Original copyright:
+         Delphi VCL Extensions (RX)
+         Copyright (c) 1995, 1996 AO ROSNO
+         Copyright (c) 1997 Master-Bank
   **********************************************************************}
 
 {$mode objfpc}
@@ -131,7 +131,7 @@ function ParseStoredItem(const Item: string; var CompName, PropName: string): Bo
 const
   sPropNameDelimiter: string = '_';
 
-Type 
+Type
   TFindComponentEvent = Function (Const Name : String) : TComponent;
 
 Var
@@ -261,7 +261,7 @@ var
   I: Integer;
   Component: TComponent;
   CompName, PropName: string;
-  
+
 begin
   if (AStoredList = nil) or (AComponent = nil) then
     Exit;

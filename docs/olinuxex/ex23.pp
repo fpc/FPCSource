@@ -15,7 +15,7 @@ begin
   Close (F);
   { Octal() makes the correct number from a
     number that LOOKS octal }
-  Chmod ('testex21',octal (777)); 
+  Chmod ('testex21',octal (777));
   { File is now executable  }
-  execl ('./testex21');    
+  execl ('./testex21');
 end.

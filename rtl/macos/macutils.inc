@@ -19,7 +19,7 @@
    workingDirectorySpec: FSSpec;}
 
 function FourCharCodeToLongword(fourcharcode: Shortstring): Longword;
-  
+
 begin
   FourCharCodeToLongword:=
     (ord(fourcharcode[1]) shl 24) or
@@ -84,13 +84,13 @@ begin
     permErr    { permissions error (on file open) }
       :res:=5;
     volOnLinErr{ drive volume already on-line at MountVol }
-      :res:=1; //TODO Exchange to something other      
+      :res:=1; //TODO Exchange to something other
     nsDrvErr       { no such drive (tried to mount a bad drive num) }
       :res:=1; //TODO Perhaps exchange to something better
     noMacDskErr,   { not a mac diskette (sig bytes are wrong) }
     extFSErr       { volume in question belongs to an external fs }
       :res:=157; //TODO Perhaps exchange to something better
-    fsRnErr,   { file system internal error:during rename the old 
+    fsRnErr,   { file system internal error:during rename the old
                  entry was deleted but could not be restored. }
     badMDBErr  { bad master directory block }
       :res:=1; //TODO Exchange to something better
@@ -102,7 +102,7 @@ begin
       :res:=1; //TODO Exchange to something better
     badMovErr  { Move into offspring error }
       :res:=5;
-    wrgVolTypErr   { Wrong volume type error [operation not 
+    wrgVolTypErr   { Wrong volume type error [operation not
                      supported for MFS] }
       :res:=1; //TODO Exchange to something better
     volGoneErr { Server volume has been disconnected. }
@@ -112,7 +112,7 @@ begin
       :res:=17;
     catChangedErr      { the catalog has been modified }
                        { OR comment: when searching with PBCatSearch }
-      :res:=1; //TODO Exchange to something other      
+      :res:=1; //TODO Exchange to something other
     afpAccessDenied,   {  Insufficient access privileges for operation  }
     afpDenyConflict    {  Specified open/deny modes conflict with current open modes  }
       :res:=5;
@@ -124,8 +124,8 @@ begin
     afpObjectTypeErr   {  File/Directory specified where Directory/File expected  }
       :res:=3;
     afpCatalogChanged  { OR comment: when searching with PBCatSearch }
-      :res:=1; //TODO Exchange to something other      
-    afpSameObjectErr  
+      :res:=1; //TODO Exchange to something other
+    afpSameObjectErr
       :res:=5; //TODO Exchange to something better
 
     memFullErr { Not enough room in heap zone }
@@ -331,7 +331,7 @@ end;
   end;
 
 
-{Gives the path for a given file or directory. If parent is true, 
+{Gives the path for a given file or directory. If parent is true,
  a path to the directory, where the file or directory is located,
  is returned. Functioning even with System 6.}
 
@@ -395,7 +395,7 @@ end;
 function PathArgToFSSpec(s: string; var spec: FSSpec): Integer;
 var
   err: OSErr;
-begin 
+begin
   err:= FSMakeFSSpec(workingDirectorySpec.vRefNum,
       workingDirectorySpec.parID, s, spec);
   PathArgToFSSpec := MacOSErr2RTEerr(err);
@@ -460,7 +460,7 @@ end;
 
   {Checks that fs really is an application with the specified creator}
   function ConfirmApplicationExists (creator: OSType; var fs: FSSpec): OSErr;
-  
+
     var
       err: OSErr;
       info: FInfo;
@@ -474,7 +474,7 @@ end;
     ConfirmApplicationExists := err;
   end;
 
-  {Find an application with the given creator, in any of the mounted volumes.} 
+  {Find an application with the given creator, in any of the mounted volumes.}
   function FindApplication (creator: OSType; var fs: FSSpec): OSErr;
     var
       i: integer;
@@ -488,7 +488,7 @@ end;
       i := 1;
       repeat
         fs.vRefNum := 0;
-        
+
         {Get info for volume i}
         oe := GetVolInfo(fs.name, fs.vRefNum, i, crdate);
         i := i + 1;
@@ -497,7 +497,7 @@ end;
             fs.name := '';
             ioNamePtr := @fs.name;
             ioVRefNum := fs.vRefNum;
-            
+
             {Get the desktop database for this volume}
             oe := PBDTGetPath(@pbdt);
             if oe = noErr then begin
@@ -510,10 +510,10 @@ end;
                 fs.parID := pbdt.ioAPPLParID;
                 found := ConfirmApplicationExists(creator,fs)=noErr;
               end;
-              
+
               {If not ok, look for older ones.}
               if not found then begin
-                ioIndex := 1;              
+                ioIndex := 1;
                 repeat
                   oe := PBDTGetAPPLSync(@pbdt);
                   if oe = noErr then begin
@@ -523,7 +523,7 @@ end;
                   ioIndex := ioIndex + 1;
                 until found or (oe <> noErr);
               end;
-              
+
             end;
           end;
           oe := noErr;
@@ -554,7 +554,7 @@ begin
   if not tofront then begin
     launchThis.launchControlFlags := launchThis.launchControlFlags or launchDontSwitch;
   end;
-  
+
   LaunchFSSpec:= LaunchApplication(@launchThis);
 end;
 

@@ -1232,7 +1232,7 @@ begin
 void __maybe_fix_w2k_ntvdm_bug(void)
   if (_osmajor == 5 && _get_dos_version(1) == 0x532) /* Windows NT, 2000 or XP? */
   {
-   if(_stubinfo->size < STUBINFO_END)	/* V2load'ed image, stubinfo PSP bad */
+   if(_stubinfo->size < STUBINFO_END)   /* V2load'ed image, stubinfo PSP bad */
 
     /* Protected mode call to SetPSP - uses BX from GetPSP (0x51) */
     asm volatile("movb $0x51, %%ah                        \n\
@@ -1616,34 +1616,7 @@ end;
 {$endif IN_SYSTEM}
 {
   $Log$
-  Revision 1.17  2004-12-07 14:02:24  jonas
-    * fix cdecl name problems (patch from Tomas)
-
-  Revision 1.16  2004/11/29 20:39:36  peter
-  fixed compilation
-
-  Revision 1.15  2004/11/25 20:06:55  jonas
-    * fixes from Tomas
-
-  Revision 1.14  2003/10/03 21:46:25  peter
-    * stdcall fixes
-
-  Revision 1.13  2003/03/19 15:57:16  peter
-    * fix compile with 1.0.x
-
-  Revision 1.12  2003/03/18 08:48:41  michael
-  + Patch from peter to correct frame trace
-
-  Revision 1.11  2002/10/14 19:39:16  peter
-    * threads unit added for thread support
-
-  Revision 1.10  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/02/03 09:51:41  peter
-    * merged winxp fixes
-
-  Revision 1.8  2002/01/25 16:23:03  peter
-    * merged filesearch() fix
+  Revision 1.18  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

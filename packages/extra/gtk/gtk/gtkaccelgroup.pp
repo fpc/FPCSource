@@ -80,13 +80,7 @@ function  gtk_accelerator_get_default_mod_mask:guint;cdecl;external gtkdll name 
 
 {
   $Log$
-  Revision 1.3  2004-05-02 19:14:47  jonas
-    * fixed darwin incompatibilities
-
-  Revision 1.2  2002/09/07 15:42:59  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:55:08  peter
-    * splitted to base and extra
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

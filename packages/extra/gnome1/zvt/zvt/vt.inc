@@ -140,7 +140,7 @@ procedure vt_swap_buffers(vt:Pvt_em);cdecl;external libzvtdll name 'vt_swap_buff
 function vt_forkpty(vt:Pvt_em; do_uwtmp_log:longint):pid_t;cdecl;external libzvtdll name 'vt_forkpty';
 function vt_readchild(vt:Pvt_em; buffer:Pchar; len:longint):longint;cdecl;external libzvtdll name 'vt_readchild';
 function vt_writechild(vt:Pvt_em; buffer:Pchar; len:longint):longint;cdecl;external libzvtdll name 'vt_writechild';
-function vt_report_button(vt:Pvt_em; down:longint; button:longint; qual:longint; x:longint; 
+function vt_report_button(vt:Pvt_em; down:longint; button:longint; qual:longint; x:longint;
                y:longint):longint;cdecl;external libzvtdll name 'vt_report_button';
 procedure vt_scrollback_set(vt:Pvt_em; lines:longint);cdecl;external libzvtdll name 'vt_scrollback_set';
 function vt_killchild(vt:Pvt_em; signal:longint):longint;cdecl;external libzvtdll name 'vt_killchild';

@@ -58,7 +58,7 @@ asm
   movl 8(%eax),%edi
 {$ifdef needsigprocmask}
   call savesigmask
-{$endif needsigprocmask}  
+{$endif needsigprocmask}
   xorl %eax,%eax
 end['EAX'];
 
@@ -92,19 +92,13 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-02-13 20:01:37  peter
+  Revision 1.8  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.7  2005/02/13 20:01:37  peter
     * include file cleanup
 
   Revision 1.6  2005/01/20 16:38:28  peter
     * restore sigprocmask for linux
-
-  Revision 1.5  2003/12/04 21:42:07  peter
-    * register calling updates
-
-  Revision 1.4  2003/11/11 21:08:17  peter
-    * REGCALL define added
-
-  Revision 1.3  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
 
 }

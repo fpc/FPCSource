@@ -8,7 +8,7 @@ begin
   gtk_main_quit();
 end;
 
-Const 
+Const
   Inside  : PChar ='Mouse is over label';
   OutSide : PChar ='Mouse is not over label';
 
@@ -16,7 +16,7 @@ var
   OverLabel : Boolean;
   window, box1, box2, stackbox, label1, Label2  : PGtkWidget;
 
-Procedure ChangeLabel(P : PGtkWidget; 
+Procedure ChangeLabel(P : PGtkWidget;
                       Event : PGdkEventCrossing;
                       Var Data : Boolean);cdecl;
 
@@ -44,7 +44,7 @@ begin
   gtk_container_add(GTK_Container(window),stackbox);
   gtk_signal_connect(PGTKOBJECT (window), 'destroy',
                      GTK_SIGNAL_FUNC (@destroy), NULL);
-  overlabel:=False;                   
+  overlabel:=False;
   gtk_signal_connect(PGTKOBJECT(box1),'enter_notify_event',
                      GTK_SIGNAL_FUNC (@ChangeLabel), @Overlabel);
   gtk_signal_connect(PGTKOBJECT(box1),'leave_notify_event',

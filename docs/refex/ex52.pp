@@ -7,7 +7,7 @@ Var F : File;
 
 begin
   Assign (F,'Test.tmp');
-  { Create the file. Recordsize is 4 } 
+  { Create the file. Recordsize is 4 }
   Rewrite (F,Sizeof(I));
   For I:=1 to 10 do
     BlockWrite (F,I,1);

@@ -208,7 +208,7 @@ function act_char : Char;
         while pop_macro do ;
         if (bufptr>0) then
           act_char := buf[bufptr]
-        else  
+        else
           act_char:=#0;
       end
   end(*act_char*);

@@ -1277,101 +1277,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2005-02-10 20:57:02  peter
+  Revision 1.36  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.35  2005/02/10 20:57:02  peter
     * implement tinputfile.getfiletime
 
   Revision 1.34  2005/01/08 12:05:13  florian
     * user screen parsing fixed
-
-  Revision 1.33  2004/11/22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.32  2004/11/20 14:21:19  florian
-    * implemented reload menu item
-    * increased file history to 9 files
-
-  Revision 1.31  2004/11/20 10:18:41  florian
-    * reduced status updates by making them time dependend
-
-  Revision 1.30  2004/11/14 21:45:28  florian
-    * fixed non working mouse after tools call
-    * better handling of source/target info
-    * more info in about dialog
-    * better info in compiler status dialiog
-
-  Revision 1.29  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.28  2004/11/06 22:02:48  peter
-    * fixed resize helptext
-
-  Revision 1.27  2004/11/06 17:22:52  peter
-    * fixes for new fv
-
-  Revision 1.26  2004/11/05 00:00:33  peter
-  set exefile after compilation, before the target_info is not filled
-
-  Revision 1.25  2004/11/02 23:53:19  peter
-    * fixed crashes with ide and 1.9.x
-
-  Revision 1.24  2004/09/09 20:33:00  jonas
-    * made CompilerStop declaration compliant to new tstopprocedure type in
-      compiler
-
-  Revision 1.23  2003/11/14 17:29:38  marco
-   * linuxerrorcide
-
-  Revision 1.22  2003/03/28 09:55:46  armin
-  * Fixed TCompilerMessageWindow.AddMessage to see line numbers with 1.1
-
-  Revision 1.21  2003/03/27 14:11:53  pierre
-   * fix problem in CompilerComment procedure
-
-  Revision 1.20  2003/01/13 09:05:18  pierre
-   * fix error in last commit
-
-  Revision 1.19  2003/01/11 15:52:54  peter
-    * adapted for new 1.1 compiler verbosity
-
-  Revision 1.18  2002/12/02 13:58:29  pierre
-   * avoid longjmp messages if quitting after compilation error
-
-  Revision 1.17  2002/11/20 17:35:00  pierre
-   * use target_os.ExeExt for compiled executable
-
-  Revision 1.16  2002/10/23 19:19:40  hajny
-    * another bunch of missing HasSignal conditionals
-
-  Revision 1.15  2002/09/26 15:00:35  pierre
-   * fix problems with system unit is not present for __fp__ compilation
-
-  Revision 1.14  2002/09/13 22:30:50  pierre
-   * only fpc uses video unit
-
-  Revision 1.13  2002/09/09 06:53:54  pierre
-   * avoid to save file used by codecomplete
-
-  Revision 1.12  2002/09/07 15:40:42  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.11  2002/09/05 08:45:40  pierre
-   * try to fix recompilation on changes problems
-
-  Revision 1.10  2002/09/04 14:07:12  pierre
-   + Enhance code complete by inserting unit symbols
-
-  Revision 1.9  2002/08/26 13:03:14  pierre
-   + add a lock to speed up parsing of userscreen
-
-  Revision 1.8  2002/04/10 22:37:37  pierre
-   * save and restore Exitproc if LongJmp called
-
-  Revision 1.7  2002/03/20 14:48:27  pierre
-   * moved StopJmp buffer to fpcatch unit
 
 }

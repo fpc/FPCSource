@@ -2167,13 +2167,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-03-27 18:11:23  yuri
-  Orders added
-
-  Revision 1.4  2002/11/02 13:26:36  hajny
-    * Gpi*Palette* parameters corrected
-
-  Revision 1.3  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

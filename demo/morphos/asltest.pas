@@ -2,7 +2,7 @@
     $Id$
 
     Using an asl.library requester
-    Free Pascal for MorphOS example 
+    Free Pascal for MorphOS example
 
     Copyright (C) 2005 by Karoly Balogh
     Based on work of Nils Sjoholm
@@ -62,7 +62,7 @@ begin
                  'The path is: '+FileReq^.rf_Dir+#10+
                  'And the file is: '+FileReq^.rf_File,
                  'OK')
-    else 
+    else
       MessageBox('ASL Test Result',
                  'You canceled!',
                  'OK');
@@ -73,7 +73,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2005-01-30 20:03:43  karoly
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2005/01/30 20:03:43  karoly
     * initial revision
 
 }

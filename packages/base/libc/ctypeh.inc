@@ -23,4 +23,4 @@ function _tolower(_para1:longint):longint;cdecl;external clib name '_tolower';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -27,7 +27,7 @@ interface
 
 uses exec, utility;
 
-var 
+var
   AHIBase: PLibrary;
 
   type

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     <What does this file>
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -17,17 +17,17 @@
 Constructor TDataModule.Create(AOwner: TComponent);
 begin
   CreateNew(AOwner);
-  if (ClassType <> TDataModule) and 
+  if (ClassType <> TDataModule) and
      not (csDesigning in ComponentState) then
     begin
-    if not InitInheritedComponent(Self, TDataModule) then 
+    if not InitInheritedComponent(Self, TDataModule) then
       raise EStreamError.CreateFmt(SErrNoSTreaming, [ClassName]);
-    if OldCreateOrder then 
+    if OldCreateOrder then
       DoCreate;
     end;
 end;
 
-Constructor TDataModule.CreateNew(AOwner: TComponent); 
+Constructor TDataModule.CreateNew(AOwner: TComponent);
 
 begin
   CreateNew(AOwner,0);
@@ -42,7 +42,7 @@ end;
 
 Procedure TDataModule.AfterConstruction;
 begin
-   If not OldCreateOrder then 
+   If not OldCreateOrder then
      DoCreate;
 end;
 
@@ -50,13 +50,13 @@ Procedure TDataModule.BeforeDestruction;
 begin
   Destroying;
   RemoveFixupReferences(Self, '');
-  if not OldCreateOrder then 
+  if not OldCreateOrder then
     DoDestroy;
 end;
 
 destructor TDataModule.Destroy;
 begin
-  if OldCreateOrder then 
+  if OldCreateOrder then
     DoDestroy;
   if Assigned(RemoveDataModule) then
     RemoveDataModule(Self);
@@ -90,11 +90,11 @@ procedure TDataModule.DefineProperties(Filer: TFiler);
 var
   Ancestor : TDataModule;
   HaveData : Boolean;
-  
+
 begin
   inherited DefineProperties(Filer);
   Ancestor := TDataModule(Filer.Ancestor);
-  HaveData:=(Ancestor=Nil) or 
+  HaveData:=(Ancestor=Nil) or
             (FDSize.X<>Ancestor.FDSize.X) or
             (FDSize.Y<>Ancestor.FDSize.Y) or
             (FDPos.Y<>Ancestor.FDPos.Y) or
@@ -109,10 +109,10 @@ procedure TDataModule.GetChildren(Proc: TGetChildProc; Root: TComponent);
 
 var
   I : Integer;
-  
+
 begin
   inherited GetChildren(Proc, Root);
-  if (Root=Self) then 
+  if (Root=Self) then
     for I:=0 to ComponentCount-1 do
       If Not Components[I].HasParent then
          Proc(Components[i]);

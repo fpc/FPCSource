@@ -21,12 +21,12 @@ Type
     Procedure CreateWindow;
     Procedure OnShow(Sender : TFpGtkObject;Data : Pointer);
   end;
-  
+
 Implementation
 
-uses 
+uses
   fpdemsg;
-  
+
 Constructor TNewNodeForm.Create;
 
 begin
@@ -38,7 +38,7 @@ Procedure TNewNodeForm.CreateWindow;
 
 Var
   OH,OV : TgtkAttachOPtions;
-  
+
 begin
   FVBox:=TFPGtkVBox.Create;
   FVBox.Spacing:=4;

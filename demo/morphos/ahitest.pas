@@ -2,7 +2,7 @@
     $Id$
 
     Using AHI device interface to produce sound
-    Free Pascal for MorphOS example 
+    Free Pascal for MorphOS example
 
     Copyright (C) 2005 by Karoly Balogh
 
@@ -28,7 +28,7 @@ const
   STYPE      = AHIST_M16S;
   BUFFERSIZE = 8192;
 
-var 
+var
   myTask: PTask;
   oldPri: LongInt;
 
@@ -36,14 +36,14 @@ const
   AHImp : PMsgPort = nil;
   AHIios: Array[0..1] of PAHIRequest = (nil,nil);
   AHIio : PAHIRequest = nil;
-  AHIiocopy: Pointer = nil;  
+  AHIiocopy: Pointer = nil;
   AHIdevice: ShortInt = -1;
 
   signals: DWord = 0;
   length : DWord = 0;
 
   link: PAHIRequest = nil;
-  tmp : Pointer = nil;  
+  tmp : Pointer = nil;
 
   terminate: Boolean = False;
 
@@ -63,8 +63,8 @@ begin
   FreeMem(AHIiocopy);
   DeleteMsgPort(AHImp);
   SetTaskPri(myTask,oldPri);
- 
-  if exitmsg<>'' then writeln(exitmsg); 
+
+  if exitmsg<>'' then writeln(exitmsg);
   halt(exitcode);
 end;
 
@@ -92,7 +92,7 @@ end;
 begin
   PB1:=@Buffer1;
   PB2:=@Buffer2;
- 
+
   myTask:=FindTask(nil);
   oldPri:=SetTaskPri(myTask,10);
 
@@ -105,12 +105,12 @@ begin
     end;
   end;
 
-  if AHIdevice<>0 then 
+  if AHIdevice<>0 then
     cleanup('AHI opening error!',20);
 
   { * Make a copy of the request (for double buffering) * }
   AHIiocopy:=getmem(sizeof(TAHIRequest));
-  if AHIiocopy=nil then 
+  if AHIiocopy=nil then
     cleanup('Memory allocation failure.',20);
 
   CopyMem(AHIio, AHIiocopy, sizeof(TAHIRequest));
@@ -146,9 +146,9 @@ begin
 
       { * Check for Ctrl-C and abort if pressed * }
       if (signals and SIGBREAKF_CTRL_C)>0 then begin
-        SetIoErr(ERROR_BREAK);      
+        SetIoErr(ERROR_BREAK);
         terminate:=True;
-      end;  
+      end;
 
       { * Remove the reply and abort on error * }
       if (WaitIO(PIORequest(link)))<>0 then begin
@@ -173,14 +173,14 @@ begin
   AbortIO(PIORequest(AHIios[0]));
   WaitIO(PIORequest(AHIios[0]));
 
-  if (link<>nil) then begin 
+  if (link<>nil) then begin
     { * Only if the second request was started * }
     AbortIO(PIORequest(AHIios[1]));
     WaitIO(PIORequest(AHIios[1]));
   end;
 
   IOErrCode:=IoErr();
-  if (IOErrCode<>0) and (IOErrCode<>ERROR_BREAK) then 
+  if (IOErrCode<>0) and (IOErrCode<>ERROR_BREAK) then
     cleanup('Device I/O error.',20)
   else
     cleanup('',0);
@@ -188,7 +188,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2005-01-30 20:03:43  karoly
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2005/01/30 20:03:43  karoly
     * initial revision
 
 }

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Drawing of ellipses and arcs, and filling ellipses and pies.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

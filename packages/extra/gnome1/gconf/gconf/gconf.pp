@@ -73,7 +73,7 @@ type
                  end );
             end;
      end;
-   
+
 {$define read_interface}
 {$undef read_implementation}
 
@@ -114,7 +114,7 @@ function gconf_engine_get_string(conf:PGConfEngine; key:Pgchar; err:PPGError):pg
 function gconf_engine_get_bool(conf:PGConfEngine; key:Pgchar; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_get_bool';
 function gconf_engine_get_schema(conf:PGConfEngine; key:Pgchar; err:PPGError):PGConfSchema;cdecl;external gconfdll name 'gconf_engine_get_schema';
 function gconf_engine_get_list(conf:PGConfEngine; key:Pgchar; list_type:TGConfValueType; err:PPGError):PGSList;cdecl;external gconfdll name 'gconf_engine_get_list';
-function gconf_engine_get_pair(conf:PGConfEngine; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; car_retloc:gpointer; 
+function gconf_engine_get_pair(conf:PGConfEngine; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; car_retloc:gpointer;
            cdr_retloc:gpointer; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_get_pair';
 function gconf_engine_set_float(conf:PGConfEngine; key:Pgchar; val:gdouble; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_set_float';
 function gconf_engine_set_int(conf:PGConfEngine; key:Pgchar; val:gint; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_set_int';
@@ -122,7 +122,7 @@ function gconf_engine_set_string(conf:PGConfEngine; key:Pgchar; val:Pgchar; err:
 function gconf_engine_set_bool(conf:PGConfEngine; key:Pgchar; val:gboolean; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_set_bool';
 function gconf_engine_set_schema(conf:PGConfEngine; key:Pgchar; val:PGConfSchema; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_set_schema';
 function gconf_engine_set_list(conf:PGConfEngine; key:Pgchar; list_type:TGConfValueType; list:PGSList; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_set_list';
-function gconf_engine_set_pair(conf:PGConfEngine; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; const address_of_car:gpointer; 
+function gconf_engine_set_pair(conf:PGConfEngine; key:Pgchar; car_type:TGConfValueType; cdr_type:TGConfValueType; const address_of_car:gpointer;
            const address_of_cdr:gpointer; err:PPGError):gboolean;cdecl;external gconfdll name 'gconf_engine_set_pair';
 type
    TGConfEnumStringPair = record

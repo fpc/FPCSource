@@ -37,7 +37,7 @@ Const
    SDivByZero = 'Division by zero';
    SEndOfFile = 'Read past end of file';
    SExceptionErrorMessage = 'exception at %p: %s';
-   SExternalException = 'External exception %x';   
+   SExternalException = 'External exception %x';
    SFileNotAssigned = 'File not assigned';
    SFileNotFound = 'File not found';
    SFileNotOpen = 'File not open';
@@ -77,21 +77,7 @@ Const
 
 {
   $Log$
-  Revision 1.3  2004-09-14 01:13:43  sg
-  * Fixed ExceptionErrorMessage (string const didn't match Format() call)
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.2  2003/11/26 20:12:08  michael
-  + New runerror 231 (exception stack error) and 232 (nothread support)
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.8  2003/01/01 20:58:07  florian
-    + added invalid instruction exception
-
-  Revision 1.7  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/01/25 17:42:03  peter
-    * interface helpers
 }

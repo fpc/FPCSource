@@ -235,18 +235,18 @@ asm
   b     .LFailed
 .LThreaded:
   stw   r3,temp
-  mflr  r3 
-  mtctr r10     
+  mflr  r3
+  mtctr r10
   lis   r4,(errno)@ha
   stw   r3,retaddress
   lwz   r3,(errno)@l(r4)
   bctrl
   lwz   r4,temp
   lwz   r5,retaddress
-  stw   r4,0(r3)  
+  stw   r4,0(r3)
   mtlr  r5
 .LFailed:
-  li    r3,-1   
+  li    r3,-1
 .LDone:
 end;
 
@@ -277,61 +277,26 @@ asm
   b     .LFailed
 .LThreaded:
   stw   r3,temp
-  mflr  r3 
-  mtctr r10     
+  mflr  r3
+  mtctr r10
   lis   r4,(errno)@ha
   stw   r3,retaddress
   lwz   r3,(errno)@l(r4)
   bctrl
   lwz   r4,temp
   lwz   r5,retaddress
-  stw   r4,0(r3)  
+  stw   r4,0(r3)
   mtlr  r5
 .LFailed:
-  li    r3,-1   
+  li    r3,-1
 .LDone:
 end;
 
 
 {
   $Log$
-  Revision 1.12  2004-02-06 23:06:16  florian
-    - killed tsyscallregs
-
-  Revision 1.11  2003/12/28 20:55:10  jonas
-    * fixed result of failed syscalls (no extra neg is needed)
-    + support multi-threaded programs
-
-  Revision 1.10  2003/11/29 22:54:32  jonas
-    * more ppc fixes, hello world works again under linuxppc
-
-  Revision 1.8  2003/11/15 19:01:27  florian
-    * fixed rtl to work with the integrated fpc ppc assembler reader
-
-  Revision 1.7  2003/06/17 16:39:58  jonas
-    * fixed old syscall handling for ppc
-
-  Revision 1.6  2003/05/23 21:58:30  jonas
-    * fixed storing to errno for single threaded programs
-
-  Revision 1.5  2003/05/11 16:07:55  jonas
-    * fixed mmap for non-i386 non-m68k architectures (not sure about
-      x86-64)
-
-  Revision 1.4  2003/04/22 17:07:55  florian
-    * there where two SYSCALL1 procedures for the powerpc, fixed
-
-  Revision 1.3  2003/01/09 13:38:26  florian
-    * syscall stuff fixed
-
-  Revision 1.2  2002/12/22 16:00:28  jonas
-    + added syscallh.inc, adapted syscall.inc
-
-  Revision 1.1  2002/11/09 20:32:14  marco
-   * powerpc version. Threadsafe errno access not yet done.
-
-  Revision 1.1  2002/10/14 19:39:44  peter
-    * syscall moved into seperate include
+  Revision 1.13  2005-02-14 17:13:30  peter
+    * truncate log
 
 }
 

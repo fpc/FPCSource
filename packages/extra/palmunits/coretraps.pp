@@ -12,7 +12,7 @@
  *
  * History:
  *    06/13/95 Created by Ron Marianetti
- *    06/13/95 RM    Created by Ron Marianetti 
+ *    06/13/95 RM    Created by Ron Marianetti
  *    ??/??/?? ???   Added Rocky changes
  *    02/04/98 srj   Added Hardware LCD Contrast Trap for Razor
  *    05/05/98 art   Reused sysTrapPsrInit, new name sysTrapIntlDispatch.
@@ -301,7 +301,7 @@ const
   sysTrapFplSub = $A0E9; // Obsolete, here for compatibilty only!
   sysTrapFplDiv = $A0EA; // Obsolete, here for compatibilty only!
 
-  sysTrapWinScreenInit = $A0EB; // was sysTrapScrInit 
+  sysTrapWinScreenInit = $A0EB; // was sysTrapScrInit
   sysTrapScrCopyRectangle = $A0EC;
   sysTrapScrDrawChars = $A0ED;
   sysTrapScrLineRoutine = $A0EE;
@@ -668,16 +668,16 @@ const
   sysTrapHwrDisplayInit = $A244; // Before OS 3.5, this trap a.k.a. sysTrapHwrLCDInit
   sysTrapHwrDisplaySleep = $A245; // Before OS 3.5, this trap a.k.a. sysTrapHwrLCDSleep
   sysTrapHwrTimerInit = $A246;
-  sysTrapHwrCursorV33 = $A247; // This trap obsoleted for OS 3.5 and later 
+  sysTrapHwrCursorV33 = $A247; // This trap obsoleted for OS 3.5 and later
   sysTrapHwrBatteryLevel = $A248;
   sysTrapHwrDelay = $A249;
   sysTrapHwrEnableDataWrites = $A24A;
   sysTrapHwrDisableDataWrites = $A24B;
-  sysTrapHwrLCDBaseAddrV33 = $A24C; // This trap obsoleted for OS 3.5 and later 
+  sysTrapHwrLCDBaseAddrV33 = $A24C; // This trap obsoleted for OS 3.5 and later
   sysTrapHwrDisplayDrawBootScreen = $A24D; // Before OS 3.5, this trap a.k.a. sysTrapHwrLCDDrawBitmap
   sysTrapHwrTimerSleep = $A24E;
   sysTrapHwrTimerWake = $A24F;
-  sysTrapHwrDisplayWake = $A250; // Before OS 3.5, this trap a.k.a. sysTrapHwrLCDWake 
+  sysTrapHwrDisplayWake = $A250; // Before OS 3.5, this trap a.k.a. sysTrapHwrLCDWake
   sysTrapHwrIRQ1Handler = $A251;
   sysTrapHwrIRQ2Handler = $A252;
   sysTrapHwrIRQ3Handler = $A253;
@@ -881,7 +881,7 @@ const
   sysTrapFldGetNumberOfBlankLines = $A2E8;
 
   sysTrapSysTicksPerSecond = $A2E9;
-  sysTrapHwrBacklightV33 = $A2EA; // This trap obsoleted for OS 3.5 and later 
+  sysTrapHwrBacklightV33 = $A2EA; // This trap obsoleted for OS 3.5 and later
   sysTrapDmDatabaseProtect = $A2EB;
 
   sysTrapTblSetBounds = $A2EC;
@@ -1032,7 +1032,7 @@ const
   sysTrapWinDrawChar = $A350;
   sysTrapWinDrawTruncChars = $A351;
 
-  sysTrapSysNotifyInit = $A352; // Notification Manager traps 
+  sysTrapSysNotifyInit = $A352; // Notification Manager traps
   sysTrapSysNotifyRegister = $A353;
   sysTrapSysNotifyUnregister = $A354;
   sysTrapSysNotifyBroadcast = $A355;

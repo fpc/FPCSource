@@ -62,8 +62,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-08 21:01:18  carl
-    * separated some tests
-    * make tfexpand more portable
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

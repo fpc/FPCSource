@@ -2,10 +2,10 @@ Unit RdSwitch;
 
 { This file contains routines to process some of cjpeg's more complicated
   command-line switches.  Switches processed here are:
- 	-qtables file		Read quantization tables from text file
- 	-scans file		Read scan script from text file
- 	-qslots N[,N,...]	Set component quantization table selectors
- 	-sample HxV[,HxV,...]	Set component sampling factors  }
+        -qtables file           Read quantization tables from text file
+        -scans file             Read scan script from text file
+        -qslots N[,N,...]       Set component quantization table selectors
+        -sample HxV[,HxV,...]   Set component sampling factors  }
 
 { Original: rdswitch.c ; Copyright (C) 1991-1996, Thomas G. Lane.   }
 
@@ -15,8 +15,8 @@ interface
 {$I jconfig.inc}
 
 uses
-  cdjpeg,		{ Common decls for cjpeg/djpeg applications }
-  {ctype,}		{ to declare isdigit(), isspace() }
+  cdjpeg,               { Common decls for cjpeg/djpeg applications }
+  {ctype,}              { to declare isdigit(), isspace() }
   jinclude,
   jmorecfg,
   jcparam,
@@ -41,7 +41,7 @@ function set_sample_factors (cinfo : j_compress_ptr;
 {GLOBAL}
 function read_quant_tables (cinfo : j_compress_ptr;
                             const filename : string;
-		            scale_factor : int;
+                            scale_factor : int;
                             force_baseline : boolean) : boolean;
 
 { Read a set of quantization tables from the specified file.
@@ -144,7 +144,7 @@ end;
 {GLOBAL}
 function read_quant_tables (cinfo : j_compress_ptr;
                             const filename : string;
-		            scale_factor : int;
+                            scale_factor : int;
                             force_baseline : boolean) : boolean;
 { Read a set of quantization tables from the specified file.
   The file is plain ASCII text: decimal numbers with whitespace between.
@@ -190,9 +190,9 @@ begin
     begin
       if (not read_text_integer(fp, val, termchar)) then
       begin
-	WriteLn(output, 'Invalid table data in file ', filename);
+        WriteLn(output, 'Invalid table data in file ', filename);
         fc_close(fp);
-	read_quant_tables := FALSE;
+        read_quant_tables := FALSE;
         exit;
       end;
       table[i] := uInt (val);
@@ -234,7 +234,7 @@ begin
   while (ch <> EOF) and (ch in [BLANK, TAB]) do
     ch := text_getc(f);
   if (ch in ['0'..'9']) then
-  begin		{ oops, put it back }
+  begin         { oops, put it back }
     if fc_ungetc(f, ch) = Byte(EOF) then
     begin
       read_scan_integer := FALSE;
@@ -282,7 +282,7 @@ var
   val : long;
   scanptr : jpeg_scan_info_ptr;
 const
-  MAX_SCANS = 100;		{ quite arbitrary limit }
+  MAX_SCANS = 100;              { quite arbitrary limit }
 var
   scans : array[0..MAX_SCANS-1] of jpeg_scan_info;
 begin
@@ -315,14 +315,14 @@ begin
     begin
       if (ncomps >= MAX_COMPS_IN_SCAN) then
       begin
-	WriteLn(output, 'Too many components in one scan in file ',
-		filename);
-	fc_close(fp);
-	read_scan_script := FALSE;
+        WriteLn(output, 'Too many components in one scan in file ',
+                filename);
+        fc_close(fp);
+        read_scan_script := FALSE;
         exit;
       end;
       if (not read_scan_integer(fp, val, termchar)) then
-	goto bogus;
+        goto bogus;
       scanptr^.component_index[ncomps] := int (val);
       Inc(ncomps);
     end;
@@ -330,16 +330,16 @@ begin
     if (termchar = ':') then
     begin
       if (not read_scan_integer(fp, val, termchar)) or (termchar <> BLANK) then
-	goto bogus;
+        goto bogus;
       scanptr^.Ss := int (val);
       if (not read_scan_integer(fp, val, termchar)) or (termchar <> BLANK) then
-	goto bogus;
+        goto bogus;
       scanptr^.Se := int (val);
       if (not read_scan_integer(fp, val, termchar)) or (termchar <> BLANK) then
-	goto bogus;
+        goto bogus;
       scanptr^.Ah := int (val);
       if (not read_scan_integer(fp, val, termchar)) then
-	goto bogus;
+        goto bogus;
       scanptr^.Al := int (val);
     end
     else
@@ -377,7 +377,7 @@ bogus:
       but if you want to compress multiple images you'd want JPOOL_PERMANENT. }
     scanptr := jpeg_scan_info_ptr (
        cinfo^.mem^.alloc_small ( j_common_ptr(cinfo), JPOOL_IMAGE,
-				  scanno * SIZEOF(jpeg_scan_info)) );
+                                  scanno * SIZEOF(jpeg_scan_info)) );
     MEMCOPY(scanptr, @scans, scanno * SIZEOF(jpeg_scan_info));
     cinfo^.scan_info := scanptr;
     cinfo^.num_scans := scanno;
@@ -421,7 +421,7 @@ function set_quant_slots (cinfo : j_compress_ptr;
   If there are more components than parameters, the last value is replicated.
  }
 var
-  val : int;	{ default table # }
+  val : int;    { default table # }
   ci : int;
   ch : char;
 var
@@ -437,22 +437,22 @@ begin
   begin
     if (arg^ <> #0) then
     begin
-      ch := ',';		{ if not set by sscanf, will be ',' }
+      ch := ',';                { if not set by sscanf, will be ',' }
       if not sscanf(arg, val, ch) then
       begin
         set_quant_slots := FALSE;
         exit;
       end;
-      if (ch <> ',') then	{ syntax check }
+      if (ch <> ',') then       { syntax check }
       begin
         set_quant_slots := FALSE;
         exit;
       end;
       if (val < 0) or (val >= NUM_QUANT_TBLS) then
       begin
-	WriteLn(output, 'JPEG quantization tables are numbered 0..',
-		NUM_QUANT_TBLS-1);
-	set_quant_slots := FALSE;
+        WriteLn(output, 'JPEG quantization tables are numbered 0..',
+                NUM_QUANT_TBLS-1);
+        set_quant_slots := FALSE;
         exit;
       end;
       cinfo^.comp_info^[ci].quant_tbl_no := val;
@@ -489,22 +489,22 @@ begin
   begin
     if (arg^ <> #0) then
     begin
-      ch2 := ',';		{ if not set by sscanf, will be ',' }
+      ch2 := ',';               { if not set by sscanf, will be ',' }
       if not (sscanf(arg, val1, ch1) and
               sscanf(arg, val2, ch2)) then
       begin
-	set_sample_factors := FALSE;
+        set_sample_factors := FALSE;
         exit;
       end;
       if ((ch1 <> 'x') and (ch1 <> 'X')) or (ch2 <> ',') then { syntax check }
       begin
-	set_sample_factors := FALSE;
+        set_sample_factors := FALSE;
         exit;
       end;
       if (val1 <= 0) or (val1 > 4) or (val2 <= 0) or (val2 > 4) then
       begin
-	WriteLn(output, 'JPEG sampling factors must be 1..4');
-	set_sample_factors := FALSE;
+        WriteLn(output, 'JPEG sampling factors must be 1..4');
+        set_sample_factors := FALSE;
         exit;
       end;
       cinfo^.comp_info^[ci].h_samp_factor := val1;

@@ -261,7 +261,10 @@ end.
 
 {
    $Log$
-   Revision 1.10  2005-01-30 21:51:57  jonas
+   Revision 1.11  2005-02-14 17:13:07  peter
+     * truncate log
+
+   Revision 1.10  2005/01/30 21:51:57  jonas
      * fixed darwin cycle
 
    Revision 1.9  2005/01/18 22:19:20  peter
@@ -275,33 +278,6 @@ end.
 
    Revision 1.7  2005/01/07 16:22:54  florian
      + implemented abi compliant handling of strucutured functions results on sparc platform
-
-   Revision 1.6  2004/11/22 22:01:19  peter
-     * fixed varargs
-     * replaced dynarray with tlist
-
-   Revision 1.5  2004/11/15 23:35:31  peter
-     * tparaitem removed, use tparavarsym instead
-     * parameter order is now calculated from paranr value in tparavarsym
-
-   Revision 1.4  2004/10/31 21:45:03  peter
-     * generic tlocation
-     * move tlocation to cgutils
-
-   Revision 1.3  2004/10/10 20:22:53  peter
-     * symtable allocation rewritten
-     * loading of parameters to local temps/regs cleanup
-     * regvar support for parameters
-     * regvar support for staticsymtable (main body)
-
-   Revision 1.2  2004/09/21 17:25:12  peter
-     * paraloc branch merged
-
-   Revision 1.1.2.2  2004/09/14 19:09:37  jonas
-     * fixed typo in IE check
-
-   Revision 1.1.2.1  2004/09/02 15:47:58  peter
-     * missing file
 
 }
 

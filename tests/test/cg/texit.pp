@@ -478,20 +478,7 @@ end.
 
 {
  $Log$
- Revision 1.5  2002-09-22 09:08:41  carl
-   * gets64bit was not returning an int64!
-
- Revision 1.4  2002/09/07 15:40:56  peter
-   * old logs removed and tabs fixed
-
- Revision 1.3  2002/09/01 14:45:54  peter
-   * updates to compile with kylix
-   * fixed some tests
-
- Revision 1.2  2002/07/07 11:16:06  carl
-   + ansistring testing (from mailing list)
-
- Revision 1.1  2002/03/25 20:18:46  carl
- + exit node testing
+ Revision 1.6  2005-02-14 17:13:37  peter
+   * truncate log
 
 }

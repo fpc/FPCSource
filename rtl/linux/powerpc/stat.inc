@@ -14,7 +14,7 @@
  **********************************************************************}
 
   Stat = packed Record  // No unix typing because of differences
-    case byte of   
+    case byte of
       0: (st_dev    : cardinal;
           st_ino,
           st_mode   : cardinal;
@@ -57,14 +57,7 @@
 
 {
   $Log$
-  Revision 1.2  2003-05-16 21:22:11  jonas
-    * fixed stat struct (previous one was a frankenversion of ppc and
-      i386 version)
-
-  Revision 1.1  2003/05/15 22:50:51  jonas
-    * the stat type is processor-dependent
-    * the dev_t tpye is processor dependent. Don't use it in the stat type
-      however, as that one is also used at a time where dev_t is already
-      defined as qword
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -53,7 +53,7 @@ var
   argc : longint;
   argv : ppchar;
   envp : ppchar;
-  errno : longint;		// MvdV: yuckie
+  errno : longint;              // MvdV: yuckie
 
   UnusedHandle:longint;
   StdInputHandle:longint;
@@ -549,58 +549,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2005-02-01 20:22:49  florian
+  Revision 1.21  2005-02-14 17:13:21  peter
+    * truncate log
+
+  Revision 1.20  2005/02/01 20:22:49  florian
     * improved widestring infrastructure manager
-
-  Revision 1.19  2004/12/05 14:36:37  hajny
-    + GetProcessID added
-
-  Revision 1.18  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.17  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.16  2004/09/18 11:18:44  hajny
-    * handle type changed to thandle in do_isdevice
-
-  Revision 1.15  2004/09/03 19:25:32  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.14  2004/06/21 18:50:51  olle
-    + cleanup
-
-  Revision 1.13  2004/06/17 16:16:13  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.12  2004/04/22 21:10:56  peter
-    * do_read/do_write addr argument changed to pointer
-
-  Revision 1.11  2004/01/20 23:09:14  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.10  2003/10/25 23:42:35  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.9  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.8  2003/01/08 22:32:28  marco
-   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-      but it could crash hard, since there are lots of unimplemented funcs.
-
-  Revision 1.7  2003/01/05 20:22:24  florian
-    - removed stack check, it's system independend in 1.1
-
-  Revision 1.6  2003/01/05 20:06:30  florian
-    + fixed missing SysInitStdIO
-
-  Revision 1.5  2002/10/13 09:25:31  florian
-    + call to initvariantmanager inserted
-
-  Revision 1.4  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
 
 }

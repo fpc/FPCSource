@@ -796,28 +796,13 @@ Begin
 end.
 {
   $Log$
-  Revision 1.11  2005-01-12 10:25:48  armin
+  Revision 1.12  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.11  2005/01/12 10:25:48  armin
   * Patch for bug 3548 from Peter
 
   Revision 1.10  2005/01/03 18:15:34  peter
   save ebx in assembler procs
-
-  Revision 1.9  2004/12/23 17:27:37  peter
-  never use ret direct in assembler
-
-  Revision 1.8  2003/10/03 21:46:25  peter
-    * stdcall fixes
-
-  Revision 1.7  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/05/09 08:42:24  carl
-  * Merges from Fixes branch
-
-  Revision 1.1.2.6  2002/04/12 12:01:48  pierre
-   * fix bug report 1701
-
-  Revision 1.1.2.5  2002/01/08 16:34:52  pierre
-   a working callback for XP
 
 }

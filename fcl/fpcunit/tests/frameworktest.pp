@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
-    
-    an example of a console test runner of FPCUnit tests. 
+
+    an example of a console test runner of FPCUnit tests.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,29 +17,29 @@
  **********************************************************************}
 program frameworktest;
 
-uses 
+uses
   custapp, classes, SysUtils, fpcunit, testreport, asserttest, suitetest;
-  
-Const 
+
+Const
   ShortOpts = 'alh';
   Longopts : Array[1..5] of String = (
     'all','list','format:','suite:','help');
-  Version = 'Version 0.1'; 
+  Version = 'Version 0.1';
 
 Type
   TTestRunner = Class(TCustomApplication)
   private
     FSuite: TTestSuite;
     FXMLResultsWriter: TXMLResultsWriter;
-  protected  
+  protected
     procedure DoRun ; Override;
     procedure doTestRun(aTest: TTest); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
-  
-  
+
+
 constructor TTestRunner.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -62,15 +62,15 @@ var
 begin
   testResult := TTestResult.Create;
   try
-    testResult.AddListener(FXMLResultsWriter); 
-    FXMLResultsWriter.WriteHeader;   
+    testResult.AddListener(FXMLResultsWriter);
+    FXMLResultsWriter.WriteHeader;
     aTest.Run(testResult);
     FXMLResultsWriter.WriteResult(testResult);
-  finally  
+  finally
     testResult.Free;
-  end;    
+  end;
 end;
-  
+
 procedure TTestRunner.DoRun;
 var
   I : Integer;
@@ -90,7 +90,7 @@ begin
     writeln('The results can be redirected to an xml file,');
     writeln('for example: ./testrunner --all > results.xml');
     writeln('use --suite=MyTestSuiteName to run only the tests in a single test suite class');
-  end 
+  end
   else;
     if HasOption('l', 'list') then
     begin
@@ -102,7 +102,7 @@ begin
           writeln(GetSuiteAsXML(FSuite));
       end
       else
-        writeln(GetSuiteAsXML(FSuite));   
+        writeln(GetSuiteAsXML(FSuite));
     end;
   if HasOption('a', 'all') then
   begin
@@ -119,16 +119,16 @@ begin
       else
       for I := 0 to FSuite.Tests.count - 1 do
         if FSuite[i].TestName = S then
-        begin    
-          doTestRun(FSuite.Test[i]);   
-        end;      
-    end;  
+        begin
+          doTestRun(FSuite.Test[i]);
+        end;
+    end;
   Terminate;
 end;
 
 Var
   App : TTestRunner;
- 
+
 begin
   App:=TTestRunner.Create(Nil);
   App.Initialize;

@@ -35,22 +35,10 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.5  2005-01-04 16:22:05  florian
+  Revision 1.6  2005-02-14 17:13:21  peter
+    * truncate log
+
+  Revision 1.5  2005/01/04 16:22:05  florian
     + added nostackframe directive
 
-  Revision 1.4  2004/03/23 19:13:09  florian
-    * setjmp fixed
-
-  Revision 1.3  2004/01/20 21:01:57  florian
-    * fixed setjump
-    * fixed syscalls
-
-  Revision 1.2  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
-
-  Revision 1.1  2003/08/21 16:41:54  florian
-    * empty dummy files
-    + [long|set]jmp implemented
 }

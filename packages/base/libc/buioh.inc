@@ -13,8 +13,8 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TIoVector = iovec;
   PIoVector = ^TIoVector;
-    
-    
+
+

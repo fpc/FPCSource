@@ -5,19 +5,19 @@ type
      GTRIG_MEDIAPLAY);
 
   TGnomeTriggerActionFunction = procedure (msg:Pchar; level:Pchar; supinfo:PPchar);cdecl;
-  
-  PGnomeTrigger = ^TGnomeTrigger; 
+
+  PGnomeTrigger = ^TGnomeTrigger;
   TGnomeTrigger = Record
     thetype : TGnomeTriggerType;
     U : record
-      Case longint of 
+      Case longint of
         1: (thefunction : TGnomeTriggerActionFunction);
-	2: (command : pgchar);
-	3 :(media : record
-	      thefile : Pgchar;
-	      cache_id : integer;
-	    end);
-      end;	
+        2: (command : pgchar);
+        3 :(media : record
+              thefile : Pgchar;
+              cache_id : integer;
+            end);
+      end;
     level : PGchar;
   end;
 

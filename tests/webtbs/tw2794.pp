@@ -5,7 +5,7 @@ program test;
 {$ifdef fpc}
   {$THREADING ON}
   {$MODE OBJFPC}
-{$endif}  
+{$endif}
 
 uses
   {$ifdef fpc}{$ifdef unix}CThreads,{$endif}{$endif}

@@ -47,16 +47,10 @@ end ['r4','r5','r6'];
 
 {
   $Log$
-  Revision 1.4  2005-01-04 12:57:52  florian
+  Revision 1.5  2005-02-14 17:13:21  peter
+    * truncate log
+
+  Revision 1.4  2005/01/04 12:57:52  florian
     * fixed overflow checking for qword*qword
 
-  Revision 1.3  2004/03/23 21:03:11  florian
-    + assembler implementation of fpc_mul_qword
-    * fpu exceptions are now generated
-
-  Revision 1.2  2004/03/14 21:45:11  florian
-    * draft for qword mul
-
-  Revision 1.1  2003/11/03 17:28:21  florian
-    * initial revision
 }

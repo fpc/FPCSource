@@ -42,7 +42,7 @@ type
 const
  BitmapCompressionTypeScanLine = 0;
  BitmapCompressionTypeRLE = Succ(BitmapCompressionTypeScanLine);
- 
+
  BitmapCompressionTypePackBits = Succ(BitmapCompressionTypeRLE);
  BitmapCompressionTypeEnd = Succ(BitmapCompressionTypePackBits);
  // must follow last compression algorithm

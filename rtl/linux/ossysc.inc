@@ -476,7 +476,10 @@ end;
 
 {
  $Log$
- Revision 1.35  2005-02-13 21:47:56  peter
+ Revision 1.36  2005-02-14 17:13:30  peter
+   * truncate log
+
+ Revision 1.35  2005/02/13 21:47:56  peter
    * include file cleanup part 2
 
  Revision 1.34  2005/02/13 20:01:38  peter
@@ -491,98 +494,4 @@ end;
  Revision 1.31  2005/01/31 19:22:48  peter
    * i386 also needs rtsignal
 
- Revision 1.30  2004/08/22 12:34:11  florian
-   * fixed fork for sparc
-
- Revision 1.29  2004/08/18 21:03:35  florian
-   * sparc uses wait4 as well
-
- Revision 1.28  2004/05/31 20:25:04  peter
-   * removed warnings
-
- Revision 1.27  2004/05/31 14:31:57  peter
-   * remove comment warnings
-
- Revision 1.26  2004/05/31 09:22:42  peter
-   * sigaction fixed for sparc
-
- Revision 1.25  2004/05/16 18:51:20  peter
-   * use thandle in do_*
-
- Revision 1.24  2004/05/01 15:59:17  florian
-   * x86_64 exception handling fixed
-
- Revision 1.23  2004/04/27 20:47:00  florian
-   * tried to fix x86-64 signal handling
-
- Revision 1.22  2004/04/25 07:18:49  florian
-   * mmap for x86-64 fixed
-
- Revision 1.21  2004/04/20 20:27:01  florian
-   * x86_64 syscall numbers fixed
-
- Revision 1.20  2004/04/12 16:33:42  peter
-   * readdir now uses getdents, patch from Joost van der Sluis
-
- Revision 1.19  2004/03/27 14:34:23  florian
-   * use rt_sigaction syscall on arm
-
- Revision 1.18  2004/02/21 16:27:29  marco
-  * hmprf, Linux has different ioctls kernel<->libc
-
- Revision 1.17  2004/02/21 15:14:55  marco
-  * ppc ioctl nr fixed
-
- Revision 1.16  2004/02/06 15:58:21  florian
-   * fixed x86-64 assembler problems
-
- Revision 1.15  2004/02/05 01:16:12  florian
-   + completed x86-64/linux system unit
-
- Revision 1.14  2004/01/31 16:25:48  florian
-   * use wait4 instead of waitpid on arm
-
- Revision 1.13  2004/01/23 00:00:06  florian
-   * arm requires oldmmap call as well
-
- Revision 1.12  2003/12/30 16:26:10  marco
-  * some more fixes. Testing on idefix
-
- Revision 1.11  2003/12/30 15:43:20  marco
-  * linux now compiles with FPC_USE_LIBC
-
- Revision 1.10  2003/12/16 09:43:04  daniel
-   * Use of 0 instead of nil fixed
-
- Revision 1.9  2003/10/17 20:56:24  olle
-   * Changed m68k to cpum68k, i386 to cpui386
-
- Revision 1.8  2003/09/27 13:45:58  peter
-   * fpnanosleep exported in baseunix
-   * fpnanosleep has pointer arguments to be C compliant
-
- Revision 1.7  2003/09/27 12:58:23  peter
-   * mmap returns -1 on error
-
- Revision 1.6  2003/09/27 11:52:35  peter
-   * sbrk returns pointer
-
- Revision 1.5  2003/09/15 20:29:50  marco
-  * small fix
-
- Revision 1.4  2003/09/14 20:15:01  marco
-  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
- Revision 1.3  2003/05/11 16:07:55  jonas
-   * fixed mmap for non-i386 non-m68k architectures (not sure about
-     x86-64)
-
- Revision 1.2  2002/12/18 17:38:01  marco
-  * small fix, new rtl now cycles
-
- Revision 1.1  2002/12/18 16:43:26  marco
-  * new unix rtl, linux part.....
-
- Revision 1.1  2002/11/12 14:40:18  marco
-  * The syscall core of the new system unit.
 }

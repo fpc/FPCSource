@@ -1,7 +1,7 @@
 { Source provided for Free Pascal Bug Report 2494 }
 { Submitted by "Alan Mead" on  2003-05-17 }
 { e-mail: cubrewer@yahoo.com }
-uses 
+uses
   erroru;
 
 type

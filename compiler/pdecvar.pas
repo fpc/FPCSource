@@ -1318,7 +1318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2005-02-03 17:11:40  peter
+  Revision 1.97  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.96  2005/02/03 17:11:40  peter
     * more procvar directive fixes
 
   Revision 1.95  2005/02/02 19:03:27  florian
@@ -1345,72 +1348,5 @@ end.
 
   Revision 1.89  2005/01/04 16:37:38  peter
     * give error when property doesn't reference a method or field
-
-  Revision 1.88  2004/12/11 15:19:08  jonas
-    * external vars are not regable
-
-  Revision 1.87  2004/12/07 16:11:52  peter
-    * set vo_explicit_paraloc flag
-
-  Revision 1.86  2004/11/29 18:50:15  peter
-    * os2 fixes for import
-    * asmsymtype support for intel reader
-
-  Revision 1.85  2004/11/16 20:32:40  peter
-  * fixes for win32 mangledname
-
-  Revision 1.84  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.83  2004/11/09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.82  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.81  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.80  2004/10/12 14:36:38  peter
-    * gen high tree makes copy in temp when there is a calln
-
-  Revision 1.79  2004/08/17 16:29:21  jonas
-    + padalgingment field for recordsymtables (saved by recorddefs)
-    + support for Macintosh PowerPC alignment (if the first field of a record
-      or union has an alignment > 4, then the record or union size must be
-      padded to a multiple of this size)
-
-  Revision 1.78  2004/08/15 13:30:18  florian
-    * fixed alignment of variant records
-    * more alignment problems fixed
-
-  Revision 1.77  2004/08/07 19:14:50  florian
-    * fixed problem with explicit specified calling conventions for property symbols
-
-  Revision 1.76  2004/07/14 23:19:22  olle
-    + added external facilities for macpas
-
-  Revision 1.75  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.74  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.73  2004/04/11 12:38:16  peter
-    * fix calling convention problem when parsing default value before
-      the semicolon
-
-  Revision 1.72.2.5  2004/05/02 20:54:04  peter
-    * allow convert when choosing property function with index
-
-  Revision 1.72.2.4  2004/05/01 20:51:20  peter
-    * fix val code parameter
-
-  Revision 1.72.2.3  2004/04/28 19:55:52  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
 
 }

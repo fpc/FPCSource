@@ -291,11 +291,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.2  2004/06/20 08:55:31  florian
-    * logs truncated
+  Revision 1.4  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

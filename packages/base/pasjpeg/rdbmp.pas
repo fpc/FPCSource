@@ -31,7 +31,7 @@ uses
   jinclude,
   jdeferr,
   jerror,
-  cdjpeg;		{ Common decls for cjpeg/djpeg applications }
+  cdjpeg;               { Common decls for cjpeg/djpeg applications }
 
 { The module selection routine for BMP format input. }
 
@@ -67,15 +67,15 @@ type
   bmp_source_struct = record
     pub : cjpeg_source_struct; { public fields }
 
-    cinfo : j_compress_ptr;		{ back link saves passing separate parm }
+    cinfo : j_compress_ptr;             { back link saves passing separate parm }
 
-    colormap : JSAMPARRAY;		{ BMP colormap (converted to my format) }
+    colormap : JSAMPARRAY;              { BMP colormap (converted to my format) }
 
-    whole_image : jvirt_sarray_ptr;	{ Needed to reverse row order }
-    source_row : JDIMENSION;	{ Current source row number }
-    row_width : JDIMENSION;		{ Physical width of scanlines in file }
+    whole_image : jvirt_sarray_ptr;     { Needed to reverse row order }
+    source_row : JDIMENSION;    { Current source row number }
+    row_width : JDIMENSION;             { Physical width of scanlines in file }
 
-    bits_per_pixel : int;		{ remembers 8- or 24-bit format }
+    bits_per_pixel : int;               { remembers 8- or 24-bit format }
   end; { bmp_source_struct }
 
 
@@ -192,7 +192,7 @@ begin
   outptr := source^.pub.buffer^[0];
   for col := pred(cinfo^.image_width) downto 0 do
   begin
-    outptr^[2] := inptr^;	{ can omit GETJSAMPLE() safely }
+    outptr^[2] := inptr^;       { can omit GETJSAMPLE() safely }
     Inc(inptr);
     outptr^[1] := inptr^;
     Inc(inptr);
@@ -249,14 +249,14 @@ begin
       { inline copy of read_byte() for speed }
       c := getc(infile);
       if (c = EOF) then
-	ERREXIT(j_common_ptr(cinfo), JERR_INPUT_EOF);
+        ERREXIT(j_common_ptr(cinfo), JERR_INPUT_EOF);
       out_ptr^ := JSAMPLE (c);
       Inc(out_ptr);
     end;
     {$ELSE}
     if JFREAD(infile, out_ptr, source^.row_width) <>
       size_t(source^.row_width) then
-	ERREXIT(j_common_ptr(cinfo), JERR_INPUT_EOF);
+        ERREXIT(j_common_ptr(cinfo), JERR_INPUT_EOF);
     {$ENDIF}
   end;
   if (progress <> NIL) then
@@ -283,7 +283,7 @@ procedure start_input_bmp (cinfo : j_compress_ptr;
                            sinfo : cjpeg_source_ptr); far;
 var
   source : bmp_source_ptr;
-  
+
   bmpfileheader : packed array[0..14-1] of U_CHAR;
   bmpinfoheader : packed array[0..64-1] of U_CHAR;
 
@@ -303,10 +303,10 @@ var
   progress : cd_progress_ptr;
 begin
   source := bmp_source_ptr (sinfo);
-  biWidth := 0;		        { initialize to avoid compiler warning }
+  biWidth := 0;                 { initialize to avoid compiler warning }
   biHeight := 0;
   biClrUsed := 0;
-  mapentrysize := 0;		{ 0 indicates no colormap }
+  mapentrysize := 0;            { 0 indicates no colormap }
 
   { Read and verify the bitmap file header }
   if JFREAD(source^.pub.input_file, @bmpfileheader, 14) <> size_t (14) then
@@ -368,7 +368,7 @@ begin
            mapentrysize := 3;         { OS/2 uses RGBTRIPLE colormap }
            TRACEMS2(j_common_ptr(cinfo), 1, JTRC_BMP_OS2_MAPPED, int (biWidth), int(biHeight));
          end;
-      24:			{ RGB image }
+      24:                       { RGB image }
         TRACEMS2(j_common_ptr(cinfo), 1, JTRC_BMP_OS2, int (biWidth), int(biHeight));
       else
         ERREXIT(j_common_ptr(cinfo), JERR_BMP_BADDEPTH);
@@ -428,7 +428,7 @@ begin
 
       case (source^.bits_per_pixel) of
       8: begin                     { colormapped image }
-           mapentrysize := 4;		{ Windows uses RGBQUAD colormap }
+           mapentrysize := 4;           { Windows uses RGBQUAD colormap }
            TRACEMS2(j_common_ptr(cinfo), 1, JTRC_BMP_MAPPED, int (biWidth), int (biHeight));
          end;
       24:                          { RGB image }
@@ -446,7 +446,7 @@ begin
         { Set JFIF density parameters from the BMP data }
         cinfo^.X_density := UINT16 (biXPelsPerMeter div 100); { 100 cm per meter }
         cinfo^.Y_density := UINT16 (biYPelsPerMeter div 100);
-        cinfo^.density_unit := 2;	{ dots/cm }
+        cinfo^.density_unit := 2;       { dots/cm }
       end;
     end;
   else
@@ -475,7 +475,7 @@ begin
   end;
 
   { Skip any remaining pad bytes }
-  if (bPad < 0)	then       { incorrect bfOffBits value? }
+  if (bPad < 0) then       { incorrect bfOffBits value? }
     ERREXIT(j_common_ptr(cinfo), JERR_BMP_BADHEADER);
 
   while (bPad > 0) do
@@ -539,7 +539,7 @@ begin
   source := bmp_source_ptr (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
                                SIZEOF(bmp_source_struct)) );
-  source^.cinfo := cinfo;	{ make back link for subroutines }
+  source^.cinfo := cinfo;       { make back link for subroutines }
   { Fill in method ptrs, except get_pixel_rows which start_input sets }
   source^.pub.start_input := start_input_bmp;
   source^.pub.finish_input := finish_input_bmp;

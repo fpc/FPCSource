@@ -17,7 +17,7 @@ type
    Pvt_magic_match = ^Tvt_magic_match;
    Pvt_match = ^Tvt_match;
    Pvt_match_block = ^Tvt_match_block;
-   
+
    Pvtx = ^Tvtx;
    Tvtx = record
         vt : Tvt_em;
@@ -35,7 +35,7 @@ type
         selstartyold : longint;
         selendxold : longint;
         selendyold : longint;
-        draw_text : procedure (user_data:pointer; line:Pvt_line; row:longint; col:longint; len:longint; 
+        draw_text : procedure (user_data:pointer; line:Pvt_line; row:longint; col:longint; len:longint;
                       attr:longint);cdecl;
         scroll_area : procedure (user_data:pointer; firstrow:longint; count:longint; offset:longint; fill:longint); cdecl;
         cursor_state : function (user_data:pointer; state:longint):longint; cdecl;
@@ -47,7 +47,7 @@ type
      end;
 
    {$Warning (T)regex_t defined for (T)vt_magic_match may be wrong!!}
-   Tregex_t = Record 
+   Tregex_t = Record
      buffer : PByte;
      allocated : LongWord;
      sed : LongWord;
@@ -62,7 +62,7 @@ type
      not_eol : Word;
      newline_anchor : Word;
    end;
-  
+
    Tvt_magic_match = record
         next : Pvt_magic_match;
         prev : Pvt_magic_match;
@@ -98,7 +98,7 @@ function vt_get_selection(vx:Pvtx; size:longint; len:Plongint):Pchar;cdecl;exter
 procedure vt_clear_selection(vx:Pvtx);cdecl;external libzvtdll name 'vt_clear_selection';
 procedure vt_fix_selection(vx:Pvtx);cdecl;external libzvtdll name 'vt_fix_selection';
 procedure vt_draw_selection(vx:Pvtx);cdecl;external libzvtdll name 'vt_draw_selection';
-procedure vt_update_rect(vx:Pvtx; fill:longint; sx:longint; sy:longint; ex:longint; 
+procedure vt_update_rect(vx:Pvtx; fill:longint; sx:longint; sy:longint; ex:longint;
             ey:longint);cdecl;external libzvtdll name 'vt_update_rect';
 procedure vt_update(vt:Pvtx; state:longint);cdecl;external libzvtdll name 'vt_update';
 procedure vt_draw_cursor(vx:Pvtx; state:longint);cdecl;external libzvtdll name 'vt_draw_cursor';

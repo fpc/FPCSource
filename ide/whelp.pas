@@ -978,25 +978,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.12  2004-11-06 19:56:14  armin
-  * support target netware
-
-  Revision 1.11  2004/09/16 22:08:13  armin
-  * added target netwlibc
-
-  Revision 1.10  2003/09/27 14:03:45  peter
-    * fixed for unix
-
-  Revision 1.9  2002/11/22 15:18:24  pierre
-   * fix SwapWord, arg must be of var type
-
-  Revision 1.8  2002/11/22 12:21:16  pierre
-   + SwapLongint and SwapWord added for big endian machines
-
-  Revision 1.7  2002/09/07 15:40:49  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/03/25 14:37:03  pierre
-   + hscDirect added
+  Revision 1.13  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -428,10 +428,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-03-23 22:36:31  peter
-    * use smallint instead of integer
-
-  Revision 1.2  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

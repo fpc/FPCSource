@@ -36,7 +36,7 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     ppthread_condattr_t  = ^pthread_condattr_t;
 
     sem_t       = cint;
-    psem_t	    = ^sem_t;
+    psem_t          = ^sem_t;
     TSemaphore  = sem_t;
     PSemaphore  = ^TSemaphore;
 
@@ -78,42 +78,7 @@ function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cin
 
 {
   $Log$
-  Revision 1.6  2004-12-22 21:29:24  marco
-   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
-  	Check work: ask Neli.
-
-  Revision 1.5  2004/09/09 20:29:06  jonas
-    * fixed definition of pthread_mutex_t for non-linux targets (and for
-      linux as well, actually).
-    * base libpthread definitions are now in ptypes.inc, included in unixtype
-      They sometimes have an extra underscore in front of their name, in
-      case they were also exported by the packages/base/pthreads unit, so
-      they can keep their original name there
-    * cthreadds unit now imports systuils, because it uses exceptions (it
-      already did so before as well)
-    * fixed many linux definitions of libpthread functions in pthrlinux.inc
-      (integer -> cint etc)
-    + added culonglong type to ctype.inc
-
-  Revision 1.4  2004/05/28 18:23:55  marco
-   * fixes for darwin specific external name '' behaviour. Must still be
-  tested
-
-  Revision 1.3  2004/05/26 20:05:21  marco
-   * 2nd attempt
-
-  Revision 1.2  2004/05/26 19:23:17  marco
-   * first iteration
-
-  Revision 1.1  2004/01/04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
-
-  Revision 1.2  2003/11/27 20:24:10  michael
-  + Redefined ppthread_mutex_t
-
-  Revision 1.1  2003/11/18 22:33:42  marco
-   * moved from systhrds.pp
-
+  Revision 1.7  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

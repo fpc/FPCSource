@@ -16,7 +16,7 @@ begin
   else
     CheckField:=0;
 end;
-    
+
 begin
   C:=New(PCollection,Init(100,10));
   For I:=1 to 100 do

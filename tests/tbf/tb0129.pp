@@ -4,11 +4,11 @@
 {$ifdef fpc}
   {$mode objfpc}
   {$threading on}
-{$endif}  
+{$endif}
 
 threadvar
    thri : longint;
-   
+
 begin
   { Delphi does not allow threadvars as for loop control variable }
   for thri:=1 to 1000 do;

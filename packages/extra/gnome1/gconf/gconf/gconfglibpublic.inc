@@ -8,7 +8,7 @@ type
         message : Pgchar;
      end;
 
-Function g_error_new(domain : TGQuark; code : gint; const format:Pgchar; args:array of const):PGError;cdecl;external gconfdll name 'g_error_new'; 	
+Function g_error_new(domain : TGQuark; code : gint; const format:Pgchar; args:array of const):PGError;cdecl;external gconfdll name 'g_error_new';
 function g_error_new_literal(domain:TGQuark; code:gint; message:Pgchar):PGError;cdecl;external gconfdll name 'g_error_new_literal';
 procedure g_error_free(error:PGError);cdecl;external gconfdll name 'g_error_free';
 function g_error_copy(error:PGError):PGError;cdecl;external gconfdll name 'g_error_copy';

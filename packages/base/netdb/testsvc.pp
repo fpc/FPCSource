@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     test netdb unit, services part
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -39,7 +39,7 @@ begin
   If GetServiceByPort(P,Proto,E) then
     DumpServiceEntry(E)
   else
-    Writeln('No entry for port ',P)  
+    Writeln('No entry for port ',P)
 end;
 
 Procedure TestName(Const N,Proto : string);
@@ -51,7 +51,7 @@ begin
   If GetServiceByName(N,Proto,E) then
     DumpServiceEntry(E)
   else
-    Writeln('No entry for service ',N)  
+    Writeln('No entry for service ',N)
 end;
 
 begin
@@ -67,10 +67,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-08-17 18:30:43  michael
-  + Added HTTP test
-
-  Revision 1.2  2003/05/17 20:54:03  michael
-  + uriparser unit added. Header/Footer blocks added
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

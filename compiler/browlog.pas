@@ -516,17 +516,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2004-11-08 22:09:58  peter
-    * tvarsym splitted
-
-  Revision 1.19  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.18  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.17  2004/02/11 22:00:10  peter
-    * fixed compile with -CR
+  Revision 1.21  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

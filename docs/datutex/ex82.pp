@@ -7,7 +7,7 @@ Uses SysUtils,DateUtils;
 Var
   Y,W,Dow : Word;
   TS : TDateTime;
-  
+
 Begin
   DecodeDateWeek(Now,Y,W,Dow);
   If TryEncodeDateWeek(Y,W,TS,Dow) then

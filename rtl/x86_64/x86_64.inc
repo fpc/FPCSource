@@ -47,7 +47,7 @@ end ['RAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-	{ %rdi = framebp }
+        { %rdi = framebp }
         orq     %rdi,%rdi
         jz      .Lg_a_null
         movq    8(%rdi),%rax
@@ -58,7 +58,7 @@ end ['RAX'];
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-	{ %rdi = framebp }
+        { %rdi = framebp }
         orq     %rdi,%rdi
         jz      .Lg_a_null
         movq    (%rdi),%rax
@@ -252,7 +252,7 @@ function declocked(var l : longint) : boolean;assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithreaded@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -277,7 +277,7 @@ function declocked(var l : int64) : boolean;assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithreaded@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -303,7 +303,7 @@ procedure inclocked(var l : longint);assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithreaded@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -328,7 +328,7 @@ procedure inclocked(var l : int64);assembler;
      { this check should be done because a lock takes a lot }
      { of time!                                             }
 {$ifdef FPC_PIC}
-     movq	IsMultithreaded@GOTPCREL(%rip),%rax
+     movq       IsMultithreaded@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
      cmpb       $0,IsMultithread
@@ -372,7 +372,7 @@ const
 Procedure SysResetFPU;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
   { initialize fpu }
-  fninit                          
+  fninit
   fwait
   fldcw fpucw
   { set sse exceptions }
@@ -381,57 +381,13 @@ end;
 
 {
   $Log$
-  Revision 1.18  2005-02-05 22:30:50  florian
+  Revision 1.19  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.18  2005/02/05 22:30:50  florian
     * some PIC ifdefs
 
   Revision 1.17  2005/02/05 16:19:44  florian
     + completed SSE exception masks
 
-  Revision 1.16  2004/12/25 11:50:46  florian
-    * sse instructions should mask overflow by default
-
-  Revision 1.15  2004/11/02 15:26:21  florian
-    * fixed sse exception handling
-
-  Revision 1.14  2004/11/01 20:31:35  florian
-    * another fix for locked reference counting
-
-  Revision 1.13  2004/06/05 07:55:22  peter
-    * fixed parameters of get_caller_*()
-
-  Revision 1.12  2004/05/01 15:59:17  florian
-    * x86_64 exception handling fixed
-
-  Revision 1.11  2004/04/29 19:50:13  peter
-    * x86-64 fixes
-
-  Revision 1.10  2004/04/26 15:55:01  peter
-    * FPC_MOVE alias
-
-  Revision 1.9  2004/04/22 20:20:16  peter
-    * get_caller_addr fixed
-
-  Revision 1.8  2004/04/21 21:26:51  florian
-    * commented out broken fillchar and move
-
-  Revision 1.7  2004/02/23 15:52:15  peter
-    * don't use ret
-
-  Revision 1.6  2004/02/06 15:58:21  florian
-    * fixed x86-64 assembler problems
-
-  Revision 1.5  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
-
-  Revision 1.4  2004/01/20 12:52:18  florian
-    * some problems with x86-64 inline assembler fixed
-
-  Revision 1.3  2003/05/01 08:05:23  florian
-    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
-
-  Revision 1.2  2003/04/30 22:11:06  florian
-    + for a lot of x86-64 dependend files mostly dummies added
-
-  Revision 1.1  2003/01/06 19:40:18  florian
-    + initial revision
 }

@@ -1145,77 +1145,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2005-01-21 15:56:32  peter
+  Revision 1.39  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.38  2005/01/21 15:56:32  peter
     * uses _eend instead of _edata in checkpointer, patch by
       Martin Schreiber
-
-  Revision 1.37  2004/11/22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.36  2004/10/25 17:04:07  peter
-    * fix for non-i386
-
-  Revision 1.35  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.34  2004/10/24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.33  2004/09/21 14:49:29  peter
-    * fix reallocmem
-
-  Revision 1.32  2004/09/16 07:21:08  michael
-  Fix tracememsize for ansistrings (From Peter)
-
-  Revision 1.31  2004/06/20 09:24:40  peter
-  fixed go32v2 compile
-
-  Revision 1.30  2004/06/17 16:16:13  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.29  2004/05/22 20:35:52  peter
-  check whether bp is in the stack value allocated by the main program
-
-  Revision 1.28  2004/04/28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.27  2004/03/15 21:48:26  peter
-    * cmem moved to rtl
-    * longint replaced with ptrint in heapmanagers
-
-  Revision 1.26  2004/03/15 14:22:39  michael
-  + Fix from peter for win32 SIGTRAp signal
-
-  Revision 1.25  2004/02/06 20:17:12  daniel
-    * Use $ for hex numbers instead of alien 0x
-
-  Revision 1.24  2003/09/11 15:54:27  peter
-    * when retrieving stackdump check if bp is smaller than the previous
-      bp
-
-  Revision 1.23  2003/03/17 14:30:11  peter
-    * changed address parameter/return values to pointer instead
-      of ptrint
-
-  Revision 1.22  2002/12/26 10:46:54  peter
-    * set p to nil when 0 is passed to reallocmem
-
-  Revision 1.21  2002/11/30 23:34:43  carl
-    * nil should give an error!
-
-  Revision 1.20  2002/10/30 20:39:13  peter
-    * MemoryManager record has a field NeedLock if the wrapper functions
-      need to provide locking for multithreaded programs
-
-  Revision 1.19  2002/10/05 15:19:46  carl
-     * bugfix of assigning to external filename output
-
-  Revision 1.18  2002/09/09 15:45:49  jonas
-    * made result type of calculate_release_sig() a longword instead of a
-      ptrint
-
-  Revision 1.17  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
 
 }

@@ -16,7 +16,7 @@ begin
       begin
       K:=PollShiftStateEvent;
       Writeln('Got shift state : ',ShiftStateToString(K,False));
-      // Consume the key. 
+      // Consume the key.
       K:=GetKeyEvent;
       K:=TranslateKeyEvent(K);
       end

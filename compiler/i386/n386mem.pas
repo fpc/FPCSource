@@ -141,39 +141,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.64  2004/10/15 09:16:22  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.63  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.62  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.61  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.60.2.2  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.60.2.1  2004/04/29 19:07:22  peter
-    * compile fixes
-
-  Revision 1.60  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
+  Revision 1.66  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

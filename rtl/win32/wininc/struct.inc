@@ -930,11 +930,11 @@
      PCOMPOSITIONFORM = ^COMPOSITIONFORM;
 
 //     TComStatFlags = set of (fCtsHold, fDsrHold, fRlsdHold , fXoffHold ,
-//		      fXoffSent , fEof ,  fTxim  , fReserved);
+//                    fXoffSent , fEof ,  fTxim  , fReserved);
 
      COMSTAT = record
           flag0 : DWORD;   // can't use tcomstatflags, set packing issues
-			   // and conflicts with macro's
+                           // and conflicts with macro's
           cbInQue : DWORD;
           cbOutQue : DWORD;
        end;
@@ -1809,7 +1809,7 @@
                      dmReserved2    : DWORD;
                      dmPanningWidth : DWORD;
                      dmPanningHeight: DWORD;
-    		   end;
+                   end;
 
      LPDEVMODEW   = ^DEVMODEW;
      _devicemodeW = DEVMODEW;
@@ -7191,7 +7191,10 @@ type
 
 {
   $Log$
-  Revision 1.34  2005-02-06 13:06:20  peter
+  Revision 1.35  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.34  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 
@@ -7206,63 +7209,5 @@ type
 
   Revision 1.30  2005/01/08 14:39:01  florian
     * DEVMODE fixed
-
-  Revision 1.29  2004/12/18 20:00:59  michael
-  Fixed widestring version of getversionex as per bug 3440 (Alexey Barkovoy)
-
-  Revision 1.28  2004/11/07 20:46:27  marco
-   * fix for 3299
-
-  Revision 1.27  2004/11/07 20:25:02  marco
-   * fixes for bug 3303 (devmodew)
-
-  Revision 1.26  2004/07/27 12:03:15  michael
-  + More TrackMouseEvent
-
-  Revision 1.25  2004/07/26 06:48:30  michael
-  + Added trackmouseevent call and structures
-
-  Revision 1.24  2004/05/04 10:34:29  marco
-   * pcritical section missed a ^
-
-  Revision 1.23  2004/03/10 15:08:10  marco
-  wininc/struct.inc
-
-  Revision 1.22  2004/02/06 23:10:20  marco
-   * a large_integer -> int64 change.
-
-  Revision 1.21  2003/12/04 12:34:09  marco
-   * twin32fileattributedata
-
-  Revision 1.20  2003/01/02 22:07:00  peter
-    * missing items
-
-  Revision 1.19  2002/12/15 20:24:17  peter
-    * some more C style functions
-
-  Revision 1.18  2002/12/12 17:34:35  peter
-    * Renaming INT type to WINT
-
-  Revision 1.17  2002/11/04 12:19:01  marco
-   * Move tmsg and family to messages.inc. windows.pp needed include sequence patch
-
-  Revision 1.16  2002/10/02 21:03:04  peter
-    * TSystemTime fpc compatibility parameters added as variant record
-
-  Revision 1.15  2002/09/15 17:53:45  peter
-    * Remove Float type, use Single instead
-
-  Revision 1.14  2002/09/07 16:01:32  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.13  2002/07/16 13:52:14  florian
-    * LARGE_INT and ULARGE_INT types fixed
-    * LONGLONG defined properly
-
-  Revision 1.12  2002/02/07 13:04:40  florian
-    * some property sheet related structs fixed
-
-  Revision 1.11  2002/01/19 11:58:21  peter
-    * more functions from webbugs
 
 }

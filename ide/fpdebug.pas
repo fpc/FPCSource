@@ -1852,7 +1852,7 @@ begin
         { delete it form source window }
         PB^.state:=bs_disabled;
         PB^.UpdateSource;
-	{ remove from collection }
+        { remove from collection }
         BreakpointsCollection^.free(PB);
       end
     else
@@ -1957,10 +1957,10 @@ begin
       begin
         DontClear:=false;
         case Event.KeyCode of
-	  kbEnd :
-	    FocusItem(List^.Count-1);
-	  kbHome :
-	    FocusItem(0);
+          kbEnd :
+            FocusItem(List^.Count-1);
+          kbHome :
+            FocusItem(0);
           kbEnter :
             Message(@Self,evCommand,cmMsgGotoSource,nil);
           kbIns :
@@ -3667,164 +3667,10 @@ end.
 
 {
   $Log$
-  Revision 1.60  2005-01-08 11:43:18  florian
+  Revision 1.61  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.60  2005/01/08 11:43:18  florian
     + vector unit window
-
-  Revision 1.59  2004/12/22 15:24:06  peter
-    * fixed NODEBUG
-    * set default target to the default target of the compiler
-
-  Revision 1.58  2004/12/19 18:39:50  florian
-    * made 64 bit safe
-
-  Revision 1.57  2004/12/06 20:39:25  peter
-  change a[1,2] to a[1][2]
-
-  Revision 1.56  2004/11/21 20:53:26  peter
-    * fixed breakpoint dialog
-
-  Revision 1.55  2004/11/11 15:20:52  florian
-    * applied Peter's patch from yesterday
-
-  Revision 1.54  2004/11/08 21:55:09  peter
-    * fixed run directory
-    * Open dialog starts in dir of last editted file
-
-  Revision 1.53  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.52  2004/11/06 17:22:52  peter
-    * fixes for new fv
-
-  Revision 1.51  2004/07/09 23:17:25  peter
-    * revert isatty patch
-
-  Revision 1.49  2004/02/20 21:46:06  peter
-    * fix compile with 1.0.x
-
-  Revision 1.48  2003/11/19 17:11:39  marco
-   * termio unit
-
-  Revision 1.47  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.46  2003/03/30 12:12:12  armin
-  * allow local and remote debugging if SUPPORT_REMOTE is given
-
-  Revision 1.45  2003/03/27 14:10:55  pierre
-   * fix problem with mixed case target names as suggested by Armin Diehl
-
-  Revision 1.44  2003/01/14 16:25:23  pierre
-   + small palmos specific additions
-
-  Revision 1.43  2002/12/18 01:20:12  pierre
-   + Use TEditorInputLine instead of TInputLine
-
-  Revision 1.42  2002/12/16 15:15:40  pierre
-   * Added TBreakpointCollection.FindBreakpointAt method
-
-  Revision 1.41  2002/12/16 09:05:28  pierre
-   * sanity ceck in ToggleFileLine method
-
-  Revision 1.40  2002/02/09 02:04:46  pierre
-   * fix problem with disable all invalid breakpoints
-
-  Revision 1.39  2002/12/12 00:05:57  pierre
-   * add code for breakpoint moves + registers in fprags.pas unit
-
-  Revision 1.38  2002/11/30 01:56:52  pierre
-   + powerpc cpu support started
-
-  Revision 1.37  2002/11/28 13:00:25  pierre
-   + remote support
-
-  Revision 1.36  2002/11/21 17:52:28  pierre
-   * some crossgdb infos added
-
-  Revision 1.35  2002/11/21 15:48:39  pierre
-   * fix several problems related to remote cross debugging
-
-  Revision 1.34  2002/11/21 00:37:56  pierre
-   + some cross gdb enhancements
-
-  Revision 1.33  2002/09/21 22:23:49  pierre
-   * restore text mode on reset for Dos apps
-
-  Revision 1.32  2002/09/17 21:58:45  pierre
-   * correct last fpu patch so 'info all' is called only once
-
-  Revision 1.31  2002/09/17 21:48:41  pierre
-   * allow fpu window to be resized
-
-  Revision 1.30  2002/09/17 21:20:07  pierre
-   * fix infinite recursion if GDB window and register window open
-
-  Revision 1.29  2002/09/13 22:30:50  pierre
-   * only fpc uses video unit
-
-  Revision 1.28  2002/09/13 08:13:07  pierre
-   * avoid RTE 201 in hexstr calls
-
-  Revision 1.27  2002/09/07 21:04:41  carl
-    * fix range check errors for version 1.1 compilation
-
-  Revision 1.26  2002/09/07 15:40:42  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.25  2002/09/03 13:59:47  pierre
-   + added history for watches and breakpoints
-
-  Revision 1.24  2002/09/02 10:18:09  pierre
-   * fix problems with breakpoint lists
-
-  Revision 1.23  2002/08/13 08:59:12  pierre
-   + Run menu changes depending on wether the debuggee is running or not
-
-  Revision 1.22  2002/08/13 07:15:02  pierre
-   + Disable all invalid breakpoints feature added
-
-  Revision 1.21  2002/06/10 19:26:48  pierre
-   * check if DebuggeTTY is a valid terminal
-
-  Revision 1.20  2002/06/06 14:11:25  pierre
-   * handle win32 Ctrl-C change for graphic version
-
-  Revision 1.19  2002/06/06 08:16:18  pierre
-   * avoid crashes if quitting while debuggee is running
-
-  Revision 1.18  2002/04/25 13:33:31  pierre
-   * fix the problem with dirs containing asterisks
-
-  Revision 1.17  2002/04/17 11:11:54  pierre
-    * avoid problems for ClassVariable in Watches window
-
-  Revision 1.16  2002/04/11 06:41:13  pierre
-   * fix problem of TWatchesListBox with fvision
-
-  Revision 1.15  2002/04/03 06:18:30  pierre
-   * fix some win32 GDB filename problems
-
-  Revision 1.14  2002/04/02 15:09:38  pierre
-   * fixed wrong exit without unlock
-
-  Revision 1.13  2002/04/02 13:23:54  pierre
-   * Use StrToCard and HexToCard functions to avoid signed/unsigned overflows
-
-  Revision 1.12  2002/04/02 12:20:58  pierre
-   * fix problem with breakpoints in subdirs
-
-  Revision 1.11  2002/04/02 11:10:29  pierre
-   * fix FPC_BREAK_ERROR problem and avoid blinking J
-
-  Revision 1.10  2002/03/27 11:24:09  pierre
-   * fix several problems related to long file nmze support for win32 exes
-
-  Revision 1.9  2002/02/06 14:45:00  pierre
-   + handle signals
 
 }

@@ -4,10 +4,10 @@
   does generate a RTE ... }
 
 {$R-}
-{ make that recursion really infinite 
+{ make that recursion really infinite
   needs that range check is disabled }
 
-const 
+const
   level : longint = 0;
 
 function inf_rec(x : longint) : longint;
@@ -57,4 +57,4 @@ begin
   saveexit:=exitproc;
   exitproc:=@stack_check_exit;
   x:=inf_rec(5000);
-end. 
+end.

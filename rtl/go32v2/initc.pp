@@ -95,13 +95,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-11-02 16:23:04  peter
-    * fixed data too large
-
-  Revision 1.4  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/04/26 13:19:56  peter
-    * fixed too large arrays
+  Revision 1.6  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -10,5 +10,5 @@ function shmdt(__shmaddr:pointer):longint;cdecl;external clib name 'shmdt';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function shmctl(__shmid:longint; __cmd:longint; var __buf:shmid_ds):longint;cdecl;external clib name 'shmctl';

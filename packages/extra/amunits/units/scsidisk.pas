@@ -15,14 +15,14 @@
  **********************************************************************}
 {
     History:
-    
+
     Update for AmigaOS 3.9.
     Added const.
     31 Jan 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
-    
+
 {
         SCSI exec-level device command
 }
@@ -74,17 +74,17 @@ uses exec;
  *      implementing the 100's digit.
  *
  *
- *	With the advent of wide SCSI the scheme above fails miserably.
- *	A new scheme was adopted by Phase V, who appear to be the only
- *	source of wide SCSI for the Amiga at this time. Thus their
- *	numbering system kludge is adopted here. When the ID or LUN is
- *	above 7 the new numbering scheme is used.
+ *      With the advent of wide SCSI the scheme above fails miserably.
+ *      A new scheme was adopted by Phase V, who appear to be the only
+ *      source of wide SCSI for the Amiga at this time. Thus their
+ *      numbering system kludge is adopted here. When the ID or LUN is
+ *      above 7 the new numbering scheme is used.
  *
- *	Unit =
- *		Board * 10 * 1000 * 1000 +
- *		LUN	  * 10 * 1000		 +
- *		ID	  * 10				 +
- *		HD_WIDESCSI;
+ *      Unit =
+ *              Board * 10 * 1000 * 1000 +
+ *              LUN       * 10 * 1000            +
+ *              ID        * 10                           +
+ *              HD_WIDESCSI;
  *
  *      There are optional restrictions on the alignment, bus
  *      accessability, and size of the data for the data phase.

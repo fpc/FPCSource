@@ -26,7 +26,7 @@
     Member tDiskObject.do_CurrentX was defined as a pointer,
     should be longint.
     17 Aug 2000.
- 
+
     Added functions and procedures with array of const.
     For use with fpc 1.0.7. Thay are in systemvartags.
     05 Nov 2002.
@@ -55,7 +55,7 @@
     Changed integer > smallint,
             cardinal > longword.
     09 Feb 2003.
-    	    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -255,9 +255,9 @@ const
 
   { Classes of AppIcon messages (V44)  }
     { The "Open" menu item was invoked,
-    					   the icon got double-clicked or an
-    					   icon got dropped on it.
-    					  }
+                                           the icon got double-clicked or an
+                                           icon got dropped on it.
+                                          }
        AMCLASSICON_Open = 0;
     { The "Copy" menu item was invoked  }
        AMCLASSICON_Copy = 1;
@@ -400,7 +400,7 @@ type
        (UBYTE); (V45)
       }
        WBOPENA_ViewBy = WBA_Dummy + 76;
-   
+
    {**************************************************************************}
 
     { Tags for use with WorkbenchControlA()  }
@@ -500,7 +500,7 @@ type
       }
        WBCTRLA_SetTextInputHook = WBA_Dummy + 74;
 
-    { Add a hook that will be invoked when Workbench is about 
+    { Add a hook that will be invoked when Workbench is about
        to shut down (cleanup), and when Workbench has returned
        to operational state (setup) (struct Hook  ); (V45)
       }
@@ -603,8 +603,8 @@ type
             arm_Icon : PDiskObject;    { The icon to be rendered }
             arm_Label : STRPTR;        { The icon label txt }
             arm_Tags : PTagItem;       { Further tags to be passed on
-						 * to DrawIconStateA().
-						 }
+                                                 * to DrawIconStateA().
+                                                 }
             arm_Left : WORD;           { \ Rendering origin, not taking the }
             arm_Top : WORD;            { / button border into account. }
             arm_Width : WORD;          { \ Limit your rendering to }
@@ -634,32 +634,32 @@ type
        tIconSelectMsg = record
             { Size of this data structure (in bytes). }
             ism_Length : ULONG;
-	    { Lock on the drawer this object resides in,
-	     * NULL for Workbench backdrop (devices).
-	     }
+            { Lock on the drawer this object resides in,
+             * NULL for Workbench backdrop (devices).
+             }
             ism_Drawer : BPTR;
-	    { Name of the object in question. }
+            { Name of the object in question. }
             ism_Name : STRPTR;
-	    { One of WBDISK, WBDRAWER, WBTOOL, WBPROJECT,
-	     * WBGARBAGE, WBDEVICE, WBKICK or WBAPPICON.
-	     }
+            { One of WBDISK, WBDRAWER, WBTOOL, WBPROJECT,
+             * WBGARBAGE, WBDEVICE, WBKICK or WBAPPICON.
+             }
             ism_Type : UWORD;
-	    { TRUE if currently selected, FALSE otherwise. }
+            { TRUE if currently selected, FALSE otherwise. }
             ism_Selected : BOOL;
-	    { Pointer to the list of tag items passed to
-	     * ChangeWorkbenchSelectionA().
-	     }
+            { Pointer to the list of tag items passed to
+             * ChangeWorkbenchSelectionA().
+             }
             ism_Tags : PTagItem;
-	    { Pointer to the window attached to this icon,
-	     * if the icon is a drawer-like object.
-	     }
+            { Pointer to the window attached to this icon,
+             * if the icon is a drawer-like object.
+             }
             ism_DrawerWindow : PWindow;
-	    { Pointer to the window the icon resides in. }
+            { Pointer to the window the icon resides in. }
             ism_ParentWindow : PWindow;
-	    { Position and size of the icon; note that the
-	     * icon may not entirely reside within the visible
-	     * bounds of the parent window.
-	     }
+            { Position and size of the icon; note that the
+             * icon may not entirely reside within the visible
+             * bounds of the parent window.
+             }
             ism_Left : WORD;
             ism_Top : WORD;
             ism_Width : WORD;
@@ -697,28 +697,28 @@ type
             cdm_Length : ULONG;           { Size of this data structure in bytes. }
             cdm_Action : LONG;            { Will be set to CPACTION_Copy (see below). }
             cdm_SourceLock : BPTR;        { A lock on the parent directory of the
-					   * source file/drawer.
-					   }
+                                           * source file/drawer.
+                                           }
             cdm_SourceName : STRPTR;      { The name of the source file or drawer. }
             cdm_DestinationLock : BPTR;   { A lock on the parent directory of the
-					   * destination file/drawer.
-					   }
+                                           * destination file/drawer.
+                                           }
             cdm_DestinationName : STRPTR; { The name of the destination file/drawer.
-					   * This may or may not match the name of
-					   * the source file/drawer in case the
-					   * data is to be copied under a different
-					   * name. For example, this is the case
-					   * with the Workbench "Copy" command which
-					   * creates duplicates of file/drawers by
-					   * prefixing the duplicate's name with
-					   * "Copy_XXX_of".
-					   }
+                                           * This may or may not match the name of
+                                           * the source file/drawer in case the
+                                           * data is to be copied under a different
+                                           * name. For example, this is the case
+                                           * with the Workbench "Copy" command which
+                                           * creates duplicates of file/drawers by
+                                           * prefixing the duplicate's name with
+                                           * "Copy_XXX_of".
+                                           }
             cdm_DestinationX : LONG;      { When the icon corresponding to the
-					   * destination is written to disk, this
-					   * is the position (put into its
-					   * DiskObject->do_CurrentX/DiskObject->do_CurrentY
-					   * fields) it should be placed at.
-					   }
+                                           * destination is written to disk, this
+                                           * is the position (put into its
+                                           * DiskObject->do_CurrentX/DiskObject->do_CurrentY
+                                           * fields) it should be placed at.
+                                           }
             cdm_DestinationY : LONG;
          end;
 
@@ -747,8 +747,8 @@ type
        tDeleteBeginMsg = record
             dbm_Length : ULONG;   { Size of this data structure in bytes. }
             dbm_Action : LONG;    { Will be set to either DLACTION_BeginDiscard
-				   * or DLACTION_BeginEmptyTrash (see below).
-				   }
+                                   * or DLACTION_BeginEmptyTrash (see below).
+                                   }
          end;
 
 
@@ -756,15 +756,15 @@ type
        tDeleteDataMsg = record
             ddm_Length : ULONG;   { Size of this data structure in bytes. }
             ddm_Action : LONG;    { Will be set to either DLACTION_DeleteContents
-				   * or DLACTION_DeleteObject (see below).
-				   }
+                                   * or DLACTION_DeleteObject (see below).
+                                   }
             ddm_Lock : BPTR;      { A Lock on the parent directory of the object
-				   * whose contents or which itself should be
-				   * deleted.
-				   }
+                                   * whose contents or which itself should be
+                                   * deleted.
+                                   }
             ddm_Name : STRPTR;    { The name of the object whose contents or
-				   * which itself should be deleted.
-				   }
+                                   * which itself should be deleted.
+                                   }
          end;
 
 
@@ -795,7 +795,7 @@ type
       be deleted; this could be a file
       or an empty drawer.
     }
-       
+
        DLACTION_DeleteObject = 4;
     { This indicates that the
       deletion process is finished.
@@ -810,17 +810,17 @@ type
        PTextInputMsg = ^tTextInputMsg;
        tTextInputMsg = record
             tim_Length : ULONG;     { Size of this data structure
-				     * in bytes.
-				     }
+                                     * in bytes.
+                                     }
             tim_Action : LONG;      { One of the TIACTION_...
-				     * values listed below.
-				     }
+                                     * values listed below.
+                                     }
             tim_Prompt : STRPTR;    { The Workbench suggested
-				     * result, depending on what
-				     * kind of input is requested
-				     * (as indicated by the
-				     * tim_Action member).
-				     }
+                                     * result, depending on what
+                                     * kind of input is requested
+                                     * (as indicated by the
+                                     * tim_Action member).
+                                     }
          end;
 
    const
@@ -1012,80 +1012,80 @@ END;
 FUNCTION AddAppWindowDropZoneA(aw : pAppWindow; id : longword; userdata : longword;const tags : pTagItem) : pAppWindowDropZone;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	aw,A0
-	MOVE.L	id,D0
-	MOVE.L	userdata,D1
-	MOVEA.L	tags,A1
-	MOVEA.L	WorkbenchBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L aw,A0
+        MOVE.L  id,D0
+        MOVE.L  userdata,D1
+        MOVEA.L tags,A1
+        MOVEA.L WorkbenchBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION ChangeWorkbenchSelectionA(name : pCHAR; hook : pHook;const tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	hook,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	WorkbenchBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L hook,A1
+        MOVEA.L tags,A2
+        MOVEA.L WorkbenchBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION CloseWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	WorkbenchBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L tags,A1
+        MOVEA.L WorkbenchBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION MakeWorkbenchObjectVisibleA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	WorkbenchBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L tags,A1
+        MOVEA.L WorkbenchBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION OpenWorkbenchObjectA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	WorkbenchBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L tags,A1
+        MOVEA.L WorkbenchBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
@@ -1093,32 +1093,32 @@ END;
 FUNCTION RemoveAppWindowDropZone(aw : pAppWindow; dropZone : pAppWindowDropZone) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	aw,A0
-	MOVEA.L	dropZone,A1
-	MOVEA.L	WorkbenchBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L aw,A0
+        MOVEA.L dropZone,A1
+        MOVEA.L WorkbenchBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION WorkbenchControlA(name : pCHAR;const tags : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	WorkbenchBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L tags,A1
+        MOVEA.L WorkbenchBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
@@ -1248,23 +1248,10 @@ END. (* UNIT WB *)
 
 {
   $Log$
-  Revision 1.5  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.4  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.3  2003/01/14 18:46:04  nils
-  * added defines use_amia_smartlink and use_auto_openlib
-
-  * implemented autoopening of library
-
-  Revision 1.2  2002/11/19 18:47:48  nils
-    * update check internal log
+  Revision 1.6  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 

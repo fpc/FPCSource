@@ -16,9 +16,9 @@
 
 {
     History:
-    
+
     A simple unit that helps to build array of longint.
-    Uses array of const so don't forget to use 
+    Uses array of const so don't forget to use
     $mode objfpc.
 
     05 Nov 2002.
@@ -49,12 +49,12 @@ begin
 
     for i := 0 to High(args) do begin
         case args[i].vtype of
-	    vtinteger : argarray[i] := longint(args[i].vinteger);
-	    vtpchar   : argarray[i] := longint(args[i].vpchar);
-	    vtchar    : argarray[i] := longint(args[i].vchar);
-	    vtpointer : argarray[i] := longint(args[i].vpointer);
-	    vtstring  : argarray[i] := longint(pas2c(args[i].vstring^));
-	    vtboolean : argarray[i] := longint(byte(args[i].vboolean));
+            vtinteger : argarray[i] := longint(args[i].vinteger);
+            vtpchar   : argarray[i] := longint(args[i].vpchar);
+            vtchar    : argarray[i] := longint(args[i].vchar);
+            vtpointer : argarray[i] := longint(args[i].vpointer);
+            vtstring  : argarray[i] := longint(pas2c(args[i].vstring^));
+            vtboolean : argarray[i] := longint(byte(args[i].vboolean));
         end;
     end;
     readinlongs := @argarray;
@@ -64,11 +64,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-22 21:34:59  nils
-
-    * initial release
+  Revision 1.2  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 

@@ -1156,14 +1156,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-10-05 11:16:26  peter
-    * rename transfer_buffer to tb
-
-  Revision 1.3  2003/10/03 21:59:28  peter
-    * stdcall fixes
-
-  Revision 1.2  2003/09/07 22:29:26  hajny
-    * syswat renamed to system, CVS log added
-
+  Revision 1.5  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

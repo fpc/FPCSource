@@ -24,14 +24,14 @@
      for all EMX applications until EMX.DLL is unloaded from memory (i.e.
      all applications using this library finish).
 *)
-    
+
 unit Ports;
 
 { This unit uses classes so ObjFpc mode is required. }
 {$Mode ObjFpc}
 
 interface
-    
+
 type
  TPort = class
   protected
@@ -206,16 +206,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-12-26 22:20:44  hajny
-    * regcall fixes
-
-  Revision 1.2  2003/10/07 21:33:24  hajny
-    * stdcall fixes and asm routines cleanup
-
-  Revision 1.1  2002/11/17 16:22:54  hajny
-    + RTL for emx target
-
-  Revision 1.2  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

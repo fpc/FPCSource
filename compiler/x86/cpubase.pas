@@ -448,40 +448,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.49  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.48  2004/10/25 15:36:47  peter
-    * save standard registers moved to tcgobj
-
-  Revision 1.47  2004/10/15 09:22:23  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.46  2004/08/24 21:23:11  florian
-    * fixed i386 compilation
-
-  Revision 1.45  2004/07/09 23:30:13  jonas
-    *  changed first_sse_imreg to first_mm_imreg
-
-  Revision 1.44  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.43  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.42.2.5  2004/05/28 20:29:50  florian
-    * fixed currency trouble on x86-64
-
-  Revision 1.42.2.4  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.42.2.3  2004/05/01 11:12:24  florian
-    * spilling of registers with size<>4 fixed
-
-  Revision 1.42.2.2  2004/04/27 18:18:26  peter
-    * aword -> aint
+  Revision 1.50  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -38,8 +38,8 @@ type
   my_destination_mgr = record
     pub : jpeg_destination_mgr; { public fields }
 
-    outfile : FILEPTR;		{ target stream }
-    buffer : JOCTET_FIELD_PTR;	{ start of buffer }
+    outfile : FILEPTR;          { target stream }
+    buffer : JOCTET_FIELD_PTR;  { start of buffer }
   end; {my_destination_mgr;}
 
 
@@ -60,7 +60,7 @@ begin
   { Allocate the output buffer --- it will be released when done with image }
   dest^.buffer := JOCTET_FIELD_PTR(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  OUTPUT_BUF_SIZE * SIZEOF(JOCTET)) );
+                                  OUTPUT_BUF_SIZE * SIZEOF(JOCTET)) );
 
   dest^.pub.next_output_byte := JOCTETptr(dest^.buffer);
   dest^.pub.free_in_buffer := OUTPUT_BUF_SIZE;
@@ -154,10 +154,10 @@ begin
     sizes may be different.  Caveat programmer. }
 
   if (cinfo^.dest = NIL) then
-  begin	{ first time for this JPEG object? }
+  begin { first time for this JPEG object? }
     cinfo^.dest := jpeg_destination_mgr_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-				  SIZEOF(my_destination_mgr)) );
+                                  SIZEOF(my_destination_mgr)) );
   end;
 
   dest := my_dest_ptr (cinfo^.dest);

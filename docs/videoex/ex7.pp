@@ -4,24 +4,24 @@ Program Example7;
 
 Uses video,keyboard,vidutil;
 
-Var 
+Var
   M : TVideoMode;
   S : String;
-  
+
 begin
   InitVideo;
   InitKeyboard;
   GetVideoMode(M);
-  if M.Color then 
+  if M.Color then
     TextOut(1,1,'Current mode has color')
-  else  
+  else
     TextOut(1,1,'Current mode does not have color');
-  Str(M.Row,S);  
+  Str(M.Row,S);
   TextOut(1,2,'Number of rows    : '+S);
-  Str(M.Col,S);  
+  Str(M.Col,S);
   TextOut(1,3,'Number of columns : '+S);
   Textout(1,4,'Press any key to exit.');
-  UpdateScreen(False);   
+  UpdateScreen(False);
   GetKeyEvent;
   DoneKeyboard;
   DoneVideo;

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Image conversion example.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -51,7 +51,7 @@ begin
       begin
       Writeln('Unknown file format : ',T);
       Halt(1);
-      end;  
+      end;
     ReadFile := paramstr(2);
     WriteOptions := paramstr(3);
     WriteFile := paramstr(4);
@@ -78,7 +78,7 @@ begin
     Writer := TFPWriterPNG.Create
   else if T = 'T' then
     Writer := TFPWriterTARGA.Create
-  else 
+  else
     begin
     Writeln('Unknown file format : ',T);
     Halt(1);

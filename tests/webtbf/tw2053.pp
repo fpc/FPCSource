@@ -38,19 +38,7 @@ end.
 
 {
    $Log$
-   Revision 1.5  2004-11-01 22:31:12  peter
-     * use ptrint
-
-   Revision 1.4  2002/10/15 15:48:25  carl
-    - remove Pierre's diff.
-
-   Revision 1.3  2002/10/15 06:38:29  pierre
-    * really try to allocate more than 2Gb
-
-   Revision 1.2  2002/10/09 16:56:46  carl
-     * some cpu specific tests not run under other CPU's
-
-   Revision 1.1  2002/09/27 21:09:56  carl
-     + new bug report
+   Revision 1.6  2005-02-14 17:13:37  peter
+     * truncate log
 
 }

@@ -2067,51 +2067,7 @@ end;
 END.
 {
  $Log$
- Revision 1.20  2004-11-08 20:28:29  peter
-   * Breakpoints are now deleted when removed from source, disabling is
-     still possible from the breakpoint list
-   * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-     FV and 1.9.x compilers
-   * Run directory added to Run menu
-   * Useless programinfo window removed
-
- Revision 1.19  2004/05/03 21:12:54  peter
-   * 64bit fixes
-
- Revision 1.18  2003/06/19 15:20:29  pierre
-  * add explicit typecast to OnDiskLoadTime assignments
-
- Revision 1.17  2002/12/18 16:10:01  pierre
-  * fix bug report 2205
-
- Revision 1.16  2002/12/16 15:14:44  pierre
-  * moved OnDiskLoadTime to Core
-
- Revision 1.15  2002/09/12 22:09:07  pierre
-  * reset modified flag, web bug 1262
-
- Revision 1.14  2002/09/09 06:58:28  pierre
-  + FastBufStream.readline method added
-
- Revision 1.13  2002/09/07 15:40:47  peter
-   * old logs removed and tabs fixed
-
- Revision 1.12  2002/09/03 11:50:08  pierre
-  * Indicator like in BP, web bug 1945
-
- Revision 1.11  2002/08/26 13:40:15  pierre
-  * fix for bug report 2000
-
- Revision 1.10  2002/08/26 13:01:39  pierre
-  + fill the Now field for Editor actions
-
- Revision 1.9  2002/04/20 20:27:44  pierre
-  * avoid considering grouped action if StoreUnfo is false
-
- Revision 1.8  2002/04/16 08:27:01  pierre
-  * fix for bug report 1869
-
- Revision 1.7  2002/01/25 14:15:35  pierre
-  * fix bug 1774
+ Revision 1.21  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

@@ -10,13 +10,13 @@ uses resolve;
 Var
   I : integer;
   S : String;
-  
-  
+
+
 begin
   If (ParamCount>0) then
     S:=Paramstr(1)
   else
-    S:='loopback';  
+    S:='loopback';
   With TNetResolver.Create(Nil) do
     try
       If Not NameLookup(S) then
@@ -31,9 +31,9 @@ begin
           Writeln('Adress ',I:2,'     : ',HostAddrToStr(Addresses[I]));
 }
         Writeln('Alias count   : ',AliasCount);
-        For I:=0 to AliasCount-1 do 
+        For I:=0 to AliasCount-1 do
           Writeln('Alias ',i:2,'  : ',Aliases[I]);
-        end;    
+        end;
     finally
       Free;
     end;

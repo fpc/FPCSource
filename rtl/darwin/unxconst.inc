@@ -107,19 +107,13 @@ type
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.2  2005/02/06 12:16:52  peter
     * bsd thread updates
-
-  Revision 1.1  2003/05/20 23:56:40  florian
-    * basic setup; derived from FreeBSD and Linux
-
-  Revision 1.7  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/05/06 09:35:09  marco
-   * Some stuff from 1.0.x ported
 
 }

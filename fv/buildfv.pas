@@ -35,10 +35,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2004-12-19 20:25:11  hajny
-    + TTimedDialog and TimedMessageBox added
-
-  Revision 1.8  2004/11/06 17:08:48  peter
-    * drawing of tview merged from old fv code
+  Revision 1.10  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

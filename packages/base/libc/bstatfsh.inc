@@ -13,7 +13,7 @@ type
         f_namelen : longint;
         f_spare : array[0..5] of longint;
      end;
-   P_statfs = ^_statfs;  
+   P_statfs = ^_statfs;
 
    Pstatfs64 = ^_statfs64;
    _statfs64 = record
@@ -34,8 +34,8 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TStatFs = _statfs;
   TStatFs64 = _statfs64;
-                                                    
-                                                    
+
+

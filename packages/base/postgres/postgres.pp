@@ -239,7 +239,7 @@ type
   function  lo_unlink(conn:PPGconn; lobjId:Oid):longint; cdecl; external;
   function  lo_import(conn:PPGconn; filename:Pchar):Oid;cdecl;external;
   function  lo_export(conn:PPGconn; lobjId:Oid; filename:Pchar):longint; cdecl; external;
-  
+
 {$ifdef PGSQL6_2_1}
   Function  PQsetdb(pghost,pgport,pgoptions,pgtty,dbName : pchar):PPGConn; cdecl;external;
 {$else}
@@ -267,7 +267,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2004-11-21 16:33:55  peter
-    * external fixes
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

@@ -233,22 +233,7 @@ end.
 
 {
  $Log$
- Revision 1.6  2004-06-29 20:55:29  peter
-   * heaperror is gone
-
- Revision 1.5  2003/10/03 14:46:37  peter
-   * popstack to oldfpccall
-
- Revision 1.4  2002/09/07 15:40:52  peter
-   * old logs removed and tabs fixed
-
- Revision 1.3  2002/08/25 19:27:40  peter
-   * failure test splitted for getmem reporting nil or a runtime error
-
- Revision 1.2  2002/04/02 17:05:17  peter
-   * fix for non-fpc compilers
-
- Revision 1.1  2002/03/30 23:19:16  carl
- + secondcalln() : unfinished
+ Revision 1.7  2005-02-14 17:13:36  peter
+   * truncate log
 
 }

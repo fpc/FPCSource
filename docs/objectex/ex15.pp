@@ -7,7 +7,7 @@ Uses Objects;
 Var L : String;
     P : PString;
     S : PBufStream; { Only one with Flush implemented. }
-    
+
 begin
   L:='Some constant string';
   { Buffer size of 100 }

@@ -3293,37 +3293,7 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-05-02 12:11:44  peter
-    * fixed linefeeds
-
-  Revision 1.9  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.8  2002/12/29 15:30:55  peter
-    * updated for 1.1 compiler that does not allow calling conventions
-      for constructor/destructor
-
-  Revision 1.7  2002/10/29 20:44:30  carl
-    * updated with corrects testing (removed cdecl in constructors)
-
-  Revision 1.6  2002/10/21 19:21:28  carl
-    * only test on version 1.1 +
-
-  Revision 1.5  2002/10/21 19:07:08  carl
-    + reinstate test
-    - remove virtual method calls
-
-  Revision 1.4  2002/10/21 08:03:14  pierre
-   * added %FAIL because cdecl and virtual are not compatible
-
-  Revision 1.3  2002/09/07 15:40:53  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/05/05 19:13:19  carl
-  + withsymtable checking
-
-  Revision 1.1  2002/05/05 13:58:50  carl
-  + finished procedural variable testsuit
-  + finished method testsuit
+  Revision 1.11  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

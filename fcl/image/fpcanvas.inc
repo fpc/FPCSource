@@ -5,7 +5,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     TFPCustomCanvas implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -536,7 +536,7 @@ begin
     if Brush is TFPCustomDrawBrush then
       TFPCustomDrawBrush (Brush).FloodFill (x,y)
     else
-      DoFloodFill (x,y); 
+      DoFloodFill (x,y);
     end;
 end;
 
@@ -584,7 +584,7 @@ begin
   with SourceRect do
     for r := left to right do
       begin
-      xx := r - left + x; 
+      xx := r - left + x;
       for t := bottom to top do
         colors[xx,(t - bottom + y)] := canvas.colors[r,t];
       end;

@@ -1450,52 +1450,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2005-01-31 16:16:21  peter
+  Revision 1.104  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.103  2005/01/31 16:16:21  peter
     * for-node cleanup, checking for uninitialzed from and to values
       is now supported
-
-  Revision 1.102  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.101  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.100  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.99  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.98  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.97.4.2  2004/09/12 18:30:48  peter
-    * uninitialized vars fixed
-
-  Revision 1.97.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.97  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.96  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.95.2.3  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.95.2.2  2004/04/27 18:18:25  peter
-    * aword -> aint
-
-  Revision 1.95.2.1  2004/04/24 20:13:24  florian
-    * fixed x86-64 exception handling
-
-  Revision 1.95  2004/03/29 14:43:47  peter
-    * cleaner temp get/unget for exceptions
 
 }

@@ -43,18 +43,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.74  2004-06-20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.73  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
-
-  Revision 1.72  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.71  2004/02/02 20:41:59  florian
-    + added prefetch(const mem) support
+  Revision 1.75  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

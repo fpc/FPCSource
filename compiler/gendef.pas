@@ -160,13 +160,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.13  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.12.2.1  2004/05/03 14:59:57  peter
-    * no dlltool needed for win32 linking executables
+  Revision 1.15  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

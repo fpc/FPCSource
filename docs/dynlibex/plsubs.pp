@@ -3,7 +3,7 @@ program testsubs;
 uses dynlibs;
 
 Type
-  TSubStrFunc = 
+  TSubStrFunc =
     function(const CString:PChar;FromPos,ToPos: longint):PChar;cdecl;
 
 var
@@ -11,7 +11,7 @@ var
   FromPos, ToPos: Integer;
   lib : TLibHandle;
   SubStr : TSubStrFunc;
-  
+
 begin
   s := 'Test';
   FromPos := 2;

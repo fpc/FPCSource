@@ -27,7 +27,7 @@ procedure longjmp(var S : jmp_buf;value : longint);
 
 {
   $Log$
-  Revision 1.1  2003-08-21 16:41:55  florian
-    * empty dummy files
-    + [long|set]jmp implemented
+  Revision 1.2  2005-02-14 17:13:21  peter
+    * truncate log
+
 }

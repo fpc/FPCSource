@@ -167,7 +167,7 @@ asm
         movl   orgset, %esi         // source set address in esi
         movzbl l,%eax               // lowest bit to be set in eax
         movzbl h,%ebx               // highest in ebx
-	movb   %bl,saveh
+        movb   %bl,saveh
         movl   $8,%ecx              // we have to copy 32 bytes
         cmpl   %eax,%ebx            // high < low?
         rep                         // copy source to dest (it's possible to do the range
@@ -686,38 +686,7 @@ end;
 
 {
   $Log$
-  Revision 1.18  2004-10-24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.17  2003/12/24 22:38:24  peter
-    * fix set_set_range
-
-  Revision 1.16  2003/12/04 21:42:07  peter
-    * register calling updates
-
-  Revision 1.15  2003/12/03 23:06:35  peter
-    * more fixes
-
-  Revision 1.14  2003/12/03 22:46:54  peter
-    * typo in sub_set
-
-  Revision 1.13  2003/11/23 16:50:49  peter
-    * register calling updates
-
-  Revision 1.12  2003/11/11 21:08:17  peter
-    * REGCALL define added
-
-  Revision 1.11  2003/09/08 18:21:37  peter
-    * save edi,esi,ebx
-
-  Revision 1.10  2003/05/26 19:36:46  peter
-    * fpc_shortstr_concat is now the same for all targets
-    * fpc_shortstr_append_shortstr added for optimized code generation
-
-  Revision 1.9  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/03/29 20:15:44  peter
-    * fixed load_smallset
+  Revision 1.19  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

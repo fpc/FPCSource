@@ -79,18 +79,18 @@ procedure NewList (list: pList);
 {* Commodities support functions from amiga.lib *}
 procedure FreeIEvents (events: pInputEvent);
 function CxCustom
-		(action: pointer;
-		id: longint): pCxObj;
+                (action: pointer;
+                id: longint): pCxObj;
 
 function CxDebug (id: long): pCxObj;
 function CxFilter (d: STRPTR): pCxObj;
 function CxSender
-		(port: pMsgPort;
-		id: longint): pCxObj;
+                (port: pMsgPort;
+                id: longint): pCxObj;
 
 function CxSignal
-		(task: pTask;
-		sig: byte): pCxObj;
+                (task: pTask;
+                sig: byte): pCxObj;
 
 function CxTranslate (ie: pInputEvent): pCxObj;
 
@@ -316,47 +316,47 @@ end;
 
 procedure FreeIEvents (events: pInputEvent);
 begin
-	while events <> NIL do
-	begin
-		FreeMem (events, sizeof (tInputEvent));
-		events := events^.ie_NextEvent
-	end
+        while events <> NIL do
+        begin
+                FreeMem (events, sizeof (tInputEvent));
+                events := events^.ie_NextEvent
+        end
 end;
 
 function CxCustom
-		(action: pointer;
-		id: longint): pCxObj;
+                (action: pointer;
+                id: longint): pCxObj;
 begin
-	CxCustom := CreateCxObj(CX_CUSTOM, longint(action), id)
+        CxCustom := CreateCxObj(CX_CUSTOM, longint(action), id)
 end;
 
 function CxDebug (id: long): pCxObj;
 begin
-	CxDebug := CreateCxObj(CX_DEBUG, id, 0)
+        CxDebug := CreateCxObj(CX_DEBUG, id, 0)
 end;
 
 function CxFilter (d: STRPTR): pCxObj;
 begin
-	CxFilter := CreateCxObj(CX_FILTER, longint(d), 0)
+        CxFilter := CreateCxObj(CX_FILTER, longint(d), 0)
 end;
 
 function CxSender
-		(port: pMsgPort;
-		id: longint): pCxObj;
+                (port: pMsgPort;
+                id: longint): pCxObj;
 begin
-	CxSender := CreateCxObj(CX_SEND, longint(port), id)
+        CxSender := CreateCxObj(CX_SEND, longint(port), id)
 end;
 
 function CxSignal
-		(task: pTask;
-		sig: byte): pCxObj;
+                (task: pTask;
+                sig: byte): pCxObj;
 begin
-	CxSignal:= CreateCxObj(CX_SIGNAL, longint(task), sig)
+        CxSignal:= CreateCxObj(CX_SIGNAL, longint(task), sig)
 end;
 
 function CxTranslate (ie: pInputEvent): pCxObj;
 begin
-	CxTranslate := CreateCxObj(CX_TRANSLATE, longint(ie), 0)
+        CxTranslate := CreateCxObj(CX_TRANSLATE, longint(ie), 0)
 end;
 
 function DoMethodA(obj : pObject_; msg : APTR): ulong;
@@ -404,11 +404,11 @@ begin
 
     for i := 0 to High(args) do begin
         case args[i].vtype of
-	    vtinteger : argarray[i] := longint(args[i].vinteger);
-	    vtpchar   : argarray[i] := longint(args[i].vpchar);
-	    vtchar    : argarray[i] := longint(args[i].vchar);
-	    vtpointer : argarray[i] := longint(args[i].vpointer);
-	    vtstring  : argarray[i] := longint(pas2c(args[i].vstring^));
+            vtinteger : argarray[i] := longint(args[i].vinteger);
+            vtpchar   : argarray[i] := longint(args[i].vpchar);
+            vtchar    : argarray[i] := longint(args[i].vchar);
+            vtpointer : argarray[i] := longint(args[i].vpointer);
+            vtstring  : argarray[i] := longint(pas2c(args[i].vstring^));
         end;
     end;
     gettheconst := @argarray;
@@ -430,10 +430,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-01-13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.3  2002/11/18 20:50:18  nils
-    * update check internal log
+  Revision 1.5  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

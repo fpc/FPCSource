@@ -20,17 +20,17 @@
     use_auto_openlib. Implemented autoopening of
     the library.
     14 Jan 2003.
-    
+
     Added function Make_ID.
     14 Jan 2003.
-    
+
     Update for AmigaOS 3.9.
     Changed start code for unit.
     01 Feb 2003.
 
     Changed cardinal > longword.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -829,9 +829,9 @@ END;
 
 Function Make_ID(str : String) : LONGINT;
 begin
-	Make_ID := (LONGINT(Ord(Str[1])) shl 24) or
-	          (LONGINT(Ord(Str[2])) shl 16 ) or
-		  (LONGINT(Ord(Str[3])) shl 8 ) or (LONGINT(Ord(Str[4])));
+        Make_ID := (LONGINT(Ord(Str[1])) shl 24) or
+                  (LONGINT(Ord(Str[2])) shl 16 ) or
+                  (LONGINT(Ord(Str[3])) shl 8 ) or (LONGINT(Ord(Str[4])));
 end;
 
 const
@@ -921,24 +921,8 @@ END. (* UNIT IFFPARSE *)
 
 {
   $Log$
-  Revision 1.6  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.5  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.4  2003/01/19 14:57:50  nils
-  * added function make_id
-
-  Revision 1.3  2003/01/14 18:46:04  nils
-  * added defines use_amia_smartlink and use_auto_openlib
-
-  * implemented autoopening of library
-
-  Revision 1.2  2002/11/18 20:54:56  nils
-    * missing semicolon
+  Revision 1.7  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 

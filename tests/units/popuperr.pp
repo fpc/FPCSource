@@ -45,8 +45,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-12-05 14:12:34  hajny
-    * popuperr instead of win32err
-
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

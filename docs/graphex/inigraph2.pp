@@ -17,7 +17,7 @@ begin
   gd := D8bit;
   { Get all available resolutions for this bitdepth }
   getmoderange(gd,lo,hi);
-  { If the highest available mode number is -1, 
+  { If the highest available mode number is -1,
     no resolutions are supported for this bitdepth  }
   if hi = -1 then
     begin
@@ -37,7 +37,7 @@ begin
       found := true;
       break;
       end;
-    end;  
+    end;
   if not found then
     begin
     writeln('640x480x256 is not supported!');

@@ -4,8 +4,8 @@
 
 uses ub0149;
 
-  
-  
+
+
 procedure testdef1(b: tdefinition);
 begin
   b:=12;
@@ -14,7 +14,7 @@ end;
 
 type
   tdefinition = 1..10;
-  
+
 procedure testdef2(b : tdefinition);
 begin
   b:=10;

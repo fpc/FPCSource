@@ -278,7 +278,10 @@
 
 {
   $Log$
-  Revision 1.8  2005-01-30 18:41:53  peter
+  Revision 1.9  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.8  2005/01/30 18:41:53  peter
     * add fnclex before loading old CW
 
   Revision 1.7  2005/01/30 18:01:15  peter
@@ -286,21 +289,4 @@
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
 
-  Revision 1.6  2004/12/12 14:30:27  peter
-    * x86_64 updates
-
-  Revision 1.5  2004/12/12 12:41:46  peter
-    * updated for latest rtl changes
-
-  Revision 1.4  2004/04/24 18:31:25  florian
-    * trunc and round for x86-64 fixed
-
-  Revision 1.3  2004/02/06 15:58:21  florian
-    * fixed x86-64 assembler problems
-
-  Revision 1.2  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
-
-  Revision 1.1  2003/04/30 22:11:06  florian
-    + for a lot of x86-64 dependend files mostly dummies added
 }

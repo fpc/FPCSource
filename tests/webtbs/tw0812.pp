@@ -1,6 +1,6 @@
 uses
   erroru;
-  
+
 procedure Test;
 var
   P: Pointer;

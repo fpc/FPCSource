@@ -170,34 +170,10 @@ end.
 
 {
   $Log$
-  Revision 1.16  2005-02-13 18:55:19  florian
+  Revision 1.17  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.16  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
-  Revision 1.15  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.14  2004/10/24 07:54:25  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.13  2004/07/03 19:29:14  florian
-    * fixed problem with cpu interferences
-
-  Revision 1.12  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.11  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.10.2.4  2004/06/13 20:38:38  florian
-    * fixed floating point register spilling on sparc
-
-  Revision 1.10.2.3  2004/06/13 16:02:39  florian
-    * fixed floating point register spilling problems with offsets > 4095
-
-  Revision 1.10.2.2  2004/06/13 10:51:17  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.10.2.1  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
 }

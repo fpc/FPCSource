@@ -19,7 +19,7 @@
  ***************************************************************************
 
   Author: Mattias Gaertner
-  
+
   Abstract:
     TAVLTree is an Average Level binary Tree. This binary tree is always
     balanced, so that inserting, deleting and finding a node is performed in
@@ -181,7 +181,7 @@ begin
   if Result<>nil then
     while Result.Right<>nil do Result:=Result.Right;
 end;
-    
+
 procedure TAVLTree.BalanceAfterDelete(ANode: TAVLTreeNode);
 var OldParent, OldRight, OldRightLeft, OldLeft, OldLeftRight,
   OldRightLeftLeft, OldRightLeftRight, OldLeftRightLeft, OldLeftRightRight

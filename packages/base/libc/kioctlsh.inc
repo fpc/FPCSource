@@ -106,4 +106,4 @@ function TIOCGDEV : longint;
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

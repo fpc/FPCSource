@@ -11,7 +11,7 @@ end;
 var
   window, stackbox, label1, Label2  : PGtkWidget;
   labelstyle : pgtkstyle;
-  
+
 begin
   gtk_init (@argc, @argv);
   window := gtk_window_new (GTK_WINDOW_TOPLEVEL);
@@ -25,9 +25,9 @@ begin
     blue:=0;
     green:=0;
     end;
-  gtk_widget_set_style(label1,labelstyle);    
+  gtk_widget_set_style(label1,labelstyle);
   // Uncomment this to see the effect of setting the default style.
-  // gtk_widget_set_default_style(labelstyle);    
+  // gtk_widget_set_default_style(labelstyle);
   label2 := gtk_label_new('Black label text');
   gtk_box_pack_start(GTK_BOX(stackbox),label1,TRUE,TRUE,0);
   gtk_box_pack_start(GTK_BOX(stackbox),label2,TRUE,TRUE,0);

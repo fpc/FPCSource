@@ -335,26 +335,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-05-03 16:03:21  peter
-    * fixed test results
-
-  Revision 1.8  2004/05/02 12:11:44  peter
-    * fixed linefeeds
-
-  Revision 1.7  2003/12/07 11:59:44  jonas
-    * test procedure uses 64bit arguments under FPC
-    - disabled tests with negative shift counts (illegal)
-
-  Revision 1.6  2002/09/29 14:37:22  carl
-    * must more 64-bit testing (to detect endian specific problems)
-
-  Revision 1.5  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/03/29 18:43:55  peter
-    * updated int64 tests so kylix passes the tests
-
-  Revision 1.3  2002/03/05 21:56:32  carl
-  * Adapted for automated testing
+  Revision 1.10  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

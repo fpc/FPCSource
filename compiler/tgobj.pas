@@ -622,42 +622,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2004-11-21 17:17:04  florian
-    * changed funcret location back to tlocation
-
-  Revision 1.49  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.48  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.47  2004/09/20 15:40:21  peter
-    * make it compile with main branch
-
-  Revision 1.46  2004/09/20 07:32:02  jonas
-    * fixed crashes on direction=1 systems (mainly by Peter)
-
-  Revision 1.45.4.2  2004/09/07 20:52:10  peter
-    * fix resizing of bestslot to preserve alignment for the returned
-      block
-
-  Revision 1.45.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.45  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.44  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.43.2.1  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.43  2004/01/12 22:11:38  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
+  Revision 1.51  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

@@ -24,11 +24,11 @@
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     13 Jan 2003.
-    
+
     Update for AmigaOS 3.9.
     Changed startcode for unit.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -569,16 +569,9 @@ END. (* UNIT LOWLEVEL *)
 
 {
   $Log$
-  Revision 1.4  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.3  2003/01/13 20:36:00  nils
-  * added the defines use_amiga_smartlink
-  * and use_auto_openlib
-
-  Revision 1.2  2002/11/19 18:47:46  nils
-    * update check internal log
+  Revision 1.5  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+

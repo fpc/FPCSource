@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Implements OS dependent part for loading of dynamic libraries.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -25,7 +25,7 @@ type
  TLibHandle = longint;
 
 const
- NilHandle = 0; 
+ NilHandle = 0;
 
 {$else}
 
@@ -62,10 +62,7 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-10-24 11:44:27  hajny
-    * wrong condition for DosLoadModule
-
-  Revision 1.3  2002/09/07 16:01:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

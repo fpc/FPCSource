@@ -398,16 +398,7 @@ end.
 
 {
  $Log$
- Revision 1.6  2002-10-15 12:05:49  pierre
- - * changed so that all tests are done even after a failure
-
- Revision 1.5  2002/09/07 15:40:56  peter
-   * old logs removed and tabs fixed
-
- Revision 1.4  2002/03/09 23:17:35  carl
- * removing current directory should return 16
-
- Revision 1.3  2002/03/05 21:53:18  carl
- + tests on removing current directory and parent directory
+ Revision 1.7  2005-02-14 17:13:37  peter
+   * truncate log
 
 }

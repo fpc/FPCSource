@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     Interface and OS-dependent part of variant support
-       
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -40,11 +40,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-06-06 14:52:28  karoly
-    * added for morphos
-
-  Revision 1.2  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }
 

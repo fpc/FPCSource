@@ -5,7 +5,7 @@ type
 
    Pfpos64_t = ^fpos64_t;
    fpos64_t = _G_fpos64_t;
- 
+
    PFILE = P_IO_FILE;
 
 const
@@ -156,4 +156,4 @@ procedure funlockfile(__stream:PFILE);cdecl;external clib name 'funlockfile';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

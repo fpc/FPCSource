@@ -114,19 +114,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-11-08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.6  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.5  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.4  2004/03/23 22:34:50  peter
-    * constants ordinals now always have a type assigned
-    * integer constants have the smallest type, unsigned prefered over
-      signed
+  Revision 1.8  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

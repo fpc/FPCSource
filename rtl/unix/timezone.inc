@@ -227,14 +227,14 @@ Const
   TimeZoneLocationFile = '/etc/timezone';
   // SuSE has link in /usr/lib/zoneinfo/localtime to /etc/localtime
   // RedHat uses /etc/localtime
-  
-  TimeZoneFile = '/etc/localtime'; 			// POSIX
-  AltTimeZoneFile = '/usr/lib/zoneinfo/localtime';	// Other
+
+  TimeZoneFile = '/etc/localtime';                      // POSIX
+  AltTimeZoneFile = '/usr/lib/zoneinfo/localtime';      // Other
 {$ifdef BSD}
-  BSDTimeZonefile = '/usr/share/zoneinfo';	// BSD usually is POSIX 
-						// compliant though
-{$ENDIF} 
-  
+  BSDTimeZonefile = '/usr/share/zoneinfo';      // BSD usually is POSIX
+                                                // compliant though
+{$ENDIF}
+
 
 function GetTimezoneFile:shortstring;
 var
@@ -263,7 +263,7 @@ begin
       GetTimeZoneFile:=AltTimeZoneFile
 {$ifdef BSD}
 //  else
-//       If fpstat(BSDTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then             
+//       If fpstat(BSDTimeZoneFile,{$ifdef oldlinuxstat}baseunix.stat(info){$else}info{$endif})>=0 then
 // GetTimeZoneFile:=BSDTimeZoneFile
 {$ENDIF}
 end;
@@ -295,23 +295,7 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-10-30 21:18:23  marco
-   * more commits from unix interface cleanup
-
-  Revision 1.7  2003/11/01 17:10:21  marco
-   * Show stopping bug. Had to comment out lines around 279 to get 1.9
-   to build
-
-  Revision 1.6  2003/09/17 18:49:16  marco
-   * small *BSD fix
-
-  Revision 1.5  2003/09/16 16:06:02  peter
-    * add typecasts for oldlinuxstat
-
-  Revision 1.4  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.3  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

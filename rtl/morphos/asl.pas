@@ -522,7 +522,7 @@ const
 {$endif ASL_V38_NAMES_ONLY}
 
 
-var 
+var
   AslBase : pLibrary;
 
 function AllocFileRequest : pFileRequester;
@@ -534,14 +534,14 @@ SysCall AslBase 036;
 function RequestFile(fileReq : pFileRequester location 'a0'): Boolean;
 SysCall AslBase 042;
 
-function AllocAslRequest(reqType: Cardinal location 'd0'; 
+function AllocAslRequest(reqType: Cardinal location 'd0';
                          tagList: pTagItem location 'a0'): Pointer;
 SysCall AslBase 048;
 
 procedure FreeAslRequest(requester: Pointer location 'a0');
 SysCall AslBase 054;
 
-function AslRequest(requester: Pointer  location 'a0'; 
+function AslRequest(requester: Pointer  location 'a0';
                     tagList  : pTagItem location 'a1'): Boolean;
 SysCall AslBase 060;
 
@@ -551,9 +551,9 @@ SysCall AslBase 078;
 procedure ActivateAslRequest(requester : Pointer location 'a0');
 SysCall AslBase 084;
 
-function AllocAslRequestTags(reqType: Cardinal; 
+function AllocAslRequestTags(reqType: Cardinal;
                              tagList: array of DWord): Pointer; Inline;
-function AslRequestTags(requester: Pointer; 
+function AslRequestTags(requester: Pointer;
                         tagList  : array of DWord): Boolean; Inline;
 
 function InitAslLibrary : boolean;
@@ -562,13 +562,13 @@ function InitAslLibrary : boolean;
 implementation
 
 
-function AllocAslRequestTags(reqType: Cardinal; 
+function AllocAslRequestTags(reqType: Cardinal;
                              tagList: array of DWord): Pointer; Inline;
 begin
   AllocAslRequestTags:=AllocAslRequest(reqType,@tagList);
 end;
 
-function AslRequestTags(requester: Pointer; 
+function AslRequestTags(requester: Pointer;
                         tagList  : array of DWord): Boolean; Inline;
 begin
   AslRequestTags:=AslRequest(requester,@tagList);
@@ -611,7 +611,10 @@ end. (* UNIT ASL *)
 
 {
   $Log$
-  Revision 1.1  2005-01-30 18:58:23  karoly
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/01/30 18:58:23  karoly
     * initial revision
 
 }

@@ -25,7 +25,7 @@ begin
 
 {$IFDEF DOS}
   OS:='Dos';
-{$ENDIF}  
+{$ENDIF}
   Version:=DosVersion;
   WriteLn('Current ',OS,' version is ',Lo(Version),'.',Hi(Version));
 end.

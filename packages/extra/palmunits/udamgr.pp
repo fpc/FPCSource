@@ -137,7 +137,7 @@ type
 #define UDAInitiateWrite(ioWriter) (( *(ioWriter)->initiateWriteF))(ioWriter)
 
 #define UDAWriterFlush(ioWriter) (( *(ioWriter)->flushF))(ioWriter)
-*)   
+*)
 
 (*****************************************************************
  * UDA API
@@ -154,9 +154,9 @@ const
 
 //!!! function UDAControl(var ioObject: UDAObjectType; parameter: UInt16, ...): Err; syscall sysTrapUdaMgrDispatch, sysUdaControl;
 
-function UDAExchangeReaderNew(var socket: ExgSocketType): UDAReaderPtr; 
+function UDAExchangeReaderNew(var socket: ExgSocketType): UDAReaderPtr;
 
-function UDAExchangeWriterNew(var socket: ExgSocketType; bufferSize: UDABufferSize): UDAWriterPtr; 
+function UDAExchangeWriterNew(var socket: ExgSocketType; bufferSize: UDABufferSize): UDAWriterPtr;
 
  (***********************************************************************
  * Memory reader

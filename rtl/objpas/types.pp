@@ -307,9 +307,9 @@ end;
 function PtInRect(const Rect : TRect;const p : TPoint) : Boolean;
 
 begin
-  PtInRect:=(p.y>=Rect.Top) and 
-            (p.y<Rect.Bottom) and 
-            (p.x>=Rect.Left) and 
+  PtInRect:=(p.y>=Rect.Top) and
+            (p.y<Rect.Bottom) and
+            (p.x>=Rect.Left) and
             (p.x<Rect.Right);
 end;
 
@@ -399,24 +399,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2004-10-22 05:51:15  florian
-    * corrected last commit
+  Revision 1.9  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.6  2004/01/10 19:00:20  michael
-  + Compatibility checks and code reformatting
-
-  Revision 1.5  2003/10/05 19:10:03  florian
-    * fixed some delphi compatibilty issues
-
-  Revision 1.4  2003/04/24 11:09:36  florian
-    * check included, if the compiler supports interfaces
-
-  Revision 1.3  2003/01/02 22:22:12  peter
-    * reuse Windows types to fix incompatible parameters
-
-  Revision 1.2  2002/07/27 07:28:10  florian
-    * fixed errror on non win32 targets with 1.0.x when doing a make cycle
-
-  Revision 1.1  2002/07/23 20:39:54  florian
-    + types unit added
 }

@@ -4,7 +4,7 @@ const
    IPX_TYPE = 1;
    IPX_NODE_LEN = 6;
    IPX_MTU = 576;
-   
+
 type
    Psockaddr_ipx = ^sockaddr_ipx;
    sockaddr_ipx = record
@@ -20,7 +20,7 @@ type
 const
    IPX_DLTITF = 0;
    IPX_CRTITF = 1;
-   
+
 type
 
    Pipx_route_definition = ^ipx_route_definition;
@@ -81,4 +81,4 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

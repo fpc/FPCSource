@@ -24,7 +24,7 @@ begin
   Write   ('(Should be 100*',SizeOF(TMyObject));
   Writeln ('=',100*SizeOf(TMyObject),')');
   With C^ do
-    While Count>0 do Free(At(Count-1)); 
+    While Count>0 do Free(At(Count-1));
   Writeln ('Freed all objects. Memory available : ',Memavail);
   Writeln ('Lost : ',Initmem-Memavail,' bytes.');
   Dispose(C,Done);

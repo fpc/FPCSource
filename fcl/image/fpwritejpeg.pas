@@ -23,10 +23,10 @@ interface
 uses
   Classes, SysUtils, FPImage, JPEGLib, FPReadJPEG, JcAPIstd, JcAPImin, JDataDst,
   JcParam, JError;
-  
+
 type
   { TFPWriterJPEG }
-  
+
   TFPJPEGCompressionQuality = 1..100;   // 100 = best quality, 25 = pretty awful
 
   TFPWriterJPEG = class(TFPCustomImageWriter)
@@ -107,7 +107,7 @@ var
     FProgressMgr.instance := Self;
     FInfo.progress := @FProgressMgr;
   end;
-  
+
   procedure SetDestination;
   begin
     if Str is TMemoryStream then
@@ -116,7 +116,7 @@ var
       MemStream := TMemoryStream.Create;
     jpeg_stdio_dest(@FInfo, @MemStream);
   end;
-  
+
   procedure WriteHeader;
   begin
     FInfo.image_width := Img.Width;
@@ -132,7 +132,7 @@ var
     if ProgressiveEncoding then
       jpeg_simple_progression(@FInfo);
   end;
-  
+
   procedure WritePixels;
   var
     LinesWritten: Cardinal;
@@ -171,7 +171,7 @@ var
     jpeg_finish_compress(@FInfo);
     Progress(psEnding, 100, False, Rect(0,0,0,0), '', Continue);
   end;
-  
+
   procedure EndWriting;
   begin
     jpeg_destroy_compress(@FInfo);

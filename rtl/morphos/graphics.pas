@@ -2688,7 +2688,7 @@ SysCall GfxBase 1062;
 
 
 { gfxmacros }
-procedure BNDRYOFF (w: pRastPort); 
+procedure BNDRYOFF (w: pRastPort);
 procedure InitAnimate (animkey: ppAnimOb);
 procedure SetAfPt(w: pRastPort;p: Pointer; n: Byte);
 procedure SetDrPt(w: pRastPort;p: Word);
@@ -2838,7 +2838,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-11-16 21:18:31  karoly
-   * initial revision
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

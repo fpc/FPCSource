@@ -902,55 +902,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2004-12-28 15:30:04  florian
-    * fixed raw mode for non i386 targets
-    * fixed some alignment issues
-
-  Revision 1.26  2004/12/26 12:22:05  peter
-    * cursorx,cursory 0 based, fixes 3468
-
-  Revision 1.25  2004/10/05 17:16:24  armin
-  * enable acs on xterm by default
-
-  Revision 1.24  2004/10/03 20:16:43  armin
-  * SysUpdateScreen modified esi and edi
-
-  Revision 1.23  2004/07/09 19:03:35  peter
-    * isatty return cint again
-
-  Revision 1.21  2004/07/03 13:29:23  daniel
-    * Compilation fix.
-
-  Revision 1.20  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.19  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.18  2003/10/26 15:32:25  marco
-   * partial fix for bug 2212.
-
-  Revision 1.17  2003/10/25 22:48:52  marco
-   * small after merge fixes
-
-  Revision 1.16  2003/10/24 17:51:39  marco
-   * merged some fixes from 1.0.x
-
-  Revision 1.15  2003/10/17 22:13:30  olle
-    * changed i386 to cpui386
-
-  Revision 1.14  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.13  2003/03/26 12:45:21  armin
-  * added wrapoff to avoid problems in the ide with some terminal emulators
-
-  Revision 1.12  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.11  2002/07/06 16:50:17  marco
-   * Fix for corrupt color-attr after some ACS-mode changes. (Pierre, Strassbourg
-      meeting)
+  Revision 1.28  2005-02-14 17:13:31  peter
+    * truncate log
 
 }
 

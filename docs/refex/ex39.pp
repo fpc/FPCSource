@@ -13,6 +13,6 @@ begin
   GetMem (PPP,100000);
   Writeln ('Getmem 10000 : Memory available : ',MemAvail);
   Release (MM);
-  Writeln ('Released     : Memory available : ',MemAvail);    
+  Writeln ('Released     : Memory available : ',MemAvail);
   { At this point, PP and PPP are invalid ! }
 end.

@@ -2,7 +2,7 @@ Program Example1;
 
 { Program to demonstrate the Abs function. }
 
-Var 
+Var
   r : real;
   i : integer;
 

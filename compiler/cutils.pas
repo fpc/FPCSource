@@ -1224,46 +1224,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.48  2005-01-20 17:05:53  peter
+  Revision 1.49  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.48  2005/01/20 17:05:53  peter
     * use val() for decoding integers
-
-  Revision 1.47  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.46  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.45  2004/10/14 14:55:12  mazen
-  * use SysUtils unit instead of Dos Unit
-  + overload Replace to use AnsiString
-
-  Revision 1.44  2004/09/21 20:32:40  peter
-    * range check error in swapint64
-
-  Revision 1.43  2004/09/13 20:26:45  peter
-    * for-loop variable access removed
-
-  Revision 1.42  2004/08/31 21:44:18  olle
-    + added proc DePascalQuote
-
-  Revision 1.41  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.40  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.39  2004/05/22 23:33:18  peter
-  fix range check error when array size > maxlongint
-
-  Revision 1.38.2.3  2004/04/29 19:07:22  peter
-    * compile fixes
-
-  Revision 1.38.2.2  2004/04/26 21:01:36  peter
-    * aint fixes
-
-  Revision 1.38.2.1  2004/04/20 16:35:58  peter
-    * generate dwarf for stackframe entry
 
 }

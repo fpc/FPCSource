@@ -88,7 +88,7 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 
 function __adjtimex(var __ntx:timex):longint;cdecl;external clib name '__adjtimex';
 function adjtimex(var __ntx:timex):longint;cdecl;external clib name 'adjtimex';

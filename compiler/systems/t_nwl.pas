@@ -646,55 +646,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-12-22 16:32:46  peter
-    * maybequoted() added
-
-  Revision 1.11  2004/11/25 18:46:11  armin
-  * added utilsprefix for as,ld and nlmconv
-
-  Revision 1.10  2004/11/19 16:30:24  peter
-    * fixed setting of mangledname when importing
-
-  Revision 1.9  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.8  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.7  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.6  2004/09/24 10:48:31  armin
-  * added GROUP for .a files to linker script
-
-  Revision 1.5  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.3  2004/09/19 18:10:32  armin
-  * added library support
-
-  Revision 1.2  2004/09/19 14:23:43  armin
-  * support library flag
-  * automaticly gernerate xdc data
-
-  Revision 1.1  2004/09/04 21:18:47  armin
-  * target netwlibc added (libc is preferred for newer netware versions)
-
-  Revision 1.14  2004/08/30 11:17:34  armin
-  * added support for libc
-
-  Revision 1.13  2004/08/01 19:29:06  armin
-  * changes to compile fpc on netware
-
-  Revision 1.12  2004/07/30 16:00:19  armin
-  * removed -m for nlmconv, it is only valid for ld
-
-  Revision 1.11  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.10  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
+  Revision 1.13  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

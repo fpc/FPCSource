@@ -176,7 +176,7 @@ Type
     __padding: array[0..48-1-sizeof(_pthread_fastlock)-sizeof(pointer)-sizeof(clonglong)] of byte;
     __align: clonglong;
   end;
-    
+
   pthread_condattr_t = record
     __dummy: cint;
   end;
@@ -196,7 +196,7 @@ Type
     __lockkind: cint;
     __pshared: cint;
   end;
-  
+
   sem_t = record
      __sem_lock: _pthread_fastlock;
      __sem_value: cint;
@@ -210,7 +210,7 @@ CONST
     _PTHREAD_MUTEX_RECURSIVE_NP  = 1;
     _PTHREAD_MUTEX_ERRORCHECK_NP = 2;
     _PTHREAD_MUTEX_ADAPTIVE_NP   = 3;
-  
+
     _PTHREAD_MUTEX_NORMAL     = _PTHREAD_MUTEX_TIMED_NP;
     _PTHREAD_MUTEX_RECURSIVE  = _PTHREAD_MUTEX_RECURSIVE_NP;
     _PTHREAD_MUTEX_ERRORCHECK = _PTHREAD_MUTEX_ERRORCHECK_NP;
@@ -238,54 +238,8 @@ CONST
 
 {
    $Log$
-   Revision 1.12  2004-11-14 12:21:08  marco
-    * moved some calls from unix to baseunix. Darwin untested.
-
-   Revision 1.11  2004/09/09 20:29:06  jonas
-     * fixed definition of pthread_mutex_t for non-linux targets (and for
-       linux as well, actually).
-     * base libpthread definitions are now in ptypes.inc, included in unixtype
-       They sometimes have an extra underscore in front of their name, in
-       case they were also exported by the packages/base/pthreads unit, so
-       they can keep their original name there
-     * cthreadds unit now imports systuils, because it uses exceptions (it
-       already did so before as well)
-     * fixed many linux definitions of libpthread functions in pthrlinux.inc
-       (integer -> cint etc)
-     + added culonglong type to ctype.inc
-
-   Revision 1.10  2004/05/02 01:00:07  peter
-     * statfs fixed
-
-   Revision 1.9  2004/04/26 16:53:19  peter
-     * use cpu64
-
-   Revision 1.8  2004/03/04 22:15:16  marco
-    * UnixType changes. Please report problems to me.
-
-   Revision 1.7  2004/01/11 09:56:20  jonas
-     * moved tstatfs from systypes.inc to ptypes.inc to fix make cycle with
-       -dFPC_USE_LIBC (systypes.inc is now completely commented out)
-
-   Revision 1.6  2003/12/30 12:46:40  marco
-    * ptime_t
-
-   Revision 1.5  2003/09/27 13:45:58  peter
-     * fpnanosleep exported in baseunix
-     * fpnanosleep has pointer arguments to be C compliant
-
-   Revision 1.4  2003/09/14 20:15:01  marco
-    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-   Revision 1.3  2002/12/18 16:43:26  marco
-    * new unix rtl, linux part.....
-
-   Revision 1.2  2002/11/12 14:28:40  marco
-    * some updates
-
-   Revision 1.1  2002/10/29 16:47:17  marco
-    * Linux versions
-
+   Revision 1.13  2005-02-14 17:13:30  peter
+     * truncate log
 
 }
 

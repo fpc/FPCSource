@@ -85,7 +85,7 @@ function drand48:double;cdecl;external clib name 'drand48';
 
 Type
   TRandWordArray = Array[0..2] of word;
-  
+
 function erand48(var __xsubi: trandwordarray):double;cdecl;external clib name 'erand48';
 function lrand48:longint;cdecl;external clib name 'lrand48';
 function nrand48(var __xsubi: trandwordarray):longint;cdecl;external clib name 'nrand48';
@@ -120,7 +120,7 @@ procedure __abort; cdecl; external clib name 'abort';
 type
   TAtExitProc = procedure; cdecl;
   TOnExitProc = procedure(status: longint; arg: Pointer); cdecl;
-    
+
 function atexit(__func:TAtExitProc):longint;cdecl;external clib name 'atexit';
 function on_exit(__func:TOnExitProc; __arg:pointer):longint;cdecl;external clib name 'on_exit';
 procedure __exit(Status: longint); cdecl;external clib name 'exit';
@@ -136,7 +136,7 @@ function mktemp(__template:Pchar):Pchar;cdecl;external clib name 'mktemp';
 function mkstemp(__template:Pchar):longint;cdecl;external clib name 'mkstemp';
 function mkstemp64(__template:Pchar):longint;cdecl;external clib name 'mkstemp64';
 function mkdtemp(__template:Pchar):Pchar;cdecl;external clib name 'mkdtemp';
-// **************** detect whether system symbol is hidden. Should be as of 1.9.4 
+// **************** detect whether system symbol is hidden. Should be as of 1.9.4
 {$ifdef VER1_0}
 {$define __SYSTEMONLY}
 {$endif}
@@ -201,13 +201,13 @@ function getloadavg(__loadavg:array of double; __nelem:longint):longint;cdecl;ex
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TRandomData = random_data;
   PRandomData = ^TRandomData;
-    
+
   TDrand48Data = drand48_data;
   PDrand48Data = ^TDrand48Data;
-    
+
 function erand48(__xsubi: pword):double;cdecl;external clib name 'erand48';
 function nrand48(__xsubi: pword):longint;cdecl;external clib name 'nrand48';
 function jrand48(__xsubi: pword):longint;cdecl;external clib name 'jrand48';
@@ -218,4 +218,4 @@ function erand48_r(__xsubi:pword; __buffer:Pdrand48_data; __result:Pdouble):long
 function nrand48_r(__xsubi:pword; __buffer:Pdrand48_data; __result:Plongint):longint;cdecl;external clib name 'nrand48_r';
 function jrand48_r(__xsubi:pword; __buffer:Pdrand48_data; __result:Plongint):longint;cdecl;external clib name 'jrand48_r';
 function seed48_r(__seed16v:pword; __buffer:Pdrand48_data):longint;cdecl;external clib name 'seed48_r';
-            
+

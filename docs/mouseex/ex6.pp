@@ -29,7 +29,7 @@ end;
 
 Var
   Event : TMouseEvent;
-  
+
 begin
   InitMouse;
   Writeln('Play with mouse. Press right mouse button to end.');
@@ -41,7 +41,7 @@ begin
       end
     else
       Write('.');
-  Until (Event.Buttons=MouseRightButton) and 
+  Until (Event.Buttons=MouseRightButton) and
         (Event.Action=MouseActionDown);
   DoneMouse;
 end.

@@ -29,7 +29,7 @@ resourcestring
   SArgumentMissing       = 'Missing argument in format "%s"';
   SAssertError           = '%s (%s, line %d)';
   SAssertionFailed       = 'Assertion failed';
-  SCannotCreateEmptyDir  = 'Cannot create empty directory'; 
+  SCannotCreateEmptyDir  = 'Cannot create empty directory';
   SControlC              = 'Control-C hit';
   SDiskFull              = 'Disk Full';
   SDispatchError         = 'No variant method call dispatch';
@@ -104,7 +104,7 @@ resourcestring
   SVarTypeRangeCheck2           = 'Range check error while converting variant of type (%s) into type (%s)';
   SVarTypeTooManyCustom         = 'Too many custom variant types have been registered';
   SVarUnexpected                = 'Unexpected variant error';
-      
+
   SFallbackError                = 'An error, whose error code is larger than can be returned to the OS, has occured';
 
   SNoToolserver                 = 'Toolserver is not installed, cannot execute Tool';
@@ -213,61 +213,23 @@ begin
 
   end;
   If length(Result)=0 then
-{$ifdef VER1_0}  
+{$ifdef VER1_0}
     begin
       Str(Errno:3,Result);
       Result:=SUnknown+Result;
     end;
-{$else}      
+{$else}
     Result:=SUnknown+Str(Errno:3);
-{$endif}    
+{$endif}
 end;
 
 end.
 {
   $Log$
-  Revision 1.14  2005-01-14 12:59:25  michael
+  Revision 1.15  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.14  2005/01/14 12:59:25  michael
   + Implemented ForceDirectories for Delphi compatibility
 
-  Revision 1.13  2004/09/03 19:26:42  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.12  2004/08/25 15:29:58  peter
-    * disbaled error 900 that is out of range
-
-  Revision 1.11  2004/08/20 10:18:58  olle
-    + added error 900, for macos
-
-  Revision 1.10  2004/06/12 13:23:17  michael
-  + Fixed currency<->string conversion support
-
-  Revision 1.9  2004/02/08 11:44:05  michael
-  + OSERRor related constants
-
-  Revision 1.8  2004/01/20 23:05:31  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.7  2004/01/10 19:35:17  michael
-  + Moved all resource strings to rtlconst/sysconst
-
-  Revision 1.6  2004/01/10 17:55:45  michael
-  + Changed lookup table with Case: Array of resourcestring is not translated
-
-  Revision 1.5  2003/11/30 15:04:56  michael
-  + Removed old strings
-
-  Revision 1.4  2003/11/27 20:39:43  michael
-  + Added runerrors functionality to sysconst
-
-  Revision 1.3  2003/11/26 20:34:19  michael
-  + Some fixes to have everything compile again
-
-  Revision 1.2  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.1  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
 }

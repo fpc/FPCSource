@@ -15,9 +15,9 @@ begin
             case ch of
              #75 : WriteLn('Left');
              #77 : WriteLn('Right');
-	    end;
-	  end;
-    #27 : WriteLn('ESC');	  
+            end;
+          end;
+    #27 : WriteLn('ESC');
     end;
-  until ch=#27 {Esc}           
+  until ch=#27 {Esc}
 end.

@@ -295,11 +295,8 @@ end;
 
 {
   $Log$
-  Revision 1.8  2003-11-03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.7  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:22  peter
+    * truncate log
 
 }
 

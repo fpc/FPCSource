@@ -5,7 +5,7 @@ Interface
 Uses Objects;
 
 Type
-  PMySortedCollection = ^TMySortedCollection; 
+  PMySortedCollection = ^TMySortedCollection;
   TMySortedCollection = Object(TSortedCollection)
        Function Compare (Key1,Key2 : Pointer): Sw_integer; virtual;
        end;

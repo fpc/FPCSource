@@ -6,7 +6,7 @@ Uses objects;
 
 Var L : String;
     S : PStream;
-    
+
 begin
   L:='Some kind of string';
   S:=New(PMemoryStream,Init(100,10));

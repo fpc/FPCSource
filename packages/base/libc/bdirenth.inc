@@ -24,14 +24,14 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TDirEnt = dirent;
   PPDirEnt = ^PDirEnt;
   PPPDirEnt = ^PPDirEnt;
-    
+
   TDirEnt64 = dirent64;
   PPDirEnt64 = ^PDirEnt64;
-  PPPDirEnt64 = ^PPDirEnt64;  
-    
-          
-      
+  PPPDirEnt64 = ^PPDirEnt64;
+
+
+

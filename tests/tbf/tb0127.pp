@@ -10,7 +10,7 @@ type
   tinterface = interface
       procedure x;
   end;
-  
+
   tderivedinterface = interface(tinterface)
       procedure x;
   end;
@@ -24,7 +24,7 @@ var
 begin
   testintparam(t1);
 end.
-  
-  
-  
-  
+
+
+
+

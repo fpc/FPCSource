@@ -371,47 +371,8 @@ function spawnvp(mode:longint; path:Pchar; argv:PPchar):longint;cdecl;external C
 
 {
   $Log$
-  Revision 1.13  2004-12-07 11:04:42  armin
-  * fixed GetProcessId
-
-  Revision 1.12  2004/11/25 12:32:08  armin
-  * adapted to new compiler check for externals
-
-  Revision 1.11  2004/09/26 19:25:49  armin
-  * exiting threads at nlm unload
-
-  Revision 1.10  2004/08/01 20:02:48  armin
-  * changed dir separator from \ to /
-  * long namespace by default
-  * dos.exec implemented
-  * getenv ('PATH') is now supported
-  * changed FExpand to global version
-  * fixed heaplist growth error
-  * support SysOSFree
-  * stackcheck was without saveregisters
-  * fpc can compile itself on netware
-
-  Revision 1.9  2003/03/25 18:17:54  armin
-  * support for fcl, support for linking without debug info
-  * renamed winsock2 to winsock for win32 compatinility
-  * new sockets unit for netware
-  * changes for compiler warnings
-
-  Revision 1.8  2003/02/16 17:46:11  armin
-  * typo fixed
-
-  Revision 1.7  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/04/01 15:20:08  armin
-  + unload module no longer shows: Module did not release...
-  + check-function will no longer be removed when smartlink is on
-
-  Revision 1.5  2002/03/30 09:09:47  armin
-  + support check-function for netware
-
-  Revision 1.4  2002/03/08 19:06:47  armin
-        * Additional routines needed for MT
+  Revision 1.14  2005-02-14 17:13:30  peter
+    * truncate log
 
 }
 

@@ -7,7 +7,7 @@ program test;
 type
   TTest1 = class
     FA: Integer;
-  private  
+  private
     property a: Integer read FA write FA;
   end;
   TTest2 = class(TTest1)

@@ -22,17 +22,17 @@ uses sysutils,classes,db,whtml;
 Type
   THTMLAlign = (haDefault,haLeft,haRight,haCenter); // Compatible with Delphi.
   THTMLVAlign = (haVDefault,haTop,haMiddle,haBottom,haBaseLine); // Compatible with Delphi.
-    
-    
+
+
   TGetCellContentsEvent = Procedure (Sender : TObject; Var CellData : String) of object;
-  TCellAttributesEvent = Procedure (Sender : TObject; 
+  TCellAttributesEvent = Procedure (Sender : TObject;
                                     Var BGColor : String;
-                                    Var Align : THTMLAlign; 
+                                    Var Align : THTMLAlign;
                                     Var VAlign : THTMLValign;
                                     Var CustomAttr : String) of Object;
-  TRowAttributesEvent = Procedure (Sender : TObject; 
+  TRowAttributesEvent = Procedure (Sender : TObject;
                                    Var BGColor : String;
-                                   Var Align : THTMLAlign; 
+                                   Var Align : THTMLAlign;
                                    Var VAlign : THTMLValign;
                                    Var CustomAttr : String) of Object;
 
@@ -49,8 +49,8 @@ Type
     Property Custom : String Read FCustom Write FCustom;
     Property VAlign : THTMLVAlign Read FVAlign Write FVAlign;
   end;
-  
-                                    
+
+
   TTableColumn = Class(TCollectionItem)
   private
     FActionUrl: String;
@@ -76,7 +76,7 @@ Type
     Property VAlign : THTMLVAlign Read FValign Write FVAlign;
     Property OnGetCellContents : TGetCellContentsEvent Read FGetCellContent Write FGetCellContent;
   end;
-  
+
   TTableColumns = Class(TCollection)
     Constructor Create;
   private
@@ -105,7 +105,7 @@ Type
   Published
     Property Dataset : TDataset Read FDataset Write FDataset;
   end;
-  
+
 
   TTableProducer = Class(THTMLProducer)
   Private
@@ -132,7 +132,7 @@ Type
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; virtual;
     Function CreateAttr(Const ABGColor : String; A : THTMLAlign; VA : THTMLVAlign; CustomAttr : String) : String;
-    Procedure Clear;  
+    Procedure Clear;
     Procedure CreateColumns(FieldList : TStrings);
     Procedure CreateColumns(FieldList : String);
     Procedure CreateTable(Stream : TStream);
@@ -148,7 +148,7 @@ Type
     Property OnGetCellAttributes : TCellAttributesEvent Read FGetCellAttrs write FGetCellAttrs;
     Property OnGetRowAttributes : TRowAttributesEvent Read FGetRowAttrs write FGetRowAttrs;
   end;
-  
+
   TComboBoxProducer = Class(THTMLProducer)
   private
     FDatafield: String;
@@ -178,7 +178,7 @@ Type
     Procedure CreateTable(Dataset : TDataset);
     Procedure CreateTable(Dataset : TDataset; Producer : TTableProducer);
   end;
-  
+
   EDBWriter = Class(Exception);
 
 Implementation
@@ -301,7 +301,7 @@ Var
   A : THTMLAlign;
   VA : THTMLVAlign;
   RTAG,CustA : String;
-  
+
 begin
   With FRowAttributes do
     begin
@@ -370,7 +370,7 @@ Var
   A : THTMLAlign;
   VA : THTMLVAlign;
   CellA,CustA : String;
-  
+
 begin
   BG:=C.BGColor;
   A:=C.Align;
@@ -378,7 +378,7 @@ begin
   CustA:='';
   If Assigned(FGetCellAttrs) then
     FGetCellAttrs(Self,BG,A,VA,CustA);
-  CellA:=CreateAttr(BGColor,A,VA,CustA);  
+  CellA:=CreateAttr(BGColor,A,VA,CustA);
   If (CellA='') then
     CellA:='<TD>'
   else
@@ -426,7 +426,7 @@ begin
   If Assigned(FContents) then
     FreeAndNil(FContents);
   FBorder:=False;
-  
+
 end;
 
 procedure TTableProducer.CreateColumns(FieldList: TStrings);
@@ -434,7 +434,7 @@ procedure TTableProducer.CreateColumns(FieldList: TStrings);
 Var
   I : Integer;
   FN : String;
-  
+
 begin
   For I:=0 to FDataset.FieldCount-1 do
     begin
@@ -673,7 +673,7 @@ end;
 
 Procedure TRowAttributes.Assign(Source : TPersistent);
 
-Var 
+Var
   R : TRowAttributes;
 
 begin
@@ -686,7 +686,7 @@ begin
     FVAlign:=R.FVAlign;
     end
   else
-    Inherited Assign(Source)  
+    Inherited Assign(Source)
 end;
 
 
@@ -694,19 +694,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2004-10-16 09:20:25  michael
-  + Moved resourcestrings to dbconst
-
-  Revision 1.6  2003/10/28 08:42:01  michael
-  + Added ColumnByName method to TTAbleColumns
-
-  Revision 1.4  2003/10/03 22:43:17  michael
-  + Published tablecolumns property in tableproducer
-
-  Revision 1.3  2003/10/03 08:42:22  michael
-  + Form support.
-
-  Revision 1.2  2003/10/01 21:07:48  michael
-  + Added log/header
+  Revision 1.8  2005-02-14 17:13:12  peter
+    * truncate log
 
 }

@@ -385,13 +385,7 @@ END.
 
 {
  $Log$
- Revision 1.4  2004-12-19 20:26:36  hajny
-   + TTimedDialog and TimedMessageBox added
-
- Revision 1.3  2004/03/22 15:50:31  peter
-   * compile fixes
-
- Revision 1.2  2002/09/07 15:06:38  peter
-   * old logs removed and tabs fixed
+ Revision 1.5  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

@@ -183,7 +183,7 @@ begin
                      end
                   else
                       UsePPointers:=true;
-               end;   
+               end;
          's' : stripcomment:=true;
          'S' : begin
                  stripcomment:=true;
@@ -236,7 +236,10 @@ end;
 end.
 {
    $Log$
-   Revision 1.4  2004-09-08 22:21:41  carl
+   Revision 1.5  2005-02-14 17:13:39  peter
+     * truncate log
+
+   Revision 1.4  2004/09/08 22:21:41  carl
      + support for creating packed records
      * var parameter bugfixes
 

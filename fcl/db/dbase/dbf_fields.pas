@@ -370,7 +370,7 @@ begin
         FFieldType := ftBCD
       else
         FFieldType := ftCurrency;
-    '0' : FFieldType := ftBytes;	{ Visual FoxPro ``_NullFlags'' }
+    '0' : FFieldType := ftBytes;        { Visual FoxPro ``_NullFlags'' }
   else
     FNativeFieldType := #0;
     FFieldType := ftUnknown;
@@ -408,7 +408,7 @@ begin
         FNativeFieldType := 'I'
       else
         FNativeFieldType := 'N';
-    ftBCD, ftCurrency: 
+    ftBCD, ftCurrency:
       if DbfVersion = xFoxPro then
         FNativeFieldType := 'Y';
   end;

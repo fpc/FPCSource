@@ -7,4 +7,4 @@ function pthread_kill(__thread:pthread_t; __signo:longint):longint;cdecl;externa
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

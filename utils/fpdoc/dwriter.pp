@@ -51,7 +51,7 @@ resourcestring
   SErrUnknownLink = 'Could not resolve link to "%s"';
   SErralreadyRegistered = 'Class for output format "%s" already registered';
   SErrUnknownWriterClass = 'Unknown output format "%s"';
-  
+
 type
   // Phony element for pas pages.
 
@@ -164,7 +164,7 @@ type
 
   TFPDocWriterClass = Class of TFPDocWriter;
   EFPDocWriterError = Class(Exception);
-  
+
 // Register backend
 Procedure RegisterWriter(AClass : TFPDocWriterClass; Const AName,ADescr : String);
 // UnRegister backend
@@ -182,7 +182,7 @@ implementation
 { ---------------------------------------------------------------------
   Writer registration
   ---------------------------------------------------------------------}
-  
+
 Type
 
 { TWriterRecord }
@@ -304,7 +304,7 @@ begin
   FTopics:=Tlist.Create;
 end;
 
-destructor TFPDocWriter.Destroy; 
+destructor TFPDocWriter.Destroy;
 
 Var
   i : integer;
@@ -330,7 +330,7 @@ Function TFPDocWriter.FindTopicElement(Node : TDocNode): TTopicElement;
 
 Var
   I : Integer;
-  
+
 begin
   Result:=Nil;
   I:=FTopics.Count-1;
@@ -338,7 +338,7 @@ begin
     begin
     If (TTopicElement(FTopics[i]).TopicNode=Node) Then
       Result:=TTopicElement(FTopics[i]);
-    Dec(I);  
+    Dec(I);
     end;
 end;
 
@@ -357,7 +357,7 @@ procedure TFPDocWriter.Warning(AContext: TPasElement; const AMsg: String);
 begin
   if (AContext<>nil) then
     WriteLn('[', AContext.PathName, '] ', AMsg)
-  else  
+  else
     WriteLn('[<no context>] ', AMsg);
 end;
 
@@ -407,7 +407,7 @@ begin
          (Node.NodeName <> 'var') then
       begin
         Result := False;
-	exit;
+        exit;
       end;
     Node := Node.NextSibling;
   end;
@@ -451,20 +451,20 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
       SetLength(Result, 0);
       while i <= Length(s) do
         if s[i] = #13 then
-	begin
-	  Result := Result + ' ';
-	  Inc(i);
-	  if s[i] = #10 then
-	    Inc(i);
-	end else if s[i] = #10 then
-	begin
-	  Result := Result + ' ';
-	  Inc(i);
-	end else
-	begin
-	  Result := Result + s[i];
-	  Inc(i);
-	end;
+        begin
+          Result := Result + ' ';
+          Inc(i);
+          if s[i] = #10 then
+            Inc(i);
+        end else if s[i] = #10 then
+        begin
+          Result := Result + ' ';
+          Inc(i);
+        end else
+        begin
+          Result := Result + s[i];
+          Inc(i);
+        end;
     end else if Node.NodeType = ENTITY_REFERENCE_NODE then
       if Node.NodeName = 'fpc' then
         Result := 'Free Pascal'
@@ -523,13 +523,13 @@ begin
       El := TDOMElement(Node);
       DescrEl := Engine.FindShortDescr(AContext.GetModule, El['id']);
       if Assigned(DescrEl) then
-	ConvertShort(AContext, DescrEl)
+        ConvertShort(AContext, DescrEl)
       else
       begin
-	Warning(AContext, Format(SErrUnknownPrintShortID, [El['id']]));
-	DescrBeginBold;
-	DescrWriteText('#ShortDescr:' + El['id']);
-	DescrEndBold;
+        Warning(AContext, Format(SErrUnknownPrintShortID, [El['id']]));
+        DescrBeginBold;
+        DescrWriteText('#ShortDescr:' + El['id']);
+        DescrEndBold;
       end;
     end else if Node.NodeName = 'var' then
       DescrWriteVarEl(ConvertTextContent)
@@ -606,32 +606,32 @@ begin
       if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'section') then
       begin
         DescrBeginSectionTitle;
-	Child := Node.FirstChild;
-	while Assigned(Child) and (Child.NodeType <> ELEMENT_NODE) do
-	begin
-	  if not IsDescrNodeEmpty(Child) then
-	    Warning(AContext, SErrInvalidContentBeforeSectionTitle);
-	  Child := Child.NextSibling;
-	end;
-	if not Assigned(Child) or (Child.NodeName <> 'title') then
-	  Warning(AContext, SErrSectionTitleExpected)
-	else
-	  ConvertShort(AContext, TDOMElement(Child));
+        Child := Node.FirstChild;
+        while Assigned(Child) and (Child.NodeType <> ELEMENT_NODE) do
+        begin
+          if not IsDescrNodeEmpty(Child) then
+            Warning(AContext, SErrInvalidContentBeforeSectionTitle);
+          Child := Child.NextSibling;
+        end;
+        if not Assigned(Child) or (Child.NodeName <> 'title') then
+          Warning(AContext, SErrSectionTitleExpected)
+        else
+          ConvertShort(AContext, TDOMElement(Child));
 
-	DescrBeginSectionBody;
+        DescrBeginSectionBody;
 
-	if IsExtShort(Child) then
-	begin
-	  DescrBeginParagraph;
-	  ParaCreated := True;
-	end else
-	  ParaCreated := False;
+        if IsExtShort(Child) then
+        begin
+          DescrBeginParagraph;
+          ParaCreated := True;
+        end else
+          ParaCreated := False;
 
-	ConvertExtShortOrNonSectionBlocks(AContext, Child.NextSibling);
+        ConvertExtShortOrNonSectionBlocks(AContext, Child.NextSibling);
 
-	if ParaCreated then
-	  DescrEndParagraph;
-	DescrEndSection;
+        if ParaCreated then
+          DescrEndParagraph;
+        DescrEndSection;
       end else if not ConvertNonSectionBlock(AContext, Node) then
         Warning(AContext, SErrInvalidDescr, [Node.NodeName]);
       Node := Node.NextSibling;
@@ -668,19 +668,19 @@ function TFPDocWriter.ConvertNonSectionBlock(AContext: TPasElement;
       if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'td') then
       begin
         DescrBeginTableCell;
-	Child := Node.FirstChild;
-	if not ConvertExtShort(AContext, Child) then
-	  while Assigned(Child) do
-	  begin
-	    if not ConvertSimpleBlock(AContext, Child) then
-	      Warning(AContext, SErrInvalidTableContent);
-	    Child := Child.NextSibling;
-	  end;
-	DescrEndTableCell;
-	IsEmpty := False;
+        Child := Node.FirstChild;
+        if not ConvertExtShort(AContext, Child) then
+          while Assigned(Child) do
+          begin
+            if not ConvertSimpleBlock(AContext, Child) then
+              Warning(AContext, SErrInvalidTableContent);
+            Child := Child.NextSibling;
+          end;
+        DescrEndTableCell;
+        IsEmpty := False;
       end else
         if IsContentNodeType(Node) then
-	  Warning(AContext, SErrInvalidTableContent);
+          Warning(AContext, SErrInvalidTableContent);
       Node := Node.NextSibling;
     end;
     if IsEmpty then
@@ -696,7 +696,7 @@ function TFPDocWriter.ConvertNonSectionBlock(AContext: TPasElement;
       while Assigned(Node) do
       begin
         if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'td') then
-	  Inc(Result);
+          Inc(Result);
         Node := Node.NextSibling;
       end;
     end;
@@ -724,12 +724,12 @@ function TFPDocWriter.ConvertNonSectionBlock(AContext: TPasElement;
     begin
       if Subnode.NodeType = ELEMENT_NODE then
         if (Subnode.NodeName = 'caption') or (Subnode.NodeName = 'th') or
-	  (Subnode.NodeName = 'tr') then
-	begin
-	  ThisRowColCount := GetColCount(Subnode);
-	  if ThisRowColCount > ColCount then
-	    ColCount := ThisRowColCount;
-	end;
+          (Subnode.NodeName = 'tr') then
+        begin
+          ThisRowColCount := GetColCount(Subnode);
+          if ThisRowColCount > ColCount then
+            ColCount := ThisRowColCount;
+        end;
       Subnode := Subnode.NextSibling;
     end;
 
@@ -742,26 +742,26 @@ function TFPDocWriter.ConvertNonSectionBlock(AContext: TPasElement;
     begin
       if Node.NodeType = ELEMENT_NODE then
         if CaptionPossible and (Node.NodeName = 'caption') then
-	begin
-	  DescrBeginTableCaption;
-	  if not ConvertExtShort(AContext, Node.FirstChild) then
-	    Warning(AContext, SErrInvalidTableContent);
-	  DescrEndTableCaption;
-	  CaptionPossible := False;
-	end else if HeadRowPossible and (Node.NodeName = 'th') then
-	begin
-	  DescrBeginTableHeadRow;
-	  ConvertCells(Node);
-	  DescrEndTableHeadRow;
-	  CaptionPossible := False;
-	  HeadRowPossible := False;
-	end else if Node.NodeName = 'tr' then
-	begin
-	  DescrBeginTableRow;
-	  ConvertCells(Node);
-	  DescrEndTableRow;
-	end else
-	  Warning(AContext, SErrInvalidTableContent)
+        begin
+          DescrBeginTableCaption;
+          if not ConvertExtShort(AContext, Node.FirstChild) then
+            Warning(AContext, SErrInvalidTableContent);
+          DescrEndTableCaption;
+          CaptionPossible := False;
+        end else if HeadRowPossible and (Node.NodeName = 'th') then
+        begin
+          DescrBeginTableHeadRow;
+          ConvertCells(Node);
+          DescrEndTableHeadRow;
+          CaptionPossible := False;
+          HeadRowPossible := False;
+        end else if Node.NodeName = 'tr' then
+        begin
+          DescrBeginTableRow;
+          ConvertCells(Node);
+          DescrEndTableRow;
+        end else
+          Warning(AContext, SErrInvalidTableContent)
       else if IsContentNodeType(Node) then
         Warning(AContext, SErrInvalidTableContent);
       Node := Node.NextSibling;
@@ -782,12 +782,12 @@ begin
     if not ConvertExtShort(AContext, Node) then
       while Assigned(Node) do
       begin
-	if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'table') then
-	  ConvertTable
-	else
-	  if not ConvertSimpleBlock(AContext, Node) then
-	    Warning(AContext, SErrInvalidRemarkContent, [Node.NodeName]);
-	Node := Node.NextSibling;
+        if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'table') then
+          ConvertTable
+        else
+          if not ConvertSimpleBlock(AContext, Node) then
+            Warning(AContext, SErrInvalidRemarkContent, [Node.NodeName]);
+        Node := Node.NextSibling;
       end;
     DescrEndRemark;
     Result := True;
@@ -812,15 +812,15 @@ function TFPDocWriter.ConvertSimpleBlock(AContext: TPasElement;
     begin
       if (Node.NodeType = TEXT_NODE) or (Node.NodeType = ENTITY_REFERENCE_NODE)
         then
-	Warning(AContext, SErrInvalidListContent)
+        Warning(AContext, SErrInvalidListContent)
       else if Node.NodeType = ELEMENT_NODE then
         if Node.NodeName = 'li' then
-	begin
-	  DescrBeginListItem;
-	  ConvertExtShortOrNonSectionBlocks(AContext, Node.FirstChild);
-	  DescrEndListItem;
-	  Empty := False;
-	end else
+        begin
+          DescrBeginListItem;
+          ConvertExtShortOrNonSectionBlocks(AContext, Node.FirstChild);
+          DescrEndListItem;
+          Empty := False;
+        end else
           Warning(AContext, SErrInvalidElementInList);
       Node := Node.NextSibling;
     end;
@@ -839,23 +839,23 @@ function TFPDocWriter.ConvertSimpleBlock(AContext: TPasElement;
     begin
       if (Node.NodeType = TEXT_NODE) or (Node.NodeType = ENTITY_REFERENCE_NODE)
         then
-	Warning(AContext, SErrInvalidListContent)
+        Warning(AContext, SErrInvalidListContent)
       else if Node.NodeType = ELEMENT_NODE then
         if ExpectDTNext and (Node.NodeName = 'dt') then
-	begin
-	  DescrBeginDefinitionTerm;
-	  if not ConvertShort(AContext, TDOMElement(Node)) then
-	    Warning(AContext, SErrInvalidDefinitionTermContent);
-	  DescrEndDefinitionTerm;
-	  Empty := False;
-	  ExpectDTNext := False;
-	end else if not ExpectDTNext and (Node.NodeName = 'dd') then
-	begin
-	  DescrBeginDefinitionEntry;
-	  ConvertExtShortOrNonSectionBlocks(AContext, Node.FirstChild);
-	  DescrEndDefinitionEntry;
-	  ExpectDTNext := True;
-	end else
+        begin
+          DescrBeginDefinitionTerm;
+          if not ConvertShort(AContext, TDOMElement(Node)) then
+            Warning(AContext, SErrInvalidDefinitionTermContent);
+          DescrEndDefinitionTerm;
+          Empty := False;
+          ExpectDTNext := False;
+        end else if not ExpectDTNext and (Node.NodeName = 'dd') then
+        begin
+          DescrBeginDefinitionEntry;
+          ConvertExtShortOrNonSectionBlocks(AContext, Node.FirstChild);
+          DescrEndDefinitionEntry;
+          ExpectDTNext := True;
+        end else
           Warning(AContext, SErrInvalidElementInList);
       Node := Node.NextSibling;
     end;
@@ -877,16 +877,16 @@ function TFPDocWriter.ConvertSimpleBlock(AContext: TPasElement;
       if Node.NodeType = TEXT_NODE then
       begin
         s := s + Node.NodeValue;
-	j := 1;
-	for i := 1 to Length(s) do
-	  // In XML, linefeeds are normalized to #10 by the parser!
-	  if s[i] = #10 then
-	  begin
-	    DescrWriteCodeLine(Copy(s, j, i - j));
-	    j := i + 1;
-	  end;
-	if j > 1 then
-	  s := Copy(s, j, Length(s));
+        j := 1;
+        for i := 1 to Length(s) do
+          // In XML, linefeeds are normalized to #10 by the parser!
+          if s[i] = #10 then
+          begin
+            DescrWriteCodeLine(Copy(s, j, i - j));
+            j := i + 1;
+          end;
+        if j > 1 then
+          s := Copy(s, j, Length(s));
       end;
       Node := Node.NextSibling;
     end;
@@ -953,7 +953,7 @@ begin
     Result := False;
 end;
 
-Constructor TTopicElement.Create(const AName: String; AParent: TPasElement); 
+Constructor TTopicElement.Create(const AName: String; AParent: TPasElement);
 
 begin
   Inherited Create(AName,AParent);
@@ -1014,7 +1014,7 @@ Procedure TFPDocWriter.GetMethodList(ClassDecl: TPasClassType; List : TStringLis
 Var
   I : Integer;
   M : TPasElement;
-  
+
 begin
   List.Clear;
   List.Sorted:=False;
@@ -1036,7 +1036,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2005-01-14 17:55:07  michael
+  Revision 1.6  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.5  2005/01/14 17:55:07  michael
   + Added unix man page output; Implemented usage
 
   Revision 1.4  2005/01/12 21:11:41  michael

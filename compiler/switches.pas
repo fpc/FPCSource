@@ -234,17 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2005-01-04 18:39:06  olle
+  Revision 1.18  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.17  2005/01/04 18:39:06  olle
     * made macpas switches in sync with turbo switches
-
-  Revision 1.16  2004/08/27 21:59:26  peter
-  browser disabled
-  uf_local_symtable ppu flag when a localsymtable is stored
-
-  Revision 1.15  2004/07/14 23:19:22  olle
-    + added external facilities for macpas
-
-  Revision 1.14  2004/06/20 08:55:30  florian
-    * logs truncated
 
 }

@@ -66,17 +66,7 @@
 
 {
   $Log$
-  Revision 1.6  2004-05-01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.5  2004/02/18 22:00:59  peter
-    * use SizeInt instead of longint
-
-  Revision 1.4  2003/12/29 19:24:12  florian
-    + introduced PtrInt and PtrUInt
-    * made strscan 64 bit safe
-
-  Revision 1.3  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:29  peter
+    * truncate log
 
 }

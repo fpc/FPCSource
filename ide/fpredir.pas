@@ -990,52 +990,7 @@ finalization
 End.
 {
   $Log$
-  Revision 1.10  2004-11-14 21:45:28  florian
-    * fixed non working mouse after tools call
-    * better handling of source/target info
-    * more info in about dialog
-    * better info in compiler status dialiog
-
-  Revision 1.9  2004/11/06 19:56:14  armin
-  * support target netware
-
-  Revision 1.8  2004/09/21 14:55:45  armin
-  * added uses windows for win32 (deleted that with my last change)
-
-  Revision 1.7  2004/09/19 14:51:03  armin
-  * added support for target netwlibc
-
-  Revision 1.6  2003/10/14 08:29:29  peter
-    * go32v2 fixed
-
-  Revision 1.5  2003/09/29 14:36:59  peter
-    * win32 fixed
-
-  Revision 1.4  2003/09/27 14:03:45  peter
-    * fixed for unix
-
-  Revision 1.3  2003/09/25 16:49:08  peter
-    * adapted for 1.1 unix
-
-  Revision 1.13  2003/06/05 20:03:22  peter
-    * Shell return adapted for 1.1
-
-  Revision 1.12  2003/01/12 19:46:50  hajny
-    + newer functions made available under OS/2
-
-  Revision 1.11  2002/12/05 16:03:04  pierre
-   + UseComSpec boolean added to be able to not use ComSpec
-
-  Revision 1.10  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/06/03 19:07:55  pierre
-   * fix compilation failure
-
-  Revision 1.8  2002/06/01 19:08:52  marco
-   * Renamefest
-
-  Revision 1.7  2002/02/24 20:07:23  hajny
-    * dummy implementation for OS/2
+  Revision 1.11  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

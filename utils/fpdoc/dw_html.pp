@@ -33,7 +33,7 @@ const
   VarsSubindex = 6;
   // Maybe needed later for topic overview ??
   TopicsSubIndex = 7;
-   
+
   // Subpage indices for classes
   PropertiesByInheritanceSubindex = 1;
   PropertiesByNameSubindex = 2;
@@ -91,9 +91,9 @@ type
   protected
     FAllocator: TFileAllocator;
     Procedure CreateAllocator; virtual;
-    CurDirectory: String;	// relative to curdir of process
-    BaseDirectory: String;	// relative path to package base directory
-    PageInfos: TObjectList;	// list of TPageInfo objects
+    CurDirectory: String;       // relative to curdir of process
+    BaseDirectory: String;      // relative path to package base directory
+    PageInfos: TObjectList;     // list of TPageInfo objects
 
     Doc: THTMLDocument;
     BodyElement, TitleElement: TDOMElement;
@@ -337,8 +337,8 @@ begin
       Result:=''
     else if (AElement.Parent.ClassType=TPasModule) then
       Result:='../';
-    end  
-  else 
+    end
+  else
     Result := '../';
 end;
 
@@ -371,7 +371,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 
   begin
     DocNode:=Engine.FindDocNode(AElement);
-    If not Assigned(DocNode) then 
+    If not Assigned(DocNode) then
       exit;
     TopicNode:=DocNode.FirstChild;
     PreviousTopic:=Nil;
@@ -385,7 +385,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
         TopicElement.Previous:=PreviousTopic;
         If Assigned(PreviousTopic) then
           PreviousTopic.Next:=TopicElement;
-        PreviousTopic:=TopicElement;  
+        PreviousTopic:=TopicElement;
         if AElement is TTopicElement then
           TTopicElement(AElement).SubTopics.Add(TopicElement);
         PageInfo := TPageInfo.Create;
@@ -432,9 +432,9 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       if InterfaceSection.ResStrings.Count > 0 then
       begin
         AddPage(AModule, ResstrSubindex);
-	s := Allocator.GetFilename(AModule, ResstrSubindex);
-	for i := 0 to InterfaceSection.ResStrings.Count - 1 do
-	  with TPasResString(InterfaceSection.ResStrings[i]) do
+        s := Allocator.GetFilename(AModule, ResstrSubindex);
+        for i := 0 to InterfaceSection.ResStrings.Count - 1 do
+          with TPasResString(InterfaceSection.ResStrings[i]) do
             Engine.AddLink(PathName, s + '#' + LowerCase(Name));
       end;
       AddPages(AModule, ConstsSubindex, InterfaceSection.Consts);
@@ -443,54 +443,54 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
       begin
         AddPage(AModule, ClassesSubindex);
         for i := 0 to InterfaceSection.Classes.Count - 1 do
-	begin
-	  ClassEl := TPasClassType(InterfaceSection.Classes[i]);
+        begin
+          ClassEl := TPasClassType(InterfaceSection.Classes[i]);
           AddPage(ClassEl, 0);
-	  // !!!: Only add when there are items
-	  AddPage(ClassEl, PropertiesByInheritanceSubindex);
-	  AddPage(ClassEl, PropertiesByNameSubindex);
-	  AddPage(ClassEl, MethodsByInheritanceSubindex);
-	  AddPage(ClassEl, MethodsByNameSubindex);
-	  AddPage(ClassEl, EventsByInheritanceSubindex);
-	  AddPage(ClassEl, EventsByNameSubindex);
+          // !!!: Only add when there are items
+          AddPage(ClassEl, PropertiesByInheritanceSubindex);
+          AddPage(ClassEl, PropertiesByNameSubindex);
+          AddPage(ClassEl, MethodsByInheritanceSubindex);
+          AddPage(ClassEl, MethodsByNameSubindex);
+          AddPage(ClassEl, EventsByInheritanceSubindex);
+          AddPage(ClassEl, EventsByNameSubindex);
 
           for j := 0 to ClassEl.Members.Count - 1 do
           begin
             FPEl := TPasElement(ClassEl.Members[j]);
             if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-	      ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
-	      continue;
+              ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
+              continue;
 
             DocNode := Engine.FindDocNode(FPEl);
             if not Assigned(DocNode) then
             begin
               DidAutolink := False;
-	      if Assigned(ClassEl.AncestorType) and
-	        (ClassEl.AncestorType.ClassType = TPasClassType) then
-	      begin
-	        for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
-	        begin
-	          AncestorMemberEl :=
-	            TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
-	          if AncestorMemberEl.Name = FPEl.Name then
-	          begin
-	            DocNode := Engine.FindDocNode(AncestorMemberEl);
-	            if Assigned(DocNode) then
-	            begin
-	              DidAutolink := True;
-		      Engine.AddLink(FPEl.PathName,
-	    		Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
-	              break;
-	            end;
-	          end;
-	        end;
-	      end;
-	      if not DidAutolink then
-	        AddPage(FPEl, 0);
-	    end else
-    	      AddPage(FPEl, 0);
-    	  end;
-	end;
+              if Assigned(ClassEl.AncestorType) and
+                (ClassEl.AncestorType.ClassType = TPasClassType) then
+              begin
+                for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
+                begin
+                  AncestorMemberEl :=
+                    TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
+                  if AncestorMemberEl.Name = FPEl.Name then
+                  begin
+                    DocNode := Engine.FindDocNode(AncestorMemberEl);
+                    if Assigned(DocNode) then
+                    begin
+                      DidAutolink := True;
+                      Engine.AddLink(FPEl.PathName,
+                        Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
+                      break;
+                    end;
+                  end;
+                end;
+              end;
+              if not DidAutolink then
+                AddPage(FPEl, 0);
+            end else
+              AddPage(FPEl, 0);
+          end;
+        end;
       end;
       AddPages(AModule, ProcsSubindex, InterfaceSection.Functions);
       AddPages(AModule, VarsSubindex, InterfaceSection.Variables);
@@ -604,7 +604,7 @@ begin
       PageDoc := CreateHTMLPage(Element, SubpageIndex);
       try
         Filename := Engine.Output + Allocator.GetFilename(Element, SubpageIndex);
-	CreatePath(Filename);
+        CreatePath(Filename);
         WriteHTMLFile(PageDoc, Filename);
       finally
         PageDoc.Free;
@@ -690,14 +690,14 @@ begin
       begin
         if Assigned(Module) then
           Result := Engine.FindAbsoluteLink(Module.PathName + '.' + Name);
-	// WriteLn('Searching for ', Module.PathName + '.' + Name, ' => ', Result);
+        // WriteLn('Searching for ', Module.PathName + '.' + Name, ' => ', Result);
         if Length(Result) = 0 then
           for i := Length(Name) downto 1 do
             if Name[i] = '.' then
-	    begin
-	      Result := ResolveLinkID(Copy(Name, 1, i - 1));
+            begin
+              Result := ResolveLinkID(Copy(Name, 1, i - 1));
               exit;
-	    end;
+            end;
       end;
       ThisPackage := ThisPackage.NextSibling;
     end;
@@ -888,7 +888,7 @@ begin
   s := ResolveLinkID(a);
   if Length(s) = 0 then
   begin
-    
+
     WriteLn(Format(SErrUnknownLinkID, [a]));
     PushOutputNode(CreateEl(CurOutputNode, 'b'));
   end else
@@ -1154,71 +1154,71 @@ begin
       if IsInSpecial then
         CurParent := Parent;
       case Ord(p[1]) of
-	shDefault:
-	  IsInSpecial := False;
-	shInvalid:
-	  begin
-	    El := CreateEl(CurParent, 'font');
-	    El['color'] := 'red';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shSymbol:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'sym';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shKeyword:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'kw';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shComment:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'cmt';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shDirective:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'dir';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shNumbers:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'num';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shCharacters:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'chr';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shStrings:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'str';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
-	shAssembler:
-	  begin
-	    El := CreateEl(CurParent, 'span');
-	    El['class'] := 'asm';
-	    CurParent := El;
-	    IsInSpecial := True;
-	  end;
+        shDefault:
+          IsInSpecial := False;
+        shInvalid:
+          begin
+            El := CreateEl(CurParent, 'font');
+            El['color'] := 'red';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shSymbol:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'sym';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shKeyword:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'kw';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shComment:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'cmt';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shDirective:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'dir';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shNumbers:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'num';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shCharacters:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'chr';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shStrings:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'str';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
+        shAssembler:
+          begin
+            El := CreateEl(CurParent, 'span');
+            El['class'] := 'asm';
+            CurParent := El;
+            IsInSpecial := True;
+          end;
       end;
       Last := p + 2;
     end;
@@ -1305,35 +1305,35 @@ begin
       s := ResolveLinkID(Element.Name);
       if Length(s) = 0 then
       begin
-	{ Try all packages }
-	ThisPackage := Engine.RootLinkNode.FirstChild;
-	while Assigned(ThisPackage) do
-	begin
-	  s := ResolveLinkID(ThisPackage.Name + '.' + Element.Name);
-	  if Length(s) > 0 then
-	    break;
-	  ThisPackage := ThisPackage.NextSibling;
-	end;
+        { Try all packages }
+        ThisPackage := Engine.RootLinkNode.FirstChild;
+        while Assigned(ThisPackage) do
+        begin
+          s := ResolveLinkID(ThisPackage.Name + '.' + Element.Name);
+          if Length(s) > 0 then
+            break;
+          ThisPackage := ThisPackage.NextSibling;
+        end;
         if Length(s) = 0 then
         begin
           { Okay, then we have to try all imported units of the current module }
           UnitList := Module.InterfaceSection.UsesList;
           for i := UnitList.Count - 1 downto 0 do
           begin
-	    { Try all packages }
-	    ThisPackage := Engine.RootLinkNode.FirstChild;
-	    while Assigned(ThisPackage) do
-	    begin
-	      s := ResolveLinkID(ThisPackage.Name + '.' +
-	        TPasType(UnitList[i]).Name + '.' + Element.Name);
-	      if Length(s) > 0 then
-	        break;
-	      ThisPackage := ThisPackage.NextSibling;
-	    end;
-	    if Length(s) > 0 then
-	      break;
-	  end;
-	end;
+            { Try all packages }
+            ThisPackage := Engine.RootLinkNode.FirstChild;
+            while Assigned(ThisPackage) do
+            begin
+              s := ResolveLinkID(ThisPackage.Name + '.' +
+                TPasType(UnitList[i]).Name + '.' + Element.Name);
+              if Length(s) > 0 then
+                break;
+              ThisPackage := ThisPackage.NextSibling;
+            end;
+            if Length(s) > 0 then
+              break;
+          end;
+        end;
       end;
     end else
       s := ResolveLinkID(Element.PathName);
@@ -1411,20 +1411,20 @@ begin
       CodeEl := CreateIndentedCodeEl(Indent + 2);
 
       case Arg.Access of
-	argConst: AppendKw(CodeEl, 'const ');
-	argVar: AppendKw(CodeEl, 'var ');
-	argOut: AppendKw(CodeEl, 'out ');
+        argConst: AppendKw(CodeEl, 'const ');
+        argVar: AppendKw(CodeEl, 'var ');
+        argOut: AppendKw(CodeEl, 'out ');
       end;
       AppendText(CodeEl, Arg.Name);
       if Assigned(Arg.ArgType) then
       begin
-	AppendSym(CodeEl, ': ');
-	CodeEl := AppendType(CodeEl, TableEl, Arg.ArgType, False);
+        AppendSym(CodeEl, ': ');
+        CodeEl := AppendType(CodeEl, TableEl, Arg.ArgType, False);
       end;
       if Length(Arg.Value) > 0 then
         AppendPasSHFragment(CodeEl, ' = ' + Arg.Value, 0);
       if i < Element.Args.Count - 1 then
-	AppendSym(CodeEl, ';');
+        AppendSym(CodeEl, ';');
     end;
 
     if Element.InheritsFrom(TPasFunctionType) or Element.IsOfObject then
@@ -1432,18 +1432,18 @@ begin
       CodeEl := CreateIndentedCodeEl(Indent);
       if Element.InheritsFrom(TPasFunctionType) then
       begin
-	AppendSym(CodeEl, '):');
-	AppendHyperlink(CodeEl, TPasFunctionType(Element).ResultEl.ResultType);
+        AppendSym(CodeEl, '):');
+        AppendHyperlink(CodeEl, TPasFunctionType(Element).ResultEl.ResultType);
       end else
-	AppendSym(CodeEl, ')');
+        AppendSym(CodeEl, ')');
       if Element.IsOfObject then
       begin
-	AppendText(CodeEl, ' ');	// Don't remove
-	AppendKw(CodeEl, 'of object');
+        AppendText(CodeEl, ' ');        // Don't remove
+        AppendKw(CodeEl, 'of object');
       end;
     end else
       if Indent > 0 then
-	AppendSym(CodeEl, ')')
+        AppendSym(CodeEl, ')')
       else
       begin
         CodeEl := CreateCode(CreatePara(CreateTD(CreateTR(TableEl))));
@@ -1567,9 +1567,9 @@ begin
     begin
       AppendText(CreateH2(Parent), SDocFunctionResult);
       if HasFullDescr then
-	AppendDescr(ResultEl, Parent, DocNode.Descr, True)
+        AppendDescr(ResultEl, Parent, DocNode.Descr, True)
       else
-	AppendDescr(ResultEl, CreatePara(Parent), DocNode.ShortDescr, False);
+        AppendDescr(ResultEl, CreatePara(Parent), DocNode.ShortDescr, False);
     end;
   end;
 end;
@@ -1640,7 +1640,7 @@ var
     else
       AppendText(
         CreateLink(ParaEl, ResolveLinkWithinPackage(Module, ALinkSubpageIndex)),
-	AName);
+        AName);
     AppendText(ParaEl, ']');
   end;
 
@@ -1705,7 +1705,7 @@ var
   l,s: String;
   f: Text;
   IsFirstSeeAlso : Boolean;
-  
+
 begin
   if Not (Assigned(DocNode) and Assigned(DocNode.SeeAlso)) then
     Exit;
@@ -1730,7 +1730,7 @@ begin
          begin
          WriteLn(Format(SErrUnknownLinkID, [l]));
          NewEl := CreateEl(ParaEl,'b')
-         end 
+         end
        else
          NewEl := CreateLink(ParaEl,s);
        AppendText(NewEl,El['id']);
@@ -1746,7 +1746,7 @@ begin
            ConvertShort(AElement, DescrEl);
          finally
            PopOutputNode;
-         end;  
+         end;
          end;
        end; // Link node
      Node := Node.NextSibling;
@@ -1760,7 +1760,7 @@ var
 //  TableEl, El, TREl, TDEl, ParaEl, NewEl, DescrEl: TDOMElement;
   s: String;
   f: Text;
-  
+
 begin
   if not (Assigned(DocNode) and Assigned(DocNode.FirstExample)) then
     Exit;
@@ -1775,13 +1775,13 @@ begin
         Reset(f);
         try
           PushOutputNode(BodyElement);
-	  DescrBeginCode(False, TDOMElement(Node)['highlighter']);
+          DescrBeginCode(False, TDOMElement(Node)['highlighter']);
           while not EOF(f) do
             begin
             ReadLn(f, s);
-	    DescrWriteCodeLine(s);
+            DescrWriteCodeLine(s);
             end;
-	  DescrEndCode;
+          DescrEndCode;
           PopOutputNode;
         finally
           Close(f);
@@ -1830,7 +1830,7 @@ var
   TableEl, TREl: TDOMElement;
   I : Integer;
   S : String;
-  
+
 begin
   AppendTopicMenuBar(AElement);
   DocNode:=AElement.TopicNode;
@@ -1861,7 +1861,7 @@ begin
 
   if AElement.ClassType = TPasPackage then
     CreatePackagePageBody
-  else 
+  else
     begin
     Element := AElement;
     while (Element<>Nil) and (Element.ClassType<>TPasModule) do
@@ -1894,7 +1894,7 @@ var
   i: Integer;
   ThisModule: TPasModule;
   L : TStringList;
-  
+
 begin
   AppendMenuBar(0);
   AppendTitle(Format(SDocPackageTitle, [Copy(Package.Name, 2, 256)]));
@@ -1906,7 +1906,7 @@ begin
   Try
     L.Sorted:=True;
     // Sort modules.
-    For I:=0 to Package.Modules.Count-1 do 
+    For I:=0 to Package.Modules.Count-1 do
       L.AddObject(TPasModule(Package.Modules[i]).Name,TPasModule(Package.Modules[i]));
     // Now create table.
     for i:=0 to L.Count - 1 do
@@ -1936,7 +1936,7 @@ var
   TableEl, TREl: TDOMElement;
   First : Boolean;
   ThisTopic: TPasElement;
-        
+
 begin
   DocNode:=Node.FirstChild;
   First:=True;
@@ -1957,7 +1957,7 @@ begin
       AppendShortDescrCell(TREl, ThisTopic);
       end;
     DocNode:=DocNode.NextSibling;
-    end;    
+    end;
 end;
 
 procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
@@ -1993,7 +1993,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
           AppendSym(CodeEl, ',')
         else
           AppendSym(CodeEl, ';');
-        AppendText(CodeEl, '  ');		// Space for descriptions
+        AppendText(CodeEl, '  ');               // Space for descriptions
         AppendShortDescrCell(TREl, UnitRef);
       end;
     end;
@@ -2015,7 +2015,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
     SortedList: TList;
     DocNode: TDocNode;
     S : String;
-    
+
   begin
     AppendMenuBar(ASubpageIndex);
     S:=ATitle;
@@ -2030,7 +2030,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
         begin
           j := 0;
           while (j < SortedList.Count) and (CompareText(
-	    TPasElement(SortedList[j]).PathName, Decl.PathName) < 0) do
+            TPasElement(SortedList[j]).PathName, Decl.PathName) < 0) do
             Inc(j);
           SortedList.Insert(j, Decl);
         end;
@@ -2229,12 +2229,12 @@ begin
         TREl := CreateTR(TableEl);
         CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
         AppendShortDescrCell(TREl, EnumValue);
-	AppendNbSp(CodeEl, 2);
-	s := EnumValue.Name;
+        AppendNbSp(CodeEl, 2);
+        s := EnumValue.Name;
         if EnumValue.IsValueUsed then
-	  s := s + ' = ' + IntToStr(EnumValue.Value);
+          s := s + ' = ' + IntToStr(EnumValue.Value);
         if i < EnumType.Values.Count - 1 then
-	  s := s + ',';
+          s := s + ',';
         AppendPasSHFragment(CodeEl, s, 0);
       end;
       AppendSym(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), ');');
@@ -2355,21 +2355,21 @@ var
         if CurVisibility <> Member.Visibility then
         begin
           CurVisibility := Member.Visibility;
-  	  if ((CurVisibility = visPrivate) and Engine.HidePrivate) or
-	    ((CurVisibility = visProtected) and Engine.HideProtected) then
-	    continue;
-	  case CurVisibility of
-	    visPrivate: s := 'private';
-	    visProtected: s := 'protected';
-	    visPublic: s := 'public';
-	    visPublished: s := 'published';
-	    visAutomated: s := 'automated';
-	  end;
-	  AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), s);
+          if ((CurVisibility = visPrivate) and Engine.HidePrivate) or
+            ((CurVisibility = visProtected) and Engine.HideProtected) then
+            continue;
+          case CurVisibility of
+            visPrivate: s := 'private';
+            visProtected: s := 'protected';
+            visPublic: s := 'public';
+            visPublished: s := 'published';
+            visAutomated: s := 'automated';
+          end;
+          AppendKw(CreateCode(CreatePara(CreateTD(CreateTR(TableEl)))), s);
         end else
-	  if ((CurVisibility = visPrivate) and Engine.HidePrivate) or
-	    ((CurVisibility = visProtected) and Engine.HideProtected) then
-	    continue;
+          if ((CurVisibility = visPrivate) and Engine.HidePrivate) or
+            ((CurVisibility = visProtected) and Engine.HideProtected) then
+            continue;
 
         TREl := CreateTR(TableEl);
         CodeEl := CreateCode(CreatePara(CreateTD_vtop(TREl)));
@@ -2378,47 +2378,47 @@ var
 
         if Member.InheritsFrom(TPasProcedureBase) then
         begin
-	  AppendKw(CodeEl, TPasProcedureBase(Member).TypeName + ' ');
-	  AppendHyperlink(CodeEl, Member);
-	  if (Member.ClassType = TPasOverloadedProc) or
-	    (TPasProcedure(Member).ProcType.Args.Count > 0) then
-	    AppendSym(CodeEl, '();')
-	  else
-	    AppendSym(CodeEl, ';');
-	  if Member.ClassType <> TPasOverloadedProc then
-	    AppendProcExt(CodeEl, TPasProcedure(Member));
+          AppendKw(CodeEl, TPasProcedureBase(Member).TypeName + ' ');
+          AppendHyperlink(CodeEl, Member);
+          if (Member.ClassType = TPasOverloadedProc) or
+            (TPasProcedure(Member).ProcType.Args.Count > 0) then
+            AppendSym(CodeEl, '();')
+          else
+            AppendSym(CodeEl, ';');
+          if Member.ClassType <> TPasOverloadedProc then
+            AppendProcExt(CodeEl, TPasProcedure(Member));
         end else
         if Member.ClassType = TPasVariable then
         begin
-	  AppendHyperlink(CodeEl, Member);
-	  AppendSym(CodeEl, ': ');
-	  AppendHyperlink(CodeEl, TPasVariable(Member).VarType);
-	  AppendSym(CodeEl, ';');
+          AppendHyperlink(CodeEl, Member);
+          AppendSym(CodeEl, ': ');
+          AppendHyperlink(CodeEl, TPasVariable(Member).VarType);
+          AppendSym(CodeEl, ';');
         end else
         if Member.ClassType = TPasProperty then
         begin
           AppendKw(CodeEl, 'property ');
-	  AppendHyperlink(CodeEl, Member);
-	  if Assigned(TPasProperty(Member).VarType) then
-	  begin
-	    AppendSym(CodeEl, ': ');
-	    AppendHyperlink(CodeEl, TPasProperty(Member).VarType);
-	  end;
-	  AppendSym(CodeEl, ';');
-	  if TPasProperty(Member).IsDefault then
-	  begin
-	    AppendKw(CodeEl, ' default');
-	    AppendSym(CodeEl, ';');
-	  end;
-	  SetLength(s, 0);
-	  if Length(TPasProperty(Member).ReadAccessorName) > 0 then
-	    s := s + 'r';
-	  if Length(TPasProperty(Member).WriteAccessorName) > 0 then
-	    s := s + 'w';
-	  if Length(TPasProperty(Member).StoredAccessorName) > 0 then
-	    s := s + 's';
-	  if Length(s) > 0 then
-	    AppendText(CodeEl, '  [' + s + ']');
+          AppendHyperlink(CodeEl, Member);
+          if Assigned(TPasProperty(Member).VarType) then
+          begin
+            AppendSym(CodeEl, ': ');
+            AppendHyperlink(CodeEl, TPasProperty(Member).VarType);
+          end;
+          AppendSym(CodeEl, ';');
+          if TPasProperty(Member).IsDefault then
+          begin
+            AppendKw(CodeEl, ' default');
+            AppendSym(CodeEl, ';');
+          end;
+          SetLength(s, 0);
+          if Length(TPasProperty(Member).ReadAccessorName) > 0 then
+            s := s + 'r';
+          if Length(TPasProperty(Member).WriteAccessorName) > 0 then
+            s := s + 'w';
+          if Length(TPasProperty(Member).StoredAccessorName) > 0 then
+            s := s + 's';
+          if Length(s) > 0 then
+            AppendText(CodeEl, '  [' + s + ']');
         end else
           AppendText(CreateWarning(CodeEl), '<' + Member.ClassName + '>');
       end;
@@ -2459,16 +2459,16 @@ var
         else
         begin
           TDEl := CreateTD(CreateTR(TableEl));
-	  TDEl['align'] := 'center';
+          TDEl['align'] := 'center';
           AppendText(CreateCode(CreatePara(TDEl)), ThisClass.AncestorType.Name);
-	  if CompareText(ThisClass.AncestorType.Name, 'TObject') = 0 then
-	    HaveSeenTObject := True
-	  else
-	  begin
+          if CompareText(ThisClass.AncestorType.Name, 'TObject') = 0 then
+            HaveSeenTObject := True
+          else
+          begin
             TDEl := CreateTD(CreateTR(TableEl));
-	    TDEl['align'] := 'center';
-	    AppendText(TDEl, '?');
-	  end;
+            TDEl['align'] := 'center';
+            AppendText(TDEl, '?');
+          end;
           break;
         end
       end else
@@ -2502,43 +2502,43 @@ var
       CreateTD(TREl);
       LinkEl := AppendHyperlink(CreateEl(CreateCode(CreatePara(TDEl)), 'b'), ThisClass);
       if Assigned(LinkEl) then
-	LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
-	  '''; return false;';
+        LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
+          '''; return false;';
       for i := 0 to ThisClass.Members.Count - 1 do
       begin
         Member := TPasElement(ThisClass.Members[i]);
         if ((Member.Visibility = visPrivate) and Engine.HidePrivate) or
-	  ((Member.Visibility = visProtected) and Engine.HideProtected) or
-	  not AFilter(Member) then
-	  continue;
-	TREl := CreateTR(TableEl);
-	ParaEl := CreatePara(CreateTD(TREl));
-	case Member.Visibility of
-	  visPrivate:
-	    AppendText(ParaEl, 'pv');
-	  visProtected:
-	    AppendText(ParaEl, 'pt');
-	  visPublished:
-	    AppendText(ParaEl, 'pl');
-	end;
-	AppendNbSp(ParaEl, 1);
+          ((Member.Visibility = visProtected) and Engine.HideProtected) or
+          not AFilter(Member) then
+          continue;
+        TREl := CreateTR(TableEl);
+        ParaEl := CreatePara(CreateTD(TREl));
+        case Member.Visibility of
+          visPrivate:
+            AppendText(ParaEl, 'pv');
+          visProtected:
+            AppendText(ParaEl, 'pt');
+          visPublished:
+            AppendText(ParaEl, 'pl');
+        end;
+        AppendNbSp(ParaEl, 1);
 
-	ParaEl := CreateTD(TREl);
-	if (Member.ClassType = TPasProperty) and
-	  (Length(TPasProperty(Member).WriteAccessorName) = 0) then
-	begin
-	  AppendText(ParaEl, 'ro');
-	  AppendNbSp(ParaEl, 1);
-	end;
+        ParaEl := CreateTD(TREl);
+        if (Member.ClassType = TPasProperty) and
+          (Length(TPasProperty(Member).WriteAccessorName) = 0) then
+        begin
+          AppendText(ParaEl, 'ro');
+          AppendNbSp(ParaEl, 1);
+        end;
 
         LinkEl := AppendHyperlink(CreatePara(CreateTD(TREl)), Member);
-	if Assigned(LinkEl) then
-	  LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
-	    '''; return false;';
+        if Assigned(LinkEl) then
+          LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
+            '''; return false;';
       end;
       if (not Assigned(ThisClass.AncestorType)) or
         (not (ThisClass.AncestorType.ClassType = TPasClassType)) then
-	break;
+        break;
       ThisClass := TPasClassType(ThisClass.AncestorType);
       AppendNbSp(CreatePara(CreateTD(CreateTR(TableEl))), 1);
     end;
@@ -2561,19 +2561,19 @@ var
         begin
           Member := TPasElement(ThisClass.Members[i]);
           if (not (((Member.Visibility = visPrivate) and Engine.HidePrivate) or
-	    ((Member.Visibility = visProtected) and Engine.HideProtected))) and
-	    AFilter(Member) then
-	  begin
-    	    j := 0;
-	    while (j < List.Count) and
+            ((Member.Visibility = visProtected) and Engine.HideProtected))) and
+            AFilter(Member) then
+          begin
+            j := 0;
+            while (j < List.Count) and
               (CompareText(TPasElement(List[j]).Name, Member.Name) < 0) do
-	      Inc(j);
-	    List.Insert(j, Member);
-	  end;
-	end;
+              Inc(j);
+            List.Insert(j, Member);
+          end;
+        end;
         if (not Assigned(ThisClass.AncestorType)) or
           (not (ThisClass.AncestorType.ClassType = TPasClassType)) then
-	  break;
+          break;
         ThisClass := TPasClassType(ThisClass.AncestorType);
       end;
 
@@ -2584,36 +2584,36 @@ var
         TREl := CreateTR(TableEl);
         ParaEl := CreatePara(CreateTD(TREl));
         case Member.Visibility of
-	  visPrivate:
-	    AppendText(ParaEl, 'pv');
-	  visProtected:
-	    AppendText(ParaEl, 'pt');
-	  visPublished:
-	    AppendText(ParaEl, 'pl');
+          visPrivate:
+            AppendText(ParaEl, 'pv');
+          visProtected:
+            AppendText(ParaEl, 'pt');
+          visPublished:
+            AppendText(ParaEl, 'pl');
         end;
         AppendNbSp(ParaEl, 1);
 
         ParaEl := CreatePara(CreateTD(TREl));
         if (Member.ClassType = TPasProperty) and
-	  (Length(TPasProperty(Member).WriteAccessorName) = 0) then
-	begin
-	  AppendText(ParaEl, 'ro');
-	  AppendNbSp(ParaEl, 1);
-	end;
+          (Length(TPasProperty(Member).WriteAccessorName) = 0) then
+        begin
+          AppendText(ParaEl, 'ro');
+          AppendNbSp(ParaEl, 1);
+        end;
 
-	TDEl := CreateTD(TREl);
-	TDEl['nowrap'] := 'nowrap';
-	ParaEl := CreatePara(TDEl);
+        TDEl := CreateTD(TREl);
+        TDEl['nowrap'] := 'nowrap';
+        ParaEl := CreatePara(TDEl);
         LinkEl := AppendHyperlink(ParaEl, Member);
-	if Assigned(LinkEl) then
-	  LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
-	    '''; return false;';
-	AppendText(ParaEl, ' (');
+        if Assigned(LinkEl) then
+          LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
+            '''; return false;';
+        AppendText(ParaEl, ' (');
         LinkEl := AppendHyperlink(ParaEl, Member.Parent);
-	if Assigned(LinkEl) then
-	  LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
-	    '''; return false;';
-	AppendText(ParaEl, ')');
+        if Assigned(LinkEl) then
+          LinkEl['onClick'] := 'opener.location.href = ''' + LinkEl['href'] +
+            '''; return false;';
+        AppendText(ParaEl, ')');
       end;
     finally
       List.Free;
@@ -2741,7 +2741,7 @@ begin
   TableEl := CreateTable(BodyElement);
   TREl := CreateTR(TableEl);
   CodeEl := CreateCode(CreatePara(CreateTD(TREl)));
-  AppendText(CodeEl, ' ');	// !!!: Workaround for current HTML writer
+  AppendText(CodeEl, ' ');      // !!!: Workaround for current HTML writer
 
   case AElement.Visibility of
     visPrivate: s := 'private';
@@ -2871,7 +2871,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2005-01-12 21:11:41  michael
+  Revision 1.15  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.14  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.13  2005/01/09 15:59:50  michael

@@ -77,13 +77,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/08/28 06:35:30  pierre
-   * merge kbPhys patch from fixes branch
-
-  Revision 1.1.2.3  2002/07/13 12:22:03  pierre
-   * added kbPhys flag
+  Revision 1.5  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

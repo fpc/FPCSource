@@ -426,25 +426,13 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-01-20 17:47:01  peter
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.8  2005/01/20 17:47:01  peter
     * remove copy_value_on_stack and a_param_copy_ref
 
   Revision 1.7  2005/01/08 04:10:36  karoly
     * made m68k to compile again
-
-  Revision 1.6  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.5  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.4  2004/04/25 21:26:16  florian
-    * some m68k stuff fixed
-
-  Revision 1.3  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
 
 }

@@ -19,4 +19,4 @@ function __fsetlocking(__fp:PFILE; __type:longint):longint;cdecl;external clib n
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -13,8 +13,8 @@ const
   Blocks = 1000;
 {$else}
   Blocks = 10000;
-{$endif}  
-  
+{$endif}
+
 Procedure InitMSTimer;
 begin
 end;

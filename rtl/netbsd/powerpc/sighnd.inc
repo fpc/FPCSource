@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -46,13 +46,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-01-04 16:41:35  marco
-   * powerpc version
-
-  Revision 1.1  2004/01/04 15:30:19  marco
-   * working version
-
-  Revision 1.1  2004/01/03 12:29:36  marco
-   * now separately.
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

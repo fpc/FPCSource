@@ -6,7 +6,7 @@ Uses oldlinux;
 
 Var F : Text;
     S : String;
-    
+
 begin
   Assign (F,'test.txt');
   Rewrite (F);
@@ -16,9 +16,9 @@ begin
   if not SymLink ('test.txt','new.txt') then
     writeln ('Error when symlinking !');
   S:=ReadLink('new.txt');
-  If S='' then 
+  If S='' then
     Writeln ('Error reading link !')
-  Else   
+  Else
     Writeln ('Link points to : ',S);
  { Now remove links }
  If not Unlink ('new.txt') then

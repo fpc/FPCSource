@@ -1530,35 +1530,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2004-12-28 12:46:11  florian
-    * uses now CFMakeRaw
-
-  Revision 1.19  2004/07/09 19:03:35  peter
-    * isatty return cint again
-
-  Revision 1.17  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.16  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.15  2003/09/16 16:13:56  marco
-   * fdset functions renamed to fp<posix name>
-
-  Revision 1.14  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.13  2003/03/27 12:52:10  armin
-  * forgot to initialize RootTree to nil in FreeTree
-
-  Revision 1.12  2003/03/26 12:35:23  armin
-  * Free the Tree in SysDoneKeyboard to avoid a lot of messages if heaptrace is enabled
-
-  Revision 1.11  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.10  2002/03/03 13:23:51  peter
-    * adjust backspace sequence so it works according to the latest
-      XFree xterms and linux consoles
+  Revision 1.21  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

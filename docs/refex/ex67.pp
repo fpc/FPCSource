@@ -4,5 +4,5 @@ Program Example67;
 Var W : Longint;
 
 begin
-  W:=SSeg;  
+  W:=SSeg;
 end.

@@ -29,7 +29,7 @@ Const
 
 type
   TPThreadCleanupRoutine = procedure(Arg: Pointer); cdecl;
- 
+
   P_pthread_cleanup_buffer = ^_pthread_cleanup_buffer;
   _pthread_cleanup_buffer = record
        __routine :  TPThreadCleanupRoutine;
@@ -48,14 +48,14 @@ Const
 
   PTHREAD_CANCELED = Pointer(-1);
   PTHREAD_BARRIER_SERIAL_THREAD = -1;
-  
+
   // procedural types used in parameters to pthread functions
-Type  
+Type
   TStartRoutine = function (_para1:pointer): integer; cdecl;// pthread_create
   TKeyValueDestructor = procedure(ValueInKey: Pointer); cdecl;
   TInitOnceProc = Procedure;cdecl;
   TForkHandler = procedure; cdecl;
-  
+
 function pthread_create(__thread:Ppthread_t; __attr:Ppthread_attr_t; __start_routine:TStartRoutine; __arg:pointer):longint;cdecl;external threadslib name 'pthread_create';
 function pthread_self:pthread_t;cdecl;external threadslib name 'pthread_self';
 function pthread_equal(__thread1:pthread_t; __thread2:pthread_t):longint;cdecl;external threadslib name 'pthread_equal';
@@ -159,9 +159,9 @@ procedure pthread_kill_other_threads_np;cdecl;external threadslib name 'pthread_
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TPthreadCleanupBuffer = _pthread_cleanup_buffer;
-              
+
 function pthread_create(var __thread:pthread_t; var __attr: pthread_attr_t; __start_routine:TStartRoutine; __arg:pointer):longint;cdecl; external threadslib;
 function pthread_join(__th:pthread_t; var __thread_return:pointer):longint;cdecl; external threadslib;
 function pthread_attr_init(var __attr: pthread_attr_t):longint;cdecl; external threadslib;

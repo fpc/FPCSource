@@ -6,7 +6,7 @@ Uses math;
 
 Procedure dosincos(Angle : Float);
 
-Var 
+Var
   Sine,Cosine : Float;
 
 begin

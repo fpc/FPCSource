@@ -19,7 +19,7 @@ type
        __unused : array[0..31] of char;
     end;
   PPaiocb = ^Paiocb;
-  
+
   Paiocb64 = ^aiocb64;
   aiocb64 = record
        aio_fildes : longint;
@@ -37,7 +37,7 @@ type
        __unused : array[0..31] of char;
     end;
   PPaiocb64 = ^Paiocb64;
-   
+
   Paioinit = ^aioinit;
   aioinit = record
        aio_threads : longint;
@@ -88,7 +88,7 @@ function aio_fsync64(__operation:longint; __aiocbp:Paiocb64):longint;cdecl;exter
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TPAsyncIoCB = aiocb;
   PAsyncIoCB = ^TPAsyncIoCB;
   PPAsyncIoCB = ^PAsyncIoCB;

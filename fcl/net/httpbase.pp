@@ -126,7 +126,7 @@ type
     procedure SetWWWAuthenticate(const AValue: String);
 
   public
-    DataReceived, CmdReceived: Boolean;		// !!!: Only temporarily here
+    DataReceived, CmdReceived: Boolean;         // !!!: Only temporarily here
 
     HttpVersion: String;
 
@@ -182,7 +182,7 @@ type
   public
     CommandLine: String;
     Command: String;
-    URI: String;		// Uniform Resource Identifier
+    URI: String;                // Uniform Resource Identifier
     QueryString: String;
   end;
 
@@ -211,7 +211,7 @@ var
 begin
   if Length(ALine) = 0 then
   begin
-    FReader.OnLine := nil;	// Stop receiving
+    FReader.OnLine := nil;      // Stop receiving
     FReader.StopAndFree;
     if Assigned(FOnCompleted) then
       FOnCompleted(Self);
@@ -374,7 +374,7 @@ begin
   for i := 0 to FFields.Count - 1 do
     if UpperCase(FieldNames[i]) = Name then
     begin
-      FieldNames[i] := AName;	// preserve case
+      FieldNames[i] := AName;   // preserve case
       FieldValues[i] := AValue;
       exit;
     end;
@@ -488,14 +488,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-02-02 17:12:01  sg
-  * Some small fixes to get the code at least compiling again; the HTTP
-    client class is not expected to work at the moment, and the XML-RPC
-    client has been fully disabled for now.
-
-  Revision 1.1  2004/01/31 19:13:14  sg
-  * Splittet old HTTP unit into httpbase and httpclient
-  * Many improvements in fpSock (e.g. better disconnection detection)
-
+  Revision 1.3  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

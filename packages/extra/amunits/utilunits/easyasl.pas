@@ -18,18 +18,18 @@
     An easy way to use asl.library, no need to open asl.library,
     unit asl will open it for you.
     A lot of overlay functions here.:)
-    
+
     One remark, be aware of that GetMultiFiles use linklist for the
     linked list of files, you can't use your own list with ordinary
     nodes.
     26 Oct 1998
-    
+
     Removed amigaoverlays, use smartlink instead.
     05 Nov 2002.
-    
+
     Added the define use_amiga_smartlink.
     13 Jan 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -514,16 +514,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 
 
 

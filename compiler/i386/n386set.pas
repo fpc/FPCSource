@@ -226,25 +226,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2004-11-30 18:13:39  jonas
-    * patch from Peter to fix inlining of case statements
-
-  Revision 1.76  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.75  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.74  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.73.2.5  2004/05/02 20:54:41  peter
-    * compile fix
-
-  Revision 1.73.2.4  2004/05/02 14:09:54  peter
-    * fix case 64bit issues
-
-  Revision 1.73.2.3  2004/04/29 23:30:28  peter
-    * fix i386 compiler
+  Revision 1.78  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

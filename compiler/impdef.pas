@@ -485,13 +485,7 @@ end.
 
 {
   $Log$
-  Revision 1.15  2004-10-14 17:33:29  mazen
-  * use SysUtils unit instead of Dos Unit
-
-  Revision 1.14  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.13  2004/02/22 14:52:59  hajny
-    * compilation fixes + *w tools renamed to *
+  Revision 1.16  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

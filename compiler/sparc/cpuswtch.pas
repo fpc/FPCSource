@@ -126,13 +126,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-06-20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.6  2004/01/26 14:41:24  mazen
-  * Supported assembler modes are GAS and STANDARD
-
-  Revision 1.5  2004/01/12 16:39:41  peter
-    * sparc updates, mostly float related
+  Revision 1.8  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -42,7 +42,7 @@ Type
     Procedure OnShow(Sender : TFpGtkObject;Data : Pointer);
     Procedure OnOKClick(Sender : TFpGtkObject;Data : Pointer);
   end;
-  
+
 Implementation
 
 resourcestring
@@ -62,7 +62,7 @@ resourcestring
   SNeedInputFileName = 'An input filename is required.';
   SNeedOutputFileName = 'An output filename is required.';
   SNeedPackageName  = 'A package name is required.';
-  
+
 Constructor TMakeSkelForm.Create;
 
 begin
@@ -74,28 +74,28 @@ Procedure TMakeSkelForm.CreateWindow;
 
 Var
   OH,OV : TgtkAttachOPtions;
-  
+
   Function CreateToggle : TFPgtkToggleButton;
-  
+
   begin
     Result:=TFPgtkToggleButton.Create;
     Result.SetUsize(14,14);
   end;
-   
+
   Function CreateLLabel(S : String) : TFPgtkLabel;
-  
+
   begin
     Result:=TFPgtkLabel.Create(S);
     Result.Justify:=GTK_JUSTIFY_LEFT;
   end;
-  
+
   Function CreateRLabel(S : String) : TFPgtkLabel;
-  
+
   begin
     Result:=TFPgtkLabel.Create(S);
     Result.Justify:=GTK_JUSTIFY_RIGHT;
   end;
-  
+
 begin
   FVBox:=TFPGtkVBox.Create;
   FVBox.Spacing:=4;
@@ -191,8 +191,8 @@ begin
     MessageDlg(SNeedOutPutFileName,mtError,[mbOk],0)
   Else if (FPackageName.Text='') then
     MessageDlg(SNeedPackageName,mtError,[mbOk],0)
-  else     
+  else
     CloseWithResult(Sender,IntToPointer(drOK));
 end;
-    
-end.  
+
+end.

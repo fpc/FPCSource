@@ -8,7 +8,7 @@ Const
   Fmt = '"First day of this month : "dd mmmm yyyy';
 Var
   Y,M : Word;
-  
+
 Begin
   Y:=YearOf(Today);
   M:=MonthOf(Today);

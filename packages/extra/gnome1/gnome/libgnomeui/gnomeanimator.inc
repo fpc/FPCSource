@@ -5,7 +5,7 @@ type
 
    TGnomeAnimatorLoopType = (GNOME_ANIMATOR_LOOP_NONE,GNOME_ANIMATOR_LOOP_RESTART,
      GNOME_ANIMATOR_LOOP_PING_PONG);
-     
+
    PGnomeAnimatorPrivate = ^TGnomeAnimatorPrivate;
    TGnomeAnimatorPrivate = record
    end;
@@ -13,7 +13,7 @@ type
    PGnomeAnimatorFrame = ^TGnomeAnimatorFrame;
    TGnomeAnimatorFrame = record
    end;
-   
+
    PGnomeAnimator = ^TGnomeAnimator;
    TGnomeAnimator = record
         widget : PGtkWidget;
@@ -43,19 +43,19 @@ procedure gnome_animator_set_loop_type(animator:PGnomeAnimator; loop_type:TGnome
 function gnome_animator_get_loop_type(animator:PGnomeAnimator):TGnomeAnimatorLoopType;cdecl;external libgnomeuidll name 'gnome_animator_get_loop_type';
 procedure gnome_animator_set_playback_direction(animator:PGnomeAnimator; playback_direction:gint);cdecl;external libgnomeuidll name 'gnome_animator_set_playback_direction';
 function gnome_animator_get_playback_direction(animator:PGnomeAnimator):gint;cdecl;external libgnomeuidll name 'gnome_animator_get_playback_direction';
-function gnome_animator_append_frame_from_imlib_at_size(animator:PGnomeAnimator; image:PGdkImlibImage; x_offset:gint; y_offset:gint; interval:guint32; 
+function gnome_animator_append_frame_from_imlib_at_size(animator:PGnomeAnimator; image:PGdkImlibImage; x_offset:gint; y_offset:gint; interval:guint32;
            width:guint; height:guint):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frame_from_imlib_at_size';
 function gnome_animator_append_frame_from_imlib(animator:PGnomeAnimator; image:PGdkImlibImage; x_offset:gint; y_offset:gint; interval:guint32):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frame_from_imlib';
-function gnome_animator_append_frame_from_file_at_size(animator:PGnomeAnimator; name:Pgchar; x_offset:gint; y_offset:gint; interval:guint32; 
+function gnome_animator_append_frame_from_file_at_size(animator:PGnomeAnimator; name:Pgchar; x_offset:gint; y_offset:gint; interval:guint32;
            width:guint; height:guint):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frame_from_file_at_size';
 function gnome_animator_append_frame_from_file(animator:PGnomeAnimator; name:Pgchar; x_offset:gint; y_offset:gint; interval:guint32):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frame_from_file';
-function gnome_animator_append_frames_from_imlib_at_size(animator:PGnomeAnimator; image:PGdkImlibImage; x_offset:gint; y_offset:gint; interval:guint32; 
+function gnome_animator_append_frames_from_imlib_at_size(animator:PGnomeAnimator; image:PGdkImlibImage; x_offset:gint; y_offset:gint; interval:guint32;
            x_unit:gint; width:guint; height:guint):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frames_from_imlib_at_size';
-function gnome_animator_append_frames_from_imlib(animator:PGnomeAnimator; image:PGdkImlibImage; x_offset:gint; y_offset:gint; interval:guint32; 
+function gnome_animator_append_frames_from_imlib(animator:PGnomeAnimator; image:PGdkImlibImage; x_offset:gint; y_offset:gint; interval:guint32;
            x_unit:gint):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frames_from_imlib';
-function gnome_animator_append_frames_from_file_at_size(animator:PGnomeAnimator; name:Pgchar; x_offset:gint; y_offset:gint; interval:guint32; 
+function gnome_animator_append_frames_from_file_at_size(animator:PGnomeAnimator; name:Pgchar; x_offset:gint; y_offset:gint; interval:guint32;
            x_unit:gint; width:guint; height:guint):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frames_from_file_at_size';
-function gnome_animator_append_frames_from_file(animator:PGnomeAnimator; name:Pgchar; x_offset:gint; y_offset:gint; interval:guint32; 
+function gnome_animator_append_frames_from_file(animator:PGnomeAnimator; name:Pgchar; x_offset:gint; y_offset:gint; interval:guint32;
            x_unit:gint):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frames_from_file';
 function gnome_animator_append_frame_from_gnome_pixmap(animator:PGnomeAnimator; pixmap:PGnomePixmap; x_offset:gint; y_offset:gint; interval:guint32):gboolean;cdecl;external libgnomeuidll name 'gnome_animator_append_frame_from_gnome_pixmap';
 procedure gnome_animator_start(animator:PGnomeAnimator);cdecl;external libgnomeuidll name 'gnome_animator_start';

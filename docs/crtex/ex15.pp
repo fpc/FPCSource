@@ -10,6 +10,6 @@ begin
    begin
      WriteLn(i);
      Delay(1000); {Wait one second}
-   end;     
-  WriteLn('BOOM!!!'); 
+   end;
+  WriteLn('BOOM!!!');
 end.

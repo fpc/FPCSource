@@ -169,17 +169,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2005-02-13 20:11:16  peter
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.6  2005/02/13 20:11:16  peter
     * sunos to solaris
-
-  Revision 1.5  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.4  2004/10/01 17:41:21  marco
-   * small updates to make playing with sparc/solaris easier
-
-  Revision 1.3  2004/06/20 08:55:32  florian
-    * logs truncated
 
 }

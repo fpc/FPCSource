@@ -18,22 +18,22 @@
     This is all triton macros translated to procedures.
     Check the tritondemos on how to use the procedures.
 
-    Some time the compiler tell you that it can't pick the 
+    Some time the compiler tell you that it can't pick the
     right overlay function, well the only one so far is TextId.
     Why I don't know, the fix is just to use a pchar if there
     is a problem (TextId(pchar('your text'#0)).
 
     A few fixes, overlay should work with fpc 1.0.7
-    Added overlay for SetTRTag, pchar, string ,boolean and 
+    Added overlay for SetTRTag, pchar, string ,boolean and
     pointer.
     09 Jan 2003.
 
     Added the define use_amiga_smartlink.
     12 Jan 2003.
-    
+
     Changed integr > smallint.
     11 Feb 2003.
-    
+
     nils.sjoholm@mailbox.xwipnet.se
 }
 
@@ -44,7 +44,7 @@
 unit tritonmacros;
 
 interface
- 
+
 uses triton, utility;
 
 var
@@ -911,7 +911,7 @@ END;
 PROCEDURE BeginColumnI;
 begin
     tritontags[tindex].ti_Tag := TRGR_Vert;
-    tritontags[tindex].ti_Data := (TRGR_PROPSHARE OR TRGR_ALIGN OR TRGR_CENTER OR 
+    tritontags[tindex].ti_Data := (TRGR_PROPSHARE OR TRGR_ALIGN OR TRGR_CENTER OR
 TRGR_INDEP);
     Inc(tindex);
 END;
@@ -919,7 +919,7 @@ END;
 PROCEDURE BeginLineI;
 begin
     tritontags[tindex].ti_Tag := TRGR_Horiz;
-    tritontags[tindex].ti_Data := (TRGR_PROPSHARE OR TRGR_ALIGN OR TRGR_CENTER OR 
+    tritontags[tindex].ti_Data := (TRGR_PROPSHARE OR TRGR_ALIGN OR TRGR_CENTER OR
 TRGR_INDEP);
     Inc(tindex);
 END;
@@ -1686,7 +1686,7 @@ END;
 
 PROCEDURE NamedSeparatorN(ttext : PChar);
 BEGIN
-    HorizGroupEC; Line(TROF_HORIZ); Space; TextT(ttext); Space; Line(TROF_HORIZ); 
+    HorizGroupEC; Line(TROF_HORIZ); Space; TextT(ttext); Space; Line(TROF_HORIZ);
 EndGroup;
 END;
 
@@ -2106,7 +2106,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(e);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SHOWSELECTED OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SHOWSELECTED OR
 TRLV_NOCURSORKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2164,7 +2164,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(e);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SHOWSELECTED OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SHOWSELECTED OR
 TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2184,7 +2184,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_READONLY OR TRLV_NOCURSORKEYS OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_READONLY OR TRLV_NOCURSORKEYS OR
 TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2204,7 +2204,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SELECT OR TRLV_NOCURSORKEYS OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SELECT OR TRLV_NOCURSORKEYS OR
 TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2224,7 +2224,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(e);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SHOWSELECTED OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_SHOWSELECTED OR
 TRLV_NOCURSORKEYS OR TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2301,7 +2301,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_READONLY OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_READONLY OR
 TRLV_NOCURSORKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2321,7 +2321,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SELECT OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SELECT OR
 TRLV_NOCURSORKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2341,7 +2341,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(e);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SHOWSELECTED OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SHOWSELECTED OR
 TRLV_NOCURSORKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2361,7 +2361,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_READONLY OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_READONLY OR
 TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2381,7 +2381,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SELECT OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SELECT OR
 TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2401,7 +2401,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(e);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SHOWSELECTED OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SHOWSELECTED OR
 TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2421,7 +2421,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_READONLY OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_READONLY OR
 TRLV_NOCURSORKEYS OR TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2441,7 +2441,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(ent);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SELECT OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SELECT OR
 TRLV_NOCURSORKEYS OR TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2461,7 +2461,7 @@ BEGIN
     tritontags[tindex].ti_Data := longint(e);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_Flags;
-    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SHOWSELECTED OR 
+    tritontags[tindex].ti_Data := (TRLV_NOGAP OR TRLV_FWFONT OR TRLV_SHOWSELECTED OR
 TRLV_NOCURSORKEYS OR TRLV_NONUMPADKEYS);
     Inc(tindex);
     tritontags[tindex].ti_Tag := TRAT_ID;
@@ -2624,7 +2624,7 @@ END;
 PROCEDURE BeginRequester(t : PChar; p : longint);
 BEGIN
     WindowTitle(t);WindowPosition(p);WindowBackfillReq;
-    WindowFlags(TRWF_NOZIPGADGET OR TRWF_NOSIZEGADGET OR TRWF_NOCLOSEGADGET OR 
+    WindowFlags(TRWF_NOZIPGADGET OR TRWF_NOSIZEGADGET OR TRWF_NOCLOSEGADGET OR
 TRWF_NODELZIP OR TRWF_NOESCCLOSE);
     VertGroupA; Space; HorizGroupA; Space; GroupBox; ObjectBackfillB;
 END;

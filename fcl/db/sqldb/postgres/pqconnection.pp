@@ -79,7 +79,7 @@ ResourceString
   SErrFieldDefsFailed = 'Can not extract field information from query';
   SErrFetchFailed = 'Fetch of data failed';
   SErrNoDatabaseName = 'Database connect string (DatabaseName) not filled in!';
-  
+
 const Oid_Bool     = 16;
       Oid_Text     = 25;
       Oid_Name     = 19;
@@ -441,7 +441,7 @@ var
   CurrBuff     : pchar;
   tel  : byte;
   dbl  : pdouble;
-  
+
 
 begin
   with cursor as TPQCursor do

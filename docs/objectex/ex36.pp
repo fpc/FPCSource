@@ -2,7 +2,7 @@ Program ex36;
 
 { Program to demonstrate the TSortedCollection.Insert method }
 
-Uses Objects,MyObject,MySortC; 
+Uses Objects,MyObject,MySortC;
  { For TMyObject,TMySortedCollection definition and registration }
 
 Var C : PSortedCollection;
@@ -27,11 +27,11 @@ begin
     M^.SetField(Random(100));
     C^.Insert(M)
     end;
-  M:=New(PMyObject,Init);  
+  M:=New(PMyObject,Init);
   Repeat;
     Write ('Value to search for (-1 stops) :');
     read (I);
-    If I<>-1 then 
+    If I<>-1 then
       begin
       M^.SetField(i);
       If Not C^.Search (M,I) then
@@ -39,10 +39,10 @@ begin
       else
         begin
         Write ('Value ',PMyObject(C^.At(I))^.GetField);
-        Writeln (' present at position ',I);   
+        Writeln (' present at position ',I);
         end;
       end;
-  Until I=-1;    
+  Until I=-1;
   Dispose(M,Done);
   Dispose(C,Done);
 end.

@@ -24,13 +24,10 @@ Function ForceDirectories(Const Dir: string): Boolean;
 
 {
   $Log$
-  Revision 1.2  2005-01-14 12:59:25  michael
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.2  2005/01/14 12:59:25  michael
   + Implemented ForceDirectories for Delphi compatibility
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.5  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
 
 }

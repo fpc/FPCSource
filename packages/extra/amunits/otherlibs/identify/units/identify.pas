@@ -24,7 +24,7 @@
     Added array of const and some
     overlay functions.
     08 Jan 2003
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     12 Jan 2003.
@@ -32,7 +32,7 @@
     Changed cardinal > longword.
     Changed startcode for unit.
     11 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -466,103 +466,103 @@ tagsarray,pastoc;
 FUNCTION IdExpansion(TagList : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	TagList,A0
-	MOVEA.L	IdentifyBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L TagList,A0
+        MOVEA.L IdentifyBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IdHardware(Type_ : Ulong; TagList : pTagItem) : pCHAR;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Type_,D0
-	MOVEA.L	TagList,A0
-	MOVEA.L	IdentifyBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  Type_,D0
+        MOVEA.L TagList,A0
+        MOVEA.L IdentifyBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IdAlert(ID : Ulong; TagList : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	ID,D0
-	MOVEA.L	TagList,A0
-	MOVEA.L	IdentifyBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  ID,D0
+        MOVEA.L TagList,A0
+        MOVEA.L IdentifyBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IdFunction(LibName : pCHAR; Offset : LONGINT; TagList : pTagItem) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	LibName,A0
-	MOVE.L	Offset,D0
-	MOVEA.L	TagList,A1
-	MOVEA.L	IdentifyBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L LibName,A0
+        MOVE.L  Offset,D0
+        MOVEA.L TagList,A1
+        MOVEA.L IdentifyBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IdHardwareNum(Type_ : Ulong; TagList : pTagItem) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Type_,D0
-	MOVEA.L	TagList,A0
-	MOVEA.L	IdentifyBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  Type_,D0
+        MOVEA.L TagList,A0
+        MOVEA.L IdentifyBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE IdHardwareUpdate;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	IdentifyBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L IdentifyBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION IdFormatString(String_ : pCHAR; Buffer : pCHAR; Length : Ulong; Tags : pTagItem) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	String_,A0
-	MOVEA.L	Buffer,A1
-	MOVE.L	Length,D0
-	MOVEA.L	Tags,A2
-	MOVEA.L	IdentifyBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L String_,A0
+        MOVEA.L Buffer,A1
+        MOVE.L  Length,D0
+        MOVEA.L Tags,A2
+        MOVEA.L IdentifyBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION IdEstimateFormatSize(String_ : pCHAR; Tags : pTagItem) : Ulong;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	String_,A0
-	MOVEA.L	Tags,A1
-	MOVEA.L	IdentifyBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L String_,A0
+        MOVEA.L Tags,A1
+        MOVEA.L IdentifyBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

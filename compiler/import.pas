@@ -238,10 +238,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2004-11-08 22:09:58  peter
-    * tvarsym splitted
-
-  Revision 1.24  2004/06/20 08:55:29  florian
-    * logs truncated
+  Revision 1.26  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

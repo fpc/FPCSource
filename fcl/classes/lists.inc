@@ -450,22 +450,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-10-07 14:30:57  marco
-   * 1.0 version of assign
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.9  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/08/16 10:04:58  michael
-  + Notify correctly implemented
-
-  Revision 1.7  2002/07/16 14:00:55  florian
-    * raise takes now a void pointer as at and frame address
-      instead of a longint, fixed
+  Revision 1.3  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

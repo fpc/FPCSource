@@ -138,7 +138,7 @@ begin
       case c of
         #9:  s := s + '\t';
         #10: s := s + '\n';
-{$IFNDEF UNIX}        
+{$IFNDEF UNIX}
         #13: ;
         #1..#8, #11..#12, #14..#31, #128..#255:
 {$ELSE}
@@ -182,10 +182,10 @@ begin
     WriteLn(F, 'MESSAGETABLE')
   else
     WriteLn(F, 'STRINGTABLE');
-    
+
   WriteLn(F, 'BEGIN');
   If Identifier<>'' then WriteLn(F, '#define ', Identifier);
-  
+
   for i := 0 to ConstItems.Count - 1 do begin
     item := TConstItem(ConstItems.items[i]);
 
@@ -196,7 +196,7 @@ begin
       case c of
         #9:  s := s + '\t';
         #10: s := s + '\n"'#13#10'"';
-{$IFNDEF UNIX}        
+{$IFNDEF UNIX}
         #13: ;
         #1..#8, #11..#12, #14..#31, #128..#255:
 {$ELSE}
@@ -238,20 +238,20 @@ begin
     WriteLn(MessageNumberTooBig);
     Halt(1);
   end;
-  
+
   Identifier:=Copy(UpperCase(Identifier), 1, 3);
-  
+
   Assign(f, OutFilename);
   Rewrite(f);
-  
+
   WriteLn(f, Identifier);
-  
+
   // Fake entry, because MKMSGF limitation
   WriteLn(f, Format('%s%.4d?: ',[Identifier, FirstMessage-1]));
-  
+
   for i := 0 to ConstItems.Count - 1 do begin
     item := TConstItem(ConstItems.items[i]);
-    
+
     // Prepare comment string
     // Convert string to C-style syntax
     s := '';
@@ -262,7 +262,7 @@ begin
       begin
         s:=s+#13#10';';
         Inc(j, 2);
-      end else begin 
+      end else begin
         s := s + item.Value[j];
         Inc(j);
       end;
@@ -365,7 +365,7 @@ begin
       Halt(1);
     end;
   end;
-  
+
   If ((OutputFormat<>'msg') and (OutputFormat<>'rc')) and ((Identifier<>'') or (FirstMessage<>0)) then begin
     WriteLn(StdErr, InvalidOption, '');
     Halt(1);
@@ -375,7 +375,7 @@ begin
     WriteLn(StdErr, RequiredOption, '-c');
     Halt(1);
   end;
-  
+
   if OutFilename = '' then begin
     WriteLn(StdErr, NoOutFilename);
     Halt(1);
@@ -391,7 +391,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-09-30 21:01:37  hajny
+  Revision 1.6  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.5  2002/09/30 21:01:37  hajny
     + .rc support added by Yuri Prokushev
 
   Revision 1.4  2002/09/22 10:58:25  hajny

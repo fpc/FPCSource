@@ -144,9 +144,9 @@ const
           't_funcname',
           't_typespec',
           't_size_specifier',
-          't_default_value' 
+          't_default_value'
    );
-    
+
 type
 
        presobject = ^tresobject;
@@ -198,9 +198,9 @@ type
     procedure internalerror(i : integer);
 
     function strpnew(const s : string) : pchar;
-    
+
     procedure writetree(p: presobject);
-    
+
 
   implementation
 
@@ -209,8 +209,8 @@ type
 
     const
        newline = #10;
-       
-       
+
+
     procedure writeentry(p: presobject; var currentlevel: integer);
     begin
                      if assigned(p^.p1) then
@@ -226,7 +226,7 @@ type
                           WriteLn(' Entry p3[',ttypstr[p^.p3^.typ],']',p^.p3^.str);
                         end;
     end;
-       
+
     procedure writetree(p: presobject);
     var
      i : integer;
@@ -251,11 +251,11 @@ type
                   end;
             end;
           end;
-           
+
           localp:=localp^.next;
          end;
     end;
-       
+
 
 
     procedure internalerror(i : integer);
@@ -483,7 +483,7 @@ begin
                                       if (c=newline) then
                                       begin
                                         writeln(outfile);
-                                        unget_char(c); 
+                                        unget_char(c);
                                       end;
                                       flush(outfile);
                                       exit;
@@ -503,9 +503,9 @@ begin
                                        write(outfile,aktspace);
                                      end;
                                   end;
-                                { Don't write this thing out, to 
+                                { Don't write this thing out, to
                                   avoid nested comments.
-                                }  
+                                }
                               '{','}' :
                                   begin
                                   end;
@@ -528,7 +528,7 @@ begin
                           else
                           If not stripcomment then
                             write(outfile,aktspace,'{');
-                            
+
                           repeat
                             c:=get_char;
                             case c of
@@ -539,20 +539,20 @@ begin
                                     begin
                                       if in_define then
                                         begin
-                                          commentstr:=commentstr+' }';  
+                                          commentstr:=commentstr+' }';
                                         end
                                       else
                                         begin
-                                          write(outfile,' }'); 
-                                          writeln(outfile); 
+                                          write(outfile,' }');
+                                          writeln(outfile);
                                         end;
-                                    end;  
+                                    end;
                                   flush(outfile);
                                   exit;
                                 end;
-                              { Don't write this comment out, 
+                              { Don't write this comment out,
                                 to avoid nested comment problems
-                              }  
+                              }
                               '{','}' :
                                   begin
                                   end;
@@ -563,7 +563,7 @@ begin
                                   begin
                                     if in_define then
                                      begin
-                                       commentstr:=commentstr+c;  
+                                       commentstr:=commentstr+c;
                                      end
                                     else
                                       write(outfile,c);
@@ -593,7 +593,7 @@ begin
                            return(NUMBER);
                         end;
   8:
-                          
+
                         begin
                            (* handle pre- and postfixes *)
                            if copy(yytext,1,2)='0x' then
@@ -606,7 +606,7 @@ begin
                            return(NUMBER);
                         end;
   9:
-                             
+
                         begin
                           return(NUMBER);
                         end;
@@ -730,13 +730,13 @@ begin
   49:
                         return(VOID);
   50:
-                                                      
+
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ extern C conditionnal removed }');
                         end;
   51:
-                                         
+
                         begin
                           if not stripinfo then
                             writeln(outfile,'{ C++ end of extern C conditionnal removed }');
@@ -892,7 +892,7 @@ begin
                         begin
                            if in_define then
                             begin
-                              in_space_define:=0;  
+                              in_space_define:=0;
                               if cont_line then
                               begin
                                 cont_line:=false;
@@ -906,7 +906,7 @@ begin
                        end;
   87:
                        begin
-                           if in_define then 
+                           if in_define then
                            begin
                              cont_line:=true;
                            end

@@ -80,9 +80,7 @@ unit comobj;
 end.
 {
   $Log$
-  Revision 1.2  2003-10-05 20:30:09  florian
-    + necessary declarations for dx8 headers added
+  Revision 1.3  2005-02-14 17:13:32  peter
+    * truncate log
 
-  Revision 1.1  2002/10/10 16:09:39  florian
-    + initial revision
 }

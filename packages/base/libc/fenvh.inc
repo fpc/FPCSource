@@ -18,7 +18,7 @@ function fegetexcept:longint;cdecl;external clib name 'fegetexcept';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function fegetexceptflag(var __flagp:fexcept_t; __excepts:longint):longint;cdecl;external clib name 'fegetexceptflag';
 function fesetexceptflag(const __flagp:fexcept_t; __excepts:longint):longint;cdecl;external clib name 'fesetexceptflag';
 function fegetenv(var __envp:fenv_t):longint;cdecl;external clib name 'fegetenv';

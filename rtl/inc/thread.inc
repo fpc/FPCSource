@@ -474,8 +474,8 @@ begin
     rtleventSetEvent       :=@NortleventSetEvent;
     rtleventStartWait      :=@NortleventStartWait;
     rtleventWaitFor        :=@NortleventWaitFor;
-    rtleventsync	   :=@Nortleventsync;
-    rtlchksyncunix	   :=@nortlchksyncunix;
+    rtleventsync           :=@Nortleventsync;
+    rtlchksyncunix         :=@nortlchksyncunix;
     end;
   SetThreadManager(NoThreadManager);
 end;
@@ -483,7 +483,10 @@ end;
 
 {
   $Log$
-  Revision 1.21  2005-02-07 17:36:54  peter
+  Revision 1.22  2005-02-14 17:13:29  peter
+    * truncate log
+
+  Revision 1.21  2005/02/07 17:36:54  peter
   can't use resourcestrings in the system unit
 
   Revision 1.20  2005/02/06 11:20:52  peter
@@ -495,60 +498,5 @@ end;
 
   Revision 1.18  2005/01/16 14:46:57  florian
     * critical sections can be used in programs without threading driver, they have no effect then
-
-  Revision 1.17  2004/12/28 14:20:03  marco
-   * tthread patch from neli
-
-  Revision 1.16  2004/12/27 15:28:40  marco
-   * checksynchronize now in interface win32 uses the default impl.
-       unix uses systhrds, rest empty implementation.
-
-  Revision 1.15  2004/12/23 20:58:22  peter
-    * fix rtlcreateevent
-
-  Revision 1.14  2004/12/23 15:08:58  marco
-   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
-     only showed on make install should be fixed now.
-
-  Revision 1.13  2004/12/22 21:29:24  marco
-   * rtlevent kraam. Checked (compile): Linux, FreeBSD, Darwin, Windows
-  	Check work: ask Neli.
-
-  Revision 1.12  2004/09/19 18:55:30  armin
-  * added define DISABLE_NO_THREAD_MANAGER to avoid warnings if thread manager is always present
-
-  Revision 1.11  2004/05/23 20:26:20  marco
-   * wrappers and nothread prototypes for the basic* functions
-
-  Revision 1.10  2004/02/22 23:22:49  florian
-    * fixed BeginThread on unix
-
-  Revision 1.9  2004/02/22 16:48:39  florian
-    * several 64 bit issues fixed
-
-  Revision 1.8  2004/01/21 20:11:06  peter
-    * fixed compile for unix
-
-  Revision 1.7  2004/01/20 23:13:53  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.6  2003/11/29 17:33:09  michael
-  + Removed dummy variable from SetNothreadManager
-
-  Revision 1.5  2003/11/29 17:29:32  michael
-  + Added overloaded version of SetThreadManager without old parameter
-
-  Revision 1.4  2003/11/26 20:10:59  michael
-  + New threadmanager implementation
-
-  Revision 1.3  2002/11/14 12:40:06  jonas
-    * the BeginThread() variant that allowed you to specify the stacksize
-      still passed DefaultStackSize to the OS-specific routines
-
-  Revision 1.2  2002/10/16 19:04:27  michael
-  + More system-independent thread routines
-
-  Revision 1.1  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
 
 }

@@ -36,7 +36,7 @@ type
   my_input_controller = record
     pub : jpeg_input_controller; { public fields }
 
-    inheaders : boolean;		{ TRUE until first SOS is reached }
+    inheaders : boolean;                { TRUE until first SOS is reached }
   end; {my_input_controller;}
 
 
@@ -67,7 +67,7 @@ begin
   { Check that number of components won't exceed internal array sizes }
   if (cinfo^.num_components > MAX_COMPONENTS) then
     ERREXIT2(j_common_ptr(cinfo), JERR_COMPONENT_COUNT, cinfo^.num_components,
-	     MAX_COMPONENTS);
+             MAX_COMPONENTS);
 
   { Compute maximum sampling factors; check factor validity }
   cinfo^.max_h_samp_factor := 1;
@@ -79,9 +79,9 @@ begin
        (compptr^.v_samp_factor<=0) or (compptr^.v_samp_factor>MAX_SAMP_FACTOR) then
       ERREXIT(j_common_ptr(cinfo), JERR_BAD_SAMPLING);
     {cinfo^.max_h_samp_factor := MAX(cinfo^.max_h_samp_factor,
-				   compptr^.h_samp_factor);
+                                   compptr^.h_samp_factor);
     cinfo^.max_v_samp_factor := MAX(cinfo^.max_v_samp_factor,
-				   compptr^.v_samp_factor);}
+                                   compptr^.v_samp_factor);}
     if cinfo^.max_h_samp_factor < compptr^.h_samp_factor then
       cinfo^.max_h_samp_factor := compptr^.h_samp_factor;
     if cinfo^.max_v_samp_factor < compptr^.v_samp_factor then
@@ -103,10 +103,10 @@ begin
     { Size in DCT blocks }
     compptr^.width_in_blocks := JDIMENSION(
       jdiv_round_up( long(cinfo^.image_width) * long(compptr^.h_samp_factor),
-		     long(cinfo^.max_h_samp_factor * DCTSIZE)) );
+                     long(cinfo^.max_h_samp_factor * DCTSIZE)) );
     compptr^.height_in_blocks := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_height) * long(compptr^.v_samp_factor),
-		    long (cinfo^.max_v_samp_factor * DCTSIZE)) );
+                    long (cinfo^.max_v_samp_factor * DCTSIZE)) );
     { downsampled_width and downsampled_height will also be overridden by
       jdmaster.c if we are doing full decompression.  The transcoder library
       doesn't use these values, but the calling application might. }
@@ -114,10 +114,10 @@ begin
     { Size in samples }
     compptr^.downsampled_width := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_width) * long(compptr^.h_samp_factor),
-		    long (cinfo^.max_h_samp_factor)) );
+                    long (cinfo^.max_h_samp_factor)) );
     compptr^.downsampled_height := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_height) * long(compptr^.v_samp_factor),
-		    long (cinfo^.max_v_samp_factor)) );
+                    long (cinfo^.max_v_samp_factor)) );
     { Mark component needed, until color conversion says otherwise }
     compptr^.component_needed := TRUE;
     { Mark no quantization table yet saved for component }
@@ -128,7 +128,7 @@ begin
   { Compute number of fully interleaved MCU rows. }
   cinfo^.total_iMCU_rows := JDIMENSION(
     jdiv_round_up(long(cinfo^.image_height),
-		  long(cinfo^.max_v_samp_factor*DCTSIZE)) );
+                  long(cinfo^.max_v_samp_factor*DCTSIZE)) );
 
   { Decide whether file contains multiple scans }
   if (cinfo^.comps_in_scan < cinfo^.num_components) or
@@ -181,15 +181,15 @@ begin
     { Interleaved (multi-component) scan }
     if (cinfo^.comps_in_scan <= 0) or (cinfo^.comps_in_scan > MAX_COMPS_IN_SCAN) then
       ERREXIT2(j_common_ptr(cinfo), JERR_COMPONENT_COUNT, cinfo^.comps_in_scan,
-	       MAX_COMPS_IN_SCAN);
+               MAX_COMPS_IN_SCAN);
 
     { Overall image size in MCUs }
     cinfo^.MCUs_per_row := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_width),
-		    long (cinfo^.max_h_samp_factor*DCTSIZE)) );
+                    long (cinfo^.max_h_samp_factor*DCTSIZE)) );
     cinfo^.MCU_rows_in_scan := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_height),
-		    long (cinfo^.max_v_samp_factor*DCTSIZE)) );
+                    long (cinfo^.max_v_samp_factor*DCTSIZE)) );
 
     cinfo^.blocks_in_MCU := 0;
 
@@ -213,11 +213,11 @@ begin
       { Prepare array describing MCU composition }
       mcublks := compptr^.MCU_blocks;
       if (cinfo^.blocks_in_MCU + mcublks > D_MAX_BLOCKS_IN_MCU) then
-	ERREXIT(j_common_ptr(cinfo), JERR_BAD_MCU_SIZE);
+        ERREXIT(j_common_ptr(cinfo), JERR_BAD_MCU_SIZE);
       while (mcublks > 0) do
       begin
         Dec(mcublks);
-	cinfo^.MCU_membership[cinfo^.blocks_in_MCU] := ci;
+        cinfo^.MCU_membership[cinfo^.blocks_in_MCU] := ci;
         Inc(cinfo^.blocks_in_MCU);
       end;
     end;
@@ -266,7 +266,7 @@ begin
     { OK, save away the quantization table }
     qtbl := JQUANT_TBL_PTR(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(JQUANT_TBL)) );
+                                  SIZEOF(JQUANT_TBL)) );
     MEMCOPY(qtbl, cinfo^.quant_tbl_ptrs[qtblno], SIZEOF(JQUANT_TBL));
     compptr^.quant_table := qtbl;
   end;
@@ -325,10 +325,10 @@ begin
   val := cinfo^.marker^.read_markers (cinfo);
 
   case (val) of
-  JPEG_REACHED_SOS:	{ Found SOS }
+  JPEG_REACHED_SOS:     { Found SOS }
     begin
       if (inputctl^.inheaders) then
-      begin	{ 1st SOS }
+      begin     { 1st SOS }
         initial_setup(cinfo);
         inputctl^.inheaders := FALSE;
         { Note: start_input_pass must be called by jdmaster.c
@@ -336,19 +336,19 @@ begin
           responsible for enforcing this sequencing. }
       end
       else
-      begin			{ 2nd or later SOS marker }
+      begin                     { 2nd or later SOS marker }
         if (not inputctl^.pub.has_multiple_scans) then
-	  ERREXIT(j_common_ptr(cinfo), JERR_EOI_EXPECTED); { Oops, I wasn't expecting this! }
+          ERREXIT(j_common_ptr(cinfo), JERR_EOI_EXPECTED); { Oops, I wasn't expecting this! }
         start_input_pass(cinfo);
       end;
     end;
-  JPEG_REACHED_EOI:	{ Found EOI }
+  JPEG_REACHED_EOI:     { Found EOI }
     begin
       inputctl^.pub.eoi_reached := TRUE;
       if (inputctl^.inheaders) then
-      begin	{ Tables-only datastream, apparently }
+      begin     { Tables-only datastream, apparently }
         if (cinfo^.marker^.saw_SOF) then
-	  ERREXIT(j_common_ptr(cinfo), JERR_SOF_NO_SOS);
+          ERREXIT(j_common_ptr(cinfo), JERR_SOF_NO_SOS);
       end
       else
       begin
@@ -356,7 +356,7 @@ begin
           if user set output_scan_number larger than number of scans. }
 
         if (cinfo^.output_scan_number > cinfo^.input_scan_number) then
-	  cinfo^.output_scan_number := cinfo^.input_scan_number;
+          cinfo^.output_scan_number := cinfo^.input_scan_number;
       end;
     end;
   JPEG_SUSPENDED:;
@@ -398,7 +398,7 @@ begin
   { Create subobject in permanent pool }
   inputctl := my_inputctl_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_PERMANENT,
-				SIZEOF(my_input_controller)) );
+                                SIZEOF(my_input_controller)) );
   cinfo^.inputctl := jpeg_input_controller_ptr(inputctl);
   { Initialize method pointers }
   inputctl^.pub.consume_input := consume_markers;

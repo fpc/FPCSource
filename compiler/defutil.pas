@@ -908,39 +908,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2005-02-03 17:10:21  peter
+  Revision 1.24  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.23  2005/02/03 17:10:21  peter
     * fix win32 small array parameters
 
   Revision 1.22  2005/01/10 22:10:26  peter
     * widestring patches from Alexey Barkovoy
-
-  Revision 1.21  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.20  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.19  2004/08/24 21:02:32  florian
-    * fixed longbool(<int64>) on sparc
-
-  Revision 1.18  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.17  2004/06/18 15:16:46  peter
-    * remove obsolete cardinal() typecasts
-
-  Revision 1.16  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.15  2004/05/28 21:13:23  peter
-    * prefer signed constants over unsigned
-
-  Revision 1.14  2004/05/01 22:05:01  florian
-    + added lib support for Amiga/MorphOS syscalls
-
-  Revision 1.13  2004/04/29 19:56:36  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
 
 }

@@ -2649,7 +2649,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.200  2005-02-03 21:43:25  peter
+  Revision 1.201  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.200  2005/02/03 21:43:25  peter
     * fix range check error when compiled with 1.9.6
 
   Revision 1.199  2005/01/09 20:24:43  olle
@@ -2663,107 +2666,5 @@ end.
     * insert stack_check helper call before doing register allocation
       so the used registers can't be reused when parameters are loaded
       into register variables
-
-  Revision 1.196  2004/12/07 16:11:52  peter
-    * set vo_explicit_paraloc flag
-
-  Revision 1.195  2004/11/29 20:50:37  peter
-    * uninited results
-
-  Revision 1.194  2004/11/17 22:21:35  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.193  2004/11/16 22:09:57  peter
-  * _mangledname for symbols moved only to symbols that really need it
-  * overload number removed, add function result type to the mangledname fo
-    procdefs
-
-  Revision 1.192  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.191  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.190  2004/11/04 17:09:54  peter
-  fixed debuginfo for variables in staticsymtable
-
-  Revision 1.189  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.188  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.187  2004/10/13 18:47:45  peter
-    * fix misplaced begin..end for self stabs
-    * no fpu regable for staticsymtable
-
-  Revision 1.186  2004/10/12 14:34:49  peter
-    * fixed visibility for procsyms
-    * fixed override check when there was no entry yet
-
-  Revision 1.185  2004/10/11 20:48:34  peter
-    * don't generate stabs for self when it is in a regvar
-
-  Revision 1.184  2004/10/11 15:48:15  peter
-    * small regvar for para fixes
-    * function tvarsym.is_regvar added
-    * tvarsym.getvaluesize removed, use getsize instead
-
-  Revision 1.183  2004/10/10 21:08:55  peter
-    * parameter regvar fixes
-
-  Revision 1.182  2004/10/10 20:22:53  peter
-    * symtable allocation rewritten
-    * loading of parameters to local temps/regs cleanup
-    * regvar support for parameters
-    * regvar support for staticsymtable (main body)
-
-  Revision 1.181  2004/10/10 09:31:28  peter
-  regvar ppu writing doesn't affect any crc
-
-  Revision 1.180  2004/10/08 17:09:43  peter
-    * tvarsym.varregable added, split vo_regable from varoptions
-
-  Revision 1.179  2004/10/06 19:26:50  jonas
-    * regvar fixes from Peter
-
-  Revision 1.178  2004/10/01 15:22:22  peter
-    * don't add stabs for register variables
-
-  Revision 1.177  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.176  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.175.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.175  2004/08/15 12:06:03  jonas
-    * add cprefix to procedures which are autoamtically marked as external in
-      macpas mode
-
-  Revision 1.174  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.173  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.172  2004/05/22 23:32:52  peter
-  quote all low ascii chars in stabs
-
-  Revision 1.171  2004/05/11 22:52:48  olle
-    * Moved import_implicit_external to symsym
-
-  Revision 1.170  2004/05/11 18:29:41  olle
-    + mode macpas: support for implicit external
-
-  Revision 1.169.2.3  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
 
 }

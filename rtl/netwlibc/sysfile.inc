@@ -339,13 +339,13 @@ Begin
        end;
    1 : begin
          if (flags and $1000)=$1000 then
-	   oflags := 'w+b' else
+           oflags := 'w+b' else
            oflags := 'wb';
          filerec(f).mode := fmoutput;
        end;
    2 : begin
          if (flags and $1000)=$1000 then
-	   oflags := 'w+' else
+           oflags := 'w+' else
            oflags := 'r+';
          filerec(f).mode := fminout;
        end;
@@ -403,7 +403,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-06 16:57:18  peter
+   Revision 1.2  2005-02-14 17:13:30  peter
+     * truncate log
+
+   Revision 1.1  2005/02/06 16:57:18  peter
      * threads for go32v2,os,emx,netware
 
    Revision 1.1  2005/02/06 13:06:20  peter

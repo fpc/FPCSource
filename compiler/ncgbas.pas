@@ -502,66 +502,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  2005-01-31 17:07:50  peter
+  Revision 1.76  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.75  2005/01/31 17:07:50  peter
     * fix [regpara] in intel assembler
-
-  Revision 1.74  2004/12/12 12:56:18  peter
-    * compile fixes for x86_64
-
-  Revision 1.73  2004/12/03 16:04:47  peter
-    * use tlocation for tempnodes
-
-  Revision 1.72  2004/12/02 19:26:15  peter
-    * disable pass2inline
-
-  Revision 1.71  2004/11/11 19:31:33  peter
-    * fixed compile of powerpc,sparc,arm
-
-  Revision 1.70  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.69  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.68  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.67  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.66  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.65.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.65  2004/07/16 19:45:15  jonas
-    + temps can now also hold fpu values in registers (take care with use,
-      bacause of the x86 fpu stack)
-    * fpu parameters to node-inlined procedures can now also be put in
-      a register
-
-  Revision 1.64  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.63  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.62  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.61  2004/05/23 15:06:20  peter
-    * implicit_finally flag must be set in pass1
-    * add check whether the implicit frame is generated when expected
-
-  Revision 1.60.2.3  2004/04/27 18:18:25  peter
-    * aword -> aint
-
-  Revision 1.60.2.2  2004/04/12 19:34:45  peter
-    * basic framework for dwarf CFI
 
 }

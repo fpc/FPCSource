@@ -16,9 +16,7 @@
 
 {
   $Log$
-  Revision 1.2  2004-05-30 20:03:05  florian
-    * ?
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.1  2003/09/14 11:34:13  peter
-    * moved int64 asm code to int64p.inc
 }

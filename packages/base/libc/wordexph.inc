@@ -32,10 +32,10 @@ procedure wordfree(__wordexp:Pwordexp_t);cdecl;external clib name 'wordfree';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TWordExp = wordexp_t;
   PWordExp = ^TWordExp;
-    
+
 function wordexp(__words:Pchar; var __pwordexp: wordexp_t; __flags:longint):longint;cdecl;external clib name 'wordexp';
 procedure wordfree(var __wordexp: wordexp_t);cdecl;external clib name 'wordfree';
-    
+

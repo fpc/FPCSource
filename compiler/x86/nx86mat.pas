@@ -323,38 +323,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-11-03 10:11:13  peter
-    * fix possible range error
-
-  Revision 1.8  2004/11/02 18:23:16  florian
-    * fixed -<sse register>
-    * information about simple moves for sse is given to the register allocator
-
-  Revision 1.7  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.6  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.5  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.4  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.3.2.1  2004/04/27 18:18:26  peter
-    * aword -> aint
-
-  Revision 1.3  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.2  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
+  Revision 1.10  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

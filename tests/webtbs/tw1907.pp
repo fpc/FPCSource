@@ -23,13 +23,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-16 19:05:31  peter
-    * fix compile mode
-
-  Revision 1.2  2002/09/07 15:40:59  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/04/13 08:05:38  carl
-  + web bug test #1907
+  Revision 1.4  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

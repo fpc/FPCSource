@@ -635,20 +635,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2005-02-04 18:14:22  joost
+  Revision 1.6  2005-02-14 17:13:19  peter
+    * truncate log
+
+  Revision 1.5  2005/02/04 18:14:22  joost
   - replaced gdsdecl by extdecl for the codetools
   - cleanup of double declarations
 
   Revision 1.4  2005/01/12 10:23:34  michael
   * Changes from Joost van der Sluis to enable dynamic loading of the Interbase library
-
-  Revision 1.3  2003/04/13 10:26:34  michael
-  + Added crypt library
-
-  Revision 1.2  2002/09/07 15:42:52  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:54:51  peter
-    * splitted to base and extra
 
 }

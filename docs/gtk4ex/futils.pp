@@ -15,7 +15,7 @@ Const
 
 Function StripTrailingSeparator(Const Dir : String) : String;
 Function AddTrailingSeparator(Const Dir : String) : String;
-Function FileSizeToString(Size: Int64) : String;  
+Function FileSizeToString(Size: Int64) : String;
 Function FileAttrsToString(FileAttrs : Integer) : String;
 
 Implementation
@@ -23,38 +23,38 @@ Implementation
 Uses sysutils;
 
 Function  StripTrailingSeparator(Const Dir : String) : String;
- 
+
 Var
   L : Integer;
- 
+
 begin
   Result:=Dir;
   L:=Length(result);
   If (L>1) and (Result[l]=PathSeparator) then
     SetLength(Result,L-1);
 end;
- 
+
 Function  AddTraiLingSeparator(Const Dir : String) : String;
- 
+
 Var
   L : Integer;
- 
+
 begin
   Result:=Dir;
   L:=Length(Result);
   If (L>0) and (Result[l]<>PathSeparator) then
     Result:=Result+PathSeparator;
-end; 
-  
+end;
+
 Function  FileSizeToString(Size: Int64) : String;
- 
+
 Const
   Sizes : Array [0..4] of String =
      ('Bytes','Kb','Mb','Gb','Tb');
 Var
     F : Double;
     I : longint;
- 
+
 begin
   If Size>1024 Then
     begin
@@ -69,17 +69,17 @@ begin
     end
   else
     Result:=Format('%d %s',[Size,Sizes[0]]);
-end; 
+end;
 
 Function FileAttrsToString(FileAttrs : Integer) : String;
 
 Const
-  Attrs : Array[1..4] of integer = 
+  Attrs : Array[1..4] of integer =
           (faArchive,faReadOnly,faHidden,faSysfile);
-  AttrChars : Array[1..4] of char = 
+  AttrChars : Array[1..4] of char =
           ('A','R','H','S');
 
-Var 
+Var
   i : longint;
 
 begin

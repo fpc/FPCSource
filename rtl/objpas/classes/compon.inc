@@ -246,7 +246,7 @@ end;
 procedure TComponent.PaletteCreated;
   begin
   end;
-  
+
 
 Procedure TComponent.ReadState(Reader: TReader);
 
@@ -382,7 +382,7 @@ Destructor TComponent.Destroy;
 Var
   I : Integer;
   C : TComponent;
-  
+
 begin
   Destroying;
   If Assigned(FFreeNotifies) then
@@ -398,7 +398,7 @@ begin
         I:=0
       else if (I>FFreeNotifies.Count) then
         I:=FFreeNotifies.Count;
-      dec(i); 
+      dec(i);
       end;
     FreeAndNil(FFreeNotifies);
     end;
@@ -474,7 +474,7 @@ Procedure TComponent.FreeNotification(AComponent: TComponent);
 
 begin
   If (Owner<>Nil) and (AComponent=Owner) then exit;
-  if csDestroying in ComponentState then 
+  if csDestroying in ComponentState then
     AComponent.Notification(Self,opRemove)
   else
     begin
@@ -485,7 +485,7 @@ begin
       FFreeNotifies.Add(AComponent);
       AComponent.FreeNotification (self);
       end;
-    end;  
+    end;
 end;
 
 
@@ -583,41 +583,14 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-02-02 19:56:11  florian
+  Revision 1.8  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.7  2005/02/02 19:56:11  florian
     + PaletteCreated added
     + TCollectionNotification added
 
   Revision 1.6  2005/01/31 19:41:39  peter
     * interface additions
-
-  Revision 1.5  2004/09/22 19:57:45  michael
-  + More optimal FreeNotification when destroying
-
-  Revision 1.4  2004/09/22 18:48:31  michael
-  +  Fix in TComponent destroy FreeNotifications.
-
-  Revision 1.3  2004/08/07 16:44:35  florian
-    * tcomponent.destroying is now called in tcomponent.beforedestruction
-
-  Revision 1.2  2004/01/12 17:44:22  peter
-    * LongRec is a packed record
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.9  2003/04/27 21:16:11  sg
-  * Fixed TComponent.ValidateRename
-
-  Revision 1.8  2002/10/15 20:06:19  michael
-  + Fixed SetAncestor. Index was getting too big
-
-  Revision 1.7  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/01/09 10:40:24  michael
-  + re-enabled Top/Left property writing
-
-  Revision 1.5  2002/01/06 21:54:50  peter
-    * action classes added
 
 }

@@ -331,13 +331,13 @@ implementation
                         if is_open_array(def_from) then
                           begin
                             if is_ansistring(def_to) then
-  			      eq:=te_convert_l1
+                              eq:=te_convert_l1
                             else if is_widestring(def_to) then
-			      eq:=te_convert_l2
+                              eq:=te_convert_l2
                             else
-			      eq:=te_convert_l2;
+                              eq:=te_convert_l2;
                           end
-			else
+                        else
                           begin
                             if is_shortstring(def_to) then
                               begin
@@ -1387,7 +1387,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2005-02-03 19:24:33  florian
+  Revision 1.69  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.68  2005/02/03 19:24:33  florian
     + support for another explicit ugly delphi type cast added
 
   Revision 1.67  2005/02/02 19:04:31  florian
@@ -1404,63 +1407,5 @@ end.
 
   Revision 1.63  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
-
-  Revision 1.62  2004/12/05 12:28:10  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.61  2004/11/29 17:32:56  peter
-    * prevent some IEs with delphi methodpointers
-
-  Revision 1.60  2004/11/26 22:33:54  peter
-    * don't allow pointer(ordinal) typecast in fpc mode, only allow it
-      for delphi and for internal use
-
-  Revision 1.59  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.58  2004/11/08 22:09:58  peter
-    * tvarsym splitted
-
-  Revision 1.57  2004/11/01 10:31:48  peter
-    * procvar arguments need to be at least equal
-
-  Revision 1.56  2004/11/01 08:02:26  peter
-    * remove previous patch
-
-  Revision 1.55  2004/10/31 22:05:25  peter
-    * only allow ordinal-pointer for same size
-
-  Revision 1.54  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.53  2004/09/21 15:52:35  peter
-    * prefer pchar-string over pchar-pointer
-
-  Revision 1.52  2004/09/16 16:32:44  peter
-    * dynarr-pointer is allowed under delphi
-
-  Revision 1.51  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.50  2004/04/12 11:26:10  peter
-    * voidpointer can be converted to dynarray
-
-  Revision 1.49  2004/03/04 17:22:32  peter
-    * use defs_equal when comparing pointer types
-
-  Revision 1.48  2004/03/03 22:02:16  peter
-    * also compare calling convention in proc_to_procvar_equal
-
-  Revision 1.47  2004/02/24 16:12:39  peter
-    * operator overload chooses rewrite
-    * overload choosing is now generic and moved to htypechk
-
-  Revision 1.46  2004/02/15 12:18:22  peter
-    * allow real_2_real conversion for realconstn, fixes 2971
 
 }

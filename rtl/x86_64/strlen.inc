@@ -133,13 +133,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-05-01 23:55:18  peter
-    * replace strlenint with sizeint
+  Revision 1.4  2005-02-14 17:13:32  peter
+    * truncate log
 
-  Revision 1.2  2004/02/18 22:00:59  peter
-    * use strlenint instead of longint
-
-  Revision 1.1  2003/04/30 16:36:39  florian
-    + support for generic pchar routines added
-    + some basic rtl stuff for x86-64 added
 }

@@ -20,7 +20,7 @@ Interface
 
 {$goto on}
 
-Const 
+Const
   FileNameLen = 255;
 
 Type
@@ -314,7 +314,7 @@ Begin
       exit;
     end
   else
-    Close(F); 
+    Close(F);
 {$IFDEF IOCHECK}
 {$I+}
 {$UNDEF IOCHECK}
@@ -330,7 +330,7 @@ Begin
     if (p<>nil) and (p^<>nil) then
     begin
       sys_Execve(p^,p,Envp);
-    end;  
+    end;
    {If the execve fails, we return an exitvalue of 127, to let it be known}
      sys_exit(127);
    end
@@ -477,7 +477,7 @@ begin
    fmode:=fmode or readonly;
   FSplit(s,Dir,Name,Ext);
   if Name[1]='.' then
-   fmode:=fmode or hidden;   
+   fmode:=fmode or hidden;
   If ((FMode and Not(f.searchattr))=0) Then
    Begin
      if Ext <> '' then
@@ -566,7 +566,7 @@ Begin
      exit;
    end;
   {We always also search for readonly and archive, regardless of Attr:}
-  f.SearchAttr := Attr or archive or readonly; 	
+  f.SearchAttr := Attr or archive or readonly;
 {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
    begin
@@ -821,83 +821,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.12  2004-12-05 21:04:56  hajny
-    * compilation fix for dosh.inc changes
-
-  Revision 1.11  2004/12/05 20:35:03  hajny
-    * compilation fix for dosh.inc changes
-
-  Revision 1.10  2004/12/05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.9  2004/02/17 17:37:26  daniel
-    * Enable threadvars again
-
-  Revision 1.8  2004/02/16 22:16:57  hajny
-    * LastDosExitCode changed back from threadvar temporarily
-
-  Revision 1.7  2004/02/15 21:26:37  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.6  2004/02/09 12:03:16  michael
-  + Switched to single interface in dosh.inc
-
-  Revision 1.5  2003/12/03 20:53:22  olle
-    * files are not pretended to have attr ARCHIVE anymore
-    * files with attr READONLY and ARCHIVE are always returned by FindFirst etc
-    * made code more conformant with unix/dos.pp
-
-  Revision 1.4  2003/01/08 22:32:28  marco
-   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-      but it could crash hard, since there are lots of unimplemented funcs.
-
-  Revision 1.1.2.14  2001/12/09 03:31:35  carl
-  * Exec() fixed (was full of bugs) : No DosError=2 report fixed, status code error fixed.
-  + MAX_DRIVES constant added
-
-  Revision 1.1.2.13  2001/12/03 03:12:28  carl
-  * update for new posix prototype (caused problem with other OS)
-    readdir / closedir
-
-  Revision 1.1.2.12  2001/09/28 01:11:14  carl
-  * bugfix of pchar move in FSearch() (would give wrong results)
-
-  Revision 1.1.2.11  2001/08/21 10:48:46  carl
-  + add goto on
-
-  Revision 1.1.2.10  2001/08/15 01:04:38  carl
-  * instead include posix unit
-  * corrected bug in DateNum type (should be time_t)
-
-  Revision 1.1.2.9  2001/08/13 09:37:17  carl
-  * changed prototype of sys_readdir
-
-  Revision 1.1.2.8  2001/08/12 15:12:30  carl
-  + added timezone information
-  * bugfix of overflow in conversion of epoch to local
-  * bugfix of index verification in getenv
-
-  Revision 1.1.2.7  2001/08/08 01:58:18  carl
-  * bugfix of problem with FindFirst() / FindNext()
-
-  Revision 1.1.2.5  2001/08/04 05:24:21  carl
-  + implemented FindFirst / FindNext (untested)
-  + Exec()
-  + split
-  + Timezone support reinstated
-
-  Revision 1.1.2.4  2001/07/08 04:46:01  carl
-  * waitpid is now portable
-  + fnmatch()
-
-  Revision 1.1.2.3  2001/07/07 15:42:29  carl
-  * compiler error corrections
-
-  Revision 1.1.2.2  2001/07/07 03:49:53  carl
-  + more POSIX compliance stuff
-
-  Revision 1.1.2.1  2001/07/06 11:21:49  carl
-  + add files for POSIX
-
+  Revision 1.13  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

@@ -1,7 +1,7 @@
 unit libgnomeui;
 
 {off $DEFINE GNOME_EXCLUDE_EXPERIMENTAL}
- 
+
 {$PACKRECORDS C}
 {$mode objfpc}
 

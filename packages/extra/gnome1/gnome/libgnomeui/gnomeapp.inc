@@ -46,11 +46,11 @@ procedure gnome_app_set_toolbar(app:PGnomeApp; toolbar:PGtkToolbar);cdecl;extern
 procedure gnome_app_set_statusbar(app:PGnomeApp; statusbar:PGtkWidget);cdecl;external libgnomeuidll name 'gnome_app_set_statusbar';
 procedure gnome_app_set_statusbar_custom(app:PGnomeApp; container:PGtkWidget; statusbar:PGtkWidget);cdecl;external libgnomeuidll name 'gnome_app_set_statusbar_custom';
 procedure gnome_app_set_contents(app:PGnomeApp; contents:PGtkWidget);cdecl;external libgnomeuidll name 'gnome_app_set_contents';
-procedure gnome_app_add_toolbar(app:PGnomeApp; toolbar:PGtkToolbar; name:Pgchar; behavior:TGnomeDockItemBehavior; placement:TGnomeDockPlacement; 
+procedure gnome_app_add_toolbar(app:PGnomeApp; toolbar:PGtkToolbar; name:Pgchar; behavior:TGnomeDockItemBehavior; placement:TGnomeDockPlacement;
             band_num:gint; band_position:gint; offset:gint);cdecl;external libgnomeuidll name 'gnome_app_add_toolbar';
-procedure gnome_app_add_docked(app:PGnomeApp; widget:PGtkWidget; name:Pgchar; behavior:TGnomeDockItemBehavior; placement:TGnomeDockPlacement; 
+procedure gnome_app_add_docked(app:PGnomeApp; widget:PGtkWidget; name:Pgchar; behavior:TGnomeDockItemBehavior; placement:TGnomeDockPlacement;
             band_num:gint; band_position:gint; offset:gint);cdecl;external libgnomeuidll name 'gnome_app_add_docked';
-procedure gnome_app_add_dock_item(app:PGnomeApp; item:PGnomeDockItem; placement:TGnomeDockPlacement; band_num:gint; band_position:gint; 
+procedure gnome_app_add_dock_item(app:PGnomeApp; item:PGnomeDockItem; placement:TGnomeDockPlacement; band_num:gint; band_position:gint;
             offset:gint);cdecl;external libgnomeuidll name 'gnome_app_add_dock_item';
 procedure gnome_app_enable_layout_config(app:PGnomeApp; enable:gboolean);cdecl;external libgnomeuidll name 'gnome_app_enable_layout_config';
 function gnome_app_get_dock(app:PGnomeApp):PGnomeDock;cdecl;external libgnomeuidll name 'gnome_app_get_dock';

@@ -32,9 +32,9 @@ type
     fBusyTimeout: integer;
     fPMsg: PChar;
     fChangeCount: integer;
- 	fNb_Champ :  Integer; 
-  	fList_FieldName : TStringList;
-  	fList_Field : TList;
+        fNb_Champ :  Integer;
+        fList_FieldName : TStringList;
+        fList_Field : TList;
     procedure SetBusyTimeout(Timeout: integer);
   public
     constructor Create(DBFileName: String);
@@ -57,9 +57,9 @@ type
     property List_FieldName: TStringList read fList_FieldName write fList_FieldName;
     property List_Field: TList read fList_Field write fList_Field;
     property Nb_Champ: integer read fNb_Champ write fNb_Champ;
-    
+
   procedure SQLOnData(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String);
-    
+
   end;
   function Pas2SQLStr(const PasString: string): string;
   function SQL2PasStr(const SQLString: string): string;
@@ -227,48 +227,48 @@ end;
 
 procedure TSQLite.SQLOnData(Sender: TObject; Columns: Integer; ColumnNames, ColumnValues: String);
 Var i : Integer;
-	  InterS,val : String;
-	  Field : TStringList;	
-		  
-	  function Pos1(a: String ; s : char) : integer;
-	  var i,j : Integer;
-	  
-	  begin
-	  j:=-1;
-	  	for i:=1 to length(a) Do
-	  	begin
-	  		if a[i] = s then
-	  		begin
-	  			j:=i;
-	  			break;
-	  		end;
-	  	end;
-	  	result:=j;
-	  end;
+          InterS,val : String;
+          Field : TStringList;
+
+          function Pos1(a: String ; s : char) : integer;
+          var i,j : Integer;
+
+          begin
+          j:=-1;
+                for i:=1 to length(a) Do
+                begin
+                        if a[i] = s then
+                        begin
+                                j:=i;
+                                break;
+                        end;
+                end;
+                result:=j;
+          end;
 begin
-	If Nb_Champ = -1 Then
-  	Begin // Put the fields name in List_FieldName
-  		Nb_Champ:=Columns;
-		InterS:=ColumnNames;
-		While (Pos1(InterS,',') > 0)  do
-		begin
-			val:=copy(InterS,1,Pos1(InterS,',')-1);
-			InterS:=copy(InterS,Pos1(InterS,',')+1,length(InterS)); 
-			List_FieldName.add(val);
-		end;
-		if length(InterS) > 0 then List_FieldName.add(InterS);
-	end;
-	// Put the list of TStringList of value
-	Field :=TStringList.Create;
-	InterS:=ColumnValues;
-	While (Pos1(InterS,',') > 0)  do
-	begin
-		val:=copy(InterS,1,Pos1(InterS,',')-1);
-		InterS:=copy(InterS,Pos1(InterS,',')+1,length(InterS)); 
-		Field.add(val);
-	end;
-	if length(InterS) > 0 then Field.add(InterS);
-	List_Field.add(Field);
+        If Nb_Champ = -1 Then
+        Begin // Put the fields name in List_FieldName
+                Nb_Champ:=Columns;
+                InterS:=ColumnNames;
+                While (Pos1(InterS,',') > 0)  do
+                begin
+                        val:=copy(InterS,1,Pos1(InterS,',')-1);
+                        InterS:=copy(InterS,Pos1(InterS,',')+1,length(InterS));
+                        List_FieldName.add(val);
+                end;
+                if length(InterS) > 0 then List_FieldName.add(InterS);
+        end;
+        // Put the list of TStringList of value
+        Field :=TStringList.Create;
+        InterS:=ColumnValues;
+        While (Pos1(InterS,',') > 0)  do
+        begin
+                val:=copy(InterS,1,Pos1(InterS,',')-1);
+                InterS:=copy(InterS,Pos1(InterS,',')+1,length(InterS));
+                Field.add(val);
+        end;
+        if length(InterS) > 0 then Field.add(InterS);
+        List_Field.add(Field);
 end;
 
 constructor TSQLite.Create(DBFileName: String);
@@ -287,7 +287,7 @@ begin
   fOnBusy := nil;
   fOnQueryComplete := nil;
   fChangeCount := 0;
-   name:=StrAlloc (length(DBFileName)+1);  
+   name:=StrAlloc (length(DBFileName)+1);
    strpcopy(name,DBFileName);
    OnData:=@SQLOnData;
     fSQLite := SQLite_Open(name, 1, @fPMsg);
@@ -315,8 +315,8 @@ begin
   fOnQueryComplete := nil;
   fLstName := nil;
   fLstVal := nil;
-  List_FieldName.destroy; 
-  List_Field.destroy; 
+  List_FieldName.destroy;
+  List_Field.destroy;
   inherited Destroy;
 end;
 
@@ -333,7 +333,7 @@ begin
     fTable := Table;
     if fTable <> nil then
       fTable.Clear;
-   Psql:=StrAlloc (length(Sql)+1);  
+   Psql:=StrAlloc (length(Sql)+1);
    strpcopy(Psql,Sql);
    List_FieldName.clear;
    List_Field.clear;
@@ -395,7 +395,7 @@ end;
 function TSQLite.IsComplete(Sql: String): boolean;
 var Psql : pchar;
 begin
-  Psql:=StrAlloc (length(Sql)+1);  
+  Psql:=StrAlloc (length(Sql)+1);
   strpcopy(Psql,Sql);
   Writeln('Testing: ',psql);
   Result := SQLite_Complete(Psql)<>0;

@@ -915,22 +915,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2004-06-20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.63  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.62  2004/05/24 20:39:41  florian
-    * stricter handling of formal const parameters and IE fixed
-
-  Revision 1.61  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.60.2.2  2004/05/30 10:45:50  peter
-    * merged fixes from main branch
-
-  Revision 1.62  2004/05/24 20:39:41  florian
-    * stricter handling of formal const parameters and IE fixed
+  Revision 1.65  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

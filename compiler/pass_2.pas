@@ -215,11 +215,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2004-06-20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.75  2004/05/23 15:06:21  peter
-    * implicit_finally flag must be set in pass1
-    * add check whether the implicit frame is generated when expected
+  Revision 1.77  2005-02-14 17:13:07  peter
+    * truncate log
 
 }

@@ -8,7 +8,7 @@ Var C : PUnsortedStrCollection;
     S : String;
     I : longint;
     P : Pchar;
-    
+
 begin
   Randomize;
   C:=New(PUnsortedStrCollection,Init(120,10));

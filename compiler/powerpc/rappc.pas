@@ -42,7 +42,7 @@ unit rappc;
 end.
 {
   $Log$
-  Revision 1.4  2004-06-20 08:55:32  florian
-    * logs truncated
+  Revision 1.5  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

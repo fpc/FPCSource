@@ -171,7 +171,7 @@ type
 
 type
   AttnCallbackProc = function(command: AttnCommandType; userData: UInt32; var commandArgsP: AttnCommandArgsType): Err;
-  
+
 // These details go with the sysNotifyGotUsersAttention notification.
 type
   AttnNotifyDetailsType = record

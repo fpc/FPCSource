@@ -5,7 +5,7 @@ type
    TGnomeMDIChildMenuCreator = Function : PGList; cdecl;
    TGnomeMDIChildConfigFunc = Function : Pgchar; cdecl;
    TGnomeMDIChildLabelFunc = Function : PGtkWidget; cdecl;
-   
+
    PGnomeMDIChild = ^TGnomeMDIChild;
    TGnomeMDIChild = record
         theobject : TGtkObject;

@@ -834,27 +834,7 @@ end;}
 
 {
   $Log$
-  Revision 1.2  2004-12-27 13:53:27  michael
-  + Patch for localization of string properties
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.8  2003/08/16 15:50:47  michael
-  + Fix from Mattias gaertner for IDE support
-
-  Revision 1.7  2002/09/20 09:28:11  michael
-  Fix from mattias gaertner
-
-  Revision 1.6  2002/09/07 15:15:26  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/09/04 13:33:58  michael
-   Fix from Mattias Gaertner, boolean streaming now respects default
-
-  Revision 1.4  2002/09/03 06:02:57  michael
-  + Applied patch from Matthias Gaertner to stream booleans
+  Revision 1.3  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

@@ -23,7 +23,7 @@ const
    * Exported functions of libpq
    * ----------------
     }
-  { ===	in fe-connect.c ===  }
+  { === in fe-connect.c ===  }
   { make a new client connection to the backend  }
   { Asynchronous (non-blocking)  }
 (* Const before type ignored *)
@@ -41,7 +41,7 @@ const
 
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
   function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
 
   { close the current connection and free the PGconn data structure  }
@@ -230,7 +230,7 @@ const
   { Exists for backward compatibility.  bjm 2003-03-24  }
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
 //  function PQfreeNotify(ptr : longint) : longint;
 
   {
@@ -257,7 +257,7 @@ const
   { pad the fields with spaces  }
   { field separator  }
   { display headers?  }
-  procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:Pchar; printHeader:longint; 
+  procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:Pchar; printHeader:longint;
               quiet:longint);cdecl;external External_library name 'PQdisplayTuples';
 
 (* Const before type ignored *)
@@ -267,7 +267,7 @@ const
   procedure PQprintTuples(res:PPGresult; fout:PFILE; printAttName:longint; terseOutput:longint; width:longint);cdecl;external External_library name 'PQprintTuples';
 
   { width of column, if 0, use variable
-  								 * width  }
+                                                                 * width  }
   { === in fe-lobj.c ===  }
   { Large-object access routines  }
   function lo_open(conn:PPGconn; lobjId:Oid; mode:longint):longint;cdecl;external External_library name 'lo_open';
@@ -301,7 +301,7 @@ implementation
 
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
 
 // This function is also defined in postgres3dyn!
 
@@ -312,7 +312,7 @@ implementation
 
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
-  { return type might be wrong }   
+  { return type might be wrong }
 {  function PQfreeNotify(ptr : longint) : longint;
     begin
        PQfreeNotify:=PQfreemem(ptr);

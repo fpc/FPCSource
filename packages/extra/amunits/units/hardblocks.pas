@@ -18,22 +18,22 @@ unit hardblocks;
 
 {
     History:
-    
+
     Updated for AmigaOs 3.9.
     A few changes in records.
     28 Jan 2003.
 
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
-    
+
 INTERFACE
 
 uses exec;
 
-{	Changes
-**	  Expanded envec
-**	  Added storage for driveinit name up to 31 letters.
-**	  Added storage for filesysten name up to 83 letters.
+{       Changes
+**        Expanded envec
+**        Added storage for driveinit name up to 31 letters.
+**        Added storage for filesysten name up to 83 letters.
 **}
 
 
@@ -57,18 +57,18 @@ uses exec;
  *      file system load images, drive bad block maps, spare blocks,
  *      etc.
  *
- *	Though all descriptions in this file contemplate 512 blocks
- *	per track this desecription works functionally with any block
- *	size. The LSEG blocks should make most efficient use of the
- *	disk block size possible, for example. While this specification
- *	can support 256 byte sectors that is deprecated at this time.
+ *      Though all descriptions in this file contemplate 512 blocks
+ *      per track this desecription works functionally with any block
+ *      size. The LSEG blocks should make most efficient use of the
+ *      disk block size possible, for example. While this specification
+ *      can support 256 byte sectors that is deprecated at this time.
  *
- *	This version adds some modest storage spaces for inserting
- *	the actual source filename for files installed on the RDBs
- *	as either DriveInit code or Filesystem code. This makes
- *	creating a mountfile suitable for use with the "C:Mount"
- *	command that can be used for manually mounting the disk if
- *	ever required.
+ *      This version adds some modest storage spaces for inserting
+ *      the actual source filename for files installed on the RDBs
+ *      as either DriveInit code or Filesystem code. This makes
+ *      creating a mountfile suitable for use with the "C:Mount"
+ *      command that can be used for manually mounting the disk if
+ *      ever required.
  *
  *
  *------------------------------------------------------------------}

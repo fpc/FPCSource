@@ -7,8 +7,8 @@ Uses Objects;
 Var L : String;
     Marker : Word;
     P : PString;
-    S : PDosStream; 
-    
+    S : PDosStream;
+
 begin
   L:='Some constant string';
   { Buffer size of 100 }

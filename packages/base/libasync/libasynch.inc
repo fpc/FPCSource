@@ -65,9 +65,9 @@ function asyncGetTicks: Int64; cdecl;
 function asyncAddTimer(
   Handle: TAsyncHandle;
   MSec: LongInt;
-  Periodic: Boolean;		// False = One-shot timer, True = Periodic timer
+  Periodic: Boolean;            // False = One-shot timer, True = Periodic timer
   Callback: TAsyncCallback;
-  UserData: Pointer		// User data for callback
+  UserData: Pointer             // User data for callback
   ): TAsyncTimer; cdecl;
 
 procedure asyncRemoveTimer(
@@ -110,7 +110,7 @@ procedure asyncClearCanWriteCallback(
 
 {
   $Log$
-  Revision 1.1  2002-09-25 21:53:39  sg
-  * Split in common implementation an platform dependent implementation
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

@@ -612,52 +612,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.27  2004-12-22 16:32:45  peter
-    * maybequoted() added
-
-  Revision 1.26  2004/11/19 16:30:24  peter
-    * fixed setting of mangledname when importing
-
-  Revision 1.25  2004/11/19 14:21:44  marco
-   * cycle fix.
-
-  Revision 1.24  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.23  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.22  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.21  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.19  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.18  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.17  2004/06/08 17:14:49  jonas
-    * use -x instead of -s for stripping under Mac OS X (-s strips too much
-      sometimes)
-
-  Revision 1.16  2004/06/02 07:03:49  jonas
-    - disabled automatic adding of libraries from "external lib name 'xxx'"
-      for now (until we have proper framework support)
-
-  Revision 1.15  2004/05/31 18:08:41  jonas
-    * changed calling of external procedures to be the same as under gcc
-      (don't worry about all the generated stubs, they're optimized away
-       by the linker)
-      -> side effect: no need anymore to use special declarations for
-         external C functions under Darwin compared to other platforms
-         (it's still necessary for variables though)
-
-  Revision 1.14.2.7  2004/05/18 19:30:28  marco
-   * duplicate entry removed
+  Revision 1.28  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -187,10 +187,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.1  2002/01/06 21:54:49  peter
-    * action classes added
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

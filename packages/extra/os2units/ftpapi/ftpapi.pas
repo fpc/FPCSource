@@ -1183,14 +1183,7 @@ End.
 
 {
   $Log$
-  Revision 1.3  2004-11-28 16:16:25  hajny
-    * workaround for IE200411171
-
-  Revision 1.2  2002/10/25 06:53:51  hajny
-    * ftpapi corrections
-
-  Revision 1.1  2002/10/21 21:43:08  hajny
-    + ftpapi interface unit added
-
+  Revision 1.4  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

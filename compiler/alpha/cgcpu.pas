@@ -161,10 +161,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.4  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
+  Revision 1.6  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

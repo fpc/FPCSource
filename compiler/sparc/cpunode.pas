@@ -39,20 +39,11 @@ implementation
 end.
 {
     $Log$
-    Revision 1.12  2005-01-24 22:08:33  peter
+    Revision 1.13  2005-02-14 17:13:10  peter
+      * truncate log
+
+    Revision 1.12  2005/01/24 22:08:33  peter
       * interface wrapper generation moved to cgobj
       * generate interface wrappers after the module is parsed
-
-    Revision 1.11  2004/10/30 22:01:11  florian
-      * jmp table code generation for case statement on sparc
-
-    Revision 1.10  2004/06/20 08:55:32  florian
-      * logs truncated
-
-    Revision 1.9  2004/06/16 20:07:10  florian
-      * dwarf branch merged
-
-    Revision 1.8.2.1  2004/05/13 20:10:38  florian
-      * released variant and interface support
 
 }

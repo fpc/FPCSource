@@ -58,7 +58,7 @@ Type
   TTextLineBreakStyle = (tlbsLF, tlbsCRLF,tlbsCR);   // Must move to system unit, and add Mac tlbsCR too ?
 
 Const
-  DefaultTextLineBreakStyle: TTextLineBreakStyle = 
+  DefaultTextLineBreakStyle: TTextLineBreakStyle =
     {$ifdef unix} tlbsLF {$else} {$ifdef macos} tlbsCR {$else} tlbsCRLF {$endif} {$endif} ;
 
 
@@ -202,7 +202,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.14  2005-02-06 09:38:45  florian
+  Revision 1.15  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.14  2005/02/06 09:38:45  florian
     +  StrCharLength infrastructure
 
   Revision 1.13  2005/01/17 18:38:48  peter
@@ -210,82 +213,5 @@ function BCDToInt(Value: integer): integer;
 
   Revision 1.12  2005/01/16 17:53:27  michael
   + Patch from Colin Western to implemenet TryStrToFLoat
-
-  Revision 1.11  2004/12/19 17:55:38  michael
-  + Implemented wraptext
-
-  Revision 1.10  2004/11/16 18:30:36  marco
-   * updated ansiexctractquotedstring (more delphi compat, both interface and code)
-
-  Revision 1.9  2004/08/30 13:07:03  michael
-  + Added MACOS linebreakstyle (tlbsCR)
-
-  Revision 1.8  2004/08/07 16:56:28  florian
-    + TryStrToInt* added
-
-  Revision 1.7  2004/06/20 20:42:37  florian
-    * fixed bootstrapping problems
-
-  Revision 1.6  2004/06/13 10:49:50  florian
-    * fixed some bootstrapping problems as well as some 64 bit stuff
-
-  Revision 1.5  2004/06/12 13:23:17  michael
-  + Fixed currency<->string conversion support
-
-  Revision 1.4  2004/02/26 08:46:21  michael
-  + Added AnsiSameStr
-
-  Revision 1.3  2003/11/26 22:17:42  michael
-  + Merged fixbranch fixes, missing in main branch
-
-  Revision 1.2  2003/10/07 12:02:47  marco
-   * sametext and ansisametext added. (simple (ansi)comparetext wrappers)
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.17  2003/09/06 21:22:08  marco
-   * More objpas fixes
-
-  Revision 1.16  2002/12/24 23:33:37  peter
-    * export StrToFloatDef
-
-  Revision 1.15  2002/12/23 23:12:34  florian
-    + TextToFloat: D6 compatibility added
-
-  Revision 1.14  2002/11/28 22:26:30  michael
-  + Fixed float<>string conversion routines
-
-  Revision 1.13  2002/11/28 20:29:26  michael
-  + made it compile again
-
-  Revision 1.12  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-  Revision 1.1.2.6  2002/11/28 22:25:01  michael
-  + Fixed float<>string conversion routines
-
-  Revision 1.1.2.5  2002/11/28 20:24:12  michael
-  + merged some fixes from mainbranch
-
-  Revision 1.1.2.4  2002/10/29 23:41:06  michael
-  + Added lots of D4 functions
-
-  Revision 1.11  2002/01/24 18:33:58  peter
-    * overload for lowercase()
-
-  Revision 1.10  2002/01/24 12:33:54  jonas
-    * adapted ranges of native types to int64 (e.g. high cardinal is no
-      longer longint($ffffffff), but just $fffffff in psystem)
-    * small additional fix in 64bit rangecheck code generation for 32 bit
-      processors
-    * adaption of ranges required the matching talgorithm used for selecting
-      which overloaded procedure to call to be adapted. It should now always
-      select the closest match for ordinal parameters.
-    + inttostr(qword) in sysstr.inc/sysstrh.inc
-    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
-      fixes were required to be able to add them)
-    * is_in_limit() moved from ncal to types unit, should always be used
-      instead of direct comparisons of low/high values of orddefs because
-      qword is a special case
 
 }

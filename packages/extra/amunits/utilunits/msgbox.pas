@@ -15,12 +15,12 @@
  **********************************************************************}
 {
     History:
-    
+
     Added the define use_amiga_smartlink.
     13 Jan 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
-}    
+}
 
 {$I useamigasmartlink.inc}
 {$ifdef use_amiga_smartlink}
@@ -85,13 +85,9 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-01-13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+

@@ -7,7 +7,7 @@ Uses objects;
 
 Var ARect,BRect : TRect;
     P : TPoint;
-    
+
 begin
   With ARect.A do
     begin

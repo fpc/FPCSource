@@ -16,7 +16,7 @@
  * History:
  *    6/15/98  JED - Created by Jesse Donaldson
  *    12/23/99 jmp - Fix <> vs. "" problem.
- *    10/19/00 PPL - Change cncNotifyCurrentConfigurationChange 'conf' 
+ *    10/19/00 PPL - Change cncNotifyCurrentConfigurationChange 'conf'
  *                   to cncNotifyProfileEvent 'cncp'
  *
  *****************************************************************************)
@@ -40,7 +40,7 @@ type
 type
   SysNotifyProc = function (var notifyParamsP: SysNotifyParamType): Err;
   SysNotifyProcPtr = SysNotifyProc;
-  
+
 const
   sysNotifyNormalPriority   = 0;              // clients should use this priority
 

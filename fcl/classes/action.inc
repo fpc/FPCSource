@@ -187,12 +187,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.1  2002/01/06 21:54:49  peter
-    * action classes added
+  Revision 1.2  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

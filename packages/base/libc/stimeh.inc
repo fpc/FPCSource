@@ -9,11 +9,11 @@ var
 
 Type
   timezone = record
-    tz_minuteswest: Integer; 
-    tz_dsttime: Integer;    
+    tz_minuteswest: Integer;
+    tz_dsttime: Integer;
   end;
   ptimezone = ^timezone;
-              
+
   P__timezone_ptr_t = ^__timezone_ptr_t;
   __timezone_ptr_t = ^timezone;
 
@@ -27,7 +27,7 @@ Type
    ITIMER_VIRTUAL := 1,
    ITIMER_PROF := 2
   );
-                                     
+
   Pitimerval = ^itimerval;
   itimerval = record
     it_interval : timeval;
@@ -58,7 +58,7 @@ function timersub(const a, b: TTimeVal): TTimeVal;
 
 type
   TTimeZone = timezone;
-  
+
   TAccessModificationTimes = record
     AccessTime: TTimeVal;
     ModificationTime: TTimeVal;
@@ -67,8 +67,8 @@ type
 
   TIntervalTimerValue = itimerval;
   PIntervalTimerValue = ^TIntervalTimerValue;
-    
-      
+
+
 function utimes(__file: PChar; const AccessModTimes: TAccessModificationTimes):longint;cdecl;external clib name 'utimes';
 function gettimeofday(var __tv:timeval; __tz:__timezone_ptr_t):longint;cdecl;external clib name 'gettimeofday';
 function settimeofday(const __tv: timeval; __tz:Ptimezone):longint;cdecl;external clib name 'settimeofday';
@@ -76,4 +76,4 @@ function settimeofday(const __tv: timeval; const __tz:timezone):longint;cdecl;ex
 function adjtime(const __delta: timeval; var __olddelta:timeval):longint;cdecl;external clib name 'adjtime';
 function adjtime(const __delta: timeval;  __olddelta:ptimeval):longint;cdecl;external clib name 'adjtime';
 
-            
+

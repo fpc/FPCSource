@@ -35,7 +35,7 @@ Const
   BoolVal     = False;
   StringVal   = 'This is a normal string';
   SExpandVal  = 'This is an expand string: "%SystemDir%"';
-  
+
 Var
   I: Integer;
   SubKey: String;
@@ -46,20 +46,20 @@ Var
   BinData: Array [0..15] of Byte;
   D : TDateTime;
   DateVal,TimeVal,DateTimeVal : TDateTime;
-  
+
 Begin
   With TRegistry.Create do
     Try
       RootKey := HKEY_CURRENT_USER;
       SubKey := '\Software\FPC\testreg';
       CreateKey(SubKey);
-      If Not OpenKey(SubKey,False) then 
+      If Not OpenKey(SubKey,False) then
         Writeln('Could not open key: ',SubKey)
-      else  
+      else
         begin
         Writeln('Writing data');
         WriteInteger(SInteger, IntVal);
-        For I:= 0 To 15 Do 
+        For I:= 0 To 15 Do
           BinData[I] := I;
         WriteBinaryData(SBinaryData,BinData,SizeOf(BinData));
         WriteBool(SBoolean, BoolVal);
@@ -77,21 +77,21 @@ Begin
         I:=ReadInteger(Sinteger);
         If (I<>IntVal) then
           Writeln('Read Integer differs: ',I);
-        FillChar(BinData,SizeOf(Bindata),0);  
+        FillChar(BinData,SizeOf(Bindata),0);
         I:=GetDataSize(SBinaryData);
         If I<>16 then
           Writeln('Size Binary Data differs: ',I)
         else
           begin
           ReadBinaryData(SBinaryData, BinData,I);
-          For I:=0 to 15 do 
+          For I:=0 to 15 do
             If BinData[i]<>I then
               Write('Binary Data byte ',i,' differs : ',BinData[i]);
           end;
         B:=ReadBool(SBoolean);
         If (B<>BoolVal) then
           Writeln('Boolean value differs : ',B);
-        C:=ReadCurrency(SCurrency);  
+        C:=ReadCurrency(SCurrency);
         If (C<>CurrencyVal) then
            Writeln('Currency value differs: ', C);
         S:=ReadString(SString);
@@ -113,10 +113,10 @@ Begin
          Writeln('Error: could not delete float value');
        CloseKey;
        SubKey:='\Software\fpc\testreg2';
-       Createkey(SubKey);  
+       Createkey(SubKey);
        If Not DeleteKey(SubKey) Then
          Writeln('Error: could not delete key',subkey);
-       end;  
+       end;
     Finally
       CloseKey;
       free;

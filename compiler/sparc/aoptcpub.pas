@@ -122,11 +122,7 @@ End.
 
 {
  $Log$
- Revision 1.1  2004-10-30 15:21:38  florian
-   * fixed generic optimizer
-   * enabled generic optimizer for sparc
-
- Revision 1.6  2004/06/20 08:55:31  florian
-   * logs truncated
+ Revision 1.2  2005-02-14 17:13:10  peter
+   * truncate log
 
 }

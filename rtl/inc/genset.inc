@@ -270,11 +270,8 @@ procedure do_unset_byte(p : pointer;b : byte);[public,alias:'FPC_SET_UNSET_BYTE'
 
 {
   $Log$
-  Revision 1.8  2004-10-24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.7  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:22  peter
+    * truncate log
 
 }
 

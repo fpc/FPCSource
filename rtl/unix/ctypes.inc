@@ -69,37 +69,14 @@ Type
 
 {
    $Log$
-   Revision 1.1  2005-02-13 22:14:36  peter
+   Revision 1.2  2005-02-14 17:13:31  peter
+     * truncate log
+
+   Revision 1.1  2005/02/13 22:14:36  peter
      * new files
 
    Revision 1.6  2005/02/05 23:02:37  florian
      + added some missing c types
-
-   Revision 1.5  2004/09/09 20:29:06  jonas
-     * fixed definition of pthread_mutex_t for non-linux targets (and for
-       linux as well, actually).
-     * base libpthread definitions are now in ptypes.inc, included in unixtype
-       They sometimes have an extra underscore in front of their name, in
-       case they were also exported by the packages/base/pthreads unit, so
-       they can keep their original name there
-     * cthreadds unit now imports systuils, because it uses exceptions (it
-       already did so before as well)
-     * fixed many linux definitions of libpthread functions in pthrlinux.inc
-       (integer -> cint etc)
-     + added culonglong type to ctype.inc
-
-   Revision 1.4  2004/04/26 16:53:19  peter
-     * use cpu64
-
-   Revision 1.3  2003/09/16 21:20:40  marco
-    * pointer's of some basetypes
-
-   Revision 1.2  2002/12/18 16:43:26  marco
-    * new unix rtl, linux part.....
-
-   Revision 1.1  2002/11/09 22:39:28  marco
-    * first version
-
 
 }
 

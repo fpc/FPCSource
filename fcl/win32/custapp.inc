@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Linux version of custom app object routines.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -31,7 +31,7 @@ begin
     begin
     s:=strpas(hp);
     l:=Length(s);
-    If NamesOnly then 
+    If NamesOnly then
       begin
       I:=pos('=',s);
       If (I>0) then

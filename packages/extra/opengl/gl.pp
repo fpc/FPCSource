@@ -372,26 +372,26 @@ const
   GL_DOMAIN                         = $0A02;
 
   // GetPixelMap
-  //      GL_PIXEL_MAP_I_TO_I 
-  //      GL_PIXEL_MAP_S_TO_S 
-  //      GL_PIXEL_MAP_I_TO_R 
-  //      GL_PIXEL_MAP_I_TO_G 
-  //      GL_PIXEL_MAP_I_TO_B 
+  //      GL_PIXEL_MAP_I_TO_I
+  //      GL_PIXEL_MAP_S_TO_S
+  //      GL_PIXEL_MAP_I_TO_R
+  //      GL_PIXEL_MAP_I_TO_G
+  //      GL_PIXEL_MAP_I_TO_B
   //      GL_PIXEL_MAP_I_TO_A
   //      GL_PIXEL_MAP_R_TO_R
-  //      GL_PIXEL_MAP_G_TO_G 
-  //      GL_PIXEL_MAP_B_TO_B 
-  //      GL_PIXEL_MAP_A_TO_A 
+  //      GL_PIXEL_MAP_G_TO_G
+  //      GL_PIXEL_MAP_B_TO_B
+  //      GL_PIXEL_MAP_A_TO_A
 
-  // GetPointerTarget 
-  //      GL_VERTEX_ARRAY_POINTER 
-  //      GL_NORMAL_ARRAY_POINTER 
-  //      GL_COLOR_ARRAY_POINTER 
-  //      GL_INDEX_ARRAY_POINTER 
-  //      GL_TEXTURE_COORD_ARRAY_POINTER 
-  //      GL_EDGE_FLAG_ARRAY_POINTER 
+  // GetPointerTarget
+  //      GL_VERTEX_ARRAY_POINTER
+  //      GL_NORMAL_ARRAY_POINTER
+  //      GL_COLOR_ARRAY_POINTER
+  //      GL_INDEX_ARRAY_POINTER
+  //      GL_TEXTURE_COORD_ARRAY_POINTER
+  //      GL_EDGE_FLAG_ARRAY_POINTER
 
-  // GetTarget 
+  // GetTarget
   GL_CURRENT_COLOR                  = $0B00;
   GL_CURRENT_INDEX                  = $0B01;
   GL_CURRENT_NORMAL                 = $0B02;
@@ -602,33 +602,33 @@ const
   GL_SELECTION_BUFFER_POINTER       = $0DF3;
   GL_SELECTION_BUFFER_SIZE          = $0DF4;
   //      GL_TEXTURE_BINDING_1D
-  //      GL_TEXTURE_BINDING_2D 
-  //      GL_VERTEX_ARRAY 
-  //      GL_NORMAL_ARRAY 
-  //      GL_COLOR_ARRAY 
-  //      GL_INDEX_ARRAY 
-  //      GL_TEXTURE_COORD_ARRAY 
+  //      GL_TEXTURE_BINDING_2D
+  //      GL_VERTEX_ARRAY
+  //      GL_NORMAL_ARRAY
+  //      GL_COLOR_ARRAY
+  //      GL_INDEX_ARRAY
+  //      GL_TEXTURE_COORD_ARRAY
   //      GL_EDGE_FLAG_ARRAY
   //      GL_VERTEX_ARRAY_SIZE
-  //      GL_VERTEX_ARRAY_TYPE 
-  //      GL_VERTEX_ARRAY_STRIDE 
-  //      GL_NORMAL_ARRAY_TYPE 
-  //      GL_NORMAL_ARRAY_STRIDE 
-  //      GL_COLOR_ARRAY_SIZE 
-  //      GL_COLOR_ARRAY_TYPE 
-  //      GL_COLOR_ARRAY_STRIDE 
-  //      GL_INDEX_ARRAY_TYPE 
-  //      GL_INDEX_ARRAY_STRIDE 
-  //      GL_TEXTURE_COORD_ARRAY_SIZE 
-  //      GL_TEXTURE_COORD_ARRAY_TYPE 
-  //      GL_TEXTURE_COORD_ARRAY_STRIDE 
-  //      GL_EDGE_FLAG_ARRAY_STRIDE 
-  //      GL_POLYGON_OFFSET_FACTOR 
-  //      GL_POLYGON_OFFSET_UNITS 
+  //      GL_VERTEX_ARRAY_TYPE
+  //      GL_VERTEX_ARRAY_STRIDE
+  //      GL_NORMAL_ARRAY_TYPE
+  //      GL_NORMAL_ARRAY_STRIDE
+  //      GL_COLOR_ARRAY_SIZE
+  //      GL_COLOR_ARRAY_TYPE
+  //      GL_COLOR_ARRAY_STRIDE
+  //      GL_INDEX_ARRAY_TYPE
+  //      GL_INDEX_ARRAY_STRIDE
+  //      GL_TEXTURE_COORD_ARRAY_SIZE
+  //      GL_TEXTURE_COORD_ARRAY_TYPE
+  //      GL_TEXTURE_COORD_ARRAY_STRIDE
+  //      GL_EDGE_FLAG_ARRAY_STRIDE
+  //      GL_POLYGON_OFFSET_FACTOR
+  //      GL_POLYGON_OFFSET_UNITS
 
-  // GetTextureParameter 
-  //      GL_TEXTURE_MAG_FILTER 
-  //      GL_TEXTURE_MIN_FILTER 
+  // GetTextureParameter
+  //      GL_TEXTURE_MAG_FILTER
+  //      GL_TEXTURE_MIN_FILTER
   //      GL_TEXTURE_WRAP_S
   //      GL_TEXTURE_WRAP_T
   GL_TEXTURE_WIDTH                  = $1000;
@@ -1132,7 +1132,7 @@ const
   GL_EDGE_FLAG_ARRAY_POINTER_EXT    = $8093;
   GL_DOUBLE_EXT                     = GL_DOUBLE;
 
-  // EXT_bgra 
+  // EXT_bgra
   GL_BGR_EXT                        = $80E0;
   GL_BGRA_EXT                       = $80E1;
 

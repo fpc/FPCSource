@@ -7,7 +7,7 @@ procedure dojmp(var env : jmp_buf; value : longint);
 begin
   value:=2;
   Writeln ('Going to jump !');
-  { This will return to the setjmp call, 
+  { This will return to the setjmp call,
     and return value instead of 0 }
   longjmp(env,value);
 end;

@@ -13,7 +13,7 @@ program gttest;
 
     Updated to use fpc 1.0.7
     07 Jan 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -108,5 +108,5 @@ end.
   $Log
 }
 
-  
+
 

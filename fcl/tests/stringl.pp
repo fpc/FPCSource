@@ -74,7 +74,7 @@ begin
   test;
   Writeln ('Lost ',Data-Memavail);
 end.  $Log$
-end.  Revision 1.3  2002-09-07 15:15:28  peter
-end.    * old logs removed and tabs fixed
+end.  Revision 1.4  2005-02-14 17:13:18  peter
+end.    * truncate log
 end.
 }

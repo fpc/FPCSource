@@ -158,8 +158,8 @@ begin
 
       EndGroup;
 
-      EndProject;                       
-   
+      EndProject;
+
 
     i := TR_AutoRequest(Triton_App,NIL,@tritontags);
     CleanUp('',0);

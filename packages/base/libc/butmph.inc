@@ -33,7 +33,7 @@ type
         __unused : array[0..19] of char;
      end;
    PPutmp = ^Putmp;
-   
+
 const
    EMPTY = 0;
    RUN_LVL = 1;
@@ -56,6 +56,6 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TUserTmp = utmp;
   PUserTmp = ^TUserTmp;

@@ -507,37 +507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.37  2005-02-13 18:55:19  florian
+  Revision 1.38  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.37  2005/02/13 18:55:19  florian
     + overflow checking for the arm
-
-  Revision 1.36  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.35  2004/10/24 17:32:53  florian
-    * fixed several arm compiler bugs
-
-  Revision 1.34  2004/07/04 15:22:34  florian
-    * fixed float spilling to use sfm/lfm instead of stf/ldf
-
-  Revision 1.33  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.32  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.31.2.2  2004/06/13 10:51:17  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.31.2.1  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.31  2004/03/29 19:19:35  florian
-    + arm floating point register saving implemented
-    * hopefully stabs generation for MacOSX fixed
-    + some defines for arm added
-
-  Revision 1.30  2004/03/15 22:20:13  florian
-    * handling of spilling improved
 
 }

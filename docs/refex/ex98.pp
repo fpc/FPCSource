@@ -14,7 +14,7 @@ begin
 end;
 
 begin
-  OldExitProc:=ExitProc;  
+  OldExitProc:=ExitProc;
   ExitProc:=@MyExit;
   If ParamCount>0 Then
     Halt(66);

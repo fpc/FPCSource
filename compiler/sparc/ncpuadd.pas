@@ -377,42 +377,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.27  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.26  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.25.4.1  2004/09/19 18:08:30  peter
-    * int64 compare fixed
-
-  Revision 1.25  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.24  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.23.2.3  2004/06/02 16:07:52  peter
-    * fixed 64bit compare
-
-  Revision 1.23.2.2  2004/05/31 16:39:42  peter
-    * add ungetiftemp in a few locations
-
-  Revision 1.23.2.1  2004/05/30 17:54:14  florian
-    + implemented cmp64bit
-    * started to fix spilling
-    * fixed int64 sub partially
-
-  Revision 1.23  2004/01/12 22:11:39  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
+  Revision 1.29  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

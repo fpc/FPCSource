@@ -107,7 +107,7 @@ type
 
   public
     destructor Destroy; override;
-    procedure Run;		// Process as many lines as possible
+    procedure Run;              // Process as many lines as possible
 
     property Buffer: PChar read FBuffer;
     property BytesInBuffer: Integer read FBytesInBuffer;
@@ -130,7 +130,7 @@ type
     constructor Create(AEventLoop: TEventLoop; ADataStream: TStream;
       ABlockingStream: THandleStream);
     destructor Destroy; override;
-    procedure StopAndFree;	// Destroy instance after run
+    procedure StopAndFree;      // Destroy instance after run
 
     property EventLoop: TEventLoop read FEventLoop;
     property DataStream: TStream read FDataStream;
@@ -190,7 +190,7 @@ type
     constructor Create(AEventLoop: TEventLoop;
       ADataStream: TStream; ABlockingStream: THandleStream);
     destructor Destroy; override;
-    procedure StopAndFree;	// Destroy instance after run
+    procedure StopAndFree;      // Destroy instance after run
 
     property EventLoop: TEventLoop read FEventLoop;
     property DataStream: TStream read FDataStream;
@@ -549,18 +549,18 @@ begin
         LastEndOfLine := i + 1;
 
         if Assigned(FOnLine) then
-	begin
+        begin
           FBuffer := RealBuffer + LastEndOfLine;
           FBytesInBuffer := CurBytesInBuffer - LastEndOfLine;
-	  InCallback := True;
-	  try
+          InCallback := True;
+          try
             FOnLine(line);
-	  finally
-	    InCallback := False;
-	  end;
+          finally
+            InCallback := False;
+          end;
           // Check if <this> has been destroyed by FOnLine:
           if DoStopAndFree then
-	    exit;
+            exit;
         end;
       end;
       Inc(i);
@@ -859,37 +859,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-02-02 16:50:44  sg
-  * Destroying a line reader or write buffer now works within an event
-    handler of these classes
-
-  Revision 1.5  2003/11/22 11:46:40  sg
-  * Removed TAsyncWriteStream.BufferEmpty (not needed anymore)
-
-  Revision 1.4  2003/08/03 21:18:40  sg
-  * Added TWriteBuffer.OnBufferSent and made this and OnBufferEmpty
-    working correctly
-
-  Revision 1.3  2003/06/25 08:41:01  sg
-  * Fixed serious bug in TGenericLineReader: When the reader gets killed
-    via StopAndFree during an OnLine callback, the reader now will
-    immediately stop reading, so that the owner of the reader can process
-    the remaining buffer
-
-  Revision 1.2  2002/04/25 19:12:27  sg
-  * Added ability to write all write buffer data to an debug stream
-  * Added TAsyncWriteStream.StopAndFree
-
-  Revision 1.1  2003/03/17 22:25:32  michael
-  + Async moved from package to FCL
-
-  Revision 1.3  2002/09/15 15:45:38  sg
-  * Added stream line reader classes
-
-  Revision 1.2  2002/09/07 15:42:57  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:55:02  peter
-    * splitted to base and extra
+  Revision 1.7  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

@@ -455,7 +455,7 @@ uses
 {$else}
 {$ifdef KYLIX}
   Libc,
-{$endif}  
+{$endif}
   Types,
   Dbf_Wtil,
 {$endif}
@@ -1123,8 +1123,8 @@ begin
   FreeAndNil(FDbfFile);
 
   // does file not exist? -> create
-  if ((FStorage = stoFile) and 
-        not FileExists(FAbsolutePath + FTableName) and 
+  if ((FStorage = stoFile) and
+        not FileExists(FAbsolutePath + FTableName) and
         (FOpenMode in [omAutoCreate, omTemporary])) or
      ((FStorage = stoMemory) and (FUserStream = nil)) then
   begin
@@ -1142,10 +1142,10 @@ begin
   FDbfFile.Open;
 
   // fail open?
-{$ifndef FPC}  
+{$ifndef FPC}
   if FDbfFile.ForceClose then
     Abort;
-{$endif}    
+{$endif}
 
   // determine dbf version
   case FDbfFile.DbfVersion of
@@ -1819,11 +1819,11 @@ begin
   // check if in editing mode if user wants to write
   if (Mode = bmWrite) or (Mode = bmReadWrite) then
     if not (State in [dsEdit, dsInsert]) then
-{$ifdef DELPHI_3}    
+{$ifdef DELPHI_3}
       DatabaseError(SNotEditing);
-{$else}    
+{$else}
       DatabaseError(SNotEditing, Self);
-{$endif}      
+{$endif}
   // already created a `placeholder' blob for this field?
   MemoFieldNo := Field.FieldNo - 1;
   if FBlobStreams[MemoFieldNo] = nil then
@@ -1846,7 +1846,7 @@ begin
       lBlob.ReadSize := 0;
     end;
     lBlob.MemoRecNo := MemoPageNo;
-  end else 
+  end else
   if not lBlob.Dirty or (Mode = bmWrite) then
   begin
     // reading and memo is empty and not written yet, or rewriting
@@ -1855,7 +1855,7 @@ begin
     lBlob.MemoRecNo := 0;
   end;
   { this is a hack, we actually need to know per user who's modifying, and who is not }
-  { Mode is more like: the mode of the last "creation" 
+  { Mode is more like: the mode of the last "creation"
   { if create/free is nested, then everything will be alright, i think ;-) }
   lBlob.Mode := Mode;
   { this is a hack: we actually need to know per user what it's position is }
@@ -2012,7 +2012,7 @@ begin
 
   // check if FCursor open
   if FCursor = nil then
-    exit; 
+    exit;
 
   // store current position
   prevRecNo := FCursor.SequentialRecNo;
@@ -2184,7 +2184,7 @@ end;
 procedure TDbf.SetLanguageID(NewID: Byte);
 begin
   CheckInactive;
-  
+
   FLanguageID := NewID;
 end;
 
@@ -2614,7 +2614,7 @@ begin
     Result := nil;
     exit;
   end;
-  
+
   Result := TIndexCursor(FCursor).IndexFile.PrepareKey(Buffer, BufferType);
 end;
 
@@ -2691,7 +2691,7 @@ begin
   fieldsVal := TIndexCursor(FCursor).IndexFile.PrepareKey(fieldsVal, FMasterLink.Parser.ResultType);
   SetRangeBuffer(fieldsVal, fieldsVal);
 end;
-    
+
 procedure TDbf.MasterChanged(Sender: TObject);
 begin
   CheckBrowseMode;
@@ -2719,7 +2719,7 @@ begin
     DatabaseError(SCircularDataLink);
 {$endif}
   end;
-{$endif}  
+{$endif}
   FMasterLink.DataSource := Value;
 end;
 

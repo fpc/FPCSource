@@ -34,11 +34,11 @@ begin
     if KeyPressed then
       case ReadKey of
         #27: Ready := true;
-	'a': aChar := 'A';
-	'A': aChar := 'a';
-	'b': aChar := 'b';
-	'B': aChar := 'B';
-      end;	
+        'a': aChar := 'A';
+        'A': aChar := 'a';
+        'b': aChar := 'b';
+        'B': aChar := 'B';
+      end;
   until Ready;
   WriteLn('Ready.');
 end;
@@ -60,13 +60,13 @@ begin
                aMsg);
   if PID < 0 then
     WriteLn('Error : ', LinuxError, ' when cloning.')
-  else 
+  else
     begin
     MainProc;
     case WaitPID(0,@ExitStat,Wait_Untraced or wait_clone) of
       -1: WriteLn('error:',LinuxError,'; ',StrError(LinuxError));
        0: WriteLn('error:',LinuxError,'; ',StrError(LinuxError));
-    else 
+    else
       WriteLn('Clone exited with: ',ExitStat shr 8);
     end;
     end;

@@ -32,7 +32,7 @@ Type
     function ModuleToXMLStruct(AModule: TPasModule): TXMLDocument;
     Procedure WriteDoc; override;
   end;
-  
+
 
 
 
@@ -76,8 +76,8 @@ var
       for i := 0 to ASection.UsesList.Count - 1 do
       begin
         UnitElement := Result.CreateElement('unit-ref');
-	UnitElement['name'] := TPasType(ASection.UsesList[i]).Name;
-	UsesElement.AppendChild(UnitElement);
+        UnitElement['name'] := TPasType(ASection.UsesList[i]).Name;
+        UsesElement.AppendChild(UnitElement);
       end;
     end;
 
@@ -119,7 +119,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2005-01-12 21:11:41  michael
+  Revision 1.4  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.3  2005/01/12 21:11:41  michael
   + New structure for writers. Implemented TXT writer
 
   Revision 1.2  2005/01/09 15:59:50  michael

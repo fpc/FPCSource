@@ -67,7 +67,7 @@
   { MCBS functions }
   {$i sysansi.inc}
 
-{$ifndef VER1_0}  
+{$ifndef VER1_0}
   { wide string functions }
   {$i syswide.inc}
 {$endif VER1_0}

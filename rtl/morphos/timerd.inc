@@ -4,8 +4,8 @@
 
     timer.device definitions (V50) for MorphOS/PowerPC
     Copyright (c) 2002-3 The MorphOS Development Team, All Rights Reserved.
-    
-    Free Pascal conversion 
+
+    Free Pascal conversion
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -68,7 +68,7 @@ const
 
 {
   $Log$
-  Revision 1.1  2004-06-26 20:46:17  karoly
-    * initial revision
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

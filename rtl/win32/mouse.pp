@@ -242,16 +242,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.9  2005-01-12 10:25:48  armin
+  Revision 1.10  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.9  2005/01/12 10:25:48  armin
   * Patch for bug 3548 from Peter
-
-  Revision 1.8  2004/11/21 15:24:35  marco
-   * fix for bug 2246, zero events surpressed by moving compression into handler
-
-  Revision 1.7  2004/11/04 10:21:07  peter
-  GetMouse[X,Y,Buttons] based on LastMouseEvent
-
-  Revision 1.6  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
 
 }

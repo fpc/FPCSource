@@ -17,7 +17,7 @@ type
 
    TGLCoordinates = class (TGLUpdateAbleObject)
       private
-	 { Private Declarations }
+         { Private Declarations }
          FCoords : TVector;
 
       published

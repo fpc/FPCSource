@@ -3406,16 +3406,7 @@ End;
 end.
 {
   $Log$
-  Revision 1.8  2003-04-04 20:46:51  yuri
-  * ErrorID type added
-
-  Revision 1.7  2003/03/28 13:25:08  yuri
-    * Iconinfo type & constants added
-
-  Revision 1.6  2002/11/02 11:15:38  hajny
-    + comments and MSG lookup strings added
-
-  Revision 1.5  2002/09/07 16:01:24  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -184,11 +184,7 @@ end;
 {$endif}
 {
   $Log$
-  Revision 1.11  2004-05-28 21:40:28  marco
-   * threadvar errno fix
-
-  Revision 1.10  2003/12/30 12:26:21  marco
-   * FPC_USE_LIBC
-
+  Revision 1.12  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

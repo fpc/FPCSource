@@ -861,65 +861,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2004-12-05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.102  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.101  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.100  2004/11/01 17:15:47  peter
-    * no checkpointer code for dynarr to openarr
-
-  Revision 1.99  2004/11/01 15:31:57  peter
-    * -Or fix for absolute
-
-  Revision 1.98  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.97  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.96  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.95.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.95  2004/08/02 09:15:03  michael
-  + Fixed range check for non-constant indexes in strings
-
-  Revision 1.94  2004/07/12 17:58:19  peter
-    * remove maxlen field from ansistring/widestrings
-
-  Revision 1.93  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.92  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.91  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.90  2004/04/21 17:39:40  jonas
-    - disabled with-symtable debugging code since it was broken and
-      at the same time confused the register allocator and therefore also
-      the optimizer. May be fixed in the future using dwarf support
-
-  Revision 1.89.2.4  2004/05/10 21:28:34  peter
-    * section_smartlink enabled for gas under linux
-
-  Revision 1.89.2.3  2004/05/02 13:04:28  peter
-    * ofs fixed
+  Revision 1.104  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Interface for debug server.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -19,17 +19,17 @@ unit debugserverintf;
 
 Interface
 
-Uses 
+Uses
   msgintf,linux,classes,sockets,sysutils;
 
-Const 
-  MsgTypes : Array[-1..3] of string = 
+Const
+  MsgTypes : Array[-1..3] of string =
     ('Disconnect','Information','Warning','Error','Identify');
 
 
 Type
   Thandle = Longint; // Abstraction for easier porting.
-  
+
   TClient = Class(TObject)
     Handle : THandle;
     Peer : ShortString;
@@ -42,7 +42,7 @@ Type
     TimeStamp : TDateTime;
     Event : String;
   end;
-  
+
 Var
   FClients : TList;
   Accepting : Boolean;
@@ -51,8 +51,8 @@ Var
   DebugObjLogCallBack : Procedure (Const Event : TDebugEvent) of Object;
   CloseConnectionCallBack : Procedure (Client : TClient);
   CloseObjConnectionCallBack : Procedure (Client : TClient) of Object;
-  
-   
+
+
 Procedure OpenDebugServer;
 Procedure CloseDebugServer;
 Function  ClientFromHandle (AHandle : THandle) : TClient;
@@ -87,7 +87,7 @@ Var
 begin
   Result:=Nil;
   I:=0;
-  With FClients do 
+  With FClients do
     While (I<Count) and (Result=Nil) do
       Begin
       If TClient(Items[i]).Handle=AHandle then
@@ -99,7 +99,7 @@ end;
 { ---------------------------------------------------------------------
     Communications handling: Unix Socket setup
   ---------------------------------------------------------------------}
-  
+
 Var
   FSocket : Integer;
 
@@ -111,7 +111,7 @@ var
   FUnixAddr : TUnixSockAddr;
   FFileName : String;
   Quit : Boolean;
-     
+
 begin
   FFileName:=DebugSocket;
   FSocket:=Socket(AF_UNIX,SOCK_STREAM,0);
@@ -125,7 +125,7 @@ begin
      Raise Exception.CreateFmt(SErrBindFailed,[FFileName]);
   If Not (Listen(FSocket,5)) then
     Raise Exception.CreateFmt(SErrListenFailed,[FSocket]);
-  FClients:=TList.Create;  
+  FClients:=TList.Create;
   Accepting:=True;
 end;
 
@@ -161,7 +161,7 @@ var
   FInetAddr : TInetSockAddr;
   FFileName : String;
   Quit : Boolean;
-     
+
 begin
   FSocket:=Socket(AF_INET,SOCK_STREAM,0);
   If FSocket<0 Then
@@ -202,7 +202,7 @@ end;
 { ---------------------------------------------------------------------
     Communications handling: Public interface
   ---------------------------------------------------------------------}
-  
+
 
 Procedure OpenDebugServer;
 
@@ -210,8 +210,8 @@ begin
   Case DebugConnection of
     dcUnix : SetupUnixSocket;
     dcInet : SetupInetSocket(DebugPort);
-  end;  
-  FClients:=TList.Create;  
+  end;
+  FClients:=TList.Create;
   Accepting:=True;
 end;
 
@@ -222,7 +222,7 @@ begin
   Case DebugConnection of
     dcUnix : DestroyUnixSocket;
     dcInet : DestroyInetSocket;
-  end;  
+  end;
   FClients.Free;
   FClients:=Nil;
 end;
@@ -231,7 +231,7 @@ end;
 { ---------------------------------------------------------------------
     Communications handling: Connection handling
   ---------------------------------------------------------------------}
-  
+
 Function GetNewConnection : THandle;
 
 Var
@@ -251,8 +251,8 @@ begin
 {$ifdef debug}
     else
       Writeln('New connection detected at ',Result)
-{$endif debug}      
-    end  
+{$endif debug}
+    end
   else
     Result:=-1;
 end;
@@ -267,7 +267,7 @@ begin
   If (NC=-1) then
     Result:=Nil
   else
-    begin  
+    begin
     Result:=TClient.Create;
     Result.Handle:=NC;
 {$ifdef debug}
@@ -290,7 +290,7 @@ Procedure CloseConnection(Client : TClient);
 Var
   I : longint;
   C : TClient;
-  
+
 begin
   If Assigned(Client) then
     begin
@@ -319,19 +319,19 @@ begin
       If (ALogCode=lctIdentify) then
         Client.Peer:=AEvent;
       end;
-    LogCode:=ALogCode;  
+    LogCode:=ALogCode;
     TimeStamp:=ATimeStamp;
-    Event:=AEvent;  
+    Event:=AEvent;
     end;
 end;
-  
+
 Procedure LogEvent(Event : TDebugEvent);
-    
+
 begin
   if Assigned(DebugLogCallback) then
     DebugLogCallBack(Event);
   If Assigned(DebugObjLogCallBack) then
-    DebugObjLogCallBack(Event);  
+    DebugObjLogCallBack(Event);
 end;
 
 Procedure ReadMessageEvent(Handle : THandle; Var Event : TDebugEvent);
@@ -339,7 +339,7 @@ Procedure ReadMessageEvent(Handle : THandle; Var Event : TDebugEvent);
 Var
   FDebugMessage : TDebugMessage;
   msgSize : Integer;
-   
+
 begin
   Try
     With FDebugMessage do
@@ -372,17 +372,20 @@ Procedure ReadMessage(Handle : THandle);
 
 Var
   Event : TDebugEvent;
-  
+
 begin
   ReadMessageEvent(Handle,Event);
   LogEvent(Event);
-end;  
+end;
 
 end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:44:29  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:44:29  michael
   + Initial implementation
 
 }

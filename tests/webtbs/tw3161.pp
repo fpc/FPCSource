@@ -6,7 +6,7 @@
 
 {$mode delphi}
 
-uses 
+uses
   initc,
   SysUtils,
   math;

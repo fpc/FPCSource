@@ -125,12 +125,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-10-14 19:45:39  florian
-    + added and implemented functions for locked operations
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.2  2004/03/05 12:17:50  marco
-   * interlocked* changed to longints, including winapi. (which was a bug)
-
-  Revision 1.1  2003/09/01 20:46:32  peter
-    * new dummies
 }

@@ -798,23 +798,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2005-01-05 15:22:58  florian
+  Revision 1.13  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.12  2005/01/05 15:22:58  florian
     * added support of shifter ops in arm inline assembler
-
-  Revision 1.11  2004/11/24 22:03:26  florian
-    * fixed arm compilation
-
-  Revision 1.10  2004/11/11 19:31:33  peter
-    * fixed compile of powerpc,sparc,arm
-
-  Revision 1.9  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.8  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.7  2004/01/20 21:02:56  florian
-    * fixed symbol type writing for arm-linux
-    * fixed assembler generation for abs
 
 }

@@ -39,7 +39,7 @@ uses
 {GLOBAL}
 function jpeg_read_scanlines (cinfo : j_decompress_ptr;
                               scanlines : JSAMPARRAY;
-		              max_lines : JDIMENSION) : JDIMENSION;
+                              max_lines : JDIMENSION) : JDIMENSION;
 
 
 { Alternate entry point to read raw data.
@@ -48,7 +48,7 @@ function jpeg_read_scanlines (cinfo : j_decompress_ptr;
 {GLOBAL}
 function jpeg_read_raw_data (cinfo : j_decompress_ptr;
                              data : JSAMPIMAGE;
-		             max_lines : JDIMENSION) : JDIMENSION;
+                             max_lines : JDIMENSION) : JDIMENSION;
 
 {$ifdef D_MULTISCAN_FILES_SUPPORTED}
 
@@ -123,29 +123,29 @@ begin
       while TRUE do
       begin
 
-	{ Call progress monitor hook if present }
-	if (cinfo^.progress <> NIL) then
-	  cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
-	{ Absorb some more input }
-	retcode := cinfo^.inputctl^.consume_input (cinfo);
-	if (retcode = JPEG_SUSPENDED) then
+        { Call progress monitor hook if present }
+        if (cinfo^.progress <> NIL) then
+          cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
+        { Absorb some more input }
+        retcode := cinfo^.inputctl^.consume_input (cinfo);
+        if (retcode = JPEG_SUSPENDED) then
         begin
           jpeg_start_decompress := FALSE;
           exit;
         end;
-	if (retcode = JPEG_REACHED_EOI) then
-	  break;
-	{ Advance progress counter if appropriate }
-	if (cinfo^.progress <> NIL) and
-	   ((retcode = JPEG_ROW_COMPLETED) or (retcode = JPEG_REACHED_SOS)) then
+        if (retcode = JPEG_REACHED_EOI) then
+          break;
+        { Advance progress counter if appropriate }
+        if (cinfo^.progress <> NIL) and
+           ((retcode = JPEG_ROW_COMPLETED) or (retcode = JPEG_REACHED_SOS)) then
         begin
           Inc(cinfo^.progress^.pass_counter);
-	  if (cinfo^.progress^.pass_counter >= cinfo^.progress^.pass_limit) then
+          if (cinfo^.progress^.pass_counter >= cinfo^.progress^.pass_limit) then
           begin
-	    { jdmaster underestimated number of scans; ratchet up one scan }
-	    Inc(cinfo^.progress^.pass_limit, long(cinfo^.total_iMCU_rows));
-	  end;
-	end;
+            { jdmaster underestimated number of scans; ratchet up one scan }
+            Inc(cinfo^.progress^.pass_limit, long(cinfo^.total_iMCU_rows));
+          end;
+        end;
       end;
 {$else}
       ERREXIT(j_common_ptr(cinfo), JERR_NOT_COMPILED);
@@ -189,18 +189,18 @@ begin
       { Call progress monitor hook if present }
       if (cinfo^.progress <> NIL) then
       begin
-	cinfo^.progress^.pass_counter := long (cinfo^.output_scanline);
-	cinfo^.progress^.pass_limit := long (cinfo^.output_height);
-	cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
+        cinfo^.progress^.pass_counter := long (cinfo^.output_scanline);
+        cinfo^.progress^.pass_limit := long (cinfo^.output_height);
+        cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
       end;
       { Process some data }
       last_scanline := cinfo^.output_scanline;
       cinfo^.main^.process_data (cinfo, JSAMPARRAY(NIL),
-				 cinfo^.output_scanline, {var}
+                                 cinfo^.output_scanline, {var}
                                  JDIMENSION(0));
       if (cinfo^.output_scanline = last_scanline) then
       begin
-	output_pass_setup := FALSE;	{ No progress made, must suspend }
+        output_pass_setup := FALSE;     { No progress made, must suspend }
         exit;
       end;
     end;
@@ -236,7 +236,7 @@ end;
 {GLOBAL}
 function jpeg_read_scanlines (cinfo : j_decompress_ptr;
                               scanlines : JSAMPARRAY;
-		              max_lines : JDIMENSION) : JDIMENSION;
+                              max_lines : JDIMENSION) : JDIMENSION;
 var
   row_ctr : JDIMENSION;
 begin
@@ -271,7 +271,7 @@ end;
 {GLOBAL}
 function jpeg_read_raw_data (cinfo : j_decompress_ptr;
                              data : JSAMPIMAGE;
-		             max_lines : JDIMENSION) : JDIMENSION;
+                             max_lines : JDIMENSION) : JDIMENSION;
 var
   lines_per_iMCU_row : JDIMENSION;
 begin
@@ -300,7 +300,7 @@ begin
   { Decompress directly into user's buffer. }
   if (cinfo^.coef^.decompress_data (cinfo, data) = 0) then
   begin
-    jpeg_read_raw_data := 0;			{ suspension forced, can do nothing more }
+    jpeg_read_raw_data := 0;                    { suspension forced, can do nothing more }
     exit;
   end;
 
@@ -359,11 +359,11 @@ begin
     end;
   { Read markers looking for SOS or EOI }
   while (cinfo^.input_scan_number <= cinfo^.output_scan_number) and
-	(not cinfo^.inputctl^.eoi_reached) do
+        (not cinfo^.inputctl^.eoi_reached) do
   begin
     if (cinfo^.inputctl^.consume_input (cinfo) = JPEG_SUSPENDED) then
     begin
-      jpeg_finish_output := FALSE;	{ Suspend, come back later }
+      jpeg_finish_output := FALSE;      { Suspend, come back later }
       exit;
     end;
   end;

@@ -653,7 +653,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2005-02-01 08:46:13  michael
+  Revision 1.75  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.74  2005/02/01 08:46:13  michael
    * Patch from peter: fix macpas anonymous function procvar
 
   Revision 1.73  2005/01/19 22:19:41  peter
@@ -662,39 +665,5 @@ end.
 
   Revision 1.72  2005/01/04 16:39:12  peter
     * allow enum with jumps as array index in delphi mode
-
-  Revision 1.71  2004/11/16 20:32:41  peter
-  * fixes for win32 mangledname
-
-  Revision 1.70  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.69  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.68  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.67  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.66.2.1  2004/04/28 19:55:52  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.66  2004/03/29 14:44:10  peter
-    * fixes to previous constant integer commit
-
-  Revision 1.65  2004/03/23 22:34:49  peter
-    * constants ordinals now always have a type assigned
-    * integer constants have the smallest type, unsigned prefered over
-      signed
-
-  Revision 1.64  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
 
 }

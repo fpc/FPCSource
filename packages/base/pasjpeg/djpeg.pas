@@ -8,8 +8,8 @@ Program DJpeg;
 
   Two different command line styles are permitted, depending on the
   compile-time switch TWO_FILE_COMMANDLINE:
- 	djpeg [options]  inputfile outputfile
- 	djpeg [options]  [inputfile]
+        djpeg [options]  inputfile outputfile
+        djpeg [options]  [inputfile]
   In the second style, output is always to standard output, which you'd
   normally redirect to a file or pipe to some other program.  Input is
   either from a named file or from standard input (typically redirected).
@@ -17,7 +17,7 @@ Program DJpeg;
   don't support pipes.  Also, you MUST use the first style if your system
   doesn't do binary I/O to stdin/stdout.
   To simplify script writing, the "-outfile" switch is provided.  The syntax
- 	djpeg [options]  -outfile outputfile  inputfile
+        djpeg [options]  -outfile outputfile  inputfile
   works regardless of which command line style is used. }
 
 {$I jconfig.inc}
@@ -34,7 +34,7 @@ uses
 {$ifdef PPM_SUPPORTED}  wrppm, {$endif}
 {$ifdef TARGA_SUPPORTED}  wrtarga, {$endif}
   jdmarker,
-  cdjpeg;		{ Common decls for cjpeg/djpeg applications }
+  cdjpeg;               { Common decls for cjpeg/djpeg applications }
                         { for version message }
 
 
@@ -46,13 +46,13 @@ uses
 
 type
   IMAGE_FORMATS = (
-	FMT_BMP,		{ BMP format (Windows flavor) }
-	FMT_GIF,		{ GIF format }
-	FMT_OS2,		{ BMP format (OS/2 flavor) }
-	FMT_PPM,		{ PPM/PGM (PBMPLUS formats) }
-	FMT_RLE,		{ RLE format }
-	FMT_TARGA,		{ Targa format }
-	FMT_TIFF);		{ TIFF format }
+        FMT_BMP,                { BMP format (Windows flavor) }
+        FMT_GIF,                { GIF format }
+        FMT_OS2,                { BMP format (OS/2 flavor) }
+        FMT_PPM,                { PPM/PGM (PBMPLUS formats) }
+        FMT_RLE,                { RLE format }
+        FMT_TARGA,              { Targa format }
+        FMT_TIFF);              { TIFF format }
 
 const
   DEFAULT_FMT = FMT_PPM;
@@ -69,8 +69,8 @@ var
 
 
 var
-  progname,	                { program name for error messages }
-  outfilename : string[127];	{ for -outfile switch }
+  progname,                     { program name for error messages }
+  outfilename : string[127];    { for -outfile switch }
 
 
 {LOCAL}
@@ -95,32 +95,32 @@ begin
 {$endif}
 {$ifdef BMP_SUPPORTED}
   WriteLn(output, '  -bmp           Select BMP output format (Windows style)',
-	  default_txt[DEFAULT_FMT = FMT_BMP]);
+          default_txt[DEFAULT_FMT = FMT_BMP]);
 {$endif}
 {$ifdef GIF_SUPPORTED}
   WriteLn(output, '  -gif           Select GIF output format',
-  	  default_txt[DEFAULT_FMT = FMT_GIF]);
+          default_txt[DEFAULT_FMT = FMT_GIF]);
 {$endif}
 {$ifdef BMP_SUPPORTED}
   WriteLn(output, '  -os2           Select BMP output format (OS/2 style)',
-	  default_txt[DEFAULT_FMT = FMT_OS2]);
+          default_txt[DEFAULT_FMT = FMT_OS2]);
 {$endif}
 {$ifdef PPM_SUPPORTED}
   WriteLn(output, '  -pnm           Select PBMPLUS (PPM/PGM) output format',
-  	  default_txt[DEFAULT_FMT = FMT_PPM]);
+          default_txt[DEFAULT_FMT = FMT_PPM]);
 {$endif}
 {$ifdef RLE_SUPPORTED}
   WriteLn(output, '  -rle           Select Utah RLE output format',
-	  default_txt[DEFAULT_FMT = FMT_RLE]);
+          default_txt[DEFAULT_FMT = FMT_RLE]);
 {$endif}
 {$ifdef TARGA_SUPPORTED}
   WriteLn(output, '  -targa         Select Targa output format',
- 	  default_txt[DEFAULT_FMT = FMT_TARGA]);
+          default_txt[DEFAULT_FMT = FMT_TARGA]);
 {$endif}
   WriteLn(output, 'Switches for advanced users:');
 {$ifdef DCT_ISLOW_SUPPORTED}
   WriteLn(output, '  -dct int       Use integer DCT method',
-	  default_txt[JDCT_DEFAULT = JDCT_ISLOW]);
+          default_txt[JDCT_DEFAULT = JDCT_ISLOW]);
 {$endif}
 {$ifdef DCT_IFAST_SUPPORTED}
   WriteLn(output, '  -dct fast      Use fast integer DCT (less accurate)',
@@ -149,7 +149,7 @@ end;
 
 {LOCAL}
 function parse_switches (cinfo : j_decompress_ptr;
-		         last_file_arg_seen : int;
+                         last_file_arg_seen : int;
                          for_real : boolean) : int;
 { Parse optional switches.
   Returns argv[] index of first file-name argument (== argc if none).
@@ -165,7 +165,7 @@ var
 var
   value : int;
   code : integer;
-{$ifdef QUANT_2PASS_SUPPORTED}	{ otherwise can't quantize to supplied map }
+{$ifdef QUANT_2PASS_SUPPORTED}  { otherwise can't quantize to supplied map }
 var
   mapfile : file;
 {$endif}
@@ -176,7 +176,7 @@ var
   ch : char;
 begin
   { Set up default JPEG parameters. }
-  requested_fmt := DEFAULT_FMT;	{ set default output file format }
+  requested_fmt := DEFAULT_FMT; { set default output file format }
   outfilename := '';
   cinfo^.err^.trace_level := 0;
 
@@ -194,12 +194,12 @@ begin
       { Not a switch, must be a file name argument }
       if (argn <= last_file_arg_seen) then
       begin
-	outfilename := '';	{ -outfile applies to just one input file }
-	continue;		{ ignore this name if previously processed }
+        outfilename := '';      { -outfile applies to just one input file }
+        continue;               { ignore this name if previously processed }
       end;
-      break;			{ else done parsing switches }
+      break;                    { else done parsing switches }
     end;
-    {Inc(arg);			- advance past switch marker character }
+    {Inc(arg);                  - advance past switch marker character }
 
     if (keymatch(arg, '-bmp', 2)) then
     begin
@@ -213,11 +213,11 @@ begin
       begin  { Do color quantization. }
 
         Inc(argn);
-        if (argn >= argc) then	{ advance to next argument }
-	  usage;
+        if (argn >= argc) then  { advance to next argument }
+          usage;
         Val(ParamStr(argn), value, code);
         if code <> 0 then
-	  usage;
+          usage;
         cinfo^.desired_number_of_colors := value;
         cinfo^.quantize_colors := TRUE;
       end
@@ -225,10 +225,10 @@ begin
         if (keymatch(arg, '-dct', 3)) then
         begin  { Select IDCT algorithm. }
           Inc(argn);
-          if (argn >= argc) then	{ advance to next argument }
-	    usage;
+          if (argn >= argc) then        { advance to next argument }
+            usage;
           if (keymatch(ParamStr(argn), 'int', 1)) then
-	    cinfo^.dct_method := JDCT_ISLOW
+            cinfo^.dct_method := JDCT_ISLOW
           else
             if (keymatch(ParamStr(argn), 'fast', 2)) then
               cinfo^.dct_method := JDCT_IFAST
@@ -236,16 +236,16 @@ begin
               if (keymatch(ParamStr(argn), 'float', 2)) then
                 cinfo^.dct_method := JDCT_FLOAT
               else
-	        usage;
+                usage;
         end
         else
           if (keymatch(arg, '-dither', 3)) then
           begin { Select dithering algorithm. }
             Inc(argn);
-            if (argn >= argc) then	{ advance to next argument }
-	      usage;
+            if (argn >= argc) then      { advance to next argument }
+              usage;
             if (keymatch(ParamStr(argn), 'fs', 2)) then
-	      cinfo^.dither_mode := JDITHER_FS
+              cinfo^.dither_mode := JDITHER_FS
             else
               if (keymatch(ParamStr(argn), 'none', 2)) then
                 cinfo^.dither_mode := JDITHER_NONE
@@ -262,8 +262,8 @@ begin
 
               if (not printed_version) then
               begin
-	        WriteLn(output, 'PASJPEG Group''s DJPEG, version ',
-		      JVERSION);
+                WriteLn(output, 'PASJPEG Group''s DJPEG, version ',
+                      JVERSION);
                 WriteLn(output, JCOPYRIGHT);
                 WriteLn(output, JNOTICE);
                 printed_version := TRUE;
@@ -277,7 +277,7 @@ begin
                 cinfo^.two_pass_quantize := FALSE;
                 cinfo^.dither_mode := JDITHER_ORDERED;
                 if (not cinfo^.quantize_colors) then { don't override an earlier -colors }
-	          cinfo^.desired_number_of_colors := 216;
+                  cinfo^.desired_number_of_colors := 216;
                 cinfo^.dct_method := JDCT_FASTEST;
                 cinfo^.do_fancy_upsampling := FALSE;
               end
@@ -296,25 +296,25 @@ begin
                     begin
                       { Quantize to a color map taken from an input file. }
                       Inc(argn);
-                      if (argn >= argc) then	{ advance to next argument }
-	                usage;
+                      if (argn >= argc) then    { advance to next argument }
+                        usage;
                       if (for_real) then
-                      begin	{ too expensive to do twice! }
-{$ifdef QUANT_2PASS_SUPPORTED}	{ otherwise can't quantize to supplied map }
+                      begin     { too expensive to do twice! }
+{$ifdef QUANT_2PASS_SUPPORTED}  { otherwise can't quantize to supplied map }
                         assign(mapfile, ParamStr(argn));
                         {$I-}
                         reset(mapfile, 1);
                         {$IFDEF IoCheck} {$I+} {$ENDIF}
                         if (IOresult <> 0) then
                         begin
-	                  WriteLn(output, progname, ': can''t open ', ParamStr(argn));
-	                  Halt(EXIT_FAILURE);
-	                end;
-	                read_color_map(cinfo, mapfile);
-	                system.close(mapfile);
-	                cinfo^.quantize_colors := TRUE;
+                          WriteLn(output, progname, ': can''t open ', ParamStr(argn));
+                          Halt(EXIT_FAILURE);
+                        end;
+                        read_color_map(cinfo, mapfile);
+                        system.close(mapfile);
+                        cinfo^.quantize_colors := TRUE;
 {$else}
-	                ERREXIT(j_common_ptr(cinfo), JERR_NOT_COMPILED);
+                        ERREXIT(j_common_ptr(cinfo), JERR_NOT_COMPILED);
 {$endif}
                       end;
                     end
@@ -326,8 +326,8 @@ begin
                         ch := 'x';
 
                         Inc(argn);
-                        if (argn >= argc) then	{ advance to next argument }
-	                  usage;
+                        if (argn >= argc) then  { advance to next argument }
+                          usage;
                         arg := ParamStr(argn);
                         if (length(arg) > 1) and (arg[length(arg)] in ['m','M']) then
                         begin
@@ -338,9 +338,9 @@ begin
                         Val(arg, lval, code);
 
                         if (code <> 0) then
-	                  usage;
+                          usage;
                         if (ch = 'm') or (ch = 'M') then
-	                  lval := lval * long(1000);
+                          lval := lval * long(1000);
                         cinfo^.mem^.max_memory_to_use := lval * long(1000);
 
                       end
@@ -368,9 +368,9 @@ begin
                               begin
                                 { Set output file name. }
                                 Inc(argn);
-                                if (argn >= argc) then	{ advance to next argument }
-	                          usage;
-                                outfilename := ParamStr(argn);	{ save it away for later use }
+                                if (argn >= argc) then  { advance to next argument }
+                                  usage;
+                                outfilename := ParamStr(argn);  { save it away for later use }
                               end
                               else
                                 if (keymatch(arg, '-pnm', 2)) or
@@ -390,8 +390,8 @@ begin
                                     begin
                                       { Scale the output image by a fraction M/N. }
                                       Inc(argn);
-                                      if (argn >= argc) then	{ advance to next argument }
-	                                usage;
+                                      if (argn >= argc) then    { advance to next argument }
+                                        usage;
                                       arg := ParamStr(argn);
                                       Val(copy(arg, 1, Pos('/', arg)-1),
                                           cinfo^.scale_num, code);
@@ -400,7 +400,7 @@ begin
                                              length(arg)-Pos('/', arg)),
                                             cinfo^.scale_denom, code);
                                       if code <> 0 then
-	                                usage;
+                                        usage;
                                     end
                                     else
                                       if (keymatch(arg, '-targa', 2)) then
@@ -409,10 +409,10 @@ begin
                                         requested_fmt := FMT_TARGA;
                                       end
                                       else
-                                        usage;		{ bogus switch }
+                                        usage;          { bogus switch }
   end;
 
-  parse_switches := argn;	{ return index of next arg (file name) }
+  parse_switches := argn;       { return index of next arg (file name) }
 end;
 
 
@@ -455,15 +455,15 @@ begin
   lastch := #0;
   length := byte(jpeg_getc(cinfo)) shl 8;
   Inc(length, byte(jpeg_getc(cinfo)));
-  Dec(length, 2);			{ discount the length word itself }
+  Dec(length, 2);                       { discount the length word itself }
 
   if (traceit) then
   begin
     if (cinfo^.unread_marker = JPEG_COM) then
       WriteLn('Comment, length ', long(length), ';')
-    else			{ assume it is an APPn otherwise }
+    else                        { assume it is an APPn otherwise }
       WriteLn('APP', cinfo^.unread_marker - JPEG_APP0, ' length ',
-	      long(length),':');
+              long(length),':');
   end;
 
   while (length > 0) do
@@ -477,18 +477,18 @@ begin
         while \ is converted to \\.
         Newlines in CR, CR/LF, or LF form will be printed as one newline. }
       if (ch = LF) then
-	WriteLn(output)
+        WriteLn(output)
       else
         if (ch = CR) then
         begin
           if (lastch <> LF) then
-	    WriteLn(output);
+            WriteLn(output);
         end
         else
           if (ch >= ' ') and (ch <= #127) then
-	    Write(output, ch)
+            Write(output, ch)
           else
-	    WriteLn(output, '\', byte(ch));
+            WriteLn(output, '\', byte(ch));
       lastch := ch;
     end;
   end;
@@ -674,7 +674,7 @@ begin
   while (cinfo.output_scanline < cinfo.output_height) do
   begin
     num_scanlines := jpeg_read_scanlines(@cinfo, dest_mgr^.buffer,
-					dest_mgr^.buffer_height);
+                                        dest_mgr^.buffer_height);
     dest_mgr^.put_pixel_rows (@cinfo, dest_mgr, num_scanlines);
   end;
 

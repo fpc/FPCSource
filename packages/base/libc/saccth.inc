@@ -36,7 +36,7 @@ Const
   AXSIG = $10;
 
   AHZ   = 100;
-  
+
 // Already defined in unistdh.inc
 //function acct(__filename:Pchar):longint;cdecl;external clib name 'acct';
 
@@ -44,7 +44,7 @@ Const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TAccountingRecord = _acct;
-  
-  
+
+

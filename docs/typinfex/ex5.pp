@@ -10,7 +10,7 @@ Var
   O : TMyTestObject;
   PI : PPropInfo;
   NO1,NO2 : TNamedObject;
-  
+
 begin
   O:=TMyTestObject.Create;
   NO1:=TNamedObject.Create;
@@ -21,13 +21,13 @@ begin
   Writeln('Object property : ');
   PI:=GetPropInfo(O,'ObjField');
   Write('Property class     : ');
-  Writeln(GetObjectPropClass(O,'ObjField').ClassName); 
+  Writeln(GetObjectPropClass(O,'ObjField').ClassName);
   Write('Value              : ');
   Writeln((O.ObjField as TNamedObject).ObjectName);
   Write('Get (name)         : ');
   Writeln((GetObjectProp(O,'ObjField') As TNamedObject).ObjectName);
   Write('Get (propinfo)     : ');
-  Writeln((GetObjectProp(O,PI,TObject) as TNamedObject).ObjectName); 
+  Writeln((GetObjectProp(O,PI,TObject) as TNamedObject).ObjectName);
   SetObjectProp(O,'ObjField',NO2);
   Write('Set (name,NO2)     : ');
   Writeln((O.ObjField as TNamedObject).ObjectName);

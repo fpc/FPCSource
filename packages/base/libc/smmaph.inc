@@ -4,9 +4,9 @@ Const
   MAP_FAILED = pointer(-1);
 
 
-function mmap(__addr:pointer; __len:size_t; __prot:longint; __flags:longint; __fd:longint; 
+function mmap(__addr:pointer; __len:size_t; __prot:longint; __flags:longint; __fd:longint;
            __offset:__off_t):pointer;cdecl;external clib name 'mmap';
-function mmap64(__addr:pointer; __len:size_t; __prot:longint; __flags:longint; __fd:longint; 
+function mmap64(__addr:pointer; __len:size_t; __prot:longint; __flags:longint; __fd:longint;
            __offset:__off64_t):pointer;cdecl;external clib name 'mmap64';
 function munmap(__addr:pointer; __len:size_t):longint;cdecl;external clib name 'munmap';
 function mprotect(__addr:pointer; __len:size_t; __prot:longint):longint;cdecl;external clib name 'mprotect';
@@ -27,4 +27,4 @@ function shm_unlink(__name:Pchar):longint;cdecl;external clib name 'shm_unlink';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

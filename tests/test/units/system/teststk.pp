@@ -27,19 +27,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/06/01 19:08:52  marco
-   * Renamefest
-
-  Revision 1.4  2002/03/09 23:18:51  carl
-  * simulate the error code on system with no stack checking
-
-  Revision 1.3  2002/03/05 21:54:09  carl
-  + indicate error code
-
-  Revision 1.2  2002/01/19 12:37:12  peter
-    * no checking for linux
+  Revision 1.7  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

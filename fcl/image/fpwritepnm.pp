@@ -5,7 +5,7 @@
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
     PNM writer implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -25,7 +25,7 @@ interface
 uses FPImage, classes, sysutils;
 
 type
-   
+
   TFPWriterPNM = class(TFPCustomImageWriter)
     private
       BitMapType:Integer;
@@ -51,7 +51,7 @@ procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
       strWidth,StrHeight:String[15];
     begin
       SaveHeader:=false;
-      with Img do  
+      with Img do
         begin
           Str(Img.Width,StrWidth);
           Str(Img.Height,StrHeight);
@@ -127,7 +127,7 @@ procedure TFPWriterPNM.InternalWrite(Stream:TStream;Img:TFPCustomImage);
                   end;
                 4:if(Red<=$2F00)or(Green<=$2F00)or(Blue<=$2F00)
                   then
-                    aLine[Coulumn shr 3]:=aLine[Coulumn shr 3] or ($80 shr (Coulumn and $07)); 
+                    aLine[Coulumn shr 3]:=aLine[Coulumn shr 3] or ($80 shr (Coulumn and $07));
                 5:aLine[Coulumn]:=Hi(Word(Round(Red*0.299+Green*0.587+Blue*0.114)));
                 6:begin
                     aLine[3*Coulumn]:=Hi(Red);
@@ -146,27 +146,7 @@ initialization
 end.
 {
 $Log$
-Revision 1.1  2003-09-30 06:23:32  mazen
-+ Support for PNM (Portable aNyMap) formats
-
-Revision 1.5  2003/09/09 11:28:23  mazen
-* fixing copyright section in the file header
-
-Revision 1.4  2003/09/08 14:08:48  mazen
-- all common defintions are now included into bmpcomn unit
-- removed erronous code (causing exception)
-
-Revision 1.3  2003/09/08 10:38:56  luk
-- removed debug info
-* prevented exceptions when using non indexed images
-
-Revision 1.2  2003/09/04 22:29:43  luk
-* correct color conversion (prevent range check errors)
-
-Revision 1.1  2003/09/04 12:02:21  mazen
-+ fpwritebmp.pas renamed to fpwritebmp.pp
-
-Revision 1.1  2003/09/04 08:44:32  mazen
-+ Adds support of writing BMP files
+Revision 1.2  2005-02-14 17:13:12  peter
+  * truncate log
 
 }

@@ -290,15 +290,15 @@ const
                 // Note: FlpBase10Info returns the actual sign bit in *signP (1 if negative)
                 // Note: FlpBase10Info reports that zero is "negative".
                 //          A workaround is to check (*signP && *mantissaP) instead of just *signP.
-function FlpBase10Info(a: FlpDouble; var mantissaP: UInt32; var exponentP, signP: Int16): Err; 
+function FlpBase10Info(a: FlpDouble; var mantissaP: UInt32; var exponentP, signP: Int16): Err;
 
-function FlpFToA(a: FlpDouble; s: PChar): Err; 
+function FlpFToA(a: FlpDouble; s: PChar): Err;
 
-function FlpAToF(const s: PChar): FlpDouble; 
+function FlpAToF(const s: PChar): FlpDouble;
 
-function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble; 
+function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble;
 
-function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: Int16): FlpDouble; 
+function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: Int16): FlpDouble;
 
 // These next three functions correspond to the previous three above.
 // The signatures are different, but in fact with CodeWarrior for Palm OS
@@ -323,13 +323,13 @@ function FlpCorrectedSub(firstOperand, secondOperand: FlpDouble;  howAccurate: I
 //
 // See the SDK's SampleCalc example for further discussion.
 
-procedure FlpBufferAToF(var result: FlpDouble; const s: PChar); 
+procedure FlpBufferAToF(var result: FlpDouble; const s: PChar);
 
-procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); 
+procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
 
-procedure FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); 
+procedure FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
 
-function FlpVersion: UInt32; 
+function FlpVersion: UInt32;
 
 //procedure FlpSelectorErrPrv(flpSelector: UInt16); // used only by NewFloatDispatch.c
 
@@ -367,8 +367,8 @@ function _fp_round(Value: Int32): Int32;
  *      flpInvalid, flpOverflow, flpUnderflow, flpDivByZero, or flpInexact
  *)
 
-function _fp_get_fpscr: Int32; 
-procedure _fp_set_fpscr(Value: Int32); 
+function _fp_get_fpscr: Int32;
+procedure _fp_set_fpscr(Value: Int32);
 
 (*
  * The shorthand here can be determined from the context:
@@ -382,33 +382,33 @@ procedure _fp_set_fpscr(Value: Int32);
  *      XtoY--> map of type X to a value of type Y
  *)
 
-function _f_utof(Value: UInt32): FlpFloat; 
-function _f_itof(Value: Int32): FlpFloat; 
+function _f_utof(Value: UInt32): FlpFloat;
+function _f_itof(Value: Int32): FlpFloat;
 //!!!function _f_ulltof(Value: sfpe_unsigned_long_long): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ulltof;
 //!!!function _f_lltof(Value: sfpe_long_long): FlpFloat; syscall sysTrapFlpEmDispatch, sysFloatEm_f_lltof;
 
-function _d_utod(Value: UInt32): FlpDouble; 
-function _d_itod(Value: Int32): FlpDouble; 
+function _d_utod(Value: UInt32): FlpDouble;
+function _d_itod(Value: Int32): FlpDouble;
 //!!!function _d_ulltod(Value: sfpe_unsigned_long_long): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_ulltod;
 //!!!function _d_lltod(Value: sfpe_long_long): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_lltod;
 
-function _f_ftod(Value: FlpFloat): FlpDouble; 
-function _d_dtof(Value: FlpDouble): FlpFloat; 
+function _f_ftod(Value: FlpFloat): FlpDouble;
+function _d_dtof(Value: FlpDouble): FlpFloat;
 
 //!!!function _f_ftoq(Value: FlpFloat): FlpLongDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftoq;
-function _f_qtof(var Value: FlpLongDouble): FlpFloat; 
+function _f_qtof(var Value: FlpLongDouble): FlpFloat;
 
 //!!!function _d_dtoq(Value: FlpDouble): FlpLongDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtoq;
 //!!!function _d_qtod(var Value: FlpLongDouble): FlpDouble; syscall sysTrapFlpEmDispatch, sysFloatEm_d_qtod;
 
-function _f_ftou(Value: FlpFloat): UInt32; 
-function _f_ftoi(Value: FlpFloat): Int32; 
+function _f_ftou(Value: FlpFloat): UInt32;
+function _f_ftoi(Value: FlpFloat): Int32;
 
 //!!!function _f_ftoull(Value: FlpFloat): sfpe_unsigned_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftoull;
 //!!!function _f_ftoll(Value: FlpFloat): sfpe_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_f_ftoll;
 
-function _d_dtou(Value: FlpDouble): UInt32; 
-function _d_dtoi(Value: FlpDouble): Int32; 
+function _d_dtou(Value: FlpDouble): UInt32;
+function _d_dtoi(Value: FlpDouble): Int32;
 
 //!!!function _d_dtoull(Value: FlpDouble): sfpe_unsigned_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtoull;
 //!!!function _d_dtoll(Value: FlpDouble): sfpe_long_long; syscall sysTrapFlpEmDispatch, sysFloatEm_d_dtoll;
@@ -436,39 +436,39 @@ function _d_dtoi(Value: FlpDouble): Int32;
  *      or  --> ordered with (i.e. less than, equal to, or greater than)
  *)
 
-function _f_cmp(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_cmpe(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_feq(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_fne(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_flt(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_fle(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_fgt(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_fge(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_fun(Left: FlpFloat; Right: FlpFloat): Int32; 
-function _f_for(Left: FlpFloat; Right: FlpFloat): Int32; 
+function _f_cmp(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_cmpe(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_feq(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_fne(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_flt(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_fle(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_fgt(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_fge(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_fun(Left: FlpFloat; Right: FlpFloat): Int32;
+function _f_for(Left: FlpFloat; Right: FlpFloat): Int32;
 
-function _d_cmp(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_feq(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_fne(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_flt(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_fle(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_fgt(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_fge(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_fun(Left: FlpDouble; Right: FlpDouble): Int32; 
-function _d_for(Left: FlpDouble; Right: FlpDouble): Int32; 
+function _d_cmp(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_feq(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_fne(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_flt(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_fle(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_fgt(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_fge(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_fun(Left: FlpDouble; Right: FlpDouble): Int32;
+function _d_for(Left: FlpDouble; Right: FlpDouble): Int32;
 
-function _f_neg(Value: FlpFloat): FlpFloat; 
-function _f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat; 
-function _f_mul(Left: FlpFloat; Right: FlpFloat): FlpFloat; 
-function _f_sub(Left: FlpFloat; Right: FlpFloat): FlpFloat; 
-function _f_div(Left: FlpFloat; Right: FlpFloat): FlpFloat; 
+function _f_neg(Value: FlpFloat): FlpFloat;
+function _f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat;
+function _f_mul(Left: FlpFloat; Right: FlpFloat): FlpFloat;
+function _f_sub(Left: FlpFloat; Right: FlpFloat): FlpFloat;
+function _f_div(Left: FlpFloat; Right: FlpFloat): FlpFloat;
 
-function _d_neg(Value: FlpDouble): FlpDouble; 
-function _d_add(Left: FlpDouble; Right: FlpDouble): FlpDouble; 
-function _d_mul(Left: FlpDouble; Right: FlpDouble): FlpDouble; 
-function _d_sub(Left: FlpDouble; Right: FlpDouble): FlpDouble; 
-function _d_div(Left: FlpDouble; Right: FlpDouble): FlpDouble; 
+function _d_neg(Value: FlpDouble): FlpDouble;
+function _d_add(Left: FlpDouble; Right: FlpDouble): FlpDouble;
+function _d_mul(Left: FlpDouble; Right: FlpDouble): FlpDouble;
+function _d_sub(Left: FlpDouble; Right: FlpDouble): FlpDouble;
+function _d_div(Left: FlpDouble; Right: FlpDouble): FlpDouble;
 
 implementation
 
@@ -517,7 +517,7 @@ begin
  FlpFToA := __FlpFToA(a, s);
 end;
 
-function FlpAToF(const s: PChar): FlpDouble; 
+function FlpAToF(const s: PChar): FlpDouble;
 begin
  asm
   move.l #$sysFloatAToF, D2
@@ -525,7 +525,7 @@ begin
  FlpAToF := __FlpAToF(s);
 end;
 
-function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble; 
+function FlpCorrectedAdd(firstOperand, secondOperand: FlpDouble; howAccurate: Int16): FlpDouble;
 begin
  asm
   move.l #$sysFloatCorrectedAdd, D2
@@ -549,20 +549,20 @@ begin
  __FlpBufferAToF(result, s);
 end;
 
-procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); 
+procedure FlpBufferCorrectedAdd(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
 begin
  asm
   move.l #$sysFloatCorrectedAdd, D2;
  end;
  __FlpBufferCorrectedAdd(result, firstOperand, secondOperand, howAccurate);
 end;
- 
-procedure FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16); 
+
+procedure FlpBufferCorrectedSub(var result: FlpDouble; firstOperand, secondOperand: FlpDouble; howAccurate: Int16);
 begin
  asm
   move.l #$sysFloatCorrectedSub, D2
  end;
- __FlpBufferCorrectedSub(result, firstOperand, secondOperand, howAccurate); 
+ __FlpBufferCorrectedSub(result, firstOperand, secondOperand, howAccurate);
 end;
 
 function FlpVersion: UInt32;
@@ -573,7 +573,7 @@ begin
  FlpVersion := __FlpVersion;
 end;
 
-function _fp_round(Value: Int32): Int32; 
+function _fp_round(Value: Int32): Int32;
 begin
  asm
   move.l #$sysFloatEm_fp_round, D2;
@@ -581,7 +581,7 @@ begin
  _fp_round := ___fp_round(Value);
 end;
 
-function _fp_get_fpscr: Int32; 
+function _fp_get_fpscr: Int32;
 begin
  asm
   move.l #$sysFloatEm_fp_get_fpscr, D2;
@@ -589,15 +589,15 @@ begin
  _fp_get_fpscr := ___fp_get_fpscr;
 end;
 
-procedure _fp_set_fpscr(Value: Int32); 
+procedure _fp_set_fpscr(Value: Int32);
 begin
  asm
   move.l #$sysFloatEm_fp_set_fpscr, D2;
  end;
  ___fp_set_fpscr(Value);
-end; 
- 
-function _f_utof(Value: UInt32): FlpFloat; 
+end;
+
+function _f_utof(Value: UInt32): FlpFloat;
 begin
  asm
   move.l #$sysFloatEm_f_utof, D2;
@@ -605,7 +605,7 @@ begin
  _f_utof := ___f_utof(Value);
 end;
 
-function _f_itof(Value: Int32): FlpFloat; 
+function _f_itof(Value: Int32): FlpFloat;
 begin
  asm
   move.l #$sysFloatEm_f_itof, D2;
@@ -613,7 +613,7 @@ begin
  _f_itof := ___f_itof(Value);
 end;
 
-function _d_utod(Value: UInt32): FlpDouble; 
+function _d_utod(Value: UInt32): FlpDouble;
 begin
  asm
   move.l #$sysFloatEm_d_utod, D2;
@@ -621,7 +621,7 @@ begin
  _d_utod := ___d_utod(Value);
 end;
 
-function _d_itod(Value: Int32): FlpDouble; 
+function _d_itod(Value: Int32): FlpDouble;
 begin
  asm
   move.l #$sysFloatEm_d_itod, D2;
@@ -636,8 +636,8 @@ begin
  end;
  _f_ftod := ___f_ftod(Value);
 end;
-  
-function _d_dtof(Value: FlpDouble): FlpFloat; 
+
+function _d_dtof(Value: FlpDouble): FlpFloat;
 begin
  asm
   move.l #$sysFloatEm_d_dtof, D2;
@@ -653,7 +653,7 @@ begin
  _f_qtof := ___f_qtof(Value);
 end;
 
-function _f_ftou(Value: FlpFloat): UInt32; 
+function _f_ftou(Value: FlpFloat): UInt32;
 begin
  asm
   move.l #$sysFloatEm_f_ftou, D2;
@@ -669,7 +669,7 @@ begin
  _f_ftoi := ___f_ftoi(Value);
 end;
 
-function _d_dtou(Value: FlpDouble): UInt32; 
+function _d_dtou(Value: FlpDouble): UInt32;
 begin
  asm
   move.l #$sysFloatEm_d_dtou, D2;
@@ -677,7 +677,7 @@ begin
  _d_dtou := ___d_dtou(Value);
 end;
 
-function _d_dtoi(Value: FlpDouble): Int32; 
+function _d_dtoi(Value: FlpDouble): Int32;
 begin
  asm
   move.l #$sysFloatEm_d_dtoi, D2;
@@ -790,14 +790,14 @@ begin
  end;
  _f_for := ___f_for(Left, Right);
 end;
-function _d_cmp(Left: FlpDouble; Right: FlpDouble): Int32; 
+function _d_cmp(Left: FlpDouble; Right: FlpDouble): Int32;
 begin
  asm
   move.l #$sysFloatEm_d_cmp, D2
  end;
  _d_cmp := ___d_cmp(Left, Right);
 end;
-function _d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32; 
+function _d_cmpe(Left: FlpDouble; Right: FlpDouble): Int32;
 begin
  asm
   move.l #$sysFloatEm_d_cmpe, D2;
@@ -862,14 +862,14 @@ begin
  end;
  _d_for := ___d_for(Left, Right);
 end;
-function _f_neg(Value: FlpFloat): FlpFloat; 
+function _f_neg(Value: FlpFloat): FlpFloat;
 begin
  asm
   move.l #$sysFloatEm_f_neg, D2;
  end;
  _f_neg := ___f_neg(Value);
 end;
-function _f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat; 
+function _f_add(Left: FlpFloat; Right: FlpFloat): FlpFloat;
 begin
  asm
   move.l #$sysFloatEm_f_add, D2;

@@ -18,11 +18,11 @@ end;
 
 procedure menu(Data : GPointer; Action : Guint; Widget : pGtkWidget); cdecl;
 
-Var 
+Var
   TheLabel : PgtkWidget;
   LabelText : Pchar;
   S : AnsiString;
-  
+
 begin
   TheLabel  := g_list_nth_data(gtk_container_children(GTK_CONTAINER(Widget)),0);
   gtk_label_get(gtk_Label(theLabel),@LabelText);
@@ -43,7 +43,7 @@ end;
 Type
   FC = TGtkItemFactoryCallback;
 
-Const 
+Const
   NrMenuItems = 21;
   TheMenu : Array[1..NrMenuItems] of TGtkItemFactoryEntry = (
     (path:'/_File';Accelerator:Nil;Callback:Nil;Callback_action:1;item_type:'<Branch>'),
@@ -84,11 +84,11 @@ begin
   MenuBar:=gtk_item_factory_get_widget (Factory, '<main>');
 end;
 
-    
+
 begin
   gtk_init (@argc, @argv);
   window := gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW(Window),'Menu using an item factory');  
+  gtk_window_set_title (GTK_WINDOW(Window),'Menu using an item factory');
   gtk_widget_set_usize (Window, 300, 200);
   gtk_signal_connect (PGTKOBJECT (window), 'destroy',
                       GTK_SIGNAL_FUNC (@destroy), NULL);

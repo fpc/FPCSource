@@ -125,29 +125,7 @@ end ;
 
 {
   $Log$
-  Revision 1.4  2004-08-09 16:44:23  jonas
-    * use C versions of string routines if FPC_USE_LIBC is defined
-
-  Revision 1.3  2004/05/01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.2  2004/02/20 22:15:16  florian
-    + x86_64 dependend sysutils part added
-    * some 64 bit adaptions
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.8  2003/09/06 21:52:24  marco
-   * commited.
-
-  Revision 1.7  2003/09/01 20:46:59  peter
-    * small fixes for sparc
-
-  Revision 1.6  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/08/01 16:53:14  jonas
-    * fix for StrPas() by Sergey Korshunoff <seyko@comail.ru> (merged)
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

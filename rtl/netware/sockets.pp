@@ -56,12 +56,12 @@ Implementation
 
 
 //function fprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t;
-//function fpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize;
+//function fpsendmsg    (s:cint; hdr: pmsghdr; flags:cint):ssize;
 
-//function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint;
+//function fpsocket     (domain:cint; xtype:cint; protocol: cint):cint;
 
 
-function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint;
+function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
 begin
   fpSocket:=WinSock.Socket(Domain,xtype,ProtoCol);
   if fpSocket<0 then
@@ -89,7 +89,7 @@ begin
     SocketError:=0;
 end;
 
-function fprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
+function fprecv         (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
   fpRecv:=WinSock.Recv(S,Buf,Len,Flags);
   if fpRecv<0 then
@@ -118,7 +118,7 @@ begin
     SocketError:=0;
 end;
 
-function fpshutdown 	(s:cint; how:cint):cint;
+function fpshutdown     (s:cint; how:cint):cint;
 begin
   fpShutDown:=WinSock.ShutDown(S,How);
   if fpShutDown<0 then
@@ -237,7 +237,7 @@ begin
   end else
   begin
     CloseSocket := 0;
-    SocketError := 0;	
+    SocketError := 0;
   end;
 end;
 
@@ -394,37 +394,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2004-09-26 19:25:49  armin
-  * exiting threads at nlm unload
-
-  Revision 1.6  2004/09/18 23:45:43  armin
-  * make winsock more compatible to win32 version
-
-  Revision 1.5  2004/07/30 15:05:25  armin
-  make netware rtl compilable under 1.9.5
-
-  Revision 1.4  2003/03/25 18:17:54  armin
-  * support for fcl, support for linking without debug info
-  * renamed winsock2 to winsock for win32 compatinility
-  * new sockets unit for netware
-  * changes for compiler warnings
-
-  Revision 1.3  2003/03/23 17:47:15  armin
-  * CloseSocket added
-
-  Revision 1.10  2003/01/01 14:34:22  peter
-    * sendto overload
-
-  Revision 1.9  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/07/17 07:28:21  pierre
-   * avoid constant evaluation problems if cycling with -Cr
-
-  Revision 1.7  2002/02/04 21:41:15  michael
-  + merged ixed syntax
-
-  Revision 1.6  2002/02/04 21:29:34  michael
-  + merged missing sendto/rcvfrom functions
+  Revision 1.8  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

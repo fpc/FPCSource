@@ -99,24 +99,13 @@
 {$endif INTERNCONSTINTF}
 {
   $Log$
-  Revision 1.6  2005-01-06 13:02:03  florian
+  Revision 1.7  2005-02-14 17:13:21  peter
+    * truncate log
+
+  Revision 1.6  2005/01/06 13:02:03  florian
     * arctan, sin and cos are done in software on the arm
 
   Revision 1.5  2005/01/01 18:34:24  florian
     * fixed building
 
-  Revision 1.4  2004/03/16 22:02:26  florian
-    * disabled internal ln
-
-  Revision 1.3  2004/01/27 15:04:49  florian
-    * some math nodes are inlined now
-
-  Revision 1.2  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
-
-  Revision 1.1  2003/08/21 16:41:54  florian
-    * empty dummy files
-    + [long|set]jmp implemented
 }

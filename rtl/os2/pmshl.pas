@@ -379,7 +379,7 @@ End.
 
 {
 $Log$
-Revision 1.1  2003-03-02 02:04:12  hajny
-  + PMShl added
+Revision 1.2  2005-02-14 17:13:31  peter
+  * truncate log
 
 }

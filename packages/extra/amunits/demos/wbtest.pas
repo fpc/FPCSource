@@ -19,7 +19,7 @@ uses wbargs, msgbox;
 var
    i : integer;
    dummy : string;
-   
+
 
 Function IntToStr (I : Longint) : String;
 Var
@@ -38,7 +38,7 @@ begin
        if WBArgCount > 0 then begin
           dummy := dummy + 'And the args are:' +#10;
           for i := 1 to WBArgCount do dummy := dummy + 'Arg number ' + inttostr(i) +
-	                ' is: ' + GetWBArg(i) +#10;
+                        ' is: ' + GetWBArg(i) +#10;
        end;
        dummy := dummy + 'The programs name with GetWBArg(0) is: ' + GetWBArg(0);
        MessageBox('FPC WorkBench', dummy, 'Nice');
@@ -56,9 +56,9 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:27  nils
-    * initial release
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+

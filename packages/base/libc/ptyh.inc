@@ -7,4 +7,4 @@ function forkpty(__amaster:Plongint; __name:Pchar; __termp:Ptermios; __winp:Pwin
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

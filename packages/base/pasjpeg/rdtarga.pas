@@ -21,7 +21,7 @@ uses
   jinclude,
   jdeferr,
   jerror,
-  cdjpeg;		{ Common decls for cjpeg/djpeg applications }
+  cdjpeg;               { Common decls for cjpeg/djpeg applications }
 
 
 { The module selection routine for Targa format input. }
@@ -165,9 +165,9 @@ begin
   begin { decrement pixels remaining in block }
     i := read_byte(sinfo);
     if (i and $80) <> 0 then
-    begin		{ Start of duplicate-pixel block? }
+    begin               { Start of duplicate-pixel block? }
       sinfo^.dup_pixel_count := i and $7F; { number of dups after this one }
-      sinfo^.block_count := 0;	{ then read new block header }
+      sinfo^.block_count := 0;  { then read new block header }
     end
     else
     begin
@@ -408,10 +408,10 @@ begin
            ( uInt(UCH(targaheader[14+1])) ) shl 8);
 
   source^.pixel_size := UCH(targaheader[16]) shl 3;
-  flags := UCH(targaheader[17]);	{ Image Descriptor byte }
+  flags := UCH(targaheader[17]);        { Image Descriptor byte }
 
-  is_bottom_up := (flags and $20) = 0;	{ bit 5 set => top-down }
-  interlace_type := flags shl 6;	{ bits 6/7 are interlace code }
+  is_bottom_up := (flags and $20) = 0;  { bit 5 set => top-down }
+  interlace_type := flags shl 6;        { bits 6/7 are interlace code }
 
   if (cmaptype > 1) or                  { cmaptype must be 0 or 1 }
      (source^.pixel_size < 1) or (source^.pixel_size > 4) or
@@ -434,7 +434,7 @@ begin
   end;
 
   { Now should have subtype 1, 2, or 3 }
-  components := 3;		{ until proven different }
+  components := 3;              { until proven different }
   cinfo^.in_color_space := JCS_RGB;
 
   case (subtype) of
@@ -455,7 +455,7 @@ begin
       end;
       TRACEMS2(j_common_ptr(cinfo), 1, JTRC_TGA, width, height);
     end;
-  3:begin	{ Grayscale image }
+  3:begin       { Grayscale image }
       components := 1;
       cinfo^.in_color_space := JCS_GRAYSCALE;
       if (source^.pixel_size = 1) then
@@ -547,8 +547,8 @@ begin
   { Create module interface object }
   source := tga_source_ptr (
       cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				  SIZEOF(tga_source_struct)) );
-  source^.cinfo := cinfo;	{ make back link for subroutines }
+                                  SIZEOF(tga_source_struct)) );
+  source^.cinfo := cinfo;       { make back link for subroutines }
   { Fill in method ptrs, except get_pixel_rows which start_input sets }
   source^.pub.start_input := start_input_tga;
   source^.pub.finish_input := finish_input_tga;

@@ -210,13 +210,7 @@ end;
 
 {
   $Log$
-  Revision 1.6  2004-05-01 20:52:29  peter
-    * ptrint fixes
-
-  Revision 1.5  2004/04/22 20:59:23  peter
-    * longint to ptrint
-
-  Revision 1.4  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:25  peter
+    * truncate log
 
 }

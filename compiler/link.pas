@@ -706,37 +706,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.48  2005-01-01 20:18:24  armin
+  Revision 1.49  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.48  2005/01/01 20:18:24  armin
   * increased maxsize of ExeCmd and DllCmd
-
-  Revision 1.47  2004/12/22 16:32:45  peter
-    * maybequoted() added
-
-  Revision 1.46  2004/11/03 22:22:51  peter
-  First check outputunitdir/outputexedir for .o file
-
-  Revision 1.45  2004/10/14 16:25:39  mazen
-  * Merge is complete for this file, cycles !
-
-  Revision 1.44  2004/10/09 11:37:09  olle
-    * Exchanged hardcoded "./" to CurDirRelPath
-    * In FindObjectFile, when link on target, special handling is now
-      only done for units.
-
-  Revision 1.43  2004/07/17 15:51:57  jonas
-    * shell now returns an exitcode
-    * print an error if linking failed when linking was done using a script
-
-  Revision 1.42  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.41  2004/02/24 00:53:49  olle
-    * increased maxsize of link.res file name
-    * fixed a 255-limit in TScript.WriteToDisk
-
-  Revision 1.40  2004/02/19 20:40:15  olle
-    + Support for Link on target especially for MacOS
-    + TLinkerMPW
-    + TAsmScriptMPW
 
 }

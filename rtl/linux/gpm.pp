@@ -955,42 +955,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2005-01-30 18:35:42  peter
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.5  2005/01/30 18:35:42  peter
     * goto on
 
   Revision 1.4  2005/01/30 18:00:28  peter
     * move gpm.pp to linux
-
-  Revision 1.14  2004/11/21 11:28:21  peter
-    * fixed bootstrap with 1.0.10 and 1.9.4
-
-  Revision 1.13  2004/11/06 20:06:19  peter
-    * mouse works again
-
-  Revision 1.12  2004/11/03 16:51:05  peter
-    * fixed valgrind issues
-
-  Revision 1.11  2004/11/02 09:37:35  peter
-    * fixed uninitialzied local
-
-  Revision 1.10  2004/07/09 23:10:14  peter
-    * fixed range check errors
-
-  Revision 1.9  2004/07/09 22:40:02  daniel
-    * Fixed fitvalues
-
-  Revision 1.8  2004/07/09 19:03:35  peter
-    * isatty return cint again
-
-  Revision 1.7  2004/07/08 13:23:21  daniel
-    * gpm now uses a Pascal translation of libgpm instead of linking against
-      it.
-    * isatty result type changed into boolean
-
-  Revision 1.6  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.5  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
 
 }

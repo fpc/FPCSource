@@ -8,7 +8,7 @@ type
 
    Pclockid_t = ^clockid_t;
    clockid_t = __clockid_t;
- 
+
    Ptimer_t = ^timer_t;
    timer_t = __timer_t;
 
@@ -40,7 +40,7 @@ type
 
 var
   getdate_err : longint;cvar;external;
-  
+
 function clock:clock_t;cdecl;external clib name 'clock';
 function __time(__timer:Ptime_t):time_t;cdecl;external clib name 'time';
 function difftime(__time1:time_t; __time0:time_t):double;cdecl;external clib name 'difftime';
@@ -77,14 +77,14 @@ function getdate_r(__string:Pchar; __resbufp:Ptm):longint;cdecl;external clib na
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TTime_T = Time_t;
   TCLOCKID_T = CLOCKID_T;
   TUnixTime = tm;
   PUnixTime = ^TUnixTime;
-  
+
   TITimerSpec = itimerspec;
-          
+
 function __time(var __timer : ttime_t):time_t;cdecl;external clib name 'time';
 function mktime(var __tp:tm):time_t;cdecl;external clib name 'mktime';
 function strftime(__s:Pchar; __maxsize:size_t; __format:Pchar; var __tp:tm):size_t;cdecl;external clib name 'strftime';
@@ -110,4 +110,4 @@ function clock_getcpuclockid(__pid:pid_t; var __clock_id: tclockid_t):longint;cd
 function timer_create(__clock_id:clockid_t; var __ev :tsigevent; var __timerid:timer_t):longint;cdecl;external clib name 'timer_create';
 function timer_settime(__timerid:timer_t; __flags:longint; const __value: titimerspec; var __ovalue:titimerspec):longint;cdecl;external clib name 'timer_settime';
 function timer_gettime(__timerid:timer_t; var __value: titimerspec):longint;cdecl;external clib name 'timer_gettime';
-          
+

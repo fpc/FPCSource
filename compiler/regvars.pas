@@ -668,47 +668,7 @@ end.
 
 {
   $Log$
-  Revision 1.82  2004-10-16 13:08:49  olle
-    * uppdated in accordance to varregable for OLDREGVARS
-
-  Revision 1.81  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.80  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.79  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.78  2004/09/10 19:59:38  jonas
-    * clarified comment
-
-  Revision 1.77  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.76  2004/06/17 16:55:46  peter
-    * powerpc compiles again
-
-  Revision 1.75  2004/05/30 15:36:55  jonas
-    * fixed regvars compilation
-
-  Revision 1.74  2004/02/08 20:15:42  jonas
-    - removed taicpu.is_reg_move because it's not used anymore
-    + support tracking fpu register moves by rgobj for the ppc
-
-  Revision 1.73  2004/02/08 18:08:59  jonas
-    * fixed regvars support. Needs -doldregvars to activate. Only tested with
-      ppc, other processors should however only require maxregvars and
-      maxfpuregvars constants in cpubase.pas. Remember to take scratch-
-      registers into account when defining that value.
-
-  Revision 1.72  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+  Revision 1.83  2005-02-14 17:13:07  peter
+    * truncate log
 
 }

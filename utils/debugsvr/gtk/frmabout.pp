@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     About form for debug server
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -34,7 +34,7 @@ Type
     Procedure CreateWindow;
     Function GetListen : String;
   end;
-  
+
 Implementation
 
 uses msgintf;
@@ -48,7 +48,7 @@ Resourcestring
   SUnknown    = 'Unknown';
   SOK         = 'OK';
   SCancel     = 'Cancel';
-  
+
 Constructor TAboutForm.Create;
 
 begin
@@ -64,14 +64,14 @@ begin
     dcInet : Result:=Format(SInetPort,[DebugPort]);
   else
     Result:=SUnknown;
-  end;    
+  end;
 end;
 
 Procedure TAboutForm.CreateWindow;
 
-Var 
+Var
   S : String;
-  
+
 
 begin
   FVBox:=TFPGtkVBox.Create;
@@ -98,11 +98,14 @@ begin
   FVBox.PackStart(FButtonBox,false,false,0);
 end;
 
-end.  
+end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:36:25  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:36:25  michael
   + Initial implementation
 
 }

@@ -6,13 +6,13 @@ Uses glib, gtk, gconf, gconfclient;
 
 Procedure key_changed_callback(client : PGConfClient;
                      cnxn_id : guint;
-		     entry : PGConfEntry;
+                     entry : PGConfEntry;
                      user_data: gpointer); cdecl;
-		     
+
 var
   thelabel : PGtkWidget;
   thevalue : PGConfValue;
-begin  
+begin
   thelabel := GTK_WIDGET(user_data);
 
   if (entry = nil) then
@@ -23,7 +23,7 @@ begin
       gtk_label_set_text(GTK_LABEL(thelabel), gconf_value_get_string(thevalue))
     else
       gtk_label_set_text(GTK_LABEL(thelabel), '<wrong type>');
-  end;  
+  end;
 end;
 
 var
@@ -32,12 +32,12 @@ var
   client : PGConfClient;
   str : Pgchar;
 
-begin  
+begin
   gtk_init(@argc, @argv);
   gconf_init(argc, argv, nil);
 
   client := gconf_client_get_default;
-  
+
   window := gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
   gtk_signal_connect(PGtkOBJECT (window), 'delete_event',
@@ -45,12 +45,12 @@ begin
 
 
   str := gconf_client_get_string(client, '/extra/test/directory/key',nil);
-  
+
   If Str <> nil then
     thelabel := gtk_label_new(str)
-  else  
+  else
     thelabel := gtk_label_new('<unset>');
-  
+
   gtk_container_add(GTK_CONTAINER(window), thelabel);
 
   gconf_client_add_dir(client,
@@ -62,7 +62,7 @@ begin
                           @key_changed_callback,
                           thelabel,
                           nil, nil);
-  
+
   gtk_widget_show_all(window);
 
   gtk_main();

@@ -122,14 +122,7 @@ end.
 {
 
  $Log$
- Revision 1.3  2002-09-07 15:40:56  peter
-   * old logs removed and tabs fixed
-
- Revision 1.2  2002/03/22 21:32:23  carl
- + added test LOC_REFERENCE/LOC_REFERENCE (thanks to Florian)
-
- Revision 1.1  2002/03/21 20:16:23  carl
- + is operator testing
-
+ Revision 1.4  2005-02-14 17:13:37  peter
+   * truncate log
 
 }

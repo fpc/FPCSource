@@ -10,7 +10,7 @@ ResourceString
 
 Var I,J : Longint;
     S : AnsiString;
-    
+
 begin
   { Print current values of all resourcestrings }
   For I:=0 to ResourceStringTableCount-1 do
@@ -18,10 +18,10 @@ begin
       begin
       Writeln ('Translate => ',GetResourceStringDefaultValue(I,J));
       Write   ('->');
-      Readln(S); 
-      SetResourceStringValue(I,J,S); 
+      Readln(S);
+      SetResourceStringValue(I,J,S);
       end;
-  Writeln ('Translated strings : ');    
+  Writeln ('Translated strings : ');
   For I:=0 to ResourceStringTableCount-1 do
     For J:=0 to ResourceStringCount(i)-1 do
       begin

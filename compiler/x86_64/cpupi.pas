@@ -65,17 +65,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-06-20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.4  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.3.2.1  2004/04/23 22:12:37  florian
-    * fixed some potential stack corruption reasons
-
-  Revision 1.3  2004/02/04 22:01:13  peter
-    * first try to get cpupara working for x86_64
+  Revision 1.6  2005-02-14 17:13:10  peter
+    * truncate log
 
 }
 

@@ -44,18 +44,18 @@ var
   i : longint;
 begin
   for i:=0 to 255 do
-   s[i]:=#$90; 
+   s[i]:=#$90;
   getmem(p,sizeof(TestRec));
   for i:=0 to sizeof(TestRec)-1 do
-   p[i]:=#$ff; 
+   p[i]:=#$ff;
   freemem(p);
-end;  
+end;
 
 var
   p1 : PTestRec;
 begin
   destroystack;
   p;
-  p1:=GetGroupInfoP; 
+  p1:=GetGroupInfoP;
   dispose(p1);
 end.

@@ -8,4 +8,4 @@ function __xpg_basename(__path:Pchar):Pchar;cdecl;external clib name '__xpg_base
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

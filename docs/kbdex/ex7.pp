@@ -16,7 +16,7 @@ begin
     If IsFunctionKey(K) then
       Writeln('Got function key : ',KeyEventToString(K))
     else
-      Writeln('not a function key.');  
+      Writeln('not a function key.');
   Until (GetKeyEventChar(K)='q');
   DoneKeyBoard;
 end.

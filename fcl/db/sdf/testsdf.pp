@@ -20,7 +20,7 @@ begin
       Schema.Add('Email');
       Open;
       Count:=0;
-      Try 
+      Try
         While Not EOF do
           begin
           Inc(Count);
@@ -35,7 +35,7 @@ begin
       end;
     finally
       free;
-    end; 
+    end;
 end;
 
 begin

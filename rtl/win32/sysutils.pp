@@ -691,9 +691,9 @@ begin
       end;
   FreeEnvironmentStrings(p);
 end;
-    
+
 Function GetEnvironmentString(Index : Integer) : String;
-    
+
 var
   hp,p : pchar;
 begin
@@ -708,11 +708,11 @@ begin
       hp:=hp+strlen(hp)+1;
       end;
     If (hp^<>#0) then
-      Result:=StrPas(HP);  
-    end;  
+      Result:=StrPas(HP);
+    end;
   FreeEnvironmentStrings(p);
 end;
-        
+
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
@@ -846,7 +846,7 @@ Const
   CSIDL_STARTUP                 = $0007; { %USERPROFILE%\Start menu\Programs\Startup                        }
   CSIDL_RECENT                  = $0008; { %USERPROFILE%\Recent                                             }
   CSIDL_SENDTO                  = $0009; { %USERPROFILE%\Sendto                                             }
-  CSIDL_STARTMENU               = $000B; { %USERPROFILE%\Start menu                                         } 
+  CSIDL_STARTMENU               = $000B; { %USERPROFILE%\Start menu                                         }
   CSIDL_MYMUSIC                 = $000D; { %USERPROFILE%\Documents\My Music                                 }
   CSIDL_MYVIDEO                 = $000E; { %USERPROFILE%\Documents\My Videos                                }
   CSIDL_DESKTOPDIRECTORY        = $0010; { %USERPROFILE%\Desktop                                            }
@@ -870,22 +870,22 @@ Const
   CSIDL_MYPICTURES              = $0027; { %USERPROFILE%\My Documents\My Pictures                           }
   CSIDL_PROFILE                 = $0028; { %USERPROFILE%                                                    }
   CSIDL_PROGRAM_FILES_COMMON    = $002B; { %SYSTEMDRIVE%\Program Files\Common                               }
-  CSIDL_COMMON_TEMPLATES        = $002D; { %PROFILEPATH%\All Users\Templates                                } 
+  CSIDL_COMMON_TEMPLATES        = $002D; { %PROFILEPATH%\All Users\Templates                                }
   CSIDL_COMMON_DOCUMENTS        = $002E; { %PROFILEPATH%\All Users\Documents                                }
   CSIDL_COMMON_ADMINTOOLS       = $002F; { %PROFILEPATH%\All Users\Start Menu\Programs\Administrative Tools }
-  CSIDL_ADMINTOOLS              = $0030; { %USERPROFILE%\Start Menu\Programs\Administrative Tools           } 
+  CSIDL_ADMINTOOLS              = $0030; { %USERPROFILE%\Start Menu\Programs\Administrative Tools           }
   CSIDL_COMMON_MUSIC            = $0035; { %PROFILEPATH%\All Users\Documents\my music                       }
   CSIDL_COMMON_PICTURES         = $0036; { %PROFILEPATH%\All Users\Documents\my pictures                    }
   CSIDL_COMMON_VIDEO            = $0037; { %PROFILEPATH%\All Users\Documents\my videos                      }
   CSIDL_CDBURN_AREA             = $003B; { %USERPROFILE%\Local Settings\Application Data\Microsoft\CD Burning }
-  CSIDL_PROFILES                = $003E; { %PROFILEPATH%                                                    } 
+  CSIDL_PROFILES                = $003E; { %PROFILEPATH%                                                    }
 
   CSIDL_FLAG_CREATE             = $8000; { (force creation of requested folder if it doesn't exist yet)     }
 
 
 Type
   PFNSHGetFolderPath = Function(Ahwnd: HWND; Csidl: Integer; Token: THandle; Flags: DWord; Path: PChar): HRESULT; stdcall;
-  
+
 
 {$ifdef VER1_0}
 Const
@@ -893,7 +893,7 @@ Const
 var
 {$endif}
   SHGetFolderPath : PFNSHGetFolderPath = Nil;
-  CFGDLLHandle : THandle = 0;  
+  CFGDLLHandle : THandle = 0;
 
 Procedure InitDLL;
 
@@ -953,7 +953,7 @@ Function GetAppConfigDir(Global : Boolean) : String;
 begin
   If Global then
     Result:=DGetAppConfigDir(Global) // or use windows dir ??
-  else  
+  else
     begin
     Result:=GetSpecialDir(CSIDL_LOCAL_APPDATA)+ApplicationName;
     If (Result='') then
@@ -970,7 +970,7 @@ begin
     if SubDir then
       Result:=IncludeTrailingPathDelimiter(Result+'Config');
     Result:=Result+ApplicationName+ConfigExtension;
-    end 
+    end
   else
     begin
     Result:=IncludeTrailingPathDelimiter(GetAppConfigDir(False));
@@ -1005,95 +1005,7 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.39  2004-12-11 11:48:38  michael
-  + Some fixes in new envvar function
-
-  Revision 1.38  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.37  2004/08/06 13:23:21  michael
-  + Ver 1.0 does not handle initialized variables well
-
-  Revision 1.36  2004/08/05 12:55:29  michael
-  + initialized SysConfigDir
-
-  Revision 1.35  2004/08/05 07:28:37  michael
-  Added getappconfig calls
-
-  Revision 1.34  2004/06/13 10:49:50  florian
-    * fixed some bootstrapping problems as well as some 64 bit stuff
-
-  Revision 1.33  2004/02/13 10:50:23  marco
-   * Hopefully last large changes to fpexec and friends.
-  	- naming conventions changes from Michael.
-  	- shell functions get alternative under ifdef.
-  	- arraystring function moves to unixutil
-  	- unixutil now regards quotes in stringtoppchar.
-  	- sysutils/unix get executeprocess(ansi,array of ansi), and
-  		both executeprocess functions are fixed
-   	- Sysutils/win32 get executeprocess(ansi,array of ansi)
-
-  Revision 1.32  2004/02/08 11:00:18  michael
-  + Implemented winsysut unit
-
-  Revision 1.31  2004/01/20 23:12:49  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.30  2004/01/16 20:53:33  michael
-  + DirectoryExists now closes findfirst handle
-
-  Revision 1.29  2004/01/10 17:40:25  michael
-  + Added Sleep() function
-
-  Revision 1.28  2004/01/05 22:56:08  florian
-    * changed sysutils.exec to ExecuteProcess
-
-  Revision 1.27  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.26  2003/11/06 22:25:10  marco
-   * added some more of win32* delphi pseudo constants
-
-  Revision 1.25  2003/10/25 23:44:33  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.24  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.23  2003/09/06 22:23:35  marco
-   * VP fixes.
-
-  Revision 1.22  2003/04/01 15:57:41  peter
-    * made THandle platform dependent and unique type
-
-  Revision 1.21  2003/03/29 18:21:42  hajny
-    * DirectoryExists declaration changed to that one from fixes branch
-
-  Revision 1.20  2003/03/28 19:06:59  peter
-    * directoryexists added
-
-  Revision 1.19  2003/01/03 20:41:04  peter
-    * FileCreate(string,mode) overload added
-
-  Revision 1.18  2003/01/01 20:56:57  florian
-    + added invalid instruction exception
-
-  Revision 1.17  2002/12/15 20:24:17  peter
-    * some more C style functions
-
-  Revision 1.16  2002/10/02 21:17:03  florian
-    * we've to reimport TSystemTime time from the windows unit
-
-  Revision 1.15  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.14  2002/05/09 08:28:23  carl
-  * Merges from Fixes branch
-
-  Revision 1.13  2002/03/24 19:26:49  marco
-   * Added win32platform
-
-  Revision 1.12  2002/01/25 16:23:04  peter
-    * merged filesearch() fix
+  Revision 1.40  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

@@ -22,4 +22,4 @@ type
 Begin
 end.
 
-  
+

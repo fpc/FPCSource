@@ -729,40 +729,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2005-02-01 08:46:13  michael
+  Revision 1.86  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.85  2005/02/01 08:46:13  michael
    * Patch from peter: fix macpas anonymous function procvar
-
-  Revision 1.84  2004/12/26 20:11:39  peter
-    * fix invalid typecast
-
-  Revision 1.83  2004/11/16 20:32:40  peter
-  * fixes for win32 mangledname
-
-  Revision 1.82  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.81  2004/08/29 11:28:10  peter
-  allow published for constructors
-
-  Revision 1.80  2004/08/25 15:57:04  peter
-    * allow only 1 default property
-
-  Revision 1.79  2004/08/22 11:23:45  peter
-    * support hint directives in object declarations
-
-  Revision 1.78  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.77  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.76.2.1  2004/04/28 19:55:52  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.76  2004/02/26 16:13:25  peter
-    * fix crash when method is not declared in object declaration
-    * fix parsing of mapped interface functions
 
 }

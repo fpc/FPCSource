@@ -28,9 +28,9 @@ interface
 uses  palmos, coretraps, datamgr, control, list, form;
 
 // Note: although these constants are in the range of system resource IDs, the are actually
-// constants passed to CategoryCreateList, CategorySelect, and CategoryFreeList which will 
-// produce the desired action.  The reason the constants are in this range is to keep them 
-// out of the numeric range that developers can use for resource IDs in the attempt to avoid 
+// constants passed to CategoryCreateList, CategorySelect, and CategoryFreeList which will
+// produce the desired action.  The reason the constants are in this range is to keep them
+// out of the numeric range that developers can use for resource IDs in the attempt to avoid
 // conflicts.
 
 const

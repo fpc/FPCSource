@@ -216,10 +216,7 @@ End.
 
 {
 $Log$
-Revision 1.1  2003-02-12 18:42:58  hajny
-  + hwvideo moved to standalone package
-
-Revision 1.1  2003/02/09 13:49:06  hajny
-  + mmtk added
+Revision 1.2  2005-02-14 17:13:21  peter
+  * truncate log
 
 }

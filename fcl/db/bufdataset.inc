@@ -128,7 +128,7 @@ begin
   inc(x);
   result := ord(NullMask[x div 8]) and (1 shl (x mod 8)) > 0
 end;
-  
+
 function TBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
 var x         : longint;
@@ -194,7 +194,7 @@ begin
       Result := GetRecord(Buffer,getmode,DoCheck);
       exit
       end;
-    
+
     with PBufBookmark(Buffer + RecordSize)^ do
       begin
       BookmarkData := FBCurrentRecord;
@@ -335,7 +335,7 @@ begin
       ftDateTime : result := sizeof(TDateTime)
   else Result := 10
   end;
-  
+
 end;
 
 function TBufDataset.LoadBuffer(Buffer : PChar): TGetResult;
@@ -571,7 +571,7 @@ begin
       end;
     for f := 0 to high(FUpdateBuffer[r].FieldsUpdateBuffer) do
       FreeMem(FUpdateBuffer[r].FieldsUpdateBuffer[f].newvalue);
-      
+
     end;
   SetLength(FUpdateBuffer,0);
   if FOpen then Resync([]);

@@ -1394,7 +1394,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.108  2005-01-31 20:23:53  peter
+  Revision 1.109  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.108  2005/01/31 20:23:53  peter
     * set varstate before parsing the instruction block in for statements
 
   Revision 1.107  2005/01/31 16:16:21  peter
@@ -1409,41 +1412,5 @@ end.
 
   Revision 1.104  2005/01/03 17:55:57  florian
     + first batch of patches to support tdef.getcopy fully
-
-  Revision 1.103  2004/12/26 16:22:01  peter
-    * fix lineinfo for with blocks
-
-  Revision 1.102  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.101  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.100  2004/09/13 20:28:26  peter
-    * for loop variable assignment is not allowed anymore
-
-  Revision 1.99  2004/08/30 12:09:45  michael
-  + Patch from peter to fix bug 3272
-
-  Revision 1.98  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.97  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.96  2004/05/23 15:04:13  peter
-    * remvoe writeln
-
-  Revision 1.95.2.1  2004/04/28 19:55:51  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.95  2004/03/18 16:19:03  peter
-    * fixed operator overload allowing for pointer-string
-    * replaced some type_e_mismatch with more informational messages
-
-  Revision 1.94  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
 
 }

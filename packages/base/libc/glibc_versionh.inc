@@ -6,4 +6,4 @@ function gnu_get_libc_version:Pchar;cdecl;external clib name 'gnu_get_libc_versi
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -9,7 +9,7 @@ Const
 
 Procedure Test(D1,D2 : TDateTime);
 
-Var 
+Var
   Cmp : Integer;
 
 begin
@@ -24,7 +24,7 @@ begin
   Writeln(FormatDateTime(Fmt,D2));
 end;
 
-Var 
+Var
   D,N : TDateTime;
 
 Begin

@@ -224,33 +224,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2005-02-05 23:49:49  florian
+  Revision 1.11  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.10  2005/02/05 23:49:49  florian
     * threadvars on x86_64 fixed
 
-  Revision 1.9  2004/12/12 14:30:27  peter
-    * x86_64 updates
-
-  Revision 1.8  2004/05/28 21:37:34  peter
-    * fix errno for multithread
-
-  Revision 1.7  2004/05/18 20:13:12  peter
-    * fix offset of errno
-
-  Revision 1.6  2004/05/16 11:04:27  marco
-   * comment removed and four dud instrcutions
-
-  Revision 1.5  2004/04/22 17:17:23  peter
-    * x86-64 fixes
-
-  Revision 1.4  2004/02/06 23:06:16  florian
-    - killed tsyscallregs
-
-  Revision 1.3  2004/02/06 15:58:21  florian
-    * fixed x86-64 assembler problems
-
-  Revision 1.2  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
-
-  Revision 1.1  2003/04/30 22:11:06  florian
-    + for a lot of x86-64 dependend files mostly dummies added
 }

@@ -7,11 +7,11 @@ Interface
 uses SysUtils,IniFiles;
 
 Var
-  SkipEmptyNodes   : Boolean;  
+  SkipEmptyNodes   : Boolean;
   ConfirmDelete    : Boolean;
   CreateBackup     : Boolean;
   MaxRecentUsed    : Integer;
-  BackupExtension  : String;  
+  BackupExtension  : String;
   DefaultExtension : String;
 
 Procedure LoadOptions;
@@ -26,10 +26,10 @@ Const
   KeySkipEmptyNodes   = 'SkipEmptyNodes';
   KeyConfirmDelete    = 'ConfirmDelete';
   KeyCreateBackup     = 'CreateBackup';
-  KeyBackupExtension  = 'BackupExtension';  
+  KeyBackupExtension  = 'BackupExtension';
   KeyDefaultExtension = 'DefaultExtension';
   KeyMaxRecentUsed    = 'MaxMRUitems';
-  
+
 {$ifndef win32}
 Function GetOptionFileName : String;
 
@@ -48,7 +48,7 @@ begin
       If Not CreateDir(HomeDir) then
         HomeDir:=''
       else
-        HomeDir:=HomeDir;  
+        HomeDir:=HomeDir;
     end;
   Result:=IncludeTrailingPathDelimiter(HomeDir)+DefFileName;
 end;
@@ -58,7 +58,7 @@ end;
 Function GetOptionFileName : String;
 
 begin
-  Result:=ExtractFilePath(Paramstr(0))+DefFileName;  
+  Result:=ExtractFilePath(Paramstr(0))+DefFileName;
 end;
 {$endif}
 

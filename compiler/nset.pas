@@ -801,30 +801,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2004-11-30 18:13:39  jonas
-    * patch from Peter to fix inlining of case statements
-
-  Revision 1.55  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.54  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.53.2.2  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.53.2.1  2004/04/28 19:55:51  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.53  2004/03/18 16:19:03  peter
-    * fixed operator overload allowing for pointer-string
-    * replaced some type_e_mismatch with more informational messages
-
-  Revision 1.52  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
+  Revision 1.57  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

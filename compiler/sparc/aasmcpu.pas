@@ -313,32 +313,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.51  2004/10/30 15:21:38  florian
-    * fixed generic optimizer
-    * enabled generic optimizer for sparc
-
-  Revision 1.50  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.49  2004/06/20 08:47:33  florian
-    * spilling of doubles on sparc fixed
-
-  Revision 1.48  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.47.2.5  2004/06/03 19:23:41  florian
-    * fixed some spilling issues
-
-  Revision 1.47.2.4  2004/05/30 17:54:14  florian
-    + implemented cmp64bit
-    * started to fix spilling
-    * fixed int64 sub partially
-
-  Revision 1.47.2.3  2004/05/28 20:29:49  florian
-    * fixed currency trouble on x86-64
+  Revision 1.53  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

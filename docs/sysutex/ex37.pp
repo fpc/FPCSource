@@ -8,7 +8,7 @@ Var I,J,F : Longint;
 
 Begin
   F:=FileCreate ('test.dat');
-  If F=-1 then 
+  If F=-1 then
     Halt(1);
   For I:=0 to 100 do
     FileWrite(F,I,SizeOf(i));

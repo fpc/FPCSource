@@ -879,7 +879,10 @@ end;
 
 {
   $Log$
-  Revision 1.54  2005-01-28 19:50:51  peter
+  Revision 1.55  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.54  2005/01/28 19:50:51  peter
   1.0.x fixes
 
   Revision 1.53  2005/01/25 18:50:45  peter
@@ -887,108 +890,5 @@ end;
 
   Revision 1.52  2005/01/09 10:38:59  florian
     * replaced CompareChar by CompareByte, saves one redirection
-
-  Revision 1.51  2004/12/02 17:56:01  peter
-    * prevent crash when appending empty string
-
-  Revision 1.50  2004/11/17 22:19:04  peter
-  internconst, internproc and some external declarations moved to interface
-
-  Revision 1.49  2004/10/31 16:21:30  peter
-    * fix shortstr_to_ansistring for 1.0.x
-
-  Revision 1.48  2004/10/24 20:01:41  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.47  2004/07/12 17:58:19  peter
-    * remove maxlen field from ansistring/widestrings
-
-  Revision 1.46  2004/07/02 21:21:09  peter
-    * decr ref doesn't reset pointer
-    * finalize resets pointer for astring,wstring
-
-  Revision 1.45  2004/05/29 15:39:08  florian
-    * the decr functions set the data now to nil
-
-  Revision 1.44  2004/05/16 16:52:28  peter
-    * small fix for 1.0.x
-
-  Revision 1.43  2004/05/01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.42  2004/04/29 18:59:43  peter
-    * str() helpers now also use valint/valuint
-    * int64/qword helpers disabled for cpu64
-
-  Revision 1.41  2004/01/21 22:14:05  peter
-    * 1.0.x fix
-
-  Revision 1.40  2004/01/21 22:02:18  peter
-    * decrref does not reset always to nil, only when string is disposed.
-      the reset to nil for temps is done by the compiler
-
-  Revision 1.39  2003/06/17 19:24:08  jonas
-    * fixed conversion of fpc_*str_unique to compilerproc
-
-  Revision 1.38  2003/06/17 16:38:53  jonas
-    * fpc_ansistr|widestr_unique is now a function so it can be used as
-      compilerproc
-
-  Revision 1.37  2003/05/01 08:05:23  florian
-    * started to make the rtl 64 bit save by introducing SizeInt and SizeUInt (similar to size_t of C)
-
-  Revision 1.36  2003/02/26 19:16:55  jonas
-    * fixed setstring (+- like suggested by Dimitry Sibiryakov)
-
-  Revision 1.35  2002/12/09 08:33:31  michael
-  + Fixed range check error and others in Delete
-
-  Revision 1.34  2002/12/07 14:34:30  carl
-    - avoid warnings (add typecast)
-
-  Revision 1.33  2002/10/21 19:52:47  jonas
-  Revision 1.1.2.17  2002/12/09 08:32:34  michael
-  + Fixed range check error and others in Delete
-
-  Revision 1.1.2.16  2002/10/21 19:30:57  jonas
-    * fixed some buffer overflow errors in SetString (both short and
-      ansistring versions) (merged)
-
-  Revision 1.32  2002/10/20 12:59:21  jonas
-    * fixed ansistring append helpers so they preserve the terminating #0
-    * optimized SetLength() so that it uses reallocmem in case the refcount
-      of the target string is 1
-
-  Revision 1.31  2002/10/19 17:06:50  michael
-  + Added check for nil buffer to setstring
-
-  Revision 1.30  2002/10/17 12:43:00  florian
-    + ansistring_append* implemented
-
-  Revision 1.29  2002/10/02 18:21:51  peter
-    * Copy() changed to internal function calling compilerprocs
-    * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
-      new copy functions
-
-  Revision 1.28  2002/09/14 11:20:50  carl
-    * Delphi compatibility fix (with string routines)
-
-  Revision 1.27  2002/09/07 21:10:47  carl
-    * cardinal -> longword
-    - remove some unused routines
-
-  Revision 1.26  2002/09/07 15:07:44  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.25  2002/04/26 15:19:05  peter
-    * use saveregisters for incr routines, saves also problems with
-      the optimizer
-
-  Revision 1.24  2002/04/25 20:14:56  peter
-    * updated compilerprocs
-    * incr ref count has now a value argument instead of var
-
-  Revision 1.23  2002/01/07 13:23:53  jonas
-    * fixed bug in fpc_char_to_ansistr when converting #0 (found by Peter)
 
 }

@@ -34,7 +34,7 @@ type
   PFile = Pointer;
   __uid_t = longint;
   __gid_t = longint;
-   
+
   Ppasswd = ^passwd;
   passwd = record
     pw_name : Pchar;
@@ -47,7 +47,7 @@ type
   end;
   TPasswordRecord = passwd;
   PPasswordRecord = ^TPasswordRecord;
-  
+
 procedure setpwent;cdecl; external External_library name 'setpwent';
 procedure endpwent;cdecl; external External_library name 'endpwent';
 function getpwent:Ppasswd;cdecl;external External_library name 'getpwent';

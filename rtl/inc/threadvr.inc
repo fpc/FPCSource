@@ -102,22 +102,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2005-02-05 23:49:49  florian
+  Revision 1.5  2005-02-14 17:13:29  peter
+    * truncate log
+
+  Revision 1.4  2005/02/05 23:49:49  florian
     * threadvars on x86_64 fixed
-
-  Revision 1.3  2004/11/01 20:37:49  florian
-    * fixed some x86-64 multithreading stuff
-
-  Revision 1.2  2003/11/26 20:10:59  michael
-  + New threadmanager implementation
-
-  Revision 1.1  2002/10/31 13:46:11  carl
-    * threadvar.inc -> threadvr.inc
-
-  Revision 1.2  2002/10/16 19:04:27  michael
-  + More system-independent thread routines
-
-  Revision 1.1  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
 
 }

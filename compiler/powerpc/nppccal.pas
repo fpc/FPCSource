@@ -75,12 +75,12 @@ implementation
         case target_info.system of
           system_powerpc_morphos:
             begin
-              if (po_syscall_sysv in tprocdef(procdefinition).procoptions) or 
+              if (po_syscall_sysv in tprocdef(procdefinition).procoptions) or
                 (po_syscall_sysvbase in tprocdef(procdefinition).procoptions) then
                 begin
                   cg.getcpuregister(exprasmlist,NR_R0);
                   cg.getcpuregister(exprasmlist,NR_R31);
-                  
+
                   reference_reset(tmpref);
                   tmpref.symbol:=objectlibrary.newasmsymbol(tglobalvarsym(tprocdef(procdefinition).libsym).mangledname,AB_EXTERNAL,AT_DATA);
                   tmpref.refaddr:=addr_hi;
@@ -98,15 +98,15 @@ implementation
                   cg.ungetcpuregister(exprasmlist,NR_R31);
                   cg.ungetcpuregister(exprasmlist,NR_R0);
                 end
-              else if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) or 
+              else if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) or
                 (po_syscall_r12base in tprocdef(procdefinition).procoptions) then
                 begin
                   cg.getcpuregister(exprasmlist,NR_R0);
                   cg.getcpuregister(exprasmlist,NR_R31);
-                  
+
                   if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) then
                     exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R3,-tprocdef(procdefinition).extnumber))
-                  else 
+                  else
                     exprasmlist.concat(taicpu.op_reg_reg_const(A_ADDI,NR_R31,NR_R12,-tprocdef(procdefinition).extnumber));
                   reference_reset_base(tmpref,NR_R31,0);
                   exprasmlist.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
@@ -133,7 +133,7 @@ implementation
                   cg.ungetcpuregister(exprasmlist,NR_R0);
                   cg.ungetcpuregister(exprasmlist,NR_R3);
                 end
-              else 
+              else
                 internalerror(2005010403);
             end;
           else
@@ -147,7 +147,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2005-01-06 02:13:03  karoly
+  Revision 1.35  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.34  2005/01/06 02:13:03  karoly
     * more SysV call support stuff for MorphOS
 
   Revision 1.33  2005/01/05 02:31:06  karoly
@@ -155,36 +158,5 @@ end.
 
   Revision 1.32  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
-
-  Revision 1.31  2004/12/06 18:06:37  jonas
-    * only set/clear bit 6 of cr in case of varargs for the sysv abi
-
-  Revision 1.30  2004/10/15 09:30:13  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.29  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.28  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.27.4.1  2004/09/18 20:21:08  jonas
-    * fixed ppc, but still needs fix in tgobj
-
-  Revision 1.27  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.26  2004/04/29 22:18:37  karoly
-    * removed some unneeded parts of do_syscall
-
-  Revision 1.25  2004/04/29 14:36:42  karoly
-    * little cleanup of the previous commit
-
-  Revision 1.24  2004/04/29 14:01:23  karoly
-    + first implementation of PowerPC/MorphOS do_syscall
 
 }

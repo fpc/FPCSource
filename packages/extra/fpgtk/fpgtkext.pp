@@ -34,7 +34,7 @@ type
     FButton : TFPgtkButton;
     FImage : TFPgtkPixmap;
     procedure OpenFileSelection (Sender : TFPgtkObject; data : pointer);
-    procedure CloseFileSelection (Sender:TFPgtkWindow; DialogResult:pointer; 
+    procedure CloseFileSelection (Sender:TFPgtkWindow; DialogResult:pointer;
                                     Action:integer; initiator:TFPgtkObject);
     procedure SetFilename (Value : string);
     function GetFilename : string;
@@ -108,7 +108,7 @@ type
 
 type
   TModalResult = Low(Integer)..High(Integer);
-  
+
   TMsgDlgType = (mtWarning, mtError, mtInformation, mtConfirmation, mtCustom);
   TMsgDlgBtn = (mbYes, mbNo, mbOK, mbCancel, mbAbort, mbRetry, mbIgnore,
                 mbAll, mbNoToAll, mbYesToAll, mbHelp);
@@ -119,7 +119,7 @@ const
   mbYesNoCancel      = [mbYes, mbNo, mbCancel];
   mbOKCancel         = [mbOK, mbCancel];
   mbAbortRetryIgnore = [mbAbort, mbRetry, mbIgnore];
-  
+
   mrNone = 0;
   mrOK = mrNone + 1;
   mrCancel = mrNone + 2;
@@ -131,14 +131,14 @@ const
   mrAll = mrNone + 8;
   mrNoToAll = mrNone + 9;
   mrYesToAll = mrNone + 10;
-                                 
+
 function MessageDlg(const aMsg: string; DlgType: TMsgDlgType;
                     Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer;
-                
+
 
 function MessageDlg(const Fmt: string; Args : Array of const; DlgType: TMsgDlgType;
                     Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer;
-                                                              
+
 procedure ShowMessage (const aTitle, aMessage : string);
 
 { ==== Menu handling ==== }
@@ -740,7 +740,7 @@ begin
     Execute (nil, @d, @CloseFileSelection);
 end;
 
-procedure TFPgtkFileEntry.CloseFileSelection (Sender:TFPgtkWindow; DialogResult:pointer; 
+procedure TFPgtkFileEntry.CloseFileSelection (Sender:TFPgtkWindow; DialogResult:pointer;
                                     Action:integer; initiator:TFPgtkObject);
 begin
   if action = drOk then
@@ -1098,14 +1098,14 @@ begin
   FVBox.PackStart(FButtonBox,false,False,8);
 end;
 
-Const 
+Const
   ButtonText : Array[TMsgDlgBtn] of string  =
        ('Yes', 'No', 'OK', 'Cancel','Abort', 'Retry', 'Ignore',
         'All', 'NoToAll', 'YesToAll', 'Help');
   ButtonResult : array [TMsgDlgbtn] of TModalResult =
-       (mrYes, mrNo, mrOK, mrCAncel, mrAbort, mrRetry, mrIgnore, 
+       (mrYes, mrNo, mrOK, mrCAncel, mrAbort, mrRetry, mrIgnore,
         mrAll, mrNoToAll, mrYesToAll, 0);
-                         
+
 Procedure TMessageDialogWindow.CreateButtons(Buttons: TMsgDlgButtons);
 Var
   b : TMsgDlgBtn;
@@ -1126,7 +1126,7 @@ function MessageDlg(const aMsg: string; DlgType: TMsgDlgType;
 begin
   With TMessageDialogWindow.Create(AMsg,DlgType,Buttons) do
     Result:=Execute(Nil,Nil,Nil);
-end;  
+end;
 
 function MessageDlg(const Fmt: string; Args : Array of const; DlgType: TMsgDlgType;
                     Buttons: TMsgDlgButtons; HelpCtx: Longint): Integer;

@@ -23,7 +23,7 @@ type
 {$else CPU64}
   THandle = DWord;
 {$endif CPU64}
-  
+
     { the fields of this record are os dependent  }
     { and they shouldn't be used in a program     }
     { only the type TCriticalSection is important }
@@ -39,7 +39,10 @@ type
 
 {
    $Log$
-   Revision 1.1  2005-02-06 13:06:20  peter
+   Revision 1.2  2005-02-14 17:13:32  peter
+     * truncate log
+
+   Revision 1.1  2005/02/06 13:06:20  peter
      * moved file and dir functions to sysfile/sysdir
      * win32 thread in systemunit
 

@@ -31,8 +31,8 @@ type
    hsearch_ENTRY = record
        {undefined structure}
      end;
-   PPhsearch_ENTRY = ^Phsearch_ENTRY;       
-          
+   PPhsearch_ENTRY = ^Phsearch_ENTRY;
+
 
 function hsearch(__item:hsearch_ENTRY; __action:hsearch_ACTION):Phsearch_ENTRY;cdecl;external clib name 'hsearch';
 function hcreate(__nel:size_t):longint;cdecl;external clib name 'hcreate';
@@ -76,13 +76,13 @@ function lsearch(__key:pointer; __base:pointer; __nmemb:Psize_t; __size:size_t; 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   PQElement = ^TQElement;
   TQElement = qelem;
-                    
+
   THSearchEntry = hsearch_ENTRY;
   PHSearchEntry = ^THSearchEntry;
-    
+
   THSearchEntryOpaque = hsearch_ENTRY;
   PHSearchEntryOpaque = ^THSearchEntryOpaque;
 
@@ -91,4 +91,4 @@ function hsearch_r(__item:hsearch_ENTRY; __action:hsearch_ACTION; var __retval:P
 function tsearch(__key:pointer; var __rootp:pointer; __compar:__compar_fn_t):pointer;cdecl;external clib name 'tsearch';
 function tfind(__key:pointer; var __rootp:pointer; __compar:__compar_fn_t):pointer;cdecl;external clib name 'tfind';
 function tdelete(__key:pointer; var __rootp:pointer; __compar:__compar_fn_t):pointer;cdecl;external clib name 'tdelete';
-                        
+

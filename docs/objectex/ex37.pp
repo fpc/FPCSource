@@ -7,7 +7,7 @@ Uses Objects;
 Var C : PStringCollection;
     S : String;
     I : longint;
-    
+
 begin
   Randomize;
   C:=New(PStringCollection,Init(120,10));

@@ -40,7 +40,7 @@ uses palmos, coretraps, errorbase;
 (***********************************************************************
  * Public constants
  ***********************************************************************)
- 
+
 const
 // Bits set for the Intl Mgr feature.
  intlMgrExists          = $00000001;     // IntlMgr/TextMgr calls can be made.
@@ -103,18 +103,18 @@ type
 
 // Return back the address of the routine indicated by <inSelector>. If
 // <inSelector> isn't a valid routine selector, return back NULL.
-function IntlGetRoutineAddress(inSelector: IntlSelector): Pointer; 
+function IntlGetRoutineAddress(inSelector: IntlSelector): Pointer;
 
 // Set the address of the international mgr routine indicated by <iSelector>
 // to be <iProcPtr>. If <iSelector> isn't valid, return an error.
-function IntlSetRoutineAddress(iSelector: IntlSelector; iProcPtr: Pointer): Err; 
+function IntlSetRoutineAddress(iSelector: IntlSelector; iProcPtr: Pointer): Err;
 
 implementation
 
 function __IntlGetRoutineAddress(inSelector: IntlSelector): Pointer; syscall sysTrapIntlDispatch;
 function __IntlSetRoutineAddress(iSelector: IntlSelector; iProcPtr: Pointer): Err; syscall sysTrapIntlDispatch;
 
-function IntlGetRoutineAddress(inSelector: IntlSelector): Pointer; 
+function IntlGetRoutineAddress(inSelector: IntlSelector): Pointer;
 begin
  asm
   move.l #$intlIntlGetRoutineAddress, D2;
@@ -122,7 +122,7 @@ begin
  IntlGetRoutineAddress := __IntlGetRoutineAddress(inSelector);
 end;
 
-function IntlSetRoutineAddress(iSelector: IntlSelector; iProcPtr: Pointer): Err; 
+function IntlSetRoutineAddress(iSelector: IntlSelector; iProcPtr: Pointer): Err;
 begin
  asm
   move.l #$intlIntlSetRoutineAddress, D2;

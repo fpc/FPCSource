@@ -35,9 +35,7 @@ function GetSSECSR : dword;
 
 {
   $Log$
-  Revision 1.2  2004-11-02 15:26:21  florian
-    * fixed sse exception handling
+  Revision 1.3  2005-02-14 17:13:22  peter
+    * truncate log
 
-  Revision 1.1  2003/04/24 09:16:31  florian
-    * initial implementation with code from math.pp
 }

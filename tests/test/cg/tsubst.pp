@@ -652,7 +652,7 @@ begin
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 
  testlocals;
- 
+
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
 {$ifndef cpu68k}
  Write('Non-Aligned big local record access (secondvecn())...');
@@ -767,19 +767,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-11-05 19:22:34  florian
-  *** empty log message ***
-
-  Revision 1.4  2004/01/24 21:12:47  florian
-    * newlines fixed
-
-  Revision 1.3  2003/04/22 13:03:36  florian
-    * fixed for non i386/m68k cpus
-
-  Revision 1.2  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/05/09 20:16:05  carl
-  * subscriptn() secondpass testing...
+  Revision 1.6  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

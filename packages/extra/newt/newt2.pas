@@ -9,7 +9,7 @@ var
     form, b1, b2 : newtComponent;
 
 begin
-    
+
     newtInit();
     newtCls();
 

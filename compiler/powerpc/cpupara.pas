@@ -650,7 +650,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2005-02-11 15:20:23  jonas
+  Revision 1.89  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.88  2005/02/11 15:20:23  jonas
     * records which consist of only a union of one element have to be passed
       according to record parameter passing rules, not according to the rules
       of that item's type (change relevant to AIX abi only)
@@ -689,87 +692,5 @@ end.
 
   Revision 1.79  2005/01/06 02:13:03  karoly
     * more SysV call support stuff for MorphOS
-
-  Revision 1.78  2005/01/05 19:01:53  karoly
-    * sysv abi also uses F0-F13 as volatile registers
-
-  Revision 1.77  2004/12/24 15:00:11  jonas
-    * fixed call-by-value passing of records with size 1, 2 or 4 for AIX abi
-      (using a hack, normally all records should by passed by value under the
-       aix abi, but that's currently impossible)
-
-  Revision 1.76  2004/12/15 19:30:32  peter
-    * syscall with sysv abi for morphos
-
-  Revision 1.75  2004/12/04 21:47:46  jonas
-    * modifications to work with the generic code to copy LOC_REFERENCE
-      parameters to local temps (fixes tests/test/cg/tmanypara)
-
-  Revision 1.74  2004/11/22 22:01:19  peter
-    * fixed varargs
-    * replaced dynarray with tlist
-
-  Revision 1.73  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.72  2004/11/21 17:17:04  florian
-    * changed funcret location back to tlocation
-
-  Revision 1.71  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.70  2004/11/14 16:26:29  florian
-    * fixed morphos syscall
-
-  Revision 1.69  2004/09/25 20:28:20  florian
-    * indention fixed
-
-  Revision 1.68  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.67.4.3  2004/09/18 20:21:08  jonas
-    * fixed ppc, but still needs fix in tgobj
-
-  Revision 1.67.4.2  2004/09/10 11:10:08  florian
-    * first part of ppc fixes
-
-  Revision 1.67.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.67  2004/07/19 19:15:50  florian
-    * fixed funcretloc writing in units
-
-  Revision 1.66  2004/07/17 13:51:57  florian
-    * function result location for syscalls on MOS hopefully correctly set now
-
-  Revision 1.65  2004/07/09 21:45:24  jonas
-    * fixed passing of fpu paras on the stack
-    * fixed number of fpu parameters passed in registers
-    * skip corresponding integer registers when using an fpu register for a
-      parameter under the AIX abi
-
-  Revision 1.64  2004/07/01 18:00:37  jonas
-    * fix for broken TP-style constructor handling in the compiler
-
-  Revision 1.63  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.62  2004/05/01 22:05:02  florian
-    + added lib support for Amiga/MorphOS syscalls
-
-  Revision 1.61  2004/04/18 23:19:48  karoly
-   * added correct offsets for PowerPC/MorphOS location support
-
-  Revision 1.60  2004/04/18 15:22:24  florian
-    + location support for arguments, currently PowerPC/MorphOS only
-
-  Revision 1.59  2004/02/19 17:07:42  florian
-    * fixed arg. area calculation
-
-  Revision 1.58  2004/02/11 23:18:59  florian
-    * fixed to compile the rtl again
 
 }

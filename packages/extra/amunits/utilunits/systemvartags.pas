@@ -26,16 +26,16 @@ unit systemvartags;
 interface
 
 uses exec,amigados, amigaguide, asl, bullet, intuition, datatypes ,
-     gadtools, graphics, locale, lowlevel, realtime, 
+     gadtools, graphics, locale, lowlevel, realtime,
      workbench, utility, tagsarray;
 
 {    As of today boolean and char doesn't function in
-     array of const. Use ltrue and lfalse instead. You 
+     array of const. Use ltrue and lfalse instead. You
      can just cast a char.
-     
+
      Added the define use_amiga_smartlink.
      13 Jan 2003.
-     
+
      Changed integer > smallint.
      Moved ltrue and lfalse to exec.
      10 Feb 2003.
@@ -415,16 +415,9 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.2  2003/01/13 18:14:56  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+

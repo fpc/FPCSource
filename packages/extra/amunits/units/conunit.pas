@@ -15,11 +15,11 @@
  **********************************************************************}
 {
     History:
-    
+
     Changed integer > smallint.
     09 Feb 2003.
 }
-    
+
 unit conunit;
 
 INTERFACE

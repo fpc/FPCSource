@@ -5,7 +5,7 @@ uses variants,varutils;
 
 Procedure TestLongInt(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : LongInt;
 
@@ -18,7 +18,7 @@ end;
 
 Procedure Testsmallint(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : smallint;
 
@@ -32,7 +32,7 @@ end;
 
 Procedure TestShortInt(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : ShortInt;
 
@@ -45,7 +45,7 @@ end;
 
 Procedure TestCardinal(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : Cardinal;
 
@@ -58,7 +58,7 @@ end;
 
 Procedure TestWord(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : Word;
 
@@ -71,7 +71,7 @@ end;
 
 Procedure TestByte(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : Byte;
 
@@ -85,7 +85,7 @@ end;
 
 Procedure TestInt64(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : Int64;
 
@@ -98,7 +98,7 @@ end;
 
 Procedure TestQWord(B : Boolean);
 
-Var 
+Var
   V : Variant;
   I : QWord;
 
@@ -116,7 +116,7 @@ begin
   TestCardinal(True);
   TestWord(True);
   TestByte(True);
-  TestInt64(True);  
+  TestInt64(True);
   TestQWord(True);
   TestLongint(False);
   TestSmallInt(False);
@@ -124,6 +124,6 @@ begin
   TestCardinal(False);
   TestWord(False);
   TestByte(False);
-  TestInt64(False);  
+  TestInt64(False);
   TestQWord(False);
 end.

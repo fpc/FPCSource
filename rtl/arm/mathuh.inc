@@ -14,9 +14,7 @@
  **********************************************************************}
 {
   $Log$
-  Revision 1.1  2004-01-26 11:48:24  florian
-    * compilation on arm fixed
+  Revision 1.2  2005-02-14 17:13:21  peter
+    * truncate log
 
-  Revision 1.1  2003/04/24 09:14:22  florian
-    * initial implementation
 }

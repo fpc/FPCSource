@@ -4,7 +4,7 @@ Program Example24;
 
 Uses math;
 
-Var 
+Var
   A,B : Cardinal;
 
 begin

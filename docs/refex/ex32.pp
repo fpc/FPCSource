@@ -8,9 +8,9 @@ Const
   I : Integer   = 1;
   W : Word      = 1;
   B : Byte      = 1;
-  SI : ShortInt = 1;  
+  SI : ShortInt = 1;
   CH : Char     = 'A';
-  
+
 begin
   Inc (C);     { C:=2    }
   Inc (L,5);   { L:=6    }

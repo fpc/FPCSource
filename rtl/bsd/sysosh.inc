@@ -20,7 +20,7 @@
 type
   { fd are int in C also for 64bit targets (x86_64) }
   THandle = Longint;
-  
+
   { pthread_mutex_t }
   PRTLCriticalSection = ^TRTLCriticalSection;
   TRTLCriticalSection = record
@@ -31,13 +31,16 @@ type
     __m_lock:  record
        __status: sizeint;
       __spinlock: longint;
-    end;  
+    end;
   end;
 
 
 {
    $Log$
-   Revision 1.1  2005-02-06 12:16:52  peter
+   Revision 1.2  2005-02-14 17:13:21  peter
+     * truncate log
+
+   Revision 1.1  2005/02/06 12:16:52  peter
      * bsd thread updates
 
 }

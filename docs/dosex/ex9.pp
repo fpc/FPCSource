@@ -11,7 +11,7 @@ begin
   if w<10 then
    L0:='0'+s
   else
-   L0:=s; 
+   L0:=s;
 end;
 
 var

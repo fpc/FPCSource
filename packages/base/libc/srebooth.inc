@@ -14,4 +14,4 @@ function reboot(__howto:longint):longint;cdecl;external clib name 'reboot';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

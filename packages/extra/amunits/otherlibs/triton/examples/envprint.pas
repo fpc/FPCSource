@@ -356,7 +356,7 @@ begin
                 TRCA_LongName,'EnvPrint GUI demo',
                 TRCA_Version,'2.0',
                 TAG_END]);
-  
+
   if Triton_App <> nil then begin
      do_demo;
      TR_DeleteApp(Triton_App);
@@ -369,5 +369,5 @@ END.
 }
 
 
-  
+
 

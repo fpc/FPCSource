@@ -73,12 +73,12 @@ procedure TLinkerMorphOS.SetDefaultInfo;
 begin
   with Info do
    begin
-    if (cs_link_on_target in aktglobalswitches) then 
+    if (cs_link_on_target in aktglobalswitches) then
      begin
       ExeCmd[1]:='ld $OPT -o $EXE $RES';
       ExeCmd[2]:='strip --strip-unneeded --remove-section .comment $EXE';
-     end 
-    else 
+     end
+    else
      begin
       ExeCmd[1]:='fpcvlink -b elf32amiga $OPT $STRIP -o $EXE -T $RES';
      end;
@@ -98,7 +98,7 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
-  
+
   { Write path to search libraries }
   HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
   while assigned(HPath) do
@@ -125,10 +125,10 @@ begin
   while not ObjectFiles.Empty do
    begin
     s:=ObjectFiles.GetFirst;
-    if s<>'' then 
+    if s<>'' then
      begin
       { vlink doesn't use SEARCH_DIR for object files }
-      if not(cs_link_on_target in aktglobalswitches) then 
+      if not(cs_link_on_target in aktglobalswitches) then
        s:=FindObjectFile(s,'',false);
       LinkRes.AddFileName(maybequoted(s));
      end;
@@ -138,7 +138,7 @@ begin
   if not StaticLibFiles.Empty then
    begin
      { vlink doesn't need, and doesn't support GROUP }
-     if (cs_link_on_target in aktglobalswitches) then begin        
+     if (cs_link_on_target in aktglobalswitches) then begin
       LinkRes.Add(')');
       LinkRes.Add('GROUP(');
      end;
@@ -196,7 +196,7 @@ begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
-  if not (cs_link_on_target in aktglobalswitches) then 
+  if not (cs_link_on_target in aktglobalswitches) then
    begin
     StripStr:='';
     if (cs_link_strip in aktglobalswitches) then
@@ -209,13 +209,13 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  if not(cs_link_on_target in aktglobalswitches) then 
+  if not(cs_link_on_target in aktglobalswitches) then
    begin
     Replace(cmdstr,'$EXE',PathConv(maybequoted(ScriptFixFileName(current_module.exefilename^))));
     Replace(cmdstr,'$RES',PathConv(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STRIP',StripStr);
-   end 
-  else 
+   end
+  else
    begin
     Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(current_module.exefilename^)));
     Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
@@ -226,7 +226,7 @@ begin
   { For MorphOS a separate strip command is needed, to avoid stripping }
   { __abox__ symbol, which is required to be present in current MorphOS }
   { executables. }
-  if (cs_link_on_target in aktglobalswitches) then 
+  if (cs_link_on_target in aktglobalswitches) then
    begin
     if success and (cs_link_strip in aktglobalswitches) then
      begin
@@ -255,38 +255,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2005-02-11 07:23:22  karoly
+  Revision 1.13  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.12  2005/02/11 07:23:22  karoly
     * cleanups, finalized vlink support
 
   Revision 1.11  2005/02/03 03:54:07  karoly
   t_morph.pas
-
-  Revision 1.10  2004/12/23 18:45:23  jonas
-    * fixed typo
-
-  Revision 1.9  2004/12/22 16:32:46  peter
-    * maybequoted() added
-
-  Revision 1.8  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.7  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.6  2004/06/08 15:04:23  karoly
-    * fixed stripping really this time
-
-  Revision 1.5  2004/06/07 23:44:37  karoly
-    + fixed stripping support
-
-  Revision 1.4  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.3  2004/04/09 01:32:46  karoly
-   * disable stripping in mos linking scripts.
-
-  Revision 1.2  2004/04/08 17:11:02  karoly
-   * added external linker support based on 1.0 amiga support
 
 }

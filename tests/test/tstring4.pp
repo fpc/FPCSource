@@ -2,7 +2,7 @@ Program ansitest;
 
 uses
   erroru;
-  
+
 {$ifdef cpu68k}
   {$define COMP_IS_INT64}
 {$endif cpu68k}

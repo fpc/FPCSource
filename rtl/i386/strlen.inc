@@ -36,13 +36,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-11-11 21:08:17  peter
-    * REGCALL define added
-
-  Revision 1.4  2003/09/08 18:21:37  peter
-    * save edi,esi,ebx
-
-  Revision 1.3  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

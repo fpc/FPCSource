@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec
-    
-    Port to Free Pascal of the JUnit framework. 
+
+    Port to Free Pascal of the JUnit framework.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -19,23 +19,23 @@ unit suitetest;
 
 interface
 
-uses 
+uses
   fpcunit, testreport;
 
 type
 
   TNoTestCases = class(TTestCase)
   public
-    procedure NoTestCase;  
+    procedure NoTestCase;
   end;
-  
+
   {$M+}
   TNoTestCaseClass = class(TObject)
   published
     procedure TestSuccess;
   end;
   {$M-}
-  
+
   TOneTestCase = class(TTestCase)
   public
     procedure NoTestCase;
@@ -48,7 +48,7 @@ type
     procedure OnlyOneTestCase; override;
   end;
 
-  
+
   TInheritedTestCase = class(TOneTestCase)
   published
     procedure Test2;
@@ -61,7 +61,7 @@ type
     procedure Setup; override;
     procedure Teardown; override;
   public
-    class function Suite: TTestSuite;  
+    class function Suite: TTestSuite;
   published
     procedure testNoTestCaseClass;
     procedure testNoTestCases;
@@ -72,8 +72,8 @@ type
     procedure testAddTestSuiteFromClass;
     procedure testCreateTestSuiteFromArray;
   end;
-  
-  
+
+
 implementation
 
 procedure TNoTestCases.NoTestCase;
@@ -210,13 +210,13 @@ begin
   ts := TTestSuite.Create([TOneTestCase, TInheritedTestCase]);
   try
     AssertEquals(3, ts.CountTestCases);
-    AssertEquals(2, ts.Tests.Count); 
-    AssertEquals('TOneTestCase', ts[0].TestName); 
-    AssertEquals('TInheritedTestCase', ts[1].TestName);   
+    AssertEquals(2, ts.Tests.Count);
+    AssertEquals('TOneTestCase', ts[0].TestName);
+    AssertEquals('TInheritedTestCase', ts[1].TestName);
   finally
     ts.Free;
   end;
 end;
 
 end.
- 
+

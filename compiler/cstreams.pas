@@ -614,16 +614,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2004-06-20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.7  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.6.2.2  2004/04/29 19:07:22  peter
-    * compile fixes
-
-  Revision 1.6.2.1  2004/04/28 21:46:56  peter
-    * compile fixes for x86-64
+  Revision 1.9  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

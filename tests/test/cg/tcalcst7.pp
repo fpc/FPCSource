@@ -850,22 +850,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-03-27 19:26:40  florian
-    * alignment fixed
-
-  Revision 1.5  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.4  2002/09/22 09:08:41  carl
-    * gets64bit was not returning an int64!
-
-  Revision 1.3  2002/09/07 15:40:50  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/05/13 13:45:36  peter
-    * updated to compile tests with kylix
-
-  Revision 1.1  2002/04/13 17:47:06  carl
-  + constant parameter passing for different calling conventions
+  Revision 1.7  2005-02-14 17:13:36  peter
+    * truncate log
 
 }

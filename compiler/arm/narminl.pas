@@ -202,31 +202,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2005-01-06 12:11:03  florian
+  Revision 1.10  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.9  2005/01/06 12:11:03  florian
     * arctan, sin and cos are done in software on the arm
-
-  Revision 1.8  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.7  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.6  2004/03/16 22:12:10  florian
-    * some alignment issues resolved
-    * compiler doesn't generate anymore instructions not supported by the linux fpe
-
-  Revision 1.5  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.4  2004/01/27 15:04:06  florian
-    * fixed code generation for math inl. nodes
-    * more code generator improvements
-
-  Revision 1.3  2004/01/20 21:02:56  florian
-    * fixed symbol type writing for arm-linux
-    * fixed assembler generation for abs
 
 }

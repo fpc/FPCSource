@@ -703,7 +703,7 @@ implementation
 {$ifdef cputargethasfixedstack}
                                { Can't have a data copied to the stack, every location
                                  must contain a valid size field }
-                               
+
                                if (ppn.tempcgpara.size=OS_NO) and
                                   not(ppn.tempcgpara.is_single_reference(tmpparaloc)) then
                                  internalerror(200501281);
@@ -1225,7 +1225,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.199  2005-01-30 21:51:57  jonas
+  Revision 1.200  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.199  2005/01/30 21:51:57  jonas
     * fixed darwin cycle
 
   Revision 1.198  2005/01/29 11:36:52  peter
@@ -1255,114 +1258,5 @@ end.
   Revision 1.191  2005/01/02 16:58:48  peter
     * Don't release methodpointer. It is maybe still needed when we need to
      convert the calln to loadn
-
-  Revision 1.190  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.189  2004/12/02 19:26:15  peter
-    * disable pass2inline
-
-  Revision 1.188  2004/11/21 18:13:31  peter
-    * fixed funcretloc for sparc
-
-  Revision 1.187  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.186  2004/11/21 17:17:03  florian
-    * changed funcret location back to tlocation
-
-  Revision 1.185  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.184  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.183  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.182  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.181  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.180  2004/10/24 11:53:45  peter
-    * fixed compilation with removed loadref
-
-  Revision 1.179  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.178  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.177  2004/10/10 20:21:18  peter
-    * passing a var parameter to var parameter is now also allowed
-      for register locations (=regvars)
-
-  Revision 1.176  2004/09/27 15:15:20  peter
-    * dealloc function result registers, register allocation is now
-      back at pre-paraloc level
-
-  Revision 1.175  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.174  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.173.4.3  2004/09/20 20:46:34  peter
-    * register allocation optimized for 64bit loading of parameters
-      and return values
-
-  Revision 1.173.4.2  2004/09/17 17:19:26  peter
-    * fixed 64 bit unaryminus for sparc
-    * fixed 64 bit inlining
-    * signness of not operation
-
-  Revision 1.173.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.173  2004/07/12 10:47:42  michael
-  + Fix for bug 3207 from Peter
-
-  Revision 1.172  2004/07/11 19:01:13  peter
-    * comps are passed in int registers
-
-  Revision 1.171  2004/07/09 23:41:04  jonas
-    * support register parameters for inlined procedures + some inline
-      cleanups
-
-  Revision 1.170  2004/06/29 20:56:46  peter
-    * constructors don't return in parameter
-
-  Revision 1.169  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.168  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.167  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.166  2004/05/22 23:34:27  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.165  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.164.2.13  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
 
 }

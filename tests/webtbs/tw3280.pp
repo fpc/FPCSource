@@ -5,7 +5,7 @@ program example;
 
 var
   err : boolean;
-  
+
 type
   MatrixType = record
     Mat: array of array of real;

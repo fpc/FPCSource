@@ -19,7 +19,7 @@ function strxfrm(__dest:Pchar; __src:Pchar; __n:size_t):size_t;cdecl;external cl
 function __strcoll_l(__s1:Pchar; __s2:Pchar; __l:__locale_t):longint;cdecl;external clib name '__strcoll_l';
 function __strxfrm_l(__dest:Pchar; __src:Pchar; __n:size_t; __l:__locale_t):size_t;cdecl;external clib name '__strxfrm_l';
 function strdup(const S: PChar): PChar; cdecl;external clib name 'strdup';
-function strndup(const S: PChar; N: size_t): PChar; cdecl; external clib name 'strndup'; 
+function strndup(const S: PChar; N: size_t): PChar; cdecl; external clib name 'strndup';
 function strrchr(__s:Pchar; __c:longint):Pchar;cdecl;external clib name 'strrchr';
 function strchrnul(__s:Pchar; __c:longint):Pchar;cdecl;external clib name 'strchrnul';
 function strcspn(__s:Pchar; __reject:Pchar):size_t;cdecl;external clib name 'strcspn';
@@ -65,4 +65,4 @@ function basename(__filename:Pchar):Pchar;cdecl;external clib name 'basename';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -12,7 +12,7 @@ type
         data : array[0..7] of uint32_t;
      end;
    TICMP6_Filter = _icmp6_filter;
-   
+
    Picmp6_hdr = ^icmp6_hdr;
    icmp6_hdr = record
         icmp6_type : uint8_t;
@@ -187,4 +187,4 @@ procedure ICMP6_FILTER_SETBLOCKALL(var filterp: TICMP6_Filter);
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

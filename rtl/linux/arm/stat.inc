@@ -59,6 +59,7 @@
 
 {
   $Log$
-  Revision 1.1  2003-08-27 12:58:01  florian
-    * initial revision, derived from linux kernel sources
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
 }

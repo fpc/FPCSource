@@ -6,7 +6,7 @@ Var Addr : TInetSockAddr;
  S : Longint;
     Sin,Sout : Text;
     Line : string;
-    
+
 begin
   Addr.family:=AF_INET;
   { port 79 in network order }
@@ -24,7 +24,7 @@ begin
   reset(sin);
   writeln (sout,paramstr(1));
   flush(sout);
-  while not eof(sin) do 
+  while not eof(sin) do
     begin
     readln (Sin,line);
     writeln (line);

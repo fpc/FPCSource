@@ -119,7 +119,7 @@ begin
     ts.add('OriginalFilename');
     ts.add('ProductName');
     ts.add('ProductVersion');
- 
+
     strPCopy(a,FFileName);
     { get size of data }
     struSize := GetFileVersionInfoSize(a,@someDummy);
@@ -133,12 +133,12 @@ begin
       { get root info }
       if not VerQueryValue(p,'\',pp,dwBytes) then exit;
       move(pp^,theFixedInfo,dwBytes);
- 
+
       { get translation info }
       if not VerQueryValue(p,'\VarFileInfo\Translation',pp,dwBytes) then
         exit;
       move(pp^,theTrans,dwBytes);
- 
+
       { iterate over defined items }
       for i:=0 to ts.count-1 do
       begin
@@ -176,32 +176,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2003-07-26 16:23:05  michael
-   corrected by Michalis:
-    * VerQueryValue parameters (last parameter should be dwBytes instead of
-      @dwBytes; you can call
-        VerQueryValue(...,pp,dwBytes) or
-        VerQueryValue(...,@pp,@dwBytes) but NOT
-        VerQueryValue(...,pp,@dwBytes) (and that was the case) )
-    * corrected
-        if not VerQueryValue(p,a,pp,dwBytes) then Exit;
-      to
-        if not VerQueryValue(p,a,pp,dwBytes) then Continue;
-      (when some info is missing the code should skip to the next info,
-      not exit)
-    + added destructor to Free FmyVersionStrings and FmyVersionCategories objects
-      to avoid memory leaks
-    + added ts.Free (and embedded some code in try..finally..end clause)
-      to avoid memory leaks
-    * inherited Create should be called at the beginning of constructor
-      (it's just a good coding practice)
-    * getVersionSetting re-written, optimised a little (LowerCase(inp) only once;
-      this function is not supposed to be really "optimised" but this little
-      improvement was so simple...) (note: when TStringList.CaseSensitive will
-      be implemented in FPC, this function can be implemented even simpler,
-      just by calling FmyVersionCategories.IndexOf)
-
-  Revision 1.4  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

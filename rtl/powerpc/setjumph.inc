@@ -27,22 +27,7 @@ procedure longjmp(var S : jmp_buf;value : longint);
 
 {
   $Log$
-  Revision 1.6  2003-04-26 18:54:30  florian
-    + implemented setjmp record and longjmp
+  Revision 1.7  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.5  2002/09/15 10:03:04  carl
-    * make the record packed (just in case)
-
-  Revision 1.4  2002/08/10 17:14:36  jonas
-    * various fixes, mostly changing the names of the modifies registers to
-      upper case since that seems to be required by the compiler
-
-  Revision 1.3  2002/07/26 22:46:17  florian
-    * interface of system unit for Linux/PowerPC compiles
-
-  Revision 1.2  2002/07/26 22:08:38  florian
-    * comments fixed
-
-  Revision 1.1  2002/07/26 22:08:13  florian
-    + initial dummy implementation
 }

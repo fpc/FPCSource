@@ -5,7 +5,7 @@ program testapp;
 
 uses custapp,classes;
 
-Const 
+Const
   ShortOpts = 'abc:d:012';
   Longopts : Array[1..6] of String = (
     'add:','append','delete:','verbose','create:','file:');
@@ -14,14 +14,14 @@ Type
   TTestApp = Class(TCustomApplication)
     Procedure DoRun ; Override;
   end;
-  
+
 Procedure TTestApp.DoRun;
 
 Var
   I : Integer;
   S : String;
   Opts,FN,Args : TStrings;
-  
+
 begin
   Writeln('Exe name            : ',ExeName);
   Writeln('Help file           : ',HelpFile);
@@ -30,10 +30,10 @@ begin
   Writeln('Console app         : ',ConsoleApplication);
   Writeln('Location            : ',Location);
   Writeln('ParamCount          : ',ParamCount);
-  For I:=0 to ParamCount do 
+  For I:=0 to ParamCount do
     Writeln('Params [',I:3,']        : ',Params[i]);
   Writeln('Option char         : ',OptionChar);
-  Writeln('Case sensitive opts : ',CaseSensitiveOptions);  
+  Writeln('Case sensitive opts : ',CaseSensitiveOptions);
   Writeln('StopOnException     : ',StopOnException);
   Writeln('----------------------------------------');
   Writeln('Simple options check');
@@ -45,7 +45,7 @@ begin
   FN:=TStringList.Create;
   Args:=TStringList.Create;
   Try
-    For I:=1 to 6 do 
+    For I:=1 to 6 do
       Opts.Add(LongOpts[i]);
     S:=CheckOptions(ShortOpts,Opts,Args,FN);
     Writeln('Found ',Args.Count,' options and ',FN.Count,' non-options (filenames)');
@@ -76,7 +76,7 @@ end;
 
 Var
   App : TTestApp;
-  
+
 begin
   App:=TTestApp.Create(Nil);
   App.Initialize;
@@ -84,5 +84,5 @@ begin
   App.Run;
   App.Free;
 end.
-  
-  
+
+

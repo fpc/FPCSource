@@ -26,7 +26,7 @@ begin
     SIGFPE :
           begin
           res:=200;
-(*	  
+(*
           fpustate:=GetFPUState(SigContext^);
           if (FpuState and FPU_All) <> 0 then
             begin
@@ -44,7 +44,7 @@ begin
               else
                 res:=207;  {'Coprocessor Error'}
             end;
-*)	    
+*)
             sysResetFPU;
         end;
     SIGILL,
@@ -59,7 +59,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-13 22:13:20  peter
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 22:13:20  peter
     * get solaris back in shape
 
   Revision 1.5  2005/01/30 18:01:15  peter
@@ -67,15 +70,4 @@ end;
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
 
-  Revision 1.4  2004/08/08 09:36:09  florian
-    * fixed runerror for invalid operation
-
-  Revision 1.3  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
-
-  Revision 1.2  2003/11/01 01:58:11  marco
-   * more small fixes.
-
-  Revision 1.1  2003/11/01 01:27:20  marco
-   * initial version from 1.0.x branch
 }

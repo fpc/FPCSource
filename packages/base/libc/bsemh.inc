@@ -47,7 +47,7 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSemaphoreIdDescriptor = semid_ds;
   PSemaphoreIdDescriptor = ^TSemaphoreIdDescriptor;
 

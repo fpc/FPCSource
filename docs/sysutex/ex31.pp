@@ -13,6 +13,6 @@ Begin
   Line:='Some string line.'#10;
   For I:=1 to 10 do
     FileWrite (F,Line[1],Length(Line));
-  FileClose(F);  
+  FileClose(F);
   DeleteFile('test.txt');
 End.

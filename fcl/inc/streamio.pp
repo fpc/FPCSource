@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     This unit converts a stream to a regular text file.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -37,7 +37,7 @@ Type
 
 Function StreamRead(var F: TTextRec) : longint;
 
-begin 
+begin
   Result:=0;
   With F do
     Try
@@ -46,26 +46,26 @@ begin
     except
       Result:=100;
     end;
-end; 
+end;
 
 
 Function StreamWrite(var F: TTextRec ): longint;
-begin 
+begin
   Result:=0;
   with F do
-    if (BufPos>0) then 
+    if (BufPos>0) then
       try
         GetStream(F).WriteBuffer(BufPtr^,BufPos);
         BufPos:=0;
       except
         Result:=101;
       end;
-end; 
+end;
 
 
 Function StreamFlush(var F: TTextRec): longint;
 
-begin 
+begin
   Result:=0;
 end;
 
@@ -78,19 +78,19 @@ end;
 
 Function StreamOpen(var F: TTextRec ): longint;
 
-begin 
+begin
   Result := 0;
-  with F do 
+  with F do
     begin
     BufPos:=0;
     Bufend:=0;
     case Mode of
-      fmInput: 
+      fmInput:
         begin
         InOutFunc:=@StreamRead;
         FlushFunc:=@StreamFlush;
         end;
-      fmOutput,fmAppend: 
+      fmOutput,fmAppend:
         begin
         InOutFunc:=@StreamWrite;
         FlushFunc:=@StreamWrite;
@@ -103,27 +103,27 @@ begin
         end;
     end;
     end;
-end; 
+end;
 
 
 { ---------------------------------------------------------------------
     Public functions
   ---------------------------------------------------------------------}
 
-  
+
 Procedure AssignStream(var F: Textfile; Stream : TStream);
 
 Var
   E : EInoutError;
 
 begin
-  if (Stream=Nil) then 
+  if (Stream=Nil) then
     begin
     E:=EInOutError.Create(SErrNilStream);
     E.ErrorCode:=6;
     Raise E;
     end;
-  with TTextRec(F) do 
+  with TTextRec(F) do
     begin
     OpenFunc:=@StreamOpen;
     CloseFunc:=@StreamClose;
@@ -138,8 +138,8 @@ end;
 
 Function GetStream(var F: TTextRec) : TStream;
 
-begin 
+begin
   Result:=PStream(@F.Userdata)^;
-end; 
+end;
 
 end.

@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     <What does this file>
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -19,7 +19,7 @@
   ---------------------------------------------------------------------}
 Const
   FPC_EnvCount : Integer = -1;
- 
+
 Function FPCCountEnvVar(EP : PPChar) : integer;
 
 begin
@@ -30,7 +30,7 @@ begin
       While (EP^<>Nil) do
         begin
         Inc(FPC_EnvCount);
-        Inc(EP); 
+        Inc(EP);
         end;
     end;
   Result:=FPC_EnvCount;
@@ -74,15 +74,15 @@ begin
     Result:=StrPas(EP^);
 end;
 
-  
+
 { ---------------------------------------------------------------------
     Application name
   ---------------------------------------------------------------------}
-  
+
 Function ApplicationName : String;
 
 begin
-  If Assigned(OnGetApplicationName) then 
+  If Assigned(OnGetApplicationName) then
     Result:=OnGetApplicationName()
   else
     Result:=ChangeFileExt(ExtractFileName(Paramstr(0)),'');
@@ -104,7 +104,7 @@ begin
   Result:=ExtractFilePath(ParamStr(0));
   If SubDir then
     Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
-  Result:=Result+ApplicationName+ConfigExtension; 
+  Result:=Result+ApplicationName+ConfigExtension;
 end;
 
 Function GetAppConfigFile(Global : Boolean) : String;
@@ -141,19 +141,19 @@ end;
 { ---------------------------------------------------------------------
   Get temporary directory name
   ---------------------------------------------------------------------}
-  
-{$ifndef HAS_TEMPDIR} 
+
+{$ifndef HAS_TEMPDIR}
 Function GetTempDir(Global : Boolean) : String;
 
 begin
   If Assigned(OnGetTempDir) then
     Result:=OnGetTempDir(Global)
   else
-    begin  
+    begin
     Result:=GetEnvironmentVariable('TEMP');
     If (Result='') Then
       Result:=GetEnvironmentVariable('TMP');
-    end;  
+    end;
   if (Result<>'') then
     Result:=IncludeTrailingPathDelimiter(Result);
 end;
@@ -168,20 +168,20 @@ end;
 { ---------------------------------------------------------------------
   Get temporary file name
   ---------------------------------------------------------------------}
-  
+
 
 {$ifndef HAS_TEMPFILE}
-Function GetTempFileName(Const Dir,Prefix : String) : String; 
+Function GetTempFileName(Const Dir,Prefix : String) : String;
 
 Var
   I : Integer;
   Start : String;
- 
+
 begin
   If Assigned(OnGetTempFile) then
     Result:=OnGetTempFile(Dir,Prefix)
   else
-    begin  
+    begin
     If (Dir='') then
       Start:=GetTempDir
     else
@@ -205,15 +205,9 @@ begin
   Result:=GetTempFileName('','');
 end;
 
-{  
+{
   $Log$
-  Revision 1.3  2004-12-11 11:33:15  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.2  2004/10/10 10:28:34  michael
-  + Implementation of GetTempDir and GetTempFileName
-
-  Revision 1.1  2004/08/05 07:28:01  michael
-  + Added getappconfigdir calls
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -1045,51 +1045,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2004-09-18 11:06:52  armin
-  * added support for netware nlm (netware and netwlibc)
-
-  Revision 1.23  2004/04/28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.22  2004/04/22 21:10:35  peter
-    * elf64 support
-
-  Revision 1.21  2004/04/22 19:43:43  peter
-    * fix 64bit address printing
-
-  Revision 1.20  2004/02/06 20:17:12  daniel
-    * Use $ for hex numbers instead of alien 0x
-
-  Revision 1.19  2003/10/17 20:52:12  olle
-    * Changed m68k to cpum68k, i386 to cpui386
-
-  Revision 1.18  2003/03/25 19:27:45  peter
-    * fix ifdef to define elf32
-
-  Revision 1.16  2003/03/17 14:30:11  peter
-    * changed address parameter/return values to pointer instead
-      of longint
-
-  Revision 1.15  2003/02/07 20:55:06  marco
-   * fix from oco
-
-  Revision 1.14  2003/02/01 22:31:34  marco
-   * Last change broke beos. Fixed.
-
-  Revision 1.13  2003/01/14 16:17:37  peter
-    * remove wrong hasunix, replaced with elf32 define which
-      is set for freebsd,netbsd,linux or sunos
-
-  Revision 1.12  2003/01/10 21:35:48  marco
-   * hasunix fix (my first commit from beos :-)
-
-  Revision 1.11  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.10  2002/09/07 11:09:40  carl
-    * stack checking supported for all systems
-
-  Revision 1.9  2002/05/31 13:37:24  marco
-   * more Renamefest
+  Revision 1.25  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

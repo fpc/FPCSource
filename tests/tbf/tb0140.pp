@@ -15,7 +15,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-11-09 21:57:57  carl
-    + added testing for cdecl and array of const. (should not compile)
+  Revision 1.2  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

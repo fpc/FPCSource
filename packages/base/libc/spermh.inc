@@ -7,4 +7,4 @@ function iopl(__level:longint):longint;cdecl;external clib name 'iopl';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -382,14 +382,14 @@ begin
   WriteLn(testretint64inline);
   WriteLn(testretrealinline);
   WriteLn(testretdoubleinline);
-{$ifdef VER1_0}  
+{$ifdef VER1_0}
   WriteLn('---------------------- SAVEREGS ----------------------');
   WriteLn(testretbyteregs);
   WriteLn(testretwordregs);
   WriteLn(testretint64regs);
   WriteLn(testretrealregs);
   WriteLn(testretdoubleregs);
-{$endif VER1_0}  
+{$endif VER1_0}
   WriteLn('------------------------ CDECL -----------------------');
   WriteLn(testretbytecdecl);
   WriteLn(testretwordcdecl);
@@ -401,11 +401,8 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-10-24 20:01:42  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.3  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:37  peter
+    * truncate log
 
 }
 

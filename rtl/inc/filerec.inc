@@ -35,16 +35,7 @@ type
 
 {
   $Log$
-  Revision 1.6  2004-09-21 23:36:51  hajny
-    * SetTextLineEnding implemented, FileRec.Name position alignment for CPU64
-
-  Revision 1.5  2004/02/05 01:16:12  florian
-    + completed x86-64/linux system unit
-
-  Revision 1.4  2003/11/03 09:42:27  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.3  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -21,7 +21,7 @@ Type
    TMyEnums = Set of TMyEnum;
    TNotifyEvent = Procedure (Sender : TObject) of object;
 
-   
+
    TMyTestObject = Class(TObject)
        Private
        FBoolean  : Boolean;
@@ -94,7 +94,7 @@ Type
      Published
        Property ObjField: TObject read FObj write FObj;
        Property SetField : TMyEnums Read FSetField Write FSetField;
-       Property NotifyEvent : TNotifyEvent Read FNotifyEvent Write FNotifyEvent;    
+       Property NotifyEvent : TNotifyEvent Read FNotifyEvent Write FNotifyEvent;
 //       Property Int64Field : Int64 Read Fint64Field Write FInt64Field;
        Property Int64Field : Integer Read Fint64Field Write FInt64Field;
        Property BooleanField : Boolean Read FBoolean Write FBoolean;
@@ -141,7 +141,7 @@ Type
   Private
     FObjectName : AnsiString;
   Public
-    Property ObjectName : AnsiString Read FObjectName Write FObjectName;  
+    Property ObjectName : AnsiString Read FObjectName Write FObjectName;
   end;
 
 Const
@@ -417,7 +417,7 @@ begin
   If Assigned(FNotifyEvent) then
     FNotifyEvent(Self)
   else
-    Writeln('Error : No notifyevent assigned');  
+    Writeln('Error : No notifyevent assigned');
 end;
 
 

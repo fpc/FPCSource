@@ -748,7 +748,7 @@ begin
       assign(f,fname);
       {$ifdef MACOS}
       {FPas is FreePascal's creator code on MacOS. See systems/mac_crea.txt}
-      SetDefaultMacOSCreator('FPas');  
+      SetDefaultMacOSCreator('FPas');
       SetDefaultMacOSFiletype('FPPU');
       {$endif}
       {$I-}
@@ -1069,7 +1069,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.63  2005-01-24 17:46:18  olle
+  Revision 1.64  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.63  2005/01/24 17:46:18  olle
     + ppu files now has FPas as creator code on MacOS
 
   Revision 1.62  2005/01/19 22:19:41  peter
@@ -1079,70 +1082,5 @@ end.
   Revision 1.61  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.60  2004/12/06 19:23:05  peter
-  implicit load of variants unit
-
-  Revision 1.59  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.58  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.57  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.56.4.1  2004/09/12 14:01:23  peter
-    * entry.size need endian update
-
-  Revision 1.56  2004/08/27 21:59:26  peter
-  browser disabled
-  uf_local_symtable ppu flag when a localsymtable is stored
-
-  Revision 1.55  2004/08/22 20:11:38  florian
-    * morphos now takes any pointer var. as libbase
-    * alignment for sparc fixed
-    * int -> double conversion on sparc fixed
-
-  Revision 1.54  2004/08/17 16:29:21  jonas
-    + padalgingment field for recordsymtables (saved by recorddefs)
-    + support for Macintosh PowerPC alignment (if the first field of a record
-      or union has an alignment > 4, then the record or union size must be
-      padded to a multiple of this size)
-
-  Revision 1.53  2004/07/12 09:14:04  jonas
-    * inline procedures at the node tree level, but only under some very
-      limited circumstances for now (only procedures, and only if they have
-      no or only vs_out/vs_var parameters).
-    * fixed ppudump for inline procedures
-    * fixed ppudump for ppc
-
-  Revision 1.52  2004/07/09 23:11:05  peter
-    * new format
-
-  Revision 1.51  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.50  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.49  2004/05/19 21:16:13  peter
-    * add DEBUGINFO symbol to reference the .o file that includes the
-      stabs info for types and global/static variables
-    * debuginfo flag added to ppu to indicate whether debuginfo is
-      generated or not
-
-  Revision 1.48  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.47.2.1  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.47  2004/03/23 22:34:49  peter
-    * constants ordinals now always have a type assigned
-    * integer constants have the smallest type, unsigned prefered over
-      signed
 
 }

@@ -270,7 +270,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2003-10-01 20:49:29  michael
-  + Initial implementation
+  Revision 1.2  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

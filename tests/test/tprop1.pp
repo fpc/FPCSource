@@ -25,7 +25,7 @@ begin
       writeln('Error 1');
       halt(1);
     end;
-  Errno:=2;  
+  Errno:=2;
   if Errno<>2 then
     begin
       writeln('Error 2');

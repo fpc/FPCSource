@@ -25,7 +25,7 @@ interface
 uses  palmos, errorbase, event_;
 
 const
-  telErrorClass = appErrorClass + $100; // DOLATER: remove this constant 
+  telErrorClass = appErrorClass + $100; // DOLATER: remove this constant
   kTelMaxPhoneNumberLen = 30;
 
 // managers id
@@ -134,37 +134,37 @@ const
 
   kTelUrqSmsGetUniquePartIdMessage       = Succ(kTelSndMuteMessage);
 
-  kTelUrqClosePhoneConnectionMessage     = Succ(kTelUrqSmsGetUniquePartIdMessage);   // urgent query: ask TT to close connection with phone 
-  kTelUrqOpenPhoneConnectionMessage      = Succ(kTelUrqClosePhoneConnectionMessage); // urgent query: ask TT to open connection with phone 
-  kTelUrqIsPhoneConnectedMessage         = Succ(kTelUrqOpenPhoneConnectionMessage);  // urgent query: ask TT the connection state with phone 
-  kTelUrqMatchPhoneDriverMessage         = Succ(kTelUrqIsPhoneConnectedMessage);     // urgent query: ask TT to check whether the driver matches the phone 
-  kTelUrqCancelMessage                   = Succ(kTelUrqMatchPhoneDriverMessage);     // urgent query: ask TT to cancel an asynchronous call 
-  kTelUrqIsServiceAvailableMessage       = Succ(kTelUrqCancelMessage);               // urgent query: ask TT whether a service set is available 
-  kTelUrqIsFunctionSupportedMessage      = Succ(kTelUrqIsServiceAvailableMessage);   // urgent query: ask TT whether a function is supported 
+  kTelUrqClosePhoneConnectionMessage     = Succ(kTelUrqSmsGetUniquePartIdMessage);   // urgent query: ask TT to close connection with phone
+  kTelUrqOpenPhoneConnectionMessage      = Succ(kTelUrqClosePhoneConnectionMessage); // urgent query: ask TT to open connection with phone
+  kTelUrqIsPhoneConnectedMessage         = Succ(kTelUrqOpenPhoneConnectionMessage);  // urgent query: ask TT the connection state with phone
+  kTelUrqMatchPhoneDriverMessage         = Succ(kTelUrqIsPhoneConnectedMessage);     // urgent query: ask TT to check whether the driver matches the phone
+  kTelUrqCancelMessage                   = Succ(kTelUrqMatchPhoneDriverMessage);     // urgent query: ask TT to cancel an asynchronous call
+  kTelUrqIsServiceAvailableMessage       = Succ(kTelUrqCancelMessage);               // urgent query: ask TT whether a service set is available
+  kTelUrqIsFunctionSupportedMessage      = Succ(kTelUrqIsServiceAvailableMessage);   // urgent query: ask TT whether a function is supported
 
-  kTelUrqGetTTStatusMessage              = Succ(kTelUrqIsFunctionSupportedMessage);  // urgent query: ask TT is status 
-  kTelUrqSleepMessage                    = Succ(kTelUrqGetTTStatusMessage);          // urgent query: warn TT the palm is going asleep 
-  kTelUrqWakeMessage                     = Succ(kTelUrqSleepMessage);                // urgent query: warn TT the palm is awaking 
-  kTelUrqDetachMessage                   = Succ(kTelUrqWakeMessage);                 // urgent query: warn TT associated application is about to quit 
-  kTelUrqStopTTMessage                   = Succ(kTelUrqDetachMessage);               // urgent query: ask TT to stop 
+  kTelUrqGetTTStatusMessage              = Succ(kTelUrqIsFunctionSupportedMessage);  // urgent query: ask TT is status
+  kTelUrqSleepMessage                    = Succ(kTelUrqGetTTStatusMessage);          // urgent query: warn TT the palm is going asleep
+  kTelUrqWakeMessage                     = Succ(kTelUrqSleepMessage);                // urgent query: warn TT the palm is awaking
+  kTelUrqDetachMessage                   = Succ(kTelUrqWakeMessage);                 // urgent query: warn TT associated application is about to quit
+  kTelUrqStopTTMessage                   = Succ(kTelUrqDetachMessage);               // urgent query: ask TT to stop
 
   kTelInfGetInformationMessage           = Succ(kTelUrqStopTTMessage);
 
-  kTelOemCallMessage                     = Succ(kTelInfGetInformationMessage);       // oem calls 
+  kTelOemCallMessage                     = Succ(kTelInfGetInformationMessage);       // oem calls
 
   kTelLastMessage                        = kTelOemCallMessage;
 
 type
-  // basic types 
+  // basic types
   TelAppID = UInt32;
 
-  // notification structure 
+  // notification structure
   TelNotificationType = record
-    notificationData:  UInt32; // associated data if any 
-    notificationData2: UInt32; // associated data if any 
-    timeStamp:         UInt32; // time stamp 
-    notificationId:    UInt16; // what was the associated telephony event 
-    priority:          UInt8;  // notification priority 0 == max, 255 == min 
+    notificationData:  UInt32; // associated data if any
+    notificationData2: UInt32; // associated data if any
+    timeStamp:         UInt32; // time stamp
+    notificationId:    UInt16; // what was the associated telephony event
+    priority:          UInt8;  // notification priority 0 == max, 255 == min
   end;
 
   // event structure
@@ -200,11 +200,11 @@ type
     number: PChar;     // called or calling number
   end;
 
-  // network support 
+  // network support
   TelNwkGetNetworkNameType = record
-    id: UInt32;   // network ID 
-    value: PChar; // name 
-    size: UInt16; // size of name (in), name len including '\0' (out) 
+    id: UInt32;   // network ID
+    value: PChar; // name
+    size: UInt16; // size of name (in), name len including '\0' (out)
   end;
 
   TelNwkGetNetworksType = record
@@ -212,10 +212,10 @@ type
     size: UInt8;        // size of networkIdP (in), number of network IDs (out)
   end;
 
-  // phone location within network web 
+  // phone location within network web
   TelNwkGetLocationType = record
-     value: PChar; // current location string 
-     size: UInt16; // size of value (in), location len including '\0' (out) 
+     value: PChar; // current location string
+     size: UInt16; // size of value (in), location len including '\0' (out)
   end;
 
   // change security code
@@ -225,13 +225,13 @@ type
     newCode: PChar; // new code value
   end;
 
-  // SMS center 
+  // SMS center
   TelCfgGetSmsCenterType = record
     size: UInt8;  // size of value (in), SMS dial number len including '\0' (out)
     value: PChar; // SMS center dial number
   end;
 
-  // phone number 
+  // phone number
   TelCfgGetPhoneNumberType = record
     size: UInt8;  // size of value (in), phone dial number len including '\0' (out)
     value: PChar; // phone dial number
@@ -241,10 +241,10 @@ type
   // SMS time
   TelSmsDateTimeType = record
     absolute: Boolean;
-    dateTime: UInt32; // relative time from now, or Palm absolute time 
+    dateTime: UInt32; // relative time from now, or Palm absolute time
   end;
 
-  // SMS extensions 
+  // SMS extensions
   TelSmsMultiPartExtensionType = record
     bytesSent: UInt16;
     partCurrent: UInt16;
@@ -258,7 +258,7 @@ type
   end;
 
   TelSmsUserExtensionType = record
-    extHeader: ^UInt8; // user defined extended header 
+    extHeader: ^UInt8; // user defined extended header
     extHeaderSize: UInt8;
   end;
 
@@ -398,7 +398,7 @@ type
     voiceMessageNumber: UInt8;          // CDMA, TDMA, GSM
 
     callbackNumberSize: UInt8;
-    callbackNumberAddress: PChar;       // Store callback address 
+    callbackNumberAddress: PChar;       // Store callback address
   end;
 
   TelSmsDeliveryMessageAdvancedParams = record
@@ -408,11 +408,11 @@ type
       3: (advancedTDMA: TelSmsDeliveryAdvancedTDMAType);
   end;
 
-  // Delivery message structure 
+  // Delivery message structure
   TelSmsDeliveryMessageType = record
 
-    version: UInt16;    // SMS API version 
-    index: UInt16;      // SMS index on the phone storage 
+    version: UInt16;    // SMS API version
+    index: UInt16;      // SMS index on the phone storage
 
     messageIdentifier: UInt32;
 
@@ -437,10 +437,10 @@ type
     extensionsP: ^TelSmsExtensionType; // SMS extensions array: NBS, Multi-part, etc.
   end;
 
-  // Report message structure 
+  // Report message structure
   TelSmsReportType = record
     version: UInt16;
-    index: UInt16;             // SMS index on the phone storage 
+    index: UInt16;             // SMS index on the phone storage
     reportType: UInt8;         // Delivery report type
     messageId: UInt32;
 
@@ -453,70 +453,70 @@ type
 
     report: UInt8;
 
-    timeStamp: TelSmsDateTimeType; // Time when SC received the corresponding sent message 
+    timeStamp: TelSmsDateTimeType; // Time when SC received the corresponding sent message
   end;
 
-  // multiple messages read 
+  // multiple messages read
   TelSmsReadMessagesType = record
     first: UInt16; // first message physical index, zero based
-    count: UInt16; // number of messages to read 
-    messagesP: ^TelSmsDeliveryMessageType; // messages array 
+    count: UInt16; // number of messages to read
+    messagesP: ^TelSmsDeliveryMessageType; // messages array
   end;
 
-  // multiple reports read 
+  // multiple reports read
   TelSmsReadReportsType = record
     first: UInt16; // first report physical index, zero based
     count: UInt16; // number of reports to read
-    reportsP: ^TelSmsReportType; // reports array 
+    reportsP: ^TelSmsReportType; // reports array
   end;
 
-  // multiple submitted messages read 
+  // multiple submitted messages read
   TelSmsReadSubmittedMessagesType = record
     first: UInt16; // first sent message physical index, zero based
     count: UInt16; // number of sent messages to read
-    submittedsP: ^TelSmsSubmittedMessageType; // sent messages array 
+    submittedsP: ^TelSmsSubmittedMessageType; // sent messages array
   end;
 
-  // get messages number/slots in selected storage 
+  // get messages number/slots in selected storage
   TelSmsGetMessageCountType = record
-    messageType: UInt8; // report, submitted, etc. 
-    slots: UInt16;      // number of entries in the selected storage 
-    count: UInt16;      // number of messages present in the selected storage 
+    messageType: UInt8; // report, submitted, etc.
+    slots: UInt16;      // number of entries in the selected storage
+    count: UInt16;      // number of messages present in the selected storage
   end;
 
-  // delete message selected storage 
+  // delete message selected storage
   TelSmsDeleteMessageType = record
-    messageType: UInt8; // report, submitted, etc. 
-    index: UInt16;      // physical index in storage, zero based 
+    messageType: UInt8; // report, submitted, etc.
+    index: UInt16;      // physical index in storage, zero based
   end;
 
-  // available storage list 
+  // available storage list
   TelSmsGetAvailableStorageType = record
-    count: UInt16;     // storage IDs array size (in), retrieved IDs number (out) 
+    count: UInt16;     // storage IDs array size (in), retrieved IDs number (out)
     storagesP: ^UInt8; //  storage IDs array
   end;
 
-  // emergency call support 
+  // emergency call support
   TelEmcGetNumberType = record
-    index: UInt8; // EMC number index, zero based 
-    size: UInt8;  // EMC dial number len including '\0' (out), value size (in) 
-    value: PChar; // EMC dial number 
+    index: UInt8; // EMC number index, zero based
+    size: UInt8;  // EMC dial number len including '\0' (out), value size (in)
+    value: PChar; // EMC dial number
   end;
 
   TelEmcSetNumberType = record
-    index: UInt8; // EMC number index, zero based 
-    value: PChar; // EMC dial number 
+    index: UInt8; // EMC number index, zero based
+    value: PChar; // EMC dial number
   end;
 
-  // speech call support 
+  // speech call support
   TelSpcGetCallerNumberType = record
-    size: UInt8;  // dial number len including '\0' (out), value size (in) 
-    value: PChar; // dial number 
+    size: UInt8;  // dial number len including '\0' (out), value size (in)
+    value: PChar; // dial number
   end;
 
   TelSpcPlayDTMFType = record
-    keyTone: UInt8;   // keytone to be played 
-    duration: UInt32; // play duration in 10 ms multiple 
+    keyTone: UInt8;   // keytone to be played
+    duration: UInt32; // play duration in 10 ms multiple
   end;
 
   // phonebook support
@@ -569,7 +569,7 @@ type
   end;
 
   TelDtcSendDataType = record
-    data: ^UInt8; // data to be sent 
+    data: ^UInt8; // data to be sent
     size: UInt32; // data size (in), data sent (out)
   end;
 

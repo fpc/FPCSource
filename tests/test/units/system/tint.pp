@@ -174,7 +174,7 @@ Begin
 
  if not _success then
    fail;
-   
+
  if Int(INT_VALUE_ONE)<>INT_RESULT_ONE then
    _success:=false;
  r:=INT_VALUE_ONE;
@@ -227,18 +227,8 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-12-27 12:10:08  florian
-  *** empty log message ***
-
-  Revision 1.3  2002/10/15 10:26:36  pierre
-   * add code to remember that currency is only implemented in 1.1 compiler
-
-  Revision 1.2  2002/09/18 18:30:30  carl
-    + currency testing
-    * more system unit routine testing
-
-  Revision 1.1  2002/09/16 19:15:54  carl
-    * several new routines have a testsuit.
+  Revision 1.5  2005-02-14 17:13:37  peter
+    * truncate log
 
 }
 

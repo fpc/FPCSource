@@ -8,7 +8,7 @@ type
         gr_mem : ^Pchar;
      end;
    PPgroup = ^Pgroup;
-   
+
 procedure setgrent;cdecl;external clib name 'setgrent';
 procedure endgrent;cdecl;external clib name 'endgrent';
 function getgrent:Pgroup;cdecl;external clib name 'getgrent';
@@ -33,7 +33,7 @@ function initgroups(__user:Pchar; __group:__gid_t):longint;cdecl;external clib n
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TGroup = group;
 
 function putgrent(const __p: group; __f:PFILE):longint;cdecl;external clib name 'putgrent';
@@ -42,4 +42,4 @@ function getgrgid_r(__gid:__gid_t; var __resultbuf:group; __buffer:Pchar; __bufl
 function getgrnam_r(__name:Pchar; var __resultbuf:group; __buffer:Pchar; __buflen:size_t; var __result:Pgroup):longint;cdecl;external clib name 'getgrnam_r';
 function fgetgrent_r(__stream:PFILE; var __resultbuf:group; __buffer:Pchar; __buflen:size_t; var __result:Pgroup):longint;cdecl;external clib name 'fgetgrent_r';
 function getgrouplist(__user:Pchar; __group:__gid_t; var __groups: __gid_t; var __ngroups:longint):longint;cdecl;external clib name 'getgrouplist';
-  
+

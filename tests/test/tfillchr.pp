@@ -3,10 +3,10 @@ const
 
 var
   a: array[0..512] of byte;
-      
+
 procedure test_fillchar;
 var
-  i, j: longint;   
+  i, j: longint;
   k: byte;
   l: longint;
 begin

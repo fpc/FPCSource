@@ -27,7 +27,7 @@ Const
   PTHREAD_MUTEX_RECURSIVE_NP  = _PTHREAD_MUTEX_RECURSIVE_NP;
   PTHREAD_MUTEX_ERRORCHECK_NP = _PTHREAD_MUTEX_ERRORCHECK_NP;
   PTHREAD_MUTEX_ADAPTIVE_NP   = _PTHREAD_MUTEX_ADAPTIVE_NP;
-    
+
   PTHREAD_MUTEX_NORMAL     = PTHREAD_MUTEX_TIMED_NP;
   PTHREAD_MUTEX_RECURSIVE  = PTHREAD_MUTEX_RECURSIVE_NP;
   PTHREAD_MUTEX_ERRORCHECK = PTHREAD_MUTEX_ERRORCHECK_NP;
@@ -39,7 +39,7 @@ Const
 
   PTHREAD_INHERIT_SCHED   = 0;
   PTHREAD_EXPLICIT_SCHED  = 1;
- 
+
   PTHREAD_SCOPE_SYSTEM    = 0;
   PTHREAD_SCOPE_PROCESS   = 1;
 
@@ -48,9 +48,9 @@ Const
 
   PTHREAD_PROCESS_PRIVATE = 0;
   PTHREAD_PROCESS_SHARED  = 1;
-  
+
   PTHREAD_ONCE_INIT = 0;
-  
+
   PTHREAD_CANCEL_ENABLE  = 0;
   PTHREAD_CANCEL_DISABLE = 1;
 
@@ -62,11 +62,11 @@ Const
 
   PTHREAD_RWLOCK_PREFER_READER_NP = 0;
   PTHREAD_RWLOCK_PREFER_WRITER_NP = 1;
-  PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP = 2; 
+  PTHREAD_RWLOCK_PREFER_WRITER_NONRECURSIVE_NP = 2;
   PTHREAD_RWLOCK_DEFAULT_NP = PTHREAD_RWLOCK_PREFER_WRITER_NP;
-  
+
   _SIGSET_NWORDS  = 1024 div (8 * SizeOf(LongWord));
-    
+
 type
    __sigset_t = record
      __val: packed array[0.._SIGSET_NWORDS-1] of LongWord;
@@ -74,22 +74,22 @@ type
    P__sigset_t = ^__sigset_t;
    TSigset = __sigset_t;
    PSigset = ^TSigset;
-   
+
 type
   // inserted.
   PSize_t = ^Size_t;
-  
+
   // From scheduler.
-  
+
   timespec =  record
-    tv_sec: cint; 
-    tv_nsec: cint; 
+    tv_sec: cint;
+    tv_nsec: cint;
   end;
   TTimeSpec = timespec;
   PTimeSpec = ^TTimeSpec;
 
   // procedural types used in parameters to pthread functions
-  
+
   TStartRoutine = function (_para1:pointer): cint; cdecl;
   TKeyValueDestructor = procedure(ValueInKey: Pointer); cdecl;
   TInitOnceProc = Procedure;cdecl;
@@ -98,37 +98,37 @@ type
   TThreadID = pthread_t;
   PPTHREAD_T = ^PTHREAD_T;
   PThreadID = ^TThreadID;
-  
+
   _PTHREAD_DESCR = Pointer;
   TPTHREAD_DESCR = _PTHREAD_DESCR;
   PPTHREAD_DESCR = ^TPTHREAD_DESCR;
   P_PTHREAD_DESCR = ^_PTHREAD_DESCR;
-  
+
   sched_param = record
     sched_priority: cint;
   end;
-  Psched_param = ^sched_param;  
+  Psched_param = ^sched_param;
   TSchedParam = sched_param;
   PSchedParam = ^TSchedParam;
 
   ppthread_attr_t = ^pthread_attr_t;
   TThreadAttr = pthread_attr_t;
   PThreadAttr = ^TThreadAttr;
-  
-  p_pthread_fastlock = ^_pthread_fastlock; 
+
+  p_pthread_fastlock = ^_pthread_fastlock;
   TPthreadFastlock = _pthread_fastlock;
   PPthreadFastlock = ^TPthreadFastlock;
-  
-  PPTHREAD_MUTEX_T = ^PTHREAD_MUTEX_T;  
+
+  PPTHREAD_MUTEX_T = ^PTHREAD_MUTEX_T;
   TPthreadMutex = PTHREAD_MUTEX_T;
   PPthreadMutex = ^TPthreadMutex;
-  
+
   TMutexAttribute = pthread_mutexattr_t;
   PMutexAttribute = ^TMutexAttribute;
   PPTHREAD_MUTEXATTR_T = ^pthread_mutexattr_t;
-                   
-  TPThreadCleanupRoutine = procedure (_para1:pointer);cdecl;                         
-  
+
+  TPThreadCleanupRoutine = procedure (_para1:pointer);cdecl;
+
   PPthreadCleanupBuffer = ^_pthread_cleanup_buffer;
   p_pthread_cleanup_buffer = ^_pthread_cleanup_buffer;
   _pthread_cleanup_buffer = {packed} record
@@ -137,7 +137,7 @@ type
     __canceltype: cint;                { Saved cancellation type. }
     __prev: p_pthread_Cleanup_Buffer;        { Chaining of cleanup functions.  }
   end;
-  TPthreadCleanupBuffer = _pthread_cleanup_buffer;  
+  TPthreadCleanupBuffer = _pthread_cleanup_buffer;
 
   pthread_cond_t = record
     __c_lock: _pthread_fastlock;
@@ -158,7 +158,7 @@ type
   TPThreadKey = pthread_key_t;
   PPThreadKey = ^TPThreadKey;
 
-  pthread_once_t = cint;       
+  pthread_once_t = cint;
   Ppthread_once_t = ^pthread_once_t;
   TPThreadOnce = pthread_once_t;
   PPThreadOnce = ^pthread_once_t;
@@ -181,8 +181,8 @@ type
   pthread_spinlock_t = cint;
   ppthread_spinlock_t = ^pthread_spinlock_t;
   TPthreadSpinlock = pthread_spinlock_t;
-  PTPthreadSpinlock = ^TPthreadSpinlock;        
-        
+  PTPthreadSpinlock = ^TPthreadSpinlock;
+
   pthread_barrier_t = record
     __ba_lock: _pthread_fastlock;
     __ba_required: cint;
@@ -203,8 +203,8 @@ type
 { ---------------------------------------------------------------------
     Raw function prototypes
   ---------------------------------------------------------------------}
-  
-          
+
+
   function pthread_create(__thread:Ppthread_t; __attr:Ppthread_attr_t; __start_routine:TStartRoutine; __arg:pointer):cint;cdecl; external libthreads;
   function pthread_self:pthread_t;cdecl; external libthreads;
   function pthread_equal(__thread1:pthread_t; __thread2:pthread_t):cint;cdecl; external libthreads;
@@ -311,7 +311,7 @@ type
 { ---------------------------------------------------------------------
      Overloaded versions with var args instead of pointers
   ---------------------------------------------------------------------}
-              
+
   function pthread_create(var __thread:pthread_t; var __attr: pthread_attr_t; __start_routine:TStartRoutine; __arg:pointer):cint;cdecl; external libthreads;
   function pthread_join(__th:pthread_t; var __thread_return:pointer):cint;cdecl; external libthreads;
   function pthread_attr_init(var __attr: pthread_attr_t):cint;cdecl; external libthreads;
@@ -401,19 +401,8 @@ type
 
 {
   $Log$
-  Revision 1.2  2004-09-09 20:29:06  jonas
-    * fixed definition of pthread_mutex_t for non-linux targets (and for
-      linux as well, actually).
-    * base libpthread definitions are now in ptypes.inc, included in unixtype
-      They sometimes have an extra underscore in front of their name, in
-      case they were also exported by the packages/base/pthreads unit, so
-      they can keep their original name there
-    * cthreadds unit now imports systuils, because it uses exceptions (it
-      already did so before as well)
-    * fixed many linux definitions of libpthread functions in pthrlinux.inc
-      (integer -> cint etc)
-    + added culonglong type to ctype.inc
-
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 

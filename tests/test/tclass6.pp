@@ -11,32 +11,32 @@ type
     constructor create;
     procedure mymethod; virtual;
   end;
-  
-  
+
+
   tobj2 = class
     constructor create;
     procedure mymethod; virtual;
   end;
-  
-  
+
+
   constructor tobj2.create;
    begin
    end;
-   
+
   procedure tobj2.mymethod;
    begin
    end;
-   
-   
+
+
   constructor tobj1.create;
    begin
    end;
-   
+
   procedure tobj1.mymethod;
    begin
    end;
-  
-  
+
+
 var
  _cla1 : tobj1;
  _cla2 : tobj2;
@@ -46,4 +46,4 @@ Begin
   { Detect wrong typecast at compile time }
   tobj1(_cla2).mymethod;
 end.
-    
+

@@ -20,7 +20,7 @@ PROGRAM BestModeID;
 uses exec, amigados, graphics, picasso96api, utility;
 
 Const
-   
+
     template    :   pchar  =    'Width=W/N,Height=H/N,Depth=D/N';
     vecarray    :   Array[0..2] of long = (0,0,0);
 
@@ -60,7 +60,7 @@ Begin
       FreeArgs(rda);
    End;
 
-   
+
 
    DisplayID:=p96BestModeIDTags([P96BIDTAG_NominalWidth, width,
                                  P96BIDTAG_NominalHeight, height,
@@ -89,4 +89,4 @@ End.
   $Log
 }
 
-  
+

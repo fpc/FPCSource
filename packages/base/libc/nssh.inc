@@ -16,4 +16,4 @@ function __nss_configure_lookup(__dbname:Pchar; __string:Pchar):longint;cdecl;ex
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -7,18 +7,18 @@ Uses heaptrc;
 Var P1 : ^Longint;
     P2 : Pointer;
     I : longint;
-    Marker : Longint; 
- 
+    Marker : Longint;
+
 Procedure SetMarker (P : pointer);
 
 Type PLongint = ^Longint;
 
 begin
   PLongint(P)^:=Marker;
-end; 
-    
+end;
+
 Procedure  Part1;
-        
+
 begin
   // Blocks allocated here are marked with $FFAAFFAA = -5570646
   Marker := $FFAAFFAA;
@@ -29,12 +29,12 @@ begin
     begin
     GetMem (P2,128);
     If (I mod 2) = 0 Then FreeMem(P2,128);
-    end;  
+    end;
   GetMem(P2,128);
 end;
 
 Procedure  Part2;
-        
+
 begin
   // Blocks allocated here are marked with $FAFAFAFA = -84215046
   Marker := $FAFAFAFA;
@@ -45,7 +45,7 @@ begin
     begin
     GetMem (P2,128);
     If (I mod 2) = 0 Then FreeMem(P2,128);
-    end;  
+    end;
   GetMem(P2,128);
 end;
 

@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Bitmaps for toolbar buttons.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -37,7 +37,7 @@ Const
   );
 
 { Auto bitmap data }
-  BitmapDataclear : Array[0..30-6] of AnsiString = ( // clear.xpm 
+  BitmapDataclear : Array[0..30-6] of AnsiString = ( // clear.xpm
     '16 16 8 1',
     '  c black',
     '. c #830000',
@@ -64,9 +64,9 @@ Const
     '  ##   ## ######',
     '        ### ####',
     '#    #   #######'
-  ); 
- 
-  BitmapDatapause : Array[0..33-6] of AnsiString = ( // pause.xpm 
+  );
+
+  BitmapDatapause : Array[0..33-6] of AnsiString = ( // pause.xpm
     '16 16 11 1',
     '  c black',
     '. c #7b7d7b',
@@ -96,9 +96,9 @@ Const
     '&&&  %@..+  &&&&',
     '&&&&&     &&&&&&',
     '&&&&&&&&&&&&&&&&'
-  ); 
- 
-  BitmapDatarun : Array[0..32-6] of AnsiString = ( // run.xpm 
+  );
+
+  BitmapDatarun : Array[0..32-6] of AnsiString = ( // run.xpm
     '16 16 10 1',
     '  c black',
     '. c #7b7d7b',
@@ -127,9 +127,9 @@ Const
     '%%%  $+..O  %%%%',
     '%%%%%     %%%%%%',
     '%%%%%%%%%%%%%%%%'
-  ); 
- 
-  BitmapDataclose : Array[0..29-6] of AnsiString = ( // close.xpm 
+  );
+
+  BitmapDataclose : Array[0..29-6] of AnsiString = ( // close.xpm
     '16 16 7 1',
     '  c black',
     '. c #7b7d7b',
@@ -155,9 +155,9 @@ Const
     '@@@ @ O O . @@@@',
     '@@@ @.o.o.o @@@@',
     '@@@         @@@@'
-  ); 
- 
-  BitmapDatasave : Array[0..30-6] of AnsiString = ( // save.xpm 
+  );
+
+  BitmapDatasave : Array[0..30-6] of AnsiString = ( // save.xpm
     '16 16 8 1',
     '  c black',
     '. c #7b7d7b',
@@ -184,9 +184,9 @@ Const
     '########  O#O#  ',
     '########  # #O  ',
     '########  . ..  '
-  ); 
- 
-  BitmapDataconnect : Array[0..28-6] of AnsiString = ( // connect.xpm 
+  );
+
+  BitmapDataconnect : Array[0..28-6] of AnsiString = ( // connect.xpm
     '16 16 6 1',
     '  c black',
     '. c #7b7d7b',
@@ -211,9 +211,9 @@ Const
     'XXXXXX O XXXXXXX',
     'XXXXXX   XXXXXXX',
     'XXXXXXX XXXXXXXX'
-  ); 
- 
-  BitmapDatadisconnect : Array[0..27-6] of AnsiString = ( // disconnect.xpm 
+  );
+
+  BitmapDatadisconnect : Array[0..27-6] of AnsiString = ( // disconnect.xpm
     '16 16 5 1',
     '  c black',
     '. c #7b7d7b',
@@ -237,9 +237,9 @@ Const
     'XXXXXX o XXXXXXX',
     'XXXXXX   XXXXXXX',
     'XXXXXXX XXXXXXXX'
-  ); 
- 
-  BitmapDatainfo : Array[0..31-6] of AnsiString = ( // info.xpm 
+  );
+
+  BitmapDatainfo : Array[0..31-6] of AnsiString = ( // info.xpm
     '16 16 9 1',
     '  c black',
     '. c #000083',
@@ -267,9 +267,9 @@ Const
     '$$$$$$$ @ .$$$$$',
     '$$$$$$$$  +$$$$$',
     '$$$$$$$$$$$$$$$$'
-  ); 
- 
-  BitmapDatawarning : Array[0..30-6] of AnsiString = ( // warning.xpm 
+  );
+
+  BitmapDatawarning : Array[0..30-6] of AnsiString = ( // warning.xpm
     '16 16 8 1',
     '  c black',
     '. c #080000',
@@ -296,9 +296,9 @@ Const
     '##            X#',
     '###XoXoXoXoXoXo#',
     '################'
-  ); 
- 
-  BitmapDataerror : Array[0..33-6] of AnsiString = ( // error.xpm 
+  );
+
+  BitmapDataerror : Array[0..33-6] of AnsiString = ( // error.xpm
     '16 16 11 1',
     '  c black',
     '. c #000083',
@@ -328,15 +328,15 @@ Const
     '&&&&.     .XO&&&',
     '&&&&&&@.@.@&&&&&',
     '&&&&&&&&&&&&&&&&'
-  ); 
-  
+  );
+
 Function PixmapFromFile (FN : String) :TFPGtkPixmap;
 
 Implementation
- 
+
 Function PixmapFromFile (FN : String) :TFPGtkPixmap;
 
-Var 
+Var
   I : integer;
 
 begin
@@ -348,8 +348,8 @@ begin
     I:=10;
     While (I>0) and (FN<>BitmapFileNames[i]) do
       Dec(i);
-    With Result do 
-      Case I of 
+    With Result do
+      Case I of
         1  : LoadFromArray(BitmapDataclear);
         2  : LoadFromArray(BitmapDatapause);
         3  : LoadFromArray(BitmapDatarun);
@@ -361,14 +361,17 @@ begin
         9  : LoadFromArray(BitmapDatawarning);
         10 : LoadFromArray(BitmapDataerror);
       end;
-    end;    
+    end;
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.1  2003-01-02 14:36:25  michael
+  Revision 1.2  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.1  2003/01/02 14:36:25  michael
   + Initial implementation
 
 }

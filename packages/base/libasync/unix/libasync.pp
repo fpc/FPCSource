@@ -124,13 +124,13 @@ begin
 
         CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
         if Assigned(CurIOCallback) and
-	{$ifdef VER1_0}
+        {$ifdef VER1_0}
            (FD_IsSet(CurIOCallback^.IOHandle, CurWriteFDSet)) and
            (FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1])) and
-	{$else}  
+        {$else}
            (fpFD_ISSET(CurIOCallback^.IOHandle, CurWriteFDSet) > 0) and
            (fpFD_ISSET(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) > 0) and
-	{$endif}  
+        {$endif}
           Assigned(CurIOCallback^.WriteCallback) then
         begin
           CurIOCallback^.WriteCallback(CurIOCallback^.WriteUserData);
@@ -221,21 +221,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-11-30 12:26:54  sg
-  * Small typo fixes for making libasync working in mainbranch
+  Revision 1.10  2005-02-14 17:13:19  peter
+    * truncate log
 
-  Revision 1.8  2003/11/21 01:06:18  sg
-  * Now resistent against clearing already removed notify handles
-
-  Revision 1.7  2003/09/28 09:38:17  peter
-    * fixed for 1.0.x
-
-  Revision 1.6  2003/09/19 17:46:23  marco
-   * Unix reform stage III aftermath
-
-  Revision 1.5  2002/09/25 21:53:39  sg
-  * Split in common implementation an platform dependent implementation
-
-  Revision 1.4  2002/09/15 15:51:09  sg
-  * Removed debugging output code
 }

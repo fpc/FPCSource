@@ -2092,7 +2092,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.164  2005-02-06 21:33:28  peter
+  Revision 1.165  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.164  2005/02/06 21:33:28  peter
     * -Fa option added, it'll load the units before the uses
       line is parsed. Can be used to load cthreads from the commandline.
       Example '-g -Faheaptrc,lineinfo' is the same as '-ghl'
@@ -2115,96 +2118,5 @@ end.
 
   Revision 1.158  2005/01/03 20:27:47  peter
   fix outline of 3rd level of options (-SI option mainly)
-
-  Revision 1.157  2004/12/28 20:43:01  hajny
-    * 8.3 fixes (short target name in paths)
-
-  Revision 1.156  2004/12/16 08:06:42  marco
-   * slash typo
-
-  Revision 1.155  2004/12/15 16:06:47  marco
-   * introduction "cleanpath" (=fexpand), fixfilename(paramstr(0)) + search $PREFIX/etc/fpc.cfg
-
-  Revision 1.154  2004/11/22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.153  2004/11/17 22:21:35  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.152  2004/11/01 12:43:28  peter
-    * shortstr compare with empty string fixed
-    * removed special i386 code
-
-  Revision 1.151  2004/10/31 19:09:54  peter
-    * default paths fixed
-
-  Revision 1.150  2004/10/26 15:11:01  peter
-    * -Ch for heapsize added again
-    * __heapsize contains the heapsize
-
-  Revision 1.149  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.148  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.147  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.146  2004/10/14 14:03:02  mazen
-  * Merge is complete for this file, cycles !
-
-  Revision 1.145  2004/10/05 20:21:02  florian
-    * bootstrapping with rtti alignment fixed
-
-  Revision 1.144  2004/09/21 23:33:43  hajny
-    * better PathExists, fix for too long command line, correction of message
-
-  Revision 1.143  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.142  2004/09/16 16:31:53  peter
-    * Use FExpand on paths passed to compiler
-
-  Revision 1.141  2004/09/10 21:00:23  jonas
-    * exit with exit code 0 instead of 1 after writing out quick options
-      (such as -iV)
-
-  Revision 1.140  2004/09/08 11:23:31  michael
-  + Check if outputdir exists,  Fix exitcode when displaying help pages
-
-  Revision 1.139.4.1  2004/09/19 20:53:33  peter
-    * fixed compile without gdb
-
-  Revision 1.139  2004/08/27 21:59:26  peter
-  browser disabled
-  uf_local_symtable ppu flag when a localsymtable is stored
-
-  Revision 1.138  2004/07/05 21:26:28  olle
-    + allow fileextension .p, in mode macpas
-
-  Revision 1.137  2004/07/04 12:24:04  jonas
-    * fixed "-g-l" (and other "-g-*" combinations)
-
-  Revision 1.136  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.135  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.134  2004/05/06 20:30:51  florian
-    * m68k compiler compilation fixed
-
-  Revision 1.133.2.10  2004/05/18 20:24:03  florian
-    * fixed crash with unknown symbols
-
-  Revision 1.133.2.9  2004/05/13 20:10:38  florian
-    * released variant and interface support
-
-  Revision 1.133.2.8  2004/05/03 14:59:57  peter
-    * no dlltool needed for win32 linking executables
 
 }

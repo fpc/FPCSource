@@ -364,7 +364,7 @@ begin
      { what about Input and Output ?? PM }
    end;
   remove_exception_handlers;
-  
+
   { call exitprocess, with cleanup as required }
   asm_exit(exitcode);
 end;
@@ -1066,144 +1066,14 @@ end.
 
 {
   $Log$
-  Revision 1.67  2005-02-06 13:06:20  peter
+  Revision 1.68  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.67  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 
   Revision 1.66  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
-
-  Revision 1.65  2004/12/12 11:53:47  florian
-    * remove inline assembler for calling asm_exit
-
-  Revision 1.64  2004/12/05 14:36:38  hajny
-    + GetProcessID added
-
-  Revision 1.63  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.62  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.61  2004/09/03 19:27:25  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.60  2004/06/27 11:57:18  florian
-    * finally (hopefully) fixed sysalloc trouble
-
-  Revision 1.59  2004/06/26 15:05:14  florian
-    * fixed argument copying
-
-  Revision 1.58  2004/06/20 09:24:40  peter
-  fixed go32v2 compile
-
-  Revision 1.57  2004/06/17 16:16:14  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.56  2004/05/16 18:51:20  peter
-    * use thandle in do_*
-
-  Revision 1.55  2004/04/22 21:10:56  peter
-    * do_read/do_write addr argument changed to pointer
-
-  Revision 1.54  2004/02/15 21:37:18  hajny
-    * ProcessID initialization added
-
-  Revision 1.53  2004/02/02 17:01:47  florian
-    * workaround for AMD prefetch bug
-
-  Revision 1.52  2004/01/20 23:12:49  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.51  2003/12/17 21:56:33  peter
-    * win32 regcall patches
-
-  Revision 1.50  2003/12/04 20:52:41  peter
-    * stdcall for CreateFile
-
-  Revision 1.49  2003/11/24 23:08:37  michael
-  + Redefined Fileopen so it corresponds to ascdef.inc definition
-
-  Revision 1.48  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.47  2003/10/17 22:15:10  olle
-    * changed i386 to cpui386
-
-  Revision 1.46  2003/10/16 15:43:13  peter
-    * THandle is platform dependent
-
-  Revision 1.45  2003/10/06 23:52:53  florian
-    * some data types cleaned up
-
-  Revision 1.44  2003/09/27 11:52:36  peter
-    * sbrk returns pointer
-
-  Revision 1.43  2003/09/26 07:30:34  michael
-  + Win32 Do_open crahs on append
-
-  Revision 1.42  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.41  2003/09/12 12:33:43  olle
-    * nice-ified
-
-  Revision 1.40  2003/01/01 20:56:57  florian
-    + added invalid instruction exception
-
-  Revision 1.39  2002/12/24 15:35:15  peter
-    * error code fixes
-
-  Revision 1.38  2002/12/07 13:58:45  carl
-    * fix warnings
-
-  Revision 1.37  2002/11/30 18:17:35  carl
-    + profiling support
-
-  Revision 1.36  2002/10/31 15:17:58  carl
-    * always allocate argument even if its empty (bugfix web bug 2202)
-
-  Revision 1.35  2002/10/14 20:40:22  florian
-    * InitFPU renamed to SysResetFPU
-
-  Revision 1.34  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
-
-  Revision 1.33  2002/10/13 09:28:45  florian
-    + call to initvariantmanager inserted
-
-  Revision 1.32  2002/09/07 21:28:10  carl
-    - removed os_types
-    * fix range check errors
-
-  Revision 1.31  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.30  2002/08/26 13:49:18  pierre
-   * fix bug report 2086
-
-  Revision 1.29  2002/07/28 20:43:49  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
-
-  Revision 1.28  2002/07/01 16:29:05  peter
-    * sLineBreak changed to normal constant like Kylix
-
-  Revision 1.27  2002/06/04 09:25:14  pierre
-   * Rename HeapSize to WinAPIHeapSize to avoid conflict with general function
-
-  Revision 1.26  2002/04/12 17:45:13  carl
-  + generic stack checking
-
-  Revision 1.25  2002/03/11 19:10:33  peter
-    * Regenerated with updated fpcmake
-
-  Revision 1.24  2002/01/30 14:57:11  pierre
-   * fix compilation failure
-
-  Revision 1.23  2002/01/25 16:23:03  peter
-    * merged filesearch() fix
 
 }

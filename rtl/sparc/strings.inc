@@ -19,7 +19,7 @@
 
 {
   $Log$
-  Revision 1.1  2003-07-07 20:22:05  peter
-    * generic string routines added
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

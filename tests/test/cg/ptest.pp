@@ -444,14 +444,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-11-29 21:48:04  peter
-    * add public
-
-  Revision 1.2  2002/11/18 00:42:16  pierre
-   + records with really 3 byte size tests added
-
-  Revision 1.1  2002/11/04 15:17:45  pierre
-   * compatibility with C checks improved
-
+  Revision 1.4  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

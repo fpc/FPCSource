@@ -654,109 +654,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.48  2005-02-06 16:57:18  peter
+  Revision 1.49  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.48  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.47  2005/02/01 20:22:49  florian
     * improved widestring infrastructure manager
-
-  Revision 1.46  2004/12/07 14:02:24  jonas
-    * fix cdecl name problems (patch from Tomas)
-
-  Revision 1.45  2004/12/05 14:36:37  hajny
-    + GetProcessID added
-
-  Revision 1.44  2004/11/25 17:37:59  jonas
-    * fixed some C-linking problems (the C-prefix is now always added to
-      cdecl external functions, also if you define the name explicitly)
-
-  Revision 1.43  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.42  2004/11/02 13:35:35  peter
-    * second try for data too large
-
-  Revision 1.41  2004/11/02 07:43:50  peter
-    * fix mem[] arrays
-
-  Revision 1.40  2004/10/27 18:52:05  hajny
-    * HEAP and HEAPSIZE removal reflected
-
-  Revision 1.39  2004/09/18 11:17:17  hajny
-    * handle type changed to thandle in do_isdevice
-
-  Revision 1.38  2004/09/03 19:25:49  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.37  2004/06/20 09:24:40  peter
-  fixed go32v2 compile
-
-  Revision 1.36  2004/06/17 16:16:13  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.35  2004/05/16 18:51:20  peter
-    * use thandle in do_*
-
-  Revision 1.34  2004/04/22 21:10:56  peter
-    * do_read/do_write addr argument changed to pointer
-
-  Revision 1.33  2004/01/25 13:05:08  jonas
-    * fixed compilation errors
-
-  Revision 1.32  2004/01/20 23:09:14  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.31  2004/01/10 10:49:24  jonas
-    * fixed compilation
-
-  Revision 1.30  2003/12/17 20:40:38  hajny
-    * 'conservative' version of the do_open patch by Joe da Silva
-
-  Revision 1.29  2003/12/04 21:42:07  peter
-    * register calling updates
-
-  Revision 1.28  2003/11/03 09:42:27  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.27  2003/10/16 15:43:13  peter
-    * THandle is platform dependent
-
-  Revision 1.26  2003/10/03 21:46:25  peter
-    * stdcall fixes
-
-  Revision 1.25  2003/09/29 18:39:59  hajny
-    * append fix applied to GO32v2, OS/2 and EMX
-
-  Revision 1.24  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.23  2002/10/14 19:39:16  peter
-    * threads unit added for thread support
-
-  Revision 1.22  2002/10/13 09:28:44  florian
-    + call to initvariantmanager inserted
-
-  Revision 1.21  2002/09/07 21:32:08  carl
-    - removed unused defines
-
-  Revision 1.20  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.19  2002/07/01 16:29:05  peter
-    * sLineBreak changed to normal constant like Kylix
-
-  Revision 1.18  2002/05/05 10:23:54  peter
-    * fixed memw and meml array sizes
-
-  Revision 1.17  2002/04/21 15:52:58  carl
-  + initialize some global variables
-
-  Revision 1.16  2002/04/12 17:34:05  carl
-  + generic stack checking
-
-  Revision 1.15  2002/03/11 19:10:33  peter
-    * Regenerated with updated fpcmake
 
 }

@@ -18,7 +18,7 @@ function semop(__semid:longint; __sops:psembuf; __nsops:size_t):longint;cdecl;ex
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSemaphoreBuffer = sembuf;
   PSemaphoreBuffer = ^TSemaphoreBuffer;
 

@@ -7,8 +7,8 @@ uses newt;
 
 
 begin
-    newtInit();  
-    newtCls();   
+    newtInit();
+    newtCls();
 
     newtDrawRootText(0, 0,'Some root text');
     newtDrawRootText(0, 1,'Press a key to display a help line   ');
@@ -16,7 +16,7 @@ begin
     newtPushHelpLine(nil);
 
     newtRefresh();
-   
+
     newtWaitForKey;
 
     newtPushHelpLine('A help line');

@@ -7,7 +7,7 @@ Uses keyboard;
 Var
   K : TKeyEvent;
   S : Byte;
-  
+
 begin
   InitKeyBoard;
   Write('Press keys combined with CTRL/SHIFT/ALT');
@@ -18,7 +18,7 @@ begin
     S:=GetKeyEventShiftState(K);
     If (S=0) then
       Writeln('No special keys pressed')
-    else  
+    else
       begin
       Writeln('Detected special keys : ',ShiftStateToString(K,False));
       Writeln('Got key : ',KeyEventToString(K));

@@ -322,7 +322,7 @@ const
 
    SIOCDEVPRIVATE       = $89F0;
    SIOCPROTOPRIVATE     = $89E0;
-        
+
    SIOCSKEEPALIVE = SIOCDEVPRIVATE;
    SIOCGKEEPALIVE = SIOCDEVPRIVATE + 1;
    SIOCSOUTFILL = SIOCDEVPRIVATE + 2;
@@ -341,7 +341,7 @@ const
     EXTENDED_SAP = $AA;
     UI_CMD = $03;
 
-  
+
 type
        Ptrh_hdr = ^trh_hdr;
        trh_hdr = record
@@ -507,7 +507,7 @@ Const
             d : compstat;
          end;
 
-      __kernel_time_t = Longint; 
+      __kernel_time_t = Longint;
       ppp_idle = record
           xmit_idle: __kernel_time_t;
           recv_idle: __kernel_time_t;
@@ -528,14 +528,14 @@ Const
             compress_proto : longint;
             comp_alloc : Function (options:Pbyte; opt_len:longint):pointer;cdecl;
             comp_free : procedure (state:pointer);
-            comp_init : Function (state:pointer; options:Pbyte; opt_len:longint; _unit:longint; opthdr:longint; 
+            comp_init : Function (state:pointer; options:Pbyte; opt_len:longint; _unit:longint; opthdr:longint;
                          debug:longint):longint;
             comp_reset : procedure (state:pointer);
             compress : Function (state:pointer; rptr:Pbyte; obuf:Pbyte; isize:longint; osize:longint):longint;
             comp_stat : procedure (state:pointer; stats:Pcompstat);
             decomp_alloc : Function (options:Pbyte; opt_len:longint):pointer;
             decomp_free : procedure (state:pointer);
-            decomp_init : Function (state:pointer; options:Pbyte; opt_len:longint; _unit:longint; opthdr:longint; 
+            decomp_init : Function (state:pointer; options:Pbyte; opt_len:longint; _unit:longint; opthdr:longint;
                          mru:longint; debug:longint):longint;
             decomp_reset : procedure (state:pointer);
             decompress : Function (state:pointer; ibuf:Pbyte; isize:longint; obuf:Pbyte; osize:longint):longint;
@@ -568,7 +568,7 @@ const
        CI_BSD_COMPRESS = 21;
        CILEN_BSD_COMPRESS = 3;
        BSD_CURRENT_VERSION = 1;
-       
+
 Function BSD_NBITS(x: longint): longint;
 Function BSD_VERSION(x: longint): longint;
 Function BSD_MAKE_OPT(v, n: longint): longint;
@@ -586,7 +586,7 @@ Function BSD_MAKE_OPT(v, n: longint): longint;
 Function DEFLATE_SIZE(x: longint): longint;
 Function DEFLATE_METHOD(x: longint): longint;
 Function DEFLATE_MAKE_OPT(w: longint): longint;
-    
+
     const
        DEFLATE_CHK_SEQUENCE = 0;
        CI_PREDICTOR_1 = 1;
@@ -615,9 +615,9 @@ Function DEFLATE_MAKE_OPT(w: longint): longint;
             s_net : __u16;
             s_node : __u8;
          end;
-         
+
        sa_family_t = Word; // From libc.
-  
+
        Psockaddr_at = ^sockaddr_at;
        sockaddr_at = record
             sat_family : sa_family_t;
@@ -645,18 +645,18 @@ Function DEFLATE_MAKE_OPT(w: longint): longint;
 Const
   ATIF_PROBE      = 1;    { Probing for an address }
   ATIF_PROBE_FAIL = 2;    { Probe collided }
-        
+
 Type
        PATalkIFace = ^TATalkIFace;
        atalk_iface = record
-           dev: Pointer;  
+           dev: Pointer;
            address: at_addr;
-           status: longint; 
-           nets: netrange;  
+           status: longint;
+           nets: netrange;
            next: PATalkIFace;
        end;
       TATalkIFace = atalk_iface;
-                                        
+
 
        Patalk_sock = ^atalk_sock;
        atalk_sock = record
@@ -667,7 +667,7 @@ Type
             dest_port : byte;
             src_port : byte;
          end;
-         
+
 // Translated from linux/igmp.h
 
     type
@@ -704,7 +704,7 @@ Type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TATalkRoute = atalk_route;
 
 Implementation
@@ -788,4 +788,4 @@ end;
 
 end.
 
-  
+

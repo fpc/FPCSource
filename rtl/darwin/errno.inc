@@ -117,7 +117,7 @@
     { Inappropriate ioctl for device  }
        ESysENOTTY = 25;
 {$ifndef _POSIX_SOURCE}
-    { Text file busy.  The new process was a pure procedure (shared text) file 
+    { Text file busy.  The new process was a pure procedure (shared text) file
           which was open for writing by another process, or file which was open for
           writing by another process, or while the pure procedure file was being
           executed an open(2) call requested write access  requested write access.}
@@ -283,15 +283,7 @@
 
 {
   $Log$
-  Revision 1.3  2004-03-04 13:10:23  olle
-    + added comment to ETXTBSY
-    * changed i386 -> cpui386, m68k -> cpum68k
-
-  Revision 1.2  2003/05/25 12:59:56  jonas
-    * several fixes, addition of Mach trap numbers (thye are simply syscalls
-      with a negative number)
-
-  Revision 1.1  2002/09/08 09:00:17  jonas
-    + initial revision
+  Revision 1.4  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

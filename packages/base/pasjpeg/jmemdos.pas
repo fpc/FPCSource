@@ -101,7 +101,7 @@ procedure jpeg_free_large (cinfo : j_common_ptr;
 {GLOBAL}
 function jpeg_mem_available (cinfo : j_common_ptr;
                              min_bytes_needed : long;
-		             max_bytes_needed : long;
+                             max_bytes_needed : long;
                              already_allocated : long) : long;
 
 
@@ -282,7 +282,7 @@ const
 {GLOBAL}
 function jpeg_mem_available (cinfo : j_common_ptr;
                              min_bytes_needed : long;
-		             max_bytes_needed : long;
+                             max_bytes_needed : long;
                              already_allocated : long) : long;
 begin
   {jpeg_mem_available := cinfo^.mem^.max_memory_to_use - already_allocated;}
@@ -326,10 +326,10 @@ begin
   if jdos_seek(info^.handle.file_handle, file_offset) <> 0 then
     ERREXIT(cinfo, JERR_TFILE_SEEK);
   { Since MAX_ALLOC_CHUNK is less than 64K, byte_count will be too. }
-  if (byte_count > long(65535))	then { safety check }
+  if (byte_count > long(65535)) then { safety check }
     ERREXIT(cinfo, JERR_BAD_ALLOC_CHUNK);
   if jdos_read(info^.handle.file_handle, buffer_address,
-		ushort(byte_count)) <> 0 then
+                ushort(byte_count)) <> 0 then
     ERREXIT(cinfo, JERR_TFILE_READ);
 end;
 
@@ -337,8 +337,8 @@ end;
 {METHODDEF}
 procedure write_file_store (cinfo : j_common_ptr;
                             info : backing_store_ptr;
-		            buffer_address : pointer; {FAR}
-		            file_offset : long;
+                            buffer_address : pointer; {FAR}
+                            file_offset : long;
                             byte_count : long); far;
 begin
   if (jdos_seek(info^.handle.file_handle, file_offset)) <> 0 then
@@ -347,7 +347,7 @@ begin
   if (byte_count > long(65535)) then  { safety check }
     ERREXIT(cinfo, JERR_BAD_ALLOC_CHUNK);
   if jdos_write(info^.handle.file_handle, buffer_address,
-		 ushort(byte_count)) <> 0 then
+                 ushort(byte_count)) <> 0 then
     ERREXIT(cinfo, JERR_TFILE_WRITE);
 end;
 
@@ -358,8 +358,8 @@ procedure close_file_store (cinfo : j_common_ptr;
 var
   f : FILE;
 begin
-  jdos_close(info^.handle.file_handle);	{ close the file }
-  	        
+  jdos_close(info^.handle.file_handle); { close the file }
+
   system.assign(f, info^.temp_name);
   system.erase(f);                      { delete the file }
 { If your system doesn't have remove(), try unlink() instead.
@@ -399,7 +399,7 @@ end;
 {$ifdef XMS_SUPPORTED}
 
 var
-  xms_driver : XMSDRIVER;	{ saved address of XMS driver }
+  xms_driver : XMSDRIVER;       { saved address of XMS driver }
 
 type
   XMSPTR = record               { either long offset or real-mode pointer }
@@ -422,8 +422,8 @@ type
 {METHODDEF}
 procedure read_xms_store (cinfo : j_common_ptr;
                           info : backing_store_ptr;
-		          buffer_address : pointer; {FAR}
-		          file_offset : long;
+                          buffer_address : pointer; {FAR}
+                          file_offset : long;
                           byte_count : long); far;
 var
   ctx : XMScontext;
@@ -441,7 +441,7 @@ begin
   spec.dst.ptr := buffer_address;
 
   ctx.ds_si := addr(spec);
-  ctx.ax := $0b00;		{ EMB move }
+  ctx.ax := $0b00;              { EMB move }
   jxms_calldriver(xms_driver, ctx);
   if (ctx.ax <> 1) then
     ERREXIT(cinfo, JERR_XMS_READ);
@@ -449,7 +449,7 @@ begin
   if odd(byte_count) then
   begin
     read_xms_store(cinfo, info, pointer(@endbuffer) {FAR},
-		   file_offset + byte_count - long(1), long(2));
+                   file_offset + byte_count - long(1), long(2));
     TByteArray(buffer_address^)[byte_count - long(1)] := endbuffer[0];
   end;
 end;
@@ -458,8 +458,8 @@ end;
 {METHODDEF}
 procedure write_xms_store (cinfo : j_common_ptr;
                            info : backing_store_ptr;
-		           buffer_address : pointer; {FAR}
-		           file_offset : long;
+                           buffer_address : pointer; {FAR}
+                           file_offset : long;
                            byte_count : long); far;
 var
   ctx : XMScontext;
@@ -476,7 +476,7 @@ begin
   spec.dst.offset := file_offset;
 
   ctx.ds_si := addr(spec);
-  ctx.ax := $0b00;		{ EMB move }
+  ctx.ax := $0b00;              { EMB move }
   jxms_calldriver(xms_driver, ctx);
   if (ctx.ax <> 1) then
     ERREXIT(cinfo, JERR_XMS_WRITE);
@@ -484,10 +484,10 @@ begin
   if odd(byte_count) then
   begin
     read_xms_store(cinfo, info, pointer(@endbuffer) {FAR},
-		   file_offset + byte_count - long(1), long(2));
+                   file_offset + byte_count - long(1), long(2));
     endbuffer[0] := TByteArray(buffer_address^)[byte_count - long(1)];
     write_xms_store(cinfo, info, pointer(@endbuffer) {FAR},
-		    file_offset + byte_count - long(1), long(2));
+                    file_offset + byte_count - long(1), long(2));
   end;
 end;
 
@@ -509,7 +509,7 @@ end;
 {LOCAL}
 function open_xms_store (cinfo : j_common_ptr;
                          info : backing_store_ptr;
-		         total_bytes_needed : long) : boolean;
+                         total_bytes_needed : long) : boolean;
 var
   ctx : XMScontext;
 begin
@@ -611,7 +611,7 @@ begin
   spec.dst.ptr  := buffer_address;
 
   ctx.ds_si := addr(spec);
-  ctx.ax := $5700;		{ move memory region }
+  ctx.ax := $5700;              { move memory region }
   jems_calldriver(ctx);
   if (hi(ctx.ax) <> 0) then
     ERREXIT(cinfo, JERR_EMS_READ);
@@ -638,7 +638,7 @@ begin
   spec.dst.offs := ushort (file_offset mod EMSPAGESIZE);
 
   ctx.ds_si := addr(spec);
-  ctx.ax := $5700;		{ move memory region }
+  ctx.ax := $5700;              { move memory region }
   jems_calldriver(ctx);
   if (hi(ctx.ax) <> 0) then
     ERREXIT(cinfo, JERR_EMS_WRITE);
@@ -662,7 +662,7 @@ end;
 {LOCAL}
 function open_ems_store (cinfo : j_common_ptr;
                          info : backing_store_ptr;
-		         total_bytes_needed : long) : boolean;
+                         total_bytes_needed : long) : boolean;
 var
   ctx : EMScontext;
 begin
@@ -761,7 +761,7 @@ end;
 {GLOBAL}
 function jpeg_mem_init (cinfo : j_common_ptr) : long;
 begin
-  next_file_num := 0;		{ initialize temp file name generator }
+  next_file_num := 0;           { initialize temp file name generator }
   jpeg_mem_init := DEFAULT_MAX_MEM;   { default for max_memory_to_use }
 end;
 

@@ -679,53 +679,10 @@ end.
 
 {
   $Log$
-  Revision 1.68  2005-02-13 18:55:19  florian
+  Revision 1.69  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.68  2005/02/13 18:55:19  florian
     + overflow checking for the arm
-
-  Revision 1.67  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.66  2004/11/08 21:59:34  florian
-    * include/exclude for sets in registers fixed
-
-  Revision 1.65  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.64  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.63  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.62.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.62  2004/08/16 21:00:15  peter
-    * range checks fixed
-
-  Revision 1.61  2004/07/12 17:58:19  peter
-    * remove maxlen field from ansistring/widestrings
-
-  Revision 1.60  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.59  2004/06/16 20:07:08  florian
-    * dwarf branch merged
-
-  Revision 1.58  2004/05/30 21:18:22  jonas
-    * some optimizations and associated fixes for better regvar code
-
-  Revision 1.57  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.56.2.4  2004/05/02 16:49:12  peter
-    * 64 bit fixes
-
-  Revision 1.56.2.3  2004/05/01 16:35:51  florian
-    * fixed length(<ansi/widestring>) for 64 Bit CPUs
 
 }

@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -24,17 +24,17 @@ begin
   case sig of
     SIGFPE :
           begin
-	    Case Info.si_code Of
-		FPE_INTDIV : Res:=200;  {integer divide fault. Div0?}
-		FPE_FLTOVF : Res:=205;  {Overflow trap}
-		FPE_FLTUND : Res:=206;  {Stack over/underflow}
-		FPE_FLTRES : Res:=216;  {Device not available}
-		FPE_FLTINV : Res:=216;  {Invalid floating point operation}
-	       Else
-  	        Res:=208; {coprocessor error}
-		End;
-	     sysResetFPU;
-	  End;
+            Case Info.si_code Of
+                FPE_INTDIV : Res:=200;  {integer divide fault. Div0?}
+                FPE_FLTOVF : Res:=205;  {Overflow trap}
+                FPE_FLTUND : Res:=206;  {Stack over/underflow}
+                FPE_FLTRES : Res:=216;  {Device not available}
+                FPE_FLTINV : Res:=216;  {Invalid floating point operation}
+               Else
+                Res:=208; {coprocessor error}
+                End;
+             sysResetFPU;
+          End;
     SIGILL,
     SIGBUS,
     SIGSEGV :
@@ -79,11 +79,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-03-04 13:10:26  olle
-    + added comment to ETXTBSY
-    * changed i386 -> cpui386, m68k -> cpum68k
-
-  Revision 1.1  2004/01/03 12:29:36  marco
-   * now separately.
+  Revision 1.3  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

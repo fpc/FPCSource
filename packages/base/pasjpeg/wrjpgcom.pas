@@ -269,42 +269,42 @@ begin
     case marker of
       { Note that marker codes $C4, $C8, $CC are not, and must not be,
         treated as SOFn.  C4 in particular is actually DHT. }
-    M_SOF0,		{ Baseline }
-    M_SOF1,		{ Extended sequential, Huffman }
-    M_SOF2,		{ Progressive, Huffman }
-    M_SOF3,		{ Lossless, Huffman }
-    M_SOF5,		{ Differential sequential, Huffman }
-    M_SOF6,		{ Differential progressive, Huffman }
-    M_SOF7,		{ Differential lossless, Huffman }
-    M_SOF9,		{ Extended sequential, arithmetic }
-    M_SOF10,		{ Progressive, arithmetic }
-    M_SOF11,		{ Lossless, arithmetic }
-    M_SOF13,		{ Differential sequential, arithmetic }
-    M_SOF14,		{ Differential progressive, arithmetic }
-    M_SOF15:		{ Differential lossless, arithmetic }
+    M_SOF0,             { Baseline }
+    M_SOF1,             { Extended sequential, Huffman }
+    M_SOF2,             { Progressive, Huffman }
+    M_SOF3,             { Lossless, Huffman }
+    M_SOF5,             { Differential sequential, Huffman }
+    M_SOF6,             { Differential progressive, Huffman }
+    M_SOF7,             { Differential lossless, Huffman }
+    M_SOF9,             { Extended sequential, arithmetic }
+    M_SOF10,            { Progressive, arithmetic }
+    M_SOF11,            { Lossless, arithmetic }
+    M_SOF13,            { Differential sequential, arithmetic }
+    M_SOF14,            { Differential progressive, arithmetic }
+    M_SOF15:            { Differential lossless, arithmetic }
       begin
         scan_JPEG_header := marker;
         exit;
       end;
 
-    M_SOS:			{ should not see compressed data before SOF }
+    M_SOS:                      { should not see compressed data before SOF }
       ERREXIT('SOS without prior SOFn');
 
-    M_EOI:			{ in case it's a tables-only JPEG stream }
+    M_EOI:                      { in case it's a tables-only JPEG stream }
       begin
         scan_JPEG_header := marker;
         exit;
       end;
 
-    M_COM:			{ Existing COM: conditionally discard }
+    M_COM:                      { Existing COM: conditionally discard }
       if (keep_COM) then
       begin
-	write_marker(marker);
-	copy_variable;
+        write_marker(marker);
+        copy_variable;
       end
       else
       begin
-	skip_variable;
+        skip_variable;
       end;
 
     else                { Anything else just gets copied }
@@ -375,11 +375,11 @@ begin
   begin
     if (UpCase(arg[i]) <> UpCase(keyword[i])) then
       exit;
-    Inc(nmatched);			{ count matched characters }
+    Inc(nmatched);                      { count matched characters }
   end;
   { reached end of argument; fail if it's too short for unique abbrev }
   if (nmatched >= minchars) then
-    keymatch := TRUE;			{ A-OK }
+    keymatch := TRUE;                   { A-OK }
 end;
 
 { The main program. }
@@ -412,7 +412,7 @@ begin
   begin
     arg := ParamStr(argn);
     if (arg[1] <> '-') then
-      break;			{ not switch, must be file name }
+      break;                    { not switch, must be file name }
     if (keymatch(arg, '-replace', 2)) then
     begin
       keep_COM := FALSE;
@@ -425,8 +425,8 @@ begin
         usage;
       if not comment_file.Init(ParamStr(argn), stOpenRead, 2048) then
       begin
-	WriteLn(progname, 'can''t open ', ParamStr(argn));
-	Halt(EXIT_FAILURE);
+        WriteLn(progname, 'can''t open ', ParamStr(argn));
+        Halt(EXIT_FAILURE);
       end;
     end
     else
@@ -442,24 +442,24 @@ begin
       if (comment_arg[1] = '"') then
       begin
         GetMem(comment_arg_0, size_t(MAX_COM_LENGTH) );
-	if (comment_arg_0 = NIL) then
-	  ERREXIT('Insufficient memory');
-	strcopy(comment_arg_0, ParamStr(argn)+1);
-	while TRUE do
+        if (comment_arg_0 = NIL) then
+          ERREXIT('Insufficient memory');
+        strcopy(comment_arg_0, ParamStr(argn)+1);
+        while TRUE do
         begin
-	  comment_length := uint( strlen(comment_arg) );
-	  if (comment_length > 0) and
+          comment_length := uint( strlen(comment_arg) );
+          if (comment_length > 0) and
              (comment_arg[comment_length-1] = '"') then
           begin
-	    comment_arg[comment_length-1] := #0; { zap terminating quote }
-	    break;
-	  end;
+            comment_arg[comment_length-1] := #0; { zap terminating quote }
+            break;
+          end;
           Inc(argn);
-	  if (argn >= argc) then
-	    ERREXIT('Missing ending quote mark');
-	  strcat(comment_arg, ' ');
-	  strcat(comment_arg, argv[argn]);
-	end;
+          if (argn >= argc) then
+            ERREXIT('Missing ending quote mark');
+          strcat(comment_arg, ' ');
+          strcat(comment_arg, argv[argn]);
+        end;
       end;
       comment_length := uint(strlen(comment_arg));
     end
@@ -556,9 +556,9 @@ begin
       begin
         if (comment_length >= uint(MAX_COM_LENGTH)) then
         begin
-	  WriteLn('Comment text may not exceed ',
+          WriteLn('Comment text may not exceed ',
                    uint(MAX_COM_LENGTH)),' bytes);
-	  Halt(EXIT_FAILURE);
+          Halt(EXIT_FAILURE);
         end;
         comment_arg[comment_length] := char(c);
         Inc(comment_length);

@@ -491,35 +491,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2005-02-13 20:11:16  peter
+  Revision 1.18  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.17  2005/02/13 20:11:16  peter
     * sunos to solaris
-
-  Revision 1.16  2004/12/22 16:32:46  peter
-    * maybequoted() added
-
-  Revision 1.15  2004/11/19 16:30:24  peter
-    * fixed setting of mangledname when importing
-
-  Revision 1.14  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.13  2004/11/03 12:04:03  florian
-    * fixed sparc <-> i386 mixture
-
-  Revision 1.12  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.11  2004/10/01 17:41:21  marco
-   * small updates to make playing with sparc/solaris easier
-
-  Revision 1.10  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.8  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.7  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
 
 }

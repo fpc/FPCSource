@@ -445,48 +445,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-05-02 19:14:47  jonas
-    * fixed darwin incompatibilities
-
-  Revision 1.3  2003/03/02 02:08:50  hajny
-    + OS/2 support for GTK and X11 added by Yuri
-
-  Revision 1.2  2002/09/07 15:42:58  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/13 07:36:27  michael
-  + Added from lazarus project
-
-  Revision 1.1  2002/08/13 07:08:24  lazarus
-  MG: added gdkpixbuf.pp and changes from Andrew Johnson
-
-
-  Revision 1.0.3  2002/04/25 10:57:05  Andrew(AJ_Genius@Hotmail.com)
-    *Added Name 'externalname' directive to all Proc's/Func's
-    *Fixed a few more case sensitive's I missed
-    *Added GTK_SUPPORT and XLIB_SUPPORT Compiler flags,
-      primarily so the file could be use in four modes :
-         GDK
-         GDK with GTK(aka TGdkPixbufLoader)
-         GDK with GTK and GNOME(aka TGnomeCanvasPixbuf)
-         XLIB
-    *Tried to enforce above scheme
-    *Fixed *gdk_version* variables
-    *Added a few Ifdef FPC's just in case anybody every port's
-      the GTK header's to Kylix, I haven't tried, but it may still
-      be possible to use in Kylix in XLIB mode, so long as GLIB is
-      available, and since there is very little in GLIB, I doubt
-      much, if anything would have to be changed to make it work.
-
-  Revision 1.0.2  2002/04/22 13:48:31  Andrew(AJ_Genius@Hotmail.com)
-    *Fixed names of a few routines _GC, supposed to be _gc,
-      more stupid case sensitive C....
-    *A little more basic cleanup
-
-  Revision 1.0.1  2002/04/19 10:15:32  Andrew(AJ_Genius@Hotmail.com)
-    *Fixed names of a few routines _Drawable, supposed to be _drawable,
-      stupid case sensitive C....
-    *Added Linklib directive for gdk_pixbuf_xlib, don't think it's really
-       needed, but better safe then sorry
+  Revision 1.5  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

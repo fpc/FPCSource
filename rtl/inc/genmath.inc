@@ -276,9 +276,9 @@ type
 
 {$ifdef INTERNCONSTINTF}
   function fpc_trunc_real(d : real) : int64;compilerproc;
-{$else}  
+{$else}
   function trunc(d : real) : int64;[internconst:fpc_in_const_trunc];
-{$endif}  
+{$endif}
     var
 {$ifdef cpuarm}
      l: longint;
@@ -322,11 +322,11 @@ type
 
     { straight Pascal translation of the code for __trunc() in }
     { the file sysdeps/libm-ieee754/s_trunc.c of glibc (JM)    }
-{$ifdef INTERNCONSTINTF}    
+{$ifdef INTERNCONSTINTF}
     function fpc_int_real(d: double): double;compilerproc;
-{$else}    
+{$else}
     function int(d: double): double;[internconst:fpc_in_const_int];
-{$endif}    
+{$endif}
       var
         i0, j0: longint;
         i1: cardinal;
@@ -382,7 +382,7 @@ type
 
 {$ifdef INTERNCONSTINTF}
     function fpc_int_real(d : real) : real;compilerproc;
-{$else}    
+{$else}
     function int(d : real) : real;[internconst:fpc_in_const_int];
 {$endif}
       begin
@@ -401,9 +401,9 @@ type
 
   {$ifdef INTERNCONSTINTF}
     function fpc_abs_real(d : Double) : Double;compilerproc;
-  {$else}  
+  {$else}
     function abs(d : Double) : Double;[public,alias:'FPC_ABS_REAL'];
-  {$endif}  
+  {$endif}
     begin
        if (d<0.0) then
          result := -d
@@ -415,9 +415,9 @@ type
 
   {$ifdef INTERNCONSTINTF}
     function fpc_abs_real(d : Double) : Double;compilerproc;
-  {$else}  
+  {$else}
     function abs(d : Real) : Real;[public,alias:'FPC_ABS_REAL'];
-  {$endif}  
+  {$endif}
     begin
        if (d<0.0) then
          result := -d
@@ -431,7 +431,7 @@ type
   {$ifdef hascompilerproc}
     function fpc_abs_real(d:Real):Real;compilerproc; external name 'FPC_ABS_REAL';
   {$endif hascompilerproc}
-{$endif}  
+{$endif}
 
 {$endif not FPC_SYSTEM_HAS_ABS}
 
@@ -550,9 +550,9 @@ type
 {$ifndef FPC_SYSTEM_HAS_SQR}
 {$ifdef INTERNCONSTINTF}
     function fpc_sqr_real(d : Real) : Real;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
-{$else}    
+{$else}
     function sqr(d : Real) : Real;[internconst:fpc_in_const_sqr];
-{$endif}    
+{$endif}
     begin
       result := d*d;
     end;
@@ -561,9 +561,9 @@ type
 {$ifndef FPC_SYSTEM_HAS_PI}
 {$ifdef INTERNCONSTINTF}
     function fpc_pi_real : Real;compilerproc;{$ifdef MATHINLINE}inline;{$endif}
-{$else}    
+{$else}
     function pi : Real;[internconst:fpc_in_const_pi];
-{$endif}    
+{$endif}
     begin
       result := 3.1415926535897932385;
     end;
@@ -573,12 +573,12 @@ type
 {$ifndef FPC_SYSTEM_HAS_SQRT}
   {$ifdef INTERNCONSTINTF}
     function fpc_sqrt_real(d:Real):Real;compilerproc;
-  {$else}    
+  {$else}
     {$ifdef hascompilerproc}
        function fpc_sqrt_real(d:Real):Real;compilerproc; external name 'FPC_SQRT_REAL';
     {$endif hascompilerproc}
     function sqrt(d:Real):Real;[internconst:fpc_in_const_sqrt];[public, alias: 'FPC_SQRT_REAL'];
-  {$endif}  
+  {$endif}
     {*****************************************************************}
     { Square root                                                     }
     {*****************************************************************}
@@ -641,9 +641,9 @@ type
 {$ifndef FPC_SYSTEM_HAS_EXP}
   {$ifdef INTERNCONSTINTF}
     function fpc_exp_real(d:Real):Real;compilerproc;
-  {$else}    
+  {$else}
     function Exp(d:Real):Real;[internconst:fpc_in_const_exp];
-  {$endif}  
+  {$endif}
     {*****************************************************************}
     { Exponential Function                                            }
     {*****************************************************************}
@@ -720,14 +720,14 @@ type
 {$ifndef FPC_SYSTEM_HAS_ROUND}
   {$ifdef INTERNCONSTINTF}
     function fpc_round_real(d : Real) : int64;compilerproc;
-  {$else}    
+  {$else}
     {$ifdef hascompilerproc}
       function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif} external name 'FPC_ROUND';
       function fpc_round(d : Real) : int64;[public, alias:'FPC_ROUND'];{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
    {$else}
       function round(d : Real) : int64;{$ifndef INTERNCONSTINTF}[internconst:fpc_in_const_round];{$endif}
    {$endif hascompilerproc}
- {$endif}  
+ {$endif}
      var
       fr: Real;
       tr: Int64;
@@ -805,9 +805,9 @@ type
 {$ifndef FPC_SYSTEM_HAS_LN}
   {$ifdef INTERNCONSTINTF}
     function fpc_ln_real(d:Real):Real;compilerproc;
-  {$else}  
+  {$else}
     function Ln(d:Real):Real;[internconst:fpc_in_const_ln];
-  {$endif}  
+  {$endif}
     {*****************************************************************}
     { Natural Logarithm                                               }
     {*****************************************************************}
@@ -933,9 +933,9 @@ type
 {$ifndef FPC_SYSTEM_HAS_SIN}
   {$ifdef INTERNCONSTINTF}
     function fpc_Sin_real(d:Real):Real;compilerproc;
-  {$else}  
+  {$else}
     function Sin(d:Real):Real;[internconst:fpc_in_const_sin];
-  {$endif}  
+  {$endif}
     {*****************************************************************}
     { Circular Sine                                                   }
     {*****************************************************************}
@@ -1023,9 +1023,9 @@ type
 {$ifndef FPC_SYSTEM_HAS_COS}
   {$ifdef INTERNCONSTINTF}
     function fpc_Cos_real(d:Real):Real;compilerproc;
-  {$else}  
+  {$else}
     function Cos(d:Real):Real;[internconst:fpc_in_const_cos];
-  {$endif}  
+  {$endif}
     {*****************************************************************}
     { Circular cosine                                                 }
     {*****************************************************************}
@@ -1110,7 +1110,7 @@ type
 {$ifndef FPC_SYSTEM_HAS_ARCTAN}
   {$ifdef INTERNCONSTINTF}
     function fpc_ArcTan_real(d:Real):Real;compilerproc;
-  {$else}  
+  {$else}
     function ArcTan(d:Real):Real;[internconst:fpc_in_const_arctan];
   {$endif}
     {*****************************************************************}
@@ -1189,9 +1189,9 @@ type
 {$ifndef FPC_SYSTEM_HAS_FRAC}
   {$ifdef INTERNCONSTINTF}
     function fpc_frac_real(d : Real) : Real;compilerproc;
-  {$else}  
+  {$else}
     function frac(d : Real) : Real;[internconst:fpc_in_const_frac];
-  {$endif}  
+  {$endif}
     begin
        result := d - Int(d);
     end;
@@ -1258,113 +1258,11 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.31  2005-02-08 20:25:28  florian
+  Revision 1.32  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.31  2005/02/08 20:25:28  florian
     - killed power from system unit
     * move operator ** to math unit
-
-  Revision 1.30  2004/12/05 16:43:57  jonas
-    * fixed power() in genmath.inc (code duplication from math.pp for **
-      support!)
-    * fixed power() in math.pp to give an error from 0^0
-
-  Revision 1.29  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.28  2004/11/20 15:49:21  jonas
-    * some compilation fixes for powerpc after all the internconst and
-      internproc changes, still crashes with internalerror(88) for ppc1
-      on real2str.inc(193,39)
-
-  Revision 1.27  2004/10/09 21:00:46  jonas
-    + cgenmath with libc math functions. Faster than the routines in genmath
-      and also have full double support (exp() only has support for values in
-      the single range in genmath, for example). Used in FPC_USE_LIBC is
-      defined
-    * several fixes to allow compilation with -dHASINLINE, but internalerrors
-      because of missing support for inlining assembler code
-
-  Revision 1.26  2004/10/03 14:09:39  florian
-    * fixed trunc for abs(value) < 1
-
-  Revision 1.25  2004/10/03 14:00:21  florian
-    + made generic trunc 64 bit aware
-
-  Revision 1.24  2004/05/31 20:25:04  peter
-    * removed warnings
-
-  Revision 1.23  2004/03/13 18:33:52  florian
-    * fixed some arm related real stuff
-
-  Revision 1.22  2004/03/11 22:39:53  florian
-    * arm startup code fixed
-    * made some generic math code more readable
-
-  Revision 1.21  2004/02/04 14:15:57  florian
-    * fixed generic system.int(...)
-
-  Revision 1.20  2004/01/24 18:15:58  florian
-    * fixed small bugs
-    * fixed some arm issues
-
-  Revision 1.18  2004/01/06 21:34:07  peter
-    * abs(double) added
-    * abs() alias
-
-  Revision 1.17  2004/01/02 17:19:04  jonas
-    * if currency = int64, FPC_CURRENCY_IS_INT64 is defined
-    + round and trunc for currency and comp if FPC_CURRENCY_IS_INT64 is
-      defined
-    * if currency = orddef, prefer currency -> int64/qword conversion over
-      currency -> float conversions
-    * optimized currency/currency if currency = orddef
-    * TODO: write FPC_DIV_CURRENCY and FPC_MUL_CURRENCY routines to prevent
-        precision loss if currency=int64 and bestreal = double
-
-  Revision 1.16  2003/12/08 19:44:11  jonas
-    * use HandleError instead of RunError so exception catching works
-
-  Revision 1.15  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
-
-  Revision 1.14  2003/05/24 13:39:32  jonas
-    * fsqrt is an optional instruction in the ppc architecture and isn't
-      implemented by any current ppc afaik, so use the generic sqrt routine
-      instead (adapted so it works with compilerproc)
-
-  Revision 1.13  2003/05/23 22:58:31  jonas
-    * added longint typecase to odd(smallint_var) call to avoid overload
-      problem
-
-  Revision 1.12  2003/05/02 15:12:19  jonas
-    - removed empty ppc-specific frac()
-    + added correct generic frac() implementation for doubles (translated
-      from glibc code)
-
-  Revision 1.11  2003/04/23 21:28:21  peter
-    * fpc_round added, needed for int64 currency
-
-  Revision 1.10  2003/01/15 00:45:17  peter
-    * use generic int64 power
-
-  Revision 1.9  2002/10/12 20:28:49  carl
-    * round returns int64
-
-  Revision 1.8  2002/10/07 15:15:02  florian
-    * fixed wrong commit
-
-  Revision 1.7  2002/10/07 15:10:45  florian
-    + variant wrappers for cmp operators added
-
-  Revision 1.6  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/07/28 21:39:29  florian
-    * made abs a compiler proc if it is generic
-
-  Revision 1.4  2002/07/28 20:43:48  florian
-    * several fixes for linux/powerpc
-    * several fixes to MT
 
 }

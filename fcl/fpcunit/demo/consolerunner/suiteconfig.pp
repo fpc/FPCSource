@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
-    
-    a unit to register the tests to be runned. 
+
+    a unit to register the tests to be runned.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.

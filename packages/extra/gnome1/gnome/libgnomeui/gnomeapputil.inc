@@ -16,7 +16,7 @@ type
    TGnomeAppProgressCancelFunc = procedure (data:gpointer);cdecl;
    TGnomeAppProgressKey = gpointer;
 
-function gnome_app_progress_timeout(app:PGnomeApp; description:Pgchar; interval:guint32; percentage_cb:TGnomeAppProgressFunc; cancel_cb:TGnomeAppProgressCancelFunc; 
+function gnome_app_progress_timeout(app:PGnomeApp; description:Pgchar; interval:guint32; percentage_cb:TGnomeAppProgressFunc; cancel_cb:TGnomeAppProgressCancelFunc;
            data:gpointer):TGnomeAppProgressKey;cdecl;external libgnomeuidll name 'gnome_app_progress_timeout';
 function gnome_app_progress_manual(app:PGnomeApp; description:Pgchar; cancel_cb:TGnomeAppProgressCancelFunc; data:gpointer):TGnomeAppProgressKey;cdecl;external libgnomeuidll name 'gnome_app_progress_manual';
 procedure gnome_app_set_progress(key:TGnomeAppProgressKey; percent:gdouble);cdecl;external libgnomeuidll name 'gnome_app_set_progress';

@@ -29,8 +29,8 @@ uses
 
 
 var
-  progname,	        { program name for error messages }
-  outfilename : string;	{ for -outfile switch }
+  progname,             { program name for error messages }
+  outfilename : string; { for -outfile switch }
   copyoption : JCOPY_OPTION;                  { -copy switch }
   transformoption : jpeg_transform_info; { image transformation options }
 
@@ -129,7 +129,7 @@ var
 
   simple_progressive : boolean;
 const
-  scansarg : string = '';	{ saves -scans parm if any }
+  scansarg : string = '';       { saves -scans parm if any }
 var
   lval : long;
   ch : char;
@@ -159,12 +159,12 @@ begin
       { Not a switch, must be a file name argument }
       if (argn <= last_file_arg_seen) then
       begin
-	outfilename := '';	{ -outfile applies to just one input file }
-	continue;		{ ignore this name if previously processed }
+        outfilename := '';      { -outfile applies to just one input file }
+        continue;               { ignore this name if previously processed }
       end;
-      break;			{ else done parsing switches }
+      break;                    { else done parsing switches }
     end;
-    {Inc(arg);			- advance past switch marker character }
+    {Inc(arg);                  - advance past switch marker character }
 
     if (keymatch(arg, '-arithmetic', 1)) then
     begin
@@ -181,9 +181,9 @@ begin
       begin { Select which extra markers to copy. }
         Inc(argn);
         if (argn >= argc) then          { advance to next argument }
-	  usage;
+          usage;
         if (keymatch(ParamStr(argn), 'none', 1)) then
-	  copyoption := JCOPYOPT_NONE
+          copyoption := JCOPYOPT_NONE
         else
           if (keymatch(ParamStr(argn), 'comments', 1)) then
             copyoption := JCOPYOPT_COMMENTS
@@ -203,7 +203,7 @@ begin
         begin
           WriteLn('PASJPEG Group''s JPEGTRAN translation version ',
                   JVERSION, JCOPYRIGHT, JNOTICE);
-	  printed_version := TRUE;
+          printed_version := TRUE;
         end;
         Inc(cinfo^.err^.trace_level);
       end
@@ -216,7 +216,7 @@ begin
 
           Inc(argn);
           if (argn >= argc) then
-	    usage;
+            usage;
           select_transform(JXFORM_CUT);
 
           arg := ParamStr(argn);
@@ -226,30 +226,30 @@ begin
                   arg_w := Copy(arg, 1, px-1);
                   Val(arg_w, lval, code);
                   if (code <> 0) then
-	            usage;
+                    usage;
 
           transformoption.newwidth := lval;
                   arg_w := Copy(arg, px+1, Length(arg));
                   Val(arg_w, lval, code);
                   if (code <> 0) then
-	            usage;
+                    usage;
 
           transformoption.newheight := lval;
           if (p^ <> '+') and (p^ <> '-') then
-	    usage;
+            usage;
                   arg_w := Copy(arg, px+1, Length(arg));
                   Val(arg_w, lval, code);
                   if (code <> 0) then
-	            usage;
+                    usage;
 
           transformoption.xoffs := lval;
                   arg_w := Copy(arg, px+1, Length(arg));
                   Val(arg_w, lval, code);
                   if (code <> 0) then
-	            usage;
+                    usage;
 
           if (p^ <> '+') and (p^ <> '-') then
-	    usage;
+            usage;
           transformoption.yoffs := lval;
 
           if (transformoption.newwidth=0) or (transformoption.newheight=0) then
@@ -266,12 +266,12 @@ begin
             if (argn >= argc) then        { advance to next argument }
               usage;
             if keymatch(ParamStr(argn), 'horizontal', 2) then
-	      select_transform(JXFORM_FLIP_H)
+              select_transform(JXFORM_FLIP_H)
             else
               if keymatch(ParamStr(argn), 'vertical', 2) then
-	        select_transform(JXFORM_FLIP_V)
+                select_transform(JXFORM_FLIP_V)
               else
-	        usage;
+                usage;
           end
           else
             if keymatch(arg, '-grayscale', 2) or
@@ -280,7 +280,7 @@ begin
   {$ifdef TRANSFORMS_SUPPORTED}
               transformoption.force_grayscale := TRUE;
   {$else}
-              select_transform(JXFORM_NONE);	{ force an error }
+              select_transform(JXFORM_NONE);    { force an error }
   {$endif}
             end
             else
@@ -291,7 +291,7 @@ begin
 
                 Inc(argn);
                 if (argn >= argc) then  { advance to next argument }
-	          usage;
+                  usage;
 
                 arg := ParamStr(argn);
                 if (length(arg) > 1) and (arg[length(arg)] in ['m','M']) then
@@ -301,9 +301,9 @@ begin
                 end;
                 Val(arg, lval, code);
                 if (code <> 0) then
-	          usage;
+                  usage;
                 if (ch = 'm') or (ch = 'M') then
-	          lval := lval * long(1000);
+                  lval := lval * long(1000);
                 cinfo^.mem^.max_memory_to_use := lval * long(1000);
               end
               else
@@ -327,7 +327,7 @@ begin
                     Inc(argn);
                     if (argn >= argc) then      { advance to next argument }
                       usage;
-                    outfilename := ParamStr(argn);	{ save it away for later use }
+                    outfilename := ParamStr(argn);      { save it away for later use }
                   end
                   else
                     if keymatch(arg, '-progressive', 2) then
@@ -349,7 +349,7 @@ begin
                         { Restart interval in MCU rows (or in MCUs with 'b'). }
                         Inc(argn);
                         if (argn >= argc) then { advance to next argument }
-	                  usage;
+                          usage;
                         arg := ParamStr(argn);
                         if (length(arg) > 1) and (arg[length(arg)] in ['b','B']) then
                         begin
@@ -359,17 +359,17 @@ begin
 
                         Val(arg, lval, code);
                         if (code <> 1) or (lval < 0) or (lval > Long(65535)) then
-	                  usage;
+                          usage;
 
                         if (ch = 'b') or (ch = 'B') then
                         begin
                           cinfo^.restart_interval := uint(lval);
-	                  cinfo^.restart_in_rows := 0; { else prior '-restart n' overrides me }
+                          cinfo^.restart_in_rows := 0; { else prior '-restart n' overrides me }
                         end
                         else
                         begin
-	                  cinfo^.restart_in_rows := int(lval);
-	                  { restart_interval will be computed during startup }
+                          cinfo^.restart_in_rows := int(lval);
+                          { restart_interval will be computed during startup }
                         end;
 
                       end
@@ -377,10 +377,10 @@ begin
                         if keymatch(arg, '-rotate', 3) then
                         begin { Rotate 90, 180, or 270 degrees (measured clockwise). }
                           Inc(argn);
-                          if (argn >= argc)	then { advance to next argument }
+                          if (argn >= argc)     then { advance to next argument }
                             usage;
                           if (keymatch(ParamStr(argn), '90', 2)) then
-	                    select_transform(JXFORM_ROT_90)
+                            select_transform(JXFORM_ROT_90)
                           else
                             if keymatch(ParamStr(argn), '180', 3) then
                               select_transform(JXFORM_ROT_180)
@@ -388,7 +388,7 @@ begin
                               if keymatch(ParamStr(argn), '270', 3) then
                                 select_transform(JXFORM_ROT_270)
                               else
-	                        usage;
+                                usage;
                          end
                          else
                          if keymatch(arg, '-scans', 2) then
@@ -397,7 +397,7 @@ begin
          {$ifdef C_MULTISCAN_FILES_SUPPORTED}
                            Inc(argn);
                            if (argn >= argc) then       { advance to next argument }
-	                     usage;
+                             usage;
                            scansarg := ParamStr(argn);
                            { We must postpone reading the file in case -progressive appears. }
          {$else}
@@ -438,13 +438,13 @@ begin
     begin
       WriteLn('Scripts are not supported in PasJPEG.');
       {if not read_scan_script(cinfo, scansarg) then
-	usage;
+        usage;
       }
     end;
 {$endif}
   end;
 
-  parse_switches  := argn;	{ return index of next arg (file name) }
+  parse_switches  := argn;      { return index of next arg (file name) }
 end;
 
 
@@ -595,8 +595,8 @@ begin
 
 {$ifdef TRANSFORMS_SUPPORTED}
   dst_coef_arrays := jtransform_adjust_parameters(@srcinfo, @dstinfo,
-						 src_coef_arrays,
-						 transformoption);
+                                                 src_coef_arrays,
+                                                 transformoption);
 {$else}
   dst_coef_arrays := src_coef_arrays;
 {$endif}
@@ -616,8 +616,8 @@ begin
   { Execute image transformation, if any }
 {$ifdef TRANSFORMS_SUPPORTED}
   jtransform_execute_transformation(@srcinfo, @dstinfo,
-				    src_coef_arrays,
-				    transformoption);
+                                    src_coef_arrays,
+                                    transformoption);
 {$endif}
 
   { Finish compression and release memory }

@@ -216,7 +216,7 @@ begin
         (status.currentline mod 100=0) then
        begin
          if status.currentline>0 then
-	   Write(status.currentline,' ');
+           Write(status.currentline,' ');
 {$ifdef HASGETHEAPSTATUS}
          GetHeapStatus(hstatus);
          WriteLn(DStr(hstatus.CurrHeapUsed shr 10),'/',DStr(hstatus.CurrHeapSize shr 10),' Kb Used');
@@ -398,35 +398,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2005-01-24 18:12:17  olle
+  Revision 1.36  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.35  2005/01/24 18:12:17  olle
     * In MPW, whole path to source file is now displayed in messages.
-
-  Revision 1.34  2004/12/28 22:02:05  olle
-    * fixed typo in MPW error msg
-
-  Revision 1.33  2004/12/28 01:39:07  olle
-    + added support for MPW error messages
-    + added support for cooperative multitasking under MPW
-
-  Revision 1.32  2004/11/22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.31  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.30  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.29  2004/10/14 17:10:15  mazen
-  * use SysUtils unit instead of Dos Unit
-  + overload Replace to use AnsiString
-
-  Revision 1.28  2004/09/08 11:23:30  michael
-  + Check if outputdir exists,  Fix exitcode when displaying help pages
-
-  Revision 1.27  2004/06/20 08:55:29  florian
-    * logs truncated
 
 }

@@ -117,14 +117,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2005-02-13 18:56:44  florian
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 18:56:44  florian
     + basic mips stuff
-
-  Revision 1.4  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.3  2004/03/13 18:45:40  florian
-    * floating compares fixed
-    * unary minus for floats fixed
 
 }

@@ -8,10 +8,10 @@ uses
   Classes, SysUtils;
 
 type
-  
+
   TMoney = class;
   TMoneyBag = class;
-  
+
   IMoney = interface
   ['{2E0160F6-312C-D911-8DE5-DD8AC3E7C6F4}']
   function add(m: IMoney): IMoney;
@@ -26,8 +26,8 @@ type
   function equals(m: IMoney): boolean;
   function Count: integer;
   function _Self: TObject;
-  end; 
-  
+  end;
+
   ISingleCurrencyMoney = interface(IMoney)
   ['{D6D97717-E52D-D911-83C4-8233402A6B6C}']
   function GetCurrencyUnit: string;
@@ -35,7 +35,7 @@ type
   property Amount: int64 read GetAmount;
   property CurrencyUnit: string read GetCurrencyUnit;
   end;
-  
+
   TMoney = class(TInterfacedObject, IMoney, ISingleCurrencyMoney)
   private
     FAmount: int64;
@@ -59,7 +59,7 @@ type
     function Count: integer;
     function _Self: TObject;
   end;
-  
+
   TMoneyBag = class(TInterfacedObject, IMoney)
   private
     FMonies: TList;
@@ -87,11 +87,11 @@ type
     function Count: integer;
     function _Self: TObject;
   end;
-  
+
   Operator + (c: IMoney; c1: IMoney) c2: IMoney;
   Operator - (c: IMoney; c1: IMoney) c2: IMoney;
   Operator * (c: IMoney; i: integer) c2: IMoney;
-  
+
  implementation
 
 Operator + (c: IMoney; c1: IMoney) c2: IMoney;

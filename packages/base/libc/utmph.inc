@@ -26,7 +26,7 @@ function getutline_r(__line:Putmp; __buffer:Putmp; __result:PPutmp):longint;cdec
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 procedure login(const __entry: utmp);cdecl;external clib name 'login';
 procedure updwtmp(__wtmp_file:Pchar; const __utmp:utmp);cdecl;external clib name 'updwtmp';
 function getutid(const __id: utmp):Putmp;cdecl;external clib name 'getutid';

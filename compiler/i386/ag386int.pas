@@ -876,41 +876,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.55  2005-01-24 20:44:29  florian
+  Revision 1.56  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.55  2005/01/24 20:44:29  florian
     * wrong prefix output for masm fixed
-
-  Revision 1.54  2004/12/12 10:50:34  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.53  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.52  2004/10/15 09:16:21  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.51  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.50  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.49  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.48  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.47.2.6  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.47.2.5  2004/04/29 19:07:22  peter
-    * compile fixes
-
-  Revision 1.47.2.4  2004/04/12 19:34:46  peter
-    * basic framework for dwarf CFI
 
 }

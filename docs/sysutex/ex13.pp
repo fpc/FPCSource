@@ -4,7 +4,7 @@ Program Example13;
 
 Uses sysutils;
 
-Var 
+Var
   ThisAge : Longint;
 
 Begin

@@ -226,23 +226,7 @@ unit widestr;
 end.
 {
   $Log$
-  Revision 1.16  2004-10-15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.15  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.14  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.13  2004/05/02 11:48:46  peter
-    * strlenint is replaced with sizeint
-
-  Revision 1.12.2.2  2004/05/02 00:45:51  peter
-    * define sizeint for 1.0.x
-
-  Revision 1.12.2.1  2004/05/02 00:31:33  peter
-    * fixedi i386 compile
+  Revision 1.17  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

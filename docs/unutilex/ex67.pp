@@ -6,7 +6,7 @@ uses UnixUtil;
 
 var
   Path,Name,Ext : string;
-  
+
 begin
   FSplit(ParamStr(1),Path,Name,Ext);
   WriteLn('Split ',ParamStr(1),' in:');

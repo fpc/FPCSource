@@ -9,10 +9,10 @@ uses gdk,gtk,classes;
 type
   TBlockList = Class;
   TBreakOut = Class;
-  
+
   TGraphicalObject  = Class(TObject)
     FRect : TGdkRectangle;
-  Public 
+  Public
     Function Contains(X,Y : Integer) : Boolean;
     Property Left : SmallInt Read FRect.x Write Frect.x;
     Property Top : SmallInt  Read FRect.y Write Frect.y;
@@ -29,7 +29,7 @@ type
     FNeedRedraw : Boolean;
     Procedure CreateGC;
     Function DrawingArea : PGtkWidget;
-    Function PixMap : PgdkPixMap; 
+    Function PixMap : PgdkPixMap;
   Public
     Procedure Draw;
     Function Hit : Boolean;
@@ -46,14 +46,14 @@ type
     FBitMap : PGdkBitMap;
   Protected
     Procedure CreateSpriteFromData(SpriteData : PPGchar);
-    Procedure CreatePixMap; Virtual; Abstract; 
+    Procedure CreatePixMap; Virtual; Abstract;
     Procedure SavePosition;
   Public
     Constructor Create(DrawingArea: PGtkWidget);
-    Procedure Draw;    
+    Procedure Draw;
     Function GetChangeRect (Var Rect : TGDkRectAngle) : Boolean;
     Property PixMap : PgdkPixMap Read FPixMap;
-    Property BitMap : PGdkBitMap Read FBitMap; 
+    Property BitMap : PGdkBitMap Read FBitMap;
   end;
 
   TPad = Class (TSprite)
@@ -62,8 +62,8 @@ type
     FSpeed,FCurrentSpeed : Integer;
   Protected
     Procedure CreatePixMap; override;
-    Procedure InitialPosition; 
-  Public  
+    Procedure InitialPosition;
+  Public
     Constructor Create(DrawingArea: PGtkWidget);
     Procedure Step;
     Procedure GoLeft;
@@ -83,7 +83,7 @@ type
   Protected
     Procedure CreatePixMap; override;
     Procedure SetSpeed(Value : Integer);
-  Public  
+  Public
     Constructor Create(BreakOut : TBreakOut);
     Procedure Step;
     Procedure IncSpeed (Value: Integer);
@@ -99,7 +99,7 @@ type
     FColor : PGDKColor;
     Function DRawingArea : PGTKWidget;
     FPixMap : PGDKPixmap;
-  Public 
+  Public
     Constructor Create(BreakOut : TBreakOut);
     Destructor Destroy; override;
     Procedure CheckCollision (Ball: TBall);
@@ -111,7 +111,7 @@ type
     Property TotalColumns : Byte Read FTotalColums Write FTotalColums;
     Property StartRow : Byte Read FStartRow Write FStartRow;
     Property BlockRows : Byte Read FBlockRows Write FBlockRows;
-    Property BlockSpacing : Byte Read FSpacing Write FSpacing; 
+    Property BlockSpacing : Byte Read FSpacing Write FSpacing;
     Property PixMap : PGDKPixMap Read FPixMap Write FPixMap;
   end;
 
@@ -139,7 +139,7 @@ type
     Procedure GameOver;
     Procedure LostBall;
     Procedure Redrawgame;
-  Public   
+  Public
     Constructor Create (DrawingArea : PGtkWidget);
     Procedure Draw(Exposed : PGDKEventExpose);
     Procedure Step;
@@ -149,7 +149,7 @@ type
     Property Balls : Integer Read FBalls Write FBalls;
   end;
 
-Const 
+Const
   HitAccelleration   = 1;
   LevelAccelleration = 2;
   FMaxXspeed = 90;
@@ -171,7 +171,7 @@ end;
 { ---------------------------------------------------------------------
     TBlock implementation
   ---------------------------------------------------------------------}
-  
+
 
 Constructor TBlock.Create (ABlockList : TBlockList);
 
@@ -187,7 +187,7 @@ begin
   Result:=FBlockList.FBreakout.FDrawingArea;
 end;
 
-Function TBlock.PixMap : PgdkPixMap; 
+Function TBlock.PixMap : PgdkPixMap;
 
 begin
   Result:=FBlockList.PixMap;
@@ -230,7 +230,7 @@ end;
 { ---------------------------------------------------------------------
     TBlockList implementation
   ---------------------------------------------------------------------}
-  
+
 Constructor TBlockList.Create(BreakOut : TBreakOut);
 
 begin
@@ -243,7 +243,7 @@ begin
   Result:=FBreakOut.FDrawingArea;
 end;
 
-Destructor TBlockList.Destroy; 
+Destructor TBlockList.Destroy;
 
 begin
   If FColor<>Nil then
@@ -254,7 +254,7 @@ end;
 Procedure TBlockList.DrawBlocks;
 
 Var
-  I : Longint; 
+  I : Longint;
 
 begin
   If Count=0 then
@@ -273,7 +273,7 @@ begin
   For I:=0 to Count-1 do
     With TBlock(Items[i]) do
       FNeedRedraw:=gdk_rectangle_intersect(@area,@Frect,@inters)<>0;
-  DrawBlocks;    
+  DrawBlocks;
 end;
 
 Function AllocateColor(R,G,B : Integer; Widget : PGtkWidget) : PGdkColor;
@@ -285,7 +285,7 @@ begin
     Pixel:=0;
     Red:=R;
     Blue:=B;
-    Green:=G;  
+    Green:=G;
     end;
   gdk_colormap_alloc_color(gtk_widget_get_colormap(Widget),Result,true,False);
 end;
@@ -298,11 +298,11 @@ Var
   I,J : Integer;
   Block : TBlock;
   Min : Byte;
-  
+
 begin
   FColor:=AllocateColor(0,0,$ffff,DrawingArea);
   Min:=FSpacing div 2;
-  If Min<1 then 
+  If Min<1 then
     Min:=1;
   TotalWidth:=Drawingarea^.Allocation.Width;
   TotalHeight:=DrawingArea^.Allocation.Height;
@@ -345,12 +345,12 @@ var
   B : TBlock;
   i : integer;
   flipx,flipy : Boolean;
-    
+
 begin
   For I:=Count-1 downto 0 do
     begin
     B:=TBlock(Items[i]);
-    BRect:=B.FRect;    
+    BRect:=B.FRect;
     if gdk_rectangle_intersect(@Ball.Frect,@BRect,@ints)<>0 then
       begin
       FlipY:=((Ball.FpreviousTop>=(B.Top+B.Height)) and (Ball.CurrentSpeedY<0)) or
@@ -360,7 +360,7 @@ begin
         FlipX:=((Ball.FPreviousLeft>=(B.Left+B.Width)) and (Ball.CurrentSpeedX<0)) or
                (((Ball.FPreviousLeft+Ball.Width)<=B.Left) and (Ball.CurrentSpeedX>0));
       Ball.FlipSpeed(FlipX,Flipy);
-      if B.Hit and not (Count=0) then 
+      if B.Hit and not (Count=0) then
         gtk_widget_draw(DrawingArea,@BRect);
       Break;
       end;
@@ -381,20 +381,20 @@ end;
 Procedure TSprite.CreateSpriteFromData(SpriteData : PPGChar);
 
 begin
-  FPixMap:=gdk_pixmap_create_from_xpm_d(FDrawingArea^.Window, 
+  FPixMap:=gdk_pixmap_create_from_xpm_d(FDrawingArea^.Window,
                                         @FBitmap,
                                         Nil,
                                         SpriteData);
 end;
 
-Procedure TSprite.Draw;    
+Procedure TSprite.Draw;
 
 Var
   gc : PGDKGc;
-  
+
 begin
   if FPixMap=Nil then
-    CreatePixMap;    
+    CreatePixMap;
   gc:=gtk_widget_get_style(FDrawingArea)^.fg_gc[GTK_STATE_NORMAL];
   gdk_gc_set_clip_origin(gc,Left,Top);
   gdk_gc_set_clip_mask(gc,FBitmap);
@@ -402,7 +402,7 @@ begin
     gdk_draw_pixmap(FDrawPixMap,gc,FPixMap,0,0,Left,Top,Width,Height)
   else
     gdk_draw_pixmap(FDrawPixMap{FDrawingArea^.window},gc,FPixMap,0,0,Left,Top,Width,Height);
-  gdk_gc_set_clip_mask(gc,Nil);  
+  gdk_gc_set_clip_mask(gc,Nil);
 end;
 
 Function TSprite.GetChangeRect (Var Rect : TGDkRectAngle) : Boolean;
@@ -433,7 +433,7 @@ end;
 
 Const
   PadHeight = 10;
-  PadWidth = 40; 
+  PadWidth = 40;
   PadBitmap : Array[1..13] of pchar = (
     '40 10 2 1',
     '  c none',
@@ -458,7 +458,7 @@ begin
   FSlope:=50;
 end;
 
-Procedure TPad.CreatePixMap; 
+Procedure TPad.CreatePixMap;
 
 begin
   CreateSpriteFromData(@PadBitmap[1]);
@@ -516,7 +516,7 @@ end;
 
 Const
   BallHeight = 10;
-  BallWidth = 10; 
+  BallWidth = 10;
   BallBitmap : Array[1..13] of pchar = (
     '10 10 2 1',
     '  c none',
@@ -525,9 +525,9 @@ Const
     '  xxxxxx  ',
     ' xxxxxxxx ',
     ' xxxxxxxx ',
-    'xxxxxxxxxx',	
     'xxxxxxxxxx',
-    ' xxxxxxxx ',	
+    'xxxxxxxxxx',
+    ' xxxxxxxx ',
     ' xxxxxxxx ',
     '  xxxxxx  ',
     '    xx    '
@@ -544,7 +544,7 @@ begin
   FSpeedFactor:=10;
 end;
 
-Procedure TBall.CreatePixMap; 
+Procedure TBall.CreatePixMap;
 
 begin
   CreateSpriteFromData(@BallBitmap[1]);
@@ -581,7 +581,7 @@ end;
 Procedure TBall.SetSpeed(Value : Integer);
 
 begin
-  If Value<-FMaxXspeed then 
+  If Value<-FMaxXspeed then
     Value:=-FMaxXSpeed
   else if Value>FMaxXspeed then
     Value:=FMaxXspeed;
@@ -603,16 +603,16 @@ end;
 Procedure TBall.FlipSpeed (FlipX,FlipY : Boolean);
 
 begin
-  If FlipX then 
+  If FlipX then
     FCurrentSpeedX:=-FCurrentSpeedX;
-  If FlipY then 
+  If FlipY then
     FCurrentSpeedY:=-FCurrentSpeedY;
 end;
 
 { ---------------------------------------------------------------------
     TBreakout implementation
   ---------------------------------------------------------------------}
-  
+
 Constructor TBreakOut.Create (DrawingArea : PGtkWidget);
 
 begin
@@ -641,8 +641,8 @@ begin
          else
            FBall.IncSpeed(-HitAccelleration);
        FBall.CurrentSpeedX:=FBall.CurrentSpeedX+(Round(((FBall.Left+(FBall.Width div 2)) - (FPad.left+Fpad.Width div 2)) * (FPad.Slope / 100)));
-       end; 
-   FBlockList.CheckCollision(FBall);  
+       end;
+   FBlockList.CheckCollision(FBall);
    end;
 end;
 
@@ -682,7 +682,7 @@ Procedure TBreakOut.DrawBoard(Exposed : PGdkEventExpose);
 begin
   If FBGGC=Nil then
     begin
-    CreateGC;  
+    CreateGC;
     end;
   DrawBackGround(Exposed^.Area);
 end;
@@ -708,7 +708,7 @@ begin
                   FPixMap,
                   area.x,area.y,
                   area.x,area.y,
-                  area.width,area.height); 
+                  area.width,area.height);
 end;
 
 Procedure TBreakOut.Draw(Exposed : PGDKEventExpose);
@@ -717,7 +717,7 @@ Var
   Rect : TGdkRectangle;
 
 begin
-  if FPixMap=Nil then 
+  if FPixMap=Nil then
     CreatePixMap;
   // draw whatever needed on pixmap.
   if Exposed<>Nil then
@@ -727,12 +727,12 @@ begin
     end
   else
     begin
-    If Assigned(FBall) then 
+    If Assigned(FBall) then
       if FBall.GetChangeRect(Rect) then
         begin
         DrawBackground(Rect);
         FBLockList.drawBlocks(Rect);
-        end;  
+        end;
     if FPad.GetChangeRect(Rect) then
       DrawBackground(Rect)
     end;
@@ -740,7 +740,7 @@ begin
   FPad.Draw;
   if Assigned(FBall) Then
     FBall.draw;
-  
+
   If Exposed<>Nil then
     CopyPixMap(Exposed^.Area);
   If assigned(FBall) then
@@ -808,7 +808,7 @@ Procedure TBreakout.LostBall;
 
 begin
   Dec(FBalls);
-  If FBalls=0 then 
+  If FBalls=0 then
     GameOver;
   FreeBall;
   Fpad.InitialPosition;
@@ -821,4 +821,4 @@ begin
 end;
 
 end.
-  
+

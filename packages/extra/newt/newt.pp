@@ -117,34 +117,34 @@ const
   NEWT_KEY_SUSPEND        = #26;
   NEWT_KEY_RETURN         = NEWT_KEY_ENTER;
   NEWT_KEY_EXTRA_BASE     = $8000;
- 
-  NEWT_KEY_UP		= NEWT_KEY_EXTRA_BASE + 1;
-  NEWT_KEY_DOWN		= NEWT_KEY_EXTRA_BASE + 2;
-  NEWT_KEY_LEFT		= NEWT_KEY_EXTRA_BASE + 4;
-  NEWT_KEY_RIGHT	= NEWT_KEY_EXTRA_BASE + 5;
-  NEWT_KEY_BKSPC	= NEWT_KEY_EXTRA_BASE + 6;
-  NEWT_KEY_DELETE	= NEWT_KEY_EXTRA_BASE + 7;
-  NEWT_KEY_HOME		= NEWT_KEY_EXTRA_BASE + 8;
-  NEWT_KEY_END		= NEWT_KEY_EXTRA_BASE + 9;
-  NEWT_KEY_UNTAB	= NEWT_KEY_EXTRA_BASE + 10;
-  NEWT_KEY_PGUP		= NEWT_KEY_EXTRA_BASE + 11;
-  NEWT_KEY_PGDN		= NEWT_KEY_EXTRA_BASE + 12;
-  NEWT_KEY_INSERT	= NEWT_KEY_EXTRA_BASE + 13;
-  NEWT_KEY_F1		= NEWT_KEY_EXTRA_BASE + 101;
-  NEWT_KEY_F2		= NEWT_KEY_EXTRA_BASE + 102;
-  NEWT_KEY_F3		= NEWT_KEY_EXTRA_BASE + 103;
-  NEWT_KEY_F4		= NEWT_KEY_EXTRA_BASE + 104;
-  NEWT_KEY_F5		= NEWT_KEY_EXTRA_BASE + 105;
-  NEWT_KEY_F6		= NEWT_KEY_EXTRA_BASE + 106;
-  NEWT_KEY_F7		= NEWT_KEY_EXTRA_BASE + 107;
-  NEWT_KEY_F8		= NEWT_KEY_EXTRA_BASE + 108;
-  NEWT_KEY_F9		= NEWT_KEY_EXTRA_BASE + 109;
-  NEWT_KEY_F10		= NEWT_KEY_EXTRA_BASE + 110;
-  NEWT_KEY_F11		= NEWT_KEY_EXTRA_BASE + 111;
-  NEWT_KEY_F12		= NEWT_KEY_EXTRA_BASE + 112;
+
+  NEWT_KEY_UP           = NEWT_KEY_EXTRA_BASE + 1;
+  NEWT_KEY_DOWN         = NEWT_KEY_EXTRA_BASE + 2;
+  NEWT_KEY_LEFT         = NEWT_KEY_EXTRA_BASE + 4;
+  NEWT_KEY_RIGHT        = NEWT_KEY_EXTRA_BASE + 5;
+  NEWT_KEY_BKSPC        = NEWT_KEY_EXTRA_BASE + 6;
+  NEWT_KEY_DELETE       = NEWT_KEY_EXTRA_BASE + 7;
+  NEWT_KEY_HOME         = NEWT_KEY_EXTRA_BASE + 8;
+  NEWT_KEY_END          = NEWT_KEY_EXTRA_BASE + 9;
+  NEWT_KEY_UNTAB        = NEWT_KEY_EXTRA_BASE + 10;
+  NEWT_KEY_PGUP         = NEWT_KEY_EXTRA_BASE + 11;
+  NEWT_KEY_PGDN         = NEWT_KEY_EXTRA_BASE + 12;
+  NEWT_KEY_INSERT       = NEWT_KEY_EXTRA_BASE + 13;
+  NEWT_KEY_F1           = NEWT_KEY_EXTRA_BASE + 101;
+  NEWT_KEY_F2           = NEWT_KEY_EXTRA_BASE + 102;
+  NEWT_KEY_F3           = NEWT_KEY_EXTRA_BASE + 103;
+  NEWT_KEY_F4           = NEWT_KEY_EXTRA_BASE + 104;
+  NEWT_KEY_F5           = NEWT_KEY_EXTRA_BASE + 105;
+  NEWT_KEY_F6           = NEWT_KEY_EXTRA_BASE + 106;
+  NEWT_KEY_F7           = NEWT_KEY_EXTRA_BASE + 107;
+  NEWT_KEY_F8           = NEWT_KEY_EXTRA_BASE + 108;
+  NEWT_KEY_F9           = NEWT_KEY_EXTRA_BASE + 109;
+  NEWT_KEY_F10          = NEWT_KEY_EXTRA_BASE + 110;
+  NEWT_KEY_F11          = NEWT_KEY_EXTRA_BASE + 111;
+  NEWT_KEY_F12          = NEWT_KEY_EXTRA_BASE + 112;
  { not really a key, but newtGetKey returns it  }
 
-  NEWT_KEY_RESIZE	= NEWT_KEY_EXTRA_BASE + 113;
+  NEWT_KEY_RESIZE       = NEWT_KEY_EXTRA_BASE + 113;
   NEWT_ANCHOR_LEFT = 1 shl 0;
   NEWT_ANCHOR_RIGHT = 1 shl 1;
   NEWT_ANCHOR_TOP = 1 shl 2;
@@ -158,7 +158,7 @@ const
 type
   newtComponent  = Pointer;  // Opaque, was : ^newtComponent_struct;
   pnewtComponent = ^newtComponent;
-   
+
   newtCallback = procedure (_para1:newtComponent; _para2:pointer);cdecl;
   newtSuspendCallback = procedure (data:pointer);cdecl;
   treason = (NEWT_EXIT_HOTKEY,NEWT_EXIT_COMPONENT, NEWT_EXIT_FDREADY,NEWT_EXIT_TIMER);
@@ -174,18 +174,18 @@ type
 
   newtEntryFilter = function (entry:newtComponent; data:pointer; ch:longint; cursor:longint):longint;cdecl;
   newtGrid = pointer;
-  newtGridElement = (NEWT_GRID_EMPTY := 0,NEWT_GRID_COMPONENT, NEWT_GRID_SUBGRID);    
+  newtGridElement = (NEWT_GRID_EMPTY := 0,NEWT_GRID_COMPONENT, NEWT_GRID_SUBGRID);
 
   newtWinEntry = record
     text : pchar;
     value : ppchar;
     flags : longint;
   end;
-  PnewtWinEntry = ^newtWinEntry;  
+  PnewtWinEntry = ^newtWinEntry;
 
 var
   newtDefaultColorPalette : newtColors;cvar;external;
-  
+
 function newtInit:longint;cdecl; external newtlib;
 function newtFinished:longint; cdecl; external newtlib;
 procedure newtCls;  cdecl; external newtlib;
@@ -198,7 +198,7 @@ function newtCenteredWindow(width:longint; height:longint; title:Pchar):longint;
 procedure newtPopWindow; cdecl; external newtlib;
 procedure newtSetColors(colors:newtColors); cdecl; external newtlib;
 procedure newtRefresh; cdecl; external newtlib;
-procedure newtSuspend; cdecl; external newtlib; 
+procedure newtSuspend; cdecl; external newtlib;
 procedure newtSetSuspendCallback(cb:newtSuspendCallback; data:pointer);cdecl; external newtlib;
 procedure newtResume;cdecl; external newtlib;
 procedure newtPushHelpLine(text:Pchar); cdecl; external newtlib;
@@ -258,7 +258,7 @@ procedure newtFormSetSize(co:newtComponent);  cdecl; external newtlib;
 function newtFormGetCurrent(co:newtComponent):newtComponent;  cdecl; external newtlib;
 procedure newtFormSetBackground(co:newtComponent; color:longint);   cdecl; external newtlib;
 procedure newtFormSetCurrent(co:newtComponent; subco:newtComponent);   cdecl; external newtlib;
-procedure newtFormAddComponent(form:newtComponent; co:newtComponent);  cdecl; external newtlib; 
+procedure newtFormAddComponent(form:newtComponent; co:newtComponent);  cdecl; external newtlib;
 procedure newtFormAddComponents(form:newtComponent);  cdecl; varargs; external newtlib;
 procedure newtFormSetHeight(co:newtComponent; height:longint);   cdecl; external newtlib;
 procedure newtFormSetWidth(co:newtComponent; width:longint);   cdecl; external newtlib;
@@ -271,7 +271,7 @@ procedure newtEntrySet(co:newtComponent; value:Pchar; cursorAtEnd:longint);   cd
 procedure newtEntrySetFilter(co:newtComponent; filter:newtEntryFilter; data:pointer);   cdecl; external newtlib;
 function newtEntryGetValue(co:newtComponent):pchar;   cdecl; external newtlib;
 procedure newtEntrySetFlags(co:newtComponent; flags:longint; sense:newtFlagsSense);   cdecl; external newtlib;
-function newtScale(left:longint; top:longint; width:longint; fullValue:int64):newtComponent; cdecl; external newtlib; 
+function newtScale(left:longint; top:longint; width:longint; fullValue:int64):newtComponent; cdecl; external newtlib;
 procedure newtScaleSet(co:newtComponent; amount:qword); cdecl; external newtlib;
 procedure newtComponentAddCallback(co:newtComponent; f:newtCallback; data:pointer); cdecl; external newtlib;
 procedure newtComponentTakesFocus(co:newtComponent; val:longint); cdecl; external newtlib;

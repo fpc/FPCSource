@@ -26,7 +26,7 @@ Type
   TPackageTreeItem = Class(TNodeTreeItem);
 
   TNodeSelectEvent = Procedure (Sender : TObject; Node : TDomElement) Of Object;
-  
+
   TPackageEditor = Class(TFPGtkVPaned)
   Private
     FCurrentPackage,
@@ -211,7 +211,7 @@ Const
               'td','th','pre','code','link','file'
   );
 
-  
+
 implementation
 
 uses fpdemsg,frmnewnode,fpdeopts;
@@ -220,7 +220,7 @@ uses fpdemsg,frmnewnode,fpdeopts;
   TElementEditor
   ---------------------------------------------------------------------}
 
-  
+
 Constructor TElementEditor.Create;
 
 Var
@@ -329,37 +329,37 @@ Var
     If (E=Nil) then
       Result:=''
     else
-      begin  
+      begin
       S.Seek(0,soFromBeginning);
       S.Size:=0;
       N:=E.FirstChild;
       While Assigned(N) do
         begin
         WriteXml(N,S);
-        N:=N.NextSibling;  
-        end;  
+        N:=N.NextSibling;
+        end;
       Result:=S.Datastring;
     end;
   end;
-  
+
   Function RemoveLineFeeds(S : String) : String;
-  
-  Var 
-    I : Integer; 
-  
+
+  Var
+    I : Integer;
+
   begin
     Result:=S;
     For I:=1 to Length(Result) do
       If Result[i] in [#10,#13] then
         Result[i]:=' ';
   end;
-  
+
 begin
   GetNodes;
   If Assigned(Felement) then
     FLabel.Text:=Format(SDataForElement,[FElement['name']])
   else
-    FLabel.Text:=SNoElement; 
+    FLabel.Text:=SNoElement;
   S:=TStringStream.Create('');
   Try
     FShortEntry.Text:=RemoveLineFeeds(NodeToString(FShortNode));
@@ -368,7 +368,7 @@ begin
     FSeeAlsoMemo.Text:=NodeToString(FSeeAlsoNode);
     If FExampleNode=Nil then
       FExample.Text:=''
-    else 
+    else
       FExample.Text:=FExampleNode['file'];
     FModified:=False;
   Finally
@@ -384,7 +384,7 @@ Const
   SErrorSaving = 'There is an error in the documentation nodes:'+LineEnding+
                  '%s'+LineEnding+
                  'Please correct it first and try saving again.';
-                 
+
 Var
   D : TXMLDocument;
   SS : TStringStream;
@@ -400,10 +400,10 @@ begin
         ReadXmlFile(D,SS);
         Result:=True;
       except
-        On E : Exception do 
+        On E : Exception do
            MessageDlg(SErrorSaving,[E.Message],mtError,[mbOK],0)
-      end;  
-    finally 
+      end;
+    finally
       D.Free;
       SS.Free;
     end;
@@ -412,8 +412,8 @@ end;
 
 Function  TElementEditor.CurrentXML : String;
 
-  Function GetNodeString(NodeName,Value : String) : String; 
-  
+  Function GetNodeString(NodeName,Value : String) : String;
+
   begin
     Result:='';
     If (Value<>'') Then
@@ -424,11 +424,11 @@ Function  TElementEditor.CurrentXML : String;
 
 Var
   S : String;
-  
+
 begin
 //  Writeln('In currentxml');
   Result:='';
-  If Not Assigned(FElement) then 
+  If Not Assigned(FElement) then
     Exit;
   Result:=GetNodeString('short',Trim(FShortEntry.Text));
   Result:=Result+GetNodeString('descr',trim(FDescrMemo.Text));
@@ -445,16 +445,16 @@ Function TElementEditor.Save : Boolean;
 Var
   SS : TStringStream;
   S : String;
-  N,NN : TDomNode; 
+  N,NN : TDomNode;
 
 begin
   Result:=False;
   S:=CurrentXML;
-  If TestSave(S) then 
+  If TestSave(S) then
     begin
 //    Writeln('Saving data');
     SS:=TStringStream.Create(S);
-    Try 
+    Try
       // Free child nodes.
       N:=FElement.FirstChild;
       While N<>Nil do
@@ -462,9 +462,9 @@ begin
         NN:=N.NextSibling;
         If not ((N is TDomElement) and (N.NodeName='element')) then
           FElement.RemoveChild(N);
-        N:=NN;  
+        N:=NN;
         end;
-      // Read them again from stream.  
+      // Read them again from stream.
       SS.Seek(0,soFromBeginning);
       ReadXMLFragment(FElement,SS);
       FModified:=False;
@@ -472,7 +472,7 @@ begin
 //      Writeln('Data saved');
     Finally
       SS.Free;
-    end;  
+    end;
     end;
 end;
 
@@ -483,7 +483,7 @@ Var
   PB,PE : Integer;
 
 begin
-  If Assigned(CurrentEditable) then 
+  If Assigned(CurrentEditable) then
     With CurrentEditable do
       begin
       PB:=SelectionStart;
@@ -523,34 +523,34 @@ Var
 begin
   If (CurrentEditable=FDescrMemo.TheText) or
      (CurrentEditable=FErrorsMemo.TheText) then
-    begin  
+    begin
     R:='<tr>';
     For I:=1 to Cols do
       R:=R+'<td></td>';
-    R:=R+'</tr>'+lineEnding;  
+    R:=R+'</tr>'+lineEnding;
     T:='';
-    If UseHeader then 
+    If UseHeader then
       begin
       Dec(Rows);
       T:='<th>';
       For I:=1 to Cols do
         T:=T+'<td></td>';
-      T:=T+'</th>'+lineEnding;  
+      T:=T+'</th>'+lineEnding;
       end;
     For I:=1 to rows do
       T:=T+R;
-    T:=LineEnding+'<table>'+LineEnding+T+'</table>'+LineEnding;  
+    T:=LineEnding+'<table>'+LineEnding+T+'</table>'+LineEnding;
     With CurrentEditable do
       Selection:=t;
-    end;  
+    end;
 end;
 
 Procedure TElementEditor.GetNodes;
 
-Var 
+Var
   Node : TDomNode;
   S : String;
-  
+
 begin
   FShortNode:=Nil;
   FDescrNode:=Nil;
@@ -608,7 +608,7 @@ begin
 //    Writeln('No current editable');
     Result:=''
     end
-  else  
+  else
     Result:=CurrentEditable.Selection;
 end;
 
@@ -697,14 +697,14 @@ begin
     If N<>Nil then
       E:=N.Node
     else
-      E:=Nil;  
+      E:=Nil;
     FOnSelectionChanged(Sender,E);
     end;
 end;
 }
 Procedure TPackageEditor.SelectModule(Sender : TFPGtkWidget; Data : Pointer);
 
-Var 
+Var
   W : TFPGtkWidget;
 
 begin
@@ -752,23 +752,23 @@ Function  TPackageEditor.GetSelectedNode : TNodeTreeItem;
 
 Var
   G : TFPgtkGroup;
-  
+
 begin
   G:=TFPgtkGroup.Create;
-  try  
+  try
     FModuleTree.Tree.GetSelection(G);
-    If G.Count>0 then 
+    If G.Count>0 then
       try
         Result:=TObject(G[0]) as TNodeTreeItem;
       except
         Result:=Nil;
       end
     else
-      Result:=Nil; 
+      Result:=Nil;
  finally
    G.Free;
  end;
-// Writeln('Getselectednode done'); 
+// Writeln('Getselectednode done');
 end;
 
 Procedure TPackageEditor.MenuRenameClick(Sender : TFPGtkWidget; Data : Pointer);
@@ -814,11 +814,11 @@ end;
 Procedure TPackageEditor.DeletePackage(N : TNodeTreeItem);
 
 begin
-  If (Not ConfirmDelete) or 
+  If (Not ConfirmDelete) or
      (MessageDlg(SDeletePackage,[N.Node['name']],mtConfirmation,mbYesNo,0)=mrYes) then
-    begin 
+    begin
     N.Node.ParentNode.RemoveChild(N.Node);
-    Refresh; 
+    Refresh;
     FModified:=True;
     end;
 end;
@@ -827,11 +827,11 @@ end;
 Procedure TPackageEditor.DeleteModule(N : TNodeTreeItem);
 
 begin
-  If (Not ConfirmDelete) or 
+  If (Not ConfirmDelete) or
      (MessageDlg(SDeleteModule,[N.Node['name']],mtConfirmation,mbYesNo,0)=mrYes) then
-    begin 
+    begin
     N.Node.ParentNode.RemoveChild(N.Node);
-    Refresh; 
+    Refresh;
     FModified:=True;
     end;
 end;
@@ -839,11 +839,11 @@ end;
 Procedure TPackageEditor.DeleteTopic(N : TNodeTreeItem);
 
 begin
-  If (Not ConfirmDelete) or 
+  If (Not ConfirmDelete) or
      (MessageDlg(SDeleteTopic,[N.Node['name']],mtConfirmation,mbYesNo,0)=mrYes) then
-    begin 
+    begin
     N.Node.ParentNode.RemoveChild(N.Node);
-    Refresh; 
+    Refresh;
     FModified:=True;
     end;
 end;
@@ -869,7 +869,7 @@ begin
     Title:=ATitle;
     FENodeName.Text:=AName;
     Result:=Execute(Nil,@S,@GetNameData)=drOK;
-    If Result Then 
+    If Result Then
       AName:=S;
     end;
 end;
@@ -892,7 +892,7 @@ end;
 
 Procedure TPackageEditor.RenameModule(N : TNodeTreeItem);
 
-Var 
+Var
   S : String;
 
 begin
@@ -907,7 +907,7 @@ end;
 
 Procedure TPackageEditor.RenameTopic(N : TNodeTreeItem);
 
-Var 
+Var
   S : String;
 
 begin
@@ -973,7 +973,7 @@ Procedure TPackageEditor.DeleteElement(N : TNodeTreeItem);
 Var
   Reposition : Boolean;
   Index : Integer;
-  
+
 begin
   Reposition:=(N.Node=CurrentElement);
   With (FModuleNode.Subtree as TFPgtkTree) do
@@ -983,14 +983,14 @@ begin
     FModified:=True;
     If Reposition then
       SelectItem(Index);
-    end;  
+    end;
 end;
 
 Procedure TPackageEditor.DeleteElement(E : TDomElement);
 
 Var
   N : TNodeTreeItem;
-  
+
 begin
   N:=FindElementNode(E,Nil);
   If (N<>Nil) then
@@ -1107,7 +1107,7 @@ begin
       S.Sorted:=True;
       Node:=Module.FirstChild;
       While Assigned(Node) do
-        begin  
+        begin
         If (Node.NodeType=ELEMENT_NODE) and (Node.NodeName='element') then
           begin
           ETreeNode:=CreateElementNode(TDomElement(Node));
@@ -1128,13 +1128,13 @@ begin
     // NOT (!!) FModuleNode.Select; this cannot be undone...
     FElementTree.Tree.SelectChild(FModuleNode);
     end;
-  FelementTree.Tree.SelectionMode:=GTK_SELECTION_BROWSE;  
+  FelementTree.Tree.SelectionMode:=GTK_SELECTION_BROWSE;
 end;
 
 Procedure TPackageEditor.Refresh;
 
   Procedure DoTopicNode(Node : TDomElement;Parent : TNodeTreeItem);
-  
+
   Var
     TTreeNode : TTopicTreeItem;
     SubNode : TDomNode;
@@ -1154,7 +1154,7 @@ Procedure TPackageEditor.Refresh;
       end;
   end;
 
-var 
+var
   Node,SubNode,SSnode : TDomNode;
   FTreeNode : TPackageTreeItem;
   MTreeNode: TModuleTreeItem;
@@ -1165,7 +1165,7 @@ begin
     begin
     Node:=FDescriptionNode.FirstChild;
     While Assigned(Node) do
-      begin  
+      begin
       If (Node.NodeType=ELEMENT_NODE) and (Node.NodeName='package') then
         begin
         FTreeNode:=TPackageTreeItem.Create(TDomElement(Node));
@@ -1192,17 +1192,17 @@ begin
               SSNode:=SSNode.NextSibling;
               end;
             end
-          else if (SubNode.NodeType=ELEMENT_NODE) and (SubNode.NodeName='topic') then  
+          else if (SubNode.NodeType=ELEMENT_NODE) and (SubNode.NodeName='topic') then
             begin
             DoTopicNode(SubNode as TDomElement,FTreeNode);
             end;
-          SubNode:=SubNode.NextSibling;  
+          SubNode:=SubNode.NextSibling;
           end;
         end;
         Node:=Node.NextSibling;
       end;
     end;
-  CurrentModule:=Nil;  
+  CurrentModule:=Nil;
   FModified:=False;
 end;
 
@@ -1212,7 +1212,7 @@ Var
   N : TNodeTreeItem;
   G : TFPgtkWidgetGroup;
   I : Integer;
-  
+
 begin
   Result:=Nil;
   G:=FModuleTree.Tree.Children;
@@ -1221,13 +1221,13 @@ begin
     begin
     If G.Items[i] is TNodeTreeItem then
       begin
-      If TNodeTreeItem(G.items[i]).Node=P then 
+      If TNodeTreeItem(G.items[i]).Node=P then
         Result:=TNodeTreeItem(G.items[i]);
       end
     else
       Writeln('Child ',i,' of tree is not a node :',G.Items[i].ClassName);
-    Inc(I);  
-    end;  
+    Inc(I);
+    end;
   If (Result=Nil) then
     Raise Exception.CreateFmt(SErrNoNodeForPackage,[P['name']]);
 end;
@@ -1238,14 +1238,14 @@ Var
   SN : TNodeTreeItem;
   G : TFPgtkWidgetGroup;
   I : Integer;
-  
+
 begin
   Result:=Nil;
   If (N<>Nil) then
     SN:=N
-  else  
+  else
     SN:=FindPackageNode(M.ParentNode as TDomElement);
-  If Assigned(SN) and Assigned(SN.SubTree) Then  
+  If Assigned(SN) and Assigned(SN.SubTree) Then
     begin
     G:=(SN.SubTree as TFpGtkTree).Children;
     I:=0;
@@ -1253,14 +1253,14 @@ begin
       begin
       If G.Items[i] is TNodeTreeItem then
         begin
-        If TNodeTreeItem(G.items[i]).Node=M then 
+        If TNodeTreeItem(G.items[i]).Node=M then
           Result:=TNodeTreeItem(G.items[i]);
         end
       else
         Writeln('Child ',i,' of tree is not a node :',G.Items[i].ClassName);
-      Inc(I);  
-      end;  
-    end;   
+      Inc(I);
+      end;
+    end;
   If (Result=Nil) then
     Raise Exception.CreateFmt(SErrNoNodeForModule,[M['name']]);
 end;
@@ -1273,12 +1273,12 @@ Var
   I : Integer;
   E : TDomElement;
   PN : String;
-  
+
 begin
   Result:=Nil;
   If (N<>Nil) then
     SN:=N
-  else  
+  else
     begin
     E:=M.ParentNode as TDomElement;
     PN:=(E.NodeName);
@@ -1290,7 +1290,7 @@ begin
     else if (PN='package') then
       SN:=FindPackageNode(E);
     end;
-  If Assigned(SN) and Assigned(SN.SubTree) Then  
+  If Assigned(SN) and Assigned(SN.SubTree) Then
     begin
     G:=(SN.SubTree as TFpGtkTree).Children;
     I:=0;
@@ -1298,14 +1298,14 @@ begin
       begin
       If G.Items[i] is TNodeTreeItem then
         begin
-        If TNodeTreeItem(G.items[i]).Node=M then 
+        If TNodeTreeItem(G.items[i]).Node=M then
           Result:=TNodeTreeItem(G.items[i]);
         end
       else
         Writeln('Child ',i,' of tree is not a node :',G.Items[i].ClassName);
-      Inc(I);  
-      end;  
-    end;   
+      Inc(I);
+      end;
+    end;
   If (Result=Nil) then
     Raise Exception.CreateFmt(SErrNoNodeForModule,[M['name']]);
 end;
@@ -1316,16 +1316,16 @@ Var
   SN : TNodeTreeItem;
   G : TFPgtkWidgetGroup;
   I : Integer;
-  
+
 begin
   Result:=Nil;
   If (N<>Nil) then
     SN:=N
-  else  
+  else
     SN:=FModuleNode; // FindModuleNodeInNode(E.ParentNode as TDomElement,Nil);
   If E.NodeName='module' then
     Result:=FModuleNode
-  else If Assigned(SN) and Assigned(SN.SubTree) Then  
+  else If Assigned(SN) and Assigned(SN.SubTree) Then
     begin
     G:=(SN.SubTree as TFpGtkTree).Children;
     I:=0;
@@ -1333,21 +1333,21 @@ begin
       begin
       If G.Items[i] is TNodeTreeItem then
         begin
-        If TNodeTreeItem(G.items[i]).Node=E then 
+        If TNodeTreeItem(G.items[i]).Node=E then
           Result:=TNodeTreeItem(G.items[i]);
         end
       else
         Writeln('Child ',i,' of tree is not a node :',G.Items[i].ClassName);
-      Inc(I);  
-      end;  
-    end;   
+      Inc(I);
+      end;
+    end;
   If (Result=Nil) then
     Raise Exception.CreateFmt(SErrNoNodeForElement,[E['name']]);
 end;
 
 Procedure TPackageEditor.AddElement(E : TDomElement);
 
-Var 
+Var
   N : TNodeTreeItem;
 
 begin
@@ -1362,7 +1362,7 @@ end;
 
 Procedure TPackageEditor.SetCurrentElement(E : TDomElement);
 
-Var 
+Var
   N : TNodeTreeItem;
 
 begin
@@ -1374,7 +1374,7 @@ begin
       N:=FindElementNode(FCurrentElement,Nil);
       If Assigned(N) then
         N.Deselect;
-      end;  
+      end;
     CurrentModule:=E.ParentNode as TDomElement;
     N:=FindElementNode(E,Nil);
     if Assigned(N) then
@@ -1401,8 +1401,8 @@ begin
       (N1.SubTree as TFPgtkTree).SelectChild(N2);
       end
     Else
-      ClearElements;  
-    end;   
+      ClearElements;
+    end;
 end;
 
 Procedure TPackageEditor.SetCurrentTopic(T : TDomElement);
@@ -1410,7 +1410,7 @@ Procedure TPackageEditor.SetCurrentTopic(T : TDomElement);
 Var
   N  : TDomElement;
   PI,NI : TNodeTreeItem;
-  
+
 begin
   If (FCurrentTopic<>T) then
     begin
@@ -1439,14 +1439,14 @@ begin
       else if N.NodeName='package' then
         begin
 //         Writeln('Parent is package ?');
-        CurrentModule:=Nil;  
+        CurrentModule:=Nil;
         CurrentPackage:=N;
         PI:=FindPackageNode(N)
         end
 {      else
         Writeln('Unknown parent node')}
       ;
-      NI:=FindTopicNodeInNode(T,PI);  
+      NI:=FindTopicNodeInNode(T,PI);
       If Assigned(PI) then
         begin
 //        Writeln('Expanding parent node');
@@ -1456,7 +1456,7 @@ begin
 //          Writeln('Selecting subnode');
           (PI.SubTree as TFPgtkTree).SelectChild(NI);
           end;
-        end;  
+        end;
       end;
     end;
 end;
@@ -1565,7 +1565,7 @@ begin
     WriteXMLFile(FDocument,FN);
     if (FN<>FFileName) then
       SetFileName(FN);
-    end;  
+    end;
 end;
 
 Procedure TEditorPage.DisplayDocument;
@@ -1594,15 +1594,15 @@ begin
         {
           if the switch didn't succeed, it means that something went wrong
           when saving the old node, so we reselect the old node.
-        } 
+        }
         If FElement.Element<>Node then
           begin
           FPackages.CurrentElement:=OldNode;
           end;
-        end; 
+        end;
     Finally
       FChangingSelection:=False;
-    end;   
+    end;
     end;
 end;
 }
@@ -1621,10 +1621,10 @@ begin
     {
       if the switch didn't succeed, it means that something went wrong
       when saving the old node, so we reselect the old node.
-    } 
+    }
 {    If FElement.Element<>Node then
       FPackages.CurrentElement:=OldNode;
-}    end; 
+}    end;
 end;
 
 Procedure TEditorPage.PackageSelected(Sender : TObject; Node : TDomElement) ;
@@ -1702,8 +1702,8 @@ Var
 
 begin
   N:=FDocument.DocumentElement.FirstChild;
-  While (N<>Nil) and 
-        Not ((N.NodeType=ELEMENT_NODE) and 
+  While (N<>Nil) and
+        Not ((N.NodeType=ELEMENT_NODE) and
              (N.NodeName='package')) do
     N:=N.NextSibling;
   Result:=TDomElement(N);
@@ -1711,13 +1711,13 @@ end;
 
 Function TEditorPage.FirstModule(APackage : TDomElement) : TDomElement;
 
-Var 
+Var
   N : TDomNode;
 
 begin
   N:=APAckage.FirstChild;
-  While (N<>Nil) and 
-        Not ((N.NodeType=ELEMENT_NODE) and 
+  While (N<>Nil) and
+        Not ((N.NodeType=ELEMENT_NODE) and
                (N.NodeName='module')) do
       N:=N.NextSibling;
   Result:=TDomElement(N);
@@ -1725,15 +1725,15 @@ end;
 
 Procedure TEditorPage.NewModule(AModuleName : String);
 
-Var 
+Var
   M,P : TDomElement;
-  
+
 begin
   If CurrentPackage<>Nil then
     P:=CurrentPackage
   else
     P:=FirstPackage;
-  If (P=Nil) then  
+  If (P=Nil) then
     Raise Exception.CreateFmt(SErrNoPackageForModule,[AModuleName]);
   M:=FDocument.CreateElement('module');
   M['name']:=AModuleName;
@@ -1745,13 +1745,13 @@ end;
 
 Procedure TEditorPage.NewTopic(ATopicName : String);
 
-Var 
+Var
   T,M,P : TDomElement;
-  
+
 begin
-  { 
+  {
     If currently a topic is selected, make a subtopic, or a sibling topic.
-    If no topic is selected, then make a topic under the current module or 
+    If no topic is selected, then make a topic under the current module or
     package. A menu to move topics up/down is needed...
   }
   if (CurrentTopic<>Nil) then
@@ -1761,9 +1761,9 @@ begin
       P:=M
     else if M.NodeName='topic' then
       P:=M
-    else   
+    else
       P:=CurrentTopic;
-//    Writeln('Parent topic is ',P.NodeName)  
+//    Writeln('Parent topic is ',P.NodeName)
     end
   else if (CurrentModule<>Nil) then
     P:=CurrentModule
@@ -1771,7 +1771,7 @@ begin
     P:=CurrentPackage
   else
     P:=FirstPackage;
-  If (P=Nil) then  
+  If (P=Nil) then
     Raise Exception.CreateFmt(SErrNoNodeForTopic,[ATopicName]);
 //  Writeln('Parent node : ',P.NodeName);
   T:=FDocument.CreateElement('topic');
@@ -1786,10 +1786,10 @@ end;
 
 Procedure TEditorPage.NewElement(AElementName : String);
 
-Var 
+Var
   P,E,M : TDomElement;
   N : TDomNode;
-  
+
 begin
   If CurrentModule<>Nil then
     M:=CurrentModule
@@ -1801,9 +1801,9 @@ begin
     else
       M:=Nil;
     If M<>Nil then
-      CurrentModule:=M;  
-    end;  
-  If (M=Nil) then  
+      CurrentModule:=M;
+    end;
+  If (M=Nil) then
     Raise Exception.CreateFmt(SErrNoModuleForElement,[AElementName]);
   E:=FDocument.CreateElement('element');
   E['name']:=AElementName;
@@ -1891,9 +1891,9 @@ begin
        begin
        If (N is TDomElement) and (N.NodeName='element') then
          Add(TDomElement(N)['name']);
-       N:=N.NextSibling;  
+       N:=N.NextSibling;
        end;
-     end;  
+     end;
    end;
 end;
 

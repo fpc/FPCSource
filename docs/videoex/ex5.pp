@@ -5,7 +5,7 @@ Program Example5;
 Uses video,keyboard,vidutil;
 
 Const
-  Cursortypes : Array[crHidden..crHalfBlock] of string = 
+  Cursortypes : Array[crHidden..crHalfBlock] of string =
     ('Hidden','UnderLine','Block','HalfBlock');
 
 begin

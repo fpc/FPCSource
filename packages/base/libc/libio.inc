@@ -79,5 +79,5 @@ Function _IO_PENDING_OUTPUT_COUNT(_fp: P_IO_FILE): longint;
 begin
   Result:=(_fp^._IO_write_ptr)-(_fp^._IO_write_base);
 end;
-  
-  
+
+

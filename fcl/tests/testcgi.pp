@@ -9,13 +9,13 @@ Type
   TTestCGI = Class(TCGIApplication)
     Procedure DoRun; override;
   end;
-  
+
 Procedure TTestCGI.DoRun;
 
 Var
   L : TStrings;
   I: Integer;
-   
+
 begin
   ContentType:='text/html';
   EmitContentType;
@@ -42,11 +42,11 @@ begin
       GetRequestVarList(L,True);
       For I:=0 to L.Count-1 do
         Writeln('<TR><TD>',L[i],'</TD><TD>',RequestVariables[L[i]],'</TD></TR>');
-      end;  
+      end;
   Finally
     Writeln('</BODY></HTML>');
     Terminate;
-  end;  
+  end;
 end;
 
 begin
@@ -58,4 +58,4 @@ begin
     Finally
       Free;
     end;
-end.      
+end.

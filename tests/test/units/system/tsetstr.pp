@@ -82,7 +82,7 @@ begin
   for i := 1 to length(str1) do
     if str1[i] <> 'a' then
       _failed := true;
-  str1:='';  
+  str1:='';
   setstring(str1,PCHAR_NORMAL,strlen(PCHAR_NORMAL));
   if str1 <> HELLO_STRING then
     _failed := true;
@@ -173,18 +173,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-04-25 13:42:11  olle
-    * changed to $APPTYPE TOOL on MacOS
-
-  Revision 1.3  2003/03/04 18:19:48  jonas
-    * adapted tests to fixed implementation
-
-  Revision 1.2  2002/12/16 20:40:36  peter
-    * win32 fix
-
-  Revision 1.1  2002/10/20 11:44:15  carl
-    + setstring testing
-    * args checking is not interactive
-    + zero and negative length checking for move/fillchar
+  Revision 1.5  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

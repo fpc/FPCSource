@@ -12,10 +12,10 @@ function CTRL(x : char) : char;
 Const
   CEOF       = Chr(Ord('d') and $1F);
   CEOL       = #0; { XXX avoid _POSIX_VDISABLE }
-    
+
   CERASE  = 0177;
   CINTR   = Char(Ord('c') and $1F);
- 
+
   CSTATUS = #0;
   CKILL   = Char(Ord('u') and $1F);
 
@@ -43,4 +43,4 @@ Const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -1166,7 +1166,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2005-01-26 22:05:06  olle
+  Revision 1.46  2005-02-14 17:13:37  peter
+    * truncate log
+
+  Revision 1.45  2005/01/26 22:05:06  olle
     + added support for macos
 
   Revision 1.44  2005/01/06 16:32:04  florian
@@ -1174,117 +1177,5 @@ end.
 
   Revision 1.43  2005/01/01 18:59:52  florian
     + emulator execution support added
-
-  Revision 1.42  2004/11/29 21:25:32  peter
-  support for limit83fs
-
-  Revision 1.41  2004/11/09 23:13:50  peter
-    * fixed library tests
-    * fix test cases to generate their own temporary files
-
-  Revision 1.40  2004/11/09 21:26:29  peter
-    * use ./ before executable under unix
-
-  Revision 1.39  2004/11/09 17:26:28  peter
-    * use separate output dirs
-    * same tree can be used for multiple targets
-
-  Revision 1.38  2004/09/30 15:38:59  peter
-    * chdir to remote path before executing test
-
-  Revision 1.37  2004/07/03 18:28:21  florian
-    + added support of putty utils to dotest
-    + remote testing executes a chmod 755 before running a test
-
-  Revision 1.36  2004/05/17 20:51:29  peter
-    * print exitcode of remote test to stdout and parse the output file.
-      this is the most reliable passing of the exitcode
-
-  Revision 1.35  2004/05/16 20:13:04  peter
-    * remote execute updates, see readme.txt
-
-  Revision 1.34  2004/05/03 14:48:51  peter
-    * support redir from stderr to stdout so the same file can be used
-
-  Revision 1.33  2004/05/02 09:31:52  peter
-    * remove failed_to_execute_ strings, use the failed_to_run
-
-  Revision 1.32  2004/04/29 21:41:44  peter
-    * test result of execution and report as failure with iostatus displayed
-
-  Revision 1.31  2004/04/01 12:51:32  olle
-    + Several -Y<opt> is now allowed
-
-  Revision 1.30  2004/03/21 19:15:18  florian
-    * explanation for running the testsuite remotely
-    + dotest supports remote execution using scp/ssh
-
-  Revision 1.29  2003/10/31 16:14:20  peter
-    * remove compileerror10, note10
-    * remove known, use knowncompileerror,knownrunerror instead
-    * knowncompileerror,knownrunerror tests are now really skipped
-
-  Revision 1.28  2003/10/13 14:19:02  peter
-    * digest updated for max version limit
-
-  Revision 1.27  2003/06/13 08:16:34  pierre
-   * fix a problem with KNOWNCOMPILE10ERROR
-
-  Revision 1.26  2003/02/20 12:41:15  pierre
-   + handle KNOWNCOMPILEERROR and KNOWNCOMPILE10ERROR
-
-  Revision 1.25  2002/12/24 22:30:41  peter
-    * small verbosity update
-
-  Revision 1.24  2002/12/24 21:47:49  peter
-    * NeedTarget, SkipTarget, SkipCPU added
-    * Retrieve compiler info in a single call for 1.1 compiler
-
-  Revision 1.23  2002/12/17 15:04:32  michael
-  + Added dbdigest to store results in a database
-
-  Revision 1.22  2002/12/15 13:30:46  peter
-    * NEEDLIBRARY option to add -rpath to the linker for unix. This is
-      needed to test runtime library tests. The library needs the -FE.
-      option to place the .so in the correct directory
-
-  Revision 1.21  2002/12/05 16:03:34  pierre
-   + -X option to disable UseComSpec
-
-  Revision 1.20  2002/11/18 16:42:43  pierre
-   + KNOWNRUNERROR added
-
-  Revision 1.19  2002/11/18 01:31:07  pierre
-   + use -n option
-   + use -G- for only graph
-   + use -I- for only interactive
-   + use -K- for only known bugs.
-
-  Revision 1.18  2002/11/14 10:36:12  pierre
-   * add internalerror info to log file
-
-  Revision 1.17  2002/11/13 15:26:24  pierre
-   + digest program added
-
-  Revision 1.16  2002/11/13 15:19:44  pierre
-   log strings moved to teststr unit
-
-  Revision 1.15  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.14  2002/04/21 18:15:32  peter
-    * Check for internal errors
-
-  Revision 1.13  2002/03/03 13:27:28  hajny
-    + added support for OS/2 units (.ppo)
-
-  Revision 1.12  2002/01/29 13:24:16  pierre
-   + also generate .elg file for units
-
-  Revision 1.11  2002/01/29 12:51:08  pierre
-    + PPFileInfo to also display time stamp of test file
-    * generate .elg file in several cases
-      to avoid trying to recompute the same test
-      over and over again.
 
 }

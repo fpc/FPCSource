@@ -30,7 +30,7 @@ begin
       if rc<>expect then
         halt(1);
     end
-  else  
+  else
     writeln('Ref count is ',rc);
 end;
 

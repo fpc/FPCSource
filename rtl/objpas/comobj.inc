@@ -23,6 +23,7 @@ function CreateClassID : ansistring;
 
 {
   $Log$
-  Revision 1.1  2002-10-10 16:09:25  florian
-    + initial revision
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
+
 }

@@ -12,11 +12,11 @@ begin
   { At this point the text is in the internal pascal buffer,
     and not yet written to standard output }
   Writeln ('This line appears first, but is written later !');
-  { A writeln to 'output' always causes a flush - so this text is 
+  { A writeln to 'output' always causes a flush - so this text is
     written to screen }
   Flush (f);
   { At this point, the text written to F is written to screen. }
   Write (F,'Finishing ');
-  Close (f);  { Closing a file always causes a flush first } 
+  Close (f);  { Closing a file always causes a flush first }
   Writeln ('off.');
 end.

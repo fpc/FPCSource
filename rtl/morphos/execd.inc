@@ -4,8 +4,8 @@
 
     exec definitions (V50) for MorphOS/PowerPC
     Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
-    
-    Free Pascal conversion 
+
+    Free Pascal conversion
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -34,7 +34,7 @@ type
     ln_Type: Byte;
     ln_Pri : ShortInt;
     ln_Name: PChar;
-  end; 
+  end;
 
 type
   PMinNode = ^TMinNode;
@@ -484,7 +484,7 @@ type
     mh_Lower     : Pointer;
     mh_Upper     : Pointer;
     mh_Free      : DWord;
-  end; 
+  end;
 
 type
   PMemEntry = ^TMemEntry;
@@ -550,14 +550,14 @@ const
   * }
 
 
-type 
+type
   PMsgPort = ^TMsgPort;
   TMsgPort = packed record
     mp_Node   : TNode;
     mp_Flags  : Byte;
     mp_SigBit : Byte;
     mp_SigTask: Pointer;
-    mp_MsgList: TList; 
+    mp_MsgList: TList;
   end;
 
 
@@ -655,7 +655,7 @@ const
   SIGF_DOS        = (1 Shl SIGB_DOS);
 
 
-type 
+type
   PTaskTrapMessage = ^TTaskTrapMessage;
   TTaskTrapMessage = packed record
     Message: TMessage;    { * Message Header * }
@@ -664,7 +664,7 @@ type
     TType   : DWord;      { * Exception Type * }
     DAR    : DWord;       { * Exception Address Register * }
     DSISR  : DWord;       { * Exception DSISR Reg * }
-    
+
     { * This is undiscovered land...
       * never assume a size of this structure
       * }
@@ -860,7 +860,7 @@ type
   TStackSwapStruct = packed record
     stk_Lower  : Pointer; { * Lowest byte of stack * }
     stk_Upper  : Pointer; { * Upper end of stack (size + Lowert) * }
-    stk_Pointer: Pointer; { * Stack pointer at switch point * } 
+    stk_Pointer: Pointer; { * Stack pointer at switch point * }
   end;
 
 type
@@ -960,7 +960,7 @@ type
     Xn: Array[0..14] Of LongInt;
   end;
 
-  
+
   { *
     * Don't depend on these
     * }
@@ -976,7 +976,7 @@ const
   * }
 
 
-type 
+type
   PInterrupt = ^TInterrupt;
   TInterrupt = packed record
     is_Node: TNode;
@@ -997,7 +997,7 @@ type
   TSoftIntList = packed record
     sh_List: TList;
     sh_Pad : Word;
-  end; 
+  end;
 
 
 const
@@ -1291,7 +1291,7 @@ const
 
   FUNCARRAY_16BIT_OLD             = $ffffffff;
 
-  { * PPC 32bit functionarray ptrs 
+  { * PPC 32bit functionarray ptrs
     * (ULONG) $ffff stops it
     * }
   FUNCARRAY_32BIT_NATIVE          = $fffefffe;
@@ -1389,7 +1389,7 @@ const
     *
     * CODE_JMP, &FuncEntry ; Old Entry
     * CODE_ILLEGAL, Function ; SystemV ABI Entry
-    * 
+    *
     *
     * (ULONG) $ffffffff stops it
     * }
@@ -1734,13 +1734,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2005-01-12 07:59:05  karoly
+  Revision 1.4  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.3  2005/01/12 07:59:05  karoly
     * Integers changed to SmallInt to be compatible with all modes
-
-  Revision 1.2  2004/08/03 14:31:29  karoly
-    * changed to use new utility includes
-
-  Revision 1.1  2004/06/13 20:52:20  karoly
-    * initial revision
 
 }

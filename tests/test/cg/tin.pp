@@ -376,13 +376,7 @@ end.
 {
 
   $Log$
-  Revision 1.4  2002-09-07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/06/16 08:28:11  carl
-  + added several missing tests (adapted to both v1.1 and v1.0)
-
-  Revision 1.2  2002/03/05 21:56:02  carl
-  * Adapted for automated testing
+  Revision 1.5  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

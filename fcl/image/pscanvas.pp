@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     TPostScriptCanvas implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,7 +18,7 @@
   implementation in the LCL, but was adapted to work with the custom
   canvas code and to work with streams instead of strings.
   ---------------------------------------------------------------------}
-  
+
 
 {$mode objfpc}
 {$H+}
@@ -29,7 +29,7 @@ interface
 
 uses
   Classes, SysUtils,fpimage,fpcanvas;
-  
+
 type
   TPostScript = class;
 
@@ -88,7 +88,7 @@ type
   end;
 
   TPSBrush = Class(TFPCustomBrush)
-  Private 
+  Private
     Function GetAsString : String;
   Public
     Property AsString : String Read GetAsString;
@@ -191,7 +191,7 @@ type
   public
     Constructor Create(AOwner : TComponent);
     destructor Destroy; override;
-   
+
     procedure AddPattern(APSPattern: TPSPattern);
     function FindPattern(AName: String): TPSPattern;
     function DelPattern(AName: String): Boolean;
@@ -276,7 +276,7 @@ begin
   FPen.Width := 1;
   FPen.FPColor := 0;
   FPen.OnChange := @PenChanged;
-     
+
   FBrush := TPSPen.Create;
   FBrush.Width := 1;
   FBrush.FPColor := -1;
@@ -294,25 +294,25 @@ begin
   inherited Destroy;
 end;
 
-procedure TPostScriptCanvas.SetWidth (AValue : integer); 
+procedure TPostScriptCanvas.SetWidth (AValue : integer);
 
 begin
   FWidth:=AValue;
 end;
 
-function  TPostScriptCanvas.GetWidth : integer; 
+function  TPostScriptCanvas.GetWidth : integer;
 
 begin
   Result:=FWidth;
 end;
 
-procedure TPostScriptCanvas.SetHeight (AValue : integer); 
+procedure TPostScriptCanvas.SetHeight (AValue : integer);
 
 begin
   FHeight:=AValue;
 end;
 
-function  TPostScriptCanvas.GetHeight : integer; 
+function  TPostScriptCanvas.GetHeight : integer;
 
 begin
   Result:=FHeight;
@@ -324,7 +324,7 @@ procedure TPostScriptCanvas.DoMoveTo(X1, Y1: Integer);
 
 var
   Y: Integer;
-   
+
 begin
   Y := TranslateY(Y1);
   WritePS(inttostr(X1)+' '+inttostr(Y)+' moveto');
@@ -337,7 +337,7 @@ procedure TPostScriptCanvas.DoLineTo(X1, Y1: Integer);
 
 var
    Y: Integer;
-   
+
 begin
   Y := TranslateY(Y1);
   WritePS(inttostr(X1)+' '+inttostr(Y)+' lineto');
@@ -348,7 +348,7 @@ end;
 procedure TPostScriptCanvas.DoLine(X1, Y1, X2, Y2: Integer);
 var
   Y12, Y22: Integer;
-  
+
 begin
   Y12 := TranslateY(Y1);
   Y22 := TranslateY(Y2);
@@ -376,7 +376,7 @@ procedure TPostScriptCanvas.DrawRectangle(const Bounds: TRect; DoFill : Boolean)
 
 var
    Y12, Y22: Integer;
-   
+
 begin
   Y12 := TranslateY(Bounds.Top);
   Y22 := TranslateY(Bounds.Bottom);
@@ -389,7 +389,7 @@ begin
     WritePS(inttostr(Left)+' '+inttostr(Y22)+' lineto');
     end;
   WritePS('closepath');
-  If DoFill and (Brush.Style<>bsClear) then 
+  If DoFill and (Brush.Style<>bsClear) then
     AddFill;
   WritePS('stroke');
   ResetPos;
@@ -426,14 +426,14 @@ var
   radius: Integer;
   YRatio: Real;
   centerX, centerY: Integer;
-   
+
 begin
   // set radius to half the width
   With Bounds do
     begin
     radius := (Right-Left) div 2;
-    if radius <1 then 
-      exit; 
+    if radius <1 then
+      exit;
     YRatio := (Bottom - Top) / (Right-Left);
     // find center
     CenterX := (Right+Left) div 2;
@@ -445,7 +445,7 @@ begin
   // now draw it
   WritePS('gsave 1 '+format('%.3f',[YRatio])+' scale');
   WritePS('0 0 '+inttostr(radius)+' 0 360 arc');
-  if DoFill and (Brush.Style<>bsClear) then 
+  if DoFill and (Brush.Style<>bsClear) then
     AddFill;
   // reset scale for drawing line thickness so it doesn't warp
   YRatio := 1 / YRatio;
@@ -465,7 +465,7 @@ begin
   // draw line to edge
   WritePS('0 0 moveto');
   WritePS('0 0 1 '+inttostr(angle1)+' '+inttostr(angle2)+' arc closepath');
-  if Brush.Style<>bsClear then 
+  if Brush.Style<>bsClear then
     AddFill;
   // reset scale so we don't change the line thickness
   // adding 0.01 to compensate for scaling error - there may be a deeper problem here...
@@ -508,7 +508,7 @@ begin
   Result:=TPSPen.Create;
 end;
 
-function TPostScriptCanvas.DoCreateDefaultBrush : TFPCustomBrush; 
+function TPostScriptCanvas.DoCreateDefaultBrush : TFPCustomBrush;
 
 begin
   Result:=TPSBrush.Create;
@@ -524,7 +524,7 @@ begin
   FHeight:=AValue;
   UpdateBoundingBox;
   // filter down to the canvas height property
-  if assigned(FCanvas) then 
+  if assigned(FCanvas) then
     FCanvas.Height := FHeight;
 end;
 
@@ -574,7 +574,7 @@ begin
         raise exception.create('Pattern inserted with no postscript existing');
         exit;
      end;
-     
+
      for I := 0 to FDocument.count - 1 do begin
          if (FDocument[I] = '%%Page: 1 1') then begin
             // found it!
@@ -668,17 +668,17 @@ function TPostScript.FindPattern(AName: String): TPSPattern;
 
 var
    I: Integer;
-   
+
 begin
   Result := nil;
   If Assigned(FPatterns) then
     begin
     I:=Fpatterns.Count-1;
     While (Result=Nil) and (I>=0) do
-      if TPSPattern(FPatterns[I]).Name = AName then 
+      if TPSPattern(FPatterns[I]).Name = AName then
         result := TPSPattern(FPatterns[i])
       else
-        Dec(i)   
+        Dec(i)
    end;
 end;
 
@@ -709,7 +709,7 @@ procedure TPostScript.BeginDoc;
 
 var
    I: Integer;
-   
+
 begin
   CheckStream;
   If FDocStarted then
@@ -718,7 +718,7 @@ begin
   FCanvas.Height:=Self.Height;
   FCanvas.Width:=Self.width;
   FreePatterns;
-  WriteDocumentHeader;    
+  WriteDocumentHeader;
   // start our first page
   FPageNumber := 1;
   WritePage;
@@ -761,7 +761,7 @@ Function TPostScript.GetCreator : String;
 begin
   If (FCreator='') then
     Result:=ClassName
-  else  
+  else
     Result:=FCreator;
 end;
 
@@ -789,7 +789,7 @@ end;
 
 procedure TPSPen.SetPattern(const AValue: TPSPattern);
 begin
-  if FPattern<>AValue then 
+  if FPattern<>AValue then
     begin
     FPattern:=AValue;
     // NotifyCanvas;
@@ -809,16 +809,16 @@ function TPSPen.AsString: String;
 
 begin
   Result:='';
-  if FPattern <> nil then 
+  if FPattern <> nil then
     begin
     if FPattern.PaintType = ptColored then
       Result:='/Pattern setcolorspace '+FPattern.Name+' setcolor '
-    else 
+    else
       begin
       Result:='[/Pattern /DeviceRGB] setcolorspace '+inttostr(FPColor.Red)+' '+inttostr(FPColor.Green)+' '+
        inttostr(FPColor.Blue)+' '+FPattern.Name+' setcolor ';
       end;
-    end 
+    end
   else // no pattern do this:
     Result:=inttostr(FPColor.Red)+' '+inttostr(FPColor.Green)+' '+
            inttostr(FPColor.Blue)+' setrgbcolor ';
@@ -833,13 +833,13 @@ function TPSPattern.GetpostScript: TStringList;
 var
    I: Integer;
    S : String;
-   
+
 begin
   // If nothing in the canvas, error
-  if FStream.Size=0 then 
+  if FStream.Size=0 then
     raise exception.create('Empty pattern');
   FPostScript.Clear;
-  With FPostScript do 
+  With FPostScript do
     begin
     add('%% PATTERN '+FName);
     add('/'+FName+'proto 12 dict def '+FName+'proto begin');
@@ -864,7 +864,7 @@ end;
 
 procedure TPSPattern.SetBBox(const AValue: TRect);
 begin
-{  if FBBox<>AValue then 
+{  if FBBox<>AValue then
     begin
     FBBox:=AValue;
     FPatternCanvas.Height := FBBox.Bottom - FBBox.Top;
@@ -876,7 +876,7 @@ end;
 procedure TPSPattern.SetName(const AValue: String);
 begin
   FOldName := FName;
-  if (FName<>AValue) then 
+  if (FName<>AValue) then
     begin
     FName:=AValue;
     // NotifyCanvas;
@@ -937,7 +937,7 @@ end;
 { ---------------------------------------------------------------------
     TPSBrush
   ---------------------------------------------------------------------}
-  
+
 
 Function TPSBrush.GetAsString : String;
 

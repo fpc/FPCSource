@@ -97,10 +97,10 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TPthreadFastlock = _pthread_fastlock;
   PPthreadFastlock = ^TPthreadFastlock;
-    
+
   TCondVar = pthread_cond_t;
   PCondVar = ^TCondVar;
 
@@ -125,7 +125,7 @@ Type
   PPthreadRWlockAttribute = ^TPthreadRWlockAttribute;
 
   TPthreadSpinlock = pthread_spinlock_t;
-  PPthreadSpinlock = ^TPthreadSpinlock;  
+  PPthreadSpinlock = ^TPthreadSpinlock;
 
   TPthreadBarrier = pthread_barrier_t;
   PPthreadBarrier = ^TPthreadBarrier;
@@ -135,4 +135,4 @@ Type
 
   TThreadID = pthread_t;
 
-    
+

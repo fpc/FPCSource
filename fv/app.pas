@@ -1155,19 +1155,7 @@ END;
 END.
 {
  $Log$
- Revision 1.29  2004-12-22 15:27:30  peter
-   * call giveuptimeslice to prevent busy loop with idle
-
- Revision 1.28  2004/12/19 20:20:48  hajny
-   * ObjType references constants from fvconsts
-
- Revision 1.27  2004/12/18 16:18:47  peter
- win32 fixes
-
- Revision 1.26  2004/11/06 22:03:06  peter
-   * fixed mouse
-
- Revision 1.25  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.30  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

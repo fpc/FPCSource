@@ -64,7 +64,7 @@ Procedure TParams.AssignValues(Value: TParams);
 Var
   I : Integer;
   P,PS : TParam;
-  
+
 begin
   For I:=0 to Value.Count-1 do
     begin
@@ -118,7 +118,7 @@ Procedure TParams.GetParamList(List: TList; const ParamNames: string);
 
 Var
   L,N : String;
-  
+
 begin
   L:=ParamNames;
   While (Length(L)>0) do
@@ -663,15 +663,15 @@ end;
 Procedure TParam.SetData(Buffer: Pointer);
 
   Function FromTimeStamp(T,D : Integer) : TDateTime;
-  
+
   Var TS : TTimeStamp;
-  
+
   begin
     TS.Time:=T;
     TS.Date:=D;
     Result:=TimeStampToDateTime(TS);
   end;
-  
+
 begin
   case FDataType of
     ftUnknown  : DatabaseErrorFmt(SUnknownParamFieldType,[Name],DataSet);
@@ -700,13 +700,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  2005-02-01 09:05:52  marco
+  Revision 1.4  2005-02-14 17:13:12  peter
+    * truncate log
+
+  Revision 1.3  2005/02/01 09:05:52  marco
    * delete fix
-
-  Revision 1.2  2004/12/15 23:02:42  florian
-    * fixed compilation for targets where comp=int64
-
-  Revision 1.1  2004/12/13 20:19:49  michael
-  + Initial implementation of params
 
 }

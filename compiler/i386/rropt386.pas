@@ -366,24 +366,7 @@ End.
 
 {
   $Log$
-  Revision 1.30  2004-10-31 15:17:08  jonas
-    * fixed web bug 3378
-
-  Revision 1.29  2004/10/10 15:01:19  jonas
-    * several fixes to allocregbetween()
-
-  Revision 1.28  2004/08/17 16:34:58  jonas
-    * do not rename registers across conditional jumps
-
-  Revision 1.27  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.26  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
+  Revision 1.31  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

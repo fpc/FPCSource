@@ -45,10 +45,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 21:03:37  carl
-    * correct termination of thread
-
-  Revision 1.3  2002/09/07 15:15:28  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

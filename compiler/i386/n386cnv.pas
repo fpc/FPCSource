@@ -71,10 +71,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2004-06-20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.72  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
+  Revision 1.74  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

@@ -128,7 +128,7 @@ resourcestring
   SNeedPackageName            = 'No package name specified. Please specify one using the --package option.';
   SDone                       = 'Done.';
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
-  
+
 Const
   SVisibility: array[TPasMemberVisibility] of string =
        ('Default', 'Private', 'Protected', 'Public',
@@ -221,11 +221,11 @@ type
 
   TFPDocEngine = class(TPasTreeContainer)
   protected
-    DescrDocs: TObjectList;		// List of XML documents
-    DescrDocNames: TStringList;		// Names of the XML documents
+    DescrDocs: TObjectList;             // List of XML documents
+    DescrDocNames: TStringList;         // Names of the XML documents
     FRootLinkNode: TLinkNode;
     FRootDocNode: TDocNode;
-    FPackages: TList;			// List of TFPPackage objects
+    FPackages: TList;                   // List of TFPPackage objects
     CurModule: TPasModule;
     CurPackageDocNode: TDocNode;
   public
@@ -264,8 +264,8 @@ type
 
     Output: String;
     HasContentFile: Boolean;
-    HidePrivate: Boolean;	// Hide private class members in output?
-    HideProtected: Boolean;	// Hide protected class members in output?
+    HidePrivate: Boolean;       // Hide private class members in output?
+    HideProtected: Boolean;     // Hide protected class members in output?
     WarnNoNode : Boolean;       // Warn if no description node found for element.
   end;
 
@@ -333,11 +333,11 @@ begin
       if CompareText(Child.Name, ChildName) = 0 then
       begin
         if DotPos = 0 then
-	  Result := Child
-	else
+          Result := Child
+        else
           Result := Child.FindChild(
-	    Copy(APathName, DotPos + 1, Length(APathName)));
-	exit;
+            Copy(APathName, DotPos + 1, Length(APathName)));
+        exit;
       end;
       Child := Child.NextSibling;
     end;
@@ -367,11 +367,11 @@ begin
       if CompareText(Child.Name, ChildName) = 0 then
       begin
         if DotPos = 0 then
-	  Result := Child
-	else
+          Result := Child
+        else
           Result := Child.CreateChildren(
-	    Copy(APathName, DotPos + 1, Length(APathName)), ALinkTo);
-	exit;
+            Copy(APathName, DotPos + 1, Length(APathName)), ALinkTo);
+        exit;
       end;
       LastChild := Child;
       Child := Child.NextSibling;
@@ -428,11 +428,11 @@ begin
       if CompareText(Child.Name, ChildName) = 0 then
       begin
         if DotPos = 0 then
-	  Result := Child
-	else
+          Result := Child
+        else
           Result := Child.FindChild(
-	    Copy(APathName, DotPos + 1, Length(APathName)));
-	exit;
+            Copy(APathName, DotPos + 1, Length(APathName)));
+        exit;
       end;
       Child := Child.NextSibling;
     end;
@@ -461,11 +461,11 @@ begin
       if CompareText(Child.Name, ChildName) = 0 then
       begin
         if DotPos = 0 then
-	  Result := Child
-	else
+          Result := Child
+        else
           Result := Child.CreateChildren(
-	    Copy(APathName, DotPos + 1, Length(APathName)));
-	exit;
+            Copy(APathName, DotPos + 1, Length(APathName)));
+        exit;
       end;
       Child := Child.NextSibling;
     end;
@@ -547,22 +547,22 @@ var
       if ThisSpaces <> PrevSpaces then
       begin
         if ThisSpaces > PrevSpaces then
-	begin
-	  { Dive down one level }
-	  ParentStack[StackIndex] := CurParent;
-	  SiblingStack[StackIndex] := PrevSibling;
-	  Inc(StackIndex);
+        begin
+          { Dive down one level }
+          ParentStack[StackIndex] := CurParent;
+          SiblingStack[StackIndex] := PrevSibling;
+          Inc(StackIndex);
           CurParent := PrevSibling;
-	  PrevSibling := nil;
-	end else
-	  while PrevSpaces > ThisSpaces do
-	  begin
-	    Dec(StackIndex);
-	    CurParent := ParentStack[StackIndex];
-	    PrevSibling := SiblingStack[StackIndex];
-	    Dec(PrevSpaces);
-	  end;
-	PrevSpaces := ThisSpaces;
+          PrevSibling := nil;
+        end else
+          while PrevSpaces > ThisSpaces do
+          begin
+            Dec(StackIndex);
+            CurParent := ParentStack[StackIndex];
+            PrevSibling := SiblingStack[StackIndex];
+            Dec(PrevSpaces);
+          end;
+        PrevSpaces := ThisSpaces;
       end;
 
       i := ThisSpaces + 1;
@@ -593,14 +593,14 @@ var
       Package := nil;
       for i := 0 to FPackages.Count - 1 do
         if CompareText(TPasPackage(FPackages[i]).Name, s) = 0 then
-	begin
-	  Package := TPasPackage(FPackages[i]);
-	  break;
-	end;
+        begin
+          Package := TPasPackage(FPackages[i]);
+          break;
+        end;
       if not Assigned(Package) then
       begin
         Package := TPasPackage(inherited CreateElement(TPasPackage, s, nil,
-	  '', 0));
+          '', 0));
         FPackages.Add(Package);
       end;
 
@@ -613,15 +613,15 @@ var
       Module := nil;
       for i := 0 to Package.Modules.Count - 1 do
         if CompareText(TPasModule(Package.Modules[i]).Name, s) = 0 then
-	begin
-	  Module := TPasModule(Package.Modules[i]);
-	  break;
-	end;
+        begin
+          Module := TPasModule(Package.Modules[i]);
+          break;
+        end;
       if not Assigned(Module) then
       begin
-	Module := TPasModule.Create(s, Package);
-	Module.InterfaceSection := TPasSection.Create('', Module);
-	Package.Modules.Add(Module);
+        Module := TPasModule.Create(s, Package);
+        Module.InterfaceSection := TPasSection.Create('', Module);
+        Package.Modules.Add(Module);
       end;
 
       // Create node for class
@@ -647,42 +647,42 @@ var
       if s[1] = '#' then
       begin
         // New class
-	i := Pos(' ', s);
-	CurClass := CreateClass(Copy(s, 1, i - 1));
+        i := Pos(' ', s);
+        CurClass := CreateClass(Copy(s, 1, i - 1));
       end else
       begin
         i := Pos(' ', s);
-	if i = 0 then
+        if i = 0 then
           Name := Copy(s, 3, Length(s))
-	else
-	  Name := Copy(s, 3, i - 3);
+        else
+          Name := Copy(s, 3, i - 3);
 
         case s[2] of
-	  'M':
-	    Member := TPasProcedure.Create(Name, CurClass);
-	  'P':
-	    begin
-	      Member := TPasProperty.Create(Name, CurClass);
-	      if i > 0 then
-	        while i <= Length(s) do
-		begin
-		  case s[i] of
-		    'r':
-		      TPasProperty(Member).ReadAccessorName := '<dummy>';
-		    'w':
-		      TPasProperty(Member).WriteAccessorName := '<dummy>';
-		    's':
-		      TPasProperty(Member).StoredAccessorName := '<dummy>';
-		  end;
-		  Inc(i);
-		end;
-	    end;
-	  'V':
-	    Member := TPasVariable.Create(Name, CurClass);
-	  else
-	    raise Exception.Create('Invalid member type: ' + s[2]);
-	end;
-	CurClass.Members.Add(Member);
+          'M':
+            Member := TPasProcedure.Create(Name, CurClass);
+          'P':
+            begin
+              Member := TPasProperty.Create(Name, CurClass);
+              if i > 0 then
+                while i <= Length(s) do
+                begin
+                  case s[i] of
+                    'r':
+                      TPasProperty(Member).ReadAccessorName := '<dummy>';
+                    'w':
+                      TPasProperty(Member).WriteAccessorName := '<dummy>';
+                    's':
+                      TPasProperty(Member).StoredAccessorName := '<dummy>';
+                  end;
+                  Inc(i);
+                end;
+            end;
+          'V':
+            Member := TPasVariable.Create(Name, CurClass);
+          else
+            raise Exception.Create('Invalid member type: ' + s[2]);
+        end;
+        CurClass.Members.Add(Member);
       end;
     end;
   end;
@@ -764,30 +764,30 @@ begin
           WriteLn(ContentFile, ClassDecl.AncestorType.PathName)
         else if ClassDecl.ObjKind = okClass then
           WriteLn(ContentFile, '.TObject');
-	for k := 0 to ClassDecl.Members.Count - 1 do
-	begin
-	  Member := TPasElement(ClassDecl.Members[k]);
-	  Write(ContentFile, Chr(Ord(Member.Visibility) + Ord('0')));
-	  SetLength(s, 0);
-	  if Member.ClassType = TPasVariable then
-	    Write(ContentFile, 'V')
-	  else if Member.ClassType = TPasProperty then
-	  begin
-	    Write(ContentFile, 'P');
-	    if Length(TPasProperty(Member).ReadAccessorName) > 0 then
-	      s := s + 'r';
-	    if Length(TPasProperty(Member).WriteAccessorName) > 0 then
-	      s := s + 'w';
-	    if Length(TPasProperty(Member).StoredAccessorName) > 0 then
-	      s := s + 's';
-	  end else
-	    Write(ContentFile, 'M');	// Member must be a method
-	  Write(ContentFile, Member.Name);
-	  if Length(s) > 0 then
-	    WriteLn(ContentFile, ' ', s)
-	  else
-	    WriteLn(ContentFile);
-	end;
+        for k := 0 to ClassDecl.Members.Count - 1 do
+        begin
+          Member := TPasElement(ClassDecl.Members[k]);
+          Write(ContentFile, Chr(Ord(Member.Visibility) + Ord('0')));
+          SetLength(s, 0);
+          if Member.ClassType = TPasVariable then
+            Write(ContentFile, 'V')
+          else if Member.ClassType = TPasProperty then
+          begin
+            Write(ContentFile, 'P');
+            if Length(TPasProperty(Member).ReadAccessorName) > 0 then
+              s := s + 'r';
+            if Length(TPasProperty(Member).WriteAccessorName) > 0 then
+              s := s + 'w';
+            if Length(TPasProperty(Member).StoredAccessorName) > 0 then
+              s := s + 's';
+          end else
+            Write(ContentFile, 'M');    // Member must be a method
+          Write(ContentFile, Member.Name);
+          if Length(s) > 0 then
+            WriteLn(ContentFile, ' ', s)
+          else
+            WriteLn(ContentFile);
+        end;
       end;
     end;
   end;
@@ -845,12 +845,12 @@ begin
       for i := CurModule.InterfaceSection.UsesList.Count - 1 downto 0 do
       begin
         Module := TPasElement(CurModule.InterfaceSection.UsesList[i]);
-	if Module.ClassType = TPasModule then
-	begin
+        if Module.ClassType = TPasModule then
+        begin
           Result := FindInModule(TPasModule(Module), AName);
-	  if Assigned(Result) then
-	    exit;
-	end;
+          if Assigned(Result) then
+            exit;
+        end;
       end;
   {end;}
 end;
@@ -930,7 +930,7 @@ begin
     begin
       Result := ResolveLink(AModule, ThisPackage.Name + '.' + ALinkDest);
       if Length(Result) > 0 then
-	exit;
+        exit;
       ThisPackage := ThisPackage.NextSibling;
     end;
 
@@ -940,16 +940,16 @@ begin
       UnitList := AModule.InterfaceSection.UsesList;
       for i := UnitList.Count - 1 downto 0 do
       begin
-	{ Try all packages }
-	ThisPackage := RootLinkNode.FirstChild;
-	while Assigned(ThisPackage) do
-	begin
-	  Result := ResolveLink(AModule, ThisPackage.Name + '.' +
-	    TPasType(UnitList[i]).Name + '.' + ALinkDest);
-	  if Length(Result) > 0 then
-	    exit;
-	  ThisPackage := ThisPackage.NextSibling;
-	end;
+        { Try all packages }
+        ThisPackage := RootLinkNode.FirstChild;
+        while Assigned(ThisPackage) do
+        begin
+          Result := ResolveLink(AModule, ThisPackage.Name + '.' +
+            TPasType(UnitList[i]).Name + '.' + ALinkDest);
+          if Length(Result) > 0 then
+            exit;
+          ThisPackage := ThisPackage.NextSibling;
+        end;
       end;
     end;
   end;
@@ -958,7 +958,7 @@ begin
     for i := Length(ALinkDest) downto 1 do
       if ALinkDest[i] = '.' then
       begin
-	Result := ResolveLink(AModule, Copy(ALinkDest, 1, i - 1));
+        Result := ResolveLink(AModule, Copy(ALinkDest, 1, i - 1));
         exit;
       end;
 end;
@@ -981,27 +981,27 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String);
     begin
       if Subnode.NodeType = ELEMENT_NODE then
       begin
-	if Subnode.NodeName = 'short' then
-	  Result.FShortDescr := TDOMElement(Subnode)
-	else if Subnode.NodeName = 'descr' then
-	  Result.FDescr := TDOMElement(Subnode)
-	else if Subnode.NodeName = 'errors' then
-	  Result.FErrorsDoc := TDOMElement(Subnode)
-	else if Subnode.NodeName = 'seealso' then
-	  Result.FSeeAlso := TDOMElement(Subnode)
-	else if (Subnode.NodeName = 'example') and
-	  not Assigned(Result.FirstExample) then
-	  Result.FFirstExample := TDOMElement(Subnode);
+        if Subnode.NodeName = 'short' then
+          Result.FShortDescr := TDOMElement(Subnode)
+        else if Subnode.NodeName = 'descr' then
+          Result.FDescr := TDOMElement(Subnode)
+        else if Subnode.NodeName = 'errors' then
+          Result.FErrorsDoc := TDOMElement(Subnode)
+        else if Subnode.NodeName = 'seealso' then
+          Result.FSeeAlso := TDOMElement(Subnode)
+        else if (Subnode.NodeName = 'example') and
+          not Assigned(Result.FirstExample) then
+          Result.FFirstExample := TDOMElement(Subnode);
       end;
       Subnode := Subnode.NextSibling;
     end;
   end;
-  
+
   Procedure ReadTopics(TopicNode : TDocNode);
-  
+
   Var
     SubNode : TDOMNode;
-    
+
   begin
     SubNode:=TopicNode.FNode.FirstChilD;
     While Assigned(SubNode) do
@@ -1010,17 +1010,17 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String);
         With ReadNode(TopicNode,TDomElement(SubNode)) do
           // We could allow recursion here, but we won't, because it doesn't work on paper.
           FTopicNode:=True;
-      SubNode:=Subnode.NextSibling;  
+      SubNode:=Subnode.NextSibling;
       end;
   end;
-  
+
 var
   i: Integer;
   Node, Subnode, Subsubnode: TDOMNode;
   Element: TDOMElement;
   Doc: TXMLDocument;
   PackageDocNode, TopicNode,ModuleDocNode: TDocNode;
-  
+
 begin
   ReadXMLFile(Doc, AFilename);
   DescrDocs.Add(Doc);
@@ -1043,29 +1043,29 @@ begin
             ModuleDocNode := ReadNode(PackageDocNode, TDOMElement(Subnode));
             // Scan all 'element' elements within this module element
             Subsubnode := Subnode.FirstChild;
-	    while Assigned(Subsubnode) do
+            while Assigned(Subsubnode) do
               begin
-	      if (Subsubnode.NodeType = ELEMENT_NODE) then
-	        begin
-	        if (Subsubnode.NodeName = 'element') then
-	          ReadNode(ModuleDocNode, TDOMElement(Subsubnode))
-	        else if (SubSubNode.NodeName='topic') then
-	          begin
-	          TopicNode:=ReadNode(ModuleDocNode,TDomElement(SubSubNode));
-	          TopicNode.FTopicNode:=True;
-	          ReadTopics(TopicNode);
-	          end;  
-	        end;    
-	      Subsubnode := Subsubnode.NextSibling;
-	      end;
-	    end
-	  else if (SubNode.NodeName='topic') then
-	    begin
-	    TopicNode:=ReadNode(PackageDocNode,TDomElement(SubNode));  
-	    TopicNode.FTopicNode:=True;
-	    ReadTopics(TopicNode);
-	    end;
-	  end;   
+              if (Subsubnode.NodeType = ELEMENT_NODE) then
+                begin
+                if (Subsubnode.NodeName = 'element') then
+                  ReadNode(ModuleDocNode, TDOMElement(Subsubnode))
+                else if (SubSubNode.NodeName='topic') then
+                  begin
+                  TopicNode:=ReadNode(ModuleDocNode,TDomElement(SubSubNode));
+                  TopicNode.FTopicNode:=True;
+                  ReadTopics(TopicNode);
+                  end;
+                end;
+              Subsubnode := Subsubnode.NextSibling;
+              end;
+            end
+          else if (SubNode.NodeName='topic') then
+            begin
+            TopicNode:=ReadNode(PackageDocNode,TDomElement(SubNode));
+            TopicNode.FTopicNode:=True;
+            ReadTopics(TopicNode);
+            end;
+          end;
         Subnode := Subnode.NextSibling;
       end;
     end;
@@ -1082,12 +1082,12 @@ begin
       Result := FindDocNode(AElement.GetModule, AElement.Name)
     else
       Result := RootDocNode.FindChild(AElement.PathName);
-    if (Result=Nil) and 
+    if (Result=Nil) and
        WarnNoNode and
-       (Length(AElement.PathName)>0) and 
+       (Length(AElement.PathName)>0) and
        (AElement.PathName[1]='#') then
       Writeln('No documentation node found for identifier : ',AElement.PathName);
-    end;  
+    end;
 end;
 
 function TFPDocEngine.FindDocNode(ARefModule: TPasModule;
@@ -1113,10 +1113,10 @@ begin
       CurPackage := RootDocNode.FirstChild;
       while Assigned(CurPackage) do
       begin
-	Result := RootDocNode.FindChild(CurPackage.Name + '.' + AName);
-	if Assigned(Result) then
-	  break;
-	CurPackage := CurPackage.NextSibling;
+        Result := RootDocNode.FindChild(CurPackage.Name + '.' + AName);
+        if Assigned(Result) then
+          break;
+        CurPackage := CurPackage.NextSibling;
       end;
       if not Assigned(Result) then
       begin
@@ -1125,16 +1125,16 @@ begin
         for i := UnitList.Count - 1 downto 0 do
         begin
           { Try all packages }
-	  CurPackage := RootDocNode.FirstChild;
-	  while Assigned(CurPackage) do
-	  begin
-	    Result := RootDocNode.FindChild(CurPackage.Name + '.' +
-	      TPasType(UnitList[i]).Name + '.' + AName);
-	    if Assigned(Result) then
-	      break;
-	    CurPackage := CurPackage.NextSibling;
-	  end;
-	end;
+          CurPackage := RootDocNode.FirstChild;
+          while Assigned(CurPackage) do
+          begin
+            Result := RootDocNode.FindChild(CurPackage.Name + '.' +
+              TPasType(UnitList[i]).Name + '.' + AName);
+            if Assigned(Result) then
+              break;
+            CurPackage := CurPackage.NextSibling;
+          end;
+        end;
       end;
     end;
   end;
@@ -1216,7 +1216,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2005-01-14 17:55:07  michael
+  Revision 1.9  2005-02-14 17:13:38  peter
+    * truncate log
+
+  Revision 1.8  2005/01/14 17:55:07  michael
   + Added unix man page output; Implemented usage
 
   Revision 1.7  2005/01/12 21:11:41  michael

@@ -25,22 +25,22 @@ function GNOME_TYPE_CALCULATOR : longint;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_CALCULATOR(obj : longint) : longint;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_CALCULATOR_CLASS(klass : longint) : longint;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_IS_CALCULATOR(obj : longint) : longint;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_IS_CALCULATOR_CLASS(klass : longint) : longint;
 
 type
@@ -89,7 +89,7 @@ procedure gnome_calculator_clear(gc:PGnomeCalculator; reset:gboolean);cdecl;exte
 procedure gnome_calculator_set(gc:PGnomeCalculator; result:gdouble);cdecl;external;
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function gnome_calculator_get_result(gc : longint) : longint;
 
 {$endif}
@@ -105,7 +105,7 @@ function GNOME_TYPE_CALCULATOR : longint;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_CALCULATOR(obj : longint) : longint;
 begin
    GNOME_CALCULATOR:=GTK_CHECK_CAST(obj,GNOME_TYPE_CALCULATOR,GnomeCalculator);
@@ -113,7 +113,7 @@ end;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_CALCULATOR_CLASS(klass : longint) : longint;
 begin
    GNOME_CALCULATOR_CLASS:=GTK_CHECK_CLASS_CAST(klass,GNOME_TYPE_CALCULATOR,GnomeCalculatorClass);
@@ -121,7 +121,7 @@ end;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_IS_CALCULATOR(obj : longint) : longint;
 begin
    GNOME_IS_CALCULATOR:=GTK_CHECK_TYPE(obj,GNOME_TYPE_CALCULATOR);
@@ -129,7 +129,7 @@ end;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function GNOME_IS_CALCULATOR_CLASS(klass : longint) : longint;
 begin
    GNOME_IS_CALCULATOR_CLASS:=GTK_CHECK_CLASS_TYPE(klass,GNOME_TYPE_CALCULATOR);
@@ -167,7 +167,7 @@ end;
 
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
-{ return type might be wrong }   
+{ return type might be wrong }
 function gnome_calculator_get_result(gc : longint) : longint;
 begin
    gnome_calculator_get_result:=(GNOME_CALCULATOR(gc))^.result;

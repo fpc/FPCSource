@@ -91,14 +91,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2004-12-11 14:39:03  florian
-    * made some target short names look more nicer
-
-  Revision 1.4  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.3  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.6  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

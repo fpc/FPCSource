@@ -7,7 +7,7 @@
     Sysutils unit for Mac OS.
 
     NOTE !!! THIS FILE IS UNDER CONSTRUCTION AND DOES NOT WORK CURRENLY.
-    
+
     THUS IT IS NOT BUILT BY THE MAKEFILES
 
     See the file COPYING.FPC, included in this distribution,
@@ -30,18 +30,18 @@ uses
 
 //{$DEFINE HAS_SLEEP}     TODO
 //{$DEFINE HAS_OSERROR}   TODO
-//{$DEFINE HAS_OSCONFIG}  TODO 
+//{$DEFINE HAS_OSCONFIG}  TODO
 
 type
 //TODO Check pad and size
 //TODO unify with Dos.SearchRec
   PMacOSFindData = ^TMacOSFindData;
   TMacOSFindData = record
-		{MacOS specific params, private, do not use:}
-		paramBlock: CInfoPBRec;
-		searchFSSpec: FSSpec;
-		searchAttr: Byte;  {attribute we are searching for}
-		exactMatch: Boolean;
+                {MacOS specific params, private, do not use:}
+                paramBlock: CInfoPBRec;
+                searchFSSpec: FSSpec;
+                searchAttr: Byte;  {attribute we are searching for}
+                exactMatch: Boolean;
   end;
 
 { Include platform independent interface part }
@@ -718,20 +718,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2005-01-24 18:28:58  olle
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.5  2005/01/24 18:28:58  olle
     + a tiny bit of support for macos
     + warning that this is under construction
-
-  Revision 1.4  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.3  2004/10/14 16:27:11  mazen
-  * First implementation of ExecuteProcess
-
-  Revision 1.2  2004/09/30 10:42:05  mazen
-  * implement Find[First,Next,Close] according to Dos unit code
-
-  Revision 1.1  2004/09/28 15:39:29  olle
-    + added skeleton version
 
 }

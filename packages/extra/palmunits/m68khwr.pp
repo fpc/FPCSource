@@ -8,7 +8,7 @@
  * Release: Palm OS SDK 4.0 (63220)
  *
  * Description:
- *    Pilot debugger remote hardware/system info 
+ *    Pilot debugger remote hardware/system info
  *
  * History:
  *    1/18/95  RM - Created by Ron Marianetti

@@ -723,13 +723,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2003-03-27 14:37:24  pierre
-   * try to enhance dispaly of new html docs
-
-  Revision 1.4  2002/09/07 15:40:49  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/03/25 14:42:23  pierre
-   * also call DocTableXXX at end tag
+  Revision 1.6  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

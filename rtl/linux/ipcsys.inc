@@ -99,12 +99,9 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-04-28 20:48:20  peter
-    * ordinal-pointer conversions fixed
-
-  Revision 1.1  2004/04/25 19:15:43  marco
-   * IPC reform
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }
 
- 
+

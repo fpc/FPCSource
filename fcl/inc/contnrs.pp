@@ -505,31 +505,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-12-24 09:18:38  michael
-  + Changed FreeAndNil to simple free (From Mattias Gaertner)
-
-  Revision 1.8  2004/12/22 15:33:24  peter
-    * fixed compile
-
-  Revision 1.7  2004/12/22 12:05:41  michael
-  + Fixed bug 3461
-
-  Revision 1.6  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/08/09 09:48:28  michael
-    + mode directive added plus some types fixed
-
-  Revision 1.4  2002/08/09 09:44:33  michael
-    + Implemented stack and queue (untested)
-
-  Revision 1.3  2002/07/26 11:26:26  michael
-  + Initial implementation. Untested
-
-  Revision 1.2  2002/07/21 12:04:49  michael
-  + No optional parameters in 1.0.6
-
-  Revision 1.1  2002/07/16 13:34:39  florian
-    + skeleton for contnr.pp added
+  Revision 1.10  2005-02-14 17:13:14  peter
+    * truncate log
 
 }

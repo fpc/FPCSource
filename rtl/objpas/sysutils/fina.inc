@@ -29,9 +29,9 @@ function ChangeFileExt(const FileName, Extension: string): string;
 var i: longint;
 begin
   I := Length(FileName);
-  while (I > 0) and not(FileName[I] in ['/', '.', '\', ':']) do 
+  while (I > 0) and not(FileName[I] in ['/', '.', '\', ':']) do
     Dec(I);
-  if (I = 0) or (FileName[I] <> '.') then 
+  if (I = 0) or (FileName[I] <> '.') then
     I := Length(FileName)+1;
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
@@ -215,7 +215,7 @@ end;
 function ExcludeTrailingBackslash(Const Path: string): string;
 
 begin
-  Result:=ExcludeTrailingPathDelimiter(Path);   
+  Result:=ExcludeTrailingPathDelimiter(Path);
 end;
 
 function ExcludeTrailingPathDelimiter(Const Path: string): string;
@@ -249,31 +249,7 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-10-30 20:49:32  marco
-   * Removed a "unix." prefix
-
-  Revision 1.3  2004/05/01 11:56:25  marco
-   * fileno -> getfilehandle
-
-  Revision 1.2  2004/05/01 11:04:34  marco
-   * fileno
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.10  2003/09/06 21:52:24  marco
-   * commited.
-
-  Revision 1.9  2003/01/10 21:02:13  marco
-   * hasunix fix for beos
-
-  Revision 1.8  2002/10/22 21:57:54  michael
-  + Added some missing path functions
-
-  Revision 1.7  2002/10/12 15:34:09  michael
-  + Fixed changefileexit for long (>255) filenames
-
-  Revision 1.6  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

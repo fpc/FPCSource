@@ -3,7 +3,7 @@
 type
    TGtkClockType = (GTK_CLOCK_INCREASING,GTK_CLOCK_DECREASING,
      GTK_CLOCK_REALTIME);
-     
+
    PGtkClock = ^TGtkClock;
    TGtkClock = record
         widget : TGtkLabel;

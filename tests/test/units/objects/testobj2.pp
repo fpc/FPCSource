@@ -19,14 +19,14 @@ var
   error : boolean;
 begin
   error := false;
-  Write('Error checking for object streams...'); 
+  Write('Error checking for object streams...');
   { Legal operation on pStream1 }
   pStream1 := New(PDosStream, Init(csFName1, stCreate));
   { Faulty operation on pStream2 }
   pStream2 := New(PDosStream, Init(csFName2, stOpenRead));
   if pStream2^.Status = stOk then
      error := true;
-     
+
   { Legal operation on pStream1 }
   pStream1^.Write(lAux, SizeOf(lAux));
   { Normally, if the values are not shared, this should be ok! }
@@ -46,7 +46,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-10-31 12:59:11  carl
-   * error code testing (based on bug report 2043)
+  Revision 1.2  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

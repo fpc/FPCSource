@@ -29,6 +29,6 @@ function getopt_long_only(___argc:longint; ___argv:PPchar; __shortopts:Pchar; __
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function getopt_long(___argc:longint; ___argv:PPchar; __shortopts:Pchar; const __longopts:option; var __longind:longint):longint;cdecl;external clib name 'getopt_long';
 function getopt_long_only(___argc:longint; ___argv:PPchar; __shortopts:Pchar; const __longopts:option; var __longind:longint):longint;cdecl;external clib name 'getopt_long_only';

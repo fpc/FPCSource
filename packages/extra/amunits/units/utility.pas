@@ -21,14 +21,14 @@
     For use with fpc 1.0.7. Thay are in systemvartags.
     11 Nov 2002.
 
-    
+
     Added the define use_amiga_smartlink.
     13 Jan 2003.
 
     Update for AmigaOS 3.9.
     Added a few overlays.
     06 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -933,22 +933,12 @@ end.
 
 {
   $Log$
-  Revision 1.5  2003-02-07 20:45:08  nils
-  * update for amigaos 3.9
-
-  Revision 1.4  2003/01/13 18:14:57  nils
-  * added the define use_amiga_smartlink
-
-  Revision 1.3  2002/11/20 22:09:14  nils
-
-    * added pUtilityBase
-
-  Revision 1.2  2002/11/19 18:47:47  nils
-    * update check internal log
+  Revision 1.6  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 
 
 

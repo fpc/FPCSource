@@ -67,8 +67,7 @@ End.
 
 {
 $Log$
-Revision 1.2  2003-09-24 11:13:09  yuri
-* Cosmetic changes
-* Slightly improved emx.pas
+Revision 1.3  2005-02-14 17:13:22  peter
+  * truncate log
 
 }

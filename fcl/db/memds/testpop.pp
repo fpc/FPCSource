@@ -20,10 +20,10 @@ uses db,memds,classes,sysutils;
 
 Procedure DoTest;
 
-var 
+var
   I,ACount : integer;
   D   : TDateTime;
-  
+
 begin
   with TMemDataset.Create(Nil) do
     Try
@@ -63,8 +63,8 @@ begin
         Writeln('------------------------');
         For I:=0 to Fields.Count-1 do
           Writeln(Fields[I].FieldName,' : ',Fields[I].AsString);
-        Writeln;  
-        Next;  
+        Writeln;
+        Next;
         end;
       Writeln('Total data size : ',DataSize);
       If (ParamCount>0) then
@@ -72,7 +72,7 @@ begin
       Close;
   finally
     Free;
-  end;     
+  end;
 end;
 
 begin

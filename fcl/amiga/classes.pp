@@ -40,7 +40,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2002-11-11 15:31:35  carl
-    + initial revision for amiga
+  Revision 1.2  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

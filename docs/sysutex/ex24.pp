@@ -6,7 +6,7 @@ Uses sysutils;
 
 Var TS : TTimeStamp;
     DT : TDateTime;
-    
+
 Begin
   TS:=DateTimeToTimeStamp (Now);
   With TS do

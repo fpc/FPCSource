@@ -15,7 +15,7 @@
 
 {$ifdef usestime}
 
-function stime (t:ptime_t):cint; 
+function stime (t:ptime_t):cint;
 begin
  stime:=do_SysCall(Syscall_nr_stime,TSysParam(t));
 end;
@@ -36,23 +36,11 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-02-13 20:01:38  peter
+  Revision 1.8  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.7  2005/02/13 20:01:38  peter
     * include file cleanup
-
-  Revision 1.6  2004/12/02 18:24:35  marco
-   * fpsettimeofday.
-
-  Revision 1.5  2004/10/31 18:49:02  marco
-   * cdecl for FPC_USE_LIBC
-
-  Revision 1.4  2004/10/30 21:18:23  marco
-   * more commits from unix interface cleanup
-
-  Revision 1.3  2004/10/27 04:22:29  marco
-  *** empty log message ***
-
-  Revision 1.2  2004/10/27 04:22:04  marco
-   * cvs log and extra endif
 
 }
 

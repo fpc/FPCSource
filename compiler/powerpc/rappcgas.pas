@@ -734,28 +734,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.17  2004/11/11 19:31:33  peter
-    * fixed compile of powerpc,sparc,arm
-
-  Revision 1.16  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.15  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.14.2.1  2004/05/01 23:36:47  peter
-    * assembler reader 64bit fixes
-
-  Revision 1.14  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.13  2004/02/28 16:00:45  florian
-    * fixed make cycle
-
-  Revision 1.12  2004/02/28 14:14:44  florian
-    * fixed syntax error in previous commit
+  Revision 1.19  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

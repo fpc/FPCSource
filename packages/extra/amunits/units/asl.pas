@@ -30,7 +30,7 @@
     Added functions and procedures with array of const.
     For use with fpc 1.0.7 They are in systemvartags.
     11 Nov 2002.
-    
+
     Added the defines use_amiga_smartlink and
     use_auto_openlib.
     13 Jan 2003.
@@ -45,7 +45,7 @@
     Changed integer > smallint.
             cardinal > longword.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 }
 
@@ -444,41 +444,41 @@ const
             as_RelativeWidth : UBYTE;   { Window size factor; this is
                                          * a percentage of the parent
                                          * window/screen width.
-					 }
-	    as_RelativeHeight : UBYTE;
+                                         }
+            as_RelativeHeight : UBYTE;
          end;
 
 const
 { Default position of the ASL window. }
-  ASLPOS_DefaultPosition  = 0;	{ Position is calculated according to the builtin rules. }
-  ASLPOS_CenterWindow	  = 1;	{ Centred within the bounds of the parent window. }
-  ASLPOS_CenterScreen	  = 2;	{ Centred within the bounds of the parent screen. }
-  ASLPOS_WindowPosition	  = 3;	{ Relative to the top left corner of the parent window,
-					 * using the offset values provided in the
-					 * as_RelativeLeft/as_RelativeTop members.
-					 }
-  ASLPOS_ScreenPosition	  = 4;	{ Relative to the top left corner of the parent screen,
-					 * using the offset values provided in the
-					 * as_RelativeLeft/as_RelativeTop members.
-					 }
-  ASLPOS_CenterMouse	  = 5;	{ Directly below the mouse pointer. }
-  ASLPOS_MASK		  = $0F;
+  ASLPOS_DefaultPosition  = 0;  { Position is calculated according to the builtin rules. }
+  ASLPOS_CenterWindow     = 1;  { Centred within the bounds of the parent window. }
+  ASLPOS_CenterScreen     = 2;  { Centred within the bounds of the parent screen. }
+  ASLPOS_WindowPosition   = 3;  { Relative to the top left corner of the parent window,
+                                         * using the offset values provided in the
+                                         * as_RelativeLeft/as_RelativeTop members.
+                                         }
+  ASLPOS_ScreenPosition   = 4;  { Relative to the top left corner of the parent screen,
+                                         * using the offset values provided in the
+                                         * as_RelativeLeft/as_RelativeTop members.
+                                         }
+  ASLPOS_CenterMouse      = 5;  { Directly below the mouse pointer. }
+  ASLPOS_MASK             = $0F;
 
 { Default size of the ASL window. }
-  ASLSIZE_DefaultSize	= (0 shl 4);	{ Size is calculated according to the builtin rules. }
-  ASLSIZE_RelativeSize	= (1 shl 4);	{ Size is relative to the size of the parent
-					 * window or screen, using the values provided in
-					 * the as_RelativeWidth/as_RelativeHeight members.
-					 * The as_RelativeWidth/as_RelativeHeight values are
-					 * taken as percentage, i.e. a value of "50" stands for
-					 * 50% of the width/height of the parent window/screen.
-					 }
-  ASLSIZE_MASK		= $30;
+  ASLSIZE_DefaultSize   = (0 shl 4);    { Size is calculated according to the builtin rules. }
+  ASLSIZE_RelativeSize  = (1 shl 4);    { Size is relative to the size of the parent
+                                         * window or screen, using the values provided in
+                                         * the as_RelativeWidth/as_RelativeHeight members.
+                                         * The as_RelativeWidth/as_RelativeHeight values are
+                                         * taken as percentage, i.e. a value of "50" stands for
+                                         * 50% of the width/height of the parent window/screen.
+                                         }
+  ASLSIZE_MASK          = $30;
 
 { Other options. }
-  ASLOPTION_ASLOverrides   = (1 shl 6);	{ ASL determines placement and size of requester
-					 * windows; application's choice is ignored.
-					 }
+  ASLOPTION_ASLOverrides   = (1 shl 6); { ASL determines placement and size of requester
+                                         * windows; application's choice is ignored.
+                                         }
 
 
 {****************************************************************************
@@ -660,22 +660,22 @@ END;
 PROCEDURE AbortAslRequest(requester : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	requester,A0
-	MOVEA.L	AslBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L requester,A0
+        MOVEA.L AslBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE ActivateAslRequest(requester : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	requester,A0
-	MOVEA.L	AslBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L requester,A0
+        MOVEA.L AslBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
@@ -765,20 +765,8 @@ END. (* UNIT ASL *)
 
 {
   $Log$
-  Revision 1.5  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.4  2003/02/07 20:48:36  nils
-  * update for amigaos 3.9
-
-  * changed startcode for library
-
-  Revision 1.3  2003/01/13 20:36:00  nils
-  * added the defines use_amiga_smartlink
-  * and use_auto_openlib
-
-  Revision 1.2  2002/11/18 20:50:45  nils
-    * update check internal log
+  Revision 1.6  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 

@@ -39,7 +39,7 @@ BEGIN
   Begin
     WriteLn('Error!');
     Halt(1);
-  End;  
+  End;
  smallarray:=Y3210(l);
  if (smallarray[0] <> 0) or
     (smallarray[1] <> 1) or
@@ -49,5 +49,5 @@ BEGIN
     WriteLn('Error!');
     Halt(1);
   end;
-  WriteLn('Ok!');   
+  WriteLn('Ok!');
 END.

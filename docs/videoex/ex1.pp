@@ -2,10 +2,10 @@ program testvideo;
 
 uses video,keyboard,vidutil;
 
-Var 
+Var
   i : longint;
   k : TkeyEvent;
-  
+
 begin
   InitVideo;
   InitKeyboard;

@@ -253,58 +253,13 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.21  2005-01-15 18:47:26  florian
+  Revision 1.22  2005-02-14 17:13:26  peter
+    * truncate log
+
+  Revision 1.21  2005/01/15 18:47:26  florian
     * several variant init./final. stuff fixed
 
   Revision 1.20  2005/01/08 20:43:44  florian
     + init/cleaning code for variants added
-
-  Revision 1.19  2004/11/02 15:52:04  florian
-    * fixed rtti reading of arrays for 64 bit
-
-  Revision 1.18  2004/10/26 15:02:51  peter
-    * rtti is always aligned, remove move() workarounds
-
-  Revision 1.17  2004/10/24 21:39:42  peter
-    * record and array parsing moved to procedure and handle like
-      a data stream instead of using records
-
-  Revision 1.16  2004/10/24 20:01:42  peter
-    * saveregisters calling convention is obsolete
-
-  Revision 1.15  2004/10/04 21:26:16  florian
-    * rtti alignment fixed
-
-  Revision 1.14  2004/08/18 21:03:35  florian
-    * sparc uses wait4 as well
-
-  Revision 1.13  2004/07/02 21:21:09  peter
-    * decr ref doesn't reset pointer
-    * finalize resets pointer for astring,wstring
-
-  Revision 1.12  2004/05/31 20:25:04  peter
-    * removed warnings
-
-  Revision 1.11  2004/03/27 23:22:38  florian
-    * fixed alignment issues
-
-  Revision 1.10  2004/02/26 16:19:01  peter
-    * tkclass removed from finalize()
-    * cleanupinstance now parses the tkclass rtti entry itself and
-      calls finalize() for the rtti members
-
-  Revision 1.9  2004/02/26 12:42:34  michael
-  + Patch from peter to fix finalize (bug 2975)
-
-  Revision 1.8  2004/01/22 22:09:05  peter
-    * finalize needs to reset to nil after decr_ref
-
-  Revision 1.7  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/09/02 18:42:41  peter
-    * moved genrtti.inc code to rtti
-    * removed rttip.inc, the generic code is almost as fast and
-      much easier to maintain and has less risks on bugs
 
 }

@@ -375,23 +375,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-01-10 19:35:17  michael
-  + Moved all resource strings to rtlconst/sysconst
-
-  Revision 1.2  2003/10/30 16:25:07  peter
-    * tbits.create is now supported
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.9  2003/05/25 16:05:18  jonas
-    * made Args parameter of BitsErrorFmt a const one
-
-  Revision 1.8  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/07/16 14:00:55  florian
-    * raise takes now a void pointer as at and frame address
-      instead of a longint, fixed
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

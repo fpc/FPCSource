@@ -1027,14 +1027,7 @@ end.
 {
 
 $Log$
-Revision 1.3  2004-03-21 20:24:21  hajny
-  * C array passing warning fixed
-
-Revision 1.2  2003/04/10 15:48:27  yuri
-+ Dynamic jobs properties added
-
-Revision 1.1  2002/10/18 18:08:52  hajny
-  + first version
-
+Revision 1.4  2005-02-14 17:13:31  peter
+  * truncate log
 
 }

@@ -66,16 +66,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-06-13 09:34:52  michael
-  + Fix for bug 3164 by Michalis Kamburelis
-
-  Revision 1.4  2004/06/12 13:30:33  michael
-  Fixed bug 3156, as suggested by Michalis Kamburelis
-
-  Revision 1.3  2004/05/04 17:14:52  marco
-   * some delphi compat aliases added.
-
-  Revision 1.2  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

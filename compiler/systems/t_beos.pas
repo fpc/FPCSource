@@ -496,36 +496,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.17  2004-12-22 16:32:45  peter
-    * maybequoted() added
-
-  Revision 1.16  2004/11/19 16:30:24  peter
-    * fixed setting of mangledname when importing
-
-  Revision 1.15  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.14  2004/10/15 09:24:38  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.13  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.12  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.10  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.9  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
-
-  Revision 1.8  2004/01/29 23:57:15  florian
-    * fixed linker response file handling
-
-  Revision 1.7  2004/01/29 22:50:53  florian
-    * tried to fix BeOS linking
+  Revision 1.18  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

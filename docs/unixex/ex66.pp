@@ -9,12 +9,12 @@ Var S    : String;
     Len  : longint;
 //    args : tmmapargs;
     P    : PChar;
-        
+
 begin
   s:='This is the string';
   Len:=Length(S);
   fd:=fpOpen('testfile.txt',O_wrOnly or o_creat);
-  If fd=-1 then 
+  If fd=-1 then
     Halt(1);
   If fpWrite(fd,S[1],Len)=-1 then
     Halt(2);

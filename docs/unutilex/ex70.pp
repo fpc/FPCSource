@@ -7,7 +7,7 @@ Uses UnixUtil;
 Var S : String;
     P : PPChar;
     I : longint;
-    
+
 begin
   // remark whitespace at end.
   S:='This is a string with words. ';
@@ -18,5 +18,5 @@ begin
     Writeln('Word ',i,' : ',P[i]);
     Inc(I);
     end;
-  FreeMem(P,i*SizeOf(Pchar));  
+  FreeMem(P,i*SizeOf(Pchar));
 end.

@@ -905,7 +905,7 @@ function INetLibURLGetInfo(libRefnum: UInt16; inetH: MemHandle; var urlTextP: UI
 
 type
   int = SmallInt;
-  
+
 function INetLibWiCmd(refNum: UInt16; cmd: UInt16 {WiCmdEnum}; enableOrX, y: int): Boolean; syscall inetLibTrapWiCmd;
 
 function INetLibWirelessIndicatorCmd(refNum: UInt16; inetH: MemHandle; {WiCmdEnum} cmd: UInt16; enableOrX, y: int): Boolean; syscall inetLibTrapWirelessIndicatorCmd;

@@ -66,22 +66,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-08-08 16:52:51  florian
-    * tried to fix some wsprintf issues
-    + now compiled in objfpc mode
-      so some integer => smallint changes where necessary; hopefully,
-      I didn't forget one
-
-  Revision 1.6  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.5  2002/11/04 12:19:01  marco
-   * Move tmsg and family to messages.inc. windows.pp needed include sequence patch
-
-  Revision 1.4  2002/10/10 14:58:16  florian
-    - removed conditionals for 0.99.14
-
-  Revision 1.3  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

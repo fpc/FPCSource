@@ -1085,24 +1085,7 @@ End.
 
 {
  $Log$
- Revision 1.14  2004-11-03 17:51:58  florian
-   * fixed missing cgutils usage
+ Revision 1.15  2005-02-14 17:13:06  peter
+   * truncate log
 
- Revision 1.13  2004/10/31 21:45:02  peter
-   * generic tlocation
-   * move tlocation to cgutils
-
- Revision 1.12  2004/10/30 15:21:37  florian
-   * fixed generic optimizer
-   * enabled generic optimizer for sparc
-
- Revision 1.11  2004/06/20 08:55:28  florian
-   * logs truncated
-
- Revision 1.10  2004/01/31 17:45:17  peter
-   * Change several $ifdef i386 to x86
-   * Change several OS_32 to OS_INT/OS_ADDR
-
- Revision 1.9  2004/01/30 13:42:03  florian
-   * fixed more alignment issues
 }

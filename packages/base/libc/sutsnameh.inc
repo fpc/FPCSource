@@ -24,8 +24,8 @@ function uname(__name:Putsname):longint;cdecl;external clib name 'uname';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TUTSName = utsname;
-  
+
 function uname(var __name: utsname):longint;cdecl;external clib name 'uname';
-  
+

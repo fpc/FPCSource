@@ -4,7 +4,7 @@ Uses strings;
 
 { Program to demonstrate the StrLower and StrUpper functions. }
 
-Const 
+Const
     P1 : PChar = 'THIS IS AN UPPERCASE PCHAR STRING';
     P2 : PChar = 'this is a lowercase string';
 

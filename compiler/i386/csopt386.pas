@@ -2196,76 +2196,7 @@ end.
 
 {
   $Log$
-  Revision 1.73  2004-12-30 14:51:22  jonas
-    * no more moving the loading of regvars past conditional jumps
-
-  Revision 1.72  2004/12/28 18:01:40  jonas
-    * fixed several regvar related bugs, cycle with -OZp3r doesn't work
-      yet though
-
-  Revision 1.71  2004/12/27 15:20:03  jonas
-    * fixed internalerror when cycling with -O3p3u
-
-  Revision 1.70  2004/12/18 15:16:10  jonas
-    * fixed tracking of usage of flags register
-    * fixed destroying of "memwrite"'s
-    * fixed checking of entire sequences in all cases (previously this was
-      only guaranteed if the new sequence was longer than the old one, and
-      not if vice versa)
-    * fixed wrong removal of sequences if a register load was already
-      completely removed in the previous sequence (because in that case,
-      that register has to be removed and renamed in the new sequence as
-      well before removing the new sequence)
-
-  Revision 1.69  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.68  2004/10/10 15:01:19  jonas
-    * several fixes to allocregbetween()
-
-  Revision 1.67  2004/10/06 19:24:38  jonas
-    * take into account the size of a write to determine whether a write to
-      one reference influences the contents of another reference
-
-  Revision 1.66  2004/10/04 20:46:22  peter
-    * spilling code rewritten for x86. It now used the generic
-      spilling routines. Special x86 optimization still needs
-      to be added.
-    * Spilling fixed when both operands needed to be spilled
-    * Cleanup of spilling routine, do_spill_readwritten removed
-
-  Revision 1.65  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.64.4.1  2004/09/20 19:28:23  peter
-    * fixed valgrind warning
-
-  Revision 1.64  2004/07/23 13:30:19  jonas
-    * fixed some more potential regvar bugs
-
-  Revision 1.63  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.62  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.61.2.2  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.61.2.1  2004/04/29 23:30:28  peter
-    * fix i386 compiler
-
-  Revision 1.61  2004/02/27 10:21:05  florian
-    * top_symbol killed
-    + refaddr to treference added
-    + refsymbol to treference added
-    * top_local stuff moved to an extra record to save memory
-    + aint introduced
-    * tppufile.get/putint64/aint implemented
-
-  Revision 1.60  2004/02/25 20:39:58  jonas
-    * fixed bugs that caused pasjpeg crashes
+  Revision 1.74  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

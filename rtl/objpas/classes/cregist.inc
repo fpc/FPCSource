@@ -148,7 +148,7 @@ begin
   Classes.Free;
   inherited Destroy;
 end;
-  
+
 var
   ComponentPages: TCollection;
 
@@ -222,16 +222,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-02 19:39:59  florian
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.2  2005/02/02 19:39:59  florian
     * empty class grouping functions
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.5  2003/04/19 14:29:25  michael
-  + Fix from Mattias Gaertner, closes memory leak
-
-  Revision 1.4  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
 
 }

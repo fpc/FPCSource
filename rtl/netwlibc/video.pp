@@ -187,7 +187,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2005-01-10 23:34:09  armin
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.4  2005/01/10 23:34:09  armin
   * code cleanup
 
 }

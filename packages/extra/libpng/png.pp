@@ -82,17 +82,17 @@ var
 {$ifndef darwin}
   png_libpng_ver    : array[0..11] of char;   cvar; external;
   png_pass_start    : array[0..6] of longint; cvar; external;
-  png_pass_inc      : array[0..6] of longint; cvar; external; 
+  png_pass_inc      : array[0..6] of longint; cvar; external;
   png_pass_ystart   : array[0..6] of longint; cvar; external;
-  png_pass_yinc     : array[0..6] of longint; cvar; external; 
+  png_pass_yinc     : array[0..6] of longint; cvar; external;
   png_pass_mask     : array[0..6] of longint; cvar; external;
   png_pass_dsp_mask : array[0..6] of longint; cvar; external;
 {$else darwin}
   png_libpng_ver    : array[0..11] of char;   external LibPng name 'png_libpng_ver';
   png_pass_start    : array[0..6] of longint; external LibPng name 'png_pass_start';
-  png_pass_inc      : array[0..6] of longint; external LibPng name 'png_pass_inc'; 
+  png_pass_inc      : array[0..6] of longint; external LibPng name 'png_pass_inc';
   png_pass_ystart   : array[0..6] of longint; external LibPng name 'png_pass_ystart';
-  png_pass_yinc     : array[0..6] of longint; external LibPng name 'png_pass_yinc'; 
+  png_pass_yinc     : array[0..6] of longint; external LibPng name 'png_pass_yinc';
   png_pass_mask     : array[0..6] of longint; external LibPng name 'png_pass_mask';
   png_pass_dsp_mask : array[0..6] of longint; external LibPng name 'png_pass_dsp_mask';
 {$endif darwin}

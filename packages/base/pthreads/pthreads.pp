@@ -34,7 +34,7 @@ uses unixtype;
 
 {$i pthrlinux.inc}
 {$endif}
-                
+
 implementation
 
 end.

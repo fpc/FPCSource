@@ -249,7 +249,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2004-06-20 08:55:32  florian
-    * logs truncated
+  Revision 1.3  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

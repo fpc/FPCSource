@@ -2,7 +2,7 @@ Program ex35;
 
 { Program to demonstrate the TSortedCollection.Insert method }
 
-Uses Objects,MyObject,MySortC; 
+Uses Objects,MyObject,MySortC;
  { For TMyObject,TMySortedCollection definition and registration }
 
 Var C : PSortedCollection;
@@ -27,6 +27,6 @@ begin
     C^.Insert(M)
     end;
   Writeln ('Values : ');
-  C^.Foreach(@PrintField);   
+  C^.Foreach(@PrintField);
   Dispose(C,Done);
 end.

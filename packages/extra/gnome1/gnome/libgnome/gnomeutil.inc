@@ -36,10 +36,10 @@ function g_is_image_filename(path:Pchar):gboolean;cdecl;external libgnomedll nam
 
 //Function g_copy_strings(string1:Pgchar; args:array of const):Pgchar;
 Function g_filename_index(path : Pgchar) : Pgchar;
-Function g_filename_pointer(file_name:Pgchar):Pgchar; 
+Function g_filename_pointer(file_name:Pgchar):Pgchar;
 Function g_flatten_vector(separator:Pgchar; str_array:PPgchar) : Pgchar;
 Function gnome_util_user_home : Pgchar;
-Function gnome_util_prepend_user_home(x : Pgchar) : Pgchar; 
+Function gnome_util_prepend_user_home(x : Pgchar) : Pgchar;
 Function gnome_util_home_file(afile : Pgchar) : Pgchar;
 
 {$EndIf read_interface}
@@ -55,7 +55,7 @@ begin
   g_filename_index := Pointer(Longint(g_basename(path))-Longint(path));
 end;
 
-Function g_filename_pointer(file_name:Pgchar):Pgchar; 
+Function g_filename_pointer(file_name:Pgchar):Pgchar;
 begin
   g_filename_pointer := g_basename(file_name);
 end;
@@ -63,14 +63,14 @@ end;
 Function g_flatten_vector(separator:Pgchar; str_array:PPgchar) : Pgchar;
 begin
   g_flatten_vector := g_strjoinv(separator, str_array);
-end;  
+end;
 
 Function gnome_util_user_home : Pgchar;
 begin
   gnome_util_user_home := g_get_home_dir;
 end;
 
-Function gnome_util_prepend_user_home(x : Pgchar) : PgChar; 
+Function gnome_util_prepend_user_home(x : Pgchar) : PgChar;
 begin
   gnome_util_prepend_user_home := g_concat_dir_and_file(gnome_util_user_home, x);
 end;

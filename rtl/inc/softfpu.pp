@@ -2239,7 +2239,7 @@ the conversion overflows, the largest integer with the same sign as `a' is
 returned.
 -------------------------------------------------------------------------------
 *}
-Function float32_to_int32_round_to_zero( a: Float32 ): int32;  
+Function float32_to_int32_round_to_zero( a: Float32 ): int32;
  {$ifdef fpc}[public,Alias:'FLOAT32_TO_INT32_ROUND_TO_ZERO'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
  Var
     aSign : flag;
@@ -3810,7 +3810,7 @@ and `b'.  The operation is performed according to the IEC/IEEE Standard for
 Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_add( a: float64; b : float64; Var out : float64); 
+Procedure float64_add( a: float64; b : float64; Var out : float64);
 {$ifdef fpc}[public,Alias:'FLOAT64_ADD'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign, bSign: flag;
@@ -3834,7 +3834,7 @@ Returns the result of subtracting the double-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sub(a: float64; b : float64; var out: float64); 
+Procedure float64_sub(a: float64; b : float64; var out: float64);
 {$ifdef fpc}[public,Alias:'FLOAT64_SUB'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign, bSign: flag;
@@ -3858,7 +3858,7 @@ Returns the result of multiplying the double-precision floating-point values
 for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_mul( a: float64; b:float64; Var out: float64); 
+Procedure float64_mul( a: float64; b:float64; Var out: float64);
 {$ifdef fpc}[public,Alias:'FLOAT64_MUL'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign, bSign, zSign: flag;
@@ -3947,7 +3947,7 @@ by the corresponding value `b'.  The operation is performed according to the
 IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_div(a: float64; b : float64 ; var out: float64 ); 
+Procedure float64_div(a: float64; b : float64 ; var out: float64 );
 {$ifdef fpc}[public,Alias:'FLOAT64_DIV'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign, bSign, zSign: flag;
@@ -4063,7 +4063,7 @@ with respect to the corresponding value `b'.  The operation is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_rem(a: float64; b : float64; var out: float64); 
+Procedure float64_rem(a: float64; b : float64; var out: float64);
 {$ifdef fpc}[public,Alias:'FLOAT64_REM'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign, bSign, zSign: flag;
@@ -4203,7 +4203,7 @@ The operation is performed according to the IEC/IEEE Standard for Binary
 Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Procedure float64_sqrt( a: float64; var out: float64 ); 
+Procedure float64_sqrt( a: float64; var out: float64 );
 {$ifdef fpc}[public,Alias:'FLOAT64_SQRT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign: flag;
@@ -4300,7 +4300,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_eq(a: float64; b: float64): flag; 
+Function float64_eq(a: float64; b: float64): flag;
 {$ifdef fpc}[public,Alias:'FLOAT64_EQ'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Begin
     if
@@ -4340,7 +4340,7 @@ is performed according to the IEC/IEEE Standard for Binary Floating-Point
 Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_le(a: float64;b: float64): flag; 
+Function float64_le(a: float64;b: float64): flag;
 {$ifdef fpc}[public,Alias:'FLOAT64_LE'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign, bSign: flag;
@@ -4388,7 +4388,7 @@ the corresponding value `b', and 0 otherwise.  The comparison is performed
 according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 -------------------------------------------------------------------------------
 *}
-Function float64_lt(a: float64;b: float64): flag; 
+Function float64_lt(a: float64;b: float64): flag;
 {$ifdef fpc}[public,Alias:'FLOAT64_LT'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 Var
     aSign, bSign: flag;
@@ -4572,7 +4572,7 @@ End;
 | to the single-precision floating-point format.  The conversion is performed
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
-function int64_to_float32( a: int64 ): float32; 
+function int64_to_float32( a: int64 ): float32;
 {$ifdef fpc}[public,Alias:'INT64_TO_FLOAT32'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 var
     zSign : flag;
@@ -4623,7 +4623,7 @@ End;
 | to the double-precision floating-point format.  The conversion is performed
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*}
-function int64_to_float64( a: int64 ): float64; 
+function int64_to_float64( a: int64 ): float64;
 {$ifdef fpc}[public,Alias:'INT64_TO_FLOAT64'];{$ifdef hascompilerproc} compilerproc; {$endif}{$endif}
 var
  zSign : flag;
@@ -4661,25 +4661,7 @@ End;
 end.
 {
    $Log$
-   Revision 1.6  2002-11-30 23:25:19  carl
-     * forgot goto on switch in last commit
-
-   Revision 1.5  2002/11/30 21:34:20  carl
-     + compilerproc for softfpu (first step for integration)
-     * several bugfixes for big-endian support
-
-   Revision 1.4  2002/10/13 15:47:39  carl
-      * bugfix for int64 to float conversion
-
-   Revision 1.3  2002/10/12 20:24:22  carl
-     + int64_tof_loat conversion routines
-
-   Revision 1.2  2002/10/08 20:07:08  carl
-     * fix range check errors
-     - overflow checking must be off always
-     * debugged and works as expected
-
-   Revision 1.1  2002/09/16 19:10:17  carl
-     * first revision of FPU emulation
+   Revision 1.7  2005-02-14 17:13:26  peter
+     * truncate log
 
 }

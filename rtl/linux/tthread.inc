@@ -127,7 +127,7 @@ end;
 {$define WRITE_DEBUG := //}      // just comment out those lines
 {$ENDIF}
 
-function ThreadFunc(parameter: Pointer): PtrInt; 
+function ThreadFunc(parameter: Pointer): PtrInt;
 var
   LThread: TThread;
   c: char;
@@ -330,51 +330,11 @@ end;
 
 {
   $Log$
-  Revision 1.11  2005-02-06 11:20:52  peter
+  Revision 1.12  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.11  2005/02/06 11:20:52  peter
     * threading in system unit
     * removed systhrds unit
-
-  Revision 1.10  2004/12/23 15:08:58  marco
-   * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
-     only showed on make install should be fixed now.
-
-  Revision 1.9  2004/12/23 09:42:42  marco
-   * first tthread.synchronize support (merged neli's patches)
-
-  Revision 1.8  2004/12/12 14:30:27  peter
-    * x86_64 updates
-
-  Revision 1.7  2004/03/03 22:00:37  peter
-    * remove cdecl
-
-  Revision 1.6  2003/11/22 11:04:08  marco
-   * Johill: suspend fix
-
-  Revision 1.5  2003/11/19 15:51:54  peter
-    * tthread disabled for 1.0.x
-
-  Revision 1.4  2003/11/17 08:27:49  marco
-   * pthreads based ttread from Johannes Berg
-
-  Revision 1.3  2003/11/10 16:54:28  marco
-   * new oldlinux unit. 1_0 defines killed in some former FCL parts.
-
-  Revision 1.2  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.9  2003/10/06 17:06:55  florian
-    * applied Johannes Berg's patch for exception handling in threads
-
-  Revision 1.8  2003/09/20 15:10:30  marco
-   * small fixes. fcl now compiles
-
-  Revision 1.7  2002/12/18 20:44:36  peter
-    * use fillchar to clear sigset
-
-  Revision 1.6  2002/09/07 15:15:27  peter
-    * old logs removed and tabs fixed
 
 }

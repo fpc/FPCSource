@@ -20,10 +20,10 @@
   Usage: change the constants below. Do a search&replace where TTemplateWriter
   is changed to TMyFormatWriter (replace MyFormat with whatever you need)
   and fill in all methods.
-  
-  If your format is  some hyperlinked format, split in several output files, 
-  you should take the dw_template.pp template instead. 
-  
+
+  If your format is  some hyperlinked format, split in several output files,
+  you should take the dw_template.pp template instead.
+
 }
 
 {$mode objfpc}
@@ -39,7 +39,7 @@ const
   TemplateName = 'template';
   { Comprehensible description goes here:}
   STemplateUsageWriterDescr = 'Writes output in template format';
-  { Extension for the template } 
+  { Extension for the template }
   TTemplateExtension = '.tpl';
 
 
@@ -499,7 +499,7 @@ procedure TTemplateWriter.StartOverview(WithAccess : Boolean);
 
 begin
 {
-  If With access then it is a property overview. 
+  If With access then it is a property overview.
   Otherwise it is a method/function overview.
   If tabular output is generated, the preferred output order is:
   With access:
@@ -555,7 +555,7 @@ end;
 procedure TTemplateWriter.StartUnitOverview(AModuleName,AModuleLabel : String);
 
 begin
-  { Start of unit overview. 
+  { Start of unit overview.
     AModuleName : Name of current unit.
     AModuleLabel : Label name of current unit.
   }
@@ -584,7 +584,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2005-01-15 20:46:34  michael
+  Revision 1.2  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.1  2005/01/15 20:46:34  michael
     + Initial implementation of linear template.
 
   Revision 1.9  2005/01/12 21:11:41  michael

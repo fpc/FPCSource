@@ -85,15 +85,15 @@ Begin
     while (i<>0) and (cp^<>#0) DO
       Begin
         if cp^<>np^ Then
-	  Begin
- 	   inc(cp); inc(np);
-	   break;
+          Begin
+           inc(cp); inc(np);
+           break;
          End;
         inc(cp); inc(np);
-	dec(i)
-      End;  
+        dec(i)
+      End;
     if (i=0) and (cp^='=') Then
-	exit(cp+1);
+        exit(cp+1);
    inc(p);
   end;
  fpgetenv:=nil;
@@ -118,23 +118,7 @@ end;
 
 {
   $Log$
-  Revision 1.4  2004-01-01 14:07:55  marco
-   * FPC_USE_LIBC fixes to fpgetenv. No more appending of '=', and making a proper nullterminated string)
-
-  Revision 1.3  2003/12/30 12:24:01  marco
-   * FPC_USE_LIBC
-
-  Revision 1.2  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.1  2002/12/18 16:50:39  marco
-   * Unix RTL generic parts. Linux working, *BSD will follow shortly
-
-  Revision 1.2  2002/10/27 17:21:30  marco
-   * Only "difficult" functions + execvp + termios + rewinddir left to do
-
-  Revision 1.1  2002/10/27 13:16:54  marco
-   * Routines that certainly will be shared between Linux and *BSD
-
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

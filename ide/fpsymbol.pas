@@ -1840,21 +1840,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2004-11-09 16:47:55  peter
-    * update for varsym changed
-
-  Revision 1.7  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.6  2002/12/02 01:00:12  pierre
-   + Alt+I to disassemble a function from browser window
-
-  Revision 1.5  2002/09/07 15:40:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -31,6 +31,6 @@ function endttyent:longint;cdecl;external clib name 'endttyent';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TTtyEnt = ttyent;
-  
+

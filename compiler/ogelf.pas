@@ -390,15 +390,15 @@ implementation
            if (p.currbind=AB_LOCAL) then
              begin
                { For a relative relocation in the same section the
-	         value can be calculated }
+                 value can be calculated }
                if (p.section=currsec) and
-	          (relative=RELOC_RELATIVE) then
+                  (relative=RELOC_RELATIVE) then
                  inc(data,symaddr-len-currsec.datasize)
-	       else  
-	         begin
+               else
+                 begin
                    currsec.addsectionreloc(currsec.datasize,p.section,relative);
                    inc(data,symaddr);
-	         end;	 
+                 end;
              end
            else
              begin
@@ -901,35 +901,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2005-01-10 15:54:59  peter
+  Revision 1.25  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.24  2005/01/10 15:54:59  peter
     * Cleanup of writing of relocations to symbols
     * Only local symbols will now use a constant value or section relocation
-
-  Revision 1.23  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.22  2004/08/25 15:55:10  peter
-    * .rodata section support, disabled by default since it doesn't work
-      yet
-
-  Revision 1.21  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.20  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.19.2.6  2004/05/18 20:14:18  peter
-    * no section smartlink when using debuginfo
-
-  Revision 1.19.2.5  2004/05/10 21:28:34  peter
-    * section_smartlink enabled for gas under linux
-
-  Revision 1.19.2.4  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.19.2.3  2004/04/26 21:01:36  peter
-    * aint fixes
 
 }

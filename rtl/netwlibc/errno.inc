@@ -138,10 +138,7 @@
      SYS_ELASTERR = SYS_ENOCONTEXT;
 {
   $Log$
-  Revision 1.1  2004-09-05 20:58:47  armin
-  * first rtl version for netwlibc
-
-  Revision 1.4  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -76,10 +76,7 @@ begin
   { close the connection to the database and cleanup }
   PQfinish(conn);
 end.  $Log$
-end.  Revision 1.2  2002-09-07 15:42:53  peter
-end.    * old logs removed and tabs fixed
-end.
-end.  Revision 1.1  2002/01/29 17:54:56  peter
-end.    * splitted to base and extra
+end.  Revision 1.3  2005-02-14 17:13:19  peter
+end.    * truncate log
 end.
 }

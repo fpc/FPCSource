@@ -241,28 +241,7 @@ end;
 
 {
   $Log$
-  Revision 1.4  2003-10-16 19:24:24  hajny
-    * another longint2cardinal fix
-
-  Revision 1.3  2003/10/14 21:19:12  hajny
-    * another longint2cardinal fix
-
-  Revision 1.2  2003/10/13 21:17:31  hajny
-    * longint to cardinal corrections
-
-  Revision 1.1  2003/10/06 21:01:07  peter
-    * moved classes unit to rtl
-
-  Revision 1.8  2003/10/06 17:06:55  florian
-    * applied Johannes Berg's patch for exception handling in threads
-
-  Revision 1.7  2003/02/20 17:12:39  hajny
-    * fixes for OS/2 v2.1 incompatibility
-
-  Revision 1.6  2002/09/07 15:15:27  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/02/10 13:38:14  hajny
-    * DosCalls dependency removed to avoid type redefinitions
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

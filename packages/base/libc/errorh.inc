@@ -6,4 +6,4 @@ procedure error_at_line(status: longint; errnum: longint; fname: Pchar; lineno: 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

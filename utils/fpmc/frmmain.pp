@@ -104,11 +104,11 @@ ResourceString
   SErrsCompiling    = 'Encountered %d errors while compiling.';
   SSuccesCompiling = 'Succesfully compiled messages.';
   SErrUnexpected  = 'The following unexpected error occurred when compiling:%s';
-  
+
 { ---------------------------------------------------------------------
     Form Creation
   ---------------------------------------------------------------------}
-    
+
 Constructor TMainForm.Create;
 
 begin
@@ -171,7 +171,7 @@ end;
 { ---------------------------------------------------------------------
     Callback events
   ---------------------------------------------------------------------}
-  
+
 
 Procedure TMainForm.FileNewClick(Sender : TFPGtkObject; Data : Pointer);
 
@@ -286,18 +286,18 @@ end;
 { ---------------------------------------------------------------------
     Auxiliary methods
   ---------------------------------------------------------------------}
-  
+
 Procedure TMainForm.SetCaption;
 
 Var
   S : String;
-  
+
 begin
   S:=SCaption;
   If (FFileName<>'') then
     S:=S+' : '+ExtractFileName(FFileName);
-  If FModified then 
-    S:=S+' '+SModified;  
+  If FModified then
+    S:=S+' '+SModified;
   Title:=S;
 end;
 
@@ -343,11 +343,11 @@ begin
   PString(Data)^:=(Sender as TFPgtkFileSelection).Filename;
 end;
 
-      
+
 { ---------------------------------------------------------------------
     Public methods
   ---------------------------------------------------------------------}
-        
+
 
 Procedure TMainForm.LoadFromFile(FN : String);
 
@@ -410,7 +410,7 @@ Procedure TMainForm.Compile;
 Var
   M,P,R,I : TStream;
   S,MsgFileName : String;
-  
+
   Procedure SetupStreams;
 
   begin
@@ -451,7 +451,7 @@ begin
         Pas:=P;
         OnError:=@DoError;
         If FVerbose then
-          OnVerbose:=@DoVerbose; 
+          OnVerbose:=@DoVerbose;
         UnitName:=FUnitName;
         MessageFileName:=MsgFileName;
         EscapeNeeded:=FEscapePath;
@@ -476,7 +476,7 @@ begin
   except
     On E : Exception do
       MessageDlg(SErrUnexpected,[E.Message],mtError,[mbOK],0);
-  end;  
+  end;
 end;
 
 Procedure TMainForm.SaveOptions(Sender : TFPGtkWindow;Data : Pointer; Action : Integer;Initiator : TFPGtkObject);

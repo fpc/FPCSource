@@ -38,4 +38,4 @@ function addseverity(__severity:longint; __string:Pchar):longint;cdecl;external 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

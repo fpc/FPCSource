@@ -351,14 +351,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-11-05 22:32:28  peter
-    * merged xml updates from lazarus
-
-  Revision 1.2  2003/03/16 22:32:44  sg
-  * Fixed td and th attributes
-
-  Revision 1.1  2002/11/29 18:04:25  sg
-  * Improved HTML writing, now uses the HTML definition unit
-    (moved from FPDoc into FCL)
+  Revision 1.4  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

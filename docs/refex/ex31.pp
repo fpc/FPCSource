@@ -5,7 +5,7 @@ Program Example31;
 var
   L : Longint;
   W : Word;
-  
+
 begin
   L:=1 Shl 16;     { = $10000 }
   W:=1 Shl 8;      { = $100 }

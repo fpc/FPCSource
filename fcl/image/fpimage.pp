@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     fpImage base definitions.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -270,8 +270,8 @@ function FPColor (r,g,b:word) : TFPColor;
 
 operator = (const c,d:TFPColor) : boolean;
 operator or (const c,d:TFPColor) : TFPColor;
-operator and (const c,d:TFPColor) : TFPColor; 
-operator xor (const c,d:TFPColor) : TFPColor; 
+operator and (const c,d:TFPColor) : TFPColor;
+operator xor (const c,d:TFPColor) : TFPColor;
 function CompareColors(const Color1, Color2: TFPColor): integer;
 
 var ImageHandlers : TImageHandlersManager;
@@ -390,17 +390,17 @@ begin
   result := PFPColor (@color)^;
 end;
 
-operator or (const c,d:TFPColor) : TFPColor; 
+operator or (const c,d:TFPColor) : TFPColor;
 begin
   result := SetFullColorData(GetFullColorData(c) OR GetFullColorData(d));
 end;
 
-operator and (const c,d:TFPColor) : TFPColor; 
+operator and (const c,d:TFPColor) : TFPColor;
 begin
   result := SetFullColorData(GetFullColorData(c) AND GetFullColorData(d));
 end;
 
-operator xor (const c,d:TFPColor) : TFPColor; 
+operator xor (const c,d:TFPColor) : TFPColor;
 begin
   result := SetFullColorData(GetFullColorData(c) XOR GetFullColorData(d));
 end;

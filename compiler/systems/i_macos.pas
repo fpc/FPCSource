@@ -101,25 +101,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2004-10-25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.17  2004/09/12 20:33:21  olle
-    * Updated compiler status
-
-  Revision 1.16  2004/07/05 21:26:35  olle
-    + allow fileextension .p, in mode macpas
-
-  Revision 1.15  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.14  2004/05/03 09:48:15  olle
-    * changed .pas back to .p
-
-  Revision 1.13  2004/02/19 20:40:20  olle
-    + Support for Link on target especially for MacOS
-    + TLinkerMPW
-    + TAsmScriptMPW
+  Revision 1.19  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

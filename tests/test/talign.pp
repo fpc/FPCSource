@@ -5,23 +5,23 @@
 {$mode objfpc}
 
 type
-  tmyclass = class 
+  tmyclass = class
     s: ansistring;
     f: real;
   end;
-{$M+}  
+{$M+}
   tmyotherclass = class(tmyclass)
   public
     procedure tito(var Msg); message 'hello';
     procedure titi(var Msg); message 12;
-  published 
+  published
     procedure published_method;
   end;
-  
+
   procedure tmyotherclass.tito(var Msg);
    begin
    end;
-   
+
   procedure tmyotherclass.titi(var Msg);
    begin
    end;
@@ -29,8 +29,8 @@ type
   procedure tmyotherclass.published_method;
    begin
    end;
-   
-  
+
+
 var
  c: tmyclass;
 Begin

@@ -941,44 +941,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2004-12-03 15:57:11  peter
-    * fix for 1.9.4 that IE'd when rebuilding fpc
-
-  Revision 1.24  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.23  2004/10/31 21:45:02  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.22  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.21  2004/07/22 10:09:10  jonas
-    * fixed relabeling properly now :)
-
-  Revision 1.20  2004/07/22 10:07:09  jonas
-    * fixed relabeling (nextaltnr was never increased)
-    * fixed inlining of case statements at the node level
-
-  Revision 1.19  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.18  2004/06/16 20:07:06  florian
-    * dwarf branch merged
-
-  Revision 1.17.2.4  2004/05/11 21:04:40  peter
-    * ignore EXTDEBUG check for different asmsymbol type for system unit
-
-  Revision 1.17.2.3  2004/04/26 21:05:09  peter
-    * size of classes is now stored as aint
-
-  Revision 1.17.2.2  2004/04/12 19:34:45  peter
-    * basic framework for dwarf CFI
-
-  Revision 1.17.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
+  Revision 1.26  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

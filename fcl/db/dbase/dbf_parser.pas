@@ -1739,7 +1739,7 @@ initialization
     Add(TFunction.CreateOper('>=','SS', etBoolean, FuncStr_GTE, 80));
     Add(TFunction.CreateOper('<>','SS', etBoolean, FuncStr_NEQ, 80));
   end;
-    
+
   with DbfWordsSensNoPartialList do
     Add(TFunction.CreateOper('=', 'SS', etBoolean, FuncStr_EQ , 80));
 

@@ -441,7 +441,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.101  2005-01-30 11:26:40  peter
+  Revision 1.102  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.101  2005/01/30 11:26:40  peter
     * add info that a procedure is local in error messages
 
   Revision 1.100  2005/01/09 20:24:43  olle
@@ -456,65 +459,5 @@ end.
 
   Revision 1.97  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
-
-  Revision 1.96  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.95  2004/11/19 08:17:02  michael
-  * Split po_public into po_public and po_global (Peter)
-
-  Revision 1.94  2004/11/17 22:21:35  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.93  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.92  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.91  2004/11/01 10:33:01  peter
-    * symlist typeconv for absolute fixed
-
-  Revision 1.90  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.89  2004/10/08 17:09:43  peter
-    * tvarsym.varregable added, split vo_regable from varoptions
-
-  Revision 1.88  2004/09/13 20:30:22  peter
-    * vo_is_loop_counter added
-
-  Revision 1.87  2004/08/25 15:57:04  peter
-    * allow only 1 default property
-
-  Revision 1.86  2004/07/09 22:17:32  peter
-    * revert has_localst patch
-    * replace aktstaticsymtable/aktglobalsymtable with current_module
-
-  Revision 1.85  2004/07/06 19:52:04  peter
-    * fix storing of localst in ppu
-
-  Revision 1.84  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.83  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.82  2004/05/23 14:32:17  peter
-    * tprocinfoflag moved to globtype
-
-  Revision 1.81  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.80  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.79  2004/04/18 15:22:24  florian
-    + location support for arguments, currently PowerPC/MorphOS only
 
 }

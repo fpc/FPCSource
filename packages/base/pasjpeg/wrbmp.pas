@@ -19,7 +19,7 @@ uses
   jdeferr,
   jerror,
   jdmaster,
-  cdjpeg;		{ Common decls for cjpeg/djpeg applications }
+  cdjpeg;               { Common decls for cjpeg/djpeg applications }
 
 { The module selection routine for BMP format output. }
 
@@ -47,12 +47,12 @@ implementation
 type
   bmp_dest_ptr = ^bmp_dest_struct;
   bmp_dest_struct = record
-    pub : djpeg_dest_struct;	{ public fields }
+    pub : djpeg_dest_struct;    { public fields }
 
     is_os2 : boolean;           { saves the OS2 format request flag }
 
     whole_image : jvirt_sarray_ptr; { needed to reverse row order }
-    data_width : JDIMENSION;	    { JSAMPLEs per row }
+    data_width : JDIMENSION;        { JSAMPLEs per row }
     row_width : JDIMENSION;         { physical width of one row in the BMP file }
     pad_bytes : int;                { number of padding bytes needed per row }
     cur_output_row : JDIMENSION;    { next row# to write to virtual array }
@@ -97,7 +97,7 @@ begin
   outptr := BGRptr(image_ptr^[0]);
   for col := pred(cinfo^.output_width) downto 0 do
   begin
-    outptr^.r := inptr^;	{ can omit GETJSAMPLE() safely }
+    outptr^.r := inptr^;        { can omit GETJSAMPLE() safely }
     Inc(inptr);
     outptr^.g := inptr^;
     Inc(inptr);
@@ -119,7 +119,7 @@ end;
 {METHODDEF}
 procedure put_gray_rows (cinfo : j_decompress_ptr;
                          dinfo : djpeg_dest_ptr;
-	                 rows_supplied : JDIMENSION); far;
+                         rows_supplied : JDIMENSION); far;
 { This version is for grayscale OR quantized color output }
 var
   dest : bmp_dest_ptr;
@@ -141,7 +141,7 @@ begin
   outptr := JSAMPLE_PTR(image_ptr^[0]);
   for col := pred(cinfo^.output_width) downto 0 do
   begin
-    outptr^ := inptr^;	{ can omit GETJSAMPLE() safely }
+    outptr^ := inptr^;  { can omit GETJSAMPLE() safely }
     Inc(outptr);
     Inc(inptr);
   end;
@@ -217,24 +217,24 @@ begin
   MEMZERO(@bmpinfoheader, SIZEOF(bmpinfoheader));
 
   { Fill the file header }
-  bmpfileheader[0] := $42;	{ first 2 bytes are ASCII 'B', 'M' }
+  bmpfileheader[0] := $42;      { first 2 bytes are ASCII 'B', 'M' }
   bmpfileheader[1] := $4D;
   {PUT_4B(bmpfileheader, 2, bfSize);} { bfSize }
-	 bmpfileheader[2] := byte ((bfSize) and $FF);
-	 bmpfileheader[2+1] := byte (((bfSize) shr 8) and $FF);
-	 bmpfileheader[2+2] := byte (((bfSize) shr 16) and $FF);
-	 bmpfileheader[2+3] := byte (((bfSize) shr 24) and $FF);
+         bmpfileheader[2] := byte ((bfSize) and $FF);
+         bmpfileheader[2+1] := byte (((bfSize) shr 8) and $FF);
+         bmpfileheader[2+2] := byte (((bfSize) shr 16) and $FF);
+         bmpfileheader[2+3] := byte (((bfSize) shr 24) and $FF);
   { we leave bfReserved1 & bfReserved2 = 0 }
   {PUT_4B(bmpfileheader, 10, headersize);} { bfOffBits }
-	 bmpfileheader[10] := byte (headersize and $FF);
-	 bmpfileheader[10+1] := byte ((headersize shr 8) and $FF);
-	 bmpfileheader[10+2] := byte ((headersize shr 16) and $FF);
-	 bmpfileheader[10+3] := byte ((headersize shr 24) and $FF);
+         bmpfileheader[10] := byte (headersize and $FF);
+         bmpfileheader[10+1] := byte ((headersize shr 8) and $FF);
+         bmpfileheader[10+2] := byte ((headersize shr 16) and $FF);
+         bmpfileheader[10+3] := byte ((headersize shr 24) and $FF);
 
   { Fill the info header (Microsoft calls this a BITMAPINFOHEADER) }
   {PUT_2B(bmpinfoheader, 0, 40);}   { biSize }
-	 bmpinfoheader[0] := byte ((40) and $FF);
-	 bmpinfoheader[0+1] := byte (((40) shr 8) and $FF);
+         bmpinfoheader[0] := byte ((40) and $FF);
+         bmpinfoheader[0+1] := byte (((40) shr 8) and $FF);
 
   {PUT_4B(bmpinfoheader, 4, cinfo^.output_width);} { biWidth }
          bmpinfoheader[4] := byte ((cinfo^.output_width) and $FF);
@@ -246,7 +246,7 @@ begin
          bmpinfoheader[8+1] := byte ((cinfo^.output_height shr 8) and $FF);
          bmpinfoheader[8+2] := byte ((cinfo^.output_height shr 16) and $FF);
          bmpinfoheader[8+3] := byte ((cinfo^.output_height shr 24) and $FF);
-  {PUT_2B(bmpinfoheader, 12, 1);}	{ biPlanes - must be 1 }
+  {PUT_2B(bmpinfoheader, 12, 1);}       { biPlanes - must be 1 }
          bmpinfoheader[12] := byte (1 and $FF);
          bmpinfoheader[12+1] := byte ((1 shr 8) and $FF);
 
@@ -324,36 +324,36 @@ begin
   MEMZERO(@bmpcoreheader, SIZEOF(bmpcoreheader));
 
   { Fill the file header }
-  bmpfileheader[0] := $42;	{ first 2 bytes are ASCII 'B', 'M' }
+  bmpfileheader[0] := $42;      { first 2 bytes are ASCII 'B', 'M' }
   bmpfileheader[1] := $4D;
   {PUT_4B(bmpfileheader, 2, bfSize);} { bfSize }
-	 bmpfileheader[2] := byte ((bfSize) and $FF);
-	 bmpfileheader[2+1] := byte (((bfSize) shr 8) and $FF);
-	 bmpfileheader[2+2] := byte (((bfSize) shr 16) and $FF);
-	 bmpfileheader[2+3] := byte (((bfSize) shr 24) and $FF);
+         bmpfileheader[2] := byte ((bfSize) and $FF);
+         bmpfileheader[2+1] := byte (((bfSize) shr 8) and $FF);
+         bmpfileheader[2+2] := byte (((bfSize) shr 16) and $FF);
+         bmpfileheader[2+3] := byte (((bfSize) shr 24) and $FF);
   { we leave bfReserved1 & bfReserved2 := 0 }
   {PUT_4B(bmpfileheader, 10, headersize);} { bfOffBits }
-	 bmpfileheader[10] := byte ((headersize) and $FF);
-	 bmpfileheader[10+1] := byte (((headersize) shr 8) and $FF);
-	 bmpfileheader[10+2] := byte (((headersize) shr 16) and $FF);
-	 bmpfileheader[10+3] := byte (((headersize) shr 24) and $FF);
+         bmpfileheader[10] := byte ((headersize) and $FF);
+         bmpfileheader[10+1] := byte (((headersize) shr 8) and $FF);
+         bmpfileheader[10+2] := byte (((headersize) shr 16) and $FF);
+         bmpfileheader[10+3] := byte (((headersize) shr 24) and $FF);
 
   { Fill the info header (Microsoft calls this a BITMAPCOREHEADER) }
-  {PUT_2B(bmpcoreheader, 0, 12);}	{ bcSize }
-	 bmpcoreheader[0] := byte (12 and $FF);
-	 bmpcoreheader[0+1] := byte ((12 shr 8) and $FF);
+  {PUT_2B(bmpcoreheader, 0, 12);}       { bcSize }
+         bmpcoreheader[0] := byte (12 and $FF);
+         bmpcoreheader[0+1] := byte ((12 shr 8) and $FF);
   {PUT_2B(bmpcoreheader, 4, cinfo^.output_width);} { bcWidth }
-	 bmpcoreheader[4] := byte (cinfo^.output_width and $FF);
-	 bmpcoreheader[4+1] := byte ((cinfo^.output_width shr 8) and $FF);
+         bmpcoreheader[4] := byte (cinfo^.output_width and $FF);
+         bmpcoreheader[4+1] := byte ((cinfo^.output_width shr 8) and $FF);
   {PUT_2B(bmpcoreheader, 6, cinfo^.output_height);} { bcHeight }
-	 bmpcoreheader[6] := byte (cinfo^.output_height and $FF);
-	 bmpcoreheader[6+1] := byte ((cinfo^.output_height shr 8) and $FF);
-  {PUT_2B(bmpcoreheader, 8, 1);}	{ bcPlanes - must be 1 }
-	 bmpcoreheader[8] := byte (1 and $FF);
-	 bmpcoreheader[8+1] := byte ((1 shr 8) and $FF);
+         bmpcoreheader[6] := byte (cinfo^.output_height and $FF);
+         bmpcoreheader[6+1] := byte ((cinfo^.output_height shr 8) and $FF);
+  {PUT_2B(bmpcoreheader, 8, 1);}        { bcPlanes - must be 1 }
+         bmpcoreheader[8] := byte (1 and $FF);
+         bmpcoreheader[8+1] := byte ((1 shr 8) and $FF);
   {PUT_2B(bmpcoreheader, 10, bits_per_pixel);} { bcBitCount }
-	 bmpcoreheader[10] := byte (bits_per_pixel and $FF);
-	 bmpcoreheader[10+1] := byte ((bits_per_pixel shr 8) and $FF);
+         bmpcoreheader[10] := byte (bits_per_pixel and $FF);
+         bmpcoreheader[10+1] := byte ((bits_per_pixel shr 8) and $FF);
 
   if (JFWRITE(dest^.pub.output_file, @bmpfileheader, 14) <> size_t (14)) then
     ERREXIT(j_common_ptr(cinfo), JERR_FILE_WRITE);
@@ -371,7 +371,7 @@ end;
 {LOCAL}
 procedure write_colormap (cinfo : j_decompress_ptr;
                           dest : bmp_dest_ptr;
-		          map_colors : int;
+                          map_colors : int;
                           map_entry_size : int);
 var
   colormap : JSAMPARRAY;
@@ -555,7 +555,7 @@ begin
   { Create module interface object, fill in method pointers }
   dest := bmp_dest_ptr (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(bmp_dest_struct)) );
+                                  SIZEOF(bmp_dest_struct)) );
   dest^.pub.start_output := start_output_bmp;
   dest^.pub.finish_output := finish_output_bmp;
   dest^.is_os2 := is_os2;

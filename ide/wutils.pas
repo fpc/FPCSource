@@ -1364,7 +1364,7 @@ end;
 {$ifdef netware}
 begin
   Delay (10);
-end;  
+end;
 {$endif}
 
 procedure RegisterWUtils;
@@ -1379,50 +1379,7 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.20  2004-12-19 20:31:16  hajny
-    * GiveUpTimeSlice for Dos improved for better cooperation with some TSRs on plain DOS
-
-  Revision 1.19  2004/12/19 13:55:42  florian
-    * x86_64 compilation fixed
-
-  Revision 1.18  2004/09/16 22:08:13  armin
-  * added target netwlibc
-
-  Revision 1.17  2003/09/27 14:03:45  peter
-    * fixed for unix
-
-  Revision 1.16  2002/09/11 12:10:03  pierre
-   * fix bug in new readline method on line overflow
-
-  Revision 1.15  2002/09/11 08:30:38  pierre
-   * avoid a lot of useless calls in readline method
-
-  Revision 1.14  2002/09/10 12:19:14  pierre
-   * use faster method for loading files by default
-
-  Revision 1.13  2002/09/09 06:58:27  pierre
-   + FastBufStream.readline method added
-
-  Revision 1.12  2002/09/07 15:40:50  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.11  2002/09/06 09:53:53  pierre
-   * explicitly set BasePos to zero in TFastBufStream constructor
-
-  Revision 1.10  2002/08/29 07:59:46  pierre
-  CVS: Enter log comment for commit
-   + SizeOfFile function added
-
-  Revision 1.9  2002/05/13 13:44:33  peter
-    * fixed range error
-
-  Revision 1.8  2002/04/02 13:23:02  pierre
-   + HextToCard StrToCard new functions
-
-  Revision 1.7  2002/03/22 16:43:27  pierre
-   * avoid that constructor is proposed for code complete if const is given
-
-  Revision 1.6  2002/03/20 13:48:31  pierre
-   * avoid stack corruption in CharStr if count > 255
+  Revision 1.21  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

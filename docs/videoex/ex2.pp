@@ -9,9 +9,9 @@ uses video,keyboard;
 Var
   P,PP,D : Integer;
   K: TKeyEvent;
-  
+
   Procedure PutSquare (P : INteger; C : Char);
-  
+
   begin
     VideoBuf^[P]:=Ord(C)+($07 shl 8);
     VideoBuf^[P+ScreenWidth]:=Ord(c)+($07 shl 8);
@@ -30,12 +30,12 @@ begin
     PutSquare(P,'#');
     SetCursorPos(P Mod ScreenWidth,P div ScreenWidth);
     UpdateScreen(False);
-    PP:=P;  
+    PP:=P;
     Repeat
       D:=0;
       K:=TranslateKeyEvent(GetKeyEvent);
       Case GetKeyEventCode(K) of
-        kbdLeft : If (P Mod ScreenWidth)<>0 then 
+        kbdLeft : If (P Mod ScreenWidth)<>0 then
                    D:=-1;
         kbdUp : If P>=ScreenWidth then
                  D:=-ScreenWidth;
@@ -43,7 +43,7 @@ begin
                    D:=1;
         kbdDown : if (P<(VideoBufSize div 2)-(ScreenWidth*2)) then
                    D:=ScreenWidth;
-      end;             
+      end;
     Until (D<>0) or (GetKeyEventChar(K)='q');
     P:=P+D;
   until GetKeyEventChar(K)='q';

@@ -92,7 +92,7 @@ Const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TRLimit = rlimit;
   TRLimit64 = rlimit64;
   TRUsage = rusage;

@@ -395,11 +395,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2004-10-15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.6  2004/06/20 08:55:30  florian
-    * logs truncated
+  Revision 1.8  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

@@ -25,9 +25,9 @@ function dladdr(__address:pointer; __info:PDl_info):longint;cdecl;external clib 
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TDLInfo = Dl_info;
   PDLInfo = ^TDLInfo;
-    
+
 function dladdr(__address:pointer; var __info: Dl_info):longint;cdecl;external clib name 'dladdr';
-    
+

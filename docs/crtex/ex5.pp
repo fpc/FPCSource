@@ -14,7 +14,7 @@ begin
   ClrScr;
   Write('The window is cleared, press any key to restore to fullscreen');
   ReadKey;
-{Full Screen is 80x25}  
+{Full Screen is 80x25}
   Window(1,1,80,25);
   Clrscr;
   Writeln('Back in Full Screen');

@@ -12,7 +12,7 @@ begin
   Writeln('Creating class');
   MySQL := TSQLite.Create('test.db');
   MySQL.BusyTimeout := 1000;
-  
+
  // writeln(MySQL.Version);
   Writeln('Creating table');
   SQL := 'CREATE TABLE Test(No int, Nom varchar(32),Prenom varchar(32));';
@@ -34,17 +34,17 @@ begin
   SQL := 'SELECT * FROM Test;';
   MySQL.Query(sql, nil);
   writeln('Fields Names -------------------');
-  for i:=0 to MySQL.List_FieldName.count-1 do 
+  for i:=0 to MySQL.List_FieldName.count-1 do
     writeln(i,' -> ',MySQL.List_FieldName.Strings[i]);
   writeln('Fields -------------------');
-  for i:=0 to MySQL.List_Field.count-1 do 
+  for i:=0 to MySQL.List_Field.count-1 do
       begin
- 	a:=TStringList(MySQL.List_Field.items[i]); 
- 	write(i,' -> ');
-        for j:=0 to a.count-1 do  
+        a:=TStringList(MySQL.List_Field.items[i]);
+        write(i,' -> ');
+        for j:=0 to a.count-1 do
           write(a.Strings[j],'  ');
         writeln('');
-      end;   
+      end;
 
 // Uncomment to remove table again.
 //  SQL := 'DROP TABLE Test;';

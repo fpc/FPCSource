@@ -1136,16 +1136,7 @@ begin
   EmitFooter;
   CloseOutFile;
 end.  $Log$
-end.  Revision 1.4  2003-11-14 17:14:13  marco
-end.   * linuxerror fix
-end.
-end.  Revision 1.3  2003/09/27 12:12:50  peter
-end.    * fixed for unix
-end.
-end.  Revision 1.2  2002/09/07 15:42:54  peter
-end.    * old logs removed and tabs fixed
-end.
-end.  Revision 1.1  2002/01/29 17:54:59  peter
-end.    * splitted to base and extra
+end.  Revision 1.5  2005-02-14 17:13:20  peter
+end.    * truncate log
 end.
 }

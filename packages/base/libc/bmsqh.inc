@@ -49,6 +49,6 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TMsgQueueIdDesc = msqid_ds;
   PMsgQueueIdDesc = ^TMsgQueueIdDesc;

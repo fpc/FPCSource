@@ -358,54 +358,8 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-05-28 21:43:25  marco
-   * and now for others too
-
-  Revision 1.15  2004/05/28 21:41:49  marco
-   * added mov errno,%eax
-
-  Revision 1.14  2004/03/10 21:41:53  jonas
-    * fixed syscall return value checking
-
-  Revision 1.13  2004/03/03 22:10:48  peter
-    * fixed previous commit
-
-  Revision 1.12  2004/03/03 22:03:10  peter
-    * regcall fix for threadvar
-
-  Revision 1.11  2004/02/06 23:06:16  florian
-    - killed tsyscallregs
-
-  Revision 1.10  2004/01/06 21:32:53  peter
-    * use relocate_proc
-
-  Revision 1.9  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.7  2002/12/24 19:45:59  peter
-    * only set errno when syscall fails
-
-  Revision 1.6  2002/12/23 21:17:53  peter
-    * MT fix
-
-  Revision 1.5  2002/12/23 20:56:32  peter
-    * Reset Errno to 0 if call is successfull
-    * Fix broken 1.0.x Errno which does not have threadvar
-
-  Revision 1.4  2002/12/18 20:41:33  peter
-    * Threadvar support for Errno
-    * Fixed syscall error return check
-    * Uncommented Syscall with 6 parameters, only 5 were really set
-
-  Revision 1.3  2002/12/18 16:46:37  marco
-   * Some mods.
-
-  Revision 1.2  2002/11/16 15:37:47  marco
-   * TSysParam + result moved to -h
-
-  Revision 1.1  2002/11/12 13:31:32  marco
-   * New syscall.inc
-
+  Revision 1.17  2005-02-14 17:13:30  peter
+    * truncate log
 
 }
- 
+

@@ -261,14 +261,14 @@ begin
   // Result:=FPCCountEnvVar(EnvP);
   Result:=0;
 end;
-    
+
 Function GetEnvironmentString(Index : Integer) : String;
-    
+
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);
   Result:='';
 end;
-        
+
 
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
                                                                        integer;
@@ -295,7 +295,7 @@ function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
 
 {$WARNING Should be probably changed according to the Unix version}
-var 
+var
   CommandLine: AnsiString;
   I: integer;
 
@@ -323,25 +323,7 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.10  2004-12-11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.9  2004/02/15 21:26:37  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.8  2004/01/20 23:09:14  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.7  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.5  2003/03/29 15:16:26  hajny
-    * dummy DirectoryExists added
-
-  Revision 1.4  2003/01/08 21:56:54  marco
-   * small fixes to prototypes to compile it
-
-  Revision 1.3  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
+  Revision 1.11  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

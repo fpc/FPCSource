@@ -41,10 +41,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-10-27 15:48:13  peter
-    * renamed forms unit to xforms to prevent conflict with Forms
-      from the LCL
+  Revision 1.4  2005-02-14 17:13:20  peter
+    * truncate log
 
-  Revision 1.2  2002/09/07 15:42:54  peter
-    * old logs removed and tabs fixed
 }

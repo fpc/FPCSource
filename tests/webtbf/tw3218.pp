@@ -7,7 +7,7 @@
 
 uses
   classes;
-  
+
 type TAProc = procedure(const s: string; o: TObject);
 var AProc: TAProc;
 procedure A(const s: string; c: TComponent);

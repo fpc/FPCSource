@@ -323,15 +323,7 @@ function abs(l : longint) : longint;
 
 {
   $Log$
-  Revision 1.5  2004-05-23 12:42:42  florian
-    + added currency and widestring support to TWriter and TReader
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.4  2004/01/02 17:22:14  jonas
-    + fpc_cpuinit procedure to allow cpu/fpu initialisation before any unit
-      initialises
-    + fpu exceptions for invalid operations and division by zero enabled for
-      ppc
-
-  Revision 1.3  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
 }

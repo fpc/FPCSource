@@ -4,7 +4,7 @@ Program Example23;
 
 Uses SysUtils,DateUtils;
 
-Var 
+Var
   D : TDateTime;
 
 Begin

@@ -88,16 +88,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2004-11-02 20:06:16  peter
-    * data too large
-
-  Revision 1.7  2004/09/15 19:20:51  hajny
-    * dxegen compilable for any target now
-
-  Revision 1.6  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/04/27 07:58:23  peter
-    * fixed 2gb limit
+  Revision 1.9  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

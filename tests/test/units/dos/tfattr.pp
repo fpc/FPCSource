@@ -318,14 +318,7 @@ Begin
 end.
 {
   $Log$
-  Revision 1.3  2002-12-06 16:48:02  peter
-    * Not supporting an ending slash is Dos specific
-
-  Revision 1.2  2002/11/18 09:49:49  pierre
-   * tried to make as many as possible tests non interactive
-
-  Revision 1.1  2002/11/08 21:01:18  carl
-    * separated some tests
-    * make tfexpand more portable
+  Revision 1.4  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

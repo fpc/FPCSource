@@ -52,17 +52,17 @@ begin
     ii := 0;
     for i := 0 to high(args) do begin
          if (not odd(i)) then begin
-	      mytags[ii].ti_tag := longint(Args[i].vinteger);
+              mytags[ii].ti_tag := longint(Args[i].vinteger);
          end else begin
-	     case Args[i].vtype of
-	          vtinteger : mytags[ii].ti_data := longint(Args[i].vinteger);
+             case Args[i].vtype of
+                  vtinteger : mytags[ii].ti_data := longint(Args[i].vinteger);
                   vtboolean : mytags[ii].ti_data := longint(byte(Args[i].vboolean));
-		  vtpchar   : mytags[ii].ti_data := longint(Args[i].vpchar);
-		  vtchar    : mytags[ii].ti_data := longint(Args[i].vchar);
-		  vtstring  : mytags[ii].ti_data := longint(pas2c(Args[i].vstring^));
-		  vtpointer : mytags[ii].ti_data := longint(Args[i].vpointer);
+                  vtpchar   : mytags[ii].ti_data := longint(Args[i].vpchar);
+                  vtchar    : mytags[ii].ti_data := longint(Args[i].vchar);
+                  vtstring  : mytags[ii].ti_data := longint(pas2c(Args[i].vstring^));
+                  vtpointer : mytags[ii].ti_data := longint(Args[i].vpointer);
              end;
-	     inc(ii);
+             inc(ii);
          end;
     end;
     readintags := @mytags;
@@ -72,14 +72,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.1  2002/11/22 21:34:59  nils
-
-    * initial release
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+
 

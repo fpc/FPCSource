@@ -385,7 +385,7 @@ begin
         begin
           NextToken;
           EnumValue := TPasEnumValue(CreateElement(TPasEnumValue,
-	    CurTokenString, Result));
+            CurTokenString, Result));
           TPasEnumType(Result).Values.Add(EnumValue);
           NextToken;
           if CurToken = tkBraceClose then
@@ -409,7 +409,7 @@ begin
     tkProcedure:
       begin
         Result := TPasProcedureType(
-	  CreateElement(TPasProcedureType, '', Parent));
+          CreateElement(TPasProcedureType, '', Parent));
         try
           ParseProcedureOrFunctionHeader(Result,
             TPasProcedureType(Result), False, True);
@@ -421,7 +421,7 @@ begin
     tkFunction:
       begin
         Result := Engine.CreateFunctionType('', Parent, False,
-	  Scanner.CurFilename, Scanner.CurRow);
+          Scanner.CurFilename, Scanner.CurRow);
         try
           ParseProcedureOrFunctionHeader(Result,
             TPasFunctionType(Result), True, True);
@@ -453,7 +453,7 @@ begin
     tkFunction:
       begin
         Result := Engine.CreateFunctionType('', nil, False, Scanner.CurFilename,
-	  Scanner.CurRow);
+          Scanner.CurRow);
         ParseProcedureOrFunctionHeader(Result,
           TPasFunctionType(Result), True, True);
         UngetToken;        // Unget semicolon
@@ -877,7 +877,7 @@ begin
     tkRecord:
       begin
         Result := TPasRecordType(CreateElement(TPasRecordType, TypeName,
-	  Parent));
+          Parent));
         try
           ParseRecordDecl(TPasRecordType(Result));
           TPasRecordType(Result).IsPacked := HadPackedModifier;
@@ -903,7 +903,7 @@ begin
     tkCaret:
       begin
         Result := TPasPointerType(CreateElement(TPasPointerType, TypeName,
-	  Parent));
+          Parent));
         try
           TPasPointerType(Result).DestType := ParseType(nil);
           ExpectToken(tkSemicolon);
@@ -928,7 +928,7 @@ begin
           UngetToken;
           UngetToken;
           Result := TPasAliasType(CreateElement(TPasAliasType, TypeName,
-	    Parent));
+            Parent));
           try
             TPasAliasType(Result).DestType := ParseType(nil,Prefix);
             ExpectToken(tkSemicolon);
@@ -940,7 +940,7 @@ begin
         begin
           // !!!: Check for string type and store string length somewhere
           Result := TPasAliasType(CreateElement(TPasAliasType, TypeName,
-	    Parent));
+            Parent));
           try
             TPasAliasType(Result).DestType :=
               TPasUnresolvedTypeRef.Create(CurTokenString, Parent);
@@ -997,7 +997,7 @@ begin
           begin
             NextToken;
             EnumValue := TPasEnumValue(CreateElement(TPasEnumValue,
-	      CurTokenString, Result));
+              CurTokenString, Result));
             TPasEnumType(Result).Values.Add(EnumValue);
             NextToken;
             if CurToken = tkBraceClose then
@@ -1014,7 +1014,7 @@ begin
     tkProcedure:
       begin
         Result := TPasProcedureType(CreateElement(TPasProcedureType, TypeName,
-	  Parent));
+          Parent));
         try
           ParseProcedureOrFunctionHeader(Result,
             TPasProcedureType(Result), False, True);
@@ -1026,7 +1026,7 @@ begin
     tkFunction:
       begin
         Result := Engine.CreateFunctionType(TypeName, Parent, False,
-	  Scanner.CurFilename, Scanner.CurRow);
+          Scanner.CurFilename, Scanner.CurRow);
         try
           ParseProcedureOrFunctionHeader(Result,
             TPasFunctionType(Result), True, True);
@@ -1038,7 +1038,7 @@ begin
     tkType:
       begin
         Result := TPasTypeAliasType(CreateElement(TPasTypeAliasType, TypeName,
-	  Parent));
+          Parent));
         try
           TPasTypeAliasType(Result).DestType := ParseType(nil);
           ExpectToken(tkSemicolon);
@@ -1446,13 +1446,13 @@ var
       // !!!: The following is more than ugly
       if MethodTypeName = 'constructor' then
         Proc := TPasConstructor(CreateElement(TPasConstructor, CurTokenString,
-	  Owner, CurVisibility))
+          Owner, CurVisibility))
       else if MethodTypeName = 'destructor' then
         Proc := TPasDestructor(CreateElement(TPasDestructor, CurTokenString,
-	  Owner, CurVisibility))
+          Owner, CurVisibility))
       else
         Proc := TPasProcedure(CreateElement(TPasProcedure, CurTokenString,
-	  Owner, CurVisibility));
+          Owner, CurVisibility));
       Proc.ProcType := TPasProcedureType(CreateElement(TPasProcedureType, '',
         Proc, CurVisibility));
     end;
@@ -1615,7 +1615,7 @@ begin
             begin
               ExpectIdentifier;
               Element := CreateElement(TPasProperty, CurTokenString, Result,
-	        CurVisibility);
+                CurVisibility);
               TPasClassType(Result).Members.Add(Element);
               NextToken;
               // !!!: Parse array properties correctly
@@ -1843,44 +1843,7 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-12-21 22:29:34  florian
-    * fixed previous patch
-
-  Revision 1.12  2004/12/21 22:19:16  florian
-    * fixed memory corruption
-
-  Revision 1.11  2004/12/06 19:16:38  michael
-  + Some cleanup, removed some keywords which are not keywords
-
-  Revision 1.10  2004/12/06 08:53:47  michael
-  + Fix from Dave Strodtman to properly support packed
-
-  Revision 1.9  2004/10/16 18:55:31  michael
-  + Support for cross-unit aliases
-
-  Revision 1.8  2004/09/13 16:02:36  peter
-    * fix nested for-loop with same index
-
-  Revision 1.7  2004/07/23 23:40:35  michael
-  + Fixed value of constant strings (added quotes)
-
-  Revision 1.6  2004/05/16 13:24:59  peter
-    * remove not implemented method
-
-  Revision 1.5  2004/04/15 22:15:57  michael
-  + Added support for deprecated after function/procedures
-
-  Revision 1.4  2003/11/22 12:14:14  sg
-  * Added support for source line number information
-
-  Revision 1.3  2003/06/24 12:59:07  michael
-  + Patches from Matthias Gaertner to fix parsing of LCL
-
-  Revision 1.2  2003/03/27 16:32:48  sg
-  * Added $IFxxx support
-  * Lots of small fixes
-
-  Revision 1.1  2003/03/13 21:47:42  sg
-  * First version as part of FCL
+  Revision 1.14  2005-02-14 17:13:16  peter
+    * truncate log
 
 }

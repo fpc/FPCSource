@@ -55,12 +55,12 @@ Implementation
 
 
 //function fprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t;
-//function fpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize;
+//function fpsendmsg    (s:cint; hdr: pmsghdr; flags:cint):ssize;
 
-//function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint;
+//function fpsocket     (domain:cint; xtype:cint; protocol: cint):cint;
 
 
-function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint;
+function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
 begin
   fpSocket:=WinSock.Socket(Domain,xtype,ProtoCol);
   if fpSocket<0 then
@@ -88,7 +88,7 @@ begin
     SocketError:=0;
 end;
 
-function fprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
+function fprecv         (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
   fpRecv:=WinSock.Recv(S,Buf,Len,Flags);
   if fpRecv<0 then
@@ -117,7 +117,7 @@ begin
     SocketError:=0;
 end;
 
-function fpshutdown 	(s:cint; how:cint):cint;
+function fpshutdown     (s:cint; how:cint):cint;
 begin
   fpShutDown:=WinSock.ShutDown(S,How);
   if fpShutDown<0 then
@@ -236,7 +236,7 @@ begin
   end else
   begin
     CloseSocket := 0;
-    SocketError := 0;	
+    SocketError := 0;
   end;
 end;
 
@@ -393,12 +393,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2004-09-19 20:06:37  armin
-  * removed get/free video buf from video.pp
-  * implemented sockets
-  * basic library support
-  * threadvar memory leak removed
-  * fixes (ide now starts and editor is usable)
-  * support for lineinfo
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

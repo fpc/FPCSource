@@ -104,10 +104,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-12-04 21:42:07  peter
-    * register calling updates
-
-  Revision 1.3  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -74,30 +74,10 @@ A_FABSq
 
 {
         $Log$
-        Revision 1.16  2005-01-07 16:22:54  florian
+        Revision 1.17  2005-02-14 17:13:10  peter
+          * truncate log
+
+        Revision 1.16  2005/01/07 16:22:54  florian
           + implemented abi compliant handling of strucutured functions results on sparc platform
-
-        Revision 1.15  2004/10/03 12:42:22  florian
-          * made sqrt, sqr and abs internal for the sparc
-
-        Revision 1.14  2004/06/20 08:55:32  florian
-          * logs truncated
-
-        Revision 1.13  2004/06/16 20:07:11  florian
-          * dwarf branch merged
-
-        Revision 1.12.2.3  2004/05/27 23:34:59  peter
-          * retl added
-
-        Revision 1.12.2.2  2004/05/25 21:38:53  peter
-          * assembler reader/writer updates
-
-        Revision 1.12.2.1  2004/05/13 20:58:47  florian
-          * fixed register addressed jumps in interface wrappers
-
-        Revision 1.12  2004/01/12 22:11:39  peter
-          * use localalign info for alignment for locals and temps
-          * sparc fpu flags branching added
-          * moved powerpc copy_valye_openarray to generic
 
 }

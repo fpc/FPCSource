@@ -1468,7 +1468,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.229  2005-01-04 16:36:31  peter
+  Revision 1.230  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.229  2005/01/04 16:36:31  peter
     * fix aftercosntruction calls, vmt=1 is used to indicate that
       afterconstruction needs to be called
     * only accept resourcestring when objpas is loaded
@@ -1477,151 +1480,5 @@ end.
     * insert stack_check helper call before doing register allocation
       so the used registers can't be reused when parameters are loaded
       into register variables
-
-  Revision 1.227  2004/12/27 16:35:48  peter
-    * set flag if a procedure references a symbol in staticsymtable
-
-  Revision 1.226  2004/12/27 14:41:09  jonas
-    - disable inlining for any procedure that contains assembler. Could
-      be enabled again if the procedure has neither local variables nor
-      parameters.
-
-  Revision 1.225  2004/12/15 21:08:15  peter
-    * disable inlining across units when the inline procedure references
-      a variable or procedure in the static symtable
-
-  Revision 1.224  2004/12/15 17:01:28  peter
-    * fixed crash with -vp
-
-  Revision 1.223  2004/12/15 16:00:16  peter
-    * external is again allowed in implementation
-
-  Revision 1.222  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.221  2004/12/02 19:26:15  peter
-    * disable pass2inline
-
-  Revision 1.220  2004/11/29 18:50:15  peter
-    * os2 fixes for import
-    * asmsymtype support for intel reader
-
-  Revision 1.219  2004/11/21 17:17:03  florian
-    * changed funcret location back to tlocation
-
-  Revision 1.218  2004/11/19 08:17:02  michael
-  * Split po_public into po_public and po_global (Peter)
-
-  Revision 1.217  2004/11/17 22:21:35  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.216  2004/11/16 20:32:41  peter
-  * fixes for win32 mangledname
-
-  Revision 1.215  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.214  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.213  2004/11/02 12:55:17  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.212  2004/10/31 18:54:25  peter
-    * $fpctarget expands to <cpu>-<os>
-    * allow * in middle of the path to support ../*/units/$fpctarget
-
-  Revision 1.211  2004/10/30 15:21:37  florian
-    * fixed generic optimizer
-    * enabled generic optimizer for sparc
-
-  Revision 1.210  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.209  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.208  2004/10/10 20:22:53  peter
-    * symtable allocation rewritten
-    * loading of parameters to local temps/regs cleanup
-    * regvar support for parameters
-    * regvar support for staticsymtable (main body)
-
-  Revision 1.207  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.206  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.205  2004/09/13 20:34:28  peter
-    * keep localst in memory, it is also needed for finalizing
-      typedconst
-
-  Revision 1.204  2004/09/04 21:18:47  armin
-  * target netwlibc added (libc is preferred for newer netware versions)
-
-  Revision 1.203.4.1  2004/09/17 17:19:26  peter
-    * fixed 64 bit unaryminus for sparc
-    * fixed 64 bit inlining
-    * signness of not operation
-
-  Revision 1.203  2004/08/14 14:50:42  florian
-    * fixed several sparc alignment issues
-    + Jonas' inline node patch; non functional yet
-
-  Revision 1.202  2004/07/16 21:11:31  jonas
-    - disable node-based inlining of routines with special array parameters
-      for now (de indexes of open arrays have to be changed, because on the
-      caller-side these routines are not necessarily 0-based)
-
-  Revision 1.201  2004/07/15 19:55:40  jonas
-    + (incomplete) node_complexity function to assess the complexity of a
-      tree
-    + support for inlining value and const parameters at the node level
-      (all procedures without local variables and without formal parameters
-       can now be inlined at the node level)
-
-  Revision 1.200  2004/07/12 09:14:04  jonas
-    * inline procedures at the node tree level, but only under some very
-      limited circumstances for now (only procedures, and only if they have
-      no or only vs_out/vs_var parameters).
-    * fixed ppudump for inline procedures
-    * fixed ppudump for ppc
-
-  Revision 1.199  2004/07/10 20:24:34  peter
-    * put every proc in a new object file
-
-  Revision 1.198  2004/07/09 22:17:32  peter
-    * revert has_localst patch
-    * replace aktstaticsymtable/aktglobalsymtable with current_module
-
-  Revision 1.197  2004/07/06 19:52:04  peter
-    * fix storing of localst in ppu
-
-  Revision 1.196  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.195  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.194  2004/05/28 21:14:13  peter
-    * first load para's to temps before calling entry code (profile
-
-  Revision 1.193  2004/05/24 17:31:12  peter
-    * also check local typed const
-
-  Revision 1.192  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.191  2004/05/23 15:06:21  peter
-    * implicit_finally flag must be set in pass1
-    * add check whether the implicit frame is generated when expected
 
 }

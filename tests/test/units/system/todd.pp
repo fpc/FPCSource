@@ -9,8 +9,8 @@ const
   RESULT_TWO = TRUE;
   VALUE_TWO = 12345;
   RESULT_CONST_TWO = odd(VALUE_TWO);
-  
- 
+
+
 procedure fail;
  begin
   WriteLn('Failure!');
@@ -65,8 +65,7 @@ end.
 
 {
  $Log$
- Revision 1.1  2002-09-18 18:30:30  carl
-   + currency testing
-   * more system unit routine testing
+ Revision 1.2  2005-02-14 17:13:37  peter
+   * truncate log
 
-} 
+}

@@ -3,8 +3,8 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2002 by the Free Pascal development team.
 
-    Timezone extraction routines 
-    
+    Timezone extraction routines
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -429,15 +429,7 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-01-08 22:32:28  marco
-   * Small fixes and quick merge with 1.0.x. At least the compiler builds now,
-      but it could crash hard, since there are lots of unimplemented funcs.
-
-  Revision 1.1.2.2  2002/05/01 14:06:13  carl
-  * bugfix for stricter POSIX checking
-  + TZ is now taken from GetTimezoneSitrng instead of getenv
-
-  Revision 1.1.2.1  2001/08/12 15:13:50  carl
-  + first version of timezone stuff (more checking than the unix version)
+  Revision 1.2  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

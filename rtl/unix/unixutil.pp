@@ -4,7 +4,7 @@
     Copyright (c) 1999-2000 by the Free Pascal development team
 
     <What does this file>
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -58,7 +58,7 @@ var p   : ppchar;
 begin
   if High(s)<Low(s) Then Exit(NIL);
   Getmem(p,sizeof(pchar)*(high(s)-low(s)+ReserveEntries+2));  // one more for NIL, one more
-					      // for cmd
+                                              // for cmd
   if p=nil then
     begin
       {$ifdef xunix}
@@ -68,7 +68,7 @@ begin
     end;
   for i:=low(s) to high(s) do
      p[i+Reserveentries]:=pchar(s[i]);
-  p[high(s)+1+Reserveentries]:=nil; 
+  p[high(s)+1+Reserveentries]:=nil;
   ArrayStringToPPchar:=p;
 end;
 
@@ -147,24 +147,24 @@ begin
   buf:=s;
   nr:=1;
   InQuote:=false;
-  while (buf^<>#0) do			// count nr of args
+  while (buf^<>#0) do                   // count nr of args
    begin
-     while (buf^ in [' ',#9,#10]) do	// Kill separators.
+     while (buf^ in [' ',#9,#10]) do    // Kill separators.
       inc(buf);
      inc(nr);
-     if buf^='"' Then			// quotes argument?
-      begin 
-	inc(buf);
-	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote 
-	 inc(buf);
-        if buf^='"' then		// skip closing quote.
-	  inc(buf);
+     if buf^='"' Then                   // quotes argument?
+      begin
+        inc(buf);
+        while not (buf^ in [#0,'"']) do // then end of argument is end of string or next quote
+         inc(buf);
+        if buf^='"' then                // skip closing quote.
+          inc(buf);
       end
      else
-       begin				// else std
-	 while not (buf^ in [' ',#0,#9,#10]) do
-	   inc(buf);
-       end;	
+       begin                            // else std
+         while not (buf^ in [' ',#0,#9,#10]) do
+           inc(buf);
+       end;
    end;
   getmem(p,(ReserveEntries+nr)*sizeof(pchar));
   StringToPPChar:=p;
@@ -175,37 +175,37 @@ begin
      {$endif}
      exit;
    end;
-  for i:=1 to ReserveEntries do inc(p);	// skip empty slots
+  for i:=1 to ReserveEntries do inc(p); // skip empty slots
   buf:=s;
   while (buf^<>#0) do
    begin
-     while (buf^ in [' ',#9,#10]) do	// Kill separators.
+     while (buf^ in [' ',#9,#10]) do    // Kill separators.
       begin
        buf^:=#0;
        inc(buf);
       end;
-     if buf^='"' Then			// quotes argument?
-      begin 
-	inc(buf);
+     if buf^='"' Then                   // quotes argument?
+      begin
+        inc(buf);
         p^:=buf;
-	inc(p);
-	p^:=nil;
-	while not (buf^ in [#0,'"']) do	// then end of argument is end of string or next quote 
-	 inc(buf);
-        if buf^='"' then		// skip closing quote.
-	  begin
-	    buf^:=#0;
-  	    inc(buf);
+        inc(p);
+        p^:=nil;
+        while not (buf^ in [#0,'"']) do // then end of argument is end of string or next quote
+         inc(buf);
+        if buf^='"' then                // skip closing quote.
+          begin
+            buf^:=#0;
+            inc(buf);
           end;
       end
      else
        begin
-	p^:=buf;
-	inc(p);
-	p^:=nil;
-	 while not (buf^ in [' ',#0,#9,#10]) do
-	   inc(buf);
-       end;	
+        p^:=buf;
+        inc(p);
+        p^:=nil;
+         while not (buf^ in [' ',#0,#9,#10]) do
+           inc(buf);
+       end;
    end;
 end;
 
@@ -358,7 +358,7 @@ Begin
      inc(YYear);
      dec(TempMonth,12);
    End;
-  inc(TempMonth,3);  
+  inc(TempMonth,3);
   Month := TempMonth;
   Year:=YYear+(JulianDN*100);
 end;
@@ -384,7 +384,7 @@ Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 {
   Transforms local time (year,month,day,hour,minutes,second) to Epoch time
    (seconds since 00:00, january 1 1970, corrected for local time zone)
-}  
+}
 Begin
   LocalToEpoch:=((GregorianToJulian(Year,Month,Day)-c1970)*86400)+
                 (LongInt(Hour)*3600)+(Longint(Minute)*60)+Second-TZSeconds;
@@ -410,33 +410,7 @@ End;
 end.
 {
   $Log$
-  Revision 1.6  2004-06-12 13:48:08  michael
-  + Patch from Michalis Kamburelis for FNMatch
+  Revision 1.7  2005-02-14 17:13:31  peter
+    * truncate log
 
-  revision 1.5
-  date: 2004/03/15 20:43:07;  author: peter;  state: Exp;  lines: +1 -1
-    * fix memory allocation in stringtoppchar
-  
-  revision 1.4
-  date: 2004/02/13 10:50:23;  author: marco;  state: Exp;  lines: +80 -22
-   * Hopefully last large changes to fpexec and friends.
-          - naming conventions changes from Michael.
-          - shell functions get alternative under ifdef.
-          - arraystring function moves to unixutil
-          - unixutil now regards quotes in stringtoppchar.
-          - sysutils/unix get executeprocess(ansi,array of ansi), and
-                  both executeprocess functions are fixed
-          - Sysutils/win32 get executeprocess(ansi,array of ansi)
-  
-  revision 1.3
-  date: 2003/11/03 09:42:28;  author: marco;  state: Exp;  lines: +3 -3
-   * Peter's Cardinal<->Longint fixes patch
-  
-  revision 1.2
-  date: 2003/09/17 19:07:44;  author: marco;  state: Exp;  lines: +80 -0
-   * more fixes for Unix<->unixutil
-  
-  revision 1.1
-  date: 2003/09/17 17:24:45;  author: marco;  state: Exp;
-   * Initial version. Plain vanilla copy and paste from unix.pp
 }

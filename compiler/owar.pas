@@ -283,17 +283,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2004-10-15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.15  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.14  2004/05/27 18:53:43  peter
-    * fix writing of // header
-
-  Revision 1.13  2004/05/09 11:07:39  peter
-  strip path from filenames of members, because win32 changes .\ to ./ for long filenames
+  Revision 1.17  2005-02-14 17:13:07  peter
+    * truncate log
 
 }

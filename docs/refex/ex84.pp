@@ -15,10 +15,10 @@ begin
     Write ('Please enter a nuber between 0 and ',max,' : ');
     ReadLn (Result);
   Until (Result>=0) and (Result<=Max);
-end; 
+end;
 
 exports
   Hello,
   GetNumber;
-  
+
 end. 

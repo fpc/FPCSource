@@ -23,7 +23,7 @@ Type
     Procedure CreateWindow;
     Procedure OnShow(Sender : TFpGtkObject;Data : Pointer);
   end;
-  
+
 Implementation
 
 uses fpdemsg;
@@ -39,7 +39,7 @@ Procedure TLinkForm.CreateWindow;
 
 Var
   OH,OV : TgtkAttachOPtions;
-  
+
 begin
   FVBox:=TFPGtkVBox.Create;
   FVBox.Spacing:=4;

@@ -1228,39 +1228,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-12-15 08:57:24  michael
-  Patch from Darek Mazur for reading idents from property stream
-
-  Revision 1.3  2003/12/15 08:55:56  michael
-  Patch from Darek Mazur for reading idents from property stream
-
-  Revision 1.2  2003/11/19 15:51:54  peter
-    * tthread disabled for 1.0.x
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.14  2003/06/04 17:40:44  michael
-  + Minor fix by Mattias Gaertner
-
-  Revision 1.13  2003/06/04 15:27:24  michael
-  + TDataModule en InitInheritedComponent erbij voor Delphi 6 compatibility
-
-  Revision 1.12  2003/04/19 14:29:25  michael
-  + Fix from Mattias Gaertner, closes memory leak
-
-  Revision 1.11  2002/12/02 12:04:07  sg
-  * Fixed handling of zero-length strings (classes.inc: When converting
-    empty strings from text forms to binary forms; reader.inc: When reading
-    an empty string from a binary serialization)
-
-  Revision 1.10  2002/09/07 15:15:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.9  2002/07/16 13:32:51  florian
-    + skeleton for TInterfaceList added
-
-  Revision 1.8  2002/01/06 21:54:49  peter
-    * action classes added
+  Revision 1.3  2005-02-14 17:13:11  peter
+    * truncate log
 
 }

@@ -189,7 +189,7 @@ begin
     begin
     If (P.CommandLine='') then
       Raise Exception.Create(SNoCommandline);
-    Cmd:=P.CommandLine;  
+    Cmd:=P.CommandLine;
     end
   else
     begin
@@ -250,21 +250,21 @@ Type
 Procedure CreatePipes(Var HI,HO,HE : TPipePair; CE : Boolean);
 
   Procedure CreatePair(Var P : TPipePair);
-  
+
    begin
     If not CreatePipeHandles(P[peRead],P[peWrite]) then
       Raise Exception.Create('Failed to create pipes');
    end;
 
   Procedure ClosePair(Var P : TPipePair);
-  
+
   begin
     if (P[peRead]<>-1) then
       FileClose(P[peRead]);
     if (P[peWrite]<>-1) then
       FileClose(P[peWrite]);
   end;
-  
+
 begin
   HO[peRead]:=-1;HO[peWrite]:=-1;
   HI[peRead]:=-1;HI[peWrite]:=-1;
@@ -296,23 +296,23 @@ Var
 begin
   If (poUsePipes in FProcessOptions) then
     CreatePipes(HI,HO,HE,Not (poStdErrToOutPut in FProcessOptions));
-  Try  
+  Try
     if FEnvironment.Count<>0 then
       FEnv:=StringsToPcharList(FEnvironment)
     else
       FEnv:=Nil;
-    Try  
+    Try
       Argv:=MakeCommand(Self);
       Try
         If (Argv<>Nil) and (ArgV[0]<>Nil) then
           PName:=StrPas(Argv[0])
         else
-          begin  
+          begin
           // This should never happen, actually.
           PName:=ApplicationName;
           If (PName='') then
             PName:=CommandLine;
-          end;  
+          end;
         if (pos('/',PName)<>1) then
           PName:=FileSearch(Pname,fpgetenv('PATH'));
         Pid:=fpfork;
@@ -326,7 +326,7 @@ begin
           FProcessId:=PID;
           //FThreadId:=PID;
           end
-        else 
+        else
           begin
           { We're in the child }
           if (FCurrentDirectory<>'') then
@@ -362,7 +362,7 @@ begin
       If (FEnv<>Nil) then
         FreePCharList(FEnv);
     end;
-  Finally  
+  Finally
     if POUsePipes in FProcessOptions then
       begin
       FileClose(HO[peWrite]);
@@ -371,7 +371,7 @@ begin
         FileClose(HE[peWrite]);
       CreateStreams(HI[peWrite],HO[peRead],HE[peRead]);
       end;
-  end;  
+  end;
   FRunning:=True;
   if not (csDesigning in ComponentState) and // This would hang the IDE !
      (poWaitOnExit in FProcessOptions) and

@@ -97,7 +97,7 @@ begin
 end;
 
 // needs oldfpccall;
-Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif} 
+Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif}
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -133,23 +133,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-13 20:01:37  peter
+   Revision 1.2  2005-02-14 17:13:22  peter
+     * truncate log
+
+   Revision 1.1  2005/02/13 20:01:37  peter
      * include file cleanup
-
-   Revision 1.8  2004/11/14 12:21:08  marco
-    * moved some calls from unix to baseunix. Darwin untested.
-
-   Revision 1.7  2004/11/03 15:00:43  marco
-    * Pathstr eliminated
-
-   Revision 1.6  2004/07/03 22:48:49  marco
-    * small fix for 1.0.x cycling
-
-   Revision 1.5  2004/04/22 16:22:10  marco
-    * fpnice fixes
-
-   Revision 1.4  2004/01/01 17:07:21  marco
-    * few small freebsd fixes backported from debugging linux
-
 
 }

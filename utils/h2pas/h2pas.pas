@@ -66,10 +66,10 @@ program h2pas;
 
   var space_array : array [0..255] of byte;
       space_index : byte;
-      
+
       { Used when PPointers is used - pointer type definitions }
       PTypeList : TStringList;
-      
+
 
         procedure shift(space_number : byte);
           var
@@ -140,7 +140,7 @@ program h2pas;
     function FixId(const s:string):string;
     const
      maxtokens = 14;
-     reservedid: array[1..maxtokens] of string[14] = 
+     reservedid: array[1..maxtokens] of string[14] =
        (
          'CLASS',
          'DISPOSE',
@@ -156,7 +156,7 @@ program h2pas;
          'TYPE',
          'TRUE',
          'UNTIL'
-       );  
+       );
       var
         b : boolean;
         up : string;
@@ -175,7 +175,7 @@ program h2pas;
                begin
                   b:=true;
                   break;
-                end;  
+                end;
           end;
         if b then
          FixId:='_'+s
@@ -210,7 +210,7 @@ program h2pas;
         begin
          PointerName:='P'+Copy(s,i,255);
          PTypeList.Add(PointerName);
-        end 
+        end
         else
          PointerName:=Copy(s,i,255);
         if PointerPrefix then
@@ -244,7 +244,7 @@ program h2pas;
                 line:=copy(line,1,ps-1)+ph+'_'+copy(line,ps+1,255);
               writeln(outfile,aktspace,line);
            end;
-         writeln(outfile);  
+         writeln(outfile);
          close(tempfile);
          rewrite(tempfile);
          popshift;
@@ -537,7 +537,7 @@ program h2pas;
        (* if in args *dname is replaced by pdname *)
        in_args : boolean = false;
        typedef_level : longint = 0;
-       
+
     (* writes an argument list, where p is t_arglist *)
 
     procedure write_args(var outfile:text; p : presobject);
@@ -633,7 +633,7 @@ program h2pas;
                          end;
                      end;
                    write(outfile,':');
-                   if varpara then 
+                   if varpara then
                    begin
                      write_p_a_def(outfile,p^.p1^.p2^.p1,p^.p1^.p1^.p1);
                    end
@@ -660,7 +660,7 @@ program h2pas;
          in_args:=old_in_args;
          popshift;
       end;
-       
+
 
 
     procedure write_p_a_def(var outfile:text; p,simple_type : presobject);
@@ -739,7 +739,7 @@ program h2pas;
                                          begin
                                           write(outfile,'P');
                                           pointerprefix:=true;
-                                         end 
+                                         end
                                          else
                                           write(outfile,'^');
                                          write_p_a_def(outfile,p^.p1,simple_type);
@@ -840,7 +840,7 @@ program h2pas;
                     begin
                      write(outfile,'P');
                      pointerprefix:=true;
-                    end 
+                    end
                     else
                      write(outfile,'^');
                     write_type_specifier(outfile,p^.p1);
@@ -1231,77 +1231,77 @@ begin
          yyval := yyv[yysp-0];
        end;
    2 : begin
-         
+
          yyval:=nil;
-         
+
        end;
    3 : begin
-         
+
          yyval:=nil;
-         
+
        end;
    4 : begin
-         
+
          writeln(outfile,'(* error ');
          writeln(outfile,yyline);
-         
+
        end;
    5 : begin
          if yydebug then writeln('declaration reduced at line ',line_no);
          if yydebug then writeln(outfile,'(* declaration reduced *)');
-         
+
        end;
    6 : begin
          if yydebug then writeln('define declaration reduced at line ',line_no);
          if yydebug then writeln(outfile,'(* define declaration reduced *)');
-         
+
        end;
    7 : begin
          if yydebug then writeln('declaration reduced at line ',line_no);
-         
+
        end;
    8 : begin
          if yydebug then writeln('define declaration reduced at line ',line_no);
-         
+
        end;
    9 : begin
-         yyval:=new(presobject,init_id('extern')); 
+         yyval:=new(presobject,init_id('extern'));
        end;
   10 : begin
-         yyval:=new(presobject,init_id('intern')); 
+         yyval:=new(presobject,init_id('intern'));
        end;
   11 : begin
-         yyval:=new(presobject,init_id('no_pop')); 
+         yyval:=new(presobject,init_id('no_pop'));
        end;
   12 : begin
-         yyval:=new(presobject,init_id('cdecl')); 
+         yyval:=new(presobject,init_id('cdecl'));
        end;
   13 : begin
-         yyval:=new(presobject,init_id('no_pop')); 
+         yyval:=new(presobject,init_id('no_pop'));
        end;
   14 : begin
-         yyval:=new(presobject,init_id('no_pop')); 
+         yyval:=new(presobject,init_id('no_pop'));
        end;
   15 : begin
-         yyval:=new(presobject,init_id('no_pop')); 
+         yyval:=new(presobject,init_id('no_pop'));
        end;
   16 : begin
-         yyval:=new(presobject,init_id('no_pop')); 
+         yyval:=new(presobject,init_id('no_pop'));
        end;
   17 : begin
-         yyval:=new(presobject,init_id('no_pop')); 
+         yyval:=new(presobject,init_id('no_pop'));
        end;
   18 : begin
-         yyval:=nil 
+         yyval:=nil
        end;
   19 : begin
-         yyval:=yyv[yysp-1]; 
+         yyval:=yyv[yysp-1];
        end;
   20 : begin
-         yyval:=nil; 
+         yyval:=nil;
        end;
   21 : begin
-         
+
          IsExtern:=false;
          (* by default we must pop the args pushed on stack *)
          no_pop:=false;
@@ -1316,7 +1316,7 @@ begin
          no_pop:=assigned(yyv[yysp-3]) and (yyv[yysp-3]^.str='no_pop');
          if block_type<>bt_func then
          writeln(outfile);
-         
+
          block_type:=bt_func;
          if not CompactMode then
          begin
@@ -1399,9 +1399,9 @@ begin
          writeln(outfile,aktspace,'var');
          end;
          block_type:=bt_var;
-         
+
          shift(3);
-         
+
          IsExtern:=assigned(yyv[yysp-5])and(yyv[yysp-5]^.str='extern');
          (* walk through all declarations *)
          hp:=yyv[yysp-2];
@@ -1431,10 +1431,10 @@ begin
          if assigned(yyv[yysp-5])then  dispose(yyv[yysp-5],done);
          if assigned(yyv[yysp-4])then  dispose(yyv[yysp-4],done);
          if assigned(yyv[yysp-2])then  dispose(yyv[yysp-2],done);
-         
+
        end;
   22 : begin
-         
+
          if block_type<>bt_type then
          begin
          if not(compactmode) then
@@ -1443,7 +1443,7 @@ begin
          block_type:=bt_type;
          end;
          shift(3);
-         if ( yyv[yysp-1]^.p2  <> nil ) then 
+         if ( yyv[yysp-1]^.p2  <> nil ) then
          begin
          (* write new type name *)
          TN:=TypeName(yyv[yysp-1]^.p2^.p);
@@ -1482,10 +1482,10 @@ begin
          writeln(outfile);
          popshift;
          end;
-         
+
        end;
   23 : begin
-         
+
          (* TYPEDEF STRUCT dname dname SEMICOLON *)
          if block_type<>bt_type then
          begin
@@ -1506,10 +1506,10 @@ begin
          dispose(yyv[yysp-2],done);
          if assigned(yyv[yysp-1]) then
          dispose(yyv[yysp-1],done);
-         
+
        end;
   24 : begin
-         
+
          (* TYPEDEF type_specifier LKLAMMER dec_modifier declarator RKLAMMER maybe_space LKLAMMER argument_declaration_list RKLAMMER SEMICOLON *)
          if block_type<>bt_type then
          begin
@@ -1552,10 +1552,10 @@ begin
          dispose(yyv[yysp-7],done);
          if assigned(yyv[yysp-6])then (* disposes also yyv[yysp-2] *)
          dispose(yyv[yysp-6],done);
-         
+
        end;
   25 : begin
-         
+
          (* TYPEDEF type_specifier dec_modifier declarator_list SEMICOLON *)
          if block_type<>bt_type then
          begin
@@ -1630,10 +1630,10 @@ begin
          dispose(yyv[yysp-2],done);
          if assigned(yyv[yysp-1])then
          dispose(yyv[yysp-1],done);
-         
+
        end;
   26 : begin
-         
+
          if block_type<>bt_type then
          begin
          if not(compactmode) then
@@ -1650,7 +1650,7 @@ begin
          popshift;
          if assigned(yyv[yysp-1]) then
          dispose(yyv[yysp-1],done);
-         
+
        end;
   27 : begin
          writeln(outfile,'in declaration at line ',line_no,' *)');
@@ -1664,7 +1664,7 @@ begin
          yyerrok;
        end;
   28 : begin
-         
+
          (* DEFINE dname LKLAMMER enum_list RKLAMMER para_def_expr NEW_LINE *)
          if not stripinfo then
          begin
@@ -1684,7 +1684,7 @@ begin
          block_type:=bt_func;
          write(outfile,aktspace,'function ',yyv[yysp-5]^.p);
          write(implemfile,aktspace,'function ',yyv[yysp-5]^.p);
-         
+
          if assigned(yyv[yysp-3]) then
          begin
          write(outfile,'(');
@@ -1721,27 +1721,27 @@ begin
          writeln(implemfile);
          flush(implemfile);
          if assigned(hp)then dispose(hp,done);
-         
+
        end;
   29 : begin
-         
+
          (* DEFINE dname SPACE_DEFINE NEW_LINE *)
          writeln(outfile,'{$define ',yyv[yysp-2]^.p,'}',aktspace,commentstr);
          flush(outfile);
          if assigned(yyv[yysp-2])then
          dispose(yyv[yysp-2],done);
-         
+
        end;
   30 : begin
-         
+
          writeln(outfile,'{$define ',yyv[yysp-1]^.p,'}',aktspace,commentstr);
          flush(outfile);
          if assigned(yyv[yysp-1])then
          dispose(yyv[yysp-1],done);
-         
+
        end;
   31 : begin
-         
+
          (* DEFINE dname SPACE_DEFINE def_expr NEW_LINE *)
          if (yyv[yysp-1]^.typ=t_exprlist) and
          yyv[yysp-1]^.p1^.is_const and
@@ -1803,7 +1803,7 @@ begin
          writeln(implemfile);
          flush(implemfile);
          end;
-         
+
        end;
   32 : begin
          writeln(outfile,'in define line ',line_no,' *)');
@@ -1814,7 +1814,7 @@ begin
          if_nb:=0;
          aktspace:='    ';
          space_index:=1;
-         
+
          yyerrok;
        end;
   33 : begin
@@ -1824,7 +1824,7 @@ begin
          writeln(outfile,' in member_list *)');
          yyerrok;
          yyval:=nil;
-         
+
        end;
   35 : begin
          yyval:=yyv[yysp-1];
@@ -1833,129 +1833,129 @@ begin
          writeln(outfile,' in enum_list *)');
          yyerrok;
          yyval:=nil;
-         
+
        end;
   37 : begin
-         
+
          if (not is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_two(t_structdef,yyv[yysp-1],yyv[yysp-2]));
-         
+
        end;
   38 : begin
-         
+
          if (is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 4}');
          is_packed:=false;
          yyval:=new(presobject,init_two(t_structdef,yyv[yysp-0],yyv[yysp-1]));
-         
+
        end;
   39 : begin
-         
+
          if (not is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_two(t_uniondef,yyv[yysp-1],yyv[yysp-2]));
-         
+
        end;
   40 : begin
-         
+
          yyval:=new(presobject,init_two(t_uniondef,yyv[yysp-0],yyv[yysp-1]));
-         
+
        end;
   41 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
   42 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
   43 : begin
-         
+
          yyval:=new(presobject,init_two(t_enumdef,yyv[yysp-0],yyv[yysp-1]));
-         
+
        end;
   44 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
   45 : begin
-         
+
          if not stripinfo then
          writeln(outfile,'(* Const before type ignored *)');
          yyval:=yyv[yysp-0];
-         
+
        end;
   46 : begin
-         
+
          if (not is_packed) and (not packrecords)then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_one(t_uniondef,yyv[yysp-1]));
-         
+
        end;
   47 : begin
-         
+
          yyval:=new(presobject,init_one(t_uniondef,yyv[yysp-0]));
-         
+
        end;
   48 : begin
-         
+
          if (not is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 1}');
          is_packed:=true;
          yyval:=new(presobject,init_one(t_structdef,yyv[yysp-1]));
-         
+
        end;
   49 : begin
-         
+
          if (is_packed) and (not packrecords) then
          writeln(outfile,'{$PACKRECORDS 4}');
          is_packed:=false;
          yyval:=new(presobject,init_one(t_structdef,yyv[yysp-0]));
-         
+
        end;
   50 : begin
-         
+
          yyval:=new(presobject,init_one(t_enumdef,yyv[yysp-0]));
-         
+
        end;
   51 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
   52 : begin
-         yyval:=yyv[yysp-0]; 
+         yyval:=yyv[yysp-0];
        end;
   53 : begin
-         
+
          yyval:=new(presobject,init_one(t_memberdeclist,yyv[yysp-1]));
          yyval^.next:=yyv[yysp-0];
-         
+
        end;
   54 : begin
-         
+
          yyval:=new(presobject,init_one(t_memberdeclist,yyv[yysp-0]));
-         
+
        end;
   55 : begin
-         
+
          yyval:=new(presobject,init_two(t_memberdec,yyv[yysp-2],yyv[yysp-1]));
-         
+
        end;
   56 : begin
          (*dname*)
          yyval:=new(presobject,init_id(act_token));
-         
+
        end;
   57 : begin
-         
+
          hp:=yyv[yysp-0];
          yyval:=hp;
          if assigned(hp) then
@@ -1974,10 +1974,10 @@ begin
          if s<>'' then
          hp^.setstr(s);
          end;
-         
+
        end;
   58 : begin
-         
+
          hp:=yyv[yysp-0];
          yyval:=hp;
          if assigned(hp) then
@@ -1996,141 +1996,141 @@ begin
          if s<>'' then
          hp^.setstr(s);
          end;
-         
+
        end;
   59 : begin
-         
+
          yyval:=new(presobject,init_intid(INT_STR));
-         
+
        end;
   60 : begin
-         
+
          yyval:=new(presobject,init_intid(INT_STR));
-         
+
        end;
   61 : begin
-         
+
          yyval:=new(presobject,init_intid(INT_STR));
-         
+
        end;
   62 : begin
-         
+
          yyval:=new(presobject,init_intid(INT64_STR));
-         
+
        end;
   63 : begin
-         
+
          yyval:=new(presobject,init_intid(INT64_STR));
-         
+
        end;
   64 : begin
-         
+
          yyval:=new(presobject,init_intid(SHORT_STR));
-         
+
        end;
   65 : begin
-         
+
          yyval:=new(presobject,init_intid(SHORT_STR));
-         
+
        end;
   66 : begin
-         
+
          yyval:=new(presobject,init_intid(REAL_STR));
-         
+
        end;
   67 : begin
-         
+
          yyval:=new(presobject,init_no(t_void));
-         
+
        end;
   68 : begin
-         
+
          yyval:=new(presobject,init_intid(CHAR_STR));
-         
+
        end;
   69 : begin
-         
+
          yyval:=new(presobject,init_intid(UINT_STR));
-         
+
        end;
   70 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
   71 : begin
-         
+
          yyval:=yyv[yysp-0];
          tn:=yyval^.str;
          if removeunderscore and
          (length(tn)>1) and (tn[1]='_') then
          yyval^.setstr(Copy(tn,2,length(tn)-1));
-         
+
        end;
   72 : begin
-         
+
          yyval:=yyv[yysp-2];
          hp:=yyv[yysp-2];
          while assigned(hp^.next) do
          hp:=hp^.next;
          hp^.next:=new(presobject,init_one(t_declist,yyv[yysp-0]));
-         
+
        end;
   73 : begin
-         
+
          writeln(outfile,' in declarator_list *)');
          yyval:=yyv[yysp-0];
          yyerrok;
-         
+
        end;
   74 : begin
-         
+
          writeln(outfile,' in declarator_list *)');
          yyerrok;
-         
+
        end;
   75 : begin
-         
+
          yyval:=new(presobject,init_one(t_declist,yyv[yysp-0]));
-         
+
        end;
   76 : begin
-         
+
          yyval:=new(presobject,init_two(t_arg,yyv[yysp-1],yyv[yysp-0]));
-         
+
        end;
   77 : begin
-         
+
          (* type_specifier STAR declarator *)
          hp:=new(presobject,init_one(t_pointerdef,yyv[yysp-2]));
          yyval:=new(presobject,init_two(t_arg,hp,yyv[yysp-0]));
-         
+
        end;
   78 : begin
-         
+
          yyval:=new(presobject,init_two(t_arg,yyv[yysp-1],yyv[yysp-0]));
-         
+
        end;
   79 : begin
-         
+
          yyval:=new(presobject,init_two(t_arglist,yyv[yysp-0],nil));
-         
+
        end;
   80 : begin
-         
+
          yyval:=new(presobject,init_two(t_arglist,yyv[yysp-2],nil));
          yyval^.next:=yyv[yysp-0];
-         
+
        end;
   81 : begin
-         
+
          yyval:=new(presobject,init_two(t_arglist,ellipsisarg,nil));
-         
+
        end;
   82 : begin
-         
+
          yyval:=nil;
-         
+
        end;
   83 : begin
          yyval:=new(presobject,init_id('far'));
@@ -2142,14 +2142,14 @@ begin
          yyval:=new(presobject,init_id('huge'));
        end;
   86 : begin
-         
+
          if not stripinfo then
          writeln(outfile,'(* Const before declarator ignored *)');
          yyval:=yyv[yysp-0];
-         
+
        end;
   87 : begin
-         
+
          if not stripinfo then
          writeln(outfile,aktspace,'(* ',yyv[yysp-2]^.p,' ignored *)');
          dispose(yyv[yysp-2],done);
@@ -2158,88 +2158,88 @@ begin
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
-         
+
        end;
   88 : begin
-         
+
          (* %prec PSTAR this was wrong!! *)
          hp:=yyv[yysp-0];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
-         
+
        end;
   89 : begin
-         
+
          hp:=yyv[yysp-0];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_one(t_addrdef,nil));
-         
+
        end;
   90 : begin
-         
+
          (*  size specifier supported *)
          hp:=new(presobject,init_one(t_size_specifier,yyv[yysp-0]));
          yyval:=new(presobject,init_three(t_dec,nil,yyv[yysp-2],hp));
-         
+
        end;
   91 : begin
-         
+
          if not stripinfo then
          writeln(outfile,'(* Warning : default value for ',yyv[yysp-2]^.p,' ignored *)');
          hp:=new(presobject,init_one(t_default_value,yyv[yysp-0]));
          yyval:=new(presobject,init_three(t_dec,nil,yyv[yysp-2],hp));
-         
+
        end;
   92 : begin
-         
+
          yyval:=new(presobject,init_two(t_dec,nil,yyv[yysp-0]));
-         
+
        end;
   93 : begin
-         
+
          hp:=yyv[yysp-3];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_procdef,nil,yyv[yysp-1]));
-         
+
        end;
   94 : begin
-         
+
          hp:=yyv[yysp-1];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_procdef,nil,nil));
-         
+
        end;
   95 : begin
-         
+
          hp:=yyv[yysp-3];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_arraydef,nil,yyv[yysp-1]));
-         
+
        end;
   96 : begin
-         
+
          (* this is translated into a pointer *)
          hp:=yyv[yysp-2];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
-         
+
        end;
   97 : begin
-         
+
          yyval:=yyv[yysp-1];
-         
+
        end;
   98 : begin
          yyval := yyv[yysp-1];
@@ -2248,14 +2248,14 @@ begin
          yyval := yyv[yysp-2];
        end;
  100 : begin
-         
+
          if not stripinfo then
          writeln(outfile,'(* Const before abstract_declarator ignored *)');
          yyval:=yyv[yysp-0];
-         
+
        end;
  101 : begin
-         
+
          if not stripinfo then
          writeln(outfile,aktspace,'(* ',yyv[yysp-2]^.p,' ignored *)');
          dispose(yyv[yysp-2],done);
@@ -2264,63 +2264,63 @@ begin
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
-         
+
        end;
  102 : begin
-         
+
          hp:=yyv[yysp-0];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
-         
+
        end;
  103 : begin
-         
+
          hp:=yyv[yysp-3];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_procdef,nil,yyv[yysp-1]));
-         
+
        end;
  104 : begin
-         
+
          hp:=yyv[yysp-1];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_procdef,nil,nil));
-         
+
        end;
  105 : begin
-         
+
          hp:=yyv[yysp-3];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_arraydef,nil,yyv[yysp-1]));
-         
+
        end;
  106 : begin
-         
+
          (* this is translated into a pointer *)
          hp:=yyv[yysp-2];
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
          hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
-         
+
        end;
  107 : begin
-         
+
          yyval:=yyv[yysp-1];
-         
+
        end;
  108 : begin
-         
+
          yyval:=new(presobject,init_two(t_dec,nil,nil));
-         
+
        end;
  109 : begin
          yyval:=yyv[yysp-0];
@@ -2375,7 +2375,7 @@ begin
          yyval:=yyv[yysp-0];
          inc(if_nb);
          yyval^.p:=strpnew('if_local'+str(if_nb));
-         
+
        end;
  126 : begin
          yyval:=yyv[yysp-0];
@@ -2385,81 +2385,81 @@ begin
          yyval:=new(presobject,init_three(t_ifexpr,nil,yyv[yysp-2],yyv[yysp-0]));
        end;
  128 : begin
-         yyval:=yyv[yysp-0]; 
+         yyval:=yyv[yysp-0];
        end;
  129 : begin
          yyval:=nil;
        end;
  130 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
  131 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
  132 : begin
-         
+
          (* remove L prefix for widestrings *)
          s:=act_token;
          if Win32headers and (s[1]='L') then
          delete(s,1,1);
          yyval:=new(presobject,init_id(''''+copy(s,2,length(s)-2)+''''));
-         
+
        end;
  133 : begin
-         
+
          yyval:=new(presobject,init_id(act_token));
-         
+
        end;
  134 : begin
-         
+
          yyval:=new(presobject,init_bop('.',yyv[yysp-2],yyv[yysp-0]));
-         
+
        end;
  135 : begin
-         
+
          yyval:=new(presobject,init_bop('^.',yyv[yysp-2],yyv[yysp-0]));
-         
+
        end;
  136 : begin
-         
+
          yyval:=new(presobject,init_preop('-',yyv[yysp-0]));
-         
+
        end;
  137 : begin
-         
+
          yyval:=new(presobject,init_preop('@',yyv[yysp-0]));
-         
+
        end;
  138 : begin
-         
+
          yyval:=new(presobject,init_preop(' not ',yyv[yysp-0]));
-         
+
        end;
  139 : begin
-         
+
          if assigned(yyv[yysp-0]) then
          yyval:=new(presobject,init_two(t_typespec,yyv[yysp-2],yyv[yysp-0]))
          else
          yyval:=yyv[yysp-2];
-         
+
        end;
  140 : begin
-         
+
          yyval:=new(presobject,init_two(t_typespec,yyv[yysp-2],yyv[yysp-0]));
-         
+
        end;
  141 : begin
-         
+
          hp:=new(presobject,init_one(t_pointerdef,yyv[yysp-3]));
          yyval:=new(presobject,init_two(t_typespec,hp,yyv[yysp-0]));
-         
+
        end;
  142 : begin
-         
+
          if not stripinfo then
          writeln(outfile,aktspace,'(* ',yyv[yysp-3]^.p,' ignored *)');
          dispose(yyv[yysp-3],done);
@@ -2467,39 +2467,39 @@ begin
          writeln(outfile,' ignored *)');
          hp:=new(presobject,init_one(t_pointerdef,yyv[yysp-4]));
          yyval:=new(presobject,init_two(t_typespec,hp,yyv[yysp-0]));
-         
+
        end;
  143 : begin
-         
+
          hp:=new(presobject,init_one(t_exprlist,yyv[yysp-3]));
          yyval:=new(presobject,init_three(t_funexprlist,hp,yyv[yysp-1],nil));
-         
+
        end;
  144 : begin
-         
+
          yyval:=yyv[yysp-1];
-         
+
        end;
  145 : begin
-         
+
          yyval:=new(presobject,init_two(t_callop,yyv[yysp-5],yyv[yysp-1]));
-         
+
        end;
  146 : begin
-         
+
          yyval:=new(presobject,init_two(t_arrayop,yyv[yysp-3],yyv[yysp-1]));
-         
+
        end;
  147 : begin
          (*enum_element COMMA enum_list *)
          yyval:=yyv[yysp-2];
          yyval^.next:=yyv[yysp-0];
-         
+
        end;
  148 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
  149 : begin
          (* empty enum list *)
@@ -2509,17 +2509,17 @@ begin
          begin (*enum_element: dname _ASSIGN expr *)
          yyval:=new(presobject,init_two(t_enumlist,yyv[yysp-2],yyv[yysp-0]));
          end;
-         
+
        end;
  151 : begin
-         
+
          begin (*enum_element: dname*)
          yyval:=new(presobject,init_two(t_enumlist,yyv[yysp-0],nil));
          end;
-         
+
        end;
  152 : begin
-         
+
          if yyv[yysp-0]^.typ=t_funexprlist then
          yyval:=yyv[yysp-0]
          else
@@ -2528,37 +2528,37 @@ begin
          we know the return type *)
          if (yyv[yysp-0]^.typ=t_typespec) then
          yyval^.p3:=yyv[yysp-0]^.p1^.get_copy;
-         
+
        end;
  153 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
  154 : begin
-         
+
          yyval:=yyv[yysp-1]
-         
+
        end;
  155 : begin
          (*exprlist COMMA expr*)
          yyval:=yyv[yysp-2];
          yyv[yysp-2]^.next:=yyv[yysp-0];
-         
+
        end;
  156 : begin
-         
+
          yyval:=yyv[yysp-0];
-         
+
        end;
  157 : begin
          (* empty expression list *)
-         yyval:=nil; 
+         yyval:=nil;
        end;
  158 : begin
-         
+
          yyval:=new(presobject,init_one(t_exprlist,yyv[yysp-0]));
-         
+
        end;
   end;
 end(*yyaction*);
@@ -7877,7 +7877,7 @@ begin
      Writeln(headerfile,aktspace,'  PDouble   = ^Double;');
      Writeln(headerfile);
    end;
-  if PTypeList.count <> 0 then 
+  if PTypeList.count <> 0 then
    Writeln(headerfile,aktspace,'Type');
   for i:=0 to (PTypeList.Count-1) do
    begin
@@ -7889,7 +7889,7 @@ begin
       writeln(headerfile,'{$IFDEF FPC}');
       writeln(headerfile,'{$PACKRECORDS C}');
       writeln(headerfile,'{$ENDIF}');
-   end;   
+   end;
   writeln(headerfile);
 end;
 
@@ -7923,7 +7923,7 @@ begin
      writeln('file ',inputfilename,' not found!');
      halt(1);
    end;
-  { This is the intermediate output file } 
+  { This is the intermediate output file }
   assign(outfile, 'ext3.tmp');
   {$I-}
   rewrite(outfile);
@@ -7966,7 +7966,7 @@ begin
   close(tempfile);
   erase(tempfile);
   flush(outfile);
-   
+
   {**** generate full file ****}
   assign(headerfile, 'ext4.tmp');
   {$I-}
@@ -7978,8 +7978,8 @@ begin
       halt(1);
   end;
   WriteFileHeader(HeaderFile);
-   
-  { Final output filename } 
+
+  { Final output filename }
   assign(finaloutfile, outputfilename);
   {$I-}
   rewrite(finaloutfile);
@@ -7990,7 +7990,7 @@ begin
      halt(1);
   end;
   writeln(finaloutfile);
-  
+
   { Read unit header file }
   reset(headerfile);
   while not eof(headerfile) do
@@ -8005,19 +8005,22 @@ begin
       readln(outfile,SS);
       writeln(finaloutfile,SS);
     end;
-   
+
   close(HeaderFile);
   close(outfile);
   close(finaloutfile);
   erase(outfile);
   erase(headerfile);
-   
+
   PTypeList.Free;
 end.
 
 {
   $Log$
-  Revision 1.14  2004-11-02 23:53:19  peter
+  Revision 1.15  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.14  2004/11/02 23:53:19  peter
     * fixed crashes with ide and 1.9.x
 
   Revision 1.9  2004/09/08 22:21:41  carl

@@ -8,8 +8,8 @@ Unit CdJpeg;
   This file contains common declarations for the sample applications
   cjpeg and djpeg.  It is NOT used by the core JPEG library. }
 
-{$define JPEG_CJPEG_DJPEG}	{ define proper options in jconfig.h }
-{$define JPEG_INTERNAL_OPTIONS}	{ cjpeg.c,djpeg.c need to see xxx_SUPPORTED }
+{$define JPEG_CJPEG_DJPEG}      { define proper options in jconfig.h }
+{$define JPEG_INTERNAL_OPTIONS} { cjpeg.c,djpeg.c need to see xxx_SUPPORTED }
 
 interface
 
@@ -95,9 +95,9 @@ type
 type
   cd_progress_ptr = ^cdjpeg_progress_mgr;
   cdjpeg_progress_mgr = record
-    pub : jpeg_progress_mgr;	{ fields known to JPEG library }
-    completed_extra_passes : int;	{ extra passes completed }
-    total_extra_passes : int;	{ total extra }
+    pub : jpeg_progress_mgr;    { fields known to JPEG library }
+    completed_extra_passes : int;       { extra passes completed }
+    total_extra_passes : int;   { total extra }
     { last printed percentage stored here to avoid multiple printouts }
     percent_done : int;
   end;
@@ -154,7 +154,7 @@ begin
     prog^.percent_done := percent_done;
     if (total_passes > 1) then
       Write(output, #13'Pass ',
-	      prog^.pub.completed_passes + prog^.completed_extra_passes + 1,
+              prog^.pub.completed_passes + prog^.completed_extra_passes + 1,
               '/',total_passes,': ',percent_done:3,'% ')
     else
       Write(#13' ', percent_done,'% ');
@@ -221,10 +221,10 @@ begin
     Inc(i);
     if (ca <> ck) then
     begin
-      keymatch := FALSE;		{ no good }
+      keymatch := FALSE;                { no good }
       exit;
     end;
-    Inc(nmatched);		{ count matched characters }
+    Inc(nmatched);              { count matched characters }
   end;
   { reached end of argument; fail if it's too short for unique abbrev }
   keymatch := (nmatched >= minchars);
@@ -265,7 +265,7 @@ begin
 {$ifdef USE_SETMODE}     { need to hack file mode? }
   setmode(fileno(stdout), O_BINARY);
 {$endif}
-{$ifdef USE_FDOPEN}		{ need to re-open in binary mode? }
+{$ifdef USE_FDOPEN}             { need to re-open in binary mode? }
   if ((output_file = fdopen(fileno(stdout), WRITE_BINARY)) = NIL) then
   begin
     WriteLn(stderr, 'Cannot reopen stdout');

@@ -271,27 +271,12 @@ const
 
 {
   $Log$
-  Revision 1.6  2005-01-30 18:01:15  peter
+  Revision 1.7  2005-02-14 17:13:21  peter
+    * truncate log
+
+  Revision 1.6  2005/01/30 18:01:15  peter
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
-
-  Revision 1.5  2004/01/08 21:52:34  jonas
-    * fixed signal handling under 10.3.2, still have to verify whether it's
-      backwards compatible
-
-  Revision 1.4  2004/01/04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
-
-  Revision 1.3  2003/08/21 22:25:17  olle
-    - removed parameter from fpc_iocheck
-
-  Revision 1.2  2003/05/25 12:59:57  jonas
-    * several fixes, addition of Mach trap numbers (thye are simply syscalls
-      with a negative number)
-
-  Revision 1.1  2002/09/08 09:06:07  jonas
-    + initial revision, h2pas of sys/signal.h
 
 }

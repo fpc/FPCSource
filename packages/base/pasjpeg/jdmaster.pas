@@ -62,7 +62,7 @@ type
   my_decomp_master = record
     pub : jpeg_decomp_master; { public fields }
 
-    pass_number : int;		{ # of passes completed }
+    pass_number : int;          { # of passes completed }
 
     using_merged_upsample : boolean; { TRUE if using merged upsample/cconvert }
 
@@ -119,7 +119,7 @@ begin
     exit;
   end;
   { ??? also need to test for upsample-time rescaling, when & if supported }
-  use_merged_upsample := TRUE;			{ by golly, it'll work... }
+  use_merged_upsample := TRUE;                  { by golly, it'll work... }
 {$else}
   use_merged_upsample := FALSE;
 {$endif}
@@ -195,10 +195,10 @@ begin
   begin
     ssize := cinfo^.min_DCT_scaled_size;
     while (ssize < DCTSIZE) and
-	  ((compptr^.h_samp_factor * ssize * 2 <=
-	    cinfo^.max_h_samp_factor * cinfo^.min_DCT_scaled_size) and
-	   (compptr^.v_samp_factor * ssize * 2 <=
-	    cinfo^.max_v_samp_factor * cinfo^.min_DCT_scaled_size)) do
+          ((compptr^.h_samp_factor * ssize * 2 <=
+            cinfo^.max_h_samp_factor * cinfo^.min_DCT_scaled_size) and
+           (compptr^.v_samp_factor * ssize * 2 <=
+            cinfo^.max_v_samp_factor * cinfo^.min_DCT_scaled_size)) do
     begin
       ssize := ssize * 2;
     end;
@@ -215,12 +215,12 @@ begin
     { Size in samples, after IDCT scaling }
     compptr^.downsampled_width := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_width) *
-		    long (compptr^.h_samp_factor * compptr^.DCT_scaled_size),
-		    long (cinfo^.max_h_samp_factor * DCTSIZE)) );
+                    long (compptr^.h_samp_factor * compptr^.DCT_scaled_size),
+                    long (cinfo^.max_h_samp_factor * DCTSIZE)) );
     compptr^.downsampled_height := JDIMENSION (
       jdiv_round_up(long (cinfo^.image_height) *
-		    long (compptr^.v_samp_factor * compptr^.DCT_scaled_size),
-		    long (cinfo^.max_v_samp_factor * DCTSIZE)) );
+                    long (compptr^.v_samp_factor * compptr^.DCT_scaled_size),
+                    long (cinfo^.max_v_samp_factor * DCTSIZE)) );
     Inc(compptr);
   end;
 
@@ -250,7 +250,7 @@ begin
   JCS_CMYK,
   JCS_YCCK:
     cinfo^.out_color_components := 4;
-  else			{ else must be same colorspace as in file }
+  else                  { else must be same colorspace as in file }
     cinfo^.out_color_components := cinfo^.num_components;
   end;
   if (cinfo^.quantize_colors) then
@@ -272,10 +272,10 @@ end;
   processes are inner loops and need to be as fast as possible.  On most
   machines, particularly CPUs with pipelines or instruction prefetch,
   a (subscript-check-less) C table lookup
- 		x := sample_range_limit[x];
+                x := sample_range_limit[x];
   is faster than explicit tests
- 		if (x < 0)  x := 0;
- 		else if (x > MAXJSAMPLE)  x := MAXJSAMPLE;
+                if (x < 0)  x := 0;
+                else if (x > MAXJSAMPLE)  x := MAXJSAMPLE;
   These processes all use a common table prepared by the routine below.
 
   For most steps we can mathematically guarantee that the initial value
@@ -285,7 +285,7 @@ end;
   possible if the input data is corrupt.  To avoid any chance of indexing
   off the end of memory and getting a bad-pointer trap, we perform the
   post-IDCT limiting thus:
- 		x := range_limit[x & MASK];
+                x := range_limit[x & MASK];
   where MASK is 2 bits wider than legal sample data, ie 10 bits for 8-bit
   samples.  Under normal circumstances this is more than enough range and
   a correct output will be generated; with bogus input data the mask will
@@ -317,7 +317,7 @@ var
 begin
   table := range_limit_table_ptr (
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-		(5 * (MAXJSAMPLE+1) + CENTERJSAMPLE) * SIZEOF(JSAMPLE)) );
+                (5 * (MAXJSAMPLE+1) + CENTERJSAMPLE) * SIZEOF(JSAMPLE)) );
 
   { First segment of "simple" table: limit[x] := 0 for x < 0 }
   MEMZERO(table, (MAXJSAMPLE+1) * SIZEOF(JSAMPLE));
@@ -335,9 +335,9 @@ begin
     idct_table^[i] := MAXJSAMPLE;
   { Second half of post-IDCT table }
   MEMZERO(@(idct_table^[2 * (MAXJSAMPLE+1)]),
-	  (2 * (MAXJSAMPLE+1) - CENTERJSAMPLE) * SIZEOF(JSAMPLE));
+          (2 * (MAXJSAMPLE+1) - CENTERJSAMPLE) * SIZEOF(JSAMPLE));
   MEMCOPY(@(idct_table^[(4 * (MAXJSAMPLE+1) - CENTERJSAMPLE)]),
-	  @cinfo^.sample_range_limit^[0], CENTERJSAMPLE * SIZEOF(JSAMPLE));
+          @cinfo^.sample_range_limit^[0], CENTERJSAMPLE * SIZEOF(JSAMPLE));
 
 end;
 
@@ -557,17 +557,17 @@ begin
       { Select new quantization method }
       if (cinfo^.two_pass_quantize) and (cinfo^.enable_2pass_quant) then
       begin
-	cinfo^.cquantize := master^.quantizer_2pass;
-	master^.pub.is_dummy_pass := TRUE;
+        cinfo^.cquantize := master^.quantizer_2pass;
+        master^.pub.is_dummy_pass := TRUE;
       end
       else
         if (cinfo^.enable_1pass_quant) then
         begin
-	  cinfo^.cquantize := master^.quantizer_1pass;
+          cinfo^.cquantize := master^.quantizer_1pass;
         end
         else
         begin
-	  ERREXIT(j_common_ptr(cinfo), JERR_MODE_CHANGE);
+          ERREXIT(j_common_ptr(cinfo), JERR_MODE_CHANGE);
         end;
     end;
     cinfo^.idct^.start_pass (cinfo);
@@ -575,10 +575,10 @@ begin
     if (not cinfo^.raw_data_out) then
     begin
       if (not master^.using_merged_upsample) then
-	cinfo^.cconvert^.start_pass (cinfo);
+        cinfo^.cconvert^.start_pass (cinfo);
       cinfo^.upsample^.start_pass (cinfo);
       if (cinfo^.quantize_colors) then
-	cinfo^.cquantize^.start_pass (cinfo, master^.pub.is_dummy_pass);
+        cinfo^.cquantize^.start_pass (cinfo, master^.pub.is_dummy_pass);
       if master^.pub.is_dummy_pass  then
         cinfo^.post^.start_pass (cinfo, JBUF_SAVE_AND_PASS)
       else
@@ -665,7 +665,7 @@ var
 begin
   master := my_master_ptr (
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(my_decomp_master)) );
+                                  SIZEOF(my_decomp_master)) );
   cinfo^.master := jpeg_decomp_master_ptr(master);
   master^.pub.prepare_for_output_pass := prepare_for_output_pass;
   master^.pub.finish_output_pass := finish_output_pass;

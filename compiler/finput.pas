@@ -668,7 +668,7 @@ uses
          prefix := target_info.sharedlibprefix;
          suffix := '';
          extension := target_info.sharedlibext;
-         
+
          if AllowOutput and (compile_level=1) then
          begin
            if OutputFile <> '' then n:=OutputFile;
@@ -676,7 +676,7 @@ uses
            if Assigned(OutputSuffix) then suffix := OutputSuffix^;
            if OutputExtension <> '' then extension := OutputExtension;
          end;
-         
+
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
          { output dir of exe can be specified separatly }
          if AllowOutput and (OutputExeDir<>'') then
@@ -741,23 +741,7 @@ uses
 end.
 {
   $Log$
-  Revision 1.28  2004-10-14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.27  2004/10/14 17:26:04  mazen
-  * use SysUtils unit instead of Dos Unit
-
-  Revision 1.26  2004/08/02 07:15:54  michael
-  + Patch from Christian Iversen to implement  LIBPREFIX/SUFFIX/EXTENSION directives
-
-  Revision 1.25  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.24  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.23.2.1  2004/04/28 21:46:56  peter
-    * compile fixes for x86-64
+  Revision 1.29  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

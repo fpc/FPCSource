@@ -8,5 +8,5 @@ begin
   enaddr^[4] := ipaddr.S_un_b.s_b3;
   enaddr^[5] := ipaddr.S_un_b.s_b4;
 end;
-            
-            
+
+

@@ -600,48 +600,7 @@ end.
 
 {
   $Log$
-  Revision 1.24  2004-09-23 18:55:21  armin
-  * corrected format for seListenFailed
-
-  Revision 1.23  2004/09/18 23:24:12  armin
-  + netwlibc support
-  * added error number to seAcceptFailed exception
-
-  Revision 1.22  2004/09/17 19:03:32  armin
-  * added ssockets for target netwlibc
-
-  Revision 1.21  2003/11/22 11:51:28  sg
-  * Added TSocketStream.LocalAddress and .RemoteAddress
-  * TInetSocket now also accepts IP addresses as host parameter
-
-  Revision 1.20  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.19  2003/03/25 17:47:06  armin
-  * use closesocket and not fdClose for netware
-
-  Revision 1.18  2003/03/21 23:10:24  armin
-  * changed defines not win32 to not Unix (Netware is not Unix nor win32)
-
-  Revision 1.17  2003/03/11 13:15:40  michael
-  + Initial version working on Win32. Needs some further work
-
-  Revision 1.16  2003/03/10 21:42:39  michael
-  + TSocketStream now uses recv/sendto instead of read/write
-
-  Revision 1.15  2003/03/07 20:57:09  michael
-  + Use resolve unit instead of inet unit.
-
-  Revision 1.14  2002/12/18 18:39:14  peter
-    * renamed error constants for 1.1
-
-  Revision 1.13  2002/12/12 17:53:49  peter
-    * add FAccepting:=true to StartAccepting
-
-  Revision 1.12  2002/09/07 15:15:25  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.11  2002/05/31 11:31:46  marco
-   * 1.0.x Renamefest for FCL. Fixed some oddities in 1.1 too
+  Revision 1.25  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

@@ -28,5 +28,5 @@ begin
      WriteLn('Hour  ',Hour);
      WriteLn('Min   ',Min);
      WriteLn('Sec   ',Sec);
-   end;     
+   end;
 end.

@@ -171,7 +171,7 @@ End.
 
 {
 $Log$
-Revision 1.1  2003-10-14 14:42:09  yuri
-+ Import
+Revision 1.2  2005-02-14 17:13:21  peter
+  * truncate log
 
 }

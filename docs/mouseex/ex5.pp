@@ -7,7 +7,7 @@ Uses mouse;
 Var
   Event : TMouseEvent;
   Visible: Boolean;
-  
+
 begin
   InitMouse;
   ShowMouse;
@@ -16,15 +16,15 @@ begin
   Repeat
    GetMouseEvent(Event);
    With Event do
-     If (Buttons=MouseLeftbutton) and 
+     If (Buttons=MouseLeftbutton) and
         (Action=MouseActionDown) then
-       begin 
-       If Visible then 
+       begin
+       If Visible then
          HideMouse
        else
-         ShowMouse;  
-       Visible:=Not Visible;  
-       end;  
+         ShowMouse;
+       Visible:=Not Visible;
+       end;
   Until (Event.Buttons=MouseRightButton) and
         (Event.Action=MouseActionDown);
   DoneMouse;

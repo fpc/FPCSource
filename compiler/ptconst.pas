@@ -1086,7 +1086,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2005-02-02 19:42:19  florian
+  Revision 1.102  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.101  2005/02/02 19:42:19  florian
     + allow to take the address of a resourcestring in typed constants
 
   Revision 1.100  2005/01/24 21:39:03  peter
@@ -1098,57 +1101,5 @@ end.
 
   Revision 1.98  2005/01/08 14:05:31  florian
     * typed dyn. array constants can be only nil pointer
-
-  Revision 1.97  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.96  2004/11/09 17:26:47  peter
-    * fixed wrong typecasts
-
-  Revision 1.95  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.94  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.93  2004/11/01 15:32:12  peter
-    * support @labelsym
-
-  Revision 1.92  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.91  2004/07/12 17:58:19  peter
-    * remove maxlen field from ansistring/widestrings
-
-  Revision 1.90  2004/07/03 14:06:35  daniel
-    * Compile fix
-
-  Revision 1.89  2004/06/20 20:41:47  florian
-    * fixed bootstrapping problems
-
-  Revision 1.88  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.87  2004/06/18 15:16:46  peter
-    * remove obsolete cardinal() typecasts
-
-  Revision 1.86  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.85  2004/05/23 15:23:30  peter
-    * fixed qword(longint) that removed sign from the number
-    * removed code in the compiler that relied on wrong qword(longint)
-      code generation
-
-  Revision 1.84  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.83  2004/04/11 10:44:23  peter
-    * block_type is bt_const when parsing typed consts
 
 }

@@ -91,7 +91,7 @@ procedure jpeg_finish_compress (cinfo : j_compress_ptr);
 {GLOBAL}
 procedure jpeg_write_marker (cinfo : j_compress_ptr;
                              marker : int;
-		             dataptr : JOCTETptr;
+                             dataptr : JOCTETptr;
                              datalen : uInt);
 
 {GLOBAL}
@@ -107,14 +107,14 @@ procedure jpeg_write_m_byte (cinfo : j_compress_ptr; val : int);
   To produce a pair of files containing abbreviated tables and abbreviated
   image data, one would proceed as follows:
 
- 		initialize JPEG object
- 		set JPEG parameters
- 		set destination to table file
- 		jpeg_write_tables(cinfo);
- 		set destination to image file
- 		jpeg_start_compress(cinfo, FALSE);
- 		write data...
- 		jpeg_finish_compress(cinfo);
+                initialize JPEG object
+                set JPEG parameters
+                set destination to table file
+                jpeg_write_tables(cinfo);
+                set destination to image file
+                jpeg_start_compress(cinfo, FALSE);
+                write data...
+                jpeg_finish_compress(cinfo);
 
   jpeg_write_tables has the side effect of marking all tables written
   (same as jpeg_suppress_tables(..., TRUE)).  Thus a subsequent start_compress
@@ -148,12 +148,12 @@ var
 begin
 
   { Guard against version mismatches between library and caller. }
-  cinfo^.mem := NIL;		{ so jpeg_destroy knows mem mgr not called }
+  cinfo^.mem := NIL;            { so jpeg_destroy knows mem mgr not called }
   if (version <> JPEG_LIB_VERSION) then
     ERREXIT2(j_common_ptr(cinfo), JERR_BAD_LIB_VERSION, JPEG_LIB_VERSION, version);
   if (structsize <> SIZEOF(jpeg_compress_struct)) then
     ERREXIT2(j_common_ptr(cinfo), JERR_BAD_STRUCT_SIZE,
-	     int(SIZEOF(jpeg_compress_struct)), int(structsize));
+             int(SIZEOF(jpeg_compress_struct)), int(structsize));
 
   { For debugging purposes, we zero the whole master structure.
     But the application has already set the err pointer, and may have set
@@ -187,7 +187,7 @@ begin
 
   cinfo^.script_space := NIL;
 
-  cinfo^.input_gamma := 1.0;	{ in case application forgets }
+  cinfo^.input_gamma := 1.0;    { in case application forgets }
 
   { OK, I'm ready }
   cinfo^.global_state := CSTATE_START;
@@ -279,15 +279,15 @@ begin
     begin
       if (cinfo^.progress <> NIL) then
       begin
-	cinfo^.progress^.pass_counter := long (iMCU_row);
-	cinfo^.progress^.pass_limit := long (cinfo^.total_iMCU_rows);
-	cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
+        cinfo^.progress^.pass_counter := long (iMCU_row);
+        cinfo^.progress^.pass_limit := long (cinfo^.total_iMCU_rows);
+        cinfo^.progress^.progress_monitor (j_common_ptr(cinfo));
       end;
       { We bypass the main controller and invoke coef controller directly;
         all work is being done from the coefficient buffer. }
 
       if (not cinfo^.coef^.compress_data (cinfo, JSAMPIMAGE(NIL))) then
-	ERREXIT(j_common_ptr(cinfo), JERR_CANT_SUSPEND);
+        ERREXIT(j_common_ptr(cinfo), JERR_CANT_SUSPEND);
     end;
     cinfo^.master^.finish_pass (cinfo);
   end;
@@ -307,7 +307,7 @@ end;
 {GLOBAL}
 procedure jpeg_write_marker (cinfo : j_compress_ptr;
                              marker : int;
-		             dataptr : JOCTETptr;
+                             dataptr : JOCTETptr;
                              datalen : uInt);
 var
   write_marker_byte : procedure(info : j_compress_ptr; val : int);
@@ -357,14 +357,14 @@ end;
   To produce a pair of files containing abbreviated tables and abbreviated
   image data, one would proceed as follows:
 
- 		initialize JPEG object
- 		set JPEG parameters
- 		set destination to table file
- 		jpeg_write_tables(cinfo);
- 		set destination to image file
- 		jpeg_start_compress(cinfo, FALSE);
- 		write data...
- 		jpeg_finish_compress(cinfo);
+                initialize JPEG object
+                set JPEG parameters
+                set destination to table file
+                jpeg_write_tables(cinfo);
+                set destination to image file
+                jpeg_start_compress(cinfo, FALSE);
+                write data...
+                jpeg_finish_compress(cinfo);
 
   jpeg_write_tables has the side effect of marking all tables written
   (same as jpeg_suppress_tables(..., TRUE)).  Thus a subsequent start_compress

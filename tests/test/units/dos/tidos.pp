@@ -201,22 +201,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-05-15 20:35:57  florian
-    * ifdef'd SwapVectors
-
-  Revision 1.1  2002/11/18 09:49:49  pierre
-   * tried to make as many as possible tests non interactive
-
-  Revision 1.7  2002/10/20 11:47:39  carl
-    * add format date to make test clearer
-
-  Revision 1.6  2002/09/07 15:40:56  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/07/06 11:46:08  carl
-  + fsearch testing added
-
-  Revision 1.4  2002/06/01 19:08:52  marco
-   * Renamefest
+  Revision 1.3  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

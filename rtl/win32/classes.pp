@@ -56,37 +56,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.7  2005-02-06 13:06:20  peter
+  Revision 1.8  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.7  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
-
-  Revision 1.6  2004/12/23 09:42:42  marco
-   * first tthread.synchronize support (merged neli's patches)
-
-  Revision 1.5  2004/01/22 17:11:23  peter
-    * classes uses types to import TPoint and TRect
-
-  Revision 1.4  2004/01/13 18:04:25  florian
-    * make win32 fixed
-
-  Revision 1.3  2004/01/10 19:35:18  michael
-  + Moved all resource strings to rtlconst/sysconst
-
-  Revision 1.2  2003/10/07 16:20:21  florian
-    * win32 now uses aliases from the windows unit for types like trect
-
-  Revision 1.1  2003/10/06 21:01:07  peter
-    * moved classes unit to rtl
-
-  Revision 1.1  2003/10/06 20:33:58  peter
-    * classes moved to rtl for 1.1
-    * classes .inc and classes.pp files moved to fcl/classes for
-      backwards 1.0.x compatiblity to have it in the fcl
-
-  Revision 1.4  2002/10/14 19:46:13  peter
-    * threading switch
-
-  Revision 1.3  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
 
 }

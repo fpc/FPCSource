@@ -61,7 +61,7 @@ procedure jpeg_start_compress (cinfo : j_compress_ptr;
 {GLOBAL}
 function jpeg_write_scanlines (cinfo : j_compress_ptr;
                               scanlines : JSAMPARRAY;
-		              num_lines : JDIMENSION) : JDIMENSION;
+                              num_lines : JDIMENSION) : JDIMENSION;
 
 { Alternate entry point to write raw data.
   Processes exactly one iMCU row per call, unless suspended. }
@@ -69,7 +69,7 @@ function jpeg_write_scanlines (cinfo : j_compress_ptr;
 {GLOBAL}
 function jpeg_write_raw_data (cinfo : j_compress_ptr;
                               data : JSAMPIMAGE;
-		              num_lines : JDIMENSION) : JDIMENSION;
+                              num_lines : JDIMENSION) : JDIMENSION;
 
 implementation
 
@@ -94,7 +94,7 @@ begin
     ERREXIT1(j_common_ptr(cinfo), JERR_BAD_STATE, cinfo^.global_state);
 
   if (write_all_tables) then
-    jpeg_suppress_tables(cinfo, FALSE);	{ mark all tables to be written }
+    jpeg_suppress_tables(cinfo, FALSE); { mark all tables to be written }
 
   { (Re)initialize error mgr and destination modules }
   cinfo^.err^.reset_error_mgr (j_common_ptr(cinfo));
@@ -130,7 +130,7 @@ end;
 {GLOBAL}
 function jpeg_write_scanlines (cinfo : j_compress_ptr;
                               scanlines : JSAMPARRAY;
-		              num_lines : JDIMENSION) : JDIMENSION;
+                              num_lines : JDIMENSION) : JDIMENSION;
 var
   row_ctr, rows_left : JDIMENSION;
 begin
@@ -172,7 +172,7 @@ end;
 {GLOBAL}
 function jpeg_write_raw_data (cinfo : j_compress_ptr;
                               data : JSAMPIMAGE;
-		              num_lines : JDIMENSION) : JDIMENSION;
+                              num_lines : JDIMENSION) : JDIMENSION;
 var
   lines_per_iMCU_row : JDIMENSION;
 begin

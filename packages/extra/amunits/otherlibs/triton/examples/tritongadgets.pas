@@ -7,7 +7,7 @@ uses triton, tritonmacros, utility;
     have seen this program. One diffs is that this example
     is made in Triton. Much better.:)
     Jun 06 1998
-    
+
     Updated for fpc 1.0.7
     11 Jan 2003.
 
@@ -68,7 +68,7 @@ begin
                      TAG_DONE]);
 
      if Triton_App = nil then CleanExit('Can''t create Application',20);
-     
+
      ProjectStart;
      WindowID(1);
      WindowTitle('Instead of GadTools :)');

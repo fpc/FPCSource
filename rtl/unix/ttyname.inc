@@ -7,7 +7,7 @@
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
-    A generic implementation of ttyname functionality. 
+    A generic implementation of ttyname functionality.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -90,11 +90,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-07-09 19:03:35  peter
-    * isatty return cint again
-
-  Revision 1.1  2003/11/19 17:13:00  marco
-   * new termio units
-
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

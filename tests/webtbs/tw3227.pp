@@ -2,76 +2,76 @@
 { Submitted by "mickaël leduque" on  2004-08-03 }
 { e-mail: mickael.leduque@laposte.net }
 uses Variants;
- 
+
 
 type
-  TGffVarType		= (
+  TGffVarType           = (
 
-    gffBYTE,		// 0
+    gffBYTE,            // 0
 
-    gffCHAR,		// 1
+    gffCHAR,            // 1
 
-    gffWORD,		// 2
+    gffWORD,            // 2
 
-    gffSHORT,		// 3
+    gffSHORT,           // 3
 
-    gffDWORD,		// 4
+    gffDWORD,           // 4
 
-    gffINT,		// 5
+    gffINT,             // 5
 
-    gffDWORD64,		// 6
+    gffDWORD64,         // 6
 
-    gffINT64,		// 7
+    gffINT64,           // 7
 
-    gffFLOAT,		// 8
+    gffFLOAT,           // 8
 
-    gffDOUBLE,		// 9
+    gffDOUBLE,          // 9
 
-    gffVoid,		// 13
+    gffVoid,            // 13
 
-    gffStruct,		// 14
+    gffStruct,          // 14
 
-    gffList		// 15
+    gffList             // 15
 
   );
 
-  TGffVarData		= record
+  TGffVarData           = record
 
-    AsVoid		: array of Char;
+    AsVoid              : array of Char;
 
     case TGffVarType of
 
-      gffBYTE		: (AsByte: Byte);
+      gffBYTE           : (AsByte: Byte);
 
-      gffCHAR		: (AsChar: Shortint);
+      gffCHAR           : (AsChar: Shortint);
 
-      gffWORD		: (AsWord: Word);
+      gffWORD           : (AsWord: Word);
 
-      gffSHORT		: (AsShort: Smallint);
+      gffSHORT          : (AsShort: Smallint);
 
-      gffDWORD		: (AsDWord: Longword);
+      gffDWORD          : (AsDWord: Longword);
 
-      gffINT		: (AsInt: Longint);
+      gffINT            : (AsInt: Longint);
 
       gffDWORD64,
 
-      gffINT64		: (AsInt64: Int64);
+      gffINT64          : (AsInt64: Int64);
 
-      gffFLOAT		: (AsFloat: Single);
+      gffFLOAT          : (AsFloat: Single);
 
-      gffDOUBLE		: (AsDouble: Double);
+      gffDOUBLE         : (AsDouble: Double);
 
   end;
 
 
 
 
- 
 
-var	FType : TGffVarType;
 
-	Machin : variant;
-	Data : TGffVarData;
+var     FType : TGffVarType;
+
+        Machin : variant;
+        Data : TGffVarData;
 
 begin
 SetLength(Data.AsVoid,3);
@@ -84,43 +84,43 @@ FType:=gffBYTE;
 
     gffBYTE:
 
-      Machin		:= Data.AsByte;
+      Machin            := Data.AsByte;
 
     gffCHAR:
 
-      Machin		:= Data.AsChar;
+      Machin            := Data.AsChar;
 
     gffWORD:
 
-      Machin		:= Data.AsWord;
+      Machin            := Data.AsWord;
 
     gffSHORT:
 
-      Machin		:= Data.AsShort;
+      Machin            := Data.AsShort;
 
     gffDWORD:
 
-      Machin		:= Data.AsDWord;
+      Machin            := Data.AsDWord;
 
     gffINT:
 
-      Machin		:= Data.AsInt;
+      Machin            := Data.AsInt;
 
     gffDWORD64, gffINT64:
 
-      Machin		:= Data.AsInt64;
+      Machin            := Data.AsInt64;
 
     gffFLOAT:
 
-      Machin		:= Data.AsFloat;
+      Machin            := Data.AsFloat;
 
     gffDOUBLE:
 
-      Machin		:= Data.AsDouble;
+      Machin            := Data.AsDouble;
 
     gffVoid:
 
-      Machin		:= Data.AsVoid;
+      Machin            := Data.AsVoid;
 
   end;
 

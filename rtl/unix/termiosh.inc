@@ -32,11 +32,7 @@ function  TTYname     (var F:Text) :string;
 
 {
     $Log$
-    Revision 1.3  2004-07-09 19:03:35  peter
-      * isatty return cint again
-
-    Revision 1.1  2003/11/19 17:13:00  marco
-     * new termio units
-
+    Revision 1.4  2005-02-14 17:13:31  peter
+      * truncate log
 
 }

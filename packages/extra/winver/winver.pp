@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Windows Version detection functionality.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -21,14 +21,14 @@ Interface
 
 Uses Windows;
 
-const  
+const
   Win32Platform     : Integer = 0;
   Win32MajorVersion : Integer = 0;
   Win32MinorVersion : Integer = 0;
   Win32BuildNumber  : Integer = 0;
-                          
+
   Win32CSDVersion   : string = '';
- 
+
 function CheckWin32Version(Major,Minor : Integer ): Boolean;
 function CheckWin32Version(Major : Integer): Boolean;
 
@@ -41,7 +41,7 @@ procedure InitVersion;
 
 var
   Info: TOSVersionInfo;
-  
+
 begin
   Info.dwOSVersionInfoSize := SizeOf(Info);
   if GetVersionEx(Info) then

@@ -14,7 +14,7 @@ function gnome_ok_cancel_dialog(message:Pgchar; callback:TGnomeReplyCallback; da
 function gnome_ok_cancel_dialog_parented(message:Pgchar; callback:TGnomeReplyCallback; data:gpointer; parent:PGtkWindow):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_ok_cancel_dialog_parented';
 function gnome_ok_cancel_dialog_modal(message:Pgchar; callback:TGnomeReplyCallback; data:gpointer):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_ok_cancel_dialog_modal';
 function gnome_ok_cancel_dialog_modal_parented(message:Pgchar; callback:TGnomeReplyCallback; data:gpointer; parent:PGtkWindow):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_ok_cancel_dialog_modal_parented';
-function gnome_request_dialog(password:gboolean; prompt:Pgchar; default_text:Pgchar; max_length:guint16; callback:TGnomeStringCallback; 
+function gnome_request_dialog(password:gboolean; prompt:Pgchar; default_text:Pgchar; max_length:guint16; callback:TGnomeStringCallback;
            data:gpointer; parent:PGtkWindow):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_request_dialog';
 
 {$EndIf read_interface}

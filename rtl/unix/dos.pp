@@ -15,7 +15,7 @@
 Unit Dos;
 Interface
 
-Const 
+Const
   FileNameLen = 255;
 
 Type
@@ -887,102 +887,10 @@ End.
 
 {
   $Log$
-  Revision 1.44  2005-02-13 20:01:38  peter
+  Revision 1.45  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.44  2005/02/13 20:01:38  peter
     * include file cleanup
-
-  Revision 1.43  2004/12/18 16:29:09  michael
-  + Patch from Michalis Kamburelis so FSearch does not find a directory
-
-  Revision 1.42  2004/12/05 21:04:56  hajny
-    * compilation fix for dosh.inc changes
-
-  Revision 1.41  2004/12/05 20:33:32  hajny
-    * compilation fix for dosh.inc changes
-
-  Revision 1.40  2004/12/05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.39  2004/12/02 18:24:35  marco
-   * fpsettimeofday.
-
-  Revision 1.38  2004/10/31 17:11:52  marco
-   * FPC_USE_LIBC fixes
-
-  Revision 1.37  2004/10/31 16:20:58  peter
-    * remove sysutils
-
-  Revision 1.36  2004/10/30 20:55:54  marco
-   * unix interface cleanup
-
-  Revision 1.35  2004/09/25 15:09:57  peter
-    * remove strpas() before syscalls so it chooses the pchar overload
-
-  Revision 1.34  2004/08/14 14:22:17  florian
-    * alignment for sparc fixed
-
-  Revision 1.33  2004/07/25 22:46:34  olle
-    * envstr now returns empty string when index out of bounds
-
-  Revision 1.32  2004/03/14 18:42:39  peter
-    * reset searchrec info in findfirst
-
-  Revision 1.31  2004/03/04 22:15:16  marco
-   * UnixType changes. Please report problems to me.
-
-  Revision 1.30  2004/02/18 22:00:45  peter
-    * dirptr changed to pointer
-
-  Revision 1.29  2004/02/18 19:08:27  florian
-    * fixed bootstrapping with 1.9.2
-
-  Revision 1.28  2004/02/17 17:37:26  daniel
-    * Enable threadvars again
-
-  Revision 1.27  2004/02/16 22:18:44  hajny
-    * LastDosExitCode changed back from threadvar temporarily
-
-  Revision 1.26  2004/02/15 21:36:10  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.25  2004/02/09 17:01:28  marco
-   * fixes to get it working under FreeBSD, and probably Linux too
-
-  Revision 1.24  2004/02/09 12:03:16  michael
-  + Switched to single interface in dosh.inc
-
-  Revision 1.23  2004/01/31 16:15:14  florian
-    * packing of searchrec for arm fixed
-
-  Revision 1.22  2003/12/29 21:15:04  jonas
-    * fixed setftime (sorry Marco :)
-
-  Revision 1.21  2003/12/03 20:17:03  olle
-    * files are not pretended to have attr ARCHIVED anymore
-    + FindFirst etc now also filters on attr HIDDEN
-    * files with attr READONLY and ARCHIVE are always returned by FindFirst etc
-
-  Revision 1.19  2003/10/17 22:13:30  olle
-    * changed i386 to cpui386
-
-  Revision 1.18  2003/09/27 12:51:33  peter
-    * fpISxxx macros renamed to C compliant fpS_ISxxx
-
-  Revision 1.17  2003/09/17 17:30:46  marco
-   * Introduction of unixutil
-
-  Revision 1.16  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.15  2003/05/16 20:56:06  florian
-  no message
-
-  Revision 1.14  2003/05/14 13:51:03  florian
-    * ifdef'd code which i386 specific
-
-  Revision 1.13  2002/12/08 16:05:34  peter
-    * small error code fixes so tdos2 passes
-
-  Revision 1.12  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
 
 }

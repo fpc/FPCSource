@@ -18,7 +18,7 @@ begin
       if IsKeyLogging then
         StopKeyLogging
       else
-        StartKeyLogging;  
+        StartKeyLogging;
   Until (GetKeyEventChar(K)='q');
   DoneKeyBoard;
 end.

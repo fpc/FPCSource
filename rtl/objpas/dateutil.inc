@@ -1673,7 +1673,7 @@ Function TryEncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: W
 var
   S : Word;
   DOM : Integer;
-  
+
 begin
   Result:=IsValidDateMonthWeek(AYear,AMonth,AWeekOfMonth,ADayOfWeek);
   if Result then
@@ -1865,7 +1865,7 @@ Procedure DecodeDayOfWeekInMonth(const AValue: TDateTime; var AYear, AMonth, ANt
 
 var
   D: Word;
-  
+
 begin
   DecodeDate(AValue,AYear,AMonth,D);
   ADayOfWeek:=DayOfTheWeek(AValue);
@@ -2022,37 +2022,7 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-12-30 13:06:53  michael
-  + Fixed DecodeDayOfWeekInMonth
-
-  Revision 1.9  2004/12/30 11:57:25  michael
-  + Fixed tryencodedatemonthweek, fixed recodedatetime milliseconds
-
-  Revision 1.8  2004/12/29 18:31:04  michael
-  * Fixed EndOfADay
-
-  Revision 1.7  2004/12/29 18:28:21  michael
-  * Fixed StartOfADay
-
-  Revision 1.6  2004/09/20 15:07:19  peter
-    * typo
-
-  Revision 1.5  2004/09/20 06:58:59  michael
-  + Fixed some errors pointed out by Armin Diehl
-
-  Revision 1.4  2004/09/19 19:25:52  armin
-  * fixed some compiler warnings
-
-  Revision 1.3  2004/08/12 12:26:34  michael
-  + Implemented decodedateweek
-
-  Revision 1.2  2004/01/10 19:35:17  michael
-  + Moved all resource strings to rtlconst/sysconst
-
-  Revision 1.1  2003/12/06 18:03:46  hajny
-    * include file for dateutil(s)
-
-  Revision 1.2  2003/01/19 14:37:06  michael
-  + Much more functions implemented
+  Revision 1.11  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

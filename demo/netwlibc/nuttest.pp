@@ -81,7 +81,7 @@ const
         MENU_MAIN_LIST                  = $0013;
         MENU_MAIN_FORM                  = $0014;
         MENU_IN_FORM_TITLE              = $0015;
-        FORM_MENU_OPT1			= $0016;
+        FORM_MENU_OPT1                  = $0016;
         FORM_MENU_OPT2                  = $0017;
         EXIT_FORM_MSG                   = $0018;
         MENU_MAIN_EDIT_STRING           = $0019;
@@ -129,15 +129,15 @@ begin
                 40,   // center column
                 1,    // edit height
                 40,   // edit width
-		DYNAMIC_MESSAGE_ONE, // header msg
-		DYNAMIC_MESSAGE_TWO, // prompt msg
-		pchar(str),          // buffer
-		maxLen,              // max length of string
-		EF_ANY OR EF_UPPER,  // acceptable chars
-		gNUTHandle,          // nut handle
-		nil,                 // insert-key procedure
-		nil,                 // action procedure
-		nil);                // parameters
+                DYNAMIC_MESSAGE_ONE, // header msg
+                DYNAMIC_MESSAGE_TWO, // prompt msg
+                pchar(str),          // buffer
+                maxLen,              // max length of string
+                EF_ANY OR EF_UPPER,  // acceptable chars
+                gNUTHandle,          // nut handle
+                nil,                 // insert-key procedure
+                nil,                 // action procedure
+                nil);                // parameters
 
    // if escape key was pressed
   if (err = 1) then
@@ -163,15 +163,15 @@ begin
   // Edit the text in a portal with scroll bars that appear only when the
   // text goes beyond the portal bounderies
   err := NWSEditTextWithScrollBars (
-		10,                     // center line
-		40,                     // center column
-		4,                      // edit height
-		40,                     // edit width
-		DYNAMIC_MESSAGE_ONE,    // header msg
-		pchar(str),             // buffer
-		maxLen,                 // max length of string
-		DYNAMIC_MESSAGE_TWO,    // confirm msg
-		true,                   // force confirm
+                10,                     // center line
+                40,                     // center column
+                4,                      // edit height
+                40,                     // edit width
+                DYNAMIC_MESSAGE_ONE,    // header msg
+                pchar(str),             // buffer
+                maxLen,                 // max length of string
+                DYNAMIC_MESSAGE_TWO,    // confirm msg
+                true,                   // force confirm
                 SHOW_VERTICAL_SCROLL_BAR OR    // // scroll bar props
                 SHOW_HORIZONTAL_SCROLL_BAR OR
                 CONSTANT_SCROLL_BARS,
@@ -274,15 +274,15 @@ begin
 
   // Edit the form
   formSaved := NWSEditPortalForm (
-		MENU_MAIN_FORM,    // I- header
-		11,                // I- center line
-		40,                // I- center col
-		16,                // I- form height
-		50,                // I- form width
-		F_VERIFY,          // I- ctl flags
-	        F_NO_HELP,         // I- form help
-		EXIT_FORM_MSG,     // I- confirm msg
-		gNUTHandle);
+                MENU_MAIN_FORM,    // I- header
+                11,                // I- center line
+                40,                // I- center col
+                16,                // I- form height
+                50,                // I- form width
+                F_VERIFY,          // I- ctl flags
+                F_NO_HELP,         // I- form help
+                EXIT_FORM_MSG,     // I- confirm msg
+                gNUTHandle);
 
   // This function returns TRUE if the form was saved, FALSE if not.
   // If the form was not saved you must restore all variables to their
@@ -302,7 +302,7 @@ end;
 procedure NLM_DisplayPortalInformation (selectedItem : pchar);
 var
   portal : longint;
-  szTemp : ansistring;  //char	szTemp[80+1];
+  szTemp : ansistring;  //char  szTemp[80+1];
   portalPCB : PPCB;
 begin
   // Dim the current portal
@@ -311,16 +311,16 @@ begin
   // Create a portal in which we will display the connection information.
   // (A portal is a window).
   portal := NWSCreatePortal(
-		5,              // I- line
-		2,              // I- column
-		10,             // I- frameHeight
-		76,             // I- frameWidth
-		6,              // I- virtualHeight
-		76,             // I- virtualWidth
-		SAVE,           // I- saveFlag
+                5,              // I- line
+                2,              // I- column
+                10,             // I- frameHeight
+                76,             // I- frameWidth
+                6,              // I- virtualHeight
+                76,             // I- virtualWidth
+                SAVE,           // I- saveFlag
                 selectedItem,   // I- headerText
                 VNORMAL,        // I- headerAttribute
-		SINGLE,         // I- borderType
+                SINGLE,         // I- borderType
                 VINTENSE,       // I- borderAttribute
                 CURSOR_OFF,     // I- cursorFlag
                 VIRTUAL,        // I- directflag
@@ -419,7 +419,7 @@ begin
   NWSList(
            LIST_SUBLIST__HDR,     // I- header
            0,                     // I- centerLine
-	   0,                     // I- centerColumn
+           0,                     // I- centerColumn
            10,                    // I- height
            72,                    // I- width
            M_ESCAPE OR M_SELECT,  // I- validKeyFlags
@@ -519,19 +519,19 @@ begin
   NWSAppendToMenu(MENU_NOSORT_OPTION_D, MENU_NOSORT_OPTION_D, gNUTHandle);
 
   // Display the menu (as though it were a list) and allow user interaction.
-	NWSList(
+        NWSList(
                 MENU_NOSORT__HDR,   // header
-		0,                  // centerLine
-		65,                 // centerColumn
-		5,                  // height
-		20,                 // width
+                0,                  // centerLine
+                65,                 // centerColumn
+                5,                  // height
+                20,                 // width
                 M_ESCAPE OR M_SELECT OR
                 M_NO_SORT,          // validKeyFlags
-		@defItem,           // element
-		gNUTHandle,         // handle
-		nil,                // formatProcedure
+                @defItem,           // element
+                gNUTHandle,         // handle
+                nil,                // formatProcedure
                 @NLM_MenuNoSortAct, // actionProcedure
-		nil);               // actionParameter
+                nil);               // actionParameter
 
   // Before returning, we must free the list items allocated by
   // NWSAppendToMenu().  Then the Main Menu list context must be restored.

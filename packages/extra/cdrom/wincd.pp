@@ -1,5 +1,5 @@
-{ 
-  $Id$ 
+{
+  $Id$
 }
 unit wincd;
 
@@ -512,6 +512,7 @@ Initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-10-12 09:23:57  florian
-    * changed NULL to nil
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
+
 }

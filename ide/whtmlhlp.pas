@@ -1267,24 +1267,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2003-03-28 09:52:03  armin
-  * changed -1 to sw_word(-1) for textend to compile with 1.1
-
-  Revision 1.7  2003/03/27 14:37:52  pierre
-   * try to enhance dispaly of new html docs
-
-  Revision 1.6  2002/09/07 15:40:49  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/04/23 09:55:22  pierre
-    + added lastsynonym and InNameAnchor fields to TCustomHTMLLinkScanner
-      these allow to eliminate double index entries pointing to the same
-      html file location (which had two different names).
-
-  Revision 1.4  2002/04/11 07:04:23  pierre
-   + handle tables
-
-  Revision 1.3  2002/03/20 17:16:11  pierre
-   * correct some ansii file conversion problems
+  Revision 1.9  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

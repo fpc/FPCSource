@@ -515,14 +515,14 @@ begin
   // Result:=FPCCountEnvVar(EnvP);
   Result:=0;
 end;
-  
+
 Function GetEnvironmentString(Index : Integer) : String;
-  
+
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);
-  Result:=''; 
+  Result:='';
 end;
-   
+
 
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 
@@ -550,7 +550,7 @@ end;
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
 
-var 
+var
   CommandLine: AnsiString;
   I: integer;
 
@@ -583,57 +583,7 @@ end.
 {
 
   $Log$
-  Revision 1.18  2004-12-16 12:42:55  armin
-  * added NetWare Alert
-  * added sysutils.sleep
-
-  Revision 1.17  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.16  2004/08/01 20:02:48  armin
-  * changed dir separator from \ to /
-  * long namespace by default
-  * dos.exec implemented
-  * getenv ('PATH') is now supported
-  * changed FExpand to global version
-  * fixed heaplist growth error
-  * support SysOSFree
-  * stackcheck was without saveregisters
-  * fpc can compile itself on netware
-
-  Revision 1.15  2004/02/15 21:34:06  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.14  2004/01/20 23:11:20  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.13  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.12  2003/10/25 23:42:35  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.11  2003/04/12 13:21:27  armin
-  * added THandle
-
-  Revision 1.10  2003/03/30 12:35:43  armin
-  * removed uses netware from winsock, DirectoryExists implemented
-
-  Revision 1.9  2003/03/29 15:16:26  hajny
-    * dummy DirectoryExists added
-
-  Revision 1.8  2003/02/15 19:12:54  armin
-  * changes for new threadvar support
-
-  Revision 1.7  2002/09/07 16:01:21  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/04/01 10:47:31  armin
-  makefile.fpc for netware
-  stderr to netware console
-  free all memory (threadvars and heap) to avoid error message while unloading nlm
-
-  Revision 1.5  2002/03/08 19:10:14  armin
-  * added 64 bit fileseek (currently only 32 bit supported)
+  Revision 1.19  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

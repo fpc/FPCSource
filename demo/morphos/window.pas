@@ -3,7 +3,7 @@
 
     Opening a window with optional custom screen, and
     basic event-driven drawing into the window
-    Free Pascal for MorphOS example 
+    Free Pascal for MorphOS example
 
     Copyright (C) 2004 by Karoly Balogh
 
@@ -27,7 +27,7 @@ uses exec, intuition, graphics, utility;
 { DEFINE CUSTOMSCREEN}
 
 
-var 
+var
 {$IFDEF CUSTOMSCREEN}
   myScreen  : PScreen;
 {$ENDIF}
@@ -38,9 +38,9 @@ var
 
   msg_Class : Cardinal;
   msg_Code  : Word;
- 
+
   X_Pos     : Integer;
-  Y_Pos     : Integer; 
+  Y_Pos     : Integer;
 
 const
   ERRMSG_NOINTUI = 'Unable to open intuition.library V50!';
@@ -54,7 +54,7 @@ begin
   if assigned(myWindow) then CloseWindow(myWindow);
 {$IFDEF CUSTOMSCREEN}
   if assigned(myScreen) then CloseScreen(myScreen);
-{$ENDIF} 
+{$ENDIF}
 
   { * We're using library functions built into units, so it's   * }
   { * not needed to close libs here. If you're using additional * }
@@ -72,7 +72,7 @@ begin
   if Not InitGraphicsLibrary then ShutDown(ERRMSG_NOGFX,20);
 
 {$IFDEF CUSTOMSCREEN}
-  myScreen:=NIL;  
+  myScreen:=NIL;
   { * Opening our custom screen * }
   myScreen:=OpenScreenTags(NIL,[SA_Width,640,SA_Height,480,
                                 SA_Depth,24,
@@ -86,12 +86,12 @@ begin
   myWindow:=OpenWindowTags(NIL,[WA_Left,0,WA_Top,0,
                                 WA_Width,400,WA_Height,300,
                                 WA_Title,DWord(PChar('Free Pascal Test')),
-                                WA_IDCMP,(IDCMP_CLOSEWINDOW or IDCMP_MOUSEBUTTONS or 
+                                WA_IDCMP,(IDCMP_CLOSEWINDOW or IDCMP_MOUSEBUTTONS or
                                           IDCMP_MOUSEMOVE),
                                 WA_Flags,(WFLG_SIMPLE_REFRESH or WFLG_NOCAREREFRESH or
-                                          WFLG_ACTIVATE or WFLG_REPORTMOUSE or 
-                                          WFLG_CLOSEGADGET or WFLG_SIZEGADGET or 
-                                          WFLG_SIZEBBOTTOM or WFLG_GIMMEZEROZERO or 
+                                          WFLG_ACTIVATE or WFLG_REPORTMOUSE or
+                                          WFLG_CLOSEGADGET or WFLG_SIZEGADGET or
+                                          WFLG_SIZEBBOTTOM or WFLG_GIMMEZEROZERO or
                                           WFLG_DRAGBAR),
 {$IFDEF CUSTOMSCREEN}
                                 WA_CustomScreen,DWord(myScreen),
@@ -124,7 +124,7 @@ begin
 
       { * Handle different kind of messages here. * }
       case msg_Class of
-        IDCMP_CLOSEWINDOW: 
+        IDCMP_CLOSEWINDOW:
           quit:=True;
         IDCMP_MOUSEBUTTONS:
           case msg_Code of
@@ -147,7 +147,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-12-14 22:07:02  karoly
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2004/12/14 22:07:02  karoly
     * initial revision
 
 }

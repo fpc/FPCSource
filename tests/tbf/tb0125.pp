@@ -7,11 +7,11 @@
 type
   tsymbol = class
   end;
-  
+
   tderivedsymbol = class(tsymbol)
   end;
-  
-  
+
+
 
 procedure testclass(var t: tsymbol);
 begin

@@ -215,19 +215,7 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-11-19 17:11:40  marco
-   * termio unit
-
-  Revision 1.9  2003/11/19 10:54:32  marco
-   * some simple restructures
-
-  Revision 1.8  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.7  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.6  2002/08/06 13:31:50  sg
-  * serial ports are now set to raw mode
+  Revision 1.11  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -7,10 +7,10 @@ Function Trim(Const S:String):String;
 Var Ofs,Len:Integer;
 Begin
    Len:=Length(S);
-   While (Len>0) And 
+   While (Len>0) And
          (S[Len] In WhiteSpace) Do Dec(Len);
    Ofs:=1;
-   While (Ofs<=Len) And 
+   While (Ofs<=Len) And
          (S[Ofs] In WhiteSpace) Do Inc(Ofs);
    Exit(Copy(S,Ofs,1+Len-Ofs));
 End;

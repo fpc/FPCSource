@@ -140,47 +140,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2005-02-06 00:05:56  florian
+  Revision 1.22  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.21  2005/02/06 00:05:56  florian
     + x86_64 pic draft
 
   Revision 1.20  2005/01/24 22:08:33  peter
     * interface wrapper generation moved to cgobj
     * generate interface wrappers after the module is parsed
-
-  Revision 1.19  2004/11/01 17:44:27  florian
-    * cg64f64 isn't used anymore
-
-  Revision 1.18  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.17  2004/10/05 20:41:02  peter
-    * more spilling rewrites
-
-  Revision 1.16  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.15.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.15  2004/07/09 23:30:13  jonas
-    *  changed first_sse_imreg to first_mm_imreg
-
-  Revision 1.14  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.13  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.12.2.6  2004/05/27 23:36:18  peter
-    * nostackframe procdirective added
-
-  Revision 1.12.2.5  2004/05/02 21:34:01  florian
-    * i386 compilation fixed
-
-  Revision 1.12.2.4  2004/05/02 20:20:59  florian
-    * started to fix callee side result value handling
-
-  Revision 1.12.2.3  2004/05/01 11:12:24  florian
-    * spilling of registers with size<>4 fixed
 
 }

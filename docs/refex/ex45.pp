@@ -4,11 +4,11 @@ Program Example45;
 
 Type
   TEnum = (Zero, One, Two, Three, Four);
-  
-Var 
+
+Var
   X : Longint;
   Y : TEnum;
-  
+
 begin
   X:=125;
   Writeln (Ord(X));  { Prints 125 }

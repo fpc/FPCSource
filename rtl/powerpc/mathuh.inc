@@ -14,6 +14,7 @@
  **********************************************************************}
 {
   $Log$
-  Revision 1.1  2003-04-24 09:14:22  florian
-    * initial implementation
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
+
 }

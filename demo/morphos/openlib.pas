@@ -2,7 +2,7 @@
     $Id$
 
     Two ways of opening and using libraries
-    Free Pascal for MorphOS example 
+    Free Pascal for MorphOS example
 
     Copyright (C) 2004 by Karoly Balogh
 
@@ -24,7 +24,7 @@ uses exec, intuition, graphics, utility;
 { * You can enable this to manually open needed libraries, * }
 { * else it will use functions built into the units;       * }
 { * _DO NOT_ open/close DOS and Utility libraries manually * }
-{ * since that's handled by the default startup/shutdown code. * } 
+{ * since that's handled by the default startup/shutdown code. * }
 { DEFINE USEOPENLIB}
 
 
@@ -59,28 +59,28 @@ begin
   { * It's recommended not to mix up the two ways. * }
   { * It's not needed to implement both of them in your * }
   { * programs, it's just an example to show it. * }
-{$IFDEF USEOPENLIB}   
+{$IFDEF USEOPENLIB}
 
   IntuitionBase:=OpenLibrary(INTUITIONNAME,50);
-  if IntuitionBase=NIL then 
+  if IntuitionBase=NIL then
     ShutDown(ERRMSG_NOINTUI,20)
   else
     writeln(MSG_INTUIOK);
 
   GfxBase:=OpenLibrary(GRAPHICSNAME,50);
-  if GfxBase=NIL then 
+  if GfxBase=NIL then
     ShutDown(ERRMSG_NOGFX,20)
   else
     writeln(MSG_GFXOK);
 
 {$ELSE}
 
-  if Not InitIntuitionLibrary then 
+  if Not InitIntuitionLibrary then
     ShutDown(ERRMSG_NOINTUI,20)
-  else 
+  else
     writeln(MSG_INTUIOK);
 
-  if Not InitGraphicsLibrary then 
+  if Not InitGraphicsLibrary then
     ShutDown(ERRMSG_NOGFX,20)
   else
     writeln(MSG_GFXOK);
@@ -96,7 +96,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-12-14 22:00:17  karoly
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2004/12/14 22:00:17  karoly
     * initial revision
 
 }

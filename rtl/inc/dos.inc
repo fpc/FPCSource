@@ -304,26 +304,13 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-01-23 09:50:59  hajny
+  Revision 1.8  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.7  2005/01/23 09:50:59  hajny
     * yet another attempt to make Mac OS accept dos.inc without hacks ;-)
 
   Revision 1.6  2005/01/01 20:31:02  olle
     + hack again to make macos compile
-
-  Revision 1.5  2004/12/29 19:10:47  hajny
-    * more generic fix for DriveSeparator = DirectorySeparator
-
-  Revision 1.4  2004/12/28 21:50:14  olle
-    * hack to make macos compile
-
-  Revision 1.3  2004/12/15 17:03:01  peter
-    * fixed overflow
-
-  Revision 1.2  2004/12/05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.1  2004/11/28 12:33:35  hajny
-    * common implementation of platform independent functions for unit Dos
-
 
 }

@@ -573,16 +573,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2004-10-14 17:37:46  mazen
-  * Dos and cpubase units in uses clause are not needed
-
-  Revision 1.15  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.14  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.13.2.1  2004/04/08 18:33:22  peter
-    * rewrite of TAsmSection
+  Revision 1.17  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

@@ -8,7 +8,7 @@ begin
   InitMouse;
   Writeln('Click right mouse button to quit.');
   SetMouseXY(40,12);
-  Repeat 
+  Repeat
     Writeln(GetMouseX,',',GetMouseY);
     If (GetMouseX>70) then
       SetMouseXY(10,GetMouseY);

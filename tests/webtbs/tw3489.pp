@@ -7,7 +7,7 @@ program itest;
 
 var
   err : boolean;
-  
+
 type
   IGtkObject = interface
     ['{C4741871-56EB-4A5C-BDC8-018992345B24}']

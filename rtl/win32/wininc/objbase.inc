@@ -206,12 +206,7 @@
 
 {
   $Log$
-  Revision 1.3  2004-12-18 20:05:18  michael
-    * Aliased CoCreateStandardMalloc to CoGetMalloc as per bug 3447 (Alexey Barkovoy)
+  Revision 1.4  2005-02-14 17:13:32  peter
+    * truncate log
 
-  Revision 1.2  2004/11/29 12:27:24  marco
-   * stdcall added. Thnx M.
-
-  Revision 1.1  2002/10/10 16:10:33  florian
-    + declarations of objbase.h added
 }

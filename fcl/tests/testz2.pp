@@ -31,10 +31,7 @@ begin
 end.
 
   $Log$
-  Revision 1.4  2002-09-07 15:15:28  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/05/31 11:31:46  marco
-   * 1.0.x Renamefest for FCL. Fixed some oddities in 1.1 too
+  Revision 1.5  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -402,7 +402,7 @@ begin
       write(stabfile,stabs[i]);
       if x86_64 then
         write(dwrffile,dwarf64[i])
-      else	
+      else
         write(dwrffile,dwarf32[i]);
       write(otfile,ots[i]);
       write(opfile,ops[i]);
@@ -469,34 +469,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2004-06-16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.4.2.1  2004/04/12 19:34:46  peter
-    * basic framework for dwarf CFI
-
-  Revision 1.4  2003/12/15 21:25:49  peter
-    * reg allocations for imaginary register are now inserted just
-      before reg allocation
-    * tregister changed to enum to allow compile time check
-    * fixed several tregister-tsuperregister errors
-
-  Revision 1.3  2003/09/24 17:11:33  florian
-    * x86_64 support; turn on by passing x86_64
-
-  Revision 1.2  2003/09/03 15:55:02  peter
-    * NEWRA branch merged
-
-  Revision 1.1.2.4  2003/08/31 18:46:57  peter
-    * removed warning
-
-  Revision 1.1.2.3  2003/08/29 09:41:25  daniel
-    * Further mkx86reg development
-
-  Revision 1.1.2.2  2003/08/27 20:30:46  peter
-    * updated for opcode
-
-  Revision 1.1.2.1  2003/08/27 19:13:10  peter
-    * new tools
+  Revision 1.6  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

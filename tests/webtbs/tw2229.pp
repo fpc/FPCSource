@@ -22,9 +22,9 @@ begin
     on E: Exception  do
     begin
       if  x=1 then
-      //begin 
+      //begin
         raise
-      //end  
+      //end
       else writeln('Do nothing')
     end
   end;

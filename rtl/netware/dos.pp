@@ -519,46 +519,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.14  2005-01-11 11:32:33  armin
+  Revision 1.15  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.14  2005/01/11 11:32:33  armin
   * fixed compile error in getenv
-
-  Revision 1.13  2004/12/07 11:03:44  armin
-  * fixed typo's
-
-  Revision 1.12  2004/12/05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.11  2004/08/01 20:02:48  armin
-  * changed dir separator from \ to /
-  * long namespace by default
-  * dos.exec implemented
-  * getenv ('PATH') is now supported
-  * changed FExpand to global version
-  * fixed heaplist growth error
-  * support SysOSFree
-  * stackcheck was without saveregisters
-  * fpc can compile itself on netware
-
-  Revision 1.10  2004/02/17 17:37:26  daniel
-    * Enable threadvars again
-
-  Revision 1.9  2004/02/16 22:16:59  hajny
-    * LastDosExitCode changed back from threadvar temporarily
-
-  Revision 1.8  2004/02/15 21:34:06  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.7  2004/02/09 12:03:16  michael
-  + Switched to single interface in dosh.inc
-
-  Revision 1.6  2003/03/25 18:17:54  armin
-  * support for fcl, support for linking without debug info
-  * renamed winsock2 to winsock for win32 compatinility
-  * new sockets unit for netware
-  * changes for compiler warnings
-
-  Revision 1.5  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
 
 }
 

@@ -17,11 +17,11 @@
   Usage: change the constants below. Do a search&replace where TTemplateWriter
   is changed to TMyFormatWriter (replace MyFormat with whatever you need)
   and fill in all methods.
-  
-  If your format is linear (i.e. not some hyperlinked format, split in several 
-  output files), you should take the dw_lintmpl template instead. It will take 
+
+  If your format is linear (i.e. not some hyperlinked format, split in several
+  output files), you should take the dw_lintmpl template instead. It will take
   care of all needed structure.
-  
+
 }
 {$mode objfpc}
 {$H+}
@@ -37,12 +37,12 @@ Const
   TemplateName = 'template';
   { Comprehensible description goes here:}
   STemplateUsageWriterDescr = 'Writes output in template format';
-  { Extension for the template } 
+  { Extension for the template }
   TTemplateExtension = '.tpl';
-  
+
 Type
   { TTemplateWriter }
-   
+
   TTemplateWriter = Class(TFPDocWriter)
     ModuleName,             // Current module name
     PackageName: String;    // Package name
@@ -71,7 +71,7 @@ Type
     Procedure WriteExampleFile(FN : String); virtual;
     { Write all example files, found in ADocNode. }
     procedure WriteExample(ADocNode: TDocNode);
-    { Convert a TPasElement to a valid label for this backend } 
+    { Convert a TPasElement to a valid label for this backend }
     function ElementToLabel(AElement : TPasElement) : String;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
@@ -239,47 +239,47 @@ constructor TTemplateWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine)
       if InterfaceSection.Classes.Count > 0 then
       begin
         for i := 0 to InterfaceSection.Classes.Count - 1 do
-	begin
-	  ClassEl := TPasClassType(InterfaceSection.Classes[i]);
+        begin
+          ClassEl := TPasClassType(InterfaceSection.Classes[i]);
           AddLabel(ClassEl);
 
           for j := 0 to ClassEl.Members.Count - 1 do
           begin
             FPEl := TPasElement(ClassEl.Members[j]);
             if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
-	      ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
-	      continue;
+              ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
+              continue;
 
             DocNode := Engine.FindDocNode(FPEl);
             if not Assigned(DocNode) then
             begin
               DidAutolink := False;
-	      if Assigned(ClassEl.AncestorType) and
-	        (ClassEl.AncestorType.ClassType = TPasClassType) then
-	      begin
-	        for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
-	        begin
-	          AncestorMemberEl :=
-	            TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
-	          if AncestorMemberEl.Name = FPEl.Name then
-	          begin
-	            DocNode := Engine.FindDocNode(AncestorMemberEl);
-	            if Assigned(DocNode) then
-	            begin
-	              DidAutolink := True;
-		      Engine.AddLink(FPEl.PathName,
-	    		Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
-	              break;
-	            end;
-	          end;
-	        end;
-	      end;
-	      if not DidAutolink then
-	        AddLabel(FPEl);
-	    end else
-    	      AddLabel(FPEl);
-    	  end;
-	end;
+              if Assigned(ClassEl.AncestorType) and
+                (ClassEl.AncestorType.ClassType = TPasClassType) then
+              begin
+                for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
+                begin
+                  AncestorMemberEl :=
+                    TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
+                  if AncestorMemberEl.Name = FPEl.Name then
+                  begin
+                    DocNode := Engine.FindDocNode(AncestorMemberEl);
+                    if Assigned(DocNode) then
+                    begin
+                      DidAutolink := True;
+                      Engine.AddLink(FPEl.PathName,
+                        Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
+                      break;
+                    end;
+                  end;
+                end;
+              end;
+              if not DidAutolink then
+                AddLabel(FPEl);
+            end else
+              AddLabel(FPEl);
+          end;
+        end;
       end;
       AddList(AModule, InterfaceSection.Functions);
       AddList(AModule, InterfaceSection.Variables);
@@ -662,7 +662,7 @@ Procedure TTemplateWriter.WritePackagePage;
 var
   DocNode: TDocNode;
   L : TStringList;
-  
+
 begin
   DocNode:=Engine.FindDocNode(Package);
   // Write topics
@@ -710,7 +710,7 @@ begin
   Element:=FindTopicElement(Node);
   If Not Assigned(Element) then
     Exit;
-  // Write topic here  
+  // Write topic here
 end;
 
 
@@ -752,19 +752,19 @@ Var
 
 begin
   DocNode:=Engine.FindDocNode(AModule);
-  // Write unit stuff here.  
+  // Write unit stuff here.
 end;
 
 
 { ---------------------------------------------------------------------
   Classes man pages
   ---------------------------------------------------------------------}
-  
+
 procedure TTemplateWriter.WriteUnitClasses(ASection: TPasSection);
 
 var
   i: Integer;
-  
+
 begin
   if (ASection.Classes.Count > 0) then
     begin
@@ -794,7 +794,7 @@ var
   I : Integer;
   ResStrDecl : TPasResString;
   DocNode: TDocNode;
-  
+
 begin
   for i := 0 to ASection.ResStrings.Count - 1 do
     begin
@@ -814,7 +814,7 @@ var
   i: Integer;
   ConstDecl: TPasConst;
   DocNode: TDocNode;
-  
+
 begin
   for i := 0 to ASection.Consts.Count - 1 do
     begin
@@ -834,7 +834,7 @@ var
   i: Integer;
   TypeDecl: TPasType;
   DocNode : TDocNode;
-  
+
 begin
   for i := 0 to ASection.Types.Count - 1 do
     begin
@@ -874,7 +874,7 @@ var
   VarDecl: TPasVariable;
   i: Integer;
   DocNode : TDocNode;
-  
+
 begin
   for i := 0 to ASection.Variables.Count - 1 do
     begin
@@ -940,7 +940,7 @@ procedure TTemplateWriter.AppendFunctionResultSection(Element: TPasFunctionType)
 Var
   ResultEl: TPasResultElement;
   DocNode: TDocNode;
-  
+
 begin
   If Not Assigned(Element) then
     exit;
@@ -960,7 +960,7 @@ procedure TTemplateWriter.WritePropertyPage(PropDecl : TPasProperty);
 var
   DocNode: TDocNode;
   N,D: String;
-  
+
 begin
   DocNode := Engine.FindDocNode(PropDecl);
   // Write docu for property.

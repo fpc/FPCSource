@@ -51,9 +51,9 @@ Type
     ListScrollWindow : PGtkScrolledWindow;
     // Tree root node.
     RootNode : PGtkTreeItem;
-    
+
   end;
-  PMainWindow = ^TMainWindow;   
+  PMainWindow = ^TMainWindow;
 
 Function NewMainForm : PMainWindow;
 Function NewMainMenu(MainWindow : PMainWindow) : PGtkMenuBar;
@@ -93,13 +93,13 @@ Procedure ApplyMask(Mask : String; Data : Pointer);
 begin
   PMainWindow(data)^.FMask:=Mask;
   RefreshFileView(PMainWindow(Data));
-end; 
+end;
 
 procedure DoMask(Widget : PGtkWidget ; MainForm : PMainWindow ); cdecl;
 
 Var
   S : AnsiString;
-    
+
 begin
   With NewMaskForm^ do
     begin
@@ -108,7 +108,7 @@ begin
     CallBack:=@ApplyMask;
     CallBackData:=MainForm;
     gtk_widget_show_all(PgtkWidget(Window));
-    end;  
+    end;
 end;
 
 Function NewMainForm : PMainWindow;
@@ -238,7 +238,7 @@ begin
     begin
     PMIFileProperties:=AddItemToMenu(Result,Accel,'_Properties','',TgtkSignalFunc(@DoProperties),MainWindow);
     PMIFileDelete:=AddItemToMenu(Result,Accel,'_Delete','<ctrl>d',TgtkSignalFunc(@DeleteFile),MainWindow);
-    end; 
+    end;
 end;
 
 end.

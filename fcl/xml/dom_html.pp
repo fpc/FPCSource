@@ -924,12 +924,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-11-05 22:32:28  peter
-    * merged xml updates from lazarus
-
-  Revision 1.1  2002/12/11 21:06:07  sg
-  * Small cleanups
-  * Replaced htmldoc unit with dom_html unit
-  * Added SAX parser framework and SAX HTML parser
+  Revision 1.3  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

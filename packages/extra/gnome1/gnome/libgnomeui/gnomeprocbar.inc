@@ -2,7 +2,7 @@
 
 type
    TGnomeProcbarCallback = function (_para1:gpointer):gint; cdecl;
-   
+
    PGnomeProcBar = ^TGnomeProcBar;
    TGnomeProcBar = record
         hbox : TGtkHBox;

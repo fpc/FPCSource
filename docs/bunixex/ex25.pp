@@ -6,11 +6,11 @@ Uses BaseUnix,Unix,UnixUtil;
 
 Var utim : utimbuf;
     year,month,day,hour,minute,second : Word;
-       
+
 begin
   { Set access and modification time of executable source }
   GetTime (hour,minute,second);
-  GetDate (year,month,day);  
+  GetDate (year,month,day);
   utim.actime:=LocalToEpoch(year,month,day,hour,minute,second);
   utim.modtime:=utim.actime;
   if Fputime('ex25.pp',@utim)<>0 then

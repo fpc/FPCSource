@@ -325,23 +325,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.73  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.72  2004/09/25 14:23:54  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.71  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.70  2004/05/23 14:10:17  peter
-    * fix shl/shr with value > 63
-
-  Revision 1.69  2004/01/20 12:59:37  florian
-    * common addnode code for x86-64 and i386
+  Revision 1.74  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

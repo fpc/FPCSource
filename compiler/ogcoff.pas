@@ -1789,36 +1789,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2004-10-15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.32  2004/08/27 20:55:08  peter
-  don't use .rodata, it doesn't work yet
-
-  Revision 1.31  2004/08/25 15:55:32  peter
-    * fixed win32 that was broken by previous fix
-
-  Revision 1.30  2004/08/24 19:31:44  hajny
-    * binary writer fix for GO32v2 from Peter
-
-  Revision 1.29  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.28  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.27.2.5  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.27.2.4  2004/04/26 21:01:36  peter
-    * aint fixes
-
-  Revision 1.27.2.3  2004/04/12 19:34:45  peter
-    * basic framework for dwarf CFI
-
-  Revision 1.27.2.2  2004/04/09 14:34:53  peter
-    * fixed compilation for win32
+  Revision 1.34  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

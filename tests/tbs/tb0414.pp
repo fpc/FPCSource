@@ -5,7 +5,7 @@
   switch is correctly enabled
   depending on the target OS
   for m68k.
-} 
+}
 program tb0414;
 {$ifdef amiga}
 { Emulation is off by default }

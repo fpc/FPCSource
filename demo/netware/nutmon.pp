@@ -270,72 +270,72 @@ begin
     begin
       try
         nut.connected := true;
-	try
-	  nut.upsName := nutUpsName;
-	except
+        try
+          nut.upsName := nutUpsName;
+        except
           if nut.LastResult <> NutDataStale then
           begin
-	    writeln(stderr,#13'invalid ups name, terminating');
-	    nut.free;
-	    halt;
+            writeln(stderr,#13'invalid ups name, terminating');
+            nut.free;
+            halt;
           end else
           begin   // special case: on start UPS is in stale status, disconnect and try later
             upsStatus := [UPS_Stale];
-	    if (upsStatus <> lastUpsStatus) then doStatusChange (upsStatus, lastUpsStatus);
+            if (upsStatus <> lastUpsStatus) then doStatusChange (upsStatus, lastUpsStatus);
             lastUpsStatus := upsStatus;
             nut.connected := false;
           end;
-	end;
-
-	try
-	  nut.UpsStatus;
-	except
-          on e:exception do
-          begin
-	    writeln(stderr,#13'unable get ups status ('+e.Message+'), terminating');
-	    nut.free;
-	    halt;
-	  end;
         end;
 
-	try
-	  nut.Username := nutUser;
-	  nut.Password := nutPassword;
-	  nut.Login := true;
-	except
+        try
+          nut.UpsStatus;
+        except
           on e:exception do
           begin
-	    writeln(stderr,#13'unable to login ('+e.Message+'), terminating');
-	    nut.free;
-	    halt;
+            writeln(stderr,#13'unable get ups status ('+e.Message+'), terminating');
+            nut.free;
+            halt;
           end;
-	end;
-	lastUpsStatus := [UPS_disconnected];
+        end;
+
+        try
+          nut.Username := nutUser;
+          nut.Password := nutPassword;
+          nut.Login := true;
+        except
+          on e:exception do
+          begin
+            writeln(stderr,#13'unable to login ('+e.Message+'), terminating');
+            nut.free;
+            halt;
+          end;
+        end;
+        lastUpsStatus := [UPS_disconnected];
         WriteLn(#13'nutmon: connected to '+nutUpsName+'@'+nut.Host);
       except
         on e:exception do
         begin
-	  writeln (stderr,#13'nutmon: connect error, will retry in ',nutReconnectFreq,' seconds ('+e.message+')');
-	  doDelay (nutReconnectFreq);
+          writeln (stderr,#13'nutmon: connect error, will retry in ',nutReconnectFreq,' seconds ('+e.message+')');
+          doDelay (nutReconnectFreq);
         end;
       end;
     end else
     begin  // we are connected, poll status
       try
         upsStatus := nut.upsStatus;
-	if (upsStatus <> lastUpsStatus) then doStatusChange (upsStatus, lastUpsStatus);
-	lastUpsStatus := upsStatus;
-	if (UPS_lowBatt in upsStatus) or
+        if (upsStatus <> lastUpsStatus) then doStatusChange (upsStatus, lastUpsStatus);
+        lastUpsStatus := upsStatus;
+        if (UPS_lowBatt in upsStatus) or
            (UPS_FSD in upsStatus) then doShutdown;
         if downIfCapaityBelow > 0 then
           if (UPS_onBatt in upsStatus) then
             if nut.UpsChargeInt < downIfCapaityBelow then
               //writeln ('battery below ',downIfCapaityBelow);
               doShutdown ('Server shutting down,power failure and battery < '+IntToStr(downIfCapaityBelow)+'%');
-	if UPS_online in upsStatus then
-	  doDelay (nutPollfreq)
-	else
-	  doDelay (nutPollfreqAlert);
+        if UPS_online in upsStatus then
+          doDelay (nutPollfreq)
+        else
+          doDelay (nutPollfreqAlert);
       except
       end;
     end;
@@ -406,8 +406,8 @@ begin
         CMD_TESTSHUTDOWN:
                     begin
                       upsStatus := [UPS_FSD];
-	              doStatusChange (upsStatus, lastUpsStatus);
-	              doShutdown;
+                      doStatusChange (upsStatus, lastUpsStatus);
+                      doShutdown;
                     end;
       end;
       CurrentCommand := CMD_NONE;
@@ -484,7 +484,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-12-29 21:39:53  armin
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2004/12/29 21:39:53  armin
   * changed makefile version to 1.9.6, added samples for Netware
 
 }

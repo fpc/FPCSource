@@ -132,13 +132,7 @@ end.
 
 {
   $Log$
-  Revision 1.18  2004-09-25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.17  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.19  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -72,11 +72,11 @@ const
   kbdF18       = $FF12;
   kbdF19       = $FF13;
   kbdF20       = $FF14;
-  
+
   kbdLWin      = $FF15;
   kbdRWin      = $FF16;
   kbdApps      = $FF17;
-  
+
   { $15 - $1F reserved for future Fxx keys }
   kbdHome      = $FF20;
   kbdUp        = $FF21;
@@ -198,13 +198,7 @@ Function KeyEventToString(KeyEvent : TKeyEvent) : String;
 
 {
   $Log$
-  Revision 1.6  2004-12-18 19:53:21  michael
-  + Added windows key definitions (bug 3445)
-
-  Revision 1.5  2003/11/03 09:42:28  marco
-   * Peter's Cardinal<->Longint fixes patch
-
-  Revision 1.4  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.7  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

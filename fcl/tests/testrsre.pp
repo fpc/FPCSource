@@ -9,19 +9,19 @@ uses sysutils,resolve;
 
 Var
   I : integer;
-  S : longint; 
+  S : longint;
   P : String;
-  
-  
+
+
 begin
   If (ParamCount>0) then
     S:=StrToIntDef(Paramstr(1),0)
   else
-    S:=23;  
+    S:=23;
   If (ParamCount>1) then
     P:=Paramstr(2)
   else
-    P:='';  
+    P:='';
   With TServiceResolver.Create(Nil) do
     try
       If Not PortLookup(S,P) then
@@ -32,9 +32,9 @@ begin
         Writeln('Protocol      : ',Protocol);
         Writeln('Port          : ',port);
         Writeln('Aliases       : ',AliasCount);
-        For I:=0 to AliasCount-1 do 
+        For I:=0 to AliasCount-1 do
           Writeln('Alias ',i:2,'  : ',Aliases[I]);
-        end;    
+        end;
     finally
       Free;
     end;

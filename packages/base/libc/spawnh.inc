@@ -14,8 +14,8 @@ type
 
     __spawn_action = record end; // Used anonymously in header file; opaque structure
     P__spawn_action = ^__spawn_action;
-     
-     
+
+
 
    Pposix_spawn_file_actions_t = ^posix_spawn_file_actions_t;
    posix_spawn_file_actions_t = record
@@ -60,10 +60,10 @@ function posix_spawn_file_actions_adddup2(__file_actions:Pposix_spawn_file_actio
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
    TSpawnAction = __spawn_action;
    PSpawnAction = ^TSpawnAction;
-   
+
 function posix_spawn(__pid:Ppid_t; __path:Pchar; var __file_actions: posix_spawn_file_actions_t; var __attrp:posix_spawnattr_t; argv:ppchar;envp:ppchar):longint;cdecl;external clib name 'posix_spawn';
 function posix_spawnp(__pid:Ppid_t; __file:Pchar; var __file_actions: posix_spawn_file_actions_t; var __attrp: posix_spawnattr_t; argv:PPchar;envp:ppchar):longint;cdecl;external clib name 'posix_spawnp';
 function posix_spawnattr_init(var __attr: posix_spawnattr_t):longint;cdecl;external clib name 'posix_spawnattr_init';

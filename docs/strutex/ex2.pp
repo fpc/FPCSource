@@ -10,12 +10,12 @@ Const
 Var
   S,T : String;
   I,N : Integer;
-  
+
 begin
   S:='THE CAT WAS NEVER SMART ENOUGH TO CATCH THIS FAST LITTLE MOUSE.';
   For I:=1 to 8 do
     Write('1234567890');
-  Writeln;  
+  Writeln;
   Writeln(S);
   For I:=1 to WordCount(S,Delims) do
     begin

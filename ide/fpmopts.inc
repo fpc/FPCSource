@@ -1376,33 +1376,7 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-12-19 20:38:35  hajny
-    + confirmation box after video mode switch (bug 2933)
-
-  Revision 1.12  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.11  2002/12/18 01:21:42  pierre
-   + Use TEditorInputLine instead of TInputLine
-
-  Revision 1.10  2002/11/28 12:56:23  pierre
-   + Remote dialog added
-
-  Revision 1.9  2002/11/21 00:37:56  pierre
-   + some cross gdb enhancements
-
-  Revision 1.8  2002/09/07 15:40:44  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.7  2002/09/04 08:52:46  pierre
-   * adapt to fpcodtmp interface change
-
-  Revision 1.6  2002/01/24 09:21:42  pierre
-   * only disable Alt-X in Options|Compiler dialog
+  Revision 1.14  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

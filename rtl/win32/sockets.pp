@@ -52,13 +52,13 @@ Implementation
 
 
 
-//function fprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t; 
-//function fpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize; 
+//function fprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t;
+//function fpsendmsg    (s:cint; hdr: pmsghdr; flags:cint):ssize;
 
-//function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; 
+//function fpsocket     (domain:cint; xtype:cint; protocol: cint):cint;
 
 
-function fpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; 
+function fpsocket       (domain:cint; xtype:cint; protocol: cint):cint;
 begin
   fpSocket:=WinSock.Socket(Domain,xtype,ProtoCol);
   if fpSocket<0 then
@@ -67,7 +67,7 @@ begin
     SocketError:=0;
 end;
 
-function fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; 
+function fpsend (s:cint; msg:pointer; len:size_t; flags:cint):ssize_t;
 begin
   fpSend:=WinSock.Send(S,msg,len,flags);
   if fpSend<0 then
@@ -76,7 +76,7 @@ begin
     SocketError:=0;
 end;
 
-function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; 
+function fpsendto (s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t;
 begin
   // Dubious construct, this should be checked. (IPV6 fails ?)
   fpSendTo:=WinSock.SendTo(S,msg,Len,Flags,Winsock.TSockAddr(tox^),toLen);
@@ -86,7 +86,7 @@ begin
     SocketError:=0;
 end;
 
-function fprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; 
+function fprecv         (s:cint; buf: pointer; len: size_t; flags: cint):ssize_t;
 begin
   fpRecv:=WinSock.Recv(S,Buf,Len,Flags);
   if fpRecv<0 then
@@ -95,7 +95,7 @@ begin
     SocketError:=0;
 end;
 
-function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; 
+function fprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t;
 
 begin
 fpRecvFrom:=WinSock.RecvFrom(S,Buf,Len,Flags,Winsock.TSockAddr(from^),FromLen^);
@@ -105,7 +105,7 @@ fpRecvFrom:=WinSock.RecvFrom(S,Buf,Len,Flags,Winsock.TSockAddr(from^),FromLen^);
     SocketError:=0;
 end;
 
-function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  
+function fpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;
 
 begin
   fpConnect:=WinSock.Connect(S,WinSock.TSockAddr(name^),nameLen);
@@ -115,7 +115,7 @@ begin
     SocketError:=0;
 end;
 
-function fpshutdown 	(s:cint; how:cint):cint; 
+function fpshutdown     (s:cint; how:cint):cint;
 begin
   fpShutDown:=WinSock.ShutDown(S,How);
   if fpShutDown<0 then
@@ -151,7 +151,7 @@ begin
   RecvFrom:=fpRecvFrom(Sock,@Buf,BufLen,Flags,@Addr,@AddrLen);
 end;
 
-function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  
+function fpbind (s:cint; addrx : psockaddr; addrlen : tsocklen):cint;
 
 begin
   fpbind:=WinSock.Bind(S,WinSock.PSockAddr(Addrx),AddrLen);
@@ -161,7 +161,7 @@ begin
        SocketError:=0;
 end;
 
-function fplisten      (s:cint; backlog : cint):cint;                          
+function fplisten      (s:cint; backlog : cint):cint;
 
 begin
   fplisten:=WinSock.Listen(S,backlog);
@@ -171,7 +171,7 @@ begin
        SocketError:=0;
 end;
 
-function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
+function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint;
 begin
   fpAccept:=WinSock.Accept(S,WinSock.PSockAddr(Addrx),plongint(@AddrLen));
   if fpAccept<0 then
@@ -180,7 +180,7 @@ begin
     SocketError:=0;
 end;
 
-function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+function fpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint;
 
 begin
   fpGetSockName:=WinSock.GetSockName(S,WinSock.TSockAddr(name^),nameLen^);
@@ -190,7 +190,7 @@ begin
     SocketError:=0;
 end;
 
-function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; 
+function fpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint;
 begin
   fpGetPeerName:=WinSock.GetPeerName(S,WinSock.TSockAddr(name^),NameLen^);
   if fpGetPeerName<0 then
@@ -199,7 +199,7 @@ begin
     SocketError:=0;
 end;
 
-function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; 
+function fpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint;
 begin
   fpGetSockOpt:=WinSock.GetSockOpt(S,Level,OptName,OptVal,OptLen^);
   if fpGetSockOpt<0 then
@@ -208,7 +208,7 @@ begin
     SocketError:=0;
 end;
 
-function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint; 
+function fpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint;
 
 begin
   fpSetSockOpt:=WinSock.SetSockOpt(S,Level,OptName,OptVal,OptLen);
@@ -218,7 +218,7 @@ begin
     SocketError:=0;
 end;
 
-function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; 
+function fpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint;
 begin
 end;
 
@@ -233,7 +233,7 @@ begin
   end else
   begin
     CloseSocket := 0;
-    SocketError := 0;	
+    SocketError := 0;
   end;
 end;
 
@@ -389,28 +389,7 @@ finalization
 end.
 {
   $Log$
-  Revision 1.13  2004-03-16 18:03:37  marco
-   * first changes sockets units
-
-  Revision 1.12  2003/09/17 15:06:36  peter
-    * stdcall patch
-
-  Revision 1.11  2003/03/23 17:47:15  armin
-  * CloseSocket added
-
-  Revision 1.10  2003/01/01 14:34:22  peter
-    * sendto overload
-
-  Revision 1.9  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.8  2002/07/17 07:28:21  pierre
-   * avoid constant evaluation problems if cycling with -Cr
-
-  Revision 1.7  2002/02/04 21:41:15  michael
-  + merged ixed syntax
-
-  Revision 1.6  2002/02/04 21:29:34  michael
-  + merged missing sendto/rcvfrom functions
+  Revision 1.14  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

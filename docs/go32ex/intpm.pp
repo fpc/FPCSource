@@ -1,17 +1,17 @@
 uses
-	crt,
-	go32;
+        crt,
+        go32;
 
 const
-	int1c = $1c;
+        int1c = $1c;
 
 var
-	oldint1c : tseginfo;
-	newint1c : tseginfo;
+        oldint1c : tseginfo;
+        newint1c : tseginfo;
 
-	int1c_counter : Longint;
+        int1c_counter : Longint;
 
-	int1c_ds : Word; external name '___v2prt0_ds_alias';
+        int1c_ds : Word; external name '___v2prt0_ds_alias';
 
 procedure int1c_handler; assembler;
 asm

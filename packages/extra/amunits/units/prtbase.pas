@@ -16,12 +16,12 @@
 
 {
     History:
-    
+
     Update for AmigaOS 3.0.
     Some const and records added and changes
     was made to a few records.
     31 Jan 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -78,18 +78,18 @@ Const
 {**************************************************************************}
 
 {
-	"struct PrinterData" was a very bad concept in the old V1.0 days
-	because it is both: the device and the unit.
+        "struct PrinterData" was a very bad concept in the old V1.0 days
+        because it is both: the device and the unit.
 
-	Starting with V44 PrinterData may be duplicated for many Units. But all
-	new fields that are specific to the Unit  are now part of the new
-	"struct PrinterUnit". Don't touch the private fields!
+        Starting with V44 PrinterData may be duplicated for many Units. But all
+        new fields that are specific to the Unit  are now part of the new
+        "struct PrinterUnit". Don't touch the private fields!
 
-	A note on the function pointers in these data structure definitions:
-	unless otherwise specified, all functions expect that their parameters
-	are passed on the *stack* rather than in CPU registers. Every parameter
-	must be passed a 32 bit long word, i.e. an "UWORD" will use the same
-	stack space as an "ULONG".
+        A note on the function pointers in these data structure definitions:
+        unless otherwise specified, all functions expect that their parameters
+        are passed on the *stack* rather than in CPU registers. Every parameter
+        must be passed a 32 bit long word, i.e. an "UWORD" will use the same
+        stack space as an "ULONG".
 }
 
 Type
@@ -139,16 +139,16 @@ Const
     PPC_COLORALPHA      = 2;            { color alphanumerics }
     PPC_COLORGFX        = 3;            { color graphics }
 
-    
+
 { extended PED structure (V44)  }
     PPCB_EXTENDED = 2;
     PPCF_EXTENDED = $4;
-    
+
 {
-	Some printer drivers (PrinterPS) do not support
-	strip printing. An application has to print a page
-	using a single print request or through clever use
-	of the PRD_DUMPRPORTTAGS printing callback hook.
+        Some printer drivers (PrinterPS) do not support
+        strip printing. An application has to print a page
+        using a single print request or through clever use
+        of the PRD_DUMPRPORTTAGS printing callback hook.
 }
 
 { no strip printing, please  }
@@ -210,26 +210,26 @@ Type
         { ptr to conversion function for all chars }
 
         ped_ConvFunc    : Pointer;
-	{*************************************************************
-	 *
-	 * The following only exists if the segment version is >= 44
-	 * AND PPCB_EXTENDED is set in ped_PrinterClass:
-	 *
-	 ************************************************************}
+        {*************************************************************
+         *
+         * The following only exists if the segment version is >= 44
+         * AND PPCB_EXTENDED is set in ped_PrinterClass:
+         *
+         ************************************************************}
 
-	{ Attributes and features }
-	ped_TagList : PTagItem;
-	{ driver specific preferences:
-	 *
-	 *	LONG ped_DoPreferences(struct printerIO * ior,
-	 *	                       LONG command);
-	 }
+        { Attributes and features }
+        ped_TagList : PTagItem;
+        { driver specific preferences:
+         *
+         *      LONG ped_DoPreferences(struct printerIO * ior,
+         *                             LONG command);
+         }
         ped_DoPreferences : function :LONG;
-	{ custom error handling:
-	 *
-	 *	VOID ped_CallErrHook(struct printerIO * ior,
-	 *	                     struct Hook * hook);
-	 }
+        { custom error handling:
+         *
+         *      VOID ped_CallErrHook(struct printerIO * ior,
+         *                           struct Hook * hook);
+         }
         ped_CallErrHook : procedure ;
     end;
 
@@ -289,20 +289,20 @@ type
 {**************************************************************************}
 
 {
-	Driver specific preferences. This structure is device specific: every
-	driver must base its preferences structure on this to allow version
-	checking etc.
+        Driver specific preferences. This structure is device specific: every
+        driver must base its preferences structure on this to allow version
+        checking etc.
 
-	The application will read/write this structure as an I/O buffer.
+        The application will read/write this structure as an I/O buffer.
 }
       PPrtDriverPreferences = ^tPrtDriverPreferences;
        tPrtDriverPreferences = record
             pdp_Version : UWORD;   { PRIVATE! driver specific version }
             { PRIVATE! driver specific id }
-	    pdp_PrinterID : array[0..31] of UBYTE;
+            pdp_PrinterID : array[0..31] of UBYTE;
             pdp_PrefName : array[0..(FILENAME_SIZE - 16)-1] of char;
             { size of this structure }
-	    pdp_Length : ULONG;
+            pdp_Length : ULONG;
          end;
 
 IMPLEMENTATION

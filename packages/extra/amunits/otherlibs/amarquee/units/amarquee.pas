@@ -16,7 +16,7 @@
 
 {
   History:
-  
+
   First translation of AMarquee.h to FPC pascal.
   No testing has been done so there could be bugs
   in here. If you find any bugs please let me know.
@@ -25,14 +25,14 @@
   Added functions and procedures with array of const.
   For use with fpc 1.0.7
   30 Nov 2002.
-  
+
   Added the defines use_amiga_smartlink and
   use_auto_openlib.
   12 Jan 2003.
-  
+
   Changed startcode for unit.
   10 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -319,562 +319,562 @@ pastoc,tagsarray;
 FUNCTION QFreeSession(session : pQSession) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QDebugOp(session : pQSession; string_ : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	string_,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L string_,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QGetOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVE.L	maxBytes,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  maxBytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QDeleteOp(session : pQSession; path : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QRenameOp(session : pQSession; path : pCHar; label_ : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVE.L	label_,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  label_,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSubscribeOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVE.L	maxBytes,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  maxBytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSetOp(session : pQSession; path : pCHar; buf : POINTER; len : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVE.L	buf,D0
-	MOVE.L	len,D1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  buf,D0
+        MOVE.L  len,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QClearSubscriptionsOp(session : pQSession; which : LONGINT) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVE.L	which,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  which,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QPingOp(session : pQSession) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QInfoOp(session : pQSession) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSetAccessOp(session : pQSession; hosts : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	hosts,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE FreeQMessage(session : pQSession; qmsg : pQMessage);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	qmsg,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L qmsg,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION QGo(session : pQSession; sync : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVE.L	sync,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  sync,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QStreamOp(session : pQSession; path : pCHar; buf : POINTER; len : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVE.L	buf,D0
-	MOVE.L	len,D1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  buf,D0
+        MOVE.L  len,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSetMessageAccessOp(session : pQSession; access : pCHar; maxbytes : LONGINT) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	access,A1
-	MOVE.L	maxbytes,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L access,A1
+        MOVE.L  maxbytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QMessageOp(session : pQSession; hosts : pCHar; buffer : POINTER; len : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	hosts,A1
-	MOVE.L	buffer,D0
-	MOVE.L	len,D1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVE.L  buffer,D0
+        MOVE.L  len,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QNumQueuedPackets(session : pQSession) : ULONG;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QNumQueuedBytes(session : pQSession) : ULONG;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QErrorName(session : LONGINT) : pCHar;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	session,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  session,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QRequestPrivilegesOp(session : pQSession; privBits : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVE.L	privBits,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  privBits,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QReleasePrivilegesOp(session : pQSession; privBits : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVE.L	privBits,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-174(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  privBits,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -174(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QKillClientsOp(session : pQSession; hosts : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	hosts,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-180(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -180(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSetParameterOp(session : pQSession; paramName : pCHar; newValue : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	paramName,A1
-	MOVE.L	newValue,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-186(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L paramName,A1
+        MOVE.L  newValue,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -186(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QGetParameterOp(session : pQSession; paramName : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	paramName,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-192(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L paramName,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -192(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSysMessageOp(session : pQSession; hosts : pCHar; message : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	hosts,A1
-	MOVE.L	message,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-198(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L hosts,A1
+        MOVE.L  message,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -198(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QGetAndSubscribeOp(session : pQSession; path : pCHar; maxBytes : LONGINT) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVE.L	maxBytes,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-210(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  maxBytes,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -210(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QDetachSession(session : pQSession; flags : ULONG) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVE.L	flags,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-216(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  flags,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -216(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION QReattachSession(session : pQSession; flags : ULONG) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVE.L	flags,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-222(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  flags,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -222(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION QNewSocketSession(host : pCHar; port : LONGINT; tags : pTagItem) : pQSession;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	host,A0
-	MOVE.L	port,D0
-	MOVEA.L	tags,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-228(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L tags,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -228(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSendRawOp(session : pQSession; buf : POINTER; len : ULONG) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	buf,A1
-	MOVE.L	len,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-234(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L buf,A1
+        MOVE.L  len,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -234(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QNewSocketSessionAsync(host : pCHar; port : LONGINT; tags : pTagItem) : pQSession;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	host,A0
-	MOVE.L	port,D0
-	MOVEA.L	tags,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-240(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L tags,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -240(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QNewSocketServerSession(port : pLONGINT; tags : pTagItem) : pQSession;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	port,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-246(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L port,A0
+        MOVEA.L tags,A1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -246(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QSetKeyAccessOp(session : pQSession; path : pCHar; hosts : pCHar) : LONGINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	path,A1
-	MOVE.L	hosts,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-252(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L path,A1
+        MOVE.L  hosts,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -252(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QGetHostName(session : pQSession) : pCHar;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-258(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -258(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QGetProgName(session : pQSession) : pCHar;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-264(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -264(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE QSetMaxRawBufSize(session : pQSession; maxBufSize : ULONG);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVE.L	maxBufSize,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-270(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVE.L  maxBufSize,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -270(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION QNewSession(host : pCHar; port : LONGINT; name : pCHar; taglist : pTagItem) : pQSession;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	host,A0
-	MOVE.L	port,D0
-	MOVEA.L	name,A1
-	MOVE.L	taglist,D1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-276(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L name,A1
+        MOVE.L  taglist,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -276(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QNewSessionAsync(host : pCHar; port : LONGINT; name : pCHar; taglist : pTagItem) : pQSession;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	host,A0
-	MOVE.L	port,D0
-	MOVEA.L	name,A1
-	MOVE.L	taglist,D1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-282(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L host,A0
+        MOVE.L  port,D0
+        MOVEA.L name,A1
+        MOVE.L  taglist,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -282(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QNewHostSession(hostnames : pCHar; port : pLONGINT; names : pCHar; taglist : pTagItem) : pQSession;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	hostnames,A0
-	MOVEA.L	port,A1
-	MOVE.L	names,D0
-	MOVE.L	taglist,D1
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-288(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L hostnames,A0
+        MOVEA.L port,A1
+        MOVE.L  names,D0
+        MOVE.L  taglist,D1
+        MOVEA.L AMarqueeBase,A6
+        JSR     -288(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QNewServerSession(hostNames : pCHar; progNames : pCHar; taglist : pTagItem) : pQSession;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	hostNames,A0
-	MOVEA.L	progNames,A1
-	MOVE.L	taglist,D0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-294(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L hostNames,A0
+        MOVEA.L progNames,A1
+        MOVE.L  taglist,D0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -294(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION QCreateSharedMessagePort : pQSharedMessagePort;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-300(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L AMarqueeBase,A6
+        JSR     -300(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE QDeleteSharedMessagePort(mp : pQSharedMessagePort);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mp,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-306(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mp,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -306(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
@@ -882,12 +882,12 @@ END;
 FUNCTION QGetLocalIP(session : pQSession) : pCHAR;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	session,A0
-	MOVEA.L	AMarqueeBase,A6
-	JSR	-312(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L session,A0
+        MOVEA.L AMarqueeBase,A6
+        JSR     -312(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
@@ -1153,11 +1153,8 @@ END. (* UNIT AMARQUEE *)
 
 {
   $Log$
-  Revision 1.2  2003-02-11 20:24:44  nils
-  * changed startcode for library
-
-  Revision 1.1  2003/01/12 20:40:47  nils
-    * initial release
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 

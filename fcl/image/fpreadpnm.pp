@@ -5,7 +5,7 @@
     Copyright (c) 2003 by Mazen NEIFER of the Free Pascal development team
 
     PNM writer implementation.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -78,7 +78,7 @@ function ReadInteger(Stream : TStream) :Integer;
 
 var
   s:String[7];
-  
+
 begin
   s:='';
   s[1]:=DropWhiteSpaces(Stream);
@@ -100,7 +100,7 @@ begin
   If (C<>'P') then
     Raise Exception.Create('Not a valid PNM image.');
   Stream.ReadBuffer(C,1);
-  FBitmapType:=Ord(C)-Ord('0');  
+  FBitmapType:=Ord(C)-Ord('0');
   If Not (FBitmapType in [1..6]) then
     Raise Exception.CreateFmt('Unknown PNM subtype : %s',[C]);
   FWidth:=ReadInteger(Stream);
@@ -135,7 +135,7 @@ var
   Row,Coulumn,nBpLine,ReadSize:Integer;
   aColor:TFPcolor;
   aLine:PByte;
-    
+
 begin
   ReadHeader(Stream);
   Img.SetSize(FWidth,FHeight);
@@ -149,7 +149,7 @@ begin
       end;
   finally
     FreeMem(FScanLine);
-  end;      
+  end;
 end;
 
 procedure TFPReaderPNM.ReadScanLine(Row : Integer; Stream:TStream);
@@ -157,7 +157,7 @@ procedure TFPReaderPNM.ReadScanLine(Row : Integer; Stream:TStream);
 Var
   P : PWord;
   I,j : Integer;
-  
+
 begin
   Case FBitmapType of
     1 : begin
@@ -230,11 +230,11 @@ Var
   end;
 
   Procedure WordGrayScanLine;
-  
+
   Var
     P : PWord;
     I : Integer;
-    
+
   begin
     P:=PWord(FScanLine);
     For I:=0 to FWidth-1 do
@@ -247,7 +247,7 @@ Var
       Inc(P);
       end;
   end;
-  
+
   Procedure WordRGBScanLine;
 
   Var
@@ -276,7 +276,7 @@ Var
   Var
     P : PByte;
     I : Integer;
-  
+
   begin
     P:=PByte(FScanLine);
     For I:=0 to FWidth-1 do
@@ -312,7 +312,7 @@ Var
       Inc(P);
       end;
   end;
-    
+
 begin
   C.Alpha:=AlphaOpaque;
   FHalfMaxVal:=(FMaxVal div 2);
@@ -337,17 +337,7 @@ initialization
 end.
 {
 $Log$
-Revision 1.4  2004-08-26 09:33:43  mazen
-+ add PBM (P4) support
-
-Revision 1.3  2004/03/03 00:03:34  michael
-+ Fixed reading of pnm
-
-Revision 1.2  2003/09/30 12:26:33  mazen
-+ reading P6 format implemented.
-
-Revision 1.1  2003/09/30 07:15:48  mazen
-+ Support for PNM (Portable aNyMap) formats (skeleton only)
-   need to complete implementation
+Revision 1.5  2005-02-14 17:13:12  peter
+  * truncate log
 
 }

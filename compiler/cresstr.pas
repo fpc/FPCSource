@@ -293,31 +293,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.27  2004-11-01 20:22:04  florian
-    * resource ansistrings now use aint for len and ref. count as well
-
-  Revision 1.26  2004/07/12 17:58:19  peter
-    * remove maxlen field from ansistring/widestrings
-
-  Revision 1.25  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.24  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.23  2004/05/23 15:23:30  peter
-    * fixed qword(longint) that removed sign from the number
-    * removed code in the compiler that relied on wrong qword(longint)
-      code generation
-
-  Revision 1.22.2.3  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.22.2.2  2004/04/27 18:18:25  peter
-    * aword -> aint
-
-  Revision 1.22.2.1  2004/04/12 14:45:11  peter
-    * tai_const_symbol and tai_const merged
+  Revision 1.28  2005-02-14 17:13:06  peter
+    * truncate log
 
 }

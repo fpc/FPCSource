@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc} 
+{$mode objfpc}
 unit rtlconst;
 
 interface
@@ -273,7 +273,7 @@ ResourceString
 { ---------------------------------------------------------------------
     Keysim Names
   ---------------------------------------------------------------------}
-  
+
   SmkcAlt   = 'Alt+';
   SmkcBkSp  = 'Backspace';
   SmkcCtrl  = 'Ctrl+';
@@ -292,7 +292,7 @@ ResourceString
   SmkcSpace = 'Space';
   SmkcTab   = 'Tab';
   SmkcUp    = 'Up';
-  
+
 { ---------------------------------------------------------------------
     "Distance" family type and conversion types
   ---------------------------------------------------------------------}
@@ -434,7 +434,7 @@ ResourceString
   SPoundsDescription            = 'Pounds';
   SStonesDescription            = 'Stones';
   STonsDescription              = 'Tons';
-  
+
 { ---------------------------------------------------------------------
     "Temperature" family type and conversion types
   ---------------------------------------------------------------------}
@@ -480,7 +480,7 @@ ResourceString
 { ---------------------------------------------------------------------
     MCI subsystem constants
   ---------------------------------------------------------------------}
-  
+
   SMCIAVIVideo                  = 'AVIVideo';
   SMCICDAudio                   = 'CDAudio';
   SMCIDAT                       = 'DAT';
@@ -499,7 +499,7 @@ ResourceString
 { ---------------------------------------------------------------------
     Message Dialog constants
   ---------------------------------------------------------------------}
-    
+
   SMsgDlgAbort                  = '&Abort';
   SMsgDlgAll                    = '&All';
   SMsgDlgCancel                 = 'Cancel';
@@ -524,23 +524,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-08-19 07:28:50  michael
-  + Added  SEmptyStreamIllegalReader/Writer
+  Revision 1.7  2005-02-14 17:13:31  peter
+    * truncate log
 
-  Revision 1.5  2004/01/11 01:17:22  michael
-  + need mode objfpc directive
-
-  Revision 1.4  2004/01/10 20:13:19  michael
-  + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
-
-  Revision 1.3  2004/01/10 19:35:17  michael
-  + Moved all resource strings to rtlconst/sysconst
-
-  Revision 1.2  2004/01/10 17:30:32  michael
-  + Implemented all constants for compatibility
-
-  Revision 1.1  2003/09/03 14:09:37  florian
-    * arm fixes to the common rtl code
-    * some generic math code fixed
-    * ...
 }

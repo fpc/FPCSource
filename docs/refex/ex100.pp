@@ -2,30 +2,30 @@ Program Example100;
 
 { Program to demonstrate the CompareChar function. }
 
-Const 
+Const
   ArraySize     = 100;
   HalfArraySize = ArraySize Div 2;
-  
-Var 
+
+Var
   Buf1,Buf2 : Array[1..ArraySize] of char;
   I : longint;
-  
+
   Procedure CheckPos(Len : Longint);
-  
+
   Begin
     Write('First ',Len,' characters are ');
     if CompareChar(Buf1,Buf2,Len)<>0 then
       Write('NOT ');
-    Writeln('equal');  
+    Writeln('equal');
   end;
 
   Procedure CheckNullPos(Len : Longint);
-  
+
   Begin
     Write('First ',Len,' non-null characters are ');
     if CompareChar0(Buf1,Buf2,Len)<>0 then
       Write('NOT ');
-    Writeln('equal');  
+    Writeln('equal');
   end;
 
 begin
@@ -36,7 +36,7 @@ begin
       Buf2[I]:=chr(I)
     else
       Buf2[i]:=chr(HalfArraySize-I);
-    end; 
+    end;
   CheckPos(HalfArraySize div 2);
   CheckPos(HalfArraySize);
   CheckPos(HalfArraySize+1);
@@ -46,7 +46,7 @@ begin
     buf1[Random(ArraySize)+1]:=Chr(0);
     buf2[Random(ArraySize)+1]:=Chr(0);
     end;
-  Randomize;  
+  Randomize;
   CheckNullPos(HalfArraySize div 2);
   CheckNullPos(HalfArraySize);
   CheckNullPos(HalfArraySize+1);

@@ -3210,8 +3210,8 @@ begin
     begin
       if (terminator^ = ' ') or (terminator^ = #0) then
       begin
-	Result := TRUE;
-	Exit;
+        Result := TRUE;
+        Exit;
       end;
     end;
     start := terminator;

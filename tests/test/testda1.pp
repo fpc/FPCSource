@@ -3,7 +3,7 @@ var
    a1 : array of longint;
    i : longint;
 
-begin  
+begin
    setlength(a1,10);
    setlength(a1,0);
    setlength(a1,10);

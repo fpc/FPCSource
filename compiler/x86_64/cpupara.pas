@@ -493,7 +493,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2005-02-06 18:59:15  peter
+  Revision 1.18  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.17  2005/02/06 18:59:15  peter
     * arrays are always passed by addr
     * cdecl array of const is passed by value so it doesn't allocate
       anything
@@ -506,40 +509,5 @@ end.
 
   Revision 1.14  2005/01/29 11:36:52  peter
     * update x86_64 with new cpupara
-
-  Revision 1.13  2004/12/12 12:56:18  peter
-    * compile fixes for x86_64
-
-  Revision 1.12  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.11  2004/10/05 20:55:49  peter
-    * fixed location size for s64comp
-
-  Revision 1.10  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.9.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.9  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.8  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.7.2.7  2004/05/03 20:18:52  peter
-    * fixes for tprintf
-
-  Revision 1.7.2.6  2004/05/02 21:37:35  florian
-    * setting of func. ret. for i386 fixed
-
-  Revision 1.7.2.5  2004/05/02 20:56:55  florian
-    * more fixes to handle_return_value update
-
-  Revision 1.7.2.4  2004/05/02 19:08:01  florian
-    * rewrote tcgcallnode.handle_return_value
 
 }

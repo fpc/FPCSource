@@ -19,7 +19,7 @@ uses
   jerror,
   jutils,
   jcomapi,
-  jchuff;       	{ Declarations shared with jchuff.c }
+  jchuff;               { Declarations shared with jchuff.c }
 
 
 { Module initialization routine for progressive Huffman entropy encoding. }
@@ -43,7 +43,7 @@ type
 
     next_output_byte : JOCTETptr; { => next byte to write in buffer }
     free_in_buffer : size_t;    { # of byte spaces remaining in buffer }
-    put_buffer : INT32;		{ current bit-accumulation buffer }
+    put_buffer : INT32;         { current bit-accumulation buffer }
     put_bits : int;             { # of bits now in it }
     cinfo : j_compress_ptr;     { link to cinfo (needed for dump_buffer) }
 
@@ -58,7 +58,7 @@ type
     bit_buffer : JBytePtr;      { buffer for correction bits (1 per char) }
     { packing correction bits tightly would save some space but cost time... }
 
-    restarts_to_go : uInt;	{ MCUs left in this restart interval }
+    restarts_to_go : uInt;      { MCUs left in this restart interval }
     next_restart_num : int;     { next restart number to write (0-7) }
 
     { Pointers to derived tables (these workspaces have image lifespan).
@@ -143,9 +143,9 @@ begin
       entropy^.pub.encode_mcu := encode_mcu_AC_refine;
       { AC refinement needs a correction bit buffer }
       if (entropy^.bit_buffer = NIL) then
-	entropy^.bit_buffer := JBytePtr(
-	  cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				      MAX_CORR_BITS * SIZEOF(byte)) );
+        entropy^.bit_buffer := JBytePtr(
+          cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
+                                      MAX_CORR_BITS * SIZEOF(byte)) );
     end;
   end;
   if (gather_statistics) then
@@ -165,7 +165,7 @@ begin
     if (is_DC_band) then
     begin
       if (cinfo^.Ah <> 0) then  { DC refinement needs no table }
-	continue;
+        continue;
       tbl := compptr^.dc_tbl_no;
     end
     else
@@ -182,16 +182,16 @@ begin
       { Allocate and zero the statistics tables }
       { Note that jpeg_gen_optimal_table expects 257 entries in each table! }
       if (entropy^.count_ptrs[tbl] = NIL) then
-	entropy^.count_ptrs[tbl] := TLongTablePtr(
-	  cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				      257 * SIZEOF(long)) );
+        entropy^.count_ptrs[tbl] := TLongTablePtr(
+          cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
+                                      257 * SIZEOF(long)) );
       MEMZERO(entropy^.count_ptrs[tbl], 257 * SIZEOF(long));
     end else
     begin
       { Compute derived values for Huffman table }
       { We may do this more than once for a table, but it's not expensive }
       jpeg_make_c_derived_tbl(cinfo, is_DC_band, tbl,
-			      entropy^.derived_tbls[tbl]);
+                              entropy^.derived_tbls[tbl]);
     end;
   end;
 
@@ -255,7 +255,7 @@ begin
     ERREXIT(j_common_ptr(entropy^.cinfo), JERR_HUFF_MISSING_CODE);
 
   if (entropy^.gather_statistics) then
-    exit;			{ do nothing if we're only getting stats }
+    exit;                       { do nothing if we're only getting stats }
 
   put_buffer := put_buffer and ((INT32(1) shl size) - 1);
                                 { mask off any extra bits in code }
@@ -283,7 +283,7 @@ begin
       dump_buffer(entropy);
 
     if (c = $FF) then
-    begin		{ need to stuff a zero byte? }
+    begin               { need to stuff a zero byte? }
       {emit_byte(entropy, 0);}
       entropy^.next_output_byte^ := JOCTET(0);
       Inc(entropy^.next_output_byte);
@@ -333,12 +333,12 @@ end;
 {LOCAL}
 procedure emit_buffered_bits (entropy : phuff_entropy_ptr;
                               bufstart : JBytePtr;
-		              nbits : uInt);
+                              nbits : uInt);
 var
   bufptr : byteptr;
 begin
   if (entropy^.gather_statistics) then
-    exit;			{ no real work }
+    exit;                       { no real work }
 
   bufptr := byteptr(bufstart);
   while (nbits > 0) do
@@ -358,7 +358,7 @@ var
   {register} temp, nbits : int;
 begin
   if (entropy^.EOBRUN > 0) then
-  begin	                       { if there is any pending EOBRUN }
+  begin                        { if there is any pending EOBRUN }
     temp := entropy^.EOBRUN;
     nbits := 0;
     temp := temp shr 1;
@@ -486,7 +486,7 @@ begin
     temp2 := temp;
     if (temp < 0) then
     begin
-      temp := -temp;		{ temp is abs value of input }
+      temp := -temp;            { temp is abs value of input }
       { For a negative input, want temp2 := bitwise complement of abs(input) }
       { This code assumes we are on a two's complement machine }
       Dec(temp2);
@@ -567,7 +567,7 @@ begin
 
   { Encode the AC coefficients per section G.1.2.2, fig. G.3 }
 
-  r := 0;			{ r := run length of zeros }
+  r := 0;                       { r := run length of zeros }
 
   for k := cinfo^.Ss to Se do
   begin
@@ -584,14 +584,14 @@ begin
 
     if (temp < 0) then
     begin
-      temp := -temp;		{ temp is abs value of input }
-      temp := temp shr Al;	{ apply the point transform }
+      temp := -temp;            { temp is abs value of input }
+      temp := temp shr Al;      { apply the point transform }
       { For a negative coef, want temp2 := bitwise complement of abs(coef) }
       temp2 := not temp;
     end
     else
     begin
-      temp := temp shr Al;	{ apply the point transform }
+      temp := temp shr Al;      { apply the point transform }
       temp2 := temp;
     end;
     { Watch out for case that nonzero coef is zero after point transform }
@@ -612,7 +612,7 @@ begin
     end;
 
     { Find the number of bits needed for the magnitude of the coefficient }
-    nbits := 0;			{ there must be at least one 1 bit }
+    nbits := 0;                 { there must be at least one 1 bit }
     repeat
       Inc(nbits);
       temp := temp shr 1;
@@ -629,14 +629,14 @@ begin
     { or the complement of its magnitude, if negative. }
     emit_bits(entropy, uInt(temp2), nbits);
 
-    r := 0;			{ reset zero run length }
+    r := 0;                     { reset zero run length }
   end;
 
   if (r > 0) then
-  begin			        { If there are trailing zeroes, }
-    Inc(entropy^.EOBRUN);	{ count an EOB }
+  begin                         { If there are trailing zeroes, }
+    Inc(entropy^.EOBRUN);       { count an EOB }
     if (entropy^.EOBRUN = $7FFF) then
-      emit_eobrun(entropy);	{ force it out to avoid overflow }
+      emit_eobrun(entropy);     { force it out to avoid overflow }
   end;
 
   cinfo^.dest^.next_output_byte := entropy^.next_output_byte;
@@ -759,17 +759,17 @@ begin
       in C, we shift after obtaining the absolute value. }
 
     if (temp < 0) then
-      temp := -temp;		{ temp is abs value of input }
-    temp := temp shr Al;		{ apply the point transform }
-    absvalues[k] := temp;	{ save abs value for main pass }
+      temp := -temp;            { temp is abs value of input }
+    temp := temp shr Al;                { apply the point transform }
+    absvalues[k] := temp;       { save abs value for main pass }
     if (temp = 1) then
-      EOB := k;			{ EOB := index of last newly-nonzero coef }
+      EOB := k;                 { EOB := index of last newly-nonzero coef }
   end;
 
   { Encode the AC coefficients per section G.1.2.3, fig. G.7 }
 
-  r := 0;			{ r := run length of zeros }
-  BR := 0;			{ BR := count of buffered bits added now }
+  r := 0;                       { r := run length of zeros }
+  BR := 0;                      { BR := count of buffered bits added now }
   BR_buffer := JBytePtr(@(entropy^.bit_buffer^[entropy^.BE]));
                                 { Append bits to buffer }
 
@@ -825,11 +825,11 @@ begin
     emit_buffered_bits(entropy, BR_buffer, BR);
     BR_buffer := entropy^.bit_buffer; { BE bits are gone now }
     BR := 0;
-    r := 0;			{ reset zero run length }
+    r := 0;                     { reset zero run length }
   end;
 
   if (r > 0) or (BR > 0) then
-  begin	                        { If there are trailing zeroes, }
+  begin                         { If there are trailing zeroes, }
     Inc(entropy^.EOBRUN);       { count an EOB }
     Inc(entropy^.BE, BR);          { concat my correction bits to older ones }
     { We force out the EOB if we risk either:
@@ -912,7 +912,7 @@ begin
     if (is_DC_band) then
     begin
       if (cinfo^.Ah <> 0) then     { DC refinement needs no table }
-	continue;
+        continue;
       tbl := compptr^.dc_tbl_no;
     end
     else
@@ -944,7 +944,7 @@ var
 begin
   entropy := phuff_entropy_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(phuff_entropy_encoder)) );
+                                SIZEOF(phuff_entropy_encoder)) );
   cinfo^.entropy := jpeg_entropy_encoder_ptr(entropy);
   entropy^.pub.start_pass := start_pass_phuff;
 
@@ -954,7 +954,7 @@ begin
     entropy^.derived_tbls[i] := NIL;
     entropy^.count_ptrs[i] := NIL;
   end;
-  entropy^.bit_buffer := NIL;	{ needed only in AC refinement scan }
+  entropy^.bit_buffer := NIL;   { needed only in AC refinement scan }
 end;
 
 end.

@@ -240,18 +240,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2005-01-08 04:10:36  karoly
+  Revision 1.15  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.14  2005/01/08 04:10:36  karoly
     * made m68k to compile again
-
-  Revision 1.13  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.12  2004/04/25 21:26:16  florian
-    * some m68k stuff fixed
-
-  Revision 1.11  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
 
 }

@@ -25,12 +25,12 @@ type
 
   TServletContext = class
   public
-    property Attributes[const AName: String]: TObject;	// !!!: Implement this	rw
-    // function GetContext(const URIPath: String): TServletContext;	// !!!: How to implement?
-    // function GetRealPath(const APath: String): String;	// !!!: How to implement?
-    property ServletContextName: String;	// !!!: How to implement?
-    // procedure Log(const AMsg: String);	// !!!: Implement this
-    // procedure RemoveAttribute(const AName: String);	// !!!: Implement this
+    property Attributes[const AName: String]: TObject;  // !!!: Implement this  rw
+    // function GetContext(const URIPath: String): TServletContext;     // !!!: How to implement?
+    // function GetRealPath(const APath: String): String;       // !!!: How to implement?
+    property ServletContextName: String;        // !!!: How to implement?
+    // procedure Log(const AMsg: String);       // !!!: Implement this
+    // procedure RemoveAttribute(const AName: String);  // !!!: Implement this
   end;
 
   TServletRequest = class
@@ -43,22 +43,22 @@ type
     function GetProtocol: String; virtual; abstract;
   public
     constructor Create(AInputStream: TStream; const AScheme, APathInfo: String);
-    property Attributes[const AName: String]: TObject;	// !!!: Implement this	rw
-    property CharacterEncoding: String;	// !!!: Implement this  rw
+    property Attributes[const AName: String]: TObject;  // !!!: Implement this  rw
+    property CharacterEncoding: String; // !!!: Implement this  rw
     property ContentLength: Integer read GetContentLength;
     property ContentType: String read GetContentType;
     property InputStream: TStream read FInputStream;
-    property Parameters[const AName: String]: String;	// !!!: Implement this
-    property ParameterValues[const AName: String]: TStrings;	// !!!: Implement this
+    property Parameters[const AName: String]: String;   // !!!: Implement this
+    property ParameterValues[const AName: String]: TStrings;    // !!!: Implement this
     property Protocol: String read GetProtocol;
-    property RemoteAddr: String;	// !!!: Implement this
-    property RemoteHost: String;	// !!!: Implement this
+    property RemoteAddr: String;        // !!!: Implement this
+    property RemoteHost: String;        // !!!: Implement this
     property Scheme: String read FScheme;
-    property ServerName: String;	// !!!: How to implement?
-    property ServerPort: Integer;	// !!!: How to implement?
-    property IsSecure: Boolean;		// !!!: Implement this
+    property ServerName: String;        // !!!: How to implement?
+    property ServerPort: Integer;       // !!!: How to implement?
+    property IsSecure: Boolean;         // !!!: Implement this
 
-    // procedure RemoveAttribute(const AName: String);	// !!!: Implement this
+    // procedure RemoveAttribute(const AName: String);  // !!!: Implement this
   end;
 
   TServletResponse = class
@@ -69,23 +69,23 @@ type
     procedure SetContentLength(Value: Int64); virtual; abstract;
   public
     constructor Create(AOutputStream: TStream);
-    property BufferSize: Integer;	// !!!: How to implement?  rw
-    property CharacterEncoding: String;	// !!!: Implement this
+    property BufferSize: Integer;       // !!!: How to implement?  rw
+    property CharacterEncoding: String; // !!!: Implement this
     property ContentLength: Int64 write SetContentLength;
     property ContentType: String write SetContentType;
     property OutputStream: TStream read FOutputStream;
-    property IsCommitted: Boolean;	// !!!: Implement this
+    property IsCommitted: Boolean;      // !!!: Implement this
 
-    // procedure FlushBuffer;		// !!!: Implement this
-    // procedure Reset;			// !!!: Implement this
-    // procedure ResetBuffer;		// !!!: Implement this
+    // procedure FlushBuffer;           // !!!: Implement this
+    // procedure Reset;                 // !!!: Implement this
+    // procedure ResetBuffer;           // !!!: Implement this
   end;
 
   TGenericServlet = class(TComponent)
   public
     procedure Service(Req: TServletRequest; Resp: TServletResponse);
       virtual; abstract;
-    property ServletContext: TServletContext;	// !!!: Implement this
+    property ServletContext: TServletContext;   // !!!: Implement this
   end;
 
 
@@ -115,8 +115,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-04-25 19:30:29  sg
-  * First version (with exception of the HTTP unit: This is an improved version
-    of the old asyncio HTTP unit, now adapted to fpAsync)
+  Revision 1.2  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

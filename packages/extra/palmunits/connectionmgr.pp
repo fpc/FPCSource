@@ -214,7 +214,7 @@ const
  * Parameters ID  and Sizes
  ***********************************************************************)
 
-const 
+const
 // void param has a size of zero bytes
   kCncNoParam                         = 0;
   kCncNoParamSize                     = 0;
@@ -409,23 +409,23 @@ function CncProfileSettingSet(iProfileId: CncProfileID; paramId: UInt16; const p
 
 function CncProfileSetCurrent(profileId: CncProfileID): Err;
 
-function CncProfileGetCurrent(var profileIdP: CncProfileID): Err; 
+function CncProfileGetCurrent(var profileIdP: CncProfileID): Err;
 
-function CncProfileGetIDFromName(const profileNameP: PChar; var profileIdP: CncProfileID): Err; 
+function CncProfileGetIDFromName(const profileNameP: PChar; var profileIdP: CncProfileID): Err;
 
-function CncProfileCreate(var profileIdP: CncProfileID): Err; 
+function CncProfileCreate(var profileIdP: CncProfileID): Err;
 
-function CncProfileDelete(profileId: CncProfileID): Err; 
+function CncProfileDelete(profileId: CncProfileID): Err;
 
-function CncProfileGetIDFromIndex(index: UInt16; var profileIdP: CncProfileID): Err; 
+function CncProfileGetIDFromIndex(index: UInt16; var profileIdP: CncProfileID): Err;
 
-function CncProfileGetIndex(profileId: CncProfileID; var indexP: UInt16): Err; 
+function CncProfileGetIndex(profileId: CncProfileID; var indexP: UInt16): Err;
 
-function CncProfileCount(var profilesCountP: UInt16): Err; 
+function CncProfileCount(var profilesCountP: UInt16): Err;
 
-function CncProfileOpenDB: Err; 
+function CncProfileOpenDB: Err;
 
-function CncProfileCloseDB: Err; 
+function CncProfileCloseDB: Err;
 
 (***********************************************************************
  * Old  Connection Mgr API, For compatibility only
@@ -488,7 +488,7 @@ begin
  CncProfileSettingSet := __CncProfileSettingSet(iProfileId, paramId, paramBufferP, paramSize);
 end;
 
-function CncProfileSetCurrent(profileId: CncProfileID): Err; 
+function CncProfileSetCurrent(profileId: CncProfileID): Err;
 begin
  asm
   move.l #$sysTrapCncMgrProfileSetCurrent, D2
@@ -496,7 +496,7 @@ begin
  CncProfileSetCurrent := __CncProfileSetCurrent(profileId);
 end;
 
-function CncProfileGetCurrent(var profileIdP: CncProfileID): Err; 
+function CncProfileGetCurrent(var profileIdP: CncProfileID): Err;
 begin
  asm
   move.l #$sysTrapCncMgrProfileGetCurrent, D2;
@@ -512,7 +512,7 @@ begin
  CncProfileGetIDFromName := __CncProfileGetIDFromName(profileNameP, profileIdP);
 end;
 
-function CncProfileCreate(var profileIdP: CncProfileID): Err; 
+function CncProfileCreate(var profileIdP: CncProfileID): Err;
 begin
  asm
   move.l #$sysTrapCncMgrProfileCreate, D2;

@@ -47,13 +47,13 @@ begin
 
    for i := 0 to NumBoards-1 do begin
        p96GetBoardDataTags(i,[P96BD_BoardName, @BoardName,
-			      P96BD_RGBFormats, @RGBFormats,
-			      P96BD_TotalMemory, @MemorySize,
-			      P96BD_FreeMemory, @FreeMemory,
-			      P96BD_LargestFreeMemory, @LargestFreeMemory,
-			      P96BD_MemoryClock, @MemoryClock,
-			      P96BD_MonitorSwitch, @MoniSwitch,
-			      TAG_END]);
+                              P96BD_RGBFormats, @RGBFormats,
+                              P96BD_TotalMemory, @MemorySize,
+                              P96BD_FreeMemory, @FreeMemory,
+                              P96BD_LargestFreeMemory, @LargestFreeMemory,
+                              P96BD_MemoryClock, @MemoryClock,
+                              P96BD_MonitorSwitch, @MoniSwitch,
+                              TAG_END]);
 
       writeln('--------------------------------------------------');
       printf('Board %ld:      %s'#10,[ i, BoardName]);

@@ -28,10 +28,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-03-15 21:49:11  peter
-    * test for cmem unit
-
-  Revision 1.3  2002/09/08 15:44:40  michael
-  + fixed log entry
+  Revision 1.2  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

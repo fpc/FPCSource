@@ -1,7 +1,7 @@
 Program ex13;
 
-{ 
-Program to demonstrate the TStream.ReadStr TStream.WriteStr functions 
+{
+Program to demonstrate the TStream.ReadStr TStream.WriteStr functions
 }
 
 Uses objects;
@@ -9,7 +9,7 @@ Uses objects;
 Var P : PString;
     L : String;
     S : PStream;
-    
+
 begin
   L:='Constant string line';
   Writeln ('Writing to stream : "',L,'"');

@@ -42,9 +42,9 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-18 20:51:04  nils
-    * typo
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 
-  
+

@@ -38,13 +38,7 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-09-20 20:23:08  marco
-   * fix
-
-  Revision 1.6  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.5  2002/09/07 15:15:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

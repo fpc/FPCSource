@@ -1,5 +1,5 @@
 { %fail }
-unit Testunit;	
+unit Testunit;
 {This doesn't fail although it should due to non resolved forward. OR}
 
 interface

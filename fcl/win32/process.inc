@@ -42,13 +42,13 @@ begin
       Result:=Result or startf_usecountchars;
     if suoUsefIllAttribute in FStartupOptions then
       Result:=Result or startf_USEFILLATTRIBUTE;
-    end;  
+    end;
 end;
 
 Function GetCreationFlags(P : TProcess) : Cardinal;
 
 begin
-  With P do 
+  With P do
     begin
     Result:=0;
     if poNoConsole in FProcessOptions then
@@ -137,16 +137,16 @@ end;
 Procedure CreatePipes(Var HI,HO,HE : Thandle; Var SI : TStartupInfo; CE : Boolean);
 
   Procedure DoCreatePipeHandles(Var H1,H2 : THandle);
-  
-  Var 
+
+  Var
     I,O : Longint;
-    
+
   begin
     CreatePipeHandles(I,O);
     H1:=Thandle(I);
     H2:=THandle(O);
-  end;  
-    
+  end;
+
 
 
 
@@ -157,7 +157,7 @@ begin
     DoCreatePipeHandles(HE,SI.hStdError)
   else
     begin
-    SI.hStdError:=SI.hStdOutput;  
+    SI.hStdError:=SI.hStdOutput;
     HE:=HO;
     end;
 end;
@@ -172,8 +172,8 @@ Var
   FCreationFlags : Cardinal;
   FProcessAttributes : TSecurityAttributes;
   FThreadAttributes : TSecurityAttributes;
-  FProcessInformation : TProcessInformation; 
-  FStartupInfo : STARTUPINFO;   
+  FProcessInformation : TProcessInformation;
+  FStartupInfo : STARTUPINFO;
   HI,HO,HE : THandle;
 
 begin
@@ -191,21 +191,21 @@ begin
     FEnv:=StringsToPChars(FEnvironment)
   else
     FEnv:=Nil;
-  Try  
+  Try
     FCreationFlags:=GetCreationFlags(Self);
     InitProcessAttributes(Self,FProcessAttributes);
     InitThreadAttributes(Self,FThreadAttributes);
     InitStartupInfo(Self,FStartUpInfo);
     If poUsePipes in FProcessOptions then
       CreatePipes(HI,HO,HE,FStartupInfo,Not(poStdErrToOutPut in FProcessOptions));
-    Try  
+    Try
       If Not CreateProcess (PName,PCommandLine,@FProcessAttributes,@FThreadAttributes,
                    FInheritHandles,FCreationFlags,FEnv,PDir,FStartupInfo,
                    fProcessInformation) then
         Raise Exception.CreateFmt('Failed to execute %s : %d',[FCommandLine,GetLastError]);
       FProcessHandle:=FProcessInformation.hProcess;
       FThreadHandle:=FProcessInformation.hThread;
-      FProcessID:=FProcessINformation.dwProcessID;  
+      FProcessID:=FProcessINformation.dwProcessID;
     Finally
       if POUsePipes in FProcessOptions then
         begin
@@ -215,12 +215,12 @@ begin
           FileClose(FStartupInfo.hStdError);
         CreateStreams(HI,HO,HE);
         end;
-    end;    
+    end;
     FRunning:=True;
   Finally
     If FEnv<>Nil then
       FreeMem(FEnv);
-  end;    
+  end;
   if not (csDesigning in ComponentState) and // This would hang the IDE !
      (poWaitOnExit in FProcessOptions) and
       not (poRunSuspended in FProcessOptions) then

@@ -139,16 +139,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2004-02-22 14:52:59  hajny
-    * compilation fixes + *w tools renamed to *
-
-  Revision 1.5  2002/12/06 17:51:11  peter
-    * merged cdecl and array fixes
-
-  Revision 1.4  2002/06/02 09:44:17  marco
-   * linux
-
-  Revision 1.3  2002/05/18 13:34:27  peter
-    * readded missing revisions
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

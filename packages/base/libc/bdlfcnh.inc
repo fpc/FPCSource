@@ -14,4 +14,4 @@ procedure _dl_mcount_wrapper_check(__selfpc:pointer);cdecl;external clib name '_
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

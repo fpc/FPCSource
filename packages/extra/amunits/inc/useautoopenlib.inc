@@ -20,7 +20,7 @@
 {
    In this includefile you can set some defines on how
    to compile amiga units.
-   
+
    use_auto_openlib.
    If you use use_auto_openlib the unit will compile
    with autoopening of the unit at startup. You don't
@@ -30,17 +30,17 @@
    problem. As default I have compiled all amiga system
    units as autoopened. Exec, intuition, amigados and
    utility is all opened on startup by sysamiga.
-   
+
 
    use_init_openlib.
    If you compile with this define you get a procedure
    in every unit as an example for asl.library you
    have "procedure InitAslLibrary;". All you have to
-   do is 
+   do is
    InitAslLibrary in the beginning of your program.
    You don't have to close the library the unit will
    handle that.
-   
+
    dont_use_openlib.
    This is the standard amiga way. You have to open
    the library yourself and at the end close it.
@@ -58,7 +58,7 @@
 
 }
 
-{ 
+{
    Make sure that there is only one define set.
    Just put a space before the define to undef
 }

@@ -38,12 +38,12 @@
 //    _UTSNAME_LENGTH = ;
 //    _UTSNAME_NODENAME_LENGTH = ;
 
-CONST                		// OS specific parameters for general<fd,sig>set behaviour
+CONST                           // OS specific parameters for general<fd,sig>set behaviour
    BITSINWORD      = 8*sizeof(longint);
-   FD_MAXFDSET	   = 1024;
-   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 } 
-   ln2bitmask	   = 1 shl ln2bitsinword - 1;
-   wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t   
+   FD_MAXFDSET     = 1024;
+   ln2bitsinword   = 5;         { 32bit : ln(32)/ln(2)=5 }
+   ln2bitmask      = 1 shl ln2bitsinword - 1;
+   wordsinfdset    = FD_MAXFDSET DIV BITSINWORD;        // words in fdset_t
    wordsinsigset   = SIG_MAXSIG  DIV BITSINWORD;
 
 TYPE
@@ -74,7 +74,7 @@ TYPE
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
 {$ifdef netbsdPowerpc}
-	st_padd1	      : cint;
+        st_padd1              : cint;
 {$endif}
         st_size       : off_t;             // file size, in bytes
         st_blocks     : cint64;            // blocks allocated for file
@@ -82,7 +82,7 @@ TYPE
         st_flags      : cuint32;           // user defined flags for file
         st_gen        : cuint32;           // file generation number
 {$ifdef netbsdPowerpc}
-	st_padd2	      : cint;
+        st_padd2              : cint;
 {$endif}
 {$ifndef NetBSD}
         st_lspare     : cint32;
@@ -110,7 +110,7 @@ TYPE
         dd_buf    : pchar;        // data buffer
         dd_len    : cint;         // size of data buffer
 {$ifdef netbsdpowerpc}
-	dd_pad1   : cint;
+        dd_pad1   : cint;
         dd_seek   : cint64;        // magic cookie returned by getdirentries
 {$else}
         dd_seek   : clong;        // magic cookie returned by getdirentries
@@ -122,28 +122,28 @@ TYPE
    pDir    = ^dir;
 
    utimbuf  = record
-	        actime  : time_t;
-	        modtime : time_t;
-	        end;
+                actime  : time_t;
+                modtime : time_t;
+                end;
    TUtimBuf = utimbuf;
    putimbuf = ^utimbuf;
 
    flock    = record
-		l_start : off_t;	{ starting offset }
-		l_len	: off_t;	{ len = 0 means until end of file }
-		l_pid 	: pid_t;	{ lock owner }
-		l_type	: cshort;	{ lock type: read/write, etc. }
-		l_whence: cshort;	{ type of l_start }
+                l_start : off_t;        { starting offset }
+                l_len   : off_t;        { len = 0 means until end of file }
+                l_pid   : pid_t;        { lock owner }
+                l_type  : cshort;       { lock type: read/write, etc. }
+                l_whence: cshort;       { type of l_start }
                 end;
    TFlock   = flock;
    pFlock   = ^flock;
 
  tms = packed record
-	 tms_utime  : clock_t;	{ User CPU time }
-	 tms_stime  : clock_t;	{ System CPU time }
-	 tms_cutime : clock_t;	{ User CPU time of terminated child procs }
-	 tms_cstime : clock_t;	{ System CPU time of terminated child procs }
-	 end;
+         tms_utime  : clock_t;  { User CPU time }
+         tms_stime  : clock_t;  { System CPU time }
+         tms_cutime : clock_t;  { User CPU time of terminated child procs }
+         tms_cstime : clock_t;  { System CPU time of terminated child procs }
+         end;
  TTms= tms;
  pTms= ^tms;
 
@@ -262,57 +262,10 @@ CONST
 
 {
   $Log$
-  Revision 1.8  2005-02-13 21:47:56  peter
+  Revision 1.9  2005-02-14 17:13:21  peter
+    * truncate log
+
+  Revision 1.8  2005/02/13 21:47:56  peter
     * include file cleanup part 2
-
-  Revision 1.9  2004/03/04 22:15:16  marco
-   * UnixType changes. Please report problems to me.
-
-  Revision 1.8  2004/02/29 13:46:52  marco
-   * forgotten?
-
-  Revision 1.7  2004/01/04 20:08:45  jonas
-    * moved SIG_MAXSIG and wordsinsigset constants from bunxtype.inc to
-      ptypes.inc (already there for Darwin)
-
-  Revision 1.6  2003/11/30 12:40:29  marco
-   * fix from sebastian
-
-  Revision 1.5  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.4  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.3  2003/08/21 22:23:34  olle
-    - removed parameter from fpc_iocheck
-
-  Revision 1.2  2003/06/01 16:35:27  marco
-   * Several small fixes to harmonize the *BSD rtls and Linux.
-
-  Revision 1.1  2003/01/03 15:45:21  marco
-   * Renamed to bunxtype.inc (from osposixh.inc), some minor changes
-      (as introduced going from posix unit to baseunix)
-
-  Revision 1.6  2002/10/27 17:21:29  marco
-   * Only "difficult" functions + execvp + termios + rewinddir left to do
-
-  Revision 1.5  2002/10/27 11:58:30  marco
-   * Modifications from Saturday.
-
-  Revision 1.4  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/08/21 07:03:16  marco
-   * Fixes from Tuesday.
-
-  Revision 1.2  2002/08/19 12:29:11  marco
-   * First working POSIX *BSD system unit.
-
-  Revision 1.1  2002/08/03 19:34:19  marco
-   * Initial *BSD versions. Seems that OpenBSD doesn't need much change,
-      NetBSD may need some fixes to stat record and ftruncate and lseek.
-      It is all close together, and it should be doable to have just one copy
-      of these for *BSD.
 
 }

@@ -17,13 +17,13 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   16 Jan 2003.
-  
+
   Changed startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -52,7 +52,7 @@ const
    }
 
   {
-    	Tags
+        Tags
     }
 
   const
@@ -124,7 +124,7 @@ const
   { set task priority (MV_Create() only) }
      MVIEW_Priority = MVIEW_Dummy + 33;
   {
-    	Types
+        Types
     }
   { image fits exactly into view }
      MVDISPMODE_FIT = 0;
@@ -190,112 +190,112 @@ tagsarray;
 FUNCTION MV_CreateA(screen : pScreen; a1arg : pRastPort; tags : pTagItem) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	screen,A0
-	MOVEA.L	a1arg,A1
-	MOVEA.L	tags,A2
-	MOVEA.L	MysticBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L screen,A0
+        MOVEA.L a1arg,A1
+        MOVEA.L tags,A2
+        MOVEA.L MysticBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE MV_Delete(mview : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVEA.L	MysticBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVEA.L MysticBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MV_DrawOff(mview : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVEA.L	MysticBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVEA.L MysticBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION MV_DrawOn(mview : POINTER) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVEA.L	MysticBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVEA.L MysticBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE MV_GetAttrsA(mview : POINTER; tags : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	MysticBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVEA.L tags,A1
+        MOVEA.L MysticBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MV_Refresh(mview : POINTER);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVEA.L	MysticBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVEA.L MysticBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MV_SetAttrsA(mview : POINTER; tags : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVEA.L	tags,A1
-	MOVEA.L	MysticBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVEA.L tags,A1
+        MOVEA.L MysticBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MV_SetViewRelative(mview : POINTER; x : LONGINT; y : LONGINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVEA.L	MysticBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVEA.L MysticBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE MV_SetViewStart(mview : POINTER; x : LONGINT; y : LONGINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	mview,A0
-	MOVE.L	x,D0
-	MOVE.L	y,D1
-	MOVEA.L	MysticBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L mview,A0
+        MOVE.L  x,D0
+        MOVE.L  y,D1
+        MOVEA.L MysticBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 

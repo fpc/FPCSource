@@ -104,7 +104,7 @@ const
    TYPE_MEDIUM_CHANGER = $08;
    TYPE_ENCLOSURE = $0d;
    TYPE_NO_LUN = $7f;
-   
+
 type
    Pccs_modesel_head = ^ccs_modesel_head;
    ccs_modesel_head = record
@@ -156,4 +156,4 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

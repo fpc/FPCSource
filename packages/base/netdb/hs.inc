@@ -10,14 +10,14 @@ begin
    begin
    Str(Entry[I],Dummy);
    HostAddrToStr:=HostAddrToStr+Dummy;
-   If I<4 Then 
+   If I<4 Then
      HostAddrToStr:=HostAddrToStr+'.';
    end;
 end;
 
 function StrToHostAddr(IP : String) : THostAddr ;
 
-Var 
+Var
     Dummy : String;
     I     : Longint;
     J     : Integer;
@@ -30,7 +30,7 @@ begin
    If I<4 Then
      begin
      J:=Pos('.',IP);
-     If J=0 then 
+     If J=0 then
        exit;
      Dummy:=Copy(IP,1,J-1);
      Delete (IP,1,J);
@@ -54,7 +54,7 @@ begin
    begin
    Str(Entry[I],Dummy);
    NetAddrToStr:=NetAddrToStr+Dummy;
-   If I>1 Then 
+   If I>1 Then
      NetAddrToStr:=NetAddrToStr+'.';
    end;
 end;
@@ -182,7 +182,7 @@ begin
     if HostAddrToStr6 = ''
       then HostAddrToStr6 := '::'
       else HostAddrToStr6 := HostAddrToStr6 + ':';
-                                                                                
+
   if HostAddrToStr6 = '' then HostAddrToStr6 := '::';
   if not (7 in zr1) then
     SetLength(HostAddrToStr6, Length(HostAddrToStr6)-1);

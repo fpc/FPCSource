@@ -1,7 +1,7 @@
 Program ex29;
 
 {
- Program to demonstrate the TCollection.DeleteAll method 
+ Program to demonstrate the TCollection.DeleteAll method
  Compare with example 28, where FreeAll is used.
 }
 

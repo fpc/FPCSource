@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Image Canvas - canvas which draws on an image.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

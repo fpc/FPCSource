@@ -475,50 +475,7 @@ end.
 
 {
   $Log$
-  Revision 1.13  2004-05-02 09:31:52  peter
-    * remove failed_to_execute_ strings, use the failed_to_run
-
-  Revision 1.12  2004/04/29 22:03:18  peter
-    * support new execute errors
-
-  Revision 1.11  2003/10/17 08:08:07  florian
-    * cosmetic fix in console output
-
-  Revision 1.10  2003/10/15 21:45:50  florian
-    + added submitter, machine and comment field to sql version
-
-  Revision 1.9  2003/10/15 19:39:42  florian
-    * exact result counts are inserted into the table
-
-  Revision 1.8  2003/10/13 14:19:02  peter
-    * digest updated for max version limit
-
-  Revision 1.7  2003/10/06 16:53:04  fpc
-    * allow digest programs on commandline
-
-  Revision 1.6  2003/10/04 21:30:21  florian
-    + added time to timestamp so multiple runs per day can be done
-
-  Revision 1.5  2003/10/03 22:51:02  michael
-  + Changed database structure after suggestion of florian
-
-  Revision 1.4  2002/12/24 21:47:49  peter
-    * NeedTarget, SkipTarget, SkipCPU added
-    * Retrieve compiler info in a single call for 1.1 compiler
-
-  Revision 1.3  2002/12/21 15:39:11  michael
-  * Some verbosity changes
-
-  Revision 1.2  2002/12/21 15:31:16  michael
-  + Added support for compiler version
-
-  Revision 1.1  2002/12/17 15:04:32  michael
-  + Added dbdigest to store results in a database
-
-  Revision 1.2  2002/11/18 16:42:43  pierre
-   + KNOWNRUNERROR added
-
-  Revision 1.1  2002/11/13 15:26:24  pierre
-   + digest program added
+  Revision 1.14  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

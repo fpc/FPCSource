@@ -51,20 +51,7 @@ procedure StrDispose(Str: PChar);
 
 {
   $Log$
-  Revision 1.4  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.3  2004/05/01 23:55:18  peter
-    * replace strlenint with sizeint
-
-  Revision 1.2  2004/02/20 22:15:16  florian
-    + x86_64 dependend sysutils part added
-    * some 64 bit adaptions
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.3  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
+  Revision 1.5  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

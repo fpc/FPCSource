@@ -326,16 +326,7 @@ begin
   Set_search_parameters(Include,DefaultLoginType);
 end.
   $Log$
-  Revision 1.4  2003-09-29 19:28:09  marco
-   * stat record fixes.
-
-  Revision 1.3  2003/09/27 12:13:50  peter
-    * fixed for unix
-
-  Revision 1.2  2002/09/07 15:43:06  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:55:23  peter
-    * splitted to base and extra
+  Revision 1.5  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

@@ -144,18 +144,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2004-06-20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.5  2004/01/10 00:16:21  jonas
-    * fixed mtfsb0 instruction for assembler reader/writer
-    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
-      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
-      requiring to start with a cross compiler)
-
-  Revision 1.4  2004/01/04 21:18:10  jonas
-      + as_darwin assembler type (labels start with L)
-      * never generate register->number mappings for Darwin
-      * always use real register names for Darwin
+  Revision 1.7  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

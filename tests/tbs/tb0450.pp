@@ -10,7 +10,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-02-02 14:37:45  carl
-   + round returning int64 problem
+  Revision 1.2  2005-02-14 17:13:35  peter
+    * truncate log
 
-}  
+}

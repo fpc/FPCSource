@@ -55,16 +55,7 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-10-24 11:53:45  peter
-    * fixed compilation with removed loadref
-
-  Revision 1.10  2004/10/13 21:12:51  peter
-    * -Or fixes for open array
-
-  Revision 1.9  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.8  2004/02/05 01:24:08  florian
-    * several fixes to compile x86-64 system
+  Revision 1.12  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -287,18 +287,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2004-11-08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.4  2002/09/26 20:45:08  pierre
-   * fix webbug 2102-C
-
-  Revision 1.3  2002/09/07 15:40:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

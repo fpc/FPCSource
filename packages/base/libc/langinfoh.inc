@@ -372,4 +372,4 @@ function __nl_langinfo_l(__item:nl_item; l:__locale_t):Pchar;cdecl;external clib
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

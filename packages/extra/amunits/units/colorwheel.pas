@@ -23,7 +23,7 @@
 
     Changed cardinal > longword.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
 }
 
@@ -161,16 +161,8 @@ END. (* UNIT COLORWHEEL *)
 
 {
   $Log$
-  Revision 1.4  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.3  2003/01/14 18:46:04  nils
-  * added defines use_amia_smartlink and use_auto_openlib
-
-  * implemented autoopening of library
-
-  Revision 1.2  2002/11/18 20:51:44  nils
-    * wrong name on unit
+  Revision 1.5  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
-  
+

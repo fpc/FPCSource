@@ -10,7 +10,7 @@ var
     P: Pchar;
     machaine :string;
 begin
-    
+
     newtInit();
     newtCls();
 

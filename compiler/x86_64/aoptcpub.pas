@@ -122,7 +122,7 @@ End.
 
 {
  $Log$
- Revision 1.1  2004-12-12 14:07:07  peter
-   * generic optimizer
+ Revision 1.2  2005-02-14 17:13:10  peter
+   * truncate log
 
 }

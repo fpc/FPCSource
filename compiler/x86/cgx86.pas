@@ -369,9 +369,9 @@ unit cgx86;
             href.refaddr:=addr_pic;
             href.base:=NR_RIP;
             list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
-            
+
             ref.symbol:=nil;
-            
+
             if ref.index=NR_NO then
               begin
                 ref.index:=hreg;
@@ -626,7 +626,7 @@ unit cgx86;
 {$ifdef x86_64}
         { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
-          64 bit (FK) 
+          64 bit (FK)
         }
         if s in [S_BL,S_WL,S_L] then
           reg2:=makeregsize(list,reg2,OS_32);
@@ -643,7 +643,7 @@ unit cgx86;
         { avoid merging of registers and killing the zero extensions (FK) }
         if (tosize in [OS_64,OS_S64]) and (s=S_L) then
           list.concat(taicpu.op_const_reg(A_AND,S_L,$ffffffff,reg2));
-{$endif x86_64}          
+{$endif x86_64}
       end;
 
 
@@ -1771,7 +1771,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.145  2005-02-06 00:05:56  florian
+  Revision 1.146  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.145  2005/02/06 00:05:56  florian
     + x86_64 pic draft
 
   Revision 1.144  2005/02/05 18:32:17  florian
@@ -1785,83 +1788,5 @@ end.
 
   Revision 1.141  2005/01/08 16:00:55  florian
     * fixed loadaddr; I wonder how it ever worked
-
-  Revision 1.140  2004/12/12 10:50:35  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.139  2004/11/08 20:23:29  florian
-    * fixed open arrays when using register variables
-
-  Revision 1.138  2004/11/02 20:50:54  florian
-    + added profiler call for x86_64
-
-  Revision 1.137  2004/11/02 18:23:16  florian
-    * fixed -<sse register>
-    * information about simple moves for sse is given to the register allocator
-
-  Revision 1.136  2004/11/01 23:30:11  peter
-    * support > 32bit accesses for x86_64
-    * rewrote array size checking to support 64bit
-
-  Revision 1.135  2004/11/01 15:42:47  florian
-    * cvt*2* can't write to memory location, fixed
-
-  Revision 1.134  2004/11/01 10:30:06  peter
-    * fixed uninited var in a_load_reg_ref
-
-  Revision 1.133  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.132  2004/10/25 15:36:47  peter
-    * save standard registers moved to tcgobj
-
-  Revision 1.131  2004/10/24 20:10:08  peter
-    * -Or fixes
-
-  Revision 1.130  2004/10/24 11:44:28  peter
-    * small regvar fixes
-    * loadref parameter removed from concatcopy,incrrefcount,etc
-
-  Revision 1.129  2004/10/06 19:27:35  jonas
-    * regvar fixes from Peter
-
-  Revision 1.128  2004/10/05 20:41:02  peter
-    * more spilling rewrites
-
-  Revision 1.127  2004/10/04 20:46:22  peter
-    * spilling code rewritten for x86. It now used the generic
-      spilling routines. Special x86 optimization still needs
-      to be added.
-    * Spilling fixed when both operands needed to be spilled
-    * Cleanup of spilling routine, do_spill_readwritten removed
-
-  Revision 1.126  2004/10/03 12:42:22  florian
-    * made sqrt, sqr and abs internal for the sparc
-
-  Revision 1.125  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.124  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.123  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.122  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.121  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.120  2004/04/09 14:36:05  peter
-    * A_MOVSL renamed to A_MOVSD
-
-  Revision 1.119.2.22  2004/05/28 20:29:50  florian
-    * fixed currency trouble on x86-64
 
 }

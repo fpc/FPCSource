@@ -293,7 +293,7 @@ begin
   if i>0 then
     Delete(ProgNam,i,255);
   NlmNam := ProgNam + target_info.exeext;
-  
+
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);             {for ld}
   NLMConvLinkFile:=TLinkRes.Create(outputexedir+'n'+Info.ResName); {for nlmconv, written in CreateExeFile}
@@ -433,9 +433,9 @@ begin
            i:=Pos(target_info.sharedlibext,S);
            if i>0 then
              Delete(S,i,255);
-	   if s[1] = '!' then
-	   begin  // special, with ! only the imp will be included but no module is autoloaded, needed i.e. for netware.imp
-	     S := copy(S,2,255) + '.imp';
+           if s[1] = '!' then
+           begin  // special, with ! only the imp will be included but no module is autoloaded, needed i.e. for netware.imp
+             S := copy(S,2,255) + '.imp';
              librarysearchpath.FindFile(S,S3);
              {$ifdef netware}
              Comment(V_Debug,'IMPORT @'+S3);
@@ -443,8 +443,8 @@ begin
              {$endif}
              NLMConvLinkFile.Add('IMPORT @'+S3);
              Comment(V_Debug,'IMPORT @'+S3);
-	   end else
-	   begin
+           end else
+           begin
              S := S + '.imp';
              librarysearchpath.FindFile(S,S3);
              {$ifdef netware}
@@ -456,7 +456,7 @@ begin
              Comment(V_Debug,'MODULE '+S2);
              Comment(V_Debug,'IMPORT @'+S3);
            end;
-	 end;
+         end;
       end;
    end;
 
@@ -577,48 +577,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2005-01-01 20:08:59  armin
+  Revision 1.25  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.24  2005/01/01 20:08:59  armin
   * support ! in import file names for netware also
-
-  Revision 1.23  2004/12/22 16:32:46  peter
-    * maybequoted() added
-
-  Revision 1.22  2004/11/25 18:46:11  armin
-  * added utilsprefix for as,ld and nlmconv
-
-  Revision 1.21  2004/11/19 16:30:24  peter
-    * fixed setting of mangledname when importing
-
-  Revision 1.20  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.19  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.18  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.17  2004/09/24 10:48:31  armin
-  * added GROUP for .a files to linker script
-
-  Revision 1.16  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.14  2004/08/30 11:17:34  armin
-  * added support for libc
-
-  Revision 1.13  2004/08/01 19:29:06  armin
-  * changes to compile fpc on netware
-
-  Revision 1.12  2004/07/30 16:00:19  armin
-  * removed -m for nlmconv, it is only valid for ld
-
-  Revision 1.11  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.10  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
 
 }

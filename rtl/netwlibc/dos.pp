@@ -689,30 +689,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.6  2005-01-14 20:59:15  armin
+  Revision 1.7  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.6  2005/01/14 20:59:15  armin
   * forgot to remove debug output in fsearch
-
-  Revision 1.5  2004/12/05 16:44:43  hajny
-    * GetMsCount added, platform independent routines moved to single include file
-
-  Revision 1.4  2004/09/26 19:23:34  armin
-  * exiting threads at nlm unload
-  * renamed some libc functions
-
-  Revision 1.3  2004/09/19 20:06:37  armin
-  * removed get/free video buf from video.pp
-  * implemented sockets
-  * basic library support
-  * threadvar memory leak removed
-  * fixes (ide now starts and editor is usable)
-  * support for lineinfo
-
-  Revision 1.2  2004/09/12 20:51:22  armin
-  * added keyboard and video
-  * a lot of fixes
-
-  Revision 1.1  2004/09/05 20:58:47  armin
-  * first rtl version for netwlibc
 
 }
 

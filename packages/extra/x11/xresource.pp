@@ -40,7 +40,7 @@ type
 
    PXrmString = ^TXrmString;
    TXrmString = ^char;
-   
+
 function NULLSTRING : TXrmString;
 
 function XrmStringToQuark(para1:Pchar):TXrmQuark;cdecl;external libX11;

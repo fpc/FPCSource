@@ -47,25 +47,7 @@ end;
 
 {
   $Log$
-  Revision 1.13  2004-11-21 16:33:55  peter
-    * external fixes
-
-  Revision 1.12  2004/05/01 15:26:33  jonas
-    * use some more string routines from libc if FPC_USE_LIBC is used
-
-  Revision 1.11  2003/11/19 16:58:44  peter
-    * make strpas assembler function
-
-  Revision 1.10  2003/11/11 21:08:17  peter
-    * REGCALL define added
-
-  Revision 1.9  2003/09/08 18:21:37  peter
-    * save edi,esi,ebx
-
-  Revision 1.8  2003/07/07 20:22:05  peter
-    * generic string routines added
-
-  Revision 1.7  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
+  Revision 1.14  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

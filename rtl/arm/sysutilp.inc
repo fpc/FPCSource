@@ -52,9 +52,7 @@ function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint
 
 {
   $Log$
-  Revision 1.2  2004-03-05 12:17:50  marco
-   * interlocked* changed to longints, including winapi. (which was a bug)
+  Revision 1.3  2005-02-14 17:13:21  peter
+    * truncate log
 
-  Revision 1.1  2003/11/30 19:48:20  florian
-    * fixed some arm stuff
 }

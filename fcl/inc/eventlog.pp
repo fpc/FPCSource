@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Cross-platform event logging facility.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -23,12 +23,12 @@ interface
 uses SysUtils,Classes;
 
 Type
-  TEventLog = Class; 
+  TEventLog = Class;
   TEventType = (etCustom,etInfo,etWarning,etError,etDebug);
   TLogType = (ltSystem,ltFile);
   TLogCodeEvent = Procedure (Sender : TObject; Var Code : DWord) of Object;
   TLogCategoryEvent = Procedure (Sender : TObject; Var Code : Word) of Object;
-   
+
   TEventLog = Class(TComponent)
   Private
     FEventIDOffset : DWord;
@@ -58,9 +58,9 @@ Type
     procedure DeActivateFileLog;
     procedure DeActivateSystemLog;
     procedure CheckIdentification;
-    Procedure DoGetCustomEventID(Var Code : DWord); 
-    Procedure DoGetCustomEventCategory(Var Code : Word); 
-    Procedure DoGetCustomEvent(Var Code : DWord); 
+    Procedure DoGetCustomEventID(Var Code : DWord);
+    Procedure DoGetCustomEventCategory(Var Code : Word);
+    Procedure DoGetCustomEvent(Var Code : DWord);
   Protected
     Procedure CheckInactive;
     Procedure EnsureActive;
@@ -69,7 +69,7 @@ Type
     Function MapTypeToEventID(EventType : TEventType) : DWord;
   Public
     Destructor Destroy; override;
-    Function EventTypeToString(E : TEventType) : String; 
+    Function EventTypeToString(E : TEventType) : String;
     Function RegisterMessageFile(AFileName : String) : Boolean; virtual;
     Procedure Log (EventType : TEventType; Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Log (EventType : TEventType; Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
@@ -278,7 +278,7 @@ begin
     Identification:=ChangeFileExt(ExtractFileName(Paramstr(0)),'');
 end;
 
-Function TEventLog.EventTypeToString(E : TEventType) : String; 
+Function TEventLog.EventTypeToString(E : TEventType) : String;
 
 begin
   Case E of
@@ -290,25 +290,25 @@ begin
   end;
 end;
 
-Procedure TEventLog.DoGetCustomEventID(Var Code : DWord); 
+Procedure TEventLog.DoGetCustomEventID(Var Code : DWord);
 
 begin
   If Assigned(FOnGetCustomEventID) then
-    FOnGetCustomEventID(Self,Code);  
+    FOnGetCustomEventID(Self,Code);
 end;
 
-Procedure TEventLog.DoGetCustomEventCategory(Var Code : Word); 
+Procedure TEventLog.DoGetCustomEventCategory(Var Code : Word);
 
 begin
   If Assigned(FOnGetCustomCategory) then
     FOnGetCustomCategory(Self,Code);
 end;
 
-Procedure TEventLog.DoGetCustomEvent(Var Code : DWord); 
+Procedure TEventLog.DoGetCustomEvent(Var Code : DWord);
 
 begin
   If Assigned(FOnGetCustomEvent) then
-    FOnGetCustomEvent(Self,Code);  
+    FOnGetCustomEvent(Self,Code);
 end;
 
 
@@ -322,10 +322,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-25 21:04:48  michael
-  + Added support for custom log event type
-
-  Revision 1.1  2003/02/19 20:25:16  michael
-  + Added event log
+  Revision 1.3  2005-02-14 17:13:15  peter
+    * truncate log
 
 }

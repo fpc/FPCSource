@@ -7,7 +7,7 @@ Type
   TMyMsgBuf = record
     mtype : Longint;
     mtext : string[255];
-  end; 
+  end;
 
 Procedure DoError (Const Msg : string);
 
@@ -16,9 +16,9 @@ begin
   halt(1);
 end;
 
-Procedure SendMessage (Id : Longint; 
-                       Var Buf : TMyMsgBuf; 
-                       MType : Longint; 
+Procedure SendMessage (Id : Longint;
+                       Var Buf : TMyMsgBuf;
+                       MType : Longint;
                        Const MText : String);
 
 begin
@@ -38,7 +38,7 @@ begin
   Buf.MType:=MType;
   If msgrcv(ID,PMSGBuf(@Buf),256,mtype,0) then
     Writeln ('Type : ',buf.mtype,' Text : ',buf.mtext)
-  else 
+  else
     DoError ('msgrcv');
 end;
 
@@ -85,7 +85,7 @@ begin
   StrToInt:=M;
 end;
 
-Var 
+Var
   Key : TKey;
   ID  : longint;
   Buf : TMyMsgBuf;
@@ -95,8 +95,8 @@ begin
   key :=Ftok('.','M');
   ID:=msgget(key,IPC_CREAT or 438);
   If ID<0 then DoError ('MsgGet');
-  Case upCase(Paramstr(1)[1]) of 
-   'S' : If ParamCount<>3 then 
+  Case upCase(Paramstr(1)[1]) of
+   'S' : If ParamCount<>3 then
            Usage
          else
            SendMessage (id,Buf,StrToInt(Paramstr(2)),paramstr(3));
@@ -105,7 +105,7 @@ begin
          else
            ReadMessage (id,buf,strtoint(Paramstr(2)));
    'D' : If ParamCount<>1 then
-           Usage 
+           Usage
          else
            RemoveQueue (ID);
    'M' : If ParamCount<>2 then

@@ -1358,7 +1358,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2005-02-10 22:08:03  peter
+  Revision 1.91  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.90  2005/02/10 22:08:03  peter
     * remove obsolete code
 
   Revision 1.89  2005/02/02 02:19:42  karoly
@@ -1381,73 +1384,5 @@ end.
   Revision 1.85  2005/01/09 15:05:29  peter
     * fix interface vtbl optimization
     * replace ugly pointer construct of ioffset()
-
-  Revision 1.84  2004/12/26 20:16:44  peter
-    * also compare procoptions and proctype when searching interface
-      implementations
-
-  Revision 1.83  2004/11/20 14:39:27  florian
-    * write nil entry after last entry to vmt table so the size of the vmt can be determined
-
-  Revision 1.82  2004/11/17 22:21:35  peter
-  mangledname setting moved to place after the complete proc declaration is read
-  import generation moved to place where body is also parsed (still gives problems with win32)
-
-  Revision 1.81  2004/11/15 23:35:31  peter
-    * tparaitem removed, use tparavarsym instead
-    * parameter order is now calculated from paranr value in tparavarsym
-
-  Revision 1.80  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.79  2004/10/24 13:35:39  peter
-    * fixed writing of methodtable
-
-  Revision 1.78  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.77  2004/10/12 14:34:49  peter
-    * fixed visibility for procsyms
-    * fixed override check when there was no entry yet
-
-  Revision 1.76  2004/09/21 17:25:12  peter
-    * paraloc branch merged
-
-  Revision 1.75  2004/09/13 20:31:07  peter
-    * fixed and cleanup of overriding non-visible methods
-
-  Revision 1.74.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.74  2004/07/09 22:17:32  peter
-    * revert has_localst patch
-    * replace aktstaticsymtable/aktglobalsymtable with current_module
-
-  Revision 1.73  2004/07/06 20:58:50  peter
-    * ignore po_haslocalst
-
-  Revision 1.72  2004/06/29 20:58:46  peter
-    * fix writing of private virtual/overriden methods that aren't
-      visibile in the current class, bug 3184
-
-  Revision 1.71  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.70  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.69.2.8  2004/05/10 21:28:34  peter
-    * section_smartlink enabled for gas under linux
-
-  Revision 1.69.2.7  2004/05/01 16:02:09  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.69.2.6  2004/04/28 20:36:13  florian
-    * fixed writing of sizes in classes/object vmts
-
-  Revision 1.69.2.5  2004/04/27 18:18:26  peter
-    * aword -> aint
 
 }

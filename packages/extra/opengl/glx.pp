@@ -246,12 +246,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-17 17:00:08  peter
-    * ChooseVisual attriblist is a PInteger array
-
-  Revision 1.1  2002/10/13 13:57:31  sg
-  * Finally, the new units are available: Match the C headers more closely;
-    support for OpenGL extensions, and much more. Based on the Delphi units
-    by Tom Nuydens of delphi3d.net
+  Revision 1.3  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

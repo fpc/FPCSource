@@ -30,7 +30,7 @@ procedure SetSSECSR(w : dword);
     _w:=w;
     asm
       ldmxcsr _w
-    end;    
+    end;
   end;
 
 
@@ -43,8 +43,8 @@ function GetSSECSR : dword;
     end;
     result:=_w;
   end;
-  
-  
+
+
 function GetRoundMode: TFPURoundingMode;
 begin
   Result := TFPURoundingMode((Get8087CW shr 10) and 3);
@@ -98,9 +98,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-11-02 15:26:21  florian
-    * fixed sse exception handling
+  Revision 1.3  2005-02-14 17:13:32  peter
+    * truncate log
 
-  Revision 1.1  2004/02/21 22:53:50  florian
-    * several 64 bit/x86-64 fixes
 }

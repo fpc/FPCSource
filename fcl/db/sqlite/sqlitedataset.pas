@@ -6,13 +6,13 @@ Improved class sqLite,copyright(c) 2002-2003 Marcin Krzetowski
 metal4@box43.gnet.pl
 http://www.a-i.prv.pl
 simple class interface for SQLite. Hacked in by Ben Hochstrasser (bhoc@surfeu.ch)
-Thanks to Roger Reghin (RReghin@scelectric.ca) for his idea to ValueList. 
+Thanks to Roger Reghin (RReghin@scelectric.ca) for his idea to ValueList.
 
 }
 
 interface
 
-uses 
+uses
   Classes,db,sysutils,Contnrs;
 
 type
@@ -50,14 +50,14 @@ protected
         tDateTimeType : tDateTime;}
 //        procedure SetName(const Value: string);
         procedure SetFieldKind(const Value: tFieldKind);
-        procedure SetFieldType(const Value: tFieldType);        
+        procedure SetFieldType(const Value: tFieldType);
 public
 
         constructor create(aOwner : tObject);
         destructor destroy; override;
         procedure SetData(pt : pChar; NativeFormat : boolean);
         function GetData(Buffer: Pointer; NativeFormat : Boolean) : boolean;
-        function GetData(Buffer: Pointer{=True}) : boolean; 
+        function GetData(Buffer: Pointer{=True}) : boolean;
 //        property FieldName : string read fName write SetName;
         property FieldKind : tFieldKind read fFieldKind write SetFieldKind;
         property FieldType : tFieldType read fFieldType write SetFieldType;
@@ -174,7 +174,7 @@ end;
       fbuffer : tObjectList; //po zakonczeniu debuggowania usunac
     constructor create(Aowner : tComponent); override;
     destructor Destroy; override;
-    function getFieldData(Field : tField; Buffer : Pointer) : boolean; override;    
+    function getFieldData(Field : tField; Buffer : Pointer) : boolean; override;
     function Query(ASql: String{table= nil}) : Boolean;
     Function Query(ASQL: String; Table: TStrings): boolean;
     function ExecSQL : boolean;
@@ -185,7 +185,7 @@ end;
     function DatabaseDetails(Table: TStrings): boolean;
     function CreateTable : boolean;
     procedure countMaxiLength(pt: pChar;index : int64);
-    procedure InitMaxLength(length : integer);    
+    procedure InitMaxLength(length : integer);
   published
     property LastErrorMessage: string read fMsg;
     property LastError: Integer read fError;
@@ -214,7 +214,7 @@ end;
 
 
   procedure Register;
-  
+
 implementation
 
 {$ifndef dynload}
@@ -255,7 +255,7 @@ const
   SngQuote: Char    = #39;
   Crlf: String      = #13#10;
   Tab: Char         = #9;
-  _DO_EXCEPTIONS = 1; //Handle or not exceptions in dataset  
+  _DO_EXCEPTIONS = 1; //Handle or not exceptions in dataset
 
 {$ifdef dynload}
 var
@@ -671,7 +671,7 @@ begin
 {$ifdef dynload}
   end else
     Raise exception.Create('Library "sqlite.dll" not found.');
-{$endif}   
+{$endif}
 end;
 
 function TSQLite.IsComplete(ASql: String): boolean;
@@ -689,7 +689,7 @@ var i : integer;
 
 begin
   result:=false;
-  maxLengthInit:=false;  
+  maxLengthInit:=false;
   fError := SQLITE_ERROR;
   if fIsOpen then
   begin
@@ -745,17 +745,17 @@ end;
 {
 procedure TSQLite.setActive(Value: boolean);
 begin
-  if value then 
+  if value then
     begin
     //switch for  active=true;
     if active then
       active:=false;
-    end 
-  else 
+    end
+  else
     begin
     fDoSQL:=value;
     end;
-  inherited setActive(value);        
+  inherited setActive(value);
 end;
 }
 
@@ -894,7 +894,7 @@ if result=grOk then begin
       BookmarkFlag := bfCurrent;
       Bookmark := Integer (fCurrentRecord);
     end;
-        
+
 
 
 end;
@@ -1210,7 +1210,7 @@ end else begin
         ftString : begin
                   //      L:=length(data);
                   //      Move(data,Buffer^,l);
-                      StrCopy (Buffer, pchar(data));                  
+                      StrCopy (Buffer, pchar(data));
                 end;
         else
                         Move(data,Buffer^,sizeOf(data));

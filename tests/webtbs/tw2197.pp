@@ -18,7 +18,7 @@
      writeln('Before call');
      Average([1,2,3]);
      writeln('After call');
-     { We need to be sure that the following exitcode is 
+     { We need to be sure that the following exitcode is
        returned }
      runerror(123);
  END.

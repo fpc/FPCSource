@@ -38,11 +38,11 @@ function hasmntopt(__mnt:Pmntent; __opt:Pchar):Pchar;cdecl;external clib name 'h
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TMountEntry = mntent;
   PMountEntry = ^TMountEntry;
-  
+
 function getmntent_r(__stream:PFILE; var __result: mntent; __buffer:Pchar; __bufsize:longint):Pmntent;cdecl;external clib name 'getmntent_r';
 function addmntent(__stream:PFILE; const __mnt: mntent):longint;cdecl;external clib name 'addmntent';
 function hasmntopt(const __mnt: mntent; __opt:Pchar):Pchar;cdecl;external clib name 'hasmntopt';
-      
+

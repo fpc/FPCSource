@@ -57,7 +57,7 @@ var
   DisableProtected,
   DisablePrivate,
   DisableFunctionResults: Boolean;
-  
+
   EmitClassSeparator: Boolean;
   PackageName, OutputName: String;
   f: Text;
@@ -66,9 +66,9 @@ var
 function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   AParent: TPasElement; AVisibility : TPasMemberVisibility;
   const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement;
-  
+
   Function WriteThisNode(APasElement : TPasElement)  : Boolean;
-  
+
   begin
     Result:=Assigned(AParent) and (Length(AName) > 0) and
             (not DisableArguments or (APasElement.ClassType <> TPasArgument)) and
@@ -76,7 +76,7 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
             (not DisablePrivate or (AVisibility<>visPrivate)) and
             (not DisableProtected or (AVisibility<>visProtected));
     If Result and updateMode then
-      begin        
+      begin
       Result:=FindDocNode(APasElement)=Nil;
       If Result then
         Writeln(stderr,'Creating documentation for new node ',APasElement.PathName);
@@ -84,23 +84,23 @@ function TSkelEngine.CreateElement(AClass: TPTreeElement; const AName: String;
   end;
 
   Function WriteOnlyShort(APasElement : TPasElement) : Boolean;
-  
+
   begin
-    Result:=(APasElement.ClassType=TPasArgument) or 
+    Result:=(APasElement.ClassType=TPasArgument) or
             (APasElement.ClassType=TPasResultElement) or
             (APasElement.ClassType=TPasEnumValue);
   end;
-  
+
   Function IsTypeVarConst(APasElement : TPasElement) : Boolean;
-  
+
   begin
     With APasElement do
-      Result:=(InheritsFrom(TPasType) and not InheritsFrom(TPasClassType)) or 
+      Result:=(InheritsFrom(TPasType) and not InheritsFrom(TPasClassType)) or
               (InheritsFrom(TPasResString)) or
               (InheritsFrom(TPasVariable));
-                    
+
   end;
-  
+
 begin
   Result := AClass.Create(AName, AParent);
   if AClass.InheritsFrom(TPasModule) then
@@ -121,7 +121,7 @@ begin
       WriteLn(f, '<descr>');
       WriteLn(f, '</descr>');
       end;
-    end 
+    end
   else if WriteThisNode(Result) then
     begin
     WriteLn(f);
@@ -138,7 +138,7 @@ begin
     WriteLn(f,'<element name="', Result.FullName, '">');
     WriteLn(f, '<short></short>');
     if Not WriteOnlyShort(Result) then
-      begin  
+      begin
       WriteLn(f, '<descr>');
       WriteLn(f, '</descr>');
       if not (DisableErrors or IsTypeVarConst(Result)) then
@@ -151,7 +151,7 @@ begin
         WriteLn(f, '<seealso>');
         WriteLn(f, '</seealso>');
         end;
-      end;  
+      end;
     WriteLn(f, '</element>');
     end;
 end;
@@ -207,7 +207,7 @@ procedure ParseOption(const s: String);
       while not EOF(f) do
       begin
         ReadLn(f, s);
-	List.Add(s);
+        List.Add(s);
       end;
       Close(f);
     end else
@@ -294,7 +294,7 @@ begin
       writeln('NOTE: unable to find tranlation file ',MOFilename);
     // Translate internal documentation strings
     TranslateDocStrings(DocLang);
-    end;  
+    end;
 end;
 
 
@@ -302,7 +302,7 @@ end;
 var
   i,j: Integer;
   Module: TPasModule;
-  
+
 begin
   InitOptions;
   ParseCommandLine;
@@ -345,17 +345,17 @@ begin
            For J:=0 to DescrFiles.Count-1 do
              Engine.AddDocFile(DescrFiles[J]);
          Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
-   	 WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
+         WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
        except
         on e:EFileNotFoundError do
            begin
-    	     Writeln(StdErr,' file ', e.message, ' not found');
-	     close(f);	
-	     Halt(1);
-           end; 
+             Writeln(StdErr,' file ', e.message, ' not found');
+             close(f);
+             Halt(1);
+           end;
          end;
       finally
-        Engine.Free; 
+        Engine.Free;
        end;
     end;
 
@@ -373,7 +373,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-11-15 18:00:18  michael
+  Revision 1.15  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.14  2004/11/15 18:00:18  michael
   + Added help screen
 
   Revision 1.13  2004/09/13 16:04:52  peter
@@ -399,7 +402,7 @@ end.
 
   Revision 1.6  2004/05/01 20:13:40  marco
    * got fed up with exceptions on file not found.  Fileresolver now raises a
-  	EFileNotFound error, and makeskel catches and exists gracefully
+        EFileNotFound error, and makeskel catches and exists gracefully
 
   Revision 1.5  2003/11/28 12:51:37  sg
   * Added support for source references

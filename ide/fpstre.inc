@@ -1063,80 +1063,14 @@ const
 
 {
   $Log$
-  Revision 1.27  2005-01-08 11:43:18  florian
+  Revision 1.28  2005-02-14 17:13:18  peter
+    * truncate log
+
+  Revision 1.27  2005/01/08 11:43:18  florian
     + vector unit window
 
   Revision 1.26  2005/01/07 21:52:23  florian
     * proper stepping in disassembler window now possible
     + disassembler window to menu added
-
-  Revision 1.25  2004/12/19 20:38:35  hajny
-    + confirmation box after video mode switch (bug 2933)
-
-  Revision 1.24  2004/11/21 20:53:26  peter
-    * fixed breakpoint dialog
-
-  Revision 1.23  2004/11/20 14:21:19  florian
-    * implemented reload menu item
-    * increased file history to 9 files
-
-  Revision 1.22  2004/11/20 10:10:32  florian
-    * renamed Delphi 2 extensions on to Object pascal support
-
-  Revision 1.21  2004/11/14 21:45:28  florian
-    * fixed non working mouse after tools call
-    * better handling of source/target info
-    * more info in about dialog
-    * better info in compiler status dialiog
-
-  Revision 1.20  2004/11/08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.19  2003/01/22 00:27:58  pierre
-   * implement reloadfile if changed
-
-  Revision 1.18  2003/01/14 16:24:02  pierre
-   + msg_connectingto added
-
-  Revision 1.17  2002/11/30 01:55:33  pierre
-   * fix a wrongly highlighted string
-
-  Revision 1.16  2002/11/28 12:55:47  pierre
-   + added strings for remote support
-
-  Revision 1.15  2002/11/21 17:52:28  pierre
-   * some crossgdb infos added
-
-  Revision 1.14  2002/11/21 00:37:56  pierre
-   + some cross gdb enhancements
-
-  Revision 1.13  2002/09/07 15:40:44  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.12  2002/09/02 10:18:10  pierre
-   * fix problems with breakpoint lists
-
-  Revision 1.11  2002/08/13 08:57:03  pierre
-   + Continue string added, to support Run submenu changes
-
-  Revision 1.10  2002/08/13 07:15:02  pierre
-   + Disable all invalid breakpoints feature added
-
-  Revision 1.9  2002/04/12 08:59:42  pierre
-   + two new dialogs in case of internal errors
-
-  Revision 1.8  2002/03/27 11:23:18  pierre
-   + add a title to the Breakpoint dialog type checkbox
-
-  Revision 1.7  2002/03/20 14:52:44  pierre
-   + rescue dialogs for main loop
-
-  Revision 1.6  2002/02/06 14:45:00  pierre
-   + handle signals
 
 }

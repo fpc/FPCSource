@@ -11,7 +11,7 @@ type
         pw_shell : Pchar;
      end;
    PPpasswd = ^Ppasswd;
-    
+
 procedure setpwent;cdecl;external clib name 'setpwent';
 procedure endpwent;cdecl;external clib name 'endpwent';
 function getpwent:Ppasswd;cdecl;external clib name 'getpwent';
@@ -33,7 +33,7 @@ function getpw(__uid:__uid_t; __buffer:Pchar):longint;cdecl;external clib name '
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TPasswordRecord = passwd;
   PPasswordRecord = ^TPasswordRecord;
 

@@ -234,7 +234,7 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if source_info.system=system_i386_go32v2 then
     Replace(cmdstr,'$RES','@'+maybequoted(outputexedir+Info.ResName))
-  else  
+  else
     Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ScriptName));
@@ -365,17 +365,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2005-01-30 12:03:28  peter
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.8  2005/01/30 12:03:28  peter
     * only add @link.res if source is go32v2
-
-  Revision 1.7  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.6  2004/09/22 15:25:14  mazen
-  * Fix error committing : previous version must be in branch USE_SYSUTILS
-
-  Revision 1.4  2004/06/20 08:55:32  florian
-    * logs truncated
 
 }

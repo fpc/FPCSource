@@ -43,6 +43,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2004-02-05 01:24:08  florian
-    * several fixes to compile x86-64 system
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
 }

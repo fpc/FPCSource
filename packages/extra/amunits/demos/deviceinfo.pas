@@ -1,14 +1,14 @@
 
 { *************************************************************************
-  **									 **
-  **  DeviceInfo  -  Version 1.0,	  (C)1992  by  Thomas Schmid     **
-  **						     Im Grenzacherhof 12 **
-  **   This programm is Public Domain,		     CH- 4058 Basel	 **
+  **                                                                     **
+  **  DeviceInfo  -  Version 1.0,         (C)1992  by  Thomas Schmid     **
+  **                                                 Im Grenzacherhof 12 **
+  **   This programm is Public Domain,               CH- 4058 Basel      **
   **   coded 18.02.1992 in PCQ-Pascal(1.2b).                             **
-  **   Gibt Info über angegebenes Device aus.				 **
-  **						 Usage :		 **
-  **							DeviceInfo Dfx:  **
-  **									 **
+  **   Gibt Info über angegebenes Device aus.                            **
+  **                                             Usage :                 **
+  **                                                    DeviceInfo Dfx:  **
+  **                                                                     **
   *************************************************************************
 }
 
@@ -27,18 +27,18 @@ Const
   MaxSize = 80;
 
 Var
-  MyLock	  : longint;
-  Inf		  : pInfoData;
-  Ok		  : Boolean;
-  Myfile	  : string;
-  S, S1		  : String;
+  MyLock          : longint;
+  Inf             : pInfoData;
+  Ok              : Boolean;
+  Myfile          : string;
+  S, S1           : String;
   Size, Used, Bpb : Integer;
 
 Procedure Cls;
 
 Begin
   WriteLn('   DeviceInfo V1.0 © 1992, by T.Schmid, Written in PCQ V1.2b',#10);
-		
+
 End;
 
 Procedure AsdaLaVista(warum : String ; code : longint);
@@ -51,8 +51,8 @@ End;
 
 
 Begin
-  
-  
+
+
   If ParamCount = 0 Then AsdaLaVista(' DiskInfo V1.0, © 1992 T.Schmid - Usage : DiskInfo Dfx:',0);
   MyFile := ParamStr(1) + #0;
 
@@ -66,7 +66,7 @@ Begin
   If MyLock = 0 Then AsdaLaVista('Can''t get a lock.',5);
 
   Ok:=Info(MyLock,Inf);
-  Unlock(MyLock);		{ ------- Wichtig !! -------- }
+  Unlock(MyLock);               { ------- Wichtig !! -------- }
 
   If Ok = FALSE Then AsdaLaVista('Can''t get info on this Device.',10);
 
@@ -82,18 +82,18 @@ Begin
   WriteLn('   Number of Bytes per Block  :  [0;33m', Inf^.id_BytesPerBlock, '[0;31m');
 
   Case Inf^.id_DiskType of
-	ID_NO_DISK_PRESENT : S1:='No Disk';
-	ID_UNREADABLE_DISK : S1:='Can''t read Disk';
-	ID_NOT_REALLY_DOS  : S1:='No Dos-Disk';
-	ID_KICKSTART_DISK  : S1:='Kickstart-Disk';
+        ID_NO_DISK_PRESENT : S1:='No Disk';
+        ID_UNREADABLE_DISK : S1:='Can''t read Disk';
+        ID_NOT_REALLY_DOS  : S1:='No Dos-Disk';
+        ID_KICKSTART_DISK  : S1:='Kickstart-Disk';
   End;
 
   WriteLn('   Disk Type                  :  [0;33m',S1,'[0;31m');
   WriteLn('   Type of error              :  [0;33m',Inf^.id_NumSoftErrors,'[0;31m');
 
   Case Inf^.id_DiskState of
-	ID_WRITE_PROTECTED : S:='Writeprotected';
-	ID_VALIDATING      : S:='Is Validated';
+        ID_WRITE_PROTECTED : S:='Writeprotected';
+        ID_VALIDATING      : S:='Is Validated';
   End;
   WriteLn('   Device Status              :  [0;33m',S,'[0;31m');
 
@@ -104,9 +104,9 @@ End.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:26  nils
-    * initial release
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+

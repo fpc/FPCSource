@@ -9,7 +9,7 @@ function fstatfs64(__fildes:longint; __buf:Pstatfs64):longint;cdecl;external cli
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function statfs(__file:Pchar; var __buf:_statfs):longint;cdecl;external clib name 'statfs';
 function statfs64(__file:Pchar; var __buf:_statfs64):longint;cdecl;external clib name 'statfs64';
 function fstatfs(__fildes:longint; var __buf:_statfs):longint;cdecl;external clib name 'fstatfs';

@@ -72,4 +72,4 @@ function quotactl(__cmd:longint; __special:Pchar; __id:longint; __addr:caddr_t):
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

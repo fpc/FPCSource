@@ -503,27 +503,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  2004-12-27 19:48:58  hajny
-    * missing maybequoted() added for deletion of generated .s files during external assembly
-
-  Revision 1.30  2004/08/20 10:23:35  olle
-    * minor fix for macos
-
-  Revision 1.29  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.28  2004/04/06 22:44:16  olle
-    + Status checks in scripts
-    + Scripts support apptype tool
-    + Added some ScriptFixFileName
-
-  Revision 1.27  2004/02/24 00:53:48  olle
-    * increased maxsize of link.res file name
-    * fixed a 255-limit in TScript.WriteToDisk
-
-  Revision 1.26  2004/02/19 20:40:15  olle
-    + Support for Link on target especially for MacOS
-    + TLinkerMPW
-    + TAsmScriptMPW
+  Revision 1.32  2005-02-14 17:13:07  peter
+    * truncate log
 
 }

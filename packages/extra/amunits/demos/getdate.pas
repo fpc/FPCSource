@@ -122,7 +122,7 @@ begin
 end;
  If LFormat=NIL then
   Writeln(WeekDay,' ',Date,' ',Time)
- else 
+ else
   PrintFormat;
 
  StrDispose(LFormat);
@@ -141,4 +141,4 @@ end.
   $Log
 }
 
-  
+

@@ -3783,31 +3783,7 @@ end.
 
 {
   $Log$
-  Revision 1.13  2003-08-11 10:43:17  yuri
-  + WinSetErrorInfo constants and function added
-
-  Revision 1.12  2003/03/27 18:09:23  yuri
-  MLE types and various constants added
-
-  Revision 1.11  2003/01/27 17:57:36  hajny
-    * additions by Yuri Prokushev (WC_* constants a.o.)
-
-  Revision 1.10  2002/12/07 20:56:35  hajny
-    * WinMessageBox2 commented out temporarily
-
-  Revision 1.9  2002/12/07 20:21:38  hajny
-    * mistyping fixed
-
-  Revision 1.8  2002/12/07 17:50:17  hajny
-    + (Commented) WinMessageBox2 added
-
-  Revision 1.7  2002/11/11 20:55:22  hajny
-    * WinCreateWindow correction + overloaded variant added
-
-  Revision 1.6  2002/10/05 19:12:55  hajny
-    * PMERR constants made available from outside
-
-  Revision 1.5  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.14  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

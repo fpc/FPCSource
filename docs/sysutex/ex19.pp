@@ -11,7 +11,7 @@ begin
 end;
 
 Begin
-  
+
   Writeln ('ShortDateFormat ',ShortDateFormat);
   TestStr(DateTimeToStr(Date));
   TestStr('05/05/1999');

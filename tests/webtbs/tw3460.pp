@@ -9,7 +9,7 @@
 type
   TGValue=array[0..10] of byte;
   PGValue=^TGValue;
-  
+
 function x: Integer;
 asm
   mov edx,0
@@ -21,7 +21,7 @@ function SignalHandlerNextParam(param: PGValue): PGValue;
 asm
   mov edx, param
   add edx, dword(sizeof(TGValue))
-  mov Result, edx    
+  mov Result, edx
 end;
 
 var

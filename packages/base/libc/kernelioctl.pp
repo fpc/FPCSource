@@ -122,12 +122,12 @@ begin
   Result:=(dir shl _IOC_DIRSHIFT) or (__type shl _IOC_TYPESHIFT) or
           (nr shl _IOC_NRSHIFT) or (size shl _IOC_SIZESHIFT);
 end;
-                                      
+
 
 Function _IO(__type, nr: Cardinal): cardinal;
 begin
   Result := _IOC(_IOC_NONE,__type,nr,0);
-end;                                        
+end;
 
 
 Function _IOR(_type,nr,size : cardinal) : cardinal;

@@ -18,9 +18,9 @@ function GNOME_IS_ABOUT(obj : Pointer) : Boolean;
 function GNOME_IS_ABOUT_CLASS(klass : Pointer) : Boolean;
 
 function gnome_about_get_type:TGTKType;cdecl;external libgnomeuidll name 'gnome_about_get_type';
-function gnome_about_new(title:Pgchar; version:Pgchar; copyright:Pgchar; authors:PPgchar; comments:Pgchar; 
+function gnome_about_new(title:Pgchar; version:Pgchar; copyright:Pgchar; authors:PPgchar; comments:Pgchar;
            logo:Pgchar):PGtkWidget;cdecl;external libgnomeuidll name 'gnome_about_new';
-procedure gnome_about_construct(about:PGnomeAbout; title:Pgchar; version:Pgchar; copyright:Pgchar; authors:PPgchar; 
+procedure gnome_about_construct(about:PGnomeAbout; title:Pgchar; version:Pgchar; copyright:Pgchar; authors:PPgchar;
             comments:Pgchar; logo:Pgchar);cdecl;external libgnomeuidll name 'gnome_about_construct';
 
 {$EndIf read_interface}

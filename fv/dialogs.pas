@@ -4141,23 +4141,7 @@ END;
 END.
 {
  $Log$
- Revision 1.32  2004-12-22 15:50:38  peter
-   * fixed cluster.findsel
-
- Revision 1.31  2004/12/21 18:53:41  peter
- cmCursorChange event
-
- Revision 1.30  2004/12/19 20:20:48  hajny
-   * ObjType references constants from fvconsts
-
- Revision 1.29  2004/12/15 19:14:11  peter
-   * goptions removed
-   * small patches from antonio talamini
-
- Revision 1.28  2004/11/06 23:24:36  peter
-   * fixed button click
-
- Revision 1.27  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.33  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

@@ -6,5 +6,5 @@ Var W : Pointer;
 
 
 begin
-  W:=Pointer(Ofs(W)); { W contains its own offset. } 
+  W:=Pointer(Ofs(W)); { W contains its own offset. }
 end.

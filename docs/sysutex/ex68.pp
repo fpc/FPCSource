@@ -4,14 +4,14 @@ Program Example68;
 
 Uses sysutils;
 
-Const Fmt : Array [TFloatFormat] of string[10] = 
+Const Fmt : Array [TFloatFormat] of string[10] =
          ('general','exponent','fixed','number','Currency');
 
 Procedure Testit (Value :  Extended);
 
 Var I,J : longint;
     FF : TFloatFormat;
-    
+
 begin
   For I:=5 to 15 do
     For J:=1 to 4 do

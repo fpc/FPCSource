@@ -70,7 +70,7 @@ type
     pthread_mutex_t   = UnixType.pthread_mutex_t;
     pthread_cond_t    = UnixType.pthread_cond_t;
     pthread_t         = UnixType.pthread_t;
-    tstatfs  = UnixType.TStatFs;	
+    tstatfs  = UnixType.TStatFs;
 
 CONST
     ARG_MAX       = UnixType.ARG_MAX;
@@ -82,14 +82,7 @@ CONST
 
 {
   $Log$
-  Revision 1.3  2004-10-30 20:55:54  marco
-   * unix interface cleanup
-
-  Revision 1.2  2004/09/11 20:41:52  marco
-   * already did 3 aliases needed for SDL port
-
-  Revision 1.1  2004/03/04 22:15:16  marco
-   * UnixType changes. Please report problems to me.
-
+  Revision 1.4  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

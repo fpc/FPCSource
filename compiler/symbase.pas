@@ -350,42 +350,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2005-01-19 22:19:41  peter
+  Revision 1.26  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.25  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
   Revision 1.24  2005/01/09 20:24:43  olle
     * rework of macro subsystem
     + exportable macros for mode macpas
-
-  Revision 1.23  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.22  2004/07/09 22:17:32  peter
-    * revert has_localst patch
-    * replace aktstaticsymtable/aktglobalsymtable with current_module
-
-  Revision 1.21  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.20  2004/03/02 17:32:12  florian
-    * make cycle fixed
-    + pic support for darwin
-    + support of importing vars from shared libs on darwin implemented
-
-  Revision 1.19  2004/02/04 22:15:15  daniel
-    * Rtti generation moved to ncgutil
-    * Assmtai usage of symsym removed
-    * operator overloading cleanup up
-
-  Revision 1.18  2004/01/15 15:16:18  daniel
-    * Some minor stuff
-    * Managed to eliminate speed effects of string compression
-
-  Revision 1.17  2004/01/11 23:56:20  daniel
-    * Experiment: Compress strings to save memory
-      Did not save a single byte of mem; clearly the core size is boosted by
-      temporary memory usage...
 
 }

@@ -5,7 +5,7 @@
     member of the Free Pascal development team.
 
     Sigcontext and Sigaction
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -21,10 +21,13 @@ type
   PSigContext = ^TSigContext;
   TSigContext = record
   end;
-  
+
 {
   $Log$
-  Revision 1.1  2005-02-13 22:13:20  peter
+  Revision 1.2  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 22:13:20  peter
     * get solaris back in shape
 
   Revision 1.1  2005/01/30 18:01:15  peter

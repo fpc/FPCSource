@@ -6,5 +6,5 @@ function ioctl(__fd:longint; __request:dword):longint;cdecl;external clib name '
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function ioctl(__fd:longint; __request:dword; args:pointer):longint;cdecl;external clib name 'ioctl';

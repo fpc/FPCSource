@@ -6,4 +6,4 @@ function setfsgid(__gid:__gid_t):longint;cdecl;external clib name 'setfsgid';
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

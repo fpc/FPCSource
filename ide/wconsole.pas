@@ -86,19 +86,7 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-11-06 19:56:14  armin
-  * support target netware
-
-  Revision 1.7  2004/09/19 14:51:03  armin
-  * added support for target netwlibc
-
-  Revision 1.6  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.5  2002/10/12 19:42:01  hajny
-    + OS/2 support
-
-  Revision 1.4  2002/09/07 15:40:48  peter
-    * old logs removed and tabs fixed
+  Revision 1.9  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

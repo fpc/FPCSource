@@ -46,7 +46,7 @@ Var
 
 {$ifdef darwin}
 Var
-  mysql_port : cardinal; external mysqllib name 'mysql_port'; 
+  mysql_port : cardinal; external mysqllib name 'mysql_port';
   mysql_unix_port : pchar; external mysqllib name 'mysql_unix_port';
 {$endif}
 
@@ -342,31 +342,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2004-11-21 16:33:55  peter
-    * external fixes
-
-  Revision 1.2  2004/11/02 23:33:32  florian
-    * 64 bit fixes
-
-  Revision 1.1  2004/09/30 19:34:47  michael
-  + Split everything in version 3 and version 4
-
-  Revision 1.1  2004/09/28 18:38:23  michael
-  + Moved to subdir, switching to version 4.0
-
-  Revision 1.6  2004/08/05 10:36:26  olle
-    + added, on unixes, $linklib mysqlclient
-
-  Revision 1.5  2004/03/29 18:16:02  florian
-    + darwin support
-
-  Revision 1.4  2002/09/10 19:44:28  michael
-  + Changed stdcall to appropriate OS calling declaration
-
-  Revision 1.3  2002/09/07 15:42:52  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/08/26 17:52:31  michael
-  + Upgraded to 3.23
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

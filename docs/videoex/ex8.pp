@@ -13,20 +13,20 @@ begin
   Str(Index:2,S);
   inc(Index);
   TextOut(1,Index,'Data for mode '+S+': ');
-  if M.Color then 
+  if M.Color then
     TextOut(19,Index,'   color,')
-  else  
+  else
     TextOut(19,Index,'No color,');
-  Str(M.Row:3,S);  
+  Str(M.Row:3,S);
   TextOut(28,Index,S+' rows');
-  Str(M.Col:3,S);  
+  Str(M.Col:3,S);
   TextOut(36,index,S+' columns');
 end;
 
-Var 
+Var
   i,Count : Integer;
   m : TVideoMode;
-  
+
 begin
   InitVideo;
   InitKeyboard;
@@ -36,7 +36,7 @@ begin
     GetVideoModeData(I-1,M);
     DumpMode(M,I-1);
     end;
-  TextOut(1,Count+1,'Press any key to exit');  
+  TextOut(1,Count+1,'Press any key to exit');
   UpdateScreen(False);
   GetKeyEvent;
   DoneKeyboard;

@@ -210,28 +210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.34  2005-02-13 18:55:19  florian
+  Revision 1.35  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.34  2005/02/13 18:55:19  florian
     + overflow checking for the arm
-
-  Revision 1.33  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.32  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.31  2004/05/23 16:46:39  peter
-    * checkmem remvoed
-
-  Revision 1.30.2.1  2004/05/16 10:38:56  peter
-    * checkmem removed
-
-  Revision 1.30  2004/03/20 20:55:36  florian
-    + implemented cdecl'd varargs on arm
-    + -dCMEM supported by the compiler
-    * label/goto asmsymbol type with -dextdebug fixed
-
-  Revision 1.29  2004/01/26 17:39:12  florian
-    * when compiled with -dnocatch, known rtes aren't translated anymore
-      and a stack dump is written
 
 }

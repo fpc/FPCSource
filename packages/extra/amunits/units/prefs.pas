@@ -15,20 +15,20 @@
  **********************************************************************}
 {
     History:
-    
+
     Update for AmigaOS 3.9.
     Added some const and a few records.
     Added reaction and workbench.
     31 Jan 2003.
-    
+
     Changed integer > smallint.
     09 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
-    
+
 }
 
-    
+
 unit prefs;
 
 INTERFACE
@@ -41,9 +41,9 @@ const
    ID_ASL = $41534C20;
 
 { These members correspond directly to the associated
-  	   members of the 'AslSemaphore' data structure defined
-  	   in the <libraries/asl.h> header file by the same names.
-  	  }
+           members of the 'AslSemaphore' data structure defined
+           in the <libraries/asl.h> header file by the same names.
+          }
 
   type
      PAslPrefs = ^tAslPrefs;
@@ -608,8 +608,8 @@ Type
    }
      PPrinterDeviceUnitPrefs = ^tPrinterDeviceUnitPrefs;
      tPrinterDeviceUnitPrefs = record
-          pd_Reserved : array[0..3] of LONG;   { System reserved		   }
-          pd_UnitNum : LONG;                   { Unit number for OpenDevice()	   }
+          pd_Reserved : array[0..3] of LONG;   { System reserved                   }
+          pd_UnitNum : LONG;                   { Unit number for OpenDevice()      }
           pd_UnitName : array[0..(UNITNAMESIZE)-1] of UBYTE;  { Symbolic name of the unit  }
        end;
 
@@ -791,14 +791,14 @@ const
           { settings from workbench.library }
           wbp_DefaultStackSize : ULONG;
           wbp_TypeRestartTime : ULONG;
-	  { settings from icon.library }
+          { settings from icon.library }
           wbp_IconPrecision : ULONG;
           wbp_EmbossRect : tRectangle;
           wbp_Borderless : BOOL;
           wbp_MaxNameLength : LONG;
           wbp_NewIconsSupport : BOOL;
           wbp_ColorIconSupport : BOOL;
-	   { new for V45 }
+           { new for V45 }
           wbp_ImageMemType : ULONG;
           wbp_LockPens : BOOL;
           wbp_NoTitleBar : BOOL;
@@ -819,14 +819,8 @@ END.
 
 {
   $Log$
-  Revision 1.4  2003-02-10 17:59:46  nils
-  *  fixes for delphi mode
-
-  Revision 1.3  2003/02/07 20:45:08  nils
-  * update for amigaos 3.9
-
-  Revision 1.2  2002/11/19 18:48:39  nils
-    * missing semicolon
+  Revision 1.5  2005-02-14 17:13:20  peter
+    * truncate log
 
 }
 

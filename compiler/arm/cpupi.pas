@@ -106,29 +106,8 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2004-10-24 17:32:53  florian
-    * fixed several arm compiler bugs
-
-  Revision 1.9  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.8  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.7.2.2  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.7.2.1  2004/04/23 22:12:37  florian
-    * fixed some potential stack corruption reasons
-
-  Revision 1.7  2004/03/29 19:19:35  florian
-    + arm floating point register saving implemented
-    * hopefully stabs generation for MacOSX fixed
-    + some defines for arm added
-
-  Revision 1.6  2004/03/06 20:35:20  florian
-    * fixed arm compilation
-    * cleaned up code generation for exported linux procedures
+  Revision 1.11  2005-02-14 17:13:09  peter
+    * truncate log
 
 }
 

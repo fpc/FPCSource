@@ -62,7 +62,7 @@ uses Strings;
 
 const
 
-  LF_SH_Comment1 = LF_SH_Multiline1;	{ Normal braced Comments}
+  LF_SH_Comment1 = LF_SH_Multiline1;    { Normal braced Comments}
   LF_SH_Comment2 = LF_SH_Multiline2;    { (* *) Comments}
   LF_SH_Asm      = LF_SH_Multiline3;
 
@@ -95,8 +95,8 @@ const
 
 procedure DoPascalHighlighting(var flags: Byte; source, dest: PChar);
 var
-  dp: Integer;		// Destination position - current offset in dest
-  LastSHPos: Integer;	// Position of last highlighting character, or 0
+  dp: Integer;          // Destination position - current offset in dest
+  LastSHPos: Integer;   // Position of last highlighting character, or 0
 
   procedure AddSH(sh: Byte);
   begin
@@ -293,8 +293,8 @@ begin
           end;
           if StringLength = 1 then
             dest[LastSHPos] := Chr(shCharacters);
-	  if (source[0] = #0) and (dest[dp - 1] <> '''') then
-	    dest[LastSHPos] := Chr(shInvalid);
+          if (source[0] = #0) and (dest[dp - 1] <> '''') then
+            dest[LastSHPos] := Chr(shInvalid);
           AddSH(shDefault);
         end;
       '_', 'A'..'Z', 'a'..'z': begin
@@ -307,7 +307,7 @@ begin
       else begin
         AddSH(shInvalid);
         PutChar;  // = found an invalid char!
-	AddSH(shDefault);
+        AddSH(shDefault);
       end;
     end;
   end;
@@ -321,7 +321,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-03-17 23:03:20  michael
+  Revision 1.2  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
 
   Revision 1.2  2000/10/30 21:22:10  sg

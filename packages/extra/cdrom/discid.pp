@@ -4,7 +4,7 @@
 
     Unit to read a disc TOC and get discid for a cddb query.
 
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -41,7 +41,7 @@ Function cddbdiscid(Const cdtoc : Array of TTocEntry; Count : Integer) : integer
 
 Var
  i,t,n :  cardinal;
- 
+
 begin
   t:=0;
   n:=0;
@@ -66,11 +66,11 @@ begin
      Result:=Result+' '+IntToStr(tracks[i].frame);
   Result:=Result+' '+IntToStr(tracks[Count].frame div 75);
 end;
-  
+
 end.
 {
   $Log$
-  Revision 1.1  2002-09-08 14:03:31  michael
-  + Initial implementation on Linux/win32
+  Revision 1.2  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

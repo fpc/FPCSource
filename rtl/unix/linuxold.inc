@@ -40,9 +40,9 @@ Const
   Open_NDelay    = Open_NonBlock;
   Open_Sync      = 1 shl 12;
   Open_Direct    = 4 shl 12;
-  Open_LargeFile = 1 shl 15; 
-  Open_Directory = 2 shl 15; 
-  Open_NoFollow  = 4 shl 15; 
+  Open_LargeFile = 1 shl 15;
+  Open_Directory = 2 shl 15;
+  Open_NoFollow  = 4 shl 15;
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
@@ -143,10 +143,10 @@ type
   end;
   PDir =^TDir;
 
-  dev_t	= word;
+  dev_t = word;
 
   Stat = packed record
-    dev     : dev_t;		
+    dev     : dev_t;
     pad1    : word;
     ino     : longint;
     mode,
@@ -218,482 +218,482 @@ type
 
 { Get System call numbers and error-numbers}
 
-const 		
- syscall_nr_setup			= 0;
- syscall_nr_exit			= 1;
- syscall_nr_fork			= 2;
- syscall_nr_read			= 3;
- syscall_nr_write			= 4;
- syscall_nr_open			= 5;
- syscall_nr_close			= 6;
- syscall_nr_waitpid			= 7;
- syscall_nr_creat			= 8;
- syscall_nr_link			= 9;
- syscall_nr_unlink			= 10;
- syscall_nr_execve			= 11;
- syscall_nr_chdir			= 12;
- syscall_nr_time			= 13;
- syscall_nr_mknod			= 14;
- syscall_nr_chmod			= 15;
- syscall_nr_chown			= 16;
- syscall_nr_break			= 17;
- syscall_nr_oldstat			= 18;
- syscall_nr_lseek			= 19;
- syscall_nr_getpid			= 20;
- syscall_nr_mount			= 21;
- syscall_nr_umount			= 22;
- syscall_nr_setuid			= 23;
- syscall_nr_getuid			= 24;
- syscall_nr_stime			= 25;
- syscall_nr_ptrace			= 26;
- syscall_nr_alarm			= 27;
- syscall_nr_oldfstat			= 28;
- syscall_nr_pause			= 29;
- syscall_nr_utime			= 30;
- syscall_nr_stty			= 31;
- syscall_nr_gtty			= 32;
- syscall_nr_access			= 33;
- syscall_nr_nice			= 34;
- syscall_nr_ftime			= 35;
- syscall_nr_sync			= 36;
- syscall_nr_kill			= 37;
- syscall_nr_rename			= 38;
- syscall_nr_mkdir			= 39;
- syscall_nr_rmdir			= 40;
- syscall_nr_dup				= 41;
- syscall_nr_pipe			= 42;
- syscall_nr_times			= 43;
- syscall_nr_prof			= 44;
- syscall_nr_brk				= 45;
- syscall_nr_setgid			= 46;
- syscall_nr_getgid			= 47;
- syscall_nr_signal			= 48;
- syscall_nr_geteuid			= 49;
- syscall_nr_getegid			= 50;
- syscall_nr_acct			= 51;
- syscall_nr_phys			= 52;
- syscall_nr_lock			= 53;
- syscall_nr_ioctl			= 54;
- syscall_nr_fcntl			= 55;
- syscall_nr_mpx				= 56;
- syscall_nr_setpgid			= 57;
- syscall_nr_ulimit			= 58;
- syscall_nr_oldolduname			= 59;
- syscall_nr_umask			= 60;
- syscall_nr_chroot			= 61;
- syscall_nr_ustat			= 62;
- syscall_nr_dup2			= 63;
- syscall_nr_getppid			= 64;
- syscall_nr_getpgrp			= 65;
- syscall_nr_setsid			= 66;
- syscall_nr_sigaction			= 67;
- syscall_nr_sgetmask			= 68;
- syscall_nr_ssetmask			= 69;
- syscall_nr_setreuid			= 70;
- syscall_nr_setregid			= 71;
- syscall_nr_sigsuspend			= 72;
- syscall_nr_sigpending			= 73;
- syscall_nr_sethostname			= 74;
- syscall_nr_setrlimit			= 75;
- syscall_nr_getrlimit			= 76;
- syscall_nr_getrusage			= 77;
- syscall_nr_gettimeofday		= 78;
- syscall_nr_settimeofday		= 79;
- syscall_nr_getgroups			= 80;
- syscall_nr_setgroups			= 81;
- syscall_nr_select			= 82;
- syscall_nr_symlink			= 83;
- syscall_nr_oldlstat			= 84;
- syscall_nr_readlink			= 85;
- syscall_nr_uselib			= 86;
- syscall_nr_swapon			= 87;
- syscall_nr_reboot			= 88;
- syscall_nr_readdir			= 89;
- syscall_nr_mmap			= 90;
- syscall_nr_munmap			= 91;
- syscall_nr_truncate			= 92;
- syscall_nr_ftruncate			= 93;
- syscall_nr_fchmod			= 94;
- syscall_nr_fchown			= 95;
- syscall_nr_getpriority			= 96;
- syscall_nr_setpriority			= 97;
- syscall_nr_profil			= 98;
- syscall_nr_statfs			= 99;
- syscall_nr_fstatfs			= 100;
- syscall_nr_ioperm			= 101;
- syscall_nr_socketcall			= 102;
- syscall_nr_syslog			= 103;
- syscall_nr_setitimer			= 104;
- syscall_nr_getitimer			= 105;
- syscall_nr_stat			= 106;
- syscall_nr_lstat			= 107;
- syscall_nr_fstat			= 108;
- syscall_nr_olduname			= 109;
- syscall_nr_iopl			= 110;
- syscall_nr_vhangup			= 111;
- syscall_nr_idle			= 112;
- syscall_nr_vm86old			= 113;
- syscall_nr_wait4			= 114;
- syscall_nr_swapoff			= 115;
- syscall_nr_sysinfo			= 116;
- syscall_nr_ipc				= 117;
- syscall_nr_fsync			= 118;
- syscall_nr_sigreturn			= 119;
- syscall_nr_clone			= 120;
- syscall_nr_setdomainname		= 121;
- syscall_nr_uname			= 122;
- syscall_nr_modify_ldt			= 123;
- syscall_nr_adjtimex			= 124;
- syscall_nr_mprotect			= 125;
- syscall_nr_sigprocmask			= 126;
- syscall_nr_create_module		= 127;
- syscall_nr_init_module			= 128;
- syscall_nr_delete_module		= 129;
- syscall_nr_get_kernel_syms		= 130;
- syscall_nr_quotactl			= 131;
- syscall_nr_getpgid			= 132;
- syscall_nr_fchdir			= 133;
- syscall_nr_bdflush			= 134;
- syscall_nr_sysfs			= 135;
- syscall_nr_personality			= 136;
- syscall_nr_afs_syscall			= 137;
- syscall_nr_setfsuid			= 138;
- syscall_nr_setfsgid			= 139;
- syscall_nr__llseek			= 140;
- syscall_nr_getdents			= 141;
- syscall_nr__newselect			= 142;
- syscall_nr_flock			= 143;
- syscall_nr_msync			= 144;
- syscall_nr_readv			= 145;
- syscall_nr_writev			= 146;
- syscall_nr_getsid			= 147;
- syscall_nr_fdatasync			= 148;
- syscall_nr__sysctl			= 149;
- syscall_nr_mlock			= 150;
- syscall_nr_munlock			= 151;
- syscall_nr_mlockall			= 152;
- syscall_nr_munlockall			= 153;
- syscall_nr_sched_setparam		= 154;
- syscall_nr_sched_getparam		= 155;
- syscall_nr_sched_setscheduler		= 156;
- syscall_nr_sched_getscheduler		= 157;
- syscall_nr_sched_yield			= 158;
- syscall_nr_sched_get_priority_max	= 159;
- syscall_nr_sched_get_priority_min	= 160;
- syscall_nr_sched_rr_get_interval	= 161;
- syscall_nr_nanosleep			= 162;
- syscall_nr_mremap			= 163;
- syscall_nr_setresuid			= 164;
- syscall_nr_getresuid			= 165;
- syscall_nr_vm86			= 166;
- syscall_nr_query_module		= 167;
- syscall_nr_poll			= 168;
+const
+ syscall_nr_setup                       = 0;
+ syscall_nr_exit                        = 1;
+ syscall_nr_fork                        = 2;
+ syscall_nr_read                        = 3;
+ syscall_nr_write                       = 4;
+ syscall_nr_open                        = 5;
+ syscall_nr_close                       = 6;
+ syscall_nr_waitpid                     = 7;
+ syscall_nr_creat                       = 8;
+ syscall_nr_link                        = 9;
+ syscall_nr_unlink                      = 10;
+ syscall_nr_execve                      = 11;
+ syscall_nr_chdir                       = 12;
+ syscall_nr_time                        = 13;
+ syscall_nr_mknod                       = 14;
+ syscall_nr_chmod                       = 15;
+ syscall_nr_chown                       = 16;
+ syscall_nr_break                       = 17;
+ syscall_nr_oldstat                     = 18;
+ syscall_nr_lseek                       = 19;
+ syscall_nr_getpid                      = 20;
+ syscall_nr_mount                       = 21;
+ syscall_nr_umount                      = 22;
+ syscall_nr_setuid                      = 23;
+ syscall_nr_getuid                      = 24;
+ syscall_nr_stime                       = 25;
+ syscall_nr_ptrace                      = 26;
+ syscall_nr_alarm                       = 27;
+ syscall_nr_oldfstat                    = 28;
+ syscall_nr_pause                       = 29;
+ syscall_nr_utime                       = 30;
+ syscall_nr_stty                        = 31;
+ syscall_nr_gtty                        = 32;
+ syscall_nr_access                      = 33;
+ syscall_nr_nice                        = 34;
+ syscall_nr_ftime                       = 35;
+ syscall_nr_sync                        = 36;
+ syscall_nr_kill                        = 37;
+ syscall_nr_rename                      = 38;
+ syscall_nr_mkdir                       = 39;
+ syscall_nr_rmdir                       = 40;
+ syscall_nr_dup                         = 41;
+ syscall_nr_pipe                        = 42;
+ syscall_nr_times                       = 43;
+ syscall_nr_prof                        = 44;
+ syscall_nr_brk                         = 45;
+ syscall_nr_setgid                      = 46;
+ syscall_nr_getgid                      = 47;
+ syscall_nr_signal                      = 48;
+ syscall_nr_geteuid                     = 49;
+ syscall_nr_getegid                     = 50;
+ syscall_nr_acct                        = 51;
+ syscall_nr_phys                        = 52;
+ syscall_nr_lock                        = 53;
+ syscall_nr_ioctl                       = 54;
+ syscall_nr_fcntl                       = 55;
+ syscall_nr_mpx                         = 56;
+ syscall_nr_setpgid                     = 57;
+ syscall_nr_ulimit                      = 58;
+ syscall_nr_oldolduname                 = 59;
+ syscall_nr_umask                       = 60;
+ syscall_nr_chroot                      = 61;
+ syscall_nr_ustat                       = 62;
+ syscall_nr_dup2                        = 63;
+ syscall_nr_getppid                     = 64;
+ syscall_nr_getpgrp                     = 65;
+ syscall_nr_setsid                      = 66;
+ syscall_nr_sigaction                   = 67;
+ syscall_nr_sgetmask                    = 68;
+ syscall_nr_ssetmask                    = 69;
+ syscall_nr_setreuid                    = 70;
+ syscall_nr_setregid                    = 71;
+ syscall_nr_sigsuspend                  = 72;
+ syscall_nr_sigpending                  = 73;
+ syscall_nr_sethostname                 = 74;
+ syscall_nr_setrlimit                   = 75;
+ syscall_nr_getrlimit                   = 76;
+ syscall_nr_getrusage                   = 77;
+ syscall_nr_gettimeofday                = 78;
+ syscall_nr_settimeofday                = 79;
+ syscall_nr_getgroups                   = 80;
+ syscall_nr_setgroups                   = 81;
+ syscall_nr_select                      = 82;
+ syscall_nr_symlink                     = 83;
+ syscall_nr_oldlstat                    = 84;
+ syscall_nr_readlink                    = 85;
+ syscall_nr_uselib                      = 86;
+ syscall_nr_swapon                      = 87;
+ syscall_nr_reboot                      = 88;
+ syscall_nr_readdir                     = 89;
+ syscall_nr_mmap                        = 90;
+ syscall_nr_munmap                      = 91;
+ syscall_nr_truncate                    = 92;
+ syscall_nr_ftruncate                   = 93;
+ syscall_nr_fchmod                      = 94;
+ syscall_nr_fchown                      = 95;
+ syscall_nr_getpriority                 = 96;
+ syscall_nr_setpriority                 = 97;
+ syscall_nr_profil                      = 98;
+ syscall_nr_statfs                      = 99;
+ syscall_nr_fstatfs                     = 100;
+ syscall_nr_ioperm                      = 101;
+ syscall_nr_socketcall                  = 102;
+ syscall_nr_syslog                      = 103;
+ syscall_nr_setitimer                   = 104;
+ syscall_nr_getitimer                   = 105;
+ syscall_nr_stat                        = 106;
+ syscall_nr_lstat                       = 107;
+ syscall_nr_fstat                       = 108;
+ syscall_nr_olduname                    = 109;
+ syscall_nr_iopl                        = 110;
+ syscall_nr_vhangup                     = 111;
+ syscall_nr_idle                        = 112;
+ syscall_nr_vm86old                     = 113;
+ syscall_nr_wait4                       = 114;
+ syscall_nr_swapoff                     = 115;
+ syscall_nr_sysinfo                     = 116;
+ syscall_nr_ipc                         = 117;
+ syscall_nr_fsync                       = 118;
+ syscall_nr_sigreturn                   = 119;
+ syscall_nr_clone                       = 120;
+ syscall_nr_setdomainname               = 121;
+ syscall_nr_uname                       = 122;
+ syscall_nr_modify_ldt                  = 123;
+ syscall_nr_adjtimex                    = 124;
+ syscall_nr_mprotect                    = 125;
+ syscall_nr_sigprocmask                 = 126;
+ syscall_nr_create_module               = 127;
+ syscall_nr_init_module                 = 128;
+ syscall_nr_delete_module               = 129;
+ syscall_nr_get_kernel_syms             = 130;
+ syscall_nr_quotactl                    = 131;
+ syscall_nr_getpgid                     = 132;
+ syscall_nr_fchdir                      = 133;
+ syscall_nr_bdflush                     = 134;
+ syscall_nr_sysfs                       = 135;
+ syscall_nr_personality                 = 136;
+ syscall_nr_afs_syscall                 = 137;
+ syscall_nr_setfsuid                    = 138;
+ syscall_nr_setfsgid                    = 139;
+ syscall_nr__llseek                     = 140;
+ syscall_nr_getdents                    = 141;
+ syscall_nr__newselect                  = 142;
+ syscall_nr_flock                       = 143;
+ syscall_nr_msync                       = 144;
+ syscall_nr_readv                       = 145;
+ syscall_nr_writev                      = 146;
+ syscall_nr_getsid                      = 147;
+ syscall_nr_fdatasync                   = 148;
+ syscall_nr__sysctl                     = 149;
+ syscall_nr_mlock                       = 150;
+ syscall_nr_munlock                     = 151;
+ syscall_nr_mlockall                    = 152;
+ syscall_nr_munlockall                  = 153;
+ syscall_nr_sched_setparam              = 154;
+ syscall_nr_sched_getparam              = 155;
+ syscall_nr_sched_setscheduler          = 156;
+ syscall_nr_sched_getscheduler          = 157;
+ syscall_nr_sched_yield                 = 158;
+ syscall_nr_sched_get_priority_max      = 159;
+ syscall_nr_sched_get_priority_min      = 160;
+ syscall_nr_sched_rr_get_interval       = 161;
+ syscall_nr_nanosleep                   = 162;
+ syscall_nr_mremap                      = 163;
+ syscall_nr_setresuid                   = 164;
+ syscall_nr_getresuid                   = 165;
+ syscall_nr_vm86                        = 166;
+ syscall_nr_query_module                = 167;
+ syscall_nr_poll                        = 168;
  syscall_nr_sigaltstack                 = 186;
 
 {$IFDEF SYSCALL_DEBUG}
 const
   Sys_nr_txt : array[0..168] of string[15]=(
-   'Setup',		{   0 }
-   'Exit',		{   1 }
-   'Fork',		{   2 }
-   'Read',		{   3 }
-   'Write',		{   4 }
-   'Open',		{   5 }
-   'Close',		{   6 }
-   'WaitPid',		{   7 }
-   'Create',		{   8 }
-   'Link',		{   9 }
-   'UnLink',		{  10 }
-   'ExecVe',		{  11 }
-   'ChDir',		{  12 }
-   'Time',		{  13 }
-   'MkNod',		{  14 }
-   'ChMod',		{  15 }
-   'ChOwn',		{  16 }
-   'Break',		{  17 }
-   'OldState',		{  18 }
-   'LSeek',		{  19 }
-   'GetPid',		{  20 }
-   'Mount',		{  21 }
-   'UMount',		{  22 }
-   'SetUid',		{  23 }
-   'GetUid',		{  24 }
-   'STime',		{  25 }
-   'PTrace',		{  26 }
-   'Alarm',		{  27 }
-   'OldFStat',		{  28 }
-   'Pause',		{  29 }
-   'UTime',		{  30 }
-   'STTY',		{  31 }
-   'GTTY',		{  32 }
-   'Access',		{  33 }
-   'Nice',		{  34 }
-   'FTime',		{  35 }
-   'Sync',		{  36 }
-   'Kill',		{  37 }
-   'Rename',		{  38 }
-   'MkDir',		{  39 }
-   'RmDir',		{  40 }
-   'Dup',		{  41 }
-   'Pipe',		{  42 }
-   'Times',		{  43 }
-   'Prof',		{  44 }
-   'Break',		{  45 }
-   'SetGid',		{  46 }
-   'GetGid',		{  47 }
-   'Signal',		{  48 }
-   'GetEUid',		{  49 }
-   'GetEGid',		{  50 }
-   'Acct',		{  51 }
-   'Phys',		{  52 }
-   'Lock',		{  53 }
-   'IOCtl',		{  54 }
-   'FCNtl',		{  55 }
-   'Mpx',		{  56 }
-   'SetPGid',		{  57 }
-   'ULimit',		{  58 }
-   'OldOldUName',	{  59 }
-   'UMask',		{  60 }
-   'ChRoot',		{  61 }
-   'UStat',		{  62 }
-   'Dup2',		{  63 }
-   'GetPPid',		{  64 }
-   'GetPGrp',		{  65 }
-   'SetSid',		{  66 }
-   'SigAction',		{  67 }
-   'SGetMask',		{  68 }
-   'SSetMask',		{  69 }
-   'SetReUid',		{  70 }
-   'SetReGid',		{  71 }
-   'SigSuspend',	{  72 }
-   'SigPending',	{  73 }
-   'SetHostName',	{  74 }
-   'SetRLimit',		{  75 }
-   'GetRLimit',		{  76 }
-   'GetRUsage',		{  77 }
-   'GetTimeOfDay',	{  78 }
-   'SetTimeOfDay',	{  79 }
-   'GetGroups',		{  80 }
-   'SetGroups',		{  81 }
-   'Select',		{  82 }
-   'SymLink',		{  83 }
-   'OldLStat',		{  84 }
-   'ReadLink',		{  85 }
-   'UseLib',		{  86 }
-   'SwapOn',		{  87 }
-   'Reboot',		{  88 }
-   'ReadDir',		{  89 }
-   'MMap',		{  90 }
-   'MunMap',		{  91 }
-   'Truncate',		{  92 }
-   'FTruncate',		{  93 }
-   'FChMod',		{  94 }
-   'FChOwn',		{  95 }
-   'GetPriority',	{  96 }
-   'SetPriority',	{  97 }
-   'Profile',		{  98 }
-   'StatFs',		{  99 }
-   'FStatFs',		{ 100 }
-   'IOPerm',		{ 101 }
-   'SocketCall',	{ 102 }
-   'SysLog',		{ 103 }
-   'SetITimer',		{ 104 }
-   'GetITimer',		{ 105 }
-   'Stat',		{ 106 }
-   'LStat',		{ 107 }
-   'FStat',		{ 108 }
-   'OldUName',		{ 109 }
-   'IOPl',		{ 110 }
-   'VHangup',		{ 111 }
-   'Idle',		{ 112 }
-   'VM86',		{ 113 }
-   'Wait4',		{ 114 }
-   'SwapOff',		{ 115 }
-   'SysInfo',		{ 116 }
-   'IPC',		{ 117 }
-   'FSync',		{ 118 }
-   'SigReturn',		{ 119 }
-   'Clone',		{ 120 }
-   'SetDomainName',	{ 121 }
-   'UName',		{ 122 }
-   'Modify_Ldt',	{ 123 }
-   'AdjTimeX',		{ 124 }
-   'MProtect',		{ 125 }
-   'SigProcMask',	{ 126 }
-   'Create_Module',	{ 127 }
-   'Init_Module',	{ 128 }
-   'Delete_Module',	{ 129 }
-   'Get_Kernel_Syms',	{ 130 }
-   'QuotaCtl',		{ 131 }
-   'GetPGid',		{ 132 }
-   'FChDir',		{ 133 }
-   'BDFlush',		{ 134 }
-   'SysFs',		{ 135 }
-   'Personality',	{ 136 }
-   'AFS_SysCall',	{ 137 }
-   'SetFsUid',		{ 138 }
-   'SetFsGid',		{ 139 }
-   '__LLSeek',		{ 140 }
-   'GetDents',		{ 141 }
-   '__NewSelect',	{ 142 }
-   'FLock',		{ 143 }
-   'MSync',		{ 144 }
-   'ReadV',		{ 145 }
-   'WriteV',		{ 146 }
-   'GetSid',		{ 147 }
-   'FDataSync',		{ 148 }
-   '__SysCtl',		{ 149 }
-   'MLock',		{ 150 }
-   'MUnLock',		{ 151 }
-   'MLockAll',		{ 152 }
-   'MUnLockAll',	{ 153 }
-   'MSchdSetParam',	{ 154 }
-   'MSchdGetParam',	{ 155 }
-   'MSchdSetSchd',	{ 156 }
-   'MSchdGetSchd',	{ 157 }
-   'MSchdYield',	{ 158 }
-   'MSchdGetPriMax',	{ 159 }
-   'MSchdGetPriMin',	{ 160 }
-   'MSchdRRGetInt',	{ 161 }
-   'NanoSleep',		{ 162 }
-   'MRemap',		{ 163 }
-   'SetReSuid',		{ 164 }
-   'GetReSuid',		{ 165 }
-   'vm86',		{ 166 }
-   'QueryModule',	{ 167 }
-   'Poll');		{ 168 }
+   'Setup',             {   0 }
+   'Exit',              {   1 }
+   'Fork',              {   2 }
+   'Read',              {   3 }
+   'Write',             {   4 }
+   'Open',              {   5 }
+   'Close',             {   6 }
+   'WaitPid',           {   7 }
+   'Create',            {   8 }
+   'Link',              {   9 }
+   'UnLink',            {  10 }
+   'ExecVe',            {  11 }
+   'ChDir',             {  12 }
+   'Time',              {  13 }
+   'MkNod',             {  14 }
+   'ChMod',             {  15 }
+   'ChOwn',             {  16 }
+   'Break',             {  17 }
+   'OldState',          {  18 }
+   'LSeek',             {  19 }
+   'GetPid',            {  20 }
+   'Mount',             {  21 }
+   'UMount',            {  22 }
+   'SetUid',            {  23 }
+   'GetUid',            {  24 }
+   'STime',             {  25 }
+   'PTrace',            {  26 }
+   'Alarm',             {  27 }
+   'OldFStat',          {  28 }
+   'Pause',             {  29 }
+   'UTime',             {  30 }
+   'STTY',              {  31 }
+   'GTTY',              {  32 }
+   'Access',            {  33 }
+   'Nice',              {  34 }
+   'FTime',             {  35 }
+   'Sync',              {  36 }
+   'Kill',              {  37 }
+   'Rename',            {  38 }
+   'MkDir',             {  39 }
+   'RmDir',             {  40 }
+   'Dup',               {  41 }
+   'Pipe',              {  42 }
+   'Times',             {  43 }
+   'Prof',              {  44 }
+   'Break',             {  45 }
+   'SetGid',            {  46 }
+   'GetGid',            {  47 }
+   'Signal',            {  48 }
+   'GetEUid',           {  49 }
+   'GetEGid',           {  50 }
+   'Acct',              {  51 }
+   'Phys',              {  52 }
+   'Lock',              {  53 }
+   'IOCtl',             {  54 }
+   'FCNtl',             {  55 }
+   'Mpx',               {  56 }
+   'SetPGid',           {  57 }
+   'ULimit',            {  58 }
+   'OldOldUName',       {  59 }
+   'UMask',             {  60 }
+   'ChRoot',            {  61 }
+   'UStat',             {  62 }
+   'Dup2',              {  63 }
+   'GetPPid',           {  64 }
+   'GetPGrp',           {  65 }
+   'SetSid',            {  66 }
+   'SigAction',         {  67 }
+   'SGetMask',          {  68 }
+   'SSetMask',          {  69 }
+   'SetReUid',          {  70 }
+   'SetReGid',          {  71 }
+   'SigSuspend',        {  72 }
+   'SigPending',        {  73 }
+   'SetHostName',       {  74 }
+   'SetRLimit',         {  75 }
+   'GetRLimit',         {  76 }
+   'GetRUsage',         {  77 }
+   'GetTimeOfDay',      {  78 }
+   'SetTimeOfDay',      {  79 }
+   'GetGroups',         {  80 }
+   'SetGroups',         {  81 }
+   'Select',            {  82 }
+   'SymLink',           {  83 }
+   'OldLStat',          {  84 }
+   'ReadLink',          {  85 }
+   'UseLib',            {  86 }
+   'SwapOn',            {  87 }
+   'Reboot',            {  88 }
+   'ReadDir',           {  89 }
+   'MMap',              {  90 }
+   'MunMap',            {  91 }
+   'Truncate',          {  92 }
+   'FTruncate',         {  93 }
+   'FChMod',            {  94 }
+   'FChOwn',            {  95 }
+   'GetPriority',       {  96 }
+   'SetPriority',       {  97 }
+   'Profile',           {  98 }
+   'StatFs',            {  99 }
+   'FStatFs',           { 100 }
+   'IOPerm',            { 101 }
+   'SocketCall',        { 102 }
+   'SysLog',            { 103 }
+   'SetITimer',         { 104 }
+   'GetITimer',         { 105 }
+   'Stat',              { 106 }
+   'LStat',             { 107 }
+   'FStat',             { 108 }
+   'OldUName',          { 109 }
+   'IOPl',              { 110 }
+   'VHangup',           { 111 }
+   'Idle',              { 112 }
+   'VM86',              { 113 }
+   'Wait4',             { 114 }
+   'SwapOff',           { 115 }
+   'SysInfo',           { 116 }
+   'IPC',               { 117 }
+   'FSync',             { 118 }
+   'SigReturn',         { 119 }
+   'Clone',             { 120 }
+   'SetDomainName',     { 121 }
+   'UName',             { 122 }
+   'Modify_Ldt',        { 123 }
+   'AdjTimeX',          { 124 }
+   'MProtect',          { 125 }
+   'SigProcMask',       { 126 }
+   'Create_Module',     { 127 }
+   'Init_Module',       { 128 }
+   'Delete_Module',     { 129 }
+   'Get_Kernel_Syms',   { 130 }
+   'QuotaCtl',          { 131 }
+   'GetPGid',           { 132 }
+   'FChDir',            { 133 }
+   'BDFlush',           { 134 }
+   'SysFs',             { 135 }
+   'Personality',       { 136 }
+   'AFS_SysCall',       { 137 }
+   'SetFsUid',          { 138 }
+   'SetFsGid',          { 139 }
+   '__LLSeek',          { 140 }
+   'GetDents',          { 141 }
+   '__NewSelect',       { 142 }
+   'FLock',             { 143 }
+   'MSync',             { 144 }
+   'ReadV',             { 145 }
+   'WriteV',            { 146 }
+   'GetSid',            { 147 }
+   'FDataSync',         { 148 }
+   '__SysCtl',          { 149 }
+   'MLock',             { 150 }
+   'MUnLock',           { 151 }
+   'MLockAll',          { 152 }
+   'MUnLockAll',        { 153 }
+   'MSchdSetParam',     { 154 }
+   'MSchdGetParam',     { 155 }
+   'MSchdSetSchd',      { 156 }
+   'MSchdGetSchd',      { 157 }
+   'MSchdYield',        { 158 }
+   'MSchdGetPriMax',    { 159 }
+   'MSchdGetPriMin',    { 160 }
+   'MSchdRRGetInt',     { 161 }
+   'NanoSleep',         { 162 }
+   'MRemap',            { 163 }
+   'SetReSuid',         { 164 }
+   'GetReSuid',         { 165 }
+   'vm86',              { 166 }
+   'QueryModule',       { 167 }
+   'Poll');             { 168 }
 {$ENDIF}
 
-Const 
+Const
 
-Sys_EPERM	= 1;	{ Operation not permitted }
-Sys_ENOENT	= 2;	{ No such file or directory }
-Sys_ESRCH	= 3;	{ No such process }
-Sys_EINTR	= 4;	{ Interrupted system call }
-Sys_EIO	= 5;	{ I/O error }
-Sys_ENXIO	= 6;	{ No such device or address }
-Sys_E2BIG	= 7;	{ Arg list too long }
-Sys_ENOEXEC	= 8;	{ Exec format error }
-Sys_EBADF	= 9;	{ Bad file number }
-Sys_ECHILD	= 10;	{ No child processes }
-Sys_EAGAIN	= 11;	{ Try again }
-Sys_ENOMEM	= 12;	{ Out of memory }
-Sys_EACCES	= 13;	{ Permission denied }
-Sys_EFAULT	= 14;	{ Bad address }
-Sys_ENOTBLK	= 15;	{ Block device required, NOT POSIX! }
-Sys_EBUSY	= 16;	{ Device or resource busy }
-Sys_EEXIST	= 17;	{ File exists }
-Sys_EXDEV	= 18;	{ Cross-device link }
-Sys_ENODEV	= 19;	{ No such device }
-Sys_ENOTDIR	= 20;	{ Not a directory }
-Sys_EISDIR	= 21;	{ Is a directory }
-Sys_EINVAL	= 22;	{ Invalid argument }
-Sys_ENFILE	= 23;	{ File table overflow }
-Sys_EMFILE	= 24;	{ Too many open files }
-Sys_ENOTTY	= 25;	{ Not a typewriter }
-Sys_ETXTBSY	= 26;	{ Text file busy. The new process was
+Sys_EPERM       = 1;    { Operation not permitted }
+Sys_ENOENT      = 2;    { No such file or directory }
+Sys_ESRCH       = 3;    { No such process }
+Sys_EINTR       = 4;    { Interrupted system call }
+Sys_EIO = 5;    { I/O error }
+Sys_ENXIO       = 6;    { No such device or address }
+Sys_E2BIG       = 7;    { Arg list too long }
+Sys_ENOEXEC     = 8;    { Exec format error }
+Sys_EBADF       = 9;    { Bad file number }
+Sys_ECHILD      = 10;   { No child processes }
+Sys_EAGAIN      = 11;   { Try again }
+Sys_ENOMEM      = 12;   { Out of memory }
+Sys_EACCES      = 13;   { Permission denied }
+Sys_EFAULT      = 14;   { Bad address }
+Sys_ENOTBLK     = 15;   { Block device required, NOT POSIX! }
+Sys_EBUSY       = 16;   { Device or resource busy }
+Sys_EEXIST      = 17;   { File exists }
+Sys_EXDEV       = 18;   { Cross-device link }
+Sys_ENODEV      = 19;   { No such device }
+Sys_ENOTDIR     = 20;   { Not a directory }
+Sys_EISDIR      = 21;   { Is a directory }
+Sys_EINVAL      = 22;   { Invalid argument }
+Sys_ENFILE      = 23;   { File table overflow }
+Sys_EMFILE      = 24;   { Too many open files }
+Sys_ENOTTY      = 25;   { Not a typewriter }
+Sys_ETXTBSY     = 26;   { Text file busy. The new process was
                       a pure procedure (shared text) file which was
                       open for writing by another process, or file
                       which was open for writing by another process,
                       or while the pure procedure file was being
                       executed an open(2) call requested write access
                       requested write access.}
-Sys_EFBIG	= 27;	{ File too large }
-Sys_ENOSPC	= 28;	{ No space left on device }
-Sys_ESPIPE	= 29;	{ Illegal seek }
-Sys_EROFS	= 30;	{ Read-only file system }
-Sys_EMLINK	= 31;	{ Too many links }
-Sys_EPIPE	= 32;	{ Broken pipe }
-Sys_EDOM	= 33;	{ Math argument out of domain of func }
-Sys_ERANGE	= 34;	{ Math result not representable }
-Sys_EDEADLK	= 35;	{ Resource deadlock would occur }
-Sys_ENAMETOOLONG= 36;	{ File name too long }
-Sys_ENOLCK	= 37;	{ No record locks available }
-Sys_ENOSYS	= 38;	{ Function not implemented }
-Sys_ENOTEMPTY= 39;	{ Directory not empty }
-Sys_ELOOP	= 40;	{ Too many symbolic links encountered }
-Sys_EWOULDBLOCK	= Sys_EAGAIN;	{ Operation would block }
-Sys_ENOMSG	= 42;	{ No message of desired type }
-Sys_EIDRM	= 43;	{ Identifier removed }
-Sys_ECHRNG	= 44;	{ Channel number out of range }
-Sys_EL2NSYNC= 45;	{ Level 2 not synchronized }
-Sys_EL3HLT	= 46;	{ Level 3 halted }
-Sys_EL3RST	= 47;	{ Level 3 reset }
-Sys_ELNRNG	= 48;	{ Link number out of range }
-Sys_EUNATCH	= 49;	{ Protocol driver not attached }
-Sys_ENOCSI	= 50;	{ No CSI structure available }
-Sys_EL2HLT	= 51;	{ Level 2 halted }
-Sys_EBADE	= 52;	{ Invalid exchange }
-Sys_EBADR	= 53;	{ Invalid request descriptor }
-Sys_EXFULL	= 54;	{ Exchange full }
-Sys_ENOANO	= 55;	{ No anode }
-Sys_EBADRQC	= 56;	{ Invalid request code }
-Sys_EBADSLT	= 57;	{ Invalid slot }
-Sys_EDEADLOCK= 58;	{ File locking deadlock error }
-Sys_EBFONT	= 59;	{ Bad font file format }
-Sys_ENOSTR	= 60;	{ Device not a stream }
-Sys_ENODATA	= 61;	{ No data available }
-Sys_ETIME	= 62;	{ Timer expired }
-Sys_ENOSR	= 63;	{ Out of streams resources }
-Sys_ENONET	= 64;	{ Machine is not on the network }
-Sys_ENOPKG	= 65;	{ Package not installed }
-Sys_EREMOTE	= 66;	{ Object is remote }
-Sys_ENOLINK	= 67;	{ Link has been severed }
-Sys_EADV	= 68;	{ Advertise error }
-Sys_ESRMNT	= 69;	{ Srmount error }
-Sys_ECOMM	= 70;	{ Communication error on send }
-Sys_EPROTO	= 71;	{ Protocol error }
-Sys_EMULTIHOP= 72;	{ Multihop attempted }
-Sys_EDOTDOT	= 73;	{ RFS specific error }
-Sys_EBADMSG	= 74;	{ Not a data message }
-Sys_EOVERFLOW= 75;	{ Value too large for defined data type }
-Sys_ENOTUNIQ= 76;	{ Name not unique on network }
-Sys_EBADFD	= 77;	{ File descriptor in bad state }
-Sys_EREMCHG	= 78;	{ Remote address changed }
-Sys_ELIBACC	= 79;	{ Can not access a needed shared library }
-Sys_ELIBBAD	= 80;	{ Accessing a corrupted shared library }
-Sys_ELIBSCN	= 81;	{ .lib section in a.out corrupted }
-Sys_ELIBMAX	= 82;	{ Attempting to link in too many shared libraries }
-Sys_ELIBEXEC= 83;	{ Cannot exec a shared library directly }
-Sys_EILSEQ	= 84;	{ Illegal byte sequence }
-Sys_ERESTART= 85;	{ Interrupted system call should be restarted }
-Sys_ESTRPIPE= 86;	{ Streams pipe error }
-Sys_EUSERS	= 87;	{ Too many users }
-Sys_ENOTSOCK= 88;	{ Socket operation on non-socket }
-Sys_EDESTADDRREQ= 89;	{ Destination address required }
-Sys_EMSGSIZE= 90;	{ Message too long }
-Sys_EPROTOTYPE= 91;	{ Protocol wrong type for socket }
-Sys_ENOPROTOOPT= 92;	{ Protocol not available }
-Sys_EPROTONOSUPPORT= 93;	{ Protocol not supported }
-Sys_ESOCKTNOSUPPORT= 94;	{ Socket type not supported }
-Sys_EOPNOTSUPP= 95;	{ Operation not supported on transport endpoint }
-Sys_EPFNOSUPPORT= 96;	{ Protocol family not supported }
-Sys_EAFNOSUPPORT= 97;	{ Address family not supported by protocol }
-Sys_EADDRINUSE= 98;	{ Address already in use }
-Sys_EADDRNOTAVAIL= 99;	{ Cannot assign requested address }
-Sys_ENETDOWN= 100;	{ Network is down }
-Sys_ENETUNREACH= 101;	{ Network is unreachable }
-Sys_ENETRESET= 102;	{ Network dropped connection because of reset }
-Sys_ECONNABORTED= 103;	{ Software caused connection abort }
-Sys_ECONNRESET= 104;	{ Connection reset by peer }
-Sys_ENOBUFS	= 105;	{ No buffer space available }
-Sys_EISCONN	= 106;	{ Transport endpoint is already connected }
-Sys_ENOTCONN= 107;	{ Transport endpoint is not connected }
-Sys_ESHUTDOWN= 108;	{ Cannot send after transport endpoint shutdown }
-Sys_ETOOMANYREFS= 109;	{ Too many references: cannot splice }
-Sys_ETIMEDOUT= 110;	{ Connection timed out }
-Sys_ECONNREFUSED= 111;	{ Connection refused }
-Sys_EHOSTDOWN= 112;	{ Host is down }
-Sys_EHOSTUNREACH= 113;	{ No route to host }
-Sys_EALREADY= 114;	{ Operation already in progress }
-Sys_EINPROGRESS= 115;	{ Operation now in progress }
-Sys_ESTALE	= 116;	{ Stale NFS file handle }
-Sys_EUCLEAN	= 117;	{ Structure needs cleaning }
-Sys_ENOTNAM	= 118;	{ Not a XENIX named type file }
-Sys_ENAVAIL	= 119;	{ No XENIX semaphores available }
-Sys_EISNAM	= 120;	{ Is a named type file }
-Sys_EREMOTEIO= 121;	{ Remote I/O error }
-Sys_EDQUOT	= 122;	{ Quota exceeded }
+Sys_EFBIG       = 27;   { File too large }
+Sys_ENOSPC      = 28;   { No space left on device }
+Sys_ESPIPE      = 29;   { Illegal seek }
+Sys_EROFS       = 30;   { Read-only file system }
+Sys_EMLINK      = 31;   { Too many links }
+Sys_EPIPE       = 32;   { Broken pipe }
+Sys_EDOM        = 33;   { Math argument out of domain of func }
+Sys_ERANGE      = 34;   { Math result not representable }
+Sys_EDEADLK     = 35;   { Resource deadlock would occur }
+Sys_ENAMETOOLONG= 36;   { File name too long }
+Sys_ENOLCK      = 37;   { No record locks available }
+Sys_ENOSYS      = 38;   { Function not implemented }
+Sys_ENOTEMPTY= 39;      { Directory not empty }
+Sys_ELOOP       = 40;   { Too many symbolic links encountered }
+Sys_EWOULDBLOCK = Sys_EAGAIN;   { Operation would block }
+Sys_ENOMSG      = 42;   { No message of desired type }
+Sys_EIDRM       = 43;   { Identifier removed }
+Sys_ECHRNG      = 44;   { Channel number out of range }
+Sys_EL2NSYNC= 45;       { Level 2 not synchronized }
+Sys_EL3HLT      = 46;   { Level 3 halted }
+Sys_EL3RST      = 47;   { Level 3 reset }
+Sys_ELNRNG      = 48;   { Link number out of range }
+Sys_EUNATCH     = 49;   { Protocol driver not attached }
+Sys_ENOCSI      = 50;   { No CSI structure available }
+Sys_EL2HLT      = 51;   { Level 2 halted }
+Sys_EBADE       = 52;   { Invalid exchange }
+Sys_EBADR       = 53;   { Invalid request descriptor }
+Sys_EXFULL      = 54;   { Exchange full }
+Sys_ENOANO      = 55;   { No anode }
+Sys_EBADRQC     = 56;   { Invalid request code }
+Sys_EBADSLT     = 57;   { Invalid slot }
+Sys_EDEADLOCK= 58;      { File locking deadlock error }
+Sys_EBFONT      = 59;   { Bad font file format }
+Sys_ENOSTR      = 60;   { Device not a stream }
+Sys_ENODATA     = 61;   { No data available }
+Sys_ETIME       = 62;   { Timer expired }
+Sys_ENOSR       = 63;   { Out of streams resources }
+Sys_ENONET      = 64;   { Machine is not on the network }
+Sys_ENOPKG      = 65;   { Package not installed }
+Sys_EREMOTE     = 66;   { Object is remote }
+Sys_ENOLINK     = 67;   { Link has been severed }
+Sys_EADV        = 68;   { Advertise error }
+Sys_ESRMNT      = 69;   { Srmount error }
+Sys_ECOMM       = 70;   { Communication error on send }
+Sys_EPROTO      = 71;   { Protocol error }
+Sys_EMULTIHOP= 72;      { Multihop attempted }
+Sys_EDOTDOT     = 73;   { RFS specific error }
+Sys_EBADMSG     = 74;   { Not a data message }
+Sys_EOVERFLOW= 75;      { Value too large for defined data type }
+Sys_ENOTUNIQ= 76;       { Name not unique on network }
+Sys_EBADFD      = 77;   { File descriptor in bad state }
+Sys_EREMCHG     = 78;   { Remote address changed }
+Sys_ELIBACC     = 79;   { Can not access a needed shared library }
+Sys_ELIBBAD     = 80;   { Accessing a corrupted shared library }
+Sys_ELIBSCN     = 81;   { .lib section in a.out corrupted }
+Sys_ELIBMAX     = 82;   { Attempting to link in too many shared libraries }
+Sys_ELIBEXEC= 83;       { Cannot exec a shared library directly }
+Sys_EILSEQ      = 84;   { Illegal byte sequence }
+Sys_ERESTART= 85;       { Interrupted system call should be restarted }
+Sys_ESTRPIPE= 86;       { Streams pipe error }
+Sys_EUSERS      = 87;   { Too many users }
+Sys_ENOTSOCK= 88;       { Socket operation on non-socket }
+Sys_EDESTADDRREQ= 89;   { Destination address required }
+Sys_EMSGSIZE= 90;       { Message too long }
+Sys_EPROTOTYPE= 91;     { Protocol wrong type for socket }
+Sys_ENOPROTOOPT= 92;    { Protocol not available }
+Sys_EPROTONOSUPPORT= 93;        { Protocol not supported }
+Sys_ESOCKTNOSUPPORT= 94;        { Socket type not supported }
+Sys_EOPNOTSUPP= 95;     { Operation not supported on transport endpoint }
+Sys_EPFNOSUPPORT= 96;   { Protocol family not supported }
+Sys_EAFNOSUPPORT= 97;   { Address family not supported by protocol }
+Sys_EADDRINUSE= 98;     { Address already in use }
+Sys_EADDRNOTAVAIL= 99;  { Cannot assign requested address }
+Sys_ENETDOWN= 100;      { Network is down }
+Sys_ENETUNREACH= 101;   { Network is unreachable }
+Sys_ENETRESET= 102;     { Network dropped connection because of reset }
+Sys_ECONNABORTED= 103;  { Software caused connection abort }
+Sys_ECONNRESET= 104;    { Connection reset by peer }
+Sys_ENOBUFS     = 105;  { No buffer space available }
+Sys_EISCONN     = 106;  { Transport endpoint is already connected }
+Sys_ENOTCONN= 107;      { Transport endpoint is not connected }
+Sys_ESHUTDOWN= 108;     { Cannot send after transport endpoint shutdown }
+Sys_ETOOMANYREFS= 109;  { Too many references: cannot splice }
+Sys_ETIMEDOUT= 110;     { Connection timed out }
+Sys_ECONNREFUSED= 111;  { Connection refused }
+Sys_EHOSTDOWN= 112;     { Host is down }
+Sys_EHOSTUNREACH= 113;  { No route to host }
+Sys_EALREADY= 114;      { Operation already in progress }
+Sys_EINPROGRESS= 115;   { Operation now in progress }
+Sys_ESTALE      = 116;  { Stale NFS file handle }
+Sys_EUCLEAN     = 117;  { Structure needs cleaning }
+Sys_ENOTNAM     = 118;  { Not a XENIX named type file }
+Sys_ENAVAIL     = 119;  { No XENIX semaphores available }
+Sys_EISNAM      = 120;  { Is a named type file }
+Sys_EREMOTEIO= 121;     { Remote I/O error }
+Sys_EDQUOT      = 122;  { Quota exceeded }
 
 
 { This value was suggested by Daniel
@@ -765,21 +765,21 @@ Const
 
 
 const
-  SI_PAD_SIZE	= ((128/sizeof(longint)) - 3);
+  SI_PAD_SIZE   = ((128/sizeof(longint)) - 3);
 
 type
   Size_T = cardinal;
 
   tfpreg = record
-	  significand: array[0..3] of word;
-	  exponent: word;
+          significand: array[0..3] of word;
+          exponent: word;
   end;
 
   pfpstate = ^tfpstate;
   tfpstate = record
-	   cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
-	   st: array[0..7] of tfpreg;
-	   status: cardinal;
+           cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
+           st: array[0..7] of tfpreg;
+           status: cardinal;
   end;
 
   PSigContextRec = ^SigContextRec;
@@ -1098,7 +1098,7 @@ Type
     c_line   : char;
     c_cc     : array[0..NCCS-1] of byte;
     c_ispeed,
-    c_ospeed : longint; 
+    c_ospeed : longint;
   end;
   TTermios=Termios;
 {$PACKRECORDS Default}
@@ -3320,7 +3320,7 @@ begin
       s:=$7F00;
       r:=WaitPid(Pid,@s,0);
     until (r<>-1) or (LinuxError<>Sys_EINTR);
-    if (r=-1) or (r=0) then 
+    if (r=-1) or (r=0) then
       Shell:=-1
     else
       Shell:=s;
@@ -3807,18 +3807,18 @@ end;
 
 Const
   // Debian system; contains location of timezone file.
-  TimeZoneLocationFile = '/etc/timezone'; 
+  TimeZoneLocationFile = '/etc/timezone';
   // SuSE has link in /usr/lib/zoneinfo/localtime to /etc/localtime
   // RedHat uses /etc/localtime
-  TimeZoneFile = '/usr/lib/zoneinfo/localtime'; 
-  AltTimeZoneFile = '/etc/localtime'; 
-  
+  TimeZoneFile = '/usr/lib/zoneinfo/localtime';
+  AltTimeZoneFile = '/etc/localtime';
+
 function GetTimezoneFile:string;
 var
   f,len : longint;
   s : string;
   info : stat;
-  
+
 begin
   GetTimezoneFile:='';
   f:=fdopen(TimeZoneLocationFile,Open_RdOnly);
@@ -3832,10 +3832,10 @@ begin
     fdclose(f);
     GetTimezoneFile:=s;
     end
-  // Try SuSE  
+  // Try SuSE
   else if fstat(TimeZoneFile,info) then
     GetTimeZoneFile:=TimeZoneFile
-  // Try RedHat  
+  // Try RedHat
   else If fstat(AltTimeZoneFile,Info) then
       GetTimeZoneFile:=AltTimeZoneFile;
 end;
@@ -4465,16 +4465,16 @@ begin
    begin
      {$ifdef BSD} // FreeBSD checked only
    { We're in the child }
-	close(pipi);
-	if textrec(pipo).handle<>textrec(output).handle Then
-	  begin
-	   dup2(textrec(pipo).handle,textrec(output).handle);
-	   if rw='W' Then
-	    dup2(textrec(output).handle,textrec(input).handle);
+        close(pipi);
+        if textrec(pipo).handle<>textrec(output).handle Then
+          begin
+           dup2(textrec(pipo).handle,textrec(output).handle);
+           if rw='W' Then
+            dup2(textrec(output).handle,textrec(input).handle);
           end
-	 else
- 	  if (rw='W') and (textrec(pipi).handle<>textrec(input).handle) then
-	     dup2(textrec(output).handle,textrec(input).handle);
+         else
+          if (rw='W') and (textrec(pipi).handle<>textrec(input).handle) then
+             dup2(textrec(output).handle,textrec(input).handle);
         close(pipo);
         if linuxerror<>0 then
          halt(127);
@@ -5071,7 +5071,7 @@ var
           if ((st.mode and $E000)=$4000) and  { if it is a directory }
              (strpas(@(d^.name))<>'.') and    { but not ., .. and fd subdirs }
              (strpas(@(d^.name))<>'..') and
-	     (strpas(@(d^.name))<>'') and
+             (strpas(@(d^.name))<>'') and
              (strpas(@(d^.name))<>'fd') then
            begin                      {we found a directory, search inside it}
              if mysearch(name) then
@@ -5914,284 +5914,7 @@ End.
 
 {
   $Log$
-  Revision 1.18  2004-03-04 13:12:06  olle
-    + added comment to ETXTBSY
-    * changed i386 -> cpui386, m68k -> cpum68k
-
-  Revision 1.17  2004/02/19 21:30:50  daniel
-    * do_syscall back to oldfpccall
-
-  Revision 1.16  2004/02/19 21:06:51  daniel
-    * This time it should work.
-
-  Revision 1.15  2004/02/19 20:56:22  daniel
-    * Make it compile with 1.0.10
-
-  Revision 1.14  2004/02/19 19:50:51  daniel
-    * More oldfpccall
-
-  Revision 1.13  2004/02/19 19:43:36  daniel
-    * Do_syscall needs oldfpccall
-
-  Revision 1.12  2004/02/19 19:34:04  marco
-   * stdcall to syscall
-
-  Revision 1.11  2003/12/10 09:36:16  mazen
-  + added explicit ATT mode request for assembler  input
-
-  Revision 1.10  2003/11/10 16:54:28  marco
-   * new oldlinux unit. 1_0 defines killed in some former FCL parts.
-
-
-  Revision 1.1.2.41  2003/06/18 06:56:51  pierre
-   * restore return value of shell function to status parameter
-
-  Revision 1.1.2.40  2003/05/24 20:36:41  jonas
-    * fixed DosExitCode translation (at least for linux, and it's the same
-      for Darwin, other BSD's should still be checked)
-
-  Revision 1.1.2.39  2003/03/15 15:41:03  marco
-   * utime fixes. Has now "const" argument.
-
-  Revision 1.1.2.38  2003/03/11 08:24:46  michael
-  * stringtoppchar should use tabs instead of backspace as delimiter
-
-  Revision 1.1.2.37  2002/11/25 19:43:47  marco
-   * Hmm, I cycled this?
-
-  Revision 1.1.2.36  2002/11/25 19:38:24  marco
-   * quick pipe fix.
-
-  Revision 1.1.2.35  2002/09/20 07:08:41  pierre
-   * avoid compiler warnings for bsd
-
-  Revision 1.1.2.34  2002/09/13 13:02:06  jonas
-    * fixed buffer overflow error in StringToPPChar(), detected using
-      DIOTA (http://www.elis/rug.ac.be/~ronsse/diota) (which I also work on :)
-
-  Revision 1.1.2.33  2002/09/10 09:18:43  pierre
-    * added several explicit typecast to remove warnings
-
-  Revision 1.1.2.32  2002/08/06 11:12:26  sg
-  * replaced some Longints with Cardinals, to mach the C headers
-  * updated the termios record
-
-  Revision 1.1.2.31  2002/07/30 11:33:52  marco
-   * Small OpenBSD fix.
-
-  Revision 1.1.2.30  2002/06/10 19:28:49  pierre
-   * fix IsATTY declaration
-
-  Revision 1.1.2.29  2002/03/05 20:07:01  michael
-  + Patched patch from Sebastian for FCNTL call
-
-  Revision 1.1.2.28  2002/03/05 19:59:42  michael
-  + Patch from Sebastian for FCNTL call
-
-  Revision 1.1.2.27  2002/02/19 14:37:54  marco
-   * Changes to support Alarm()
-
-  Revision 1.1.2.26  2001/12/31 23:26:45  marco
-   * Gettimeofday uncommented for FreeBSD.
-
-  Revision 1.1.2.25  2001/12/15 19:55:33  michael
-  + removed debug writelns
-
-  Revision 1.1.2.24  2001/12/13 18:29:49  michael
-    + Added ansistring version of most Exec* calls.
-
-  Revision 1.1.2.23  2001/11/30 07:20:22  marco
-   * TTYName fix from Maarten Beekers.
-
-  Revision 1.1.2.22  2001/11/05 20:52:47  michael
-  + Added exit status examination macros
-
-  Revision 1.1.2.21  2001/10/14 13:34:27  peter
-    * tcsetattr const argument
-
-  Revision 1.1.2.20  2001/09/10 18:40:04  marco
-   * OpenDir(String) now correctly updates linuxerror
-
-  Revision 1.1.2.19  2001/08/12 15:17:46  carl
-  * avoid range check error when with timezone info, we get a negative result here
-
-  Revision 1.1.2.18  2001/07/12 12:53:28  marco
-   * Small fix to datetime routines for 1.0.x starting compiler
-
-  Revision 1.1.2.17  2001/07/12 07:09:36  michael
-  + Corrected setdate/time/datetime implementation
-
-  Revision 1.1.2.16  2001/07/12 07:05:53  michael
-  + Added SetDate/time/datetime functions
-
-  Revision 1.1.2.15  2001/07/08 14:02:16  marco
-   * Readlink fix
-
-  Revision 1.1.2.14  2001/06/13 22:13:15  hajny
-    * universal FExpand merged
-
-  Revision 1.1.2.13  2001/06/02 00:21:06  peter
-    * waitprocess fixed to give the correct exitcode back under linux
-
-  Revision 1.1.2.12  2001/03/27 11:45:35  michael
-  + Fixed F_[G,S]etOwn constants. By Alexander Sychev
-
-  Revision 1.1.2.11  2001/03/15 16:02:18  marco
-   * More NewReaddir fixes. Now compiles
-
-  Revision 1.1.2.10  2001/03/13 10:31:48  marco
-   * Small fixes + moving of linsyscall and bsdsyscall
-
-  Revision 1.1.2.9  2001/03/12 20:37:50  marco
-   * [Solaris] Now cycles for FreeBSD (wrong version Linux unit commited)
-
-  Revision 1.1.2.8  2001/01/23 06:39:27  marco
-   * IOPerm for FreeBSD; I/O routines back to Unix.
-
-  Revision 1.1.2.7  2001/01/01 20:16:14  marco
-   * Fdwrite now has a CONST instead of a var parameter
-
-  Revision 1.1.2.6  2000/12/28 20:41:26  peter
-    * ttyname fix from the mailinglist
-
-  Revision 1.1.2.5  2000/12/17 13:58:43  peter
-    * removed unused var
-
-  Revision 1.1.2.4  2000/11/14 22:08:53  michael
-  + Added missing iopl call
-
-  Revision 1.1.2.3  2000/10/25 09:44:54  marco
-   * Termios backport
-
-  Revision 1.1.2.2  2000/10/24 12:18:51  pierre
-   + NanoSleep function
-
-  Revision 1.1.2.1  2000/09/14 13:38:26  marco
-   * Moved from Linux dir. now start of generic unix dir, from which the
-      really exotic features should be moved to the target specific dirs.
-
-  Revision 1.1.2.6  2000/09/10 16:12:40  marco
-  The rearrangement to linux for
-
-  Revision 1.1.2.5  2000/09/06 20:46:19  peter
-    * removed previous fsplit() patch as it's not the correct behaviour for
-      LFNs. The code showing the bug could easily be adapted
-
-  Revision 1.1.2.4  2000/09/04 20:15:22  peter
-    * fixed previous commit
-
-  Revision 1.1.2.3  2000/09/04 19:36:25  peter
-    * fsplit with .. fix from Thomas
-
-  Revision 1.1.2.2  2000/07/30 19:18:49  peter
-    * added overloaded selecttext with timeout as longint
-
-  Revision 1.1.2.1  2000/07/20 16:50:49  michael
-  + Fixed waitpid. Thanks to Rob Bugel
-
-  Revision 1.1  2000/07/13 06:30:54  michael
-  + Initial import
-
-  Revision 1.72  2000/05/26 18:21:04  peter
-    * fixed @ with var parameters
-
-  Revision 1.71  2000/05/25 19:59:57  michael
-  + Added munmap call
-
-  Revision 1.70  2000/05/21 17:10:13  michael
-  + AssignStream now always returns PID of spawned process
-
-  Revision 1.69  2000/05/17 17:11:44  peter
-    * added sigaction record from signal.inc
-
-  Revision 1.68  2000/04/16 16:09:32  marco
-   * Some small mistakes when merging BSD and Linux version fixed
-
-  Revision 1.67  2000/04/14 16:07:06  marco
-   * Splitted linux into linux.pp and linsysca.inc, and merged BSD diffs
-      into header
-
-  Revision 1.66  2000/03/27 13:25:48  jonas
-    * fixed readport* functions (thanks Florian ;)
-
-  Revision 1.65  2000/03/23 17:10:32  jonas
-    * fixes for port reading
-
-  Revision 1.64  2000/03/17 13:27:00  sg
-  * Added WritePort[B|W|L] for single data access
-  * Added ReadPort[B|W|L] functions
-
-  Revision 1.63  2000/02/23 17:19:06  peter
-    + readded getepochtime which simply calls gettimeofday
-
-  Revision 1.62  2000/02/09 23:09:13  peter
-    * rewrote glob to be much simpler and cleaner, the old code did
-      strange complex things with pointers which was unnecessary
-
-  Revision 1.61  2000/02/09 16:59:31  peter
-    * truncated log
-
-  Revision 1.60  2000/02/08 12:05:58  peter
-    + readlink
-
-  Revision 1.59  2000/01/07 16:41:40  daniel
-    * copyright 2000
-
-  Revision 1.58  2000/01/07 16:32:26  daniel
-    * copyright 2000 added
-
-  Revision 1.57  2000/01/04 12:56:09  jonas
-    * fixed modified registers for port routines
-
-  Revision 1.56  1999/12/28 09:38:07  sg
-  * the long version of AssignStream now sets the result value to -1 in
-    _all_ cases when it would fail.
-
-  Revision 1.55  1999/12/08 01:03:54  peter
-    * overloaded gettime functions supporting hsec and msec,usec
-
-  Revision 1.54  1999/12/01 22:46:59  peter
-    + timezone support
-
-  Revision 1.53  1999/11/14 21:35:04  peter
-    * removed warnings
-
-  Revision 1.52  1999/11/14 11:11:15  michael
-  + Added Pause() and alarm()
-
-  Revision 1.51  1999/11/11 19:43:49  sg
-  * fixed severe bug: change by ? in dup2 (flushing) resulted in broken
-    AssignStream functions
-
-  Revision 1.50  1999/11/06 14:39:12  peter
-    * truncated log
-
-  Revision 1.49  1999/10/28 09:48:31  peter
-    + mmap
-
-  Revision 1.48  1999/10/22 10:37:44  peter
-    * fixed sigset
-
-  Revision 1.47  1999/10/06 17:43:58  peter
-    * freemem with wrong size (found with the new heapmanager)
-
-  Revision 1.46  1999/09/08 16:14:41  peter
-    * pointer fixes
-
-  Revision 1.45  1999/08/11 22:02:25  peter
-    * removed old integer versions of localtoepoch and epochtolocal, you
-      need to use the word versions instead else you got an overloaded bug
-
-  Revision 1.44  1999/07/31 23:55:04  michael
-  + FCNTL patch from Sebastian Guenther
-
-  Revision 1.43  1999/07/29 16:33:24  michael
-  + Yet more Fixes to assignstream with rerouting of stderr
-
-  Revision 1.42  1999/07/29 15:55:54  michael
-  + Fixes to assignstream with rerouting of stderr, by Sebastian Guenther
-
-  Revision 1.41  1999/07/29 15:53:55  michael
-  + Added assignstream with rerouting of stderr, by Sebastian Guenther
+  Revision 1.19  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -2242,49 +2242,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2005-02-06 00:05:56  florian
+  Revision 1.95  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.94  2005/02/06 00:05:56  florian
     + x86_64 pic draft
 
   Revision 1.93  2005/01/31 17:07:50  peter
     * fix [regpara] in intel assembler
-
-  Revision 1.92  2004/11/01 10:34:08  peter
-    * regalloc bind to instructions need to get real ait_instruction
-
-  Revision 1.91  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.90  2004/10/05 20:41:01  peter
-    * more spilling rewrites
-
-  Revision 1.89  2004/09/26 17:45:29  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.88  2004/08/15 13:30:18  florian
-    * fixed alignment of variant records
-    * more alignment problems fixed
-
-  Revision 1.87  2004/08/14 14:50:42  florian
-    * fixed several sparc alignment issues
-    + Jonas' inline node patch; non functional yet
-
-  Revision 1.86  2004/06/20 08:55:28  florian
-    * logs truncated
-
-  Revision 1.85  2004/06/16 20:07:06  florian
-    * dwarf branch merged
-
-  Revision 1.84  2004/05/23 14:31:05  peter
-    * ignore marker block when checking for empty list
-
-  Revision 1.83  2004/05/22 23:34:27  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.82  2004/04/12 18:59:32  florian
-    * small x86_64 fixes
-
-  Revision 1.81.2.14  2004/06/13 10:51:16  florian
-    * fixed several register allocator problems (sparc/arm)
 
 }

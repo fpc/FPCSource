@@ -1402,21 +1402,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-01-24 00:12:45  florian
-    * linefeeds fixed
+  Revision 1.7  2005-02-14 17:13:36  peter
+    * truncate log
 
-  Revision 1.5  2003/04/22 10:24:29  florian
-    * fixed defines for powerpc
-
-  Revision 1.4  2002/09/07 15:40:51  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/05/13 13:45:36  peter
-    * updated to compile tests with kylix
-
-  Revision 1.2  2002/04/13 07:48:47  carl
-  + testing for symtablelevel = lexlevel
-
-  Revision 1.1  2002/04/11 19:35:49  carl
-  + function call testing
 }

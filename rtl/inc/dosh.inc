@@ -3,7 +3,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    Dos unit for BP7 compatible RTL - Interface declarations 
+    Dos unit for BP7 compatible RTL - Interface declarations
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,7 +15,7 @@
  **********************************************************************}
 
 {$IFNDEF HAS_FILENAMELEN}
-Const 
+Const
   FileNameLen = 255;
 {$ENDIF HAS_FILENAMELEN}
 
@@ -153,18 +153,7 @@ Function  GetMsCount: int64;
 
 {
   $Log$
-  Revision 1.5  2004-12-05 19:02:57  hajny
-    * GetMsCount added, platform independent routines moved to single include file
+  Revision 1.6  2005-02-14 17:13:22  peter
+    * truncate log
 
-  Revision 1.4  2004/05/03 18:00:24  hajny
-    * another global var to threadvar change, plus CVS log added
-
-  Revision 1.3  2004/02/15 21:34:06  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.2  2004/02/09 18:33:26  florian
-    * intr and msdos for non i386 targets disabled
-
-  Revision 1.1  2004/02/09 12:03:16  michael
-    + Switched to single interface in dosh.inc
 }

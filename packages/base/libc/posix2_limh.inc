@@ -20,5 +20,5 @@ const
   LINE_MAX = _POSIX2_LINE_MAX;
   CHARCLASS_NAME_MAX = 2048;
   RE_DUP_MAX = $7fff;
-   
-   
+
+

@@ -111,22 +111,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.10  2004-10-25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.9  2004/08/28 20:01:46  peter
-    * enable case sensitive to support mixed case unit/filenames
-
-  Revision 1.8  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.7  2004/03/14 20:09:27  peter
-    * max record aligment changed to 4
-
-  Revision 1.6  2004/01/12 22:11:39  peter
-    * use localalign info for alignment for locals and temps
-    * sparc fpu flags branching added
-    * moved powerpc copy_valye_openarray to generic
+  Revision 1.11  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

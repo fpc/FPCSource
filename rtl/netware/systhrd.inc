@@ -415,17 +415,17 @@ end;
 
 var
   HeapMutex : TRTLCriticalSection;
-				
+
 procedure NWHeapMutexInit;
 begin
   InitCriticalSection(heapmutex);
 end;
-							
+
 procedure NWHeapMutexDone;
 begin
   DoneCriticalSection(heapmutex);
 end;
-										
+
 procedure NWHeapMutexLock;
 begin
   EnterCriticalSection(heapmutex);
@@ -435,13 +435,13 @@ procedure NWHeapMutexUnlock;
 begin
   LeaveCriticalSection(heapmutex);
 end;
-																
+
 const
   NWMemoryMutexManager : TMemoryMutexManager = (
            MutexInit : @NWHeapMutexInit;
            MutexDone : @NWHeapMutexDone;
            MutexLock : @NWHeapMutexLock;
-    	   MutexUnlock : @NWHeapMutexUnlock;
+           MutexUnlock : @NWHeapMutexUnlock;
   );
 
 procedure InitHeapMutexes;
@@ -489,13 +489,16 @@ begin
   InitHeapMutexes;
   NWSysSetThreadFunctions (@SysCloseAllRemainingSemaphores,
                            @SysReleaseThreadVars,
-			   @SysSetThreadDataAreaPtr);
+                           @SysSetThreadDataAreaPtr);
 end;
 
 
 {
   $Log$
-  Revision 1.1  2005-02-06 16:57:18  peter
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.1  2005/02/06 13:06:20  peter

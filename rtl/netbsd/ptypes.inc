@@ -55,11 +55,11 @@ type
 
     size_t   = cuint32;         { as definied in the C standard}
     TSize    = size_t;
-    pSize    = ^size_t;		
+    pSize    = ^size_t;
 
     ssize_t  = cint32;          { used by function for returning number of bytes }
     TsSize   = ssize_t;
-    psSize   = ^ssize_t;		
+    psSize   = ^ssize_t;
 
     uid_t    = cuint32;         { used for user ID type        }
     TUid     = Uid_t;
@@ -70,7 +70,7 @@ type
     pClock   = ^clock_t;
 
     time_t   = clong;           { used for returning the time  }
-    TTime    = time_t; 
+    TTime    = time_t;
     pTime    = ^time_t;
     ptime_t  = ^time_t;
 
@@ -79,9 +79,9 @@ type
     pSocklen = ^socklen_t;
 
     timeval = packed record
-		tv_sec,
-		tv_usec : clong;
-		end;
+                tv_sec,
+                tv_usec : clong;
+                end;
     ptimeval= ^timeval;
     TTimeval= timeval;
 
@@ -95,25 +95,25 @@ type
    pthread_t            = pointer;
    pthread_attr_t       = pointer;
    pthread_mutex_t      = pointer;
-   pthread_mutexattr_t 	= pointer;
+   pthread_mutexattr_t  = pointer;
    pthread_cond_t       = pointer;
-   pthread_condattr_t 	= pointer;
+   pthread_condattr_t   = pointer;
    pthread_key_t        = cint;
-   pthread_rwlock_t 	= pointer;
+   pthread_rwlock_t     = pointer;
    pthread_rwlockattr_t = pointer;
 
-   sem_t		= pointer;
+   sem_t                = pointer;
 
   {
      Mutex types (Single UNIX Specification, Version 2, 1997).
-    
+
      Note that a mutex attribute with one of the following types:
-    
+
      PTHREAD_MUTEX_NORMAL
      PTHREAD_MUTEX_RECURSIVE
      MUTEX_TYPE_FAST (deprecated)
      MUTEX_TYPE_COUNTING_FAST (deprecated)
-      
+
        will deviate from POSIX specified semantics.
       }
 
@@ -143,41 +143,11 @@ const
 
     SYS_NMLN = 32;              {BSD utsname struct limit}
 
-    SIG_MAXSIG      = 128;	// highest signal version
+    SIG_MAXSIG      = 128;      // highest signal version
 
 {
   $Log$
-  Revision 1.8  2004-09-09 20:29:06  jonas
-    * fixed definition of pthread_mutex_t for non-linux targets (and for
-      linux as well, actually).
-    * base libpthread definitions are now in ptypes.inc, included in unixtype
-      They sometimes have an extra underscore in front of their name, in
-      case they were also exported by the packages/base/pthreads unit, so
-      they can keep their original name there
-    * cthreadds unit now imports systuils, because it uses exceptions (it
-      already did so before as well)
-    * fixed many linux definitions of libpthread functions in pthrlinux.inc
-      (integer -> cint etc)
-    + added culonglong type to ctype.inc
-
-  Revision 1.7  2004/08/25 21:42:11  jonas
-    * fixed pthread type definitions for darwin and made them generic
-
-  Revision 1.6  2004/05/16 13:03:27  peter
-    * remove duplicate wordsinsigset
-
-  Revision 1.5  2004/01/04 20:08:45  jonas
-    * moved SIG_MAXSIG and wordsinsigset constants from bunxtype.inc to
-      ptypes.inc (already there for Darwin)
-
-  Revision 1.4  2004/01/04 01:11:28  marco
-   * a new qod port of the freebsd rtl. To be refined in the coming days.
-
-  Revision 1.3  2003/01/17 22:13:47  marco
-   * some updates
-
-  Revision 1.5  2003/01/03 13:11:32  marco
-   * split into ptypes and ctypes
-
+  Revision 1.9  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

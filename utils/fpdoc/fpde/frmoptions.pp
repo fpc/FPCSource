@@ -35,7 +35,7 @@ Type
     Procedure OptionsToForm;
     Procedure FormToOptions;
   end;
-  
+
 Implementation
 
 uses fpdemsg,fpdeopts;
@@ -64,7 +64,7 @@ end;
 
 Function PackBox(W : TFpGtkWidget) : TFpGtkHbox;
 
-begin 
+begin
   Result:=TFPGtkHBox.Create;
   Result.PackStart(W,True,False,0);
 end;
@@ -75,7 +75,7 @@ Procedure ToptionsForm.CreateWindow;
 Var
   OH,OV : TgtkAttachOPtions;
   B : TfpgtkHbox;
-    
+
 begin
   FVBox:=TFPGtkVBox.Create;
   FVBox.Spacing:=4;
@@ -103,14 +103,14 @@ begin
   FTable.Attach(FLBackupExtension  ,0,1,3,4,GTK_FILL,0,4,4);
   FTable.Attach(FLDefaultExtension ,0,1,4,5,GTK_FILL,0,4,4);
   FTable.Attach(FLMaxrecentUSed    ,0,1,5,6,GTK_FILL,0,4,4);
-  
+
   FTable.Attach(PackBox(FConfirmDelete)  ,1,2,0,1,0,GTK_FILL,4,4);
   FTable.Attach(PackBox(FSkipEmptyNodes) ,1,2,1,2,0,GTK_FILL,4,4);
   FTable.Attach(PackBox(FCreatebackup)   ,1,2,2,3,0,GTK_FILL,4,4);
   FTable.Attach(FBackupExtension         ,1,2,3,4,0,GTK_FILL,4,4);
   FTable.Attach(FDefaultExtension        ,1,2,4,5,0,GTK_FILL,4,4);
   FTable.Attach(FMaxRecentUsed           ,1,2,5,6,0,GTK_FILL,4,4);
-  
+
   // button area
   FOK:=TFpGtkButton.CreateWithLabel(SOK);
   FOK.ConnectClicked(@SaveResult,Nil);
@@ -141,7 +141,7 @@ Procedure TOptionsForm.SaveResult(Sender : TFpgtkObject; Data : Pointer);
 begin
   FormToOptions;
   CloseWithResult(Sender,IntToPointer(drOK));
-end;  
+end;
 
 Procedure TOptionsForm.OptionsToForm;
 

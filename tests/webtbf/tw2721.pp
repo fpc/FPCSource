@@ -13,11 +13,11 @@ type
 
   t2 = class(Tintfpersistent)
     public
-     // Different calling convention 
+     // Different calling convention
      function _Release: Integer; override; stdcall;
     end;
 
-function TIntfPersistent._Release: Integer; 
+function TIntfPersistent._Release: Integer;
 begin
 end;
 

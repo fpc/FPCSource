@@ -12,10 +12,10 @@ type
    PXineramaScreenInfo = ^TXineramaScreenInfo;
    TXineramaScreenInfo = record
         screen_number : cint;
-        x_org 	      : cshort;
-        y_org 	      : cshort;
-        width 	      : cshort;
-        height 	      : cshort;
+        x_org         : cshort;
+        y_org         : cshort;
+        width         : cshort;
+        height        : cshort;
      end;
 
 function XineramaQueryExtension(dpy:PDisplay; event_base:Pcint; error_base:Pcint):TBool;cdecl;external 'Xinerama';

@@ -161,7 +161,7 @@ procedure CompileResourceFiles;
 var
   hr : presourcefile;
 begin
-  { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage). 
+  { OS/2 (EMX) must be processed elsewhere (in the linking/binding stage).
     same with MacOS}
   if not (target_info.system in [system_i386_os2,system_i386_emx,system_powerpc_macos]) then
    While not current_module.ResourceFiles.Empty do
@@ -183,17 +183,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  2005-01-24 18:10:20  olle
+  Revision 1.24  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.23  2005/01/24 18:10:20  olle
     + Mac style resource files can now be included in MacOS
-
-  Revision 1.22  2004/10/14 18:16:17  mazen
-  * USE_SYSUTILS merged successfully : cycles with and without defines
-  * Need to be optimized in performance
-
-  Revision 1.21  2004/10/14 16:38:38  mazen
-  * Merge is complete for this file, cycles !
-
-  Revision 1.20  2004/06/20 08:55:29  florian
-    * logs truncated
 
 }

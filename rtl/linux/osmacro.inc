@@ -91,25 +91,13 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.4  2005/02/13 20:01:38  peter
     * include file cleanup
-
-  Revision 1.3  2003/09/27 12:51:33  peter
-    * fpISxxx macros renamed to C compliant fpS_ISxxx
-
-  Revision 1.2  2003/09/17 11:24:46  marco
-   * fixes for new macro's
-
-  Revision 1.1  2002/12/18 16:43:26  marco
-   * new unix rtl, linux part.....
-
-  Revision 1.2  2002/11/12 15:31:33  marco
-   * Killed octal codes for 1.0.x compilability.
-
-  Revision 1.1  2002/11/12 14:37:59  marco
-   * Parts of new unix rtl
 
 }

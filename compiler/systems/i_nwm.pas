@@ -101,20 +101,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-10-25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.7  2004/09/26 19:51:02  armin
-  * added define netware and netware_libc for target netwlibc, netware_clib for netware
-
-  Revision 1.6  2004/07/31 22:52:58  armin
-  changed path sep to /
-
-  Revision 1.5  2004/07/30 19:22:14  armin
-  * typo in set_source_info
-
-  Revision 1.4  2004/06/20 08:55:32  florian
-    * logs truncated
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -13,7 +13,7 @@ procedure makecontext(__ucp:Pucontext_t; __func:TMakeContextProc; __argc:longint
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type
 function getcontext(var __ucp:ucontext_t):longint;cdecl;external clib name 'getcontext';
 function setcontext(const __ucp: ucontext_t):longint;cdecl;external clib name 'setcontext';
 function swapcontext(var __oucp:ucontext_t; const __ucp: ucontext_t):longint;cdecl;external clib name 'swapcontext';

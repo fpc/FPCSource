@@ -4,7 +4,7 @@
     Copyright (c) 2004 by the Free Pascal development team
 
     Netware event logging facility.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,13 +18,13 @@
     Include event log that maps to file event log.
     There is an event log on netware but it is not documented
   ---------------------------------------------------------------------}
-  
+
 {$i felog.inc}
 
 {
   $Log$
-  Revision 1.1  2004-09-05 19:39:44  armin
-  * first version of fcl for netwlibc
+  Revision 1.2  2005-02-14 17:13:16  peter
+    * truncate log
 
 }
-  
+

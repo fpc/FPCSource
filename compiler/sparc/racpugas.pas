@@ -672,28 +672,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.11  2004/11/11 19:31:33  peter
-    * fixed compile of powerpc,sparc,arm
-
-  Revision 1.10  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.9  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.8.2.4  2004/06/02 20:59:05  peter
-    * fix negative consts
-
-  Revision 1.8.2.3  2004/05/25 21:38:53  peter
-    * assembler reader/writer updates
-
-  Revision 1.8.2.2  2004/05/18 20:24:03  florian
-    * fixed crash with unknown symbols
-
-  Revision 1.8.2.1  2004/05/01 23:36:47  peter
-    * assembler reader 64bit fixes
+  Revision 1.13  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

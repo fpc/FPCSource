@@ -323,13 +323,7 @@ end;
 END.
 {
  $Log$
- Revision 1.7  2004-12-19 20:20:47  hajny
-   * ObjType references constants from fvconsts
-
- Revision 1.6  2004/12/19 13:05:56  florian
-   * fixed x86_64 compilation
-
- Revision 1.5  2004/11/06 17:08:48  peter
-   * drawing of tview merged from old fv code
+ Revision 1.8  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

@@ -4567,7 +4567,7 @@ Const
      VK_Z = 90;
      VK_LWIN = 91;
      VK_RWIN = 92;
-     VK_APPS = 93; 
+     VK_APPS = 93;
      VK_NUMPAD0 = 96;
      VK_NUMPAD1 = 97;
      VK_NUMPAD2 = 98;
@@ -5329,8 +5329,8 @@ const
   FACILITY_CERT                        = 11;
 
 { Manually added, bug 2672}
-  ICON_SMALL			       = 0;
-  ICON_BIG  			       = 1;
+  ICON_SMALL                           = 0;
+  ICON_BIG                             = 1;
 
   // For the TRackMouseEvent
   TME_HOVER     = $00000001;
@@ -5345,10 +5345,10 @@ const
   COLOR_GRADIENTINACTIVECAPTION = 28;
   COLOR_MENUHILIGHT             = 29;
   COLOR_MENUBAR                 = 30;
-  
+
   WM_APP                        = $8000;
 
-        
+
 
 {$endif read_interface}
 
@@ -5933,53 +5933,7 @@ const
 
 {
   $Log$
-  Revision 1.19  2004-12-18 19:49:53  michael
-  + Added windows key VK_ definitions from Alexey barkovoy (bug 3445)
-
-  Revision 1.18  2004/08/26 15:57:23  michael
-  + Some missing functions/defines as per bug 3270 from Frank Kintrup
-
-  Revision 1.17  2004/07/27 12:03:15  michael
-  + More TrackMouseEvent
-
-  Revision 1.16  2004/02/06 22:47:19  marco
-   * Macro changed to constant
-
-  Revision 1.15  2003/12/05 09:13:46  marco
-   * small fix
-
-  Revision 1.14  2003/10/26 16:31:38  florian
-    + added some missing exception numbers
-
-  Revision 1.13  2003/10/23 09:39:39  marco
-   * fix for 2672
-
-  Revision 1.12  2003/10/03 20:55:12  florian
-    + added some language related stuff
-
-  Revision 1.11  2003/06/15 14:34:35  michael
-  + forgot to comment INVALID_HANDLE_VALUE function
-
-  Revision 1.10  2003/06/15 14:33:22  michael
-  + INVALID_HANDLE_VALUE is a constant, not a function
-
-  Revision 1.9  2002/10/11 09:20:31  michael
-  + Added missing version strings
-
-  Revision 1.8  2002/10/08 17:13:31  jonas
-    * changed value of FILE_FLAG_WRITE_THROUGH to hex notation because it
-      was equal to MAX_LONGINT + 1 -> parsed as a float
-
-  Revision 1.7  2002/10/06 20:00:22  peter
-    * Use Widechar in the Windows unit
-
-  Revision 1.6  2002/09/07 16:01:30  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/05/09 08:31:43  carl
-  * Merges from Fixes branch
-
-  Revision 1.1.2.5  2002/01/20 23:24:20  pierre
-   + add ANTIALIASED_QUALITY bug report 1695
+  Revision 1.20  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

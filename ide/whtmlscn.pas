@@ -619,18 +619,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:40:49  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/04/23 10:11:31  pierre
-   * try to adapt .htx files to system DirSep
-
-  Revision 1.3  2002/04/23 09:55:22  pierre
-    + added lastsynonym and InNameAnchor fields to TCustomHTMLLinkScanner
-      these allow to eliminate double index entries pointing to the same
-      html file location (which had two different names).
-
-  Revision 1.2  2002/04/11 07:06:31  pierre
-   + recreate the full target of an anchor that only has a NAME field
+  Revision 1.6  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

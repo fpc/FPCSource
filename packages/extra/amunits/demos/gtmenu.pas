@@ -23,42 +23,42 @@ uses Exec, Intuition, Utility, GadTools, systemvartags;
 const
 
     mynewmenu : array[0..15] of tNewMenu = (
-    (nm_Type: NM_TITLE; nm_Label:'Project';   nm_CommKey: NIL;  nm_Flags:0; 
+    (nm_Type: NM_TITLE; nm_Label:'Project';   nm_CommKey: NIL;  nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Open...';   nm_CommKey:'O';   nm_Flags:0; 
+    (nm_Type: NM_ITEM;  nm_Label:'Open...';   nm_CommKey:'O';   nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Save';      nm_CommKey:'S';   nm_Flags:0; 
+    (nm_Type: NM_ITEM;  nm_Label:'Save';      nm_CommKey:'S';   nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-
-    (nm_Type: NM_ITEM;  nm_Label:'Print';     nm_CommKey: NIL;  nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_SUB;   nm_Label:'Draft';     nm_CommKey: NIL;  nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_SUB;   nm_Label:'NLQ';       nm_CommKey: NIL;  nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; 
+    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type: NM_ITEM;  nm_Label:'Quit...';   nm_CommKey:'Q';   nm_Flags:0; 
+    (nm_Type: NM_ITEM;  nm_Label:'Print';     nm_CommKey: NIL;  nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_SUB;   nm_Label:'Draft';     nm_CommKey: NIL;  nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_SUB;   nm_Label:'NLQ';       nm_CommKey: NIL;  nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type: NM_TITLE; nm_Label:'Edit';      nm_CommKey: NIL;  nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Cut';       nm_CommKey:'X';   nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Copy';      nm_CommKey:'C';   nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Paste';     nm_CommKey:'V';   nm_Flags:0; 
-nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; 
+    (nm_Type: NM_ITEM;  nm_Label:'Quit...';   nm_CommKey:'Q';   nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type: NM_ITEM;  nm_Label:'Undo';      nm_CommKey:'Z';   nm_Flags:0; 
+    (nm_Type: NM_TITLE; nm_Label:'Edit';      nm_CommKey: NIL;  nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Cut';       nm_CommKey:'X';   nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Copy';      nm_CommKey:'C';   nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Paste';     nm_CommKey:'V';   nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type:   NM_END; nm_Label:NIL;         nm_CommKey:NIL;   nm_Flags:0; 
+    (nm_Type: NM_ITEM;  nm_Label:'Undo';      nm_CommKey:'Z';   nm_Flags:0;
+nm_MutualExclude:0; nm_UserData:NIL),
+
+    (nm_Type:   NM_END; nm_Label:NIL;         nm_CommKey:NIL;   nm_Flags:0;
 nm_MutualExclude:0; nm_UserData:NIL));
 
 var
@@ -133,7 +133,7 @@ begin
                              WA_Title,  'Menu Test Window',
                              WA_IDCMP,  IDCMP_CLOSEWINDOW or IDCMP_MENUPICK,
                              TAG_END]);
-    
+
     if win = nil then die;
 
     myVisualInfo := GetVisualInfoA(win^.WScreen,nil);
@@ -148,7 +148,7 @@ begin
 
     if pExecBase(_ExecBase)^.LibNode.Lib_Version >= 39 then begin
         MenuStrip := CreateMenus(@mynewmenu, [
-	                         GTMN_FrontPen, 1,
+                                 GTMN_FrontPen, 1,
                                  TAG_END]);
     end else MenuStrip := CreateMenusA(@mynewmenu,NIL);
 
@@ -168,10 +168,7 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-01-19 14:57:12  nils
-  * removed mode objfpc
-
-  Revision 1.2  2002/11/28 19:40:45  nils
-    * update
+  Revision 1.4  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

@@ -2,9 +2,9 @@ Program example13;
 
 { This program demonstrates the GetPropList function }
 
-uses 
+uses
   rttiobj,typinfo;
-  
+
 
 Var
   O : TMyTestObject;
@@ -30,7 +30,7 @@ begin
       writeln('  Type: ',TypeNames[typinfo.PropType(O,Name)]);
       end;
     end;
-  FreeMem(PP);   
-  O.Free; 
+  FreeMem(PP);
+  O.Free;
 end.
 

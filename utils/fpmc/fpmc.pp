@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Free Pascal Message Compiler (command-line version)
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -37,7 +37,7 @@ Type
     Procedure HandleOptions;
     Procedure CompileFile;
   end;
-  
+
 Procedure TFPMC.DoError(Sender : TObject; Msg : String);
 
 begin
@@ -50,7 +50,7 @@ begin
   Writeln(Msg);
 end;
 
-    
+
 Procedure TFPMC.Usage(WithError : Boolean);
 
 begin
@@ -113,7 +113,7 @@ begin
             RCFileName:=OptArg;
             NeedRCFilename:=(RCFileName='');
             end;
-      'v' : CmdVerbose:=True;      
+      'v' : CmdVerbose:=True;
     end;
   Until (C=EndOfOptions);
   If (InputFileName='') Then
@@ -165,7 +165,7 @@ begin
       Pas:=P;
       OnError:=@DoError;
       If CmdVerbose then
-        OnVerbose:=@DoVerbose; 
+        OnVerbose:=@DoVerbose;
       UnitName:=CmdUnitName;
       MessageFileName:=MsgFileName;
       EscapeNeeded:=CmdUseEscape;
@@ -189,11 +189,14 @@ begin
       CompileFile;
     Finally
       Free;
-    end;  
+    end;
 end.
 {
   $Log$
-  Revision 1.1  2003-02-14 21:59:21  michael
+  Revision 1.2  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.1  2003/02/14 21:59:21  michael
   + Initial implementation
 
 }

@@ -4,9 +4,9 @@ Program example13;
 
 {$mode objfpc}
 
-uses 
+uses
   rttiobj,typinfo,sysutils;
-  
+
 
 Var
   O : TMyTestObject;

@@ -83,7 +83,7 @@ const
   evtWaitForever    = -1;
   evtNoWait         = 0;
 
-type  
+type
   _GenericEventType = record
     datum: array [0..7] of UInt16;
   end;

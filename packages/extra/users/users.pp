@@ -8,9 +8,9 @@ Type
   EUserLookupError = Class(Exception);
   EGroupLookupError = Class(Exception);
   EShadowLookupError = Class(Exception);
-  
-{ User functions }  
-  
+
+{ User functions }
+
 Function  getpwnam(Const UserName: String) : PPasswordRecord;
 Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord); overload;
 Procedure GetUserData(Uid : Integer; Var Data : TPasswordRecord); overload;
@@ -22,7 +22,7 @@ function  GetUserDescription(Const UserName : String): String;
 Procedure GetUserList(List : Tstrings);overload;
 Procedure GetUserList(List : TStrings; WithIDs : Boolean);overload;
 
-{ Group functions }  
+{ Group functions }
 
 Function  getgrnam(Const GroupName: String) : PGroup;
 Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
@@ -41,7 +41,7 @@ function sgetspent(Line : String): PPasswordFileEntry;
 Procedure GetUserShadowData(Const UserName : String; Var Data : TPasswordFileEntry);overload;
 Procedure GetUserShadowData(UID : Integer; Var Data : TPasswordFileEntry);overload;
 
-{ Extra functions }  
+{ Extra functions }
 
 Function GetUserGroup(Const UserName : String) : String;
 
@@ -67,7 +67,7 @@ Procedure GetUserData(Const UserName : String; Var Data : TPasswordRecord);
 Var P : PPasswordRecord;
 
 begin
-  P:=Getpwnam(UserName); 
+  P:=Getpwnam(UserName);
   If P<>Nil then
     Data:=P^
   else
@@ -79,7 +79,7 @@ Procedure GetUserData(Uid : Integer; Var Data : TPasswordRecord);
 Var P : PPasswordRecord;
 
 begin
-  P:=Getpwuid(Uid); 
+  P:=Getpwuid(Uid);
   If P<>Nil then
     Data:=P^
   else
@@ -92,13 +92,13 @@ Var
   UserData : TPasswordRecord;
 
 begin
-  GetuserData(UID,UserData);   
+  GetuserData(UID,UserData);
   Result:=strpas(UserData.pw_Name);
 end;
 
 function  GetUserId(Const UserName : String) : Integer;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -108,7 +108,7 @@ end;
 
 function  GetUserGId(Const UserName : String) : Integer;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -118,7 +118,7 @@ end;
 
 function GetUserDir(Const UserName : String): String;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -128,7 +128,7 @@ end;
 
 function  GetUserDescription(Const UserName : String): String;
 
-Var 
+Var
   UserData : TPasswordRecord;
 
 begin
@@ -158,18 +158,18 @@ begin
         If WithIDs then
           List.Add(Format('%d=%s',[P^.pw_uid,strpas(p^.pw_name)]))
         else
-          List.Add(strpas(p^.pw_name));  
+          List.Add(strpas(p^.pw_name));
         end;
-    until (P=Nil); 
+    until (P=Nil);
   finally
     endpwent;
-  end;   
-end;  
+  end;
+end;
 
 { ---------------------------------------------------------------------
     Group Functions
   ---------------------------------------------------------------------}
-  
+
 
 Function  getgrnam(Const GroupName: String) : PGroup;
 
@@ -182,7 +182,7 @@ Procedure GetGroupData(Const GroupName : String; Var Data : TGroup); overload;
 Var P : PGroup;
 
 begin
-  P:=Getgrnam(GroupName); 
+  P:=Getgrnam(GroupName);
   If P<>Nil then
     Data:=P^
   else
@@ -194,7 +194,7 @@ Procedure GetGroupData(Gid : Integer; Var Data : TGroup); overload;
 Var P : PGroup;
 
 begin
-  P:=Getgrgid(gid); 
+  P:=Getgrgid(gid);
   If P<>Nil then
     Data:=P^
   else
@@ -243,12 +243,12 @@ begin
         If WithIDs then
           List.Add(Format('%d=%s',[G^.gr_gid,strpas(G^.gr_name)]))
         else
-          List.Add(strpas(G^.gr_name));  
+          List.Add(strpas(G^.gr_name));
         end;
-    until (G=Nil); 
+    until (G=Nil);
   finally
     endgrent;
-  end;   
+  end;
 end;
 
 Function PCharListToStrings(P : PPChar; List : TStrings) : Integer;
@@ -260,13 +260,13 @@ begin
     List.Add(StrPas(P^));
     P:=PPChar(PChar(P)+SizeOf(PChar));
     end;
-  Result:=List.Count;  
+  Result:=List.Count;
 end;
 
 
 Procedure GetGroupMembers(GID : Integer;List : TStrings);
 
-Var 
+Var
   G : TGroup;
 
 begin
@@ -276,7 +276,7 @@ end;
 
 Procedure GetGroupMembers(Const GroupName : String;List : TStrings);
 
-Var 
+Var
   G : TGroup;
 
 begin
@@ -286,7 +286,7 @@ end;
 
 { Shadow password functions }
 
-function getspnam(UserName : String): PPasswordFileEntry; 
+function getspnam(UserName : String): PPasswordFileEntry;
 
 begin
   result:=shadow.getspnam(Pchar(UserName));
@@ -300,7 +300,7 @@ end;
 
 Procedure GetUserShadowData(Const UserName : String; Var Data : TPasswordFileEntry);
 
-Var 
+Var
   P : PPasswordFileEntry;
 
 begin
@@ -308,7 +308,7 @@ begin
   If P=Nil then
     If (GetUID<>0) and (GetEUID<>0) then
       Raise EShadowLookupError.Create(EShadowNotPermitted)
-    else  
+    else
       Raise EShadowLookupError.CreateFmt(ENoShadowEntry,[UserName])
   else
     Data:=P^;
@@ -320,7 +320,7 @@ begin
   GetUserShadowData(GetUserName(UID),Data);
 end;
 
-{ Extra functions }  
+{ Extra functions }
 
 Function GetUserGroup(Const UserName : String) : String;
 

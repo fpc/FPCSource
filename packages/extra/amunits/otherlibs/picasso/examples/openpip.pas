@@ -88,7 +88,7 @@ Begin
             End;
         End;
         p96PIP_Close(wd);
-    End Else Writeln ('Unable to open PIP.'); 
+    End Else Writeln ('Unable to open PIP.');
 End.
 
 {

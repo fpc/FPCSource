@@ -318,44 +318,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.17  2005-01-15 18:47:26  florian
+  Revision 1.18  2005-02-14 17:13:29  peter
+    * truncate log
+
+  Revision 1.17  2005/01/15 18:47:26  florian
     * several variant init./final. stuff fixed
 
-  Revision 1.16  2003/12/22 23:07:52  peter
-    * fixed type of verror
-
-  Revision 1.15  2003/12/10 01:36:39  florian
-    * real functions ifdef'ed depending on the supported types
-
-  Revision 1.14  2003/11/05 15:26:37  florian
-    + currency type can be assigned to variants now
-
-  Revision 1.13  2003/10/08 16:24:47  florian
-    * fixed some variant issues
-    * improved type declarations
-
-  Revision 1.12  2003/10/04 23:40:42  florian
-    * write helper comproc for variants fixed
-
-  Revision 1.11  2002/10/10 19:24:28  florian
-    + write(ln) support for variants added
-
-  Revision 1.10  2002/10/09 19:08:22  florian
-    + Variant constants Unassigned and Null added
-
-  Revision 1.9  2002/10/07 15:10:45  florian
-    + variant wrappers for cmp operators added
-
-  Revision 1.8  2002/10/07 10:27:45  florian
-    + more variant wrappers added
-
-  Revision 1.7  2002/10/06 22:13:55  florian
-    * wrappers for xor, or and and operator with variants added
-
-  Revision 1.6  2002/09/07 15:07:46  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/06/12 15:45:42  jonas
-    * fixed bug in tvariantmanager declaration (string -> ansistring, this
-      file is compiled in non-objpas mode!)
 }

@@ -18,7 +18,7 @@ type
         flag1 : word;
      end;
    GNOME_ICON_TEXT_ITEM = PGnomeIconTextItem;
-     
+
 const
    bm_GnomeIconTextItem_editing = $1;
    bp_GnomeIconTextItem_editing = 0;
@@ -61,7 +61,7 @@ function GNOME_IS_ICON_TEXT_ITEM(obj : Pointer) : Boolean;
 function GNOME_IS_ICON_TEXT_ITEM_CLASS(klass : Pointer) : Boolean;
 
 function gnome_icon_text_item_get_type:TGtkType;cdecl;external libgnomeuidll name 'gnome_icon_text_item_get_type';
-procedure gnome_icon_text_item_configure(iti:PGnomeIconTextItem; x:longint; y:longint; width:longint; fontname:Pchar; 
+procedure gnome_icon_text_item_configure(iti:PGnomeIconTextItem; x:longint; y:longint; width:longint; fontname:Pchar;
             thetext:Pchar; is_editable:gboolean; is_static:gboolean);cdecl;external libgnomeuidll name 'gnome_icon_text_item_configure';
 procedure gnome_icon_text_item_setxy(iti:PGnomeIconTextItem; x:longint; y:longint);cdecl;external libgnomeuidll name 'gnome_icon_text_item_setxy';
 procedure gnome_icon_text_item_select(iti:PGnomeIconTextItem; sel:longint);cdecl;external libgnomeuidll name 'gnome_icon_text_item_select';

@@ -472,22 +472,7 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-12-27 18:44:45  hajny
-    * fix for SIGSEGV when switching to higher resolution
-
-  Revision 1.11  2004/09/13 20:58:58  hajny
-    * SysSetVideoMode corrected to reflect SysVideoModeSelector result
-
-  Revision 1.10  2004/05/24 19:33:22  hajny
-    * regcall update
-
-  Revision 1.9  2003/10/07 21:26:35  hajny
-    * stdcall fixes and asm routines cleanup
-
-  Revision 1.8  2003/10/03 21:46:41  peter
-    * stdcall fixes
-
-  Revision 1.7  2002/09/07 16:01:25  peter
-    * old logs removed and tabs fixed
+  Revision 1.13  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

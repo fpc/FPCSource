@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     OS/2 version of custom app object routines.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -16,7 +16,7 @@
 
 { taken from dos unit }
 
-type  
+type
     PPChar = ^PChar;
 
 var EnvC: longint; external name '_envc';
@@ -35,14 +35,14 @@ begin
     HP := EnvP [Pred (Index)];
     EnvStr := StrPas (HP);
 end;
-                                                           
+
 
 procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 
 Var
-  S : String;  
+  S : String;
   J,I : Integer;
-  
+
 begin
   List.Clear;
   For J := 1 to Pred (EnvC) do
@@ -60,8 +60,7 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-06-06 22:39:59  hajny
-    * OS/2 version of custapp.inc fixed
-
+  Revision 1.3  2005-02-14 17:13:16  peter
+    * truncate log
 
 }

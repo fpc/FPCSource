@@ -874,13 +874,7 @@ End.
 
 {
 $Log$
-Revision 1.3  2003-11-14 09:34:35  yuri
-* Added missed part of integer x word fix
-
-Revision 1.2  2003/11/07 20:43:23  hajny
-  * incorrect type (integer x word) fixed
-
-Revision 1.1  2003/02/15 11:44:58  hajny
-  + REXX SAA interface added
+Revision 1.4  2005-02-14 17:13:21  peter
+  * truncate log
 
 }

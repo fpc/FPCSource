@@ -1,7 +1,7 @@
 program concurrencyds;
 {$Mode ObjFpc}
 {$define DEBUGHEAP}
-uses 
+uses
 {$ifdef DEBUGHEAP}
   Heaptrc,
 {$endif}
@@ -10,10 +10,10 @@ uses
 {$endif}
   crt,sysutils,SqliteDS;
 
-var 
+var
   dsOne,dsTwo:TSQliteDataset;
 
-begin 
+begin
   {$ifdef DEBUGHEAP}
   SetHeapTraceOutput('heaplog.txt');
   {$endif}
@@ -23,8 +23,8 @@ begin
   dsTwo.FileName:='New.db';
   dsOne.TableName:='NewTable';
   dsTwo.TableName:='NewTable';
-  dsOne.Sql:= 'SELECT Code FROM NewTable'; 
-  dsTwo.Sql:= 'SELECT Name FROM NewTable'; 
+  dsOne.Sql:= 'SELECT Code FROM NewTable';
+  dsTwo.Sql:= 'SELECT Name FROM NewTable';
   dsOne.Open;
   dsTwo.Open;
   writeln('Sqlite Return after opening dsTwo: ',dsTwo.SqliteReturnString);

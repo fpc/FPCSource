@@ -85,26 +85,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.15  2005-01-20 16:38:45  peter
+  Revision 1.16  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.15  2005/01/20 16:38:45  peter
     * load jmp_buf_size from system unit
-
-  Revision 1.14  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.13  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.12  2004/04/28 15:19:03  florian
-    + syscall directive support for MorphOS added
-
-  Revision 1.11  2004/04/12 18:25:26  florian
-    + AInt added
-
-  Revision 1.10.2.4  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.10.2.3  2004/04/26 21:00:37  peter
-    * AInt fixed, PAInt added
 
 }

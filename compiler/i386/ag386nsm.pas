@@ -908,37 +908,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.51  2005-01-18 17:49:45  peter
+  Revision 1.52  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.51  2005/01/18 17:49:45  peter
     * fix section names
-
-  Revision 1.50  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.49  2004/10/15 09:16:21  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.48  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.47  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.46  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.45  2004/05/22 23:34:28  peter
-  tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
-
-  Revision 1.44.2.7  2004/05/03 14:59:58  peter
-    * no dlltool needed for win32 linking executables
-
-  Revision 1.44.2.6  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.44.2.5  2004/04/29 19:07:22  peter
-    * compile fixes
 
 }

@@ -6,7 +6,7 @@ program example6;
 
 uses rttiobj,typinfo,sysutils;
 
-Type 
+Type
   TNotifyObject = Class(TObject)
     Procedure Notification1(Sender : TObject);
     Procedure Notification2(Sender : TObject);
@@ -40,7 +40,7 @@ begin
       Writeln('Notification1')
     else If (M.Code=Pointer(@TNotifyObject.Notification2)) then
       Writeln('Notification2')
-    else 
+    else
       begin
       Write('Unknown method adress (data:');
       Write(hexStr(Longint(M.data),8));
@@ -48,7 +48,7 @@ begin
       end;
 end;
 
-  
+
 begin
   O:=TMyTestObject.Create;
   NO:=TNotifyObject.Create;

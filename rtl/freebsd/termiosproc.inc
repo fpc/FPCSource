@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -132,21 +132,7 @@ end;
 
 {
    $Log$
-   Revision 1.5  2004-07-16 22:14:34  marco
-    * reverted more changes regarding isatty
-
-   Revision 1.4  2004/07/08 13:23:21  daniel
-     * gpm now uses a Pascal translation of libgpm instead of linking against
-       it.
-     * isatty result type changed into boolean
-
-   Revision 1.3  2004/01/03 12:18:29  marco
-    * a lot of copyright notices and CVS logs added and fixed
-
-   Revision 1.2  2003/12/16 19:43:53  marco
-    * nil <-> 0 changes
-
-   Revision 1.1  2003/11/19 17:15:31  marco
-    * termio new includefile
+   Revision 1.6  2005-02-14 17:13:22  peter
+     * truncate log
 
 }

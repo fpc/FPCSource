@@ -26,7 +26,7 @@
     Changed integer > smallint.
     Changed startcode for unit.
     12 Feb 2003.
-    
+
     nils.sjoholm@mailbox.swipnet.se
 
 }
@@ -59,7 +59,7 @@ USES Exec;
           Name     : array[0..21] of Char; { Null terminated string with samplename  }
           Length   :  WORD;                { Sample length in words  }
           FineTune : BYTE;                 { FineTune of sample in lower 4 bits  }
-          Volume   : BYTE;                 { Volume of sample  } 
+          Volume   : BYTE;                 { Volume of sample  }
           Repeat_  : WORD;                 { Repeat start in number of words  }
           Replen   : WORD;                 { Repeat length in number of words  }
        end;
@@ -114,290 +114,290 @@ pastoc;
 FUNCTION PTLoadModule(name : pCHAR) : pModule;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	name,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-030(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L name,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -030(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE PTUnloadModule(module : pModule);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-036(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -036(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION PTPlay(module : pModule) : ULONG;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION PTStop(module : pModule) : ULONG;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION PTPause(module : pModule) : ULONG;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION PTResume(module : pModule) : ULONG;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE PTFade(module : pModule; speed : BYTE);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVE.L	speed,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVE.L  speed,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE PTSetVolume(module : pModule; vol : BYTE);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVE.L	vol,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVE.L  vol,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION PTSongPos(module : pModule) : BYTE;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION PTSongLen(module : pModule) : BYTE;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION PTSongPattern(module : pModule; Pos : WORD) : BYTE;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	module,A0
-	MOVE.L	Pos,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L module,A0
+        MOVE.L  Pos,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION PTPatternPos(Module : pModule) : BYTE;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION PTPatternData(Module : pModule; Pattern : BYTE; Row : BYTE) : POINTER;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVE.L	Pattern,D0
-	MOVE.L	Row,D1
-	MOVEA.L	PTReplayBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVE.L  Pattern,D0
+        MOVE.L  Row,D1
+        MOVEA.L PTReplayBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE PTInstallBits(Module : pModule; Restart : SHORTINT; NextPattern : SHORTINT; NextRow : SHORTINT; Fade : SHORTINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVE.L	Restart,D0
-	MOVE.L	NextPattern,D1
-	MOVE.L	NextRow,D2
-	MOVE.L	Fade,D3
-	MOVEA.L	PTReplayBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVE.L  Restart,D0
+        MOVE.L  NextPattern,D1
+        MOVE.L  NextRow,D2
+        MOVE.L  Fade,D3
+        MOVEA.L PTReplayBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION PTSetupMod(ModuleFile : POINTER) : pModule;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	ModuleFile,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L ModuleFile,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE PTFreeMod(Module : pModule);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVEA.L PTReplayBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE PTStartFade(Module : pModule; speed : BYTE);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVE.L	speed,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVE.L  speed,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE PTOnChannel(Module : pModule; Channels : SHORTINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVE.L	Channels,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVE.L  Channels,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE PTOffChannel(Module : pModule; Channels : SHORTINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVE.L	Channels,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVE.L  Channels,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE PTSetPos(Module : pModule; Pos : BYTE);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVE.L	Pos,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-144(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVE.L  Pos,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE PTSetPri(Pri : SHORTINT);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Pri,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVE.L  Pri,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION PTGetPri : SHORTINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PTReplayBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L PTReplayBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION PTGetChan : SHORTINT;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	PTReplayBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L PTReplayBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION PTGetSample(Module : pModule; Nr : smallint) : pPTSample;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Module,A0
-	MOVE.W	Nr,D0
-	MOVEA.L	PTReplayBase,A6
-	JSR	-168(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Module,A0
+        MOVE.W  Nr,D0
+        MOVEA.L PTReplayBase,A6
+        JSR     -168(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 

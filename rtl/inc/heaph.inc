@@ -99,34 +99,7 @@ Function  Heapsize:ptrint;
 
 {
   $Log$
-  Revision 1.12  2004-11-22 19:34:58  peter
-    * GetHeapStatus added, removed MaxAvail,MemAvail,HeapSize
-
-  Revision 1.11  2004/06/29 20:50:32  peter
-    * readded support for ReturnIfGrowHeapFails
-
-  Revision 1.10  2004/06/20 09:24:40  peter
-  fixed go32v2 compile
-
-  Revision 1.9  2004/06/17 16:16:13  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.8  2004/03/15 21:48:26  peter
-    * cmem moved to rtl
-    * longint replaced with ptrint in heapmanagers
-
-  Revision 1.7  2003/10/02 14:03:24  marco
-   * *memORY overloads
-
-  Revision 1.6  2002/10/30 20:39:13  peter
-    * MemoryManager record has a field NeedLock if the wrapper functions
-      need to provide locking for multithreaded programs
-
-  Revision 1.5  2002/10/14 19:39:17  peter
-    * threads unit added for thread support
-
-  Revision 1.4  2002/09/07 15:07:45  peter
-    * old logs removed and tabs fixed
+  Revision 1.13  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

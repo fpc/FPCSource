@@ -2,7 +2,7 @@
     $Id$
 
     Getting list of DOS volumes and assigns
-    Free Pascal for MorphOS example 
+    Free Pascal for MorphOS example
 
     Copyright (C) 2005 by Karoly Balogh
 
@@ -60,7 +60,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2005-01-10 06:00:47  karoly
+  Revision 1.2  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.1  2005/01/10 06:00:47  karoly
     * initial revision
 
 }

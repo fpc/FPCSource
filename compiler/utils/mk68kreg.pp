@@ -335,12 +335,7 @@ begin
 end.
 {
 $Log$
-Revision 1.4  2004-04-26 11:05:14  florian
-  + gas registers
+Revision 1.5  2005-02-14 17:13:10  peter
+  * truncate log
 
-Revision 1.3  2004/01/30 13:42:03  florian
-  * fixed more alignment issues
-
-Revision 1.2  2003/12/10 02:22:59  karoly
-  * fixed logs
 }

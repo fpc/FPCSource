@@ -7,12 +7,12 @@ type
         n_addrtype : longint;
         n_net : uint32_t;
      end;
-   PPNetEnt = ^Pnetent; 
+   PPNetEnt = ^Pnetent;
 
 
 { ---------------------------------------------------------------------
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TNetEnt = netent;

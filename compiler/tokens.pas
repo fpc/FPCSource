@@ -529,7 +529,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2005-01-06 02:13:03  karoly
+  Revision 1.36  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.35  2005/01/06 02:13:03  karoly
     * more SysV call support stuff for MorphOS
 
   Revision 1.34  2005/01/04 19:22:33  olle
@@ -537,31 +540,5 @@ end.
 
   Revision 1.33  2005/01/04 17:40:33  karoly
     + sysv style syscalls added for MorphOS
-
-  Revision 1.32  2004/10/24 20:01:08  peter
-    * remove saveregister calling convention
-
-  Revision 1.31  2004/07/05 23:25:34  olle
-    + adding operators "|" and "&" for macpas
-
-  Revision 1.30  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.29  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.28  2004/05/03 10:06:38  olle
-    + added language constructs UNIV, C, ... for mode mac
-    * consolidated macro expression to conform to Pascal
-    * macro true is defined as <> 0
-
-  Revision 1.27  2004/04/18 15:22:24  florian
-    + location support for arguments, currently PowerPC/MorphOS only
-
-  Revision 1.26.2.1  2004/05/27 23:36:18  peter
-    * nostackframe procdirective added
-
-  Revision 1.26  2004/02/17 17:38:11  daniel
-    * Enable threadvars for all modes
 
 }

@@ -110,16 +110,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-11-23 16:50:49  peter
-    * register calling updates
-
-  Revision 1.4  2003/11/19 16:58:44  peter
-    * make strpas assembler function
-
-  Revision 1.3  2003/11/11 21:08:17  peter
-    * REGCALL define added
-
-  Revision 1.2  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

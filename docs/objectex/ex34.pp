@@ -26,10 +26,10 @@ begin
     If I=1 then
       C^.Insert(M)
     else
-      With C^ do 
+      With C^ do
         AtInsert(Random(Count),M);
     end;
   Writeln ('Values : ');
-  C^.Foreach(@PrintField);   
+  C^.Foreach(@PrintField);
   Dispose(C,Done);
 end.

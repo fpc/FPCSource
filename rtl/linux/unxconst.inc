@@ -19,7 +19,7 @@ Const
   Open_RdOnly    = 0;
   Open_WrOnly    = 1;
   Open_RdWr      = 2;
-  Open_Creat     = 1 shl 6;		// %100 etc
+  Open_Creat     = 1 shl 6;             // %100 etc
   Open_Excl      = 2 shl 6;
   Open_NoCtty    = 4 shl 6;
   Open_Trunc     = 1 shl 9;
@@ -89,28 +89,13 @@ Const
 
 {
   $Log$
-  Revision 1.1  2005-02-13 21:47:56  peter
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.1  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.12  2005/02/13 20:01:38  peter
     * include file cleanup
-
-  Revision 1.11  2004/11/14 12:21:08  marco
-   * moved some calls from unix to baseunix. Darwin untested.
-
-  Revision 1.10  2004/02/21 16:27:29  marco
-   * hmprf, Linux has different ioctls kernel<->libc
-
-  Revision 1.9  2004/02/21 15:14:56  marco
-   * ppc ioctl nr fixed
-
-  Revision 1.8  2003/11/19 10:56:15  marco
-   * some constants moved from System
-
-  Revision 1.7  2003/11/17 11:28:08  marco
-   * Clone moved to linux, + few small unit unix changes
-
-  Revision 1.6  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
 
 }

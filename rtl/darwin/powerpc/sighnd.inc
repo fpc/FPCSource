@@ -1,4 +1,4 @@
-{  
+{
    $Id$
    This file is part of the Free Pascal run time library.
    (c) 2000-2003 by Marco van de Voort
@@ -61,21 +61,7 @@ end;
 
 {
   $Log$
-  Revision 1.3  2004-01-10 00:16:21  jonas
-    * fixed mtfsb0 instruction for assembler reader/writer
-    * fixed initialisation of fpscr register to avoid spurious SIGPFE's
-      (uses mtfsb0 instruction, so added extra define in options.pas to avoid
-      requiring to start with a cross compiler)
-
-  Revision 1.2  2004/01/08 21:52:34  jonas
-    * fixed signal handling under 10.3.2, still have to verify whether it's
-      backwards compatible
-
-  Revision 1.1  2004/01/04 20:05:38  jonas
-    * first working version of the Darwin/Mac OS X (for PowerPC) RTL
-      Several non-essential units are still missing, but make cycle works
-
-  Revision 1.1  2004/01/03 12:29:36  marco
-   * now separately.
+  Revision 1.4  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

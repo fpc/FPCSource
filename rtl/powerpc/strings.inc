@@ -505,60 +505,7 @@ end;
 
 {
   $Log$
-  Revision 1.27  2004-11-21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.26  2004/08/17 13:34:15  olle
-    * bugfix
-
-  Revision 1.25  2004/08/09 16:43:33  jonas
-    * fixed stricomp() and strlicomp()
-
-  Revision 1.24  2004/05/01 17:02:37  jonas
-    * use some more string routines from libc if FPC_USE_LIBC is used
-
-  Revision 1.23  2003/12/28 22:33:35  florian
-    * strscan fix from Jonas
-
-  Revision 1.22  2003/11/29 16:27:19  jonas
-    * fixed several ppc assembler reader related problems
-    * local vars in assembler procedures now start at offset 4
-    * fixed second_int_to_bool (apparently an integer can be in  LOC_JUMP??)
-
-  Revision 1.21  2003/08/24 20:51:27  olle
-    + added MacOS compatible constant loading
-
-  Revision 1.20  2003/07/07 20:23:46  peter
-    * added defines to override generic implementations
-
-  Revision 1.19  2003/06/14 12:41:08  jonas
-    * fixed compilation problems (removed unnecessary modified registers
-      lists from procedures)
-
-  Revision 1.18  2003/05/28 19:18:10  jonas
-    * fixed strcopy and strecopy if there are #1 chars right before the end
-      of the string to copied
-
-  Revision 1.17  2003/05/24 10:16:24  jonas
-    * fixed strscan and strrscan
-
-  Revision 1.16  2003/05/17 12:55:30  florian
-    * fixed copy&paste bug in strecopy
-
-  Revision 1.15  2003/05/17 00:01:13  jonas
-    * fixed strcopy
-
-  Revision 1.14  2002/09/11 07:49:40  jonas
-    * fixed assembler errors
-
-  Revision 1.13  2002/09/07 16:01:26  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.12  2002/09/06 16:58:43  jonas
-    * fixed wrong references (used r0 as base register)
-
-  Revision 1.11  2002/08/10 17:14:36  jonas
-    * various fixes, mostly changing the names of the modifies registers to
-      upper case since that seems to be required by the compiler
+  Revision 1.28  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

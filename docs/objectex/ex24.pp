@@ -20,7 +20,7 @@ begin
      Keep:=M;
     C^.Insert(M);
     end;
-  If Keep=Nil then 
+  If Keep=Nil then
     begin
     Writeln ('Please run again. No object selected');
     Halt(1);

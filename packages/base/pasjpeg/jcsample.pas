@@ -67,7 +67,7 @@ implementation
 type
   downsample1_ptr = procedure(cinfo : j_compress_ptr;
                               compptr : jpeg_component_info_ptr;
-		              input_data : JSAMPARRAY;
+                              input_data : JSAMPARRAY;
                               output_data : JSAMPARRAY);
 
 { Private subobject }
@@ -75,7 +75,7 @@ type
 type
   my_downsample_ptr = ^my_downsampler;
   my_downsampler = record
-    pub : jpeg_downsampler;	{ public fields }
+    pub : jpeg_downsampler;     { public fields }
 
     { Downsampling method pointers, one per component }
     methods : array[0..MAX_COMPONENTS-1] of downsample1_ptr;
@@ -96,7 +96,7 @@ end;
 {LOCAL}
 procedure expand_right_edge (image_data : JSAMPARRAY;
                              num_rows : int;
-		             input_cols : JDIMENSION;
+                             input_cols : JDIMENSION;
                              output_cols : JDIMENSION);
 var
   {register} ptr : JSAMPLE_PTR;
@@ -112,11 +112,11 @@ begin
     for row := 0 to pred(num_rows) do
     begin
       ptr := JSAMPLE_PTR(@(image_data^[row]^[input_cols-1]));
-      pixval := ptr^;		{ don't need GETJSAMPLE() here }
+      pixval := ptr^;           { don't need GETJSAMPLE() here }
       for count := pred(numcols) downto 0 do
       begin
         Inc(ptr);
-	ptr^ := pixval;
+        ptr^ := pixval;
       end;
     end;
   end;
@@ -129,9 +129,9 @@ end;
 
 {METHODDEF}
 procedure sep_downsample (cinfo : j_compress_ptr;
-		          input_buf : JSAMPIMAGE;
+                          input_buf : JSAMPIMAGE;
                           in_row_index : JDIMENSION;
-		          output_buf : JSAMPIMAGE;
+                          output_buf : JSAMPIMAGE;
                           out_row_group_index : JDIMENSION); far;
 var
   downsample : my_downsample_ptr;
@@ -161,11 +161,11 @@ end;
 {METHODDEF}
 procedure int_downsample (cinfo : j_compress_ptr;
                           compptr : jpeg_component_info_ptr;
-		          input_data : JSAMPARRAY;
+                          input_data : JSAMPARRAY;
                           output_data : JSAMPARRAY); far;
 var
   inrow, outrow, h_expand, v_expand, numpix, numpix2, h, v : int;
-  outcol, outcol_h :  JDIMENSION;	{ outcol_h = outcol*h_expand }
+  outcol, outcol_h :  JDIMENSION;       { outcol_h = outcol*h_expand }
   output_cols : JDIMENSION;
   inptr,
   outptr : JSAMPLE_PTR;
@@ -183,7 +183,7 @@ begin
     efficient. }
 
   expand_right_edge(input_data, cinfo^.max_v_samp_factor,
-		    cinfo^.image_width, output_cols * h_expand);
+                    cinfo^.image_width, output_cols * h_expand);
 
   inrow := 0;
   for outrow := 0 to pred(compptr^.v_samp_factor) do
@@ -195,12 +195,12 @@ begin
       outvalue := 0;
       for v := 0 to pred(v_expand) do
       begin
-	inptr := @(input_data^[inrow+v]^[outcol_h]);
-	for h := 0 to pred(h_expand) do
+        inptr := @(input_data^[inrow+v]^[outcol_h]);
+        for h := 0 to pred(h_expand) do
         begin
-	  Inc(outvalue, INT32 (GETJSAMPLE(inptr^)) );
+          Inc(outvalue, INT32 (GETJSAMPLE(inptr^)) );
           Inc(inptr);
-	end;
+        end;
       end;
       outptr^ := JSAMPLE ((outvalue + numpix2) div numpix);
       Inc(outptr);
@@ -218,15 +218,15 @@ end;
 {METHODDEF}
 procedure fullsize_downsample (cinfo : j_compress_ptr;
                                compptr : jpeg_component_info_ptr;
-		               input_data : JSAMPARRAY;
+                               input_data : JSAMPARRAY;
                                output_data : JSAMPARRAY); far;
 begin
   { Copy the data }
   jcopy_sample_rows(input_data, 0, output_data, 0,
-		    cinfo^.max_v_samp_factor, cinfo^.image_width);
+                    cinfo^.max_v_samp_factor, cinfo^.image_width);
   { Edge-expand }
   expand_right_edge(output_data, cinfo^.max_v_samp_factor,
-		    cinfo^.image_width, compptr^.width_in_blocks * DCTSIZE);
+                    cinfo^.image_width, compptr^.width_in_blocks * DCTSIZE);
 end;
 
 
@@ -243,7 +243,7 @@ end;
 {METHODDEF}
 procedure h2v1_downsample (cinfo : j_compress_ptr;
                            compptr : jpeg_component_info_ptr;
-		           input_data : JSAMPARRAY;
+                           input_data : JSAMPARRAY;
                            output_data : JSAMPARRAY); far;
 var
   outrow : int;
@@ -259,13 +259,13 @@ begin
     efficient. }
 
   expand_right_edge(input_data, cinfo^.max_v_samp_factor,
-		    cinfo^.image_width, output_cols * 2);
+                    cinfo^.image_width, output_cols * 2);
 
   for outrow := 0 to pred(compptr^.v_samp_factor) do
   begin
     outptr := JSAMPLE_PTR(output_data^[outrow]);
     inptr := JSAMPLE_PTR(input_data^[outrow]);
-    bias := 0;		     { bias := 0,1,0,1,... for successive samples }
+    bias := 0;               { bias := 0,1,0,1,... for successive samples }
     for outcol := 0 to pred(output_cols) do
     begin
       outptr^ := JSAMPLE ((GETJSAMPLE(inptr^) +
@@ -301,7 +301,7 @@ begin
     efficient. }
 
   expand_right_edge(input_data, cinfo^.max_v_samp_factor,
-		    cinfo^.image_width, output_cols * 2);
+                    cinfo^.image_width, output_cols * 2);
 
   inrow := 0;
   for outrow := 0 to pred(compptr^.v_samp_factor) do
@@ -309,12 +309,12 @@ begin
     outptr := JSAMPLE_PTR(output_data^[outrow]);
     inptr0 := JSAMPLE_PTR(input_data^[inrow]);
     inptr1 := JSAMPLE_PTR(input_data^[inrow+1]);
-    bias := 1;			{ bias := 1,2,1,2,... for successive samples }
+    bias := 1;                  { bias := 1,2,1,2,... for successive samples }
     for outcol := 0 to pred(output_cols) do
     begin
       outptr^ := JSAMPLE ((GETJSAMPLE(inptr0^) +
                            GETJSAMPLE(JSAMPROW(inptr0)^[1]) +
-		           GETJSAMPLE(inptr1^) +
+                           GETJSAMPLE(inptr1^) +
                            GETJSAMPLE(JSAMPROW(inptr1)^[1]) + bias) shr 2);
       Inc(outptr);
       bias := bias xor 3;       { 1=>2, 2=>1 }
@@ -356,7 +356,7 @@ begin
   prev_input_data := input_data;
   Dec(JSAMPROW_PTR(prev_input_data));
   expand_right_edge(prev_input_data, cinfo^.max_v_samp_factor + 2,
-		    cinfo^.image_width, output_cols * 2);
+                    cinfo^.image_width, output_cols * 2);
 
   { We don't bother to form the individual "smoothed" input pixel values;
     we can directly compute the output which is the average of the four
@@ -384,15 +384,15 @@ begin
 
     { Special case for first column: pretend column -1 is same as column 0 }
     membersum := GETJSAMPLE(inptr0^) + GETJSAMPLE(JSAMPROW(inptr0)^[1]) +
-		GETJSAMPLE(inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[1]);
+                GETJSAMPLE(inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[1]);
     neighsum := GETJSAMPLE(above_ptr^) + GETJSAMPLE(JSAMPROW(above_ptr)^[1]) +
-	       GETJSAMPLE(below_ptr^) + GETJSAMPLE(JSAMPROW(below_ptr)^[1]) +
-	       GETJSAMPLE(inptr0^) + GETJSAMPLE(JSAMPROW(inptr0)^[2]) +
-	       GETJSAMPLE(inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[2]);
+               GETJSAMPLE(below_ptr^) + GETJSAMPLE(JSAMPROW(below_ptr)^[1]) +
+               GETJSAMPLE(inptr0^) + GETJSAMPLE(JSAMPROW(inptr0)^[2]) +
+               GETJSAMPLE(inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[2]);
     Inc(neighsum, neighsum);
     Inc(neighsum, GETJSAMPLE(above_ptr^) +
                   GETJSAMPLE(JSAMPROW(above_ptr)^[2]) +
-		  GETJSAMPLE(below_ptr^) +
+                  GETJSAMPLE(below_ptr^) +
                   GETJSAMPLE(JSAMPROW(below_ptr)^[2]) );
     membersum := membersum * memberscale + neighsum * neighscale;
     outptr^ := JSAMPLE ((membersum + 32768) shr 16);
@@ -425,7 +425,7 @@ begin
       { Add in the corner-neighbors }
       Inc(neighsum, GETJSAMPLE(prev_above_ptr^) +
                     GETJSAMPLE(JSAMPROW(above_ptr)^[2]) +
-		    GETJSAMPLE(prev_below_ptr^) +
+                    GETJSAMPLE(prev_below_ptr^) +
                     GETJSAMPLE(JSAMPROW(below_ptr)^[2]) );
       { form final output scaled up by 2^16 }
       membersum := membersum * memberscale + neighsum * neighscale;
@@ -444,15 +444,15 @@ begin
 
     { Special case for last column }
     membersum := GETJSAMPLE(inptr0^) + GETJSAMPLE(JSAMPROW(inptr0)^[1]) +
-		 GETJSAMPLE(inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[1]);
+                 GETJSAMPLE(inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[1]);
     neighsum := GETJSAMPLE(above_ptr^) + GETJSAMPLE(JSAMPROW(above_ptr)^[1]) +
-	        GETJSAMPLE(below_ptr^) + GETJSAMPLE(JSAMPROW(below_ptr)^[1]) +
-	        GETJSAMPLE(prev_inptr0^) + GETJSAMPLE(JSAMPROW(inptr0)^[1]) +
-	        GETJSAMPLE(prev_inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[1]);
+                GETJSAMPLE(below_ptr^) + GETJSAMPLE(JSAMPROW(below_ptr)^[1]) +
+                GETJSAMPLE(prev_inptr0^) + GETJSAMPLE(JSAMPROW(inptr0)^[1]) +
+                GETJSAMPLE(prev_inptr1^) + GETJSAMPLE(JSAMPROW(inptr1)^[1]);
     Inc(neighsum, neighsum);
     Inc(neighsum, GETJSAMPLE(prev_above_ptr^) +
                   GETJSAMPLE(JSAMPROW(above_ptr)^[1]) +
-		  GETJSAMPLE(prev_below_ptr^) +
+                  GETJSAMPLE(prev_below_ptr^) +
                   GETJSAMPLE(JSAMPROW(below_ptr)^[1]) );
     membersum := membersum * memberscale + neighsum * neighscale;
     outptr^ := JSAMPLE ((membersum + 32768) shr 16);
@@ -469,7 +469,7 @@ end;
 {METHODDEF}
 procedure fullsize_smooth_downsample (cinfo : j_compress_ptr;
                                       compptr : jpeg_component_info_ptr;
-			              input_data : JSAMPARRAY;
+                                      input_data : JSAMPARRAY;
                                       output_data : JSAMPARRAY); far;
 var
   outrow : int;
@@ -490,7 +490,7 @@ begin
   prev_input_data := input_data;
   Dec(JSAMPROW_PTR(prev_input_data));
   expand_right_edge(prev_input_data, cinfo^.max_v_samp_factor + 2,
-		    cinfo^.image_width, output_cols);
+                    cinfo^.image_width, output_cols);
 
   { Each of the eight neighbor pixels contributes a fraction SF to the
     smoothed pixel, while the main pixel contributes (1-8*SF).  In order
@@ -509,13 +509,13 @@ begin
 
     { Special case for first column }
     colsum := GETJSAMPLE(above_ptr^) + GETJSAMPLE(below_ptr^) +
-	     GETJSAMPLE(inptr^);
+             GETJSAMPLE(inptr^);
     Inc(above_ptr);
     Inc(below_ptr);
     membersum := GETJSAMPLE(inptr^);
     Inc(inptr);
     nextcolsum := GETJSAMPLE(above_ptr^) + GETJSAMPLE(below_ptr^) +
-		  GETJSAMPLE(inptr^);
+                  GETJSAMPLE(inptr^);
     neighsum := colsum + (colsum - membersum) + nextcolsum;
     membersum := membersum * memberscale + neighsum * neighscale;
     outptr^ := JSAMPLE ((membersum + 32768) shr 16);
@@ -529,7 +529,7 @@ begin
       Inc(above_ptr);
       Inc(below_ptr);
       nextcolsum := GETJSAMPLE(above_ptr^) + GETJSAMPLE(below_ptr^) +
-		    GETJSAMPLE(inptr^);
+                    GETJSAMPLE(inptr^);
       neighsum := lastcolsum + (colsum - membersum) + nextcolsum;
       membersum := membersum * memberscale + neighsum * neighscale;
       outptr^ := JSAMPLE ((membersum + 32768) shr 16);
@@ -563,7 +563,7 @@ begin
 
   downsample := my_downsample_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_downsampler)) );
+                                SIZEOF(my_downsampler)) );
   cinfo^.downsample := jpeg_downsampler_ptr (downsample);
   downsample^.pub.start_pass := start_pass_downsample;
   downsample^.pub.downsample := sep_downsample;
@@ -582,12 +582,12 @@ begin
 {$ifdef INPUT_SMOOTHING_SUPPORTED}
       if (cinfo^.smoothing_factor <> 0) then
       begin
-	downsample^.methods[ci] := fullsize_smooth_downsample;
-	downsample^.pub.need_context_rows := TRUE;
+        downsample^.methods[ci] := fullsize_smooth_downsample;
+        downsample^.pub.need_context_rows := TRUE;
       end
       else
 {$endif}
-	downsample^.methods[ci] := fullsize_downsample;
+        downsample^.methods[ci] := fullsize_downsample;
     end
     else
       if (compptr^.h_samp_factor * 2 = cinfo^.max_h_samp_factor) and
@@ -598,13 +598,13 @@ begin
       end
       else
         if (compptr^.h_samp_factor * 2 = cinfo^.max_h_samp_factor) and
-	   (compptr^.v_samp_factor * 2 = cinfo^.max_v_samp_factor) then
+           (compptr^.v_samp_factor * 2 = cinfo^.max_v_samp_factor) then
         begin
   {$ifdef INPUT_SMOOTHING_SUPPORTED}
         if (cinfo^.smoothing_factor <> 0) then
         begin
-	  downsample^.methods[ci] := h2v2_smooth_downsample;
-	  downsample^.pub.need_context_rows := TRUE;
+          downsample^.methods[ci] := h2v2_smooth_downsample;
+          downsample^.pub.need_context_rows := TRUE;
         end
         else
   {$endif}
@@ -612,7 +612,7 @@ begin
         end
         else
           if ((cinfo^.max_h_samp_factor mod compptr^.h_samp_factor) = 0) and
-	     ((cinfo^.max_v_samp_factor mod compptr^.v_samp_factor) = 0) then
+             ((cinfo^.max_v_samp_factor mod compptr^.v_samp_factor) = 0) then
           begin
             smoothok := FALSE;
             downsample^.methods[ci] := int_downsample;

@@ -804,45 +804,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2005-02-06 00:05:56  florian
+  Revision 1.17  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.16  2005/02/06 00:05:56  florian
     + x86_64 pic draft
-
-  Revision 1.15  2004/11/01 12:43:29  peter
-    * shortstr compare with empty string fixed
-    * removed special i386 code
-
-  Revision 1.14  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.13  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.12  2004/09/21 17:25:13  peter
-    * paraloc branch merged
-
-  Revision 1.11.4.1  2004/08/31 20:43:06  peter
-    * paraloc patch
-
-  Revision 1.11  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.10  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.9.2.4  2004/05/02 16:46:28  peter
-    * disable i386 optimized shortstr_compare for x86_64
-
-  Revision 1.9.2.3  2004/04/28 18:35:42  peter
-    * cardinal fixes for x86-64
-
-  Revision 1.9.2.2  2004/04/27 18:18:26  peter
-    * aword -> aint
-
-  Revision 1.9.2.1  2004/04/26 15:54:33  peter
-    * small x86-64 fixes
 
 }

@@ -12,13 +12,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$mode objfpc} 
+{$mode objfpc}
 {$h+}
 unit syncobjs;
 
 interface
 
-uses 
+uses
   pthreads,
 {$ifdef ver1_0}
   Linux,
@@ -31,7 +31,7 @@ type
   PSecurityAttributes = Pointer;
   TEventHandle = THandle;
   TRTLCriticalSection = TPthreadMutex;
-  
+
 {$I syncobh.inc}
 
 implementation
@@ -39,12 +39,12 @@ implementation
 { ---------------------------------------------------------------------
     Some wrappers around PThreads.
   ---------------------------------------------------------------------}
-    
+
 function InitializeCriticalSection(var lpCriticalSection: TRTLCriticalSection): Integer;
 
 var
   MAttr : TMutexAttribute;
-    
+
 begin
   Result:=pthread_mutexattr_init(@MAttr);
   if Result=0 then
@@ -55,14 +55,14 @@ begin
     finally
       pthread_mutexattr_destroy(@MAttr);
     end;
-end;                           
-                              
+end;
+
 
 function EnterCriticalSection(var lpCriticalSection: TRTLCriticalSection) : Integer;
 
 begin
   Result:=pthread_mutex_lock(@lpCriticalSection);
-end;  
+end;
 
 function LeaveCriticalSection (var lpCriticalSection: TRTLCriticalSection) : Integer;
 begin
@@ -72,12 +72,12 @@ end;
 function DeleteCriticalSection(var lpCriticalSection: TRTLCriticalSection) : Integer;
 begin
   Result:=pthread_mutex_destroy(@lpCriticalSection);
-end;  
+end;
 
 { ---------------------------------------------------------------------
     Real syncobjs implementation
   ---------------------------------------------------------------------}
-  
+
 {$I syncob.inc}
 
 
@@ -131,7 +131,7 @@ procedure TEventObject.ResetEvent;
 
 begin
   While sem_trywait(psem_t(FSem))=0 do
-    ;    
+    ;
 end;
 
 procedure TEventObject.SetEvent;
@@ -147,7 +147,7 @@ begin
       sem_post(psem_t(FSem));
   finally
     FEventSection.Leave;
-  end;       
+  end;
 end;
 
 
@@ -165,10 +165,10 @@ begin
       FEventSection.Enter;
       Try
         resetevent;
-        sem_post(psem_t(FSem)); 
+        sem_post(psem_t(FSem));
       Finally
-        FEventSection.Leave;  
-      end;  
+        FEventSection.Leave;
+      end;
       end;
     end;
 end;
@@ -183,13 +183,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-11-04 09:03:43  marco
-   * freebsd version, untested atm
-
-  Revision 1.2  2002/08/17 02:23:35  michael
-  + Fixed 1.1 build of syncobjs
-
-  Revision 1.1  2003/06/14 19:14:31  michael
-  + Initial implementation
+  Revision 1.2  2005-02-14 17:13:12  peter
+    * truncate log
 
 }

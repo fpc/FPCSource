@@ -4,8 +4,8 @@
 
     emulinterface definitions for MorphOS/PowerPC
     Copyright (c) 2002 The MorphOS Development Team, All Rights Reserved.
-    
-    Free Pascal conversion 
+
+    Free Pascal conversion
     Copyright (c) 2004 Karoly Balogh for Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -19,17 +19,17 @@
 
 { * emulinterface structures from MorphOS SDK * }
 
-type 
+type
   PEmulLibEntry = ^TEmulLibEntry;
   TEmulLibEntry = packed record
     Trap     : Word;
     Extension: Word;    { * MUST be set to 0 if you create it by hand * }
-    Func     : Pointer; 
+    Func     : Pointer;
   end;
 
 {
   $Log$
-  Revision 1.1  2004-07-19 18:38:22  karoly
-    * initial revision
+  Revision 1.2  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

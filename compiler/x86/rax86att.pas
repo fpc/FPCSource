@@ -775,37 +775,7 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.9  2004-12-22 17:09:55  peter
-    * support sizeof()
-    * fix typecasting a constant like dword(4)
-
-  Revision 1.8  2004/11/21 15:35:23  peter
-    * float routines all use internproc and compilerproc helpers
-
-  Revision 1.7  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.6  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.5  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.4  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.3.2.3  2004/05/01 23:36:47  peter
-    * assembler reader 64bit fixes
-
-  Revision 1.3.2.2  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.3.2.1  2004/05/01 11:12:24  florian
-    * spilling of registers with size<>4 fixed
-
-  Revision 1.3  2004/03/02 00:36:33  olle
-    * big transformation of Tai_[const_]Symbol.Create[data]name*
+  Revision 1.10  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -23,7 +23,7 @@ uses
   jdeferr,
   jerror,
   jpeglib,
-  jdct,		{ Private declarations for DCT subsystem }
+  jdct,         { Private declarations for DCT subsystem }
   jidctfst,
   {$IFDEF BASM}
   jidctasm,
@@ -62,7 +62,7 @@ implementation
 type
   my_idct_ptr = ^my_idct_controller;
   my_idct_controller = record
-    pub : jpeg_inverse_dct;	{ public fields }
+    pub : jpeg_inverse_dct;     { public fields }
 
     { This array contains the IDCT method code that each multiplier table
       is currently set up for, or -1 if it's not yet set up.
@@ -177,15 +177,15 @@ begin
 {$ifdef IDCT_SCALING_SUPPORTED}
     1:begin
         method_ptr := jpeg_idct_1x1;
-        method := JDCT_ISLOW;	{ jidctred uses islow-style table }
+        method := JDCT_ISLOW;   { jidctred uses islow-style table }
       end;
     2:begin
         method_ptr := jpeg_idct_2x2;
-        method := JDCT_ISLOW;	{ jidctred uses islow-style table }
+        method := JDCT_ISLOW;   { jidctred uses islow-style table }
       end;
     4:begin
         method_ptr := jpeg_idct_4x4;
-        method := JDCT_ISLOW;	{ jidctred uses islow-style table }
+        method := JDCT_ISLOW;   { jidctred uses islow-style table }
       end;
 {$endif}
     DCTSIZE:
@@ -195,7 +195,7 @@ begin
         begin
           method_ptr := jpeg_idct_islow;
           method := JDCT_ISLOW;
-	end;
+        end;
 {$endif}
 {$ifdef DCT_IFAST_SUPPORTED}
       JDCT_IFAST:
@@ -228,64 +228,64 @@ begin
     if (not compptr^.component_needed) or (idct^.cur_method[ci] = int(method)) then
       continue;
     qtbl := compptr^.quant_table;
-    if (qtbl = NIL) then	{ happens if no data yet for component }
+    if (qtbl = NIL) then        { happens if no data yet for component }
       continue;
     idct^.cur_method[ci] := int(method);
     case (method) of
 {$ifdef PROVIDE_ISLOW_TABLES}
     JDCT_ISLOW:
       begin
-	{ For LL&M IDCT method, multipliers are equal to raw quantization
-	  coefficients, but are stored as ints to ensure access efficiency. }
+        { For LL&M IDCT method, multipliers are equal to raw quantization
+          coefficients, but are stored as ints to ensure access efficiency. }
 
-	ismtbl := ISLOW_MULT_TYPE_FIELD_PTR (compptr^.dct_table);
-	for i := 0 to pred(DCTSIZE2) do
+        ismtbl := ISLOW_MULT_TYPE_FIELD_PTR (compptr^.dct_table);
+        for i := 0 to pred(DCTSIZE2) do
         begin
-	  ismtbl^[i] := ISLOW_MULT_TYPE (qtbl^.quantval[i]);
-	end;
+          ismtbl^[i] := ISLOW_MULT_TYPE (qtbl^.quantval[i]);
+        end;
       end;
 {$endif}
 {$ifdef DCT_IFAST_SUPPORTED}
     JDCT_IFAST:
       begin
-	{ For AA&N IDCT method, multipliers are equal to quantization
-	  coefficients scaled by scalefactor[row]*scalefactor[col], where
-	    scalefactor[0] := 1
-	    scalefactor[k] := cos(k*PI/16) * sqrt(2)    for k=1..7
-	  For integer operation, the multiplier table is to be scaled by
-	  IFAST_SCALE_BITS. }
+        { For AA&N IDCT method, multipliers are equal to quantization
+          coefficients scaled by scalefactor[row]*scalefactor[col], where
+            scalefactor[0] := 1
+            scalefactor[k] := cos(k*PI/16) * sqrt(2)    for k=1..7
+          For integer operation, the multiplier table is to be scaled by
+          IFAST_SCALE_BITS. }
 
-	ifmtbl := IFAST_MULT_TYPE_FIELD_PTR (compptr^.dct_table);
+        ifmtbl := IFAST_MULT_TYPE_FIELD_PTR (compptr^.dct_table);
 
-	for i := 0 to pred(DCTSIZE2) do
+        for i := 0 to pred(DCTSIZE2) do
         begin
-	  ifmtbl^[i] := IFAST_MULT_TYPE(
-	    DESCALE(  INT32 (qtbl^.quantval[i]) * INT32 (aanscales[i]),
-		    CONST_BITS-IFAST_SCALE_BITS) );
-	end;
+          ifmtbl^[i] := IFAST_MULT_TYPE(
+            DESCALE(  INT32 (qtbl^.quantval[i]) * INT32 (aanscales[i]),
+                    CONST_BITS-IFAST_SCALE_BITS) );
+        end;
       end;
 {$endif}
 {$ifdef DCT_FLOAT_SUPPORTED}
     JDCT_FLOAT:
       begin
-	{ For float AA&N IDCT method, multipliers are equal to quantization
-	  coefficients scaled by scalefactor[row]*scalefactor[col], where
-	    scalefactor[0] := 1
-	    scalefactor[k] := cos(k*PI/16) * sqrt(2)    for k=1..7 }
+        { For float AA&N IDCT method, multipliers are equal to quantization
+          coefficients scaled by scalefactor[row]*scalefactor[col], where
+            scalefactor[0] := 1
+            scalefactor[k] := cos(k*PI/16) * sqrt(2)    for k=1..7 }
 
-	fmtbl := FLOAT_MULT_TYPE_FIELD_PTR(compptr^.dct_table);
+        fmtbl := FLOAT_MULT_TYPE_FIELD_PTR(compptr^.dct_table);
 
-	i := 0;
-	for row := 0 to pred(DCTSIZE) do
+        i := 0;
+        for row := 0 to pred(DCTSIZE) do
         begin
-	  for col := 0 to pred(DCTSIZE) do
+          for col := 0 to pred(DCTSIZE) do
           begin
-	    fmtbl^[i] := {FLOAT_MULT_TYPE} (
-	       {double} qtbl^.quantval[i] *
-	       aanscalefactor[row] * aanscalefactor[col] );
-	    Inc(i);
-	  end;
-	end;
+            fmtbl^[i] := {FLOAT_MULT_TYPE} (
+               {double} qtbl^.quantval[i] *
+               aanscalefactor[row] * aanscalefactor[col] );
+            Inc(i);
+          end;
+        end;
       end;
 {$endif}
     else
@@ -308,7 +308,7 @@ var
 begin
   idct := my_idct_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_idct_controller)) );
+                                SIZEOF(my_idct_controller)) );
   cinfo^.idct := jpeg_inverse_dct_ptr (idct);
   idct^.pub.start_pass := start_pass;
 
@@ -318,7 +318,7 @@ begin
     { Allocate and pre-zero a multiplier table for each component }
     compptr^.dct_table :=
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(multiplier_table));
+                                  SIZEOF(multiplier_table));
     MEMZERO(compptr^.dct_table, SIZEOF(multiplier_table));
     { Mark multiplier table not yet set up for any method }
     idct^.cur_method[ci] := -1;

@@ -91,10 +91,7 @@ function  GTK_STYLE_ATTACHED(style : PGtkstyle) : boolean;
 
 {
   $Log$
-  Revision 1.2  2002-09-07 15:43:00  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:55:13  peter
-    * splitted to base and extra
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

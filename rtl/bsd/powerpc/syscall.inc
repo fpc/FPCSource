@@ -7,8 +7,8 @@
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
-    Syscalls for NetBSD/macppc. Merged from an initial version, 
-	Jonas' linux version and some testing checking.
+    Syscalls for NetBSD/macppc. Merged from an initial version,
+        Jonas' linux version and some testing checking.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -169,33 +169,8 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-06-01 16:35:28  marco
-   * Several small fixes to harmonize the *BSD rtls and Linux.
-
-  Revision 1.4  2003/05/29 13:42:58  marco
-   * small fix
-
-  Revision 1.3  2003/05/29 13:14:07  marco
-   * 7 parameter syscall added. *BSD has calls with more params due to __syscall etc
-
-  Revision 1.5  2003/05/11 16:07:55  jonas
-    * fixed mmap for non-i386 non-m68k architectures (not sure about
-      x86-64)
-
-  Revision 1.4  2003/04/22 17:07:55  florian
-    * there where two SYSCALL1 procedures for the powerpc, fixed
-
-  Revision 1.3  2003/01/09 13:38:26  florian
-    * syscall stuff fixed
-
-  Revision 1.2  2002/12/22 16:00:28  jonas
-    + added syscallh.inc, adapted syscall.inc
-
-  Revision 1.1  2002/11/09 20:32:14  marco
-   * powerpc version. Threadsafe errno access not yet done.
-
-  Revision 1.1  2002/10/14 19:39:44  peter
-    * syscall moved into seperate include
+  Revision 1.6  2005-02-14 17:13:21  peter
+    * truncate log
 
 }
 

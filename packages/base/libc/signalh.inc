@@ -62,7 +62,7 @@ function __libc_current_sigrtmax:longint;cdecl;external clib name '__libc_curren
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
   TSigVec = _sigvec;
   PSigVec = ^TSigVec;
 
@@ -86,5 +86,5 @@ function sigqueue(__pid:__pid_t; __sig:longint; __val:sigval):longint;cdecl;exte
 
 function sigvec(__sig:longint; const vec: tsigvec; __ovec:p_sigvec):longint;cdecl;external clib name 'sigvec';
 function sigvec(__sig:longint; const vec: tsigvec; var __ovec: tsigvec):longint;cdecl;external clib name 'sigvec';
-  
-  
+
+

@@ -27,7 +27,7 @@ type
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
-  TTimeVal = timeval;   
-  
-  
+Type
+  TTimeVal = timeval;
+
+

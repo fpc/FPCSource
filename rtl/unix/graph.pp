@@ -601,13 +601,7 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-11-19 17:35:36  marco
-   * Linux part of termio unit
-
-  Revision 1.8  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.7  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.10  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

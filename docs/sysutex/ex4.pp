@@ -27,7 +27,7 @@ Begin
   Today ('"Today is "dddd dd mmmm y');
   Today ('"Today is "d mmm yy');
   Today ('"Today is "d/mmm/yy');
-  Now ('''The time is ''am/pmh:n:s');  
-  Now ('''The time is ''hh:nn:ssam/pm');  
-  Now ('''The time is ''tt');  
+  Now ('''The time is ''am/pmh:n:s');
+  Now ('''The time is ''hh:nn:ssam/pm');
+  Now ('''The time is ''tt');
 End.

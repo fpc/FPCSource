@@ -127,25 +127,7 @@ end;
 
 {
   $Log$
-  Revision 1.7  2004-02-25 01:38:26  pierre
-   * fix compilation error for 1.0 compiler
-
-  Revision 1.6  2003/11/19 21:58:51  marco
-   * typo
-
-  Revision 1.5  2003/11/19 19:22:14  marco
-   * termio change
-
-  Revision 1.4  2003/10/01 16:20:27  marco
-   * baseunix fixes for 1.1
-
-  Revision 1.3  2003/06/18 09:54:13  pierre
-   * use termios.inc TwinSize definition
-
-  Revision 1.2  2002/06/07 14:15:10  pierre
-   * add window resizing support for unix
-
-  Revision 1.1  2002/05/21 11:59:57  pierre
-   + system messages unit added
+  Revision 1.8  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -579,40 +579,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2004-12-06 21:24:53  peter
-  repeat last operation when pressing = again
-
-  Revision 1.12  2004/11/08 20:28:25  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.11  2004/03/15 15:50:01  peter
-    * no cdecl for go32v2 signalhandler
-
-  Revision 1.10  2004/03/09 12:08:47  marco
-   * fix calling convention sighandler
-
-  Revision 1.9  2003/09/29 14:36:59  peter
-    * win32 fixed
-
-  Revision 1.8  2003/09/27 14:03:45  peter
-    * fixed for unix
-
-  Revision 1.7  2002/09/13 08:13:07  pierre
-   * avoid RTE 201 in hexstr calls
-
-  Revision 1.6  2002/09/07 15:40:42  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/01/22 14:56:37  pierre
-    * fix wrong sign change handling
-    + add 'H' to view current value as hexadecimal
-
-  Revision 1.4  2002/01/22 13:56:04  pierre
-   * fix multiple FPU excpetion trapping problem for unix
+  Revision 1.14  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

@@ -135,11 +135,11 @@ unit cpubase;
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accumulator;
+        return_result_reg               =       accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	accumulator;
+        function_result_reg     =       accumulator;
        fpu_result_reg = R_F0;
        global_pointer = R_29;
        return_pointer = R_26;
@@ -458,11 +458,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2004-10-31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.7  2004/06/20 08:55:31  florian
-    * logs truncated
+  Revision 1.9  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

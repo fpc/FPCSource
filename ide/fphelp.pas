@@ -515,24 +515,7 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  2004-11-08 20:28:26  peter
-    * Breakpoints are now deleted when removed from source, disabling is
-      still possible from the breakpoint list
-    * COMPILER_1_0, FVISION, GABOR defines removed, only support new
-      FV and 1.9.x compilers
-    * Run directory added to Run menu
-    * Useless programinfo window removed
-
-  Revision 1.8  2003/01/22 00:27:58  pierre
-   * implement reloadfile if changed
-
-  Revision 1.7  2002/11/28 12:57:42  pierre
-   * new hints for remote addition
-
-  Revision 1.6  2002/09/07 15:40:43  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.5  2002/01/24 09:21:41  pierre
-   * only disable Alt-X in Options|Compiler dialog
+  Revision 1.10  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

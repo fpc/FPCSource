@@ -8,7 +8,7 @@ Var
   Y,Mo,D : Word;
   H,M,S,MS : Word;
   I : Integer;
-  
+
 Begin
   For I:=1 to 10 do
     begin

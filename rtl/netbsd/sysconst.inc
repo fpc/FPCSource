@@ -47,8 +47,8 @@ const
    { The waitpid uses the following options:}
   Wait_NoHang   = 1;
   Wait_UnTraced = 2;
-  Wait_Any      = -1; 
-  Wait_MyPGRP   = 0;  
+  Wait_Any      = -1;
+  Wait_MyPGRP   = 0;
   { Constants to check stat.mode -  checked all STAT constants with BSD}
   STAT_IFMT   = $f000; {00170000 }
   STAT_IFSOCK = $c000; {0140000 }
@@ -60,12 +60,12 @@ const
   STAT_IFIFO  = $1000; {0010000 }
   STAT_ISUID  = $0800; {0004000 }
   STAT_ISGID  = $0400; {0002000 }
-  STAT_ISVTX  = $0200; {0001000} 
+  STAT_ISVTX  = $0200; {0001000}
   { Constants to check permissions all }
-  STAT_IRWXO = $7;         
-  STAT_IROTH = $4;         
-  STAT_IWOTH = $2;         
-  STAT_IXOTH = $1;         
+  STAT_IRWXO = $7;
+  STAT_IROTH = $4;
+  STAT_IWOTH = $2;
+  STAT_IXOTH = $1;
 
   STAT_IRWXG = STAT_IRWXO shl 3;
   STAT_IRGRP = STAT_IROTH shl 3;
@@ -104,51 +104,7 @@ type
 
 {
   $Log$
-  Revision 1.4  2004-01-04 01:11:28  marco
-   * a new qod port of the freebsd rtl. To be refined in the coming days.
+  Revision 1.5  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.3  2003/01/21 15:39:45  marco
-   * NetBSD first rtl. Still not 100%, but close
-
-  Revision 1.2  2003/01/17 22:13:47  marco
-   * some updates
-
-  Revision 1.1.2.1  2001/08/10 11:07:17  pierre
-   New NetBSD files taken and adapted from FreeBSD
-
-  Revision 1.1.2.3  2001/03/12 14:58:37  marco
-   * [Solaris] some constants moved from sysunix.inc
-
-  Revision 1.1.2.2  2000/11/03 14:58:52  marco
-   * Open_NoCTTY added. Needed for serial.pp
-
-  Revision 1.1.2.1  2000/09/16 11:19:08  marco
-   * Moved files from BSD to FreeBSD directory, with some small changes
-
-  Revision 1.1  2000/07/13 06:30:33  michael
-  + Initial import
-
-  Revision 1.5  2000/04/10 15:46:52  marco
-   * worked all day. probably a lot changed
-
-  Revision 1.3  2000/02/03 17:05:13  marco
-   * fixes and updates due to linux unit porting
-
-  Revision 1.2  2000/02/02 16:35:29  marco
-   * Checked stat constants
-
-  Revision 1.1  2000/02/02 15:41:28  marco
-   * initial BSD version.
-
-  Revision 1.4  2000/01/07 16:41:41  daniel
-    * copyright 2000
-
-  Revision 1.3  2000/01/07 16:32:28  daniel
-    * copyright 2000 added
-
-  Revision 1.2  1998/05/06 12:38:22  michael
-  + Removed log from before restored version.
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }

@@ -30,7 +30,7 @@ Type size_t=dword;
      psize_t=^dword;
      cint  = longint;
      cuint = dword;
- 
+
 {
  * Copyright (c) 1989, 1993
  *      The Regents of the University of California.  All rights reserved.
@@ -154,29 +154,7 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-11-21 17:49:28  marco
-   * libc fixes
-
-  Revision 1.7  2004/03/04 22:15:16  marco
-   * UnixType changes. Please report problems to me.
-
-  Revision 1.6  2003/12/30 12:26:21  marco
-   * FPC_USE_LIBC
-
-  Revision 1.5  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.4  2003/01/05 19:01:28  marco
-   * FreeBSD compiles now with baseunix mods.
-
-  Revision 1.3  2002/09/07 16:01:17  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.2  2002/08/19 12:29:11  marco
-   * First working POSIX *BSD system unit.
-
-  Revision 1.1  2002/08/08 11:39:30  marco
-   * Initial versions, to allow support for uname in posix.pp
-
+  Revision 1.9  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

@@ -98,7 +98,7 @@ begin
 end;
 
 // needs oldfpccall;
-Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif} 
+Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint; {$ifndef ver1_0} oldfpccall;{$endif}
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
@@ -220,11 +220,11 @@ end;
 
 {
 function  intClone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifndef ver1_0} oldfpccall; {$endif}
- 
+
 
 var lerrno : Longint;
     errset : Boolean;
-    Res    : Longint;	
+    Res    : Longint;
 begin
   errset:=false;
   Res:=0;
@@ -252,86 +252,32 @@ asm
 .L2:
         mov     %eax,LErrNo
         mov     $true,Errset
-	mov	$-1,%eax
+        mov     $-1,%eax
 //        jmp     .L1
 .L1:
         addl    $8, %esp
         popl    %esi
-	mov	%eax,Res
+        mov     %eax,Res
 end;
   If ErrSet Then
    fpSetErrno(LErrno);
-  intClone:=Res; 
+  intClone:=Res;
 end;
 
 
 
-function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; 
+function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 
 begin
   Clone:=
-	intclone(tclonefunc(func),sp,flags,args);
+        intclone(tclonefunc(func),sp,flags,args);
 end;
 }
 
 
 {
   $Log$
-  Revision 1.7  2004-03-04 13:10:30  olle
-    + added comment to ETXTBSY
-    * changed i386 -> cpui386, m68k -> cpum68k
-
-  Revision 1.6  2004/01/04 15:55:47  marco
-   * additions
-
-  Revision 1.5  2004/01/04 01:11:28  marco
-   * a new qod port of the freebsd rtl. To be refined in the coming days.
-
-  Revision 1.18  2004/01/01 17:07:21  marco
-   * few small freebsd fixes backported from debugging linux
-
-  Revision 1.17  2003/12/30 12:32:30  marco
-  *** empty log message ***
-
-  Revision 1.16  2003/11/19 17:11:40  marco
-   * termio unit
-
-  Revision 1.15  2003/11/19 10:12:02  marco
-   * more cleanups
-
-  Revision 1.14  2003/11/17 10:05:51  marco
-   * threads for FreeBSD. Not working tho
-
-  Revision 1.13  2003/11/14 16:21:59  marco
-   * linuxerror elimination
-
-  Revision 1.12  2003/11/09 12:00:16  marco
-   * pipe fix
-
-  Revision 1.11  2003/09/20 12:38:29  marco
-   * FCL now compiles for FreeBSD with new 1.1. Now Linux.
-
-  Revision 1.10  2003/09/15 20:08:49  marco
-   * small fixes. FreeBSD now cycles
-
-  Revision 1.9  2003/09/15 07:09:58  marco
-   * small fixes, round 1
-
-  Revision 1.8  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.7  2003/01/05 19:02:29  marco
-   * Should now work with baseunx. (gmake all works)
-
-  Revision 1.6  2002/10/18 12:19:59  marco
-   * Fixes to get the generic *BSD RTL compiling again + fixes for thread
-     support. Still problems left in fexpand. (inoutres?) Therefore fixed
-     sysposix not yet commited
-
-  Revision 1.5  2002/09/07 16:01:18  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/05/06 09:35:09  marco
-   * Some stuff from 1.0.x ported
+  Revision 1.8  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

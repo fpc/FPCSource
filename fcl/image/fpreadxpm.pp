@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     XPM reader class.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 

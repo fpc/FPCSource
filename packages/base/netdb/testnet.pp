@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     test netdb unit, network part
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -38,7 +38,7 @@ begin
   If GetNetworkByAddr(StrToHostAddr(Addr),N) then
     DumpNetEntry(N)
   else
-    Writeln('No entry for address ',Addr)  
+    Writeln('No entry for address ',Addr)
 end;
 
 Procedure TestName(Const Net : string);
@@ -50,7 +50,7 @@ begin
   If GetNetworkByName(Net,N) then
     DumpNetEntry(N)
   else
-    Writeln('No entry for netname ',Net)  
+    Writeln('No entry for netname ',Net)
 end;
 
 begin
@@ -60,7 +60,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-05-17 20:54:03  michael
-  + uriparser unit added. Header/Footer blocks added
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

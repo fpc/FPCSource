@@ -10,7 +10,7 @@ const
 
 type
   PPlongint = ^Plongint;
-  
+
   Part_u8 = ^art_u8;
   art_u8 = Byte;
   Part_u16 = ^art_u16;
@@ -171,7 +171,7 @@ procedure art_drect_svp(bbox:PArtDRect; svp:PArtSVP);cdecl;external libartdll na
 procedure art_drect_svp_union(bbox:PArtDRect; svp:PArtSVP);cdecl;external libartdll name 'art_drect_svp_union';
 
 (* ART bezier's *)
-function art_bezier_to_vec(x0:double; y0:double; x1:double; y1:double; x2:double; 
+function art_bezier_to_vec(x0:double; y0:double; x1:double; y1:double; x2:double;
            y2:double; x3:double; y3:double; p:PArtPoint; level:longint):PArtPoint;cdecl;external libartdll name 'art_bezier_to_vec';
 function art_bez_path_to_vec(bez:PArtBpath; flatness:double):PArtVpath;cdecl;external libartdll name 'art_bez_path_to_vec';
 function art_bpath_affine_transform(src:PArtBpath; matrix:Taffine_array):PArtBpath;cdecl;external libartdll name 'art_bpath_affine_transform';
@@ -197,7 +197,7 @@ procedure art_alphagamma_free(alphagamma:PArtAlphaGamma);cdecl;external libartdl
 
 
 (* ART SVP *)
-function art_svp_add_segment(p_vp:PPArtSVP; pn_segs_max:Plongint; pn_points_max:PPlongint; n_points:longint; dir:longint; 
+function art_svp_add_segment(p_vp:PPArtSVP; pn_segs_max:Plongint; pn_points_max:PPlongint; n_points:longint; dir:longint;
            points:PArtPoint; bbox:PArtDRect):longint;cdecl;external libartdll name 'art_svp_add_segment';
 procedure art_svp_free(svp:PArtSVP);cdecl;external libartdll name 'art_svp_free';
 function art_svp_seg_compare(s1:pointer; s2:pointer):longint;cdecl;external libartdll name 'art_svp_seg_compare';
@@ -210,25 +210,25 @@ function art_svp_minus(svp1:PArtSVP; svp2:PArtSVP):PArtSVP;cdecl;external libart
 function art_svp_point_wind(svp:PArtSVP; x:double; y:double):longint;cdecl;external libartdll name 'art_svp_point_wind';
 function art_svp_point_dist(svp:PArtSVP; x:double; y:double):double;cdecl;external libartdll name 'art_svp_point_dist';
 
-procedure art_svp_render_aa(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint; 
+procedure art_svp_render_aa(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint;
             callback: Tart_svp_render_aa_callback; callback_data:pointer);cdecl;external libartdll name 'art_svp_render_aa';
 
 function art_svp_from_vpath(vpath:PArtVpath):PArtSVP;cdecl;external libartdll name 'art_svp_from_vpath';
 
-function art_svp_vpath_stroke(vpath:PArtVpath; join:TArtPathStrokeJoinType; cap:TArtPathStrokeCapType; line_width:double; miter_limit:double; 
+function art_svp_vpath_stroke(vpath:PArtVpath; join:TArtPathStrokeJoinType; cap:TArtPathStrokeCapType; line_width:double; miter_limit:double;
            flatness:double):PArtSVP;cdecl;external libartdll name 'art_svp_vpath_stroke';
-function art_svp_vpath_stroke_raw(vpath:PArtVpath; join:TArtPathStrokeJoinType; cap:TArtPathStrokeCapType; line_width:double; miter_limit:double; 
+function art_svp_vpath_stroke_raw(vpath:PArtVpath; join:TArtPathStrokeJoinType; cap:TArtPathStrokeCapType; line_width:double; miter_limit:double;
            flatness:double):PArtVpath;cdecl;external libartdll name 'art_svp_vpath_stroke_raw';
 
 function art_svp_uncross(vp:PArtSVP):PArtSVP;cdecl;external libartdll name 'art_svp_uncross';
 function art_svp_rewind_uncrossed(vp:PArtSVP; rule:TArtWindRule):PArtSVP;cdecl;external libartdll name 'art_svp_rewind_uncrossed';
 
 (* ART GRAY SVP *)
-procedure art_gray_svp_aa(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint; 
+procedure art_gray_svp_aa(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint;
             buf:Part_u8; rowstride:longint);cdecl;external libartdll name 'art_gray_svp_aa';
 
 (* ART VPATH *)
-procedure art_vpath_add_point(p_vpath:PPArtVpath; pn_points:Plongint; pn_points_max:Plongint; code:TArtPathcode; x:double; 
+procedure art_vpath_add_point(p_vpath:PPArtVpath; pn_points:Plongint; pn_points_max:Plongint; code:TArtPathcode; x:double;
   y:double);cdecl;external libartdll name 'art_vpath_add_point';
 function art_vpath_new_circle(x:double; y:double; r:double):PArtVpath;cdecl;external libartdll name 'art_vpath_new_circle';
 function art_vpath_affine_transform(src:PArtVpath; matrix:Taffine_array):PArtVpath;cdecl;external libartdll name 'art_vpath_affine_transform';
@@ -243,9 +243,9 @@ function art_pixbuf_new_rgb(pixels:Part_u8; width:longint; height:longint; rowst
 function art_pixbuf_new_rgba(pixels:Part_u8; width:longint; height:longint; rowstride:longint):PArtPixBuf;cdecl;external libartdll name 'art_pixbuf_new_rgba';
 function art_pixbuf_new_const_rgb(pixels:Part_u8; width:longint; height:longint; rowstride:longint):PArtPixBuf;cdecl;external libartdll name 'art_pixbuf_new_const_rgb';
 function art_pixbuf_new_const_rgba(pixels:Part_u8; width:longint; height:longint; rowstride:longint):PArtPixBuf;cdecl;external libartdll name 'art_pixbuf_new_const_rgba';
-function art_pixbuf_new_rgb_dnotify(pixels:Part_u8; width:longint; height:longint; rowstride:longint; dfunc_data:pointer; 
+function art_pixbuf_new_rgb_dnotify(pixels:Part_u8; width:longint; height:longint; rowstride:longint; dfunc_data:pointer;
            dfunc:TArtDestroyNotify):PArtPixBuf;cdecl;external libartdll name 'art_pixbuf_new_rgb_dnotify';
-function art_pixbuf_new_rgba_dnotify(pixels:Part_u8; width:longint; height:longint; rowstride:longint; dfunc_data:pointer; 
+function art_pixbuf_new_rgba_dnotify(pixels:Part_u8; width:longint; height:longint; rowstride:longint; dfunc_data:pointer;
            dfunc:TArtDestroyNotify):PArtPixBuf;cdecl;external libartdll name 'art_pixbuf_new_rgba_dnotify';
 procedure art_pixbuf_free(pixbuf:PArtPixBuf);cdecl;external libartdll name 'art_pixbuf_free';
 procedure art_pixbuf_free_shallow(pixbuf:PArtPixBuf);cdecl;external libartdll name 'art_pixbuf_free_shallow';
@@ -255,24 +255,24 @@ function art_pixbuf_duplicate(pixbuf:PArtPixBuf):PArtPixBuf;cdecl;external libar
 procedure art_rgb_fill_run(buf:Part_u8; r:art_u8; g:art_u8; b:art_u8; n:longint);cdecl;external libartdll name 'art_rgb_fill_run';
 procedure art_rgb_run_alpha(buf:Part_u8; r:art_u8; g:art_u8; b:art_u8; alpha:longint; n:longint);cdecl;external libartdll name 'art_rgb_run_alpha';
 
-procedure art_rgb_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint; 
-            dst_rowstride:longint; src:Part_u8; src_width:longint; src_height:longint; src_rowstride:longint; 
+procedure art_rgb_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint;
+            dst_rowstride:longint; src:Part_u8; src_width:longint; src_height:longint; src_rowstride:longint;
             affine:Taffine_array; level:TArtFilterLevel; alphagamma:PArtAlphaGamma);cdecl;external libartdll name 'art_rgb_affine';
 
-procedure art_rgb_bitmap_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint; 
-            dst_rowstride:longint; src:Part_u8; src_width:longint; src_height:longint; src_rowstride:longint; 
+procedure art_rgb_bitmap_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint;
+            dst_rowstride:longint; src:Part_u8; src_width:longint; src_height:longint; src_rowstride:longint;
             rgba:art_u32; affine:Taffine_array; level:TArtFilterLevel; alphagamma:PArtAlphaGamma);cdecl;external libartdll name 'art_rgb_bitmap_affine';
 
-procedure art_rgb_pixbuf_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint; 
+procedure art_rgb_pixbuf_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint;
             dst_rowstride:longint; pixbuf:PArtPixBuf; affine:Taffine_array; level:TArtFilterLevel; alphagamma:PArtAlphaGamma);cdecl;external libartdll name 'art_rgb_pixbuf_affine';
 
-procedure art_rgb_rgba_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint; 
-            dst_rowstride:longint; src:Part_u8; src_width:longint; src_height:longint; src_rowstride:longint; 
+procedure art_rgb_rgba_affine(dst:Part_u8; x0:longint; y0:longint; x1:longint; y1:longint;
+            dst_rowstride:longint; src:Part_u8; src_width:longint; src_height:longint; src_rowstride:longint;
             affine:Taffine_array; level:TArtFilterLevel; alphagamma:PArtAlphaGamma);cdecl;external libartdll name 'art_rgb_rgba_affine';
 
-procedure art_rgb_svp_aa(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint; 
+procedure art_rgb_svp_aa(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint;
             fg_color:art_u32; bg_color:art_u32; buf:Part_u8; rowstride:longint; alphagamma:PArtAlphaGamma);cdecl;external libartdll name 'art_rgb_svp_aa';
-procedure art_rgb_svp_alpha(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint; 
+procedure art_rgb_svp_alpha(svp:PArtSVP; x0:longint; y0:longint; x1:longint; y1:longint;
             rgba:art_u32; buf:Part_u8; rowstride:longint; alphagamma:PArtAlphaGamma);cdecl;external libartdll name 'art_rgb_svp_alpha';
 
 (* ART UTA *)
@@ -284,10 +284,10 @@ function art_uta_union(uta1:PArtUta; uta2:PArtUta):PArtUta;cdecl;external libart
 function art_uta_from_irect(bbox:PArtIRect):PArtUta;cdecl;external libartdll name 'art_uta_from_irect';
 function art_uta_from_svp(svp:PArtSVP):PArtUta;cdecl;external libartdll name 'art_uta_from_svp';
 function art_uta_from_vpath(vec:PArtVpath):PArtUta;cdecl;external libartdll name 'art_uta_from_vpath';
-procedure art_uta_add_line(uta:PArtUta; x0:double; y0:double; x1:double; y1:double; 
+procedure art_uta_add_line(uta:PArtUta; x0:double; y0:double; x1:double; y1:double;
             rbuf:Plongint; rbuf_rowstride:longint);cdecl;external libartdll name 'art_uta_add_line';
 function art_rect_list_from_uta(uta:PArtUta; max_width:longint; max_height:longint; p_nrects:Plongint):PArtIRect;cdecl;external libartdll name 'art_rect_list_from_uta';
-	    
+
 function ART_UTA_BBOX_CONS(x0,y0,x1,y1 : longint) : longint;
 function ART_UTA_BBOX_X0(ub : longint) : longint;
 function ART_UTA_BBOX_Y0(ub : longint) : longint;

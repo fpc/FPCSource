@@ -5,5 +5,5 @@ Program Example28;
 Uses sysutils;
 
 Begin
-  Writeln ('Current Directory is : ',GetCurrentDir); 
+  Writeln ('Current Directory is : ',GetCurrentDir);
 End.

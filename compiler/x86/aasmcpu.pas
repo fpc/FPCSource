@@ -2119,54 +2119,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2004-12-19 21:34:09  peter
-    * A_IMUL readwrite operand 1
-
-  Revision 1.64  2004/12/12 10:50:34  florian
-    * fixed operand size calculation for sse operands
-    + all nasm assembler targets to help page output added
-
-  Revision 1.63  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.62  2004/10/31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.61  2004/10/04 21:11:24  peter
-    * reverted a minor move in the order of tinschange. The order
-      is required by the optimizer. Added also a remark
-
-  Revision 1.60  2004/10/04 20:55:04  peter
-    * fix x86_64 compile
-
-  Revision 1.59  2004/10/04 20:46:22  peter
-    * spilling code rewritten for x86. It now used the generic
-      spilling routines. Special x86 optimization still needs
-      to be added.
-    * Spilling fixed when both operands needed to be spilled
-    * Cleanup of spilling routine, do_spill_readwritten removed
-
-  Revision 1.58  2004/09/27 15:12:47  peter
-    * IE when expecting top_ref
-
-  Revision 1.57  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.56  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.55.2.6  2004/06/13 10:51:17  florian
-    * fixed several register allocator problems (sparc/arm)
-
-  Revision 1.55.2.5  2004/05/02 19:08:01  florian
-    * rewrote tcgcallnode.handle_return_value
-
-  Revision 1.55.2.4  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
-
-  Revision 1.55.2.3  2004/04/27 18:18:26  peter
-    * aword -> aint
+  Revision 1.66  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -114,7 +114,7 @@ const
 (***********************************************************************
  * Overlay Manager types
  **********************************************************************)
- 
+
 // DOLATER kwk - decide how to deprecate this.
 type
   OmLocaleType = LmLocaleType;

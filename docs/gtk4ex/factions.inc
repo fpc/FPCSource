@@ -3,7 +3,7 @@ Procedure DoProperties(widget : pGtkWidget ; Window : PMainWindow); cdecl;
 Var i : longint;
     S : string;
     Dlg : PFilePropertiesDialog;
-    
+
 begin
   With Window^ do
     S:=AddTrailingSeparator(FDir)+GetFileFirstSelection(FileList);
@@ -15,7 +15,7 @@ Procedure DeleteFile(Widget : PGtkWidget; Window : PMainWindow); cdecl;
 
 Var i : longint;
     S : TStringList;
-    
+
 begin
   S:=TStringList.Create;
   Try
@@ -29,5 +29,5 @@ begin
     If S.Count>0 then
       RefreshFileView(Window);
     S.Free;
-  end;        
+  end;
 end;

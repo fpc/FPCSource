@@ -8,7 +8,7 @@ begin
   if b=0 then
    l:=-1
   else
-   l:=0;  
+   l:=0;
 end;
 
 var

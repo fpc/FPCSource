@@ -121,10 +121,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-05-10 09:55:00  peter
-    * fix loop variable
-
-  Revision 1.1  2002/09/15 09:53:05  carl
-    * initial revision of longjmp/setjmp testing
+  Revision 1.3  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

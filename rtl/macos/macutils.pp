@@ -61,7 +61,7 @@ function GetVolumeName(vRefNum: Integer; var volName: String): OSErr;
 
 function GetWorkingDirectoryVRefNum: Integer;
 
-{Find an application with the given creator, in any of the mounted volumes.} 
+{Find an application with the given creator, in any of the mounted volumes.}
 function FindApplication (creator: OSType; var fs: FSSpec): OSErr;
 
 {Launch the application given by applicationFileSpec. If toFront is true

@@ -45,28 +45,7 @@ function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysP
 
 {
   $Log$
-  Revision 1.2  2003-06-01 16:35:28  marco
-   * Several small fixes to harmonize the *BSD rtls and Linux.
-
-  Revision 1.1  2003/05/25 14:07:26  jonas
-    + added from linux
-
-  Revision 1.2  2003/05/11 16:07:55  jonas
-    * fixed mmap for non-i386 non-m68k architectures (not sure about
-      x86-64)
-
-  Revision 1.1  2002/12/22 16:00:28  jonas
-    + added syscallh.inc, adapted syscall.inc
-
-  Revision 1.3  2002/12/18 20:41:33  peter
-    * Threadvar support for Errno
-    * Fixed syscall error return check
-    * Uncommented Syscall with 6 parameters, only 5 were really set
-
-  Revision 1.2  2002/12/18 16:46:37  marco
-   * Some mods.
-
-  Revision 1.1  2002/11/16 15:37:47  marco
-   * TSysParam + result moved to -h
+  Revision 1.3  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

@@ -97,7 +97,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2005-02-06 13:06:20  peter
+  Revision 1.2  2005-02-14 17:13:32  peter
+    * truncate log
+
+  Revision 1.1  2005/02/06 13:06:20  peter
     * moved file and dir functions to sysfile/sysdir
     * win32 thread in systemunit
 

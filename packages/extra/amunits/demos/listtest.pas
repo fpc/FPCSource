@@ -140,11 +140,11 @@ END.
 
 {
   $Log$
-  Revision 1.1  2002-11-28 19:42:26  nils
-    * initial release
+  Revision 1.2  2005-02-14 17:13:19  peter
+    * truncate log
 
 }
 
-  
+
 
 

@@ -4,8 +4,8 @@
     $Id$
     This file is part of the Free Component Library (FCL)
     Copyright (c) 2004 by Dean Zobec, Michael Van Canneyt
-    
-    unit tests of the FPCUnit framework. 
+
+    unit tests of the FPCUnit framework.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -280,8 +280,8 @@ begin
        begin
          failureIntercepted := True;
          if (E.Message <> ExpectedMessage) then
-	   raise EAssertionFailedError.Create('Wrong failure message: expected <'+ ExpectedMessage + '>'
-	     + 'but was <' + E.Message +'>');
+           raise EAssertionFailedError.Create('Wrong failure message: expected <'+ ExpectedMessage + '>'
+             + 'but was <' + E.Message +'>');
        end
     else
       raise;
@@ -370,7 +370,7 @@ begin
     AssertNull(obj);
   finally
     obj.Free;
-  end;  
+  end;
 end;
 
 procedure TAssertTest.FailAssertNotNull;
@@ -383,7 +383,7 @@ end;
 
 procedure TAssertTest.TestFailEqualsInt;
 begin
-  InterceptFailure(@FailEqualsInt, ' expected: <33> but was: <34>');  
+  InterceptFailure(@FailEqualsInt, ' expected: <33> but was: <34>');
 end;
 
 procedure TAssertTest.TestFailEqualsInt64;
@@ -423,7 +423,7 @@ begin
   InterceptFailure(@FailEqualsTObject, ' expected: <'+ IntToStr(PtrInt(FA)) +
     '> but was: <' + IntToStr(PtrInt(FB))+ '>');
   FA.Free;
-  FB.Free;  
+  FB.Free;
 end;
 
 procedure TAssertTest.TestFailNull;
@@ -448,7 +448,7 @@ end;
 
 procedure TAssertTest.TestComparisonMsg;
 begin
-  AssertEquals(' expected: <expectedstring> but was: <actualstring>', 
+  AssertEquals(' expected: <expectedstring> but was: <actualstring>',
     ComparisonMsg('expectedstring', 'actualstring'));
 end;
 
@@ -500,7 +500,7 @@ begin
 end;
 
 procedure TExampleTest.TestOne;
-var 
+var
   i: integer;
 begin
   i := 1;
@@ -523,7 +523,7 @@ begin
   FResult := TTestResult.Create;
   FResult.AddListener(FMockListener);
 end;
-    
+
 procedure TListenerTest.TearDown;
 begin
   FMockListener.Free;
@@ -531,7 +531,7 @@ begin
 end;
 
 procedure TListenerTest.TestStartAndEndTest;
-var 
+var
   t: TTestCase;
 begin
   t := TExampleTest.CreateWith('TestOne','TExampleTest');
@@ -556,12 +556,12 @@ begin
     FMockListener.Verify(FMockListener.FErrorList);
   finally
     t.Free;
-  end;  
+  end;
 end;
 
 
 procedure TListenerTest.TestAddFailure;
-var 
+var
   t: TTestCase;
 begin
   t := TExampleTest.CreateWith('TestWithFailure', 'TExampleTest');
@@ -571,7 +571,7 @@ begin
     FMockListener.Verify(FMockListener.FFailureList);
   finally
     t.Free;
-  end;    
+  end;
 end;
 
 end.

@@ -3,10 +3,10 @@ const
 
 var
   a, b: array[0..512] of byte;
-      
+
 procedure test_forward_move;
 var
-  i, j, k: longint;   
+  i, j, k: longint;
   l: longint;
 begin
   for i := 0 to 512 do
@@ -58,7 +58,7 @@ end;
 
 procedure test_backward_move;
 var
-  i, j, k: longint;   
+  i, j, k: longint;
   l: longint;
 begin
   for i := 0 to 128 do

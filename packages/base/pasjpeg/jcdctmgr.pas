@@ -37,7 +37,7 @@ implementation
 type
   my_fdct_ptr = ^my_fdct_controller;
   my_fdct_controller = record
-    pub : jpeg_forward_dct;	{ public fields }
+    pub : jpeg_forward_dct;     { public fields }
 
     { Pointer to the DCT routine actually in use }
     do_dct : forward_DCT_method_ptr;
@@ -76,14 +76,14 @@ const
   CONST_BITS = 14;
   aanscales : array[0..DCTSIZE2-1] of INT16 =
          ({ precomputed values scaled up by 14 bits }
-	  16384, 22725, 21407, 19266, 16384, 12873,  8867,  4520,
-	  22725, 31521, 29692, 26722, 22725, 17855, 12299,  6270,
-	  21407, 29692, 27969, 25172, 21407, 16819, 11585,  5906,
-	  19266, 26722, 25172, 22654, 19266, 15137, 10426,  5315,
-	  16384, 22725, 21407, 19266, 16384, 12873,  8867,  4520,
-	  12873, 17855, 16819, 15137, 12873, 10114,  6967,  3552,
-	   8867, 12299, 11585, 10426,  8867,  6967,  4799,  2446,
-	   4520,  6270,  5906,  5315,  4520,  3552,  2446,  1247);
+          16384, 22725, 21407, 19266, 16384, 12873,  8867,  4520,
+          22725, 31521, 29692, 26722, 22725, 17855, 12299,  6270,
+          21407, 29692, 27969, 25172, 21407, 16819, 11585,  5906,
+          19266, 26722, 25172, 22654, 19266, 15137, 10426,  5315,
+          16384, 22725, 21407, 19266, 16384, 12873,  8867,  4520,
+          12873, 17855, 16819, 15137, 12873, 10114,  6967,  3552,
+           8867, 12299, 11585, 10426,  8867,  6967,  4799,  2446,
+           4520,  6270,  5906,  5315,  4520,  3552,  2446,  1247);
   {SHIFT_TEMPS}
 
   { Descale and correctly round an INT32 value that's scaled by N bits.
@@ -135,14 +135,14 @@ begin
 
       if (fdct^.divisors[qtblno] = NIL) then
       begin
-	fdct^.divisors[qtblno] := DCTELEM_FIELD_PTR(
-	  cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				      DCTSIZE2 * SIZEOF(DCTELEM)) );
+        fdct^.divisors[qtblno] := DCTELEM_FIELD_PTR(
+          cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
+                                      DCTSIZE2 * SIZEOF(DCTELEM)) );
       end;
       dtbl := fdct^.divisors[qtblno];
       for i := 0 to pred(DCTSIZE2) do
       begin
-	dtbl^[i] := (DCTELEM(qtbl^.quantval[i])) shl 3;
+        dtbl^[i] := (DCTELEM(qtbl^.quantval[i])) shl 3;
       end;
     end;
 {$endif}
@@ -156,52 +156,52 @@ begin
           We apply a further scale factor of 8. }
 
 
-	if (fdct^.divisors[qtblno] = NIL) then
+        if (fdct^.divisors[qtblno] = NIL) then
         begin
-	  fdct^.divisors[qtblno] := DCTELEM_FIELD_PTR(
-	    cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-					DCTSIZE2 * SIZEOF(DCTELEM)) );
-	end;
-	dtbl := fdct^.divisors[qtblno];
-	for i := 0 to pred(DCTSIZE2) do
+          fdct^.divisors[qtblno] := DCTELEM_FIELD_PTR(
+            cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
+                                        DCTSIZE2 * SIZEOF(DCTELEM)) );
+        end;
+        dtbl := fdct^.divisors[qtblno];
+        for i := 0 to pred(DCTSIZE2) do
         begin
-	  dtbl^[i] := DCTELEM(
+          dtbl^[i] := DCTELEM(
                      {MULTIPLY16V16}
-	    DESCALE( INT32(qtbl^.quantval[i]) * INT32 (aanscales[i]),
-		     CONST_BITS-3) );
-	end;
+            DESCALE( INT32(qtbl^.quantval[i]) * INT32 (aanscales[i]),
+                     CONST_BITS-3) );
+        end;
       end;
 {$endif}
 {$ifdef DCT_FLOAT_SUPPORTED}
 
     JDCT_FLOAT:
       begin
-	{ For float AA&N IDCT method, divisors are equal to quantization
-	  coefficients scaled by scalefactor[row]*scalefactor[col], where
-	    scalefactor[0] := 1
-	    scalefactor[k] := cos(k*PI/16) * sqrt(2)    for k=1..7
-	  We apply a further scale factor of 8.
-	  What's actually stored is 1/divisor so that the inner loop can
-	  use a multiplication rather than a division. }
+        { For float AA&N IDCT method, divisors are equal to quantization
+          coefficients scaled by scalefactor[row]*scalefactor[col], where
+            scalefactor[0] := 1
+            scalefactor[k] := cos(k*PI/16) * sqrt(2)    for k=1..7
+          We apply a further scale factor of 8.
+          What's actually stored is 1/divisor so that the inner loop can
+          use a multiplication rather than a division. }
 
-	if (fdct^.float_divisors[qtblno] = NIL) then
+        if (fdct^.float_divisors[qtblno] = NIL) then
         begin
-	  fdct^.float_divisors[qtblno] := FAST_FLOAT_FIELD_PTR(
-	    cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-					DCTSIZE2 * SIZEOF(FAST_FLOAT)) );
-	end;
-	fdtbl := fdct^.float_divisors[qtblno];
-	i := 0;
-	for row := 0 to pred(DCTSIZE) do
+          fdct^.float_divisors[qtblno] := FAST_FLOAT_FIELD_PTR(
+            cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
+                                        DCTSIZE2 * SIZEOF(FAST_FLOAT)) );
+        end;
+        fdtbl := fdct^.float_divisors[qtblno];
+        i := 0;
+        for row := 0 to pred(DCTSIZE) do
         begin
-	  for col := 0 to pred(DCTSIZE) do
+          for col := 0 to pred(DCTSIZE) do
           begin
-	    fdtbl^[i] := {FAST_FLOAT}
-	      (1.0 / (( {double}(qtbl^.quantval[i]) *
-		       aanscalefactor[row] * aanscalefactor[col] * 8.0)));
-	    Inc(i);
-	  end;
-	end;
+            fdtbl^[i] := {FAST_FLOAT}
+              (1.0 / (( {double}(qtbl^.quantval[i]) *
+                       aanscalefactor[row] * aanscalefactor[col] * 8.0)));
+            Inc(i);
+          end;
+        end;
       end;
 {$endif}
     else
@@ -221,18 +221,18 @@ end;
 {METHODDEF}
 procedure forward_DCT (cinfo : j_compress_ptr;
                        compptr : jpeg_component_info_ptr;
-	               sample_data : JSAMPARRAY;
+                       sample_data : JSAMPARRAY;
                        coef_blocks : JBLOCKROW;
-	               start_row : JDIMENSION;
+                       start_row : JDIMENSION;
                        start_col : JDIMENSION;
-	               num_blocks : JDIMENSION); far;
+                       num_blocks : JDIMENSION); far;
 { This version is used for integer DCT implementations. }
 var
   { This routine is heavily used, so it's worth coding it tightly. }
   fdct : my_fdct_ptr;
   do_dct : forward_DCT_method_ptr;
   divisors : DCTELEM_FIELD_PTR;
-  workspace : array[0..DCTSIZE2-1] of DCTELEM;	{ work area for FDCT subroutine }
+  workspace : array[0..DCTSIZE2-1] of DCTELEM;  { work area for FDCT subroutine }
   bi : JDIMENSION;
 var
   {register} workspaceptr : DCTELEMPTR;
@@ -251,7 +251,7 @@ begin
   do_dct := fdct^.do_dct;
   divisors := fdct^.divisors[compptr^.quant_tbl_no];
 
-  Inc(JSAMPROW_PTR(sample_data), start_row);	{ fold in the vertical offset once }
+  Inc(JSAMPROW_PTR(sample_data), start_row);    { fold in the vertical offset once }
 
   for bi := 0 to pred(num_blocks) do
   begin
@@ -262,7 +262,7 @@ begin
     for elemr := 0 to pred(DCTSIZE) do
     begin
       elemptr := @sample_data^[elemr]^[start_col];
-{$ifdef DCTSIZE_IS_8}		{ unroll the inner loop }
+{$ifdef DCTSIZE_IS_8}           { unroll the inner loop }
       workspaceptr^ := GETJSAMPLE(elemptr^) - CENTERJSAMPLE;
       Inc(workspaceptr);
       Inc(elemptr);
@@ -308,21 +308,21 @@ begin
       qval := divisors^[i];
       temp := workspace[i];
       { Divide the coefficient value by qval, ensuring proper rounding.
-	Since C does not specify the direction of rounding for negative
-	quotients, we have to force the dividend positive for portability.
+        Since C does not specify the direction of rounding for negative
+        quotients, we have to force the dividend positive for portability.
 
-	In most files, at least half of the output values will be zero
-	(at default quantization settings, more like three-quarters...)
-	so we should ensure that this case is fast.  On many machines,
-	a comparison is enough cheaper than a divide to make a special test
-	a win.  Since both inputs will be nonnegative, we need only test
-	for a < b to discover whether a/b is 0.
-	If your machine's division is fast enough, define FAST_DIVIDE. }
+        In most files, at least half of the output values will be zero
+        (at default quantization settings, more like three-quarters...)
+        so we should ensure that this case is fast.  On many machines,
+        a comparison is enough cheaper than a divide to make a special test
+        a win.  Since both inputs will be nonnegative, we need only test
+        for a < b to discover whether a/b is 0.
+        If your machine's division is fast enough, define FAST_DIVIDE. }
 
       if (temp < 0) then
       begin
-	temp := -temp;
-	Inc(temp, qval shr 1);	{ for rounding }
+        temp := -temp;
+        Inc(temp, qval shr 1);  { for rounding }
         {DIVIDE_BY(temp, qval);}
         {$ifdef FAST_DIVIDE}
           temp := temp div qval;
@@ -332,11 +332,11 @@ begin
           else
             temp := 0;
         {$endif}
-	temp := -temp;
+        temp := -temp;
       end
       else
       begin
-	Inc(temp, qval shr 1);	{ for rounding }
+        Inc(temp, qval shr 1);  { for rounding }
         {DIVIDE_BY(temp, qval);}
         {$ifdef FAST_DIVIDE}
           temp := temp div qval;
@@ -359,11 +359,11 @@ end;
 {METHODDEF}
 procedure forward_DCT_float (cinfo : j_compress_ptr;
                              compptr : jpeg_component_info_ptr;
-		             sample_data : JSAMPARRAY;
+                             sample_data : JSAMPARRAY;
                              coef_blocks : JBLOCKROW;
-		             start_row : JDIMENSION;
+                             start_row : JDIMENSION;
                              start_col : JDIMENSION;
-		             num_blocks : JDIMENSION); far;
+                             num_blocks : JDIMENSION); far;
 { This version is used for floating-point DCT implementations. }
 var
   { This routine is heavily used, so it's worth coding it tightly. }
@@ -389,7 +389,7 @@ begin
   do_dct := fdct^.do_float_dct;
   divisors := fdct^.float_divisors[compptr^.quant_tbl_no];
 
-  Inc(JSAMPROW_PTR(sample_data), start_row);	{ fold in the vertical offset once }
+  Inc(JSAMPROW_PTR(sample_data), start_row);    { fold in the vertical offset once }
 
   for bi := 0 to pred(num_blocks) do
   begin
@@ -399,7 +399,7 @@ begin
     for elemr := 0 to pred(DCTSIZE) do
     begin
       elemptr := @(sample_data^[elemr]^[start_col]);
-{$ifdef DCTSIZE_IS_8}		{ unroll the inner loop }
+{$ifdef DCTSIZE_IS_8}           { unroll the inner loop }
       workspaceptr^ := {FAST_FLOAT}(GETJSAMPLE(elemptr^) - CENTERJSAMPLE);
       Inc(workspaceptr);
       Inc(elemptr);
@@ -427,8 +427,8 @@ begin
 {$else}
       for elemc := pred(DCTSIZE) downto 0 do
       begin
-	workspaceptr^ := {FAST_FLOAT}(
-	  (GETJSAMPLE(elemptr^) - CENTERJSAMPLE) );
+        workspaceptr^ := {FAST_FLOAT}(
+          (GETJSAMPLE(elemptr^) - CENTERJSAMPLE) );
         Inc(workspaceptr);
         Inc(elemptr);
       end;
@@ -448,10 +448,10 @@ begin
       { Apply the quantization and scaling factor }
       temp := workspace[i] * divisors^[i];
       { Round to nearest integer.
-	Since C does not specify the direction of rounding for negative
-	quotients, we have to force the dividend positive for portability.
-	The maximum coefficient size is +-16K (for 12-bit data), so this
-	code should work for either 16-bit or 32-bit ints. }
+        Since C does not specify the direction of rounding for negative
+        quotients, we have to force the dividend positive for portability.
+        The maximum coefficient size is +-16K (for 12-bit data), so this
+        code should work for either 16-bit or 32-bit ints. }
       output_ptr^[i] := JCOEF ( int(Trunc (temp + {FAST_FLOAT}(16384.5))) - 16384);
     end;
     Inc(start_col, DCTSIZE);
@@ -471,7 +471,7 @@ var
 begin
   fdct := my_fdct_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_fdct_controller)) );
+                                SIZEOF(my_fdct_controller)) );
   cinfo^.fdct := jpeg_forward_dct_ptr (fdct);
   fdct^.pub.start_pass := start_pass_fdctmgr;
 

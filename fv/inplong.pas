@@ -306,8 +306,7 @@ end;
 end.
 {
  $Log$
- Revision 1.4  2004-12-19 20:20:48  hajny
-   * ObjType references constants from fvconsts
-
+ Revision 1.5  2005-02-14 17:13:18  peter
+   * truncate log
 
 }

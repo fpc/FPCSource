@@ -36,13 +36,13 @@ const
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_hintdirective,m_duplicate_names,m_hintdirective];
-          
+
 Begin
 end.
 
 {
   $Log$
-  Revision 1.1  2002-11-30 18:46:30  carl
-    + set testing
+  Revision 1.2  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

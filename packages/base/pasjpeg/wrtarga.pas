@@ -16,7 +16,7 @@ uses
   jerror,
   jinclude,
   jdmaster,
-  cdjpeg;		{ Common decls for cjpeg/djpeg applications }
+  cdjpeg;               { Common decls for cjpeg/djpeg applications }
 
 function jinit_write_targa (cinfo : j_decompress_ptr) : djpeg_dest_ptr;
 
@@ -42,10 +42,10 @@ implementation
 type
   tga_dest_ptr = ^tga_dest_struct;
   tga_dest_struct = record
-    pub : djpeg_dest_struct;	{ public fields }
+    pub : djpeg_dest_struct;    { public fields }
 
-    iobuffer : byteptr;		{ physical I/O buffer }
-    buffer_width : JDIMENSION;	{ width of one row }
+    iobuffer : byteptr;         { physical I/O buffer }
+    buffer_width : JDIMENSION;  { width of one row }
   end;
 
 {LOCAL}
@@ -61,33 +61,33 @@ begin
 
   if (num_colors > 0) then
   begin
-    targaheader[1] := 1;		{ color map type 1 }
+    targaheader[1] := 1;                { color map type 1 }
     targaheader[5] := byte (num_colors and $FF);
     targaheader[6] := byte (num_colors shr 8);
-    targaheader[7] := 24;	{ 24 bits per cmap entry }
+    targaheader[7] := 24;       { 24 bits per cmap entry }
   end;
 
   targaheader[12] := byte (cinfo^.output_width and $FF);
   targaheader[13] := byte (cinfo^.output_width shr 8);
   targaheader[14] := byte (cinfo^.output_height and $FF);
   targaheader[15] := byte (cinfo^.output_height shr 8);
-  targaheader[17] := $20;	{ Top-down, non-interlaced }
+  targaheader[17] := $20;       { Top-down, non-interlaced }
 
   if (cinfo^.out_color_space = JCS_GRAYSCALE) then
   begin
-    targaheader[2] := 3;		{ image type := uncompressed gray-scale }
-    targaheader[16] := 8;	{ bits per pixel }
+    targaheader[2] := 3;                { image type := uncompressed gray-scale }
+    targaheader[16] := 8;       { bits per pixel }
   end
   else
-  begin			{ must be RGB }
+  begin                 { must be RGB }
     if (num_colors > 0) then
     begin
-      targaheader[2] := 1;	{ image type = colormapped RGB }
+      targaheader[2] := 1;      { image type = colormapped RGB }
       targaheader[16] := 8;
     end
     else
     begin
-      targaheader[2] := 2;	{ image type = uncompressed RGB }
+      targaheader[2] := 2;      { image type = uncompressed RGB }
       targaheader[16] := 24;
     end;
   end;
@@ -102,7 +102,7 @@ end;
 {METHODDEF}
 procedure put_pixel_rows (cinfo : j_decompress_ptr;
                           dinfo : djpeg_dest_ptr;
-		          rows_supplied : JDIMENSION); far;
+                          rows_supplied : JDIMENSION); far;
 { used for unquantized full-color output }
 var
   dest : tga_dest_ptr;
@@ -128,7 +128,7 @@ end;
 {METHODDEF}
 procedure put_gray_rows (cinfo : j_decompress_ptr;
                          dinfo : djpeg_dest_ptr;
-	                 rows_supplied : JDIMENSION); far;
+                         rows_supplied : JDIMENSION); far;
 { used for grayscale OR quantized color output }
 var
   dest : tga_dest_ptr;
@@ -211,7 +211,7 @@ begin
         { We only support 8-bit colormap indexes, so only 256 colors }
         num_colors := cinfo^.actual_number_of_colors;
         if (num_colors > 256) then
-	  ERREXIT1(j_common_ptr(cinfo), JERR_TOO_MANY_COLORS, num_colors);
+          ERREXIT1(j_common_ptr(cinfo), JERR_TOO_MANY_COLORS, num_colors);
         write_header(cinfo, dinfo, num_colors);
         { Write the colormap.  Note Targa uses BGR byte order }
         outfile := dest^.pub.output_file;
@@ -261,7 +261,7 @@ begin
   { Create module interface object, fill in method pointers }
   dest := tga_dest_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr (cinfo), JPOOL_IMAGE,
-				  SIZEOF(tga_dest_struct)) );
+                                  SIZEOF(tga_dest_struct)) );
   dest^.pub.start_output := start_output_tga;
   dest^.pub.finish_output := finish_output_tga;
 

@@ -649,25 +649,7 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-11-05 22:32:28  peter
-    * merged xml updates from lazarus
-
-  Revision 1.5  2003/03/16 22:38:09  sg
-  * Added fragment parsing functions
-
-  Revision 1.4  2002/12/14 19:18:21  sg
-  * Improved whitespace handling (although it's still not perfect in all
-    cases)
-
-  Revision 1.3  2002/12/12 20:17:32  sg
-  * More WideString fixes
-
-  Revision 1.2  2002/12/12 13:43:38  michael
-  + Patches from peter to fix 1.1 compile
-
-  Revision 1.1  2002/12/11 21:06:07  sg
-  * Small cleanups
-  * Replaced htmldoc unit with dom_html unit
-  * Added SAX parser framework and SAX HTML parser
+  Revision 1.7  2005-02-14 17:13:18  peter
+    * truncate log
 
 }

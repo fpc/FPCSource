@@ -172,7 +172,7 @@ function do_filepos(handle : longint) : longint;
 var dosResult: LongInt;
 begin
   checkCTRLC;
-  do_filepos:=-1; 
+  do_filepos:=-1;
   if (handle<=0) then exit;
 
   { Seeking zero from OFFSET_CURRENT to find out where we are }
@@ -215,7 +215,7 @@ var currfilepos: longint;
 begin
   checkCTRLC;
   do_filesize:=-1;
-  if (handle<=0) then exit;  
+  if (handle<=0) then exit;
 
   currfilepos:=do_filepos(handle);
   { We have to do this twice, because seek returns the OLD position }
@@ -301,7 +301,7 @@ begin
   end;
 
   { append mode }
-  if ((Flags and $100)<>0) and 
+  if ((Flags and $100)<>0) and
       (FileRec(F).Handle<>UnusedHandle) then begin
     do_seekend(filerec(f).handle);
     filerec(f).mode:=fmoutput; {fool fmappend}
@@ -320,7 +320,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-07 21:30:12  peter
+   Revision 1.2  2005-02-14 17:13:30  peter
+     * truncate log
+
+   Revision 1.1  2005/02/07 21:30:12  peter
      * system unit updated
 
    Revision 1.1  2005/02/06 16:57:18  peter

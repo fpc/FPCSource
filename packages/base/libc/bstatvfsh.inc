@@ -16,7 +16,7 @@ type
        f_namemax : dword;
        __f_spare : array[0..5] of longint;
     end;
-  P_statvfs = ^_statvfs;  
+  P_statvfs = ^_statvfs;
 
   Pstatvfs64 = ^_statvfs64;
   _statvfs64 = record
@@ -35,7 +35,7 @@ type
        __f_spare : array[0..5] of longint;
     end;
   P_statvfs64 = ^_statvfs64;
-  
+
 Const
   ST_RDONLY = 1;
   ST_NOSUID = 2;
@@ -55,7 +55,7 @@ Const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-Type  
+Type
  TStatVFs = _statvfs;
   TStatVFs64 = _statvfs64;
-    
+

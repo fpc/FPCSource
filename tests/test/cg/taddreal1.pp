@@ -294,25 +294,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-03-13 11:07:50  florian
-    * improved test, previously it mainly tested integer comparisations
-
-  Revision 1.4  2003/04/26 16:44:10  florian
-    * released the code for all cpus, at least with i386, it works fine
-
-  Revision 1.3  2002/12/06 15:49:36  peter
-    * FPU emu is only needed for m68k
-
-  Revision 1.2  2002/09/07 15:40:49  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/08/25 19:26:23  peter
-    * splitted in $E+ file and without emulator
-
-  Revision 1.5  2002/04/13 21:02:38  carl
-  * fixed typos
-
-  Revision 1.4  2002/03/05 21:55:11  carl
-  * Adapted for automated testing
+  Revision 1.6  2005-02-14 17:13:35  peter
+    * truncate log
 
 }

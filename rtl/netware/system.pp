@@ -88,7 +88,7 @@ type
 
 procedure NWSysSetThreadFunctions (crs:TSysCloseAllRemainingSemaphores;
                                    rtv:TSysReleaseThreadVars;
-				   stdata:TSysSetThreadDataAreaPtr);
+                                   stdata:TSysSetThreadDataAreaPtr);
 
 function NWGetCodeStart : pointer;  // needed for lineinfo
 
@@ -488,107 +488,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.35  2005-02-06 16:57:18  peter
+  Revision 1.36  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.35  2005/02/06 16:57:18  peter
     * threads for go32v2,os,emx,netware
 
   Revision 1.34  2005/02/01 20:22:49  florian
     * improved widestring infrastructure manager
-
-  Revision 1.33  2004/12/07 11:04:42  armin
-  * fixed GetProcessId
-
-  Revision 1.32  2004/12/05 14:36:37  hajny
-    + GetProcessID added
-
-  Revision 1.31  2004/11/25 12:32:08  armin
-  * adapted to new compiler check for externals
-
-  Revision 1.30  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.29  2004/10/25 18:11:49  armin
-  * saveregisters no longer supported by compiler, for now save all registers in stackcheck
-
-  Revision 1.28  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.27  2004/09/26 19:25:49  armin
-  * exiting threads at nlm unload
-
-  Revision 1.26  2004/09/17 18:29:07  armin
-  * added NWGetCodeStart, needed for lineinfo
-
-  Revision 1.25  2004/09/03 19:26:27  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.24  2004/08/01 20:02:48  armin
-  * changed dir separator from \ to /
-  * long namespace by default
-  * dos.exec implemented
-  * getenv ('PATH') is now supported
-  * changed FExpand to global version
-  * fixed heaplist growth error
-  * support SysOSFree
-  * stackcheck was without saveregisters
-  * fpc can compile itself on netware
-
-  Revision 1.23  2004/07/30 15:05:25  armin
-  make netware rtl compilable under 1.9.5
-
-  Revision 1.22  2004/06/17 16:16:14  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.21  2004/01/20 23:11:20  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.20  2003/10/25 23:43:59  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.19  2003/10/17 22:12:02  olle
-    * changed i386 to cpui386
-
-  Revision 1.18  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.17  2003/03/25 18:17:54  armin
-  * support for fcl, support for linking without debug info
-  * renamed winsock2 to winsock for win32 compatinility
-  * new sockets unit for netware
-  * changes for compiler warnings
-
-  Revision 1.16  2003/02/15 19:12:54  armin
-  * changes for new threadvar support
-
-  Revision 1.15  2002/10/13 09:28:45  florian
-    + call to initvariantmanager inserted
-
-  Revision 1.14  2002/09/07 16:01:21  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.13  2002/07/01 16:29:05  peter
-    * sLineBreak changed to normal constant like Kylix
-
-  Revision 1.12  2002/04/15 18:47:34  carl
-  + reinstate novell stack checking
-
-  Revision 1.11  2002/04/12 17:40:11  carl
-  + generic stack checking
-
-  Revision 1.10  2002/04/01 15:20:08  armin
-  + unload module no longer shows: Module did not release...
-  + check-function will no longer be removed when smartlink is on
-
-  Revision 1.9  2002/04/01 10:47:31  armin
-  makefile.fpc for netware
-  stderr to netware console
-  free all memory (threadvars and heap) to avoid error message while unloading nlm
-
-  Revision 1.8  2002/03/30 09:09:47  armin
-  + support check-function for netware
-
-  Revision 1.7  2002/03/17 17:57:33  armin
-  + threads and winsock2 implemented
 
 }

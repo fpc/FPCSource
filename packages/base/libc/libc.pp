@@ -9,9 +9,9 @@ uses kerneldefs;
 Const
   clib = 'c';
   threadslib = 'pthread';
- 
-{$i glue.inc}           // C to Pascal type mappings 
-{$i endianh.inc}        // endian.h bits/endian.h 
+
+{$i glue.inc}           // C to Pascal type mappings
+{$i endianh.inc}        // endian.h bits/endian.h
 {$i typesh.inc}         // types.h sys/types.h
 {$i posixopth.inc}      // bits/posix_opt.h
 {$i stdinth.inc}        // stdint.h
@@ -57,7 +57,7 @@ Const
 {$i gconfigh.inc}       // _G_config.h
 {$i libioh.inc}         // libio.h
 {$i stdioh.inc}         // stdio.h
-{$i stdio_limh.inc}     // bits/stdio_lim.h 
+{$i stdio_limh.inc}     // bits/stdio_lim.h
 {$i stdio_exth.inc}     // stdio_ext.h
 {$i bconfnameh.inc}     // bits/confname.h
 {$i unistdh.inc}        // unistd.h
@@ -77,7 +77,7 @@ Const
 {$i stdlibh.inc}        // stdlib.h
 {$i malloch.inc}        // malloc.h
 {$i ssysinfoh.inc}      // sys/sysinfo.h
-{$i bdlfcnh.inc}        // bits/dlfcn.h 
+{$i bdlfcnh.inc}        // bits/dlfcn.h
 {$i dlfcnh.inc}         // dlfcn.h
 {$i localeh.inc}        // locale.h
 {$i nl_typesh.inc}      // nl_types.h
@@ -92,7 +92,7 @@ Const
 {$i wctypeh.inc}        // wctype.h
 {$i wcharh.inc}         // wchar.h
 {$i bwaitflagsh.inc}    // bits/waitflags.h
-{$i bwaitstatush.inc}   // bits/waitstatus.h 
+{$i bwaitstatush.inc}   // bits/waitstatus.h
 {$i swaith.inc}         // sys/wait.h
 {$i butsnameh.inc}      // bits/utsname.h
 {$i sutsnameh.inc}      // sys/utsname.h
@@ -105,7 +105,7 @@ Const
 {$i asockiosh.inc}      // asm/sockios.h
 {$i asocketh.inc}       // asm/socket.h
 {$i bsockaddrh.inc}     // bits/sockaddr.h (inlined in bits/socket.h)
-{$i bsocketh.inc}       // bits/socket.h 
+{$i bsocketh.inc}       // bits/socket.h
 {$i ssocketh.inc}       // sys/socket.h
 {$i sunh.inc}           // sys/un.h
 {$i ninh.inc}           // netinet/in.h
@@ -233,7 +233,7 @@ uses kernelioctl;
 {$i termios.inc}      // termios.h macros.
 {$i sttydefaults.inc} // sys/ttydefaults.h macros.
 {$i sraw.inc}         // sys/raw.h macros.
-{$i bwaitstatus.inc}  // bits/waitstatus.h macros. 
+{$i bwaitstatus.inc}  // bits/waitstatus.h macros.
 {$i ssyslog.inc}      // sys/syslog.h macros.
 {$i bsocket.inc}      // bits/socket.h macros.
 {$i sun.inc}          // sys/un.h macros.
@@ -243,7 +243,7 @@ uses kernelioctl;
 {$i nethernet.inc}    // net/ethernet.h macros.
 {$i nif_ppp.inc}      // net/if_ppp.h macros.
 {$i nroute.inc}       // net/route.h macros.
-{$i nip.inc}          // netinet/ip.h macros. 
+{$i nip.inc}          // netinet/ip.h macros.
 {$i nif_ether.inc}    // netinet/if_ether.h macros.
 {$i nicmp6.inc}       // netinet/icmp6.h macros.
 {$i nip_icmp.inc}     // netinet/ip_icmp.h macros.

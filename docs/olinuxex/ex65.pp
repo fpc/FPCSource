@@ -6,12 +6,12 @@ uses oldlinux;
 
 Var
    oa,na : PSigActionRec;
-   
+
 Procedure DoSig(sig : Longint);cdecl;
 
 begin
    writeln('Receiving signal: ',sig);
-end; 
+end;
 
 begin
    new(na);

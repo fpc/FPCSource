@@ -8,15 +8,15 @@ Type
 
 Const
   DNSErr : Integer = 0;
-   
+
 function getnetbyname ( Name : pchar) : PNetEntry;
 
-begin 
+begin
   DNSErr:=-1;
   Result:=Nil;
 end;
-    
-function getnetbyaddr ( Net : Longint; nettype : Longint) : PNetEntry; 
+
+function getnetbyaddr ( Net : Longint; nettype : Longint) : PNetEntry;
 
 begin
   DNSErr:=-2;
@@ -32,12 +32,12 @@ begin
     DNSErr:=0;
     end
   else
-    GetDNSError:=0; // Must get win32 error ?  
+    GetDNSError:=0; // Must get win32 error ?
 end;
 
 Function InitResolve : Boolean;
 
-var 
+var
    wsaData : TWsaData;
 
 begin

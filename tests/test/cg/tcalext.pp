@@ -776,36 +776,7 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-10-31 16:47:31  peter
-    * move extended size check to separate test
-
-  Revision 1.9  2002/11/18 16:48:00  pierre
-   + use KNOWNRUNERROR for i386 long double problem
-
-  Revision 1.8  2002/11/18 00:42:16  pierre
-   + records with really 3 byte size tests added
-
-  Revision 1.7  2002/11/17 21:46:17  peter
-    * fixed
-
-  Revision 1.6  2002/11/04 15:17:45  pierre
-   * compatibility with C checks improved
-
-  Revision 1.5  2002/09/07 15:40:51  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/08/25 19:28:07  peter
-    * fixed long double typo that was using double instead of extended
-
-  Revision 1.3  2002/05/04 16:56:54  carl
-  + var parameter testing
-  + function result testing
-  + floating point testing
-
-  Revision 1.2  2002/04/22 19:09:28  carl
-  + added structure testing
-
-  Revision 1.1  2002/04/13 21:03:43  carl
-  + C module testing (unfinished)
+  Revision 1.11  2005-02-14 17:13:36  peter
+    * truncate log
 
 }

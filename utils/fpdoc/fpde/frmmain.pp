@@ -4,7 +4,7 @@ unit frmmain;
 
 interface
 
-uses 
+uses
   gtk,gdk,fpgtk,fpgtkext,pgEditor,frmlink,sysutils,classes,fpdeopts;
 
 Const
@@ -115,7 +115,7 @@ Type
   end;
 
 Const
-  NodeNames : Array[TNodeType] of String 
+  NodeNames : Array[TNodeType] of String
             = ('file','package','module','element','topic');
 
 implementation
@@ -138,12 +138,12 @@ begin
   Result:=TFPGtkPixmap.CReate;
 {$ifdef debug}
   writeln('loading ','bitmaps'+directoryseparator+FN);
-{$endif}  
+{$endif}
   If FileExists('bitmaps'+directoryseparator+FN) then
     Result.LoadFromFile('bitmaps'+directoryseparator+FN)
-  else 
-    Result.loadFromArray(ImgArray);  
-    
+  else
+    Result.loadFromArray(ImgArray);
+
 end;
 
 Function TMainForm.FormatMenuItem(ACaption : String; tt : TTagType) : TFPgtkMenuItem;
@@ -170,8 +170,8 @@ begin
   {  File menu }
 {$ifdef debug}
   Writeln('Menu');
-{$endif}  
-//anAG : integer; aKey : guint; aMods 
+{$endif}
+//anAG : integer; aKey : guint; aMods
   FFileOpen:=NewMenuItem(SMenuOpen,'','',MakeAccelKeyDef(Self,FaccelGroup,GDK_O,[amcontrol]),@FileOpenClick,Nil);
   FFileNew:=NewMenuItem(SMenuNew,'','',MakeAccelKeyDef(Self,FaccelGroup,GDK_N,[amcontrol]),@FileNewClick,Nil);
   FFileNewFromFile:=NewMenuItem(SMenuNewFromSource,'','',@FileNewFromFileClick,Nil);
@@ -181,7 +181,7 @@ begin
   FFileClose:=NewMenuItem(SMenuClose,'','',MakeAccelKeyDef(Self,FaccelGroup,GDK_W,[amcontrol]),@FileCLoseClick,Nil);
   FFileExit:=NewMenuItem(SMenuExit,'','',MakeAccelKeyDef(Self,FaccelGroup,GDK_Q,[amcontrol]),@FileExitClick,Nil);
   FFileMenu:=NewSubMenu(SMenuFile,'','',[FFileNew,FFileNewFromFile,FFileOpen,FFileRecent,FFileSave,FFileSaveAs,FFileClose,NewLine,FFileExit]);
-  
+
   {  Insert menu }
   FInsertPackage:=NewMenuItem(SMenuInsertPackage,SHintInsertPackage,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_P,[amcontrol]),@InsertNodeClick,Pointer(ntpackage));
   FInsertModule:=NewMenuItem(SMenuInsertModule,SHintInsertModule,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_M,[amcontrol]),@InsertNodeClick,Pointer(ntmodule));
@@ -190,9 +190,9 @@ begin
   FinsertLink:=NewMenuItem(SMenuInsertLink,SHintInsertLink,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_L,[amcontrol]),@LinkClick,Nil);
   FinsertTable:=NewMenuItem(SMenuInsertTable,SHintInsertTable,'',MakeAccelKeyDef(Self,FaccelGroup,GDK_T,[amcontrol]),@TableClick,Nil);
   FInsertMenu:=NewSubMenu(SMenuInsert,'','',[FInsertPackage,FInsertModule,FInsertElement,NewLine,FInsertLink,FinsertTable]);
-  
+
   { Format menu }
-  
+
   FFormatBold:=FormatMenuItem(SMenuFormatBold,ttBold,MakeAccelKeyDef(Self,FaccelGroup,GDK_B,[amcontrol]));
   FFormatItalic:=FormatMenuItem(SMenuFormatItalics,ttItalic,MakeAccelKeyDef(Self,FaccelGroup,GDK_I,[amcontrol]));
   FFormatUnderline:=FormatMenuItem(SMenuFormatUnderline,ttUnderline,MakeAccelKeyDef(Self,FaccelGroup,GDK_U,[amcontrol]));
@@ -206,11 +206,11 @@ begin
 
   { Extra menu }
   FExtraOptions:=NewMenuItem(SMenuExtraOptions,SHMenuExtraOptions,'',@OptionsClick,Nil);
-  FExtraMenu:=NewSubMenu(SMenuExtra,'','',[FExtraOptions]);   
+  FExtraMenu:=NewSubMenu(SMenuExtra,'','',[FExtraOptions]);
 
   { Help menu }
   FHelpAbout:=NewMenuItem(SMenuHelpAbout,SHMenuHelpAbout,'',@HelpAboutClick,Nil);
-  FHelpMenu:=NewSubMenu(SMenuHelp,'','',[FHelpAbout]);   
+  FHelpMenu:=NewSubMenu(SMenuHelp,'','',[FHelpAbout]);
 
   FMenu:=NewMenuBar([FFileMenu,FInsertMenu,FFormatMenu,FExtraMenu,FHelpMenu]);
 {$ifdef debug}
@@ -345,9 +345,9 @@ begin
   I:=1;
   While I<=ParamCount do
     begin
-    If FileExists(ParamStr(i)) then 
+    If FileExists(ParamStr(i)) then
       OpenFile(Paramstr(I));
-    Inc(I);  
+    Inc(I);
     end;
 end;
 
@@ -488,7 +488,7 @@ begin
     end;
 end;
 
-Type 
+Type
   TSkeletonData = Record
     InputFile,
     OutputFile,
@@ -557,11 +557,11 @@ begin
             Result:=MessageDlg(SSkelErrorWithFile,[ExitStatus],mtWarning,mbYesNo,0)=mrYes
           else
             begin
-            MessageDlg(SSkelErrorWithoutFile,[ExitStatus],mtError,[mbOk],0);  
+            MessageDlg(SSkelErrorWithoutFile,[ExitStatus],mtError,[mbOk],0);
             Result:=False;
             end;
           end
-        else  
+        else
           Result:=FileExists(OutputFile);
       finally
         Free;
@@ -570,13 +570,13 @@ begin
 end;
 
 
-  
+
 Procedure TMainForm.FileNewFromFileClick(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   SkeletonData : TSkeletonData;
   CmdLine : String;
-  
+
 begin
   With TMakeSkelform.Create do
     begin
@@ -644,15 +644,15 @@ begin
               end;
     end
   else
-    E.Free;     
+    E.Free;
 end;
 
 Procedure TMainForm.FileSaveClick(Sender : TFPGtkObject; Data : Pointer);
-                                                                        
-begin                                                                   
+
+begin
   If Assigned(CurrentEditor) then
     SaveEditor(CurrentEditor);
-end;                                                                    
+end;
 
 Procedure TMainForm.FileSaveAsClick(Sender : TFPGtkObject; Data : Pointer);
 
@@ -701,7 +701,7 @@ Procedure TMainForm.InsertNodeClick(Sender : TFPGtkObject; Data : Pointer);
 
 Var
   S : AnsiString;
-  Nt : TNodeType;     
+  Nt : TNodeType;
 
 begin
   If (CurrentEditor<>Nil) then
@@ -719,7 +719,7 @@ begin
                       S:=S+SForModule+CurrentEditor.CurrentModule['name'];
                    If Assigned(CurrentEditor.CurrentElement) then
                      FENodeName.Selection:=CurrentEditor.CurrentElement['name'];
-                   end;   
+                   end;
         ntTopic : begin
                   if (CurrentEditor.CurrentTopic<>Nil) then
                       S:=S+SForTopic+CurrentEditor.CurrentPackage['name']
@@ -727,9 +727,9 @@ begin
                      S:=S+SForModule+CurrentEditor.CurrentModule['name']
                   else if (CurrentEditor.CurrentPackage<>Nil) then
                       S:=S+SForPackage+CurrentEditor.CurrentPackage['name']
-                  end;             
+                  end;
       end;
-      Title:=S;   
+      Title:=S;
       S:='';
       If Execute(Nil,@S,@GetNodeData)=drOK Then
         Case nt of
@@ -738,7 +738,7 @@ begin
           ntElement : CurrentEditor.NewElement(S);
           ntTopic   : CurrentEditor.NewTopic(S);
         end;
-      end;  
+      end;
     end;
 end;
 
@@ -787,7 +787,7 @@ Var
   LinkData : TLinkData;
   S : TstringList;
   L : TFPgtkListItemGroup;
-  
+
 begin
   If Assigned(CurrentEditor) then
     begin
@@ -800,7 +800,7 @@ begin
         L.FillFromList(S);
       finally
         S.Free;
-      end;    
+      end;
       With TLinkForm.Create do
         begin
         Title:=SInsertLink;
@@ -812,7 +812,7 @@ begin
         end;
     finally
       L.Free;
-    end;  
+    end;
     end;
 end;
 

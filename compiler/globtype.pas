@@ -319,7 +319,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2005-02-06 11:15:31  peter
+  Revision 1.70  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.69  2005/02/06 11:15:31  peter
     * removed $threading
 
   Revision 1.68  2005/01/23 21:09:12  florian
@@ -327,52 +330,5 @@ end.
 
   Revision 1.67  2005/01/04 16:20:51  florian
     * fixed nan et al. handling on arm
-
-  Revision 1.66  2004/12/27 16:35:48  peter
-    * set flag if a procedure references a symbol in staticsymtable
-
-  Revision 1.65  2004/12/15 21:08:15  peter
-    * disable inlining across units when the inline procedure references
-      a variable or procedure in the static symtable
-
-  Revision 1.64  2004/10/31 21:45:03  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.63  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.62  2004/10/15 09:14:16  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.61  2004/10/14 14:42:57  mazen
-  + Needed types aliases to merge USE_SYSUTILS branch
-
-  Revision 1.60  2004/09/26 17:45:30  peter
-    * simple regvar support, not yet finished
-
-  Revision 1.59  2004/07/14 23:19:22  olle
-    + added external facilities for macpas
-
-  Revision 1.58  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.57  2004/06/16 20:07:07  florian
-    * dwarf branch merged
-
-  Revision 1.56  2004/05/23 15:06:20  peter
-    * implicit_finally flag must be set in pass1
-    * add check whether the implicit frame is generated when expected
-
-  Revision 1.55  2004/05/23 14:32:17  peter
-    * tprocinfoflag moved to globtype
-
-  Revision 1.54  2004/05/02 11:48:46  peter
-    * strlenint is replaced with sizeint
-
-  Revision 1.53  2004/04/29 19:56:36  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
 
 }

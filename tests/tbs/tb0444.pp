@@ -6,7 +6,8 @@ function Trunc(const x : Single) : Integer;
 
 implementation
 
-function Trunc(const x : Single) : Integer; register;
+function Trunc(const x : Single) : Integer;
+ register;
 asm
 end;
 

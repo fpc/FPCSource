@@ -9,12 +9,12 @@ uses rttiobj,typinfo;
 Var
   O : TMyTestObject;
   PI : PPropInfo;
-  
+
 Function SetAsString (ASet : TMyEnums) : String;
 
-Var 
+Var
   i : TmyEnum;
-  
+
 begin
   result:='';
   For i:=mefirst to methird do
@@ -28,7 +28,7 @@ end;
 
 Var
   S : TMyEnums;
-  
+
 begin
   O:=TMyTestObject.Create;
   O.SetField:=[mefirst,meSecond,meThird];
@@ -37,7 +37,7 @@ begin
   Writeln('Ord(Value)                   : ',Longint(O.SetField));
   Writeln('Get (name)                   : ',GetSetProp(O,'SetField'));
   PI:=GetPropInfo(O,'SetField');
-  Writeln('Get (propinfo)               : ',GetSetProp(O,PI,false)); 
+  Writeln('Get (propinfo)               : ',GetSetProp(O,PI,false));
   S:=[meFirst,meThird];
   SetOrdProp(O,'SetField',Integer(S));
   Write('Set (name,[mefirst,methird]) : ');

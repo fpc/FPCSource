@@ -5,7 +5,7 @@ uses variants,varutils;
 
 Procedure TestReal;
 
-Var 
+Var
   V : Variant;
   R : Real;
 
@@ -18,7 +18,7 @@ end;
 
 Procedure TestDouble;
 
-Var 
+Var
   V : Variant;
   R : Double;
 
@@ -31,7 +31,7 @@ end;
 
 Procedure TestExtended;
 
-Var 
+Var
   V : Variant;
   R : Extended;
 
@@ -44,7 +44,7 @@ end;
 
 Procedure TestSingle;
 
-Var 
+Var
   V : Variant;
   R : Single;
 

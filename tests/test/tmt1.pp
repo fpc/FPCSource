@@ -5,9 +5,9 @@
 
 uses
   sysutils
-{$ifdef unix}  
-  ,cthreads  
-{$endif}  
+{$ifdef unix}
+  ,cthreads
+{$endif}
   ;
 
 const

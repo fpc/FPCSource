@@ -34,7 +34,7 @@ Type
     FOK,
     FCancel : TFPGtkButton;
     FButtonBox: TFPgtkHBox;
-  Public  
+  Public
     Constructor Create;
     Procedure CreateWindow;
     Procedure OnShow(Sender : TFpGtkObject;Data : Pointer);
@@ -66,7 +66,7 @@ ResourceString
   SOK               = 'OK';
   SCancel           = 'Cancel';
   SOptVerbose       = 'Be verbose';
-  
+
 Function MakeLabel(Caption : String) : TFPgtkLabel;
 
 begin
@@ -91,7 +91,7 @@ end;
 
 Function PackBox(W : TFpGtkWidget) : TFpGtkHbox;
 
-begin 
+begin
   Result:=TFPGtkHBox.Create;
   Result.PackStart(W,True,False,0);
 end;
@@ -102,7 +102,7 @@ Procedure ToptionsForm.CreateWindow;
 Var
   OH,OV : TgtkAttachOPtions;
   B : TfpgtkHbox;
-    
+
 begin
   FVBox:=TFPGtkVBox.Create;
   FVBox.Spacing:=4;
@@ -121,7 +121,7 @@ begin
   FLSubLocale:=MakeLabel(SOptSubLocale);
   FLUnitName:=MakeLabel(SOptUnitName);
 
-  FVerbose:=MakeCheck; 
+  FVerbose:=MakeCheck;
   FEscapePath:=MakeCheck;
   FCreateMsgFile:=MakeCheck;
   FCreateRCFile:=MakeCheck;
@@ -148,7 +148,7 @@ begin
   FTable.Attach(FUnitName                ,1,2,5,6,0,GTK_FILL,4,4);
   FTable.Attach(FLocale                  ,1,2,6,7,0,GTK_FILL,4,4);
   FTable.Attach(FSubLocale               ,1,2,7,8,0,GTK_FILL,4,4);
-  
+
   // button area
   FOK:=TFpGtkButton.CreateWithLabel(SOK);
   FOK.ConnectClicked(@SaveResult,Nil);
@@ -177,18 +177,18 @@ Procedure TOptionsForm.SaveResult(Sender : TFpgtkObject; Data : Pointer);
 
 begin
   CloseWithResult(Sender,IntToPointer(drOK));
-end;  
+end;
 
 Function  TOptionsForm.GetBoolProp (Index : Integer) : Boolean;
 
 begin
   Result:=False;
   Case Index of
-    1 : Result:=FCreateMsgFile.Active; 
-    2 : Result:=FCreatePasFile.Active; 
-    3 : Result:=FCreateRCFile.Active; 
-    4 : Result:=FEscapePath.Active; 
-    5 : Result:=FVerbose.Active; 
+    1 : Result:=FCreateMsgFile.Active;
+    2 : Result:=FCreatePasFile.Active;
+    3 : Result:=FCreateRCFile.Active;
+    4 : Result:=FEscapePath.Active;
+    5 : Result:=FVerbose.Active;
   end;
 end;
 
@@ -196,11 +196,11 @@ Procedure TOptionsForm.SetBoolProp (Index : Integer; Value : Boolean);
 
 begin
   Case Index of
-    1 : FCreateMsgFile.Active:=Value; 
-    2 : FCreatePasFile.Active:=Value; 
-    3 : FCreateRCFile.Active:=Value; 
-    4 : FEscapePath.Active:=Value; 
-    5 : FVerbose.Active:=Value; 
+    1 : FCreateMsgFile.Active:=Value;
+    2 : FCreatePasFile.Active:=Value;
+    3 : FCreateRCFile.Active:=Value;
+    4 : FEscapePath.Active:=Value;
+    5 : FVerbose.Active:=Value;
   end;
 end;
 
@@ -212,7 +212,7 @@ begin
     1 : Result:=Flocale.Text;
     2 : Result:=FSublocale.Text;
     3 : Result:=FUnitName.Text;
-  end;  
+  end;
 end;
 
 Procedure TOptionsForm.SetStringProp (Index : Integer; Value : String);
@@ -222,7 +222,7 @@ begin
     1 : Flocale.Text:=Value;
     2 : FSublocale.Text:=Value;
     3 : FUnitName.Text:=Value;
-  end;  
+  end;
 end;
 
 end.

@@ -42,7 +42,7 @@ const
 type
   c_derived_tbl_ptr = ^c_derived_tbl;
   c_derived_tbl = record
-    ehufco : array[0..256-1] of uInt;	{ code for each symbol }
+    ehufco : array[0..256-1] of uInt;   { code for each symbol }
     ehufsi : array[0..256-1] of byte;   { length of code for each symbol }
     { If no code has been allocated for a symbol S, ehufsi[S] contains 0 }
   end;
@@ -58,7 +58,7 @@ type
 procedure jpeg_make_c_derived_tbl (cinfo : j_compress_ptr;
                                    isDC : boolean;
                                    tblno : int;
-			           var pdtbl : c_derived_tbl_ptr);
+                                   var pdtbl : c_derived_tbl_ptr);
 
 { Generate the optimal coding for the given counts, fill htbl.
   Note this is also used by jcphuff.c. }
@@ -82,8 +82,8 @@ implementation
 
 type
   savable_state = record
-    put_buffer : INT32;		{ current bit-accumulation buffer }
-    put_bits : int;		{ # of bits now in it }
+    put_buffer : INT32;         { current bit-accumulation buffer }
+    put_bits : int;             { # of bits now in it }
     last_dc_val : array[0..MAX_COMPS_IN_SCAN-1] of int;
                                 { last DC coef for each component }
   end;
@@ -94,11 +94,11 @@ type
   huff_entropy_encoder = record
     pub : jpeg_entropy_encoder; { public fields }
 
-    saved : savable_state;	{ Bit buffer & DC state at start of MCU }
+    saved : savable_state;      { Bit buffer & DC state at start of MCU }
 
     { These fields are NOT loaded into local working state. }
-    restarts_to_go : uInt;	{ MCUs left in this restart interval }
-    next_restart_num : int;	{ next restart number to write (0-7) }
+    restarts_to_go : uInt;      { MCUs left in this restart interval }
+    next_restart_num : int;     { next restart number to write (0-7) }
 
     { Pointers to derived tables (these workspaces have image lifespan) }
     dc_derived_tbls : array[0..NUM_HUFF_TBLS-1] of c_derived_tbl_ptr;
@@ -118,9 +118,9 @@ type
 type
   working_state = record
     next_output_byte : JOCTETptr; { => next byte to write in buffer }
-    free_in_buffer : size_t;	  { # of byte spaces remaining in buffer }
-    cur : savable_state;	  { Current bit buffer & DC state }
-    cinfo : j_compress_ptr;	  { dump_buffer needs access to this }
+    free_in_buffer : size_t;      { # of byte spaces remaining in buffer }
+    cur : savable_state;          { Current bit buffer & DC state }
+    cinfo : j_compress_ptr;       { dump_buffer needs access to this }
   end;
 
 
@@ -182,20 +182,20 @@ begin
       { Check for invalid table indexes }
       { (make_c_derived_tbl does this in the other path) }
       if (dctbl < 0) or (dctbl >= NUM_HUFF_TBLS) then
-	ERREXIT1(j_common_ptr(cinfo), JERR_NO_HUFF_TABLE, dctbl);
+        ERREXIT1(j_common_ptr(cinfo), JERR_NO_HUFF_TABLE, dctbl);
       if (actbl < 0) or (actbl >= NUM_HUFF_TBLS) then
-	ERREXIT1(j_common_ptr(cinfo), JERR_NO_HUFF_TABLE, actbl);
+        ERREXIT1(j_common_ptr(cinfo), JERR_NO_HUFF_TABLE, actbl);
       { Allocate and zero the statistics tables }
       { Note that jpeg_gen_optimal_table expects 257 entries in each table! }
       if (entropy^.dc_count_ptrs[dctbl] = NIL) then
-	entropy^.dc_count_ptrs[dctbl] := TLongTablePtr(
-	  cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				      257 * SIZEOF(long)) );
+        entropy^.dc_count_ptrs[dctbl] := TLongTablePtr(
+          cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
+                                      257 * SIZEOF(long)) );
       MEMZERO(entropy^.dc_count_ptrs[dctbl], 257 * SIZEOF(long));
       if (entropy^.ac_count_ptrs[actbl] = NIL) then
-	entropy^.ac_count_ptrs[actbl] := TLongTablePtr(
-	  cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				      257 * SIZEOF(long)) );
+        entropy^.ac_count_ptrs[actbl] := TLongTablePtr(
+          cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
+                                      257 * SIZEOF(long)) );
       MEMZERO(entropy^.ac_count_ptrs[actbl], 257 * SIZEOF(long));
 {$endif}
     end
@@ -204,9 +204,9 @@ begin
       { Compute derived values for Huffman tables }
       { We may do this more than once for a table, but it's not expensive }
       jpeg_make_c_derived_tbl(cinfo, TRUE, dctbl,
-			      entropy^.dc_derived_tbls[dctbl]);
+                              entropy^.dc_derived_tbls[dctbl]);
       jpeg_make_c_derived_tbl(cinfo, FALSE, actbl,
-			      entropy^.ac_derived_tbls[actbl]);
+                              entropy^.ac_derived_tbls[actbl]);
     end;
     { Initialize DC predictions to 0 }
     entropy^.saved.last_dc_val[ci] := 0;
@@ -231,7 +231,7 @@ end;
 procedure jpeg_make_c_derived_tbl (cinfo : j_compress_ptr;
                                    isDC : boolean;
                                    tblno : int;
-			           var pdtbl : c_derived_tbl_ptr);
+                                   var pdtbl : c_derived_tbl_ptr);
 var
   htbl : JHUFF_TBL_PTR;
   dtbl : c_derived_tbl_ptr;
@@ -257,7 +257,7 @@ begin
   if (pdtbl = NIL) then
     pdtbl := c_derived_tbl_ptr(
       cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				  SIZEOF(c_derived_tbl)) );
+                                  SIZEOF(c_derived_tbl)) );
   dtbl := pdtbl;
 
   { Figure C.1: make table of Huffman code length for each symbol }
@@ -266,7 +266,7 @@ begin
   for l := 1 to 16 do
   begin
     i := int(htbl^.bits[l]);
-    if (i < 0) and (p + i > 256) then	{ protect against table overrun }
+    if (i < 0) and (p + i > 256) then   { protect against table overrun }
       ERREXIT(j_common_ptr(cinfo), JERR_BAD_HUFF_TABLE);
     while (i > 0) do
     begin
@@ -413,8 +413,8 @@ begin
       Inc(state.next_output_byte);
       Dec(state.free_in_buffer);
       if (state.free_in_buffer = 0) then
-	if not dump_buffer(state) then
-	begin
+        if not dump_buffer(state) then
+        begin
           emit_bits := FALSE;
           exit;
         end;
@@ -439,7 +439,7 @@ begin
     flush_bits := FALSE;
     exit;
   end;
-  state.cur.put_buffer := 0;	{ and reset bit-buffer to empty }
+  state.cur.put_buffer := 0;    { and reset bit-buffer to empty }
   state.cur.put_bits := 0;
   flush_bits := TRUE;
 end;
@@ -465,12 +465,12 @@ begin
 
   if (temp < 0) then
   begin
-    temp := -temp;		{ temp is abs value of input }
+    temp := -temp;              { temp is abs value of input }
     { For a negative input, want temp2 := bitwise complement of abs(input) }
     { This code assumes we are on a two's complement machine }
     Dec(temp2);
   end;
-  
+
   { Find the number of bits needed for the magnitude of the coefficient }
   nbits := 0;
   while (temp <> 0) do
@@ -503,7 +503,7 @@ begin
 
   { Encode the AC coefficients per section F.1.2.2 }
 
-  r := 0;			{ r := run length of zeros }
+  r := 0;                       { r := run length of zeros }
 
   for k := 1 to pred(DCTSIZE2) do
   begin
@@ -517,32 +517,32 @@ begin
       { if run length > 15, must emit special run-length-16 codes ($F0) }
       while (r > 15) do
       begin
-	if not emit_bits(state, actbl^.ehufco[$F0], actbl^.ehufsi[$F0]) then
+        if not emit_bits(state, actbl^.ehufco[$F0], actbl^.ehufsi[$F0]) then
         begin
           encode_one_block := FALSE;
           exit;
         end;
-	Dec(r, 16);
+        Dec(r, 16);
       end;
 
       temp2 := temp;
       if (temp < 0) then
       begin
-	temp := -temp;		{ temp is abs value of input }
-	{ This code assumes we are on a two's complement machine }
-	Dec(temp2);
+        temp := -temp;          { temp is abs value of input }
+        { This code assumes we are on a two's complement machine }
+        Dec(temp2);
       end;
 
       { Find the number of bits needed for the magnitude of the coefficient }
-      nbits := 0;		{ there must be at least one 1 bit }
+      nbits := 0;               { there must be at least one 1 bit }
       repeat
-	Inc(nbits);
+        Inc(nbits);
         temp := temp shr 1;
       until (temp = 0);
 
       { Check for out-of-range coefficient values }
       if (nbits > MAX_COEF_BITS) then
-	ERREXIT(j_common_ptr(state.cinfo), JERR_BAD_DCT_COEF);
+        ERREXIT(j_common_ptr(state.cinfo), JERR_BAD_DCT_COEF);
 
       { Emit Huffman symbol for run length / number of bits }
       i := (r shl 4) + nbits;
@@ -649,7 +649,7 @@ begin
     if (entropy^.restarts_to_go = 0) then
       if not emit_restart(state, entropy^.next_restart_num) then
       begin
-	encode_mcu_huff := FALSE;
+        encode_mcu_huff := FALSE;
         exit;
       end;
   end;
@@ -742,7 +742,7 @@ end;
 procedure htest_one_block (cinfo : j_compress_ptr;
                            const block : JBLOCK;
                            last_dc_val : int;
-		           dc_counts : TLongTablePtr;
+                           dc_counts : TLongTablePtr;
                            ac_counts : TLongTablePtr);
 
 var
@@ -774,7 +774,7 @@ begin
 
   { Encode the AC coefficients per section F.1.2.2 }
 
-  r := 0;			{ r := run length of zeros }
+  r := 0;                       { r := run length of zeros }
 
   for k := 1 to pred(DCTSIZE2) do
   begin
@@ -788,16 +788,16 @@ begin
       { if run length > 15, must emit special run-length-16 codes ($F0) }
       while (r > 15) do
       begin
-	Inc(ac_counts^[$F0]);
-	Dec(r, 16);
+        Inc(ac_counts^[$F0]);
+        Dec(r, 16);
       end;
 
       { Find the number of bits needed for the magnitude of the coefficient }
       if (temp < 0) then
-	temp := -temp;
+        temp := -temp;
 
       { Find the number of bits needed for the magnitude of the coefficient }
-      nbits := 0;		{ there must be at least one 1 bit }
+      nbits := 0;               { there must be at least one 1 bit }
       repeat
         Inc(nbits);
         temp := temp shr 1;
@@ -836,7 +836,7 @@ begin
     begin
       { Re-initialize DC predictions to 0 }
       for ci := 0 to pred(cinfo^.comps_in_scan) do
-	entropy^.saved.last_dc_val[ci] := 0;
+        entropy^.saved.last_dc_val[ci] := 0;
       { Update restart state }
       entropy^.restarts_to_go := cinfo^.restart_interval;
     end;
@@ -850,7 +850,7 @@ begin
     htest_one_block(cinfo, MCU_data[blkn]^[0],
                     entropy^.saved.last_dc_val[ci],
                     entropy^.dc_count_ptrs[compptr^.dc_tbl_no],
-		    entropy^.ac_count_ptrs[compptr^.ac_tbl_no]);
+                    entropy^.ac_count_ptrs[compptr^.ac_tbl_no]);
     entropy^.saved.last_dc_val[ci] := MCU_data[blkn]^[0][0];
   end;
 
@@ -890,7 +890,7 @@ procedure jpeg_gen_optimal_table (cinfo : j_compress_ptr;
                                   htbl : JHUFF_TBL_PTR;
                                   var freq : TLongTable);
 const
-  MAX_CLEN = 32;		{ assumed maximum initial code length }
+  MAX_CLEN = 32;                { assumed maximum initial code length }
 var
   bits : array[0..MAX_CLEN+1-1] of UINT8;  { bits[k] := # of symbols with code length k }
   codesize : array[0..257-1] of int;       { codesize[k] := code length of symbol k }
@@ -904,9 +904,9 @@ begin
   MEMZERO(@bits, SIZEOF(bits));
   MEMZERO(@codesize, SIZEOF(codesize));
   for i := 0 to 256 do
-    others[i] := -1;		{ init links to empty }
+    others[i] := -1;            { init links to empty }
 
-  freq[256] := 1;		{ make sure 256 has a nonzero count }
+  freq[256] := 1;               { make sure 256 has a nonzero count }
   { Including the pseudo-symbol 256 in the Huffman procedure guarantees
     that no real symbol is given code-value of all ones, because 256
     will be placed last in the largest codeword category. }
@@ -957,7 +957,7 @@ begin
       Inc(codesize[c1]);
     end;
 
-    others[c1] := c2;		{ chain c2 onto c1's tree branch }
+    others[c1] := c2;           { chain c2 onto c1's tree branch }
 
     { Increment the codesize of everything in c2's tree branch }
     Inc(codesize[c2]);
@@ -976,7 +976,7 @@ begin
       { The JPEG standard seems to think that this can't happen, }
       { but I'm paranoid... }
       if (codesize[i] > MAX_CLEN) then
-	ERREXIT(j_common_ptr(cinfo), JERR_HUFF_CLEN_OVERFLOW);
+        ERREXIT(j_common_ptr(cinfo), JERR_HUFF_CLEN_OVERFLOW);
 
       Inc(bits[codesize[i]]);
     end;
@@ -998,18 +998,18 @@ begin
     begin
       j := i - 2;               { find length of new prefix to be used }
       while (bits[j] = 0) do
-      	Dec(j);
+        Dec(j);
 
       Dec(bits[i], 2);          { remove two symbols }
       Inc(bits[i-1]);           { one goes in this length }
       Inc(bits[j+1], 2);        { two new symbols in this length }
-      Dec(bits[j]);		{ symbol of this length is now a prefix }
+      Dec(bits[j]);             { symbol of this length is now a prefix }
     end;
   end;
 
   { Delphi 2: FOR-loop variable 'i' may be undefined after loop }
   i := 16;                      { Nomssi: work around }
-  
+
   { Remove the count for the pseudo-symbol 256 from the largest codelength }
   while (bits[i] = 0) do        { find largest codelength still in use }
     Dec(i);
@@ -1029,8 +1029,8 @@ begin
     begin
       if (codesize[j] = i) then
       begin
-	htbl^.huffval[p] := UINT8 (j);
-	Inc(p);
+        htbl^.huffval[p] := UINT8 (j);
+        Inc(p);
       end;
     end;
   end;
@@ -1069,7 +1069,7 @@ begin
     begin
       htblptr := @(cinfo^.dc_huff_tbl_ptrs[dctbl]);
       if ( htblptr^ = NIL) then
-	htblptr^ := jpeg_alloc_huff_table(j_common_ptr(cinfo));
+        htblptr^ := jpeg_alloc_huff_table(j_common_ptr(cinfo));
       jpeg_gen_optimal_table(cinfo, htblptr^, entropy^.dc_count_ptrs[dctbl]^);
       did_dc[dctbl] := TRUE;
     end;
@@ -1077,7 +1077,7 @@ begin
     begin
       htblptr := @(cinfo^.ac_huff_tbl_ptrs[actbl]);
       if ( htblptr^ = NIL) then
-	htblptr^ := jpeg_alloc_huff_table(j_common_ptr(cinfo));
+        htblptr^ := jpeg_alloc_huff_table(j_common_ptr(cinfo));
       jpeg_gen_optimal_table(cinfo, htblptr^, entropy^.ac_count_ptrs[actbl]^);
       did_ac[actbl] := TRUE;
     end;
@@ -1097,7 +1097,7 @@ var
 begin
   entropy := huff_entropy_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(huff_entropy_encoder)) );
+                                SIZEOF(huff_entropy_encoder)) );
   cinfo^.entropy := jpeg_entropy_encoder_ptr (entropy);
   entropy^.pub.start_pass := start_pass_huff;
 

@@ -35,15 +35,15 @@ Type
    TKey   = longint;
    {$ENDIF}
    key_t  = TKey;
-   
+
 
 Const
   { IPC flags for get calls }
 
 {$ifdef FreeBSD}  // BSD_VISIBLE
-  IPC_R	     =  4 shl 6;
-  IPC_W	     =  2 shl 6;
-  IPC_M	     =  2 shl 12;
+  IPC_R      =  4 shl 6;
+  IPC_W      =  2 shl 6;
+  IPC_M      =  2 shl 12;
 {$endif}
 
   IPC_CREAT  =  1 shl 9;  { create if key is nonexistent }
@@ -63,7 +63,7 @@ Const
 
 type
   PIPC_Perm = ^TIPC_Perm;
-  {$ifdef FreeBSD} 
+  {$ifdef FreeBSD}
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -127,8 +127,8 @@ Type
      SHM_R      = 4 shl 6;
      SHM_W      = 2 shl 6;
 {$else}
-     SHM_R	= IPC_R;
-     SHM_W	= IPC_W;
+     SHM_R      = IPC_R;
+     SHM_W      = IPC_W;
 {$endif}
 
      SHM_RDONLY = 1 shl 12;
@@ -140,15 +140,15 @@ Type
      SHM_LOCK   = 11;
      SHM_UNLOCK = 12;
 
-{$ifdef FreeBSD}	// ipcs shmctl commands
+{$ifdef FreeBSD}        // ipcs shmctl commands
      SHM_STAT   = 13;
      SHM_INFO   = 14;
 {$endif}
-    
-type		// the shm*info kind is "kernel" only.
+
+type            // the shm*info kind is "kernel" only.
   PSHMinfo = ^TSHMinfo;
-  TSHMinfo = record		// comment under FreeBSD: do we really need
-				// this?	
+  TSHMinfo = record             // comment under FreeBSD: do we really need
+                                // this?
     shmmax : cint;
     shmmin : cint;
     shmmni : cint;
@@ -194,7 +194,7 @@ type
 
   PMSG = ^TMSG;
   TMSG = record
-{$ifndef FreeBSD}			// opague in FreeBSD
+{$ifndef FreeBSD}                       // opague in FreeBSD
     msg_next  : PMSG;
     msg_type  : Longint;
     msg_spot  : PChar;
@@ -244,7 +244,7 @@ type
 {$endif}
 
   PMSGbuf = ^TMSGbuf;
-  TMSGbuf = record		// called mymsg on freebsd and SVID manual
+  TMSGbuf = record              // called mymsg on freebsd and SVID manual
     mtype : longint;
     mtext : array[0..0] of char;
   end;
@@ -264,11 +264,11 @@ type
 {$else}
   PMSGinfo = ^TMSGinfo;
   TMSGinfo = record
-    msgmax,  
-    msgmni,  
-    msgmnb,  
-    msgtql,  
-    msgssz,  
+    msgmax,
+    msgmni,
+    msgmnb,
+    msgtql,
+    msgssz,
     msgseg  : cint;
   end;
 {$endif}
@@ -283,7 +283,7 @@ Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;
   ----------------------------------------------------------------------}
 
 const
-{$ifdef Linux}			// renamed to many name clashes
+{$ifdef Linux}                  // renamed to many name clashes
   SEM_UNDO = $1000;
   SEM_GETPID = 11;
   SEM_GETVAL = 12;
@@ -299,7 +299,7 @@ const
   SEM_SEMOPM = 32;
   SEM_SEMVMX = 32767;
 {$else}
-  SEM_UNDO = 1 shl 12; 
+  SEM_UNDO = 1 shl 12;
   MAX_SOPS = 5;
 
   SEM_GETNCNT = 3;   { Return the value of sempid {READ}  }
@@ -382,7 +382,7 @@ Type
    case cint of
       0 : ( val : cint );
       1 : ( buf : PSEMid_ds );
-      2 : ( arr : PWord );		// ^ushort
+      2 : ( arr : PWord );              // ^ushort
 {$ifdef linux}
       3 : ( padbuf : PSeminfo );
       4 : ( padpad : pointer );
@@ -417,13 +417,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-04-25 19:15:43  marco
-   * IPC reform
-
-  Revision 1.5  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.4  2002/09/07 16:01:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.10  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

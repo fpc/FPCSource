@@ -150,7 +150,7 @@ type
    public
      ErrorCode: Longint;
    end;
-   
+
    ESafecallException = class(Exception);
    ENoThreadSupport = Class(Exception);
 
@@ -232,7 +232,10 @@ Type
 
 {
   $Log$
-  Revision 1.12  2005-02-03 18:40:02  florian
+  Revision 1.13  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.12  2005/02/03 18:40:02  florian
     * compilation with 1.0.x fixed
     + infrastructure for WideCompareText implemented
 
@@ -241,48 +244,5 @@ Type
 
   Revision 1.10  2005/02/01 20:22:50  florian
     * improved widestring infrastructure manager
-
-  Revision 1.9  2004/08/31 11:03:35  michael
-  + Some capitalization added for documentation purposes
-
-  Revision 1.8  2004/08/31 10:34:11  michael
-  + Some capitalization added for documentation purposes
-
-  Revision 1.7  2004/01/28 22:09:52  peter
-    * EOSError.errorcode change to Longint which is more compatible
-      with unix platforms
-
-  Revision 1.6  2004/01/05 22:37:24  florian
-    * changed sysutils.exec to ExecuteProcess
-
-  Revision 1.5  2003/11/26 22:17:42  michael
-  + Merged fixbranch fixes, missing in main branch
-
-  Revision 1.4  2003/11/26 20:12:08  michael
-  + New runerror 231 (exception stack error) and 232 (nothread support)
-
-  Revision 1.3  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.2  2003/10/25 23:43:59  hajny
-    * THandle in sysutils common using System.THandle
-
-  Revision 1.1  2003/10/06 21:01:06  peter
-    * moved classes unit to rtl
-
-  Revision 1.20  2003/09/06 20:49:54  marco
-   * Two minimal VP fixes
-
-  Revision 1.19  2003/01/01 20:58:07  florian
-    + added invalid instruction exception
-
-  Revision 1.18  2002/10/07 19:43:24  florian
-    + empty prototypes for the AnsiStr* multi byte functions added
-
-  Revision 1.17  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.16  2002/01/25 17:42:03  peter
-    * interface helpers
 
 }

@@ -6,9 +6,9 @@ Uses Objects;
 
 Var L : String;
     P : PString;
-    S : PMemoryStream; 
+    S : PMemoryStream;
     I,InitMem : Longint;
-       
+
 begin
   initMem:=Memavail;
   L:='Some constant string';
@@ -16,7 +16,7 @@ begin
   S:=New(PMemoryStream,Init(1000,100));
   Writeln ('Free memory : ',Memavail);
   Writeln ('Writing 100 times "',L,'" to stream.');
-  For I:=1 to 100 do 
+  For I:=1 to 100 do
     S^.WriteStr(@L);
   Writeln ('Finished. Free memory : ',Memavail);
   S^.Seek(100);

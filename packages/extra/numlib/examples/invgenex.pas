@@ -32,8 +32,7 @@ end.
 {
 
 $Log$
-Revision 1.1  2004-04-18 14:47:11  marco
- * initial versions
-
+Revision 1.2  2005-02-14 17:13:21  peter
+  * truncate log
 
 }

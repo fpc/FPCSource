@@ -28,7 +28,7 @@ begin
     Move(P^,Res[1],Length(Sub));
     Writeln('Found at pos ',(P-PChar(S)),' : ',Res);
     end;
-end;  
+end;
 
 Procedure DoTests(Sub : String; O : TStringSearchOptions);
 
@@ -62,5 +62,5 @@ begin
   DoAllTests('very');
   DoAllTests('Very');
   DoAllTests('in');
-  DoAllTests('In'); 
+  DoAllTests('In');
 end.

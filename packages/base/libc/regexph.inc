@@ -13,90 +13,90 @@ const
      loc2 : Pchar;cvar;external;
      locs : Pchar;cvar;external;
 {$ifndef __DO_NOT_DEFINE_COMPILE}
-(* error 
+(* error
 {
  in declarator_list *)
   var
  : char;
-(* error 
+(* error
   size_t __input_size = 0;
  in declarator_list *)
-(* error 
+(* error
   size_t __current_size = 0;
  in declarator_list *)
      __ch : longint;cvar;public;
      __error : longint;cvar;public;
-(* error 
+(* error
   regex_t *__expr_ptr;
  in declarator_list *)
 {$if defined __GNUC__ && __GNUC__ >= 2}
-(* error 
+(* error
   const size_t __req = __alignof__ (regex_t *);
  in declarator_list *)
 {$else}
-(* error 
+(* error
   const size_t __req = 8;
  in declarator_list *)
 {$endif}
-(* error 
+(* error
   expbuf += __req;
 in declaration at line 122 *)
-(* error 
+(* error
   expbuf -= (expbuf - ((char *) 0)) % __req;
 in declaration at line 123 *)
-(* error 
+(* error
   if (endbuf < expbuf + sizeof (regex_t))
  in declarator_list *)
-(* error 
+(* error
     }
 in declaration at line 128 *)
-(* error 
+(* error
   __expr_ptr->buffer = expbuf + sizeof (regex_t);
-(* error 
+(* error
   __expr_ptr->buffer = expbuf + sizeof (regex_t);
  in declarator_list *)
-(* error 
+(* error
   __expr_ptr->allocated = endbuf -  (char *) __expr_ptr->buffer;
-(* error 
+(* error
   __expr_ptr->allocated = endbuf -  (char *) __expr_ptr->buffer;
  in declarator_list *)
-(* error 
+(* error
   while ((__ch = (GETC ())) != eof)
  in declarator_list *)
-(* error 
-	  break;
+(* error
+          break;
 in declaration at line 139 *)
-(* error 
-	}
+(* error
+        }
 in declaration at line 144 *)
-(* error 
-	  char *__new_room = (char *) alloca (__new_size);
+(* error
+          char *__new_room = (char *) alloca (__new_size);
  in declarator_list *)
-(* error 
-	  if (__new_room + __new_size == __input_buffer)
+(* error
+          if (__new_room + __new_size == __input_buffer)
  in declarator_list *)
-(* error 
-	      __input_buffer = (char *) memcpy (__new_room, __input_buffer,
+(* error
+              __input_buffer = (char *) memcpy (__new_room, __input_buffer,
 in declaration at line 151 *)
-(* error 
-	    }
+(* error
+            }
 in declaration at line 154 *)
-(* error 
-	    {
+(* error
+            {
 in declaration at line 157 *)
-(* error 
-	      __input_buffer = (char *) memcpy (__new_room, __input_buffer,
+(* error
+              __input_buffer = (char *) memcpy (__new_room, __input_buffer,
 in declaration at line 159 *)
-(* error 
-	    }
+(* error
+            }
 in declaration at line 162 *)
-(* error 
+(* error
     }
 in declaration at line 164 *)
-(* error 
+(* error
   __error = regcomp (__expr_ptr, __input_buffer, REG_NEWLINE);
 in declaration at line 167 *)
-(* error 
+(* error
   if (__error != 0)
  in declarator_list *)
       var
@@ -106,13 +106,13 @@ in declaration at line 167 *)
          REG_EBRACE : case;cvar;public;
          REG_BADBR : case;cvar;public;
          REG_ERANGE : case;cvar;public;
-(* error 
+(* error
       case REG_ESIZE:
  in declarator_list *)
-(* error 
+(* error
       }
 in declaration at line 200 *)
-(* error 
+(* error
 }
 {$endif}
 in declaration at line 210 *)
@@ -125,4 +125,4 @@ function advance(__string:Pchar; __expbuf:Pchar):longint;cdecl;external clib nam
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

@@ -754,54 +754,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2004-12-05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.37  2004/11/21 17:54:59  peter
-    * ttempcreatenode.create_reg merged into .create with parameter
-      whether a register is allowed
-    * funcret_paraloc renamed to funcretloc
-
-  Revision 1.36  2004/11/02 18:37:08  florian
-    * dyn. array dimensions are now stored as sinttype so it's target register size dependend
-
-  Revision 1.35  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.34  2004/11/01 10:32:27  peter
-    * temp for dynarray copy needs to be typed
-
-  Revision 1.33  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.32  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.31  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.30  2004/04/29 19:56:37  daniel
-    * Prepare compiler infrastructure for multiple ansistring types
-
-  Revision 1.29  2004/02/04 18:45:29  jonas
-    + some more usage of register temps
-
-  Revision 1.28  2004/02/03 22:32:54  peter
-    * renamed xNNbittype to xNNinttype
-    * renamed registers32 to registersint
-    * replace some s32bit,u32bit with torddef([su]inttype).def.typ
-
-  Revision 1.27  2004/02/03 16:46:51  jonas
-    + support to store ttempcreate/ref/deletenodes in registers
-    * put temps for withnodes and some newnodes in registers
-     Note: this currently only works because calling ungetregister()
-       multiple times for the same register doesn't matter. We need again
-       a way to specify that a register is currently a regvar and as such
-       should not be freed when you call ungetregister() on it.
+  Revision 1.39  2005-02-14 17:13:07  peter
+    * truncate log
 
 }

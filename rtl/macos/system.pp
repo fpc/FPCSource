@@ -554,7 +554,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2005-02-07 21:30:12  peter
+  Revision 1.30  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.29  2005/02/07 21:30:12  peter
     * system unit updated
 
   Revision 1.28  2005/02/01 20:22:49  florian
@@ -563,106 +566,4 @@ end.
   Revision 1.27  2005/01/24 18:51:23  olle
     * filetype/filecreator changed after the file is opened, in case the file did not previously exist
 
-  Revision 1.26  2004/12/05 14:36:37  hajny
-    + GetProcessID added
-
-  Revision 1.25  2004/11/04 09:32:31  peter
-  ErrOutput added
-
-  Revision 1.24  2004/10/25 15:38:59  peter
-    * compiler defined HEAP and HEAPSIZE removed
-
-  Revision 1.23  2004/10/19 19:56:59  olle
-    * Interface to StdLibC moved from system to macostp
-
-  Revision 1.22  2004/09/30 19:58:42  olle
-    + Added SetDefaultMacOS[Filetype|Creator]
-    * Files written to by fpc rtl now always will get decent filetype/creator
-    * Adapted to use FSpGetFullPath
-
-  Revision 1.21  2004/09/12 19:51:02  olle
-    + InitGraf called for MPW tool, which make strange bug disappear.
-    * bugfix initial wd for MPW tool
-    + Added SysInitExceptions
-
-  Revision 1.20  2004/09/03 19:26:08  olle
-    + added maxExitCode to all System.pp
-    * constrained error code to be below maxExitCode in RunError et. al.
-
-  Revision 1.19  2004/08/20 10:18:15  olle
-    + added Yield routine
-
-  Revision 1.18  2004/07/14 23:34:07  olle
-    + added qd, the "QuickDraw globals"
-
-  Revision 1.17  2004/06/21 19:23:34  olle
-    + Variables describing misc OS features added
-    + Detection of GUI app
-    * Working directory for APPTYPE TOOL correct now
-    + Exit code <> 0 written to, console for console apps, to system debugger (if installed) for GUI apps.
-    * Misc fixes
-
-  Revision 1.16  2004/06/17 16:16:13  peter
-    * New heapmanager that releases memory back to the OS, donated
-      by Micha Nelissen
-
-  Revision 1.15  2004/05/11 18:05:41  olle
-    + added call to MaxApplZone to have the whole MacOS heap available
-
-  Revision 1.14  2004/04/29 11:27:36  olle
-    * do_read/do_write addr arg changed to pointer
-    * misc internal changes
-
-  Revision 1.13  2004/02/04 15:17:16  olle
-    * internal changes
-
-  Revision 1.12  2004/01/20 23:11:20  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.11  2004/01/04 21:06:43  jonas
-    * make the C-main public
-
-  Revision 1.10  2003/10/29 22:34:52  olle
-    + handles program parameters for MPW
-    + program start stub
-    * improved working directory handling
-    * minor changes
-    + some documentation
-
-  Revision 1.9  2003/10/17 23:44:30  olle
-    + working direcory emulated
-    + implemented directory handling procs
-    + all proc which take a path param, now resolve it relative wd
-
-  Revision 1.8  2003/10/16 15:43:13  peter
-    * THandle is platform dependent
-
-  Revision 1.7  2003/09/27 11:52:35  peter
-    * sbrk returns pointer
-
-  Revision 1.6  2003/09/12 12:45:15  olle
-    + filehandling complete
-    + heaphandling complete
-    + support for random
-    * filehandling now uses filedecriptors in StdCLib
-    * other minor changes
-    - removed DEFINE MAC_SYS_RUNNABLE
-
-  Revision 1.5  2003/01/13 17:18:55  olle
-    + added support for rudimentary file handling
-
-  Revision 1.4  2002/11/28 10:58:02  olle
-    + added support for rudimentary heap
-
-  Revision 1.3  2002/10/23 15:29:09  olle
-    + added switch MAC_SYS_RUNABLE
-    + added include of system.h etc
-    + added standard globals
-    + added dummy hook procedures
-
-  Revision 1.2  2002/10/10 19:44:05  florian
-    * changes from Olle to compile/link a simple program
-
-  Revision 1.1  2002/10/02 21:34:31  florian
-    * first dummy implementation
 }

@@ -31,12 +31,7 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.5  2004-05-05 21:26:34  florian
-    * some m68k and amiga related stuff fixed
+  Revision 1.6  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.4  2002/10/20 11:53:14  carl
-    * make the jmp_buf record packed, just in case
-
-  Revision 1.3  2002/09/07 16:01:20  peter
-    * old logs removed and tabs fixed
 }

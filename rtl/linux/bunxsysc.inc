@@ -456,14 +456,14 @@ Doesn't exist in BSD. Linux emu uses setpriority in a construct as below:
 {$ifdef cpux86_64}
 var
   oldprio : cint;
-{$endif}  
+{$endif}
 begin
 {$ifdef cpux86_64}
   oldprio:=fpGetPriority(Prio_Process,0);
   fpNice:=fpSetPriority(Prio_Process,0,oldprio+N);
   if fpNice=0 then
     fpNice:=fpGetPriority(Prio_Process,0);
-{$else}  
+{$else}
   fpNice:=do_syscall(Syscall_nr_nice,N);
 {$endif}
 end;
@@ -530,7 +530,10 @@ end;
 
 {
  $Log$
- Revision 1.1  2005-02-13 20:01:38  peter
+ Revision 1.2  2005-02-14 17:13:30  peter
+   * truncate log
+
+ Revision 1.1  2005/02/13 20:01:38  peter
    * include file cleanup
 
  Revision 1.15  2005/01/30 18:01:15  peter
@@ -538,82 +541,4 @@ end;
    * sigactionhandler instead of tsigaction for bsds
    * sigcontext moved to cpu dir
 
- Revision 1.14  2004/11/19 13:15:14  marco
-  * external rework. Mostly done.
-
- Revision 1.13  2004/11/14 12:21:08  marco
-  * moved some calls from unix to baseunix. Darwin untested.
-
- Revision 1.12  2004/10/24 13:55:52  peter
-   * fpselect for amd64,arm
-
- Revision 1.11  2004/10/13 20:47:12  florian
-   + implemented fpselect for sparc
-
- Revision 1.10  2004/04/28 20:48:20  peter
-   * ordinal-pointer conversions fixed
-
- Revision 1.9  2004/04/22 17:17:23  peter
-   * x86-64 fixes
-
- Revision 1.8  2004/02/21 23:18:50  marco
-  * powerpc select fix
-
- Revision 1.7  2003/12/30 15:43:20  marco
-  * linux now compiles with FPC_USE_LIBC
-
- Revision 1.6  2003/11/19 14:04:34  marco
-  * fix for sleep from johill
-
- Revision 1.5  2003/09/27 13:45:58  peter
-   * fpnanosleep exported in baseunix
-   * fpnanosleep has pointer arguments to be C compliant
-
- Revision 1.4  2003/09/17 11:24:46  marco
-  * fixes for new macro's
-
- Revision 1.3  2003/09/14 20:15:01  marco
-  * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
- Revision 1.2  2003/01/05 19:16:45  marco
-  * small fix
-
- Revision 1.1  2002/12/18 16:43:26  marco
-  * new unix rtl, linux part.....
-
- Revision 1.1  2002/11/14 16:48:39  marco
-  * Initial version
-
- Revision 1.10  2002/11/14 12:34:20  marco
-  * took out the generic sethandling.
-
- Revision 1.9  2002/11/13 18:15:08  marco
-  * sigset functions more flexible, small changes to sys_time
-
- Revision 1.8  2002/10/27 17:21:29  marco
-  * Only "difficult" functions + execvp + termios + rewinddir left to do
-
- Revision 1.7  2002/10/27 11:58:29  marco
-  * Modifications from Saturday.
-
- Revision 1.6  2002/10/26 18:27:51  marco
-  * First series POSIX calls commits. Including getcwd.
-
- Revision 1.5  2002/10/25 15:46:48  marco
-  * Should be alias.
-
- Revision 1.4  2002/09/08 16:20:27  marco
-  * Forgot external name's
-
- Revision 1.3  2002/09/08 16:11:59  marco
-  * Added GetDomainName and that other one ..
-
- Revision 1.2  2002/09/07 16:01:17  peter
-   * old logs removed and tabs fixed
-
- Revision 1.1  2002/08/21 07:03:16  marco
-  * Fixes from Tuesday.
-
- Revision 1.1  2002/08/08 11:39:30  marco
-  * Initial versions, to allow support for uname in posix.pp
 }

@@ -248,23 +248,10 @@ end ['r4','r5','r6'];
 
 {
   $Log$
-  Revision 1.6  2005-01-04 14:13:58  florian
+  Revision 1.7  2005-02-14 17:13:30  peter
+    * truncate log
+
+  Revision 1.6  2005/01/04 14:13:58  florian
     * fixed error handling of system calls
 
-  Revision 1.5  2004/02/06 23:06:16  florian
-    - killed tsyscallregs
-
-  Revision 1.4  2004/01/20 21:01:57  florian
-    * fixed setjump
-    * fixed syscalls
-
-  Revision 1.3  2003/12/29 19:24:12  florian
-    + introduced PtrInt and PtrUInt
-    * made strscan 64 bit safe
-
-  Revision 1.2  2003/12/03 17:34:12  florian
-    + started to implement arm syscalls
-
-  Revision 1.1  2003/08/28 00:08:29  florian
-    * syscall skeleton
 }

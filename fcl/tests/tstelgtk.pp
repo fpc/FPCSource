@@ -13,7 +13,7 @@ uses gdk,gtk,fpgtk,fpgtkext,classes,sysutils,eventlog;
 { ---------------------------------------------------------------------
     Main form class
   ---------------------------------------------------------------------}
-  
+
 
 Type
   TMainForm = Class(TFPGtkWindow)
@@ -43,12 +43,12 @@ ResourceString
   SInformation    = 'Information';
   SWarning        = 'Warning';
   SError          = 'Error';
-  SDebug          = 'Debug'; 
+  SDebug          = 'Debug';
 
 { ---------------------------------------------------------------------
     Form Creation
   ---------------------------------------------------------------------}
-    
+
 Constructor TMainForm.Create;
 
 begin
@@ -59,7 +59,7 @@ end;
 Procedure TMainForm.CreateWindow;
 
   Procedure AddRG(C : String);
-  
+
   Var
     RB : TFPgtkRadioButton;
 
@@ -92,7 +92,7 @@ begin
      RGMsgType.PackInBox(RGBox,True,False,False,2);
   Finally
     S.Free;
-  end;  
+  end;
   FLMsg:=TfpGtkLabel.Create(SMessage);
   FMsg:=TfpGtkEntry.Create;
   FHBox:=TFPgtkHbox.Create;
@@ -123,7 +123,7 @@ end;
 { ---------------------------------------------------------------------
     Callback events
   ---------------------------------------------------------------------}
-  
+
 Procedure TMainForm.BSendClicked(Sender : TFPgtkObject; Data : Pointer);
 
 begin
@@ -137,7 +137,7 @@ Var
   E : TEventType;
 
 begin
-  Case RGMsgType.ActiveButtonIndex of 
+  Case RGMsgType.ActiveButtonIndex of
     0 : E:=etinfo;
     1 : E:=etWarning;
     2 : E:=etError;
@@ -145,11 +145,11 @@ begin
   end;
   FEventLog.log(E,FMsg.Text);
 end;
-  
+
 { ---------------------------------------------------------------------
     Program.
   ---------------------------------------------------------------------}
-  
+
 begin
   application := TFPgtkApplication.Create;
   application.MainWindow := TMainForm.Create;

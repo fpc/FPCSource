@@ -70,58 +70,19 @@ Const
 
 Implementation
 
-end.  
+end.
 
 {
   $Log$
-  Revision 1.7  2005-02-07 11:23:04  joost
+  Revision 1.8  2005-02-14 17:13:12  peter
+    * truncate log
+
+  Revision 1.7  2005/02/07 11:23:04  joost
     - added SMetadataUnavailable
     - added SDeletedRecord
 
   Revision 1.6  2005/01/12 10:29:20  michael
     * Patch from Joost Van der Sluis:
     - added error message for if transaction of DB is not set
-
-  Revision 1.5  2004/12/13 20:19:49  michael
-  + Initial implementation of params
-
-  Revision 1.4  2004/11/05 08:32:02  michael
-  TBufDataset.inc:
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  Database.inc:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Gives an error if the database of an active transaction is changed
-
-  Dataset.inc
-    - Don't distribute events if FDisableControlsCount > 0
-    - Replaced FActive by FState<>dsInactive
-    - Set EOF after append
-
-  db.pp:
-    - Removed duplicate definition of TAlignment
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Replaced FActive by FState<>dsInactive
-    - Gives an error if the database of an active transaction is changed
-
-  sqldb:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  IBConnection:
-    - Moved FSQLDAAllocated to the cursor
-
-  PQConnection:
-    - Don't try to free the statement if a fatal error occured
-
-  Revision 1.3  2004/10/27 07:23:13  michael
-  + Patch from Joost Van der Sluis to fix transactions
-
-  Revision 1.2  2004/10/16 09:20:25  michael
-  + Moved resourcestrings to dbconst
-
-  Revision 1.1  2004/10/10 14:45:51  michael
-  + Use of dbconst for resource strings
-
 
 }

@@ -248,25 +248,7 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-12-26 22:32:21  hajny
-    * quiet unzipping
-
-  Revision 1.6  2004/02/22 16:09:38  hajny
-    + unzipdll enabled for emx target
-
-  Revision 1.5  2003/08/03 22:25:55  hajny
-    * integer type inconsistency resolved
-
-  Revision 1.4  2002/09/07 15:43:06  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.3  2002/07/07 17:58:09  hajny
-    * check for TZ variable added
-
-  Revision 1.2  2002/07/07 08:22:17  hajny
-    * warning message modified to be more general
-
-  Revision 1.1  2002/01/29 17:55:23  peter
-    * splitted to base and extra
+  Revision 1.8  2005-02-14 17:13:21  peter
+    * truncate log
 
 }

@@ -745,21 +745,7 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.7  2004-11-19 13:15:15  marco
-   * external rework. Mostly done.
-
-  Revision 1.6  2004/03/05 22:18:15  jonas
-    * fixed declaration for cur_term for darwin now that the importing of
-      variables from shared libraries works
-
-  Revision 1.5  2004/02/06 22:35:50  jonas
-    + some darwin support, doesn't work yet because of imported variables
-      problem
-
-  Revision 1.4  2003/09/14 20:15:01  marco
-   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
-
-  Revision 1.3  2002/09/07 16:01:28  peter
-    * old logs removed and tabs fixed
+  Revision 1.8  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

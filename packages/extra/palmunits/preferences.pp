@@ -85,7 +85,7 @@ const
 
   defaultAutoLockType        = 0; //!!!never;                // Never auto lock device
   defaultAutoLockTime        = 0;
-  defaultAutoLockTimeFlag    = 0;                                             
+  defaultAutoLockTimeFlag    = 0;
 
 // Obsolete after V20
 {!!!

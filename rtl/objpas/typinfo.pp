@@ -77,7 +77,7 @@ unit typinfo;
 
 {$PACKRECORDS C}
       PTypeData = ^TTypeData;
-      TTypeData = 
+      TTypeData =
 {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
       packed
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
@@ -1496,75 +1496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.35  2005-02-08 16:10:29  florian
+  Revision 1.36  2005-02-14 17:13:31  peter
+    * truncate log
+
+  Revision 1.35  2005/02/08 16:10:29  florian
     * TTOrdType -> TOrdType
 
-  Revision 1.34  2004/12/30 18:11:43  michael
-  + Fix for WideString props
-
-  Revision 1.33  2004/12/28 15:30:04  florian
-    * fixed raw mode for non i386 targets
-    * fixed some alignment issues
-
-  Revision 1.32  2004/12/27 16:16:24  florian
-    * another alignment fix
-
-  Revision 1.31  2004/11/24 22:27:24  florian
-    * fixed tpropdata record
-
-  Revision 1.30  2004/10/10 19:18:31  florian
-    * fixed aligntoptr
-
-  Revision 1.29  2004/10/04 21:26:16  florian
-    * rtti alignment fixed
-
-  Revision 1.28  2004/08/16 16:12:28  peter
-    * patch from mattias to fix endianness and bufferoverflow with
-      1 and 2 byte ordinals
-
-  Revision 1.27  2004/06/24 23:43:14  michael
-  + Fix GetPropList when Proplist is nil
-
-  Revision 1.26  2004/06/02 14:33:18  michael
-  + Patch from matthias gaertner to fix GetMethodProp with procedural spec
-
-  Revision 1.25  2004/05/24 21:05:19  florian
-    * fixed comp property writing for cpus where comp=int64
-
-  Revision 1.24  2004/05/23 19:00:40  florian
-    + added widestring routines
-
-  Revision 1.23  2004/02/22 16:48:39  florian
-    * several 64 bit issues fixed
-
-  Revision 1.22  2004/02/21 22:53:49  florian
-    * several 64 bit/x86-64 fixes
-
-  Revision 1.21  2004/02/20 15:55:26  peter
-    * enable variant again
-
-  Revision 1.20  2003/12/24 22:27:13  peter
-    * removed assembler
-    * cleanup
-
-  Revision 1.19  2003/12/22 11:32:04  marco
-   * splitted up tintfflags into several components
-
-  Revision 1.18  2003/10/24 08:37:20  marco
-   * Fix from Peter
-
-  Revision 1.17  2003/10/17 20:58:27  olle
-    * Changed m68k to cpum68k, i386 to cpui386
-
-  Revision 1.16  2003/04/24 11:46:25  florian
-    * fixed wrong newlines
-
-  Revision 1.15  2003/03/29 16:55:56  michael
-  + Patch from Mattias Gaertner for single typeinfo
-
-  Revision 1.14  2002/09/07 16:01:22  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.13  2002/04/04 18:32:59  peter
-    * merged getpropinfo fix
 }

@@ -697,15 +697,15 @@ program install;
            Replace(s,'%basepath%',data.basepath);
            Replace(s,'%targetname%',targetname);
            if pos('-',targetname)=0 then
-	     begin
-	       Replace(s,'%targetos%',targetname);
+             begin
+               Replace(s,'%targetos%',targetname);
                Replace(s,'%fpctargetmacro%','$FPCOS')
-	     end  
+             end
            else
-	     begin
-	       Replace(s,'%targetos%',Copy(targetname,pos('-',targetname)+1,255));
+             begin
+               Replace(s,'%targetos%',Copy(targetname,pos('-',targetname)+1,255));
                Replace(s,'%fpctargetmacro%','$FPCTARGET');
-	     end;  
+             end;
            writeln(t,s);
          end
        else
@@ -2046,7 +2046,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2005-01-07 16:48:14  peter
+  Revision 1.29  2005-02-14 17:13:19  peter
+    * truncate log
+
+  Revision 1.28  2005/01/07 16:48:14  peter
     * fix writing of -T<targetos>
 
   Revision 1.27  2005/01/05 21:27:55  hajny
@@ -2054,83 +2057,5 @@ end.
 
   Revision 1.26  2005/01/05 17:43:44  armin
   * maxpacks increased tp 30, close logfile before halt
-
-  Revision 1.25  2004/12/31 18:36:44  florian
-    * spelling fixed
-    * compiler is fpc instead ppc386
-
-  Revision 1.24  2004/12/23 17:36:53  peter
-  use %token% macros instead of $1 and $2
-
-  Revision 1.23  2004/12/22 15:28:48  peter
-    * more fixes for win32 installer
-
-  Revision 1.22  2004/12/21 18:52:31  peter
-  checkbox mask works, scrollbox still not
-
-  Revision 1.21  2004/12/20 18:27:00  peter
-    * win32 fixes
-
-  Revision 1.20  2004/12/18 16:19:57  peter
-  win32 fixes
-
-  Revision 1.19  2003/04/06 15:56:25  carl
-    * Use FPC user screen for Win32 target
-
-  Revision 1.18  2003/03/05 21:12:32  hajny
-    * missing quotes in GO32v2-specific part
-
-  Revision 1.17  2003/03/01 16:15:42  hajny
-    + logging enhanced
-
-  Revision 1.16  2003/02/08 21:49:59  carl
-    * DOS : fix user screen problem
-       DOS: emu386 reinstated
-
-  Revision 1.15  2003/01/22 14:15:13  pierre
-   * center all dialogs
-
-  Revision 1.14  2003/01/22 13:42:35  pierre
-   * fix problem with Alt-X (webbug 1959)
-   + use fpusrscr unit to restore console at exit.
-
-  Revision 1.13  2002/09/07 15:40:59  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.12  2002/07/06 11:51:04  carl
-  + Unzip DLL fixes for warnings
-
-  Revision 1.11  2002/06/02 17:24:27  marco
-   * Renamefest
-
-  Revision 1.10  2002/06/01 19:43:07  marco
-   * Renamefest
-
-  Revision 1.9  2002/04/11 13:20:27  pierre
-   + several go32v2 related fixes
-
-  Revision 1.8  2002/04/10 21:18:42  pierre
-   * explicitly check if one of the files from the list of each package exists
-
-  Revision 1.7  2002/04/03 12:46:02  pierre
-   + create setpath.bat file if Path is mixed
-
-  Revision 1.6  2002/03/19 09:14:56  pierre
-   * fix fpctoc.html problem
-
-  Revision 1.5  2002/03/13 22:27:36  pierre
-   * fix problem if invalid drive is given
-
-  Revision 1.4  2002/02/28 21:30:34  peter
-    * regenated
-
-  Revision 1.3  2002/02/28 17:02:08  pierre
-   * fix win32 compilation if DEBUG cond is set
-
-  Revision 1.2  2002/01/29 22:01:17  peter
-    * support fvision
-
-  Revision 1.1  2002/01/29 17:59:15  peter
-    * moved installer
 
 }

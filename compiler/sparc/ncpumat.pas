@@ -325,35 +325,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2004-10-31 21:45:04  peter
-    * generic tlocation
-    * move tlocation to cgutils
-
-  Revision 1.21  2004/09/25 14:23:55  peter
-    * ungetregister is now only used for cpuregisters, renamed to
-      ungetcpuregister
-    * renamed (get|unget)explicitregister(s) to ..cpuregister
-    * removed location-release/reference_release
-
-  Revision 1.20  2004/08/16 21:00:30  peter
-    * fixed shr/shl 32
-
-  Revision 1.19  2004/08/01 08:46:31  florian
-    * qword/int64 shifting fixed
-
-  Revision 1.18  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.17  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.16.2.3  2004/05/30 17:07:08  peter
-    * fix shl shr for sparc
-
-  Revision 1.16.2.2  2004/05/30 13:45:36  florian
-    * fixed unsigned division
-
-  Revision 1.16.2.1  2004/05/27 23:35:12  peter
-    * div fixed
+  Revision 1.23  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

@@ -262,7 +262,7 @@ const
   vchrHardAntenna = $020C;                       // Eleven's Antenna switch
   vchrHardBrightness = $020D;                    // Hypothetical Brightness button
   vchrPageUpWhenOff = $020E;                     // The m100 device's page-up clock button
-  vchrHardEarbud = $020F;                        // Hypothetical Earbud button            
+  vchrHardEarbud = $020F;                        // Hypothetical Earbud button
 
 // The following keycode RANGES are reserved for use by licensees.
 // All have the commandKeyMask bit set in the event's modifiers field.

@@ -5,7 +5,7 @@ Program Example33;
 Uses Unix;
 
 Var tv : TimeVal;
-    
+
 begin
   Writeln ('Press the <ENTER> to continue the program.');
   { Wait until File descriptor 0 (=Input) changes }
@@ -15,7 +15,7 @@ begin
   Writeln ('Press <ENTER> key in less than 2 seconds...');
   tv.tv_sec:=2;
   tv.tv_sec:=0;
-  if SelectText (Input,@tv)>0 then 
+  if SelectText (Input,@tv)>0 then
     Writeln ('Thank you !')
   else
     Writeln ('Too late !');

@@ -332,39 +332,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2004-11-01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.18  2004/10/31 16:04:30  florian
-    * fixed compilation of system unit on arm
-
-  Revision 1.17  2004/10/24 17:32:53  florian
-    * fixed several arm compiler bugs
-
-  Revision 1.16  2004/10/24 07:54:25  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.15  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.14  2004/03/23 21:03:50  florian
-    * arm assembler instructions can have 4 operands
-    * qword comparisations fixed
-
-  Revision 1.13  2004/03/13 18:45:40  florian
-    * floating compares fixed
-    * unary minus for floats fixed
-
-  Revision 1.12  2004/03/11 22:41:37  florian
-    + second_cmpfloat implemented, needs probably to be fixed
-
-  Revision 1.11  2004/01/26 19:05:56  florian
-    * fixed several arm issues
-
-  Revision 1.10  2004/01/24 20:19:46  florian
-    * fixed some spilling stuff
-    + not(<int64>) implemented
-    + small set comparisations implemented
+  Revision 1.20  2005-02-14 17:13:09  peter
+    * truncate log
 
 }

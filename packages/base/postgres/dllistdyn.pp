@@ -64,7 +64,7 @@ begin
       RefCount := 0;
       Raise EInOutError.Create('Can not load PosgreSQL client. Is it installed? ('+pqlib+')');
       end;
-      
+
     pointer(DLNewList) := GetProcedureAddress(DllistLibraryHandle,'DLNewList');
     pointer(DLFreeList) := GetProcedureAddress(DllistLibraryHandle,'DLFreeList');
     pointer( DLNewElem) := GetProcedureAddress(DllistLibraryHandle,' DLNewElem');

@@ -7,7 +7,7 @@ Uses Objects;
 Var Buf1,Buf2 : Array[1..1000] of Byte;
     I : longint;
     S : PMemorySTream;
-    
+
 begin
   For I:=1 to 1000 do
     Buf1[I]:=Random(1000);
@@ -19,7 +19,7 @@ begin
     Buf1[I]:=0;
   S^.Read(Buf1,SizeOf(Buf1));
   For I:=1 to 1000 do
-    If Buf1[I]<>buf2[i] then 
+    If Buf1[I]<>buf2[i] then
       Writeln ('Buffer differs at position ',I);
   Dispose(S,Done);
 end.

@@ -829,16 +829,7 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-10-13 15:46:49  carl
-    * fixed some small problems
-
-  Revision 1.3  2002/10/12 20:35:14  carl
-   * int64 to float conversion testing (crashes under FPC :()
-
-  Revision 1.2  2002/10/08 20:09:46  carl
-    + reinstated all tests, as they all work correctly now
-
-  Revision 1.1  2002/09/16 19:08:30  carl
-    * softfpu tests (some of them still fail!)
+  Revision 1.5  2005-02-14 17:13:37  peter
+    * truncate log
 
 }

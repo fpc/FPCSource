@@ -41,26 +41,26 @@ type
     tkNumber,
     tkChar,
     // Simple (one-character) tokens
-    tkBraceOpen,	// '('
-    tkBraceClose,	// ')'
-    tkMul,		// '*'
-    tkPlus,		// '+'
-    tkComma,		// ','
-    tkMinus,		// '-'
-    tkDot,		// '.'
-    tkDivision,		// '/'
-    tkColon,		// ':'
-    tkSemicolon,	// ';'
+    tkBraceOpen,        // '('
+    tkBraceClose,       // ')'
+    tkMul,              // '*'
+    tkPlus,             // '+'
+    tkComma,            // ','
+    tkMinus,            // '-'
+    tkDot,              // '.'
+    tkDivision,         // '/'
+    tkColon,            // ':'
+    tkSemicolon,        // ';'
     tkLessThan,         // '<'
-    tkEqual,		// '='
+    tkEqual,            // '='
     tkGreaterThan,      // '>'
-    tkAt,		// '@'
-    tkSquaredBraceOpen,	// '['
+    tkAt,               // '@'
+    tkSquaredBraceOpen, // '['
     tkSquaredBraceClose,// ']'
-    tkCaret,		// '^'
+    tkCaret,            // '^'
     // Two-character tokens
-    tkDotDot,		// '..'
-    tkAssign,		// ':='
+    tkDotDot,           // '..'
+    tkAssign,           // ':='
     tkNotEqual,         // '<>'
     // Reserved words
     tkabsolute,
@@ -383,7 +383,7 @@ function TFileResolver.FindIncludeFile(const AName: String): TLineReader;
 var
   i: Integer;
   FN : String;
-  
+
 begin
   Result := nil;
   If FileExists(AName) then
@@ -446,18 +446,18 @@ begin
       if FIncludeStack.Count > 0 then
       begin
         CurSourceFile.Free;
-	IncludeStackItem :=
-	  TIncludeStackItem(FIncludeStack[FIncludeStack.Count - 1]);
-	FIncludeStack.Delete(FIncludeStack.Count - 1);
-	FCurSourceFile := IncludeStackItem.SourceFile;
-	FCurFilename := IncludeStackItem.Filename;
-	FCurToken := IncludeStackItem.Token;
-	FCurTokenString := IncludeStackItem.TokenString;
-	FCurLine := IncludeStackItem.Line;
-	FCurRow := IncludeStackItem.Row;
-	TokenStr := IncludeStackItem.TokenStr;
-	IncludeStackItem.Free;
-	Result := FCurToken;
+        IncludeStackItem :=
+          TIncludeStackItem(FIncludeStack[FIncludeStack.Count - 1]);
+        FIncludeStack.Delete(FIncludeStack.Count - 1);
+        FCurSourceFile := IncludeStackItem.SourceFile;
+        FCurFilename := IncludeStackItem.Filename;
+        FCurToken := IncludeStackItem.Token;
+        FCurTokenString := IncludeStackItem.TokenString;
+        FCurLine := IncludeStackItem.Line;
+        FCurRow := IncludeStackItem.Row;
+        TokenStr := IncludeStackItem.TokenStr;
+        IncludeStackItem.Free;
+        Result := FCurToken;
       end else
         break
     else
@@ -510,232 +510,232 @@ begin
     end;
 
   FCurTokenString := '';
-  
+
   case TokenStr[0] of
-    #0:		// Empty line
+    #0:         // Empty line
       begin
         FetchLine;
         Result := tkWhitespace;
       end;
     #9, ' ':
       begin
-	Result := tkWhitespace;
+        Result := tkWhitespace;
         repeat
-	  Inc(TokenStr);
-	  if TokenStr[0] = #0 then
-	    if not FetchLine then
-	    begin
-	      FCurToken := Result;
-	      exit;
-	    end;
-	until not (TokenStr[0] in [#9, ' ']);
+          Inc(TokenStr);
+          if TokenStr[0] = #0 then
+            if not FetchLine then
+            begin
+              FCurToken := Result;
+              exit;
+            end;
+        until not (TokenStr[0] in [#9, ' ']);
       end;
     '#':
       begin
         TokenStart := TokenStr;
-	Inc(TokenStr);
-	if TokenStr[0] = '$' then
-	begin
-	  Inc(TokenStr);
-	  repeat
-	    Inc(TokenStr);
-	  until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'F']);
-	end else
-	  repeat
-	    Inc(TokenStr);
-	  until not (TokenStr[0] in ['0'..'9']);
+        Inc(TokenStr);
+        if TokenStr[0] = '$' then
+        begin
+          Inc(TokenStr);
+          repeat
+            Inc(TokenStr);
+          until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'F']);
+        end else
+          repeat
+            Inc(TokenStr);
+          until not (TokenStr[0] in ['0'..'9']);
 
-	SectionLength := TokenStr - TokenStart;
-	SetLength(FCurTokenString, SectionLength);
-	if SectionLength > 0 then
-	  Move(TokenStart^, FCurTokenString[1], SectionLength);
-	Result := tkChar;
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[1], SectionLength);
+        Result := tkChar;
       end;
     '$':
       begin
         TokenStart := TokenStr;
-	repeat
-	  Inc(TokenStr);
-	until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'F']);
-	SectionLength := TokenStr - TokenStart;
-	SetLength(FCurTokenString, SectionLength);
-	if SectionLength > 0 then
-	  Move(TokenStart^, FCurTokenString[1], SectionLength);
-	Result := tkNumber;
+        repeat
+          Inc(TokenStr);
+        until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'F']);
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[1], SectionLength);
+        Result := tkNumber;
       end;
     '%':
       begin
         TokenStart := TokenStr;
-	repeat
-	  Inc(TokenStr);
-	until not (TokenStr[0] in ['0','1']);
-	SectionLength := TokenStr - TokenStart;
-	SetLength(FCurTokenString, SectionLength);
-	if SectionLength > 0 then
-	  Move(TokenStart^, FCurTokenString[1], SectionLength);
-	Result := tkNumber;
+        repeat
+          Inc(TokenStr);
+        until not (TokenStr[0] in ['0','1']);
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[1], SectionLength);
+        Result := tkNumber;
       end;
     '''':
       begin
         Inc(TokenStr);
         TokenStart := TokenStr;
-	OldLength := 0;
-	FCurTokenString := '';
+        OldLength := 0;
+        FCurTokenString := '';
 
-	while True do
-	begin
-	  if TokenStr[0] = '''' then
-	    if TokenStr[1] = '''' then
-	    begin
-	      SectionLength := TokenStr - TokenStart + 1;
-	      SetLength(FCurTokenString, OldLength + SectionLength);
-	      if SectionLength > 0 then
-	        Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-	      Inc(OldLength, SectionLength);
-	      Inc(TokenStr);
-	      TokenStart := TokenStr+1;
-	    end else
-	      break;
+        while True do
+        begin
+          if TokenStr[0] = '''' then
+            if TokenStr[1] = '''' then
+            begin
+              SectionLength := TokenStr - TokenStart + 1;
+              SetLength(FCurTokenString, OldLength + SectionLength);
+              if SectionLength > 0 then
+                Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+              Inc(OldLength, SectionLength);
+              Inc(TokenStr);
+              TokenStart := TokenStr+1;
+            end else
+              break;
 
-	  if TokenStr[0] = #0 then
-	    Error(SErrOpenString);
+          if TokenStr[0] = #0 then
+            Error(SErrOpenString);
 
-	  Inc(TokenStr);
-	end;
+          Inc(TokenStr);
+        end;
 
-	SectionLength := TokenStr - TokenStart;
-	SetLength(FCurTokenString, OldLength + SectionLength);
-	if SectionLength > 0 then
-	  Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, OldLength + SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
 
-	Inc(TokenStr);
-	Result := tkString;
+        Inc(TokenStr);
+        Result := tkString;
       end;
     '(':
       begin
         Inc(TokenStr);
-	if TokenStr[0] = '*' then
-	begin
-	  // Old-style multi-line comment
-	  Inc(TokenStr);
+        if TokenStr[0] = '*' then
+        begin
+          // Old-style multi-line comment
+          Inc(TokenStr);
           while (TokenStr[0] <> '*') or (TokenStr[1] <> ')') do
-	  begin
-	    if TokenStr[0] = #0 then
-	    begin
-	      if not FetchLine then
-	      begin
-	        Result := tkEOF;
-	        FCurToken := Result;
-	        exit;
-	      end;
-	    end else
-	      Inc(TokenStr);
-	  end;
-	  Inc(TokenStr, 2);
-	  Result := tkComment;
+          begin
+            if TokenStr[0] = #0 then
+            begin
+              if not FetchLine then
+              begin
+                Result := tkEOF;
+                FCurToken := Result;
+                exit;
+              end;
+            end else
+              Inc(TokenStr);
+          end;
+          Inc(TokenStr, 2);
+          Result := tkComment;
         end else
-	  Result := tkBraceOpen;
+          Result := tkBraceOpen;
       end;
     ')':
       begin
         Inc(TokenStr);
-	Result := tkBraceClose;
+        Result := tkBraceClose;
       end;
     '*':
       begin
         Inc(TokenStr);
-	Result := tkMul;
+        Result := tkMul;
       end;
     '+':
       begin
         Inc(TokenStr);
-	Result := tkPlus;
+        Result := tkPlus;
       end;
     ',':
       begin
         Inc(TokenStr);
-	Result := tkComma;
+        Result := tkComma;
       end;
     '-':
       begin
         Inc(TokenStr);
-	Result := tkMinus;
+        Result := tkMinus;
       end;
     '.':
       begin
         Inc(TokenStr);
-	if TokenStr[0] = '.' then
-	begin
-	  Inc(TokenStr);
-	  Result := tkDotDot;
-	end else
-	  Result := tkDot;
+        if TokenStr[0] = '.' then
+        begin
+          Inc(TokenStr);
+          Result := tkDotDot;
+        end else
+          Result := tkDot;
       end;
     '/':
       begin
         Inc(TokenStr);
-	if TokenStr[0] = '/' then	// Single-line comment
-	begin
-	  Inc(TokenStr);
-	  TokenStart := TokenStr;
-	  FCurTokenString := '';
+        if TokenStr[0] = '/' then       // Single-line comment
+        begin
+          Inc(TokenStr);
+          TokenStart := TokenStr;
+          FCurTokenString := '';
           while TokenStr[0] <> #0 do
-	    Inc(TokenStr);
-	  SectionLength := TokenStr - TokenStart;
-	  SetLength(FCurTokenString, SectionLength);
-	  if SectionLength > 0 then
-	    Move(TokenStart^, FCurTokenString[1], SectionLength);
-	  Result := tkComment;
-	  //WriteLn('Einzeiliger Kommentar: "', CurTokenString, '"');
-	end else
-	  Result := tkDivision;
+            Inc(TokenStr);
+          SectionLength := TokenStr - TokenStart;
+          SetLength(FCurTokenString, SectionLength);
+          if SectionLength > 0 then
+            Move(TokenStart^, FCurTokenString[1], SectionLength);
+          Result := tkComment;
+          //WriteLn('Einzeiliger Kommentar: "', CurTokenString, '"');
+        end else
+          Result := tkDivision;
       end;
     '0'..'9':
       begin
         TokenStart := TokenStr;
-	while True do
-	begin
-	  Inc(TokenStr);
-	  case TokenStr[0] of
-	    '.':
-	      begin
-	        if TokenStr[1] in ['0'..'9', 'e', 'E'] then
-	        begin
-	          Inc(TokenStr);
-	          repeat
-	            Inc(TokenStr);
-	          until not (TokenStr[0] in ['0'..'9', 'e', 'E']);
-		end;
-		break;
-	      end;
-	    '0'..'9': ;
-	    'e', 'E':
-	      begin
-	        Inc(TokenStr);
-		if TokenStr[0] = '-'  then
-		  Inc(TokenStr);
-		while TokenStr[0] in ['0'..'9'] do
-		  Inc(TokenStr);
-		break;
-	      end;
-	    else
-	      break;
-	  end;
-	end;
-	SectionLength := TokenStr - TokenStart;
-	SetLength(FCurTokenString, SectionLength);
-	if SectionLength > 0 then
-	  Move(TokenStart^, FCurTokenString[1], SectionLength);
-	Result := tkNumber;
+        while True do
+        begin
+          Inc(TokenStr);
+          case TokenStr[0] of
+            '.':
+              begin
+                if TokenStr[1] in ['0'..'9', 'e', 'E'] then
+                begin
+                  Inc(TokenStr);
+                  repeat
+                    Inc(TokenStr);
+                  until not (TokenStr[0] in ['0'..'9', 'e', 'E']);
+                end;
+                break;
+              end;
+            '0'..'9': ;
+            'e', 'E':
+              begin
+                Inc(TokenStr);
+                if TokenStr[0] = '-'  then
+                  Inc(TokenStr);
+                while TokenStr[0] in ['0'..'9'] do
+                  Inc(TokenStr);
+                break;
+              end;
+            else
+              break;
+          end;
+        end;
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[1], SectionLength);
+        Result := tkNumber;
       end;
     ':':
       begin
         Inc(TokenStr);
-	if TokenStr[0] = '=' then
-	begin
-	  Inc(TokenStr);
-	  Result := tkAssign;
-	end else
+        if TokenStr[0] = '=' then
+        begin
+          Inc(TokenStr);
+          Result := tkAssign;
+        end else
           Result := tkColon;
       end;
     ';':
@@ -746,11 +746,11 @@ begin
     '<':
       begin
         Inc(TokenStr);
-	if TokenStr[0] = '>' then
-	begin
-	  Inc(TokenStr);
-	  Result := tkNotEqual;
-	end else
+        if TokenStr[0] = '>' then
+        begin
+          Inc(TokenStr);
+          Result := tkNotEqual;
+        end else
           Result := tkLessThan;
       end;
     '=':
@@ -771,242 +771,242 @@ begin
     '[':
       begin
         Inc(TokenStr);
-	Result := tkSquaredBraceOpen;
+        Result := tkSquaredBraceOpen;
       end;
     ']':
       begin
         Inc(TokenStr);
-	Result := tkSquaredBraceClose;
+        Result := tkSquaredBraceClose;
       end;
     '^':
       begin
         Inc(TokenStr);
-	Result := tkCaret;
+        Result := tkCaret;
       end;
-    '{':	// Multi-line comment
+    '{':        // Multi-line comment
       begin
         Inc(TokenStr);
-	TokenStart := TokenStr;
-	FCurTokenString := '';
-	OldLength := 0;
-	NestingLevel := 0;
+        TokenStart := TokenStr;
+        FCurTokenString := '';
+        OldLength := 0;
+        NestingLevel := 0;
         while (TokenStr[0] <> '}') or (NestingLevel > 0) do
-	begin
-	  if TokenStr[0] = #0 then
-	  begin
-	    SectionLength := TokenStr - TokenStart + 1;
-	    SetLength(FCurTokenString, OldLength + SectionLength);
-	    if SectionLength > 1 then
-	      Move(TokenStart^, FCurTokenString[OldLength + 1],
-	        SectionLength - 1);
-	    Inc(OldLength, SectionLength);
-	    FCurTokenString[OldLength] := #10;
-	    if not FetchLine then
-	    begin
-	      Result := tkEOF;
-	      FCurToken := Result;
-	      exit;
-	    end;
-	    TokenStart := TokenStr;
-	  end else
-	  begin
-	    if TokenStr[0] = '{' then
-	      Inc(NestingLevel)
-	    else if TokenStr[0] = '}' then
-	      Dec(NestingLevel);
-	    Inc(TokenStr);
-	  end;
-	end;
-	SectionLength := TokenStr - TokenStart;
-	SetLength(FCurTokenString, OldLength + SectionLength);
-	if SectionLength > 0 then
-	  Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-	Inc(TokenStr);
-	Result := tkComment;
-	//WriteLn('Kommentar: "', CurTokenString, '"');
-	if (Length(CurTokenString) > 0) and (CurTokenString[1] = '$') then
-	begin
-	  TokenStart := @CurTokenString[2];
-	  CurPos := TokenStart;
-	  while (CurPos[0] <> ' ') and (CurPos[0] <> #0) do
-	    Inc(CurPos);
-	  SectionLength := CurPos - TokenStart;
-	  SetLength(Directive, SectionLength);
-	  if SectionLength > 0 then
-	  begin
-	    Move(TokenStart^, Directive[1], SectionLength);
-	    Directive := UpperCase(Directive);
-	    if CurPos[0] <> #0 then
-	    begin
-	      TokenStart := CurPos + 1;
-	      CurPos := TokenStart;
-	      while CurPos[0] <> #0 do
-	        Inc(CurPos);
-	      SectionLength := CurPos - TokenStart;
-	      SetLength(Param, SectionLength);
-	      if SectionLength > 0 then
-	        Move(TokenStart^, Param[1], SectionLength);
-	    end else
-	      Param := '';
-  	    // WriteLn('Direktive: "', Directive, '", Param: "', Param, '"');
-	    if (Directive = 'I') or (Directive = 'INCLUDE') then
-	    begin
-	      if not PPIsSkipping then
-	      begin
-	        IncludeStackItem := TIncludeStackItem.Create;
-	        IncludeStackItem.SourceFile := CurSourceFile;
-	        IncludeStackItem.Filename := CurFilename;
-	        IncludeStackItem.Token := CurToken;
-	        IncludeStackItem.TokenString := CurTokenString;
-	        IncludeStackItem.Line := CurLine;
-	        IncludeStackItem.Row := CurRow;
-	        IncludeStackItem.TokenStr := TokenStr;
-	        FIncludeStack.Add(IncludeStackItem);
-	        FCurSourceFile := FileResolver.FindIncludeFile(Param);
-	        if not Assigned(CurSourceFile) then
-	          Error(SErrIncludeFileNotFound, [Param]);
-	        FCurFilename := Param;
-	        FCurRow := 0;
-	      end;
-	    end else if Directive = 'DEFINE' then
-	    begin
-	      if not PPIsSkipping then
-	      begin
-	        Param := UpperCase(Param);
-	        if Defines.IndexOf(Param) < 0 then
-	          Defines.Add(Param);
-	      end;
-	    end else if Directive = 'UNDEF' then
-	    begin
-	      if not PPIsSkipping then
-	      begin
-	        Param := UpperCase(Param);
-	        Index := Defines.IndexOf(Param);
-	        if Index >= 0 then
-	          Defines.Delete(Index);
-	      end;
-	    end else if Directive = 'IFDEF' then
-	    begin
-	      if PPSkipStackIndex = High(PPSkipModeStack) then
-	        Error(SErrIfXXXNestingLimitReached);
-	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-	      Inc(PPSkipStackIndex);
-	      if PPIsSkipping then
-	      begin
-	        PPSkipMode := ppSkipAll;
-		PPIsSkipping := True;
-	      end else
-	      begin
-	        Param := UpperCase(Param);
-	        Index := Defines.IndexOf(Param);
-	        if Index < 0 then
-	        begin
-	          PPSkipMode := ppSkipIfBranch;
-		  PPIsSkipping := True;
-	        end else
-	          PPSkipMode := ppSkipElseBranch;
-	      end;
-	    end else if Directive = 'IFNDEF' then
-	    begin
-	      if PPSkipStackIndex = High(PPSkipModeStack) then
-	        Error(SErrIfXXXNestingLimitReached);
-	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-	      Inc(PPSkipStackIndex);
-	      if PPIsSkipping then
-	      begin
-	        PPSkipMode := ppSkipAll;
-		PPIsSkipping := True;
-	      end else
-	      begin
-	        Param := UpperCase(Param);
-	        Index := Defines.IndexOf(Param);
-	        if Index >= 0 then
-	        begin
-	          PPSkipMode := ppSkipIfBranch;
-		  PPIsSkipping := True;
-	        end else
-	          PPSkipMode := ppSkipElseBranch;
-	      end;
-	    end else if Directive = 'IFOPT' then
-	    begin
-	      if PPSkipStackIndex = High(PPSkipModeStack) then
-	        Error(SErrIfXXXNestingLimitReached);
-	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-	      Inc(PPSkipStackIndex);
-	      if PPIsSkipping then
-	      begin
-	        PPSkipMode := ppSkipAll;
-		PPIsSkipping := True;
-	      end else
-	      begin
-	        { !!!: Currently, options are not supported, so they are just
-		  assumed as not being set. }
-	        PPSkipMode := ppSkipIfBranch;
-		PPIsSkipping := True;
-	      end;
-	    end else if Directive = 'IF' then
-	    begin
-	      if PPSkipStackIndex = High(PPSkipModeStack) then
-	        Error(SErrIfXXXNestingLimitReached);
-	      PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
-	      PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
-	      Inc(PPSkipStackIndex);
-	      if PPIsSkipping then
-	      begin
-	        PPSkipMode := ppSkipAll;
-		PPIsSkipping := True;
-	      end else
-	      begin
-	        { !!!: Currently, expressions are not supported, so they are
+        begin
+          if TokenStr[0] = #0 then
+          begin
+            SectionLength := TokenStr - TokenStart + 1;
+            SetLength(FCurTokenString, OldLength + SectionLength);
+            if SectionLength > 1 then
+              Move(TokenStart^, FCurTokenString[OldLength + 1],
+                SectionLength - 1);
+            Inc(OldLength, SectionLength);
+            FCurTokenString[OldLength] := #10;
+            if not FetchLine then
+            begin
+              Result := tkEOF;
+              FCurToken := Result;
+              exit;
+            end;
+            TokenStart := TokenStr;
+          end else
+          begin
+            if TokenStr[0] = '{' then
+              Inc(NestingLevel)
+            else if TokenStr[0] = '}' then
+              Dec(NestingLevel);
+            Inc(TokenStr);
+          end;
+        end;
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, OldLength + SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+        Inc(TokenStr);
+        Result := tkComment;
+        //WriteLn('Kommentar: "', CurTokenString, '"');
+        if (Length(CurTokenString) > 0) and (CurTokenString[1] = '$') then
+        begin
+          TokenStart := @CurTokenString[2];
+          CurPos := TokenStart;
+          while (CurPos[0] <> ' ') and (CurPos[0] <> #0) do
+            Inc(CurPos);
+          SectionLength := CurPos - TokenStart;
+          SetLength(Directive, SectionLength);
+          if SectionLength > 0 then
+          begin
+            Move(TokenStart^, Directive[1], SectionLength);
+            Directive := UpperCase(Directive);
+            if CurPos[0] <> #0 then
+            begin
+              TokenStart := CurPos + 1;
+              CurPos := TokenStart;
+              while CurPos[0] <> #0 do
+                Inc(CurPos);
+              SectionLength := CurPos - TokenStart;
+              SetLength(Param, SectionLength);
+              if SectionLength > 0 then
+                Move(TokenStart^, Param[1], SectionLength);
+            end else
+              Param := '';
+            // WriteLn('Direktive: "', Directive, '", Param: "', Param, '"');
+            if (Directive = 'I') or (Directive = 'INCLUDE') then
+            begin
+              if not PPIsSkipping then
+              begin
+                IncludeStackItem := TIncludeStackItem.Create;
+                IncludeStackItem.SourceFile := CurSourceFile;
+                IncludeStackItem.Filename := CurFilename;
+                IncludeStackItem.Token := CurToken;
+                IncludeStackItem.TokenString := CurTokenString;
+                IncludeStackItem.Line := CurLine;
+                IncludeStackItem.Row := CurRow;
+                IncludeStackItem.TokenStr := TokenStr;
+                FIncludeStack.Add(IncludeStackItem);
+                FCurSourceFile := FileResolver.FindIncludeFile(Param);
+                if not Assigned(CurSourceFile) then
+                  Error(SErrIncludeFileNotFound, [Param]);
+                FCurFilename := Param;
+                FCurRow := 0;
+              end;
+            end else if Directive = 'DEFINE' then
+            begin
+              if not PPIsSkipping then
+              begin
+                Param := UpperCase(Param);
+                if Defines.IndexOf(Param) < 0 then
+                  Defines.Add(Param);
+              end;
+            end else if Directive = 'UNDEF' then
+            begin
+              if not PPIsSkipping then
+              begin
+                Param := UpperCase(Param);
+                Index := Defines.IndexOf(Param);
+                if Index >= 0 then
+                  Defines.Delete(Index);
+              end;
+            end else if Directive = 'IFDEF' then
+            begin
+              if PPSkipStackIndex = High(PPSkipModeStack) then
+                Error(SErrIfXXXNestingLimitReached);
+              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+              Inc(PPSkipStackIndex);
+              if PPIsSkipping then
+              begin
+                PPSkipMode := ppSkipAll;
+                PPIsSkipping := True;
+              end else
+              begin
+                Param := UpperCase(Param);
+                Index := Defines.IndexOf(Param);
+                if Index < 0 then
+                begin
+                  PPSkipMode := ppSkipIfBranch;
+                  PPIsSkipping := True;
+                end else
+                  PPSkipMode := ppSkipElseBranch;
+              end;
+            end else if Directive = 'IFNDEF' then
+            begin
+              if PPSkipStackIndex = High(PPSkipModeStack) then
+                Error(SErrIfXXXNestingLimitReached);
+              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+              Inc(PPSkipStackIndex);
+              if PPIsSkipping then
+              begin
+                PPSkipMode := ppSkipAll;
+                PPIsSkipping := True;
+              end else
+              begin
+                Param := UpperCase(Param);
+                Index := Defines.IndexOf(Param);
+                if Index >= 0 then
+                begin
+                  PPSkipMode := ppSkipIfBranch;
+                  PPIsSkipping := True;
+                end else
+                  PPSkipMode := ppSkipElseBranch;
+              end;
+            end else if Directive = 'IFOPT' then
+            begin
+              if PPSkipStackIndex = High(PPSkipModeStack) then
+                Error(SErrIfXXXNestingLimitReached);
+              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+              Inc(PPSkipStackIndex);
+              if PPIsSkipping then
+              begin
+                PPSkipMode := ppSkipAll;
+                PPIsSkipping := True;
+              end else
+              begin
+                { !!!: Currently, options are not supported, so they are just
+                  assumed as not being set. }
+                PPSkipMode := ppSkipIfBranch;
+                PPIsSkipping := True;
+              end;
+            end else if Directive = 'IF' then
+            begin
+              if PPSkipStackIndex = High(PPSkipModeStack) then
+                Error(SErrIfXXXNestingLimitReached);
+              PPSkipModeStack[PPSkipStackIndex] := PPSkipMode;
+              PPIsSkippingStack[PPSkipStackIndex] := PPIsSkipping;
+              Inc(PPSkipStackIndex);
+              if PPIsSkipping then
+              begin
+                PPSkipMode := ppSkipAll;
+                PPIsSkipping := True;
+              end else
+              begin
+                { !!!: Currently, expressions are not supported, so they are
                   just assumed as evaluating to false. }
-	        PPSkipMode := ppSkipIfBranch;
-		PPIsSkipping := True;
-	      end;
-	    end else if Directive = 'ELSE' then
-	    begin
-	      if PPSkipStackIndex = 0 then
-	        Error(SErrInvalidPPElse);
-	      if PPSkipMode = ppSkipIfBranch then
-	        PPIsSkipping := False
-	      else if PPSkipMode = ppSkipElseBranch then
-	        PPIsSkipping := True;
-	    end else if Directive = 'ENDIF' then
-	    begin
-	      if PPSkipStackIndex = 0 then
-	        Error(SErrInvalidPPEndif);
-	      Dec(PPSkipStackIndex);
-	      PPSkipMode := PPSkipModeStack[PPSkipStackIndex];
-	      PPIsSkipping := PPIsSkippingStack[PPSkipStackIndex];
-	    end;
-	  end else
-	    Directive := '';
-	end;
+                PPSkipMode := ppSkipIfBranch;
+                PPIsSkipping := True;
+              end;
+            end else if Directive = 'ELSE' then
+            begin
+              if PPSkipStackIndex = 0 then
+                Error(SErrInvalidPPElse);
+              if PPSkipMode = ppSkipIfBranch then
+                PPIsSkipping := False
+              else if PPSkipMode = ppSkipElseBranch then
+                PPIsSkipping := True;
+            end else if Directive = 'ENDIF' then
+            begin
+              if PPSkipStackIndex = 0 then
+                Error(SErrInvalidPPEndif);
+              Dec(PPSkipStackIndex);
+              PPSkipMode := PPSkipModeStack[PPSkipStackIndex];
+              PPIsSkipping := PPIsSkippingStack[PPSkipStackIndex];
+            end;
+          end else
+            Directive := '';
+        end;
       end;
     'A'..'Z', 'a'..'z', '_':
       begin
         TokenStart := TokenStr;
-	repeat
-	  Inc(TokenStr);
-	until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
-	SectionLength := TokenStr - TokenStart;
-	SetLength(FCurTokenString, SectionLength);
-	if SectionLength > 0 then
-	  Move(TokenStart^, FCurTokenString[1], SectionLength);
+        repeat
+          Inc(TokenStr);
+        until not (TokenStr[0] in ['A'..'Z', 'a'..'z', '0'..'9', '_']);
+        SectionLength := TokenStr - TokenStart;
+        SetLength(FCurTokenString, SectionLength);
+        if SectionLength > 0 then
+          Move(TokenStart^, FCurTokenString[1], SectionLength);
 
-	// Check if this is a keyword or identifier
-	// !!!: Optimize this!
-	for i := tkAbsolute to tkXOR do
-	  if CompareText(CurTokenString, TokenInfos[i]) = 0 then
-	  begin
-	    Result := i;
-	    FCurToken := Result;
-	    exit;
-	  end;
+        // Check if this is a keyword or identifier
+        // !!!: Optimize this!
+        for i := tkAbsolute to tkXOR do
+          if CompareText(CurTokenString, TokenInfos[i]) = 0 then
+          begin
+            Result := i;
+            FCurToken := Result;
+            exit;
+          end;
 
-	Result := tkIdentifier;
+        Result := tkIdentifier;
       end;
   else
     Error(SErrInvalidCharacter, [TokenStr[0]]);
@@ -1025,35 +1025,7 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-12-06 19:16:38  michael
-  + Some cleanup, removed some keywords which are not keywords
-
-  Revision 1.9  2004/09/05 08:56:56  michael
-  + Fixed line 404 - missing brackets
-
-  Revision 1.8  2004/08/25 09:32:39  michael
-  + Fix for relative pathnames in include files, and code cleanup
-
-  Revision 1.7  2004/07/23 23:41:10  michael
-  + Fixed scanning of strings with quotes in them
-
-  Revision 1.6  2004/05/01 20:08:51  marco
-   * Exception on file not found
-
-  Revision 1.5  2003/10/25 16:24:29  michael
-  + FPC also accepts binary numbers starting with %
-
-  Revision 1.4  2003/09/02 13:26:06  mattias
-  MG: added IF directive skipping
-
-  Revision 1.3  2003/04/04 08:01:55  michael
-  + Patch from Jeff Pohlmeyer to read less than and larger than
-
-  Revision 1.2  2003/03/27 16:32:48  sg
-  * Added $IFxxx support
-  * Lots of small fixes
-
-  Revision 1.1  2003/03/13 21:47:42  sg
-  * First version as part of FCL
+  Revision 1.11  2005-02-14 17:13:17  peter
+    * truncate log
 
 }

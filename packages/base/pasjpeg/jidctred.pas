@@ -26,7 +26,7 @@ uses
   jmorecfg,
   jinclude,
   jpeglib,
-  jdct;         	{ Private declarations for DCT subsystem }
+  jdct;                 { Private declarations for DCT subsystem }
 
 { Perform dequantization and inverse DCT on one block of coefficients,
   producing a reduced-size 1x1 output block. }
@@ -34,8 +34,8 @@ uses
 {GLOBAL}
 procedure jpeg_idct_1x1 (cinfo : j_decompress_ptr;
                          compptr : jpeg_component_info_ptr;
-	                 coef_block : JCOEFPTR;
-	                 output_buf : JSAMPARRAY;
+                         coef_block : JCOEFPTR;
+                         output_buf : JSAMPARRAY;
                          output_col : JDIMENSION);
 
 { Perform dequantization and inverse DCT on one block of coefficients,
@@ -44,7 +44,7 @@ procedure jpeg_idct_1x1 (cinfo : j_decompress_ptr;
 {GLOBAL}
 procedure jpeg_idct_2x2 (cinfo : j_decompress_ptr;
                          compptr : jpeg_component_info_ptr;
-	                 coef_block : JCOEFPTR;
+                         coef_block : JCOEFPTR;
                          output_buf : JSAMPARRAY;
                          output_col : JDIMENSION);
 
@@ -54,8 +54,8 @@ procedure jpeg_idct_2x2 (cinfo : j_decompress_ptr;
 {GLOBAL}
 procedure jpeg_idct_4x4 (cinfo : j_decompress_ptr;
                          compptr : jpeg_component_info_ptr;
-	                 coef_block : JCOEFPTR;
-	                 output_buf : JSAMPARRAY;
+                         coef_block : JCOEFPTR;
+                         output_buf : JSAMPARRAY;
                          output_col : JDIMENSION);
 
 implementation
@@ -76,7 +76,7 @@ const
 {$else}
 const
   CONST_BITS = 13;
-  PASS1_BITS = 1;	{ lose a little precision to avoid overflow }
+  PASS1_BITS = 1;       { lose a little precision to avoid overflow }
 {$endif}
 
 const
@@ -162,8 +162,8 @@ end;
 {GLOBAL}
 procedure jpeg_idct_4x4 (cinfo : j_decompress_ptr;
                          compptr : jpeg_component_info_ptr;
-	                 coef_block : JCOEFPTR;
-	                 output_buf : JSAMPARRAY;
+                         coef_block : JCOEFPTR;
+                         output_buf : JSAMPARRAY;
                          output_col : JDIMENSION);
 type
   PWorkspace = ^TWorkspace;
@@ -177,7 +177,7 @@ var
   outptr : JSAMPROW;
   range_limit : JSAMPROW;
   ctr : int;
-  workspace : TWorkspace;	{ buffers data between passes }
+  workspace : TWorkspace;       { buffers data between passes }
   {SHIFT_TEMPS}
 var
   dcval : int;
@@ -250,14 +250,14 @@ begin
     z4 := ISLOW_MULT_TYPE(inptr^[DCTSIZE*1]) * quantptr^[DCTSIZE*1];
 
     tmp0 := MULTIPLY(z1, - FIX_0_211164243) { sqrt(2) * (c3-c1) }
-	  + MULTIPLY(z2, FIX_1_451774981) { sqrt(2) * (c3+c7) }
-	  + MULTIPLY(z3, - FIX_2_172734803) { sqrt(2) * (-c1-c5) }
-	  + MULTIPLY(z4, FIX_1_061594337); { sqrt(2) * (c5+c7) }
+          + MULTIPLY(z2, FIX_1_451774981) { sqrt(2) * (c3+c7) }
+          + MULTIPLY(z3, - FIX_2_172734803) { sqrt(2) * (-c1-c5) }
+          + MULTIPLY(z4, FIX_1_061594337); { sqrt(2) * (c5+c7) }
 
     tmp2 := MULTIPLY(z1, - FIX_0_509795579) { sqrt(2) * (c7-c5) }
-	  + MULTIPLY(z2, - FIX_0_601344887) { sqrt(2) * (c5-c1) }
-	  + MULTIPLY(z3, FIX_0_899976223) { sqrt(2) * (c3-c7) }
-	  + MULTIPLY(z4, FIX_2_562915447); { sqrt(2) * (c1+c3) }
+          + MULTIPLY(z2, - FIX_0_601344887) { sqrt(2) * (c5-c1) }
+          + MULTIPLY(z3, FIX_0_899976223) { sqrt(2) * (c3-c7) }
+          + MULTIPLY(z4, FIX_2_562915447); { sqrt(2) * (c1+c3) }
 
     { Final output stage }
 
@@ -285,14 +285,14 @@ begin
     begin
       { AC terms all zero }
       dcval_ := range_limit^[int(DESCALE(INT32(wsptr^[0]), PASS1_BITS+3))
-				  and RANGE_MASK];
+                                  and RANGE_MASK];
 
       outptr^[0] := dcval_;
       outptr^[1] := dcval_;
       outptr^[2] := dcval_;
       outptr^[3] := dcval_;
 
-      Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+      Inc(int_ptr(wsptr), DCTSIZE);     { advance pointer to next row }
       continue;
     end;
 {$endif}
@@ -302,7 +302,7 @@ begin
     tmp0 := (INT32(wsptr^[0])) shl (CONST_BITS+1);
 
     tmp2 := MULTIPLY(INT32(wsptr^[2]), FIX_1_847759065)
-	  + MULTIPLY(INT32(wsptr^[6]), - FIX_0_765366865);
+          + MULTIPLY(INT32(wsptr^[6]), - FIX_0_765366865);
 
     tmp10 := tmp0 + tmp2;
     tmp12 := tmp0 - tmp2;
@@ -315,31 +315,31 @@ begin
     z4 := INT32(wsptr^[1]);
 
     tmp0 := MULTIPLY(z1, - FIX_0_211164243) { sqrt(2) * (c3-c1) }
-	  + MULTIPLY(z2, FIX_1_451774981) { sqrt(2) * (c3+c7) }
-	  + MULTIPLY(z3, - FIX_2_172734803) { sqrt(2) * (-c1-c5) }
-	  + MULTIPLY(z4, FIX_1_061594337); { sqrt(2) * (c5+c7) }
+          + MULTIPLY(z2, FIX_1_451774981) { sqrt(2) * (c3+c7) }
+          + MULTIPLY(z3, - FIX_2_172734803) { sqrt(2) * (-c1-c5) }
+          + MULTIPLY(z4, FIX_1_061594337); { sqrt(2) * (c5+c7) }
 
     tmp2 := MULTIPLY(z1, - FIX_0_509795579) { sqrt(2) * (c7-c5) }
-	  + MULTIPLY(z2, - FIX_0_601344887) { sqrt(2) * (c5-c1) }
-	  + MULTIPLY(z3, FIX_0_899976223) { sqrt(2) * (c3-c7) }
-	  + MULTIPLY(z4, FIX_2_562915447); { sqrt(2) * (c1+c3) }
+          + MULTIPLY(z2, - FIX_0_601344887) { sqrt(2) * (c5-c1) }
+          + MULTIPLY(z3, FIX_0_899976223) { sqrt(2) * (c3-c7) }
+          + MULTIPLY(z4, FIX_2_562915447); { sqrt(2) * (c1+c3) }
 
     { Final output stage }
 
     outptr^[0] := range_limit^[ int(DESCALE(tmp10 + tmp2,
-					  CONST_BITS+PASS1_BITS+3+1))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3+1))
+                            and RANGE_MASK];
     outptr^[3] := range_limit^[ int(DESCALE(tmp10 - tmp2,
-					  CONST_BITS+PASS1_BITS+3+1))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3+1))
+                            and RANGE_MASK];
     outptr^[1] := range_limit^[ int(DESCALE(tmp12 + tmp0,
-					  CONST_BITS+PASS1_BITS+3+1))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3+1))
+                            and RANGE_MASK];
     outptr^[2] := range_limit^[ int(DESCALE(tmp12 - tmp0,
-				 	  CONST_BITS+PASS1_BITS+3+1))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3+1))
+                            and RANGE_MASK];
 
-    Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+    Inc(int_ptr(wsptr), DCTSIZE);       { advance pointer to next row }
   end;
 end;
 
@@ -350,7 +350,7 @@ end;
 {GLOBAL}
 procedure jpeg_idct_2x2 (cinfo : j_decompress_ptr;
                          compptr : jpeg_component_info_ptr;
-	                 coef_block : JCOEFPTR;
+                         coef_block : JCOEFPTR;
                          output_buf : JSAMPARRAY;
                          output_col : JDIMENSION);
 type
@@ -452,12 +452,12 @@ begin
     begin
       { AC terms all zero }
       dcval_ := range_limit^[ int(DESCALE(INT32(wsptr^[0]), PASS1_BITS+3))
-				  and RANGE_MASK];
+                                  and RANGE_MASK];
 
       outptr^[0] := dcval_;
       outptr^[1] := dcval_;
 
-      Inc(int_ptr(wsptr), DCTSIZE);	{ advance pointer to next row }
+      Inc(int_ptr(wsptr), DCTSIZE);     { advance pointer to next row }
       continue;
     end;
 {$endif}
@@ -469,20 +469,20 @@ begin
     { Odd part }
 
     tmp0 := MULTIPLY( INT32(wsptr^[7]), - FIX_0_720959822) { sqrt(2) * (c7-c5+c3-c1) }
-	  + MULTIPLY( INT32(wsptr^[5]), FIX_0_850430095) { sqrt(2) * (-c1+c3+c5+c7) }
-	  + MULTIPLY( INT32(wsptr^[3]), - FIX_1_272758580) { sqrt(2) * (-c1+c3-c5-c7) }
-	  + MULTIPLY( INT32(wsptr^[1]), FIX_3_624509785); { sqrt(2) * (c1+c3+c5+c7) }
+          + MULTIPLY( INT32(wsptr^[5]), FIX_0_850430095) { sqrt(2) * (-c1+c3+c5+c7) }
+          + MULTIPLY( INT32(wsptr^[3]), - FIX_1_272758580) { sqrt(2) * (-c1+c3-c5-c7) }
+          + MULTIPLY( INT32(wsptr^[1]), FIX_3_624509785); { sqrt(2) * (c1+c3+c5+c7) }
 
     { Final output stage }
 
     outptr^[0] := range_limit^[ int(DESCALE(tmp10 + tmp0,
-					  CONST_BITS+PASS1_BITS+3+2))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3+2))
+                            and RANGE_MASK];
     outptr^[1] := range_limit^[ int(DESCALE(tmp10 - tmp0,
-					  CONST_BITS+PASS1_BITS+3+2))
-			    and RANGE_MASK];
+                                          CONST_BITS+PASS1_BITS+3+2))
+                            and RANGE_MASK];
 
-    Inc(int_ptr(wsptr), DCTSIZE);		{ advance pointer to next row }
+    Inc(int_ptr(wsptr), DCTSIZE);               { advance pointer to next row }
   end;
 end;
 
@@ -493,8 +493,8 @@ end;
 {GLOBAL}
 procedure jpeg_idct_1x1 (cinfo : j_decompress_ptr;
                          compptr : jpeg_component_info_ptr;
-	                 coef_block : JCOEFPTR;
-	                 output_buf : JSAMPARRAY;
+                         coef_block : JCOEFPTR;
+                         output_buf : JSAMPARRAY;
                          output_col : JDIMENSION);
 var
   dcval : int;

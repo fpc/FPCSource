@@ -17,16 +17,16 @@
 **********************************************************************}
 {
   History:
-  
+
   First version of this unit.
   14 Jan 2003.
-  
+
   Changed cardinal > longword.
   Added startcode for unit.
   12 Feb 2003.
-  
+
   nils.sjoholm@mailbox.swipnet.se Nils Sjoholm
-}  
+}
 
 {$mode objfpc}
 {$I useamigasmartlink.inc}
@@ -43,12 +43,12 @@ USES Exec,utility;
 VAR AHIBase : pLibrary;
 
 {
-    	$VER: ahi.h 4.2 (27.4.97)
+        $VER: ahi.h 4.2 (27.4.97)
 
-    	ahi.device definitions
+        ahi.device definitions
 
-    	(C) Copyright 1994-1997 Martin Blom
-    	All Rights Reserved.
+        (C) Copyright 1994-1997 Martin Blom
+        All Rights Reserved.
 
      (TAB SIZE: 8)
    }
@@ -110,7 +110,7 @@ VAR AHIBase : pLibrary;
           ahiam_InfoWidth : WORD;
           ahiam_InfoHeight : WORD;
           ahiam_UserData : APTR;      { You can store your own data here  }
-	  { Lots of private data follows!  }
+          { Lots of private data follows!  }
        end;
 
   { AHIEffMasterVolume  }
@@ -125,7 +125,7 @@ VAR AHIBase : pLibrary;
      tAHIEffOutputBuffer = record
           ahie_Effect : ULONG;     { Set to AHIET_OUTPUTBUFFER  }
           ahieob_Func : PHook;
-	  { These fields are filled by AHI  }
+          { These fields are filled by AHI  }
           ahieob_Type : ULONG;     { Format of buffer  }
           ahieob_Buffer : APTR;    { Pointer to the sample array  }
           ahieob_Length : ULONG;   { Number of sample frames in buffer  }
@@ -161,7 +161,7 @@ VAR AHIBase : pLibrary;
           ahieci_Func : PHook;
           ahieci_Channels : UWORD;
           ahieci_Pad : UWORD;
-	  { The rest is filled by AHI  }
+          { The rest is filled by AHI  }
           ahieci_Offset : array[0..0] of ULONG;   { The array follows  }
        end;
 
@@ -486,7 +486,7 @@ VAR AHIBase : pLibrary;
           ahir_Std : tIOStdReq;                  { Standard IO request  }
           ahir_Version : UWORD;                  { Needed version  }
           { --- New for V4, they will be ignored by V2 and earlier ---  }
-	  ahir_Pad1 : UWORD;
+          ahir_Pad1 : UWORD;
           ahir_Private : array[0..1] of ULONG;   { Hands off!  }
           ahir_Type : ULONG;                     { Sample format  }
           ahir_Frequency : ULONG;                { Sample/Record frequency  }
@@ -555,271 +555,271 @@ tagsarray;
 FUNCTION AHI_AddAudioMode(a0arg : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a0arg,A0
-	MOVEA.L	AHIBase,A6
-	JSR	-150(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a0arg,A0
+        MOVEA.L AHIBase,A6
+        JSR     -150(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_AllocAudioA(tagList : pTagItem) : pAHIAudioCtrl;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tagList,A1
-	MOVEA.L	AHIBase,A6
-	JSR	-042(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L tagList,A1
+        MOVEA.L AHIBase,A6
+        JSR     -042(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_AllocAudioRequestA(tagList : pTagItem) : pAHIAudioModeRequester;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tagList,A0
-	MOVEA.L	AHIBase,A6
-	JSR	-120(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L tagList,A0
+        MOVEA.L AHIBase,A6
+        JSR     -120(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_AudioRequestA(Requester : pAHIAudioModeRequester; tagList : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Requester,A0
-	MOVEA.L	tagList,A1
-	MOVEA.L	AHIBase,A6
-	JSR	-126(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Requester,A0
+        MOVEA.L tagList,A1
+        MOVEA.L AHIBase,A6
+        JSR     -126(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_BestAudioIDA(tagList : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	tagList,A1
-	MOVEA.L	AHIBase,A6
-	JSR	-114(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L tagList,A1
+        MOVEA.L AHIBase,A6
+        JSR     -114(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_ControlAudioA(AudioCtrl : pAHIAudioCtrl; tagList : pTagItem) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	AudioCtrl,A2
-	MOVEA.L	tagList,A1
-	MOVEA.L	AHIBase,A6
-	JSR	-060(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L tagList,A1
+        MOVEA.L AHIBase,A6
+        JSR     -060(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE AHI_FreeAudio(AudioCtrl : pAHIAudioCtrl);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	AudioCtrl,A2
-	MOVEA.L	AHIBase,A6
-	JSR	-048(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIBase,A6
+        JSR     -048(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE AHI_FreeAudioRequest(Requester : pAHIAudioModeRequester);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Requester,A0
-	MOVEA.L	AHIBase,A6
-	JSR	-132(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Requester,A0
+        MOVEA.L AHIBase,A6
+        JSR     -132(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION AHI_GetAudioAttrsA(ID : longword; Audioctrl : pAHIAudioCtrl; tagList : pTagItem) : BOOLEAN;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	ID,D0
-	MOVEA.L	Audioctrl,A2
-	MOVEA.L	tagList,A1
-	MOVEA.L	AHIBase,A6
-	JSR	-108(A6)
-	MOVEA.L	(A7)+,A6
-	TST.W	D0
-	BEQ.B	@end
-	MOVEQ	#1,D0
-  @end:	MOVE.B	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  ID,D0
+        MOVEA.L Audioctrl,A2
+        MOVEA.L tagList,A1
+        MOVEA.L AHIBase,A6
+        JSR     -108(A6)
+        MOVEA.L (A7)+,A6
+        TST.W   D0
+        BEQ.B   @end
+        MOVEQ   #1,D0
+  @end: MOVE.B  D0,@RESULT
   END;
 END;
 
 PROCEDURE AHI_KillAudio;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	AHIBase,A6
-	JSR	-054(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L AHIBase,A6
+        JSR     -054(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION AHI_LoadModeFile(a0arg : pCHAR) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	a0arg,A0
-	MOVEA.L	AHIBase,A6
-	JSR	-162(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L a0arg,A0
+        MOVEA.L AHIBase,A6
+        JSR     -162(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_LoadSound(Sound : WORD; _Type : longword; Info : POINTER; AudioCtrl : pAHIAudioCtrl) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Sound,D0
-	MOVE.L	_Type,D1
-	MOVEA.L	Info,A0
-	MOVEA.L	AudioCtrl,A2
-	MOVEA.L	AHIBase,A6
-	JSR	-090(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  Sound,D0
+        MOVE.L  _Type,D1
+        MOVEA.L Info,A0
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIBase,A6
+        JSR     -090(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_NextAudioID(Last_ID : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Last_ID,D0
-	MOVEA.L	AHIBase,A6
-	JSR	-102(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  Last_ID,D0
+        MOVEA.L AHIBase,A6
+        JSR     -102(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE AHI_PlayA(Audioctrl : pAHIAudioCtrl; tagList : pTagItem);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Audioctrl,A2
-	MOVEA.L	tagList,A1
-	MOVEA.L	AHIBase,A6
-	JSR	-138(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVEA.L Audioctrl,A2
+        MOVEA.L tagList,A1
+        MOVEA.L AHIBase,A6
+        JSR     -138(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 FUNCTION AHI_RemoveAudioMode(d0arg : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	d0arg,D0
-	MOVEA.L	AHIBase,A6
-	JSR	-156(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  d0arg,D0
+        MOVEA.L AHIBase,A6
+        JSR     -156(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_SampleFrameSize(SampleType : longword) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	SampleType,D0
-	MOVEA.L	AHIBase,A6
-	JSR	-144(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVE.L  SampleType,D0
+        MOVEA.L AHIBase,A6
+        JSR     -144(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 FUNCTION AHI_SetEffect(Effect : POINTER; AudioCtrl : pAHIAudioCtrl) : longword;
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVEA.L	Effect,A0
-	MOVEA.L	AudioCtrl,A2
-	MOVEA.L	AHIBase,A6
-	JSR	-084(A6)
-	MOVEA.L	(A7)+,A6
-	MOVE.L	D0,@RESULT
+        MOVE.L  A6,-(A7)
+        MOVEA.L Effect,A0
+        MOVEA.L AudioCtrl,A2
+        MOVEA.L AHIBase,A6
+        JSR     -084(A6)
+        MOVEA.L (A7)+,A6
+        MOVE.L  D0,@RESULT
   END;
 END;
 
 PROCEDURE AHI_SetFreq(Channel : WORD; Freq : longword; AudioCtrl : pAHIAudioCtrl; Flags : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Channel,D0
-	MOVE.L	Freq,D1
-	MOVEA.L	AudioCtrl,A2
-	MOVE.L	Flags,D2
-	MOVEA.L	AHIBase,A6
-	JSR	-072(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVE.L  Channel,D0
+        MOVE.L  Freq,D1
+        MOVEA.L AudioCtrl,A2
+        MOVE.L  Flags,D2
+        MOVEA.L AHIBase,A6
+        JSR     -072(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE AHI_SetSound(Channel : WORD; Sound : WORD; Offset : longword; len : LONGINT; AudioCtrl : pAHIAudioCtrl; Flags : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Channel,D0
-	MOVE.L	Sound,D1
-	MOVE.L	Offset,D2
-	MOVE.L	len,D3
-	MOVEA.L	AudioCtrl,A2
-	MOVE.L	Flags,D4
-	MOVEA.L	AHIBase,A6
-	JSR	-078(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVE.L  Channel,D0
+        MOVE.L  Sound,D1
+        MOVE.L  Offset,D2
+        MOVE.L  len,D3
+        MOVEA.L AudioCtrl,A2
+        MOVE.L  Flags,D4
+        MOVEA.L AHIBase,A6
+        JSR     -078(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE AHI_SetVol(Channel : WORD; Volume : LONGINT; Pan : LONGINT; AudioCtrl : pAHIAudioCtrl; Flags : longword);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Channel,D0
-	MOVE.L	Volume,D1
-	MOVE.L	Pan,D2
-	MOVEA.L	AudioCtrl,A2
-	MOVE.L	Flags,D3
-	MOVEA.L	AHIBase,A6
-	JSR	-066(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVE.L  Channel,D0
+        MOVE.L  Volume,D1
+        MOVE.L  Pan,D2
+        MOVEA.L AudioCtrl,A2
+        MOVE.L  Flags,D3
+        MOVEA.L AHIBase,A6
+        JSR     -066(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
 PROCEDURE AHI_UnloadSound(Sound : WORD; Audioctrl : pAHIAudioCtrl);
 BEGIN
   ASM
-	MOVE.L	A6,-(A7)
-	MOVE.L	Sound,D0
-	MOVEA.L	Audioctrl,A2
-	MOVEA.L	AHIBase,A6
-	JSR	-096(A6)
-	MOVEA.L	(A7)+,A6
+        MOVE.L  A6,-(A7)
+        MOVE.L  Sound,D0
+        MOVEA.L Audioctrl,A2
+        MOVEA.L AHIBase,A6
+        JSR     -096(A6)
+        MOVEA.L (A7)+,A6
   END;
 END;
 
@@ -948,4 +948,4 @@ END. (* UNIT AHI *)
   $Log
 }
 
-  
+

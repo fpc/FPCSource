@@ -574,7 +574,7 @@ function SplSetJob (const pszComputerName, pszQueueName: PChar;
 function SplCreateQueue (const pszComputerName: PChar; ulLevel: cardinal;
                                    var pBuf; cbBuf: cardinal): cardinal; cdecl;
 
-function SplReleaseQueue (const pszComputerName, 
+function SplReleaseQueue (const pszComputerName,
                                          pszQueueName: PChar): cardinal; cdecl;
 
 function SplDeleteQueue (const pszComputerName, pszQueueName: PChar): cardinal;
@@ -771,11 +771,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-11-02 11:19:36  hajny
-    - DosCalls removed from uses clause (not needed)
-
-  Revision 1.1  2002/10/28 16:05:18  hajny
-    + PM spooler interface added
-
+  Revision 1.3  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

@@ -1117,12 +1117,12 @@ Procedure TDataset.DoInsertAppend(DoAppend : Boolean);
     end;
 
   InternalInsert;
-      
+
   // update buffer count.
   If FRecordCount<FBufferCount then
     Inc(FRecordCount);
   end;
-  
+
 begin
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
@@ -1298,22 +1298,22 @@ end;
 Procedure TDataset.GetFieldList(List: TList; const FieldNames: string);
 
   Function NextName(Var S : String) : String;
-  
+
   Var
     P : integer;
-  
+
   begin
     P:=Pos(';',S);
     If (P=0) then
       P:=Length(S)+1;
-    Result:=Copy(S,1,P-1);   
+    Result:=Copy(S,1,P-1);
     system.Delete(S,1,P);
   end;
 
 var
   F: TField;
   Names,N : String;
-  
+
 begin
   Names:=FieldNames;
   N:=Nextname(Names);
@@ -1758,7 +1758,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  2005-02-07 11:19:27  joost
+  Revision 1.32  2005-02-14 17:13:12  peter
+    * truncate log
+
+  Revision 1.31  2005/02/07 11:19:27  joost
     - Fixed insertion at buffer-limit
     - Added TDataset.InternalInsert
     - The deDatasetScrollEvent was not always raised
@@ -1767,131 +1770,5 @@ end;
   Revision 1.30  2005/01/12 10:27:57  michael
     * Patch from Joost Van der Sluis:
     - implemented ControlsDisabled
-
-  Revision 1.29  2004/12/13 19:18:51  michael
-    * Patch from Joost van der Sluis
-    - TDataset.IsSequenced returns True, like Delphi does
-    - TDataset.RecNo returns -1, just like Delphi
-    - TDataset.GetRecordCount returns -1, just like Delphi
-
-  Revision 1.28  2004/11/05 08:32:02  michael
-  TBufDataset.inc:
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  Database.inc:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Gives an error if the database of an active transaction is changed
-
-  Dataset.inc
-    - Don't distribute events if FDisableControlsCount > 0
-    - Replaced FActive by FState<>dsInactive
-    - Set EOF after append
-
-  db.pp:
-    - Removed duplicate definition of TAlignment
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - Replaced FActive by FState<>dsInactive
-    - Gives an error if the database of an active transaction is changed
-
-  sqldb:
-    - Moved Active property from TSQLTransaction to TDBTransaction
-    - replaced Freemem by Reallocmem, Free by FreeAndNil
-
-  IBConnection:
-    - Moved FSQLDAAllocated to the cursor
-
-  PQConnection:
-    - Don't try to free the statement if a fatal error occured
-
-  Revision 1.27  2004/10/27 07:23:13  michael
-  + Patch from Joost Van der Sluis to fix transactions
-
-  Revision 1.26  2004/10/16 09:27:23  michael
-  + Fixed GotoBookMark (as suggested by Americo Luiz)
-
-  Revision 1.25  2004/10/10 14:25:21  michael
-  + Small fix for close so it does not check browsemode
-
-  Revision 1.24  2004/09/26 16:55:24  michael
-  * big patch from Joost van der Sluis
-   bufdataset.inc:
-    fix getrecord (prior)
-    getcanmodify default false
-  database.inc / db.inc:
-    Added transactions
-  dataset.inc:
-    raise error if trying to insert into an readonly dataset
-  db.inc:
-    remove published properties from bufdataset
-    changed ancestor of tbufdataset to tdbdataset
-
-  Revision 1.23  2004/09/15 12:22:33  michael
-  Suggested fix from Luiz Americo to .resync method
-
-  Revision 1.22  2004/08/30 12:02:17  michael
-  + Patch from Joost van der Sluis for Insert/Resync
-
-  Revision 1.21  2004/08/23 07:30:19  michael
-  + Fixes from joost van der sluis: tfieldsdefs.tdatafield and size, cancel of only record and dataset.fieldvalyes
-
-  Revision 1.20  2004/08/21 21:10:00  michael
-  * Patch from Joost van der Sluis
-    - Empty recordsets don't show any bogus data anymore
-    - Floatfiels.gettext fix
-    - SetBufListsize fix forTDBGrid
-
-  Revision 1.19  2004/08/14 12:46:36  michael
-  + Patch from Joost van der Sluis to implement Modified and UpdateRecord event
-
-  Revision 1.18  2004/08/13 07:06:02  michael
-  + Rework of buffer management by Joost Van der Sluis
-
-  Revision 1.17  2004/08/03 19:08:48  michael
-  + Latest patch from Micha Nelissen
-
-  Revision 1.16  2004/08/02 15:13:42  michael
-  + Patch from Micha Nelissen to implement Delete method
-
-  Revision 1.15  2004/07/25 11:32:40  michael
-  * Patches from Joost van der Sluis
-    interbase.pp:
-        * Removed unused Fprepared
-        * Changed the error message 'database connect string not filled
-          in' to 'database connect string (databasename) not filled in'
-        * Preparestatement and execute now checks if transaction is
-          assigned (in stead of crashing if it isn't) and if the
-          transaction isn't started, it calls starttransaction.
-
-     dataset.inc:
-        * In DoInternalOpen the buffers are now initialised before the
-          dataset is set into browse-state
-
-     database.inc and db.pp:
-        * If the dataset is created from a stream, the database is opened
-          after the dataset is read completely
-
-  Revision 1.13  2004/05/02 21:23:18  peter
-    * use ptrint
-
-  Revision 1.12  2004/03/25 20:43:39  michael
-  Some compatibility additions
-
-  Revision 1.11  2004/01/05 21:21:38  michael
-  + Fix in setbuflistsize for when Value=-1
-
-  Revision 1.10  2003/11/09 21:23:10  michael
-  + Patch from Micha Nelissen, fixing some Delphi compatibility issues
-
-  Revision 1.9  2003/10/06 17:04:28  florian
-    * small step towards calculated fields
-
-  Revision 1.8  2003/05/06 12:08:52  michael
-  + fixed dataset opening buffer issues
-
-  Revision 1.7  2003/02/20 19:25:19  michael
-  + Fixes from Jesus Reyes
-
-  Revision 1.6  2002/09/07 15:15:22  peter
-    * old logs removed and tabs fixed
 
 }

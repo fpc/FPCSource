@@ -474,20 +474,7 @@ type
 end.
 {
   $Log$
-  Revision 1.14  2004-11-09 22:32:59  peter
-    * small m68k updates to bring it up2date
-    * give better error for external local variable
-
-  Revision 1.13  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.12  2004/06/20 08:47:33  florian
-    * spilling of doubles on sparc fixed
-
-  Revision 1.11  2004/05/06 22:01:54  florian
-    * register numbers for address registers fixed
-
-  Revision 1.10  2004/01/30 12:17:18  florian
-    * fixed some m68k compilation problems
+  Revision 1.15  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

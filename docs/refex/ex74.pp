@@ -5,8 +5,8 @@ Var I, Code : Integer;
 
 begin
   Val (ParamStr (1),I,Code);
-  If Code<>0 then 
+  If Code<>0 then
     Writeln ('Error at position ',code,' : ',Paramstr(1)[Code])
   else
-    Writeln ('Value : ',I);  
+    Writeln ('Value : ',I);
 end.

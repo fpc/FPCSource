@@ -1178,7 +1178,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2005-02-06 11:15:32  peter
+  Revision 1.56  2005-02-14 17:13:07  peter
+    * truncate log
+
+  Revision 1.55  2005/02/06 11:15:32  peter
     * removed $threading
 
   Revision 1.54  2005/01/20 17:32:33  peter
@@ -1202,58 +1205,5 @@ end.
 
   Revision 1.48  2005/01/04 16:18:57  florian
     * prepared for fpu mode depended define
-
-  Revision 1.47  2004/11/06 17:58:10  peter
-    * check extension of library if it needs to be linked static
-
-  Revision 1.46  2004/10/26 15:11:01  peter
-    * -Ch for heapsize added again
-    * __heapsize contains the heapsize
-
-  Revision 1.45  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.44  2004/10/15 09:14:17  mazen
-  - remove $IFDEF DELPHI and related code
-  - remove $IFDEF FPCPROCVAR and related code
-
-  Revision 1.43  2004/09/04 21:18:47  armin
-  * target netwlibc added (libc is preferred for newer netware versions)
-
-  Revision 1.42  2004/08/31 22:07:04  olle
-    + compiler directives which take filenames/paths, get these trimmed, and
-      also support quotes.
-
-  Revision 1.41  2004/08/22 10:17:27  peter
-    * support $RESOURCE
-
-  Revision 1.40  2004/08/16 11:34:25  olle
-    + added directive LibExport for macpas, which does nothing atm
-
-  Revision 1.39  2004/07/06 09:41:46  olle
-    * fixes compilation on 1.0.*
-
-  Revision 1.38  2004/07/05 21:49:43  olle
-    + macpas style: exit, cycle, leave
-    + macpas compiler directive: PUSH POP
-
-  Revision 1.37  2004/06/20 08:55:30  florian
-    * logs truncated
-
-  Revision 1.36  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.35  2004/05/19 23:29:56  peter
-    * $message directive compatible with delphi
-
-  Revision 1.34  2004/05/11 22:51:34  olle
-    * Performanceimprovement
-
-  Revision 1.33  2004/05/11 18:30:50  olle
-    + mode macpas: support for Apples align directives
-
-  Revision 1.32.2.1  2004/05/03 14:59:57  peter
-    * no dlltool needed for win32 linking executables
 
 }

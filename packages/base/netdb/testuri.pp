@@ -4,7 +4,7 @@
     Copyright (c) 2003 by the Free Pascal development team
 
     Test uriparser unit
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -61,10 +61,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-11-22 23:17:50  michael
-  Patch for ipv6 and CNAME record support from Johannes Berg
-
-  Revision 1.1  2003/05/17 20:54:03  michael
-  + uriparser unit added. Header/Footer blocks added
+  Revision 1.3  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

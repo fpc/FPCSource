@@ -95,11 +95,11 @@ Const
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accumulator;
+        return_result_reg               =       accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
-	function_result_reg	=	accumulator;
+        function_result_reg     =       accumulator;
   global_pointer = R_29;
   return_pointer = R_26;
 
@@ -283,14 +283,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2004-06-20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.7  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.6.2.1  2004/05/01 16:02:10  peter
-    * POINTER_SIZE replaced with sizeof(aint)
-    * aint,aword,tconst*int moved to globtype
+  Revision 1.9  2005-02-14 17:13:10  peter
+    * truncate log
 
 }

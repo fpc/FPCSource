@@ -32,7 +32,7 @@ type
     Header         : TTargaHeader;
     Identification : ShortString;
     Compressed,
-    BottomUp       : Boolean; 
+    BottomUp       : Boolean;
     BytesPerPixel  : Byte;
     FPalette        : PFPColor;
     FScanLine      : PByte;
@@ -90,14 +90,14 @@ begin
     begin
     If (Flags shl 6)<>0 then
       Raise Exception.Create('Interlaced targa images not supported.');
-    If MapType>1 then 
+    If MapType>1 then
       Raise Exception.CreateFmt('Unknown targa colormap type: %d',[MapType]);
     if (PixelSize and 7)<>0 then
       Raise Exception.Create('Pixelsize must be multiple of 8');
     BottomUp:=(Flags and $20) <>0;
     BytesPerPixel:=PixelSize shr 3;
     Compressed:=ImgType>8;
-    If Compressed then 
+    If Compressed then
       ImgType:=ImgType-8;
     Case ImgType of
       1: if (BytesPerPixel<>1) or (MapType<>1) then
@@ -107,10 +107,10 @@ begin
       3: begin
          if BytesPerPixel<>1 then
            Raise Exception.Create('Error in targa header: Grayscale image needs 1 byte per pixel.');
-         end;  
+         end;
     else
       Raise Exception.CreateFmt('Unknown/Unsupported Targa image type : %d',[ImgType]);
-    end;    
+    end;
     if (ToWord(MapLength)>0) and (MapEntrySize<>24) then
       Raise Exception.CreateFmt('Only targa BGR colormaps are supported. Got : %d',[MapEntrySize]);
     if (ToWord(MapLength)>0) and (MapType<>0) then
@@ -125,7 +125,7 @@ begin
 end;
 
 Procedure TFPReaderTarga.ReadPalette(Stream : TStream);
- 
+
 Var
   Entry : TBGREntry;
   I : Integer;
@@ -144,11 +144,11 @@ begin
     end;
 end;
 
-Procedure TFPReaderTarga.InternalRead  (Stream:TStream; Img:TFPCustomImage); 
+Procedure TFPReaderTarga.InternalRead  (Stream:TStream; Img:TFPCustomImage);
 
 var
   H,Row : Integer;
-  
+
 begin
   Stream.Read(Header,SizeOf(Header));
   AnalyzeHeader(Img);
@@ -161,7 +161,7 @@ begin
     end;
   If Toword(Header.MapLength)>0 then
     ReadPalette(Stream);
-  H:=Img.height;  
+  H:=Img.height;
   If BottomUp then
     For Row:=0 to H-1 do
       begin
@@ -182,7 +182,7 @@ Var
   P : PByte;
   B : Byte;
   I,J : Integer;
-  
+
 begin
   If Not Compressed then
     Stream.ReadBuffer(FScanLine^,FLineSize)
@@ -205,9 +205,9 @@ begin
             FblockCount:=0;
             end
           else
-            FBlockCount:=B and $7F  
+            FBlockCount:=B and $7F
           end;
-        Stream.ReadBuffer(FlastPixel,BytesPerPixel);  
+        Stream.ReadBuffer(FlastPixel,BytesPerPixel);
         end;
       For J:=0 to BytesPerPixel-1 do
         begin
@@ -224,7 +224,7 @@ const
      66,  74,  82,  90,  99, 107, 115, 123,
     132, 140, 148, 156, 165, 173, 181, 189,
     197, 206, 214, 222, 230, 239, 247, 255);
-                                                                  
+
 
 Procedure TFPReaderTarga.WriteScanLine(Row : Integer; Img : TFPCustomImage);
 
@@ -234,7 +234,7 @@ Var
   C   : TFPColor;
   W   : Word;
   P   : PByte;
-  
+
 begin
   C.Alpha:=AlphaOpaque;
   P:=FScanLine;
@@ -244,10 +244,10 @@ begin
     2 : for Col:=0 to Img.Width-1 do
           begin
           // Fill C depending on number of pixels.
-          case BytesPerPixel of 
+          case BytesPerPixel of
             2 : begin
                 W:=P[0];
-                inc(P); 
+                inc(P);
                 W:=W or (P[0] shl 8);
                 With C do
                   begin
@@ -271,11 +271,11 @@ begin
                     // Alpha:=P[0] or (P[0] shl 8); what is TARGA Attribute ??
                     end;
                   end;
-          end; // Case BytesPerPixel;   
-          Img[Col,Row]:=C;  
+          end; // Case BytesPerPixel;
+          Img[Col,Row]:=C;
           Inc(P);
-          end;    
-    3 : For Col:=0 to Img.Width-1 do 
+          end;
+    3 : For Col:=0 to Img.Width-1 do
           begin
           B:=FScanLine[Col];
           B:=B+(B Shl 8);
@@ -290,11 +290,11 @@ begin
   end;
 end;
 
-function  TFPReaderTarga.InternalCheck (Stream:TStream) : boolean; 
+function  TFPReaderTarga.InternalCheck (Stream:TStream) : boolean;
 
 begin
   Result:=True;
-end;            
+end;
 
 initialization
   ImageHandlers.RegisterImageReader ('TARGA Format', 'tga', TFPReaderTarga);

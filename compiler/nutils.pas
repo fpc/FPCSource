@@ -567,84 +567,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2005-01-04 16:39:46  peter
+  Revision 1.30  2005-02-14 17:13:06  peter
+    * truncate log
+
+  Revision 1.29  2005/01/04 16:39:46  peter
     * set nf_is_self node flag when self is loaded
-
-  Revision 1.28  2004/12/26 16:22:01  peter
-    * fix lineinfo for with blocks
-
-  Revision 1.27  2004/12/15 16:00:16  peter
-    * external is again allowed in implementation
-
-  Revision 1.26  2004/12/15 15:27:03  jonas
-    * fixed foreachnode(static) for case nodes (fixes inlining of case
-      statements)
-
-  Revision 1.25  2004/12/10 13:16:31  jonas
-    * certain type conversions have no cost (also fixes problem of
-      inc(int64) with regvars turned on on non-64bit platforms)
-
-  Revision 1.24  2004/12/05 12:28:11  peter
-    * procvar handling for tp procvar mode fixed
-    * proc to procvar moved from addrnode to typeconvnode
-    * inlininginfo is now allocated only for inline routines that
-      can be inlined, introduced a new flag po_has_inlining_info
-
-  Revision 1.23  2004/12/02 19:26:15  peter
-    * disable pass2inline
-
-  Revision 1.22  2004/11/28 19:29:45  jonas
-    * loadvmtaddrn and loadparentfpn both have complexity 1 (the latter
-      fixes compilation of tw0935 with nodeinlining)
-
-  Revision 1.21  2004/11/08 22:09:59  peter
-    * tvarsym splitted
-
-  Revision 1.20  2004/11/02 12:55:16  peter
-    * nf_internal flag for internal inserted typeconvs. This will
-      supress the generation of warning/hints
-
-  Revision 1.19  2004/08/25 15:54:46  peter
-    * fix possible wrong typecast
-
-  Revision 1.18  2004/08/04 08:35:59  jonas
-    * some improvements to node complexity calculations
-
-  Revision 1.17  2004/07/15 20:59:58  jonas
-    * fixed complexity function so it doesn't always return infinity when a
-      load node is encountered
-
-  Revision 1.16  2004/07/15 19:55:40  jonas
-    + (incomplete) node_complexity function to assess the complexity of a
-      tree
-    + support for inlining value and const parameters at the node level
-      (all procedures without local variables and without formal parameters
-       can now be inlined at the node level)
-
-  Revision 1.15  2004/07/12 09:14:04  jonas
-    * inline procedures at the node tree level, but only under some very
-      limited circumstances for now (only procedures, and only if they have
-      no or only vs_out/vs_var parameters).
-    * fixed ppudump for inline procedures
-    * fixed ppudump for ppc
-
-  Revision 1.14  2004/06/20 08:55:29  florian
-    * logs truncated
-
-  Revision 1.13  2004/06/16 20:07:09  florian
-    * dwarf branch merged
-
-  Revision 1.12  2004/05/23 18:28:41  peter
-    * methodpointer is loaded into a temp when it was a calln
-
-  Revision 1.11  2004/05/23 15:04:49  peter
-    * generate better code for ansistring initialization
-
-  Revision 1.10.2.1  2004/04/28 19:55:52  peter
-    * new warning for ordinal-pointer when size is different
-    * fixed some cg_e_ messages to the correct section type_e_ or parser_e_
-
-  Revision 1.10  2004/02/20 21:55:59  peter
-    * procvar cleanup
 
 }

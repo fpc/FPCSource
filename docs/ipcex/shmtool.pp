@@ -40,21 +40,21 @@ end;
 Procedure CHangeMode (ID : longint; mode : String);
 
 Var m : word;
-    code : integer; 
+    code : integer;
     data : TSHMid_ds;
-    
+
 begin
   val (mode,m,code);
   if code<>0 then
     usage;
-  If Not shmctl (shmid,IPC_STAT,@data) then 
+  If Not shmctl (shmid,IPC_STAT,@data) then
     begin
     writeln ('Error : shmctl :',ipcerror);
     halt(1);
     end;
   writeln ('Old permissions : ',data.shm_perm.mode);
   data.shm_perm.mode:=m;
-  If Not shmctl (shmid,IPC_SET,@data) then 
+  If Not shmctl (shmid,IPC_SET,@data) then
     begin
     writeln ('Error : shmctl :',ipcerror);
     halt(1);
@@ -70,7 +70,7 @@ begin
     begin
     Writeln ('Shared memory exists. Opening as client');
     shmid := shmget(key,segsize,0);
-    If shmid = -1 then 
+    If shmid = -1 then
       begin
       Writeln ('shmget : Error !',ipcerror);
       halt(1);

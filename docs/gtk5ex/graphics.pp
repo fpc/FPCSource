@@ -5,8 +5,8 @@ program graphics;
 
 uses glib,gdk,gtk,sysutils;
 
-var 
-  window, 
+var
+  window,
   area : PGtkWidget;
 
 Function close_application( widget : PGtkWidget ;
@@ -26,7 +26,7 @@ begin
     Pixel:=0;
     Red:=R;
     Blue:=B;
-    Green:=G;  
+    Green:=G;
     end;
   gdk_colormap_alloc_color(gtk_widget_get_colormap(Widget),Result,true,False);
 end;
@@ -34,27 +34,27 @@ end;
 
 function Exposed(Widget: PGtkWidget;event : PGdkEventExpose; Data : gpointer) : Integer; cdecl;
 
-Const 
-  Triangle : Array[1..4] of TgdkPoint = 
+Const
+  Triangle : Array[1..4] of TgdkPoint =
             ((X:10;Y:195),(X:110;Y:195),(X:55;Y:145),(X:10;Y:195));
-  LineStyles : Array[1..5] of TgdkLineStyle = 
+  LineStyles : Array[1..5] of TgdkLineStyle =
           (GDK_LINE_SOLID, GDK_LINE_ON_OFF_DASH, GDK_LINE_DOUBLE_DASH,
           GDK_LINE_ON_OFF_DASH, GDK_LINE_SOLID);
-  capstyles : Array[1..5] of TgdkCapStyle = 
+  capstyles : Array[1..5] of TgdkCapStyle =
           (GDK_CAP_ROUND,GDK_CAP_NOT_LAST, GDK_CAP_BUTT,  GDK_CAP_PROJECTING,
           GDK_CAP_NOT_LAST);
 
-  FontName : Pchar = 
+  FontName : Pchar =
    '-*-helvetica-bold-r-normal--*-120-*-*-*-*-iso8859-1';
-          
+
 Var
   SegTriangle : Array[1..3] of TgdkSegment;
   Win : pgdkWindow;
   gc : PgdkGC;
-  i,seg : Integer; 
+  i,seg : Integer;
   font : PgdkFont;
   Angle1,Angle2 : Longint;
-    
+
 begin
   gc:=gdk_gc_new(widget^.Window);
   Win:=widget^.window;
@@ -80,10 +80,10 @@ begin
   For I:=1 to 20 do
     gdk_draw_arc(win,gc,-1,380-I*4,200-i*4,8*i,8*i,(i-1)*seg,seg);
   gdk_gc_set_foreground(gc,allocatecolor(0,$ffff,$ffff,Widget));
-  gdk_draw_polygon(win,gc,0,@triangle[1],4);  
+  gdk_draw_polygon(win,gc,0,@triangle[1],4);
   For I:=1 to 4 do
     Triangle[i].Y:=400-Triangle[i].y;
-  gdk_draw_polygon(win,gc,-1,@triangle[1],4);  
+  gdk_draw_polygon(win,gc,-1,@triangle[1],4);
   gdk_gc_set_foreground(gc,allocatecolor(0,$ffff,0,Widget));
   For I:=1 to 4 do
     Triangle[i].X:=600-Triangle[i].x;
@@ -116,6 +116,6 @@ Begin
   gtk_signal_connect (GTK_OBJECT (area),'expose_event',
                       GTK_SIGNAL_FUNC(@Exposed),Nil);
   gtk_drawing_area_size (PGTKDRAWINGAREA(area),600,400);
-  gtk_widget_show_all( window ); 
+  gtk_widget_show_all( window );
   gtk_main();
 end.

@@ -65,7 +65,7 @@ var
 begin
   KbdGetFocus (IO_Wait, Handle);
   while (KbdCharIn (K, IO_Wait, Handle) <> No_Error)
-        or (K.fbStatus and $40 = 0) do 
+        or (K.fbStatus and $40 = 0) do
     DosSleep (5);
   with K do
     begin
@@ -79,22 +79,22 @@ function SysPollKeyEvent: TKeyEvent;
 var
  K: TKbdKeyInfo;
  Key : TKeyEvent;
- 
+
 begin
   Key:=0;
   KbdGetFocus (IO_NoWait, Handle);
   if (KbdPeek (K, Handle) <> No_Error) or
-     (K.fbStatus and $40 = 0) then 
-    FillChar (K, SizeOf (K), 0) 
+     (K.fbStatus and $40 = 0) then
+    FillChar (K, SizeOf (K), 0)
   else
     with K do
       begin
-      if (byte (chChar) = $E0) and (fbStatus and 2 <> 0) then 
+      if (byte (chChar) = $E0) and (fbStatus and 2 <> 0) then
         chChar := #0;
       Key:= cardinal ($0300 or fsState and $F) shl 16 or
             cardinal (byte (chScan)) shl 8 or byte (chChar);
       end;
-  if (Key and $FFFF)=0 then 
+  if (Key and $FFFF)=0 then
    Key := 0;
   SysPollKeyEvent:=Key;
 end;
@@ -121,22 +121,16 @@ Const
     PollKeyEvent : @SysPollKeyEvent;
     GetShiftState : @SysGetShiftState;
     TranslateKeyEvent : Nil;
-    TranslateKeyEventUnicode : Nil; 
+    TranslateKeyEventUnicode : Nil;
   );
 
 
-begin 
+begin
   SetKeyBoardDriver(SysKeyBoardDriver);
 end.
 {
   $Log$
-  Revision 1.6  2004-12-27 22:26:43  hajny
-    * SysGetShiftState fixed
-
-  Revision 1.5  2002/09/07 16:01:24  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/03/03 21:08:33  hajny
-    * SysPollKeyEvent fixed
+  Revision 1.7  2005-02-14 17:13:31  peter
+    * truncate log
 
 }

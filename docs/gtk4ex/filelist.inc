@@ -1,10 +1,10 @@
 
 Const
   DefCompare : TGtkCListCompareFunc = Nil;
-  
+
 Function FileCompareFunc(List:PGtkCList; Row1,Row2 : PGtkCListRow) : Longint; Cdecl;
 
-Var 
+Var
   SC : Longint;
 
 begin
@@ -15,9 +15,9 @@ begin
     Result:=PLongint(Row1^.Data)[SC]-PLongint(Row2^.Data)[SC];
     end
   Else
-    Result:=DefCompare(List,Row1,Row2);  
+    Result:=DefCompare(List,Row1,Row2);
 end;
-                       
+
 Procedure DestroySortData(FSD : Pointer);cdecl;
 
 begin
@@ -30,7 +30,7 @@ Var
   Texts : Array[1..6] of AnsiString;
   FSD   : PLongint;
   I     : longint;
-      
+
 begin
   Texts[1]:=ExtractFileName(Info.Name);
   Texts[2]:=ExtractFileExt(Info.Name);
@@ -51,7 +51,7 @@ Var
   Info : TSearchRec;
   Size : Int64;
   I : longint;
-  
+
 begin
   Result:=0;
   Size:=0;
@@ -83,10 +83,10 @@ end;
 
 Procedure FileColumnClick(List : PGtkCList;Column:gint; Window : PMainWindow);cdecl;
 
-Var 
+Var
   I  : longint;
   NS : TGtkSortType;
-   
+
 begin
   If Column<>List^.sort_column Then
     begin
@@ -95,7 +95,7 @@ begin
     end
   else
     begin
-    If (List^.Sort_type=GTK_SORT_ASCENDING) Then 
+    If (List^.Sort_type=GTK_SORT_ASCENDING) Then
       NS:=GTK_SORT_DESCENDING
     else
       NS:=GTK_SORT_ASCENDING;
@@ -106,7 +106,7 @@ end;
 
 Function NewFileList(MainWindow : PMainWindow) : PGtkClist;
 
-Const 
+Const
   Titles : Array[1..6] of pchar = ('Name','ext','Size','Date','Attributes','');
 
 begin
@@ -132,7 +132,7 @@ Procedure ToggleFileListTitles(Sender : PGtkCheckMenuItem;Window : PMainWindow);
 begin
   If active(Sender^)=0 then
     gtk_clist_column_titles_show(Window^.FileList)
-  else  
+  else
     gtk_clist_column_titles_hide(Window^.FileList)
 end;
 
@@ -148,9 +148,9 @@ begin
       Col:=2
     else if Sender=MIShowDate then
       Col:=3
-    else 
+    else
       Col:=4;
-   gtk_clist_set_column_visibility(Window^.FileList,Col,(Active(Sender^)=0));   
+   gtk_clist_set_column_visibility(Window^.FileList,Col,(Active(Sender^)=0));
 end;
 
 Procedure GetFileSelection (List : PGtkClist; Selection : TStrings);
@@ -159,7 +159,7 @@ Var
   SList : PGList;
   Index : Longint;
   P : PChar;
-  
+
 begin
   Selection.Clear;
   Slist:=List^.Selection;
@@ -178,7 +178,7 @@ Var
   SList : PGList;
   Index : Longint;
   P : PChar;
-  
+
 begin
   REsult:='';
   Slist:=List^.Selection;
@@ -194,7 +194,7 @@ Function GetFileSelectionCount (List : PGtkClist) : Longint;
 
 Var
   SList : PGList;
-  
+
 begin
   Slist:=List^.Selection;
   Result:=0;

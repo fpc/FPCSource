@@ -19,7 +19,7 @@ unit termio;
 
 interface
 
-Uses BaseUnix;		// load base unix typing
+Uses BaseUnix;          // load base unix typing
 
 // load types + consts
 
@@ -43,8 +43,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2003-11-19 17:15:31  marco
-   * termio new includefile
-
+  Revision 1.2  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

@@ -34,7 +34,7 @@ uses SysUtils, Classes, dwLinear;
 Const
   MaxListLevel     = 10;
   DefaultLineWidth = 72;
-  
+
 Type
  { TTxtWriter }
 
@@ -179,7 +179,7 @@ procedure TTXTWriter.Write(const s: String);
 Var
   N : String;
   L : Integer;
-  
+
 begin
   If Length(S)=0 then
     exit;
@@ -616,11 +616,11 @@ begin
       L.LoadFromFile(FN);
       For I:=0 to L.Count-1 do
         Writeln(L[i]);
-    finally   
+    finally
       L.Free;
     end;
     WriteLine(False);
-    end;  
+    end;
 end;
 
 procedure TTxtWriter.StartOverview(WithAccess : Boolean);
@@ -684,7 +684,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2005-01-14 17:55:07  michael
+  Revision 1.3  2005-02-14 17:13:39  peter
+    * truncate log
+
+  Revision 1.2  2005/01/14 17:55:07  michael
   + Added unix man page output; Implemented usage
 
   Revision 1.1  2005/01/12 21:11:41  michael

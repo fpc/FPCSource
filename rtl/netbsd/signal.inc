@@ -164,29 +164,7 @@ type sigset_t = array[0..3] of cardinal;
 
 {
   $Log$
-  Revision 1.4  2004-01-04 15:55:47  marco
-   * additions
-
-  Revision 1.3  2004/01/04 01:11:28  marco
-   * a new qod port of the freebsd rtl. To be refined in the coming days.
-
-  Revision 1.2  2003/01/21 15:39:45  marco
-   * NetBSD first rtl. Still not 100%, but close
-
-  Revision 1.1.2.1  2001/08/10 11:07:17  pierre
-   New NetBSD files taken and adapted from FreeBSD
-
-  Revision 1.1.2.1  2000/09/16 11:19:08  marco
-   * Moved files from BSD to FreeBSD directory, with some small changes
-
-  Revision 1.1.2.1  2000/09/10 16:18:41  marco
-  initial version
-
-  Revision 1.2  2000/03/31 23:11:23  pierre
-   * TSigAction Context param is the full record not a pointer
-
-  Revision 1.1  2000/03/31 13:24:28  jonas
-    * signal handling using sigaction when compiled with -dnewsignal
-      (allows multiple signals to be received in one run)
+  Revision 1.5  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

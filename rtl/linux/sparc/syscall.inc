@@ -317,61 +317,7 @@ end;
 
 {
   $Log$
-  Revision 1.16  2004-11-07 00:30:17  florian
-    * more errno setting in sparc/linux mt programs fixed
-
-  Revision 1.15  2004/11/06 22:48:16  florian
-    * fixed errno setting in mt sparc/linux mt programs
-
-  Revision 1.14  2004/08/22 12:34:11  florian
-    * fixed fork for sparc
-
-  Revision 1.13  2004/07/02 19:29:19  peter
-    * fixed errno setting
-
-  Revision 1.12  2004/06/30 21:15:51  florian
-    * first syscall fix
-
-  Revision 1.11  2004/02/06 23:06:16  florian
-    - killed tsyscallregs
-
-  Revision 1.10  2004/01/05 17:22:03  peter
-    * removed asmmode direct
-
-  Revision 1.9  2003/08/11 13:19:08  mazen
-  + added assembler mode directive to use direct assembler reader
-
-  Revision 1.8  2003/07/06 22:08:05  peter
-    * fix setting return value
-
-  Revision 1.7  2003/07/06 20:40:10  peter
-    * wrong return reg
-
-  Revision 1.6  2003/07/03 21:03:57  peter
-    * syscalls implemented
-
-  Revision 1.5  2003/06/02 22:05:03  mazen
-  * fixing naming conflict in public clause of
-   FPC_SYSCALL? definition
-
-  Revision 1.4  2003/05/23 22:36:39  florian
-    * fixed compilation of sparc system unit
-
-  Revision 1.3  2003/01/05 21:32:35  mazen
-  * fixing several bugs compiling the RTL
-
-  Revision 1.2  2002/12/24 21:30:20  mazen
-  - some writeln(s) removed in compiler
-  + many files added to RTL
-  * some errors fixed in RTL
-
-  Revision 1.1  2002/11/15 12:08:37  mazen
-  + SPARC support added based on PowerPc sources
-
-  Revision 1.1  2002/11/09 20:32:14  marco
-   * powerpc version. Threadsafe errno access not yet done.
-
-  Revision 1.1  2002/10/14 19:39:44  peter
-    * syscall moved into seperate include
+  Revision 1.17  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

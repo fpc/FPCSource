@@ -70,22 +70,22 @@ begin
       if ARead then
       begin
         if Assigned(Data^.ReadCallback) then
-	begin
-	  Result := asyncHandlerAlreadySet;
-	  exit;
-	end;
+        begin
+          Result := asyncHandlerAlreadySet;
+          exit;
+        end;
         Data^.ReadCallback := ReadCallback;
-	Data^.ReadUserData := ReadUserData;
+        Data^.ReadUserData := ReadUserData;
       end;
       if AWrite then
       begin
         if Assigned(Data^.WriteCallback) then
-	begin
-	  Result := asyncHandlerAlreadySet;
-	  exit;
-	end;
+        begin
+          Result := asyncHandlerAlreadySet;
+          exit;
+        end;
         Data^.WriteCallback := WriteCallback;
-	Data^.WriteUserData := WriteUserData;
+        Data^.WriteUserData := WriteUserData;
       end;
       NeedData := False;
       break;
@@ -199,8 +199,8 @@ begin
       while Assigned(Timer) do
       begin
         if Timer^.NextTick < NextTick then
-	  NextTick := Timer^.NextTick;
-	Timer := Timer^.Next;
+          NextTick := Timer^.NextTick;
+        Timer := Timer^.Next;
       end;
       TimeOut := NextTick - CurTime;
       if TimeOut < 0 then
@@ -227,27 +227,27 @@ begin
       begin
         CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
         Handle^.Data.NextIOCallback := CurIOCallback^.Next;
-	if FD_IsSet(CurIOCallback^.IOHandle, CurReadFDSet) and
-	  FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) and
-	  Assigned(CurIOCallback^.ReadCallback) then
-	begin
-	  CurIOCallback^.ReadCallback(CurIOCallback^.ReadUserData);
-	  if Handle^.Data.DoBreak then
-	    break;
-	end;
+        if FD_IsSet(CurIOCallback^.IOHandle, CurReadFDSet) and
+          FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[0]) and
+          Assigned(CurIOCallback^.ReadCallback) then
+        begin
+          CurIOCallback^.ReadCallback(CurIOCallback^.ReadUserData);
+          if Handle^.Data.DoBreak then
+            break;
+        end;
 
-	CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
-	if Assigned(CurIOCallback) and
-	  FD_IsSet(CurIOCallback^.IOHandle, CurWriteFDSet) and
-	  FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) and
-	  Assigned(CurIOCallback^.WriteCallback) then
-	begin
-	  CurIOCallback^.WriteCallback(CurIOCallback^.WriteUserData);
-	  if Handle^.Data.DoBreak then
-	    break;
-	end;
+        CurIOCallback := PIOCallbackData(Handle^.Data.CurIOCallback);
+        if Assigned(CurIOCallback) and
+          FD_IsSet(CurIOCallback^.IOHandle, CurWriteFDSet) and
+          FD_IsSet(CurIOCallback^.IOHandle, PFDSet(Handle^.Data.FDData)[1]) and
+          Assigned(CurIOCallback^.WriteCallback) then
+        begin
+          CurIOCallback^.WriteCallback(CurIOCallback^.WriteUserData);
+          if Handle^.Data.DoBreak then
+            break;
+        end;
 
-	Handle^.Data.CurIOCallback := Handle^.Data.NextIOCallback;
+        Handle^.Data.CurIOCallback := Handle^.Data.NextIOCallback;
       end;
     end;}
 
@@ -259,18 +259,18 @@ begin
       while Assigned(Timer) do
       begin
         if Timer^.NextTick <= CurTime then
-	begin
-	  Timer^.Callback(Timer^.UserData);
-	  NextTimer := Timer^.Next;
-	  if Timer^.Periodic then
-	    Inc(Timer^.NextTick, Timer^.MSec)
-	  else
-	    asyncRemoveTimer(Handle, Timer);
-	  if Handle^.Data.DoBreak then
-	    break;
-	  Timer := NextTimer;
-	end else
-	  Timer := Timer^.Next;
+        begin
+          Timer^.Callback(Timer^.UserData);
+          NextTimer := Timer^.Next;
+          if Timer^.Periodic then
+            Inc(Timer^.NextTick, Timer^.MSec)
+          else
+            asyncRemoveTimer(Handle, Timer);
+          if Handle^.Data.DoBreak then
+            break;
+          Timer := NextTimer;
+        end else
+          Timer := Timer^.Next;
       end;
     end;
 
@@ -483,10 +483,7 @@ end;
 
 {
   $Log$
-  Revision 1.5  2003-11-21 01:05:28  sg
-  * Improved checks for valid handles
-
-  Revision 1.4  2002/09/25 21:53:39  sg
-  * Split in common implementation an platform dependent implementation
+  Revision 1.6  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

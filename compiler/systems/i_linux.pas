@@ -514,7 +514,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.35  2005-02-06 00:05:56  florian
+  Revision 1.36  2005-02-14 17:13:10  peter
+    * truncate log
+
+  Revision 1.35  2005/02/06 00:05:56  florian
     + x86_64 pic draft
 
   Revision 1.34  2005/01/30 17:45:38  florian
@@ -522,40 +525,5 @@ end.
 
   Revision 1.33  2005/01/25 18:48:15  peter
     * tf_pic_uses_got added
-
-  Revision 1.32  2004/12/11 14:39:03  florian
-    * made some target short names look more nicer
-
-  Revision 1.31  2004/10/25 15:38:41  peter
-    * heap and heapsize removed
-    * checkpointer fixes
-
-  Revision 1.30  2004/10/24 13:36:26  peter
-    * gc-sections added when section smartlinking is used
-
-  Revision 1.29  2004/08/15 13:30:18  florian
-    * fixed alignment of variant records
-    * more alignment problems fixed
-
-  Revision 1.28  2004/06/29 21:00:08  peter
-    * only enable dwarf for supported platforms
-
-  Revision 1.27  2004/06/20 08:55:32  florian
-    * logs truncated
-
-  Revision 1.26  2004/06/16 20:07:11  florian
-    * dwarf branch merged
-
-  Revision 1.25.2.5  2004/05/31 22:08:21  peter
-    * fix passing of >6 arguments
-
-  Revision 1.25.2.4  2004/05/19 21:34:58  peter
-    * disable section smartlink, it is not working stable
-
-  Revision 1.25.2.3  2004/05/10 21:28:34  peter
-    * section_smartlink enabled for gas under linux
-
-  Revision 1.25.2.2  2004/05/02 14:17:27  peter
-    * fix cpux86_64 ifdef
 
 }

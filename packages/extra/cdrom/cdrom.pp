@@ -20,8 +20,8 @@ unit cdrom;
 
 interface
 
-Type 
-  TTocEntry = Record 
+Type
+  TTocEntry = Record
     min, sec, frame : Integer;
   end;
   PTocEntry = ^TTocEntry;
@@ -40,10 +40,7 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.2  2003-01-05 20:46:32  michael
-  + Added ; at the end of the record declaration for fpdoc
-
-  Revision 1.1  2002/09/08 14:03:31  michael
-  + Initial implementation on Linux/win32
+  Revision 1.3  2005-02-14 17:13:20  peter
+    * truncate log
 
 }

@@ -5,7 +5,7 @@
 
     dos.library interface unit for MorphOS/PowerPC
 
-    MorphOS port was done on a free Pegasos II/G4 machine 
+    MorphOS port was done on a free Pegasos II/G4 machine
     provided by Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -138,10 +138,9 @@ end.
 
 {
   $Log$
-  Revision 1.4  2004-12-10 12:50:35  karoly
-    * more ugly workarounds until compiler gets updated
+  Revision 1.5  2005-02-14 17:13:30  peter
+    * truncate log
 
-  Revision 1.3  2004/08/09 12:57:07  karoly
     + added {$INLINE ON} to fix cycle
 
   Revision 1.2  2004/08/09 00:10:19  karoly

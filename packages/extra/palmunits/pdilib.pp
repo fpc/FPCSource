@@ -37,7 +37,7 @@ uses palmos, libtraps, errorbase, textmgr, udamgr, pdiconst;
 (*******************************************************************
  * Internal library name which can be passed to SysLibFind()
  *******************************************************************)
- 
+
 const
   kPdiLibName = 'Pdi.lib';
 
@@ -170,7 +170,7 @@ type
   end;
   PdiReaderTag = PdiReaderType;
   PdiReaderPtr = ^PdiReaderType;
-  
+
 type
   PdiWriterType = record
     error: Err;                // last error

@@ -6,7 +6,7 @@ uses BaseUnix,Unix;
 
 var f : text;
     i : longint;
-    
+
 begin
   writeln ('Creating a shell script to which echoes its arguments');
   writeln ('and input back to stdout');
@@ -21,9 +21,9 @@ begin
   close (f);
   fpchmod ('test21a',&755);
   popen (f,'./test21a arg1 arg2','W');
-  if fpgeterrno<>0 then 
+  if fpgeterrno<>0 then
      writeln ('error from POpen : errno : ', fpgeterrno);
-  for i:=1 to 10 do 
+  for i:=1 to 10 do
     writeln (f,'This is written to the pipe, and should appear on stdout.');
   Flush(f);
   Writeln ('The script exited with status : ',PClose (f));

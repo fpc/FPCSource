@@ -1624,7 +1624,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2005-02-13 18:55:19  florian
+  Revision 1.69  2005-02-14 17:13:09  peter
+    * truncate log
+
+  Revision 1.68  2005/02/13 18:55:19  florian
     + overflow checking for the arm
 
   Revision 1.67  2005/01/30 14:43:40  florian
@@ -1638,56 +1641,5 @@ end.
 
   Revision 1.64  2005/01/04 15:36:32  florian
     * implemented nostackframe calling convention directive
-
-  Revision 1.63  2004/11/06 15:18:57  florian
-    * fixed OP_SUB for negative constants fitting in the shifter
-
-  Revision 1.62  2004/11/01 17:41:28  florian
-    * fixed arm compilation with cgutils
-    * ...
-
-  Revision 1.61  2004/10/31 16:47:43  florian
-    * fixed ie with pi_do_call
-
-  Revision 1.60  2004/10/31 16:04:30  florian
-    * fixed compilation of system unit on arm
-
-  Revision 1.59  2004/10/31 12:37:11  florian
-    * another couple of arm fixed
-
-  Revision 1.58  2004/10/24 17:32:53  florian
-    * fixed several arm compiler bugs
-
-  Revision 1.57  2004/10/24 11:53:45  peter
-    * fixed compilation with removed loadref
-
-  Revision 1.56  2004/10/24 07:54:25  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.55  2004/10/11 15:46:45  peter
-    * length parameter for copyvaluearray changed to tlocation
-
-  Revision 1.54  2004/07/03 19:29:14  florian
-    * fixed problem with cpu interferences
-
-  Revision 1.53  2004/06/20 08:55:31  florian
-    * logs truncated
-
-  Revision 1.52  2004/06/16 20:07:10  florian
-    * dwarf branch merged
-
-  Revision 1.51.2.1  2004/06/12 17:01:01  florian
-    * fixed compilation of arm compiler
-
-  Revision 1.51  2004/03/31 19:13:04  florian
-    * concatcopy with len=0 exits now immediatly
-
-  Revision 1.50  2004/03/29 19:19:35  florian
-    + arm floating point register saving implemented
-    * hopefully stabs generation for MacOSX fixed
-    + some defines for arm added
-
-  Revision 1.49  2004/03/14 21:42:24  florian
-    * optimized mul code generation
 
 }

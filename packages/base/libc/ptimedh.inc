@@ -2,7 +2,7 @@
 const
    TSPVERSION = 1;
    ANYADDR = Nil;
-   
+
 type
    Ptsp = ^tsp;
    tsp = record
@@ -45,7 +45,7 @@ const
    TSP_SETDATEREQ = 23;
    TSP_LOOP = 24;
    TSPTYPENUMBER = 25;
-   
+
    tsptype : array [0..TSPTYPENUMBER-1] of pchar =
   (
    'ANY', 'ADJTIME', 'ACK', 'MASTERREQ', 'MASTERACK', 'SETTIME', 'MASTERUP',
@@ -57,4 +57,4 @@ const
     Borland compatibility types
   ---------------------------------------------------------------------}
 
-// Type  
+// Type

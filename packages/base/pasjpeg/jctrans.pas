@@ -40,7 +40,7 @@ procedure jpeg_write_coefficients (cinfo : j_compress_ptr;
 
 {GLOBAL}
 procedure jpeg_copy_critical_parameters (srcinfo : j_decompress_ptr;
-			                 dstinfo : j_compress_ptr);
+                                         dstinfo : j_compress_ptr);
 
 
 implementation
@@ -80,7 +80,7 @@ begin
   { Perform master selection of active modules }
   transencode_master_selection(cinfo, coef_arrays);
   { Wait for jpeg_finish_compress() call }
-  cinfo^.next_scanline := 0;	{ so jpeg_write_marker works }
+  cinfo^.next_scanline := 0;    { so jpeg_write_marker works }
   cinfo^.global_state := CSTATE_WRCOEFS;
 end;
 
@@ -92,7 +92,7 @@ end;
 
 {GLOBAL}
 procedure jpeg_copy_critical_parameters (srcinfo : j_decompress_ptr;
-			                 dstinfo : j_compress_ptr);
+                                         dstinfo : j_compress_ptr);
 var
   qtblptr : ^JQUANT_TBL_PTR;
   incomp, outcomp : jpeg_component_info_ptr;
@@ -123,10 +123,10 @@ begin
     begin
       qtblptr := @dstinfo^.quant_tbl_ptrs[tblno];
       if (qtblptr^ = NIL) then
-	qtblptr^ := jpeg_alloc_quant_table(j_common_ptr(dstinfo));
+        qtblptr^ := jpeg_alloc_quant_table(j_common_ptr(dstinfo));
       MEMCOPY(@(qtblptr^)^.quantval,
-	      @srcinfo^.quant_tbl_ptrs[tblno]^.quantval,
-	      SIZEOF((qtblptr^)^.quantval));
+              @srcinfo^.quant_tbl_ptrs[tblno]^.quantval,
+              SIZEOF((qtblptr^)^.quantval));
       (qtblptr^)^.sent_table := FALSE;
     end;
   end;
@@ -142,7 +142,7 @@ begin
   outcomp := jpeg_component_info_ptr(dstinfo^.comp_info);
   for ci := 0 to pred(dstinfo^.num_components) do
   begin
-  
+
     outcomp^.component_id := incomp^.component_id;
     outcomp^.h_samp_factor := incomp^.h_samp_factor;
     outcomp^.v_samp_factor := incomp^.v_samp_factor;
@@ -161,8 +161,8 @@ begin
     begin
       for coefi := 0 to pred(DCTSIZE2) do
       begin
-	if (c_quant^.quantval[coefi] <> slot_quant^.quantval[coefi]) then
-	  ERREXIT1(j_common_ptr(dstinfo), JERR_MISMATCHED_QUANT_TABLE, tblno);
+        if (c_quant^.quantval[coefi] <> slot_quant^.quantval[coefi]) then
+          ERREXIT1(j_common_ptr(dstinfo), JERR_MISMATCHED_QUANT_TABLE, tblno);
       end;
     end;
     { Note: we do not copy the source's Huffman table assignments;
@@ -197,7 +197,7 @@ end;
 
 {LOCAL}
 procedure transencode_master_selection (cinfo : j_compress_ptr;
-			                coef_arrays : jvirt_barray_tbl_ptr);
+                                        coef_arrays : jvirt_barray_tbl_ptr);
 begin
   { Although we don't actually use input_components for transcoding,
     jcmaster.c's initial_setup will complain if input_components is 0. }
@@ -256,7 +256,7 @@ type
 
     iMCU_row_num : JDIMENSION;    { iMCU row # within image }
     mcu_ctr : JDIMENSION;         { counts MCUs processed in current row }
-    MCU_vert_offset : int;	  { counts MCU rows within iMCU row }
+    MCU_vert_offset : int;        { counts MCU rows within iMCU row }
     MCU_rows_per_iMCU_row : int;  { number of such rows needed }
 
     { Virtual block array for each component. }
@@ -327,7 +327,7 @@ function compress_output (cinfo : j_compress_ptr;
                           input_buf : JSAMPIMAGE) : boolean; far;
 var
   coef : my_coef_ptr;
-  MCU_col_num : JDIMENSION;	{ index of current MCU within row }
+  MCU_col_num : JDIMENSION;     { index of current MCU within row }
   last_MCU_col : JDIMENSION;
   last_iMCU_row : JDIMENSION;
   blkn, ci, xindex, yindex, yoffset, blockcnt : int;
@@ -357,57 +357,57 @@ begin
     for MCU_col_num := coef^.mcu_ctr to pred(cinfo^.MCUs_per_row) do
     begin
       { Construct list of pointers to DCT blocks belonging to this MCU }
-      blkn := 0;			{ index of current DCT block within MCU }
+      blkn := 0;                        { index of current DCT block within MCU }
       for ci := 0 to pred(cinfo^.comps_in_scan) do
       begin
-	compptr := cinfo^.cur_comp_info[ci];
-	start_col := MCU_col_num * compptr^.MCU_width;
+        compptr := cinfo^.cur_comp_info[ci];
+        start_col := MCU_col_num * compptr^.MCU_width;
         if (MCU_col_num < last_MCU_col) then
           blockcnt := compptr^.MCU_width
         else
-	  blockcnt := compptr^.last_col_width;
-	for yindex := 0 to pred(compptr^.MCU_height) do
+          blockcnt := compptr^.last_col_width;
+        for yindex := 0 to pred(compptr^.MCU_height) do
         begin
-	  if (coef^.iMCU_row_num < last_iMCU_row) or
-	     (yindex+yoffset < compptr^.last_row_height) then
+          if (coef^.iMCU_row_num < last_iMCU_row) or
+             (yindex+yoffset < compptr^.last_row_height) then
           begin
-	    { Fill in pointers to real blocks in this row }
-	    buffer_ptr := JBLOCKROW(@ buffer[ci]^[yindex+yoffset]^[start_col]);
-	    for xindex := 0 to pred(blockcnt) do
+            { Fill in pointers to real blocks in this row }
+            buffer_ptr := JBLOCKROW(@ buffer[ci]^[yindex+yoffset]^[start_col]);
+            for xindex := 0 to pred(blockcnt) do
             begin
-	      MCU_buffer[blkn] := buffer_ptr;
+              MCU_buffer[blkn] := buffer_ptr;
               Inc(blkn);
               Inc(JBLOCK_PTR(buffer_ptr));
             end;
             xindex := blockcnt;
-	  end
+          end
           else
           begin
-	    { At bottom of image, need a whole row of dummy blocks }
-	    xindex := 0;
-	  end;
-	  { Fill in any dummy blocks needed in this row.
-	    Dummy blocks are filled in the same way as in jccoefct.c:
-	    all zeroes in the AC entries, DC entries equal to previous
-	    block's DC value.  The init routine has already zeroed the
-	    AC entries, so we need only set the DC entries correctly. }
+            { At bottom of image, need a whole row of dummy blocks }
+            xindex := 0;
+          end;
+          { Fill in any dummy blocks needed in this row.
+            Dummy blocks are filled in the same way as in jccoefct.c:
+            all zeroes in the AC entries, DC entries equal to previous
+            block's DC value.  The init routine has already zeroed the
+            AC entries, so we need only set the DC entries correctly. }
 
-	  while (xindex < compptr^.MCU_width) do
+          while (xindex < compptr^.MCU_width) do
           begin
-	    MCU_buffer[blkn] := coef^.dummy_buffer[blkn];
-	    MCU_buffer[blkn]^[0][0] := MCU_buffer[blkn-1]^[0][0];
+            MCU_buffer[blkn] := coef^.dummy_buffer[blkn];
+            MCU_buffer[blkn]^[0][0] := MCU_buffer[blkn-1]^[0][0];
             Inc(xindex);
-	    Inc(blkn);
-	  end;
-	end;
+            Inc(blkn);
+          end;
+        end;
       end;
       { Try to write the MCU. }
       if (not cinfo^.entropy^.encode_mcu (cinfo, MCU_buffer)) then
       begin
-	{ Suspension forced; update state counters and exit }
-	coef^.MCU_vert_offset := yoffset;
-	coef^.mcu_ctr := MCU_col_num;
-	compress_output := FALSE;
+        { Suspension forced; update state counters and exit }
+        coef^.MCU_vert_offset := yoffset;
+        coef^.mcu_ctr := MCU_col_num;
+        compress_output := FALSE;
         exit;
       end;
     end;
@@ -429,7 +429,7 @@ end;
 
 {LOCAL}
 procedure transencode_coef_controller (cinfo : j_compress_ptr;
-			               coef_arrays : jvirt_barray_tbl_ptr);
+                                       coef_arrays : jvirt_barray_tbl_ptr);
 var
   coef : my_coef_ptr;
   buffer : JBLOCKROW;
@@ -437,7 +437,7 @@ var
 begin
   coef := my_coef_ptr(
     cinfo^.mem^.alloc_small (j_common_ptr(cinfo), JPOOL_IMAGE,
-				SIZEOF(my_coef_controller)));
+                                SIZEOF(my_coef_controller)));
   cinfo^.coef := jpeg_c_coef_controller_ptr (coef);
   coef^.pub.start_pass := start_pass_coef;
   coef^.pub.compress_data := compress_output;
@@ -448,7 +448,7 @@ begin
   { Allocate and pre-zero space for dummy DCT blocks. }
   buffer := JBLOCKROW(
     cinfo^.mem^.alloc_large (j_common_ptr(cinfo), JPOOL_IMAGE,
-				C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK)) );
+                                C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK)) );
   jzero_far({FAR} voidp(buffer), C_MAX_BLOCKS_IN_MCU * SIZEOF(JBLOCK));
   for i := 0 to pred(C_MAX_BLOCKS_IN_MCU) do
   begin

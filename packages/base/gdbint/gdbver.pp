@@ -98,37 +98,7 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-11-04 17:56:36  peter
-  drop 4.x support, fixed 6.2.x support
-
-  Revision 1.8  2004/02/12 15:59:27  peter
-    * linklib c only for unix
-
-  Revision 1.7  2004/02/11 20:50:48  peter
-    * linklib c added
-
-  Revision 1.6  2003/02/09 19:14:48  marco
-   * ugly openbsd fix
-
-  Revision 1.5  2002/12/12 14:17:59  pierre
-   * 5.3 was not correctly parsed
-
-  Revision 1.4  2002/12/02 13:59:16  pierre
-   convert 5.02.90 into 5.03
-
-  Revision 1.3  2002/09/10 12:17:15  pierre
-   * avoid RTE 201
-
-  Revision 1.2  2002/09/07 15:42:52  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.1  2002/01/29 17:54:49  peter
-    * splitted to base and extra
-
-  Revision 1.5  2002/01/25 08:56:50  pierre
-   + add subversion for version output
-
-  Revision 1.4  2002/01/24 09:14:40  pierre
-   * adapt to GDB 5.1
+  Revision 1.10  2005-02-14 17:13:19  peter
+    * truncate log
 
 }

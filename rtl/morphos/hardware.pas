@@ -5,7 +5,7 @@
 
     Hardware definitions unit for MorphOS/PowerPC
 
-    MorphOS port was done on a free Pegasos II/G4 machine 
+    MorphOS port was done on a free Pegasos II/G4 machine
     provided by Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
@@ -160,7 +160,7 @@ type
     beamsync : SmallInt;
     cleanup  : Pointer;
   end;
-  
+
 const
   CLEANUP = $40;
   CLEANME = CLEANUP;
@@ -346,7 +346,7 @@ type
     ac_len: Word;
     ac_per: Word;
     ac_vol: Word;
-    ac_dat: Word;         
+    ac_dat: Word;
     ac_pad: array[0..1] of Word;
   end;
 
@@ -584,10 +584,7 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-11-16 21:16:26  karoly
-   - removed IFDEF to allow graphics unit compile
-
-  Revision 1.1  2004/11/16 02:45:42  karoly
-   * Initial revision
+  Revision 1.3  2005-02-14 17:13:30  peter
+    * truncate log
 
 }

@@ -50,16 +50,13 @@ Procedure longjmp (Var S : Jmp_buf; value : longint);
 
 {
   $Log$
-  Revision 1.6  2005-01-24 16:54:16  peter
+  Revision 1.7  2005-02-14 17:13:22  peter
+    * truncate log
+
+  Revision 1.6  2005/01/24 16:54:16  peter
     * no sigprocmask for 1.0.x bootstrapping
 
   Revision 1.5  2005/01/20 16:38:28  peter
     * restore sigprocmask for linux
-
-  Revision 1.4  2002/09/15 10:04:31  carl
-    * make the record packed (just in case)
-
-  Revision 1.3  2002/09/07 16:01:19  peter
-    * old logs removed and tabs fixed
 
 }

@@ -15,7 +15,7 @@
  *
  * History:
  *       May 23, 2000      ARO   Initial Release
- *       May,30, 2000      PPL   Add Pin code notification 
+ *       May,30, 2000      PPL   Add Pin code notification
  *       Nov 11, 2000      PPL   Remove unused staff
  *       Dec 03, 2000      LFe add flags
  *
@@ -45,8 +45,8 @@ const
 type
   TelNotifyErrorDetailsType = record
     version: UInt16;
-    error: Err;   
-    ioFlags: UInt32; 
+    error: Err;
+    ioFlags: UInt32;
     messageP: PChar;
   end;
 

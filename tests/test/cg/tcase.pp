@@ -358,17 +358,7 @@ end.
 
 {
    $Log$
-   Revision 1.4  2002-11-16 15:38:12  peter
-     * fix int64 test
-
-   Revision 1.3  2002/09/29 14:37:22  carl
-     * must more 64-bit testing (to detect endian specific problems)
-
-   Revision 1.2  2002/09/07 15:40:55  peter
-     * old logs removed and tabs fixed
-
-   Revision 1.1  2002/07/28 09:45:24  carl
-     + case node testing
-
+   Revision 1.5  2005-02-14 17:13:37  peter
+     * truncate log
 
 }

@@ -76,13 +76,7 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-04-16 10:07:44  michael
-  + Case change (bug 3050)
-
-  Revision 1.4  2002/10/10 19:20:02  florian
-    * unit is now smartlinked by default to avoid problems with an old oleauth.dll
-
-  Revision 1.3  2002/09/07 16:01:29  peter
-    * old logs removed and tabs fixed
+  Revision 1.6  2005-02-14 17:13:32  peter
+    * truncate log
 
 }

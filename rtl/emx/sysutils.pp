@@ -258,7 +258,7 @@ const
 {Start the new session independent or as a child.}
  ssf_Related_Independent = 0;    {Start new session independent
                                   of the calling session.}
- ssf_Related_Child       = 1;    {Start new session as a child 
+ ssf_Related_Child       = 1;    {Start new session as a child
                                   session to the calling session.}
 
 {Start the new session in the foreground or in the background.}
@@ -270,9 +270,9 @@ const
  ssf_TraceOpt_None       = 0;    {No trace.}
  ssf_TraceOpt_Trace      = 1;    {Trace with no notification
                                   of descendants.}
- ssf_TraceOpt_TraceAll   = 2;    {Trace all descendant sessions.  
-                                  A termination queue must be 
-                                  supplied and Related must be 
+ ssf_TraceOpt_TraceAll   = 2;    {Trace all descendant sessions.
+                                  A termination queue must be
+                                  supplied and Related must be
                                   ssf_Related_Child (=1).}
 
 {Will the new session inherit open file handles
@@ -1106,7 +1106,7 @@ Function GetEnvironmentString(Index : Integer) : String;
 begin
   Result:=FPCGetEnvStrFromP (EnvP, Index);
 end;
-    
+
 
 {$ASMMODE INTEL}
 procedure Sleep (Milliseconds: cardinal);
@@ -1193,7 +1193,7 @@ end;
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
 
-var 
+var
   CommandLine: AnsiString;
   I: integer;
 
@@ -1222,59 +1222,7 @@ end.
 
 {
   $Log$
-  Revision 1.18  2004-12-11 17:32:34  hajny
-    * GetEnvironmentVariableCount uses EnvC under OS/2 and EMX
-
-  Revision 1.17  2004/12/11 11:32:44  michael
-  + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-  Revision 1.16  2004/02/22 15:01:49  hajny
-    * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
-
-  Revision 1.15  2004/02/15 21:26:37  hajny
-    * overloaded ExecuteProcess added, EnvStr param changed to longint
-
-  Revision 1.14  2004/01/20 23:05:31  hajny
-    * ExecuteProcess fixes, ProcessID and ThreadID added
-
-  Revision 1.13  2003/11/26 20:00:19  florian
-    * error handling for Variants improved
-
-  Revision 1.12  2003/10/19 09:35:28  hajny
-    * fixes from OS/2 merged to EMX
-
-  Revision 1.11  2003/10/14 21:15:20  hajny
-    * longint2cardinal fixes merged
-
-  Revision 1.10  2003/10/07 21:33:24  hajny
-    * stdcall fixes and asm routines cleanup
-
-  Revision 1.9  2003/10/04 17:53:08  hajny
-    * stdcall changes merged to EMX
-
-  Revision 1.8  2003/06/26 17:12:29  yuri
-  * pmbidi added
-  * some cosmetic changes
-
-  Revision 1.7  2003/06/06 23:34:08  hajny
-    * better fix for bug 2518
-
-  Revision 1.6  2003/06/06 23:31:55  hajny
-    * fix for bug 2518 applied to EMX as well
-
-  Revision 1.5  2003/04/04 02:02:44  yuri
-  * THandle added
-
-  Revision 1.4  2003/04/02 21:06:41  hajny
-    * Yuri's fix merged from os2
-
-  Revision 1.3  2003/03/29 15:01:20  hajny
-    + DirectoryExists added for main branch OS/2 too
-
-  Revision 1.2  2003/03/23 23:11:17  hajny
-    + emx target added
-
-  Revision 1.1  2002/11/17 16:22:54  hajny
-    + RTL for emx target
+  Revision 1.19  2005-02-14 17:13:22  peter
+    * truncate log
 
 }

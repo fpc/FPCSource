@@ -75,7 +75,7 @@ begin
   {$WARNING FIX ME! To do: FileOpen Access Modes}
   tmpStr:=PathConv(FileName)+#0;
   dosResult:=Open(@tmpStr,MODE_OLDFILE);
-  if dosResult=0 then 
+  if dosResult=0 then
     dosResult:=-1
   else
     AddToList(MOS_fileList,dosResult);
@@ -103,9 +103,9 @@ var
 begin
  tmpStr:=PathConv(FileName)+#0;
  dosResult:=Open(@tmpStr,MODE_NEWFILE);
- if dosResult=0 then 
+ if dosResult=0 then
    dosResult:=-1
- else 
+ else
    AddToList(MOS_fileList,dosResult);
 
  FileCreate:=dosResult;
@@ -132,7 +132,7 @@ function FileWrite(Handle: LongInt; const Buffer; Count: LongInt): LongInt;
 begin
   FileWrite:=-1;
   if (Count<=0) or (Handle<=0) then exit;
-  
+
   FileWrite:=dosWrite(Handle,@Buffer,Count);
 end;
 
@@ -178,7 +178,7 @@ begin
 
   dosResult:=SetFileSize(Handle, Size, OFFSET_BEGINNING);
   if (dosResult<0) then exit;
-  
+
   FileTruncate:=True;
 end;
 
@@ -216,7 +216,7 @@ begin
    dos.GetFTime(F,Time);
    { Warning this is not compatible with standard routines
      since Double are not supported on m68k by default!
-   }  
+   }
    FileAge:=Time;
 end;
 
@@ -238,9 +238,9 @@ Begin
       FileExists := TRUE;
       Close(F);
     end;
-end;    
+end;
 
-type 
+type
   PDOSSearchRec = ^SearchRec;
 
 Function FindFirst (Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
@@ -276,7 +276,7 @@ begin
      Rslt.ExcludeAttr := not p^.Attr;
      Rslt.Size := p^.Size;
      FindFirst := 0;
-   end;   
+   end;
 end;
 
 
@@ -306,7 +306,7 @@ begin
      Rslt.ExcludeAttr := not p^.Attr;
      Rslt.Size := p^.Size;
      FindNext := 0;
-   end;     
+   end;
 end;
 
 Procedure FindClose (Var F : TSearchrec);
@@ -314,7 +314,7 @@ Var
   p : PDOSSearchRec;
 
 begin
-  p:=PDOSSearchRec(f.FindHandle); 
+  p:=PDOSSearchRec(f.FindHandle);
   if not assigned(p) then
        exit;
   Dos.FindClose(p^);
@@ -333,7 +333,7 @@ begin
  if DosError <> 0 then
     FileGetAttr := -1
  else
-    FileGetAttr := Attr; 
+    FileGetAttr := Attr;
 end;
 
 
@@ -510,14 +510,14 @@ begin
   // Result:=FPCCountEnvVar(EnvP);
   Result:=Dos.envCount;
 end;
-    
+
 Function GetEnvironmentString(Index : Integer) : String;
-    
+
 begin
   // Result:=FPCGetEnvStrFromP(Envp,Index);
   Result:=Dos.EnvStr(Index);
 end;
-        
+
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
                                                                        integer;
 var
@@ -541,7 +541,7 @@ end;
 
 function ExecuteProcess (const Path: AnsiString;
                                   const ComLine: array of AnsiString): integer;
-var 
+var
   CommandLine: AnsiString;
   I: integer;
 
@@ -568,7 +568,10 @@ Finalization
 end.
 {
     $Log$
-    Revision 1.5  2005-01-30 02:36:14  karoly
+    Revision 1.6  2005-02-14 17:13:30  peter
+      * truncate log
+
+    Revision 1.5  2005/01/30 02:36:14  karoly
       * fixed compilation
 
     Revision 1.4  2005/01/12 08:03:42  karoly
@@ -576,11 +579,5 @@ end.
 
     Revision 1.3  2005/01/11 17:44:06  karoly
       * basic file I/O implemented
-
-    Revision 1.2  2004/12/11 11:32:44  michael
-    + Added GetEnvironmentVariableCount and GetEnvironmentString calls
-
-    Revision 1.1  2004/06/06 00:58:02  karoly
-      * initial revision
 
 }
