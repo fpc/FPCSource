@@ -18,7 +18,7 @@
 
 # Add this dir also to the path as first
 ifdef FULL
-NEEDUNITDIR=../../compiler
+NEEDUNITDIR=../../compiler ../../api ../../fv ../../gdbpas/gdbint
 NEEDOPT=-dBrowserCol
 else
 NEEDUNITDIR=../fake
@@ -69,7 +69,10 @@ full:
 
 #
 # $Log$
-# Revision 1.3  1999-01-21 11:54:09  peter
+# Revision 1.4  1999-01-22 18:10:42  pierre
+#  * added missing directories
+#
+# Revision 1.3  1999/01/21 11:54:09  peter
 #   + tools menu
 #   + speedsearch in symbolbrowser
 #   * working run command
