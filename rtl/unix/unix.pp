@@ -1494,7 +1494,12 @@ end;
 
 {$ifdef BSD}
 
-function intGetDomainName(Name:PChar; NameLen:Cint):cint; external name 'FPC_SYSC_GETDOMAINNAME';
+function intGetDomainName(Name:PChar; NameLen:Cint):cint;
+{$ifndef FPC_USE_LIBC}
+ external name 'FPC_SYSC_GETDOMAINNAME';
+{$else FPC_USE_LIBC}
+ cdecl; external clib name 'getdomainname';
+{$endif FPC_USE_LIBC}
 
 Function GetDomainName:String;  { linux only!}
 // domainname is a glibc extension.
@@ -1772,7 +1777,10 @@ End.
 
 {
   $Log$
-  Revision 1.73  2004-07-18 11:27:54  marco
+  Revision 1.74  2004-07-18 14:54:42  jonas
+    * fixed BSD getdomainname for FPC_USE_LIBC
+
+  Revision 1.73  2004/07/18 11:27:54  marco
    * small fix for BSD getdomainname. BSD version is based on Sysctl
 
   Revision 1.72  2004/07/03 13:18:06  daniel
