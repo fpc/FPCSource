@@ -11,7 +11,7 @@ dirs=utils
 
 [compiler]
 targetdir=$(CPU_UNITDIR)
-unitdir=$(PPC_TARGET) targets
+unitdir=$(PPC_TARGET) systems
 includedir=$(PPC_TARGET)
 
 [require]
@@ -309,14 +309,14 @@ msg: msgtxt.inc
 # Make only the compiler
 ifndef COMPLETE
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
-             $(wildcard targets/*.pas) $(wilcard targets/*.inc) \
+             $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
              $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
         $(COMPILER) pp.pas
         $(EXECPPAS)
         $(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
 else
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
-             $(wildcard targets/*.pas) $(wilcard targets/*.inc) \
+             $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
              $(wildcard $(PPC_TARGET)/*.pas) $(wildcard $(PPC_TARGET)/*.inc)
         $(COMPILER) pp.pas
         $(EXECPPAS)
@@ -472,7 +472,7 @@ fullcycle:
 # Docs
 #####################################################################
 htmldocs:
-        $(PASDOC) -p -h -o html$(PATHSEP)$(PPC_TARGET) -d fpc -d gdb -d $(PPC_TARGET) -u $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas targets$(PATHSEP)*.pas *.pas
+        $(PASDOC) -p -h -o html$(PATHSEP)$(PPC_TARGET) -d fpc -d gdb -d $(PPC_TARGET) -u $(PPC_TARGET) $(PPC_TARGET)$(PATHSEP)*.pas systems$(PATHSEP)*.pas *.pas
 
 #####################################################################
 # Installation
