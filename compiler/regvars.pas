@@ -49,17 +49,11 @@ implementation
       globtype,systems,comphook,
       cutils,cclasses,verbose,globals,
       symconst,symbase,symtype,symdef,types,
-      tainst,cgbase,cpuasm,cgobj,cgcpu,cga,rgcpu;
+      tainst,cgbase,cpuasm,cgobj, cgcpu,cga,rgcpu;
 
     var
       parasym : boolean;
 
-{$ifndef i386}
-    function makereg32(const reg: tregister): tregister;
-      begin
-        makereg32 := reg;
-      end;
-{$endif i386}
 
     procedure searchregvars(p : tnamedindexitem);
       var
@@ -187,20 +181,18 @@ implementation
                            regvarinfo^.regvars[i].reg:=varregs[i];
                         end
                       else
-{$ifdef i386}
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (torddef(regvarinfo^.regvars[i].vartype.def).size=1) then
                         begin
-                          regvarinfo^.regvars[i].reg:=changeregsize(varregs[i],S_B);
+                          regvarinfo^.regvars[i].reg:=rg.makeregsize(varregs[i],OS_8);
                         end
                       else
                        if (regvarinfo^.regvars[i].vartype.def.deftype in [orddef,enumdef]) and
                           (torddef(regvarinfo^.regvars[i].vartype.def).size=2) then
                          begin
-                           regvarinfo^.regvars[i].reg:=changeregsize(varregs[i],S_W);
+                           regvarinfo^.regvars[i].reg:=rg.makeregsize(varregs[i],OS_16);
                          end
                       else
-{$endif i386}
                         begin
                           regvarinfo^.regvars[i].reg:=varregs[i];
                         end;
@@ -275,9 +267,9 @@ implementation
         exit;
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (changeregsize(regvarinfo^.regvars[i].reg,S_L) = reg) then
+           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT) = reg) then
           begin
-            if rg.regvar_loaded[changeregsize(reg,S_L)] then
+            if rg.regvar_loaded[rg.makeregsize(reg,OS_INT)] then
               begin
                 vsym := tvarsym(regvarinfo^.regvars[i]);
                 { we only have to store the regvar back to memory if it's }
@@ -292,8 +284,8 @@ implementation
                     hr.base:=procinfo^.framepointer;
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
-                asml.concat(Tairegalloc.dealloc(changeregsize(reg,S_L)));
-                rg.regvar_loaded[changeregsize(reg,S_L)] := false;
+                asml.concat(Tairegalloc.dealloc(rg.makeregsize(reg,OS_INT)));
+                rg.regvar_loaded[rg.makeregsize(reg,OS_INT)] := false;
               end;
             break;
           end;
@@ -303,12 +295,12 @@ implementation
     var
       hr: treference;
       opsize: tcgsize;
-      reg32 : tregister;
+      reg : tregister;
     begin
-      reg32:=changeregsize(vsym.reg,S_L);
-      if not rg.regvar_loaded[reg32] then
+      reg:=rg.makeregsize(vsym.reg,OS_INT);
+      if not rg.regvar_loaded[reg] then
         begin
-          asml.concat(Tairegalloc.alloc(reg32));
+          asml.concat(Tairegalloc.alloc(reg));
           reference_reset(hr);
           if vsym.owner.symtabletype in [inlinelocalsymtable,localsymtable] then
             hr.offset:=-vsym.address+vsym.owner.address_fixup
@@ -321,8 +313,8 @@ implementation
             opsize := OS_ADDR
           else
             opsize := def_cgsize(vsym.vartype.def);
-          cg.a_load_ref_reg(asml,opsize,hr,reg32);
-          rg.regvar_loaded[reg32] := true;
+          cg.a_load_ref_reg(asml,opsize,hr,reg);
+          rg.regvar_loaded[reg] := true;
         end;
     end;
 
@@ -330,15 +322,15 @@ implementation
     var
       i: longint;
       regvarinfo: pregvarinfo;
-      reg32 : tregister;
+      reg_spare : tregister;
     begin
       regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
-      reg32 := changeregsize(reg,S_L);
+      reg_spare := rg.makeregsize(reg,OS_INT);
       for i := 1 to maxvarregs do
         if assigned(regvarinfo^.regvars[i]) and
-           (changeregsize(regvarinfo^.regvars[i].reg,S_L) = reg32) then
+           (rg.makeregsize(regvarinfo^.regvars[i].reg,OS_INT) = reg_spare) then
           load_regvar(asml,tvarsym(regvarinfo^.regvars[i]))
     end;
 
@@ -439,7 +431,7 @@ implementation
     procedure cleanup_regvars(asml: TAAsmoutput);
     var
       i: longint;
-      reg32 : tregister;
+      reg : tregister;
     begin
       { can happen when inlining assembler procedures (JM) }
       if not assigned(aktprocdef.regvarinfo) then
@@ -458,9 +450,9 @@ implementation
              begin
                if assigned(regvars[i]) then
                 begin
-                  reg32:=changeregsize(regvars[i].reg,S_L);
-                  if (rg.regvar_loaded[reg32]) then
-                   asml.concat(Tairegalloc.dealloc(reg32));
+                  reg:=rg.makeregsize(regvars[i].reg,OS_INT);
+                  if (rg.regvar_loaded[reg]) then
+                   asml.concat(Tairegalloc.dealloc(reg));
                 end;
              end;
           end;
@@ -470,7 +462,10 @@ end.
 
 {
   $Log$
-  Revision 1.28  2002-04-19 15:46:03  peter
+  Revision 1.29  2002-04-21 15:23:34  carl
+  + changeregsize -> makeregsize
+
+  Revision 1.28  2002/04/19 15:46:03  peter
     * mangledname rewrite, tprocdef.mangledname is now created dynamicly
       in most cases and not written to the ppu
     * add mangeledname_prefix() routine to generate the prefix of
