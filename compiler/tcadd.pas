@@ -379,6 +379,7 @@ implementation
                 case p^.treetype of
              andn,orn : begin
                           calcregisters(p,0,0,0);
+                          make_bool_equal_size(p);
                           p^.location.loc:=LOC_JUMP;
                         end;
              unequaln,
@@ -406,7 +407,6 @@ implementation
                                       p^.treetype:=equaln;
                                  end;
                             end;
-
                           make_bool_equal_size(p);
                           calcregisters(p,1,0,0);
                         end
@@ -905,7 +905,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-10-11 14:31:19  peter
+  Revision 1.4  1998-10-14 12:53:39  peter
+    * fixed small tp7 things
+    * boolean:=longbool and longbool fixed
+
+  Revision 1.3  1998/10/11 14:31:19  peter
     + checks for division by zero
 
   Revision 1.2  1998/10/05 21:33:31  peter

@@ -146,307 +146,332 @@ implementation
        { we walk the wanted (def_to) types and check then the def_from
          types if there is a conversion possible }
          case def_to^.deftype of
-             orddef : begin
-                        if (def_from^.deftype=orddef) then
-                         begin
-                           doconv:=basedefconverts[porddef(def_from)^.typ,porddef(def_to)^.typ];
-                           if (doconv<>tc_not_possible) and
-                              (explicit or not(doconv in [tc_int_2_bool])) then
-                             b:=true;
+           orddef :
+             begin
+               if (def_from^.deftype=orddef) then
+                begin
+                  doconv:=basedefconverts[porddef(def_from)^.typ,porddef(def_to)^.typ];
+                  b:=true;
+                  if (doconv=tc_not_possible) or
+                     ((doconv=tc_int_2_bool) and
+                      (not explicit) and
+                      (not is_boolean(def_from))) then
+                   b:=true;
+                end;
+             end;
+
+          stringdef :
+             begin
+               case def_from^.deftype of
+                stringdef : begin
+                              doconv:=tc_string_to_string;
+                              b:=true;
+                            end;
+                   orddef : begin
+                            { char to string}
+                              if is_equal(def_from,cchardef) then
+                               begin
+                                 doconv:=tc_char_to_string;
+                                 b:=true;
+                               end;
+                            end;
+                 arraydef : begin
+                            { string to array of char, the length check is done by the firstpass of this node }
+                              if is_equal(parraydef(def_from)^.definition,cchardef) then
+                               begin
+                                 doconv:=tc_chararray_2_string;
+                                 b:=true;
+                               end;
+                            end;
+               pointerdef : begin
+                            { pchar can be assigned to short/ansistrings }
+                              if is_pchar(def_from) then
+                               begin
+                                 doconv:=tc_pchar_2_string;
+                                 b:=true;
+                               end;
+                            end;
+               end;
+             end;
+
+           floatdef :
+             begin
+               case def_from^.deftype of
+                orddef : begin { ordinal to real }
+                           if pfloatdef(def_to)^.typ=f32bit then
+                            doconv:=tc_int_2_fix
+                           else
+                            doconv:=tc_int_2_real;
+                           b:=true;
                          end;
-                      end;
-          stringdef : begin
-                        case def_from^.deftype of
-                         stringdef : begin
-                                       doconv:=tc_string_to_string;
-                                       b:=true;
-                                     end;
-                            orddef : begin
-                                     { char to string}
-                                       if is_equal(def_from,cchardef) then
-                                        begin
-                                          doconv:=tc_char_to_string;
-                                          b:=true;
-                                        end;
-                                     end;
-                          arraydef : begin
-                                     { string to array of char, the length check is done by the firstpass of this node }
-                                       if is_equal(parraydef(def_from)^.definition,cchardef) then
-                                        begin
-                                          doconv:=tc_chararray_2_string;
-                                          b:=true;
-                                        end;
-                                     end;
-                        pointerdef : begin
-                                     { pchar can be assigned to short/ansistrings }
-                                       if is_pchar(def_from) then
-                                        begin
-                                          doconv:=tc_pchar_2_string;
-                                          b:=true;
-                                        end;
-                                     end;
-                        end;
-                      end;
-           floatdef : begin
-                        case def_from^.deftype of
-                         orddef : begin { ordinal to real }
-                                    if pfloatdef(def_to)^.typ=f32bit then
-                                     doconv:=tc_int_2_fix
-                                    else
-                                     doconv:=tc_int_2_real;
-                                    b:=true;
-                                  end;
-                       floatdef : begin { 2 float types ? }
-                                    if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
-                                      doconv:=tc_equal
-                                    else
-                                      begin
-                                         if pfloatdef(def_from)^.typ=f32bit then
-                                           doconv:=tc_fix_2_real
-                                         else
-                                           if pfloatdef(def_to)^.typ=f32bit then
-                                             doconv:=tc_real_2_fix
-                                           else
-                                             doconv:=tc_real_2_real;
-                                         { comp isn't a floating type }
+              floatdef : begin { 2 float types ? }
+                           if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
+                             doconv:=tc_equal
+                           else
+                             begin
+                                if pfloatdef(def_from)^.typ=f32bit then
+                                  doconv:=tc_fix_2_real
+                                else
+                                  if pfloatdef(def_to)^.typ=f32bit then
+                                    doconv:=tc_real_2_fix
+                                  else
+                                    doconv:=tc_real_2_real;
+                                { comp isn't a floating type }
 {$ifdef i386}
-                                         if (pfloatdef(def_to)^.typ=s64bit) and
-                                            (pfloatdef(def_from)^.typ<>s64bit) and
-                                            not (explicit) then
-                                           CGMessage(type_w_convert_real_2_comp);
+                                if (pfloatdef(def_to)^.typ=s64bit) and
+                                   (pfloatdef(def_from)^.typ<>s64bit) and
+                                   not (explicit) then
+                                  CGMessage(type_w_convert_real_2_comp);
 {$endif}
-                                      end;
-                                    b:=true;
-                                  end;
-                        end;
-                      end;
-            enumdef : begin
-                        if (def_from^.deftype=enumdef) then
-                         begin
-                           if assigned(penumdef(def_from)^.basedef) then
-                            hd1:=penumdef(def_from)^.basedef
-                           else
-                            hd1:=def_from;
-                           if assigned(penumdef(def_to)^.basedef) then
-                            hd2:=penumdef(def_to)^.basedef
-                           else
-                            hd2:=def_to;
-                           b:=(hd1=hd2);
-                         end;
-                      end;
-           arraydef : begin
-                      { open array is also compatible with a single element of its base type }
-                        if is_open_array(def_to) and
-                           is_equal(parraydef(def_to)^.definition,def_from) then
-                         begin
-                           doconv:=tc_equal;
+                             end;
                            b:=true;
-                         end
-                        else
-                         begin
-                           case def_from^.deftype of
-                            pointerdef : begin
-                                           if (parraydef(def_to)^.lowrange=0) and
-                                              is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
-                                            begin
-                                              doconv:=tc_pointer_to_array;
-                                              b:=true;
-                                            end;
-                                         end;
-                             stringdef : begin
-                                           { array of char to string }
-                                           if is_equal(parraydef(def_to)^.definition,cchardef) then
-                                            begin
-                                              doconv:=tc_string_chararray;
-                                              b:=true;
-                                            end;
-                                         end;
+                         end;
+               end;
+             end;
+
+           enumdef :
+             begin
+               if (def_from^.deftype=enumdef) then
+                begin
+                  if assigned(penumdef(def_from)^.basedef) then
+                   hd1:=penumdef(def_from)^.basedef
+                  else
+                   hd1:=def_from;
+                  if assigned(penumdef(def_to)^.basedef) then
+                   hd2:=penumdef(def_to)^.basedef
+                  else
+                   hd2:=def_to;
+                  b:=(hd1=hd2);
+                end;
+             end;
+
+           arraydef :
+             begin
+             { open array is also compatible with a single element of its base type }
+               if is_open_array(def_to) and
+                  is_equal(parraydef(def_to)^.definition,def_from) then
+                begin
+                  doconv:=tc_equal;
+                  b:=true;
+                end
+               else
+                begin
+                  case def_from^.deftype of
+                   pointerdef : begin
+                                  if (parraydef(def_to)^.lowrange=0) and
+                                     is_equal(ppointerdef(def_from)^.definition,parraydef(def_to)^.definition) then
+                                   begin
+                                     doconv:=tc_pointer_to_array;
+                                     b:=true;
+                                   end;
+                                end;
+                    stringdef : begin
+                                  { array of char to string }
+                                  if is_equal(parraydef(def_to)^.definition,cchardef) then
+                                   begin
+                                     doconv:=tc_string_chararray;
+                                     b:=true;
+                                   end;
+                                end;
+                  end;
+                end;
+             end;
+
+           pointerdef :
+             begin
+               case def_from^.deftype of
+               stringdef : begin
+                             { string constant to zero terminated string constant }
+                             if (fromtreetype=stringconstn) and
+                                is_pchar(def_to) then
+                              begin
+                                doconv:=tc_cstring_charpointer;
+                                b:=true;
+                              end;
                            end;
-                         end;
-                      end;
-         pointerdef : begin
-                        case def_from^.deftype of
-                        stringdef : begin
-                                      { string constant to zero terminated string constant }
-                                      if (fromtreetype=stringconstn) and
-                                         is_pchar(def_to) then
-                                       begin
-                                         doconv:=tc_cstring_charpointer;
-                                         b:=true;
-                                       end;
-                                    end;
-                           orddef : begin
-                                      { char constant to zero terminated string constant }
-                                      if (fromtreetype=ordconstn) and is_equal(def_from,cchardef) and
-                                          is_pchar(def_to) then
-                                       begin
-                                         doconv:=tc_cchar_charpointer;
-                                         b:=true;
-                                       end;
-                                    end;
-                         arraydef : begin
-                                      { chararray to pointer }
-                                      if (parraydef(def_from)^.lowrange=0) and
-                                         is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
-                                       begin
-                                         doconv:=tc_array_to_pointer;
-                                         b:=true;
-                                       end;
-                                    end;
-                       pointerdef : begin
-                                      { child class pointer can be assigned to anchestor pointers }
-                                      if (
-                                          (ppointerdef(def_from)^.definition^.deftype=objectdef) and
-                                          (ppointerdef(def_to)^.definition^.deftype=objectdef) and
-                                          pobjectdef(ppointerdef(def_from)^.definition)^.isrelated(
-                                            pobjectdef(ppointerdef(def_to)^.definition))
-                                         ) or
-                                         { all pointers can be assigned to void-pointer }
-                                         is_equal(ppointerdef(def_to)^.definition,voiddef) or
-                                         { in my opnion, is this not clean pascal }
-                                         { well, but it's handy to use, it isn't ? (FK) }
-                                         is_equal(ppointerdef(def_from)^.definition,voiddef) then
-                                        begin
-                                          doconv:=tc_equal;
-                                          b:=true;
-                                        end;
-                                    end;
-                       procvardef : begin
-                                      { procedure variable can be assigned to an void pointer }
-                                      { Not anymore. Use the @ operator now.}
-                                      if not(m_tp_procvar in aktmodeswitches) and
-                                         (ppointerdef(def_to)^.definition^.deftype=orddef) and
-                                         (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
-                                       begin
-                                         doconv:=tc_equal;
-                                         b:=true;
-                                       end;
-                                    end;
-                      classrefdef,
-                        objectdef : begin
-                                      { class types and class reference type
-                                        can be assigned to void pointers      }
-                                      if (
-                                          ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.isclass) or
-                                          (def_from^.deftype=classrefdef)
-                                         ) and
-                                         (ppointerdef(def_to)^.definition^.deftype=orddef) and
-                                         (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
-                                        begin
-                                          doconv:=tc_equal;
-                                          b:=true;
-                                        end;
-                                    end;
-                        end;
-                      end;
-             setdef : begin
-                        { automatic arrayconstructor -> set conversion }
-                        if (def_from^.deftype=arraydef) and (parraydef(def_from)^.IsConstructor) then
-                         begin
-                           doconv:=tc_arrayconstructor_2_set;
-                           b:=true;
-                         end;
-                      end;
-         procvardef : begin
-                        { proc -> procvar }
-                        if (def_from^.deftype=procdef) then
-                         begin
-                           def_from^.deftype:=procvardef;
-                           doconv:=tc_proc2procvar;
-                           b:=is_equal(def_from,def_to);
-                           def_from^.deftype:=procdef;
-                         end
-                        else
-                         { for example delphi allows the assignement from pointers }
-                         { to procedure variables                                  }
-                         if (m_pointer_2_procedure in aktmodeswitches) and
-                           (def_from^.deftype=pointerdef) and
-                           (ppointerdef(def_from)^.definition^.deftype=orddef) and
-                           (porddef(ppointerdef(def_from)^.definition)^.typ=uvoid) then
-                         begin
-                            doconv:=tc_equal;
-                            b:=true;
-                         end
-                        else
-                        { nil is compatible with procvars }
-                         if (fromtreetype=niln) then
-                          begin
-                            doconv:=tc_equal;
-                            b:=true;
-                          end;
-                      end;
-          objectdef : begin
-                        { object pascal objects }
-                        if (def_from^.deftype=objectdef) {and
-                           pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
-                         begin
-                           doconv:=tc_equal;
-                           b:=pobjectdef(def_from)^.isrelated(pobjectdef(def_to));
-                         end
-                        else
-                         { nil is compatible with class instances }
-                         if (fromtreetype=niln) and (pobjectdef(def_to)^.isclass) then
-                          begin
-                            doconv:=tc_equal;
-                            b:=true;
-                          end;
-                      end;
-        classrefdef : begin
-                        { class reference types }
-                        if (def_from^.deftype=classrefdef) then
-                         begin
-                           doconv:=tc_equal;
-                           b:=pobjectdef(pclassrefdef(def_from)^.definition)^.isrelated(
-                                pobjectdef(pclassrefdef(def_to)^.definition));
-                         end
-                        else
-                         { nil is compatible with class references }
-                         if (fromtreetype=niln) then
-                          begin
-                            doconv:=tc_equal;
-                            b:=true;
-                          end;
-                      end;
-            filedef : begin
-                        { typed files are all equal to the abstract file type
-                        name TYPEDFILE in system.pp in is_equal in types.pas
-                        the problem is that it sholud be also compatible to FILE
-                        but this would leed to a problem for ASSIGN RESET and REWRITE
-                        when trying to find the good overloaded function !!
-                        so all file function are doubled in system.pp
-                        this is not very beautiful !!}
-                        if (def_from^.deftype=filedef) and
-                           (
-                            (
-                             (pfiledef(def_from)^.filetype = ft_typed) and
-                             (pfiledef(def_to)^.filetype = ft_typed) and
-                             (
-                              (pfiledef(def_from)^.typed_as = pdef(voiddef)) or
-                              (pfiledef(def_to)^.typed_as = pdef(voiddef))
-                             )
-                            ) or
-                            (
-                             (
-                              (pfiledef(def_from)^.filetype = ft_untyped) and
-                              (pfiledef(def_to)^.filetype = ft_typed)
-                             ) or
-                             (
-                              (pfiledef(def_from)^.filetype = ft_typed) and
-                              (pfiledef(def_to)^.filetype = ft_untyped)
-                             )
-                            )
-                           ) then
-                          begin
-                             doconv:=tc_equal;
-                             b:=true;
-                          end
-                      end;
-         else
-           begin
-           { assignment overwritten ?? }
-             if is_assignment_overloaded(def_from,def_to) then
-              b:=true;
-           end;
+                  orddef : begin
+                             { char constant to zero terminated string constant }
+                             if (fromtreetype=ordconstn) and is_equal(def_from,cchardef) and
+                                 is_pchar(def_to) then
+                              begin
+                                doconv:=tc_cchar_charpointer;
+                                b:=true;
+                              end;
+                           end;
+                arraydef : begin
+                             { chararray to pointer }
+                             if (parraydef(def_from)^.lowrange=0) and
+                                is_equal(parraydef(def_from)^.definition,ppointerdef(def_to)^.definition) then
+                              begin
+                                doconv:=tc_array_to_pointer;
+                                b:=true;
+                              end;
+                           end;
+              pointerdef : begin
+                             { child class pointer can be assigned to anchestor pointers }
+                             if (
+                                 (ppointerdef(def_from)^.definition^.deftype=objectdef) and
+                                 (ppointerdef(def_to)^.definition^.deftype=objectdef) and
+                                 pobjectdef(ppointerdef(def_from)^.definition)^.isrelated(
+                                   pobjectdef(ppointerdef(def_to)^.definition))
+                                ) or
+                                { all pointers can be assigned to void-pointer }
+                                is_equal(ppointerdef(def_to)^.definition,voiddef) or
+                                { in my opnion, is this not clean pascal }
+                                { well, but it's handy to use, it isn't ? (FK) }
+                                is_equal(ppointerdef(def_from)^.definition,voiddef) then
+                               begin
+                                 doconv:=tc_equal;
+                                 b:=true;
+                               end;
+                           end;
+              procvardef : begin
+                             { procedure variable can be assigned to an void pointer }
+                             { Not anymore. Use the @ operator now.}
+                             if not(m_tp_procvar in aktmodeswitches) and
+                                (ppointerdef(def_to)^.definition^.deftype=orddef) and
+                                (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+                              begin
+                                doconv:=tc_equal;
+                                b:=true;
+                              end;
+                           end;
+             classrefdef,
+               objectdef : begin
+                             { class types and class reference type
+                               can be assigned to void pointers      }
+                             if (
+                                 ((def_from^.deftype=objectdef) and pobjectdef(def_from)^.isclass) or
+                                 (def_from^.deftype=classrefdef)
+                                ) and
+                                (ppointerdef(def_to)^.definition^.deftype=orddef) and
+                                (porddef(ppointerdef(def_to)^.definition)^.typ=uvoid) then
+                               begin
+                                 doconv:=tc_equal;
+                                 b:=true;
+                               end;
+                           end;
+               end;
+             end;
+
+           setdef :
+             begin
+               { automatic arrayconstructor -> set conversion }
+               if (def_from^.deftype=arraydef) and (parraydef(def_from)^.IsConstructor) then
+                begin
+                  doconv:=tc_arrayconstructor_2_set;
+                  b:=true;
+                end;
+             end;
+
+           procvardef :
+             begin
+               { proc -> procvar }
+               if (def_from^.deftype=procdef) then
+                begin
+                  def_from^.deftype:=procvardef;
+                  doconv:=tc_proc2procvar;
+                  b:=is_equal(def_from,def_to);
+                  def_from^.deftype:=procdef;
+                end
+               else
+                { for example delphi allows the assignement from pointers }
+                { to procedure variables                                  }
+                if (m_pointer_2_procedure in aktmodeswitches) and
+                  (def_from^.deftype=pointerdef) and
+                  (ppointerdef(def_from)^.definition^.deftype=orddef) and
+                  (porddef(ppointerdef(def_from)^.definition)^.typ=uvoid) then
+                begin
+                   doconv:=tc_equal;
+                   b:=true;
+                end
+               else
+               { nil is compatible with procvars }
+                if (fromtreetype=niln) then
+                 begin
+                   doconv:=tc_equal;
+                   b:=true;
+                 end;
+             end;
+
+           objectdef :
+             begin
+               { object pascal objects }
+               if (def_from^.deftype=objectdef) {and
+                  pobjectdef(def_from)^.isclass and pobjectdef(def_to)^.isclass }then
+                begin
+                  doconv:=tc_equal;
+                  b:=pobjectdef(def_from)^.isrelated(pobjectdef(def_to));
+                end
+               else
+                { nil is compatible with class instances }
+                if (fromtreetype=niln) and (pobjectdef(def_to)^.isclass) then
+                 begin
+                   doconv:=tc_equal;
+                   b:=true;
+                 end;
+             end;
+
+           classrefdef :
+             begin
+               { class reference types }
+               if (def_from^.deftype=classrefdef) then
+                begin
+                  doconv:=tc_equal;
+                  b:=pobjectdef(pclassrefdef(def_from)^.definition)^.isrelated(
+                       pobjectdef(pclassrefdef(def_to)^.definition));
+                end
+               else
+                { nil is compatible with class references }
+                if (fromtreetype=niln) then
+                 begin
+                   doconv:=tc_equal;
+                   b:=true;
+                 end;
+             end;
+
+           filedef :
+             begin
+               { typed files are all equal to the abstract file type
+               name TYPEDFILE in system.pp in is_equal in types.pas
+               the problem is that it sholud be also compatible to FILE
+               but this would leed to a problem for ASSIGN RESET and REWRITE
+               when trying to find the good overloaded function !!
+               so all file function are doubled in system.pp
+               this is not very beautiful !!}
+               if (def_from^.deftype=filedef) and
+                  (
+                   (
+                    (pfiledef(def_from)^.filetype = ft_typed) and
+                    (pfiledef(def_to)^.filetype = ft_typed) and
+                    (
+                     (pfiledef(def_from)^.typed_as = pdef(voiddef)) or
+                     (pfiledef(def_to)^.typed_as = pdef(voiddef))
+                    )
+                   ) or
+                   (
+                    (
+                     (pfiledef(def_from)^.filetype = ft_untyped) and
+                     (pfiledef(def_to)^.filetype = ft_typed)
+                    ) or
+                    (
+                     (pfiledef(def_from)^.filetype = ft_typed) and
+                     (pfiledef(def_to)^.filetype = ft_untyped)
+                    )
+                   )
+                  ) then
+                 begin
+                    doconv:=tc_equal;
+                    b:=true;
+                 end
+             end;
+
+           else
+             begin
+             { assignment overwritten ?? }
+               if is_assignment_overloaded(def_from,def_to) then
+                b:=true;
+             end;
          end;
 
            { nil is compatible with ansi- and wide strings }
@@ -650,7 +675,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-10-12 09:49:58  florian
+  Revision 1.6  1998-10-14 12:53:38  peter
+    * fixed small tp7 things
+    * boolean:=longbool and longbool fixed
+
+  Revision 1.5  1998/10/12 09:49:58  florian
     + support of <procedure var type>:=<pointer> in delphi mode added
 
   Revision 1.4  1998/09/30 16:42:52  peter
