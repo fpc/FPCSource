@@ -231,8 +231,8 @@ unit cgobj;
          if unusedscratchregisters=[] then
            internalerror(68996);
 
-         for i:=scratch_reg_array_pointer to (scratch_reg_array_pointer +
-                  max_scratch_regs) do
+         for i:=scratch_register_array_pointer to
+                (scratch_register_array_pointer+max_scratch_regs) do
            if scratch_regs[(i mod max_scratch_regs)+1] in unusedscratchregisters then
              begin
                 r:=scratch_regs[(i mod max_scratch_regs)+1];
@@ -1080,8 +1080,12 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.24  1999-08-26 14:51:54  jonas
-    * changed get_scratch_reg so it actually uses the\n    scratch_reg_array_pointer
+  Revision 1.25  1999-09-03 13:09:09  jonas
+    * fixed typo regarding scratchregs pointer
+
+  Revision 1.24  1999/08/26 14:51:54  jonas
+    * changed get_scratch_reg so it actually uses the
+      scratch_reg_array_pointer
 
   Revision 1.23  1999/08/25 12:00:11  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
