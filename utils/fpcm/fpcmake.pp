@@ -257,7 +257,7 @@ Procedure ProcessOpts;
   Process command line opions, and checks if command line options OK.
 }
 const
-  ShortOpts = 'pwqrvhT:';
+  ShortOpts = 'pwqrvh?T:';
 var
   C : char;
 begin
@@ -292,7 +292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2004-04-01 12:16:31  olle
+  Revision 1.10  2004-12-05 11:18:04  hajny
+    * do not report '-?' as illegal option
+
+  Revision 1.9  2004/04/01 12:16:31  olle
     * updated help text
 
   Revision 1.8  2002/09/07 15:40:31  peter
