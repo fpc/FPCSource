@@ -267,7 +267,7 @@
                 end
               else
 		          if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
-		             ((hp^.size mod 8) <> 0)) then
+		             ((hp^.size and 7) <> 0)) then
                   writeln('error in freerecord list ');
 {$EndIf CHECKHEAP}
               hp:=hp^.next;
@@ -557,8 +557,8 @@
            end;
 {$endif TEMPHEAP}
          { calc to multiply of 8 }
-         if (size mod 8)<>0 then
-           size:=size+(8-(size mod 8));
+         if (size and 7)<>0 then
+           size:=size+(8-(size and 7));
          dec(_memavail,size);
 {$ifdef UseBlocks}
          { search cache }
@@ -776,8 +776,8 @@ check_new:
        end;
 {$endif CHECKHEAP}
          { calc to multiple of 8 }
-         if (size mod 8)<>0 then
-           size:=size+(8-(size mod 8));
+         if (size and 7)<>0 then
+           size:=size+(8-(size and 7));
          inc(_memavail,size);
          if p+size>=heapptr then
            heapptr:=p
@@ -1080,8 +1080,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-03-31 19:01:41  daniel
+  * Replaced 'mod 8' with 'and 7'. Generates more efficient code.
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.7  1998/01/26 11:59:20  michael
   + Added log at the end
