@@ -1073,7 +1073,7 @@ interface
               addn:
                 begin
                   op1 := A_ADDC;
-                  op2 := A_ADDZEO_;
+                  op2 := A_ADDEO_;
                 end;
               subn:
                 begin
@@ -1479,7 +1479,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2003-04-27 11:06:06  jonas
+  Revision 1.29  2003-04-27 11:55:34  jonas
+    * fixed overflow checking form of 64bit add instruction
+
+  Revision 1.28  2003/04/27 11:06:06  jonas
     * fixed 64bit "const - reg/ref" bugs
 
   Revision 1.27  2003/04/24 22:29:58  florian
