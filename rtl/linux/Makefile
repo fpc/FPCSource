@@ -137,7 +137,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 SYSTEMPPU=syslinux$(PPUEXT)
 OBJECTS=strings linux \
 	dos crt objects printer \
-	getopts heaptrc errors sockets graph
+	getopts heaptrc errors sockets graph objpas sysutils
 
 # Which units may be placed in the shared lib file
 SHAREDLIBFILES=syslinux strings linux objpas sysutils math \
@@ -185,7 +185,7 @@ PPUOBJECTS=$(SYSTEMPPU) $(addsuffix $(PPUEXT), $(OBJECTS))
 	 libs libsclean \
 	 diffs diffclean \
 
-all : $(OBJLOADERS) $(PPUOBJECTS) objpas
+all : $(OBJLOADERS) $(PPUOBJECTS) 
 
 install : all
 	$(MKDIR) $(UNITINSTALLDIR)
@@ -236,8 +236,17 @@ linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc
 # Delphi Object Model
 #
 
-objpas:
-	make -C $(OBJPASDIR) UNITTARGETDIR=$(BASEDIR) UNITDIR=$(BASEDIR)
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
+	$(COPY) $(OBJPASDIR)/objpas.pp .
+	$(COMPILER) -S2 -I$(OBJPASDIR) objpas $(REDIR)
+	$(DEL) objpas.pp
+
+SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
+	$(DEL) sysutils.pp
 
 #
 # System Dependent Units
@@ -328,7 +337,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1998-10-06 22:10:31  peter
+# Revision 1.6  1998-10-11 12:21:49  michael
+# + Further sysutils implementations.
+#
+# Revision 1.5  1998/10/06 22:10:31  peter
 #   + heaptrc
 #
 # Revision 1.4  1998/10/02 09:26:01  peter

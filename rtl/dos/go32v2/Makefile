@@ -74,7 +74,7 @@ SYSTEMPPU=system$(PPUEXT)
 OBJECTS=strings go32 \
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
-	cpu mmx mouse getopts heaptrc graph
+	cpu mmx mouse getopts heaptrc graph objpas sysutils
 
 LOADERS=prt0 exceptn fpu
 
@@ -161,8 +161,18 @@ go32$(PPUEXT) : ../go32.pp $(SYSTEMPPU)
 # Delphi Object Model
 #
 
-objpas:
-	make -C $(OBJPASDIR) UNITTARGETDIR=$(BASEDIR) UNITDIR=$(BASEDIR)
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
+	$(COPY) $(OBJPASDIR)/objpas.pp .
+	$(COMPILER) -S2 -I$(OBJPASDIR) objpas $(REDIR)
+	$(DEL) objpas.pp
+
+SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
+	$(DEL) sysutils.pp
+
 
 #
 # System Dependent Units
@@ -275,7 +285,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.5  1998-10-06 22:10:30  peter
+# Revision 1.6  1998-10-11 12:21:48  michael
+# + Further sysutils implementations.
+#
+# Revision 1.5  1998/10/06 22:10:30  peter
 #   + heaptrc
 #
 # Revision 1.4  1998/10/02 09:26:00  peter

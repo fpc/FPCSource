@@ -70,7 +70,7 @@ include $(CFG)/makefile.cfg
 SYSTEMPPU=syswin32$(PPUEXT)
 OBJECTS=strings dos \
 	windows \
-	cpu mmx getopts heaptrc
+	cpu mmx getopts heaptrc objpas sysutils
 
 # Files used by windows.pp
 WINDOWS_FILES=base errors defines \
@@ -145,8 +145,18 @@ strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
 # Delphi Object Model
 #
 
-objpas:
-	make -C $(OBJPASDIR) UNITTARGETDIR=$(BASEDIR) UNITDIR=$(BASEDIR)
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
+	$(COPY) $(OBJPASDIR)/objpas.pp .
+	$(COMPILER) -S2 -I$(OBJPASDIR) objpas $(REDIR)
+	$(DEL) objpas.pp
+
+SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
+	$(DEL) sysutils.pp
+
 
 #
 # System Dependent Units
@@ -372,7 +382,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.6  1998-10-06 22:10:32  peter
+# Revision 1.7  1998-10-11 12:21:46  michael
+# + Further sysutils implementations.
+#
+# Revision 1.6  1998/10/06 22:10:32  peter
 #   + heaptrc
 #
 # Revision 1.5  1998/10/02 09:26:05  peter
