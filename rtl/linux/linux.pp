@@ -491,6 +491,7 @@ function  GetTimezoneFile:string;
 
 Procedure GetTimeOfDay(var tv:timeval);
 Function  GetTimeOfDay:longint;
+Function  GetEpochTime: longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Function  LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 procedure GetTime(var hour,min,sec,msec,usec:word);
@@ -1313,6 +1314,16 @@ begin
   SysCall(SysCall_nr_gettimeofday,regs);
   LinuxError:=Errno;
   GetTimeOfDay:=tv.sec;
+end;
+
+
+Function GetEpochTime: longint;
+{
+  Get the number of seconds since 00:00, January 1 1970, GMT
+  the time NOT corrected any way
+}
+begin
+  GetEpochTime:=GetTimeOfDay;
 end;
 
 
@@ -3831,7 +3842,10 @@ End.
 
 {
   $Log$
-  Revision 1.62  2000-02-09 23:09:13  peter
+  Revision 1.63  2000-02-23 17:19:06  peter
+    + readded getepochtime which simply calls gettimeofday
+
+  Revision 1.62  2000/02/09 23:09:13  peter
     * rewrote glob to be much simpler and cleaner, the old code did
       strange complex things with pointers which was unnecessary
 
