@@ -7,10 +7,11 @@ program testsync;
     {$mode delphi}
 {$endif}
 
-uses Classes, SysUtils
+uses
 {$ifdef unix}
-,cthreads
+cthreads,
 {$endif unix}
+Classes, SysUtils
 ;
 
 type
