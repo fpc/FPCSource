@@ -62,6 +62,9 @@ Uses
 {$ifdef go32v2}
   go32,
 {$endif go32v2}
+{$ifdef linux}
+  linux,
+{$endif linux}
   dos;
 
 
@@ -410,7 +413,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.12  1999-03-08 14:58:10  peter
+  Revision 1.13  1999-03-09 01:34:35  peter
+    * linux unit
+
+  Revision 1.12  1999/03/08 14:58:10  peter
     + prompt with dialogs for tools
 
   Revision 1.11  1999/03/01 15:42:01  peter
