@@ -121,6 +121,7 @@ implementation
            give an error. Only check for typesyms in the current symbol
            table as forwarddef are not resolved directly }
          if assigned(srsym) and
+            (srsym.typ=typesym) and
             (srsym.owner=symtablestack) and
             (ttypesym(srsym).restype.def.deftype=errordef) then
           begin
@@ -639,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-09-09 19:34:07  peter
+  Revision 1.44  2002-09-10 16:26:39  peter
+    * safety check for typesym added for incomplete type def check
+
+  Revision 1.43  2002/09/09 19:34:07  peter
     * check for incomplete types in the current symtable when parsing
       forwarddef. Maybe this shall be delphi/tp only
 
