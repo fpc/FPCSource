@@ -132,9 +132,7 @@ implementation
         signed, valuereg_is_scratch: boolean;
       begin
 {$ifdef VER1_0}
-        { the "and" is because 1.0.x will sign-extend the $80000000 to }
-        { $ffffffff80000000 when converting it to int64 (JM)           }
-        dummy1 := int64($80000000) and (int64($43300000) shl 32);
+        dummy1 := (int64(1) shl 31) or (int64($43300000) shl 32);
         dummy2 := int64($43300000) shl 32;
 {$endif VER1_0}
 
@@ -457,7 +455,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-06-14 22:32:43  jonas
+  Revision 1.41  2003-08-09 15:28:29  jonas
+    * fixed conversion from signed value to floats if the compiler is
+      compiled with a 1.0.x compiler
+
+  Revision 1.40  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 
