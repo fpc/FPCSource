@@ -63,25 +63,27 @@ function  pthread_cancel(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external 'c';
 
-function sem_init(__sem:Psem_t; __pshared:cint;__value:cuint):cint;cdecl; external;
-function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
-function sem_close(__sem:Psem_t):cint;cdecl;external ;
-function sem_unlink(__name:Pchar):cint;cdecl;external ;
-function sem_wait(__sem:Psem_t):cint;cdecl;external ;
-function sem_trywait(__sem:Psem_t):cint;cdecl;external ;
-function sem_post(__sem:Psem_t):cint;cdecl;external ;
-function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external;
+function sem_init(__sem:Psem_t; __pshared:cint;__value:cuint):cint;cdecl; external 'c' name 'sem_init';
+function sem_destroy(__sem:Psem_t):cint;cdecl;external 'c' name 'sem_destroy';
+function sem_close(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_close';
+function sem_unlink(__name:Pchar):cint;cdecl;external 'c' name 'sem_unlink';
+function sem_wait(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_wait';
+function sem_trywait(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_trywait';
+function sem_post(__sem:Psem_t):cint;cdecl;external 'c'  name 'sem_post';
+function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external 'c'  name 'sem_getvalue';
 
-
-function pthread_mutexattr_init(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
-function pthread_mutexattr_destroy(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
-function pthread_mutexattr_gettype(_para1:Ppthread_mutexattr_t; _para2:Pcint):cint;cdecl;external;
-function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cint;cdecl;external;
-
+function pthread_mutexattr_init(_para1:Ppthread_mutexattr_t):cint;cdecl;external 'c' name 'pthread_mutexattr_init';
+function pthread_mutexattr_destroy(_para1:Ppthread_mutexattr_t):cint;cdecl;external 'c' name 'pthread_mutexattr_destroy';
+function pthread_mutexattr_gettype(_para1:Ppthread_mutexattr_t; _para2:Pcint):cint;cdecl;external 'c' name 'pthread_mutexattr_gettype';
+function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cint;cdecl;external 'c' name 'pthread_mutexattr_settype';
 
 {
   $Log$
-  Revision 1.3  2004-05-26 20:05:21  marco
+  Revision 1.4  2004-05-28 18:23:55  marco
+   * fixes for darwin specific external name '' behaviour. Must still be
+  tested
+
+  Revision 1.3  2004/05/26 20:05:21  marco
    * 2nd attempt
 
   Revision 1.2  2004/05/26 19:23:17  marco
