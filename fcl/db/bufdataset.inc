@@ -41,7 +41,7 @@ end;
 function TBufDataset.AllocRecordBuffer: PChar;
 
 begin
-  result := AllocRecord(sizeof(TBufBookmark));
+  result := AllocMem(FRecordsize + sizeof(TBufBookmark));
 end;
 
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
@@ -52,6 +52,8 @@ end;
 procedure TBufDataset.InternalOpen;
 
 begin
+  CalcRecordSize;
+
   FBRecordcount := 0;
   FBBuffercount := 0;
   FBCurrentrecord := -1;
@@ -64,7 +66,7 @@ procedure TBufDataset.InternalClose;
 var i : integer;
 
 begin
-  for i := 0 to FBRecordCount-1 do FreeRecord(FBBuffers[i]);
+  for i := 0 to FBRecordCount-1 do FreeRecordBuffer(FBBuffers[i]);
   If FBRecordCount > 0 then ReAllocMem(FBBuffers,0);
   FBRecordcount := 0;
   FBBuffercount := 0;
@@ -192,17 +194,115 @@ begin
     ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
 
     repeat
-    FBBuffers[FBRecordCount+i] := AllocRecord(0);
-    b := (getnextrecord(FBBuffers[FBRecordCount+i])<>grOk);
+    FBBuffers[FBRecordCount+i] := AllocRecordBuffer;
+    b := (loadbuffer(FBBuffers[FBRecordCount+i])<>grOk);
     inc(i);
     until (i = FPacketRecords) or b;
     if b then
       begin
       dec(i);
-      FreeRecord(FBBuffers[FBRecordCount+i]);
+      FreeRecordBuffer(FBBuffers[FBRecordCount+i]);
       end;
     FBRecordCount := FBRecordCount + i;
     end;
   result := i;
 end;
+
+function TBufDataset.GetFieldSize(FieldDef : TFieldDef) : longint;
+
+begin
+  case FieldDef.DataType of
+    ftString     : result := FieldDef.Size + 1;
+    ftSmallint,
+      ftInteger,
+      ftword     : result := sizeof(longint);
+    ftBoolean    : result := sizeof(boolean);
+    ftFloat      : result := sizeof(double);
+    ftTime,
+      ftDate,
+      ftDateTime : result := sizeof(TDateTime);
+  end;
+end;
+
+function TBufDataset.LoadBuffer(Buffer : PChar): TGetResult;
+
+var NullMask     : pbyte;
+    x            : longint;
+
+begin
+  if not Fetch then
+    begin
+    Result := grEOF;
+    Exit;
+    end;
+
+  NullMask := pointer(buffer);
+  fillchar(Nullmask^,FNullmaskSize,0);
+
+  inc(buffer,FNullmaskSize);
+
+  for x := 0 to FieldDefs.count-1 do
+    begin
+    if not LoadField(FieldDefs[x],buffer) then
+      NullMask[x div 8] := (NullMask[x div 8]) or (1 shl (x mod 8));
+
+    inc(buffer,GetFieldSize(FieldDefs[x]));
+    end;
+  Result := grOK;
+end;
+
+function TBufDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
+
+var
+  x        : longint;
+  CurrBuff : pchar;
+
+begin
+  Result := False;
+  
+  CurrBuff := ActiveBuffer;
+
+  if ord(currbuff[(Field.Fieldno-1) div 8]) and (1 shl ((Field.Fieldno-1) mod 8)) > 0 then
+    begin
+    result := false;
+    exit;
+    end;
+  inc(Currbuff,FNullmaskSize);
+
+  for x := 0 to FieldDefs.count-1 do
+    begin
+    if (Field.FieldName = FieldDefs[x].Name) then
+      begin
+      Move(CurrBuff^, Buffer^, GetFieldSize(FieldDefs[x]));
+      Result := True;
+      Break;
+      end
+    else Inc(CurrBuff, GetFieldSize(FieldDefs[x]));
+    end;
+end;
+
+
+procedure TBufDataset.CalcRecordSize;
+
+var x : longint;
+
+begin
+  FNullmaskSize := 1+((FieldDefs.count-1) div 8);
+  FRecordSize := FNullmaskSize;
+  for x := 0 to FieldDefs.count-1 do
+    inc(FRecordSize, GetFieldSize(FieldDefs[x]));
+end;
+
+function TBufDataset.GetRecordSize : Word;
+
+begin
+  result := FRecordSize;
+end;
+
+procedure TBufDataset.InternalInitRecord(Buffer: PChar);
+begin
+  FillChar(Buffer^, FRecordSize, #0);
+end;
+
+
 
