@@ -1229,8 +1229,16 @@ implementation
 {$ifdef test_dest_loc}
 {$error Don't know what to do here}
 {$endif test_dest_loc}
-                                hregister:=getexplicitregister32(R_EAX);
-                                hregister2:=getexplicitregister32(R_EDX);
+                                if R_EDX in unused then
+                                  begin
+                                     hregister2:=getexplicitregister32(R_EDX);
+                                     hregister:=getexplicitregister32(R_EAX);
+                                  end
+                                else
+                                  begin
+                                     hregister:=getexplicitregister32(R_EAX);
+                                     hregister2:=getexplicitregister32(R_EDX);
+                                  end;
                                 emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                                 emit_reg_reg(A_MOV,S_L,R_EDX,hregister2);
                                 location.registerlow:=hregister;
@@ -1589,7 +1597,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:46  florian
+  Revision 1.12  2000-12-03 22:26:54  florian
+    * fixed web buzg 1275: problem with int64 functions results
+
+  Revision 1.11  2000/11/29 00:30:46  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
