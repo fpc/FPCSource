@@ -3,7 +3,13 @@
 }
 unit UnzipDLL;
 
-{$Cdecl+,AlignRec-,OrgName+}
+{$IFDEF VIRTUALPASCAL}
+ {$Cdecl+,AlignRec-,OrgName+}
+{$ELSE}
+ {$IFDEF FPC}
+  {$PACKRECORDS 1}
+ {$ENDIF}
+{$ENDIF}
 
 interface
 
@@ -36,11 +42,15 @@ uses
      BseDos,
   {$ENDIF VirtualPascal}
  {$ENDIF FPC}
+{$ELSE}
+ {$IFDEF WIN32}
+     Dos;
+ {$ENDIF WIN32}
 {$ENDIF OS2}
  Dos;
 
 type
- UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint;
+ UzpMainFunc = function (ArgC: longint; var ArgV: TArgV): longint; cdecl;
 
 const
 {$IFDEF OS2}
@@ -63,7 +73,9 @@ var
 
 function DLLInit: boolean;
 var
+{$IFDEF OS2}
  ErrPath: array [0..259] of char;
+{$ENDIF}
  DLLPath: PathStr;
  Dir: DirStr;
  Name: NameStr;
@@ -73,6 +85,7 @@ begin
  FSplit (FExpand (ParamStr (0)), Dir, Name, Ext);
  DLLPath := Dir + DLLName;
  Insert ('.DLL', DLLPath, byte (DLLPath [0]));
+{$IFDEF OS2}
  if (DosLoadModule (@ErrPath, SizeOf (ErrPath), @DLLPath [1], DLLHandle) <> 0)
  and (DosLoadModule (@ErrPath, SizeOf (ErrPath), @DLLName [1], DLLHandle) <> 0)
                                                                            then
@@ -83,6 +96,20 @@ begin
    WriteLn (PChar (@ErrPath));
   end;
  end else DLLInit := DosQueryProcAddr (DLLHandle, UzpMainOrd, nil, @UzpMain) = 0;
+{$ELSE}
+ {$IFDEF WIN32}
+ DLLHandle := LoadLibrary (@DLLPath [1]);
+ if DLLHandle = 0 then DLLHandle := LoadLibrary (@DLLName [1]);
+ if DLLHande = 0 then
+ begin
+  if ErrPath [0] <> #0 then WriteLn (#13#10'Error while loading DLL.');
+ end else
+ begin
+  UzpMain := UzpMainFunc (GetProcAddress (DLLHandle, 'UzpMain');
+  DLLInit := Assigned (UzpMain);
+ end;
+ {$ENDIF}
+{$ENDIF}
 end;
 
 procedure NewExit;
@@ -174,7 +201,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-06-10 07:28:29  hajny
+  Revision 1.3  2000-03-05 17:57:08  hajny
+    + added support for Win32 (untested)
+
+  Revision 1.2  1999/06/10 07:28:29  hajny
     * compilable with TP again
 
   Revision 1.1  1999/02/19 16:45:26  peter
