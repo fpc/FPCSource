@@ -19,7 +19,7 @@
 
 # Where do you want the html files to be put ?
 ifndef DOCINSTALLDIR
-DOCINSTALLDIR=/usr/doc/fpc-0.99.5
+DOCINSTALLDIR=/usr/doc/fpc-0.99.8
 endif 
 
 #
@@ -68,6 +68,9 @@ endif
 ifndef MAKEINDEX
 MAKEINDEX=makeindex
 endif
+
+# tmpdir
+export TMP=/tmp
 
 #
 
@@ -150,25 +153,27 @@ help:
 clean:
 	-rm -rf $(HTML)
 	-rm -f *.aux *.log *.dvi *.ps *.toc *.i* *.lot *.pdf *.txt *.chk
-	-$(MAKE) -C refex clean
-	-$(MAKE) -C linuxex clean
 	-$(MAKE) -C crtex clean
 	-$(MAKE) -C dosex clean
+	-$(MAKE) -C go32ex clean
+	-$(MAKE) -C linuxex clean
+	-$(MAKE) -C mouseex clean
 	-$(MAKE) -C optex clean
 	-$(MAKE) -C printex clean
-	-$(MAKE) -C stringex clean
 	-$(MAKE) -C sockex clean
-	-$(MAKE) -C mouseex clean
+	-$(MAKE) -C stringex clean
+	-$(MAKE) -C refex clean
 
 unitex.chk:
 	$(MAKE) -C crtex tex
-	$(MAKE) -C linuxex tex
 	$(MAKE) -C dosex tex
+	$(MAKE) -C go32ex tex
+	$(MAKE) -C linuxex tex
 	$(MAKE) -C optex tex
+	$(MAKE) -C mouseex tex
 	$(MAKE) -C printex tex
 	$(MAKE) -C stringex tex
 	$(MAKE) -C sockex tex
-	$(MAKE) -C mouseex tex
 	touch unitex.chk
 
 refex.chk:
@@ -203,7 +208,7 @@ user.chk: user.tex
 	rm -f user/labels.pl user/internals.pl user/.*.pag user/.*.dir
 	rm -f user/images.* user/*.log
 	touch user.chk
-	
+
 units: units.chk
 
 units.chk: units.tex unitex.chk
@@ -240,13 +245,13 @@ htm: html
 	makehtm `find . -name '*.html'`
 	zip -q fpcdoc `find . -name '*.htm'` `find . -name '*.gif'`
 	rm `find -name '*.htm'`
-	
+
 htmdist: htm
 
 #####################################################################
 # Installation
 #####################################################################
-	
+
 install:
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
@@ -281,7 +286,7 @@ txtdist: txt
 	zip fpcdoctxt $(TXT)
 
 alldist: dvidist psdist txtdist pdfdist htmldist htmdist
-		
+
 distclean: clean
 	-rm -f *.tar.gz *.zip
 
@@ -290,8 +295,6 @@ distclean: clean
 #####################################################################
 
 examples:
-	$(MAKE) -C crtex
-	$(MAKE) -C dosex
 	$(MAKE) -C crtex
 	$(MAKE) -C dosex
 	$(MAKE) -C optex
@@ -307,3 +310,10 @@ dosexamples: examples
 linuxexamples: examples
 	$(MAKE) -C linuxex
 	$(MAKE) -C sockex
+
+#
+# $Log$
+# Revision 1.10  1998-09-11 11:01:10  peter
+#   * export a TMP=/tmp for dvips which don't like '.' in the directory
+#
+#
