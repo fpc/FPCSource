@@ -880,6 +880,8 @@ BEGIN
            Begin
              if Event.keyCode = kbAltF11 then
                WriteDebugInfo := not WriteDebugInfo;
+             if Event.keyCode = kbAltF12 then
+               ReDraw;
            End;
 {$endif DEBUG}
          If (Event.What = evNothing) Then Begin       { No mouse event }
@@ -1086,7 +1088,10 @@ END;
 END.
 {
  $Log$
- Revision 1.10  2001-05-31 12:15:24  pierre
+ Revision 1.11  2001-05-31 21:39:11  pierre
+  + AltF12 to force Redraw of Application
+
+ Revision 1.10  2001/05/31 12:15:24  pierre
   + some debug stuff added
 
  Revision 1.9  2001/05/10 16:46:26  pierre
