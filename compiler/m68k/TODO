@@ -1,3 +1,0 @@
-- rewrite type casting
-- reference.symbol should be change to tasmsymbol or something like this
-- adapt m68k.inc, especially class/object helpers
