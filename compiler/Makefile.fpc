@@ -270,7 +270,7 @@ sparc:
         $(MAKE) PPC_TARGET=sparc CPU_UNITDIR=sparc all
 
 arm:
-        $(MAKE) PPC_TARGET=sparc CPU_UNITDIR=arm all
+        $(MAKE) PPC_TARGET=arm CPU_UNITDIR=arm all
 
 #####################################################################
 # Default makefile

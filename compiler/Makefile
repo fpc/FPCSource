@@ -1735,7 +1735,7 @@ powerpc:
 sparc:
 	$(MAKE) PPC_TARGET=sparc CPU_UNITDIR=sparc all
 arm:
-	$(MAKE) PPC_TARGET=sparc CPU_UNITDIR=arm all
+	$(MAKE) PPC_TARGET=arm CPU_UNITDIR=arm all
 .PHONY: all compiler echotime ppuclean execlean clean distclean
 all: $(EXENAME) $(addsuffix _all,$(TARGET_DIRS))
 compiler: $(EXENAME)
