@@ -37,18 +37,63 @@ end;
 { OS dependant parts  }
 
 {$I errno.inc}                          // error numbers
-{$I bunxtype.inc}                       // c-types, unix base types, unix
-                                        //    base structures
+{$I ostypes.inc}                        // c-types, unix base types, unix base structures
+{$I osmacro.inc}
+
+{$Linklib c}
+{$i oscdeclh.inc}
 
 {*****************************************************************************
-                 Extra cdecl declarations for FPC_USE_LIBC for this os
+                            Error conversion
 *****************************************************************************}
 
-Function fpReadLink(name,linkname:pchar;maxlen:cint):cint;  cdecl; external name 'readlink';
-function fpgetcwd(buf:pchar;_size:size_t):pchar; cdecl; external name 'getcwd';
+Function PosixToRunError  (PosixErrno : longint) : longint;
+{
+  Convert ErrNo error to the correct Inoutres value
+}
 
-{$I ossysc.inc}                         // base syscalls
-{$I osmain.inc}                         // base wrappers *nix RTL (derivatives)
+begin
+  if PosixErrNo=0 then { Else it will go through all the cases }
+   exit(0);
+  case PosixErrNo of
+   ESysENFILE,
+   ESysEMFILE : Inoutres:=4;
+   ESysENOENT : Inoutres:=2;
+    ESysEBADF : Inoutres:=6;
+   ESysENOMEM,
+   ESysEFAULT : Inoutres:=217;
+   ESysEINVAL : Inoutres:=218;
+    ESysEPIPE,
+    ESysEINTR,
+      ESysEIO,
+   ESysEAGAIN,
+   ESysENOSPC : Inoutres:=101;
+ ESysENAMETOOLONG : Inoutres := 3;
+    ESysEROFS,
+   ESysEEXIST,
+   ESysENOTEMPTY,
+   ESysEACCES : Inoutres:=5;
+   ESysEISDIR : InOutRes:=5;
+  else
+    begin
+       InOutRes := Integer(PosixErrno);
+    end;
+  end;
+ PosixToRunError:=InOutRes;
+end;
+
+Function Errno2InoutRes : longint;
+
+begin
+  Errno2InoutRes:=PosixToRunError(getErrno);
+  InoutRes:=Errno2InoutRes;
+end;
+
+
+
+{*****************************************************************************
+                          Low Level File Routines
+*****************************************************************************}
 
 function do_isdevice(handle:longint):boolean;
 begin
@@ -59,7 +104,10 @@ end;
 
 {
    $Log$
-   Revision 1.1  2005-02-10 17:30:54  peter
+   Revision 1.2  2005-02-13 22:13:20  peter
+     * get solaris back in shape
+
+   Revision 1.1  2005/02/10 17:30:54  peter
      * renamed to solaris
 
    Revision 1.1  2005/02/07 22:17:26  peter

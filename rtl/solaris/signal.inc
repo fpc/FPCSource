@@ -15,20 +15,6 @@
 
  **********************************************************************}
 
-   { requires osposixh types first }
-type
-   sigset_t = array[0..3] of cardinal; { used for additional signal   }
-
-   sighandler_t = procedure (signo: cint); cdecl;
-
-   { signal services }
-   sigactionrec = packed record
-     sa_flags : cint;
-     sa_handler : sighandler_t;   { this is overlapped with sa_sigaction field on solaris }
-     sa_mask : sigset_t;
-     sa_resv : array[1..2] of cint;  { for non-_LP64 platforms only                       }
-   end;
-
 const
     {************************ signals *****************************}
     { more can be provided. Herein are only included the required  }
@@ -78,9 +64,79 @@ const
     SIGCANCEL  = 36;	{ thread cancellation signal used by libthread }
     SIGLOST    = 37;	{ resource lost (eg, record-lock lost) }
 
+const
+  SI_PAD_SIZE   = ((128 div sizeof(longint)) - 3);
+
+type
+  SigSet  =  array[0..wordsinsigset-1] of cint;
+  sigset_t= SigSet;
+  PSigSet = ^SigSet;
+  psigset_t=psigset;
+  TSigSet = SigSet;
+
+  psiginfo = ^tsiginfo;
+  tsiginfo = record
+       si_signo : longint;
+       si_errno : longint;
+       si_code : longint;
+       _sifields : record
+           case longint of
+              0 : ( _pad : array[0..(SI_PAD_SIZE)-1] of longint );
+              1 : ( _kill : record
+                   _pid : pid_t;
+                   _uid : uid_t;
+                end );
+              2 : ( _timer : record
+                   _timer1 : dword;
+                   _timer2 : dword;
+                end );
+              3 : ( _rt : record
+                   _pid : pid_t;
+                   _uid : uid_t;
+                   _sigval : pointer;
+                end );
+              4 : ( _sigchld : record
+                   _pid : pid_t;
+                   _uid : uid_t;
+                   _status : longint;
+                   _utime : clock_t;
+                   _stime : clock_t;
+                end );
+              5 : ( _sigfault : record
+                   _addr : pointer;
+                end );
+              6 : ( _sigpoll : record
+                   _band : longint;
+                   _fd : longint;
+                end );
+           end;
+    end;
+
+{ CPU dependent TSigContext }
+{$i sighndh.inc}
+
+type
+  SignalHandler   = Procedure(Sig : Longint);cdecl;
+  PSignalHandler  = ^SignalHandler;
+  SignalRestorer  = Procedure;cdecl;
+  PSignalRestorer = ^SignalRestorer;
+  SigActionHandler = procedure(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+
+  SigActionRec = packed record  // this is temporary for the migration
+    Sa_Flags    : cuint;
+    sa_handler  : SigActionHandler;
+    Sa_Mask     : SigSet;
+    sa_resv : array[1..2] of cint;  { for non-_LP64 platforms only                       }
+  end;
+  TSigActionRec = SigActionRec;
+  PSigActionRec = ^SigActionRec;
+
 {
   $Log$
-  Revision 1.2  2005-02-10 17:30:54  peter
+  Revision 1.3  2005-02-13 22:13:20  peter
+    * get solaris back in shape
+
+  Revision 1.2  2005/02/10 17:30:54  peter
     * renamed to solaris
 
   Revision 1.2  2004/11/06 22:22:28  florian

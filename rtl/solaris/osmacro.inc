@@ -91,7 +91,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-13 21:47:56  peter
+  Revision 1.1  2005-02-13 22:13:20  peter
+    * get solaris back in shape
+
+  Revision 1.2  2005/02/13 21:47:56  peter
     * include file cleanup part 2
 
   Revision 1.4  2005/02/13 20:01:38  peter
