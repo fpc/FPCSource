@@ -36,6 +36,9 @@ PROGRAM TestApp;
   USES
      {$IFDEF OS_OS2} Os2Def, os2PmApi,  {$ENDIF}
      Objects, Drivers, Views, Menus, Dialogs, App,             { Standard GFV units }
+     {$ifdef TEST}
+     AsciiTab,
+     {$endif TEST}
      Gadgets;
 
 
@@ -43,6 +46,7 @@ CONST cmAppToolbar = 1000;
       cmWindow1    = 1001;
       cmWindow2    = 1002;
       cmWindow3    = 1003;
+      cmAscii      = 1010;
       cmCloseWindow1    = 1101;
       cmCloseWindow2    = 1102;
       cmCloseWindow3    = 1103;
@@ -56,6 +60,9 @@ TYPE
         Clock: PClockView;
         Heap: PHeapView;
         P1,P2,P3 : PGroup;
+     {$ifdef TEST}
+        ASCIIChart : PAsciiChart;
+     {$endif TEST}
       CONSTRUCTOR Init;
       PROCEDURE Idle; Virtual;
       PROCEDURE HandleEvent(var Event : TEvent);virtual;
@@ -64,6 +71,7 @@ TYPE
       PROCEDURE Window1;
       PROCEDURE Window2;
       PROCEDURE Window3;
+      PROCEDURE AsciiWindow;
       PROCEDURE CloseWindow(var P : PGroup);
     End;
 
@@ -115,6 +123,7 @@ BEGIN
        cmWindow1 : Window1;
        cmWindow2 : Window2;
        cmWindow3 : Window3;
+       cmAscii   : AsciiWindow;
        cmCloseWindow1 : CloseWindow(P1);
        cmCloseWindow2 : CloseWindow(P2);
        cmCloseWindow3 : CloseWindow(P3);
@@ -138,13 +147,14 @@ BEGIN
     NewSubMenu('~E~dit', 0, NewMenu(
       StdEditMenuItems(Nil)),                         { Standard edit menu }
     NewSubMenu('~T~est', 0, NewMenu(
+      NewItem('Ascii Chart','',kbNoKey,cmAscii,hcNoContext,
       NewItem('Window 1','',kbNoKey,cmWindow1,hcNoContext,
       NewItem('Window 2','',kbNoKey,cmWindow2,hcNoContext,
       NewItem('Window 3','',kbNoKey,cmWindow3,hcNoContext,
       NewItem('Close Window 1','',kbNoKey,cmCloseWindow1,hcNoContext,
       NewItem('Close Window 2','',kbNoKey,cmCloseWindow2,hcNoContext,
       NewItem('Close Window 3','',kbNoKey,cmCloseWindow3,hcNoContext,
-      Nil))))))),                         { Standard edit menu }
+      Nil)))))))),
     NewSubMenu('~W~indow', 0, NewMenu(
       StdWindowMenuItems(Nil)), Nil)))))));            { Standard window  menu }
 END;
@@ -185,7 +195,7 @@ BEGIN
    R.Assign(5, 1, 35, 16);                            { Assign area }
    P := New(PWindow, Init(R, 'TEST WINDOW 1', 1));    { Create a window }
    If (P <> Nil) Then Begin                           { Window valid }
-     R.Assign(5, 5, 20, 7);                           { Assign area }
+     R.Assign(5, 5, 20, 6);                           { Assign area }
      P^.Insert(New(PInputLine, Init(R, 30)));
      R.Assign(5, 8, 20, 9);                           { Assign area }
      P^.Insert(New(PRadioButtons, Init(R,
@@ -198,6 +208,20 @@ BEGIN
    Desktop^.Insert(P);                                { Insert into desktop }
    P1:=P;
 END;
+
+PROCEDURE TTvDemo.AsciiWindow;
+begin
+{$ifdef TEST}
+  if ASCIIChart=nil then
+    begin
+      New(ASCIIChart, Init);
+      Desktop^.Insert(ASCIIChart);
+    end
+  else
+    ASCIIChart^.Focus;
+{$endif TEST}
+end;
+
 
 PROCEDURE TTvDemo.CloseWindow(var P : PGroup);
 BEGIN
@@ -308,7 +332,10 @@ END.
 
 {
  $Log$
- Revision 1.4  2001-05-04 10:46:02  pierre
+ Revision 1.5  2001-05-04 15:43:46  pierre
+  * several more fixes
+
+ Revision 1.4  2001/05/04 10:46:02  pierre
   * various fixes  for win32 api mode
 
  Revision 1.3  2001/05/04 08:42:55  pierre

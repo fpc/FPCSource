@@ -72,7 +72,7 @@ UNIT GFVGraph;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
+{$IFDEF NO_WINDOW}                                       { DOS/DPMI CODE }
 USES Graph;                                           { Standard unit }
 {$ENDIF}
 
@@ -125,7 +125,7 @@ CONST
 CONST
    Detect = 0;                                        { Detect video }
 
-{$IFDEF OS_DOS}                                       { DOS CODE ONLY }
+{$IFDEF NO_WINDOW}                                       { DOS CODE ONLY }
 {---------------------------------------------------------------------------}
 {                 DOS GRAPHICS SOLID FILL BAR AREA CONSTANT                 }
 {---------------------------------------------------------------------------}
@@ -219,7 +219,7 @@ graphics routine, that is the actual screen height in pixels - 1.
 ---------------------------------------------------------------------}
 FUNCTION GetMaxY (TextMode: Boolean): Integer;
 
-{$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+{$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
 PROCEDURE SetColor(Color: Word);
 PROCEDURE SetFillStyle (Pattern: Word; Color: Word);
 PROCEDURE Bar (X1, Y1, X2, Y2: Integer);
@@ -272,7 +272,7 @@ CONST
 {---------------------------------------------------------------------------}
 PROCEDURE SetWriteMode (Mode: Byte; TextMode: Boolean);
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    If TextMode Then WriteMode := Mode                 { Hold write mode }
      Else Graph.SetWriteMode(Mode);                   { Call graph proc }
    {$ELSE}                                            { WIN/NT/OS2 CODE }
@@ -288,9 +288,9 @@ END;
 {  GetViewSettings -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Dec2000 LdB }
 {---------------------------------------------------------------------------}
 PROCEDURE GetViewSettings (Var CurrentViewPort: ViewPortType; TextMode: Boolean);
-{$IFDEF OS_DOS} VAR Ts: Graph.ViewPortType;{$ENDIF}   { DOS/DPMI CODE }
+{$IFDEF NO_WINDOW} VAR Ts: Graph.ViewPortType;{$ENDIF}   { DOS/DPMI CODE }
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    If TextMode Then CurrentViewPort := ViewPort       { Textmode viewport }
      Else Begin
        Graph.GetViewSettings(Ts);                     { Get graph settings }
@@ -310,7 +310,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE SetViewPort (X1, Y1, X2, Y2: Integer; Clip, TextMode: Boolean);
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    If (TextMode = TRUE) Then Begin                    { TEXT MODE GFV }
    {$ENDIF}
      If (X1 < 0) Then X1 := 0;                        { X1 negative fix }
@@ -332,7 +332,7 @@ BEGIN
      ViewPort.Clip := Clip;                           { Set port clip value }
      Cxp := X1;                                       { Set current x pos }
      Cyp := Y1;                                       { Set current y pos }
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    End Else Begin                                     { GRAPHICS MODE GFV }
      Graph.SetViewPort(X1, Y1, X2, Y2, Clip);         { Call graph proc }
    End;
@@ -348,7 +348,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION GetMaxX (TextMode: Boolean): Integer;
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    If TextMode Then GetMaxX := SysScreenWidth-1       { Screen width }
      Else GetMaxX := Graph.GetMaxX;                   { Call graph func }
    {$ELSE}                                            { WIN/NT/OS2 CODE }
@@ -361,7 +361,7 @@ END;
 {---------------------------------------------------------------------------}
 FUNCTION GetMaxY (TextMode: Boolean): Integer;
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    If TextMode Then GetMaxY := SysScreenHeight-1      { Screen height }
      Else GetMaxY := Graph.GetMaxY;                   { Call graph func }
    {$ELSE}                                            { WIN/NT/OS2 CODE }
@@ -369,7 +369,7 @@ BEGIN
    {$ENDIF}
 END;
 
-{$IFDEF OS_DOS}                                       { DOS/DPMI CODE }
+{$IFDEF NO_WINDOW}                                       { DOS/DPMI CODE }
 PROCEDURE SetColor(Color: Word);
 BEGIN
    Graph.SetColor(Color);                             { Call graph proc }
@@ -404,7 +404,10 @@ END;
 END.
 {
  $Log$
- Revision 1.4  2001-04-10 21:57:55  pierre
+ Revision 1.5  2001-05-04 15:43:45  pierre
+  * several more fixes
+
+ Revision 1.4  2001/04/10 21:57:55  pierre
   + first adds for Use_API define
 
  Revision 1.3  2001/04/10 21:29:55  pierre

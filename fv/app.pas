@@ -628,7 +628,15 @@ END;
 {  InitBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
 PROCEDURE TDesktop.InitBackground;
-{$IFNDEF OS_WINDOWS} CONST Ch: Char = #176; {$ELSE} CONST Ch: Char = #167; {$ENDIF}
+{$IFNDEF OS_WINDOWS}
+CONST Ch: Char = #176;
+{$ELSE}
+{$IFDEF NO_WINDOW}
+CONST Ch: Char = #176;
+{$ELSE not NO_WINDOW}
+CONST Ch: Char = #167;
+{$ENDIF}
+{$ENDIF}
 VAR R: TRect;
 BEGIN
    GetExtent(R);                                      { Get desktop extents }
@@ -1325,7 +1333,10 @@ END;
 END.
 {
  $Log$
- Revision 1.6  2001-05-04 08:42:54  pierre
+ Revision 1.7  2001-05-04 15:43:45  pierre
+  * several more fixes
+
+ Revision 1.6  2001/05/04 08:42:54  pierre
   * some corrections for linux
 
  Revision 1.5  2001/05/03 22:32:52  pierre

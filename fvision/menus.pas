@@ -1048,6 +1048,8 @@ BEGIN
    Inherited Init(R);                                 { Call ancestor }
    State := State OR sfShadow;                        { Set shadow state }
    Options := Options OR ofPreProcess;                { View pre processes }
+   if TextModeGFV then
+     Options := Options OR ofFramed;
    Menu := AMenu;                                     { Hold menu }
    ParentMenu := AParentMenu;                         { Hold parent }
 END;
@@ -1090,6 +1092,11 @@ BEGIN
                DarkGray, False);                      { Draw higlight box }
            End;
          End;
+       End Else Begin { no text NewLine }
+         MoveChar(B, 'Ã', Color, 1);
+         MoveChar(B[1], 'Ä', Color, Size.X-2);
+         MoveChar(B[Size.X-1], '´', Color, 1);
+         WriteBuf(0, Y, Size.X, 1, B);                { Write the line }
        End;
        Inc(Y);                                        { Next line down }
        P := P^.Next;                                  { fetch next item }
@@ -1676,7 +1683,10 @@ END;
 END.
 {
  $Log$
- Revision 1.5  2001-05-04 10:46:02  pierre
+ Revision 1.6  2001-05-04 15:43:45  pierre
+  * several more fixes
+
+ Revision 1.5  2001/05/04 10:46:02  pierre
   * various fixes  for win32 api mode
 
  Revision 1.4  2001/04/10 21:57:55  pierre

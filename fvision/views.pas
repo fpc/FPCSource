@@ -2041,8 +2041,15 @@ END;
 {  DrawBorder -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17May98 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawBorder;
+VAR I : sw_integer;
+    LeftUpCorner,
+    RightUpCorner,
+    HorizontalBar,
+    VerticalBar,
+    LeftLowCorner,
+    RightLowCorner : Char;
 BEGIN
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE ONLY }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE ONLY }
    If (TextModeGFV = FALSE) Then Begin                { GRAPHICS GFV MODE }
      BiColorRectangle(0, 0, RawSize.X, RawSize.Y,
        White, DarkGray, False);                       { Draw 3d effect }
@@ -2055,6 +2062,35 @@ BEGIN
          White, DarkGray, True);                      { Draw highlights }
      End;
    End Else Begin                                     { TEXT GFV MODE }
+     If not Focus or (GOptions AND goThickFramed = 0) then
+       begin
+         LeftUpCorner:='Ú';
+         RightUpCorner:='¿';
+         HorizontalBar:='Ä';
+         VerticalBar:='³';
+         LeftLowCorner:='À';
+         RightLowCorner:='Ù';
+       end
+     else
+       begin
+         LeftUpCorner:='É';
+         RightUpCorner:='»';
+         HorizontalBar:='Í';
+         VerticalBar:='º';
+         LeftLowCorner:='È';
+         RightLowCorner:='¼';
+       end;
+     WriteChar(0,0,LeftUpCorner,1,1);
+     WriteChar(1,0,HorizontalBar,1,Size.X-2);
+     WriteChar(Size.X-1,0,RightUpcorner,1,1);
+     For i:=1 to Size.Y -1 do
+       begin
+         WriteChar(0,i,VerticalBar,1,1);
+         WriteChar(Size.X-1,i,VerticalBar,1,1);
+       end;
+     WriteChar(0,Size.Y-1,LeftLowCorner,1,1);
+     WriteChar(1,Size.Y-1,HorizontalBar,1,Size.X-2);
+     WriteChar(Size.X-1,Size.Y-1,RightLowCorner,1,1);
    End;
    {$ENDIF}
 END;
@@ -3578,8 +3614,12 @@ BEGIN
          ForEach(@DoSetState);                        { Set each subview }
          UnLock;                                      { Unlock the view }
        End;
-     sfFocused: If (Current <> Nil) Then
-       Current^.SetState(sfFocused, Enable);          { Focus current view }
+     sfFocused: Begin
+         If (Current <> Nil) Then
+           Current^.SetState(sfFocused, Enable);          { Focus current view }
+         If TextModeGFV then
+           SetDrawMask(vdBackGnd OR vdFocus OR vdInner); { Set redraw masks }
+       End;
      sfExposed: Begin
          ForEach(@DoExpose);                          { Expose each subview }
        End;
@@ -5294,9 +5334,9 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11Aug99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TWindow.HandleEvent (Var Event: TEvent);
-VAR {$IFDEF OS_DOS} I, J: Integer; {$ENDIF} Min, Max: TPoint; Limits: TRect;
+VAR {$IFDEF NO_WINDOW} I, J: Integer; {$ENDIF} Min, Max: TPoint; Limits: TRect;
 
-   {$IFDEF OS_DOS}                                    { DOS/DPMI CODE }
+   {$IFDEF NO_WINDOW}                                    { DOS/DPMI CODE }
    PROCEDURE DragWindow (Mode: Byte);
    VAR Limits: TRect; Min, Max: TPoint;
    BEGIN
@@ -5363,14 +5403,16 @@ BEGIN
          End;
        End;
      End;
-     {$IFDEF OS_DOS}                                  { DOS/DPMI CODE ONLY }
+     {$IFDEF NO_WINDOW}                               { DOS/DPMI CODE ONLY }
      evMouseDown:                                     { MOUSE DOWN EVENT }
        If (GOptions AND goTitled <> 0) Then Begin     { Must have title area }
-         If (GOptions AND goThickFramed <> 0) Then
-           I := 5 Else                                { Thick frame adjust }
-           If (Options AND ofFramed <> 0) Then I := 1 { Frame adjust }
-             Else I := 0;                             { No frame size }
-         If (Event.Where.Y > (RawOrigin.Y + I)) AND
+         If TextModeGFV then
+           I:=0 Else
+           If (GOptions AND goThickFramed <> 0) Then
+             I := 5 Else                                { Thick frame adjust }
+             If (Options AND ofFramed <> 0) Then I := 1 { Frame adjust }
+               Else I := 0;                             { No frame size }
+         If (Event.Where.Y >= (RawOrigin.Y + I)) AND
          (Event.Where.Y < RawOrigin.Y+FontHeight+I)
          Then Begin                                   { Within top line }
            If (Current <> Nil) AND
@@ -5378,9 +5420,9 @@ BEGIN
              Then Current^.FocusFromTop Else
              FocusFromTop;
            If (Flags AND wfClose <> 0) Then Begin     { Has close icon }
-             J := I + FontWidth;                      { Set X value }
-             If (Event.Where.X > RawOrigin.X+J) AND
-             (Event.Where.X < RawOrigin.X+J+2*FontWidth)
+             J := I + 2*FontWidth;                      { Set X value }
+             If (Event.Where.X >= RawOrigin.X+J) AND
+             (Event.Where.X < RawOrigin.X+J+3*FontWidth)
              Then Begin                               { In close area }
                Event.What := evCommand;               { Command event }
                Event.Command := cmClose;              { Close command }
@@ -5640,8 +5682,8 @@ BEGIN
    Begin                                     { TEXT MODE GFV }
      X1 := (RawOrigin.X+X1) DIV SysFontWidth;
      Y1 := (RawOrigin.Y+Y1) DIV SysFontHeight;
-     X2 := (RawOrigin.X+X2) DIV SysFontWidth;
-     Y2 := (RawOrigin.Y+Y2) DIV SysFontHeight;
+     X2 := (RawOrigin.X+X2-1) DIV SysFontWidth;
+     Y2 := (RawOrigin.Y+Y2-1) DIV SysFontHeight;
      For Y := Y1 To Y2 Do
        For X := X1 To X2 Do Begin
          VideoBuf^[(Y*Drivers.ScreenWidth+X)] := (Colour shl 12) or $20;
@@ -6228,18 +6270,24 @@ BEGIN
      Bc := Col AND $F0 SHR 4;                         { Background colour }
      FillChar(S[1], 255, C);                          { Fill the string }
      If (X >= 0) AND (Y >= 0) AND ((GOptions and (goGraphical or goGraphView))=0) Then Begin
-       X := RawOrigin.X+X*FontWidth;                    { X position }
-       Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
+       X := RawOrigin.X+X*SysFontWidth;                    { X position }
+       Y := RawOrigin.Y+Y*SysFontHeight;                   { Y position }
      End Else Begin
        X := RawOrigin.X + Abs(X);
        Y := RawOrigin.Y + Abs(Y);
      End;
        Tix := X DIV SysFontWidth;
        Tiy := Y DIV SysFontHeight;
+     While (Count>0) Do Begin
+       If (Count>255) Then I := 255 Else I := Count;  { Size to make }
+       S[0] := Chr(I);                                { Set string length }
        For Ti := 1 To length(S) Do Begin
          VideoBuf^[((Tiy * Drivers.ScreenWidth)+Tix)] := (GetColor(Color) shl 8) or Ord(S[Ti]);
-         Tix := Tix + SysFontWidth;
+         Inc(Tix);
        end;
+       Count := Count - I;                            { Subtract count }
+       X := X + I;                                    { Move x position }
+     End;
        UpdateScreen(false);
      {$ELSE not Use_API}
    {$IFDEF OS_DOS}
@@ -6341,7 +6389,8 @@ BEGIN
      Op2.X := RawOrigin.X+RawSize.X;                  { Right side x value }
      Op2.Y := RawOrigin.Y+RawSize.Y;                  { Right side y value }
      PState := State;                                 { Hold current state }
-     State := State AND NOT sfVisible;                { Temp not visible }
+     if not TextModeGFV then
+       State := State AND NOT sfVisible;                { Temp not visible }
      {$IFDEF OS_DOS}                                  { DOS/DPMI CODE }
      HideMouseCursor;                                 { Hide the mouse }
      {$ENDIF}
@@ -6372,13 +6421,20 @@ BEGIN
        {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
        HideMouseCursor;                               { Hide the mouse }
        {$ENDIF}
-       SetWriteMode(XORPut, TextModeGFV);
-       GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
-       SetWriteMode(NormalPut, TextModeGFV);
-       MoveGrow(R, Mouse);                            { Resize the view }
-       SetWriteMode(XORPut, TextModeGFV);
-       GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
-       SetWriteMode(NormalPut, TextModeGFV);
+       if not TextModeGFV then
+         begin
+           SetWriteMode(XORPut, TextModeGFV);
+           GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
+           SetWriteMode(NormalPut, TextModeGFV);
+           MoveGrow(R, Mouse);                            { Resize the view }
+           SetWriteMode(XORPut, TextModeGFV);
+           GraphRectangle(0, 0, RawSize.X, RawSize.Y, Red);
+           SetWriteMode(NormalPut, TextModeGFV);
+         end
+       else
+         begin
+           MoveGrow(R, Mouse);                            { Resize the view }
+         end;
        {$IFDEF OS_DOS}                                { DOS/DPMI CODE }
        ShowMouseCursor;                               { Show the mouse }
        {$ENDIF}
@@ -6412,10 +6468,6 @@ BEGIN
    End;
    SetState(sfDragging, False);                       { Clr dragging flag }
 END;
-
-
-
-
 
 FUNCTION TView.FontWidth: Integer;
 BEGIN
@@ -6685,26 +6737,32 @@ BEGIN
 END;
 
 PROCEDURE TWindow.DrawBorder;
-{$IFDEF OS_DOS} VAR Fc, Bc: Byte; X, Y: Integer; S: String;
+{$IFDEF NO_WINDOW} VAR Fc, Bc: Byte; X, Y: Integer; S: String;
 ViewPort: ViewPortType; {$ENDIF}
 BEGIN
-   {$IFDEF OS_DOS}
+   {$IFDEF NO_WINDOW}
    Fc := GetColor(2) AND $0F;                        { Foreground colour }
-   Bc := 9;                                           { Background colour }
-   If (Options AND ofFramed<>0) Then Y := 1
-     Else Y := 0;                                     { Initial value }
-   If (GOptions AND goThickFramed<>0) Then Inc(Y, 3); { Adjust position }
+   Bc := (GetColor(2) AND $70) SHR 4;                { Background colour }
+   If TextModeGFV then
+     Y:=0 else
+     begin
+       If (Options AND ofFramed<>0) Then Y := 1
+         Else Y := 0;                                     { Initial value }
+       If (GOptions AND goThickFramed<>0) Then Inc(Y, 3); { Adjust position }
+     end;
    ClearArea(0, Y, RawSize.X, Y+FontHeight, Bc);      { Clear background }
+   Inherited DrawBorder;
    If (Title<>Nil) AND (GOptions AND goTitled<>0)
    Then Begin                                         { View has a title }
      GetViewSettings(ViewPort, TextModeGFV);
      X := (RawSize.X DIV 2);                          { Half way point }
-     X := X - (Length(Title^)*FontWidth) DIV 2;       { Calc start point }
+     X := X - ((Length(Title^)+2)*FontWidth) DIV 2;       { Calc start point }
      If (TextModeGFV <> TRUE) Then Begin              { GRAPHICS MODE GFV }
        SetColor(Fc);
        OutTextXY(RawOrigin.X+X-ViewPort.X1,
-         RawOrigin.Y+Y+1-ViewPort.Y1+2, Title^);      { Write the title }
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, ' '+Title^+' ');      { Write the title }
      End Else Begin                                   { LEON??? }
+       WriteStr(X div SysFontWidth,0,' '+Title^+' ',2);
      End;
    End;
    If (Number>0) AND (Number<10) Then Begin           { Valid number }
@@ -6714,6 +6772,7 @@ BEGIN
        OutTextXY(RawOrigin.X+RawSize.X-2*FontWidth-ViewPort.X1,
          RawOrigin.Y+Y+1-ViewPort.Y1+2, S);           { Write number }
      End Else Begin                                   { LEON ????? }
+       WriteStr(Size.X-5,0,S,2);
      End;
    End;
    If (Flags AND wfClose<>0) Then Begin               { Close icon request }
@@ -6722,6 +6781,7 @@ BEGIN
        OutTextXY(RawOrigin.X+Y+FontWidth-ViewPort.X1,
          RawOrigin.Y+Y+1-ViewPort.Y1+2, '[*]');       { Write close icon }
      End Else Begin                                   { LEON??? }
+       WriteStr(2,0,'[*]',2);
      End;
    End;
    If (Flags AND wfZoom<>0) Then Begin
@@ -6730,13 +6790,16 @@ BEGIN
        OutTextXY(RawOrigin.X+RawSize.X-4*FontWidth-Y-ViewPort.X1,
          RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+#24+']'); { Write zoom icon }
      End Else Begin                                   { LEON??? }
+       WriteStr(Size.X-5,0,'['+#24+']',2);
      End;
    End;
-   BiColorRectangle(Y+1, Y+1, RawSize.X-Y-1, Y+FontHeight,
-     White, DarkGray, False);                         { Draw 3d effect }
-   BiColorRectangle(Y+1, Y+1, RawSize.X-Y-2, Y+FontHeight-1,
-     White, DarkGray, False);                         { Draw 3d effect }
-   Inherited DrawBorder;
+   If not TextModeGFV then
+     begin
+       BiColorRectangle(Y+1, Y+1, RawSize.X-Y-1, Y+FontHeight,
+         White, DarkGray, False);                         { Draw 3d effect }
+       BiColorRectangle(Y+1, Y+1, RawSize.X-Y-2, Y+FontHeight-1,
+         White, DarkGray, False);                         { Draw 3d effect }
+     end;
    {$ENDIF}
 END;
 
@@ -6831,7 +6894,10 @@ END.
 
 {
  $Log$
- Revision 1.7  2001-05-04 10:46:03  pierre
+ Revision 1.8  2001-05-04 15:43:46  pierre
+  * several more fixes
+
+ Revision 1.7  2001/05/04 10:46:03  pierre
   * various fixes  for win32 api mode
 
  Revision 1.6  2001/05/04 08:42:56  pierre

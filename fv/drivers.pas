@@ -3033,12 +3033,18 @@ BEGIN
    TextModeGFV:=True;
    InitKeyboard;
    {$endif Use_API}
+   {$ifdef Graph_API}
+   TextModeGFV:=false;
+   {$endif Graph_API}
    SaveExit := ExitProc;                              { Save old exit }
    ExitProc := @ExitDrivers;                          { Set new exit }
 END.
 {
  $Log$
- Revision 1.7  2001-05-04 10:46:02  pierre
+ Revision 1.8  2001-05-04 15:43:45  pierre
+  * several more fixes
+
+ Revision 1.7  2001/05/04 10:46:02  pierre
   * various fixes  for win32 api mode
 
  Revision 1.6  2001/05/04 08:42:55  pierre
