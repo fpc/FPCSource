@@ -104,6 +104,7 @@ unit scanner;
           procedure gettokenpos;
           procedure inc_comment_level;
           procedure dec_comment_level;
+          procedure illegal_char(c:char);
           procedure end_of_file;
           procedure checkpreprocstack;
           procedure poppreprocstack;
@@ -584,6 +585,18 @@ implementation
            aktfilepos:=oldaktfilepos;
            tokenpos:=oldtokenpos;
          end;
+      end;
+
+
+    procedure tscannerfile.illegal_char(c:char);
+      var
+        s : string;
+      begin
+        if c in [#32..#255] then
+         s:=''''+c+''''
+        else
+         s:='#'+tostr(ord(c));
+        Message2(scan_f_illegal_char,s,'$'+hexstr(ord(c),2));
       end;
 
 
@@ -1280,9 +1293,14 @@ implementation
 
              '%' :
                begin
-                 readnumber;
-                 token:=_INTCONST;
-                 goto exit_label;
+                 if (m_tp in aktmodeswitches) then
+                  Illegal_Char(c)
+                 else
+                  begin
+                    readnumber;
+                    token:=_INTCONST;
+                    goto exit_label;
+                  end;
                end;
 
              '0'..'9' :
@@ -1330,7 +1348,7 @@ implementation
                           readchar;
                         end;
                        if not(c in ['0'..'9']) then
-                        Message(scan_f_illegal_char);
+                        Illegal_Char(c);
                        while c in ['0'..'9'] do
                         begin
                           pattern:=pattern+c;
@@ -1680,9 +1698,7 @@ implementation
                  goto exit_label;
                end;
              else
-               begin
-                 Message(scan_f_illegal_char);
-               end;
+               Illegal_Char(c);
            end;
         end;
 exit_label:
@@ -1819,7 +1835,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.112  2000-06-09 21:35:37  peter
+  Revision 1.113  2000-06-18 18:05:54  peter
+    * no binary value reading with % if not fpc mode
+    * extended illegal char message with the char itself (Delphi like)
+
+  Revision 1.112  2000/06/09 21:35:37  peter
     * fixed parsing of $if preproc function
 
   Revision 1.111  2000/05/03 14:36:58  pierre

@@ -236,6 +236,7 @@ unit globals;
     function tostru(i:longint) : string;
     {$endif}
     procedure uppervar(var s : string);
+    function hexstr(val : longint;cnt : byte) : string;
     function tostr(i : longint) : string;
     function tostr_with_plus(i : longint) : string;
     procedure valint(S : string;var V : longint;var code : integer);
@@ -529,6 +530,19 @@ implementation
            s[i]:=char(byte(s[i])-32);
       end;
 
+    function hexstr(val : longint;cnt : byte) : string;
+      const
+        HexTbl : array[0..15] of char='0123456789ABCDEF';
+      var
+        i : longint;
+      begin
+        hexstr[0]:=char(cnt);
+        for i:=cnt downto 1 do
+         begin
+           hexstr[i]:=hextbl[val and $f];
+           val:=val shr 4;
+         end;
+      end;
 
 {$ifdef FPC}
    function tostru(i:cardinal):string;
@@ -1572,7 +1586,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.65  2000-06-15 18:10:11  peter
+  Revision 1.66  2000-06-18 18:05:54  peter
+    * no binary value reading with % if not fpc mode
+    * extended illegal char message with the char itself (Delphi like)
+
+  Revision 1.65  2000/06/15 18:10:11  peter
     * first look for ppu in cwd and outputpath and after that for source
       in cwd
     * fixpath() for not linux makes path now lowercase so comparing paths

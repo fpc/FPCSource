@@ -72,7 +72,8 @@ type tmsgconst=(
   parser_w_proc_near_ignored,
   parser_w_proc_interrupt_ignored,
   parser_e_dont_nest_interrupt,
-  parser_w_proc_register_ignored,
+  parser_w_proc_directive_ignored,
+  parser_e_no_overload_for_all_procs,
   parser_e_no_dll_file_specified,
   parser_e_export_name_double,
   parser_e_export_ordinal_double,
@@ -697,4 +698,4 @@ type tmsgconst=(
 endmsgconst
 );
 const
-  MsgCRCValue : longint = 1458557689;
+  MsgCRCValue : longint = 1557951445;

@@ -123,7 +123,7 @@ scan_f_end_of_file=F_Unexpected end of file
 scan_f_string_exceeds_line=F_String exceeds line
 % You forgot probably to include the closing ' in a string, so it occupies
 % multiple lines.
-scan_f_illegal_char=F_illegal character
+scan_f_illegal_char=F_illegal character $1 ($2)
 % An illegal character was encountered in the input file.
 scan_f_syn_expected=F_Syntax error, $1 expected but $2 found
 % This indicates that the compiler expected a different token than
@@ -292,14 +292,17 @@ parser_w_proc_far_ignored=W_Procedure type FAR ignored
 parser_w_proc_near_ignored=W_Procedure type NEAR ignored
 % This is a warning. \var{NEAR} is a construct for 8 or 16 bit programs. Since
 % the compile generates 32 bit programs, it ignores this directive.
-parser_w_proc_interrupt_ignored=W_Procedure type INTERRUPT ignored
+parser_w_proc_interrupt_ignored=W_Procedure type INTERRUPT ignored for not i386
 % This is a warning. \var{INTERRUPT} is a i386 specific construct
-% and is igonred for other processors.
+% and is ignored for other processors.
 parser_e_dont_nest_interrupt=E_INTERRUPT procedure can't be nested
 % An \VAR{INTERRUPT} procedure must be global.
-parser_w_proc_register_ignored=W_Procedure type REGISTER ignored
-% This is a warning. \var{REGISTER} is ignored by FPC programs for now.
+parser_w_proc_directive_ignored=W_Procedure type $1 ignored
+% This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
 % This is introduced first for Delphi compatibility.
+parser_e_no_overload_for_all_procs=E_Not all declarations of $1 are declared with OVERLOAD
+% When you want to use overloading using the \var{OVERLOAD} directive, then
+% all declarations need to have \var{OVERLOAD} specified.
 parser_e_no_dll_file_specified=E_No DLL File specified
 % No longer in use.
 parser_e_export_name_double=E_Duplicate exported function name $1
