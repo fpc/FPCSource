@@ -1232,7 +1232,7 @@ begin
             end;
         osDPMI:
             begin
-                stackbottom:=0;     {Not sure how to get it, but seems to be
+                stackbottom:=nil;   {Not sure how to get it, but seems to be
                                      always zero.}
                 ApplicationType := 1;   (* Running under DOS. *)
                 IsConsole := true;
@@ -1266,7 +1266,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2003-11-06 23:21:51  hajny
+  Revision 1.21  2003-12-17 22:52:39  hajny
+    * fix for stackbottom change to pointer
+
+  Revision 1.20  2003/11/06 23:21:51  hajny
     * cardinal2pointer changes
 
   Revision 1.19  2003/11/01 19:25:50  hajny
