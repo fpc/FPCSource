@@ -364,8 +364,9 @@ procedure TLinkeros2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $OPT -o $EXE @$RES';
-     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE -aim -s$DOSHEAPKB';
+     ExeCmd[1]:='ld $OPT -o $EXE.out @$RES';
+     ExeCmd[2]:='emxbind -b $STRIP $APPTYPE $RSRC -k$STACKKB -h$HEAPMB -o $EXE.exe $EXE.out -aim -s$DOSHEAPKB';
+     ExeCmd[3]:='del $EXE.out';
    end;
 end;
 
@@ -467,7 +468,7 @@ begin
 
 { Call linker }
   success:=false;
-  for i:=1 to 2 do
+  for i:=1 to 3 do
    begin
      SplitBinCmd(Info.ExeCmd[i],binstr,cmdstr);
      if binstr<>'' then
@@ -484,7 +485,10 @@ begin
         Replace(cmdstr,'$OPT',Info.ExtraOptions);
         Replace(cmdstr,'$RSRC',RsrcStr);
         Replace(cmdstr,'$EXE',current_module.exefilename^);
-        success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false);
+        if i<>3 then
+         success:=DoExec(FindUtil(binstr),cmdstr,(i=1),false)
+        else
+         success:=DoExec(binstr,cmdstr,(i=1),true);
 (* We still want to have the PPAS script complete, right?
         if not success then
          break;
@@ -503,7 +507,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2001-02-26 19:43:11  peter
+  Revision 1.2  2001-02-27 19:40:05  hajny
+    * a.out deleted upon successful binding
+
+  Revision 1.1  2001/02/26 19:43:11  peter
     * moved target units to subdir
 
   Revision 1.7  2001/01/20 18:32:52  hajny
