@@ -67,6 +67,11 @@ interface
   {$define USEEXCEPT}
 {$endif}
 
+{$ifdef TP}
+  {$ifdef DPMI}
+    {$undef USEEXCEPT}
+  {$endif}
+{$endif}
 
 uses
 {$ifdef fpc}
@@ -92,7 +97,10 @@ implementation
 
 var
   CompilerInited : boolean;
+{$ifdef USEEXCEPT}
   recoverpos : jmp_buf;
+{$endif USEEXCEPT}
+
 
 {$ifdef USEEXCEPT}
 procedure RecoverStop;{$ifndef FPC}far;{$endif}
@@ -101,6 +109,53 @@ begin
 end;
 {$endif USEEXCEPT}
 
+
+{****************************************************************************
+                              Temp Heap Creation
+****************************************************************************}
+
+{$ifdef TP}
+  {$ifndef DPMI}
+  var
+    oldfreelist,
+    oldheapptr,
+    oldheaporg : pointer;
+  {$endif}
+{$endif}
+
+procedure CreateHeap;
+begin
+{$Ifdef TP}
+  {$ifndef DPMI}
+    { Save old heap }
+    oldfreelist:=freelist;
+    oldheapptr:=heapptr;
+    oldheaporg:=heaporg;
+    { Create a new heap }
+    heaporg:=oldheapptr;
+    heapptr:=heaporg;
+    freelist:=heaporg;
+  {$endif}
+{$endif}
+end;
+
+
+procedure RestoreHeap;
+begin
+{$Ifdef TP}
+  {$ifndef DPMI}
+  { Restore old heap }
+  freelist:=oldfreelist;
+  heapptr:=oldheapptr;
+  heaporg:=oldheaporg;
+  {$endif}
+{$endIf TP}
+end;
+
+
+{****************************************************************************
+                                Compiler
+****************************************************************************}
 
 procedure DoneCompiler;
 begin
@@ -146,28 +201,16 @@ var
 {$ifdef USEEXCEPT}
   olddo_stop : tstopprocedure;
 {$endif}
-{$ifdef TP}
-  oldfreelist,
-  oldheapptr,
-  oldheaporg : pointer;
-{$endif}
 {$IfDef Extdebug}
   EntryMemAvail : longint;
 {$EndIf}
 begin
-{$Ifdef TP}
-{ Save old heap }
-  oldfreelist:=freelist;
-  oldheapptr:=heapptr;
-  oldheaporg:=heaporg;
-{ Create a new heap }
-  heaporg:=oldheapptr;
-  heapptr:=heaporg;
-  freelist:=heaporg;
-{$endif}
 {$ifdef EXTDEBUG}
   EntryMemAvail:=MemAvail;
 {$endif}
+
+{ Get a new heap }
+  CreateHeap;
 
 { Initialize the compiler }
   InitCompiler(cmd);
@@ -209,12 +252,10 @@ begin
 {$ifdef EXTDEBUG}
   Comment(V_Info,'Memory Lost = '+tostr(EntryMemAvail-MemAvail));
 {$endif EXTDEBUG}
-{$Ifdef TP}
-{ Restore old heap }
-  freelist:=oldfreelist;
-  heapptr:=oldheapptr;
-  heaporg:=oldheaporg;
-{$endIf TP}
+
+{ Restore Heap }
+  RestoreHeap;
+
 { Set the return value if an error has occurred }
   if status.errorcount=0 then
    Compile:=0
@@ -226,7 +267,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-08-11 14:09:06  peter
+  Revision 1.5  1998-08-11 21:38:24  peter
+    + createheap/restoreheap procedures (only tp7 rm currently) and support
+      for tp7 dpmi
+
+  Revision 1.4  1998/08/11 14:09:06  peter
     * fixed some messages and smaller msgtxt.inc
 
   Revision 1.3  1998/08/11 00:01:20  peter
