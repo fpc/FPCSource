@@ -263,7 +263,11 @@ const
 {$ifdef win32}
   gmdefault : word = m640x480x16;
 {$else not win32}
-  gmdefault : word = m640x480x256;
+  {$ifdef Linux}
+   gmdefault : word = g640x480x256;
+  {$else}
+   gmdefault : word = m640x480x256;
+  {$endif}
 {$endif win32}
 
 begin
@@ -271,10 +275,10 @@ begin
     begin
        val(paramstr(1),gm,error);
        if error<>0 then
-         gm:=m640x400x256;
+         gm:=gmdefault;
     end
   else
-    gm:=m640x400x256;
+    gm:=gmdefault;
   gd:=detect;
   GetTime(hour, minute, second, sec100);
   starttime:=((hour*60+minute)*60+second)*100+sec100;
@@ -321,7 +325,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1999-12-22 14:36:07  jonas
+  Revision 1.8  2000-01-04 15:29:42  marco
+   * fixed constants for graphmodes
+
+  Revision 1.7  1999/12/22 14:36:07  jonas
     * changed type of max_color to word so it works now with 16bit color modes
       (thanks to Arjan van Dijk for noticing the problem)
 
