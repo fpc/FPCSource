@@ -66,7 +66,12 @@ begin
   f := -1.12345;
 {$IFOPT E-}  
   str(f,s);
-  check('-1.123450000000000E+000');
+  if sizeof(f) = 10 then
+    check('-1.123450000000000E+000')
+  else if sizeof(f) = 8 then
+    check('-1.12345000000000E+000')
+  else
+    check('error, not yet implemented!!!!');
 {$endif}  
   { the number of exponents depends on the maaping of the real type }
   if sizeof(real) = 8 then
@@ -244,7 +249,12 @@ begin
   f := -1.12345;
 {$IFOPT E-}  
   str(f,s);
-  check('-1.123450000000000E+000');
+  if sizeof(f) = 10 then
+    check('-1.123450000000000E+000')
+  else if sizeof(f) = 8 then
+    check('-1.12345000000000E+000')
+  else
+    check('error, not yet implemented!!!!');
 {$endif}  
   { the number of exponents depends on the maaping of the real type }
   if sizeof(real) = 8 then
@@ -423,7 +433,12 @@ begin
   f := -1.12345;
 {$IFOPT E-}  
   str(f,s);
-  check('-1.123450000000000E+000');
+  if sizeof(f) = 10 then
+    check('-1.123450000000000E+000')
+  else if sizeof(f) = 8 then
+    check('-1.12345000000000E+000')
+  else
+    check('error, not yet implemented!!!!');
 {$endif}  
   { the number of exponents depends on the maaping of the real type }
   if sizeof(real) = 8 then
