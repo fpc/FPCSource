@@ -109,8 +109,7 @@ const
                 (VideoMode.row=SupportedVesaVMD[w].v.row) and
                 (VideoMode.color=SupportedVesaVMD[w].v.color) then
                begin
-                 w:=SetSuperVGAMode(SupportedVesaVMD[w].mode);
-                 if w<>$4f then
+                 if SetSuperVGAMode(SupportedVesaVMD[w].mode) <> $4f then
                    SetVESAMode:=false
                  else
                    begin
@@ -245,7 +244,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:19  peter
+  Revision 1.4  2004-09-14 20:11:31  hajny
+    * fix incorrect reuse of for loop counter
+
+  Revision 1.3  2002/09/07 16:01:19  peter
     * old logs removed and tabs fixed
 
 }
