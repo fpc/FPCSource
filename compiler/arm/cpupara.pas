@@ -73,13 +73,13 @@ unit cpupara;
          else if nr<=4 then
            begin
               result.loc:=LOC_REGISTER;
-              result.register:=newreg(R_INTREGISTER,RS_R0+nr,R_SUBWHOLE);
+              result.register:=newreg(R_INTREGISTER,RS_R0+nr-1,R_SUBWHOLE);
            end
          else
            begin
               result.loc:=LOC_REFERENCE;
               result.reference.index:=NR_STACK_POINTER_REG;
-              result.reference.offset:=(nr-4)*4;
+              result.reference.offset:=(nr-5)*4;
            end;
          result.size := OS_INT;
       end;
@@ -351,7 +351,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2004-01-20 23:18:00  florian
+  Revision 1.13  2004-01-24 01:32:49  florian
+    * genintparaloc fixed
+
+  Revision 1.12  2004/01/20 23:18:00  florian
     * fixed a_call_reg
     + implemented paramgr.get_volative_registers
 
