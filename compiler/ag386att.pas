@@ -292,7 +292,8 @@ unit ag386att;
         var
           curr_n : byte;
         begin
-          if not (cs_debuginfo in aktmoduleswitches) then
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
            exit;
         { file changed ? (must be before line info) }
           if (fileinfo.fileindex<>0) and
@@ -382,7 +383,8 @@ unit ag386att;
       InlineLevel:=0;
       { lineinfo is only needed for codesegment (PFV) }
       do_line:=(cs_asm_source in aktglobalswitches) or
-               ((cs_lineinfo in aktmoduleswitches) and (p=codesegment));
+               ((cs_lineinfo in aktmoduleswitches)
+                 and (p=codesegment));
       hp:=pai(p^.first);
       while assigned(hp) do
        begin
@@ -392,7 +394,8 @@ unit ag386att;
           begin
 {$ifdef GDB}
              { write stabs }
-             if cs_debuginfo in aktmoduleswitches then
+             if (cs_debuginfo in aktmoduleswitches) or
+                (cs_gdb_lineinfo in aktglobalswitches) then
                WriteFileLineInfo(hp^.fileinfo);
 {$endif GDB}
 
@@ -718,7 +721,8 @@ unit ag386att;
                  with binutils 2.9.5 under linux }
                if (not calljmp) and
                   (att_needsuffix[op]<>AttSufNONE) and
-                  (op<>A_FNSTSW) and
+                  (op<>A_FNSTSW) and (op<>A_FSTSW) and
+                  (op<>A_FNSTCW) and (op<>A_FSTCW) and
                   (op<>A_FLDCW) and
                   not(
                    (paicpu(hp)^.oper[0].typ=top_reg) and
@@ -897,7 +901,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.31  2000-04-01 14:18:03  peter
+  Revision 1.32  2000-04-06 07:04:50  pierre
+   + generate line stabs if cs_gdb_lineinfo is aktglobalswitches
+
+  Revision 1.31  2000/04/01 14:18:03  peter
     * don't write suffix for fldcw
 
   Revision 1.30  2000/02/29 23:56:49  pierre

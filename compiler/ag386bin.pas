@@ -295,7 +295,8 @@ unit ag386bin;
         hp : pasmsymbol;
         infile : pinputfile;
       begin
-        if not (cs_debuginfo in aktmoduleswitches) then
+        if not ((cs_debuginfo in aktmoduleswitches) or
+           (cs_gdb_lineinfo in aktglobalswitches)) then
          exit;
       { file changed ? (must be before line info) }
         if (fileinfo.fileindex<>0) and
@@ -478,7 +479,8 @@ unit ag386bin;
          begin
 {$ifdef GDB}
            { write stabs }
-           if (cs_debuginfo in aktmoduleswitches) then
+          if ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectalloc^.currsec<>sec_none) and
                  not(hp^.typ in  [
@@ -626,7 +628,8 @@ unit ag386bin;
          begin
 {$ifdef GDB}
            { write stabs }
-           if cs_debuginfo in aktmoduleswitches then
+          if ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
               if (objectoutput^.currsec<>sec_none) and
                  not(hp^.typ in [
@@ -975,7 +978,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.41  2000-03-10 16:05:57  pierre
+  Revision 1.42  2000-04-06 07:04:51  pierre
+   + generate line stabs if cs_gdb_lineinfo is aktglobalswitches
+
+  Revision 1.41  2000/03/10 16:05:57  pierre
    * generate allways symbol for stabs
 
   Revision 1.40  2000/03/09 14:29:47  pierre
