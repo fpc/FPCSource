@@ -252,6 +252,7 @@ implementation
      function statement_syssym(l : longint) : tnode;
       var
         p1,p2,paras  : tnode;
+        err,
         prev_in_args : boolean;
       begin
         prev_in_args:=in_args;
@@ -367,15 +368,16 @@ implementation
 
           in_assigned_x :
             begin
+              err:=false;
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
               if not codegenerror then
                begin
-                 { load procvar if a procedure is passed }
+                 { With tp procvars we allways need to load a
+                   procvar when it is passed }
                  if (m_tp_procvar in aktmodeswitches) and
-                    (p1.nodetype=calln) and
-                    (is_void(p1.resulttype.def)) then
+                    (p1.nodetype=calln) then
                    load_procvar_from_calln(p1);
 
                  case p1.resulttype.def.deftype of
@@ -384,13 +386,29 @@ implementation
                    classrefdef : ;
                    objectdef :
                      if not is_class_or_interface(p1.resulttype.def) then
-                       Message(parser_e_illegal_parameter_list);
+                       begin
+                         Message(parser_e_illegal_parameter_list);
+                         err:=true;
+                       end;
                    else
-                     Message(parser_e_illegal_parameter_list);
+                     begin
+                       Message(parser_e_illegal_parameter_list);
+                       err:=true;
+                     end;
                  end;
+               end
+              else
+               err:=true;
+              if not err then
+               begin
+                 p2:=ccallparanode.create(p1,nil);
+                 p2:=geninlinenode(in_assigned_x,false,p2);
+               end
+              else
+               begin
+                 p1.free;
+                 p2:=cerrornode.create;
                end;
-              p2:=ccallparanode.create(p1,nil);
-              p2:=geninlinenode(in_assigned_x,false,p2);
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
@@ -1124,7 +1142,7 @@ implementation
                                  p1:=ctypenode.create(htype);
                                  { search also in inherited methods }
                                  srsym:=searchsym_in_class(tobjectdef(htype.def),pattern);
-                                 check_hints(srsym); 
+                                 check_hints(srsym);
                                  consume(_ID);
                                  do_member_read(false,srsym,p1,again);
                                end
@@ -1563,7 +1581,7 @@ implementation
                           begin
                              classh:=tobjectdef(tclassrefdef(p1.resulttype.def).pointertype.def);
                              hsym:=searchsym_in_class(classh,pattern);
-                             check_hints(hsym); 
+                             check_hints(hsym);
                              if hsym=nil then
                               begin
                                 Message1(sym_e_id_no_member,pattern);
@@ -1585,7 +1603,7 @@ implementation
                               allow_only_static:=false;
                               classh:=tobjectdef(p1.resulttype.def);
                               hsym:=searchsym_in_class(classh,pattern);
-                              check_hints(hsym); 
+                              check_hints(hsym);
                               allow_only_static:=store_static;
                               if hsym=nil then
                                 begin
@@ -2285,7 +2303,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2002-11-30 11:12:48  carl
+  Revision 1.96  2002-12-11 22:40:36  peter
+    * assigned(procvar) fix for delphi mode, fixes tb0430
+
+  Revision 1.95  2002/11/30 11:12:48  carl
     + checking for symbols used with hint directives is done mostly in pexpr
       only now
 
