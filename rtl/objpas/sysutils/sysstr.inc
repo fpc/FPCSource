@@ -1236,6 +1236,21 @@ Begin
   Result:=(E=0);
 End;
 
+Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
+Begin
+  Result := TextToFloat(PChar(S), Value, fvSingle);
+End;
+
+Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
+Begin
+  Result := TextToFloat(PChar(S), Value, fvDouble);
+End;
+
+Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
+Begin
+  Result := TextToFloat(PChar(S), Value);
+End;
+
 Function FloatToStr(Value: Extended): String;
 Begin
   Result := FloatToStrF(Value, ffGeneral, 15, 0);
@@ -2320,7 +2335,10 @@ const
 
 {
   $Log$
-  Revision 1.24  2004-12-26 13:04:30  peter
+  Revision 1.25  2005-01-16 17:53:27  michael
+  + Patch from Colin Western to implemenet TryStrToFLoat
+
+  Revision 1.24  2004/12/26 13:04:30  peter
     * fix bugs 3477, 3478, 3479
 
   Revision 1.23  2004/12/19 17:55:38  michael
