@@ -7859,7 +7859,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-12-17 23:34:58  florian
+  Revision 1.6  2002-06-02 17:10:36  marco
+   * Renamefest
+
+  Revision 1.4  2001/12/17 23:34:59  florian
     * support for enum enumtype enumvar; fixed
       same for unions done
 

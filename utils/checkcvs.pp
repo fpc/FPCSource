@@ -97,7 +97,7 @@ Begin
     Begin
      Move(S[1],NewestBuffer[BufferIndex],Length(S));
      Inc(BufferIndex,Length(S));
-     {$Ifndef Linux}
+     {$Ifndef Unix}
       NewestBuffer[BufferIndex]:=#13;
       Inc(BufferIndex);
      {$EndIf}
@@ -243,7 +243,10 @@ End.
 
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:21  michael
+  Revision 1.2  2002-06-02 17:10:35  marco
+   * Renamefest
+
+  Revision 1.1  2000/07/13 10:16:21  michael
   + Initial import
 
   Revision 1.4  2000/07/04 19:05:54  peter
