@@ -13,9 +13,9 @@ s/\:=\(.*\)W(/:=\1(/
 # function call without parameters
 s/\:=\(.*\)W *;/:=\1;/
 # unit name
-s/ascfun;/ascdef;/
+s/unifun;/unidef;/
 # cvs name
-s/ascfun.pp,v/ascdef.pp,v/
+s/unifun.pp,v/unidef.pp,v/
 # unit conditionnal
 s/UNICODEFUNCTIONS/UNICODEFUNCTIONSDEFAULT/
 
