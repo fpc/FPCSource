@@ -749,9 +749,10 @@ begin
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
   if RelocSection then
-  { RelocStr:='--base-file base.$$$';
-    Using short form to avoid problems with 128 char limitation under Dos }
-   RelocStr:='-b base.$$$';
+   RelocStr:='--base-file base.$$$';
+  {  Using short form to avoid problems with 128 char limitation under Dos.
+     But not all dlltool.exe support this short form
+   RelocStr:='-b base.$$$'; }
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -830,9 +831,10 @@ begin
   StripStr:='';
   AsBinStr:=FindExe('asw',found);
   if RelocSection then
-  { RelocStr:='--base-file base.$$$';
-    Using short form to avoid problems with 128 char limitation under Dos }
-   RelocStr:='-b base.$$$';
+   RelocStr:='--base-file base.$$$';
+  {  Using short form to avoid problems with 128 char limitation under Dos.
+     But not all dlltool.exe support this short form
+   RelocStr:='-b base.$$$'; }
   if apptype=at_gui then
    AppTypeStr:='--subsystem windows';
   if assigned(DLLImageBase) then
@@ -1017,6 +1019,9 @@ begin
      peheader.MajorImageVersion:=dllmajor;
      peheader.MinorImageVersion:=dllminor;
     end;
+  { reset timestamp }
+  peheader.TimeDateStamp:=0;
+  { write header back }
   seek(f,peheaderpos);
   blockwrite(f,peheader,sizeof(tpeheader));
   if ioresult<>0 then
@@ -1078,7 +1083,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-12-20 23:23:30  pierre
+  Revision 1.14  2000-01-07 00:10:26  peter
+    * --base-file instead of -b as dlltool 2.9.1 doesn't understand it
+    * clear timestamp in pe header
+
+  Revision 1.13  1999/12/20 23:23:30  pierre
    + $description $version
 
   Revision 1.12  1999/12/08 10:40:01  pierre
