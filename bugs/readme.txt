@@ -248,3 +248,4 @@ bug0171.pp   missing typecasting in constant expressions
 bug0183.pp   internal error 10
 bug0185.pp   missing range checking for Val and subrange types
 bug0186.pp   Erroneous array syntax is accepted.
+bug0187.pp   constructor in a WIth statement isn't called correct.
