@@ -26,7 +26,12 @@
 
   const
     { predefined window style }
+    { we shouldn't set CS_DBLCLKS here }
+    { because most dos applications    }
+    { handle double clicks on it's own }
     graphwindowstyle : DWord = cs_hRedraw or cs_vRedraw;
+
+    windowtitle : pchar = 'Graph window application';
 
 CONST
 
@@ -62,7 +67,10 @@ CONST
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:52  daniel
+  Revision 1.5  2000-03-05 13:07:04  florian
+    * the title can be user defined
+
+  Revision 1.4  2000/01/07 16:41:52  daniel
     * copyright 2000
 
   Revision 1.3  1999/12/08 09:09:34  pierre

@@ -426,9 +426,12 @@ var
   hWindow: HWnd;
 begin
 
-  hWindow := CreateWindow('MyWindow', 'Graph window application',
+  hWindow := CreateWindow('MyWindow', windowtitle,
               ws_OverlappedWindow, 50, 50,
-              maxx+20, maxy+20, 0, 0, system.MainInstance, nil);
+              maxx+2*GetSystemMetrics(SM_CXBORDER),
+              maxy+2*GetSystemMetrics(SM_CYBORDER)+
+                GetSystemMetrics(SM_CYCAPTION),
+              0, 0, system.MainInstance, nil);
 
   if hWindow <> 0 then begin
     ShowWindow(hWindow, SW_SHOW);
@@ -718,7 +721,10 @@ function queryadapterinfo : pmodeinfo;
 
 {
   $Log$
-  Revision 1.6  2000-01-07 16:41:52  daniel
+  Revision 1.7  2000-03-05 13:06:32  florian
+    * the title can be user defined
+
+  Revision 1.6  2000/01/07 16:41:52  daniel
     * copyright 2000
 
   Revision 1.5  1999/12/08 09:09:34  pierre
