@@ -34,7 +34,7 @@ begin
   {$if defined(ver1_0) or defined(ver1_9_4)}
       Writeln (' (Ref: ',Plongint(Longint(P)-4)^,',Len: ',PLongint(Longint(P)-8)^,')');
   {$else}
-      Writeln (' (Ref: ',Plongint(Longint(P)-8)^,',Len: ',PLongint(Longint(P)-4)^,')');
+      Writeln (' (Ref: ',PSizeInt(PtrInt(P)-sizeof(SizeInt)*2)^,',Len: ',PSizeInt(PtrInt(P)-sizeof(SizeInt))^,')');
   {$endif}
 {$else}
       Writeln (' (Ref: ',Plongint(Longint(P)-8)^,',Len: ',PLongint(Longint(P)-4)^ div sizeof(WideChar),')');

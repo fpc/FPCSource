@@ -45,12 +45,12 @@ Begin
  if pl^ <> $F0F0 then
    passed := false;
  FillChar(parray^,sizeof(ttestarray),0);
- ptr:=pbyte((longint(parray)+32));
+ ptr:=pbyte((ptrint(parray)+32));
  ptr^ := $A0;
  if parray^[33] <> $A0 then
    passed := false;
  { left : LOC_REGISTER }
- b:=(pbyte((longint(parray)+32))^);
+ b:=(pbyte((ptrint(parray)+32))^);
  if b <> $A0 then
   passed := false;
  dispose(pl);
@@ -63,7 +63,10 @@ end.
 
 {
    $Log$
-   Revision 1.4  2002-09-07 15:40:56  peter
+   Revision 1.5  2004-11-02 15:58:30  florian
+     * fixed test for 64 bit targets
+
+   Revision 1.4  2002/09/07 15:40:56  peter
      * old logs removed and tabs fixed
 
    Revision 1.3  2002/04/13 21:04:46  carl
