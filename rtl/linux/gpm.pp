@@ -58,18 +58,16 @@ const
   GPM_RGT = 8;
 
 type
-{$PACKRECORDS 4}
+{$PACKRECORDS c}
      PGpmEvent = ^TGpmEvent;
      TGpmEvent = record
           buttons : byte;
           modifiers : byte;
           vc : word;
-          dx : integer;
-          dy : integer;
-          x : integer;
-          y : integer;
-          wdx : integer;
-          wdy : integer;
+          dx : word;
+          dy : word;
+          x : word;
+          y : word;
           EventType : TGpmEType;
           clicks : longint;
           margin : TGpmMargin;
@@ -208,7 +206,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-02-09 16:59:31  peter
+  Revision 1.5  2000-06-15 06:17:35  michael
+  Corrected TGpmEvent
+
+  Revision 1.4  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.3  2000/01/26 21:51:34  peter
