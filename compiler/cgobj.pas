@@ -1834,21 +1834,29 @@ implementation
 
     procedure tcg.g_copyvaluepara_openarray(list : taasmoutput;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);
       var
-        sizereg,sourcereg : tregister;
+        sizereg,sourcereg,lenreg : tregister;
         paraloc1,paraloc2,paraloc3 : TCGPara;
       begin
-        { because ppc abi doesn't support dynamic stack allocation properly
+        { because some abis don't support dynamic stack allocation properly
           open array value parameters are copied onto the heap
         }
-        { allocate two registers for len and source }
-        sizereg:=getintregister(list,OS_INT);
-        sourcereg:=getaddressregister(list);
 
         { calculate necessary memory }
-        a_load_loc_reg(list,OS_INT,lenloc,sizereg);
-        a_op_const_reg(list,OP_ADD,OS_INT,1,sizereg);
+
+        { read/write operations on one register make the life of the register allocator hard }
+        if not(lenloc.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+          begin
+            lenreg:=getintregister(list,OS_INT);
+            a_load_loc_reg(list,OS_INT,lenloc,lenreg);
+          end
+        else
+          lenreg:=lenloc.register;
+
+        sizereg:=getintregister(list,OS_INT);
+        a_op_const_reg_reg(list,OP_ADD,OS_INT,1,lenreg,sizereg);
         a_op_const_reg(list,OP_IMUL,OS_INT,elesize,sizereg);
         { load source }
+        sourcereg:=getaddressregister(list);
         a_loadaddr_ref_reg(list,ref,sourcereg);
 
         { do getmem call }
@@ -2039,7 +2047,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.185  2004-11-08 20:23:29  florian
+  Revision 1.186  2004-11-08 21:47:39  florian
+    * better code generation for copying of open arrays
+
+  Revision 1.185  2004/11/08 20:23:29  florian
     * fixed open arrays when using register variables
 
   Revision 1.184  2004/11/02 17:25:36  florian
