@@ -191,3 +191,5 @@ intuition$(PPUEXT): intuition.pas exec$(PPUEXT) graphics$(PPUEXT) utility$(PPUEX
                     inputevent$(PPUEXT) timer$(PPUEXT) layers$(PPUEXT)
 
 clipboard$(PPUEXT): clipboard.pas exec$(PPUEXT)
+
+get9$(PPUEXT): get9.pas exec$(PPUEXT)
