@@ -798,7 +798,7 @@ implementation
              ReqFPCMake.LoadSections;
              ReqFPCMake.LoadPackageSection;
              { Check package name and version }
-             if LowerCase(ReqFPCMake.PackageName)<>ReqName then
+             if LowerCase(ReqFPCMake.PackageName)<>ExtractFileName(ReqName) then
               raise Exception.Create(Format(s_wrong_package_name,[ReqName,LowerCase(ReqFPCMake.PackageName)]));
              if (ReqVersion<>'') and (ReqFPCMake.PackageVersion<ReqVersion) then
               raise Exception.Create(Format(s_wrong_package_version,[ReqVersion,ReqFPCMake.PackageVersion]));
@@ -1483,7 +1483,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  2002-09-07 15:40:31  peter
+  Revision 1.27  2002-10-07 18:41:02  peter
+    * support mainpackage/subpackage. This allows to use things like
+      gnome1/gconf as required package
+
+  Revision 1.26  2002/09/07 15:40:31  peter
     * old logs removed and tabs fixed
 
   Revision 1.25  2002/07/30 13:18:42  marco
