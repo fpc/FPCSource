@@ -15,6 +15,7 @@ unit Sockets;
 Interface
 
 const
+ {$Ifndef BSD}
   { Adress families, Linux specific }
   AF_AX25         = 3;      { Amateur Radio AX.25          }
   AF_IPX          = 4;      { Novell IPX                   }
@@ -38,6 +39,82 @@ const
   PF_INET6        = AF_INET6;
 
   PF_MAX          = AF_MAX;
+ {$ELSE}
+ {BSD}
+  AF_LOCAL        =1;              { local to host (pipes, portals) }
+  AF_IMPLINK      =3;               { arpanet imp addresses }
+  AF_PUP          =4;              { pup protocols: e.g. BSP }
+  AF_CHAOS        =5;               { mit CHAOS protocols }
+  AF_NS           =6;              { XEROX NS protocols }
+  AF_ISO          =7;              { ISO protocols }
+  AF_OSI          =AF_ISO;
+  AF_ECMA         =8;              { European computer manufacturers }
+  AF_DATAKIT      =9;              { datakit protocols }
+  AF_CCITT        =10;             { CCITT protocols, X.25 etc }
+  AF_SNA          =11;             { IBM SNA }
+  AF_DECnet       =12;             { DECnet }
+  AF_DLI          =13;             { DEC Direct data link interface }
+  AF_LAT          =14;             { LAT }
+  AF_HYLINK       =15;             { NSC Hyperchannel }
+  AF_APPLETALK    =16;             { Apple Talk }
+  AF_ROUTE        =17;             { Internal Routing Protocol }
+  AF_LINK         =18;             { Link layer interface }
+  pseudo_AF_XTP   =19;             { eXpress Transfer Protocol (no AF) }
+  AF_COIP         =20;             { connection-oriented IP, aka ST II }
+  AF_CNT          =21;             { Computer Network Technology }
+  pseudo_AF_RTIP  =22;             { Help Identify RTIP packets }
+  AF_IPX          =23;             { Novell Internet Protocol }
+  AF_SIP          =24;             { Simple Internet Protocol }
+  pseudo_AF_PIP   =25;             { Help Identify PIP packets }
+  AF_ISDN         =26;             { Integrated Services Digital Network}
+  AF_E164         =AF_ISDN;        { CCITT E.164 recommendation }
+  pseudo_AF_KEY   =27;             { Internal key-management function }
+  AF_INET6        =28;             { IPv6 }
+  AF_NATM         =29;             { native ATM access }
+  AF_ATM          =30;             { ATM }
+  pseudo_AF_HDRCMPLT=31;           { Used by BPF to not rewrite headers
+                                    in interface output routine}
+  AF_NETGRAPH     =32;             { Netgraph sockets }
+  AF_MAX          =33;
+
+  SOCK_MAXADDRLEN =255;             { longest possible addresses }
+
+{
+* Protocol families, same as address families for now.
+}
+  PF_LOCAL        =AF_LOCAL;
+  PF_IMPLINK      =AF_IMPLINK;
+  PF_PUP          =AF_PUP;
+  PF_CHAOS        =AF_CHAOS;
+  PF_NS           =AF_NS;
+  PF_ISO          =AF_ISO;
+  PF_OSI          =AF_ISO;
+  PF_ECMA         =AF_ECMA;
+  PF_DATAKIT      =AF_DATAKIT;
+  PF_CCITT        =AF_CCITT;
+  PF_SNA          =AF_SNA;
+  PF_DECnet       =AF_DECnet;
+  PF_DLI          =AF_DLI;
+  PF_LAT          =AF_LAT;
+  PF_HYLINK       =AF_HYLINK;
+  PF_APPLETALK    =AF_APPLETALK;
+  PF_ROUTE        =AF_ROUTE;
+  PF_LINK         =AF_LINK;
+  PF_XTP          =pseudo_AF_XTP;  { really just proto family, no AF }
+  PF_COIP         =AF_COIP;
+  PF_CNT          =AF_CNT;
+  PF_SIP          =AF_SIP;
+  PF_IPX          =AF_IPX;         { same format as AF_NS }
+  PF_RTIP         =pseudo_AF_RTIP; { same format as AF_INET }
+  PF_PIP          =pseudo_AF_PIP;
+  PF_ISDN         =AF_ISDN;
+  PF_KEY          =pseudo_AF_KEY;
+  PF_INET6        =AF_INET6;
+  PF_NATM         =AF_NATM;
+  PF_ATM          =AF_ATM;
+  PF_NETGRAPH     =AF_NETGRAPH;
+  PF_MAX          =AF_MAX;
+{$ENDIF}
 
 type
   TUnixSockAddr = packed Record
@@ -56,263 +133,21 @@ Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
 Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
 
 Implementation
+
 Uses Linux;
 
 { Include filerec and textrec structures }
 {$i filerec.inc}
 {$i textrec.inc}
-
 {******************************************************************************
                           Kernel Socket Callings
 ******************************************************************************}
 
-Const
-  {
-    Arguments to the Linux Kernel system call for sockets. All
-    Socket Connected calls go through the same system call,
-    with an extra argument to determine what action to take.
-  }
-  Socket_Sys_SOCKET      = 1;
-  Socket_Sys_BIND        = 2;
-  Socket_Sys_CONNECT     = 3;
-  Socket_Sys_LISTEN      = 4;
-  Socket_Sys_ACCEPT      = 5;
-  Socket_Sys_GETSOCKNAME = 6;
-  Socket_Sys_GETPEERNAME = 7;
-  Socket_Sys_SOCKETPAIR  = 8;
-  Socket_Sys_SEND        = 9;
-  Socket_Sys_RECV        = 10;
-  Socket_Sys_SENDTO      = 11;
-  Socket_Sys_RECVFROM    = 12;
-  Socket_Sys_SHUTDOWN    = 13;
-  Socket_Sys_SETSOCKOPT  = 14;
-  Socket_Sys_GETSOCKOPT  = 15;
-  Socket_Sys_SENDMSG     = 16;
-  Socket_Sys_RECVMSG     = 17;
-
-
-Function SocketCall(SockCallNr,a1,a2,a3,a4,a5,a6:longint):longint;
-var
-  Regs:SysCallRegs;
-  Args:array[1..6] of longint;
-begin
-{$IFNDEF BSD}
-  args[1]:=a1;
-  args[2]:=a2;
-  args[3]:=a3;
-  args[4]:=a4;
-  args[5]:=a5;
-  args[6]:=a6;
-  regs.reg2:=SockCallNr;
-  regs.reg3:=Longint(@args);
-  SocketCall:=Syscall(syscall_nr_socketcall,regs);
-  If SocketCall<0 then
-   SocketError:=Errno
-  else 
-   SocketError:=0;
- {$ELSE}
-  SocketError:=-1;
- {$ENDIF}
-end;
-
-
-
-Function SocketCall(SockCallNr,a1,a2,a3:longint):longint;
-begin
-  SocketCall:=SocketCall(SockCallNr,a1,a2,a3,0,0,0);
-end;
-
-
-{******************************************************************************
-                          Basic Socket Functions
-******************************************************************************}
-
-Function socket(Domain,SocketType,Protocol:Longint):Longint;
-begin
-  Socket:=SocketCall(Socket_Sys_Socket,Domain,SocketType,ProtoCol);
-end;
-
-
-
-Function Send(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
-begin
-  Send:=SocketCall(Socket_Sys_Send,Sock,Longint(@Addr),AddrLen,Flags,0,0);
-end;
-
-
-
-Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
-begin
-  Recv:=SocketCall(Socket_Sys_Recv,Sock,Longint(@Addr),AddrLen,Flags,0,0);
-end;
-
-
-
-Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
-begin
-  Bind:=(SocketCall(Socket_Sys_Bind,Sock,Longint(@Addr),AddrLen)=0);
-end;
-
-
-
-Function Listen(Sock,MaxConnect:Longint):Boolean;
-begin
-  Listen:=(SocketCall(Socket_Sys_Listen,Sock,MaxConnect,0)=0);
-end;
-
-
-
-Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-begin
-  Accept:=SocketCall(Socket_Sys_Accept,Sock,longint(@Addr),longint(@AddrLen));
-  If Accept<0 Then
-    Accept:=-1;
-end;
-
-
-
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint): boolean;
-
-begin
-  Connect:=SocketCall(Socket_Sys_Connect,Sock,longint(@Addr),AddrLen)=0;
-end;
-
-
-
-Function Shutdown(Sock:Longint;How:Longint):Longint;
-begin
-  ShutDown:=SocketCall(Socket_Sys_ShutDown,Sock,How,0);
-end;
-
-
-
-Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-begin
-  GetSocketName:=SocketCall(Socket_Sys_GetSockName,Sock,longint(@Addr),longint(@AddrLen));
-end;
-
-
-
-Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-begin
-  GetPeerName:=SocketCall(Socket_Sys_GetPeerName,Sock,longint(@Addr),longint(@AddrLen));
-end;
-
-
-
-Function SetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
-begin
-  SetSocketOptions:=SocketCall(Socket_Sys_SetSockOpt,Sock,Level,OptName,Longint(@OptVal),OptLen,0);
-end;
-
-
-
-Function GetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint;
-begin
-  GetSocketOptions:=SocketCall(Socket_Sys_GetSockOpt,Sock,Level,OptName,Longint(@OptVal),OptLen,0);
-end;
-
-
-
-Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Longint;
-begin
-  SocketPair:=SocketCall(Socket_Sys_SocketPair,Domain,SocketType,Protocol,longint(@Pair),0,0);
-end;
-
-{******************************************************************************
-                               UnixSock
-******************************************************************************}
-
-Procedure Str2UnixSockAddr(const addr:string;var t:TUnixSockAddr;var len:longint);
-begin
-  Move(Addr[1],t.Path,length(Addr));
-  t.Family:=AF_UNIX;
-  t.Path[length(Addr)]:=#0;
-  Len:=Length(Addr)+3;
-end;
-
-
-Function Bind(Sock:longint;const addr:string):boolean;
-var
-  UnixAddr : TUnixSockAddr;
-  AddrLen  : longint;
-begin
-  Str2UnixSockAddr(addr,UnixAddr,AddrLen);
-  Bind(Sock,UnixAddr,AddrLen);
-  Bind:=(SocketError=0);
-end;
-
-
-
-Function DoAccept(Sock:longint;var addr:string):longint;
-var
-  UnixAddr : TUnixSockAddr;
-  AddrLen  : longint;
-begin
-  AddrLen:=length(addr)+3;
-  DoAccept:=Accept(Sock,UnixAddr,AddrLen);
-  Move(UnixAddr.Path,Addr[1],AddrLen);
-  SetLength(Addr,AddrLen);
-end;
-
-
-
-Function DoConnect(Sock:longint;const addr:string):Boolean;
-var
-  UnixAddr : TUnixSockAddr;
-  AddrLen  : longint;
-begin
-  Str2UnixSockAddr(addr,UnixAddr,AddrLen);
-  DoConnect:=Connect(Sock,UnixAddr,AddrLen);
-end;
-
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
-var
-  s : longint;
-begin
-  S:=DoAccept(Sock,addr);
-  if S>0 then
-   begin
-     Sock2Text(S,SockIn,SockOut);
-     Accept:=true;
-   end
-  else
-   Accept:=false;
-end;
-
-
-
-Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
-var
-  s : longint;
-begin
-  S:=DoAccept(Sock,addr);
-  if S>0 then
-   begin
-     Sock2File(S,SockIn,SockOut);
-     Accept:=true;
-   end
-  else
-   Accept:=false;
-end;
-
-
-
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
-begin
-  Connect:=DoConnect(Sock,addr);
-  If Connect then
-     Sock2Text(Sock,SockIn,SockOut);
-end;
-
-
-
-Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
-begin
-  Connect:=DoConnect(Sock,addr);
-  if Connect then
-     Sock2File(Sock,SockIn,SockOut);
-end;
+{$ifdef BSD}
+ {$I bsdsock.inc}
+{$else}
+ {$I linsock.inc}
+{$endif}
 
 {$i sockets.inc}
 
@@ -320,7 +155,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:49  michael
+  Revision 1.3  2000-09-11 14:05:31  marco
+   * FreeBSD support and removed old signalhandling
+
+  Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
  
 }

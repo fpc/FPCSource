@@ -396,9 +396,57 @@ begin
   SysCall(SysCall_nr_exit,regs)
 end;
 
+Procedure SigAction(Signum:longint;Act,OldAct:PSigActionRec );
+{
+  Change action of process upon receipt of a signal.
+  Signum specifies the signal (all except SigKill and SigStop).
+  If Act is non-nil, it is used to specify the new action.
+  If OldAct is non-nil the previous action is saved there.
+}
+Var
+  sr : Syscallregs;
+begin
+  sr.reg2:=Signum;
+  sr.reg3:=Longint(act);
+  sr.reg4:=Longint(oldact);
+  SysCall(Syscall_nr_sigaction,sr);
+end;
+
+
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:49  michael
+  Revision 1.3  2000-09-11 14:05:31  marco
+   * FreeBSD support and removed old signalhandling
+
+
+  Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
- 
+
+  Revision 1.1  2000/07/13 06:30:54  michael
+  + Initial import
+
+  Revision 1.11  2000/07/08 18:02:39  peter
+    * do_open checks for directory, if directory then ioerror 2
+
+  Revision 1.10  2000/02/09 16:59:32  peter
+    * truncated log
+
+  Revision 1.9  2000/02/08 11:47:09  peter
+    * paramstr(0) support
+
+  Revision 1.8  2000/01/07 16:41:41  daniel
+    * copyright 2000
+
+  Revision 1.7  2000/01/07 16:32:28  daniel
+    * copyright 2000 added
+
+  Revision 1.6  1999/07/28 17:37:06  michael
+  * forgot ;
+
+  Revision 1.5  1999/07/28 12:15:16  michael
+  * Memory leak fixed in CloseDir, by Sebastian Guenther
+
+  Revision 1.4  1999/07/28 12:14:37  michael
+  * Memory leak fixed in CloseDir, by Sebastian Guenther
+
 }

@@ -23,6 +23,7 @@ Interface
 { Get System call numbers and error-numbers}
 {$i sysnr.inc}
 {$i errno.inc}
+{$I signal.inc}
 
 var
   ErrNo,
@@ -32,8 +33,7 @@ var
 {********************
       Process
 ********************}
-{$ifndef BSD} {BSD doesn't know signals}
-const
+const {Checked for BSD using Linuxthreads port}
   { cloning flags }
   CSIGNAL       = $000000ff; // signal mask to be sent at exit
   CLONE_VM      = $00000100; // set if VM shared between processes
@@ -43,7 +43,6 @@ const
   CLONE_PID     = $00001000; // set if pid shared
 type
   TCloneFunc=function(args:pointer):longint;cdecl;
-{$endif}
 
 const
   { For getting/setting priority }
@@ -104,136 +103,6 @@ const
   F_SetLkW = 7;
   F_GetOwn = 8;
   F_SetOwn = 9;
-
-
-
-{********************
-      Signal
-********************}
-
-Const
-  { For sending a signal }
-  SA_NOCLDSTOP = 1;
-  SA_SHIRQ     = $04000000;
-  SA_STACK     = $08000000;
-  SA_RESTART   = $10000000;
-  SA_INTERRUPT = $20000000;
-  SA_NOMASK    = $40000000;
-  SA_ONESHOT   = $80000000;
-
-  SIG_BLOCK   = 0;
-  SIG_UNBLOCK = 1;
-  SIG_SETMASK = 2;
-
-  SIG_DFL = 0 ;
-  SIG_IGN = 1 ;
-  SIG_ERR = -1 ;
-
-  SIGHUP     = 1;
-  SIGINT     = 2;
-  SIGQUIT    = 3;
-  SIGILL     = 4;
-  SIGTRAP    = 5;
-  SIGABRT    = 6;
-  SIGIOT     = 6;
-  SIGBUS     = 7;
-  SIGFPE     = 8;
-  SIGKILL    = 9;
-  SIGUSR1    = 10;
-  SIGSEGV    = 11;
-  SIGUSR2    = 12;
-  SIGPIPE    = 13;
-  SIGALRM    = 14;
-  SIGTerm    = 15;
-  SIGSTKFLT  = 16;
-  SIGCHLD    = 17;
-  SIGCONT    = 18;
-  SIGSTOP    = 19;
-  SIGTSTP    = 20;
-  SIGTTIN    = 21;
-  SIGTTOU    = 22;
-  SIGURG     = 23;
-  SIGXCPU    = 24;
-  SIGXFSZ    = 25;
-  SIGVTALRM  = 26;
-  SIGPROF    = 27;
-  SIGWINCH   = 28;
-  SIGIO      = 29;
-  SIGPOLL    = SIGIO;
-  SIGPWR     = 30;
-  SIGUNUSED  = 31;
-
-Type
-  SignalHandler   = Procedure(Sig : LongInt);cdecl;
-  PSignalHandler  = ^SignalHandler;
-  SignalRestorer  = Procedure;cdecl;
-  PSignalRestorer = ^SignalRestorer;
-
-{$ifdef BSD}
-  SigSet  = Array[0..31] of byte;
-{$else}
-  SigSet  = Longint;
-{$endif}
-  PSigSet = ^SigSet;
-
-  tfpreg = record
-          significand: array[0..3] of word;
-          exponent: word;
-  end;
-
-  pfpstate = ^tfpstate;
-  tfpstate = record
-           cw, sw, tag, ipoff, cssel, dataoff, datasel: cardinal;
-           st: array[0..7] of tfpreg;
-           status: cardinal;
-  end;
-
-{$ifdef i386}
-  PSigContextRec = ^SigContextRec;
-  SigContextRec = record
-    gs, __gsh: word;
-    fs, __fsh: word;
-    es, __esh: word;
-    ds, __dsh: word;
-    edi: cardinal;
-    esi: cardinal;
-    ebp: cardinal;
-    esp: cardinal;
-    ebx: cardinal;
-    edx: cardinal;
-    ecx: cardinal;
-    eax: cardinal;
-    trapno: cardinal;
-    err: cardinal;
-    eip: cardinal;
-    cs, __csh: word;
-    eflags: cardinal;
-    esp_at_signal: cardinal;
-    ss, __ssh: word;
-    fpstate: pfpstate;
-    oldmask: cardinal;
-    cr2: cardinal;
-  end;
-  TSigContextRec = SigContextRec;
-{$endif}
-
-  TSigAction = procedure(Sig: Longint; SigContext: SigContextRec);cdecl;
-
-  PSigActionRec = ^SigActionRec;
-  SigActionRec = packed record
-    Handler  : record
-      case byte of
-        0: (Sh: SignalHandler);
-        1: (Sa: TSigAction);
-      end;
-    Sa_Mask     : SigSet;
-    Sa_Flags    : Longint;
-    {$ifndef BSD}
-    Sa_restorer : SignalRestorer; { Obsolete - Don't use }
-    {$endif}
-  end;
-  TSigActionRec = SigActionRec;
-
 
 {********************
    IOCtl(TermIOS)
@@ -540,7 +409,6 @@ Type
 ******************************************************************************}
 
 {$ifdef bsd}
-
 function Do_SysCall(sysnr:longint):longint;
 function Do_Syscall(sysnr,param1:integer):longint;
 function Do_SysCall(sysnr,param1:LONGINT):longint;
@@ -548,6 +416,7 @@ function Do_SysCall(sysnr,param1,param2:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5:LONGINT):longint;
+function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6:LONGINT):longint;
 function Do_SysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:LONGINT):longint;
 {$else}
 Function SysCall(callnr:longint;var regs:SysCallregs):longint;
@@ -597,9 +466,8 @@ Procedure Execlp(Todo:string;Ep:ppchar);
 Function  Shell(const Command:String):Longint;
 Function  Shell(const Command:AnsiString):Longint;
 Function  Fork:longint;
-{$ifndef BSD}
+{Clone for FreeBSD is copied from the LinuxThread port, and rfork based}
 function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
-{$endif}
 Procedure ExitProcess(val:longint);
 Function  WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
 Procedure Nice(N:integer);
@@ -726,14 +594,12 @@ Function  Uname(var unamerec:utsname):Boolean;
         Signal
 ***************************}
 
-Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
-Procedure SigProcMask (How:Integer;SSet,OldSSet:PSigSet);
+Procedure SigAction(Signum:longint;Act,OldAct:PSigActionRec );
+Procedure SigProcMask (How:longint;SSet,OldSSet:PSigSet);
 Function  SigPending:SigSet;
 Procedure SigSuspend(Mask:Sigset);
-{$ifndef BSD}
-Function  Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
-{$endif}
-Function  Kill(Pid:longint;Sig:integer):integer;
+Function  Signal(Signum:longint;Handler:SignalHandler):SignalHandler;
+Function  Kill(Pid:longint;Sig:longint):integer;
 Procedure SigRaise(Sig:integer);
 {$ifndef BSD}
 Function  Alarm(Sec : Longint) : longint;
@@ -2933,7 +2799,11 @@ End.
 
 {
   $Log$
-  Revision 1.5  2000-09-06 20:47:34  peter
+  Revision 1.6  2000-09-11 14:05:31  marco
+   * FreeBSD support and removed old signalhandling
+
+
+  Revision 1.5  2000/09/06 20:47:34  peter
     * removed previous fsplit() patch as it's not the correct behaviour for
       LFNs. The code showing the bug could easily be adapted (merged)
 

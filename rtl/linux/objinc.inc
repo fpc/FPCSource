@@ -7,6 +7,7 @@ Var errno : Longint;
 {$i errno.inc}
 {$i sysconst.inc}
 {$i systypes.inc}
+{$i signal.inc}
 {$i syscalls.inc}
 
 FUNCTION FileOpen (Var FileName: AsciiZ; Mode: Word): THandle;
@@ -96,7 +97,10 @@ END;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:49  michael
+  Revision 1.3  2000-09-11 14:05:31  marco
+   * FreeBSD support and removed old signalhandling
+
+  Revision 1.2  2000/07/13 11:33:49  michael
   + removed logs
  
 }

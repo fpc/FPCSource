@@ -137,7 +137,7 @@ begin
  LinuxError:=ErrNo;
 end;
 
-Function WaitPid(Pid:longint;Status:pointer;Options:Integer):Longint;
+Function WaitPid(Pid:longint;Status:pointer;Options:longint):Longint;
 {
   Waits until a child with PID Pid exits, or returns if it is exited already.
   Any resources used by the child are freed.
@@ -535,7 +535,7 @@ begin
 end;
 
 
-Function Kill(Pid:longint;Sig:integer):integer;
+Function Kill(Pid:longint;Sig:longint):integer;
 {
   Send signal 'sig' to a process, or a group of processes.
   If Pid >  0 then the signal is sent to pid
@@ -552,20 +552,7 @@ begin
  LinuxError:=Errno;
 end;
 
-Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
-{
-  Change action of process upon receipt of a signal.
-  Signum specifies the signal (all except SigKill and SigStop).
-  If Act is non-nil, it is used to specify the new action.
-  If OldAct is non-nil the previous action is saved there.
-}
-
-begin
- do_syscall(syscall_nr_sigaction,longint(signum),longint(act),longint(oldact));
- LinuxError:=Errno;
-end;
-
-Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
+Procedure SigProcMask(How:longint;SSet,OldSSet:PSigSet);
 {
   Change the list of currently blocked signals.
   How determines which signals will be blocked :
@@ -629,17 +616,71 @@ begin
 end;
 
 function MUnMap (P : Pointer; Size : Longint) : Boolean;
-Var
-  Sr : Syscallregs;
+
 begin
-  Sr.reg2:=longint(P);
-  sr.reg3:=Size;
-  MUnMap:=syscall(syscall_nr_munmap,P,Size,0)=0;
+  MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size)=0;
   LinuxError:=Errno;
 end;
+
+
+function signal(signum:longint;Handler:signalhandler):signalhandler;
+
+var sa,osa : sigactionrec;
+
+begin
+     sa.handler.sh:=handler;
+     FillChar(sa.sa_mask,sizeof(sigset),#0);
+     sa.sa_flags := 0;
+{     if (sigintr and signum) =0 then {restart behaviour needs libc}
+      sa.sa_flags :=sa.sa_flags or SA_RESTART;}
+     sigaction(signum,@sa,@osa);
+     if ErrNo<>0 then
+      signal:=NIL
+     else
+      signal:=osa.handler.sh;
+     LinuxError:=Errno;
+
+end;
+
+
+function  Clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; assembler;
+asm
+	pushl	%esi
+	movl	12(%ebp), %esi	// get stack addr
+	subl	$4, %esi
+	movl	20(%ebp), %eax	// get __arg
+	movl	%eax, (%esi)
+	subl	$4, %esi
+	movl	8(%ebp), %eax	// get __fn
+	movl	%eax, (%esi)
+	pushl	16(%ebp)
+	pushl	%esi
+	mov	syscall_nr_rfork, %eax
+	int     $0x80                  // call actualsyscall
+	jb 	.L2
+	test    %edx, %edx
+	jz	.L1
+	movl	%esi,%esp
+	popl	%eax
+	call	%eax
+	addl	$8, %esp
+        call	halt		// Does not return
+.L2:	
+	mov	%eax,ErrNo
+	mov	$-1,%eax
+	jmp     .L1
+//	jmp	PIC_PLT(HIDENAME(cerror))
+.L1:
+	addl	$8, %esp
+	popl	%esi
+end;
+
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:47  michael
+  Revision 1.3  2000-09-11 14:05:31  marco
+   * FreeBSD support and removed old signalhandling
+
+  Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
  
 }

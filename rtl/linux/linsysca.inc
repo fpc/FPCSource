@@ -730,7 +730,7 @@ Begin
 End;
 
 
-Function Kill(Pid:longint;Sig:integer):integer;
+Function Kill(Pid:longint;Sig:longint):integer;
 {
   Send signal 'sig' to a process, or a group of processes.
   If Pid >  0 then the signal is sent to pid
@@ -751,8 +751,9 @@ begin
 end;
 
 
-
-Procedure SigAction(Signum:Integer;Var Act,OldAct:PSigActionRec );
+{ Moved to syscalls.inc, because it is needed for initialising the runerror/
+exceptions system
+Procedure SigAction(Signum:longint;Var Act,OldAct:PSigActionRec );
 {
   Change action of process upon receipt of a signal.
   Signum specifies the signal (all except SigKill and SigStop).
@@ -768,10 +769,8 @@ begin
   SysCall(Syscall_nr_sigaction,sr);
   linuxerror:=errno;
 end;
-
-
-
-Procedure SigProcMask(How:Integer;SSet,OldSSet:PSigSet);
+}
+Procedure SigProcMask(How:longint;SSet,OldSSet:PSigSet);
 {
   Change the list of currently blocked signals.
   How determines which signals will be blocked :
@@ -824,7 +823,7 @@ end;
 
 
 
-Function Signal(Signum:Integer;Handler:SignalHandler):SignalHandler;
+Function Signal(Signum:longint;Handler:SignalHandler):SignalHandler;
 {
   Install a new handler for signal Signum.
   The old signal handler is returned.
@@ -1191,9 +1190,13 @@ begin
   end ['ECX','EDI','EDX'];
 end;
 {$ENDIF}  
+
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.3  2000-09-11 14:05:31  marco
+   * FreeBSD support and removed old signalhandling
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
  
 }
