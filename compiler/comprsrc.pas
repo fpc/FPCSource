@@ -79,6 +79,7 @@ var
   objused  : boolean;
 begin
   resbin:='';
+  resfound:=false;
   if utilsdirectory<>'' then
    resfound:=FindFile(target_res.resbin+source_info.exeext,utilsdirectory,resbin);
   if not resfound then
@@ -154,7 +155,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2003-03-23 23:20:38  hajny
+  Revision 1.19  2003-10-08 17:54:23  florian
+    * fixed resource compiler search if no utilty directory was given
+
+  Revision 1.18  2003/03/23 23:20:38  hajny
     + emx target added
 
   Revision 1.17  2003/01/30 21:45:40  peter
