@@ -338,7 +338,7 @@ end;
 
 procedure FileClose (Handle: longint);
 begin
-    if (Handle <= 4) or (os_mode = osOS2) and (Handle <= 2) then
+    if (Handle > 4) or (os_mode = osOS2) and (Handle > 2) then
         asm
             mov eax, 3E00h
             mov ebx, Handle
@@ -954,7 +954,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2003-01-04 16:25:08  hajny
+  Revision 1.22  2003-03-01 21:19:14  hajny
+    * FileClose bug fixed
+
+  Revision 1.21  2003/01/04 16:25:08  hajny
     * modified to make use of the common GetEnv code
 
   Revision 1.20  2003/01/03 20:41:04  peter
