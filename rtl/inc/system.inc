@@ -32,8 +32,10 @@ Procedure HandleErrorFrame (Errno : longint;frame : longint); forward;
 type
   FileFunc = Procedure(var t : TextRec);
 
+  PByte    = ^Byte;
+  PWord    = ^word;
+  PDWord   = ^DWord;
   PLongint = ^Longint;
-  PByte = ^Byte;
 
 const
 { Random / Randomize constants }
@@ -96,6 +98,10 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
     {$Error Can't determine processor type !}
   {$ENDIF}
 {$ENDIF}
+
+{ Include generic pascal only routines which are not defined in the processor
+  specific include file }
+{$I generic.inc}
 
 
 {****************************************************************************
@@ -593,7 +599,10 @@ end;
 
 {
   $Log$
-  Revision 1.79  2000-01-07 16:41:36  daniel
+  Revision 1.80  2000-01-10 09:54:30  peter
+    * primitives added
+
+  Revision 1.79  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.78  2000/01/07 16:32:25  daniel

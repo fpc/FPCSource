@@ -17,68 +17,296 @@
 
 
 {****************************************************************************
-                                Move / Fill
+                               Primitives
 ****************************************************************************}
 
 {$ifndef FPC_SYSTEM_HAS_MOVE}
 procedure Move(var source;var dest;count:longint);
-  type
-     longintarray = array [0..maxlongint] of longint;
-     bytearray    = array [0..maxlongint] of byte;
-  var
-     i,size : longint;
+type
+  longintarray = array [0..maxlongint] of longint;
+  bytearray    = array [0..maxlongint] of byte;
+var
+  i,size : longint;
 begin
-   size:=count div sizeof(longint);
-
-   if (@dest)<@source) or
-      (@dest>@source+count) then
-     begin
-        for i:=0 to size-1 do
-          longintarray(dest)[i]:=longintarray(source)[i];
-        for i:=size*sizeof(longint) to count-1 do
-          bytearray(dest)[i]:=bytearray(source)[i];
-     end
-   else
-     begin
-        for i:=count-1 downto size*sizeof(longint) do
-          bytearray(dest)[i]:=bytearray(source)[i];
-        for i:=size-1 downto 0 do
-          longintarray(dest)[i]:=longintarray(source)[i];
-     end;
+  size:=count div sizeof(longint);
+  if (@dest)<@source) or
+     (@dest>@source+count) then
+    begin
+       for i:=0 to size-1 do
+         longintarray(dest)[i]:=longintarray(source)[i];
+       for i:=size*sizeof(longint) to count-1 do
+         bytearray(dest)[i]:=bytearray(source)[i];
+    end
+  else
+    begin
+       for i:=count-1 downto size*sizeof(longint) do
+         bytearray(dest)[i]:=bytearray(source)[i];
+       for i:=size-1 downto 0 do
+         longintarray(dest)[i]:=longintarray(source)[i];
+    end;
 end;
 {$endif ndef FPC_SYSTEM_HAS_MOVE}
 
 
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:longint;value:byte);
-  type
-     longintarray = array [0..maxlongint] of longint;
-     bytearray    = array [0..maxlongint] of byte;
-var i,v : longint;
+type
+  longintarray = array [0..maxlongint] of longint;
+  bytearray    = array [0..maxlongint] of byte;
+var
+  i,v : longint;
 begin
-   v:=value*256+value;
-   v:=v*$10000+v;
-   for i:=0 to (count div 4) -1 do
-      longintarray(x)[i]:=v;
-   for i:=(count div 4)*4 to count-1 do
-      bytearray(x)[i]:=value;
+  v:=value*256+value;
+  v:=v*$10000+v;
+  for i:=0 to (count div 4) -1 do
+    longintarray(x)[i]:=v;
+  for i:=(count div 4)*4 to count-1 do
+    bytearray(x)[i]:=value;
 end;
 {$endif ndef FPC_SYSTEM_HAS_FILLCHAR}
 
+
+{$ifndef RTLLITE}
+
+{$ifndef FPC_SYSTEM_HAS_FILLBYTE}
+procedure FillByte (var x;count : longint;value : byte );
+begin
+  FillChar (X,Count,CHR(VALUE));
+end;
+{$endif ndef FPC_SYSTEM_HAS_FILLBYTE}
+
+
 {$ifndef FPC_SYSTEM_HAS_FILLWORD}
 procedure fillword(var x;count : longint;value : word);
-  type
-     longintarray = array [0..maxlongint] of longint;
-     wordarray    = array [0..maxlongint] of word;
-var i,v : longint;
+type
+  longintarray = array [0..maxlongint] of longint;
+  wordarray    = array [0..maxlongint] of word;
+var
+  i,v : longint;
 begin
-   v:=value*$10000+value;
-   for i:=0 to (count div 2) -1 do
-      longintarray(x)[i]:=v;
-   for i:=(count div 2)*2 to count-1 do
-      wordarray(x)[i]:=value;
+  v:=value*$10000+value;
+  for i:=0 to (count div 2) -1 do
+    longintarray(x)[i]:=v;
+  for i:=(count div 2)*2 to count-1 do
+    wordarray(x)[i]:=value;
 end;
 {$endif ndef FPC_SYSTEM_HAS_FILLWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_FILLDWORD}
+procedure FillDWord(var x;count : longint;value : DWord);
+var
+  I : longint;
+begin
+  if Count<>0 then
+   begin
+     I:=Count;
+     while I<>0 do
+      begin
+        PDWord(@X)[I-1]:=Value;
+        Dec(I);
+      end;
+   end;
+end;
+{$endif ndef FPC_SYSTEM_HAS_FILLDWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXCHAR}
+function IndexChar(var buf;len:longint;b:char):longint;
+begin
+  IndexChar:=IndexByte(Buf,Len,byte(B));
+end;
+{$endif ndef FPC_SYSTEM_HAS_INDEXCHAR}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
+function IndexByte(var buf;len:longint;b:byte):longint;
+var
+  I : longint;
+begin
+  I:=0;
+  while (pbyte(@buf)[I]<>b) and (I<Len) do
+   inc(I);
+  if (i=Len) then
+   i:=-1;                                {Can't use 0, since it is a possible value}
+  IndexByte:=I;
+end;
+{$endif ndef FPC_SYSTEM_HAS_INDEXBYTE}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXWORD}
+function Indexword(var buf;len:longint;b:word):longint;
+var
+  I : longint;
+begin
+  I:=0;
+  while (pword(@buf)[I]<>b) and (I<Len) do
+   inc(I);
+  if (i=Len) then
+   i:=-1;           {Can't use 0, since it is a possible value for index}
+  Indexword:=I;
+end;
+{$endif ndef FPC_SYSTEM_HAS_INDEXWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXDWORD}
+function IndexDWord(var buf;len:longint;b:DWord):longint;
+var
+  I : longint;
+begin
+  I:=0;
+  while (PDWord(@buf)[I]<>b) and (I<Len) do inc(I);
+  if (i=Len) then
+   i:=-1;           {Can't use 0, since it is a possible value for index}
+  IndexDWord:=I;
+end;
+{$endif ndef FPC_SYSTEM_HAS_INDEXDWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPARECHAR}
+function CompareChar(var buf1,buf2;len:longint):longint;
+begin
+  CompareChar:=CompareByte(buf1,buf2,len);
+end;
+{$endif ndef FPC_SYSTEM_HAS_COMPARECHAR}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
+function CompareByte(var buf1,buf2;len:longint):longint;
+var
+  I,J : longint;
+begin
+  I:=0;
+  if (Len<>0) and (@Buf1<>@Buf2) then
+   begin
+     while (pbyte(@Buf1)[I]=pbyte(@Buf2)[I]) and (I<Len) do
+      inc(I);
+     if I=Len then  {No difference}
+      I:=0
+     else
+      begin
+        I:=pbyte(@Buf1)[I]-pbyte(@Buf2)[I];
+        if I>0 then
+         I:=1
+        else
+         if I<0 then
+          I:=-1;
+      end;
+   end;
+  CompareByte:=I;
+end;
+{$endif ndef FPC_SYSTEM_HAS_COMPAREBYTE}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREWORD}
+function CompareWord(var buf1,buf2;len:longint):longint;
+var
+  I,J : longint;
+begin
+  I:=0;
+  if (Len<>0) and (@Buf1<>@Buf2) then
+   begin
+     while (pword(@Buf1)[I]=pword(@Buf2)[I]) and (I<Len) do
+      inc(I);
+     if I=Len then  {No difference}
+      I:=0
+     else
+      begin
+        I:=pword(@Buf1)[I]-pword(@Buf2)[I];
+        if I>0 then
+         I:=1
+        else
+         if I<0 then
+          I:=-1;
+      end;
+   end;
+  CompareWord:=I;
+end;
+{$endif ndef FPC_SYSTEM_HAS_COMPAREWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPAREDWORD}
+function CompareDWord(var buf1,buf2;len:longint):longint;
+var
+  I,J : longint;
+begin
+  I:=0;
+  if (Len<>0) and (@Buf1<>@Buf2) then
+   begin
+     while (PDWord(@Buf1)[I]=PDWord(@Buf2)[I]) and (I<Len) do
+      inc(I);
+     if I=Len then  {No difference}
+      I:=0
+     else
+      begin
+        I:=PDWord(@Buf1)[I]-PDWord(@Buf2)[I];
+        if I>0 then
+         I:=1
+        else
+         if I<0 then
+          I:=-1;
+      end;
+   end;
+  CompareDWord:=I;
+end;
+{$endif ndef FPC_SYSTEM_HAS_COMPAREDWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_MOVECHAR0}
+procedure MoveChar0(var buf1,buf2;len:longint);
+var
+  I : longint;
+begin
+  if Len<> 0 then
+   begin
+     I:=IndexByte(Buf1,Len,0);
+     if I<>0 then
+      Move(Buf1,Buf2,I);
+   end;
+end;
+{$endif ndef FPC_SYSTEM_HAS_MOVECHAR0}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXCHAR0}
+function IndexChar0(var buf;len:longint;b:Char):longint;
+var
+  I : longint;
+begin
+  if Len<>0 then
+   begin
+     I:=IndexByte(Buf1,Len,0);
+     IndexChar0:=IndexByte(Buf1,I,0);
+   end
+  else
+   IndexChar0:=0;
+end;
+{$endif ndef FPC_SYSTEM_HAS_INDEXCHAR0}
+
+
+{$ifndef FPC_SYSTEM_HAS_COMPARECHAR0}
+function CompareChar0(var buf1,buf2;len:longint):longint;
+var
+  I,J,K,bytesTodo : longint;
+begin
+  K:=0;
+  if Len<>0 then
+   begin
+     I:=IndexByte(Buf1,Len,0);
+     J:=IndexByte(Buf2,Len,0);
+     if (I<>0) and (J<>0) then
+      begin
+        bytesTodo:=I;
+        if J<bytesTodo then
+         bytesTodo:=J;
+        K:=CompareByte(Buf1,Buf2,bytesTodo); // Safe for bytesTodo=0
+      end;
+  end;
+  CompareChar0:=K;
+end;
+{$endif ndef FPC_SYSTEM_HAS_COMPARECHAR0}
+
+{$endif ndef RTLLITE}
+
 
 {****************************************************************************
                               Object Helpers
@@ -135,8 +363,8 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
-{$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
+{$ifndef FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
         { to be sure in the future, we save also edit }
@@ -494,6 +722,8 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_BOUNDCHECK}
 
 
+{$ifndef HASSAVEREGISTERS}
+
 {****************************************************************************
                                  IoCheck
 ****************************************************************************}
@@ -514,10 +744,14 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_IOCHECK}
 
+{$endif}
 
 {
   $Log$
-  Revision 1.5  2000-01-07 16:41:34  daniel
+  Revision 1.6  2000-01-10 09:54:30  peter
+    * primitives added
+
+  Revision 1.5  2000/01/07 16:41:34  daniel
     * copyright 2000
 
   Revision 1.4  2000/01/07 16:32:24  daniel

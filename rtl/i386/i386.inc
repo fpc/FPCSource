@@ -19,14 +19,12 @@
 
 
 {****************************************************************************
-                                Move / Fill
+                               Primitives
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_MOVE}
-
-procedure Move(var source;var dest;count:longint);
-begin
-        asm
+procedure Move(var source;var dest;count:longint);assembler;
+asm
         movl    dest,%edi
         movl    source,%esi
         movl    %edi,%eax
@@ -88,18 +86,14 @@ begin
         movsb
         cld
 .LMoveEnd:
-        end;
 end;
 
 
 {$define FPC_SYSTEM_HAS_FILLCHAR}
-
-Procedure FillChar(var x;count:longint;value:byte);
-begin
-        asm
+Procedure FillChar(var x;count:longint;value:byte);assembler;
+asm
         cld
         movl    x,%edi
-        { movl    value,%eax      Only lower 8 bits will be used }
         movb    value,%al
         movl    count,%ecx
         cmpl    $7,%ecx
@@ -124,33 +118,283 @@ begin
 .LFill1:
         rep
         stosb
-        end;
 end;
 
 
 {$define FPC_SYSTEM_HAS_FILLWORD}
-
-procedure fillword(var x;count : longint;value : word);
-begin
-  asm
-        movl 8(%ebp),%edi
-        movl 12(%ebp),%ecx
-        movl 16(%ebp),%eax
-        movl %eax,%edx
-        shll $16,%eax
-        movw %dx,%ax
-        movl %ecx,%edx
-        shrl $1,%ecx
+procedure fillword(var x;count : longint;value : word);assembler;
+asm
+        movl    8(%ebp),%edi
+        movl    12(%ebp),%ecx
+        movl    16(%ebp),%eax
+        movl    %eax,%edx
+        shll    $16,%eax
+        movw    %dx,%ax
+        movl    %ecx,%edx
+        shrl    $1,%ecx
         cld
         rep
         stosl
-        movl %edx,%ecx
-        andl $1,%ecx
+        movl    %edx,%ecx
+        andl    $1,%ecx
         rep
         stosw
-  end ['EAX','ECX','EDX','EDI'];
-end;
+end ['EAX','ECX','EDX','EDI'];
 
+
+{$define FPC_SYSTEM_HAS_FILLDWORD}
+procedure filldword(var x;count : longint;value : dword);assembler;
+asm
+        movl    8(%ebp),%edi
+        movl    12(%ebp),%ecx
+        movl    16(%ebp),%eax
+        cld
+        rep
+        stosl
+end ['EAX','ECX','EDX','EDI'];
+
+
+{$define FPC_SYSTEM_HAS_INDEXBYTE}
+function IndexByte(var buf;len:longint;b:byte):longint; assembler;
+asm
+        movl    Len,%ecx       // Load len
+        movl    Buf,%edi       // Load String
+        testl   %ecx,%ecx
+        jz      .Lready
+        cld
+        movl    %ecx,%ebx      // Copy for easy manipulation
+        movb    b,%al
+        repne
+        scasb
+        jne     .Lcharposnotfound
+        incl    %ecx
+        subl    %ecx,%ebx
+        movl    %ebx,%eax
+        jmp     .Lready
+.Lcharposnotfound:
+        movl    $-1,%eax
+.Lready:
+end ['EAX','EBX','ECX','EDI'];
+
+
+{$define FPC_SYSTEM_HAS_INDEXWORD}
+function Indexword(var buf;len:longint;b:word):longint; assembler;
+asm
+        movl    Len,%ecx       // Load len
+        movl    Buf,%edi       // Load String
+        testl   %ecx,%ecx
+        jz      .Lready
+        cld
+        movl    %ecx,%ebx      // Copy for easy manipulation
+        movw    b,%ax
+        repne
+        scasw
+        jne     .Lcharposnotfound
+        incl    %ecx
+        subl    %ecx,%ebx
+        movl    %ebx,%eax
+        jmp     .Lready
+.Lcharposnotfound:
+        movl    $-1,%eax
+.Lready:
+end ['EAX','EBX','ECX','EDI'];
+
+
+{$define FPC_SYSTEM_HAS_INDEXDWORD}
+function IndexDWord(var buf;len:longint;b:DWord):longint; assembler;
+asm
+        movl    Len,%ecx       // Load len
+        movl    Buf,%edi       // Load String
+        testl   %ecx,%ecx
+        jz      .Lready
+        cld
+        movl    %ecx,%ebx      // Copy for easy manipulation
+        movl    b,%eax
+        repne
+        scasd
+        jne     .Lcharposnotfound
+        incl    %ecx
+        subl    %ecx,%ebx
+        movl    %ebx,%eax
+        jmp     .Lready
+.Lcharposnotfound:
+        movl    $-1,%eax
+.Lready:
+end ['EAX','EBX','ECX','EDI'];
+
+
+{$define FPC_SYSTEM_HAS_COMPAREBYTE}
+function CompareByte(var buf1,buf2;len:longint):longint; assembler;
+asm
+        cld
+        movl    len,%eax
+        movl    buf2,%esi       { Load params}
+        movl    buf1,%edi
+        testl   %eax,%eax       {We address -1(%esi), so we have to deal with len=0}
+        je      .LCmpbyteExit
+        cmpl    $7,%eax         {<7 not worth aligning and go through all trouble}
+        jl      .LCmpbyte2
+        movl    %edi,%ecx       { Align on 32bits }
+        negl    %ecx            { calc bytes to align   (%edi and 3) xor 3= -%edi and 3}
+        andl    $3,%ecx
+        subl    %ecx,%eax       { Subtract from number of bytes to go}
+        orl     %ecx,%ecx
+        rep
+        cmpsb                   {The actual 32-bit Aligning}
+        jne     .LCmpbyte3
+        movl    %eax,%ecx       {bytes to do, divide by 4}
+        andl    $3,%eax         {remainder}
+        shrl    $2,%ecx         {The actual division}
+        orl     %ecx,%ecx       {Sets zero flag if ecx=0 -> no cmp}
+        rep
+        cmpsl
+        je      .LCmpbyte2       { All equal? then to the left over bytes}
+        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
+        subl    %eax,%esi
+        subl    %eax,%edi
+.LCmpbyte2:
+        movl    %eax,%ecx       {bytes still to (re)scan}
+        orl     %eax,%eax       {prevent disaster in case %eax=0}
+        rep
+        cmpsb
+.LCmpbyte3:
+        movzbl  -1(%esi),%ecx
+        movzbl  -1(%edi),%eax      // Compare failing (or equal) position
+        subl    %ecx,%eax
+.LCmpbyteExit:
+end ['ECX','EAX','ESI','EDI'];
+
+
+
+{$define FPC_SYSTEM_HAS_COMPAREWORD}
+function CompareWord(var buf1,buf2;len:longint):longint; assembler;
+asm
+        cld
+        movl    len,%eax
+        movl    buf2,%esi       { Load params}
+        movl    buf1,%edi
+        testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
+        je      .LCmpwordExit
+        cmpl    $5,%eax         {<5 (3 bytes align + 4 bytes cmpsl = 4 words}
+        jl      .LCmpword2      { not worth aligning and go through all trouble}
+        movl    (%edi),%ebx     // Compare alignment bytes.
+        cmpl    (%esi),%ebx
+        jne     .LCmpword2      // Aligning will go wrong already. Max 2 words will be scanned Branch NOW
+        shll    $1,%eax         {Convert word count to bytes}
+        movl    %edi,%edx       { Align comparing is already done, so simply add}
+        negl    %edx            { calc bytes to align  -%edi and 3}
+        andl    $3,%edx
+        addl    %edx,%esi       { Skip max 3 bytes alignment}
+        addl    %edx,%edi
+        subl    %edx,%eax       { Subtract from number of bytes to go}
+        movl    %eax,%ecx       { Make copy of bytes to go}
+        andl    $3,%eax         { Calc remainder (mod 4) }
+        andl    $1,%edx         { %edx is 1 if array not 2-aligned, 0 otherwise}
+        shrl    $2,%ecx         { divide bytes to go by 4, DWords to go}
+        orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp}
+        rep                     { Compare entire DWords}
+        cmpsl
+        je      .LCmpword2a     { All equal? then to the left over bytes}
+        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
+        subl    %eax,%esi       { Go back one DWord}
+        subl    %eax,%edi
+        incl    %eax            {if not odd then this does nothing, else it makes
+                                  sure that adding %edx increases from 2 to 3 words}
+.LCmpword2a:
+        subl    %edx,%esi       { Subtract alignment}
+        subl    %edx,%edi
+        addl    %edx,%eax
+        shrl    $1,%eax
+.LCmpword2:
+        movl    %eax,%ecx       {words still to (re)scan}
+        orl     %eax,%eax       {prevent disaster in case %eax=0}
+        rep
+        cmpsw
+.LCmpword3:
+        movzwl  -2(%esi),%ecx
+        movzwl  -2(%edi),%eax    // Compare failing (or equal) position
+        subl    %ecx,%eax        // calculate end result.
+.LCmpwordExit:
+end ['EBX','EDX','ECX','EAX','ESI','EDI'];
+
+
+{$define FPC_SYSTEM_HAS_COMPAREDWORD}
+function CompareDWord(var buf1,buf2;len:longint):longint; assembler;
+asm
+        cld
+        movl    len,%eax
+        movl    buf2,%esi       { Load params}
+        movl    buf1,%edi
+        testl   %eax,%eax       {We address -2(%esi), so we have to deal with len=0}
+        je      .LCmpDwordExit
+        cmpl    $3,%eax         {<3 (3 bytes align + 4 bytes cmpsl) = 2 DWords}
+        jl      .LCmpDword2      { not worth aligning and go through all trouble}
+        movl    (%edi),%ebx     // Compare alignment bytes.
+        cmpl    (%esi),%ebx
+        jne     .LCmpDword2      // Aligning will go wrong already. Max 2 words will be scanned Branch NOW
+        shll    $2,%eax         {Convert word count to bytes}
+        movl    %edi,%edx       { Align comparing is already done, so simply add}
+        negl    %edx            { calc bytes to align  -%edi and 3}
+        andl    $3,%edx
+        addl    %edx,%esi       { Skip max 3 bytes alignment}
+        addl    %edx,%edi
+        subl    %edx,%eax       { Subtract from number of bytes to go}
+        movl    %eax,%ecx       { Make copy of bytes to go}
+        andl    $3,%eax         { Calc remainder (mod 4) }
+        shrl    $2,%ecx         { divide bytes to go by 4, DWords to go}
+        orl     %ecx,%ecx       { Sets zero flag if ecx=0 -> no cmp}
+        rep                     { Compare entire DWords}
+        cmpsl
+        je      .LCmpDword2a     { All equal? then to the left over bytes}
+        movl    $4,%eax         { Not equal. Rescan the last 4 bytes bytewise}
+        subl    %eax,%esi       { Go back one DWord}
+        subl    %eax,%edi
+        addl    $3,%eax         {if align<>0 this causes repcount to be 2}
+.LCmpDword2a:
+        subl    %edx,%esi       { Subtract alignment}
+        subl    %edx,%edi
+        addl    %edx,%eax
+        shrl    $2,%eax
+.LCmpDword2:
+        movl    %eax,%ecx       {words still to (re)scan}
+        orl     %eax,%eax       {prevent disaster in case %eax=0}
+        rep
+        cmpsl
+.LCmpDword3:
+        movzwl  -4(%esi),%ecx
+        movzwl  -4(%edi),%eax    // Compare failing (or equal) position
+        subl    %ecx,%eax        // calculate end result.
+.LCmpDwordExit:
+end ['EBX','EDX','ECX','EAX','ESI','EDI'];
+
+
+{$define FPC_SYSTEM_HAS_INDEXCHAR0}
+function IndexChar0(var buf;len:longint;b:Char):longint; assembler;
+asm
+// Can't use scasb, or will have to do it twice, think this
+//   is faster for small "len"
+        movl    Buf,%esi        // Load address
+        movl    len,%edx        // load maximal searchdistance
+        movzbl  b,%ebx          // Load searchpattern
+        testl   %edx,%edx
+        je      .LFound
+        xorl    %ecx,%ecx       // zero index in Buf
+        xorl    %eax,%eax       // To make DWord compares possible
+.LLoop:
+        movb    (%esi),%al      // Load byte
+        cmpb    %al,%bl
+        je      .LFound         //  byte the same?
+        incl    %ecx
+        incl    %esi
+        cmpl    %edx,%ecx       // Maximal distance reached?
+        je      .LNotFound
+        testl   %eax,%eax       // Nullchar = end of search?
+        jne     .LLoop
+.LNotFound:
+        movl    $-1,%ecx        // Not found return -1
+.LFound:
+        movl    %ecx,%eax
+end['EAX','EBX','ECX','EDX','ESI'];
 
 
 {****************************************************************************
@@ -158,7 +402,6 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_CONSTRUCTOR}
-
 procedure int_help_constructor;assembler; [public,alias:'FPC_HELP_CONSTRUCTOR'];
 asm
 { Entry without preamble, since we need the ESP of the constructor
@@ -231,8 +474,9 @@ asm
         orl     %eax,%eax
 .LHC_5:
 end;
-{$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
+
+{$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 procedure int_help_fail;assembler;[public,alias:'FPC_HELP_FAIL'];
 { should be called with a object that needs to be
   freed if VMT field is at -1
@@ -265,8 +509,8 @@ asm
 .LHF_1:
 end;
 
-{$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 
+{$define FPC_SYSTEM_HAS_FPC_HELP_DESTRUCTOR}
 procedure int_help_destructor;assembler;[public,alias:'FPC_HELP_DESTRUCTOR'];
 asm
 { Stack (relative to %ebp):
@@ -301,8 +545,8 @@ asm
         popal
 end;
 
-{$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 
+{$define FPC_SYSTEM_HAS_FPC_NEW_CLASS}
 procedure int_new_class;assembler;[public,alias:'FPC_NEW_CLASS'];
 asm
         { to be sure in the future, we save also edit }
@@ -341,7 +585,6 @@ end;
 
 
 {$define FPC_SYSTEM_HAS_FPC_DISPOSE_CLASS}
-
 procedure int_dispose_class;assembler;[public,alias:'FPC_DISPOSE_CLASS'];
 asm
         { to be sure in the future, we save also edit }
@@ -374,7 +617,6 @@ asm
 end;
 
 {$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
-
 procedure int_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS'];
 { a non zero class must allways be disposed
   VMT is allways at pos 0 }
@@ -429,13 +671,12 @@ end;
 end;
 {$endif not SYSTEMDEBUG}
 
+
+{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
+procedure int_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT'];
 { checks for a correct vmt pointer }
 { deeper check to see if the current object is }
 { really related to the true }
-
-{$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT_EXT}
-
-procedure int_check_object_ext;assembler;[public,alias:'FPC_CHECK_OBJECT_EXT'];
 asm
         pushl   %ebp
         movl    %esp,%ebp
@@ -478,7 +719,6 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COPY}
-
 procedure int_strcopy(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_COPY'];
 {
   this procedure must save all modified registers except EDI and ESI !!!
@@ -520,8 +760,8 @@ begin
   end ['ESI','EDI'];
 end;
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_CONCAT}
 procedure int_strconcat(s1,s2:pointer);[public,alias:'FPC_SHORTSTR_CONCAT'];
 begin
   asm
@@ -560,8 +800,8 @@ begin
   end ['EBX','ECX','EAX','ESI','EDI'];
 end;
 
-{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 
+{$define FPC_SYSTEM_HAS_FPC_SHORTSTR_COMPARE}
 procedure int_strcmp(dstr,sstr:pointer);[public,alias:'FPC_SHORTSTR_COMPARE'];
 begin
   asm
@@ -610,8 +850,8 @@ begin
   end ['EDX','ECX','EBX','EAX','ESI','EDI'];
 end;
 
-{$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 
+{$define FPC_SYSTEM_HAS_FPC_PCHAR_TO_SHORTSTR}
 function strpas(p:pchar):shortstring;[public,alias:'FPC_PCHAR_TO_SHORTSTR'];
 begin
   asm
@@ -653,8 +893,8 @@ begin
   end ['ECX','EAX','ESI','EDI'];
 end;
 
-{$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 
+{$define FPC_SYSTEM_HAS_FPC_CHARARRAY_TO_SHORTSTR}
 function strchararray(p:pchar; l : longint):shortstring;[public,alias:'FPC_CHARARRAY_TO_SHORTSTR'];
 begin
   asm
@@ -688,8 +928,8 @@ begin
   end ['ECX','EAX','ESI','EDI'];
 end;
 
-{$define FPC_SYSTEM_HAS_STRLEN}
 
+{$define FPC_SYSTEM_HAS_STRLEN}
 function strlen(p:pchar):longint;assembler;
 asm
         movl    p,%edi
@@ -708,14 +948,13 @@ end ['EDI','ECX','EAX'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-
 function get_frame:longint;assembler;
 asm
         movl    %ebp,%eax
 end ['EAX'];
 
-{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 
+{$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:longint):longint;assembler;
 asm
         movl    framebp,%eax
@@ -725,8 +964,8 @@ asm
 .Lg_a_null:
 end ['EAX'];
 
-{$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 
+{$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:longint):longint;assembler;
 asm
         movl    framebp,%eax
@@ -742,7 +981,6 @@ end ['EAX'];
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_ABS_LONGINT}
-
 function abs(l:longint):longint; assembler;[internconst:in_const_abs];
 asm
         movl    l,%eax
@@ -751,8 +989,8 @@ asm
         subl    %edx,%eax
 end ['EAX','EDX'];
 
-{$define FPC_SYSTEM_HAS_ODD_LONGINT}
 
+{$define FPC_SYSTEM_HAS_ODD_LONGINT}
 function odd(l:longint):boolean;assembler;[internconst:in_const_odd];
 asm
        movl     l,%eax
@@ -760,8 +998,8 @@ asm
        setnz    %al
 end ['EAX'];
 
-{$define FPC_SYSTEM_HAS_SQR_LONGINT}
 
+{$define FPC_SYSTEM_HAS_SQR_LONGINT}
 function sqr(l:longint):longint;assembler;[internconst:in_const_sqr];
 asm
         mov     l,%eax
@@ -770,7 +1008,6 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
-
 Function Sptr : Longint;assembler;
 asm
         movl    %esp,%eax
@@ -782,7 +1019,6 @@ end;
 ****************************************************************************}
 
 {$define FPC_SYSTEM_HAS_INT_STR_LONGINT}
-
 procedure int_str(l : longint;var s : string);
 var
   buffer : array[0..11] of byte;
@@ -823,8 +1059,8 @@ begin
   end;
 end;
 
-{$define FPC_SYSTEM_HAS_INT_STR_CARDINAL}
 
+{$define FPC_SYSTEM_HAS_INT_STR_CARDINAL}
 procedure int_str(c : cardinal;var s : string);
 var
   buffer : array[0..14] of byte;
@@ -918,7 +1154,10 @@ end;
 
 {
   $Log$
-  Revision 1.65  2000-01-07 16:41:32  daniel
+  Revision 1.66  2000-01-10 09:54:30  peter
+    * primitives added
+
+  Revision 1.65  2000/01/07 16:41:32  daniel
     * copyright 2000
 
   Revision 1.64  2000/01/07 16:32:24  daniel

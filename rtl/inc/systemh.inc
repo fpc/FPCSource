@@ -155,8 +155,22 @@ Procedure FillChar(Var x;count:Longint;Value:Boolean);
 Procedure FillChar(Var x;count:Longint;Value:Char);
 Procedure FillChar(Var x;count:Longint;Value:Byte);
 {$ifndef RTLLITE}
+procedure FillByte(var x;count:longint;value:byte);
 Procedure FillWord(Var x;count:Longint;Value:Word);
-{$endif RTLLITE}
+procedure FillDWord(var x;count:longint;value:DWord);
+function  IndexChar(var buf;len:longint;b:char):longint;
+function  IndexByte(var buf;len:longint;b:byte):longint;
+function  Indexword(var buf;len:longint;b:word):longint;
+function  IndexDWord(var buf;len:longint;b:DWord):longint;
+function  CompareChar(var buf1,buf2;len:longint):longint;
+function  CompareByte(var buf1,buf2;len:longint):longint;
+function  CompareWord(var buf1,buf2;len:longint):longint;
+function  CompareDWord(var buf1,buf2;len:longint):longint;
+procedure MoveChar0(var buf1,buf2;len:longint);
+function  IndexChar0(var buf;len:longint;b:char):longint;
+function  CompareChar0(var buf1,buf2;len:longint):longint;
+{$endif}
+
 
 {****************************************************************************
                           Math Routines
@@ -410,7 +424,10 @@ const
 
 {
   $Log$
-  Revision 1.74  2000-01-07 16:41:36  daniel
+  Revision 1.75  2000-01-10 09:54:30  peter
+    * primitives added
+
+  Revision 1.74  2000/01/07 16:41:36  daniel
     * copyright 2000
 
   Revision 1.73  2000/01/07 16:32:25  daniel
