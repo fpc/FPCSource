@@ -10,7 +10,7 @@ interface
 uses
   strings
 {$ifdef ver1_0}
- {$ifdef FreeBSD}		{In 1.0 FreeBSD still defines Linux!}
+ {$ifdef FreeBSD}               {In 1.0 FreeBSD still defines Linux!}
     ,Linux
   {$else}
   {$ifdef linux}
@@ -85,6 +85,22 @@ function http_useragent: pchar;
                   the output, otherwise the output is NIL
 }
 function get_value(id: pchar): pchar;
+
+{ FUNCTION
+
+  This function extracts array of values for the
+  same variable (used in some checkbox forms)
+
+  Use like in this example:
+
+  cnt:=0;
+  v[cnt]:=get_value('some_id');
+  while v[cnt]<>'' do begin
+   inc(cnt);
+   v[cnt]:=get_next_value('some_id');
+  end;
+}
+function get_next_value(id: pchar): pchar;
 
 { PROCEDURE
 
@@ -184,7 +200,6 @@ end;
 Function  GetEnv(envvar: string): pchar;
 var
   hp    : ppchar;
-  p     : pchar;
   hs    : string;
   eqpos : longint;
 begin
@@ -259,19 +274,28 @@ begin
   halt;
 end;
 
-function get_value(id: pchar): pchar;
+var gv_cnt:word;
+
+function get_next_value(id: pchar): pchar;
 var
   cnt   : word;
 begin
-  get_value:=Nil;
+  if gv_cnt<=query_read then inc(gv_cnt);
+  get_next_value:=Nil;
   if done_init then
-    for cnt :=1 to query_read do
-      if strcomp(strupper(id),strupper(query_array[1,cnt]))=0 then
-        begin
-        get_value := query_array[2,cnt];
+    for cnt :=gv_cnt to query_read do
+      if strcomp(strupper(id),strupper(query_array[1,cnt]))=0 then begin
+        get_next_value := query_array[2,cnt];
+        gv_cnt:=cnt;
         exit;
-        end;
+      end;
 end;
+
+function get_value(id: pchar): pchar;
+ begin
+  gv_cnt:=0;
+  get_value:=get_next_value(id)
+ end;
 
 Function UnEscape(QueryString: PChar): PChar;
 var
@@ -437,7 +461,11 @@ end.
 {
   HISTORY
   $Log$
-  Revision 1.1  2002-01-29 17:55:23  peter
+  Revision 1.2  2002-03-01 10:57:03  peter
+
+    * get_next_value patch from Skelet
+
+  Revision 1.1  2002/01/29 17:55:23  peter
     * splitted to base and extra
 
   Revision 1.7  2001/07/08 13:21:12  marco
