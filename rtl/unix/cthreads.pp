@@ -29,7 +29,11 @@ interface
  {$linklib pthread}
 {$else}
  // Link reentrant libc with pthreads
+{$ifndef darwin}
  {$linklib c_r}
+{$else darwin}
+ {$linklib c}
+{$endif darwin}
 {$endif}
 {$endif}
 
@@ -416,7 +420,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2003-12-16 09:43:04  daniel
+  Revision 1.6  2004-01-07 17:40:56  jonas
+    * Darwin does not have a lib_r, libc itself is already reentrant
+
+  Revision 1.5  2003/12/16 09:43:04  daniel
     * Use of 0 instead of nil fixed
 
   Revision 1.4  2003/11/29 17:34:14  michael
