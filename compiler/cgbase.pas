@@ -141,8 +141,8 @@ interface
         with TSuperRegister to avoid mixing them
       }
       TRegister = (
-        TRegisterLowEnum := $80000000,
-        TRegisterHighEnum := $7fffffff
+        TRegisterLowEnum := Low(longint),
+        TRegisterHighEnum := High(longint)
       );
       TRegisterRec=packed record
 {$ifdef FPC_BIG_ENDIAN}
@@ -587,7 +587,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.81  2003-12-21 19:42:42  florian
+  Revision 1.82  2003-12-22 23:10:21  peter
+    * use low(longint) instead of $8000000
+
+  Revision 1.81  2003/12/21 19:42:42  florian
     * fixed ppc inlining stuff
     * fixed wrong unit writing
     + added some sse stuff
