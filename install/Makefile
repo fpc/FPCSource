@@ -137,8 +137,7 @@ basego32:
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) readme.txt whatsnew.txt $(DOCINSTALLDIR)
-	$(COPY) doc/* $(DOCINSTALLDIR)
+	$(COPY) doc/*.txt doc/COPYING* $(DOCINSTALLDIR)
 # bingo32 (cwsdpmi,wmemu387.dxe)
 	$(COPY) bingo32/* $(BININSTALLDIR)
 # source (base)
@@ -173,8 +172,7 @@ basew32:
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) readme.txt whatsnew.txt $(DOCINSTALLDIR)
-	$(COPY) doc/* $(DOCINSTALLDIR)
+	$(COPY) doc/*.txt doc/COPYING* $(DOCINSTALLDIR)
 # source (base)
 	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # readme.txt & whatsnew.txt
@@ -214,8 +212,7 @@ baseemx:
 	$(MKDIR) $(BININSTALLDIR)
 	$(MKDIR) $(SOURCEINSTALLDIR)
 # readme & whatsnew and docs
-	$(COPY) readme.txt whatsnew.txt $(DOCINSTALLDIR)
-	$(COPY) doc/* $(DOCINSTALLDIR)
+	$(COPY) doc/*.txt doc/COPYING* $(DOCINSTALLDIR)
 # source (base)
 	$(COPY) $(CVSBASE)/base/Makefile $(CVSBASE)/base/makefile.fpc $(SOURCEINSTALLDIR)
 # compiler
@@ -238,7 +235,10 @@ baseemx.zip:
 
 #
 # $Log$
-# Revision 1.4  1999-06-11 13:03:51  peter
+# Revision 1.5  1999-06-11 13:58:35  peter
+#   * moved .txt to doc/
+#
+# Revision 1.4  1999/06/11 13:03:51  peter
 #   * os2 update, readme,whatsnew in doc/ dir
 # C
 #
