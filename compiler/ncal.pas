@@ -62,6 +62,8 @@ interface
           inlinetree : tnode;
           inlineprocsym : pprocsym;
           retoffset,para_offset,para_size : longint;
+          constructor create(callp,code : tnode);virtual;
+          function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -81,7 +83,8 @@ interface
       cutils,globtype,systems,
       cobjects,verbose,globals,
       symconst,aasm,types,
-      htypechk,pass_1,cpubase
+      htypechk,pass_1,cpubase,
+      ncnv,nld,ninl,nadd,ncon
 {$ifdef newcg}
       ,cgbase
       ,tgobj
@@ -147,7 +150,7 @@ interface
 {$endif def extdebug}
         {convtyp     : tconverttype;}
       begin
-         pass_1:=nil;
+         firstcallparan:=nil;
          inc(parsing_para_level);
 {$ifdef extdebug}
          if do_count then
@@ -159,9 +162,9 @@ interface
          if assigned(right) then
            begin
               if defcoll=nil then
-                firstcallparan(right,nil,do_count)
+                right.firstcallparan(nil,do_count)
               else
-                firstcallparan(right,pparaitem(defcoll^.next),do_count);
+                right.firstcallparan(pparaitem(defcoll^.next),do_count);
               registers32:=right.registers32;
               registersfpu:=right.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -191,7 +194,7 @@ interface
               { Do we need arrayconstructor -> set conversion, then insert
                 it here before the arrayconstructor node breaks the tree
                 with its conversions of enum->ord }
-              if (left.treetype=arrayconstructn) and
+              if (left.nodetype=arrayconstructn) and
                  (defcoll^.paratype.def^.deftype=setdef) then
                 left:=gentypeconvnode(left,defcoll^.paratype.def);
 
@@ -233,7 +236,7 @@ interface
                  old_get_para_resulttype:=get_para_resulttype;
                  allow_array_constructor:=true;
                  get_para_resulttype:=false;
-                  if (left.treetype in [arrayconstructn,typeconvn]) then
+                  if (left.nodetype in [arrayconstructn,typeconvn]) then
                    firstpass(left);
                  if not assigned(resulttype) then
                    resulttype:=left.resulttype;
@@ -245,7 +248,7 @@ interface
                 test_local_to_procvar(pprocvardef(left.resulttype),defcoll^.paratype.def);
               { property is not allowed as var parameter }
               if (defcoll^.paratyp in [vs_out,vs_var]) and
-                 (left.isproperty) then
+                 (nf_isproperty in left.flags) then
                 CGMessagePos(left.fileinfo,type_e_argument_cant_be_assigned);
               { generate the high() value tree }
               if push_high_param(defcoll^.paratype.def) then
@@ -362,7 +365,7 @@ interface
                 make_not_regable(left);
 
               if do_count then
-                set_varstate(left,defcoll^.paratyp <> vs_var);
+                left.set_varstate(defcoll^.paratyp <> vs_var);
                 { must only be done after typeconv PM }
               resulttype:=defcoll^.paratype.def;
            end;
@@ -397,8 +400,8 @@ interface
               if is_open_array(left.resulttype) or
                  is_array_of_const(left.resulttype) then
                begin
-                 st:=left.symtable;
-                 getsymonlyin(st,'high'+pvarsym(left.symtableentry)^.name);
+                 st:=tloadnode(left).symtable;
+                 getsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                  hightree:=genloadnode(pvarsym(srsym),st);
                  loadconst:=false;
                end
@@ -415,8 +418,8 @@ interface
                begin
                  if is_open_string(left.resulttype) then
                   begin
-                    st:=left.symtable;
-                    getsymonlyin(st,'high'+pvarsym(left.symtableentry)^.name);
+                    st:=tloadnode(left).symtable;
+                    getsymonlyin(st,'high'+pvarsym(tloadnode(left).symtableentry)^.name);
                     hightree:=genloadnode(pvarsym(srsym),st);
                     loadconst:=false;
                   end
@@ -426,7 +429,7 @@ interface
               else
              { passing a string to an array of char }
                begin
-                 if (left.treetype=stringconstn) then
+                 if (left.nodetype=stringconstn) then
                    begin
                      len:=str_length(left);
                      if len>0 then
@@ -472,7 +475,7 @@ interface
          inherited destroy;
       end;
 
-    procedure firstcalln(var p : ptree);
+    function tcallnode.pass_1 : tnode;
       type
          pprocdefcoll = ^tprocdefcoll;
          tprocdefcoll = record
@@ -507,7 +510,7 @@ interface
 
       { check if the resulttype from tree p is equal with def, needed
         for stringconstn and formaldef }
-      function is_equal(p:ptree;def:pdef) : boolean;
+      function is_equal(p:tnode;def:pdef) : boolean;
 
         begin
            { safety check }
@@ -1456,7 +1459,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 21:15:34  florian
+  Revision 1.6  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.5  2000/09/24 21:15:34  florian
     * some errors fix to get more stuff compilable
 
   Revision 1.4  2000/09/24 20:17:44  florian

@@ -33,16 +33,16 @@ interface
        tloadnode = class(tunarynode)
           symtableentry : psym;
           symtable : psymtable;
-          constructor create(v : pvarsym;st : psymtable);virtual;
+          constructor create(v : psym;st : psymtable);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
        end;
 
        { different assignment types }
-       tassigntyp = (at_normal,at_plus,at_minus,at_star,at_slash);
+       tassigntype = (at_normal,at_plus,at_minus,at_star,at_slash);
 
        tassignmentnode = class(tbinarynode)
-          assigntyp : tassigntyp;
+          assigntype : tassigntype;
           constructor create(l,r : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
@@ -100,7 +100,7 @@ implementation
       cutils,cobjects,verbose,globtype,globals,systems,
       symconst,aasm,types,
       htypechk,pass_1,
-      ncnv,cpubase
+      ncnv,nmem,cpubase
 {$ifdef newcg}
       ,cgbase
       ,tgobj
@@ -120,12 +120,12 @@ implementation
 
       begin
          n:=cloadnode.create(v,st);
-{$fidef NEWST}
+{$ifdef NEWST}
          n.resulttype:=v^.definition;
 {$else NEWST}
          n.resulttype:=v^.vartype.def;
 {$endif NEWST}
-         genloadnode:=n:
+         genloadnode:=n;
       end;
 
     function genloadcallnode(v: pprocsym;st: psymtable): tloadnode;
@@ -155,8 +155,8 @@ implementation
 {$else NEWST}
          n.resulttype:=v^.definition;
 {$endif NEWST}
-         p^.left:=mp;
-         genloadmethodcallnode:=v;
+         n.left:=mp;
+         genloadmethodcallnode:=n;
       end;
 
 
@@ -184,7 +184,7 @@ implementation
                              TLOADNODE
 *****************************************************************************}
 
-    constructor tloadnode.create(v : pvarsym;st : psymtable);
+    constructor tloadnode.create(v : psym;st : psymtable);
 
       begin
          inherited create(loadn,nil);
@@ -211,11 +211,11 @@ implementation
             (pwithsymtable(symtable)^.direct_with) and
             (symtableentry^.typ=varsym) then
            begin
-              p1:=getcopy(ptree(pwithsymtable(symtable)^.withrefnode));
+              p1:=tnode(pwithsymtable(symtable)^.withrefnode).getcopy;
               p1:=gensubscriptnode(pvarsym(symtableentry),p1);
-              putnode(p);
-              p:=p1;
-              firstpass(p);
+              left:=nil;
+              firstpass(p1);
+              pass_1:=p1;
               exit;
            end;
 
@@ -235,7 +235,7 @@ implementation
               begin
                 symtableentry:=pabsolutesym(symtableentry)^.ref;
                 symtable:=symtableentry^.owner;
-                is_absolute:=true;
+                include(flags,nf_absolute);
               end
              else
               exit;
@@ -243,20 +243,20 @@ implementation
          case symtableentry^.typ of
             funcretsym :
               begin
-                p1:=genzeronode(funcretn);
-                p1.funcretprocinfo:=pprocinfo(pfuncretsym(symtableentry)^.funcretprocinfo);
-                p1.rettype:=pfuncretsym(symtableentry)^.rettype;
+                p1:=cfuncretnode.create;
+                tfuncretnode(p1).funcretprocinfo:=pprocinfo(pfuncretsym(symtableentry)^.funcretprocinfo);
+                tfuncretnode(p1).rettype:=pfuncretsym(symtableentry)^.rettype;
                 firstpass(p1);
                 { if it's refered as absolute then we need to have the
                   type of the absolute instead of the function return,
                   the function return is then also assigned }
-                if is_absolute then
+                if nf_absolute in flags then
                  begin
-                   pprocinfo(p1.funcretprocinfo)^.funcret_state:=vs_assigned;
+                   pprocinfo(tfuncretnode(p1).funcretprocinfo)^.funcret_state:=vs_assigned;
                    p1.resulttype:=resulttype;
                  end;
-                putnode(p);
-                p:=p1;
+                left:=nil;
+                pass_1:=p1;
               end;
             constsym:
               begin
@@ -274,7 +274,7 @@ implementation
             varsym :
                 begin
                 { if it's refered by absolute then it's used }
-                if is_absolute then
+                if nf_absolute in flags then
                  pvarsym(symtableentry)^.varstate:=vs_used
                 else
                  if (resulttype=nil) then
@@ -328,7 +328,7 @@ implementation
                      inc(pvarsym(symtableentry)^.refs,t_times);
                 end;
             typedconstsym :
-                if not is_absolute then
+                if not(nf_absolute in flags) then
                   resulttype:=ptypedconstsym(symtableentry)^.typedconsttype.def;
             procsym :
                 begin
@@ -389,13 +389,16 @@ implementation
 {$endif newoptimizations2}
       begin
          { must be made unique }
-         set_unique(left);
+         if assigned(left) then
+           begin
+              left.set_unique;
 
-         { set we the function result? }
-         set_funcret_is_valid(left);
+              { set we the function result? }
+              left.set_funcret_is_valid;
+           end;
 
          firstpass(left);
-         set_varstate(left,false);
+         left.set_varstate(false);
          if codegenerror then
            exit;
 
@@ -433,7 +436,7 @@ implementation
            end;
 {$endif i386}
          firstpass(right);
-         set_varstate(right,true);
+         right.set_varstate(true);
          if codegenerror then
            exit;
 
@@ -512,9 +515,8 @@ implementation
     constructor tfuncretnode.create;
 
       begin
-         inherited create(tfuncretn);
+         inherited create(funcretn);
          funcretprocinfo:=nil;
-         n.rettype:=nil;
       end;
 
     function tfuncretnode.getcopy : tnode;
@@ -547,19 +549,19 @@ implementation
                            TARRAYCONSTRUCTRANGENODE
 *****************************************************************************}
 
-    constructor tarrayconstructrangenode.create(l,r : tnode);
+    constructor tarrayconstructorrangenode.create(l,r : tnode);
 
       begin
          inherited create(arrayconstructn,l,r);
       end;
 
-    function tarrayconstructrangenode.pass_1 : tnode;
+    function tarrayconstructorrangenode.pass_1 : tnode;
       begin
         firstpass(left);
         left.set_varstate(true);
         firstpass(right);
         right.set_varstate(true);
-        calcregisters(p,0,0,0);
+        calcregisters(self,0,0,0);
         resulttype:=left.resulttype;
       end;
 
@@ -568,14 +570,14 @@ implementation
                             TARRAYCONSTRUCTNODE
 *****************************************************************************}
 
-    constructor tarrayconstrucnode.create(l,r : tnode);
+    constructor tarrayconstructnode.create(l,r : tnode);
 
       begin
-         inherited create(arrayconstructnode,l,r);
+         inherited create(arrayconstructn,l,r);
          constructdef:=nil;
       end;
 
-    function tarrayconstrucnode.getcopy : tnode;
+    function tarrayconstructnode.getcopy : tnode;
 
       var
          n : tarrayconstructnode;
@@ -590,15 +592,42 @@ implementation
         pd : pdef;
         thp,
         chp,
-        hp : tnode;
+        hp : tarrayconstructnode;
         len : longint;
         varia : boolean;
+
+      procedure postprocess(t : tnode);
+
+        begin
+           calcregisters(t,0,0,0);
+           { looks a little bit dangerous to me            }
+           { len-1 gives problems with is_open_array if len=0, }
+           { is_open_array checks now for isconstructor (FK)   }
+           { if no type is set then we set the type to voiddef to overcome a
+           0 addressing }
+           if not assigned(pd) then
+             pd:=voiddef;
+           { skip if already done ! (PM) }
+           if not assigned(t.resulttype) or
+              (t.resulttype^.deftype<>arraydef) or
+              not parraydef(t.resulttype)^.IsConstructor or
+              (parraydef(t.resulttype)^.lowrange<>0) or
+              (parraydef(t.resulttype)^.highrange<>len-1) then
+             t.resulttype:=new(parraydef,init(0,len-1,s32bitdef));
+
+           parraydef(t.resulttype)^.elementtype.def:=pd;
+           parraydef(t.resulttype)^.IsConstructor:=true;
+           parraydef(t.resulttype)^.IsVariant:=varia;
+           t.location.loc:=LOC_MEM;
+        end;
       begin
       { are we allowing array constructor? Then convert it to a set }
         if not allow_array_constructor then
          begin
-           arrayconstructor_to_set(p);
-           firstpass(p);
+           hp:=tarrayconstructnode(getcopy);
+           arrayconstructor_to_set(hp);
+           firstpass(hp);
+           pass_1:=hp;
            exit;
          end;
       { only pass left tree, right tree contains next construct if any }
@@ -607,12 +636,13 @@ implementation
         varia:=false;
         if assigned(left) then
          begin
-           hp:=p;
+           hp:=self;
            while assigned(hp) do
             begin
               firstpass(hp.left);
               hp.left.set_varstate(true);
-              if (not get_para_resulttype) and (not novariaallowed) then
+              if (not get_para_resulttype) and
+                (not(nf_novariaallowed in flags)) then
                begin
                  case hp.left.resulttype^.deftype of
                    enumdef :
@@ -636,7 +666,7 @@ implementation
                      end;
                    stringdef :
                      begin
-                       if cargs then
+                       if nf_cargs in flags then
                         begin
                           hp.left:=gentypeconvnode(hp.left,charpointerdef);
                           firstpass(hp.left);
@@ -658,11 +688,11 @@ implementation
                pd:=hp.left.resulttype
               else
                begin
-                 if ((novariaallowed) or (not varia)) and
+                 if ((nf_novariaallowed in flags) or (not varia)) and
                     (not is_equal(pd,hp.left.resulttype)) then
                   begin
                     { if both should be equal try inserting a conversion }
-                    if novariaallowed then
+                    if nf_novariaallowed in flags then
                      begin
                        hp.left:=gentypeconvnode(hp.left,pd);
                        firstpass(hp.left);
@@ -671,44 +701,30 @@ implementation
                   end;
                end;
               inc(len);
-              hp:=hp.right;
+              hp:=tarrayconstructnode(hp.right);
             end;
          { swap the tree for cargs }
-           if cargs and (not cargswap) then
+           if (nf_cargs in flags) and (not(nf_cargswap in flags)) then
             begin
               chp:=nil;
-              hp:=p;
+              { we need a copy here, because self is destroyed }
+              { by firstpass later                             }
+              hp:=tarrayconstructnode(getcopy);
               while assigned(hp) do
                begin
-                 thp:=hp.right;
+                 thp:=tarrayconstructnode(hp.right);
                  hp.right:=chp;
                  chp:=hp;
                  hp:=thp;
                end;
-              p:=chp;
-              cargs:=true;
-              cargswap:=true;
+              include(chp.flags,nf_cargs);
+              include(chp.flags,nf_cargswap);
+              postprocess(chp);
+              pass_1:=chp;
+              exit;
             end;
          end;
-        calcregisters(p,0,0,0);
-        { looks a little bit dangerous to me            }
-        { len-1 gives problems with is_open_array if len=0, }
-        { is_open_array checks now for isconstructor (FK)   }
-      { if no type is set then we set the type to voiddef to overcome a
-        0 addressing }
-        if not assigned(pd) then
-         pd:=voiddef;
-      { skip if already done ! (PM) }
-        if not assigned(resulttype) or
-           (resulttype^.deftype<>arraydef) or
-           not parraydef(resulttype)^.IsConstructor or
-           (parraydef(resulttype)^.lowrange<>0) or
-           (parraydef(resulttype)^.highrange<>len-1) then
-          resulttype:=new(parraydef,init(0,len-1,s32bitdef));
-        parraydef(resulttype)^.elementtype.def:=pd;
-        parraydef(resulttype)^.IsConstructor:=true;
-        parraydef(resulttype)^.IsVariant:=varia;
-        location.loc:=LOC_MEM;
+         postprocess(self);
       end;
 
 
@@ -753,7 +769,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-25 15:37:14  florian
+  Revision 1.3  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.2  2000/09/25 15:37:14  florian
     * more fixes
 
   Revision 1.1  2000/09/25 14:55:05  florian

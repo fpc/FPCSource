@@ -243,6 +243,32 @@
          internalerror(220920001);
       end;
 
+    procedure tnode.set_unique;
+
+      begin
+         case nodetype of
+            vecn:
+               include(flags,nf_callunique);
+            typeconvn,subscriptn,derefn:
+              if assigned(tunarynode(self).left) then
+                tunarynode(self).left.set_unique;
+         end;
+      end;
+
+    procedure tnode.set_funcret_is_valid;
+
+      begin
+         case nodetype of
+            funcretn:
+              if is_first_funcret in flags) then
+                pprocinfo(tfuncretnode(self).funcretprocinfo)^.funcret_state:=vs_assigned;
+            vecn,typeconvn,subscriptn{,derefn}:
+              if assigned(tunarynode(self).left) then
+                tunarynode(self).left.set_funcret_is_valid;
+         end;
+      end;
+
+
 {$warning FIX ME !!!!!}
 {$ifdef dummy}
     procedure unset_varstate(p : ptree);
@@ -640,7 +666,10 @@
       end;
 {
   $Log$
-  Revision 1.4  2000-09-26 20:06:13  florian
+  Revision 1.5  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.4  2000/09/26 20:06:13  florian
     * hmm, still a lot of work to get things compilable
 
   Revision 1.3  2000/09/22 21:45:36  florian

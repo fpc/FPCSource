@@ -416,8 +416,13 @@ implementation
       begin
          inherited create(setconstn,nil);
          resulttype:=settype;
-         new(value_set);
-         value_set^:=s^;
+         if assigned(s) then
+           begin
+              new(value_set);
+              value_set^:=s^;
+           end
+         else
+           value_set:=nil;
       end;
 
     function tsetconstnode.getcopy : tnode;
@@ -427,8 +432,13 @@ implementation
 
       begin
          n:=tsetconstnode(inherited getcopy);
-         new(n.value_set);
-         n.value_set^:=value_set^;
+         if assigned(value_set) then
+           begin
+              new(n.value_set);
+              n.value_set^:=value_set^
+           end
+         else
+           n.value_set:=nil;
          n.lab_set:=lab_set;
          getcopy:=n;
       end;
@@ -467,7 +477,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-09-26 14:59:34  florian
+  Revision 1.5  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.4  2000/09/26 14:59:34  florian
     * more conversion work done
 
   Revision 1.3  2000/09/24 21:15:34  florian

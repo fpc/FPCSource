@@ -32,8 +32,7 @@ interface
     type
        taddnode = class(tbinopnode)
           procedure make_bool_equal_size;
-          function firstpass : tnode;override;
-          procedure make_bool_equal_size;
+          function pass_1 : tnode;override;
        end;
 
     var
@@ -43,7 +42,7 @@ interface
        { specific node types can be created               }
        caddnode : class of taddnode;
 
-    function isbinaryoverloaded(var p : pnode) : boolean;
+    function isbinaryoverloaded(var p : tnode) : boolean;
 
 implementation
 
@@ -58,11 +57,12 @@ implementation
       hcodegen,
 {$endif newcg}
       htypechk,pass_1,
-      cpubase,ncnv,ncal,
+      cpubase,ncnv,ncal,nld,
+      ncon
       ;
 
 {*****************************************************************************
-                                FirstAdd
+                                TADDNODE
 *****************************************************************************}
 
 {$ifdef fpc}
@@ -75,16 +75,16 @@ implementation
         if porddef(left.resulttype)^.typ>porddef(right.resulttype)^.typ then
          begin
            right:=gentypeconvnode(right,porddef(left.resulttype));
-           right.convtyp:=tc_bool_2_int;
-           right.explizit:=true;
+           ttypeconvnode(right).convtyp:=tc_bool_2_int;
+           include(right.flags,nf_explizit);
            firstpass(right);
          end
         else
          if porddef(left.resulttype)^.typ<porddef(right.resulttype)^.typ then
           begin
             left:=gentypeconvnode(left,porddef(right.resulttype));
-            left.convtyp:=tc_bool_2_int;
-            left.explizit:=true;
+            ttypeconvnode(left).convtyp:=tc_bool_2_int;
+            include(left.flags,nf_explizit);
             firstpass(left);
           end;
       end;
@@ -94,7 +94,7 @@ implementation
       var
          t,hp    : tnode;
          ot,
-         lt,rt   : ttreetyp;
+         lt,rt   : tnodetype;
          rv,lv   : longint;
          rvd,lvd : bestreal;
          resdef,
@@ -121,17 +121,17 @@ implementation
          { convert array constructors to sets, because there is no other operator
            possible for array constructors }
          if is_array_constructor(left.resulttype) then
-           arrayconstructor_to_set(left);
+           arrayconstructor_to_set(tarrayconstructnode(left));
          if is_array_constructor(right.resulttype) then
-           arrayconstructor_to_set(right);
+           arrayconstructor_to_set(tarrayconstructnode(right));
 
          { both left and right need to be valid }
-         set_varstate(left,true);
-         set_varstate(right,true);
+         left.set_varstate(true);
+         right.set_varstate(true);
 
          { load easier access variables }
-         lt:=left.treetype;
-         rt:=right.treetype;
+         lt:=left.nodetype;
+         rt:=right.nodetype;
          rd:=right.resulttype;
          ld:=left.resulttype;
          convdone:=false;
@@ -140,22 +140,22 @@ implementation
            begin
               pass_1:=hp;
               exit;
-           end
+           end;
          { compact consts }
 
          { convert int consts to real consts, if the }
          { other operand is a real const             }
          if (rt=realconstn) and is_constintnode(left) then
            begin
-              t:=genrealconstnode(left.value,right.resulttype);
-              disposetree(left);
+              t:=genrealconstnode(tordconstnode(left).value,right.resulttype);
+              left.free;
               left:=t;
               lt:=realconstn;
            end;
          if (lt=realconstn) and is_constintnode(right) then
            begin
-              t:=genrealconstnode(right.value,left.resulttype);
-              disposetree(right);
+              t:=genrealconstnode(tordconstnode(right).value,left.resulttype);
+              right.free;
               right:=t;
               rt:=realconstn;
            end;
@@ -165,7 +165,7 @@ implementation
          if ((lt=ordconstn) and (rt=ordconstn)) and
             ((is_constintnode(left) and is_constintnode(right)) or
              (is_constboolnode(left) and is_constboolnode(right) and
-              (treetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn]))) then
+              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn]))) then
            begin
               { xor, and, or are handled different from arithmetic }
               { operations regarding the result type               }
@@ -176,9 +176,9 @@ implementation
                 resdef:=cs64bitdef
               else
                 resdef:=s32bitdef;
-              lv:=left.value;
-              rv:=right.value;
-              case treetype of
+              lv:=tordconstnode(left).value;
+              rv:=tordconstnode(right).value;
+              case nodetype of
                 addn : t:=genintconstnode(lv+rv);
                 subn : t:=genintconstnode(lv-rv);
                 muln : t:=genintconstnode(lv*rv);
@@ -205,16 +205,16 @@ implementation
               else
                 CGMessage(type_e_mismatch);
               end;
-              pass_1:=t
+              pass_1:=t;
               exit;
            end;
 
        { both real constants ? }
          if (lt=realconstn) and (rt=realconstn) then
            begin
-              lvd:=left.value_real;
-              rvd:=right.value_real;
-              case treetype of
+              lvd:=trealconstnode(left).value_real;
+              rvd:=trealconstnode(right).value_real;
+              case nodetype of
                  addn : t:=genrealconstnode(lvd+rvd,bestrealdef^);
                  subn : t:=genrealconstnode(lvd-rvd,bestrealdef^);
                  muln : t:=genrealconstnode(lvd*rvd,bestrealdef^);
@@ -260,8 +260,8 @@ implementation
          if (lt=ordconstn) and (rt=ordconstn) and
             is_char(ld) and is_char(rd) then
            begin
-              s1:=strpnew(char(byte(left.value)));
-              s2:=strpnew(char(byte(right.value)));
+              s1:=strpnew(char(byte(tordconstnode(left).value)));
+              s2:=strpnew(char(byte(tordconstnode(right).value)));
               l1:=1;
               l2:=1;
               concatstrings:=true;
@@ -271,14 +271,14 @@ implementation
            begin
               s1:=getpcharcopy(left);
               l1:=left.length;
-              s2:=strpnew(char(byte(right.value)));
+              s2:=strpnew(char(byte(tordconstnode(right).value)));
               l2:=1;
               concatstrings:=true;
            end
          else
            if (lt=ordconstn) and (rt=stringconstn) and is_char(ld) then
            begin
-              s1:=strpnew(char(byte(left.value)));
+              s1:=strpnew(char(byte(tordconstnode(left).value)));
               l1:=1;
               s2:=getpcharcopy(right);
               l2:=right.length;
@@ -287,16 +287,16 @@ implementation
          else if (lt=stringconstn) and (rt=stringconstn) then
            begin
               s1:=getpcharcopy(left);
-              l1:=left.length;
+              l1:=tstringconstnode(left).length;
               s2:=getpcharcopy(right);
-              l2:=right.length;
+              l2:=tstringconstnode(right).length;
               concatstrings:=true;
            end;
 
          { I will need to translate all this to ansistrings !!! }
          if concatstrings then
            begin
-              case treetype of
+              case nodetype of
                  addn :
                    t:=genpcharconstnode(concatansistrings(s1,s2,l1,l2),l1+l2);
                  ltn :
@@ -325,7 +325,7 @@ implementation
              if is_boolean(ld) and is_boolean(rd) then
               begin
                 if (cs_full_boolean_eval in aktlocalswitches) or
-                   (treetype in [xorn,ltn,lten,gtn,gten]) then
+                   (nodetype in [xorn,ltn,lten,gtn,gten]) then
                   begin
                      make_bool_equal_size(p);
                      if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
@@ -335,7 +335,7 @@ implementation
                        calcregisters(p,1,0,0);
                   end
                 else
-                  case treetype of
+                  case nodetype of
                     andn,
                     orn:
                       begin
@@ -348,11 +348,11 @@ implementation
                       begin
                         make_bool_equal_size(p);
                         { Remove any compares with constants }
-                        if (left.treetype=ordconstn) then
+                        if (left.nodetype=ordconstn) then
                          begin
                            hp:=right;
                            b:=(left.value<>0);
-                           ot:=treetype;
+                           ot:=nodetype;
                            disposetree(left);
                            putnode(p);
                            p:=hp;
@@ -364,11 +364,11 @@ implementation
                             end;
                            exit;
                          end;
-                        if (right.treetype=ordconstn) then
+                        if (right.nodetype=ordconstn) then
                          begin
                            hp:=left;
                            b:=(right.value<>0);
-                           ot:=treetype;
+                           ot:=nodetype;
                            disposetree(right);
                            putnode(p);
                            p:=hp;
@@ -397,7 +397,7 @@ implementation
                 because the resulttype of left = left.resulttype
                 (surprise! :) (JM)
 
-                if treetype in [xorn,unequaln,equaln] then
+                if nodetype in [xorn,unequaln,equaln] then
                   begin
                      if left.location.loc=LOC_FLAGS then
                        begin
@@ -423,7 +423,7 @@ implementation
              { Both are chars? only convert to shortstrings for addn }
               if is_char(rd) and is_char(ld) then
                begin
-                 if treetype=addn then
+                 if nodetype=addn then
                    begin
                      left:=gentypeconvnode(left,cshortstringdef);
                      right:=gentypeconvnode(right,cshortstringdef);
@@ -441,7 +441,7 @@ implementation
               { is there a 64 bit type ? }
              else if ((porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit)) and
                { the / operator is handled later }
-               (treetype<>slashn) then
+               (nodetype<>slashn) then
                begin
                   if (porddef(ld)^.typ<>s64bit) then
                     begin
@@ -458,7 +458,7 @@ implementation
                end
              else if ((porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit)) and
                { the / operator is handled later }
-               (treetype<>slashn) then
+               (nodetype<>slashn) then
                begin
                   if (porddef(ld)^.typ<>u64bit) then
                     begin
@@ -477,7 +477,7 @@ implementation
               { is there a cardinal? }
               if ((porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit)) and
                { the / operator is handled later }
-               (treetype<>slashn) then
+               (nodetype<>slashn) then
                begin
                  { convert constants to u32bit }
 {$ifndef cardinalmulfix}
@@ -514,7 +514,7 @@ implementation
                      { can we make them both unsigned? }
                        if (porddef(ld)^.typ in [u8bit,u16bit]) or
                           (is_constintnode(left) and
-                           (treetype <> subn) and
+                           (nodetype <> subn) and
                            (left.value > 0)) then
                          left:=gentypeconvnode(left,u32bitdef)
                        else
@@ -536,7 +536,7 @@ implementation
                  calcregisters(p,1,0,0);
                  { for unsigned mul we need an extra register }
 {                 registers32:=left.registers32+right.registers32; }
-                 if treetype=muln then
+                 if nodetype=muln then
                   inc(registers32);
                  convdone:=true;
                end;
@@ -548,7 +548,7 @@ implementation
            if (ld^.deftype=setdef) {or is_array_constructor(ld)} then
              begin
              { trying to add a set element? }
-                if (treetype=addn) and (rd^.deftype<>setdef) then
+                if (nodetype=addn) and (rd^.deftype<>setdef) then
                  begin
                    if (rt=setelementn) then
                     begin
@@ -560,7 +560,7 @@ implementation
                  end
                 else
                  begin
-                   if not(treetype in [addn,subn,symdifn,muln,equaln,unequaln
+                   if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln
 {$IfNDef NoSetInclusion}
                                           ,lten,gten
 {$EndIf NoSetInclusion}
@@ -589,7 +589,7 @@ implementation
                 if (psetdef(ld)^.settype<>smallset) and
                    (psetdef(rd)^.settype=smallset) then
                  begin
-                   if (right.treetype=setconstn) then
+                   if (right.nodetype=setconstn) then
                      begin
                         t:=gensetconstnode(right.value_set,psetdef(left.resulttype));
                         t^.left:=right.left;
@@ -602,13 +602,13 @@ implementation
                  end;
 
                 { do constant evaluation }
-                if (right.treetype=setconstn) and
+                if (right.nodetype=setconstn) and
                    not assigned(right.left) and
-                   (left.treetype=setconstn) and
+                   (left.nodetype=setconstn) and
                    not assigned(left.left) then
                   begin
                      new(resultset);
-                     case treetype of
+                     case nodetype of
                         addn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
@@ -688,7 +688,7 @@ implementation
                  if psetdef(ld)^.settype=smallset then
                   begin
                      { are we adding set elements ? }
-                     if right.treetype=setelementn then
+                     if right.nodetype=setelementn then
                        calcregisters(p,2,0,0)
                      else
                        calcregisters(p,1,0,0);
@@ -769,7 +769,7 @@ implementation
 {$ifdef i386}
                       { shortstring + char handled seperately  (JM) }
                       and (not(cs_optimize in aktglobalswitches) or
-                           (treetype <> addn) or not(is_char(rd)))
+                           (nodetype <> addn) or not(is_char(rd)))
 {$endif i386}
 {$endif newoptimizations2}
                     then
@@ -782,9 +782,9 @@ implementation
                 end;
               { only if there is a type cast we need to do again }
               { the first pass                             }
-              if left.treetype=typeconvn then
+              if left.nodetype=typeconvn then
                 firstpass(left);
-              if right.treetype=typeconvn then
+              if right.nodetype=typeconvn then
                 firstpass(right);
               { here we call STRCONCAT or STRCMP or STRCOPY }
               procinfo^.flags:=procinfo^.flags or pi_do_call;
@@ -811,9 +811,9 @@ implementation
               if ((rd^.deftype=floatdef) and (pfloatdef(rd)^.typ=f32bit)) or
                  ((ld^.deftype=floatdef) and (pfloatdef(ld)^.typ=f32bit)) then
                begin
-                 if not is_integer(rd) or (treetype<>muln) then
+                 if not is_integer(rd) or (nodetype<>muln) then
                    right:=gentypeconvnode(right,s32fixeddef);
-                 if not is_integer(ld) or (treetype<>muln) then
+                 if not is_integer(ld) or (nodetype<>muln) then
                    left:=gentypeconvnode(left,s32fixeddef);
                  firstpass(left);
                  firstpass(right);
@@ -841,7 +841,7 @@ implementation
               { right:=gentypeconvnode(right,ld); }
               { firstpass(right); }
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                  equaln,unequaln :
                    begin
                       if is_equal(right.resulttype,voidpointerdef) then
@@ -900,7 +900,7 @@ implementation
               firstpass(right);
               firstpass(left);
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
               end;
@@ -919,7 +919,7 @@ implementation
               firstpass(right);
               firstpass(left);
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
               end;
@@ -935,7 +935,7 @@ implementation
               left:=gentypeconvnode(left,rd);
               firstpass(left);
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
               end;
@@ -950,7 +950,7 @@ implementation
               right:=gentypeconvnode(right,ld);
               firstpass(right);
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
               end;
@@ -963,7 +963,7 @@ implementation
               left:=gentypeconvnode(left,rd);
               firstpass(left);
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                  equaln,unequaln : ;
                  else CGMessage(type_e_mismatch);
               end;
@@ -976,7 +976,7 @@ implementation
               right:=gentypeconvnode(right,ld);
               firstpass(right);
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                 equaln,unequaln : ;
               else
                 CGMessage(type_e_mismatch);
@@ -991,7 +991,7 @@ implementation
             begin
               calcregisters(p,1,0,0);
               location.loc:=LOC_REGISTER;
-              case treetype of
+              case nodetype of
                  equaln,unequaln : ;
               else
                 CGMessage(type_e_mismatch);
@@ -1006,7 +1006,7 @@ implementation
             begin
               firstpass(right);
               firstpass(left);
-              case treetype of
+              case nodetype of
                 addn,subn,xorn,orn,andn:
                   ;
                 { mul is a little bit restricted }
@@ -1039,7 +1039,7 @@ implementation
               left:=gentypeconvnode(left,s32bitdef);
               firstpass(left);
               calcregisters(p,1,0,0);
-              if treetype=addn then
+              if nodetype=addn then
                 begin
                   if not(cs_extsyntax in aktmoduleswitches) or
                     (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
@@ -1072,7 +1072,7 @@ implementation
               right:=gentypeconvnode(right,s32bitdef);
               firstpass(right);
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                 addn,subn : begin
                               if not(cs_extsyntax in aktmoduleswitches) or
                                  (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
@@ -1098,7 +1098,7 @@ implementation
             begin
               calcregisters(p,1,0,0);
               location.loc:=LOC_REGISTER;
-              case treetype of
+              case nodetype of
                  equaln,unequaln : ;
               else
                 CGMessage(type_e_mismatch);
@@ -1115,7 +1115,7 @@ implementation
                    firstpass(right);
                 end;
               calcregisters(p,1,0,0);
-              case treetype of
+              case nodetype of
                  equaln,unequaln,
                  ltn,lten,gtn,gten : ;
                  else CGMessage(type_e_mismatch);
@@ -1127,7 +1127,7 @@ implementation
          if not convdone then
            begin
               { but an int/int gives real/real! }
-              if treetype=slashn then
+              if nodetype=slashn then
                 begin
                    CGMessage(type_h_use_div_for_int);
                    right:=gentypeconvnode(right,bestrealdef^);
@@ -1163,7 +1163,7 @@ implementation
          { example length(s)+1 gets internal 'longint' type first }
          { if it is a arg it is converted to 'LONGINT' }
          { but a second first pass will reset this to 'longint' }
-         case treetype of
+         case nodetype of
             ltn,lten,gtn,gten,equaln,unequaln:
               begin
                  if (not assigned(resulttype)) or
@@ -1230,7 +1230,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-09-24 15:06:19  peter
+  Revision 1.7  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.6  2000/09/24 15:06:19  peter
     * use defines.inc
 
   Revision 1.5  2000/09/22 22:42:52  florian

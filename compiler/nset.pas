@@ -27,7 +27,7 @@ unit nset;
 interface
 
     uses
-       node;
+       node,cpuinfo,aasm;
 
     type
       pcaserecord = ^tcaserecord;
@@ -54,7 +54,7 @@ interface
           function pass_1 : tnode;override;
        end;
 
-       tinnode = class(tbinopnode);
+       tinnode = class(tbinopnode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
        end;
@@ -66,10 +66,11 @@ interface
 
        tcasenode = class(tbinarynode)
           nodes : pcaserecord;
-          elseblock : ptree;
-          constructor create(l,r : tnode;n : pnodes);virtual;
+          elseblock : tnode;
+          constructor create(l,r : tnode;n : pcaserecord);virtual;
           destructor destroy;override;
           function getcopy : tnode;override;
+          function pass_1 : tnode;override;
        end;
 
     var
@@ -92,9 +93,9 @@ implementation
     uses
       globtype,systems,
       cobjects,verbose,globals,
-      symconst,symtable,aasm,types,
+      symconst,symtable,types,
       htypechk,pass_1,
-      ncnv,ncon,cpubase
+      ncnv,ncon,cpubase,nld
 {$ifdef newcg}
       ,cgbase
       ,tgcpu
@@ -109,7 +110,7 @@ implementation
 {$endif newcg}
       ;
 
-    function gencasenode(l,r : ptree;nodes : pcaserecord) : ptree;
+    function gencasenode(l,r : tnode;nodes : pcaserecord) : tnode;
 
       var
          t : tnode;
@@ -134,7 +135,7 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          if codegenerror then
           exit;
 
@@ -145,7 +146,7 @@ implementation
              exit;
           end;
 
-         calcregisters(p,0,0,0);
+         calcregisters(self,0,0,0);
          resulttype:=left.resulttype;
          set_location(location,left.location);
       end;
@@ -165,7 +166,7 @@ implementation
       type
         byteset = set of byte;
       var
-        t : ptree;
+        t : tnode;
         pst : pconstset;
 
     function createsetconst(psd : psetdef) : pconstset;
@@ -202,14 +203,14 @@ implementation
          resulttype:=booldef;
 
          firstpass(right);
-         set_varstate(right,true);
+         right.set_varstate(true);
          if codegenerror then
           exit;
 
          { Convert array constructor first to set }
          if is_array_constructor(right.resulttype) then
           begin
-            arrayconstructor_to_set(right);
+            arrayconstructor_to_set(tarrayconstructnode(right));
             firstpass(right);
             if codegenerror then
              exit;
@@ -217,26 +218,26 @@ implementation
 
          { if right is a typen then the def
          is in typenodetype PM }
-         if right.treetype=typen then
-           right.resulttype:=right.typenodetype;
+         if right.nodetype=typen then
+           right.resulttype:=ttypenode(right).typenodetype;
 
          if right.resulttype^.deftype<>setdef then
            CGMessage(sym_e_set_expected);
          if codegenerror then
            exit;
 
-         if (right.treetype=typen) then
+         if (right.nodetype=typen) then
            begin
              { we need to create a setconstn }
-             pst:=createsetconst(psetdef(right.typenodetype));
-             t:=gensetconstnode(pst,psetdef(right.typenodetype));
+             pst:=createsetconst(psetdef(ttypenode(right).typenodetype));
+             t:=gensetconstnode(pst,psetdef(ttypenode(right).typenodetype));
              dispose(pst);
              right.free;
              right:=t;
            end;
 
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          if codegenerror then
            exit;
 
@@ -256,15 +257,15 @@ implementation
            exit;
 
          { constant evaulation }
-         if (left.treetype=ordconstn) and (right.treetype=setconstn) then
+         if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
-            t:=genordinalconstnode(byte(left.value in byteset(right.value_set^)),booldef);
+            t:=genordinalconstnode(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booldef);
             firstpass(t);
             pass_1:=t;
             exit;
           end;
 
-         left_right_max(p);
+         left_right_max;
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if psetdef(right.resulttype)^.settype<>smallset then
@@ -272,7 +273,7 @@ implementation
          else
            begin
               { a smallset needs maybe an misc. register }
-              if (left.treetype<>ordconstn) and
+              if (left.nodetype<>ordconstn) and
                 not(right.location.loc in [LOC_CREGISTER,LOC_REGISTER]) and
                 (right.registers32<1) then
                 inc(registers32);
@@ -296,9 +297,9 @@ implementation
       begin
          pass_1:=nil;
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          firstpass(right);
-         set_varstate(right,true);
+         right.set_varstate(true);
          if codegenerror then
            exit;
          { both types must be compatible }
@@ -306,15 +307,15 @@ implementation
             (isconvertable(left.resulttype,right.resulttype,ct,ordconstn,false)=0) then
            CGMessage(type_e_mismatch);
          { Check if only when its a constant set }
-         if (left.treetype=ordconstn) and (right.treetype=ordconstn) then
+         if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
           begin
           { upper limit must be greater or equal than lower limit }
           { not if u32bit }
-            if (left.value>right.value) and
-               (( left.value<0) or (right.value>=0)) then
+            if (tordconstnode(left).value>tordconstnode(right).value) and
+               ((tordconstnode(left).value<0) or (tordconstnode(right).value>=0)) then
               CGMessage(cg_e_upper_lower_than_lower);
           end;
-        left_right_max(p);
+        left_right_max;
         resulttype:=left.resulttype;
         set_location(location,left.location);
       end;
@@ -331,10 +332,10 @@ implementation
       procedure count(p : pcaserecord);
         begin
            inc(_l);
-           if assigned(less) then
-             count(less);
-           if assigned(greater) then
-             count(greater);
+           if assigned(p^.less) then
+             count(p^.less);
+           if assigned(p^.greater) then
+             count(p^.greater);
         end;
 
       begin
@@ -349,9 +350,9 @@ implementation
          hp : pcaserecord;
       begin
          hp:=root;
-         while assigned(hp.greater) do
-           hp:=hp.greater;
-         case_get_max:=hp._high;
+         while assigned(hp^.greater) do
+           hp:=hp^.greater;
+         case_get_max:=hp^._high;
       end;
 
 
@@ -360,18 +361,18 @@ implementation
          hp : pcaserecord;
       begin
          hp:=root;
-         while assigned(hp.less) do
-           hp:=hp.less;
-         case_get_min:=hp._low;
+         while assigned(hp^.less) do
+           hp:=hp^.less;
+         case_get_min:=hp^._low;
       end;
 
     procedure deletecaselabels(p : pcaserecord);
 
       begin
-         if assigned(greater) then
-           deletecaselabels(greater);
-         if assigned(less) then
-           deletecaselabels(less);
+         if assigned(p^.greater) then
+           deletecaselabels(p^.greater);
+         if assigned(p^.less) then
+           deletecaselabels(p^.less);
          dispose(p);
       end;
 
@@ -394,27 +395,27 @@ implementation
                               TCASENODE
 *****************************************************************************}
 
-    constructor tcasenode.create(l,r : tnode;n : pnodes);
+    constructor tcasenode.create(l,r : tnode;n : pcaserecord);
 
       begin
          inherited create(casen,l,r);
          nodes:=n;
          elseblock:=nil;
-         set_file_pos(l);
+         set_file_line(l);
       end;
 
     destructor tcasenode.destroy;
 
       begin
          elseblock.free;
-         deletecaselables(nodes);
+         deletecaselabels(nodes);
          inherited destroy;
       end;
 
     function tcasenode.pass_1 : tnode;
       var
          old_t_times : longint;
-         hp : tnode;
+         hp : tbinarynode;
       begin
          pass_1:=nil;
          { evalutes the case expression }
@@ -424,7 +425,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(left);
-         set_varstate(left,true);
+         left.set_varstate(true);
          if codegenerror then
            exit;
          registers32:=left.registers32;
@@ -443,8 +444,8 @@ implementation
               if t_times<1 then
                 t_times:=1;
            end;
-         {   first case }
-         hp:=right;
+         { first case }
+         hp:=tbinarynode(right);
          while assigned(hp) do
            begin
 {$ifdef newcg}
@@ -464,7 +465,7 @@ implementation
                 registersmmx:=hp.right.registersmmx;
 {$endif SUPPORT_MMX}
 
-              hp:=hp.left;
+              hp:=tbinarynode(hp.left);
            end;
 
          { may be handle else tree }
@@ -515,7 +516,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-09-24 20:17:44  florian
+  Revision 1.3  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.2  2000/09/24 20:17:44  florian
     * more conversion work done
 
   Revision 1.1  2000/09/24 19:38:39  florian

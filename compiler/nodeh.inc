@@ -210,7 +210,10 @@
          nf_explizit,
 
          { tinlinenode }
-         nf_inlineconst
+         nf_inlineconst,
+
+         { general }
+         nf_isproperty  { 30th }
        );
 
        tnodeflagset = set of tnodeflags;
@@ -270,6 +273,12 @@
           function getcopy : tnode;virtual;
           procedure unset_varstate;virtual;
           procedure set_varstate(must_be_valid : boolean);virtual;
+
+          { it would be cleaner to make the following virtual methods }
+          { but this would require an extra vmt entry                 }
+          { so we do some hacking instead ....                        }
+          procedure set_unique;
+          procedure set_funcret_is_valid;
 {$ifdef EXTDEBUG}
           { writes a node for debugging purpose, shouldn't be called }
           { direct, because there is no test for nil, use writenode  }
@@ -321,13 +330,16 @@
 
        pbinopnode = ^tbinopnode;
        tbinopnode = class(tbinarynode)
-          constructor create(tt : tnodetype;l,r : tnode);
+          constructor create(tt : tnodetype;l,r : tnode);virtual;
           function docompare(p : tnode) : boolean;override;
        end;
 
 {
   $Log$
-  Revision 1.8  2000-09-26 20:06:13  florian
+  Revision 1.9  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.8  2000/09/26 20:06:13  florian
     * hmm, still a lot of work to get things compilable
 
   Revision 1.7  2000/09/26 14:59:34  florian

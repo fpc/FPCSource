@@ -27,7 +27,7 @@ unit ncnv;
 interface
 
     uses
-       node,symtable;
+       node,symtable,nld;
 
     type
        ttypeconvnode = class(tunarynode)
@@ -78,13 +78,15 @@ interface
        cisnode : class of tisnode;
 
     function gentypeconvnode(node : tnode;t : pdef) : tnode;
+    procedure arrayconstructor_to_set(var p : tarrayconstructnode);
 
 implementation
 
    uses
       globtype,systems,tokens,
       cutils,cobjects,verbose,globals,
-      symconst,aasm,types,ncon,ncal,nld,
+      symconst,aasm,types,ncon,ncal,
+      nset,nadd,
 {$ifdef newcg}
       cgbase,
 {$else newcg}
@@ -97,15 +99,10 @@ implementation
                     Array constructor to Set Conversion
 *****************************************************************************}
 
-    function arrayconstructor_to_set : tnode;
+    procedure arrayconstructor_to_set(var p : tarrayconstructnode);
 
-      begin
-         {$warning FIX ME !!!!!!!}
-         internalerror(2609000);
-       end;
-{$ifdef dummy}
       var
-        constp : tsetconstnode;
+        constp      : tsetconstnode;
         buildp,
         p2,p3,p4    : tnode;
         pd        : pdef;
@@ -115,7 +112,7 @@ implementation
 
         procedure update_constsethi(p:pdef);
         begin
-          if ((deftype=orddef) and
+          if ((p^.deftype=orddef) and
              (porddef(p)^.high>=constsethi)) then
             begin
                constsethi:=porddef(p)^.high;
@@ -130,7 +127,7 @@ implementation
                if constsethi>255 then
                  constsethi:=255;
             end
-          else if ((deftype=enumdef) and
+          else if ((p^.deftype=enumdef) and
             (penumdef(p)^.max>=constsethi)) then
             begin
                if pd=nil then
@@ -167,25 +164,26 @@ implementation
         pd:=nil;
         constsetlo:=0;
         constsethi:=0;
-        constp:=csetconstnode.create(nil);
-        constvalue_set:=constset;
-        buildp:=constp;
-        if assigned(left) then
+        constp:=csetconstnode.create(nil,nil);
+        constp.value_set:=constset;
+        if assigned(p.left) then
          begin
            while assigned(p) do
             begin
               p4:=nil; { will contain the tree to create the set }
             { split a range into p2 and p3 }
-              if left.nodetype=arrayconstructrangen then
+              if p.left.nodetype=arrayconstructrangen then
                begin
-                 p2:=left.left;
-                 p3:=left.right;
+                 p2:=tarrayconstructorrangenode(p.left).left;
+                 p3:=tarrayconstructorrangenode(p.left).right;
+                 tarrayconstructorrangenode(p.left).left:=nil;
+                 tarrayconstructorrangenode(p.left).right:=nil;
                { node is not used anymore }
-                 putnode(left);
+                 p.left.free;
                end
               else
                begin
-                 p2:=left;
+                 p2:=p.left;
                  p3:=nil;
                end;
               firstpass(p2);
@@ -193,11 +191,11 @@ implementation
                firstpass(p3);
               if codegenerror then
                break;
-              case p2^.resulttype^.deftype of
+              case p2.resulttype^.deftype of
                  enumdef,
                  orddef:
                    begin
-                      getrange(p2^.resulttype,lr,hr);
+                      getrange(p2.resulttype,lr,hr);
                       if assigned(p3) then
                        begin
                          { this isn't good, you'll get problems with
@@ -212,17 +210,17 @@ implementation
                           end;
                          }
 
-                         if assigned(pd) and not(is_equal(pd,p3^.resulttype)) then
+                         if assigned(pd) and not(is_equal(pd,p3.resulttype)) then
                            begin
-                              aktfilepos:=p3^.fileinfo;
+                              aktfilepos:=p3.fileinfo;
                               CGMessage(type_e_typeconflict_in_set);
                            end
                          else
                            begin
-                             if (p2^.nodetype=ordconstn) and (p3^.nodetype=ordconstn) then
+                             if (p2.nodetype=ordconstn) and (p3.nodetype=ordconstn) then
                               begin
-                                 if not(is_integer(p3^.resulttype)) then
-                                   pd:=p3^.resulttype
+                                 if not(is_integer(p3.resulttype)) then
+                                   pd:=p3.resulttype
                                  else
                                    begin
                                       p3:=gentypeconvnode(p3,u8bitdef);
@@ -231,18 +229,18 @@ implementation
                                       firstpass(p3);
                                    end;
 
-                                for l:=p2^.value to p3^.value do
+                                for l:=tordconstnode(p2).value to tordconstnode(p3).value do
                                   do_set(l);
-                                disposetree(p3);
-                                disposetree(p2);
+                                p2.free;
+                                p3.free;
                               end
                              else
                               begin
-                                update_constsethi(p2^.resulttype);
+                                update_constsethi(p2.resulttype);
                                 p2:=gentypeconvnode(p2,pd);
                                 firstpass(p2);
 
-                                update_constsethi(p3^.resulttype);
+                                update_constsethi(p3.resulttype);
                                 p3:=gentypeconvnode(p3,pd);
                                 firstpass(p3);
 
@@ -252,29 +250,29 @@ implementation
                                 else
                                   p3:=gentypeconvnode(p3,u8bitdef);
                                 firstpass(p3);
-                                p4:=gennode(setelementn,p2,p3);
+                                p4:=csetelementnode.create(p2,p3);
                               end;
                            end;
                        end
                       else
                        begin
                       { Single value }
-                         if p2^.nodetype=ordconstn then
+                         if p2.nodetype=ordconstn then
                           begin
-                            if not(is_integer(p2^.resulttype)) then
-                              update_constsethi(p2^.resulttype)
+                            if not(is_integer(p2.resulttype)) then
+                              update_constsethi(p2.resulttype)
                             else
                               begin
                                  p2:=gentypeconvnode(p2,u8bitdef);
                                  firstpass(p2);
                               end;
 
-                            do_set(p2^.value);
-                            disposetree(p2);
+                            do_set(tordconstnode(p2).value);
+                            p2.free;
                           end
                          else
                           begin
-                            update_constsethi(p2^.resulttype);
+                            update_constsethi(p2.resulttype);
 
                             if assigned(pd) then
                               p2:=gentypeconvnode(p2,pd)
@@ -282,7 +280,7 @@ implementation
                               p2:=gentypeconvnode(p2,u8bitdef);
                             firstpass(p2);
 
-                            p4:=gennode(setelementn,p2,nil);
+                            p4:=csetelementnode.create(p2,nil);
                           end;
                        end;
                     end;
@@ -293,22 +291,23 @@ implementation
                           not(is_equal(pd,cchardef)) then
                           CGMessage(type_e_typeconflict_in_set)
                         else
-                         for l:=1 to length(pstring(p2^.value_str)^) do
-                          do_set(ord(pstring(p2^.value_str)^[l]));
+                         for l:=1 to length(pstring(tstringconstnode(p2).value_str)^) do
+                          do_set(ord(pstring(tstringconstnode(p2).value_str)^[l]));
                         if pd=nil then
                          pd:=cchardef;
-                        disposetree(p2);
+                        p2.free;
                       end;
               else
                CGMessage(type_e_ordinal_expr_expected);
               end;
             { insert the set creation tree }
               if assigned(p4) then
-               buildp:=gennode(addn,buildp,p4);
+               buildp:=caddnode.create(addn,buildp,p4);
             { load next and dispose current node }
               p2:=p;
-              p:=right;
-              putnode(p2);
+              p:=tarrayconstrucnode(p.right);
+              tarrayconstructnode(p2).right:=nil;
+              p2.free;
             end;
           if (pd=nil) then
             begin
@@ -319,15 +318,14 @@ implementation
         else
          begin
          { empty set [], only remove node }
-           putnode(p);
+           p.free;
          end;
       { set the initial set type }
-        constresulttype:=new(psetdef,init(pd,constsethi));
+        constp.resulttype:=new(psetdef,init(pd,constsethi));
       { set the new tree }
-        p:=buildp;
+        p:=tarrayconstructnode(buildp);
       end;
 
-{$endif dummy}
 
 {*****************************************************************************
                            TTYPECONVNODE
@@ -1144,7 +1142,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-09-26 20:06:13  florian
+  Revision 1.4  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.3  2000/09/26 20:06:13  florian
     * hmm, still a lot of work to get things compilable
 
   Revision 1.2  2000/09/26 14:59:34  florian

@@ -348,8 +348,8 @@ unit tree;
     procedure unset_varstate(p : ptree);
     procedure set_varstate(p : ptree;must_be_valid : boolean);
 
-    { gibt den ordinalen Werten der Node zurueck oder falls sie }
-    { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
+    { returns the ordinal value of the node, if it hasn't a ord. }
+    { value an error is generated                                }
     function get_ordinal_value(p : ptree) : longint;
 
     function is_constnode(p : ptree) : boolean;
@@ -2149,7 +2149,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.9  2000-09-24 15:06:32  peter
+  Revision 1.10  2000-09-27 18:14:31  florian
+    * fixed a lot of syntax errors in the n*.pas stuff
+
+  Revision 1.9  2000/09/24 15:06:32  peter
     * use defines.inc
 
   Revision 1.8  2000/08/27 16:11:55  peter
