@@ -35,7 +35,7 @@ var
   LastColor                              : longint;
   Gd,Gm,
   Max_Color,Max_X_Width,
-  Max_Y_Width,Y_Width                    : integer;
+  Max_Y_Width,Y_Width                    : word;
   Y1,Y2,X1,X2,Dy,Dx                      : Real;
   Zm                                     : Integer;
   SymetricCase                                   : boolean;
@@ -321,7 +321,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  1999-12-14 22:59:52  pierre
+  Revision 1.7  1999-12-22 14:36:07  jonas
+    * changed type of max_color to word so it works now with 16bit color modes
+      (thanks to Arjan van Dijk for noticing the problem)
+
+  Revision 1.6  1999/12/14 22:59:52  pierre
    * adapted to new graph unit
 
   Revision 1.5  1999/05/27 21:36:33  peter
