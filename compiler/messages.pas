@@ -31,6 +31,7 @@ type
     msgfilename : string;
     msgallocsize,
     msgsize,
+    msgcrc,
     msgs        : longint;
     msgtxt      : pchar;
     msgidx      : ppchar;
@@ -47,6 +48,8 @@ type
 implementation
 
 uses
+  globals,crc,
+  verbose,
 {$ifdef DELPHI}
   sysutils;
 {$else DELPHI}
@@ -58,6 +61,7 @@ begin
   msgtxt:=pchar(p);
   msgallocsize:=0;
   msgsize:=0;
+  msgcrc:=MsgCrcValue;
   msgs:=n;
   CreateIdx;
 end;
@@ -92,15 +96,24 @@ const
   bufsize=8192;
 var
   f       : text;
+{$ifdef DEBUGCRC}
+  f2 : text;
+{$endif DEBUGCRC}
   msgsread,
-  line,i  : longint;
+  line,i,crc  : longint;
   ptxt    : pchar;
   s,s1    : string;
   buf     : pointer;
 begin
+  crc:=longint($ffffffff);
   getmem(buf,bufsize);
 {Read the message file}
   assign(f,fn);
+{$ifdef DEBUGCRC}
+  assign(f2,'crcmsg.tst');
+  rewrite(f2);
+  Writeln(f2,crc);
+{$endif DEBUGCRC}
   {$I-}
    reset(f);
   {$I+}
@@ -166,11 +179,26 @@ begin
            inc(ptxt,length(s1));
            ptxt^:=#0;
            inc(ptxt);
+           s1:=upper(copy(s,1,i-1));
+           crc:=UpdateCRC32(crc,@s1[1],length(s1));
+{$ifdef DEBUGCRC}
+           Writeln(f2,s1);
+           Writeln(f2,crc);
+{$endif DEBUGCRC}
          end;
       end;
    end;
   close(f);
+{$ifdef DEBUGCRC}
+  close(f2);
+{$endif DEBUGCRC}
   freemem(buf,bufsize);
+{ check amount of messages }
+  if (MsgCrcValue<>0) and (crc<>MsgCrcValue) then
+   begin
+     WriteLn('*** message file '+fn+' is incompatible : wrong CRC value ***');
+     fail;
+   end;
 { now we can create the index }
   CreateIdx;
 end;
@@ -287,7 +315,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-03-01 22:29:18  peter
+  Revision 1.13  2000-05-15 14:07:33  pierre
+   + calculate CRC value and check if consistant
+
+  Revision 1.12  2000/03/01 22:29:18  peter
     * message files are check for amount of msgs found. If not correct a
       line is written to stdout and switched to internal messages
 
