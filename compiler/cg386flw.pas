@@ -689,10 +689,10 @@ do_jmp:
            end;
 
 
-         emit_ref(A_PUSH,S_L,
-           newreference(ref));
+         emit_ref(A_PUSH,S_L,newreference(ref));
          emitcall('FPC_DESTROYEXCEPTION');
          emitcall('FPC_POPOBJECTSTACK');
+         maybe_loadesi;
 
          { clear some stuff }
          ungetiftemp(ref);
@@ -776,7 +776,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.59  1999-11-30 10:40:42  peter
+  Revision 1.60  1999-12-01 12:36:23  peter
+    * fixed selfpointer after destroyexception
+
+  Revision 1.59  1999/11/30 10:40:42  peter
     + ttype, tsymlist
 
   Revision 1.58  1999/11/28 23:15:23  pierre
