@@ -280,6 +280,12 @@ CONST
     i: longint;
     Size: longint;
    begin
+     { palette routines do not work in DirectColor mode }
+     if DirectColor then
+       begin
+         _GraphResult := grError;
+         exit;
+       end;
      Size:=Palette.Size;  { number of entries...}
      { first determine if we are not trying to }
      { change too much colors...               }
@@ -311,6 +317,12 @@ CONST
   {********************************************************}
    Procedure SetPalette(ColorNum: word; Color: shortint);
     begin
+     { palette routines do not work in DirectColor mode }
+     if DirectColor then
+       begin
+         _GraphResult := grError;
+         exit;
+       end;
       { Check if we can actually change that palette color }
       if ColorNum > PaletteSize then
         Begin
@@ -336,6 +348,12 @@ CONST
         i: longint;
         size : longint;
       begin
+        { palette routines do not work in DirectColor mode }
+        if DirectColor then
+         begin
+           _GraphResult := grError;
+           exit;
+         end;
         Palette.Size := PaletteSize;
         { index at zero }
         size := PaletteSize - 1;
