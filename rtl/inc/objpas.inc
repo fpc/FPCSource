@@ -32,7 +32,25 @@
            handleerror(219);
       end;
 
-{$ifndef ver1_0}
+{$ifdef ver1_0}
+    { dummies for make cycle with 1.0.x }
+    procedure int_do_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
+      begin
+      end;
+
+    procedure int_do_intf_incr_ref(const i: pointer);[public,alias: 'FPC_INTF_INCR_REF'];
+      begin
+      end;
+
+    procedure int_do_intf_assign(var D: pointer; const S: pointer);[public,alias: 'FPC_INTF_ASSIGN'];
+      begin
+      end;
+
+    procedure int_do_intf_as(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_AS'];
+      begin
+      end;
+
+{$else ver1_0}
     { interface helpers }
     procedure int_do_intf_decr_ref(var i: pointer);[public,alias: 'FPC_INTF_DECR_REF'];
       begin
@@ -586,7 +604,10 @@
 
 {
   $Log$
-  Revision 1.4  2000-11-04 16:29:54  florian
+  Revision 1.5  2000-11-04 17:52:46  florian
+    * fixed linker errors
+
+  Revision 1.4  2000/11/04 16:29:54  florian
     + interfaces support
 
   Revision 1.3  2000/07/22 14:52:01  sg

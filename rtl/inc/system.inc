@@ -175,6 +175,8 @@ End;
 {$i wstrings.inc}
 {$endif haswidechar}
 
+{$i dynarr.inc}
+
 {****************************************************************************
                          Run-Time Type Information (RTTI)
 ****************************************************************************}
@@ -635,7 +637,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2000-10-13 12:04:03  peter
+  Revision 1.7  2000-11-04 17:52:46  florian
+    * fixed linker errors
+
+  Revision 1.6  2000/10/13 12:04:03  peter
     * FPC_BREAK_ERROR added
 
   Revision 1.5  2000/08/13 17:55:14  michael
