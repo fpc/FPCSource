@@ -15,16 +15,14 @@
 
  **********************************************************************}
 
-function setjmp(var S : jmp_buf) : longint;assembler;
+function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;
   label FPC_SETJMP;
   asm
-    // the usual entry code would mix up things here
-  .globl FPC_SETJMP
-  FPC_SETJMP:
-     stmia   r0,{v1-v6, sl, fp, sp, lr}
-     mov     r0,#0
-     mov     pc,lr
+    stmia   r0,{v1-v6, sl, fp, sp, lr}
+    mov     r0,#0
+    mov     pc,lr
   end;
+
 
 procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
   asm
@@ -37,7 +35,10 @@ procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'F
 
 {
   $Log$
-  Revision 1.4  2004-03-23 19:13:09  florian
+  Revision 1.5  2005-01-04 16:22:05  florian
+    + added nostackframe directive
+
+  Revision 1.4  2004/03/23 19:13:09  florian
     * setjmp fixed
 
   Revision 1.3  2004/01/20 21:01:57  florian
