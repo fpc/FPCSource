@@ -444,6 +444,15 @@ implementation
               consume(_LKLAMMER);
               in_args:=true;
               p1:=comp_expr(true);
+              { When reading a class type it is parsed as loadvmtaddrn,
+                typeinfo only needs the type so we remove the loadvmtaddrn }
+              if p1.nodetype=loadvmtaddrn then
+                begin
+                  p2:=tloadvmtaddrnode(p1).left;
+                  tloadvmtaddrnode(p1).left:=nil;
+                  p1.free;
+                  p1:=p2;
+                end;
               if not codegenerror then
                begin
                  case p1.resulttype.def.deftype of
@@ -2399,7 +2408,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.159  2004-06-28 14:38:36  michael
+  Revision 1.160  2004-06-29 20:59:43  peter
+    * don't allow assigned(tobject) anymore, it is useless since it
+      is always true
+
+  Revision 1.159  2004/06/28 14:38:36  michael
   + Patch from peter to fix typinfo for classes
 
   Revision 1.158  2004/06/20 08:55:30  florian
