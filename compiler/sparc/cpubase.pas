@@ -578,7 +578,7 @@ const
   max_operands = 3;
   maxintregs = maxvarregs;
   maxfpuregs = maxfpuvarregs;
-
+  max_scratch_regs=8;
 
 
 FUNCTION is_calljmp(o:tasmop):boolean;
@@ -663,7 +663,10 @@ END.
 
 {
   $Log$
-  Revision 1.27  2003-04-23 13:35:39  peter
+  Revision 1.28  2003-04-28 09:46:30  mazen
+  + max_scratch_regs variable added because requested by common compiler code
+
+  Revision 1.27  2003/04/23 13:35:39  peter
     * fix sparc compile
 
   Revision 1.26  2003/04/23 12:35:35  florian
