@@ -34,6 +34,9 @@ Implementation
 Uses
   globtype,systems,
   globals,verbose,hcodegen,
+{$ifdef finaldestdebug}
+  cobjects,
+{$endif finaldestdebug}
   cpubase,cpuasm,DAOpt386;
 
 Function RegUsedAfterInstruction(Reg: TRegister; p: Pai; Var UsedRegs: TRegSet): Boolean;
@@ -57,7 +60,25 @@ Var
 
   UsedRegs, TmpUsedRegs: TRegSet;
 
-  Procedure GetFinalDestination(hp: paicpu);
+  Function SkipLabels(hp: Pai; var hp2: pai): boolean;
+  {skips all labels and returns the next "real" instruction}
+  Begin
+    While assigned(hp^.next) and
+          (pai(hp^.next)^.typ In SkipInstr + [ait_label,ait_align]) Do
+      hp := pai(hp^.next);
+    If assigned(hp^.next) Then
+      Begin
+        SkipLabels := True;
+        hp2 := pai(hp^.next)
+      End
+    Else
+      Begin
+        hp2 := hp;
+        SkipLabels := False
+      End;
+  End;
+
+  Procedure GetFinalDestination(AsmL: PAAsmOutput; hp: paicpu);
   {traces sucessive jumps to their final destination and sets it, e.g.
    je l1                je l3
    <code>               <code>
@@ -67,18 +88,21 @@ Var
    l2:                  l2:
    jmp l3               jmp l3}
 
-  Var p1: pai;
+  Var p1, p2: pai;
+      l: pasmlabel;
 
-    Function SkipLabels(hp: Pai): Pai;
-    {skips all labels and returns the next "real" instruction; it is
-     assumed that hp is of the type ait_label}
+    Function FindAnyLabel(hp: pai; var l: pasmlabel): Boolean;
     Begin
+      FindAnyLabel := false;
       While assigned(hp^.next) and
-            (pai(hp^.next)^.typ In SkipInstr + [ait_label]) Do
+            (pai(hp^.next)^.typ In (SkipInstr+[ait_align])) Do
         hp := pai(hp^.next);
-      If assigned(hp^.next)
-        Then SkipLabels := pai(hp^.next)
-        Else SkipLabels := hp;
+      If assigned(hp^.next) and
+         (pai(hp^.next)^.typ = ait_label) Then
+        Begin
+          FindAnyLabel := true;
+          l := pai_label(hp^.next)^.l;
+        End
     End;
 
   Begin
@@ -87,16 +111,57 @@ Var
        Assigned(LTable^[pasmlabel(hp^.oper[0].sym)^.labelnr-LoLab].PaiObj) Then
       Begin
         p1 := LTable^[pasmlabel(hp^.oper[0].sym)^.labelnr-LoLab].PaiObj; {the jump's destination}
-        p1 := SkipLabels(p1);
+        SkipLabels(p1,p1);
         If (pai(p1)^.typ = ait_instruction) and
-           (paicpu(p1)^.is_jmp) and
-           (paicpu(p1)^.condition = hp^.condition) Then
-          Begin
-            GetFinalDestination(paicpu(p1));
-            Dec(pasmlabel(hp^.oper[0].sym)^.refs);
-            hp^.oper[0].sym:=paicpu(p1)^.oper[0].sym;
-            inc(pasmlabel(hp^.oper[0].sym)^.refs);
-          End;
+           (paicpu(p1)^.is_jmp) Then
+          If { the next instruction after the label where the jump hp arrives}
+             { is unconditional or of the same type as hp, so continue       }
+             (paicpu(p1)^.condition in [C_None,hp^.condition]) or
+             { the next instruction after the label where the jump hp arrives}
+             { is the opposite of hp (so this one is never taken), but after }
+             { that one there is a branch that will be taken, so perform a   }
+             { little hack: set p1 equal to this instruction (that's what the}
+             { last SkipLabels is for, only works with short bool evaluation)}
+             ((paicpu(p1)^.condition = inverse_cond[hp^.condition]) and
+              SkipLabels(p1,p2) and
+              (p2^.typ = ait_instruction) and
+              (paicpu(p2)^.is_jmp) and
+              (paicpu(p2)^.condition in [C_None,hp^.condition]) and
+              SkipLabels(p1,p1)) Then
+            Begin
+              GetFinalDestination(asml, paicpu(p1));
+              Dec(pasmlabel(hp^.oper[0].sym)^.refs);
+              hp^.oper[0].sym:=paicpu(p1)^.oper[0].sym;
+              inc(pasmlabel(hp^.oper[0].sym)^.refs);
+            End
+          Else
+            If (paicpu(p1)^.condition = inverse_cond[hp^.condition]) then
+              if not FindAnyLabel(p1,l) then
+                begin
+  {$ifdef finaldestdebug}
+                  insertllitem(asml,p1,p1^.next,new(pai_asm_comment,init(
+                    strpnew('previous label inserted'))));
+  {$endif finaldestdebug}
+                  getlabel(l);
+                  insertllitem(asml,p1,p1^.next,new(pai_label,init(l)));
+                  dec(pasmlabel(paicpu(hp)^.oper[0].sym)^.refs);
+                  hp^.oper[0].sym := l;
+                  inc(l^.refs);
+  {               this won't work, since the new label isn't in the labeltable }
+  {               so it will fail the rangecheck. Labeltable should become a   }
+  {               hashtable to support this:                                   }
+  {               GetFinalDestination(asml, hp);                               }
+                end
+              else
+                begin
+  {$ifdef finaldestdebug}
+                  insertllitem(asml,p1,p1^.next,new(pai_asm_comment,init(
+                    strpnew('next label reused'))));
+  {$endif finaldestdebug}
+                  inc(l^.refs);
+                  hp^.oper[0].sym := l;
+                  GetFinalDestination(asml, hp);
+                end;
       End;
   End;
 
@@ -173,41 +238,45 @@ Begin
                   End;
                If GetNextInstruction(p, hp1) then
                  Begin
-                   If (pai(hp1)^.typ=ait_instruction) and
-                      (paicpu(hp1)^.opcode=A_JMP) and
-                      GetNextInstruction(hp1, hp2) And
-                      FindLabel(PAsmLabel(paicpu(p)^.oper[0].sym), hp2)
-                     Then
-                       Begin
-                         if paicpu(p)^.opcode=A_Jcc then
-                          paicpu(p)^.condition:=inverse_cond[paicpu(p)^.condition]
+                   if FindLabel(pasmlabel(paicpu(p)^.oper[0].sym), hp1) then
+                     Begin
+                       hp2:=pai(hp1^.next);
+                       asml^.remove(p);
+                       dispose(p,done);
+                       p:=hp2;
+                       continue;
+                     end
+                   Else
+                     Begin
+                       if hp1^.typ = ait_label then
+                         SkipLabels(hp1,hp1);
+                       If (pai(hp1)^.typ=ait_instruction) and
+                          (paicpu(hp1)^.opcode=A_JMP) and
+                          GetNextInstruction(hp1, hp2) And
+                          FindLabel(PAsmLabel(paicpu(p)^.oper[0].sym), hp2)
+                         Then
+                           Begin
+                             if paicpu(p)^.opcode=A_Jcc then
+                              paicpu(p)^.condition:=inverse_cond[paicpu(p)^.condition]
+                             else
+                              begin
+                                If (LabDif <> 0) Then
+                                  GetFinalDestination(asml, paicpu(p));
+                                p:=pai(p^.next);
+                                continue;
+                              end;
+                             Dec(pai_label(hp2)^.l^.refs);
+                             paicpu(p)^.oper[0].sym:=paicpu(hp1)^.oper[0].sym;
+                             Inc(paicpu(p)^.oper[0].sym^.refs);
+                             asml^.remove(hp1);
+                             dispose(hp1,done);
+                             If (LabDif <> 0) Then
+                               GetFinalDestination(asml, paicpu(p));
+                           end
                          else
-                          begin
-                            If (LabDif <> 0) Then
-                              GetFinalDestination(paicpu(p));
-                            p:=pai(p^.next);
-                            continue;
-                          end;
-                         Dec(pai_label(hp2)^.l^.refs);
-                         paicpu(p)^.oper[0].sym:=paicpu(hp1)^.oper[0].sym;
-                         Inc(paicpu(p)^.oper[0].sym^.refs);
-                         asml^.remove(hp1);
-                         dispose(hp1,done);
-                         If (LabDif <> 0) Then
-                           GetFinalDestination(paicpu(p));
-                       end
-                     else
-                       if FindLabel(pasmlabel(paicpu(p)^.oper[0].sym), hp1) then
-                         Begin
-                           hp2:=pai(hp1^.next);
-                           asml^.remove(p);
-                           dispose(p,done);
-                           p:=hp2;
-                           continue;
-                         end
-                       Else
-                         If (LabDif <> 0) Then
-                           GetFinalDestination(paicpu(p));
+                           If (LabDif <> 0) Then
+                             GetFinalDestination(asml, paicpu(p));
+                     end;
                  end
              end
             else
@@ -1603,7 +1672,12 @@ End.
 
 {
  $Log$
- Revision 1.67  1999-11-06 14:34:23  peter
+ Revision 1.68  1999-11-06 16:24:00  jonas
+   * getfinaldestination works completely again (a lot of functionality
+     got lost in the conversion resulting from the removal of
+     ait_labeled_instruction)
+
+ Revision 1.67  1999/11/06 14:34:23  peter
    * truncated log to 20 revs
 
  Revision 1.66  1999/09/27 23:44:55  peter
