@@ -441,12 +441,17 @@ interface
               else
                 tg.UnGetTemp(exprasmlist,tempinfo^.loc.ref);
             end;
+          LOC_CREGISTER,
           LOC_REGISTER:
             begin
               if release_to_normal then
                 tempinfo^.loc.loc := LOC_REGISTER
               else
                 begin
+                  { make sure the register allocator doesn't reuse the }
+                  { register e.g. in the middle of a loop              }
+                  cg.a_load_reg_reg(exprasmlist,OS_INT,OS_INT,tempinfo^.loc.reg,
+                    tempinfo^.loc.reg);
                   { !!tell rgobj this register is no longer a regvar!! }
                   cg.ungetregister(exprasmlist,tempinfo^.loc.reg);
                 end;
@@ -466,7 +471,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2004-02-03 17:55:50  jonas
+  Revision 1.54  2004-02-03 19:48:06  jonas
+    * fixed and re-enabled temps in registers
+
+  Revision 1.53  2004/02/03 17:55:50  jonas
     * cleanup
 
   Revision 1.52  2004/02/03 16:46:51  jonas
