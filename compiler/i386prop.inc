@@ -13,7 +13,7 @@
 (Ch: (Ch_Wop2, Ch_WFlags, Ch_Rop1)),
 (Ch: (Ch_Wop2, Ch_WFlags, Ch_Rop1)),
 (Ch: (Ch_MOp1, Ch_None, Ch_None)),
-(Ch: (Ch_WFlags, Ch_Rop1, Ch_None)),
+(Ch: (Ch_WFlags, Ch_Rop1, Ch_Rop2)),
 (Ch: (Ch_Mop2, Ch_Rop1, Ch_WFlags)),
 (Ch: (Ch_Mop2, Ch_Rop1, Ch_WFlags)),
 (Ch: (Ch_Mop2, Ch_Rop1, Ch_WFlags)),
@@ -467,9 +467,3 @@
 (Ch: (Ch_All, Ch_None, Ch_None)),
 (Ch: (Ch_All, Ch_None, Ch_None))
 );
-{
-  $Log$
-  Revision 1.2  2000-07-13 11:32:42  michael
-  + removed logs
- 
-}

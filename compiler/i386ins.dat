@@ -141,7 +141,7 @@ reg32,reg32           \321\301\2\x0F\xBD\110          386
 reg32                 \321\1\x0F\10\xC8               486
 
 [BT,btX]
-(Ch_WFlags, Ch_Rop1, Ch_None)
+(Ch_WFlags, Ch_Rop1, Ch_Rop2)
 mem,reg16             \320\300\2\x0F\xA3\101          386,SM
 reg16,reg16           \320\300\2\x0F\xA3\101          386
 mem,reg32             \321\300\2\x0F\xA3\101          386,SM
