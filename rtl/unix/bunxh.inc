@@ -19,12 +19,13 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
      TFilDes = Array [0..1] of cInt;
      pFilDes = ^TFilDes;
 
-    Function  fpfdaddset   (var nset : TFDSet;fdno:cint): cint;
-    Function  fpfddelset   (var nset : TFDSet;fdno:cint): cint;
-    Function  fpfdemptyset (var nset : TFDSet):cint;
-    Function  fpfdfillset  (var nset : TFDSet):cint;
-    Function  fpfdismember (const nset : TFDSet;fdno:cint): cint;
+    Function  fpFD_SET     (fdno:cint;var nset : TFDSet): cint;
+    Function  fpFD_CLR     (fdno:cint;var nset : TFDSet): cint;
+    Function  fpFD_ZERO    (var nset : TFDSet):cint;
+    Function  fpFD_ISSET   (fdno:cint;const nset : TFDSet): cint;
 
+    Function  fpfdfillset  (var nset : TFDSet):cint;
+ 
     Function  FpsigEmptySet(var nset : TSigSet): cint;
     Function  FpSigFillSet (var nset : TSigSet): cInt;
     Function  FpSigAddSet  (var nset : TSigSet; signo : cInt): cInt;
@@ -117,7 +118,10 @@ Type TGrpArr = Array [0..0] of TGid;		{ C style array workarounds}
 
 {
   $Log$
-  Revision 1.4  2003-09-14 20:15:01  marco
+  Revision 1.5  2003-09-16 16:13:56  marco
+   * fdset functions renamed to fp<posix name>
+
+  Revision 1.4  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.3  2003/06/01 16:28:41  marco

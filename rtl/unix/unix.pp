@@ -953,8 +953,8 @@ begin
      LinuxError:=ESysEBADF;
      exit(-1);
    end;
-  Fpfdemptyset(f);
-  fpfdaddset(f,textrec(T).handle);
+  FpFD_ZERO(f);
+  fpFD_SET(textrec(T).handle,f);
   if textrec(T).mode=fminput then
    SelectText:=fpselect(textrec(T).handle+1,@f,nil,nil,TimeOut)
   else
@@ -2155,7 +2155,10 @@ End.
 
 {
   $Log$
-  Revision 1.32  2003-09-15 20:08:49  marco
+  Revision 1.33  2003-09-16 16:13:56  marco
+   * fdset functions renamed to fp<posix name>
+
+  Revision 1.32  2003/09/15 20:08:49  marco
    * small fixes. FreeBSD now cycles
 
   Revision 1.31  2003/09/14 20:15:01  marco

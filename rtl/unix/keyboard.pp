@@ -289,8 +289,8 @@ begin
    sysKeyPressed:=true
   else
    begin
-     fpfdemptyset(fdsin);
-     fpfdaddset(fdsin,StdInputHandle);
+     fpFD_ZERO(fdsin);
+     fpFD_SET(StdInputHandle,fdsin);
      sysKeypressed:=(fpSelect(StdInputHandle+1,@fdsin,nil,nil,0)>0);
    end;
 end;
@@ -333,8 +333,8 @@ Const
       ch : char;
       fdsin : tfdSet;
   begin
-    fpfdemptyset(fdsin);
-    fpfdaddset(fdsin,StdInputHandle);
+    fpFD_ZERO(fdsin);
+    fpFD_SET(StdInputHandle,fdsin);
     Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
      if InCnt=0 then
        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
@@ -813,8 +813,8 @@ Begin
 {Wait for Key}
   if not sysKeyPressed then
    begin
-     fpfdemptyset (fdsin);
-     fpfdaddSet (fdsin,StdInputHandle);
+     fpFD_ZERO (fdsin);
+     fpFD_SET (StdInputHandle,fdsin);
      fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
   RawReadKey:=ttyRecvChar;
@@ -828,8 +828,8 @@ Var
   St : String;
 Begin
   St:=RawReadKey;
-  fpfdemptyset (fdsin);
-  fpfdaddSet (fdsin,StdInputHandle);
+  fpFD_ZERO (fdsin);
+  fpFD_SET (StdInputHandle,fdsin);
   Repeat
      if InCnt=0 then
        fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
@@ -917,8 +917,8 @@ Begin
 {Wait for Key}
   if not sysKeyPressed then
    begin
-     fpfdemptyset (fdsin);
-     fpfdaddSet (fdsin,StdInputHandle);
+     fpFD_ZERO (fdsin);
+     fpFD_SET (StdInputHandle,fdsin);
      fpSelect (StdInputHandle+1,@fdsin,nil,nil,nil);
    end;
   ch:=ttyRecvChar;
@@ -928,8 +928,8 @@ Begin
     PushKey(ch)
   else
     begin
-     fpfdemptyset(fdsin);
-     fpfdaddSet(fdsin,StdInputHandle);
+     fpFD_ZERO(fdsin);
+     fpFD_SET(StdInputHandle,fdsin);
      store[0]:=ch;
      arrayind:=1;
       while assigned(NPT) and syskeypressed do
@@ -983,8 +983,8 @@ Begin
 {Esc Found ?}
   If (ch=#27) then
    begin
-     fpfdemptyset(fdsin);
-     fpfdaddSet(fdsin,StdInputHandle);
+     fpFD_ZERO(fdsin);
+     fpFD_SET(StdInputHandle,fdsin);
      State:=1;
      store[0]:=#27;
      arrayind:=1;
@@ -1532,7 +1532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2003-09-14 20:15:01  marco
+  Revision 1.15  2003-09-16 16:13:56  marco
+   * fdset functions renamed to fp<posix name>
+
+  Revision 1.14  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.13  2003/03/27 12:52:10  armin

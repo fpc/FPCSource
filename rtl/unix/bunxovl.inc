@@ -283,8 +283,8 @@ begin
      SetErrNo(ESysEBADF);
      exit(-1);
    end;
-  Fpfdemptyset(f);
-  fpfdaddset(f,textrec(T).handle);
+  FpFD_ZERO(f);
+  fpFD_SET(textrec(T).handle,f);
   if textrec(T).mode=fminput then
    fpselect:=fpselect(textrec(T).handle+1,@f,nil,nil,TimeOut)
   else
@@ -310,7 +310,10 @@ end;
 
 {
  $Log$
- Revision 1.3  2003-09-14 20:15:01  marco
+ Revision 1.4  2003-09-16 16:13:56  marco
+  * fdset functions renamed to fp<posix name>
+
+ Revision 1.3  2003/09/14 20:15:01  marco
   * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
  Revision 1.2  2003/06/01 16:28:41  marco

@@ -903,8 +903,8 @@ begin
    sysKeyPressed:=true
   else
    begin
-     FPfdEmptyset(fdsin);
-     Fpfdaddset(fdsin,TTYin);
+     fpFD_ZERO(fdsin);
+     fpFD_SET(TTYin,fdsin);
      sysKeypressed:=(fpSelect(TTYIn+1,@fdsin,nil,nil,0)>0);
    end;
 end;
@@ -931,8 +931,8 @@ Begin
 { Only if none are waiting! (JM) }
   if not sysKeyPressed then
     begin
-      Fpfdemptyset (FDS);
-      fpfdaddset (FDS,0);
+      FpFD_ZERO (FDS);
+      fpFD_SET (0,FDS);
       fpSelect (1,@FDS,nil,nil,nil);
     end;
 
@@ -1581,8 +1581,8 @@ begin
   y:=0;
   s:=#27'[6n';
   fpWrite(0,s[1],length(s));
-  fpFDemptyset(fds);
-  fpfdaddset(fds,1);
+  fpFD_ZERO(fds);
+  fpFD_SET(1,fds);
   if (Select(2,@fds,nil,nil,1000)>0) then
    begin
      readed:=fpRead(1,buf,sizeof(buf));
@@ -1682,7 +1682,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.11  2003-09-14 20:15:01  marco
+  Revision 1.12  2003-09-16 16:13:56  marco
+   * fdset functions renamed to fp<posix name>
+
+  Revision 1.11  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.10  2002/09/07 16:01:27  peter

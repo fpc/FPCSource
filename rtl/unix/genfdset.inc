@@ -15,31 +15,31 @@
 
 **********************************************************************}
 
-function fpfdaddset(var nset : TFDSet;fdno:cint): cint;
+function fpFD_SET(fdno:cint;var nset : TFDSet): cint;
 
 Begin
    if (fdno<=0) or (fdno > FD_MAXFDSET) Then
        exit(-1);
    nset[(fdno-1) shr ln2bitsinword]:=nset[(fdno-1) shr ln2bitsinword] OR (1 shl ((fdno-1) and ln2bitmask));
-   fpfdaddset:=0;
+   fpFD_SET:=0;
 End;   
 
-function fpfddelset(var nset : TFDSet;fdno:cint): cint;
+function fpFD_CLR(fdno:cint;var nset : TFDSet): cint;
 
 Begin
    if (fdno<=0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
    nset[(fdno-1) shr ln2bitsinword]:=nset[(fdno-1) shr ln2bitsinword] AND NOT (1 shl ((fdno-1) and ln2bitmask));
-   fpfddelset:=0;
+   fpFD_CLR:=0;
 End;
 
-function fpfdemptyset(var nset : TFDSet):cint;
+function fpFD_ZERO(var nset : TFDSet):cint;
 
 var i :longint;
 
 Begin
   for i:=0 to wordsinsigset-1 DO nset[i]:=0;
-  fpfdemptyset:=0;
+  fpFD_ZERO:=0;
 End;
 
 function fpfdfillset(var nset : TFDSet):cint;
@@ -51,20 +51,23 @@ Begin
   fpfdfillset:=0;
 End;
 
-function fpfdismember(const nset : TFDSet;fdno:cint): cint;
+function fpFD_ISSET(fdno:cint;const nset : TFDSet): cint;
 
 Begin
    if (fdno<=0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
     if ((nset[(fdno-1) shr ln2bitsinword]) and (1 shl ((fdno-1) and ln2bitmask)))>0 Then
-     fpfdismember:=1
+     fpFD_ISSET:=1
     else 
-     fpfdismember:=0;
+     fpFD_ISSET:=0;
 End;      
 
 {
    $Log$
-   Revision 1.1  2003-09-14 20:16:48  marco
+   Revision 1.2  2003-09-16 16:13:56  marco
+    * fdset functions renamed to fp<posix name>
+
+   Revision 1.1  2003/09/14 20:16:48  marco
     * new files unixreform
 
    Revision 1.3  2003/06/01 16:28:41  marco

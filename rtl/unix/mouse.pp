@@ -344,8 +344,8 @@ begin
    exit(false);
   if gpm_fs>0 then
     begin
-      fpfdemptyset(fds);
-      fpFDaddset(fds,gpm_fs);
+      fpFD_ZERO(fds);
+      fpFD_SET(gpm_fs,fds);
     end;
   if (fpSelect(gpm_fs+1,@fds,nil,nil,1)>0) then
    begin
@@ -418,7 +418,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2003-09-14 20:15:01  marco
+  Revision 1.11  2003-09-16 16:13:56  marco
+   * fdset functions renamed to fp<posix name>
+
+  Revision 1.10  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.
 
   Revision 1.9  2002/10/14 18:37:15  peter
