@@ -204,12 +204,14 @@
       if assigned(sym) then
         begin
            name := sym^.name;
-{$ifdef NEWINPUT}       
+{$ifdef NEWINPUT}
+
 
            sym_line_no:=sym^.fileinfo.line;
 {$else}
            sym_line_no:=sym^.line_no;
-{$endif}        
+{$endif}
+
 
         end
       else
@@ -853,22 +855,22 @@
     procedure tfiledef.setsize;
       begin
 {$ifdef i386}
-
          case target_info.target of
-            target_LINUX:
-           begin
-              case filetype of
-                 ft_text : savesize:=432;
-                 ft_typed,ft_untyped : savesize:=304;
-              end;
-           end;
-            target_Win32:
-              begin
-                 case filetype of
-                    ft_text : savesize:=434;
-                    ft_typed,ft_untyped : savesize:=306;
-                 end;
-           end
+      target_LINUX : begin
+                       case filetype of
+                     ft_text : savesize:=432;
+                    ft_typed,
+                  ft_untyped : savesize:=304;
+                       end;
+                     end;
+      target_Win32 : begin
+                       case filetype of
+                     ft_text : savesize:=434;
+                    ft_typed,
+                  ft_untyped : savesize:=306;
+                       end;
+                     end;
+
          else
            begin
               case filetype of
@@ -876,16 +878,28 @@
                  ft_typed,ft_untyped : savesize:=128;
               end;
            end;
-      end;
+         end;
 {$endif}
 {$ifdef m68k}
-        case filetype of
-          ft_text : savesize:=256;
-         ft_typed,
-       ft_untyped : savesize:=128;
-        end;
-{$endif}
+         case target_info.target of
+      target_Amiga,
+     target_Mac68k : begin
+                       case filetype of
+                     ft_text : savesize:=434;
+                    ft_typed,
+                  ft_untyped : savesize:=306;
+                       end;
+                     end;
 
+         else
+           begin
+              case filetype of
+                 ft_text : savesize:=256;
+                 ft_typed,ft_untyped : savesize:=128;
+              end;
+           end;
+         end;
+{$endif}
       end;
 
 
@@ -1051,12 +1065,14 @@
                 if assigned(sym) then
                   begin
                      st := sym^.name;
-{$ifdef NEWINPUT}       
+{$ifdef NEWINPUT}
+
 
                      sym_line_no:=sym^.fileinfo.line;
 {$else}
                      sym_line_no:=sym^.line_no;
-{$endif}        
+{$endif}
+
 
                   end
                 else
@@ -2658,9 +2674,8 @@
 
 {
   $Log$
-  Revision 1.17  1998-07-10 00:00:03  peter
-    * fixed ttypesym bug finally
-    * fileinfo in the symtable and better using for unused vars
+  Revision 1.18  1998-07-10 10:51:04  peter
+    * m68k updates
 
   Revision 1.16  1998/07/07 11:20:13  peter
     + NEWINPUT for a better inputfile and scanner object

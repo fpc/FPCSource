@@ -53,7 +53,13 @@ unit ag68kgas;
       line_length = 70;
 
     var
+{$ifdef NEWINPUT}
+      infile : pinputfile;
+{$else}
+
       infile : pextfile;
+{$endif}
+
       includecount,lastline : longint;
 
     function double2str(d : double) : string;
@@ -207,10 +213,10 @@ unit ag68kgas;
 
     var
 {$ifdef GDB}
-
        n_line : byte;
 {$endif}
        lastsec : tsection;
+       lastsecidx : longint;
 
 
     const
@@ -246,9 +252,14 @@ unit ag68kgas;
 {$ifdef GDB}
          if cs_debuginfo in aktswitches then
           begin
-            if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,ait_stab_function_name]) then
+            if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,
+                   ait_label,ait_cut,ait_align,ait_stab_function_name]) then
              begin
+{$ifdef NEWINPUT}
+               if assigned(hp^.infile) and (pinputfile(hp^.infile)<>infile)  then
+{$else}
                if assigned(hp^.infile) and (pextfile(hp^.infile)<>infile)  then
+{$endif NEWINPUT}
                 begin
                   infile:=hp^.infile;
                   inc(includecount);
@@ -331,10 +342,6 @@ unit ag68kgas;
                      end;
    ait_const_32bit, { alignment is required for 16/32 bit data! }
    ait_const_16bit:  begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
                        AsmWrite(ait_const2str[hp^.typ]+tostr(pai_const(hp)^.value));
                        consttyp:=hp^.typ;
                        l:=0;
@@ -367,39 +374,19 @@ unit ag68kgas;
                        AsmLn;
                      end;
   ait_const_symbol : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
                        AsmWriteLn(#9'.long'#9+StrPas(pchar(pai_const(hp)^.value)));
                      end;
     ait_real_64bit : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
                       AsmWriteLn(#9'.double'#9+double2str(pai_double(hp)^.value));
                      end;
     ait_real_32bit : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
                       AsmWriteLn(#9'.single'#9+double2str(pai_single(hp)^.value));
                      end;
  ait_real_extended : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
                       AsmWriteLn(#9'.extend'#9+double2str(pai_extended(hp)^.value));
                      { comp type is difficult to write so use double }
                      end;
           ait_comp : Begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
                        AsmWriteLn(#9'.double'#9+comp2str(pai_extended(hp)^.value));
                      end;
         ait_direct : begin
@@ -443,6 +430,15 @@ unit ag68kgas;
                         end;
                      end;
          ait_label : begin
+                       if assigned(hp^.next) and (pai(hp^.next)^.typ in
+                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,
+                           ait_real_64bit,ait_real_32bit,ait_string]) then
+                        begin
+                          if not(cs_littlesize in aktswitches) then
+                           AsmWriteLn(#9#9'.align 4')
+                          else
+                           AsmWriteLn(#9#9'.align 2');
+                        end;
                        if (pai_label(hp)^.l^.is_used) then
                         AsmWriteLn(lab2str(pai_label(hp)^.l)+':');
                      end;
@@ -475,10 +471,14 @@ ait_labeled_instruction : begin
                      end;
    ait_instruction : begin
                        { old versions of GAS don't like PEA.L and LEA.L }
-                       if (pai68k(hp)^._operator <> A_LEA) and (pai68k(hp)^._operator<> A_PEA) then
-                           s:=#9+mot_op2str[pai68k(hp)^._operator]+gas_opsize2str[pai68k(hp)^.size]
+                       if (pai68k(hp)^._operator in [
+                            A_LEA,A_PEA,A_ABCD,A_BCHG,A_BCLR,A_BSET,A_BTST,
+                            A_EXG,A_NBCD,A_SBCD,A_SWAP,A_TAS,A_SCC,A_SCS,
+                            A_SEQ,A_SGE,A_SGT,A_SHI,A_SLE,A_SLS,A_SLT,A_SMI,
+                            A_SNE,A_SPL,A_ST,A_SVC,A_SVS,A_SF]) then
+                        s:=#9+mot_op2str[pai68k(hp)^._operator]
                        else
-                           s:=#9+mot_op2str[pai68k(hp)^._operator];
+                        s:=#9+mot_op2str[pai68k(hp)^._operator]+mit_opsize2str[pai68k(hp)^.size];
                        if pai68k(hp)^.op1t<>top_none then
                         begin
                         { call and jmp need an extra handling                          }
@@ -526,21 +526,27 @@ ait_labeled_instruction : begin
                      end;
 ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 {$endif GDB}
-{$ifdef SMARTLINK}
-           ait_cut : begin { used to split into tiny assembler files }
-                       if (cs_smartlink in aktswitches) then
+           ait_cut : begin
+                     { create only a new file when the last is not empty }
+                       if AsmSize>0 then
                         begin
                           AsmClose;
                           DoAssemble;
                           AsmCreate;
-                          AsmWriteLn(ait_section2str[lastsec]);
-                        { avoid empty files }
-                          while assigned(hp^.next) and (pai(hp^.next)^.typ=ait_cut) do
-                           hp:=pai(hp^.next);
                         end;
+                     { avoid empty files }
+                       while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
+                        begin
+                          if pai(hp^.next)^.typ=ait_section then
+                           begin
+                             lastsec:=pai_section(hp^.next)^.sec;
+                             lastsecidx:=pai_section(hp^.next)^.idataidx;
+                           end;
+                          hp:=pai(hp^.next);
+                        end;
+                       if lastsec<>sec_none then
+                         AsmWriteLn(ait_section2str[lastsec,lastsecidx]);
                      end;
-{$endif SMARTLINK}
-
          else
           internalerror(10000);
          end;
@@ -584,8 +590,13 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
        end;
       infile:=current_module^.sourcefiles.files;
     { main source file is last in list }
+{$ifdef NEWINPUT}
+      while assigned(infile^.next) do
+       infile:=infile^.next;
+{$else}
       while assigned(infile^._next) do
        infile:=infile^._next;
+{$endif}
       lastline:=0;
 {$endif GDB}
 
@@ -612,7 +623,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.5  1998-06-05 17:46:04  peter
+  Revision 1.6  1998-07-10 10:50:54  peter
+    * m68k updates
+
+  Revision 1.5  1998/06/05 17:46:04  peter
     * tp doesn't like comp() typecast
 
   Revision 1.4  1998/06/04 23:51:28  peter

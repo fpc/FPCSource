@@ -55,7 +55,13 @@ unit ag68kmit;
 
 {$ifdef GDB}
     var
+{$ifdef NEWINPUT}
+      infile : pinputfile;
+{$else}
+
       infile : pextfile;
+{$endif}
+
       includecount,
       lastline : longint;
 {$endif GDB}
@@ -250,6 +256,7 @@ unit ag68kmit;
       n_line  : byte;     { different types of source lines }
 {$endif}
       lastsec : tsection; { last section type written }
+      lastsecidx : longint;
 
     const
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
@@ -284,9 +291,14 @@ unit ag68kmit;
 {$ifdef GDB}
          if cs_debuginfo in aktswitches then
           begin
-            if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,ait_stab_function_name]) then
+            if not (hp^.typ in  [ait_external,ait_stabn,ait_stabs,
+                   ait_label,ait_cut,ait_align,ait_stab_function_name]) then
              begin
+{$ifdef NEWINPUT}
+               if assigned(hp^.infile) and (pinputfile(hp^.infile)<>infile)  then
+{$else}
                if assigned(hp^.infile) and (pextfile(hp^.infile)<>infile)  then
+{$endif NEWINPUT}
                 begin
                   infile:=hp^.infile;
                   inc(includecount);
@@ -367,10 +379,6 @@ unit ag68kmit;
                      end;
    ait_const_32bit, { alignment is required for 16/32 bit data! }
    ait_const_16bit:  begin
-                      if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9#9'.align 4')
-                      else
-                          AsmWriteLn(#9#9'.align 2');
                        AsmWrite(ait_const2str[hp^.typ]+tostr(pai_const(hp)^.value));
                        consttyp:=hp^.typ;
                        l:=0;
@@ -402,42 +410,20 @@ unit ag68kmit;
                        until (not found) or (l>line_length);
                        AsmLn;
                      end;
-  ait_const_symbol : begin
-                       if not(cs_littlesize in aktswitches) then
-                         AsmWriteLn(#9#9'.align 4')
-                       else
-                         AsmWriteLn(#9#9'.align 2');
-                       AsmWrite(#9'.long'#9);
-                       AsmWritePChar(pchar(pai_const(hp)^.value));
-                       AsmLn;
+  ait_const_symbol : Begin
+                       AsmWriteLn(#9'.long'#9+StrPas(pchar(pai_const(hp)^.value)));
                      end;
     ait_real_64bit : Begin
-                       if not(cs_littlesize in aktswitches) then
-                         AsmWriteLn(#9#9'.align 4')
-                       else
-                         AsmWriteLn(#9#9'.align 2');
                        AsmWriteLn(#9'.double'#9+double2str(pai_double(hp)^.value));
                      end;
     ait_real_32bit : Begin
-                       if not(cs_littlesize in aktswitches) then
-                         AsmWriteLn(#9#9'.align 4')
-                       else
-                         AsmWriteLn(#9#9'.align 2');
                        AsmWriteLn(#9'.single'#9+double2str(pai_single(hp)^.value));
                      end;
  ait_real_extended : Begin
-                       if not(cs_littlesize in aktswitches) then
-                         AsmWriteLn(#9#9'.align 4')
-                       else
-                         AsmWriteLn(#9#9'.align 2');
                        AsmWriteLn(#9'.extend'#9+double2str(pai_extended(hp)^.value));
                      { comp type is difficult to write so use double }
                      end;
           ait_comp : Begin
-                       if not(cs_littlesize in aktswitches) then
-                         AsmWriteLn(#9#9'.align 4')
-                       else
-                         AsmWriteLn(#9#9'.align 2');
                        AsmWriteLn(#9'.double'#9+comp2str(pai_extended(hp)^.value));
                      end;
         ait_direct : begin
@@ -481,6 +467,15 @@ unit ag68kmit;
                         end;
                      end;
          ait_label : begin
+                       if assigned(hp^.next) and (pai(hp^.next)^.typ in
+                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,
+                           ait_real_64bit,ait_real_32bit,ait_string]) then
+                        begin
+                          if not(cs_littlesize in aktswitches) then
+                           AsmWriteLn(#9#9'.align 4')
+                          else
+                           AsmWriteLn(#9#9'.align 2');
+                        end;
                        if (pai_label(hp)^.l^.is_used) then
                         AsmWriteLn(lab2str(pai_label(hp)^.l)+':');
                      end;
@@ -568,6 +563,27 @@ ait_labeled_instruction : begin
                      end;
 ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 {$endif GDB}
+           ait_cut : begin
+                     { create only a new file when the last is not empty }
+                       if AsmSize>0 then
+                        begin
+                          AsmClose;
+                          DoAssemble;
+                          AsmCreate;
+                        end;
+                     { avoid empty files }
+                       while assigned(hp^.next) and (pai(hp^.next)^.typ in [ait_cut,ait_section,ait_comment]) do
+                        begin
+                          if pai(hp^.next)^.typ=ait_section then
+                           begin
+                             lastsec:=pai_section(hp^.next)^.sec;
+                             lastsecidx:=pai_section(hp^.next)^.idataidx;
+                           end;
+                          hp:=pai(hp^.next);
+                        end;
+                       if lastsec<>sec_none then
+                         AsmWriteLn(ait_section2str[lastsec,lastsecidx]);
+                     end;
          else
           internalerror(10000);
          end;
@@ -611,8 +627,13 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
        end;
       infile:=current_module^.sourcefiles.files;
     { main source file is last in list }
+{$ifdef NEWINPUT}
+      while assigned(infile^.next) do
+       infile:=infile^.next;
+{$else}
       while assigned(infile^._next) do
        infile:=infile^._next;
+{$endif}
       lastline:=0;
 {$endif GDB}
 
@@ -639,7 +660,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.5  1998-06-05 17:46:05  peter
+  Revision 1.6  1998-07-10 10:50:55  peter
+    * m68k updates
+
+  Revision 1.5  1998/06/05 17:46:05  peter
     * tp doesn't like comp() typecast
 
   Revision 1.4  1998/06/04 23:51:29  peter

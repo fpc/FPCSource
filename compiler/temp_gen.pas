@@ -106,10 +106,19 @@ unit temp_gen;
     procedure setfirsttemp(l : longint);
 
       begin
-         { generates problems
-         if (l mod 4 <> 0) then dec(l,l mod 4);}
+         { this is a negative value normally }
+         if l < 0 then
+          Begin
+            if odd(l) then
+             Dec(l);
+          end
+         else
+          Begin
+            if odd(l) then
+             Inc(l);
+          end;
          firsttemp:=l;
-         maxtemp := l;
+         maxtemp:=l;
          lastoccupied:=l;
       end;
 
@@ -194,9 +203,21 @@ unit temp_gen;
     function gettempsize : longint;
 
       begin
+{$ifdef i386}
+
          { align local data to dwords }
          if (maxtemp mod 4)<>0 then
            dec(maxtemp,4+(maxtemp mod 4));
+{$endif}
+{$ifdef m68k}   
+
+         { we only push words and we want to stay on }
+         { even stack addresses                      }
+         { maxtemp is negative                       }
+         if (maxtemp mod 2)<>0 then
+           dec(maxtemp);
+{$endif}        
+
          gettempsize:=-maxtemp;
       end;
 
@@ -242,7 +263,8 @@ unit temp_gen;
                      ' at pos '+tostr(pos)+ ' not found !');
 {$endif}
       end;
-      
+
+
     procedure ungetpersistanttemp(pos : longint;size : longint);
       var
          prev,hp : pfreerecord;
@@ -426,7 +448,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-06-08 16:07:41  pierre
+  Revision 1.2  1998-07-10 10:51:05  peter
+    * m68k updates
+
+  Revision 1.1  1998/06/08 16:07:41  pierre
     * temp_gen contains all temporary var functions
       (processor independent)
 

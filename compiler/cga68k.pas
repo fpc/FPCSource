@@ -76,6 +76,10 @@ unit cga68k;
     uses
        systems,globals,verbose,files,types,pbase,
        tgen68k,hcodegen,temp_gen
+{$ifndef OLDPPU}
+       ,ppu
+{$endif}
+
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -1216,7 +1220,10 @@ end;
   end.
 {
   $Log$
-  Revision 1.6  1998-06-08 13:13:39  pierre
+  Revision 1.7  1998-07-10 10:51:01  peter
+    * m68k updates
+
+  Revision 1.6  1998/06/08 13:13:39  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx

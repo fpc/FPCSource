@@ -300,39 +300,19 @@ unit ag68kmot;
                        AsmWriteLn(StrPas(pai_datablock(hp)^.name)+#9#9'DS.B '+tostr(pai_datablock(hp)^.size));
                      end;
    ait_const_32bit : Begin
-                        if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9'CNOP 0,4')
-                        else
-                           AsmWriteLn(#9'CNOP 0,2');
                        AsmWriteLn(#9#9'DC.L'#9+tostr(pai_const(hp)^.value));
                      end;
    ait_const_16bit : Begin
-                        if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9'CNOP 0,4')
-                        else
-                           AsmWriteLn(#9'CNOP 0,2');
                        AsmWriteLn(#9#9'DC.W'#9+tostr(pai_const(hp)^.value));
                      end;
     ait_const_8bit : AsmWriteLn(#9#9'DC.B'#9+tostr(pai_const(hp)^.value));
   ait_const_symbol : Begin
-                        if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9'CNOP 0,4')
-                        else
-                           AsmWriteLn(#9'CNOP 0,2');
                        AsmWriteLn(#9#9+'DC.L '#9+StrPas(pchar(pai_const(hp)^.value)));
                      end;
     ait_real_64bit : Begin
-                        if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9'CNOP 0,4')
-                        else
-                           AsmWriteLn(#9'CNOP 0,2');
                        AsmWriteLn(#9#9'DC.D'#9+double2str(pai_double(hp)^.value));
                      end;
     ait_real_32bit : Begin
-                        if not(cs_littlesize in aktswitches) then
-                           AsmWriteLn(#9'CNOP 0,4')
-                        else
-                           AsmWriteLn(#9'CNOP 0,2');
                        AsmWriteLn(#9#9'DC.S'#9+double2str(pai_single(hp)^.value));
                      end;
 { TO SUPPORT SOONER OR LATER!!!
@@ -411,6 +391,15 @@ unit ag68kmot;
                         AsmLn;
                       end;
           ait_label : begin
+                       if assigned(hp^.next) and (pai(hp^.next)^.typ in
+                          [ait_const_32bit,ait_const_16bit,ait_const_symbol,
+                           ait_real_64bit,ait_real_32bit,ait_string]) then
+                        begin
+                          if not(cs_littlesize in aktswitches) then
+                           AsmWriteLn(#9'CNOP 0,4')
+                          else
+                           AsmWriteLn(#9'CNOP 0,2');
+                        end;
                         AsmWrite(lab2str(pai_label(hp)^.l));
                         if assigned(hp^.next) and not(pai(hp^.next)^.typ in
                            [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
@@ -521,11 +510,9 @@ ait_labeled_instruction :
       Writetree(exportssection);
       Writetree(resourcesection);
 
-
       AsmLn;
       AsmWriteLn(#9'END');
       AsmLn;
-
 
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
@@ -536,7 +523,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.5  1998-06-05 17:46:06  peter
+  Revision 1.6  1998-07-10 10:50:56  peter
+    * m68k updates
+
+  Revision 1.5  1998/06/05 17:46:06  peter
     * tp doesn't like comp() typecast
 
   Revision 1.4  1998/06/04 23:51:30  peter

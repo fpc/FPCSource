@@ -44,7 +44,8 @@ uses    objects,verbose,cobjects,systems,globals,tree,
 {$ifdef GDB}
         ,gdb
 {$endif}
-        ;       
+        ;
+
 { produces assembler for the expression in variable p }
 { and produces an assembler node at the end           }
 procedure generatecode(var p : ptree);
@@ -75,7 +76,8 @@ implementation
 
   uses
     scanner;
-    
+
+
     const
        never_copy_const_param : boolean = false;
        bytes2Sxx:array[1..4] of Topsize=(S_B,S_W,S_NO,S_L);
@@ -345,6 +347,7 @@ implementation
          hl : plabel;
          reg: tregister;
          pushed: boolean;
+         hl1: plabel;
       begin
          secondpass(p^.left);
          set_location(p^.location,p^.left^.location);
@@ -379,11 +382,15 @@ implementation
               getlabel(hl);
               emitl(A_BPL,hl);
               if (power = 1) then
-                 exprasmlist^.concat(new(pai68k, op_const_reg(A_ADDQ, S_L,1, hreg1)));
+                 exprasmlist^.concat(new(pai68k, op_const_reg(A_ADDQ, S_L,1, hreg1)))
+              else
+               Begin
+                 { optimize using ADDQ if possible!   }
               if (p^.right^.value-1) < 9 then
                  exprasmlist^.concat(new(pai68k, op_const_reg(A_ADDQ, S_L,p^.right^.value-1, hreg1)))
               else
                  exprasmlist^.concat(new(pai68k, op_const_reg(A_ADD, S_L,p^.right^.value-1, hreg1)));
+               end;
               emitl(A_LABEL, hl);
               if (power > 0) and (power < 9) then
                  exprasmlist^.concat(new(pai68k, op_const_reg(A_ASR, S_L,power, hreg1)))
@@ -414,9 +421,17 @@ implementation
 
               { on entering this section D1 should contain the divisor }
 
-              if (aktoptprocessor
-                = MC68020) then
+              if (aktoptprocessor = MC68020) then
               begin
+                 { Check if divisor is ZERO - if so call HALT_ERROR }
+                 { with d0 = 200 (Division by zero!)                }
+                 getlabel(hl1);
+                 exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_L,R_D1)));
+                 { if not zero then simply continue on }
+                 emitl(A_BNE,hl1);
+                 exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,200,R_D0)));
+                 emitcall('HALT_ERROR',true);
+                 emitl(A_LABEL,hl1);
                  if (p^.treetype = modn) then
                  Begin
                    reg := getregister32;
@@ -619,7 +634,6 @@ implementation
 
       begin
          { an fix comma const. behaves as a memory reference }
-
          p^.location.loc:=LOC_MEM;
          p^.location.reference.isintvalue:=true;
          p^.location.reference.offset:=p^.valuef;
@@ -1182,8 +1196,7 @@ implementation
                      exprasmlist^.concat(new(pai68k,op_const_reg(A_MULS,S_W,l1,ind)))
                    else
                    { use long MC68020 long multiply }
-                   if (aktoptprocessor
-                    = MC68020) then
+                   if (aktoptprocessor = MC68020) then
                      exprasmlist^.concat(new(pai68k,op_const_reg(A_MULS,S_L,l1,ind)))
                    else
                    { MC68000 long multiply }
@@ -2256,14 +2269,14 @@ implementation
          { !!!!!!!! Rangechecking }
          ref:=false;
          { problems with enums !! }
-         if (cs_rangechecking in aktswitches)  and
            { with $R+ explicit type conversations in TP aren't range checked! }
-           (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
-           (p^.resulttype^.deftype=orddef) and
+         if (p^.resulttype^.deftype=orddef) and
            (hp^.resulttype^.deftype=orddef) and
            ((porddef(p^.resulttype)^.low>porddef(hp^.resulttype)^.low) or
            (porddef(p^.resulttype)^.high<porddef(hp^.resulttype)^.high)) then
            begin
+              if (cs_rangechecking in aktswitches) and
+                 (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) then
               porddef(p^.resulttype)^.genrangecheck;
               if porddef(hp^.resulttype)^.typ=s32bit then
                 begin
@@ -2302,13 +2315,17 @@ implementation
                    exprasmlist^.concat(new(pai68k,op_reg(A_EXT, S_L, hregister)));
                 end
               else internalerror(6);
+
+              if (cs_rangechecking in aktswitches) and
+                 (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) then
+              Begin
               new(hpp);
               reset_reference(hpp^);
               hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
 
 
               emit_bounds_check(hpp^, hregister);
-
+              end;
               p^.location.loc:=LOC_REGISTER;
               p^.location.register:=hregister;
               exit;
@@ -2335,54 +2352,155 @@ implementation
         emit_reg_reg(A_MOVE, S_L, R_A0, P^.location.register);
     end;
 
-   procedure second_bool_to_int(p,hp : ptree;convtyp : tconverttype);
+      procedure second_bool_to_int(p,hp : ptree;convtyp : tconverttype);
 
       var
          oldtruelabel,oldfalselabel,hlabel : plabel;
-
+         hregister : tregister;
+         newsize,
+         opsize : topsize;
+         op     : tasmop;
      begin
          oldtruelabel:=truelabel;
          oldfalselabel:=falselabel;
          getlabel(truelabel);
          getlabel(falselabel);
-        secondpass(hp);
-        p^.location.loc:=LOC_REGISTER;
-        del_reference(hp^.location.reference);
-        p^.location.register:=getregister32;
-        case hp^.location.loc of
-          LOC_MEM,LOC_REFERENCE :
-            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
-              newreference(hp^.location.reference),p^.location.register)));
-          LOC_REGISTER,LOC_CREGISTER :
-            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_B,
-              hp^.location.register,p^.location.register)));
-           LOC_FLAGS:
-            begin
-               exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[hp^.location.resflags],S_NO,
-                 p^.location.register)))
-            end;
-           LOC_JUMP:
-             begin
-                getlabel(hlabel);
-                emitl(A_LABEL,truelabel);
-                exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_B,
-                  1,p^.location.register)));
-                emitl(A_JMP,hlabel);
-                emitl(A_LABEL,falselabel);
-                exprasmlist^.concat(new(pai68k,op_reg(A_CLR,S_B,p^.location.register)));
-                emitl(A_LABEL,hlabel);
-             end;
-        else
+         secondpass(hp);
+         p^.location.loc:=LOC_REGISTER;
+         del_reference(hp^.location.reference);
+         hregister:=getregister32;
+         case porddef(hp^.resulttype)^.typ of
+          bool8bit : begin
+                       case porddef(p^.resulttype)^.typ of
+                     u8bit,s8bit,
+                        bool8bit : opsize:=S_B;
+                   u16bit,s16bit,
+                       bool16bit : opsize:=S_BW;
+                   u32bit,s32bit,
+                       bool32bit : opsize:=S_BL;
+                       end;
+                     end;
+         bool16bit : begin
+                       case porddef(p^.resulttype)^.typ of
+                     u8bit,s8bit,
+                        bool8bit : opsize:=S_B;
+                   u16bit,s16bit,
+                       bool16bit : opsize:=S_W;
+                   u32bit,s32bit,
+                       bool32bit : opsize:=S_WL;
+                       end;
+                     end;
+         bool32bit : begin
+                       case porddef(p^.resulttype)^.typ of
+                     u8bit,s8bit,
+                        bool8bit : opsize:=S_B;
+                   u16bit,s16bit,
+                       bool16bit : opsize:=S_W;
+                   u32bit,s32bit,
+                       bool32bit : opsize:=S_L;
+                       end;
+                     end;
+         end;
+         op:=A_MOVE;
+{         if opsize in [S_B,S_W,S_L] then
+          op:=A_MOVE
+         else
+          if (porddef(p^.resulttype)^.typ in [s8bit,s16bit,s32bit]) then
+           op:=A_MOVSX
+          else
+           op:=A_MOVZX; }
+         case porddef(p^.resulttype)^.typ of
+          bool8bit,u8bit,s8bit : begin
+                                   p^.location.register:=hregister;
+                                   newsize:=S_B;
+                                 end;
+       bool16bit,u16bit,s16bit : begin
+                                   p^.location.register:=hregister;
+                                   newsize:=S_W;
+                                 end;
+       bool32bit,u32bit,s32bit : begin
+                                   p^.location.register:=hregister;
+                                   newsize:=S_L;
+                                 end;
+         else
           internalerror(10060);
-        end;
+         end;
+
+         case hp^.location.loc of
+            LOC_MEM,
+      LOC_REFERENCE : exprasmlist^.concat(new(pai68k,op_ref_reg(op,opsize,
+                        newreference(hp^.location.reference),p^.location.register)));
+       LOC_REGISTER,
+      LOC_CREGISTER : exprasmlist^.concat(new(pai68k,op_reg_reg(op,opsize,
+                        hp^.location.register,p^.location.register)));
+          LOC_FLAGS : begin
+{                       hregister:=reg32toreg8(hregister); }
+                        exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
+{ !!!!!!!!
+                        case porddef(p^.resulttype)^.typ of
+                  bool16bit,
+              u16bit,s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+                  bool32bit,
+              u32bit,s32bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+                        end; }
+                      end;
+           LOC_JUMP : begin
+                        getlabel(hlabel);
+                        emitl(A_LABEL,truelabel);
+                        exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,newsize,1,hregister)));
+                        emitl(A_JMP,hlabel);
+                        emitl(A_LABEL,falselabel);
+                        exprasmlist^.concat(new(pai68k,op_reg(A_CLR,newsize,hregister)));
+                        emitl(A_LABEL,hlabel);
+                      end;
+         else
+           internalerror(10061);
+         end;
          truelabel:=oldtruelabel;
          falselabel:=oldfalselabel;
      end;
 
-   procedure second_int_to_bool(p,hp : ptree;convtyp : tconverttype);
+
+     procedure second_int_to_bool(p,hp : ptree;convtyp : tconverttype);
+     var
+        hregister : tregister;
      begin
-      { !!!!!!!!!!!!!!! }
+         p^.location.loc:=LOC_REGISTER;
+         del_reference(hp^.location.reference);
+         case hp^.location.loc of
+            LOC_MEM,LOC_REFERENCE :
+              begin
+                hregister:=getregister32;
+                exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                  newreference(hp^.location.reference),hregister)));
+              end;
+            LOC_REGISTER,LOC_CREGISTER :
+              begin
+                hregister:=hp^.location.register;
+              end;
+          else
+            internalerror(10062);
+          end;
+         exprasmlist^.concat(new(pai68k,op_reg_reg(A_OR,S_L,hregister,hregister)));
+{        hregister:=reg32toreg8(hregister); }
+         exprasmlist^.concat(new(pai68k,op_reg(flag_2_set[hp^.location.resflags],S_B,hregister)));
+         case porddef(p^.resulttype)^.typ of
+           bool8bit : p^.location.register:=hregister;
+{ !!!!!!!!!!!   
+
+          bool16bit : begin
+                        p^.location.register:=reg8toreg16(hregister);
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,p^.location.register)));
+                      end;
+          bool32bit : begin
+                        p^.location.register:=reg16toreg32(hregister);
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,p^.location.register)));
+                      end; }
+         else
+          internalerror(10064);
+         end;
      end;
+
 
 
     procedure secondtypeconv(var p : ptree);
@@ -2390,44 +2508,47 @@ implementation
       const
          secondconvert : array[tc_u8bit_2_s32bit..tc_cchar_charpointer] of
            tsecondconvproc = (second_bigger,second_only_rangecheck,
-                              second_bigger,second_bigger,second_bigger,
-                              second_smaller,second_smaller,
-                              second_smaller,second_string_string,
-                              second_cstring_charpointer,second_string_chararray,
-                              second_array_to_pointer,second_pointer_to_array,
-                              second_char_to_string,second_bigger,
-                              second_bigger,second_bigger,
-                              second_smaller,second_smaller,
-                              second_smaller,second_smaller,
-                              second_bigger,second_smaller,
-                              second_only_rangecheck,second_bigger,
-                              second_bigger,second_bigger,
-                              second_bigger,second_only_rangecheck,
-                              second_smaller,second_smaller,
-                              second_smaller,second_smaller,
-                              second_int_real,second_real_fix,
-                              second_fix_real,second_int_fix,second_float_float,
-                              second_bool_to_int,second_int_to_bool,
-                              second_chararray_to_string,
-                              second_proc_to_procvar,
-                              { is constant char to pchar, is done by firstpass }
-                              second_nothing);
+           second_bigger,second_bigger,second_bigger,
+           second_smaller,second_smaller,
+           second_smaller,second_string_string,
+           second_cstring_charpointer,second_string_chararray,
+           second_array_to_pointer,second_pointer_to_array,
+           second_char_to_string,second_bigger,
+           second_bigger,second_bigger,
+           second_smaller,second_smaller,
+           second_smaller,second_smaller,
+           second_bigger,second_smaller,
+           second_only_rangecheck,second_bigger,
+           second_bigger,second_bigger,
+           second_bigger,second_only_rangecheck,
+           second_smaller,second_smaller,
+           second_smaller,second_smaller,
+           second_bool_to_int,second_int_to_bool,
+           second_int_real,second_real_fix,
+           second_fix_real,second_int_fix,second_float_float,
+           second_chararray_to_string,
+           second_proc_to_procvar,
+           { is constant char to pchar, is done by firstpass }
+           second_nothing);
 
       begin
-         { this isn't good coding, I think tc_bool_2_u8bit, shouldn't be }
+         { this isn't good coding, I think tc_bool_2_int, shouldn't be }
          { type conversion (FK)                                        }
 
          { this is necessary, because second_bool_byte, have to change   }
          { true- and false label before calling secondpass               }
          if p^.convtyp<>tc_bool_2_int then
-         begin
-           secondpass(p^.left);
-           set_location(p^.location,p^.left^.location);
-         end;
-         if p^.convtyp<>tc_equal then
+           begin
+              secondpass(p^.left);
+              set_location(p^.location,p^.left^.location);
+           end;
+         if (p^.convtyp<>tc_equal) and (p^.convtyp<>tc_not_possible) then
            {the second argument only is for maybe_range_checking !}
            secondconvert[p^.convtyp](p,p^.left,p^.convtyp)
       end;
+
+
+
 
     { save the size of pushed parameter }
     var
@@ -2447,6 +2568,7 @@ implementation
          r : preference;
          s : topsize;
          op : tasmop;
+         reg: tregister;
 
       begin
          { push from left to right if specified }
@@ -2525,11 +2647,53 @@ implementation
                 case p^.left^.location.loc of
                    LOC_REGISTER,
                    LOC_CREGISTER : begin
+                                   { HERE IS A BIG PROBLEM }
+                                   { --> We *MUST* know the data size to push     }
+                                   { for the moment, we can say that the savesize }
+                                   { indicates the parameter size to push, but    }
+                                   { that is CERTAINLY NOT TRUE!                  }
+                                   { CAN WE USE LIKE LOC_MEM OR LOC_REFERENCE??   }
+                                     case integer(p^.left^.resulttype^.savesize) of
+                                     1 : Begin
+                                     { A byte sized value normally increments       }
+                                     { the SP by 2, BUT because how memory has      }
+                                     { been setup OR because of GAS, a byte sized   }
+                                     { push CRASHES the Amiga, therefore, we do it  }
+                                     { by hand instead.                             }
+                                     {  PUSH A WORD SHIFTED LEFT 8                  }
+                                           reg := getregister32;
+                                           emit_reg_reg(A_MOVE, S_B, p^.left^.location.register, reg);
+                                           exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_W,
+                                             8, reg)));
+                                           exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,
+                                            reg,R_SPPUSH)));
+                                           { offset will be TWO greater              }
+                                           inc(pushedparasize,2);
+                                           ungetregister32(reg);
+                                           ungetregister32(p^.left^.location.register);
+                                         end;
+                                     2 :
+                                              Begin
+                                                 exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,
+                                                   p^.left^.location.register,R_SPPUSH)));
+                                                 inc(pushedparasize,2);
+                                                 ungetregister32(p^.left^.location.register);
+                                              end;
+                                      4 : Begin
                                              exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
                                                  p^.left^.location.register,R_SPPUSH)));
                                              inc(pushedparasize,4);
                                              ungetregister32(p^.left^.location.register);
-                                     end;
+                                          end;
+                                      else
+                                       Begin
+                                         exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
+                                           p^.left^.location.register,R_SPPUSH)));
+                                         inc(pushedparasize,4);
+                                         ungetregister32(p^.left^.location.register);
+                                       end;
+                                     end; { end case }
+                                   end;
                    LOC_FPU : begin
                                         size:=pfloatdef(p^.left^.resulttype)^.size;
                                         inc(pushedparasize,size);
@@ -2538,7 +2702,7 @@ implementation
                                         reset_reference(r^);
                                         r^.base:=R_SP;
                                         s:=getfloatsize(pfloatdef(p^.left^.resulttype)^.typ);
-                                        if (cs_fp_emulation in aktswitches) then
+                                        if (cs_fp_emulation in aktswitches) or (s=S_FS) then
                                         begin
                                           { when in emulation mode... }
                                           { only single supported!!!  }
@@ -2562,7 +2726,41 @@ implementation
                                                            emit_push_mem(tempreference);
                                                            inc(pushedparasize,4);
                                                         end;
-                                                      s8bit,u8bit,uchar,bool8bit,s16bit,u16bit : begin
+                                                      s8bit,u8bit,uchar,bool8bit:
+                                                      Begin
+                                                          { We push a BUT, the SP is incremented by 2      }
+                                                          { as specified in the Motorola Prog's Ref Manual }
+                                                          { Therefore offet increments BY 2!!!             }
+                                                          { BUG??? ...                                     }
+                                                          { SWAP OPERANDS:                                 }
+                                                          if tempreference.isintvalue then
+                                                          Begin
+                                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_W,
+                                                             tempreference.offset shl 8,R_SPPUSH)));
+                                                          end
+                                                          else
+                                                          Begin
+                                                           { A byte sized value normally increments       }
+                                                           { the SP by 2, BUT because how memory has      }
+                                                           { been setup OR because of GAS, a byte sized   }
+                                                           { push CRASHES the Amiga, therefore, we do it  }
+                                                           { by hand instead.                             }
+                                                           {  PUSH A WORD SHIFTED LEFT 8                  }
+                                                            reg:=getregister32;
+                                                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                                                             newreference(tempreference),reg)));
+                                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_LSL,S_W,
+                                                             8, reg)));
+                                                            exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,
+                                                             reg,R_SPPUSH)));
+                                                            ungetregister32(reg);
+{                                                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
+                                                             newreference(tempreference),R_SPPUSH))); }
+                                                          end;
+                                                          inc(pushedparasize,2);
+
+                                                      end;
+                                                      s16bit,u16bit : begin
                                                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
                                                             newreference(tempreference),R_SPPUSH)));
                                                           inc(pushedparasize,2);
@@ -2872,9 +3070,9 @@ implementation
                                              push_int(0)
                                            else
                                                begin
-                                                  exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,
+                                                  exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,
                                                    S_L,newcsymbol(pobjectdef(p^.methodpointer^.
-                                                   resulttype)^.vmt_mangledname,0),R_SPPUSH)));
+                                                   resulttype)^.vmt_mangledname,0))));
                                                    concat_external(pobjectdef(p^.methodpointer^.resulttype)^.
                                                   vmt_mangledname,EXT_NEAR);
                                                end;
@@ -2886,8 +3084,8 @@ implementation
                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_MOVE,S_L,0,R_A5)));
                                      emit_reg_reg(A_MOVE,S_L,R_A5, R_SPPUSH);
                                      { insert the vmt }
-                                     exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,S_L,
-                                       newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_SPPUSH)));
+                                     exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,
+                                       newcsymbol(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
                                      concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
                                               extended_new:=true;
                                   end;
@@ -2900,9 +3098,9 @@ implementation
                                             newreference(p^.methodpointer^.location.reference),R_A5)));
                                           del_reference(p^.methodpointer^.location.reference);
                                           exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,R_A5,R_SPPUSH)));
-                                          exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,S_L,
+                                          exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,
                                             newcsymbol(pobjectdef
-                                               (p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_SPPUSH)));
+                                               (p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
                                           concat_external(pobjectdef(p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
                                        end;
                            else
@@ -2926,8 +3124,10 @@ implementation
                                                    exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
                                                      newreference(p^.methodpointer^.location.reference),R_A5)))
                                                  else
+                                                  Begin
                                                    exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
                                                      newreference(p^.methodpointer^.location.reference),R_A5)));
+                                                  end;
 
                                                 del_reference(p^.methodpointer^.location.reference);
                                              end;
@@ -2958,9 +3158,9 @@ implementation
                                             if ((p^.procdefinition^.options and poconstructor)<>0) then
                                               begin
                                                { it's no bad idea, to insert the VMT }
-                                                      exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,S_L,
+                                                      exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,
                                                newcsymbol(pobjectdef(
-                                                 p^.methodpointer^.resulttype)^.vmt_mangledname,0),R_SPPUSH)));
+                                                 p^.methodpointer^.resulttype)^.vmt_mangledname,0))));
                                                concat_external(pobjectdef(
                                                  p^.methodpointer^.resulttype)^.vmt_mangledname,EXT_NEAR);
                                               end
@@ -3104,9 +3304,19 @@ implementation
                   r^.offset:=p^.procdefinition^.extnumber*4+12;
                   if (cs_rangechecking in aktswitches) then
                     begin
-                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,r^.base,R_SPPUSH)));
+                     { If the base is already A0, the no instruction will }
+                     { be emitted!                                        }
+                     emit_reg_reg(A_MOVE,S_L,r^.base,R_A0);
                         emitcall('CHECK_OBJECT',true);
                     end;
+                   { This was wrong we must then load the address into the }
+                   { register a0 and/or a5                                 }
+                   { Because doing an indirect call with offset is NOT     }
+                   { allowed on the m68k!                                  }
+                   exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(r^),R_A0)));
+                   { clear the reference }
+                   reset_reference(r^);
+                   r^.base := R_A0;
                   exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,r)));
                 end
               else
@@ -3154,7 +3364,7 @@ implementation
                       { problem by loading the address first, and then emitting }
                       { the call.                                              }
                        begin
-                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
                            newreference(p^.right^.location.reference),R_A1)));
                          new(ref);
                          reset_reference(ref^);
@@ -3162,7 +3372,14 @@ implementation
                          exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(ref^))));
                        end
                        else
-                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(p^.right^.location.reference))));
+                       begin
+                         exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                           newreference(p^.right^.location.reference),R_A1)));
+                         new(ref);
+                         reset_reference(ref^);
+                         ref^.base := R_A1;
+                         exprasmlist^.concat(new(pai68k,op_ref(A_JSR,S_NO,newreference(ref^))));
+                       end;
                        del_reference(p^.right^.location.reference);
                     end;
               end;
@@ -3238,7 +3455,13 @@ implementation
                                 emit_reg_reg(A_MOVE,S_L,R_D0,hregister);
                                 p^.location.register:=hregister;
                       end;
-                     s32real,s64bit,s64real,s80real: begin
+                     s32real :  Begin
+                                   p^.location.loc:=LOC_FPU;
+                                   hregister:=getregister32;
+                                   emit_reg_reg(A_MOVE,S_L,R_D0,hregister);
+                                   p^.location.fpureg:=hregister;
+                                end;
+                     s64bit,s64real,s80real: begin
                                               if cs_fp_emulation in aktswitches then
                                               begin
                                                 p^.location.loc:=LOC_FPU;
@@ -3272,7 +3495,7 @@ implementation
          { perhaps i/o check ? }
          if iolabel<>nil then
            begin
-              exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,S_L,newcsymbol(lab2str(iolabel),0),R_SPPUSH)));
+              exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,newcsymbol(lab2str(iolabel),0))));
               { this was wrong, probably an error due to diff3
               emitcall(p^.procdefinition^.mangledname);}
               emitcall('IOCHECK',true);
@@ -3333,16 +3556,22 @@ implementation
 
 
     procedure secondinline(var p : ptree);
-    const   in2size:array[in_inc_byte..in_dec_dword] of Topsize=
+    const
+{$ifdef OLDINC}
+
+            in2size:array[in_inc_byte..in_dec_dword] of Topsize=
                     (S_B,S_W,S_L,S_B,S_W,S_L);
             in2instr:array[in_inc_byte..in_dec_dword] of Tasmop=
                     (A_ADDQ,A_ADDQ,A_ADDQ,A_SUBQ,A_SUBQ,A_SUBQ);
+{$endif}                
+
             { tfloattype = (f32bit,s32real,s64real,s80real,s64bit); }
             float_name: array[tfloattype] of string[8]=
              {   ('FIXED','SINGLE','REAL','EXTENDED','COMP','FIXED'); }
              {  Since we only support the REAL (SINGLE IEEE) FLOAT    }
              {  type, here is what we do...                           }
                 ('FIXED','REAL','REAL','REAL','COMP','FIXED');
+            addsubop:array[in_inc_x..in_dec_x] of tasmop=(A_ADDQ,A_SUBQ);
       var
          opsize: topsize;
          asmop: tasmop;
@@ -3352,9 +3581,8 @@ implementation
          pushed : tpushed;
          dummycoll : tdefcoll;
 
+       procedure handlereadwrite(doread,doln : boolean);
       { produces code for READ(LN) and WRITE(LN) }
-
-      procedure handlereadwrite(doread,callwriteln : boolean);
 
         procedure loadstream;
 
@@ -3365,7 +3593,7 @@ implementation
               new(r);
               reset_reference(r^);
               r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
-           if not (cs_compilesystem in aktswitches) then
+              if not (cs_compilesystem in aktswitches) then
                  concat_external(r^.symbol^,EXT_NEAR);
 
               exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,r,R_A0)))
@@ -3374,7 +3602,7 @@ implementation
         var
            node,hp : ptree;
            typedtyp,pararesult : pdef;
-           doflush,has_length : boolean;
+           has_length : boolean;
            dummycoll : tdefcoll;
            iolabel : plabel;
            npara : longint;
@@ -3387,8 +3615,6 @@ implementation
                 emitl(A_LABEL,iolabel);
              end
            else iolabel:=nil;
-           { no automatic call from flush }
-           doflush:=false;
            { for write of real with the length specified }
            has_length:=false;
            hp:=nil;
@@ -3400,8 +3626,6 @@ implementation
            { and state a parameter ? }
            if p^.left=nil then
              begin
-                { state screen address}
-                doflush:=true;
                 { the following instructions are for "writeln;" }
                 loadstream;
                 { save @Dateivarible in temporary variable }
@@ -3440,8 +3664,7 @@ implementation
                   end
                 else
                   begin
-                     { if we write to stdout/in then flush after the write(ln) }
-                     doflush:=true;
+                  { load stdin/stdout stream }
                      loadstream;
                   end;
 
@@ -3450,8 +3673,9 @@ implementation
                 if doread then
                   { parameter by READ gives call by reference }
                   dummycoll.paratyp:=vs_var
+                else
                   { an WRITE Call by "Const" }
-                else dummycoll.paratyp:=vs_const;
+                  dummycoll.paratyp:=vs_const;
 
                 { because of secondcallparan, which otherwise attaches }
                 if ft=ft_typed then
@@ -3552,86 +3776,90 @@ implementation
                               end;
                             end;
                           case pararesult^.deftype of
-                              stringdef : begin
-                                          if doread then
-                                            begin
-                                            { push maximum string length }
-                                            push_int(pstringdef(pararesult)^.len);
-                                            case pstringdef(pararesult)^.string_typ of
-                                             shortstring: emitcall ('READ_TEXT_STRING',true);
-                                             ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
-                                             longstring : emitcall ('READ_TEXT_LONGSTRING',true);
-                                             widestring : emitcall ('READ_TEXT_ANSISTRING',true);
-                                             end
-                                            end
-                                          else
-                                            Case pstringdef(Pararesult)^.string_typ of
-                                             shortstring: emitcall ('WRITE_TEXT_STRING',true);
-                                             ansistring : emitcall ('WRITE_TEXT_ANSISTRING',true);
-                                             longstring : emitcall ('WRITE_TEXT_LONGSTRING',true);
-                                             widestring : emitcall ('WRITE_TEXT_ANSISTRING',true);
-                                             end;
-                                      {ungetiftemp(hp^.left^.location.reference);}
-                                   end;
-                                         end;
-                             pointerdef : begin
-                                             if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
-                                               begin
-                                                  if doread then
-                                                    emitcall('READ_TEXT_PCHAR_AS_POINTER',true)
-                                                  else
-                                                    emitcall('WRITE_TEXT_PCHAR_AS_POINTER',true);
-                                               end
-                                             else Message(parser_e_illegal_parameter_list);
-                                          end;
-                             arraydef : begin
-                                           if (parraydef(pararesult)^.lowrange=0)
-                                             and is_equal(parraydef(pararesult)^.definition,cchardef) then
-                                             begin
-                                                if doread then
-                                                    emitcall('READ_TEXT_PCHAR_AS_ARRAY',true)
-                                                else
-                                                    emitcall('WRITE_TEXT_PCHAR_AS_ARRAY',true);
-                                             end
-                                           else Message(parser_e_illegal_parameter_list);
+                       stringdef : begin
+                                     if doread then
+                                       begin
+                                       { push maximum string length }
+                                       push_int(pstringdef(pararesult)^.len);
+                                       case pstringdef(pararesult)^.string_typ of
+                                        shortstring: emitcall ('READ_TEXT_STRING',true);
+                                        ansistring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                        longstring : emitcall ('READ_TEXT_LONGSTRING',true);
+                                        widestring : emitcall ('READ_TEXT_ANSISTRING',true);
+                                        end
+                                       end
+                                     else
+                                       Case pstringdef(Pararesult)^.string_typ of
+                                        shortstring: emitcall ('WRITE_TEXT_STRING',true);
+                                        ansistring : emitcall ('WRITE_TEXT_ANSISTRING',true);
+                                        longstring : emitcall ('WRITE_TEXT_LONGSTRING',true);
+                                        widestring : emitcall ('WRITE_TEXT_ANSISTRING',true);
                                         end;
-                      floatdef : begin
-                                      if doread then
-                                          emitcall('READ_TEXT_REAL',true)
-                                      else
-                                          emitcall('WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
-                                 end;
-                      orddef : begin
-                                case porddef(pararesult)^.typ of
-                                   u8bit : if doread then
-                                                emitcall('READ_TEXT_BYTE',true);
-                                   s8bit : if doread then
-                                                emitcall('READ_TEXT_SHORTINT',true);
-                                   u16bit : if doread then
-                                                emitcall('READ_TEXT_WORD',true);
-                                   s16bit : if doread then
-                                                emitcall('READ_TEXT_INTEGER',true);
-                                   s32bit : if doread then
-                                                emitcall('READ_TEXT_LONGINT',true)
-                                            else
-                                                emitcall('WRITE_TEXT_LONGINT',true);
-                                   u32bit : if doread then
-                                                emitcall('READ_TEXT_CARDINAL',true)
-                                            else
-                                                emitcall('WRITE_TEXT_CARDINAL',true);
-                                   uchar : if doread then
-                                                emitcall('READ_TEXT_CHAR',true)
-                                           else
-                                                emitcall('WRITE_TEXT_CHAR',true);
-                                   bool8bit : if  doread then
-                                               { emitcall('READ_TEXT_BOOLEAN',true) }
-                                                 Message(parser_e_illegal_parameter_list)
-                                              else
-                                                 emitcall('WRITE_TEXT_BOOLEAN',true);
-                                   else Message(parser_e_illegal_parameter_list);
-                                end;
-                             end;
-                             else Message(parser_e_illegal_parameter_list);
+                                   end;
+                      pointerdef : begin
+                                     if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
+                                       begin
+                                         if doread then
+                                           emitcall('READ_TEXT_PCHAR_AS_POINTER',true)
+                                         else
+                                           emitcall('WRITE_TEXT_PCHAR_AS_POINTER',true);
+                                       end
+                                     else
+                                      Message(parser_e_illegal_parameter_list);
+                                   end;
+                        arraydef : begin
+                                     if (parraydef(pararesult)^.lowrange=0) and
+                                        is_equal(parraydef(pararesult)^.definition,cchardef) then
+                                       begin
+                                         if doread then
+                                           emitcall('READ_TEXT_PCHAR_AS_ARRAY',true)
+                                         else
+                                           emitcall('WRITE_TEXT_PCHAR_AS_ARRAY',true);
+                                       end
+                                     else
+                                      Message(parser_e_illegal_parameter_list);
+                                   end;
+                        floatdef : begin
+                                     if doread then
+                                       emitcall('READ_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true)
+                                     else
+                                       emitcall('WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
+                                   end;
+                          orddef : begin
+                                     case porddef(pararesult)^.typ of
+                                          u8bit : if doread then
+                                                    emitcall('READ_TEXT_BYTE',true);
+                                          s8bit : if doread then
+                                                    emitcall('READ_TEXT_SHORTINT',true);
+                                         u16bit : if doread then
+                                                    emitcall('READ_TEXT_WORD',true);
+                                         s16bit : if doread then
+                                                    emitcall('READ_TEXT_INTEGER',true);
+                                         s32bit : if doread then
+                                                    emitcall('READ_TEXT_LONGINT',true)
+                                                  else
+                                                    emitcall('WRITE_TEXT_LONGINT',true);
+                                         u32bit : if doread then
+                                                    emitcall('READ_TEXT_CARDINAL',true)
+                                                  else
+                                                    emitcall('WRITE_TEXT_CARDINAL',true);
+                                          uchar : if doread then
+                                                    emitcall('READ_TEXT_CHAR',true)
+                                                  else
+                                                    emitcall('WRITE_TEXT_CHAR',true);
+                                       bool8bit,
+                                      bool16bit,
+                                      bool32bit : if  doread then
+                                                  { emitcall('READ_TEXT_BOOLEAN',true) }
+                                                    Message(parser_e_illegal_parameter_list)
+                                                  else
+                                                    emitcall('WRITE_TEXT_BOOLEAN',true);
+                                     else
+                                       Message(parser_e_illegal_parameter_list);
+                                     end;
+                                   end;
+                          else
+                            Message(parser_e_illegal_parameter_list);
                           end;
                        end;
                      { load A5 in methods again }
@@ -3639,31 +3867,36 @@ implementation
                      maybe_loada5;
                   end;
              end;
-           if callwriteln then
-             begin
-                pushusedregisters(pushed,$ffff);
-                emit_push_mem(aktfile);
-                { pushexceptlabel; }
-                if ft<>ft_text then
-                  Message(parser_e_illegal_parameter_list);
-                     emitcall('WRITELN_TEXT',true);
-                     popusedregisters(pushed);
-                     maybe_loada5;
-                 end;
-           if doflush and not(doread) then
+         { Insert end of writing for textfiles }
+           if ft=ft_text then
              begin
                pushusedregisters(pushed,$ffff);
-               { pushexceptlabel; }
-               emitcall('FLUSH_STDOUT',true);
+               emit_push_mem(aktfile);
+               if doread then
+                begin
+                  if doln then
+                    emitcall('READLN_END',true)
+                  else
+                    emitcall('READ_END',true);
+                end
+               else
+                begin
+                  if doln then
+                    emitcall('WRITELN_END',true)
+                  else
+                    emitcall('WRITE_END',true);
+                end;
                popusedregisters(pushed);
                maybe_loada5;
              end;
+         { Insert IOCheck if set }
            if iolabel<>nil then
              begin
                 { registers are saved in the procedure }
-                exprasmlist^.concat(new(pai68k,op_csymbol_reg(A_MOVE,S_L,newcsymbol(lab2str(iolabel),0),R_SPPUSH)));
+                exprasmlist^.concat(new(pai68k,op_csymbol(A_PEA,S_L,newcsymbol(lab2str(iolabel),0))));
                 emitcall('IOCHECK',true);
              end;
+         { Freeup all used temps }
            ungetiftemp(aktfile);
            if assigned(p^.left) then
              begin
@@ -3771,6 +4004,10 @@ implementation
 
       var
          r : preference;
+         {inc/dec}
+         addconstant : boolean;
+         addvalue : longint;
+         hregister : tregister;
 
       begin
          case p^.inlinenumber of
@@ -3881,15 +4118,80 @@ implementation
                          end;
                        p^.location.register:=p^.location.register;
                     end;
-{We can now comment them out, as they are handled as typecast.
- Saves an incredible amount of 8 bytes code.
-  I'am not lucky about this, because it's _not_ a type cast (FK) }
-{           in_ord_char,
-            in_chr_byte,}
-            in_length_string : begin
+            in_length_string :
+
+                     begin
                        secondpass(p^.left);
                        set_location(p^.location,p^.left^.location);
+                     end;
+            in_dec_x,
+            in_inc_x :
+              begin
+              { set defaults }
+                addvalue:=1;
+                addconstant:=true;
+              { load first parameter, must be a reference }
+                secondpass(p^.left^.left);
+                case p^.left^.left^.resulttype^.deftype of
+                  orddef,
+                 enumdef : begin
+                             case p^.left^.left^.resulttype^.size of
+                              1 : opsize:=S_B;
+                              2 : opsize:=S_W;
+                              4 : opsize:=S_L;
+                             end;
+                           end;
+              pointerdef : begin
+                             opsize:=S_L;
+                             addvalue:=ppointerdef(p^.left^.left^.resulttype)^.definition^.savesize;
+                           end;
+                else
+                 internalerror(10081);
+                end;
+              { second argument specified?, must be a s32bit in register }
+                if assigned(p^.left^.right) then
+                 begin
+                   secondpass(p^.left^.right^.left);
+                 { when constant, just multiply the addvalue }
+                   if is_constintnode(p^.left^.right^.left) then
+                    addvalue:=addvalue*get_ordinal_value(p^.left^.right^.left)
+                   else
+                    begin
+                      case p^.left^.right^.left^.location.loc of
+                   LOC_REGISTER,
+                  LOC_CREGISTER : hregister:=p^.left^.right^.left^.location.register;
+                        LOC_MEM,
+                  LOC_REFERENCE : begin
+                                    hregister:=getregister32;
+                                    exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                                      newreference(p^.left^.right^.left^.location.reference),hregister)));
+                                  end;
+                       else
+                        internalerror(10082);
+                       end;
+                    { insert multiply with addvalue if its >1 }
+                      if addvalue>1 then
+                       exprasmlist^.concat(new(pai68k,op_const_reg(A_MULS,opsize,
+                         addvalue,hregister)));
+                      addconstant:=false;
                     end;
+                 end;
+              { write the add instruction }
+                if addconstant then
+                 begin
+                    exprasmlist^.concat(new(pai68k,op_const_ref(addsubop[p^.inlinenumber],opsize,
+                      addvalue,newreference(p^.left^.left^.location.reference))));
+                 end
+                else
+                 begin
+                   exprasmlist^.concat(new(pai68k,op_reg_ref(addsubop[p^.inlinenumber],opsize,
+                      hregister,newreference(p^.left^.left^.location.reference))));
+                   ungetregister32(hregister);
+                 end;
+                emitoverflowcheck(p^.left^.left);
+              end;
+{$ifdef OLDINC} 
+
             in_inc_byte..in_dec_dword:
                 begin
                     secondpass(p^.left);
@@ -3897,6 +4199,7 @@ implementation
                      in2size[p^.inlinenumber],1,newreference(p^.left^.location.reference))));
                      emitoverflowcheck(p^.left);
                 end;
+{$endif}                
             in_pred_x,
             in_succ_x:
               begin
@@ -3931,7 +4234,7 @@ implementation
                         end;
                    end
                  else p^.location.register:=p^.left^.location.register;
-                 exprasmlist^.concat(new(pai68k,op_reg(asmop,opsize,
+                 exprasmlist^.concat(new(pai68k,op_const_reg(asmop,opsize,1,
                    p^.location.register)))
                  { here we should insert bounds check ? }
                  { and direct call to bounds will crash the program }
@@ -3980,17 +4283,7 @@ implementation
             in_read_x :
               handlereadwrite(true,false);
             in_readln_x :
-              begin
-                   handlereadwrite(true,false);
-                   pushusedregisters(pushed,$ffff);
-                   emit_push_mem(aktfile);
-                   { pushexceptlabel; }
-                   if ft<>ft_text then
-                     Message(parser_e_illegal_parameter_list);
-                       emitcall('READLN_TEXT',true);
-                       popusedregisters(pushed);
-                   maybe_loada5;
-                end;
+              handlereadwrite(true,true);
             in_str_x_string : begin
                                  handle_str;
                                  maybe_loada5;
@@ -4070,17 +4363,17 @@ implementation
          case p^.left^.location.loc of
             LOC_REGISTER,
             LOC_CREGISTER : begin
-                               p^.location.reference.index:=getregister32;
+                               p^.location.reference.base:=getaddressreg;
                                exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
                                  p^.left^.location.register,
-                                 p^.location.reference.index)));
+                                 p^.location.reference.base)));
                             end;
             LOC_MEM,LOC_REFERENCE :
                             begin
                                del_reference(p^.left^.location.reference);
-                               p^.location.reference.index:=getregister32;
+                               p^.location.reference.base:=getaddressreg;
                                exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(p^.left^.location.reference),
-                                 p^.location.reference.index)));
+                                 p^.location.reference.base)));
                             end;
          end;
       end;
@@ -4144,11 +4437,13 @@ implementation
          hp : ptree;
          href,sref : treference;
          hl1,hl2: plabel;
+         j: byte;
 
       begin
          { this should be reimplemented for smallsets }
          { differently  (PM) }
          { produce constant part }
+         j:=0;
          href.symbol := Nil;
          clear_reference(href);
          getlabel(l);
@@ -4184,8 +4479,16 @@ implementation
            end
          else    }
            begin
-           for i:=0 to 31 do
-             datasegment^.concat(new(pai_const,init_8bit(p^.constset^[i])));
+             for i:=0 to (31 div 4) do
+             Begin
+         { This is required because of the ENDIAN of m68k machines }
+               datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+3])));
+               datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+2])));
+               datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j+1])));
+               datasegment^.concat(new(pai_const,init_8bit(p^.constset^[j])));
+               Inc(j,4);
+{               datasegment^.concat(new(pai_const,init_8bit(p^.constset^[i])));}
+             end;
          hp:=p^.left;
          if assigned(hp) then
            begin
@@ -4198,30 +4501,18 @@ implementation
                    if codegenerror then
                      exit;
 
-                   pushsetelement(hp^.left);
-                   emitpushreferenceaddr(sref);
+                     loadsetelement(hp^.left);
+                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                     newreference(sref),R_A0)));;
+{                   emitpushreferenceaddr(sref); }
                    { register is save in subroutine }
                    emitcall('SET_SET_BYTE',true);
-                   { here we must set the flags manually  }
-                   { on returne from the routine, because }
-                   { falgs are corrupt when restoring the }
-                   { stack                                }
-                   exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_B,R_D0)));
-                   getlabel(hl1);
-                   emitl(A_BEQ,hl1);
-                   exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_B,
-                       $fe,R_CCR)));
-                   getlabel(hl2);
-                   emitl(A_BRA,hl2);
-                   emitl(A_LABEL,hl1);
-                   exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,
-                       $01,R_CCR)));
-                   emitl(A_LABEL,hl2);
                    hp:=hp^.right;
                 end;
               p^.location.reference:=sref;
            end
-         else p^.location.reference:=href;
+             else
+                p^.location.reference:=href;
          end;
       end;
 
@@ -4332,18 +4623,20 @@ implementation
                         if cs_fp_emulation in aktswitches then
                           emit_reg_reg(A_MOVE,S_L,p^.left^.location.fpureg,R_D0)
                         else
-                          exprasmlist^.concat(
-                             new(pai68k,op_reg_reg(A_FMOVE,S_FS,p^.left^.location.fpureg,R_D0)));
+                                        exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,S_FS,
+                                           p^.left^.location.fpureg,R_D0)));
                       end;
                     end;
                   end
                   else
+                       Begin
                     { this is only possible in real non emulation mode }
                     { LOC_MEM,LOC_REFERENCE }
                     if is_mem then
                     begin
                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_FMOVE,
-                             getfloatsize(pfloatdef(procinfo.retdef)^.typ),newreference(p^.left^.location.reference),R_FP0)));
+                                  getfloatsize(pfloatdef(procinfo.retdef)^.typ),
+                                    newreference(p^.left^.location.reference),R_FP0)));
                     end
                     else
                     { LOC_FPU }
@@ -4353,6 +4646,7 @@ implementation
                           exprasmlist^.concat(new(pai68k,op_reg_reg(A_FMOVE,
                              getfloatsize(pfloatdef(procinfo.retdef)^.typ),p^.left^.location.fpureg,R_FP0)));
                     end;
+              end;
               end;
 do_jmp:
               truelabel:=otlabel;
@@ -4848,15 +5142,16 @@ procedure secondprocinline(var p:ptree);
 begin
 end;
 
-    procedure secondpass(var p : ptree);
-      const
-           procedures : array[ttreetyp] of secondpassproc =
-               (secondadd,secondadd,secondadd,secondmoddiv,secondadd,
-                secondmoddiv,secondassignment,secondload,secondnothing,
-                secondadd,secondadd,secondadd,secondadd,
-                secondadd,secondadd,secondin,secondadd,
-                secondadd,secondshlshr,secondshlshr,secondadd,
-               secondadd,secondsubscriptn,secondderef,secondaddr,
+
+     procedure secondpass(var p : ptree);
+       const
+         procedures : array[ttreetyp] of secondpassproc =
+            (secondadd,secondadd,secondadd,secondmoddiv,secondadd,
+             secondmoddiv,secondassignment,secondload,secondnothing,
+             secondadd,secondadd,secondadd,secondadd,
+             secondadd,secondadd,secondin,secondadd,
+             secondadd,secondshlshr,secondshlshr,secondadd,
+             secondadd,secondsubscriptn,secondderef,secondaddr,
              seconddoubleaddr,
              secondordconst,secondtypeconv,secondcalln,secondnothing,
              secondrealconst,secondfixconst,secondumminus,
@@ -4880,10 +5175,15 @@ end;
       begin
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
+{$ifdef NEWINPUT}
+         oldpos:=aktfilepos;
+         aktfilepos:=p^.fileinfo;
+{$else}
          get_cur_file_pos(oldpos);
+         set_cur_file_pos(p^.fileinfo);
+{$endif NEWINPUT}
 
          codegenerror:=false;
-         set_cur_file_pos(p^.fileinfo);
          aktswitches:=p^.pragmas;
          if not(p^.error) then
            begin
@@ -4894,9 +5194,12 @@ end;
          else
            codegenerror:=true;
          aktswitches:=oldswitches;
+{$ifdef NEWINPUT}
+         aktfilepos:=oldpos;
+{$else}
          set_cur_file_pos(oldpos);
+{$endif NEWINPUT}
       end;
-
 
 
     function do_secondpass(var p : ptree) : boolean;
@@ -4976,8 +5279,10 @@ end;
 
       begin
          cleartempgen;
+{$ifndef NEWINPUT}
          oldis:=current_module^.current_inputfile;
          oldnr:=current_module^.current_inputfile^.line_no;
+{$endif}
          { when size optimization only count occurrence }
          if cs_littlesize in aktswitches then
            t_times:=1
@@ -5138,9 +5443,10 @@ end;
               c_usableregs:=4;
            end;
          procinfo.aktproccode^.concatlist(exprasmlist);
-
+{$ifndef NEWINPUT}
          current_module^.current_inputfile:=oldis;
          current_module^.current_inputfile^.line_no:=oldnr;
+{$endif}
       end;
 
 end.
@@ -5148,7 +5454,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-07-06 15:51:16  michael
+  Revision 1.10  1998-07-10 10:50:57  peter
+    * m68k updates
+
+  Revision 1.9  1998/07/06 15:51:16  michael
   Added length checking for string reading
 
   Revision 1.8  1998/06/12 10:32:22  pierre
@@ -5186,295 +5495,5 @@ end.
   Revision 1.3  1998/04/07 22:45:03  florian
     * bug0092, bug0115 and bug0121 fixed
     + packed object/class/array
-
-  Revision 1.2  1998/03/28 23:09:54  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
-
-  Revision 1.51  1998/03/22 12:45:37  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.50  2036/02/07 09:29:32  florian
-    * patch of Carl applied
-
-  Revision 1.49  1998/03/10 16:27:36  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.48  1998/03/10 15:25:31  carl
-    + put back $L switch for debugging
-
-  Revision 1.47  1998/03/10 04:19:24  carl
-    - removed string:=char optimization because would give A LOT of
-  register problems
-
-  Revision 1.46  1998/03/10 01:17:15  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.45  1998/03/09 10:44:33  peter
-    + string='', string<>'', string:='', string:=char optimizes (the first 2
-      were already in cg68k2)
-
-  Revision 1.44  1998/03/06 00:51:57  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.43  1998/03/05 04:37:46  carl
-    + small optimization
-
-  Revision 1.42  1998/03/03 04:13:31  carl
-    - removed generate_xxxx and put them in cga68k
-
-  Revision 1.41  1998/03/03 01:08:17  florian
-    * bug0105 and bug0106 problem solved
-
-  Revision 1.40  1998/03/02 16:25:25  carl
-    * bugfix #95
-
-  Revision 1.39  1998/03/02 01:48:11  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.38  1998/02/25 02:36:29  carl
-    * small bugfix with range checking
-
-  Revision 1.37  1998/02/24 16:49:48  peter
-    * stackframe ommiting generated 'ret $-4'
-    + timer.pp bp7 version
-    * innr.inc are now the same files
-
-  Revision 1.36  1998/02/24 16:42:49  carl
-    + reinstated __EXIT
-
-  Revision 1.35  1998/02/23 02:56:38  carl
-    * bugfix of writing real type values qith m68k target
-
-  Revision 1.34  1998/02/22 23:03:05  peter
-    * renamed msource->mainsource and name->unitname
-    * optimized filename handling, filename is not seperate anymore with
-      path+name+ext, this saves stackspace and a lot of fsplit()'s
-    * recompiling of some units in libraries fixed
-    * shared libraries are working again
-    + $LINKLIB <lib> to support automatic linking to libraries
-    + libraries are saved/read from the ppufile, also allows more libraries
-      per ppufile
-
-  Revision 1.33  1998/02/22 18:50:12  carl
-    * bugfix of stupid diffs!!!!! Recursive crash fix!
-
-  Revision 1.30  1998/02/19 12:22:29  daniel
-  * Optimized a statement that did pain to my eyes.
-
-  Revision 1.29  1998/02/17 21:20:31  peter
-    + Script unit
-    + __EXIT is called again to exit a program
-    - target_info.link/assembler calls
-    * linking works again for dos
-    * optimized a few filehandling functions
-    * fixed stabs generation for procedures
-
-  Revision 1.28  1998/02/15 21:16:04  peter
-    * all assembler outputs supported by assemblerobject
-    * cleanup with assembleroutputs, better .ascii generation
-    * help_constructor/destructor are now added to the externals
-    - generation of asmresponse is not outputformat depended
-
-  Revision 1.27  1998/02/14 05:06:47  carl
-    + now works with TP with overlays
-
-  Revision 1.26  1998/02/14 01:45:06  peter
-    * more fixes
-    - pmode target is removed
-    - search_as_ld is removed, this is done in the link.pas/assemble.pas
-    + findexe() to search for an executable (linker,assembler,binder)
-
-  Revision 1.25  1998/02/13 10:34:40  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.24  1998/02/12 11:49:45  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.23  1998/02/07 18:00:45  carl
-    * bugfix in secondin (from Peter Vreman a while ago)
-
-  Revision 1.21  1998/02/05 00:58:05  carl
-    + secondas and secondis now work as expected.
-    - moved secondas to cg68k2, otherwise problems with symbols
-
-  Revision 1.20  1998/02/01 19:38:41  florian
-    * bug0029 fixed, Carl please check it !!!
-
-  Revision 1.19  1998/01/24 21:05:41  carl
-    * nested comment bugfix
-
-  Revision 1.18  1998/01/24 00:37:47  florian
-    * small fix for DOM
-
-  Revision 1.17  1998/01/21 21:29:46  florian
-    * some fixes for Delphi classes
-
-  Revision 1.16  1998/01/20 23:51:59  carl
-    * bugfix 74 (FINAL, Pierre's one was incomplete under BP)
-
-  Revision 1.15  1998/01/19 10:25:21  pierre
-    * bug in object function call in main program or unit init fixed
-
-  Revision 1.14  1998/01/16 22:34:23  michael
-  * Changed 'conversation' to 'conversion'. Waayyy too much chatting going on
-    in this compiler :)
-
-  Revision 1.13  1998/01/16 02:18:25  carl
-    * second_char_to_string align problem fix (N/A for MC68020 target)
-
-  Revision 1.12  1998/01/13 23:11:02  florian
-    + class methods
-
-  Revision 1.11  1998/01/11 03:36:14  carl
-  * fixed indexing problem with stack
-  * reference on stack bugfix
-  * second_bigger sign extension bugfix
-  * array scaling bugfix
-  * secondderef bugfix
-  * bugfix with MOVEQ opcode
-  * bugfix of linear list generation
-
-  Revision 1.6  1997/12/10 23:07:12  florian
-  * bugs fixed: 12,38 (also m68k),39,40,41
-  + warning if a system unit is without -Us compiled
-  + warning if a method is virtual and private (was an error)
-  * some indentions changed
-  + factor does a better error recovering (omit some crashes)
-  + problem with @type(x) removed (crashed the compiler)
-
-  Revision 1.5  1997/12/09 13:28:48  carl
-  + added s80 real (will presently stop the compiler though)
-  + renamed some stuff
-  * some bugfixes (can't remember what exactly..)
-
-  Revision 1.4  1997/12/05 14:51:09  carl
-  * bugfix of secondfor
-      cmpreg was never initialized.
-      one of the jump conditionals was wrong (downto would not work)
-
-  Revision 1.3  1997/12/04 14:47:05  carl
-  + updated tov09...
-
-  Revision 1.2  1997/11/28 18:14:20  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:32:51  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-  CEC   Carl-Eric Codere
-  FK     Florian Klaempfl
-  PM    Pierre Muller
-  +      feature added
-  -      removed
-  *      bug fixed or changed
-
-  History (started with version 0.9.0):
-      23th october 1996:
-         + some emit calls replaced (FK)
-      24th october 1996:
-         * for bug fixed (FK)
-      26th october 1996:
-         * english comments (FK)
-       5th november 1996:
-         * new init and terminate code (FK)
-
-      ...... some items missed
-
-      19th september 1997:
-         * a call to a function procedure a;[ C ]; doesn't crash the stack
-           furthermore (FK)
-      22th september 1997:
-         * stack layout for nested procedures in methods modified:
-           ESI is no more pushed (must be loaded via framepointer) (FK)
-
-      27th september 1997:
-        + Start of conversion to motorola MC68000 (CEC)
-      29th september 1997:
-        + Updated to version 0.9.4 of Intel code generator (CEC)
-      3th october 1997:
-        + function second_bool_to_byte for ord(boolean) (PM)
-      4th october 1997: (CEC)
-         + first compilation
-      5th octover 1997:
-          check floating point negate when i can test everything,
-            to see if it makes any sense , according SINGLE_NEG from
-            sozobon, it does not.??
-      8th october 1997:
-        + ord(x) support (FK)
-        + some stuff for typed file support (FK)
-      9 october 1997:
-        + converted code to motorola for v096 (CEC)
-     18 october 1997:
-        +* removed bugs relating to floating point condition codes. (CEC).
-           (in secondadd).
-        + had to put secondadd in another routine to compile in tp. (CEC).
-        + updated second_bool_to_byte,secondtypeconv and secondinline, secondvecn to v097 (CEC)
-        + updated secondload and secondstringconst (merging duplicate strings),secondfor to v95/v97 (CEC).
-        + finally converted second_fix_real (very difficult and untested!). (CEC)
-     23 october 1997:
-        * bugfix of address register in usableregs set. (They were not defined...) (CEC).
-     24 october 1997:
-        * bugfix of scalefactor, allowed unrolled using lsl. (CEC).
-   27th october 1997:
-       + now all general purpose registers are in the unused list, so this fixes problems
-         regarding pushing registers (such as d0) which were actually never used. (CEC)
-       + added secondin (FK) (all credit goes to him).
-       + converted second_real_fix thanks to Daniel Mantione for the information
-         he gave me on the fixed format. Thanks to W. Metzenthen who did WMEmu
-         (which in turn gave me information on the control word of the intel fpu). (CEC)
-   23rd november 1997:
-       + changed second_int_real to apply correct calling conventions of rtl.
-   26th november 1997:
-       + changed secondmoddiv to apply correct calling conventions of rtl
-          and also optimized it a bit.
-
 }
 

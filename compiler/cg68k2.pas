@@ -55,8 +55,8 @@ Interface
     procedure second_while_repeatn(var p : ptree);
     procedure secondifn(var p : ptree);
     procedure secondbreakn(var p : ptree);
-    { copies p a set element on the stack }
-    procedure pushsetelement(var p : ptree);
+    { copies p a set element into the d0.b register }
+    procedure loadsetelement(var p : ptree);
 
 Implementation
 
@@ -192,13 +192,15 @@ Implementation
                            { on the right we do not need the register anymore too }
                            del_reference(p^.right^.location.reference);
                            pushusedregisters(pushedregs,$ffff);
-                           emitpushreferenceaddr(p^.left^.location.reference);
+                           { WE INVERSE THE PARAMETERS!!! }
+                           { Because parameters are inversed in the rtl }
                            emitpushreferenceaddr(p^.right^.location.reference);
+                           emitpushreferenceaddr(p^.left^.location.reference);
                            emitcall('STRCONCAT',true);
+                           maybe_loadA5;
+                           popusedregisters(pushedregs);
                            set_location(p^.location,p^.left^.location);
                            ungetiftemp(p^.right^.location.reference);
-                           maybe_loada5;
-                           popusedregisters(pushedregs);
                         end; { this case }
               ltn,lten,gtn,gten,
                 equaln,unequaln :
@@ -234,8 +236,22 @@ Implementation
                            else
                              begin
                                pushusedregisters(pushedregs,$ffff);
+
+                               { parameters are directly passed via registers       }
+                               { this has several advantages, no loss of the flags  }
+                               { on exit ,and MUCH faster on m68k machines          }
+                               {  speed difference (68000)                          }
+                               {   normal routine: entry, exit code + push  = 124   }
+                               {   (best case)                                      }
+                               {   assembler routine: param setup (worst case) = 48 }
+
+                               exprasmlist^.concat(new(pai68k,op_ref_reg(
+                                    A_LEA,S_L,newreference(p^.left^.location.reference),R_A0)));
+                               exprasmlist^.concat(new(pai68k,op_ref_reg(
+                                    A_LEA,S_L,newreference(p^.right^.location.reference),R_A1)));
+{
                                emitpushreferenceaddr(p^.left^.location.reference);
-                               emitpushreferenceaddr(p^.right^.location.reference);
+                               emitpushreferenceaddr(p^.right^.location.reference); }
                                emitcall('STRCMP',true);
                                maybe_loada5;
                                popusedregisters(pushedregs);
@@ -286,12 +302,13 @@ Implementation
                 ((p^.left^.resulttype^.deftype=orddef) and
                  (porddef(p^.left^.resulttype)^.typ=u32bit)) or
                  ((p^.right^.resulttype^.deftype=orddef) and
-                 (porddef(p^.right^.resulttype)^.typ=u32bit)) or
+                 (porddef(p^.right^.resulttype)^.typ=u32bit))
 
-                { as well as small sets }
+                 { SMALL SETS DO NOT WORK BECAUSE OF ENDIAN! }
+              or  { as well as small sets }
                 ((p^.left^.resulttype^.deftype=setdef) and
-                 (psetdef(p^.left^.resulttype)^.settype=smallset)
-                ) then
+                 (psetdef(p^.left^.resulttype)^.settype=smallset))
+                 then
                 begin
            do_normal:
                    mboverflow:=false;
@@ -332,7 +349,6 @@ Implementation
                                        Message(sym_e_type_mismatch);
                                     end;
                                end;
-
                       muln : begin
                                 if is_set then
                                   begin
@@ -905,8 +921,13 @@ Implementation
                                      del_reference(p^.left^.location.reference);
                                      del_reference(p^.right^.location.reference);
                                      pushusedregisters(pushedregs,$ffff);
-                                     emitpushreferenceaddr(p^.right^.location.reference);
-                                     emitpushreferenceaddr(p^.left^.location.reference);
+
+{                                     emitpushreferenceaddr(p^.right^.location.reference);
+                                     emitpushreferenceaddr(p^.left^.location.reference);}
+                                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                                       newreference(p^.left^.location.reference),R_A0)));
+                                     exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                                       newreference(p^.right^.location.reference),R_A1)));
                                      emitcall('SET_COMP_SETS',true);
                                      maybe_loada5;
                                      popusedregisters(pushedregs);
@@ -933,6 +954,8 @@ Implementation
                                          newcsymbol('SET_ADD_SETS',0))));
                                        muln : exprasmlist^.concat(new(pai68k,op_csymbol(A_JSR,S_NO,
                                          newcsymbol('SET_MUL_SETS',0))));
+                                       symdifn:
+                                              emitcall('SET_SYMDIF_SETS',true);
                                      end;
                                      maybe_loada5;
                                      popusedregisters(pushedregs);
@@ -1389,25 +1412,30 @@ Implementation
 
 
 
-    { copies p a set element on the stack }
-    procedure pushsetelement(var p : ptree);
+    { This routine needs to be further checked to see if it works correctly  }
+    { because contrary to the intel version, all large set elements are read }
+    { as 32-bit values, and then decomposed to find the correct byte.        }
+    { CHECKED -> Requires 32-bit read.                                       }
+    procedure loadsetelement(var p : ptree);
 
       var
          hr : tregister;
 
       begin
-         { copy the element on the stack, slightly complicated }
+         { copy the element in the d0.b register, slightly complicated }
          case p^.location.loc of
             LOC_REGISTER,
             LOC_CREGISTER : begin
                               hr:=p^.location.register;
-                              exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_W,hr,R_SPPUSH)));
+                              emit_reg_reg(A_MOVE,S_L,hr,R_D0);
                               ungetregister32(hr);
                            end;
             else
                begin
-                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_W,
-                    newreference(p^.location.reference),R_SPPUSH)));
+                  exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
+                    newreference(p^.location.reference),R_D0)));
+{                  exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                    $ff,R_D0))); }
                   del_reference(p^.location.reference);
                end;
          end;
@@ -1491,7 +1519,7 @@ Implementation
                                     end;
                         end;
                 analizeset:=true;
-            end;
+            end;  { end analizeset }
 
       begin
          if psetdef(p^.right^.resulttype)^.settype=smallset then
@@ -1504,19 +1532,22 @@ Implementation
                    if codegenerror then
                      exit;
                    p^.location.resflags:=F_NE;
+                   { Because of the Endian of the m68k, we have to consider this as a  }
+                   { normal set and load it byte per byte, otherwise we will never get }
+                   { the correct result.                                               }
                        case p^.right^.location.loc of
-                      LOC_REGISTER,LOC_CREGISTER : begin
+                     LOC_REGISTER,LOC_CREGISTER :
+                       begin
                                                     emit_reg_reg(A_MOVE,S_L,p^.right^.location.register,R_D1);
                                                     exprasmlist^.concat(new(pai68k,
-                                                      op_const_reg(A_AND,S_L, 1 shl
-                                                       (p^.left^.value and 31),R_D1)));
+                           op_const_reg(A_AND,S_L, 1 shl (p^.left^.value and 31),R_D1)));
                                                    end;
                       else
                        begin
                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,newreference(
                              p^.right^.location.reference),R_D1)));
                            exprasmlist^.concat(new(pai68k,op_const_reg(
-                             A_AND,S_L, 1 shl (p^.left^.value and 31),R_D1)));
+                           A_AND,S_L,1 shl (p^.left^.value and 31) ,R_D1)));
                        end;
                    end;
                    del_reference(p^.right^.location.reference);
@@ -1545,7 +1576,7 @@ Implementation
                             { the set element isn't never samller than a byte  }
                             { and because it's a small set we need only 5 bits }
                             { but 8 bits are eaiser to load                    }
-                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_L,
                               newreference(p^.left^.location.reference),R_D1)));
                             hr:=R_D1;
                             del_reference(p^.left^.location.reference);
@@ -1581,7 +1612,7 @@ Implementation
                    p^.location.resflags:=F_C;
                 end;
            end
-         else
+         else { NOT a small set }
            begin
               if p^.left^.treetype=ordconstn then
                 begin
@@ -1591,11 +1622,11 @@ Implementation
                    if codegenerror then
                      exit;
                    p^.location.resflags:=F_NE;
-                   inc(p^.right^.location.reference.offset,p^.left^.value shr 3);
-                   exprasmlist^.concat(new(pai68k, op_ref_reg(A_MOVE, S_B,
+                   inc(p^.right^.location.reference.offset,(p^.left^.value div 32)*4);
+                   exprasmlist^.concat(new(pai68k, op_ref_reg(A_MOVE, S_L,
                        newreference(p^.right^.location.reference), R_D1)));
-                   exprasmlist^.concat(new(pai68k, op_const_reg(A_AND, S_B,
-                       1 shl (p^.left^.value and 7),R_D1)));
+                   exprasmlist^.concat(new(pai68k, op_const_reg(A_AND, S_L,
+                       1 shl (p^.left^.value mod 32),R_D1)));
                del_reference(p^.right^.location.reference);
             end
           else
@@ -1614,11 +1645,17 @@ Implementation
                         LOC_CREGISTER :
                            exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
                              255,p^.left^.location.register)));
+                        else
+                         Begin
+                           exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,
+                             newreference(p^.left^.location.reference),R_D0)));
+                           exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_L,
+                             255,R_D0)));
+                         end;
                       end;
                             {Get a label to jump to the end.}
                             p^.location.loc:=LOC_FLAGS;
-                            {It's better to use the zero flag when there are
-                             no ranges.}
+                      {It's better to use the zero flag when there are no ranges.}
                             if ranges then
                                 p^.location.resflags:=F_C
                             else
@@ -1638,15 +1675,16 @@ Implementation
                                         href.symbol:=stringdup(lab2str(l2));
                                         if setparts[i].start=setparts[i].stop-1 then
                                         begin
-
                                           case p^.left^.location.loc of
                                            LOC_REGISTER,
                                            LOC_CREGISTER :
-                                                  exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_B,
+                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                                     setparts[i].start,p^.left^.location.register)));
                                           else
-                                                  exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
-                                                    setparts[i].start,newreference(p^.left^.location.reference))));
+                                         exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                           setparts[i].start,R_D0)));
+{                                         exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+                                           setparts[i].start,newreference(p^.left^.location.reference))));}
                                           end;
                                           {Result should be in carry flag when ranges are used.}
                                           { Here the m68k does not affect any flag except the  }
@@ -1658,11 +1696,13 @@ Implementation
                                           case p^.left^.location.loc of
                                            LOC_REGISTER,
                                            LOC_CREGISTER :
-                                                exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_B,
+                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                                  setparts[i].stop,p^.left^.location.register)));
                                           else
-                                                exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
-                                                 setparts[i].stop,newreference(p^.left^.location.reference))));
+                                      exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                        setparts[i].stop,R_D0)));
+{                                      exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+                                      setparts[i].stop,newreference(p^.left^.location.reference))));}
                                           end;
                                           {Result should be in carry flag when ranges are used.}
                                           { Here the m68k does not affect any flag except the  }
@@ -1681,11 +1721,13 @@ Implementation
                                            case p^.left^.location.loc of
                                                LOC_REGISTER,
                                                LOC_CREGISTER :
-                                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_B,
+                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                                          setparts[i].start,p^.left^.location.register)));
                                           else
-                                                        exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
-                                                         setparts[i].start,newreference(p^.left^.location.reference))));
+                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                        setparts[i].start,R_D0)));
+{                                        exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+                                        setparts[i].start,newreference(p^.left^.location.reference)))); }
                                           end;
                                                         {If lower, jump to next check.}
                                                         emitl(A_BCS,l2);
@@ -1697,11 +1739,13 @@ Implementation
                                            case p^.left^.location.loc of
                                                LOC_REGISTER,
                                                LOC_CREGISTER :
-                                                            exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_B,
+                                              exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                                          setparts[i].stop+1,p^.left^.location.register)));
                                           else
-                                                        exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
-                                                         setparts[i].stop+1,newreference(p^.left^.location.reference))));
+                                              exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                                setparts[i].stop+1,R_D0)));
+{                                              exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+                                                setparts[i].stop+1,newreference(p^.left^.location.reference))));}
                                           end; { end case }
                                                         {If higher, element is in set.}
                                                         emitl(A_BCS,l);
@@ -1716,11 +1760,13 @@ Implementation
                               case p^.left^.location.loc of
                                 LOC_REGISTER,
                                 LOC_CREGISTER :
-                                        exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_B,
+                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
                                          setparts[i].stop,p^.left^.location.register)));
                               else
-                                        exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
-                                         setparts[i].stop,newreference(p^.left^.location.reference))));
+{                                     exprasmlist^.concat(new(pai68k,op_const_ref(A_CMP,S_B,
+                                     setparts[i].stop,newreference(p^.left^.location.reference))));}
+                                     exprasmlist^.concat(new(pai68k,op_const_reg(A_CMP,S_W,
+                                      setparts[i].stop,R_D0)));
                               end;
                                         {Result should be in carry flag when ranges are used.}
                                         if ranges then
@@ -1750,27 +1796,20 @@ Implementation
                            { of course not commutative }
                            if p^.swaped then
                              swaptree(p);
-                           pushsetelement(p^.left);
-                           emitpushreferenceaddr(p^.right^.location.reference);
+                            { SET_IN_BYTE is an inline assembler procedure instead  }
+                            { of a normal procedure, which is *MUCH* faster         }
+                            { Parameters are passed by registers, and FLAGS are set }
+                            { according to the result.                              }
+                            { a0   = address of set                                 }
+                            { d0.b = value to compare with                          }
+                            { CARRY SET IF FOUND ON EXIT                            }
+                            loadsetelement(p^.left);
+                            exprasmlist^.concat(new(pai68k,op_ref_reg(A_LEA,S_L,
+                              newreference(p^.right^.location.reference),R_A0)));;
+{                            emitpushreferenceaddr(p^.right^.location.reference);}
                            del_reference(p^.right^.location.reference);
-                           { registers need not be save. that happens in SET_IN_BYTE }
                            emitcall('SET_IN_BYTE',true);
                      { ungetiftemp(p^.right^.location.reference); }
-                          { here we must set the flags manually  }
-                          { on returne from the routine, because }
-                          { flags are corrupt when restoring the }
-                          { stack                                }
-                          exprasmlist^.concat(new(pai68k,op_reg(A_TST,S_B,R_D0)));
-                          getlabel(hl2);
-                          emitl(A_BEQ,hl2);
-                          exprasmlist^.concat(new(pai68k,op_const_reg(A_AND,S_B,
-                            $fe,R_CCR)));
-                          getlabel(hl3);
-                          emitl(A_BRA,hl3);
-                          emitl(A_LABEL,hl2);
-                          exprasmlist^.concat(new(pai68k,op_const_reg(A_OR,S_B,
-                             $01,R_CCR)));
-                          emitl(A_LABEL,hl3);
                           p^.location.loc:=LOC_FLAGS;
                           p^.location.resflags:=F_C;
                         end;
@@ -1921,7 +1960,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-06-08 13:13:37  pierre
+  Revision 1.6  1998-07-10 10:51:00  peter
+    * m68k updates
+
+  Revision 1.5  1998/06/08 13:13:37  pierre
     + temporary variables now in temp_gen.pas unit
       because it is processor independent
     * mppc68k.bat modified to undefine i386 and support_mmx
@@ -1939,111 +1981,4 @@ end.
     + started inline procedures
     + added starstarn : use ** for exponentiation (^ gave problems)
     + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.2  1998/03/28 23:09:54  florian
-    * secondin bugfix (m68k and i386)
-    * overflow checking bugfix (m68k and i386) -- pretty useless in
-      secondadd, since everything is done using 32-bit
-    * loading pointer to routines hopefully fixed (m68k)
-    * flags problem with calls to RTL internal routines fixed (still strcmp
-      to fix) (m68k)
-    * #ELSE was still incorrect (didn't take care of the previous level)
-    * problem with filenames in the command line solved
-    * problem with mangledname solved
-    * linking name problem solved (was case insensitive)
-    * double id problem and potential crash solved
-    * stop after first error
-    * and=>test problem removed
-    * correct read for all float types
-    * 2 sigsegv fixes and a cosmetic fix for Internal Error
-    * push/pop is now correct optimized (=> mov (%esp),reg)
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.18  1998/03/10 01:17:15  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.17  1998/03/09 10:44:34  peter
-    + string='', string<>'', string:='', string:=char optimizes (the first 2
-      were already in cg68k2)
-
-  Revision 1.16  1998/03/06 00:52:02  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
-
-  Revision 1.15  1998/03/02 01:48:15  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.14  1998/02/14 05:05:43  carl
-    + now compiles under TP with overlays
-
-  Revision 1.13  1998/02/13 10:34:44  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.12  1998/02/12 11:49:49  daniel
-  Yes! Finally! After three retries, my patch!
-
-  Changes:
-
-  Complete rewrite of psub.pas.
-  Added support for DLL's.
-  Compiler requires less memory.
-  Platform units for each platform.
-
-  Revision 1.11  1998/02/07 06:51:51  carl
-    + moved secondraise from cg68k
-
-  Revision 1.10  1998/02/05 21:54:31  florian
-    + more MMX
-
-  Revision 1.9  1998/02/05 00:59:29  carl
-    + added secondas
-
-  Revision 1.8  1998/02/01 17:13:26  florian
-    + comparsion of class references
-
-  Revision 1.7  1998/01/21 22:34:23  florian
-    + comparsion of Delphi classes
-
-  Revision 1.6  1998/01/11 03:37:18  carl
-  * bugfix of muls.l under MC68000 target
-  * long subtract bugfix
-
-  Revision 1.3  1997/12/10 23:07:15  florian
-  * bugs fixed: 12,38 (also m68k),39,40,41
-  + warning if a system unit is without -Us compiled
-  + warning if a method is virtual and private (was an error)
-  * some indentions changed
-  + factor does a better error recovering (omit some crashes)
-  + problem with @type(x) removed (crashed the compiler)
-
-  Revision 1.2  1997/12/04 15:15:05  carl
-  + updated to v099.
-
-  Revision 1.1.1.1  1997/11/27 08:32:53  michael
-  FPC Compiler CVS start
-
-
-  Pre-CVS log:
-
-
-  FK     Florian Klaempfl
-  +      feature added
-  -      removed
-  *      bug fixed or changed
-
-  History:
-       8th october 1997:
-         + only a cmpb $0,_S is generated if s is a string and a
-           s='' or s<>'' is performed (FK)
-      17th october 1997:
-         + unit started (CEC)
-
 }

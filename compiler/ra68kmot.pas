@@ -236,15 +236,11 @@ var
     {* INIT TOKEN TO NOTHING *}
     token := AS_NONE;
     { while space and tab , continue scan... }
-    while (c = ' ') or (c = #9) do
-    begin
-      c := asmgetchar;
-    end;
+    while c in [' ',#9] do
+     c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
+    {$ifdef NEWINPUT}current_scanner^.{$endif}gettokenpos;
     { Possiblities for first token in a statement:                }
     {   Local Label, Label, Directive, Prefix or Opcode....       }
-    tokenpos.line:=current_module^.current_inputfile^.line_no;
-    tokenpos.column:=get_file_col;
-    tokenpos.fileindex:=current_module^.current_index;
     if firsttoken and not (c in [newline,#13,'{',';']) then
     begin
 
@@ -253,7 +249,7 @@ var
       begin
         token := AS_LLABEL;   { this is a local label }
         { Let us point to the next character }
-        c := asmgetchar;
+        c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
       end;
 
 
@@ -263,7 +259,7 @@ var
          { if there is an at_sign, then this must absolutely be a label }
          if c = '@' then forcelabel:=TRUE;
          actasmpattern := actasmpattern + c;
-         c := asmgetchar;
+         c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
       end;
 
       uppervar(actasmpattern);
@@ -275,7 +271,7 @@ var
              AS_LLABEL: ; { do nothing }
            end; { end case }
            { let us point to the next character }
-           c := asmgetchar;
+           c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
            gettoken := token;
            exit;
       end;
@@ -311,11 +307,11 @@ var
                 {                - @Result, @Code or @Data special variables.     }
                             begin
                              actasmpattern := c;
-                             c:= asmgetchar;
+                             c:= {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                              while c in  ['A'..'Z','a'..'z','0'..'9','_','@','.'] do
                              begin
                                actasmpattern := actasmpattern + c;
-                               c := asmgetchar;
+                               c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                              end;
                              uppervar(actasmpattern);
                              gettoken := AS_ID;
@@ -324,11 +320,11 @@ var
       { identifier, register, opcode, prefix or directive }
          'A'..'Z','a'..'z','_': begin
                              actasmpattern := c;
-                             c:= asmgetchar;
+                             c:= {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                              while c in  ['A'..'Z','a'..'z','0'..'9','_','.'] do
                              begin
                                actasmpattern := actasmpattern + c;
-                               c := asmgetchar;
+                               c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                              end;
                              uppervar(actasmpattern);
 
@@ -354,7 +350,7 @@ var
                           end;
            { override operator... not supported }
            '&':       begin
-                         c:=asmgetchar;
+                         c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                          gettoken := AS_AND;
                       end;
            { string or character }
@@ -365,7 +361,7 @@ var
                          begin
                            if c = '''' then
                            begin
-                              c:=asmgetchar;
+                              c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                               if c=newline then
                               begin
                                  Message(scan_f_string_exceeds_line);
@@ -374,11 +370,11 @@ var
                               repeat
                                   if c=''''then
                                    begin
-                                       c:=asmgetchar;
+                                       c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                                        if c='''' then
                                         begin
                                                actasmpattern:=actasmpattern+'''';
-                                               c:=asmgetchar;
+                                               c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                                                if c=newline then
                                                begin
                                                     Message(scan_f_string_exceeds_line);
@@ -390,7 +386,7 @@ var
                                    else
                                    begin
                                           actasmpattern:=actasmpattern+c;
-                                          c:=asmgetchar;
+                                          c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                                           if c=newline then
                                             begin
                                                Message(scan_f_string_exceeds_line);
@@ -406,101 +402,101 @@ var
                    exit;
                  end;
            '$' :  begin
-                    c:=asmgetchar;
+                    c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                     while c in ['0'..'9','A'..'F','a'..'f'] do
                     begin
                       actasmpattern := actasmpattern + c;
-                      c := asmgetchar;
+                      c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                     end;
                    gettoken := AS_HEXNUM;
                    exit;
                   end;
            ',' : begin
                    gettoken := AS_COMMA;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '(' : begin
                    gettoken := AS_LPAREN;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            ')' : begin
                    gettoken := AS_RPAREN;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            ':' : begin
                    gettoken := AS_COLON;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
 {           '.' : begin
                    gettoken := AS_DOT;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end; }
            '+' : begin
                    gettoken := AS_PLUS;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '-' : begin
                    gettoken := AS_MINUS;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '*' : begin
                    gettoken := AS_STAR;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '/' : begin
                    gettoken := AS_SLASH;
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '<' : begin
-                   c := asmgetchar;
+                   c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    { invalid characters }
                    if c <> '<' then
                     Message(assem_e_invalid_char_smaller);
                    { still assume << }
                    gettoken := AS_SHL;
-                   c := asmgetchar;
+                   c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '>' : begin
-                   c := asmgetchar;
+                   c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    { invalid characters }
                    if c <> '>' then
                     Message(assem_e_invalid_char_greater);
                    { still assume << }
                    gettoken := AS_SHR;
-                   c := asmgetchar;
+                   c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '|' : begin
                    gettoken := AS_OR;
-                   c := asmgetchar;
+                   c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    exit;
                  end;
            '^' : begin
                   gettoken := AS_XOR;
-                  c := asmgetchar;
+                  c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                   exit;
                  end;
            '#' : begin
                   gettoken:=AS_APPT;
-                  c:=asmgetchar;
+                  c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                   exit;
                  end;
            '%' : begin
-                   c:=asmgetchar;
+                   c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    while c in ['0','1'] do
                    Begin
                      actasmpattern := actasmpattern + c;
-                     c := asmgetchar;
+                     c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                    end;
                    gettoken := AS_BINNUM;
                    exit;
@@ -508,25 +504,25 @@ var
            { integer number }
            '0'..'9': begin
                         actasmpattern := c;
-                        c := asmgetchar;
+                        c := {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                         while c in ['0'..'9'] do
                           Begin
                              actasmpattern := actasmpattern + c;
-                             c:= asmgetchar;
+                             c:= {$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                           end;
                         gettoken := AS_INTNUM;
                         exit;
                      end;
          ';' : begin
                   repeat
-                     c:=asmgetchar;
+                     c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                   until c=newline;
                   firsttoken := TRUE;
                   gettoken:=AS_SEPARATOR;
                end;
 
          '{',#13,newline : begin
-                            c:=asmgetchar;
+                            c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
                             firsttoken := TRUE;
                             gettoken:=AS_SEPARATOR;
                            end;
@@ -753,6 +749,7 @@ var
   if fits then
   Begin
     case instr.numops of
+
      0:
         if instr.stropsize <> S_NO then
           p^.concat(new(pai68k,op_none(instruc,instr.stropsize)))
@@ -760,6 +757,10 @@ var
           p^.concat(new(pai68k,op_none(instruc,S_NO)));
      1: Begin
           case instr.operands[1].operandtype of
+           OPR_SYMBOL: Begin
+                             p^.concat(new(pai68k,op_ref(instruc,
+                               instr.stropsize, newreference(instr.operands[1].ref))));
+                         end;
            OPR_CONSTANT: Begin
                              p^.concat(new(pai68k,op_const(instruc,
                                instr.stropsize, instr.operands[1].val)));
@@ -1679,6 +1680,8 @@ var
                    Begin
                       InitAsmRef(instr);
                       instr.operands[operandnum].ref.offset:=BuildRefExpression;
+                      { negate because was preceded by a negative sign! }
+                      instr.operands[operandnum].ref.offset:=-instr.operands[operandnum].ref.offset;
                       BuildReference(instr);
                    end
                    else
@@ -2030,7 +2033,7 @@ var
     store_p:=p;
     { setup label linked list }
     labellist.init;
-    c:=asmgetchar;
+    c:={$ifdef NEWINPUT}current_scanner^.{$endif}asmgetchar;
     actasmtoken:=gettoken;
     while actasmtoken<>AS_END do
     Begin
@@ -2174,7 +2177,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.2  1998-06-24 14:06:39  peter
+  Revision 1.3  1998-07-10 10:51:02  peter
+    * m68k updates
+
+  Revision 1.2  1998/06/24 14:06:39  peter
     * fixed the name changes
 
   Revision 1.1  1998/06/23 14:00:20  peter
