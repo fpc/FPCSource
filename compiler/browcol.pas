@@ -29,6 +29,8 @@ uses
   objects,symtable;
 
 const
+  SymbolTypLen : integer = 6;
+
   RecordTypes : set of tsymtyp =
     ([typesym,unitsym,programsym]);
 
@@ -81,11 +83,13 @@ type
     TSymbolCollection = object(TSortedCollection)
        function  At(Index: Sw_Integer): PSymbol;
        procedure Insert(Item: Pointer); virtual;
+       function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
     end;
 
     TSortedSymbolCollection = object(TSymbolCollection)
       function  Compare(Key1, Key2: Pointer): Sw_Integer; virtual;
       procedure Insert(Item: Pointer); virtual;
+      function  LookUp(const S: string; var Idx: sw_integer): string; virtual;
     end;
 
     TReferenceCollection = object(TCollection)
@@ -98,6 +102,8 @@ const
   TypeNames   : PTypeNameCollection = nil;
 
 
+procedure DisposeBrowserCol;
+procedure NewBrowserCol;
 procedure CreateBrowserCol;
 procedure InitBrowserCol;
 procedure DoneBrowserCol;
@@ -106,8 +112,8 @@ procedure DoneBrowserCol;
 implementation
 
 uses
-  files;
-
+  Drivers,Views,App,
+  globals,files,comphook;
 
 {****************************************************************************
                                    Helpers
@@ -153,6 +159,11 @@ begin
   TCollection.Insert(Item);
 end;
 
+function TSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
+begin
+  Idx:=-1;
+  LookUp:='';
+end;
 
 {****************************************************************************
                                TReferenceCollection
@@ -172,9 +183,12 @@ function TSortedSymbolCollection.Compare(Key1, Key2: Pointer): Sw_Integer;
 var K1: PSymbol absolute Key1;
     K2: PSymbol absolute Key2;
     R: Sw_integer;
+    S1,S2: string;
 begin
-  if K1^.GetName<K2^.GetName then R:=-1 else
-  if K1^.GetName>K2^.GetName then R:=1 else
+  S1:=Upper(K1^.GetName);
+  S2:=Upper(K2^.GetName);
+  if S1<S2 then R:=-1 else
+  if S1>S2 then R:=1 else
   R:=0;
   Compare:=R;
 end;
@@ -184,6 +198,41 @@ begin
   TSortedCollection.Insert(Item);
 end;
 
+function TSortedSymbolCollection.LookUp(const S: string; var Idx: sw_integer): string;
+var OLI,ORI,Left,Right,Mid: integer;
+    LeftP,RightP,MidP: PSymbol;
+    RL: integer;
+    LeftS,MidS,RightS: string;
+    FoundS: string;
+    UpS : string;
+begin
+  Idx:=-1; FoundS:='';
+  Left:=0; Right:=Count-1;
+  UpS:=Upper(S);
+  if Left<Right then
+  begin
+    while (Left<Right) do
+    begin
+      OLI:=Left; ORI:=Right;
+      Mid:=Left+(Right-Left) div 2;
+      LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
+      LeftS:=Upper(LeftP^.GetName); MidS:=Upper(MidP^.GetName);
+      RightS:=Upper(RightP^.GetName);
+      if copy(MidS,1,length(UpS))=UpS then
+        begin
+          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
+        end;
+{      else}
+        if UpS<MidS then
+          Right:=Mid
+        else
+          Left:=Mid;
+      if (OLI=Left) and (ORI=Right) then
+        Break;
+    end;
+  end;
+  LookUp:=FoundS;
+end;
 
 {****************************************************************************
                                 TReference
@@ -271,7 +320,15 @@ function TSymbol.GetText: string;
 var S: string;
     I: Sw_integer;
 begin
-  S:=GetTypeName+' '+GetName;
+  S:=GetTypeName;
+  if length(S)>SymbolTypLen then
+   S:=Copy(S,1,SymbolTypLen)
+  else
+   begin
+     while length(S)<SymbolTypLen do
+      S:=S+' ';
+   end;
+  S:=S+' '+GetName;
   if ParamCount>0 then
     begin
       S:=S+'(';
@@ -289,21 +346,21 @@ function TSymbol.GetTypeName: string;
 var S: string;
 begin
   case Typ of
-    abstractsym  : S:='abst ';
-    varsym       : S:='var  ';
-    typesym      : S:='type ';
-    procsym      : S:='proc ';
-    unitsym      : S:='unit ';
-    programsym   : S:='prog ';
+    abstractsym  : S:='abst';
+    varsym       : S:='var';
+    typesym      : S:='type';
+    procsym      : S:='proc';
+    unitsym      : S:='unit';
+    programsym   : S:='prog';
     constsym     : S:='const';
-    enumsym      : S:='enum ';
+    enumsym      : S:='enum';
     typedconstsym: S:='const';
     errorsym     : S:='error';
-    syssym       : S:='sys  ';
+    syssym       : S:='sys';
     labelsym     : S:='label';
-    absolutesym  : S:='abs  ';
-    propertysym  : S:='prop ';
-    funcretsym   : S:='func ';
+    absolutesym  : S:='abs';
+    propertysym  : S:='prop';
+    funcretsym   : S:='func';
     macrosym     : S:='macro';
   else S:='';
   end;
@@ -313,10 +370,46 @@ end;
 destructor TSymbol.Done;
 begin
   inherited Done;
-  if References<>nil then Dispose(References, Done);
-  if Items<>nil then Dispose(Items, Done);
-  if Name<>nil then DisposeStr(Name);
-  if Params<>nil then FreeMem(Params,ParamCount*2);
+  if assigned(References) then
+    Dispose(References, Done);
+  if assigned(Items) then
+    Dispose(Items, Done);
+  if assigned(Name) then
+    DisposeStr(Name);
+  if assigned(Params) then
+    FreeMem(Params,ParamCount*2);
+end;
+
+
+{*****************************************************************************
+                              Main Routines
+*****************************************************************************}
+
+procedure DisposeBrowserCol;
+begin
+  if assigned(Modules) then
+   begin
+     dispose(Modules,Done);
+     Modules:=nil;
+   end;
+  if assigned(ModuleNames) then
+   begin
+     dispose(ModuleNames,Done);
+     Modules:=nil;
+   end;
+  if assigned(TypeNames) then
+   begin
+     dispose(TypeNames,Done);
+     TypeNames:=nil;
+   end;
+end;
+
+
+procedure NewBrowserCol;
+begin
+  New(Modules, Init(50,50));
+  New(ModuleNames, Init(50,50));
+  New(TypeNames, Init(1000,5000));
 end;
 
 
@@ -393,8 +486,10 @@ var
   T: PSymTable;
   UnitS: PSymbol;
 begin
+  DisposeBrowserCol;
+  NewBrowserCol;
   T:=SymTableStack;
-  while T<>nil do
+  while assigned(T) do
    begin
      New(UnitS, Init(T^.Name^,unitsym, 0, nil));
      Modules^.Insert(UnitS);
@@ -408,35 +503,20 @@ end;
                                  Initialize
 *****************************************************************************}
 
+
+
 var
   oldexit : pointer;
 
 procedure browcol_exit;{$ifndef FPC}far;{$endif}
 begin
   exitproc:=oldexit;
-  if assigned(Modules) then
-   begin
-     dispose(Modules,Done);
-     Modules:=nil;
-   end;
-  if assigned(ModuleNames) then
-   begin
-     dispose(ModuleNames,Done);
-     Modules:=nil;
-   end;
-  if assigned(TypeNames) then
-   begin
-     dispose(TypeNames,Done);
-     TypeNames:=nil;
-   end;
+  DisposeBrowserCol;
 end;
 
 
 procedure InitBrowserCol;
 begin
-  New(Modules, Init(50,50));
-  New(ModuleNames, Init(50,50));
-  New(TypeNames, Init(1000,5000));
 end;
 
 
@@ -452,9 +532,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-01-12 14:25:24  peter
+  Revision 1.2  1999-01-21 11:49:14  peter
+    * updates from gabor
+
+  Revision 1.1  1999/01/12 14:25:24  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
-
 }
