@@ -190,6 +190,11 @@ unit globals;
     function upper(const s : string) : string;
     function lower(const s : string) : string;
     function trimspace(const s:string):string;
+    {$ifdef FPC}
+    function tostru(i:cardinal) : string;
+    {$else}
+    function tostru(i:longint) : string;
+    {$endif}
     procedure uppervar(var s : string);
     function tostr(i : longint) : string;
     function tostr_with_plus(i : longint) : string;
@@ -469,6 +474,26 @@ unit globals;
       end;
 
 
+
+{$ifdef FPC}
+   function tostru(i:cardinal):string;
+   {
+     return string of value i, but for cardinals
+   }
+   var hs:string;
+
+   begin
+       str(i,hs);
+       tostru:=hs;
+   end;
+{$else FPC}
+
+   function tostru(i:longint):string;
+
+   begin
+        tostru:=tostr(i);
+   end;
+{$endif FPC}
    function trimspace(const s:string):string;
    {
      return s with all leading and ending spaces and tabs removed
@@ -1206,7 +1231,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1999-08-03 17:09:35  florian
+  Revision 1.16  1999-08-05 20:54:19  daniel
+  * Changes for new symtable.
+
+  Revision 1.15  1999/08/03 17:09:35  florian
     * the alpha compiler can be compiled now
 
   Revision 1.14  1999/07/23 16:05:19  peter
