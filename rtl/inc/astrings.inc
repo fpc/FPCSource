@@ -455,6 +455,8 @@ var
 begin
   ResultAddress:=Nil;
   dec(index);
+  if Index < 0 then
+    Index := 0;
   { Check Size. Accounts for Zero-length S, the double check is needed because
     Size can be maxint and will get <0 when adding index }
   if (Size>Length(S)) or
@@ -640,7 +642,11 @@ end;
 
 {
   $Log$
-  Revision 1.36  1999-11-25 13:34:57  michael
+  Revision 1.37  1999-11-28 11:24:04  sg
+  * Fixed bug 722: If the start position of AnsiString Copy is less than 1,
+    it will be set to 1 (same behaviour as in Delphi)
+
+  Revision 1.36  1999/11/25 13:34:57  michael
   + Added Ansistring setstring call
 
   Revision 1.35  1999/11/06 14:35:38  peter
