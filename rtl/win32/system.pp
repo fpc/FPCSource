@@ -910,6 +910,8 @@ end;
 
 {$endif Set_i386_Exception_handler}
 
+
+{$ifdef HASWIDESTRING}
 {****************************************************************************
                       OS dependend widestrings
 ****************************************************************************}
@@ -943,6 +945,8 @@ procedure InitWin32Widestrings;
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;
   end;
+  
+{$endif HASWIDESTRING}
 
 
 {****************************************************************************
@@ -1102,7 +1106,10 @@ end.
 
 {
   $Log$
-  Revision 1.70  2005-02-26 20:43:52  florian
+  Revision 1.71  2005-03-02 19:18:42  florian
+    * fixed compilation with 1.0.10
+
+  Revision 1.70  2005/02/26 20:43:52  florian
     + WideCompareString and WideCompareText for win32 implemented
 
   Revision 1.69  2005/02/26 10:21:17  florian
