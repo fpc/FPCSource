@@ -357,10 +357,56 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+FCLOPTS=--package=fcl
+ --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
+
+XMLUNITS=sysutils strutils dateutils systhrds strings mouse keyboard \
+         crt video dos sockets objects heaptrc mmx ipc printer typinfo\
+         ports getopts emu387 dxeload go32 gpm graph oldlinux baseunix\
+         unixtype unix classes unixutil x86 dynlibs linux
+RTLXML=$(addsuffix .xml,$(XMLUNITS))
+# RTLXML=baseunix.xml
+RTLOPTS=--package=rtl
+RTLOPTS+=--descr=strutils.xml --input="../rtl/objpas/strutils.pp" 
+RTLOPTS+=--descr=systhrds.xml --input="../rtl/unix/systhrds.pp -Fi../rtl/inc" 
+RTLOPTS+=--descr=sysutils.xml --input="../rtl/unix/sysutils.pp -Fi../rtl/objpas/sysutils -Fi../rtl/inc"  
+RTLOPTS+=--descr=strings.xml --input="../rtl/inc/strings.pp -Fi../rtl/i386 -Fi../rtl/inc"  
+RTLOPTS+=--descr=mouse.xml --input="../rtl/unix/mouse.pp -Fi../rtl/inc"  
+RTLOPTS+=--descr=keyboard.xml --input="../rtl/unix/keyboard.pp -Fi../rtl/inc"  
+RTLOPTS+=--descr=crt.xml --input="../rtl/unix/crt.pp -Fi../rtl/inc"  
+RTLOPTS+=--descr=video.xml --input="../rtl/unix/video.pp -Fi../rtl/inc"  
+RTLOPTS+=--descr=dos.xml --input="../rtl/unix/dos.pp -Fi../rtl/inc -dcpui386"  
+RTLOPTS+=--descr=sockets.xml --input="../rtl/unix/sockets.pp -Fi../rtl/inc -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=objects.xml --input="../rtl/inc/objects.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=heaptrc.xml --input="../rtl/inc/heaptrc.pp -Fi../rtl/i386 -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=mmx.xml --input="../rtl/i386/mmx.pp -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=ipc.xml --input="../rtl/unix/ipc.pp -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=printer.xml --input="../rtl/unix/printer.pp -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=typinfo.xml --input="../rtl/objpas/typinfo.pp -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=ports.xml --input="../rtl/unix/ports.pp -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=getopts.xml --input="../rtl/inc/getopts.pp -Fi../rtl/$(HOSTOS)"  
+RTLOPTS+=--descr=emu387.xml --input="../rtl/go32v2/emu387.pp -Fi../rtl/i386"  
+RTLOPTS+=--descr=dxeload.xml --input="../rtl/go32v2/dxeload.pp -Fi../rtl/i386"  
+RTLOPTS+=--descr=go32.xml --input="../rtl/go32v2/go32.pp -Fi../rtl/i386"  
+RTLOPTS+=--descr=gpm.xml --input="-dVER1_0 ../rtl/unix/gpm.pp -Fi../rtl/i386"  
+RTLOPTS+=--descr=graph.xml --input="../rtl/unix/graph.pp -Fi../rtl/i386 -Fi../rtl/inc/graph"  
+RTLOPTS+=--descr=oldlinux.xml --input="../rtl/unix/oldlinux.pp -Fi../rtl/linux -Fi../rtl/unix"  
+RTLOPTS+=--descr=unixtype.xml --input="../rtl/unix/unixtype.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386" 
+RTLOPTS+=--descr=baseunix.xml --input="../rtl/linux/baseunix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386"  
+RTLOPTS+=--descr=unix.xml  --input="../rtl/unix/unix.pp -Fi../rtl/unix -Fi../rtl/linux -Fi../rtl/linux/i386" 
+RTLOPTS+=--descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+RTLOPTS+= --descr=unixutil.xml --input="../rtl/unix/unixutil.pp"
+RTLOPTS+= --descr=x86.xml --input="../rtl/unix/x86.pp"
+RTLOPTS+=--descr=dynlibs.xml --input="../rtl/inc/dynlibs.pp -Fi../rtl/unix"
+RTLOPTS+=--descr=linux.xml --input="../rtl/unix/linux.pp -Fi../rtl/linux -Fi../rtl/unix"
+
+rtl.inc: $(RTLXML)
+	$(FPDOC) --output=rtl.inc $(RTLOPTS) --format=latex
+
+
 
 #####################################################################
 # DVI files
@@ -450,6 +496,11 @@ fcl: fcl/index.html
 
 fcl/index.html: classes.xml
 	$(FPDOC) $(FCLOPTS) --format=html --output=fcl
+
+rtl: rtl/index.html
+
+rtl/index.html: $(RTLXML)
+	$(FPDOC) $(RTLOPTS) --format=html --output=rtl
 
 #####################################################################
 # GTK Articles
@@ -592,7 +643,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.28  2004-09-23 21:41:08  florian
+# Revision 1.29  2004-10-22 20:45:50  michael
+# + Most units added
+#
+# Revision 1.28  2004/09/23 21:41:08  florian
 #   * fixed Makefile to work on non i386 platforms
 #
 # Revision 1.27  2004/07/17 21:02:28  marco
