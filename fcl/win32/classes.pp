@@ -22,7 +22,7 @@ unit Classes;
 interface
 
 uses
-  objpas,dos,strings;
+  dos,strings,sysutils;
 
 {$i classesh.inc}
 
@@ -34,7 +34,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-05-06 13:00:25  michael
+  Revision 1.4  1998-10-26 23:01:52  florian
+    * reference to objpas unit removed, is now done by -S2
+
+  Revision 1.3  1998/05/06 13:00:25  michael
   + Added strings to uses clause, for TStrings class.
 
   Revision 1.2  1998/05/04 14:31:51  michael
