@@ -32,6 +32,8 @@ Interface
 Type
    AWord = QWord;
    PAWord = ^AWord;
+   AInt = int64;
+   PAInt = ^AInt;
 
    { the ordinal type used when evaluating constant integer expressions }
    TConstExprInt = int64;
@@ -109,7 +111,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.10  2003-12-25 01:07:09  florian
+  Revision 1.11  2004-04-12 18:25:26  florian
+    + AInt added
+
+  Revision 1.10  2003/12/25 01:07:09  florian
     + $fputype directive support
     + single data type operations with sse unit
     * fixed more x86-64 stuff
