@@ -689,9 +689,9 @@ begin
   { add objectfiles, start with prt0 always }
   LinkRes.Add('INPUT(');
   if isdll then
-   LinkRes.AddFileName(GetShortName(FindObjectFile('wdllprt0')))
+   LinkRes.AddFileName(GetShortName(FindObjectFile('wdllprt0','')))
   else
-   LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0')));
+   LinkRes.AddFileName(GetShortName(FindObjectFile('wprt0','')));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
@@ -1303,7 +1303,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2000-06-20 12:44:30  pierre
+  Revision 1.25  2000-07-08 20:43:38  peter
+    * findobjectfile gets extra arg with directory where the unit is found
+      and the .o should be looked first
+
+  Revision 1.24  2000/06/20 12:44:30  pierre
    * do not create an empty export section
 
   Revision 1.23  2000/05/23 20:18:25  pierre

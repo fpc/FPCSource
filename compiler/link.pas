@@ -52,9 +52,9 @@ Type
        Constructor Init;
        Destructor Done;
        procedure AddModuleFiles(hp:pmodule);
-       function  FindObjectFile(s : string) : string;
+       function  FindObjectFile(s : string;const unitpath:string) : string;
        function  FindLibraryFile(s:string;const ext:string;var found : boolean) : string;
-       Procedure AddObject(const S : String);
+       Procedure AddObject(const S,unitpath : String);
        Procedure AddStaticLibrary(const S : String);
        Procedure AddSharedLibrary(S : String);
        Function  FindUtil(const s:string):String;
@@ -220,7 +220,7 @@ begin
          end;
         { unit files }
         while not linkunitofiles.empty do
-         AddObject(linkunitofiles.getusemask(mask));
+         AddObject(linkunitofiles.getusemask(mask),path^);
         while not linkunitstaticlibs.empty do
          AddStaticLibrary(linkunitstaticlibs.getusemask(mask));
         while not linkunitsharedlibs.empty do
@@ -229,7 +229,7 @@ begin
    { Other needed .o and libs, specified using $L,$LINKLIB,external }
      mask:=link_allways;
      while not linkotherofiles.empty do
-      AddObject(linkotherofiles.Getusemask(mask));
+      AddObject(linkotherofiles.Getusemask(mask),path^);
      while not linkotherstaticlibs.empty do
       AddStaticLibrary(linkotherstaticlibs.Getusemask(mask));
      while not linkothersharedlibs.empty do
@@ -260,7 +260,7 @@ end;
 
 
 { searches an object file }
-function TLinker.FindObjectFile(s:string) : string;
+function TLinker.FindObjectFile(s:string;const unitpath:string) : string;
 var
   found : boolean;
 begin
@@ -276,13 +276,17 @@ begin
      exit;
    end;
   { find object file
-     1. cwd
-     2. unit search path
-     3. local object path
-     4. global object path
-     5. exepath }
+     1. specified unit path (if specified)
+     2. cwd
+     3. unit search path
+     4. local object path
+     5. global object path
+     6. exepath }
   found:=false;
-  findobjectfile:=FindFile(s,'.'+DirSep,found)+s;
+  if unitpath<>'' then
+   findobjectfile:=FindFile(s,unitpath,found)+s;
+  if (not found) then
+   findobjectfile:=FindFile(s,'.'+DirSep,found)+s;
   if (not found) then
    findobjectfile:=UnitSearchPath.FindFile(s,found)+s;
   if (not found) then
@@ -327,9 +331,9 @@ begin
 end;
 
 
-Procedure TLinker.AddObject(const S : String);
+Procedure TLinker.AddObject(const S,unitpath : String);
 begin
-  ObjectFiles.Insert(FindObjectFile(s));
+  ObjectFiles.Insert(FindObjectFile(s,unitpath));
 end;
 
 
@@ -521,7 +525,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.89  2000-06-28 03:34:06  hajny
+  Revision 1.90  2000-07-08 20:43:37  peter
+    * findobjectfile gets extra arg with directory where the unit is found
+      and the .o should be looked first
+
+  Revision 1.89  2000/06/28 03:34:06  hajny
     * little corrections for EMX resources
 
   Revision 1.88  2000/05/17 18:30:35  peter

@@ -99,7 +99,7 @@ begin
    end;
 
   { add objectfiles, start with prt0 always }
-  LinkRes.AddFileName(GetShortName(FindObjectFile('prt0')));
+  LinkRes.AddFileName(GetShortName(FindObjectFile('prt0','')));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
@@ -292,7 +292,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-02-28 17:23:57  daniel
+  Revision 1.11  2000-07-08 20:43:38  peter
+    * findobjectfile gets extra arg with directory where the unit is found
+      and the .o should be looked first
+
+  Revision 1.10  2000/02/28 17:23:57  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

@@ -312,7 +312,7 @@ begin
   LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
   if prtobj<>'' then
-   LinkRes.AddFileName(FindObjectFile(prtobj));
+   LinkRes.AddFileName(FindObjectFile(prtobj,''));
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
@@ -477,7 +477,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-03-21 21:36:52  peter
+  Revision 1.15  2000-07-08 20:43:38  peter
+    * findobjectfile gets extra arg with directory where the unit is found
+      and the .o should be looked first
+
+  Revision 1.14  2000/03/21 21:36:52  peter
     * only include crtbegin when linking to libc
 
   Revision 1.13  2000/03/12 08:24:03  daniel

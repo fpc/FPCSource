@@ -402,7 +402,7 @@ begin
    end;
 
   { add objectfiles, start with prt0 always }
-  LinkRes.AddFileName(FindObjectFile('prt0'));
+  LinkRes.AddFileName(FindObjectFile('prt0',''));
   while not ObjectFiles.Empty do
    begin
      s:=ObjectFiles.Get;
@@ -507,7 +507,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2000-06-28 03:34:06  hajny
+  Revision 1.14  2000-07-08 20:43:38  peter
+    * findobjectfile gets extra arg with directory where the unit is found
+      and the .o should be looked first
+
+  Revision 1.13  2000/06/28 03:34:06  hajny
     * little corrections for EMX resources
 
   Revision 1.12  2000/06/25 19:08:28  hajny
