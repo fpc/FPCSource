@@ -51,13 +51,16 @@ Const
   V_Debug       = $8000;
 
   V_All         = $ffffffff;
-  V_Default     = V_Error;
+  V_Default     = V_Fatal + V_Error;
 
   Verbosity     : longint=V_Default;
 
 var
   errorcount    : longint;  { number of generated errors }
   msg           : pmessage;
+  UseStdErr : boolean;
+  Use_Rhide : boolean;
+
 
 procedure LoadMsgFile(const fn:string);
 function  SetVerbosity(const s:string):boolean;
@@ -116,40 +119,98 @@ end;
 function SetVerbosity(const s:string):boolean;
 var
   m : Longint;
-  c : Word;
+  i : Word;
+  inverse : boolean;
+  c : char;
 begin
   setverbosity:=false;
-  val(s,m,c);
-  if (c=0) and (s<>'') then
+  val(s,m,i);
+  if (i=0) and (s<>'') then
    verbosity:=m
   else
    begin
-     for c:=1 to length(s) do
-      case upcase(s[c]) of
-      { Special cases }
-       'A' : Verbosity:=V_All;
-       '0' : Verbosity:=V_Default;
-      { Normal cases - do an or }
-       'E' : Verbosity:=Verbosity or V_Error;
-       'I' : Verbosity:=Verbosity or V_Info;
-       'W' : Verbosity:=Verbosity or V_Warning;
-       'N' : Verbosity:=Verbosity or V_Note;
-       'H' : Verbosity:=Verbosity or V_Hint;
-       'L' : Verbosity:=Verbosity or V_Linenrs;
-       'U' : Verbosity:=Verbosity or V_Used;
-       'T' : Verbosity:=Verbosity or V_Tried;
-       'M' : Verbosity:=Verbosity or V_Macro;
-       'P' : Verbosity:=Verbosity or V_Procedure;
-       'C' : Verbosity:=Verbosity or V_Conditional;
-       'D' : Verbosity:=Verbosity or V_Debug;
-      end;
-   end;
+     for i:=1 to length(s) do
+       begin
+          c:=s[i];
+          if (i<length(s)) and (s[i+1]='-') then
+            begin
+               inc(i);
+               inverse:=true;
+            end
+          else
+            inverse:=false;
+          case upcase(s[i]) of
+          { Special cases }
+           'A' : Verbosity:=V_All;
+           '0' : Verbosity:=V_Default;
+           'R' : begin
+                    if inverse then
+                      begin
+                         Use_rhide:=false;
+                         UseStdErr:=false;
+                      end
+                    else
+                      begin
+                         Use_rhide:=true;
+                         UseStdErr:=true;
+                      end;
+                 end;
+          { Normal cases - do an or }
+           'E' : if inverse then
+                   Verbosity:=Verbosity and (not V_Error)
+                 else
+                   Verbosity:=Verbosity or V_Error;
+           'I' : if inverse then
+                   Verbosity:=Verbosity and (not V_Info)
+                 else
+                   Verbosity:=Verbosity or V_Info;
+           'W' : if inverse then
+                   Verbosity:=Verbosity and (not V_Warning)
+                 else
+                   Verbosity:=Verbosity or V_Warning;
+           'N' : if inverse then
+                   Verbosity:=Verbosity and (not V_Note)
+                 else
+                   Verbosity:=Verbosity or V_Note;
+           'H' : if inverse then
+                   Verbosity:=Verbosity and (not V_Hint)
+                 else
+                   Verbosity:=Verbosity or V_Hint;
+           'L' : if inverse then
+                   Verbosity:=Verbosity and (not V_Linenrs)
+                 else
+                   Verbosity:=Verbosity or V_Linenrs;
+           'U' : if inverse then
+                   Verbosity:=Verbosity and (not V_Used)
+                 else
+                   Verbosity:=Verbosity or V_Used;
+           'T' : if inverse then
+                   Verbosity:=Verbosity and (not V_Tried)
+                 else
+                   Verbosity:=Verbosity or V_Tried;
+           'M' : if inverse then
+                   Verbosity:=Verbosity and (not V_Macro)
+                 else
+                   Verbosity:=Verbosity or V_Macro;
+           'P' : if inverse then
+                   Verbosity:=Verbosity and (not V_Procedure)
+                 else
+                   Verbosity:=Verbosity or V_Procedure;
+           'C' : if inverse then
+                   Verbosity:=Verbosity and (not V_Conditional)
+                 else
+                   Verbosity:=Verbosity or V_Conditional;
+           'D' : if inverse then
+                   Verbosity:=Verbosity and (not V_Debug)
+                 else
+                   Verbosity:=Verbosity or V_Debug;
+           end;
+       end;
+     end;
   if Verbosity=0 then
    Verbosity:=V_Default;
   setverbosity:=true;
 end;
-
-
 
 procedure stop;
 begin
@@ -292,7 +353,14 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-04-23 12:11:22  peter
+  Revision 1.5  1998-04-30 15:59:43  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.4  1998/04/23 12:11:22  peter
     * fixed -v0 to displayV_Default (=errors+fatals)
 
   Revision 1.3  1998/04/13 21:15:42  florian

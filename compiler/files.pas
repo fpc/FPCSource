@@ -71,13 +71,8 @@ unit files;
           destructor done;
           procedure close_all;
           procedure register_file(f : pextfile);
+          function  get_file(w : word) : pextfile;
        end;
-
-       tfileposinfo = record
-         infile : pinputfile;
-         line : longint; { could be changed to abspos }
-       end;
-       pfileposinfo = ^tfileposinfo;
 
     type
        tunitmap = array[0..maxunits-1] of pointer;
@@ -110,6 +105,8 @@ unit files;
           linkofiles    : tstringcontainer;
           used_units    : tlinkedlist;
           current_inputfile : pinputfile;
+          { used in firstpass for faster settings }
+          current_index : word;
 
           unitname,                 { name of the (unit) module in uppercase }
           objfilename,              { fullname of the objectfile }
@@ -258,11 +255,10 @@ unit files;
     function tinputfile.get_file_line : string;
 
       begin
-{$ifdef USE_RHIDE}
-        get_file_line:=lowercase(name^+ext^)+':'+tostr(line_no)+':'
-{$else  USE_RHIDE}
-        get_file_line:=name^+ext^+'('+tostr(line_no)+')'
-{$endif USE_RHIDE}
+        if Use_Rhide then
+          get_file_line:=lowercase(bstoslash(path^)+name^+ext^)+':'+tostr(line_no)+':'
+        else
+          get_file_line:=name^+ext^+'('+tostr(line_no)+')'
       end;
 
 {****************************************************************************
@@ -305,6 +301,16 @@ unit files;
          files:=f;
       end;
 
+   function tfilemanager.get_file(w : word) : pextfile;
+
+     var
+        ff : pextfile;
+     begin
+        ff:=files;
+        while assigned(ff) and (ff^.ref_index<>w) do
+          ff:=ff^._next;
+        get_file:=ff;
+     end;
 {****************************************************************************
                                   TMODULE
  ****************************************************************************}
@@ -624,7 +630,14 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-29 10:33:52  pierre
+  Revision 1.5  1998-04-30 15:59:40  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.4  1998/04/29 10:33:52  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

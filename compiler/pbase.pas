@@ -25,7 +25,7 @@ unit pbase;
   interface
 
     uses
-       cobjects,globals,scanner,symtable,systems,verbose;
+       files,cobjects,globals,scanner,symtable,systems,verbose;
 
     const
        { forward types should only be possible inside  }
@@ -208,7 +208,12 @@ unit pbase;
       begin
          sc:=new(pstringcontainer,init);
          repeat
+{$ifndef UseTokenInfo}
            sc^.insert(pattern);
+{$else UseTokenInfo}
+           sc^.insert_with_tokeninfo(pattern,
+             tokeninfo^.fi);
+{$endif UseTokenInfo}
            consume(ID);
            if token=COMMA then consume(COMMA)
              else break
@@ -222,12 +227,27 @@ unit pbase;
 
       var
          s : string;
+{$ifdef UseTokenInfo}
+         filepos : tfileposinfo;
+         ss : pvarsym;
+{$endif UseTokenInfo}
+
 
       begin
-         s:=sc^.get;
+{$ifdef UseTokenInfo}
+        s:=sc^.get_with_tokeninfo(filepos);
+{$else UseTokenInfo}
+        s:=sc^.get;
+{$endif UseTokenInfo}
          while s<>'' do
            begin
+{$ifndef UseTokenInfo}
               st^.insert(new(pvarsym,init(s,def)));
+{$else UseTokenInfo}
+              ss:=new(pvarsym,init(s,def));
+              ss^.line_no:=filepos.line;
+              st^.insert(ss);
+{$endif UseTokenInfo}
               { static data fields are inserted in the globalsymtable }
               if (st^.symtabletype=objectsymtable) and
                  ((current_object_option and sp_static)<>0) then
@@ -235,7 +255,11 @@ unit pbase;
                    s:=lowercase(st^.name^)+'_'+s;
                    st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
                 end;
+{$ifdef UseTokenInfo}
+              s:=sc^.get_with_tokeninfo(filepos);
+{$else UseTokenInfo}
               s:=sc^.get;
+{$endif UseTokenInfo}
            end;
          dispose(sc,done);
       end;
@@ -244,7 +268,14 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-04-29 10:33:57  pierre
+  Revision 1.4  1998-04-30 15:59:41  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.3  1998/04/29 10:33:57  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

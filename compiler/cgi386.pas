@@ -4786,6 +4786,9 @@ implementation
 
       begin
          secondpass(p^.left);
+         if (p^.left^.resulttype<>pdef(voiddef)) then
+           if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+             ungetiftemp(p^.left^.location.reference);
       end;
 
     procedure secondblockn(var p : ptree);
@@ -4802,6 +4805,9 @@ implementation
                 begin
                    cleartempgen;
                    secondpass(hp^.right);
+                   if (hp^.right^.resulttype<>pdef(voiddef)) then
+                     if hp^.right^.location.loc in [LOC_MEM,LOC_REFERENCE] then
+                       ungetiftemp(hp^.right^.location.reference);
                 end;
               hp:=hp^.left;
            end;
@@ -5751,22 +5757,24 @@ do_jmp:
       begin
          oldcodegenerror:=codegenerror;
          oldswitches:=aktswitches;
-           oldis:=current_module^.current_inputfile;
-            oldnr:=current_module^.current_inputfile^.line_no;
+         oldis:=current_module^.current_inputfile;
+         oldnr:=current_module^.current_inputfile^.line_no;
 
          codegenerror:=false;
-           current_module^.current_inputfile:=p^.inputfile;
-         current_module^.current_inputfile^.line_no:=p^.line;
+         current_module^.current_inputfile:=
+           pinputfile(current_module^.sourcefiles.get_file(p^.fileinfo.fileindex));
+         current_module^.current_inputfile^.line_no:=p^.fileinfo.line;
          aktswitches:=p^.pragmas;
          if not(p^.error) then
            begin
               procedures[p^.treetype](p);
               p^.error:=codegenerror;
-                 codegenerror:=codegenerror or oldcodegenerror;
+              codegenerror:=codegenerror or oldcodegenerror;
            end
-         else codegenerror:=true;
+         else
+           codegenerror:=true;
          aktswitches:=oldswitches;
-           current_module^.current_inputfile:=oldis;
+         current_module^.current_inputfile:=oldis;
          current_module^.current_inputfile^.line_no:=oldnr;
       end;
 
@@ -6025,7 +6033,14 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.18  1998-04-29 10:33:48  pierre
+  Revision 1.19  1998-04-30 15:59:39  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.18  1998/04/29 10:33:48  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

@@ -56,7 +56,7 @@ unit pdecl;
 
     uses
        cobjects,scanner,aasm,tree,pass_1,
-       types,hcodegen,verbose,systems
+       files,types,hcodegen,verbose,systems
 {$ifdef GDB}
        ,gdb
 {$endif GDB}
@@ -382,6 +382,9 @@ unit pdecl;
            sc : pstringcontainer;
            hp : pdef;
            s : string;
+{$ifdef UseTokenInfo}
+           filepos : tfileposinfo;
+{$endif UseTokenInfo}
            pp : pprocdef;
 
         begin
@@ -988,7 +991,7 @@ unit pdecl;
            begin
               do_count_dbx:=true;
               if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
-               debuglist^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
+               datasegment^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
            end;
 {$endif * GDB *}
@@ -1534,6 +1537,10 @@ unit pdecl;
          old_block_type : tblock_type;
          { to handle absolute }
          abssym : pabsolutesym;
+{$ifdef UseTokenInfo}
+         filepos : tfileposinfo;
+{$endif UseTokenInfo}
+
 
       begin
          hs:='';
@@ -1550,7 +1557,11 @@ unit pdecl;
               p:=read_type('');
               if do_absolute and (token=ID) and (pattern='ABSOLUTE') then
                 begin
-                   s:=sc^.get;
+{$ifdef UseTokenInfo}
+        s:=sc^.get_with_tokeninfo(filepos);
+{$else UseTokenInfo}
+        s:=sc^.get;
+{$endif UseTokenInfo}
                    if sc^.get<>'' then
                     Message(parser_e_absolute_only_one_var);
                    dispose(sc,done);
@@ -1566,6 +1577,9 @@ unit pdecl;
                         abssym^.typ:=absolutesym;
                         abssym^.abstyp:=tovar;
                         abssym^.ref:=srsym;
+{$ifdef UseTokenInfo}
+                        abssym^.line_no:=filepos.line;
+{$endif UseTokenInfo}
                         symtablestack^.insert(abssym);
                      end
                    else
@@ -1577,6 +1591,9 @@ unit pdecl;
                         abssym^.typ:=absolutesym;
                         abssym^.abstyp:=toasm;
                         abssym^.asmname:=stringdup(s);
+{$ifdef UseTokenInfo}
+                        abssym^.line_no:=filepos.line;
+{$endif UseTokenInfo}
                         symtablestack^.insert(abssym);
                      end
                    else
@@ -1589,6 +1606,9 @@ unit pdecl;
                           abssym^.typ:=absolutesym;
                           abssym^.abstyp:=toaddr;
                           abssym^.absseg:=false;
+{$ifdef UseTokenInfo}
+                          abssym^.line_no:=filepos.line;
+{$endif UseTokenInfo}
                           s:=pattern;
                           consume(INTCONST);
                           val(s,abssym^.address,code);
@@ -1758,7 +1778,14 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.12  1998-04-29 10:33:57  pierre
+  Revision 1.13  1998-04-30 15:59:41  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.12  1998/04/29 10:33:57  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

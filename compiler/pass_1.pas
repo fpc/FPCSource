@@ -1711,6 +1711,7 @@ unit pass_1;
     procedure firstnothing(var p : ptree);
 
       begin
+         p^.resulttype:=voiddef;
       end;
 
     procedure firstassignment(var p : ptree);
@@ -4017,20 +4018,39 @@ unit pass_1;
            procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
-    { !!!!!!!!!!!! unused }
-    procedure firstexpr(var p : ptree);
+    procedure firststatement(var p : ptree);
 
       begin
+         { left is the next statement in the list }
+         p^.resulttype:=voiddef;
+
+         { no temps over several statements }
+         cleartempgen;
+         { right is the statement itself calln assignn or a complex one }
+         firstpass(p^.right);
+         if (not (cs_extsyntax in aktswitches)) and
+            assigned(p^.right^.resulttype) and
+            (p^.right^.resulttype<>pdef(voiddef)) then
+           Message(cg_e_illegal_expression);
+         if codegenerror then
+           exit;
+         p^.registers32:=p^.right^.registers32;
+         p^.registersfpu:=p^.right^.registersfpu;
+{$ifdef SUPPORT_MMX}
+         p^.registersmmx:=p^.right^.registersmmx;
+{$endif SUPPORT_MMX}
          firstpass(p^.left);
          if codegenerror then
            exit;
-         p^.registers32:=p^.left^.registers32;
-         p^.registersfpu:=p^.left^.registersfpu;
+              if p^.right^.registers32>p^.registers32 then
+                p^.registers32:=p^.right^.registers32;
+              if p^.right^.registersfpu>p^.registersfpu then
+                p^.registersfpu:=p^.right^.registersfpu;
 {$ifdef SUPPORT_MMX}
-         p^.registersmmx:=p^.left^.registersmmx;
-{$endif SUPPORT_MMX}
-         if (cs_extsyntax in aktswitches) and (p^.left^.resulttype<>pdef(voiddef)) then
-           Message(cg_e_illegal_expression);
+              if p^.right^.registersmmx>p^.registersmmx then
+                p^.registersmmx:=p^.right^.registersmmx;
+{$endif}
+
       end;
 
     procedure firstblock(var p : ptree);
@@ -4067,28 +4087,29 @@ unit pass_1;
                            end;
                       end
                    { warning if unreachable code occurs and elimate this }
-                                   else if (hp^.right^.treetype in
-                                        [exitn,breakn,continuen,goton]) and
-                                        assigned(hp^.left) and
-                                        (hp^.left^.treetype<>labeln) then
-                                                 begin
-                                                        { use correct line number }
-                                                        current_module^.current_inputfile:=hp^.left^.inputfile;
-                                                        current_module^.current_inputfile^.line_no:=hp^.left^.line;
+                   else if (hp^.right^.treetype in
+                     [exitn,breakn,continuen,goton]) and
+                     assigned(hp^.left) and
+                     (hp^.left^.treetype<>labeln) then
+                     begin
+                        { use correct line number }
+                        set_current_file_line(hp^.left);
+                        disposetree(hp^.left);
+                        hp^.left:=nil;
+                        Message(cg_w_unreachable_code);
 
-                                                        disposetree(hp^.left);
-                            hp^.left:=nil;
-                            Message(cg_w_unreachable_code);
-
-                            { old lines }
-                            current_module^.current_inputfile:=hp^.right^.inputfile;
-                            current_module^.current_inputfile^.line_no:=hp^.right^.line;
-                         end;
+                        { old lines }
+                        set_current_file_line(hp^.right);
+                     end;
                 end;
               if assigned(hp^.right) then
                 begin
                    cleartempgen;
                    firstpass(hp^.right);
+                   if (not (cs_extsyntax in aktswitches)) and
+                      assigned(hp^.right^.resulttype) and
+                      (hp^.right^.resulttype<>pdef(voiddef)) then
+                     Message(cg_e_illegal_expression);
                    if codegenerror then
                      exit;
 
@@ -4700,7 +4721,7 @@ unit pass_1;
                    setelen,         {A set element (i.e. [a,b]).}
                    setconstrn,      {A set constant (i.e. [1,2]).}
                    blockn,          {A block of statements.}
-                   anwein,          {A linear list of nodes.}
+                   statementn,      {One statement in list of nodes.}
                    loopn,           { used in genloopnode, must be converted }
                    ifn,             {An if statement.}
                    breakn,          {A break statement.}
@@ -4741,7 +4762,7 @@ unit pass_1;
              firstnot,firstinline,firstniln,firsterror,
              firsttypen,firsthnewn,firsthdisposen,firstnewn,
              firstsimplenewdispose,firstnothing,firstsetcons,firstblock,
-             firstnothing,firstnothing,firstif,firstnothing,
+             firststatement,firstnothing,firstif,firstnothing,
              firstnothing,first_while_repeat,first_while_repeat,firstfor,
              firstexitn,firstwith,firstcase,firstlabel,
              firstgoto,firstsimplenewdispose,firsttryexcept,firstraise,
@@ -4767,8 +4788,9 @@ unit pass_1;
 {$endif extdebug}
 
          codegenerror:=false;
-         current_module^.current_inputfile:=p^.inputfile;
-         current_module^.current_inputfile^.line_no:=p^.line;
+         current_module^.current_inputfile:=
+           pinputfile(current_module^.sourcefiles.get_file(p^.fileinfo.fileindex));
+         current_module^.current_inputfile^.line_no:=p^.fileinfo.line;
          aktswitches:=p^.pragmas;
 
          if not(p^.error) then
@@ -4805,7 +4827,14 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.13  1998-04-29 10:33:56  pierre
+  Revision 1.14  1998-04-30 15:59:41  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.13  1998/04/29 10:33:56  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

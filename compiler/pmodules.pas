@@ -496,11 +496,15 @@ unit pmodules;
           aktprocsym:=oldprocsym;
       end;
 
-      procedure parse_uses(symt:Psymtable);
+      procedure parse_implementation_uses(symt:Psymtable);
 
+      var
+         old_module_in_implementation : boolean;
       begin
          if token=_USES then
            begin
+              old_module_in_implementation:=module_in_implementation;
+              module_in_implementation:=true;
               current_module^.in_implementation:=true;
               symt^.symtabletype:=unitsymtable;
               loadunits;
@@ -508,6 +512,7 @@ unit pmodules;
 {$ifdef DEBUG}
               test_symtablestack;
 {$endif DEBUG}
+              module_in_implementation:=old_module_in_implementation;
            end;
       end;
 
@@ -694,7 +699,7 @@ unit pmodules;
          { to reinsert it after loading the implementation units }
          symtablestack:=unitst^.next;
 
-         parse_uses(unitst);
+         parse_implementation_uses(unitst);
 
          { but reinsert the global symtable as lasts }
          unitst^.next:=symtablestack;
@@ -950,7 +955,14 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.7  1998-04-29 10:33:59  pierre
+  Revision 1.8  1998-04-30 15:59:41  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.7  1998/04/29 10:33:59  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

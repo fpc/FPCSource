@@ -303,6 +303,7 @@ unit parser;
          token:=tokeninfo^.token;
 {$endif UseTokenInfo}
 
+         reset_gdb_info;
          { init asm writing }
          datasegment:=new(paasmoutput,init);
          codesegment:=new(paasmoutput,init);
@@ -462,6 +463,7 @@ done:
               dispose(consts,Done);
            end;
 
+         reset_gdb_info;
          { restore symtable state }
 {$ifdef UseBrowser}
          if (compile_level>1) then
@@ -524,7 +526,6 @@ done:
 
          nextlabelnr:=oldnextlabelnr;
 
-         reset_gdb_info;
          if (compile_level=1) then
           begin
             if (not AsmRes.Empty) then
@@ -539,7 +540,14 @@ done:
 end.
 {
   $Log$
-  Revision 1.8  1998-04-29 10:33:55  pierre
+  Revision 1.9  1998-04-30 15:59:40  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.8  1998/04/29 10:33:55  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

@@ -43,12 +43,21 @@ unit cobjects;
     type
        pstring = ^string;
 
+       tfileposinfo = record
+         line : longint; { could be changed to abspos }
+         fileindex,column : word;
+       end;
+       pfileposinfo = ^tfileposinfo;
+
        { some help data types }
        pstringitem = ^tstringitem;
 
        tstringitem = record
           data : pstring;
           next : pstringitem;
+{$ifdef UseTokenInfo}
+          fileinfo : tfileposinfo; { pointer to tinputfile }
+{$endif UseTokenInfo}
        end;
 
        plinkedlist_item = ^tlinkedlist_item;
@@ -127,9 +136,15 @@ unit cobjects;
 
           { inserts a string }
           procedure insert(const s : string);
+{$ifdef UseTokenInfo}
+          procedure insert_with_tokeninfo(const s : string;const file_info : tfileposinfo);
+{$endif UseTokenInfo}
 
           { gets a string }
           function get : string;
+{$ifdef UseTokenInfo}
+    function get_with_tokeninfo(var file_info : tfileposinfo) : string;
+{$endif UseTokenInfo}
 
           { deletes all strings }
           procedure clear;
@@ -456,6 +471,33 @@ end;
          last:=hp;
       end;
 
+{$ifdef UseTokenInfo}
+          procedure tstringcontainer.insert_with_tokeninfo
+            (const s : string; const file_info : tfileposinfo);
+
+      var
+         hp : pstringitem;
+
+      begin
+         if not(doubles) then
+           begin
+              hp:=root;
+              while assigned(hp) do
+                begin
+                   if hp^.data^=s then exit;
+                   hp:=hp^.next;
+                end;
+           end;
+         new(hp);
+         hp^.next:=nil;
+         hp^.data:=stringdup(s);
+         hp^.fileinfo:=file_info;
+         if root=nil then root:=hp
+           else last^.next:=hp;
+         last:=hp;
+      end;
+
+{$endif UseTokenInfo}
     procedure tstringcontainer.clear;
 
       var
@@ -491,6 +533,32 @@ end;
             dispose(hp);
           end;
       end;
+
+{$ifdef UseTokenInfo}
+    function tstringcontainer.get_with_tokeninfo(var file_info : tfileposinfo) : string;
+
+      var
+         hp : pstringitem;
+
+      begin
+         if root=nil then
+          begin
+             get_with_tokeninfo:='';
+             file_info.fileindex:=0;
+             file_info.line:=0;
+             file_info.column:=0;
+          end
+         else
+          begin
+            get_with_tokeninfo:=root^.data^;
+            hp:=root;
+            root:=root^.next;
+            stringdispose(hp^.data);
+            file_info:=hp^.fileinfo;
+            dispose(hp);
+          end;
+      end;
+{$endif UseTokenInfo}
 
 {****************************************************************************
                             TLINKEDLIST_ITEM
@@ -995,7 +1063,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-29 10:33:50  pierre
+  Revision 1.5  1998-04-30 15:59:40  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.4  1998/04/29 10:33:50  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

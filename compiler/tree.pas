@@ -29,7 +29,7 @@ unit tree;
   interface
 
     uses
-       globals,symtable,cobjects,verbose,aasm,files
+       globals,scanner,symtable,cobjects,verbose,aasm,files
 {$ifdef i386}
        ,i386
 {$endif}
@@ -97,7 +97,7 @@ unit tree;
                    setelen,         {A set element (i.e. [a,b]).}
                    setconstrn,      {A set constant (i.e. [1,2]).}
                    blockn,          {A block of statements.}
-                   anwein,          {A linear list of nodes.}
+                   statementn,      {One statement in a block of nodes.}
                    loopn,           { used in genloopnode, must be converted }
                    ifn,             {An if statement.}
                    breakn,          {A break statement.}
@@ -193,12 +193,9 @@ unit tree;
 {$endif SUPPORT_MMX}
           left,right : ptree;
           resulttype : pdef;
-          inputfile : pinputfile;
-          {$ifdef TP}
-          line:word;
-          {$else}
-          line : longint;
-          {$endif}
+          { line : longint;
+          fileindex,colon : word; }
+          fileinfo : tfileposinfo;
           pragmas : Tcswitches;
 {$ifdef extdebug}
         firstpasscount : longint;
@@ -285,6 +282,7 @@ unit tree;
     procedure set_location(var destloc,sourceloc : tlocation);
     procedure swap_location(var destloc,sourceloc : tlocation);
     procedure set_file_line(from,_to : ptree);
+    procedure set_current_file_line(_to : ptree);
     procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
 
 {$ifdef extdebug}
@@ -296,8 +294,9 @@ unit tree;
 
   implementation
 
-    const
-       oldswitches : tcswitches = [];
+{$ifdef UseTokenInfo}
+    uses pbase;
+{$endif UseTokenInfo}
 
 {****************************************************************************
         this is a pool for the tree nodes to get more performance
@@ -349,8 +348,14 @@ unit tree;
          hp^.error:=false;
 
          { we know also the position }
-         hp^.line:=current_module^.current_inputfile^.line_no;
-         hp^.inputfile:=current_module^.current_inputfile;
+{$ifdef UseTokenInfo}
+         if assigned(tokeninfo) then
+           begin
+              hp^.fileinfo:=tokeninfo^.fi;
+           end
+         else
+{$endif UseTokenInfo}
+           get_cur_file_pos(hp^.fileinfo);
          hp^.pragmas:=aktswitches;
          getnode:=hp;
       end;
@@ -540,17 +545,22 @@ unit tree;
     procedure set_file_line(from,_to : ptree);
 
       begin
-         if from<>nil then
-           begin
-              _to^.line:=from^.line;
-              _to^.inputfile:=from^.inputfile;
-           end;
+         if assigned(from) then
+           _to^.fileinfo:=from^.fileinfo;
+      end;
+
+    procedure set_current_file_line(_to : ptree);
+
+      begin
+         current_module^.current_inputfile:=
+           pinputfile(current_module^.sourcefiles.get_file(_to^.fileinfo.fileindex));
+         current_module^.current_inputfile^.line_no:=_to^.fileinfo.line;
+         current_module^.current_index:=_to^.fileinfo.fileindex;
       end;
 
    procedure set_tree_filepos(p : ptree;const filepos : tfileposinfo);
      begin
-        p^.line:=filepos.line;
-        p^.inputfile:=filepos.infile;
+        p^.fileinfo:=filepos;
      end;
 
    function genwithnode(symtable : psymtable;l,r : ptree;count : longint) : ptree;
@@ -1253,7 +1263,14 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-29 10:34:08  pierre
+  Revision 1.5  1998-04-30 15:59:43  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.4  1998/04/29 10:34:08  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

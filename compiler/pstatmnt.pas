@@ -100,12 +100,12 @@ unit pstatmnt;
            begin
               if first=nil then
                 begin
-                   last:=gennode(anwein,nil,statement);
+                   last:=gennode(statementn,nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last^.left:=gennode(anwein,nil,statement);
+                   last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
               if token<>SEMICOLON then
@@ -225,7 +225,7 @@ unit pstatmnt;
            p^.labelnr:=aktcaselabel;
 
            { concats instruction }
-           instruc:=gennode(anwein,instruc,p);
+           instruc:=gennode(statementn,instruc,p);
 
            if not((token=_ELSE) or (token=_OTHERWISE) or (token=_END)) then
              consume(SEMICOLON);
@@ -262,12 +262,12 @@ unit pstatmnt;
            begin
               if first=nil then
                 begin
-                   last:=gennode(anwein,nil,statement);
+                   last:=gennode(statementn,nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last^.left:=gennode(anwein,nil,statement);
+                   last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
               if token<>SEMICOLON then
@@ -455,22 +455,22 @@ unit pstatmnt;
          consume(_TRY);
          first:=nil;
          while (token<>_FINALLY) and (token<>_EXCEPT) do
-                   begin
+           begin
               if first=nil then
                 begin
-                                   last:=gennode(anwein,nil,statement);
+                   last:=gennode(statementn,nil,statement);
                    first:=last;
                 end
               else
                 begin
-                                   last^.left:=gennode(anwein,nil,statement);
+                   last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
-                          if token<>SEMICOLON then
-                                break;
-                          consume(SEMICOLON);
-                          emptystats;
-                   end;
+              if token<>SEMICOLON then
+                break;
+              consume(SEMICOLON);
+              emptystats;
+           end;
          p_try_block:=gensinglenode(blockn,first);
 
          if token=_FINALLY then
@@ -791,12 +791,12 @@ unit pstatmnt;
            begin
               if first=nil then
                 begin
-                   last:=gennode(anwein,nil,statement);
+                   last:=gennode(statementn,nil,statement);
                    first:=last;
                 end
               else
                 begin
-                   last^.left:=gennode(anwein,nil,statement);
+                   last^.left:=gennode(statementn,nil,statement);
                    last:=last^.left;
                 end;
               if token=_END then
@@ -828,7 +828,7 @@ unit pstatmnt;
          code : ptree;
          labelnr : plabel;
 {$ifdef UseTokenInfo}
-         filepos : tfilepos;
+         filepos : tfileposinfo;
 {$endif UseTokenInfo}
 
       label
@@ -836,7 +836,7 @@ unit pstatmnt;
 
       begin
 {$ifdef UseTokenInfo}
-         filepos:=tokeninfo^.filepos;
+         filepos:=tokeninfo^.fi;
 {$endif UseTokenInfo}
          case token of
             _GOTO : begin
@@ -1076,7 +1076,14 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.5  1998-04-29 10:33:59  pierre
+  Revision 1.6  1998-04-30 15:59:42  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.5  1998/04/29 10:33:59  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

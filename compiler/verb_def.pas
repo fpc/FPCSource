@@ -26,8 +26,6 @@ uses verbose;
 
 {$define allow_oldstyle}
 
-var
-  UseStdErr : boolean;
 procedure SetRedirectFile(const fn:string);
 
 procedure _stop;
@@ -45,20 +43,14 @@ uses
   strings,dos,cobjects,systems,globals,files;
 
 const
-{$ifdef USE_RHIDE}
   { RHIDE expect gcc like error output }
-  fatalstr='fatal: ';
-  errorstr='error: ';
-  warningstr='warning: ';
-  notestr='warning: ';
-  hintstr='warning: ';
-{$else}
+  rh_errorstr='error: ';
+  rh_warningstr='warning: ';
   fatalstr='Fatal Error: ';
   errorstr='Error: ';
   warningstr='Warning: ';
   notestr='Note: ';
   hintstr='Hint: ';
-{$endif USE_RHIDE}
 
 var
   redirexitsave : pointer;
@@ -107,35 +99,50 @@ end;
 Procedure _comment(Level:Longint;const s:string);
 var
   hs : string;
-{$ifdef USE_RHIDE}
   i  : longint;
-{$endif}
 begin
   if (verbosity and Level)=Level then
    begin
    {Create hs}
      hs:='';
-     if (verbosity and Level)=V_Hint then
-      hs:=hintstr;
-     if (verbosity and Level)=V_Note then
-      hs:=notestr;
-     if (verbosity and Level)=V_Warning then
-      hs:=warningstr;
-     if (verbosity and Level)=V_Error then
-      hs:=errorstr;
-     if (verbosity and Level)=V_Fatal then
-      hs:=fatalstr;
+     if not(use_rhide) then
+       begin
+          if (verbosity and Level)=V_Hint then
+           hs:=hintstr;
+          if (verbosity and Level)=V_Note then
+           hs:=notestr;
+          if (verbosity and Level)=V_Warning then
+           hs:=warningstr;
+          if (verbosity and Level)=V_Error then
+           hs:=errorstr;
+          if (verbosity and Level)=V_Fatal then
+           hs:=fatalstr;
+       end
+     else
+       begin
+          if (verbosity and Level)=V_Hint then
+           hs:=rh_warningstr;
+          if (verbosity and Level)=V_Note then
+           hs:=rh_warningstr;
+          if (verbosity and Level)=V_Warning then
+           hs:=rh_warningstr;
+          if (verbosity and Level)=V_Error then
+           hs:=rh_errorstr;
+          if (verbosity and Level)=V_Fatal then
+           hs:=rh_errorstr;
+       end;
      if (Level<$100) and Assigned(current_module) and
         Assigned(current_module^.current_inputfile) then
       hs:=current_module^.current_inputfile^.get_file_line+' '+hs;
-{$ifdef USE_RHIDE}
+(* {$ifdef USE_RHIDE}
+    What was this ??? I did not code that (PM)
      if (Level<$100) then
       begin
         i:=length(hs)+1;
         hs:=hs+lowercase(Copy(s,1,5))+Copy(s,6,255);
       end
      else
-{$endif USE_RHIDE}
+{$endif USE_RHIDE} *)
       hs:=hs+s;
 {$ifdef FPC}
      if UseStdErr and (Level<$100) then
@@ -215,9 +222,9 @@ end;
 {$endif}
 
 begin
-{$ifdef USE_RHIDE}
+(* {$ifdef USE_RHIDE}
   UseStdErr:=true;
-{$endif USE_RHIDE}
+{$endif USE_RHIDE} *)
 {$ifdef FPC}
   do_stop:=@_stop;
   do_comment:=@_comment;
@@ -242,7 +249,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-04-29 10:34:09  pierre
+  Revision 1.5  1998-04-30 15:59:43  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.4  1998/04/29 10:34:09  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

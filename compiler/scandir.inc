@@ -604,7 +604,9 @@ const
            current_module^.current_inputfile^.bufpos:=longint(inputpointer)-longint(inputbuffer);
            hp^.next:=current_module^.current_inputfile;
            current_module^.current_inputfile:=hp;
+           status.currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
            current_module^.sourcefiles.register_file(hp);
+           current_module^.current_index:=hp^.ref_index;
            inputbuffer:=current_module^.current_inputfile^.buf;
            Message1(scan_u_start_include_file,current_module^.current_inputfile^.name^);
            reload;
@@ -823,7 +825,14 @@ const
 
 {
   $Log$
-  Revision 1.4  1998-04-29 13:42:27  peter
+  Revision 1.5  1998-04-30 15:59:42  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.4  1998/04/29 13:42:27  peter
     + $IOCHECKS and $ALIGN to test already, other will follow soon
     * fixed the wrong linecounting with comments
 

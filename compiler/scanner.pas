@@ -28,7 +28,7 @@ unit scanner;
   interface
 
     uses
-       globals,files;
+       cobjects,globals,files;
 
     const
 {$ifdef TP}
@@ -135,15 +135,6 @@ unit scanner;
          destructor done;
       end;
 
-{$ifdef UseTokenInfo}
-
-      ttokeninfo = record
-                 token : ttoken;
-                 fi : tfileposinfo;
-                 end;
-      ptokeninfo = ^ttokeninfo;
-{$endif UseTokenInfo}
-
     var
         c              : char;
         orgpattern,
@@ -162,6 +153,15 @@ unit scanner;
         preprocstack   : ppreprocstack;
 
 
+{$ifdef UseTokenInfo}
+    type
+      ttokeninfo = record
+                 token : ttoken;
+                 fi : tfileposinfo;
+                 end;
+      ptokeninfo = ^ttokeninfo;
+{$endif UseTokenInfo}
+
       {public}
         procedure syntaxerror(const s : string);
 {$ifndef UseTokenInfo}
@@ -170,6 +170,9 @@ unit scanner;
         function yylex : ptokeninfo;
 {$endif UseTokenInfo}
         function asmgetchar : char;
+        function get_current_col : longint;
+        procedure get_cur_file_pos(var fileinfo : tfileposinfo);
+        procedure set_cur_file_pos(const fileinfo : tfileposinfo);
 
         procedure InitScanner(const fn: string);
         procedure DoneScanner(testendif:boolean);
@@ -178,13 +181,14 @@ unit scanner;
   implementation
 
      uses
-       dos,cobjects,verbose,pbase,
+       dos,verbose,pbase,
        symtable,switches,link;
 
      var
     { this is usefull to get the write filename
       for the last instruction of an include file !}
        FileHasChanged : Boolean;
+         status : tcompilestatus;
 
 
 {*****************************************************************************
@@ -350,6 +354,8 @@ unit scanner;
            current_module^.current_inputfile^.close;
          { load next module }
            current_module^.current_inputfile:=current_module^.current_inputfile^.next;
+           current_module^.current_index:=current_module^.current_inputfile^.ref_index;
+           status.currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
            inputbuffer:=current_module^.current_inputfile^.buf;
            inputpointer:=inputbuffer+current_module^.current_inputfile^.bufpos;
          end;
@@ -361,11 +367,11 @@ unit scanner;
 
     procedure linebreak;
       var
-         status : tcompilestatus;
          cur : char;
       begin
         cur:=c;
-        if byte(inputpointer^)=0 then
+        if (byte(inputpointer^)=0) and
+           current_module^.current_inputfile^.filenotatend then
           begin
              reload;
              if byte(cur)+byte(c)<>23 then
@@ -382,7 +388,8 @@ unit scanner;
            totalcompiledlines:=abslines;
            currentline:=current_module^.current_inputfile^.line_no
                +current_module^.current_inputfile^.line_count;
-           currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
+           { you call strcopy here at each line !!! }
+           {currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;}
            totallines:=0;
          end;
         if compilestatusproc(status) then
@@ -419,16 +426,9 @@ unit scanner;
               readstring[i]:=c;
             end;
         { get next char }
-           c:=inputpointer^;
-           if c=#0 then
-            reload
-           else
-            inc(longint(inputpointer));
+           readchar;
          end;
         readstring[0]:=chr(i);
-      { was the next char a linebreak ? }
-        if c in [#10,#13] then
-         linebreak;
       end;
 
 
@@ -472,16 +472,12 @@ unit scanner;
               readnumber[i]:=c;
             end;
         { get next char }
-           c:=inputpointer^;
-           if c=#0 then
-            reload
-           else
-            inc(longint(inputpointer));
+           readchar;
          end;
         readnumber[0]:=chr(i);
       { was the next char a linebreak ? }
-        if c in [#10,#13] then
-         linebreak;
+      {  if c in [#10,#13] then
+         linebreak; }
       end;
 
 
@@ -526,13 +522,14 @@ unit scanner;
       begin
         while c in [' ',#9..#13] do
          begin
-           c:=inputpointer^;
+           readchar;
+           {c:=inputpointer^;
            if c=#0 then
             reload
            else
             inc(longint(inputpointer));
            if c in [#10,#13] then
-            linebreak;
+            linebreak; }
          end;
       end;
 
@@ -561,13 +558,12 @@ unit scanner;
            else
             found:=0;
            end;
-           c:=inputpointer^;
+           readchar;
+           {c:=inputpointer^;
            if c=#0 then
             reload
            else
-            inc(longint(inputpointer));
-           if c in [#10,#13] then
-            linebreak;
+            inc(longint(inputpointer));}
          until (found=2);
       end;
 
@@ -588,14 +584,14 @@ unit scanner;
             '}' : dec_comment_level;
             #26 : Message(scan_f_end_of_file);
            end;
-           c:=inputpointer^;
+           readchar;
+           {c:=inputpointer^;
            if c=#0 then
             reload
            else
-            inc(longint(inputpointer));
-           if c in [#10,#13] then
-            linebreak;
+            inc(longint(inputpointer));}
          end;
+       {if (c=#10) or (c=#13) then linebreak;}
       end;
 
 
@@ -651,13 +647,12 @@ unit scanner;
              else
               found:=0;
              end;
-             c:=inputpointer^;
+             readchar;
+             {c:=inputpointer^;
              if c=#0 then
               reload
              else
-              inc(longint(inputpointer));
-             if c in [#10,#13] then
-              linebreak;
+              inc(longint(inputpointer));}
            until (found=2);
          end;
       end;
@@ -672,6 +667,7 @@ unit scanner;
         y    : ttoken;
 {$ifdef UseTokenInfo}
         newyylex : ptokeninfo;
+        line,column : longint;
 {$endif UseTokenInfo}
         code : word;
         l    : longint;
@@ -683,6 +679,10 @@ unit scanner;
          exit_label;
 {$endif UseTokenInfo}
      begin
+{$ifdef UseTokenInfo}
+        line:=current_module^.current_inputfile^.line_no;
+        column:=get_current_col;
+{$endif UseTokenInfo}
         { was the last character a point ? }
         { this code is needed because the scanner if there is a 1. found if  }
         { this is a floating point number or range like 1..3                 }
@@ -717,6 +717,11 @@ unit scanner;
         until false;
 
         lasttokenpos:=longint(inputpointer);
+{$ifdef UseTokenInfo}
+        line:=current_module^.current_inputfile^.line_no;
+        column:=get_current_col;
+        { will become line:=lasttokenpos ??;}
+{$endif UseTokenInfo}
         case c of
        '_','A'..'Z',
            'a'..'z' : begin
@@ -741,7 +746,9 @@ unit scanner;
                                  hp:=new(pinputfile,init('','Macro '+pattern,''));
                                  hp^.next:=current_module^.current_inputfile;
                                  current_module^.current_inputfile:=hp;
+                                 status.currentsource:=current_module^.current_inputfile^.name^;
                                  current_module^.sourcefiles.register_file(hp);
+                                 current_module^.current_index:=hp^.ref_index;
                                { set an own buffer }
                                  getmem(hp2,mac^.buflen+1);
                                  current_module^.current_inputfile^.setbuf(hp2,mac^.buflen+1);
@@ -1087,7 +1094,7 @@ unit scanner;
 {$ifndef UseTokenInfo}
                            yylex:=DOUBLEADDR;
 {$else UseTokenInfo}
-                           yylex:=DOUBLEADDR;
+                           y:=DOUBLEADDR;
 {$endif UseTokenInfo}
                          end
                         else
@@ -1287,8 +1294,9 @@ unit scanner;
       exit_label:
         new(newyylex);
         newyylex^.token:=y;
-        newyylex^.fi.infile:=current_module^.current_inputfile;
-        newyylex^.fi.line:=current_module^.current_inputfile^.line_no;
+        newyylex^.fi.fileindex:=current_module^.current_index;
+        newyylex^.fi.line:=line;
+        newyylex^.fi.column:=column;
         yylex:=newyylex;
 {$endif UseTokenInfo}
      end;
@@ -1352,6 +1360,8 @@ unit scanner;
         current_module^.current_inputfile:=new(pinputfile,init(d,n,e));
         current_module^.current_inputfile^.reset;
         current_module^.sourcefiles.register_file(current_module^.current_inputfile);
+        current_module^.current_index:=current_module^.current_inputfile^.ref_index;
+        status.currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
         if ioresult<>0 then
          Message(scan_f_cannot_open_input);
         inputbuffer:=current_module^.current_inputfile^.buf;
@@ -1363,6 +1373,27 @@ unit scanner;
         s_point:=false;
      end;
 
+   procedure get_cur_file_pos(var fileinfo : tfileposinfo);
+
+     begin
+        fileinfo.line:=current_module^.current_inputfile^.line_no;
+        {fileinfo.fileindex:=current_module^.current_inputfile^.ref_index;}
+        { should allways be the same !! }
+        fileinfo.fileindex:=current_module^.current_index;
+        fileinfo.column:=get_current_col;
+     end;
+
+   procedure set_cur_file_pos(const fileinfo : tfileposinfo);
+
+     begin
+        current_module^.current_index:=fileinfo.fileindex;
+        current_module^.current_inputfile:=
+          pinputfile(current_module^.sourcefiles.get_file(fileinfo.fileindex));
+        current_module^.current_inputfile^.line_no:=fileinfo.line;
+        {fileinfo.fileindex:=current_module^.current_inputfile^.ref_index;}
+        { should allways be the same !! }
+        { fileinfo.column:=get_current_col; }
+     end;
 
    procedure DoneScanner(testendif:boolean);
      var
@@ -1385,7 +1416,14 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.13  1998-04-29 13:42:27  peter
+  Revision 1.14  1998-04-30 15:59:42  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.13  1998/04/29 13:42:27  peter
     + $IOCHECKS and $ALIGN to test already, other will follow soon
     * fixed the wrong linecounting with comments
 

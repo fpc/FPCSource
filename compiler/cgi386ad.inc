@@ -133,17 +133,18 @@
          flags : tresflags;
       begin
          if (p^.left^.resulttype^.deftype<>stringdef) and
-            not ((p^.left^.resulttype^.deftype=setdef) and
-               (psetdef(p^.left^.resulttype)^.settype<>smallset)) then
-           begin
-              { this can be useful if for instance length(string) is called }
+             ((p^.left^.resulttype^.deftype<>setdef) or
+              (psetdef(p^.left^.resulttype)^.settype=smallset)) then
               if (p^.left^.location.loc=LOC_REFERENCE) or
                  (p^.left^.location.loc=LOC_MEM) then
                 ungetiftemp(p^.left^.location.reference);
+         if (p^.right^.resulttype^.deftype<>stringdef) and
+             ((p^.right^.resulttype^.deftype<>setdef) or
+              (psetdef(p^.right^.resulttype)^.settype=smallset)) then
+              { this can be useful if for instance length(string) is called }
               if (p^.right^.location.loc=LOC_REFERENCE) or
                  (p^.right^.location.loc=LOC_MEM) then
                 ungetiftemp(p^.right^.location.reference);
-           end;
          { in case of comparison operation the put result in the flags }
          if cmpop then
            begin
@@ -1270,7 +1271,14 @@
 
 {
      $Log$
-     Revision 1.5  1998-04-29 10:33:49  pierre
+     Revision 1.6  1998-04-30 15:59:40  pierre
+       * GDB works again better :
+         correct type info in one pass
+       + UseTokenInfo for better source position
+       * fixed one remaining bug in scanner for line counts
+       * several little fixes
+
+     Revision 1.5  1998/04/29 10:33:49  pierre
        + added some code for ansistring (not complete nor working yet)
        * corrected operator overloading
        * corrected nasm output

@@ -95,11 +95,10 @@ implementation
       begin
         get_file_line:='';
         if inputfile=nil then exit;
-{$ifdef USE_RHIDE}
-        get_file_line:=lowercase(inputfile^.name^+inputfile^.ext^)+':'+tostr(lineno)+':'
-{$else  USE_RHIDE}
-        get_file_line:=inputfile^.name^+inputfile^.ext^+'('+tostr(lineno)+')'
-{$endif USE_RHIDE}
+        if Use_Rhide then
+          get_file_line:=lowercase(inputfile^.name^+inputfile^.ext^)+':'+tostr(lineno)+':'
+        else
+          get_file_line:=inputfile^.name^+inputfile^.ext^+'('+tostr(lineno)+')'
       end;
 
   procedure add_new_ref(var ref : pref);
@@ -134,8 +133,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.2  1998-04-30 15:59:39  pierre
+    * GDB works again better :
+      correct type info in one pass
+    + UseTokenInfo for better source position
+    * fixed one remaining bug in scanner for line counts
+    * several little fixes
+
+  Revision 1.1.1.1  1998/03/25 11:18:12  root
+  * Restored version
 
   Revision 1.5  1998/03/10 16:27:36  pierre
     * better line info in stabs debug
