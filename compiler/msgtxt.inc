@@ -561,60 +561,60 @@ const msgtxt : array[0..00091,1..240] of char=(+
   '**2*_l : Show linenumbers            c : Show conditionals'#000+
   '**2*_a : Show everything             0 : S','how nothing (except errors'+
   ')'#000+
-  '**2*_b : Show all procedure'#000+
+  '**2*_b : Show all procedure          r : Rhide/GCC compatibility mode'#000+
   '**2*_    declarations if an error'#000+
   '**2*_    occurs'#000+
   '**1X_executable options'#000+
   '*L2Xc_link with the c library'#000+
-  '**2XD_link with dynamic libraries (defines FPC_LINK_DYNAMIC)'#000+
-  '**2Xs_strip all sym','bols from executable'#000+
+  '**2XD_link with dynamic libraries (def','ines FPC_LINK_DYNAMIC)'#000+
+  '**2Xs_strip all symbols from executable'#000+
   '**2XS_link with static libraries (defines FPC_LINK_STATIC)'#000+
   '**0*_Processor specific options:'#000+
   '3*1A<x>_output format'#000+
   '3*2Ao_coff file using GNU AS'#000+
-  '3*2Anasmcoff_coff file using Nasm'#000+
-  '3*2Anasmelf_elf32 (linux) file using Nasm'#000,+
+  '3*2Anasmcoff_coff file using Nasm'#000,+
+  '3*2Anasmelf_elf32 (linux) file using Nasm'#000+
   '3*2Anasmobj_obj file using Nasm'#000+
   '3*2Amasm_obj using Masm (Mircosoft)'#000+
   '3*2Atasm_obj using Tasm (Borland)'#000+
   '3*1R<x>_assembler reading style'#000+
   '3*2Ratt_read AT&T style assembler'#000+
-  '3*2Rintel_read Intel style assembler'#000+
-  '3*2Rdirect_copy assembler text dire','ctly to assembler file'#000+
+  '3*2Rintel_read Intel style ass','embler'#000+
+  '3*2Rdirect_copy assembler text directly to assembler file'#000+
   '3*1O<x>_optimizations'#000+
   '3*2Og_generate smaller code'#000+
   '3*2OG_generate faster code (default)'#000+
   '3*2Or_keep certain variables in registers (still BUGGY!!!)'#000+
-  '3*2Ou_enable uncertain optimizations (see docs)'#000+
-  '3*2O1_level 1 optimizat','ions (quick optimizations)'#000+
+  '3*2Ou_enable uncertain optimi','zations (see docs)'#000+
+  '3*2O1_level 1 optimizations (quick optimizations)'#000+
   '3*2O2_level 2 optimizations (-O1 + slower optimizations)'#000+
   '3*2O3_level 3 optimizations (same as -O2u)'#000+
   '3*2Op_target processor'#000+
   '3*3Op1_set target processor to 386/486'#000+
-  '3*3Op2_set target processor to Pentium/PentiumMMX (','tm)'#000+
+  '3*3Op2_se','t target processor to Pentium/PentiumMMX (tm)'#000+
   '3*3Op3_set target processor to PPro/PII/c6x86/K6 (tm)'#000+
   '3*1T<x>_Target operating system'#000+
   '3*2TGO32V1_version 1 of DJ Delorie DOS extender'#000+
   '3*2TGO32V2_version 2 of DJ Delorie DOS extender'#000+
-  '3*2TLINUX_Linux'#000+
+  '3*2TLINUX_Li','nux'#000+
   '3*2TOS2_OS/2 2.x'#000+
-  '3*2TWin32_Windows 32 ','Bit'#000+
+  '3*2TWin32_Windows 32 Bit'#000+
   '6*1A<x>_output format'#000+
   '6*2Ao_Unix o-file using GNU AS'#000+
   '6*2Agas_GNU Motorola assembler'#000+
   '6*2Amit_MIT Syntax (old GAS)'#000+
   '6*2Amot_Standard Motorola assembler'#000+
   '6*1O_optimizations'#000+
-  '6*2Oa_turn on the optimizer'#000+
+  '6*2Oa_turn on the optimize','r'#000+
   '6*2Og_generate smaller code'#000+
-  '6*2OG_genera','te faster code (default)'#000+
+  '6*2OG_generate faster code (default)'#000+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#000+
   '6*2O2_set target processor to a MC68020+'#000+
   '6*1R<x>_assembler reading style'#000+
   '6*2RMOT_read motorola style assembler'#000+
-  '6*1T<x>_Target operating system'#000+
+  '6*1T<x>_Target operati','ng system'#000+
   '6*2TAMIGA_Commodore Amiga'#000+
-  '6*2TAT','ARI_Atari ST/STe/TT'#000+
+  '6*2TATARI_Atari ST/STe/TT'#000+
   '6*2TMACOS_Macintosh m68k'#000+
   '6*2TLINUX_Linux-68k'#000+
   '**1*_'#000+
