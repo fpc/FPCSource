@@ -100,14 +100,24 @@ begin
   ExceptObjectStack^.Addr:=AnAddr;
 end;
 
+Procedure DoUnHandledException (Var Obj : TObject; AnAddr : Pointer);
+
+begin
+  If ExceptProc<>Nil then
+    If ExceptObjectStack<>Nil then
+      TExceptPRoc(ExceptProc)(Obj,AnAddr);
+  RunError(217);
+end;
+
 Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
 
 begin
 {$ifdef excdebug}
   writeln ('In RAiseException');
 {$endif}
-
   PushExceptObj(Obj,AnAddr);
+  If ExceptAddrStack=Nil then
+    DoUnhandledException (Obj,AnAddr);
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
@@ -141,6 +151,7 @@ begin
     ExceptObjectStack:=ExceptObjectStack^.Next;
 end;
 
+
 Procedure ReRaise;[Public, Alias : 'FPC_RERAISE'];
 
 begin
@@ -149,13 +160,8 @@ begin
 {$endif}
   PopAddrStack;
   If ExceptAddrStack=Nil then
-    begin
-    If ExceptProc<>Nil then
-      If ExceptObjectStack<>Nil then
-        TExceptPRoc(ExceptProc)(ExceptObjectStack^.FObject,
-                                ExceptObjectStack^.Addr);
-    RunError(217);
-    end;
+    DoUnHandledException (ExceptObjectStack^.FObject,
+                          ExceptObjectStack^.Addr);
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
 
