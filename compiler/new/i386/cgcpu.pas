@@ -119,7 +119,10 @@ unit cg386;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-01 22:08:26  florian
+  Revision 1.1  1999-08-01 23:11:24  florian
+    + renamed ot tp cgcpu.pas
+
+  Revision 1.1  1999/08/01 22:08:26  florian
     * reorganisation of directory structure
 
   Revision 1.3  1999/08/01 18:22:31  florian
