@@ -163,11 +163,11 @@ Var SNew : Pointer;
 begin
   If Pointer(S)=Nil
     then exit;
-  if PAnsiRec(Pointer(S)-Firstoff)^.Ref>1 then
+  if PAnsiRec(Pointer(S)-Firstoff)^.Ref<>1 then
     begin
     SNew:=NewAnsiString (PAnsiRec(Pointer(S)-FirstOff)^.len);
     Move (Pointer(S)^,SNew^,PAnsiRec(Pointer(S)-FirstOff)^.len+1);
-    PAnsiRec(SNew-8)^.len:=PAnsiRec(Pointer(S)-FirstOff)^.len;
+    PAnsiRec(SNew-FirstOff)^.len:=PAnsiRec(Pointer(S)-FirstOff)^.len;
     Decr_Ansi_Ref (Pointer(S));  { Thread safe }
     Pointer(S):=SNew;
     end;
@@ -187,10 +187,13 @@ begin
     begin
     If PAnsiRec(S2-FirstOff)^.Ref<0 then
       begin
-      { S2 is a constant string, Create new string with copy. }
+      // We remove the copy. If a string is a constant string,
+      // Then assigning shouldn't make a copy. Only when writing !!
+      { S2 is a constant string, Create new string with copy. 
       Temp:=Pointer(NewAnsiString(PansiRec(S2-FirstOff)^.Len));
       Move (S2^,Temp^,PAnsiRec(S2-FirstOff)^.len+1);
-      PAnsiRec(Temp-FirstOff)^.Len:=PAnsiRec(S2-FirstOff)^.len;
+      PAnsiRec(Temp-FirstOff)^.Len:=PAnsiRec(S2-FirstOff)^.len;}
+      temp:=S2;
       end
     else
       begin
@@ -332,10 +335,11 @@ Function AnsiCompare(S1,S2 : Pointer): Longint;[Public,Alias : 'FPC_ANSICOMPARE'
 Var i,MaxI,Temp : Longint;
 
 begin
- Temp:=0;
  i:=0;
- MaxI:=Length(AnsiString(S1));
- if MaxI>Length(AnsiString(S2)) then MaxI:=Length(AnsiString(S2));
+ Maxi:=Length(AnsiString(S1));
+ temp:=Length(AnsiString(S2));
+ If MaxI>Temp then MaxI:=Temp;
+ Temp:=0;
  While (i<MaxI) and (Temp=0) do
    begin
    Temp:= PByte(S1+I)^ - PByte(S2+i)^;
@@ -717,7 +721,12 @@ end;
 
 {
   $Log$
-  Revision 1.23  1998-10-21 23:01:54  michael
+  Revision 1.24  1998-10-22 11:32:23  michael
+  + AssignAnsistring no longer copies constant ansistrings;
+  + CompareAnsiString is now faster (1 call to length less)
+  + UniqueAnsiString is fixed.
+
+  Revision 1.23  1998/10/21 23:01:54  michael
   + Some more corrections
 
   Revision 1.22  1998/10/21 09:03:11  michael
