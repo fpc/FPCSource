@@ -92,6 +92,7 @@ Type
                 execwinflags=(efdefault,efminimize,efmaximize,effullscreen,
                               efwindowed);
 
+
 {OS/2 specific functions}
 
 function GetEnvPChar (EnvVar: string): PChar;
@@ -336,15 +337,6 @@ procedure exec(const path:pathstr;const comline:comstr);
 
 {Execute a program.}
 
-begin
-  LastDosExitCode := Exec (Path, ExecRunFlags (ExecFlags), efdefault, comline);
-end;
-
-function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
-              const comline:comstr):longint;
-
-{Execute a program. More suitable for OS/2 than the exec above.}
-
 type    bytearray=array[0..8191] of byte;
         Pbytearray=^bytearray;
 
@@ -359,11 +351,12 @@ type    bytearray=array[0..8191] of byte;
             sizearg : word;      { size of arguments               }
             numenv :  word;      { number of env strings           }
             sizeenv:word;        { size of environment             }
-            mode1,mode2:byte;    { mode byte                       }
+            mode:word;           { mode word                       }
         end;
 
 var args:Pbytearray;
     env:Pbytearray;
+    Path2:PByteArray;
     i,argsize:word;
     es:execstruc;
     esadr:pointer;
@@ -378,6 +371,7 @@ const
 begin
     getmem(args,ArgsSize);
     GetMem(env, envc*sizeof(pchar)+16384);
+    GetMem (Path2, 260);
     {Now setup the arguments. The first argument should be the program
      name without directory and extension.}
     fsplit(path,d,n,e);
@@ -445,25 +439,16 @@ begin
     es.argofs:=args;
     es.envofs:=env;
     es.numenv:=envc;
-    { set an error - path is too long }
-    { since we must add a zero to the }
-    { end.                            }
-    if length(path) > 254 then
-     begin
-       exec := 8;
-       exit;
-     end;
-    path[length(path)+1] := #0;
-    es.nameofs:=pointer(longint(@path)+1);
+    Move (Path [1], Path2^, Length (Path));
+    Path2^ [Length (Path)] := 0;
+    es.nameofs := Path2;
     asm
         movw %ss,es.argseg
         movw %ss,es.envseg
         movw %ss,es.nameseg
     end;
     es.sizearg:=argsize;
-    {Typecasting of sets in FPC is a bit hard.}
-    es.mode1:=byte(runflags);
-    es.mode2:=byte(winflags);
+    es.mode := word (ExecFlags);
 
     {Now exec the program.}
     asm
@@ -477,11 +462,12 @@ begin
         decl %eax
     .Lexprg1:
         movw %di,doserror
-        movl %eax,__RESULT
+        movl %eax, LastDosExitCode
     end ['eax', 'ebx', 'ecx', 'edx', 'esi', 'edi'];
 
-    freemem(args,ArgsSize);
+    FreeMem (Path2, 260);
     FreeMem(env, envc*sizeof(pchar)+16384);
+    freemem(args,ArgsSize);
     {Phew! That's it. This was the most sophisticated procedure to call
      a system function I ever wrote!}
 end;
@@ -1217,7 +1203,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-02-22 15:01:49  hajny
+  Revision 1.14  2004-03-08 22:31:00  hajny
+    * exec fix
+
+  Revision 1.13  2004/02/22 15:01:49  hajny
     * lots of fixes (regcall, THandle, string operations in sysutils, longint2cardinal according to OS/2 docs, dosh.inc, ...)
 
   Revision 1.12  2004/02/17 17:37:26  daniel
