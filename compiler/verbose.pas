@@ -27,7 +27,9 @@ unit verbose;
 interface
 
     uses
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
       sysutils,
+{$ENDIF}
       cutils,
       globals,finput,
       cmsgs;
@@ -128,7 +130,11 @@ var
 
      constructor EControlCAbort.Create;
        begin
+{$IFNDEF MACOS_USE_FAKE_SYSUTILS}
          inherited Create('Ctrl-C Signaled!');
+{$ELSE}
+         inherited Create;
+{$ENDIF}
        end;
 
 
@@ -894,7 +900,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.39  2005-02-15 19:15:45  peter
+  Revision 1.40  2005-02-16 22:39:25  olle
+    * made macos compile
+
+  Revision 1.39  2005/02/15 19:15:45  peter
     * Handle Control-C exception more cleanly
 
   Revision 1.38  2005/02/14 17:13:09  peter
