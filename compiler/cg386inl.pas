@@ -431,6 +431,7 @@ implementation
            hp,node : ptree;
            dummycoll : tdefcoll;
            is_real,has_length : boolean;
+           procedureprefix : string;
 
           begin
            pushusedregisters(pushed,$ff);
@@ -455,6 +456,19 @@ implementation
              dummycoll.data:=openshortstringdef
            else
              dummycoll.data:=hp^.resulttype;
+           case pstringdef(hp^.resulttype)^.string_typ of
+              st_widestring:
+                procedureprefix:='FPC_STRWIDE_';
+
+              st_ansistring:
+                procedureprefix:='FPC_STRANSI_';
+
+              st_shortstring:
+                procedureprefix:='FPC_STR_';
+
+              st_longstring:
+                procedureprefix:='FPC_STRLONG_';
+           end;
            secondcallparan(hp,@dummycoll,false,false,0);
            if codegenerror then
              exit;
@@ -516,20 +530,20 @@ implementation
              exit;
 
            if is_real then
-             emitcall('FPC_STR_'+float_name[pfloatdef(hp^.resulttype)^.typ],true)
+             emitcall(procedureprefix++float_name[pfloatdef(hp^.resulttype)^.typ],true)
            else
              case porddef(hp^.resulttype)^.typ of
                 u32bit:
-                  emitcall('FPC_STR_CARDINAL',true);
+                  emitcall(procedureprefix+'CARDINAL',true);
 
                 u64bit:
-                  emitcall('FPC_STR_QWORD',true);
+                  emitcall(procedureprefix+'QWORD',true);
 
                 s64bitint:
-                  emitcall('FPC_STR_INT64',true);
+                  emitcall(procedureprefix+'INT64',true);
 
                 else
-                  emitcall('FPC_STR_LONGINT',true);
+                  emitcall(procedureprefix+'LONGINT',true);
              end;
            popusedregisters(pushed);
         end;
@@ -990,7 +1004,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1998-12-11 23:36:07  florian
+  Revision 1.23  1999-01-06 12:23:29  florian
+    * str(...) for ansi/long and widestrings fixed
+
+  Revision 1.22  1998/12/11 23:36:07  florian
     + again more stuff for int64/qword:
          - comparision operators
          - code generation for: str, read(ln), write(ln)
