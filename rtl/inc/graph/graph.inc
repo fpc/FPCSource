@@ -601,7 +601,6 @@ End;
         end;
       NotPut:
         begin
-      { getpixel wants local/relative coordinates }
           Color := Not Color;
         end
       else
@@ -1768,15 +1767,7 @@ const CrtAddress: word = 0;
     LogLn('actual call of RestoreVideoState');
 {$endif logging}
     RestoreVideoState;
-{$IFDEF DPMI}
-    { We had copied the buffer of mode information }
-    { and allocated it dynamically... now free it  }
-    { Warning: if GetVESAInfo returned false, this buffer is not allocated!
-      (JM)}
     isgraphmode := false;
-    If hasVesa then
-      Dispose(VESAInfo.ModeList);
-{$ENDIF}
  end;
 
   function QueryAdapterInfo:PModeInfo;
@@ -2755,7 +2746,18 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.18  1999-09-24 14:22:38  jonas
+Revision 1.19  1999-09-24 22:52:38  jonas
+  * optimized patternline a bit (always use hline when possible)
+  * isgraphmode stuff cleanup
+  * vesainfo.modelist now gets disposed in cleanmode instead of in
+    closegraph (required moving of some declarations from vesa.inc to
+    new vesah.inc)
+  * queryadapter gets no longer called from initgraph (is called from
+    initialization of graph unit)
+  * bugfix for notput in 32k and 64k vesa modes
+  * a div replaced by / in fillpoly
+
+Revision 1.18  1999/09/24 14:22:38  jonas
   + getscanline16
 
 Revision 1.17  1999/09/24 11:31:38  jonas

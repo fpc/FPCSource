@@ -1369,7 +1369,7 @@ var
    { equation of an ellipse.                                              }
    { In the worst case, we have to calculate everything from the }
    { quadrant, so divide the circumference value by 4 (JM)       }
-   NumOfPixels:=(8 div 4)*Round(2*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
+   NumOfPixels:=Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
    { Calculate the angle precision required }
    Delta := 90.0 / (NumOfPixels);
    { Adjust for screen aspect ratio }
@@ -1605,58 +1605,57 @@ End;
      OldWriteMode := CurrentWriteMode;
      CurrentWriteMode := NormalPut;
 
-     { number of times to go throuh the 8x8 pattern }
-     NrIterations := abs(x2 - x1+1) div 8;
-     Inc(NrIterations);
-
 
      { Get the current pattern }
      TmpFillPattern := FillPatternTable
-{       [FillSettings.Pattern][(((y+viewport.x1) and $7)+1];}
        [FillSettings.Pattern][(y and $7)+1];
 
-     if FillSettings.Pattern = EmptyFill then
-       begin
-         OldCurrentColor := CurrentColor;
-         CurrentColor := CurrentBkColor;
-{ hline converts the coordinates to global ones, but that has been done }
-{ already here!!! Convert them back to local ones... (JM)                }
-         HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
-         CurrentColor := OldCurrentColor;
-       end
-     else
-     if  FillSettings.Pattern = SolidFill then
-       begin
-         HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
-       end
-     else
-       begin
-         For i:= 0 to NrIterations do
-           Begin
-             for j:=0 to 7 do
-                  Begin
-                          { x1 mod 8 }
-                  if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
-                     DirectPutpixel(x1,y)
-                  else
-                    begin
-                          { According to the TP graph manual, we overwrite everything }
-                          { which is filled up - checked against VGA and CGA drivers  }
-                          { of TP.                                                    }
-                          OldCurrentColor := CurrentColor;
-                          CurrentColor := CurrentBkColor;
-                          DirectPutPixel(x1,y);
-                          CurrentColor := OldCurrentColor;
-                    end;
-                  Inc(x1);
-                  if x1 > x2 then
-                   begin
-                         CurrentWriteMode := OldWriteMode;
-                         exit;
+     Case TmpFillPattern Of
+       0:
+         begin
+           OldCurrentColor := CurrentColor;
+           CurrentColor := CurrentBkColor;
+  { hline converts the coordinates to global ones, but that has been done }
+  { already here!!! Convert them back to local ones... (JM)                }
+           HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
+           CurrentColor := OldCurrentColor;
+         end;
+       $ff:
+         begin
+           HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
+         end;
+       else
+         begin
+           { number of times to go throuh the 8x8 pattern }
+           NrIterations := abs(x2 - x1+1) div 8;
+           Inc(NrIterations);
+           For i:= 0 to NrIterations do
+             Begin
+               for j:=0 to 7 do
+                    Begin
+                            { x1 mod 8 }
+                    if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
+                       DirectPutpixel(x1,y)
+                    else
+                      begin
+                            { According to the TP graph manual, we overwrite everything }
+                            { which is filled up - checked against VGA and CGA drivers  }
+                            { of TP.                                                    }
+                            OldCurrentColor := CurrentColor;
+                            CurrentColor := CurrentBkColor;
+                            DirectPutPixel(x1,y);
+                            CurrentColor := OldCurrentColor;
+                      end;
+                    Inc(x1);
+                    if x1 > x2 then
+                     begin
+                           CurrentWriteMode := OldWriteMode;
+                           exit;
+                     end;
                    end;
-                 end;
-           end;
-        end;
+             end;
+          end;
+     End;
      CurrentWriteMode := OldWriteMode;
    end;
 
@@ -2039,8 +2038,9 @@ end;
     DefaultHooks;
   end;
 
-
-
+{$ifdef DPMI}
+{$i vesah.inc}
+{$endif DPMI}
 
 {$i modes.inc}
 {$i graph.inc}
@@ -2644,56 +2644,56 @@ end;
     var
      i: integer;
    begin
-         lineinfo.linestyle:=solidln;
-         lineinfo.thickness:=normwidth;
-         { reset line style pattern }
-         for i:=0 to 15 do
-           LinePatterns[i] := TRUE;
+     lineinfo.linestyle:=solidln;
+     lineinfo.thickness:=normwidth;
+     { reset line style pattern }
+     for i:=0 to 15 do
+       LinePatterns[i] := TRUE;
 
-         { By default, according to the TP prog's reference }
-         { the default pattern is solid, and the default    }
-         { color is the maximum color in the palette.       }
-         fillsettings.color:=GetMaxColor;
-         fillsettings.pattern:=solidfill;
-         { GraphDefaults resets the User Fill pattern to $ff }
-         { checked with VGA BGI driver - CEC                 }
-         for i:=1 to 8 do
-           FillPatternTable[UserFill][i] := $ff;
-
-
-         CurrentColor:=white;
-         SetBkColor(Black);
+     { By default, according to the TP prog's reference }
+     { the default pattern is solid, and the default    }
+     { color is the maximum color in the palette.       }
+     fillsettings.color:=GetMaxColor;
+     fillsettings.pattern:=solidfill;
+     { GraphDefaults resets the User Fill pattern to $ff }
+     { checked with VGA BGI driver - CEC                 }
+     for i:=1 to 8 do
+       FillPatternTable[UserFill][i] := $ff;
 
 
-         ClipPixels := TRUE;
-         { Reset the viewport }
-         StartXViewPort := 0;
-         StartYViewPort := 0;
-         ViewWidth := MaxX;
-         ViewHeight := MaxY;
-         { Reset CP }
-         CurrentX := 0;
-         CurrentY := 0;
+     CurrentColor:=white;
+     SetBkColor(Black);
 
-         { normal write mode }
-         CurrentWriteMode := CopyPut;
 
-         { Schriftart einstellen }
-         CurrentTextInfo.font := DefaultFont;
-         CurrentTextInfo.direction:=HorizDir;
-         CurrentTextInfo.charsize:=1;
-         CurrentTextInfo.horiz:=LeftText;
-         CurrentTextInfo.vert:=TopText;
+     ClipPixels := TRUE;
+     { Reset the viewport }
+     StartXViewPort := 0;
+     StartYViewPort := 0;
+     ViewWidth := MaxX;
+     ViewHeight := MaxY;
+     { Reset CP }
+     CurrentX := 0;
+     CurrentY := 0;
 
-         XAspect:=10000; YAspect:=10000;
+     { normal write mode }
+     CurrentWriteMode := CopyPut;
+
+     { Schriftart einstellen }
+     CurrentTextInfo.font := DefaultFont;
+     CurrentTextInfo.direction:=HorizDir;
+     CurrentTextInfo.charsize:=1;
+     CurrentTextInfo.horiz:=LeftText;
+     CurrentTextInfo.vert:=TopText;
+
+     XAspect:=10000; YAspect:=10000;
    end;
 
 
-    procedure GetAspectRatio(var Xasp,Yasp : word);
-    begin
-      XAsp:=XAspect;
-      YAsp:=YAspect;
-    end;
+  procedure GetAspectRatio(var Xasp,Yasp : word);
+  begin
+    XAsp:=XAspect;
+    YAsp:=YAspect;
+  end;
 
   procedure SetAspectRatio(Xasp, Yasp : word);
   begin
@@ -2770,7 +2770,7 @@ end;
     bgipath:=bgipath+'\';
 
     { make sure our driver list is setup...}
-    QueryAdapterInfo;
+{    QueryAdapterInfo;}
     if not assigned(SaveVideoState) then
       RunError(216);
 {$ifdef logging}
@@ -2880,7 +2880,18 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.26  1999-09-22 13:13:35  jonas
+  Revision 1.27  1999-09-24 22:52:38  jonas
+    * optimized patternline a bit (always use hline when possible)
+    * isgraphmode stuff cleanup
+    * vesainfo.modelist now gets disposed in cleanmode instead of in
+      closegraph (required moving of some declarations from vesa.inc to
+      new vesah.inc)
+    * queryadapter gets no longer called from initgraph (is called from
+      initialization of graph unit)
+    * bugfix for notput in 32k and 64k vesa modes
+    * a div replaced by / in fillpoly
+
+  Revision 1.26  1999/09/22 13:13:35  jonas
     * renamed text.inc -> gtext.inc to avoid conflict with system unit
     * fixed textwidth
     * isgraphmode now gets properly updated, so mode restoring works

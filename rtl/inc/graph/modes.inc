@@ -109,7 +109,6 @@
       c: word;
 {$endif logging}
     begin
-      exit;
 {$ifdef logging}
       LogLn('Modelist at exit: '+strf(longint(modelist)));
       LogLn('Modelist^.next at exit: '+strf(longint(modelist^.next)));
@@ -127,6 +126,14 @@
 {$endif logging}
           dispose(tmp);
         end;
+{$IFDEF DPMI}
+      { We had copied the buffer of mode information }
+      { and allocated it dynamically... now free it  }
+      { Warning: if GetVESAInfo returned false, this buffer is not allocated!
+        (JM)}
+      If hasVesa then
+        Dispose(VESAInfo.ModeList);
+{$ENDIF}
     end;
 
 {-----------------------------------------------------------------------}
@@ -336,12 +343,22 @@
      begin
        isgraphmode := false;
        RestoreVideoState;
-       isgraphmode := true;
      end;
 
 {
 $Log$
-Revision 1.9  1999-09-22 13:13:36  jonas
+Revision 1.10  1999-09-24 22:52:39  jonas
+  * optimized patternline a bit (always use hline when possible)
+  * isgraphmode stuff cleanup
+  * vesainfo.modelist now gets disposed in cleanmode instead of in
+    closegraph (required moving of some declarations from vesa.inc to
+    new vesah.inc)
+  * queryadapter gets no longer called from initgraph (is called from
+    initialization of graph unit)
+  * bugfix for notput in 32k and 64k vesa modes
+  * a div replaced by / in fillpoly
+
+Revision 1.9  1999/09/22 13:13:36  jonas
   * renamed text.inc -> gtext.inc to avoid conflict with system unit
   * fixed textwidth
   * isgraphmode now gets properly updated, so mode restoring works

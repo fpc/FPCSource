@@ -161,7 +161,7 @@ begin
                 p := @ptable^[j];
                 q := @ptable^[index];
         end;
-        deltax := (q^.x-p^.x) div (q^.y-p^.y);
+        deltax := (q^.x-p^.x) / (q^.y-p^.y);
         with activetable^[activepoints] do begin
                 dx := deltax;
                 x := dx * (y { + 0.5} - p^.y) + p^.x;
@@ -509,7 +509,18 @@ var
 
 {
 $Log$
-Revision 1.9  1999-09-24 14:23:08  jonas
+Revision 1.10  1999-09-24 22:52:38  jonas
+  * optimized patternline a bit (always use hline when possible)
+  * isgraphmode stuff cleanup
+  * vesainfo.modelist now gets disposed in cleanmode instead of in
+    closegraph (required moving of some declarations from vesa.inc to
+    new vesah.inc)
+  * queryadapter gets no longer called from initgraph (is called from
+    initialization of graph unit)
+  * bugfix for notput in 32k and 64k vesa modes
+  * a div replaced by / in fillpoly
+
+Revision 1.9  1999/09/24 14:23:08  jonas
   * floodfill uses scanline data from previous loop if line is adjacent
 
 Revision 1.8  1999/09/18 22:21:09  jonas
