@@ -1137,7 +1137,6 @@ Begin
                          Reset_reference(tmpref^);
                          TmpRef^.base := R_ESP;
                          Pai386(p)^.LoadRef(0,TmpRef);
-                         hp1 := Pai(p^.next);
                          AsmL^.Remove(hp1);
                          Dispose(hp1, Done)
                        End;
@@ -1569,7 +1568,10 @@ End.
 
 {
  $Log$
- Revision 1.62  1999-08-10 12:30:00  pierre
+ Revision 1.63  1999-08-23 10:20:46  jonas
+   * fixed pop/push optmization
+
+ Revision 1.62  1999/08/10 12:30:00  pierre
   * avoid unused locals
 
  Revision 1.61  1999/08/05 15:02:48  jonas
