@@ -660,7 +660,7 @@ implementation
          lv,hv,min_label,max_label,labels : longint;
          max_linear_list : longint;
 {$ifdef Delphi}
-         dist : longword;
+         dist : cardinal;
 {$else Delphi}
          dist : dword;
 {$endif Delphi}
@@ -746,9 +746,9 @@ implementation
                 begin
 {$ifdef Delphi}
                    if min_label=$80000000 then
-                     dist:=longword(max_label)+longword($80000000)
+                     dist:=Cardinal(max_label)+Cardinal($80000000)
                    else
-                     dist:=longword(max_label)+longword(-min_label)
+                     dist:=Cardinal(max_label)+Cardinal(-min_label)
 {$else Delphi}
                    if min_label=$80000000 then
                      dist:=dword(max_label)+dword($80000000)
@@ -834,7 +834,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-05-04 21:44:34  florian
+  Revision 1.30  1999-05-05 08:09:24  michael
+  * Changed longword to cardinal
+
+  Revision 1.29  1999/05/04 21:44:34  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.28  1999/05/01 13:24:15  peter
