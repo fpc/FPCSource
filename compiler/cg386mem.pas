@@ -384,14 +384,14 @@ implementation
                           begin
                              extraoffset:=p^.right^.left^.value;
                              t:=p^.right^.right;
-                                           putnode(p^.right);
+                             putnode(p^.right);
                              putnode(p^.right^.left);
                              p^.right:=t
                           end;
                      end
                    else if (p^.right^.treetype=subn) then
                      begin
-                                    if p^.right^.right^.treetype=ordconstn then
+                        if p^.right^.right^.treetype=ordconstn then
                           begin
                              extraoffset:=p^.right^.right^.value;
                              t:=p^.right^.left;
@@ -402,7 +402,7 @@ implementation
                         else if p^.right^.left^.treetype=ordconstn then
                           begin
                              extraoffset:=p^.right^.left^.value;
-                                           t:=p^.right^.right;
+                             t:=p^.right^.right;
                              putnode(p^.right);
                              putnode(p^.right^.left);
                              p^.right:=t
@@ -418,105 +418,105 @@ implementation
               pushed:=maybe_push(p^.right^.registers32,p);
               secondpass(p^.right);
               if pushed then restore(p);
-                case p^.right^.location.loc of
-                   LOC_REGISTER:
-                     begin
-                        ind:=p^.right^.location.register;
-                        case p^.right^.resulttype^.size of
-                           1:
-                             begin
-                                hr:=reg8toreg32(ind);
-                                emit_reg_reg(A_MOVZX,S_BL,ind,hr);
-                                ind:=hr;
-                             end;
-                           2:
-                             begin
-                                hr:=reg16toreg32(ind);
-                                emit_reg_reg(A_MOVZX,S_WL,ind,hr);
-                                 ind:=hr;
-                             end;
-                        end;
-                     end;
-                   LOC_CREGISTER:
-                     begin
-                        ind:=getregister32;
-                        case p^.right^.resulttype^.size of
-                           1:
-                             emit_reg_reg(A_MOVZX,S_BL,p^.right^.location.register,ind);
-                           2:
-                             emit_reg_reg(A_MOVZX,S_WL,p^.right^.location.register,ind);
-                           4:
-                             emit_reg_reg(A_MOV,S_L,p^.right^.location.register,ind);
-                        end;
-                     end;
-                   LOC_FLAGS:
-                     begin
-                        ind:=getregister32;
-                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,reg32toreg8(ind))));
-                        emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
-                     end
-                   else
-                      begin
-                         del_reference(p^.right^.location.reference);
-                         ind:=getregister32;
-                         { Booleans are stored in an 8 bit memory location, so
-                           the use of MOVL is not correct }
-                         case p^.right^.resulttype^.size of
-                           1:
-                             tai:=new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
-                           2:
-                             tai:=new(Pai386,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
-                           4:
-                             tai:=new(Pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
-                         end;
-                         exprasmlist^.concat(tai);
+              case p^.right^.location.loc of
+                 LOC_REGISTER:
+                   begin
+                      ind:=p^.right^.location.register;
+                      case p^.right^.resulttype^.size of
+                         1:
+                           begin
+                              hr:=reg8toreg32(ind);
+                              emit_reg_reg(A_MOVZX,S_BL,ind,hr);
+                              ind:=hr;
+                           end;
+                         2:
+                           begin
+                              hr:=reg16toreg32(ind);
+                              emit_reg_reg(A_MOVZX,S_WL,ind,hr);
+                              ind:=hr;
+                           end;
                       end;
-                end;
-              { produce possible range check code: }
-              if cs_rangechecking in aktswitches  then
-                begin
-                   if p^.left^.resulttype^.deftype=arraydef then
-                     begin
-                        hp:=new_reference(R_NO,0);
-                        parraydef(p^.left^.resulttype)^.genrangecheck;
-                        hp^.symbol:=stringdup('R_'+tostr(parraydef(p^.left^.resulttype)^.rangenr));
-                        exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,ind,hp)));
-                     end;
-                end;
-              if p^.location.reference.index=R_NO then
-                begin
-                   p^.location.reference.index:=ind;
-                   calc_emit_mul;
-                end
-              else
-                begin
-                   if p^.location.reference.base=R_NO then
-                     begin
-                        case p^.location.reference.scalefactor of
-                           2 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,1,p^.location.reference.index)));
-                           4 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,2,p^.location.reference.index)));
-                           8 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,3,p^.location.reference.index)));
-                        end;
-                        calc_emit_mul;
-                        p^.location.reference.base:=p^.location.reference.index;
-                        p^.location.reference.index:=ind;
-                     end
-                   else
-                     begin
-                        exprasmlist^.concat(new(pai386,op_ref_reg(
-                          A_LEA,S_L,newreference(p^.location.reference),
-                          p^.location.reference.index)));
-                        ungetregister32(p^.location.reference.base);
-                        { the symbol offset is loaded,               }
-                        { so release the symbol name and set symbol  }
-                        { to nil                                     }
-                        stringdispose(p^.location.reference.symbol);
-                        p^.location.reference.offset:=0;
-                        calc_emit_mul;
-                        p^.location.reference.base:=p^.location.reference.index;
-                        p^.location.reference.index:=ind;
-                     end;
-                end;
+                   end;
+                 LOC_CREGISTER:
+                   begin
+                      ind:=getregister32;
+                      case p^.right^.resulttype^.size of
+                         1:
+                           emit_reg_reg(A_MOVZX,S_BL,p^.right^.location.register,ind);
+                         2:
+                           emit_reg_reg(A_MOVZX,S_WL,p^.right^.location.register,ind);
+                         4:
+                           emit_reg_reg(A_MOV,S_L,p^.right^.location.register,ind);
+                      end;
+                   end;
+                 LOC_FLAGS:
+                   begin
+                      ind:=getregister32;
+                      exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,reg32toreg8(ind))));
+                      emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
+                   end
+                 else
+                    begin
+                       del_reference(p^.right^.location.reference);
+                       ind:=getregister32;
+                       { Booleans are stored in an 8 bit memory location, so
+                         the use of MOVL is not correct }
+                       case p^.right^.resulttype^.size of
+                         1:
+                           tai:=new(pai386,op_ref_reg(A_MOVZX,S_BL,newreference(p^.right^.location.reference),ind));
+                         2:
+                           tai:=new(Pai386,op_ref_reg(A_MOVZX,S_WL,newreference(p^.right^.location.reference),ind));
+                         4:
+                           tai:=new(Pai386,op_ref_reg(A_MOV,S_L,newreference(p^.right^.location.reference),ind));
+                       end;
+                       exprasmlist^.concat(tai);
+                    end;
+              end;
+            { produce possible range check code: }
+            if cs_rangechecking in aktswitches  then
+              begin
+                 if p^.left^.resulttype^.deftype=arraydef then
+                   begin
+                      hp:=new_reference(R_NO,0);
+                      parraydef(p^.left^.resulttype)^.genrangecheck;
+                      hp^.symbol:=stringdup('R_'+tostr(parraydef(p^.left^.resulttype)^.rangenr));
+                      exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,ind,hp)));
+                   end;
+              end;
+            if p^.location.reference.index=R_NO then
+              begin
+                 p^.location.reference.index:=ind;
+                 calc_emit_mul;
+              end
+            else
+              begin
+                 if p^.location.reference.base=R_NO then
+                   begin
+                      case p^.location.reference.scalefactor of
+                         2 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,1,p^.location.reference.index)));
+                         4 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,2,p^.location.reference.index)));
+                         8 : exprasmlist^.concat(new(pai386,op_const_reg(A_SHL,S_L,3,p^.location.reference.index)));
+                      end;
+                      calc_emit_mul;
+                      p^.location.reference.base:=p^.location.reference.index;
+                      p^.location.reference.index:=ind;
+                   end
+                 else
+                   begin
+                      exprasmlist^.concat(new(pai386,op_ref_reg(
+                        A_LEA,S_L,newreference(p^.location.reference),
+                        p^.location.reference.index)));
+                      ungetregister32(p^.location.reference.base);
+                      { the symbol offset is loaded,               }
+                      { so release the symbol name and set symbol  }
+                      { to nil                                     }
+                      stringdispose(p^.location.reference.symbol);
+                      p^.location.reference.offset:=0;
+                      calc_emit_mul;
+                      p^.location.reference.base:=p^.location.reference.index;
+                      p^.location.reference.index:=ind;
+                   end;
+              end;
              if p^.memseg then
                p^.location.reference.segment:=R_FS;
            end;
@@ -579,7 +579,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-06-25 08:48:09  florian
+  Revision 1.4  1998-07-24 22:16:55  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.3  1998/06/25 08:48:09  florian
     * first version of rtti support
 
   Revision 1.2  1998/06/08 13:13:35  pierre

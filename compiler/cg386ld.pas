@@ -184,17 +184,20 @@ implementation
                                    simple_loadn:=false;
                                    if hregister=R_NO then
                                      hregister:=getregister32;
-                                   if (p^.location.reference.base=procinfo.framepointer) then
+                                   if is_open_array(pvarsym(p^.symtableentry)^.definition) then
                                      begin
-                                        highframepointer:=p^.location.reference.base;
-                                        highoffset:=p^.location.reference.offset;
-                                     end
-                                   else
-                                     begin
-                                        highframepointer:=R_EDI;
-                                        highoffset:=p^.location.reference.offset;
-                                        exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
-                                          p^.location.reference.base,R_EDI)));
+                                        if (p^.location.reference.base=procinfo.framepointer) then
+                                          begin
+                                             highframepointer:=p^.location.reference.base;
+                                             highoffset:=p^.location.reference.offset;
+                                          end
+                                        else
+                                          begin
+                                             highframepointer:=R_EDI;
+                                             highoffset:=p^.location.reference.offset;
+                                             exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,
+                                               p^.location.reference.base,R_EDI)));
+                                          end;
                                      end;
                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),
                                      hregister)));
@@ -521,7 +524,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-06-11 13:58:45  peter
+  Revision 1.5  1998-07-24 22:16:54  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.4  1998/06/11 13:58:45  peter
     * fixed too long line
 
   Revision 1.3  1998/06/09 16:01:35  pierre

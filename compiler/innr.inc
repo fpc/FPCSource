@@ -55,10 +55,15 @@ const
    in_exclude_x_y = 38;
    in_break = 39;
    in_continue = 40;
+   in_assert_x = 41;
 
 {
   $Log$
-  Revision 1.4  1998-05-01 16:38:44  florian
+  Revision 1.5  1998-07-24 22:16:57  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.4  1998/05/01 16:38:44  florian
     * handling of private and protected fixed
     + change_keywords_to_tp implemented to remove
       keywords which aren't supported by tp

@@ -66,7 +66,7 @@ const
   SwitchTable:array['A'..'Z'] of SwitchRec=(
    {A} (typesw:unsupported; setsw:cs_none; proc:nil),
    {B} (typesw:unsupported; setsw:cs_none; proc:nil),
-   {C} (typesw:illegal; setsw:cs_none; proc:nil),
+   {C} (typesw:local; setsw:cs_do_assertion; proc:nil),
    {D} (typesw:unitglobal; setsw:cs_debuginfo; proc:nil),
    {E} (typesw:programglobal; setsw:cs_fp_emulation; proc:nil),
    {F} (typesw:unsupported; setsw:cs_none; proc:nil),
@@ -161,7 +161,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1998-07-18 17:11:13  florian
+  Revision 1.7  1998-07-24 22:17:00  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.6  1998/07/18 17:11:13  florian
     + ansi string constants fixed
     + switch $H partial implemented
 

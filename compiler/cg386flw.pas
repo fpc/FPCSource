@@ -136,9 +136,9 @@ implementation
               secondpass(p^.right);
            end;
          if assigned(p^.t1) then
-               begin
+           begin
               if assigned(p^.right) then
-                        begin
+                begin
                    getlabel(hl);
                    emitl(A_JMP,hl);
                 end;
@@ -590,7 +590,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.3  1998-06-25 08:48:08  florian
+  Revision 1.4  1998-07-24 22:16:53  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.3  1998/06/25 08:48:08  florian
     * first version of rtti support
 
   Revision 1.2  1998/06/08 13:13:33  pierre

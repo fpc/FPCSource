@@ -195,7 +195,7 @@ unit tree;
           fileinfo : tfileposinfo;
           pragmas : Tcswitches;
 {$ifdef extdebug}
-        firstpasscount : longint;
+          firstpasscount : longint;
 {$endif extdebug}
           case treetype : ttreetyp of
              addn : (use_strconcat : boolean;string_typ : tstringtype);
@@ -1596,7 +1596,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.22  1998-07-20 10:23:05  florian
+  Revision 1.23  1998-07-24 22:17:01  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.22  1998/07/20 10:23:05  florian
     * better ansi string assignement
 
   Revision 1.21  1998/07/14 21:46:56  peter

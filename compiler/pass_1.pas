@@ -1944,7 +1944,7 @@ unit pass_1;
          if not((p^.left^.treetype=ordconstn) and
             (p^.right^.treetype=ordconstn)) then
            Message(cg_e_illegal_expression);
-         { upper limit must be greater or equalt than lower limit }
+         { upper limit must be greater or equal than lower limit }
          { not if u32bit }
          if (p^.left^.value>p^.right^.value) and
             (( p^.left^.value<0) or (p^.right^.value>=0)) then
@@ -1956,6 +1956,19 @@ unit pass_1;
            Message(sym_e_type_mismatch);
       end;
 
+      {
+      begin
+         p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
+         if p^.right^.treetype<>ordconstn then
+           begin
+              case p^.right^.location.loc of
+                 LOC_MEM,LOC_REFERENCE,
+                 LOC_CREGISTER,LOC_FLAGS:
+                   inc(p^.registers32);
+              end;
+           end;
+      end;
+      }
     procedure firstvecn(var p : ptree);
 
       var
@@ -1980,17 +1993,17 @@ unit pass_1;
                 Message(sym_e_type_mismatch);
            end;
          { Never convert a boolean or a char !}
-                 { maybe type conversion }
-                 if (p^.right^.resulttype^.deftype<>enumdef) and
-                  not ((p^.right^.resulttype^.deftype=orddef) and
-                  (Porddef(p^.right^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit,uchar])) then
-                        begin
-                                p^.right:=gentypeconvnode(p^.right,s32bitdef);
-                                { once more firstpass }
-                                {?? It's better to only firstpass when the tree has
-                                 changed, isn't it ?}
-                                firstpass(p^.right);
-                        end;
+         { maybe type conversion }
+         if (p^.right^.resulttype^.deftype<>enumdef) and
+          not ((p^.right^.resulttype^.deftype=orddef) and
+          (Porddef(p^.right^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit,uchar])) then
+                begin
+                        p^.right:=gentypeconvnode(p^.right,s32bitdef);
+                        { once more firstpass }
+                        {?? It's better to only firstpass when the tree has
+                         changed, isn't it ?}
+                        firstpass(p^.right);
+                end;
          if codegenerror then
            exit;
 
@@ -2010,23 +2023,54 @@ unit pass_1;
                   exit;
                 p^.resulttype:=parraydef(harr)^.definition
              end
+           else if p^.left^.resulttype^.deftype=stringdef then
+             begin
+                { indexed access to strings }
+                case pstringdef(p^.left^.resulttype)^.string_typ of
+                   {
+                   st_widestring : p^.resulttype:=cwchardef;
+                   }
+                   st_ansistring : p^.resulttype:=cchardef;
+                   st_longstring : p^.resulttype:=cchardef;
+                   st_shortstring : p^.resulttype:=cchardef;
+                end;
+             end
            else
-           { indexed access to arrays }
-             p^.resulttype:=cchardef;
-
+             Message(sym_e_type_mismatch);
          { the register calculation is easy if a const index is used }
          if p^.right^.treetype=ordconstn then
-           p^.registers32:=p^.left^.registers32
+           begin
+              p^.registers32:=p^.left^.registers32
+              {
+              if is_ansistring(p^.left^.
+              }
+           end
          else
            begin
+              { this rules are suboptimal, but they should give }
+              { good results                                    }
               p^.registers32:=max(p^.left^.registers32,p^.right^.registers32);
+              { need we an extra register when doing the restore ? }
+              if (p^.left^.registers32<=p^.right^.registers32) and
+              { only if the node needs less than 3 registers }
+              { two for the right node and one for the       }
+              { left address                                 }
+                (p^.registers32<3) then
+                inc(p^.registers32);
 
-              { not correct, but what works better ? }
+              { need we an extra register for the index ? }
+              if (p^.right^.location.loc<>LOC_REGISTER)
+              { only if the right node doesn't need a register }
+                and (p^.right^.registers32<1) then
+                inc(p^.registers32);
+
+              { not correct, but what works better ?
               if p^.left^.registers32>0 then
                 p^.registers32:=max(p^.registers32,2)
               else
-              { min. one register }
+                 min. one register
                 p^.registers32:=max(p^.registers32,1);
+              }
            end;
          p^.registersfpu:=max(p^.left^.registersfpu,p^.right^.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -5048,7 +5092,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.43  1998-07-20 18:40:14  florian
+  Revision 1.44  1998-07-24 22:16:59  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.43  1998/07/20 18:40:14  florian
     * handling of ansi string constants should now work
 
   Revision 1.42  1998/07/20 10:23:01  florian

@@ -1796,9 +1796,38 @@ implementation
          l : longint;
          ispushed : boolean;
          hregister : tregister;
+         otlabel,oflabel,filenamestring : plabel;
 
       begin
          case p^.inlinenumber of
+            in_assert_x:
+              begin
+                 otlabel:=truelabel;
+                 oflabel:=falselabel;
+                 getlabel(truelabel);
+                 getlabel(falselabel);
+                 getlabel(filenamestring);
+                 secondpass(p^.left);
+                 if codegenerror then
+                   exit;
+                 if cs_do_assertion in aktswitches then
+                   begin
+                      maketojumpbool(p^.left);
+                      emitl(A_LABEL,falselabel);
+                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
+                        p^.fileinfo.line)));
+                      { generate string }
+                      { push string
+                      exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,
+                        p^.fileinfo.line)));
+                      }
+                      emitcall('FPC_DO_ASSERT',true);
+                      emitl(A_LABEL,truelabel);
+
+                   end;
+                 truelabel:=otlabel;
+                 falselabel:=oflabel;
+              end;
             in_lo_word,
             in_hi_word :
               begin
@@ -2261,7 +2290,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-07-18 22:54:23  florian
+  Revision 1.11  1998-07-24 22:16:52  florian
+    * internal error 10 together with array access fixed. I hope
+      that's the final fix.
+
+  Revision 1.10  1998/07/18 22:54:23  florian
     * some ansi/wide/longstring support fixed:
        o parameter passing
        o returning as result from functions
