@@ -72,6 +72,7 @@
          next := nil;
          sym := nil;
          indexnb := 0;
+         savesize := 0;
          if registerdef then
            symtablestack^.registerdef(@self);
          has_rtti:=false;
@@ -178,7 +179,6 @@
          is_in_current:=false;
          while assigned(p) do
            begin
-           
               if (p=current_module^.globalsymtable) or (p=current_module^.localsymtable)
                  or (p^.symtabletype in [globalsymtable,staticsymtable]) then
                 begin
@@ -197,7 +197,7 @@
            end;
 
       end;
-      
+
     procedure tdef.write;
       begin
 {$ifdef GDB}
@@ -2379,7 +2379,7 @@ Const local_symtable_index : longint = $8001;
                       end;
                     pdo:=pdo^.childof;
                  end;
-               
+
              { we need TESTLOCALBROWSER para and local symtables
                PPU files are then easier to read PM }
              if not assigned(parast) then
@@ -3409,7 +3409,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.97  1999-03-01 13:45:04  pierre
+  Revision 1.98  1999-03-06 17:24:16  peter
+    * reset savesize in tdef.init
+
+  Revision 1.97  1999/03/01 13:45:04  pierre
    + added staticppusymtable symtable type for local browsing
 
   Revision 1.96  1999/02/25 21:02:52  peter
