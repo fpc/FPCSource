@@ -33,6 +33,7 @@ type
      { if true the current debugger raw will stay in middle of
        editor window when debugging PM }
      CenterDebuggerRow : boolean;
+     Disableallinvalidbreakpoints : boolean;
      LastFileName : string;
      LastSource   : PView; {PsourceWindow !! }
      HiddenStepsCount : longint;
@@ -396,7 +397,7 @@ uses
   Systems,Globals,
   FPString,FPVars,FPUtils,FPConst,FPSwitch,
   FPIntf,FPCompil,FPIde,FPHelp,
-  Validate,WEditor,WUtils;
+  Validate,WEditor,WUtils,Wconsts;
 
 const
   RBreakpointsWindow: TStreamRec = (
@@ -603,6 +604,7 @@ constructor TDebugController.Init;
 begin
   inherited Init;
   CenterDebuggerRow:=IniCenterDebuggerRow;
+  Disableallinvalidbreakpoints:=false;
   NoSwitch:=False;
   HasExe:=false;
   Debugger:=@self;
@@ -695,6 +697,7 @@ procedure TDebugController.InsertBreakpoints;
 
 begin
   BreakpointsCollection^.ForEach(@DoInsert);
+  Disableallinvalidbreakpoints:=false;
 end;
 
 procedure TDebugController.ReadWatches;
@@ -1511,19 +1514,24 @@ begin
       { Here there was a problem !! }
         begin
           GDBIndex:=0;
-          if (typ=bt_file_line) and assigned(FileName) then
+          if not Debugger^.Disableallinvalidbreakpoints then
             begin
-              ClearFormatParams;
-              AddFormatParamStr(NameAndExtOf(FileName^));
-              AddFormatParamInt(Line);
-              ErrorBox(msg_couldnotsetbreakpointat,@FormatParams);
-            end
-          else
-            begin
-              ClearFormatParams;
-              AddFormatParamStr(BreakpointTypeStr[typ]);
-              AddFormatParamStr(GetStr(Name));
-              ErrorBox(msg_couldnotsetbreakpointtype,@FormatParams);
+              if (typ=bt_file_line) and assigned(FileName) then
+                begin
+                  ClearFormatParams;
+                  AddFormatParamStr(NameAndExtOf(FileName^));
+                  AddFormatParamInt(Line);
+                  if ChoiceBox(msg_couldnotsetbreakpointat,@FormatParams,[btn_ok,btn_disableallbreakpoints],false)=cmUserBtn2 then
+                    Debugger^.Disableallinvalidbreakpoints:=true;
+                end
+              else
+                begin
+                  ClearFormatParams;
+                  AddFormatParamStr(BreakpointTypeStr[typ]);
+                  AddFormatParamStr(GetStr(Name));
+                  if ChoiceBox(msg_couldnotsetbreakpointtype,@FormatParams,[btn_ok,btn_disableallbreakpoints],false)=cmUserBtn2 then
+                    Debugger^.Disableallinvalidbreakpoints:=true;
+                end;
             end;
           state:=bs_disabled;
         end;
@@ -4133,7 +4141,10 @@ end.
 
 {
   $Log$
-  Revision 1.21  2002-06-10 19:26:48  pierre
+  Revision 1.22  2002-08-13 07:15:02  pierre
+   + Disable all invalid breakpoints feature added
+
+  Revision 1.21  2002/06/10 19:26:48  pierre
    * check if DebuggeTTY is a valid terminal
 
   Revision 1.20  2002/06/06 14:11:25  pierre

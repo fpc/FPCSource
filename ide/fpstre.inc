@@ -850,6 +850,7 @@ const
                                     #3+'%s:%d';
       msg_couldnotsetbreakpointtype = #3'Could not set Breakpoint'#13+
                                       #3+'%s %s';
+      btn_disableallbreakpoints = 'Disable all invalid';
 
       { standard button texts }
       button_OK          = 'O~K~';
@@ -1032,7 +1033,10 @@ const
 
 {
   $Log$
-  Revision 1.9  2002-04-12 08:59:42  pierre
+  Revision 1.10  2002-08-13 07:15:02  pierre
+   + Disable all invalid breakpoints feature added
+
+  Revision 1.9  2002/04/12 08:59:42  pierre
    + two new dialogs in case of internal errors
 
   Revision 1.8  2002/03/27 11:23:18  pierre
