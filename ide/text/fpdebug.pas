@@ -2379,8 +2379,8 @@ end;
       R,R2 : trect;
     begin
       Desktop^.GetExtent(R);
-      R.A.Y:=R.B.Y-5;
-      inherited Init(R, dialog_watches, wnNoNumber);
+      R.A.Y:=R.B.Y-7;
+      inherited Init(R, dialog_watches,SearchFreeWindowNo);
       Palette:=wpCyanWindow;
       GetExtent(R);
       HelpCtx:=hcWatches;
@@ -3347,7 +3347,11 @@ end.
 
 {
   $Log$
-  Revision 1.61  2000-05-02 08:42:27  pierre
+  Revision 1.62  2000-06-11 07:01:32  peter
+    * give watches window also a number
+    * leave watches window in the bottom when cascading windows
+
+  Revision 1.61  2000/05/02 08:42:27  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.60  2000/04/18 21:45:35  pierre

@@ -672,11 +672,13 @@ begin
   Desktop^.GetExtent(R);
 { Leave the compiler messages window in the bottom }
   if assigned(CompilerMessageWindow) and (CompilerMessageWindow^.GetState(sfVisible)) then
-   R.B.Y:=Min(CompilerMessageWindow^.Origin.Y,Desktop^.Size.Y);
+   R.B.Y:=Min(CompilerMessageWindow^.Origin.Y,R.B.Y);
 { Leave the messages window in the bottom }
-  if assigned(MessagesWindow) and (MessagesWindow^.GetState(sfVisible)) and
-     (MessagesWindow^.Origin.Y<R.B.Y) then
-   R.B.Y:=MessagesWindow^.Origin.Y;
+  if assigned(MessagesWindow) and (MessagesWindow^.GetState(sfVisible)) then
+   R.B.Y:=Min(MessagesWindow^.Origin.Y,R.B.Y);
+{ Leave the watch window in the bottom }
+  if assigned(WatchesWindow) and (WatchesWindow^.GetState(sfVisible)) then
+   R.B.Y:=Min(WatchesWindow^.Origin.Y,R.B.Y);
 end;
 
 
@@ -998,7 +1000,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.61  2000-05-17 09:51:11  pierre
+  Revision 1.62  2000-06-11 07:01:33  peter
+    * give watches window also a number
+    * leave watches window in the bottom when cascading windows
+
+  Revision 1.61  2000/05/17 09:51:11  pierre
    Disable/Enable keyboard on UserScreen
 
   Revision 1.60  2000/05/02 10:20:40  pierre
