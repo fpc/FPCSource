@@ -354,8 +354,11 @@ begin
        getmem(_self,objectsize);
        longint(vmt):=-1; { needed for fail }
      end;
-   fillchar(_self^,objectsize,#0);
-   ppointer(_self+vmt_pos)^:=vmtcopy;
+   if _self<>nil then
+     begin
+       fillchar(_self^,objectsize,#0);
+       ppointer(_self+vmt_pos)^:=vmtcopy;
+     end;
    int_help_constructor:=_self;
 end;
 
@@ -923,7 +926,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2002-01-25 17:38:55  peter
+  Revision 1.24  2002-03-30 13:08:54  carl
+  * memory corruption bugfix in FPC_HELP_CONSTRUCTOR if object cannot be allocated
+
+  Revision 1.23  2002/01/25 17:38:55  peter
     * add internconst for all overloaded types of Odd/Abs/Sqr
 
   Revision 1.22  2002/01/24 12:33:53  jonas
