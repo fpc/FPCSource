@@ -227,12 +227,12 @@ const
 type
   TextBuf = array[0..TextRecBufSize-1] of char;
   TextRec = Packed Record
-    Handle,
+    Handle    : THandle;
     Mode,
     bufsize,
     _private,
     bufpos,
-    bufend    : longint;
+    bufend    : SizeInt;
     bufptr    : ^textbuf;
     openfunc,
     inoutfunc,
@@ -242,6 +242,7 @@ type
     name      : array[0..textrecnamelength-1] of char;
     buffer    : textbuf;
   End;
+  
 {==========================================================================}
 
 { set the active window for write(ln), read(ln) }
@@ -963,7 +964,10 @@ Begin
 End;
 {
   $Log$
-  Revision 1.3  2003-09-27 12:19:20  peter
+  Revision 1.4  2004-05-03 20:52:48  peter
+    * 64 bit fixes
+
+  Revision 1.3  2003/09/27 12:19:20  peter
     * fixed for unix
 
   Revision 1.2  2002/09/07 15:43:01  peter

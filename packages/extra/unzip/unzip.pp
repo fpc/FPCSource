@@ -818,7 +818,7 @@ VAR p, q : phuftlist;
 BEGIN
   p := pointer ( t );
   WHILE p <> NIL DO BEGIN
-    dec ( longint ( p ), sizeof ( huft ) );
+    dec ( ptrint ( p ), sizeof ( huft ) );
     q := p^ [ 0 ].v_t;
     z := p^ [ 0 ].v_n;   {Size in Bytes, required by TP ***}
     freemem ( p, ( z + 1 ) * sizeof ( huft ) );
@@ -866,7 +866,7 @@ BEGIN
       exit
     END;
     inc ( c [ p^ ] );
-    inc ( longint ( p ), sizeof ( word ) );   {point to next item}
+    inc ( ptrint ( p ), sizeof ( word ) );   {point to next item}
     dec ( i );
   UNTIL i = 0;
   IF c [ 0 ] = n THEN BEGIN
@@ -907,14 +907,14 @@ BEGIN
   {generate starting offsets into the value table for each length}
   x [ 1 ] := 0;
   j := 0;
-  p := @c; inc ( longint ( p ), sizeof ( word ) );
-  xp := @x;inc ( longint ( xp ), 2 * sizeof ( word ) );
+  p := @c; inc ( ptrint ( p ), sizeof ( word ) );
+  xp := @x;inc ( ptrint ( xp ), 2 * sizeof ( word ) );
   dec ( i );
   WHILE i <> 0 DO BEGIN
     inc ( j, p^ );
     xp^ := j;
-    inc ( longint ( p ), 2 );
-    inc ( longint ( xp ), 2 );
+    inc ( ptrint ( p ), 2 );
+    inc ( ptrint ( xp ), 2 );
     dec ( i );
   END;
 
@@ -922,7 +922,7 @@ BEGIN
   p := b; i := 0;
   REPEAT
     j := p^;
-    inc ( longint ( p ), sizeof ( word ) );
+    inc ( ptrint ( p ), sizeof ( word ) );
     IF j <> 0 THEN BEGIN
       v [ x [ j ] ] := i;
       inc ( x [ j ] );
@@ -958,7 +958,7 @@ BEGIN
           tryagain := TRUE;
           WHILE ( j < z ) AND tryagain DO BEGIN
             f := f SHL 1;
-            inc ( longint ( xp ), sizeof ( word ) );
+            inc ( ptrint ( xp ), sizeof ( word ) );
             IF f <= xp^ THEN tryagain := FALSE
                       ELSE BEGIN
                         dec ( f, xp^ );
@@ -1016,7 +1016,7 @@ BEGIN
       ELSE IF p^ < s THEN BEGIN
         IF p^ < 256 THEN r.e := 16 ELSE r.e := 15;
         r.v_n := p^;
-        inc ( longint ( p ), sizeof ( word ) );
+        inc ( ptrint ( p ), sizeof ( word ) );
       END ELSE BEGIN
         IF ( d = NIL ) OR ( e = NIL ) THEN BEGIN
           huft_free ( pointer ( u [ 0 ] ) );
@@ -1025,7 +1025,7 @@ BEGIN
         END;
         r.e := word ( e^ [ p^ -s ] );
         r.v_n := d^ [ p^ -s ];
-        inc ( longint ( p ), sizeof ( word ) );
+        inc ( ptrint ( p ), sizeof ( word ) );
       END;
 
       {fill code like entries with r}
@@ -1478,7 +1478,7 @@ BEGIN
     END;
     REPEAT
       l^ := b;
-      inc ( longint ( l ), sizeof ( word ) );
+      inc ( ptrint ( l ), sizeof ( word ) );
       inc ( k );
       dec ( j );
     UNTIL j = 0;
@@ -3336,7 +3336,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.7  2003-11-03 09:34:42  marco
+  Revision 1.8  2004-05-03 20:52:50  peter
+    * 64 bit fixes
+
+  Revision 1.7  2003/11/03 09:34:42  marco
    * fix from peter for 1.9 release problem
 
   Revision 1.6  2002/09/07 15:43:06  peter
