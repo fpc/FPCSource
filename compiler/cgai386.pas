@@ -1142,8 +1142,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               { normally usage of base register is much better (FK)      }
               p^.location.reference.base:=hregister;
               { Why is this done? We can never be sure about p^.left
-                because otherwise secondload fails !!! }
-              set_location(p^.left^.location,p^.location);
+                because otherwise secondload fails !!!
+              set_location(p^.left^.location,p^.location);}
            end;
 {$ifdef TEMPS_NOT_PUSH}
          ungetiftemp(href);
@@ -1179,8 +1179,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               reset_reference(p^.location.reference);
               p^.location.reference.base:=hregister;
               { Why is this done? We can never be sure about p^.left
-                because otherwise secondload fails PM }
-              set_location(p^.left^.location,p^.location);
+                because otherwise secondload fails PM
+              set_location(p^.left^.location,p^.location);}
            end;
          ungetiftemp(href);
       end;
@@ -3293,7 +3293,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.34  1999-08-30 09:41:31  pierre
+  Revision 1.35  1999-08-30 12:00:44  pierre
+   * problem with maybe_push/restore solved hopefully
+
+  Revision 1.34  1999/08/30 09:41:31  pierre
    * last change undone because cycle was broken
 
   Revision 1.33  1999/08/28 17:48:34  peter

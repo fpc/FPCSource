@@ -158,7 +158,11 @@ implementation
                         set_location(p^.location,p^.left^.location);
                         pushed:=maybe_push(p^.right^.registers32,p,false);
                         secondpass(p^.right);
-                        if pushed then restore(p,false);
+                        if pushed then
+                          begin
+                             restore(p,false);
+                             set_location(p^.left^.location,p^.location);
+                          end;
                         { get the temp location, must be done before regs are
                           released/pushed because after the release the regs are
                           still used for the push (PFV) }
@@ -188,7 +192,11 @@ implementation
                         secondpass(p^.left);
                         pushed:=maybe_push(p^.right^.registers32,p,false);
                         secondpass(p^.right);
-                        if pushed then restore(p,false);
+                        if pushed then
+                          begin
+                             restore(p,false);
+                             set_location(p^.left^.location,p^.location);
+                          end;
                         { release used registers }
                         del_location(p^.right^.location);
                         del_location(p^.left^.location);
@@ -283,7 +291,11 @@ implementation
                              { are too few registers free? }
                              pushed:=maybe_push(p^.right^.registers32,p,false);
                              secondpass(p^.right);
-                             if pushed then restore(p,false);
+                             if pushed then
+                               begin
+                                  restore(p,false);
+                                  set_location(p^.left^.location,p^.location);
+                               end;
                              { only one node can be stringconstn }
                              { else pass 1 would have evaluted   }
                              { this node                         }
@@ -357,7 +369,11 @@ implementation
         if codegenerror then
           exit;
         if pushed then
-          restore(p,false);
+          begin
+             restore(p,false);
+             set_location(p^.left^.location,p^.location);
+          end;
+             
 
         set_location(p^.location,p^.left^.location);
 
@@ -743,7 +759,11 @@ implementation
                             getlabel(falselabel);
                          end;
                        secondpass(p^.right);
-                       if pushed then restore(p,false);
+                       if pushed then
+                         begin
+                            restore(p,false);
+                            set_location(p^.left^.location,p^.location);
+                         end;
                        case p^.right^.location.loc of
                           LOC_FLAGS:
                             locflags2reg(p^.right^.location,opsize);
@@ -800,7 +820,10 @@ implementation
               pushed:=maybe_push(p^.right^.registers32,p,is_64bitint(p^.left^.resulttype));
               secondpass(p^.right);
               if pushed then
-                restore(p,is_64bitint(p^.left^.resulttype));
+                begin
+                  restore(p,is_64bitint(p^.left^.resulttype));
+                  set_location(p^.left^.location,p^.location);
+                end;
 
               if (p^.left^.resulttype^.deftype=pointerdef) or
 
@@ -2116,7 +2139,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  1999-08-23 23:31:00  pierre
+  Revision 1.77  1999-08-30 12:00:45  pierre
+   * problem with maybe_push/restore solved hopefully
+
+  Revision 1.76  1999/08/23 23:31:00  pierre
    * double del_location removed in add_set
 
   Revision 1.75  1999/08/23 10:35:13  jonas
