@@ -595,7 +595,7 @@ begin
      Move(Name[0],d.Name[1],Len);
      d.Time:=lmTime;
      d.Size:=Size;
-     d.Attr:=Attr;
+     d.Attr:=Attr and $FF;
      Move(hdl,d.Fill,4);
    end;
 end;
@@ -1139,7 +1139,13 @@ End;
 end.
 {
   $Log$
-  Revision 1.11  1998-08-28 10:45:58  peter
+  Revision 1.12  1998-09-11 12:46:44  pierre
+    * range check problem with LFN attr removed
+
+  Revision 1.11.2.1  1998/09/11 12:38:41  pierre
+    * conversion from LFN attr to Dos attr did not respect range checking
+
+  Revision 1.11  1998/08/28 10:45:58  peter
     * fixed path buffer in findfirst
 
   Revision 1.10  1998/08/27 10:30:48  pierre
