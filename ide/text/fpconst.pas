@@ -34,12 +34,12 @@ const
      SwitchesName         = 'fp.cfg';
      DesktopName          = 'fp.dsk';
 
-     ToolCaptureName      = '__TOOL__.OUT'; { all '$' signs replaces with '_'s }
-     FilterCaptureName    = '_FILTER_.OUT';
-     FPOutFileName        = 'FP___.OUT';
-     FPErrFileName        = 'FP___.ERR';
-     GDBOutFileName       = 'GDB___.OUT';
-     GDBOutPutFileName    = 'GDB___.txt';
+     ToolCaptureName      = '__tool__.out'; { all '$' signs replaces with '_'s }
+     FilterCaptureName    = '_filter_.out';
+     FPOutFileName        = 'fp___.out';
+     FPErrFileName        = 'fp___.err';
+     GDBOutFileName       = 'gdb___.out';
+     GDBOutPutFileName    = 'gdb___.txt';
 
      HelpFileExts         = '*.tph;*.htm*';
 
@@ -365,7 +365,12 @@ implementation
 END.
 {
   $Log$
-  Revision 1.29  1999-10-27 12:10:42  pierre
+  Revision 1.30  1999-11-03 09:39:23  peter
+    * fixed uppercase filenames
+    * savetostream did twice a -1 on the linecount, so the lastline of a
+      file wasn't saved correctly
+
+  Revision 1.29  1999/10/27 12:10:42  pierre
     + With DebugUndo added 3 menu items
       "Dump Undo" "Undo All" and "Redo All"
       for Undo checks

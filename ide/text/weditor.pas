@@ -4326,7 +4326,6 @@ begin
     begin
       if EndP.Y>0 then
         begin
-          Dec(EndP.Y);
           EndP.X:=length(GetDisplayText(EndP.Y));
         end
       else
@@ -4928,7 +4927,12 @@ end;
 END.
 {
   $Log$
-  Revision 1.58  1999-10-28 15:14:22  pierre
+  Revision 1.59  1999-11-03 09:39:23  peter
+    * fixed uppercase filenames
+    * savetostream did twice a -1 on the linecount, so the lastline of a
+      file wasn't saved correctly
+
+  Revision 1.58  1999/10/28 15:14:22  pierre
    * get it to compile with debug conditional
 
   Revision 1.56  1999/10/27 13:32:58  pierre
