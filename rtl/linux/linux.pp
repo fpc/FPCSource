@@ -546,8 +546,8 @@ Function  FStat(var F:File;Var Info:stat):Boolean;
 Function  Lstat(Filename: PathStr;var Info:stat):Boolean;
 Function  FSStat(Path:Pathstr;Var Info:statfs):Boolean;
 Function  FSStat(Fd: Longint;Var Info:statfs):Boolean;
-Function  Fcntl(Fd:Text;Cmd:Integer):integer;
-Procedure Fcntl(Fd:Text;Cmd:Integer;Arg:Longint);
+Function  Fcntl(var Fd:Text;Cmd:Integer):integer;
+Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
 Function  Dup(oldfile:longint;var newfile:longint):Boolean;
 Function  Dup(var oldfile,newfile:text):Boolean;
 Function  Dup(var oldfile,newfile:file):Boolean;
@@ -1383,7 +1383,7 @@ end;
 
 
 
-Function Fcntl(Fd:Text;Cmd:integer):integer;
+Function Fcntl(var Fd:Text;Cmd:integer):integer;
 {
   Read or manipulate a file.(See also fcntl (2) )
   Possible values for Cmd are :
@@ -1420,7 +1420,7 @@ end;
 
 
 
-Procedure Fcntl(Fd:Text;Cmd:Integer;Arg:Longint);
+Procedure Fcntl(var Fd:Text;Cmd:Integer;Arg:Longint);
 {
   Read or manipulate a file. (See also fcntl (2) )
   Possible values for Cmd are :
@@ -3546,7 +3546,10 @@ End.
 
 {
   $Log$
-  Revision 1.37  1999-05-10 09:13:41  peter
+  Revision 1.38  1999-05-26 11:05:24  michael
+  * fcntl needs file as Var argument
+
+  Revision 1.37  1999/05/10 09:13:41  peter
     * fixed typo
 
   Revision 1.36  1999/05/08 19:47:24  peter
