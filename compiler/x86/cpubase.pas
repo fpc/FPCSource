@@ -263,7 +263,6 @@ uses
       tparalocation = packed record
          size : TCGSize;
          loc  : TCGLoc;
-         sp_fixup : longint;
          case TCGLoc of
             LOC_REFERENCE : (reference : tparareference);
             { segment in reference at the same place as in loc_register }
@@ -559,7 +558,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-09-24 17:12:36  florian
+  Revision 1.20  2003-09-25 21:29:23  peter
+    * remove sp_fixup
+
+  Revision 1.19  2003/09/24 17:12:36  florian
     * x86-64 adaptions
 
   Revision 1.18  2003/09/23 17:56:06  peter
