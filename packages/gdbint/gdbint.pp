@@ -24,7 +24,22 @@ interface
 {$define NotImplemented}
 
 
+{ Default version for GDB 5 is 5.01 for now PM }
+
+{$ifdef GDB_V5}
+  {$ifndef GDB_V500}
+    {$define GDB_V501}
+  {$endif ndef GDB_V500}
+{$endif def GDB_V5}
+
+{$ifdef GDB_V502}
+  {$define GDB_V501}
+  {$define GDB_USES_PTID}
+  {$define GDB_V5}
+{$endif GDB_V502}
+
 {$ifdef GDB_V501}
+  {$define GDB_USES_PTID}
   {$define GDB_V5}
 {$endif GDB_V501}
 
@@ -263,6 +278,27 @@ type
 
 {$endif GDB_V5}
 
+{$ifdef GDB_USES_PTID}
+  type
+
+  (* struct ptid
+  {
+    /* Process id */
+    int pid;
+
+    /* Lightweight process id */
+    long lwp;
+
+    /* Thread id */
+    long tid;
+  }; *)
+   pinferior_ptid = ^tinferior_ptid;
+   tinferior_ptid = record
+      pid : longint{C int};
+      lwp : longint{ C long};
+      tid : longint{ C long};
+     end;
+{$endif}
 
 {$ifdef win32}
 
@@ -383,8 +419,8 @@ const
   use_gdb_file : boolean = false;
 var
   gdb_file : text;
-{$ifdef GDB_V501}
-  inferior_ptid : longint;cvar;external;
+{$ifdef GDB_USES_PTID}
+  inferior_ptid : tinferior_ptid;cvar;external;
 {$else}
   inferior_pid : longint;cvar;external;
 {$endif}
@@ -395,7 +431,7 @@ var
   procedure reload_fs;
 {$endif go32v2}
 
-{$ifdef GDB_V501}
+{$ifdef GDB_USES_PTID}
 function inferior_pid : longint;
 {$endif}
 
@@ -1371,11 +1407,7 @@ begin
 {$endif go32v2}
      DebuggerScreen;
      current_pc:=stop_pc;
-{$ifdef GDB_V501}
-     Debuggee_started:=inferior_ptid<>0;
-{$else}
      Debuggee_started:=inferior_pid<>0;
-{$endif}
      if not Debuggee_started then exit;
      if reset_command then exit;
       sym:=find_pc_line(stop_pc,0);
@@ -1387,10 +1419,10 @@ begin
    end;
 end;
 
-{$ifdef GDB_V501}
+{$ifdef GDB_USES_PTID}
 function inferior_pid : longint;
 begin
-  inferior_pid:=inferior_ptid{.pid};
+  inferior_pid:=inferior_ptid.pid;
 end;
 {$endif}
 
@@ -2480,7 +2512,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-01-07 10:31:57  pierre
+  Revision 1.11  2002-01-24 09:14:39  pierre
+   * adapt to GDB 5.1
+
+  Revision 1.10  2002/01/07 10:31:57  pierre
    * avoid problem if gdb start generates output
 
   Revision 1.9  2001/09/19 15:25:56  pierre
