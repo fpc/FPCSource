@@ -48,6 +48,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
       UserScreenWindow : PScreenWindow = nil;
+      HeapView         : PFPHeapView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
       StartupDir       : string = '.'+DirSep;
@@ -74,7 +75,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.13  1999-03-16 12:38:15  peter
+  Revision 1.14  1999-03-19 16:04:32  peter
+    * new compiler dialog
+
+  Revision 1.13  1999/03/16 12:38:15  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

@@ -960,6 +960,51 @@ begin
 end;
 
 procedure TColorStaticText.Draw;
+
+  procedure MoveColorTxt(var b;const curs:string;c:word);
+  var
+    p : ^word;
+    i : sw_integer;
+    col : byte;
+    tilde : boolean;
+  begin
+    tilde:=false;
+    col:=lo(c);
+    p:=@b;
+    i:=0;
+    while (i<length(Curs)) do
+     begin
+       Inc(i);
+       case CurS[i] of
+         #1 :
+           begin
+             Inc(i);
+             Col:=ord(curS[i]);
+           end;
+         #2 :
+           begin
+             if tilde then
+              col:=hi(Color)
+             else
+              col:=lo(Color)
+           end;
+         '~' :
+           begin
+             tilde:=not tilde;
+             if tilde then
+              col:=hi(Color)
+             else
+              col:=lo(Color)
+           end;
+         else
+           begin
+             p^:=(col shl 8) or ord(curs[i]);
+             inc(p);
+           end;
+       end;
+     end;
+  end;
+
 var
   C: word;
   Center: Boolean;
@@ -1005,7 +1050,7 @@ begin
         if J > I then P := J else P := I + Size.X;
       T:=copy(S,I,P-I);
       if Center then J := (Size.X - {P + I}CStrLen(T)) div 2 else J := 0;
-      MoveCStr(B[J],T,C);
+      MoveColorTxt(B[J],T,C);
       while (P <= L) and (S[P] = ' ') do Inc(P);
       if (P <= L) and (S[P] = #13) then
       begin
@@ -1035,7 +1080,8 @@ begin
     CurS:=copy(CurS,1,MaxViewWidth);
     Delete(S,1,P);
     end;
-    if CurS<>'' then MoveCStr(B,CurS,C);
+    if CurS<>'' then
+      MoveColorTxt(B,CurS,C);
     WriteLine(0,Y,Size.X,1,B);
   end;
  end;
@@ -1377,7 +1423,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  1999-03-08 14:58:23  peter
+  Revision 1.3  1999-03-19 16:04:35  peter
+    * new compiler dialog
+
+  Revision 1.2  1999/03/08 14:58:23  peter
     + prompt with dialogs for tools
 
   Revision 1.1  1999/03/01 15:51:43  peter

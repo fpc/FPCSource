@@ -99,6 +99,7 @@ const
      cmToolsMsgNext      = 231;
      cmToolsMsgPrev      = 232;
      cmGrep              = 233;
+     cmCompilerMessages  = 234;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -205,6 +206,7 @@ const
      hcBrowser           = hcShift+cmBrowser;
      hcDesktopOptions    = hcShift+cmDesktopOptions;
      hcAbout             = hcShift+cmAbout;
+     hcCompilerMessages  = hcShift+cmCompilerMessages;
 
      hcSystemMenu        = 9000;
      hcFileMenu          = 9001;
@@ -306,7 +308,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.14  1999-03-16 12:38:08  peter
+  Revision 1.15  1999-03-19 16:04:28  peter
+    * new compiler dialog
+
+  Revision 1.14  1999/03/16 12:38:08  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

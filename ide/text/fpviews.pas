@@ -161,8 +161,8 @@ type
       Text      : PString;
       Module    : PString;
       Row,Col   : sw_integer;
-      constructor Init(AClass: longint; AText: string; AModule: PString; ARow, ACol: sw_integer);
-      function    GetText(MaxLen: integer): string; virtual;
+      constructor Init(AClass: longint; const AText: string; AModule: PString; ARow, ACol: sw_integer);
+      function    GetText(MaxLen: Sw_integer): string; virtual;
       procedure   Selected; virtual;
       function    GetModuleName: string; virtual;
       destructor  Done; virtual;
@@ -170,14 +170,14 @@ type
 
     PMessageListBox = ^TMessageListBox;
     TMessageListBox = object(THSListBox)
-      Transparent: boolean;
-      NoSelection: boolean;
-      MaxWidth: integer;
-      ModuleNames: PStoreCollection;
+      Transparent : boolean;
+      NoSelection : boolean;
+      MaxWidth    : Sw_integer;
+      ModuleNames : PStoreCollection;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar: PScrollBar);
       procedure   AddItem(P: PMessageItem); virtual;
-      function    AddModuleName(Name: string): PString; virtual;
-      function    GetText(Item: Integer; MaxLen: Integer): String; virtual;
+      function    AddModuleName(const Name: string): PString; virtual;
+      function    GetText(Item,MaxLen: Sw_Integer): String; virtual;
       procedure   Clear; virtual;
       procedure   TrackSource; virtual;
       procedure   GotoSource; virtual;
@@ -187,10 +187,12 @@ type
       destructor  Done; virtual;
     end;
 
+{$ifdef OLDCOMP}
     PCompilerMessage = ^TCompilerMessage;
     TCompilerMessage = object(TMessageItem)
-      function GetText(MaxLen: Integer): String; virtual;
+      function GetText(MaxLen: Sw_Integer): String; virtual;
     end;
+{$endif}
 
     PProgramInfoWindow = ^TProgramInfoWindow;
     TProgramInfoWindow = object(TDlgWindow)
@@ -1183,11 +1185,12 @@ begin
         DontClear:=false;
         case Event.KeyCode of
           kbEnter :
-            if Owner<>pointer(SD) then
-              Message(@Self,evCommand,cmMsgGotoSource,nil);
-        else DontClear:=true;
+            Message(@Self,evCommand,cmMsgGotoSource,nil);
+        else
+          DontClear:=true;
         end;
-        if DontClear=false then ClearEvent(Event);
+        if not DontClear then
+          ClearEvent(Event);
       end;
     evBroadcast :
       case Event.Command of
@@ -1201,15 +1204,17 @@ begin
         case Event.Command of
           cmMsgGotoSource :
             if Range>0 then
-            GotoSource;
+              GotoSource;
           cmMsgTrackSource :
             if Range>0 then
-            TrackSource;
+              TrackSource;
           cmMsgClear :
             Clear;
-        else DontClear:=true;
+          else
+            DontClear:=true;
         end;
-        if DontClear=false then ClearEvent(Event);
+        if not DontClear then
+          ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
@@ -1233,7 +1238,7 @@ begin
   DrawView;
 end;
 
-function TMessageListBox.AddModuleName(Name: string): PString;
+function TMessageListBox.AddModuleName(const Name: string): PString;
 var P: PString;
 begin
   if ModuleNames<>nil then
@@ -1243,7 +1248,7 @@ begin
   AddModuleName:=P;
 end;
 
-function TMessageListBox.GetText(Item: Integer; MaxLen: Integer): String;
+function TMessageListBox.GetText(Item,MaxLen: Sw_Integer): String;
 var P: PMessageItem;
     S: string;
 begin
@@ -1254,8 +1259,12 @@ end;
 
 procedure TMessageListBox.Clear;
 begin
-  if List<>nil then Dispose(List, Done); List:=nil; MaxWidth:=0;
-  if ModuleNames<>nil then ModuleNames^.FreeAll;
+  if assigned(List) then
+    Dispose(List, Done);
+  List:=nil;
+  MaxWidth:=0;
+  if assigned(ModuleNames) then
+    ModuleNames^.FreeAll;
   SetRange(0); DrawView;
   Message(Application,evBroadcast,cmClearLineHighlights,@Self);
 end;
@@ -1272,7 +1281,9 @@ begin
   if P^.Row=0 then Exit;
   Desktop^.Lock;
   GetNextEditorBounds(R);
+{$ifdef OLDCOMP}
   if Assigned(Owner) and (Owner=pointer(ProgramInfoWindow)) then
+{$endif}
     R.B.Y:=Owner^.Origin.Y;
   if P^.Row>0 then Row:=P^.Row-1 else Row:=0;
   if P^.Col>0 then Col:=P^.Col-1 else Col:=0;
@@ -1280,7 +1291,9 @@ begin
   if assigned(W) then
     begin
       W^.GetExtent(R);
+{$ifdef OLDCOMP}
       if Assigned(Owner) and (Owner=pointer(ProgramInfoWindow)) then
+{$endif}
         R.B.Y:=Owner^.Origin.Y;
       W^.ChangeBounds(R);
       W^.Editor^.SetCurPtr(Col,Row);
@@ -1317,7 +1330,7 @@ end;
 
 procedure TMessageListBox.Draw;
 var
-  I, J, Item: Integer;
+  I, J, Item: Sw_Integer;
   NormalColor, SelectedColor, FocusedColor, Color: Word;
   ColWidth, CurCol, Indent: Integer;
   B: TDrawBuffer;
@@ -1392,7 +1405,7 @@ begin
   if ModuleNames<>nil then Dispose(ModuleNames, Done);
 end;
 
-constructor TMessageItem.Init(AClass: longint; AText: string; AModule: PString; ARow, ACol: sw_integer);
+constructor TMessageItem.Init(AClass: longint; const AText: string; AModule: PString; ARow, ACol: sw_integer);
 begin
   inherited Init;
   TClass:=AClass;
@@ -1401,7 +1414,7 @@ begin
   Row:=ARow; Col:=ACol;
 end;
 
-function TMessageItem.GetText(MaxLen: integer): string;
+function TMessageItem.GetText(MaxLen: Sw_integer): string;
 var S: string;
 begin
   if Text=nil then S:='' else S:=Text^;
@@ -1424,6 +1437,8 @@ begin
   if Text<>nil then DisposeStr(Text);
 {  if Module<>nil then DisposeStr(Module);}
 end;
+
+{$ifdef OLDCOMP}
 
 function TCompilerMessage.GetText(MaxLen: Integer): String;
 var ClassS: string[20];
@@ -1455,6 +1470,8 @@ begin
   if length(S)>MaxLen then S:=copy(S,1,MaxLen-2)+'..';
   GetText:=S;
 end;
+
+{$endif}
 
 constructor TProgramInfoWindow.Init;
 var R,R2: TRect;
@@ -2420,7 +2437,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.22  1999-03-16 00:44:45  peter
+  Revision 1.23  1999-03-19 16:04:33  peter
+    * new compiler dialog
+
+  Revision 1.22  1999/03/16 00:44:45  peter
     * forgotten in last commit :(
 
   Revision 1.21  1999/03/08 14:58:16  peter

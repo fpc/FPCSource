@@ -42,7 +42,6 @@ type
       procedure ShowUserScreen;
       procedure ShowIDEScreen;
     private
-      Heap: PFPHeapView;
       procedure NewEditor;
       procedure NewFromTemplate;
       procedure OpenRecentFile(RecentIndex: integer);
@@ -60,6 +59,7 @@ type
       procedure DoResetDebugger;
       procedure DoContToCursor;
       procedure Target;
+      procedure DoCompilerMessages;
       procedure DoPrimaryFile;
       procedure DoClearPrimary;
       procedure DoUserScreenWindow;
@@ -153,15 +153,21 @@ begin
   Desktop^.Insert(ClipboardWindow);
   New(CalcWindow, Init); CalcWindow^.Hide;
   Desktop^.Insert(CalcWindow);
+{$ifndef OLDCOMP}
+  New(CompilerMessageWindow, Init);
+  CompilerMessageWindow^.Hide;
+  Desktop^.Insert(CompilerMessageWindow);
+{$else}
   New(ProgramInfoWindow, Init);
   ProgramInfoWindow^.Hide;
   Desktop^.Insert(ProgramInfoWindow);
+{$endif}
   Message(@Self,evBroadcast,cmUpdate,nil);
   CurDirChanged;
   { heap viewer }
   GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
-  New(Heap, InitKb(R));
-  Insert(Heap);
+  New(HeapView, InitKb(R));
+  Insert(HeapView);
 end;
 
 procedure TIDEApp.InitMenuBar;
@@ -222,7 +228,8 @@ begin
       NewItem('C~l~ear primary file','', kbNoKey, cmClearPrimary, hcClearPrimary,
       NewLine(
       NewItem('~I~nformation...','', kbNoKey, cmInformation, hcInformation,
-      nil)))))))))),
+      NewItem('C~o~mpiler messages','F12', kbF12, cmCompilerMessages, hcCompilerMessages,
+      nil))))))))))),
     NewSubMenu('~D~ebug', hcDebugMenu, NewMenu(
       NewItem('~O~utput','', kbNoKey, cmUserScreenWindow, hcUserScreenWindow,
       NewItem('~U~ser screen','Alt+F5', kbAltF5, cmUserScreen, hcUserScreen,
@@ -230,7 +237,7 @@ begin
       NewItem('~G~DB window','', kbNoKey, cmOpenGDBWindow, hcOpenGDBWindow,
       nil))))),
     NewSubMenu('~T~ools', hcToolsMenu, NewMenu(
-      NewItem('~M~essages', '', kbNoKey, cmToolsMessages, hcToolsMessages,
+      NewItem('~M~essages', 'F11', kbF11, cmToolsMessages, hcToolsMessages,
       NewItem('Goto ~n~ext','Alt+F8', kbAltF8, cmToolsMsgNext, hcToolsMsgNext,
       NewItem('Goto ~p~revious','Alt+F7', kbAltF7, cmToolsMsgPrev, hcToolsMsgPrev,
       NewLine(
@@ -393,9 +400,10 @@ begin
              cmPrimaryFile   : DoPrimaryFile;
              cmClearPrimary  : DoClearPrimary;
              cmInformation   : DoInformation;
+             cmCompilerMessages : DoCompilerMessages;
            { -- Debug menu -- }
              cmUserScreen    : DoUserScreen;
-        cmToggleBreakpoint   : DoToggleBreak;
+             cmToggleBreakpoint : DoToggleBreak;
              cmOpenGDBWindow : DoOpenGDBWindow;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
@@ -465,8 +473,11 @@ end;
 procedure TIDEApp.GetTileRect(var R: TRect);
 begin
   Desktop^.GetExtent(R);
+{ Leave the compiler messages window in the bottom }
+  if assigned(CompilerMessageWindow) then
+   R.B.Y:=CompilerMessageWindow^.Origin.Y;
 { Leave the messages window in the bottom }
-  if assigned(MessagesWindow) then
+  if assigned(MessagesWindow) and (MessagesWindow^.Origin.Y<R.B.Y) then
    R.B.Y:=MessagesWindow^.Origin.Y;
 end;
 
@@ -720,7 +731,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  1999-03-16 12:38:10  peter
+  Revision 1.24  1999-03-19 16:04:29  peter
+    * new compiler dialog
+
+  Revision 1.23  1999/03/16 12:38:10  peter
     * tools macro fixes
     + tph writer
     + first things for resource files

@@ -82,9 +82,20 @@ begin
    end;
 end;
 
+
+procedure TIDEApp.DoCompilerMessages;
+begin
+  if not CompilerMessageWindow^.GetState(sfVisible) then
+   CompilerMessageWindow^.Show;
+  CompilerMessageWindow^.MakeFirst;
+end;
+
 {
   $Log$
-  Revision 1.3  1999-03-12 01:13:59  peter
+  Revision 1.4  1999-03-19 16:04:30  peter
+    * new compiler dialog
+
+  Revision 1.3  1999/03/12 01:13:59  peter
     * flag if trytoopen should look for other extensions
     + browser tab in the tools-compiler
 

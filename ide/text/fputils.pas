@@ -393,22 +393,71 @@ begin
 end;
 
 function MatchesMask(What, Mask: string): boolean;
-var P: integer;
-    Match: boolean;
+
+  function upper(const s : string) : string;
+  var
+    i  : Sw_integer;
+  begin
+     for i:=1 to length(s) do
+      if s[i] in ['a'..'z'] then
+       upper[i]:=char(byte(s[i])-32)
+      else
+       upper[i]:=s[i];
+     upper[0]:=s[0];
+  end;
+
+  Function CmpStr(const hstr1,hstr2:string):boolean;
+  var
+    found : boolean;
+    i1,i2 : Sw_integer;
+  begin
+    i1:=0;
+    i2:=0;
+    found:=true;
+    repeat
+      if found then
+       inc(i2);
+      inc(i1);
+      case hstr1[i1] of
+        '?' :
+          found:=true;
+        '*' :
+          begin
+            found:=true;
+            if (i1=length(hstr1)) then
+             i2:=length(hstr2)
+            else
+             if (i1<length(hstr1)) and (hstr1[i1+1]<>hstr2[i2]) then
+              begin
+                if i2<length(hstr2) then
+                 dec(i1)
+              end
+            else
+             if i2>1 then
+              dec(i2);
+          end;
+        else
+          found:=(hstr1[i1]=hstr2[i2]) or (hstr2[i2]='?');
+      end;
+    until (i1>=length(hstr1)) or (i2>length(hstr2)) or (not found);
+    if found then
+      found:=(i1>=length(hstr1)) and (i2>=length(hstr2));
+    CmpStr:=found;
+  end;
+
+var
+  D1,D2 : DirStr;
+  N1,N2 : NameStr;
+  E1,E2 : Extstr;
 begin
-  P:=Pos('*',Mask);
-  if P>0 then
-    begin
-      Mask:=copy(Mask,1,P-1);
-      What:=copy(What,1,P-1);
-    end;
-  Match:=length(Mask)=length(What); P:=1;
-  if Match and (Mask<>'') then
-  repeat
-    Match:=Match and ((Mask[P]='?') or (Upcase(Mask[P])=Upcase(What[P])));
-    Inc(P);
-  until (Match=false) or (P>length(Mask));
-  MatchesMask:=Match;
+{$ifdef linux}
+  FSplit(What,D1,N1,E1);
+  FSplit(Mask,D2,N2,E2);
+{$else}
+  FSplit(Upper(What),D1,N1,E1);
+  FSplit(Upper(Mask),D2,N2,E2);
+{$endif}
+  MatchesMask:=CmpStr(N2,N1) and CmpStr(E2,E1);
 end;
 
 function MatchesMaskList(What, MaskList: string): boolean;
@@ -605,7 +654,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.10  1999-03-08 14:58:14  peter
+  Revision 1.11  1999-03-19 16:04:31  peter
+    * new compiler dialog
+
+  Revision 1.10  1999/03/08 14:58:14  peter
     + prompt with dialogs for tools
 
   Revision 1.9  1999/03/01 15:42:06  peter
