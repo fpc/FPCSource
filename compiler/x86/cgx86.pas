@@ -1675,7 +1675,6 @@ unit cgx86;
                     r.number:=NR_EDI;
                     list.concat(Taicpu.op_reg(A_DEC,S_L,r));
                     a_jmp_cond(list,OC_NE,again);
-                    r.enum:=R_EDI;
                     rg.ungetregisterint(list,r);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize,rsp));
                  end
@@ -1925,7 +1924,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.33  2003-02-26 21:15:43  daniel
+  Revision 1.34  2003-02-27 16:40:32  daniel
+    * Fixed ie 200301234 problem on Win32 target
+
+  Revision 1.33  2003/02/26 21:15:43  daniel
     * Fixed the optimizer
 
   Revision 1.32  2003/02/19 22:00:17  daniel
