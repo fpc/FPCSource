@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Jonas Maebe
 
@@ -1083,6 +1083,12 @@ Begin
                                  (Paicpu(p)^.opsize = Paicpu(hp1)^.opsize) and
                                  RefsEqual(Paicpu(hp1)^.oper[0].ref^,Paicpu(p)^.oper[1].ref^) then
                                 Begin
+                                  allocregbetween(asml,Paicpu(hp1)^.oper[1].reg,p,hp1);
+                                  { allocregbetween doesn't insert this because at }
+                                  { this time, no regalloc info is available in    }
+                                  { the optinfo field, so do it manually (JM)      }
+                                  hp2 := new(paiRegalloc,alloc(Paicpu(hp1)^.oper[1].reg));
+                                  insertllitem(asml,p^.previous,p,hp2);
                                   Paicpu(hp1)^.LoadReg(0,Paicpu(hp1)^.oper[1].reg);
                                   Paicpu(hp1)^.LoadRef(1,newreference(Paicpu(p)^.oper[1].ref^));
                                   Paicpu(p)^.LoadReg(1,Paicpu(hp1)^.oper[0].reg);
@@ -1906,7 +1912,10 @@ End.
 
 {
  $Log$
- Revision 1.90  2000-03-26 10:58:47  jonas
+ Revision 1.91  2000-04-16 16:46:43  jonas
+   * small regalloc fix
+
+ Revision 1.90  2000/03/26 10:58:47  jonas
    * some more allocRegBetween fixes (-al didn't function previously
      if the compiler was compiled with -OG2p3r)
 
