@@ -713,61 +713,61 @@ begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
 	  Driver.WriteIdent('NIL');
 	  Driver.EndProperty;
-	end else if ObjValue.InheritsFrom(TPersistent) then
+	end else If Assigned(ObjValue) then
+	if ObjValue.InheritsFrom(TPersistent) then
           if ObjValue.InheritsFrom(TComponent) then
-          begin
-	    Component := TComponent(ObjValue);
-	    if ObjValue <> AncestorObj then
-    	    begin
-	      { Determine the correct name of the component this property contains }
-              if Component.Owner = LookupRoot then
-        	Name := Component.Name
-              else if Component = LookupRoot then
-        	Name := 'Owner'
-              else if Assigned(Component.Owner) and (Length(Component.Owner.Name) > 0)
-        	and (Length(Component.Name) > 0) then
-        	Name := Component.Owner.Name + '.' + Component.Name
-              else if Length(Component.Name) > 0 then
-        	Name := Component.Name + '.Owner'
-              else
-		SetLength(Name, 0);
-
-              if Length(Name) > 0 then
-              begin
-		Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
-        	WriteIdent(Name);
-		Driver.EndProperty;
-              end;
-	    end;
-          end else if ObjValue.InheritsFrom(TCollection) then
-          begin
-    	    if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
-              TCollection(GetOrdProp(Ancestor, PropInfo)))) then
-	    begin
-	      Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
-              SavedPropPath := FPropPath;
-              try
-        	SetLength(FPropPath, 0);
-        	WriteCollection(TCollection(ObjValue));
-              finally
-        	FPropPath := SavedPropPath;
-		Driver.EndProperty;
-              end;
-    	    end;
-          end else
-          begin
-    	    SavedAncestor := Ancestor;
-    	    SavedPropPath := FPropPath;
-    	    try
-              FPropPath := FPropPath + PPropInfo(PropInfo)^.Name + '.';
-              if HasAncestor then
-        	Ancestor := TPersistent(GetOrdProp(Ancestor, PropInfo));
-              WriteProperties(TPersistent(ObjValue));
-    	    finally
-              Ancestor := SavedAncestor;
-              FPropPath := SavedPropPath;
-    	    end;
-          end;
+             begin
+             Component := TComponent(ObjValue);
+             if ObjValue <> AncestorObj then
+               begin
+               { Determine the correct name of the component this property contains }
+               if Component.Owner = LookupRoot then
+                 Name := Component.Name
+               else if Component = LookupRoot then
+                 Name := 'Owner'
+               else if Assigned(Component.Owner) and (Length(Component.Owner.Name) > 0)
+                and (Length(Component.Name) > 0) then
+                 Name := Component.Owner.Name + '.' + Component.Name
+               else if Length(Component.Name) > 0 then
+                 Name := Component.Name + '.Owner'
+               else
+                 SetLength(Name, 0);
+               if Length(Name) > 0 then
+                 begin
+                 Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+                 WriteIdent(Name);
+                 Driver.EndProperty;
+                 end;
+                end;
+             end else if ObjValue.InheritsFrom(TCollection) then
+               begin
+               if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
+                 TCollection(GetOrdProp(Ancestor, PropInfo)))) then
+                 begin
+                 Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+                 SavedPropPath := FPropPath;
+                 try
+                   SetLength(FPropPath, 0);
+                   WriteCollection(TCollection(ObjValue));
+                 finally
+                   FPropPath := SavedPropPath;
+                   Driver.EndProperty;
+                 end;
+                 end;
+             end else
+               begin
+               SavedAncestor := Ancestor;
+               SavedPropPath := FPropPath;
+               try
+                 FPropPath := FPropPath + PPropInfo(PropInfo)^.Name + '.';
+                 if HasAncestor then
+                   Ancestor := TPersistent(GetOrdProp(Ancestor, PropInfo));
+                 WriteProperties(TPersistent(ObjValue));
+               finally
+                 Ancestor := SavedAncestor;
+                 FPropPath := SavedPropPath;
+               end;
+               end;
       end;
     tkInt64:
       begin
@@ -805,7 +805,30 @@ end;}
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:01  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-12-10 14:32:08  michael
+  + Added check for Object<>nil in streamer
+
+  Revision 1.1  2000/07/13 06:31:32  michael
+  + Initial import
+
+  Revision 1.7  2000/06/29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.6  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.5  2000/01/06 01:20:33  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.2  2000/01/04 18:07:16  michael
+  + Streaming implemented
+
+  Revision 1.3  1999/09/13 08:35:16  fcl
+  * Changed some argument names (Root->ARoot etc.) because the new compiler
+    now performs more ambiguity checks  (sg)
+
+  Revision 1.2  1999/04/08 10:18:58  peter
+    * makefile updates
+
 }
