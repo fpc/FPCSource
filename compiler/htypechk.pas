@@ -460,7 +460,7 @@ implementation
            else
              begin
              { assignment overwritten ?? }
-               if assigned(assignment_overloaded(def_from,def_to)) then
+               if assignment_overloaded(def_from,def_to)<>nil then
                 b:=2;
              end;
          end;
@@ -662,7 +662,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27.2.2  1999-06-18 10:56:58  daniel
+  Revision 1.27.2.3  1999-06-28 15:51:27  peter
+    * tp7 fix
+
+  Revision 1.27.2.2  1999/06/18 10:56:58  daniel
   - Enumerations no longer compatible with integer types
 
   Revision 1.27.2.1  1999/06/17 12:51:42  pierre
