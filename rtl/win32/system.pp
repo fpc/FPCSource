@@ -111,6 +111,8 @@ const
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
+type
+  HMODULE = THandle;
 
 implementation
 
@@ -1530,7 +1532,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  2003-09-27 11:52:36  peter
+  Revision 1.45  2003-10-06 23:52:53  florian
+    * some data types cleaned up
+
+  Revision 1.44  2003/09/27 11:52:36  peter
     * sbrk returns pointer
 
   Revision 1.43  2003/09/26 07:30:34  michael

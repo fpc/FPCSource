@@ -264,6 +264,12 @@ Type
 
 { procedure type }
   TProcedure  = Procedure;
+  
+{$ifdef CPU64}
+  THandle = QWord;
+{$else CPU64}
+  THandle = DWord;
+{$endif CPU64}
 
 const
 { Maximum value of the biggest signed and unsigned integer type available}
@@ -692,7 +698,10 @@ const
 
 {
   $Log$
-  Revision 1.72  2003-09-04 16:07:31  florian
+  Revision 1.73  2003-10-06 23:52:53  florian
+    * some data types cleaned up
+
+  Revision 1.72  2003/09/04 16:07:31  florian
     * fixed qword_to_double conversion on powerpc
 
   Revision 1.71  2003/09/03 14:09:37  florian

@@ -83,7 +83,6 @@ type
    LPVOID  = pointer;
    LPCVOID = pointer;
    LPDWORD = ^DWORD;
-   THandle = longint;
    HLocal  = THandle;
    PStr    = pchar;
    LPStr   = pchar;
@@ -126,7 +125,10 @@ type
 
 {
   $Log$
-  Revision 1.9  2002-09-07 16:01:29  peter
+  Revision 1.10  2003-10-06 23:52:53  florian
+    * some data types cleaned up
+
+  Revision 1.9  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/05/09 08:28:23  carl

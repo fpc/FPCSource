@@ -1171,28 +1171,39 @@ Type
 
      PMessage = ^TMessage;
      TMessage = packed record       {fields according to ICS}
-                    msg      : UINT;
-                    case longint of
-                      0: (
-                          wParam : WPARAM;
-                          lParam : LPARAM;
-                          Result : DWORD;
-                         );
-                      1: (
-                          wParamlo,
-                          wParamhi : WORD;  // Is there Windows type for half an wparam?
-                          lParamlo,
-                          lParamhi : WORD;
-                          Resultlo,
-                          Resulthi : WORD;
-                         );
-                   end;
+        msg      : UINT;
+        case longint of
+          0: (
+              wParam : WPARAM;
+              lParam : LPARAM;
+              Result : DWORD;
+             );
+          1: (
+              wParamlo,
+              wParamhi : WORD;  // Is there Windows type for half an wparam?
+              lParamlo,
+              lParamhi : WORD;
+              Resultlo,
+              Resulthi : WORD;
+             );
+       end;
+
+    TWMSize = packed record
+      Msg: Cardinal;
+      SizeType: LongInt;
+      Width : Word;
+      Height : Word;
+      Result : LongInt;
+    End;
 
 {$endif read_interface}
 
 {
   $Log$
-  Revision 1.5  2003-01-02 22:07:00  peter
+  Revision 1.6  2003-10-06 23:52:53  florian
+    * some data types cleaned up
+
+  Revision 1.5  2003/01/02 22:07:00  peter
     * missing items
 
   Revision 1.4  2002/11/04 12:17:42  marco

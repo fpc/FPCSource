@@ -76,7 +76,7 @@
      DWORDLONG  = qword;  { was unsigned long  }
      PDWORDLONG = ^DWORDLONG;
 
-     HANDLE = type Cardinal;
+     HANDLE = System.THandle;
      HRESULT = System.HResult;
 
      HACCEL = HANDLE;
@@ -108,7 +108,6 @@
      HLOCAL = HANDLE;
      HMENU = HANDLE;
      HMETAFILE = HANDLE;
-     HMODULE = HANDLE;
      HPALETTE = HANDLE;
      HPEN = HANDLE;
      HRASCONN = HANDLE;
@@ -938,7 +937,10 @@ type
 
 {
   $Log$
-  Revision 1.18  2003-08-20 23:12:32  marco
+  Revision 1.19  2003-10-06 23:52:53  florian
+    * some data types cleaned up
+
+  Revision 1.18  2003/08/20 23:12:32  marco
    * HSTR fix
 
   Revision 1.17  2003/04/23 11:35:00  peter
