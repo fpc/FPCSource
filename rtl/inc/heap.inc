@@ -109,7 +109,8 @@ end;
 
 procedure FreeMem(Var p:pointer);
 begin
-  MemoryManager.FreeMem(p);
+  if p <> nil then
+    MemoryManager.FreeMem(p);
 end;
 
 
@@ -552,7 +553,11 @@ end;
 
 {
   $Log$
-  Revision 1.19  1999-10-01 07:55:54  peter
+  Revision 1.20  1999-10-22 22:03:07  sg
+  * FreeMem(p) is ignored if p is NIL, instead of throwing an
+    runtime error 204. (Delphi ignores NIL FreeMem's, too)
+
+  Revision 1.19  1999/10/01 07:55:54  peter
     * fixed memsize which forgot the sizemask
 
   Revision 1.18  1999/09/22 21:59:02  peter
