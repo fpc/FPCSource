@@ -35,11 +35,27 @@ const
 
      CompilerStatusUpdateDelay = 0.8; { in secs }
 
-     ININame              = 'fp.ini';
-     DirInfoName          = 'fp.dir';
-     SwitchesName         = 'fp.cfg';
-     DesktopName          = 'fp.dsk';
-     BrowserName          = 'fp.brw';
+{$undef USE_SPECIAL_BASENAME}
+{$ifdef m68k}
+  {$ifdef cpui386}
+    {$define USE_SPECIAL_BASENAME}
+     FPBaseName = 'fpm68k';
+  {$endif cpui386}
+{$endif m68k}
+{$ifdef i386}
+  {$ifdef cpu68k}
+    {$define USE_SPECIAL_BASENAME}
+     FPBaseName = 'fpi386';
+  {$endif cpu68k}
+{$endif i386}
+{$ifndef USE_SPECIAL_BASENAME}
+     FPBaseName = 'fp';
+{$endif not USE_SPECIAL_BASENAME}
+     ININame              = FPBaseName+'.ini';
+     DirInfoName          = FPBaseName+'.dir';
+     SwitchesName         = FPBaseName+'.cfg';
+     DesktopName          = FPBaseName+'.dsk';
+     BrowserName          = FPBaseName+'.brw';
      BackgroundName       = 'fp.ans';
      ReadmeName           = 'readme.ide';
 
@@ -216,6 +232,8 @@ const
      cmCodeTemplateOptions=2018;
      cmKeys              = 2019;
      cmAskSaveAll        = 2020;
+     cmRemoteDialog      = 2021;
+     cmTransferRemote    = 2022;
 
      cmHelpContents      = 2100;
      cmHelpIndex         = 2101;
@@ -287,6 +305,8 @@ const
      hcMemorySizes       = hcShift+cmMemorySizes;
      hcLinker            = hcShift+cmLinker;
      hcDebugger          = hcShift+cmDebugger;
+     hcRemoteDialog      = hcShift+cmRemoteDialog;
+     hcTransferRemote    = hcShift+cmTransferRemote;
      hcDirectories       = hcShift+cmDirectories;
      hcTools             = hcShift+cmTools;
      hcPreferences       = hcShift+cmPreferences;
@@ -447,7 +467,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.10  2002-09-11 13:12:42  pierre
+  Revision 1.11  2002-11-28 12:52:14  pierre
+   * cross cpu IDE use different config/ini and cfg files
+
+  Revision 1.10  2002/09/11 13:12:42  pierre
    * fix CodeComplete loading and use a unit for standard units code complete
 
   Revision 1.9  2002/09/07 15:40:42  peter
