@@ -245,7 +245,7 @@ implementation
                         hregister:=rg.getaddressregister(exprasmlist);
                       { we need to load only an address }
                       location.size:=OS_ADDR;
-                      cg.a_load_loc_reg(exprasmlist,location,hregister);
+                      cg.a_load_loc_reg(exprasmlist,location.size,location,hregister);
                       if tvarsym(symtableentry).varspez=vs_const then
                        location_reset(location,LOC_CREFERENCE,newsize)
                       else
@@ -922,7 +922,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-05-26 19:38:28  peter
+  Revision 1.63  2003-05-30 23:54:08  jonas
+    * forgot to commit, a_load_loc_reg change
+
+  Revision 1.62  2003/05/26 19:38:28  peter
     * generic fpc_shorstr_concat
     + fpc_shortstr_append_shortstr optimization
 
