@@ -40,8 +40,10 @@ uses
   cutils,globtype,systems,globals;
 
 procedure toptionpowerpc.interpret_proc_specific_options(const opt:string);
+var
+  more: string;
+  j: longint;
 begin
-{$ifdef dummy}
   More:=Upper(copy(opt,3,length(opt)-2));
   case opt[2] of
    'O' : Begin
@@ -71,6 +73,7 @@ begin
                  '1' : initglobalswitches:=initglobalswitches-[cs_fastoptimize,cs_slowoptimize]+[cs_optimize];
                  '2' : initglobalswitches:=initglobalswitches-[cs_slowoptimize]+[cs_optimize,cs_fastoptimize];
                  '3' : initglobalswitches:=initglobalswitches+[cs_optimize,cs_fastoptimize,cs_slowoptimize];
+{$ifdef dummy}
                  'p' :
                    Begin
                      If j < Length(Opt) Then
@@ -85,25 +88,13 @@ begin
                        End
                      Else IllegalPara(opt)
                    End;
-{$ifdef USECMOV}
-                 's' :
-                   Begin
-                     If j < Length(Opt) Then
-                       Begin
-                         Case opt[j+1] Of
-                           '3': initspecificoptprocessor:=ClassP6
-                           Else IllegalPara(Opt)
-                         End;
-                         Inc(j);
-                       End
-                     Else IllegalPara(opt)
-                   End
-{$endif USECMOV}
+{$endif dummy}
                  else IllegalPara(opt);
                End;
                Inc(j)
              end;
          end;
+{$ifdef dummy}
    'R' : begin
            if More='GAS' then
             initasmmode:=asmmode_ppc_gas
@@ -116,10 +107,10 @@ begin
            else
             IllegalPara(opt);
          end;
+{$endif dummy}
   else
    IllegalPara(opt);
   end;
-{$endif dummy}
 end;
 
 
@@ -128,7 +119,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2002-08-10 14:52:52  carl
+  Revision 1.7  2002-09-04 16:03:53  jonas
+    + parse basic optimization parameters
+
+  Revision 1.6  2002/08/10 14:52:52  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's
