@@ -48,7 +48,7 @@ End;
 
 Function  FpGetcwd (path:AnsiString; siz:TSize):AnsiString;
 Begin
-  FpGetcwd:=FpGetcwd(pchar(path),siz);
+  FpGetcwd:=ansistring(pchar(FpGetcwd(pchar(path),siz)));
 End;
 
 Function  FpExecve (path : AnsiString; argv : ppchar; envp: ppchar): cInt;
@@ -361,7 +361,10 @@ end;
 
 {
  $Log$
- Revision 1.13  2004-11-14 12:21:08  marco
+ Revision 1.14  2004-11-19 13:15:14  marco
+  * external rework. Mostly done.
+
+ Revision 1.13  2004/11/14 12:21:08  marco
   * moved some calls from unix to baseunix. Darwin untested.
 
  Revision 1.12  2004/11/02 14:49:48  florian

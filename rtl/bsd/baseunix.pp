@@ -43,8 +43,13 @@ const clib = 'c';
 {$i bunxh.inc}		{ Functions}
 {$ENDIF}
 
+{$ifndef ver1_0}
+function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+{$else}
 function fpgeterrno:longint; 
 procedure fpseterrno(err:longint); 
+{$endif}
 
 {$ifndef ver1_0}
 property errno : cint read fpgeterrno write fpseterrno;
@@ -57,8 +62,8 @@ implementation
 Uses Sysctl;
 
 {$ifndef ver1_0}
-function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
-procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+//function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+//procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
 {$else}
 // workaround for 1.0.10 bugs.
 
@@ -84,7 +89,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2004-11-14 12:21:08  marco
+  Revision 1.12  2004-11-19 13:15:14  marco
+   * external rework. Mostly done.
+
+  Revision 1.11  2004/11/14 12:21:08  marco
    * moved some calls from unix to baseunix. Darwin untested.
 
   Revision 1.10  2004/05/31 18:03:51  jonas

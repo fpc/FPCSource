@@ -1185,7 +1185,7 @@ stringhandling overhead at the same time.
 
 }
 Var
-  NewDir : ansistring;
+  mydir,NewDir : ansistring;
   p1     : cint;
   Info   : Stat;
   i,j      : cint; 
@@ -1212,7 +1212,10 @@ Begin
      i:=length(dirlist);
      j:=1;
      Repeat
-       NewDir:=ansistring(p)+'/'+Path;
+       mydir:=ansistring(p);
+       if (length(mydir)>0) and (mydir[length(mydir)]<>'/') then
+          mydir:=mydir+'/';
+       NewDir:=mydir+Path;
        if (FpStat(NewDir,Info)>=0) and
           (not fpS_ISDIR(Info.st_Mode)) then
         Begin
@@ -1251,7 +1254,10 @@ End.
 
 {
   $Log$
-  Revision 1.76  2004-11-03 15:00:43  marco
+  Revision 1.77  2004-11-19 13:15:15  marco
+   * external rework. Mostly done.
+
+  Revision 1.76  2004/11/03 15:00:43  marco
    * Pathstr eliminated
 
   Revision 1.75  2004/10/30 20:55:54  marco

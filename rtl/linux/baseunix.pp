@@ -44,9 +44,13 @@ const clib = 'c';
 
 {$i bunxovlh.inc}
 
+{$ifndef VER1_0}
+function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
+procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
+{$else}
 function fpgeterrno:longint;
 procedure fpseterrno(err:longint);
-
+{$endif}
 {$ifdef HASGLOBALPROPERTY}
 property errno : cint read fpgeterrno write fpseterrno;
 {$endif}
@@ -72,15 +76,16 @@ begin
    intfpseterrno(err);
 end;
 {$else}
-function fpgeterrno:longint; external name 'FPC_SYS_GETERRNO';
-procedure fpseterrno(err:longint); external name 'FPC_SYS_SETERRNO';
 
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.10  2004-11-14 12:21:08  marco
+  Revision 1.11  2004-11-19 13:15:14  marco
+   * external rework. Mostly done.
+
+  Revision 1.10  2004/11/14 12:21:08  marco
    * moved some calls from unix to baseunix. Darwin untested.
 
   Revision 1.9  2004/03/04 22:15:16  marco

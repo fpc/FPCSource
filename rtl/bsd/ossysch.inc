@@ -20,25 +20,28 @@
 //Function Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
 //function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 
-Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; external name 'FPC_SYSC_MMAP';
-Function Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
+// Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer; external name 'FPC_SYSC_MMAP';
+// Function Fpmunmap(start:pointer;len:size_t):cint;  external name 'FPC_SYSC_MUNMAP';
 
 
 {$ifndef FPC_USE_LIBC}
-Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'FPC_SYSC_IOCTL';
-Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
-Function FpReadLink(name,linkname:pchar;maxlen:size_t):cint;  external name  'FPC_SYSC_READLINK';
+//Function FpIOCtl(Handle:cint;Ndx: culong;Data: Pointer):cint;  external name  'FPC_SYSC_IOCTL';
+//Function FpGetPid:LongInt;   external name  'FPC_SYSC_GETPID';
+//Function FpReadLink(name,linkname:pchar;maxlen:size_t):cint;  external name  'FPC_SYSC_READLINK';
 
 { Needed in both POSIX (for implementation of sleep()) as POSIX realtime extensions or  Unix/freebsd}
-Function FpNanoSleep (req : ptimespec;rem : ptimespec) : cint; external name 'FPC_SYSC_NANOSLEEP';
+//Function FpNanoSleep (req : ptimespec;rem : ptimespec) : cint; external name 'FPC_SYSC_NANOSLEEP';
 
 { can be used for getdir?}
-Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD';
+//Function Fpgetcwd (path:pchar; siz:size_t):pchar; external name 'FPC_SYSC_GETCWD';
 {$endif}
 
 {
   $Log$
-  Revision 1.8  2004-11-14 12:21:08  marco
+  Revision 1.9  2004-11-19 13:15:14  marco
+   * external rework. Mostly done.
+
+  Revision 1.8  2004/11/14 12:21:08  marco
    * moved some calls from unix to baseunix. Darwin untested.
 
   Revision 1.7  2003/12/30 12:26:21  marco

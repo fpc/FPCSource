@@ -15,17 +15,20 @@
  ****************************************************************************
 }
 
-Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer;  external name 'FPC_SYSC_MMAP';
-Function Fpmunmap(start:pointer;len:size_t):cint; external name 'FPC_SYSC_MUNMAP';
+//Function Fpmmap(start:pointer;len:size_t;prot:cint;flags:cint;fd:cint;offst:off_t):pointer;  external name 'FPC_SYSC_MMAP';
+//Function Fpmunmap(start:pointer;len:size_t):cint; external name 'FPC_SYSC_MUNMAP';
 //function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
-Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint;   external name 'FPC_SYSC_READLINK';
-Function FpIOCtl(handle:cint;ndx:culong;Data: Pointer):cint;  external name 'FPC_SYSC_IOCTL';
-Function FpGetPid:pid_t;   external name 'FPC_SYSC_GETPID';
-Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; external name 'FPC_SYSC_NANOSLEEP';
+//Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint;   external name 'FPC_SYSC_READLINK';
+//Function FpIOCtl(handle:cint;ndx:culong;Data: Pointer):cint;  external name 'FPC_SYSC_IOCTL';
+//Function FpGetPid:pid_t;   external name 'FPC_SYSC_GETPID';
+//Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; external name 'FPC_SYSC_NANOSLEEP';
 
 {
  $Log$
- Revision 1.7  2004-11-14 12:21:08  marco
+ Revision 1.8  2004-11-19 13:15:14  marco
+  * external rework. Mostly done.
+
+ Revision 1.7  2004/11/14 12:21:08  marco
   * moved some calls from unix to baseunix. Darwin untested.
 
  Revision 1.6  2003/11/19 11:46:55  marco

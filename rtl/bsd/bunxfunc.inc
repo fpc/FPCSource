@@ -29,7 +29,7 @@
 
 {$ifndef FPC_USE_LIBC}
 {  $ ifndef ver1_0}
-Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
+// Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
 {   $ endif}
 {$USER BLA!}
 
@@ -155,7 +155,7 @@ begin
         time_to_sleep.tv_nsec := 0;
         if (FPnanosleep(@time_to_sleep, @time_remaining) <> -1) Then
          Exit(0);
-        if (geterrno <> ESysEINTR) Then	// EAGAIN?
+        if (fpgeterrno <> ESysEINTR) Then	// EAGAIN?
          Exit (seconds);                     { best guess }
         FPsleep:= time_remaining.tv_sec;
         if   (time_remaining.tv_nsec <> 0) Then
@@ -177,12 +177,12 @@ Begin
         mib[0] := val1;
         mib[1] := val2;
         len    := pzsize;
-        oerrno := geterrno;
+        oerrno := fpgeterrno;
 
         if (FPsysctl(@mib, 2, pz, @len, NIL, 0) = -1) Then
            Begin
-                if (geterrno = ESysENOMEM) Then
-                        seterrno(oerrno)
+                if (fpgeterrno = ESysENOMEM) Then
+                        fpseterrno(oerrno)
                 else
                         rval := -1;
            End;
@@ -558,7 +558,10 @@ end;
 
 {
  $Log$
- Revision 1.9  2004-11-14 12:21:08  marco
+ Revision 1.10  2004-11-19 13:15:14  marco
+  * external rework. Mostly done.
+
+ Revision 1.9  2004/11/14 12:21:08  marco
   * moved some calls from unix to baseunix. Darwin untested.
 
  Revision 1.8  2004/01/22 13:46:14  marco

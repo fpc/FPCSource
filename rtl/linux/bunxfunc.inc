@@ -48,7 +48,7 @@ begin
 end;
 
 {overload}
-Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROGMASK';
+//Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROGMASK';
 
 Function fpSigProcMask(how:cint;nset : pSigSet; oset : pSigSet):cint; [public, alias : 'FPC_SYSC_SIGPROGMASK'];
 {
@@ -182,17 +182,17 @@ begin
             fpsigaddset  (nset,SIGCHLD);
             if fpsigaction(SIGCHLD,NIL,@oact)<0 Then
               begin
-                oerrno:=geterrno;
+                oerrno:=fpgeterrno;
                 fpsigprocmask(SIG_SETMASK,@oset,NIL);
-                seterrno(oerrno);
+                fpseterrno(oerrno);
                 exit(cuint(-1));
               End;
             if oact.sa_handler=signalhandler(SIG_IGN) Then
              Begin
                fpsleep:=fpnanosleep(@time_to_sleep, @time_remaining);
-               oerrno:=geterrno;
+               oerrno:=fpgeterrno;
                fpsigprocmask(SIG_SETMASK,@oset,NIL);
-               seterrno(oerrno);
+               fpseterrno(oerrno);
              End
             Else
              Begin
@@ -411,10 +411,10 @@ begin
   fptimes:=Do_syscall(syscall_nr_times,TSysParam(@buffer));
 end;
 
-function fpgetcwd(path : pchar; siz:size_t):pchar;
+function pfpgetcwd(path : pchar; siz:tsize):pchar;  [public, alias : 'FPC_SYSC_GETCWD'];
 
 begin
-  fpgetcwd:=pchar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
+  pfpgetcwd:=pchar(Do_Syscall(Syscall_nr_getcwd,TSysParam(Path),TSysParam(siz)));
 end;
 
 Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint;
@@ -565,7 +565,10 @@ end;
 
 {
  $Log$
- Revision 1.13  2004-11-14 12:21:08  marco
+ Revision 1.14  2004-11-19 13:15:14  marco
+  * external rework. Mostly done.
+
+ Revision 1.13  2004/11/14 12:21:08  marco
   * moved some calls from unix to baseunix. Darwin untested.
 
  Revision 1.12  2004/10/24 13:55:52  peter

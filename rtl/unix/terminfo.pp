@@ -619,11 +619,11 @@ const
 { structure, not just to the common parts. However, since this structure }
 { differs for different versions of ncurses,it's impossible to give a    }
 { general declaration here which is correct (JM)                         }
-function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1;cdecl;
+function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1;cdecl; external curseslib name 'set_curterm';
 function del_curterm(term: TerminalCommon_ptr1): Longint;
 
 { sets whether to use environment variables for LINES and COLUMNS }
-procedure use_env(B: Longint);cdecl;
+procedure use_env(B: Longint); cdecl; external curseslib name 'use_env';
 
 function putp(Ndx: Longint): Longint;
 
@@ -631,7 +631,7 @@ function putp(Ndx: Longint): Longint;
 function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;
 
 { reinitialize lib }
-function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;cdecl;
+function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib name 'restartterm';
 
 {function tgetent(P1, P2: PChar): Longint;
 function tgetflag(P: PChar): Longint;
@@ -671,11 +671,9 @@ begin
   tputs := F(P);
 end;
 
-function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1; cdecl; external curseslib;
+//function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1; cdecl; external curseslib;
 
-procedure use_env(B: Longint); cdecl; external curseslib;
-
-function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib;
+// function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib;
 
 function setuptermC(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external curseslib name 'setupterm';
 
@@ -747,7 +745,10 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.6  2004-03-05 22:18:15  jonas
+  Revision 1.7  2004-11-19 13:15:15  marco
+   * external rework. Mostly done.
+
+  Revision 1.6  2004/03/05 22:18:15  jonas
     * fixed declaration for cur_term for darwin now that the importing of
       variables from shared libraries works
 

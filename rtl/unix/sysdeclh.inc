@@ -14,7 +14,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  ***********************************************************************}
-
+{
 {$ifdef BSD}
 function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; external name 'FPC_SYSC_SIGPROCMASK';
 {$endif}
@@ -45,10 +45,13 @@ function fpDup		(fildes:cint):cint;  external name 'FPC_SYSC_DUP';
 function fpDup2		(fildes:cint;fildes2:cint):cint; external name 'FPC_SYSC_DUP2';
 function geterrno     : cint; external name  'FPC_SYS_GETERRNO';
 procedure seterrno 	(i:cint); external name  'FPC_SYS_SETERRNO';
-
+}
 {
   $Log$
-  Revision 1.3  2003-10-26 17:01:35  marco
+  Revision 1.4  2004-11-19 13:15:14  marco
+   * external rework. Mostly done.
+
+  Revision 1.3  2003/10/26 17:01:35  marco
    * moved sigprocmask to system for BSD. (needed for reenablesig)
 
   Revision 1.2  2003/09/20 12:38:29  marco
