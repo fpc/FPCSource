@@ -511,8 +511,11 @@ implementation
          ispushed : boolean;
          hregister : tregister;
          otlabel,oflabel,filenamestring : plabel;
-
+         oldpushedparasize : longint;
       begin
+      { save & reset pushedparasize }
+         oldpushedparasize:=pushedparasize;
+         pushedparasize:=0;
          case p^.inlinenumber of
             in_assert_x:
               begin
@@ -924,17 +927,25 @@ implementation
               end;
             else internalerror(9);
          end;
+      { reset pushedparasize }
+         pushedparasize:=oldpushedparasize;
       end;
 
 end.
 {
   $Log$
-  Revision 1.5  1998-09-17 09:42:15  peter
+  Revision 1.6  1998-09-20 12:26:37  peter
+    * merged fixes
+
+  Revision 1.5  1998/09/17 09:42:15  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 
   Revision 1.4  1998/09/14 10:43:49  peter
     * all internal RTL functions start with FPC_
+
+  Revision 1.3.2.1  1998/09/20 12:20:07  peter
+    * Fixed stack not on 4 byte boundary when doing a call
 
   Revision 1.3  1998/09/05 23:03:57  florian
     * some fixes to get -Or work:

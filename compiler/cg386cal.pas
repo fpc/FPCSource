@@ -26,6 +26,10 @@ interface
     uses
       symtable,tree;
 
+    { save the size of pushed parameter }
+    var
+       pushedparasize : longint;
+
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
                 push_from_left_to_right,inlined : boolean;para_offset : longint);
     procedure secondcalln(var p : ptree);
@@ -44,9 +48,6 @@ implementation
                              SecondCallParaN
 *****************************************************************************}
 
-    { save the size of pushed parameter }
-    var
-       pushedparasize : longint;
 
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
                 push_from_left_to_right,inlined : boolean;para_offset : longint);
@@ -576,9 +577,9 @@ implementation
          inlinecode : ptree;
          para_offset : longint;
          { instruction for alignement correction }
-         corr : pai386;
+{         corr : pai386;}
          { we must pop this size also after !! }
-         must_pop : boolean;
+{         must_pop : boolean; }
          pop_size : longint;
 
       label
@@ -655,8 +656,25 @@ implementation
          { generate the code for the parameter and push them }
          oldpushedparasize:=pushedparasize;
          pushedparasize:=0;
-         corr:=new(pai386,op_const_reg(A_SUB,S_L,0,R_ESP));
-         exprasmlist^.concat(corr);
+         pop_size:=0;
+         if (not inlined) then
+          begin
+          { Old pushedsize aligned on 4 ? }
+            i:=oldpushedparasize and 3;
+            if i>0 then
+             inc(pop_size,4-i);
+          { This parasize aligned on 4 ? }
+            i:=p^.procdefinition^.para_size and 3;
+            if i>0 then
+             inc(pop_size,4-i);
+          { insert the opcode and update pushedparasize }
+            if pop_size>0 then
+             begin
+               inc(pushedparasize,pop_size);
+               exprasmlist^.concat(new(pai386,op_const_reg(A_SUB,S_L,pop_size,R_ESP)));
+             end;
+          end;
+
          if (p^.resulttype<>pdef(voiddef)) and
             ret_in_param(p^.resulttype) then
            begin
@@ -683,7 +701,6 @@ implementation
            end;
          if assigned(p^.left) then
            begin
-              pushedparasize:=0;
               { be found elsewhere }
               if inlined then
                 para_offset:=p^.procdefinition^.parast^.call_offset+
@@ -984,25 +1001,6 @@ implementation
                      internalerror(25000);
                 end;
 
-              { exported methods should be never called direct.
-                Why? Bp7 Allows it (PFV)
-
-              if (p^.procdefinition^.options and poexports)<>0 then
-                CGMessage(cg_e_dont_call_exported_direct);  }
-
-              if (not inlined) and ((pushedparasize mod 4)<>0) then
-                begin
-                   corr^.op1:=pointer(4-(pushedparasize mod 4));
-                   must_pop:=true;
-                   pop_size:=4-(pushedparasize mod 4);
-                end
-              else
-                begin
-                   exprasmlist^.remove(corr);
-                   must_pop:=false;
-                   pop_size:=0;
-                end;
-
               if ((p^.procdefinition^.options and povirtualmethod)<>0) and
                  not(no_virtual_call) then
                 begin
@@ -1075,18 +1073,6 @@ implementation
          else
            { now procedure variable case }
            begin
-              if (pushedparasize mod 4)<>0 then
-                begin
-                   corr^.op1:=pointer(4-(pushedparasize mod 4));
-                   must_pop:=true;
-                   pop_size:=4-(pushedparasize mod 4);
-                end
-              else
-                begin
-                   exprasmlist^.remove(corr);
-                   must_pop:=false;
-                   pop_size:=0;
-                end;
               secondpass(p^.right);
               { method pointer ? }
               if (p^.procdefinition^.options and pomethodpointer)<>0 then
@@ -1108,19 +1094,18 @@ implementation
                     exprasmlist^.concat(new(pai386,op_ref(A_CALL,S_NO,newreference(p^.right^.location.reference))));
                     del_reference(p^.right^.location.reference);
               end;
-
-
              end;
+
            { this was only for normal functions
              displaced here so we also get
              it to work for procvars PM }
            if (not inlined) and ((p^.procdefinition^.options and poclearstack)<>0) then
              begin
                 { consider the alignment with the rest (PM) }
-                pushedparasize:=pushedparasize+pop_size;
-                must_pop:=false;
+                inc(pushedparasize,pop_size);
+                pop_size:=0;
+                { better than an add on all processors }
                 if pushedparasize=4 then
-                  { better than an add on all processors }
                   exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)))
                 { the pentium has two pipes and pop reg is pairable }
                 { but the registers must be different!              }
@@ -1269,7 +1254,7 @@ implementation
               exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(iolabel),0))));
               emitcall('FPC_IOCHECK',true);
            end;
-         if must_pop then
+         if pop_size>0 then
            exprasmlist^.concat(new(pai386,op_const_reg(A_ADD,S_L,pop_size,R_ESP)));
          { restore registers }
          popusedregisters(pushed);
@@ -1405,12 +1390,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1998-09-17 09:42:10  peter
+  Revision 1.25  1998-09-20 12:26:35  peter
+    * merged fixes
+
+  Revision 1.24  1998/09/17 09:42:10  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 
   Revision 1.23  1998/09/14 10:43:45  peter
     * all internal RTL functions start with FPC_
+
+  Revision 1.22.2.1  1998/09/20 12:20:06  peter
+    * Fixed stack not on 4 byte boundary when doing a call
 
   Revision 1.22  1998/09/04 08:41:37  peter
     * updated some error CGMessages

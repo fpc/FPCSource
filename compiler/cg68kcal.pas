@@ -26,6 +26,10 @@ interface
     uses
       symtable,tree;
 
+    { save the size of pushed parameter }
+    var
+       pushedparasize : longint;
+
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
                 push_from_left_to_right : boolean);
     procedure secondcalln(var p : ptree);
@@ -44,9 +48,6 @@ implementation
                              SecondCallParaN
 *****************************************************************************}
 
-    { save the size of pushed parameter }
-    var
-       pushedparasize : longint;
 
     procedure secondcallparan(var p : ptree;defcoll : pdefcoll;
                 push_from_left_to_right : boolean);
@@ -1044,12 +1045,18 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-17 09:42:22  peter
+  Revision 1.6  1998-09-20 12:26:38  peter
+    * merged fixes
+
+  Revision 1.5  1998/09/17 09:42:22  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 
   Revision 1.4  1998/09/14 10:43:55  peter
     * all internal RTL functions start with FPC_
+
+  Revision 1.3.2.1  1998/09/20 12:20:09  peter
+    * Fixed stack not on 4 byte boundary when doing a call
 
   Revision 1.3  1998/09/04 08:41:43  peter
     * updated some error CGMessages

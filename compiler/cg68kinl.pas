@@ -504,6 +504,9 @@ implementation
          otlabel,oflabel,filenamestring : plabel;
 
       begin
+      { save & reset pushedparasize }
+         oldpushedparasize:=pushedparasize;
+         pushedparasize:=0;
          case p^.inlinenumber of
             in_assert_x:
               begin
@@ -898,17 +901,24 @@ implementation
          else
            internalerror(9);
          end;
+         pushedparasize:=oldpushedparasize;
       end;
 
 end.
 {
   $Log$
-  Revision 1.4  1998-09-17 09:42:26  peter
+  Revision 1.5  1998-09-20 12:26:39  peter
+    * merged fixes
+
+  Revision 1.4  1998/09/17 09:42:26  peter
     + pass_2 for cg386
     * Message() -> CGMessage() for pass_1/pass_2
 
   Revision 1.3  1998/09/14 10:43:59  peter
     * all internal RTL functions start with FPC_
+
+  Revision 1.2.2.1  1998/09/20 12:20:10  peter
+    * Fixed stack not on 4 byte boundary when doing a call
 
   Revision 1.2  1998/09/04 08:41:48  peter
     * updated some error CGMessages
