@@ -140,6 +140,10 @@ implementation
 
 {$I SYSTEM.INC}
 
+var
+    heap_base: pointer; external name '__heap_base';
+    heap_brk: pointer; external name '__heap_brk';
+
 procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock;
                             PAPIB: PPProcessInfoBlock); cdecl;
                             external 'DOSCALLS' index 312;
@@ -163,42 +167,32 @@ procedure syscall; external name '___SYSCALL';
 ***************************************************************************}
 
 {$S-}
-procedure st1(stack_size:longint);[public,alias: 'FPC_STACKCHECK'];
+procedure st1(stack_size:longint); assembler; [public,alias: 'FPC_STACKCHECK'];
 
-begin
-    { called when trying to get local stack }
-    { if the compiler directive $S is set   }
-    {$ASMMODE DIRECT}
-    asm
-        movl stack_size,%ebx
-        movl %esp,%eax
-        subl %ebx,%eax
+asm
+    movl stack_size,%ebx
+    movl %esp,%eax
+    subl %ebx,%eax
 {$ifdef SYSTEMDEBUG}
-        movl U_SYSOS2_LOWESTSTACK,%ebx
-        cmpl %eax,%ebx
-        jb   Lis_not_lowest
-        movl %eax,U_SYSOS2_LOWESTSTACK
-    Lis_not_lowest:
+    movl loweststack,%ebx
+    cmpl %eax,%ebx
+    jb   .Lis_not_lowest
+    movl %eax,loweststack
+.Lis_not_lowest:
 {$endif SYSTEMDEBUG}
-        cmpb $2,U_SYSOS2_OS_MODE
-        jne Lrunning_in_dos
-        movl U_SYSOS2_STACKBOTTOM,%ebx
-        jmp Lrunning_in_os2
-    Lrunning_in_dos:
-        movl __heap_brk,%ebx
-    Lrunning_in_os2:
-        cmpl %eax,%ebx
-        jae  Lshort_on_stack
-        leave
-        ret  $4
-    Lshort_on_stack:
-    end ['EAX','EBX'];
-    {$ASMMODE ATT}
-    { this needs a local variable }
-    { so the function called itself !! }
-    { Writeln('low in stack ');}
-    HandleError(202);
-end;
+    cmpb osOS2,os_mode
+    jne .Lrunning_in_dos
+    movl stackbottom,%ebx
+    jmp .Lrunning_in_os2
+.Lrunning_in_dos:
+    movl heap_brk,%ebx
+.Lrunning_in_os2:
+    cmpl %eax,%ebx
+    jae  .Lshort_on_stack
+.Lshort_on_stack:
+    pushl $202
+    call HandleError
+end ['EAX','EBX'];
 {no stack check in system }
 
 {****************************************************************************
@@ -213,15 +207,14 @@ asm
     mov  ah, 04ch
     mov  al, byte ptr exitcode
     call syscall
-end;
+end ['EAX'];
 
-{$asmmode att}
+{$ASMMODE ATT}
 
-{$asmmode direct}
 function paramcount:longint;assembler;
 
 asm
-    movl _argc,%eax
+    movl argc,%eax
     decl %eax
 end ['EAX'];
 
@@ -230,7 +223,7 @@ function paramstr(l:longint):string;
     function args:pointer;assembler;
 
     asm
-        movl _argv,%eax
+        movl argv,%eax
     end ['EAX'];
 
 var p:^Pchar;
@@ -246,7 +239,6 @@ begin
                 mov eax, 7F33h
                 call syscall
             end;
-{$ASMMODE ATT}
             ParamStr := StrPas (PChar (P));
             FreeMem (P, 260);
         end
@@ -259,8 +251,7 @@ begin
         else paramstr:='';
 end;
 
-{$asmmode att}
-
+{
 procedure randomize;
 
 var hl:longint;
@@ -274,6 +265,17 @@ begin
     end;
     randseed:=hl;
 end;
+}
+
+procedure randomize; assembler;
+asm
+    mov ah, 2Ch
+    call syscall
+    mov word ptr [randseed], cx
+    mov word ptr [randseed + 2], dx
+end;
+
+{$ASMMODE ATT}
 
 {****************************************************************************
 
@@ -292,18 +294,16 @@ asm
     call syscall
 end;
 
-{$ASMMODE direct}
 function getheapstart:pointer;assembler;
 
 asm
-    movl __heap_base,%eax
+    movl heap_base,%eax
 end ['EAX'];
 
 function getheapsize:longint;assembler;
 asm
-    movl    HEAPSIZE,%eax
+    movl HeapSize,%eax
 end ['EAX'];
-{$ASMMODE ATT}
 
 {$i heap.inc}
 
@@ -443,12 +443,12 @@ procedure do_truncate(handle,pos:longint); assembler;
 asm
 (* DOS function 40h isn't safe for this according to EMX documentation
         movl $0x4200,%eax
-        movl 8(%ebp),%ebx
-        movl 12(%ebp),%edx
+        movl handle,%ebx
+        movl pos,%edx
         call syscall
         jc .LTruncate1
-        movl 8(%ebp),%ebx
-        movl 12(%ebp),%edx
+        movl handle,%ebx
+        movl pos,%edx
         movl %ebp,%edx
         xorl %ecx,%ecx
         movb $0x40,%ah
@@ -870,22 +870,20 @@ begin
         jz .LnoRSX
         movl $2,os_mode
     .LnoRSX:
-    end;
+{    end;}
 
-    {$ASMMODE DIRECT}
     {Enable the brk area by initializing it with the initial heap size.}
-    asm
+{    asm}
         movw $0x7f01,%ax
-        movl HEAPSIZE,%edx
-        addl __heap_base,%edx
-        call ___SYSCALL
+        movl HeapSize,%edx
+        addl heap_base,%edx
+        call syscall
         cmpl $-1,%eax
-        jnz Lheapok
+        jnz .Lheapok
         pushl $204
-        {call RUNERROR$$WORD}
-    Lheapok:
+        call HandleError
+    .Lheapok:
     end;
-    {$ASMMODE ATT}
 
     {Now request, if we are running under DOS,
      read-access to the first meg. of memory.}
@@ -950,7 +948,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2001-02-01 21:30:01  hajny
+  Revision 1.7  2001-02-04 01:57:52  hajny
+    * direct asm removing
+
+  Revision 1.6  2001/02/01 21:30:01  hajny
     * MT support completion
 
   Revision 1.5  2001/01/23 20:38:59  hajny

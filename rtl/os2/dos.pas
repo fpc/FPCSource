@@ -81,7 +81,7 @@ type    {Some string types:}
 {$i textrec.inc}
 
         {Data structure for the registers needed by msdos and intr:}
-       registers=record
+       registers=packed record
             case i:integer of
                 0:(ax,f1,bx,f2,cx,f3,dx,f4,bp,f5,si,f51,di,f6,ds,f7,es,
                    f8,flags,fs,gs:word);
@@ -181,6 +181,7 @@ implementation
 uses    DosCalls;
 
 var     LastSR: SearchRec;
+        envc: longint; external name '_envc';
 
 type    TBA = array [1..SizeOf (SearchRec)] of byte;
         PBA = ^TBA;
@@ -314,68 +315,69 @@ begin
     intr($21,regs);
 end;
 
-{$ASMMODE DIRECT}
-
-procedure intr(intno:byte;var regs:registers);
+procedure intr(intno:byte;var regs:registers); assembler;
 
 {Not recommended for EMX. Only works in DOS mode, not in OS/2 mode.}
 
-begin
-    asm
-        .data
-    int86:
-        .byte        0xcd
-    int86_vec:
-        .byte        0x03
-        jmp        int86_retjmp
+asm
+    jmp .Lstart
+{    .data}
+.Lint86:
+    .byte   0xcd
+.Lint86_vec:
+    .byte   0x03
+    jmp     .Lint86_retjmp
 
-        .text
-        movl        8(%ebp),%eax
-        movb        %al,int86_vec
+{    .text}
+.Lstart:
+    movl    intno,%eax
+    movb    %al,.Lint86_vec
 
-        movl        10(%ebp),%eax
-        {Do not use first int}
-        incl        %eax
-        incl        %eax
+{
+    movl    10(%ebp),%eax
+    incl    %eax
+    incl    %eax
+}
+    movl    regs,%eax
+    {Do not use first int}
+    movl    4(%eax),%ebx
+    movl    8(%eax),%ecx
+    movl    12(%eax),%edx
+    movl    16(%eax),%ebp
+    movl    20(%eax),%esi
+    movl    24(%eax),%edi
+    movl    (%eax),%eax
 
-        movl        4(%eax),%ebx
-        movl        8(%eax),%ecx
-        movl        12(%eax),%edx
-        movl        16(%eax),%ebp
-        movl        20(%eax),%esi
-        movl        24(%eax),%edi
-        movl        (%eax),%eax
+    jmp     .Lint86
+.Lint86_retjmp:
+    pushf
+    pushl   %ebp
+    pushl   %eax
+    movl    %esp,%ebp
+    {Calc EBP new}
+    addl    $12,%ebp
+{
+    movl    10(%ebp),%eax
+    incl    %eax
+    incl    %eax
+}
+    {Do not use first int}
+    movl    regs,%eax
 
-        jmp        int86
-    int86_retjmp:
-        pushf
-        pushl   %ebp
-        pushl       %eax
-        movl        %esp,%ebp
-        {Calc EBP new}
-        addl        $12,%ebp
-        movl        10(%ebp),%eax
-        {Do not use first int}
-        incl        %eax
-        incl        %eax
-
-        popl        (%eax)
-        movl        %ebx,4(%eax)
-        movl        %ecx,8(%eax)
-        movl        %edx,12(%eax)
-        {Restore EBP}
-        popl    %edx
-        movl    %edx,16(%eax)
-        movl        %esi,20(%eax)
-        movl        %edi,24(%eax)
-        {Ignore ES and DS}
-        popl        %ebx            {Flags.}
-        movl        %ebx,32(%eax)
-        {FS and GS too}
-    end;
+    popl    (%eax)
+    movl    %ebx,4(%eax)
+    movl    %ecx,8(%eax)
+    movl    %edx,12(%eax)
+    {Restore EBP}
+    popl    %edx
+    movl    %edx,16(%eax)
+    movl    %esi,20(%eax)
+    movl    %edi,24(%eax)
+    {Ignore ES and DS}
+    popl    %ebx            {Flags.}
+    movl    %ebx,32(%eax)
+    {FS and GS too}
 end;
-
-{$ASMMODE ATT}
 
 procedure exec(const path:pathstr;const comline:comstr);
 
@@ -899,12 +901,10 @@ end;
 
 type    PPchar=^Pchar;
 
-{$ASMMODE DIRECT}
-
 function envs:PPchar;assembler;
 
 asm
-    movl _environ,%eax
+    movl envp,%eax
 end ['EAX'];
 
 function envcount:longint;assembler;
@@ -912,10 +912,8 @@ function envcount:longint;assembler;
 var hp : ppchar;
 
 asm
-    movl _envc,%eax
+    movl envc,%eax
 end ['EAX'];
-
-{$ASMMODE ATT}
 
 function envstr(index : longint) : string;
 
@@ -1068,7 +1066,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  2000-11-06 20:35:05  hajny
+  Revision 1.7  2001-02-04 01:57:52  hajny
+    * direct asm removing
+
+  Revision 1.6  2000/11/06 20:35:05  hajny
     * common FExpand introduced
 
   Revision 1.5  2000/11/05 22:21:47  hajny
