@@ -140,6 +140,7 @@ Type
   TSockPairArray = Array[0..1] of Longint;
   TSockArray     = Array[1..2] of Longint; 		//legacy
 
+
 Var
   SocketError:cint;
 
@@ -189,14 +190,38 @@ Function Accept(Sock:longint;var addr:TInetSockAddr;var SockIn,SockOut:text):Boo
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:text):Boolean;
 Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):Boolean;
 
+
+{ Utility routines}
 function htonl( host : longint):longint;  {$ifdef HASINLINE} inline; {$endif}
-Function NToHl (Net : Longint) : Longint; {$ifdef HASINLINE} inline; {$endif}
+Function NToHl( Net : Longint) : Longint; {$ifdef HASINLINE} inline; {$endif}
 function htons( host : word):word;	  {$ifdef HASINLINE} inline; {$endif}
-Function NToHs (Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
+Function NToHs( Net : word):word;         {$ifdef HASINLINE} inline; {$endif}
+
+function NetAddrToStr (Entry : in_addr) : AnsiString;
+function HostAddrToStr(Entry : in_addr) : AnsiString;
+function StrToHostAddr(IP : AnsiString) : in_addr ;
+function StrToNetAddr (IP : AnsiString) : in_addr;
+
+{ these for are for netdb legacy compat}
+Function HostToNet     (Host : in_addr) : in_addr;
+Function NetToHost     (Net  : in_addr) : in_addr;
+Function HostToNet     (Host : Longint) : Longint;
+Function NetToHost     (Net  : Longint) : Longint;
+Function ShortHostToNet(Host : Word) : Word;
+Function ShortNetToHost(Net  : Word) : Word;
+
+// ipv6
+function HostAddrToStr6(Entry : Tin6_addr) : AnsiString;
+function StrToHostAddr6(IP   : String) : Tin6_addr;     // not implemented?!?
+function NetAddrToStr6 (Entry: Tin6_addr) : AnsiString; 
+function StrToNetAddr6 (IP   : AnsiString) : TIn6_Addr;
 
 {
   $Log$
-  Revision 1.22  2005-02-12 17:34:56  marco
+  Revision 1.23  2005-02-13 19:59:57  marco
+   * More htons like functionality. IPV6 string support still missing
+
+  Revision 1.22  2005/02/12 17:34:56  marco
    * some kylix stuf
 
   Revision 1.21  2004/12/23 18:32:26  marco
