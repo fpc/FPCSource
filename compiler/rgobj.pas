@@ -139,10 +139,7 @@ unit rgobj;
                 ms_worklist_moves,ms_active_moves);
       Tmoveins=class(Tlinkedlistitem)
         moveset:Tmoveset;
-      { $ifdef ra_debug}
         x,y:Tsuperregister;
-      { $endif}
-        instruction:Taicpu;
       end;
 
       Treginfoflag=(ri_coalesced,ri_selected);
@@ -313,18 +310,16 @@ implementation
 
 
     destructor tinterferencebitmap.destroy;
-      var
-        i,j : byte;
-      begin
-        if assigned(fbitmap) then
-          begin
-            for i:=0 to maxx1 do
-              for j:=0 to maxy1 do
-                if assigned(fbitmap[i,j]) then
-                  dispose(fbitmap[i,j]);
-            freemem(fbitmap);
-          end;
-      end;
+
+    var i,j:byte;
+
+    begin
+      for i:=0 to maxx1 do
+        for j:=0 to maxy1 do
+          if assigned(fbitmap[i,j]) then
+            dispose(fbitmap[i,j]);
+      freemem(fbitmap);
+    end;
 
 
     function tinterferencebitmap.getbitmap(x,y:tsuperregister):boolean;
@@ -658,12 +653,13 @@ implementation
         ssupreg,dsupreg:Tsuperregister;
 
     begin
+    {$ifdef extdebug}
       if (instr.oper[O_MOV_SOURCE]^.typ<>top_reg) or
          (instr.oper[O_MOV_DEST]^.typ<>top_reg) then
         internalerror(200311291);
+    {$endif}
       i:=Tmoveins.create;
       i.moveset:=ms_worklist_moves;
-      i.instruction:=instr;
       worklist_moves.insert(i);
       ssupreg:=getsupreg(instr.oper[O_MOV_SOURCE]^.reg);
       add_to_movelist(ssupreg,i);
@@ -682,14 +678,12 @@ implementation
     begin
       move_related:=false;
       if reginfo[n].movelist<>nil then
-        begin
-          for i:=0 to reginfo[n].movelist^.count-1 do
-            if Tmoveins(reginfo[n].movelist^.data[i]).moveset in [ms_worklist_moves,ms_active_moves] then
-              begin
-                move_related:=true;
-                break;
-              end;
-        end;
+        for i:=0 to reginfo[n].movelist^.count-1 do
+          if Tmoveins(reginfo[n].movelist^.data[i]).moveset in [ms_worklist_moves,ms_active_moves] then
+            begin
+              move_related:=true;
+              break;
+            end;
     end;
 
     procedure Trgobj.sort_simplify_worklist;
@@ -783,15 +777,13 @@ implementation
           begin
             m:=reginfo[n].movelist^.data[i];
             if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
-              begin
-                if Tmoveins(m).moveset=ms_active_moves then
-                  begin
-                    {Move m from the set active_moves to the set worklist_moves.}
-                    active_moves.remove(m);
-                    Tmoveins(m).moveset:=ms_worklist_moves;
-                    worklist_moves.concat(m);
-                  end;
-              end;
+              if Tmoveins(m).moveset=ms_active_moves then
+                begin
+                  {Move m from the set active_moves to the set worklist_moves.}
+                  active_moves.remove(m);
+                  Tmoveins(m).moveset:=ms_worklist_moves;
+                  worklist_moves.concat(m);
+                end;
           end;
     end;
 
@@ -803,8 +795,11 @@ implementation
 
     begin
       d:=reginfo[m].degree;
-      if reginfo[m].degree>0 then
-        dec(reginfo[m].degree);
+    {$ifdef extdebug}
+      if reginfo[m].degree=0 then
+        internalerror(200312151);
+    {$endif}
+      dec(reginfo[m].degree);
       if d=usable_registers_cnt then
         begin
           {Enable moves for m.}
@@ -812,14 +807,12 @@ implementation
           {Enable moves for adjacent.}
           adj:=reginfo[m].adjlist;
           if adj<>nil then
-            begin
-              for i:=1 to adj^.length do
-                begin
-                  n:=adj^.buf[i-1];
-                  if reginfo[n].flags*[ri_selected,ri_coalesced]<>[] then
-                    enable_moves(n);
-                end;
-            end;
+            for i:=1 to adj^.length do
+              begin
+                n:=adj^.buf[i-1];
+                if reginfo[n].flags*[ri_selected,ri_coalesced]<>[] then
+                  enable_moves(n);
+              end;
           {Remove the node from the spillworklist.}
           if not spillworklist.delete(m) then
             internalerror(200310145);
@@ -847,15 +840,13 @@ implementation
       include(reginfo[n].flags,ri_selected);
       adj:=reginfo[n].adjlist;
       if adj<>nil then
-        begin
-          for i:=1 to adj^.length do
-            begin
-              n:=adj^.buf[i-1];
-              if (n>first_imaginary) and
-                 (reginfo[n].flags*[ri_selected,ri_coalesced]=[]) then
-                decrement_degree(n);
-            end;
-        end;
+        for i:=1 to adj^.length do
+          begin
+            n:=adj^.buf[i-1];
+            if (n>first_imaginary) and
+               (reginfo[n].flags*[ri_selected,ri_coalesced]=[]) then
+              decrement_degree(n);
+          end;
     end;
 
     function trgobj.get_alias(n:Tsuperregister):Tsuperregister;
@@ -868,8 +859,7 @@ implementation
 
     procedure trgobj.add_worklist(u:Tsuperregister);
       begin
-        if (u>=first_imaginary) and
-           not move_related(u) and
+        if (u>=first_imaginary) and not move_related(u) and
            (reginfo[u].degree<usable_registers_cnt) then
           begin
             if not freezeworklist.delete(u) then
@@ -899,18 +889,16 @@ implementation
       adjacent_ok:=true;
       adj:=reginfo[v].adjlist;
       if adj<>nil then
-        begin
-          for i:=1 to adj^.length do
-            begin
-              n:=adj^.buf[i-1];
-              if (reginfo[v].flags*[ri_coalesced,ri_selected]=[]) and
-                 not ok(n,u) then
-                begin
-                  adjacent_ok:=false;
-                  break;
-                end;
-            end;
-        end;
+        for i:=1 to adj^.length do
+          begin
+            n:=adj^.buf[i-1];
+            if (reginfo[v].flags*[ri_coalesced,ri_selected]=[]) and
+               not ok(n,u) then
+              begin
+                adjacent_ok:=false;
+                break;
+              end;
+          end;
     end;
 
     function trgobj.conservative(u,v:Tsuperregister):boolean;
@@ -925,18 +913,16 @@ implementation
       supregset_reset(done,false);
       adj:=reginfo[u].adjlist;
       if adj<>nil then
-        begin
-          for i:=1 to adj^.length do
-            begin
-              n:=adj^.buf[i-1];
-              if reginfo[u].flags*[ri_coalesced,ri_selected]=[] then
-                begin
-                  supregset_include(done,n);
-                  if reginfo[n].degree>=usable_registers_cnt then
-                    inc(k);
-                end;
-            end;
-        end;
+        for i:=1 to adj^.length do
+          begin
+            n:=adj^.buf[i-1];
+            if reginfo[u].flags*[ri_coalesced,ri_selected]=[] then
+              begin
+                supregset_include(done,n);
+                if reginfo[n].degree>=usable_registers_cnt then
+                  inc(k);
+              end;
+          end;
       adj:=reginfo[v].adjlist;
       if adj<>nil then
         for i:=1 to adj^.length do
@@ -953,12 +939,13 @@ implementation
 
     procedure trgobj.combine(u,v:Tsuperregister);
 
-    var add : boolean;
-        adj : Psuperregisterworklist;
+    var adj : Psuperregisterworklist;
         i : word;
         t : tsuperregister;
         n,o : cardinal;
         decrement : boolean;
+    
+    label l1;
 
     begin
       if not freezeworklist.delete(v) then
@@ -973,15 +960,11 @@ implementation
         begin
           for n:=0 to reginfo[v].movelist^.count-1 do
             begin
-              add:=true;
               for o:=0 to reginfo[u].movelist^.count-1 do
                 if reginfo[u].movelist^.data[o]=reginfo[v].movelist^.data[n] then
-                  begin
-                    add:=false;
-                    break;
-                  end;
-              if add then
-                add_to_movelist(u,reginfo[v].movelist^.data[n]);
+                  goto l1; {Continue outer loop.}
+              add_to_movelist(u,reginfo[v].movelist^.data[n]);
+            l1:
             end;
           enable_moves(v);
         end;
@@ -999,8 +982,7 @@ implementation
                   lists while the degree does not change (add_edge will increase it).
                   Instead, we will decrement manually. (Only if the degree has been
                   increased.) }
-                if decrement and
-                   (t>=first_imaginary) and
+                if decrement and (t>=first_imaginary) and
                    (reginfo[t].degree>0) then
                   dec(reginfo[t].degree);
               end;
@@ -1018,8 +1000,8 @@ implementation
 
     begin
       m:=Tmoveins(worklist_moves.getfirst);
-      x:=get_alias(getsupreg(m.instruction.oper[0]^.reg));
-      y:=get_alias(getsupreg(m.instruction.oper[1]^.reg));
+      x:=get_alias(m.x);
+      y:=get_alias(m.y);
       if (y<first_imaginary) then
         begin
           u:=y;
@@ -1075,8 +1057,8 @@ implementation
             m:=reginfo[u].movelist^.data[i];
             if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
               begin
-                x:=getsupreg(Tmoveins(m).instruction.oper[0]^.reg);
-                y:=getsupreg(Tmoveins(m).instruction.oper[1]^.reg);
+                x:=Tmoveins(m).x;
+                y:=Tmoveins(m).y;
                 if get_alias(y)=get_alias(u) then
                   v:=get_alias(x)
                 else
@@ -1089,8 +1071,7 @@ implementation
                 Tmoveins(m).moveset:=ms_frozen_moves;
                 frozen_moves.insert(m);
 
-                if (v>=first_imaginary) and
-                   not(move_related(v)) and
+                if (v>=first_imaginary) and not(move_related(v)) and
                    (reginfo[v].degree<usable_registers_cnt) then
                   begin
                     freezeworklist.delete(v);
@@ -1606,7 +1587,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2003-12-15 15:58:58  peter
+  Revision 1.102  2003-12-15 16:37:47  daniel
+    * More microoptimizations
+
+  Revision 1.101  2003/12/15 15:58:58  peter
     * fix statedebug compile
 
   Revision 1.100  2003/12/14 20:24:28  daniel
