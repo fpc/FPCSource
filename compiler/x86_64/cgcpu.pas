@@ -82,7 +82,7 @@ unit cgcpu;
       begin
         { Release PIC register }
         if cs_create_pic in aktmoduleswitches then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG));
+          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
 
         { remove stackframe }
         if not nostackframe then
@@ -95,7 +95,7 @@ unit cgcpu;
               end
             else
               list.concat(Taicpu.op_none(A_LEAVE,S_NO));
-            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG));
+            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG,nil));
           end;
 
         list.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -109,7 +109,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2004-09-21 17:25:13  peter
+  Revision 1.17  2004-10-05 20:41:02  peter
+    * more spilling rewrites
+
+  Revision 1.16  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.15.4.1  2004/08/31 20:43:06  peter

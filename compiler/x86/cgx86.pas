@@ -1571,7 +1571,7 @@ unit cgx86;
               CGmessage(cg_d_stackframe_omited)
             else
               begin
-                list.concat(tai_regalloc.alloc(NR_FRAME_POINTER_REG));
+                list.concat(tai_regalloc.alloc(NR_FRAME_POINTER_REG,nil));
                 include(rg[R_INTREGISTER].preserved_by_proc,RS_FRAME_POINTER_REG);
                 list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_ADDR],NR_FRAME_POINTER_REG));
                 { Return address and FP are both on stack }
@@ -1593,7 +1593,7 @@ unit cgx86;
           begin
             a_call_name(list,'FPC_GETEIPINEBX');
             list.concat(taicpu.op_sym_ofs_reg(A_ADD,tcgsize2opsize[OS_ADDR],objectlibrary.newasmsymbol('_GLOBAL_OFFSET_TABLE_',AB_EXTERNAL,AT_DATA),0,NR_PIC_OFFSET_REG));
-            list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG));
+            list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
           end;
       end;
 
@@ -1675,7 +1675,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.127  2004-10-04 20:46:22  peter
+  Revision 1.128  2004-10-05 20:41:02  peter
+    * more spilling rewrites
+
+  Revision 1.127  2004/10/04 20:46:22  peter
     * spilling code rewritten for x86. It now used the generic
       spilling routines. Special x86 optimization still needs
       to be added.

@@ -1163,7 +1163,7 @@ begin
                                   { allocregbetween doesn't insert this because at }
                                   { this time, no regalloc info is available in    }
                                   { the optinfo field, so do it manually (JM)      }
-                                  hp2 := tai_regalloc.Alloc(taicpu(hp1).oper[1]^.reg);
+                                  hp2 := tai_regalloc.Alloc(taicpu(hp1).oper[1]^.reg,nil);
                                   insertllitem(asml,p.previous,p,hp2);
                                   taicpu(hp1).LoadReg(0,taicpu(hp1).oper[1]^.reg);
                                   taicpu(hp1).LoadRef(1,taicpu(p).oper[1]^.ref^);
@@ -2004,7 +2004,10 @@ end.
 
 {
   $Log$
-  Revision 1.62  2004-10-05 17:31:41  peter
+  Revision 1.63  2004-10-05 20:41:02  peter
+    * more spilling rewrites
+
+  Revision 1.62  2004/10/05 17:31:41  peter
     * range check errors fixed
 
   Revision 1.61  2004/06/20 08:55:31  florian

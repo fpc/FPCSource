@@ -78,16 +78,18 @@ implementation
 
     function gas_regname(r:Tregister):string;
       var
-        p : longint;
+        hr : tregister;
+        p  : longint;
       begin
         { Double uses the same table as single }
-        case getsubreg(r) of
+        hr:=r;
+        case getsubreg(hr) of
           R_SUBFD:
-            setsubreg(r,R_SUBFS);
+            setsubreg(hr,R_SUBFS);
           R_SUBL,R_SUBW,R_SUBD,R_SUBQ:
-            setsubreg(r,R_SUBD);
+            setsubreg(hr,R_SUBD);
         end;
-        p:=findreg_by_number(r);
+        p:=findreg_by_number(hr);
         if p<>0 then
           result:=gas_regname_table[p]
         else
@@ -97,7 +99,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-09-21 17:25:13  peter
+  Revision 1.6  2004-10-05 20:41:02  peter
+    * more spilling rewrites
+
+  Revision 1.5  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.4.4.1  2004/09/20 20:42:37  peter

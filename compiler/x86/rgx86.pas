@@ -36,21 +36,8 @@ unit rgx86;
 
     type
        trgx86 = class(trgobj)
-{$ifdef OLDRGX86}
-         function instr_spill_register(list:Taasmoutput;
-                                       instr:taicpu;
-                                       const r:Tsuperregisterset;
-                                       const spilltemplist:Tspill_temp_list): boolean;override;
-{$endif OLDRGX86}
-        function  get_spill_subreg(r : tregister) : tsubregister;override;
-{
-        procedure do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-        procedure do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-        procedure do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-}
+         function  get_spill_subreg(r : tregister) : tsubregister;override;
+         function  do_spill_replace(list:Taasmoutput;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;override;
        end;
 
        tpushedsavedloc = record
@@ -506,66 +493,17 @@ implementation
       end;
 
 
-      (*
-    procedure trgx86.do_spill_read(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                   const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
-      var
-        helpins: tai;
-        tmpref,ref : treference;
-        helplist : taasmoutput;
-        tmpreg : tregister;
+    function trgx86.do_spill_replace(list:Taasmoutput;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
       begin
-{        ref:=spilltemplist[regs[regidx].orgreg];
-        if abs(ref.offset)>4095 then
-          begin
-          end
-        else }
-          inherited do_spill_read(list,instr,pos,regidx,spilltemplist,regs);
+        result:=false;
       end;
 
-
-    procedure trgx86.do_spill_written(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
-      var
-        helpins: tai;
-        ref,tmpref : treference;
-        helplist : taasmoutput;
-        tmpreg : tregister;
-      begin
-{        ref:=spilltemplist[regs[regidx].orgreg];
-        if abs(ref.offset)>4095 then
-          begin
-          end
-        else }
-          inherited do_spill_written(list,instr,pos,regidx,spilltemplist,regs);
-      end;
-
-
-    procedure trgx86.do_spill_readwritten(list : taasmoutput;instr : taicpu;pos: tai; regidx: word;
-                                          const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
-      var
-        helpins1, helpins2: tai;
-        tmpref,ref : treference;
-        helplist : taasmoutput;
-         tmpreg : tregister;
-      begin
-{        ref:=spilltemplist[regs[regidx].orgreg];
-        if abs(ref.offset)>4095 then
-          begin
-          end
-        else  }
-          inherited do_spill_readwritten(list,instr,pos,regidx,spilltemplist,regs);
-      end;
-*)
 
 {******************************************************************************
                                   Trgx86fpu
 ******************************************************************************}
 
     constructor Trgx86fpu.create;
-
-      var i:Tsuperregister;
-
       begin
         used_in_proc:=[];
         t_times := 0;
@@ -574,7 +512,6 @@ implementation
 
 
     function trgx86fpu.getregisterfpu(list: taasmoutput) : tregister;
-
       begin
         { note: don't return R_ST0, see comments above implementation of }
         { a_loadfpu_* methods in cgcpu (JM)                              }
@@ -583,7 +520,6 @@ implementation
 
 
     procedure trgx86fpu.ungetregisterfpu(list : taasmoutput; r : tregister);
-
       begin
         { nothing to do, fpu stack management is handled by the load/ }
         { store operations in cgcpu (JM)                              }
@@ -592,7 +528,6 @@ implementation
 
 
     function trgx86fpu.correct_fpuregister(r : tregister;ofs : byte) : tregister;
-
       begin
         correct_fpuregister:=r;
         setsupreg(correct_fpuregister,ofs);
@@ -690,7 +625,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2004-10-04 20:46:22  peter
+  Revision 1.8  2004-10-05 20:41:02  peter
+    * more spilling rewrites
+
+  Revision 1.7  2004/10/04 20:46:22  peter
     * spilling code rewritten for x86. It now used the generic
       spilling routines. Special x86 optimization still needs
       to be added.

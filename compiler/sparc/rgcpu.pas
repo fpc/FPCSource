@@ -36,8 +36,8 @@ unit rgcpu;
       trgcpu=class(trgobj)
         procedure add_constraints(reg:tregister);override;
         function get_spill_subreg(r : tregister) : tsubregister;override;
-        procedure do_spill_read(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);override;
-        procedure do_spill_written(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);override;
+        procedure do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+        procedure do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);override;
       end;
 
 
@@ -87,7 +87,7 @@ implementation
       end;
 
 
-    procedure trgcpu.do_spill_read(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);
+    procedure trgcpu.do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
         helpins  : tai;
         tmpref   : treference;
@@ -115,14 +115,14 @@ implementation
 
             helpins:=spilling_create_load(spilltemp,tempreg);
             helplist.concat(helpins);
-            list.insertlistbefore(instr,helplist)
+            list.insertlistafter(pos,helplist)
           end
         else
-          inherited do_spill_read(list,instr,spilltemp,tempreg);
+          inherited do_spill_read(list,pos,spilltemp,tempreg);
       end;
 
 
-    procedure trgcpu.do_spill_written(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);
+    procedure trgcpu.do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
       var
         helpins  : tai;
         tmpref   : treference;
@@ -134,7 +134,7 @@ implementation
             helplist:=taasmoutput.create;
 
             if getregtype(tempreg)=R_INTREGISTER then
-              getregisterinline(helplist,tai(helplist.first),R_SUBWHOLE,hreg)
+              hreg:=getregisterinline(helplist,R_SUBWHOLE)
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
@@ -151,18 +151,21 @@ implementation
             helpins:=spilling_create_store(tempreg,spilltemp);
             helplist.concat(helpins);
             if getregtype(tempreg)=R_INTREGISTER then
-              ungetregisterinline(helplist,tai(helplist.last),hreg);
+              ungetregisterinline(helplist,hreg);
 
-            list.insertlistafter(instr,helplist)
+            list.insertlistafter(pos,helplist)
           end
         else
-          inherited do_spill_written(list,instr,spilltemp,tempreg);
+          inherited do_spill_written(list,pos,spilltemp,tempreg);
     end;
 
 end.
 {
   $Log$
-  Revision 1.28  2004-10-04 20:46:22  peter
+  Revision 1.29  2004-10-05 20:41:02  peter
+    * more spilling rewrites
+
+  Revision 1.28  2004/10/04 20:46:22  peter
     * spilling code rewritten for x86. It now used the generic
       spilling routines. Special x86 optimization still needs
       to be added.

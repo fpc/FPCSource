@@ -162,6 +162,8 @@ implementation
           begin
             paraloc^.loc:=LOC_FPUREGISTER;
             paraloc^.register:=NR_FPU_RESULT_REG;
+            if retcgsize=OS_F64 then
+              setsubreg(paraloc^.register,R_SUBFD);
             paraloc^.size:=retcgsize;
           end
         else
@@ -316,7 +318,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2004-09-27 21:24:17  peter
+  Revision 1.44  2004-10-05 20:41:02  peter
+    * more spilling rewrites
+
+  Revision 1.43  2004/09/27 21:24:17  peter
     * fixed passing of flaot parameters. The general size is still float,
       only the size of the locations is now OS_32
 

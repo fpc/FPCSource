@@ -487,8 +487,12 @@ interface
        tai_regalloc = class(tai)
           reg     : tregister;
           ratype  : TRegAllocType;
-          constructor alloc(r : tregister);
-          constructor dealloc(r : tregister);
+          { reg(de)alloc belongs to this instruction, this
+            is only used for automatic inserted (de)alloc for
+            imaginary register and required for spilling code }
+          instr   : tai;
+          constructor alloc(r : tregister;ainstr:tai);
+          constructor dealloc(r : tregister;ainstr:tai);
           constructor sync(r : tregister);
           constructor resize(r : tregister);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
@@ -1717,21 +1721,23 @@ implementation
                                  tai_regalloc
 *****************************************************************************}
 
-    constructor tai_regalloc.alloc(r : tregister);
+    constructor tai_regalloc.alloc(r : tregister;ainstr:tai);
       begin
         inherited create;
         typ:=ait_regalloc;
         ratype:=ra_alloc;
         reg:=r;
+        instr:=ainstr;
       end;
 
 
-    constructor tai_regalloc.dealloc(r : tregister);
+    constructor tai_regalloc.dealloc(r : tregister;ainstr:tai);
       begin
         inherited create;
         typ:=ait_regalloc;
         ratype:=ra_dealloc;
         reg:=r;
+        instr:=ainstr;
       end;
 
 
@@ -2224,7 +2230,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2004-09-26 17:45:29  peter
+  Revision 1.90  2004-10-05 20:41:01  peter
+    * more spilling rewrites
+
+  Revision 1.89  2004/09/26 17:45:29  peter
     * simple regvar support, not yet finished
 
   Revision 1.88  2004/08/15 13:30:18  florian

@@ -469,7 +469,7 @@ begin
          (taicpu(hp1).opcode = A_JMP) and
          (tasmlabel(taicpu(hp1).oper[0]^.sym) = aktexit2label)) then }
     begin
-      p := tai_regalloc.deAlloc(reg);
+      p := tai_regalloc.deAlloc(reg,nil);
       insertLLItem(AsmL, hp1.previous, hp1, p);
     end;
 end;
@@ -1172,13 +1172,13 @@ begin
         include(ptaiprop(p1.OptInfo)^.UsedRegs,supreg);
       if lastRemovedWasDealloc then
         begin
-          hp := tai_regalloc.DeAlloc(reg);
+          hp := tai_regalloc.DeAlloc(reg,nil);
           insertLLItem(asmL,p1,p1.next,hp);
         end;
     end;
   if firstRemovedWasAlloc then
     begin
-      hp := tai_regalloc.Alloc(reg);
+      hp := tai_regalloc.Alloc(reg,nil);
       insertLLItem(asmL,start.previous,start,hp);
     end;
 end;
@@ -2719,7 +2719,10 @@ end.
 
 {
   $Log$
-  Revision 1.70  2004-10-04 20:46:22  peter
+  Revision 1.71  2004-10-05 20:41:01  peter
+    * more spilling rewrites
+
+  Revision 1.70  2004/10/04 20:46:22  peter
     * spilling code rewritten for x86. It now used the generic
       spilling routines. Special x86 optimization still needs
       to be added.

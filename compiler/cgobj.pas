@@ -708,13 +708,13 @@ implementation
 
     procedure tcg.a_reg_alloc(list : taasmoutput;r : tregister);
       begin
-         list.concat(tai_regalloc.alloc(r));
+         list.concat(tai_regalloc.alloc(r,nil));
       end;
 
 
     procedure tcg.a_reg_dealloc(list : taasmoutput;r : tregister);
       begin
-         list.concat(tai_regalloc.dealloc(r));
+         list.concat(tai_regalloc.dealloc(r,nil));
       end;
 
 
@@ -2226,7 +2226,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.173  2004-09-29 18:55:40  florian
+  Revision 1.174  2004-10-05 20:41:01  peter
+    * more spilling rewrites
+
+  Revision 1.173  2004/09/29 18:55:40  florian
     * fixed more sparc overflow stuff
     * fixed some op64 stuff for sparc
 

@@ -169,11 +169,12 @@ unit rgobj;
         { can be overriden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
-        procedure getregisterinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
-        procedure ungetregisterinline(list:Taasmoutput;position:Tai;r:Tregister);
-        function get_spill_subreg(r : tregister) : tsubregister;virtual;
-        procedure do_spill_read(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);virtual;
-        procedure do_spill_written(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);virtual;
+        function  getregisterinline(list:Taasmoutput;subreg:Tsubregister):Tregister;
+        procedure ungetregisterinline(list:Taasmoutput;r:Tregister);
+        function  get_spill_subreg(r : tregister) : tsubregister;virtual;
+        function  do_spill_replace(list:Taasmoutput;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;virtual;
+        procedure do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);virtual;
+        procedure do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);virtual;
 
         function instr_spill_register(list:Taasmoutput;
                                       instr:taicpu;
@@ -212,8 +213,8 @@ unit rgobj;
         procedure epilogue_colouring;
         {# Colour the registers; that is do the register allocation.}
         procedure colour_registers;
-        {# Spills certain registers in the specified assembler list.}
-        procedure insert_regalloc_info(list:Taasmoutput;headertai:tai);
+        procedure insert_regalloc_info(list:Taasmoutput;u:tsuperregister);
+        procedure insert_regalloc_info_all(list:Taasmoutput);
         procedure generate_interference_graph(list:Taasmoutput;headertai:tai);
         procedure translate_registers(list:Taasmoutput);
         function  spill_registers(list:Taasmoutput;headertai:tai):boolean;virtual;
@@ -478,7 +479,7 @@ unit rgobj;
       begin
         if (getsupreg(r)>=first_imaginary) then
           InternalError(2004020901);
-        list.concat(Tai_regalloc.dealloc(r));
+        list.concat(Tai_regalloc.dealloc(r,nil));
       end;
 
 
@@ -490,7 +491,7 @@ unit rgobj;
         if supreg>=first_imaginary then
           internalerror(2003121503);
         include(used_in_proc,supreg);
-        list.concat(Tai_regalloc.alloc(r));
+        list.concat(Tai_regalloc.alloc(r,nil));
       end;
 
 
@@ -523,7 +524,7 @@ unit rgobj;
         i:Tsuperregister;
       begin
         { Insert regalloc info for imaginary registers }
-        insert_regalloc_info(list,headertai);
+        insert_regalloc_info_all(list);
         ibitmap:=tinterferencebitmap.create;
         generate_interference_graph(list,headertai);
         { Don't do the real allocation when -sr is passed }
@@ -539,6 +540,8 @@ unit rgobj;
           if spillednodes.length<>0 then
             begin
               inc(spillingcounter);
+              if spillingcounter>maxspillingcounter then
+                exit;
               if spillingcounter>maxspillingcounter then
                 internalerror(200309041);
               endspill:=not spill_registers(list,headertai);
@@ -1370,81 +1373,80 @@ unit rgobj;
         end;
     end;
 
-    procedure trgobj.getregisterinline(list:Taasmoutput;
-                  position:Tai;subreg:Tsubregister;var result:Tregister);
-    var p:Tsuperregister;
-        r:Tregister;
-    begin
-       p:=getnewreg(subreg);
-       live_registers.add(p);
-       r:=newreg(regtype,p,subreg);
-       if position=nil then
-         list.insert(Tai_regalloc.alloc(r))
-       else
-         list.insertafter(Tai_regalloc.alloc(r),position);
-       add_edges_used(p);
-       add_constraints(r);
-       result:=r;
-    end;
 
-
-    procedure trgobj.ungetregisterinline(list:Taasmoutput;
-                position:Tai;r:Tregister);
-
-    var supreg:Tsuperregister;
-
-    begin
-      supreg:=getsupreg(r);
-      live_registers.delete(supreg);
-      if position=nil then
-        list.insert(Tai_regalloc.dealloc(r))
-      else
-        list.insertafter(Tai_regalloc.dealloc(r),position);
-    end;
-
-
-    procedure trgobj.insert_regalloc_info(list:Taasmoutput;headertai:tai);
+    function trgobj.getregisterinline(list:Taasmoutput;subreg:Tsubregister):Tregister;
       var
-        supreg : tsuperregister;
+        p : Tsuperregister;
+        r : Tregister;
+      begin
+        p:=getnewreg(subreg);
+        live_registers.add(p);
+        result:=newreg(regtype,p,subreg);
+        add_edges_used(p);
+        add_constraints(result);
+      end;
+
+
+    procedure trgobj.ungetregisterinline(list:Taasmoutput;r:Tregister);
+      var
+        supreg:Tsuperregister;
+      begin
+        supreg:=getsupreg(r);
+        live_registers.delete(supreg);
+        insert_regalloc_info(list,supreg);
+      end;
+
+
+    procedure trgobj.insert_regalloc_info(list:Taasmoutput;u:tsuperregister);
+      var
         p : tai;
         r : tregister;
       begin
         { Insert regallocs for all imaginary registers }
+        with reginfo[u] do
+          begin
+            r:=newreg(regtype,u,subreg);
+            if assigned(live_start) then
+              begin
+{$ifdef EXTDEBUG}
+                if live_start=live_end then
+                  Comment(V_Warning,'Register '+std_regname(r)+' is only used once');
+{$endif EXTDEBUG}
+                list.insertbefore(Tai_regalloc.alloc(r,live_start),live_start);
+                { Insert live end deallocation before reg allocations
+                  to reduce conflicts }
+                p:=live_end;
+                while assigned(p) and
+                      assigned(p.previous) and
+                      (tai(p.previous).typ=ait_regalloc) and
+                      (tai_regalloc(p.previous).ratype=ra_alloc) and
+                      (tai_regalloc(p.previous).reg<>r) do
+                  p:=tai(p.previous);
+                { , but add release after sync }
+                if assigned(p) and
+                   (p.typ=ait_regalloc) and
+                   (tai_regalloc(p).ratype=ra_sync) then
+                  p:=tai(p.next);
+                if assigned(p) then
+                  list.insertbefore(Tai_regalloc.dealloc(r,live_end),p)
+                else
+                  list.concat(Tai_regalloc.dealloc(r,live_end));
+              end
+{$ifdef EXTDEBUG}
+            else
+              Comment(V_Warning,'Register '+std_regname(r)+' not used');
+{$endif EXTDEBUG}
+          end;
+      end;
+
+
+    procedure trgobj.insert_regalloc_info_all(list:Taasmoutput);
+      var
+        supreg : tsuperregister;
+      begin
+        { Insert regallocs for all imaginary registers }
         for supreg:=first_imaginary to maxreg-1 do
-          with reginfo[supreg] do
-            begin
-              r:=newreg(regtype,supreg,subreg);
-              if assigned(live_start) then
-                begin
-{$ifdef EXTDEBUG}
-                  if live_start=live_end then
-                    Comment(V_Warning,'Register '+std_regname(r)+' is only used once');
-{$endif EXTDEBUG}
-                  list.insertbefore(Tai_regalloc.alloc(r),live_start);
-                  { Insert live end deallocation before reg allocations
-                    to reduce conflicts }
-                  p:=live_end;
-                  while assigned(p) and
-                        assigned(p.previous) and
-                        (tai(p.previous).typ=ait_regalloc) and
-                        (tai_regalloc(p.previous).ratype=ra_alloc) and
-                        (tai_regalloc(p.previous).reg<>r) do
-                    p:=tai(p.previous);
-                  { , but add release after sync }
-                  if assigned(p) and
-                     (p.typ=ait_regalloc) and
-                     (tai_regalloc(p).ratype=ra_sync) then
-                    p:=tai(p.next);
-                  if assigned(p) then
-                    list.insertbefore(Tai_regalloc.dealloc(r),p)
-                  else
-                    list.concat(Tai_regalloc.dealloc(r));
-                end
-{$ifdef EXTDEBUG}
-              else
-                Comment(V_Warning,'Register '+std_regname(r)+' not used');
-{$endif EXTDEBUG}
-            end;
+          insert_regalloc_info(list,supreg);
       end;
 
 
@@ -1569,6 +1571,7 @@ unit rgobj;
               ait_instruction:
                 with Taicpu(p) do
                   begin
+                    aktfilepos:=fileinfo;
                     for i:=0 to ops-1 do
                       with oper[i]^ do
                         case typ of
@@ -1610,6 +1613,7 @@ unit rgobj;
             end;
             p:=Tai(p.next);
           end;
+        aktfilepos:=current_procinfo.exitpos;
       end;
 
 
@@ -1702,21 +1706,21 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.do_spill_read(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);
-      var
-        helpins : Tai;
+    function trgobj.do_spill_replace(list:Taasmoutput;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;
       begin
-        helpins:=spilling_create_load(spilltemp,tempreg);
-        list.insertbefore(helpins,instr);
+        result:=false;
       end;
 
 
-    procedure Trgobj.do_spill_written(list:Taasmoutput;instr:taicpu;const spilltemp:treference;const tempreg:tregister);
-      var
-        helpins : Tai;
+    procedure Trgobj.do_spill_read(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
       begin
-        helpins:=spilling_create_store(tempreg,spilltemp);
-        list.insertafter(helpins,instr);
+        list.insertafter(spilling_create_load(spilltemp,tempreg),pos);
+      end;
+
+
+    procedure Trgobj.do_spill_written(list:Taasmoutput;pos:tai;const spilltemp:treference;tempreg:tregister);
+      begin
+        list.insertafter(spilling_create_store(tempreg,spilltemp),pos);
       end;
 
 
@@ -1791,7 +1795,8 @@ unit rgobj;
         end;
 
       var
-        counter2 : longint;
+        loadpos,
+        storepos : tai;
         oldlive_registers : tsuperregisterworklist;
       begin
         result := false;
@@ -1837,41 +1842,123 @@ unit rgobj;
         if not spilled then
           exit;
 
-        { Add conflicts with all non-spilled registers }
-        oldlive_registers.copyfrom(live_registers);
-        for counter2 := 0 to pred(regindex) do
-          begin
-            if (not regs[counter2].mustbespilled) then
-              live_registers.add(get_alias(regs[counter2].orgreg));
-          end;
-
-        { generate the spilling code }
-        result := true;
+{$ifdef x86}
+        { Try replacing the register with the spilltemp. This is usefull only
+          for the i386,x86_64 that support memory locations for several instructions }
         for counter := 0 to pred(regindex) do
           with regs[counter] do
             begin
               if mustbespilled then
                 begin
-                  getregisterinline(list,tai(instr.previous),get_spill_subreg(regs[counter].spillreg),tempreg);
-
-                  if regread then
-                    do_spill_read(list,instr,spilltemplist[orgreg],tempreg);
-                  if regwritten then
-                    do_spill_written(list,instr,spilltemplist[orgreg],tempreg);
+                  if do_spill_replace(list,instr,orgreg,spilltemplist[orgreg]) then
+                    mustbespilled:=false;
                 end;
             end;
+{$endif x86}
 
-        { Release temp registers after all registers for the instruction are spilled }
+        {
+          There are registers that need are spilled. We generate the
+          following code for it. The used positions where code need
+          to be inserted are marked using #. Note that code is always inserted
+          before the positions using pos.previous. This way the position is always
+          the same since pos doesn't change, but pos.previous is modified everytime
+          new code is inserted.
+
+          [
+            - reg_allocs load spills
+            - load spills
+          ]
+          [#loadpos
+            - reg_deallocs
+            - reg_allocs
+          ]
+          [
+            - reg_deallocs for load-only spills
+            - reg_allocs for store-only spills
+          ]
+          [#instr
+            - original instruction
+          ]
+          [
+            - store spills
+            - reg_deallocs store spills
+          ]
+          [#storepos
+          ]
+        }
+
+        result := true;
+        oldlive_registers.copyfrom(live_registers);
+
+        { Process all tai_regallocs belonging to this instruction. All
+          released registers are also added to the live_registers because
+          they can't be used during the spilling }
+        loadpos:=tai(instr.previous);
+        while assigned(loadpos) and
+              (loadpos.typ=ait_regalloc) and
+              (tai_regalloc(loadpos).instr=instr) do
+          begin
+            if tai_regalloc(loadpos).ratype=ra_dealloc then
+              live_registers.add(getsupreg(tai_regalloc(loadpos).reg));
+            loadpos:=tai(loadpos.previous);
+          end;
+        loadpos:=tai(loadpos.next);
+
+        { Load the spilled registers }
         for counter := 0 to pred(regindex) do
           with regs[counter] do
             begin
-              if mustbespilled then
-                ungetregisterinline(list,instr,tempreg);
+              if mustbespilled and regread then
+                begin
+                  tempreg:=getregisterinline(list,get_spill_subreg(regs[counter].spillreg));
+                  do_spill_read(list,tai(loadpos.previous),spilltemplist[orgreg],tempreg);
+                end;
             end;
 
-        { restore live registers }
+        { Release temp registers of read-only registers, and add reference of the instruction
+          to the reginfo }
+        for counter := 0 to pred(regindex) do
+          with regs[counter] do
+            begin
+              if mustbespilled and regread and (not regwritten) then
+                begin
+                  { The original instruction will be the next that uses this register }
+                  add_reg_instruction(instr,tempreg);
+                  ungetregisterinline(list,tempreg);
+                end;
+            end;
+
+        { Allocate temp registers of write-only registers, and add reference of the instruction
+          to the reginfo }
+        for counter := 0 to pred(regindex) do
+          with regs[counter] do
+            begin
+              if mustbespilled and regwritten then
+                begin
+                  { When the register is also loaded there is already a register assigned }
+                  if (not regread) then
+                    tempreg:=getregisterinline(list,get_spill_subreg(regs[counter].spillreg));
+                  { The original instruction will be the next that uses this register, this
+                    also needs to be done for read-write registers }
+                  add_reg_instruction(instr,tempreg);
+                end;
+            end;
+
+        { we are now at the original instruction, restore live registers }
         live_registers.done;
         live_registers:=oldlive_registers;
+
+        { store the spilled registers }
+        storepos:=tai(instr.next);
+        for counter := 0 to pred(regindex) do
+          with regs[counter] do
+            begin
+              if mustbespilled and regwritten then
+                begin
+                  do_spill_written(list,tai(storepos.previous),spilltemplist[orgreg],tempreg);
+                  ungetregisterinline(list,tempreg);
+                end;
+            end;
 
         { substitute registers }
         for counter:=0 to instr.ops-1 do
@@ -1880,12 +1967,16 @@ unit rgobj;
             case typ of
               top_reg:
                 begin
-                  tryreplacereg(reg);
+                  if (getregtype(reg) = regtype) then
+                    tryreplacereg(reg);
                 end;
               top_ref:
                 begin
-                  tryreplacereg(ref^.base);
-                  tryreplacereg(ref^.index);
+                  if regtype in [R_INTREGISTER,R_ADDRESSREGISTER] then
+                    begin
+                      tryreplacereg(ref^.base);
+                      tryreplacereg(ref^.index);
+                    end;
                 end;
 {$ifdef ARM}
               top_shifterop:
@@ -1903,7 +1994,10 @@ unit rgobj;
 end.
 {
   $Log$
-  Revision 1.138  2004-10-04 20:46:22  peter
+  Revision 1.139  2004-10-05 20:41:01  peter
+    * more spilling rewrites
+
+  Revision 1.138  2004/10/04 20:46:22  peter
     * spilling code rewritten for x86. It now used the generic
       spilling routines. Special x86 optimization still needs
       to be added.

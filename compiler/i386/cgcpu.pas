@@ -229,7 +229,7 @@ unit cgcpu;
       begin
         { Release PIC register }
         if cs_create_pic in aktmoduleswitches then
-          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG));
+          list.concat(tai_regalloc.dealloc(NR_PIC_OFFSET_REG,nil));
 
         { MMX needs to call EMMS }
         if assigned(rg[R_MMXREGISTER]) and
@@ -247,7 +247,7 @@ unit cgcpu;
               end
             else
               list.concat(Taicpu.op_none(A_LEAVE,S_NO));
-            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG));
+            list.concat(tai_regalloc.dealloc(NR_FRAME_POINTER_REG,nil));
           end;
 
         { return from proc }
@@ -556,7 +556,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2004-09-25 14:23:54  peter
+  Revision 1.54  2004-10-05 20:41:01  peter
+    * more spilling rewrites
+
+  Revision 1.53  2004/09/25 14:23:54  peter
     * ungetregister is now only used for cpuregisters, renamed to
       ungetcpuregister
     * renamed (get|unget)explicitregister(s) to ..cpuregister
