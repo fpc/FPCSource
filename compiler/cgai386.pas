@@ -1891,11 +1891,14 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                          if is_widestring(p^.resulttype) or
                             is_ansistring(p^.resulttype) or
                             is_smallset(p^.resulttype) or
-                            ((p^.resulttype^.deftype in [recorddef,arraydef]) and (p^.resulttype^.size<=4)
-                             and ((p^.resulttype^.deftype<>arraydef) or not
+                            ((p^.resulttype^.deftype in [recorddef,arraydef]) and
+                             (
+                              (p^.resulttype^.deftype<>arraydef) or not
                               (parraydef(p^.resulttype)^.IsConstructor or
                                parraydef(p^.resulttype)^.isArrayOfConst or
-                               is_open_array(p^.resulttype)))
+                               is_open_array(p^.resulttype))
+                             ) and
+                             (p^.resulttype^.size<=4)
                             ) or
                             ((p^.resulttype^.deftype=objectdef) and
                              pobjectdef(p^.resulttype)^.is_class) then
@@ -4067,7 +4070,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.10  2000-08-16 13:06:06  florian
+  Revision 1.11  2000-08-19 20:09:33  peter
+    * check size after checking openarray in push_value_para (merged)
+
+  Revision 1.10  2000/08/16 13:06:06  florian
     + support of 64 bit integer constants
 
   Revision 1.9  2000/08/10 18:42:03  peter
