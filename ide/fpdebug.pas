@@ -1020,6 +1020,7 @@ begin
       ExitFrame:=GetPointerAt(GetFramePointer+ThirdArgOffset);
       if (ExitCode=0) and (ExitAddr=0) then
         begin
+          Desktop^.Unlock;
           Command('continue');
           exit;
         end;
@@ -4055,7 +4056,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2002-04-02 13:23:54  pierre
+  Revision 1.14  2002-04-02 15:09:38  pierre
+   * fixed wrong exit without unlock
+
+  Revision 1.13  2002/04/02 13:23:54  pierre
    * Use StrToCard and HexToCard functions to avoid signed/unsigned overflows
 
   Revision 1.12  2002/04/02 12:20:58  pierre
