@@ -4500,3 +4500,11 @@ end;
 
 END. (* UNIT DOS *)
 
+{
+   $Log$
+   Revision 1.3  2002-11-17 20:31:24  nils
+   
+   * added log
+   
+}
+
