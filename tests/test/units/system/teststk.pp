@@ -19,12 +19,18 @@ procedure recursive;
 Begin
 {$ifndef nocheck}
   Recursive;
+{$else}
+  { Simulate the correct error code }
+  RunError(202);
 {$endif}
 end.
 
 {
   $Log$
-  Revision 1.3  2002-03-05 21:54:09  carl
+  Revision 1.4  2002-03-09 23:18:51  carl
+  * simulate the error code on system with no stack checking
+
+  Revision 1.3  2002/03/05 21:54:09  carl
   + indicate error code
 
   Revision 1.2  2002/01/19 12:37:12  peter
