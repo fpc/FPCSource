@@ -281,7 +281,11 @@ interface
     function filetimestring( t : longint) : string;
 
     procedure DefaultReplacements(var s:string);
+    {Gives the absolute path to the current directory}
     function  GetCurrentDir:string;
+    {Gives the relative path to the current directory, 
+     with a trailing dir separator. E. g. on unix ./ }
+    function CurDirRelPath(systeminfo: tsysteminfo): string;
     function  path_absolute(const s : string) : boolean;
     Function  PathExists ( F : String) : Boolean;
     Function  FileExists ( Const F : String) : Boolean;
@@ -463,6 +467,8 @@ implementation
 
      var
        CachedCurrentDir : string;
+
+   {Gives the absolute path to the current directory}
    function GetCurrentDir:string;
      begin
        if CachedCurrentDir='' then
@@ -473,6 +479,17 @@ implementation
        result:=CachedCurrentDir;
      end;
 
+   {Gives the relative path to the current directory, 
+    with a trailing dir separator. E. g. on unix ./ }
+   function CurDirRelPath(systeminfo: tsysteminfo): string;
+
+   begin
+     if systeminfo.system <> system_powerpc_macos then
+       CurDirRelPath:= '.'+systeminfo.DirSep
+     else
+       CurDirRelPath:= ':'
+   end;
+    
 
    function path_absolute(const s : string) : boolean;
    {
@@ -1039,16 +1056,16 @@ implementation
 
          { fix pathname }
          if currPath='' then
-          currPath:='.'+source_info.DirSep
+           currPath:= CurDirRelPath(source_info)
          else
           begin
             currPath:=FixPath(FExpand(currPath),false);
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$ifdef AMIGA}
-               currPath:=CurrentDir+Copy(currPath,length(CurrentDir)+1,255);
+               currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,255);
 {$else}
-               currPath:='.'+source_info.DirSep+Copy(currPath,length(CurrentDir)+1,255);
+               currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,255);
 {$endif}
              end;
           end;
@@ -1392,7 +1409,7 @@ implementation
       { later, this should be replaced by the math unit }
       const
         Default8087CW : word = $1332;
-	
+  
       procedure Set8087CW(cw:word);assembler;
         asm
           movw cw,%ax
@@ -1424,7 +1441,7 @@ implementation
       { later, this should be replaced by the math unit }
       const
         Default8087CW : word = $1332;
-	
+  
       procedure Set8087CW(cw:word);assembler;
         asm
           movw cw,%ax
@@ -2030,7 +2047,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2004-09-21 23:33:43  hajny
+  Revision 1.142  2004-10-09 11:27:59  olle
+    + Added CurDirRelPath
+    * Exchanged hardcoded "./" to CurDirRelPath
+
+  Revision 1.141  2004/09/21 23:33:43  hajny
     * better PathExists, fix for too long command line, correction of message
 
   Revision 1.140  2004/09/21 19:59:51  peter
