@@ -20,12 +20,13 @@ Unit DPMIEXCP;
 
 { Real mode control-C check removed
 because I got problems with the RMCB
-can be used by setting this conditionnal }
+can be used by setting this conditionnal (PM) }
+{ works now correctly (PM) }
 {$define UseRMcbrk}
 
 interface
 
-uses go32{,sysutils};
+uses go32;
 
 {$S- no stack check !!! }
 {$packrecords 2 }
@@ -168,11 +169,17 @@ end;
 #include <sys/nearptr.h>		/* For DS base/limit info */
 #include <libc/internal.h> }
 
-const newline = #13#10;
+{ const newline = #13#10; }
 
 procedure err(x : string);
 begin
    write(stderr, x);
+   flush(stderr);
+end;
+
+procedure errln(x : string);
+begin
+   writeln(stderr, x);
    flush(stderr);
 end;
 
@@ -194,8 +201,7 @@ procedure itox(v,len : longint);
   var st : string;
   begin
      st:=hexstr(v,len);
-     write(stderr,st);
-     flush(stderr);
+     err(st);
   end;
 
 function except_to_sig(excep : longint) : longint;
@@ -230,8 +236,8 @@ function except_to_sig(excep : longint) : longint;
 procedure show_call_frame;
 
   begin
-     err('Call frame traceback EIPs:'+newline);
-     err('  0x'+hexstr(djgpp_exception_state^.__eip, 8)+newline);
+     errln('Call frame traceback EIPs:');
+     errln('  0x'+hexstr(djgpp_exception_state^.__eip, 8));
      dump_stack(djgpp_exception_state^.__ebp);
   end;
 
@@ -266,7 +272,7 @@ const
 procedure dump_selector(const name : string; sel : word);
   var base,limit : longint;
   begin
-     write(stderr, name);
+     err(name);
      err(': sel=');
      itox(sel, 4);
   if (sel<>0) then
@@ -282,7 +288,7 @@ procedure dump_selector(const name : string; sel : word);
        limit:=get_segment_limit(sel);
        err('  limit='); itox(limit, 8);
     end;
-  err(newline);
+  errln('');
   end;
 
 function farpeekb(sel : word;offset : longint) : byte;
@@ -341,7 +347,7 @@ function do_faulting_finish_message : integer;
      { Control-C should stop the program also !}
      {if (signum = $79) then
        begin
-          err(newline);
+          errln('');
           exit(-1);
        end;}
      if ((signum < EXCEPTIONCOUNT) and (has_error[signum]=1)) then
@@ -353,7 +359,7 @@ function do_faulting_finish_message : integer;
                itox(errorcode, 4);
             end;
        end;
-     err(newline);
+     errln('');
      err('eax=');
      itox(djgpp_exception_state^.__eax, 8);
      err(' ebx='); itox(djgpp_exception_state^.__ebx, 8);
@@ -361,18 +367,18 @@ function do_faulting_finish_message : integer;
      err(' edx='); itox(djgpp_exception_state^.__edx, 8);
      err(' esi='); itox(djgpp_exception_state^.__esi, 8);
      err(' edi='); itox(djgpp_exception_state^.__edi, 8);
-     err(newline);
+     errln('');
      err('ebp='); itox(djgpp_exception_state^.__ebp, 8);
      err(' esp='); itox(djgpp_exception_state^.__esp, 8);
      err(' program=');
-     err(paramstr(0)+newline);
+     errln(paramstr(0));
      dump_selector('cs', djgpp_exception_state^.__cs);
      dump_selector('ds', djgpp_exception_state^.__ds);
      dump_selector('es', djgpp_exception_state^.__es);
      dump_selector('fs', djgpp_exception_state^.__fs);
      dump_selector('gs', djgpp_exception_state^.__gs);
      dump_selector('ss', djgpp_exception_state^.__ss);
-     err(newline);
+     errln('');
      if (djgpp_exception_state^.__cs = get_cs) then
        show_call_frame;
      { must not return !! }
@@ -444,14 +450,14 @@ function _raise(sig : longint) : longint;
            err('Exiting due to signal $');
            itox(sig, 4);
         end;
-      err(newline);
+      errln('');
       { if(djgpp_exception_state<>nil) then }
         do_faulting_finish_message();	{/* Exits, does not return */ }
       exit(-1);
     end;
   if ((longint(temp) < longint(starttext)) or (longint(temp) > longint(endtext))) then
     begin
-       err('Bad signal handler, ');
+       errln('Bad signal handler, ');
        goto traceback_exit;
     end;
   temp(sig);
@@ -613,13 +619,13 @@ const exception_level : longint = 0;
             {/* User handler did not exit or longjmp, we must exit */}
             err('FPK cannot continue from exception, exiting due to signal ');
             itox(sig, 4);
-            err(newline);
+            errln('');
          end
        else
          begin
             if exception_level>2 then
               begin
-                 err('FPK triple exception, exiting !!! ');
+                 errln('FPK triple exception, exiting !!! ');
                  if (exceptions_on) then
                    djgpp_exception_toggle;
                  asm
@@ -629,7 +635,7 @@ const exception_level : longint = 0;
               end;
             err('FPK double exception, exiting due to signal ');
             itox(sig, 4);
-            err(newline);
+            errln('');
          end;
        do_faulting_finish_message;
     end;
@@ -669,13 +675,11 @@ procedure djgpp_exception_toggle;
 {$ifdef DEBUG}
      if exceptions_on then
        begin
-          err('Disabling FPK exceptions');
-          err(newline);
+          errln('Disabling FPK exceptions');
        end
      else
        begin
-          err('Enabling FPK exceptions');
-          err(newline);
+          errln('Enabling FPK exceptions');
        end;
 {$endif DEBUG}
      { toggle here to avoid infinite recursion }
@@ -692,7 +696,7 @@ procedure djgpp_exception_toggle;
             begin
                if (i <> 2) {or (_crt0_startup_flags & _CRT0_FLAG_NMI_SIGNAL))} then
                if not set_pm_exception_handler(i,except_ori[i]) then
-                 err('error setting exception nø'+hexstr(i,2));
+                 errln('error setting exception nø'+hexstr(i,2));
                except_ori[i] := _except;
             end
           else
@@ -701,7 +705,7 @@ procedure djgpp_exception_toggle;
                  begin
                     if (i <> 2) {or (_crt0_startup_flags & _CRT0_FLAG_NMI_SIGNAL))} then
                     if not set_exception_handler(i,except_ori[i]) then
-                      err('error setting exception nø'+hexstr(i,2));
+                      errln('error setting exception nø'+hexstr(i,2));
                     except_ori[i] := _except;
                  end
             end;
@@ -719,7 +723,7 @@ procedure djgpp_exception_toggle;
           free_rm_callback(cbrk_rmcb);
           cbrk_hooked := false;
 {$ifdef DEBUG}
-       err('back to ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
+       errln('back to ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
 
 {$endif DEBUG}
        end
@@ -727,12 +731,12 @@ procedure djgpp_exception_toggle;
        begin
           get_rm_interrupt(cbrk_vect, cbrk_ori);
 {$ifdef DEBUG}
-       err('ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
+       errln('ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
 {$endif DEBUG}
           get_rm_callback(djgpp_cbrk_hdlr, cbrk_regs, cbrk_rmcb);
           set_rm_interrupt(cbrk_vect, cbrk_rmcb);
 {$ifdef DEBUG}
-       err('now rm cbrk  '+hexstr(cbrk_rmcb.segment,4)+':'+hexstr(longint(cbrk_rmcb.offset),4));
+       errln('now rm cbrk  '+hexstr(cbrk_rmcb.segment,4)+':'+hexstr(longint(cbrk_rmcb.offset),4));
 {$endif DEBUG}
           cbrk_hooked := true;
        end;
@@ -933,8 +937,12 @@ djgpp_exception_setup;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-04-21 14:46:33  pierre
+    + debug info better output
+      no normal code changed
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.9  1998/03/18 15:34:46  pierre
     + fpu state is restaured in excep_exit
@@ -963,8 +971,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.2  1998-04-21 14:46:33  pierre
+    + debug info better output
+      no normal code changed
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
 
   Revision 1.9  1998/03/18 15:34:46  pierre
     + fpu state is restaured in excep_exit
