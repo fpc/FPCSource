@@ -4,7 +4,7 @@ USES
 VAR
   Handle : THandle;
   buf    : ARRAY[0..255] OF CHAR;
-  n      : Longint;
+  n      : LongWord;
 BEGIN
   Handle := FileOpen(AsciiZ('test'), fa_Create);
   writeln('FileOpen: ',Handle);
@@ -15,7 +15,7 @@ BEGIN
 
   Writeln('SetFileSize: ', SetFileSize(handle, 4));
 
-  Writeln('SetFilePos: ', SetFilePos(handle, 2, 0, n));
+  Writeln('SetFilePos: ', SetFilePos(handle, 2, 0, (LongInt(n)));
   Writeln('Actual: ', n);
 
   Writeln('FileRead: ', FileRead(Handle, buf, 2, n) );
