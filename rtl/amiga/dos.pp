@@ -244,7 +244,7 @@ Type
         tc_State        : Byte;
         tc_IDNestCnt    : Shortint;         { intr disabled nesting         }
         tc_TDNestCnt    : Shortint;         { task disabled nesting         }
-        tc_SigAlloc     : Cardinal        { sigs allocated                }
+        tc_SigAlloc     : Cardinal;        { sigs allocated                }
         tc_SigWait      : Cardinal;        { sigs we are waiting for       }
         tc_SigRecvd     : Cardinal;        { sigs we have received         }
         tc_SigExcept    : Cardinal;        { sigs we will take excepts for }
@@ -374,7 +374,7 @@ Type
       cli_CurrentInput : BPTR;      {* Current CLI input                       *}
       cli_CommandFile  : BSTR;      {* Name of EXECUTE command file       *}
       cli_Interactive  : longint;   {* Boolean; True if prompts required  *}
-      cli_Background   : longint    {* Boolean; True if CLI created by RUN*}
+      cli_Background   : longint;   {* Boolean; True if CLI created by RUN*}
       cli_CurrentOutput: BPTR;      {* Current CLI output                   *}
       cli_DefautlStack : longint;   {* Stack size to be obtained in long words *}
       cli_StandardOutput : BPTR;    {* Default (terminal) CLI output          *}
@@ -1722,7 +1722,10 @@ End.
 
 {
   $Log$
-  Revision 1.9  1998-09-14 20:20:57  carl
+  Revision 1.10  1998-10-14 10:46:14  pierre
+  added several ; missing
+
+  Revision 1.9  1998/09/14 20:20:57  carl
     * FSplit bugfix
     * Structures bugfixes by Nils Sjoholm
 
