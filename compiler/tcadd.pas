@@ -476,7 +476,7 @@ implementation
            { is one of the operands a string?,
              chararrays are also handled as strings (after conversion) }
            if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
-              is_chararray(rd) or is_chararray(ld) then
+              (is_chararray(rd) and is_chararray(ld)) then
             begin
               if is_widestring(rd) or is_widestring(ld) then
                 begin
@@ -1017,7 +1017,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  1999-02-22 02:15:43  peter
+  Revision 1.23  1999-03-02 22:52:19  peter
+    * fixed char array, which can start with all possible values
+
+  Revision 1.22  1999/02/22 02:15:43  peter
     * updates for ag386bin
 
   Revision 1.21  1999/01/20 21:05:09  peter

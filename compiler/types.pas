@@ -332,7 +332,6 @@ unit types;
     function is_chararray(p : pdef) : boolean;
       begin
         is_chararray:=(p^.deftype=arraydef) and
-                      (parraydef(p)^.lowrange=0) and
                       is_equal(parraydef(p)^.definition,cchardef);
       end;
 
@@ -1284,7 +1283,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.53  1999-02-25 21:02:57  peter
+  Revision 1.54  1999-03-02 22:52:20  peter
+    * fixed char array, which can start with all possible values
+
+  Revision 1.53  1999/02/25 21:02:57  peter
     * ag386bin updates
     + coff writer
 
