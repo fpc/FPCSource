@@ -14,9 +14,10 @@ be very useful if you could test your projects with it and tell us when
 you find bugs. You can submit bug reports on the website.
 *** WARNING *** WARNING *** WARNING ***
 
-This package contains a freeware 32-bit pascal compiler for 386+. The language
-and the runtime library are almost compatible with TP 7.0 and recent Delphi
-releases.
+This package contains a freeware 32-bit pascal compiler for several
+platforms. The language and the runtime library are almost compatible with
+Turbo Pascal 7.0 and recent Delphi releases. There is also partial support
+for the Macintosh pascal dialect.
 
 Free Pascal 1.9.6 is currently available for the following platforms:
 - Linux-i386
@@ -28,6 +29,7 @@ Free Pascal 1.9.6 is currently available for the following platforms:
 - Win32 (Win95/98/Me/XP/2000 and WinNT)
 - FreeBSD i386
 - Mac OS X/Darwin for PowerPC
+- Mac OS (classic) for PowerPC
 
 More platforms will be supported in future 1.9.x beta releases.
 Because release building is quite time intensive, we decide to start the
@@ -86,8 +88,10 @@ Linux:
 FreeBSD:
 - FreeBSD 4.x system or 5.x system that has COMPAT_4 system (which is
   default)
-- Mac OS X:
+Mac OS X:
  - Mac OS X 10.1 and higher (10.0 may also work, but is untested)
+Mac OS (classic)
+ - Mac OS 9.2 has been tested, should probably also work from 7.5.3 and up.
 
 ****************************************************************************
 * Quick start - Win32
