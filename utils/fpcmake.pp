@@ -19,25 +19,39 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif}
+  dos,
   sysutils,classes,inifiles;
 
 const
   Version='v0.99.13';
   Title='fpcmake '+Version;
 
-const
+  EnvVar='FPCMAKEINI'; { should be FPCMAKE in the future }
+  TimeFormat='yyyy/mm/dd hh:nn';
+
+  targets=4;
+  targetstr : array[1..targets] of string=(
+    'linux','go32v2','win32','os2'
+  );
+
+{ Sections in Makefile.fpc }
   sec_dirs='dirs';
   sec_libs='libs';
   sec_targets='targets';
   sec_info='info';
-  sec_misc='misc';
-  sec_rules='rules';
+  sec_defaults='defaults';
+  sec_tools='tools';
 
 type
   TFpcMake=record
-    DefaultUnits   : boolean;
     TargetUnits,
-    TargetPrograms : string;
+    TargetPrograms : array[0..targets] of string;
+    DefaultUnits   : boolean;
+    DefaultRule,
+    DefaultTarget,
+    DefaultCPU,
+    DefaultOptions : string;
+    DirFpc,
     DirUnit,
     DirLib,
     DirObj,
@@ -49,11 +63,19 @@ type
     LibGCC,
     LibOther       : boolean;
     InfoCfg,
-    InfoDir,
+    InfoDirs,
     InfoTools,
     InfoInstall,
     InfoObjects,
     InfoFiles      : boolean;
+    ToolsSed,
+    ToolsDiff,
+    ToolsCmp,
+    ToolsUpx,
+    ToolsDate,
+    ToolsZip       : boolean;
+    PreSettings,
+    PostSettings,
     Rules          : TStringList;
   end;
 
@@ -86,6 +108,7 @@ function ReadMakefilefpc:boolean;
 var
   fn  : string;
   ini : TIniFile;
+  i   : integer;
 begin
   ReadMakefilefpc:=false;
   if FileExists('Makefile.fpc') then
@@ -102,31 +125,55 @@ begin
   with userini,ini do
    begin
    { targets }
-     DefaultUnits:=ReadBool(sec_targets,'defaultunits',false);
-     TargetUnits:=ReadString(sec_targets,'units','');
-     TargetPrograms:=ReadString(sec_targets,'programs','');
+     TargetUnits[0]:=ReadString(sec_targets,'units','');
+     TargetPrograms[0]:=ReadString(sec_targets,'programs','');
+     for i:=1 to targets do
+      begin
+        TargetUnits[i]:=ReadString(sec_targets,'units_'+targetstr[i],'');
+        TargetPrograms[i]:=ReadString(sec_targets,'programs_'+targetstr[i],'');
+      end;
+   { defaults }
+     DefaultUnits:=ReadBool(sec_defaults,'defaultunits',false);
+     DefaultRule:=ReadString(sec_defaults,'defaultrule','all');
+     DefaultTarget:=ReadString(sec_defaults,'defaulttarget','');
+     DefaultCPU:=ReadString(sec_defaults,'defaultcpu','');
+     DefaultOptions:=ReadString(sec_defaults,'defaultoptions','');
    { dirs }
-     DirUnit:=ReadString(sec_dirs,'unit','');
-     DirLib:=ReadString(sec_dirs,'lib','');
-     DirObj:=ReadString(sec_dirs,'obj','');
-     DirTarget:=ReadString(sec_dirs,'target','');
-     DirUnitTarget:=ReadString(sec_dirs,'unittarget','');
-     DirInc:=ReadString(sec_dirs,'inc','');
-     DirProcInc:=ReadString(sec_dirs,'procinc','');
-     DirOSInc:=ReadString(sec_dirs,'osinc','');
+     DirFpc:=ReadString(sec_dirs,'fpcdir','');
+     DirUnit:=ReadString(sec_dirs,'unitdir','');
+     DirLib:=ReadString(sec_dirs,'libdir','');
+     DirObj:=ReadString(sec_dirs,'objdir','');
+     DirTarget:=ReadString(sec_dirs,'targetdir','');
+     DirUnitTarget:=ReadString(sec_dirs,'unittargetdir','');
+     DirInc:=ReadString(sec_dirs,'incdir','');
+     DirProcInc:=ReadString(sec_dirs,'procincdir','');
+     DirOSInc:=ReadString(sec_dirs,'osincdir','');
    { libs }
-     LibGcc:=ReadBool(sec_libs,'gcc',false);
-     LibOther:=ReadBool(sec_libs,'other',false);
+     LibGcc:=ReadBool(sec_libs,'libgcc',false);
+     LibOther:=ReadBool(sec_libs,'libother',false);
+   { tools }
+     ToolsSed:=ReadBool(sec_tools,'toolsed',false);
+     ToolsDiff:=ReadBool(sec_tools,'tooldiff',false);
+     ToolsCmp:=ReadBool(sec_tools,'toolcmp',false);
+     ToolsUpx:=ReadBool(sec_tools,'toolupx',true);
+     ToolsDate:=ReadBool(sec_tools,'tooldate',true);
+     ToolsZip:=ReadBool(sec_tools,'toolzip',true);
    { info }
-     InfoCfg:=ReadBool(sec_info,'config',true);
-     InfoDir:=ReadBool(sec_info,'dir',false);
-     InfoTools:=ReadBool(sec_info,'tools',false);
-     InfoInstall:=ReadBool(sec_info,'install',true);
-     InfoObjects:=ReadBool(sec_info,'objects',true);
-     InfoFiles:=ReadBool(sec_info,'files',false);
+     InfoCfg:=ReadBool(sec_info,'infoconfig',true);
+     InfoDirs:=ReadBool(sec_info,'infodirs',false);
+     InfoTools:=ReadBool(sec_info,'infotools',false);
+     InfoInstall:=ReadBool(sec_info,'infoinstall',true);
+     InfoObjects:=ReadBool(sec_info,'infoobjects',true);
+     InfoFiles:=ReadBool(sec_info,'infofiles',false);
+   { rules }
+     PreSettings:=TStringList.Create;
+     ReadSectionRaw('presettings',PreSettings);
+   { rules }
+     PostSettings:=TStringList.Create;
+     ReadSectionRaw('postsettings',PostSettings);
    { rules }
      rules:=TStringList.Create;
-     ReadSectionRaw(sec_rules,rules);
+     ReadSectionRaw('rules',rules);
    end;
 
   ini.Destroy;
@@ -143,15 +190,18 @@ var
   fn : string;
 begin
   ReadFpcMakeIni:=nil;
-  if FileExists('userini.ini') then
-   fn:='userini.ini'
+  if FileExists('fpcmake.ini') then
+   fn:='fpcmake.ini'
+  else
+   if (FileExists(GetEnv('FPCMAKEINI'))) then
+    fn:=GetEnv('FPCMAKEINI')
   else
 {$ifdef linux}
-   if FileExists('/usr/lib/fpc/userini.ini') then
-    fn:='/usr/lib/fpc/userini.ini'
+   if FileExists('/usr/lib/fpc/fpcmake.ini') then
+    fn:='/usr/lib/fpc/fpcmake.ini'
 {$else}
-   if FileExists(paramstr(0)+'/userini.ini') then
-    fn:=paramstr(0)+'/userini.ini'
+   if FileExists(ChangeFileExt(paramstr(0),'.ini')) then
+    fn:=ChangeFileExt(paramstr(0),'.ini')
 {$endif}
   else
    exit;
@@ -178,7 +228,7 @@ var
     i:=0;
     while (i<sl.Count) do
      begin
-       if sl[i][1] in [' ',#9] then
+       if (sl[i]<>'') and (sl[i][1] in [' ',#9]) then
         begin
           s:=sl[i];
           k:=0;
@@ -233,7 +283,8 @@ var
     i:=0;
     while (i<userini.rules.Count) do
      begin
-       if (userini.rules[i][1]=s[1]) and
+       if (userini.rules[i]<>'') and
+          (userini.rules[i][1]=s[1]) and
           (Copy(userini.rules[i],1,length(s))=s) then
          exit;
        inc(i);
@@ -244,6 +295,7 @@ var
 
 var
   hs : string;
+  i  : integer;
 begin
 { Open the Makefile }
   Verbose('Creating Makefile');
@@ -255,69 +307,127 @@ begin
    begin
    { write header & autodetection }
      Add('#');
-     Add('# Makefile generated from Makefile.fpc by '+Title);
+     Add('# Makefile generated from Makefile.fpc on '+FormatDateTime(TimeFormat,Now));
      Add('#');
      Add('');
+     Add('defaultrule: Makefile '+userini.defaultrule);
+     Add('');
+     AddSection(true,'makefilerule');
      AddSection(true,'osdetect');
+
+   { set the forced target os/cpu }
+     if (userini.defaulttarget<>'') or (userini.defaultcpu<>'') then
+      begin
+        AddSection(true,'defaulttarget');
+        if userini.defaulttarget<>'' then
+         Add('override OS_TARGET:='+userini.defaulttarget);
+        if userini.defaultcpu<>'' then
+         Add('override CPU_TARGET:='+userini.defaultcpu);
+        Add('');
+      end;
+
+   { fpc detection }
      AddSection(true,'fpcdetect');
 
    { write the default & user settings }
      AddSection(true,'defaultsettings');
      AddSection(true,'usersettings');
 
+   { Pre Settings }
+     if userini.PreSettings.count>0 then
+      AddStrings(userini.PreSettings);
+
    { Targets }
+     Add('');
+     Add('UNITOBJECTS='+userini.targetunits[0]);
+     Add('EXEOBJECTS='+userini.targetprograms[0]);
+     for i:=1to targets do
+      if (userini.targetunits[i]<>'') or
+         (userini.targetprograms[i]<>'') then
+      begin
+        Add('ifeq ($(OS_TARGET),'+targetstr[i]+')');
+        if userini.targetunits[i]<>'' then
+         Add('UNITOBJECTS+='+userini.targetunits[i]);
+        if userini.targetprograms[i]<>'' then
+         Add('EXEOBJECTS+='+userini.targetprograms[i]);
+        Add('endif');
+      end;
+
+   { Defaults }
+     Add('');
      if userini.defaultunits then
       Add('DEFAULTUNITS=1');
-     Add('UNITOBJECTS='+userini.targetunits);
-     Add('EXEOBJECTS='+userini.targetprograms);
+     if userini.defaultoptions<>'' then
+      Add('override NEEDOPT='+userini.defaultoptions);
 
    { Dirs }
+     Add('');
+     if userini.dirfpc<>'' then
+      begin
+        { this dir can be set in the environment, it's more a default }
+        Add('ifndef FPCDIR');
+        Add('FPCDIR='+userini.dirfpc);
+        Add('endif');
+      end;
      if userini.dirunit<>'' then
-      Add('NEEDUNITDIR='+userini.dirunit);
+      Add('override NEEDUNITDIR='+userini.dirunit);
      if userini.dirlib<>'' then
-      Add('NEEDLIBDIR='+userini.dirlib);
+      Add('override NEEDLIBDIR='+userini.dirlib);
      if userini.dirobj<>'' then
-      Add('NEEDOBJDIR='+userini.dirobj);
+      Add('override NEEDOBJDIR='+userini.dirobj);
      if userini.dirinc<>'' then
-      Add('INC='+userini.dirinc);
-     if userini.dirprocinc<>'' then
-      Add('PROCINC='+userini.dirprocinc);
-     if userini.dirosinc<>'' then
-      Add('OSINC='+userini.dirosinc);
+      Add('override NEEDINCDIR='+userini.dirinc);
      if userini.dirtarget<>'' then
-      Add('TARGETDIR='+userini.dirtarget);
+      begin
+        Add('ifndef TARGETDIR');
+        Add('TARGETDIR='+userini.dirtarget);
+        Add('endif');
+      end;
      if userini.dirunittarget<>'' then
-      Add('UNITTARGETDIR='+userini.dirunittarget);
+      begin
+        Add('ifndef UNITTARGETDIR');
+        Add('UNITTARGETDIR='+userini.dirunittarget);
+        Add('endif');
+      end;
 
    { Libs }
+     Add('');
      if userini.libgcc then
-      Add('NEEDGCCLIB=1');
+      Add('override NEEDGCCLIB=1');
      if userini.libother then
-      Add('NEEDOTHERLIB=1');
+      Add('override NEEDOTHERLIB=1');
 
    { Info }
      Add('');
      hs:='';
      if userini.infocfg then
       hs:=hs+'fpc_infocfg ';
-     if userini.infodir then
-      hs:=hs+'fpc_infodir ';
+     if userini.infodirs then
+      hs:=hs+'fpc_infodirs ';
      if userini.infotools then
       hs:=hs+'fpc_infotools ';
+     if userini.infoobjects then
+      hs:=hs+'fpc_infoobjects ';
      if userini.infoinstall then
       hs:=hs+'fpc_infoinstall ';
      if userini.infofiles then
       hs:=hs+'fpc_infofiles ';
      Add('FPCINFO='+hs);
 
+   { Post Settings }
+     if userini.PostSettings.count>0 then
+      AddStrings(userini.PostSettings);
+
    { commandline }
      Add('');
      AddSection(true,'command_begin');
      AddSection(true,'command_rtl');
      AddSection(true,'command_needopt');
+     AddSection((userini.dirfpc<>''),'command_fpcdir');
      AddSection((userini.dirunit<>''),'command_needunit');
      AddSection((userini.dirlib<>''),'command_needlib');
      AddSection((userini.dirobj<>''),'command_needobj');
+     AddSection((userini.dirinc<>''),'command_needinc');
      AddSection(userini.libgcc,'command_gcclib');
      AddSection(userini.libother,'command_otherlib');
      AddSection((userini.dirinc<>''),'command_inc');
@@ -331,12 +441,12 @@ begin
    { write tools }
      AddSection(true,'shelltools');
      AddSection(true,'tool_default');
-     AddSection(true,'tool_upx');
-     AddSection(true,'tool_sed');
-     AddSection(true,'tool_date');
-     AddSection(true,'tool_zip');
-     AddSection(true,'tool_cmp');
-     AddSection(true,'tool_diff');
+     AddSection(userini.toolsupx,'tool_upx');
+     AddSection(userini.toolssed,'tool_sed');
+     AddSection(userini.toolsdate,'tool_date');
+     AddSection(userini.toolszip,'tool_zip');
+     AddSection(userini.toolscmp,'tool_cmp');
+     AddSection(userini.toolsdiff,'tool_diff');
 
    { write dirs }
      AddSection(true,'dir_default');
@@ -354,6 +464,7 @@ begin
      AddRule('all');
      AddRule('staticlib');
      AddRule('sharedlib');
+     AddRule('showinstall');
      AddRule('install');
      AddRule('staticinstall');
      AddRule('sharedinstall');
@@ -361,6 +472,7 @@ begin
      AddRule('zipinstall');
      AddRule('zipinstalladd');
      AddRule('clean');
+     AddRule('clean_all');
      AddRule('depend');
      AddRule('info');
 
@@ -373,9 +485,9 @@ begin
      AddSection(true,'dependrules');
      AddSection(true,'inforules');
      AddSection(userini.infocfg,'info_cfg');
-     AddSection(userini.infodir,'info_dir');
+     AddSection(userini.infodirs,'info_dirs');
      AddSection(userini.infotools,'info_tools');
-     AddSection(userini.infoobjects,'info_object');
+     AddSection(userini.infoobjects,'info_objects');
      AddSection(userini.infoinstall,'info_install');
      AddSection(userini.infofiles,'info_files');
 
@@ -401,7 +513,7 @@ begin
 { Open userini.ini }
   fpcini:=ReadFpcMakeIni;
   if not assigned(fpcini) then
-   Error('Can''t read userini.ini');
+   Error('Can''t read fpcmake.ini');
 
 { Open Makefile.fpc }
   if not ReadMakefilefpc then
@@ -415,7 +527,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-11-02 23:57:40  peter
+  Revision 1.2  1999-11-03 23:39:53  peter
+    * lot of updates
+
+  Revision 1.1  1999/11/02 23:57:40  peter
     * initial version
 
 }
