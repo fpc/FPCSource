@@ -235,7 +235,7 @@
            DefaultHandler(message);
         end;
 
-      procedure TObject.DispatchStr(var message);
+      procedure TObject.DispatchStr(const message:shortstring);
 
         type
            pdword = ^dword;
@@ -248,7 +248,7 @@
            vmt : tclass;
 
         begin
-           name:=pshortstring(@message)^;
+           name:=message;
            vmt:=ClassType;
            while assigned(vmt) do
              begin
@@ -325,7 +325,10 @@
 
 {
   $Log$
-  Revision 1.4  1999-05-19 13:20:09  peter
+  Revision 1.4.2.1  1999-07-10 10:09:59  peter
+    * fixed dispatchstr()
+
+  Revision 1.4  1999/05/19 13:20:09  peter
     * fixed dispatchstr
 
   Revision 1.3  1999/05/17 21:52:37  florian

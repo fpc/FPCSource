@@ -98,7 +98,7 @@
           class function stringmessagetable : pstringmessagetable;
           { message handling routines }
           procedure dispatch(var message);
-          procedure dispatchstr(var message);
+          procedure DispatchStr(const message:shortstring);
 
           class function methodaddress(const name : shortstring) : pointer;
           class function methodname(address : pointer) : shortstring;
@@ -193,7 +193,10 @@
        end;
 {
   $Log$
-  Revision 1.3  1999-05-17 21:52:38  florian
+  Revision 1.3.2.1  1999-07-10 10:10:00  peter
+    * fixed dispatchstr()
+
+  Revision 1.3  1999/05/17 21:52:38  florian
     * most of the Object Pascal stuff moved to the system unit
 
 }
