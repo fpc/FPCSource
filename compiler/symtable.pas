@@ -1790,9 +1790,15 @@ implementation
                    hsym:=next^.search(sym^.name);
                    { a parameter and the function can have the same }
                    { name in TP and Delphi                          }
-                   if assigned(hsym) and
-                     (sym^.typ<>funcretsym) then
-                     DuplicateSym(hsym);
+                   if assigned(hsym) then
+                     begin
+                       if (sym^.typ<>funcretsym) then
+                         DuplicateSym(hsym)
+                       else
+                         begin
+                           sym^.setname('hidden'+sym^.name);
+                         end;
+                     end;
                 end
               else if (current_module^.flags and uf_local_browser)=0 then
                 internalerror(43789);
@@ -2808,7 +2814,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.82  2000-03-22 09:25:57  florian
+  Revision 1.83  2000-03-27 21:15:34  pierre
+   * fix bug 294 in a BP compatible way ie. hidding the function result
+
+  Revision 1.82  2000/03/22 09:25:57  florian
     * bug 294 fixed: parameters can have now the same name as the function/
       procedure, this is compatible with TP/Delphi
 
