@@ -213,7 +213,7 @@ BEGIN
    Len := PByte(P2)^+3;                               { Length of data }
    Dec(P, 2);                                         { Correct position }
    Inc(P2, PByte(P2)^+1);                             { Next hist record }
-   Move(P2^, P^, HistoryUsed - LongInt(P2));          { Shuffle history }
+   Move(P2^, P^, cardinal(P2) - cardinal(HistoryBlock) + HistoryUsed);          { Shuffle history }
    Dec(HistoryUsed, Len);                             { Adjust history used }
 END;
 
@@ -225,7 +225,7 @@ VAR P: PHistRec;
 BEGIN
    While (CurString <> Nil) Do Begin
      Inc(PChar(CurString), PByte(CurString)^+1);      { Move to next string }
-     If (LongInt(CurString) >= HistoryUsed) Then Begin{ Last string check }
+     If (cardinal(CurString) >= cardinal(HistoryBlock) + HistoryUsed) Then Begin{ Last string check }
        CurString := Nil;                              { Clear current string }
        Exit;                                          { Now exit }
      End;
@@ -341,7 +341,7 @@ PROCEDURE ClearHistory;
 BEGIN
    If (HistoryBlock <> Nil) Then Begin                { History initiated }
      PChar(HistoryBlock)^ := #0;                      { Clear first byte }
-     HistoryUsed := LongInt(HistoryBlock) + 1;        { Set position }
+     HistoryUsed := 1;        { Set position }
    End;
 END;
 
@@ -392,7 +392,7 @@ BEGIN
    If (HistoryBlock <> Nil) Then Begin                { History initialized }
      If (Size <= HistorySize) Then Begin
        S.Read(HistoryBlock^, Size);                   { Read the history }
-       HistoryUsed := LongInt(HistoryBlock) + Size;   { History used }
+       HistoryUsed := Size;                           { History used }
      End Else S.Seek(S.GetPos + Size);                { Move stream position }
    End Else S.Seek(S.GetPos + Size);                  { Move stream position }
 END;
@@ -404,7 +404,7 @@ PROCEDURE StoreHistory (Var S: TStream);
 VAR Size: Word;
 BEGIN
    If (HistoryBlock = Nil) Then Size := 0 Else        { No history data }
-     Size := HistoryUsed - LongInt(HistoryBlock);     { Size of history data }
+     Size := HistoryUsed;                             { Size of history data }
    S.Write(Size, 2);                                  { Write history size }
    If (Size > 0) Then S.Write(HistoryBlock^, Size);   { Write history data }
 END;
@@ -413,7 +413,10 @@ END.
 
 {
  $Log$
- Revision 1.5  2001-11-07 22:07:55  pierre
+ Revision 1.6  2002-05-24 09:30:33  pierre
+  * fix bug with HistoryUsed, now is really a used size
+
+ Revision 1.5  2001/11/07 22:07:55  pierre
   * removed another bug in InsertString
 
  Revision 1.4  2001/11/07 21:50:40  pierre
