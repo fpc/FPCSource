@@ -816,6 +816,10 @@ implementation
               else break;
            end;
          until false;
+         { check for incomplete class definitions, this is only required
+           for fpc modes }
+         if (m_fpc in aktmodeswitches) then
+          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class);
       end;
 
 
@@ -864,7 +868,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-01-19 15:12:34  peter
+  Revision 1.43  2002-01-19 15:20:09  peter
+    * also check at the end of the implementation for incomplete classes
+
+  Revision 1.42  2002/01/19 15:12:34  peter
     * check for unresolved forward classes in the interface
 
   Revision 1.41  2001/11/02 22:58:06  peter
