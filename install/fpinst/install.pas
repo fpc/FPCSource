@@ -543,7 +543,7 @@ program install;
        r.assign(x1,y1,x2,y2);
        inherited init(r,cfg.title+' Installation');
 
-       line:=2;
+       line:=1;
        r.assign(3,line+1,28,line+2);
 
        f:=new(pinputline,init(r,high(DirStr)));
@@ -930,7 +930,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-06-10 15:00:14  peter
+  Revision 1.4  1999-06-10 20:01:23  peter
+    + fcl,fv,gtk support
+
+  Revision 1.3  1999/06/10 15:00:14  peter
     * fixed to compile for not os2
     * update install.dat
 
