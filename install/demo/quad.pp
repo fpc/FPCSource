@@ -79,6 +79,7 @@ Var b           : array[1..nox,1..noy] Of card;
     bgidirec    : string;
     time        : time_record;
 
+{
 Procedure fatal(fcall:String);
 Begin
   textmode(CO80);
@@ -90,6 +91,7 @@ Begin
   readln;
   halt;
 End;
+}
 
 Procedure ginit640x480x16(direc:String);
 
