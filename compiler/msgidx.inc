@@ -44,7 +44,7 @@ const
   scan_e_keyword_cant_be_a_macro=02028;
   scan_f_macro_buffer_overflow=02029;
   scan_w_macro_deep_ten=02030;
-  scan_e_wrong_styled_switch=02031;
+  scan_w_wrong_styled_switch=02031;
   scan_d_handling_switch=02032;
   scan_c_endif_found=02033;
   scan_c_ifdef_found=02034;
@@ -633,7 +633,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 36049;
+  MsgTxtSize = 36051;
 
   MsgIdxMax : array[1..20] of longint=(
     17,63,197,53,57,44,99,20,35,60,

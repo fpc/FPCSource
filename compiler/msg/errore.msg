@@ -202,7 +202,7 @@ scan_w_macro_deep_ten=02030_W_Extension of macros exceeds a depth of 16.
 % When expanding a macro macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_e_wrong_styled_switch=02031_E_compiler switches aren't allowed in // styled comments
+scan_w_wrong_styled_switch=02031_W_compiler switches aren't supported in // styled comments
 % Compiler switches should be in normal pascal style comments.
 scan_d_handling_switch=02032_DL_Handling switch "$1"
 % When you set debugging info on (\var{-vd}) the compiler tells you when it
