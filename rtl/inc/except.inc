@@ -30,10 +30,9 @@ Type
   PExceptAddr = ^TExceptAddr;
   TExceptAddr = record
     buf       : pjmp_buf;
-    frametype : Longint;
     next      : PExceptAddr;
+    frametype : Longint;
   end;
-
 
   TExceptObjectClass = Class of TObject;
 
@@ -80,7 +79,7 @@ end;
 {$ifndef HAS_ADDR_STACK_ON_STACK}
 Function fpc_PushExceptAddr (Ft: Longint): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
-{$else HAS_ADDR_STACK_ON_HEAP}
+{$else HAS_ADDR_STACK_ON_STACK}
 Function fpc_PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif HAS_ADDR_STACK_ON_STACK}
@@ -311,7 +310,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.14  2004-02-05 01:16:12  florian
+  Revision 1.15  2004-04-27 18:47:51  florian
+    * exception addr record size for 64 bit systems fixed
+
+  Revision 1.14  2004/02/05 01:16:12  florian
     + completed x86-64/linux system unit
 
   Revision 1.13  2003/11/26 20:12:08  michael
