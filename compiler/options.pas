@@ -873,9 +873,11 @@ var
   opts  : string;
   skip  : array[0..maxlevel-1] of boolean;
   level : longint;
+  option_read : boolean;
 begin
 { avoid infinite loop }
   Inc(FileLevel);
+  Option_read:=false;
   If FileLevel>MaxLevel then
    Message(option_too_many_cfg_files);
 { open file }
@@ -978,13 +980,21 @@ begin
          end
         else
          begin
-           if (not skip[level]) and (opts[1]='-') then
-            interpret_option(opts,false)
+           if (opts[1]='-') then
+            begin
+              if (not skip[level]) then
+                interpret_option(opts,false);
+              Option_read:=true;
+            end
+           else
+             Message1(option_illegal_para,opts);
          end;
       end;
    end;
   if Level>0 then
    Message(option_too_less_endif);
+  if Not Option_read then
+    Message1(option_no_option_found,filename);
   Close(f);
   Dec(FileLevel);
 end;
@@ -1377,7 +1387,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.49  2000-01-10 11:14:19  peter
+  Revision 1.50  2000-01-14 14:33:54  pierre
+   + some warnings for wrong lines inside config files
+
+  Revision 1.49  2000/01/10 11:14:19  peter
     * fixed memory leak with options, you must use StopOptions instead of
       Stop
     * fixed memory leak with forward resolving, make_ref is now false

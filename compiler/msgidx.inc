@@ -496,6 +496,7 @@ type tmsgconst=(
   option_def_only_for_os2,
   option_no_nested_response_file,
   option_no_source_found,
+  option_no_option_found,
   option_illegal_para,
   option_help_pages_para,
   option_too_many_cfg_files,

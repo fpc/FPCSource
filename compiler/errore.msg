@@ -1530,6 +1530,8 @@ option_no_nested_response_file=E_nested response files are not supported
 % you cannot nest response files with the \var{@file} command-line option.
 option_no_source_found=F_No source file name in command line
 % The compiler expects a source file name on the command line.
+option_no_option_found=N_No option inside $1 config file
+% The compiler didn't find any option in that config file.
 option_illegal_para=E_Illegal parameter: $1
 % You specified an unknown option.
 option_help_pages_para=H_-? writes help pages
