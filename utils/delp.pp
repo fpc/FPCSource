@@ -24,7 +24,7 @@ uses
   dos,getopts;
 
 const
-  version='v1.00';
+  version='v1.01';
 
 function DStr(l:longint):string;
 var
@@ -166,8 +166,8 @@ begin
   Writeln('Delp [options]');
   Writeln('Where options is one of:');
   writeln('  -e    Delete executables also (Not on linux)');
-  writeln('  -h    Displat (this) help message.');
-  writeln('  -q    Be quiet.');
+  writeln('  -h    Display (this) help message.');
+  writeln('  -q    Quietly perfoms deleting.');
   Halt(1);
 end;
 
@@ -249,7 +249,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-01-23 14:20:44  michael
+  Revision 1.7  2000-01-23 14:23:48  michael
+  + Typos fixed, version updated
+
+  Revision 1.6  2000/01/23 14:20:44  michael
   + Added option to delete executables, plus help and quiet
 
   Revision 1.5  2000/01/12 10:40:59  peter
