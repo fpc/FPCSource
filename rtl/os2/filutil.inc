@@ -119,11 +119,14 @@ asm
 end;
 
 
-procedure FileClose (Handle: longint); assembler;
-asm
-    mov eax, 3E00h
-    mov ebx, Handle
-    call syscall
+procedure FileClose (Handle: longint);
+begin
+    if (Handle <= 4) or (os_mode = osOS2) and (Handle <= 2) then
+        asm
+            mov eax, 3E00h
+            mov ebx, Handle
+            call syscall
+        end;
 end;
 
 
@@ -387,7 +390,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2000-06-04 15:04:22  hajny
+  Revision 1.12  2000-06-05 18:57:38  hajny
+    * handle number check added to FileClose
+
+  Revision 1.11  2000/06/04 15:04:22  hajny
     * another bunch of corrections
 
   Revision 1.10  2000/06/04 14:22:02  hajny
