@@ -1185,7 +1185,7 @@ Implementation
                  { fixup the references }
                  for i:=1 to Taicpu(hp).ops do
                   begin
-                    with Taicpu(hp).oper[i-1] do
+                    with Taicpu(hp).oper[i-1]^ do
                      begin
                        case typ of
                          top_ref :
@@ -1661,7 +1661,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-10-03 14:16:48  marco
+  Revision 1.58  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.57  2003/10/03 14:16:48  marco
    * -XP<prefix> support
 
   Revision 1.56  2003/09/30 19:54:23  peter

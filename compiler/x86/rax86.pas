@@ -661,6 +661,7 @@ begin
   ai:=taicpu.op_none(opcode,siz);
   ai.SetOperandOrder(OpOrder);
   ai.Ops:=Ops;
+  ai.Allocate_oper(Ops);
   for i:=1to Ops do
    begin
      case operands[i].opr.typ of
@@ -700,7 +701,7 @@ begin
                      asize:=OT_BITS80;
                  end;
                if asize<>0 then
-                 ai.oper[i-1].ot:=(ai.oper[i-1].ot and not OT_SIZE_MASK) or asize;
+                 ai.oper[i-1]^.ot:=(ai.oper[i-1]^.ot and not OT_SIZE_MASK) or asize;
              end;
          end;
      end;
@@ -732,7 +733,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2003-10-01 20:34:51  peter
+  Revision 1.11  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.10  2003/10/01 20:34:51  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

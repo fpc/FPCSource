@@ -647,11 +647,11 @@ interface
                    (taicpu(hp).opcode=A_FMULP))
                   and (taicpu(hp).ops=0) then
                  begin
-                   taicpu(hp).ops:=2;
-                   taicpu(hp).oper[0].typ:=top_reg;
-                   taicpu(hp).oper[0].reg:=NR_ST1;
-                   taicpu(hp).oper[1].typ:=top_reg;
-                   taicpu(hp).oper[1].reg:=NR_ST;
+                   taicpu(hp).allocate_oper(2);
+                   taicpu(hp).oper[0]^.typ:=top_reg;
+                   taicpu(hp).oper[0]^.reg:=NR_ST1;
+                   taicpu(hp).oper[1]^.typ:=top_reg;
+                   taicpu(hp).oper[1]^.reg:=NR_ST;
                  end;
                if taicpu(hp).opcode=A_FWAIT then
                 AsmWriteln(#9#9'DB'#9'09bh')
@@ -663,8 +663,8 @@ interface
                   if (taicpu(hp).opsize=S_W) and
                      ((taicpu(hp).opcode=A_PUSH) or
                       (taicpu(hp).opcode=A_POP)) and
-                      (taicpu(hp).oper[0].typ=top_reg) and
-                      (is_segment_reg(taicpu(hp).oper[0].reg)) then
+                      (taicpu(hp).oper[0]^.typ=top_reg) and
+                      (is_segment_reg(taicpu(hp).oper[0]^.reg)) then
                     AsmWriteln(#9#9'DB'#9'066h');
                   AsmWrite(#9#9+std_op2str[taicpu(hp).opcode]+cond2str[taicpu(hp).condition]);
                   if taicpu(hp).ops<>0 then
@@ -672,7 +672,7 @@ interface
                      if is_calljmp(taicpu(hp).opcode) then
                       begin
                         AsmWrite(#9);
-                        WriteOper_jmp(taicpu(hp).oper[0],taicpu(hp).opcode);
+                        WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp).opcode);
                       end
                      else
                       begin
@@ -682,7 +682,7 @@ interface
                             AsmWrite(#9)
                            else
                             AsmWrite(',');
-                           WriteOper(taicpu(hp).oper[i],taicpu(hp).opsize,taicpu(hp).opcode,taicpu(hp).ops,(i=2));
+                           WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,taicpu(hp).opcode,taicpu(hp).ops,(i=2));
                          end;
                       end;
                    end;
@@ -900,7 +900,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.40  2003-10-01 20:34:49  peter
+  Revision 1.41  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.40  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose

@@ -604,8 +604,8 @@ implementation
                              (taicpu(hp).opcode=A_PUSH) or
                              (taicpu(hp).opcode=A_POP)
                             ) and
-                            (taicpu(hp).oper[0].typ=top_reg) and
-                            is_segment_reg(taicpu(hp).oper[0].reg)
+                            (taicpu(hp).oper[0]^.typ=top_reg) and
+                            is_segment_reg(taicpu(hp).oper[0]^.reg)
                            ) then
                          AsmWriteln(#9#9'DB'#9'066h');
 
@@ -640,7 +640,7 @@ implementation
                        if (aktoutputformat = as_i386_wasm) and
                         (taicpu(hp).opsize=S_W) and
                         (taicpu(hp).opcode=A_PUSH) and
-                        (taicpu(hp).oper[0].typ=top_const) then
+                        (taicpu(hp).oper[0]^.typ=top_const) then
                         begin
                           AsmWriteln(#9#9'DB 66h,68h ; pushw imm16');
                           AsmWrite(#9#9'DW');
@@ -652,7 +652,7 @@ implementation
                           if is_calljmp(taicpu(hp).opcode) then
                            begin
                              AsmWrite(#9);
-                             WriteOper_jmp(taicpu(hp).oper[0],taicpu(hp).opsize);
+                             WriteOper_jmp(taicpu(hp).oper[0]^,taicpu(hp).opsize);
                            end
                           else
                            begin
@@ -662,7 +662,7 @@ implementation
                                  AsmWrite(#9)
                                 else
                                  AsmWrite(',');
-                                WriteOper(taicpu(hp).oper[i],taicpu(hp).opsize,taicpu(hp).opcode,(i=2));
+                                WriteOper(taicpu(hp).oper[i]^,taicpu(hp).opsize,taicpu(hp).opcode,(i=2));
                               end;
                            end;
                         end;
@@ -875,7 +875,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.42  2003-10-19 01:34:30  florian
+  Revision 1.43  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.42  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 

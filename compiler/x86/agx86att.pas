@@ -176,8 +176,8 @@ interface
         AsmWrite(#9+gas_op2str[op]+cond2str[taicpu(hp).condition]);
         { suffix needed ?  fnstsw,fldcw don't support suffixes
           with binutils 2.9.5 under linux }
-{        if (Taicpu(hp).oper[0].typ=top_reg) and
-            (Taicpu(hp).oper[0].reg.enum>lastreg) then
+{        if (Taicpu(hp).oper[0]^.typ=top_reg) and
+            (Taicpu(hp).oper[0]^.reg.enum>lastreg) then
           internalerror(200301081);}
 
         if (not calljmp) and
@@ -185,8 +185,8 @@ interface
             (op<>A_FNSTSW) and (op<>A_FSTSW) and
             (op<>A_FNSTCW) and (op<>A_FSTCW) and
             (op<>A_FLDCW) and not(
-            (taicpu(hp).oper[0].typ=top_reg) and
-            (getregtype(taicpu(hp).oper[0].reg)=R_FPUREGISTER)
+            (taicpu(hp).oper[0]^.typ=top_reg) and
+            (getregtype(taicpu(hp).oper[0]^.reg)=R_FPUREGISTER)
            ) then
           AsmWrite(gas_opsize2str[taicpu(hp).opsize]);
         { process operands }
@@ -195,7 +195,7 @@ interface
             if calljmp then
              begin
                AsmWrite(#9);
-               WriteOper_jmp(taicpu(hp).oper[0]);
+               WriteOper_jmp(taicpu(hp).oper[0]^);
              end
             else
              begin
@@ -205,7 +205,7 @@ interface
                      AsmWrite(#9)
                    else
                      AsmWrite(',');
-                   WriteOper(taicpu(hp).oper[i]);
+                   WriteOper(taicpu(hp).oper[i]^);
                  end;
              end;
           end;
@@ -289,7 +289,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2003-10-02 21:18:06  peter
+  Revision 1.9  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.8  2003/10/02 21:18:06  peter
     * remove asw
 
   Revision 1.7  2003/10/01 20:34:50  peter

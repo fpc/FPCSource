@@ -213,10 +213,10 @@ interface
          procedure ppuderefoper(var o:toper);override;
       private
          { next fields are filled in pass1, so pass2 is faster }
-         insentry  : PInsEntry;
+         inssize   : shortint;
          insoffset,
-         inssize   : longint;
          LastInsOffset : longint; { need to be public to be reset }
+         insentry  : PInsEntry;
          function  InsEnd:longint;
          procedure create_ot;
          function  Matches(p:PInsEntry):longint;
@@ -648,59 +648,62 @@ implementation
         addsize : boolean;
       begin
         s:='['+std_op2str[opcode];
-        for i:=1to ops do
+        for i:=0 to ops-1 do
          begin
-           if i=1 then
-            s:=s+' '
-           else
-            s:=s+',';
-           { type }
-           addsize:=false;
-           if (oper[i-1].ot and OT_XMMREG)=OT_XMMREG then
-            s:=s+'xmmreg'
-           else
-             if (oper[i-1].ot and OT_MMXREG)=OT_MMXREG then
-              s:=s+'mmxreg'
-           else
-             if (oper[i-1].ot and OT_FPUREG)=OT_FPUREG then
-              s:=s+'fpureg'
-           else
-            if (oper[i-1].ot and OT_REGISTER)=OT_REGISTER then
+           with oper[i]^ do
              begin
-               s:=s+'reg';
-               addsize:=true;
-             end
-           else
-            if (oper[i-1].ot and OT_IMMEDIATE)=OT_IMMEDIATE then
-             begin
-               s:=s+'imm';
-               addsize:=true;
-             end
-           else
-            if (oper[i-1].ot and OT_MEMORY)=OT_MEMORY then
-             begin
-               s:=s+'mem';
-               addsize:=true;
-             end
-           else
-             s:=s+'???';
-           { size }
-           if addsize then
-            begin
-              if (oper[i-1].ot and OT_BITS8)<>0 then
-                s:=s+'8'
-              else
-               if (oper[i-1].ot and OT_BITS16)<>0 then
-                s:=s+'16'
-              else
-               if (oper[i-1].ot and OT_BITS32)<>0 then
-                s:=s+'32'
-              else
-                s:=s+'??';
-              { signed }
-              if (oper[i-1].ot and OT_SIGNED)<>0 then
-               s:=s+'s';
-            end;
+               if i=0 then
+                s:=s+' '
+               else
+                s:=s+',';
+               { type }
+               addsize:=false;
+               if (ot and OT_XMMREG)=OT_XMMREG then
+                s:=s+'xmmreg'
+               else
+                 if (ot and OT_MMXREG)=OT_MMXREG then
+                  s:=s+'mmxreg'
+               else
+                 if (ot and OT_FPUREG)=OT_FPUREG then
+                  s:=s+'fpureg'
+               else
+                if (ot and OT_REGISTER)=OT_REGISTER then
+                 begin
+                   s:=s+'reg';
+                   addsize:=true;
+                 end
+               else
+                if (ot and OT_IMMEDIATE)=OT_IMMEDIATE then
+                 begin
+                   s:=s+'imm';
+                   addsize:=true;
+                 end
+               else
+                if (ot and OT_MEMORY)=OT_MEMORY then
+                 begin
+                   s:=s+'mem';
+                   addsize:=true;
+                 end
+               else
+                 s:=s+'???';
+               { size }
+               if addsize then
+                begin
+                  if (ot and OT_BITS8)<>0 then
+                    s:=s+'8'
+                  else
+                   if (ot and OT_BITS16)<>0 then
+                    s:=s+'16'
+                  else
+                   if (ot and OT_BITS32)<>0 then
+                    s:=s+'32'
+                  else
+                    s:=s+'??';
+                  { signed }
+                  if (ot and OT_SIGNED)<>0 then
+                   s:=s+'s';
+                end;
+             end;
          end;
         GetString:=s+']';
       end;
@@ -708,7 +711,7 @@ implementation
 
     procedure taicpu.Swapoperands;
       var
-        p : TOper;
+        p : POper;
       begin
         { Fix the operands which are in AT&T style and we need them in Intel style }
         case ops of
@@ -826,16 +829,16 @@ implementation
 
         if (
             (ops=2) and
-            (oper[0].typ=top_reg) and
-            (oper[1].typ=top_reg) and
+            (oper[0]^.typ=top_reg) and
+            (oper[1]^.typ=top_reg) and
            { if the first is ST and the second is also a register
              it is necessarily ST1 .. ST7 }
-            ((oper[0].reg=NR_ST) or
-             (oper[0].reg=NR_ST0))
+            ((oper[0]^.reg=NR_ST) or
+             (oper[0]^.reg=NR_ST0))
            ) or
            { ((ops=1) and
-            (oper[0].typ=top_reg) and
-            (oper[0].reg in [R_ST1..R_ST7]))  or}
+            (oper[0]^.typ=top_reg) and
+            (oper[0]^.reg in [R_ST1..R_ST7]))  or}
            (ops=0) then
           begin
             if opcode=A_FSUBR then
@@ -857,9 +860,9 @@ implementation
           end;
         if (
             (ops=1) and
-            (oper[0].typ=top_reg) and
-            (getregtype(oper[0].reg)=R_FPUREGISTER) and
-            (oper[0].reg<>NR_ST)
+            (oper[0]^.typ=top_reg) and
+            (getregtype(oper[0]^.reg)=R_FPUREGISTER) and
+            (oper[0]^.reg<>NR_ST)
            ) then
          begin
            if opcode=A_FSUBRP then
@@ -900,7 +903,7 @@ implementation
          exit;
         { update oper[].ot field }
         for i:=0 to ops-1 do
-         with oper[i] do
+         with oper[i]^ do
           begin
             case typ of
               top_reg :
@@ -1002,7 +1005,7 @@ implementation
 
         { Check that no spurious colons or TOs are present }
         for i:=0 to p^.ops-1 do
-         if (oper[i].ot and (not p^.optypes[i]) and (OT_COLON or OT_TO))<>0 then
+         if (oper[i]^.ot and (not p^.optypes[i]) and (OT_COLON or OT_TO))<>0 then
           begin
             Matches:=0;
             exit;
@@ -1011,12 +1014,12 @@ implementation
         { Check that the operand flags all match up }
         for i:=0 to p^.ops-1 do
          begin
-           if ((p^.optypes[i] and (not oper[i].ot)) or
+           if ((p^.optypes[i] and (not oper[i]^.ot)) or
                ((p^.optypes[i] and OT_SIZE_MASK) and
-                ((p^.optypes[i] xor oper[i].ot) and OT_SIZE_MASK)))<>0 then
+                ((p^.optypes[i] xor oper[i]^.ot) and OT_SIZE_MASK)))<>0 then
             begin
-              if ((p^.optypes[i] and (not oper[i].ot) and OT_NON_SIZE) or
-                  (oper[i].ot and OT_SIZE_MASK))<>0 then
+              if ((p^.optypes[i] and (not oper[i]^.ot) and OT_NON_SIZE) or
+                  (oper[i]^.ot and OT_SIZE_MASK))<>0 then
                begin
                  Matches:=0;
                  exit;
@@ -1082,10 +1085,10 @@ implementation
         for i:=0 to p^.ops-1 do
          begin
            if ((p^.optypes[i] and OT_SIZE_MASK)=0) and
-              ((oper[i].ot and OT_SIZE_MASK and (not siz[i]))<>0) and
+              ((oper[i]^.ot and OT_SIZE_MASK and (not siz[i]))<>0) and
               { Immediates can always include smaller size }
-              ((oper[i].ot and OT_IMMEDIATE)=0) and
-               (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i].ot and OT_SIZE_MASK)) then
+              ((oper[i]^.ot and OT_IMMEDIATE)=0) and
+               (((p^.optypes[i] and OT_SIZE_MASK) or siz[i])<(oper[i]^.ot and OT_SIZE_MASK)) then
             Matches:=2;
          end;
       end;
@@ -1265,15 +1268,15 @@ implementation
     function taicpu.needaddrprefix(opidx:byte):boolean;
       begin
         needaddrprefix:=false;
-        if (OT_MEMORY and (not oper[opidx].ot))=0 then
+        if (OT_MEMORY and (not oper[opidx]^.ot))=0 then
           begin
             if (
-                (oper[opidx].ref^.index<>NR_NO) and
-                (getsubreg(oper[opidx].ref^.index)<>R_SUBD)
+                (oper[opidx]^.ref^.index<>NR_NO) and
+                (getsubreg(oper[opidx]^.ref^.index)<>R_SUBD)
                ) or
                (
-                (oper[opidx].ref^.base<>NR_NO) and
-                (getsubreg(oper[opidx].ref^.base)<>R_SUBD)
+                (oper[opidx]^.ref^.base<>NR_NO) and
+                (getsubreg(oper[opidx]^.ref^.base)<>R_SUBD)
                ) then
               needaddrprefix:=true;
           end;
@@ -1517,7 +1520,7 @@ implementation
               begin
                 if (c>=64) and (c<=191) then
                  begin
-                   if not process_ea(oper[(c shr 3) and 7], ea_data, 0) then
+                   if not process_ea(oper[(c shr 3) and 7]^, ea_data, 0) then
                     Message(asmw_e_invalid_effective_address)
                    else
                     inc(len,ea_data.size);
@@ -1583,21 +1586,21 @@ implementation
 
         procedure getvalsym(opidx:longint);
         begin
-          case oper[opidx].typ of
+          case oper[opidx]^.typ of
             top_ref :
               begin
-                currval:=oper[opidx].ref^.offset;
-                currsym:=oper[opidx].ref^.symbol;
+                currval:=oper[opidx]^.ref^.offset;
+                currsym:=oper[opidx]^.ref^.symbol;
               end;
             top_const :
               begin
-                currval:=longint(oper[opidx].val);
+                currval:=longint(oper[opidx]^.val);
                 currsym:=nil;
               end;
             top_symbol :
               begin
-                currval:=oper[opidx].symofs;
-                currsym:=oper[opidx].sym;
+                currval:=oper[opidx]^.symofs;
+                currsym:=oper[opidx]^.sym;
               end;
             else
               Message(asmw_e_immediate_or_reference_expected);
@@ -1645,7 +1648,7 @@ implementation
               end;
             4,6 :
               begin
-                case oper[0].reg of
+                case oper[0]^.reg of
                   NR_CS:
                     bytes[0]:=$e;
                   NR_NO,
@@ -1664,7 +1667,7 @@ implementation
               end;
             5,7 :
               begin
-                case oper[0].reg of
+                case oper[0]^.reg of
                   NR_FS:
                     bytes[0]:=$a0;
                   NR_GS:
@@ -1678,7 +1681,7 @@ implementation
               end;
             8,9,10 :
               begin
-                bytes[0]:=ord(codes^)+regval(oper[c-8].reg);
+                bytes[0]:=ord(codes^)+regval(oper[c-8]^.reg);
                 inc(codes);
                 sec.writebytes(bytes,1);
               end;
@@ -1814,15 +1817,15 @@ implementation
                  begin
                    if (c<127) then
                     begin
-                      if (oper[c and 7].typ=top_reg) then
-                        rfield:=regval(oper[c and 7].reg)
+                      if (oper[c and 7]^.typ=top_reg) then
+                        rfield:=regval(oper[c and 7]^.reg)
                       else
-                        rfield:=regval(oper[c and 7].ref^.base);
+                        rfield:=regval(oper[c and 7]^.ref^.base);
                     end
                    else
                     rfield:=c and 7;
                    opidx:=(c shr 3) and 7;
-                   if not process_ea(oper[opidx], ea_data, rfield) then
+                   if not process_ea(oper[opidx]^,ea_data,rfield) then
                     Message(asmw_e_invalid_effective_address);
 
                    pb:=@bytes;
@@ -1841,19 +1844,19 @@ implementation
                      0 : ;
                      1 :
                        begin
-                         if (oper[opidx].ot and OT_MEMORY)=OT_MEMORY then
-                          sec.writereloc(oper[opidx].ref^.offset,1,oper[opidx].ref^.symbol,RELOC_ABSOLUTE)
+                         if (oper[opidx]^.ot and OT_MEMORY)=OT_MEMORY then
+                          sec.writereloc(oper[opidx]^.ref^.offset,1,oper[opidx]^.ref^.symbol,RELOC_ABSOLUTE)
                          else
                           begin
-                            bytes[0]:=oper[opidx].ref^.offset;
+                            bytes[0]:=oper[opidx]^.ref^.offset;
                             sec.writebytes(bytes,1);
                           end;
                          inc(s);
                        end;
                      2,4 :
                        begin
-                         sec.writereloc(oper[opidx].ref^.offset,ea_data.bytes,
-                           oper[opidx].ref^.symbol,RELOC_ABSOLUTE);
+                         sec.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,
+                           oper[opidx]^.ref^.symbol,RELOC_ABSOLUTE);
                          inc(s,ea_data.bytes);
                        end;
                    end;
@@ -1872,8 +1875,8 @@ implementation
       {We do not check the number of operands; we assume that nobody constructs
        a mov or xchg instruction with less than 2 operands. (DM)}
       is_nop:=(opcode=A_NOP) or
-              (opcode=A_MOV) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg=oper[1].reg) or
-              (opcode=A_XCHG) and (oper[0].typ=top_reg) and (oper[1].typ=top_reg) and (oper[0].reg=oper[1].reg);
+              (opcode=A_MOV) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg) or
+              (opcode=A_XCHG) and (oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg) and (oper[0]^.reg=oper[1]^.reg);
     end;
 
     function Taicpu.is_move:boolean;
@@ -1885,7 +1888,7 @@ implementation
        interrest to the register allocation, therefore we only return true
        for a move between two registers. (DM)}
       is_move:=((opcode=A_MOV) or (opcode=A_MOVZX) or (opcode=A_MOVSX)) and
-        ((oper[0].typ=top_reg) and (oper[1].typ=top_reg));
+        ((oper[0]^.typ=top_reg) and (oper[1]^.typ=top_reg));
     end;
 
 
@@ -1921,10 +1924,10 @@ implementation
       case ops of
         1:
           begin
-            if (oper[0].typ=top_reg) and
-               (getregtype(oper[0].reg)=R_INTREGISTER) then
+            if (oper[0]^.typ=top_reg) and
+               (getregtype(oper[0]^.reg)=R_INTREGISTER) then
               begin
-                supreg:=getsupreg(oper[0].reg);
+                supreg:=getsupreg(oper[0]^.reg);
                 if supregset_in(r,supreg) then
                   begin
                     {Situation example:
@@ -1933,15 +1936,15 @@ implementation
                     Change into:
                      push [ebp-12]          ; Replace register by reference }
 {                    hopsize:=reg2opsize(oper[0].reg);}
-                    oper[0].typ:=top_ref;
-                    new(oper[0].ref);
-                    oper[0].ref^:=spilltemplist[supreg];
-{                    oper[0].ref^.size:=hopsize;}
+                    oper[0]^.typ:=top_ref;
+                    new(oper[0]^.ref);
+                    oper[0]^.ref^:=spilltemplist[supreg];
+{                    oper[0]^.ref^.size:=hopsize;}
                   end;
               end;
-            if oper[0].typ=top_ref then
+            if oper[0]^.typ=top_ref then
               begin
-                supreg:=getsupreg(oper[0].ref^.base);
+                supreg:=getsupreg(oper[0]^.ref^.base);
                 if supregset_in(r,supreg) then
                   begin
                     {Situation example:
@@ -1951,23 +1954,23 @@ implementation
 
                      mov r23d,[ebp-12]         ; Use a help register
                      push [r23d+4*r22d]        ; Replace register by helpregister }
-                    subreg:=getsubreg(oper[0].ref^.base);
-                    if oper[0].ref^.index=NR_NO then
+                    subreg:=getsubreg(oper[0]^.ref^.base);
+                    if oper[0]^.ref^.index=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
-                    helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.base),spilltemplist[supreg],helpreg);
+                    helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.ref^.base),spilltemplist[supreg],helpreg);
                     if pos=nil then
                       list.insertafter(helpins,list.first)
                     else
                       list.insertafter(helpins,pos.next);
                     rgunget(list,helpins,helpreg);
                     forward_allocation(Tai(helpins.next),unusedregsint);
-                    oper[0].ref^.base:=helpreg;
+                    oper[0]^.ref^.base:=helpreg;
                   end;
-                supreg:=getsupreg(oper[0].ref^.index);
+                supreg:=getsupreg(oper[0]^.ref^.index);
                 if supregset_in(r,supreg) then
                   begin
                     {Situation example:
@@ -1977,21 +1980,21 @@ implementation
 
                      mov r23d,[ebp-12]         ; Use a help register
                      push [r21d+4*r23d]        ; Replace register by helpregister }
-                    subreg:=getsubreg(oper[0].ref^.index);
-                    if oper[0].ref^.base=NR_NO then
+                    subreg:=getsubreg(oper[0]^.ref^.index);
+                    if oper[0]^.ref^.base=NR_NO then
                       pos:=Tai(previous)
                     else
-                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
                     rgget(list,pos,subreg,helpreg);
                     spill_registers:=true;
-                    helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].ref^.index),spilltemplist[supreg],helpreg);
+                    helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.ref^.index),spilltemplist[supreg],helpreg);
                     if pos=nil then
                       list.insertafter(helpins,list.first)
                     else
                       list.insertafter(helpins,pos.next);
                     rgunget(list,helpins,helpreg);
                     forward_allocation(Tai(helpins.next),unusedregsint);
-                    oper[0].ref^.index:=helpreg;
+                    oper[0]^.ref^.index:=helpreg;
                   end;
                 end;
           end;
@@ -2001,9 +2004,9 @@ implementation
               required because the reference can be moved from this instruction
               to a MOV instruction when spilling of the register operand is done }
             for i:=0 to 1 do
-              if oper[i].typ=top_ref then
+              if oper[i]^.typ=top_ref then
                 begin
-                  supreg:=getsupreg(oper[i].ref^.base);
+                  supreg:=getsupreg(oper[i]^.ref^.base);
                   if supregset_in(r,supreg) then
                     begin
                       {Situation example:
@@ -2013,24 +2016,24 @@ implementation
 
                        mov r23d,[ebp-12]         ; Use a help register
                        add r20d,[r23d+4*r22d]    ; Replace register by helpregister }
-                      subreg:=getsubreg(oper[i].ref^.base);
+                      subreg:=getsubreg(oper[i]^.ref^.base);
                       if i=1 then
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.index),getsupreg(oper[0].reg),
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.index),getsupreg(oper[0]^.reg),
                                             RS_INVALID,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.index),RS_INVALID,RS_INVALID,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
-                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.base),spilltemplist[supreg],helpreg);
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i]^.ref^.base),spilltemplist[supreg],helpreg);
                       if pos=nil then
                         list.insertafter(helpins,list.first)
                       else
                         list.insertafter(helpins,pos.next);
-                      oper[i].ref^.base:=helpreg;
+                      oper[i]^.ref^.base:=helpreg;
                       rgunget(list,helpins,helpreg);
                       forward_allocation(Tai(helpins.next),unusedregsint);
                   end;
-                  supreg:=getsupreg(oper[i].ref^.index);
+                  supreg:=getsupreg(oper[i]^.ref^.index);
                   if supregset_in(r,supreg) then
                     begin
                       {Situation example:
@@ -2040,31 +2043,31 @@ implementation
 
                        mov r23d,[ebp-12]         ; Use a help register
                        add r20d,[r21d+4*r23d]    ; Replace register by helpregister }
-                      subreg:=getsubreg(oper[i].ref^.index);
+                      subreg:=getsubreg(oper[i]^.ref^.index);
                       if i=1 then
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.base),getsupreg(oper[0].reg),
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.base),getsupreg(oper[0]^.reg),
                                             RS_INVALID,unusedregsint)
                       else
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i].ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[i]^.ref^.base),RS_INVALID,RS_INVALID,unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
-                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i].ref^.index),spilltemplist[supreg],helpreg);
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[i]^.ref^.index),spilltemplist[supreg],helpreg);
                       if pos=nil then
                         list.insertafter(helpins,list.first)
                       else
                         list.insertafter(helpins,pos.next);
-                      oper[i].ref^.index:=helpreg;
+                      oper[i]^.ref^.index:=helpreg;
                       rgunget(list,helpins,helpreg);
                       forward_allocation(Tai(helpins.next),unusedregsint);
                     end;
                 end;
-            if (oper[0].typ=top_reg) and
-               (getregtype(oper[0].reg)=R_INTREGISTER) then
+            if (oper[0]^.typ=top_reg) and
+               (getregtype(oper[0]^.reg)=R_INTREGISTER) then
               begin
-                supreg:=getsupreg(oper[0].reg);
-                subreg:=getsubreg(oper[0].reg);
+                supreg:=getsupreg(oper[0]^.reg);
+                subreg:=getsubreg(oper[0]^.reg);
                 if supregset_in(r,supreg) then
-                  if oper[1].typ=top_ref then
+                  if oper[1]^.typ=top_ref then
                     begin
                       {Situation example:
                        add [r20d],r21d      ; r21d must be spilled into [ebp-12]
@@ -2073,17 +2076,17 @@ implementation
 
                        mov r22d,[ebp-12]    ; Use a help register
                        add [r20d],r22d      ; Replace register by helpregister }
-                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].reg),
-                                          getsupreg(oper[1].ref^.base),getsupreg(oper[1].ref^.index),
+                      pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.reg),
+                                          getsupreg(oper[1]^.ref^.base),getsupreg(oper[1]^.ref^.index),
                                           unusedregsint);
                       rgget(list,pos,subreg,helpreg);
                       spill_registers:=true;
-                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0].reg),spilltemplist[supreg],helpreg);
+                      helpins:=Taicpu.op_ref_reg(A_MOV,reg2opsize(oper[0]^.reg),spilltemplist[supreg],helpreg);
                       if pos=nil then
                         list.insertafter(helpins,list.first)
                       else
                         list.insertafter(helpins,pos.next);
-                      oper[0].reg:=helpreg;
+                      oper[0]^.reg:=helpreg;
                       rgunget(list,helpins,helpreg);
                       forward_allocation(Tai(helpins.next),unusedregsint);
                     end
@@ -2095,19 +2098,19 @@ implementation
                        Change into:
 
                        add r20d,[ebp-12]    ; Replace register by reference }
-                      oper[0].typ:=top_ref;
-                      new(oper[0].ref);
-                      oper[0].ref^:=spilltemplist[supreg];
+                      oper[0]^.typ:=top_ref;
+                      new(oper[0]^.ref);
+                      oper[0]^.ref^:=spilltemplist[supreg];
                     end;
               end;
-            if (oper[1].typ=top_reg) and
-               (getregtype(oper[1].reg)=R_INTREGISTER) then
+            if (oper[1]^.typ=top_reg) and
+               (getregtype(oper[1]^.reg)=R_INTREGISTER) then
               begin
-                supreg:=getsupreg(oper[1].reg);
-                subreg:=getsubreg(oper[1].reg);
+                supreg:=getsupreg(oper[1]^.reg);
+                subreg:=getsubreg(oper[1]^.reg);
                 if supregset_in(r,supreg) then
                   begin
-                    if oper[0].typ=top_ref then
+                    if oper[0]^.typ=top_ref then
                       begin
                         {Situation example:
                          add r20d,[r21d]      ; r20d must be spilled into [ebp-12]
@@ -2116,8 +2119,8 @@ implementation
 
                          mov r22d,[r21d]      ; Use a help register
                          add [ebp-12],r22d    ; Replace register by helpregister }
-                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].ref^.base),
-                                            getsupreg(oper[0].ref^.index),RS_INVALID,unusedregsint);
+                        pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.ref^.base),
+                                            getsupreg(oper[0]^.ref^.index),RS_INVALID,unusedregsint);
                         rgget(list,pos,subreg,helpreg);
                         spill_registers:=true;
                         op:=A_MOV;
@@ -2127,19 +2130,19 @@ implementation
                             {Because 'movzx memory,register' does not exist...}
                             op:=opcode;
                             opcode:=A_MOV;
-                            opsize:=reg2opsize(oper[1].reg);
+                            opsize:=reg2opsize(oper[1]^.reg);
                           end;
-                        helpins:=Taicpu.op_ref_reg(op,hopsize,oper[0].ref^,helpreg);
+                        helpins:=Taicpu.op_ref_reg(op,hopsize,oper[0]^.ref^,helpreg);
                         if pos=nil then
                           list.insertafter(helpins,list.first)
                         else
                           list.insertafter(helpins,pos.next);
-                        dispose(oper[0].ref);
-                        oper[0].typ:=top_reg;
-                        oper[0].reg:=helpreg;
-                        oper[1].typ:=top_ref;
-                        new(oper[1].ref);
-                        oper[1].ref^:=spilltemplist[supreg];
+                        dispose(oper[0]^.ref);
+                        oper[0]^.typ:=top_reg;
+                        oper[0]^.reg:=helpreg;
+                        oper[1]^.typ:=top_ref;
+                        new(oper[1]^.ref);
+                        oper[1]^.ref^:=spilltemplist[supreg];
                         rgunget(list,helpins,helpreg);
                         forward_allocation(Tai(helpins.next),unusedregsint);
                       end
@@ -2158,32 +2161,32 @@ implementation
                             op:=opcode;
                             hopsize:=opsize;
                             opcode:=A_MOV;
-                            opsize:=reg2opsize(oper[1].reg);
-                            pos:=get_insert_pos(Tai(previous),getsupreg(oper[0].reg),RS_INVALID,RS_INVALID,unusedregsint);
+                            opsize:=reg2opsize(oper[1]^.reg);
+                            pos:=get_insert_pos(Tai(previous),getsupreg(oper[0]^.reg),RS_INVALID,RS_INVALID,unusedregsint);
                             rgget(list,pos,subreg,helpreg);
-                            helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0].reg,helpreg);
+                            helpins:=Taicpu.op_reg_reg(op,hopsize,oper[0]^.reg,helpreg);
                             if pos=nil then
                               list.insertafter(helpins,list.first)
                             else
                               list.insertafter(helpins,pos.next);
-                            oper[0].reg:=helpreg;
+                            oper[0]^.reg:=helpreg;
                             rgunget(list,helpins,helpreg);
                             forward_allocation(Tai(helpins.next),unusedregsint);
                           end;
-                        oper[1].typ:=top_ref;
-                        new(oper[1].ref);
-                        oper[1].ref^:=spilltemplist[supreg];
+                        oper[1]^.typ:=top_ref;
+                        new(oper[1]^.ref);
+                        oper[1]^.ref^:=spilltemplist[supreg];
                       end;
                   end;
               end;
 
             { The i386 instruction set never gets boring...
               some opcodes do not support a memory location as destination }
-            if (oper[1].typ=top_ref) and
+            if (oper[1]^.typ=top_ref) and
                (
-                (oper[0].typ=top_const) or
-                ((oper[0].typ=top_reg) and
-                 (getregtype(oper[0].reg)=R_INTREGISTER))
+                (oper[0]^.typ=top_const) or
+                ((oper[0]^.typ=top_reg) and
+                 (getregtype(oper[0]^.reg)=R_INTREGISTER))
                ) then
               begin
                 case opcode of
@@ -2205,16 +2208,16 @@ implementation
                       rgget(list,Tai(previous),subreg,helpreg);
                       spill_registers:=true;
                       {First help instruction.}
-                      helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1].ref^,helpreg);
+                      helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[1]^.ref^,helpreg);
                       if previous=nil then
                         list.insert(helpins)
                       else
                         list.insertafter(helpins,previous);
                       {Second help instruction.}
-                      helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1].ref^);
-                      dispose(oper[1].ref);
-                      oper[1].typ:=top_reg;
-                      oper[1].reg:=helpreg;
+                      helpins:=Taicpu.op_reg_ref(A_MOV,opsize,helpreg,oper[1]^.ref^);
+                      dispose(oper[1]^.ref);
+                      oper[1]^.typ:=top_reg;
+                      oper[1]^.reg:=helpreg;
                       list.insertafter(helpins,self);
                       rgunget(list,self,helpreg);
                     end;
@@ -2223,9 +2226,9 @@ implementation
 
             { The i386 instruction set never gets boring...
               some opcodes do not support a memory location as source }
-            if (oper[0].typ=top_ref) and
-               (oper[1].typ=top_reg) and
-               (getregtype(oper[1].reg)=R_INTREGISTER) then
+            if (oper[0]^.typ=top_ref) and
+               (oper[1]^.typ=top_reg) and
+               (getregtype(oper[1]^.reg)=R_INTREGISTER) then
               begin
                 case opcode of
                   A_BT,A_BTS,
@@ -2245,14 +2248,14 @@ implementation
                       rgget(list,Tai(previous),subreg,helpreg);
                       spill_registers:=true;
                       {First help instruction.}
-                      helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[0].ref^,helpreg);
+                      helpins:=Taicpu.op_ref_reg(A_MOV,opsize,oper[0]^.ref^,helpreg);
                       if previous=nil then
                         list.insert(helpins)
                       else
                         list.insertafter(helpins,previous);
-                      dispose(oper[0].ref);
-                      oper[0].typ:=top_reg;
-                      oper[0].reg:=helpreg;
+                      dispose(oper[0]^.ref);
+                      oper[0]^.typ:=top_reg;
+                      oper[0]^.reg:=helpreg;
                       rgunget(list,helpins,helpreg);
                     end;
                 end;
@@ -2315,7 +2318,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2003-10-17 14:38:32  peter
+  Revision 1.33  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.32  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

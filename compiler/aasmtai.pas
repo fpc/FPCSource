@@ -158,7 +158,7 @@ interface
          { local varsym that will be inserted in pass_2 }
          top_local  : (localsym:pointer;localsymderef:tderef;localsymofs:longint);
       end;
-
+      poper=^toper;
 
 { ait_* types which don't result in executable code or which don't influence   }
 { the way the program runs/behaves, but which may be encountered by the        }
@@ -440,8 +440,10 @@ interface
           condition : TAsmCond;
           { Number of operands to instruction }
           ops       : byte;
+          { Number of allocate oper structures }
+          opercnt   : byte;
           { Operands of instruction }
-          oper      : array[0..max_operands-1] of toper;
+          oper      : array[0..max_operands-1] of poper;
           { Actual opcode of instruction }
           opcode    : tasmop;
 {$ifdef x86}
@@ -456,6 +458,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
           procedure SetCondition(const c:TAsmCond);
+          procedure allocate_oper(opers:longint);
           procedure loadconst(opidx:longint;l:aword);
           procedure loadsymbol(opidx:longint;s:tasmsymbol;sofs:longint);
           procedure loadlocal(opidx:longint;s:pointer;sofs:longint);
@@ -1511,19 +1514,24 @@ implementation
 
 
     destructor taicpu_abstract.Destroy;
-
       var
-        i : longint;
+        i : integer;
       begin
-        for i:=0 to ops-1 do
-        case oper[i].typ of
-          top_ref:
-            dispose(oper[i].ref);
+        for i:=0 to opercnt-1 do
+          begin
+            with oper[i]^ do
+              begin
+                case typ of
+                  top_ref:
+                    dispose(ref);
 {$ifdef ARM}
-          top_shifterop:
-            dispose(oper[i].shifterop);
+                  top_shifterop:
+                     dispose(shifterop);
 {$endif ARM}
-        end;
+                end;
+              end;
+            dispose(oper[i]);
+          end;
         inherited destroy;
       end;
 
@@ -1532,11 +1540,21 @@ implementation
     Loading of operands.
   ---------------------------------------------------------------------}
 
+    procedure taicpu_abstract.allocate_oper(opers:longint);
+      begin
+        while (opers>opercnt) do
+          begin
+            new(oper[opercnt]);
+            fillchar(oper[opercnt]^,sizeof(toper),0);
+            inc(opercnt);
+          end;
+      end;
+
+
     procedure taicpu_abstract.loadconst(opidx:longint;l:aword);
       begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
          begin
            if typ<>top_const then
              clearop(opidx);
@@ -1550,9 +1568,8 @@ implementation
       begin
         if not assigned(s) then
          internalerror(200204251);
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
          begin
            if typ<>top_symbol then
              clearop(opidx);
@@ -1568,9 +1585,8 @@ implementation
       begin
         if not assigned(s) then
          internalerror(200204251);
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
          begin
            if typ<>top_local then
              clearop(opidx);
@@ -1583,9 +1599,8 @@ implementation
 
     procedure taicpu_abstract.loadref(opidx:longint;const r:treference);
       begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
           begin
             if typ<>top_ref then
               begin
@@ -1610,9 +1625,8 @@ implementation
 
     procedure taicpu_abstract.loadreg(opidx:longint;r:tregister);
       begin
-        if opidx>=ops then
-         ops:=opidx+1;
-        with oper[opidx] do
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
          begin
            if typ<>top_reg then
              clearop(opidx);
@@ -1624,31 +1638,33 @@ implementation
 
     procedure taicpu_abstract.loadoper(opidx:longint;o:toper);
       begin
-        if opidx>=ops then
-         ops:=opidx+1;
+        allocate_oper(opidx+1);
         clearop(opidx);
-        oper[opidx]:=o;
+        oper[opidx]^:=o;
         { copy also the reference }
-        case oper[opidx].typ of
-          top_ref:
-            begin
-              new(oper[opidx].ref);
-              oper[opidx].ref^:=o.ref^;
-            end;
+        with oper[opidx]^ do
+          begin
+            case typ of
+              top_ref:
+                begin
+                  new(ref);
+                  ref^:=o.ref^;
+                end;
 {$ifdef ARM}
-          top_shifterop:
-            begin
-              new(oper[opidx].shifterop);
-              oper[opidx].shifterop^:=o.shifterop^;
-            end;
+              top_shifterop:
+                begin
+                  new(shifterop);
+                  shifterop^:=o.shifterop^;
+                end;
 {$endif ARM}
-         end;
+             end;
+          end;
       end;
 
 
     procedure taicpu_abstract.clearop(opidx:longint);
       begin
-        with oper[opidx] do
+        with oper[opidx]^ do
           case typ of
             top_ref:
               dispose(ref);
@@ -1736,12 +1752,12 @@ implementation
       begin
         spill_registers:=false;
         if (ops = 2) and
-           (oper[1].typ=top_ref) and
+           (oper[1]^.typ=top_ref) and
            { oper[1] can also be ref in case of "lis r3,symbol@ha" or so }
            spilling_decode_loadstore(opcode,op,wasload) then
           begin
             { the register that's being stored/loaded }
-            supreg:=getsupreg(oper[0].reg);
+            supreg:=getsupreg(oper[0]^.reg);
             if supregset_in(r,supreg) then
               begin
                 // Example:
@@ -1762,14 +1778,14 @@ implementation
                 //   st? r21d, 8(r1)
 
                 pos := get_insert_pos(Tai(previous),supreg,
-                                      getsupreg(oper[1].ref^.base),
-                                      getsupreg(oper[1].ref^.index),
+                                      getsupreg(oper[1]^.ref^.base),
+                                      getsupreg(oper[1]^.ref^.index),
                                       unusedregsint);
                 rgget(list,pos,R_SUBWHOLE,helpreg);
                 spill_registers := true;
                 if wasload then
                   begin
-                    helpins:=spilling_create_loadstore(opcode,helpreg,oper[1].ref^);
+                    helpins:=spilling_create_loadstore(opcode,helpreg,oper[1]^.ref^);
                     loadref(1,spilltemplist[supreg]);
                     opcode := op;
                   end
@@ -1790,13 +1806,13 @@ implementation
 
             { now the registers used in the reference }
             { a) base                                 }
-            supreg := getsupreg(oper[1].ref^.base);
+            supreg := getsupreg(oper[1]^.ref^.base);
             if supregset_in(r,supreg) then
               begin
                 if wasload then
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1].ref^.index),getsupreg(oper[0].reg),0,unusedregsint)
+                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.index),getsupreg(oper[0]^.reg),0,unusedregsint)
                 else
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1].ref^.index),0,0,unusedregsint);
+                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.index),0,0,unusedregsint);
                 rgget(list,pos,R_SUBWHOLE,helpreg);
                 spill_registers:=true;
                 helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
@@ -1804,7 +1820,7 @@ implementation
                   list.insertafter(helpins,list.first)
                 else
                   list.insertafter(helpins,pos.next);
-                oper[1].ref^.base:=helpreg;
+                oper[1]^.ref^.base:=helpreg;
                 rgunget(list,helpins,helpreg);
                 forward_allocation(Tai(helpins.next),unusedregsint);
 {
@@ -1814,13 +1830,13 @@ implementation
               end;
 
             { b) index }
-            supreg := getsupreg(oper[1].ref^.index);
+            supreg := getsupreg(oper[1]^.ref^.index);
             if supregset_in(r,supreg) then
               begin
                 if wasload then
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1].ref^.base),getsupreg(oper[0].reg),0,unusedregsint)
+                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.base),getsupreg(oper[0]^.reg),0,unusedregsint)
                 else
-                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1].ref^.base),0,0,unusedregsint);
+                  pos:=get_insert_pos(Tai(previous),getsupreg(oper[1]^.ref^.base),0,0,unusedregsint);
                 rgget(list,pos,R_SUBWHOLE,helpreg);
                 spill_registers:=true;
                 helpins:=spilling_create_load(spilltemplist[supreg],helpreg);
@@ -1828,7 +1844,7 @@ implementation
                   list.insertafter(helpins,list.first)
                 else
                   list.insertafter(helpins,pos.next);
-                oper[1].ref^.index:=helpreg;
+                oper[1]^.ref^.index:=helpreg;
                 rgunget(list,helpins,helpreg);
                 forward_allocation(Tai(helpins.next),unusedregsint);
 {
@@ -1844,16 +1860,16 @@ implementation
         { operand 0 is a register and is the destination, the others are sources }
         { and can be either registers or constants                               }
         { exception: branches (is_jmp isn't always set for them)                 }
-        if oper[0].typ <> top_reg then
+        if oper[0]^.typ <> top_reg then
           exit;
-        reg1 := getsupreg(oper[0].reg);
-        if oper[1].typ = top_reg then
-          reg2 := getsupreg(oper[1].reg)
+        reg1 := getsupreg(oper[0]^.reg);
+        if oper[1]^.typ = top_reg then
+          reg2 := getsupreg(oper[1]^.reg)
         else
           reg2 := 0;
         if (ops >= 3) and
-           (oper[2].typ = top_reg) then
-          reg3 := getsupreg(oper[2].reg)
+           (oper[2]^.typ = top_reg) then
+          reg3 := getsupreg(oper[2]^.reg)
         else
           reg3 := 0;
 
@@ -1889,9 +1905,9 @@ implementation
           end;
 
         for i := 1 to 2 do
-          if (oper[i].typ = top_reg) then
+          if (oper[i]^.typ = top_reg) then
             begin
-              supreg:=getsupreg(oper[i].reg);
+              supreg:=getsupreg(oper[i]^.reg);
               if supregset_in(r,supreg) then
                 begin
                   // Example:
@@ -1936,15 +1952,20 @@ implementation
     Function taicpu_abstract.getcopy:TLinkedListItem;
       var
         i : longint;
-        p : TLinkedListItem;
+        p : taicpu_abstract;
       begin
-        p:=inherited getcopy;
+        p:=taicpu_abstract(inherited getcopy);
         { make a copy of the references }
-        for i:=1 to ops do
-         if (taicpu_abstract(p).oper[i-1].typ=top_ref) then
+        p.opercnt:=0;
+        p.allocate_oper(ops);
+        for i:=0 to ops-1 do
           begin
-            new(taicpu_abstract(p).oper[i-1].ref);
-            taicpu_abstract(p).oper[i-1].ref^:=oper[i-1].ref^;
+            p.oper[i]^:=oper[i]^;
+            if (oper[i]^.typ=top_ref) then
+              begin
+                new(p.oper[i]^.ref);
+                p.oper[i]^.ref^:=oper[i]^.ref^;
+              end;
           end;
         getcopy:=p;
       end;
@@ -1957,9 +1978,9 @@ implementation
         inherited ppuload(t,ppufile);
         { hopefully, we don't get problems with big/litte endian here when cross compiling :/ }
         ppufile.getdata(condition,sizeof(tasmcond));
-        ops:=ppufile.getbyte;
-        for i:=1 to ops do
-          ppuloadoper(ppufile,oper[i-1]);
+        allocate_oper(ppufile.getbyte);
+        for i:=0 to ops-1 do
+          ppuloadoper(ppufile,oper[i]^);
         opcode:=tasmop(ppufile.getword);
 {$ifdef i386}
         ppufile.getdata(segprefix,sizeof(Tregister));
@@ -1975,8 +1996,8 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putdata(condition,sizeof(tasmcond));
         ppufile.putbyte(ops);
-        for i:=1 to ops do
-          ppuwriteoper(ppufile,oper[i-1]);
+        for i:=0 to ops-1 do
+          ppuwriteoper(ppufile,oper[i]^);
         ppufile.putword(word(opcode));
 {$ifdef i386}
         ppufile.putdata(segprefix,sizeof(Tregister));
@@ -1986,13 +2007,13 @@ implementation
 
 
     procedure taicpu_abstract.derefimpl;
+      var
+        i : integer;
+      begin
+        for i:=0 to ops-1 do
+          ppuderefoper(oper[i]^);
+      end;
 
-    var i:byte;
-
-    begin
-      for i:=1 to ops do
-        ppuderefoper(oper[i-1]);
-    end;
 
 {****************************************************************************
                               tai_align_abstract
@@ -2101,7 +2122,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2003-10-17 14:38:32  peter
+  Revision 1.45  2003-10-21 15:15:35  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.44  2003/10/17 14:38:32  peter
     * 64k registers supported
     * fixed some memory leaks
 

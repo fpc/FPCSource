@@ -854,9 +854,9 @@ implementation
       i.moveset:=ms_worklist_moves;
       i.instruction:=instr;
       worklist_moves.insert(i);
-      ssupreg:=getsupreg(instr.oper[O_MOV_SOURCE].reg);
+      ssupreg:=getsupreg(instr.oper[O_MOV_SOURCE]^.reg);
       add_to_movelist(ssupreg,i);
-      dsupreg:=getsupreg(instr.oper[O_MOV_DEST].reg);
+      dsupreg:=getsupreg(instr.oper[O_MOV_DEST]^.reg);
       if ssupreg<>dsupreg then
         {Avoid adding the same move instruction twice to a single register.}
         add_to_movelist(dsupreg,i);
@@ -1202,8 +1202,8 @@ implementation
 
     begin
       m:=Tmoveins(worklist_moves.getfirst);
-      x:=get_alias(getsupreg(m.instruction.oper[0].reg));
-      y:=get_alias(getsupreg(m.instruction.oper[1].reg));
+      x:=get_alias(getsupreg(m.instruction.oper[0]^.reg));
+      y:=get_alias(getsupreg(m.instruction.oper[1]^.reg));
       if (y<first_imaginary) then
         begin
           u:=y;
@@ -1259,8 +1259,8 @@ implementation
             m:=reginfo[u].movelist^.data[i];
             if Tmoveins(m).moveset in [ms_worklist_moves,ms_active_moves] then
               begin
-                x:=getsupreg(Tmoveins(m).instruction.oper[0].reg);
-                y:=getsupreg(Tmoveins(m).instruction.oper[1].reg);
+                x:=getsupreg(Tmoveins(m).instruction.oper[0]^.reg);
+                y:=getsupreg(Tmoveins(m).instruction.oper[1]^.reg);
                 if get_alias(y)=get_alias(u) then
                   v:=get_alias(x)
                 else
@@ -1521,9 +1521,9 @@ implementation
             begin
               m:=Tmoveins(movelist[u]^.data[j]);
               {Get the other register of the move instruction.}
-              v:=m.instruction.oper[0].reg.number shr 8;
+              v:=m.instruction.oper[0]^.reg.number shr 8;
               if v=u then
-                v:=m.instruction.oper[1].reg.number shr 8;
+                v:=m.instruction.oper[1]^.reg.number shr 8;
               repeat
                 repeat
                   if (u<>v) and (movelist[v]<>nil) then
@@ -1752,15 +1752,15 @@ implementation
             ait_instruction:
               begin
                 for i:=0 to Taicpu_abstract(p).ops-1 do
-                  case Taicpu_abstract(p).oper[i].typ of
+                  case Taicpu_abstract(p).oper[i]^.typ of
                     Top_reg:
-                       if (getregtype(Taicpu_abstract(p).oper[i].reg)=regtype) then
-                         setsupreg(Taicpu_abstract(p).oper[i].reg,reginfo[getsupreg(Taicpu_abstract(p).oper[i].reg)].colour);
+                       if (getregtype(Taicpu_abstract(p).oper[i]^.reg)=regtype) then
+                         setsupreg(Taicpu_abstract(p).oper[i]^.reg,reginfo[getsupreg(Taicpu_abstract(p).oper[i]^.reg)].colour);
                     Top_ref:
                       begin
                         if regtype=R_INTREGISTER then
                           begin
-                            r:=Taicpu_abstract(p).oper[i].ref;
+                            r:=Taicpu_abstract(p).oper[i]^.ref;
                             if r^.base<>NR_NO then
                               setsupreg(r^.base,reginfo[getsupreg(r^.base)].colour);
                             if r^.index<>NR_NO then
@@ -1770,7 +1770,7 @@ implementation
 {$ifdef arm}
                     Top_shifterop:
                       begin
-                        so:=Taicpu_abstract(p).oper[i].shifterop;
+                        so:=Taicpu_abstract(p).oper[i]^.shifterop;
                         if so^.rs<>NR_NO then
                           setsupreg(so^.rs,table[getsupreg(so^.rs)]);
                       end;
@@ -1796,7 +1796,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.90  2003-10-19 12:36:36  florian
+  Revision 1.91  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.90  2003/10/19 12:36:36  florian
     * improved speed; reduced memory usage of the interference bitmap
 
   Revision 1.89  2003/10/19 01:34:30  florian

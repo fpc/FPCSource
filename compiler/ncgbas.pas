@@ -208,8 +208,8 @@ interface
                        { fixup the references }
                        for i:=1 to taicpu(hp2).ops do
                         begin
-                          ResolveRef(taicpu(hp2).oper[i-1]);
-                          with taicpu(hp2).oper[i-1] do
+                          ResolveRef(taicpu(hp2).oper[i-1]^);
+                          with taicpu(hp2).oper[i-1]^ do
                            begin
                              case typ of
                                top_ref :
@@ -255,7 +255,7 @@ interface
 {$endif}
                        { fixup the references }
                        for i:=1 to taicpu(hp).ops do
-                         ResolveRef(taicpu(hp).oper[i-1]);
+                         ResolveRef(taicpu(hp).oper[i-1]^);
                      end;
                 end;
                 hp:=tai(hp.next);
@@ -372,7 +372,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2003-10-10 17:48:13  peter
+  Revision 1.45  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.44  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

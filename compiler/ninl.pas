@@ -2006,7 +2006,7 @@ implementation
          if assigned(left) then
            begin
               if left.nodetype=callparan then
-                tcallparanode(left).firstcallparan(false)
+                tcallparanode(left).firstcallparan
               else
                 firstpass(left);
               left_max;
@@ -2358,7 +2358,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2003-10-08 19:19:45  peter
+  Revision 1.121  2003-10-21 15:15:36  peter
+    * taicpu_abstract.oper[] changed to pointers
+
+  Revision 1.120  2003/10/08 19:19:45  peter
     * set_varstate cleanup
 
   Revision 1.119  2003/10/01 20:34:48  peter
