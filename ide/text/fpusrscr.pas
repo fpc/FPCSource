@@ -72,8 +72,10 @@ type
       procedure   SwitchBack; virtual;
     private
       VideoInfo    : TDOSVideoInfo;
-      VBufferSize  : word;
+      VBufferSize  : longint;
+      VIDEBufferSize : longint;
       VBuffer      : PByteArray;
+      VIDEBuffer   : PByteArray;
       TM           : TDOSVideoInfo;
       function    GetLineStartOfs(Line: integer): word;
       procedure   GetBuffer(Size: word);
@@ -252,12 +254,30 @@ begin
 {$endif}
 end;
 
-
 procedure TDOSScreen.SwitchTo;
 var
   VSeg,SOfs: word;
 begin
   GetVideoMode(TM);
+  { First keep a copy of IDE screen }
+  if VideoInfo.Mode=7 then
+   VSeg:=SegB000
+  else
+   VSeg:=SegB800;
+  SOfs:=MemW[Seg0040:$4e];
+  if not assigned(VIDEBuffer) or (VIDEBufferSize<>TM.ScreenSize) then
+    begin
+      if assigned(VIDEBuffer) then
+        FreeMem(VIDEBuffer,VIDEBufferSize);
+      GetMem(VIDEBuffer,TM.ScreenSize);
+      VIDEBufferSize:=TM.ScreenSize;
+    end;
+{$ifdef FPC}
+  DosmemGet(VSeg,SOfs,VIDEBuffer^,TM.ScreenSize);
+{$else}
+  Move(ptr(VSeg,SOfs)^,VIDEBuffer^,TM.ScreenSize);
+{$endif}
+
   SetVideoMode(VideoInfo);
 
   if VideoInfo.Mode=7 then
@@ -274,9 +294,22 @@ end;
 
 
 procedure TDOSScreen.SwitchBack;
+var
+  VSeg,SOfs: word;
 begin
   Capture;
   SetVideoMode(TM);
+  if VideoInfo.Mode=7 then
+   VSeg:=SegB000
+  else
+   VSeg:=SegB800;
+  SOfs:=MemW[Seg0040:$4e];
+  if assigned(VIDEBuffer) then
+{$ifdef FPC}
+    DosmemPut(VSeg,SOfs,VIDEBuffer^,TM.ScreenSize);
+{$else}
+    Move(VIDEBuffer^,ptr(VSeg,SOfs)^,TM.ScreenSize);
+{$endif}
 end;
 
 
@@ -669,7 +702,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-02-04 23:17:25  pierre
+  Revision 1.10  2000-03-13 20:30:37  pierre
+   + stores IDE screen before Switching for DOS
+
+  Revision 1.9  2000/02/04 23:17:25  pierre
    * Keep the entry ScreenBuffer at exit
 
   Revision 1.8  1999/12/01 16:17:18  pierre
