@@ -80,6 +80,9 @@ implementation
         hreg : tregister;
         hregister : tregister;
         oldregisterdef : boolean;
+        op : tasmop;
+        opsize : topsize;
+
       begin
         { Get the accumulator first so it can't be used in the dest }
         if (dest^.resulttype^.deftype=orddef) and
@@ -92,7 +95,13 @@ implementation
         { store the value }
         Case dest^.resulttype^.deftype of
           floatdef:
-            floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
+            if dest^.location.loc=LOC_CFPUREGISTER then
+              begin
+                 floatstoreops(pfloatdef(dest^.resulttype)^.typ,op,opsize);
+                 emit_reg(op,opsize,correct_fpuregister(dest^.location.register,fpuvaroffset+1));
+              end
+            else
+              floatstore(PFloatDef(dest^.resulttype)^.typ,dest^.location.reference);
           orddef:
             begin
               if is_64bitint(dest^.resulttype) then
@@ -1511,7 +1520,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2000-03-31 22:56:46  pierre
+  Revision 1.97  2000-04-02 17:47:47  florian
+    * readln(r); works now, if r is a fpu register variable
+
+  Revision 1.96  2000/03/31 22:56:46  pierre
     * fix the handling of value parameters in cdecl function
 
   Revision 1.95  2000/03/21 16:24:43  florian
