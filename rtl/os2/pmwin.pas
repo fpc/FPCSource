@@ -2,38 +2,21 @@
 
     $Id$
 
-                            PMWIN interface unit
-                     FPC Pascal Runtime Library for OS/2
-                  Copyright (c) 1999-2000 by Florian Klaempfl
-                    Copyright (c) 1999-2000 by Ramon Bosque
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2000 by Florian Klaempfl
+    Copyright (c) 1999-2000 by Ramon Bosque
 
- The Free Pascal runtime library is distributed under the Library GNU Public
- License v2. So is this unit. The Library GNU Public License requires you to
- distribute the source code of this unit with any product that uses it.
- Because the EMX library isn't under the LGPL, we grant you an exception to
- this, and that is, when you compile a program with the Free Pascal compiler,
- you do not need to ship source code with that program, AS LONG AS YOU ARE
- USING UNMODIFIED CODE! If you modify this code, you MUST change the next
- line:
+    OS/2 Presentation Manager windowing functions, plus common
+    PM constants and types (PMWIN.DLL interface unit).
 
- <This an official, unmodified Free Pascal source code file.>
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
- Send us your modified files, we can work together if you want!
-
- Free Pascal is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- Library GNU General Public License for more details.
-
- You should have received a copy of the Library GNU General Public License
- along with Free Pascal; see the file COPYING.LIB.  If not, write to
- the Free Software Foundation, 59 Temple Place - Suite 330,
- Boston, MA 02111-1307, USA.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  ****************************************************************************}
-
-{Warning: This code is alfa. Future versions
- of this unit might not be compatible.}
 
 unit pmwin;
 
@@ -1013,6 +996,7 @@ const
        MS_VERTICALFLIP = $00000004;
        MS_CONDITIONALCASCADE = $00000040;
 
+// Menu control messages
        MM_INSERTITEM = $0180;
        MM_DELETEITEM = $0181;
        MM_QUERYITEM = $0182;
@@ -1033,6 +1017,7 @@ const
        MM_SETITEMATTR = $0192;
        MM_ISITEMVALID = $0193;
        MM_QUERYITEMRECT = $0194;
+       MM_DELETEITEMBYPOS = $01f1;  //UNDOCUMENTED
        MM_QUERYDEFAULTITEMID = $0431;
        MM_SETDEFAULTITEMID = $0432;
 
@@ -1677,6 +1662,37 @@ const
        STR_DLLNAME = 'keyremap';
        WM_DBCSFIRST = $00b0;
        WM_DBCSLAST = $00cf;
+
+{ Standard Window Classes - for WinCreateWCWindow }
+       WC_FRAME            =$ffff0001;
+       WC_COMBOBOX         =$ffff0002;
+       WC_BUTTON           =$ffff0003;
+       WC_MENU             =$ffff0004;
+       WC_STATIC           =$ffff0005;
+       WC_ENTRYFIELD       =$ffff0006;
+       WC_LISTBOX          =$ffff0007;
+       WC_SCROLLBAR        =$ffff0008;
+       WC_TITLEBAR         =$ffff0009;
+       WC_MLE              =$ffff000A;
+       { 000B to 000F reserved }
+       WC_APPSTAT          =$ffff0010;
+       WC_KBDSTAT          =$ffff0011;
+       WC_PECIC            =$ffff0012;
+       WC_DBE_KKPOPUP      =$ffff0013;
+       { 0014 to 001F reserved }
+       WC_SPINBUTTON       =$ffff0020;
+       { 0021 to 0024 reserved }
+       WC_CONTAINER        =$ffff0025;
+       WC_SLIDER           =$ffff0026;
+       WC_VALUESET         =$ffff0027;
+       WC_NOTEBOOK         =$ffff0028;
+       { 0029 to 002C used by PEN }
+       WC_PENFIRST         =$ffff0029;
+       WC_PENLAST          =$ffff002C;
+       { 002D to 0030 reserved }
+       { 0030 to 003F reserved }
+       WC_MMPMFIRST        =$ffff0040;
+       WC_MMPMLAST         =$ffff004f;
 
 { PM error constants }
        PMERR_INVALID_HWND = $1001;
@@ -2667,9 +2683,10 @@ const
     function WinQueryDesktopBkgnd(hwndDesktop : cardinal;pdsk : PDesktop) : longbool; cdecl;
     function WinRealizePalette(hwnd,hps : cardinal;var cclr : cardinal) : longint; cdecl;
     function WinRealizePalette(hwnd,hps : cardinal;pcclr : PCardinal) : longint; cdecl;
-    function cardinalFROMMP(mp : pointer) : cardinal; cdecl;
-    function integer1FROMMP(mp : pointer) : word; cdecl;
-    function integer2FROMMP(mp : pointer) : word; cdecl;
+    function WinQuerySystemAtomTable: cardinal; cdecl;
+    function CardinalFromMP (MP: pointer): cardinal; cdecl;
+    function Integer1FromMP (MP: pointer): word; cdecl;
+    function Integer2FromMP (MP: pointer): word; cdecl;
 
   implementation
 
@@ -2987,23 +3004,30 @@ const
     function WinQueryDesktopBkgnd(hwndDesktop : cardinal;pdsk : PDesktop) : longbool; cdecl;external 'pmwin' index 936;
     function WinRealizePalette(hwnd,hps : cardinal;var cclr : cardinal) : longint; cdecl;external 'pmwin' index 941;
     function WinRealizePalette(hwnd,hps : cardinal;pcclr : PCardinal) : longint; cdecl;external 'pmwin' index 941;
-    function CardinalFromMP(MP: pointer) : cardinal;cdecl;
-      begin
-       CardinalFromMP:=cardinal(MP);
-      end;
-    function Integer1FromMP(mp : pointer) : word;cdecl;
-      begin
-       {Integer1FromMP:=lo(cardinal(mp));             RBP}
-      end;
-    function integer2FromMP(mp : pointer) : word;cdecl;
-      begin
-       {Integer2FromMP:=hi(cardinal(mp))              RBP}
-      end;
+    function WinQuerySystemAtomTable: cardinal; cdecl; external 'pmwin' index 830;
+
+    function CardinalFromMP (MP: pointer): cardinal; cdecl;
+     begin
+      CardinalFromMP := cardinal (MP);
+     end;
+
+    function Integer1FromMP (MP: pointer): word; cdecl;
+     begin
+      Integer1FromMP := Lo (cardinal (MP));
+     end;
+
+    function Integer2FromMP (MP: pointer): word; cdecl;
+     begin
+      Integer2FromMP := Hi (cardinal (MP));
+     end;
 
 end.
 {
   $Log$
-  Revision 1.10  2002-12-07 20:56:35  hajny
+  Revision 1.11  2003-01-27 17:57:36  hajny
+    * additions by Yuri Prokushev (WC_* constants a.o.)
+
+  Revision 1.10  2002/12/07 20:56:35  hajny
     * WinMessageBox2 commented out temporarily
 
   Revision 1.9  2002/12/07 20:21:38  hajny
