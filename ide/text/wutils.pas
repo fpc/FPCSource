@@ -34,8 +34,12 @@ type
 
   PUnsortedStringCollection = ^TUnsortedStringCollection;
   TUnsortedStringCollection = object(TCollection)
-    function  At(Index: Integer): PString;
-    procedure FreeItem(Item: Pointer); virtual;
+    constructor CreateFrom(ALines: PUnsortedStringCollection);
+    procedure   Assign(ALines: PUnsortedStringCollection);
+    function    At(Index: Integer): PString;
+    procedure   FreeItem(Item: Pointer); virtual;
+    function    GetItem(var S: TStream): Pointer; virtual;
+    procedure   PutItem(var S: TStream; Item: Pointer); virtual;
   end;
 
   PNulStream = ^TNulStream;
@@ -89,6 +93,7 @@ function IntToStr(L: longint): string;
 function StrToInt(const S: string): longint;
 function GetStr(P: PString): string;
 function GetPChar(P: PChar): string;
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
 
 function DirOf(const S: string): string;
 function ExtOf(const S: string): string;
@@ -107,6 +112,8 @@ procedure GiveUpTimeSlice;
 const LastStrToIntResult : integer = 0;
       DirSep             : char    = {$ifdef Linux}'/'{$else}'\'{$endif};
 
+procedure RegisterWUtils;
+
 implementation
 
 uses
@@ -114,6 +121,16 @@ uses
   windows,
 {$endif win32}
   Strings, Dos;
+
+{$ifndef NOOBJREG}
+const
+  RUnsortedStringCollection: TStreamRec = (
+     ObjType: 22500;
+     VmtLink: Ofs(TypeOf(TUnsortedStringCollection)^);
+     Load:    @TUnsortedStringCollection.Load;
+     Store:   @TUnsortedStringCollection.Store
+  );
+{$endif}
 
 {$ifdef TPUNIXLF}
   procedure readln(var t:text;var s:string);
@@ -403,9 +420,32 @@ begin
 end;
 
 
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
+begin
+  if B then BoolToStr:=TrueS else BoolToStr:=FalseS;
+end;
+
 procedure TNoDisposeCollection.FreeItem(Item: Pointer);
 begin
   { don't do anything here }
+end;
+
+constructor TUnsortedStringCollection.CreateFrom(ALines: PUnsortedStringCollection);
+begin
+  if Assigned(ALines)=false then Fail;
+  inherited Init(ALines^.Count,ALines^.Count div 10);
+  Assign(ALines);
+end;
+
+procedure TUnsortedStringCollection.Assign(ALines: PUnsortedStringCollection);
+procedure AddIt(P: PString); {$ifndef FPC}far;{$endif}
+begin
+  Insert(NewStr(GetStr(P)));
+end;
+begin
+  FreeAll;
+  if Assigned(ALines) then
+    ALines^.ForEach(@AddIt);
 end;
 
 function TUnsortedStringCollection.At(Index: Integer): PString;
@@ -416,6 +456,16 @@ end;
 procedure TUnsortedStringCollection.FreeItem(Item: Pointer);
 begin
   if Item<>nil then DisposeStr(Item);
+end;
+
+function TUnsortedStringCollection.GetItem(var S: TStream): Pointer;
+begin
+  GetItem:=S.ReadStr;
+end;
+
+procedure TUnsortedStringCollection.PutItem(var S: TStream; Item: Pointer);
+begin
+  S.WriteStr(Item);
 end;
 
 constructor TNulStream.Init;
@@ -564,11 +614,21 @@ end;
 {$endif}
 {$undef DOS}
 
+procedure RegisterWUtils;
+begin
+{$ifndef NOOBJREG}
+  RegisterType(RUnsortedStringCollection);
+{$endif}
+end;
+
 
 END.
 {
   $Log$
-  Revision 1.14  2000-01-20 00:30:32  pierre
+  Revision 1.15  2000-02-07 11:45:11  pierre
+   + TUnsortedStringCollection CreateFrom/Assign/GetItem/PutItem from Gabor
+
+  Revision 1.14  2000/01/20 00:30:32  pierre
    * Result of GetShortPathName is checked
 
   Revision 1.13  2000/01/17 12:20:03  pierre
