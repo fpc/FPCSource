@@ -2233,6 +2233,7 @@ type
         result := fen_false;
         if (n.nodetype = calln) or
            ((n.nodetype = loadn) and
+            (tloadnode(n).symtableentry.typ = varsym) and
             (vo_is_thread_var in tvarsym(tloadnode(n).symtableentry).varoptions)) then
           { stop when we encounter a call node }
           result := fen_norecurse_true;
@@ -2634,7 +2635,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.170  2003-06-15 15:10:57  jonas
+  Revision 1.171  2003-06-15 16:47:33  jonas
+    * fixed revious commit
+
+  Revision 1.170  2003/06/15 15:10:57  jonas
     * callparatemp fix: if a threadvar is a parameter, that paramter also
       does a call
 
