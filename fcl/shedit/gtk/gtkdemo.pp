@@ -86,7 +86,7 @@ begin
   // Set up documents
   PasDoc := TTextDoc.Create; PasDoc.LoadFromFile('gtkdemo.pp');
   XMLDoc := TTextDoc.Create; XMLDoc.LoadFromFile('simple.xml');
-  TxtDoc := TTextDoc.Create; TxtDoc.LoadFromFile('README');
+  TxtDoc := TTextDoc.Create; TxtDoc.LoadFromFile('gtkshedit.pp');
 
   // Create notebook pages (editor widgets)
   Pages[0] := CreatePasEditWidget (PasDoc);
@@ -108,7 +108,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-01-06 16:03:25  peter
+  Revision 1.2  2000-01-06 16:12:53  sg
+  * The demo can't display the file README anymore now in this directory,
+    as it doesn't exist here... not it displays the source of gtkshedit.pp
+    without syntax highlighting.
+
+  Revision 1.1  2000/01/06 16:03:25  peter
     * moved gtkshedit to gtk dir
 
   Revision 1.9  2000/01/06 01:20:34  peter
