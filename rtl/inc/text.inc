@@ -923,7 +923,7 @@ Begin
      exit;
    end;
 { Read until #10 is found }
-  sidx:=pchar(@s);
+  sidx:=pchar(s);
   spos:=0;
   repeat
     If f.BufPos>=f.BufEnd Then
@@ -1198,7 +1198,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  1998-12-15 22:43:06  peter
+  Revision 1.38  1999-01-28 19:38:19  peter
+    * fixed readln(ansistring)
+
+  Revision 1.37  1998/12/15 22:43:06  peter
     * removed temp symbols
 
   Revision 1.36  1998/12/11 18:07:39  peter
