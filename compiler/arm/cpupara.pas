@@ -280,9 +280,23 @@ unit cpupara;
                       end
                     else
                       begin
-                        {!!!!!!!}
                         paraloc.size:=def_cgsize(paradef);
-                        internalerror(2002071004);
+                        nextintreg:=RS_F4;
+                        paraloc.loc:=LOC_REFERENCE;
+                        paraloc.reference.index:=NR_STACK_POINTER_REG;
+                        paraloc.reference.offset:=stack_offset;
+                        case paraloc.size of
+                          OS_F32:
+                            inc(stack_offset,4);
+                          OS_F64:
+                            inc(stack_offset,8);
+                          OS_F80:
+                            inc(stack_offset,10);
+                          OS_F128:
+                            inc(stack_offset,16);
+                          else
+                            internalerror(200403201);
+                        end;
                       end;
                   end;
                 LOC_REFERENCE:
@@ -424,7 +438,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2004-03-20 20:55:36  florian
+  Revision 1.17  2004-03-20 21:11:01  florian
+    + float parameters can be on the stack now as well
+
+  Revision 1.16  2004/03/20 20:55:36  florian
     + implemented cdecl'd varargs on arm
     + -dCMEM supported by the compiler
     * label/goto asmsymbol type with -dextdebug fixed
