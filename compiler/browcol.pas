@@ -909,7 +909,7 @@ procedure CreateBrowserCol;
           if precdef(definition)^.symtable<>Table then
             ProcessSymTable(Symbol,Symbol^.Items,precdef(definition)^.symtable);
         objectdef :
-          if precdef(definition)^.symtable<>Table then
+          if pobjectdef(definition)^.publicsyms<>Table then
             ProcessSymTable(Symbol,Symbol^.Items,pobjectdef(definition)^.publicsyms);
         { leads to infinite loops !!
         pointerdef :
@@ -927,16 +927,18 @@ procedure CreateBrowserCol;
      Exit;
     if Owner=nil then
      Owner:=New(PSortedSymbolCollection, Init(10,50));
+{$ifdef OLDPPU}
     defcount:=Table^.number_defs;
     symcount:=Table^.number_symbols;
-  {  for I:=0 to defcount-1 do
-     begin
-       Def:=Table^.GetDefNr(I);
-     end;}
     for I:=1 to symcount do
       begin
         Sym:=Table^.GetsymNr(I);
         if Sym=nil then Continue;
+{$else}
+    sym:=psym(Table^.symindex^.first);
+    while assigned(sym) do
+      begin
+{$endif}
         ParamCount:=0;
         New(Symbol, Init(Sym^.Name,Sym^.Typ,'',nil));
         case Sym^.Typ of
@@ -984,7 +986,8 @@ procedure CreateBrowserCol;
               with pprocsym(sym)^ do
               if assigned(definition) then
               begin
-                ProcessSymTable(Symbol,Symbol^.Items,definition^.parast);
+                if cs_local_browser in aktmoduleswitches then
+                  ProcessSymTable(Symbol,Symbol^.Items,definition^.parast);
                 if assigned(definition^.parast) then
                   begin
                     Symbol^.Params:=TypeNames^.Add(GetAbsProcParmDefStr(definition));
@@ -995,9 +998,12 @@ procedure CreateBrowserCol;
                   begin
                     Symbol^.Params:=TypeNames^.Add('...');
                   end;
-                if assigned(definition^.localst) and
-                   (definition^.localst^.symtabletype<>staticsymtable) then
-                  ProcessSymTable(Symbol,Symbol^.Items,definition^.localst);
+                if cs_local_browser in aktmoduleswitches then
+                 begin
+                   if assigned(definition^.localst) and
+                     (definition^.localst^.symtabletype<>staticsymtable) then
+                    ProcessSymTable(Symbol,Symbol^.Items,definition^.localst);
+                 end;
               end;
             end;
           typesym :
@@ -1050,7 +1056,10 @@ procedure CreateBrowserCol;
             Ref:=Ref^.nextref;
           end;
         if Assigned(Symbol) then
-        Owner^.Insert(Symbol);
+          Owner^.Insert(Symbol);
+{$ifndef OLDPPU}
+        sym:=psym(sym^.next);
+{$endif}
       end;
   end;
 
@@ -1232,7 +1241,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  1999-04-15 09:01:32  peter
+  Revision 1.15  1999-04-29 09:36:55  peter
+    * fixed crash
+    * check if localbrowser is set
+
+  Revision 1.14  1999/04/15 09:01:32  peter
     * fixed set loading
     * object inheritance support for browser
 
