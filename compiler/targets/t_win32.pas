@@ -1574,11 +1574,11 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 4;
                 varalignmin     : 0;
-                varalignmax     : 1;
+                varalignmax     : 4;
                 localalignmin   : 0;
-                localalignmax   : 1;
+                localalignmax   : 4;
                 paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -1606,7 +1606,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.22  2002-01-19 11:53:07  peter
+  Revision 1.23  2002-01-29 21:27:34  peter
+    * default alignment changed to 4 bytes for locals and static const,var
+
+  Revision 1.22  2002/01/19 11:53:07  peter
     * fixed managledname
 
   Revision 1.21  2001/11/02 22:58:12  peter

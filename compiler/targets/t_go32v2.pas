@@ -403,11 +403,11 @@ end;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 4;
                 varalignmin     : 0;
-                varalignmax     : 1;
+                varalignmax     : 4;
                 localalignmin   : 0;
-                localalignmax   : 1;
+                localalignmax   : 4;
                 paraalign       : 2;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -430,7 +430,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.14  2001-09-18 11:32:00  michael
+  Revision 1.15  2002-01-29 21:27:34  peter
+    * default alignment changed to 4 bytes for locals and static const,var
+
+  Revision 1.14  2001/09/18 11:32:00  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix

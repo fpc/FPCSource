@@ -527,11 +527,11 @@ end;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 4;
                 varalignmin     : 0;
-                varalignmax     : 1;
+                varalignmax     : 4;
                 localalignmin   : 0;
-                localalignmax   : 1;
+                localalignmax   : 4;
                 paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -743,7 +743,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.15  2002-01-09 07:38:37  michael
+  Revision 1.16  2002-01-29 21:27:34  peter
+    * default alignment changed to 4 bytes for locals and static const,var
+
+  Revision 1.15  2002/01/09 07:38:37  michael
   + Patch from Peter for library imports
 
   Revision 1.14  2001/11/02 22:58:12  peter

@@ -564,11 +564,11 @@ end;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 1;
+                constalignmax   : 4;
                 varalignmin     : 0;
-                varalignmax     : 1;
+                varalignmax     : 4;
                 localalignmin   : 0;
-                localalignmax   : 1;
+                localalignmax   : 4;
                 paraalign       : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
@@ -593,8 +593,8 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2002-01-29 20:08:38  peter
-    * added missing unit
+  Revision 1.14  2002-01-29 21:27:34  peter
+    * default alignment changed to 4 bytes for locals and static const,var
 
   Revision 1.12  2002/01/27 12:58:42  hajny
     * fix for a problem with importprocedure
