@@ -115,7 +115,7 @@ endif
 
 # Define Linux Units
 SYSTEMPPU=syslinux$(PPUEXT)
-OBJECTS=strings linux objpas \
+OBJECTS=strings linux objpas sysutils math\
 	dos crt objects printer \
 	getopts errors sockets graph\
 
@@ -209,6 +209,18 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 	$(COPY) $(OBJPASDIR)/objpas.pp .
 	$(PP) $(OPT) objpas $(REDIR)
 	$(DEL) objpas.pp
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSTEMPPU) objpas$(PPUEXT) \
+                   dos$(PPUEXT)
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(PP) $(OPT) -I$(OBJPASDIR) sysutils $(REDIR)
+	$(DEL) sysutils.pp
+
+math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
+                   dos$(PPUEXT)
+	$(COPY) $(OBJPASDIR)/math.pp .
+	$(PP) $(OPT) -I$(OBJPASDIR) math $(REDIR)
+	$(DEL) math.pp
 
 #
 # System Dependent Units

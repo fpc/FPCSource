@@ -158,7 +158,7 @@ function randg(mean,stddev : float) : float;
 function popnstddev(const data : array of float) : float;
 function popnvariance(const data : array of float) : float;
 procedure momentskewkurtosis(const data : array of float;
-  var m1,m2,m3,m4,skew,kurtois : float);
+  var m1,m2,m3,m4,skew,kurtosis : float);
 
 { geometrical function }
 
@@ -498,7 +498,7 @@ procedure sumsandsquares(const data : array of float;
 function minvalue(const data : array of float) : float;
 
   var
-     i : longint
+     i : longint;
 
   begin
      { get an initial value }
@@ -542,7 +542,7 @@ function variance(const data : array of float) : float;
 
 function totalvariance(const data : array of float) : float;
 
-   var S,SS : Float
+   var S,SS : Float;
 
   begin
      SumsAndSquares(Data,S,SS);
@@ -617,8 +617,11 @@ end.
 
 {
     $Log$
-    Revision 1.1  1998-03-25 11:18:49  root
-    Initial revision
+    Revision 1.2  1998-07-29 15:44:34  michael
+     included sysutils and math.pp as target. They compile now.
+
+    Revision 1.1.1.1  1998/03/25 11:18:49  root
+    * Restored version
 
     Revision 1.2  1998/02/12 22:23:14  michael
     + All functions implemented, but untested

@@ -16,7 +16,7 @@ unit sysutils;
 
   interface
 
-  uses dos; { should become platform independent }
+  uses dos,objpas; { should become platform independent }
 
     type
        { some helpful data types }
@@ -35,20 +35,21 @@ unit sysutils;
 
        { exceptions }
 
-       exceptclass = class of exception;
-
        exception = class(tobject)
-       private
+        private
           fmessage : string;
           fhelpcontext : longint;
         public
           constructor create(const msg : string);
-          constructor createfmt(const msg; const args : array of const);
+//!! No array of const yet.
+//          constructor createfmt(const msg; const args : array of const);
           constructor createres(indent : longint);
           { !!!! }
           property helpcontext : longint read fhelpcontext write fhelpcontext;
           property message : string read fmessage write fmessage;
        end;
+
+       exceptclass = class of exception;
 
        { math. exceptions }
        einterror = class(exception);
@@ -86,7 +87,7 @@ unit sysutils;
   { Read pchar handling functions implementation }
   {$i syspch.inc}
 
-    constructor texception.create(const msg : string);
+    constructor exception.create(const msg : string);
 
       begin
          inherited create;
@@ -94,14 +95,15 @@ unit sysutils;
          {!!!!!}
       end;
 
-    constructor texception.createfmt(const msg; const args : array of const);
+{
+    constructor exception.createfmt(const msg; const args : array of const);
 
       begin
          inherited create;
-         {!!!!!}
       end;
+}
 
-    constructor texception.createres(indent : longint);
+    constructor exception.createres(indent : longint);
 
       begin
          inherited create;
@@ -112,7 +114,10 @@ end.
 
 {
     $Log$
-    Revision 1.2  1998-04-10 15:18:21  michael
+    Revision 1.3  1998-07-29 15:44:32  michael
+     included sysutils and math.pp as target. They compile now.
+
+    Revision 1.2  1998/04/10 15:18:21  michael
     Added a lot of functions donated by GertJan Schouten
 
     Revision 1.1.1.1  1998/03/25 11:18:49  root

@@ -274,10 +274,15 @@ unit objpas;
 
 {$i except.inc}
 
+begin
+  InitExceptions
 end.
 {
   $Log$
-  Revision 1.3  1998-07-29 10:09:28  michael
+  Revision 1.4  1998-07-29 15:44:33  michael
+   included sysutils and math.pp as target. They compile now.
+
+  Revision 1.3  1998/07/29 10:09:28  michael
   + put in exception support
 
   Revision 1.2  1998/03/25 23:40:24  florian

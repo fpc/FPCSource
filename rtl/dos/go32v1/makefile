@@ -120,7 +120,7 @@ LIBEXT=.a1
 
 # Define Linux Units
 SYSTEMPPU=system$(PPUEXT)
-OBJECTS=strings go32 objpas \
+OBJECTS=strings go32 objpas sysutils math\
 	dos crt objects printer \
 	cpu mmx mouse getopts graph \
 
@@ -185,6 +185,17 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
 	$(PP) $(OPT) objpas $(REDIR)
 	$(DEL) objpas.pp
 
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSTEMPPU) objpas$(PPUEXT) \
+                   dos$(PPUEXT)
+	$(COPY) $(OBJPASDIR)/sysutils.pp .
+	$(PP) $(OPT) -I$(OBJPASDIR) sysutils $(REDIR)
+	$(DEL) sysutils.pp
+
+math$(PPUEXT) : $(OBJPASDIR)/math.pp $(SYSTEMPPU) objpas$(PPUEXT) \
+                   dos$(PPUEXT)
+	$(COPY) $(OBJPASDIR)/math.pp .
+	$(PP) $(OPT) -I$(OBJPASDIR) math $(REDIR)
+	$(DEL) math.pp
 #
 # System Dependent Units
 #

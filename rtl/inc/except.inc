@@ -19,6 +19,8 @@
 
 
 Const 
+  { Type of exception. Currently only one.} 
+  FPC_EXCEPTION   = 1;
   { types of frames for the exception address stack}
   cExceptionFrame = 1;
   cFinalizeFrame  = 2;
@@ -53,6 +55,9 @@ var Buf : PJmp_buf;
     NewAddr : PExceptAddr;
     
 begin
+{$ifdef excdebug}
+  writeln ('In PushExceptAddr');
+{$endif}
   If ExceptAddrstack=Nil then
     begin
     New(ExceptAddrStack);
@@ -77,6 +82,9 @@ var
     Newobj : PExceptObject;
     
 begin
+{$ifdef excdebug}
+  writeln ('In PushExceptObject');
+{$endif}
   If ExceptObjectStack=Nil then
     begin
     New(ExceptObjectStack);
@@ -95,6 +103,10 @@ end;
 Function Raiseexcept (Obj : TObject; AnAddr : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION'];
 
 begin
+{$ifdef excdebug}
+  writeln ('In RAiseException');
+{$endif}
+
   PushExceptObj(Obj,AnAddr);
   longjmp(ExceptAddrStack^.Buf^,FPC_Exception);
 end;
@@ -102,6 +114,10 @@ end;
 Procedure PopAddrStack ;[Public, Alias : 'FPC_POPADDRSTACK'];
 
 begin
+{$ifdef excdebug}
+  writeln ('In Popaddrstack');
+{$endif}
+
   If ExceptAddrStack=nil then
     begin
     writeln ('At end of ExceptionAddresStack');
@@ -114,6 +130,10 @@ end;
 Procedure PopObjectStack ;
 
 begin
+{$ifdef excdebug}
+  writeln ('In PopObjectstack');
+{$endif}
+
   If ExceptObjectStack=nil then
     begin
     writeln ('At end of ExceptionObjectStack');
@@ -126,6 +146,10 @@ end;
 Procedure ReRaise;[Public, Alias : 'FPC_RERAISE'];
 
 begin
+{$ifdef excdebug}
+  writeln ('In reraise');
+{$endif}
+
   PopAddrStack;
   If ExceptAddrStack=Nil then
     begin
