@@ -70,7 +70,9 @@ function FExpand (const Path: PathStr): PathStr;
    FPC_FEXPAND_TILDE, FPC_FEXPAND_VOLUMES, FPC_FEXPAND_NO_DEFAULT_PATHS,
    FPC_FEXPAND_DRIVESEP_IS_ROOT, FPC_FEXPAND_NO_CURDIR,
    FPC_FEXPAND_NO_DOTS_UPDIR and FPC_FEXPAND_DIRSEP_IS_UPDIR conditionals might
-   be defined to specify FExpand behaviour.
+   be defined to specify FExpand behaviour - see end of this file for
+   individual descriptions.
+
 *)
 
 {$IFDEF FPC_FEXPAND_DRIVES}
@@ -458,9 +460,70 @@ begin
     FExpand := Pa;
 end;
 
+(* Description of individual conditional defines supported for FExpand
+   (disregard the used directory separators in examples, constant
+   System.DirectorySeparator is used in the real implemenation, of course):
+
+   FPC_FEXPAND_UNC - UNC ("Universal Naming Convention") paths are
+   supported (usually used for networking, used in DOS (with
+   networking support installed), OS/2, Win32 and at least some
+   Netware versions as far as I remember. An example of such a path
+   is '\\servername\sharename\some\path'.
+
+   FPC_FEXPAND_DRIVES - drive letters are supported (DOS-like
+   environments - DOS, OS/2, Win32). Example is 'C:\TEST'.
+
+   FPC_FEXPAND_GETENV_PCHAR - an implementation of GetEnv returning
+   PChar instead of a shortstring is available (Unix) to support
+   long values of environment variables.
+
+   FPC_FEXPAND_TILDE - expansion of '~/' to GetEnv('HOME') - Unix.
+   Example: '~/some/path'.
+
+   FPC_FEXPAND_VOLUMES - volumes are supported (similar to drives,
+   but the name can be longer; used under Netware, Amiga and
+   probably MacOS as far as I understand it correctly). Example:
+   'VolumeName:Some:Path' or 'ServerName/Volume:Some\Path'
+   (Netware).
+
+   FPC_FEXPAND_NO_DEFAULT_PATHS - Dos keeps information about the
+   current directory for every drive. If some platform supports
+   drives or volumes, but keeps no track of current directories for
+   them (i.e. there's no support for "GetDir(DriveNumber, Dir)" or
+   "GetDir(Volume, Dir)", but only for "GetDir (0, Dir)" (i.e. the
+   overall current directory), you should define this. Otherwise
+   constructs like 'C:Some\Path' refer a path relative to the
+   current directory on the C: drive.
+
+   FPC_FEXPAND_DRIVESEP_IS_ROOT - this means that DriveSeparator
+   should be used as beginning of the "real" path for a particular
+   drive or volume instead of the DirectorySeparator. This would be
+   used in case that there is only one character (DriveSeparator)
+   delimiting the drive letter or volume name from the remaining
+   path _and_ the DriveSeparator marks the root of an absolute path.
+   Example - 'Volume:This/Is/Absolute/Path'.
+
+   FPC_FEXPAND_NO_CURDIR - there is no support to refer to current
+   directory explicitely (like '.' used under both Unix and DOS-like
+   environments).
+
+   FPC_FEXPAND_NO_DOTS_UPDIR - '..' cannot be used to refer to the
+   upper directory.
+
+   FPC_FEXPAND_DIRSEP_IS_UPDIR - DirectorySeparator at the beginning of a
+   path (or doubled DirectorySeparator inside the path) refer to the
+   upper directory. Please, note that you can decide to support both '..'
+   and DirectorySeparator as references to the parent directory at the
+   same time for compatibility reasons (although that means that you'd
+   make it impossible to use an otherwise valid name of '..').
+*)
+
 {
   $Log$
-  Revision 1.15  2002-12-07 16:26:39  hajny
+  Revision 1.16  2004-05-29 18:25:21  hajny
+    * description of individual conditional defines added
+
+  Revision 1.15  2002/12/07 16:26:39  hajny
     * '//' behaviour for Amiga corrected
 
   Revision 1.14  2002/12/01 20:46:44  hajny
