@@ -79,6 +79,10 @@ implementation
 
 uses dos;
 
+var
+  GettextUsed: Boolean;
+
+
 constructor TMOFile.Create(AStream: TStream);
 var
   header: TMOFileHeader;
@@ -92,13 +96,6 @@ begin
   if header.magic <> MOFileHeaderMagic then
     raise EMOFileError.Create('Invalid magic - not a MO file?');
 
-{  WriteLn('Revision: ', header.revision);
-  WriteLn('# of strings: ', header.nstrings);
-  WriteLn('OrigTabOffset: ', header.OrigTabOffset);
-  WriteLn('TransTabOffset: ', header.TransTabOffset);
-  WriteLn('# of hashcodes: ', header.HashTabSize);
-  WriteLn('HashTabOffset: ', header.HashTabOffset);
-}
   GetMem(OrigTable, header.nstrings * SizeOf(TMOStringInfo));
   GetMem(TranslTable, header.nstrings * SizeOf(TMOStringInfo));
   GetMem(OrigStrings, header.nstrings * SizeOf(PChar));
@@ -239,8 +236,10 @@ begin
     for j := 0 to count - 1 do begin
       s := AFile.Translate(GetResourceStringDefaultValue(i, j),
         GetResourceStringHash(i, j));
-      if Length(s) > 0 then
+      if Length(s) > 0 then begin
         SetResourceStringValue(i, j, s);
+	GettextUsed := True;
+      end;
     end;
   end;
 end;
@@ -264,12 +263,20 @@ begin
   end;
 end;
 
+finalization
+  if GettextUsed then
+    ResetResourceTables;
 end.
 
 
 {
   $Log$
-  Revision 1.9  2000-01-30 22:16:59  sg
+  Revision 1.10  2000-02-17 22:14:51  sg
+  * Now calls "ResetResourceTables" on unit finalization if gettext has been
+    used. This enabled programs using gettext to use heaptrc, which reported
+    memory leaks for the translated strings until now.
+
+  Revision 1.9  2000/01/30 22:16:59  sg
   * Fixed memory leaks
 
   Revision 1.8  2000/01/07 01:24:33  peter
