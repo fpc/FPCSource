@@ -949,6 +949,7 @@ begin
      AddSelectItem('~L~inux','linux',idNone);
      AddSelectItem('~N~etBSD','netbsd',idNone);
      AddSelectItem('~M~ac OS','macos',idNone);
+     AddSelectItem('Macos ~X~(Darwin)','darwin',idNone);
 {$endif powerpc}
    end;
   New(AsmReaderSwitches,InitSelect('R'));
@@ -1137,6 +1138,9 @@ begin
   {$ifdef linux}
        TargetSwitches^.SetCurrSelParam('linux');
   {$endif linux}
+  {$ifdef Darwin}
+       TargetSwitches^.SetCurrSelParam('darwin');
+  {$endif}
 {$endif powerpc}
     end;
   SwitchesMode:=OldSwitchesMode;
@@ -1264,7 +1268,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2003-02-09 23:50:10  pierre
+  Revision 1.15  2004-03-08 00:07:26  marco
+   * Darwin target added
+
+  Revision 1.14  2003/02/09 23:50:10  pierre
    + i386 openbsd target added
 
   Revision 1.13  2002/12/15 14:08:29  peter
