@@ -347,30 +347,14 @@ end;
 
 Procedure GenerateAsmRes(const st : string);
 begin
-{$ifdef i386}
-  case target_info.target of
-    target_i386_linux,
-    target_i386_freebsd,
-    target_i386_sunos,
-    target_i386_beos :
+  case target_info.script of
+    script_unix :
       AsmRes:=TAsmScriptUnix.Create(st);
-    else
+    script_dos :
       AsmRes:=TAsmScriptDos.Create(st);
-  end;
-{$else not i386}
-{$ifdef m68k}
-  case target_info.target of
-    target_m68k_amiga :
+    script_amiga :
       AsmRes:=TAsmScriptAmiga.Create(st);
-    target_m68k_linux :
-      AsmRes:=TAsmScriptUnix.Create(st);
-    else
-      AsmRes:=TAsmScriptDos.Create(st);
   end;
-{$else not m68k}
-  AsmRes:=TAsmScriptUnix.Create(st);
-{$endif not m68k}
-{$endif not i386}
 end;
 
 
@@ -398,7 +382,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-07-30 20:59:27  peter
+  Revision 1.12  2001-08-07 18:44:09  peter
+    * made script target indepedent
+
+  Revision 1.11  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.10  2001/07/10 21:01:35  peter
