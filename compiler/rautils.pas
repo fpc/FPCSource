@@ -1264,7 +1264,7 @@ Procedure ConcatConstant(p: paasmoutput; value: longint; maxvalue: longint);
 {                  $ffffffff -> create a dword node.                  }
 {*********************************************************************}
 Begin
-  if value > maxvalue then
+  if (maxvalue <> $ffffffff) and (value > maxvalue) then
    Begin
      Message(asmr_e_constant_out_of_bounds);
      { assuming a value of maxvalue }
@@ -1301,10 +1301,10 @@ end;
   {***********************************************************************}
     Begin
        case real_typ of
-          s32real : p^.concat(new(pai_single,init(value)));
-          s64real : p^.concat(new(pai_double,init(value)));
-          s80real : p^.concat(new(pai_extended,init(value)));
-          s64bitcomp : p^.concat(new(pai_comp,init(value)));
+          s32real : p^.concat(new(pai_real_32bit,init(value)));
+          s64real : p^.concat(new(pai_real_64bit,init(value)));
+          s80real : p^.concat(new(pai_real_80bit,init(value)));
+          s64comp : p^.concat(new(pai_comp_64bit,init(value)));
           f32bit  : p^.concat(new(pai_const,init_32bit(trunc(value*$10000))));
        end;
     end;
@@ -1402,7 +1402,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  1999-05-11 16:27:23  peter
+  Revision 1.15  1999-05-12 00:17:11  peter
+    * fixed error which was shown for all 32bit consts
+
+  Revision 1.14  1999/05/11 16:27:23  peter
     * support for pointerdef
 
   Revision 1.13  1999/05/06 09:05:27  peter
