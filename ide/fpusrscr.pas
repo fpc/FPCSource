@@ -81,6 +81,11 @@ type
       VIDEBuffer   : PByteArray;
       IDEVideoInfo : TDOSVideoInfo;
       ctrl_c_state : boolean;
+{$ifdef TEST_GRAPH_SWITCH}
+      GraphImageSize : longint;
+      GraphBuffer : pointer;
+      ConsoleGraphDriver, ConsoleGraphMode : word;
+{$endif TEST_GRAPH_SWITCH}
       function    GetLineStartOfs(Line: integer): word;
       procedure   GetBuffer(Size: word);
       procedure   FreeBuffer;
@@ -161,9 +166,9 @@ uses
   {$ifdef fvision}
     ,Drivers
   {$endif}
-  {$ifdef VESA}
-    ,VESA
-  {$endif}
+  {$ifdef TEST_GRAPH_SWITCH}
+    ,Graph,VESA
+  {$endif TEST_GRAPH_SWITCH}
   ;
 
 function TScreen.GetWidth: integer;
@@ -314,38 +319,146 @@ end;
 procedure TDosScreen.SaveConsoleScreen;
 var
   VSeg,SOfs: word;
+{$ifdef TEST_GRAPH_SWITCH}
+  saved : boolean;
+  GraphDriver,GraphMode : integer;
+{$endif TEST_GRAPH_SWITCH}
 begin
   GetVideoMode(ConsoleVideoInfo);
-  GetBuffer(ConsoleVideoInfo.ScreenSize);
-  if ConsoleVideoInfo.Mode=7 then
-   VSeg:=SegB000
-  else
-   VSeg:=SegB800;
-  SOfs:=MemW[Seg0040:$4e];
+{$ifdef TEST_GRAPH_SWITCH}
+  saved:=false;
+  if assigned(GraphBuffer) then
+    begin
+      FreeMem(GraphBuffer,GraphImageSize);
+      GraphBuffer:=nil;
+      GraphImageSize:=0;
+    end;
+  if (ConsoleVideoInfo.Mode>= $100) or
+     (ConsoleVideoInfo.Mode=$13) or
+     (ConsoleVideoInfo.Mode=$12) or
+     (ConsoleVideoInfo.Mode=$10) or
+     (ConsoleVideoInfo.Mode=$E) then
+    begin
+      if VesaSetMode(ConsoleVideoInfo.Mode or $8000) then
+        begin
+          Graph.DontClearVesaMemory:=true;
+          if ConsoleVideoInfo.Mode>=$100 then
+            begin
+              GraphDriver:=Graph.Vesa;
+              GraphMode:=ConsoleVideoInfo.Mode and $fff;
+            end
+          else
+            begin
+              GraphDriver:=Graph.VGA;
+              case ConsoleVideoInfo.Mode of
+               $E : GraphMode:=VGALo;
+               $10 : GraphMode:=VGAMed;
+               $12 : GraphMode:=VGAHi;
+               $13 : begin
+                       GraphDriver:=Graph.LowRes;
+                       GraphMode:=0;
+                     end;
+              end;
+            end;
+          Graph.InitGraph(GraphDriver,GraphMode,'');
+          if graphresult=grOk then
+            begin
+              ConsoleGraphDriver:=GraphDriver;
+              ConsoleGraphMode:=GraphMode;
+              Graph.DontClearVesaMemory:=false;
+              GraphImageSize:=ImageSize(0,0,Graph.GetmaxX,Graph.GetMaxY);
+              GetMem(GraphBuffer,GraphImageSize);
+              FillChar(GraphBuffer^,GraphImageSize,#0);
+              GetImage(0,0,Graph.GetmaxX,Graph.GetMaxY,GraphBuffer^);
+              saved:=true;
+            end
+{$ifdef DEBUG}
+          else
+            Writeln(stderr,'Error in InitGraph ',Graphdriver, ' ',Graphmode)
+{$endif DEBUG}
+            ;
+        end;
+    end;
+  { mode < $100 so use standard Save code }
+  if not saved then
+{$endif TEST_GRAPH_SWITCH}
+  begin
+    GetBuffer(ConsoleVideoInfo.ScreenSize);
+    if ConsoleVideoInfo.Mode=7 then
+     VSeg:=SegB000
+    else
+     VSeg:=SegB800;
+    SOfs:=MemW[Seg0040:$4e];
 {$ifdef FPC}
-  DosmemGet(VSeg,SOfs,VBuffer^,ConsoleVideoInfo.ScreenSize);
+    DosmemGet(VSeg,SOfs,VBuffer^,ConsoleVideoInfo.ScreenSize);
 {$else}
-  Move(ptr(VSeg,SOfs)^,VBuffer^,ConsoleVideoInfo.ScreenSize);
+    Move(ptr(VSeg,SOfs)^,VBuffer^,ConsoleVideoInfo.ScreenSize);
 {$endif}
+  end;
 end;
 
 procedure TDOSScreen.SwitchToConsoleScreen;
 var
   VSeg,SOfs: word;
+{$ifdef TEST_GRAPH_SWITCH}
+  restored : boolean;
+  GraphDriver,GraphMode : integer;
+{$endif TEST_GRAPH_SWITCH}
 begin
   SetVideoMode(ConsoleVideoInfo);
-
-  if ConsoleVideoInfo.Mode=7 then
-    VSeg:=SegB000
-  else
-    VSeg:=SegB800;
-  SOfs:=MemW[Seg0040:$4e];
+{$ifdef TEST_GRAPH_SWITCH}
+  restored:=false;
+  if assigned(GraphBuffer) then
+    begin
+      if VesaSetMode(ConsoleVideoInfo.Mode) then
+        begin
+          if ConsoleVideoInfo.Mode>=$100 then
+            begin
+              GraphDriver:=Graph.Vesa;
+              GraphMode:=ConsoleVideoInfo.Mode and $fff;
+            end
+          else
+            begin
+              GraphDriver:=Graph.VGA;
+              case ConsoleVideoInfo.Mode of
+               $E : GraphMode:=VGALo;
+               $10 : GraphMode:=VGAMed;
+               $12 : GraphMode:=VGAHi;
+               $13 : begin
+                       GraphDriver:=Graph.LowRes;
+                       GraphMode:=0;
+                     end;
+              end;
+            end;
+          if (ConsoleGraphDriver<>GraphDriver) or
+             (ConsoleGraphMode<>GraphMode) then
+            Graph.InitGraph(GraphDriver,GraphMode,'');
+          if graphresult=grOk then
+            begin
+              PutImage(0,0,GraphBuffer^,CopyPut);
+              FreeMem(GraphBuffer,GraphImageSize);
+              GraphBuffer:=nil;
+              GraphImageSize:=0;
+              restored:=true;
+            end;
+        end;
+    end;
+  { mode < $100 so use standard Save code }
+  if not restored then
+{$endif TEST_GRAPH_SWITCH}
+    begin
+      if ConsoleVideoInfo.Mode=7 then
+        VSeg:=SegB000
+      else
+        VSeg:=SegB800;
+      SOfs:=MemW[Seg0040:$4e];
 {$ifdef FPC}
-  DosmemPut(VSeg,SOfs,VBuffer^,ConsoleVideoInfo.ScreenSize);
-  djgpp_set_ctrl_c(Ctrl_c_state);
+      DosmemPut(VSeg,SOfs,VBuffer^,ConsoleVideoInfo.ScreenSize);
+      djgpp_set_ctrl_c(Ctrl_c_state);
 {$else}
-  Move(VBuffer^,ptr(VSeg,SOfs)^,ConsoleVideoInfo.ScreenSize);
+      Move(VBuffer^,ptr(VSeg,SOfs)^,ConsoleVideoInfo.ScreenSize);
 {$endif}
+    end;
 end;
 
 
@@ -411,6 +524,7 @@ begin
   MI.Cols:=r.ah;
 {$ifdef VESA}
   VESAGetMode(MI.Mode);
+  MI.Mode:=MI.Mode and $fff;
 {$endif}
   MI.Rows:=MI.ScreenSize div (MI.Cols*2);
   if MI.Rows=51 then MI.Rows:=50;
@@ -986,7 +1100,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2002-06-13 11:18:32  pierre
+  Revision 1.14  2002-09-02 09:29:55  pierre
+   + new test code for go32v2 graphic screen saves (only with -dDEBUG)
+
+  Revision 1.13  2002/06/13 11:18:32  pierre
    + xterm window switching support
 
   Revision 1.12  2002/06/07 14:10:24  pierre

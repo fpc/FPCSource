@@ -33,6 +33,9 @@
   {$define HasSignal}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
+  {$ifdef DEBUG}
+    {$define TEST_GRAPH_SWITCH}
+  {$endif DEBUG}
 {$endif}
 
 {$ifdef Linux}
