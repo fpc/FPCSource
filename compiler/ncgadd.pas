@@ -739,12 +739,16 @@ interface
             end;
           arraydef :
             begin
+              { support dynarr=nil }
+              if is_dynamic_array(left.resulttype.def) then
+                second_opordinal
 {$ifdef SUPPORT_MMX}
-              if is_mmx_able_array(left.resulttype.def) then
-                second_opmmx;
+              else
+                if is_mmx_able_array(left.resulttype.def) then
+                  second_opmmx;
 {$endif SUPPORT_MMX}
-              { only mmx arrays are possible }
-              internalerror(200306016);
+              else
+                internalerror(200306016);
             end;
           floatdef :
             second_opfloat;
@@ -758,7 +762,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2004-02-04 19:22:27  peter
+  Revision 1.29  2004-02-26 16:11:29  peter
+    * use op_ordinal for dynarr compares
+
+  Revision 1.28  2004/02/04 19:22:27  peter
   *** empty log message ***
 
   Revision 1.27  2004/01/31 17:45:17  peter
