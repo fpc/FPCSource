@@ -352,7 +352,8 @@ implementation
                 begin
                   lowval:=tenumdef(t.def).min;
                   highval:=tenumdef(t.def).max;
-                  if tenumdef(t.def).has_jumps then
+                  if (m_fpc in aktmodeswitches) and
+                     (tenumdef(t.def).has_jumps) then
                    Message(type_e_array_index_enums_with_assign_not_possible);
                   arraytype:=t;
                 end;
@@ -658,7 +659,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.71  2004-11-16 20:32:41  peter
+  Revision 1.72  2005-01-04 16:39:12  peter
+    * allow enum with jumps as array index in delphi mode
+
+  Revision 1.71  2004/11/16 20:32:41  peter
   * fixes for win32 mangledname
 
   Revision 1.70  2004/11/15 23:35:31  peter
