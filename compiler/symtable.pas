@@ -1791,8 +1791,7 @@ implementation
                      if assigned(current_procinfo) then
                        topclass:=current_procinfo.procdef._class;
                    end;
-                 if (not assigned(topclass)) or
-                    Tsym(srsym).is_visible_for_object(topclass) then
+                 if Tsym(srsym).is_visible_for_object(topclass) then
                    begin
                      searchsym:=true;
                      exit;
@@ -2307,7 +2306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.164  2004-11-15 23:35:31  peter
+  Revision 1.165  2004-12-15 15:59:54  peter
+    * fix visibility of protected/private
+
+  Revision 1.164  2004/11/15 23:35:31  peter
     * tparaitem removed, use tparavarsym instead
     * parameter order is now calculated from paranr value in tparavarsym
 
