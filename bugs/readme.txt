@@ -168,3 +168,4 @@ bug0119.pp   problem with methods
 bug0120.pp   inc/dec(enumeration) doesn't work
 bug0121.pp   cardinal -> byte conversion not work (and crashes)
 bug0122.pp   exit() gives a warning that the result is not set
+bug0123.pp   problem with intel assembler (shrd)
