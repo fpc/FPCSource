@@ -333,6 +333,19 @@ asm
     movl heap_brk,%eax
 end {['EAX']};
 
+
+function SysOSAlloc (Size: ptrint): pointer;
+begin
+ SysOSAlloc := Sbrk (Size);
+end;
+
+{.$define HAS_SYSOSFREE}
+
+procedure SysOSFree (P: pointer; Size: ptrint);
+begin
+end;
+
+
 {$i heap.inc}
 
 {****************************************************************************
@@ -1319,7 +1332,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2004-05-16 20:39:59  hajny
+  Revision 1.26  2004-07-24 01:15:25  hajny
+    * simulated support for new heap manager
+
+  Revision 1.25  2004/05/16 20:39:59  hajny
     * handle in do_* changed to THandle
 
   Revision 1.24  2004/04/22 21:10:56  peter
