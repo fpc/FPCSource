@@ -21,7 +21,7 @@
 
 <!-- unresolved type reference Visibility: default -->
 <element name="Types">
-<short>Basic types</var>
+<short>Basic types</short>
 </element>
 
 <!-- constant Visibility: default -->
