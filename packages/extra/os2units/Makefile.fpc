@@ -10,4 +10,4 @@ fpcpackage=y
 fpcsubdir=packages
 
 [default]
-fpcdir=../..
+fpcdir=../../..
