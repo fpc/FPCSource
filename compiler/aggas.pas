@@ -29,7 +29,11 @@ unit aggas;
 interface
 
     uses
+{$IFDEF USE_SYSUTILS}
+      SysUtils,
+{$ELSE USE_SYSUTILS}
       dos,
+{$ENDIF USE_SYSUTILS}
       cclasses,
       globals,
       aasmbase,aasmtai,aasmcpu,
@@ -71,11 +75,10 @@ implementation
       fmodule,finput,verbose,
       itcpugas
 {$ifdef GDB}
-  {$ifdef delphi}
-      ,sysutils
-  {$else}
+{$IFDEF USE_SYSUTILS}
+{$ELSE USE_SYSUTILS}
       ,strings
-  {$endif}
+{$ENDIF USE_SYSUTILS}
       ,gdb
 {$endif GDB}
       ;
@@ -916,7 +919,15 @@ var
       LastInfile:=nil;
 
       if assigned(current_module.mainsource) then
+{$IFDEF USE_SYSUTILS}
+      begin
+       p := SplitPath(current_module.mainsource^);
+       n := SplitName(current_module.mainsource^);
+       e := SplitExtension(current_module.mainsource^);
+      end
+{$ELSE USE_SYSUTILS}
        fsplit(current_module.mainsource^,p,n,e)
+{$ENDIF USE_SYSUTILS}
       else
        begin
          p:=inputdir;
@@ -969,7 +980,10 @@ var
 end.
 {
   $Log$
-  Revision 1.59  2004-09-26 17:45:29  peter
+  Revision 1.60  2004-10-14 16:49:14  mazen
+  * Merge is complete for this file, cycles !
+
+  Revision 1.59  2004/09/26 17:45:29  peter
     * simple regvar support, not yet finished
 
   Revision 1.58  2004/08/27 20:53:52  peter
