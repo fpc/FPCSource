@@ -163,6 +163,9 @@ external 'DOSCALLS' index 382;
 function DosSetCurrentDir (Name:PChar): longint; cdecl;
 external 'DOSCALLS' index 255;
 
+procedure DosQueryCurrentDisk(var DiskNum:longint;var Logical:longint); cdecl;
+external 'DOSCALLS' index 275;
+
 function DosSetDefaultDisk (DiskNum:longint): longint; cdecl;
 external 'DOSCALLS' index 220;
 
@@ -175,16 +178,21 @@ external 'DOSCALLS' index 270;
 function DosDeleteDir( Name : pchar) : longint; cdecl;
 external 'DOSCALLS' index 226;
 
+function DosQueryCurrentDir(DiskNum:longint;var Buffer;
+                            var BufLen:longint):longint; cdecl;
+external 'DOSCALLS' index 274;
+
+function DosMove(OldFile,NewFile:PChar):longint; cdecl;
+    external 'DOSCALLS' index 271;
+
+function DosDelete(FileName:PChar):longint; cdecl;
+    external 'DOSCALLS' index 259;
+
+procedure DosExit(Action, Result: longint); cdecl;
+    external 'DOSCALLS' index 234;
+
 {This is the correct way to call external assembler procedures.}
 procedure syscall; external name '___SYSCALL';
-
-{
-procedure syscall; external 'EMX' index 2;
-
-procedure emx_init; external 'EMX' index 1;
-}
-
-
 
    { converts an OS/2 error code to a TP compatible error }
    { code. Same thing exists under most other supported   }
@@ -371,28 +379,23 @@ Fatal Signal Exceptions
 
 ****************************************************************************}
 
-{$asmmode intel}
-procedure system_exit; assembler;
-asm
-    mov  ah, 04ch
-    mov  al, byte ptr exitcode
-    call syscall
-end ['EAX'];
+procedure system_exit;
+begin
+  DosExit(1{process}, exitcode);
+end;
 
 {$ASMMODE ATT}
 
 function paramcount:longint;assembler;
-
 asm
     movl argc,%eax
     decl %eax
 end ['EAX'];
 
-    function args:pointer;assembler;
-
-    asm
-        movl argv,%eax
-    end ['EAX'];
+function args:pointer;assembler;
+asm
+  movl argv,%eax
+end ['EAX'];
 
 
 function paramstr(l:longint):string;
@@ -521,35 +524,16 @@ begin
 end;
 
 procedure do_erase(p:Pchar);
-
 begin
-    allowslash(p);
-    asm
-        movl P,%edx
-        movb $0x41,%ah
-        call syscall
-        jnc .LERASE1
-        movw %ax,inoutres;
-    .LERASE1:
-    end;
+  allowslash(p);
+  inoutres:=DosDelete(p);
 end;
 
 procedure do_rename(p1,p2:Pchar);
-
 begin
-    allowslash(p1);
-    allowslash(p2);
-    asm
-        pushl %edi
-        movl P1, %edx
-        movl P2, %edi
-        movb $0x56,%ah
-        call syscall
-        jnc .LRENAME1
-        movw %ax,inoutres;
-    .LRENAME1:
-        popl %edi
-    end;
+  allowslash(p1);
+  allowslash(p2);
+  inoutres:=DosMove(p1, p2);
 end;
 
 function do_read(h,addr,len:longint):longint; assembler;
@@ -830,10 +814,8 @@ end;
 *****************************************************************************}
 
 procedure MkDir (const S: string);[IOCHECK];
-
 var buffer:array[0..255] of char;
     Rc : word;
-
 begin
   If (s='') or (InOutRes <> 0) then
    exit;
@@ -911,12 +893,10 @@ end;
 {$ASMMODE ATT}
 
 procedure GetDir (DriveNr: byte; var Dir: ShortString);
-
 {Written by Michael Van Canneyt.}
-
-var sof:Pchar;
+var sof: Pchar;
     i:byte;
-
+    l, l2: Longint;
 begin
     Dir [4] := #0;
     { Used in case the specified drive isn't available }
@@ -925,15 +905,8 @@ begin
     { supplied by DOS, so we let dos string start at   }
     { dir[4]                                           }
     { Get dir from drivenr : 0=default, 1=A etc... }
-    asm
-        movb drivenr,%dl
-        movl sof,%esi
-        mov  $0x47,%ah
-        call syscall
-        jnc .LGetDir
-        movw %ax, InOutRes
-.LGetDir:
-    end [ 'eax','edx','esi'];
+    l:=255-3;
+    InOutRes:=DosQueryCurrentDir(DriveNr, sof^, l);
     { Now Dir should be filled with directory in ASCIIZ, }
     { starting from dir[4]                               }
     dir[0]:=#3;
@@ -956,13 +929,8 @@ begin
         begin
             { We need to get the current drive from DOS function 19H  }
             { because the drive was the default, which can be unknown }
-            asm
-                movb $0x19,%ah
-                call syscall
-                addb $65,%al
-                movb %al,i
-            end;
-            dir[1]:=char(i);
+            DosQueryCurrentDisk(l, l2);
+            dir[1]:=chr(64+l);
         end;
     if not (FileNameCaseSensitive) then dir:=upcase(dir);
 end;
@@ -1123,21 +1091,11 @@ var TIB: PThreadInfoBlock;
 
 begin
     IsLibrary := FALSE;
-    {Determine the operating system we are running on.}
+    os_mode:=OsOs2;
 {$ASMMODE INTEL}
     asm
         push ebx
-        mov os_mode, 0
-        mov eax, 7F0Ah
-        call syscall
-        test bx, 512         {Bit 9 is OS/2 flag.}
-        setne byte ptr os_mode
-        test bx, 4096
-        jz @noRSX
-        mov os_mode, 2
-    @noRSX:
     {Enable the brk area by initializing it with the initial heap size.}
-
         mov eax, 7F01h
         mov edx, heap_brk
         add edx, heap_base
@@ -1169,7 +1127,7 @@ begin
     {Now request, if we are running under DOS,
      read-access to the first meg. of memory.}
     (* Initialize the amount of file handles *)
-     FileHandleCount := GetFileHandleCount;
+    FileHandleCount := GetFileHandleCount;
     DosGetInfoBlocks (@TIB, @PIB);
     StackBottom := cardinal (TIB^.Stack);
     Environment := pointer (PIB^.Env);
@@ -1202,7 +1160,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2003-10-06 14:22:40  yuri
+  Revision 1.39  2003-10-06 16:58:27  yuri
+  * Another set of native functions.
+
+  Revision 1.38  2003/10/06 14:22:40  yuri
   * Some emx code removed. Now withous so stupid error as with dos ;)
 
   Revision 1.37  2003/10/04 08:30:59  yuri
