@@ -196,6 +196,7 @@ implementation
     procedure secondcalln(var p : ptree);
       var
          unusedregisters : tregisterset;
+         usablecount : byte;
          pushed : tpushed;
          hr,funcretref : treference;
          hregister,hregister2 : tregister;
@@ -238,6 +239,7 @@ implementation
          loadesi:=true;
          no_virtual_call:=false;
          unusedregisters:=unused;
+         usablecount:=usablereg32;
 
          if not assigned(p^.procdefinition) then
           exit;
@@ -885,6 +887,10 @@ implementation
       dont_call:
          pushedparasize:=oldpushedparasize;
          unused:=unusedregisters;
+         usablereg32:=usablecount;
+{$ifdef TEMPREGDEBUG}
+         testregisters32;
+{$endif TEMPREGDEBUG}
 
          { a constructor could be a function with boolean result }
          { if calling constructor called fail we
@@ -1205,7 +1211,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.100  1999-08-19 13:08:45  pierre
+  Revision 1.101  1999-08-23 23:38:18  pierre
+   + TEMPREGDEBUG code added
+
+  Revision 1.100  1999/08/19 13:08:45  pierre
    * emit_??? used
 
   Revision 1.99  1999/08/09 22:19:47  peter
