@@ -31,8 +31,8 @@ interface
        version_nr = '0';
        release_nr = '99';
        patch_nr   = '13';
-       minorpatch = 'a';
-       
+       minorpatch = '';
+
        version_string = version_nr+'.'+release_nr+'.'+patch_nr;
        full_version_string = version_nr+'.'+release_nr+'.'+patch_nr+minorpatch;
 
@@ -69,7 +69,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-06-27 15:49:19  michael
+  Revision 1.9  1999-07-01 21:35:02  peter
+    * 0.99.13 instead of 0.99.13a
+
+  Revision 1.8  1999/06/27 15:49:19  michael
   Updated patchnumber
 
   Revision 1.7  1999/06/18 11:03:11  peter
