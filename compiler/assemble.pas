@@ -943,19 +943,11 @@ Implementation
              ait_datablock :
                begin
                  l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
-                 if not SmartAsm then
-                  begin
-                    if not Tai_datablock(hp).is_global then
-                     begin
-                        objectdata.allocalign(l);
-                        objectdata.alloc(Tai_datablock(hp).size);
-                     end;
-                  end
-                 else
-                  begin
-                    objectdata.allocalign(l);
-                    objectdata.alloc(Tai_datablock(hp).size);
-                  end;
+                 if SmartAsm or (not Tai_datablock(hp).is_global) then
+                   begin
+                     objectdata.allocalign(l);
+                     objectdata.alloc(Tai_datablock(hp).size);
+                   end;
                end;
              ait_real_80bit :
                objectdata.alloc(10);
@@ -1040,28 +1032,20 @@ Implementation
                  if objectdata.currsec.sectype<>sec_bss then
                    Message(asmw_e_alloc_data_only_in_bss);
                  l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
-                 if not SmartAsm then
+                 if Tai_datablock(hp).is_global and
+                    not SmartAsm then
                   begin
-                    if Tai_datablock(hp).is_global then
-                     begin
-                       objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
-                       { force to be common/external, must be after setaddress as that would
-                         set it to AB_GLOBAL }
-                       Tai_datablock(hp).sym.currbind:=AB_COMMON;
-                     end
-                    else
-                     begin
-                       objectdata.allocalign(l);
-                       objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
-                       objectdata.alloc(Tai_datablock(hp).size);
-                     end;
-                   end
-                  else
-                   begin
-                     objectdata.allocalign(l);
-                     objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
-                     objectdata.alloc(Tai_datablock(hp).size);
-                   end;
+                    objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
+                    { force to be common/external, must be after setaddress as that would
+                      set it to AB_GLOBAL }
+                    Tai_datablock(hp).sym.currbind:=AB_COMMON;
+                  end
+                 else
+                  begin
+                    objectdata.allocalign(l);
+                    objectdata.allocsymbol(currpass,Tai_datablock(hp).sym,Tai_datablock(hp).size);
+                    objectdata.alloc(Tai_datablock(hp).size);
+                  end;
                  objectlibrary.UsedAsmSymbolListInsert(Tai_datablock(hp).sym);
                end;
              ait_real_80bit :
@@ -1243,15 +1227,12 @@ Implementation
                end;
              ait_datablock :
                begin
+                 l:=used_align(size_2_align(Tai_datablock(hp).size),0,objectdata.currsec.addralign);
                  objectdata.writesymbol(Tai_datablock(hp).sym);
                  objectoutput.exportsymbol(Tai_datablock(hp).sym);
                  if SmartAsm or (not Tai_datablock(hp).is_global) then
                    begin
-                     l:=Tai_datablock(hp).size;
-                     if l>2 then
-                       objectdata.allocalign(4)
-                     else if l>1 then
-                       objectdata.allocalign(2);
+                     objectdata.allocalign(l);
                      objectdata.alloc(Tai_datablock(hp).size);
                    end;
                end;
@@ -1645,7 +1626,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.69  2004-06-20 08:55:28  florian
+  Revision 1.70  2004-07-01 15:42:53  peter
+    * fix wrong calculation of .bss section
+
+  Revision 1.69  2004/06/20 08:55:28  florian
     * logs truncated
 
   Revision 1.68  2004/06/16 20:07:06  florian
