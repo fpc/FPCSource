@@ -479,16 +479,36 @@ unit cg64f32;
       end;
 
     procedure tcg64f32.a_param64_reg(list : taasmoutput;reg : tregister64;const locpara : tparalocation);
+      var
+        tmplochi,tmploclo: tparalocation;
       begin
-{$ifdef FPC}
-{$warning FIX ME}
-{$endif}
-         cg.a_param_reg(list,OS_32,reg.reghi,locpara);
-         { the nr+1 needs definitivly a fix FK }
-         { maybe the parameter numbering needs }
-         { to take care of this on 32 Bit      }
-         { systems FK                          }
-         cg.a_param_reg(list,OS_32,reg.reglo,locpara);
+        tmplochi:=locpara;
+        tmploclo:=locpara;
+        if locpara.size=OS_S64 then
+          tmplochi.size:=OS_S32
+        else
+          tmplochi.size:=OS_32;
+        tmploclo.size:=OS_32;
+        case locpara.loc of
+           LOC_REGISTER:
+             tmplochi.register:=tmplochi.registerhigh;
+           { !!! i386 doesn't pass proper locations here
+            so always take a loc_reference, since that's what it uses (JM)
+           LOC_REFERENCE:
+           }
+           else
+             if target_info.endian=endian_big then
+               inc(tmploclo.reference.offset,4)
+             else
+               inc(tmplochi.reference.offset,4);
+           {
+           else
+             internalerror(2003042702);
+           }
+        end;
+
+         cg.a_param_reg(list,OS_32,reg.reghi,tmplochi);
+         cg.a_param_reg(list,OS_32,reg.reglo,tmploclo);
       end;
 
 
@@ -577,9 +597,6 @@ unit cg64f32;
 
     procedure tcg64f32.a_param64_loc(list : taasmoutput;const l:tlocation;const locpara : tparalocation);
       begin
-{$ifdef fpc}
-{$warning FIX ME}
-{$endif}
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
@@ -881,7 +898,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2003-04-27 14:48:09  jonas
+  Revision 1.44  2003-05-14 19:31:37  jonas
+    * fixed a_param64_reg
+
+  Revision 1.43  2003/04/27 14:48:09  jonas
     * fixed Florian's quick hack :)
     * fixed small bug 64bit range checking code
 
