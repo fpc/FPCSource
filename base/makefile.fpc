@@ -362,10 +362,10 @@ BASEINSTALLDIR=$(PREFIXINSTALLDIR)
 endif
 endif
 
-# try to find where libgcc.a is.
+# On linux, try to find where libgcc.a is.
 ifdef inlinux
 ifndef GCCLIBDIR
-GCCLIBDIR:=$(shell "dirname `gcc -v | & awk -F" " '  print $4 }'`")
+GCCLIBDIR:=$(shell dirname `(gcc -v 2>&1)| awk -F' ' '{  print $$4 } '`)
 endif
 endif
 
@@ -479,6 +479,13 @@ override PPOPT+=$(addprefix -Fl,$(LIBDIR))
 endif
 ifdef NEEDLIBDIR
 override PPOPT+=$(addprefix -Fl,$(NEEDLIBDIR))
+endif
+
+# Add GCC lib path if asked
+ifeq ($(NEEDGCCLIB),YES)
+ifdef GCCLIBDIR
+override PPOPT+=-Fl$(GCCLIBDIR)
+endif
 endif
 
 # Object dirs
@@ -673,7 +680,8 @@ UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
          fpc_staticlib fpc_sharedlib \
          fpc_clean fpc_libsclean fpc_cleanall \
          fpc_install fpc_staticlibinstall fpc_sharedlibinstall fpc_libinstall \
-         fpc_info fpc_cfginfo fpc_objectinfo fpc_installinfo fpc_filesinfo
+         fpc_info fpc_cfginfo fpc_objectinfo fpc_installinfo fpc_filesinfo\
+         fpc_dirinfo
 
 .SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT) $(OEXT)
 
@@ -897,9 +905,17 @@ fpc_cfginfo:
 	@$(ECHO)  Basedir... $(BASEDIR)
 	@$(ECHO)
 
-fpc_dirinfo
+fpc_dirinfo:
 ifdef inlinux
+	@$(ECHO)
+	@$(ECHO)  == Directory info ==
+	@$(ECHO)
+ifeq ($(NEEDGCCLIB),YES)
+	@$(ECHO)  GCC library is needed.
+endif
 	@$(ECHO)  GCC library in $(GCCLIBDIR)
+	@$(ECHO)
+
 endif	
 
 fpc_toolsinfo:
@@ -985,7 +1001,10 @@ endif
 
 #
 # $Log$
-# Revision 1.16  1999-04-20 12:07:49  michael
+# Revision 1.17  1999-04-20 12:33:32  michael
+# + Fixed GCCLIB detection. Added fpc_dirinfo target
+#
+# Revision 1.16  1999/04/20 12:07:49  michael
 # Added autodetect of gcc lib for linux
 #
 # Revision 1.15  1999/04/16 20:12:35  michael
