@@ -41,7 +41,8 @@ var
   enumsize,
   msgsize    : longint;
 
-  msgidxmax    : array[1..msgparts] of longint;
+  msgidxmax  : array[1..msgparts] of longint;
+  msgs       : array[1..msgparts,1..1000] of boolean;
 
 procedure LoadMsgFile(const fn:string);
 var
@@ -76,6 +77,7 @@ begin
    end;
 { First parse the file and count bytes needed }
   fillchar(msgidxmax,sizeof(msgidxmax),0);
+  fillchar(msgs,sizeof(msgs),0);
   error:=false;
   line:=0;
   multiline:=false;
@@ -113,6 +115,10 @@ begin
               val(number,num,code);
               numpart:=num div 1000;
               numidx:=num mod 1000;
+              { duplicate ? }
+              if msgs[numpart,numidx] then
+               err('duplicate number found');
+              msgs[numpart,numidx]:=true;
               { check range }
               if numpart > msgparts then
                err('number is to large')
@@ -797,7 +803,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:55  michael
+  Revision 1.3  2000-09-27 20:59:55  peter
+    * check for dup numbers
+
+  Revision 1.2  2000/07/13 11:32:55  michael
   + removed logs
  
 }
