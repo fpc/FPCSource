@@ -1,7 +1,11 @@
 { %CPU=i386 }
 { testfdiv variant with GNU AS output forced }
 {$ifdef win32}
+{$ifdef VER1_0}
 {$output_format asw}
+{$else}
+{$output_format as}
+{$endif}
 {$else}
 {$output_format as}
 {$endif win32}
