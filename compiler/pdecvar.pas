@@ -303,41 +303,68 @@ implementation
                 pt.free;
                 symdone:=true;
               end;
-             { Handling of Delphi typed const = initialized vars ! }
-             { When should this be rejected ?
-               - in parasymtable
-               - in record or object
-               - ... (PM) }
-             if (token=_EQUAL) and
-                not(m_tp7 in aktmodeswitches) and
-                not(symtablestack.symtabletype in [parasymtable]) and
-                not is_record and
-                not is_object then
+             { Records and objects can't have default values }
+             if is_record or is_object then
                begin
-                  vs:=tvarsym(sc.first);
-                  if assigned(vs.listnext) then
-                    Message(parser_e_initialized_only_one_var);
-                  if is_threadvar then
-                    Message(parser_e_initialized_not_for_threadvar);
-                  if symtablestack.symtabletype=localsymtable then
+                 { for a record there doesn't need to be a ; before the END or ) }
+                 if not(token in [_END,_RKLAMMER]) then
+                   consume(_SEMICOLON);
+               end
+             else
+               begin
+                 { Process procvar directives before = and ; }
+                 if (tt.def.deftype=procvardef) and
+                    (tt.def.typesym=nil) and
+                    is_proc_directive(token,true) then
                    begin
-                     consume(_EQUAL);
-                     tconstsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
-                     vs.defaultconstsym:=tconstsym;
-                     symtablestack.insert(tconstsym);
-                     insertconstdata(tconstsym);
-                     readtypedconst(tt,tconstsym,false);
+                      newtype:=ttypesym.create('unnamed',tt);
+                      parse_var_proc_directives(tsym(newtype));
+                      newtype.restype.def:=nil;
+                      tt.def.typesym:=nil;
+                      newtype.free;
+                   end;
+
+                 { Handling of Delphi typed const = initialized vars ! }
+                 { When should this be rejected ?
+                   - in parasymtable
+                   - in record or object
+                   - ... (PM) }
+                 if (token=_EQUAL) and
+                    not(m_tp7 in aktmodeswitches) and
+                    not(symtablestack.symtabletype in [parasymtable]) and
+                    not is_record and
+                    not is_object then
+                   begin
+                      vs:=tvarsym(sc.first);
+                      if assigned(vs.listnext) then
+                        Message(parser_e_initialized_only_one_var);
+                      if is_threadvar then
+                        Message(parser_e_initialized_not_for_threadvar);
+                      if symtablestack.symtabletype=localsymtable then
+                       begin
+                         consume(_EQUAL);
+                         tconstsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
+                         vs.defaultconstsym:=tconstsym;
+                         symtablestack.insert(tconstsym);
+                         insertconstdata(tconstsym);
+                         readtypedconst(tt,tconstsym,false);
+                       end
+                      else
+                       begin
+                         tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
+                         tconstsym.fileinfo:=vs.fileinfo;
+                         symtablestack.replace(vs,tconstsym);
+                         vs.free;
+                         insertconstdata(tconstsym);
+                         consume(_EQUAL);
+                         readtypedconst(tt,tconstsym,true);
+                         symdone:=true;
+                         consume(_SEMICOLON);
+                       end
                    end
-                  else
+                 else
                    begin
-                     tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
-                     tconstsym.fileinfo:=vs.fileinfo;
-                     symtablestack.replace(vs,tconstsym);
-                     vs.free;
-                     insertconstdata(tconstsym);
-                     consume(_EQUAL);
-                     readtypedconst(tt,tconstsym,true);
-                     symdone:=true;
+                     consume(_SEMICOLON);
                    end;
                end;
              { if the symbol is not completely handled, then try to parse the
@@ -347,18 +374,21 @@ implementation
                  dummysymoptions:=[];
                  try_consume_hintdirective(dummysymoptions);
                end;
-             { for a record there doesn't need to be a ; before the END or ) }
-             if not((is_record or is_object) and (token in [_END,_RKLAMMER])) then
-               consume(_SEMICOLON);
-             { procvar handling }
-             if (tt.def.deftype=procvardef) and (tt.def.typesym=nil) then
+             { Parse procvar directives after ; }
+             if (tt.def.deftype=procvardef) and
+                (tt.def.typesym=nil) then
                begin
-                  newtype:=ttypesym.create('unnamed',tt);
-                  parse_var_proc_directives(tsym(newtype));
-                  newtype.restype.def:=nil;
-                  tt.def.typesym:=nil;
-                  newtype.free;
-               end;
+                 if is_proc_directive(token,true) then
+                   begin
+                     newtype:=ttypesym.create('unnamed',tt);
+                     parse_var_proc_directives(tsym(newtype));
+                     newtype.restype.def:=nil;
+                     tt.def.typesym:=nil;
+                     newtype.free;
+                   end;
+                 { Add calling convention for procvar }
+                 handle_calling_convention(tprocvardef(tt.def));
+              end;
              { Check for variable directives }
              if not symdone and (token=_ID) then
               begin
@@ -617,7 +647,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  2003-10-02 15:12:07  peter
+  Revision 1.54  2003-10-02 21:13:09  peter
+    * procvar directive parsing fixes
+
+  Revision 1.53  2003/10/02 15:12:07  peter
     * fix type parsing in records
 
   Revision 1.52  2003/10/01 19:05:33  peter

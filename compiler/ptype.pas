@@ -459,6 +459,7 @@ implementation
         pd : tabstractprocdef;
         is_func,
         enumdupmsg : boolean;
+        newtype : ttypesym;
       begin
          tt.reset;
          case token of
@@ -615,9 +616,19 @@ implementation
                     consume(_OBJECT);
                     include(pd.procoptions,po_methodpointer);
                   end;
-                { Add implicit hidden parameters and function result }
-                calc_parast(pd);
                 tt.def:=pd;
+                { possible proc directives }
+                if is_proc_directive(token,true) then
+                  begin
+                     newtype:=ttypesym.create('unnamed',tt);
+                     parse_var_proc_directives(tsym(newtype));
+                     newtype.restype.def:=nil;
+                     tt.def.typesym:=nil;
+                     newtype.free;
+                  end;
+                { Add implicit hidden parameters and function result }
+                handle_calling_convention(pd);
+                calc_parast(pd);
               end;
             else
               expr_type;
@@ -629,7 +640,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2003-10-01 19:05:33  peter
+  Revision 1.58  2003-10-02 21:13:09  peter
+    * procvar directive parsing fixes
+
+  Revision 1.57  2003/10/01 19:05:33  peter
     * searchsym_type to search for type definitions. It ignores
       records,objects and parameters
 

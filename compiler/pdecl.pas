@@ -202,11 +202,13 @@ implementation
                    if (tt.def.deftype=procvardef) then
                     begin
                       { support p : procedure;stdcall=nil; }
-                      if (token=_SEMICOLON) then
+                      if try_to_consume(_SEMICOLON) then
                        begin
-                         consume(_SEMICOLON);
-                         if is_proc_directive(token) then
-                          parse_var_proc_directives(sym)
+                         if is_proc_directive(token,true) then
+                          begin
+                            parse_var_proc_directives(sym);
+                            handle_calling_convention(tprocvardef(tt.def));
+                          end
                          else
                           begin
                             Message(parser_e_proc_directive_expected);
@@ -216,7 +218,7 @@ implementation
                       else
                       { support p : procedure stdcall=nil; }
                        begin
-                         if is_proc_directive(token) then
+                         if is_proc_directive(token,true) then
                           parse_var_proc_directives(sym);
                        end;
                       { add default calling convention }
@@ -489,7 +491,7 @@ implementation
                      consume(_SEMICOLON)
                     else
                      begin
-                       if not is_proc_directive(token) then
+                       if not is_proc_directive(token,true) then
                         consume(_SEMICOLON);
                        parse_var_proc_directives(tsym(newtype));
                      end;
@@ -633,7 +635,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2003-09-23 17:56:05  peter
+  Revision 1.70  2003-10-02 21:13:09  peter
+    * procvar directive parsing fixes
+
+  Revision 1.69  2003/09/23 17:56:05  peter
     * locals and paras are allocated in the code generation
     * tvarsym.localloc contains the location of para/local when
       generating code for the current procedure

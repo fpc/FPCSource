@@ -37,11 +37,12 @@ interface
         pd_object,     { directive can be used object declaration }
         pd_procvar,    { directive can be used procvar declaration }
         pd_notobject,  { directive can not be used object declaration }
-        pd_notobjintf  { directive can not be used interface declaration }
+        pd_notobjintf, { directive can not be used interface declaration }
+        pd_notprocvar  { directive can not be used procvar declaration }
       );
       tpdflags=set of tpdflag;
 
-    function  is_proc_directive(tok:ttoken):boolean;
+    function is_proc_directive(tok:ttoken;isprocvar:boolean):boolean;
 
     procedure calc_parast(pd:tabstractprocdef);
 
@@ -884,10 +885,9 @@ implementation
                 end;
             end;
         end;
-        { support procedure proc;stdcall export; in Delphi mode only }
-        if not((m_delphi in aktmodeswitches) and
-           is_proc_directive(token)) then
-         consume(_SEMICOLON);
+        { support procedure proc stdcall export; }
+        if not(is_proc_directive(token,false)) then
+          consume(_SEMICOLON);
         result:=pd;
       end;
 
@@ -1197,7 +1197,7 @@ const
       pocall   : pocall_none;
       pooption : [po_abstractmethod];
       mutexclpocall : [pocall_internproc,pocall_inline];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [];
       mutexclpo     : [po_exports,po_interrupt,po_external]
     ),(
       idtok:_ALIAS;
@@ -1502,7 +1502,7 @@ const
    );
 
 
-    function is_proc_directive(tok:ttoken):boolean;
+    function is_proc_directive(tok:ttoken;isprocvar:boolean):boolean;
       var
         i : longint;
       begin
@@ -1510,7 +1510,9 @@ const
         for i:=1 to num_proc_directives do
          if proc_direcdata[i].idtok=idtoken then
           begin
-            is_proc_directive:=true;
+            if (not isprocvar) or
+               (pd_procvar in proc_direcdata[i].pd_flags) then
+              is_proc_directive:=true;
             exit;
           end;
       end;
@@ -1818,22 +1820,21 @@ const
             begin
               res:=parse_proc_direc(pd,pdflags);
             end;
-         { A procedure directive normally followed by a semicolon, but in
-           a const section we should stop when _EQUAL is found }
+           { A procedure directive normally followed by a semicolon, but in
+             a const section or reading a type we should stop when _EQUAL is found,
+             because a constant/default value follows }
            if res then
             begin
-              if (block_type=bt_const) and
+              if (block_type in [bt_const,bt_type]) and
                  (token=_EQUAL) then
                break;
-              { support procedure proc;stdcall export; in Delphi mode only }
-              if not((m_delphi in aktmodeswitches) and
-                     is_proc_directive(token)) then
+              { support procedure proc;stdcall export; }
+              if not(is_proc_directive(token,(pd.deftype=procvardef))) then
                consume(_SEMICOLON);
             end
            else
             break;
          end;
-        handle_calling_convention(pd);
       end;
 
 
@@ -2111,8 +2112,9 @@ const
                   (po_overload in hd.procoptions)) then
                begin
                  { check if all procs have overloading, but not if the proc was
-                   already declared forward, then the check is already done }
+                   already declared forward or abstract, then the check is already done }
                  if not(hd.hasforward or
+                        (po_abstractmethod in hd.procoptions) or
                         (pd.forwarddef<>hd.forwarddef) or
                         ((po_overload in pd.procoptions) and
                          (po_overload in hd.procoptions))) then
@@ -2149,7 +2151,10 @@ const
 end.
 {
   $Log$
-  Revision 1.142  2003-10-01 19:05:33  peter
+  Revision 1.143  2003-10-02 21:13:09  peter
+    * procvar directive parsing fixes
+
+  Revision 1.142  2003/10/01 19:05:33  peter
     * searchsym_type to search for type definitions. It ignores
       records,objects and parameters
 
