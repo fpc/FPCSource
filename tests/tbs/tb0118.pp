@@ -29,6 +29,25 @@ asm
         move.l d0,a5
 end ['d0','a5'];
 {$endif CPU68K}
+{$ifdef CPUPOWERPC}
+asm
+  // doesn't matter, there is no static register used anymore for self,
+  // and self is now loaded on-demand instead of always
+  li r0,0
+  li r3,0
+  li r4,0
+  li r5,0
+  li r6,0
+  li r7,0
+  li r8,0
+  li r9,0
+  li r10,0
+  li r11,0
+  li r12,0
+end;
+{$endif CPUPOWERPC}
+
+
 var
   p1 : tpt;
 begin
