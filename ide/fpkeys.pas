@@ -97,13 +97,15 @@ var
 
 Procedure StoreKeys(var S : TStream);
 var
-  i : longint;
+  i,index : longint;
   l : byte;
 begin
   for i:=1 to NumWantedKeys do
     if KeyEscape[i]<>'' then
       begin
-        S.Write(i,Sizeof(i));
+        { need temporary local var, because write has var argument }
+        index:=i;
+        S.Write(index,Sizeof(index));
         l:=Length(KeyEscape[i]);
         S.Write(l,sizeof(l));
         S.Write(KeyEscape[i][1],l);
@@ -342,7 +344,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-09-07 15:40:43  peter
+  Revision 1.4  2004-09-16 16:20:06  peter
+    * illegal for-loop var assignemnt
+
+  Revision 1.3  2002/09/07 15:40:43  peter
     * old logs removed and tabs fixed
 
 }
