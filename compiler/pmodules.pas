@@ -308,7 +308,7 @@ unit pmodules;
                   hp^.ppufile:=nil;
                 { recompile or give an fatal error }
                   if not(hp^.sources_avail) then
-                   Message1(unit_f_cant_compile_unit,hp^.unitname^)
+                   Message1(unit_f_cant_compile_unit,hp^.modulename^)
                   else
                    begin
 {$ifdef TEST_TEMPCLOSE}
@@ -330,7 +330,7 @@ unit pmodules;
                 Message(unit_f_too_much_units);
              end;
           { ok, now load the unit }
-            hp^.symtable:=new(punitsymtable,load(hp^.unitname^));
+            hp^.symtable:=new(punitsymtable,load(hp^.modulename^));
           { if this is the system unit insert the intern symbols }
             make_ref:=false;
             if compile_system then
@@ -1110,7 +1110,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.15  1998-05-23 01:21:22  peter
+  Revision 1.16  1998-05-27 19:45:06  peter
+    * symtable.pas splitted into includefiles
+    * symtable adapted for $ifdef NEWPPU
+
+  Revision 1.15  1998/05/23 01:21:22  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

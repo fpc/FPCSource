@@ -411,10 +411,10 @@ unit files;
       Message1(unit_d_ppu_crc,tostr(ppufile^.header.checksum));
     { Unitname }
       b:=ppufile^.readentry;
-      if b=ibunitname then
+      if b=ibmodulename then
        begin
-         stringdispose(unitname);
-         unitname:=stringdup(ppufile^.getstring);
+         stringdispose(modulename);
+         modulename:=stringdup(ppufile^.getstring);
          b:=ppufile^.readentry;
        end;
 
@@ -487,7 +487,7 @@ unit files;
        begin
          if (flags and uf_smartlink)<>0 then
           begin
-            objfiletime:=getnamedfiletime(arfilename^);
+            objfiletime:=getnamedfiletime(libfilename^);
             if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
               do_compile:=true;
           end
@@ -927,7 +927,11 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.13  1998-05-23 01:21:05  peter
+  Revision 1.14  1998-05-27 19:45:02  peter
+    * symtable.pas splitted into includefiles
+    * symtable adapted for $ifdef NEWPPU
+
+  Revision 1.13  1998/05/23 01:21:05  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

@@ -1448,7 +1448,7 @@ unit pexpr;
                                     do_firstpass(p1);
                                     case p1^.treetype of
                                        ordconstn : begin
-                                                      if p1^.resulttype=s32bitdef then
+                                                      if porddef(p1^.resulttype)=s32bitdef then
                                                         p1^.resulttype:=u8bitdef;
                                                       if pd=nil then
                                                         pd:=p1^.resulttype;
@@ -1460,7 +1460,7 @@ unit pexpr;
                                                              consume(POINTPOINT);
                                                              p3:=comp_expr(true);
                                                              do_firstpass(p3);
-                                                             if p3^.resulttype=s32bitdef then
+                                                             if porddef(p3^.resulttype)=s32bitdef then
                                                                p3^.resulttype:=u8bitdef;
                                                             if not(is_equal(pd,p3^.resulttype)) then
                                                               Message(parser_e_typeconflict_in_set)
@@ -1485,7 +1485,7 @@ unit pexpr;
                                                 end;
                                        else
                                           begin
-                                             if p1^.resulttype=s32bitdef then
+                                             if porddef(p1^.resulttype)=s32bitdef then
                                                p1^.resulttype:=u8bitdef;
                                              if pd=nil then
                                                pd:=p1^.resulttype;
@@ -1745,7 +1745,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.20  1998-05-26 07:53:59  pierre
+  Revision 1.21  1998-05-27 19:45:05  peter
+    * symtable.pas splitted into includefiles
+    * symtable adapted for $ifdef NEWPPU
+
+  Revision 1.20  1998/05/26 07:53:59  pierre
     * bug fix for empty sets (nil pd was dereferenced )
 
   Revision 1.19  1998/05/25 17:11:43  pierre

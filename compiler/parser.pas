@@ -297,8 +297,9 @@ unit parser;
 
          { init code generator for a new module }
          codegen_newmodule;
+{$ifdef GDB}
          reset_gdb_info;
-
+{$endif GDB}
          { global switches are read, so further changes aren't allowed }
          current_module^.in_main:=true;
 
@@ -429,7 +430,9 @@ done:
          if dispose_asm_lists then
            codegen_donemodule;
 
+{$ifdef GDB}
          reset_gdb_info;
+{$endif GDB}
          { restore symtable state }
 {$ifdef UseBrowser}
          if (compile_level>1) then
@@ -508,7 +511,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.18  1998-05-23 01:21:15  peter
+  Revision 1.19  1998-05-27 19:45:04  peter
+    * symtable.pas splitted into includefiles
+    * symtable adapted for $ifdef NEWPPU
+
+  Revision 1.18  1998/05/23 01:21:15  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

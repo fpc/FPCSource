@@ -33,7 +33,7 @@ const
 {$endif}
 
 {ppu entries}
-  ibunitname      = 1;
+  ibmodulename    = 1;
   ibsourcefile    = 2;
   ibloadunit_int  = 3;
   ibloadunit_imp  = 4;
@@ -43,6 +43,9 @@ const
   ibstaticlibs    = 8;
   ibdbxcount      = 9;
   ibref           = 10;
+  ibenddefs       = 250;
+  ibendsyms       = 251;
+  ibendheader     = 252;
   ibentry         = 254;
   ibend           = 255;
   {syms}
@@ -107,8 +110,8 @@ type
   pppufile=^tppufile;
   tppufile=object
     f        : file;
-    error,
-    writing  : boolean;
+    mode     : byte; {0 - Closed, 1 - Reading, 2 - Writing}
+    error    : boolean;
     fname    : string;
     fsize    : longint;
 
@@ -235,7 +238,7 @@ constructor tppufile.init(fn:string);
 begin
   fname:=fn;
   change_endian:=false;
-  writing:=false;
+  Mode:=0;
   NewHeader;
   getmem(buf,ppubufsize);
 end;
@@ -250,7 +253,7 @@ end;
 
 procedure tppufile.flush;
 begin
-  if writing then
+  if Mode=2 then
    writebuf;
 end;
 
@@ -259,11 +262,15 @@ procedure tppufile.close;
 var
   i : word;
 begin
-  Flush;
-  {$I-}
-   system.close(f);
-  {$I+}
-  i:=ioresult;
+  if Mode<>0 then
+   begin
+     Flush;
+     {$I-}
+      system.close(f);
+     {$I+}
+     i:=ioresult;
+     Mode:=0;
+   end;
 end;
 
 
@@ -346,7 +353,7 @@ begin
 {reset buffer}
   bufstart:=i;
   bufsize:=0;
-  writing:=false;
+  Mode:=1;
   open:=true;
 end;
 
@@ -508,6 +515,7 @@ begin
   {$I+}
   if ioresult<>0 then
    exit;
+  Mode:=2;
 {write header for sure}
   blockwrite(f,header,sizeof(tppuheader));
   bufsize:=ppubufsize;
@@ -515,7 +523,6 @@ begin
   crc:=$ffffffff;
   do_crc:=true;
   size:=0;
-  writing:=true;
   create:=true;
 end;
 
@@ -644,7 +651,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-05-12 10:56:07  peter
+  Revision 1.2  1998-05-27 19:45:08  peter
+    * symtable.pas splitted into includefiles
+    * symtable adapted for $ifdef NEWPPU
+
+  Revision 1.1  1998/05/12 10:56:07  peter
     + the ppufile object unit
 
 }
