@@ -21,7 +21,7 @@ const
 
 type
   PEventState = pointer;
-  TThreadFunc = function(parameter : pointer) : longint;
+  TThreadFunc = function(parameter : pointer) : ptrint;
 
   // Function prototypes for TThreadManager Record.
   TBeginThreadHandler = Function (sa : Pointer;stacksize : dword; ThreadFunction : tthreadfunc;p : pointer;creationFlags : dword; var ThreadId : THandle) : DWord;
@@ -145,7 +145,10 @@ function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
 {
   $Log$
-  Revision 1.19  2004-09-19 18:55:30  armin
+  Revision 1.20  2004-12-12 14:30:27  peter
+    * x86_64 updates
+
+  Revision 1.19  2004/09/19 18:55:30  armin
   * added define DISABLE_NO_THREAD_MANAGER to avoid warnings if thread manager is always present
 
   Revision 1.18  2004/05/23 20:26:20  marco

@@ -245,7 +245,7 @@ Uses
       begin
         DoneThread;
         pthread_detach(pthread_t(pthread_self()));
-        pthread_exit(pointer(ExitCode));
+        pthread_exit(pointer(ptrint(ExitCode)));
       end;
 
 
@@ -561,7 +561,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.13  2004-10-14 17:39:33  florian
+  Revision 1.14  2004-12-12 14:30:27  peter
+    * x86_64 updates
+
+  Revision 1.13  2004/10/14 17:39:33  florian
     + added system.align
     + threadvars are now aligned
 

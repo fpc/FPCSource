@@ -27,7 +27,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rdx,Errno+8
@@ -53,7 +53,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rdx,Errno+8
@@ -80,7 +80,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rdx,Errno+8
@@ -108,7 +108,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rdx,Errno+8
@@ -137,7 +137,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rdx,Errno+8
@@ -167,7 +167,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rdx,Errno+8
@@ -199,7 +199,7 @@ asm
   jnae .LSyscOK           { Jump to error handler if error.  }
   negq  %rax
   movq  %rax,%rdx
-  movq  FPC_THREADVAR_RELOCATE,%rax
+  movq  fpc_threadvar_relocate_proc,%rax
   testq %rax,%rax
   jne   .LThread
   movq  %rdx,Errno+8
@@ -224,7 +224,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2004-05-28 21:37:34  peter
+  Revision 1.9  2004-12-12 14:30:27  peter
+    * x86_64 updates
+
+  Revision 1.8  2004/05/28 21:37:34  peter
     * fix errno for multithread
 
   Revision 1.7  2004/05/18 20:13:12  peter
