@@ -308,7 +308,7 @@ function SplitName(name     : PChar    location 'd1';
                    separator: Cardinal location 'd2'; 
                    buf      : PChar    location 'd3'; 
                    oldpos   : LongInt  location 'd4'; 
-                   size     : LongInt  location 'd5'): Integer;
+                   size     : LongInt  location 'd5'): SmallInt;
 SysCall MOS_DOSBase 414;
 
 function SameLock(lock1: LongInt location 'd1'; 
@@ -687,7 +687,10 @@ SysCall MOS_DOSBase 1008;
 
 {
   $Log$
-  Revision 1.3  2005-01-11 17:44:52  karoly
+  Revision 1.4  2005-01-12 07:59:54  karoly
+    * Integers changed to SmallInt to be compatible with all modes
+
+  Revision 1.3  2005/01/11 17:44:52  karoly
     * some updates for sysutils
 
   Revision 1.2  2004/08/09 00:10:19  karoly

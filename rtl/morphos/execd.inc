@@ -1027,11 +1027,11 @@ type
   PSignalSemaphore = ^TSignalSemaphore;
   TSignalSemaphore = packed record
     ss_Link        : TNode;
-    ss_NestCount   : Integer;
+    ss_NestCount   : SmallInt;
     ss_WaitQueue   : TMinList;
     ss_MultipleLink: TSemaphoreRequest;
     ss_Owner       : PTask;
-    ss_QueueCount  : Integer;
+    ss_QueueCount  : SmallInt;
   end;
 
 type
@@ -1496,7 +1496,7 @@ type
   TExecBase = packed record
     LIbNode     : TLibrary;
     SoftVer     : Word;
-    LowMemChkSum: Integer;
+    LowMemChkSum: SmallInt;
     ChkBase     : DWord;
     ColdCapture : Pointer;
     CoolCapture : Pointer;
@@ -1734,7 +1734,10 @@ const
 
 {
   $Log$
-  Revision 1.2  2004-08-03 14:31:29  karoly
+  Revision 1.3  2005-01-12 07:59:05  karoly
+    * Integers changed to SmallInt to be compatible with all modes
+
+  Revision 1.2  2004/08/03 14:31:29  karoly
     * changed to use new utility includes
 
   Revision 1.1  2004/06/13 20:52:20  karoly

@@ -782,7 +782,7 @@ type
           ap_FoundBreak: LongInt;  
           ap_Flags     : ShortInt;
           ap_Reserved  : ShortInt;
-          ap_Strlen    : Integer;
+          ap_Strlen    : SmallInt;
           ap_Info      : TFileInfoBlock;
           ap_Buf       : Array[0..0] of Char;
           { * an_Buf continues * }
@@ -1381,7 +1381,10 @@ type
 
 {
   $Log$
-  Revision 1.3  2005-01-10 04:58:52  karoly
+  Revision 1.4  2005-01-12 07:59:05  karoly
+    * Integers changed to SmallInt to be compatible with all modes
+
+  Revision 1.3  2005/01/10 04:58:52  karoly
     * fixed alignment problem in TDosList
 
   Revision 1.2  2004/08/09 00:10:19  karoly
