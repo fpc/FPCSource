@@ -32,9 +32,13 @@ implementation
 // hasn't been divided up in .inc's, because I first want to see hoe
 // this idea works out.
 
+{$ifdef OpenBSD}
+{$define UseOldErrnoDirectLink}
+{$endif}
+
 {$ifdef UseOldErrnoDirectLink}
 Var
-  interrno : libcint;external name 'h_errno';
+  interrno : libcint;external name {$ifdef OpenBSD} '_errno' {$else} 'h_errno'{$endif};
 
 function fpgetCerrno:libcint; 
 
@@ -82,7 +86,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2004-01-04 20:36:53  jonas
+  Revision 1.10  2004-01-21 21:25:49  marco
+   * openbsd fixes stage one
+
+  Revision 1.9  2004/01/04 20:36:53  jonas
     + geterrnolocation for Darwin
 
   Revision 1.8  2003/12/11 18:20:50  florian
