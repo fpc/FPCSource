@@ -209,7 +209,7 @@ Function Do_Write(Handle,Addr,Len:Longint):longint;
 Begin
   repeat
     Do_Write:=Fpwrite(Handle,pchar(addr),len);
-  until ErrNo<>ESysEINTR;
+  until (ErrNo<>ESysEINTR) and (Errno<>ESysEAgain);
   If Do_Write<0 Then
    Begin
     Errno2InOutRes;
@@ -224,7 +224,7 @@ Function Do_Read(Handle,Addr,Len:Longint):Longint;
 Begin
   repeat
     Do_Read:=Fpread(Handle,pchar(addr),len);
-  until ErrNo<>ESysEINTR;
+  until (ErrNo<>ESysEINTR) and (ErrNo<>ESysEAgain);
   If Do_Read<0 Then
    Begin
     Errno2InOutRes;
@@ -670,7 +670,10 @@ End.
 
 {
    $Log$
-   Revision 1.5  2003-10-27 17:12:45  marco
+   Revision 1.6  2003-11-18 10:12:25  marco
+    * Small fixes for EAGAIN. bunxfunc only has comments added.
+
+   Revision 1.5  2003/10/27 17:12:45  marco
     * fixes for signal handling.
 
    Revision 1.4  2003/10/26 17:01:04  marco

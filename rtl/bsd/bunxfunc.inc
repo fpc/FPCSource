@@ -151,7 +151,7 @@ begin
         time_to_sleep.tv_nsec := 0;
         if (FPnanosleep(@time_to_sleep, @time_remaining) <> -1) Then
          Exit(0);
-        if (geterrno <> ESysEINTR) Then
+        if (geterrno <> ESysEINTR) Then	// EAGAIN?
          Exit (seconds);                     { best guess }
         FPsleep:= time_remaining.tv_sec;
         if   (time_remaining.tv_nsec <> 0) Then
@@ -454,7 +454,10 @@ end;
 
 {
  $Log$
- Revision 1.5  2003-10-26 17:01:04  marco
+ Revision 1.6  2003-11-18 10:12:25  marco
+  * Small fixes for EAGAIN. bunxfunc only has comments added.
+
+ Revision 1.5  2003/10/26 17:01:04  marco
   * moved sigprocmask to system
 
  Revision 1.4  2003/09/27 13:45:58  peter
