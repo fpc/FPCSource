@@ -577,9 +577,9 @@ begin
   //!! must be changed to contain format string...
   S:='';
   Case ErrCode of
-   feInvalidFormat : EConvertError.Createfmt(SInvalidFormat,[s]);
-   feMissingArgument : EConvertError.Createfmt(SArgumentMissing,[s]);
-   feInvalidArgIndex : EConvertError.Createfmt(SInvalidArgIndex,[s]);
+   feInvalidFormat : raise EConvertError.Createfmt(SInvalidFormat,[s]);
+   feMissingArgument : raise EConvertError.Createfmt(SArgumentMissing,[s]);
+   feInvalidArgIndex : raise EConvertError.Createfmt(SInvalidArgIndex,[s]);
  end;
 end;
 
@@ -1139,7 +1139,10 @@ const
 
 {
   $Log$
-  Revision 1.24  1999-08-16 22:38:53  peter
+  Revision 1.25  1999-08-25 13:13:58  michael
+  fixed Formaterror, added missing raise
+
+  Revision 1.24  1999/08/16 22:38:53  peter
     * fixed newstr/disposestr
 
   Revision 1.23  1999/07/18 17:27:28  michael
