@@ -2929,16 +2929,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    exprasmlist^.concat(new(paicpu,
                      op_const_reg(A_IMUL,S_L,
                      parraydef(pvarsym(p)^.vartype.def)^.elesize,R_EDI)));
-                end
-              else
-{$endif NOTARGETWIN32}
-                begin
-                   exprasmlist^.concat(new(paicpu,
-                     op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
-                   { load destination }
-                   exprasmlist^.concat(new(paicpu,
-                     op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
                 end;
+{$endif NOTARGETWIN32}
+              exprasmlist^.concat(new(paicpu,
+                op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+              { load destination }
+              exprasmlist^.concat(new(paicpu,
+                op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
 
               { don't destroy the registers! }
               exprasmlist^.concat(new(paicpu,
@@ -3896,7 +3893,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.94  2000-04-03 20:51:22  florian
+  Revision 1.95  2000-04-10 09:01:15  pierre
+   * fix for bug 922 in copyvalueparas
+
+  Revision 1.94  2000/04/03 20:51:22  florian
     * initialize/finalize_data checks if procinfo is assigned else
       crashes happend at end of compiling if there were ansistrings in the
       interface/implementation part of units: it was the result of the fix
