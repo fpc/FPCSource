@@ -597,17 +597,19 @@ unit cgcpu;
                 if ref.base=tmpreg then
                   begin
                     if ref.signindex<0 then
-                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg,ref.index))
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,tmpreg,ref.index))
                     else
-                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,tmpreg,ref.index));
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg,ref.index));
                     ref.index:=NR_NO;
                   end
                 else
                   begin
+                    if ref.index<>tmpreg then
+                      internalerror(200403161);
                     if ref.signindex<0 then
-                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,tmpreg,ref.base))
+                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,ref.base,tmpreg))
                     else
-                      list.concat(taicpu.op_reg_reg_reg(A_SUB,tmpreg,tmpreg,ref.base));
+                      list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
                     ref.base:=tmpreg;
                     ref.index:=NR_NO;
                   end;
@@ -1281,7 +1283,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2004-03-10 22:35:40  florian
+  Revision 1.48  2004-03-14 16:15:40  florian
+    * spilling problem fixed
+    * handling of floating point memory references fixed
+
+  Revision 1.47  2004/03/10 22:35:40  florian
     + fixed code generation for cmn
 
   Revision 1.46  2004/03/06 20:35:19  florian

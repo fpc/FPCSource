@@ -321,7 +321,8 @@ implementation
 
     function taicpu.spilling_get_operation_type(opnr: longint): topertype;
       begin
-        if opnr = 0 then
+        if (opnr=0) and not(opcode in [A_STR,A_STRB,A_STRBT,A_STRD,
+              A_STRH,A_STRT,A_STF]) then
           result := operand_write
         else
           result:=operand_read;
@@ -423,7 +424,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2004-02-09 22:48:45  florian
+  Revision 1.29  2004-03-14 16:15:39  florian
+    * spilling problem fixed
+    * handling of floating point memory references fixed
+
+  Revision 1.28  2004/02/09 22:48:45  florian
     * several fixes to parameter handling on arm
 
   Revision 1.27  2004/02/08 23:10:21  jonas

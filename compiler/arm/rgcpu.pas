@@ -181,6 +181,7 @@ unit rgcpu;
 
       begin
         ref:=spilltemplist[regs[regidx].orgreg];
+        internalerror(200403141);
         {
         if abs(ref.offset)>4095 then
           begin
@@ -221,7 +222,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-03-06 20:35:20  florian
+  Revision 1.10  2004-03-14 16:15:40  florian
+    * spilling problem fixed
+    * handling of floating point memory references fixed
+
+  Revision 1.9  2004/03/06 20:35:20  florian
     * fixed arm compilation
     * cleaned up code generation for exported linux procedures
 
