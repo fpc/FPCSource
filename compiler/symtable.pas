@@ -1261,6 +1261,9 @@ implementation
          direct_with:=false;
          withnode:=nil;
          withrefnode:=nil;
+         { we don't need the symsearch }
+         dispose(symsearch,done);
+         symsearch:=nil;
       end;
 
 
@@ -2368,7 +2371,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2000-12-10 20:25:32  peter
+  Revision 1.22  2000-12-23 19:50:09  peter
+    * fixed mem leak with withsymtable
+
+  Revision 1.21  2000/12/10 20:25:32  peter
     * fixed missing typecast
 
   Revision 1.20  2000/12/10 14:14:51  florian
