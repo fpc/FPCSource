@@ -1,5 +1,7 @@
+{$R-}
 
 { Basic Pascal principles gone done the drain... !!!! }
+
 var
  v: word;
  w: shortint;

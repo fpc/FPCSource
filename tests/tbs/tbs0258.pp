@@ -2,6 +2,7 @@ program test_set;
 
 uses erroru;
 
+{$R-}
 
 procedure test;
 

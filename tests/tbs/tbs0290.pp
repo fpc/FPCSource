@@ -1,3 +1,6 @@
+{ $R+ would give compile time errors }
+{$R-}
+
 Program bug0290;
 
 var i,j : integer;
