@@ -29,8 +29,11 @@ uses
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
+type
+  TSystemTime = Windows.TSystemTime;
 
-Var Win32Platform : Longint;
+Var
+  Win32Platform : Longint;
 
 implementation
 
@@ -655,7 +658,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.15  2002-09-07 16:01:29  peter
+  Revision 1.16  2002-10-02 21:17:03  florian
+    * we've to reimport TSystemTime time from the windows unit
+
+  Revision 1.15  2002/09/07 16:01:29  peter
     * old logs removed and tabs fixed
 
   Revision 1.14  2002/05/09 08:28:23  carl
