@@ -1732,6 +1732,7 @@ begin
   def_system_macro('FPC_HASPREFETCH');
   def_system_macro('FPC_LINEEND_IN_TEXTREC');
   def_system_macro('FPC_ALIGNSRTTI');
+  def_system_macro('FPC_HASNOFARPOINTER');
 {$ifdef i386}
   def_system_macro('HASINTF');
   def_system_macro('HASVARIANT');
@@ -2089,7 +2090,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.162  2005-01-20 17:05:53  peter
+  Revision 1.163  2005-02-05 10:24:17  florian
+  *** empty log message ***
+
+  Revision 1.162  2005/01/20 17:05:53  peter
     * use val() for decoding integers
 
   Revision 1.161  2005/01/09 20:24:43  olle
