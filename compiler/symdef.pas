@@ -2861,7 +2861,10 @@ implementation
         hp:=pvarsym(symtable^.symindex^.first);
         if assigned(hp) then
          begin
-           l:=hp^.vartype.def^.size;
+           if hp^.vartype.def^.deftype in [recorddef,arraydef] then
+            l:=hp^.vartype.def^.alignment
+           else
+            l:=hp^.vartype.def^.size;
            if l>symtable^.dataalignment then
             begin
               if l>=4 then
@@ -5558,7 +5561,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.19  2000-12-25 00:07:29  peter
+  Revision 1.20  2001-01-06 20:11:29  peter
+    * merged c packrecords fix
+
+  Revision 1.19  2000/12/25 00:07:29  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
