@@ -290,19 +290,24 @@ begin
 {$ENDIF CONTHEAP}
   asm
     movl size,%edx
-    movw $0x7f00,%ax
+    movw $0x7f00,%eax
     call syscall     { result directly in EAX }
+@Sbrk_End:
     mov  %eax,L
   end ['eax', 'edx'];
   WriteLn ('New heap at ', L);
-  Sbrk := pointer(L);
+  Sbrk := pointer (L);
 end;
 {$ELSE DUMPGROW}
                                      assembler;
 asm
     movl size,%edx
-    movw $0x7f00,%ax
-    call syscall     { result directly in EAX }
+    movw $0x7f00,%eax
+    call syscall
+    inc eax          { Result in EAX, -1 = error (has to be transformed to 0) }
+    jz Sbrk_End
+    dec eax          { No error - back to previous value }
+@Sbrk_End:
 end ['eax', 'edx'];
 {$ENDIF DUMPGROW}
 
@@ -1238,7 +1243,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2003-10-07 21:33:24  hajny
+  Revision 1.11  2003-10-12 10:45:36  hajny
+    * sbrk error handling corrected
+
+  Revision 1.10  2003/10/07 21:33:24  hajny
     * stdcall fixes and asm routines cleanup
 
   Revision 1.9  2003/10/04 17:53:08  hajny
