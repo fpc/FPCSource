@@ -256,7 +256,6 @@ implementation
          pushedregs : TMaybesave;
          cgop : topcg;
         begin
-          location_copy(location,left.location);
           secondpass(tcallparanode(left).left);
           if tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn then
             begin
@@ -346,7 +345,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.59  2003-04-22 23:50:23  peter
+  Revision 1.60  2003-04-23 09:50:31  peter
+    * wrong location_copy for include/exclude
+
+  Revision 1.59  2003/04/22 23:50:23  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
