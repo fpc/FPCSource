@@ -1907,8 +1907,8 @@ BEGIN
      If (Count=Limit) Then SetLimit(Limit+Delta);     { Expand size if able }
      If (Limit>Count) Then Begin
        If (Index < Count) Then Begin                  { Not last item }
-         For I := Count DownTo Index Do               { Start from back }
-           Items^[I] := Items^[I-1];                  { Move each item }
+         For I := Count-1 DownTo Index Do               { Start from back }
+           Items^[I+1] := Items^[I];                  { Move each item }
        End;
        Items^[Index] := Item;                         { Put item in list }
        Inc(Count);                                    { Inc count }
@@ -2692,7 +2692,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.23  1999-01-06 10:11:06  daniel
+  Revision 1.24  1999-01-12 14:21:50  peter
+    * fixed TColletcion.AtInsert
+
+  Revision 1.23  1999/01/06 10:11:06  daniel
   * Removed on more handle:=-1 statement
 
   Revision 1.22  1998/12/30 10:26:16  peter
