@@ -53,6 +53,15 @@ const
    in_assert_x_y        = 41;
    in_addr_x            = 42;
    in_typeinfo_x        = 43;
+   in_setlength_x       = 44;
+   in_finalize_x        = 45;
+   in_new_x             = 46;
+   in_dispose_x         = 47;
+   in_exit              = 48;
+   in_copy_x            = 49;
+   in_initialize_x      = 50;
+   in_leave             = 51; {macpas}
+   in_cycle             = 52; {macpas}
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -102,7 +111,10 @@ const
 
 {
   $Log$
-  Revision 1.6  2004-02-02 20:39:27  florian
+  Revision 1.7  2004-07-05 21:59:18  olle
+    * updated according to compiler/compinnr.inc
+
+  Revision 1.6  2004/02/02 20:39:27  florian
     + added prefetch(const mem)
 
   Revision 1.5  2002/11/18 18:33:51  peter
