@@ -64,10 +64,21 @@ unit windows;
   procedure LeaveCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'LeaveCriticalSection';
   procedure DeleteCriticalSection(var CriticalSection : TRTLCriticalSection); external 'kernel32' name 'DeleteCriticalSection';
 
+{MvdV: JCL templates}
+function GetTimeZoneInformation(var TimeZoneInformation:TTimeZoneInformation):DWORD;  external 'kernel32' name 'GetTimeZoneInformation';
+function FileTimeToLocalFileTime(const lpFileTime:TFILETIME; var LocalFileTime :TFILETIME):WINBOOL; external 'kernel32' name 'FileTimeToLocalFileTime';
+function FileTimeToSystemTime(const lpFileTime:TFILETIME; var lpSystemTime:TSYSTEMTIME):WINBOOL; external 'kernel32' name 'FileTimeToSystemTime';
+function DosDateTimeToFileTime(wFatDate:WORD; wFatTime:WORD; var lpFileTime:tFILETIME):WINBOOL; external 'kernel32' name 'DosDateTimeToFileTime';
+function SystemTimeToFileTime(const lSystemTime:tSYSTEMTIME;var FileTime:tFILETIME):WINBOOL;external 'kernel32' name 'SystemTimeToFileTime';
+
+
 end.
 {
   $Log$
-  Revision 1.7  2000-02-09 16:59:35  peter
+  Revision 1.8  2000-03-19 20:30:27  marco
+   * Some more delphi compatible kernelfunc headers for JCL.
+
+  Revision 1.7  2000/02/09 16:59:35  peter
     * truncated log
 
   Revision 1.6  2000/01/07 16:41:53  daniel
