@@ -1000,7 +1000,7 @@ implementation
             case ressym.localloc.loc of
               LOC_FPUREGISTER:
                 begin
-                  location_reset(resloc,LOC_CREGISTER,resultloc.size);
+                  location_reset(resloc,LOC_CFPUREGISTER,resultloc.size);
                   resloc.register:=ressym.localloc.register;
                 end;
 
@@ -2067,7 +2067,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.209  2004-06-29 20:57:21  peter
+  Revision 1.210  2004-07-04 12:24:59  jonas
+    * fixed one regvar problem, but regvars are still broken since the dwarf
+      merge...
+
+  Revision 1.209  2004/06/29 20:57:21  peter
     * fixed size of exceptbuf
 
   Revision 1.208  2004/06/20 08:55:29  florian
