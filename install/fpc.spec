@@ -40,6 +40,8 @@ NEWPP=`pwd`/compiler/ppc386
 	make compiler_fpcexe PP={$NEWPP}
 
 %install
+	rm -rf %{buildroot}
+	
 NEWPP=`pwd`/compiler/ppc386
 NEWPPUFILES=`pwd`/utils/ppufiles
 INSTALLOPTS="PP=${NEWPP} PPUFILES=${NEWPPUFILES} PREFIXINSTALLDIR=%{buildroot}/usr"
@@ -82,42 +84,4 @@ $FPCDIR/samplecfg $FPCDIR
 
 
 %files
-/usr/bin/fpc
-/usr/bin/ppufiles
-/usr/bin/ppudump
-/usr/bin/ppumove
-/usr/bin/ppdep
-/usr/bin/ptop
-/usr/bin/rstconv
-/usr/bin/data2inc
-/usr/bin/bin2obj
-/usr/bin/delp
-/usr/bin/plex
-/usr/bin/pyacc
-/usr/bin/h2pas
-/usr/bin/postw32
-/usr/bin/fpcmake
-/usr/bin/fprcp
-%{fpcdir}
-/usr/lib/fpc/lexyacc/yylex.cod 
-/usr/lib/fpc/lexyacc/yyparse.cod
-/usr/man/man1/delp.1
-/usr/man/man1/ppdep.1
-/usr/man/man1/ppumove.1
-/usr/man/man1/ppudump.1
-/usr/man/man1/ppufiles.1
-/usr/man/man1/fpcmake.1
-/usr/man/man1/ptop.1
-/usr/man/man1/h2pas.1
-/usr/man/man1/plex.1
-/usr/man/man1/pyacc.1
-/usr/man/man1/fpc.1
-/usr/man/man1/ppc386.1
-/usr/man/man5/ppc386.cfg.5
-/usr/man/man5/fpcmake.5
-/usr/man/man5/ptop.cfg.5
-%{docdir}/examples
-%{docdir}/README
-%{docdir}/NEWS
-%{docdir}/faq.html
-%{docdir}/faq.txt
+/usr

@@ -30,11 +30,12 @@ This package contains the documentation in PDF format
 	make -C docs pdf
 
 %install
+	rm -rf %{buildroot}
 	make -C docs pdfinstall DOCINSTALLDIR=%{builddocdir}
 
 %clean
 	make -C docs clean
+	rm -rf %{buildroot}
 
 %files
-%{docdir}/*.pdf
-
+/usr
