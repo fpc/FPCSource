@@ -1,15 +1,6 @@
-{*****************************************************************************}
-{ File                   : radirect.pas                                       }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\08\22                                         }
-{ Last modification date : 2002\08\22                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
 {
     $Id$
-    Copyright (c) 1998-2002 by Florian Klaempfl
+    Copyright (c) 1998-2002 by Florian Klaempfl, Mazen NEIFER
 
     Reads inline assembler and writes the lines direct to the output
 
@@ -349,7 +340,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2003-06-13 21:19:32  peter
+  Revision 1.13  2003-08-11 09:15:53  mazen
+  - removed uncommon file header!
+
+  Revision 1.12  2003/06/13 21:19:32  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.11  2003/06/02 21:42:05  jonas
