@@ -133,6 +133,7 @@ implementation
          pt : tnode;
          vs,vs2    : tvarsym;
          srsym : tsym;
+         oldsymtablestack,
          srsymtable : tsymtable;
          unionsymtable : trecordsymtable;
          offset : longint;
@@ -179,7 +180,17 @@ implementation
              { this is needed for Delphi mode at least
                but should be OK for all modes !! (PM) }
              ignore_equal:=true;
-             read_type(tt,'');
+             if is_record or is_object then
+              begin
+                { for records, don't search the recordsymtable for
+                  the symbols of the types }
+                oldsymtablestack:=symtablestack;
+                symtablestack:=symtablestack.next;
+                read_type(tt,'');
+                symtablestack:=oldsymtablestack;
+              end
+             else
+              read_type(tt,'');
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
@@ -495,7 +506,12 @@ implementation
               { may be only a type: }
               if assigned(srsym) and (srsym.typ in [typesym,unitsym]) then
                begin
+                 { for records, don't search the recordsymtable for
+                   the symbols of the types }
+                 oldsymtablestack:=symtablestack;
+                 symtablestack:=symtablestack.next;
                  read_type(casetype,'');
+                 symtablestack:=oldsymtablestack;
                end
               else
                 begin
@@ -503,7 +519,10 @@ implementation
                   consume(_COLON);
                   { for records, don't search the recordsymtable for
                     the symbols of the types }
+                  oldsymtablestack:=symtablestack;
+                  symtablestack:=symtablestack.next;
                   read_type(casetype,'');
+                  symtablestack:=oldsymtablestack;
                   vs:=tvarsym.create(sorg,vs_value,casetype);
                   tabstractrecordsymtable(symtablestack).insertfield(vs,true);
                 end;
@@ -598,7 +617,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.52  2003-10-01 19:05:33  peter
+  Revision 1.53  2003-10-02 15:12:07  peter
+    * fix type parsing in records
+
+  Revision 1.52  2003/10/01 19:05:33  peter
     * searchsym_type to search for type definitions. It ignores
       records,objects and parameters
 
