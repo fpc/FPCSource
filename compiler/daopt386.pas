@@ -406,6 +406,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_INT} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {A_INT01} (Ch: (C_All, C_None, C_None)), { new }
   {A_INT1} (Ch: (C_All, C_None, C_None)), { new }
+{!!!} {A_INT03} (Ch: (C_None, C_None, C_None)),
   {A_INT3} (Ch: (C_None, C_None, C_None)),
   {A_INTO} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {A_INVD} (Ch: (C_All, C_None, C_None)), { new }
@@ -551,6 +552,7 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_PXOR} (Ch: (C_All, C_None, C_None)), { new }
   {A_RCL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
   {A_RCR} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
+{!!!}  {A_RDSHR} (Ch: (C_All, C_None, C_None)), { new }
   {A_RDMSR} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
   {A_RDPMC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
   {A_RDTSC} (Ch: (C_WEAX, C_WEDX, C_None)), { new }
@@ -560,6 +562,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_RETN} (Ch: (C_All, C_None, C_None)), { new }
   {A_ROL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
   {A_ROR} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
+{!!!}  {A_RSDC} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_RSLDT} (Ch: (C_All, C_None, C_None)), { new }
   {A_RSM} (Ch: (C_All, C_None, C_None)), { new }
   {A_SAHF} (Ch: (C_WFlags, C_REAX, C_None)),
   {A_SAL} (Ch: (C_Mop2, C_Rop1, C_RWFlags)),
@@ -577,6 +581,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_SIDT} (Ch: (C_Wop1, C_None, C_None)),
   {A_SLDT} (Ch: (C_Wop1, C_None, C_None)),
   {A_SMI} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SMINT} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SMINTOLD} (Ch: (C_All, C_None, C_None)), { new }
   {A_SMSW} (Ch: (C_Wop1, C_None, C_None)),
   {A_STC} (Ch: (C_WFlags, C_None, C_None)),
   {A_STD} (Ch: (C_SDirFlag, C_None, C_None)),
@@ -586,12 +592,22 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_STOSW} (Ch: (C_REAX, C_WMemEDI, C_RWEDI)), { new }
   {A_STR}  (Ch: (C_Wop1, C_None, C_None)),
   {A_SUB} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
+{!!!}  {A_SVDC} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SVLDT} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SVTS} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSCALL} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSENTER} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSEXIT} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_SYSRET} (Ch: (C_All, C_None, C_None)), { new }
   {A_TEST} (Ch: (C_WFlags, C_Rop1, C_Rop2)),
+{!!!}  {A_UD1} (Ch: (C_All, C_None, C_None)), { new }
+{!!!}  {A_UD2} (Ch: (C_All, C_None, C_None)), { new }
   {A_UMOV} (Ch: (C_All, C_None, C_None)), { new }
   {A_VERR} (Ch: (C_WFlags, C_None, C_None)),
   {A_VERW} (Ch: (C_WFlags, C_None, C_None)),
   {A_WAIT} (Ch: (C_None, C_None, C_None)),
   {A_WBINVD} (Ch: (C_None, C_None, C_None)), { new }
+{!!!}  {A_WRSHR} (Ch: (C_All, C_None, C_None)), { new }
   {A_WRMSR} (Ch: (C_All, C_None, C_None)), { new }
   {A_XADD} (Ch: (C_All, C_None, C_None)), { new }
   {A_XBTS} (Ch: (C_All, C_None, C_None)), { new }
@@ -601,7 +617,91 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {A_XOR} (Ch: (C_Mop2, C_Rop1, C_WFlags)),
   {A_CMOV} (Ch: (C_ROp1, C_WOp2, C_RFLAGS)), { new }
   {A_J} (Ch: (C_None, C_None, C_None)), { new }
-  {A_SET} (Ch: (C_WEAX, C_RFLAGS, C_None))  { new }
+  {A_SET} (Ch: (C_WEAX, C_RFLAGS, C_None)),  { new }
+{!!!! From here everything is new !!!!!!!!}
+  {ADDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {ADDSS} (Ch: (C_All, C_None, C_None)), { new }
+  {ANDNPS} (Ch: (C_All, C_None, C_None)), { new }
+  {ANDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPEQPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPEQSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLEPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLESS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPLTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNEQPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNEQSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLEPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLESS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPNLTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPORDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPORDSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPUNORDPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPUNORDSS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPPS} (Ch: (C_All, C_None, C_None)), { new }
+  {CMPSS} (Ch: (C_All, C_None, C_None)), { new }
+  {COMISS} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTPI2PS} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTPS2PI} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTSI2SS} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTSS2SI} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTTPS2PI} (Ch: (C_All, C_None, C_None)), { new }
+  {CVTTSS2SI} (Ch: (C_All, C_None, C_None)), { new }
+  {DIVPS} (Ch: (C_All, C_None, C_None)), { new }
+  {DIVSS} (Ch: (C_All, C_None, C_None)), { new }
+  {LDMXCSR} (Ch: (C_All, C_None, C_None)), { new }
+  {MAXPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MAXSS} (Ch: (C_All, C_None, C_None)), { new }
+  {MINPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MINSS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVAPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVHPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVLHPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVLPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVHLPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVMSKPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVNTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVSS} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVUPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MULPS} (Ch: (C_All, C_None, C_None)), { new }
+  {MULSS} (Ch: (C_All, C_None, C_None)), { new }
+  {ORPS} (Ch: (C_All, C_None, C_None)), { new }
+  {RCPPS} (Ch: (C_All, C_None, C_None)), { new }
+  {RCPSS} (Ch: (C_All, C_None, C_None)), { new }
+  {RSQRTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {RSQRTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {SHUFPS} (Ch: (C_All, C_None, C_None)), { new }
+  {SQRTPS} (Ch: (C_All, C_None, C_None)), { new }
+  {SQRTSS} (Ch: (C_All, C_None, C_None)), { new }
+  {STMXCSR} (Ch: (C_All, C_None, C_None)), { new }
+  {SUBPS} (Ch: (C_All, C_None, C_None)), { new }
+  {SUBSS} (Ch: (C_All, C_None, C_None)), { new }
+  {UCOMISS} (Ch: (C_All, C_None, C_None)), { new }
+  {UNPCKHPS} (Ch: (C_All, C_None, C_None)), { new }
+  {UNPCKLPS} (Ch: (C_All, C_None, C_None)), { new }
+  {XORPS} (Ch: (C_All, C_None, C_None)), { new }
+  {FXRSTOR} (Ch: (C_All, C_None, C_None)), { new }
+  {FXSAVE} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHNTA} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHT0} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHT1} (Ch: (C_All, C_None, C_None)), { new }
+  {PREFETCHT2} (Ch: (C_All, C_None, C_None)), { new }
+  {SFENCE} (Ch: (C_All, C_None, C_None)), { new }
+  {MASKMOVQ} (Ch: (C_All, C_None, C_None)), { new }
+  {MOVNTQ} (Ch: (C_All, C_None, C_None)), { new }
+  {PAVGB} (Ch: (C_All, C_None, C_None)), { new }
+  {PAVGW} (Ch: (C_All, C_None, C_None)), { new }
+  {PEXTRW} (Ch: (C_All, C_None, C_None)), { new }
+  {PINSRW} (Ch: (C_All, C_None, C_None)), { new }
+  {PMAXSW} (Ch: (C_All, C_None, C_None)), { new }
+  {PMAXUB} (Ch: (C_All, C_None, C_None)), { new }
+  {PMINSW} (Ch: (C_All, C_None, C_None)), { new }
+  {PMINUB} (Ch: (C_All, C_None, C_None)), { new }
+  {PMOVMSKB} (Ch: (C_All, C_None, C_None)), { new }
+  {PMULHUW} (Ch: (C_All, C_None, C_None)), { new }
+  {PSADBW} (Ch: (C_All, C_None, C_None)), { new }
+  {PSHUFW} (Ch: (C_All, C_None, C_None)) { new }
   );
 
 Var
@@ -2237,7 +2337,10 @@ End.
 
 {
  $Log$
- Revision 1.54  1999-08-05 15:01:52  jonas
+ Revision 1.55  1999-08-12 14:36:03  peter
+   + KNI instructions
+
+ Revision 1.54  1999/08/05 15:01:52  jonas
    * fix in -darithopt code (sometimes crashed on 8/16bit regs)
 
  Revision 1.53  1999/08/04 00:22:59  florian

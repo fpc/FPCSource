@@ -20,6 +20,28 @@ var
    s : string;
    i : longint;
 
+{$ifndef FPC}
+  procedure readln(var t:text;var s:string);
+  var
+    c : char;
+    i : longint;
+  begin
+    c:=#0;
+    i:=0;
+    while (not eof(t)) and (c<>#10) do
+     begin
+       read(t,c);
+       if c<>#10 then
+        begin
+          inc(i);
+          s[i]:=c;
+        end;
+     end;
+    if (i>0) and (s[i]=#13) then
+     dec(i);
+    s[0]:=chr(i);
+  end;
+{$endif}
 
       function Replace(var s:string;const s1,s2:string):boolean;
       var
@@ -167,8 +189,9 @@ var
    flags   : string;
    optypes : array[1..3] of string;
 begin
-   writeln('Nasm Instruction Table Converter Version 0.99.11');
+   writeln('Nasm Instruction Table Converter Version 0.99.13');
    insns:=0;
+   maxinfolen:=0;
    assign(infile,'insns.dat');
    reset(infile);
    assign(outfile,'i386tab.inc');
@@ -179,7 +202,9 @@ begin
      begin
         { handle comment }
         readln(infile,s);
-        if s[1]=';' then
+        while (s[1]=' ') do
+         delete(s,1,1);
+        if (s='') or (s[1]=';') then
           continue;
         { clear }
         opcode:='';
@@ -294,7 +319,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-05-23 18:42:24  florian
+  Revision 1.3  1999-08-12 14:36:09  peter
+    + KNI instructions
+
+  Revision 1.2  1999/05/23 18:42:24  florian
     * better error recovering in typed constants
     * some problems with arrays of const fixed, some problems
       due my previous

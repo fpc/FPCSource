@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1999 by Florian Klaempfl
+    Copyright (c) 1999 by Florian Klaempfl and Peter Vreman
 
     Contains the assembler object for the i386
 
@@ -1116,7 +1116,8 @@ begin
       201,
       202,
       209,
-      210 : ;
+      210,
+      217,218,219 : ;
       216 :
         begin
           inc(codes);
@@ -1422,8 +1423,11 @@ begin
       201,
       202,
       209,
-      210 :
+      210,
+      217,218,219 :
         begin
+          { these are dissambler hints or 32 bit prefixes which
+            are not needed }
         end;
       31,
       48,49,50,
@@ -1492,7 +1496,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1999-08-04 00:22:57  florian
+  Revision 1.2  1999-08-12 14:36:01  peter
+    + KNI instructions
+
+  Revision 1.1  1999/08/04 00:22:57  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.17  1999/08/01 23:55:53  michael
