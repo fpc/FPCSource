@@ -2253,7 +2253,7 @@
 {$endif UseBrowser}
          if assigned(parast) then
            dispose(parast,done);
-         if assigned(localst) then
+         if assigned(localst) and (localst^.symtabletype<>staticsymtable) then
            dispose(localst,done);
          if assigned(code) and ((options and poinline) <> 0) then
            disposetree(ptree(code));
@@ -3200,7 +3200,11 @@
 
 {
   $Log$
-  Revision 1.67  1998-11-05 12:02:56  peter
+  Revision 1.68  1998-11-05 23:34:36  peter
+    * don't dispose staticsymtable (caused crash under tp7 after a fatal
+      error)
+
+  Revision 1.67  1998/11/05 12:02:56  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 
