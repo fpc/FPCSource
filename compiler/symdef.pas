@@ -3004,9 +3004,9 @@ implementation
          write_rtti_name;
          { size of elements }
          rttiList.concat(Tai_const.Create_32bit(elesize));
-         { count of elements }
+         { count of elements, prevent overflow for 0..maxlongint }
          if not(IsDynamicArray) then
-           rttiList.concat(Tai_const.Create_32bit(highrange-lowrange+1));
+           rttiList.concat(Tai_const.Create_32bit(min(int64(highrange)-lowrange+1,maxlongint)));
          { element type }
          rttiList.concat(Tai_const_symbol.Create(tstoreddef(elementtype.def).get_rtti_label(rt)));
          { variant type }
@@ -6184,7 +6184,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.236  2004-05-01 22:05:01  florian
+  Revision 1.237  2004-05-22 23:33:18  peter
+  fix range check error when array size > maxlongint
+
+  Revision 1.236  2004/05/01 22:05:01  florian
     + added lib support for Amiga/MorphOS syscalls
 
   Revision 1.235  2004/04/29 19:56:37  daniel

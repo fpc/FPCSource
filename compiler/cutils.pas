@@ -39,8 +39,10 @@ interface
 
     {# Returns the minimal value between @var(a) and @var(b) }
     function min(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
+    function min(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the maximum value between @var(a) and @var(b) }
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
+    function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the value in @var(x) swapped to different endian }
     Function SwapInt64(x : int64): int64;{$ifdef USEINLINE}inline;{$endif}
     {# Returns the value in @var(x) swapped to different endian }
@@ -152,7 +154,31 @@ uses
       end;
 
 
+    function min(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return the minimal of a and b
+    }
+      begin
+         if a>b then
+           min:=b
+         else
+           min:=a;
+      end;
+
+
     function max(a,b : longint) : longint;{$ifdef USEINLINE}inline;{$endif}
+    {
+      return the maximum of a and b
+    }
+      begin
+         if a<b then
+           max:=b
+         else
+           max:=a;
+      end;
+
+
+    function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
     {
       return the maximum of a and b
     }
@@ -1162,7 +1188,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.38  2004-03-29 19:19:35  florian
+  Revision 1.39  2004-05-22 23:33:18  peter
+  fix range check error when array size > maxlongint
+
+  Revision 1.38  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
     * hopefully stabs generation for MacOSX fixed
     + some defines for arm added
