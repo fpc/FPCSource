@@ -65,6 +65,8 @@ Const
   SUnknownField            = 'No field named "%s" was found in dataset "%s"';
   SUnknownFieldType        = 'Unknown field type : %s';
   SUnknownParamFieldType   = 'Unknown fieldtype for parameter "%s".';
+  SMetadataUnavailable     = 'The metadata is not available for this type of database.';
+  SDeletedRecord           = 'The record is deleted.';
 
 Implementation
 
@@ -72,7 +74,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2005-01-12 10:29:20  michael
+  Revision 1.7  2005-02-07 11:23:04  joost
+    - added SMetadataUnavailable
+    - added SDeletedRecord
+
+  Revision 1.6  2005/01/12 10:29:20  michael
     * Patch from Joost Van der Sluis:
     - added error message for if transaction of DB is not set
 
