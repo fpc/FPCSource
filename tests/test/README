@@ -5,12 +5,13 @@ This directory contains tests for several parts of the compiler and RTL
                       Code generator
 --------------------------------------------------------------------
 
-secondadd() ........... /cg/taddbool.pas      Boolean arithmetic operations     
-secondadd() ........... /cg/taddcard.pas      Cardinal arithmetic operations
-secondadd() ........... /cg/taddreal.pas      Real arithmetic operations
-secondadd() ........... /cg/taddlong.pas      Longint arithmetic operations
-secondload()........... /cg/tldparam.pas      Load subroutine parameters
-secondload()........... /cg/tldlocal.pas      Load subroutine local variables
+secondadd() ........... /cg/taddbool.pp      Boolean arithmetic operations     
+secondadd() ........... /cg/taddcard.pp      Cardinal arithmetic operations
+secondadd() ........... /cg/taddreal.pp      Real arithmetic operations
+secondadd() ........... /cg/taddlong.pp      Longint arithmetic operations
+secondload()........... /cg/tldparam.pp      Load subroutine parameters
+secondload()........... /cg/tldlocal.pp      Load subroutine local variables
+secondshlshr()......... /cg/tshlshr.pp       Shift routines on natural compiler types
 
 --------------------------------------------------------------------
                         Compiler
