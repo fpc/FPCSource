@@ -604,15 +604,15 @@ var
    s1,s2,max,i : byte;
    d : longint;
 begin
-  s1:=length(left);
-  s2:=length(right);
+  s1:=length(right);
+  s2:=length(left);
   if s1<s2 then
     max:=s1
   else
     max:=s2;
   for i:=1 to max do
     begin
-     d:=byte(left[i])-byte(right[i]);
+     d:=byte(right[i])-byte(left[i]);
      if d>0 then
        exit(1)
      else if d<0 then
@@ -1221,7 +1221,10 @@ end;
 
 {
   $Log$
-  Revision 1.75  2004-05-01 20:52:50  peter
+  Revision 1.76  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.75  2004/05/01 20:52:50  peter
     * ValSInt fixed for 64 bit
 
   Revision 1.74  2004/05/01 15:26:33  jonas

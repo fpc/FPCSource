@@ -21,7 +21,7 @@
         strcat:=dest;
       end;
 
-    function strlcat(dest,source : pchar;l : strlenint) : pchar;
+    function strlcat(dest,source : pchar;l : SizeInt) : pchar;
 
       var
          destend : pchar;
@@ -34,7 +34,7 @@
          strlcat:=dest;
       end;
 
-    function strmove(dest,source : pchar;l : strlenint) : pchar;
+    function strmove(dest,source : pchar;l : SizeInt) : pchar;
 
       begin
          move(source^,dest^,l);
@@ -66,8 +66,11 @@
 
 {
   $Log$
-  Revision 1.5  2004-02-18 22:00:59  peter
-    * use strlenint instead of longint
+  Revision 1.6  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.5  2004/02/18 22:00:59  peter
+    * use SizeInt instead of longint
 
   Revision 1.4  2003/12/29 19:24:12  florian
     + introduced PtrInt and PtrUInt

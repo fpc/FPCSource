@@ -24,9 +24,9 @@
   AnsiString is defined as a 'silent' pchar :
   a pchar that points to :
 
-  @-12 : StrLenInt for maximum size;
-  @-8  : StrLenInt for size;
-  @-4  : StrLenInt for reference count;
+  @-12 : SizeInt for maximum size;
+  @-8  : SizeInt for size;
+  @-4  : SizeInt for reference count;
   @    : String + Terminating #0;
   Pchar(Ansistring) is a valid typecast.
   So AS[i] is converted to the address @AS+i-1.
@@ -40,7 +40,7 @@ Type
   TAnsiRec = Packed Record
     Maxlen,
     len,
-    ref   : StrLenint;
+    ref   : SizeInt;
     First : Char;
   end;
 
@@ -55,14 +55,14 @@ Const
 
 
 
-Function NewAnsiString(Len : StrLenInt) : Pointer;
+Function NewAnsiString(Len : SizeInt) : Pointer;
 {
   Allocate a new AnsiString on the heap.
   initialize it to zero length and reference count 1.
 }
 Var
   P : Pointer;
-  l : StrLenInt;
+  l : SizeInt;
 begin
   l:=Len+AnsiRecLen;
 
@@ -101,9 +101,9 @@ Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FP
   If the reference count is zero, deallocate the string;
 }
 Type
-  pStrLenInt = ^StrLenInt;
+  pSizeInt = ^SizeInt;
 Var
-  l : pStrLenInt;
+  l : pSizeInt;
 Begin
   { Zero string }
   If S=Nil then exit;
@@ -174,7 +174,7 @@ Procedure fpc_AnsiStr_Concat (const S1,S2 : ansistring;var S3 : ansistring);[Pub
   Result Goes to S3;
 }
 Var
-  Size,Location : StrLenInt;
+  Size,Location : SizeInt;
 begin
   { only assign if s1 or s2 is empty }
   if (S1='') then
@@ -201,7 +201,7 @@ Procedure AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString);
   Concatenates a Ansi with a short string; : S2 + S2
 }
 Var
-  Size,Location : StrLenInt;
+  Size,Location : SizeInt;
 begin
   Size:=Length(S2);
   Location:=Length(S1);
@@ -221,12 +221,12 @@ end;
 { procedure fpc_AnsiStr_To_ShortStr (Var S1 : ShortString;S2 : Pointer);     }
 { which is what the old helper was, so we don't need an extra implementation }
 { of the old helper (JM)                                                     }
-function fpc_AnsiStr_To_ShortStr (high_of_res: StrLenInt;const S2 : Ansistring): shortstring;[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_AnsiStr_To_ShortStr (high_of_res: SizeInt;const S2 : Ansistring): shortstring;[Public, alias: 'FPC_ANSISTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Converts a AnsiString to a ShortString;
 }
 Var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   if S2='' then
    fpc_AnsiStr_To_ShortStr:=''
@@ -246,7 +246,7 @@ Function fpc_ShortStr_To_AnsiStr (Const S2 : ShortString): ansistring; {$ifdef h
   Converts a ShortString to a AnsiString;
 }
 Var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   Size:=Length(S2);
   Setlength (fpc_ShortStr_To_AnsiStr,Size);
@@ -284,7 +284,7 @@ end;
 
 Function fpc_PChar_To_AnsiStr(const p : pchar): ansistring; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
-  L : StrLenInt;
+  L : SizeInt;
 begin
   if (not assigned(p)) or (p[0]=#0) Then
     { result is automatically set to '' }
@@ -305,7 +305,7 @@ end;
 
 Function fpc_CharArray_To_AnsiStr(const arr: array of char): ansistring; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
-  i  : StrLenInt;
+  i  : SizeInt;
 begin
   if arr[0]=#0 Then
     { result is automatically set to '' }
@@ -322,10 +322,10 @@ end;
 { the declaration below is the same as                                              }
 { which is what the old helper was (we need the parameter as "array of char" type   }
 { so we can pass it to the new style helper (JM)                                    }
-Procedure fpc_CharArray_To_AnsiStr(var a : ansistring; p: pointer; len: StrLenInt);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_CharArray_To_AnsiStr(var a : ansistring; p: pointer; len: SizeInt);[Public,Alias : 'FPC_CHARARRAY_TO_ANSISTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   src: pchar;
-  i: StrLenInt;
+  i: SizeInt;
 begin
   src := pchar(p);
   if src[0]=#0 Then
@@ -347,9 +347,9 @@ end;
 
 { note: inside the compiler, the resulttype is modified to be the length }
 { of the actual chararray to which we convert (JM)                       }
-function fpc_ansistr_to_chararray(arraysize: StrLenInt; const src: ansistring): fpc_big_chararray; [public, alias: 'FPC_ANSISTR_TO_CHARARRAY']; compilerproc;
+function fpc_ansistr_to_chararray(arraysize: SizeInt; const src: ansistring): fpc_big_chararray; [public, alias: 'FPC_ANSISTR_TO_CHARARRAY']; compilerproc;
 var
-  len: StrLenInt;
+  len: SizeInt;
 begin
   len := length(src);
   if len > arraysize then
@@ -363,7 +363,7 @@ end;
 {$endif hascompilerproc}
 
 
-Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): StrLenInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): SizeInt;[Public,Alias : 'FPC_ANSISTR_COMPARE'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Compares 2 AnsiStrings;
   The result is
@@ -372,7 +372,7 @@ Function fpc_AnsiStr_Compare(const S1,S2 : AnsiString): StrLenInt;[Public,Alias 
    >0 if S1>S2
 }
 Var
-  MaxI,Temp : StrLenInt;
+  MaxI,Temp : SizeInt;
 begin
   if pointer(S1)=pointer(S2) then
    begin
@@ -397,16 +397,16 @@ begin
 end;
 
 
-Procedure fpc_AnsiStr_CheckRange(len,index : StrLenInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_ANSISTR_RANGECHECK'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   if (index>len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 
 {$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : AnsiString; l : StrLenInt);
+Procedure SetLength (Var S : AnsiString; l : SizeInt);
 {$else INTERNSETLENGTH}
-Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : StrLenInt);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : SizeInt);[Public,Alias : 'FPC_ANSISTR_SETLENGTH'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif INTERNSETLENGTH}
 {
   Sets The length of string S to L.
@@ -414,7 +414,7 @@ Procedure fpc_AnsiStr_SetLength (Var S : AnsiString; l : StrLenInt);[Public,Alia
 }
 Var
   Temp : Pointer;
-  movelen, NewLen: StrLenInt;
+  movelen, NewLen: SizeInt;
 begin
   if (l>0) then
     begin
@@ -465,7 +465,7 @@ begin
 end;
 
 {$ifdef EXTRAANSISHORT}
-Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): StrLenInt;  {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): SizeInt;  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Compares a AnsiString with a ShortString;
   The result is
@@ -474,7 +474,7 @@ Function fpc_AnsiStr_ShortStr_Compare (Var S1 : Pointer; Var S2 : ShortString): 
    >0 if S1>S2
 }
 Var
-  i,MaxI,Temp : StrLenInt;
+  i,MaxI,Temp : SizeInt;
 begin
   Temp:=0;
   i:=0;
@@ -496,7 +496,7 @@ end;
 *****************************************************************************}
 
 {$ifndef INTERNLENGTH}
-Function Length (Const S : AnsiString) : StrLenInt;
+Function Length (Const S : AnsiString) : SizeInt;
 {
   Returns the length of an AnsiString.
   Takes in acount that zero strings are NIL;
@@ -520,7 +520,7 @@ Function fpc_ansistr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_ANSI
 }
 Var
   SNew : Pointer;
-  L    : StrLenInt;
+  L    : SizeInt;
 begin
   pointer(result) := pointer(s);
   If Pointer(S)=Nil then
@@ -546,7 +546,7 @@ end;
 
 Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
-   ofs : StrLenInt;
+   ofs : SizeInt;
 begin
    ofs:=Length(S);
    SetLength(S,ofs+length(Str));
@@ -556,7 +556,7 @@ end;
 
 Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
-   ofs : StrLenInt;
+   ofs : SizeInt;
 begin
    if Str<>'' then
      begin
@@ -567,9 +567,9 @@ begin
 end;
 
 {$ifdef interncopy}
-Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : StrLenInt) : AnsiString;compilerproc;
+Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;compilerproc;
 {$else}
-Function Copy (Const S : AnsiString; Index,Size : StrLenInt) : AnsiString;
+Function Copy (Const S : AnsiString; Index,Size : SizeInt) : AnsiString;
 {$endif}
 var
   ResultAddress : Pointer;
@@ -603,9 +603,9 @@ begin
 end;
 
 
-Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : StrLenInt;
+Function Pos (Const Substr : AnsiString; Const Source : AnsiString) : SizeInt;
 var
-  i,MaxLen : StrLenInt;
+  i,MaxLen : SizeInt;
   pc : pchar;
 begin
   Pos:=0;
@@ -633,9 +633,9 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : AnsiString) : StrLenInt;
+Function Pos (c : Char; Const s : AnsiString) : SizeInt;
 var
-  i: StrLenInt;
+  i: SizeInt;
   pc : pchar;
 begin
   pc:=@s[1];
@@ -682,7 +682,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_AnsiStr (DestSize: StrLenInt; Const S : AnsiString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_SInt_AnsiStr (DestSize: SizeInt; Const S : AnsiString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_ANSISTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -731,7 +731,7 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : StrLenInt;var s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_AnsiStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : ansistring);[public,alias:'FPC_ANSISTR_FLOAT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   ss: ShortString;
 begin
@@ -741,9 +741,9 @@ end;
 
 
 {$ifdef STR_USES_VALINT}
-Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : StrLenInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_UInt(v : ValUInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALUINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_AnsiStr_Longword(v : Longword;Len : StrLenInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Longword(v : Longword;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 Var
   SS : ShortString;
@@ -755,9 +755,9 @@ end;
 
 
 {$ifdef STR_USES_VALINT}
-Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : StrLenInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_SInt(v : ValSInt;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_VALSINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_AnsiStr_Longint(v : Longint; Len : StrLenInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Longint(v : Longint; Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 Var
   SS : ShortString;
@@ -769,7 +769,7 @@ end;
 
 {$ifndef CPU64}
 
-Procedure fpc_AnsiStr_QWord(v : QWord;Len : StrLenInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_QWord(v : QWord;Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_QWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -779,7 +779,7 @@ end;
 
 
 
-Procedure fpc_AnsiStr_Int64(v : Int64; Len : StrLenInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_AnsiStr_Int64(v : Int64; Len : SizeInt; Var S : AnsiString);[Public,Alias : 'FPC_ANSISTR_INT64']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -790,9 +790,9 @@ end;
 {$endif CPU64}
 
 
-Procedure Delete (Var S : AnsiString; Index,Size: StrLenInt);
+Procedure Delete (Var S : AnsiString; Index,Size: SizeInt);
 Var
-  LS : StrLenInt;
+  LS : SizeInt;
 begin
   ls:=Length(S);
   If (Index>LS) or (Index<=0) or (Size<=0) then
@@ -809,10 +809,10 @@ begin
 end;
 
 
-Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : StrLenInt);
+Procedure Insert (Const Source : AnsiString; Var S : AnsiString; Index : SizeInt);
 var
   Temp : AnsiString;
-  LS : StrLenInt;
+  LS : SizeInt;
 begin
   If Length(Source)=0 then
    exit;
@@ -833,13 +833,13 @@ begin
 end;
 
 
-Function StringOfChar(c : char;l : StrLenInt) : AnsiString;
+Function StringOfChar(c : char;l : SizeInt) : AnsiString;
 begin
   SetLength(StringOfChar,l);
   FillChar(Pointer(StringOfChar)^,Length(StringOfChar),c);
 end;
 
-Procedure SetString (Var S : AnsiString; Buf : PChar; Len : StrLenInt);
+Procedure SetString (Var S : AnsiString; Buf : PChar; Len : SizeInt);
 begin
   SetLength(S,Len);
   If (Buf<>Nil) then
@@ -851,7 +851,7 @@ end;
 
 function upcase(const s : ansistring) : ansistring;
 var
-  i : StrLenInt;
+  i : SizeInt;
 begin
   Setlength(result,length(s));
   for i := 1 to length (s) do
@@ -861,7 +861,7 @@ end;
 
 function lowercase(const s : ansistring) : ansistring;
 var
-  i : StrLenInt;
+  i : SizeInt;
 begin
   Setlength(result,length(s));
   for i := 1 to length (s) do
@@ -871,7 +871,10 @@ end;
 
 {
   $Log$
-  Revision 1.42  2004-04-29 18:59:43  peter
+  Revision 1.43  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.42  2004/04/29 18:59:43  peter
     * str() helpers now also use valint/valuint
     * int64/qword helpers disabled for cpu64
 

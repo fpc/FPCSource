@@ -86,9 +86,9 @@
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
 {$define FPC_UNIT_HAS_STRLCOPY}
 
- function libc_strlcpy(dest: pchar; const src: pchar; maxlen: StrLenInt): StrLenInt; cdecl; external 'c' name 'strlcpy';
+ function libc_strlcpy(dest: pchar; const src: pchar; maxlen: SizeInt): SizeInt; cdecl; external 'c' name 'strlcpy';
 
- Function StrLCopy(Dest,Source: PChar; MaxLen: StrLenInt): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
+ Function StrLCopy(Dest,Source: PChar; MaxLen: SizeInt): PChar;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      libc_strlcpy(dest,source,maxlen);
      StrLCopy := Dest;
@@ -100,7 +100,7 @@
 {$define FPC_UNIT_HAS_STRCOMP}
  function libc_strcmp(const str1,str2: pchar): longint; cdecl; external 'c' name 'strcmp';
 
- function StrComp(Str1, Str2 : PChar): StrLenInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrComp(Str1, Str2 : PChar): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      strcomp := libc_strcmp(str1,str2);
    end;
@@ -111,7 +111,7 @@
 {$define FPC_UNIT_HAS_STRICOMP}
  function libc_strcasecmp(const str1,str2: pchar): longint; cdecl; external 'c' name 'strcasecmp';
 
- function StrIComp(Str1, Str2 : PChar): StrLenInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrIComp(Str1, Str2 : PChar): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      stricomp := libc_strcasecmp(str1,str2);
    end;
@@ -122,7 +122,7 @@
 {$define FPC_UNIT_HAS_STRLCOMP}
  function libc_strncmp(const str1,str2: pchar; l: Cardinal): longint; cdecl; external 'c' name 'strncmp';
 
- function StrLComp(Str1, Str2 : PChar; L: StrLenInt): StrLenInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrLComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      strlcomp := libc_strncmp(str1,str2,l);
    end;
@@ -133,7 +133,7 @@
 {$define FPC_UNIT_HAS_STRLICOMP}
  function libc_strncasecmp(const str1,str2: pchar; l: Cardinal): longint; cdecl; external 'c' name 'strncasecmp';
 
- function StrLIComp(Str1, Str2 : PChar; L: StrLenInt): StrLenInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+ function StrLIComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
    Begin
      strlicomp := libc_strncasecmp(str1,str2,l);
    end;
@@ -142,7 +142,10 @@
 
 {
   $Log$
-  Revision 1.1  2004-05-01 15:26:33  jonas
+  Revision 1.2  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.1  2004/05/01 15:26:33  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
 

@@ -14,9 +14,9 @@
  **********************************************************************}
 
 {$ifndef FPC_UNIT_HAS_STRLEN}
- function strlen(P : pchar) : StrLenInt;
+ function strlen(P : pchar) : SizeInt;
   var
-   counter : StrLenInt;
+   counter : SizeInt;
  Begin
    counter := 0;
    while P[counter] <> #0 do
@@ -29,7 +29,7 @@
 {$ifndef FPC_UNIT_HAS_STREND}
  Function StrEnd(P: PChar): PChar;
  var
-  counter: StrLenInt;
+  counter: SizeInt;
  begin
    counter := 0;
    while P[counter] <> #0 do
@@ -42,7 +42,7 @@
 {$ifndef FPC_UNIT_HAS_STRCOPY}
  Function StrCopy(Dest, Source:PChar): PChar;
  var
-   counter : StrLenInt;
+   counter : SizeInt;
  Begin
    counter := 0;
    while Source[counter] <> #0 do
@@ -61,7 +61,7 @@
 {$ifndef FPC_UNIT_HAS_STRUPPER}
  function StrUpper(P: PChar): PChar;
  var
-  counter: StrLenInt;
+  counter: SizeInt;
  begin
    counter := 0;
    while (P[counter] <> #0) do
@@ -78,7 +78,7 @@
 {$ifndef FPC_UNIT_HAS_STRLOWER}
  function StrLower(P: PChar): PChar;
  var
-  counter: StrLenInt;
+  counter: SizeInt;
  begin
    counter := 0;
    while (P[counter] <> #0) do
@@ -96,7 +96,7 @@
 {$ifndef FPC_UNIT_HAS_STRSCAN}
  function StrScan(P: PChar; C: Char): PChar;
    Var
-     count: StrLenInt;
+     count: SizeInt;
   Begin
 
    count := 0;
@@ -126,8 +126,8 @@
 {$ifndef FPC_UNIT_HAS_STRRSCAN}
  function StrRScan(P: PChar; C: Char): PChar;
  Var
-  count: StrLenInt;
-  index: StrLenInt;
+  count: SizeInt;
+  index: SizeInt;
  Begin
    count := Strlen(P);
    { As in Borland Pascal , if looking for NULL return null }
@@ -157,7 +157,7 @@
  {  strcopy(Dest,Source);                                                }
  {  StrECopy := StrEnd(Dest);                                            }
  var
-   counter : StrLenInt;
+   counter : SizeInt;
  Begin
    counter := 0;
    while Source[counter] <> #0 do
@@ -173,9 +173,9 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLCOPY}
- Function StrLCopy(Dest,Source: PChar; MaxLen: StrLenInt): PChar;
+ Function StrLCopy(Dest,Source: PChar; MaxLen: SizeInt): PChar;
   var
-   counter: StrLenInt;
+   counter: SizeInt;
  Begin
    counter := 0;
    { To be compatible with BP, on a null string, put two nulls }
@@ -197,9 +197,9 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRCOMP}
- function StrComp(Str1, Str2 : PChar): StrLenInt;
+ function StrComp(Str1, Str2 : PChar): SizeInt;
      var
-      counter: StrLenInt;
+      counter: SizeInt;
      Begin
         counter := 0;
        While str1[counter] = str2[counter] do
@@ -214,9 +214,9 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRICOMP}
-     function StrIComp(Str1, Str2 : PChar): StrLenInt;
+     function StrIComp(Str1, Str2 : PChar): SizeInt;
      var
-      counter: StrLenInt;
+      counter: SizeInt;
       c1, c2: char;
      Begin
         counter := 0;
@@ -235,9 +235,9 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLCOMP}
-     function StrLComp(Str1, Str2 : PChar; L: StrLenInt): StrLenInt;
+     function StrLComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;
      var
-      counter: StrLenInt;
+      counter: SizeInt;
       c1, c2: char;
      Begin
         counter := 0;
@@ -258,9 +258,9 @@
 
 
 {$ifndef FPC_UNIT_HAS_STRLICOMP}
-     function StrLIComp(Str1, Str2 : PChar; L: StrLenInt): StrLenInt;
+     function StrLIComp(Str1, Str2 : PChar; L: SizeInt): SizeInt;
      var
-      counter: StrLenInt;
+      counter: SizeInt;
       c1, c2: char;
      Begin
         counter := 0;
@@ -281,7 +281,10 @@
 
 {
   $Log$
-  Revision 1.2  2003-07-07 20:22:05  peter
+  Revision 1.3  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.2  2003/07/07 20:22:05  peter
     * generic string routines added
 
   Revision 1.1  2003/04/30 16:36:39  florian

@@ -21,9 +21,9 @@
   WideString is defined as a 'silent' pwidechar :
   a pwidechar that points to :
 
-  @-12 : StrLenInt for maximum size;
-  @-8  : StrLenInt for size;
-  @-4  : StrLenInt for reference count;
+  @-12 : SizeInt for maximum size;
+  @-8  : SizeInt for size;
+  @-4  : SizeInt for reference count;
   @    : String + Terminating #0;
   Pwidechar(Widestring) is a valid typecast.
   So WS[i] is converted to the address @WS+i-1.
@@ -37,7 +37,7 @@ Type
   TWideRec = Packed Record
     Maxlen,
     len,
-    ref   : StrLenInt;
+    ref   : SizeInt;
     First : WideChar;
   end;
 
@@ -53,9 +53,9 @@ Const
   These routines can be overwritten for the Current Locale
 }
 
-procedure Wide2AnsiMove(source:pwidechar;dest:pchar;len:StrLenInt);
+procedure Wide2AnsiMove(source:pwidechar;dest:pchar;len:SizeInt);
 var
-  i : StrLenInt;
+  i : SizeInt;
 begin
   for i:=1 to len do
    begin
@@ -69,9 +69,9 @@ begin
 end;
 
 
-procedure Ansi2WideMove(source:pchar;dest:pwidechar;len:StrLenInt);
+procedure Ansi2WideMove(source:pchar;dest:pwidechar;len:SizeInt);
 var
-  i : StrLenInt;
+  i : SizeInt;
 begin
   for i:=1 to len do
    begin
@@ -144,14 +144,14 @@ end;
 {$endif}
 
 
-Function NewWideString(Len : StrLenInt) : Pointer;
+Function NewWideString(Len : SizeInt) : Pointer;
 {
   Allocate a new WideString on the heap.
   initialize it to zero length and reference count 1.
 }
 Var
   P : Pointer;
-  l : StrLenInt;
+  l : SizeInt;
 begin
   { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
   L := (Len*sizeof(WideChar)+WideRecLen+15) and (not 15);
@@ -187,9 +187,9 @@ Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);saveregisters;[Public,Alias:'FP
   If the reference count is zero, deallocate the string;
 }
 Type
-  pStrLenInt = ^StrLenInt;
+  pSizeInt = ^SizeInt;
 Var
-  l : pStrLenInt;
+  l : pSizeInt;
 Begin
   { Zero string }
   If S=Nil then exit;
@@ -226,12 +226,12 @@ end;
 Procedure fpc_WideStr_Incr_Ref (S : Pointer);saveregisters;[external name 'FPC_WIDESTR_INCR_REF'];
 {$endif compilerproc}
 
-function fpc_WideStr_To_ShortStr (high_of_res: StrLenInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_WideStr_To_ShortStr (high_of_res: SizeInt;const S2 : WideString): shortstring;[Public, alias: 'FPC_WIDESTR_TO_SHORTSTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Converts a WideString to a ShortString;
 }
 Var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   if S2='' then
    fpc_WideStr_To_ShortStr:=''
@@ -251,7 +251,7 @@ Function fpc_ShortStr_To_WideStr (Const S2 : ShortString): WideString; {$ifdef h
   Converts a ShortString to a WideString;
 }
 Var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   Size:=Length(S2);
   Setlength (fpc_ShortStr_To_WideStr,Size);
@@ -277,7 +277,7 @@ Function fpc_WideStr_To_AnsiStr (const S2 : WideString): AnsiString; {$ifdef has
   Converts a WideString to an AnsiString
 }
 Var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   if s2='' then
     exit;
@@ -305,7 +305,7 @@ Function fpc_AnsiStr_To_WideStr (Const S2 : AnsiString): WideString; {$ifdef has
   Converts an AnsiString to a WideString;
 }
 Var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
    if s2='' then
      exit;
@@ -322,7 +322,7 @@ end;
 { compilers with widestrings should have compiler procs }
 Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
 var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   if p=nil then
    exit;
@@ -339,7 +339,7 @@ end;
 
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
 var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   if p=nil then
    exit;
@@ -356,7 +356,7 @@ end;
 
 Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
 var
-  Size : StrLenInt;
+  Size : SizeInt;
 begin
   if p=nil then
    begin
@@ -417,7 +417,7 @@ Procedure fpc_WideStr_Concat (S1,S2 : WideString;var S3 : WideString);[Public, a
   Result Goes to S3;
 }
 Var
-  Size,Location : StrLenInt;
+  Size,Location : SizeInt;
 begin
 { only assign if s1 or s2 is empty }
   if (S1='') then
@@ -462,7 +462,7 @@ end;
 
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
-  L : StrLenInt;
+  L : SizeInt;
 begin
   if (not assigned(p)) or (p[0]=#0) Then
     { result is automatically set to '' }
@@ -483,7 +483,7 @@ end;
 
 Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
-  i  : StrLenInt;
+  i  : SizeInt;
 begin
   if arr[0]=#0 Then
     { result is automatically set to '' }
@@ -497,10 +497,10 @@ end;
 
 { old style helper }
 {$ifndef hascompilerproc}
-Procedure fpc_CharArray_To_WideStr(var a : WideString; p: pointer; len: StrLenInt); [Public,Alias : 'FPC_CHARARRAY_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_CharArray_To_WideStr(var a : WideString; p: pointer; len: SizeInt); [Public,Alias : 'FPC_CHARARRAY_TO_WIDESTR'];  {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   src: pchar;
-  i: StrLenInt;
+  i: SizeInt;
 begin
   src := pchar(p);
   if src[0]=#0 Then
@@ -519,9 +519,9 @@ end;
 {$ifdef hascompilerproc}
 { inside the compiler, the resulttype is modified to that of the actual }
 { chararray we're converting to (JM)                                    }
-function fpc_widestr_to_chararray(arraysize: StrLenInt; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
+function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray;[public,alias: 'FPC_WIDESTR_TO_CHARARRAY']; compilerproc;
 var
-  len: StrLenInt;
+  len: SizeInt;
 begin
   len := length(src);
   if len > arraysize then
@@ -533,7 +533,7 @@ begin
 end;
 {$endif hascompilerproc}
 
-Function fpc_WideStr_Compare(const S1,S2 : WideString): StrLenInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt;[Public,Alias : 'FPC_WIDESTR_COMPARE']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {
   Compares 2 WideStrings;
   The result is
@@ -542,7 +542,7 @@ Function fpc_WideStr_Compare(const S1,S2 : WideString): StrLenInt;[Public,Alias 
    >0 if S1>S2
 }
 Var
-  MaxI,Temp : StrLenInt;
+  MaxI,Temp : SizeInt;
 begin
   if pointer(S1)=pointer(S2) then
    begin
@@ -567,16 +567,16 @@ begin
 end;
 
 
-Procedure fpc_WideStr_CheckRange(len,index : StrLenInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_CheckRange(len,index : SizeInt);[Public,Alias : 'FPC_WIDESTR_RANGECHECK']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   if (index>len) or (Index<1) then
     HandleErrorFrame(201,get_frame);
 end;
 
 {$ifndef INTERNSETLENGTH}
-Procedure SetLength (Var S : WideString; l : StrLenInt);
+Procedure SetLength (Var S : WideString; l : SizeInt);
 {$else INTERNSETLENGTH}
-Procedure fpc_WideStr_SetLength (Var S : WideString; l : StrLenInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_SetLength (Var S : WideString; l : SizeInt);[Public,Alias : 'FPC_WIDESTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif INTERNSETLENGTH}
 {
   Sets The length of string S to L.
@@ -584,7 +584,7 @@ Procedure fpc_WideStr_SetLength (Var S : WideString; l : StrLenInt);[Public,Alia
 }
 Var
   Temp : Pointer;
-  movelen, NewLen: StrLenInt;
+  movelen, NewLen: SizeInt;
 begin
    if (l>0) then
     begin
@@ -646,7 +646,7 @@ function WideCharToString(S : PWideChar) : AnsiString;
      result:=WideCharLenToString(s,Length(WideString(s)));
   end;
 
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : StrLenInt) : PWideChar;
+function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
   begin
      if Length(Src)<DestSize then
        Ansi2WideMoveProc(PChar(Src),Dest,Length(Src))
@@ -655,13 +655,13 @@ function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : Str
      result:=Dest;
   end;
 
-function WideCharLenToString(S : PWideChar;Len : StrLenInt) : AnsiString;
+function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
   begin
      SetLength(result,Len);
      Wide2AnsiMove(S,PChar(result),Len);
   end;
 
-procedure WideCharLenToStrVar(Src : PWideChar;Len : StrLenInt;var Dest : AnsiString);
+procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;var Dest : AnsiString);
   begin
      Dest:=WideCharLenToString(Src,Len);
   end;
@@ -673,7 +673,7 @@ procedure WideCharToStrVar(S : PWideChar;var Dest : AnsiString);
 
 
 {$ifndef INTERNLENGTH}
-Function Length (Const S : WideString) : StrLenInt;
+Function Length (Const S : WideString) : SizeInt;
 {
   Returns the length of an WideString.
   Takes in acount that zero strings are NIL;
@@ -697,7 +697,7 @@ Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDE
 }
 Var
   SNew : Pointer;
-  L    : StrLenInt;
+  L    : SizeInt;
 begin
   pointer(result) := pointer(s);
   If Pointer(S)=Nil then
@@ -716,9 +716,9 @@ end;
 
 
 {$ifdef interncopy}
-Function Fpc_WideStr_Copy (Const S : WideString; Index,Size : StrLenInt) : WideString;compilerproc;
+Function Fpc_WideStr_Copy (Const S : WideString; Index,Size : SizeInt) : WideString;compilerproc;
 {$else}
-Function Copy (Const S : WideString; Index,Size : StrLenInt) : WideString;
+Function Copy (Const S : WideString; Index,Size : SizeInt) : WideString;
 {$endif}
 var
   ResultAddress : Pointer;
@@ -752,9 +752,9 @@ begin
 end;
 
 
-Function Pos (Const Substr : WideString; Const Source : WideString) : StrLenInt;
+Function Pos (Const Substr : WideString; Const Source : WideString) : SizeInt;
 var
-  i,MaxLen : StrLenInt;
+  i,MaxLen : SizeInt;
   pc : pwidechar;
 begin
   Pos:=0;
@@ -779,9 +779,9 @@ end;
 
 
 { Faster version for a widechar alone }
-Function Pos (c : WideChar; Const s : WideString) : StrLenInt;
+Function Pos (c : WideChar; Const s : WideString) : SizeInt;
 var
-  i: StrLenInt;
+  i: SizeInt;
   pc : pwidechar;
 begin
   pc:=@s[1];
@@ -802,9 +802,9 @@ end;
 { pos(c: char; const s: shortstring) also exists, so otherwise   }
 { using pos(char,pchar) will always call the shortstring version }
 { (exact match for first argument), also with $h+ (JM)           }
-Function Pos (c : Char; Const s : WideString) : StrLenInt;
+Function Pos (c : Char; Const s : WideString) : SizeInt;
 var
-  i: StrLenInt;
+  i: SizeInt;
   wc : widechar;
   pc : pwidechar;
 begin
@@ -824,9 +824,9 @@ end;
 
 
 
-Procedure Delete (Var S : WideString; Index,Size: StrLenInt);
+Procedure Delete (Var S : WideString; Index,Size: SizeInt);
 Var
-  LS : StrLenInt;
+  LS : SizeInt;
 begin
   If Length(S)=0 then
    exit;
@@ -848,10 +848,10 @@ begin
 end;
 
 
-Procedure Insert (Const Source : WideString; Var S : WideString; Index : StrLenInt);
+Procedure Insert (Const Source : WideString; Var S : WideString; Index : SizeInt);
 var
   Temp : WideString;
-  LS : StrLenInt;
+  LS : SizeInt;
 begin
   If Length(Source)=0 then
    exit;
@@ -872,9 +872,9 @@ begin
 end;
 
 
-Procedure SetString (Var S : WideString; Buf : PWideChar; Len : StrLenInt);
+Procedure SetString (Var S : WideString; Buf : PWideChar; Len : SizeInt);
 var
-  BufLen: StrLenInt;
+  BufLen: SizeInt;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
@@ -888,9 +888,9 @@ begin
 end;
 
 
-Procedure SetString (Var S : WideString; Buf : PChar; Len : StrLenInt);
+Procedure SetString (Var S : WideString; Buf : PChar; Len : SizeInt);
 var
-  BufLen: StrLenInt;
+  BufLen: SizeInt;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
@@ -934,7 +934,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_WideStr (DestSize: StrLenInt; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_SInt_WideStr (DestSize: SizeInt; Const S : WideString; Var Code : ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -983,7 +983,7 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : StrLenInt;var s : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
 var
   ss : shortstring;
 begin
@@ -993,9 +993,9 @@ end;
 
 
 {$ifdef STR_USES_VALINT}
-Procedure fpc_WideStr_SInt(v : ValSint; Len : StrLenInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_SInt(v : ValSint; Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_WideStr_Longint(v : Longint; Len : StrLenInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Longint(v : Longint; Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 Var
   SS : ShortString;
@@ -1006,9 +1006,9 @@ end;
 
 
 {$ifdef STR_USES_VALINT}
-Procedure fpc_WideStr_UInt(v : ValUInt;Len : StrLenInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_UInt(v : ValUInt;Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-Procedure fpc_WideStr_Longword(v : Longword;Len : StrLenInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Longword(v : Longword;Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 Var
   SS : ShortString;
@@ -1020,7 +1020,7 @@ end;
 
 {$ifndef CPU64}
 
-Procedure fpc_WideStr_Int64(v : Int64; Len : StrLenInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Int64(v : Int64; Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -1029,7 +1029,7 @@ begin
 end;
 
 
-Procedure fpc_WideStr_Qword(v : Qword;Len : StrLenInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_WideStr_Qword(v : Qword;Len : SizeInt; Var S : WideString);{$ifdef hascompilerproc} compilerproc; {$endif}
 Var
   SS : ShortString;
 begin
@@ -1041,7 +1041,10 @@ end;
 
 {
   $Log$
-  Revision 1.36  2004-04-29 18:59:43  peter
+  Revision 1.37  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.36  2004/04/29 18:59:43  peter
     * str() helpers now also use valint/valuint
     * int64/qword helpers disabled for cpu64
 

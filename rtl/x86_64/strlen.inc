@@ -128,13 +128,15 @@ asm
         incq %rax                { increment pointer }
 .LFPC_STRLEN_2:
         subq %rdi, %rax                { compute difference to string start }
-        ret
 end;
 
 
 {
   $Log$
-  Revision 1.2  2004-02-18 22:00:59  peter
+  Revision 1.3  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.2  2004/02/18 22:00:59  peter
     * use strlenint instead of longint
 
   Revision 1.1  2003/04/30 16:36:39  florian

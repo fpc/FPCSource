@@ -85,8 +85,8 @@ end ;
 {  StrPLCopy copies MaxLen or less characters from the pascal string
    Source to Dest and returns Dest  }
 
-function StrPLCopy(Dest: PChar; Source: string; MaxLen: strlenuint): PChar;
-var Count: strlenuint;
+function StrPLCopy(Dest: PChar; Source: string; MaxLen: SizeUInt): PChar;
+var Count: SizeUInt;
 begin
 result := Dest;
 if (Result <> Nil) and (MaxLen <> 0) then begin
@@ -112,17 +112,20 @@ end;
 
 {  StrBufSize returns the amount of memory allocated for pchar Str allocated with StrAlloc  }
 
-function StrBufSize(Str: PChar): strlenuint;
+function StrBufSize(Str: PChar): SizeUInt;
 begin
   if Str <> Nil then
-   result := strlenuint(pointer(Str - SizeOf(strlenuint))^)-sizeof(strlenuint)
+   result := SizeUInt(pointer(Str - SizeOf(SizeUInt))^)-sizeof(SizeUInt)
   else
    result := 0;
 end ;
 
 {
   $Log$
-  Revision 1.2  2004-02-20 22:15:16  florian
+  Revision 1.3  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.2  2004/02/20 22:15:16  florian
     + x86_64 dependend sysutils part added
     * some 64 bit adaptions
 

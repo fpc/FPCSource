@@ -17,7 +17,7 @@
  **********************************************************************}
 
 {$define FPC_UNIT_HAS_STRLEN}
-function strlen(p : pchar) : strlenint;assembler;
+function strlen(p : pchar) : SizeInt;assembler;
 {$i strlen.inc}
 
 
@@ -145,13 +145,12 @@ asm
 
 .LFPC_STRCOPY_4:
         movq        %rdi, %rax        { Source is return value.  }
-        retq
 end;
 
 
 {$define FPC_UNIT_HAS_STRCOMP}
 { Created from glibc: libc/sysdeps/x86_64/strcmp.S Version 1.2 }
-function StrComp(Str1, Str2: PChar): StrLenInt;assembler;
+function StrComp(Str1, Str2: PChar): SizeInt;assembler;
 asm
 .LFPC_STRCMP_LOOP:
         movb        (%rdi), %al
@@ -163,19 +162,22 @@ asm
         jnz         .LFPC_STRCMP_LOOP
 
         xorq        %rax, %rax
-        ret
+	jmp .Lexit
 
 .LFPC_STRCMP_NEG:
         movl        $1, %eax
         movl        $-1, %ecx
         cmovbl      %ecx, %eax
-        ret
+.Lexit:
 end;
 
 {
   $Log$
-  Revision 1.3  2004-02-18 22:00:59  peter
-    * use strlenint instead of longint
+  Revision 1.4  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.3  2004/02/18 22:00:59  peter
+    * use SizeInt instead of longint
 
   Revision 1.2  2003/04/30 22:11:06  florian
     + for a lot of x86-64 dependend files mostly dummies added

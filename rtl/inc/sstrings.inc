@@ -17,9 +17,9 @@
 ****************************************************************************}
 
 {$ifndef INTERNSETLENGTH}
-procedure SetLength(var s:shortstring;len:StrLenInt);
+procedure SetLength(var s:shortstring;len:SizeInt);
 {$else INTERNSETLENGTH}
-procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_Shortstr_SetLength(var s:shortstring;len:SizeInt);[Public,Alias : 'FPC_SHORTSTR_SETLENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif INTERNSETLENGTH}
 begin
   if Len>255 then
@@ -28,9 +28,9 @@ begin
 end;
 
 {$ifdef interncopy}
-function fpc_shortstr_copy(const s : shortstring;index : StrLenInt;count : StrLenInt): shortstring;compilerproc;
+function fpc_shortstr_copy(const s : shortstring;index : SizeInt;count : SizeInt): shortstring;compilerproc;
 {$else}
-function copy(const s : shortstring;index : StrLenInt;count : StrLenInt): shortstring;
+function copy(const s : shortstring;index : SizeInt;count : SizeInt): shortstring;
 {$endif}
 begin
   if count<0 then
@@ -54,7 +54,7 @@ begin
 end;
 
 
-procedure delete(var s : shortstring;index : StrLenInt;count : StrLenInt);
+procedure delete(var s : shortstring;index : SizeInt;count : SizeInt);
 begin
   if index<=0 then
      exit;
@@ -69,7 +69,7 @@ begin
 end;
 
 
-procedure insert(const source : shortstring;var s : shortstring;index : StrLenInt);
+procedure insert(const source : shortstring;var s : shortstring;index : SizeInt);
 var
   cut,srclen,indexlen : longint;
 begin
@@ -96,7 +96,7 @@ begin
 end;
 
 
-procedure insert(source : Char;var s : shortstring;index : StrLenInt);
+procedure insert(source : Char;var s : shortstring;index : SizeInt);
 var
   indexlen : longint;
 begin
@@ -113,9 +113,9 @@ begin
 end;
 
 
-function pos(const substr : shortstring;const s : shortstring):StrLenInt;
+function pos(const substr : shortstring;const s : shortstring):SizeInt;
 var
-  i,MaxLen : StrLenInt;
+  i,MaxLen : SizeInt;
   pc : pchar;
 begin
   Pos:=0;
@@ -140,9 +140,9 @@ end;
 
 
 {Faster when looking for a single char...}
-function pos(c:char;const s:shortstring):StrLenInt;
+function pos(c:char;const s:shortstring):SizeInt;
 var
-  i : StrLenInt;
+  i : SizeInt;
   pc : pchar;
 begin
   pc:=@s[1];
@@ -160,7 +160,7 @@ end;
 
 
 {$ifdef interncopy}
-function fpc_char_copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;compilerproc;
+function fpc_char_copy(c:char;index : SizeInt;count : SizeInt): shortstring;compilerproc;
 begin
   if (index=1) and (Count>0) then
    fpc_char_Copy:=c
@@ -168,7 +168,7 @@ begin
    fpc_char_Copy:='';
 end;
 {$else}
-function copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
+function copy(c:char;index : SizeInt;count : SizeInt): shortstring;
 begin
   if (index=1) and (Count>0) then
    Copy:=c
@@ -178,7 +178,7 @@ end;
 {$endif}
 
 
-function pos(const substr : shortstring;c:char): StrLenInt;
+function pos(const substr : shortstring;c:char): SizeInt;
 begin
   if (length(substr)=1) and (substr[1]=c) then
    Pos:=1
@@ -351,9 +351,9 @@ end;
 *****************************************************************************}
 
 {$ifdef STR_USES_VALINT}
-procedure fpc_shortstr_SInt(v : valSInt;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_SINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_shortstr_SInt(v : valSInt;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_SINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-procedure fpc_shortstr_longint(v : longint;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_shortstr_longint(v : longint;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 begin
   int_str(v,s);
@@ -362,12 +362,12 @@ begin
 end;
 
 {$ifdef STR_USES_VALINT}
-procedure fpc_shortstr_UInt(v : valUInt;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_shortstr_UInt(v : valUInt;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_UINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
   {$ifdef ver1_0}
-  procedure fpc_shortstr_cardinal(v : longword;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  procedure fpc_shortstr_cardinal(v : longword;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_CARDINAL']; {$ifdef hascompilerproc} compilerproc; {$endif}
   {$else}
-  procedure fpc_shortstr_longword(v : longword;len : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  procedure fpc_shortstr_longword(v : longword;len : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_LONGWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
   {$endif}
 {$endif}
 begin
@@ -402,7 +402,7 @@ end;
 
 {$I real2str.inc}
 
-procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : StrLenInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; {$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+procedure fpc_ShortStr_Float(d : ValReal;len,fr,rt : SizeInt;var s : shortstring);[public,alias:'FPC_SHORTSTR_FLOAT']; {$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 begin
   str_real(len,fr,d,treal_type(rt),s);
 end;
@@ -413,13 +413,13 @@ end;
 }
 
 {$ifdef STR_USES_VALINT}
-procedure fpc_chararray_sint(v : valsint;len : StrLenInt;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_chararray_sint(v : valsint;len : SizeInt;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-procedure fpc_chararray_longint(v : longint;len : StrLenInt;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_chararray_longint(v : longint;len : SizeInt;var a:array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 var
   ss : shortstring;
-  maxlen : StrLenInt;
+  maxlen : SizeInt;
 begin
   int_str(v,ss);
   if length(ss)<len then
@@ -433,13 +433,13 @@ end;
 
 
 {$ifdef STR_USES_VALINT}
-procedure fpc_chararray_uint(v : valuint;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_chararray_uint(v : valuint;len : SizeInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$else}
-procedure fpc_chararray_longword(v : longword;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_chararray_longword(v : longword;len : SizeInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 {$endif}
 var
   ss : shortstring;
-  maxlen : StrLenInt;
+  maxlen : SizeInt;
 begin
   int_str(v,ss);
   if length(ss)<len then
@@ -454,10 +454,10 @@ end;
 
 {$ifndef CPU64}
 
-procedure fpc_chararray_qword(v : qword;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_chararray_qword(v : qword;len : SizeInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 var
   ss : shortstring;
-  maxlen : StrLenInt;
+  maxlen : SizeInt;
 begin
   int_str(v,ss);
   if length(ss)<len then
@@ -470,10 +470,10 @@ begin
 end;
 
 
-procedure fpc_chararray_int64(v : int64;len : StrLenInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
+procedure fpc_chararray_int64(v : int64;len : SizeInt;var a : array of char);{$ifdef hascompilerproc} compilerproc; {$endif}
 var
   ss : shortstring;
-  maxlen : StrLenInt;
+  maxlen : SizeInt;
 begin
   int_str(v,ss);
   if length(ss)<len then
@@ -488,10 +488,10 @@ end;
 {$endif CPU64}
 
 
-procedure fpc_chararray_Float(d : ValReal;len,fr,rt : StrLenInt;var a : array of char);{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
+procedure fpc_chararray_Float(d : ValReal;len,fr,rt : SizeInt;var a : array of char);{$ifdef hascompilerproc}compilerproc;{$endif hascompilerproc}
 var
   ss : shortstring;
-  maxlen : StrLenInt;
+  maxlen : SizeInt;
 begin
   str_real(len,fr,d,treal_type(rt),ss);
   if length(ss)<high(a)+1 then
@@ -508,7 +508,7 @@ end;
 
 Function InitVal(const s:shortstring;var negativ:boolean;var base:byte):ValSInt;
 var
-  Code : StrLenInt;
+  Code : SizeInt;
 begin
 {Skip Spaces and Tab}
   code:=1;
@@ -550,7 +550,7 @@ begin
 end;
 
 
-Function fpc_Val_SInt_ShortStr(DestSize: StrLenInt; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; var Code: ValSInt): ValSInt; [public, alias:'FPC_VAL_SINT_SHORTSTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var
   u, temp, prev, maxPrevValue, maxNewValue: ValUInt;
   base : byte;
@@ -597,14 +597,14 @@ begin
       1: fpc_Val_SInt_ShortStr := shortint(fpc_Val_SInt_ShortStr);
       2: fpc_Val_SInt_ShortStr := smallint(fpc_Val_SInt_ShortStr);
 {     Uncomment the folling once full 64bit support is in place
-      4: fpc_Val_SInt_ShortStr := StrLenInt(fpc_Val_SInt_ShortStr);}
+      4: fpc_Val_SInt_ShortStr := SizeInt(fpc_Val_SInt_ShortStr);}
     End;
 end;
 
 {$ifdef hascompilerproc}
 { we need this for fpc_Val_SInt_Ansistr and fpc_Val_SInt_WideStr because }
 { we have to pass the DestSize parameter on (JM)                         }
-Function fpc_Val_SInt_ShortStr(DestSize: StrLenInt; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
+Function fpc_Val_SInt_ShortStr(DestSize: SizeInt; Const S: ShortString; var Code: ValSInt): ValSInt; [external name 'FPC_VAL_SINT_SHORTSTR'];
 {$endif hascompilerproc}
 
 
@@ -750,7 +750,7 @@ Function fpc_Val_Real_ShortStr(const s : shortstring; var code : ValSInt): ValRe
 var
   hd,
   esign,sign : valreal;
-  exponent,i : StrLenInt;
+  exponent,i : SizeInt;
   flags      : byte;
 begin
   fpc_Val_Real_ShortStr:=0.0;
@@ -849,7 +849,7 @@ fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
 end;
 
 
-Procedure SetString (Var S : Shortstring; Buf : PChar; Len : StrLenInt);
+Procedure SetString (Var S : Shortstring; Buf : PChar; Len : SizeInt);
 begin
   If Len > High(S) then
     Len := High(S);
@@ -862,7 +862,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2004-05-01 20:52:50  peter
+  Revision 1.30  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.29  2004/05/01 20:52:50  peter
     * ValSInt fixed for 64 bit
 
   Revision 1.28  2004/04/29 18:59:43  peter

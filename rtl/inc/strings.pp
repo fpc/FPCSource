@@ -18,7 +18,7 @@ unit strings;
 interface
 
     { Returns the length of a string }
-    function strlen(p : pchar) : strlenint;
+    function strlen(p : pchar) : SizeInt;
 
     { Converts a Pascal string to a null-terminated string }
     function strpcopy(d : pchar;const s : string) : pchar;
@@ -31,7 +31,7 @@ interface
 
     { Copies at most maxlen bytes from source to dest. }
     { Returns a pointer to dest }
-    function strlcopy(dest,source : pchar;maxlen : strlenint) : pchar;
+    function strlcopy(dest,source : pchar;maxlen : SizeInt) : pchar;
 
     { Copies source to dest and returns a pointer to the terminating }
     { null character.    }
@@ -47,19 +47,19 @@ interface
     { a value <0 if str1<str2;        }
     {  0 when str1=str2               }
     { and a value >0 if str1>str2     }
-    function strcomp(str1,str2 : pchar) : strlenint;
+    function strcomp(str1,str2 : pchar) : SizeInt;
 
     { The same as strcomp, but at most l characters are compared  }
-    function strlcomp(str1,str2 : pchar;l : strlenint) : strlenint;
+    function strlcomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
 
     { The same as strcomp but case insensitive       }
-    function stricomp(str1,str2 : pchar) : strlenint;
+    function stricomp(str1,str2 : pchar) : SizeInt;
 
     { Copies l characters from source to dest, returns dest. }
-    function strmove(dest,source : pchar;l : strlenint) : pchar;
+    function strmove(dest,source : pchar;l : SizeInt) : pchar;
 
     { Appends at most l characters from source to dest }
-    function strlcat(dest,source : pchar;l : strlenint) : pchar;
+    function strlcat(dest,source : pchar;l : SizeInt) : pchar;
 
     { Returns a pointer to the first occurrence of c in p }
     { If c doesn't occur, nil is returned }
@@ -76,7 +76,7 @@ interface
     function strupper(p : pchar) : pchar;
 
     { The same al stricomp, but at most l characters are compared }
-    function strlicomp(str1,str2 : pchar;l : strlenint) : strlenint;
+    function strlicomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
 
     { Returns a pointer to the first occurrence of str2 in    }
     { str2 Otherwise returns nil                          }
@@ -86,7 +86,7 @@ interface
     function strnew(p : pchar) : pchar;
 
     { Allocates L bytes on the heap, returns a pchar pointer to it }
-    function stralloc(L : strlenint) : pchar;
+    function stralloc(L : SizeInt) : pchar;
 
     { Releases a null-terminated string from the heap  }
     procedure strdispose(p : pchar);
@@ -112,7 +112,7 @@ implementation
 
 { Functions, different from the one in sysutils }
 
-    function stralloc(L : strlenint) : pchar;
+    function stralloc(L : SizeInt) : pchar;
 
       begin
          StrAlloc:=Nil;
@@ -122,7 +122,7 @@ implementation
     function strnew(p : pchar) : pchar;
 
       var
-         len : strlenint;
+         len : SizeInt;
 
       begin
          strnew:=nil;
@@ -148,11 +148,14 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-05-01 15:26:33  jonas
+  Revision 1.8  2004-05-01 23:55:18  peter
+    * replace strlenint with sizeint
+
+  Revision 1.7  2004/05/01 15:26:33  jonas
     * use some more string routines from libc if FPC_USE_LIBC is used
 
   Revision 1.6  2004/02/18 22:00:59  peter
-    * use strlenint instead of longint
+    * use SizeInt instead of longint
 
   Revision 1.5  2003/07/07 20:22:05  peter
     * generic string routines added
