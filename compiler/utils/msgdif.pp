@@ -16,18 +16,25 @@
 Program messagedif;
 
 Type
-  TEnum = String[40];
+  TEnum = String;
+  TText = String;
+
   PMsg = ^TMsg;
   TMsg = Record
      Line : Longint;
      enum : TEnum;
+     text : TText;
      Next,Prev : PMsg;
+     FileNext,
+     Equivalent : PMsg;
    end;
 Var
   OrgFileName,DiffFileName : String;
   OrgRoot,DiffRoot : PMsg;
+  OrgFirst,DiffFirst : PMsg;
+  Last : PMsg;
 
-Function NewMsg (Var RM : PMsg; L : Longint; Const E : TEnum) : PMsg;
+Function NewMsg (Var RM : PMsg; L : Longint; Const E : TEnum;Const T : TText) : PMsg;
 
 Var
   P,R : PMsg;
@@ -37,9 +44,15 @@ begin
   with P^ do
     begin
     Line:=L;
+    Text:=T;
     enum:=E;
     next:=Nil;
     prev:=Nil;
+    filenext:=nil;
+    equivalent:=nil;
+    if assigned(last) then
+      last^.FileNext:=P;
+    last:=P;
     end;
   R:=RM;
   While (R<>Nil) and (R^.enum<P^.Enum) do
@@ -73,7 +86,7 @@ begin
   DiffFileName:=Paramstr(2);
 end;
 
-Procedure ProcessFile (FileName : String; Var Root : PMsg);
+Procedure ProcessFile (FileName : String; Var Root,First : PMsg);
 
 Var F : Text;
     S : String;
@@ -86,6 +99,8 @@ begin
   LineNo:=0;
   Count:=0;
   Root:=Nil;
+  First:=nil;
+  Last:=nil;
   While not eof(f) do
     begin
     Readln(F,S);
@@ -97,7 +112,9 @@ begin
         writeln (Filename,'(',LineNo,') : Invalid entry')
       else
         begin
-        NewMsg(Root,LineNo,Copy(S,1,J-1));
+        NewMsg(Root,LineNo,Copy(S,1,J-1),Copy(S,j+1,255));
+        if First=nil then
+          First:=Root;
         Inc(Count);
         end;
       end;
@@ -113,14 +130,15 @@ Procedure NotFound (Org : Boolean; P : PMsg);
 begin
   With P^ do
     If Org Then
-      Writeln ('Not found in new : ',Enum,' (line ',Line,' in ',OrgFilename,')')
+      Writeln ('Not found in ',DiffFileName,' : ',Enum,' ',OrgFileName,'(',Line,')')
     else
-      Writeln ('Extra in new : ',enum,' (Line',line,' in ',DiffFileName,')')
+      Writeln ('Extra in ',DiffFileName,'(',line,') : ',enum)
 end;
 
 Var P : PMsg;
-
+    count : longint;
 begin
+  count:=0;
   While (Porg<>Nil) and (PDiff<>Nil) do
     begin
 //    Writeln (POrg^.enum,'<=>',PDiff^.Enum);
@@ -131,8 +149,11 @@ begin
       end
     else If POrg^.enum=PDiff^.Enum  then
       begin
+      inc(count);
+      POrg^.Equivalent:=PDiff;
+      PDiff^.Equivalent:=POrg;
       POrg:=POrg^.Next;
-      PDiff:=PDiff^.Next
+      PDiff:=PDiff^.Next;
       end
     else
       begin
@@ -150,17 +171,137 @@ begin
      NotFound(False,PDiff);
      PDiff:=PDiff^.Next;
      end;
+   Writeln(count,' messages found in both files');
 end;
+
+procedure WriteReorderedFile(FileName : string;orgnext,diffnext : PMsg);
+  var t,t2,t3 : text;
+      i,i2,i3 : longint;
+      s,s3 : string;
+      CurrentMsg : PMsg;
+      nextdiffkept : pmsg;
+  begin
+     Assign(t,FileName);
+     Rewrite(t);
+     Writeln(t,'%%% Reordering of ',DiffFileName,' respective to ',OrgFileName);
+     Writeln(t,'%%% Contains all comments from ',DiffFileName);
+     Assign(t2,DiffFileName);
+     Reset(t2);
+     Assign(t3,OrgFileName);
+     Reset(t3);
+     i:=2;i2:=0;i3:=0;
+     s:='';s3:='';
+     nextdiffkept:=diffnext;
+     while assigned(nextdiffkept) and (nextdiffkept^.equivalent=nil) do
+       nextdiffkept:=nextdiffkept^.filenext;
+     While not eof(t2) do
+       begin
+          while assigned(orgnext) and assigned(nextdiffkept) and
+             (orgnext^.enum<>nextdiffkept^.enum) and not(eof(t3)) do
+             begin
+                { Insert a new error msg with the english comments }
+                while i3<orgnext^.line do
+                  begin
+                     readln(t3,s3);
+                     inc(i3);
+                  end;
+                writeln(t,s3);
+                inc(i);
+                readln(t3,s3);
+                inc(i3);
+                while (s3<>'') and (s3[1] in ['#','%']) do
+                  begin
+                     writeln(t,s3);
+                     inc(i);
+                     readln(t3,s3);
+                     inc(i3);
+                  end;
+                Writeln('New error ',orgnext^.enum,' added');
+                orgnext:=orgnext^.filenext;
+             end;
+          if s='' then
+            begin
+               readln(t2,s);
+               inc(i2);
+            end;
+          if assigned(diffnext) and (i2=diffnext^.line) then
+            begin
+               if assigned(diffnext^.Equivalent) then
+                 begin
+                    if diffnext^.equivalent<>orgnext then
+                      Writeln('Problem inside WriteReorderedFile');
+                    Writeln(t,s);
+                    s:='';
+                    inc(i);
+                    readln(t2,s);
+                    inc(i2);
+                    while (s<>'') and (s[1] in ['#','%']) do
+                      begin
+                         writeln(t,s);
+                         inc(i);
+                         readln(t2,s);
+                         inc(i2);
+                      end;
+                    if diffnext^.Equivalent^.Text=diffnext^.Text then
+                      Writeln(diffnext^.Enum,': ',DiffFileName,'(',i2,') not translated');
+                    Diffnext:=Diffnext^.FileNext;
+                    nextdiffkept:=diffnext;
+                    while assigned(nextdiffkept) and (nextdiffkept^.equivalent=nil) do
+                      nextdiffkept:=nextdiffkept^.filenext;
+                    Orgnext:=orgnext^.filenext;
+                 end
+               else
+                 begin
+                    { Skip removed enum in errore.msg}
+                    { maybe a renaming of an enum !}
+                    Writeln(diffnext^.enum,' commented out');
+                    Writeln(t,'%%% ',s);
+                    inc(i);
+                    readln(t2,s);
+                    inc(i2);
+                    Diffnext:=Diffnext^.FileNext;
+                    nextdiffkept:=diffnext;
+                    while assigned(nextdiffkept) and (nextdiffkept^.equivalent=nil) do
+                      nextdiffkept:=nextdiffkept^.filenext;
+                    if assigned(diffnext) then
+                      while (i2<diffnext^.line) do
+                        begin
+                           writeln(t,'%%% ',s);
+                           inc(i);
+                           readln(t2,s);
+                           inc(i2);
+                        end;
+                    s:='';
+                 end;
+            end
+          else
+            begin
+               writeln(t,s);
+               inc(i);
+               s:='';
+            end;
+       end;
+     Close(t);
+     Close(t2);
+     Close(t3);
+  end;
 
 begin
   ProcessOptions;
-  ProcessFile(OrgFileName,orgroot);
-  ProcessFile(DiffFileName,diffRoot);
+  ProcessFile(OrgFileName,orgroot,orgfirst);
+  ProcessFile(DiffFileName,diffRoot,difffirst);
   ShowDiff (OrgRoot,DiffRoot);
+  WriteReorderedFile('new.msg',orgfirst,difffirst);
 end.
 {
   $Log$
-  Revision 1.2  1999-05-17 15:13:43  michael
+  Revision 1.3  1999-06-09 11:57:29  pierre
+   * fix branch changes merged
+
+  Revision 1.2.2.1  1999/06/09 11:48:18  pierre
+   * msgdif enhanced: see readme
+
+  Revision 1.2  1999/05/17 15:13:43  michael
   + Fixed a bug that caused messages inserted at root not to appear...
 
   Revision 1.1  1999/05/12 16:17:09  peter
