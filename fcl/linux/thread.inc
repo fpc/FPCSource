@@ -132,9 +132,10 @@ end;
 
 
 { TThread }
-function ThreadProc(Thread: TThread): Integer;cdecl;
+function ThreadProc(args:pointer): Integer;cdecl;
 var
   FreeThread: Boolean;
+  Thread : TThread absolute args;
 begin
   Thread.Execute;
   FreeThread := Thread.FFreeOnTerminate;
@@ -272,7 +273,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  1999-08-28 09:32:26  peter
+  Revision 1.5  1999-10-27 10:40:30  peter
+    * fixed threadproc decl
+
+  Revision 1.4  1999/08/28 09:32:26  peter
     * readded header/log
 
   Revision 1.2  1999/05/31 12:47:59  peter
