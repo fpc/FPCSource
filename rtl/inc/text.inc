@@ -754,7 +754,10 @@ Begin
         break;
      end;
     p:=@f.Bufptr^[f.BufPos];
-    maxp:=@f.Bufptr^[f.BufEnd];
+    if SPos+f.BufEnd-f.BufPos>MaxLen then
+     maxp:=@f.BufPtr^[f.BufPos+MaxLen-SPos]
+    else
+     maxp:=@f.Bufptr^[f.BufEnd];
     startp:=p;
   { search linefeed }
     while (p<maxp) and (P^<>#10) do
@@ -762,9 +765,6 @@ Begin
   { calculate read bytes }
     len:=p-startp;
     inc(f.BufPos,Len);
-  { update output string, take MaxLen into count }
-    if SPos+Len>MaxLen then
-     Len:=MaxLen-Spos;
     Move(startp^,s[sPos+1],Len);
     inc(sPos,Len);
   { was it a LF? then leave }
@@ -934,7 +934,10 @@ Begin
         break;
      end;
     p:=@f.Bufptr^[f.BufPos];
-    maxp:=@f.Bufptr^[f.BufEnd];
+    if SPos+f.BufEnd-f.BufPos>MaxLen then
+     maxp:=@f.BufPtr^[f.BufPos+MaxLen-SPos]
+    else
+     maxp:=@f.Bufptr^[f.BufEnd];
     startp:=p;
   { search linefeed }
     while (p<maxp) and (P^<>#10) do
@@ -942,9 +945,6 @@ Begin
   { calculate read bytes }
     len:=p-startp;
     inc(f.BufPos,Len);
-  { update output string, take MaxLen into count }
-    if SPos+Len>MaxLen then
-     Len:=MaxLen-Spos;
     Move(startp^,sidx^,Len);
     inc(sidx,len);
     inc(spos,len);
@@ -1199,7 +1199,10 @@ end;
 
 {
   $Log$
-  Revision 1.31  1998-10-10 15:28:48  peter
+  Revision 1.32  1998-10-20 14:37:45  peter
+    * fixed maxlen which was not correct after my read_string update
+
+  Revision 1.31  1998/10/10 15:28:48  peter
     + read single,fixed
     + val with code:longint
     + val for fixed
