@@ -1893,9 +1893,16 @@ implementation
         { Show error message, when it was a var or out parameter
           guess that it is a missing typeconv }
         if hp^.wrongpara.paratyp in [vs_var,vs_out] then
-          CGMessagePos2(pt.fileinfo,parser_e_call_by_ref_without_typeconv,
-            FullTypeName(pt.resulttype.def,hp^.wrongpara.paratype.def),
-            FullTypeName(hp^.wrongpara.paratype.def,pt.resulttype.def))
+          begin
+            { Maybe passing the correct type but passing a const to var parameter }
+            if (compare_defs(pt.resulttype.def,hp^.wrongpara.paratype.def,pt.nodetype)<>te_incompatible) and
+               not valid_for_var(pt) then
+              CGMessagePos(pt.fileinfo,type_e_variable_id_expected)
+            else
+              CGMessagePos2(pt.fileinfo,parser_e_call_by_ref_without_typeconv,
+                FullTypeName(pt.resulttype.def,hp^.wrongpara.paratype.def),
+                FullTypeName(hp^.wrongpara.paratype.def,pt.resulttype.def))
+          end
         else
           CGMessagePos3(pt.fileinfo,type_e_wrong_parameter_type,tostr(hp^.wrongparanr),
             FullTypeName(pt.resulttype.def,hp^.wrongpara.paratype.def),
@@ -1906,7 +1913,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.95  2004-06-23 16:22:45  peter
+  Revision 1.96  2004-08-22 11:24:09  peter
+    * fix error when passing constant to var parameter
+
+  Revision 1.95  2004/06/23 16:22:45  peter
     * include unit name in error messages when types are the same
 
   Revision 1.94  2004/06/20 08:55:29  florian
