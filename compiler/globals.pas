@@ -589,39 +589,24 @@ implementation
 
     Function PathExists ( F : String) : Boolean;
       Var
-        Info : SearchRec;
-        disk : byte;
+        FF : file;
+        A: word;
+        I: longint;
       begin
-        if F='' then
+        if F = '' then
           begin
-            result:=true;
+            PathExists := true;
             exit;
           end;
-        { these operating systems have dos type drives }
-        if source_info.system in [system_m68k_atari,system_i386_go32v2,
-                                  system_i386_win32,system_i386_os2,
-                                  system_i386_emx,system_i386_wdosx] then
-        Begin
-          if (Length(f)=3) and (F[2]=':') and (F[3] in ['/','\']) then
-            begin
-              if F[1] in ['A'..'Z'] then
-                disk:=ord(F[1])-ord('A')+1
-              else if F[1] in ['a'..'z'] then
-                disk:=ord(F[1])-ord('a')+1
-              else
-                disk:=255;
-              if disk=255 then
-                PathExists:=false
-              else
-                PathExists:=(DiskSize(disk)<>-1);
-              exit;
-            end;
-        end;
-        if F[Length(f)] in ['/','\'] then
-         Delete(f,length(f),1);
-        findfirst(F,readonly+archive+hidden+directory,info);
-        PathExists:=(doserror=0) and ((info.attr and directory)=directory);
-        findclose(Info);
+        F := FExpand (F);
+        I := Pos (DriveSeparator, F);
+        if (F [Length (F)] = DirectorySeparator)
+                  and (((I = 0) and (Length (F) > 1)) or (I <> Length (F) - 1))
+          then
+            Delete (F, Length (F), 1);
+        Assign (FF, FExpand (F));
+        GetFAttr (FF, A);
+        PathExists := (DosError = 0) and (A and Directory = Directory);
       end;
 
 
@@ -2045,7 +2030,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2004-09-21 19:59:51  peter
+  Revision 1.141  2004-09-21 23:33:43  hajny
+    * better PathExists, fix for too long command line, correction of message
+
+  Revision 1.140  2004/09/21 19:59:51  peter
     * x86_64 fixes
     * cleanup of fpcdefs.icn
 

@@ -16,7 +16,7 @@ const
   general_i_warning=01014;
   general_i_note=01015;
   general_i_hint=01016;
-  general_e_path_does_not_exists=01017;
+  general_e_path_does_not_exist=01017;
   scan_f_end_of_file=02000;
   scan_f_string_exceeds_line=02001;
   scan_f_illegal_char=02002;
@@ -645,7 +645,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 36978;
+  MsgTxtSize = 36977;
 
   MsgIdxMax : array[1..20] of longint=(
     18,66,209,59,57,46,99,20,35,60,

@@ -643,7 +643,7 @@ begin
              end;
 
            'e' :
-             exepath:=FixPath(FExpand(More),true);
+             exepath:=FixPath(More,true);
 
            'E' :
              begin
@@ -667,11 +667,11 @@ begin
                        initsourcecodepage:=more;
                    end;
                  'D' :
-                   utilsdirectory:=FixPath(FExpand(More),true);
+                   utilsdirectory:=FixPath(More,true);
                  'e' :
                    SetRedirectFile(More);
                  'E' :
-                   OutputExeDir:=FixPath(FExpand(More),true);
+                   OutputExeDir:=FixPath(More,true);
                  'i' :
                    begin
                      if ispara then
@@ -712,7 +712,7 @@ begin
                        unitsearchpath.AddPath(More,true);
                    end;
                  'U' :
-                   OutputUnitDir:=FixPath(FExpand(More),true);
+                   OutputUnitDir:=FixPath(More,true);
                  else
                    IllegalPara(opt);
                end;
@@ -1698,6 +1698,7 @@ begin
   def_symbol('HASOUT');
   def_symbol('HASGLOBALPROPERTY');
   def_symbol('FPC_HASPREFETCH');
+  def_symbol('FPC_LINEEND_IN_TEXTREC');
 {$ifdef i386}
   def_symbol('HASINTF');
   def_symbol('HASVARIANT');
@@ -1949,7 +1950,7 @@ begin
   if (OutputExeDir<>'') and
      not PathExists(OutputExeDir) then
     begin
-      Message1(general_e_path_does_not_exists,OutputExeDir);
+      Message1(general_e_path_does_not_exist,OutputExeDir);
       StopOptions(1);
     end;
 
@@ -2089,7 +2090,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.143  2004-09-21 17:25:12  peter
+  Revision 1.144  2004-09-21 23:33:43  hajny
+    * better PathExists, fix for too long command line, correction of message
+
+  Revision 1.143  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.142  2004/09/16 16:31:53  peter

@@ -110,8 +110,8 @@ general_i_note=01015_I_Note:
 % Prefix for Notes
 general_i_hint=01016_I_Hint:
 % Prefix for Hints
-general_e_path_does_not_exists=01017_E_Path "$1" does not exists
-% The specified path does not exists.
+general_e_path_does_not_exist=01017_E_Path "$1" does not exist
+% The specified path does not exist.
 % \end{description}
 #
 # Scanner
