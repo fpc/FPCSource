@@ -742,7 +742,6 @@ interface
        s64floattype,              { pointer for realconstn }
        s80floattype,              { pointer to type of temp. floats }
        s64currencytype,           { pointer to a currency type }
-       s32fixedtype,              { pointer to type of temp. fixed }
        cshortstringtype,          { pointer to type of short string const   }
        clongstringtype,           { pointer to type of long string const   }
 {$ifdef ansistring_bits}
@@ -763,7 +762,6 @@ interface
        { we use only one variant def for every variant class }
        cvarianttype,
        colevarianttype,
-       ordpointertype,
        { default integer type s32inttype on 32 bit systems, s64bittype on 64 bit systems }
        sinttype,
        uinttype,
@@ -6132,7 +6130,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.246  2004-07-12 09:14:04  jonas
+  Revision 1.247  2004-07-14 21:37:41  olle
+    - removed unused types
+
+  Revision 1.246  2004/07/12 09:14:04  jonas
     * inline procedures at the node tree level, but only under some very
       limited circumstances for now (only procedures, and only if they have
       no or only vs_out/vs_var parameters).
