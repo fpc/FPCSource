@@ -38,8 +38,19 @@ procedure callmethodparam(s : pointer;addr : pointer;param : longint);
 
 type
    to1 = object
+      constructor init;
       procedure test1;
       procedure test2(l : longint);
+      procedure test3(l : longint);virtual;abstract;
+   end;
+
+   to2 = object(to1)
+     procedure test3(l : longint);virtual;
+   end;
+
+ constructor to1.init;
+
+   begin
    end;
 
  procedure to1.test1;
@@ -62,23 +73,38 @@ type
       globalvar:=l;
    end;
 
+ procedure to2.test3(l : longint);
+
+   begin
+      globalvar:=l;
+   end;
+
 const
    constmethodaddr : pointer = @to1.test2;
 
 var
    o1 : to1;
+   o2 : to2;
    p : procedure(l : longint) of object;
 
 begin
    {                                       }
    {  Procedures of objects                }
    {                                       }
+   o1.init;
+   o2.init;
    writeln('Procedures of objects');
    p:=@o1.test2;
    globalvar:=0;
    p(12);
    if globalvar<>12 then
      do_error(1002);
+   writeln('Ok');
+   p:=@o2.test3;
+   globalvar:=0;
+   p(12);
+   if globalvar<>12 then
+     do_error(1004);
    writeln('Ok');
    {                                       }
    {  Pointers and addresses of procedures }
@@ -93,7 +119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-09-11 19:45:33  florian
+  Revision 1.2  1999-11-29 22:55:25  florian
+    * small update
+
+  Revision 1.1  1999/09/11 19:45:33  florian
     * first version, please keep it up-to-date
 
 }
