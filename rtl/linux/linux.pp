@@ -2557,8 +2557,6 @@ Begin
    Begin
      If (DotPos=256) and (Path[i]='.') Then
       begin
-        while (i>1) and (Path[i-1]='.') do
-         dec(i);
         DotPos:=i;
       end;
      If (Path[i]='/') Then
@@ -2935,7 +2933,11 @@ End.
 
 {
   $Log$
-  Revision 1.4  2000-09-04 20:17:53  peter
+  Revision 1.5  2000-09-06 20:47:34  peter
+    * removed previous fsplit() patch as it's not the correct behaviour for
+      LFNs. The code showing the bug could easily be adapted (merged)
+
+  Revision 1.4  2000/09/04 20:17:53  peter
     * fixed previous commit (merged)
 
   Revision 1.3  2000/09/04 19:38:13  peter
