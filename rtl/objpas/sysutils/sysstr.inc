@@ -30,9 +30,9 @@ begin
    Result:=nil
   else
    begin
-     getmem(Result,length(s)+1);
+     new(result);
      if (Result<>nil) then
-      Result^:=s;
+       Result^:=s;
    end;
 end;
 
@@ -42,7 +42,7 @@ procedure DisposeStr(S: PString);
 begin
   if S <> Nil then
    begin
-     Freemem(S,Length(S^)+1);
+     dispose(s);
      S:=nil;
    end;
 end;
@@ -2009,7 +2009,10 @@ const
 
 {
   $Log$
-  Revision 1.31  2005-02-28 11:12:17  jonas
+  Revision 1.32  2005-03-01 19:23:03  jonas
+    * fixed newstr() and disposestr()
+
+  Revision 1.31  2005/02/28 11:12:17  jonas
     * fixed web bug 3708
 
   Revision 1.30  2005/02/26 10:21:17  florian
