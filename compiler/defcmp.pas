@@ -277,7 +277,12 @@ implementation
                      else
                        begin
                          doconv:=tc_string_2_string;
-                         b:=te_convert_l1;
+                         { Prefer conversions to shortstring over other
+                           conversions. This is compatible with Delphi (PFV) }
+                         if tstringdef(def_to).string_typ=st_shortstring then
+                           b:=te_convert_l1
+                         else
+                           b:=te_convert_l2;
                        end;
                    end;
                  orddef :
@@ -1159,7 +1164,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-12-05 14:27:26  florian
+  Revision 1.6  2002-12-06 17:49:44  peter
+    * prefer string-shortstring over other string-string conversions
+
+  Revision 1.5  2002/12/05 14:27:26  florian
     * some variant <-> dyn. array stuff
 
   Revision 1.4  2002/12/01 22:07:41  carl
