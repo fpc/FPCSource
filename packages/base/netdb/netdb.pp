@@ -83,7 +83,7 @@ uses
 {$ifdef VER1_0}
    Linux,
 {$else}
-   Unix,
+   BaseUnix,
 {$endif}
    sockets,sysutils;
 
@@ -424,7 +424,7 @@ Var
   BA,SA : TInetSockAddr;
   Sock,L,I : Longint;
   Al,RTO : Longint;
-  ReadFDS : FDSet;
+  ReadFDS : {$ifdef VER1_0}FDSet{$ELSE}TFDSet{$ENDIF};
   
 begin
   Result:=False;
@@ -452,16 +452,20 @@ begin
   sendto(sock,qry,qrylen+12,0,SA,SizeOf(SA));
   // Wait for answer.
   RTO:=TimeOutS*1000+TimeOutMS;
-  FD_ZERO(ReadFDS);
+  {$ifdef VER1_0}FD_ZERO{$else}fpFD_ZERO{$endif}(ReadFDS);
+  {$ifdef VER1_0}
   FD_Set(Sock,readfds);
-  if Select(Sock+1,@readfds,Nil,Nil,RTO)<=0 then
+  {$else}
+  fpFD_Set(sock,readfds);
+  {$endif}
+  if fpSelect(Sock+1,@readfds,Nil,Nil,RTO)<=0 then
     begin
-    fdclose(Sock);
+    {$ifdef VER1_0}fdclose{$ELSE}fpclose{$endif}(Sock);
     exit;
     end;
   AL:=SizeOf(SA);
   L:=recvfrom(Sock,ans,SizeOf(Ans),0,SA,AL);
-  fdclose(Sock);
+  {$ifdef VER1_0}fdclose{$ELSE}fpclose{$endif}(Sock);
   // Check lenght answer and fields in header data.
   If (L<12) or not CheckAnswer(Qry,Ans) Then
     exit;
@@ -951,7 +955,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2003-05-17 20:54:03  michael
+  Revision 1.4  2003-09-18 16:30:23  marco
+   * unixreform fix
+
+  Revision 1.3  2003/05/17 20:54:03  michael
   + uriparser unit added. Header/Footer blocks added
 
 }
