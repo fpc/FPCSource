@@ -827,7 +827,7 @@ begin
               TSetIntegerProcIndex(AMethod)(PropInfo^.Index,Value)
             else
               TSetIntegerProc(AMethod)(Value);
-          end;  
+          end;
       end;
   end;
 end;
@@ -965,7 +965,7 @@ begin
 {$ifdef cpu64}
   Result:=TObject(GetInt64Prop(Instance,PropInfo));
 {$else cpu64}
-  Result:=TObject(GetOrdProp(Instance,PropInfo));
+  Result:=TObject(PtrInt(GetOrdProp(Instance,PropInfo)));
 {$endif cpu64}
   If (MinClass<>Nil) and (Result<>Nil) Then
     If Not Result.InheritsFrom(MinClass) then
@@ -1525,7 +1525,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.40  2005-03-14 19:16:06  peter
+  Revision 1.41  2005-03-14 21:15:52  florian
+    * fixed compilation on i386
+
+  Revision 1.40  2005/03/14 19:16:06  peter
     * getordprop supports int64
 
   Revision 1.39  2005/02/26 20:59:38  florian
