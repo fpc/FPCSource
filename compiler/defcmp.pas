@@ -691,7 +691,9 @@ implementation
                             eq:=te_convert_l1;
                           end;
                       end;
-                     if (eq=te_incompatible) and (cdo_explicit in cdoptions) then
+                     if (eq=te_incompatible) and
+                        (cdo_explicit in cdoptions) and
+                        (def_from.size=def_to.size) then
                       begin
                         doconv:=tc_int_2_int;
                         eq:=te_convert_l1;
@@ -1299,7 +1301,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  2004-10-31 21:45:02  peter
+  Revision 1.55  2004-10-31 22:05:25  peter
+    * only allow ordinal-pointer for same size
+
+  Revision 1.54  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 
