@@ -1701,9 +1701,7 @@ var
                               else
                                 Message(assem_e_invalid_opcode_and_operand);
                             end;
-                        end
-                      else
-                       Message(assem_e_invalid_opcode_and_operand);
+                        end;
                 else
                   Message(assem_e_invalid_opcode_and_operand);
                end; { end case }
@@ -3476,7 +3474,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  1999-03-02 22:51:08  peter
+  Revision 1.24  1999-03-26 00:05:41  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.23  1999/03/02 22:51:08  peter
     * [reg-ofs] now correctly compiles to -ofs(reg) instead of ofs(reg)
     * [reg*2] is now allowed
 

@@ -374,6 +374,11 @@ unit tree;
          hp : ptree;
 
       begin
+         if not assigned(p) then
+          begin
+            getcopy:=nil;
+            exit;
+          end;
          hp:=getnode;
          hp^:=p^;
          case p^.disposetyp of
@@ -1709,7 +1714,14 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.69  1999-03-24 23:17:41  peter
+  Revision 1.70  1999-03-26 00:05:49  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.69  1999/03/24 23:17:41  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.68  1999/03/02 18:24:25  peter

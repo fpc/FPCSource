@@ -461,7 +461,10 @@ implementation
 
     procedure tscannerfile.dec_comment_level;
       begin
-        dec(comment_level)
+         if (m_nested_comment in aktmodeswitches) then
+           dec(comment_level)
+         else
+           comment_level:=0;
       end;
 
 
@@ -1028,11 +1031,6 @@ implementation
                     token:=POINT;
                     goto exit_label;
                   end;
-              2 : begin { first char was a Caret }
-                    token:=CARET;
-                    readchar;
-                    goto exit_label;
-                  end;
              end;
           end;
 
@@ -1100,9 +1098,6 @@ implementation
                   end;
                end;
             end;
-         { a following caret, then set special handling }
-           if (c='^') then
-            do_special:=2;
          { return token }
            goto exit_label;
          end
@@ -1320,15 +1315,20 @@ implementation
                          begin
                            readchar;
                            c:=upcase(c);
-                           if not(block_type=bt_type) and (c in ['A'..'Z']) then
-                            begin
-                              pattern:=chr(ord(c)-64);
-                              readchar;
-                            end
-                           else
+                           if (block_type=bt_type) or
+                              (lasttoken=ID) or
+                              (lasttoken=RKLAMMER) or (lasttoken=RECKKLAMMER) then
                             begin
                               token:=CARET;
                               goto exit_label;
+                            end
+                           else
+                            begin
+                              if c<#64 then
+                               pattern:=chr(ord(c)+64)
+                              else
+                               pattern:=chr(ord(c)-64);
+                              readchar;
                             end;
                          end
                         else
@@ -1452,6 +1452,7 @@ implementation
            end;
         end;
 exit_label:
+        lasttoken:=token;
       end;
 
 
@@ -1581,7 +1582,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  1999-03-24 23:17:24  peter
+  Revision 1.77  1999-03-26 00:05:45  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.76  1999/03/24 23:17:24  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.75  1999/03/16 21:00:27  peter

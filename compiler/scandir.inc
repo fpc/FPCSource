@@ -42,7 +42,7 @@ type
      _DIR_OBJECTPATH,_DIR_OPENSTRINGS,_DIR_OUTPUT_FORMAT,_DIR_OVERFLOWCHECKS,
      _DIR_PACKENUM,_DIR_PACKRECORDS,
      _DIR_R,_DIR_RANGECHECKS,_DIR_REFERENCEINFO,
-     _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STACKFRAMES,_DIR_STOP,
+     _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STACKFRAMES,_DIR_STATIC,_DIR_STOP,
      _DIR_TYPEDADDRESS,_DIR_TYPEINFO,
      _DIR_UNDEF,_DIR_UNITPATH,
      _DIR_VARSTRINGCHECKS,
@@ -70,7 +70,7 @@ const
      'OBJECTPATH','OPENSTRINGS','OUTPUT_FORMAT','OVERFLOWCHECKS',
      'PACKENUM','PACKRECORDS',
      'R','RANGECHECKS','REFERENCEINFO',
-     'SATURATION','SMARTLINK','STACKFRAMES','STOP',
+     'SATURATION','SMARTLINK','STACKFRAMES','STATIC','STOP',
      'TYPEDADDRESS','TYPEINFO',
      'UNDEF','UNITPATH',
      'VARSTRINGCHECKS',
@@ -478,6 +478,7 @@ const
         sw:=cs_modulenone;
         case t of
            _DIR_SMARTLINK : sw:=cs_smartlink;
+           _DIR_STATIC    : sw:=cs_static_keyword;
         end;
         state:=current_scanner^.readstate;
         if (sw<>cs_modulenone) and (state in ['-','+']) then
@@ -997,6 +998,7 @@ const
          {_DIR_SATURATION} dir_localswitch,
          {_DIR_SMARTLINK} dir_moduleswitch,
          {_DIR_STACKFRAMES} dir_delphiswitch,
+         {_DIR_STATIC} dir_moduleswitch,
          {_DIR_STOP} dir_message,
          {_DIR_TYPEDADDRESS} dir_delphiswitch,
          {_DIR_TYPEINFO} dir_delphiswitch,
@@ -1077,7 +1079,14 @@ const
 
 {
   $Log$
-  Revision 1.48  1999-03-25 16:55:34  peter
+  Revision 1.49  1999-03-26 00:05:44  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.48  1999/03/25 16:55:34  peter
     + unitpath,librarypath,includepath,objectpath directives
 
   Revision 1.47  1999/02/22 13:07:05  pierre

@@ -673,7 +673,7 @@ unit i386;
          (i : A_IDIV;ops : 2;oc : $f6;eb : 7;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : ao_acc;o3 : 0),
          (i : A_ROL;ops : 2;oc : $d0;eb : 0;m : af_w or Modrm;o1 : ao_imm1;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_ROL;ops : 2;oc : $c0;eb : 0;m : af_w or Modrm;o1 : ao_imm8;o2 : ao_reg or ao_mem;o3 : 0),
-         (i : A_ROL;ops : 2;oc : $d2;eb : 0;m : af_w or Modrm;o1 : ao_shiftcount;o2 : ao_reg or ao_mem;o3 : 0),
+         (i : A_ROL;ops : 2;oc : $d2;eb : 0;m : af_w or Modrm;o1 : ao_reg8 or ao_shiftcount;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_ROL;ops : 1;oc : $d0;eb : 0;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : 0;o3 : 0),
          (i : A_ROR;ops : 2;oc : $d0;eb : 1;m : af_w or Modrm;o1 : ao_imm1;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_ROR;ops : 2;oc : $c0;eb : 1;m : af_w or Modrm;o1 : ao_imm8;o2 : ao_reg or ao_mem;o3 : 0),
@@ -696,13 +696,15 @@ unit i386;
          (i : A_SHL;ops : 2;oc : $d2;eb : 4;m : af_w or Modrm;o1 : ao_shiftcount;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHL;ops : 1;oc : $d0;eb : 4;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : 0;o3 : 0),
          (i : A_SHLD;ops : 3;oc : $0fa4;eb : ao_none;m : Modrm;o1 : ao_imm8;o2 : ao_wordreg;o3 : ao_wordreg or ao_mem),
-         (i : A_SHLD;ops : 3;oc : $0fa5;eb : ao_none;m : Modrm;o1 : ao_shiftcount;o2 : ao_wordreg;o3 : ao_wordreg or ao_mem),
+         (i : A_SHLD;ops : 3;oc : $0fa5;eb : ao_none;m : Modrm;o1 : ao_reg8 or ao_shiftcount;o2 : ao_wordreg;
+            o3 : ao_wordreg or ao_mem),
          (i : A_SHR;ops : 2;oc : $d0;eb : 5;m : af_w or Modrm;o1 : ao_imm1;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHR;ops : 2;oc : $c0;eb : 5;m : af_w or Modrm;o1 : ao_imm8;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHR;ops : 2;oc : $d2;eb : 5;m : af_w or Modrm;o1 : ao_shiftcount;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SHR;ops : 1;oc : $d0;eb : 5;m : af_w or Modrm;o1 : ao_reg or ao_mem;o2 : 0;o3 : 0),
          (i : A_SHRD;ops : 3;oc : $0fac;eb : ao_none;m : Modrm;o1 : ao_imm8;o2 : ao_wordreg;o3 : ao_wordreg or ao_mem),
-         (i : A_SHRD;ops : 3;oc : $0fad;eb : ao_none;m : Modrm;o1 : ao_shiftcount;o2 : ao_wordreg;o3 : ao_wordreg or ao_mem),
+         (i : A_SHRD;ops : 3;oc : $0fad;eb : ao_none;m : Modrm;o1 : ao_reg8 or ao_shiftcount;o2 : ao_wordreg;
+            o3 : ao_wordreg or ao_mem),
          (i : A_SAR;ops : 2;oc : $d0;eb : 7;m : af_w or Modrm;o1 : ao_imm1;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SAR;ops : 2;oc : $c0;eb : 7;m : af_w or Modrm;o1 : ao_imm8;o2 : ao_reg or ao_mem;o3 : 0),
          (i : A_SAR;ops : 2;oc : $d2;eb : 7;m : af_w or Modrm;o1 : ao_shiftcount;o2 : ao_reg or ao_mem;o3 : 0),
@@ -1976,7 +1978,14 @@ Begin
 end.
 {
   $Log$
-  Revision 1.37  1999-02-26 00:48:20  peter
+  Revision 1.38  1999-03-26 00:05:31  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.37  1999/02/26 00:48:20  peter
     * assembler writers fixed for ag386bin
 
   Revision 1.36  1999/02/25 21:02:38  peter

@@ -112,18 +112,22 @@ unit pexports;
                 break;
            end;
          consume(SEMICOLON);
-        if not DefFile.exportlist.empty then
-         begin
-           deffile.fname:='DEF.$$$';
-           deffile.writefile;
-         end;
+        if not DefFile.empty then
+         DefFile.writefile;
       end;
 
 end.
 
 {
   $Log$
-  Revision 1.7  1999-02-22 02:44:12  peter
+  Revision 1.8  1999-03-26 00:05:35  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.7  1999/02/22 02:44:12  peter
     * ag386bin doesn't use i386.pas anymore
 
   Revision 1.6  1998/12/11 00:03:31  peter

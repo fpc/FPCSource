@@ -36,7 +36,7 @@ implementation
       globtype,
       symtable,aasm,types,
       hcodegen,htypechk,pass_1,
-      tccal,tcld
+      tccal
 {$ifdef i386}
 {$ifdef ag386bin}
       ,i386base
@@ -106,9 +106,9 @@ implementation
          count_ref:=false;
          if not (p^.inlinenumber in [in_read_x,in_readln_x,in_sizeof_x,
             in_typeof_x,in_ord_x,in_str_x_string,
-{$IfDef ValIntern}
+{$IfnDef OLDVAL}
             in_val_x,
-{$EndIf ValIntern}
+{$EndIf OLDVAL}
             in_reset_typedfile,in_rewrite_typedfile]) then
            must_be_valid:=true
          else
@@ -706,7 +706,7 @@ implementation
                   procinfo.flags:=procinfo.flags or pi_do_call;
                   { to be sure the right definition is loaded }
                   p^.left^.resulttype:=nil;
-                  firstload(p^.left);
+                  firstpass(p^.left);
                   p^.resulttype:=voiddef;
                end;
              in_str_x_string :
@@ -808,8 +808,7 @@ implementation
                   { calc registers }
                   left_right_max(p);
                end;
-{$IfDef ValIntern}
-
+{$IfnDef OLDVAL}
              in_val_x :
                begin
                   procinfo.flags:=procinfo.flags or pi_do_call;
@@ -874,7 +873,7 @@ implementation
                   { calc registers }
                   left_right_max(p);
                end;
-{$EndIf ValIntern}
+{$EndIf OLDVAL}
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -1034,7 +1033,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-03-24 23:17:37  peter
+  Revision 1.22  1999-03-26 00:05:48  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.21  1999/03/24 23:17:37  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.20  1999/03/16 17:52:55  jonas

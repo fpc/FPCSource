@@ -41,7 +41,7 @@ implementation
 {$else}
       i386,
 {$endif}
-      cgai386,tgeni386,cg386ld,cg386cal;
+      cgai386,tgeni386,cg386cal;
 
 
 {*****************************************************************************
@@ -619,7 +619,7 @@ implementation
            popusedregisters(pushed);
         end;
 
-{$IfDef ValIntern}
+{$IfnDef OLDVAL}
 
         Procedure Handle_Val;
 
@@ -827,7 +827,7 @@ implementation
            disposetree(dest_para);
            UnGetIfTemp(hr);
         end;
-{$EndIf ValIntern}
+{$EndIf OLDVAL}
 
       var
          r : preference;
@@ -1159,7 +1159,7 @@ implementation
                begin
                   pushusedregisters(pushed,$ff);
                   exprasmlist^.concat(new(pai386,op_const(A_PUSH,S_L,pfiledef(p^.left^.resulttype)^.typed_as^.size)));
-                  secondload(p^.left);
+                  secondpass(p^.left);
                   emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                   if p^.inlinenumber=in_reset_typedfile then
                     emitcall('FPC_RESET_TYPED',true)
@@ -1180,12 +1180,12 @@ implementation
                  handle_str;
                  maybe_loadesi;
               end;
-{$IfDef ValIntern}
+{$IfnDef ODLVAL}
             in_val_x :
               Begin
                 handle_val;
               End;
-{$EndIf ValIntern}
+{$EndIf OLDVAL}
             in_include_x_y,
             in_exclude_x_y:
               begin
@@ -1270,7 +1270,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  1999-03-24 23:16:49  peter
+  Revision 1.32  1999-03-26 00:05:26  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.31  1999/03/24 23:16:49  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.30  1999/03/16 17:52:56  jonas

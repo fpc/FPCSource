@@ -44,7 +44,7 @@ interface
          cs_fp_emulation,cs_extsyntax,cs_openstring,
          { support }
          cs_support_inline,cs_support_goto,cs_support_macro,
-         cs_support_c_operators,
+         cs_support_c_operators,cs_static_keyword,
          { generation }
          cs_profile,cs_debuginfo,cs_browser,cs_local_browser,cs_compilesystem,
          { linking }
@@ -56,7 +56,7 @@ interface
          mostly set with commandline }
        tglobalswitch = (cs_globalnone,
          { parameter switches }
-         cs_check_unit_name,cs_constructor_name,cs_static_keyword,
+         cs_check_unit_name,cs_constructor_name,
          { units }
          cs_load_objpas_unit,
          cs_load_gpc_unit,
@@ -108,7 +108,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  1999-01-27 13:51:44  pierre
+  Revision 1.4  1999-03-26 00:05:30  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.3  1999/01/27 13:51:44  pierre
    * dos end of line problem
 
   Revision 1.2  1998/12/23 12:40:48  daniel

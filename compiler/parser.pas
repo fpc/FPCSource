@@ -104,13 +104,26 @@ unit parser;
           maxheapsize:=target_info.maxheapsize;
          if stacksize=0 then
           stacksize:=target_info.stacksize;
+
+         { open assembler response }
+         AsmRes.Init(outputexedir+'ppas');
+
+         { open deffile }
+         DefFile.Init(outputexedir+inputfile+target_os.defext);
       end;
+
 
     procedure doneparser;
       begin
+         { unload units }
          loaded_units.done;
          usedunits.done;
+
+         { close ppas and deffile }
+         asmres.done;
+         deffile.done;
       end;
+
 
     procedure default_macros;
       var
@@ -288,12 +301,6 @@ unit parser;
          cg:=new(pcg386,init);
 {$endif i386}
 {$endif newcg}
-       { Handle things which need to be once }
-         if (compile_level=1) then
-          begin
-          { open assembler response }
-            AsmRes.Init(current_module^.outpath^+'ppas');
-          end;
 
          { If the compile level > 1 we get a nice "unit expected" error
            message if we are trying to use a program as unit.}
@@ -452,7 +459,14 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.70  1999-03-24 23:17:10  peter
+  Revision 1.71  1999-03-26 00:05:33  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.70  1999/03/24 23:17:10  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.69  1999/02/25 21:02:40  peter

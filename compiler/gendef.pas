@@ -27,14 +27,17 @@ uses cobjects;
 type
   pdeffile=^tdeffile;
   tdeffile=object
-    fname       : string;
-    exportlist,
-    importlist  : tstringcontainer;
+    fname : string;
+    empty : boolean;
     constructor init(const fn:string);
     destructor  done;
     procedure addexport(const s:string);
     procedure addimport(const s:string);
     procedure writefile;
+  private
+    erasedeffile : boolean;
+    exportlist,
+    importlist   : tstringcontainer;
   end;
 var
   deffile : tdeffile;
@@ -43,7 +46,7 @@ var
 implementation
 
 uses
-  systems,globals;
+  systems,globtype,globals;
 
 {******************************************************************************
                                TDefFile
@@ -52,13 +55,27 @@ uses
 constructor tdeffile.init(const fn:string);
 begin
   fname:=fn;
+  erasedeffile:=false;
+  empty:=true;
   importlist.init;
   exportlist.init;
 end;
 
 
 destructor tdeffile.done;
+var
+  f : file;
+  i : word;
 begin
+  if erasedeffile and
+     not(cs_link_extern in aktglobalswitches) then
+   begin
+     assign(f,fname);
+     {$I-}
+      erase(f);
+     {$I+}
+     i:=ioresult;
+   end;
   importlist.done;
   exportlist.done;
 end;
@@ -68,12 +85,14 @@ end;
 procedure tdeffile.addexport(const s:string);
 begin
   exportlist.insert(s);
+  empty:=false;
 end;
 
 
 procedure tdeffile.addimport(const s:string);
 begin
   importlist.insert(s);
+  empty:=false;
 end;
 
 
@@ -81,6 +100,7 @@ procedure tdeffile.writefile;
 var
   t : text;
 begin
+{ open file }
   assign(t,fname);
   {$I+}
    rewrite(t);
@@ -123,12 +143,20 @@ begin
    end;
 
   close(t);
+  erasedeffile:=true;
 end;
 
 end.
 {
   $Log$
-  Revision 1.2  1998-10-13 13:10:14  peter
+  Revision 1.3  1999-03-26 00:05:29  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.2  1998/10/13 13:10:14  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.1  1998/06/04 23:51:39  peter

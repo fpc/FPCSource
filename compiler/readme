@@ -29,4 +29,6 @@ Changes in the syntax or semantic of FPC:
              find it in the base.zip package (PFV)
   24/03/99   new directives UNITPATH,INCLUDEPATH,OBJECTPATH,LIBRARYPATH to
              set the searchpaths where to find the files for that module (PFV)
+  25/03/99   new directive STATIC +/- or on/off , works like -St commandline
+             switch
 

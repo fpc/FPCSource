@@ -486,7 +486,7 @@ unit pdecl;
                    symdone:=true;
                  end
                 else
-                 if (is_object) and (cs_static_keyword in aktglobalswitches) and (idtoken=_STATIC) then
+                 if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     current_object_option:=current_object_option or sp_static;
                     insert_syms(symtablestack,sc,p);
@@ -2240,7 +2240,14 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.104  1999-03-24 23:17:13  peter
+  Revision 1.105  1999-03-26 00:05:34  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.104  1999/03/24 23:17:13  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.103  1999/03/22 22:10:25  florian

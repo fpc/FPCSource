@@ -186,8 +186,7 @@ unit pmodules;
               { Generate an external entry to be sure that _mainCRTStarup will be
                 linked, can't use concat_external because those aren't written for
                 asw (PFV) }
-             if deffile.fname='DEF.$$$'then
-              target_link.bindcmd[1]:=target_link.bindcmd[1]+' -d DEF.$$$';
+             target_link.bindcmd[1]:=target_link.bindcmd[1]+' -d '+deffile.fname;
              if DLLsource then
               target_link.binders:=2;
              if RelocSection then
@@ -196,11 +195,8 @@ unit pmodules;
                target_link.bindcmd[1]:=target_link.bindcmd[1]+' --base-file base.$$$';
                target_link.binders:=2;
               end;
-             if apptype=at_cui then
-              datasegment^.concat(new(pai_const_symbol,init('_mainCRTStartup')))
-             else
+             if apptype=at_gui then
               begin
-               datasegment^.concat(new(pai_const_symbol,init('_WinMainCRTStartup')));
                target_link.linkcmd:='--subsystem windows '+target_link.linkcmd;
                target_link.bindcmd[2]:='--subsystem windows '+target_link.bindcmd[2];
               end;
@@ -1259,7 +1255,14 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.104  1999-03-24 23:17:17  peter
+  Revision 1.105  1999-03-26 00:05:38  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.104  1999/03/24 23:17:17  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.103  1999/03/18 20:30:46  peter

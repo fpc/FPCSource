@@ -129,6 +129,7 @@ unit systems;
           sourceext,
           pasext,
           exeext,
+          defext,
           scriptext : string[4];
           libprefix : string[3];
           Cprefix   : string[2];
@@ -249,6 +250,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';      { No .exe, the linker only output a.out ! }
+            defext       : '.def';
             scriptext    : '.bat';
             libprefix    : '';
             Cprefix      : '_';
@@ -269,6 +271,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.exe';
+            defext       : '.def';
             scriptext    : '.bat';
             libprefix    : '';
             Cprefix      : '_';
@@ -289,6 +292,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
+            defext       : '.def';
             scriptext    : '.sh';
             libprefix    : 'lib';
             Cprefix      : '';
@@ -309,6 +313,7 @@ implementation
             sourceext    : '.pas';
             pasext       : '.pp';
             exeext       : '.exe';
+            defext       : '.def';
             scriptext    : '.cmd';
             libprefix    : '';
             Cprefix      : '_';
@@ -329,6 +334,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.exe';
+            defext       : '.def';
             scriptext    : '.bat';
             libprefix    : 'lib';
             Cprefix      : '_';
@@ -349,6 +355,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
+            defext       : '';
             scriptext    : '';
             libprefix    : '';
             Cprefix      : '_';
@@ -369,6 +376,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.tpp';
+            defext       : '';
             scriptext    : '';
             libprefix    : '';
             Cprefix      : '_';
@@ -389,6 +397,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '.tpp';
+            defext       : '';
             scriptext    : '';
             libprefix    : '';
             Cprefix      : '_';
@@ -409,6 +418,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
+            defext       : '';
             scriptext    : '.sh';
             libprefix    : 'lib';
             Cprefix      : '';
@@ -429,6 +439,7 @@ implementation
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
+            defext       : '';
             scriptext    : '.sh';
             libprefix    : 'lib';
             Cprefix      : '_';
@@ -1358,7 +1369,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  1999-03-24 23:17:33  peter
+  Revision 1.65  1999-03-26 00:05:47  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.64  1999/03/24 23:17:33  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.63  1999/03/09 11:54:09  pierre

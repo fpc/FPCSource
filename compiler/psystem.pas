@@ -63,9 +63,9 @@ begin
   p^.insert(new(psyssym,init('INC',in_inc_x)));
   p^.insert(new(psyssym,init('STR',in_str_x_string)));
   p^.insert(new(psyssym,init('ASSERT',in_assert_x_y)));
-{$IfDef ValIntern}
+{$IfnDef OLDVAL}
   p^.insert(new(psyssym,init('VAL',in_val_x)));
-{$EndIf ValIntern}
+{$EndIf OLDVAL}
 end;
 
 
@@ -256,7 +256,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  1999-03-16 17:52:54  jonas
+  Revision 1.18  1999-03-26 00:05:40  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.17  1999/03/16 17:52:54  jonas
     * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
     * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
     * in cgai386: also small fixes to emitrangecheck

@@ -416,7 +416,7 @@ unit pexpr;
               pd:=voiddef;
             end;
 
-{$IfDef ValIntern}
+{$IfnDef OLDVAL}
           in_val_x:
             Begin
               consume(LKLAMMER);
@@ -436,8 +436,7 @@ unit pexpr;
               statement_syssym := p2;
               pd := voiddef;
             End;
-{$EndIf ValIntern}
-
+{$EndIf OLDVAL}
 
           in_include_x_y,
           in_exclude_x_y :
@@ -1977,7 +1976,14 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.88  1999-03-24 23:17:15  peter
+  Revision 1.89  1999-03-26 00:05:36  peter
+    * released valintern
+    + deffile is now removed when compiling is finished
+    * ^( compiles now correct
+    + static directive
+    * shrd fixed
+
+  Revision 1.88  1999/03/24 23:17:15  peter
     * fixed bugs 212,222,225,227,229,231,233
 
   Revision 1.87  1999/03/16 17:52:52  jonas
