@@ -95,7 +95,12 @@ implementation
 
          { Convert array constructor first to set }
          if is_array_constructor(p^.right^.resulttype) then
-           arrayconstructor_to_set(p^.right);
+          begin
+            arrayconstructor_to_set(p^.right);
+            firstpass(p^.right);
+            if codegenerror then
+             exit; 
+          end;
 
          if p^.right^.resulttype^.deftype<>setdef then
            CGMessage(sym_e_set_expected);
@@ -254,7 +259,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1999-03-02 18:22:36  peter
+  Revision 1.8  1999-04-14 15:00:13  peter
+    * forgot firstpass after array->set conversion
+
+  Revision 1.7  1999/03/02 18:22:36  peter
     * arrayconstructor convert for in
 
   Revision 1.6  1999/02/22 02:15:55  peter
