@@ -261,7 +261,10 @@ Const
 
 {
     $Log$
-    Revision 1.4  2002-11-12 14:46:46  marco
+    Revision 1.1  2003-07-06 21:12:30  peter
+      * Syscall number is architecture dependent
+
+    Revision 1.4  2002/11/12 14:46:46  marco
      * 2.4.18 version.
 
 
