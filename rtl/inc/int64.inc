@@ -19,17 +19,8 @@
     type
 {$ifdef ENDIAN_LITTLE}
        tqwordrec = packed record
-{$ifdef ENDIAN_LITTLE}       
          low : dword;
          high : dword;
-{$else not ENDIAN_LITTLE}
-{$ifdef ENDIAN_BIG}
-         high : dword;
-         low  : dword;
-{$else not ENDIAN_BIG}
-  {$fatal I need to know the endianess for int64.inc code}
-{$endif not ENDIAN_BIG}
-{$endif not ENDIAN_LITTLE}
        end;
 {$endif ENDIAN_LITTLE}
 {$ifdef ENDIAN_BIG}
@@ -612,7 +603,10 @@
 
 {
   $Log$
-  Revision 1.19  2003-05-12 11:16:21  florian
+  Revision 1.20  2003-05-12 11:17:55  florian
+    * fixed my commit, strange, it didn't give any conflicts with Jonas patch
+
+  Revision 1.19  2003/05/12 11:16:21  florian
     * qword division fixed (MSB/LSB problem)
 
   Revision 1.18  2003/05/12 07:19:04  jonas
