@@ -34,10 +34,17 @@
 {$endif i386}
 {$ifdef x86_64}
   {$define x86}
+  {$define 64bit}
 {$endif x86_64}
+{$ifdef alpha}
+  {$define 64bit}
+{$endif alpha}
 {
   $Log$
-  Revision 1.9  2002-09-07 15:25:02  peter
+  Revision 1.10  2002-09-29 23:19:05  florian
+    + added define 64bit
+
+  Revision 1.9  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/08/30 13:42:29  mazen
