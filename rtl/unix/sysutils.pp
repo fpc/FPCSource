@@ -548,7 +548,7 @@ Begin
   else
    if pid=-1 then         {Fork failed}
     begin
-      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,-1]);
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,-1]);
       e.ErrorCode:=-1;
       raise e;
     end;
@@ -558,7 +558,7 @@ Begin
 
   if (result<0) or (result=127) then
     begin
-    E:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,result]);
+    E:=EOSError.CreateFmt(SExecuteProcessFailed,[Path,result]);
     E.ErrorCode:=result;
     Raise E;
     end;
@@ -691,7 +691,10 @@ end.
 {
 
   $Log$
-  Revision 1.45  2004-08-30 11:13:20  michael
+  Revision 1.46  2004-08-30 11:20:39  michael
+  + Give path, not comline in ExecuteProcess
+
+  Revision 1.45  2004/08/30 11:13:20  michael
   + Fixed ExecuteProcess. Now returns the exit code or raises an exception on failure
 
   Revision 1.44  2004/08/05 07:32:51  michael
