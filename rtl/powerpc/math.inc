@@ -217,7 +217,7 @@ asm
            lfd    fr3,temp
            lfd    fr2,int_to_real_factor@l(r3)
            fsub   fr3,fr3,fr1
-           fmadd  fr0,fr0,fr2,fr3
+           fmadd  fr1,fr0,fr2,fr3
 end ['r0','r3','r4','fr0','fr1','fr2','fr3'];
 
 
@@ -245,14 +245,17 @@ asm
            lis    r3,int_to_real_factor@ha
            lfd    fr2,int_to_real_factor@l(r3)
            fsub   fr3,fr3,fr1
-           fmadd  fr0,fr0,fr2,fr3
+           fmadd  fr1,fr0,fr2,fr3
 end ['r0','r3','fr0','fr1','fr2','fr3'];
 
 
 
 {
   $Log$
-  Revision 1.2  2001-10-30 17:18:14  jonas
+  Revision 1.3  2001-12-02 16:19:45  jonas
+    * fpu results are returned in fr1, not fr0
+
+  Revision 1.2  2001/10/30 17:18:14  jonas
     * fixed fpc_int64_to_double and fpc_int64_to_double (fpc_int64_to_double
       is now mostly tested and should work fine, fpc_qword_to_double should
       work too since it's almost the same)
