@@ -16,8 +16,10 @@ type
 
   function tc.test(var c: tc): boolean;
   begin
-    result := foreach(c.left,@test);
-    result := foreach(c.right,@test) or result;
+    { if you use @test, the compiler tries to get the address of the }
+    { function result instead of the address of the method (JM)       }
+    result := foreach(c.left,@tc.test);
+    result := foreach(c.right,@tc.test) or result;
   end;
 
 
