@@ -419,6 +419,8 @@ implementation
 
 
      procedure tcgvecnode.update_reference_reg_mul(reg:tregister;l:aword);
+       var
+         hreg: tregister;
        begin
          if location.reference.base.number=NR_NO then
           begin
@@ -432,9 +434,10 @@ implementation
           end
          else
           begin
-            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,location.reference.index);
-            rg.ungetregisterint(exprasmlist,location.reference.base);
-            reference_reset_base(location.reference,location.reference.index,0);
+            rg.ungetreference(exprasmlist,location.reference);
+            hreg := rg.getaddressregister(exprasmlist);
+            cg.a_loadaddr_ref_reg(exprasmlist,location.reference,hreg);
+            reference_reset_base(location.reference,hreg,0);
             { insert new index register }
             cg.a_op_const_reg(exprasmlist,OP_IMUL,OS_ADDR,l,reg);
             location.reference.index:=reg;
@@ -559,11 +562,14 @@ implementation
       {$else}
          pushed : tpushedsavedint;
       {$endif}
-         isjump  : boolean;
          otl,ofl : tasmlabel;
          newsize : tcgsize;
          pushedregs : tmaybesave;
+         mulsize: longint;
+         isjump  : boolean;
       begin
+         mulsize := get_mul_size;
+
          newsize:=def_cgsize(resulttype.def);
          secondpass(left);
          if left.location.loc=LOC_CREFERENCE then
@@ -687,7 +693,7 @@ implementation
          { offset can only differ from 0 if arraydef }
          if (left.resulttype.def.deftype=arraydef) and
             not(is_dynamic_array(left.resulttype.def)) then
-           dec(location.reference.offset,get_mul_size*tarraydef(left.resulttype.def).lowrange);
+           dec(location.reference.offset,mulsize*tarraydef(left.resulttype.def).lowrange);
 
          if right.nodetype=ordconstn then
            begin
@@ -774,7 +780,7 @@ implementation
                    end;
               end;
               inc(location.reference.offset,
-                  get_mul_size*tordconstnode(right).value);
+                  mulsize*tordconstnode(right).value);
            end
          else
          { not nodetype=ordconstn }
@@ -835,7 +841,7 @@ implementation
                          end;}
                      end;
                    inc(location.reference.offset,
-                       get_mul_size*extraoffset);
+                       mulsize*extraoffset);
                 end;
               { calculate from left to right }
               if not(location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
@@ -862,7 +868,8 @@ implementation
                    rangecheck_array;
                end;
 
-              location_force_reg(exprasmlist,right.location,OS_32,false);
+              { if mulsize = 1, we won't have to modify the index }
+              location_force_reg(exprasmlist,right.location,OS_32,mulsize = 1);
 
               if isjump then
                begin
@@ -930,7 +937,7 @@ implementation
 
               { insert the register and the multiplication factor in the
                 reference }
-              update_reference_reg_mul(right.location.register,get_mul_size);
+              update_reference_reg_mul(right.location.register,mulsize);
            end;
 
         location.size:=newsize;
@@ -948,7 +955,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2003-06-07 18:57:04  jonas
+  Revision 1.61  2003-06-09 16:45:41  jonas
+    * fixed update_reference_reg_mul() so that it won't modify CREGISTERs
+      in a reference
+    * cache value of get_mul_size()
+    * if get_mul_size = 1, the index can be a CREGISTER since it won't be
+      modified
+
+  Revision 1.60  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
