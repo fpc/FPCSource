@@ -408,8 +408,8 @@ const msgtxt : array[0..000141,1..240] of char=(
   '06038_E_Cannot call message handler methods directly'#000+
   '06039_E_Jump in or outside of an exception block'#000+
   '06040_E_Control flow statements aren'#039't allowed in a finally block'#000+
-  '06041_E_Parameters size exceeds limit for certain cpu'#039,'s'#000+
-  '06042_E_Local variable size exceed limit for certain cpu'#039's'#000+
+  '06041_W_Parameters size exceeds limit for certain cpu'#039,'s'#000+
+  '06042_W_Local variable size exceed limit for certain cpu'#039's'#000+
   '06043_E_Local variables size exceeds supported limit'#000+
   '07000_D_Starting $1 styled assembler parsing'#000+
   '07001_D_Finished $1 styled assembler parsing'#000+
