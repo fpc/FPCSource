@@ -111,11 +111,21 @@ var
   vmtsymtable  : tsymtable;
 begin
 { Normal types }
-  addtype('Single',s32floattype);
-  addtype('Double',s64floattype);
-  { extended size is the best real type for the target }
-  addtype('Extended',pbestrealtype^);
-  addtype('Real',s64floattype);
+  if (cs_fp_emulation in aktmoduleswitches) then
+    begin
+      addtype('Single',s32floattype);
+      { extended size is the best real type for the target }
+      addtype('Real',s32floattype);
+      pbestrealtype:=@s32floattype;
+    end
+  else
+    begin
+      addtype('Single',s32floattype);
+      addtype('Double',s64floattype);
+      { extended size is the best real type for the target }
+      addtype('Extended',pbestrealtype^);
+      addtype('Real',s64floattype);
+    end;
 {$ifdef x86}
   adddef('Comp',tfloatdef.create(s64comp));
 {$endif x86}
@@ -286,22 +296,15 @@ begin
   ordpointertype:=u32bittype;
   s32floattype.setdef(tfloatdef.create(s32real));
   s64floattype.setdef(tfloatdef.create(s64real));
+  s80floattype.setdef(tfloatdef.create(s80real));
 {$endif sparc}
-  s64currencytype.setdef(tfloatdef.create(s64currency));
 {$ifdef m68k}
   ordpointertype:=u32bittype;
   s32floattype.setdef(tfloatdef.create(s32real));
-  if (cs_fp_emulation in aktmoduleswitches) then
-   begin
-     s64floattype.setdef(tfloatdef.create(s32real));
-     s80floattype.setdef(tfloatdef.create(s32real));
-   end
-  else
-   begin
-     s64floattype.setdef(tfloatdef.create(s64real));
-     s80floattype.setdef(tfloatdef.create(s80real));
-   end;
+  s64floattype.setdef(tfloatdef.create(s64real));
+  s80floattype.setdef(tfloatdef.create(s80real));
 {$endif}
+  s64currencytype.setdef(tfloatdef.create(s64currency));
   { some other definitions }
   voidpointertype.setdef(tpointerdef.create(voidtype));
   charpointertype.setdef(tpointerdef.create(cchartype));
@@ -315,7 +318,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2002-08-13 18:01:52  carl
+  Revision 1.35  2002-08-14 19:14:39  carl
+    + fpu emulation support (generic and untested)
+
+  Revision 1.34  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline
