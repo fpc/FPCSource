@@ -237,9 +237,8 @@ end;
                                Makefile.fpc reading
 *****************************************************************************}
 
-function ReadMakefilefpc:boolean;
+function ReadMakefilefpc(const fn:string):boolean;
 var
-  fn  : string;
   ini : TIniFile;
 
   procedure ReadTargetsString(var t:Ttargetsstring;const sec,name,def:string);
@@ -255,13 +254,6 @@ var
   sec : tsections;
 begin
   ReadMakefilefpc:=false;
-  if FileExists('Makefile.fpc') then
-   fn:='Makefile.fpc'
-  else
-   if FileExists('makefile.fpc') then
-    fn:='makefile.fpc'
-  else
-   exit;
 
   Verbose('Reading '+fn);
   ini:=TIniFile.Create(fn);
@@ -404,7 +396,7 @@ end;
                                Makefile writing
 *****************************************************************************}
 
-function WriteMakefile:boolean;
+function WriteMakefile(const fn:string):boolean;
 var
   mf : TStringList;
   ss : TStringList;
@@ -560,7 +552,7 @@ var
     if ifdefneed then
      mf.Add('ifdef PACKAGE'+Uppercase(s));
     mf.Add('ifneq ($(wildcard '+packagedir+s3+'),)');
-    mf.Add('ifeq ($(wildcard '+packagedir+s3+'/$(FPCMAKED)),)');
+    mf.Add('ifeq ($(wildcard '+packagedir+s3+'/$(FPCMADE)),)');
     mf.Add('override COMPILEPACKAGES+='+s2);
     mf.Add(s2+'_package:');
     mf.Add(#9'$(MAKE) -C '+packagedir+s3+' all');
@@ -575,7 +567,7 @@ var
   begin
     mf.Add('ifdef COMPONENT'+Uppercase(s));
     mf.Add('ifneq ($(wildcard $(COMPONENTDIR)/'+s+'),)');
-    mf.Add('ifeq ($(wildcard $(COMPONENTDIR)/'+s+'/$(FPCMAKED)),)');
+    mf.Add('ifeq ($(wildcard $(COMPONENTDIR)/'+s+'/$(FPCMADE)),)');
     mf.Add('override COMPILECOMPONENTS+='+s);
     mf.Add(s+'_component:');
     mf.Add(#9'$(MAKE) -C $(COMPONENTDIR)/'+s+' all');
@@ -617,7 +609,6 @@ var
   i : integer;
 begin
 { Open the Makefile }
-  Verbose('Creating Makefile');
   mf:=TStringList.Create;
 { Buffer for reading and writing the sections }
   ss:=TStringList.Create;
@@ -944,12 +935,47 @@ begin
    end;
 
 { Write the Makefile and cleanup }
-  Verbose('Writing Makefile');
+  Verbose('Writing '+fn);
   FixTab(mf);
-  mf.SaveToFile('Makefile');
+  mf.SaveToFile(fn);
   mf.Destroy;
   ss.Destroy;
   WriteMakefile:=true;
+end;
+
+
+procedure UseMakefilefpc;
+var
+  fn : string;
+begin
+  if FileExists('Makefile.fpc') then
+   fn:='Makefile.fpc'
+  else
+   fn:='makefile.fpc';
+{ Open Makefile.fpc }
+  if not ReadMakefilefpc(fn) then
+   Error('Can''t read '+fn);
+{ Write Makefile }
+  if not WriteMakefile('Makefile') then
+   Error('Can''t write Makefile');
+end;
+
+
+procedure UseParameters;
+var
+  i  : integer;
+  fn : string;
+begin
+  for i:=1 to ParamCount do
+   begin
+     fn:=ParamStr(i);
+     { Open Makefile.fpc }
+     if not ReadMakefilefpc(fn) then
+      Error('Can''t read '+fn);
+     { Write Makefile }
+     if not WriteMakefile(ExtractFilePath(fn)+'Makefile') then
+      Error('Can''t write '+ExtractFilePath(fn)+'Makefile');
+   end;
 end;
 
 
@@ -959,19 +985,20 @@ begin
   if not assigned(fpcini) then
    Error('Can''t read fpcmake.ini');
 
-{ Open Makefile.fpc }
-  if not ReadMakefilefpc then
-   Error('Can''t read Makefile.fpc');
-
-{ Write Makefile }
-  if not WriteMakefile then
-   Error('Can''t write Makefile');
+  if ParamCount=0 then
+   UseMakefilefpc
+  else
+   UseParameters;
 
   fpcini.destroy;
 end.
 {
   $Log$
-  Revision 1.11  1999-12-02 11:30:24  peter
+  Revision 1.12  1999-12-19 15:15:04  peter
+    * fpcmade.<TARGET> added
+    * parameter support. So it can be using with "find -name 'Makefile.fpc'"
+
+  Revision 1.11  1999/12/02 11:30:24  peter
     * better dup checking
 
   Revision 1.10  1999/11/26 00:20:15  peter
