@@ -1,9 +1,5 @@
 {
-<<<<<<< systypes.inc
     $Id$
-=======
-    $Id$
->>>>>>> 1.1.2.2
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by Michael Van Canneyt,
     member of the Free Pascal development team.
@@ -138,7 +134,7 @@ type
   TTimeVal=timeval;
 
   timespec = packed record
-    tv_sec,tv_nsec:{longint or int64 ?}int64;
+    tv_sec,tv_nsec:{longint or int64 ?}longint;
   end;
 
   timezone = packed record
@@ -160,7 +156,11 @@ type
 
 {
   $Log$
-  Revision 1.4  2001-01-20 16:42:49  marco
+  Revision 1.5  2001-01-20 16:52:37  marco
+   * Grr, timeval and timespec were both wrong, and I fixed only one. Now
+  done.
+
+  Revision 1.4  2001/01/20 16:42:49  marco
    * Fixed the timeval
 
   Revision 1.3  2000/10/26 23:00:12  peter
