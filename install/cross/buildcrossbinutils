@@ -36,6 +36,7 @@ MYINTEL=i686
 BSD="freebsd netbsd openbsd"
 TARGETS_WIN="cygwin mingw32 msdosdjgpp"
 TARGETS_I386="${BSD} linux solaris darwin"
+TARGETS_X86_64="${BSD} linux"
 TARGETS_POWERPC="${BSD} linux darwin"
 TARGETS_SPARC="${BSD} linux solaris"
 #TARGETS_M68k=   
@@ -69,6 +70,10 @@ done;
 
 for OS in ${TARGETS_I386}; do
 TARGETS="${TARGETS} ${MYINTEL}-${OS}"
+done;
+
+for OS in ${TARGETS_X86_64}; do
+TARGETS="${TARGETS} x86_64-${OS}"
 done;
 
 for OS in ${TARGETS_POWERPC}; do
