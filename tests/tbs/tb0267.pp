@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Old file: tbs0309.pp }
 { problem with ATT assembler written by bin writer     OK 0.99.14 (PFV) }
 
