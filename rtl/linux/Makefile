@@ -1343,7 +1343,7 @@ include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
 graph$(PPUEXT) : graph.pp linux$(PPUEXT) $(SYSTEMPPU) \
-		 $(GRAPHINCDEPS) $(UNIXINC)/vgagraph16.inc
+		 $(GRAPHINCDEPS) $(UNIXINC)/graph16.inc
 	$(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp $(REDIR)
 
 ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
