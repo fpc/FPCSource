@@ -121,12 +121,10 @@ procedure InitOptions;
 begin
   InputFiles := TStringList.Create;
   DescrFiles := TStringList.Create;
-  Engine := TSkelEngine.Create;
 end;
 
 procedure FreeOptions;
 begin
-  Engine.Free;
   DescrFiles.Free;
   InputFiles.Free;
 end;
@@ -238,7 +236,6 @@ begin
       Halt(2);
     end;
 
-    Engine.SetPackageName(PackageName);
 
     // Translate internal documentation strings
     if Length(DocLang) > 0 then
@@ -254,11 +251,13 @@ begin
     // Process all source files
     for i := 0 to InputFiles.Count - 1 do
     begin
-      Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
+      Engine := TSkelEngine.Create;
       try
+        Engine.SetPackageName(PackageName);
+        Module := ParseSource(Engine, InputFiles[i], OSTarget, CPUTarget);
 	WriteLn(f, '</module> <!-- ', Module.Name, ' -->');
       finally
-        Module.Free;
+        Engine.Free;
       end;
     end;
 
@@ -276,36 +275,12 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-03-28 13:01:36  michael
+  Revision 1.3  2003-05-07 16:31:32  sg
+  * Fixed a severe memory corruption problem on termination
+
+  Revision 1.2  2003/03/28 13:01:36  michael
   + Patch from Charlie/iNQ to work with new scanner/parser
 
   Revision 1.1  2003/03/17 23:03:20  michael
   + Initial import in CVS
-
-  Revision 1.7  2003/03/13 22:02:13  sg
-  * New version with many bugfixes and our own parser (now independent of the
-    compiler source)
-
-  Revision 1.6  2002/10/12 17:00:46  michael
-  + Changes to be able to disable private/protected nodes in skeleton
-
-  Revision 1.5  2002/10/11 18:41:50  sg
-  * Now requires a package name on the command line via "--package=<name>",
-    to match the recent changes in the engine
-  * translation files are now searched at the usual location on Linux
-
-  Revision 1.4  2002/05/24 00:13:22  sg
-  * much improved new version, including many linking and output fixes
-
-  Revision 1.3  2002/03/12 10:58:36  sg
-  * reworked linking engine and internal structure
-
-  Revision 1.2  2001/07/27 10:21:42  sg
-  * Just a new, improved version ;)
-    (detailed changelogs will be provided again with the next commits)
-
-  Revision 1.1  2000/10/28 20:15:26  sg
-  * Many internal architectural improvements (especially linking)
-  * Improved writers
-
 }
