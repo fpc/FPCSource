@@ -525,14 +525,18 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-27 16:11:51  peter
+  Revision 1.5  2000-09-04 09:40:23  michael
+  + merged Patch from peter
+
+  Revision 1.4  2000/08/27 16:11:51  peter
     * moved some util functions from globals,cobjects to cutils
     * splitted files into finput,fmodule
 
   Revision 1.3  2000/07/26 13:08:19  jonas
     * merged from fixes branch (v_hint to v_tried changed when attempting
       to smart/static/shared link)
-
+  Revision 1.1.2.1  2000/07/26 12:54:24  jonas
+    * changed V_Hint's to V_Tried's (for attempts to smart/shared/static link)
   Revision 1.2  2000/07/13 11:32:43  michael
   + removed logs
 }
