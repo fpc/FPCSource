@@ -346,7 +346,7 @@ unit tree;
 {$I innr.inc}
 
 {$ifdef newcg}
-{$I nodeh.inc}
+{$I new/nodeh.inc}
 {$endif newcg}
   implementation
 
@@ -1924,12 +1924,16 @@ unit tree;
       end;
 
 {$ifdef newcg}
-{$I node.inc}
+{$I new/node.inc}
 {$endif newcg}
 end.
 {
   $Log$
-  Revision 1.112  2000-02-17 14:53:43  florian
+  Revision 1.113  2000-02-20 20:49:46  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.112  2000/02/17 14:53:43  florian
     * some updates for the newcg
 
   Revision 1.111  2000/02/09 13:23:09  peter

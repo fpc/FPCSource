@@ -31,7 +31,7 @@ uses
 
 { produces assembler for the expression in variable p }
 { and produces an assembler node at the end           }
-procedure generatecode(var p : pnode);
+procedure generatecode(var _p : ptree);
 
 { produces the actual code }
 function do_secondpass(p : pnode) : boolean;
@@ -44,7 +44,7 @@ implementation
      globtype,systems,
      cobjects,verbose,comphook,globals,files,
      symconst,symtable,types,aasm,scanner,
-     pass_1,tgobj,cgbase,cgobj,tgcpu,cpuasm,cpubase
+     pass_1,tgobj,cgbase,cgobj,tgcpu,cpuasm,cpubase,convtree
 {$ifdef GDB}
      ,gdb
 {$endif}
@@ -259,13 +259,14 @@ implementation
            end;
       end;
 
-    procedure generatecode(var p : pnode);
+    procedure generatecode(var _p : ptree);
       var
          i       : longint;
          hr      : preference;
 {$ifdef i386}
          regsize : topsize;
 {$endif i386}
+         p : pnode;
 
       label
          nextreg;
@@ -282,8 +283,9 @@ implementation
          tg.clearregistercount;
          use_esp_stackframe:=false;
 
-         if not(do_firstpassnode(p)) then
+         if not(do_firstpass(_p)) then
            begin
+              p:=convtree2node(_p);
               { max. optimizations     }
               { only if no asm is used }
               { and no try statement   }
@@ -318,8 +320,8 @@ implementation
                          if procinfo^.return_offset>=0 then
                            dec(procinfo^.return_offset,4);
 
-                         dec(procinfo^.call_offset,4);
-                         aktprocsym^.definition^.parast^.address_fixup:=procinfo^.call_offset;
+                         dec(procinfo^.para_offset,4);
+                         aktprocsym^.definition^.parast^.address_fixup:=procinfo^.para_offset;
                        end;
                      end;
                    if (p^.registersint<maxvarregs) then
@@ -413,7 +415,7 @@ implementation
                                        { when loading parameter to reg  }
                                        new(hr);
                                        reset_reference(hr^);
-                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.call_offset;
+                                       hr^.offset:=pvarsym(regvars[i])^.address+procinfo^.para_offset;
                                        hr^.base:=procinfo^.framepointer;
 {$ifdef i386}
                                        procinfo^.aktentrycode^.concat(new(paicpu,op_ref_reg(A_MOV,regsize,
@@ -464,7 +466,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-01-07 01:14:54  peter
+  Revision 1.11  2000-02-20 20:49:46  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.10  2000/01/07 01:14:54  peter
     * updated copyright to 2000
 
   Revision 1.9  1999/12/06 18:17:10  peter

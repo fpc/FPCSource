@@ -1770,10 +1770,13 @@ implementation
                   hp:=hp^.next;
                 end;
            end;
-
-         { check for duplicate id in local and parsymtable symtable }
+         { check the current symtable }
+         hsym:=search(sym^.name);
+         if assigned(hsym) then
+           DuplicateSym(hsym);
+         { check for duplicate id in local and parasymtable symtable }
          if (symtabletype=localsymtable) then
-           { to be on the sure side: }
+           { to be on the save side: }
            begin
               if assigned(next) and
                 (next^.symtabletype=parasymtable) then
@@ -2781,7 +2784,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2000-02-11 13:53:49  pierre
+  Revision 1.78  2000-02-20 20:49:45  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.77  2000/02/11 13:53:49  pierre
    * avoid stack overflow in tref.done (bug 846)
 
   Revision 1.76  2000/02/09 13:23:05  peter

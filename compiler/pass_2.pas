@@ -832,7 +832,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2000-02-10 23:44:43  florian
+  Revision 1.58  2000-02-20 20:49:45  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.57  2000/02/10 23:44:43  florian
     * big update for exception handling code generation: possible mem holes
       fixed, break/continue/exit should work always now as expected
 

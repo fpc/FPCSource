@@ -53,7 +53,7 @@ uses
   scanner,aasm,tree,types,
   import,gendef,
 {$ifdef newcg}
-  cgbase,tgcpu,
+  cgbase,
 {$else newcg}
   hcodegen,temp_gen,
 {$endif newcg}
@@ -1391,7 +1391,7 @@ var
    oldaktmaxfpuregisters,localmaxfpuregisters : longint;
    { code for the subroutine as tree }
 {$ifdef newcg}
-   code:pnode;
+   code:ptree;
 {$else newcg}
    code:ptree;
 {$endif newcg}
@@ -1481,11 +1481,18 @@ begin
    entryswitches:=aktlocalswitches;
    localmaxfpuregisters:=aktmaxfpuregisters;
 {$ifdef newcg}
+{$ifdef dummy}
    { parse the code ... }
    if (po_assembler in aktprocsym^.definition^.procoptions) then
      code:=convtree2node(assembler_block)
    else
      code:=convtree2node(block(current_module^.islibrary));
+{$endif dummy}
+   { parse the code ... }
+   if (po_assembler in aktprocsym^.definition^.procoptions) then
+     code:=assembler_block
+   else
+     code:=block(current_module^.islibrary);
 {$else newcg}
    { parse the code ... }
    if (po_assembler in aktprocsym^.definition^.procoptions) then
@@ -1526,7 +1533,8 @@ begin
    aktmaxfpuregisters:=localmaxfpuregisters;
 {$ifndef NOPASS2}
 {$ifdef newcg}
-   tg.setfirsttemp(procinfo^.firsttemp_offset);
+   if assigned(code) then
+     generatecode(code);
 {$else newcg}
    if assigned(code) then
      generatecode(code);
@@ -1648,15 +1656,23 @@ begin
        aktprocsym^.definition^.localst:=nil;
      end;
 
+{$ifdef newcg}
+   { all registers can be used again }
+   tg.resetusableregisters;
+   { only now we can remove the temps }
+   tg.resettempgen;
+{$else newcg}
    { all registers can be used again }
    resetusableregisters;
    { only now we can remove the temps }
    resettempgen;
+{$endif newcg}
 
    { remove code tree, if not inline procedure }
    if assigned(code) and not(pocall_inline in aktprocsym^.definition^.proccalloptions) then
 {$ifdef newcg}
-     dispose(code,done);
+     {!!!!!!! dispose(code,done); }
+     disposetree(code);
 {$else newcg}
      disposetree(code);
 {$endif newcg}
@@ -1970,7 +1986,11 @@ end.
 
 {
   $Log$
-  Revision 1.49  2000-02-17 14:53:42  florian
+  Revision 1.50  2000-02-20 20:49:45  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.49  2000/02/17 14:53:42  florian
     * some updates for the newcg
 
   Revision 1.48  2000/02/09 13:23:00  peter

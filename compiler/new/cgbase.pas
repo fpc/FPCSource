@@ -74,7 +74,7 @@ unit cgbase;
           { firsttemp position }
           firsttemp_offset : longint;
           { parameter offset }
-          call_offset : longint;
+          para_offset : longint;
 
           { every register which must be saved by the entry code }
           { (and restored by the exit code) must be in that set  }
@@ -329,7 +329,7 @@ unit cgbase;
         selfpointer_offset:=0;
         return_offset:=0;
         firsttemp_offset:=0;
-        call_offset:=0;
+        para_offset:=0;
         registerstosave:=[];
         flags:=0;
         framepointer:=R_NO;
@@ -515,7 +515,11 @@ unit cgbase;
 end.
 {
   $Log$
-  Revision 1.16  2000-02-17 14:48:36  florian
+  Revision 1.17  2000-02-20 20:49:46  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.16  2000/02/17 14:48:36  florian
      * updated to use old firstpass
 
   Revision 1.15  2000/01/07 01:14:52  peter

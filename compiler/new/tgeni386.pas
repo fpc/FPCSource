@@ -26,6 +26,7 @@ unit tgeni386;
 
     procedure cleartempgen;
     procedure resettempgen;
+    procedure resetusableregisters;
 
   implementation
 
@@ -44,10 +45,19 @@ unit tgeni386;
          tg.resettempgen;
       end;
 
+    procedure resetusableregisters;
+
+      begin
+         tg.resetusableregisters;
+      end;
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 01:14:54  peter
+  Revision 1.4  2000-02-20 20:49:46  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.3  2000/01/07 01:14:54  peter
     * updated copyright to 2000
 
   Revision 1.2  1999/08/02 21:29:09  florian

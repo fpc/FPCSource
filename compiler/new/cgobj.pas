@@ -485,7 +485,7 @@ unit cgobj;
               a_param_ref_addr(list,hr,2);
               reset_reference(hr);
               hr.base:=procinfo^.framepointer;
-              hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+              hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
               a_param_ref_addr(list,hr,1);
               reset_reference(hr);
               a_call_name(list,'FPC_ADDREF',0);
@@ -523,7 +523,7 @@ unit cgobj;
                  parasymtable:
                    begin
                       hr.base:=procinfo^.framepointer;
-                      hr.offset:=pvarsym(p)^.address+procinfo^.call_offset;
+                      hr.offset:=pvarsym(p)^.address+procinfo^.para_offset;
                    end;
                  else
                    hr.symbol:=newasmsymbol(pvarsym(p)^.mangledname);
@@ -644,14 +644,14 @@ unit cgobj;
                if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-pointersize;
+                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize;
             end
           else
             begin
                if (aktprocsym^.definition^.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                  parasize:=0
                else
-                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.call_offset-pointersize*2;
+                 parasize:=aktprocsym^.definition^.parast^.datasize+procinfo^.para_offset-pointersize*2;
                nostackframe:=false;
 
                if (po_interrupt in aktprocsym^.definition^.procoptions) then
@@ -1116,7 +1116,11 @@ unit cgobj;
 end.
 {
   $Log$
-  Revision 1.33  2000-01-07 01:14:53  peter
+  Revision 1.34  2000-02-20 20:49:46  florian
+    * newcg is compiling
+    * fixed the dup id problem reported by Paul Y.
+
+  Revision 1.33  2000/01/07 01:14:53  peter
     * updated copyright to 2000
 
   Revision 1.32  1999/12/01 12:42:33  peter
@@ -1225,4 +1229,3 @@ end.
     + first version, derived from old routines
 
 }
-
