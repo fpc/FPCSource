@@ -140,6 +140,8 @@ asm
   stw    r7,saveR7
   stw    r8,saveR8
   rlwinm r6,r4,32-3,0,31-2    // divide by 8 to get starting and ending byte-
+  { load the set the data cache }
+  dcbt   r3,r6
   rlwinm r7,r5,32-3,0,31-2    // address and clear two lowest bits to get
                               //  start/end longint address
   sub.   r7,r6,r7             // are bit lo and hi in the same longint?
@@ -215,6 +217,8 @@ procedure do_add_sets(set1,set2,dest : pointer);assembler;[public,alias:'FPC_SET
 var
   saveR6, saveR7, saveR8: longint;
 asm
+       {  load the begin of the first set in the data cache }
+       dcbt    r0,r3
        stw      r6,saveR6
        stw      r7,saveR7
        subi     r5,r5,4
@@ -244,6 +248,8 @@ procedure do_mul_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_M
 var
   saveR6, saveR7, saveR8: longint;
 asm
+       {  load the begin of the first set in the data cache }
+       dcbt    r0,r3
        stw      r6,saveR6
        stw      r7,saveR7
        subi     r5,r5,4
@@ -273,6 +279,8 @@ procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SET_S
 var
   saveR6, saveR7, saveR8: longint;
 asm
+       {  load the begin of the first set in the data cache }
+       dcbt    r0,r3
        stw      r6,saveR6
        stw      r7,saveR7
        subi     r5,r5,4
@@ -302,6 +310,8 @@ procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias:'FPC_SE
 var
   saveR6, saveR7, saveR8: longint;
 asm
+       {  load the begin of the first set in the data cache }
+       dcbt    r0,r3
        stw      r6,saveR6
        stw      r7,saveR7
        subi     r5,r5,4
@@ -331,6 +341,8 @@ procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET_COM
 var
   saveR5, saveR6, saveR7: longint;
 asm
+       {  load the begin of the first set in the data cache }
+       dcbt    r0,r3
        stw      r5,saveR5
        mfctr    r5
        stw      r6,saveR6
@@ -359,6 +371,8 @@ procedure do_contains_sets(set1,set2 : pointer);assembler;[public,alias:'FPC_SET
 var
   saveR5, saveR6, saveR7: longint;
 asm
+       {  load the begin of the first set in the data cache }
+       dcbt    r0,r3
        stw      r5,saveR5
        mfctr    r5
        stw      r6,saveR6
@@ -544,7 +558,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2001-03-03 13:54:26  jonas
+  Revision 1.8  2001-07-07 12:46:12  jonas
+    * some small bugfixes and cache optimizations
+
+  Revision 1.7  2001/03/03 13:54:26  jonas
     * changed 'bdnzeq  cr0' to 'bdnzt  cr0*4+eq'
 
   Revision 1.6  2000/10/07 14:42:16  jonas

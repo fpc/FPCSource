@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999 by the Free Pascal development team.
+    Copyright (c) 2000-2001 by the Free Pascal development team.
 
     Portions Copyright (c) 2000 by Casey Duncan (casey.duncan@state.co.us)
 
@@ -26,6 +26,8 @@
 
 procedure Move(var source;var dest;count:longint);assembler;
 asm
+                {  load the begin of the source in the data cache }
+                dcbt    r0,r3
                 {  count <= 0 ?  }
                 cmpwi   cr0,r5,0
                 {  check if we have to do the move backwards because of overlap  }
@@ -93,9 +95,9 @@ LMove4ByteAlignLoop:
                 {  count >= 39 -> align to 8 byte boundary and then use the FPU  }
                 {  since we're already at 4 byte alignment, use dword store      }
                 lwz     r29,0(r3)
-                add     r3,r3,r30,
+                add     r3,r3,r30
                 stw     r29,0(r4)
-                add     r4,r4,r30,
+                add     r4,r4,r30
 L8BytesAligned:
                 { count div 32 ( >= 1, since count was >=39 }
                 srwi    r29,r5,5
@@ -260,43 +262,49 @@ function IndexByte(var buf;len:longint;b:byte):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
+                {  load the begin of the buffer in the data cache }
+                dcbt    r0,r3
                 cmpli   r4,0
                 mtctr   r4
                 subi    r30,r3,1
+                mr      r28,r3
                 { assume not found }
                 li      r3,-1
-                beq     LIndexByteNotFound
+                beq     LIndexByteDone
 LIndexByteLoop:
                 lbzu    r29,1(r30)
                 cmpl    r29,r5
-                bdnzne  LIndexByteLoop
+                bdnzf   cr0*4+eq,LIndexByteLoop
                 { r3 still contains -1 here }
                 bne     LIndexByteDone
-                sub     r3,r29,r3
+                sub     r3,r30,r28
 LIndexByteDone:
-end ['r3','r29','r30','cr0','ctr'];
+end ['r3','r28','r29','r30','cr0','ctr'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXWORD}
-function Indexword(var buf;len:longint;b:word):longint; assembler;
+function IndexWord(var buf;len:longint;b:word):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
+                {  load the begin of the buffer in the data cache }
+                dcbt    r0,r3
                 cmpli   r4,0
                 mtctr   r4
                 subi    r30,r3,2
+                mr      r28,r3
                 { assume not found }
                 li      r3,-1
-                beq     LIndexWordNotFound
+                beq     LIndexWordDone
 LIndexWordLoop:
                 lhzu    r29,2(r30)
                 cmpl    r29,r5
-                bdnzne  LIndexWordLoop
+                bdnzf   cr0*4+eq,LIndexWordLoop
                 { r3 still contains -1 here }
                 bne     LIndexWordDone
-                sub     r3,r29,r3
+                sub     r3,r30,r28
 LIndexWordDone:
-end ['r3','r29','r30','cr0','ctr'];
+end ['r3','r28','r29','r30','cr0','ctr'];
 
 
 {$define FPC_SYSTEM_HAS_INDEXDWORD}
@@ -304,21 +312,24 @@ function IndexDWord(var buf;len:longint;b:DWord):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                   }
 { output: r3 = position of b in buf (-1 if not found) }
 asm
+                {  load the begin of the buffer in the data cache }
+                dcbt    r0,r3
                 cmpli   r4,0
                 mtctr   r4
                 subi    r30,r3,4
+                mr      r28,r3
                 { assume not found }
                 li      r3,-1
-                beq     LIndexDWordNotFound
+                beq     LIndexDWordDone
 LIndexDWordLoop:
                 lwzu    r29,4(r30)
                 cmpl    r29,r5
-                bdnzne  LIndexDWordLoop
+                bdnzf   cr0*4+eq, LIndexDWordLoop
                 { r3 still contains -1 here }
                 bne     LIndexDWordDone
-                sub     r3,r29,r3
+                sub     r3,r30,r28
 LIndexDWordDone:
-end ['r3','r29','r30','cr0','ctr'];
+end ['r3','r28','r29','r30','cr0','ctr'];
 
 {$define FPC_SYSTEM_HAS_COMPAREBYTE}
 function CompareByte(var buf1,buf2;len:longint):longint; assembler;
@@ -326,13 +337,15 @@ function CompareByte(var buf1,buf2;len:longint):longint; assembler;
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
 asm
+        {  load the begin of the first buffer in the data cache }
+        dcbt    r0,r3
         { use r28 instead of r3 for buf1 since r3 contains result }
         cmpl    r5,0
+        mtctr   r5
         subi    r28,r3,1
+        subi    r4,r4,1
         li      r3,0
         beq     LCompByteDone
-        mtctr   r5
-        subi    r4,r4,1
 LCompByteLoop:
         { load next chars }
         lbzu    r29,1(r28)
@@ -340,7 +353,7 @@ LCompByteLoop:
         { calculate difference }
         sub.    r3,r29,r30
         { if chars not equal or at the end, we're ready }
-        bdnze     LCompByteDone
+        bdnzt   cr0*4+eq, LCompByteLoop
 LCompByteDone:
 end ['r3','r4','r28','r29','r30','cr0','ctr'];
 
@@ -350,13 +363,15 @@ function CompareWord(var buf1,buf2;len:longint):longint; assembler;
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
 asm
+        {  load the begin of the first buffer in the data cache }
+        dcbt    r0,r3
         { use r28 instead of r3 for buf1 since r3 contains result }
         cmpl    r5,0
+        mtctr   r5
         subi    r28,r3,2
+        subi    r4,r4,2
         li      r3,0
         beq     LCompWordDone
-        mtctr   r5
-        subi    r4,r4,2
 LCompWordLoop:
         { load next chars }
         lhzu    r29,2(r28)
@@ -364,7 +379,7 @@ LCompWordLoop:
         { calculate difference }
         sub.    r3,r29,r30
         { if chars not equal or at the end, we're ready }
-        bdnze     LCompWordDone
+        bdnzt   cr0*4+eq, LCompWordLoop
 LCompWordDone:
 end ['r3','r4','r28','r29','r30','cr0','ctr'];
 
@@ -375,13 +390,15 @@ function CompareDWord(var buf1,buf2;len:longint):longint; assembler;
 { output: r3 = 0 if equal, < 0 if buf1 < str2, > 0 if buf1 > str2 }
 { note: almost direct copy of strlcomp() from strings.inc         }
 asm
+        {  load the begin of the first buffer in the data cache }
+        dcbt    r0,r3
         { use r28 instead of r3 for buf1 since r3 contains result }
         cmpl    r5,0
+        mtctr   r5
         subi    r28,r3,4
+        subi    r4,r4,4
         li      r3,0
         beq     LCompDWordDone
-        mtctr   r5
-        subi    r4,r4,4
 LCompDWordLoop:
         { load next chars }
         lwzu    r29,4(r28)
@@ -389,7 +406,7 @@ LCompDWordLoop:
         { calculate difference }
         sub.    r3,r29,r30
         { if chars not equal or at the end, we're ready }
-        bdnze     LCompDWordDone
+        bdnzt   cr0*4+eq, LCompDWordLoop
 LCompDWordDone:
 end ['r3','r4','r28','r29','r30','cr0','ctr'];
 
@@ -398,12 +415,15 @@ function IndexChar0(var buf;len:longint;b:Char):longint; assembler;
 { input: r3 = buf, r4 = len, r5 = b                         }
 { output: r3 = position of found position (-1 if not found) }
 asm
+        {  load the begin of the buffer in the data cache }
+        dcbt    r0,r3
         { length = 0? }
         cmpli   r5,0
+        mtctr   r5
         subi    r29,r3,1
+        mr      r28,r29
         { assume not found }
         li      r3,-1
-        mtctr   r5
         { if yes, do nothing }
         beq     LIndexChar0Done
         subi    r3,r3,1
@@ -412,11 +432,11 @@ LIndexChar0Loop:
         cmpli   cr1,r30,0
         cmpl    r30,r4
         beq     cr1,LIndexChar0Done
-        bdnzne  LIndexChar0Loop
+        bdnzf   cr0*4+eq, LIndexChar0Loop
         bne     LIndexChar0Done
-        sub     r3,r29,r3
-LIndexCharDone:
-end ['r3','r4','r29','r30','cr0','ctr'];
+        sub     r3,r29,r28
+LIndexChar0Done:
+end ['r3','r4','r28','r29','r30','cr0','ctr'];
 
 { all FPC_HELP_* are still missing (JM) }
 
@@ -432,6 +452,8 @@ assembler;
 asm
         { load length source }
         lbz     r30,0(r4)
+        {  load the begin of the dest buffer in the data cache }
+        dcbtst  r0,r5
 
         { put min(length(sstr),len) in r3 }
         subc    r29,r3,r30    { r29 := r3 - r30                              }
@@ -453,7 +475,10 @@ end ['r3','r4','r5','r29','r30','cr0','ctr'];
 
 {
   $Log$
-  Revision 1.4  2001-03-03 13:53:36  jonas
+  Revision 1.5  2001-07-07 12:46:12  jonas
+    * some small bugfixes and cache optimizations
+
+  Revision 1.4  2001/03/03 13:53:36  jonas
     * fixed small bug in move
 
   Revision 1.3  2001/03/02 13:24:10  jonas

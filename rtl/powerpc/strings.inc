@@ -24,6 +24,8 @@ function strcopy(dest,source : pchar) : pchar;assembler;
 asm
 {  in: dest in r3, source in r4  }
 {  out: result (dest) in r3      }
+        {  load the begin of the source string in the data cache }
+        dcbt    r0,r4
         {  get # of misaligned bytes  }
         rlwinm. r30,r4,0,31-2,31
         subfic  r30,r30,4
@@ -51,17 +53,20 @@ LStrCopyAligned:
         addis   r27,r27,0x0feff
         li      r26,0x08080
         addis    r26,r26,0x08081
-LStrCopyAlignedLoop:
 
-        {  load next 4 bytes  }
+        { load first 4 bytes  }
         lwzu    r28,4(r4)
 
+LStrCopyAlignedLoop:
         { test for zero byte }
         add     r30,r28,r27
         andc    r30,r30,r28
         and.    r30,r30,r26
         bne     LStrCopyEndFound
         stwu    r28,4(r29)
+        { load next 4 bytes (do it here so the load can begin while the }
+        { the branch is processed)                                      }
+        lwzu    r28,4(r4)
         b       LStrCopyAlignedLoop
 LStrCopyEndFound:
         { result is either 0, 8, 16 or 24 depending on which byte is zero }
@@ -81,6 +86,8 @@ function strecopy(dest,source : pchar) : pchar;assembler;
 { in: dest in r3, source in r4        }
 { out: result (end of new dest) in r3 }
 asm
+        {  load the begin of the source string in the data cache }
+        dcbt    r0,r4
         {  get # of misaligned bytes  }
         rlwinm. r30,r4,0,31-2,31
         subfic  r30,r30,4
@@ -136,6 +143,8 @@ function strlcopy(dest,source : pchar;maxlen : longint) : pchar;assembler;
 { in: dest in r3, source in r4, maxlen in r5 }
 { out: result (dest) in r3                   }
 asm
+        {  load the begin of the source string in the data cache }
+        dcbt    r0,r4
         mtctr   r5
         subi    r4,r4,1
         subi    r29,r3,1
@@ -143,7 +152,7 @@ LStrlCopyLoop:
         lbzu    r30,1(r4)
         cmpli   r30,0
         stbu    r30,1(r29)
-        bdnzne  LStrlCopyLoop
+        bdnzf   cr0*4+eq, LStrlCopyLoop
         { if we stopped because we copied a #0, we're done }
         beq     LStrlCopyDone
         { otherwise add the #0 }
@@ -157,6 +166,8 @@ function strlen(p : pchar) : longint;assembler;
 { in: p in r3                }
 { out: result (length) in r3 }
 asm
+        {  load the begin of the string in the data cache }
+        dcbt    r0,r3
         { empty/invalid string? }
         cmpli   r3,0
         { if yes, do nothing }
@@ -175,6 +186,8 @@ function strend(p : pchar) : pchar;assembler;
 { in: p in r3                  }
 { out: result (end of p) in r3 }
 asm
+        {  load the begin of the string in the data cache }
+        dcbt    r0,r3
         { empty/invalid string? }
         cmpli   r3,0
         { if yes, do nothing }
@@ -220,6 +233,8 @@ function strlcomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { out: result (= 0 if strings equal, < 0 if str1 < str2, > 0 if str1 > str2 }
 {      in r3                                                                }
 asm
+        { load the begin of one of the strings in the data cache }
+        dcbt    r0,r3
         { use r28 instead of r3 for str1 since r3 contains result }
         cmpl    r5,0
         subi    r28,r3,1
@@ -240,7 +255,7 @@ LStrlCompLoop:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
         { otherwise loop (if ctr <> 0)                                      }
-        bdnzne  cr1,LStrlCompLoop
+        bdnzf  cr1*4+eq,LStrlCompLoop
 LStrlCompDone:
 end ['r3','r4','r28','r29','r30','cr0','cr1','ctr'];
 
@@ -313,11 +328,13 @@ function strlicomp(str1,str2 : pchar;l : longint) : longint;assembler;
 { in: str1 in r3, str2 in r4, l in r5                            }
 { out: result of case insensitive comparison (< 0, = 0, > 0)     }
 asm
+        {  load the begin of one of the string in the data cache }
+        dcbt    r0,r3
         { use r28 instead of r3 for str1 since r3 contains result }
         cmpl    r5,0
         subi    r28,r3,1
         li      r3,0
-        beq     LStrlCompDone
+        beq-    LStrlCompDone
         mtctr   r5
         subi    r4,r4,1
 LStriCompLoop:
@@ -359,7 +376,7 @@ LStriCompEqual:
         { if they are equal and one is zero, then the other one is zero too }
         { and we're done as well (r3 also contains 0 then)                  }
         { otherwise loop (if ctr <> 0)                                      }
-        bdnzne  cr1,LStriCompLoop
+        bdnzf    cr1*4+eq,LStriCompLoop
 LStriCompDone:
 end ['r3','r4','r26','r27','r28','r29','r30','cr0','cr1','ctr'];
 
@@ -453,7 +470,10 @@ end ['r28','r29','r30','cr0','cr1'];
 
 {
   $Log$
-  Revision 1.6  2001-02-23 14:05:33  jonas
+  Revision 1.7  2001-07-07 12:46:12  jonas
+    * some small bugfixes and cache optimizations
+
+  Revision 1.6  2001/02/23 14:05:33  jonas
     * optimized strcopy/strecopy
 
   Revision 1.5  2001/02/11 17:59:14  jonas
