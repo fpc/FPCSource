@@ -1847,7 +1847,6 @@ implementation
                     readchar;
                     if c='/' then
                      begin
-                       readchar;
                        skipdelphicomment;
                        aktcommentstyle:=oldcommentstyle;
                      end
@@ -2824,7 +2823,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.53  2002-12-27 15:26:43  peter
+  Revision 1.54  2002-12-27 16:45:50  peter
+    * fix delphi comment parsing when skipping preproc directive
+
+  Revision 1.53  2002/12/27 15:26:43  peter
     * give an error when no symbol is specified after $if(n)def
 
   Revision 1.52  2002/12/24 23:32:02  peter
