@@ -201,7 +201,7 @@ Type
 {$ifndef TP}
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
 {$else TP}
-  TLabelTable = Array[0..(65520 div sizeof(TLabelTableItem)] Of TLabelTableItem;
+  TLabelTable = Array[0..(65520 div sizeof(TLabelTableItem))] Of TLabelTableItem;
 {$endif TP}
   PLabelTable = ^TLabelTable;
   PLabelInfo = ^TLabelInfo;
@@ -753,7 +753,10 @@ End.
 
 {
  $Log$
- Revision 1.4  1999-08-18 14:32:22  jonas
+ Revision 1.5  1999-08-26 14:50:52  jonas
+   * fixed small type in TP conditional
+
+ Revision 1.4  1999/08/18 14:32:22  jonas
    + compilable!
    + dataflow analyzer finished
    + start of CSE units
