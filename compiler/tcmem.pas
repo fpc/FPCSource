@@ -181,12 +181,12 @@ implementation
                 begin
                      { it could also be a procvar, not only pprocsym ! }
                      if p^.left^.symtableprocentry^.typ=varsym then
-                        hp:=genloadnode(pvarsym(p^.left^.symtableprocentry),p^.left^.symtableproc)
+                        hp:=genloadnode(pvarsym(p^.left^.symtableentry),p^.left^.symtableproc)
                      else
                         begin
-                          if assigned(p^.left^.methodpointer) and
-                             (p^.left^.methodpointer^.resulttype^.deftype=objectdef) and
-                             (pobjectdef(p^.left^.methodpointer^.resulttype)^.isclass) then
+                          { generate a methodcallnode or proccallnode }
+                          if (p^.left^.symtableprocentry^.owner^.symtabletype=objectsymtable) and
+                             (pobjectdef(p^.left^.symtableprocentry^.owner^.defowner)^.isclass) then
                            begin
                              hp:=genloadmethodcallnode(pprocsym(p^.left^.symtableprocentry),p^.left^.symtableproc,
                                getcopy(p^.left^.methodpointer));
@@ -208,12 +208,17 @@ implementation
 
                      { it could also be a procvar, not only pprocsym ! }
                         if p^.left^.symtableprocentry^.typ=varsym then
-                         hp3:=pabstractprocdef(pvarsym(p^.left^.symtableprocentry)^.definition)
+                         hp3:=pabstractprocdef(pvarsym(p^.left^.symtableentry)^.definition)
                         else
                          hp3:=pabstractprocdef(pprocsym(p^.left^.symtableprocentry)^.definition);
 
                         pprocvardef(p^.resulttype)^.options:=hp3^.options;
                         pprocvardef(p^.resulttype)^.retdef:=hp3^.retdef;
+
+                      { method ? then set the methodpointer flag }
+                        if (hp3^.owner^.symtabletype=objectsymtable) and
+                           (pobjectdef(hp3^.owner^.defowner)^.isclass) then
+                          pprocvardef(p^.resulttype)^.options:=pprocvardef(p^.resulttype)^.options or pomethodpointer;
 
                         hp2:=hp3^.para1;
                         while assigned(hp2) do
@@ -565,7 +570,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-05-27 19:45:24  peter
+  Revision 1.18  1999-06-03 09:34:12  peter
+    * better methodpointer check for proc->procvar
+
+  Revision 1.17  1999/05/27 19:45:24  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -258,11 +258,11 @@ implementation
             Message(type_e_no_method_and_procedure_not_compatible);
             exit;
           end;
-         { check the other things }
+         { check the other things, methodpointer is already checked }
          if is_equal(def1^.retdef,def2^.retdef) and
             convertable_paras(def1^.para1,def2^.para1,false) and
-            ((def1^.options and po_compatibility_options)=
-             (def2^.options and po_compatibility_options)) then
+            ((def1^.options and (po_compatibility_options-pomethodpointer))=
+             (def2^.options and (po_compatibility_options-pomethodpointer))) then
            proc_to_procvar_equal:=true
          else
            proc_to_procvar_equal:=false;
@@ -928,7 +928,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  1999-06-02 22:25:55  pierre
+  Revision 1.71  1999-06-03 09:34:13  peter
+    * better methodpointer check for proc->procvar
+
+  Revision 1.70  1999/06/02 22:25:55  pierre
   types.pas
 
   Revision 1.69  1999/06/02 10:11:55  florian

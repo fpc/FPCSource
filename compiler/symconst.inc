@@ -76,7 +76,7 @@
        { relevant options for assigning a proc or a procvar to a procvar }
        po_compatibility_options = $7FFFFFFF-
          (poassembler+pomsgstr+pomsgint+
-          povirtualmethod+pooverridingmethod+pomethodpointer);
+          povirtualmethod+pooverridingmethod);
 
        { options for objects and classes }
        oo_is_abstract  = $1;         { true, if the object/class has an abstract }
@@ -111,7 +111,10 @@
 
 {
   $Log$
-  Revision 1.10  1999-06-01 19:27:56  peter
+  Revision 1.11  1999-06-03 09:34:11  peter
+    * better methodpointer check for proc->procvar
+
+  Revision 1.10  1999/06/01 19:27:56  peter
     * better checks for procvar and methodpointer
 
   Revision 1.9  1999/05/24 08:55:29  florian
