@@ -484,7 +484,8 @@ implementation
         cgsize:=resultloc.size;
         { structured results are easy to handle....
           needed also when result_no_used !! }
-        if paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
+        if (procdefinition.proctypeoption<>potype_constructor) and
+           paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption) then
           begin
             { Location should be setup by the funcret para }
             if location.loc<>LOC_REFERENCE then
@@ -1226,7 +1227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.169  2004-06-20 08:55:29  florian
+  Revision 1.170  2004-06-29 20:56:46  peter
+    * constructors don't return in parameter
+
+  Revision 1.169  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.168  2004/06/16 20:07:08  florian
