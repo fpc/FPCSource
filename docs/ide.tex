@@ -79,8 +79,8 @@ disabled, even if a mouse is present.
 The files given at the command line are loaded into edit windows automatically.
 
 \begin{remark}
-Under DOS/Win32, a \var{/} can be used instead of \var{-} to pass a
-command line switch to the IDE.
+Under DOS/Win32, the first character of a command-line option can be a \var{/}
+character instead of a \var{-} character. So \var{/S} is equivalent to \var{-S}.
 \end{remark}
 
 \subsection{The IDE screen}
@@ -168,10 +168,9 @@ If the system is equipped with a mouse, it can be used to work with the
 IDE. The left button is used to select menu items, press buttons, select
 text blocks etc. 
 
-The right mouse button is used to access the local menu, if
-it is available. Holding down the \key{Ctrl} or \key{Alt} key and 
-clicking the right button will execute user defined functions, 
-see \sees{prefmouse}.
+The right mouse button is used to access the local menu, if available.
+Holding down the \key{Ctrl} or \key{Alt} key and clicking the right
+button will execute user defined functions,  see \sees{prefmouse}.
 
 \begin{remark}
 \begin{enumerate}
@@ -283,7 +282,7 @@ are explained in the section about the editor, see \sees{editingtext}.
 \subsection{Sizing and moving windows}
 \label{se:windowsizingmoving}
 A window can be moved and sized using the mouse and the keyboard:
-To move a window, either:
+To move a window:
 \begin{itemize}
 \item using the mouse, click on the title bar and drag the window 
 with the mouse.
@@ -294,7 +293,7 @@ The size/move mode can be left by pressing \key{Enter}.
 In this case, the window will keep its size and position. 
 Alternativly, pressing \key{Esc} will restore the old position.
 \end{itemize} 
-To resize a window, either:
+To resize a window:
 \begin{itemize}
 \item using the mouse, click on the lower right corner of the window
 and drag it.
@@ -896,7 +895,7 @@ various syntactical elements that can be colored:
 \item[Whitespace] The empty text between words. Remark that for whitespace,
 only the background color will be used.
 \item[Comments] All styles of comments in Free Pascal.
-\item[Reserved words] All reserved words of Free Pascal. \refref.
+\item[Reserved words] All reserved words of Free Pascal. (see also \refref).
 \item[Strings] Constant string expressions.
 \item[Numbers] Numbers in decimal notation.
 \item[Hex numbers] Numbers in hexadecimal notation.
@@ -1277,7 +1276,7 @@ reaches the line where the breakpoint was set. At that moment, control
 is returned to the IDE, and it is possible to continue execution.
 
 To set a breakpoint on the current source line, use the 
-\menu{Debug|BreakPoint} menu entry, or press \key{Ctrl-F8}.
+\menu{Debug|Breakpoint} menu entry, or press \key{Ctrl-F8}.
 
 A list of current breakpoints can be obtained through the
 \menu{Debu|Breakpoint list} menu. 
@@ -1461,7 +1460,7 @@ The response of GDB will be shown in the window.
 
 Some more information on using GDB can be found in \sees{usinggdb}, but
 the final reference is of course the GDB manual itself
-\footnote{Available from the free Software Foundation website.}.
+\footnote{Available from the Free Software Foundation website.}.
 
 \begin{htmlonly}
 The GDB window looks as follows:
@@ -1718,7 +1717,8 @@ be used. Meta parameters are variables and and they are replaced
 by their contents before passing the command line to the tool.
 
 \begin{description}
-\item[\$CAP] 
+\item[\$CAP]
+Captures the output of the tool.
 \item[\$CAP\_MSG]
 Captures the output of the tool and puts it in the messages window.
 \item[\$CAP\_EDIT]
@@ -1990,7 +1990,7 @@ window when a program is started. If a primary file is specified,
 the IDE compiles/runs always this source, even if another
 source window is active. With the menu item \menu{Compile|Primary file...}
 a file dialog can be opened where the primary file can be selected. 
-Only the command \var{Compile|Compile} compiles still the active window, 
+Only the menu item \menu{Compile|Compile} compiles still the active window, 
 this is useful if a large project is being edited, and only the syntax of 
 the current source should be checked. 
 
@@ -2561,7 +2561,9 @@ the new video mode will not be applied.
 \item For the \dos version of the IDE, the following should be noted:
 When using VESA modes, the display refresh rate may be very low. 
 On older graphics card (1998 and before), it is possible to use the
-{\em UniVBE} driver of {\em SciTech}.
+{\em UniVBE} driver of {\em SciTech}\footnote{It can be downloaded from
+\href{http://www.informatik.fh-muenchen.de/~ifw98223/vbehz.htm}
+{http://www.informatik.fh-muenchen.de/\~{}ifw98223/vbehz.htm}}
 % It is quite outdated 
 %(last update somewhere in 1998). 
 %For newer graphics cards which support VESA 3.0, you can try to get one
@@ -2734,14 +2736,17 @@ Some files (such as makefiles) need actual tab characters instead of spaces.
 Here a series of file masks can be entered for which tab characters will
 always be used. Default is \file{make*;make*.*}.
 \end{description}
-
+\begin{remark}
+These options will not be applied to already opened windows, only newly
+opened windows will have these options.
+\end{remark}
 %
 % Mouse customization
 %
 \subsection{Mouse}
 \label{se:prefmouse}
 The mouse options dialog is called by the menu item
-\var{Options|Environment|Mouse}. It allows to ajust the behaviour of the
+\menu{Options|Environment|Mouse}. It allows to ajust the behaviour of the
 mouse as well as the sensitivity of the mouse.
 \begin{htmlonly}
 The mouse options dialog looks as follows:
@@ -2823,7 +2828,7 @@ The colors dialog is shown in \seefig{ocolors}.
 \end{latexonly}
 The following elements are visible in the color dialog:
 \begin{description}
-\item[group]
+\item[Group]
 Here the group to be customized is displayed; A group is a specific window
 or series of windows in the editor. A special group is {\em Syntax} which
 sets the colors for syntax highlighting.
@@ -3079,6 +3084,7 @@ Unindent block one coloumn & \key{Ctrl-K-U} & \\
 Insert text from clipboard & \key{Shift-Insert} & \\
 Insert file & \key{Ctrl-K-R} & \\
 Write selected text to file & \key{Ctrl-K-W} & \\
+Uppercase current block & \key{Ctrl-K-N} & \\
 \end{FPCltable}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3120,7 +3126,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.16  2000-12-08 12:57:21  michael
+%  Revision 1.1.2.17  2000-12-08 16:55:54  michael
+%  + Some remarks corrected
+%
+%  Revision 1.1.2.16  2000/12/08 12:57:21  michael
 %  + Documented tdf format
 %
 %  Revision 1.1.2.15  2000/12/07 23:19:04  michael
