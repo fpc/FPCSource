@@ -1895,7 +1895,12 @@ implementation
                 p1:=factor(true);
                got_addrn:=false;
                p1:=caddrnode.create(p1);
-               if assigned(getprocvardef) then
+               if assigned(getprocvardef) and
+                  (taddrnode(p1).left.nodetype = loadn) and
+                  { make sure we found a valid procedure, otherwise the  }
+                  { "getprocvardef" will become the default in taddrnode }
+                  { while there should be an error (JM)                  }
+                  assigned(tloadnode(taddrnode(p1).left).procdeflist) then
                 taddrnode(p1).getprocvardef:=getprocvardef;
              end;
 
@@ -2224,7 +2229,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.68  2002-05-18 13:34:12  peter
+  Revision 1.69  2002-06-12 15:46:14  jonas
+    * fixed web bug 1995
+
+  Revision 1.68  2002/05/18 13:34:12  peter
     * readded missing revisions
 
   Revision 1.67  2002/05/16 19:46:43  carl
