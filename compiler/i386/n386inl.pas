@@ -738,13 +738,16 @@ implementation
                       if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
                         { we don't need a mod 32 because this is done automatically  }
                         { by the bts instruction. For proper checking we would       }
-                        
+
                         { note: bts doesn't do any mod'ing, that's why we can also use }
                         { it for normalsets! (JM)                                      }
-                        
+
                         { need a cmp and jmp, but this should be done by the         }
                         { type cast code which does range checking if necessary (FK) }
-                        hregister:=makereg32(tcallparanode(tcallparanode(left).right).left.location.register)
+                        begin
+                          hregister := tcallparanode(tcallparanode(left).right).left.location.register;
+                          emit_to_reg32(hregister);
+                        end
                       else
                         begin
                            getexplicitregister32(R_EDI);
@@ -871,7 +874,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2001-09-27 13:03:18  jonas
+  Revision 1.26  2001-09-28 20:38:51  jonas
+    * fixed big bug in my previous changes (the arguent for bts/btr is always
+      a 32 bit register, but it wasn't cleared properly if the value was only
+      an 8 bit one)
+
+  Revision 1.25  2001/09/27 13:03:18  jonas
     * fixed bug reported by sg about self not being restored after calling
       setlength
 
