@@ -641,6 +641,7 @@ implementation
            hp^.right:=nil;
           {if we have 3 parameters, we have a code parameter}
            has_code := Assigned(node^.right);
+           has_32bit_code := false;
            reset_reference(hr);
            hreg := R_NO;
 
@@ -1276,7 +1277,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-03-31 20:30:49  michael
+  Revision 1.36  1999-04-01 06:21:04  jonas
+    * added initialization for has_32bit_code (caused problems with Val statement
+      without code parameter)
+
+  Revision 1.35  1999/03/31 20:30:49  michael
   * fixed typo: odlval to oldval
 
   Revision 1.34  1999/03/31 17:13:09  jonas
