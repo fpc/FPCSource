@@ -844,13 +844,19 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       end;
 
     procedure emit_push_mem_size(const t: treference; size: longint);
-      
+
       var
         s: topsize;
-      
+
       begin
         if t.is_immediate then
-           push_int(t.offset)
+          begin
+            if (size=4) or
+               (target_os.stackalignment=4) then
+              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_L,t.offset)))
+            else
+              exprasmlist^.concat(new(paicpu,op_const(A_PUSH,S_W,t.offset)));
+          end
         else
           if size < 4 then
             begin
@@ -4061,7 +4067,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.8  2000-08-07 11:29:40  jonas
+  Revision 1.9  2000-08-10 18:42:03  peter
+    * fixed for constants in emit_push_mem_size for go32v2 (merged)
+
+  Revision 1.8  2000/08/07 11:29:40  jonas
     + emit_push_mem_size() which pushes a value in memory of a certain size
     * pushsetelement() and pushvaluepara() use this new procedure, because
       otherwise they could sometimes try to push data past the end of the
