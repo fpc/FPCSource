@@ -715,6 +715,8 @@ implementation
                      { procedure variable can be assigned to an void pointer }
                      { Not anymore. Use the @ operator now.}
                      if not(m_tp_procvar in aktmodeswitches) and
+                       { method pointers can't be assigned to void pointers
+                       not(tprocvardef(def_from).is_methodpointer) and }
                         (tpointerdef(def_to).pointertype.def.deftype=orddef) and
                         (torddef(tpointerdef(def_to).pointertype.def).typ=uvoid) then
                       begin
@@ -788,7 +790,7 @@ implementation
                  procvardef :
                    begin
                      { procvar -> procvar }
-                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),true);
+                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),false);
                    end;
                  pointerdef :
                    begin
@@ -1215,7 +1217,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2003-10-10 17:48:13  peter
+  Revision 1.33  2003-10-14 12:23:06  florian
+    * fixed 2729: overloading problem with methodvars and procvars
+
+  Revision 1.32  2003/10/10 17:48:13  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units
