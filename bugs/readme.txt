@@ -164,4 +164,4 @@ bug0115.pp   missing writeln for comp data type
 bug0117.pp   internalerror 17 (and why is there an automatic float 
               conversion?)
 bug0118.pp   Procedural vars cannot be assigned nil ?
- 
+bug0119.pp   problem with methods
