@@ -20,11 +20,12 @@
 }
 
 {$MODE objfpc}
+{$H+}
 
-unit xmlcfg;
+unit XMLCfg;
 
 interface
-uses DOM, xmlread, xmlwrite;
+uses DOM, XMLRead, XMLWrite;
 
 type
 
@@ -38,26 +39,26 @@ type
     doc: TXMLDocument;
     FileName: String;
   public
-    constructor Create(AFileName: String);
+    constructor Create(const AFileName: String);
     destructor Destroy; override;
     procedure Flush;    // Writes the XML file
-    function  GetValue(APath, ADefault: String): String;
-    function  GetValue(APath: String; ADefault: Integer): Integer;
-    function  GetValue(APath: String; ADefault: Boolean): Boolean;
-    procedure SetValue(APath, AValue: String);
-    procedure SetValue(APath: String; AValue: Integer);
-    procedure SetValue(APath: String; AValue: Boolean);
+    function  GetValue(const APath, ADefault: String): String;
+    function  GetValue(const APath: String; ADefault: Integer): Integer;
+    function  GetValue(const APath: String; ADefault: Boolean): Boolean;
+    procedure SetValue(const APath, AValue: String);
+    procedure SetValue(const APath: String; AValue: Integer);
+    procedure SetValue(const APath: String; AValue: Boolean);
   end;
 
 
-// =======================================================
+// ===================================================================
 
 implementation
 
-uses sysutils;
+uses SysUtils;
 
 
-constructor TXMLConfig.Create(AFileName: String);
+constructor TXMLConfig.Create(const AFileName: String);
 var
   f: File;
   cfg: TDOMElement;
@@ -104,18 +105,19 @@ begin
   Close(f);
 end;
 
-function TXMLConfig.GetValue(APath, ADefault: String): String;
+function TXMLConfig.GetValue(const APath, ADefault: String): String;
 var
   node, subnode, attr: TDOMNode;
   i: Integer;
-  name: String;
+  name, path: String;
 begin
   node := doc.DocumentElement;
+  path := APath;
   while True do begin
-    i := Pos('/', APath);
+    i := Pos('/', path);
     if i = 0 then break;
-    name := Copy(APath, 1, i - 1);
-    APath := Copy(APath, i + 1, Length(APath));
+    name := Copy(path, 1, i - 1);
+    path := Copy(path, i + 1, Length(path));
     subnode := node.FindNode(name);
     if subnode = nil then begin
       Result := ADefault;
@@ -123,42 +125,50 @@ begin
     end;
     node := subnode;
   end;
-  attr := node.Attributes.GetNamedItem(APath);
+  attr := node.Attributes.GetNamedItem(path);
   if attr = nil then
     Result := ADefault
   else
     Result := attr.NodeValue;
 end;
 
-function TXMLConfig.GetValue(APath: String; ADefault: Integer): Integer;
+function TXMLConfig.GetValue(const APath: String; ADefault: Integer): Integer;
 begin
   Result := StrToInt(GetValue(APath, IntToStr(ADefault)));
 end;
 
-function TXMLConfig.GetValue(APath: String; ADefault: Boolean): Boolean;
+function TXMLConfig.GetValue(const APath: String; ADefault: Boolean): Boolean;
 var
   s: String;
 begin
-  if ADefault then s := 'True'
-  else s := 'False';
+  if ADefault then
+    s := 'True'
+  else
+    s := 'False';
+
   s := GetValue(APath, s);
-  if UpperCase(s) = 'TRUE' then Result := True
-  else if UpperCase(s) = 'FALSE' then Result := False
-  else Result := ADefault;
+
+  if UpperCase(s) = 'TRUE' then
+    Result := True
+  else if UpperCase(s) = 'FALSE' then
+    Result := False
+  else
+    Result := ADefault;
 end;
 
-procedure TXMLConfig.SetValue(APath, AValue: String);
+procedure TXMLConfig.SetValue(const APath, AValue: String);
 var
   node, subnode, attr: TDOMNode;
   i: Integer;
-  name: String;
+  name, path: String;
 begin
   node := doc.DocumentElement;
+  path := APath;
   while True do begin
-    i := Pos('/', APath);
+    i := Pos('/', path);
     if i = 0 then break;
-    name := Copy(APath, 1, i - 1);
-    APath := Copy(APath, i + 1, Length(APath));
+    name := Copy(path, 1, i - 1);
+    path := Copy(path, i + 1, Length(path));
     subnode := node.FindNode(name);
     if subnode = nil then begin
       subnode := doc.CreateElement(name);
@@ -166,23 +176,25 @@ begin
     end;
     node := subnode;
   end;
-  attr := node.Attributes.GetNamedItem(APath);
+  attr := node.Attributes.GetNamedItem(path);
   if attr = nil then begin
-    attr := doc.CreateAttribute(APath);
+    attr := doc.CreateAttribute(path);
     node.Attributes.SetNamedItem(attr);
   end;
   attr.NodeValue := AValue;
 end;
 
-procedure TXMLConfig.SetValue(APath: String; AValue: Integer);
+procedure TXMLConfig.SetValue(const APath: String; AValue: Integer);
 begin
   SetValue(APath, IntToStr(AValue));
 end;
 
-procedure TXMLConfig.SetValue(APath: String; AValue: Boolean);
+procedure TXMLConfig.SetValue(const APath: String; AValue: Boolean);
 begin
-  if AValue then SetValue(APath, 'True')
-  else SetValue(APath, 'False');
+  if AValue then
+    SetValue(APath, 'True')
+  else
+    SetValue(APath, 'False');
 end;
 
 
@@ -191,7 +203,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-07-25 16:24:13  michael
+  Revision 1.4  1999-12-22 13:38:01  sg
+  * Lots of cosmetic changes (strings -> const AnsiStrings etc.)
+
+  Revision 1.3  1999/07/25 16:24:13  michael
   + Fixes from Sebastiam Guenther - more error-proof
 
   Revision 1.2  1999/07/09 21:05:50  michael
