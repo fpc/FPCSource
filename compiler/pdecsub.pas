@@ -1620,6 +1620,7 @@ const
               st:=tparasymtable.create;
               parast:=tprocdef(def).parast;
               lastps:=nil;
+              if parast<>nil then
               while assigned(parast.symindex.first) and (lastps<>tsym(parast.symindex.first)) do
                 begin
                   ps:=tsym(parast.symindex.first);
@@ -1755,6 +1756,7 @@ const
         tabstractprocdef(aktprocdef):=pd;
         { names should never be used anyway }
         inc(lexlevel);
+        AktProcDef.parast:=nil;
         parse_proc_directives(pdflags);
         dec(lexlevel);
         aktprocsym.free;
@@ -2014,7 +2016,10 @@ const
 end.
 {
   $Log$
-  Revision 1.46  2002-01-24 18:25:49  peter
+  Revision 1.47  2002-03-29 11:23:24  michael
+  + Patch from Pavel Ozerski
+
+  Revision 1.46  2002/01/24 18:25:49  peter
    * implicit result variable generation for assembler routines
    * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
