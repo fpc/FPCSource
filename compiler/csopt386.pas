@@ -1097,7 +1097,7 @@ Begin
                           end
                         end;
 {$endif replacereg}
-                    Top_Const:
+                    top_symbol,Top_Const:
                       Begin
                         Case Paicpu(p)^.oper[1].typ Of
                           Top_Reg:
@@ -1107,7 +1107,7 @@ Begin
                                 With PPaiProp(hp1^.OptInfo)^.Regs[regCounter] Do
                                   If (Typ = Con_Const) And
                                      (paicpu(startMod)^.opsize >= paicpu(p)^.opsize) and
-                                     (paicpu(StartMod)^.oper[0].val = paicpu(p)^.oper[0].val) Then
+                                     opsequal(paicpu(StartMod)^.oper[0],paicpu(p)^.oper[0]) Then
                                     begin
                                       PPaiProp(p^.OptInfo)^.CanBeRemoved := True;
                                       allocRegBetween(asmL,regCounter,startMod,p);
@@ -1115,7 +1115,8 @@ Begin
                             End;
 {$ifdef arithopt}
                           Top_Ref:
-                            if getLastInstruction(p,hp1) and
+                            if (paicpu(p)^.oper[0].typ = top_const) and
+                               getLastInstruction(p,hp1) and
                                findRegWithConst(hp1,paicpu(p)^.opsize,paicpu(p)^.oper[0].val,regCounter) then
                               begin
                                 paicpu(p)^.loadreg(0,regCounter);
@@ -1190,7 +1191,10 @@ End.
 
 {
  $Log$
- Revision 1.44  2000-02-09 13:22:51  peter
+ Revision 1.45  2000-02-10 14:57:13  jonas
+   * fixed bug due to lack of support for top_symbol operands
+
+ Revision 1.44  2000/02/09 13:22:51  peter
    * log truncated
 
  Revision 1.43  2000/02/04 13:52:17  jonas

@@ -1881,7 +1881,7 @@ Begin
 {$endif StateDebug}
 
                       End;
-                    Top_Const:
+                    top_symbol,Top_Const:
                       Begin
                         Case Paicpu(p)^.oper[1].typ Of
                           Top_Reg:
@@ -2129,7 +2129,10 @@ End.
 
 {
  $Log$
- Revision 1.82  2000-02-09 13:22:51  peter
+ Revision 1.83  2000-02-10 14:57:14  jonas
+   * fixed bug due to lack of support for top_symbol operands
+
+ Revision 1.82  2000/02/09 13:22:51  peter
    * log truncated
 
  Revision 1.81  2000/02/04 13:52:17  jonas
