@@ -1,4 +1,3 @@
-{%KNOWNCOMPILE10ERROR=v1.0 compiler does not akllow cdecl modifier for virtual methods }
 {****************************************************************}
 {  CODE GENERATOR TEST PROGRAM                                   }
 {****************************************************************}
@@ -36,14 +35,14 @@ type
     constructor init;
     procedure test_normal(x: byte);cdecl;
     procedure test_static(x: byte);static;cdecl;
-    procedure test_virtual(x: byte);virtual;cdecl;
+    procedure test_virtual(x: byte);virtual;{$ifndef VER1_0}cdecl;{$endif}
   end;
 
   tsimpleclass = class
     constructor create;
     procedure test_normal(x: byte);cdecl;
     class procedure test_static(x: byte);cdecl;
-    procedure test_virtual(x: byte);virtual;cdecl;
+    procedure test_virtual(x: byte);virtual;{$ifndef VER1_0}cdecl;{$endif}
   end;
 
   tobjectmethod = procedure (x: byte) of object ;cdecl;
@@ -171,7 +170,7 @@ var
      global_u8bit := x;
    end;
 
-  procedure tsimpleobject.test_virtual(x: byte);cdecl;
+  procedure tsimpleobject.test_virtual(x: byte);{$ifndef VER1_0}cdecl;{$endif}
    begin
      global_u8bit := x;
    end;
@@ -192,7 +191,7 @@ var
      global_u8bit := x;
    end;
 
-  procedure tsimpleclass.test_virtual(x: byte);cdecl;
+  procedure tsimpleclass.test_virtual(x: byte);{$ifndef VER1_0}cdecl;{$endif}
    begin
      global_u8bit := x;
    end;
@@ -528,7 +527,10 @@ end.
 
 {
    $Log$
-   Revision 1.9  2003-06-17 08:31:34  pierre
+   Revision 1.10  2003-10-31 16:12:09  peter
+     * make only virtual;cdecl $ifndef ver1_0
+
+   Revision 1.9  2003/06/17 08:31:34  pierre
     * add known 1.0 compile time error
 
    Revision 1.8  2003/05/15 20:34:29  peter
