@@ -178,7 +178,11 @@ uses
   Systems,
   WUtils,WHlpView,WViews,WHTMLHlp,WHelp,WConsole,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
-  FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
+  FPTemplt,FPCalc,FPUsrScr,FPTools,
+{$ifndef NODEBUG}
+  FPDebug,FPRegs,
+{$endif}
+  FPRedir,
   FPDesk,FPCodCmp,FPCodTmp;
 
 type
@@ -1250,7 +1254,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.23  2002-11-28 12:58:15  pierre
+  Revision 1.24  2002-12-12 00:06:41  pierre
+   Use fpregs unit
+
+  Revision 1.23  2002/11/28 12:58:15  pierre
    + remote support additions
 
   Revision 1.22  2002/10/12 19:43:07  hajny

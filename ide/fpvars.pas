@@ -22,7 +22,7 @@ interface
 uses Objects,Views,App,
      WUtils,WEditor,
      FPConst,
-     FPDebug,
+     FPDebug,FPRegs,
      FPUtils,FPViews,FPCalc;
 
 type
@@ -126,7 +126,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.7  2002-11-28 12:53:10  pierre
+  Revision 1.8  2002-12-12 00:06:41  pierre
+   Use fpregs unit
+
+  Revision 1.7  2002/11/28 12:53:10  pierre
    + global vars used for remote debugging
 
   Revision 1.6  2002/09/10 12:19:14  pierre

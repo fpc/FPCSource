@@ -58,7 +58,11 @@ uses
   WUtils,WViews,WHTMLScn,WHelp,
   FPIDE,FPCalc,FPCompil,FPString,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPRedir,FPDesk,
+  FPTools,
+{$ifndef NODEBUG}
+  FPDebug,FPRegs,
+{$endif}
+  FPTemplt,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp;
 
 
@@ -233,6 +237,7 @@ begin
   RegisterFPViews;
 {$ifndef NODEBUG}
   RegisterFPDebugViews;
+  RegisterFPRegsViews;
 {$endif}
   RegisterMenus;
   RegisterStdDlg;
@@ -482,7 +487,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.16  2002-11-28 12:49:20  pierre
+  Revision 1.17  2002-12-12 00:08:09  pierre
+   Use fpregs unit
+
+  Revision 1.16  2002/11/28 12:49:20  pierre
    * enable signals catching earlier
 
   Revision 1.15  2002/10/30 22:12:13  pierre
