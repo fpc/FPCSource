@@ -17,11 +17,11 @@ end;
 
 var MemBefore : longint;
 begin
-  writeln(MemAvail);
-  MemBefore:=MemAvail;
+  writeln(heapsize-MemAvail);
+  MemBefore:=heapsize-MemAvail;
   Test;
-  writeln(MemAvail);
-  if MemBefore<>MemAvail then
+  writeln(heapsize-MemAvail);
+  if MemBefore<>heapsize-MemAvail then
     begin
       Writeln('ReAllocMem creates emory leaks');
       Writeln('Bug 812 is not yet fixed');

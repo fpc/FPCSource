@@ -34,7 +34,7 @@ var
   EntryMem,ExitMem : Cardinal;
 // Main routine
 begin
-  EntryMem:=MemAvail;
+  EntryMem:=heapsize-MemAvail;
   pTempStream := nil;
   pTempStream := New(PMyStream, Init('tw1658.tmp', stCreate));
   if not Assigned(pTempStream) then
@@ -42,7 +42,7 @@ begin
   pTempStream^.m_fAutoDelete := False;
   Dispose(pTempStream, Done);
   pTempStream := nil;
-  ExitMem:=MemAvail;
+  ExitMem:=heapsize-MemAvail;
   If ExitMem<EntryMem then
     begin
       Writeln('Memory lost');
