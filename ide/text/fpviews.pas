@@ -2567,7 +2567,7 @@ end;
 {$ifdef VESA}
 function VESASetVideoModeProc(const VideoMode: TVideoMode; Params: Longint): Boolean; {$ifndef FPC}far;{$endif}
 begin
-  VESASetMode(Params);
+  VESASetVideoModeProc:=VESASetMode(Params);
 end;
 
 procedure InitVESAScreenModes;
@@ -2607,7 +2607,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.31  1999-06-02 11:19:13  pierre
+  Revision 1.32  1999-06-21 23:37:08  pierre
+   * VESASetVideoModeProc return value was not set
+
+  Revision 1.31  1999/06/02 11:19:13  pierre
    * @ is now required for FPC for procedure address passing in functions
 
   Revision 1.30  1999/05/22 13:44:33  peter
