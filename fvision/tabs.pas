@@ -35,6 +35,7 @@ type
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
       procedure   Draw; virtual;
+      function    DataSize: sw_word;virtual;
       procedure   SetData(var Rec);virtual;
       procedure   GetData(var Rec);virtual;
       procedure   SetState(AState: Word; Enable: Boolean); virtual;
@@ -430,6 +431,31 @@ begin
       end;
      PT:=PT^.Next;
    end;
+end;
+
+
+function TTab.DataSize: sw_word;
+var
+  I: Sw_Word;
+  PT : PTabDef;
+  PI : PTabItem;
+begin
+  I := 0;
+  PT:=TabDefs;
+  while (PT<>nil) do
+   begin
+     PI:=PT^.Items;
+     while (PI<>nil) do
+      begin
+        if PI^.View<>nil then
+         begin
+           Inc(I, PI^.View^.DataSize);
+         end;
+        PI:=PI^.Next;
+      end;
+     PT:=PT^.Next;
+   end;
+  DataSize:=i;
 end;
 
 
