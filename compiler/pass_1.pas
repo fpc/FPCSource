@@ -134,6 +134,7 @@ implementation
                      result types !!! }
                    if ret_in_acc(procinfo^.returntype.def) and
                       assigned(hp^.left) and
+                      assigned(hp^.left^.right) and
                       (hp^.left^.right^.treetype=exitn) and
                       (hp^.right^.treetype=assignn) and
                       (hp^.right^.left^.treetype=funcretn) then
@@ -151,8 +152,11 @@ implementation
                    { warning if unreachable code occurs and elimate this }
                    else if (hp^.right^.treetype in
                      [exitn,breakn,continuen,goton]) and
+                     { statement node (JM) }
                      assigned(hp^.left) and
-                     (hp^.left^.treetype<>labeln) then
+                     { kind of statement! (JM) }
+                     assigned(hp^.left^.right) and
+                     (hp^.left^.right^.treetype<>labeln) then
                      begin
                         { use correct line number }
                         aktfilepos:=hp^.left^.fileinfo;
@@ -386,7 +390,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.114  2000-02-17 14:53:42  florian
+  Revision 1.115  2000-05-25 12:00:14  jonas
+    * fixed unreachable code detection
+
+  Revision 1.114  2000/02/17 14:53:42  florian
     * some updates for the newcg
 
   Revision 1.113  2000/02/09 13:22:55  peter
