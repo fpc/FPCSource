@@ -61,6 +61,19 @@ type
       procedure generatesmartlib;virtual;
    end;
 
+   TDLLScanner=class
+   public
+     f:file;
+     impname:string;
+     TheWord:array[0..1]of char;
+     HeaderOffset:cardinal;
+     loaded:integer;
+     function isSuitableFileType(x:cardinal):longbool;virtual;abstract;
+     function GetEdata(HeaderEntry:cardinal):longbool;virtual;abstract;
+     function Scan(const binname:string):longbool;virtual;abstract;
+   end;
+
+
 var
   importlib : timportlib;
 
@@ -277,7 +290,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2001-02-26 19:44:52  peter
+  Revision 1.11  2001-03-06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.10  2001/02/26 19:44:52  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.9  2001/02/03 00:09:02  peter

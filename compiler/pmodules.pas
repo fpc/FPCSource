@@ -54,6 +54,9 @@ implementation
        hcodegen,
 {$ifdef i386}
        cgai386,
+  {$ifndef NOTARGETWIN32}
+       t_win32,
+  {$endif}     
 {$endif i386}
 {$endif newcg}
        link,assemble,import,export,gendef,ppu,comprsrc,
@@ -64,7 +67,43 @@ implementation
        scanner,pbase,psystem,psub,parser;
 
     procedure create_objectfile;
+      var
+        DLLScanner      : TDLLScanner;
+        s               : string;
       begin
+        { try to create import entries from system dlls }
+        if target_info.DllScanSupported and
+           (not current_module.linkOtherSharedLibs.Empty) then
+         begin
+           { Init DLLScanner }
+           case target_info.target of
+{$ifdef i386}
+  {$ifndef NOTARGETWIN32}
+             target_i386_win32 :
+               DLLScanner:=tDLLscannerWin32.create;
+  {$endif}               
+{$endif}
+             else
+               internalerror(769795413);  
+           end;              
+           { Walk all shared libs }
+           While not current_module.linkOtherSharedLibs.Empty do
+            begin
+              S:=current_module.linkOtherSharedLibs.Getusemask(link_allways);
+              DLLScanner.scan(s)
+            end;
+           DLLscanner.Free;
+           { Recreate import section }
+           if (target_info.target=target_i386_win32) then
+            begin
+              if assigned(importssection)then
+               importssection.clear
+              else
+               importssection:=taasmoutput.Create;
+              importlib.generatelib;
+            end;
+         end;
+          
         { create the .s file and assemble it }
         GenerateAsm(false);
 
@@ -173,13 +212,9 @@ implementation
            Inc(Count);
          end;
         { TableCount }
-{ doesn't work because of bug in the compiler !! (JM)
-        With ResourceStringTables do}
-          begin
-          ResourceStringTables.insert(Tai_const.Create_32bit(count));
-          ResourceStringTables.insert(Tai_symbol.Createdataname_global('FPC_RESOURCESTRINGTABLES',0));
-          ResourceStringTables.concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
-          end;
+        ResourceStringTables.insert(Tai_const.Create_32bit(count));
+        ResourceStringTables.insert(Tai_symbol.Createdataname_global('FPC_RESOURCESTRINGTABLES',0));
+        ResourceStringTables.concat(Tai_symbol_end.Createname('FPC_RESOURCESTRINGTABLES'));
         { insert in data segment }
         if (cs_create_smart in aktmoduleswitches) then
           dataSegment.concat(Tai_cut.Create);
@@ -1627,7 +1662,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2001-02-24 10:44:56  peter
+  Revision 1.24  2001-03-06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.23  2001/02/24 10:44:56  peter
     * generate .rst from ppufilename instead of modulename
 
   Revision 1.22  2001/02/21 19:37:19  peter

@@ -1059,12 +1059,18 @@ begin
          consume(_NAME);
          import_name:=get_stringconst;
          aktprocsym^.definition^.setmangledname(import_name);
+         if target_info.DllScanSupported then
+           current_module.externals.insert(tExternalsItem.create(import_name));
        end
       else
        begin
          { external shouldn't override the cdecl/system name }
          if not (pocall_clearstack in aktprocsym^.definition^.proccalloptions) then
-           aktprocsym^.definition^.setmangledname(aktprocsym^.realname);
+          begin
+            aktprocsym^.definition^.setmangledname(aktprocsym^.realname);
+            if target_info.DllScanSupported then
+             current_module.externals.insert(tExternalsItem.create(aktprocsym^.realname));
+          end;
        end;
     end;
 end;
@@ -1872,7 +1878,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2001-01-08 21:40:26  peter
+  Revision 1.12  2001-03-06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.11  2001/01/08 21:40:26  peter
     * fixed crash with unsupported token overloading
 
   Revision 1.10  2000/12/25 00:07:27  peter

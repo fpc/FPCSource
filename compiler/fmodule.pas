@@ -52,6 +52,14 @@ interface
          rr_asmolder,rr_crcchanged
        );
 
+       TExternalsItem=class(TLinkedListItem)
+       public
+         found : longbool;
+         data  : pstring;
+         constructor Create(const s:string);
+         Destructor Destroy;override;
+       end;
+
        tlinkcontaineritem=class(tlinkedlistitem)
        public
           data : pstring;
@@ -105,7 +113,7 @@ interface
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
           imports       : tlinkedlist;
           _exports      : tlinkedlist;
-
+          externals     : tlinkedlist; {Only for DLL scanners by using Unix-style $LINKLIB }
           resourcefiles : tstringlist;
 
           linkunitofiles,
@@ -283,6 +291,25 @@ uses
             end;
            newnode:=tlinkcontaineritem(newnode.next);
          end;
+      end;
+
+
+{****************************************************************************
+                              TExternalsItem
+ ****************************************************************************}
+
+    constructor tExternalsItem.Create(const s:string);
+      begin
+        inherited Create;
+        found:=false;
+        data:=stringdup(s);
+      end;
+      
+      
+    destructor tExternalsItem.Destroy;
+      begin
+        stringdispose(data);
+        inherited;
       end;
 
 
@@ -614,6 +641,8 @@ uses
         imports:=tlinkedlist.create;
         _exports.free;
         _exports:=tlinkedlist.create;
+        externals.free;
+        externals:=tlinkedlist.create;
         used_units.free;
         used_units:=TLinkedList.Create;
         { all units that depend on this one must be recompiled ! }
@@ -745,6 +774,7 @@ uses
         uses_imports:=false;
         imports:=TLinkedList.Create;
         _exports:=TLinkedList.Create;
+        externals:=TLinkedList.Create;
       { search the PPU file if it is an unit }
         if is_unit then
          begin
@@ -776,6 +806,9 @@ uses
         if assigned(_exports) then
          _exports.free;
         _exports:=nil;
+        if assigned(externals) then
+         externals.free;
+        externals:=nil;
         if assigned(scanner) then
           pscannerfile(scanner)^.invalid:=true;
         if assigned(sourcefiles) then
@@ -873,7 +906,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.7  2001-02-20 21:41:15  peter
+  Revision 1.8  2001-03-06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.7  2001/02/20 21:41:15  peter
     * new fixfilename, findfile for unix. Look first for lowercase, then
       NormalCase and last for UPPERCASE names.
 

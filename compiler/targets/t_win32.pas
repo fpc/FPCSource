@@ -63,6 +63,18 @@ interface
        function  MakeSharedLibrary:boolean;override;
     end;
 
+    tDLLScannerWin32=class(tDLLScanner)
+    private
+      cstring : array[0..127]of char;
+      function DOSstubOK(var x:cardinal):longbool;
+      function FindDLL(const s:string;var founddll:string):boolean;
+      function DllName(Const Name : string) : string;
+    public
+      function isSuitableFileType(x:cardinal):longbool;override;
+      function GetEdata(HeaderEntry:cardinal):longbool;override;
+      function Scan(const binname:string):longbool;override;
+    end;
+
 
 implementation
 
@@ -74,7 +86,7 @@ implementation
 {$endif Delphi}
        cutils,cclasses,
        aasm,fmodule,globtype,globals,systems,verbose,
-       script,gendef,impdef,
+       script,gendef,
        cpubase,cpuasm
 {$ifdef GDB}
        ,gdb
@@ -89,34 +101,6 @@ implementation
            DllName:=Name
          else
            DllName:=Name+target_os.sharedlibext;
-      end;
-
-
-    function FindDLL(const s:string):string;
-      var
-        sysdir : string;
-        FoundDll : string;
-        Found : boolean;
-      begin
-        Found:=false;
-        { Look for DLL in:
-          1. Current dir
-          2. Library Path
-          3. windir,windir/system,windir/system32 }
-        Found:=FindFile(s,'.'+DirSep,founddll);
-        if (not found) then
-         Found:=includesearchpath.FindFile(s,founddll);
-        if (not found) then
-         begin
-           sysdir:=FixPath(GetEnv('windir'),false);
-           Found:=FindFile(s,sysdir+';'+sysdir+'system'+DirSep+';'+sysdir+'system32'+DirSep,founddll);
-         end;
-        if (not found) then
-         begin
-           message1(exec_w_libfile_not_found,s);
-           FoundDll:=s;
-         end;
-        FindDll:=FoundDll;
       end;
 
 
@@ -737,63 +721,14 @@ end;
 
 
 Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
-
-  function do_makedef(const DllName,LibName:string):boolean;
-  var
-    CmdLine : string;
-  begin
-    if (not do_build) and
-       FileExists(LibName) then
-     begin
-       if GetNamedFileTime(LibName)>GetNamedFileTime(DllName) then
-        begin
-          do_makedef:=true;
-          exit;
-        end;
-     end;
-    asw_name:=FindUtil('asw');
-    arw_name:=FindUtil('arw');
-    if cs_link_extern in aktglobalswitches then
-     begin
-       CmdLine:='-l '+LibName+' -i '+DLLName;
-       if asw_name<>'' then
-        CmdLine:=CmdLine+' -a '+asw_name;
-       if arw_name<>'' then
-        CmdLine:=CmdLine+' -r '+arw_name;
-       do_makedef:=DoExec(FindUtil('fpimpdef'),CmdLine,false,false);
-     end
-    else
-     do_makedef:=makedef(DLLName,LIbName);
-  end;
-
 Var
   linkres  : TLinkRes;
   i        : longint;
   HPath    : TStringListItem;
   s,s2     : string;
-  found,
-  linklibc : boolean;
+  found:boolean;
 begin
   WriteResponseFile:=False;
-
-  { Create static import libraries for DLL that are
-    included using the $linklib directive }
-  While not SharedLibFiles.Empty do
-   begin
-     s:=SharedLibFiles.GetFirst;
-     s2:=AddExtension(s,target_os.sharedlibext);
-     s:=target_os.libprefix+SplitName(s)+target_os.staticlibext;
-     if Do_makedef(FindDLL(s2),s) then
-      begin
-        if s<>''then
-         StaticLibFiles.insert(s);
-      end
-     else
-      begin
-        Message(exec_w_error_while_linking);
-        aktglobalswitches:=aktglobalswitches+[cs_link_extern];
-      end;
-   end;
 
   { Open link.res file }
   LinkRes.Init(outputexedir+Info.ResName);
@@ -838,48 +773,6 @@ begin
      LinkRes.Add(')');
    end;
 
-  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  if not SharedLibFiles.Empty then
-   begin
-     linklibc:=false;
-     LinkRes.Add('INPUT(');
-     While not SharedLibFiles.Empty do
-      begin
-        S:=SharedLibFiles.GetFirst;
-        if pos('.',s)=0 then
-          { we never directly link a DLL
-            its allways through an import library PM }
-          { libraries created by C compilers have .a extensions }
-          s2:=s+'.a'{ target_os.sharedlibext }
-        else
-          s2:=s;
-        s2:=FindLibraryFile(s2,'',found);
-        if found then
-          begin
-            LinkRes.Add(s2);
-            continue;
-          end;
-        if pos(target_os.libprefix,s)=1 then
-          s:=copy(s,length(target_os.libprefix)+1,255);
-        if s<>'c' then
-         begin
-           i:=Pos(target_os.sharedlibext,S);
-           if i>0 then
-            Delete(S,i,255);
-           LinkRes.Add('-l'+s);
-         end
-        else
-         begin
-           LinkRes.Add('-l'+s);
-           linklibc:=true;
-         end;
-      end;
-     { be sure that libc is the last lib }
-     if linklibc then
-      LinkRes.Add('-lc');
-     LinkRes.Add(')');
-   end;
 { Write and Close response }
   linkres.writetodisk;
   linkres.done;
@@ -1251,10 +1144,250 @@ begin
   postprocessexecutable:=true;
 end;
 
+
+{****************************************************************************
+                            TDLLScannerWin32
+****************************************************************************}
+
+function tDLLScannerWin32.DOSstubOK(var x:cardinal):longbool;
+ begin
+  blockread(f,TheWord,2,loaded);
+  if loaded<>2 then
+   DOSstubOK:=false
+  else
+   begin
+    DOSstubOK:=TheWord='MZ';
+    seek(f,$3C);
+    blockread(f,x,4,loaded);
+    if(loaded<>4)or(x>filesize(f))then
+     DOSstubOK:=false;
+   end;
+ end;
+
+    function TDLLScannerWin32.FindDLL(const s:string;var founddll:string):boolean;
+      var
+        sysdir : string;
+        Found : boolean;
+      begin
+        Found:=false;
+        { Look for DLL in:
+          1. Current dir
+          2. Library Path
+          3. windir,windir/system,windir/system32 }
+        Found:=FindFile(s,'.'+DirSep,founddll);
+        if (not found) then
+         Found:=librarysearchpath.FindFile(s,founddll);
+        if (not found) then
+         begin
+           sysdir:=FixPath(GetEnv('windir'),false);
+           Found:=FindFile(s,sysdir+';'+sysdir+'system'+DirSep+';'+sysdir+'system32'+DirSep,founddll);
+         end;
+        if (not found) then
+         begin
+           message1(exec_w_libfile_not_found,s);
+           FoundDll:=s;
+         end;
+        FindDll:=Found;
+      end;
+
+
+    function tDLLScannerWin32.DllName(Const Name : string) : string;
+      var n : string;
+      begin
+         n:=Upper(SplitExtension(Name));
+         if (n='.DLL') or (n='.DRV') or (n='.EXE') then
+           DllName:=Name
+         else
+           DllName:=Name+target_os.sharedlibext;
+      end;
+
+
+
+function tDLLScannerWin32.isSuitableFileType(x:cardinal):longbool;
+ begin
+  seek(f,x);
+  blockread(f,TheWord,2,loaded);
+  isSuitableFileType:=(loaded=2)and(TheWord='PE');
+ end;
+
+ 
+function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
+ type
+  TObjInfo=packed record
+   ObjName:array[0..7]of char;
+   VirtSize,
+   VirtAddr,
+   RawSize,
+   RawOffset,
+   Reloc,
+   LineNum:cardinal;
+   RelCount,
+   LineCount:word;
+   flags:cardinal;
+  end;
+ var
+  i:cardinal;
+  ObjOfs:cardinal;
+  Obj:TObjInfo;
+  APE_obj,APE_Optsize:word;
+  ExportRVA:cardinal;
+  delta:cardinal;
+ const
+  IMAGE_SCN_CNT_CODE=$00000020;
+ var
+ _d:dirstr;
+ _n:namestr;
+ _e:extstr;
+ function isUsedFunction(name:pchar):longbool;
+  var
+   hp:tExternalsItem;
+  begin
+   isUsedFunction:=false;
+   hp:=tExternalsItem(current_module.Externals.first);
+   while assigned(hp)do
+    begin
+     if(assigned(hp.data))and(not hp.found)then
+      if hp.data^=StrPas(name)then
+       begin
+        isUsedFunction:=true;
+        hp.found:=true;
+        exit;
+       end;
+     hp:=tExternalsItem(hp.next);
+    end;
+  end;
+ 
+ procedure Store(index:cardinal;name:pchar;isData:longbool);
+  begin
+   if not isUsedFunction(name)then
+    exit;
+   if not(current_module.uses_imports) then
+    begin
+     current_module.uses_imports:=true;
+     importlib.preparelib(current_module.modulename^);
+    end;
+   if IsData then
+    importlib.importvariable(name,_n,name)
+   else
+    importlib.importprocedure(name,_n,index,name);
+  end;
+
+ procedure ProcessEdata;
+  type
+   a8=array[0..7]of char;
+  function GetSectionName(rva:cardinal;var Flags:cardinal):a8;
+   var
+    i:cardinal;
+    LocObjOfs:cardinal;
+    LocObj:TObjInfo;
+   begin
+    GetSectionName:='';
+    Flags:=0;
+    LocObjOfs:=APE_OptSize+HeaderOffset+24;
+    for i:=1 to APE_obj do
+     begin
+      seek(f,LocObjOfs);
+      blockread(f,LocObj,sizeof(LocObj));
+      if(rva>=LocObj.VirtAddr)and(rva<=LocObj.VirtAddr+LocObj.RawSize)then
+       begin
+        GetSectionName:=a8(LocObj.ObjName);
+        Flags:=LocObj.flags;
+       end;
+     end;
+   end;
+  var
+   j,Fl:cardinal;
+   ulongval,procEntry:cardinal;
+   Ordinal:word;
+   isData:longbool;
+   ExpDir:packed record
+    flag,
+    stamp:cardinal;
+    Major,
+    Minor:word;
+    Name,
+    Base,
+    NumFuncs,
+    NumNames,
+    AddrFuncs,
+    AddrNames,
+    AddrOrds:cardinal;
+   end;
+  begin
+   with Obj do
+    begin
+     seek(f,RawOffset+delta);
+     blockread(f,ExpDir,sizeof(ExpDir));
+     fsplit(impname,_d,_n,_e);
+     for j:=0 to pred(ExpDir.NumNames)do
+      begin
+       seek(f,RawOffset-VirtAddr+ExpDir.AddrOrds+j*2);
+       blockread(f,Ordinal,2);
+       seek(f,RawOffset-VirtAddr+ExpDir.AddrFuncs+Ordinal*4);
+       blockread(f,ProcEntry,4);
+       seek(f,RawOffset-VirtAddr+ExpDir.AddrNames+j*4);
+       blockread(f,ulongval,4);
+       seek(f,RawOffset-VirtAddr+ulongval);
+       blockread(f,cstring,sizeof(cstring));
+       isData:=GetSectionName(procentry,Fl)='';
+       if not isData then
+        isData:=Fl and IMAGE_SCN_CNT_CODE<>IMAGE_SCN_CNT_CODE;
+       Store(succ(Ordinal),cstring,isData);
+      end;
+   end;
+  end;
+ begin
+  GetEdata:=false;
+  seek(f,HeaderEntry+120);
+  blockread(f,ExportRVA,4);
+  seek(f,HeaderEntry+6);
+  blockread(f,APE_Obj,2);
+  seek(f,HeaderEntry+20);
+  blockread(f,APE_OptSize,2);
+  ObjOfs:=APE_OptSize+HeaderOffset+24;
+  for i:=1 to APE_obj do
+   begin
+    seek(f,ObjOfs);
+    blockread(f,Obj,sizeof(Obj));
+    inc(ObjOfs,sizeof(Obj));
+    with Obj do
+     if(VirtAddr<=ExportRva)and(ExportRva<VirtAddr+VirtSize)then
+      begin
+       delta:=ExportRva-VirtAddr;
+       ProcessEdata;
+       GetEdata:=true;
+      end;
+   end;
+ end;
+
+function tDLLScannerWin32.scan(const binname:string):longbool;
+ var
+  OldFileMode:longint;
+ begin
+  if not FindDll(DLLName(binname),impname) then
+   exit;
+  assign(f,impname);
+  OldFileMode:=filemode;
+  filemode:=0;
+  reset(f,1);
+  filemode:=OldFileMode;
+  if not DOSstubOK(HeaderOffset)then
+   scan:=false
+  else if not isSuitableFileType(HeaderOffset)then
+   scan:=false
+  else
+   scan:=GetEdata(HeaderOffset);
+  close(f);
+ end;
+
 end.
 {
   $Log$
-  Revision 1.1  2001-02-26 19:43:11  peter
+  Revision 1.2  2001-03-06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.1  2001/02/26 19:43:11  peter
     * moved target units to subdir
 
   Revision 1.10  2001/02/20 21:41:16  peter

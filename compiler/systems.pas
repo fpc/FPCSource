@@ -214,6 +214,7 @@ interface
           heapsize,
           maxheapsize,
           stacksize   : longint;
+          DllScanSupported : boolean;
        end;
 
        tasmmodeinfo=packed record
@@ -1080,7 +1081,8 @@ implementation
             res         : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 16384
+            stacksize   : 16384;
+            DllScanSupported:false
           ),
           (
             target      : target_i386_GO32V2;
@@ -1103,7 +1105,8 @@ implementation
             res         : res_none;
             heapsize    : 2048*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 16384
+            stacksize   : 16384;
+            DllScanSupported:false
           ),
           (
             target      : target_i386_LINUX;
@@ -1126,7 +1129,8 @@ implementation
             res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_i386_FreeBSD;
@@ -1149,7 +1153,8 @@ implementation
             res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_i386_OS2;
@@ -1172,7 +1177,8 @@ implementation
             res         : res_i386_emx;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 256*1024
+            stacksize   : 256*1024;
+            DllScanSupported:true
           ),
           (
             target      : target_i386_WIN32;
@@ -1195,7 +1201,8 @@ implementation
             res         : res_i386_windres;
             heapsize    : 256*1024;
             maxheapsize : 32*1024*1024;
-            stacksize   : 32*1024*1024
+            stacksize   : 32*1024*1024;
+            DllScanSupported:true
           ),
           (
             target      : target_i386_NETWARE;
@@ -1218,7 +1225,8 @@ implementation
             res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_i386_sunos;
@@ -1241,7 +1249,8 @@ implementation
             res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           )
 {$endif i386}
 {$ifdef m68k}
@@ -1266,7 +1275,8 @@ implementation
             res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_m68k_Atari;
@@ -1289,7 +1299,8 @@ implementation
             res         : res_none;
             heapsize    : 16*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_m68k_Mac;
@@ -1312,7 +1323,8 @@ implementation
             res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_m68k_linux;
@@ -1335,7 +1347,8 @@ implementation
             res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_m68k_PalmOS;
@@ -1358,7 +1371,8 @@ implementation
             res         : res_none;
             heapsize    : 128*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           )
 {$endif m68k}
 {$ifdef alpha}
@@ -1383,7 +1397,10 @@ implementation
             res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+{*** Changes made by Ozerski at 05.03.2001}
+            stacksize   : 8192;
+            DllScanSupported:false
+{*** End changes}
           )
 {$endif}
 {$ifdef powerpc}
@@ -1408,7 +1425,8 @@ implementation
             res         : res_none;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           ),
           (
             target      : target_powerpc_MACOS;
@@ -1431,7 +1449,8 @@ implementation
             res         : res_powerpc_mpw;
             heapsize    : 256*1024;
             maxheapsize : 32768*1024;
-            stacksize   : 8192
+            stacksize   : 8192;
+            DllScanSupported:false
           )
 {$endif}
           );
@@ -1763,7 +1782,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-02-26 19:44:55  peter
+  Revision 1.15  2001-03-06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.14  2001/02/26 19:44:55  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.13  2001/02/20 21:36:40  peter

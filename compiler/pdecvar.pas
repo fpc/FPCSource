@@ -402,6 +402,9 @@ implementation
                           end;
                          importlib.importvariable(aktvarsym^.mangledname,dll_name,C_name)
                        end
+                      else
+                       if target_info.DllScanSupported then
+                        current_module.Externals.insert(tExternalsItem.create(aktvarsym^.mangledname));
                     end;
                    symdone:=true;
                  end
@@ -538,7 +541,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2001-02-20 21:42:54  peter
+  Revision 1.10  2001-03-06 18:28:02  peter
+    * patch from Pavel with a new and much faster DLL Scanner for
+      automatic importing so $linklib works for DLLs. Thanks Pavel!
+
+  Revision 1.9  2001/02/20 21:42:54  peter
     * record and object declaration with same field as type fixed
 
   Revision 1.7  2001/02/20 11:19:45  marco
