@@ -203,6 +203,7 @@ endif
 
 override LOADEROBJECTS+=prt0 cprt0 gprt0 cprt21 gprt21
 override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings linux ports initc dos crt objects printer graph ggigraph sysutils typinfo math cpu mmx getopts heaptrc lineinfo errors sockets gpm ipc serial
+override RSTOBJECTS+=math
 
 # Clean
 
@@ -835,6 +836,16 @@ override INSTALLPPUFILES+=$(UNITPPUFILES)
 override CLEANPPUFILES+=$(UNITPPUFILES)
 
 fpc_units: $(UNITPPUFILES)
+
+#####################################################################
+# Resource strings
+#####################################################################
+
+ifdef RSTOBJECTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(RSTOBJECTS))
+
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 
 #####################################################################
 # General compile rules

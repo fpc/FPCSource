@@ -10,6 +10,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math \
       cpu mmx getopts heaptrc lineinfo \
       errors sockets gpm ipc serial
+rst=math
 
 [require]
 rtl=0

@@ -204,6 +204,7 @@ endif
 
 override LOADEROBJECTS+=prt0 exceptn fpu
 override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings go32 dpmiexcp initc ports profile dxeload emu387 dos crt objects printer graph sysutils math typinfo cpu mmx getopts heaptrc lineinfo msmouse
+override RSTOBJECTS+=math
 
 # Clean
 
@@ -833,6 +834,16 @@ override INSTALLPPUFILES+=$(UNITPPUFILES)
 override CLEANPPUFILES+=$(UNITPPUFILES)
 
 fpc_units: $(UNITPPUFILES)
+
+#####################################################################
+# Resource strings
+#####################################################################
+
+ifdef RSTOBJECTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(RSTOBJECTS))
+
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 
 #####################################################################
 # General compile rules

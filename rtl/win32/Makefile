@@ -199,6 +199,7 @@ endif
 
 override LOADEROBJECTS+=wprt0 wdllprt0
 override UNITOBJECTS+=$(SYSTEMUNIT) objpas strings windows ole2 opengl32 os_types winsock initc dos crt objects graph sysutils typinfo math cpu mmx getopts heaptrc lineinfo wincrt winmouse sockets printer
+override RSTOBJECTS+=math
 
 # Clean
 
@@ -828,6 +829,16 @@ override INSTALLPPUFILES+=$(UNITPPUFILES)
 override CLEANPPUFILES+=$(UNITPPUFILES)
 
 fpc_units: $(UNITPPUFILES)
+
+#####################################################################
+# Resource strings
+#####################################################################
+
+ifdef RSTOBJECTS
+override RSTFILES=$(addsuffix $(RSTEXT),$(RSTOBJECTS))
+
+override CLEANRSTFILES+=$(RSTFILES)
+endif
 
 #####################################################################
 # General compile rules

@@ -10,6 +10,7 @@ units=$(SYSTEMUNIT) objpas strings \
       dos crt objects printer \
       sysutils math typinfo \
       ucomplex cpu mmx getopts heaptrc lineinfo
+rst=math
 
 [require]
 rtl=0
