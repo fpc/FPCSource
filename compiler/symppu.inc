@@ -175,7 +175,7 @@
            current_ppu^.putbyte(byte(hp^.in_interface));
            hp:=pused_unit(hp^.next);
          end;
-        current_ppu^.writeentry(ibloadunit_int);
+        current_ppu^.writeentry(ibloadunit);
       end;
 
 
@@ -432,13 +432,12 @@
          repeat
            b:=current_ppu^.readentry;
            case b of
-            { ibinitunit : usedunits^.insert(readstring); }
             ibmodulename : begin
                              stringdispose(current_module^.modulename);
                              current_module^.modulename:=stringdup(current_ppu^.getstring);
                            end;
            ibsourcefiles : readsourcefiles;
-          ibloadunit_int : readloadunit;
+              ibloadunit : readloadunit;
         iblinksharedlibs : readcontainer(current_module^.LinkSharedLibs);
         iblinkstaticlibs : readcontainer(current_module^.LinkStaticLibs);
          iblinkunitfiles : readcontainer(current_module^.LinkUnitFiles);
@@ -452,7 +451,10 @@
 
 {
   $Log$
-  Revision 1.33  1999-02-23 18:29:25  pierre
+  Revision 1.34  1999-03-02 13:49:19  peter
+    * renamed loadunit_int -> loadunit
+
+  Revision 1.33  1999/02/23 18:29:25  pierre
     * win32 compilation error fix
     + some work for local browser (not cl=omplete yet)
 

@@ -51,8 +51,7 @@ const
   {general}
   ibmodulename     = 1;
   ibsourcefiles    = 2;
-  ibloadunit_int   = 3;
-  ibloadunit_imp   = 4;
+  ibloadunit       = 3;
   ibinitunit       = 5;
   iblinkofiles     = 6;
   iblinksharedlibs = 7;
@@ -796,7 +795,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  1999-02-22 13:07:00  pierre
+  Revision 1.25  1999-03-02 13:49:18  peter
+    * renamed loadunit_int -> loadunit
+
+  Revision 1.24  1999/02/22 13:07:00  pierre
     + -b and -bl options work !
     + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
       is not enabled when quitting global section
