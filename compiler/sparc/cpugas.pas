@@ -39,7 +39,7 @@ implementation
 
     uses
       cutils,systems,
-      verbose,itcpugas;
+      verbose,itcpugas,cgbase;
 
 
     function GetReferenceString(var ref:TReference):string;
@@ -57,10 +57,10 @@ implementation
                    GetReferenceString:=GetReferenceString+'+'+ToStr(offset)
                  else if offset<0 then
                    GetReferenceString:=GetReferenceString+ToStr(offset);
-                 case symaddr of
-                   refs_hi :
+                 case refaddr of
+                   addr_hi :
                      GetReferenceString:='%hi('+GetReferenceString+')';
-                   refs_lo :
+                   addr_lo :
                      GetReferenceString:='%lo('+GetReferenceString+')';
                  end;
               end
@@ -100,26 +100,27 @@ implementation
           case typ of
             top_reg:
               getopstr:=gas_regname(reg);
-            top_ref:
-              getopstr:=getreferencestring(ref^);
             top_const:
               getopstr:=tostr(longint(val));
-            top_symbol:
-              begin
-                if assigned(sym) then
-                  hs:={'$'+}sym.name
-                else
-                  hs:='$';
-                if symofs>0 then
-                 hs:=hs+'+'+tostr(symofs)
-                else
-                 if symofs<0 then
-                  hs:=hs+tostr(symofs)
-                else
-                 if not(assigned(sym)) then
-                   hs:=hs+'0';
-                getopstr:=hs;
-              end;
+            top_ref:
+              if Oper.ref^.refaddr=addr_full then
+                begin
+                  if assigned(ref) then
+                    hs:={'$'+}ref^.symbol.name
+                  else
+                    hs:='$';
+                  if ref^.offset>0 then
+                   hs:=hs+'+'+tostr(ref^.offset)
+                  else
+                   if ref^.offset<0 then
+                    hs:=hs+tostr(ref^.offset)
+                  else
+                   if not(assigned(ref)) then
+                     hs:=hs+'0';
+                  getopstr:=hs;
+                end
+              else
+                getopstr:=getreferencestring(ref^);
             else
               internalerror(10001);
           end;
@@ -227,7 +228,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.24  2004-01-12 16:39:41  peter
+    Revision 1.25  2004-02-27 15:15:33  mazen
+    * symaddr ==> refaddr to follow the rest of compiler changes
+
+    Revision 1.24  2004/01/12 16:39:41  peter
       * sparc updates, mostly float related
 
     Revision 1.23  2003/10/24 11:22:50  mazen
