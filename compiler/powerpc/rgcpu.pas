@@ -37,6 +37,12 @@ unit rgcpu;
        trgcpu = class(trgobj)
          function getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister; override;
          procedure ungetregisterint(list: taasmoutput; reg: tregister); override;
+         procedure saveusedintregisters(list:Taasmoutput;
+                                         var saved:Tpushedsavedint;
+                                         const s:Tsupregset);override;
+         procedure saveusedotherregisters(list:Taasmoutput;
+                                           var saved:Tpushedsavedother;
+                                           const s:Tregisterset);override;
        end;
 
   implementation
@@ -69,13 +75,40 @@ unit rgcpu;
           inherited ungetregisterint(list,reg);
       end;
 
+
+    procedure trgcpu.saveusedintregisters(list:Taasmoutput;
+                                         var saved:Tpushedsavedint;
+                                         const s:Tsupregset);
+      begin
+        // saving/restoring is done by the callee (except for registers
+        // which already contain parameters, but those aren't allocated
+        // correctly yet)
+        filldword(saved,sizeof(saved) div 4,reg_not_saved);
+      end;
+
+
+    procedure trgcpu.saveusedotherregisters(list:Taasmoutput;
+                                           var saved:Tpushedsavedother;
+                                           const s:Tregisterset);
+      begin
+        // saving/restoring is done by the callee (except for registers
+        // which already contain parameters, but those aren't allocated
+        // correctly yet)
+        filldword(saved,sizeof(saved) div 4,reg_not_saved);
+      end;
+
 initialization
   rg := trgcpu.create(32);  {PPC has 32 registers.}
 end.
 
 {
   $Log$
-  Revision 1.6  2003-04-22 10:09:35  daniel
+  Revision 1.7  2003-05-24 13:38:04  jonas
+    * don't save callee-save registers in the caller as well (the ppc code
+      that we generate is slow enough as it is without resorting to doing
+      double work :)
+
+  Revision 1.6  2003/04/22 10:09:35  daniel
     + Implemented the actual register allocator
     + Scratch registers unavailable when new register allocator used
     + maybe_save/maybe_restore unavailable when new register allocator used
