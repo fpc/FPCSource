@@ -5,10 +5,11 @@
 [targets]
 loaders=prt0 prt1 code2 code3
 units=$(SYSTEMUNIT) objpas strings \
-      os2def doscalls moncalls kbdcalls viocalls \
+      ports os2def doscalls moncalls kbdcalls moucalls viocalls \
+      pmbitmap pmwin pmgpi dive pmerr \
       dos crt objects printer \
       sysutils math typinfo \
-      cpu mmx getopts heaptrc
+      ucomplex cpu mmx getopts heaptrc lineinfo
 
 [require]
 rtl=0
@@ -90,11 +91,27 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 # System Dependent Units
 #
 
+ports$(PPUEXT) : ports.pas objpas$(PPUEXT) $(SYSTEMPPU)
+
 doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) objects$(PPUEXT) $(SYSTEMPPU)
 
 kbdcalls$(PPUEXT) : kbdcalls.pas $(SYSTEMPPU)
 
+moucalls$(PPUEXT) : moucalls.pas $(SYSTEMPPU)
+
 moncalls$(PPUEXT) : moncalls.pas strings$(PPUEXT) $(SYSTEMPPU)
+
+os2def$(PPUEXT) : os2def.pas $(SYSTEMPPU)
+
+pmwin$(PPUEXT) : pmwin.pas os2def$(PPUEXT) $(SYSTEMPPU)
+
+pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMPPU)
+
+pmerr$(PPUEXT) : pmerr.pas $(SYSTEMPPU)
+
+pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMPPU)
+
+dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMPPU)
 
 #
 # TP7 Compatible RTL Units
@@ -129,6 +146,8 @@ math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 # Other system-independent RTL Units
 #
 
+ucomplex$(PPUEXT): $(INC)/ucomplex.pp math$(PPUEXT) $(SYSTEMPPU)
+
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
@@ -137,6 +156,8 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMPPU)
 
 #
 # Other system-dependent RTL Units
