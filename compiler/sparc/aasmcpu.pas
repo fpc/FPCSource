@@ -42,13 +42,13 @@ uses
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
+         constructor op_const(op : tasmop;_op1 : LongInt);
          constructor op_ref(op : tasmop;const _op1 : treference);
-         constructor op_const(op : tasmop;_op1 : aword);
 
          constructor op_reg_reg(op : tasmop;_op1,_op2 : tregister);
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
-         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aword);
-         constructor op_const_reg(op:tasmop; _op1: aword; _op2: tregister);
+         constructor op_reg_const(op:tasmop; _op1: tregister; _op2: LongInt);
+         constructor op_const_reg(op:tasmop; _op1: LongInt; _op2: tregister);
          constructor op_ref_reg(op : tasmop;const _op1 : treference;_op2 : tregister);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
@@ -59,9 +59,9 @@ uses
          constructor op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
          constructor op_sym(op : tasmop;_op1 : tasmsymbol);
          constructor op_sym_ofs(op : tasmop;_op1 : tasmsymbol;_op1ofs:longint);
-
+         procedure loadbool(opidx:longint;_b:boolean);
          { register allocation }
-         function is_same_reg_move(regtype: Tregistertype):boolean;override;
+         function is_same_reg_move(regtype: Tregistertype):boolean; override;
 
          { register spilling code }
          function spilling_get_operation_type(opnr: longint): topertype;override;
@@ -82,6 +82,20 @@ implementation
 {*****************************************************************************
                                  taicpu Constructors
 *****************************************************************************}
+
+    procedure taicpu.loadbool(opidx:longint;_b:boolean);
+      begin
+        if opidx>=ops then
+         ops:=opidx+1;
+        with oper[opidx]^ do
+         begin
+           if typ=top_ref then
+            dispose(ref);
+           b:=_b;
+           typ:=top_bool;
+         end;
+      end;
+
 
     constructor taicpu.op_none(op : tasmop);
       begin
@@ -105,7 +119,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_const(op : tasmop;_op1 : aword);
+    constructor taicpu.op_const(op : tasmop;_op1 : LongInt);
       begin
          inherited create(op);
          ops:=1;
@@ -121,7 +135,7 @@ implementation
          loadreg(1,_op2);
       end;
 
-    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: aword);
+    constructor taicpu.op_reg_const(op:tasmop; _op1: tregister; _op2: LongInt);
       begin
          inherited create(op);
          ops:=2;
@@ -129,7 +143,7 @@ implementation
          loadconst(1,_op2);
       end;
 
-     constructor taicpu.op_const_reg(op:tasmop; _op1: aword; _op2: tregister);
+     constructor taicpu.op_const_reg(op:tasmop; _op1: LongInt; _op2: tregister);
       begin
          inherited create(op);
          ops:=2;
@@ -189,7 +203,7 @@ implementation
       end;
 
 
-    constructor taicpu.op_cond_sym(op:tasmop;cond:TAsmCond;_op1:tasmsymbol);
+    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : tasmsymbol);
       begin
          inherited create(op);
          condition:=cond;
@@ -297,7 +311,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2004-02-27 11:47:32  mazen
+  Revision 1.45  2004-03-08 16:28:39  mazen
+  * make it as similar to PPC one ase possible
+
+  Revision 1.44  2004/02/27 11:47:32  mazen
   * symaddr ==> refaddr to follow the rest of compiler changes
 
   Revision 1.43  2004/02/08 23:10:21  jonas
