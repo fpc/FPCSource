@@ -185,9 +185,11 @@ const
              RS_R28,RS_R27,RS_R26,RS_R25,RS_R24,RS_R23,RS_R22,
              RS_R21,RS_R20,RS_R19,RS_R18,RS_R17,RS_R16,RS_R15,
              RS_R14,RS_R13],first_int_imreg,[]);
-        {$warning FIX ME}
         rgfpu:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
-            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5],first_fpu_imreg,[]);
+            [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7,RS_F8,RS_F9,
+             RS_F10,RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
+             RS_F26,RS_F25,RS_F24,RS_F23,RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,
+             RS_F17,RS_F16,RS_F15,RS_F14],first_fpu_imreg,[]);
         {$warning FIX ME}
         rgmm:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
             [RS_M0,RS_M1,RS_M2],first_mm_imreg,[]);
@@ -2446,7 +2448,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.137  2003-11-21 16:29:26  florian
+  Revision 1.138  2003-11-30 10:16:05  jonas
+    * fixed fpu regallocator initialisation
+
+  Revision 1.137  2003/11/21 16:29:26  florian
     * fixed reading of reg. sets in the arm assembler reader
 
   Revision 1.136  2003/11/02 17:19:33  florian
