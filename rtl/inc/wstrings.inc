@@ -301,6 +301,31 @@ begin
     end;
 end;
 
+{ compilers with widestrings should have compiler procs }
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+begin
+   runerror(218);
+end;
+
+
+Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
+begin
+   runerror(218);
+end;
+
+
+Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
+begin
+   runerror(218);
+end;
+
+
+Function fpc_PWideChar_To_LongStr(const p : pwidechar): longstring; compilerproc;
+begin
+   runerror(218);
+end;
+
+
 { old style helper }
 {$ifndef hascompilerproc}
 Procedure fpc_AnsiStr_To_WideStr (Var S1 : Pointer; Const S2 : AnsiString);[Public, alias: 'FPC_ANSISTR_TO_WIDESTR'];
@@ -888,7 +913,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2002-10-02 18:21:52  peter
+  Revision 1.24  2002-10-10 16:08:50  florian
+    + several widestring/pwidechar related helpers added
+
+  Revision 1.23  2002/10/02 18:21:52  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions

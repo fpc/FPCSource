@@ -738,7 +738,7 @@ end;
 
 {$ifndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
-function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
 var i : longint;
 begin
   i:=0;
@@ -747,6 +747,20 @@ begin
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
+
+{$ifdef HASWIDESTRING}
+{$ifndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
+
+function fpc_pwidechar_length(p:pwidechar):longint;[public,alias:'FPC_PWIDECHAR_LENGTH']; {$ifdef hascompilerproc} compilerproc; {$endif}
+var i : longint;
+begin
+  i:=0;
+  while p[i]<>#0 do inc(i);
+  exit(i);
+end;
+
+{$endif ndef FPC_SYSTEM_HAS_FPC_PWIDECHAR_LENGTH}
+{$endif HASWIDESTRING}
 
 {****************************************************************************
                        Caller/StackFrame Helpers
@@ -927,7 +941,10 @@ end;
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_LONGWORD}
 {
   $Log$
-  Revision 1.39  2002-10-05 14:20:16  peter
+  Revision 1.40  2002-10-10 16:08:50  florian
+    + several widestring/pwidechar related helpers added
+
+  Revision 1.39  2002/10/05 14:20:16  peter
     * fpc_pchar_length compilerproc and strlen alias
 
   Revision 1.38  2002/10/02 18:21:51  peter

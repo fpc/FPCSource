@@ -45,6 +45,7 @@ function fpc_shortstr_compare(const dstr,sstr:shortstring) : longint; compilerpr
 
 function fpc_pchar_to_shortstr(p:pchar):shortstring; compilerproc;
 function fpc_pchar_length(p:pchar):longint; compilerproc;
+function fpc_pwidechar_length(p:pwidechar):longint; compilerproc;
 
 function fpc_chararray_to_shortstr(const arr: array of char):shortstring; compilerproc;
 function fpc_shortstr_to_chararray(arraysize: longint; const src: ShortString): fpc_big_chararray; compilerproc;
@@ -111,6 +112,13 @@ Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : longint); compilerproc;
 Procedure fpc_WideStr_SetLength (Var S : WideString; l : Longint); compilerproc;
 Procedure fpc_widestr_Unique(Var S : WideString); compilerproc;
+
+{$ifdef HASWIDECHAR}
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
+Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
+Function fpc_PWideChar_To_LongStr(const p : pwidechar): longstring; compilerproc;
+{$endif HASWIDECHAR}
 
 Function fpc_Val_Real_AnsiStr(Const S : AnsiString; Var Code : ValSInt): ValReal; compilerproc;
 Function fpc_Val_UInt_AnsiStr (Const S : AnsiString; Var Code : ValSInt): ValUInt; compilerproc;
@@ -267,7 +275,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.25  2002-10-05 14:20:16  peter
+  Revision 1.26  2002-10-10 16:08:50  florian
+    + several widestring/pwidechar related helpers added
+
+  Revision 1.25  2002/10/05 14:20:16  peter
     * fpc_pchar_length compilerproc and strlen alias
 
   Revision 1.24  2002/10/02 18:21:51  peter
