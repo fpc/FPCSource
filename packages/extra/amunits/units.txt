@@ -1,0 +1,57 @@
+
+
+    Amiga units for fpc.
+
+    There should not be any problems to use
+    this units in Amiga or in linux.
+
+    For the ms-dos cross-compiler you have to
+    do some changes.
+
+    First you have to rename the units to 8.3
+    e.g intuition.pas to intuitio.pas
+    No need to change in the units the compiler
+    will find the units anyway.
+
+    There are a few you will have problems with,
+    expansion.pas and expansionbase.pas. What
+    you can do is to rename them to expan.pas
+    and expanbas.pas. If a unit uses the old
+    name the compiler will complain so just
+    fix that unit when the problems pops up.
+
+    The same problem with configregs.pas and
+    configvars.pas, perhaps do cfgvars.pas and
+    cfgregs.pas
+
+    If you find any bugs or errors in the units
+    please inform me. Address bellow.
+
+    If you want do translate other libraries to
+    fpc use Fd2Pragma, it's on Aminet. Read the
+    docs for Fd2Pragma on how to make units
+    for fpc. Fd2Pragma translates almost everything
+    correct for fpc. There is one thing you have to
+    do to the new unit, make a search/replace for
+    Cardinal/ULONG. Fpc for Amiga don't handle
+    Cardinals in this version (later), so we have
+    to use ULONG instead. ULONG is typedefed as
+    Longint (in Exec) in a new version of fpc
+    we just have to typedef ULONG as Cardinal.
+    What's left is for you to translate structs
+    and defines.:)
+
+    There are also two rexx scripts that can be
+    handy, getrecord.rexx and make.rexx. You can
+    use getrecord.rexx to check that you have
+    translated the structs correct. Read more
+    in the scripts headers.
+
+
+    Other than that just have fun!
+
+
+    nils.sjoholm@mailbox.swipnet.se
+
+
+
