@@ -133,7 +133,7 @@ implementation
               else
                 begin
                    if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-                     Message(sym_e_type_mismatch)
+                     Message(type_e_mismatch)
                    else
                      begin
                        if inlined then
@@ -1408,7 +1408,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1998-09-01 12:47:57  peter
+  Revision 1.22  1998-09-04 08:41:37  peter
+    * updated some error messages
+
+  Revision 1.21  1998/09/01 12:47:57  peter
     * use pdef^.size instead of orddef^.typ
 
   Revision 1.20  1998/08/31 12:22:15  peter

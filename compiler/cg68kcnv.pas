@@ -680,7 +680,7 @@ implementation
            parraydef(p^.left^.resulttype)^.lowrange+1;
 
          if l>255 then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
 
          { write the length }
            exprasmlist^.concat(new(pai68k,op_const_ref(A_MOVE,S_B,l,
@@ -1195,7 +1195,7 @@ implementation
 
       begin
         InternalError(342132);
-{!!!!!!!!!!!    
+{!!!!!!!!!!!
 
          p^.location.loc:=LOC_REGISTER;
          getlabel(l1);
@@ -1376,7 +1376,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-04 08:41:45  peter
+    * updated some error messages
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

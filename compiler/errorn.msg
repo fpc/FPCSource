@@ -20,6 +20,8 @@
 #   assem_    assembler parsing
 #   unit_     unit handling
 #   scan_     scanner
+#   parser_   parser
+#   type_     type checking
 #   general_  general info
 #   exec_     calls to assembler, linker, binder
 #
@@ -119,8 +121,9 @@ parser_w_destructor_should_be_public=E_Destructor mag niet private or protected 
 parser_n_only_one_destructor=N_Class heeft slechts 1 destructor
 parser_e_no_local_objects=E_Lokale class definities zijn niet toegestaan
 parser_e_no_anonym_objects=E_Anonieme class definities zijn niet toegestaan
-parser_e_ordinal_expected=E_Ordinale waarde verwacht
 parser_e_illegal_parameter_list=E_Foutieve parameter lijst
+parser_e_wrong_parameter_type=E_Foutieve parameter type meegegeven
+parser_e_wrong_parameter_size=E_Foutief aantal parameters meegegeven
 parser_e_overloaded_no_procedure=E_overladen identifieerder is geen functie identifieerder
 parser_e_overloaded_have_same_parameters=E_overladen functies hebben identieke parameterlijst
 parser_e_header_dont_match_forward=E_functie declaratie klopt niet met voorwaartse declaratie $1
@@ -128,8 +131,6 @@ parser_n_duplicate_enum=N_Slechts waarden kunnen overgeslagen worden in opsommin
 parser_n_interface_name_diff_implementation_name=N_Interface en implementatie namen zijn verschillend
 parser_e_too_much_lexlevel=E_functie meer dan 31 keer genest
 parser_e_range_check_error=E_Bereikfout bij evalueren constantes
-parser_e_pointer_type_expected=E_Pointer type verwacht
-parser_e_class_type_expected=E_class type verwacht
 parser_e_double_caselabel=E_Dubbel case geval
 parser_e_type_const_not_possible=E_Getypeerde constantes van classes zijn niet toegestaan
 parser_e_no_overloaded_procvars=E_functie variabelen van meervoudige functies zijn niet toegestaan
@@ -142,7 +143,6 @@ parser_p_procedure_start=P_procedure/functie $1 ($2) op lijn $3
 parser_e_error_in_real=E_Illegale vlottende komma constante
 parser_e_fail_only_in_constructor=E_FAIL mag slechts in constructors gebruikt worden
 parser_e_no_paras_for_destructor=E_Destructors hebben geen parameters
-parser_e_strict_var_string_violation=E_String types stemmen niet overeen, wegens $V+ modus
 parser_e_only_class_methods_via_class_ref=E_Alleen class methodes kunnen gerefereerd met classe methodes
 parser_e_only_class_methods=E_Alleen class methodes togankelijk in classen
 parser_e_case_mismatch=E_Constante en CASE type komen niet overeen
@@ -166,15 +166,11 @@ parser_e_illegal_set_expr=E_Bereik fout in set constructor of dubbel set element
 parser_e_pointer_to_class_expected=E_Pointer naar class verwacht
 parser_e_expr_have_to_be_constructor_call=E_Uitdrukking moet een constructor call zijn.
 parser_e_expr_have_to_be_destructor_call=E_Expression must be destructor call
-parser_e_typeconflict_in_set=E_Type conflict tussen set elementen.
-parser_w_use_int_div_int_op=W_De operator / geeft een resultaat is van type real. Gebruik DIV voor integers.
 parser_e_invalid_record_const=E_Ongeldige volgorde van record leden.
 parser_e_false_with_expr=E_Type van uitdrukking moet class of record type zijn.
 parser_e_void_function=E_Procedures kunnen geen resultaat teruggeven.
 parser_e_constructors_always_objects=E_Constructors en Destructors moeten methodes zijn
-parser_w_convert_real_2_comp=W_Type conversion van floating type to COMP, hetgeen een integer type is.
 parser_e_operator_not_overloaded=E_Operator is niet hergedefineerd
-parser_e_varid_or_typeid_expected=E_Variable of type indentifieerder verwacht
 parser_e_no_reraise_possible=E_Re-raise is hier niet mogelijk
 parser_e_no_new_or_dispose_for_classes=E_De uitgebreide syntax van NEW of DISPOSE is niet toegestaan voor classes
 parser_e_asm_incomp_with_function_return=E_Assembler stemt niet overeen met functieresultaat type
@@ -189,7 +185,6 @@ parser_e_absolute_only_one_var=E_Absolute kan maar aan een variabele verbonden w
 parser_e_absolute_only_to_var_or_const=E_Absolute kan slechts aan variabelen of constantes verbonden worden.
 parser_e_abstract_no_definition=E_Abtracte methodes kunnen niet gedefineerd worden.
 parser_e_overloaded_must_be_all_global=E_Deze overladen procedure kan niet lokaal zijn, (moet geexporteerd worden)
-parser_e_succ_and_pred_enums_with_assign_not_possible=E_SUCC of PRED op enumeratie types met toekenningen zijn niet mogelijk
 parser_w_virtual_without_constructor=W_Gebruike van Virtuele methods zonder constructor
 parser_m_macro_defined=M_Macro gedefinieerd: $1
 parser_m_macro_undefined=M_Macro ongedefinieerd: $1
@@ -203,7 +198,7 @@ parser_e_property_need_paras=E_Default eigenschappen moeten van type Array zijn.
 parser_e_constructor_cannot_be_not_virtual=E_Virtuele constructors worden alleen ondersteunt in het object model
 parser_e_no_default_property_available=E_Geen standaard eigenschap gevonden
 parser_e_cant_have_published=E_De class kan geen gepubliceerde sectie hebben, gebruik {$M+}
-parser_forward_declaration_must_be_resolved=E_Declaratie van class $1 moet worden opgelost om de class als ouder te gebruiken
+parser_e_forward_declaration_must_be_resolved=E_Declaratie van class $1 moet worden opgelost om de class als ouder te gebruiken
 parser_e_no_local_operator=E_Lokake operatoren worden niet ondersteunt
 parser_e_proc_dir_not_allowed_in_interface=E_Procedure directive $1 niet toegestaan in interface sectie
 parser_e_proc_dir_not_allowed_in_implementation=E_Procedure directive $1 niet toegestaan in implementation sectie
@@ -215,20 +210,41 @@ parser_w_not_supported_for_inline=W_$1 wordt niet ondersteund voor inline proced
 parser_w_inlining_disabled=W_Inlining uitgeschakeld
 parser_i_writing_browser_log=I_Schrijven van Browser logfile $1
 parser_h_maybe_deref_caret_missing=H_misschien is het een wijzer, ^ wordt dan gemist
-parser_f_assembler_reader_not_supported=F_Geselecteerde assembler lezer wordt niet ondersteunt
+parser_f_assembler_reader_not_supported=F_Geselecteerde assembler lezer wordt niet ondersteund
+parser_e_proc_dir_conflict=E_Procedure directive $1 maakt conflicten met andere directives
+parser_e_call_convention_dont_match_forward=E_Calling convention doesn't match forward
+parser_e_register_calling_not_supported=E_Register calling (fastcall) wordt niet ondersteund
+
+#
+# Type Checking
+#
+type_e_mismatch=E_Types stemmen niet overeen
+type_e_integer_expr_expected=E_Integer expressie verwacht
+type_e_ordinal_expr_expected=E_Ordinal expressie verwacht
+type_e_type_id_expected=E_Type identifieerder verwacht
+type_e_variable_id_expected=E_Variabel identifier verwacht
+type_e_pointer_type_expected=E_Pointer type verwacht
+type_e_class_type_expected=E_class type verwacht
+type_e_varid_or_typeid_expected=E_Variable of type indentifieerder verwacht
+type_e_cant_eval_constant_expr=E_Kan constante expressie niet evaluaren
+type_e_set_element_are_not_comp=E_Elementen van set zijn incompatible
+type_w_convert_real_2_comp=W_Type conversion van floating type to COMP, hetgeen een integer type is.
+type_w_int_slash_int=W_De operator / geeft een resultaat is van type real
+type_h_use_div_for_int=Gebruik DIV voor integers.
+type_e_strict_var_string_violation=E_String types stemmen niet overeen, wegens $V+ modus
+type_e_succ_and_pred_enums_with_assign_not_possible=E_SUCC of PRED op enumeratie types met toekenningen zijn niet mogelijk
+type_e_cant_read_write_type=E_Kan niet lezen of schrijven met dit type variabele
+type_e_typeconflict_in_set=E_Type conflict tussen set elementen.
 
 #
 # Symtable
 #
-sym_n_local_var_not_init_yet=N_Lokale variabele $1 schijnt niet geinitialiseerd te zijn !
 sym_e_id_not_found=E_Identifieerder niet gevonden $1
 sym_f_internal_error_in_symtablestack=F_Interne fout in SymTableStack()
 sym_e_duplicate_id=E_Dubbele identifieerder $1
 sym_e_unknown_id=E_Onbekende identifieerder $1
 sym_e_forward_not_resolved=E_Voorwaartse declaratie niet opgelost $1
 sym_f_id_already_typed=F_Type Identifieerder reeds gedefineerd als type
-sym_e_type_id_expected=E_Type identifieerder verwacht
-sym_e_type_mismatch=E_Types stemmen niet overeen
 sym_e_error_in_type_def=E_Fout in type defenitie
 sym_e_type_id_not_defined=E_Type identifieerder niet gedefinieerd
 sym_e_only_static_in_static=E_Alleen statische variabelen kunnen gebruikt worden in statische methodes
@@ -245,7 +261,6 @@ sym_e_ill_type_decl_set=E_Type declaratie van set elementen is foutief
 sym_e_class_forward_not_resolved=E_Voorwaartse definitie van klasse niet opgelost $1
 sym_n_para_identifier_not_used=H_Parameter niet gebruikt $1
 sym_w_local_identifier_not_used=W_Lokale variable niet gebruikt $1
-sym_e_set_element_are_not_comp=E_Elementen van set zijn incompatible
 sym_e_set_expected=E_Set type verwacht
 sym_w_function_result_not_set=W_Resultaat van functie ogeschijnlijk niet present
 sym_e_illegal_field=E_Onbekend record lid
@@ -528,6 +543,7 @@ option_info_end=                fpc-devel@mail.tolna.hungary.net
 #
 ol_begin=**0*_+ switch option on, - off
 ol001=**1a_the compiler doesn't delete the generated assembler file
+ol120=**2al_list sourcecode lines in assembler file  (still BETA !!)
 ol002=*t1b_use EMS
 ol003=**1B_build all modules
 ol004=**1C_code generation options

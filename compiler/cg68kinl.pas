@@ -308,9 +308,7 @@ implementation
                                            emitcall('READ_TEXT_PCHAR_AS_POINTER',true)
                                          else
                                            emitcall('WRITE_TEXT_PCHAR_AS_POINTER',true);
-                                       end
-                                     else
-                                      Message(parser_e_illegal_parameter_list);
+                                       end;
                                    end;
                         arraydef : begin
                                      if (parraydef(pararesult)^.lowrange=0) and
@@ -320,9 +318,7 @@ implementation
                                            emitcall('READ_TEXT_PCHAR_AS_ARRAY',true)
                                          else
                                            emitcall('WRITE_TEXT_PCHAR_AS_ARRAY',true);
-                                       end
-                                     else
-                                      Message(parser_e_illegal_parameter_list);
+                                       end;
                                    end;
                         floatdef : begin
                                      if doread then
@@ -359,12 +355,8 @@ implementation
                                                     Message(parser_e_illegal_parameter_list)
                                                   else
                                                     emitcall('WRITE_TEXT_BOOLEAN',true);
-                                     else
-                                       Message(parser_e_illegal_parameter_list);
                                      end;
                                    end;
-                          else
-                            Message(parser_e_illegal_parameter_list);
                           end;
                        end;
                    { load ESI in methods again }
@@ -912,7 +904,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-04 08:41:48  peter
+    * updated some error messages
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

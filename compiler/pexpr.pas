@@ -87,6 +87,8 @@ unit pexpr;
                 begin
                    consume(COLON);
                    p1:=comp_expr(true);
+                   if not is_constintnode(p1) then
+                    Message(type_e_integer_expr_expected);
                    p2:=gencallparanode(p1,p2);
                    p2^.is_colon_para:=true;
                    if token=COLON then
@@ -147,7 +149,7 @@ unit pexpr;
                       begin
                         if (p1^.resulttype=nil) then
                          begin
-                           Message(sym_e_type_mismatch);
+                           Message(type_e_mismatch);
                            statement_syssym:=genzeronode(errorn);
                          end
                         else
@@ -155,7 +157,7 @@ unit pexpr;
                           statement_syssym:=geninlinenode(in_typeof_x,false,p1)
                         else
                          begin
-                           Message(sym_e_type_mismatch);
+                           Message(type_e_mismatch);
                            statement_syssym:=genzeronode(errorn);
                          end;
                       end
@@ -165,7 +167,7 @@ unit pexpr;
                         do_firstpass(p1);
                         if (p1^.resulttype=nil) then
                          begin
-                           Message(sym_e_type_mismatch);
+                           Message(type_e_mismatch);
                            statement_syssym:=genzeronode(errorn)
                          end
                         else
@@ -173,7 +175,7 @@ unit pexpr;
                           statement_syssym:=geninlinenode(in_typeof_x,false,p1)
                         else
                          begin
-                           Message(sym_e_type_mismatch);
+                           Message(type_e_mismatch);
                            statement_syssym:=genzeronode(errorn)
                          end;
                       end;
@@ -553,7 +555,7 @@ unit pexpr;
                    else
                      begin
                         p1:=genzeronode(errorn);
-                        Message(sym_e_type_mismatch);
+                        Message(type_e_mismatch);
                      end;
                 end
               else
@@ -909,7 +911,7 @@ unit pexpr;
                               constchar : p1:=genordinalconstnode(pconstsym(srsym)^.value,cchardef);
                               constreal : p1:=genrealconstnode(pbestreal(pconstsym(srsym)^.value)^);
                               constbool : p1:=genordinalconstnode(pconstsym(srsym)^.value,booldef);
-                              constseta : p1:=gensetconstruktnode(pconstset(pconstsym(srsym)^.value),
+                              constseta : p1:=gensetconstnode(pconstset(pconstsym(srsym)^.value),
                                                 psetdef(pconstsym(srsym)^.definition));
                                constord : p1:=genordinalconstnode(pconstsym(srsym)^.value,
                                                 pconstsym(srsym)^.definition);
@@ -1015,7 +1017,7 @@ unit pexpr;
            FillChar(constset^,sizeof(constset^),0);
            constsetlo:=0;
            constsethi:=0;
-           constp:=gensinglenode(setconstrn,nil);
+           constp:=gensinglenode(setconstn,nil);
            constp^.constset:=constset;
            buildp:=constp;
            pd:=nil;
@@ -1042,7 +1044,7 @@ unit pexpr;
                              pd:=p2^.resulttype;
                            if not(is_equal(pd,p2^.resulttype)) then
                             begin
-                              Message(parser_e_typeconflict_in_set);
+                              Message(type_e_typeconflict_in_set);
                               disposetree(p2);
                             end
                            else
@@ -1061,7 +1063,7 @@ unit pexpr;
                                     do_firstpass(p3);
                                   end;
                                  if not(is_equal(pd,p3^.resulttype)) then
-                                   Message(parser_e_typeconflict_in_set)
+                                   Message(type_e_typeconflict_in_set)
                                  else
                                    begin
                                      if (p2^.treetype=ordconstn) and (p3^.treetype=ordconstn) then
@@ -1098,7 +1100,7 @@ unit pexpr;
                            if pd=nil then
                             pd:=cchardef;
                            if not(is_equal(pd,cchardef)) then
-                            Message(parser_e_typeconflict_in_set)
+                            Message(type_e_typeconflict_in_set)
                            else
                             for l:=1 to length(pstring(p2^.values)^) do
                              do_set(ord(pstring(p2^.values)^[l]));
@@ -1384,7 +1386,7 @@ unit pexpr;
                  consume(LKLAMMER);
                  p1:=factor(false);
                  if p1^.treetype<>typen then
-                  Message(sym_e_type_id_expected);
+                  Message(type_e_type_id_expected);
                  pd:=p1^.resulttype;
                  pd2:=pd;
                  if (pd^.deftype<>pointerdef) or
@@ -1855,7 +1857,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.45  1998-09-01 17:39:49  peter
+  Revision 1.46  1998-09-04 08:42:03  peter
+    * updated some error messages
+
+  Revision 1.45  1998/09/01 17:39:49  peter
     + internal constant functions
 
   Revision 1.44  1998/08/28 10:54:24  peter

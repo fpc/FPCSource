@@ -277,18 +277,18 @@ implementation
                        stringdef : begin
                                      if doread then
                                        begin
-                                       { push maximum string length }
-                                       push_int(pstringdef(pararesult)^.len);
-                                       case pstringdef(pararesult)^.string_typ of
-                                        st_shortstring:
-                                          emitcall ('READ_TEXT_STRING',true);
-                                        st_ansistring:
-                                          emitcall ('READ_TEXT_ANSISTRING',true);
-                                        st_longstring:
-                                          emitcall ('READ_TEXT_LONGSTRING',true);
-                                        st_widestring:
-                                          emitcall ('READ_TEXT_ANSISTRING',true);
-                                        end
+                                         { push maximum string length }
+                                         push_int(pstringdef(pararesult)^.len);
+                                         case pstringdef(pararesult)^.string_typ of
+                                          st_shortstring:
+                                            emitcall ('READ_TEXT_STRING',true);
+                                          st_ansistring:
+                                            emitcall ('READ_TEXT_ANSISTRING',true);
+                                          st_longstring:
+                                            emitcall ('READ_TEXT_LONGSTRING',true);
+                                          st_widestring:
+                                            emitcall ('READ_TEXT_ANSISTRING',true);
+                                          end
                                        end
                                      else
                                        Case pstringdef(Pararesult)^.string_typ of
@@ -309,9 +309,7 @@ implementation
                                            emitcall('READ_TEXT_PCHAR_AS_POINTER',true)
                                          else
                                            emitcall('WRITE_TEXT_PCHAR_AS_POINTER',true);
-                                       end
-                                     else
-                                      Message(parser_e_illegal_parameter_list);
+                                       end;
                                    end;
                         arraydef : begin
                                      if (parraydef(pararesult)^.lowrange=0) and
@@ -321,9 +319,7 @@ implementation
                                            emitcall('READ_TEXT_PCHAR_AS_ARRAY',true)
                                          else
                                            emitcall('WRITE_TEXT_PCHAR_AS_ARRAY',true);
-                                       end
-                                     else
-                                      Message(parser_e_illegal_parameter_list);
+                                       end;
                                    end;
                         floatdef : begin
                                      if doread then
@@ -360,12 +356,8 @@ implementation
                                                     Message(parser_e_illegal_parameter_list)
                                                   else
                                                     emitcall('WRITE_TEXT_BOOLEAN',true);
-                                     else
-                                       Message(parser_e_illegal_parameter_list);
                                      end;
                                    end;
-                          else
-                            Message(parser_e_illegal_parameter_list);
                           end;
                        end;
                    { load ESI in methods again }
@@ -383,16 +375,13 @@ implementation
                   if doln then
                     emitcall('READLN_END',true)
                   else
-
                     emitcall('READ_END',true);
                 end
-
                else
                 begin
                   if doln then
                     emitcall('WRITELN_END',true)
                   else
-
                     emitcall('WRITE_END',true);
                 end;
                popusedregisters(pushed);
@@ -924,7 +913,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-08-31 12:22:14  peter
+  Revision 1.2  1998-09-04 08:41:40  peter
+    * updated some error messages
+
+  Revision 1.1  1998/08/31 12:22:14  peter
     * secondinline moved to cg386inl
 
   Revision 1.19  1998/08/31 08:52:03  peter

@@ -189,7 +189,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                          end;
                        end;
         else
-         Message(sym_e_type_mismatch);
+         Message(type_e_mismatch);
         end;
       end;
 
@@ -377,7 +377,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                 end;
            end
          else
-          Message(sym_e_type_mismatch);
+          Message(type_e_mismatch);
       end;
 
     procedure emitoverflowcheck(p: ptree);
@@ -1345,7 +1345,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1998-09-01 12:48:02  peter
+  Revision 1.14  1998-09-04 08:41:50  peter
+    * updated some error messages
+
+  Revision 1.13  1998/09/01 12:48:02  peter
     * use pdef^.size instead of orddef^.typ
 
   Revision 1.12  1998/09/01 09:07:09  peter

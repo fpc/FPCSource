@@ -176,7 +176,7 @@ unit pstatmnt;
          do_firstpass(caseexpr);
          casedef:=caseexpr^.resulttype;
          if not(is_ordinal(casedef)) then
-           Message(parser_e_ordinal_expected);
+           Message(type_e_ordinal_expr_expected);
 
          consume(_OF);
          inc(statement_level);
@@ -560,7 +560,7 @@ unit pstatmnt;
                                  ot:=pobjectdef(ptypesym(srsym)^.definition)
                                else
                                  begin
-                                    message(parser_e_class_type_expected);
+                                    message(type_e_class_type_expected);
                                     ot:=pobjectdef(generrordef);
                                  end;
                                sym^.definition:=ot;
@@ -584,7 +584,7 @@ unit pstatmnt;
                                  ot:=pobjectdef(ptypesym(srsym)^.definition)
                                else
                                  begin
-                                    message(parser_e_class_type_expected);
+                                    message(type_e_class_type_expected);
                                     ot:=pobjectdef(generrordef);
                                  end;
                                exceptsymtable:=nil;
@@ -792,7 +792,7 @@ unit pstatmnt;
                    pd2:=pd;
                    if (p^.resulttype = nil) or (pd^.deftype<>pointerdef) then
                      begin
-                        Message(parser_e_pointer_type_expected);
+                        Message(type_e_pointer_type_expected);
                         p:=factor(false);
                         consume(RKLAMMER);
                         new_dispose_statement:=genzeronode(errorn);
@@ -870,7 +870,7 @@ unit pstatmnt;
             begin
                if (p^.resulttype=nil) or (p^.resulttype^.deftype<>pointerdef) then
                  Begin
-                    Message(parser_e_pointer_type_expected);
+                    Message(type_e_pointer_type_expected);
                     new_dispose_statement:=genzeronode(errorn);
                  end
                else
@@ -1227,7 +1227,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.37  1998-08-21 14:08:52  pierre
+  Revision 1.38  1998-09-04 08:42:04  peter
+    * updated some error messages
+
+  Revision 1.37  1998/08/21 14:08:52  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

@@ -341,7 +341,7 @@ implementation
                            ungetiftemp(p^.left^.location.reference);
                            ungetiftemp(p^.right^.location.reference);
                         end; { end this case }
-                else Message(sym_e_type_mismatch);
+                else Message(type_e_mismatch);
               end; { end case }
 
         SetResultLocation(cmpop,true,p);
@@ -458,7 +458,7 @@ implementation
                      p^.location.reference:=href;
                    end;
         else
-          Message(sym_e_type_mismatch);
+          Message(type_e_mismatch);
         end;
         SetResultLocation(cmpop,true,p);
       end;
@@ -485,7 +485,7 @@ implementation
          opsize : topsize;
          hl4: plabel;
          tmpref : treference;
-        
+
 
          { true, if unsigned types are compared }
          unsigned : boolean;
@@ -567,7 +567,7 @@ implementation
                                  falselabel:=ofl;
                               end;
                        else
-                         Message(sym_e_type_mismatch);
+                         Message(type_e_mismatch);
                        end;
                        secondpass(p^.right);
                        maketojumpbool(p^.right);
@@ -585,7 +585,7 @@ implementation
                        goto do_normal;
                     end
              else
-               Message(sym_e_type_mismatch);
+               Message(type_e_mismatch);
              end
            end
          else
@@ -691,7 +691,7 @@ implementation
                                   unsigned:=false;
                                 end
                                else
-                                Message(sym_e_type_mismatch);
+                                Message(type_e_mismatch);
                              end;
                       muln : begin
                                if is_set then
@@ -733,7 +733,7 @@ implementation
                        orn : op:=A_OR;
                       andn : op:=A_AND;
                    else
-                     Message(sym_e_type_mismatch);
+                     Message(type_e_mismatch);
                    end;
 
                    { left and right no register?  }
@@ -978,7 +978,7 @@ implementation
                       ltn,lten,gtn,gten,
                       equaln,unequaln :
                                 cmpop:=true;
-                      else Message(sym_e_type_mismatch);
+                      else Message(type_e_mismatch);
                    end;
                    unsigned:=true;
                    { left and right no register? }
@@ -1063,7 +1063,7 @@ implementation
                                             op:=A_FCMP;
                                             cmpop:=true;
                                          end;
-                       else Message(sym_e_type_mismatch);
+                       else Message(type_e_mismatch);
                     end;
 
                     if (p^.left^.location.loc <> LOC_FPU) and
@@ -1252,9 +1252,9 @@ implementation
                              end;
                          end;
                  end
-                
 
-              else Message(sym_e_type_mismatch);
+
+              else Message(type_e_mismatch);
            end;
        SetResultLocation(cmpop,unsigned,p);
     end;
@@ -1263,7 +1263,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-04 08:41:42  peter
+    * updated some error messages
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

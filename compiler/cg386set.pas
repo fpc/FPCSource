@@ -172,7 +172,7 @@ implementation
                      (p^.left^.resulttype^.deftype=enumdef) and (penumdef(p^.left^.resulttype)^.max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
-         if (p^.right^.treetype=setconstrn) and
+         if (p^.right^.treetype=setconstn) and
             analizeset(p^.right^.constset,use_small) then
           begin
             { It gives us advantage to check for the set elements
@@ -778,7 +778,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  1998-09-03 17:08:40  pierre
+  Revision 1.11  1998-09-04 08:41:41  peter
+    * updated some error messages
+
+  Revision 1.10  1998/09/03 17:08:40  pierre
     * better lines for stabs
       (no scroll back to if before else part
       no return to case line at jump outside case)

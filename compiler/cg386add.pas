@@ -269,7 +269,7 @@ implementation
                ungetiftemp(p^.left^.location.reference);
                ungetiftemp(p^.right^.location.reference);
             end;
-            else Message(sym_e_type_mismatch);
+            else Message(type_e_mismatch);
           end;
         SetResultLocation(cmpop,true,p);
       end;
@@ -385,7 +385,7 @@ implementation
                      p^.location.reference:=href;
                    end;
         else
-          Message(sym_e_type_mismatch);
+          Message(type_e_mismatch);
         end;
         SetResultLocation(cmpop,true,p);
       end;
@@ -496,7 +496,7 @@ implementation
                                  falselabel:=ofl;
                               end;
                        else
-                         Message(sym_e_type_mismatch);
+                         Message(type_e_mismatch);
                        end;
                        secondpass(p^.right);
                        maketojumpbool(p^.right);
@@ -514,7 +514,7 @@ implementation
                        goto do_normal;
                     end
              else
-               Message(sym_e_type_mismatch);
+               Message(type_e_mismatch);
              end
            end
          else
@@ -640,7 +640,7 @@ implementation
                                   unsigned:=false;
                                 end
                                else
-                                Message(sym_e_type_mismatch);
+                                Message(type_e_mismatch);
                              end;
                       muln : begin
                                if is_set then
@@ -682,7 +682,7 @@ implementation
                        orn : op:=A_OR;
                       andn : op:=A_AND;
                    else
-                     Message(sym_e_type_mismatch);
+                     Message(type_e_mismatch);
                    end;
 
                    { left and right no register?  }
@@ -907,7 +907,7 @@ implementation
                       ltn,lten,gtn,gten,
                       equaln,unequaln :
                                 cmpop:=true;
-                      else Message(sym_e_type_mismatch);
+                      else Message(type_e_mismatch);
                    end;
                    unsigned:=true;
                    { left and right no register? }
@@ -992,7 +992,7 @@ implementation
                                             op:=A_FCOMPP;
                                             cmpop:=true;
                                          end;
-                       else Message(sym_e_type_mismatch);
+                       else Message(type_e_mismatch);
                     end;
 
                     if (p^.right^.location.loc<>LOC_FPU) then
@@ -1158,7 +1158,7 @@ implementation
                         op:=A_POR;
                       andn:
                         op:=A_PAND;
-                      else Message(sym_e_type_mismatch);
+                      else Message(type_e_mismatch);
                    end;
                    { left and right no register?  }
                    { then one must be demanded    }
@@ -1271,7 +1271,7 @@ implementation
                      end;
                 end
 {$endif SUPPORT_MMX}
-              else Message(sym_e_type_mismatch);
+              else Message(type_e_mismatch);
            end;
        SetResultLocation(cmpop,unsigned,p);
     end;
@@ -1280,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-08-28 10:54:18  peter
+  Revision 1.9  1998-09-04 08:41:36  peter
+    * updated some error messages
+
+  Revision 1.8  1998/08/28 10:54:18  peter
     * fixed smallset generation from elements, it has never worked before!
 
   Revision 1.7  1998/08/19 14:56:59  peter

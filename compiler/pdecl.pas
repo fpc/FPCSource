@@ -129,7 +129,7 @@ unit pdecl;
                                       pd^:=p^.valued;
                                       symtablestack^.insert(new(pconstsym,init(name,constreal,longint(pd),nil)));
                                    end;
-                      setconstrn : begin
+                       setconstn : begin
                                       new(ps);
                                       ps^:=p^.constset^;
                                       symtablestack^.insert(new(pconstsym,init(name,
@@ -446,7 +446,7 @@ unit pdecl;
                   symtablestack^.insert(new(pvarsym,init(s,casedef)));
                 end;
               if not is_ordinal(casedef) then
-               Message(parser_e_ordinal_expected);
+               Message(type_e_ordinal_expr_expected);
               consume(_OF);
               startvarrec:=symtablestack^.datasize;
               repeat
@@ -575,7 +575,7 @@ unit pdecl;
                 end;
               if srsym^.typ<>typesym then
                 begin
-                   Message(sym_e_type_id_expected);
+                   Message(type_e_type_id_expected);
                    lasttypesym:=ptypesym(srsym);
                    id_type:=generrordef;
                    exit;
@@ -1022,7 +1022,7 @@ unit pdecl;
                      end
                    else
                      begin
-                        Message(parser_e_class_type_expected);
+                        Message(type_e_class_type_expected);
                         object_dec:=new(perrordef,init);
                      end;
                    exit;
@@ -1061,7 +1061,7 @@ unit pdecl;
               childof:=pobjectdef(id_type(pattern));
               if (childof^.deftype<>objectdef) then
                  begin
-                    Message(parser_e_class_type_expected);
+                    Message(type_e_class_type_expected);
                     childof:=nil;
                  end;
                    { a mix of class and object isn't allowed }
@@ -1074,7 +1074,7 @@ unit pdecl;
                      correct field addresses
                    }
                    if (childof^.options and oo_isforward)<>0 then
-                     Message1(parser_forward_declaration_must_be_resolved,childof^.name^);
+                     Message1(parser_e_forward_declaration_must_be_resolved,childof^.name^);
                    fd^.childof:=childof;
                    aktclass:=fd;
                    { ajust the size, because the child could be also
@@ -1109,7 +1109,7 @@ unit pdecl;
                           correct field addresses
                         }
                         if (childof^.options and oo_isforward)<>0 then
-                          Message1(parser_forward_declaration_must_be_resolved,childof^.name^);
+                          Message1(parser_e_forward_declaration_must_be_resolved,childof^.name^);
                         aktclass:=fd;
                         aktclass^.childof:=childof;
                         { ajust the size, because the child could be also
@@ -1544,7 +1544,7 @@ unit pdecl;
                           if (pt1^.resulttype=pt2^.resulttype) then
                             p:=new(penumdef,init_subrange(penumdef(pt1^.resulttype),pt1^.value,pt2^.value))
                           else
-                            Message(sym_e_type_mismatch);
+                            Message(type_e_mismatch);
                         end
                        else
                         begin
@@ -1969,7 +1969,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.47  1998-09-03 16:03:18  florian
+  Revision 1.48  1998-09-04 08:42:02  peter
+    * updated some error messages
+
+  Revision 1.47  1998/09/03 16:03:18  florian
     + rtti generation
     * init table generation changed
 

@@ -432,7 +432,7 @@ implementation
                               newreference(p^.left^.location.reference),R_D0)))
                           else
                             exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,p^.left^.location.register,R_D0)));
-                        end
+                        end;
              floatdef : begin
                           { floating point return values .... }
                           { single are returned in d0         }
@@ -574,7 +574,7 @@ do_jmp:
                  LOC_MEM,LOC_REFERENCE : emitpushreferenceaddr(p^.left^.location.reference);
                  LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai68k,op_reg_reg(A_MOVE,S_L,
                    p^.left^.location.register,R_SPPUSH)));
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               emitcall('FPC_RAISEEXCEPTION',true);
              end
@@ -776,7 +776,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.2  1998-09-01 12:48:01  peter
+  Revision 1.3  1998-09-04 08:41:47  peter
+    * updated some error messages
+
+  Revision 1.2  1998/09/01 12:48:01  peter
     * use pdef^.size instead of orddef^.typ
 
   Revision 1.1  1998/09/01 09:07:09  peter

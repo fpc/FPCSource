@@ -280,7 +280,7 @@ implementation
                 end
              else
                 begin
-                  if (p^.right^.treetype=setconstrn) and
+                  if (p^.right^.treetype=setconstn) and
                      analizeset(p^.right^.constset) then
                     begin
                       {It gives us advantage to check for the set elements
@@ -812,7 +812,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-01 09:07:09  peter
+  Revision 1.2  1998-09-04 08:41:49  peter
+    * updated some error messages
+
+  Revision 1.1  1998/09/01 09:07:09  peter
     * m68k fixes, splitted cg68k like cgi386
 
 }

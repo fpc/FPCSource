@@ -233,8 +233,13 @@ unit pass_1;
          if (def_from^.deftype=orddef) and (def_to^.deftype=orddef) then
            begin
               doconv:=basedefconverts[porddef(def_from)^.typ,porddef(def_to)^.typ];
-              if doconv<>tc_not_possible then
-                b:=true;
+            { Don't allow automatic int->bool.
+              Very Bad Hack !!!! (PFV) }
+              if (doconv=tc_int_2_bool) and (not explicit) then
+               b:=false
+              else
+               if doconv<>tc_not_possible then
+                 b:=true;
            end
          else
 
@@ -266,7 +271,7 @@ unit pass_1;
                    if (pfloatdef(def_to)^.typ=s64bit) and
                       (pfloatdef(def_from)^.typ<>s64bit)  and
                       not (explicit) then
-                     Message(parser_w_convert_real_2_comp);
+                     Message(type_w_convert_real_2_comp);
 {$endif}
                 end;
               b:=true;
@@ -825,7 +830,7 @@ unit pass_1;
                          firstpass(t);
                        end;
               else
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
               end;
               disposetree(p);
               firstpass(t);
@@ -851,7 +856,7 @@ unit pass_1;
                equaln : t:=genordinalconstnode(ord(lvd=rvd),booldef);
              unequaln : t:=genordinalconstnode(ord(lvd<>rvd),booldef);
               else
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
               end;
               disposetree(p);
               p:=t;
@@ -879,8 +884,8 @@ unit pass_1;
 {$else UseAnsiString}
               s1^:=char(byte(p^.left^.value));
               s2^:=char(byte(p^.right^.value));
-              concatstrings:=true;
 {$endif UseAnsiString}
+              concatstrings:=true;
            end
          else
            if (lt=stringconstn) and (rt=ordconstn) and
@@ -895,8 +900,8 @@ unit pass_1;
 {$else UseAnsiString}
               s1^:=p^.left^.values^;
               s2^:=char(byte(p^.right^.value));
-              concatstrings:=true;
 {$endif UseAnsiString}
+              concatstrings:=true;
            end
          else if (lt=ordconstn) and (rt=stringconstn) and
            (ld^.deftype=orddef) and
@@ -911,8 +916,8 @@ unit pass_1;
 {$else UseAnsiString}
               s1^:=char(byte(p^.left^.value));
               s2^:=p^.right^.values^;
-              concatstrings:=true;
 {$endif UseAnsiString}
+              concatstrings:=true;
            end
          else if (lt=stringconstn) and (rt=stringconstn) then
            begin
@@ -921,12 +926,11 @@ unit pass_1;
               l1:=p^.left^.length;
               s2:=getpcharcopy(p^.right);
               l2:=p^.right^.length;
-              concatstrings:=true;
 {$else UseAnsiString}
               s1^:=p^.left^.values^;
               s2^:=p^.right^.values^;
-              concatstrings:=true;
 {$endif UseAnsiString}
+              concatstrings:=true;
            end;
 
          { I will need to translate all this to ansistrings !!! }
@@ -996,7 +1000,7 @@ unit pass_1;
                           calcregisters(p,1,0,0);
                         end
                 else
-                  Message(sym_e_type_mismatch);
+                  Message(type_e_mismatch);
                 end;
                 convdone:=true;
               end
@@ -1050,11 +1054,11 @@ unit pass_1;
              { right site must also be a setdef, unless addn is used }
                 if not(p^.treetype in [subn,symdifn,addn,muln,equaln,unequaln]) or
                    ((rd^.deftype<>setdef) and (p^.treetype<>addn)) then
-                  Message(sym_e_type_mismatch);
+                  Message(type_e_mismatch);
 
                 if ((rd^.deftype=setdef) and not(is_equal(rd,ld))) and
                    not((rt=setelementn) and is_equal(psetdef(ld)^.setof,rd)) then
-                  Message(sym_e_set_element_are_not_comp);
+                  Message(type_e_set_element_are_not_comp);
 
                 { ranges require normsets }
                 if (psetdef(ld)^.settype=smallset) and
@@ -1079,8 +1083,8 @@ unit pass_1;
                  end;
 
                 { do constant evalution }
-                if (p^.right^.treetype=setconstrn) and
-                   (p^.left^.treetype=setconstrn) then
+                if (p^.right^.treetype=setconstn) and
+                   (p^.left^.treetype=setconstn) then
                   begin
                      new(resultset);
                      case p^.treetype of
@@ -1088,25 +1092,25 @@ unit pass_1;
                                   for i:=0 to 31 do
                                     resultset^[i]:=
                                       p^.right^.constset^[i] or p^.left^.constset^[i];
-                                  t:=gensetconstruktnode(resultset,psetdef(ld));
+                                  t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         muln : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
                                       p^.right^.constset^[i] and p^.left^.constset^[i];
-                                  t:=gensetconstruktnode(resultset,psetdef(ld));
+                                  t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                         subn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
                                       p^.left^.constset^[i] and not(p^.right^.constset^[i]);
-                                  t:=gensetconstruktnode(resultset,psetdef(ld));
+                                  t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                      symdifn : begin
                                   for i:=0 to 31 do
                                     resultset^[i]:=
                                       p^.left^.constset^[i] xor p^.right^.constset^[i];
-                                  t:=gensetconstruktnode(resultset,psetdef(ld));
+                                  t:=gensetconstnode(resultset,psetdef(ld));
                                end;
                     unequaln : begin
                                  b:=true;
@@ -1194,16 +1198,16 @@ unit pass_1;
                  ltn,lten,gtn,gten:
                    begin
                       if not(cs_extsyntax in aktmoduleswitches) then
-                        Message(sym_e_type_mismatch);
+                        Message(type_e_mismatch);
                    end;
                  subn:
                    begin
                       if not(cs_extsyntax in aktmoduleswitches) then
-                        Message(sym_e_type_mismatch);
+                        Message(type_e_mismatch);
                       p^.resulttype:=s32bitdef;
                       exit;
                    end;
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1222,7 +1226,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1241,7 +1245,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1257,7 +1261,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1272,7 +1276,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1285,7 +1289,7 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                  equaln,unequaln : ;
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1299,7 +1303,7 @@ unit pass_1;
               case p^.treetype of
                 equaln,unequaln : ;
               else
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1314,10 +1318,10 @@ unit pass_1;
               if p^.treetype=addn then
                 begin
                   if not(cs_extsyntax in aktmoduleswitches) then
-                    Message(sym_e_type_mismatch);
+                    Message(type_e_mismatch);
                 end
               else
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
               convdone:=true;
             end
          else
@@ -1330,9 +1334,9 @@ unit pass_1;
               calcregisters(p,1,0,0);
               case p^.treetype of
                 addn,subn : if not(cs_extsyntax in aktmoduleswitches) then
-                              Message(sym_e_type_mismatch);
+                              Message(type_e_mismatch);
               else
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
               end;
               convdone:=true;
            end
@@ -1345,7 +1349,7 @@ unit pass_1;
               case p^.treetype of
                  equaln,unequaln : ;
               else
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
               end;
               convdone:=true;
             end
@@ -1364,9 +1368,9 @@ unit pass_1;
                 muln:
                   if not(mmx_type(p^.left^.resulttype) in
                     [mmxu16bit,mmxs16bit,mmxfixed16]) then
-                    Message(sym_e_type_mismatch);
+                    Message(type_e_mismatch);
                 else
-                  Message(sym_e_type_mismatch);
+                  Message(type_e_mismatch);
               end;
               p^.location.loc:=LOC_MMXREGISTER;
               calcregisters(p,0,0,1);
@@ -1381,7 +1385,7 @@ unit pass_1;
               case p^.treetype of
                  equaln,unequaln,
                  ltn,lten,gtn,gten : ;
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               convdone:=true;
             end;
@@ -1392,7 +1396,8 @@ unit pass_1;
               { but an int/int gives real/real! }
               if p^.treetype=slashn then
                 begin
-                   Message(parser_w_use_int_div_int_op);
+                   Message(type_w_int_slash_int);
+                   Message(type_h_use_div_for_int);
                    p^.right:=gentypeconvnode(p^.right,c64floatdef);
                    p^.left:=gentypeconvnode(p^.left,c64floatdef);
                    firstpass(p^.left);
@@ -1648,7 +1653,7 @@ unit pass_1;
                if (cs_mmx_saturation in aktlocalswitches^) and
                  (porddef(parraydef(p^.resulttype)^.definition)^.typ in
                  [s32bit,u32bit]) then
-                 Message(sym_e_type_mismatch);
+                 Message(type_e_mismatch);
                }
              end
 {$endif SUPPORT_MMX}
@@ -1689,7 +1694,7 @@ unit pass_1;
                      end;
                    minusdef:=minusdef^.nextoverloaded;
                 end;
-              Message(sym_e_type_mismatch);
+              Message(type_e_mismatch);
            end;
       end;
 
@@ -1878,7 +1883,7 @@ unit pass_1;
 
          { assignements to open arrays aren't allowed }
          if is_open_array(p^.left^.resulttype) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
          { test if we can avoid copying string to temp
            as in s:=s+...; (PM) }
 {$ifdef dummyi386}
@@ -2033,7 +2038,7 @@ unit pass_1;
          { both types must be compatible }
          if not(is_equal(p^.left^.resulttype,p^.right^.resulttype)) and
             not(isconvertable(p^.left^.resulttype,p^.right^.resulttype,ct,ordconstn,false)) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
          { Check if only when its a constant set }
          if (p^.left^.treetype=ordconstn) and (p^.right^.treetype=ordconstn) then
           begin
@@ -2070,7 +2075,7 @@ unit pass_1;
                 ct,ordconstn,false)) and
               not(is_equal(p^.right^.resulttype,
                 parraydef(p^.left^.resulttype)^.rangedef)) then
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
            end;
          { Never convert a boolean or a char !}
          { maybe type conversion }
@@ -2116,7 +2121,7 @@ unit pass_1;
                 end;
              end
            else
-             Message(sym_e_type_mismatch);
+             Message(type_e_mismatch);
          { the register calculation is easy if a const index is used }
          if p^.right^.treetype=ordconstn then
            begin
@@ -2558,7 +2563,7 @@ unit pass_1;
               (psetdef(p^.left^.resulttype)^.settype=smallset) then
             begin
             { try to define the set as a normalset if it's a constant set }
-              if p^.left^.treetype=setconstrn then
+              if p^.left^.treetype=setconstn then
                begin
                  p^.resulttype:=p^.left^.resulttype;
                  psetdef(p^.resulttype)^.settype:=normset
@@ -2622,7 +2627,7 @@ unit pass_1;
                           firstpass(p^.left);
                           if not is_equal(p^.left^.resulttype,p^.resulttype) then
                             begin
-                               Message(sym_e_type_mismatch);
+                               Message(type_e_mismatch);
                                exit;
                             end
                           else
@@ -2662,13 +2667,13 @@ unit pass_1;
                     if not is_equal(aprocdef,p^.resulttype) then
                       begin
                         aprocdef^.deftype:=proctype;
-                        Message(sym_e_type_mismatch);
+                        Message(type_e_mismatch);
                       end;
                     aprocdef^.deftype:=proctype;
                     firstconvert[p^.convtyp](p);
                   end
                 else
-                  Message(sym_e_type_mismatch);
+                  Message(type_e_mismatch);
                 exit;
              end
            else
@@ -2771,13 +2776,12 @@ unit pass_1;
                        Message(cg_e_illegal_type_conversion);
                 end
               else
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
            end
          end
        else
          begin
-            { just a test: p^.explizit:=false; }
-            { ordinale contants are direct converted }
+            { ordinal contants can be directly converted }
             if (p^.left^.treetype=ordconstn) and is_ordinal(p^.resulttype) then
               begin
                  { perform range checking }
@@ -2950,7 +2954,7 @@ unit pass_1;
                  is_shortstring(defcoll^.data) and
                  (defcoll^.paratyp=vs_var) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
-                 Message(parser_e_strict_var_string_violation);
+                 Message(type_e_strict_var_string_violation);
               { Variablen, die call by reference Åbergeben werden, }
               { kînnen nicht in ein Register kopiert werden       }
               { is this usefull here ? }
@@ -3132,8 +3136,7 @@ unit pass_1;
                         pt:=pt^.right;
                      end;
 
-                   { alle in Frage kommenden Prozeduren in eine }
-                   { verkettete Liste einfÅgen                  }
+                   { link all procedures which have the same # of parameters }
                    pd:=actprocsym^.definition;
                    while assigned(pd) do
                      begin
@@ -3158,7 +3161,7 @@ unit pass_1;
                                   inc(l);
                                   pdc:=pdc^.next;
                                end;
-                             { nur wenn die ParameterlÑnge pa·t, dann EinfÅgen }
+                             { only when the # of parameter are equal }
                              if l=paralength then
                                begin
                                   new(hp);
@@ -3180,7 +3183,16 @@ unit pass_1;
 {$endif CHAINPROCSYMS}
                      end;
 
-                   { nun alle Parameter nacheinander vergleichen }
+                   { no procedures found? then there is something wrong
+                     with the parameter size }
+                   if not assigned(procs) and
+                      ((parsing_para_level=0) or assigned(p^.left)) then
+                    begin
+                      Message(parser_e_wrong_parameter_size);
+                      exit;
+                    end;
+
+                   { now we can compare parameter after parameter }
                    pt:=p^.left;
                    while assigned(pt) do
                      begin
@@ -3229,13 +3241,11 @@ unit pass_1;
                                     hp:=hp^.next;
                                end;
                           end
-                        { sollte nirgendwo ein Parameter exakt passen, }
-                        { so alle Prozeduren entfernen, bei denen      }
-                        { der Parameter auch nach einer impliziten     }
-                        { Typkonvertierung nicht passt                 }
+                        { when a parameter matches exact, remove all procs
+                          which need typeconvs }
                         else
                           begin
-                             { erst am Anfang }
+                             { the first... }
                              while (assigned(procs)) and
                                not(isconvertable(pt^.resulttype,procs^.nextpara^.data,
                                  hcvt,pt^.left^.treetype,false)) do
@@ -3244,7 +3254,7 @@ unit pass_1;
                                   dispose(procs);
                                   procs:=hp;
                                end;
-                             { und jetzt aus der Mitte }
+                             { and the others }
                              hp:=procs;
                              while (assigned(hp)) and assigned(hp^.next) do
                                begin
@@ -3259,34 +3269,38 @@ unit pass_1;
                                     hp:=hp^.next;
                                end;
                           end;
-                        { nun bei denn Prozeduren den nextpara-Zeiger auf den }
-                        { naechsten Parameter setzen                          }
+                        { update nextpara for all procedures }
                         hp:=procs;
                         while assigned(hp) do
                           begin
                              hp^.nextpara:=hp^.nextpara^.next;
                              hp:=hp^.next;
                           end;
+                        { load next parameter }
                         pt:=pt^.right;
                      end;
 
-                   if procs=nil then
-                     if (parsing_para_level=0) or (p^.left<>nil) then
+                   if not assigned(procs) then
+                    begin
+                      { there is an error, must be wrong type, becuase
+                        wrong size is already checked (PFV) }
+                      if (parsing_para_level=0) or (p^.left<>nil) then
                        begin
-                          Message(parser_e_illegal_parameter_list);
-                          exit;
+                         Message(parser_e_wrong_parameter_type);
+                         exit;
                        end
-                     else
+                      else
                        begin
-                          { try to convert to procvar }
-                          p^.treetype:=loadn;
-                          p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
-                          p^.symtableentry:=p^.symtableprocentry;
-                          p^.is_first:=false;
-                          p^.disposetyp:=dt_nothing;
-                          firstpass(p);
-                          exit;
+                         { try to convert to procvar }
+                         p^.treetype:=loadn;
+                         p^.resulttype:=pprocsym(p^.symtableprocentry)^.definition;
+                         p^.symtableentry:=p^.symtableprocentry;
+                         p^.is_first:=false;
+                         p^.disposetyp:=dt_nothing;
+                         firstpass(p);
+                         exit;
                        end;
+                     end;
 
                    { if there are several choices left then for orddef }
                    { if a type is totally included in the other        }
@@ -3365,8 +3379,7 @@ unit pass_1;
                                          end;
                                     end;
                                end;
-                             { nun bei denn Prozeduren den nextpara-Zeiger auf den }
-                             { naechsten Parameter setzen                          }
+                             { update nextpara for all procedures }
                              hp:=procs;
                              while assigned(hp) do
                                begin
@@ -3659,8 +3672,14 @@ unit pass_1;
     procedure firstinline(var p : ptree);
 
       var
-         hp,hpp : ptree;
-         store_count_ref,isreal,store_valid,file_is_typed : boolean;
+         vl      : longint;
+         vr      : bestreal;
+         hp,hpp  : ptree;
+         store_count_ref,
+         isreal,
+         dowrite,
+         store_valid,
+         file_is_typed : boolean;
 
       procedure do_lowhigh(adef : pdef);
 
@@ -3694,10 +3713,6 @@ unit pass_1;
            end;
         end;
 
-      var
-        is_real : boolean;
-        vl      : longint;
-        vr      : bestreal;
       begin
          store_valid:=must_be_valid;
          store_count_ref:=count_ref;
@@ -3721,67 +3736,67 @@ unit pass_1;
          { handle intern constant functions in separate case }
          if p^.inlineconst then
           begin
-            is_real:=(p^.left^.treetype=realconstn);
+            isreal:=(p^.left^.treetype=realconstn);
             vl:=p^.left^.value;
             vr:=p^.left^.valued;
             case p^.inlinenumber of
          in_const_trunc : begin
-                            if is_real then
+                            if isreal then
                              hp:=genordinalconstnode(trunc(vr),s32bitdef)
                             else
                              hp:=genordinalconstnode(trunc(vl),s32bitdef);
                           end;
          in_const_round : begin
-                            if is_real then
+                            if isreal then
                              hp:=genordinalconstnode(round(vr),s32bitdef)
                             else
                              hp:=genordinalconstnode(round(vl),s32bitdef);
                           end;
           in_const_frac : begin
-                            if is_real then
+                            if isreal then
                              hp:=genrealconstnode(frac(vr))
                             else
                              hp:=genrealconstnode(frac(vl));
                           end;
            in_const_int : begin
-                            if is_real then
+                            if isreal then
                              hp:=genrealconstnode(int(vr))
                             else
                              hp:=genrealconstnode(int(vl));
                           end;
            in_const_abs : begin
-                            if is_real then
+                            if isreal then
                              hp:=genrealconstnode(abs(vr))
                             else
                              hp:=genordinalconstnode(abs(vl),p^.left^.resulttype);
                           end;
            in_const_sqr : begin
-                            if is_real then
+                            if isreal then
                              hp:=genrealconstnode(sqr(vr))
                             else
                              hp:=genordinalconstnode(sqr(vl),p^.left^.resulttype);
                           end;
            in_const_odd : begin
-                            if is_real then
-                             Message(sym_e_type_mismatch)
+                            if isreal then
+                             Message(type_e_integer_expr_expected)
                             else
                              hp:=genordinalconstnode(byte(odd(vl)),booldef);
                           end;
      in_const_swap_word : begin
-                            if is_real then
-                             Message(sym_e_type_mismatch)
+                            if isreal then
+                             Message(type_e_integer_expr_expected)
                             else
                              hp:=genordinalconstnode((vl and $ff) shl 8+(vl shr 8),p^.left^.resulttype);
                           end;
      in_const_swap_long : begin
-                            if is_real then
-                             Message(sym_e_type_mismatch)
+                            if isreal then
+                             Message(type_e_mismatch)
                             else
                              hp:=genordinalconstnode((vl and $ffff) shl 16+(vl shr 16),p^.left^.resulttype);
                           end;
            in_const_ptr : begin
-                            if is_real then
-                             Message(sym_e_type_mismatch)
+                            if isreal then
+                             Message(type_e_mismatch)
                             else
                              hp:=genordinalconstnode(vl,voidpointerdef);
                           end;
@@ -3806,7 +3821,7 @@ unit pass_1;
                     p^.resulttype:=u16bitdef;
                   p^.location.loc:=LOC_REGISTER;
                   if not is_integer(p^.left^.resulttype) then
-                    Message(sym_e_type_mismatch)
+                    Message(type_e_mismatch)
                   else
                     begin
                       if p^.left^.treetype=ordconstn then
@@ -3871,7 +3886,7 @@ unit pass_1;
                            end
                          { can this happen ? }
                          else if (porddef(p^.left^.resulttype)^.typ=uvoid) then
-                           Message(sym_e_type_mismatch)
+                           Message(type_e_mismatch)
                          else
                            { all other orddef need no transformation }
                            begin
@@ -3890,7 +3905,7 @@ unit pass_1;
                        else
                          begin
                             { can anything else be ord() ?}
-                            Message(sym_e_type_mismatch);
+                            Message(type_e_mismatch);
                          end;
                     end;
                end;
@@ -3944,12 +3959,12 @@ unit pass_1;
                   p^.resulttype:=p^.left^.resulttype;
                   p^.location.loc:=LOC_REGISTER;
                   if not is_ordinal(p^.resulttype) then
-                    Message(sym_e_type_mismatch)
+                    Message(type_e_ordinal_expr_expected)
                   else
                     begin
                       if (p^.resulttype^.deftype=enumdef) and
                          (penumdef(p^.resulttype)^.has_jumps) then
-                        Message(parser_e_succ_and_pred_enums_with_assign_not_possible)
+                        Message(type_e_succ_and_pred_enums_with_assign_not_possible)
                       else
                         if p^.left^.treetype=ordconstn then
                          begin
@@ -3973,13 +3988,11 @@ unit pass_1;
                       if codegenerror then
                        exit;
                       { first param must be var }
-                      if not (p^.left^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-                        Message(cg_e_illegal_expression);
+                      if is_constnode(p^.left^.left) then
+                        Message(type_e_variable_id_expected);
                       { check type }
                       if (p^.left^.resulttype^.deftype in [enumdef,pointerdef]) or
-                         ((p^.left^.resulttype^.deftype=orddef) and
-                          (porddef(p^.left^.resulttype)^.typ in [uchar,bool8bit,u8bit,s8bit,
-                             bool16bit,u16bit,s16bit,bool32bit,u32bit,s32bit])) then
+                         is_ordinal(p^.left^.resulttype) then
                         begin
                            { two paras ? }
                            if assigned(p^.left^.right) then
@@ -3994,10 +4007,10 @@ unit pass_1;
                              end;
                         end
                       else
-                        Message(sym_e_type_mismatch);
+                        Message(type_e_ordinal_expr_expected);
                    end
                  else
-                   Message(sym_e_type_mismatch);
+                   Message(type_e_mismatch);
               end;
              in_read_x,
              in_readln_x,
@@ -4033,45 +4046,78 @@ unit pass_1;
                                    { should we allow type conversion ? (PM)
                                    if not isconvertable(hpp^.resulttype,
                                      pfiledef(hp^.resulttype)^.typed_as,convtyp,hpp^.treetype) then
-                                     Message(sym_e_type_mismatch);
+                                     Message(type_e_mismatch);
                                    if not(is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as)) then
                                      begin
                                         hpp^.left:=gentypeconvnode(hpp^.left,pfiledef(hp^.resulttype)^.typed_as);
                                      end; }
                                    if not is_equal(hpp^.resulttype,pfiledef(hp^.resulttype)^.typed_as) then
-                                     Message(sym_e_type_mismatch);
+                                     Message(type_e_mismatch);
                                    hpp:=hpp^.right;
                                 end;
                               { once again for typeconversions }
                               firstcallparan(p^.left,nil);
                            end;
                          end; { endif assigned(hp) }
+
                        { insert type conversions for write(ln) }
                        if (not file_is_typed) and
-                          ((p^.inlinenumber=in_write_x) or (p^.inlinenumber=in_writeln_x)) then
+                          ((p^.inlinenumber in [in_write_x,in_writeln_x,in_read_x,in_readln_x])) then
                          begin
                             hp:=p^.left;
+                            dowrite:=(p^.inlinenumber in [in_write_x,in_writeln_x]);
                             while assigned(hp) do
                               begin
                                 if assigned(hp^.left^.resulttype) then
                                   begin
-                                   if hp^.left^.resulttype^.deftype=floatdef then
-                                     begin
-                                        isreal:=true;
+                                    case hp^.left^.resulttype^.deftype of
+                                      filedef : begin
+                                                { only allowed as first parameter }
+                                                  if assigned(hp^.right) then
+                                                   Message(type_e_cant_read_write_type);
+                                                end;
+                                    stringdef : ;
+                                   pointerdef : begin
+                                                  if not is_equal(ppointerdef(hp^.left^.resulttype)^.definition,cchardef) then
+                                                    Message(type_e_cant_read_write_type);
+                                                end;
+                                     floatdef : begin
+                                                  isreal:=true;
+                                                end;
+                                       orddef : begin
+                                                  case porddef(hp^.left^.resulttype)^.typ of
+                                                     uchar,
+                                             u32bit,s32bit : ;
+                                               u8bit,s8bit,
+                                             u16bit,s16bit : if dowrite then
+                                                              hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
+                                                  bool8bit,
+                                       bool16bit,bool32bit : if dowrite then
+                                                              hp^.left:=gentypeconvnode(hp^.left,booldef)
+                                                             else
+                                                              Message(type_e_cant_read_write_type);
+                                                  else
+                                                    Message(type_e_cant_read_write_type);
+                                                  end;
+                                                end;
+                                     arraydef : begin
+                                                  if not((parraydef(hp^.left^.resulttype)^.lowrange=0) and
+                                                         is_equal(parraydef(hp^.left^.resulttype)^.definition,cchardef)) then
+                                                   begin
+                                                   { but we convert only if the first index<>0,
+                                                     because in this case we have a ASCIIZ string }
+                                                     if dowrite and
+                                                        (parraydef(hp^.left^.resulttype)^.lowrange<>0) and
+                                                        (parraydef(hp^.left^.resulttype)^.definition^.deftype=orddef) and
+                                                        (porddef(parraydef(hp^.left^.resulttype)^.definition)^.typ=uchar) then
+                                                       hp^.left:=gentypeconvnode(hp^.left,cstringdef)
+                                                     else
+                                                       Message(type_e_cant_read_write_type);
+                                                   end;
+                                                end;
+                                     else
+                                       Message(type_e_cant_read_write_type);
                                      end
-                                   else if hp^.left^.resulttype^.deftype=orddef then
-                                     case porddef(hp^.left^.resulttype)^.typ of
-                                         u8bit,s8bit,
-                                       u16bit,s16bit : hp^.left:=gentypeconvnode(hp^.left,s32bitdef);
-                                 bool16bit,bool32bit : hp^.left:=gentypeconvnode(hp^.left,booldef);
-                                     end
-                                   { but we convert only if the first index<>0, because in this case }
-                                   { we have a ASCIIZ string                                         }
-                                   else if (hp^.left^.resulttype^.deftype=arraydef) and
-                                           (parraydef(hp^.left^.resulttype)^.lowrange<>0) and
-                                           (parraydef(hp^.left^.resulttype)^.definition^.deftype=orddef) and
-                                           (porddef(parraydef(hp^.left^.resulttype)^.definition)^.typ=uchar) then
-                                     hp^.left:=gentypeconvnode(hp^.left,cstringdef);
                                   end;
                                  hp:=hp^.right;
                               end;
@@ -4216,10 +4262,10 @@ unit pass_1;
                              end;
                         end
                       else
-                        Message(sym_e_type_mismatch);
+                        Message(type_e_mismatch);
                    end
                  else
-                   Message(sym_e_type_mismatch);
+                   Message(type_e_mismatch);
               end;
              in_low_x,in_high_x:
                begin
@@ -4277,11 +4323,11 @@ unit pass_1;
                               firstpass(p);
                            end;
                          else
-                           Message(sym_e_type_mismatch);
+                           Message(type_e_mismatch);
                          end;
                     end
                   else
-                    Message(parser_e_varid_or_typeid_expected);
+                    Message(type_e_varid_or_typeid_expected);
                end
                  else internalerror(8);
               end;
@@ -4404,7 +4450,7 @@ unit pass_1;
 
          { check the type }
          if (p^.left^.resulttype=nil) or (p^.left^.resulttype^.deftype<>pointerdef) then
-           Message(parser_e_pointer_type_expected);
+           Message(type_e_pointer_type_expected);
 
          if (p^.left^.location.loc<>LOC_REFERENCE) {and
             (p^.left^.location.loc<>LOC_CREGISTER)} then
@@ -4613,7 +4659,7 @@ unit pass_1;
          if not((p^.left^.resulttype^.deftype=orddef) and
             (porddef(p^.left^.resulttype)^.typ=bool8bit)) then
             begin
-               Message(sym_e_type_mismatch);
+               Message(type_e_mismatch);
                exit;
             end;
 
@@ -4661,7 +4707,7 @@ unit pass_1;
          if not((p^.left^.resulttype^.deftype=orddef) and
             (porddef(p^.left^.resulttype)^.typ in [bool8bit,bool16bit,bool32bit])) then
             begin
-               Message(sym_e_type_mismatch);
+               Message(type_e_mismatch);
                exit;
             end;
 
@@ -4809,7 +4855,7 @@ unit pass_1;
           Message(cg_e_illegal_count_var);
 
          if (not(is_ordinal(p^.t2^.resulttype))) then
-          Message(parser_e_ordinal_expected);
+          Message(type_e_ordinal_expr_expected);
 
          cleartempgen;
          must_be_valid:=false;
@@ -5013,7 +5059,7 @@ unit pass_1;
          firstpass(p^.right);
 
          if (p^.right^.resulttype^.deftype<>classrefdef) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
          if codegenerror then
            exit;
 
@@ -5022,14 +5068,14 @@ unit pass_1;
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
            not(pobjectdef(p^.left^.resulttype)^.isclass) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
 
          { the operands must be related }
          if (not(pobjectdef(p^.left^.resulttype)^.isrelated(
            pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
            (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.isrelated(
            pobjectdef(p^.left^.resulttype)))) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
 
          p^.location.loc:=LOC_FLAGS;
          p^.resulttype:=booldef;
@@ -5041,7 +5087,7 @@ unit pass_1;
          firstpass(p^.right);
          firstpass(p^.left);
          if (p^.right^.resulttype^.deftype<>classrefdef) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
 
          if codegenerror then
            exit;
@@ -5051,14 +5097,14 @@ unit pass_1;
          { left must be a class }
          if (p^.left^.resulttype^.deftype<>objectdef) or
            not(pobjectdef(p^.left^.resulttype)^.isclass) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
 
          { the operands must be related }
          if (not(pobjectdef(p^.left^.resulttype)^.isrelated(
            pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)))) and
            (not(pobjectdef(pclassrefdef(p^.right^.resulttype)^.definition)^.isrelated(
            pobjectdef(p^.left^.resulttype)))) then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
 
          p^.location:=p^.left^.location;
          p^.resulttype:=pclassrefdef(p^.right^.resulttype)^.definition;
@@ -5089,7 +5135,7 @@ unit pass_1;
               { this must be a _class_ }
               if (p^.left^.resulttype^.deftype<>objectdef) or
                 ((pobjectdef(p^.left^.resulttype)^.options and oois_class)=0) then
-                Message(sym_e_type_mismatch);
+                Message(type_e_mismatch);
 
               p^.registersfpu:=p^.left^.registersfpu;
               p^.registers32:=p^.left^.registers32;
@@ -5365,7 +5411,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.69  1998-09-01 17:39:47  peter
+  Revision 1.70  1998-09-04 08:42:00  peter
+    * updated some error messages
+
+  Revision 1.69  1998/09/01 17:39:47  peter
     + internal constant functions
 
   Revision 1.68  1998/09/01 09:02:52  peter

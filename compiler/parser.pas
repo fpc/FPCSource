@@ -33,8 +33,9 @@ unit parser;
   implementation
 
     uses
-      cobjects,verbose,comphook,systems,globals,
-      symtable,files,aasm,hcodegen,
+      cobjects,comphook,systems,globals,
+      hcodegen,verbose, { leave this order, else hcodegen.message will be used !! }
+      symtable,files,aasm,
       assemble,link,script,gendef,
 {$ifdef UseBrowser}
       browser,
@@ -371,7 +372,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.41  1998-09-01 12:53:24  peter
+  Revision 1.42  1998-09-04 08:41:59  peter
+    * updated some error messages
+
+  Revision 1.41  1998/09/01 12:53:24  peter
     + aktpackenum
 
   Revision 1.40  1998/09/01 07:54:19  pierre

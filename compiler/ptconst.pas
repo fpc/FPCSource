@@ -210,7 +210,7 @@ unit ptconst;
            begin
               p:=comp_expr(true);
               do_firstpass(p);
-              if p^.treetype=setconstrn then
+              if p^.treetype=setconstn then
                 begin
                    { we only allow const sets }
                    if assigned(p^.left) then
@@ -439,7 +439,7 @@ unit ptconst;
                      Message(parser_e_no_overloaded_procvars);
                    if not((pprocvardef(def)^.options=pd^.options)) or
                      not(is_equal(pprocvardef(def)^.retdef,pd^.retdef)) then
-                     Message(sym_e_type_mismatch)
+                     Message(type_e_mismatch)
                      else
                         begin
                            hp1:=pprocvardef(def)^.para1;
@@ -449,14 +449,14 @@ unit ptconst;
                                 if not(is_equal(hp1^.data,hp2^.data)) or
                                    not(hp1^.paratyp=hp2^.paratyp) then
                                   begin
-                                     Message(sym_e_type_mismatch);
+                                     Message(type_e_mismatch);
                                      break;
                                   end;
                                 hp1:=hp1^.next;
                                 hp2:=hp2^.next;
                              end;
                            if not((hp1=nil) and (hp2=nil)) then
-                             Message(sym_e_type_mismatch);
+                             Message(type_e_mismatch);
                         end;
                    datasegment^.concat(new(pai_const,init_symbol(strpnew(pd^.mangledname))));
                    if pd^.owner^.symtabletype=unitsymtable then
@@ -512,7 +512,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.13  1998-09-01 09:05:36  peter
+  Revision 1.14  1998-09-04 08:42:07  peter
+    * updated some error messages
+
+  Revision 1.13  1998/09/01 09:05:36  peter
     * fixed string[4]='.library'
 
   Revision 1.12  1998/08/31 12:26:32  peter

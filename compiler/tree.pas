@@ -94,7 +94,7 @@ unit tree;
                    newn,            {The new operation, constructor call.}
                    simpledisposen,  {The dispose operation.}
                    setelementn,     {A set element(s) (i.e. [a,b] and also [a..b]).}
-                   setconstrn,      {A set constant (i.e. [1,2]).}
+                   setconstn,       {A set constant (i.e. [1,2]).}
                    blockn,          {A block of statements.}
                    statementn,      {One statement in a block of nodes.}
                    loopn,           { used in genloopnode, must be converted }
@@ -226,7 +226,7 @@ unit tree;
              inlinen : (inlinenumber : longint;inlineconst:boolean);
              procinlinen : (inlineprocdef : pprocdef;
                             retoffset,para_offset,para_size : longint);
-             setconstrn : (constset : pconstset);
+             setconstn : (constset : pconstset);
              loopn : (t1,t2 : ptree;backward : boolean);
              asmn : (p_asm : paasmoutput;object_preserved : boolean);
              casen : (nodes : pcaserecord;elseblock : ptree);
@@ -263,7 +263,7 @@ unit tree;
     function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : ptree;
     function genenumnode(v : penumsym) : ptree;
     function genselfnode(_class : pdef) : ptree;
-    function gensetconstruktnode(s : pconstset;settype : psetdef) : ptree;
+    function gensetconstnode(s : pconstset;settype : psetdef) : ptree;
     function genloopnode(t : ttreetyp;l,r,n1: ptree;back : boolean) : ptree;
     function genasmnode(p_asm : paasmoutput) : ptree;
     function gencasenode(l,r : ptree;nodes : pcaserecord) : ptree;
@@ -291,9 +291,9 @@ unit tree;
     { keinen ordinalen Wert hat, wird ein Fehler erzeugt        }
     function get_ordinal_value(p : ptree) : longint;
 
+    function is_constnode(p : ptree) : boolean;
     { true, if p is a pointer to a const int value }
     function is_constintnode(p : ptree) : boolean;
-    { like is_constintnode }
     function is_constboolnode(p : ptree) : boolean;
     function is_constrealnode(p : ptree) : boolean;
     function is_constcharnode(p : ptree) : boolean;
@@ -333,7 +333,7 @@ unit tree;
          case p^.treetype of
           asmn : if assigned(p^.p_asm) then
                   dispose(p^.p_asm,done);
-    setconstrn : if assigned(p^.constset) then
+     setconstn : if assigned(p^.constset) then
                   dispose(p^.constset);
          end;
          { reference info }
@@ -1130,7 +1130,7 @@ unit tree;
          genprocinlinenode:=p;
       end;
 
-   function gensetconstruktnode(s : pconstset;settype : psetdef) : ptree;
+   function gensetconstnode(s : pconstset;settype : psetdef) : ptree;
 
      var
         p : ptree;
@@ -1138,7 +1138,7 @@ unit tree;
      begin
         p:=getnode;
         p^.disposetyp:=dt_constset;
-        p^.treetype:=setconstrn;
+        p^.treetype:=setconstn;
         p^.registers32:=0;
         p^.registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -1148,7 +1148,7 @@ unit tree;
          p^.left:=nil;
          new(p^.constset);
          p^.constset^:=s^;
-         gensetconstruktnode:=p;
+         gensetconstnode:=p;
       end;
 
 {$ifdef extdebug}
@@ -1513,21 +1513,21 @@ unit tree;
          if p^.treetype=ordconstn then
            get_ordinal_value:=p^.value
          else
-           Message(parser_e_ordinal_expected);
+           Message(type_e_ordinal_expr_expected);
+      end;
+
+
+    function is_constnode(p : ptree) : boolean;
+      begin
+        is_constnode:=(p^.treetype in [ordconstn,realconstn,stringconstn,fixconstn,setconstn]);
       end;
 
 
     function is_constintnode(p : ptree) : boolean;
-
       begin
-         {DM: According to me, an orddef with anysize, is
-          a correct constintnode. Anyway I commented changed s32bit check,
-          because it caused problems with statements like a:=high(word).}
-         is_constintnode:=((p^.treetype=ordconstn) and
-           (p^.resulttype^.deftype=orddef) and
-           (porddef(p^.resulttype)^.typ in [u8bit,s8bit,u16bit,s16bit,
-            u32bit,s32bit,uauto]));
+         is_constintnode:=(p^.treetype=ordconstn) and is_integer(p^.resulttype);
       end;
+
 
     function is_constcharnode(p : ptree) : boolean;
 
@@ -1556,7 +1556,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.34  1998-09-01 17:39:54  peter
+  Revision 1.35  1998-09-04 08:42:11  peter
+    * updated some error messages
+
+  Revision 1.34  1998/09/01 17:39:54  peter
     + internal constant functions
 
   Revision 1.33  1998/08/28 12:51:44  florian
@@ -1630,8 +1633,6 @@ end.
 
   Revision 1.13  1998/06/04 09:55:49  pierre
     * demangled name of procsym reworked to become independant of the mangling scheme
-
-  Come test_funcret improvements (not yet working)S: ----------------------------------------------------------------------
 
   Revision 1.12  1998/06/03 22:49:06  peter
     + wordbool,longbool

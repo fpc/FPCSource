@@ -111,7 +111,7 @@ implementation
                 begin
                    if (p^.left^.location.loc<>LOC_REFERENCE) and
                       (p^.left^.location.loc<>LOC_MEM) then
-                     Message(sym_e_type_mismatch)
+                     Message(type_e_mismatch)
                    else
                      begin
                         emitpushreferenceaddr(p^.left^.location.reference);
@@ -1046,7 +1046,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-09-01 12:47:59  peter
+  Revision 1.3  1998-09-04 08:41:43  peter
+    * updated some error messages
+
+  Revision 1.2  1998/09/01 12:47:59  peter
     * use pdef^.size instead of orddef^.typ
 
   Revision 1.1  1998/09/01 09:07:09  peter

@@ -541,7 +541,7 @@ do_jmp:
                    emitpushreferenceaddr(exprasmlist,p^.left^.location.reference);
                  LOC_CREGISTER,LOC_REGISTER : exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,
                        p^.left^.location.register)));
-                 else Message(sym_e_type_mismatch);
+                 else Message(type_e_mismatch);
               end;
               emitcall('FPC_RAISEEXCEPTION',true);
              end
@@ -740,7 +740,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.14  1998-09-03 17:08:39  pierre
+  Revision 1.15  1998-09-04 08:41:39  peter
+    * updated some error messages
+
+  Revision 1.14  1998/09/03 17:08:39  pierre
     * better lines for stabs
       (no scroll back to if before else part
       no return to case line at jump outside case)
@@ -755,7 +758,10 @@ end.
   Revision 1.11  1998/08/05 16:00:10  florian
     * some fixes for ansi strings
     * $log$ to $Log$
-    * $log$ to Revision 1.14  1998-09-03 17:08:39  pierre
+    * $log$ to Revision 1.15  1998-09-04 08:41:39  peter
+    * $log$ to   * updated some error messages
+    * $log$ to
+    * $log$ to Revision 1.14  1998/09/03 17:08:39  pierre
     * $log$ to   * better lines for stabs
     * $log$ to     (no scroll back to if before else part
     * $log$ to     no return to case line at jump outside case)

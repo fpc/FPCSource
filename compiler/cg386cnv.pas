@@ -614,7 +614,7 @@ implementation
            parraydef(p^.left^.resulttype)^.lowrange+1;
 
          if l>255 then
-           Message(sym_e_type_mismatch);
+           Message(type_e_mismatch);
 
          { write the length }
              exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_B,l,
@@ -1252,7 +1252,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-09-03 17:39:03  florian
+  Revision 1.17  1998-09-04 08:41:38  peter
+    * updated some error messages
+
+  Revision 1.16  1998/09/03 17:39:03  florian
     + better code for type conversation longint/dword to real type
 
   Revision 1.15  1998/09/03 16:24:50  florian

@@ -144,7 +144,7 @@ unit Ra386dir;
                                                pvarsym(sym)^.is_valid:=1
                                              else
                                              if (pos('MOV',upper(s)) > 0) and (pvarsym(sym)^.is_valid=0) then
-                                              Message1(sym_n_local_var_not_init_yet,hs);
+                                              Message1(sym_n_uninitialized_local_variable,hs);
                                              hs:='-'+tostr(pvarsym(sym)^.address)+'('+att_reg2str[procinfo.framepointer]+')';
                                              end
                                            else
@@ -262,7 +262,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.7  1998-09-03 17:39:05  florian
+  Revision 1.8  1998-09-04 08:42:08  peter
+    * updated some error messages
+
+  Revision 1.7  1998/09/03 17:39:05  florian
     + better code for type conversation longint/dword to real type
 
   Revision 1.6  1998/09/03 17:08:47  pierre
