@@ -1,9 +1,9 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2004 by the Free Pascal development team
 
-    This file implements IPC calls calls for Linux
+    This file implements IPC calls calls for Linu/FreeBSD
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -18,24 +18,41 @@ Unit ipc;
 
 interface
 
+Uses BaseUnix;
+
 { ----------------------------------------------------------------------
   General IPC stuff
   ----------------------------------------------------------------------}
 
-Var
-  IPCError : longint;
+//Var
+//  IPCError : longint;
 
 Type
-   TKey   = Longint;
-   PULong = ^Cardinal;
-   PWord  = ^Word;
+
+   {$IFDEF FreeBSD}
+   TKey   = clong;
+   {$ELSE}
+   TKey   = longint;
+   {$ENDIF}
+   key_t  = TKey;
+   
 
 Const
   { IPC flags for get calls }
 
+{$ifdef FreeBSD}  // BSD_VISIBLE
+  IPC_R	     =  4 shl 6;
+  IPC_W	     =  2 shl 6;
+  IPC_M	     =  2 shl 12;
+{$endif}
+
   IPC_CREAT  =  1 shl 9;  { create if key is nonexistent }
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
+
+  {$IFDEF FreeBSD}
+  IPC_PRIVATE : TKey = 0;
+  {$ENDIF}
 
   { Actions for ctl calls }
 
@@ -46,25 +63,38 @@ Const
 
 type
   PIPC_Perm = ^TIPC_Perm;
+  {$ifdef FreeBSD} 
   TIPC_Perm = record
-    key : TKey;
-    uid,
-    gid,
-    cuid,
-    cgid,
-    mode,
-    seq : Word;
-  end;
+        cuid  : cushort;  { creator user id }
+        cgid  : cushort;  { creator group id }
+        uid   : cushort;  { user id }
+        gid   : cushort;  { group id }
+        mode  : cushort;  { r/w permission }
+        seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
+        key   : key_t;    { user specified msg/sem/shm key }
+        End;
+  {$else} // linux
+  TIPC_Perm = record
+        key   : TKey;
+        uid,
+        gid,
+        cuid,
+        cgid,
+        mode,
+        seq   : Word;
+        End;
+  {$endif}
 
 { Function to generate a IPC key. }
-Function ftok (Path : String; ID : char) : TKey;
+Function ftok (Path : pchar;  ID : cint) : TKey;
 
 { ----------------------------------------------------------------------
-  Shared memory stuff
+  Sys V Shared memory stuff
   ----------------------------------------------------------------------}
 
 Type
   PShmid_DS = ^TShmid_ds;
+{$ifdef linux}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : longint;
@@ -78,30 +108,70 @@ Type
     shm_pages  : Pointer;
     attaches   : pointer;
   end;
+{$else} // FreeBSD checked
+  TShmid_ds = record
+    shm_perm  : TIPC_Perm;
+    shm_segsz : cint;
+    shm_lpid  : pid_t;
+    shm_cpid  : pid_t;
+    shm_nattch : cshort;
+    shm_atime : time_t;
+    shm_dtime : time_t;
+    shm_ctime : time_t;
+    shm_internal : pointer;
+  end;
+{$endif}
 
   const
+{$ifdef linux}
      SHM_R      = 4 shl 6;
      SHM_W      = 2 shl 6;
+{$else}
+     SHM_R	= IPC_R;
+     SHM_W	= IPC_W;
+{$endif}
+
      SHM_RDONLY = 1 shl 12;
      SHM_RND    = 2 shl 12;
+{$ifdef Linux}
      SHM_REMAP  = 4 shl 12;
+{$endif}
+
      SHM_LOCK   = 11;
      SHM_UNLOCK = 12;
 
-type
+{$ifdef FreeBSD}	// ipcs shmctl commands
+     SHM_STAT   = 13;
+     SHM_INFO   = 14;
+{$endif}
+    
+type		// the shm*info kind is "kernel" only.
   PSHMinfo = ^TSHMinfo;
-  TSHMinfo = record
-    shmmax : longint;
-    shmmin : longint;
-    shmmni : longint;
-    shmseg : longint;
-    shmall : longint;
+  TSHMinfo = record		// comment under FreeBSD: do we really need
+				// this?	
+    shmmax : cint;
+    shmmin : cint;
+    shmmni : cint;
+    shmseg : cint;
+    shmall : cint;
   end;
 
-Function shmget(key: Tkey; size:longint; flag:longint):longint;
-Function shmat (shmid:longint; shmaddr:pchar; shmflg:longint):pchar;
-Function shmdt (shmaddr:pchar):boolean;
-Function shmctl(shmid:longint; cmd:longint; buf: pshmid_ds): Boolean;
+{$ifdef FreeBSD}
+  PSHM_info = ^TSHM_info;
+  TSHM_info = record
+    used_ids : cint;
+    shm_tot,
+    shm_rss,
+    shm_swp,
+    swap_attempts,
+    swap_successes : culong;
+  end;
+{$endif}
+
+Function shmget(key: Tkey; size:cint; flag:cint):cint;
+Function shmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer;
+Function shmdt (shmaddr:pointer):cint;
+Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint;
 
 { ----------------------------------------------------------------------
   Message queue stuff
@@ -109,25 +179,33 @@ Function shmctl(shmid:longint; cmd:longint; buf: pshmid_ds): Boolean;
 
 const
   MSG_NOERROR = 1 shl 12;
+
+{$ifdef Linux}
   MSG_EXCEPT  = 2 shl 12;
 
   MSGMNI = 128;
   MSGMAX = 4056;
   MSGMNB = 16384;
-
+{$endif}
 
 type
+  msglen_t = culong;
+  msgqnum_t= culong;
+
   PMSG = ^TMSG;
   TMSG = record
+{$ifndef FreeBSD}			// opague in FreeBSD
     msg_next  : PMSG;
     msg_type  : Longint;
     msg_spot  : PChar;
     msg_stime : Longint;
     msg_ts    : Integer;
+{$endif}
   end;
 
 type
 
+{$ifdef Linux}
   PMSQid_ds = ^TMSQid_ds;
   TMSQid_ds = record
     msg_perm   : TIPC_perm;
@@ -144,13 +222,34 @@ type
     msg_lspid  : word;
     msg_lrpid  : word;
   end;
+{$else}
+  PMSQid_ds = ^TMSQid_ds;
+  TMSQid_ds = record
+    msg_perm   : TIPC_perm;
+    msg_first  : PMsg;
+    msg_last   : PMsg;
+    msg_cbytes : msglen_t;
+    msg_qnum   : msgqnum_t;
+    msg_qbytes : msglen_t;
+    msg_lspid  : pid_t;
+    msg_lrpid  : pid_t;
+    msg_stime  : time_t;
+    msg_pad1   : clong;
+    msg_rtime  : time_t;
+    msg_pad2   : clong;
+    msg_ctime  : time_t;
+    msg_pad3   : clong;
+    msg_pad4   : array [0..3] of clong;
+  end;
+{$endif}
 
   PMSGbuf = ^TMSGbuf;
-  TMSGbuf = record
+  TMSGbuf = record		// called mymsg on freebsd and SVID manual
     mtype : longint;
     mtext : array[0..0] of char;
   end;
 
+{$ifdef linux}
   PMSGinfo = ^TMSGinfo;
   TMSGinfo = record
     msgpool : Longint;
@@ -162,33 +261,63 @@ type
     msgtql  : Longint;
     msgseg  : Word;
   end;
+{$else}
+  PMSGinfo = ^TMSGinfo;
+  TMSGinfo = record
+    msgmax,  
+    msgmni,  
+    msgmnb,  
+    msgtql,  
+    msgssz,  
+    msgseg  : cint;
+  end;
+{$endif}
 
-Function msgget(key: TKey; msgflg:longint):longint;
-Function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint): Boolean;
-Function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint): Boolean;
-Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
+Function msgget(key: TKey; msgflg:cint):cint;
+Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint;
+Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint;
+Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;
 
 { ----------------------------------------------------------------------
   Semaphores stuff
   ----------------------------------------------------------------------}
 
 const
+{$ifdef Linux}			// renamed to many name clashes
   SEM_UNDO = $1000;
-  ipc_GETPID = 11;
-  ipc_GETVAL = 12;
-  ipc_GETALL = 13;
-  ipc_GETNCNT = 14;
-  ipc_GETZCNT = 15;
-  ipc_SETVAL = 16;
-  ipc_SETALL = 17;
+  SEM_GETPID = 11;
+  SEM_GETVAL = 12;
+  SEM_GETALL = 13;
+  SEM_GETNCNT = 14;
+  SEM_GETZCNT = 15;
+  SEM_SETVAL = 16;
+  SEM_SETALL = 17;
 
-  SEMMNI = 128;
-  SEMMSL = 32;
-  SEMMNS = (SEMMNI * SEMMSL);
-  SEMOPM = 32;
-  SEMVMX = 32767;
+  SEM_SEMMNI = 128;
+  SEM_SEMMSL = 32;
+  SEM_SEMMNS = (SEM_SEMMNI * SEM_SEMMSL);
+  SEM_SEMOPM = 32;
+  SEM_SEMVMX = 32767;
+{$else}
+  SEM_UNDO = 1 shl 12; 
+  MAX_SOPS = 5;
+
+  SEM_GETNCNT = 3;   { Return the value of sempid {READ}  }
+  SEM_GETPID  = 4;   { Return the value of semval {READ}  }
+  SEM_GETVAL  = 5;   { Return semvals into arg.array {READ}  }
+  SEM_GETALL  = 6;   { Return the value of semzcnt {READ}  }
+  SEM_GETZCNT = 7;   { Set the value of semval to arg.val {ALTER}  }
+  SEM_SETVAL  = 8;   { Set semvals from arg.array {ALTER}  }
+  SEM_SETALL  = 9;
+
+  { Permissions  }
+
+  SEM_A = 2 shl 6;  { alter permission  }
+  SEM_R = 4 shl 6;  { read permission  }
+{$endif}
 
 type
+{$ifdef Linux}
   PSEMid_ds = ^TSEMid_ds;
   TSEMid_ds = record
     sem_perm : tipc_perm;
@@ -200,248 +329,96 @@ type
     undo             : pointer;
     sem_nsems : word;
   end;
+{$else}
+
+     sem=record end; // opague
+
+  PSEMid_ds = ^TSEMid_ds;
+  TSEMid_ds = record
+          sem_perm : tipc_perm;
+          sem_base : ^sem;
+          sem_nsems : cushort;
+          sem_otime : time_t;
+          sem_pad1 : cint;
+          sem_ctime : time_t;
+          sem_pad2 : cint;
+          sem_pad3 : array[0..3] of cint;
+       end;
+{$endif}
 
   PSEMbuf = ^TSEMbuf;
   TSEMbuf = record
-    sem_num : word;
-    sem_op  : integer;
-    sem_flg : integer;
+    sem_num : cushort;
+    sem_op  : cshort;
+    sem_flg : cshort;
   end;
 
 
   PSEMinfo = ^TSEMinfo;
   TSEMinfo = record
-    semmap : longint;
-    semmni : longint;
-    semmns : longint;
-    semmnu : longint;
-    semmsl : longint;
-    semopm : longint;
-    semume : longint;
-    semusz : longint;
-    semvmx : longint;
-    semaem : longint;
+    semmap : cint;
+    semmni : cint;
+    semmns : cint;
+    semmnu : cint;
+    semmsl : cint;
+    semopm : cint;
+    semume : cint;
+    semusz : cint;
+    semvmx : cint;
+    semaem : cint;
   end;
 
+{ internal mode bits}
+
+{$ifdef FreeBSD}
+Const
+  SEM_ALLOC = 1 shl 9;
+  SEM_DEST  = 2 shl 9;
+{$endif}
+
+Type
   PSEMun = ^TSEMun;
   TSEMun = record
-   case longint of
-      0 : ( val : longint );
+   case cint of
+      0 : ( val : cint );
       1 : ( buf : PSEMid_ds );
-      2 : ( arr : PWord );
+      2 : ( arr : PWord );		// ^ushort
+{$ifdef linux}
       3 : ( padbuf : PSeminfo );
       4 : ( padpad : pointer );
+{$endif}
    end;
 
-Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
-Function semop(semid:longint; sops: pointer; nsops: cardinal): Boolean;
-Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): longint;
+Function semget(key:Tkey; nsems:cint; semflg:cint): cint;
+Function semop(semid:cint; sops: psembuf; nsops: cuint): cint;
+Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): longint;
 
 implementation
 
-uses BaseUnix,Syscall;
+uses Syscall;
 
-//{$ifdef linux}
-  {$ifndef cpux86_64}
-    {$define NEED_IPCCALL}
+{$ifdef FPC_USE_LIBC}
+ {$i ipccdecl.inc}
+{$else}
+ {$ifdef Linux}
+  {$ifdef cpux86_64}
+    {$i ipcsys.inc}
+  {$else}
+    {$i ipccall.inc}
   {$endif}
-//{$endif}
+ {$endif}
+ {$ifdef BSD}
+   {$i ipcbsd.inc}
+ {$endif}
+{$endif}
 
-
-Function ftok (Path : String; ID : char) : TKey;
-Var Info : TStat;
-begin
-  If fpstat(path,info)<0 then
-    ftok:=-1
-  else
-    begin
-    ftok:= (info.st_ino and $FFFF) or ((info.st_dev and $ff) shl 16) or (byte(ID) shl 24)
-    end;
-end;
-
-
-{$ifdef NEED_IPCCALL}
-
-{ The following definitions come from linux/ipc.h }
-
-Const
-  CALL_SEMOP   = 1;
-  CALL_SEMGET  = 2;
-  CALL_SEMCTL  = 3;
-  CALL_MSGSND  = 11;
-  CALL_MSGRCV  = 12;
-  CALL_MSGGET  = 13;
-  CALL_MSGCTL  = 14;
-  CALL_SHMAT   = 21;
-  CALL_SHMDT   = 22;
-  CALL_SHMGET  = 23;
-  CALL_SHMCTL  = 24;
-
-{ generic call that handles all IPC calls }
-
-function ipccall(Call,First,Second,Third : Longint; P : Pointer) : longint;
-begin
-{$ifndef BSD}
- ipccall:=do_syscall(syscall_nr_ipc,call,first,second,third,longint(P));
-{$endif} 
- ipcerror:=fpgetErrno;
-end;
-
-function shmget(key: Tkey; size:longint; flag:longint):longint;
-begin
-  shmget:=ipccall (CALL_SHMGET,key,size,flag,nil);
-end;
-
-function shmat (shmid:longint; shmaddr:pchar; shmflg:longint): pchar;
-Var raddr : pchar;
-    error : longint;
-begin
-  error:=ipccall(CALL_SHMAT,shmid,shmflg,longint(@raddr),shmaddr);
-  If Error<0 then
-    shmat:=pchar(error)
-  else
-    shmat:=raddr;
-end;
-
-function shmdt (shmaddr:pchar): boolean;
-begin
-  shmdt:=ipccall(CALL_SHMDT,0,0,0,shmaddr)<>-1;
-end;
-
-function shmctl(shmid:longint; cmd:longint; buf: pshmid_ds): Boolean;
-begin
- shmctl:=ipccall(CALL_SHMCTL,shmid,cmd,0,buf)=0;
-end;
-
-function msgget(key:Tkey; msgflg:longint):longint;
-begin
-  msgget:=ipccall(CALL_MSGGET,key,msgflg,0,Nil);
-end;
-
-function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint):Boolean;
-begin
-  msgsnd:=ipccall(Call_MSGSND,msqid,msgsz,msgflg,msgp)=0;
-end;
-
-function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint):Boolean;
-Type
-  TIPC_Kludge = Record
-    msgp   : pmsgbuf;
-    msgtyp : longint;
-  end;
-Var
-   tmp : TIPC_Kludge;
-begin
-  tmp.msgp   := msgp;
-  tmp.msgtyp := msgtyp;
-  msgrcv:=ipccall(CALL_MSGRCV,msqid,msgsz,msgflg,@tmp)>=0;
-end;
-
-Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
-begin
-  msgctl:=ipccall(CALL_MSGCTL,msqid,cmd,0,buf)=0;
-end;
-
-Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
-begin
-  semget:=ipccall (CALL_SEMGET,key,nsems,semflg,Nil);
-end;
-
-Function semop(semid:longint; sops: pointer; nsops:cardinal): Boolean;
-begin
-  semop:=ipccall (CALL_SEMOP,semid,Longint(nsops),0,Pointer(sops))=0;
-end;
-
-Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): longint;
-begin
-  semctl:=ipccall(CALL_SEMCTL,semid,semnum,cmd,@arg);
-end;
-
-{$else NEED_IPCCALL}
-
-function shmget(key: Tkey; size:longint; flag:longint):longint;
-begin
-  shmget:=do_syscall (syscall_nr_SHMGET,TSysParam(key),TSysParam(size),TSysParam(flag),TSysParam(0));
-end;
-
-function shmat (shmid:longint; shmaddr:pchar; shmflg:longint): pchar;
-Var raddr : pchar;
-    error : longint;
-begin
-  error:=do_syscall(syscall_nr_SHMAT,TSysParam(shmid),TSysParam(shmflg),TSysParam(@raddr),TSysParam(shmaddr));
-  If Error<0 then
-    shmat:=pchar(error)
-  else
-    shmat:=raddr;
-end;
-
-function shmdt (shmaddr:pchar): boolean;
-begin
-  shmdt:=do_syscall(syscall_nr_SHMDT,TSysParam(0),TSysParam(0),TSysParam(0),TSysParam(shmaddr))<>-1;
-end;
-
-function shmctl(shmid:longint; cmd:longint; buf: pshmid_ds): Boolean;
-begin
- shmctl:=do_syscall(syscall_nr_SHMCTL,TSysParam(shmid),TSysParam(cmd),TSysParam(0),TSysParam(buf))=0;
-end;
-
-function msgget(key:Tkey; msgflg:longint):longint;
-begin
-  msgget:=do_syscall(syscall_nr_MSGGET,TSysParam(key),TSysParam(msgflg),TSysParam(0),TSysParam(0));
-end;
-
-function msgsnd(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgflg:longint):Boolean;
-begin
-  msgsnd:=do_syscall(syscall_nr_MSGSND,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(msgp))=0;
-end;
-
-function msgrcv(msqid:longint; msgp: PMSGBuf; msgsz: longint; msgtyp:longint; msgflg:longint):Boolean;
-Type
-  TIPC_Kludge = Record
-    msgp   : pmsgbuf;
-    msgtyp : longint;
-  end;
-Var
-   tmp : TIPC_Kludge;
-begin
-  tmp.msgp   := msgp;
-  tmp.msgtyp := msgtyp;
-  msgrcv:=do_syscall(syscall_nr_MSGRCV,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(@tmp))>=0;
-end;
-
-Function msgctl(msqid:longint; cmd: longint; buf: PMSQid_ds): Boolean;
-begin
-  msgctl:=do_syscall(syscall_nr_MSGCTL,TSysParam(msqid),TSysParam(cmd),TSysParam(0),TSysParam(buf))=0;
-end;
-
-Function semget(key:Tkey; nsems:longint; semflg:longint): longint;
-begin
-  semget:=do_syscall (syscall_nr_SEMGET,TSysParam(key),TSysParam(nsems),TSysParam(semflg),TSysParam(0));
-end;
-
-Function semop(semid:longint; sops: pointer; nsops:cardinal): Boolean;
-begin
-  semop:=do_syscall (syscall_nr_SEMOP,TSysParam(semid),TSysParam(nsops),TSysParam(0),TSysParam(sops))=0;
-end;
-
-Function semctl(semid:longint; semnum:longint; cmd:longint; var arg: tsemun): longint;
-begin
-  semctl:=do_syscall(syscall_nr_SEMCTL,TSysParam(semid),TSysParam(semnum),TSysParam(cmd),TSysParam(@arg));
-end;
-
-{$endif NEED_IPCCALL}
 
 end.
+
 {
   $Log$
-  Revision 1.8  2004-04-22 17:17:13  peter
-    * x86-64 fixes
-
-  Revision 1.7  2004/02/06 23:06:16  florian
-    - killed tsyscallregs
-
-  Revision 1.6  2003/11/16 14:09:25  marco
-   * few things renamed
+  Revision 1.9  2004-04-25 19:15:43  marco
+   * IPC reform
 
   Revision 1.5  2003/09/14 20:15:01  marco
    * Unix reform stage two. Remove all calls from Unix that exist in Baseunix.

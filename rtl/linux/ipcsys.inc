@@ -1,0 +1,107 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2001 by Free Pascal development team
+
+    Ipc body implemented using direct linux syscalls
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ ***********************************************************************}
+
+
+Function ftok (Path : pchar; ID : cint) : TKey;
+Var Info : TStat;
+begin
+  If fpstat(path,info)<0 then
+    ftok:=-1
+  else
+    begin
+    ftok:= (info.st_ino and $FFFF) or ((info.st_dev and $ff) shl 16) or (byte(ID) shl 24)
+    end;
+end;
+
+
+function shmget(key: Tkey; size:cint; flag:cint):cint;
+begin
+  shmget:=do_syscall (syscall_nr_SHMGET,TSysParam(key),TSysParam(size),TSysParam(flag),TSysParam(0));
+end;
+
+function shmat (shmid:cint; shmaddr:pointer; shmflg:cint): pointer;
+Var raddr : pointer;
+    error : cint;
+begin
+  error:=do_syscall(syscall_nr_SHMAT,TSysParam(shmid),TSysParam(shmflg),TSysParam(@raddr),TSysParam(shmaddr));
+  If Error<0 then
+    shmat:=pointer(error)
+  else
+    shmat:=raddr;
+end;
+
+function shmdt (shmaddr:pointer): cint;
+begin
+  shmdt:=do_syscall(syscall_nr_SHMDT,TSysParam(0),TSysParam(0),TSysParam(0),TSysParam(shmaddr));
+end;
+
+function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint;
+begin
+ shmctl:=do_syscall(syscall_nr_SHMCTL,TSysParam(shmid),TSysParam(cmd),TSysParam(0),TSysParam(buf));
+end;
+
+function msgget(key:Tkey; msgflg:cint):cint;
+begin
+  msgget:=do_syscall(syscall_nr_MSGGET,TSysParam(key),TSysParam(msgflg),TSysParam(0),TSysParam(0));
+end;
+
+function msgsnd(msqid:cint; msgp: pmsgbuf; msgsz: size_t; msgflg:cint):cint;
+begin
+  msgsnd:=do_syscall(syscall_nr_MSGSND,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(msgp));
+end;
+
+function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint;
+Type
+  TIPC_Kludge = Record
+    msgp   : pmsgbuf;
+    msgtyp : cint;
+  end;
+Var
+   tmp : TIPC_Kludge;
+begin
+  tmp.msgp   := msgp;
+  tmp.msgtyp := msgtyp;
+  msgrcv:=do_syscall(syscall_nr_MSGRCV,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(@tmp));
+end;
+
+Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;
+begin
+  msgctl:=do_syscall(syscall_nr_MSGCTL,TSysParam(msqid),TSysParam(cmd),TSysParam(0),TSysParam(buf));
+end;
+
+Function semget(key:Tkey; nsems:cint; semflg:cint): cint;
+begin
+  semget:=do_syscall (syscall_nr_SEMGET,TSysParam(key),TSysParam(nsems),TSysParam(semflg),TSysParam(0));
+end;
+
+Function semop(semid:cint; sops: psembuf; nsops:cuint): cint;
+begin
+  semop:=do_syscall (syscall_nr_SEMOP,TSysParam(semid),TSysParam(nsops),TSysParam(0),TSysParam(sops));
+end;
+
+Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
+begin
+  semctl:=do_syscall(syscall_nr_SEMCTL,TSysParam(semid),TSysParam(semnum),TSysParam(cmd),TSysParam(@arg));
+end;
+
+{
+  $Log$
+  Revision 1.1  2004-04-25 19:15:43  marco
+   * IPC reform
+
+}
+
+ 
