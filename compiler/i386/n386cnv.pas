@@ -1100,7 +1100,7 @@ implementation
         href.symbol:=nil;
         pushusedregisters(pushedregs,$ff);
         gettempofsizereference(32,href);
-        emitpushreferenceaddr(left.location.reference);
+        emit_push_mem_size(left.location.reference,4);
         emitpushreferenceaddr(href);
         emitcall('FPC_SET_LOAD_SMALL');
         maybe_loadesi;
@@ -1483,7 +1483,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-11-13 11:30:56  florian
+  Revision 1.7  2000-11-16 15:27:48  jonas
+    * fixed web bug 1242
+
+  Revision 1.6  2000/11/13 11:30:56  florian
     * some bugs with interfaces and NIL fixed
 
   Revision 1.5  2000/11/12 23:24:14  florian
