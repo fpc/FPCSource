@@ -26,7 +26,7 @@ begin
   {$ifdef FPC_USE_LIBC}
   assignpipe:=pipe(pip);
   {$else}
-  assignPipe:=do_SysCall(SysCall_nr_pipe,TSysParam(@pip));
+  assignPipe:=fppipe(pip);
   {$endif}
   pipe_in:=pip[0];
   pipe_out:=pip[1];
@@ -59,7 +59,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2005-02-14 17:13:30  peter
+  Revision 1.3  2005-03-06 17:12:11  florian
+    * AssignPipe fixed
+
+  Revision 1.2  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.1  2005/02/13 21:47:56  peter
