@@ -142,6 +142,7 @@ implementation
       var
          p1,p2 : tnode;
          end_of_paras : ttoken;
+         prev_in_args : boolean;
          old_allow_array_constructor : boolean;
       begin
          if in_prop_paras  then
@@ -153,10 +154,14 @@ implementation
               parse_paras:=nil;
               exit;
            end;
-         p2:=nil;
-         inc(parsing_para_level);
+         { save old values }
+         prev_in_args:=in_args;
          old_allow_array_constructor:=allow_array_constructor;
+         { set para parsing values }
+         in_args:=true;
+         inc(parsing_para_level);
          allow_array_constructor:=true;
+         p2:=nil;
          while true do
            begin
               p1:=comp_expr(true);
@@ -183,6 +188,7 @@ implementation
            end;
          allow_array_constructor:=old_allow_array_constructor;
          dec(parsing_para_level);
+         in_args:=prev_in_args;
          parse_paras:=p2;
       end;
 
@@ -245,6 +251,8 @@ implementation
               in_args:=true;
               p1:=comp_expr(true);
               consume(_RKLAMMER);
+              if p1.nodetype=typen then
+                ttypenode(p1).allowed:=true;
               if p1.resulttype.def.deftype=objectdef then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
@@ -552,13 +560,11 @@ implementation
     { reads the parameter for a subroutine call }
     procedure do_proc_call(sym:tsym;st:tsymtable;getaddr:boolean;var again : boolean;var p1:tnode);
       var
-         prev_in_args : boolean;
          prevafterassn : boolean;
          hs,hs1 : tvarsym;
          para,p2 : tnode;
          hst : tsymtable;
       begin
-         prev_in_args:=in_args;
          prevafterassn:=afterassignment;
          afterassignment:=false;
          { want we only determine the address of }
@@ -595,7 +601,6 @@ implementation
                  if token=_LKLAMMER then
                   begin
                     consume(_LKLAMMER);
-                    in_args:=true;
                     para:=parse_paras(false,false);
                     consume(_RKLAMMER);
                   end
@@ -632,7 +637,6 @@ implementation
               { no postfix operators }
               again:=false;
            end;
-         in_args:=prev_in_args;
          afterassignment:=prevafterassn;
       end;
 
@@ -1043,101 +1047,95 @@ implementation
                      end
                     else
                      begin
-                       { if we read a type declaration  }
-                       { we have to return the type and }
-                       { nothing else               }
-                       if block_type=bt_type then
+                       if token=_LKLAMMER then
                         begin
-                          p1:=ctypenode.create(htype);
+                          consume(_LKLAMMER);
+                          p1:=comp_expr(true);
+                          consume(_RKLAMMER);
+                          p1:=ctypeconvnode.create(p1,htype);
+                          include(p1.flags,nf_explizit);
                         end
-                       else { not type block }
-                        begin
-                          if token=_LKLAMMER then
-                           begin
-                             consume(_LKLAMMER);
-                             p1:=comp_expr(true);
-                             consume(_RKLAMMER);
-                             p1:=ctypeconvnode.create(p1,htype);
-                             include(p1.flags,nf_explizit);
-                           end
-                          else { not LKLAMMER }
-                           if (token=_POINT) and
-                              is_object(htype.def) then
+                       else { not LKLAMMER }
+                        if (token=_POINT) and
+                           is_object(htype.def) then
+                         begin
+                           consume(_POINT);
+                           if assigned(procinfo) and
+                              assigned(procinfo^._class) and
+                              not(getaddr) then
                             begin
-                              consume(_POINT);
-                              if assigned(procinfo) and
-                                 assigned(procinfo^._class) and
-                                 not(getaddr) then
+                              if procinfo^._class.is_related(tobjectdef(htype.def)) then
                                begin
-                                 if procinfo^._class.is_related(tobjectdef(htype.def)) then
-                                  begin
-                                    p1:=nil;
-                                    { search also in inherited methods }
-                                    repeat
-                                      srsym:=tvarsym(tobjectdef(htype.def).symtable.search(pattern));
-                                      if assigned(srsym) then
-                                       break;
-                                      htype.def:=tobjectdef(htype.def).childof;
-                                    until not assigned(htype.def);
-                                    consume(_ID);
-                                    do_member_read(false,srsym,p1,again);
-                                  end
-                                 else
-                                  begin
-                                    Message(parser_e_no_super_class);
-                                    again:=false;
-                                  end;
+                                 p1:=ctypenode.create(htype);
+                                 { search also in inherited methods }
+                                 repeat
+                                   srsym:=tvarsym(tobjectdef(htype.def).symtable.search(pattern));
+                                   if assigned(srsym) then
+                                    break;
+                                   htype.def:=tobjectdef(htype.def).childof;
+                                 until not assigned(htype.def);
+                                 consume(_ID);
+                                 do_member_read(false,srsym,p1,again);
                                end
                               else
                                begin
-                                 { allows @TObject.Load }
-                                 { also allows static methods and variables }
-                                 p1:=nil;
-                                 { TP allows also @TMenu.Load if Load is only }
-                                 { defined in an anchestor class              }
-                                 srsym:=tvarsym(search_class_member(tobjectdef(htype.def),pattern));
-                                 if not assigned(srsym) then
-                                  Message1(sym_e_id_no_member,pattern)
-                                 else if not(getaddr) and not(sp_static in srsym.symoptions) then
-                                  Message(sym_e_only_static_in_static)
-                                 else
-                                  begin
-                                    consume(_ID);
-                                    do_member_read(getaddr,srsym,p1,again);
-                                  end;
+                                 Message(parser_e_no_super_class);
+                                 again:=false;
                                end;
                             end
-                          else
+                           else
+                            begin
+                              { allows @TObject.Load }
+                              { also allows static methods and variables }
+                              p1:=ctypenode.create(htype);
+                              { TP allows also @TMenu.Load if Load is only }
+                              { defined in an anchestor class              }
+                              srsym:=tvarsym(search_class_member(tobjectdef(htype.def),pattern));
+                              if not assigned(srsym) then
+                               Message1(sym_e_id_no_member,pattern)
+                              else if not(getaddr) and not(sp_static in srsym.symoptions) then
+                               Message(sym_e_only_static_in_static)
+                              else
+                               begin
+                                 consume(_ID);
+                                 do_member_read(getaddr,srsym,p1,again);
+                               end;
+                            end;
+                         end
+                       else
+                        begin
+                          { class reference ? }
+                          if is_class(htype.def) then
                            begin
-                             { class reference ? }
-                             if is_class(htype.def) then
+                             if getaddr and (token=_POINT) then
                               begin
-                                if getaddr and (token=_POINT) then
-                                 begin
-                                   consume(_POINT);
-                                   { allows @Object.Method }
-                                   { also allows static methods and variables }
-                                   p1:=ctypenode.create(htype);
-                                   { TP allows also @TMenu.Load if Load is only }
-                                   { defined in an anchestor class              }
-                                   srsym:=tvarsym(search_class_member(tobjectdef(htype.def),pattern));
-                                   if not assigned(srsym) then
-                                    Message1(sym_e_id_no_member,pattern)
-                                   else
-                                    begin
-                                      consume(_ID);
-                                      do_member_read(getaddr,srsym,p1,again);
-                                    end;
-                                 end
+                                consume(_POINT);
+                                { allows @Object.Method }
+                                { also allows static methods and variables }
+                                p1:=ctypenode.create(htype);
+                                { TP allows also @TMenu.Load if Load is only }
+                                { defined in an anchestor class              }
+                                srsym:=tvarsym(search_class_member(tobjectdef(htype.def),pattern));
+                                if not assigned(srsym) then
+                                 Message1(sym_e_id_no_member,pattern)
                                 else
                                  begin
-                                   p1:=ctypenode.create(htype);
-                                   p1:=cloadvmtnode.create(p1);
+                                   consume(_ID);
+                                   do_member_read(getaddr,srsym,p1,again);
                                  end;
                               end
                              else
-                              p1:=ctypenode.create(htype);
-                           end;
+                              begin
+                                p1:=ctypenode.create(htype);
+                                { For a type block we simply return only
+                                  the type. For all other blocks we return
+                                  a loadvmt node }
+                                if (block_type<>bt_type) then
+                                 p1:=cloadvmtnode.create(p1);
+                              end;
+                           end
+                          else
+                           p1:=ctypenode.create(htype);
                         end;
                      end;
                   end;
@@ -2198,7 +2196,6 @@ implementation
          p1,p2 : tnode;
          oldafterassignment : boolean;
          oldp1 : tnode;
-         oldblock_type : tblock_type;
          filepos : tfileposinfo;
 
       begin
@@ -2218,12 +2215,7 @@ implementation
            _POINTPOINT :
              begin
                 consume(_POINTPOINT);
-                { we are now parsing a const so switch the
-                  blocksize. This is delphi compatible }
-                oldblock_type:=block_type;
-                block_type:=bt_const;
                 p2:=sub_expr(opcompare,true);
-                block_type:=oldblock_type;
                 p1:=crangenode.create(p1,p2);
              end;
            _ASSIGNMENT :
@@ -2321,7 +2313,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-06-04 11:45:35  peter
+  Revision 1.36  2001-06-04 18:16:42  peter
+    * fixed tp procvar support in parameters of a called procvar
+    * typenode cleanup, no special handling needed anymore for bt_type
+
+  Revision 1.35  2001/06/04 11:45:35  peter
     * parse const after .. using bt_const block to allow expressions, this
       is Delphi compatible
 
