@@ -1,10 +1,10 @@
 /usr/share/doc/fp-units-gfx
 
-/usr/lib/fpc/%{fpcversion}/units/linux/opengl
-/usr/lib/fpc/%{fpcversion}/units/linux/forms
-/usr/lib/fpc/%{fpcversion}/units/linux/svgalib
-/usr/lib/fpc/%{fpcversion}/units/linux/ggi
-/usr/lib/fpc/%{fpcversion}/units/linux/libgd
-/usr/lib/fpc/%{fpcversion}/units/linux/libpng
+/usr/lib/fpc/%{fpc_main_version}/units/linux/opengl
+/usr/lib/fpc/%{fpc_main_version}/units/linux/forms
+/usr/lib/fpc/%{fpc_main_version}/units/linux/svgalib
+/usr/lib/fpc/%{fpc_main_version}/units/linux/ggi
+/usr/lib/fpc/%{fpc_main_version}/units/linux/libgd
+/usr/lib/fpc/%{fpc_main_version}/units/linux/libpng
 
 /usr/bin/fd2pascal

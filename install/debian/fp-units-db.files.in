@@ -1,6 +1,6 @@
 /usr/share/doc/fp-units-db
 
-/usr/lib/fpc/%{fpcversion}/units/linux/mysql
-/usr/lib/fpc/%{fpcversion}/units/linux/ibase
-/usr/lib/fpc/%{fpcversion}/units/linux/postgres
-/usr/lib/fpc/%{fpcversion}/units/linux/oracle
+/usr/lib/fpc/%{fpc_main_version}/units/linux/mysql
+/usr/lib/fpc/%{fpc_main_version}/units/linux/ibase
+/usr/lib/fpc/%{fpc_main_version}/units/linux/postgres
+/usr/lib/fpc/%{fpc_main_version}/units/linux/oracle

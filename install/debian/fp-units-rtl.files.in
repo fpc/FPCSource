@@ -1,1 +1,1 @@
-/usr/lib/fpc/%{fpcversion}/units/linux/rtl
+/usr/lib/fpc/%{fpc_main_version}/units/linux/rtl

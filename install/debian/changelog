@@ -1,3 +1,9 @@
+fpc (1.1.0-1) unstable; urgency=low
+
+  * New Snapshot.
+
+ -- Mazen NEIFER <mazen@freepascal.org>  Thu,  14 Aug 2003 11:54:50 +0100
+
 fpc (1.0.6-20020228) unstable; urgency=low
 
   * New upstream version.

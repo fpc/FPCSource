@@ -1,2 +1,2 @@
 /usr/share/doc/fp-units-fcl
-/usr/lib/fpc/%{fpcversion}/units/linux/fcl
+/usr/lib/fpc/%{fpc_main_version}/units/linux/fcl

@@ -1,8 +1,8 @@
 /etc/fpc.cfg
 /usr/bin/fpc
-/usr/lib/fpc/%{fpcversion}/ppc386
-/usr/lib/fpc/%{fpcversion}/samplecfg
-/usr/lib/fpc/%{fpcversion}/msg
+/usr/lib/fpc/%{fpc_main_version}/ppc386
+/usr/lib/fpc/%{fpc_main_version}/samplecfg
+/usr/lib/fpc/%{fpc_main_version}/msg
 /usr/share/doc/fp-compiler
 /usr/share/man/man1/fpc.1
 /usr/share/man/man1/ppc386.1

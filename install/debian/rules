@@ -10,12 +10,13 @@ FPCDIR=
 # Get Package version and FPC version out of changelog file
 PACKAGEVERSION:=$(shell head -n 1 debian/changelog | awk '{ print $$2 }' | tr -d '[()]')
 FPCVERSION:=$(shell echo $(PACKAGEVERSION) | awk -F '-' '{ print $$1 }')
+FPC_MAIN_VERSION:=$(shell echo $(PACKAGEVERSION) | awk -F '\.[0-9]-' '{ print $$1 }')
 # Get directories	
 PWD:=$(shell pwd)
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 DOC_DIR=$(INSTALL_DIR)/usr/share/doc
-EXAMPLE_TEMP=$(INSTALL_DIR)/usr/doc/fpc-$(FPCVERSION)/examples
+EXAMPLE_TEMP=$(INSTALL_DIR)/usr/doc/fpc-$(FPC_MAIN_VERSION)/examples
 # Get utils
 NEWPP=$(PWD)/compiler/ppc386
 # Create default options
@@ -104,13 +105,14 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	$(MAKE) utils_distinstall $(INSTALLOPTS)
 
 # Copy examples to the correct doc dir
-	install -d -m755 $(DOC_DIR)/fp-units-fcl/examples
-	install -d -m755 $(DOC_DIR)/fp-units-gtk/examples
-	install -d -m755 $(DOC_DIR)/fp-units-gfx/examples
-	install -d -m755 $(DOC_DIR)/fp-units-db/examples
-	install -d -m755 $(DOC_DIR)/fp-units-net/examples
-	install -d -m755 $(DOC_DIR)/fp-units-misc/examples
 	install -d -m755 $(DOC_DIR)/fp-units-base/examples
+	install -d -m755 $(DOC_DIR)/fp-units-db/examples
+	install -d -m755 $(DOC_DIR)/fp-units-fcl/examples
+	install -d -m755 $(DOC_DIR)/fp-units-gfx/examples
+	install -d -m755 $(DOC_DIR)/fp-units-gtk/examples
+	install -d -m755 $(DOC_DIR)/fp-units-misc/examples
+	install -d -m755 $(DOC_DIR)/fp-units-net/examples
+	install -d -m755 $(DOC_DIR)/fp-units-extra/examples
 
 	mv -f $(EXAMPLE_TEMP)/fcl $(DOC_DIR)/fp-units-fcl/examples
 
@@ -131,6 +133,8 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 	mv -f $(EXAMPLE_TEMP)/oracle $(DOC_DIR)/fp-units-db/examples
 	mv -f $(EXAMPLE_TEMP)/postgres $(DOC_DIR)/fp-units-db/examples
 	mv -f $(EXAMPLE_TEMP)/gdbm $(DOC_DIR)/fp-units-db/examples
+	mv -f $(EXAMPLE_TEMP)/netdb $(DOC_DIR)/fp-units-db/examples
+	mv -f $(EXAMPLE_TEMP)/odbc $(DOC_DIR)/fp-units-db/examples
 
 	mv -f $(EXAMPLE_TEMP)/cmem $(DOC_DIR)/fp-units-misc/examples
 	mv -f $(EXAMPLE_TEMP)/gdbint $(DOC_DIR)/fp-units-misc/examples
@@ -139,6 +143,11 @@ install-arch-stamp: build-arch-stamp debian-files-stamp
 
 	mv -f $(EXAMPLE_TEMP)/inet $(DOC_DIR)/fp-units-net/examples
 	mv -f $(EXAMPLE_TEMP)/uncgi $(DOC_DIR)/fp-units-net/examples
+	
+	mv -f $(EXAMPLE_TEMP)/cdrom $(DOC_DIR)/fp-units-extra/examples
+	mv -f $(EXAMPLE_TEMP)/gconf $(DOC_DIR)/fp-units-extra/examples
+	mv -f $(EXAMPLE_TEMP)/tcl $(DOC_DIR)/fp-units-extra/examples
+	mv -f $(EXAMPLE_TEMP)/zvt $(DOC_DIR)/fp-units-extra/examples
 
 # Check if all examples are removed, if not then the rmdir will fail
 	rmdir $(EXAMPLE_TEMP)

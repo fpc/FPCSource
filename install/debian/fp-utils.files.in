@@ -14,10 +14,10 @@
 /usr/bin/postw32
 /usr/bin/fpcmake
 /usr/bin/fprcp
-/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.ppu
-/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.ppu
-/usr/lib/fpc/%{fpcversion}/units/linux/lexlib.o
-/usr/lib/fpc/%{fpcversion}/units/linux/yacclib.o
+/usr/lib/fpc/%{fpc_main_version}/units/linux/lexlib.ppu
+/usr/lib/fpc/%{fpc_main_version}/units/linux/yacclib.ppu
+/usr/lib/fpc/%{fpc_main_version}/units/linux/lexlib.o
+/usr/lib/fpc/%{fpc_main_version}/units/linux/yacclib.o
 /usr/lib/fpc/lexyacc/yylex.cod
 /usr/lib/fpc/lexyacc/yyparse.cod
 /usr/share/man/man1/delp.1
