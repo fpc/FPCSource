@@ -1384,6 +1384,14 @@ implementation
            proc_names : tstringcontainer;
            inlineentrycode,inlineexitcode : paasmoutput;
            oldexitlabel,oldexit2label,oldquickexitlabel:Pasmlabel;
+           oldunused,oldusableregs : tregisterset;
+           oldc_usableregs : longint;
+           oldreg_pushes : regvar_longintarray;
+           oldis_reg_var : regvar_booleanarray;
+{$ifdef TEMPREGDEBUG}
+           oldreg_user   : regvar_ptreearray;
+           oldreg_releaser : regvar_ptreearray;
+{$endif TEMPREGDEBUG}
 {$ifdef GDB}
            startlabel,endlabel : pasmlabel;
            pp : pchar;
@@ -1392,17 +1400,47 @@ implementation
        begin
           { deallocate the registers used for the current procedure's regvars }
           if assigned(aktprocsym^.definition^.regvarinfo) then
-            with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
-              for i := 1 to maxvarregs do
-                if assigned(regvars[i]) then
-                  begin
-                    case regsize(regvars[i]^.reg) of
-                      S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
-                      S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
-                      S_L: tmpreg := regvars[i]^.reg;
+            begin
+              with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
+                for i := 1 to maxvarregs do
+                  if assigned(regvars[i]) then
+                    begin
+                      case regsize(regvars[i]^.reg) of
+                        S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
+                        S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
+                        S_L: tmpreg := regvars[i]^.reg;
+                      end;
+                      exprasmlist^.concat(new(pairegalloc,dealloc(tmpreg)));
                     end;
-                    exprasmlist^.concat(new(pairegalloc,dealloc(tmpreg)));
-                  end;
+              oldunused := unused;
+              oldusableregs := usableregs;
+              oldc_usableregs := c_usableregs;
+              oldreg_pushes := reg_pushes;
+              oldis_reg_var := is_reg_var;
+{$ifdef TEMPREGDEBUG}
+              oldreg_user := reg_user;
+              oldreg_releaser := reg_releaser;
+{$endif TEMPREGDEBUG}
+              { make sure the register allocator knows what the regvars in the }
+              { inlined code block are (JM)                                    }
+              resetusableregisters;
+              clearregistercount;
+              cleartempgen;
+              if assigned(p^.inlineprocsym^.definition^.regvarinfo) then
+                with pregvarinfo(p^.inlineprocsym^.definition^.regvarinfo)^ do
+                 for i := 1 to maxvarregs do
+                  if assigned(regvars[i]) then
+                    begin
+                      case regsize(regvars[i]^.reg) of
+                        S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
+                        S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
+                        S_L: tmpreg := regvars[i]^.reg;
+                      end;
+                      usableregs:=usableregs-[tmpreg];
+                      is_reg_var[tmpreg]:=true;
+                      dec(c_usableregs);
+                    end;
+            end;
           oldinlining_procedure:=inlining_procedure;
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
@@ -1517,17 +1555,28 @@ implementation
           { since they may have been used and then deallocated in the inlined  }
           { procedure (JM)                                                     }
           if assigned(aktprocsym^.definition^.regvarinfo) then
-            with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
-              for i := 1 to maxvarregs do
-                if assigned(regvars[i]) then
-                  begin
-                    case regsize(regvars[i]^.reg) of
-                      S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
-                      S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
-                      S_L: tmpreg := regvars[i]^.reg;
+            begin
+              with pregvarinfo(aktprocsym^.definition^.regvarinfo)^ do
+                for i := 1 to maxvarregs do
+                  if assigned(regvars[i]) then
+                    begin
+                      case regsize(regvars[i]^.reg) of
+                        S_B: tmpreg := reg8toreg32(regvars[i]^.reg);
+                        S_W: tmpreg := reg16toreg32(regvars[i]^.reg);
+                        S_L: tmpreg := regvars[i]^.reg;
+                      end;
+                      exprasmlist^.concat(new(pairegalloc,alloc(tmpreg)));
                     end;
-                    exprasmlist^.concat(new(pairegalloc,alloc(tmpreg)));
-                  end;
+              oldunused := oldunused;
+              oldusableregs := oldusableregs;
+              oldc_usableregs := oldc_usableregs;
+              oldreg_pushes := oldreg_pushes;
+              oldis_reg_var := oldis_reg_var;
+{$ifdef TEMPREGDEBUG}
+              oldreg_user := oldreg_user;
+              oldreg_releaser := oldreg_releaser;
+{$endif TEMPREGDEBUG}
+            end;
        end;
 
 
@@ -1535,15 +1584,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-03 13:17:26  jonas
-    + allow regvars to be used inside inlined procs, which required  the
-      following changes:
-        + load regvars in genentrycode/free them in genexitcode (cgai386)
-        * moved all regvar related code to new regvars unit
-        + added pregvarinfo type to hcodegen
-        + added regvarinfo field to tprocinfo (symdef/symdefh)
-        * deallocate the regvars of the caller in secondprocinline before
-          inlining the called procedure and reallocate them afterwards
+  Revision 1.7  2000-08-03 14:27:04  jonas
+    * save/reset/restore regvar info around inlined code
 
   Revision 1.5  2000/07/27 13:03:35  jonas
     * release alignopts
