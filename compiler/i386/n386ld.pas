@@ -71,7 +71,6 @@ implementation
          newsize : tcgsize;
          popeax : boolean;
       begin
-         simple_loadn:=true;
          { we don't know the size of all arrays }
          newsize:=def_cgsize(resulttype.def);
          location_reset(location,LOC_REFERENCE,newsize);
@@ -202,7 +201,6 @@ implementation
 
                                         emit_ref_reg(A_MOV,S_L,href,hregister);
 
-                                        simple_loadn:=false;
                                         i:=lexlevel-1;
                                         while (i>symtable.symtablelevel) do
                                           begin
@@ -274,7 +272,6 @@ implementation
                             ((tvarsym(symtableentry).varspez=vs_const) and
                              push_addr_param(tvarsym(symtableentry).vartype.def)) then
                            begin
-                              simple_loadn:=false;
                               if hregister=R_NO then
                                 hregister:=rg.getregisterint(exprasmlist);
                               case location.loc of
@@ -992,7 +989,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2002-04-04 19:06:12  peter
+  Revision 1.34  2002-04-07 09:16:07  carl
+  - remove unused variable
+
+  Revision 1.33  2002/04/04 19:06:12  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
 
