@@ -1736,7 +1736,17 @@ implementation
         a_load_loc_reg(list,OS_INT,l,hreg);
         a_op_const_reg(list,OP_SUB,OS_INT,aint(lto),hreg);
         objectlibrary.getlabel(neglabel);
-        a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(hto-lto),hreg,neglabel);
+        {
+        if from_signed then
+          a_cmp_const_reg_label(list,OS_INT,OC_GTE,aint(hto-lto),hreg,neglabel)
+        else
+        }
+{$ifdef cpu64bit}
+        if qword(hto-lto)>qword(aintmax) then
+          a_cmp_const_reg_label(list,OS_INT,OC_BE,aintmax,hreg,neglabel)
+        else
+{$endif cpu64bit}
+          a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(hto-lto),hreg,neglabel);
         a_call_name(list,'FPC_RANGEERROR');
         a_label(list,neglabel);
       end;
@@ -2029,7 +2039,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.183  2004-10-31 21:45:02  peter
+  Revision 1.184  2004-11-02 17:25:36  florian
+    * <signed type> to qword range check for 64 bit targets fixed
+
+  Revision 1.183  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 
