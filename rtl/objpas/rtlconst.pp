@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
- 
+{$mode objfpc} 
 unit rtlconst;
 
 interface
@@ -522,7 +522,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2004-01-10 20:13:19  michael
+  Revision 1.5  2004-01-11 01:17:22  michael
+  + need mode objfpc directive
+
+  Revision 1.4  2004/01/10 20:13:19  michael
   + Some more fixes to rtlconst. Const strings moved from classes to rtlconst
 
   Revision 1.3  2004/01/10 19:35:17  michael
