@@ -17,7 +17,6 @@
 unit sysamiga;
 
 { Things left to do :                                          }
-{   - Fix randomize                                            }
 {   - Fix Truncate!!                                           }
 
 {$I os.inc}
@@ -216,6 +215,21 @@ const
 
 
   { ************************ AMIGAOS STUB ROUTINES ************************* }
+
+  procedure DateStamp(var ds : tDateStamp);
+  begin
+   asm
+      MOVE.L  A6,-(A7)
+      MOVE.L  ds,d1
+      { LAST THING TO SETUP SHOULD BE A6, otherwise you can }
+      { not accept local variable, nor any parameters! :)   }
+      MOVE.L  _DOSBase,A6
+      JSR -192(A6)
+      MOVE.L  (A7)+,A6
+  end;
+ end;
+
+
 
   { UNLOCK the BPTR pointed to in L }
   Procedure Unlock(alock: longint);
@@ -644,12 +658,10 @@ const
 
       var
          hl : longint;
-
+         time : TDateStamp;
       begin
-         asm
-           { !!!!!!! }
-         end;
-         randseed:=hl;
+         DateStamp(time);
+         randseed:=time.ds_tick;
       end;
 
   { This routine is used to grow the heap.  }
@@ -680,6 +692,17 @@ begin
             move.l  d6,a6              { restore a6 }
   end;
 end;
+
+
+function do_isdevice(handle:longint):boolean;
+begin
+  if (handle=stdoutputhandle) or (handle=stdinputhandle) or
+  (handle=stderrorhandle) then
+    do_isdevice:=TRUE
+  else
+    do_isdevice:=FALSE;
+end;
+
 
 
 procedure do_erase(p : pchar);
@@ -1042,6 +1065,7 @@ procedure mkdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
 begin
+  If InOutRes <> 0 then exit;
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   asm
@@ -1075,6 +1099,7 @@ procedure rmdir(const s : string);[IOCheck];
 var
   buffer : array[0..255] of char;
 begin
+  If InOutRes <> 0 then exit;
   move(s[1],buffer,length(s));
   buffer[length(s)]:=#0;
   do_erase(buffer);
@@ -1088,6 +1113,7 @@ var
   alock : longint;
   FIB :pFileInfoBlock;
 begin
+  If InOutRes <> 0 then exit;
   alock := 0;
   fib:=nil;
   new(fib);
@@ -1204,7 +1230,7 @@ end;
  end;
 
 
-procedure getdir(drivenr : byte;var dir : string);[IOCheck];
+procedure getdir(drivenr : byte;var dir : string);
 begin
   GetCwd(dir);
   If errno <> 0 then
@@ -1295,15 +1321,6 @@ asm
 end;
 
 
-procedure OpenStdIO(var f:text;mode:word;hdl:longint);
-begin
-  Assign(f,'');
-  TextRec(f).Handle:=hdl;
-  TextRec(f).Mode:=mode;
-  TextRec(f).InOutFunc:=@FileInOutFunc;
-  TextRec(f).FlushFunc:=@FileInOutFunc;
-  TextRec(f).Closefunc:=@fileclosefunc;
-end;
 
 
 begin
@@ -1345,7 +1362,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-07-01 14:30:56  carl
+  Revision 1.6  1998-07-02 12:37:52  carl
+    * IOCheck for chdir,rmdir and mkdir as in TP
+
+  Revision 1.5  1998/07/01 14:30:56  carl
     * forgot that includes are case sensitive
 
   Revision 1.4  1998/07/01 14:13:50  carl
