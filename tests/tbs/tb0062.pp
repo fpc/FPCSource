@@ -3,7 +3,7 @@
 
 var
   p : pointer;
-  l  : longint;
+  l  : smallint;
 begin
   l:=Ofs(p); { Ofs returns a pointer type !? }
 

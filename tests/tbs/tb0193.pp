@@ -10,6 +10,10 @@ asm
         movl    HEAPSIZE,%eax
 end ['EAX'];
 {$endif CPUI386}
+{$ifdef CPUX86_64}
+        movl    HEAPSIZE,%eax
+end ['EAX'];
+{$endif CPUX86_64}
 {$ifdef CPU68K}
         move.l    HEAPSIZE,d0
 end ['D0'];

@@ -10,7 +10,6 @@ type
   TMyClass = class
     s: String;
   end;
-  plongint = ^longint;
 
 procedure dotest;
 
@@ -23,14 +22,14 @@ begin
   s:='Hallo '+s;
   writeln((plongint(s)-4)^);
   c := TMyClass.Create;
-  writeln(longint(c.s));
+  writeln(ptrint(c.s));
   c.s := Copy('Test', 1, 4);
-  writeln((plongint(c.s)-4)^);
+  writeln((pptrint(c.s)-4)^);
   c.free;
 end;
 
 var
-   membefore : longint;
+   membefore : sizeint;
 begin
   membefore:=memavail;
   writeln(memavail);

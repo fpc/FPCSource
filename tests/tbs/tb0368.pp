@@ -1,7 +1,7 @@
 type
   tproc = procedure of object;
   trec = record
-    l1,l2 : longint;
+    l1,l2 : ptrint;
   end;
 var
   pfn : tproc;
