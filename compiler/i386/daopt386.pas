@@ -352,14 +352,11 @@ end;
 
 {************************ Create the Label table ************************}
 
-function findregalloc(reg: tregister; starttai: tai; ratyp: tregalloctype): boolean;
+function findregalloc(supreg: tsuperregister; starttai: tai; ratyp: tregalloctype): boolean;
 { Returns true if a ait_alloc object for reg is found in the block of tai's }
 { starting with Starttai and ending with the next "real" instruction        }
-var
-  supreg: tsuperregister;
 begin
   findregalloc := false;
-  supreg := getsupreg(reg);
   repeat
     while assigned(starttai) and
           ((starttai.typ in (skipinstr - [ait_regalloc])) or
@@ -2097,7 +2094,7 @@ begin
                   exclude(usedregs, supreg);
                   hp1 := p;
                   hp2 := nil;
-                  while not(findregalloc(tai_regalloc(p).reg, tai(hp1.next),ra_alloc)) and
+                  while not(findregalloc(getsupreg(tai_regalloc(p).reg), tai(hp1.next),ra_alloc)) and
                         getnextinstruction(hp1, hp1) and
                         regininstruction(getsupreg(tai_regalloc(p).reg), hp1) Do
                     hp2 := hp1;
@@ -2108,10 +2105,8 @@ begin
                       insertllitem(list, hp2, tai(hp2.next), p);
                       p := hp1;
                     end
-                  else if findregalloc(tai_regalloc(p).reg, tai(p.next),ra_alloc)
-                          and getnextinstruction(p,hp1) and
-                      (hp1.typ = ait_instruction) and
-                      (taicpu(hp1).opcode = A_CALL) then
+                  else if findregalloc(getsupreg(tai_regalloc(p).reg), tai(p.next),ra_alloc)
+                          and getnextinstruction(p,hp1) then
                     begin
                       hp1 := tai(p.previous);
                       list.remove(p);
@@ -2800,7 +2795,11 @@ end.
 
 {
   $Log$
-  Revision 1.79  2004-12-30 13:49:42  jonas
+  Revision 1.80  2005-01-03 14:59:28  jonas
+    * remove "release subregA; allocate other_subreg_of_A" sequences so the
+      register renaming doesn't stop early
+
+  Revision 1.79  2004/12/30 13:49:42  jonas
     * fixed checking of overlapping references
 
   Revision 1.78  2004/12/28 18:01:41  jonas
