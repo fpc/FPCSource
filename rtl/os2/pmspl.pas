@@ -23,7 +23,7 @@ interface
 
 {$MODE OBJFPC}
 
-uses OS2Def, DosCalls;
+uses OS2Def;
 
 const
     SPL_INI_SPOOLER       = 'PM_SPOOLER';
@@ -771,7 +771,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-10-28 16:05:18  hajny
+  Revision 1.2  2002-11-02 11:19:36  hajny
+    - DosCalls removed from uses clause (not needed)
+
+  Revision 1.1  2002/10/28 16:05:18  hajny
     + PM spooler interface added
 
 
