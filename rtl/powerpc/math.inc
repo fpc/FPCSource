@@ -167,21 +167,92 @@ LTruncPositive:
 {$else}
     function round(d : extended) : int64;assembler;[internconst:in_const_round];
 {$endif hascompilerproc}
+      { exactly the same as trunc, except that one fctiwz has become fctiw }
       { input: d in fr1      }
       { output: result in r3 }
       assembler;
       var
-        temp : packed record
+        temp: packed record
             case byte of
               0: (l1,l2: longint);
               1: (d: double);
           end;
       asm
-        fctiw    f1,f1
-        stfd     f1,temp
-        lwz      r3,temp
+        // store d in temp
+        stfd    f1, temp
+        // extract sign bit (record in cr0)
+        lwz     r3,temp
+        rlwinm. r3,r3,1,31,31
+        // make d positive
+        fabs    f1,f1
+        // load 2^32 in f2
+        {$ifndef macos}
+        lis    r3,factor@ha
+        lfd    f2,factor@l(r3)
+        {$else}
+        lwz    r3,factor[TC](r2)
+        lfd    f2,0(r3)
+        {$endif}
+        // check if value is < 0
+        // f3 := d / 2^32;
+        fdiv     f3,f1,f2
+        // round
+        fctiwz   f4,f3
+        // store
+        stfd     f4,temp
+        // and load into r4
         lwz      r4,4+temp
-      end ['R3','F1'];
+        // convert back to float
+        lis      r0,0x4330
+        stw      r0,temp
+        xoris    r0,r4,0x8000
+        stw      r0,4+temp
+        {$ifndef macos}
+        lis    r3,longint_to_real_helper@ha
+        lfd    f0,longint_to_real_helper@l(r3)
+        {$else}
+        lwz    r3,longint_to_real_helper[TC](r2)
+        lfd    f0,0(r3)
+        {$endif}
+        lfd    f3,temp
+        fsub   f3,f3,f0
+
+
+        // f4 := d "mod" 2^32 ( = d - ((d / 2^32) * 2^32))
+        fnmsub   f4,f3,f2,f1
+
+        // now, convert to unsigned 32 bit
+
+        // load 2^31 in f2
+        {$ifndef macos}
+        lis    r3,factor2@ha
+        lfd    f2,factor2@l(r3)
+        {$else}
+        lwz    r3,factor2[TC](r2)
+        lfd    f2,0(r3)
+        {$endif}
+
+        // subtract 2^31
+        fsub   f3,f4,f2
+        // was the value > 2^31?
+        fcmpu  cr1,f4,f2
+        // use diff if >= 2^31
+        fsel   f4,f3,f3,f4
+
+        // next part same as conversion to signed integer word
+        fctiw  f4,f4
+        stfd   f4,temp
+        lwz    r3,4+temp
+        // add 2^31 if value was >=2^31
+        blt    cr1, LRoundNoAdd
+        xoris  r3,r3,0x8000
+LRoundNoAdd:
+        // negate value if it was negative to start with
+        beq    cr0,LRoundPositive
+        subfic r3,r3,0
+        subfze r4,r4
+LRoundPositive: 
+      end ['R3','R4','F1','F2','F3','F4'];
 
 
    {$define FPC_SYSTEM_HAS_POWER}
@@ -356,7 +427,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.21  2003-05-11 18:09:45  jonas
+  Revision 1.22  2003-05-16 16:04:33  jonas
+    * fixed round() (almost the same as trunc)
+
+  Revision 1.21  2003/05/11 18:09:45  jonas
     * fixed qword and int64 to double conversion
 
   Revision 1.20  2003/05/02 15:12:19  jonas
