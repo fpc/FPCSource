@@ -200,7 +200,6 @@ end;
 function TBinaryObjectReader.ReadString(StringType: TValueType): String;
 var
   i: Integer;
-  p: PChar;
 begin
   case StringType of
     vaString:
@@ -211,18 +210,9 @@ begin
     vaLString:
       Read(i, 4);
   end;
-//  SetLength(Result, i);
+  SetLength(Result, i);
   if i > 0 then
-  begin
-    // ###
-    GetMem(p, i + 1);
-    Read(p^, i);
-    p[i] := #0;
-    Result := p;
-    FreeMem(p);
-  end else
-    SetLength(Result, 0);
-{    Read(Pointer(@Result[1])^, i);}
+    Read(Pointer(@Result[1])^, i);
 end;
 
 {!!!: function TBinaryObjectReader.ReadWideString: WideString;
@@ -720,7 +710,6 @@ begin
           if not Assigned(Result) then
           begin
             NewComponent := TComponent(ComponentClass.NewInstance);
-//!!!:	    NewComponent := TComponentClass(ComponentClass).Create(Owner);
             if ffInline in Flags then
 	      NewComponent.FComponentState :=
 	        NewComponent.FComponentState + [csLoading, csInline];
@@ -1278,7 +1267,12 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-03-08 19:32:22  michael
+  Revision 1.5  2001-07-14 13:19:05  sg
+  * Simplified TBinaryObjectReader.ReadString
+  * TReader.ReadComponent now uses ComponentClass.NewInstance for creating
+    a new component instance
+
+  Revision 1.4  2001/03/08 19:32:22  michael
   Fixes merged
 
   Revision 1.3  2000/12/21 09:08:09  sg
