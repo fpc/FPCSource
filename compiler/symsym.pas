@@ -1737,6 +1737,9 @@ implementation
     procedure tvarsym.concatstabto(asmlist : taasmoutput);
       var stab_str : pchar;
       begin
+         if (owner.symtabletype in [parasymtable,inlineparasymtable]) and
+            (copy(name,1,6)='hidden') then
+           exit;
          inherited concatstabto(asmlist);
       if (owner.symtabletype=parasymtable) and
          (reg<>R_NO) then
@@ -2457,7 +2460,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-11-27 20:04:10  peter
+  Revision 1.80  2002-12-06 17:51:11  peter
+    * merged cdecl and array fixes
+
+  Revision 1.79  2002/11/27 20:04:10  peter
     * tvarsym.get_push_size replaced by paramanager.push_size
 
   Revision 1.78  2002/11/27 02:34:20  peter

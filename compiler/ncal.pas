@@ -2546,6 +2546,11 @@ type
                  end;
                end;
            end;
+{$ifdef m68k}
+         { we need one more address register for virtual calls on m68k }
+         if (po_virtualmethod in procdefinition.procoptions) then
+           inc(registers32);
+{$endif m68k}
          { a fpu can be used in any procedure !! }
 {$ifdef i386}
          registersfpu:=procdefinition.fpu_used;
@@ -2840,7 +2845,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.114  2002-12-06 16:56:58  peter
+  Revision 1.115  2002-12-06 17:51:10  peter
+    * merged cdecl and array fixes
+
+  Revision 1.114  2002/12/06 16:56:58  peter
     * only compile cs_fp_emulation support when cpufpuemu is defined
     * define cpufpuemu for m68k only
 

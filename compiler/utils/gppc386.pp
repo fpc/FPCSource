@@ -120,6 +120,9 @@ begin
   Close(fpcgdbini);
 
   Exec(fsearch(GDBExeName,GetEnv('PATH')),
+{$ifdef win32}
+    '--nw '+
+{$endif win32}
     '--nx --quiet --command='+GDBIniTempName+' '+CompilerName);
   GDBError:=DosError;
   GDBExitCode:=DosExitCode;
@@ -140,7 +143,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-06-02 09:44:17  marco
+  Revision 1.5  2002-12-06 17:51:11  peter
+    * merged cdecl and array fixes
+
+  Revision 1.4  2002/06/02 09:44:17  marco
    * linux
 
   Revision 1.3  2002/05/18 13:34:27  peter

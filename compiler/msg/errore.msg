@@ -160,7 +160,7 @@ scan_w_switch_is_global=02010_W_Misplaced global compiler switch
 % the start of the unit or program.
 scan_e_illegal_char_const=02011_E_Illegal char constant
 % This happens when you specify a character with its ASCII code, as in
-% \var{\#96}, but the number is either illegal, or out of range. 
+% \var{\#96}, but the number is either illegal, or out of range.
 scan_f_cannot_open_input=02012_F_Can't open file "$1"
 % \fpc cannot find the program or unit source file you specified on the
 % command line.
@@ -182,7 +182,7 @@ scan_e_error_in_preproc_expr=02019_E_Evaluating a conditional compiling expressi
 % There is an error in the expression following the \var{\{\$if ..\}} compiler
 % directive.
 scan_w_macro_cut_after_255_chars=02020_W_Macro contents are limited to 255 characters in length
-% The contents of macros cannot be longer than 255 characters. 
+% The contents of macros cannot be longer than 255 characters.
 scan_e_endif_without_if=02021_E_ENDIF without IF(N)DEF
 % Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 scan_f_user_defined=02022_F_User defined: $1
@@ -277,7 +277,7 @@ scan_w_include_env_not_found=02054_W_Include environment "$1" not found in envir
 scan_e_invalid_maxfpureg_value=02055_E_Illegal value for FPU register limit
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
 scan_w_only_one_resourcefile_supported=02056_W_Only one resource file is supported for this target
-% The target you are compiling for supports only one resource file. 
+% The target you are compiling for supports only one resource file.
 % The first resource file found is used, the others are discarded.
 scan_w_macro_support_turned_off=02057_W_Macro support has been turned off
 % A macro declaration has been found, but macro support is currently off,
@@ -296,7 +296,7 @@ scan_e_string_exceeds_255_chars=02061_E_Constant strings can't be longer than 25
 #
 # Parser
 #
-# 03188 is the last used one
+# 03191 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -511,7 +511,7 @@ parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
 % that was declared as an export procedure.
 parser_e_methods_dont_be_export=03068_E_methods can't be EXPORTed
 % You cannot declare a procedure that is a method for an object as
-% \var{export}ed. 
+% \var{export}ed.
 parser_e_call_by_ref_without_typeconv=03069_E_call by var parameters have to match exactly: Got "$1" expected "$2"
 % When calling a function declared with \var{var} parameters, the variables in
 % the function call must be of exactly the same type. There is no automatic
@@ -587,14 +587,14 @@ parser_e_comparative_operator_return_boolean=03090_E_Comparative operator must r
 % value.
 parser_e_only_virtual_methods_abstract=03091_E_Only virtual methods can be abstract
 % You are declaring a method as abstract, when it is not declared to be
-% virtual. 
+% virtual.
 parser_f_unsupported_feature=03092_F_Use of unsupported feature!
 % You're trying to force the compiler into doing something it cannot do yet.
 parser_e_mix_of_classes_and_objects=03093_E_The mix of different kind of objects (class, object, interface, etc) isn't allowed
 % You cannot derive \var{objects}, \var{classes}, \var{cppclasses} and \var{interfaces} interttwined . E.g.
 % a class cannot have an object as parent and vice versa.
 parser_w_unknown_proc_directive_ignored=03094_W_Unknown procedure directive had to be ignored: "$1"
-% The procedure directive you specified is unknown. 
+% The procedure directive you specified is unknown.
 parser_e_absolute_only_one_var=03095_E_absolute can only be associated to one variable
 % You cannot specify more than one variable before the \var{absolute} directive.
 % Thus, the following construct will provide this error:
@@ -770,7 +770,7 @@ parser_f_direct_assembler_not_allowed=03148_F_Direct assembler not supported for
 parser_w_no_objpas_use_mode=03149_W_Don't load OBJPAS unit manually, use {$mode objfpc} or {$mode delphi} instead
 % You are trying to load the ObjPas unit manually from a uses clause. This is
 % not a good idea. Use the \var{\{\$mode objfpc\}} or
-% \var{\{\$mode delphi\}} 
+% \var{\{\$mode delphi\}}
 % directives which load the unit automatically
 parser_e_no_object_override=03150_E_OVERRIDE can't be used in objects
 % Override is not supported for objects, use \var{virtual} instead to override
@@ -890,13 +890,17 @@ parser_h_c_arrays_are_references=03187_H_C arrays are passed by reference
 % Any array passed to a C functions is passed
 % by a pointer (i.e. by reference).
 parser_e_C_array_of_const_must_be_last=03188_E_C array of const must be the last argument
-% You can not add any other argument after an \var{array of const} for 
+% You can not add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
 parser_h_type_redef=03189_H_Type "$1" redefinition
 % This is an indicator that a previously declared type is
 % being redefined as something else. This may, or may not
 % be, a cause for errors.
+parser_w_cdecl_has_no_high=03190_W_cdecl'ared functions have no high parameter
+% Functions declared with cdecl modifier do not pass an extra implicit parameter.
+parser_w_cdecl_no_openstring=03191_W_cdecl'ared functions do not support open strings
+% Openstring is not supported for cdecl'ared functions.
 %
 % \end{description}
 #
@@ -1066,10 +1070,10 @@ type_e_array_index_enums_with_assign_not_possible=04038_E_enums with assignments
 % \end{verbatim}
 % you cannot use it as index of an array.
 type_e_classes_not_related=04039_E_Class or Object types "$1" and "$2" are not related
-%  There is a typecast from one class or object to another while the class/object 
+%  There is a typecast from one class or object to another while the class/object
 %  are not related. This will probably lead to errors
 type_w_classes_not_related=04040_W_Class types "$1" and "$2" are not related
-%  There is a typecast from one class or object to another while the class/object 
+%  There is a typecast from one class or object to another while the class/object
 %  are not related. This will probably lead to errors
 type_e_class_or_interface_type_expected=04041_E_Class or interface type expected, but got "$1"
 type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completley defined
@@ -1085,13 +1089,13 @@ type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to rang
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Exlicitly typecast the constant to the correct range to avoid this problem.
 type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
-% An instance of a class is created which contains non-implemented abstract 
+% An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.
 type_h_in_range_check=04047_H_The left operand of the IN operator should be byte sized
-% The left operand of the \var{in} operator is not an ordinal or enumeration which fits 
-% within 8-bits, this may lead to range check errors. The  \var{in} operator 
-% currently only supports a left operand which fits within a byte. In the case of 
+% The left operand of the \var{in} operator is not an ordinal or enumeration which fits
+% within 8-bits, this may lead to range check errors. The  \var{in} operator
+% currently only supports a left operand which fits within a byte. In the case of
 % enumerations, the size of an element of an enumeration can be controlled with
 % the \var{\{\$PACKENUM\}} or \var{\{\$Zn\}} switches.
 type_w_smaller_possible_range_check=04048_W_Type size mismatch, possible loss of data / range check error
@@ -1217,23 +1221,23 @@ sym_b_param_list=05039_B_Found declaration: $1
 % procedure is not found, then all candidate overloaded procedures are
 % listed, with their parameter lists.
 sym_e_segment_too_large=05040_E_Data element too large
-% You get this when you declare a data element whose size exceeds the 
+% You get this when you declare a data element whose size exceeds the
 % prescribed limit (2 Gb on 80386+/68020+ processors)
 sym_e_no_matching_implementation_found=05042_E_No matching implementation for interface method "$1" found
 % There was no matching method found which could implement the interface
 % method. Check argument types and result type of the methods.
 sym_w_deprecated_symbol=05043_W_Symbol "$1" is deprecated
-% This means that a symbol (a variable, routine, etc...) which is 
-% declared as \var{deprecated} is used. Deprecated symbols may no longer 
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Usage of this symbol
 % should be avoided as much as possible.
 sym_w_non_portable_symbol=05044_W_Symbol "$1" is not portable
-% This means that a symbol (a variable, routine, etc...) which is 
+% This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{platform} is used. This symbol's value, usage
 % and availability is platform specific and should not be used
 % if the source code must be portable.
 sym_w_non_implemented_symbol=05055_W_Symbol "$1" is not implemented
-% This means that a symbol (a variable, routine, etc...) which is 
+% This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{unimplemented} is used. This symbol is defined,
 % but is not yet implemented on this specific platform.
 % \end{description}
@@ -1482,13 +1486,13 @@ asmr_e_error_converting_hexadecimal=07038_E_Error converting hexadecimal $1
 asmr_h_direct_global_to_mangled=07039_H_$1 translated to $2
 asmr_w_direct_global_is_overloaded_func=07040_W_$1 is associated to an overloaded function
 asmr_e_cannot_use_SELF_outside_a_method=07041_E_Cannot use SELF outside a method
-% There is a reference to the \var{self} symbol while it is not 
+% There is a reference to the \var{self} symbol while it is not
 % allowed. \var{self} can only be referenced inside methods
 asmr_e_cannot_use_OLDEBP_outside_nested_procedure=07042_E_Cannot use OLDEBP outside a nested procedure
-% There is a reference to the \var{oldebp} symbol while it is not 
+% There is a reference to the \var{oldebp} symbol while it is not
 % allowed. \var{oldebp} can only be referenced inside nested routines
 asmr_e_void_function=07043_W_Procedures can't return any value in asm code
-% Trying to return a value while in a procedure. A procedure 
+% Trying to return a value while in a procedure. A procedure
 % does not have any return value
 asmr_e_SEG_not_supported=07044_E_SEG not supported
 asmr_e_size_suffix_and_dest_dont_match=07045_E_Size suffix and destination or source size do not match
@@ -1505,7 +1509,7 @@ asmr_e_syn_operand=07049_E_Assembler syntax error in operand
 asmr_e_syn_constant=07050_E_Assembler syntax error in constant
 asmr_e_invalid_string_expression=07051_E_Invalid String expression
 asmr_w_const32bit_for_address=07052_W_constant with symbol $1 for address which is not on a pointer
-% A constant expression represents an address which does not fit 
+% A constant expression represents an address which does not fit
 % into a pointer. The address is probably incorrect
 asmr_e_unknown_opcode=07053_E_Unrecognized opcode $1
 % This opcode is not known
@@ -1513,7 +1517,7 @@ asmr_e_invalid_or_missing_opcode=07054_E_Invalid or missing opcode
 asmr_e_invalid_prefix_and_opcode=07055_E_Invalid combination of prefix and opcode: $1
 asmr_e_invalid_override_and_opcode=07056_E_Invalid combination of override and opcode: $1
 asmr_e_too_many_operands=07057_E_Too many operands on line
-% There are too many operands for this opcode. Check your 
+% There are too many operands for this opcode. Check your
 % assembler syntax
 asmr_w_near_ignored=07058_W_NEAR ignored
 asmr_w_far_ignored=07059_W_FAR ignored
@@ -1521,15 +1525,15 @@ asmr_e_dup_local_sym=07060_E_Duplicate local symbol $1
 asmr_e_unknown_local_sym=07061_E_Undefined local symbol $1
 asmr_e_unknown_label_identifier=07062_E_Unknown label identifier $1
 asmr_e_invalid_register=07063_E_Invalid register name
-% There is an unknown register name used as operand. 
+% There is an unknown register name used as operand.
 asmr_e_invalid_fpu_register=07064_E_Invalid floating point register name
-% There is an unknown register name used as operand. 
+% There is an unknown register name used as operand.
 asmr_w_modulo_not_supported=07066_W_Modulo not supported
 asmr_e_invalid_float_const=07067_E_Invalid floating point constant $1
-% The floating point constant declared in an assembler block is 
+% The floating point constant declared in an assembler block is
 % invalid.
 asmr_e_invalid_float_expr=07068_E_Invalid floating point expression
-% The floating point expression declared in an assembler block is 
+% The floating point expression declared in an assembler block is
 % invalid.
 asmr_e_wrong_sym_type=07069_E_Wrong symbol type
 asmr_e_cannot_index_relative_var=07070_E_Cannot index a local var or parameter with a register
@@ -1543,7 +1547,7 @@ asmr_w_id_supposed_external=07072_W_Identifier $1 supposed external
 asmr_e_string_not_allowed_as_const=07073_E_Strings not allowed as constants
 % Character strings are not allowed as constants.
 asmr_e_no_var_type_specified=07074_No type of variable specified
-% The syntax expects a type idenfitifer after the dot, but 
+% The syntax expects a type idenfitifer after the dot, but
 % none was found.
 asmr_w_assembler_code_not_returned_to_text=07075_E_assembler code not returned to text section
 % There was a directive in the assembler block to change sections,
@@ -1556,7 +1560,7 @@ asmr_e_dollar_without_identifier=07078_E_Dollar token is used without an identif
 % A constant expression has an identifier which does not start with
 % the $ symbol.
 asmr_w_32bit_const_for_address=07079_W_32bit constant created for address
-% A constant was used as an address. This is probably an error, 
+% A constant was used as an address. This is probably an error,
 % since using absolute addresses will probably not work.
 asmr_n_align_is_target_specific=07080_N_.align is target specific, use .balign or .p2align
 % Using the .align directive is platform specific, and its meaning will vary
@@ -1656,10 +1660,10 @@ exec_e_cant_call_assembler=09008_E_Can't call the assembler, error $1 switching 
 exec_i_assembling=09009_I_Assembling $1
 exec_i_assembling_smart=09010_I_Assembling with smartlinking $1
 exec_w_objfile_not_found=09011_W_Object $1 not found, Linking may fail !
-% One of the object file is missing, and linking will probably fail. 
+% One of the object file is missing, and linking will probably fail.
 % Check your paths.
 exec_w_libfile_not_found=09012_W_Library $1 not found, Linking may fail !
-% One of the library file is missing, and linking will probably fail. 
+% One of the library file is missing, and linking will probably fail.
 % Check your paths.
 exec_e_error_while_linking=09013_E_Error while linking
 % Generic error while linking.
@@ -1741,7 +1745,7 @@ unit_f_ppu_read_error=10014_F_Error reading PPU-File
 % information. Recompilation will be necessary.
 unit_f_ppu_read_unexpected_end=10015_F_unexpected end of PPU-File
 % Unexpected end of file. This may mean that the PPU file is
-% corrupted. 
+% corrupted.
 unit_f_ppu_invalid_entry=10016_F_Invalid PPU-File entry: $1
 % The unit the compiler is trying to read is corrupted, or generated with a
 % newer version of the compiler.
@@ -1957,7 +1961,7 @@ Report bugs,suggestions etc to:
 #
 # Help pages (option -? and -h)
 #
-# The first character on the line indicates who will display this 
+# The first character on the line indicates who will display this
 # line, the current possibilities are :
 #    * = every target
 #    3 = 80x86 targets

@@ -105,15 +105,25 @@ implementation
          begin
            if assigned(vartype.def) and
               (vartype.def.deftype=arraydef) and
-              not is_special_array(vartype.def) then
+              {not is_array_constructor(vartype.def) and}
+              not is_variant_array(vartype.def) and
+              not is_array_of_const(vartype.def) then
             begin
               if (varspez<>vs_var) then
                 Message(parser_h_c_arrays_are_references);
               varspez:=vs_var;
             end;
            if assigned(vartype.def) and
-              is_array_of_const(vartype.def) then
+              (is_array_of_const(vartype.def) or
+               is_open_array(vartype.def) or
+               is_shortstring(vartype.def)) then
             begin
+              if is_open_string(vartype.def) then
+                begin
+                  { change type to normal short string }
+                  Message(parser_w_cdecl_no_openstring);
+                  vartype:=cshortstringtype;
+                end;
               if assigned(indexnext) and
                  (tsym(indexnext).typ=varsym) and
                  (copy(tvarsym(indexnext).name,1,4)='high') then
@@ -121,13 +131,18 @@ implementation
                  { removing it is to complicated,
                    we just hide it PM }
                  highname:='hidden'+copy(tvarsym(indexnext).name,5,high(name));
+                 Message(parser_w_cdecl_has_no_high);
                  owner.rename(tvarsym(indexnext).name,highname);
-                 if assigned(indexnext.indexnext) then
+                 if is_array_of_const(vartype.def) and
+                    assigned(indexnext.indexnext) then
                    Message(parser_e_C_array_of_const_must_be_last);
                end
               else
-               if assigned(indexnext) then
-                Message(parser_e_C_array_of_const_must_be_last);
+               begin
+                 if is_array_of_const(vartype.def) and
+                    assigned(indexnext) then
+                   Message(parser_e_C_array_of_const_must_be_last);
+               end;
             end;
          end;
       end;
@@ -1676,7 +1691,8 @@ const
               ps:=tsym(st.symindex.first);
               while assigned(ps.indexnext) and (tsym(ps.indexnext)<>lastps) do
                 ps:=tsym(ps.indexnext);
-              if ps.typ=varsym then
+              if (ps.typ=varsym) and
+                 (copy(ps.name,1,6)<>'hidden') then
                begin
                  { Wait with inserting the high value, it needs to be inserted
                    after the corresponding parameter }
@@ -2058,7 +2074,10 @@ const
 end.
 {
   $Log$
-  Revision 1.85  2002-12-01 22:06:14  carl
+  Revision 1.86  2002-12-06 17:51:10  peter
+    * merged cdecl and array fixes
+
+  Revision 1.85  2002/12/01 22:06:14  carl
     * cleanup of error messages
 
   Revision 1.84  2002/11/29 22:31:19  carl

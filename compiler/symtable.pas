@@ -716,6 +716,7 @@ implementation
            { also don't claim for high param of open parameters (PM) }
            if (Errorcount<>0) or
               (copy(p.name,1,3)='val') or
+              (copy(p.name,1,6)='hidden') or
               (copy(p.name,1,4)='high') then
              exit;
            if (tvarsym(p).refs=0) then
@@ -2337,7 +2338,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.83  2002-11-30 11:12:48  carl
+  Revision 1.84  2002-12-06 17:51:11  peter
+    * merged cdecl and array fixes
+
+  Revision 1.83  2002/11/30 11:12:48  carl
     + checking for symbols used with hint directives is done mostly in pexpr
       only now
 
