@@ -738,15 +738,6 @@ endif
 # Install rules
 #####################################################################
 
-# Create UnitInstallFiles
-override UNITINSTALLFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
-ifdef EXTRAINSTALLUNITS
-override EXTRAINSTALLFILES+=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
-ifneq ($(EXTRAINSTALLFILES),)
-override UNITINSTALLFILES+=$(EXTRAINSTALLFILES)
-endif
-endif
-
 fpc_showinstallfiles : all
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
@@ -756,12 +747,18 @@ endif
 ifdef LOADEROBJECTS
 	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(LOADEROFILES))
 endif
-# Show Units if unitobjects or extrainstallunits is set
-ifneq ($(UNITINSTALLFILES),)
-	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(UNITINSTALLFILES))
+ifdef UNITOBJECTS
+	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)))
+endif	
+ifdef EXTRAINSTALLUNITS
+	$(ECHO) $(addprefix "\n"$(UNITINSTALLDIR)/,$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))))
 endif	
 
 fpc_install : all
+# Create UnitInstallFiles
+ifdef EXTRAINSTALLUNITS
+override EXTRAINSTALLFILES=$(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS)))
+endif
 ifndef DEFAULTUNITS
 ifdef EXEOBJECTS
 	$(MKDIR) $(BININSTALLDIR)
@@ -776,11 +773,15 @@ ifdef LOADEROBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
 	$(INSTALL) $(LOADEROFILES) $(UNITINSTALLDIR)
 endif
-# Install Units if unitobjects or extrainstallunits is set
-ifneq ($(UNITINSTALLFILES),)
+ifdef UNITOBJECTS
 	$(MKDIR) $(UNITINSTALLDIR)
-	$(INSTALL) $(UNITINSTALLFILES) $(UNITINSTALLDIR)
+	$(INSTALL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES)) $(UNITINSTALLDIR)
 endif	
+ifdef EXTRAINSTALLUNITS
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) $(wildcard $(addsuffix $(OEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRAINSTALLUNITS)) $(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))) $(UNITINSTALLDIR)
+endif
+
 
 # Target for the sharedlib install which is not avail for all targets
 ifdef inlinux
@@ -873,15 +874,6 @@ endif
 # Clean rules
 #####################################################################
 
-# Create UnitCleanFiles
-override UNITCLEANFILES=$(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
-ifdef EXTRACLEANUNITS
-override EXTRACLEANFILES=$(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
-ifneq ($(EXTRACLEANFILES),)
-override UNITCLEANFILES+=$(EXTRACLEANFILES)
-endif
-endif
-
 fpc_clean:
 ifdef EXEOBJECTS
 	-$(DEL) $(EXEFILES) $(EXEOFILES)
@@ -889,9 +881,11 @@ endif
 ifdef LOADEROBJECTS
 	-$(DEL) $(LOADEROFILES)
 endif
-# Clean Units if unitobjects or extrainstallunits is set
-ifneq ($(UNITCLEANFILES),)
-	-$(DEL) $(UNITCLEANFILES)
+ifdef UNITOBJECTS
+	-$(DEL) $(wildcard $(UNITPPUFILES) $(UNITOFILES) $(UNITAFILES))
+endif	
+ifdef EXTRACLEANUNITS
+	-$(DEL) $(wildcard $(addsuffix $(OEXT),$(EXTRACLEANUNITS)) $(addsuffix $(STATICLIBEXT),$(EXTRACLEANUNITS)) $(addsuffix $(PPUEXT),$(EXTRACLEANUNITS)))
 endif	
 	-$(DEL) $(PPAS) link.res log
 
@@ -989,6 +983,7 @@ fpc_objectinfo:
 	@$(ECHO)
 	@$(ECHO)  ExtraCleanUnits... $(EXTRACLEANUNITS)
 	@$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLUNITS)
+	@$(ECHO)  ExtraInstallUnits. $(EXTRAINSTALLFILES)
 	@$(ECHO)
 	@$(ECHO)  == Unit info ==
 	@$(ECHO)
@@ -1044,7 +1039,10 @@ endif
 
 #
 # $Log$
-# Revision 1.38  1999-07-16 13:45:24  peter
+# Revision 1.39  1999-07-17 11:30:23  peter
+#   * merged
+#
+# Revision 1.38  1999/07/16 13:45:24  peter
 #   * 0.99.12b updates
 #   * merges
 #
@@ -1065,6 +1063,9 @@ endif
 #
 # Revision 1.32  1999/06/11 13:31:14  hajny
 #   * fixes for OS/2
+#
+# Revision 1.31.2.5  1999/07/17 11:29:02  peter
+#   * more extrainstallunits,extracleanunits updates
 #
 # Revision 1.31.2.4  1999/07/16 13:40:56  peter
 #   + extrainstallunits,extracleanunits
