@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1998-2002 by Florian Klaempfl, Pierre Muller
 
@@ -1509,7 +1509,7 @@ implementation
          ppufile.putlongint(address);
          { write only definition or definitionsym }
          ppufile.puttype(vartype);
-         hvo:=varoptions-[vo_regable];
+         hvo:=varoptions-[vo_regable,vo_fpuregable];
          ppufile.putsmallset(hvo);
          ppufile.putbyte(byte(abstyp));
          case abstyp of
@@ -2609,7 +2609,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2003-05-30 18:48:17  jonas
+  Revision 1.107  2003-06-02 22:59:17  florian
+    * absolutesyms aren't fpuregable either
+
+  Revision 1.106  2003/05/30 18:48:17  jonas
     * fixed intregister bug
     * fixed error in my previous commit: vo_(fpu)regable should only be set
       for (inline)localsymtable and (inline)parasymtable entries
