@@ -221,7 +221,7 @@ implementation
                            else
                             begin
                               { also length and terminating zero }
-                              getmem(pc,p^.length+2);
+                              getmem(pc,p^.length+3);
                               move(p^.value_str^,pc[1],p^.length+1);
                               pc[0]:=chr(p^.length);
                               { to overcome this problem we set the length explicitly }
@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  1998-11-05 15:26:38  pierre
+  Revision 1.19  1998-11-05 23:40:45  pierre
+   * fix for const strings
+
+  Revision 1.18  1998/11/05 15:26:38  pierre
    * fix for missing zero after string const
 
   Revision 1.17  1998/11/05 12:02:32  peter
