@@ -755,8 +755,8 @@ implementation
 
     function  gintfgetvtbllabelname(_class: pobjectdef; intfindex: integer): string;
       begin
-        gintfgetvtbllabelname:='_$$_'+_class^.objname^+'_$$_'+
-          _class^.implementedinterfaces^.interfaces(intfindex)^.objname^+'_$$_VTBL';
+        gintfgetvtbllabelname:='_$$_'+upper(_class^.objname^)+'_$$_'+
+          upper(_class^.implementedinterfaces^.interfaces(intfindex)^.objname^)+'_$$_VTBL';
       end;
 
     procedure gintfcreatevtbl(_class: pobjectdef; intfindex: integer; rawdata,rawcode: paasmoutput);
@@ -773,7 +773,7 @@ implementation
         count:=implintf^.implproccount(intfindex);
         for i:=1 to count do
           begin
-            tmps:=implintf^.implprocs(intfindex,i)^.mangledname+'_$$_'+curintf^.objname^;
+            tmps:=implintf^.implprocs(intfindex,i)^.mangledname+'_$$_'+upper(curintf^.objname^);
             { create wrapper code }
             cgintfwrapper(rawcode,implintf^.implprocs(intfindex,i),tmps,implintf^.ioffsets(intfindex)^);
             { create reference }
@@ -1046,7 +1046,7 @@ implementation
        if c^.owner^.name=nil then
          s1:=''
        else
-         s1:=c^.owner^.name^;
+         s1:=upper(c^.owner^.name^);
        if c^.objname=nil then
          s2:=''
        else
@@ -1073,7 +1073,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-11-04 17:31:00  florian
+  Revision 1.12  2000-11-06 23:13:53  peter
+    * uppercase manglednames
+
+  Revision 1.11  2000/11/04 17:31:00  florian
     * fixed some problems of previous commit
 
   Revision 1.10  2000/11/04 14:25:19  florian

@@ -884,7 +884,7 @@ implementation
      if assigned(owner) then
       begin
         if (owner^.symtabletype = objectsymtable) then
-         obj := owner^.name^+'__'+name;
+         obj := upper(owner^.name^)+'__'+name;
         { this code was correct only as long as the local symboltable
           of the parent had the same name as the function
           but this is no true anymore !! PM
@@ -1393,13 +1393,13 @@ implementation
          case owner^.symtabletype of
            staticsymtable :
              if (cs_create_smart in aktmoduleswitches) then
-               prefix:='_'+owner^.name^+'$$$_'
+               prefix:='_'+upper(owner^.name^)+'$$$_'
              else
                prefix:='_';
            unitsymtable,
            globalsymtable :
              prefix:=
-              'U_'+owner^.name^+'_';
+              'U_'+upper(owner^.name^)+'_';
            else
              Message(sym_e_invalid_call_tvarsymmangledname);
          end;
@@ -1708,7 +1708,7 @@ implementation
           (sp_static in symoptions) then
          begin
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
-            stabstring := strpnew('"'+owner^.name^+'__'+name+':'+st+
+            stabstring := strpnew('"'+upper(owner^.name^)+'__'+name+':'+st+
                      '",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
@@ -2464,7 +2464,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-11-01 23:04:38  peter
+  Revision 1.3  2000-11-06 23:13:53  peter
+    * uppercase manglednames
+
+  Revision 1.2  2000/11/01 23:04:38  peter
     * tprocdef.fullprocname added for better casesensitve writing of
       procedures
 

@@ -4414,7 +4414,7 @@ Const local_symtable_index : longint = $8001;
         if owner^.name=nil then
           s1:=''
         else
-          s1:=owner^.name^;
+          s1:=upper(owner^.name^);
         if objname=nil then
           s2:=''
         else
@@ -4430,7 +4430,7 @@ Const local_symtable_index : longint = $8001;
        if owner^.name=nil then
          s1:=''
        else
-         s1:=owner^.name^;
+         s1:=upper(owner^.name^);
        if objname=nil then
          s2:=''
        else
@@ -5521,7 +5521,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.7  2000-11-06 23:11:38  florian
+  Revision 1.8  2000-11-06 23:13:53  peter
+    * uppercase manglednames
+
+  Revision 1.7  2000/11/06 23:11:38  florian
     * writeln debugger uninstalled ;)
 
   Revision 1.6  2000/11/06 23:05:52  florian
