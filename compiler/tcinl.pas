@@ -629,6 +629,34 @@ implementation
                       { first param must be var }
                       valid_for_assign(p^.left^.left,false);
                       { check type }
+                      if is_64bitint(p^.left^.resulttype) then
+                        { convert to simple add (JM) }
+                        begin
+                          hp := getnode;
+                          hp^.treetype := assignn;
+                          hp^.left := getcopy(p^.left^.left);
+                          hpp := getnode;
+                          hp^.right := hpp;
+                          if p^.inlinenumber = in_inc_x then
+                            hpp^.treetype := addn
+                          else hpp^.treetype := subn;
+                          hpp^.left := p^.left^.left;
+                          p^.left^.left := nil;
+                          if assigned(p^.left^.right) then
+                            begin
+                              hpp^.right := p^.left^.right^.left;
+                              p^.left^.right^.left := nil;
+                              if assigned(p^.left^.right^.right) then
+                                CGMessage(cg_e_illegal_expression);
+                            end
+                          else
+                            hpp^.right := genordinalconstnode(1,s32bitdef);
+                          disposetree(p);
+                          p := hp;
+                          dec(parsing_para_level);
+                          firstpass(p);
+                          exit;
+                        end; 
                       if (p^.left^.resulttype^.deftype in [enumdef,pointerdef]) or
                          is_ordinal(p^.left^.resulttype) then
                         begin
@@ -1339,7 +1367,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-09-24 21:19:53  peter
+  Revision 1.8  2000-10-05 14:42:31  jonas
+    * fixed inc/dec with a 64bit type (merged from fixes branch)
+
+  Revision 1.7  2000/09/24 21:19:53  peter
     * delphi compile fixes
 
   Revision 1.6  2000/08/24 13:12:38  jonas
