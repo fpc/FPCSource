@@ -349,9 +349,115 @@ SystemTime.Month := Regs.Dh;
 SystemTime.Day := Regs.Dl;
 end ;
 
+{ ---------------------------------------------------------------------
+    Internationalization settings 
+  ---------------------------------------------------------------------}
+  
+
+{  Codepage constants  }
+const
+   CP_US = 437;
+   CP_MultiLingual = 850;
+   CP_SlavicLatin2 = 852;
+   CP_Turkish = 857;
+   CP_Portugal = 860;
+   CP_IceLand = 861;
+   CP_Canada = 863;
+   CP_NorwayDenmark = 865;
+
+{  CountryInfo   }
+type
+   TCountryInfo = packed record
+      InfoId: byte;
+      case integer of
+         1: ( Size: word;
+              CountryId: word;
+              CodePage: word;
+              CountryInfo: array[0..33] of byte );
+         2: ( UpperCaseTable: longint );
+         4: ( FilenameUpperCaseTable: longint );
+         5: ( FilecharacterTable: longint );
+         6: ( CollatingTable: longint );
+         7: ( DBCSLeadByteTable: longint );
+   end ;
+
+
+procedure GetExtendedCountryInfo(InfoId: integer; CodePage, CountryId: word; var CountryInfo: TCountryInfo);
+
+Var Regs: Registers;
+
+begin
+  Regs.AH := $65;
+  Regs.AL := InfoId;
+  Regs.BX := CodePage;
+  Regs.DX := CountryId;
+  Regs.ES := transfer_buffer div 16;
+  Regs.DI := transfer_buffer and 15;
+  Regs.CX := SizeOf(TCountryInfo);
+  RealIntr($21, Regs);
+  DosMemGet(transfer_buffer shr 16, 
+            transfer_buffer and 65535, 
+            CountryInfo, Regs.CX );
+end;
+
+procedure InitAnsi;
+
+var CountryInfo: TCountryInfo; i: integer;
+
+begin
+{  Fill table entries 0 to 127  }
+for i := 0 to 96 do
+  UpperCaseTable[i] := chr(i);
+for i := 97 to 122 do
+  UpperCaseTable[i] := chr(i - 32);
+for i := 123 to 127 do
+  UpperCaseTable[i] := chr(i);
+for i := 0 to 64 do
+  LowerCaseTable[i] := chr(i);
+for i := 65 to 90 do
+  LowerCaseTable[i] := chr(i + 32);
+for i := 91 to 255 do
+  LowerCaseTable[i] := chr(i);
+
+{  Get country and codepage info  }
+GetExtendedCountryInfo(1, $FFFF, $FFFF, CountryInfo);
+if CountryInfo.CodePage = 850 then 
+  begin
+  { Special, known case }
+  Move(CP850UCT, UpperCaseTable[128], 128);
+  Move(CP850LCT, LowerCaseTable[128], 128);
+  end
+else 
+  begin
+  { this needs to be checked !!
+  this is correct only if UpperCaseTable is
+  and Offset:Segment word record (PM) }
+  {  get the uppercase table from dosmemory  }
+  GetExtendedCountryInfo(2, $FFFF, $FFFF, CountryInfo);
+  DosMemGet(CountryInfo.UpperCaseTable shr 16, 2 + CountryInfo.UpperCaseTable and 65535, UpperCaseTable[128], 128);
+  for i := 128 to 255 do 
+     begin
+     if UpperCaseTable[i] <> chr(i) then
+        LowerCaseTable[ord(UpperCaseTable[i])] := chr(i);
+     end;
+  end;
+end;
+
+Procedure InitInternational;
+
+{ This routine is called by the unit startup code. }
+
+begin
+  { Init upper/lowercase tables }
+  InitAnsi
+end;
+
 {
   $Log$
-  Revision 1.4  1999-02-24 15:57:28  michael
+  Revision 1.5  1999-02-28 13:18:12  michael
+  + Added internationalization support
+
+  Revision 1.4  1999/02/24 15:57:28  michael
   + Moved getlocaltime to system-dependent files
 
   Revision 1.3  1999/02/09 17:16:59  florian

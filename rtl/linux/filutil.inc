@@ -241,10 +241,41 @@ linux.GetDate(SystemTime.Year, SystemTime.Month, SystemTime.Day);
 SystemTime.MilliSecond := 0;
 end ;
 
+Procedure InitAnsi;
+
+Var i : longint;
+
+begin
+{  Fill table entries 0 to 127  }
+for i := 0 to 96 do
+  UpperCaseTable[i] := chr(i);
+for i := 97 to 122 do
+  UpperCaseTable[i] := chr(i - 32);
+for i := 123 to 191 do
+  UpperCaseTable[i] := chr(i);
+Move (CPISO88591UCT,UpperCaseTable[192],SizeOf(CPISO88591UCT));
+
+for i := 0 to 64 do
+  LowerCaseTable[i] := chr(i);
+for i := 65 to 90 do
+  LowerCaseTable[i] := chr(i + 32);
+for i := 91 to 191 do
+  LowerCaseTable[i] := chr(i);
+Move (CPISO88591LCT,UpperCaseTable[192],SizeOf(CPISO88591UCT));
+end;
+
+Procedure InitInternational;
+
+begin
+ InitAnsi;  
+end;
 
 {
   $Log$
-  Revision 1.7  1999-02-24 15:57:29  michael
+  Revision 1.8  1999-02-28 13:18:10  michael
+  + Added internationalization support
+
+  Revision 1.7  1999/02/24 15:57:29  michael
   + Moved getlocaltime to system-dependent files
 
   Revision 1.6  1999/02/04 21:43:08  michael

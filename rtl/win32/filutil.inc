@@ -297,9 +297,23 @@ begin
   st.millisecond:=syst.wMilliSeconds;
 end;
 
+
+Procedure InitInternational;
+
+{
+ called by sysutils initialization routines to set up 
+ internationalization support. 
+}
+
+begin
+end;
+
 {
   $Log$
-  Revision 1.4  1999-02-24 15:57:30  michael
+  Revision 1.5  1999-02-28 13:18:11  michael
+  + Added internationalization support
+
+  Revision 1.4  1999/02/24 15:57:30  michael
   + Moved getlocaltime to system-dependent files
 
   Revision 1.3  1999/02/09 12:01:03  michael
