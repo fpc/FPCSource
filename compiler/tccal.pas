@@ -1054,8 +1054,8 @@ implementation
               else
                 procinfo^.flags:=procinfo^.flags or pi_do_call;
 
-              if (po_interrupt in p^.procdefinition^.procoptions) then
-                CGmessage1(cg_e_no_call_to_interrupt,p^.symtableprocentry^.name);
+              {if (po_interrupt in p^.procdefinition^.procoptions) then
+                CGmessage1(cg_e_no_call_to_interrupt,p^.symtableprocentry^.name);}
               { work trough all parameters to insert the type conversions }
               { !!! done now after internproc !! (PM) }
               if assigned(p^.left) then
@@ -1233,7 +1233,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.84  2000-04-24 12:48:38  peter
+  Revision 1.85  2000-05-09 14:16:00  pierre
+   * calling interrupt routine supported
+
+  Revision 1.84  2000/04/24 12:48:38  peter
     * removed unused vars
 
   Revision 1.83  2000/04/02 18:30:12  florian
