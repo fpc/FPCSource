@@ -127,19 +127,26 @@ Fixed bugs:
   bug0115.pp   missing writeln for comp data type                    OK 0.99.6 (FK)
   bug0116.pp   when local variable size is > $ffff, enter can't be   OK 0.99.1 (FK)
                used to create the stack frame, but it is with -Og
+  bug0117.pp   internalerror 17 (and why is there an automatic float OK 0.99.6 (FK) 
+               conversion?)
+  bug0118.pp   Procedural vars cannot be assigned nil ?              OK 0.99.6 (FK)
+  bug0119.pp   problem with methods                                  OK 0.99.6 (FK)
   bug0121.pp   cardinal -> byte conversion not work (and crashes)    OK 0.99.6 (FK) 
+  bug0122.pp   exit() gives a warning that the result is not set     OK 0.99.6 (??)
   bug0126.pp   packed array isn't allowed                            OK 0.99.6 (FK)
+  bug0129.pp   endless loop with while/continue                      OK 0.99.6 (FK)
 
 Unproducable bugs:
 ------------------
+
+bug0048.pp   shows a problem with putimage on some computers
+             (I can't reproduce the bug neither with a Millenium II
+              nor a Trio64 card (FK)  )
 
 Unfixed bugs:
 -------------
 bug0042.pp   shows assembler double operator expression problem
 bug0043.pp   shows assembler nasm output with fpu opcodes problem
-bug0048.pp   shows a problem with putimage on some computers
-             (I can't reproduce the bug neither with a Millenium II
-              nor a Trio64 card (FK)  )
 bug0049.pp   shows an error while defining subrange types
 bug0050.pp   can't set a function result in a nested
              procedure of a function
@@ -163,16 +170,10 @@ bug0103.pp   problems with boolean typecasts (other type)
 bug0107.pp   shows page fault problem (run in TRUE DOS mode)
 bug0110.pp   SigSegv when using undeclared var in Case
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
-bug0117.pp   internalerror 17 (and why is there an automatic float 
-              conversion?)
-bug0118.pp   Procedural vars cannot be assigned nil ?
-bug0119.pp   problem with methods
 bug0120.pp   inc/dec(enumeration) doesn't work
-bug0122.pp   exit() gives a warning that the result is not set
 bug0123.pp   problem with intel assembler (shrd)
 bug0124.pp   problem with -Rintel switch and indexing (whatever the order)
 bug0125.pp   wrong colors with DOS CRT unit
 bug0127.pp   problem with cdecl in implementation part
 bug0128.pp   problem with ^[
-bug0129.pp   endless loop with while/continue
 
