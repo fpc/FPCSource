@@ -22,10 +22,8 @@ type
    end;
 
    TCriticalSection = class(TSyncroObject)
-{$ifdef win32}
    private
       CriticalSection : TRTLCriticalSection;
-{$endif win32}
    public
       procedure Acquire;override;
       procedure Release;override;
@@ -46,12 +44,18 @@ type
    end;
 
    TEventObject = class(THandleObject)
+   private
+      FSem: Pointer;
+      FManualReset: Boolean;
+      FEventSection: TCriticalSection;
    public
       constructor Create(EventAttributes : PSecurityAttributes;
-        ManualReset,InitialState : Boolean;const Name : string);
+        AManualReset,InitialState : Boolean;const Name : string);
+      destructor destroy; override;  
       procedure ResetEvent;
       procedure SetEvent;
       function WaitFor(Timeout : Cardinal) : TWaitResult;
+      Property ManualReset : Boolean read FManualReset;
    end;
    
    TEvent = TEventObject;
@@ -62,7 +66,10 @@ type
 
 {
   $Log$
-  Revision 1.5  2003-06-11 12:00:09  michael
+  Revision 1.6  2003-06-14 19:14:58  michael
+  + Some improvements for the Linux version
+
+  Revision 1.5  2003/06/11 12:00:09  michael
   + Implemented Win32 of syncobjs
 
   Revision 1.4  2002/09/07 15:15:26  peter

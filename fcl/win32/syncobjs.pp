@@ -72,6 +72,12 @@ begin
   FHandle := CreateEvent(EventAttributes, ManualReset, InitialState, PChar(Name));
 end;
 
+destructor TEventObject.destroy;
+
+begin
+  inherited;
+end;
+
 procedure TEventObject.ResetEvent;
 
 begin
@@ -111,7 +117,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-06-11 11:59:52  michael
+  Revision 1.5  2003-06-14 19:16:50  michael
+  + Some improvements for the Linux version
+
+  Revision 1.4  2003/06/11 11:59:52  michael
   + Implemented Win32 of syncobjs
 
   Revision 1.3  2002/09/07 15:15:29  peter
