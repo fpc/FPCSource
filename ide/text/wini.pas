@@ -185,6 +185,7 @@ begin
   if GetValue<>S then
   begin
     if Text<>nil then DisposeStr(Text); Text:=nil;
+    if Value<>nil then DisposeStr(Value);
     Value:=NewStr(S);
     Modified:=true;
   end;
@@ -511,7 +512,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.3  1999-01-21 11:54:33  peter
+  Revision 1.4  1999-02-10 09:14:57  pierre
+   * Value was not disposed before overwrite in TINIEntry.SetValue
+
+  Revision 1.3  1999/01/21 11:54:33  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
