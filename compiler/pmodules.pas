@@ -316,13 +316,12 @@ unit pmodules;
             end;
            pu:=pused_unit(pu^.next);
          end;
-        { load browser info if turned on }
-        if cs_browser in aktmoduleswitches then
+        { load browser info if stored }
+        if ((current_module^.flags and uf_has_browser)<>0) then
           punitsymtable(current_module^.globalsymtable)^.load_symtable_refs;
-        if ((current_module^.flags and uf_has_browser)<>0) and
-           (cs_local_browser in aktmoduleswitches) then
+        if ((current_module^.flags and uf_local_browser)<>0) then
          begin
-           current_module^.localsymtable:=new(psymtable,load);
+           current_module^.localsymtable:=new(psymtable,loadas(staticsymtable));
            psymtable(current_module^.localsymtable)^.name:=
               stringdup('implementation of '+psymtable(current_module^.globalsymtable)^.name^);
            psymtable(current_module^.localsymtable)^.load_browser;
@@ -791,6 +790,12 @@ unit pmodules;
          consume(_INTERFACE);
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
+
+         { can't have local browser when no global browser }
+         if (cs_local_browser in aktmoduleswitches) and
+            not(cs_browser in aktmoduleswitches) then
+           aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];
+
          Message1(unit_u_start_parse_interface,current_module^.modulename^);
 
          { update status }
@@ -1061,7 +1066,8 @@ unit pmodules;
             refsymtable^.write;
             refsymtable^.write_browser;
           end;
-
+          { must be done only after local symtable ref stores !! }
+          closecurrentppu;
 {$ifdef GDB}
          pu:=pused_unit(usedunits.first);
          while assigned(pu) do
@@ -1072,8 +1078,11 @@ unit pmodules;
 {$endif GDB}
 
          { remove static symtable (=refsymtable) here to save some mem }
-         dispose(st,done);
-         current_module^.localsymtable:=nil;
+         if not (cs_local_browser in aktmoduleswitches) then
+           begin
+              dispose(st,done);
+              current_module^.localsymtable:=nil;
+           end;
 
          if is_assembler_generated then
           begin
@@ -1126,6 +1135,11 @@ unit pmodules;
 
          { global switches are read, so further changes aren't allowed }
          current_module^.in_global:=false;
+
+         { can't have local browser when no global browser }
+         if (cs_local_browser in aktmoduleswitches) and
+            not(cs_browser in aktmoduleswitches) then
+           aktmoduleswitches:=aktmoduleswitches-[cs_local_browser];
          { set implementation flag }
          current_module^.in_implementation:=true;
 
@@ -1245,7 +1259,13 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.98  1999-02-22 02:15:29  peter
+  Revision 1.99  1999-02-22 13:06:58  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.98  1999/02/22 02:15:29  peter
     * updates for ag386bin
 
   Revision 1.97  1999/02/16 00:45:31  peter

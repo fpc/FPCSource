@@ -705,6 +705,7 @@ unit pstatmnt;
               Message(parser_w_inlining_disabled);
               aktprocsym^.definition^.options:= aktprocsym^.definition^.options and not poinline;
            End;
+         Inside_asm_statement:=true;
          case aktasmmode of
 {$ifdef i386}
   {$ifndef NoRA386Att}
@@ -790,6 +791,8 @@ unit pstatmnt;
              Marker := New(Pai_Marker, Init(AsmBlockEnd));
              AsmStat^.p_asm^.Concat(Marker);
            End;
+         Inside_asm_statement:=false;
+
          _asm_statement:=asmstat;
       end;
 
@@ -1282,7 +1285,13 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.66  1999-02-22 02:15:31  peter
+  Revision 1.67  1999-02-22 13:07:01  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.66  1999/02/22 02:15:31  peter
     * updates for ag386bin
 
   Revision 1.65  1999/02/15 13:13:15  pierre

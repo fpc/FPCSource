@@ -459,17 +459,26 @@
 
 
     procedure tprocsym.load_references;
-      var
-        prdef : pprocdef;
+      (* var
+        prdef,prdef2 : pprocdef;
+        b : byte; *)
       begin
          inherited load_references;
-         prdef:=definition;
+         (* prdef:=definition;
          { take care about operators !!  }
-         while assigned(prdef) and (prdef^.owner=definition^.owner) do
-          begin
-            prdef^.load_references;
-            prdef:=prdef^.nextoverloaded;
-          end;
+         if (current_module^.flags and uf_has_browser) <>0 then
+           while assigned(prdef) and (prdef^.owner=definition^.owner) do
+             begin
+                b:=current_ppu^.readentry;
+                if b<>ibdefref then
+                  Message(unit_f_ppu_read_error);
+                prdef2:=pprocdef(readdefref);
+                resolvedef(prdef2);
+                if prdef<>prdef2 then
+                  Message(unit_f_ppu_read_error);
+                prdef^.load_references;
+                prdef:=prdef^.nextoverloaded;
+             end; *)
       end;
 
     function tprocsym.write_references : boolean;
@@ -725,6 +734,33 @@
          { address valid for ret in param only }
          { otherwise set by insert             }
          address:=pprocinfo(approcinfo)^.retoffset;
+      end;
+
+    constructor tfuncretsym.load;
+      begin
+         tsym.load;
+         funcretdef:=readdefref;
+         address:=readlong;
+         funcretprocinfo:=nil;
+         typ:=funcretsym;
+      end;
+
+    procedure tfuncretsym.write;
+      begin
+      
+         (*
+          Normally all references are
+          transfered to the function symbol itself !! PM *)
+         tsym.write;
+         writedefref(funcretdef);
+         writelong(address);
+         
+         current_ppu^.writeentry(ibfuncretsym);
+      end;
+
+    procedure tfuncretsym.deref;
+      begin
+         resolvedef(funcretdef);
       end;
 
 {$ifdef GDB}
@@ -1775,7 +1811,13 @@
 
 {
   $Log$
-  Revision 1.72  1999-02-08 09:51:22  pierre
+  Revision 1.73  1999-02-22 13:07:09  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.72  1999/02/08 09:51:22  pierre
    * gdb info for local functions was wrong
 
   Revision 1.71  1999/01/23 23:29:41  florian

@@ -231,6 +231,9 @@
           funcretdef : pdef;
           address : longint;
           constructor init(const n : string;approcinfo : pointer{pprocinfo});
+          constructor load;
+          procedure write;virtual;
+          procedure deref;virtual;
 {$ifdef GDB}
           procedure concatstabto(asmlist : paasmoutput);virtual;
 {$endif GDB}
@@ -328,7 +331,13 @@
 
 {
   $Log$
-  Revision 1.14  1999-01-20 10:20:22  peter
+  Revision 1.15  1999-02-22 13:07:11  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.14  1999/01/20 10:20:22  peter
     * don't make localvar copies for assembler procedures
 
   Revision 1.13  1999/01/14 21:49:59  peter

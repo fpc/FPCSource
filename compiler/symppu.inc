@@ -109,7 +109,9 @@
          current_ppu^.putlongint($ffffffff)
         else
          begin
-           if (p^.owner^.symtabletype in [recordsymtable,objectsymtable]) then
+           if p^.owner^.symtabletype=staticsymtable then
+            current_ppu^.putword($fffe)
+           else if not (p^.owner^.symtabletype in [unitsymtable,globalsymtable]) then
             current_ppu^.putword($ffff)
            else
             current_ppu^.putword(p^.owner^.unitid);
@@ -124,7 +126,9 @@
          current_ppu^.putlongint($ffffffff)
         else
          begin
-           if (p^.owner^.symtabletype in [recordsymtable,objectsymtable]) then
+           if p^.owner^.symtabletype=staticsymtable then
+            current_ppu^.putword($fffe)
+           else if not (p^.owner^.symtabletype in [unitsymtable,globalsymtable]) then
             current_ppu^.putword($ffff)
            else
             current_ppu^.putword(p^.owner^.unitid);
@@ -220,9 +224,14 @@
          current_ppu^.writeheader;
        { save crc in current_module also }
          current_module^.crc:=current_ppu^.crc;
+      end;
+
+    procedure closecurrentppu;
+      begin
        { close }
          current_ppu^.close;
          dispose(current_ppu,done);
+         current_ppu:=nil;
       end;
 
 
@@ -439,7 +448,13 @@
 
 {
   $Log$
-  Revision 1.31  1999-02-16 00:48:25  peter
+  Revision 1.32  1999-02-22 13:07:08  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.31  1999/02/16 00:48:25  peter
     * save in the ppu if linked with obj file instead of using the
       library flag, so the .inc files are also checked
 

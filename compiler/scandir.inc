@@ -766,6 +766,8 @@ const
       var
         s : string;
       begin
+        If Inside_asm_statement then
+          Message1(scan_w_no_asm_reader_switch_inside_asm,s);
         current_scanner^.skipspace;
         s:=current_scanner^.readid;
         if s='DEFAULT' then
@@ -778,6 +780,8 @@ const
 
     procedure dir_oldasmmode(t:tdirectivetoken);
       begin
+        If Inside_asm_statement then
+          Message1(scan_w_no_asm_reader_switch_inside_asm,directive[t]);
 {$ifdef i386}
         case t of
          _DIR_I386_ATT    : aktasmmode:=asmmode_i386_att;
@@ -1001,7 +1005,13 @@ const
 
 {
   $Log$
-  Revision 1.46  1999-02-05 08:51:16  pierre
+  Revision 1.47  1999-02-22 13:07:05  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.46  1999/02/05 08:51:16  pierre
    * $L default extension from resext to objext
 
   Revision 1.45  1998/12/28 23:26:25  peter

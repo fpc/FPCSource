@@ -75,6 +75,7 @@ const
   ibvarsym_C      = 28;
   ibunitsym       = 29;  { needed for browser }
   iblabelsym      = 30;
+  ibfuncretsym    = 31;
   {definitions}
   iborddef        = 40;
   ibpointerdef    = 41;
@@ -795,7 +796,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1999-02-16 00:48:24  peter
+  Revision 1.24  1999-02-22 13:07:00  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.23  1999/02/16 00:48:24  peter
     * save in the ppu if linked with obj file instead of using the
       library flag, so the .inc files are also checked
 

@@ -1484,9 +1484,18 @@
 ***************************************************************************}
 
     constructor tformaldef.init;
+      var
+         stregdef : boolean;
       begin
+         stregdef:=registerdef;
+         registerdef:=false;
          inherited init;
          deftype:=formaldef;
+         registerdef:=stregdef;
+         { formaldef must be registered at unit level !! }
+         if registerdef and assigned(current_module) and
+            assigned(current_module^.globalsymtable) then
+           psymtable(current_module^.globalsymtable)^.registerdef(@self);
          savesize:=target_os.size_of_pointer;
       end;
 
@@ -1684,7 +1693,7 @@
          savesize:=readlong;
          oldread_member:=read_member;
          read_member:=true;
-         symtable:=new(psymtable,loadasstruct(recordsymtable));
+         symtable:=new(psymtable,loadas(recordsymtable));
          read_member:=oldread_member;
          symtable^.defowner := @self;
       end;
@@ -1759,7 +1768,7 @@
          inherited write;
          writelong(savesize);
          current_ppu^.writeentry(ibrecorddef);
-         self.symtable^.writeasstruct;
+         self.symtable^.writeas;
          read_member:=oldread_member;
       end;
 
@@ -2239,10 +2248,12 @@
           lastwritten:=lastref;
         if (current_module^.flags and uf_local_browser)<>0 then
           begin
-             new(parast,load);
+{$ifdef Dummy}
+             new(parast,loadas(parasymtable));
              parast^.load_browser;
-             new(localst,load);
+             new(localst,loadas(localsymtable));
              localst^.load_browser;
+{$endif def Dummy}
           end;
       end;
 
@@ -2281,16 +2292,18 @@
         write_references:=true;
         if (current_module^.flags and uf_local_browser)<>0 then
           begin
+{$ifdef Dummy}
              { we need dummy para and local symtables
                PPU files are then easier to read PM }
              if not assigned(parast) then
                parast:=new(psymtable,init(parasymtable));
-             parast^.write;
+             parast^.writeas;
              parast^.write_browser;
              if not assigned(localst) then
                localst:=new(psymtable,init(localsymtable));
-             localst^.write;
+             localst^.writeas;
              localst^.write_browser;
+{$endif def Dummy}
           end;
       end;
 
@@ -2705,7 +2718,7 @@
          oldread_member:=read_member;
          read_member:=true;
          object_options:=true;
-         publicsyms:=new(psymtable,loadasstruct(objectsymtable));
+         publicsyms:=new(psymtable,loadas(objectsymtable));
          object_options:=false;
          read_member:=oldread_member;
          publicsyms^.defowner:=@self;
@@ -2889,7 +2902,7 @@
          oldread_member:=read_member;
          read_member:=true;
          object_options:=true;
-         publicsyms^.writeasstruct;
+         publicsyms^.writeas;
          object_options:=false;
          read_member:=oldread_member;
       end;
@@ -3293,7 +3306,13 @@
 
 {
   $Log$
-  Revision 1.92  1999-02-17 10:14:20  peter
+  Revision 1.93  1999-02-22 13:07:07  pierre
+    + -b and -bl options work !
+    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
+      is not enabled when quitting global section
+    * local vars and procedures are not yet stored into PPU
+
+  Revision 1.92  1999/02/17 10:14:20  peter
     * set the first enumsym also for subrange types
 
   Revision 1.91  1999/02/08 09:51:21  pierre
