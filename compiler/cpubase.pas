@@ -189,7 +189,7 @@ const
   IF_PASS2  = $80000000;  { if the instruction can change in a second pass }
 
 type
-  TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU);
+  TAttSuffix = (AttSufNONE,AttSufINT,AttSufFPU,AttSufFPUint);
 
   TAsmOp=
 {$i i386op.inc}
@@ -904,7 +904,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.24  2000-03-27 21:18:54  pierre
+  Revision 1.25  2000-04-04 13:45:20  pierre
+   + AttSufFPUint for integer fpu instructions
+
+  Revision 1.24  2000/03/27 21:18:54  pierre
     * "segss" prefix in Intel is converted into "ss" in ATT
       and vice-versa. Fixes web bug 892.
 
