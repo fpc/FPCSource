@@ -556,19 +556,16 @@ operator <=(const op1,op2 : variant) dest : boolean;
  **********************************************************************}
 
 procedure GetVariantManager(var VarMgr: TVariantManager);
-
 begin
   VarMgr:=VariantManager;
 end;
 
 procedure SetVariantManager(const VarMgr: TVariantManager);
-
 begin
   VariantManager:=VarMgr;
 end;
 
 function IsVariantManagerSet: Boolean;
-
 var
    i : longint;
 begin
@@ -576,8 +573,8 @@ begin
    Result:=True;
    While Result and (I<(sizeof(tvariantmanager) div sizeof(pointer))-1) do
      begin
-     Result:=Pointer(ppointer(@variantmanager+i*sizeof(pointer))^)<>Pointer(@invalidvariantop);
-     Inc(I);
+       Result:=Pointer(ppointer(@variantmanager+i*sizeof(pointer))^)<>Pointer(@invalidvariantop);
+       Inc(I);
      end;
 end;
 
@@ -598,7 +595,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.22  2005-01-15 18:47:26  florian
+  Revision 1.23  2005-02-01 20:22:24  florian
+    + interface <-> variant conversion from Danny Milosavljevic
+
+  Revision 1.22  2005/01/15 18:47:26  florian
     * several variant init./final. stuff fixed
 
   Revision 1.21  2005/01/08 20:43:44  florian
