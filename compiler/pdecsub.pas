@@ -808,7 +808,10 @@ end;
 procedure pd_inline;
 begin
   if not(cs_support_inline in aktmoduleswitches) then
-   Message(parser_e_proc_inline_not_supported);
+   begin
+     Message(parser_e_proc_inline_not_supported);
+     exclude(aktprocsym.definition.proccalloptions,pocall_inline);
+   end;
 end;
 
 procedure pd_forward;
@@ -1907,7 +1910,10 @@ const
 end.
 {
   $Log$
-  Revision 1.30  2001-08-01 15:07:29  jonas
+  Revision 1.31  2001-08-05 13:18:50  peter
+    * turn pocall_inline off when inline is not supported
+
+  Revision 1.30  2001/08/01 15:07:29  jonas
     + "compilerproc" directive support, which turns both the public and mangled
       name to lowercase(declaration_name). This prevents a normal user from
       accessing the routine, but they can still be easily looked up within
