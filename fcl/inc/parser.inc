@@ -260,6 +260,7 @@ var
   P                : PChar;
 begin
   CheckToken(toSymbol);
+
   P := FSourcePtr;
   while P^ = '.' do
   begin
@@ -299,7 +300,7 @@ Function TParser.TokenString: string;
 var
   L                : Integer;
   StrBuf           : array[0..1023] of Char;
-begin 
+begin
   if FToken = toString then begin
     L := FStringPtr - FTokenPtr 
   end else begin
@@ -316,7 +317,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.4  1998-10-30 14:52:51  michael
+  Revision 1.5  1999-01-28 23:55:41  florian
+    * made it compilable
+
+  Revision 1.4  1998/10/30 14:52:51  michael
   + Added format in interface
   + Some errors in parser fixed, it uses exceptions now
   + Strings now has no more syntax errors.

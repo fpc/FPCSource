@@ -888,7 +888,7 @@ end;
 Procedure TStringList.Sort; 
 
 begin
-  If Not Sorted and FCount>1 then
+  If Not Sorted and (FCount>1) then
     begin
     Changing;
     QuickSOrt(0,FCount-1);
@@ -898,7 +898,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1998-11-13 09:40:16  michael
+  Revision 1.9  1999-01-28 23:55:43  florian
+    * made it compilable
+
+  Revision 1.8  1998/11/13 09:40:16  michael
   + Restored old version
 
   Revision 1.6  1998/11/09 10:07:24  michael

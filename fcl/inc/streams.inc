@@ -344,7 +344,7 @@ function TCustomMemoryStream.Read(var Buffer; Count: Longint): Longint;
 
 begin
   Result:=0;
-  If FSize>0 and FPosition<Fsize then
+  If (FSize>0) and (FPosition<Fsize) then
     begin
     Result:=FSize-FPosition;
     If Result>Count then Result:=Count;
@@ -610,7 +610,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  1998-10-02 22:41:30  michael
+  Revision 1.9  1999-01-28 23:55:42  florian
+    * made it compilable
+
+  Revision 1.8  1998/10/02 22:41:30  michael
   + Added exceptions for error handling
 
   Revision 1.7  1998/08/24 12:38:24  michael
