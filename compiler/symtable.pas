@@ -365,6 +365,22 @@ unit symtable;
           'lower_or_equal','as','is','in','sym_diff',
           'starstar','assign');
 
+{*** Unit aliases ***}
+
+    type
+       punit_alias = ^tunit_alias;
+       tunit_alias = object(tnamedindexobject)
+          newname : pstring;
+          constructor init(const n:string);
+          destructor  done;virtual;
+       end;
+
+    var
+       unitaliases : pdictionary;
+
+    procedure addunitalias(const n:string);
+    function getunitalias(const n:string):string;
+
 
 {****************************************************************************
                              Functions
@@ -2219,6 +2235,47 @@ implementation
 
 
 {****************************************************************************
+                              TUNIT_ALIAS
+ ****************************************************************************}
+
+    constructor tunit_alias.init(const n:string);
+      var
+        i : longint;
+      begin
+        i:=pos('=',n);
+        if i=0 then
+         fail;
+        inherited initname(Copy(n,1,i-1));
+        newname:=stringdup(Copy(n,i+1,255));
+      end;
+
+
+    destructor tunit_alias.done;
+      begin
+        stringdispose(newname);
+        inherited done;
+      end;
+
+
+    procedure addunitalias(const n:string);
+      begin
+        unitaliases^.insert(new(punit_alias,init(Upper(n))));
+      end;
+
+
+    function getunitalias(const n:string):string;
+      var
+        p : punit_alias;
+      begin
+        p:=punit_alias(unitaliases^.search(Upper(n)));
+        if assigned(p) then
+         getunitalias:=punit_alias(p)^.newname^
+        else
+         getunitalias:=n;
+      end;
+
+
+{****************************************************************************
                             Symtable Stack
 ****************************************************************************}
 
@@ -2322,6 +2379,8 @@ implementation
      { create error syms and def }
         generrorsym:=new(perrorsym,init);
         generrordef:=new(perrordef,init);
+     { unit aliases }
+        unitaliases:=new(pdictionary,init);
      end;
 
 
@@ -2329,11 +2388,7 @@ implementation
       begin
         dispose(generrorsym,done);
         dispose(generrordef,done);
-      { unload all symtables
-         done with loaded_units
-        dispose_global:=true;
-        while assigned(symtablestack) do
-          dellexlevel;  }
+        dispose(unitaliases,done);
 {$ifndef Delphi}
 {$ifdef TP}
       { close the stream }
@@ -2346,7 +2401,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.54  1999-10-26 12:30:46  peter
+  Revision 1.55  1999-11-04 10:54:02  peter
+    + -Ua<oldname>=<newname> unit alias support
+
+  Revision 1.54  1999/10/26 12:30:46  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes

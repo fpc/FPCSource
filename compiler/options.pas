@@ -25,7 +25,7 @@ unit options;
 interface
 
 uses
-  verbose;
+  globtype,verbose;
 
 type
   POption=^TOption;
@@ -37,7 +37,7 @@ type
     ParaIncludePath,
     ParaUnitPath,
     ParaObjectPath,
-    ParaLibraryPath : string;
+    ParaLibraryPath : TSearchPathString;
     Constructor Init;
     Destructor Done;
     procedure WriteLogo;
@@ -64,9 +64,9 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-  globtype,version,systems,
+  version,systems,
   cobjects,globals,
-  scanner,link,messages
+  symtable,scanner,link,messages
 {$ifdef BrowserLog}
   ,browlog
 {$endif BrowserLog}
@@ -679,6 +679,10 @@ begin
               'U' : begin
                       for j:=1 to length(more) do
                        case more[j] of
+                        'a' : begin
+                                AddUnitAlias(Copy(More,j+1,255));
+                                break;
+                              end;
                         'n' : initglobalswitches:=initglobalswitches-[cs_check_unit_name];
                         'p' : begin
                                 Message2(option_obsolete_switch_use_new,'-Up','-Fu');
@@ -1245,7 +1249,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  1999-11-03 23:43:09  peter
+  Revision 1.31  1999-11-04 10:54:03  peter
+    + -Ua<oldname>=<newname> unit alias support
+
+  Revision 1.30  1999/11/03 23:43:09  peter
     * default units/rtl paths
 
   Revision 1.29  1999/10/30 17:35:26  peter
