@@ -4232,7 +4232,7 @@ More information on using the \var{heaptrc} mechanism can be found in the
 \subsection{Writing your own memory manager}
 
 \fpc allows you to write and use your own memory manager. The standard
-functions \var{GetMem}, \var{FreeMem}, \var{ReallocMem} and \var{Maxavail}
+functions \var{GetMem}, \var{FreeMem}, \var{ReallocMem} etc.
 use a special record in the \file{system} unit to do the actual memory management.
 The \file{system} unit initializes this record with the \file{system} unit's own memory
 manager, but you can read and set this record using the
@@ -4251,9 +4251,8 @@ the \var{TMemoryManager} record is defined as follows:
     AllocMem    : Function(Size:longint):Pointer;
     ReAllocMem  : Function(var p:pointer;Size:longint):Pointer;
     MemSize     : function(p:pointer):Longint;
-    MemAvail    : Function:Longint;
-    MaxAvail    : Function:Longint;
-    HeapSize    : Function:Longint;
+    GetHeapStatus       : function :THeapStatus;
+    GetFPCHeapStatus    : function :TFPCHeapStatus;
   end;
 \end{verbatim}
 
@@ -4288,11 +4287,12 @@ behaviour is equivalent to \var{GetMem}.
 \item[MemSize] should return the total amount of memory available for
 allocation. This function may return zero if the memory manager does not
 allow to determine this information.
-\item[MaxAvail] should return the size of the largest block of memory that
-is still available for allocation. This function may return zero if the
-memory manager does not allow to determine this information.
-\item[HeapSize] should return the total size of the heap. This may be zero
-is the memory manager does not allow to determine this information.
+\item[GetHeapStatus] should return a \var{THeapStatus} record with the
+status of the memory manager. This record should be filled with
+Delphi-compliant values.
+\item[GetHeapStatus] should return a \var{TFPCHeapStatus} record with the
+status of the memory manager. This record should be filled with
+FPC-Compliant values.
 \end{description}
 To implement your own memory manager, it is sufficient to construct such a
 record and to issue a call to \var{SetMemoryManager}.
@@ -4370,24 +4370,6 @@ begin
   Result:=0;
 end;
 
-Function CMemAvail : Longint;
-
-begin
-  Result:=0;
-end;
-
-Function CMaxAvail: Longint;
-
-begin
-  Result:=0;
-end;
-
-Function CHeapSize : Longint;
-
-begin
-  Result:=0;
-end;
-
 
 Const
  CMemoryManager : TMemoryManager =
@@ -4398,9 +4380,8 @@ Const
       AllocMem : CAllocMem;
       ReallocMem : CReAllocMem;
       MemSize : CMemSize;
-      MemAvail : CMemAvail;
-      MaxAvail : MaxAvail;
-      HeapSize : CHeapSize;
+      GetHeapStatus : Nil;
+      GetFPCHeapStatus : Nil;
     );
 
 Var

@@ -216,8 +216,6 @@ The heap manager uses the <var>TMemoryManager</var> type:
     AllocMem    : Function(Size:longint):Pointer;
     ReAllocMem  : Function(var p:pointer;Size:longint):Pointer;
     MemSize     : function(p:pointer):Longint;
-    MemAvail    : Function:Longint;
-    MaxAvail    : Function:Longint;
     HeapSize    : Function:Longint;
   end;
 </code>
@@ -2246,72 +2244,6 @@ None.
 
 
 
-<element name="Mark">
-<short>Mark current memory position</short>
-<descr>
-This routine is here for compatibility with Turbo Pascal, but
-it is not implemented and currently does nothing.
-</descr>
-<errors>
-None.
-</errors>
-<seealso>
-<link id="Getmem"/>
-<link id="Freemem"/>
-<link id="New"/>
-<link id="Dispose"/>
-<link id="Maxavail"/>
-</seealso>
-</element>
-
-<element name="Maxavail">
-<short>Return size of largest free memory block</short>
-<descr>
-<p>
-<var>Maxavail</var> returns the size, in bytes, of the biggest free memory block in
-the heap.
-</p>
-<remark>
-The heap grows dynamically if more memory is needed than is available.
-</remark>
-</descr>
-<errors>
-None.
-</errors>
-<seealso>
-<link id="Memavail"/>
-<link id="Freemem"/>
-<link id="Getmem"/>
-</seealso>
-<example file="refex/ex40"/>
-</element>
-
-
-
-<element name="Memavail">
-<short>Return total available memory</short>
-<descr>
-<p>
-<var>Memavail</var> returns the size, in bytes, of the free heap memory.
-</p>
-<remark>
-The heap grows dynamically if more memory is needed than is available. The
-heap size is not equal to the size of the memory available to the
-operating system, it is internal to the programs created by Free Pascal.
-</remark>
-</descr>
-<errors>
-None.
-</errors>
-<seealso>
-<link id="Maxavail"/>
-<link id="Freemem"/>
-<link id="Getmem"/>
-</seealso>
-<example file="refex/ex41"/>
-</element>
-
-
 
 <element name="Mkdir">
 <short>Create a new directory.</short>
@@ -2751,32 +2683,11 @@ can be assigned directly to a double or extended.
 <errors>
 None.
 </errors>
-<seealso>
-</seealso>
+<seealso></seealso>
 <example file="refex/ex110"/>
 </element>
 
 
-
-<element name="Release">
-<short>Release memory above mark point</short>
-<descr>
-This routine is here for compatibility with Turbo Pascal, but
-it is not implemented and currently does nothing.
-</descr>
-<errors>
-None.
-</errors>
-<seealso>
-<link id="Mark"/>
-<link id="Memavail"/>
-<link id="Maxavail"/>
-<link id="Getmem"/>
-<link id="Freemem"/>
-<link id="New"/>
-<link id="Dispose"/>
-</seealso>
-</element>
 
 <element name="Rename">
 <short>Rename file on disk</short>
