@@ -54,6 +54,10 @@ UNIT Drivers;
 {$V-} { Turn off strict VAR strings }
 {====================================================================}
 
+{$ifdef CPU68K}
+  {$DEFINE ENDIAN_BIG}
+{$endif CPU68K}
+
 USES
    {$IFDEF OS_WINDOWS}                                { WIN/NT CODE }
          Windows,                                     { Standard unit }
@@ -247,11 +251,18 @@ TYPE
           Buttons: Byte;                              { Mouse buttons }
           Double: Boolean;                            { Double click state }
           Where: TPoint);                             { Mouse position }
-        evKeyDown: (                                  { ** KEY EVENT ** }
+        evKeyDown: (
+	{ ** KEY EVENT ** }
           Case Sw_Integer Of
             0: (KeyCode:  Word);                       { Full key code }
-            1: (CharCode: Char;                       { Char code }
+            1: (
+{$ifdef ENDIAN_BIG}
+	        ScanCode: Byte;
+	        CharCode: Char;
+{$else not ENDIAN_BIG}	  
+	        CharCode: Char;                       { Char code }
                 ScanCode: Byte;                       { Scan code }
+{$endif not ENDIAN_BIG}
                 KeyShift: byte));                     { Shift states }
         evMessage: (                                  { ** MESSAGE EVENT ** }
           Command: Sw_Word;                              { Message command }
@@ -1112,6 +1123,10 @@ begin
        end;
      Event.What:=evKeyDown;
      Event.KeyCode:=keycode;
+{$ifdef ENDIAN_LITTLE}
+     Event.CharCode:=chr(keycode and $ff);
+     Event.ScanCode:=keycode shr 8;
+{$endif ENDIAN_LITTLE}     
      Event.KeyShift:=keyshift;
    end
   else
@@ -1677,7 +1692,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.35  2002-09-22 19:42:22  hajny
+ Revision 1.36  2002-10-07 15:44:43  pierre
+  * consider endianess for KeyCode/CharCode-ScanCode pairs
+
+ Revision 1.35  2002/09/22 19:42:22  hajny
    + FPC/2 support added
 
  Revision 1.34  2002/09/13 22:24:30  pierre
