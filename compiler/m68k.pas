@@ -26,7 +26,7 @@ unit m68k;
   interface
 
     uses
-       cobjects,aasm;
+       cobjects,aasm,globtype;
 
     const
       { if real fpu is used }
@@ -255,30 +255,14 @@ unit m68k;
 
     type
 
-       pai_extended = ^tai_extended;
-
-       { generates an extended - processor specific }
-       tai_extended = object(tai)
-          value : bestreal;
-          constructor init(_value : bestreal);
-       end;
-
-       pai_comp = ^tai_comp;
-
-       { generates a comp - processor specific  }
-       tai_comp = object(tai)
-          value : bestreal;
-          constructor init(_value : bestreal);
-       end;
-
        pai_labeled = ^tai_labeled;
 
        tai_labeled = object(tai)
           _operator : tasmop;
           _op1: tregister;
-          lab : plabel;
-          constructor init(op : tasmop; l : plabel);
-          constructor init_reg(op: tasmop; l : plabel; reg: tregister);
+          lab : pasmlabel;
+          constructor init(op : tasmop; l : pasmlabel);
+          constructor init_reg(op: tasmop; l : pasmlabel; reg: tregister);
           destructor done;virtual;
        end;
 
@@ -337,12 +321,6 @@ unit m68k;
 
       destructor done;virtual;
        end;
-
-const
-       ait_bestreal = ait_real_64bit;
-type
-       pai_bestreal = pai_double;
-       tai_bestreal = tai_double;
 
     const
        maxvarregs = 5;
@@ -1544,7 +1522,7 @@ type
                               TAI_LABELED
  ****************************************************************************}
 
-    constructor tai_labeled.init(op : tasmop; l : plabel);
+    constructor tai_labeled.init(op : tasmop; l : pasmlabel);
 
       begin
          inherited init;
@@ -1556,7 +1534,7 @@ type
          inc(lab^.refcount);
       end;
 
-    constructor tai_labeled.init_reg(op : tasmop; l : plabel; reg: tregister);
+    constructor tai_labeled.init_reg(op : tasmop; l : pasmlabel; reg: tregister);
 
       begin
          inherited init;
@@ -1580,35 +1558,13 @@ type
            End;
          inherited done;
       end;
-{****************************************************************************
-                               TAI_EXTENDED
- ****************************************************************************}
-
-    constructor tai_extended.init(_value : bestreal);
-
-      begin
-         inherited init;
-         typ:=ait_real_extended;
-         value:=_value;
-      end;
-
-
-{****************************************************************************
-                               TAI_COMP
- ****************************************************************************}
-
-    constructor tai_comp.init(_value : bestreal);
-
-      begin
-         inherited init;
-         typ:=ait_comp;
-         value:=_value;
-      end;
-
 end.
 {
   $Log$
-  Revision 1.10  1998-10-29 11:35:45  florian
+  Revision 1.11  1999-06-22 16:24:42  pierre
+   * local browser stuff corrected
+
+  Revision 1.10  1998/10/29 11:35:45  florian
     * some dll support for win32
     * fixed assembler writing for PalmOS
 

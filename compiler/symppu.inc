@@ -138,6 +138,24 @@
                       current_ppu^.putword(p^.owner^.unitid);
                       break;
                     end;
+                  staticsymtable :
+                    begin
+                      current_ppu^.putbyte(ord(derefaktstaticindex));
+                      current_ppu^.putword(p^.indexnr);
+                      break;
+                    end;
+                  localsymtable :
+                    begin
+                      p:=p^.owner^.defowner;
+                      current_ppu^.putbyte(ord(dereflocal));
+                      current_ppu^.putword(p^.indexnr);
+                    end;
+                  parasymtable :
+                    begin
+                      p:=p^.owner^.defowner;
+                      current_ppu^.putbyte(ord(derefpara));
+                      current_ppu^.putword(p^.indexnr);
+                    end;
                   objectsymtable,
                   recordsymtable :
                     begin
@@ -392,6 +410,8 @@
                 break;
               end;
             derefindex,
+            derefpara,
+            dereflocal,
             derefrecord :
               begin
                 new(p,init(b,current_ppu^.getword));
@@ -560,7 +580,10 @@
 
 {
   $Log$
-  Revision 1.41  1999-05-14 17:52:28  peter
+  Revision 1.42  1999-06-22 16:24:47  pierre
+   * local browser stuff corrected
+
+  Revision 1.41  1999/05/14 17:52:28  peter
     * new deref code
 
   Revision 1.40  1999/05/13 21:59:44  peter

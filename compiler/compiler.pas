@@ -229,7 +229,11 @@ begin
    begin
      olddo_stop:=do_stop;
      recoverpospointer:=@recoverpos;
+{$ifdef TP}
      do_stop:=recoverstop;
+{$else TP}
+     do_stop:=@recoverstop;
+{$endif TP}
 {$endif USEEXCEPT}
      starttime:=getrealtime;
      parser.compile(inputdir+inputfile+inputextension,false);
@@ -267,7 +271,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-05-17 14:24:32  pierre
+  Revision 1.23  1999-06-22 16:24:41  pierre
+   * local browser stuff corrected
+
+  Revision 1.22  1999/05/17 14:24:32  pierre
    * DoneCompiler called later to prevent accessing invalid data
 
   Revision 1.21  1999/05/04 21:44:39  florian

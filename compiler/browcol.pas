@@ -544,7 +544,7 @@ begin
     labelsym     : S:='label';
     absolutesym  : S:='abs';
     propertysym  : S:='prop';
-    funcretsym   : S:='func';
+    funcretsym   : S:='res';
     macrosym     : S:='macro';
   else S:='';
   end;
@@ -1230,7 +1230,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  1999-05-13 21:59:20  peter
+  Revision 1.17  1999-06-22 16:24:39  pierre
+   * local browser stuff corrected
+
+  Revision 1.16  1999/05/13 21:59:20  peter
     * removed oldppu code
     * warning if objpas is loaded from uses
     * first things for new deref writing

@@ -91,7 +91,9 @@ unit symtable;
        end;
 
       { Deref entry options }
-      tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,derefunit,derefrecord,derefindex);
+      tdereftype = (derefnil,derefaktrecordindex,derefaktstaticindex,
+                    derefunit,derefrecord,derefindex,
+                    dereflocal,derefpara);
 
       pderef = ^tderef;
       tderef = object
@@ -637,25 +639,6 @@ implementation
                         Symbol / Definition Resolving
 *****************************************************************************}
 
-const localsymtablestack : psymtable = nil;
-
-    function find_local_symtable(index : word) : psymtable;
-    var
-       p : psymtable;
-      begin
-         p:=localsymtablestack;
-         while assigned(p) do
-           begin
-              if p^.unitid=index then break
-              else
-                p:=p^.next;
-           end;
-         if (p=nil) then
-           comment(v_fatal,'Error in local browser');
-         find_local_symtable:=p;
-      end;
-
-
     procedure resolvederef(var p:pderef;var st:psymtable;var idx:word);
       var
         hp : pderef;
@@ -696,10 +679,32 @@ const localsymtablestack : psymtable = nil;
                    internalerror(556658);
                  end;
                end;
+             dereflocal :
+               begin
+                  pd:=st^.getdefnr(p^.index);
+                  case pd^.deftype of
+                    procdef :
+                      st:=pprocdef(pd)^.localst;
+                    else
+                   internalerror(556658);
+                 end;
+               end;
+             derefpara :
+               begin
+                  pd:=st^.getdefnr(p^.index);
+                  case pd^.deftype of
+                    procdef :
+                      st:=pprocdef(pd)^.parast;
+                    else
+                   internalerror(556658);
+                 end;
+               end;
              derefindex :
                begin
                  idx:=p^.index;
                end;
+             else
+               internalerror(556658);
            end;
            hp:=p;
            p:=p^.next;
@@ -2301,7 +2306,10 @@ const localsymtablestack : psymtable = nil;
 end.
 {
   $Log$
-  Revision 1.21  1999-06-08 22:23:50  pierre
+  Revision 1.22  1999-06-22 16:24:49  pierre
+   * local browser stuff corrected
+
+  Revision 1.21  1999/06/08 22:23:50  pierre
    * staticppusymtable was loaded a tsymtable instead of tunitsymtable
 
   Revision 1.20  1999/06/02 22:44:23  pierre

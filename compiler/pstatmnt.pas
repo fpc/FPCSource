@@ -1119,15 +1119,19 @@ unit pstatmnt;
 
       var
          funcretsym : pfuncretsym;
+         storepos : tfileposinfo; 
 
       begin
          if procinfo.retdef<>pdef(voiddef) then
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
+              storepos:=tokenpos;
+              tokenpos:=aktprocsym^.fileinfo;
               funcretsym:=new(pfuncretsym,init(aktprocsym^.name,@procinfo));
               { insert in local symtable }
               symtablestack^.insert(funcretsym);
+              tokenpos:=storepos;
               if ret_in_acc(procinfo.retdef) or (procinfo.retdef^.deftype=floatdef) then
                 procinfo.retoffset:=-funcretsym^.address;
               procinfo.funcretsym:=funcretsym;
@@ -1272,7 +1276,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.89  1999-06-17 13:19:54  pierre
+  Revision 1.90  1999-06-22 16:24:43  pierre
+   * local browser stuff corrected
+
+  Revision 1.89  1999/06/17 13:19:54  pierre
    * merged from 0_99_12 branch
 
   Revision 1.88.2.1  1999/06/17 12:51:46  pierre

@@ -2304,6 +2304,7 @@
           to check same names in parast and localst }
          localst^.next:=parast;
          defref:=nil;
+         crossref:=nil;
          lastwritten:=nil;
          refcount:=0;
          if (cs_browser in aktmoduleswitches) and make_ref then
@@ -2400,45 +2401,12 @@ Const local_symtable_index : longint = $8001;
           begin
 {$ifndef NOLOCALBROWSER}
              pdo:=_class;
-             if assigned(pdo) and (owner^.symtabletype<>localsymtable) then
-               localsymtablestack:=pdo^.publicsyms;
-             if owner^.symtabletype<>localsymtable then
-               while assigned(pdo) do
-                 begin
-                    if pdo^.publicsyms<>aktrecordsymtable then
-                      begin
-                         pdo^.publicsyms^.unitid:=local_symtable_index;
-                         inc(local_symtable_index);
-                      end;
-                    pdo:=pdo^.childof;
-                 end;
-
              new(parast,loadas(parasymtable));
-             parast^.next:=localsymtablestack;
-             localsymtablestack:=parast;
-             parast^.unitid:=local_symtable_index;
-             inc(local_symtable_index);
+             parast^.next:=owner;
              parast^.load_browser;
              new(localst,loadas(localsymtable));
-             localst^.next:=localsymtablestack;
-             localsymtablestack:=localst;
-             localst^.unitid:=local_symtable_index;
-             inc(local_symtable_index);
+             localst^.next:=parast;
              localst^.load_browser;
-             { decrement for }
-             local_symtable_index:=local_symtable_index-2;
-             localsymtablestack:=localsymtablestack^.next^.next;
-             pdo:=_class;
-             if (owner^.symtabletype<>localsymtable) then
-               localsymtablestack:=nil;
-             if (owner^.symtabletype<>localsymtable) then
-               while assigned(pdo) do
-                 begin
-                    if pdo^.publicsyms<>aktrecordsymtable then
-                      dec(local_symtable_index);
-                    pdo:=pdo^.childof;
-                 end;
-
 {$endif ndef NOLOCALBROWSER}
           end;
       end;
@@ -3494,7 +3462,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.129  1999-06-02 22:44:21  pierre
+  Revision 1.130  1999-06-22 16:24:44  pierre
+   * local browser stuff corrected
+
+  Revision 1.129  1999/06/02 22:44:21  pierre
    * previous wrong log corrected
 
   Revision 1.128  1999/06/02 22:25:52  pierre
