@@ -280,7 +280,10 @@ implementation
          hp:=p^.t2;
          while (hp^.treetype=subscriptn) do
           hp:=hp^.left;
-         if (hp^.treetype<>loadn) then
+         { we need a simple loadn, but the load must be in a global symtable or
+           in the same lexlevel }
+         if (hp^.treetype<>loadn) or
+            ((hp^.symtable^.symtablelevel>1) and (hp^.symtable^.symtablelevel<>lexlevel)) then
           CGMessage(cg_e_illegal_count_var)
          else
           begin
@@ -514,7 +517,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  1999-11-30 10:40:58  peter
+  Revision 1.28  1999-12-02 17:27:56  peter
+    * give error when for counter is in other lexlevel
+
+  Revision 1.27  1999/11/30 10:40:58  peter
     + ttype, tsymlist
 
   Revision 1.26  1999/11/18 15:34:49  pierre
