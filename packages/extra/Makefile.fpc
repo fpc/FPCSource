@@ -38,6 +38,7 @@ dirs_go32v2=unzip
 dirs_amiga=amunits
 dirs_palmos=palmunits
 dirs_netware=unzip zlib
+dirs_netwlibc=unzip zlib
 dirs_darwin= unzip zlib \
              x11 opengl gtk syslog \
              forms svgalib ggi libpng libgd \
