@@ -151,7 +151,6 @@ begin
       Status:=TS;
       Delete(Line,1,Length(StatusText[TS]));
       ExtractTestFileName(Line);
-      Writeln('Detected status ',Ord(ts),' ',StatusText[TS]);
       Break;
       end;
     TS:=succ(TS);
@@ -225,7 +224,7 @@ Var
   co,o : TConfigOpt;  
     
 begin
-  Writeln('Processing option',S);
+  Verbose(V_DEBUG,'Processing option: '+S);
   I:=Pos('=',S);
   Result:=(I<>0);
   If Result then
@@ -258,7 +257,7 @@ Var
 begin
   If Not FileExists(FN) Then
     Exit;
-  Writeln('Parsing config file',FN);
+  Verbose(V_DEBUG,'Parsing config file: '+FN);
   Assign(F,FN);
   {$i-}
   Reset(F);
@@ -372,6 +371,7 @@ begin
     readln(logfile,line);
     If analyse(line,TS) then
       begin
+      Verbose(V_NORMAL,'Analysing result for test'+Line);
       Inc(StatusCount[TS]);
       If Not ExpectRun[TS] then
         begin
@@ -411,7 +411,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-12-21 15:31:16  michael
+  Revision 1.3  2002-12-21 15:39:11  michael
+  * Some verbosity changes
+
+  Revision 1.2  2002/12/21 15:31:16  michael
   + Added support for compiler version
 
   Revision 1.1  2002/12/17 15:04:32  michael
