@@ -470,7 +470,9 @@ implementation
                 make_const_global:=true;
               do_secondpass(p);
 
-              procinfo.def^.fpu_used:=p^.registersfpu;
+              if assigned(procinfo.def) then
+                procinfo.def^.fpu_used:=p^.registersfpu;
+
               { all registers can be used again }
               resetusableregisters;
            end;
@@ -481,7 +483,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  1998-09-21 08:45:16  pierre
+  Revision 1.5  1998-09-21 10:01:06  peter
+    * check if procinfo.def is assigned before storing registersfpu
+
+  Revision 1.4  1998/09/21 08:45:16  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
