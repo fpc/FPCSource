@@ -60,6 +60,7 @@ interface
     function hexstr(val : cardinal;cnt : cardinal) : string;
     function tostru(i:cardinal) : string;
     function tostr(i : longint) : string;
+    function realtostr(e:extended):string;
     function int64tostr(i : int64) : string;
     function tostr_with_plus(i : longint) : string;
     function DStr(l:longint):string;
@@ -503,6 +504,12 @@ uses
      end;
 
 
+   function realtostr(e:extended):string;
+     begin
+        str(e,result);
+     end;
+
+
    function int64tostr(i : int64) : string;
    {
      return string of value i
@@ -850,7 +857,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.24  2002-12-27 18:05:27  peter
+  Revision 1.25  2003-01-09 21:42:27  peter
+    * realtostr added
+
+  Revision 1.24  2002/12/27 18:05:27  peter
     * support quotes in gettoken
 
   Revision 1.23  2002/10/05 12:43:24  carl
