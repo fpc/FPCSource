@@ -650,6 +650,7 @@ end;
 procedure TDebugController.SetDirectories;
   var f,s: string;
       i : longint;
+      Dir : SearchRec;
 begin
   f:=GetSourceDirectories;
   repeat
@@ -662,7 +663,24 @@ begin
         system.delete(f,1,i);
       end;
     DefaultReplacements(s);
-    Command('dir '+GDBFileName(GetShortName(s)));
+    if (pos('*',s)=0) and ExistsDir(s) then
+      Command('dir '+GDBFileName(GetShortName(s)))
+    { we should also handle the /* cases of -Fu option }
+    else if pos('*',s)>0 then
+      begin
+        Dos.FindFirst(s,Directory,Dir);
+        { the '*' can only be in the last dir level }
+        s:=DirOf(s);
+        while Dos.DosError=0 do
+          begin
+            if ((Dir.attr and Directory) <> 0) and ExistsDir(s+Dir.Name) then
+              Command('dir '+GDBFileName(GetShortName(s+Dir.Name)));
+            Dos.FindNext(Dir);
+          end;
+{$ifdef FPC}
+        Dos.FindClose(Dir);
+{$endif def FPC}
+      end;
   until i=0;
 end;
 
@@ -4066,7 +4084,10 @@ end.
 
 {
   $Log$
-  Revision 1.17  2002-04-17 11:11:54  pierre
+  Revision 1.18  2002-04-25 13:33:31  pierre
+   * fix the problem with dirs containing asterisks
+
+  Revision 1.17  2002/04/17 11:11:54  pierre
     * avoid problems for ClassVariable in Watches window
 
   Revision 1.16  2002/04/11 06:41:13  pierre
