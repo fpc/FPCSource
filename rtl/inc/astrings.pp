@@ -210,7 +210,7 @@ begin
     Size:=PAnsiRec(Pointer(S2)-FirstOff)^.Len;
     Location:=Length(S1);
     { Setlength takes case of uniqueness 
-      and alllocated memory. We need to use length, 
+      and allocated memory. We need to use length, 
       to take into account possibility of S1=Nil }
 //!!    SetLength (S1,Size+Location); 
     Move (Pointer(S2)^,Pointer(Pointer(S1)+location)^,Size+1);
@@ -418,7 +418,7 @@ begin
       PByte(ResultAddress+Size)^:=0;
       end;
     end;
-  Copy:=ResultAddress
+  Copy:=ResultAddress;
 end;
 
 
@@ -672,7 +672,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  1998-06-12 07:39:13  michael
+  Revision 1.6  1998-06-25 08:41:44  florian
+    * better rtti
+
+  Revision 1.5  1998/06/12 07:39:13  michael
   + Added aliases for Incr/Decr ref.
 
   Revision 1.4  1998/06/08 19:35:02  michael

@@ -2,6 +2,6 @@
 # Here we set processor dependent include file names.
 #
 
-CPUNAMES=i386 heap math set 
+CPUNAMES=i386 heap math set rttip
 CPUINCNAMES=$(addsuffix .inc,$(CPUNAMES))
 

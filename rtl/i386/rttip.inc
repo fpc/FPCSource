@@ -20,8 +20,6 @@ Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias : 'INITIALIZE'];ass
 
 asm
 # Save registers
-	push   %ebp
-	movl   %esp,%ebp
         push    %eax
 	push    %ebx
 	push    %ecx
@@ -93,16 +91,11 @@ asm
 	pop	%ecx
 	pop	%ebx
 	pop	%eax
-        leave
-	ret	$8
 end;
 
-Procedure Finalize (Data,TypeInfo: Pointer);[Public, Alias : 'FINALIZE']; assembler;
+Procedure Finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FINALIZE']; assembler;
 
 asm
-# Save registers
-	push    %ebp
-	movl    %esp,%ebp
         push    %eax
 	push    %ebx
 	push    %ecx
@@ -176,15 +169,12 @@ asm
 	pop	%ecx
 	pop	%ebx
 	pop	%eax
-	ret	$8
 end;
 
-Procedure Addref (Data,TypeInfo : Pointer); [Public, alias : 'ADDREF'];Assembler;
+Procedure Addref (Data,TypeInfo : Pointer); [Public,alias : 'ADDREF'];Assembler;
 
 asm
 # Save registers
-	push    %ebp
-	movl    %esp,%ebp
         push    %eax
 	push    %ebx
 	push    %ecx
@@ -258,16 +248,12 @@ asm
 	pop	%ecx
 	pop	%ebx
 	pop	%eax
-	leave
-	ret	$8
 end;
 
-Procedure DecRef (Data,TypeInfo : Pointer); [Public, alias : 'DECREF'];Assembler;
+Procedure DecRef (Data,TypeInfo : Pointer); [Public,alias : 'DECREF'];Assembler;
 
 asm
 # Save registers
-	push    %ebp
-	movl    %esp,%ebp
         push    %eax
 	push    %ebx
 	push    %ecx
@@ -341,15 +327,16 @@ asm
 	pop	%ecx
 	pop	%ebx
 	pop	%eax
-	leave
-	ret	$8
 end;
 
 {$ASMMODE DEFAULT}
 
 {
   $Log$
-  Revision 1.4  1998-06-17 11:50:43  michael
+  Revision 1.5  1998-06-25 08:41:43  florian
+    * better rtti
+
+  Revision 1.4  1998/06/17 11:50:43  michael
   + Small patch: forgot to make alias public
 
   Revision 1.3  1998/06/10 07:46:49  michael

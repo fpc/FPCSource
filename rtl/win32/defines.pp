@@ -176,9 +176,9 @@ unit defines;
        CNLEN = 15;
        DNLEN = 15;
        FILE_BEGIN = 0;
-       FILE_CURRENT = 1;
-    { _lopen, LZOpenFile, OpenFile }
+       FILE_CURRENT = 1;    
        FILE_END = 2;
+       { _lopen, LZOpenFile, OpenFile }
        OF_READ = 0;
        OF_READWRITE = 2;
        OF_WRITE = 1;
@@ -4416,7 +4416,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-06-10 10:39:12  peter
+  Revision 1.4  1998-06-25 08:41:47  florian
+    * better rtti
+
+  Revision 1.3  1998/06/10 10:39:12  peter
     * working w32 rtl
 
 }

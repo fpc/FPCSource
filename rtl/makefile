@@ -21,7 +21,7 @@
 # What compiler do you want to use :
 ifndef PP
 PP=ppc386
-endif PP
+endif
 
 # Where do you want to install the units ?
 # For each of the systems, a subdirectory OSunits of
@@ -73,7 +73,9 @@ endif
 
 
 # Set redir to YES if you want a log file to be kept.
+ifndef REDIR
 REDIR=YES
+endif
 
 # Set NODEBUG to YES if you DON'T want debugging
 NODEBUG=YES
@@ -141,7 +143,7 @@ else
 override REDIR:= >> log
 endif
 else
-REDIR:=
+override REDIR:= >> con
 endif
 
 # Check error definitions file.
@@ -155,7 +157,7 @@ DOS=NO
 else
 DOS=YES
 # also redirect the standard error to the redir file
-ifdef REDIR
+ifeq (YES,$(REDIR))
 PP:=redir -eo $(PP)
 # set the verbosity to max
 OPT:=$(OPT) -va
@@ -200,7 +202,7 @@ native: rtl$(OS_SRC)
 
 nativelibs : $(OS_SRC)libs
 
-all: rtlgo32v1 rtlgo32v2 rtllinux rtlos2
+all: rtlgo32v1 rtlgo32v2 rtllinux rtlos2 rtlwin32
 
 libs: go32v1libs go32v2libs linuxlibs os2libs
 
@@ -269,9 +271,9 @@ native_libinstall: libinstall_$(OS_SRC)
 
 makefile.dif : makefile
 	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/makefile > makefile.dif
-	
 
-diffs_rtl: makefile.dif 
+
+diffs_rtl: makefile.dif
 
 diffs_dos:
 	$(MAKE) -C dos diffs
@@ -293,6 +295,8 @@ diffs_linux:
 	$(MAKE) -C linux diffs
 diffs_os2:
 	$(MAKE) -C os2 diffs
+diffs_win32:
+	$(MAKE) -C win32 diffs
 
 install_go32v1:
 	$(MAKE) -C dos/go32v1 install

@@ -4545,14 +4545,14 @@ unit struct;
 
   implementation
 
-const __ExtrnlLibrary='system.dll'; {Setup as you need!}
-
-
 end.
 
 {
   $Log$
-  Revision 1.2  1998-05-06 12:36:50  michael
+  Revision 1.3  1998-06-25 08:41:48  florian
+    * better rtti
+
+  Revision 1.2  1998/05/06 12:36:50  michael
   + Removed log from before restored version.
 
   Revision 1.1.1.1  1998/03/25 11:18:47  root
