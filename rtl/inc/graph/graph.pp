@@ -1307,55 +1307,50 @@ var
   Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
     YRadius:word; stAngle,EndAngle: word; pl: PatternLineProc); far;
    var
-    j,Delta, DeltaEnd: graph_float;
+    j, Delta, DeltaEnd: graph_float;
     NumOfPixels: longint;
     NumOfPix: Array[0..2] of longint;
     count: longint;
     ConvFac,TempTerm: graph_float;
     aval,bval: integer;
-    TmpAngle: word;
-    DeltaAngle: word;
-    xtemp, ytemp, xp, yp, xm, ym: integer;
-    q1p, q2p, q3p, q4p: PointType;
-    BackupColor, OldLineWidth: word;
+    xtemp, ytemp, xp, yp, xm, ym, xnext, ynext,
+      plxpyp, plxmyp, plxpym, plxmym: integer;
+    BackupColor, DeltaAngle, TmpAngle, OldLineWidth: word;
   Begin
    If LineInfo.ThickNess = ThickWidth Then
     { first draw the two outer ellipses using normwidth and no filling (JM) }
      Begin
        OldLineWidth := LineInfo.Thickness;
        LineInfo.Thickness := NormWidth;
-       InternalEllipseDefault(x,y,XRadius+2,YRadius+2,StAngle,EndAngle,
+       InternalEllipseDefault(x,y,XRadius,YRadius,StAngle,EndAngle,
                               {$ifdef fpc}@{$endif fpc}DummyPatternLine);
        InternalEllipseDefault(x,y,XRadius+1,YRadius+1,StAngle,EndAngle,
                               {$ifdef fpc}@{$endif fpc}DummyPatternLine);
+       If (XRadius <> 0) and (YRadius <> 0) Then
+         { draw the smallest ellipse last, since that one will use the }
+         { original pl, so it could possibly draw patternlines (JM)    }
+         Begin
+           Dec(XRadius);
+           Dec(YRadius);
+         End
+       Else Exit;
        { restore line thickness }
        LineInfo.Thickness := OldLineWidth;
      End;
-   { Get End and Start points into the ArcCall information record }
-   ArcCall.X := X;
-   ArcCall.Y := Y;
+   { check for an ellipse with negligable x and y radius }
+   If (xradius <= 1) and (yradius <= 1) then
+     begin
+       putpixel(x,y,CurrentColor);
+       ArcCall.X := X;
+       ArcCall.Y := Y;
+       ArcCall.XStart := X;
+       ArcCall.YStart := Y;
+       ArcCall.XEnd := X;
+       ArcCall.YEnd := Y;
+       exit;
+     end;
    { for restoring after PatternLine }
    BackupColor := CurrentColor;
-   With q1p Do
-     Begin
-       x := $7fff;
-       y := $7fff;
-     End;
-   With q2p Do
-     Begin
-       x := $7fff;
-       y := $7fff;
-     End;
-   With q3p Do
-     Begin
-       x := $7fff;
-       y := $7fff;
-     End;
-   With q4p Do
-     Begin
-       x := $7fff;
-       y := $7fff;
-     End;
    If xradius = 0 then inc(x);
    if yradius = 0 then inc(y);
    { check if valid angles }
@@ -1374,106 +1369,86 @@ var
    { equation of an ellipse.                                              }
    { In the worst case, we have to calculate everything from the }
    { quadrant, so divide the circumference value by 4 (JM)       }
-   NumOfPixels:=(8 div 4)*Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
+   NumOfPixels:=(8 div 4)*Round(2*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
    { Calculate the angle precision required }
-   { Note: to get the same precision as before, we have to divide by an }
-   { extra 4 (JM)                                                       }
-   Delta := DeltaAngle / (NumOfPixels*4);
+   Delta := 90 / (NumOfPixels);
    { Adjust for screen aspect ratio }
    XRadius:=(longint(XRadius)*10000) div XAspect;
    YRadius:=(longint(YRadius)*10000) div YAspect;
    { removed from inner loop to make faster }
    ConvFac:=Pi/180.0;
    { store some arccall info }
-   TempTerm := (Delta+StAngle)*ConvFac;
+   ArcCall.X := X;
+   ArcCall.Y := Y;
+   TempTerm := (StAngle)*ConvFac;
    ArcCall.XStart := round(XRadius*Cos(TempTerm)) + X;
-   ArcCall.XEnd := ArcCall.XStart;
    ArcCall.YStart := round(YRadius*Sin(TempTerm+Pi)) + Y;
-   ArcCall.YEnd := ArcCall.YStart;
+   TempTerm := (EndAngle)*ConvFac;
+   ArcCall.XEnd := round(XRadius*Cos(TempTerm)) + X;
+   ArcCall.YEnd := round(YRadius*Sin(TempTerm+Pi)) + Y;
    { otherwise we get an endless loop }
-   If DeltaAngle = 0 Then
+{   If DeltaAngle = 0 Then
      Begin
-       Line(x,y,ArcCall.XStart,ArcCall.YStart);
+       Line(X,Y,ArcCall.XStart,ArcCall.YStart);
        exit
-     End;
+     End;}
    { Always just go over the first 90 degrees. Could be optimized a   }
    { bit if StAngle and EndAngle lie in the same quadrant, left as an }
-   { execrise for the reader :) (JM)                                  }
+   { exercise for the reader :) (JM)                                  }
    j := 0;
-   DeltaAngle := 90;
-   { calculate stop position (JM)}
-   DeltaEnd := j + DeltaAngle;
+   { calculate stop position, go 1 further than 90 because otherwise }
+   { 1 pixel is sometimes not drawn (JM)                             }
+   DeltaEnd := 91;
+   { Calculate points }
+   xnext := XRadius;
+   ynext := 0;
    Repeat
-         { this is used by both sin and cos }
-         TempTerm := j*ConvFac;
-         { Calculate points }
-         xtemp := round(XRadius*Cos(TempTerm));
-         ytemp := round(YRadius*Sin(TempTerm+Pi));
+     xtemp := xnext;
+     ytemp := ynext;
+     { this is used by both sin and cos }
+     TempTerm := (j+Delta)*ConvFac;
+     { Calculate points }
+     xnext := round(XRadius*Cos(TempTerm));
+     ynext := round(YRadius*Sin(TempTerm+Pi));
 
-         xp := x + xtemp;
-         xm := x - xtemp;
-         yp := y + ytemp;
-         ym := y - ytemp;
-         If (j >= StAngle) and (j <= EndAngle) then
-           begin
-             q1p.x := xp;
-             q1p.y := yp;
-             PutPixel(xp,yp,CurrentColor);
-           end;
-         If ((180-j) >= StAngle) and ((180-j) <= EndAngle) then
-           begin
-             If (q2p.x = $7fff) then
-               Begin
-                 q2p.x := xm;
-                 q2p.y := yp;
-               End;
-             PutPixel(xm,yp,CurrentColor);
-           end;
-         If ((j+180) >= StAngle) and ((j+180) <= EndAngle) then
-           begin
-             q3p.x := xm;
-             q3p.y := ym;
-             PutPixel(xm,ym,CurrentColor);
-           end;
-         If ((360-j) >= StAngle) and ((360-j) <= EndAngle) then
-           begin
-             If (q4p.x = $7fff) then
-               Begin
-                 q4p.x := xp;
-                 q4p.y := ym;
-               End;
-             PutPixel(xp,ym,CurrentColor);
-           end;
-         If xp-xm >2 then
-           begin
-             CurrentColor := FillSettings.Color;
-             pl(xm+1,xp-1,yp);
-             pl(xm+1,xp-1,ym);
-             CurrentColor := BackupColor;
-           end;
-         j:=j+Delta;
+     xp := x + xtemp;
+     xm := x - xtemp;
+     yp := y + ytemp;
+     ym := y - ytemp;
+     plxpyp := maxint;
+     plxmyp := -maxint-1;
+     plxpym := maxint;
+     plxmym := -maxint-1;
+     If (j >= StAngle) and (j <= EndAngle) then
+       begin
+         plxpyp := xp;
+         PutPixel(xp,yp,CurrentColor);
+       end;
+     If ((180-j) >= StAngle) and ((180-j) <= EndAngle) then
+       begin
+         plxmyp := xm;
+         PutPixel(xm,yp,CurrentColor);
+       end;
+     If ((j+180) >= StAngle) and ((j+180) <= EndAngle) then
+       begin
+         plxmym := xm;
+         PutPixel(xm,ym,CurrentColor);
+       end;
+     If ((360-j) >= StAngle) and ((360-j) <= EndAngle) then
+       begin
+         plxpym := xp;
+         PutPixel(xp,ym,CurrentColor);
+       end;
+     If (ynext <> ytemp) and
+        (xp-xm >2) then
+       begin
+         CurrentColor := FillSettings.Color;
+         pl(plxmyp+1,plxpyp-1,yp);
+         pl(plxmym+1,plxpym-1,ym);
+         CurrentColor := BackupColor;
+       end;
+     j:=j+Delta;
    Until j > (DeltaEnd);
-   { get the end of the arc (JM) }
-   If q4p.x <> $7fff Then
-     Begin
-       ArcCall.XEnd := q4p.x;
-       ArcCall.YEnd := q4p.y
-     End
-   Else If q3p.x <> $7fff Then
-     Begin
-       ArcCall.XEnd := q3p.x;
-       ArcCall.YEnd := q3p.y
-     End
-   Else If q2p.x <> $7fff Then
-     Begin
-       ArcCall.XEnd := q2p.x;
-       ArcCall.YEnd := q2p.y
-     End
-   Else If q1p.x <> $7fff Then
-     Begin
-       ArcCall.XEnd := q1p.x;
-       ArcCall.YEnd := q1p.y
-     End;
   end;
 
 
@@ -1882,9 +1857,8 @@ end;
   Var
     x : Integer;
   Begin
-     For x:=0 to ViewWidth Do Begin
+     For x:=0 to ViewWidth Do
        WordArray(Data)[x]:=GetPixel(x, y);
-     End;
   End;
 
 
@@ -2090,37 +2064,21 @@ end;
 
   Procedure Arc(X,Y : Integer; StAngle,EndAngle,Radius: word);
 
-   var
-    OldWriteMode: word;
+{   var
+    OldWriteMode: word;}
 
    Begin
-     if (Radius <= 1) then
-       Begin
-         With ArcCall Do
-           Begin
-             X := X;
-             Y := Y;
-             XStart := X;
-             YStart := Y;
-             XEnd := X;
-             YEnd := Y;
-           End;
-         If Radius = 1 then
-           PutPixel(X, Y,CurrentColor);
-         Exit;
-       End;
-
      { Only if we are using thickwidths lines do we accept }
      { XORput write modes.                                 }
-     OldWriteMode := CurrentWriteMode;
+{     OldWriteMode := CurrentWriteMode;
      if (LineInfo.Thickness = NormWidth) then
-       CurrentWriteMode := NormalPut;
+       CurrentWriteMode := NormalPut;}
 {$ifdef fpc}
      InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,@DummyPatternLine);
 {$else fpc}
      InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,DummyPatternLine);
 {$endif fpc}
-     CurrentWriteMode := OldWriteMode;
+{     CurrentWriteMode := OldWriteMode;}
    end;
 
 
@@ -2200,12 +2158,185 @@ end;
      move(OriginalArcInfo, ArcCall,sizeof(ArcCall));
  end;
 
-
+ procedure SectorPL(x1,x2,y: Integer); {$ifndef fpc}far;{$endif fpc}
+ var plx1, plx2: integer;
+{!!!!!!!!!!!!!!!}
+{$ifdef sectorpldebug}
+     t : text;
+{$endif sectorpldebug}
+ begin
+{$ifdef sectorpldebug}
+   assign(t,'sector.log');
+   append(t);
+   writeln(t,'Got here for line ',y);
+   close(t);
+{$endif sectorpldebug}
+   If (x1 = -maxint) Then
+     If (x2 = maxint-1) Then
+       { no ellipse points drawn on this line }
+       If (((Y < ArcCall.Y) and (Y > ArcCall.YStart)) or
+          ((Y > ArcCall.Y) and (Y < ArcCall.YStart))) Then
+         { there is a part of the sector at this y coordinate, but no    }
+         { ellips points are plotted on this line, so draw a patternline }
+         { between the lines connecting (arccall.x,arccall.y) with       }
+         { the start and the end of the arc (JM)                         }
+         { use: y-y1=(y2-y1)/(x2-x1)*(x-x1) =>                           }
+         { x = (y-y1)/(y2-y1)*(x2-x1)+x1                                 }
+         Begin
+{$ifdef sectorpldebug}
+           If (ArcCall.YStart-ArcCall.Y) = 0 then
+             begin
+               append(t);
+               writeln('bug1');
+               close(t);
+               runerror(202);
+             end;
+{$endif sectorpldebug}
+           plx1 := Round((y-ArcCall.Y)/(ArcCall.YStart-ArcCall.Y)*
+                   (ArcCall.XStart-ArcCall.X))+ArcCall.X;
+{$ifdef sectorpldebug}
+           If (ArcCall.YEnd-ArcCall.Y) = 0 then
+             begin
+               append(t);
+               writeln('bug2');
+               close(t);
+               runerror(202);
+             end;
+{$endif sectorpldebug}
+           plx2 := Round((y-ArcCall.Y)/(ArcCall.YEnd-ArcCall.Y)*
+                   (ArcCall.XEnd-ArcCall.X))+ArcCall.X;
+           If plx1 > plx2 then
+             begin
+               plx1 := plx1 xor plx2;
+               plx2 := plx1 xor plx2;
+               plx1 := plx1 xor plx2;
+             end;
+{$ifdef sectorpldebug}
+           append(t);
+           writeln(t,'lines: ',plx1,' - ',plx2);
+           close(t);
+{$endif sectorpldebug}
+         End
+       { otherwise two points which have nothing to do with the sector }
+       Else exit
+     Else
+       { the arc is plotted at the right side, but not at the left side, }
+       { fill till the line between (ArcCall.X,ArcCall.Y) and            }
+       { (ArcCall.XStart,ArcCall.YStart)                                 }
+       Begin
+         If (y < ArcCall.Y) then
+           begin
+{$ifdef sectorpldebug}
+             If (ArcCall.YEnd-ArcCall.Y) = 0 then
+               begin
+                 append(t);
+                 writeln('bug3');
+                 close(t);
+                 runerror(202);
+               end;
+{$endif sectorpldebug}
+             plx1 := Round((y-ArcCall.Y)/(ArcCall.YEnd-ArcCall.Y)*
+                     (ArcCall.XEnd-ArcCall.X))+ArcCall.X
+           end
+         else if (y > ArcCall.Y) then
+           begin
+{$ifdef sectorpldebug}
+             If (ArcCall.YStart-ArcCall.Y) = 0 then
+               begin
+                 append(t);
+                 writeln('bug4');
+                 close(t);
+                 runerror(202);
+               end;
+{$endif sectorpldebug}
+             plx1 := Round((y-ArcCall.Y)/(ArcCall.YStart-ArcCall.Y)*
+                     (ArcCall.XStart-ArcCall.X))+ArcCall.X
+             end
+         else plx1 := ArcCall.X;
+         plx2 := x2;
+{$ifdef sectorpldebug}
+         append(t);
+         writeln(t,'right: ',plx1,' - ',plx2);
+         close(t);
+{$endif sectorpldebug}
+       End
+   Else
+     If (x2 = maxint-1) Then
+       { the arc is plotted at the left side, but not at the rigth side.   }
+       { the right limit can be either the first or second line. Just take }
+       { the closest one, but watch out for division by zero!              }
+       Begin
+         If (y < ArcCall.Y) then
+           begin
+{$ifdef sectorpldebug}
+             If (ArcCall.YStart-ArcCall.Y) = 0 then
+               begin
+                 append(t);
+                 writeln('bug5');
+                 close(t);
+                 runerror(202);
+               end;
+{$endif sectorpldebug}
+             plx2 := Round((y-ArcCall.Y)/(ArcCall.YStart-ArcCall.Y)*
+                     (ArcCall.XStart-ArcCall.X))+ArcCall.X
+           end
+         else if (y > ArcCall.Y) then
+           begin
+{$ifdef sectorpldebug}
+             If (ArcCall.YEnd-ArcCall.Y) = 0 then
+               begin
+                 append(t);
+                 writeln('bug6');
+                 close(t);
+                 runerror(202);
+               end;
+{$endif sectorpldebug}
+             plx2 := Round((y-ArcCall.Y)/(ArcCall.YEnd-ArcCall.Y)*
+                     (ArcCall.XEnd-ArcCall.X))+ArcCall.X
+           end
+         else plx2 := ArcCall.X;
+         plx1 := x1;
+{$ifdef sectorpldebug}
+         append(t);
+         writeln(t,'left: ',plx1,' - ',plx2);
+         close(t);
+{$endif sectorpldebug}
+       End
+     Else
+       { the arc is plotted at both sides }
+       Begin
+         plx1 := x1;
+         plx2 := x2;
+{$ifdef sectorpldebug}
+         append(t);
+         writeln(t,'normal: ',plx1,' - ',plx2);
+         close(t);
+{$endif sectorpldebug}
+       End;
+   If plx2 - plx1 > 2 then
+     Begin
+{$ifdef sectorpldebug}
+       append(t);
+       Writeln(t,'drawing...');
+       close(t);
+{$endif sectorpldebug}
+       PatternLine(plx1,plx2,y);
+     end;
+ end;
 
  procedure Sector(x, y: Integer; StAngle,EndAngle, XRadius, YRadius: Word);
-  var angle : graph_float;
-      writemode : word;
+(*  var angle : graph_float;
+      writemode : word; *)
   begin
+{$ifdef fpc}
+     internalellipse(x,y,XRadius, YRadius, StAngle, EndAngle, @SectorPL);
+{$else fpc}
+     internalellipse(x,y,XRadius, YRadius, StAngle, EndAngle, SectorPL);
+{$endif fpc}
+     Line(ArcCall.XStart, ArcCall.YStart, x,y);
+     Line(x,y,ArcCall.Xend,ArcCall.YEnd);
+
+(*
      Ellipse(x,y,stAngle,endAngle,XRadius,YRadius);
     { As in the TP graph unit - the line settings are used to }
     { define the outline of the sector.                       }
@@ -2231,7 +2362,7 @@ end;
         +abs(ArcCall.ystart-ArcCall.yend)>2) then
        FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
          y+round(cos((angle+90)*Pi/180)*YRadius/2),CurrentColor);
-     CurrentWriteMode := writemode;
+     CurrentWriteMode := writemode;*)
   end;
 
 
@@ -2619,33 +2750,8 @@ end;
 
 
   procedure PieSlice(X,Y,stangle,endAngle:integer;Radius: Word);
-  var angle : graph_float;
-      XRadius, YRadius : word;
-      writemode : word;
   begin
-     writemode := currentwritemode;
-     Arc(x,y,StAngle,EndAngle,Radius);
-     Line(ArcCall.XStart, ArcCall.YStart, x,y);
-     Line(x,y, ArcCall.XEnd, ArcCall.YEnd);
-     { must use PutPixel() instead of DirectPutPixel because we need }
-     { clipping...                                                   }
-     PutPixel(ArcCall.xstart,ArcCall.ystart,CurrentColor);
-     PutPixel(x,y,CurrentColor);
-     PutPixel(ArcCall.xend,ArcCall.yend,CurrentColor);
-     Stangle:=stAngle mod 360; EndAngle:=Endangle mod 360;
-     if Stangle<=Endangle then
-       angle:=(StAngle+EndAngle) div 2
-     else
-       angle:=(StAngle-360+EndAngle) div 2;
-     { fill from the point in the middle of the slice }
-     XRadius:=(longint(Radius)*10000) div XAspect;
-     YRadius:=(longint(Radius)*10000) div YAspect;
-     { avoid rounding errors }
-     if abs(ArcCall.xstart-ArcCall.xend)
-        +abs(ArcCall.ystart-ArcCall.yend)>2 then
-       floodfill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
-         y+round(cos((angle)*Pi/180)*YRadius/2),FillSettings.Color);
-     CurrentWriteMode := writemode;
+    Sector(x,y,stangle,endangle,radius,radius);
   end;
 
 {$i fills.inc}
@@ -2773,7 +2879,12 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.22  1999-09-15 13:37:50  jonas
+  Revision 1.23  1999-09-17 13:58:31  jonas
+  * another fix for a case where internalellipsedefault went haywire
+  * sector() and pieslice() fully implemented!
+  * small change to prevent buffer overflow with floodfill
+
+  Revision 1.22  1999/09/15 13:37:50  jonas
     * small change to internalellipsedef to be TP compatible
     * fixed directputpixel for vga 320*200*256
 

@@ -307,7 +307,7 @@ var
    var
     i: integer;
   Begin
-    If Buffer.WordIndex<(StdBufferSize DIV 2) then
+    If Buffer.WordIndex<(StdBufferSize DIV 2)-3 then
      Begin
        Buffer.Words[Buffer.WordIndex]:=x;
        Buffer.Words[Buffer.WordIndex+1]:=y;
@@ -492,7 +492,12 @@ var
 
 {
 $Log$
-Revision 1.6  1999-09-12 17:28:59  jonas
+Revision 1.7  1999-09-17 13:58:31  jonas
+* another fix for a case where internalellipsedefault went haywire
+* sector() and pieslice() fully implemented!
+* small change to prevent buffer overflow with floodfill
+
+Revision 1.6  1999/09/12 17:28:59  jonas
   * several changes to internalellipse to make it faster
     and to make sure it updates the ArcCall correctly
     (not yet done for width = 3)
