@@ -158,6 +158,8 @@
 {$include gtkfilechooserdefault.inc}
 {$include gtkfilechooserembed.inc}
 {$include gtkfilechooserentry.inc}
+{$include gtkiconview.inc}
+
 {$ENDIF}
 
 {$include gtkfilechooser.inc}
