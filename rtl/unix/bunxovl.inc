@@ -115,11 +115,16 @@ begin
 end;
 
 Function FpSignal(signum:longint;Handler:signalhandler):signalhandler;
+// should be moved out of generic files. Too specific.
 
 var sa,osa : sigactionrec;
 
 begin
+     {$Ifdef BSD}
+     sa.sa_handler:=tsigaction(handler);
+     {$else}
      sa.sa_handler:=handler;
+     {$endif}
      FillChar(sa.sa_mask,sizeof(sigset),#0);
      sa.sa_flags := 0;
 {     if (sigintr and signum) =0 then
@@ -130,7 +135,11 @@ begin
      if getErrNo<>0 then
        fpsignal:=NIL
      else
+      {$ifdef BSD}
+       fpsignal:=signalhandler(osa.sa_handler);
+      {$else}
        fpsignal:=osa.sa_handler;
+      {$endif}
 end;
 
 function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
@@ -310,7 +319,10 @@ end;
 
 {
  $Log$
- Revision 1.6  2003-10-13 11:37:57  marco
+ Revision 1.7  2003-10-27 17:12:45  marco
+  * fixes for signal handling.
+
+ Revision 1.6  2003/10/13 11:37:57  marco
   * more small fixes
 
  Revision 1.5  2003/10/12 14:37:10  marco

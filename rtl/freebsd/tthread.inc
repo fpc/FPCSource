@@ -65,8 +65,6 @@ begin
   ThreadRoot:=nil;
   ThreadsInited:=true;
 
-
-
 // This will install SIGCHLD signal handler
 // signal() installs "one-shot" handler,
 // so it is better to install and set up handler with sigaction()
@@ -74,8 +72,9 @@ begin
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
 
-    Act^.sa_handler := @SIGCHLDHandler;
-    fillchar(Act^.sa_mask,sizeof(sigset_t),#0);
+  signalhandler(Act^.sa_handler) := @SIGCHLDHandler;
+
+  fillchar(Act^.sa_mask,sizeof(sigset_t),#0);
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
 			//Do not block all signals ??. Don't need if SA_NOMASK in flags
 
@@ -297,7 +296,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2003-10-09 10:55:20  marco
+  Revision 1.3  2003-10-27 17:12:45  marco
+   * fixes for signal handling.
+
+  Revision 1.2  2003/10/09 10:55:20  marco
    * fix for moving classes to rtl while cycling with 1.0 start
 
   Revision 1.1  2003/10/06 21:01:06  peter

@@ -121,23 +121,55 @@ type sigset_t = array[0..3] of Longint;
        fpr_pad      : array[0..63] of char;
        end;
 
+
+
+  Sigval = Record
+            Case Boolean OF
+        { Members as suggested by Annex C of POSIX 1003.1b. }
+                false : (sigval_int : Longint);
+                True  : (sigval_ptr : Pointer);
+            End;
+
+
+  TSigInfo_t = record
+                si_signo,                       { signal number }
+                si_errno,                       { errno association }
+        {
+         * Cause of signal, one of the SI_ macros or signal-specific
+         * values, i.e. one of the FPE_... values for SIGFPE. This
+         * value is equivalent to the second argument to an old-style
+         * FreeBSD signal handler.
+         }
+                si_code,                        { signal code }
+                si_pid          : Longint;      { sending process }
+                si_uid          : Cardinal;     { sender's ruid }
+                si_status       : Longint;      { exit value }
+                si_addr         : Pointer;      { faulting instruction }
+                si_value        : SigVal;       { signal value }
+                si_band         : Cardinal;     { band event for SIGPOLL }
+                __spare         : array[0..6] of Longint; { gimme some slack
+}
+                end;
+
+
+
   SignalHandler   = Procedure(Sig : Longint);cdecl;
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
-  TSigAction = procedure(Sig: Longint; SigContext: SigContextRec;someptr:pointer);cdecl;
+  TSigAction = procedure(Sig: Longint; var sininfo:tsiginfo_t;var SigContext: SigContextRec);cdecl;
 
   TSigset=sigset_t;
   sigset=tsigset;
   PSigSet = ^TSigSet;
 
   SigActionRec = packed record
-{    Handler  : record
+{     Handler  : record
       case byte of
         0: (Sh: SignalHandler);
         1: (Sa: TSigAction);
       end;}
-    sa_handler  : signalhandler;
+    sa_handler  : tsigAction;
     Sa_Flags    : Longint;
     Sa_Mask     : TSigSet;
   end;
@@ -149,11 +181,24 @@ type sigset_t = array[0..3] of Longint;
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
+const
+       FPE_INTOVF      =1;     { integer overflow }
+        FPE_INTDIV      =2;     { integer divide by zero }
+        FPE_FLTDIV      =3;     { floating point divide by zero }
+        FPE_FLTOVF      =4;     { floating point overflow }
+        FPE_FLTUND      =5;     { floating point underflow }
+        FPE_FLTRES      =6;     { floating point inexact result }
+        FPE_FLTINV      =7;     { invalid floating point operation }
+        FPE_FLTSUB      =8;     { subscript out of range }
+
 
 
 {
   $Log$
-  Revision 1.7  2003-01-05 19:02:29  marco
+  Revision 1.8  2003-10-27 17:12:45  marco
+   * fixes for signal handling.
+
+  Revision 1.7  2003/01/05 19:02:29  marco
    * Should now work with baseunx. (gmake all works)
 
   Revision 1.6  2002/10/26 18:27:52  marco

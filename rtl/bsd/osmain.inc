@@ -508,11 +508,52 @@ begin
   reenable_signal:=geterrno=0;
 end;
 
+procedure SignalToRunerror(Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
+
+var
+  res : word;
+
+begin
+  res:=0;
+  case sig of
+    SIGFPE :
+          begin
+	    Case Info.si_code Of
+		FPE_INTDIV : Res:=200;  {integer divide fault. Div0?}
+		FPE_FLTOVF : Res:=205;  {Overflow trap}
+		FPE_FLTUND : Res:=206;  {Stack over/underflow}
+		FPE_FLTRES : Res:=216;  {Device not available}
+		FPE_FLTINV : Res:=216;  {Invalid floating point operation}
+	       Else
+  	        Res:=208; {coprocessor error}
+		End;
+	     sysResetFPU;
+	  End;
+    SIGILL,
+    SIGBUS,
+    SIGSEGV :
+        res:=216;
+  end;
+  {$ifdef FPC_USE_SIGPROCMASK}
+   reenable_signal(sig);
+  {$endif }
+{ give runtime error at the position where the signal was raised }
+  if res<>0 then
+   begin
+{$ifdef I386}
+  HandleErrorAddrFrame(res,Pointer(SigContext.sc_eip),pointer(SigContext.sc_ebp));
+{$else}
+     HandleError(res);
+{$endif}
+   end;
+end;
+{
 procedure SignalToRunerror(signo: cint); cdecl;
 var
   res : word;
 begin
     res:=0;
+
     if signo = SIGFPE then
      begin
         res := 200;
@@ -528,7 +569,7 @@ begin
      HandleError(res);
    end;
 end;
-
+}
 
 var
   act: SigActionRec;
@@ -541,7 +582,8 @@ begin
   { all flags and information set to zero }
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
-  act.sa_handler := @SignalToRunError;
+  act.sa_handler :=@SignalToRunError;
+  act.sa_flags:=SA_SIGINFO;
   FpSigAction(SIGFPE,act,oldact);
   FpSigAction(SIGSEGV,act,oldact);
   FpSigAction(SIGBUS,act,oldact);
@@ -628,7 +670,10 @@ End.
 
 {
    $Log$
-   Revision 1.4  2003-10-26 17:01:04  marco
+   Revision 1.5  2003-10-27 17:12:45  marco
+    * fixes for signal handling.
+
+   Revision 1.4  2003/10/26 17:01:04  marco
     * moved sigprocmask to system
 
    Revision 1.3  2003/09/27 13:04:58  peter
