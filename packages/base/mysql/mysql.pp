@@ -74,6 +74,7 @@ uses mysql_com;
             _type : enum_field_types;
          end;
        MYSQL_FIELD = st_mysql_field;
+       TMYSQL_FIELD = ^MYSQL_FIELD;
        PMYSQL_FIELD = ^MYSQL_FIELD;
   { was #define dname(params) para_def_expr }
   { argument types are unknown }
@@ -112,6 +113,7 @@ in define line 34 *)
 type
        PMYSQL_ROW = ^MYSQL_ROW;
        MYSQL_ROW = ppchar;
+       TMYSQL_ROW = MYSQL_ROW;
     { return data as array of strings  }
 
        PMYSQL_FIELD_OFFSET = ^MYSQL_FIELD_OFFSET;

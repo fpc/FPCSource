@@ -23,7 +23,8 @@ begin
     DataBase:=@Dummy[1];
     end;
   Write ('Connecting to MySQL...');
-  sock :=  mysql_connect(PMysql(@qmysql),nil,nil,nil);
+  mysql_init(PMySQL(@qmysql));
+  sock :=  mysql_real_connect(PMysql(@qmysql),nil,'michael','geen',nil,0,nil,0);
   if sock=Nil then
     begin
     Writeln (stderr,'Couldn''t connect to MySQL.');
@@ -82,7 +83,10 @@ begin
   halt(0);
 end.
   $Log$
-  Revision 1.3  2002-09-07 15:42:53  peter
+  Revision 1.4  2004-09-28 19:08:09  michael
+  + Some compatibility issues fixed
+
+  Revision 1.3  2002/09/07 15:42:53  peter
     * old logs removed and tabs fixed
 
   Revision 1.2  2002/05/31 11:54:33  marco
