@@ -13,7 +13,7 @@ This binary is the main binary of the
 which is a
 .I Turbo Pascal
 and
-.I Delphi (5.0) 
+.I Delphi (7.0) 
 compatible standalone (non GCC frontend) multitarget Pascal compiler.
 .PP
 The compiler uses
@@ -26,13 +26,12 @@ The current main targets are
 .I Go32V2
 (Dos DJGPP extender),
 .I Freebsd,
-.I OpenBSD,
-.I NetBSD,
 .I Linux,
-.I OS/2,
-.I BeOS,
+.I MacOS,
+.I MacOSX,
+.I MorphOS,
 .I Netware,
-.I Solaris
+.I OS/2
 and
 .I Win32.
 The other targets (M68K compilers for Atari and Amiga) are either based on older
@@ -77,7 +76,8 @@ idem as \-h, but waiting after every screenfull for the enter key.
 .TP
 .BI \-i
 This option tells the compiler to print the copyright information.
-   You can give it an option, as -ixxx} where "xxx" can be one of the
+
+You can give it an option, as -ixxx where "xxx" can be one of the
 following:
 .RS
 .TP
@@ -221,7 +221,7 @@ lib/ld-linux.so.1, depending on which one is found.
 .BI \-Fo xxx
 Adds 
 .I xxx
- to the object file path. This path is used
+to the object file path. This path is used
 when looking for files that need to be linked in.
 .TP
 .BI \-Fr xxx
@@ -306,7 +306,7 @@ a ELF32 file (LINUX only) using the
 assembler.
 .TP
 .I nasmobj
-a obj file  using the
+a obj file using the
 .I nasm
 assembler.
 .TP
