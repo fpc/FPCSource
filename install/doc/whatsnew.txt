@@ -22,15 +22,36 @@ Compiler:
   * AfterConstruction/BeforeDestruction behaviour is now compatible with Delphi
   * Better support for Widestring
   * Removed {$THREADING ON} directive, threading support is always available
+  * Improved code generation on Sparc
   * Lot of small bugs and compatibility fixes
 
-RTL
+RTL:
+  * Basic threading support moved to the system unit
+  * Operator ** moved to math unit; system.power removed
+  * Improved variant support
+  * Lot of small bugs and compatibility fixes
 
-FCL
-
+FCL:
+  + Support for Interbase/Firebird, PostgreSQL and MySQL 4.0 under windows
+  * Database drivers are now dynamically loaded
+  * The TSQLQuery is now fully editable using cached updates
+  * Lot of small bugs and compatibility fixes
 
 Packages:
-
+  + gtk2 interface units
+  * 64 bit compatibility fixes
+  * Lot of small bugs and compatibility fixes
+  
+IDE:
+  + vector unit window
+  * x86-64 asssembler debugging support improved
+  * Sparc asssembler debugging support improved
+  * Some bug fixes
+  
+Misc:
+  + txt output to fpdoc added
+  * some fpdoc bugs fixes
+  
 
                         Version 1.9.6 aka 2.0.0-Rc1
 
