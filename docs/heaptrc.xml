@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--
+
+   $Id$
+   This file is part of the FPC documentation.
+   Copyright (C) 1997, by Michael Van Canneyt
+
+   The FPC documentation is free text; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   The FPC Documentation is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with the FPC documentation; see the file COPYING.LIB.  If not,
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.
+ -->
+<package name="rtl">
+<module name="heaptrc">
+<short>The HEAPTRC unit.</short>
+<!-- \FPCexampledir{heapex} -->
+<descr>
+<p>
+This document describes the HEAPTRC unit for Free Pascal. It was written by
+Pierre Muller. It is system independent, and works on all supported systems.
+</p>
+<p>
+The HEAPTRC unit can be used to debug your memory allocation/deallocation.
+It keeps track of the calls to getmem/freemem, and, implicitly, of
+New/Dispose statements.
+</p>
+<p>
+When the program exits, or when you request it explicitly.
+It displays the total memory used, and then dumps a list of blocks that
+were allocated but not freed. It also displays where the memory was
+allocated.
+</p>
+<p>
+If there are any inconsistencies, such as memory blocks being allocated
+or freed twice, or a memory block that is released but with wrong size,
+this will be displayed also.
+</p>
+<p>
+The information that is stored/displayed can be customized using
+some constants.
+</p>
+</descr>
+
+<topic name="usage">
+<short>HeapTrc Usage</short>
+<descr>
+<p>
+All that you need to do is to include <file>heaptrc</file> in the uses clause
+of your program. Make sure that it is the first unit in the clause,
+otherwise memory allocated in initialization code of units that precede the
+heaptrc unit will not be accounted for, causing an incorrect memory usage
+report.
+</p>
+<p>
+If you use the <var>-gh</var> switch, the compiler will insert the unit by itself,
+so you don't have to include it in your uses clause.
+</p>
+<p>
+The below example shows how to use the heaptrc unit.
+</p>
+<p>
+This is the memory dump shown when running this program in a standard way:
+</p>
+<code>
+Marked memory at 0040FA50 invalid
+Wrong size : 128 allocated 64 freed
+  0x00408708
+  0x0040CB49
+  0x0040C481
+Call trace for block 0x0040FA50 size 128
+  0x0040CB3D
+  0x0040C481
+</code>
+<p>
+If you use the <file>lineinfo</file> unit (or use the <var>-gl</var> switch) as well,
+then <file>heaptrc</file> will also give you the filenames and line-numbers of
+the procedures in the backtrace:
+</p>
+<code>
+Marked memory at 00410DA0 invalid
+Wrong size : 128 allocated 64 freed
+  0x004094B8
+  0x0040D8F9  main,  line 25 of heapex.pp
+  0x0040D231
+Call trace for block 0x00410DA0 size 128
+  0x0040D8ED  main,  line 23 of heapex.pp
+  0x0040D231
+</code>
+<p>
+If lines without filename/line-number occur, this means there is a unit which
+has no debug info included.
+</p>
+</descr>
+<example file="heapex/heapex"/>
+</topic>
+
+<topic name="environment">
+<short>Controlling HeapTrc with environment variables</short>
+<descr>
+<p>The <file>HeapTrc</file> unit can be controlled with the <var>HEAPTRC</var>
+environment variable. The contents of this variable controls the initial setting
+of some constants in the unit. <var>HEAPTRC</var> consists of one or more of the
+following strings, separated by spaces:
+</p>
+<dl>
+<dt>keepreleased</dt>
+<dd>If this string occurs, then the <link id="KeepReleased"/> variable is set
+to <var>True</var></dd>
+<dt>disabled</dt>
+<dd>If this string occurs, then the <link id="UseHeapTrace"/> variable is set
+to <var>False</var> and the heap trace is disabled. It does not make sense to
+combine this value with other values.</dd>
+<dt>nohalt</dt>
+<dd>If this string occurs, then the <link id="HaltOnError"/> variable is set
+to <var>False</var>, so the program continues executing even in case of a
+heap error.</dd>
+<dt>log=filename</dt>
+<dd>If this string occurs, then the output of heaptrc is sent
+to the specified <var>Filename</var>. (see also <link id="SetHeapTraceOutput"/>)
+</dd>
+</dl>
+<p>
+The following are valid values for the HEAPTRC variable:
+</p>
+<code>
+HEAPTRC=disabled
+HEAPTRC="keepreleased log=heap.log"
+HEAPTRC="log=myheap.log nohalt"
+</code>
+<p>
+Note that these strings are case sensitive, and the name of the variable too.
+</p>
+</descr>
+</topic>
+
+<element name="TFillExtraInfoProc">
+<short>The <var>FillExtraInfoProc</var> is a procedural type used in the <link id="SetHeapExtraInfo"/> call.</short>
+<descr>
+The <var>TFillExtraInfoProc</var> is a procedural type used in the
+ <link id="SetHeapExtraInfo"/> call to fill a memory location with
+ extra data for displaying.
+</descr>
+<seealso>
+<link id="SetHeapExtraInfo"/>
+<link id="TDisplayExtraInfoProc"/>
+</seealso>
+</element>
+
+<element name="TDisplayExtraInfoProc">
+<short>The <var>TDisplayExtraInfoProc</var> is a procedural type used in the <link id="SetHeapExtraInfo"/> call.</short>
+<descr>
+The <var>TDisplayExtraInfoType</var> is a procedural type used in the
+<link id="SetHeapExtraInfo"/> call to display a memory location which was
+previously filled with <link id="TFillExtraInfoProc"/>
+</descr>
+<seealso>
+<link id="SetHeapExtraInfo"/>
+<link id="TFillExtraInfoProc"/>
+</seealso>
+</element>
+
+
+<element name="TraceSize">
+<short>Specify size of callback trace</short>
+<descr>
+<var>Tracesize</var> specifies how many levels of calls are displayed of the
+call stack during the memory dump. If you specify <var>keepreleased:=True</var>
+then half the <var>TraceSize</var> is reserved for the <var>GetMem</var> call stack,
+and the other half is reserved for the <var>FreeMem</var> call stack.
+For example, the default value of 8 will cause eight levels of call frames
+to be dumped for the getmem call if <var>keepreleased</var> is <var>False</var>. If
+<var>KeepReleased</var> is true, then 4 levels of call frames will be dumped for
+the <var>GetMem</var> call and 4 frames wil be dumped for the <var>FreeMem</var> call.
+If you want to change this value, you must recode the <file>heaptrc</file> unit.
+</descr>
+</element>
+
+<element name="QuickTrace">
+<short>Do quick trace or extensive trace</short>
+<descr>
+<var>Quicktrace</var> determines whether the memory manager checks whether a
+block that is about to be released is allocated correctly. This is a rather
+time consuming search, and slows program execution significantly, so by
+default it is set to <var>True</var>.
+</descr>
+</element>
+
+<element name="useHeapTrace">
+<short>If set to <var>false</var>, the heap trace will be disabled. </short>
+<descr>
+This variable must be set at program startup, through the help of an environment variable.
+</descr>
+<seealso>
+<link id="environment"/>
+</seealso>
+</element>
+
+<element name="HaltOnError">
+<short>Halt program on memory fault</short>
+<descr>
+If <var>HaltOnError</var> is set to <var>True</var> then an illegal call to
+<var>FreeMem</var> will cause the memory manager to execute a <var>halt(1)</var>
+instruction, causing a memory dump. By Default it is set to <var>True</var>.
+</descr>
+</element>
+
+<element name="KeepReleased">
+<short>Keep released blocks in memory</short>
+<descr>
+If <var>keepreleased</var> is set to true, then a list of freed memory
+blocks is kept. This is useful if you suspect that the same memory block is
+released twice. However, this option is very memory intensive, so use it
+sparingly, and only when it's really necessary.
+</descr>
+</element>
+
+<element name="Add_Tail">
+<short>Check for memory overwrites</short>
+<descr>
+If <var>add\_tail</var> is <var>True</var> (the default) then a check is also
+performed on the memory location just behind the allocated memory.
+</descr>
+</element>
+
+<element name="usecrc">
+<short>Use CRC check on allocated memory</short>
+<descr>
+If <var>usecrc</var> is <var>True</var> (the default) then a crc check is performed
+on locations before and after the allocated memory. This is useful to
+detect memory overwrites.
+</descr>
+</element>
+
+<element name="DumpHeap">
+<short>Dump memory usage report to stderr.</short>
+<descr>
+<var>DumpHeap</var> dumps to standard output a summary of memory usage.
+It is called automatically by the heaptrc unit when your program exits
+(by installing an exit procedure), but it can be called at any time.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="MarkHeap"/>
+</seealso>
+</element>
+
+<element name="MarkHeap">
+<short>Mark memory blocks with a signature.</short>
+<descr>
+<var>MarkHeap</var> marks all memory blocks with a special signature.
+You can use this if you think that you corruped the memory.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="DumpHeap"/>
+</seealso>
+</element>
+
+<element name="SetHeapExtraInfo">
+<short>Store extra information in blocks.</short>
+<descr>
+<p>
+You can use <var>SetHeapExtraInfo</var> to store extra info in the blocks that
+the heaptrc unit reserves when tracing getmem calls. <var>Size</var> indicates the
+size (in bytes) that the trace mechanism should reserve for your extra
+information. For each call to <var>getmem</var>, <var>FillProc</var> will be called,
+and passed a pointer to the memory reserved.
+</p>
+<p>
+When dumping the memory summary, the extra info is shown by calling
+<var>displayproc</var> and passing it the memory location which was
+filled by <var>fillproc</var>. It should write the information in
+readable form to the text file provided in the call to <var>displayproc</var>
+</p>
+</descr>
+<errors>
+You can only call <var>SetHeapExtraInfo</var> if no memroy has been allocated
+yet. If memory was already allocated prior to the call to
+<var>SetHeapExtraInfo</var>, then an error will be displayed on standard error
+output, and a <link id="DumpHeap"/> is executed.
+</errors>
+<seealso>
+<link id="DumpHeap"/>
+<link id="SetHeapTraceOutput"/>
+</seealso>
+<example file="heapex/setinfo"/>
+</element>
+
+<element name="SetHeapTraceOutput">
+<short>Specify filename for heap trace output.</short>
+<descr>
+<var>SetHeapTraceOutput</var> sets the filename into which heap trace info
+will be written. By default information is written to standard output,
+this function allows you to redirect the information to a file with
+full filename <var>name</var>.
+</descr>
+<errors>
+If the file cannot be written to, errors will occur when writing the
+trace.
+</errors>
+<seealso>
+<link id="SetHeapExtraInfo"/>
+</seealso>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>
