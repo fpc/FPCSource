@@ -234,7 +234,7 @@ var spost, alpha, alphainc : glFloat;
     I : Integer;
 begin
   alpha := 0.2;
-
+  spost := 0.0;
   glEnable(GL_TEXTURE_2D);		   	// Enable 2D Texture Mapping
   glDisable(GL_DEPTH_TEST);		   	// Disable Depth Testing
   glBlendFunc(GL_SRC_ALPHA,GL_ONE);	   	// Set Blending Mode
