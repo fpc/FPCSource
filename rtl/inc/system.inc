@@ -98,7 +98,7 @@ Type
    PLongint = ^Longint;
    PByte = ^Byte;
 
-{$i astrings.pp}
+{$i astrings.inc}
 
 
 {****************************************************************************
@@ -477,7 +477,10 @@ end;
 
 {
   $Log$
-  Revision 1.42  1998-11-16 10:21:25  peter
+  Revision 1.43  1998-11-17 10:36:07  michael
+  + renamed astrings.pp to astrings.inc
+
+  Revision 1.42  1998/11/16 10:21:25  peter
     * fixes for H+
 
   Revision 1.41  1998/11/05 10:29:36  pierre
