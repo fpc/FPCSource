@@ -106,6 +106,7 @@ const
   fmInOut  = $D7B3;
   fmAppend = $D7B4;
   Filemode : byte = 2;
+  CmdLine : PChar = nil;
 
 Type
   TErrorProc = Procedure (ErrNo : Longint; Address : Pointer);
@@ -435,7 +436,10 @@ const
 
 {
   $Log$
-  Revision 1.51  1999-03-03 15:23:58  michael
+  Revision 1.52  1999-03-10 22:15:30  florian
+    + system.cmdline variable for go32v2 and win32 added
+
+  Revision 1.51  1999/03/03 15:23:58  michael
   + Added setstring for Delphi compatibility
 
   Revision 1.50  1999/02/01 00:05:16  florian

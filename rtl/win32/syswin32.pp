@@ -640,10 +640,10 @@ procedure setup_arguments;
 var
   arglen,
   count   : longint;
-  argstart,
-  cmdline : pchar;
+  argstart,scmdline : pchar;
   quote   : set of char;
   argsbuf : array[0..127] of pchar;
+
 begin
 { create commandline, it starts with the executed filename which is argv[0] }
   cmdline:=GetCommandLine;
@@ -677,6 +677,8 @@ begin
   { skip quote }
     if cmdline^ in quote then
      inc(longint(cmdline));
+    if count=0 then
+      scmdline:=cmdline-1;
     inc(count);
   until false;
 { create argc }
@@ -687,6 +689,8 @@ begin
 { create the argv }
   getmem(argv,count shl 2);
   move(argsbuf,argv^,count shl 2);
+  // finally setup the abused cmdline variable
+  cmdline:=scmdline;
 end;
 
 
@@ -973,7 +977,10 @@ end.
 
 {
   $Log$
-  Revision 1.33  1999-01-18 10:05:57  pierre
+  Revision 1.34  1999-03-10 22:15:31  florian
+    + system.cmdline variable for go32v2 and win32 added
+
+  Revision 1.33  1999/01/18 10:05:57  pierre
    + system_exit procedure added
 
   Revision 1.32  1998/12/28 23:30:11  peter

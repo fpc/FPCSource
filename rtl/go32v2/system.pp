@@ -313,6 +313,12 @@ sysseg_move(psp, 128, get_ds, longint(@doscmd), 128);
 {$IfDef SYSTEMDEBUG}
 Writeln(stderr,'Dos command line is #',doscmd,'# size = ',length(doscmd));
 {$EndIf SYSTEMDEBUG}
+
+// setup cmdline variable
+getmem(cmdline,length(doscmd)+1);
+move(doscmd[1],cmdline^,length(doscmd));
+cmdline[length(doscmd)]:=#0;
+
 j := 1;
 quote := #0;
 for i:=1 to length(doscmd) do
@@ -1222,7 +1228,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.6  1999-03-01 15:40:52  peter
+  Revision 1.7  1999-03-10 22:15:28  florian
+    + system.cmdline variable for go32v2 and win32 added
+
+  Revision 1.6  1999/03/01 15:40:52  peter
     * use external names
     * removed all direct assembler modes
 
