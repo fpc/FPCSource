@@ -1138,7 +1138,10 @@ implementation
                if (cs_create_smart in aktmoduleswitches) then
                 rttiList.concat(Tai_cut.Create);
                rttiList.concat(Tai_align.create(const_align(pointer_size)));
-               rttiList.concat(Tai_symbol.Create(localrttilab[rt],0));
+               if (cs_create_smart in aktmoduleswitches) then
+                 rttiList.concat(Tai_symbol.Create_global(localrttilab[rt],0))
+               else
+                 rttiList.concat(Tai_symbol.Create(localrttilab[rt],0));
                write_rtti_data(rt);
                rttiList.concat(Tai_symbol_end.Create(localrttilab[rt]));
              end;
@@ -5761,7 +5764,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.142  2003-05-11 21:37:03  peter
+  Revision 1.143  2003-05-13 08:13:16  jonas
+    * patch from Peter for rtti symbols
+
+  Revision 1.142  2003/05/11 21:37:03  peter
     * moved implicit exception frame from ncgutil to psub
     * constructor/destructor helpers moved from cobj/ncgutil to psub
 
