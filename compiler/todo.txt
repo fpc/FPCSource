@@ -15,7 +15,7 @@ compiler version and your short cut.
     - save array for overriding
         - stored qualifier ...................................... 0.99.11 (FK)
         - read/write from/to unit file ........................... 0.99.6 (FK)
-  - call of destructor helper routine
+        - call of destructor helper routine ..................... 0.99.11 (FK)
         - message qualifier ..................................... 0.99.11 (FK)
         - correct handling of constructor result type ............ 0.99.6 (FK)
         - rtti ................................................... 0.99.8 (FK)
@@ -72,7 +72,7 @@ compiler version and your short cut.
         - include/exclude........................................ 0.99.10 (PM)
 - fix all bugs of the bug directory
 - sysutils unit for go32v2 (excpetions!)
-- initialisation/finalization for units
+        - initialisation/finalization for units ................. 0.99.11 (PFV)
 - fixed data type
 - add alignment $A switch
 - $B

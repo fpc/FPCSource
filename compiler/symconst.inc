@@ -66,6 +66,7 @@
        pomsgstr         = $8000000;  { method for string message handling }
        pomsgint         = $10000000; { method for int message handling }
        posavestdregs    = $20000000; { save std regs cdecl and stdcall need that ! }
+       pocontainsself   = $40000000; { self is passed explicit to the compiler }
        { relevant options for assigning a proc or a procvar to a procvar }
        po_compatibility_options = $7FFFFFFF-
          (pomethodpointer+povirtualmethod+pooverridingmethod);
@@ -94,10 +95,24 @@
        vo_is_C_var    = $2;
        vo_is_external = $4;
        vo_is_dll_var  = $8;
+       vo_is_thread_var = $10;
 
 {
   $Log$
-  Revision 1.5  1999-04-26 13:31:46  peter
+  Revision 1.6  1999-04-28 06:02:10  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.5  1999/04/26 13:31:46  peter
     * release storenumber,double_checksum
 
   Revision 1.4  1999/04/16 10:28:26  pierre

@@ -132,6 +132,8 @@ implementation
                    if p^.symtable^.symtabletype=withsymtable then
                      inc(p^.registers32);
 
+                   if (pvarsym(p^.symtableentry)^.var_options and (vo_is_thread_var or vo_is_dll_var))<>0 then
+                     p^.registers32:=1;
                    { a class variable is a pointer !!!
                      yes, but we have to resolve the reference in an
                      appropriate tree node (FK)
@@ -475,7 +477,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  1999-04-21 21:57:33  pierre
+  Revision 1.24  1999-04-28 06:02:17  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.23  1999/04/21 21:57:33  pierre
    * previous log corrected
 
   Revision 1.22  1999/04/21 16:31:47  pierre

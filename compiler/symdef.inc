@@ -658,18 +658,22 @@
             st_ansistring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(tkAString)));
+                 write_rtti_name;
               end;
             st_widestring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(tkWString)));
+                 write_rtti_name;
               end;
             st_longstring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(tkLString)));
+                 write_rtti_name;
               end;
             st_shortstring:
               begin
                  rttilist^.concat(new(pai_const,init_8bit(tkSString)));
+                 write_rtti_name;
                  rttilist^.concat(new(pai_const,init_8bit(len)));
               end;
          end;
@@ -865,6 +869,7 @@
 
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkEnumeration)));
+         write_rtti_name;
          case savesize of
             1:
               rttilist^.concat(new(pai_const,init_8bit(otUByte)));
@@ -1070,6 +1075,7 @@
             else
               rttilist^.concat(new(pai_const,init_8bit(tkInteger)));
          end;
+         write_rtti_name;
          rttilist^.concat(new(pai_const,init_8bit(byte(trans[typ]))));
          rttilist^.concat(new(pai_const,init_32bit(low)));
          rttilist^.concat(new(pai_const,init_32bit(high)));
@@ -1162,6 +1168,7 @@
            (ftFixed32,ftSingle,ftDouble,ftExtended,ftComp,ftFixed16);
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkFloat)));
+         write_rtti_name;
          rttilist^.concat(new(pai_const,init_8bit(translate[typ])));
       end;
 
@@ -1519,6 +1526,7 @@
     procedure tsetdef.write_rtti_data;
       begin
          rttilist^.concat(new(pai_const,init_8bit(tkSet)));
+         write_rtti_name;
          rttilist^.concat(new(pai_const,init_8bit(otULong)));
          rttilist^.concat(new(pai_const_symbol,init(setof^.get_rtti_label)));
       end;
@@ -1986,7 +1994,7 @@
 
     procedure trecdef.write_rtti_data;
       begin
-         rttilist^.concat(new(pai_const,init_8bit(14)));
+         rttilist^.concat(new(pai_const,init_8bit(tkrecord)));
          write_rtti_name;
          rttilist^.concat(new(pai_const,init_32bit(size)));
          count:=0;
@@ -3451,7 +3459,20 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.106  1999-04-26 18:30:01  peter
+  Revision 1.107  1999-04-28 06:02:11  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.106  1999/04/26 18:30:01  peter
     * farpointerdef moved into pointerdef.is_far
 
   Revision 1.105  1999/04/26 13:31:47  peter

@@ -57,6 +57,8 @@ implementation
          i : longint;
          hp : preference;
          s : pasmsymbol;
+         popeax : boolean;
+
       begin
          simple_loadn:=true;
          reset_reference(p^.location.reference);
@@ -99,6 +101,27 @@ implementation
                       begin
                          p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
                          concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                      end
+                    { thread variable }
+                    else if (pvarsym(p^.symtableentry)^.var_options and vo_is_thread_var)<>0 then
+                      begin
+                         popeax:=not(R_EAX in unused);
+                         if popeax then
+                           exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EAX)));
+                         p^.location.reference.symbol:=newasmsymbol(p^.symtableentry^.mangledname);
+                         if symtabletype=unitsymtable then
+                           concat_external(p^.symtableentry^.mangledname,EXT_NEAR);
+                         exprasmlist^.concat(new(pai386,op_ref(A_PUSH,S_L,newreference(p^.location.reference))));
+                         { the called procedure isn't allowed to change }
+                         { any register except EAX                      }
+                         emitcall('FPC_RELOCATE_THREADVAR',true);
+
+                         clear_reference(p^.location.reference);
+                         p^.location.reference.base:=getregister32;
+                         emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.reference.base);
+                         if popeax then
+                           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EAX)));
+
                       end
                     { normal variable }
                     else
@@ -841,7 +864,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-04-16 13:42:26  jonas
+  Revision 1.51  1999-04-28 06:01:55  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.50  1999/04/16 13:42:26  jonas
     * more regalloc fixes (still not complete)
 
   Revision 1.49  1999/04/13 18:57:48  florian

@@ -306,11 +306,11 @@ implementation
        regvars_refs : array[1..maxvarregs] of longint;
        parasym : boolean;
 
-    procedure searchregvars(p : psym);
+    procedure searchregvars(p : pnamedindexobject);
       var
          i,j,k : longint;
       begin
-         if (p^.typ=varsym) and ((pvarsym(p)^.var_options and vo_regable)<>0) then
+         if (psym(p)^.typ=varsym) and ((pvarsym(p)^.var_options and vo_regable)<>0) then
            begin
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
@@ -547,7 +547,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  1999-03-31 13:55:11  peter
+  Revision 1.18  1999-04-28 06:02:04  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.17  1999/03/31 13:55:11  peter
     * assembler inlining working for ag386bin
 
   Revision 1.16  1999/03/24 23:17:11  peter

@@ -1581,6 +1581,7 @@ Begin
                    (hp1^.typ = ait_labeled_instruction) And
                    (pai386_labeled(hp1)^.opcode = A_JMP) Then
                   Begin
+                    Inc(pai386_labeled(hp1)^.lab^.refcount);
                     hp2 := New(Pai386,op_sym(A_PUSH,S_L,NewAsmSymbol(Lab2Str(pai386_labeled(hp1)^.lab))));
                     hp2^.fileinfo := p^.fileinfo;
                     InsertLLItem(AsmL, p^.previous, p, hp2);
@@ -1677,7 +1678,20 @@ End.
 
 {
  $Log$
- Revision 1.46  1999-04-20 11:01:42  peter
+ Revision 1.47  1999-04-28 06:02:08  florian
+   * changes of Bruessel:
+      + message handler can now take an explicit self
+      * typinfo fixed: sometimes the type names weren't written
+      * the type checking for pointer comparisations and subtraction
+        and are now more strict (was also buggy)
+      * small bug fix to link.pas to support compiling on another
+        drive
+      * probable bug in popt386 fixed: call/jmp => push/jmp
+        transformation didn't count correctly the jmp references
+      + threadvar support
+      * warning if ln/sqrt gets an invalid constant argument
+
+ Revision 1.46  1999/04/20 11:01:42  peter
    * skipped vesion 1.44 :(
 
  Revision 1.44  1999/04/17 22:17:01  pierre

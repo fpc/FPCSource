@@ -243,7 +243,7 @@ unit pdecl;
       end;
 
 
-    procedure read_var_decs(is_record,is_object:boolean);
+    procedure read_var_decs(is_record,is_object,is_threadvar:boolean);
     { reads the filed of a record into a        }
     { symtablestack, if record=false            }
     { variants are forbidden, so this procedure }
@@ -280,10 +280,10 @@ unit pdecl;
          old_block_type:=block_type;
          block_type:=bt_type;
          is_gpc_name:=false;
-       { Force an expected ID error message }
+         { Force an expected ID error message }
          if not (token in [ID,_CASE,_END]) then
           consume(ID);
-       { read vars }
+         { read vars }
          while (token=ID) and
                not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED])) do
            begin
@@ -291,7 +291,7 @@ unit pdecl;
              sc:=idlist;
              consume(COLON);
              if (m_gpc in aktmodeswitches) and
-                not(is_record or is_object) and
+                not(is_record or is_object or is_threadvar) and
                 (token=ID) and (orgpattern='__asmname__') then
                begin
                  consume(ID);
@@ -322,17 +322,17 @@ unit pdecl;
                   symtablestack^.insert(aktvarsym);
                   symdone:=true;
                end;
-           { check for absolute }
+             { check for absolute }
              if not symdone and
-                (idtoken=_ABSOLUTE) and not(is_record or is_object) then
+                (idtoken=_ABSOLUTE) and not(is_record or is_object or is_threadvar) then
               begin
                 consume(_ABSOLUTE);
-              { only allowed for one var }
+                { only allowed for one var }
                 s:=sc^.get_with_tokeninfo(declarepos);
                 if not sc^.empty then
                  Message(parser_e_absolute_only_one_var);
                 dispose(sc,done);
-              { parse the rest }
+                { parse the rest }
                 if token=ID then
                  begin
                    getsym(pattern,true);
@@ -431,7 +431,7 @@ unit pdecl;
               begin
                 { Check for C Variable declarations }
                 if (m_cvar_support in aktmodeswitches) and
-                   not(is_record or is_object) and
+                   not(is_record or is_object or is_threadvar) and
                    (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
                  begin
                    { only allowed for one var }
@@ -467,7 +467,7 @@ unit pdecl;
                       else
                        export_aktvarsym:=true;
                     end;
-                 { external and export need a name after when no cdecl is used }
+                   { external and export need a name after when no cdecl is used }
                    if not is_cdecl then
                     begin
                       { dll name ? }
@@ -479,13 +479,13 @@ unit pdecl;
                        end;
                       consume(_NAME);
                       C_name:=pattern;
-                    { allow also char }
+                      { allow also char }
                       if token=CCHAR then
                        consume(CCHAR)
                       else
                        consume(CSTRING);
                     end;
-                 { consume the ; when export or external is used }
+                   { consume the ; when export or external is used }
                    if extern_aktvarsym or export_aktvarsym then
                     consume(SEMICOLON);
                    { insert in the symtable }
@@ -525,7 +525,7 @@ unit pdecl;
                  if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     current_object_option:=current_object_option or sp_static;
-                    insert_syms(symtablestack,sc,p);
+                    insert_syms(symtablestack,sc,p,false);
                     current_object_option:=current_object_option - sp_static;
                     consume(_STATIC);
                     consume(SEMICOLON);
@@ -538,10 +538,10 @@ unit pdecl;
                   if (current_object_option=sp_published) and
                     (not((p^.deftype=objectdef) and (pobjectdef(p)^.isclass))) then
                     Message(parser_e_cant_publish_that);
-                  insert_syms(symtablestack,sc,p);
+                  insert_syms(symtablestack,sc,p,is_threadvar);
                end;
            end;
-       { Check for Case }
+         { Check for Case }
          if is_record and (token=_CASE) then
            begin
               maxsize:=0;
@@ -575,21 +575,21 @@ unit pdecl;
                    break;
                 until false;
                 consume(COLON);
-              { read the vars }
+                { read the vars }
                 consume(LKLAMMER);
                 if token<>RKLAMMER then
-                  read_var_decs(true,false);
+                  read_var_decs(true,false,false);
                 consume(RKLAMMER);
-              { calculates maximal variant size }
+                { calculates maximal variant size }
                 maxsize:=max(maxsize,symtablestack^.datasize);
-              { the items of the next variant are overlayed }
+                { the items of the next variant are overlayed }
                 symtablestack^.datasize:=startvarrec;
                 if (token<>_END) and (token<>RKLAMMER) then
                   consume(SEMICOLON)
                 else
                   break;
               until (token=_END) or (token=RKLAMMER);
-            { at last set the record size to that of the biggest variant }
+              { at last set the record size to that of the biggest variant }
               symtablestack^.datasize:=maxsize;
            end;
          block_type:=old_block_type;
@@ -1356,7 +1356,7 @@ unit pdecl;
                                     actmembertype:=sp_published;
                                   end;
                       else
-                        read_var_decs(false,true);
+                        read_var_decs(false,true,false);
                       end;
                     end;
         _PROPERTY : property_dec;
@@ -1369,8 +1369,9 @@ unit pdecl;
                       if idtoken=_MESSAGE then
                         begin
                            { check parameter type }
-                           if assigned(aktprocsym^.definition^.para1^.next) or
-                             (aktprocsym^.definition^.para1^.paratyp<>vs_var) then
+                           if ((aktprocsym^.definition^.options and pocontainsself)=0) and
+                              (assigned(aktprocsym^.definition^.para1^.next) or
+                             (aktprocsym^.definition^.para1^.paratyp<>vs_var)) then
                              Message(parser_e_ill_msg_param);
                            consume(idtoken);
                            pt:=comp_expr(true);
@@ -1651,7 +1652,7 @@ unit pdecl;
          storetypeforwardsallowed:=typecanbeforward;
          if m_tp in aktmodeswitches then
            typecanbeforward:=false;
-         read_var_decs(true,false);
+         read_var_decs(true,false,false);
 
          { may be scale record size to a size of n*4 ? }
          if ((symtablestack^.datasize mod aktpackrecords)<>0) then
@@ -2171,7 +2172,17 @@ unit pdecl;
     { the top symbol table of symtablestack            }
       begin
         consume(_VAR);
-        read_var_decs(false,false);
+        read_var_decs(false,false,false);
+      end;
+
+    procedure threadvar_dec;
+    { parses thread variable declarations and inserts them in }
+    { the top symbol table of symtablestack                   }
+      begin
+        consume(_THREADVAR);
+        if not(symtablestack^.symtabletype in [staticsymtable,globalsymtable]) then
+          message(parser_e_threadvars_only_sg);
+        read_var_decs(false,false,true);
       end;
 
 
@@ -2210,6 +2221,8 @@ unit pdecl;
                 end;
               _VAR:
                 var_dec;
+              _THREADVAR:
+                threadvar_dec;
               _CONSTRUCTOR,_DESTRUCTOR,
               _FUNCTION,_PROCEDURE,_OPERATOR,_CLASS:
                 begin
@@ -2245,6 +2258,7 @@ unit pdecl;
             _CONST : const_dec;
              _TYPE : type_dec;
               _VAR : var_dec;
+              _THREADVAR : threadvar_dec;
          _FUNCTION,
         _PROCEDURE,
          _OPERATOR : read_proc;
@@ -2258,7 +2272,20 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.111  1999-04-26 13:31:37  peter
+  Revision 1.112  1999-04-28 06:02:07  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.111  1999/04/26 13:31:37  peter
     * release storenumber,double_checksum
 
   Revision 1.110  1999/04/25 22:42:16  pierre

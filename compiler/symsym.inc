@@ -1114,8 +1114,10 @@
                ((pobjectdef(pvarsym(sym)^.definition)^.options and oo_is_abstract)<>0) then
                Message(sym_e_no_instance_of_abstract_object);
              }
-
-             l:=getsize;
+             if ((var_options and vo_is_thread_var)<>0) then
+               l:=4
+             else
+               l:=getsize;
              case owner^.symtabletype of
                stt_exceptsymtable:
                  { can contain only one symbol, address calculated later }
@@ -1949,7 +1951,20 @@
 
 {
   $Log$
-  Revision 1.82  1999-04-26 13:31:52  peter
+  Revision 1.83  1999-04-28 06:02:13  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.82  1999/04/26 13:31:52  peter
     * release storenumber,double_checksum
 
   Revision 1.81  1999/04/25 22:38:39  pierre

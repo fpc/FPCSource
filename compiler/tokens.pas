@@ -186,6 +186,7 @@ type
     _PROCEDURE,
     _PROTECTED,
     _PUBLISHED,
+    _THREADVAR,
     _DESTRUCTOR,
     _INTERNPROC,
     _OPENSTRING,
@@ -363,6 +364,7 @@ const
       (str:'PROCEDURE'     ;special:false;keyword:m_all),
       (str:'PROTECTED'     ;special:false;keyword:m_none),
       (str:'PUBLISHED'     ;special:false;keyword:m_none),
+      (str:'THREADVAR'     ;special:false;keyword:m_objpas),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all),
       (str:'INTERNPROC'    ;special:false;keyword:m_none),
       (str:'OPENSTRING'    ;special:false;keyword:m_none),
@@ -379,7 +381,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1999-04-06 11:22:01  peter
+  Revision 1.6  1999-04-28 06:02:19  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.5  1999/04/06 11:22:01  peter
     * more use of ttoken
 
   Revision 1.4  1999/04/01 22:07:53  peter

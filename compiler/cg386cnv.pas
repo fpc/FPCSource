@@ -912,7 +912,8 @@ implementation
                         exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,newsize,1,pto^.location.register)));
                         emitjmp(C_None,hlabel);
                         emitlab(falselabel);
-                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,newsize,pto^.location.register,pto^.location.register)));
+                        exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,newsize,pto^.location.register,
+                          pto^.location.register)));
                         emitlab(hlabel);
                       end;
          else
@@ -1288,7 +1289,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  1999-04-22 10:49:07  peter
+  Revision 1.68  1999-04-28 06:01:54  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.67  1999/04/22 10:49:07  peter
     * fixed pchar to string location
 
   Revision 1.66  1999/04/20 10:35:58  peter

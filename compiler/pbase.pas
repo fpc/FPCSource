@@ -83,7 +83,7 @@ unit pbase;
 
     { inserts the symbols of sc in st with def as definition }
     { sc is disposed                                         }
-    procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef);
+    procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef;is_threadvar : boolean);
 
     { just for an accurate position of the end of a procedure (PM) }
     var
@@ -171,7 +171,7 @@ unit pbase;
 
     { inserts the symbols of sc in st with def as definition }
     { sc is disposed                                         }
-    procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef);
+    procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef;is_threadvar : boolean);
       var
          s : string;
          filepos : tfileposinfo;
@@ -182,6 +182,8 @@ unit pbase;
            begin
               s:=sc^.get_with_tokeninfo(tokenpos);
               ss:=new(pvarsym,init(s,def));
+              if is_threadvar then
+                ss^.var_options:=ss^.var_options or vo_is_thread_var;
               st^.insert(ss);
               { static data fields are inserted in the globalsymtable }
               if (st^.symtabletype=objectsymtable) and
@@ -200,7 +202,20 @@ end.
 
 {
   $Log$
-  Revision 1.20  1999-04-14 18:41:24  daniel
+  Revision 1.21  1999-04-28 06:02:05  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.20  1999/04/14 18:41:24  daniel
   * Better use of routines in pbase and symtable. 4k code removed.
 
   Revision 1.19  1999/04/08 20:59:42  florian

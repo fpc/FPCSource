@@ -766,18 +766,46 @@ implementation
            if (rd^.deftype=pointerdef) and (ld^.deftype=pointerdef) then
             begin
               p^.location.loc:=LOC_REGISTER;
-              p^.right:=gentypeconvnode(p^.right,ld);
-              firstpass(p^.right);
+              { p^.right:=gentypeconvnode(p^.right,ld); }
+              { firstpass(p^.right); }
               calcregisters(p,1,0,0);
               case p^.treetype of
-                 equaln,unequaln : ;
+                 equaln,unequaln :
+                   begin
+                      if is_equal(p^.right^.resulttype,voidpointerdef) then
+                        begin
+                           p^.right:=gentypeconvnode(p^.right,ld);
+                           firstpass(p^.right);
+                        end
+                      else if is_equal(p^.left^.resulttype,voidpointerdef) then
+                        begin
+                           p^.left:=gentypeconvnode(p^.left,rd);
+                           firstpass(p^.left);
+                        end
+                      else if not(is_equal(ld,rd)) then
+                        CGMessage(type_e_mismatch);
+                   end;
                  ltn,lten,gtn,gten:
                    begin
+                      if is_equal(p^.right^.resulttype,voidpointerdef) then
+                        begin
+                           p^.right:=gentypeconvnode(p^.right,ld);
+                           firstpass(p^.right);
+                        end
+                      else if is_equal(p^.left^.resulttype,voidpointerdef) then
+                        begin
+                           p^.left:=gentypeconvnode(p^.left,rd);
+                           firstpass(p^.left);
+                        end
+                      else if not(is_equal(ld,rd)) then
+                        CGMessage(type_e_mismatch);
                       if not(cs_extsyntax in aktmoduleswitches) then
                         CGMessage(type_e_mismatch);
                    end;
                  subn:
                    begin
+                      if not(is_equal(ld,rd)) then
+                        CGMessage(type_e_mismatch);
                       if not(cs_extsyntax in aktmoduleswitches) then
                         CGMessage(type_e_mismatch);
                       p^.resulttype:=s32bitdef;
@@ -1046,7 +1074,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-04-16 20:44:37  florian
+  Revision 1.27  1999-04-28 06:02:14  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.26  1999/04/16 20:44:37  florian
     * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
       operands fixed, small things for new ansistring management
 

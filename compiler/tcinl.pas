@@ -250,9 +250,17 @@ implementation
                  in_const_sqrt :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(sqrt(vr))
+                       begin
+                          if vr<0.0 then
+                            message(cg_w_may_wrong_math_argument);
+                          hp:=genrealconstnode(sqrt(vr))
+                       end
                      else
-                      hp:=genrealconstnode(sqrt(vl));
+                       begin
+                          if vl<0 then
+                            message(cg_w_may_wrong_math_argument);
+                          hp:=genrealconstnode(sqrt(vl));
+                       end;
                    end;
                  in_const_arctan :
                    begin
@@ -285,9 +293,17 @@ implementation
                  in_const_ln :
                    begin
                      if isreal then
-                      hp:=genrealconstnode(ln(vr))
+                       begin
+                          if vr<=0.0 then
+                            message(cg_w_may_wrong_math_argument);
+                          hp:=genrealconstnode(ln(vr))
+                       end
                      else
-                      hp:=genrealconstnode(ln(vl));
+                       begin
+                          if vl<=0 then
+                            message(cg_w_may_wrong_math_argument);
+                          hp:=genrealconstnode(ln(vl));
+                       end;
                    end;
                  else
                    internalerror(88);
@@ -1084,7 +1100,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  1999-04-26 18:28:12  peter
+  Revision 1.29  1999-04-28 06:02:15  florian
+    * changes of Bruessel:
+       + message handler can now take an explicit self
+       * typinfo fixed: sometimes the type names weren't written
+       * the type checking for pointer comparisations and subtraction
+         and are now more strict (was also buggy)
+       * small bug fix to link.pas to support compiling on another
+         drive
+       * probable bug in popt386 fixed: call/jmp => push/jmp
+         transformation didn't count correctly the jmp references
+       + threadvar support
+       * warning if ln/sqrt gets an invalid constant argument
+
+  Revision 1.28  1999/04/26 18:28:12  peter
     * better read/write array
 
   Revision 1.27  1999/04/26 09:32:22  peter
