@@ -117,19 +117,23 @@ implementation
            end;
          { if one operand is a cardinal and the other is a positive constant, convert the }
          { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
+
+         { Do the same for qwords and positive constants as well, otherwise things like   }
+         { "qword mod 10" are evaluated with int64 as result, which is wrong if the       }
+         { "qword" was > high(int64) (JM)                                                 }
          if (left.resulttype^.deftype=orddef) and (right.resulttype^.deftype=orddef) then
-           if (porddef(right.resulttype)^.typ = u32bit) and
+           if (porddef(right.resulttype)^.typ in [u32bit,u64bit]) and
               is_constintnode(left) and
               (tordconstnode(left).value >= 0) then
              begin
-               left := gentypeconvnode(left,u32bitdef);
+               left := gentypeconvnode(left,right.resulttype);
                firstpass(left);
              end
-           else if (porddef(left.resulttype)^.typ = u32bit) and
+           else if (porddef(left.resulttype)^.typ in [u32bit,u64bit]) and
               is_constintnode(right) and
               (tordconstnode(right).value >= 0) then
              begin
-               right := gentypeconvnode(right,u32bitdef);
+               right := gentypeconvnode(right,left.resulttype);
                firstpass(right);
              end;
 
@@ -523,7 +527,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-02-20 21:48:17  peter
+  Revision 1.15  2001-03-04 10:38:55  jonas
+    * fixed 'qword mod/div pos_const' to have qword result
+
+  Revision 1.14  2001/02/20 21:48:17  peter
     * remove nasm hack
 
   Revision 1.13  2001/01/06 18:28:39  peter
