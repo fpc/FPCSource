@@ -25,7 +25,7 @@ Unit link;
 
 Interface
 
-uses cobjects,dos;
+uses cobjects;
 
 Type
     TLinker = Object
@@ -66,15 +66,21 @@ Var
 Implementation
 
 uses
-  Script,globals,systems,linux,dos,verbose;
+  Script,globals,systems,verbose
+{$ifdef linux}
+  ,linux
+{$endif}
+  ,dos;
 
 {$ifndef linux}
 Procedure Shell(command:string);
 { This is already defined in the linux.ppu for linux, need for the *
   expansion under linux }
+var
+  comspec : string;
 begin
-  shell:=getenv('COMSPEC');
-  Exec(shell,command);
+  comspec:=getenv('COMSPEC');
+  Exec(comspec,' /C '+command);
 end;
 {$endif}
 
@@ -332,10 +338,10 @@ begin
    LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
   if Strip then
    LinkOptions:=LinkOptions+target_link.stripopt;
-   
+
 { Write used files and libraries }
   WriteResponseFile;
-  
+
 { Call linker }
   if not externlink then
    Message1(exec_i_linking,ExeName);
@@ -344,7 +350,7 @@ begin
   Replace(s,'$OPT',LinkOptions);
   Replace(s,'$RES',inputdir+LinkResName);
   success:=DoExec(FindLinker,s,true);
-  
+
 {Bind}
   if target_info.target=target_os2 then
    begin
@@ -422,7 +428,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-05-04 17:54:25  peter
+  Revision 1.5  1998-05-04 20:19:54  peter
+    * small fix for go32v2
+
+  Revision 1.4  1998/05/04 17:54:25  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14

@@ -73,7 +73,7 @@ unit systems;
 
        tlinkinfo = record
           linkbin   : string[8];
-          linkcmd   : string[40];
+          linkcmd   : string[50];
           stripopt  : string[2];
           groupstart,
           groupend,
@@ -283,16 +283,14 @@ unit systems;
             libprefix  : '-l'
           )
 {$ifdef i386}
-
-
           ,(
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
             stripopt   : '-s';
             groupstart : '-(';
             groupend   : ')-';
-            inputstart : 'INPUT(';
-            inputend   : ')';
+            inputstart : '';
+            inputend   : '';
             libprefix  : '-l'
           )
           ,(
@@ -301,8 +299,8 @@ unit systems;
             stripopt   : '-s';
             groupstart : '-(';
             groupend   : ')-';
-            inputstart : 'INPUT(';
-            inputend   : ')';
+            inputstart : '';
+            inputend   : '';
             libprefix  : '-l'
           )
           ,(
@@ -326,8 +324,6 @@ unit systems;
             libprefix  : ''
           )
 {$endif i386}
-
-
           );
 
        target_infos : array[ttarget] of ttargetinfo = (
@@ -520,7 +516,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-05-04 17:54:29  peter
+  Revision 1.8  1998-05-04 20:19:54  peter
+    * small fix for go32v2
+
+  Revision 1.7  1998/05/04 17:54:29  peter
     + smartlinking works (only case jumptable left todo)
     * redesign of systems.pas to support assemblers and linkers
     + Unitname is now also in the PPU-file, increased version to 14
