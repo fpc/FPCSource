@@ -14,13 +14,23 @@
 
  **********************************************************************}
 
-procedure TIDEApp.DoAsciiTable;
-var
-  P: PAsciiChart;
+procedure TIDEApp.Messages;
 begin
-  P := New(PAsciiChart, Init);
-  P^.HelpCtx := hcAsciiTable;
-  InsertWindow(P);
+  if MessagesWindow=nil then
+    Desktop^.Insert(New(PMessagesWindow, Init))
+  else
+    MessagesWindow^.Focus;
+end;
+
+procedure TIDEApp.DoAsciiTable;
+begin
+  if ASCIIChart=nil then
+    begin
+      New(ASCIIChart, Init);
+      Desktop^.Insert(ASCIIChart);
+    end
+  else
+    ASCIIChart^.Focus;
 end;
 
 
@@ -35,23 +45,88 @@ end;
 
 procedure TIDEApp.ExecuteTool(Idx: integer);
 var Title,ProgramPath,Params: string;
-    W: word;
+    W: PSourceWindow;
+    Wo: word;
     Err: integer;
+    CaptureFile: string;
+    ExecMode: TExecType;
 begin
   if (Idx<1) or (Idx>GetToolCount) then Exit;
-  GetToolParams(Idx-1,Title,ProgramPath,Params,W);
+  GetToolParams(Idx-1,Title,ProgramPath,Params,Wo);
   Err:=ParseToolParams(Params,false);
   if Err=-1 then Exit;
   if Err<>0 then
     begin ErrorBox(^C'Error parsing tool params.',nil); Exit; end;
-  DoExecute(ProgramPath,Params,false);
+  if CaptureToolTo<>capNone then
+    begin
+      CaptureFile:=ToolCaptureName;
+      ExecMode:=exNoSwap;
+    end
+  else
+    begin
+      CaptureFile:='';
+      ExecMode:=exNormal;
+    end;
+
+  EraseFile(CaptureFile);
+  EraseFile(FilterCaptureName);
+
+  if CaptureToolTo=capMessageWindow then
+    AddToolCommand(ProgramPath+' '+Params);
+
+  if CaptureToolTo<>capNone then
+    ShowMessage('Executing tool '+KillTilde(Title)+'...');
+
+  DoExecute(ProgramPath,Params,'',CaptureFile,ExecMode);
+
+  if CaptureToolTo<>capNone then
+    HideMessage;
+
+  if (DosError=0) and (DosExitCode=0) then
+    begin
+      if CaptureToolTo=capEditWindow then
+        begin
+          W:=OpenEditorWindow(nil,'',0,0);
+          if W<>nil then
+            if StartEditor(W^.Editor,CaptureFile)=false then
+              ErrorBox('Error reading output.',nil);
+        end
+      else
+      if ToolFilter<>'' then
+        begin
+          ShowMessage('Executing filter for '+KillTilde(Title)+'...');
+          DoExecute(ToolFilter,'',CaptureFile,FilterCaptureName,exNoSwap);
+          HideMessage;
+          if (DosError=0) and (DosExitCode=0) then
+            begin
+              if ExistsFile(FilterCaptureName)=false then
+                ErrorBox('Can''t find filtered output.',nil)
+              else
+                if ProcessMessageFile(FilterCaptureName)=false then
+                  ErrorBox('Error processing filtered output.',nil);
+            end
+          else
+            if (DosError<>0) then
+              ErrorBox('Error executing filter '+KillTilde(GetToolName(Idx-1)),nil) else
+            if DosExitCode<>0 then
+              ErrorBox('Filter execution successful. Exit code '+IntToStr(DosExitCode),nil);
+          UpdateToolMessages;
+          if DosError=0 then
+            Messages;
+        end;
+    end else
   if (DosError<>0) then
     ErrorBox('Error executing tool '+KillTilde(GetToolName(Idx-1)),nil) else
   if DosExitCode<>0 then
-    ErrorBox('Execution successful. Exit code '+IntToStr(DosExitCode),nil);
+    ErrorBox('Tool execution successful. Exit code '+IntToStr(DosExitCode),nil);
+{$ifndef DEBUG}
+  EraseFile(CaptureFile);
+  EraseFile(FilterCaptureName);
+{$endif}
 end;
 
-procedure TIDEApp.Grep;
+
+procedure TIDEApp.DoGrep;
 Const
   GrepOutName = 'grep$$.out';
   GrepErrName = 'grep$$.err';
@@ -63,11 +138,13 @@ var
   s : string;
   p,lineNb : longint;
   error : word;
+  showmsg : boolean;
   searchword,
   GrepExe,GrepArgs,Line,ModuleName : String;
   GrepOut : text;
   Params : Array[0..4] of longint;
 begin
+  showmsg:=false;
 { Find grep.exe }
   GrepExe:=GrepExeName;
   If not LocateExeFile(GrepExe) then
@@ -122,7 +199,7 @@ begin
          GrepArgs:=IL2^.Data^;
          ReplaceStr(GrepArgs,'$TEXT',SearchWord);
          { Linux ? }
-         if not ExecuteRedir(GrepExe,GrepArgs,GrepOutName,GrepErrName) then
+         if not ExecuteRedir(GrepExe,GrepArgs,'',GrepOutName,GrepErrName) then
            Begin
               { 2 as exit code just means that
                 some file vwere not found ! }
@@ -134,6 +211,7 @@ begin
                 end;
            End;
          {$I-}
+         showmsg:=true;
          Assign(GrepOut,GrepOutName);
          Reset(GrepOut);
          While not eof(GrepOut) do
@@ -147,11 +225,8 @@ begin
                  p:=pos(':',Line);
                  val(copy(Line,1,p-1),lineNb,error);
                  if error=0 then
-                   ProgramInfoWindow^.AddMessage(V_Normal,Copy(Line,p+1,255),
-                     ModuleName,LineNb,1);
+                   AddToolMessage(ModuleName,Copy(Line,p+1,255),LineNb,1);
                end;
-             ProgramInfoWindow^.Show;
-             ProgramInfoWindow^.MakeFirst;
            end;
          Close(GrepOut);
          Erase(GrepOut);
@@ -163,10 +238,20 @@ begin
        end;
     end;
   Dispose(PGrepDialog, Done);
+  UpdateToolMessages;
+  if showmsg then
+    Messages;
 end;
+
+
 {
   $Log$
-  Revision 1.10  1999-02-22 12:46:57  peter
+  Revision 1.11  1999-03-02 13:48:30  peter
+    * fixed far problem is fpdebug
+    * tile/cascading with message window
+    * grep fixes
+
+  Revision 1.10  1999/02/22 12:46:57  peter
     * small fixes for linux and grep
 
   Revision 1.9  1999/02/22 11:29:37  pierre

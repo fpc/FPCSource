@@ -17,7 +17,7 @@ unit fpide;
 interface
 
 uses
-  Drivers,Views,App,Gadgets,MsgBox,
+  Objects,Drivers,Views,App,Gadgets,MsgBox,
   {$ifdef EDITORS}Editors,{$else}WEditor,{$endif}
   Comphook,
   FPViews,FPSymbol;
@@ -33,6 +33,7 @@ type
       function    OpenSearch(FileName: string) : boolean;
       procedure   Idle; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   GetTileRect(var R: TRect); virtual;
       function    GetPalette: PPalette; virtual;
       procedure   DosShell; virtual;
       destructor  Done; virtual;
@@ -121,7 +122,7 @@ uses
   linux,
 {$endif}
   Video,Mouse,Keyboard,
-  Dos,Objects,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
+  Dos,Memory,Menus,Dialogs,StdDlg,ColorSel,Commands,HelpCtx,
   AsciiTab,
   Systems,BrowCol,
   WUtils,WHelp,WHlpView,WINI,WViews,
@@ -458,6 +459,15 @@ begin
 end;
 
 
+procedure TIDEApp.GetTileRect(var R: TRect);
+begin
+  Desktop^.GetExtent(R);
+{ Leave the messages window in the bottom }
+  if assigned(MessagesWindow) then
+   R.B.Y:=MessagesWindow^.Origin.Y;
+end;
+
+
 {****************************************************************************
                                  Switch Screens
 ****************************************************************************}
@@ -706,11 +716,17 @@ end;
 END.
 {
   $Log$
-  Revision 1.20  1999-03-01 15:41:54  peter
+  Revision 1.21  1999-03-02 13:48:29  peter
+    * fixed far problem is fpdebug
+    * tile/cascading with message window
+    * grep fixes
+
+  Revision 1.20  1999/03/01 15:41:54  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros

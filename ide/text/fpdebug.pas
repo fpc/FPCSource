@@ -532,7 +532,7 @@ end;
 
 function  TBreakpointCollection.GetGDB(index : longint) : PBreakpoint;
 
-  function IsNum(P : PBreakpoint) : boolean;
+  function IsNum(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     IsNum:=P^.GDBIndex=index;
   end;
@@ -546,7 +546,7 @@ end;
 
 procedure TBreakpointCollection.ShowBreakpoints(W : PSourceWindow);
 
-  procedure SetInSource(P : PBreakpoint);
+  procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
   begin
     If assigned(P^.FileName) and (P^.FileName^=W^.Editor^.FileName) then
       W^.Editor^.SetLineBreakState(P^.Line,P^.state=bs_enabled);
@@ -558,7 +558,7 @@ end;
 
 function TBreakpointCollection.GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
 
-  function IsThis(P : PBreakpoint) : boolean;
+  function IsThis(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     IsThis:=(P^.typ=typ) and (P^.Name^=S);
   end;
@@ -571,7 +571,7 @@ function TBreakpointCollection.ToggleFileLine(Const FileName: String;LineNr : Lo
 
 var PB : PBreakpoint;
 
-  function IsThere(P : PBreakpoint) : boolean;
+  function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
   begin
     IsThere:=(P^.typ=bt_file_line) and (P^.FileName^=FileName) and (P^.Line=LineNr);
   end;
@@ -678,11 +678,17 @@ end.
 
 {
   $Log$
-  Revision 1.16  1999-03-01 15:41:52  peter
+  Revision 1.17  1999-03-02 13:48:28  peter
+    * fixed far problem is fpdebug
+    * tile/cascading with message window
+    * grep fixes
+
+  Revision 1.16  1999/03/01 15:41:52  peter
     + Added dummy entries for functions not yet implemented
     * MenuBar didn't update itself automatically on command-set changes
     * Fixed Debugging/Profiling options dialog
-    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is set
+    * TCodeEditor converts spaces to tabs at save only if efUseTabChars is
+ set
     * efBackSpaceUnindents works correctly
     + 'Messages' window implemented
     + Added '$CAP MSG()' and '$CAP EDIT' to available tool-macros
