@@ -88,7 +88,7 @@ Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
 Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
 Function Listen (Sock,MaxConnect:Longint):Boolean;
 Function Accept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Boolean;
+Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Longint;
 Function Shutdown(Sock:Longint;How:Longint):Longint;
 Function GetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
 Function GetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint;
@@ -225,9 +225,9 @@ end;
 
 
 
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Boolean;
+Function Connect(Sock:Longint;Var Addr;Addrlen:Longint):Longint;
 begin
-  Connect:=(SocketCall(Socket_Sys_Connect,Sock,longint(@Addr),AddrLen)=0);
+  Connect:=SocketCall(Socket_Sys_Connect,Sock,longint(@Addr),AddrLen);
 end;
 
 
@@ -554,7 +554,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-11-16 10:21:30  peter
+  Revision 1.4  1999-06-08 16:05:08  michael
+  + Fix by stian (my_wave@ypsilonia.net)
+
+  Revision 1.3  1998/11/16 10:21:30  peter
     * fixes for H+
 
   Revision 1.2  1998/07/16 10:36:45  michael
