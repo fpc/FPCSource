@@ -866,7 +866,7 @@ Function EndOfADay(const AYear, ADayOfYear: Word): TDateTime;
 
 
 begin
-  Result:=StartOfAYear(AYear)+ADayOfYear+EncodeTime(23,59,59,999);
+  Result:=StartOfAYear(AYear)+ADayOfYear-1+EncodeTime(23,59,59,999);
 end;
 
 { ---------------------------------------------------------------------
@@ -1996,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-12-29 18:28:21  michael
+  Revision 1.8  2004-12-29 18:31:04  michael
+  * Fixed EndOfADay
+
+  Revision 1.7  2004/12/29 18:28:21  michael
   * Fixed StartOfADay
 
   Revision 1.6  2004/09/20 15:07:19  peter
