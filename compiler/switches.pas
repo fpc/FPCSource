@@ -97,13 +97,13 @@ begin
                    if (switch='S') and (
 {$ifdef i386}
                       (target_info.target = target_i386_linux)
-{$ifdef m68k}
-                        or
-{$endif m68k}
-{$endif i386}
+{$else}
 {$ifdef m68k}
                       (target_info.target = target_m68k_linux)
+{$else}
+                       True
 {$endif m68k}
+{$endif i386}
                        ) then
                        Message(scan_n_stack_check_global_under_linux);
                  end;
@@ -171,7 +171,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  1999-04-25 22:34:59  pierre
+  Revision 1.22  1999-08-01 23:35:06  michael
+  * Alpha changes
+
+  Revision 1.21  1999/04/25 22:34:59  pierre
    + cs_typed_const_not_changeable added but not implemented yet !
 
   Revision 1.20  1999/02/22 13:07:06  pierre
