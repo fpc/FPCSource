@@ -1528,7 +1528,16 @@ Begin
                  else
                   Begin
                     { look for special symbols ... }
-                    if expr = '__RESULT' then
+                    if expr= '__HIGH' then
+                      begin
+                        consume(AS_LPAREN);
+                        if not setupvar('high'+actasmpattern,false) then
+                          Message1(sym_e_unknown_id,'high'+actasmpattern);
+                        consume(AS_ID);
+                        consume(AS_RPAREN);
+                      end
+                    else
+                     if expr = '__RESULT' then
                       SetUpResult
                     else
                      if expr = '__SELF' then
@@ -2130,7 +2139,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.50  2003-10-07 18:21:18  peter
+  Revision 1.51  2003-10-16 21:29:24  peter
+    + __HIGH() to retrieve high value
+
+  Revision 1.50  2003/10/07 18:21:18  peter
     * fix crash
     * allow parameter subscription for register parameters
 
