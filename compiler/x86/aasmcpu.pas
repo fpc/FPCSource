@@ -39,7 +39,7 @@ interface
     const
       { "mov reg,reg" source operand number }
       O_MOV_SOURCE = 0;
-      { "mov reg,reg" source operand number }
+      { "mov reg,reg" destination operand number }
       O_MOV_DEST = 1;
 
     { Operand types }
@@ -2370,7 +2370,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2003-08-15 14:44:20  daniel
+  Revision 1.11  2003-08-19 13:58:33  daniel
+    * Corrected a comment.
+
+  Revision 1.10  2003/08/15 14:44:20  daniel
     * Fixed newra compilation
 
   Revision 1.9  2003/08/11 21:18:20  peter
