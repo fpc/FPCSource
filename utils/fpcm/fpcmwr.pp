@@ -365,57 +365,79 @@ implementation
 
 
     function TMakefileWriter.AddTargetDefines(const inivar,prefix:string):string;
+
+        procedure addtokens(s:string);
+	var
+          name : string;
+          k1,k2 : integer;
+        begin  
+          repeat
+            Name:=GetToken(s,' ');
+            if Name='' then
+             break;
+            { Remove (..) }
+            k1:=pos('(',name);
+            if k1>0 then
+             begin
+               k2:=PosIdx(')',name,k1);
+               if k2=0 then
+                k2:=length(name)+1;
+               Delete(Name,k1,k2);
+             end;
+            FOutput.Add(prefix+VarName(name)+'=1');
+            { add to the list of dirs without duplicates }
+            AddTokenNoDup(result,name,' ');
+          until false;
+        end;
+	
       var
         s : string;
         T : TTarget;
-        name : string;
-        k1,k2 : integer;
+	c : TCpu;
+	firsttarget,
+	firstcpu : boolean;
       begin
         result:='';
         s:=FInput.GetVariable(IniVar,false);
-        repeat
-          name:=GetToken(s,' ');
-          if Name='' then
-           break;
-          { Remove (..) }
-          k1:=pos('(',name);
-          if k1>0 then
-           begin
-             k2:=PosIdx(')',name,k1);
-             if k2=0 then
-              k2:=length(name)+1;
-             Delete(Name,k1,k2);
-           end;
-          FOutput.Add(prefix+VarName(name)+'=1');
-          { add to the list of dirs without duplicates }
-          AddTokenNoDup(result,name,' ');
-        until false;
+	addtokens(s);
         for t:=low(TTarget) to high(TTarget) do
          if t in FInput.IncludeTargets then
           begin
+            firsttarget:=true;
+            firstcpu:=true;
             s:=FInput.GetVariable(IniVar+TargetSuffix[t],false);
             if s<>'' then
              begin
-               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-               repeat
-                 Name:=GetToken(s,' ');
-                 if Name='' then
-                  break;
-                 { Remove (..) }
-                 k1:=pos('(',name);
-                 if k1>0 then
-                  begin
-                    k2:=PosIdx(')',name,k1);
-                    if k2=0 then
-                     k2:=length(name)+1;
-                    Delete(Name,k1,k2);
-                  end;
-                 FOutput.Add(prefix+VarName(name)+'=1');
-                 { add to the list of dirs without duplicates }
-                 AddTokenNoDup(result,name,' ');
-               until false;
-               FOutput.Add('endif');
+               if firsttarget then
+                begin
+                  firsttarget:=false;
+                  FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+                end;
+               addtokens(s);
              end;
+            for c:=low(TCpu) to high(TCpu) do
+             if (TargetCpuPossible[t,c]) and (c in FInput.IncludeCpus) then
+              begin
+                s:=FInput.GetVariable(IniVar+TargetSuffix[t]+CpuSuffix[c],false);
+                if s<>'' then
+                 begin
+                   if firsttarget then
+                    begin
+                      firsttarget:=false;
+                      FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+                    end;
+                   if firstcpu then
+                    begin
+                      firstcpu:=false;
+                      FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
+                    end;
+                   addtokens(s);
+                 end;
+              end;
+            if not firstcpu then
+             FOutput.Add('endif');
+            if not firsttarget then
+             FOutput.Add('endif');
           end;
       end;
 
@@ -905,7 +927,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2003-04-24 23:21:01  peter
+  Revision 1.28  2003-04-25 20:53:33  peter
+    * target_dir variable generation was not cpu dependent yet
+
+  Revision 1.27  2003/04/24 23:21:01  peter
     * support different cpu target
 
   Revision 1.26  2003/03/24 10:56:02  marco
