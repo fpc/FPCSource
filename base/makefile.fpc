@@ -670,8 +670,8 @@ EXEOFILES=$(addsuffix $(OEXT),$(EXEOBJECTS))
 UNITFILES=$(addsuffix $(PPUEXT),$(UNITOBJECTS))
 UNITOFILES=$(addsuffix $(OEXT),$(UNITOBJECTS))
 
-.PHONY : all clean install \
-	 libsclean staticlibinstall sharedlibinstall libinstall \
+.PHONY : all fpc_clean install \
+	 fpc_libsclean staticlibinstall sharedlibinstall libinstall \
 	 info cfginfo objectinfo installinfo filesinfo
 
 .SUFFIXES : $(EXEEXT) $(PPUEXT) $(PASEXT) $(OEXT)
@@ -836,8 +836,7 @@ zipinstall: zipinstalldel zipinstalladd
 # Clean rules
 #####################################################################
 
-ifndef NODEFAULTCLEAN
-clean:
+fpc_clean:
 	-$(DEL) $(UNITOFILES) $(UNITFILES) $(PPAS) link.res log
 ifeq ($(SMARTLINK),YES)
 	-$(DELTREE) *$(SMARTEXT)
@@ -852,9 +851,8 @@ ifdef EXTRACLEAN
 	-$(DEL) $(EXTRACLEAN)
 endif
 
-libsclean : clean
+fpc_libsclean : clean
 	-$(DEL) *$(STATICLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-endif
 
 
 #####################################################################
@@ -968,7 +966,10 @@ endif #NODEFAULTRULES
 
 #
 # $Log$
-# Revision 1.9  1999-03-11 17:54:00  peter
+# Revision 1.10  1999-03-12 21:01:30  michael
+# + Changed clean and libsclean to fpc_target
+#
+# Revision 1.9  1999/03/11 17:54:00  peter
 #   * better check for makefile.fpc
 #   * check if cmp exists
 #
