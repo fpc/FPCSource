@@ -20,6 +20,12 @@ const
   int64prefix='ll';
 {$endif}
 
+const
+{$ifdef macos}
+  lineending = #13;
+{$else}
+  lineending = #10;
+{$endif}
 
 
 type
@@ -39,10 +45,10 @@ begin
   getmem(p,500);
 
   Writeln('Testing C printf function called from FPC code');
-//  printf('Simple test without arg'#10,[]);
+//  printf('Simple test without arg'+lineending,[]);
   Writeln('Testing with single pchar argument');
-  printf('Text containing "%s" text'#10,[s]);
-  sprintf(p,'Text containing "%s" text'#10,[s]);
+  printf('Text containing "%s" text'+lineending,[s]);
+  sprintf(p,'Text containing "%s" text'+lineending,[s]);
   if strpos(p,'g "Enclosed text" ')=nil then
     begin
       writeln('The output of sprintf for pchar is wrong: ',p);
@@ -50,8 +56,8 @@ begin
     end;
 
   Writeln('Testing with single longint argument');
-  printf('Text containing longint: %d'#10,[l]);
-  sprintf(p,'Text containing longint: %d'#10,[l]);
+  printf('Text containing longint: %d'+lineending,[l]);
+  sprintf(p,'Text containing longint: %d'+lineending,[l]);
   if strpos(p,'longint: 45')=nil then
     begin
       writeln('The output of sprintf for longint is wrong: ',p);
@@ -59,8 +65,8 @@ begin
     end;
 
   Writeln('Testing with single int64 argument');
-  printf('Text containing int64: %'+int64prefix+'d'#10,[ll]);
-  sprintf(p,'Text containing int64: %'+int64prefix+'d'#10,[ll]);
+  printf('Text containing int64: %'+int64prefix+'d'+lineending,[ll]);
+  sprintf(p,'Text containing int64: %'+int64prefix+'d'+lineending,[ll]);
   if strpos(p,'int64: 345')=nil then
     begin
       writeln('The output of sprintf for int64 is wrong: ',p);
@@ -68,8 +74,8 @@ begin
     end;
 
   Writeln('Testing with single single argument');
-  printf('Text containing single: %f'#10,[si]);
-  sprintf(p,'Text containing single: %f'#10,[si]);
+  printf('Text containing single: %f'+lineending,[si]);
+  sprintf(p,'Text containing single: %f'+lineending,[si]);
   if strpos(p,'single: 32.1')=nil then
     begin
       writeln('The output of sprintf for double is wrong: ',p);
@@ -77,16 +83,16 @@ begin
     end;
 
   Writeln('Testing with single double argument');
-  printf('Text containing double: %f'#10,[d]);
-  sprintf(p,'Text containing double: %f'#10,[d]);
+  printf('Text containing double: %f'+lineending,[d]);
+  sprintf(p,'Text containing double: %f'+lineending,[d]);
   if strpos(p,'double: 45.4')=nil then
     begin
       writeln('The output of sprintf for double is wrong: ',p);
       has_errors:=true;
     end;
 
-  printf('Text containing long double: %f'#10,[e]);
-  sprintf(p,'Text containing long double: %f'#10,[e]);
+  printf('Text containing long double: %f'+lineending,[e]);
+  sprintf(p,'Text containing long double: %f'+lineending,[e]);
   if strpos(p,'long double: 74.7')=nil then
     begin
       writeln('The output of sprintf for long double is wrong:',p);
@@ -94,8 +100,8 @@ begin
     end;
 
   Writeln('Testing with combined pchar argument');
-  printf('Text containing "%s" and "%s" text'#10,[s,s2]);
-  sprintf(p,'Text containing "%s" and "%s" text'#10,[s,s2]);
+  printf('Text containing "%s" and "%s" text'+lineending,[s,s2]);
+  sprintf(p,'Text containing "%s" and "%s" text'+lineending,[s,s2]);
   if strpos(p,'g "Enclosed text" and "next"')=nil then
     begin
       writeln('The output of sprintf for two pchars is wrong: ',p);
@@ -103,8 +109,8 @@ begin
     end;
 
   Writeln('Testing with single longint argument and pchar');
-  printf('Text containing longint: %d"%s"'#10,[l,s2]);
-  sprintf(p,'Text containing longint: %d"%s"'#10,[l,s2]);
+  printf('Text containing longint: %d"%s"'+lineending,[l,s2]);
+  sprintf(p,'Text containing longint: %d"%s"'+lineending,[l,s2]);
   if strpos(p,'longint: 45"next"')=nil then
     begin
       writeln('The output of sprintf for longint is wrong: ',p);
@@ -112,8 +118,8 @@ begin
     end;
 
   Writeln('Testing with single int64 argument and pchar');
-  printf('Text containing int64: %'+int64prefix+'d"%s"'#10,[ll,s2]);
-  sprintf(p,'Text containing int64: %'+int64prefix+'d"%s"'#10,[ll,s2]);
+  printf('Text containing int64: %'+int64prefix+'d"%s"'+lineending,[ll,s2]);
+  sprintf(p,'Text containing int64: %'+int64prefix+'d"%s"'+lineending,[ll,s2]);
   if strpos(p,'int64: 345"next"')=nil then
     begin
       writeln('The output of sprintf for int64 is wrong: ',p);
@@ -121,8 +127,8 @@ begin
     end;
 
   Writeln('Testing with single single argument');
-  printf('Text containing single: %f"%s"'#10,[si,s2]);
-  sprintf(p,'Text containing single: %f"%s"'#10,[si,s2]);
+  printf('Text containing single: %f"%s"'+lineending,[si,s2]);
+  sprintf(p,'Text containing single: %f"%s"'+lineending,[si,s2]);
   if (strpos(p,'single: 32.1')=nil) or
      (strpos(p,'"next"')=nil) then
     begin
@@ -131,8 +137,8 @@ begin
     end;
 
   Writeln('Testing with single double argument');
-  printf('Text containing double: %f"%s"'#10,[d,s2]);
-  sprintf(p,'Text containing double: %f"%s"'#10,[d,s2]);
+  printf('Text containing double: %f"%s"'+lineending,[d,s2]);
+  sprintf(p,'Text containing double: %f"%s"'+lineending,[d,s2]);
   if (strpos(p,'double: 45.4')=nil) or
      (strpos(p,'"next"')=nil) then
     begin
@@ -140,8 +146,8 @@ begin
       has_errors:=true;
     end;
 
-  printf('Text containing long double: %f"%s"'#10,[e,s2]);
-  sprintf(p,'Text containing long double: %f"%s"'#10,[e,s2]);
+  printf('Text containing long double: %f"%s"'+lineending,[e,s2]);
+  sprintf(p,'Text containing long double: %f"%s"'+lineending,[e,s2]);
   if (strpos(p,'long double: 74.7')=nil) or
      (strpos(p,'"next"')=nil) then
     begin
