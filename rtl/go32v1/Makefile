@@ -77,7 +77,7 @@ include $(CFG)/makefile.cfg
 SYSTEMPPU=system$(PPUEXT)
 OBJECTS=strings go32 \
 	dos crt objects printer \
-        objpas sysutils typinfo \
+        objpas sysutils typinfo math \
 	cpu mmx getopts heaptrc mouse
 
 LOADERS=prt0
@@ -232,7 +232,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.2  1998-12-28 23:37:38  peter
+# Revision 1.3  1999-01-15 11:47:12  peter
+#   + added math unit to objects
+#
+# Revision 1.2  1998/12/28 23:37:38  peter
 #   * clean target fix, theres no objpas dir to clean anymore
 #
 # Revision 1.1  1998/12/21 13:07:02  peter

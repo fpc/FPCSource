@@ -79,7 +79,7 @@ SYSTEMPPU=system$(PPUEXT)
 OBJECTS=strings go32 initc \
 	dpmiexcp profile dxeload emu387 \
 	dos crt objects printer \
-        objpas sysutils typinfo \
+        objpas sysutils typinfo math \
 	cpu mmx mouse getopts heaptrc graph
 
 LOADERS=prt0 exceptn fpu
@@ -260,7 +260,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.3  1998-12-28 23:37:39  peter
+# Revision 1.4  1999-01-15 11:47:16  peter
+#   + added math unit to objects
+#
+# Revision 1.3  1998/12/28 23:37:39  peter
 #   * clean target fix, theres no objpas dir to clean anymore
 #
 # Revision 1.2  1998/12/21 14:20:37  pierre

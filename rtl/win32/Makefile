@@ -78,7 +78,7 @@ SYSTEMPPU=syswin32$(PPUEXT)
 LOADERS=wprt0 wdllprt0
 OBJECTS=strings windows \
 	dos objects \
-	objpas sysutils typinfo \
+	objpas sysutils typinfo math \
 	cpu mmx getopts heaptrc
 
 # Files used by windows.pp
@@ -378,7 +378,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.16  1999-01-04 11:57:45  peter
+# Revision 1.17  1999-01-15 11:47:19  peter
+#   + added math unit to objects
+#
+# Revision 1.16  1999/01/04 11:57:45  peter
 #   * clean doesn't clean objpasdir anymore
 #
 # Revision 1.15  1998/12/21 13:07:07  peter
