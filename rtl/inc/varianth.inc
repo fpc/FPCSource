@@ -35,7 +35,7 @@ const
    varword = 18;
    varlongword = 19;
    varint64 = 20;
-   varqword = 21;
+   varqword = 21;   
 
    varstrarg = $48;
    varstring = $100;
@@ -55,7 +55,7 @@ type
    pvararray = ^tvararray;
 
    tvararraybound = packed record
-      elementcount,lowbound  : longint;
+     elementcount,lowbound  : SizeInt;
    end;
 
    tvararray = packed record
@@ -318,7 +318,10 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.18  2005-02-14 17:13:29  peter
+  Revision 1.19  2005-03-25 18:03:50  florian
+    + some vararray stuff added
+
+  Revision 1.18  2005/02/14 17:13:29  peter
     * truncate log
 
   Revision 1.17  2005/01/15 18:47:26  florian
