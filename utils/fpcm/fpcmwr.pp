@@ -564,6 +564,11 @@ implementation
           FOutput.Add('else');
           FOutput.Add(unitdirvar+'=$('+packdirvar+')');
           FOutput.Add('endif');
+          FOutput.Add('ifdef CHECKDEPEND');
+          FOutput.Add('$('+packdirvar+')/$(FPCMADE):');
+          FOutput.Add(#9'$(MAKE) -C $('+packdirvar+') $(FPCMADE)');
+          FOutput.Add('override ALL_DEPENDENCIES+=$('+packdirvar+')/$(FPCMADE)');
+          FOutput.Add('endif');
           { Package dir doesn't exists, check unit dir }
           FOutput.Add('else');
           FOutput.Add(packdirvar+'=');
@@ -860,7 +865,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-01-27 21:42:35  peter
+  Revision 1.21  2002-02-28 17:03:47  pierre
+   + CHECKDEPEND var to check if packages are up to date
+
+  Revision 1.20  2002/01/27 21:42:35  peter
     * -r option to process target dirs also
     * default changed to build only for current target
     * removed auto building of required packages
