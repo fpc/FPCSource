@@ -560,7 +560,23 @@ type
   TT_WordArray = array [0..NumCount - 1] of Word;
   TT_PCharArray = array [0..StrCount - 1] of PChar;
 
-  TermType = record
+  TermType4 = record
+    Term_Names: PChar;
+    Str_Table: PChar;
+    Booleans: TT_BoolArray;
+    Numbers: TT_WordArray;
+    Strings: TT_PCharArray;
+  end;
+
+  Terminal_ptr4 = ^Terminal4;
+  Terminal4 = record
+    TType: TermType4;
+    FileDes: Word;
+    Ottyb, Nttyb: Termios;
+    Pad: longint;
+  end;
+
+  TermType5 = record
     Term_Names: PChar;
     Str_Table: PChar;
     Booleans: ^TT_BoolArray;
@@ -568,9 +584,22 @@ type
     Strings: ^TT_PCharArray;
   end;
 
-  Terminal_ptr = ^Terminal;
-  Terminal = record
-    TType: TermType;
+  Terminal_ptr5 = ^Terminal5;
+  Terminal5 = record
+    TType: TermType5;
+    FileDes: Word;
+    Ottyb, Nttyb: Termios;
+    Pad: longint;
+  end;
+
+  TerminalCommon_ptr1 = ^TerminalCommon1;
+  TerminalCommon1 = record
+    Term_Names: PChar;
+    Str_Table: PChar;
+  end;
+
+  TerminalCommon_ptr2 = ^TerminalCommon2;
+  TerminalCommon2 = record
     FileDes: Word;
     Ottyb, Nttyb: Termios;
     Pad: longint;
@@ -579,10 +608,18 @@ type
   WriterFunc = function (P: PChar): Longint;
 
 var
-  cur_term : Terminal_ptr;external name 'cur_term';
+  cur_term : TerminalCommon_ptr1 ;external name 'cur_term';
+  cur_term_booleans: ^TT_BoolArray;
+  cur_term_numbers: ^TT_WordArray;
+  cur_term_strings: ^TT_PCharArray;
+  cur_term_common: TerminalCommon_ptr2;
 
-function set_curterm(term: Terminal_ptr): Terminal_ptr;cdecl;
-function del_curterm(term: Terminal_ptr): Longint;cdecl;
+{ Note: the following two procedures expect a pointer to a full terminfo }
+{ structure, not just to the common parts. However, since this structure }
+{ differs for different versions of ncurses,it's impossible to give a    }
+{ general declaration here which is correct (JM)                         }
+function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1;cdecl;
+function del_curterm(term: TerminalCommon_ptr1): Longint;cdecl;
 
 { sets whether to use environment variables for LINES and COLUMNS }
 procedure use_env(B: Longint);cdecl;
@@ -590,7 +627,7 @@ procedure use_env(B: Longint);cdecl;
 function putp(Ndx: Longint): Longint;
 
 { this function must be called before any terminal properties are accessed }
-function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;cdecl;
+function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;
 
 { reinitialize lib }
 function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;cdecl;
@@ -612,13 +649,12 @@ implementation
 uses
   Linux;
 
-
 function putp(Ndx: Longint): Longint;
 var
   P: PChar;
 begin
-  P := cur_term^.ttype.Strings^[Ndx];
-  putp := fdWrite(cur_term^.filedes, P^, StrLen(P));
+  P := cur_term_strings^[Ndx];
+  putp := fdWrite(cur_term_common^.filedes, P^, StrLen(P));
 end;
 
 function tputs(Ndx: Word; L1: Longint; F: WriterFunc): Longint;
@@ -626,15 +662,48 @@ var
   P: PChar;
 begin
   L1 := L1;
-  P := cur_term^.ttype.Strings^[Ndx];
+  P := cur_term_strings^[Ndx];
   tputs := F(P);
 end;
 
-function set_curterm(term: Terminal_ptr): Terminal_ptr; cdecl; external;
-function del_curterm(term: Terminal_ptr): Longint; cdecl; external;
+function set_curterm(term: TerminalCommon_ptr1): TerminalCommon_ptr1; cdecl; external;
+function del_curterm(term: TerminalCommon_ptr1): Longint; cdecl; external;
 procedure use_env(B: Longint); cdecl; external;
 function restartterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external;
-function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external;
+
+function setuptermC(Term: PChar; fd: Longint; var ErrCode: Longint): Longint; cdecl; external name 'setupterm';
+
+function setupterm(Term: PChar; fd: Longint; var ErrCode: Longint): Longint;
+var
+  versioncheck: longint;
+begin
+  setupterm := setuptermC(term,fd,errcode);
+  if not assigned(cur_term) then
+    exit;
+  versioncheck := 0;
+  repeat
+    if (Terminal_ptr4(cur_term)^.ttype.Booleans[versioncheck] in [false,true]) then
+      inc(versioncheck)
+    else versioncheck := -1;
+  until (versioncheck = BoolCount) or
+        (versioncheck = -1);
+  if versioncheck = BoolCount then
+    { version 4.x }
+    begin
+      cur_term_booleans := @Terminal_ptr4(cur_term)^.ttype.Booleans;
+      cur_term_numbers := @Terminal_ptr4(cur_term)^.ttype.Numbers;
+      cur_term_strings := @Terminal_ptr4(cur_term)^.ttype.Strings;
+      cur_term_common := pointer(@Terminal_ptr4(cur_term)^.FileDes);
+    end
+  else
+    { assume 5.x or higher }
+    begin
+      cur_term_booleans := Terminal_ptr5(cur_term)^.ttype.Booleans;
+      cur_term_numbers := Terminal_ptr5(cur_term)^.ttype.Numbers;
+      cur_term_strings := Terminal_ptr5(cur_term)^.ttype.Strings;
+      cur_term_common := pointer(@Terminal_ptr5(cur_term)^.FileDes);
+    end;
+end;
 
 {function tgetent(P1, P2: PChar): Longint; cdecl; external;
 function tgetflag(P: PChar): Longint; cdecl; external;
@@ -650,7 +719,19 @@ function tparam(const char *, char *, int, ...): PChar; cdecl; external;}
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 06:29:39  michael
+  Revision 1.2  2000-08-02 12:39:22  jonas
+    * fixed crashes under ncurses 4 by adding auto-detection for ncurses 4/5
+    * cur_term is not directly usable anymore for the largest part because
+      of a different record layout in ncurses 4/5, therefore the pointers
+      cur_term_booleans, cur_term_numbers, cur_term_strings and
+      cur_term_common are now available
+    * adapted video.inc to use the new naming convention
+    (merged from fixes branch)
+
+  Revision 1.1.2.2  2000/08/02 12:30:36  jonas
+    * improved version check *slightly*
+
+  Revision 1.1  2000/07/13 06:29:39  michael
   + Initial import
 
   Revision 1.2  2000/06/30 12:28:57  jonas

@@ -18,7 +18,7 @@ procedure SendEscapeSeqNdx(Ndx: Word);
 var
   P: PChar;
 begin
-  P:=cur_term^.ttype.Strings^[Ndx];
+  P:=cur_term_Strings^[Ndx];
   if assigned(p) then
    fdWrite(TTYFd, P^, StrLen(P));
 end;
@@ -478,7 +478,16 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:25  michael
+  Revision 1.3  2000-08-02 12:39:22  jonas
+    * fixed crashes under ncurses 4 by adding auto-detection for ncurses 4/5
+    * cur_term is not directly usable anymore for the largest part because
+      of a different record layout in ncurses 4/5, therefore the pointers
+      cur_term_booleans, cur_term_numbers, cur_term_strings and
+      cur_term_common are now available
+    * adapted video.inc to use the new naming convention
+    (merged from fixes branch)
+
+  Revision 1.2  2000/07/13 11:32:25  michael
   + removed logs
  
 }
