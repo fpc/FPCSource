@@ -470,9 +470,9 @@ unit regexpr;
             dosearch:=false;
             while true do
               begin
-	         {$ifdef DEBUG}
+	         {$IFDEF Debug}
                  writeln(byte(regexpr^.typ));
-		 {$ifdef DEBUG}
+		 {$ENDIF Debug}
                  case regexpr^.typ of
                     ret_endline:
                       begin
@@ -590,7 +590,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1.2.1  2000-07-30 14:42:40  sg
+  Revision 1.1.2.2  2000-07-30 14:48:44  sg
+  * fixed small typo...
+
+  Revision 1.1.2.1  2000/07/30 14:42:40  sg
   * Added modifications by Markus Kaemmerer:
     - Unit now compiles with Delphi
     - Removed debug output when not compiled with -dDEBUG
