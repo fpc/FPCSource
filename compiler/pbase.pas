@@ -39,6 +39,9 @@ unit pbase;
        getprocvar : boolean = false;
        getprocvardef : pprocvardef = nil;
 
+    type
+       tblock_type = (bt_general,bt_type,bt_const);
+
     var
        { contains the current token to be processes }
        token : ttoken;
@@ -54,11 +57,17 @@ unit pbase;
        refsymtable : psymtable;
 
        { true, if only routine headers should be }
-       { parsed                    }
+       { parsed                                  }
        parse_only : boolean;
 
        { true, if we are in a except block }
        in_except_block : boolean;
+       { type of currently parsed block }
+       { isn't full implemented (FK)    }
+       block_type : tblock_type;
+
+       { true, if we should ignore an equal in const x : 1..2=2 }
+       ignore_equal : boolean;
 
     { consumes token i, if the current token is unequal i }
     { a syntax error is written                           }
@@ -76,7 +85,6 @@ unit pbase;
     { inserts the symbols of sc in st with def as definition }
     { sc is disposed                                         }
     procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef);
-
 
   implementation
 
@@ -197,8 +205,12 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:14  root
-  Initial revision
+  Revision 1.2  1998-04-07 22:45:05  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.1.1.1  1998/03/25 11:18:14  root
+  * Restored version
 
   Revision 1.9  1998/03/10 01:17:23  peter
     * all files have the same header

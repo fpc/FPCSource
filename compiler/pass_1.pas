@@ -168,9 +168,9 @@ unit pass_1;
              tc_only_rangechecks32bit,{tc_not_possible}tc_u16bit_2_u32bit),
 
            {u32bit}
-            (tc_not_possible,{tc_not_possible}tc_u32bit_2_s32bit,tc_not_possible,
-             tc_not_possible,tc_not_possible,tc_not_possible,tc_not_possible,
-             tc_not_possible,tc_only_rangechecks32bit)
+            (tc_u32bit_2_u8bit,{tc_not_possible}tc_u32bit_2_s32bit,tc_not_possible,
+             tc_not_possible,tc_not_possible,tc_u32bit_2_s8bit,tc_u32bit_2_s16bit,
+             tc_u32bit_2_u16bit,tc_only_rangechecks32bit)
             );
 
       var
@@ -2117,10 +2117,12 @@ unit pass_1;
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
                            first_bigger_smaller,first_bigger_smaller,
+                           first_bigger_smaller,first_bigger_smaller,
+                           first_bigger_smaller,first_bigger_smaller,
                            first_int_real,first_real_fix,
                            first_fix_real,first_int_fix,first_real_real,
                            first_locmem,first_bool_byte,first_proc_to_procvar,
-               first_cchar_charpointer);
+                           first_cchar_charpointer);
 
     begin
        aprocdef:=nil;
@@ -4492,7 +4494,11 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.3  1998-03-28 23:09:56  florian
+  Revision 1.4  1998-04-07 22:45:04  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.3  1998/03/28 23:09:56  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

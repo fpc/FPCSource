@@ -2370,12 +2370,14 @@ implementation
                               second_only_rangecheck,second_bigger,
                               second_bigger,second_bigger,
                               second_bigger,second_only_rangecheck,
+                              second_smaller,second_smaller,
+                              second_smaller,second_smaller,
                               second_int_real,second_real_fix,
                               second_fix_real,second_int_fix,second_float_float,
-                       second_chararray_to_string,second_bool_to_byte,
-                       second_proc_to_procvar,
-                       { is constant char to pchar, is done by firstpass }
-                       second_nothing);
+                              second_chararray_to_string,second_bool_to_byte,
+                              second_proc_to_procvar,
+                              { is constant char to pchar, is done by firstpass }
+                              second_nothing);
 
       begin
          { this isn't good coding, I think tc_bool_2_u8bit, shouldn't be }
@@ -5096,7 +5098,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  1998-03-28 23:09:54  florian
+  Revision 1.3  1998-04-07 22:45:03  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.2  1998/03/28 23:09:54  florian
     * secondin bugfix (m68k and i386)
     * overflow checking bugfix (m68k and i386) -- pretty useless in
       secondadd, since everything is done using 32-bit

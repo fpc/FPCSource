@@ -94,7 +94,8 @@ unit parser;
 
          { ^M means a string or a char, because we don't parse a }
          { type declaration                                      }
-         parse_types:=false;
+         block_type:=bt_general;
+         ignore_equal:=false;
 
          { we didn't parse a object or class declaration }
          { and no function header                        }
@@ -130,7 +131,7 @@ unit parser;
 
          oldpreprocstack : ppreprocstack;
          oldorgpattern,oldprocprefix : string;
-         oldparse_types : boolean;
+         old_block_type : tblock_type;
          oldinputbuffer : pchar;
          oldinputpointer : longint;
          olds_point,oldparse_only : boolean;
@@ -247,7 +248,7 @@ unit parser;
          oldpattern:=pattern;
          oldtoken:=token;
          oldorgpattern:=orgpattern;
-         oldparse_types:=parse_types;
+         old_block_type:=block_type;
          oldpreprocstack:=preprocstack;
 
          oldinputbuffer:=inputbuffer;
@@ -477,7 +478,7 @@ done:
          pattern:=oldpattern;
          token:=oldtoken;
          orgpattern:=oldorgpattern;
-         parse_types:=oldparse_types;
+         block_type:=old_block_type;
 
          { call donescanner before restoring preprocstack, because }
          { donescanner tests for a empty preprocstack              }
@@ -530,7 +531,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.2  1998-03-26 11:18:30  florian
+  Revision 1.3  1998-04-07 22:45:04  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.2  1998/03/26 11:18:30  florian
     - switch -Sa removed
     - support of a:=b:=0 removed
 

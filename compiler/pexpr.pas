@@ -29,6 +29,9 @@ unit pexpr;
     { reads a whole expression }
     function expr : ptree;
 
+    { reads an expression without assignements and .. }
+    function comp_expr(accept_equal : boolean):Ptree;
+
     { reads a single factor }
     function factor(getaddr : boolean) : ptree;
 
@@ -1408,7 +1411,7 @@ unit pexpr;
                      [PLUS,MINUS,_OR,_XOR],
                      [CARET,SYMDIF,STAR,SLASH,_DIV,_MOD,_AND,_SHL,_SHR,_AS]);
 
-    function sub_expr(pred_level:Toperator_precedence):Ptree;
+    function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):Ptree;
 
     {Reads a subexpression while the operators are of the current precedence
      level, or any higher level. Replaces the old term, simpl_expr and
@@ -1422,9 +1425,12 @@ unit pexpr;
          if pred_level=opmultiply then
             p1:=factor(getprocvar)
         else
-            p1:=sub_expr(succ(pred_level));
+            p1:=sub_expr(succ(pred_level),true);
         repeat
-            if token in operator_levels[pred_level] then
+            { aweful hack to support const a : 1..2=1; }
+            { disadvantage of tables :) FK             }
+            if (token in operator_levels[pred_level]) and
+               ((token<>EQUAL) or accept_equal) then
                 begin
                     oldt:=token;
                     consume(token);
@@ -1432,7 +1438,7 @@ unit pexpr;
                     if pred_level=opmultiply then
                         p2:=factor(getprocvar)
                     else
-                        p2:=sub_expr(succ(pred_level));
+                        p2:=sub_expr(succ(pred_level),true);
                     p1:=gennode(tok2node[oldt],p1,p2);
                 end
             else
@@ -1440,6 +1446,12 @@ unit pexpr;
         until false;
         sub_expr:=p1;
     end;
+
+    function comp_expr(accept_equal : boolean):Ptree;
+
+      begin
+         comp_expr:=sub_expr(opcompare,accept_equal);
+      end;
 
     function expr : ptree;
 
@@ -1449,13 +1461,13 @@ unit pexpr;
 
       begin
          oldafterassignment:=afterassignment;
-         p1:=sub_expr(opcompare);
+         p1:=sub_expr(opcompare,true);
          if token in [ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
            afterassignment:=true;
          case token of
             POINTPOINT : begin
                             consume(POINTPOINT);
-                            p2:=sub_expr(opcompare);
+                            p2:=sub_expr(opcompare,true);
                             p1:=gennode(rangen,p1,p2);
                          end;
             ASSIGNMENT : begin
@@ -1465,7 +1477,7 @@ unit pexpr;
                             { should be recursive for a:=b:=c !!! }
                             if (p1^.resulttype<>nil) and (p1^.resulttype^.deftype=procvardef) then
                               getprocvar:=true;
-                            p2:=sub_expr(opcompare);
+                            p2:=sub_expr(opcompare,true);
                             if getprocvar and (p2^.treetype=calln) then
                               begin
                                  p2^.treetype:=loadn;
@@ -1479,7 +1491,7 @@ unit pexpr;
                          { from an improvement of Peter Schaefer    }
             _PLUSASN   : begin
                             consume(_PLUSASN  );
-                            p2:=sub_expr(opcompare);
+                            p2:=sub_expr(opcompare,true);
                             p1:=gennode(assignn,p1,gennode(addn,getcopy(p1),p2));
                             { was first
                               p1:=gennode(assignn,p1,gennode(addn,p1,p2));
@@ -1489,17 +1501,17 @@ unit pexpr;
 
             _MINUSASN   : begin
                             consume(_MINUSASN  );
-                            p2:=sub_expr(opcompare);
+                            p2:=sub_expr(opcompare,true);
                             p1:=gennode(assignn,p1,gennode(subn,getcopy(p1),p2));
                          end;
             _STARASN   : begin
                             consume(_STARASN  );
-                            p2:=sub_expr(opcompare);
+                            p2:=sub_expr(opcompare,true);
                             p1:=gennode(assignn,p1,gennode(muln,getcopy(p1),p2));
                          end;
             _SLASHASN   : begin
                             consume(_SLASHASN  );
-                            p2:=sub_expr(opcompare);
+                            p2:=sub_expr(opcompare,true);
                             p1:=gennode(assignn,p1,gennode(slashn,getcopy(p1),p2));
                          end;
          end;
@@ -1553,7 +1565,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.3  1998-04-07 13:19:46  pierre
+  Revision 1.4  1998-04-07 22:45:05  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.3  1998/04/07 13:19:46  pierre
     * bugfixes for reset_gdb_info
       in MEM parsing for go32v2
       better external symbol creation

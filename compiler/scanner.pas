@@ -150,8 +150,6 @@ unit scanner;
 
     var
        pattern,orgpattern : string;
-       { true, if type declarations are parsed }
-       parse_types : boolean;
 
     { macros }
 
@@ -179,6 +177,9 @@ for the last instruction of an include file !}
        Const        FileHasChanged : Boolean = False;
 
   implementation
+
+    uses
+       pbase;
 
     const
        newline = #10;
@@ -1860,7 +1861,7 @@ for the last instruction of an include file !}
                            begin
                               nextchar;
                               c:=upcase(c);
-                              if not(parse_types) and (c in ['A'..'Z']) then
+                              if not(block_type=bt_type) and (c in ['A'..'Z']) then
                                 begin
                                    pattern:=chr(ord(c)-64);
                                    nextchar;
@@ -2102,7 +2103,11 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.4  1998-04-07 13:19:49  pierre
+  Revision 1.5  1998-04-07 22:45:05  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.4  1998/04/07 13:19:49  pierre
     * bugfixes for reset_gdb_info
       in MEM parsing for go32v2
       better external symbol creation

@@ -1864,65 +1864,94 @@ implementation
            { with $R+ explicit type conversations in TP aren't range checked! }
            (not(p^.explizit) or not(cs_tp_compatible in aktswitches)) and
            (p^.resulttype^.deftype=orddef) and
-           (hp^.resulttype^.deftype=orddef) and
-           ((porddef(p^.resulttype)^.von>porddef(hp^.resulttype)^.von) or
-           (porddef(p^.resulttype)^.bis<porddef(hp^.resulttype)^.bis)) then
+           (hp^.resulttype^.deftype=orddef) then
            begin
-              porddef(p^.resulttype)^.genrangecheck;
-              { per default the var is copied to EDI }
-              hregister:=R_EDI;
-              if porddef(hp^.resulttype)^.typ=s32bit then
+              if porddef(hp^.resulttype)^.typ=u32bit then
                 begin
+                   { when doing range checking for u32bit, we have some trouble }
+                   { because BOUND assumes signed values                        }
+                   { first, we check if the values is greater than 2^31:        }
+                   { the u32bit rangenr contains the appropriate rangenr        }
+                   porddef(hp^.resulttype)^.genrangecheck;
+                   hregister:=R_EDI;
                    if (p^.location.loc=LOC_REGISTER) or
                       (p^.location.loc=LOC_CREGISTER) then
                      hregister:=p^.location.register
                    else
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),R_EDI)));
+                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
+                       newreference(p^.location.reference),R_EDI)));
+
+                   new(hpp);
+                   reset_reference(hpp^);
+                   hpp^.symbol:=stringdup('R_'+tostr(porddef(hp^.resulttype)^.rangenr));
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
+
+                   { then we do a normal range check }
+                   porddef(p^.resulttype)^.genrangecheck;
+                   new(hpp);
+                   reset_reference(hpp^);
+                   hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
                 end
-              { range checking for u32bit ?? !!!!!!}
-              else if porddef(hp^.resulttype)^.typ=u16bit then
+              else
+                if ((porddef(p^.resulttype)^.von>porddef(hp^.resulttype)^.von) or
+                (porddef(p^.resulttype)^.bis<porddef(hp^.resulttype)^.bis)) then
                 begin
+                   porddef(p^.resulttype)^.genrangecheck;
+                   { per default the var is copied to EDI }
+                   hregister:=R_EDI;
+                   if porddef(hp^.resulttype)^.typ=s32bit then
+                     begin
+                        if (p^.location.loc=LOC_REGISTER) or
+                           (p^.location.loc=LOC_CREGISTER) then
+                          hregister:=p^.location.register
+                        else
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.location.reference),R_EDI)));
+                     end
+                   else if porddef(hp^.resulttype)^.typ=u16bit then
+                     begin
+                        if (p^.location.loc=LOC_REGISTER) or
+                           (p^.location.loc=LOC_CREGISTER) then
+                          exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,p^.location.register,R_EDI)))
+                        else
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,newreference(p^.location.reference),R_EDI)));
+                     end
+                   else if porddef(hp^.resulttype)^.typ=s16bit then
+                     begin
+                        if (p^.location.loc=LOC_REGISTER) or
+                           (p^.location.loc=LOC_CREGISTER) then
+                          exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,p^.location.register,R_EDI)))
+                        else
+                          exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,newreference(p^.location.reference),R_EDI)));
+                     end
+                   else internalerror(6);
+                   new(hpp);
+                   reset_reference(hpp^);
+                   hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
+                   exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
+                   (*
                    if (p^.location.loc=LOC_REGISTER) or
                       (p^.location.loc=LOC_CREGISTER) then
-                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,p^.location.register,R_EDI)))
-                   else
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVZX,S_WL,newreference(p^.location.reference),R_EDI)));
-                end
-              else if porddef(hp^.resulttype)^.typ=s16bit then
-                begin
-                   if (p^.location.loc=LOC_REGISTER) or
-                      (p^.location.loc=LOC_CREGISTER) then
-                     exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,p^.location.register,R_EDI)))
-                   else
-                     exprasmlist^.concat(new(pai386,op_ref_reg(A_MOVSX,S_WL,newreference(p^.location.reference),R_EDI)));
-                end
-              else internalerror(6);
-              new(hpp);
-              reset_reference(hpp^);
-              hpp^.symbol:=stringdup('R_'+tostr(porddef(p^.resulttype)^.rangenr));
-              exprasmlist^.concat(new(pai386,op_reg_ref(A_BOUND,S_L,hregister,hpp)));
-              (*
-              if (p^.location.loc=LOC_REGISTER) or
-                 (p^.location.loc=LOC_CREGISTER) then
-                begin
-                   destregister:=p^.left^.location.register;
-                   case convtyp of
-                      tc_s32bit_2_s8bit,
-                      tc_s32bit_2_u8bit:
-                        destregister:=reg32toreg8(destregister);
-                      tc_s32bit_2_s16bit,
-                      tc_s32bit_2_u16bit:
-                        destregister:=reg32toreg16(destregister);
-                      { this was false because destregister is allways a 32bitreg }
-                      tc_s16bit_2_s8bit,
-                      tc_s16bit_2_u8bit,
-                      tc_u16bit_2_s8bit,
-                      tc_u16bit_2_u8bit:
-                        destregister:=reg32toreg8(destregister);
-                   end;
-              p^.location.register:=destregister;
-              exit;
-              *)
+                     begin
+                        destregister:=p^.left^.location.register;
+                        case convtyp of
+                           tc_s32bit_2_s8bit,
+                           tc_s32bit_2_u8bit:
+                             destregister:=reg32toreg8(destregister);
+                           tc_s32bit_2_s16bit,
+                           tc_s32bit_2_u16bit:
+                             destregister:=reg32toreg16(destregister);
+                           { this was false because destregister is allways a 32bitreg }
+                           tc_s16bit_2_s8bit,
+                           tc_s16bit_2_u8bit,
+                           tc_u16bit_2_s8bit,
+                           tc_u16bit_2_u8bit:
+                             destregister:=reg32toreg8(destregister);
+                        end;
+                   p^.location.register:=destregister;
+                   exit;
+                   *)
+                end;
            end;
          { p^.location.loc is already set! }
          if (p^.location.loc=LOC_REGISTER) or
@@ -2021,12 +2050,14 @@ implementation
            second_only_rangecheck,second_bigger,
            second_bigger,second_bigger,
            second_bigger,second_only_rangecheck,
+           second_smaller,second_smaller,
+           second_smaller,second_smaller,
            second_int_real,second_real_fix,
            second_fix_real,second_int_fix,second_float_float,
-               second_chararray_to_string,second_bool_to_byte,
-               second_proc_to_procvar,
-               { is constant char to pchar, is done by firstpass }
-               second_nothing);
+           second_chararray_to_string,second_bool_to_byte,
+           second_proc_to_procvar,
+           { is constant char to pchar, is done by firstpass }
+           second_nothing);
 
       begin
          { this isn't good coding, I think tc_bool_2_u8bit, shouldn't be }
@@ -2039,7 +2070,7 @@ implementation
               secondpass(p^.left);
               set_location(p^.location,p^.left^.location);
            end;
-         if p^.convtyp<>tc_equal then
+         if (p^.convtyp<>tc_equal) and (p^.convtyp<>tc_not_possible) then
            {the second argument only is for maybe_range_checking !}
            secondconvert[p^.convtyp](p,p^.left,p^.convtyp)
       end;
@@ -5675,7 +5706,11 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.4  1998-04-07 13:19:42  pierre
+  Revision 1.5  1998-04-07 22:45:04  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.4  1998/04/07 13:19:42  pierre
     * bugfixes for reset_gdb_info
       in MEM parsing for go32v2
       better external symbol creation

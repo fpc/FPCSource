@@ -90,7 +90,7 @@ unit pdecl;
            consume(ID);
            case token of
               EQUAL:
-            begin
+                begin
                    consume(EQUAL);
                    p:=expr;
                    do_firstpass(p);
@@ -126,15 +126,17 @@ unit pdecl;
                    consume(SEMICOLON);
                 end;
               COLON:
-            begin
+                begin
                    { this was missed, so const s : ^string = nil gives an
                      error (FK)
                    }
-                   parse_types:=true;
+                   block_type:=bt_type;
                    consume(COLON);
+                   ignore_equal:=true;
                    def:=read_type('');
+                   block_type:=bt_type;
+                   ignore_equal:=false;
                    symtablestack^.insert(new(ptypedconstsym,init(name,def)));
-                   parse_types:=false;
                    consume(EQUAL);
                    readtypedconst(def);
                    consume(SEMICOLON);
@@ -1037,7 +1039,6 @@ unit pdecl;
 
       var
          hp1,p : pdef;
-         pt : ptree;
          aufdef : penumdef;
          aufsym : penumsym;
          ap : parraydef;
@@ -1045,31 +1046,169 @@ unit pdecl;
          l,v,oldaktpackrecords : longint;
          hs : string;
 
-      procedure range_type;
+      procedure expr_type;
+
+        var
+           pt1,pt2 : ptree;
 
         begin
-           { it can be only a range type }
-           pt:=expr;
-           do_firstpass(pt);
-
-           { valid expression ? }
-           if (pt^.treetype<>rangen) or
-              (pt^.left^.treetype<>ordconstn) then
-             Begin
-               Message(sym_e_error_in_type_def);
-               { Here we create a node type with a range of 0  }
-               { To make sure that no crashes will occur later }
-               { on in the compiler.                           }
-               p:=new(porddef,init(uauto,0,0));
+           { use of current parsed object ? }
+           if (token=ID) and (testcurobject=2) and (curobjectname=pattern) then
+             begin
+                consume(ID);
+                p:=aktobjectdef;
+                exit;
+             end;
+           { we can't accept a equal in type }
+           pt1:=comp_expr(not(ignore_equal));
+           if (pt1^.treetype=typen) and (token<>POINTPOINT) then
+             begin
+                { a simple type renaming }
+                p:=pt1^.resulttype;
              end
            else
-             p:=new(porddef,init(uauto,pt^.left^.value,pt^.right^.value));
-           disposetree(pt);
+             begin
+                { range type }
+                consume(POINTPOINT);
+                { range type declaration }
+                do_firstpass(pt1);
+                pt2:=comp_expr(not(ignore_equal));
+                do_firstpass(pt2);
+                { valid expression ? }
+                if (pt1^.treetype<>ordconstn) or
+                   (pt2^.treetype<>ordconstn) then
+                  Begin
+                    Message(sym_e_error_in_type_def);
+                    { Here we create a node type with a range of 0  }
+                    { To make sure that no crashes will occur later }
+                    { on in the compiler.                           }
+                    p:=new(porddef,init(uauto,0,0));
+                  end
+                else
+                  p:=new(porddef,init(uauto,pt1^.value,pt2^.value));
+                disposetree(pt2);
+             end;
+           disposetree(pt1);
+        end;
+
+      var
+         pt : ptree;
+
+      procedure array_dec;
+
+        begin
+           consume(_ARRAY);
+           consume(LECKKLAMMER);
+           p:=nil;
+           repeat
+             { read the expression and check it }
+             pt:=expr;
+             if pt^.treetype=typen then
+               begin
+                  if pt^.resulttype^.deftype=enumdef then
+                    begin
+                       if p=nil then
+                         begin
+                            ap:=new(parraydef,
+                              init(0,penumdef(pt^.resulttype)^.max,pt^.resulttype));
+                            p:=ap;
+                         end
+                       else
+                         begin
+                            ap^.definition:=new(parraydef,
+                              init(0,penumdef(pt^.resulttype)^.max,pt^.resulttype));
+                            ap:=parraydef(ap^.definition);
+                         end;
+                    end
+                  else if pt^.resulttype^.deftype=orddef then
+                    begin
+                       case porddef(pt^.resulttype)^.typ of
+                          s8bit,u8bit,s16bit,u16bit,s32bit :
+                            begin
+                               if p=nil then
+                                 begin
+                                    ap:=new(parraydef,init(porddef(pt^.resulttype)^.von,
+                                      porddef(pt^.resulttype)^.bis,pt^.resulttype));
+                                    p:=ap;
+                                 end
+                               else
+                                 begin
+                                    ap^.definition:=new(parraydef,init(porddef(pt^.resulttype)^.von,
+                                      porddef(pt^.resulttype)^.bis,pt^.resulttype));
+                                    ap:=parraydef(ap^.definition);
+                                 end;
+                            end;
+                          bool8bit:
+                            begin
+                               if p=nil then
+                                 begin
+                                    ap:=new(parraydef,init(0,1,pt^.resulttype));
+                                    p:=ap;
+                                 end
+                               else
+                                 begin
+                                    ap^.definition:=new(parraydef,init(0,1,pt^.resulttype));
+                                    ap:=parraydef(ap^.definition);
+                                 end;
+                            end;
+                          uchar:
+                            begin
+                               if p=nil then
+                                 begin
+                                    ap:=new(parraydef,init(0,255,pt^.resulttype));
+                                    p:=ap;
+                                 end
+                               else
+                                 begin
+                                    ap^.definition:=new(parraydef,init(0,255,pt^.resulttype));
+                                    ap:=parraydef(ap^.definition);
+                                 end;
+                            end;
+                          else Message(sym_e_error_in_type_def);
+                       end;
+                    end
+                  else Message(sym_e_error_in_type_def);
+               end
+             else
+               begin
+                  do_firstpass(pt);
+
+                  if (pt^.treetype<>rangen) or
+                     (pt^.left^.treetype<>ordconstn) then
+                    Message(sym_e_error_in_type_def);
+                  { force the registration of the ranges }
+{$ifndef GDB}
+                  if pt^.right^.resulttype=pdef(s32bitdef) then
+                    pt^.right^.resulttype:=new(porddef,init(
+                      s32bit,$80000000,$7fffffff));
+{$endif GDB}
+                  if p=nil then
+                    begin
+                       ap:=new(parraydef,init(pt^.left^.value,pt^.right^.value,pt^.right^.resulttype));
+                       p:=ap;
+                    end
+                  else
+                    begin
+                       ap^.definition:=new(parraydef,init(pt^.left^.value,pt^.right^.value,pt^.right^.resulttype));
+                       ap:=parraydef(ap^.definition);
+                    end;
+               end;
+             disposetree(pt);
+
+             if token=COMMA then consume(COMMA)
+               else break;
+           until false;
+           consume(RECKKLAMMER);
+           consume(_OF);
+           hp1:=read_type('');
+           { if no error, set element type }
+           if assigned(ap) then
+             ap^.definition:=hp1;
         end;
 
       begin
          case token of
-            ID,_STRING,_FILE:
+            _STRING,_FILE:
               p:=single_type(hs);
             LKLAMMER:
               begin
@@ -1103,115 +1242,7 @@ unit pdecl;
                  consume(RKLAMMER);
               end;
             _ARRAY:
-              begin
-                 consume(_ARRAY);
-                 consume(LECKKLAMMER);
-                 p:=nil;
-                 repeat
-                   { read the expression and check it }
-                   pt:=expr;
-                   if pt^.treetype=typen then
-                     begin
-                        if pt^.resulttype^.deftype=enumdef then
-                          begin
-                             if p=nil then
-                               begin
-                                  ap:=new(parraydef,
-                                    init(0,penumdef(pt^.resulttype)^.max,pt^.resulttype));
-                                  p:=ap;
-                               end
-                             else
-                               begin
-                                  ap^.definition:=new(parraydef,
-                                    init(0,penumdef(pt^.resulttype)^.max,pt^.resulttype));
-                                  ap:=parraydef(ap^.definition);
-                               end;
-                          end
-                        else if pt^.resulttype^.deftype=orddef then
-                          begin
-                             case porddef(pt^.resulttype)^.typ of
-                                s8bit,u8bit,s16bit,u16bit,s32bit :
-                                  begin
-                                     if p=nil then
-                                       begin
-                                          ap:=new(parraydef,init(porddef(pt^.resulttype)^.von,
-                                            porddef(pt^.resulttype)^.bis,pt^.resulttype));
-                                          p:=ap;
-                                       end
-                                     else
-                                       begin
-                                          ap^.definition:=new(parraydef,init(porddef(pt^.resulttype)^.von,
-                                            porddef(pt^.resulttype)^.bis,pt^.resulttype));
-                                          ap:=parraydef(ap^.definition);
-                                       end;
-                                  end;
-                                bool8bit:
-                                  begin
-                                     if p=nil then
-                                       begin
-                                          ap:=new(parraydef,init(0,1,pt^.resulttype));
-                                          p:=ap;
-                                       end
-                                     else
-                                       begin
-                                          ap^.definition:=new(parraydef,init(0,1,pt^.resulttype));
-                                          ap:=parraydef(ap^.definition);
-                                       end;
-                                  end;
-                                uchar:
-                                  begin
-                                           if p=nil then
-                                                                                             begin
-                                                ap:=new(parraydef,init(0,255,pt^.resulttype));
-                                                                                                    p:=ap;
-                                             end
-                                           else
-                                             begin
-                                                ap^.definition:=new(parraydef,init(0,255,pt^.resulttype));
-                                                ap:=parraydef(ap^.definition);
-                                             end;
-                                                                                    end;
-                                else Message(sym_e_error_in_type_def);
-                             end;
-                          end
-                        else Message(sym_e_error_in_type_def);
-                     end
-                   else
-                     begin
-                        do_firstpass(pt);
-
-                        if (pt^.treetype<>rangen) or
-                           (pt^.left^.treetype<>ordconstn) then
-                          Message(sym_e_error_in_type_def);
-                        { Registrierung der Grenzen erzwingen: }
-                        {$IfNdef GDB}
-                        if pt^.right^.resulttype=pdef(s32bitdef) then
-                          pt^.right^.resulttype:=new(porddef,init(
-                            s32bit,$80000000,$7fffffff));
-                        {$EndIf GDB}
-                        if p=nil then
-                          begin
-                             ap:=new(parraydef,init(pt^.left^.value,pt^.right^.value,pt^.right^.resulttype));
-                             p:=ap;
-                          end
-                        else
-                          begin
-                             ap^.definition:=new(parraydef,init(pt^.left^.value,pt^.right^.value,pt^.right^.resulttype));
-                             ap:=parraydef(ap^.definition);
-                          end;
-                     end;
-                   disposetree(pt);
-
-                   if token=COMMA then consume(COMMA)
-                     else break;
-                 until false;
-                 consume(RECKKLAMMER);
-                 consume(_OF);
-                 hp1:=read_type('');
-                 { if no error, set element type }
-                 if assigned(ap) then
-                   ap^.definition:=hp1;
-                  end;
+              array_dec;
             _SET:
               begin
                  consume(_SET);
@@ -1267,10 +1298,18 @@ unit pdecl;
             _PACKED:
               begin
                  consume(_PACKED);
-                 oldaktpackrecords:=aktpackrecords;
-                 aktpackrecords:=1;
-                 p:=record_dec;
-                 aktpackrecords:=oldaktpackrecords;
+                 if token=_ARRAY then
+                   array_dec
+                 else
+                   begin
+                      oldaktpackrecords:=aktpackrecords;
+                      aktpackrecords:=1;
+                      if token in [_CLASS,_OBJECT] then
+                        p:=object_dec(name,nil)
+                      else
+                        p:=record_dec;
+                      aktpackrecords:=oldaktpackrecords;
+                   end;
               end;
             _CLASS,
             _OBJECT:
@@ -1288,7 +1327,7 @@ unit pdecl;
                  pprocvardef(p)^.retdef:=single_type(hs);
               end;
             else
-              range_type;
+              expr_type;
          end;
          read_type:=p;
       end;
@@ -1312,7 +1351,7 @@ unit pdecl;
 {$endif dummy}
 
       begin
-         parse_types:=true;
+         block_type:=bt_type;
          consume(_TYPE);
          typecanbeforward:=true;
          repeat
@@ -1363,7 +1402,7 @@ unit pdecl;
          symtablestack^.foreach(@testforward_types);
 {$endif}
          resolve_forwards;
-         parse_types:=false;
+         block_type:=bt_general;
       end;
 
     { parses varaible declarations and inserts them in }
@@ -1400,14 +1439,14 @@ unit pdecl;
          { startvarrec contains the start of the variant part of a record }
          maxsize,startvarrec : longint;
          pt : ptree;
-         old_parse_types : boolean;
+         old_block_type : tblock_type;
          { to handle absolute }
          abssym : pabsolutesym;
 
       begin
          hs:='';
-         old_parse_types:=parse_types;
-         parse_types:=true;
+         old_block_type:=block_type;
+         block_type:=bt_type;
          while (token=ID) and
            (pattern<>'PUBLIC') and
            (pattern<>'PRIVATE') and
@@ -1573,7 +1612,7 @@ unit pdecl;
               { at last set the record size to that of the biggest variant }
               symtablestack^.datasize:=maxsize;
            end;
-         parse_types:=old_parse_types;
+         block_type:=old_block_type;
       end;
 
     procedure read_declarations(islibrary : boolean);
@@ -1581,16 +1620,22 @@ unit pdecl;
       begin
          repeat
            case token of
-              _LABEL : label_dec;
-              _CONST : const_dec;
-              _TYPE : type_dec;
-              _VAR : var_dec;
+              _LABEL:
+                label_dec;
+              _CONST:
+                const_dec;
+              _TYPE:
+                type_dec;
+              _VAR:
+                var_dec;
               _CONSTRUCTOR,_DESTRUCTOR,
-              _FUNCTION,_PROCEDURE,_OPERATOR,_CLASS : unter_dec;
-              _EXPORTS : if islibrary then
-                           read_exports
-                         else
-                           break;
+              _FUNCTION,_PROCEDURE,_OPERATOR,_CLASS:
+                unter_dec;
+              _EXPORTS:
+                if islibrary then
+                  read_exports
+                else
+                  break;
               else break;
            end;
          until false;
@@ -1621,7 +1666,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-05 13:58:35  peter
+  Revision 1.3  1998-04-07 22:45:05  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.2  1998/04/05 13:58:35  peter
     * fixed the -Ss bug
     + warning for Virtual constructors
     * helppages updated with -TGO32V1

@@ -138,6 +138,8 @@ unit tree;
                       tc_s32bit_2_u32bit,tc_s16bit_2_u32bit,
                       tc_s8bit_2_u32bit,tc_u16bit_2_u32bit,
                       tc_u8bit_2_u32bit,tc_u32bit_2_s32bit,
+                      tc_u32bit_2_s8bit,tc_u32bit_2_u8bit,
+                      tc_u32bit_2_s16bit,tc_u32bit_2_u16bit,
                       tc_int_2_real,tc_real_2_fix,
                       tc_fix_2_real,tc_int_2_fix,tc_real_2_real,
                       tc_chararray_2_string,tc_bool_2_u8bit,
@@ -1158,8 +1160,12 @@ $endif SUPPORT_MMX
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:13  root
-  Initial revision
+  Revision 1.2  1998-04-07 22:45:05  florian
+    * bug0092, bug0115 and bug0121 fixed
+    + packed object/class/array
+
+  Revision 1.1.1.1  1998/03/25 11:18:13  root
+  * Restored version
 
   Revision 1.15  1998/03/24 21:48:36  florian
     * just a couple of fixes applied:
