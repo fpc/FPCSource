@@ -28,6 +28,8 @@ rem ***                 compiler again, and then finally snapshot is created
 rem *** PPC386.EXE is used for the compilation (for the first one only with
 rem *** "cycle"), unless a different compiler name (e.g. PPOS2.EXE)
 rem *** is specified in COMPILER variable.
+rem *** Environment variable OTHEROPTS may be used to specify additional
+rem *** switches (e.g. setting level of verbosity, etc.).
 
 echo *"Makefile" for OS/2:
 
@@ -56,7 +58,7 @@ set FPCSRC=%FPCDIR%\SOURCE
 :SetOpts
 
 rem Common options for OS/2 target
-set OS2OPT=-TOS2
+set OS2OPT=-TOS2 %OTHEROPTS%
 rem Stack size for the compiler
 set STACKOPT=-Cs64500
 rem Options for OS/2 compiler
@@ -201,10 +203,8 @@ echo *Compiling unit HeapTrace ...
 %FPCTOOLS%%COMPILER% %OS2RTLC%HEAPTRC.PP
 echo *Compiling unit CPU ...
 %FPCTOOLS%%COMPILER% %OS2RTLP%CPU.PP
-
 echo *Compiling unit MMX ...
 %FPCTOOLS%%COMPILER% %OS2RTLP%MMX.PP
-
 echo *Compiling unit TypInfo ...
 %FPCTOOLS%%COMPILER% %OS2RTLO%TYPINFO.PP
 echo *Compiling unit DosCalls ...
@@ -215,6 +215,14 @@ echo *Compiling unit CRT ...
 %FPCTOOLS%%COMPILER% %OS2RTL%CRT.PAS
 echo *Compiling unit Printer ...
 %FPCTOOLS%%COMPILER% %OS2RTL%PRINTER.PAS
+echo *Compiling unit SysUtils ...
+%FPCTOOLS%%COMPILER% %OS2RTLO%SYSUTILS.PP
+echo *Compiling unit Math ...
+%FPCTOOLS%%COMPILER% %OS2RTLO%MATH.PP
+echo *Compiling unit UComplex ...
+%FPCTOOLS%%COMPILER% %OS2RTLC%UCOMPLEX.PP
+echo *Compiling unit GetOpts ...
+%FPCTOOLS%%COMPILER% %OS2RTLC%GETOPTS.PP
 echo *Compiling unit KbdCalls ...
 %FPCTOOLS%%COMPILER% %OS2RTL%KBDCALLS.PAS
 echo *Compiling unit MouCalls ...
@@ -306,4 +314,12 @@ goto End
 :ErrorDir
 echo *Error: Environment variable FPCDIR must point to your base FPC directory!!!
 goto End
+
+
+  $Log$
+  Revision 1.2  1999-09-15 07:31:47  hajny
+    + some units added, OTHEROPTS variable support
+
+
+
 :End
