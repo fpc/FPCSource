@@ -1599,10 +1599,16 @@ Begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+{$ifdef HASWIDESTRING}
+  initwidestringmanager;
+{$endif HASWIDESTRING}
 End.
 {
   $Log$
-  Revision 1.46  2004-12-07 14:02:24  jonas
+  Revision 1.47  2005-02-01 20:22:49  florian
+    * improved widestring infrastructure manager
+
+  Revision 1.46  2004/12/07 14:02:24  jonas
     * fix cdecl name problems (patch from Tomas)
 
   Revision 1.45  2004/12/05 14:36:37  hajny

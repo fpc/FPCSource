@@ -66,6 +66,9 @@
 
   { MCBS functions }
   {$i sysansi.inc}
+  
+  { wide string functions }
+  {$i syswide.inc}
 
   { CPU Specific code }
   {$i sysutilp.inc}

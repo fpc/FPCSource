@@ -1187,10 +1187,16 @@ Begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+{$ifdef HASWIDESTRING}
+  initwidestringmanager;
+{$endif HASWIDESTRING}
 End.
 {
   $Log$
-  Revision 1.11  2005-01-04 11:25:34  armin
+  Revision 1.12  2005-02-01 20:22:49  florian
+    * improved widestring infrastructure manager
+
+  Revision 1.11  2005/01/04 11:25:34  armin
   * rtl code cleanup, compat fixes between clib and libc
 
   Revision 1.10  2004/12/07 11:40:43  armin

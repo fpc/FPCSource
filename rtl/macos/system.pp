@@ -1197,6 +1197,9 @@ begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+{$ifdef HASWIDESTRING}
+  initwidestringmanager;
+{$endif HASWIDESTRING}
 
   if StandAlone = 0 then
     begin
@@ -1209,7 +1212,10 @@ end.
 
 {
   $Log$
-  Revision 1.27  2005-01-24 18:51:23  olle
+  Revision 1.28  2005-02-01 20:22:49  florian
+    * improved widestring infrastructure manager
+
+  Revision 1.27  2005/01/24 18:51:23  olle
     * filetype/filecreator changed after the file is opened, in case the file did not previously exist
 
   Revision 1.26  2004/12/05 14:36:37  hajny

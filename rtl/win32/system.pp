@@ -1614,11 +1614,17 @@ begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+{$ifdef HASWIDESTRING}
+  initwidestringmanager;
+{$endif HASWIDESTRING}
 end.
 
 {
   $Log$
-  Revision 1.65  2004-12-12 11:53:47  florian
+  Revision 1.66  2005-02-01 20:22:50  florian
+    * improved widestring infrastructure manager
+
+  Revision 1.65  2004/12/12 11:53:47  florian
     * remove inline assembler for calling asm_exit
 
   Revision 1.64  2004/12/05 14:36:38  hajny

@@ -132,11 +132,17 @@ Begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+{$ifdef HASWIDESTRING}
+  initwidestringmanager;
+{$endif HASWIDESTRING}
 End.
 
 {
  $Log$
- Revision 1.3  2004-12-05 14:36:38  hajny
+ Revision 1.4  2005-02-01 20:22:50  florian
+   * improved widestring infrastructure manager
+
+ Revision 1.3  2004/12/05 14:36:38  hajny
    + GetProcessID added
 
  Revision 1.2  2004/11/06 22:22:28  florian

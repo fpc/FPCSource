@@ -875,11 +875,17 @@ begin
 {$ifdef HASVARIANT}
   initvariantmanager;
 {$endif HASVARIANT}
+{$ifdef HASWIDESTRING}
+  initwidestringmanager;
+{$endif HASWIDESTRING}
 end.
 
 {
   $Log$
-  Revision 1.29  2005-01-12 08:03:42  karoly
+  Revision 1.30  2005-02-01 20:22:49  florian
+    * improved widestring infrastructure manager
+
+  Revision 1.29  2005/01/12 08:03:42  karoly
     * Few more Sysutils functions implemented
 
   Revision 1.28  2005/01/11 17:43:14  karoly

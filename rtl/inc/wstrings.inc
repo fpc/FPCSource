@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2001 by Florian Klaempfl,
+    Copyright (c) 1999-2005 by Florian Klaempfl,
     member of the Free Pascal development team.
 
     This file implements support routines for WideStrings/Unicode with FPC
@@ -43,7 +43,6 @@ Const
   WideRecLen = SizeOf(TWideRec);
   WideFirstOff = SizeOf(TWideRec)-sizeof(WideChar);
 
-
 {
   Default WideChar <-> Char conversion is to only convert the
   lower 127 chars, all others are translated to spaces.
@@ -82,30 +81,21 @@ begin
    end;
 end;
 
-Const
-  Wide2AnsiMoveProc:TWide2AnsiMove=@Wide2AnsiMove;
-  Ansi2WideMoveProc:TAnsi2WideMove=@Ansi2WideMove;
-
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
-
 begin
-  Manager.Wide2AnsiMove:=Wide2AnsiMoveProc;
-  Manager.Ansi2WideMove:=Ansi2WideMoveProc;
+	manager:=widestringmanager;
 end;
 
 
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
-
 begin
-  GetWideStringManager(Old);
-  SetWideStringManager(New);
+	Old:=widestringmanager;
+	widestringmanager:=New;
 end;
 
 Procedure SetWideStringManager (Const New : TWideStringManager);
-
 begin
-  Wide2AnsiMoveProc:=New.Wide2AnsiMove;
-  Ansi2WideMoveProc:=New.Ansi2WideMove;
+	widestringmanager:=New;
 end;
 
 (*
@@ -237,7 +227,7 @@ begin
      Size:=Length(S2);
      If Size>high_of_res then
       Size:=high_of_res;
-     Wide2AnsiMoveProc(PWideChar(S2),PChar(@fpc_WideStr_To_ShortStr[1]),Size);
+     widestringmanager.Wide2AnsiMoveProc(PWideChar(S2),PChar(@fpc_WideStr_To_ShortStr[1]),Size);
      byte(fpc_WideStr_To_ShortStr[0]):=byte(Size);
    end;
 end;
@@ -254,7 +244,7 @@ begin
   Setlength (fpc_ShortStr_To_WideStr,Size);
   if Size>0 then
     begin
-      Ansi2WideMoveProc(PChar(@S2[1]),PWideChar(Pointer(fpc_ShortStr_To_WideStr)),Size);
+      widestringmanager.Ansi2WideMoveProc(PChar(@S2[1]),PWideChar(Pointer(fpc_ShortStr_To_WideStr)),Size);
       { Terminating Zero }
       PWideChar(Pointer(fpc_ShortStr_To_WideStr)+Size*sizeof(WideChar))^:=#0;
     end;
@@ -282,7 +272,7 @@ begin
   Setlength (fpc_WideStr_To_AnsiStr,Size);
   if Size>0 then
    begin
-     Wide2AnsiMoveProc(PWideChar(Pointer(S2)),PChar(Pointer(fpc_WideStr_To_AnsiStr)),Size);
+     widestringmanager.Wide2AnsiMoveProc(PWideChar(Pointer(S2)),PChar(Pointer(fpc_WideStr_To_AnsiStr)),Size);
      { Terminating Zero }
      PChar(Pointer(fpc_WideStr_To_AnsiStr)+Size)^:=#0;
    end;
@@ -310,7 +300,7 @@ begin
    Setlength (result,Size);
    if Size>0 then
     begin
-      Ansi2WideMoveProc(PChar(S2),PWideChar(Pointer(result)),Size);
+      widestringmanager.Ansi2WideMoveProc(PChar(S2),PWideChar(Pointer(result)),Size);
       { Terminating Zero }
       PWideChar(Pointer(result)+Size*sizeof(WideChar))^:=#0;
     end;
@@ -327,7 +317,7 @@ begin
   Setlength (result,Size);
   if Size>0 then
    begin
-     Wide2AnsiMoveProc(P,PChar(Pointer(result)),Size);
+     widestringmanager.Wide2AnsiMoveProc(P,PChar(Pointer(result)),Size);
      { Terminating Zero }
      PChar(Pointer(result)+Size)^:=#0;
    end;
@@ -366,7 +356,7 @@ begin
    begin
      If Size>255 then
       Size:=255;
-     Wide2AnsiMoveProc(p,PChar(@result[1]),Size);
+     widestringmanager.Wide2AnsiMoveProc(p,PChar(@result[1]),Size);
      byte(result[0]):=byte(Size);
    end;
 end;
@@ -466,7 +456,7 @@ begin
     exit;
   l:=IndexChar(p^,-1,#0);
   SetLength(fpc_PChar_To_WideStr,L);
-  Ansi2WideMoveProc(P,PWideChar(Pointer(fpc_PChar_To_WideStr)),l);
+  widestringmanager.Ansi2WideMoveProc(P,PWideChar(Pointer(fpc_PChar_To_WideStr)),l);
 end;
 
 { old style helper }
@@ -489,7 +479,7 @@ begin
   if i = -1 then
     i := high(arr)+1;
   SetLength(fpc_CharArray_To_WideStr,i);
-  Ansi2WideMoveProc (pchar(@arr),PWideChar(Pointer(fpc_CharArray_To_WideStr)),i);
+  widestringmanager.Ansi2WideMoveProc (pchar(@arr),PWideChar(Pointer(fpc_CharArray_To_WideStr)),i);
 end;
 
 { old style helper }
@@ -537,9 +527,9 @@ begin
   else
     len := index;
 {$ifdef hascompilerproc}
-  Wide2AnsiMoveProc (pwidechar(@arr),PAnsiChar(@(fpc_WideCharArray_To_ShortStr[1])),len);
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),PAnsiChar(@(fpc_WideCharArray_To_ShortStr[1])),len);
 {$else}
-  Wide2AnsiMoveProc (arr, PAnsiChar(@(fpc_WideCharArray_To_ShortStr[1])),len);
+  widestringmanager.Wide2AnsiMoveProc (arr, PAnsiChar(@(fpc_WideCharArray_To_ShortStr[1])),len);
 {$endif}
   fpc_WideCharArray_To_ShortStr[0]:=chr(len);
 end;
@@ -555,7 +545,7 @@ begin
   if i = -1 then
     i := high(arr)+1;
   SetLength(fpc_WideCharArray_To_AnsiStr,i);
-  Wide2AnsiMoveProc (pwidechar(@arr),PAnsiChar(Pointer(fpc_WideCharArray_To_AnsiStr)),i);
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),PAnsiChar(Pointer(fpc_WideCharArray_To_AnsiStr)),i);
 end;
 
 { old style helper }
@@ -630,7 +620,7 @@ begin
     len := arraysize;
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    wide2ansimoveproc(pwidechar(@src[1]),pchar(@fpc_widestr_to_chararray[0]),len);
+    widestringmanager.wide2ansimoveproc(pwidechar(@src[1]),pchar(@fpc_widestr_to_chararray[0]),len);
   fillchar(fpc_widestr_to_chararray[len],arraysize-len,0);
 end;
 {$endif hascompilerproc}
@@ -664,7 +654,7 @@ begin
     len := arraysize;
   { make sure we don't dereference src if it can be nil (JM) }
   if len > 0 then
-    ansi2widemoveproc(pchar(@src[1]),pwidechar(@fpc_ansistr_to_widechararray[0]),len);
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),pwidechar(@fpc_ansistr_to_widechararray[0]),len);
   fillchar(fpc_ansistr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
 end;
 {$endif hascompilerproc}
@@ -679,7 +669,7 @@ begin
     len := arraysize;
   { make sure we don't access char 1 if length is 0 (JM) }
   if len > 0 then
-    ansi2widemoveproc(pchar(@src[1]),pwidechar(@fpc_shortstr_to_widechararray[0]),len);
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),pwidechar(@fpc_shortstr_to_widechararray[0]),len);
   fillchar(fpc_shortstr_to_widechararray[len],(arraysize-len)*SizeOf(WideChar),0);
 end;
 
@@ -794,9 +784,9 @@ function WideCharToString(S : PWideChar) : AnsiString;
 function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
   begin
      if Length(Src)<DestSize then
-       Ansi2WideMoveProc(PChar(Src),Dest,Length(Src))
+       widestringmanager.Ansi2WideMoveProc(PChar(Src),Dest,Length(Src))
      else
-       Ansi2WideMoveProc(PChar(Src),Dest,DestSize);
+       widestringmanager.Ansi2WideMoveProc(PChar(Src),Dest,DestSize);
      result:=Dest;
   end;
 
@@ -1040,7 +1030,7 @@ begin
       BufLen := IndexByte(Buf^, Len+1, 0);
       If (BufLen>0) and (BufLen < Len) then
         Len := BufLen;
-      Ansi2WideMoveProc(Buf,PWideChar(S),Len);
+      widestringmanager.Ansi2WideMoveProc(Buf,PWideChar(S),Len);
       PWideChar(Pointer(S)+Len*sizeof(WideChar))^:=#0;
     end;
 end;
@@ -1386,9 +1376,47 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
   end;
 
 
+procedure unimplementedwidestring;
+  begin
+    HandleErrorFrame(215,get_frame);
+  end;
+
+
+function GenericWideCase(const s : WideString) : WideString;
+  begin
+    unimplementedwidestring;
+  end;
+
+
+function CompareWideString(const s1, s2 : WideString) : PtrInt;
+  begin
+    unimplementedwidestring;
+  end;
+
+
+function SameWideString(const s1, s2 : WideString) : Boolean;
+  begin
+    unimplementedwidestring;
+  end;
+
+
+procedure initwidestringmanager;
+  begin
+    fillchar(widestringmanager,sizeof(widestringmanager),0);
+    widestringmanager.Wide2AnsiMoveProc:=@Wide2AnsiMove;
+    widestringmanager.Ansi2WideMoveProc:=@Ansi2WideMove;
+    widestringmanager.UpperWideStringProc:=@GenericWideCase;
+    widestringmanager.CompareWideStringProc:=@CompareWideString;
+    widestringmanager.SameWideStringProc:=@SameWideString;
+  end;
+
+
 {
   $Log$
-  Revision 1.47  2005-01-06 13:31:06  florian
+  Revision 1.48  2005-02-01 20:22:49  florian
+    * improved widestring infrastructure manager
+
+  Revision 1.47  2005/01/06 13:31:06  florian
     * widecharray patch from Peter
 
   Revision 1.46  2004/11/17 22:19:04  peter

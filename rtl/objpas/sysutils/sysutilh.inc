@@ -61,10 +61,6 @@ type
    PWordarray = ^TWordArray;
    TWordArray = array[0..16383] of Word;
 
-   TMethod = packed record
-     Code, Data: Pointer;
-   end;
-
    { exceptions }
    Exception = class(TObject)
     private
@@ -210,6 +206,9 @@ Type
   { MCBS functions }
   {$i sysansih.inc}
 
+  { wide string functions }
+  {$i syswideh.inc}
+
   { Read filename handling functions declaration }
   {$i finah.inc}
 
@@ -231,7 +230,10 @@ Type
 
 {
   $Log$
-  Revision 1.9  2004-08-31 11:03:35  michael
+  Revision 1.10  2005-02-01 20:22:50  florian
+    * improved widestring infrastructure manager
+
+  Revision 1.9  2004/08/31 11:03:35  michael
   + Some capitalization added for documentation purposes
 
   Revision 1.8  2004/08/31 10:34:11  michael
