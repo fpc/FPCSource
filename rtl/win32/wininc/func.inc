@@ -593,7 +593,7 @@ function GetSysColor(nIndex:longint):DWORD; external 'user32' name 'GetSysColor'
 function GetSysColorBrush(nIndex:longint):HBRUSH; external 'user32' name 'GetSysColorBrush';
 function SetSysColors(cElements:longint; var lpaElements:wINT; var lpaRgbValues:COLORREF):WINBOOL; external 'user32' name 'SetSysColors';
 function DrawFocusRect(hDC:HDC; var lprc:RECT):WINBOOL; external 'user32' name 'DrawFocusRect';
-function FillRect(hDC:HDC; var lprc:RECT; hbr:HBRUSH):longint; external 'user32' name 'FillRect';
+function FillRect(hDC:HDC; const lprc:RECT; hbr:HBRUSH):longint; external 'user32' name 'FillRect';
 function FrameRect(hDC:HDC; var lprc:RECT; hbr:HBRUSH):longint; external 'user32' name 'FrameRect';
 function InvertRect(hDC:HDC; var lprc:RECT):WINBOOL; external 'user32' name 'InvertRect';
 function SetRect(lprc:LPRECT; xLeft:longint; yTop:longint; xRight:longint; yBottom:longint):WINBOOL; external 'user32' name 'SetRect';
@@ -2334,7 +2334,10 @@ end;
 
 {
   $Log$
-  Revision 1.20  2004-08-26 15:57:23  michael
+  Revision 1.21  2004-11-14 18:05:54  marco
+   * fillrect var -> const (bug 3268)
+
+  Revision 1.20  2004/08/26 15:57:23  michael
   + Some missing functions/defines as per bug 3270 from Frank Kintrup
 
   Revision 1.19  2004/02/08 17:11:34  marco
