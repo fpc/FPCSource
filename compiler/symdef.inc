@@ -1556,8 +1556,10 @@
        binittable : boolean;
     procedure check_rec_inittable(s : psym);
       begin
-         if (s^.typ=varsym) and (pvarsym(s)^.definition^.needs_inittable) then
-           binittable:=true;
+         if (s^.typ=varsym) and
+            ((pvarsym(s)^.definition^.deftype<>objectdef)
+              or not(pobjectdef(pvarsym(s)^.definition)^.isclass)) then
+            binittable:=pvarsym(s)^.definition^.needs_inittable;
       end;
 
 
@@ -3015,7 +3017,10 @@
 
 {
   $Log$
-  Revision 1.46  1998-09-21 08:45:21  pierre
+  Revision 1.47  1998-09-21 15:46:01  michael
+  Applied florians fix for check_rec_inittable
+
+  Revision 1.46  1998/09/21 08:45:21  pierre
     + added vmt_offset in tobjectdef.write for fututre use
       (first steps to have objects without vmt if no virtual !!)
     + added fpu_used field for tabstractprocdef  :
