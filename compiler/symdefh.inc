@@ -391,6 +391,8 @@
           localst : psymtable;
           { pointer to the parameter symbol table }
           parast : psymtable;
+          { symbol owning this definition }
+          procsym : pprocsym;
           { browser info }
           lastref,
           defref,
@@ -520,7 +522,10 @@
 
 {
   $Log$
-  Revision 1.40  1999-08-09 22:19:57  peter
+  Revision 1.41  1999-08-10 12:34:49  pierre
+   + procsym field in tprocdef to allow correct gdb info generation
+
+  Revision 1.40  1999/08/09 22:19:57  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 
