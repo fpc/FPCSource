@@ -41,8 +41,6 @@ const
 
 type
   TAssembler=class
-  private
-    procedure CreateSmartLinkPath(const s:string);
   public
   {filenames}
     path     : pathstr;
@@ -60,6 +58,8 @@ type
   end;
 
   TExternalAssembler=class(TAssembler)
+  private
+    procedure CreateSmartLinkPath(const s:string);
   protected
   {outfile}
     AsmSize,
@@ -144,20 +144,12 @@ begin
 { load start values }
   asmfile:=current_module.asmfilename^;
   objfile:=current_module.objfilename^;
-  name:=FixFileName(current_module.modulename^);
+  name:=Lower(current_module.modulename^);
+  path:=current_module.outputpath^;
   SmartAsm:=smart;
   SmartFilesCount:=0;
   SmartHeaderCount:=0;
   SmartLinkOFiles.Clear;
-{ Which path will be used ? }
-  if SmartAsm then
-   begin
-     path:=current_module.outputpath^+FixFileName(current_module.modulename^)+target_info.smartext;
-     CreateSmartLinkPath(path);
-     path:=FixPath(path,false);
-   end
-  else
-   path:=current_module.outputpath^;
 end;
 
 
@@ -173,40 +165,6 @@ end;
 
 procedure TAssembler.WriteAsmList;
 begin
-end;
-
-
-procedure TAssembler.CreateSmartLinkPath(const s:string);
-var
-  dir : searchrec;
-begin
-  if PathExists(s) then
-   begin
-     { the path exists, now we clean only all the .o and .s files }
-     { .o files }
-     findfirst(s+dirsep+'*'+target_info.objext,anyfile,dir);
-     while (doserror=0) do
-      begin
-        RemoveFile(s+dirsep+dir.name);
-        findnext(dir);
-      end;
-     findclose(dir);
-     { .s files }
-     findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
-     while (doserror=0) do
-      begin
-        RemoveFile(s+dirsep+dir.name);
-        findnext(dir);
-      end;
-     findclose(dir);
-   end
-  else
-   begin
-     {$I-}
-      mkdir(s);
-     {$I+}
-     if ioresult<>0 then;
-   end;
 end;
 
 
@@ -255,7 +213,50 @@ end;
 Constructor TExternalAssembler.Create(smart:boolean);
 begin
   inherited Create(smart);
+  if SmartAsm then
+   begin
+     path:=FixPath(current_module.outputpath^+FixFileName(current_module.modulename^)+target_info.smartext,false);
+     CreateSmartLinkPath(path);
+   end;
   Outcnt:=0;
+end;
+
+
+procedure TExternalAssembler.CreateSmartLinkPath(const s:string);
+var
+  dir : searchrec;
+  hs  : string;
+begin
+  if PathExists(s) then
+   begin
+     { the path exists, now we clean only all the .o and .s files }
+     { .o files }
+     findfirst(s+dirsep+'*'+target_info.objext,anyfile,dir);
+     while (doserror=0) do
+      begin
+        RemoveFile(s+dirsep+dir.name);
+        findnext(dir);
+      end;
+     findclose(dir);
+     { .s files }
+     findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
+     while (doserror=0) do
+      begin
+        RemoveFile(s+dirsep+dir.name);
+        findnext(dir);
+      end;
+     findclose(dir);
+   end
+  else
+   begin
+     hs:=s;
+     if hs[length(hs)] in ['/','\'] then
+      delete(hs,length(hs),1);
+     {$I-}
+      mkdir(hs);
+     {$I+}
+     if ioresult<>0 then;
+   end;
 end;
 
 
@@ -611,7 +612,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-03-05 21:39:11  peter
+  Revision 1.16  2001-03-13 18:42:39  peter
+    * don't create temporary smartlink dir for internalassembler
+
+  Revision 1.15  2001/03/05 21:39:11  peter
     * changed to class with common TAssembler also for internal assembler
 
   Revision 1.14  2001/02/26 08:08:16  michael
