@@ -1441,6 +1441,13 @@ end;
 
 { TDateTimeField }
 
+procedure TDateTimeField.SetDisplayFormat(const AValue: string);
+begin
+  if FDisplayFormat<>AValue then begin
+    FDisplayFormat:=AValue;
+    PropertyChanged(True);
+  end;
+end;
 
 function TDateTimeField.GetAsDateTime: TDateTime;
 
@@ -2185,7 +2192,10 @@ end;
 
 {
   $Log$
-  Revision 1.28  2005-03-23 08:17:51  michael
+  Revision 1.29  2005-04-04 07:30:51  michael
+  + Patch from Jesus reyes to notify changes to DisplayFormat
+
+  Revision 1.28  2005/03/23 08:17:51  michael
   + Several patches from Jose A. Rimon
   # Prevents "field not found" error, when use a query without the primary key
   Set SQLlen of different data types

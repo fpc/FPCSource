@@ -521,6 +521,7 @@ type
   TDateTimeField = class(TField)
   private
     FDisplayFormat : String;
+    procedure SetDisplayFormat(const AValue: string);
   protected
     function GetAsDateTime: TDateTime; override;
     function GetAsFloat: Double; override;
@@ -535,7 +536,7 @@ type
     constructor Create(AOwner: TComponent); override;
     property Value: TDateTime read GetAsDateTime write SetAsDateTime;
   published
-    property DisplayFormat: string read FDisplayFormat write FDisplayFormat;
+    property DisplayFormat: string read FDisplayFormat write SetDisplayFormat;
   end;
 
 { TDateField }
@@ -1896,7 +1897,10 @@ end.
 
 {
   $Log$
-  Revision 1.43  2005-03-29 10:07:34  michael
+  Revision 1.44  2005-04-04 07:30:51  michael
+  + Patch from Jesus reyes to notify changes to DisplayFormat
+
+  Revision 1.43  2005/03/29 10:07:34  michael
   + fix for activerecord, bof false after append.
 
   Revision 1.42  2005/03/25 11:38:01  michael
