@@ -136,6 +136,10 @@ interface
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function det_resulttype:tnode;override;
+          function getcopy: tnode;override;
+          destructor destroy; override;
+         protected
+          call: tnode;
        end;
        tasnodeclass = class of tasnode;
 
@@ -1876,6 +1880,15 @@ implementation
 
       begin
          inherited create(asn,l,r);
+         call := nil;
+      end;
+
+
+    destructor tasnode.destroy;
+
+      begin
+        call.free;
+        inherited destroy;
       end;
 
 
@@ -1946,14 +1959,51 @@ implementation
       end;
 
 
-    function tasnode.pass_1 : tnode;
+    function tasnode.getcopy: tnode;
+
       begin
-        firstpass(left);
-        firstpass(right);
-        if codegenerror then
-         exit;
-        left_right_max;
-        location.loc:=left.location.loc;
+        result := inherited getcopy;
+        if assigned(call) then
+          tasnode(result).call := call.getcopy
+        else
+          tasnode(result).call := nil;
+      end;
+
+
+    function tasnode.pass_1 : tnode;
+
+      var
+        procname: string;
+      begin
+        if not assigned(call) then
+          begin
+            if is_class(left.resulttype.def) and
+               (right.resulttype.def.deftype=classrefdef) then
+              call := ccallnode.createinternres('fpc_do_as',
+                ccallparanode.create(left,ccallparanode.create(right,nil)),
+                resulttype)
+            else
+              begin
+                if is_class(left.resulttype.def) then
+                  procname := 'fpc_class_as_intf'
+                else
+                  procname := 'fpc_intf_as';
+                call := ccallnode.createinternres(procname,
+                   ccallparanode.create(left,ccallparanode.create(right,nil)),
+                   resulttype);
+              end;
+            left := nil;
+            right := nil;
+            firstpass(call);
+            if codegenerror then
+              exit;
+           location.loc:=call.location.loc;
+           registers32:=call.registers32;
+           registersfpu:=call.registersfpu;
+{$ifdef SUPPORT_MMX}
+           registersmmx:=call.registersmmx;
+{$endif SUPPORT_MMX}
+         end;
         result:=nil;
       end;
 
@@ -1965,7 +2015,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2002-08-19 19:36:43  peter
+  Revision 1.72  2002-08-20 18:23:33  jonas
+    * the as node again uses a compilerproc
+    + (untested) support for interface "as" statements
+
+  Revision 1.71  2002/08/19 19:36:43  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

@@ -474,45 +474,9 @@ interface
 
 
     procedure tcgasnode.pass_2;
-      var
-        pushed : tpushedsaved;
       begin
-        if (right.nodetype=guidconstn) then
-         begin
-{$warning need to push a third parameter}
-           { instance to check }
-           secondpass(left);
-           rg.saveusedregisters(exprasmlist,pushed,all_registers);
-           cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(2));
-           { type information }
-           secondpass(right);
-           cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
-           location_release(exprasmlist,right.location);
-           { call helper }
-           if is_class(left.resulttype.def) then
-             cg.a_call_name(exprasmlist,'FPC_CLASS_AS_INTF')
-           else
-             cg.a_call_name(exprasmlist,'FPC_INTF_AS');
-           cg.g_maybe_loadself(exprasmlist);
-           rg.restoreusedregisters(exprasmlist,pushed);
-         end
-        else
-         begin
-           { instance to check }
-           secondpass(left);
-           rg.saveusedregisters(exprasmlist,pushed,all_registers);
-           cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(2));
-           { type information }
-           secondpass(right);
-           cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(1));
-           location_release(exprasmlist,right.location);
-           { call helper }
-           cg.a_call_name(exprasmlist,'FPC_DO_AS');
-           cg.g_maybe_loadself(exprasmlist);
-           rg.restoreusedregisters(exprasmlist,pushed);
-         end;
-
-        location_copy(location,left.location);
+        secondpass(call);
+        location_copy(location,call.location);
       end;
 
 
@@ -523,7 +487,11 @@ end.
 
 {
   $Log$
-  Revision 1.25  2002-08-13 18:01:52  carl
+  Revision 1.26  2002-08-20 18:23:32  jonas
+    * the as node again uses a compilerproc
+    + (untested) support for interface "as" statements
+
+  Revision 1.25  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline
