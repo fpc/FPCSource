@@ -17,7 +17,7 @@ units=$(SYSTEMUNIT) objpas strings syscall sysctl unixtype baseunix unixutil \
       cpu mmx charset ucomplex crt getopts heaptrc lineinfo \
       errors sockets gpm ipc terminfo \
       video mouse keyboard console serial variants  sysctl dateutils \
-      sysconst cthreads strutils
+      sysconst cthreads strutils convutils
 
 rsts=math varutils typinfo classes variants dateutils sysconst
 
@@ -250,3 +250,7 @@ cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp systhrds$(PPUEXT)
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
+
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/convutils.pp
