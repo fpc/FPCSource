@@ -18,7 +18,10 @@ type
     NeedCPU,
     NeedVersion   : string;
     ResultCode    : longint;
+    NeedRecompile : boolean;
     IsInteractive : boolean;
+    IsKnown       : boolean;
+    NoRun         : boolean;
     UsesGraph     : boolean;
     ShouldFail    : boolean;
     Category      : string;
@@ -40,6 +43,7 @@ const
   DoGraph : boolean = false;
   DoInteractive : boolean = false;
   DoExecute : boolean = false;
+  DoKnown : boolean = false;
 
 procedure Verbose(lvl:TVerboseLevel;const s:string);
 begin
@@ -250,6 +254,7 @@ var
   end;
 
 begin
+  FillChar(r,sizeof(r),0);
   GetConfig:=false;
   Verbose(V_Debug,'Reading '+fn);
   assign(t,fn);
@@ -290,6 +295,15 @@ begin
               else
                if GetEntry('FAIL') then
                 r.ShouldFail:=true
+              else
+               if GetEntry('RECOMPILE') then
+                r.NeedRecompile:=true
+              else
+               if GetEntry('NORUN') then
+                r.NoRun:=true
+              else
+               if GetEntry('KNOWN') then
+                r.IsKnown:=true
               else
                if GetEntry('INTERACTIVE') then
                 r.IsInteractive:=true
@@ -443,7 +457,9 @@ var
     writeln('  -C<compiler>  set compiler to use');
     writeln('  -V            verbose');
     writeln('  -E            execute test also');
+    writeln('  -A            include ALL tests');
     writeln('  -G            include graph tests');
+    writeln('  -G            include known bug tests');
     writeln('  -I            include interactive tests');
     halt(1);
   end;
@@ -462,11 +478,18 @@ begin
         ch:=Upcase(para[2]);
         delete(para,1,2);
         case ch of
+         'A' :
+           begin
+             DoGraph:=true;
+             DoInteractive:=true;
+             DoKnown:=true;
+           end;
          'C' : CompilerBin:=Para;
          'E' : DoExecute:=true;
          'G' : DoGraph:=true;
          'I' : DoInteractive:=true;
          'V' : DoVerbose:=true;
+         'K' : DoKnown:=true;
         end;
      end
     else
@@ -507,6 +530,15 @@ begin
 
   if Res then
    begin
+     if Config.IsKnown and (not DoKnown) then
+      begin
+        Verbose(V_Abort,'Skipping test because it is a known bug');
+        Res:=false;
+      end;
+   end;
+
+  if Res then
+   begin
      if Config.NeedVersion<>'' then
       begin
         Verbose(V_Debug,'Required compiler version: '+Config.NeedVersion);
@@ -534,17 +566,28 @@ begin
    end;
 
   if Res then
-   Res:=RunCompiler;
+   begin
+     Res:=RunCompiler;
+     if Res and Config.NeedRecompile then
+      Res:=RunCompiler;
+   end;
 
   if Res then
    begin
-     if (not Config.ShouldFail) and DoExecute then
+     if (Config.NoRun) then
       begin
-        if FileExists(ForceExtension(PPFile,'ppu')) or
-           FileExists(ForceExtension(PPFile,'ppw')) then
-         Verbose(V_Debug,'Unit found, skipping run test')
-        else
-         Res:=RunExecutable;
+        Verbose(V_Debug,'Skipping run test');
+      end
+     else
+      begin
+        if (not Config.ShouldFail) and DoExecute then
+         begin
+           if FileExists(ForceExtension(PPFile,'ppu')) or
+              FileExists(ForceExtension(PPFile,'ppw')) then
+            Verbose(V_Debug,'Unit found, skipping run test')
+           else
+            Res:=RunExecutable;
+         end;
       end;
    end;
 end;
@@ -556,7 +599,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-12-04 22:06:25  peter
+  Revision 1.7  2000-12-09 16:01:10  peter
+    + known bug flag
+    + norun flag
+    + recompile flag
+
+  Revision 1.6  2000/12/04 22:06:25  peter
     * fixed stupid c&p bug for CPU check
 
   Revision 1.5  2000/12/03 22:59:10  florian
