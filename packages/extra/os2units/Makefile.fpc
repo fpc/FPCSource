@@ -1,0 +1,13 @@
+#
+#   Makefile.fpc for Free Pascal OS/2 platform units
+#
+
+[target]
+dirs=ftpapi
+
+[install]
+fpcpackage=y
+fpcsubdir=packages
+
+[default]
+fpcdir=../..
