@@ -551,7 +551,7 @@ begin
       Compare:=1;
       exit;
     end;
-  if assigned(HelpFacility) then
+  (* if assigned(HelpFacility) then
     begin
       { Try to read the title of the topic }
       T1:=HelpFacility^.LoadTopic(K1^.FileID,K1^.HelpCtx);
@@ -570,9 +570,13 @@ begin
           Compare:=-1;
           exit;
         end;
-    end;
+    end; *)
   if K1^.FileID<K2^.FileID then R:=-1
   else if K1^.FileID>K2^.FileID then R:= 1
+  else if K1^.HelpCtx<K2^.HelpCtx then
+    r:=-1
+  else if K1^.HelpCtx>K2^.HelpCtx then
+    r:=1
   else
     R:=0;
   Compare:=R;
@@ -827,6 +831,7 @@ end;
 var KW: PIndexEntry;
     I,p : sw_integer;
     IsMultiple : boolean;
+    MultiCount : longint;
     St,LastTag : String;
 begin
   New(Keywords, Init(5000,5000));
@@ -843,16 +848,24 @@ begin
     KWCount:=0; Line:='';
     T^.LinkCount:=Min(Keywords^.Count,MaxBytes div sizeof(T^.Links^[0])-1);
     GetMem(T^.Links,T^.LinkSize);
+    MultiCount:=0;
     LastTag:='';
     for I:=0 to T^.LinkCount-1 do
     begin
       KW:=Keywords^.At(I);
-      IsMultiple:=(LastTag=KW^.Tag^) or
-        ((I<T^.LinkCount-1) and (KW^.Tag^=Keywords^.At(I+1)^.Tag^));
+      if (LastTag<>KW^.Tag^) then
+        Begin
+          MultiCount:=0;
+          IsMultiple:=(I<T^.LinkCount-1) and (KW^.Tag^=Keywords^.At(I+1)^.Tag^);
+        End
+      else
+        IsMultiple:=true;
       if IsMultiple then
         Begin
-          St:=Trim(strpas(pchar(HelpFacility^.LoadTopic(KW^.FileID,KW^.HelpCtx)^.Text)));
-          { Remove all special chars }
+          Inc(MultiCount);
+          (* St:=Trim(strpas(pchar(HelpFacility^.LoadTopic(KW^.FileID,KW^.HelpCtx)^.Text))); *)
+          St:=KW^.Tag^+' ['+IntToStr(MultiCount)+']';
+          (* { Remove all special chars }
           for p:=1 to Length(st) do
             if ord(st[p])<=16 then
               st[p]:=' ';
@@ -860,7 +873,8 @@ begin
           if (p=1) then
             AddKeyword(St)
           else
-            AddKeyword(KW^.Tag^+' '+St);
+            AddKeyword(KW^.Tag^+' '+St); *)
+          AddKeyWord(St);
         End
       else
         AddKeyword(KW^.Tag^);
@@ -903,7 +917,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2001-10-02 16:31:20  pierre
+  Revision 1.5  2001-10-03 21:48:31  pierre
+   * remove code that lead to crashes for html helps
+
+  Revision 1.4  2001/10/02 16:31:20  pierre
    * avoid crashes in topic text compares
 
   Revision 1.3  2001/10/01 00:24:09  pierre
