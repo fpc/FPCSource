@@ -288,7 +288,7 @@ endif
 endif
 
 # ZipProg, you can't use Zip as the var name (PFV)
-ifndef ZIPPROGNEW
+ifndef ZIPPROG
 ZIPPROG=$(strip $(wildcard $(addsuffix /zip$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ZIPPROG),)
 ZIPPROG=
@@ -905,9 +905,9 @@ fpc_cfginfo:
 	@$(ECHO)  FPCMake... $(FPCMAKE)
 	@$(ECHO)
 	@$(ECHO)  Version... $(FPC_VERSION)
+	@$(ECHO)  CPU....... $(CPU)
 	@$(ECHO)  Source.... $(OS_SOURCE)
 	@$(ECHO)  Target.... $(OS_TARGET)
-	@$(ECHO)  Basedir... $(BASEDIR)
 	@$(ECHO)
 
 fpc_dirinfo:
@@ -921,6 +921,8 @@ endif
 ifdef NEEDOTHERLIB
 	@$(ECHO)  Other library is needed.
 endif
+	@$(ECHO)  Basedir......... $(BASEDIR)
+	@$(ECHO)
 	@$(ECHO)  GCC library..... $(GCCLIBDIR)
 	@$(ECHO)  Other library... $(OTHERLIBDIR)
 	@$(ECHO)
@@ -948,7 +950,7 @@ endif
 ifdef UPX
 	@$(ECHO)  Upx....... $(UPX)
 endif
-ifdef UPX
+ifdef ZIPPROG
 	@$(ECHO)  Zip....... $(ZIPPROG)
 endif
 	@$(ECHO)
@@ -1010,7 +1012,10 @@ endif
 
 #
 # $Log$
-# Revision 1.23  1999-05-10 15:18:43  peter
+# Revision 1.24  1999-05-11 00:48:12  peter
+#   * fixed some typos
+#
+# Revision 1.23  1999/05/10 15:18:43  peter
 #   * NEEDOTHERLIB define to load ld.so.conf for linux
 #
 # Revision 1.22  1999/05/04 23:20:42  pierre
