@@ -2,7 +2,7 @@
     $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
- 
+
     Watcom
 
     See the file COPYING.FPC, included in this distribution,
@@ -99,7 +99,7 @@ Const
       tb_segment:word;
 
   const tb_offset=0;
-        tb_size=8192;      
+        tb_size=8192;
 
 IMPLEMENTATION
 
@@ -163,6 +163,7 @@ end;
 procedure alloc_tb; assembler;
 { allocate 8kB real mode transfer buffer }
 asm
+   pushl %ebx
    movw $0x100,%ax
    movw $512,%bx
    int $0x31
@@ -170,6 +171,7 @@ asm
    shll $16,%eax
    shrl $12,%eax
    movl %eax,tb
+   popl %ebx
 end;
 
 procedure sysseg_move(sseg : word;source : longint;dseg : word;dest : longint;count : longint);
@@ -178,6 +180,8 @@ begin
      exit;
    if (sseg<>dseg) or ((sseg=dseg) and (source>dest)) then
      asm
+        pushl %esi
+        pushl %edi
         pushw %es
         pushw %ds
         cld
@@ -198,10 +202,14 @@ begin
         movsb
         popw %ds
         popw %es
-     end ['ESI','EDI','ECX','EAX']
+        popl %edi
+        popl %esi
+     end
    else if (source<dest) then
      { copy backward for overlapping }
      asm
+        pushl %esi
+        pushl %edi
         pushw %es
         pushw %ds
         std
@@ -236,7 +244,9 @@ begin
         cld
         popw %ds
         popw %es
-     end ['ESI','EDI','ECX'];
+        popl %edi
+        popl %esi
+     end;
 end;
 
 
@@ -250,9 +260,10 @@ end;
 
 
 
-function strcopy(dest,source : pchar) : pchar;
-begin
-  asm
+function strcopy(dest,source : pchar) : pchar;assembler;
+asm
+        pushl %esi
+        pushl %edi
         cld
         movl 12(%ebp),%edi
         movl $0xffffffff,%ecx
@@ -271,9 +282,8 @@ begin
         rep
         movsb
         movl 8(%ebp),%eax
-        leave
-        ret $8
-  end;
+        popl %edi
+        popl %esi
 end;
 
 
@@ -303,6 +313,8 @@ begin
    regs.realsp:=0;
    regs.realss:=0;
    asm
+      pushl %edi
+      pushl %ebx
       pushw %fs
       movw  intnr,%bx
       xorl  %ecx,%ecx
@@ -310,6 +322,8 @@ begin
       movw  $0x300,%ax
       int   $0x31
       popw  %fs
+      popl %ebx
+      popl %edi
    end;
 end;
 
@@ -317,12 +331,14 @@ end;
 procedure set_pm_interrupt(vector : byte;const intaddr : tseginfo);
 begin
   asm
+        pushl %ebx
         movl intaddr,%eax
         movl (%eax),%edx
         movw 4(%eax),%cx
         movl $0x205,%eax
         movb vector,%bl
         int $0x31
+        popl %ebx
   end;
 end;
 
@@ -330,12 +346,14 @@ end;
 procedure get_pm_interrupt(vector : byte;var intaddr : tseginfo);
 begin
   asm
+        pushl %ebx
         movb    vector,%bl
         movl    $0x204,%eax
         int     $0x31
         movl    intaddr,%eax
         movl    %edx,(%eax)
         movw    %cx,4(%eax)
+        popl %ebx
   end;
 end;
 
@@ -1121,7 +1139,10 @@ END.
 
 {
   $Log$
-  Revision 1.4  2003-09-29 18:52:36  hajny
+  Revision 1.5  2003-10-03 21:59:28  peter
+    * stdcall fixes
+
+  Revision 1.4  2003/09/29 18:52:36  hajny
     * append fix applied to Amiga, Atari, EMX, GO32v2, OS/2 and Watcom
 
   Revision 1.3  2003/09/27 11:52:36  peter

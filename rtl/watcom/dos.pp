@@ -143,8 +143,6 @@ implementation
 uses
   strings;
 
-{$ASMMODE ATT}
-
 {******************************************************************************
                            --- Dos Interrupt ---
 ******************************************************************************}
@@ -1050,7 +1048,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2003-09-07 22:29:26  hajny
+  Revision 1.3  2003-10-03 21:59:28  peter
+    * stdcall fixes
+
+  Revision 1.2  2003/09/07 22:29:26  hajny
     * syswat renamed to system, CVS log added
 
   Revision 1.1  2003/09/05 18:09:35  florian

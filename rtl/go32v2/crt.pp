@@ -454,6 +454,8 @@ end;
 
 procedure initdelay;assembler;
 asm
+	pushl %ebx
+	pushl %edi
         { for some reason, using int $31/ax=$901 doesn't work here }
         { and interrupts are always disabled at this point when    }
         { running a program inside gdb(pas). Web bug 1345 (JM)     }
@@ -473,11 +475,15 @@ asm
         movl    $55,%ecx
         divl    %ecx
         movl    %eax,DelayCnt
+	popl %edi
+	popl %ebx
 end;
 
 
 procedure Delay(MS: Word);assembler;
 asm
+	pushl %ebx
+	pushl %edi
         movzwl  MS,%ecx
         jecxz   .LDelay2
         movl    $0x400,%edi
@@ -488,6 +494,8 @@ asm
         call    DelayLoop
         loop    .LDelay1
 .LDelay2:
+	popl %edi
+	popl %ebx
 end;
 
 
@@ -834,7 +842,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-03-17 18:13:13  peter
+  Revision 1.10  2003-10-03 21:56:36  peter
+    * stdcall fixes
+
+  Revision 1.9  2003/03/17 18:13:13  peter
     * exported ScreenHeight, ScreenWidth
 
   Revision 1.8  2002/12/15 20:22:24  peter
