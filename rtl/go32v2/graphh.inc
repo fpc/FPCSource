@@ -29,4 +29,6 @@ CONST
   m1280x1024x32k    = $119;
   m1280x1024x64k    = $11A;
 
+const
+  ForceVesa : boolean = false;
 
