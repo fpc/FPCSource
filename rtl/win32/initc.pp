@@ -5,12 +5,6 @@ unit initc;
 
 interface
 
-{ 0.99.12 had a bug that initialization/finalization only worked for
-  objfpc,delphi mode }
-{$ifdef VER0_99_12}
-  {$mode objfpc}
-{$endif}
-
  {$LINKLIB cygwin}
  {$linklib kernel32}
 
@@ -75,7 +69,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-12-30 17:48:36  peter
+  Revision 1.4  2001-04-23 18:24:45  peter
+    * remove useless define (merged)
+
+  Revision 1.3  2000/12/30 17:48:36  peter
     * update std handles after initing c
 
   Revision 1.2  2000/07/13 11:33:57  michael
