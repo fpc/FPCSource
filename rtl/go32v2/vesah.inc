@@ -28,9 +28,18 @@ TYPE
     str       : pChar;                    { pointer to OEM string }
     caps      : longint;                  { video capabilities    }
     modeList  : pModeList;                { pointer to SVGA modes }
-    pad       : array [18..260] of byte;  { extra padding more then   }
+(*    pad       : array [18..260] of byte;  { extra padding more then   }
   end;                             { VESA standard because of bugs on }
                                    { some video cards.                }
+  *)
+    TotalMem     : word;
+  { VESA 2.0 }
+    OEMversion   : word;
+    VendorPtr    : longint;
+    ProductPtr   : longint;
+    RevisionPtr  : longint;
+    filler       : Array[1..478]of Byte;
+  end;
 
   TVESAModeInfo = packed record
     attr           : word;             { mode attributes   (1.0)    }
@@ -52,9 +61,32 @@ TYPE
     memModel   : byte;
     bankSize   : byte;  {in K}
     NumberOfPages: byte;
-
+(*
     pad : array [29..260] of byte; { always put some more space then required}
-  end;
+  end; *)
+    reserved       : byte; { pos $1E }
+    rm_size        : byte; { pos $1F }
+    rf_pos         : byte; { pos $20 }
+    gm_size        : byte; { pos $21 }
+    gf_pos         : byte; { pos $22 }
+    bm_size        : byte; { pos $23 }
+    bf_pos         : byte; { pos $24 }
+    (* res_mask       : word; { pos $25 }
+      here there was an alignment problem !!
+      with default alignment
+      res_mask was shifted to $26
+      and after PhysAddress to $2A !!! PM *)
+    res_size       : byte;
+    res_pos        : byte;
+    DirectColorInfo: byte; { pos $27 }
+  { VESA 2.0 }
+    PhysAddress    : longint; { pos $28 }
+    OffscreenPtr   : longint; { pos $2C }
+    OffscreenMem   : word; { pos $30 }
+    reserved2      : Array[1..458]of Byte; { pos $32 }
+   end;
+
+
 
 
 var
@@ -64,7 +96,10 @@ var
                           { initialized in QueryAdapterInfo in graph.inc }
 {
   $Log$
-  Revision 1.1  1999-11-08 11:15:21  peter
+  Revision 1.2  1999-12-10 12:51:09  pierre
+   + some VESA 2 extensions
+
+  Revision 1.1  1999/11/08 11:15:21  peter
     * move graph.inc to the target dir
 
   Revision 1.2  1999/09/26 13:31:07  jonas
