@@ -37,6 +37,7 @@ unit agppcgas;
     type
       PPPCGNUAssembler=^TPPCGNUAssembler;
       TPPCGNUAssembler=class(TGNUassembler)
+        procedure WriteExtraHeader;override;
         procedure WriteInstruction(hp : tai);override;
       end;
 
@@ -63,6 +64,16 @@ unit agppcgas;
        systems,
        assemble,
        aasmcpu;
+
+    procedure TPPCGNUAssembler.WriteExtraHeader;
+      var
+         i : longint;
+      begin
+         for i:=0 to 31 do
+           AsmWriteln(#9'.set'#9'r'+tostr(i)+','+tostr(i));
+         for i:=0 to 31 do
+           AsmWriteln(#9'.set'#9'f'+tostr(i)+','+tostr(i));
+      end;
 
     const
        as_ppc_gas_info : tasminfo =
@@ -128,7 +139,7 @@ unit agppcgas;
          'insrwi.', 'rotlwi', 'rotlwi.', 'rotlw', 'rotlw.', 'slwi', 'slwi.',
          'srwi', 'srwi.', 'clrlwi', 'clrlwi.', 'clrrwi', 'clrrwi.', 'clrslwi',
          'clrslwi.', 'blr', 'bctr', 'blrl', 'bctrl', 'crset', 'crclr', 'crmove',
-         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr');
+         'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr');
 
      symaddr2str: array[trefsymaddr] of string[2] = ('','@ha','@l');
 
@@ -355,7 +366,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2002-08-18 21:36:42  florian
+  Revision 1.14  2002-08-18 22:16:14  florian
+    + the ppc gas assembler writer adds now registers aliases
+      to the assembler file
+
+  Revision 1.13  2002/08/18 21:36:42  florian
     + handling of local variables in direct reader implemented
 
   Revision 1.12  2002/08/18 10:34:30  florian

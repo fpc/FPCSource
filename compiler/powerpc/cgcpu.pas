@@ -892,7 +892,7 @@ const
         if (procinfo.flags and pi_do_call)<>0 then
           begin
              { save return address... }
-             list.concat(taicpu.op_reg_reg(A_MFSPR,R_0,R_LR));
+             list.concat(taicpu.op_reg(A_MFLR,R_0));
              { ... in caller's rframe }
              reference_reset_base(href,STACK_POINTER_REG,4);
              list.concat(taicpu.op_reg_ref(A_STW,R_0,href));
@@ -1067,7 +1067,7 @@ const
                begin
                   reference_reset_base(href,STACK_POINTER_REG,4);
                   list.concat(taicpu.op_reg_ref(A_LWZ,R_0,href));
-                  list.concat(taicpu.op_reg_reg(A_MTSPR,R_LR,R_0));
+                  list.concat(taicpu.op_reg(A_MTLR,R_0));
                end;
              list.concat(taicpu.op_none(A_BLR));
           end;
@@ -1674,7 +1674,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-08-17 18:23:53  florian
+  Revision 1.45  2002-08-18 22:16:14  florian
+    + the ppc gas assembler writer adds now registers aliases
+      to the assembler file
+
+  Revision 1.44  2002/08/17 18:23:53  florian
     * some assembler writer bugs fixed
 
   Revision 1.43  2002/08/17 09:23:49  florian

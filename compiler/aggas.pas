@@ -49,6 +49,7 @@ interface
       public
         procedure WriteTree(p:TAAsmoutput);override;
         procedure WriteAsmList;override;
+        procedure WriteExtraHeader;virtual;
 {$ifdef GDB}
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
         procedure WriteFileEndInfo;
@@ -720,7 +721,10 @@ var
     end;
 
 
+    procedure TGNUAssembler.WriteExtraHeader;
 
+      begin
+      end;
 
     procedure TGNUAssembler.WriteAsmList;
     var
@@ -754,7 +758,7 @@ var
        end;
     { to get symify to work }
       AsmWriteLn(#9'.file "'+FixFileName(n+e)+'"');
-
+      WriteExtraHeader;
 {$ifdef GDB}
       n_line:=n_bssline;
       funcname:=nil;
@@ -796,7 +800,11 @@ var
 end.
 {
   $Log$
-  Revision 1.9  2002-08-18 20:06:23  peter
+  Revision 1.10  2002-08-18 22:16:14  florian
+    + the ppc gas assembler writer adds now registers aliases
+      to the assembler file
+
+  Revision 1.9  2002/08/18 20:06:23  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

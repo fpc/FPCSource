@@ -83,7 +83,7 @@ uses
         a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
         a_clrslwi_, a_blr, a_bctr, a_blrl, a_bctrl, a_crset, a_crclr, a_crmove,
         a_crnot, a_mt {move to special prupose reg}, a_mf {move from special purpose reg},
-        a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_mtcr);
+        a_nop, a_li, a_lis, a_la, a_mr, a_mr_, a_not, a_mtcr, a_mtlr, a_mflr);
 
       {# This should define the array of instructions as string }
       op2strtable=array[tasmop] of string[8];
@@ -709,7 +709,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2002-08-18 21:36:42  florian
+  Revision 1.30  2002-08-18 22:16:15  florian
+    + the ppc gas assembler writer adds now registers aliases
+      to the assembler file
+
+  Revision 1.29  2002/08/18 21:36:42  florian
     + handling of local variables in direct reader implemented
 
   Revision 1.28  2002/08/14 18:41:47  jonas
