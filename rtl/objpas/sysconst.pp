@@ -12,6 +12,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$mode objfpc}
+{$H+}
 unit sysconst;
 
   interface
@@ -55,6 +57,7 @@ unit sysconst;
       SInvalidPointer = 'Invalid pointer operation';
       SInvalidVarCast = 'Invalid variant type case';
       SInvalidVarOp = 'Invalid variant operation';
+      SNoThreadSupport = 'Threads not supported. Recompile program with thread driver.';
       SOutOfMemory = 'Out of memory';
       SOverflow = 'Floating point overflow';
       SPrivilege = 'Privileged instruction';
@@ -66,10 +69,11 @@ unit sysconst;
       SUnknownErrorCode = 'Unknown error code: %d';
       SVarArrayBounds = 'Variant array bounds error';
       SVarArrayCreate = 'Variant array cannot be created';
+      SVarArrayLocked = 'Variant array locked';
       SVarNotArray = 'Variant doesn''t contain an array';
-
+      SVarParamNotFound = 'Variant Parameter not found';
       SInvalidVarNullOp = 'Invalid NULL variant operation';
-      SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+NewLine+'%s';
+      SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
       SVarTypeRangeCheck1 = 'Range check error for variant of type (%s)';
       SVarTypeRangeCheck2 = 'Range check error while converting variant of type (%s) into type (%s)';
       SVarTypeOutOfRangeWithPrefix = 'Custom variant type (%s%.4x) is out of range';
@@ -132,7 +136,10 @@ unit sysconst;
 end.
 {
   $Log$
-  Revision 1.2  2003-11-26 20:00:19  florian
+  Revision 1.3  2003-11-26 20:34:19  michael
+  + Some fixes to have everything compile again
+
+  Revision 1.2  2003/11/26 20:00:19  florian
     * error handling for Variants improved
 
   Revision 1.1  2003/09/03 14:09:37  florian

@@ -22,7 +22,7 @@ interface
 {$H+}
 
 uses
-  Unix,errors;
+  Unix,errors,sysconst;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -490,7 +490,10 @@ end.
 {
 
   $Log$
-  Revision 1.25  2003-11-17 10:05:51  marco
+  Revision 1.26  2003-11-26 20:35:14  michael
+  + Some fixes to have everything compile again
+
+  Revision 1.25  2003/11/17 10:05:51  marco
    * threads for FreeBSD. Not working tho
 
   Revision 1.24  2003/10/25 23:43:59  hajny

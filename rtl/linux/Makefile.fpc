@@ -14,8 +14,10 @@ units=$(SYSTEMUNIT) baseunix strings systhrds  objpas syscall unixutil \
       sysutils typinfo math varutils \
       charset ucomplex getopts \
       errors sockets gpm ipc serial terminfo dl dynlibs \
-      video mouse keyboard variants types dateutils sysconst
-rsts=math varutils typinfo variants classes sysconst
+      video mouse keyboard variants types dateutils sysconst runerrors \
+      cthreads
+
+rsts=math varutils typinfo variants classes sysconst runerrors
 
 [require]
 nortl=y
@@ -230,6 +232,9 @@ varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/types.pp
 
+sysconst$(PPUEXT) : $(OBJPASDIR/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/sysconst.pp
+
 #
 # Other $(SYSTEMUNIT)-independent RTL Units
 #
@@ -264,3 +269,4 @@ terminfo$(PPUEXT) : terminfo.pp unix$(PPUEXT)
 
 callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
+runerrors$(PPUEXT) : $(INC)/runerrors.pp $(SYSTEMUNIT)$(PPUEXT)
