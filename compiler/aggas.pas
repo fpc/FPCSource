@@ -456,7 +456,7 @@ var
            ait_const_16bit,
            ait_const_8bit :
              begin
-               AsmWrite(ait_const2str[hp.typ]+tostr(tai_const(hp).value));
+               AsmWrite(ait_const2str[hp.typ]+tostru(tai_const(hp).value));
                consttyp:=hp.typ;
                l:=0;
                repeat
@@ -832,7 +832,10 @@ var
 end.
 {
   $Log$
-  Revision 1.38  2003-12-10 17:13:22  peter
+  Revision 1.39  2003-12-14 22:42:54  peter
+    * fixed range check error
+
+  Revision 1.38  2003/12/10 17:13:22  peter
     * fix range error with tai_const
 
   Revision 1.37  2003/11/12 16:05:39  florian
