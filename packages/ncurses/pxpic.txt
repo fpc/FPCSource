@@ -1,0 +1,390 @@
+This text describes the Paradox picture input masking capabilities. It comes
+from chapter 5 of the Paradox PAL Programmers Guide for Paradox 4.0. This is
+what the nSEdit() function in the oCrt unit uses to mask user input when a
+picture string has been set for the nEC.Picture property.
+
+CHAPTER 5
+
+Using pictures to format input
+
+A PAL picture is a powerful and flexible tool for controlling what a
+user can type into a field during data entry. You can use pictures to
+
+a) shape and limit what the user can type into a field
+
+b) make data entry easier by filling in required or default values
+   automatically.
+
+You can think of pictures as a way to define new field types by
+imposing restrictions on existing ones. In effect, the Social Security
+number picture in Example 5-1 defines a new type of alphanumeric
+field. So would a picture of a telephone number (with or without the
+area code), or a part number in which X is always the second
+character. Pictures can also help users fill in default or repetitive
+values during data entry. For instance, through a picture, you can
+specify that the X in the part number will be filled in automatically.
+
+Example 5-1 Using a picture to format input.
+
+Suppose you want a user to enter Social Security numbers. Use a picture
+to make sure the input has the proper format.
+
+PICTURE = "###-##-###"
+
+The picture fills in the hyphens automatically and ensures that the user types
+the proper number of digits -- no other characters will be accepted.
+
+When a picture is specified, the user must fill it exactly and
+completely. In Example 5-1, if a user starts by typing a letter, a beep
+results. If someone tries to leave the field before typing all the digits,
+Paradox displays the message Incomplete field and leaves the cursor
+in the field.
+
+While a user is typing data into a picture, pressing Backspace or Del
+erases characters and Ctrl-Backspace clears the field as long as the
+resulting entry fills the picture. You can also design the picture to fill
+in optional characters when the user presses Space.
+
+How to define pictures
+
+A picture is a kind of pattern. It consists of a sequence of literal
+characters interlaced with any of the match characters listed in
+Table 5-1.
+
+Table 5-1  Match characters in pictures
+
+Picture element    Description
+----------------   --------------------------------------------
+
+Match characters
+
+#                  Accept only a digit
+?                  Accept only a letter (upper- or lowercase)
+&                  Accept only a letter, convert to uppercase
+@                  Accept any character
+!                  Accept any character, convert to uppercase
+t                  Any character taken literally
+
+Special characters
+
+;                  Take next character literally
+*                  Repetition count
+[]                 Option
+{}                 Grouping operators
+,                  Set of alternatives
+---------------------------------------------------------------
+Any number, letter, or punctuation character not defined as one of the unique
+match or special characters (that is, anything you can type that isn't on this
+list) is taken literally.
+
+The Social Security number in Example 5-1 was specified with the
+picture ###-##-####. The # is a match character that accepts only
+digits in its place. The hyphen is a literal character, meaning that it
+must literally appear in the typed value (matched exactly).
+Literal characters in a picture are filled in automatically unless
+
+a) you specify otherwise (see "Inhibiting automatic fill-in" later in
+   this chapter)
+b) they occur at the beginning of a picture (this helps to
+   accommodate blank fields)
+
+For example, when the cursor arrives at a blank field governed by the
+picture
+
+ABC-###
+
+the "ABC-" is not filled in automatically because it occurs at the
+beginning of the picture. But as soon as the user types A or a, or
+presses Space, the "ABC-" appears.
+
+If you want to specify a literal character that happens to be a match
+character, precede it with a semicolon (;). For example, here's how
+you'd specify a part number that contains three letters, a hyphen, and
+a number sign (#):
+
+???-;#
+
+If you omitted the semicolon, the picture would call for three letters,
+a hyphen, and a digit. You can use the semicolon in a picture to
+precede any of the characters in Table 5-1 that you want to be taken
+literallyincluding the semicolon itself. Here are some other
+examples:
+
+$*#.##;@      ; price each, like $345.67@
+*?;?          ; questions, adding ? to any text
+###;,###      ; six-digit number with comma separating thousands,
+              ; like 345.678
+???;;;#       ; part number with three letters, semicolon, and
+              ; number sign, like ABC;#
+
+
+Special features of
+pictures
+
+The special features of pictures are described in detail in the
+following sections. These spedal features are summarized in Table 5-2
+
+Table 5-2 Special features of pictures
+
+Operator  Name      Examples           Satisfied by
+--------  --------  -----------------  ---------------------------------------
+*         Repeat    *5#                Five numbers; equivalent to #####
+                    *#                 Zero or more numbers
+                    (*#.##), *#.##     Currency amounts, negative or
+                                       positive
+                    &*?                Initial capitalization of a single word
+{ }       Set       *5{##}             Ten numbers or five times the set of
+                                       two numbers
+
+                    {20,40,60,75,100}W Light bulbs in different wattages
+[ ]       Optional  ###-####[###[#]]   Phone number with or without a 3-
+                                       or 4-digit extension
+                    *[&[*?][@][ ]]     Any number of capitalized words
+                                       and initials
+,       Alternative RED,BLUE           Literals "RED" or "BLUE"; entering
+                                       an R fills RED, a B fills BLUE
+                    ###,##             2- or 3-digit number; ##,### would
+                                       not work
+{ }       Inhibit   ###{-)##           The hyphen is not filled in
+          Fill                         automatically: the user must press
+                                       Space to have the hvohen filled in
+------------------------------------------------------------------------------
+
+Repetition counts
+
+You'll find the repetition count match character (*) useful when
+specifying pictures for long fields. For example, these two pictures
+are equivalent:
+
+*25#
+#########################
+
+The match character * in the first picture is followed by a number,
+which is the number of times to repeat the match character or literal
+that follows. If you omit the *, the picture would mean the number 25
+followed by any other digit.
+
+To repeat a group of match characters, enclose the group in braces {}
+following the number of repetitions:
+
+*3{##:}   ; equivalent to ##:##:##:
+
+Notice how this picture mixes literal and match characters in the
+group. Each group consists of two digits to be typed by the user and
+a colon to be filled in by Paradox.
+
+Also use the grouping braces {} when you want to repeat a single
+number, as in
+
+*3{5}#   ; equivalent to 555# (three fives followed by any other digit)
+
+Without the braces, Paradox would think you wanted *35#, 35
+repetitions of "#".
+
+Omitting the number after the *, tells Paradox to accept zero or more
+repetitions of the character or group. You might use this variation
+when you want the user to type at least a certain number of
+characters, but perhaps more. For example, this picture in a State field
+
+&&*&
+
+requires at least the two-letter state abbreviation, but would also
+accept a state name spelled out in full.
+
+To use the * as a literal character in a picture, precede it with a
+semicolon (;). For example,
+
+;*###;*     ; equivalent to *###*
+
+Optional elements
+
+You can make part of a value optional by enclosing the
+corresponding part of the picture within brackets [ ]. This means that
+the user can enter data for that part of the value, but is not required
+to do so. The user can accept the optional part by typing a character
+that fits it or by pressing Space if the character is a literal.
+
+Note:  When the user reaches an optional part of a value, any matching
+character accepts the entire optional part. For example,
+
+[###l ###-####
+
+doesn't make the area code optional. Suppose the user tries to skip the
+area code and types the first digit of the phone number. Since this
+matches the first optional character, Paradox assumes it is the area
+code and requires all 10 digits.
+
+Similarly, the following picture won't work to specify a number with
+either two or three digits:
+
+[#]##
+
+since the first digit typed is always understood to be the [#]. To
+specify an optional number of digits, place the optional portion after
+the required portion:
+
+##[#]
+
+Here, the first two digits typed will match the mandatory #
+characters, and the third digit may or may not be added. Remember
+that pictures are always scanned left to right, so the optional portion
+of a repeating element should always come at the end.
+
+Example 5-2 demonstrates the correct way to create a picture for a
+telephone number with an optional area code.
+
+Example 5-2 Options in pictures
+
+The following picture accepts a 7-digit telephone number with an optional,
+parenthesized 3-digit area code:
+
+[(###)] ### - ####
+
+The user can fill in this field in two ways:
+
+a) If the first character typed is the left parenthesis or Space,
+   it matches the optional part of the picture and Paradox will look for a
+   3-digit area code before the 7-digit number.
+
+b) If the first character typed is a digit, Paradox ignores the option and
+   skips to the required digits. The right parenthesis (if used) and hyphen
+   are filled in automatically.
+
+Literal characters at the beginning of an optional part of a value are
+never filled in automatically. For example, in the picture
+
+#[ABC]#
+
+the characters "ABC" are not automatically filled in after the user
+types the first digit. They are filled in if the user types "A" or "a" or
+presses Space. The automatic fill-in occurs only when the filled-in
+characters are mandatory, or when the user explicitly elects the
+option by typing the first character or pressing Space.
+
+Optional elements can be nested, as in the following picture:
+
+#[[#[a]]
+
+Because the characters [ and ] are used to specify options, they must
+be preceded by a semicolon (;) if you want to use them literally in a
+picture.
+
+Alternative choices
+
+Many applications require the user to type one of several possible
+choices as part or all of a data value. A part number, for example,
+might consist of a three-digit number, followed by a color code of
+RED, GRE, YEL, or BLU, followed by another three-digit number.
+You specify a set of alternatives in a picture as a comma-separated list
+of alternatives. For example, you could specify the color-coded part
+numbers like this:
+
+###RED###, ###G RE###, ###YEL###, ###BLU###
+
+or, more succinctly,
+
+###{RED,GRE,YEL,BLU}###
+
+Both of these pictures have the same effect. In the second, the braces
+have been used to group the alternatives.
+
+As with bracketed options, literal characters at the beginning of an
+alternative are not filled in automatically. For example, if the user
+types 345 in the preceding example, the characters RED are not then
+filled in. But if the user then presses Spacebar or types r, the ED is
+filled in. Similarly, if the user types g, the RE is filled in, and so on.
+Paradox always fills in the first matching alternative it finds; thafs
+why RED is filled in when the user presses Space. To get one of the
+other options, the user must type its first letter.
+
+Example 5-3 Alternatives in a date picture
+
+The following example lets you restrict input in a date field to dates falling
+within the first week of a month:
+
+#[#]/{1.2,3,4.5,6,7}/##[#][#]
+
+Note the use of optional digits to permit months to have either one or two
+digits and years to have two, three, or four. Again, since pictures are scanned
+from left to right, the optional elements always come at the end of that part of
+the picture.
+
+The different alternatives need not be composed of literal characters;
+they can be picture specifications of any kind (Example 5-3). For
+example, here's another way of specifying a two- or three-digit
+number:
+
+###,##
+
+Again, the picture ##,### wouldn't do the job, because once the first
+two digits are typed, the first alternative will be selected and the
+picture will be fully satisfied. If the user then types a third digit, a
+beep sounds.
+
+The following picture specifies that an alphanumeric value can either
+be True or False:
+
+True,False
+
+Using this picture or variations on it, you can easily obtain the effect
+of a logical value or create a field of type logical in a Paradox table.
+
+As with other match characters, if you want to use a comma (,) as a
+literal character in a picture, you must precede it with a semicolon (;).
+
+Inhibiting automatic fill-in
+
+Some users find automatic fill-in of literal characters annoying
+particularly if they seldom look at the screen as they type. To inhibit
+it, simply enclose the literal characters you don't want filled in within
+braces I }. For example, this picture inhibits the fill-in of hyphens in
+Social Security numbers:
+
+###{-}##{-}####
+
+When the user types the first three digits, the hyphen (-) is not filled
+in. To enter it, the user can press - or Space.
+
+Sometimes you must inhibit fill-in to get the effect you want. In the
+color-coded part numbers in the previous section, suppose we had
+the color code BRO in addition to RED, GRE, YEL, and BLU. Adding
+BRO to the preceding picture gives
+
+###{RED,GRE,YEL,BLU,BRO}###
+
+Now suppose the user types three digits and then a b. Since BLU is
+the first possible match (left to right), Paradox would fill in the LU
+automatically. This could be wrong, since the user may have had
+BRO in mind rather than BLU. To solve this problem, use either of
+these pictures to inhibit automatic fill-in of the L:
+
+###{RED,GRE,YEL,B{L}U,BRO}###
+
+###{RED,GRE,YEL,B{LU,RO}}###
+
+The second picture, in effect, factors the letter B out of both BLU and
+BRO. This forces the user to type two characters to specify the blue or
+brown color code. The (LU, RO} is a set of alternative choices that has
+been nested within the larger set of choices.
+
+Going a step further, here's how you could inhibit all of the fill-in:
+
+###(R{E}{D},G{R}{E},Y{E}{L},B{L}{U},B{R}{0}}###
+
+Picture examples
+
+By using PAL's regular and special match characters, you can create
+an almost endless variety of picturesin effect, new data typesfor
+your applications. Here are just a few examples:
+
+(*#.##),*#.##             ; currency amounts, using parentheses for
+                          ; negative quantities
+#[#][#]*{;,###}           ; positive integers with commas separating
+                          ; groups of three digits
+{20,40,60,75,100}W        ; light bulbs in different wattages
+{A,B,C.D,E,F,G,H}[R]##-## ; tire sizes
+&*?                       ; initial capitalization of a single word
+&. &. &*?                 ; two initials followed by a capitalized name
+                          ; of any length
+*[&[*?][@][ ]]            ; any number of capitalized words or initials
+{##}:{##}:{##}            ; for time
