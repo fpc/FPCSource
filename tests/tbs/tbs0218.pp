@@ -1,6 +1,6 @@
 Program Wrong_Output;
 {}
-Var r,rr:Extended; 
+Var r,rr,error:Extended;
     s:String;
     code : word;
 {}
@@ -18,11 +18,24 @@ Begin
   Writeln('r=',r:9:6);
   Writeln('r=',r:8:5);
   Writeln('r=',r:7:4);
-  Str(r:7:4,s);
+  Str(r,s);
   Writeln('r=',s,' (as string)');
   str(r,s);
   val(s,rr,code);
-  if r<>rr then 
+  { calculate maximum possible precision }
+  if sizeof(extended) = 10 then
+    error := exp(17*ln(10))
+  else if sizeof(extended) = 8 then
+    error := exp(14*ln(10))
+  else if sizeof(extended) = 4 then
+    { the net may have to be 9 instead of 8, not sure }
+    error := exp(8*ln(10))
+  else
+    begin
+      Writeln('unknown extended type size!');
+      halt(1)
+    end;
+  if abs(r-rr) > error then
     begin
       Writeln('r=',r);
       Writeln('is different from rr=',rr);

@@ -274,6 +274,10 @@ begin
       GetIntPart(d);
       { now process the fractional part }
       d := frac(d);
+      { if we have to round earlier than the amount of available precision, }
+      { only calculate digits up to that point                              }
+      if (f >= 0) and (currPrec > f) then
+        currPrec := f;
       { if integer part was zero, go to the first significant digit of the }
       { fractional part                                                    }
       { make sure we don't get an endless loop if d = 0                    }
@@ -283,19 +287,19 @@ begin
           while d < 1.0-roundCorr do
             begin
               d := d * 10.0;
-              dec(correct);
+                dec(correct);
+              { adjust the precision depending on how many digits we  }
+              { already "processed" by multiplying by 10, but only if }
+              { the amount of precision is specified                  }
+              if f >= 0 then
+                dec(currPrec);
             end;
-          { adjust the precision depending on how many digits we already }
-          { "processed" by multiplying by 10                             }
-{          if currPrec >= abs(Correct) then
-            currPrec := currPrec - abs(correct)+1;}
+          { we decreased currPrec once too much }
+          if f >= 0 then
+            inc(currPrec);
         end;
       { current length of the output string in endPos }
       endPos := spos;
-      { if we have to round earlier than the amount of available precision, }
-      { only calculate digits up to that point                              }
-      if (f >= 0) and (currPrec > f) then
-        currPrec := f;
       { always calculate at least 1 fractional digit for rounding }
       if (currPrec >= 0) then
         begin
@@ -331,7 +335,9 @@ begin
       { delete leading zero if we didn't need it while rounding at the }
       { string level                                                   }
       if temp[2] = '0' then
-        delete(temp,2,1);
+        delete(temp,2,1)
+      { the rounding caused an overflow to the next power of 10 }
+      else inc(correct);
       if sign then
         temp[1] := '-';
       if (f<0) or (correct>(round(ln(maxexp)/ln(10)))) then
@@ -382,7 +388,11 @@ end;
 
 {
   $Log$
-  Revision 1.27  2000-03-05 09:41:05  jonas
+  Revision 1.28  2000-03-17 20:20:33  jonas
+    * fixed rounding bugs with certain formatting parameters in str_real
+    * fixed tbs0218 so it compares both results only until max precision
+
+  Revision 1.27  2000/03/05 09:41:05  jonas
     * fixed rounding problem when writing out single/double type vars
 
   Revision 1.26  2000/03/02 07:35:57  jonas
