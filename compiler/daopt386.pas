@@ -33,7 +33,6 @@ Uses AAsm, CObjects
 
 {*********************** Procedures and Functions ************************}
 
-
 Procedure InsertLLItem(AsmL: PAasmOutput; prev, foll, new_one: PLinkedList_Item);
 
 Function Reg32(Reg: TRegister): TRegister;
@@ -48,8 +47,10 @@ Function GetLastInstruction(Current: Pai; Var Last: Pai): Boolean;
 
 Function RegsSameContent(p1, p2: Pai; Reg: TRegister): Boolean;
 Function InstructionsEqual(p1, p2: Pai): Boolean;
+
 Procedure DFAPass1(AsmL: PAasmOutput);
 Function DFAPass2(AsmL: PAasmOutput): Pai;
+Procedure ShutDownDFA;
 
 Function FindLabel(L: PLabel; Var hp: Pai): Boolean;
 {Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LoLab, HiLab, LabDif: Longint);}
@@ -107,7 +108,7 @@ Type
        content of this register. If Typ = con_const, then
        Longint(StartMod) = value of the constant)}
                StartMod: Pointer;
-      {starts at 0, gets increased everytime the register is modified}
+      {starts at 1, gets increased everytime the register is modified}
                State: Word;
       {how many instructions starting with StarMod does the block consist of}
                NrOfMods: Byte;
@@ -138,29 +139,26 @@ Type
                CanBeRemoved: Boolean;
              End;
 
-     PPaiProp = ^TPaiProp;
+  PPaiProp = ^TPaiProp;
 {$IfDef TP}
-     TPaiPropBlock = Array[1..(65520 div (((SizeOf(TPaiProp)+1)div 2)*2))] Of TPaiProp;
+  TPaiPropBlock = Array[1..(65520 div (((SizeOf(TPaiProp)+1)div 2)*2))] Of TPaiProp;
 {$else}
-     TPaiPropBlock = Array[1..250000] Of TPaiProp;
+  TPaiPropBlock = Array[1..250000] Of TPaiProp;
 {$EndIf TP}
-     PPaiPropBlock = ^TPaiPropBlock;
+  PPaiPropBlock = ^TPaiPropBlock;
 
-{$IfDef JmpAnal}
+  TInstrSinceLastMod = Array[R_EAX..R_EDI] Of Byte;
+
   TLabelTableItem = Record
-                      p: Pai;
-{$IfDef TP}
-                      RefsFound: Byte;
-{$Else TP}
+                      PaiObj: Pai;
+{$IfNDef TP}
+                      InstrNr: Longint;
                       RefsFound: Word;
+                      JmpsProcessed: Word
 {$EndIf TP}
-                      AlreadyProcessed: Boolean;
                     End;
-{$Else JmpAnal}
-  TLabelTableItem = Pai;
-{$Endif JmpAnal}
 {$IfDef tp}
-  TLabelTable = Array[0..9000] Of TLabelTableItem;
+  TLabelTable = Array[0..10000] Of TLabelTableItem;
 {$Else tp}
   TLabelTable = Array[0..2500000] Of TLabelTableItem;
 {$Endif tp}
@@ -170,7 +168,6 @@ Type
              End;
 
 {******************************* Variables *******************************}
-
 
 Var
 {the amount of PaiObjects in the current assembler list}
@@ -581,20 +578,20 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
 Var
  {How many instructions are betwen the current instruction and the last one
   that modified the register}
-  NrOfInstrSinceLastMod: Array[R_EAX..R_EDI] Of Byte;
+  NrOfInstrSinceLastMod: TInstrSinceLastMod;
 
 
 {************************ Create the Label table ************************}
 
-Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LoLab, HiLab, LabDif: Longint);
+Procedure FindLoHiLabels(AsmL: PAasmOutput; Var LowLabel, HighLabel, LabelDif: Longint);
 {Walks through the paasmlist to find the lowest and highest label number;
  Since 0.9.3: also removes unused labels}
 Var LabelFound: Boolean;
     P, hp1: Pai;
 Begin
   LabelFound := False;
-  LoLab := MaxLongint;
-  HiLab := 0;
+  LowLabel := MaxLongint;
+  HighLabel := 0;
   P := Pai(AsmL^.first);
   While Assigned(p) Do
     Begin
@@ -603,10 +600,10 @@ Begin
           Then
             Begin
               LabelFound := True;
-              If (Pai_Label(p)^.l^.nb < LoLab) Then
-                LoLab := Pai_Label(p)^.l^.nb;
-              If (Pai_Label(p)^.l^.nb > HiLab) Then
-                HiLab := Pai_Label(p)^.l^.nb;
+              If (Pai_Label(p)^.l^.nb < LowLabel) Then
+                LowLabel := Pai_Label(p)^.l^.nb;
+              If (Pai_Label(p)^.l^.nb > HighLabel) Then
+                HighLabel := Pai_Label(p)^.l^.nb;
             End
           Else
             Begin
@@ -619,8 +616,8 @@ Begin
       p := pai(p^.next);
     End;
   If LabelFound
-    Then LabDif := HiLab+1-LoLab
-    Else LabDif := 0;
+    Then LabelDif := HighLabel+1-LowLabel
+    Else LabelDif := 0;
 End;
 
 Procedure BuildLabelTable(AsmL: PAasmOutput; Var LabelTable: PLabelTable; LowLabel: Longint; Var LabelDif: Longint);
@@ -640,11 +637,7 @@ Begin
             While Assigned(p) Do
               Begin
                 If (Pai(p)^.typ = ait_label) Then
-{$IfDef JmpAnal}
-                  LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].p := p;
-{$Else JmpAnal}
-                  LabelTable^[Pai_Label(p)^.l^.nb-LowLabel] := p;
-{$EndIf JmpAnal}
+                  LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p;
                 p := pai(p^.next);
               End;
 {$IfDef TP}
@@ -849,7 +842,16 @@ Begin
     Else InternalError($db)
 End;
 
-Procedure DestroyReg(p1: pai; Reg: TRegister);
+Procedure IncState(Var S: Word);
+{Increases the state by 1, wraps around at $ffff to 0 (so we won't get
+ overflow errors}
+Begin
+  If (s <> $ffff)
+    Then Inc(s)
+    Else s := 0
+End;
+
+Procedure DestroyReg(p1: PPaiProp; Reg: TRegister);
 {Destroys the contents of the register Reg in the PPaiProp of P}
 Var TmpState: Longint;
 Begin
@@ -857,11 +859,13 @@ Begin
   NrOfInstrSinceLastMod[Reg] := 0;
   If (Reg >= R_EAX) And (Reg <= R_EDI)
     Then
-      Begin
-        TmpState := PPaiProp(p1^.fileinfo.line)^.Regs[Reg].State+1;
-        FillChar(PPaiProp(p1^.fileinfo.line)^.Regs[Reg], SizeOf(TContent), 0);
-        PPaiProp(p1^.fileinfo.line)^.Regs[Reg].State := TmpState;
-      End;
+      With p1^.Regs[Reg] Do
+        Begin
+          IncState(State);
+          TmpState := State;
+          FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
+          State := TmpState;
+        End;
 End;
 
 Function OpsEqual(typ: Longint; op1, op2: Pointer): Boolean;
@@ -926,7 +930,7 @@ If (Ref.base <> R_NO) Or
                    (RefsEqual(TReference(Pai386(StartMod)^.op1^), Ref) Or
                    (Not(cs_UncertainOpts in AktSwitches) And
                     (NrOfMods <> 1)))
-                  Then DestroyReg(p, Counter)
+                  Then DestroyReg(PPaiProp(p^.fileinfo.line), Counter)
               End
         Else
           {writing something to a pointer location}
@@ -941,9 +945,9 @@ If (Ref.base <> R_NO) Or
                 (Pai386(StartMod)^.op1t = top_ref) And
                 (PReference(Pai386(StartMod)^.op1)^.base = ProcInfo.FramePointer))))
               Then
-                DestroyReg(p, Counter) {we don't know what memory location the reference points to,
-                                      so we just destroy every register which contains a memory
-                                      reference}
+{we don't know what memory location the reference points to, so we just
+ destroy every register which contains a memory reference}
+                DestroyReg(PPaiProp(p^.FileInfo.Line), Counter)
     End
   Else {the ref is a var name or we just have a reference an absolute offset}
     Begin
@@ -953,22 +957,22 @@ If (Ref.base <> R_NO) Or
            (Not(cs_UncertainOpts in AktSwitches) Or
             RefsEqual(Ref,
                      TReference(Pai386(PPaiProp(p^.fileinfo.line)^.Regs[Counter].StartMod)^.op1^))) Then
-          DestroyReg(p, Counter)
+          DestroyReg(PPaiProp(p^.fileinfo.line), Counter)
     End;
 End;
 
-Procedure DestroyAllRegs(p: Pai);
+Procedure DestroyAllRegs(p: PPaiProp);
 Var Counter: TRegister;
 Begin {initializes/desrtoys all registers}
   For Counter := R_EAX To R_EDI Do
     DestroyReg(p, Counter);
-  PPaiProp(p^.fileinfo.line)^.DirFlag := F_Unknown;
+  p^.DirFlag := F_Unknown;
 End;
 
 Procedure Destroy(PaiObj: Pai; opt: Longint; Op: Pointer);
 Begin
   Case opt Of
-    top_reg: DestroyReg(PaiObj, TRegister(Op));
+    top_reg: DestroyReg(PPaiProp(PaiObj^.fileinfo.line), TRegister(Op));
     top_ref: DestroyRefs(PaiObj, TReference(Op^), R_NO);
     top_symbol:;
   End;
@@ -986,10 +990,10 @@ Function DoDFAPass2(First: Pai): Pai;
  contents for the instructions starting with p. Returns the last pai which has
  been processed}
 Var
-    TmpProp: PPaiProp;
-    Cnt, InstrCnt: Longint;
+    CurProp: PPaiProp;
+    Cnt, InstrCnt, TmpState: Longint;
     InstrProp: TAsmInstrucProp;
-    p: Pai;
+    p, hp: Pai;
     TmpRef: TReference;
     TmpReg: TRegister;
 Begin
@@ -999,24 +1003,217 @@ Begin
   While Assigned(p) Do
     Begin
       DoDFAPass2 := p;
-      If (InstrCnt <= NrOfPaiFast)
-        Then TmpProp := @PaiPropBlock^[InstrCnt]
-        Else New(TmpProp);
+{$IfDef TP}
+      If (InstrCnt <= NrOfPaiFast) Then
+{$EndIf TP}
+        CurProp := @PaiPropBlock^[InstrCnt]
+{$IfDef TP}
+        Else New(CurProp)
+{$EndIf TP}
+        ;
       If (p <> First)
-        Then TmpProp^ := PPaiProp(Pai(p^.previous)^.fileinfo.line)^
-        Else FillChar(TmpProp^, SizeOf(TmpProp^), 0);
-      TmpProp^.linesave := p^.fileinfo.line;
-      PPaiProp(p^.fileinfo.line) := TmpProp;
+        Then
+{$ifndef TP}
+          Begin
+            If (p^.Typ <> ait_label) Then
+{$endif TP}
+              Begin
+                CurProp^.Regs := PPaiProp(Pai(p^.previous)^.fileinfo.line)^.Regs;
+                CurProp^.DirFlag := PPaiProp(Pai(p^.previous)^.fileinfo.line)^.DirFlag
+              End
+{$ifndef TP}
+          End
+{$endif TP}
+        Else
+          Begin
+            FillChar(CurProp^, SizeOf(CurProp^), 0);
+{            For TmpReg := R_EAX to R_EDI Do
+              CurProp^.Regs[TmpReg].State := 1;}
+          End;
+      CurProp^.CanBeRemoved := False;
+{$IfDef TP}
+      CurProp^.linesave := p^.fileinfo.line;
+      PPaiProp(p^.fileinfo.line) := CurProp;
+{$EndIf}
       For TmpReg := R_EAX To R_EDI Do
         Inc(NrOfInstrSinceLastMod[TmpReg]);
       Case p^.typ Of
-        ait_label: DestroyAllRegs(p);
-        ait_labeled_instruction
+        ait_label:
+{$Ifdef TP}
+          DestroyAllRegs(CurProp);
+{$Else TP}
+          Begin
+            With LTable^[Pai_Label(p)^.l^.nb-LoLab] Do
+{$IfDef AnalyzeLoops}
+              If (RefsFound = Pai_Label(p)^.l^.RefCount)
+{$Else AnalyzeLoops}
+              If (JmpsProcessed = Pai_Label(p)^.l^.RefCount)
+{$EndIf AnalyzeLoops}
+                Then
+{all jumps to this label have been found}
+{$IfDef AnalyzeLoops}
+                  If (JmpsProcessed > 0)
+                    Then
+{$EndIf}
+ {we've processed at least one jump to this label}
+                      Begin
+                        If Not(GetLastInstruction(p, hp) And
+                               (hp^.typ = ait_labeled_instruction) And
+                               (Pai_Labeled(hp)^._operator = A_JMP))
+                          Then
+  {previous instruction not a JMP -> the contents of the registers after the
+   previous intruction has been executed have to be taken into account as well}
+                            For TmpReg := R_EAX to R_EDI Do
+                              Begin
+                                If (CurProp^.Regs[TmpReg].State <>
+                                    PPaiProp(Pai(p^.Previous)^.FileInfo.Line)^.Regs[TmpReg].State)
+                                  Then DestroyReg(CurProp, TmpReg)
+                              End
+                      End
+{$IfDef AnalyzeLoops}
+                    Else
+ {a label from a backward jump (e.g. a loop), no jump to this label has
+  already been processed}
+                      If Not(GetLastInstruction(p, hp) And
+                          (hp^.typ = ait_labeled_instruction) And
+                          (Pai_Labeled(hp)^._operator = A_JMP))
+                        Then
+  {previous instruction not a jmp, so keep all the registers' contents from the
+   previous instruction}
+                          Begin
+                            CurProp^.Regs := PPaiProp(Pai(p^.Previous)^.FileInfo.Line)^.Regs;
+                            CurProp^.DirFlag := PPaiProp(Pai(p^.Previous)^.FileInfo.Line)^.DirFlag;
+                          End
+                        Else
+  {previous instruction a jmp and no jump to this label processed yet}
+                          Begin
+                            hp := p;
+                            Cnt := InstrCnt;
+     {continue until we find a jump to the label or a label which has already
+      been processed}
+                            While GetNextInstruction(hp, hp) And
+                                  Not((hp^.typ = ait_labeled_instruction) And
+                                      (Pai_Labeled(hp)^.lab^.nb = Pai_Label(p)^.l^.nb)) And
+                                  Not((hp^.typ = ait_label) And
+                                      (LTable^[Pai_Label(hp)^.l^.nb-LoLab].RefsFound
+                                       = Pai_Label(hp)^.l^.RefCount) And
+                                      (LTable^[Pai_Label(hp)^.l^.nb-LoLab].JmpsProcessed > 0)) Do
+                              Inc(Cnt);
+                            If (hp^.typ = ait_label)
+                              Then
+   {there's a processed label after the current one}
+                                Begin
+                                  CurProp^.Regs := PaiPropBlock^[Cnt].Regs;
+                                  CurProp^.DirFlag := PaiPropBlock^[Cnt].DirFlag;
+                                End
+                              Else
+   {there's no label anymore after the current one, or they haven't been
+    processed yet}
+                                Begin
+                                  CurProp^.Regs := PPaiProp(Pai(p^.Previous)^.FileInfo.Line)^.Regs;
+                                  CurProp^.DirFlag := PPaiProp(Pai(p^.Previous)^.FileInfo.Line)^.DirFlag;
+                                  DestroyAllRegs(PPaiProp(Pai(p^.Previous)^.FileInfo.Line))
+                                End
+                          End
+{$EndIf AnalyzeLoops}
+                Else
+{not all references to this label have been found, so destroy all registers}
+                  Begin
+                    CurProp^.Regs := PPaiProp(Pai(p^.Previous)^.FileInfo.Line)^.Regs;
+                    CurProp^.DirFlag := PPaiProp(Pai(p^.Previous)^.FileInfo.Line)^.DirFlag;
+                    DestroyAllRegs(CurProp)
+                  End;
+          End;
+{$EndIf TP}
+        ait_labeled_instruction:
+{$IfDef TP}
+  ;
+{$Else TP}
+          With LTable^[Pai_Labeled(p)^.lab^.nb-LoLab] Do
+            If (RefsFound = Pai_Labeled(p)^.lab^.RefCount) Then
+              Begin
+                If (InstrCnt < InstrNr)
+                  Then
+                {forward jump}
+                    If (JmpsProcessed = 0) Then
+                {no jump to this label has been processed yet}
+                      Begin
+                        PaiPropBlock^[InstrNr].Regs := CurProp^.Regs;
+                        PaiPropBlock^[InstrNr].DirFlag := CurProp^.DirFlag;
+                        Inc(JmpsProcessed);
+                      End
+                    Else
+                      Begin
+                        For TmpReg := R_EAX to R_EDI Do
+                          If (PaiPropBlock^[InstrNr].Regs[TmpReg].State <>
+                             CurProp^.Regs[TmpReg].State) Then
+                            DestroyReg(@PaiPropBlock^[InstrNr], TmpReg);
+                        Inc(JmpsProcessed);
+                      End
+{$ifdef AnalyzeLoops}
+                  Else
+                {backward jump, a loop for example}
+{                    If (JmpsProcessed > 0) Or
+                       Not(GetLastInstruction(PaiObj, hp) And
+                           (hp^.typ = ait_labeled_instruction) And
+                           (Pai_Labeled(hp)^._operator = A_JMP))
+                      Then}
+{instruction prior to label is not a jmp, or at least one jump to the label
+ has yet been processed}
+                        Begin
+                          Inc(JmpsProcessed);
+                          For TmpReg := R_EAX to R_EDI Do
+                            If (PaiPropBlock^[InstrNr].Regs[TmpReg].State <>
+                                CurProp^.Regs[TmpReg].State)
+                              Then
+                                Begin
+                                  TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].State;
+                                  Cnt := InstrNr;
+                                  While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].State) Do
+                                    Begin
+                                      DestroyReg(@PaiPropBlock^[Cnt], TmpReg);
+                                      Inc(Cnt);
+                                    End;
+                                  While (Cnt <= InstrCnt) Do
+                                    Begin
+                                      Inc(PaiPropBlock^[Cnt].Regs[TmpReg].State);
+                                      Inc(Cnt)
+                                    End
+                                End;
+                        End
+{                      Else
+{instruction prior to label is a jmp and no jumps to the label have yet been
+ processed}
+                        Begin
+                          Inc(JmpsProcessed);
+                          For TmpReg := R_EAX to R_EDI Do
+                            Begin
+                              TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].State;
+                              Cnt := InstrNr;
+                              While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].State) Do
+                                Begin
+                                  PaiPropBlock^[Cnt].Regs[TmpReg] := CurProp^.Regs[TmpReg];
+                                  Inc(Cnt);
+                                End;
+                              TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].State;
+                              While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].State) Do
+                                Begin
+                                  DestroyReg(@PaiPropBlock^[Cnt], TmpReg);
+                                  Inc(Cnt);
+                                End;
+                              While (Cnt <= InstrCnt) Do
+                                Begin
+                                  Inc(PaiPropBlock^[Cnt].Regs[TmpReg].State);
+                                  Inc(Cnt)
+                                End
+                            End
+                        End}
+{$endif AnalyzeLoops}
+          End;
+{$EndIf TP}
 {$ifdef GDB}
-        , ait_stabs, ait_stabn,
-        ait_stab_function_name
+        ait_stabs, ait_stabn, ait_stab_function_name:;
 {$endif GDB}
-        :; {nothing changes}
 {$ifdef regalloc}
         ait_regalloc, ait_regdealloc:;
 {$endif regalloc}
@@ -1031,11 +1228,11 @@ Begin
                       Case Pai386(p)^.op2t Of
                         Top_Reg:
                           Begin
-                            DestroyReg(p, TRegister(Pai386(p)^.op2));
-{                            TmpProp^.Regs[TRegister(Pai386(p)^.op2)] :=
-                              TmpProp^.Regs[TRegister(Pai386(p)^.op1)];
-                            If (TmpProp^.Regs[TRegister(Pai386(p)^.op2)].ModReg = R_NO) Then
-                              TmpProp^.Regs[TRegister(Pai386(p)^.op2)].ModReg :=
+                            DestroyReg(CurProp, TRegister(Pai386(p)^.op2));
+{                            CurProp^.Regs[TRegister(Pai386(p)^.op2)] :=
+                              CurProp^.Regs[TRegister(Pai386(p)^.op1)];
+                            If (CurProp^.Regs[TRegister(Pai386(p)^.op2)].ModReg = R_NO) Then
+                              CurProp^.Regs[TRegister(Pai386(p)^.op2)].ModReg :=
                                 Tregister(Pai386(p)^.op1);}
                           End;
                         Top_Ref: DestroyRefs(p, TReference(Pai386(p)^.op2^), TRegister(Pai386(p)^.op1));
@@ -1048,7 +1245,7 @@ Begin
                             Begin
                               With PPaiProp(Pai(p)^.fileinfo.line)^.Regs[TmpReg] Do
                                 Begin
-                                  Inc(State);
+                                  IncState(State);
                                   If (typ <> Con_Ref) Then
                                     Begin
                                       typ := Con_Ref;
@@ -1064,7 +1261,7 @@ Begin
                             End
                           Else
                             Begin
-                              DestroyReg(p, TmpReg);
+                              DestroyReg(CurProp, TmpReg);
                               With PPaiProp(Pai(p)^.fileinfo.line)^.Regs[TmpReg] Do
                                 Begin
                                   Typ := Con_Ref;
@@ -1079,11 +1276,11 @@ Begin
                           Top_Reg:
                             Begin
                               TmpReg := Reg32(TRegister(Pai386(p)^.op2));
-                              With TmpProp^.Regs[TmpReg] Do
+                              With CurProp^.Regs[TmpReg] Do
                                 Begin
                                 {it doesn't matter that the state is changed,
                                  it isn't looked at when removing constant reloads}
-                                  DestroyReg(p, TmpReg);
+                                  DestroyReg(CurProp, TmpReg);
                                   typ := Con_Const;
                                   StartMod := Pai386(p)^.op1;
                                 End
@@ -1100,16 +1297,16 @@ Begin
                      If (Pai386(p)^.Op2t = top_none)
                        Then
                          Begin
-                           DestroyReg(p, R_EAX);
-                           DestroyReg(p, R_EDX)
+                           DestroyReg(CurProp, R_EAX);
+                           DestroyReg(CurProp, R_EDX)
                          End
                        Else
                          Begin
                            If (Pai386(p)^.Op2t = top_reg) Then
-                             DestroyReg(p, TRegister(Pai386(p)^.Op2));
+                             DestroyReg(CurProp, TRegister(Pai386(p)^.Op2));
                          End
                    Else If (Pai386(p)^.Op3t = top_reg) Then
-                          DestroyReg(p, TRegister(longint(twowords(Pai386(p)^.Op2).word2)));
+                          DestroyReg(CurProp, TRegister(longint(twowords(Pai386(p)^.Op2).word2)));
                 End;
               A_XOR:
                 Begin
@@ -1118,9 +1315,9 @@ Begin
                      (Pai386(p)^.op1 = Pai386(p)^.op2)
                     Then
                       Begin
-                        DestroyReg(p, Tregister(Pai386(p)^.op1));
-                        TmpProp^.Regs[Reg32(Tregister(Pai386(p)^.op1))].typ := Con_Const;
-                        TmpProp^.Regs[Reg32(Tregister(Pai386(p)^.op1))].StartMod := Pointer(0)
+                        DestroyReg(CurProp, Tregister(Pai386(p)^.op1));
+                        CurProp^.Regs[Reg32(Tregister(Pai386(p)^.op1))].typ := Con_Const;
+                        CurProp^.Regs[Reg32(Tregister(Pai386(p)^.op1))].StartMod := Pointer(0)
                       End
                     Else Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
                 End
@@ -1131,7 +1328,7 @@ Begin
                       For Cnt := 1 To InstrProp.NCh Do
                         Case InstrProp.Ch[Cnt] Of
                           C_None:;
-                          C_EAX..C_EDI: DestroyReg(p, TCh2Reg(InstrProp.Ch[Cnt]));
+                          C_EAX..C_EDI: DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
                           C_CDirFlag: PPaiProp(Pai(p)^.fileinfo.line)^.DirFlag := F_NotSet;
                           C_SDirFlag: PPaiProp(Pai(p)^.fileinfo.line)^.DirFlag := F_Set;
                           C_Op1: Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
@@ -1147,14 +1344,14 @@ Begin
                         End
                     Else
                       Begin
-                        DestroyAllRegs(p);
+                        DestroyAllRegs(CurProp);
                       End;
                 End;
             End;
           End
         Else
           Begin
-            DestroyAllRegs(p);
+            DestroyAllRegs(CurProp);
           End;
       End;
       Inc(InstrCnt);
@@ -1167,11 +1364,35 @@ Function InitDFAPass2(AsmL: PAasmOutput): Boolean;
  TP, returns False if not enough memory is available for the optimizer in all
  cases}
 Var p: Pai;
+    Count: Longint;
+    TmpStr: String;
 Begin
   P := Pai(AsmL^.First);
   NrOfPaiObjs := 1;
   While (P <> Pai(AsmL^.last)) Do
     Begin
+{$IfNDef TP}
+      Case P^.Typ Of
+        ait_labeled_instruction:
+          begin
+            If (Pai_Labeled(P)^.lab^.nb >= LoLab) And
+               (Pai_Labeled(P)^.lab^.nb <= HiLab) Then
+            Inc(LTable^[Pai_Labeled(P)^.lab^.nb-LoLab].RefsFound);
+          end;
+        ait_label:
+          Begin
+            LTable^[Pai_Label(P)^.l^.nb-LoLab].InstrNr := NrOfPaiObjs
+          End;
+{        ait_instruction:
+          Begin
+           If (Pai386(p)^._operator = A_PUSH) And
+              (Pai386(p)^.op1t = top_symbol) And
+              (PCSymbol(Pai386(p)^.op1)^.offset = 0) Then
+             Begin
+               TmpStr := StrPas(PCSymbol(Pai386(p)^.op1)^.symbol);
+               If}
+      End;
+{$EndIf TP}
       Inc(NrOfPaiObjs);
       P := Pai(P^.next)
     End;
@@ -1195,6 +1416,13 @@ Begin
   InitDFAPass2 := True;
   GetMem(PaiPropBlock, NrOfPaiObjs*(((SizeOf(TPaiProp)+3)div 4)*4));
   NrOfPaiFast := NrOfPaiObjs;
+  p := Pai(AsmL^.First);
+  For Count := 1 To NrOfPaiObjs Do
+    Begin
+      PaiPropBlock^[Count].LineSave := p^.fileinfo.line;
+      PPaiProp(p^.fileinfo.line) := @PaiPropBlock^[Count];
+      p := Pai(p^.next);
+    End;
  {$EndIf TP}
 End;
 
@@ -1205,4 +1433,14 @@ Begin
     Else DFAPass2 := Nil;
 End;
 
+Procedure ShutDownDFA;
+Begin
+  If LabDif <> 0 Then
+    FreeMem(LTable, LabDif*SizeOf(TLabelTableItem));
+End;
+
 End.
+
+{
+ $log $
+}
