@@ -174,6 +174,18 @@ interface
                    tt_interfacecom,tt_freeinterfacecom);
       ttemptypeset = set of ttemptype;
 
+      pmmshuffle = ^tmmshuffle;
+
+      { this record describes shuffle operations for mm operations; if a pointer a shuffle record
+        passed to an mm operation is nil, it means that the whole location is moved }
+      tmmshuffle = record
+        { describes how many shuffles are actually described, if len=0 then
+          moving the scalar with index 0 to the scalar with index 0 is meant }
+        len : byte;
+        { lower nibble of each entry of this array describes index of the source data index while
+          the upper nibble describes the destination index }
+        shuffles : array[1..1] of byte;
+      end;
 
     const
        { alias for easier understanding }
@@ -223,6 +235,9 @@ interface
             'LOC_MMREG',
             'LOC_CMMREG');
 
+    var
+       mms_movescalar : pmmshuffle;
+
     function newreg(rt:tregistertype;sr:tsuperregister;sb:tsubregister):tregister;{$ifdef USEINLINE}inline;{$endif}
     function getsubreg(r:tregister):tsubregister;{$ifdef USEINLINE}inline;{$endif}
     function getsupreg(r:tregister):tsuperregister;{$ifdef USEINLINE}inline;{$endif}
@@ -242,6 +257,12 @@ interface
     { return whether op is commutative }
     function commutativeop(op: topcg): boolean;
 
+    { returns true, if shuffle describes a real shuffle operation and not only a move }
+    function realshuffle(shuffle : pmmshuffle) : boolean;
+
+    { removes shuffling from shuffle, this means that the destenation index of each shuffle is copied to
+      the source }
+    procedure removeshuffles(var shuffle : tmmshuffle);
 
 implementation
 
@@ -371,10 +392,48 @@ implementation
       end;
 
 
+    function realshuffle(shuffle : pmmshuffle) : boolean;
+      var
+        i : longint;
+      begin
+        realshuffle:=true;
+        if (shuffle=nil) or (shuffle^.len=0) then
+          realshuffle:=false
+        else
+          begin
+            for i:=1 to shuffle^.len do
+              begin
+                if (shuffle^.shuffles[i] and $f)<>((shuffle^.shuffles[i] and $f0) shr 8) then
+                  exit;
+              end;
+            realshuffle:=false;
+          end;
+      end;
+
+
+    procedure removeshuffles(var shuffle : tmmshuffle);
+      var
+        i : longint;
+      begin
+        if shuffle.len=0 then
+          exit;
+        for i:=1 to shuffle.len do
+          shuffle.shuffles[i]:=(shuffle.shuffles[i] and $f0) or ((shuffle.shuffles[i] and $f0) shr 8);
+      end;
+
+
+initialization
+  new(mms_movescalar);
+  mms_movescalar^.len:=0;
+finalization
+  dispose(mms_movescalar);
 end.
 {
   $Log$
-  Revision 1.69  2003-10-11 16:06:42  florian
+  Revision 1.70  2003-10-13 01:10:01  florian
+    * some ideas for mm support implemented
+
+  Revision 1.69  2003/10/11 16:06:42  florian
     * fixed some MMX<->SSE
     * started to fix ppc, needs an overhaul
     + stabs info improve for spilling, not sure if it works correctly/completly
