@@ -1143,8 +1143,11 @@ BEGIN
          End;
        End Else Begin { no text NewLine }
          Color := CNormal;                              { Normal colour }
-         CreateBorder(SeparationLine);
-         WriteBuf(0, Y, Size.X, 1, B);                { Write the line }
+         If TextModeGFV then
+           Begin
+             CreateBorder(SeparationLine);
+             WriteBuf(0, Y, Size.X, 1, B);                { Write the line }
+           End;
        End;
        Inc(Y);                                        { Next line down }
        P := P^.Next;                                  { fetch next item }
@@ -1737,7 +1740,10 @@ END;
 END.
 {
  $Log$
- Revision 1.10  2001-08-05 21:49:56  pierre
+ Revision 1.11  2002-05-21 10:53:25  pierre
+  * fix graphical separation lines
+
+ Revision 1.10  2001/08/05 21:49:56  pierre
   * GetItemRect returned graphic coordinates, renamed to GetItemRectX
 
  Revision 1.9  2001/08/05 02:03:14  peter
