@@ -459,7 +459,6 @@ procedure val(const s : string;var d : single);
      d:=e;
   end;
 {$ENDIF ieee_support}
-{ Again, not fast, but solid and understandable. }
 {$endif ver_above0_9_2}
 {$ifdef ver_above0_9_7}
 {$ifdef ieee_support}
@@ -490,6 +489,35 @@ begin
    d:=e;
 end;
 {$endif ieee_support}
+{$ifdef comp_support}
+procedure val(const s : string;var d : comp;var code : word);
+
+var e : double;
+
+begin
+   val(s,e,code);
+   d:=e;
+end;
+
+procedure val(const s : string;var d : comp;var code : integer);
+
+var e : double;
+
+begin
+   val(s,e,word(code));
+   d:=e;
+end;
+
+procedure val(const s : string;var d : comp);
+
+var code : word;
+    e    : double;
+begin
+   val(s,e,code);
+   d:=e;
+end;
+{$endif comp_support}
+
 {$endif ver_above0_9_7}
 
 
@@ -734,8 +762,11 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-03-26 14:41:22  michael
+  + Added comp support for val and read(ln)
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.8  1998/03/18 15:04:36  pierre
     * bug in val : a was accepted as 10 in base 10 !!

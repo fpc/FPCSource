@@ -458,8 +458,12 @@ End;
 Procedure w(fixkomma,Len : Longint;var t : TextRec;r : comp);[Public,Alias: 'WRITE_TEXT_COMP'];
 var
   s : String;
+  e : extended;
+  L : longint;
+
 Begin
-  Str_real(Len,fixkomma,r,rt_s64bit,s);
+  e:=r;
+  Str_real(Len,fixkomma,e,rt_s80real,s);
   w(Len,t,s);
 End;
 {$endif comp_support}
@@ -820,10 +824,90 @@ Begin
   If code<>0 Then
    RunError(106);
 End;
+
+{$ifdef ieee_support}
+Procedure r(var f : TextRec;var d : extended);[Public,Alias: 'READ_TEXT_EXTENDED'];
+var
+  hs   : String;
+  code : Word;
+Begin
+  d:=0.0;
+  hs:='';
+  if not OpenInput(f) then
+   exit;
+  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
+   begin
+   { First check for a . }
+     if (f.Bufptr^[f.BufPos]='.') and (f.BufPos<f.BufEnd) Then
+      begin
+        hs:=hs+'.';
+        Inc(f.BufPos);
+        If f.BufPos>=f.BufEnd Then
+         FileFunc(f.InOutFunc)(f);
+        ReadNumeric(f,hs,10);
+      end;
+   { Also when a point is found check for a E }
+     if (f.Bufptr^[f.BufPos] in ['e','E']) and (f.BufPos<f.BufEnd) Then
+      begin
+        hs:=hs+'E';
+        Inc(f.BufPos);
+        If f.BufPos>=f.BufEnd Then
+         FileFunc(f.InOutFunc)(f);
+        if ReadSign(f,hs) then
+         ReadNumeric(f,hs,10);
+      end;
+   end;
+  val(hs,d,code);
+  If code<>0 Then
+   RunError(106);
+End;
+{$endif ieee_support}
+
+{$ifdef comp_support}
+Procedure r(var f : TextRec;var d : comp);[Public,Alias: 'READ_TEXT_COMP'];
+var
+  hs   : String;
+  code : Word;
+Begin
+  d:=0.0;
+  hs:='';
+  if not OpenInput(f) then
+   exit;
+  if IgnoreSpaces(f) and ReadSign(f,hs) and ReadNumeric(f,hs,10) then
+   begin
+   { First check for a . }
+     if (f.Bufptr^[f.BufPos]='.') and (f.BufPos<f.BufEnd) Then
+      begin
+        hs:=hs+'.';
+        Inc(f.BufPos);
+        If f.BufPos>=f.BufEnd Then
+         FileFunc(f.InOutFunc)(f);
+        ReadNumeric(f,hs,10);
+      end;
+   { Also when a point is found check for a E }
+     if (f.Bufptr^[f.BufPos] in ['e','E']) and (f.BufPos<f.BufEnd) Then
+      begin
+        hs:=hs+'E';
+        Inc(f.BufPos);
+        If f.BufPos>=f.BufEnd Then
+         FileFunc(f.InOutFunc)(f);
+        if ReadSign(f,hs) then
+         ReadNumeric(f,hs,10);
+      end;
+   end;
+  val(hs,d,code);
+  If code<>0 Then
+   RunError(106);
+End;
+{$endif}
+
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:43  root
-  Initial revision
+  Revision 1.2  1998-03-26 14:41:22  michael
+  + Added comp support for val and read(ln)
+
+  Revision 1.1.1.1  1998/03/25 11:18:43  root
+  * Restored version
 
   Revision 1.13  1998/03/19 12:00:42  pierre
     * missing write for comp fixed

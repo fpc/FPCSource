@@ -285,6 +285,11 @@ Procedure Val(const s:string;Var d:Real);
    Procedure Val(const s:string;Var d:Extended;Var code:Integer);
    Procedure Val(const s:string;Var d:Extended);
   {$ENDIF ieee_support}
+  {$IFDEF comp_support}
+   Procedure Val(const s:string;Var d:comp;Var code:Word);
+   Procedure Val(const s:string;Var d:comp;Var code:Integer);
+   Procedure Val(const s:string;Var d:comp);
+  {$ENDIF comp_support}
 {$ENDIF VER_ABOVE0_9_7}
 {$IFDEF VER_ABOVE0_9_8}
   Procedure Val(const s:string;Var v:cardinal;Var code:Word);
@@ -387,7 +392,10 @@ Procedure AddExitProc(Proc:TProcedure);
 
 {
   $Log$
-  Revision 1.2  1998-03-25 23:39:17  florian
+  Revision 1.3  1998-03-26 14:41:22  michael
+  + Added comp support for val and read(ln)
+
+  Revision 1.2  1998/03/25 23:39:17  florian
     * complete Object Pascal support moved to objpas unit
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
