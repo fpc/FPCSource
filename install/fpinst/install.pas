@@ -78,7 +78,7 @@ program install;
 
 
   const
-     installerversion='0.99.14';
+     installerversion='1.00';
 
      maxpacks=10;
      maxpackages=20;
@@ -1200,7 +1200,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2000-06-18 18:27:32  hajny
+  Revision 1.20  2000-07-09 12:55:45  hajny
+    * updated for version 1.0
+
+  Revision 1.19  2000/06/18 18:27:32  hajny
     + archive validity checking, progress indicator, better error checking
 
   Revision 1.18  2000/02/24 17:47:47  peter
