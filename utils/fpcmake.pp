@@ -36,6 +36,8 @@ type
     sec_clean,sec_libs,sec_command,sec_exts,sec_dirs,sec_tools,sec_info
   );
 
+  tbic=(bic_none,bic_build,bic_install,bic_clean);
+
 const
   EnvVar='FPCMAKEINI'; { should be FPCMAKE in the future }
   TimeFormat='yyyy/mm/dd hh:nn';
@@ -74,6 +76,15 @@ const
     sec_install,sec_install,sec_sourceinstall,sec_zipinstall,sec_zipinstall,
     sec_clean,sec_clean,
     sec_depend,sec_info
+  );
+
+  rule2bic : array[1..rules] of tbic=(
+    bic_build,bic_build,
+    bic_build,bic_build,
+    bic_build,bic_build,
+    bic_install,bic_install,bic_install,bic_install,bic_install,
+    bic_clean,bic_clean,
+    bic_none,bic_none
   );
 
   rulediralso : array[1..rules] of boolean=(
@@ -115,6 +126,9 @@ type
     ZipName,
     ZipTarget      : string;
     DefaultRule,
+    DefaultBuildDir,
+    DefaultInstallDir,
+    DefaultCleanDir,
     DefaultDir,
     DefaultTarget,
     DefaultCPU,
@@ -288,6 +302,9 @@ begin
      ZipTarget:=ReadString(ini_zip,'ziptarget','install');
    { defaults }
      DefaultDir:=ReadString(ini_defaults,'defaultdir','');
+     DefaultBuildDir:=ReadString(ini_defaults,'defaultbuilddir','');
+     DefaultInstallDir:=ReadString(ini_defaults,'defaultinstalldir','');
+     DefaultCleanDir:=ReadString(ini_defaults,'defaultcleandir','');
      DefaultRule:=ReadString(ini_defaults,'defaultrule','all');
      DefaultTarget:=ReadString(ini_defaults,'defaulttarget','');
      DefaultCPU:=ReadString(ini_defaults,'defaultcpu','');
@@ -495,7 +512,16 @@ var
     if userini.section[rule2sec[rule]] then
      hs:=hs+' fpc_'+rulestr[rule];
     if userini.DefaultDir<>'' then
-     hs:=hs+' '+userini.defaultdir+'_'+rulestr[rule]
+     hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultdir+')'
+    else
+     if (userini.DefaultBuildDir<>'') and (rule2bic[rule]=bic_build) then
+      hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultbuilddir+')'
+    else
+     if (userini.DefaultInstallDir<>'') and (rule2bic[rule]=bic_install) then
+      hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultinstalldir+')'
+    else
+     if (userini.DefaultCleanDir<>'') and (rule2bic[rule]=bic_clean) then
+      hs:=hs+' $(addsuffix _'+rulestr[rule]+','+userini.defaultcleandir+')'
     else
      if rulediralso[rule] and (not TargetStringEmpty(userini.targetdirs)) then
       hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
@@ -1003,7 +1029,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  1999-12-21 16:06:47  peter
+  Revision 1.14  1999-12-23 13:52:23  peter
+    + default{install,build,clean}dir
+
+  Revision 1.13  1999/12/21 16:06:47  peter
     * don't call dirobjects for zipisntall,info
 
   Revision 1.12  1999/12/19 15:15:04  peter
