@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-
-
 {$I os.inc}
 
 unit dos;
@@ -50,7 +48,7 @@ unit dos;
        { search record which is used by findfirst and findnext }
        { it is compatible with the DOS version                 }
        { if the fields are access using there names            }
-       { the fields have another order
+       { the fields have another order                         }
 {$PACKRECORDS 1}
        searchrec = record
           time : longint;
@@ -640,7 +638,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-04-26 22:37:02  florian
+  Revision 1.4  1998-04-27 14:01:38  florian
+    * was uncompilable
+
+  Revision 1.3  1998/04/26 22:37:02  florian
     + getftime, unpacktime, packtime
 
   Revision 1.2  1998/04/26 21:49:09  florian
