@@ -1,8 +1,19 @@
+{****************************************************************************
+
+    $Id$
+
+                             DIVE example code
+             Copyright (c) 1999-2000 by Karoly Balogh (aka Charlie/INQ)
+
+****************************************************************************}
+
 {$ASMMODE INTEL}
 
 { lame code, but who cares? :) please don't laugh it out. :) }
 
 Program DiveTry;
+
+{$I-}
 
 Uses Os2Def,PMWin,DIVE,DOSCalls;
 
@@ -179,3 +190,11 @@ Begin
  WinDestroyMsgQueue(MsgQue);
  WinTerminate(Anchor);
 End.
+
+{
+  $Log$
+  Revision 1.2  2000-06-18 18:34:28  hajny
+   * necessary $I- added
+
+
+}
