@@ -688,6 +688,7 @@ unit pdecl;
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'INIT') then
             Message(parser_e_constructorname_must_be_init);
 
+           aktclass^.options:=aktclass^.options or oo_hasconstructor;
            consume(SEMICOLON);
              begin
                 if (aktclass^.options and oois_class)<>0 then
@@ -1025,6 +1026,7 @@ unit pdecl;
            parse_proc_head(podestructor);
            if (cs_constructor_name in aktglobalswitches) and (aktprocsym^.name<>'DONE') then
             Message(parser_e_destructorname_must_be_done);
+           aktclass^.options:=aktclass^.options or oo_hasdestructor;
            consume(SEMICOLON);
            if assigned(aktprocsym^.definition^.para1) then
             Message(parser_e_no_paras_for_destructor);
@@ -2063,7 +2065,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.70  1998-10-13 13:10:22  peter
+  Revision 1.71  1998-10-15 15:13:25  pierre
+    + added oo_hasconstructor and oo_hasdestructor
+      for objects options
+
+  Revision 1.70  1998/10/13 13:10:22  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.69  1998/10/09 12:07:49  pierre

@@ -2540,18 +2540,21 @@
         if assigned(c) then
           options:= c^.options and
                     (oo_hasvirtual or oo_hasprivate or
-                     oo_hasprotected
+                     oo_hasprotected or
+                     oo_hasconstructor or oo_hasdestructor
                      {or oo_can_have_published treated in pdecl }
                      );
         { privatesyms:=new(psymtable,init(objectsymtable));
       protectedsyms:=new(psymtable,init(objectsymtable)); }
         publicsyms:=new(psymtable,init(objectsymtable));
+        { create space for vmt !! }
+        publicsyms^.datasize:=Sizeof(pointer);
         publicsyms^.name := stringdup(n);
         { add the data of the anchestor class }
         if assigned(childof) then
           begin
              publicsyms^.datasize:=
-               publicsyms^.datasize-4+childof^.publicsyms^.datasize;
+               publicsyms^.datasize-SizeOf(pointer)+childof^.publicsyms^.datasize;
           end;
         name:=stringdup(n);
         savesize := publicsyms^.datasize;
@@ -3090,7 +3093,11 @@
 
 {
   $Log$
-  Revision 1.57  1998-10-14 15:54:20  pierre
+  Revision 1.58  1998-10-15 15:13:30  pierre
+    + added oo_hasconstructor and oo_hasdestructor
+      for objects options
+
+  Revision 1.57  1998/10/14 15:54:20  pierre
     * smallsets are not entirely implemented for
       m68k added a ifdef usesmallset
       that is allways defined for i386

@@ -203,7 +203,7 @@ unit pexpr;
                  Must_be_valid:=false;
                  do_firstpass(p1);
                  if ((p1^.resulttype^.deftype=objectdef) and
-                    ((pobjectdef(p1^.resulttype)^.options and oo_hasvirtual)<>0))
+                    ((pobjectdef(p1^.resulttype)^.options and oo_hasconstructor)<>0))
                    or is_open_array(p1^.resulttype) then
                   statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
                  else
@@ -1863,7 +1863,11 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.65  1998-10-13 13:10:24  peter
+  Revision 1.66  1998-10-15 15:13:28  pierre
+    + added oo_hasconstructor and oo_hasdestructor
+      for objects options
+
+  Revision 1.65  1998/10/13 13:10:24  peter
     * new style for m68k/i386 infos and enums
 
   Revision 1.64  1998/10/12 12:20:55  pierre
