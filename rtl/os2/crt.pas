@@ -13,38 +13,38 @@
 
 unit crt;
 
-{$ASMMODE ATT}
 
 interface
 
 uses dos;
 
-const   _40cols=0;
-        _80cols=1;
-        _132cols=2;
-        _25rows=0;
-        _28rows=16;
-        _43rows=32;
-        _50rows=48;
-        font8x8=_50rows;
+const
+  _40cols=0;
+  _80cols=1;
+  _132cols=2;
+  _25rows=0;
+  _28rows=16;
+  _43rows=32;
+  _50rows=48;
+  font8x8=_50rows;
 
-        black         =0;
-        blue          =1;
-        green         =2;
-        cyan          =3;
-        red           =4;
-        magenta       =5;
-        brown         =6;
-        lightgray     =7;
-        darkgray      =8;
-        lightblue     =9;
-        lightgreen    =10;
-        lightcyan     =11;
-        lightred      =12;
-        lightmagenta  =13;
-        yellow        =14;
-        white         =15;
-        blink         =128;
+  black         =0;
+  blue          =1;
+  green         =2;
+  cyan          =3;
+  red           =4;
+  magenta       =5;
+  brown         =6;
+  lightgray     =7;
+  darkgray      =8;
+  lightblue     =9;
+  lightgreen    =10;
+  lightcyan     =11;
+  lightred      =12;
+  lightmagenta  =13;
+  yellow        =14;
+  white         =15;
+  blink         =128;
 
 {cemodeset means that the procedure textmode has failed to set up a mode.}
 
@@ -86,7 +86,6 @@ implementation
 const   extkeycode:char=#0;
 
 var maxrows,maxcols:word;
-    calibration:longint;
 
 type    Tkbdkeyinfo=record
             charcode,scancode:char;
@@ -121,7 +120,6 @@ type    Tkbdkeyinfo=record
             partial_length:longint;          { ????? info wanted !}
             ext_data_addr:pointer;           { ????? info wanted !}
         end;
-        Pviomodeinfo=^viomodeinfo;
 
 {EMXWRAP.DLL has strange calling conventions: All parameters must have
  a 4 byte size.}
@@ -143,8 +141,6 @@ function viogetcurpos(var row,column:word;viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 109;
 function viosetcurpos(row,column,viohandle:longint):word; cdecl;
                       external 'EMXWRAP' index 115;
-function viowrtTTY(s:Pchar;len,viohandle:longint):word; cdecl;
-                      external 'EMXWRAP' index 119;
 function viowrtcharstratt(s:Pchar;len,row,col:longint;var attr:byte;
                           viohandle:longint):word; cdecl;
                           external 'EMXWRAP' index 148;
@@ -164,189 +160,52 @@ const   modecols:array[0..2] of word=(40,80,132);
 var newmode:viomodeinfo;
 
 begin
-    if os_mode=osOS2 then
-        begin
-            newmode.cb:=8;
-            newmode.fbtype:=1;          {Non graphics colour mode.}
-            newmode.color:=4;           {We want 16 colours, 2^4=16.}
-            newmode.col:=modecols[mode and 15];
-            newmode.row:=moderows[mode shr 4];
-            if viosetmode(newmode,0)=0 then
-                crt_error:=cenoerror
-            else
-                crt_error:=cemodeset;
-            maxcols:=newmode.col;
-            maxrows:=newmode.row;
-        end
-    else
-        begin
-            maxcols:=modecols[mode and 15];
-            maxrows:=moderows[mode shr 4];
-            crt_error:=cenoerror;
-            {Set correct vertical resolution.}
-            asm
-                movw $0x1202,%ax
-                movw 8(%ebp),%bx
-                shrw $4,%bx
-                cmpb $2,%bl
-                jne .L_crtsetmode_a1
-                decw %ax
-            .L_crtsetmode_a1:
-                mov $0x30,%bl
-                int $0x10
-            end;
-            {132 column mode in DOS is videocard dependend.}
-            if mode and 15=2 then
-                begin
-                    crt_error:=cemodeset;
-                    exit;
-                end;
-            {Switch to correct mode.}
-            asm
-                mov 8(%ebp),%bx
-                and $15,%bl
-                mov $1,%ax
-                cmp $1,%bl
-                jne .L_crtsetmode_b1
-                mov $3,%al
-            .L_crtsetmode_b1:
-                int $0x10
-            {Use alternate print-screen function.}
-                mov $0x12,%ah
-                mov $0x20,%bl
-                int $0x10
-            end;
-            {Set correct font.}
-            case mode shr 4 of
-                1:
-                    {Set 8x14 font.}
-                    asm
-                        mov $0x1111,%ax
-                        mov $0,%bl
-                        int $0x10
-                    end;
-                2,3:
-                    {Set 8x8 font.}
-                    asm
-                        mov $0x1112,%ax
-                        mov $0,%bl
-                        int $0x10
-                    end;
-            end;
-        end;
+  newmode.cb:=8;
+  newmode.fbtype:=1;          {Non graphics colour mode.}
+  newmode.color:=4;           {We want 16 colours, 2^4=16.}
+  newmode.col:=modecols[mode and 15];
+  newmode.row:=moderows[mode shr 4];
+  if viosetmode(newmode,0)=0 then
+    crt_error:=cenoerror
+  else
+    crt_error:=cemodeset;
+  maxcols:=newmode.col;
+  maxrows:=newmode.row;
 end;
 
 procedure getcursor(var y,x:word);
-
 {Get the cursor position.}
-
 begin
-    if os_mode=osOS2 then
-        viogetcurpos(y,x,0)
-    else
-        asm
-            movb $3,%ah
-            movb $0,%bh
-            int $0x10
-            movl y,%eax
-            movl x,%ebx
-            movzbl %dh,%edi
-            andw $255,%dx
-            movw %di,(%eax)
-            movw %dx,(%ebx)
-        end;
+  viogetcurpos(y,x,0)
 end;
 
-{$ASMMODE INTEL}
 procedure setcursor(y,x:word);
-
 {Set the cursor position.}
-
 begin
-    if os_mode=osOS2 then
-        viosetcurpos(y,x,0)
-    else
-        asm
-            mov ah, 2
-            mov bh, 0
-            mov dh, byte ptr y
-            mov dl, byte ptr x
-            int 10h
-        end;
+  viosetcurpos(y,x,0)
 end;
 
 procedure scroll_up(top,left,bottom,right,lines:word;var screl:word);
-
 begin
-    if os_mode=osOS2 then
-        vioscrollup(top,left,bottom,right,lines,screl,0)
-    else
-        asm
-            mov ah, 6
-            mov al, byte ptr lines
-            mov edi, screl
-            mov bh, [edi + 1]
-            mov ch, byte ptr top
-            mov cl, byte ptr left
-            mov dh, byte ptr bottom
-            mov dl, byte ptr right
-            int 10h
-        end;
+  vioscrollup(top,left,bottom,right,lines,screl,0)
 end;
 
 procedure scroll_dn(top,left,bottom,right,lines:word;var screl:word);
-
 begin
-    if os_mode=osOS2 then
-        vioscrolldn(top,left,bottom,right,lines,screl,0)
-    else
-        asm
-            mov ah, 7
-            mov al, byte ptr lines
-            mov edi, screl
-            mov bh, [edi + 1]
-            mov ch, byte ptr top
-            mov cl, byte ptr left
-            mov dh, byte ptr bottom
-            mov dl, byte ptr right
-            int 10h
-        end;
+  vioscrolldn(top,left,bottom,right,lines,screl,0)
 end;
 
-{$ASMMODE ATT}
 function keypressed:boolean;
-
 {Checks if a key is pressed.}
-
 var Akeyrec:Tkbdkeyinfo;
 
 begin
-    if os_mode=osOS2 then
-        begin
-            kbdpeek(Akeyrec,0);
-            keypressed:=(extkeycode<>#0) or ((Akeyrec.fbstatus and $40)<>0);
-        end
-    else
-        begin
-            if extkeycode<>#0 then
-                begin
-                    keypressed:=true;
-                    exit
-                end
-            else
-                asm
-                    movb $1,%ah
-                    int $0x16
-                    setnz %al
-                    movb %al,__RESULT
-                end;
-        end;
+  kbdpeek(Akeyrec,0);
+  keypressed:=(extkeycode<>#0) or ((Akeyrec.fbstatus and $40)<>0);
 end;
 
 function readkey:char;
-
 {Reads the next character from the keyboard.}
-
 var Akeyrec:Tkbdkeyinfo;
     c,s:char;
 
@@ -358,33 +217,19 @@ begin
         end
     else
         begin
-            if os_mode=osOS2 then
-                begin
-                    kbdcharin(Akeyrec,0,0);
-                    c:=Akeyrec.charcode;
-                    s:=Akeyrec.scancode;
-                    if (c=#224) and (s<>#0) then
-                        c:=#0;
-                end
-            else
-                begin
-                    asm
-                        movb $0,%ah
-                        int $0x16
-                        movb %al,c
-                        movb %ah,s
-                    end;
-                end;
-            if c=#0 then
-                extkeycode:=s;
-            readkey:=c;
+          kbdcharin(Akeyrec,0,0);
+          c:=Akeyrec.charcode;
+          s:=Akeyrec.scancode;
+          if (c=#224) and (s<>#0) then
+            c:=#0;
+          if c=#0 then
+            extkeycode:=s;
+          readkey:=c;
         end;
 end;
 
 procedure clrscr;
-
 {Clears the current window.}
-
 var screl:word;
 
 begin
@@ -534,30 +379,13 @@ begin
 end;
 
 procedure delay(ms:word);
-
-var i,j:longint;
-
-{Waits ms microseconds. The DOS code is copied from the DOS rtl.}
-
+{Waits ms microseconds.}
 begin
-    {Under OS/2 we could also calibrate like under DOS. But this is
-     unreliable, because OS/2 can hold our programs while calibrating,
-     if it needs the processor for other things.}
-    if os_mode=osOS2 then
-        dossleep(ms)
-    else
-        begin
-            for i:=1 to ms do
-                for j:=1 to calibration do
-                    begin
-                    end;
-        end;
+  dossleep(ms)
 end;
 
 procedure window(left,top,right,bottom:byte);
-
 {Change the write window to the given coordinates.}
-
 begin
     if (left<1) or
      (top<1) or
@@ -571,89 +399,62 @@ begin
     gotoXY(1,1);
 end;
 
-{$ASMMODE INTEL}
 procedure writePchar(s:Pchar;len:word);
-
 {Write a series of characters to the screen.
-
  Not very fast, but is just text-mode isn't it?}
-
-var x,y:word;
-    c:char;
-    i,n:integer;
-    screl:word;
-    ca:Pchar;
+var
+  x,y:word;
+  i,n:integer;
+  screl:word;
+  ca:Pchar;
 
 begin
-    i:=0;
-    getcursor(y,x);
-    while i<=len-1 do
-        begin
-            case s[i] of
-                #8:
-                    x:=x-1;
-                #9:
-                    x:=(x-lo(windmin)) and $fff8+8+lo(windmin);
-                #10:
-                    ;
-                #13:
-                    begin
-                        x:=lo(windmin);
-                        inc(y);
-                    end;
-                else
-                    begin
-                        ca:=@s[i];
-                        n:=1;
-                        while not(s[i+1] in [#8,#9,#10,#13]) and
-{                         (x+n<=lo(windmax)+1) and (i<len-1) do}
-                         (x+n<=lo(windmax)) and (i<len-1) do
-                            begin
-                                inc(n);
-                                inc(i);
-                            end;
-                        if os_mode=osOS2 then
-                            viowrtcharstratt(ca,n,y,x,textattr,0)
-                        else
-                            asm
-                                mov ax, 1300h
-                                mov bh, 0
-                                mov bl, TEXTATTR
-                                mov dh, byte ptr y
-                                mov dl, byte ptr x
-                                mov cx, n
-                                push ebp
-                                mov ebp, ca
-                                int 10h
-                                pop ebp
-                            end;
-                        x:=x+n;
-                    end;
-            end;
-            if x>lo(windmax) then
-                begin
-                    x:=lo(windmin);
-                    inc(y);
-                end;
-            if y>hi(windmax) then
-                begin
-                    screl:=$20+textattr shl 8;
-                    scroll_up(hi(windmin),lo(windmin),
-                              hi(windmax),lo(windmax),
-                              1,screl);
-                    y:=hi(windmax);
-                end;
-{           writeln(stderr,x,'  ',y);}
-            inc(i);
+  i:=0;
+  getcursor(y,x);
+  while i<=len-1 do
+  begin
+    case s[i] of
+      #8: x:=x-1;
+      #9: x:=(x-lo(windmin)) and $fff8+8+lo(windmin);
+      #10: ;
+      #13: begin
+              x:=lo(windmin);
+              inc(y);
         end;
-    setcursor(y,x);
+      else
+      begin
+        ca:=@s[i];
+        n:=1;
+        while not(s[i+1] in [#8,#9,#10,#13]) and
+              (x+n<=lo(windmax)) and (i<len-1) do
+        begin
+          inc(n);
+          inc(i);
+        end;
+        viowrtcharstratt(ca,n,y,x,textattr,0);
+        x:=x+n;
+      end;
+    end;
+    if x>lo(windmax) then
+        begin
+            x:=lo(windmin);
+            inc(y);
+        end;
+    if y>hi(windmax) then
+        begin
+            screl:=$20+textattr shl 8;
+            scroll_up(hi(windmin),lo(windmin),
+                      hi(windmax),lo(windmax),
+                      1,screl);
+            y:=hi(windmax);
+        end;
+    inc(i);
+  end;
+  setcursor(y,x);
 end;
 
-{$ASMMODE ATT}
 function crtread(var f:textrec):word;
-
 {Read a series of characters from the console.}
-
 var max,curpos:integer;
     c:char;
     clist:array[0..2] of char;
@@ -753,148 +554,53 @@ begin
 end;
 
 procedure sound(hz:word);
-
 {sound and nosound are not implemented because the OS/2 API supports a freq/
  duration procedure instead of start/stop procedures.}
-
 begin
 end;
 
 procedure nosound;
-
 begin
-end;
-
-function get_ticks:word;
-
-type    Pword=^word;
-
-begin
-    get_ticks:=Pword(longint(first_meg)+$46c)^;
-end;
-
-procedure initdelay;
-
-{Calibrate the delay procedure. Copied from DOS rtl.}
-
-var first:word;
-
-begin
-    calibration:=0;
-
-    { wait for new tick }
-    first:=get_ticks;
-    while get_ticks=first do
-        begin
-        end;
-    first:=get_ticks;
-
-    { this estimates calibration }
-    while get_ticks=first do
-        inc(calibration);
-
-    { calculate this to ms }
-    calibration:=calibration div 70;
-    while true do
-        begin
-            first:=get_ticks;
-            while get_ticks=first do
-                begin
-                end;
-            first:=get_ticks;
-            delay(55);
-            if first=get_ticks then
-                exit
-            else
-                begin
-                    { decrement calibration two percent }
-                    calibration:=calibration-calibration div 50;
-                    dec(calibration);
-                end;
-        end;
 end;
 
 {Initialization.}
 
-type    Pbyte=^byte;
-
-var curmode:viomodeinfo;
-    mode:byte;
-
+var
+  curmode: viomodeinfo;
 begin
-    textattr:=lightgray;
-    if os_mode=osOS2 then
-        begin
-            curmode.cb:=sizeof(curmode);
-            viogetmode(curmode,0);
-            maxcols:=curmode.col;
-            maxrows:=curmode.row;
-            lastmode:=0;
-            case maxcols of
-                40:
-                    lastmode:=0;
-                80:
-                    lastmode:=1;
-                132:
-                    lastmode:=2;
-            end;
-            case maxrows of
-                25:;
-                28:
-                    lastmode:=lastmode+16;
-                43:
-                    lastmode:=lastmode+32;
-                50:
-                    lastmode:=lastmode+48;
-            end
-        end
-    else
-        begin
-            {Request video mode to determine columns.}
-            asm
-                mov $0x0f,%ah
-                int $0x10
-{                mov %al,_MODE }
-                mov %al,MODE
-            end;
-            case mode of
-                0,1:
-                    begin
-                        lastmode:=0;
-                        maxcols:=40;
-                    end;
-                else
-                    begin
-                        lastmode:=1;
-                        maxcols:=80;
-                    end;
-            end;
-            {Get number of rows from realmode $0040:$0084.}
-            maxrows:=Pbyte(longint(first_meg)+$484)^;
-            case maxrows of
-                25:;
-                28:
-                    lastmode:=lastmode+16;
-                43:
-                    lastmode:=lastmode+32;
-                50:
-                    lastmode:=lastmode+48;
-            end
-        end;
-    windmin:=0;
-    windmax:=((maxrows-1) shl 8) or (maxcols-1);
-    if os_mode=osDOS then
-        initdelay;
-    crt_error:=cenoerror;
-    assigncrt(input);
-    textrec(input).mode:=fminput;
-    assigncrt(output);
-    textrec(output).mode:=fmoutput;
+  textattr:=lightgray;
+  curmode.cb:=sizeof(curmode);
+  viogetmode(curmode,0);
+  maxcols:=curmode.col;
+  maxrows:=curmode.row;
+  lastmode:=0;
+  case maxcols of
+    40: lastmode:=0;
+    80: lastmode:=1;
+    132: lastmode:=2;
+  end;
+  case maxrows of
+    25:;
+    28: lastmode:=lastmode+16;
+    43: lastmode:=lastmode+32;
+    50: lastmode:=lastmode+48;
+  end;
+  windmin:=0;
+  windmax:=((maxrows-1) shl 8) or (maxcols-1);
+  crt_error:=cenoerror;
+  assigncrt(input);
+  textrec(input).mode:=fminput;
+  assigncrt(output);
+  textrec(output).mode:=fmoutput;
 end.
 
 {
   $Log$
-  Revision 1.3  2002-08-04 19:37:55  hajny
+  Revision 1.4  2003-09-24 12:30:08  yuri
+  * Removed emx code from crt.pas
+  - Removed doscalls.imp (not full and obsolete)
+
+  Revision 1.3  2002/08/04 19:37:55  hajny
     * fix for bug 1998 (write in window) + removed warnings
 
 
