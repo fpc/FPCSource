@@ -921,6 +921,7 @@ end ['R3'];
 
 { do a thread save inc/dec }
 
+{$define FPC_SYSTEM_HAS_DECLOCKED}
 function declocked(var l : longint) : boolean;assembler;
 { input:  address of l in r3                                      }
 { output: boolean indicating whether l is zero after decrementing }
@@ -934,6 +935,7 @@ LDecLockedLoop:
     srwi    r3,r3,5
 end ['R3','R10'];
 
+{$define FPC_SYSTEM_HAS_INCLOCKED}
 procedure inclocked(var l : longint);assembler;
 asm
 LIncLockedLoop:
@@ -946,7 +948,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.27  2002-11-07 15:23:13  jonas
+  Revision 1.28  2003-01-09 13:38:56  florian
+    * dec/inclocked got defines
+
+  Revision 1.27  2002/11/07 15:23:13  jonas
     * always use code that was between 'ifdef mt', since that define is
       deprecated now
 
