@@ -30,7 +30,8 @@ unit aoptbase;
     uses
       aasmbase,aasmcpu,aasmtai,
       cpubase,
-      cgbase;
+      cgbase,
+      cgutils;
 
     Type
       { the number of tai objects processed by an optimizer object since the last
@@ -258,7 +259,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2004-10-31 21:45:02  peter
+  Revision 1.10  2004-11-03 17:51:58  florian
+    * fixed missing cgutils usage
+
+  Revision 1.9  2004/10/31 21:45:02  peter
     * generic tlocation
     * move tlocation to cgutils
 

@@ -35,9 +35,9 @@ Unit AoptObj;
       globtype,
       aasmbase,aasmcpu,aasmtai,
       cclasses,
-      cgbase,
+      cgbase,cgutils,
       cpubase,
-      aoptbase, aoptcpub, aoptda;
+      aoptbase,aoptcpub,aoptda;
 
     { ************************************************************************* }
     { ********************************* Constants ***************************** }
@@ -57,7 +57,7 @@ Unit AoptObj;
     { ************************************************************************* }
     { ************************* Some general type definitions ***************** }
     { ************************************************************************* }
-      TRefCompare = Function(const r1, r2: TReference): Boolean;
+      TRefCompare = Function(r1, r2: TReference): Boolean;
       //!!! FIXME
       TRegArray = Array[byte] of tsuperregister;
       TRegSet = Set of byte;
@@ -712,7 +712,7 @@ Unit AoptObj;
               (Counter <= Content.NrOfMods) Do
           Begin
             If (p.typ = ait_instruction) And
-               RefInInstruction(Ref, p, {$ifdef fpc}@{$endif}RefsEqual)
+               RefInInstruction(Ref, p, {$ifdef fpc}@{$endif}references_equal)
               Then TmpResult := True;
             Inc(Counter);
             GetNextInstruction(p,p)
@@ -806,7 +806,7 @@ Unit AoptObj;
             Top_Reg :
               OpsEqual:=o1.reg=o2.reg;
             Top_Ref :
-              OpsEqual := RefsEqual(o1.ref^, o2.ref^);
+              OpsEqual := references_equal(o1.ref^, o2.ref^);
             Top_Const :
               OpsEqual:=o1.val=o2.val;
             Top_None :
@@ -1085,7 +1085,10 @@ End.
 
 {
  $Log$
- Revision 1.13  2004-10-31 21:45:02  peter
+ Revision 1.14  2004-11-03 17:51:58  florian
+   * fixed missing cgutils usage
+
+ Revision 1.13  2004/10/31 21:45:02  peter
    * generic tlocation
    * move tlocation to cgutils
 
