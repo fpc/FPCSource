@@ -399,8 +399,6 @@ function exec(path:pathstr;runflags:execrunflags;winflags:execwinflags;
 
 {Execute a program. More suitable for OS/2 than the exec above.}
 
-{512 bytes should be enough to contain the command-line.}
-
 type    bytearray=array[0..8191] of byte;
         Pbytearray=^bytearray;
 
@@ -430,7 +428,7 @@ var args:Pbytearray;
     j : integer;
 
 begin
-    getmem(args,512);
+    getmem(args,2048);
     GetMem(env, envc*sizeof(pchar)+16384);
     {Now setup the arguments. The first argument should be the program
      name without directory and extension.}
@@ -908,6 +906,25 @@ procedure swapvectors;
 begin
 end;
 
+function envcount:longint;assembler;
+asm
+    movl envc,%eax
+end ['EAX'];
+
+function envstr(index : longint) : string;
+
+var hp:Pchar;
+
+begin
+    if (index<=0) or (index>envcount) then
+        begin
+            envstr:='';
+            exit;
+        end;
+    hp:=EnvP[index-1];
+    envstr:=strpas(hp);
+end;
+
 function GetEnv (const EnvVar: string): string;
 (* The assembler version is more than three times as fast as Pascal. *)
 var
@@ -1142,7 +1159,7 @@ begin
     exit;
   cnt := 0;
   { count number of environment pointers }
-  dosgetinfoblocks(nil,@tib);
+  dosgetinfoblocks (nil, PPProcessInfoBlock (@tib));
   ptr := pchar(tib^.env);
   { stringz,stringz...,#0 }
   i := 0;
@@ -1193,7 +1210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2002-03-03 11:19:20  hajny
+  Revision 1.17  2002-07-07 18:00:48  hajny
+    * DosGetInfoBlock modification to allow overloaded version (in DosCalls)
+
+  Revision 1.16  2002/03/03 11:19:20  hajny
     * GetEnv rewritten to assembly - 3x faster now
 
   Revision 1.15  2001/11/23 00:35:02  carl
