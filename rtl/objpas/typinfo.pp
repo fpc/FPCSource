@@ -23,7 +23,7 @@ unit typinfo;
 
 {$MODE objfpc}
 
-  uses sysutils;
+  uses SysUtils;
 
 
 // temporary types:
@@ -180,92 +180,105 @@ unit typinfo;
       tkMethods = [tkMethod];
       tkProperties = tkAny-tkMethods-[tkUnknown];
 
-    { general property handling }
-    // just skips the id and the name
-    Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
+{ general property handling }
+// just skips the id and the name
+Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 
-    // searches in the property PropName
-    Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
-    Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-    Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
-      PropList : PPropList) : Integer;
+// searches in the property PropName
+Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
+Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string; AKinds : TTypeKinds) : PPropInfo;
+Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
 
-    // returns true, if PropInfo is a stored property
-    Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
+Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
+Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds;
+  PropList : PPropList) : Integer;
 
-    { subroutines to read/write properties }
-    Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
-    Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
-      Value : Longint);
+// Same as GetPropInfo, but raises an exception if not found.
+Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
 
-    Function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
-    Procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
-      const Value : Ansistring);
+// returns true, if PropInfo is a stored property
+Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 
-    Function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
-    Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
-      Value : Extended);
+{ subroutines to read/write properties }
+Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
+  Value : Longint);
 
-    Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
-    Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
-      const Value: Variant);
+Function GetStrProp(Instance : TObject;PropInfo : PPropInfo) : Ansistring;
+Procedure SetStrProp(Instance : TObject;PropInfo : PPropInfo;
+  const Value : Ansistring);
 
-    Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
-    Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
-      const Value : TMethod);
+Function GetFloatProp(Instance : TObject;PropInfo : PPropInfo) : Extended;
+Procedure SetFloatProp(Instance : TObject;PropInfo : PPropInfo;
+  Value : Extended);
 
-    Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
-    Procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo;
-      const Value: Int64);
+Function GetVariantProp(Instance : TObject;PropInfo : PPropInfo): Variant;
+Procedure SetVariantProp(Instance : TObject;PropInfo : PPropInfo;
+  const Value: Variant);
 
-    { misc. stuff }
-    Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
-    Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+Function GetMethodProp(Instance : TObject;PropInfo : PPropInfo) : TMethod;
+Procedure SetMethodProp(Instance : TObject;PropInfo : PPropInfo;
+  const Value : TMethod);
+
+Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+Procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo;
+  const Value: Int64);
+
+{ misc. stuff }
+Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
+Function GetEnumValue(TypeInfo : PTypeInfo;const Name : string) : Integer;
+function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
+function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
+function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
 
 { Easy access methods, appeared in Delphi 5 }
-Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean; overload;
-Function IsPublishedProp(AClass: TClass; const PropName: string): Boolean; overload;
-Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo; overload;
-Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo; overload;
-Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo; overload;
-Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo; overload;
-Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean; overload;
-Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean; overload;
-Function PropType(Instance: TObject; const PropName: string): TTypeKind; overload;
-Function PropType(AClass: TClass; const PropName: string): TTypeKind; overload;
-Function IsStoredProp(Instance: TObject; const PropName: string): Boolean; overload;
+Function IsPublishedProp(Instance: TObject; const PropName: string): Boolean;
+Function IsPublishedProp(AClass: TClass; const PropName: string): Boolean;
+Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean;
+Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean;
+Function PropType(Instance: TObject; const PropName: string): TTypeKind;
+Function PropType(AClass: TClass; const PropName: string): TTypeKind;
+Function IsStoredProp(Instance: TObject; const PropName: string): Boolean;
 
-Function GetOrdProp(Instance: TObject; const PropName: string): Longint; overload;
-Procedure SetOrdProp(Instance: TObject; const PropName: string; Value: Longint); overload;
+Function GetOrdProp(Instance: TObject; const PropName: string): Longint;
+Procedure SetOrdProp(Instance: TObject; const PropName: string; Value: Longint);
 
-Function GetEnumProp(Instance: TObject; const PropName: string): string; overload;
-Procedure SetEnumProp(Instance: TObject; const PropName: string;const Value: string); overload;
+Function GetEnumProp(Instance: TObject; const PropName: string): string;
+Function GetEnumProp(Instance: TObject; const PropInfo: PPropInfo): string;
+Procedure SetEnumProp(Instance: TObject; const PropName: string;const Value: string);
+Procedure SetEnumProp(Instance: TObject; const PropInfo: PPropInfo;const Value: string);
 
 // Default false
-Function GetSetProp(Instance: TObject; const PropName: string): string; overload;
-Function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string; overload;
-Procedure SetSetProp(Instance: TObject; const PropName: string; const Value: string); overload;
+Function GetSetProp(Instance: TObject; const PropName: string): string;
+Function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string;
+Function GetSetProp(Instance: TObject; const PropInfo: PPropInfo; Brackets: Boolean): string;
+Procedure SetSetProp(Instance: TObject; const PropName: string; const Value: string);
+Procedure SetSetProp(Instance: TObject; const PropInfo: PPropInfo; const Value: string);
 
 // Default nil
-Function GetObjectProp(Instance: TObject; const PropName: string): TObject; overload;
-Function GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject; overload;
-Procedure SetObjectProp(Instance: TObject; const PropName: string; Value: TObject); overload;
-Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass; overload;
+Function GetObjectProp(Instance: TObject; const PropName: string): TObject;
+Function GetObjectProp(Instance: TObject; const PropName: string; MinClass: TClass): TObject;
+Procedure SetObjectProp(Instance: TObject; const PropName: string; Value: TObject);
+Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
 
-Function GetStrProp(Instance: TObject; const PropName: string): string; overload;
-Procedure SetStrProp(Instance: TObject; const PropName: string; const Value: string); overload;
+Function GetStrProp(Instance: TObject; const PropName: string): string;
+Procedure SetStrProp(Instance: TObject; const PropName: string; const Value: string);
 
-Function GetFloatProp(Instance: TObject; const PropName: string): Extended; overload;
-Procedure SetFloatProp(Instance: TObject; const PropName: string; Value: Extended); overload;
+Function GetFloatProp(Instance: TObject; const PropName: string): Extended;
+Procedure SetFloatProp(Instance: TObject; const PropName: string; Value: Extended);
 
-Function GetVariantProp(Instance: TObject; const PropName: string): Variant; overload;
-Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant); overload;
+Function GetVariantProp(Instance: TObject; const PropName: string): Variant;
+Procedure SetVariantProp(Instance: TObject; const PropName: string; const Value: Variant);
 
-Function GetMethodProp(Instance: TObject; const PropName: string): TMethod; overload;
-Procedure SetMethodProp(Instance: TObject; const PropName: string; const Value: TMethod); overload;
+Function GetMethodProp(Instance: TObject; const PropName: string): TMethod;
+Procedure SetMethodProp(Instance: TObject; const PropName: string; const Value: TMethod);
 
-Function GetInt64Prop(Instance: TObject; const PropName: string): Int64; overload;
-Procedure SetInt64Prop(Instance: TObject; const PropName: string;  const Value: Int64); overload;
+Function GetInt64Prop(Instance: TObject; const PropName: string): Int64;
+Procedure SetInt64Prop(Instance: TObject; const PropName: string;  const Value: Int64);
 
 // Default True
 Function GetPropValue(Instance: TObject; const PropName: string): Variant;
@@ -276,11 +289,18 @@ const
     BooleanIdents: array[Boolean] of String = ('False', 'True');
     DotSep: String = '.';
 
+Type
+  EPropertyError = Class(Exception);
 
 Implementation
 
-  type
-    PMethod = ^TMethod;
+ResourceString
+  SErrPropertyNotFound = 'Unknown property: "%s"';
+  SErrUnknownEnumValue = 'Unknown enumeration value: "%s"';
+
+type
+  PMethod = ^TMethod;
+
 
 { ---------------------------------------------------------------------
   Auxiliary methods
@@ -322,6 +342,88 @@ begin
       Result:=Count;
     PS:=PShortString(pointer(PS)+PByte(PS)^+1);
     Inc(Count);
+    end;
+end;
+
+Function SetToString(PropInfo: PPropInfo; Value: Integer; Brackets: Boolean) : String;
+
+Var
+  I : Integer;
+  PTI : PTypeInfo;
+
+begin
+  PTI:=GetTypeData(PropInfo^.PropType)^.CompType;
+  Result:='';
+  For I:=0 to SizeOf(Integer)*8-1 do
+    begin
+    if ((Value and 1)<>0) then
+      begin
+      If Result='' then
+        Result:=GetEnumName(PTI,i)
+      else
+        Result:=Result+','+GetEnumName(PTI,I);
+      end;
+    Value:=Value shr 1;
+    end;
+  if Brackets then
+    Result:='['+Result+']';
+end;
+
+Function SetToString(PropInfo: PPropInfo; Value: Integer) : String;
+
+begin
+  Result:=SetToString(PropInfo,Value,False);
+end;
+
+Const
+  SetDelim = ['[',']',',',' '];
+
+Function GetNextElement(Var S : String) : String;
+
+Var
+  J : Integer;
+
+begin
+  J:=1;
+  Result:='';
+  If Length(S)>0 then
+    begin
+    While (J<=Length(S)) and Not (S[j] in SetDelim) do
+      Inc(j);
+    Result:=Copy(S,1,j-1);
+    Delete(S,1,j);
+    end;
+end;
+
+Function StringToSet(PropInfo: PPropInfo; const Value: string): Integer;
+
+
+Var
+  S,T : String;
+  I : Integer;
+  PTI : PTypeInfo;
+
+begin
+  Result:=0;
+  PTI:=GetTypeData(PropInfo^.PropType)^.Comptype;
+  S:=Value;
+  I:=1;
+  If Length(S)>0 then
+    begin
+    While (I<=Length(S)) and (S[i] in SetDelim) do
+      Inc(I);
+    Delete(S,1,i-1);
+    end;
+  While (S<>'') do
+    begin
+    T:=GetNextElement(S);
+    if T<>'' then
+      begin
+      I:=GetEnumValue(PTI,T);
+      if (I<0) then
+        raise EPropertyError.CreateFmt(SErrUnknownEnumValue, [T]);
+      Result:=Result or (1 shl i);
+      end;
     end;
 end;
 
@@ -495,6 +597,52 @@ begin
          Result:=Nil;
 end;
 
+Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string; Akinds : TTypeKinds) : PPropInfo;
+
+begin
+  Result:=GetPropInfo(TypeInfo,PropName);
+  If (Akinds<>[]) then
+    If (Result<>Nil) then
+      If Not (Result^.PropType^.Kind in AKinds) then
+        Result:=Nil;
+end;
+
+Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+begin
+  Result:=GetPropInfo(PTypeInfo(AClass.ClassInfo),PropName,AKinds);
+end;
+
+Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+begin
+  Result:=GetPropInfo(Instance.ClassType,PropName,AKinds);
+end;
+
+Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+begin
+  Result:=GetPropInfo(Instance,PropName,[]);
+end;
+
+Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+begin
+  Result:=GetPropInfo(AClass,PropName,[]);
+end;
+
+
+Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+begin
+  result:=GetPropInfo(Instance, PropName);
+  if Result=nil then
+    Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
+end;
+
+
+Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
+begin
+  result:=GetPropInfo(AClass,PropName);
+  if result=nil then
+    Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
+end;
+
 Function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 
 begin
@@ -509,6 +657,8 @@ begin
               IsStoredProp:=LongBool(PropInfo^.StoredProc);
          end;
 end;
+
+
 
 Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
 {
@@ -687,25 +837,48 @@ end;
 Function GetOrdProp(Instance: TObject; const PropName: string): Longint;
 
 begin
+  Result:=GetOrdProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 Procedure SetOrdProp(Instance: TObject; const PropName: string;  Value: Longint);
 begin
+  SetOrdProp(Instance,FindPropInfo(Instance,PropName),Value);
+end;
+
+Function GetEnumProp(Instance: TObject; Const PropInfo: PPropInfo): string;
+begin
+  Result:=GetEnumName(PropInfo^.PropType, GetOrdProp(Instance, PropInfo));
 end;
 
 Function GetEnumProp(Instance: TObject; const PropName: string): string;
 
 begin
+  Result:=GetEnumProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 Procedure SetEnumProp(Instance: TObject; const PropName: string;  const Value: string);
 begin
+  SetEnumProp(Instance,FindPropInfo(Instance,PropName),Value);
+end;
+
+Procedure SetEnumProp(Instance: TObject; Const PropInfo : PPropInfo; const Value: string);
+
+Var
+  PV : Longint;
+
+begin
+  If PropInfo<>Nil then
+    begin
+    PV:=GetEnumValue(PropInfo^.PropType, Value);
+    if (PV<0) then
+      raise EPropertyError.CreateFmt(SErrUnknownEnumValue, [Value]);
+    SetOrdProp(Instance, PropInfo,PV);
+    end;
 end;
 
 { ---------------------------------------------------------------------
   Set properties
   ---------------------------------------------------------------------}
-
 
 Function GetSetProp(Instance: TObject; const PropName: string): string;
 
@@ -715,10 +888,24 @@ end;
 
 Function GetSetProp(Instance: TObject; const PropName: string; Brackets: Boolean): string;
 begin
+  Result:=GetSetProp(Instance,FindPropInfo(Instance,PropName),Brackets);
+end;
+
+Function GetSetProp(Instance: TObject; const PropInfo: PPropInfo; Brackets: Boolean): string;
+
+begin
+  Result:=SetToString(PropInfo,GetOrdProp(Instance,PropInfo),Brackets);
 end;
 
 Procedure SetSetProp(Instance: TObject; const PropName: string; const Value: string);
 begin
+  SetSetProp(Instance,FindPropInfo(Instance,PropName),Value);
+end;
+
+
+Procedure SetSetProp(Instance: TObject; const PropInfo: PPropInfo; const Value: string);
+begin
+  SetOrdProp(Instance,PropInfo,StringToSet(PropInfo,Value));
 end;
 
 { ---------------------------------------------------------------------
@@ -1068,24 +1255,6 @@ Function IsPublishedProp(AClass: TClass; const PropName: string): Boolean;
 begin
 end;
 
-Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
-begin
-  Result:=GetPropInfo(Instance,PropName,[]);
-end;
-
-Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
-begin
-end;
-
-Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
-begin
-  Result:=GetPropInfo(AClass,PropName,[]);
-end;
-
-Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
-begin
-end;
-
 Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean;
 begin
 end;
@@ -1109,7 +1278,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2001-06-27 21:37:38  peter
+  Revision 1.9  2001-07-06 14:56:06  peter
+    * merged more D5/D6 stuff from v10
+
+  Revision 1.8  2001/06/27 21:37:38  peter
     * v10 merges
 
   Revision 1.7  2001/02/15 22:40:22  sg
