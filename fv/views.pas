@@ -2504,7 +2504,8 @@ BEGIN
    D.Y := Bounds.B.Y - Bounds.A.Y - Size.Y;           { Delta y value }
    If ((D.X=0) AND (D.Y=0)) Then Begin
      SetBounds(Bounds);                               { Set new bounds }
-     DrawView;                                        { Draw the view }
+     { Force redraw }
+     ReDraw;                                        { Draw the view }
    End Else Begin
      SetBounds(Bounds);                               { Set new bounds }
      GetExtent(Clip);                                 { Get new clip extents }
@@ -4646,7 +4647,10 @@ END.
 
 {
  $Log$
- Revision 1.54  2004-12-22 15:28:22  peter
+ Revision 1.55  2004-12-26 16:14:08  peter
+   * force redraw tgroup after changebounds
+
+ Revision 1.54  2004/12/22 15:28:22  peter
    * TGroup.ClipChildes added
 
  Revision 1.53  2004/12/21 18:53:41  peter
