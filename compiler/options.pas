@@ -740,7 +740,18 @@ begin
                       more:=Upper(More);
                       if not target_is_set then
                        begin
-                       { remove old target define }
+                         {Remove non core targetname extra defines}
+                         CASE target_info.target OF
+                          target_i386_freebsd: begin
+						 undef_symbol('LINUX');
+						 undef_symbol('BSD');
+ 					         undef_symbol('UNIX');
+					       end;
+                          target_i386_linux:   undef_symbol('UNIX');
+		          end;
+
+			   { remove old target define }
+
                          undef_symbol(target_info.short_name);
                        { load new target }
                          if not(set_string_target(More)) then
@@ -1504,7 +1515,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.14  2000-11-07 14:25:08  marco
+  Revision 1.15  2000-11-07 15:09:27  marco
+   * Define UNIX for FreeBSD and Linux. Checked crosscompile thingy.
+
+  Revision 1.14  2000/11/07 14:25:08  marco
    * FreeBSD defines (FreeBSD,Linux,BSD,Unix) Linux defines (Linux,Unix)
 
   Revision 1.13  2000/11/06 20:30:54  peter
