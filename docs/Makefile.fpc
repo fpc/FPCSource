@@ -255,13 +255,14 @@ endif
 ifeq ($(findstring darwin,$(OS_SOURCE)),)
 override SYSTEMUNITDIR=bsd
 endif
+HOSTOS=$(OS_SOURCE)
 
 # Classes.pp is in rtl/unix/ for several targets
-ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin netbsd openbsd),)
-CLASSESUNITDIR=unix
-else
+#ifneq ($(findstring $(OS_SOURCE),linux freebsd darwin netbsd openbsd),)
+#CLASSESUNITDIR=unix
+#else
 CLASSESUNITDIR=$(OS_SOURCE)
-endif
+#endif
 
 FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(OS_SOURCE)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 
@@ -565,7 +566,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.4  2005-02-07 20:39:19  peter
+# Revision 1.5  2005-02-07 21:05:58  michael
+# + Small fix for classes.pp
+#
+# Revision 1.4  2005/02/07 20:39:19  peter
 # fix zip names
 #
 # Revision 1.3  2005/02/06 21:02:12  peter
