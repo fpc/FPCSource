@@ -105,6 +105,8 @@ ResourceString
   SDuplicateName                = 'Duplcate name: A component named "%s" already exists';
   SDuplicateReference           = 'WriteObject was called twice for one instance';
   SDuplicateString              = 'String list does not allow duplicates';
+  SEmptyStreamIllegalReader     = 'Illegal Nil stream for TReader constructor';
+  SEmptyStreamIllegalWriter     = 'Illegal Nil stream for TWriter constructor';
   SErrindexTooLarge             = 'Bit index exceeds array limit: %d';
   SErrInvalidBitIndex           = 'Invalid bit index : %d';
   SErrNoStreaming               = 'Failed to initialize component: No streaming method available.';
@@ -522,7 +524,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2004-01-11 01:17:22  michael
+  Revision 1.6  2004-08-19 07:28:50  michael
+  + Added  SEmptyStreamIllegalReader/Writer
+
+  Revision 1.5  2004/01/11 01:17:22  michael
   + need mode objfpc directive
 
   Revision 1.4  2004/01/10 20:13:19  michael
