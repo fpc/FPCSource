@@ -2189,7 +2189,7 @@ renametoshort:
 	-mv uftpapi$(ZIPSUFFIX).zip uftp$(ZIPSUFFIX).zip
 	-mv uhwvideo$(ZIPSUFFIX).zip uhwv$(ZIPSUFFIX).zip
 	-mv uclkdll$(ZIPSUFFIX).zip uclk$(ZIPSUFFIX).zip
-	-mv upasjpeg$(ZIPSUFFIX).zip upjpg$(ZIPSUFFIX).zip
+	-mv upasjpeg$(ZIPSUFFIX).zip upjp$(ZIPSUFFIX).zip
 shortsrc:
 	$(MAKE) renametoshort ZIPSUFFIX=src
 shortbin:
