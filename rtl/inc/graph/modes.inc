@@ -446,6 +446,7 @@ end;
 {$ifdef logging}
           LogLn('Mode setting failed in setgraphmode pos 2');
 {$endif logging}
+         DefaultHooks;
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -457,6 +458,7 @@ end;
 {$ifdef logging}
           LogLn('Mode setting failed in setgraphmode pos 3');
 {$endif logging}
+         DefaultHooks;
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -468,6 +470,7 @@ end;
 {$ifdef logging}
           LogLn('Mode setting failed in setgraphmode pos 4');
 {$endif logging}
+         DefaultHooks;
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -479,6 +482,7 @@ end;
 {$ifdef logging}
           LogLn('Mode setting failed in setgraphmode pos 5');
 {$endif logging}
+         DefaultHooks;
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -490,6 +494,7 @@ end;
 {$ifdef logging}
           LogLn('Mode setting failed in setgraphmode pos 6');
 {$endif logging}
+         DefaultHooks;
          _Graphresult := grInvalidMode;
          exit;
        end;
@@ -546,11 +551,16 @@ end;
 {$ifdef logging}
           LogLn('Mode setting failed in setgraphmode pos 7');
 {$endif logging}
+          DefaultHooks;
           _GraphResult := grInvalidMode;
           exit;
         end;
       modeinfo^.InitMode;
-      if _GraphResult <> grOk then exit;
+      if _GraphResult <> grOk then
+        begin
+          DefaultHooks;
+          exit;
+        end;
       isgraphmode := true;
       { It is very important that this call be made }
       { AFTER the other variables have been setup.  }
@@ -579,7 +589,11 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:47  michael
+  Revision 1.3  2000-08-01 06:03:32  jonas
+    * the defaulthooks are reset if setmode() fails at any point  (merged
+      from fixes branch)
+
+  Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
  
 }
