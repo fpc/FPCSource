@@ -349,7 +349,7 @@ implementation
               firstpass(hp^.left);
               case hp^.left^.resulttype^.deftype of
                floatdef : begin
-                            gentypeconvnode(hp^.left,s80floatdef);
+                            hp^.left:=gentypeconvnode(hp^.left,s80floatdef);
                             firstpass(hp^.left);
                           end;
               end;
@@ -399,7 +399,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  1998-09-27 10:16:27  florian
+  Revision 1.4  1998-09-28 11:07:40  peter
+    + floatdef support for array of const
+
+  Revision 1.3  1998/09/27 10:16:27  florian
     * type casts pchar<->ansistring fixed
     * ansistring[..] calls does now an unique call
 
