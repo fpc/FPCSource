@@ -416,36 +416,51 @@ begin
 end;
 
 procedure TSHTextEdit.EndSelectionChange;
+
+  procedure RedrawArea(x1, y1, x2, y2: Integer);
+  begin
+    // WriteLn('Redraw: ', x1, '/', y1, ' - ', x2, '/', y2);
+    if y1 = y2 then
+      FWidget.InvalidateRect(x1, y1, x2, y2)
+    else begin
+      FWidget.InvalidateRect(x1, y1, x1 + FWidget.PageWidth, y1);
+      if y1 < y2 - 1 then
+        FWidget.InvalidateRect(0, y1+1, FWidget.PageWidth, y2 - 1);
+      FWidget.InvalidateRect(0, y2, x2, y2+1);
+    end;
+  end;
+
 begin
   if not OldSelValid then begin
     if FSel.IsValid then
-      FWidget.InvalidateRect(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
+      RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
   end else begin
     if not FSel.IsValid then
-      FWidget.InvalidateRect(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY)
+      RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY)
     else begin
       // Do OldSel and FSel intersect?
       if (OldSelEndY < FSel.OStartY) or (OldSelStartY > FSel.OEndY) or
          ((OldSelEndY = FSel.OStartY) and (OldSelEndX <= FSel.OStartX)) or
-         ((OldSelStartY = FSel.OEndY) and (OldSelStartX >= FSel.OEndX)) then begin
-         FWidget.InvalidateRect(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
-         FWidget.InvalidateRect(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
+         ((OldSelStartY = FSel.OEndY) and (OldSelStartX >= FSel.OEndX)) then
+      begin
+        RedrawArea(OldSelStartX, OldSelStartY, OldSelEndX, OldSelEndY);
+        RedrawArea(FSel.OStartX, FSel.OStartY, FSel.OEndX, FSel.OEndY);
       end else begin
         // Intersection => determine smallest possible area(s) to redraw
         // 1. Check if the start position has changed
         if (OldSelStartX <> FSel.OStartX) or (OldSelStartY <> FSel.OStartY) then
           if (OldSelStartY < FSel.OStartY) or ((OldSelStartY = FSel.OStartY) and
              (OldSelStartX < FSel.OStartX)) then
-            FWidget.InvalidateRect(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY)
+            RedrawArea(OldSelStartX, OldSelStartY, FSel.OStartX, FSel.OStartY)
           else
-            FWidget.InvalidateRect(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY);
-        // 2. Check if end position has changed
-        if (OldSelEndX <> FSel.OEndX) or (OldSelEndY <> FSel.OEndY) then
-          if (OldSelEndY < FSel.OEndY) or ((OldSelEndY = FSel.OEndY) and
-             (OldSelEndX < FSel.OEndX)) then
-            FWidget.InvalidateRect(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
-          else
-            FWidget.InvalidateRect(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
+            RedrawArea(FSel.OStartX, FSel.OStartY, OldSelStartX, OldSelStartY);
+          // 2. Check if end position has changed
+          if (OldSelEndX <> FSel.OEndX) or (OldSelEndY <> FSel.OEndY) then
+            if (OldSelEndY < FSel.OEndY) or ((OldSelEndY = FSel.OEndY) and
+               (OldSelEndX < FSel.OEndX)) then
+              RedrawArea(OldSelEndX, OldSelEndY, FSel.OEndX, FSel.OEndY)
+            else
+              RedrawArea(FSel.OEndX, FSel.OEndY, OldSelEndX, OldSelEndY);
       end;
     end;
   end;
@@ -458,7 +473,11 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-01-07 01:24:34  peter
+  Revision 1.13  2000-01-07 13:24:31  sg
+  * OK, now _this_ is the originally meant version with the fixed
+    selection handling ;)
+
+  Revision 1.12  2000/01/07 01:24:34  peter
     * updated copyright to 2000
 
   Revision 1.11  2000/01/06 16:43:35  sg
