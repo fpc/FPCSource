@@ -370,7 +370,9 @@ var
   j,l  : longint;
   d    : DirStr;
   e    : ExtStr;
+{$ifdef arm}
   s    : string;
+{$endif arm}
   forceasm : tasm;
 begin
   if opt='' then
@@ -1697,6 +1699,7 @@ begin
   def_symbol('CPU32');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
+  def_symbol('FPC_INCLUDE_SOFTWARE_INT64_TO_DOUBLE');
 {$endif}
 {$ifdef iA64}
   def_symbol('CPUIA64');
@@ -1953,7 +1956,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.101  2003-09-03 15:55:01  peter
+  Revision 1.102  2003-09-03 21:06:05  peter
+    * powerpc needs software int64 to double
+
+  Revision 1.101  2003/09/03 15:55:01  peter
     * NEWRA branch merged
 
   Revision 1.100  2003/09/03 11:18:37  florian
