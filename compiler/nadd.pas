@@ -820,13 +820,10 @@ implementation
                begin
                  if is_signed(ld) and
                     { then rd = u32bit }
+                    (nodetype in [addn,subn,muln]) and
                     { convert positive constants to u32bit }
                     not(is_constintnode(left) and
-                        (tordconstnode(left).value >= 0)) and
-                    { range/overflow checking on mixed signed/cardinal expressions }
-                    { is only possible if you convert everything to 64bit (JM)     }
-                    ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
-                     (nodetype in [addn,subn,muln])) then
+                        (tordconstnode(left).value >= 0)) then
                    begin
                      { perform the operation in 64bit }
                      CGMessage(type_w_mixed_signed_unsigned);
@@ -843,19 +840,17 @@ implementation
                       begin
                         if is_signed(ld) and
                            not(is_constintnode(left) and
-                               (tordconstnode(left).value >= 0)) and
-                           (cs_check_range in aktlocalswitches) then
+                               (tordconstnode(left).value >= 0)) then
                           CGMessage(type_w_mixed_signed_unsigned2);
                         inserttypeconv(left,u32bittype);
                       end;
 
                      if is_signed(rd) and
                         { then ld = u32bit }
+                        (nodetype in [addn,subn,muln]) and
                         { convert positive constants to u32bit }
                         not(is_constintnode(right) and
-                            (tordconstnode(right).value >= 0)) and
-                        ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
-                         (nodetype in [addn,subn,muln])) then
+                            (tordconstnode(right).value >= 0)) then
                        begin
                          { perform the operation in 64bit }
                          CGMessage(type_w_mixed_signed_unsigned);
@@ -872,8 +867,7 @@ implementation
                           begin
                             if is_signed(rd) and
                                not(is_constintnode(right) and
-                                   (tordconstnode(right).value >= 0)) and
-                               (cs_check_range in aktlocalswitches) then
+                                   (tordconstnode(right).value >= 0)) then
                               CGMessage(type_w_mixed_signed_unsigned2);
                             inserttypeconv(right,u32bittype);
                           end;
@@ -1959,7 +1953,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  2003-05-26 21:15:18  peter
+  Revision 1.92  2003-06-03 21:04:43  peter
+    * widen cardinal+signed operations
+
+  Revision 1.91  2003/05/26 21:15:18  peter
     * disable string node optimizations for the moment
 
   Revision 1.90  2003/05/26 19:38:28  peter
