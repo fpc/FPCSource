@@ -344,7 +344,7 @@ unit i_linux;
             use_function_relative_addresses : true
           );
 
-       system_SPARC_linux_info : tsysteminfo =
+       system_sparc_linux_info : tsysteminfo =
           (
             system       : system_SPARC_Linux;
             name         : 'Linux for SPARC';
@@ -514,7 +514,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.28  2004-06-29 21:00:08  peter
+  Revision 1.29  2004-08-15 13:30:18  florian
+    * fixed alignment of variant records
+    * more alignment problems fixed
+
+  Revision 1.28  2004/06/29 21:00:08  peter
     * only enable dwarf for supported platforms
 
   Revision 1.27  2004/06/20 08:55:32  florian

@@ -168,7 +168,7 @@ uses
 
       { reference record }
       preference = ^treference;
-      treference = packed record
+      treference = record
          { base register, R_NO if none }
          base,
          { index register, R_NO if none }
@@ -224,11 +224,7 @@ type
         References are given from the caller's point of view. The usual
         TLocation isn't used, because contains a lot of unnessary fields.
       }
-      tparalocation =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-      packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-      record
+      tparalocation = record
          Size : TCGSize;
          { The location type where the parameter is passed, usually
            LOC_REFERENCE,LOC_REGISTER or LOC_FPUREGISTER
@@ -262,7 +258,7 @@ type
        end;
 
 
-      tlocation = packed record
+      tlocation = record
          size : TCGSize;
          loc : tcgloc;
          case tcgloc of
@@ -571,7 +567,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2004-08-14 14:50:42  florian
+  Revision 1.70  2004-08-15 13:30:18  florian
+    * fixed alignment of variant records
+    * more alignment problems fixed
+
+  Revision 1.69  2004/08/14 14:50:42  florian
     * fixed several sparc alignment issues
     + Jonas' inline node patch; non functional yet
 

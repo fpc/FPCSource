@@ -1209,13 +1209,16 @@ implementation
               symtablestack:=symtablestack.next;
               { Align the offset where the union symtable is added }
               if (trecordsymtable(symtablestack).usefieldalignment=-1) then
-                usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
+                usedalign:=used_align(unionsymtable.recordalignment,aktalignment.recordalignmin,aktalignment.maxCrecordalign)
               else
-                usedalign:=used_align(maxalignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
+                usedalign:=used_align(unionsymtable.recordalignment,aktalignment.recordalignmin,aktalignment.recordalignmax);
+
               offset:=align(trecordsymtable(symtablestack).datasize,usedalign);
               trecordsymtable(symtablestack).datasize:=offset+unionsymtable.datasize;
-              if maxalignment>trecordsymtable(symtablestack).fieldalignment then
-                trecordsymtable(symtablestack).fieldalignment:=maxalignment;
+
+              if unionsymtable.recordalignment>trecordsymtable(symtablestack).fieldalignment then
+                trecordsymtable(symtablestack).fieldalignment:=unionsymtable.recordalignment;
+
               trecordsymtable(symtablestack).insertunionst(Unionsymtable,offset);
               Unionsym.owner:=nil;
               unionsym.free;
@@ -1231,7 +1234,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2004-08-07 19:14:50  florian
+  Revision 1.78  2004-08-15 13:30:18  florian
+    * fixed alignment of variant records
+    * more alignment problems fixed
+
+  Revision 1.77  2004/08/07 19:14:50  florian
     * fixed problem with explicit specified calling conventions for property symbols
 
   Revision 1.76  2004/07/14 23:19:22  olle

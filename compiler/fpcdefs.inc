@@ -81,6 +81,10 @@
   {$define oldset}
 {$endif sparc}
 
+{$ifdef cpusparc}
+  {$undef useinline}
+{$endif cpusparc}
+
 {$ifdef powerpc}
   {$define noopt}
   {$define oldset}
@@ -102,7 +106,11 @@
 
 {
   $Log$
-  Revision 1.38  2004-06-20 08:55:29  florian
+  Revision 1.39  2004-08-15 13:30:18  florian
+    * fixed alignment of variant records
+    * more alignment problems fixed
+
+  Revision 1.38  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.37  2004/06/16 20:07:07  florian

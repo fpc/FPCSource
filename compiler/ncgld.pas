@@ -410,11 +410,11 @@ implementation
           the most complex code. Exceptions for this are:
 	    - result is in flags, loading left will then destroy the flags
 	    - result need reference count, when left points to a value used in
-	      right then decreasing the refcnt on left can possibly release 
+	      right then decreasing the refcnt on left can possibly release
 	      the memory before right increased the refcnt, result is that an
 	      empty value is assigned
 	    - calln, call destroys most registers and is therefor 'complex'
-	    
+	
 	   But not when the result is in the flags, then
           loading the left node afterwards can destroy the flags.
 
@@ -959,7 +959,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.121  2004-07-15 20:47:53  jonas
+  Revision 1.122  2004-08-15 13:30:18  florian
+    * fixed alignment of variant records
+    * more alignment problems fixed
+
+  Revision 1.121  2004/07/15 20:47:53  jonas
     - disabled temp-to-temp copy optimization, because it can cause errors
       now that the local variables are temps as well (it can cause local
       variables to be "freed" in the middle of a procedure)

@@ -1107,7 +1107,7 @@ implementation
             varalign:=ps.vartype.def.alignment;
             if varalign=0 then
               varalign:=size_2_align(ps.getvaluesize);
-            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,aktalignment.recordalignmax);
+            varalignrecord:=used_align(varalign,aktalignment.recordalignmin,fieldalignment);
             recordalignment:=max(recordalignment,varalignrecord);
 
             { next }
@@ -2316,7 +2316,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.152  2004-07-09 22:17:32  peter
+  Revision 1.153  2004-08-15 13:30:18  florian
+    * fixed alignment of variant records
+    * more alignment problems fixed
+
+  Revision 1.152  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 
