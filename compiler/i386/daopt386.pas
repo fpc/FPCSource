@@ -1118,8 +1118,8 @@ Procedure AllocRegBetween(AsmL: PAasmOutput; Reg: TRegister; p1, p2: Pai);
 { allocates register Reg between (and including) instructions p1 and p2 }
 { the type of p1 and p2 must not be in SkipInstr                        }
 var
-  hp: pai;
-  lastRemovedWasDealloc: boolean;
+  hp, start: pai;
+  lastRemovedWasDealloc, firstRemovedWasAlloc, first: boolean;
 Begin
   If not(reg in usableregs+[R_EDI,R_ESI]) or
      not(assigned(p1)) Then
@@ -1127,6 +1127,8 @@ Begin
     { current block (e.g. esi with self)                                    }
     exit;
   lastRemovedWasDealloc := false;
+  firstRemovedWasAlloc := false;
+  first := true;
 {$ifdef allocregdebug}
   hp := new(pai_asm_comment,init(strpnew('allocating '+att_reg2str[reg]+
     ' from here...')));
@@ -1135,12 +1137,7 @@ Begin
     ' till here...')));
   insertllitem(asml,p2,p1^.next,hp);
 {$endif allocregdebug}
-  if not Assigned(p1^.optInfo) or
-     not (reg in PPaiProp(p1^.OptInfo)^.UsedRegs) then
-    begin
-      hp := new(paiRegalloc,alloc(reg));
-      insertLLItem(asmL,p1^.previous,p1,hp);
-    end;
+  start := p1;
   Repeat
     If Assigned(p1^.OptInfo) Then
       Include(PPaiProp(p1^.OptInfo)^.UsedRegs,Reg);
@@ -1154,6 +1151,11 @@ Begin
          (p1^.typ = ait_regalloc) Then
         If (PaiRegAlloc(p1)^.Reg = Reg) Then
           Begin
+            if first then
+              begin
+                firstRemovedWasAlloc := PaiRegAlloc(p1)^.allocation;
+                first := false;
+              end;
             lastRemovedWasDealloc := not PaiRegAlloc(p1)^.allocation;
             hp := Pai(p1^.Next);
             AsmL^.Remove(p1);
@@ -1174,7 +1176,12 @@ Begin
           hp := new(paiRegalloc,dealloc(reg));
           insertLLItem(asmL,p1,p1^.next,hp);
         end;
-   end;
+    end;
+  if firstRemovedWasAlloc then
+    begin
+      hp := new(paiRegalloc,alloc(reg));
+      insertLLItem(asmL,start^.previous,start,hp);
+    end;     
 End;
 
 function FindRegDealloc(reg: tregister; p: pai): boolean;
@@ -2436,7 +2443,11 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-11-14 13:26:10  jonas
+  Revision 1.7  2000-11-17 15:22:04  jonas
+    * fixed another bug in allocregbetween (introduced by the previous fix)
+      ("merged")
+
+  Revision 1.6  2000/11/14 13:26:10  jonas
     * fixed bug in allocregbetween
 
   Revision 1.5  2000/11/08 16:04:34  sg
