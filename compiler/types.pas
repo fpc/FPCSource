@@ -265,15 +265,16 @@ implementation
            constint,
            constbool,
            constchar,
-           constpointer,
            constord :
-             equal_constsym:=(sym1.value=sym2.value);
+             equal_constsym:=(sym1.valueord=sym2.valueord);
+           constpointer :
+             equal_constsym:=(sym1.valueordptr=sym2.valueordptr);
            conststring,constresourcestring :
              begin
                if sym1.len=sym2.len then
                 begin
-                  p1:=pchar(tpointerord(sym1.value));
-                  p2:=pchar(tpointerord(sym2.value));
+                  p1:=pchar(sym1.valueptr);
+                  p2:=pchar(sym2.valueptr);
                   pend:=p1+sym1.len;
                   while (p1<pend) do
                    begin
@@ -287,9 +288,9 @@ implementation
                 end;
              end;
            constreal :
-             equal_constsym:=(pbestreal(tpointerord(sym1.value))^=pbestreal(tpointerord(sym2.value))^);
+             equal_constsym:=(pbestreal(sym1.valueptr)^=pbestreal(sym2.valueptr)^);
            constset :
-             equal_constsym:=(pnormalset(tpointerord(sym1.value))^=pnormalset(tpointerord(sym2.value))^);
+             equal_constsym:=(pnormalset(sym1.valueptr)^=pnormalset(sym2.valueptr)^);
            constnil :
              equal_constsym:=true;
         end;
@@ -1389,8 +1390,13 @@ implementation
                    begin { ordinal to real }
                      if is_integer(def_from) then
                        begin
-                          doconv:=tc_int_2_real;
-                          b:=1;
+                          { in delphi int64 can not be converted to real }
+                          if not((m_tp in aktmodeswitches) and
+                                 (torddef(def_from).typ in [u64bit,s64bit])) then
+                           begin
+                             doconv:=tc_int_2_real;
+                             b:=1;
+                           end;
                        end;
                    end;
                  floatdef :
@@ -1777,7 +1783,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2001-08-19 21:11:21  florian
+  Revision 1.46  2001-09-02 21:15:34  peter
+    * don't allow int64->real for delphi mode
+
+  Revision 1.45  2001/08/19 21:11:21  florian
     * some bugs fix:
       - overload; with external procedures fixed
       - better selection of routine to do an overloaded
