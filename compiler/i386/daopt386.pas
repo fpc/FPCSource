@@ -2123,6 +2123,7 @@ begin
         prev := p;
         p := tai(p.next);
       until not(assigned(p)) or
+            (p = blockend) or
             not(p.typ in (skipinstr - [ait_regalloc]));
     end;
 {$ifdef i386}
@@ -2795,7 +2796,11 @@ end.
 
 {
   $Log$
-  Revision 1.81  2005-02-14 17:13:09  peter
+  Revision 1.82  2005-02-26 01:23:29  jonas
+    * fixed loop which could go into neverneverland in case of embedded
+      assembler blocks
+
+  Revision 1.81  2005/02/14 17:13:09  peter
     * truncate log
 
   Revision 1.80  2005/01/03 14:59:28  jonas
