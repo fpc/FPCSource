@@ -3,9 +3,14 @@
 
 {$H+}
 Program AnsiTest;
+uses
+  erroru;
 
 Type
    PS=^String;
+var
+  mem : ptrint;
+
 
 procedure test;
 var
@@ -26,18 +31,10 @@ Begin
   Dispose(P);
 end;
 
-var
-  membefore : longint;
-
 begin
-  membefore:=memavail;
+  DoMem(mem);
   test;
-  if membefore<>memavail then
-    begin
-      Writeln('Memory hole using pointers to ansi strings');
-      Halt(1);
-    end
-  else
-    Writeln('No memory hole with pointers to ansi strings');
+  if DoMem(mem)<>0 then
+    halt(1);
 end.
 

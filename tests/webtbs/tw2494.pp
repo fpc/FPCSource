@@ -1,7 +1,8 @@
 { Source provided for Free Pascal Bug Report 2494 }
 { Submitted by "Alan Mead" on  2003-05-17 }
 { e-mail: cubrewer@yahoo.com }
-program dummy;
+uses 
+  erroru;
 
 type
   matrix_element = array[1..1] of byte;
@@ -17,11 +18,10 @@ var p:pointer;
   size, storage : longint;
   i,j:longint;
   done:boolean;
-
+  mem : sizeint;
 begin
   ReturnNilIfGrowHeapFails:=true;
-  writeln('Total heap available is ',MemAvail,' bytes');
-  writeln('Largest block available is ',MaxAvail,' bytes');
+  domem(mem);
   done := false;
   size := 40000000;
   repeat
@@ -40,5 +40,6 @@ begin
         freemem(l,storage);
       end;
   until (done);
+  domem(mem);
 end.
 

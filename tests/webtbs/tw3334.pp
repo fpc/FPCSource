@@ -5,7 +5,8 @@ program project1;
 
 {$mode objfpc}{$H+}
 
-uses
+uses 
+  erroru,
   Classes;
 
 procedure p1;  
@@ -19,13 +20,11 @@ begin
 end;
 
 var
- mem1,mem2 : longint;
+ mem : sizeint;
 begin
-  mem1:=heapsize-memavail;
+  domem(mem);
   p1;
-  mem2:=heapsize-memavail;
-  writeln(mem1,' - ',mem2);
-  if mem1<>mem2 then
+  if domem(mem)<>0 then
     halt(1);
 end.
 

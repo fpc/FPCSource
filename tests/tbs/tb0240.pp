@@ -1,10 +1,10 @@
 { Old file: tbs0280.pp }
 { problem with object finalization.                    OK 0.99.13 (FK) }
-
 {$mode objfpc}
 {$H+}
 
-program memhole;
+uses
+  Erroru;
 
 type
   TMyClass = class
@@ -29,17 +29,10 @@ begin
 end;
 
 var
-   membefore : sizeint;
+   mem : sizeint;
 begin
-  membefore:=memavail;
-  writeln(memavail);
+  DoMem(mem);
   dotest;
-  writeln(memavail);
-  if membefore<>memavail then
-    begin
-      Writeln('Memory hole using ansi strings in classes');
-      Halt(1);
-    end
-  else
-    Writeln('No memory hole unsing ansi strings in classes');
+  if DoMem(mem)<>0 then
+    Halt(1);
 end.

@@ -5,6 +5,7 @@
 { e-mail: Arnstein.Prytz@jcu.edu.au }
 program tmp;
 
+{$goto on}
 {$asmmode intel}
 
 procedure l;

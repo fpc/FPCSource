@@ -4,7 +4,7 @@
 program Buggy;
 
 uses
-
+  erroru,
   Objects, Strings;
 
 type
@@ -31,10 +31,9 @@ end;
 // Global vars
 var
   pTempStream: PMyStream;
-  EntryMem,ExitMem : Cardinal;
-// Main routine
+  mem : sizeint;
 begin
-  EntryMem:=heapsize-MemAvail;
+  DoMem(mem);
   pTempStream := nil;
   pTempStream := New(PMyStream, Init('tw1658.tmp', stCreate));
   if not Assigned(pTempStream) then
@@ -42,8 +41,7 @@ begin
   pTempStream^.m_fAutoDelete := False;
   Dispose(pTempStream, Done);
   pTempStream := nil;
-  ExitMem:=heapsize-MemAvail;
-  If ExitMem<EntryMem then
+  if DoMem(mem)<>0 then
     begin
       Writeln('Memory lost');
       Halt(1);

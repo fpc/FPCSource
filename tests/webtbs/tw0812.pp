@@ -1,5 +1,6 @@
-program TestVm2;
-
+uses
+  erroru;
+  
 procedure Test;
 var
   P: Pointer;
@@ -9,13 +10,11 @@ begin
   ReAllocMem(P, 0);
 end;
 
-var MemBefore : longint;
+var Mem : sizeint;
 begin
-  writeln(MemAvail);
-  MemBefore:=MemAvail;
+  domem(mem);
   Test;
-  writeln(MemAvail);
-  if MemBefore<>MemAvail then
+  if domem(mem)<>0 then
     begin
       Writeln('ReAllocMem creates emory leaks');
       Writeln('Bug 812 is not yet fixed');

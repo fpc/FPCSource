@@ -5,7 +5,7 @@
 {$H+}
 { $mode DELPHI}
 
-uses SysUtils;
+uses erroru,SysUtils;
 
   procedure P;
   var s:string;
@@ -18,12 +18,13 @@ procedure p1;
 var
   i : sizeint;
 begin
- i:=heapsize-memavail; 
+ i:=0;
+ domem(i);
  try
   P;
  except
  end;
- if i<>heapsize-memavail then
+ if domem(i)<>0 then
    begin
      writeln('Memleak');
      halt(1);

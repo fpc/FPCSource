@@ -30,7 +30,7 @@ type
   procedure getheapstatus(var status:THeapStatus);
 {$endif HASGETHEAPSTATUS}
 
-Procedure DoMem (Var StartMem : sizeint);
+function DoMem (Var StartMem : sizeint): sizeint;
 
 
 implementation
@@ -115,13 +115,37 @@ end;
 {$endif HASGETHEAPSTATUS}
 
 
-Procedure DoMem (Var StartMem : sizeint);
+function DoMem (Var StartMem : sizeint): sizeint;
+
+  function getsize(l:sizeint):string;
+  begin
+    if l<16*1024 then
+      begin
+        str(l,getsize);
+        getsize:=getsize+' bytes';
+      end
+    else
+      begin
+        str(l shr 10,getsize);
+        getsize:=getsize+' Kb';
+      end;
+  end;
+
 var
   hstatus : THeapstatus;
 begin
   GetHeapStatus(hstatus);
-  if StartMem<>0 then
-    Writeln ('Used: ',hstatus.CUrrHeapUsed shr 10,'Kb, Lost ',hstatus.CurrHeapUsed-StartMem,' Bytes.');
+  if StartMem=0 then
+    begin
+      Writeln ('[HEAP] Size: ',getsize(hstatus.CurrHeapSize),',   Used: ',getsize(hstatus.CurrHeapUsed));
+      DoMem:=0;
+    end
+  else
+    begin
+      Writeln ('[HEAP] Size: ',getsize(hstatus.CurrHeapSize),',   Used: ',getsize(hstatus.CurrHeapUsed),
+               ',  Lost: ',getsize(hstatus.CurrHeapUsed-StartMem));
+      DoMem:=hstatus.CurrHeapUsed-StartMem;
+    end;
   StartMem:=hstatus.CurrHeapUsed;
 end;
 
