@@ -109,6 +109,8 @@ unit pdecl;
                              symtablestack^.insert(new(pconstsym,init(name,constbool,p^.value,nil)))
                            else if p^.resulttype^.deftype=enumdef then
                              symtablestack^.insert(new(pconstsym,init(name,constord,p^.value,p^.resulttype)))
+                           else if p^.resulttype^.deftype=pointerdef then
+                             symtablestack^.insert(new(pconstsym,init(name,constord,p^.value,p^.resulttype)))
                            else internalerror(111);
                         end;
                       stringconstn:
@@ -1606,7 +1608,7 @@ unit pdecl;
                  else
                    Message(sym_e_error_in_type_def);
                  end
-               end      
+               end
 
              else
                begin
@@ -1961,7 +1963,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.45  1998-08-31 12:20:28  peter
+  Revision 1.46  1998-09-01 17:39:48  peter
+    + internal constant functions
+
+  Revision 1.45  1998/08/31 12:20:28  peter
     * fixed array_dec when unknown type was used
 
   Revision 1.44  1998/08/28 10:57:01  peter

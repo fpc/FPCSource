@@ -223,7 +223,7 @@ unit tree;
              stringconstn : (values : pstring; labstrnumber : longint;stringtype : tstringtype);
 {$endif UseAnsiString}
              typeconvn : (convtyp : tconverttype;explizit : boolean);
-             inlinen : (inlinenumber : longint);
+             inlinen : (inlinenumber : longint;inlineconst:boolean);
              procinlinen : (inlineprocdef : pprocdef;
                             retoffset,para_offset,para_size : longint);
              setconstrn : (constset : pconstset);
@@ -258,7 +258,7 @@ unit tree;
 {$endif UseAnsiString}
 
     function genzeronode(t : ttreetyp) : ptree;
-    function geninlinenode(number : longint;l : ptree) : ptree;
+    function geninlinenode(number : longint;is_const:boolean;l : ptree) : ptree;
     function genprocinlinenode(callp,code : ptree) : ptree;
     function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : ptree;
     function genenumnode(v : penumsym) : ptree;
@@ -1079,7 +1079,7 @@ unit tree;
          genselfnode:=p;
       end;
 
-   function geninlinenode(number : longint;l : ptree) : ptree;
+   function geninlinenode(number : longint;is_const:boolean;l : ptree) : ptree;
 
       var
          p : ptree;
@@ -1090,6 +1090,7 @@ unit tree;
          p^.treetype:=inlinen;
          p^.left:=l;
          p^.inlinenumber:=number;
+         p^.inlineconst:=is_const;
          p^.registers32:=0;
 {         p^.registers16:=0;
          p^.registers8:=0; }
@@ -1555,7 +1556,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.33  1998-08-28 12:51:44  florian
+  Revision 1.34  1998-09-01 17:39:54  peter
+    + internal constant functions
+
+  Revision 1.33  1998/08/28 12:51:44  florian
     + ansistring to pchar type cast fixed
 
   Revision 1.32  1998/08/28 10:54:25  peter

@@ -124,7 +124,7 @@ unit pexpr;
                      p1:=comp_expr(true);
                      consume(RKLAMMER);
                      do_firstpass(p1);
-                     p1:=geninlinenode(in_ord_x,p1);
+                     p1:=geninlinenode(in_ord_x,false,p1);
                      do_firstpass(p1);
                      statement_syssym := p1;
                      pd:=p1^.resulttype;
@@ -152,7 +152,7 @@ unit pexpr;
                          end
                         else
                          if p1^.resulttype^.deftype=objectdef then
-                          statement_syssym:=geninlinenode(in_typeof_x,p1)
+                          statement_syssym:=geninlinenode(in_typeof_x,false,p1)
                         else
                          begin
                            Message(sym_e_type_mismatch);
@@ -170,7 +170,7 @@ unit pexpr;
                          end
                         else
                          if p1^.resulttype^.deftype=objectdef then
-                          statement_syssym:=geninlinenode(in_typeof_x,p1)
+                          statement_syssym:=geninlinenode(in_typeof_x,false,p1)
                         else
                          begin
                            Message(sym_e_type_mismatch);
@@ -196,7 +196,7 @@ unit pexpr;
                         do_firstpass(p1);
                         if (p1^.resulttype^.deftype=objectdef) or
                            is_open_array(p1^.resulttype) then
-                         statement_syssym:=geninlinenode(in_sizeof_x,p1)
+                         statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
                         else
                          begin
                            statement_syssym:=genordinalconstnode(p1^.resulttype^.size,pd);
@@ -221,7 +221,7 @@ unit pexpr;
                        Message(parser_e_illegal_parameter_list);
                      end;
                      p2:=gencallparanode(p1,nil);
-                     p2:=geninlinenode(in_assigned_x,p2);
+                     p2:=geninlinenode(in_assigned_x,false,p2);
                      consume(RKLAMMER);
                      pd:=booldef;
                      statement_syssym:=p2;
@@ -259,7 +259,7 @@ unit pexpr;
                      p1:=comp_expr(true);
                      do_firstpass(p1);
                      Must_be_valid:=false;
-                     p2:=geninlinenode(l,p1);
+                     p2:=geninlinenode(l,false,p1);
                      consume(RKLAMMER);
                      pd:=s32bitdef;
                      statement_syssym:=p2;
@@ -271,7 +271,7 @@ unit pexpr;
                      p1:=comp_expr(true);
                      do_firstpass(p1);
                      Must_be_valid:=false;
-                     p2:=geninlinenode(l,p1);
+                     p2:=geninlinenode(l,false,p1);
                      consume(RKLAMMER);
                      pd:=p1^.resulttype;
                      statement_syssym:=p2;
@@ -290,7 +290,7 @@ unit pexpr;
                      else
                       p2:=nil;
                      p2:=gencallparanode(p1,p2);
-                     statement_syssym:=geninlinenode(l,p2);
+                     statement_syssym:=geninlinenode(l,false,p2);
                      consume(RKLAMMER);
                      pd:=voiddef;
                    end;
@@ -333,7 +333,7 @@ unit pexpr;
                      else
                       paras:=nil;
                      pd:=voiddef;
-                     p1:=geninlinenode(l,paras);
+                     p1:=geninlinenode(l,false,paras);
                      do_firstpass(p1);
                      statement_syssym := p1;
                    end;
@@ -350,7 +350,7 @@ unit pexpr;
                      else
                       paras:=nil;
                      pd:=voiddef;
-                     p1 := geninlinenode(l,paras);
+                     p1 := geninlinenode(l,false,paras);
                      do_firstpass(p1);
                      statement_syssym := p1;
                    end;
@@ -359,7 +359,7 @@ unit pexpr;
                      in_args:=true;
                      paras:=parse_paras(true,false);
                      consume(RKLAMMER);
-                     p1 := geninlinenode(l,paras);
+                     p1 := geninlinenode(l,false,paras);
                      do_firstpass(p1);
                      statement_syssym := p1;
                      pd:=voiddef;
@@ -373,8 +373,7 @@ unit pexpr;
                      consume(COMMA);
                      p2:=comp_expr(true);
                      { just a bit lisp feeling }
-                     statement_syssym:=geninlinenode(l,
-                       gencallparanode(p1,gencallparanode(p2,nil)));
+                     statement_syssym:=geninlinenode(l,false,gencallparanode(p1,gencallparanode(p2,nil)));
                      consume(RKLAMMER);
                      pd:=voiddef;
                    end;
@@ -382,7 +381,7 @@ unit pexpr;
                      consume(LKLAMMER);
                      paras:=parse_paras(false);
                      consume(RKLAMMER);
-                     p1 := geninlinenode(l,paras);
+                     p1 := geninlinenode(l,false,paras);
                      do_firstpass(p1);
                      statement_syssym := p1;
                      pd:=voiddef;
@@ -1856,7 +1855,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.44  1998-08-28 10:54:24  peter
+  Revision 1.45  1998-09-01 17:39:49  peter
+    + internal constant functions
+
+  Revision 1.44  1998/08/28 10:54:24  peter
     * fixed smallset generation from elements, it has never worked before!
 
   Revision 1.43  1998/08/23 16:07:24  florian

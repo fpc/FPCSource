@@ -3025,7 +3025,8 @@ unit pass_1;
                         (porddef(def_from)^.high<porddef(def_to)^.high);
         end;
 
-
+      var
+        is_const : boolean;
       begin
          { release registers! }
          { if procdefinition<>nil then we called firstpass already }
@@ -3454,22 +3455,21 @@ unit pass_1;
 {$endif CHAINPROCSYMS}
                end;{ end of procedure to call determination }
 
+              is_const:=((p^.procdefinition^.options and pointernconst)<>0) and
+                         (p^.left^.left^.treetype in [realconstn,ordconstn]);
               { handle predefined procedures }
-              if (p^.procdefinition^.options and pointernproc)<>0 then
+              if ((p^.procdefinition^.options and pointernproc)<>0) or is_const then
                 begin
                    { settextbuf needs two args }
                    if assigned(p^.left^.right) then
-                     pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,p^.left)
+                     pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,is_const,p^.left)
                    else
                      begin
-                        pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,p^.left^.left);
+                        pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,is_const,p^.left^.left);
                         putnode(p^.left);
                      end;
                    putnode(p);
                    firstpass(pt);
-                   { was placed after the exit          }
-                   { caused GPF                         }
-                   { error caused and corrected by (PM) }
                    p:=pt;
 
                    must_be_valid:=store_valid;
@@ -3694,6 +3694,10 @@ unit pass_1;
            end;
         end;
 
+      var
+        is_real : boolean;
+        vl      : longint;
+        vr      : bestreal;
       begin
          store_valid:=must_be_valid;
          store_count_ref:=count_ref;
@@ -3714,20 +3718,110 @@ unit pass_1;
               left_right_max(p);
               set_location(p^.location,p^.left^.location);
            end;
-           case p^.inlinenumber of
+         { handle intern constant functions in separate case }
+         if p^.inlineconst then
+          begin
+            is_real:=(p^.left^.treetype=realconstn);
+            vl:=p^.left^.value;
+            vr:=p^.left^.valued;
+            case p^.inlinenumber of
+         in_const_trunc : begin
+                            if is_real then
+                             hp:=genordinalconstnode(trunc(vr),s32bitdef)
+                            else
+                             hp:=genordinalconstnode(trunc(vl),s32bitdef);
+                          end;
+         in_const_round : begin
+                            if is_real then
+                             hp:=genordinalconstnode(round(vr),s32bitdef)
+                            else
+                             hp:=genordinalconstnode(round(vl),s32bitdef);
+                          end;
+          in_const_frac : begin
+                            if is_real then
+                             hp:=genrealconstnode(frac(vr))
+                            else
+                             hp:=genrealconstnode(frac(vl));
+                          end;
+           in_const_int : begin
+                            if is_real then
+                             hp:=genrealconstnode(int(vr))
+                            else
+                             hp:=genrealconstnode(int(vl));
+                          end;
+           in_const_abs : begin
+                            if is_real then
+                             hp:=genrealconstnode(abs(vr))
+                            else
+                             hp:=genordinalconstnode(abs(vl),p^.left^.resulttype);
+                          end;
+           in_const_sqr : begin
+                            if is_real then
+                             hp:=genrealconstnode(sqr(vr))
+                            else
+                             hp:=genordinalconstnode(sqr(vl),p^.left^.resulttype);
+                          end;
+           in_const_odd : begin
+                            if is_real then
+                             Message(sym_e_type_mismatch)
+                            else
+                             hp:=genordinalconstnode(byte(odd(vl)),booldef);
+                          end;
+     in_const_swap_word : begin
+                            if is_real then
+                             Message(sym_e_type_mismatch)
+                            else
+                             hp:=genordinalconstnode((vl and $ff) shl 8+(vl shr 8),p^.left^.resulttype);
+                          end;
+     in_const_swap_long : begin
+                            if is_real then
+                             Message(sym_e_type_mismatch)
+                            else
+                             hp:=genordinalconstnode((vl and $ffff) shl 16+(vl shr 16),p^.left^.resulttype);
+                          end;
+           in_const_ptr : begin
+                            if is_real then
+                             Message(sym_e_type_mismatch)
+                            else
+                             hp:=genordinalconstnode(vl,voidpointerdef);
+                          end;
+            else
+              internalerror(88);
+            end;
+            disposetree(p);
+            firstpass(hp);
+            p:=hp;
+          end
+         else
+          begin
+            case p^.inlinenumber of
+             in_lo_long,in_hi_long,
              in_lo_word,in_hi_word:
                begin
                   if p^.registers32<1 then
                     p^.registers32:=1;
-                  p^.resulttype:=u8bitdef;
+                  if p^.inlinenumber in [in_lo_word,in_hi_word] then
+                    p^.resulttype:=u8bitdef
+                  else
+                    p^.resulttype:=u16bitdef;
                   p^.location.loc:=LOC_REGISTER;
-               end;
-             in_lo_long,in_hi_long:
-               begin
-                  if p^.registers32<1 then
-                    p^.registers32:=1;
-                  p^.resulttype:=u16bitdef;
-                  p^.location.loc:=LOC_REGISTER;
+                  if not is_integer(p^.left^.resulttype) then
+                    Message(sym_e_type_mismatch)
+                  else
+                    begin
+                      if p^.left^.treetype=ordconstn then
+                       begin
+                         case p^.inlinenumber of
+                          in_lo_word : hp:=genordinalconstnode(p^.left^.value and $ff,p^.left^.resulttype);
+                          in_hi_word : hp:=genordinalconstnode(p^.left^.value shr 8,p^.left^.resulttype);
+                          in_lo_long : hp:=genordinalconstnode(p^.left^.value and $ffff,p^.left^.resulttype);
+                          in_hi_long : hp:=genordinalconstnode(p^.left^.value shr 16,p^.left^.resulttype);
+                         end;
+                         disposetree(p);
+                         firstpass(hp);
+                         p:=hp;
+                       end;
+                    end;
                end;
              in_sizeof_x:
                begin
@@ -3837,7 +3931,6 @@ unit pass_1;
                        firstpass(hp);
                        p:=hp;
                     end;
-
                end;
              in_assigned_x:
                begin
@@ -3851,25 +3944,22 @@ unit pass_1;
                   p^.resulttype:=p^.left^.resulttype;
                   p^.location.loc:=LOC_REGISTER;
                   if not is_ordinal(p^.resulttype) then
-                     Message(sym_e_type_mismatch)
+                    Message(sym_e_type_mismatch)
                   else
                     begin
-                  if (p^.resulttype^.deftype=enumdef) and
-                     (penumdef(p^.resulttype)^.has_jumps) then
-                    begin
-                      Message(parser_e_succ_and_pred_enums_with_assign_not_possible);
-                    end
-                  else if p^.left^.treetype=ordconstn then
+                      if (p^.resulttype^.deftype=enumdef) and
+                         (penumdef(p^.resulttype)^.has_jumps) then
+                        Message(parser_e_succ_and_pred_enums_with_assign_not_possible)
+                      else
+                        if p^.left^.treetype=ordconstn then
                          begin
-                            if p^.inlinenumber=in_pred_x then
-                              hp:=genordinalconstnode(p^.left^.value+1,
-                                p^.left^.resulttype)
-                            else
-                              hp:=genordinalconstnode(p^.left^.value-1,
-                                p^.left^.resulttype);
-                            disposetree(p);
-                            firstpass(hp);
-                            p:=hp;
+                           if p^.inlinenumber=in_succ_x then
+                             hp:=genordinalconstnode(p^.left^.value+1,p^.left^.resulttype)
+                           else
+                             hp:=genordinalconstnode(p^.left^.value-1,p^.left^.resulttype);
+                           disposetree(p);
+                           firstpass(hp);
+                           p:=hp;
                          end;
                     end;
                end;
@@ -4194,7 +4284,8 @@ unit pass_1;
                     Message(parser_e_varid_or_typeid_expected);
                end
                  else internalerror(8);
-             end;
+              end;
+            end;
            must_be_valid:=store_valid;
            count_ref:=store_count_ref;
        end;
@@ -5274,7 +5365,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.68  1998-09-01 09:02:52  peter
+  Revision 1.69  1998-09-01 17:39:47  peter
+    + internal constant functions
+
+  Revision 1.68  1998/09/01 09:02:52  peter
     * moved message() to hcodegen, so pass_2 also uses them
 
   Revision 1.67  1998/09/01 07:54:20  pierre

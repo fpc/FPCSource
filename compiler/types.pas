@@ -34,6 +34,9 @@ unit types;
     { returns true, if def defines an ordinal type }
     function is_ordinal(def : pdef) : boolean;
 
+    { returns true, if def defines an ordinal type }
+    function is_integer(def : pdef) : boolean;
+
     { true if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
 
@@ -171,6 +174,12 @@ unit types;
          else
            is_ordinal:=false;
          end;
+      end;
+
+    function is_integer(def : pdef) : boolean;
+      begin
+        is_integer:=(def^.deftype=orddef) and
+                    (porddef(def)^.typ in [u8bit,u16bit,u32bit,s8bit,s16bit,s32bit]);
       end;
 
     function is_signed(def : pdef) : boolean;
@@ -878,7 +887,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.22  1998-09-01 12:53:28  peter
+  Revision 1.23  1998-09-01 17:39:55  peter
+    + internal constant functions
+
+  Revision 1.22  1998/09/01 12:53:28  peter
     + aktpackenum
 
   Revision 1.21  1998/08/19 00:42:45  peter
