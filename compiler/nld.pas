@@ -743,9 +743,9 @@ implementation
               { we need a copy here, because self is destroyed }
               { by firstpass later                             }
               hp:=tarrayconstructornode(getcopy);
-              { we also need a copy of the flags to restore later (e.g. for }
-              { forcevaria) (JM)                                            }
-              orgflags := flags;
+              { we also need a copy of the nf_ forcevaria flag to restore }
+              { later) (JM)                                               }
+              orgflags := flags * [nf_forcevaria];
               while assigned(hp) do
                begin
                  thp:=tarrayconstructornode(hp.right);
@@ -753,7 +753,7 @@ implementation
                  chp:=hp;
                  hp:=thp;
                end;
-              chp.flags := orgflags;
+              chp.flags := chp.flags+orgflags;
               include(chp.flags,nf_cargswap);
               chp.location.loc:=LOC_MEM;
               calcregisters(chp,0,0,0);
@@ -821,7 +821,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2001-11-02 22:58:02  peter
+  Revision 1.30  2001-11-07 13:52:52  jonas
+    * only save/restore nf_forcevaria flag when reversing order of
+      arrayconstructor elements, since the other flags are element specific
+
+  Revision 1.29  2001/11/02 22:58:02  peter
     * procsym definition rewrite
 
   Revision 1.28  2001/10/31 17:34:20  jonas
