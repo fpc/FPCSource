@@ -292,10 +292,23 @@ uses
 {$ifdef Linux}
   linux,
 {$endif Linux}
+{$IFDEF OS2}
+  DosCalls,
+{$ENDIF OS2}
   WConsts,WHTMLHlp,WNGHelp,WWinHelp,WOS2Help;
 
 
 Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
+{$IFDEF OS2}
+  const
+    QSV_MS_COUNT = 14;
+  var
+    L: longint;
+  begin
+    DosQuerySysInfo (QSV_MS_COUNT, QSV_MS_COUNT, L, 4);
+    GetDosTicks := L div 55;
+  end;
+{$ENDIF}
 {$IFDEF LINUX}
   var
     tv : TimeVal;
@@ -1295,7 +1308,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2000-10-31 22:35:56  pierre
+  Revision 1.3  2000-11-11 23:05:31  hajny
+    * OS/2 implementation of GetDosTicks added
+
+  Revision 1.2  2000/10/31 22:35:56  pierre
    * New big merge from fixes branch
 
   Revision 1.1.2.1  2000/09/18 13:20:56  pierre
