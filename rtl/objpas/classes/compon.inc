@@ -243,6 +243,11 @@ begin
 end;
 
 
+procedure TComponent.PaletteCreated;
+  begin
+  end;
+  
+
 Procedure TComponent.ReadState(Reader: TReader);
 
 begin
@@ -578,7 +583,11 @@ end;
 
 {
   $Log$
-  Revision 1.6  2005-01-31 19:41:39  peter
+  Revision 1.7  2005-02-02 19:56:11  florian
+    + PaletteCreated added
+    + TCollectionNotification added
+
+  Revision 1.6  2005/01/31 19:41:39  peter
     * interface additions
 
   Revision 1.5  2004/09/22 19:57:45  michael
