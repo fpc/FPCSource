@@ -68,9 +68,9 @@
       end;
 
 
-    procedure writeset(var s); {You cannot pass an array[0..31] of byte!}
+    procedure writenormalset(var s); {You cannot pass an array[0..31] of byte!}
       begin
-        current_ppu^.putdata(s,32);
+        current_ppu^.putdata(s,sizeof(tnormalset));
       end;
 
 
@@ -264,9 +264,9 @@
       end;
 
 
-    procedure readset(var s);   {You cannot pass an array [0..31] of byte.}
+    procedure readnormalset(var s);   {You cannot pass an array [0..31] of byte.}
       begin
-        current_ppu^.getdata(s,32);
+        current_ppu^.getdata(s,sizeof(tnormalset));
         if current_ppu^.error then
          Message(unit_f_ppu_read_error);
       end;
@@ -694,7 +694,10 @@
 
 {
   $Log$
-  Revision 1.9  1998-08-11 15:31:41  peter
+  Revision 1.10  1998-08-13 10:57:30  peter
+    * constant sets are now written correctly to the ppufile
+
+  Revision 1.9  1998/08/11 15:31:41  peter
     * write extended to ppu file
     * new version 0.99.7
 

@@ -1325,7 +1325,6 @@
 ****************************************************************************}
 
     constructor tconstsym.init(const n : string;t : tconsttype;v : longint;def : pdef);
-
       begin
          tsym.init(n);
          typ:=constsym;
@@ -1334,62 +1333,66 @@
          value:=v;
       end;
 
-    constructor tconstsym.load;
 
+    constructor tconstsym.load;
       var
          pd : pbestreal;
-         ps : pointer;  {***SETCONST}
-
+         ps : pnormalset;
       begin
          tsym.load;
          typ:=constsym;
          consttype:=tconsttype(readbyte);
          case consttype of
             constint,
-            constbool,
-            constchar : value:=readlong;
+           constbool,
+           constchar : value:=readlong;
             constord : begin
                           definition:=readdefref;
                           value:=readlong;
                        end;
-            conststring : value:=longint(stringdup(readstring));
-            constreal : begin
-                           new(pd);
-                           pd^:=readreal;
-                           value:=longint(pd);
-                        end;
-{***SETCONST}
-            constseta : begin
-                           getmem(ps,32);
-                           readset(ps^);
-                           value:=longint(ps);
+         conststring : value:=longint(stringdup(readstring));
+           constreal : begin
+                         new(pd);
+                         pd^:=readreal;
+                         value:=longint(pd);
                        end;
-{***}
-         else Message1(unit_f_ppu_invalid_entry,tostr(ord(consttype)));
+           constseta : begin
+                         definition:=readdefref;
+                         new(ps);
+                         readnormalset(ps^);
+                         value:=longint(ps);
+                       end;
+         else
+           Message1(unit_f_ppu_invalid_entry,tostr(ord(consttype)));
          end;
       end;
 
+
     destructor tconstsym.done;
       begin
-      if consttype = conststring then stringdispose(pstring(value));
-      inherited done;
+        case consttype of
+         conststring : stringdispose(pstring(value));
+           constreal : dispose(pbestreal(value));
+           constseta : dispose(pnormalset(value));
+        end;
+        inherited done;
       end;
 
-    function tconstsym.mangledname : string;
 
+    function tconstsym.mangledname : string;
       begin
          mangledname:=name;
       end;
 
-    procedure tconstsym.deref;
 
+    procedure tconstsym.deref;
       begin
-         if consttype=constord then
-           resolvedef(pdef(definition));
+        if consttype in [constord,constseta] then
+         resolvedef(pdef(definition));
       end;
 
-    procedure tconstsym.write;
 
+    procedure tconstsym.write;
       begin
 {$ifdef OLDPPU}
          writebyte(ibconstsym);
@@ -1397,19 +1400,21 @@
          tsym.write;
          writebyte(byte(consttype));
          case consttype of
-            constint,
-            constbool,
-            constchar : writelong(value);
+           constint,
+           constbool,
+           constchar : writelong(value);
             constord : begin
-                          writedefref(definition);
-                          writelong(value);
+                         writedefref(definition);
+                         writelong(value);
                        end;
-            conststring : writestring(pstring(value)^);
-            constreal : writereal(pbestreal(value)^);
-{***SETCONST}
-            constseta: writeset(pointer(value)^);
-{***}
-            else internalerror(13);
+         conststring : writestring(pstring(value)^);
+           constreal : writereal(pbestreal(value)^);
+           constseta : begin
+                         writedefref(definition);
+                         writenormalset(pointer(value)^);
+                       end;
+         else
+           internalerror(13);
          end;
 {$ifndef OLDPPU}
         current_ppu^.writeentry(ibconstsym);
@@ -1671,7 +1676,10 @@
 
 {
   $Log$
-  Revision 1.29  1998-08-11 15:31:42  peter
+  Revision 1.30  1998-08-13 10:57:29  peter
+    * constant sets are now written correctly to the ppufile
+
+  Revision 1.29  1998/08/11 15:31:42  peter
     * write extended to ppu file
     * new version 0.99.7
 
