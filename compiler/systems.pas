@@ -68,6 +68,8 @@ interface
             ,asmmode_standard
             ,asmmode_i386_att
             ,asmmode_i386_intel
+            ,asmmode_ppc_gas
+            ,asmmode_ppc_motorola
        );
 
      (* IMPORTANT NOTE:
@@ -671,7 +673,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.54  2002-08-20 21:40:44  florian
+  Revision 1.55  2002-09-07 18:05:51  florian
+    * first part of PowerPC fixes
+
+  Revision 1.54  2002/08/20 21:40:44  florian
     + target macos for ppc added
     + frame work for mpw assembler output
 
