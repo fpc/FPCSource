@@ -77,7 +77,7 @@ uses
         a_tlbsync, a_tw, a_twi, a_xor, a_xor_, a_xori, a_xoris,
         { simplified mnemonics }
         a_subi, a_subis, a_subic, a_subic_, a_sub, a_sub_, a_subo, a_subo_,
-        a_subc, a_subc_, a_subco, _subco_, a_cmpwi, a_cmpw, a_cmplwi, a_cmplw,
+        a_subc, a_subc_, a_subco, a_subco_, a_cmpwi, a_cmpw, a_cmplwi, a_cmplw,
         a_extlwi, a_extlwi_, a_extrwi, a_extrwi_, a_inslwi, a_inslwi_, a_insrwi,
         a_insrwi_, a_rotlwi, a_rotlwi_, a_rotlw, a_rotlw_, a_slwi, a_slwi_,
         a_srwi, a_srwi_, a_clrlwi, a_clrlwi_, a_clrrwi, a_clrrwi_, a_clrslwi,
@@ -647,7 +647,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2002-07-25 18:04:10  carl
+  Revision 1.21  2002-07-26 12:30:51  jonas
+    * fixed typo in instruction table (_subco_ -> a_subco)
+
+  Revision 1.20  2002/07/25 18:04:10  carl
     + FPURESULTREG -> FPU_RESULT_REG
 
   Revision 1.19  2002/07/13 19:38:44  florian
