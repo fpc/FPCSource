@@ -56,7 +56,7 @@ PROGSOURCES=$(addsiffix .pp, $(PROGNAMES))
 PROGOBJECTS=$(addsuffix .o, $(PROGNAMES))
 
 # Adapt options. Add unit path if needed.
-override OPT:=$(OPT) -I$(INCDIR) -I$(CPUDIR)
+override OPT:=$(OPT) -S2 -I$(INCDIR) -I$(CPUDIR)
 
 ifdef UNITDIR
 override OPT:=$(OPT) -Up$(UNITDIR) 
