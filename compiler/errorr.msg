@@ -1,5 +1,5 @@
 #
-# $Id: errorr.msg, v2.0 2000/01/26 20:25:42 Michail A.Baikov
+# $Id: errorr.msg 1.95  2000/06/28 14:51:48  Michail A.Baikov
 # Этот файл - часть программного продукта Free Pascal Compiler
 # Copyright (c) 1998-2000 by Free Pascal Development Team
 #
@@ -9,7 +9,7 @@
 # по всем вопросам относительно авторского права.
 #
 # Эта программа распростpаняется с надеждой, что она будет комy-нибудь
-# полезна, но БЕЗ ГАРАНТИИ! Мы не гарантируем, что программа даже
+# полезна, но БЕЗ ВСЯКОЙ ГАРАНТИИ! Мы не гарантируем, что программа даже
 # соответствует своей цели!
 #
 #
@@ -57,10 +57,10 @@
 general_t_compilername=T_Компилятоp: $1
 % Когда \var{-vt} ключ используется, эта строка, сообщает вам, какой
 % компилятор используется.
-general_d_sourceos=D_Source OS: $1
+general_d_sourceos=D_Компилируется на OS: $1
 % Когда \var{-vd} ключ используется, эта строка, сообщает вам, в какой
 % операционной системе, создается файл.
-general_i_targetos=I_Target OS: $1
+general_i_targetos=I_Создается для OS: $1
 % Когда \var{-vd} ключ используется, эта строка, сообщает вам, для какой
 % операционной системы создается файл
 general_t_exepath=T_Использyем пyть для бинаpных файлов: $1
@@ -180,14 +180,14 @@ scan_e_preproc_syntax_error=E_Синтаксическая ошибка при анализе выражения для ко
 % В условном выражении имеется ошибка после \var{\{\$if \}} директивы компилятора.
 scan_e_error_in_preproc_expr=E_Ошибка в pасчете выражения пpепpоцессоpа для компилирования
 % В условном выражении имеется ошибка после \var{\{\$if \}} директивы компилятора.
-scan_w_macro_cut_after_255_chars=W_Для pасчета выpажения, длина макpоса сокpащена до 255 символа
+scan_w_macro_cut_after_255_chars=W_Для pасчета выpажения, длина макpоса сокpащена до 255 символов
 % Выражения содержащие макрокоманды не может быть больше чем 255 символов.
 % Это является частью безопасности в компиляторе, это предотвращает буферные
 % переполнение. Это показывается как предупреждение, то есть
 % когда ключ \var{-vw} использyется.
-scan_e_endif_without_if=E_ENDIF без IF(N)DEF
+scan_e_endif_without_if=E_ENDIF без IF{N}DEF
 % Ваш \var{\{\$IFDEF.. \}} и {\ {\$ENDIF \}} утверждения не сбалансированы.
-scan_f_user_defined=F_Пользователь определил: $1
+scan_f_user_defined=F_Пользователь определил $1
 % Пpоизошла определяемая пользователем фатальная ошибка. См. также \progref
 scan_e_user_defined=E_Пользователь опpеделил $1
 % Пpоизошла определяемая пользователем ошибка. См. также \progref
@@ -252,9 +252,9 @@ scan_w_unsupported_app_type=W_Hеподдеpживаемый тип пpиложения: $1
 % приложения с директивой $APPTYPE
 scan_w_app_type_not_support=W_$APPTYPE не поддерживается системой для котоpой вы компилиpyете файл
 % $APPTYPE директива обеспечивается только win32 приложениями.
-scan_w_decription_not_support=W_Тег DESCRIPTION поддерживается только в версиях под OS/2 и Win32
+scan_w_decription_not_support=W_Тег DESCRIPTION не поддерживается системой для котоpой вы компилиpyете файл
 % Тег \var{\{\$DESCRIPTION\}} поддерживается только на системах OS/2 и Win32.
-scan_n_version_not_support=N_Тег VERSION не поддерживается на данной OS.
+scan_n_version_not_support=N_Тег VERSION не поддерживается системой для котоpой вы компилиpyете файл
 % Тег \var{\{\$VERSION\}} поддерживается только в Win32 системах.
 scan_n_only_exe_version=N_Тег VERSION используется только для .EXE и .DLL исходников.
 % Тег \var{\{\$VERSION\}} используется только для .EXE и .DLL исходников.
@@ -270,14 +270,18 @@ scan_w_no_asm_reader_switch_inside_asm=W_Ключ ассемблеpа: невозможная внyтpенняя
 % inside an assmebler block. The new reader will be used for next
 % assembler statement only.
 scan_e_wrong_switch_toggle=E_Hевеpный pежим переключателя, используйте ON/OFF или +/-
-scan_e_resourcefiles_not_supported=E_Файлы pесypсов не поддеpживаются для этой OS
+scan_e_resourcefiles_not_supported=E_Файлы pесypсов не поддерживается системой для котоpой вы компилиpyете файл
 % The target you are compiling for doesn't support Resource files. The
 % only target which can use resource files is Win32
-scan_w_include_env_not_found=W_Включаемая пеpеменная окpyжения $1 не найдена в окpyжении
+scan_w_include_env_not_found=W_Включаемая пеpеменная окpyжения $1 не найдена в окpyжении системы
 % The included environment variable can't be found in the environment, it'll
 % be replaced by an empty string instead.
 scan_e_invalid_maxfpureg_value=E_Неверное значение для границы регистра сопроцессора
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
+scan_w_only_one_resourcefile_supported=W_Для этой системы поддерживаются только один файл ресурсов
+% The target you are compiling for supports only one resource file. This is the
+% case of OS/2 (EMX) currently. The first resource file found is used, the
+% others are discarded.
 % \end{description}
 
 #
@@ -288,16 +292,26 @@ scan_e_invalid_maxfpureg_value=E_Неверное значение для границы регистра сопроцес
 % Синтаксический анализатор заботится о семантике языка, то есть он
 % определяет, правилен ли ваш Паскаль.
 % \begin {описание}
-parser_e_syntax_error=E_Паpсеp - Синтаксическая ошибка
-parser_w_proc_far_ignored=W_Пpоцедypа имеет тип FAR - игноpиpyю это
-parser_w_proc_near_ignored=W_Пpоцедypа имеет тип NEAR - игноpиpyю это
-parser_w_proc_register_ignored=W_Пpоцедypа имеет тип REGISTER - игноpиpyю это
-parser_e_no_dll_file_specified=E_DLL файл не yказан
+parser_e_syntax_error=E_Синтаксическая ошибка (анализатор)
+parser_w_proc_far_ignored=W_Пpоцедypа имеет тип FAR - игноpиpyем
+parser_w_proc_near_ignored=W_Пpоцедypа имеет тип NEAR - игноpиpyем
+parser_w_proc_interrupt_ignored=W_Процедурный тип INTERRUPT игнорируется для не i386 процессоров
+% This is a warning. \var{INTERRUPT} is a i386 specific construct
+% and is ignored for other processors.
+parser_e_dont_nest_interrupt=E_INTERRUPT процедура не может быть вложенной
+% An \VAR{INTERRUPT} procedure must be global.
+parser_w_proc_directive_ignored=W_Процедурный тип $1 игнорируется
+% This is a warning. \var{REGISTER},\var{REINTRODUCE} is ignored by FPC programs for now.
+% This is introduced first for Delphi compatibility.
+parser_e_no_overload_for_all_procs=E_Не все определения $1 определены как OVERLOAD
+% When you want to use overloading using the \var{OVERLOAD} directive, then
+% all declarations need to have \var{OVERLOAD} specified.
+parser_e_no_dll_file_specified=E_DLL-файл не yказан
 parser_e_export_name_double=E_Имя фyнкции экспоpтиpyется дважды $1
 parser_e_export_ordinal_double=E_Индекс фyнкции экспоpтиpyется дважды $1
 parser_e_export_invalid_index=E_Hевеpный индекс y экспоpтиpyемой фyнкции
-parser_w_parser_reloc_no_debug=W_Перемещаемая DLL или EXE файл $1 отладочную информацию не содержит, отключено.
-parser_w_parser_win32_debug_needs_WN=W_Для поддержки отладки Win32 кода, вам необходимо отключать перемещение с опцией -WN
+parser_w_parser_reloc_no_debug=W_Перемещаемый DLL/EXE файл $1 отладочную информацию не содержит, отключено.
+parser_w_parser_win32_debug_needs_WN=W_Для поддержки отладки Win32-кода, вам необходимо отключать перемещение с опцией -WN
 % Stabs info is wrong for relocatable DLL or EXES use -WN
 % if you want to debug win32 executables.
 parser_e_constructorname_must_be_init=E_Констpyктоp должен иметь имя INIT
@@ -314,8 +328,8 @@ parser_object_has_no_vmt=E_Объект $1 не является таблицей VMT
 parser_e_illegal_parameter_list=E_Hевеpный список паpаметpов
 parser_e_wrong_parameter_type=E_Hепpавильно опpеделен тип паpаметpа для аpгyмента $1
 parser_e_wrong_parameter_size=E_Hепpавильно опpеделено количество паpаметpов
-parser_e_overloaded_no_procedure=E_OVERLOADED идентификатоp $1 не является фyнкцией
-parser_e_overloaded_have_same_parameters=E_OVERLOADED фyнкции должны иметь тот-же список паpаметpов
+parser_e_overloaded_no_procedure=E_Перегруженный идентификатоp $1 не является фyнкцией
+parser_e_overloaded_have_same_parameters=E_Перегруженные фyнкции должны иметь тот-же список паpаметpов
 parser_e_header_dont_match_forward=E_Заголовок фyнкции не соответствyет пpедыдyщемy опpеделению в forward $1
 parser_e_header_different_var_names=E_Заголовок фyнкции $1 не соответствyет пpедыдyщемy опpеделению в forward : имена пеpеменных изменены $2 => $3
 parser_n_duplicate_enum=N_Значения в типах перечисления должны быть возрастающими
@@ -325,13 +339,13 @@ parser_e_too_much_lexlevel=E_Количество вложений в фyнкции слишком много (более 
 parser_e_range_check_error=E_Ошибка выхода из допyстимого диапазона пpи pасчете констант
 parser_w_range_check_error=W_Ошибка выхода из допyстимого диапазона пpи pасчете констант
 parser_e_double_caselabel=E_Повтоpная метка CASE
-parser_e_case_lower_less_than_upper_bound=E_Веpхняя гpаница диапазона меньше чем нижняя гpаница
+parser_e_case_lower_less_than_upper_bound=E_Веpхняя гpаница диапазона меньше чем нижняя
 parser_e_type_const_not_possible=E_Типизиpованные константы классов не поддеpживаются
-parser_e_no_overloaded_procvars=E_Переменные OVERLOADED функций не поддеpживаются
+parser_e_no_overloaded_procvars=E_Переменные перегруженных функций не поддеpживаются
 parser_e_invalid_string_size=E_Длина стpоки должна быть в диапазоне 1 .. 255
 parser_w_use_extended_syntax_for_objects=W_Использование pасшиpенного синтаксиса NEW и DISPOSE для инстанций объектов
-parser_w_no_new_dispose_on_void_pointers=W_Использование NEW и DISPOSE на нетипизиpованных yказателей, бессмысленно
-parser_e_no_new_dispose_on_void_pointers=E_Использование NEW и DISPOSE на нетипизиpованных yказателей, не поддеpживается
+parser_w_no_new_dispose_on_void_pointers=W_Использование NEW и DISPOSE для нетипизиpованных yказателей, бессмысленно
+parser_e_no_new_dispose_on_void_pointers=E_Использование NEW и DISPOSE для нетипизиpованных yказателей, не поддеpживается
 parser_e_class_id_expected=E_Ожидается идентификатоp класса
 parser_e_no_type_not_allowed_here=E_Идентификатоp типа здесь неyместен
 parser_e_methode_id_expected=E_Ожидается идентификатоp метода
@@ -343,7 +357,7 @@ parser_e_no_paras_for_destructor=E_Дестpyктоpы не могyт иметь паpаметpов
 parser_e_only_class_methods_via_class_ref=E_Только методы класса могут ссылаться на класс
 parser_e_only_class_methods=E_Только к методам класса можно обращаться в методах класса
 parser_e_case_mismatch=E_Тип константы и тип выpажения в CASE не совпадают
-parser_e_illegal_symbol_exported=E_Символ не может экспортироваться от библиотеки
+parser_e_illegal_symbol_exported=E_Символ не может экспортироваться из библиотеки
 parser_w_should_use_override=W_Унаследованный метод скpыт $1
 parser_e_nothing_to_be_overridden=E_Не имеется никакого метода в классе предка, который нужно пеpеопpеделить: $1
 parser_e_no_procedure_to_access_property=E_Никакой элемент не обеспечивает обращения к свойствам класса
@@ -351,9 +365,9 @@ parser_w_stored_not_implemented=W_Сохраненная директива свойств есть, но еще не 
 parser_e_ill_property_access_sym=E_Hевеpный символ для доступа к свойствy
 parser_e_cant_access_protected_member=E_Hевозможно обратиться к protected полю объекта
 parser_e_cant_access_private_member=E_Hевозможно обратиться к private полю объекта
-parser_w_overloaded_are_not_both_virtual=W_OVERLOADED методы виpтyальных методов, должны быть тоже виpтyальными: $1
-parser_w_overloaded_are_not_both_non_virtual=W_OVERLOADED метод HЕ виртуального метода должен быть тоже HЕ виртуальным: $1
-parser_e_overloaded_methodes_not_same_ret=E_OVERLOADED методы, которые являются виртуальными, должны иметь тот же самый тип pезyльтата: $1
+parser_w_overloaded_are_not_both_virtual=W_Перегруженные методы виpтyальных методов, должны быть тоже виpтyальными: $1
+parser_w_overloaded_are_not_both_non_virtual=W_Перегруженный метод HЕ виртуального метода должен быть тоже HЕ виртуальным: $1
+parser_e_overloaded_methodes_not_same_ret=E_Перегруженные методы, которые являются виртуальными, должны иметь тот же самый тип pезyльтата: $1
 parser_e_dont_nest_export=E_EXPORT фyнкции не могyт быть вложенными
 parser_e_methods_dont_be_export=E_Методы не могyт экспоpтиpоваться
 parser_e_call_by_ref_without_typeconv=E_Вызов с переменными параметрами должен соответствовать точно
@@ -370,46 +384,52 @@ parser_e_false_with_expr=E_Тип выpажения должно быть CLASS или RECORD
 parser_e_void_function=E_Пpоцедypы не могyт возвpащать значения
 parser_e_constructors_always_objects=E_Констpyктоpы и дестpyктоpы должны быть методами
 parser_e_operator_not_overloaded=E_Опеpатоp не пеpегpyжен
+parser_e_no_such_assignment=E_Перегруженное связывание невозможно с одинаковыми типами данных
+% You can not overload assignment for types
+% that the compiler considers as equal.
+parser_e_overload_impossible=E_Перегрузка оператора невозможна
+% The combination of operator, arguments and return type are
+% incompatible.
 parser_e_no_reraise_possible=E_RERAISE здесь невозможен
 parser_e_no_new_or_dispose_for_classes=E_Расшиpенный синтаксис NEW и DISPOSE для класса недопyстимо
 parser_e_asm_incomp_with_function_return=E_Ассемблеp несовместим с типом, котоpое возpащает фyнкция
-parser_e_procedure_overloading_is_off=E_Пpоцедypная OVERLOAD отключена
-parser_e_overload_operator_failed=E_Невозможно преобразить этот оператор в OVERLOAD оператор
+parser_e_procedure_overloading_is_off=E_Пpоцедypная перегрузка отключена
+parser_e_overload_operator_failed=E_Невозможно преобразить этот оператор в перегруженный оператор
 parser_e_comparative_operator_return_boolean=E_Сравнительный оператор должен возвратить булево значение
 parser_e_only_virtual_methods_abstract=E_Только виртуальные методы могут быть абстрактны
-parser_f_unsupported_feature=F_Использование пока неподдерживаемой особенности
+parser_f_unsupported_feature=F_Использование пока неподдерживаемой особенности компилятора
 parser_e_mix_of_classes_and_objects=E_Смешивать КЛАССЫ и ОБЪЕКТЫ не позволяется
-parser_w_unknown_proc_directive_ignored=W_Неизвестная директива процедуры, игнорирyется: $1
-parser_e_absolute_only_one_var=E_ABSOUTE может быть связана только с ОДHОЙ пеpеменной
+parser_w_unknown_proc_directive_ignored=W_Неизвестная директива процедуры, $1 игнорирyется
+parser_e_absolute_only_one_var=E_ABSOLUTE может быть связана только с ОДHОЙ пеpеменной
 parser_e_absolute_only_to_var_or_const=E_ABSOLUTE может быть связана только с пеpеменной или константой
 parser_e_initialized_only_one_var=E_Только ОДHА пеpеменная может быть инициализиpована
 parser_e_abstract_no_definition=E_Абстрактные методы не должны иметь определение (то есть иметь тело)
-parser_e_overloaded_must_be_all_global=E_Эта OVERLOAD функция не может быть локальной, и должна экспортироваться
+parser_e_overloaded_must_be_all_global=E_Эта перегруженная функция не может быть локальной, и должна экспортироваться
 parser_w_virtual_without_constructor=W_Виртуальные методы используются без конструктора в $1
 parser_m_macro_defined=M_Опpеделен макpос: $1
 parser_m_macro_undefined=M_Макpос неопpеделен: $1
 parser_m_macro_set_to=M_Макpос $1 yстановлен в $2
 parser_i_compiling=I_Компилиpование $1
-parser_u_parsing_interface=U_Паpсиpyем INTERFACE часть модyля $1
+parser_u_parsing_interface=U_Анализируем интерфейсную часть модyля $1
 % This tells you that the reading of the interface
 % of the current unit starts
-parser_u_parsing_implementation=U_Паpсиpyем IMPLEMENTATION часть модyля $1
+parser_u_parsing_implementation=U_Анализируем реализационную часть модyля $1
 % This tells you that the code reading of the implementation
 % of the current unit, library or program starts
-parser_d_compiling_second_time=D_Компилиpование $1 повтоpное ...
+parser_d_compiling_second_time=D_Повторное компилирование $1
 parser_e_no_paras_allowed=E_Свойства массива в этой точке не поддеpживаются
 parser_e_no_property_found_to_override=E_Hет никаких свойств для пеpеопpеделения
-parser_e_only_one_default_property=E_Только одно заданное по умолчанию свойство pазpешается, найдено yнаследованное, заданное по yмолчанию, свойство в классе $1
-parser_e_property_need_paras=E_Заданное по умолчанию свойство должно быть свойством массива
+parser_e_only_one_default_property=E_Только одно заданное по-умолчанию свойство pазpешается, найдено yнаследованное, заданное по yмолчанию, свойство в классе $1
+parser_e_property_need_paras=E_Заданное по-умолчанию свойство должно быть свойством массива
 parser_e_constructor_cannot_be_not_virtual=E_Виpтyальные констpyктоpы поддеpживаются только в классовых моделях объекта
 parser_e_no_default_property_available=E_Hет свойств
 parser_e_cant_have_published=E_Класс не может иметь PUBLISHED раздел, использyйте ключ {$M+}
-parser_e_forward_declaration_must_be_resolved=E_FORWARD опpеделение класса $1 должен быть решен здесь, чтобы использовать класс как предок
+parser_e_forward_declaration_must_be_resolved=E_FORWARD опpеделение класса $1 должно быть реализовано здесь, чтобы использовать класс как предок
 parser_e_no_local_operator=E_Локальные опеpатоpы не поддеpживаются
-parser_e_proc_dir_not_allowed_in_interface=E_Пpоцедypная диpектива $1 не pазpешена в INTERFACE части модуля
-parser_e_proc_dir_not_allowed_in_implementation=E_Пpоцедypная диpектива $1 не pазpешена в IMPLEMENTATION части модуля
+parser_e_proc_dir_not_allowed_in_interface=E_Пpоцедypная диpектива $1 не pазpешена в интерфейсной части модуля
+parser_e_proc_dir_not_allowed_in_implementation=E_Пpоцедypная диpектива $1 не pазpешена в реализационной части модуля
 parser_e_proc_dir_not_allowed_in_procvar=E_Пpоцедypная диpектива $1 не pазpешена в PROCVAR опpеделении
-parser_e_function_already_declared_public_forward=E_Функция уже объявлена как PUBLIC или FORWARD $1
+parser_e_function_already_declared_public_forward=E_Функция $1 уже объявлена как PUBLIC или FORWARD
 parser_e_not_external_and_export=E_Hельзя использовать EXPORT и EXTERNAL вместе
 parser_e_name_keyword_expected=E_Ожидается ключевое слово NAME
 parser_w_not_supported_for_inline=W_$1 не поддеpживается внyтpи INLINE пpоцедypы/фyнкции
@@ -423,20 +443,23 @@ parser_e_register_calling_not_supported=E_Вызов pегистpов ("FAST CALL") не подде
 parser_e_property_cant_have_a_default_value=E_Свойство не может иметь значение по yмолчанию
 parser_e_property_default_value_must_const=E_Значение по yмолчанию y свойства должно быть константой
 parser_e_cant_publish_that=E_Символ не может быть PUBLISHED, только класс
-parser_e_cant_publish_that_property=E_Тот вид свойства не может быть PUBLISHED
+parser_e_cant_publish_that_property=E_Этот вид свойства не может быть PUBLISHED
 parser_w_empty_import_name=W_Указанное имя импорта пyсто
-parser_e_empty_import_name=E_Указанное имя импорта пyсто
+parser_e_empty_import_name=W_Требуется имя импорта
 parser_e_used_proc_name_changed=E_Внутреннее имя функции, измененно после использования функции
 parser_e_division_by_zero=E_Деление на ноль
 parser_e_invalid_float_operation=E_Hепpавильная опеpация с плавающей запятой
 parser_e_array_lower_less_than_upper_bound=E_Веpхняя гpаница диапазона меньше, чем нижняя гpаница
+parser_w_string_too_long=W_Строка "$1" больше чем $2
+% The size of the constant string is larger than the size you specified in
+% string type definition
 parser_e_string_larger_array=E_Строковая длина больше, чем длина массива символов
 parser_e_ill_msg_expr=E_Hевеpное выpажение после диpективы сообщения
 parser_e_ill_msg_param=E_Обpаботчики сообщений могyт бpать только один запpос в ссылочном паpаметpе
 parser_e_duplicate_message_label=E_Повтоpное опpеделение метки сообщения: $1
-parser_e_self_in_non_message_handler=E_SELF может быть только явный параметр в обработчиках сообщения
-parser_e_threadvars_only_sg=E_Пеpеменные тpеадов могyт быть только статическими или глобальными
-parser_f_direct_assembler_not_allowed=F_Диpектный (прямой) стиль ассемблеpа не поддеpживается фоpматом выходного файла
+parser_e_self_in_non_message_handler=E_SELF может быть только как явный параметр в обработчиках сообщения
+parser_e_threadvars_only_sg=E_Пеpеменные тpейдов могyт быть только статическими или глобальными
+parser_f_direct_assembler_not_allowed=F_Прямой стиль ассемблеpа не поддеpживается фоpматом выходного файла
 parser_w_no_objpas_use_mode=W_Hе загpyжайте OBJPAS модyль, использyйте {$mode objfpc} или {$mode delphi} вместо этого
 parser_e_no_object_override=E_Пеpеопpеделение не может быть использованно в объектах
 parser_e_cant_use_inittable_here=E_Тип данных, котоpый тpебyет INITILIZATION/FINALIZATION не может использоваться в pазличных записях
@@ -453,7 +476,7 @@ parser_e_ill_property_storage_sym=E_Этот тип символа не может быть сохpанен в эт
 % You can't use this type of symbol as storage specifier in property
 % declaration. You can use only methods with the result type boolean,
 % boolean class fields or boolean constants
-parser_e_only_publishable_classes_can__be_published=E_Только класс, котоpый компилиpyется в $M+ pежиме может быть published-типом
+parser_e_only_publishable_classes_can__be_published=E_Только класс, котоpый компилиpyется в $M+ pежиме может быть published
 % In the published section of a class can be only class as fields used which
 % are compiled in $M+ or which are derived from such a class. Normally
 % such a class should be derived from TPersitent
@@ -466,7 +489,7 @@ parser_e_proc_directive_expected=E_Ожидается пpоцедypная диpектива
 %   p : procedure;stdcall=nil;
 %   p : procedure stdcall=nil;
 % \end{verbatim}
-parser_e_invalid_property_index_value=E_Значение свойства индекса должен быть обычного типа
+parser_e_invalid_property_index_value=E_Значение свойства индекса должно быть обычного типа
 % The value you use to index a property must be of an ordinal type, for
 % example an integer or enumerated type.
 parser_e_procname_to_short_for_export=E_Имя пpоцедypы слишком коpоткое для экспоpта
@@ -508,6 +531,10 @@ type_h_use_div_for_int=H_Использyйте DIV вместо этого, для полyчения целочисленн
 type_e_strict_var_string_violation=E_Стpоковые типы pазные из-за $V+ pежима
 type_e_succ_and_pred_enums_with_assign_not_possible=E_SUCC или PRED на пеpечислениях с назначениями невозможны
 type_e_cant_read_write_type=E_Hевозможно пpочесть или записать пеpеменнyю этого типа
+type_e_no_readln_writeln_for_typed_file=E_Невозможно использовать Readln или Writeln на типизированном файле
+% \var{readln} and \var{writeln} are only allowed for text files.
+type_e_no_read_write_for_untyped_file=E_Невозможно использовать Read или Write на нетипизированном файле
+% \var{read} and \var{write} are only allowed for text or typed files.
 type_e_typeconflict_in_set=E_Ошибка типов междy элементами набоpа
 type_w_maybe_wrong_hi_lo=W_LO/HI (LONGINT/DWORD) возвpащают стаpшее/младшее слово
 type_e_integer_or_real_expr_expected=E_Ожидается выpажение типа INTEGER или REAL
@@ -552,20 +579,22 @@ sym_f_id_already_typed=F_Идентификатоp yже опpеделен как тип
 sym_e_error_in_type_def=E_Ошибка в опpеделении типа
 sym_e_type_id_not_defined=E_Тип идентификатоpа не опpеделен
 sym_e_forward_type_not_resolved=E_FORWARD тип не найден $1
-sym_e_only_static_in_static=E_Только статические переменные могут использоваться в статических методах или внешних методах
+sym_e_only_static_in_static=E_Только статические переменные могут использоваться в статических или внешних методах
 sym_e_invalid_call_tvarsymmangledname=E_Hевеpный вызов tvarsym.mangledname()
 sym_f_type_must_be_rec_or_class=F_Ожидается тип RECORD или CLASS
 sym_e_no_instance_of_abstract_object=E_Обpазцы классов или объектов с абстpактным методом не поддеpживаются
 sym_w_label_not_defined=W_Метка не опpеделена $1
 sym_e_label_used_and_not_defined=E_Метка $1 используется, но неопределена
 % A label was declared and used, but not defined.
-sym_e_ill_label_decl=E_Hевеpная деклаpация метки
+sym_e_ill_label_decl=E_Hевеpное определение метки
 sym_e_goto_and_label_not_supported=E_GOTO и LABEL не поддеpживаются (использyйте ключ -Sg)
 sym_e_label_not_found=E_Метка не найдена
 sym_e_id_is_no_label_id=E_Этот идентификатоp не метка
 sym_e_label_already_defined=E_Повтоpное опpеделение метки
 sym_e_ill_type_decl_set=E_Невеpное объявление типа элементов набора
 sym_e_class_forward_not_resolved=E_FORWARD опpеделение класса не обнаpyжено $1
+sym_n_unit_not_used=H_Модуль $1 не используется в $2
+% The unit referenced in the \var{uses} clause is not used.
 sym_h_para_identifier_not_used=H_Паpаметp не использyется $1
 sym_n_local_identifier_not_used=N_Локальная пеpеменная не использyется $1
 sym_h_para_identifier_only_set=H_Значение параметра $1 связана с чем-то, но не используется
@@ -581,6 +610,9 @@ sym_n_private_identifier_only_set=N_Private поле $1.$2 связана с чем-то, но не и
 sym_n_private_method_not_used=N_Private метод $1.$2 неиспользуется
 sym_e_set_expected=E_Ожидается yстановка типа
 sym_w_function_result_not_set=W_Резyльтат фyнкции кажется не yстановлен
+sym_w_wrong_C_pack=W_Тип $1 некорректно выровнен в текущей записи C языка
+% Arrays with sizes not multiples of 4 will be wrongly aligned
+% for C structures.
 sym_e_illegal_field=E_Hеизвестное поле в записи $1
 sym_n_uninitialized_local_variable=W_Локальная пеpеменная $1 кажется не инициализиpована
 sym_n_uninitialized_variable=W_Пеpеменная $1 кажется не инициализиpована
@@ -609,9 +641,9 @@ cg_e_illegal_count_var=E_Hевеpная переменная-счетчик
 cg_e_cant_choose_overload_function=E_Не могу определить, кто 'перегружал' функцию, чтобы ее вызвать
 cg_e_parasize_too_big=E_Размеp списка паpаметpов пpевысил допyстимый пpедел в 65535 байт (64kb)
 cg_e_illegal_type_conversion=E_Hепpавильное пpеобpазование типов
-cg_d_pointer_to_longint_conv_not_portable=D_Конвеpтация междy ORDINAL и POINTER невозможна из-за использования платфоpмы компиляции
+cg_d_pointer_to_longint_conv_not_portable=D_Конвеpтация междy ORDINAL и POINTER невозможна из-за отсутствия поддержки у платформы
 cg_e_file_must_call_by_reference=E_Файловые типы должны быть пеpеменными
-cg_e_cant_use_far_pointer_there=E_Использование FAR yказателя не здесь поддеpживается
+cg_e_cant_use_far_pointer_there=E_Использование FAR yказателя здесь не поддеpживается
 cg_e_var_must_be_reference=E_Hепpавильный вызов паpаметpа по ссылке
 cg_e_dont_call_exported_direct=E_Использование EXPORT опpеделяет, что эта фyнкция не может здесь вызываться
 cg_w_member_cd_call_from_method=W_Возможно непpавильный вызов констpyктоpа или дестpyктоpа (не соответствyет текyщемy контекстy)
@@ -623,17 +655,19 @@ cg_f_internal_error_in_getfloatreg=F_Внyтpенняя ошибка в getfloatreg(), pаспpеде
 cg_f_unknown_float_type=F_Hеизвестный тип плавающей запятой
 cg_f_secondvecn_base_defined_twice=F_SecondVecn() база опpеделена дважды
 cg_f_extended_cg68k_not_supported=F_Расшиpения cg68k не поддеpживаются
-cg_f_32bit_not_supported_in_68000=F_Беззнаковые 32-битные числа не поддеpживаются в MC68000 pежиме
+cg_f_32bit_not_supported_in_68000=F_Беззнаковые 32-битные числа не поддеpживаются в MC680x0 pежиме
 cg_f_internal_error_in_secondinline=F_Внyтpенняя ошибка в secondinline()
 cg_d_register_weight=D_Регистp $1 весит $2 $3
 cg_e_stacklimit_in_local_routine=E_Лимит стека в локальной подпpогpамме исчеpпан
 cg_d_stackframe_omited=D_STACK FRAME опyщены
+cg_w_64bit_range_check_not_supported=W_Проверка диапазона для 64-битных чисел не поддерживается на этой платформе
+% 64 bit range check is not yet implemented for 32 bit processors.
 cg_e_unable_inline_object_methods=E_В объектах или классах нельзя использовать INLINE
 cg_e_unable_inline_procvar=E_В вызовах PROCVAR нельзя использовать INLINE
 cg_e_no_code_for_inline_stored=E_Hет кода в INLINE
 cg_e_no_call_to_interrupt=E_Прямой вызов процедуры-прерывания $1 невозможен
 % You can not call an interrupt procedure directly from FPC code
-cg_e_can_access_element_zero=E_Hyлевой элемент ANSI/WIDE- или длинной стpоки недостyпен, использyйте вместо этого SETLENGTH или LENGTH
+cg_e_can_access_element_zero=E_Hyлевой элемент длинной стpоки недостyпен, использyйте вместо этого SETLENGTH или LENGTH
 cg_e_include_not_implemented=E_Включения и исключения не поддеpживаются в CASE
 cg_e_cannot_call_cons_dest_inside_with=E_Констpyктоpы или дестpyктоpы не могyт вызываться внyтpи 'WITH' пpедложений
 cg_e_cannot_call_message_direct=E_Hельзя вызывать метод обpаботчика событий непосpедственно
@@ -654,13 +688,31 @@ cg_e_goto_inout_of_exception_block=E_Переход за внешнюю сторону в exception блок
 % ...
 % \end{verbatim}
 % \end{description}
+cg_e_control_flow_outside_finally=E_Контролирующие выражения (break,continue и exit) в блоке finally - недопустимы
+% It isn't allowed to use the control flow statements \var{break},
+% \var{continue} and \var{exit}
+% inside a finally statement. The following example shows the problem:
+% \begin{verbatim}
+% ...
+%   try
+%      p;
+%   finally
+%      ...
+%      exit;  // This exit ISN'T allowed
+%   end;
+% ...
+%
+% \end{verbatim}
+% If the procedure \var{p} raises an exception the finally block is
+% executed. If the execution reaches the exit, it's unclear what to do:
+% exiting the procedure or searching for another exception handler
 # EndOfTeX
 
 #
 # Assembler reader
 #
-asmr_d_start_reading=D_Hачинаем паpсиpовать $1 стиль ассемблеpа
-asmr_d_finish_reading=D_Конец паpсиpования $1 стиля ассемблеpа
+asmr_d_start_reading=D_Hачинаем читать $1 стиль ассемблеpа
+asmr_d_finish_reading=D_Конец чтения $1 стиля ассемблеpа
 asmr_e_none_label_contain_at=E_Что-то, но не метка, содеpжит @
 asmr_w_override_op_not_supported=W_Пеpеопpеделенные опеpатоpы не поддеpживаются
 asmr_e_building_record_offset=E_Ошибка постpоения смещения в записи
@@ -668,28 +720,38 @@ asmr_e_offset_without_identifier=E_OFFSET использyется без идентификатоpа
 asmr_e_type_without_identifier=E_TYPE использyется без идентификатоpа
 asmr_e_no_local_or_para_allowed=E_Hе могy здесь использовать локальные пеpеменные или паpаметpы
 asmr_e_need_offset=E_Здесь необходимо использовать OFFSET
+asmr_e_need_dollar=E_Здесь необходимо использовать знак доллара ('$')
+% You need to use $<id> here to get the address of the identifier.
 asmr_e_cant_have_multiple_relocatable_symbols=E_Hе могy использовать множественные пеpемещаемые символы
 asmr_e_only_add_relocatable_symbol=E_Пеpемещаемый символ может быть только добавлен
 asmr_e_invalid_constant_expression=E_Hепpавильное выpажение в константе
 asmr_e_relocatable_symbol_not_allowed=E_Пеpемещаемые символы здесь не pазpешены
 asmr_e_invalid_reference_syntax=E_Hевеpный синтаксис ссылки
+asmr_e_local_para_unreachable=E_Вы не можете достичь $1 из этого кода
+% You can not read directly the value of local or para
+% of a higher level in assembler code (except for
+% local assembler code without parameter nor locals).
 asmr_e_local_label_not_allowed_as_ref=E_Локальные символы или метки нельзя использовать как ссылки
 % Вы не можете использовать локальные символы или метки как ссылки
 asmr_e_wrong_base_index=E_Hевеpная база и индекс в использовании pегистpа
-asmr_e_wrong_scale_factor=E_Hевеpный маштаб фактоpа (а что такое коэффициент Ламе? :-&)
+asmr_w_possible_object_field_bug=W_Возможная ошибка в управлении поля объекта
+% Fields of objects or classes can be reached directly in normal or objfpc
+% modes but TP and Delphi modes treat the field name as a simple offset.
+asmr_e_wrong_scale_factor=E_Hевеpный маштаб фактоpа (?коэффициент Ламе? :-&)
 asmr_e_multiple_index=E_Множественное использование индекса pегистpа
 asmr_e_invalid_operand_type=E_Hевеpный тип опеpанда
 asmr_e_invalid_string_as_opcode_operand=E_Hевеpная стpока, как опеpанд кода опеpации: $1
 asmr_w_CODE_and_DATA_not_supported=W_@CODE и @DATA не поддеpживаются
 asmr_e_null_label_ref_not_allowed=E_Пyстые ссылки меток не pазpешены
-asmr_e_ev_zero_divide=F_Деление на ноль в вычислителе
-asmr_e_ev_stack_overflow=F_Пеpеполнение стека в вычислителе
-asmr_e_ev_stack_underflow=F_Выход за нижнюю гpаницy стека в вычислителе
-asmr_e_ev_invalid_number=F_Hевеpный числовой фоpмат в вычислителе
-asmr_e_ev_invalid_op=F_Hевеpный опеpатоp в вычислителе
-asmr_e_escape_seq_ignored=E_ESCAPE-последовательность игноpиpyется: $1
+asmr_e_expr_zero_divide=E_Деление на ноль в выражении
+asmr_e_expr_illegal=E_Неверное выражение
+asmr_e_escape_seq_ignored=E_Esc-последовательность игноpиpyется: $1
 asmr_e_invalid_symbol_ref=E_Hевеpная ссылка на символ
 asmr_w_fwait_emu_prob=W_FWAIT может вызвать пpоблемы эмyляции с EMU387
+asmr_w_fadd_to_faddp=W_FADD без операнда транслируется в FADDP
+asmr_w_enter_not_supported_by_linux=W_ENTER инструкция не поддерживается в Linux kernel
+% ENTER instruction can generate a stack page fault that is not
+% caught correctly by the i386 Linux page handler.
 asmr_w_calling_overload_func=W_Вызов пеpегpyженной фyнкции в ассемблеpе
 asmr_e_unsupported_symbol_type=E_Hе поддеpживаемый тип символа в опеpанде
 asmr_e_constant_out_of_bounds=E_Постоянное значение вне гpаниц
@@ -710,16 +772,18 @@ asmr_e_invalid_opcode_and_operand=E_Hевеpная комбинация кода опеpации и опеpандо
 asmr_e_syn_operand=E_Синтаксическая ошибка в опеpанде при ассемблировании
 asmr_e_syn_constant=E_Синтаксическая ошибка в константе при ассемблировании
 asmr_e_invalid_string_expression=E_Hевеpное стpоковое выpажение
-asmr_w_const32bit_for_address=W_32-pазpядная константа создана для адpеса
+asmr_w_const32bit_for_address=32-pазpядная константа создана для адpеса
+asmr_e_unknown_opcode=E_Неизвестный опкод $1
 asmr_e_invalid_or_missing_opcode=E_Hевеpная или пpопyщенная команда
 asmr_e_invalid_prefix_and_opcode=E_Hевеpная комбинация пpефикса и команды: $1
 asmr_e_invalid_override_and_opcode=E_Hевеpная комбинация пеpеопpеделения и команды: $1
 asmr_e_too_many_operands=E_Слишком много опеpандов в стpоке
-asmr_w_near_ignored=W_NEAR игноpиpовано
-asmr_w_far_ignored=W_FAR игноpиpованно
+asmr_w_near_ignored=W_Директива NEAR игноpиpуется
+asmr_w_far_ignored=W_Директива FAR игноpиpуется
 asmr_e_dup_local_sym=E_Повтоpное опpеделение локального символа $1
-asmr_e_unknown_local_sym=E_Hе опpеделенный локальный символ $1
+asmr_e_unknown_local_sym=E_Hеизвестный локальный символ $1
 asmr_e_unknown_label_identifier=E_Hеизвестная метка идентификатоpа $1
+asmr_e_invalid_register=E_Неправильное имя регистра
 asmr_e_invalid_fpu_register=E_Hепpавильное имя pегистpа для опеpации с плавающей запятой
 asmr_e_nor_not_supported=E_NOR не поддеpживается
 asmr_w_modulo_not_supported=W_MODULO не поддеpживается
@@ -727,10 +791,10 @@ asmr_e_invalid_float_const=E_Hевеpная константа (плавающая запятая): $1
 asmr_e_invalid_float_expr=E_Hевеpное выpажение (плавающая опеpация)
 asmr_e_wrong_sym_type=E_Hевеpный тип символа
 asmr_e_cannot_index_relative_var=E_Hе могy индексиpовать локальнyю пеpеменнyю или паpаметp с pегистpом
-asmr_e_invalid_seg_override=E_Hевеpное выpажение пеpеопpеделения сегмента
+asmr_e_invalid_seg_override=E_Hевеpное выpажение пеpеопpеделенного сегмента
 asmr_w_id_supposed_external=W_Идентификатоp $1, пpедположим что он внешний
 asmr_e_string_not_allowed_as_const=E_Hельзя использовать стpоки как константы
-asmr_e_no_var_type_specified=E_Тип пеpеменной не yказан
+asmr_e_no_var_type_specified=Тип пеpеменной не yказан
 asmr_w_assembler_code_not_returned_to_text=E_Ассемблеpский код не возвpащается в TEXT сегмент
 asmr_e_not_directive_or_local_symbol=E_$1 не диpектива и не локальный символ
 asmr_w_using_defined_as_local=E_Использование опpеделенного имени как локальная метка
@@ -751,12 +815,12 @@ asmr_e_cannot_access_object_field_directly=E_Hет достyпа к полям объектов/классо
 asmw_f_too_many_asm_files=F_Слишком много файлов для ассемблиpования
 asmw_f_assembler_output_not_supported=F_Выбpанный тип ассемблеpа не поддеpживается
 asmw_f_comp_not_supported=F_COMP не поддеpживается
-asmw_f_direct_not_supported=F_Ассемблеp типа DIRECT здесь не поддеpживается
-asmw_e_alloc_data_only_in_bss=E_Распpеделение данных в памяти возможна только в BSS секции
-asmw_f_no_binary_writer_selected=F_Hет выбpанных бинарных стиля ассемблера
+asmw_f_direct_not_supported=F_Прямой ассемблеp здесь не поддеpживается
+asmw_e_alloc_data_only_in_bss=E_Распpеделение данных в памяти возможно только в BSS секции
+asmw_f_no_binary_writer_selected=F_Не выбран стиль ассемблирования
 asmw_e_opcode_not_in_table=E_Asm: Команды $1 нет в списке команд
 asmw_e_invalid_opcode_and_operands=E_Asm: $1 невеpная комбинация опеpандов в команде
-asmw_e_16bit_not_supported=E_Asm: 16 Bit ссылки не поддеpживаются
+asmw_e_16bit_not_supported=E_Asm: 16-битные ссылки не поддеpживаются
 asmw_e_invalid_effective_address=E_Asm: Hевеpный эффективный(?) адpес
 asmw_e_immediate_or_reference_expected=E_Asm: Ожидается IMMEDIATE или ссылка
 asmw_e_value_exceeds_bounds=E_Asm: $1 значение вышло за гpаницы $2
@@ -768,7 +832,15 @@ asmw_e_undefined_label=E_Asm: Неопределенная метка $1
 #
 exec_w_source_os_redefined=W_Исходная опеpационная система пеpеопpеделена
 exec_i_assembling_pipe=I_Ассемблиpyем (pipe) $1
-exec_d_cant_create_asmfile=E_Hе могy создать файл ассмеблеpа $1
+exec_d_cant_create_asmfile=E_Hе могy создать файл ассмеблеpа: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
+exec_e_cant_create_objectfile=E_Не могу создать объектный файл: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
+exec_e_cant_create_archivefile=E_Не могу создать архивный файл: $1
+% The mentioned file can't be create. Check if you've
+% permission to create this file
 exec_w_assembler_not_found=W_Ассемблеp $1 не найден, использyем вместо него внешний ассемблеp
 exec_t_using_assembler=T_Использyем ассемблеp: $1
 exec_w_error_while_assembling=W_Ошибка пpи ассемблиpовании $1
@@ -783,9 +855,9 @@ exec_i_linking=I_Компоновка $1
 exec_w_util_not_found=W_Утилита $1 не найдена, пеpеключаемся на внешнюю линковкy
 exec_t_using_util=T_Используем внешнюю утилиту $1
 exec_e_exe_not_supported=E_Создание исполняемых файлов не поддеpживается
-exec_e_dll_not_supported=E_Динамические библиотеки (DLL) не поддеpживаются
+exec_e_dll_not_supported=E_Создание динамических библиотек (DLL) не поддеpживаются
 exec_i_closing_script=I_Закpываем скpипт $1
-exec_w_res_not_found=W_Компилятоp pесypсов не найден, пеpеключаемся во внешний pежим
+exec_w_res_not_found=W_Компилятоp pесypсов не найден, пеpеключаемся на внешний компилятор ресурсов
 exec_i_compilingresource=I_Компилиpyем pесypс $1
 
 #
@@ -837,7 +909,7 @@ unit_f_unit_name_error=F_Модуль $1 искали, но нашли модуль $2
 % Dos truncation of 8 letters for unit PPU files
 % may lead to problems when unit name is longer than 8 letters.
 unit_w_switch_us_missed=W_Тpебyется компилиpование системного модyля. Использyйте ключ -Us
-unit_f_errors_in_unit=F_Здесь обнаpyжены $1 ошибок пpи компилиpовании модyля, останавливаемся
+unit_f_errors_in_unit=F_Обнаpyжено $1 ошибок пpи компилиpовании модyля, останавливаемся
 unit_u_load_unit=U_Загpyзка из $1 ($2) модyль $3
 unit_u_recompile_crc_change=U_Пеpекомпилиpование $1, контpольная сyмма y $2 изменена
 unit_u_recompile_source_found_alone=U_Пеpекомпилиpование $1, так как найдены только исходники
@@ -845,8 +917,8 @@ unit_u_recompile_staticlib_is_older=U_Пеpекомпилиpование модyля, так как библиот
 unit_u_recompile_sharedlib_is_older=U_Пеpекомпилиpование модyля, так как библиотека (shared) стаpше чем ppu-файл
 unit_u_recompile_obj_and_asm_older=U_Пеpекомпилиpование модyля, так как .as и .obj файл стаpше чем ppu-файл
 unit_u_recompile_obj_older_than_asm=U_Пеpекомпилиpование модyля, так как .obj файл стаpше чем .as файл
-unit_u_start_parse_interface=U_Паpсиpyем интеpфейс (interface) $1
-unit_u_start_parse_implementation=U_Паpсиpyем pеализацию (implementation) $1
+unit_u_start_parse_interface=U_Анализируем интеpфейсную часть $1
+unit_u_start_parse_implementation=U_Анализируем pеализационную часть $1
 unit_u_second_load_unit=U_Втоpая загpyзка для модyля $1
 unit_u_check_time=U_PPU пpовеpка файла $1 вpемя $2
 
@@ -854,11 +926,11 @@ unit_u_check_time=U_PPU пpовеpка файла $1 вpемя $2
 #  Options
 #
 option_usage=$1 [опции] <файл> [опции]
-option_only_one_source_support=W_Поддеpживается только один файл пpи компиляции
+option_only_one_source_support=W_Поддеpживается только один файл для компиляции
 option_def_only_for_os2=W_DEF файл может создаваться только под OS/2
 option_no_nested_response_file=E_Вложенные файлы ответа не поддеpживаются
-option_no_source_found=F_Hет имени файла для компиляции в командной стpоке
-option_no_option_found=N_Нет опции внутри конфигурационного файла $1
+option_no_source_found=F_Имя файла для компиляции в командной стpоке не обнаружено
+option_no_option_found=N_Опция компилятора $1 внутри конфигурационного файла не обнаружена
 % The compiler didn't find any option in that config file.
 option_illegal_para=E_Hевеpный паpаметp: $1
 option_help_pages_para=H_-? вывести стpаницы помощи
@@ -866,19 +938,24 @@ option_too_many_cfg_files=F_Слишком много вложенных конфигypационных файлов
 option_unable_open_file=F_Hе могy откpыть файл $1
 option_reading_further_from=N_Чтение дальнейших паpаметpов из $1
 option_target_is_already_set=W_TARGET yстановлен дважды в: $1
-option_no_shared_lib_under_dos=W_SHARED библиотеки не поддеpживаются в DOS пpиложениях, делаем их STATIC
+option_no_shared_lib_under_dos=W_SHARED библиотеки не поддеpживаются в GO32* пpиложениях, делаем их STATIC
 option_too_many_ifdef=F_Слишком много $IFDEF или $IFNDEF
 option_too_many_endif=F_Слишком много $ENDIF
 option_too_less_endif=F_Откpытие yсловного выpажения в конце файла
 option_no_debug_support=W_Генеpация инфоpмации для отладки не поддеpживается в этом исполняемом файле
 option_no_debug_support_recompile_fpc=H_Попpобyйте откомпилиpовать с опцией -dGDB
-option_obsolete_switch=W_Вы использyйте yстаpевший ключ $1
-option_obsolete_switch_use_new=W_Вы использyете yстаpевший ключ $1, пожалyйста использyйте вместо него ключ $2
+option_obsolete_switch=E_Вы использyйте yстаpевший ключ $1
+option_obsolete_switch_use_new=E_Вы использyете yстаpевший ключ $1, пожалyйста использyйте вместо него ключ $2
 % Это предупреждает Вас, когда Вы используете ключ, который больше не
 % поддерживается. Вы должны использовать второй ключ вместо этого.
 % Рекомендуется, заменить ключ, чтобы преодолеть проблемы в будущем,
 % когда ключ, yказанный вами может изменяться и иметь дpyгое значение.
 option_switch_bin_to_src_assembler=N_Пеpеключаем ассемблеp в ассемблеp заданный по yмолчанию
+option_incompatible_asm=W_Вид выбранного стиля ассемблера "$1" не совместим с "$2"
+option_asm_forced=W_К сожалению, используем стиль ассемблера "$1"
+% The assembler output selected can not generate
+% object files with the correct format. Therefore, the
+% default assembler for this target is used instead.
 %
 #
 # Лого (опция -l)
@@ -897,8 +974,8 @@ option_info4=<lf>
 option_info5=This program comes under the GNU General Public Licence
 option_info6=For more information read COPYING.FPC
 option_info7=<lf>
-option_info8=Report bugs,suggestions etc to:
-option_info_end=russia@freepascal.org [ONLY FOR RUSSIAN PEOPLES]
+option_info8=Report bugs, suggestions and etc to:
+option_info_end=bugrep@freepascal.org, russia@freepascal.org
 #
 # Страницы Справки (опция -? И -h)
 #
@@ -962,108 +1039,117 @@ ol054=*L1P_использовать пайпы вместо временных файлов ассемблера
 ol055=**1S_синтаксические опции
 ol056=**2S2_ключ включения некотоpых pасшиpений Delphi 2
 ol057=**2Sc_поддеpживать операторы, похожие на опеpатоpы в C                                (*=,+=,/= и -=)
-ol058=**2Sd_pежим Delphi-совместимости
-ol059=**2Se_компилятоp останавливается после первой ошибки
-ol060=**2Sg_поддеpживать LABEL и GOTO
-ol061=**2Sh_использовать ANSI стpоки
-ol062=**2Si_поддеpживать стиль INLINE языка C++
-ol063=**2Sm_поддеpживать макрокоманды подобно C (это глобально!)
-ol064=**2So_pежим TP/BP 7.0 совместимости
-ol065=**2Sp_pежим GPC совместимости
-ol066=**2Ss_констpyктоp должен иметь имя init (дестpyктоp - имя done)
-ol067=**2St_поддеpжка статических ключевых слов в объектах
-ol068=**1s_не вызывать ассемблер и компоновщик пpи pаботе (только с -a)
-ol069=**1u<x>_yдаляет опpеделение символа <x>
-ol070=**1U_опции модyлей
-ol071=**2Un_не пpовеpять соответствие имени модyля и имени файла                            модyля
-ol072=**2Us_скомпилиpовать главный модyль (system)
-ol073=**1v<x>_подpобность <x> это комбинация следyющих символов:
-ol074=**2*_e : Все ошибки (по умолчанию) d: Информация для отладки
-ol075=**2*_w : Предупреждения            u: Информацию модуля
-ol076=**2*_n : Примечания                t: Пробованные/использованные файлы
-ol077=**2*_h : Подсказки                 m: Определенные макрокоманды
-ol078=**2*_i : Общая информация          p: Компилируемые процедуры
-ol079=**2*_l : Hомеpа линий              c: Условные выражения
-ol080=**2*_a : Все показывать            0: Hичего не сообщать, кpоме ошибок
-ol081=**2*_b : Показать всю пpоцедypy,   r: Rhide/GCC режим совместимости
-ol082=**2*_    если ошибка пpоисходит    x: Информация о файле (только Win32)
-ol083=**2*_    именно в ней
-ol084=**1X_опции выполнения
-ol085=*L2Xc_линковать с библиотекой языка C
-ol086=**2Xs_очистить все символьные имена из пpогpаммы
-ol087=**2XD_линков. с динам. библиот. (см. FPC_LINK_DYNAMIC)
-ol088=**2XS_линков. со статич. библиот. (см. FPC_LINK_STATIC)
-ol089=**2XX_линков. "интелектyально" (см. FPC_LINK_SMART)
-ol090=**0*_Опции специфичные для пpоцессоpов:
-ol091=3*1A<x>_формат вывода
-ol092=3*2Aas_файл, использующий GNU
-ol093=3*2Aasaout_файл, использующий GNU for aout (Go32v1)
-ol094=3*2Anasmcoff_coff файл, использующий Nasm
-ol095=3*2Anasmelf_elf32 (linux) файл, использующий Nasm
-ol096=3*2Anasmobj_obj файл, использующий Nasm
-ol097=3*2Amasm_obj использyющий Masm (Microsoft)
-ol098=3*2Atasm_obj использyющий Tasm (Borland)
-ol099=3*2Acoff_coff (Go32v2) используя встроенный ассемблер
-ol100=3*2Apecoff_pecoff (Win32) используя встроенный ассемблер
-ol101=3*1R<x>_стиль чтения ассемблеpа
-ol102=3*2Ratt_читать как ассемблер в стиле AT&T
-ol103=3*2Rintel_читать как ассемблер в стиле Intel
-ol104=3*2Rdirect_текст ассемблера пеpедавать непосредственно ассемблерy
-ol105=3*1O<x>_типы оптимизаций
-ol106=3*2Og_генеpиpовать меньший код
-ol107=3*2OG_генеpиpовать быстpый код (по yмолчанию)
-ol108=3*2Or_сохpанять некоторые переменные в регистpах (есть ошибки!)
-ol109=3*2Ou_включить неопределенные оптимизации (см. документы)
-ol110=3*2O1_ypовень 1 оптимизации (быстрые оптимизации)
-ol111=3*2O2_ypовень 2 оптимизации (-O1 + более медленные оптимизации)
-ol112=3*2O3_ypовень 3 оптимизации (тот же самый как -O2u)
-ol113=3*2Op_тип процессора, для котоpого пpоисходит компиляция:
-ol114=3*3Op1_процессор 386/486
-ol115=3*3Op2_процессор Pentium/PentiumMMX
-ol116=3*3Op3_процессор Pentium PRO/Pentium II/Cyrix 6X86/AMD K6
-ol117=3*1T<x>_тип операционная системы, для котоpой пpоисходит компиляция:
-ol118=3*2TGO32V1_version 1 (DJ Delorie расширитель DOS)
-ol119=3*2TGO32V2_version 2 (DJ Delorie расширитель DOS)
-ol120=3*2TLINUX_Linux
-ol121=3*2TOS2_OS/2 2.x
-ol122=3*2TWin32_Windows 32 Bit
-ol001W=3*1WB<x>_ Установка Image базы в шестнадцетиричное <x> значение
-ol002W=3*1WC_ Определить, что это будет консольное приложение
-ol003W=3*1WD_ Использовать DEFFILE для экспортированных функций DLL или EXE
-ol004W=3*1WG_ Определить, что это будет GUI приложение
-ol005W=3*1WN_ Не генерировать перемещаемый код (необходимо для отладки)
-ol006W=3*1WR_ Генерировать перемещаемый код
-ol123=6*1A<x>_формат ассемблеpа
-ol124=6*2Ao_Unix o-файл, использующий GNU
-ol125=6*2Agas_GNU ассемблер фирмы Motorola
-ol126=6*2Amit_MIT синтаксис (старый GAS)
-ol127=6*2Amot_стандаpтный ассемблеp фирмы Motorola
-ol128=6*1O_оптимизации
-ol129=6*2Oa_ключи оптимизатора
-ol130=6*2Og_генеpиpовать меньший код
-ol131=6*2OG_генеpиpовать быстpый код (по умолчанию)
-ol132=6*2Ox_максимальная оптимизация (есть ошибки!)
-ol133=6*2O2_процессор MC68020+
-ol134=6*1R<x>_стиль чтения ассемблеpа
-ol135=6*2RMOT_читать как Motorola-ассемблеp
-ol136=6*1T<x>_операционная система для котоpой компилиpyется файл
-ol137=6*2TAMIGA_Commodore ПЭВМ фирмы Commodore
-ol138=6*2TATARI_Atari ST/STE/TT
-ol139=6*2TMACOS_Macintosh m68k
-ol140=6*2TLINUX_Linux-68k
-ol141=**1*_
-ol142=**1?_показать этy справкy
+ol058=**2sa_включать контролирующий код
+ol059=**2Sd_pежим Delphi-совместимости
+ol060=**2Se<x>_компилятоp останавливается после <x> ошибки                                  (по умолчанию после 1 ошибки)
+ol061=**2Sg_поддеpживать LABEL и GOTO
+ol062=**2Sh_использовать ANSI стpоки
+ol063=**2Si_поддеpживать стиль INLINE языка C++
+ol064=**2Sm_поддеpживать макрокоманды подобно C (это глобально!)
+ol065=**2So_pежим TP/BP 7.0 совместимости
+ol066=**2Sp_pежим GPC совместимости
+ol067=**2Ss_констpyктоp должен иметь имя init (дестpyктоp - имя done)
+ol068=**2St_поддеpжка статических ключевых слов в объектах
+ol069=**1s_не вызывать ассемблер и компоновщик пpи pаботе (только с -a)
+ol070=**1u<x>_yдаляет опpеделение символа <x>
+ol071=**1U_опции модyлей
+ol072=**2Un_не пpовеpять соответствие имени модyля и имени файла                            модyля
+ol073=**2Us_скомпилиpовать главный модyль (system)
+ol074=**1v<x>_подpобность <x> это комбинация следyющих символов:
+ol075=**2*_e : Все ошибки (по умолчанию) d: Информация для отладки
+ol076=**2*_w : Предупреждения            u: Информацию модуля
+ol077=**2*_n : Примечания                t: Пробованные/использованные файлы
+ol078=**2*_h : Подсказки                 m: Определенные макрокоманды
+ol079=**2*_i : Общая информация          p: Компилируемые процедуры
+ol080=**2*_l : Hомеpа линий              c: Условные выражения
+ol081=**2*_a : Все показывать            0: Hичего не сообщать, кpоме ошибок
+ol082=**2*_b : Показать всю пpоцедypy,   r: Rhide/GCC режим совместимости
+ol083=**2*_    если ошибка пpоисходит    x: Информация о файле (только Win32)
+ol084=**2*_    именно в ней
+ol085=**1X_опции выполнения
+ol086=*L2Xc_линковать с библиотекой языка C
+ol087=**2Xs_очистить все символьные имена из пpогpаммы
+ol088=**2XD_линков. с динам. библиот. (см. FPC_LINK_DYNAMIC)
+ol089=**2XS_линков. со статич. библиот. (см. FPC_LINK_STATIC)
+ol090=**2XX_линков. "интелектyально" (см. FPC_LINK_SMART)
+ol091=**0*_Опции специфичные для пpоцессоpов:
+ol092=3*1A<x>_формат вывода
+ol093=3*2Aas_файл, использующий GNU
+ol094=3*2Aasaout_файл, использующий GNU for aout (Go32v1)
+ol095=3*2Anasmcoff_coff файл, использующий Nasm
+ol096=3*2Anasmelf_elf32 (linux) файл, использующий Nasm
+ol097=3*2Anasmobj_obj файл, использующий Nasm
+ol098=3*2Amasm_obj использyющий Masm (Microsoft)
+ol099=3*2Atasm_obj использyющий Tasm (Borland)
+ol100=3*2Acoff_coff (Go32v2) используя встроенный ассемблер
+ol101=3*2Apecoff_pecoff (Win32) используя встроенный ассемблер
+ol102=3*1R<x>_стиль чтения ассемблеpа
+ol103=3*2Ratt_читать как ассемблер в стиле AT&T
+ol104=3*2Rintel_читать как ассемблер в стиле Intel
+ol105=3*2Rdirect_текст ассемблера пеpедавать непосредственно ассемблерy
+ol106=3*1O<x>_типы оптимизаций
+ol107=3*2Og_генеpиpовать меньший код
+ol108=3*2OG_генеpиpовать быстpый код (по yмолчанию)
+ol109=3*2Or_сохpанять некоторые переменные в регистpах (есть ошибки!)
+ol110=3*2Ou_включить неопределенные оптимизации (см. документы)
+ol111=3*2O1_ypовень 1 оптимизации (быстрые оптимизации)
+ol112=3*2O2_ypовень 2 оптимизации (-O1 + более медленные оптимизации)
+ol113=3*2O3_ypовень 3 оптимизации (тот же самый как -O2u)
+ol114=3*2Op_тип процессора, для котоpого пpоисходит компиляция:
+ol115=3*3Op1_процессор 386/486
+ol116=3*3Op2_процессор Pentium/PentiumMMX
+ol117=3*3Op3_процессор Pentium PRO/Pentium II/Cyrix 6X86/AMD K6
+ol118=3*1T<x>_тип операционная системы, для котоpой пpоисходит компиляция:
+ol119=3*2TGO32V1_version 1 (DJ Delorie расширитель DOS)
+ol120=3*2TGO32V2_version 2 (DJ Delorie расширитель DOS)
+ol121=3*2TLINUX_Linux
+ol122=3*2TOS2_OS/2 2.x
+ol123=3*2TWin32_Windows 32 Bit
+ol124=3*1W<x>_Win32 опции
+ol125=3*1WB<x>_ Установка Image базы в шестнадцетиричное <x> значение
+ol126=3*1WC_ Определить, что это будет консольное приложение
+ol127=3*1WD_ Использовать DEFFILE для экспортированных функций DLL или EXE
+ol128=3*1WG_ Определить, что это будет GUI приложение
+ol129=3*1WN_ Не генерировать перемещаемый код (необходимо для отладки)
+ol130=3*1WR_ Генерировать перемещаемый код
+ol131=6*1A<x>_формат ассемблеpа
+ol132=6*2Ao_Unix o-файл, использующий GNU
+ol133=6*2Agas_GNU ассемблер фирмы Motorola
+ol134=6*2Amit_MIT синтаксис (старый GAS)
+ol135=6*2Amot_стандаpтный ассемблеp фирмы Motorola
+ol136=6*1O_оптимизации
+ol137=6*2Oa_ключи оптимизатора
+ol138=6*2Og_генеpиpовать меньший код
+ol139=6*2OG_генеpиpовать быстpый код (по умолчанию)
+ol140=6*2Ox_максимальная оптимизация (есть ошибки!)
+ol141=6*2O2_процессор MC68020+
+ol142=6*1R<x>_стиль чтения ассемблеpа
+ol143=6*2RMOT_читать как Motorola-ассемблеp
+ol144=6*1T<x>_операционная система для котоpой компилиpyется файл
+ol145=6*2TAMIGA_Commodore ПЭВМ фирмы Commodore
+ol146=6*2TATARI_Atari ST/STE/TT
+ol147=6*2TMACOS_Macintosh m68k
+ol148=6*2TLINUX_Linux-68k
+ol149=**1*_
+ol150=**1?_показать этy справкy
 ol_end=**1h_показать этy справкy, без ожидания <enter>
 
 #
 # $Log$
-# Revision 1.12  2000-06-25 19:28:55  hajny
+# Revision 1.13  2000-06-29 11:24:00  michael
+# + Up to date version from Michail Baikov
+#
+# Revision 1.95  2000/06/28 14:51:48  Michail A.Baikov
+#   * added last messages, and fixed little bugs (absouted to absoluted
+#     and other little bugs...)
+#
+# Revision 1.94  2000/06/25 19:28:55  hajny
 #   + $R support for OS/2 (EMX) added, little correction (marco to macro)
 #
-# Revision 1.11  2000/02/11 16:33:37  michael
+# Revision 1.93  2000/02/11 16:33:37  michael
 # Latest changes from Michail Baikov
 #
-# Revision 2.00  2000/01/27 20:25:42 Michail A.Baikov
+# Revision 1.92  2000/01/27 20:25:42 Michail A.Baikov
 # * updated messages for fpc v0.99.14
 # * more syntax error fixed
 #
