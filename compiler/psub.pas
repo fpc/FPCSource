@@ -207,8 +207,6 @@ implementation
          oldaktmaxfpuregisters,localmaxfpuregisters : longint;
          { code for the subroutine as tree }
          code:tnode;
-         { size of the local strackframe }
-         stackframe:longint;
          { true when no stackframe is required }
          nostackframe:boolean;
          { number of bytes which have to be cleared by RET }
@@ -248,7 +246,7 @@ implementation
          aktbreaklabel:=nil;
          aktcontinuelabel:=nil;
     {$ifdef state_tracking}
-{	 aktstate:=Tstate_storage.create;}
+{    aktstate:=Tstate_storage.create;}
     {$endif state_tracking}
 
          { insert symtables for the class, by only if it is no nested function }
@@ -321,9 +319,9 @@ implementation
             aktprocdef.forwarddef:=false;
 
 {$ifdef state_tracking}
-{	    writenode(code);
-	    do_track_state_pass(code);
-	    writenode(code);}
+{       writenode(code);
+        do_track_state_pass(code);
+        writenode(code);}
 {$endif}
 
              { only generate the code if no type errors are found, else
@@ -333,26 +331,10 @@ implementation
               begin
                 generatecode(code);
                 aktprocdef.code:=code;
-{$ifdef testtemp}
-                if assigned(aktprocdef) and assigned(aktprocdef.localst) then
-                begin
-                  stackframe:=align(tg.gettempsize+aktprocdef.localst.datasize,4);
-                end
-                else
-                begin
-                  stackframe:=tg.gettempsize;
-                end;
-                if lexlevel = 1 then
-                  WriteLn(stackframe);
-{$else}
-                stackframe:=tg.gettempsize;
-{                if lexlevel = 1 then
-                  WriteLn(stackframe);}
-{$endif}
                 { first generate entry code with the correct position and switches }
                 aktfilepos:=entrypos;
                 aktlocalswitches:=entryswitches;
-                genentrycode(procinfo^.aktentrycode,make_global,stackframe,parasize,nostackframe,false);
+                genentrycode(procinfo^.aktentrycode,make_global,0,parasize,nostackframe,false);
 
                 { FPC_POPADDRSTACK destroys all registers (JM) }
                 if (procinfo^.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
@@ -459,7 +441,7 @@ implementation
          aktmaxfpuregisters:=oldaktmaxfpuregisters;
 
     {$ifdef state_tracking}
-{	 aktstate.destroy;}
+{    aktstate.destroy;}
     {$endif state_tracking}
          { restore filepos, the switches are already set }
          aktfilepos:=savepos;
@@ -832,7 +814,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-08-06 20:55:22  florian
+  Revision 1.64  2002-08-09 19:14:28  carl
+    * fixed stackframe parameter (should only contain local size),
+      set to zero currently
+
+  Revision 1.63  2002/08/06 20:55:22  florian
     * first part of ppc calling conventions fix
 
   Revision 1.62  2002/07/26 21:15:41  florian
