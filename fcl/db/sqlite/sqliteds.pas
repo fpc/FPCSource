@@ -1,4 +1,4 @@
-unit SqliteDS;
+unit sqliteds;
 
 {
     This is SqliteDS/TSqliteDataset, a TDataset descendant class for use with fpc compiler
@@ -23,7 +23,9 @@ unit SqliteDS;
 
 {$Mode ObjFpc}
 {$H+}
-{  $Define DEBUG}
+{ $Define USE_SQLITEDS_INTERNALS}
+{ $Define DEBUG}
+
 interface
 
 uses Classes, SysUtils, Db;
@@ -43,7 +45,11 @@ type
   private
     FFileName: String;
     FSql: String;
-    FTableName: String;   
+    FTableName: String;
+    FIndexFieldName: String;
+    FIndexFieldNo: Integer;
+    FAutoIncFieldNo: Integer;
+    FNextAutoInc:Integer;   
     FCurrentItem: PDataRecord;
     FBeginItem: PDataRecord;
     FEndItem: PDataRecord;
@@ -52,6 +58,9 @@ type
     FRowBufferSize: Integer;
     FRowCount: Integer;
     FRecordCount: Integer;
+    FExpectedAppends: Integer;
+    FExpectedDeletes: Integer;
+    FExpectedUpdates: Integer;
     FSqliteReturnId: Integer;
     FDataAllocated: Boolean;
     FSaveOnClose: Boolean;
@@ -88,6 +97,9 @@ type
     function IsCursorOpen: Boolean; override;    
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
+    procedure SetExpectedAppends(AValue:Integer);
+    procedure SetExpectedUpdates(AValue:Integer);
+    procedure SetExpectedDeletes(AValue:Integer);
     procedure SetFieldData(Field: TField; Buffer: Pointer); override;  
     procedure SetRecNo(Value: Integer); override;
   public
@@ -100,17 +112,27 @@ type
     function ExecSQL:Integer;
     function ExecSQL(ASql:String):Integer;
     function SqliteReturnString: String;
-    {$Ifdef DEBUG}
+    {$ifdef USE_SQLITEDS_INTERNALS}
     property BeginItem: PDataRecord read FBeginItem;
     property EndItem: PDataRecord read FEndItem;
-    {$Endif}
+    property UpdatedItems: TList read FUpdatedItems;
+    property AddedItems: TList read FAddedItems;
+    property DeletedItems: TList read FDeletedItems;
+    {$endif}
+    property ExpectedAppends: Integer read FExpectedAppends write SetExpectedAppends;
+    property ExpectedUpdates: Integer read FExpectedUpdates write SetExpectedUpdates;
+    property ExpectedDeletes: Integer read FExpectedDeletes write SetExpectedDeletes;
     property SqliteReturnId: Integer read FSqliteReturnId;
-    property SQL: String read FSql write SetSql;
-    property TableName: String read FTableName write FTableName;
+   published 
     property FileName: String read FFileName write FFileName;
+    property IndexFieldName: String read FIndexFieldName write FIndexFieldName;
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
-   published
-    property Active;
+    property SQL: String read FSql write SetSql;
+    property TableName: String read FTableName write FTableName;   
+    //property Active;
+    property FieldDefs;
+ 
+    //Events
     property BeforeOpen;
     property AfterOpen;
     property BeforeClose;
@@ -136,6 +158,21 @@ type
 implementation
 
 uses SQLite;
+
+function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
+var
+  CodeError, TempInt: Integer;
+begin
+  TempInt:=-1;
+  if ColumnValues[0] <> nil then
+  begin
+    Val(StrPas(ColumnValues[0]),TempInt,CodeError);  
+    if CodeError <> 0 then
+      DatabaseError('SqliteDs - Error trying to get last autoinc value');
+  end;  
+  Integer(NextValue^):=Succ(TempInt);
+  Result:=1;
+end;  
 
 function GetFieldDefs(TheDataset: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
 var
@@ -181,7 +218,15 @@ begin
    begin
      AType:= ftTime;
      FieldSize:=SizeOf(TDateTime);
-   end  else
+   end else if (ColumnStr = 'AUTOINC') then
+   begin
+     if TSqliteDataset(TheDataset).Tablename = '' then
+       DatabaseError('Sqliteds - AutoInc fields requires Tablename to be set');
+     AType:= ftAutoInc;
+     FieldSize:=SizeOf(Integer);
+     if TSqliteDataset(TheDataset).FAutoIncFieldNo = -1 then
+       TSqliteDataset(TheDataset).FAutoIncFieldNo:= Counter;
+   end else 
    begin
      AType:= ftString;
      FieldSize:=0;
@@ -215,6 +260,11 @@ var
   ColumnNames,ColumnValues:PPChar;
   Counter:Integer;
 begin
+  //Get AutoInc Field initial value
+  if FAutoIncFieldNo <> -1 then
+    sqlite_exec(FSqliteHandle,PChar('Select Max('+Fields[FAutoIncFieldNo].FieldName+') from ' + FTableName),
+      @GetAutoIncValue,@FNextAutoInc,nil);  
+  
   FSqliteReturnId:=sqlite_compile(FSqliteHandle,Pchar(FSql),nil,@vm,nil);  
   if FSqliteReturnId <> SQLITE_OK then
   case FSqliteReturnId of
@@ -222,7 +272,8 @@ begin
     DatabaseError('Invalid Sql',Self);
   else
     DatabaseError('Unknow Error',Self);
-  end;
+  end;  
+  
   FDataAllocated:=True;
   New(FBeginItem);
   FBeginItem^.Next:=nil;
@@ -265,7 +316,7 @@ end;
 
 constructor TSqliteDataset.Create(AOwner: TComponent);
 begin
-  BookmarkSize := SizeOf(Pointer); 
+  BookmarkSize := SizeOf(Pointer);
   FBufferSize := SizeOf(PPDataRecord);
   FUpdatedItems:= TList.Create;
   FUpdatedItems.Capacity:=20;
@@ -358,7 +409,7 @@ begin
       begin
         Move(FieldRow^,PChar(Buffer)^,StrLen(FieldRow)+1);
       end;
-    ftInteger,ftBoolean,ftWord:
+    ftInteger,ftBoolean,ftWord,ftAutoInc:
       begin
         Val(StrPas(FieldRow),LongInt(Buffer^),ValError);
         Result:= ValError = 0;  
@@ -416,22 +467,27 @@ var
   TempItem,TempActive:PDataRecord;
 begin
   Result:= -1;
+  if FRecordCount = 0 then
+    Exit;  
   TempItem:=FBeginItem;
   TempActive:=PPDataRecord(ActiveBuffer)^;
-  while TempActive <> TempItem do
-  begin
-    if TempItem^.Next <> nil then
+  if TempActive = FCacheItem then // Record not posted yet
+    Result:=FRecordCount 
+  else
+    while TempActive <> TempItem do
     begin
-      inc(Result);
-      TempItem:=TempItem^.Next;
-    end  
-    else
-    begin
-      Result:=-1;
-      DatabaseError('GetRecNo - ActiveItem Not Found',Self);
-      break;    
-    end;      
-  end;  
+      if TempItem^.Next <> nil then
+      begin
+        inc(Result);
+        TempItem:=TempItem^.Next;
+      end  
+      else
+      begin
+        Result:=-1;
+        DatabaseError('Sqliteds.GetRecNo - ActiveItem Not Found',Self);
+        break;    
+      end;      
+    end;  
 end;
 
 function TSqliteDataset.GetRecordSize: Word;
@@ -456,6 +512,8 @@ begin
   NewItem^.Next:=FEndItem;
   FEndItem^.Previous:=NewItem;
   Inc(FRecordCount);
+  if FAutoIncFieldNo <> - 1 then
+    Inc(FNextAutoInc);
   FAddedItems.Add(NewItem);
 end;
 
@@ -498,7 +556,11 @@ begin
       FCurrentItem:= FCurrentItem^.Previous
     else
       FCurrentItem:= FCurrentItem^.Next;  
-  end;    
+  end; 
+  // Dec FNextAutoInc   
+  if FAutoIncFieldNo <> -1 then
+    if StrToInt(StrPas(TempItem^.Row[FAutoIncFieldNo])) = (FNextAutoInc - 1) then
+      Dec(FNextAutoInc);
 end;
 
 procedure TSqliteDataset.InternalFirst;
@@ -532,12 +594,19 @@ end;
 procedure TSqliteDataset.InternalInitRecord(Buffer: PChar);
 var
   Counter:Integer;
+  TempStr:String;  
 begin
   for Counter:= 0 to FRowCount - 1 do
   begin
     StrDispose(FCacheItem^.Row[Counter]);
     FCacheItem^.Row[Counter]:=nil;
   end;
+  if FAutoIncFieldNo <> - 1 then
+  begin
+    Str(FNextAutoInc,TempStr);
+    FCacheItem^.Row[FAutoIncFieldNo]:=StrAlloc(Length(TempStr)+1);
+    StrPCopy(FCacheItem^.Row[FAutoIncFieldNo],TempStr);
+  end;  
   PPDataRecord(Buffer)^:=FCacheItem;    
 end;
 
@@ -548,15 +617,22 @@ end;
 
 procedure TSqliteDataset.InternalOpen;
 begin
+  FAutoIncFieldNo:=-1;
   if not FileExists(FFileName) then
     DatabaseError('File '+FFileName+' not found',Self);
-  FSqliteHandle:=sqlite_open(PChar(FFileName),0,FDBError);
+  FSqliteHandle:=sqlite_open(PChar(FFileName),0,nil);
   InternalInitFieldDefs;
-  BuildLinkedList;               
-  FCurrentItem:=FBeginItem;  
   if DefaultFields then 
     CreateFields;
-  BindFields(True);  
+  BindFields(True);
+  // Get indexfieldno if available
+  if FIndexFieldName <> '' then
+    FIndexFieldNo:=FieldByName(FIndexFieldName).Index
+  else
+    FIndexFieldNo:=FAutoIncFieldNo;
+       
+  BuildLinkedList;               
+  FCurrentItem:=FBeginItem;  
 end;
 
 procedure TSqliteDataset.InternalPost;
@@ -584,6 +660,24 @@ procedure TSqliteDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
 begin
   PPDataRecord(Buffer)^^.BookmarkFlag := Value;
 end;
+
+procedure TSqliteDataset.SetExpectedAppends(AValue:Integer);
+begin
+  if Assigned(FAddedItems) then
+    FAddedItems.Capacity:=AValue;
+end;  
+
+procedure TSqliteDataset.SetExpectedUpdates(AValue:Integer);
+begin
+  if Assigned(FUpdatedItems) then
+    FUpdatedItems.Capacity:=AValue;
+end;  
+
+procedure TSqliteDataset.SetExpectedDeletes(AValue:Integer);
+begin
+  if Assigned(FDeletedItems) then
+    FDeletedItems.Capacity:=AValue;
+end;  
 
 procedure TSqliteDataset.SetFieldData(Field: TField; Buffer: Pointer);
 var
@@ -622,8 +716,16 @@ begin
 end;
 
 procedure TSqliteDataset.SetRecNo(Value: Integer);
+var
+  Counter:Integer;
+  TempItem:PDataRecord;
 begin
- //
+  if Value >= FRecordCount then
+    DatabaseError('SqliteDs - Record Number Out Of Range');
+  TempItem:=FBeginItem;
+  for Counter := 0 to Value do
+    TempItem:=TempItem^.Next;
+  PPDataRecord(ActiveBuffer)^:=TempItem;   
 end;
 
 // Specific functions 
@@ -652,12 +754,19 @@ end;
 function TSqliteDataset.ApplyUpdates:Boolean;
 var
   CounterFields,CounterItems:Integer;
-  SqlTemp:String;
+  SqlTemp,KeyName:String;
   Quote:Char;
 begin
   Result:=False;
-  if (FTableName <> '') and (Fields[0].FieldName = '_ROWID_')  then
+  if (FTableName <> '') and (FIndexFieldNo <> -1)  then
   begin
+    KeyName:=Fields[FIndexFieldNo].FieldName;
+    {$ifdef DEBUG}
+    if FIndexFieldNo = FAutoIncFieldNo then
+      WriteLn('Using an AutoInc field as primary key');
+    WriteLn('IndexFieldName: ',KeyName);
+    WriteLn('IndexFieldNo: ',FIndexFieldNo);
+    {$endif}
     SqlTemp:='BEGIN TRANSACTION; ';
     // Update changed records
     For CounterItems:= 0 to FUpdatedItems.Count - 1 do  
@@ -678,7 +787,7 @@ begin
           SqlTemp:=SqlTemp + Fields[CounterFields].FieldName +' = NULL , ';  
       end;
       system.delete(SqlTemp,Length(SqlTemp)-2,2);
-      SqlTemp:=SqlTemp+'WHERE _ROWID_ = '+StrPas(PDataRecord(FUpdatedItems[CounterItems])^.Row[0])+';';
+      SqlTemp:=SqlTemp+'WHERE '+KeyName+' = '+StrPas(PDataRecord(FUpdatedItems[CounterItems])^.Row[FIndexFieldNo])+';';
     end;
     // Add new records
     For CounterItems:= 0 to FAddedItems.Count - 1 do  
@@ -711,8 +820,8 @@ begin
     // Delete Items
     For CounterItems:= 0 to FDeletedItems.Count - 1 do  
     begin
-      SqlTemp:=SqlTemp+'DELETE FROM '+FTableName+ ' WHERE _ROWID_ = '+
-        StrPas(PDataRecord(FDeletedItems[CounterItems])^.Row[0])+';';    
+      SqlTemp:=SqlTemp+'DELETE FROM '+FTableName+ ' WHERE '+KeyName+' = '+
+        StrPas(PDataRecord(FDeletedItems[CounterItems])^.Row[FIndexFieldNo])+';';    
     end;
     SqlTemp:=SqlTemp+'END TRANSACTION; ';
     {$ifdef DEBUG}
@@ -734,6 +843,12 @@ var
   SqlTemp:String;
   Counter:Integer;
 begin
+  {$ifdef DEBUG}
+  if FTableName = '' then
+    WriteLn('CreateTable : TableName Not Set');
+  if FieldDefs.Count = 0 then 
+    WriteLn('CreateTable : FieldDefs Not Initialized');
+  {$endif}
   if (FTableName <> '') and (FieldDefs.Count > 0) then
   begin
     FSqliteHandle:= sqlite_open(PChar(FFileName),0,FDBError);
@@ -758,6 +873,8 @@ begin
           SqlTemp:=SqlTemp + ' DATE';
         ftTime:
           SqlTemp:=SqlTemp + ' TIME';                
+        ftAutoInc:
+          SqlTemp:=SqlTemp + ' AUTOINC'; 
       else
         SqlTemp:=SqlTemp + ' VARCHAR';    
       end;
