@@ -23,7 +23,11 @@ BEGIN
           halt(1);
        {$T-}
         bw:=word(Addr(bb0^[mr.i1])^);
+{$ifndef ENDIAN_BIG}
         if bw <> (2 shl 8 + 1) then
+{$else ENDIAN_BIG}
+        if bw <> (1 shl 8 + 2) then
+{$endif ENDIAN_BIG}
           halt(1);
 END
 .
