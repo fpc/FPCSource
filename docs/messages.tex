@@ -82,7 +82,7 @@
  When the \var{-vw} switch is used, then the compiler warns you if
  it finds nested comments. Nested comments are not allowed in Turbo Pascal
  and can be a possible source of errors.
-\item [Note: $F directive (FAR) ignored]
+\item [Note: \$F directive (FAR) ignored]
  The \var{FAR} directive is a 16-bit construction which is recorgnised
  but ignored by the compiler, since it produces 32 bit code.
 \item [Note: Stack check is global under Linux]
@@ -105,7 +105,7 @@
 \item [Fatal: Can't open include file arg1]
  \fpc cannot find the source file you specified in a \var{\{\$include ..\}}
  statement.
-\item [Error: Too many $ENDIFs or $ELSEs]
+\item [Error: Too many \$ENDIFs or \$ELSEs]
  Your \var{\{\$IFDEF ..\}} and {\{\$ENDIF\}} statements aren't balanced.
 \item [Warning: Records fields can be aligned to 1,2,4,8,16 or 32 bytes only]
  You are specifying the \var{\{\$PACKRECORDS n\} } with an illegal value for
@@ -113,7 +113,7 @@
 \item [Warning: Enumerated can be saved in 1,2 or 4 bytes only]
  You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
  \var{n}. Only 1,2 or 4 are valid in this case.
-\item [Error: $ENDIF expected for arg1 arg2 defined in line arg3]
+\item [Error: \$ENDIF expected for arg1 arg2 defined in line arg3]
  Your conditional compilation statements are unbalanced.
 \item [Error: Syntax error while parsing a conditional compiling expression]
  There is an error in the expression following the \var{\{\$if ..\}} compiler
@@ -629,7 +629,7 @@
 \item [Error: No default property available]
  You try to access a default property of a class, but this class (or one of
  it's ancestors) doesn't have a default property.
-\item [Error: The class can't have a published section, use the {$M+} switch]
+\item [Error: The class can't have a published section, use the {\$M+} switch]
  If you want a \var{published} section in a class definition, you must
  use the \var{\{\$M+\}} switch, whch turns on generation of type
  information.
@@ -741,7 +741,7 @@
 \item [Fatal: Direct assembler not supported for binary output format]
  You can't use direct assembler when using a binary writer, choose an
  other outputformat or use an other assembler reader
-\item [Warning: Don't load OBJPAS unit manual, use {$mode objfpc} or {$mode delphi} instead]
+\item [Warning: Don't load OBJPAS unit manual, use {\$mode objfpc} or {\$mode delphi} instead]
  You're trying to load the ObjPas unit manual from a uses clause. This is
  not a good idea to do, you can better use the \var{\{\$mode objfpc\}} or
  \var{\{\$mode delphi\}}
@@ -766,7 +766,7 @@
  You can't use this type of symbol as storage specifier in property
  declaration. You can use only methods with the result type boolean,
  boolean class fields or boolean constants
-\item [Error: Only class which are compiled in $M+ mode can be published]
+\item [Error: Only class which are compiled in \$M+ mode can be published]
  In the published section of a class can be only class as fields used which
  are compiled in \var{\{\$M+\}} or which are derived from such a class. Normally
  such a class should be derived from TPersitent
@@ -863,7 +863,7 @@
 \item [Hint: use DIV instead to get an integer result]
  When hints are on, then an integer division with the '/' operator will
  procuce this message, because the result will then be of type real
-\item [Error: string types doesn't match, because of $V+ mode]
+\item [Error: string types doesn't match, because of \$V+ mode]
  When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
  should be of the exact same type as the declared parameter of the procedure.
 \item [Error: succ or pred on enums with assignments not possible]
@@ -1190,7 +1190,6 @@
  1:
  ...
  \end{verbatim}
- \end{description}
 \item [Error: Control flow statements aren't allowed in a finally block]
  It isn't allowed to use the control flow statements \var{break},
  \var{continue} and \var{exit}
@@ -1209,6 +1208,7 @@
  If the procedure \var{p} raises an exception the finally block is
  executed. If the execution reaches the exit, it's unclear what to do:
  exiting the procedure or searching for another exception handler
+ \end{description}
 
  \section{Errors of assembling/linking stage}
  This section lists errors that occur when the compiler is processing the

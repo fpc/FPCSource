@@ -1261,7 +1261,6 @@ cg_e_goto_inout_of_exception_block=06039_E_Jump in or outside of an exception bl
 % 1:
 % ...
 % \end{verbatim}
-% \end{description}
 cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed in a finally block
 % It isn't allowed to use the control flow statements \var{break},
 % \var{continue} and \var{exit}
@@ -1280,6 +1279,7 @@ cg_e_control_flow_outside_finally=06040_E_Control flow statements aren't allowed
 % If the procedure \var{p} raises an exception the finally block is
 % executed. If the execution reaches the exit, it's unclear what to do:
 % exiting the procedure or searching for another exception handler
+% \end{description}
 # EndOfTeX
 
 #
