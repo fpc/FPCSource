@@ -15,7 +15,7 @@
 Var
   CurrentMouseDriver : TMouseDriver;
   MouseInitialized : Boolean;
-  
+
   // Mouse queue event mechanism
   PendingMouseEvent  : array[0..MouseEventBufSize-1] of TMouseEvent;
   PendingMouseHead,
@@ -32,7 +32,7 @@ begin
   FillChar(LastMouseEvent,sizeof(TMouseEvent),0);
 end;
 
-  
+
 procedure InitMouse;
 
 begin
@@ -41,8 +41,8 @@ begin
    If Assigned(CurrentMouseDriver.InitDriver) Then
      CurrentMouseDriver.InitDriver();
    ClearMouseEventQueue;
-   MouseInitialized:=True;  
-   end; 
+   MouseInitialized:=True;
+   end;
 end;
 
 procedure DoneMouse;
@@ -53,8 +53,8 @@ begin
    If Assigned(CurrentMouseDriver.DoneDriver) Then
      CurrentMouseDriver.DoneDriver();
    ClearMouseEventQueue;
-   MouseInitialized:=False;  
-   end; 
+   MouseInitialized:=False;
+   end;
 end;
 
 function DetectMouse:byte;
@@ -63,7 +63,7 @@ begin
   If Assigned(CurrentMouseDriver.DetectMouse) Then
     DetectMouse:=CurrentMouseDriver.DetectMouse()
   else
-    DetectMouse:=0;  
+    DetectMouse:=0;
 end;
 
 procedure ShowMouse;
@@ -86,7 +86,7 @@ begin
   If Assigned(CurrentMouseDriver.GetMouseX) Then
     GetMouseX:=CurrentMouseDriver.GetMouseX()
   else
-    GetMouseX:=0;  
+    GetMouseX:=0;
 end;
 
 function GetMouseY:word;
@@ -95,7 +95,7 @@ begin
   If Assigned(CurrentMouseDriver.GetMouseY) Then
     GetMouseY:=CurrentMouseDriver.GetMouseY()
   else
-    GetMouseY:=0;  
+    GetMouseY:=0;
 end;
 
 function GetMouseButtons:word;
@@ -104,7 +104,7 @@ begin
   If Assigned(CurrentMouseDriver.GetMouseButtons) Then
     GetMouseButtons:=CurrentMouseDriver.GetMouseButtons()
   else
-    GetMouseButtons:=0;  
+    GetMouseButtons:=0;
 end;
 
 procedure SetMouseXY(x,y:word);
@@ -122,7 +122,7 @@ begin
   if longint(PendingMouseHead)=longint(@PendingMouseEvent)+sizeof(PendingMouseEvent) then
    PendingMouseHead:=@PendingMouseEvent;
   dec(PendingMouseEvents);
-  if (LastMouseEvent.x<>MouseEvent.x) or 
+  if (LastMouseEvent.x<>MouseEvent.x) or
      (LastMouseEvent.y<>MouseEvent.y) then
     MouseEvent.Action:=MouseActionMove;
   if (LastMouseEvent.Buttons<>MouseEvent.Buttons) then
@@ -142,13 +142,17 @@ begin
     begin
     if (PendingMouseEvents>0) then
       GetPendingEvent(MouseEvent)
+    else
+      FillChar(MouseEvent,sizeof(MouseEvent),0);
     end
   else
     If Assigned(CurrentMouseDriver.GetMouseEvent) Then
       begin
       CurrentMouseDriver.GetMouseEvent(MouseEvent);
       LastMouseEvent:=MouseEvent;
-      end;
+      end
+    else
+      FillChar(MouseEvent,sizeof(TMouseEvent),0);
 end;
 
 procedure PutMouseEvent(const MouseEvent: TMouseEvent);
@@ -165,7 +169,7 @@ begin
     If Assigned(CurrentMouseDriver.PutMouseEvent) then
       CurrentMouseDriver.PutMouseEvent(MouseEvent);
 end;
-      
+
 function PollMouseEvent(var MouseEvent: TMouseEvent):boolean;
 
 begin
@@ -180,8 +184,14 @@ begin
       begin
       PollMouseEvent:=CurrentMouseDriver.PollMouseEvent(MouseEvent);
       // Put it in queue, so next poll/get will be faster.
-      PutMouseEvent(MouseEvent);
-      end;
+      // Only if an event was found PM
+      // If PollMouseEvent then
+      //  PutMouseEvent(MouseEvent);
+      // This is all wrong, because the Event might already
+      // have been pushed in the Event Array.
+      end
+    else
+      PollMouseEvent:=false;
 end;
 
 Procedure SetMouseDriver(Const Driver : TMouseDriver);
@@ -200,7 +210,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-09-22 00:01:42  michael
+  Revision 1.3  2001-09-30 21:08:58  peter
+    * merged fixes
+
+  Revision 1.2  2001/09/22 00:01:42  michael
   + Merged driver support for mouse from fixbranch
 
   Revision 1.1.2.1  2001/09/21 23:53:48  michael

@@ -56,10 +56,10 @@ begin
   IsFunctionKey := KeyEvent and $03000000 = $02000000;
 end;
 
-Var 
+Var
   KeyBoardInitialized : Boolean;
   CurrentKeyboardDriver : TKeyboardDriver;
-  
+
 procedure InitKeyboard;
 
 begin
@@ -67,8 +67,8 @@ begin
     begin
     If Assigned(CurrentKeyBoardDriver.InitDriver) Then
       CurrentKeyBoardDriver.InitDriver();
-    KeyboardInitialized:=True;  
-    end;  
+    KeyboardInitialized:=True;
+    end;
 end;
 
 procedure DoneKeyboard;
@@ -78,8 +78,8 @@ begin
     begin
     If Assigned(CurrentKeyBoardDriver.DoneDriver) Then
       CurrentKeyBoardDriver.DoneDriver();
-    KeyboardInitialized:=False;  
-    end;  
+    KeyboardInitialized:=False;
+    end;
 end;
 
 
@@ -105,8 +105,9 @@ begin
    exit(PendingKeyEvent);
   If Assigned(CurrentKeyBoardDriver.PollKeyEvent) Then
     begin
-    PendingKeyEvent:=CurrentKeyBoardDriver.PollKeyEvent();
-    PollKeyEvent:=PendingKeyEvent;
+    PollKeyEvent:=CurrentKeyBoardDriver.PollKeyEvent();
+    // PollKeyEvent:=PendingKeyEvent;
+    // this was wrong ... PM
     end
   else
     PollKeyEvent:=0;
@@ -125,13 +126,13 @@ begin
   Driver:=CurrentKeyBoardDriver;
 end;
 
-function PollShiftStateEvent: TKeyEvent;                                        
+function PollShiftStateEvent: TKeyEvent;
 
 begin
   If Assigned(CurrentKeyBoardDriver.GetShiftState) then
     PollShiftStateEvent:=CurrentKeyBoardDriver.GetShiftState() shl 16
   else
-    PollShiftStateEvent:=0;  
+    PollShiftStateEvent:=0;
 end;
 
 function DefaultTranslateKeyEventUniCode(KeyEvent: TKeyEvent): TKeyEvent;
@@ -148,7 +149,7 @@ begin
   if Assigned(CurrentKeyBoardDriver.TranslateKeyEventUnicode) then
     TranslateKeyEventUnicode:=CurrentKeyBoardDriver.TranslateKeyEventUnicode(KeyEvent)
   else
-    TranslateKeyEventUnicode:=DefaultTranslateKeyEventUnicode(KeyEvent);  
+    TranslateKeyEventUnicode:=DefaultTranslateKeyEventUnicode(KeyEvent);
 end;
 
 type
@@ -171,7 +172,7 @@ const
      (Min: $4B; Max: $4D; Offset: kbdLeft), { Keypad keys kbdLeft-kbdRight }
      (Min: $4F; Max: $51; Offset: kbdEnd),  { Keypad keys kbdEnd-kbdPgDn }
      (Min: $52; Max: $53; Offset: kbdInsert));
- 
+
 
 function DefaultTranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
 
@@ -201,7 +202,7 @@ begin
          end;
       end;
    end;
-  DefaultTranslateKeyEvent := KeyEvent;                                                                                    
+  DefaultTranslateKeyEvent := KeyEvent;
 end;
 
 function TranslateKeyEvent(KeyEvent: TKeyEvent): TKeyEvent;
@@ -210,34 +211,34 @@ begin
   if Assigned(CurrentKeyBoardDriver.TranslateKeyEvent) then
     TranslateKeyEvent:=CurrentKeyBoardDriver.TranslateKeyEvent(KeyEvent)
   else
-    TranslateKeyEvent:=DefaultTranslateKeyEvent(KeyEvent);  
+    TranslateKeyEvent:=DefaultTranslateKeyEvent(KeyEvent);
 end;
 
 { ---------------------------------------------------------------------
     KeyEvent to String representation section.
   ---------------------------------------------------------------------}
-  
+
 Procedure AddToString (Var S : String; Const A : String);
 
 begin
   If Length(S)=0 then
     S:=A
   else
-    S:=S+' '+A;  
+    S:=S+' '+A;
 end;
 
 Function IntToStr(Int : Longint) : String;
 
 begin
-  Str(Int,IntToStr);  
+  Str(Int,IntToStr);
 end;
-  
+
 Function ShiftStateToString(KeyEvent : TKeyEvent; UseLeftRight : Boolean) : String;
 
 Var
   S : Integer;
   T : String;
-  
+
 begin
   S:=GetKeyEventShiftState(KeyEvent);
   T:='';
@@ -253,15 +254,15 @@ begin
     end;
   If (S and kbCtrl)<>0 Then
     AddToString(T,SShift[2]);
-  If (S and kbAlt)<>0 Then  
+  If (S and kbAlt)<>0 Then
     AddToString(T,SShift[3]);
-  ShiftStateToString:=T;  
+  ShiftStateToString:=T;
 end;
 
 Function FunctionKeyName (KeyCode : Word) : String;
 
 begin
-  If ((KeyCode-KbdF1)<$1F) Then 
+  If ((KeyCode-KbdF1)<$1F) Then
     FunctionKeyName:='F'+IntToStr((KeyCode-KbdF1+1))
   else
     begin
@@ -269,7 +270,7 @@ begin
       FunctionKeyName:=SKeyPad[(KeyCode-kbdHome)]
     else
       FunctionKeyName:=SUnknownFunctionKey + IntToStr(KeyCode);
-    end;  
+    end;
 end;
 
 Function KeyEventToString(KeyEvent : TKeyEvent) : String;
@@ -291,7 +292,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2001-09-21 21:33:36  michael
+  Revision 1.3  2001-09-30 21:08:58  peter
+    * merged fixes
+
+  Revision 1.2  2001/09/21 21:33:36  michael
   + Merged driver support from fixbranch
 
   Revision 1.1.2.2  2001/09/21 21:20:43  michael
