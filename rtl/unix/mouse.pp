@@ -190,7 +190,6 @@ function SysDetectMouse:byte;
 {$ifndef NOGPM}
 var
   x : longint;
-  e : TGPMEvent;
   connect : TGPMConnect;
 {$endif ndef NOGPM}
 begin
@@ -210,14 +209,7 @@ begin
     end;
 { always a mouse deamon present }
   if gpm_fs<>-1 then
-    begin
-      x:=Gpm_GetSnapshot(e);
-      GPMEvent2MouseEvent(e,SysLastMouseEvent);
-      if x<>-1 then
-        SysDetectMouse:=x
-      else
-        SysDetectMouse:=2;
-    end
+    SysDetectMouse:=Gpm_GetSnapshot(nil)
   else
     SysDetectMouse:=0;
 {$else ifdef NOGPM}
@@ -434,7 +426,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-10-24 18:09:56  marco
+  Revision 1.13  2004-11-03 16:51:05  peter
+    * fixed valgrind issues
+
+  Revision 1.12  2003/10/24 18:09:56  marco
    * 1.0.x fixes merged
 
   Revision 1.11  2003/09/16 16:13:56  marco

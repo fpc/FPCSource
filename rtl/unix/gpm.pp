@@ -909,7 +909,7 @@ var conn:Tgpm_connect;
     i:longint;
 
 begin
-  conn.pid:=0; { this signals a request }
+  fillchar(conn,sizeof(conn),0);
   if eptr<>nil then
     conn.vc:=GPM_REQ_SNAPSHOT
   else
@@ -954,7 +954,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2004-11-02 09:37:35  peter
+  Revision 1.12  2004-11-03 16:51:05  peter
+    * fixed valgrind issues
+
+  Revision 1.11  2004/11/02 09:37:35  peter
     * fixed uninitialzied local
 
   Revision 1.10  2004/07/09 23:10:14  peter
