@@ -287,10 +287,31 @@ end{ ['R0','R3','F0','F1','F2','F3']};
       end;
 
 
+{****************************************************************************
+                         Int to real helpers
+ ****************************************************************************}
+
+function fpc_int64_to_double(i: int64): double; compilerproc;
+begin
+{$warning FIXME}
+  runerror(207);
+end;
+
+
+
+function fpc_qword_to_double(q: qword): double; compilerproc;
+begin
+{$warning FIXME}
+  runerror(207);
+end;
+
 
 {
   $Log$
-  Revision 1.4  2003-04-23 21:28:21  peter
+  Revision 1.5  2003-09-01 20:46:32  peter
+    * new dummies
+
+  Revision 1.4  2003/04/23 21:28:21  peter
     * fpc_round added, needed for int64 currency
 
   Revision 1.3  2003/01/22 20:45:15  mazen
