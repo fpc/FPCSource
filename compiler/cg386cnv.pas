@@ -1443,7 +1443,7 @@ implementation
            second_nothing);
 {$endif}
       var
-         oldrl : plinkedlist;
+         oldrl,oldlrl : plinkedlist;
 
       begin
          { the ansi string disposing is a little bit hairy: }
@@ -1465,6 +1465,7 @@ implementation
          { the helper routines need access to the release list }
          { but do this AFTER secondpass(p^.left), else it is   }
          { overwritten by recursive calls                      }
+         oldlrl:=ltemptoremove;
          ltemptoremove:=oldrl;
          { the second argument only is for maybe_range_checking !}
          secondconvert[p^.convtyp](p,p^.left,p^.convtyp);
@@ -1473,6 +1474,7 @@ implementation
          removetemps(exprasmlist,temptoremove);
          dispose(temptoremove,done);
          temptoremove:=oldrl;
+         ltemptoremove:=oldlrl;
       end;
 
 
@@ -1585,7 +1587,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  1999-01-28 19:50:15  peter
+  Revision 1.52  1999-01-29 11:22:13  pierre
+   * saving and restoring old ltemptoremove
+
+  Revision 1.51  1999/01/28 19:50:15  peter
     * removed warning
 
   Revision 1.50  1999/01/28 14:06:45  florian
