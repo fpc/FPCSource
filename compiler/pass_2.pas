@@ -270,8 +270,8 @@ implementation
             oldcodegenerror:=codegenerror;
             oldlocalswitches:=aktlocalswitches;
             oldpos:=aktfilepos;
-            testregisters32;
 {$ifdef TEMPREGDEBUG}
+            testregisters32;
             prevp:=curptree;
             curptree:=@p;
             p^.usableregs:=usablereg32;
@@ -664,7 +664,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  1999-08-23 23:25:59  pierre
+  Revision 1.33  1999-08-24 09:07:04  pierre
+   * wrong testregisters32 placement corrected
+
+  Revision 1.32  1999/08/23 23:25:59  pierre
     + TEMPREGDEBUG code, test of register allocation
       if a tree uses more than registers32 regs then
       internalerror(10) is issued
