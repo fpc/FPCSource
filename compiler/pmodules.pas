@@ -501,13 +501,20 @@ unit pmodules;
          repeat
            s:=pattern;
            consume(ID);
-           hp2:=loadunit(s,false);
-         { the current module uses the unit hp2 }
-           current_module^.used_units.concat(new(pused_unit,init(hp2,not current_module^.in_implementation)));
-           pused_unit(current_module^.used_units.last)^.in_uses:=true;
-           if current_module^.compiled then
-             exit;
-           refsymtable^.insert(new(punitsym,init(s,hp2^.globalsymtable)));
+         { avoid uses of itself }
+           if s<>current_module^.modulename^ then
+            begin
+            { load the unit }
+              hp2:=loadunit(s,false);
+            { the current module uses the unit hp2 }
+              current_module^.used_units.concat(new(pused_unit,init(hp2,not current_module^.in_implementation)));
+              pused_unit(current_module^.used_units.last)^.in_uses:=true;
+              if current_module^.compiled then
+                exit;
+              refsymtable^.insert(new(punitsym,init(s,hp2^.globalsymtable)));
+            end
+           else
+            Message1(sym_e_duplicate_id,s);
            if token=COMMA then
             begin
               pattern:='';
@@ -609,7 +616,13 @@ unit pmodules;
 
       function is_assembler_generated:boolean;
       begin
-        is_assembler_generated:=not(codesegment^.empty and datasegment^.empty and bsssegment^.empty);
+        is_assembler_generated:=not(
+          codesegment^.empty and
+          datasegment^.empty and
+          bsssegment^.empty and
+          ((importssection=nil) or importssection^.empty) and
+          ((resourcesection=nil) or resourcesection^.empty)
+        );
       end;
 
       var
@@ -1073,7 +1086,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.70  1998-10-20 09:30:05  peter
+  Revision 1.71  1998-10-21 20:13:10  peter
+    * check for importsection for empty asm file
+
+  Revision 1.70  1998/10/20 09:30:05  peter
     * set also in_library flag when no .o is generated
 
   Revision 1.68  1998/10/19 08:54:59  pierre
