@@ -2089,6 +2089,7 @@ implementation
       oldexprasmlist : TAAsmoutput;
       again : pasmlabel;
       i : longint;
+      tempbuf,tempaddr : treference;
 
     begin
        oldexprasmlist:=exprasmlist;
@@ -2319,9 +2320,22 @@ implementation
         begin
             usedinproc:=usedinproc or ($80 shr byte(R_EAX));
 
+            exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,36,R_ESP));
+            exprasmList.concat(Taicpu.op_reg_reg(A_MOV,S_L,R_ESP,R_EDI));
+
+            reset_reference(tempaddr);
+            tempaddr.base:=R_EDI;
+            emitpushreferenceaddr(tempaddr);
+
+            reset_reference(tempbuf);
+            tempbuf.base:=R_EDI;
+            tempbuf.offset:=12;
+            emitpushreferenceaddr(tempbuf);
+
             { Type of stack-frame must be pushed}
-            exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
+            exprasmList.concat(Taicpu.op_const(A_PUSH,S_L,1));
             emitcall('FPC_PUSHEXCEPTADDR');
+
             exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
             emitcall('FPC_SETJMP');
             exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
@@ -2908,7 +2922,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2000-12-25 00:07:31  peter
+  Revision 1.17  2001-01-05 17:36:58  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.16  2000/12/25 00:07:31  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

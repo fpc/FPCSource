@@ -37,7 +37,7 @@ Type
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
    { tconstsym.value                                              }
-   TPointerOrd = int64;
+   TPointerOrd = longint;
 
 
 Const
@@ -54,7 +54,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-12-31 16:54:19  florian
+  Revision 1.2  2001-01-05 17:36:58  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.1  2000/12/31 16:54:19  florian
     + initial revision
 
 }

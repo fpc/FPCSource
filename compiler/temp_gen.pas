@@ -73,11 +73,16 @@ interface
     function gettempofsize(size : longint) : longint;
     { special call for inlined procedures }
     function gettempofsizepersistant(size : longint) : longint;
+    procedure gettempofsizereferencepersistant(l : longint;var ref : treference);
+
     { for parameter func returns }
     procedure normaltemptopersistant(pos : longint);
     procedure persistanttemptonormal(pos : longint);
+
     {procedure ungettemp(pos : longint;size : longint);}
     procedure ungetpersistanttemp(pos : longint);
+    procedure ungetpersistanttempreference(const ref : treference);
+
     procedure gettempofsizereference(l : longint;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
@@ -294,6 +299,14 @@ const
          { do a reset, because the reference isn't used }
          reset_reference(ref);
          ref.offset:=gettempofsize(l);
+         ref.base:=procinfo^.framepointer;
+      end;
+
+    procedure gettempofsizereferencepersistant(l : longint;var ref : treference);
+      begin
+         { do a reset, because the reference isn't used }
+         reset_reference(ref);
+         ref.offset:=gettempofsizepersistant(l);
          ref.base:=procinfo^.framepointer;
       end;
 
@@ -537,6 +550,11 @@ const
 {$endif}
       end;
 
+    procedure ungetpersistanttempreference(const ref : treference);
+
+      begin
+         ungetpersistanttemp(ref.offset);
+      end;
 
     procedure ungetiftemp(const ref : treference);
 {$ifdef EXTDEBUG}
@@ -573,7 +591,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-31 11:04:43  jonas
+  Revision 1.11  2001-01-05 17:36:58  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.10  2000/12/31 11:04:43  jonas
     + sizeoftemp() function
 
   Revision 1.9  2000/12/25 00:07:30  peter
@@ -602,5 +624,4 @@ end.
 
   Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
-
 }

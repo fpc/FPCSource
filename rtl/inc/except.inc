@@ -50,8 +50,14 @@ begin
   RaiseList:=ExceptObjectStack;
 end;
 
+{$ifndef HAS_ADDR_STACK_ON_STACK}
 Function PushExceptAddr (Ft: Longint): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
+{$else ADDR_STACK_ON_HEAP}
+Function PushExceptAddr (Ft: Longint;_buf,_newaddr : pointer): PJmp_buf ;
+  [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
+{$endif HAS_ADDR_STACK_ON_STACK}
+
 var
   Buf : PJmp_buf;
   NewAddr : PExceptAddr;
@@ -61,16 +67,28 @@ begin
 {$endif}
   If ExceptAddrstack=Nil then
     begin
+{$ifndef HAS_ADDR_STACK_ON_STACK}
       New(ExceptAddrStack);
+{$else HAS_ADDR_STACK_ON_STACK}
+      ExceptAddrStack:=PExceptAddr(_newaddr);
+{$endif HAS_ADDR_STACK_ON_STACK}
       ExceptAddrStack^.Next:=Nil;
     end
   else
     begin
+{$ifndef HAS_ADDR_STACK_ON_STACK}
       New(NewAddr);
+{$else HAS_ADDR_STACK_ON_STACK}
+      NewAddr:=PExceptAddr(_newaddr);
+{$endif HAS_ADDR_STACK_ON_STACK}
       NewAddr^.Next:=ExceptAddrStack;
       ExceptAddrStack:=NewAddr;
     end;
+{$ifndef HAS_ADDR_STACK_ON_STACK}
   new(buf);
+{$else HAS_ADDR_STACK_ON_STACK}
+  buf:=PJmp_Buf(_buf);
+{$endif HAS_ADDR_STACK_ON_STACK}
   ExceptAddrStack^.Buf:=Buf;
   ExceptAddrStack^.FrameType:=ft;
   PushExceptAddr:=Buf;
@@ -142,8 +160,10 @@ begin
     begin
       hp:=ExceptAddrStack;
       ExceptAddrStack:=ExceptAddrStack^.Next;
+{$ifndef HAS_ADDR_STACK_ON_STACK}
       dispose(hp^.buf);
       dispose(hp);
+{$endif HAS_ADDR_STACK_ON_STACK}
     end;
 end;
 
@@ -246,11 +266,15 @@ begin
 end;
 {
   $Log$
-  Revision 1.3  2000-09-30 07:38:07  sg
+  Revision 1.4  2001-01-05 17:35:50  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.3  2000/09/30 07:38:07  sg
   * Added 'RaiseProc': A user-definable callback procedure which gets
     called whenever an exception is being raised
 
   Revision 1.2  2000/07/13 11:33:42  michael
   + removed logs
- 
+
 }

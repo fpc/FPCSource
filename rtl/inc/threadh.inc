@@ -40,9 +40,13 @@ procedure InitCriticalsection(var cs : tcriticalsection);
 procedure DoneCriticalsection(var cs : tcriticalsection);
 procedure EnterCriticalsection(var cs : tcriticalsection);
 procedure LeaveCriticalsection(var cs : tcriticalsection);
+
 {
   $Log$
-  Revision 1.1  2001-01-01 19:06:59  florian
-    + initial release
+  Revision 1.2  2001-01-05 17:35:50  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
 
+  Revision 1.1  2001/01/01 19:06:59  florian
+    + initial release
 }

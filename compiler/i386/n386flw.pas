@@ -738,6 +738,8 @@ do_jmp:
 
          oldflowcontrol,tryflowcontrol,
          exceptflowcontrol : tflowcontrol;
+         tempbuf,tempaddr : treference;
+
       label
          errorexit;
       begin
@@ -773,8 +775,14 @@ do_jmp:
          getlabel(doexceptlabel);
          getlabel(endexceptlabel);
          getlabel(lastonlabel);
+
+         gettempofsizereferencepersistant(24,tempbuf);
+         gettempofsizereferencepersistant(12,tempaddr);
+         emitpushreferenceaddr(tempaddr);
+         emitpushreferenceaddr(tempbuf);
          push_int (1); { push type of exceptionframe }
          emitcall('FPC_PUSHEXCEPTADDR');
+
          { allocate eax }
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
@@ -806,6 +814,8 @@ do_jmp:
 
          emitlab(exceptlabel);
          emitcall('FPC_POPADDRSTACK');
+         ungetpersistanttempreference(tempaddr);
+         ungetpersistanttempreference(tempbuf);
 
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_POP,S_L,R_EAX);
@@ -850,8 +860,14 @@ do_jmp:
               { guarded by an exception frame                        }
               getlabel(doobjectdestroy);
               getlabel(doobjectdestroyandreraise);
+
+              gettempofsizereferencepersistant(12,tempaddr);
+              gettempofsizereferencepersistant(24,tempbuf);
+              emitpushreferenceaddr(tempaddr);
+              emitpushreferenceaddr(tempbuf);
               exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
               emitcall('FPC_PUSHEXCEPTADDR');
+
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
               exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
@@ -872,6 +888,9 @@ do_jmp:
 
               emitlab(doobjectdestroyandreraise);
               emitcall('FPC_POPADDRSTACK');
+              ungetpersistanttempreference(tempaddr);
+              ungetpersistanttempreference(tempbuf);
+
               exprasmList.concat(Tairegalloc.Alloc(R_EAX));
               exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
               exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
@@ -984,6 +1003,7 @@ do_jmp:
          ref : treference;
          oldexceptblock : tnode;
          oldflowcontrol : tflowcontrol;
+         tempbuf,tempaddr : treference;
 
       begin
          oldflowcontrol:=flowcontrol;
@@ -1013,8 +1033,14 @@ do_jmp:
          { in the case that another exception is risen }
          { we've to destroy the old one                }
          getlabel(doobjectdestroyandreraise);
+
+         gettempofsizereferencepersistant(12,tempaddr);
+         gettempofsizereferencepersistant(24,tempbuf);
+         emitpushreferenceaddr(tempaddr);
+         emitpushreferenceaddr(tempbuf);
          exprasmList.concat(Taicpu.Op_const(A_PUSH,S_L,1));
          emitcall('FPC_PUSHEXCEPTADDR');
+
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
@@ -1052,6 +1078,9 @@ do_jmp:
          getlabel(doobjectdestroy);
          emitlab(doobjectdestroyandreraise);
          emitcall('FPC_POPADDRSTACK');
+         ungetpersistanttempreference(tempaddr);
+         ungetpersistanttempreference(tempbuf);
+
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          exprasmList.concat(Taicpu.op_reg(A_POP,S_L,R_EAX));
          exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
@@ -1134,6 +1163,7 @@ do_jmp:
          oldexceptblock : tnode;
          oldflowcontrol,tryflowcontrol : tflowcontrol;
          decconst : longint;
+         tempbuf,tempaddr : treference;
 
       begin
          { check if child nodes do a break/continue/exit }
@@ -1162,8 +1192,13 @@ do_jmp:
             aktbreaklabel:=breakfinallylabel;
           end;
 
+         gettempofsizereferencepersistant(12,tempaddr);
+         gettempofsizereferencepersistant(24,tempbuf);
+         emitpushreferenceaddr(tempaddr);
+         emitpushreferenceaddr(tempbuf);
          push_int(1); { Type of stack-frame must be pushed}
          emitcall('FPC_PUSHEXCEPTADDR');
+
          { allocate eax }
          exprasmList.concat(Tairegalloc.Alloc(R_EAX));
          emit_reg(A_PUSH,S_L,R_EAX);
@@ -1188,6 +1223,9 @@ do_jmp:
 
          emitlab(finallylabel);
          emitcall('FPC_POPADDRSTACK');
+         ungetpersistanttempreference(tempaddr);
+         ungetpersistanttempreference(tempbuf);
+
          { finally code }
          oldexceptblock:=aktexceptblock;
          aktexceptblock:=right;
@@ -1302,7 +1340,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:32  peter
+  Revision 1.6  2001-01-05 17:36:58  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.5  2000/12/25 00:07:32  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

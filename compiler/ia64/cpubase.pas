@@ -55,10 +55,13 @@ Const
   lastop  = high(tasmop);
 
 type
-  TAsmCond =
-   ();
+  TAsmCond = (C_NONE,C_LT,C_LTU,C_EQ,C_LT_UNC,C_LTU_UNC,C_EQ_UNC,
+              C_EQ_AND,C_EQ_OR,C_EQ_OR_ANDCM,C_NE_AND,C_NE_OR);
 
   THint = (H_NONE,H_NT1,H_NT2,H_NTA);
+  TLdStType = (LST_NONE,LST_S,LST_A,LSR_SA,LST_BIAS,LST_ACQ,LST_C_CLR,
+               LST_FILL,LST_C_NC,LST_C_CLR_ACQ,LST_REL,
+               LST_SPILL);
 
 Type
  TRegister = (R_NO,  { R_NO is Mandatory, signifies no register }
@@ -183,14 +186,16 @@ Type
 {$endif}
 
 
-{ resets all values of ref to defaults }
-procedure reset_reference(var ref : treference);
-{ set mostly used values of a new reference }
-function new_reference(base : tregister;offset : longint) : preference;
-function newreference(const r : treference) : preference;
-procedure disposereference(var r : preference);
+  { resets all values of ref to defaults }
+  procedure reset_reference(var ref : treference);
+  { set mostly used values of a new reference }
+  function new_reference(base : tregister;offset : longint) : preference;
+  function newreference(const r : treference) : preference;
+  procedure disposereference(var r : preference);
 
-function reg2str(r : tregister) : string;
+  procedure set_location(var destloc : tlocation;const sourceloc : tlocation);
+
+  function reg2str(r : tregister) : string;
 
 {*****************************************************************************
                                   Init/Done
@@ -201,52 +206,58 @@ function reg2str(r : tregister) : string;
 
 implementation
 
-uses
-   verbose;
+  uses
+     verbose;
 
-function reg2str(r : tregister) : string;
+  function reg2str(r : tregister) : string;
 
+    begin
+       if r in [R_0..R_31] then
+         reg2str:='R'+tostr(longint(r)-longint(R_0))
+       else if r in [R_F0..R_F31] then
+         reg2str:='F'+tostr(longint(r)-longint(R_F0))
+       else internalerror(38991);
+    end;
+
+  procedure reset_reference(var ref : treference);
   begin
-     if r in [R_0..R_31] then
-       reg2str:='R'+tostr(longint(r)-longint(R_0))
-     else if r in [R_F0..R_F31] then
-       reg2str:='F'+tostr(longint(r)-longint(R_F0))
-     else internalerror(38991);
+    FillChar(ref,sizeof(treference),0);
   end;
 
-procedure reset_reference(var ref : treference);
-begin
-  FillChar(ref,sizeof(treference),0);
-end;
 
+  function new_reference(base : tregister;offset : longint) : preference;
+  var
+    r : preference;
+  begin
+    new(r);
+    FillChar(r^,sizeof(treference),0);
+    r^.offset:=offset;
+    r^.alignment:=8;
+    new_reference:=r;
+  end;
 
-function new_reference(base : tregister;offset : longint) : preference;
-var
-  r : preference;
-begin
-  new(r);
-  FillChar(r^,sizeof(treference),0);
-  r^.offset:=offset;
-  r^.alignment:=8;
-  new_reference:=r;
-end;
+  function newreference(const r : treference) : preference;
 
-function newreference(const r : treference) : preference;
+  var
+     p : preference;
+  begin
+     new(p);
+     p^:=r;
+     newreference:=p;
+  end;
 
-var
-   p : preference;
-begin
-   new(p);
-   p^:=r;
-   newreference:=p;
-end;
+  procedure disposereference(var r : preference);
 
-procedure disposereference(var r : preference);
+  begin
+    dispose(r);
+    r:=Nil;
+  end;
 
-begin
-  dispose(r);
-  r:=Nil;
-end;
+  procedure set_location(var destloc : tlocation;const sourceloc : tlocation);
+
+    begin
+       destloc:=sourceloc;
+    end;
 
 {*****************************************************************************
                                   Init/Done
@@ -263,7 +274,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-12-31 16:54:19  florian
+  Revision 1.2  2001-01-05 17:36:58  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.1  2000/12/31 16:54:19  florian
     + initial revision
 
   Revision 1.1  2000/07/13 06:30:11  michael

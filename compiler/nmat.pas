@@ -64,9 +64,8 @@ implementation
       htypechk,pass_1,cpubase,cpuinfo,
 {$ifdef newcg}
       cgbase,
-{$else newcg}
-      hcodegen,
 {$endif newcg}
+      hcodegen,
       ncon,ncnv,ncal;
 
 {****************************************************************************
@@ -529,7 +528,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-12-25 00:07:26  peter
+  Revision 1.12  2001-01-05 17:36:57  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.11  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

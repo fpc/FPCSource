@@ -1234,6 +1234,7 @@ begin
   def_symbol('INTERNSETLENGTH');
   def_symbol('INT64FUNCRESOK');
   def_symbol('PACKENUMFIXED');
+  def_symbol('HAS_ADDR_STACK_ON_STACK');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1509,7 +1510,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.24  2000-12-25 00:07:26  peter
+  Revision 1.25  2001-01-05 17:36:57  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.24  2000/12/25 00:07:26  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

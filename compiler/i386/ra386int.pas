@@ -1007,6 +1007,7 @@ type
 
 
 Procedure T386IntelOperand.BuildReference;
+
 var
   k,l : longint;
   tempstr2,
@@ -1920,7 +1921,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:34  peter
+  Revision 1.7  2001-01-05 17:36:58  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
+
+  Revision 1.6  2000/12/25 00:07:34  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

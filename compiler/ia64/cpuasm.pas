@@ -34,7 +34,7 @@ uses
 
 type
   pairegalloc = ^tairegalloc;
-  tairegalloc = object(tai)
+  tairegalloc = class(tai)
      allocation : boolean;
      reg        : tregister;
      constructor alloc(r : tregister);
@@ -42,7 +42,7 @@ type
   end;
 
   { Types of operand }
-  toptype=(top_none,top_reg,top_ref,top_const,top_symbol);
+  toptype=(top_none,top_reg,top_ref,top_const,top_symbol,top_qp);
 
   toper=record
     case typ : toptype of
@@ -55,55 +55,52 @@ type
   end;
 
   paicpu = ^taicpu;
-  taicpu = object(tai)
+  taicpu = class(tai)
      is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
      opcode    : tasmop;
-     ops       : longint;
      ops       : array[0..4] of longint;
-     oper
+     oper      : longint;
      qp        : tqp;
+     ldsttype  : tldsttype;
+     hint      : thint;
      { ALU instructions }
      { A1,A9: integer ALU }
      constructor op_reg_reg_reg(op : tasmop;const r1,r2,r3 : tregister);
      { A2,A10: shift left and add }
-     constructor op_reg_reg_const_reg(qp : tqp;op : tasmop;
+     constructor op_reg_reg_const_reg(_qp : tqp;op : tasmop;
        const r1,r2 : tregister;i : byte;const r3 : tregister);
      { A3,A4,A5: integer ALU - imm.,register }
-     constructor op_reg_const_reg(qp : tqp;op : tasmop;
+     constructor op_reg_const_reg(_qp : tqp;op : tasmop;
        const r1 : tregister;i : longint;const r3 : tregister);
      { A6,A7: integer compare - register,register }
-     constructor op_preg_preg_reg_reg(qp : tqp;op : tasmop;
-       cond : tasmcond;p1,p2 : tqp;const r2,r3 : tregister)
+     constructor op_preg_preg_reg_reg(_qp : tqp;op : tasmop;
+       cond : tasmcond;p1,p2 : tqp;const r2,r3 : tregister);
      { A8: integer compare - imm.,register }
-     constructor op_preg_preg_const_reg(qp : tqp;op : tasmop;
+     constructor op_preg_preg_const_reg(_qp : tqp;op : tasmop;
        cond : tasmcond;p1,p2 : tqp;i : longint;const r3 : tregister);
 {!!!!!!!
      { multimedia shift and multiply }
-     constructor op_reg_reg_reg_const(qp : tqp;
+     constructor op_reg_reg_reg_const(_qp : tqp;
      { multimedia mux }
-     constructor op_reg_reg_mbtype(qp : tqp;
+     constructor op_reg_reg_mbtype(_qp : tqp;
      { multimedia shift fixed }
-     constructor op_reg_reg_const(qp : tqp;
+     constructor op_reg_reg_const(_qp : tqp;
      { div. }
-     constructor op_reg_reg(qp : tqp;
+     constructor op_reg_reg(_qp : tqp;
      { mm extract }
-     constructor op_reg_reg_const_const(qp : tqp;
+     constructor op_reg_reg_const_const(_qp : tqp;
      { zero and deposit imm }
-     constructor op_reg_const_const_const(qp : tqp;
+     constructor op_reg_const_const_const(_qp : tqp;
      { deposit imm }
-     constructor op_reg_const_reg_const_const(qp : tqp;
+     constructor op_reg_const_reg_const_const(_qp : tqp;
      { deposit }
-     constructor op_reg_reg_reg_const_const(qp : tqp;
+     constructor op_reg_reg_reg_const_const(_qp : tqp;
      { test bit }
      { !!!! here we need also to take care of the postfix }
-     constructor op_preg_preg_reg_const(qp : tqp;
+     constructor op_preg_preg_reg_const(_qp : tqp;
      { test NaT }
      { !!!! here we need also to take care of the postfix }
-     constructor op_preg_preg_reg(qp : tqp;
-     { break/nop }
-     constructor op_const(qp : tqp;
-     { speculation check }
-     constructor op_reg_const(qp : tqp;
+     constructor op_preg_preg_reg(_qp : tqp;
 
      { -------- here are some missed ----------- }
 }
@@ -112,35 +109,41 @@ type
      { M4: integer store }
      { M6: floating-point load }
      { M9: floating-point store }
-     constructor op_reg_ref(qp : tqp;op : tasmop;postfix : tldsttype;
-       hint : thint;const r1 : tregister;ref : preference);
+     constructor op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
+       _hint : thint;const r1 : tregister;ref : preference);
 
      { M2: integer load incremented by register }
      { M7: floating-point load incremented by register }
-     constructor op_reg_ref_reg(qp : tqp;op : tasmop;postfix : tldsttype;
-       hint : thint;const r1 : tregister;const ref : treference;
+     constructor op_reg_ref_reg(_qp : tqp;op : tasmop;postfix : tldsttype;
+       _hint : thint;const r1 : tregister;const ref : treference;
        const r2 : tregister);
 
      { M3: integer load increment by imm. }
      { M5: integer store increment by imm. }
      { M8: floating-point load increment by imm. }
      { M10: floating-point store increment by imm. }
-     constructor op_reg_ref_const(qp : tqp;op : tasmop;postfix : tldsttype;
-       hint : thint;const r1 : tregister;ref : preference;i : longint);
+     constructor op_reg_ref_const(_qp : tqp;op : tasmop;postfix : tldsttype;
+       _hint : thint;const r1 : tregister;ref : preference;i : longint);
 
      { M11: floating-point load pair}
-     constructor op_reg_ref(qp : tqp;op : tasmop;postfix : tldsttype;
-       hint : thint;const r1,r2 : tregister;ref : preference);
+     constructor op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
+       _hint : thint;const r1,r2 : tregister;ref : preference);
 
      { M12: floating-point load pair increment by imm. }
-     constructor op_reg_ref(qp : tqp;op : tasmop;postfix : tldsttype;
-       hint : thint;const r1,r2 : tregister;ref : preference;i : longint);
+     constructor op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
+       _hint : thint;const r1,r2 : tregister;ref : preference;i : longint);
+
+     { X1: break/nop }
+     constructor op_const62(_qp : tqp;op : tasmop;i : int64);
+     { X2: move imm64 }
+     constructor op_reg_const64(_qp : tqp;op : tasmop;const r1 : tregister;
+       i : int64);
   end;
 
   { the following objects are special for the ia64 }
   { they decribe a stop and the bundles            }
   paistop = ^taistop;
-  taistop = object(tai)
+  taistop = class(tai)
     constructor init;
   end;
 
@@ -154,7 +157,7 @@ type
     but_mfb,but_mfb_);
 
   paibundle = ^taibundle;
-  taibundle = object(tai)
+  taibundle = class(tai)
      template : tbundletemplate;
      instructions : array[0..1] of paicpu;
   end;
@@ -169,7 +172,7 @@ implementation
     constructor taistop.init;
 
       begin
-         inherited init;
+         inherited create;
          typ:=ait_stop;
       end;
 
@@ -180,7 +183,7 @@ implementation
 
     constructor tairegalloc.alloc(r : tregister);
       begin
-        inherited init;
+        inherited create;
         typ:=ait_regalloc;
         allocation:=true;
         reg:=r;
@@ -189,17 +192,115 @@ implementation
 
     constructor tairegalloc.dealloc(r : tregister);
       begin
-        inherited init;
+        inherited create;
         typ:=ait_regalloc;
         allocation:=false;
         reg:=r;
       end;
 
 
+{*****************************************************************************
+                                 Taicpu
+*****************************************************************************}
+
+    { ALU instructions }
+    { A1,A9: integer ALU }
+    constructor taicpu.op_reg_reg_reg(op : tasmop;const r1,r2,r3 : tregister);
+
+      begin
+      end;
+
+    { A2,A10: shift left and add }
+    constructor taicpu.op_reg_reg_const_reg(_qp : tqp;op : tasmop;
+      const r1,r2 : tregister;i : byte;const r3 : tregister);
+
+      begin
+      end;
+
+    { A3,A4,A5: integer ALU - imm.,register }
+    constructor taicpu.op_reg_const_reg(_qp : tqp;op : tasmop;
+      const r1 : tregister;i : longint;const r3 : tregister);
+
+      begin
+      end;
+
+    { A6,A7: integer compare - register,register }
+    constructor taicpu.op_preg_preg_reg_reg(_qp : tqp;op : tasmop;
+      cond : tasmcond;p1,p2 : tqp;const r2,r3 : tregister);
+
+      begin
+      end;
+
+    { A8: integer compare - imm.,register }
+    constructor taicpu.op_preg_preg_const_reg(_qp : tqp;op : tasmop;
+      cond : tasmcond;p1,p2 : tqp;i : longint;const r3 : tregister);
+
+      begin
+      end;
+
+    { M1: integer load }
+    { M4: integer store }
+    { M6: floating-point load }
+    { M9: floating-point store }
+    constructor taicpu.op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
+      _hint : thint;const r1 : tregister;ref : preference);
+
+      begin
+      end;
+
+    { M2: integer load incremented by register }
+    { M7: floating-point load incremented by register }
+    constructor taicpu.op_reg_ref_reg(_qp : tqp;op : tasmop;postfix : tldsttype;
+      _hint : thint;const r1 : tregister;const ref : treference;
+      const r2 : tregister);
+
+      begin
+      end;
+
+    { M3: integer load increment by imm. }
+    { M5: integer store increment by imm. }
+    { M8: floating-point load increment by imm. }
+    { M10: floating-point store increment by imm. }
+    constructor taicpu.op_reg_ref_const(_qp : tqp;op : tasmop;postfix : tldsttype;
+      _hint : thint;const r1 : tregister;ref : preference;i : longint);
+
+      begin
+      end;
+
+    { M11: floating-point load pair}
+    constructor taicpu.op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
+      _hint : thint;const r1,r2 : tregister;ref : preference);
+
+      begin
+      end;
+
+    { M12: floating-point load pair increment by imm. }
+    constructor taicpu.op_reg_ref(_qp : tqp;op : tasmop;postfix : tldsttype;
+      _hint : thint;const r1,r2 : tregister;ref : preference;i : longint);
+
+      begin
+      end;
+
+    { X1: break/nop }
+    constructor taicpu.op_const62(_qp : tqp;op : tasmop;i : int64);
+    { X2: move imm64 }
+
+      begin
+      end;
+
+    constructor taicpu.op_reg_const64(_qp : tqp;op : tasmop;const r1 : tregister;
+      i : int64);
+
+      begin
+      end;
+
 end.
 {
   $Log$
-  Revision 1.1  2000-12-31 16:54:19  florian
-    + initial revision
+  Revision 1.2  2001-01-05 17:36:58  florian
+  * the info about exception frames is stored now on the stack
+  instead on the heap
 
+  Revision 1.1  2000/12/31 16:54:19  florian
+    + initial revision
 }
