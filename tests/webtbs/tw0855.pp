@@ -1,0 +1,16 @@
+{$MODE objfpc}
+{$R+}
+type
+  TMyRec = record
+    x: Integer;
+  end;
+  TMyArray = array[LongWord] of TMyRec;
+  PMyArray = ^TMyArray;
+var
+  a: PMyArray;
+  i: Integer;
+begin
+  GetMem(a, SizeOf(TMyRec));
+  i := 0;
+  a^[i].x := 1;
+end.

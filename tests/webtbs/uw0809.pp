@@ -1,0 +1,14 @@
+UNIT uw0809;
+
+INTERFACE
+
+  PROCEDURE Schreib(st : STRING);
+
+IMPLEMENTATION
+
+PROCEDURE Schreib(st : STRING);
+BEGIN
+  WriteLn(st);
+END;
+
+END.
