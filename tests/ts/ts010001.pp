@@ -32,11 +32,13 @@ begin
    { more difficult }
    classref:=myclassref;
    classref:=tobject;
+   myclassref:=tmyobject;
 
    classref:=getanchestor(myclassref);
    if (constclassref1.classname<>'TOBJECT') or
      (constclassref2<>nil) or
-     (constclassref2.classname<>'TMYOBJECT')then
+     (myclassref.classname<>'TMYOBJECT') or
+     (classref.classname<>'TOBJECT') then
      begin
         writeln('Error');
         halt(1);
