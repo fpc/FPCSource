@@ -127,32 +127,47 @@ cfgfile=fpc.cfg
 idecfgfile=fp.cfg
 ideinifile=fp.ini
 filecheck=*emx.zip
-# OS-2 1
+# OS/2 1
 package=baseemx.zip,~B~asic system for EMX (required)
-# OS-2 2
+# OS/2 2
 package=asldemx.zip,GNU ~L~inker and GNU assembler for EMX (required)
-# OS-2 3
+# OS/2 3
 #package=ideemx.zip,~I~DE with integrated debugger/compiler (BETA)
-# OS-2 4
+# OS/2 4
 package=utilemx.zip,~E~xtra Utilities
-# OS-2 5
+# OS/2 5
 package=makeemx.zip,GNU ~U~tilities (needed for Makefile usage)
-# OS-2 6
+# OS/2 6
 package=gdbemx.zip,GNU ~D~ebugger for EMX and PMGDB front-end
-# OS-2 7
+# OS/2 7
 package=ufclemx.zip,~F~ree Component Library (FCL)
-# OS-2 8
-#package=ugdbintemx.zip[ugdbemx.zip],GDB Interfacing units
-# OS-2 9
-package=upaszlibemx.zip[upzlemx.zip],PasZLib units
-# OS-2 10
-package=uregexpremx.zip[uregemx.zip],Regular expression units
-# OS-2 11
-package=uunzipemx.zip[uzipemx.zip],Unzip units
-# OS-2 12
-package=uuncgiemx.zip[ucgiemx.zip],Uncgi units
-# OS-2 13
+# OS/2 8
 #package=ufvemx.zip,Free ~V~ision (FV)
+
+
+#
+# EMX packages 2nd part
+#
+pack=E~M~X-2
+filecheck=*emx.zip
+# OS/2-2 1
+#package=ugdbintemx.zip[ugdbemx.zip],GDB interfacing units
+# OS/2-2 2
+package=upaszlibemx.zip[upzlemx.zip],PasZLib units
+# OS/2-2 3
+package=uregexpremx.zip[uregemx.zip],Regular expression units
+# OS/2-2 4
+package=urexxemx.zip,REXX SAA interface units
+# OS/2-2 5
+package=uunzipemx.zip[uzipemx.zip],Unzip units
+# OS/2-2 6
+package=uuncgiemx.zip[ucgiemx.zip],Uncgi units
+# OS/2-2 7
+package=uftpapiemx.zip[uftpemx.zip],FTP API interface units
+# OS/2-2 8
+package=uhwvideoemx.zip[uhwvemx.zip],HW Video interface units
+# OS/2-2 9
+package=ummtkemx.zip,MMOS/2 interface units
 
 
 #
