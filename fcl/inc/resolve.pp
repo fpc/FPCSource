@@ -3,7 +3,8 @@
 Unit resolve;
 
 {$ifndef win32}
-// Here till BSD supports the netbsd unit.
+// Here till BSD supports the netbsd unit. 
+// MvdV: NetBSD unit? Where?
 {$ifdef linux}
 // Undefine this to use the C library resolve routines. 
 // Don't use under win32, netdb does not work on Win32 (yet) !!
@@ -214,6 +215,7 @@ Implementation
 {$ifdef usenetdb}
 uses netdb;
 {$else}  
+uses initc;
 {$i resolve.inc}
 {$endif}
 
@@ -949,7 +951,10 @@ Finalization
 end.
 {
    $Log$
-   Revision 1.4  2003-05-17 21:52:37  michael
+   Revision 1.5  2003-12-10 15:50:50  marco
+    * fpgetcerrno introduction
+
+   Revision 1.4  2003/05/17 21:52:37  michael
    + Added TURIParser class
 
    Revision 1.3  2003/03/07 20:33:33  michael

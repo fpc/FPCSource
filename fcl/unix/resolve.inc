@@ -64,8 +64,11 @@ function getnetbyname ( Name : pchar) : PNetEntry; cdecl; external socklib;
 function getservbyname (name : pchar  ; protocol : pchar) : PServEntry; cdecl; external socklib;
 function getservbyport (port : longint; protocol : pchar) : PServEntry; cdecl; external socklib;
 
-var
-  GetDNSError : longint;external socklib name 'h_errno';
+function  GetDNSError : libcint;
+
+begin
+  GetDNSError:=fpgetCerrno;
+end;
 
 Function InitResolve : Boolean;
 
