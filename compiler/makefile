@@ -304,8 +304,8 @@ install:
 	ln -sf $(LIBINSTALLDIR)/ppc386 $(PROGINSTALLDIR)/ppc386
 	makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
 	install -m 755 -d $(MSGINSTALLDIR)
-	install -m 644 errore.msg $(MSGINSTALLDIR)
-	install -m 644 errorn.msg $(MSGINSTALLDIR)
+	install -m 666 errore.msg $(MSGINSTALLDIR)
+	install -m 666 errorn.msg $(MSGINSTALLDIR)
 
 #####################################################################
 # Diffs
