@@ -428,8 +428,8 @@ begin
 
   hWindow := CreateWindow('MyWindow', windowtitle,
               ws_OverlappedWindow, 50, 50,
-              maxx+2*GetSystemMetrics(SM_CXBORDER),
-              maxy+2*GetSystemMetrics(SM_CYBORDER)+
+              maxx+1+2*GetSystemMetrics(SM_CXBORDER),
+              maxy+1+2*GetSystemMetrics(SM_CYBORDER)+
                 GetSystemMetrics(SM_CYCAPTION),
               0, 0, system.MainInstance, nil);
 
@@ -441,16 +441,24 @@ begin
   wincreate:=hWindow;
 end;
 
+const
+   winregistered : boolean = false;
+
 function MessageHandleThread(p : pointer) : DWord;StdCall;
 
   var
      AMessage: Msg;
 
   begin
-     if not WinRegister then begin
-       MessageBox(0, 'Register failed', nil, mb_Ok);
-       ExitThread(1);
-     end;
+     if not(winregistered) then
+       begin
+          if not WinRegister then
+            begin
+               MessageBox(0, 'Register failed', nil, mb_Ok);
+               ExitThread(1);
+            end;
+          winregistered:=true;
+       end;
      MainWindow := WinCreate;
      if longint(mainwindow) = 0 then begin
        MessageBox(0, 'WinCreate failed', nil, mb_Ok);
@@ -480,7 +488,9 @@ procedure InitWin32GUI16colors;
        GetExitCodeThread(MessageThreadHandle,@threadexitcode);
      until graphrunning or (threadexitcode<>STILL_ACTIVE);
      if threadexitcode<>STILL_ACTIVE then
-       _graphresult := grerror;
+        _graphresult := grerror
+     else
+       ClearDevice;
   end;
 
 procedure CloseGraph;
@@ -721,7 +731,11 @@ function queryadapterinfo : pmodeinfo;
 
 {
   $Log$
-  Revision 1.7  2000-03-05 13:06:32  florian
+  Revision 1.8  2000-03-17 22:53:20  florian
+    * window class is registered only once => multible init/closegraphs are possible
+    * calling cleardevice when creating the window
+
+  Revision 1.7  2000/03/05 13:06:32  florian
     * the title can be user defined
 
   Revision 1.6  2000/01/07 16:41:52  daniel
