@@ -1918,17 +1918,20 @@ begin
   else
    textrec(f).mode:=fmclosed;
   end;
-
 end;
 
 
 Procedure IOPipe(var F:text);
 begin
   case textrec(f).mode of
-   fmoutput : Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
+   fmoutput : begin
+                { first check if we need something to write, else we may
+                  get a SigPipe when Close() is called (PFV) }
+                if textrec(f).bufpos>0 then
+                 Sys_write(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufpos);
+              end;
     fminput : textrec(f).bufend:=Sys_read(textrec(f).handle,pchar(textrec(f).bufptr),textrec(f).bufsize);
   end;
-
   textrec(f).bufpos:=0;
 end;
 
@@ -1984,7 +1987,7 @@ begin
      exit;
    end;
 { Set up input }
-  Assign(Pipe_in,'.');
+  Assign(Pipe_in,'');
   Textrec(Pipe_in).Handle:=f_in;
   Textrec(Pipe_in).Mode:=fmInput;
   Textrec(Pipe_in).userdata[1]:=P_IN;
@@ -1993,7 +1996,7 @@ begin
   TextRec(Pipe_in).FlushFunc:=@FlushPipe;
   TextRec(Pipe_in).CloseFunc:=@ClosePipe;
 { Set up output }
-  Assign(Pipe_out,'.');
+  Assign(Pipe_out,'');
   Textrec(Pipe_out).Handle:=f_out;
   Textrec(Pipe_out).Mode:=fmOutput;
   Textrec(Pipe_out).userdata[1]:=P_OUT;
@@ -2020,13 +2023,13 @@ begin
      exit;
    end;
 { Set up input }
-  Assign(Pipe_in,'.');
+  Assign(Pipe_in,'');
   Filerec(Pipe_in).Handle:=f_in;
   Filerec(Pipe_in).Mode:=fmInput;
   Filerec(Pipe_in).recsize:=1;
   Filerec(Pipe_in).userdata[1]:=P_IN;
 { Set up output }
-  Assign(Pipe_out,'.');
+  Assign(Pipe_out,'');
   Filerec(Pipe_out).Handle:=f_out;
   Filerec(Pipe_out).Mode:=fmoutput;
   Filerec(Pipe_out).recsize:=1;
@@ -2041,7 +2044,6 @@ var
   pl  : ^longint;
   res : longint;
 begin
-  flush (f);
   sr.reg2:=Textrec(F).Handle;
   SysCall (syscall_nr_close,sr);
 { closed our side, Now wait for the other - this appears to be needed ?? }
@@ -3517,7 +3519,10 @@ End.
 
 {
   $Log$
-  Revision 1.26  1998-11-24 15:30:12  michael
+  Revision 1.27  1998-12-11 18:08:57  peter
+    * fixed assignstream
+
+  Revision 1.26  1998/11/24 15:30:12  michael
   * Bugfix in assignstream. . Now wait is performed upon close
 
   Revision 1.25  1998/11/16 10:21:28  peter
