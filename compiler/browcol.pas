@@ -400,9 +400,13 @@ begin
     begin
       OLI:=Left; ORI:=Right;
       Mid:=Left+(Right-Left) div 2;
-      LeftP:=At(Left); RightP:=At(Right); MidP:=At(Mid);
-      LeftS:=Upper(LeftP^.GetName); MidS:=Upper(MidP^.GetName);
+      MidP:=At(Mid);
+{$ifdef DEBUG}
+      LeftP:=At(Left); RightP:=At(Right);
+      LeftS:=Upper(LeftP^.GetName);
       RightS:=Upper(RightP^.GetName);
+{$endif DEBUG}
+      MidS:=Upper(MidP^.GetName);
       if copy(MidS,1,length(UpS))=UpS then
         begin
           Idx:=Mid;
@@ -414,7 +418,31 @@ begin
         else
           Left:=Mid;
       if (OLI=Left) and (ORI=Right) then
-        Break;
+        begin
+          if idX<>-1 then
+            break;
+          if Mid=Left then
+            begin
+              RightP:=At(Right);
+              RightS:=Upper(RightP^.GetName);
+              if copy(RightS,1,length(UpS))=UpS then
+                begin
+                  Idx:=Right;
+                  FoundS:=RightS;
+                end;
+            end;
+          if Mid=Right then
+            begin
+              LeftP:=At(Left);
+              LeftS:=Upper(LeftP^.GetName);
+              if copy(LeftS,1,length(UpS))=UpS then
+                begin
+                  Idx:=Left;
+                  FoundS:=LeftS;
+                end;
+            end;
+          Break;
+        end;
     end;
   end;
   LookUp:=FoundS;
@@ -1761,7 +1789,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2000-03-08 12:25:29  pierre
+  Revision 1.36  2000-03-13 20:28:12  pierre
+   * X was not found in TSortedSymbolCollection.LookUp
+
+  Revision 1.35  2000/03/08 12:25:29  pierre
    * more fixes for TSymbol
 
   Revision 1.34  2000/03/07 21:55:59  pierre
