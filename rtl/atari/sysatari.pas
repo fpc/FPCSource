@@ -197,6 +197,15 @@ begin
   end;
 end;
 
+function do_isdevice(handle:longint):boolean;
+begin
+  if (handle=stdoutputhandle) or (handle=stdinputhandle) or
+  (handle=stderrorhandle) then
+    do_isdevice:=FALSE;
+  else
+    do_isdevice:=TRUE;
+end;
+
 
 function do_write(h,addr,len : longint) : longint;
 begin
@@ -454,23 +463,26 @@ end;
 
 procedure mkdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($39,s);
 end;
 
 
 procedure rmdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($3a,s);
 end;
 
 
 procedure chdir(const s : string);[IOCheck];
 begin
+  If InOutRes <> 0 then exit;
   DosDir($3b,s);
 end;
 
 
-procedure getdir(drivenr : byte;var dir : string);[IOCheck];
+procedure getdir(drivenr : byte;var dir : string);
 var
   temp : array[0..255] of char;
   sof  : pchar;
@@ -536,17 +548,7 @@ end;
                          SystemUnit Initialization
 *****************************************************************************}
       
-procedure OpenStdIO(var f:text;mode:word;hdl:longint);
-begin
-  Assign(f,'');
-  TextRec(f).Handle:=hdl;
-  TextRec(f).Mode:=mode;
-  TextRec(f).InOutFunc:=@FileInOutFunc;
-  TextRec(f).FlushFunc:=@FileInOutFunc;
-  TextRec(f).Closefunc:=@fileclosefunc;
-end;
 
-      
 begin
 { Initialize ExitProc }
   ExitProc:=Nil;
@@ -564,7 +566,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-07-01 14:40:20  carl
+  Revision 1.4  1998-07-02 12:39:27  carl
+    * IOCheck for mkdir,chdir and rmdir, just like in TP
+
+  Revision 1.3  1998/07/01 14:40:20  carl
     + new stack checking implemented
     + IOCheck for chdir , getdir , mkdir and rmdir
 
