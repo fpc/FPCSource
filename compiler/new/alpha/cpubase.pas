@@ -61,7 +61,9 @@ type
             A_STT,A_STW,A_SUBF,A_SUBG,A_SUBL,
             A_SUBQ,A_SUBS,A_SUBT,A_TRAPB,A_UMULH,
             A_UNPKBL,A_UNPKBW,A_WH64,A_WMB,A_XOR,A_ZAP,
-            A_ZAPNOT);
+            A_ZAPNOT
+            { Psuedo code understood by the gnu assembler }
+            ,A_LDGP);
 
 Const
   firstop = low(tasmop);
@@ -101,7 +103,8 @@ Const
   frame_pointer = R_15;
   self_pointer  = R_16;
   accumulator   = R_0;
-  scratchregister = R_14;
+  global_pointer = R_29;
+  scratchregister = R_1;
 
   { sizes }
   pointersize   = 8;
@@ -232,7 +235,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.6  1999-08-05 14:58:17  florian
+  Revision 1.7  1999-08-05 15:50:34  michael
+  * more changes
+
+  Revision 1.6  1999/08/05 14:58:17  florian
     * some fixes for the floating point registers
     * more things for the new code generator
 

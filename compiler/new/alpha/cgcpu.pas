@@ -41,6 +41,9 @@ unit cgcpu;
           procedure a_load_const64_ref(list : paasmoutput;q : qword;const ref : treference);virtual;
 
           procedure g_stackframe_entry(list : paasmoutput;localsize : longint);virtual;
+          procedure g_exite_entry(list : paasmoutput;localsize : longint);virtual;
+          procedure g_exitcode(list : paasmoutput;parasize : longint;
+            nostackframe,inlined : boolean);
           constructor init;
        end;
 
@@ -57,28 +60,34 @@ unit cgcpu;
 
     procedure tcgalpha.g_stackframe_entry(list : paasmoutput;localsize : longint);
 
-      begin
-         {
-         if localsize<>0 then
-           begin
-              if (cs_littlesize in aktglobalswitches) and (localsize<=65535) then
-                list^.insert(new(pai386,op_const_const(A_ENTER,S_NO,localsize,0)))
-              else
-                begin
-                   list^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
-                   list^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                   list^.concat(new(pai386,op_const_reg(A_SUB,S_L,localsize,R_ESP)));
-                end;
-             end
-         else
-           begin
-              list^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
-              list^.concat(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-           end;
-         }
-         abstract;
-       end;
+    begin
+      With List^ do 
+        begin
+        concat(new(paialpha,op_reg_ref(A_LDGP,Global_pointer,new_reference(R_27,0)));
+        concat(new(paialpha,op_reg_ref(A_LDA,Stack_Pointer,new_reference(Stack_pointer,-LocalSize))));
+        If LocalSize<>0 then
+          concat(new(paiframe,Init(Global_pinter,LocalSize,R27,0)));
+        // Always generate a frame pointer.
+        concat(new(paiframe,op_reg_reg_reg(A_BIS,Stackpointer,Stack_pointer,Frame_pointer)))
+        end;
+    end;
 
+    procedure g_exitcode(list : paasmoutput;parasize : longint; nostackframe,inlined : boolean);
+ 
+    begin
+      With List^ do
+        begin
+        // Restore stack pointer from frame pointer
+        Concat (new(paialpha,op_reg_reg_reg(A_BIS,Frame_Pointer,Frame_Pointer,Stack_Pointer)));
+        // Restore previous stack position
+        Concat (new(paialpha,op_reg_const_reg(A_ADDQ,Stack_Pointer,Parasize,Stack_pointer)));
+        // return...
+        Concat (new(paialpha,op_reg_ref_const(A_RET,Stack_pointer,new_reference(Return_pointer,0),1)));
+        // end directive
+        Concat (new(paiend,init(''));
+        end;
+    end;
+    
      procedure tcgalpha.a_call_name(list : paasmoutput;const s : string;
        offset : longint);
 
@@ -122,7 +131,10 @@ unit cgcpu;
 end.
 {
   $Log$
-  Revision 1.2  1999-08-04 00:24:00  florian
+  Revision 1.3  1999-08-05 15:50:32  michael
+  * more changes
+
+  Revision 1.2  1999/08/04 00:24:00  florian
     * renamed i386asm and i386base to cpuasm and cpubase
 
   Revision 1.1  1999/08/03 22:39:46  florian

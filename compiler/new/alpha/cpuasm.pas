@@ -38,8 +38,22 @@ type
      constructor dealloc(r : tregister);
   end;
 
-  paalpha = ^taalpha;
-  taalpha = object(tai)
+  paiframe = ^taiframe;
+  taiframe = object(tai)
+     G,R : TRegister;
+     LS,LU : longint;
+    Constructor init (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
+    end;
+    
+  paient = ^taient;
+  taient = object(tai)
+    Name : string;
+    Constructor Init (ProcName : String);
+    end;
+     
+
+  paialpha = ^taialpha;
+  taialpha = object(tai)
      is_jmp    : boolean; { is this instruction a jump? (needed for optimizer) }
      opcode    : tasmop;
      ops       : longint;
@@ -86,8 +100,6 @@ type
 
 
 implementation
-uses
-  og386;
 
 {*****************************************************************************
                                  TaiRegAlloc
@@ -112,10 +124,10 @@ uses
 
 
 {*****************************************************************************
-                                 Taalpha Constructors
+                                 taialpha Constructors
 *****************************************************************************}
 
-    procedure taalpha.init(op : tasmop);
+    procedure taialpha.init(op : tasmop);
       begin
          typ:=ait_instruction;
          is_jmp:=false;
@@ -126,22 +138,14 @@ uses
          fillchar(oper,sizeof(oper),0);
       end;
 
-    constructor taalpha.op_none(op : tasmop);
+    constructor taialpha.op_none(op : tasmop);
       begin
          inherited init;
          init(op);
       end;
 
 
-    constructor taalpha.op_reg(op : tasmop;_op1 : tregister);
-      begin
-         inherited init;
-         init(op);
-         ops:=1;
-      end;
-
-
-    constructor taalpha.op_const(op : tasmop;_op1 : longint);
+    constructor taialpha.op_reg(op : tasmop;_op1 : tregister);
       begin
          inherited init;
          init(op);
@@ -149,7 +153,7 @@ uses
       end;
 
 
-    constructor taalpha.op_ref(op : tasmop;_op1 : preference);
+    constructor taialpha.op_const(op : tasmop;_op1 : longint);
       begin
          inherited init;
          init(op);
@@ -157,7 +161,15 @@ uses
       end;
 
 
-    constructor taalpha.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
+    constructor taialpha.op_ref(op : tasmop;_op1 : preference);
+      begin
+         inherited init;
+         init(op);
+         ops:=1;
+      end;
+
+
+    constructor taialpha.op_reg_reg(op : tasmop;_op1,_op2 : tregister);
       begin
          inherited init;
          init(op);
@@ -165,7 +177,7 @@ uses
       end;
 
 
-    constructor taalpha.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
+    constructor taialpha.op_reg_const(op:tasmop; _op1: tregister; _op2: longint);
       begin
          inherited init;
          init(op);
@@ -173,7 +185,7 @@ uses
       end;
 
 
-    constructor taalpha.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
+    constructor taialpha.op_reg_ref(op : tasmop;_op1 : tregister;_op2 : preference);
       begin
          inherited init;
          init(op);
@@ -181,7 +193,7 @@ uses
       end;
 
 
-    constructor taalpha.op_const_reg(op : tasmop;_op1 : longint;_op2 : tregister);
+    constructor taialpha.op_const_reg(op : tasmop;_op1 : longint;_op2 : tregister);
       begin
          inherited init;
          init(op);
@@ -189,7 +201,7 @@ uses
       end;
 
 
-    constructor taalpha.op_const_const(op : tasmop;_op1,_op2 : longint);
+    constructor taialpha.op_const_const(op : tasmop;_op1,_op2 : longint);
       begin
          inherited init;
          init(op);
@@ -197,22 +209,14 @@ uses
       end;
 
 
-    constructor taalpha.op_const_ref(op : tasmop;_op1 : longint;_op2 : preference);
+    constructor taialpha.op_const_ref(op : tasmop;_op1 : longint;_op2 : preference);
       begin
          inherited init;
          init(op);
          ops:=2;
       end;
 
-    constructor taalpha.op_ref_reg(op : tasmop;_op1 : preference;_op2 : tregister);
-      begin
-         inherited init;
-         init(op);
-         ops:=2;
-      end;
-
-
-    constructor taalpha.op_ref_ref(op : tasmop;_op1,_op2 : preference);
+    constructor taialpha.op_ref_reg(op : tasmop;_op1 : preference;_op2 : tregister);
       begin
          inherited init;
          init(op);
@@ -220,35 +224,43 @@ uses
       end;
 
 
-    constructor taalpha.op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
+    constructor taialpha.op_ref_ref(op : tasmop;_op1,_op2 : preference);
+      begin
+         inherited init;
+         init(op);
+         ops:=2;
+      end;
+
+
+    constructor taialpha.op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
       begin
          inherited init;
          init(op);
          ops:=3;
       end;
 
-    constructor taalpha.op_const_reg_reg(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : tregister);
+    constructor taialpha.op_const_reg_reg(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : tregister);
       begin
          inherited init;
          init(op);
          ops:=3;
       end;
 
-     constructor taalpha.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister;_op3 : preference);
+     constructor taialpha.op_reg_reg_ref(op : tasmop;_op1,_op2 : tregister;_op3 : preference);
       begin
          inherited init;
          init(op);
          ops:=3;
       end;
 
-     constructor taalpha.op_const_ref_reg(op : tasmop;_op1 : longint;_op2 : preference;_op3 : tregister);
+     constructor taialpha.op_const_ref_reg(op : tasmop;_op1 : longint;_op2 : preference;_op3 : tregister);
       begin
          inherited init;
          init(op);
          ops:=3;
       end;
 
-     constructor taalpha.op_const_reg_ref(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : preference);
+     constructor taialpha.op_const_reg_ref(op : tasmop;_op1 : longint;_op2 : tregister;_op3 : preference);
       begin
          inherited init;
          init(op);
@@ -256,7 +268,7 @@ uses
       end;
 
 
-    constructor taalpha.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
+    constructor taialpha.op_cond_sym(op : tasmop;cond:TAsmCond;_op1 : pasmsymbol);
       begin
          inherited init;
          init(op);
@@ -265,7 +277,7 @@ uses
       end;
 
 
-    constructor taalpha.op_sym(op : tasmop;_op1 : pasmsymbol);
+    constructor taialpha.op_sym(op : tasmop;_op1 : pasmsymbol);
       begin
          inherited init;
          init(op);
@@ -273,7 +285,7 @@ uses
       end;
 
 
-    constructor taalpha.op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
+    constructor taialpha.op_sym_ofs(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint);
       begin
          inherited init;
          init(op);
@@ -281,7 +293,7 @@ uses
       end;
 
 
-    constructor taalpha.op_sym_ofs_reg(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
+    constructor taialpha.op_sym_ofs_reg(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : tregister);
       begin
          inherited init;
          init(op);
@@ -289,14 +301,14 @@ uses
       end;
 
 
-    constructor taalpha.op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
+    constructor taialpha.op_sym_ofs_ref(op : tasmop;_op1 : pasmsymbol;_op1ofs:longint;_op2 : preference);
       begin
          inherited init;
          init(op);
          ops:=2;
       end;
 
-    destructor taalpha.done;
+    destructor taialpha.done;
       var
         i : longint;
       begin
@@ -306,7 +318,7 @@ uses
         inherited done;
       end;
 
-    function taalpha.getcopy:plinkedlist_item;
+    function taialpha.getcopy:plinkedlist_item;
       var
         i : longint;
         p : plinkedlist_item;
@@ -314,18 +326,40 @@ uses
         p:=inherited getcopy;
         { make a copy of the references }
         for i:=1 to ops do
-         if (paalpha(p)^.oper[i-1].typ=top_ref) then
+         if (paialpha(p)^.oper[i-1].typ=top_ref) then
           begin
-            new(paalpha(p)^.oper[i-1].ref);
-            paalpha(p)^.oper[i-1].ref^:=oper[i-1].ref^;
+            new(paialpha(p)^.oper[i-1].ref);
+            paialpha(p)^.oper[i-1].ref^:=oper[i-1].ref^;
           end;
         getcopy:=p;
       end;
 
+    Constructor taiframe.init (GP : Tregister; Localsize : Longint; RA : TRegister; L : longint);
+
+    begin
+      Inherited Init;
+      typ:=ait_frame;
+      G:=GP;
+      R:=RA;
+      LS:=LocalSize;
+      LU:=L;
+    end;
+
+    Constructor taient.Init (ProcName : String);
+    
+    begin
+      Inherited init;
+      typ:=ait_ent;
+      Name:=ProcName;
+    end;
+
 end.
 {
   $Log$
-  Revision 1.1  1999-08-03 00:24:01  michael
+  Revision 1.2  1999-08-05 15:50:33  michael
+  * more changes
+
+  Revision 1.1  1999/08/03 00:24:01  michael
   + Initial implementation
 
 }
