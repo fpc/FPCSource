@@ -194,7 +194,7 @@ clean:
         -rm -f $(addsuffix /*$(SHAREDLIBEXT),$(DIRS))
         -rm -f $(addsuffix /*.log,$(DIRS))
         -rm -f $(addsuffix /*.elg,$(DIRS))
-ifdef INUNIX
+ifeq ($(EXEEXT),)
         -rm -f $(wildcard $(patsubst %.pp,%$(EXEEXT),$(wildcard $(addsuffix /t*.pp,$(DIRS)))))
 else
         -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
