@@ -165,9 +165,15 @@ const
     { round if we didn't use all available digits yet and if the }
     { remainder is > 5                                           }
     if (overflow or
-        (stackPtr < maxDigits+1)) and
-       (trunc(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
-      roundStr(temp,spos);
+        (stackPtr < maxDigits+1)) then
+      begin
+        { we didn't use all available digits of the whole part -> make sure }
+        { the fractional part is not used for rounding later                }         
+        currprec := -1;
+        { instead, round based on the next whole digit }
+        if (trunc(intPartStack[stackPtr]-corrVal) > 5.0 - roundCorr) then
+           roundStr(temp,spos);
+        end;
 {$ifdef DEBUG_NASM}
     writeln(stderr,'temp at getintpart exit is = ',temp);
 {$endif DEBUG_NASM}
@@ -442,7 +448,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2003-09-06 17:06:59  florian
+  Revision 1.11  2003-10-26 16:56:44  jonas
+    * fixed web bug 2643
+
+  Revision 1.10  2003/09/06 17:06:59  florian
     * fixed Nan and +Inf string
 
   Revision 1.9  2003/09/06 16:48:35  florian
