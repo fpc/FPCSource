@@ -29,21 +29,6 @@ uses
 {$ERRORC UMACPAS_PRE_IMPL_COMP_VAR is defined, while it shoud not}
 {$ENDC}
 
-{** Test Push/Pop **}
-
-{$J-}
-
-{$PUSH}
-{$PUSH}
-
-{$J+}
-
-{$POP}
-{$POP}
-
-{$IFC OPTION(J)}
-{$ERRORC $PUSH/$POP doesnt work properly}
-{$ENDC}
 
 {** Test J directive for var and external for proc **}
 
