@@ -23,7 +23,7 @@ interface
 {$H+}
 
 uses
-  doscalls,dos;
+ Dos;
 
 { Include platform independent interface part }
 {$i sysutilh.inc}
@@ -36,12 +36,183 @@ implementation
 
 
 {****************************************************************************
-                              File Functions
+                        System (imported) calls
 ****************************************************************************}
+
+(* "uses DosCalls" could not be used here due to type    *)
+(* conflicts, so needed parts had to be redefined here). *)
+
+type
+ TFileStatus = object
+               end;
+ PFileStatus = ^TFileStatus;
+
+ TFileStatus0 = object (TFileStatus)
+                 DateCreation,        {Date of file creation.}
+                 TimeCreation,        {Time of file creation.}
+                 DateLastAccess,      {Date of last access to file.}
+                 TimeLastAccess,      {Time of last access to file.}
+                 DateLastWrite,       {Date of last modification of file.}
+                 TimeLastWrite: word; {Time of last modification of file.}
+                 FileSize,            {Size of file.}
+                 FileAlloc: longint;  {Amount of space the file really
+                                       occupies on disk.}
+                end;
+ PFileStatus0 = ^TFileStatus0;
+
+ TFileStatus3 = object (TFileStatus)
+                 NextEntryOffset: longint; {Offset of next entry}
+                 DateCreation,             {Date of file creation.}
+                 TimeCreation,             {Time of file creation.}
+                 DateLastAccess,           {Date of last access to file.}
+                 TimeLastAccess,           {Time of last access to file.}
+                 DateLastWrite,            {Date of last modification of file.}
+                 TimeLastWrite: word;      {Time of last modification of file.}
+                 FileSize,                 {Size of file.}
+                 FileAlloc: longint;       {Amount of space the file really
+                                            occupies on disk.}
+                 AttrFile: longint;        {Attributes of file.}
+                end;
+ PFileStatus3 = ^TFileStatus3;
+
+ TFileFindBuf3 = object (TFileStatus3)
+                  Name: ShortString;       {Also possible to use as ASCIIZ.
+                                            The byte following the last string
+                                            character is always zero.}
+                 end;
+ PFileFindBuf3 = ^TFileFindBuf3;
+
+ TFSInfo = record
+            case word of
+             1:
+              (File_Sys_ID,
+               Sectors_Per_Cluster,
+               Total_Clusters,
+               Free_Clusters: longint;
+               Bytes_Per_Sector: word);
+             2:                           {For date/time description,
+                                           see file searching realted
+                                           routines.}
+              (Label_Date,                {Date when volume label was created.}
+               Label_Time: word;          {Time when volume label was created.}
+               VolumeLabel: ShortString); {Volume label. Can also be used
+                                           as ASCIIZ, because the byte
+                                           following the last character of
+                                           the string is always zero.}
+           end;
+ PFSInfo = ^TFSInfo;
+
+ TCountryCode=record
+               Country,           {Country to query info about (0=current).}
+               CodePage: longint; {Code page to query info about (0=current).}
+              end;
+ PCountryCode=^TCountryCode;
+
+ TTimeFmt = (Clock12, Clock24);
+
+ TCountryInfo=record
+               Country, CodePage: longint;  {Country and codepage requested.}
+               case byte of
+                0:
+                 (DateFormat: longint;      {1=ddmmyy 2=yymmdd 3=mmddyy}
+                  CurrencyUnit: array [0..4] of char;
+                  ThousandSeparator: char;  {Thousands separator.}
+                  Zero1: byte;              {Always zero.}
+                  DecimalSeparator: char;   {Decimals separator,}
+                  Zero2: byte;
+                  DateSeparator: char;      {Date separator.}
+                  Zero3: byte;
+                  TimeSeparator: char;      {Time separator.}
+                  Zero4: byte;
+                  CurrencyFormat,           {Bit field:
+                                             Bit 0: 0=indicator before value
+                                                    1=indicator after value
+                                             Bit 1: 1=insert space after
+                                                      indicator.
+                                             Bit 2: 1=Ignore bit 0&1, replace
+                                                      decimal separator with
+                                                      indicator.}
+                  DecimalPlace: byte;       {Number of decimal places used in
+                                             currency indication.}
+                  TimeFormat: TTimeFmt;     {12/24 hour.}
+                  Reserve1: array [0..1] of word;
+                  DataSeparator: char;      {Data list separator}
+                  Zero5: byte;
+                  Reserve2: array [0..4] of word);
+                1:
+                 (fsDateFmt: longint;       {1=ddmmyy 2=yymmdd 3=mmddyy}
+                  szCurrency: array [0..4] of char;
+                                            {null terminated currency symbol}
+                  szThousandsSeparator: array [0..1] of char;
+                                            {Thousands separator + #0}
+                  szDecimal: array [0..1] of char;
+                                            {Decimals separator + #0}
+                  szDateSeparator: array [0..1] of char;
+                                            {Date separator + #0}
+                  szTimeSeparator: array [0..1] of char;
+                                            {Time separator + #0}
+                  fsCurrencyFmt,            {Bit field:
+                                             Bit 0: 0=indicator before value
+                                                    1=indicator after value
+                                             Bit 1: 1=insert space after
+                                                      indicator.
+                                             Bit 2: 1=Ignore bit 0&1, replace
+                                                      decimal separator with
+                                                      indicator}
+                  cDecimalPlace: byte;      {Number of decimal places used in
+                                             currency indication}
+                  fsTimeFmt: byte;          {0=12,1=24 hours}
+                  abReserved1: array [0..1] of word;
+                  szDataSeparator: array [0..1] of char;
+                                            {Data list separator + #0}
+                  abReserved2: array [0..4] of word);
+              end;
+ PCountryInfo=^TCountryInfo;
+
+const
+ ilStandard      = 1;
+ ilQueryEAsize   = 2;
+ ilQueryEAs      = 3;
+ ilQueryFullName = 5;
 
 {This is the correct way to call external assembler procedures.}
 procedure syscall;external name '___SYSCALL';
 
+function DosSetFileInfo (Handle, InfoLevel: longint; AFileStatus: PFileStatus;
+        FileStatusLen: longint): longint; cdecl; external 'DOSCALLS' index 218;
+
+function DosQueryFSInfo (DiskNum, InfoLevel: longint; var Buffer: TFSInfo;
+               BufLen: longint): longint; cdecl; external 'DOSCALLS' index 278;
+
+function DosQueryFileInfo (Handle, InfoLevel: longint;
+           AFileStatus: PFileStatus; FileStatusLen: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 279;
+
+function DosScanEnv (Name: PChar; var Value: PChar): longint; cdecl;
+                                                 external 'DOSCALLS' index 227;
+
+function DosFindFirst (FileMask: PChar; var Handle: longint; Attrib: longint;
+                       AFileStatus: PFileStatus; FileStatusLen: longint;
+                       var Count: longint; InfoLevel: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 264;
+function DosFindNext (Handle: longint; AFileStatus: PFileStatus;
+                FileStatusLen: longint; var Count: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 265;
+
+function DosFindClose (Handle: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 263;
+
+function DosQueryCtryInfo (Size: longint; var Country: TCountryCode;
+           var Res: TCountryInfo; var ActualSize: longint): longint; cdecl;
+                                                        external 'NLS' index 5;
+
+function DosMapCase (Size: longint; var Country: TCountryCode;
+                       AString: PChar): longint; cdecl; external 'NLS' index 7;
+
+
+{****************************************************************************
+                              File Functions
+****************************************************************************}
 
 const
  ofRead        = $0000;     {Open for reading}
@@ -245,7 +416,7 @@ begin
             New (FStat);
             Rslt.FindHandle := $FFFFFFFF;
             Count := 1;
-            Err := DosFindFirst (Path, Rslt.FindHandle, Attr, FStat,
+            Err := DosFindFirst (PChar (Path), Rslt.FindHandle, Attr, FStat,
                                            SizeOf (FStat^), Count, ilStandard);
             if (Err = 0) and (Count = 0) then Err := 18;
             FindFirst := -Err;
@@ -779,7 +950,10 @@ end.
 
 {
   $Log$
-  Revision 1.13  2001-10-25 21:23:49  peter
+  Revision 1.14  2001-12-16 19:08:20  hajny
+    * uses DosCalls replaced with direct declarations
+
+  Revision 1.13  2001/10/25 21:23:49  peter
     * added 64bit fileseek
 
   Revision 1.12  2001/06/03 15:18:01  peter
