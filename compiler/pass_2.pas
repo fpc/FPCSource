@@ -666,7 +666,7 @@ implementation
                                        regsize:=S_L;
                                     end
                                   else
-                                   if (regvars[i]^.vartype.def^.deftype=orddef) and
+                                   if (regvars[i]^.vartype.def^.deftype in [orddef,enumdef]) and
                                       (porddef(regvars[i]^.vartype.def)^.size=1) then
                                     begin
 {$ifdef i386}
@@ -675,7 +675,7 @@ implementation
                                        regsize:=S_B;
                                     end
                                   else
-                                   if (regvars[i]^.vartype.def^.deftype=orddef) and
+                                   if (regvars[i]^.vartype.def^.deftype in [orddef,enumdef]) and
                                       (porddef(regvars[i]^.vartype.def)^.size=2) then
                                     begin
 {$ifdef i386}
@@ -843,7 +843,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2000-03-26 10:50:04  florian
+  Revision 1.62  2000-04-02 12:11:38  florian
+    * enumerations with size 1 or 2 weren't handled corretly if they were register
+      variables: in fact they got 32 bit register assigned; fixed
+
+  Revision 1.61  2000/03/26 10:50:04  florian
     * improved allocation rules for integer register variables
 
   Revision 1.60  2000/03/19 08:17:36  peter
