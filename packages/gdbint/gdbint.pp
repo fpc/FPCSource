@@ -2290,7 +2290,11 @@ procedure tgdbinterface.EndSession(code:longint);
 begin
   Debuggee_started:=false;
 {$ifdef Go32v2}
+{$ifdef GDB_USES_PTID}
+  inferior_ptid.pid:=0;
+{$else}
   inferior_pid:=0;
+{$endif}
 {$endif}
   DoEndSession(code);
 end;
@@ -2512,7 +2516,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2002-01-24 09:14:39  pierre
+  Revision 1.12  2002-01-24 12:31:51  pierre
+   * fix go32v2 compilation for gdb 5.1
+
+  Revision 1.11  2002/01/24 09:14:39  pierre
    * adapt to GDB 5.1
 
   Revision 1.10  2002/01/07 10:31:57  pierre
