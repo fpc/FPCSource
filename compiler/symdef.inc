@@ -2831,7 +2831,11 @@
         end;
 
       begin
-         proctypesinfo:=0;
+
+         if (ppropertysym(sym)^.options and ppo_indexed)<>0 then
+           proctypesinfo:=$40
+         else
+           proctypesinfo:=0;
          if (sym^.typ=propertysym) and ((sym^.properties and sp_published)<>0) then
            begin
               rttilist^.concat(new(pai_const,init_symbol(strpnew(lab2str(ppropertysym(sym)^.proptype^.get_rtti_label)))));
@@ -2965,7 +2969,11 @@
 
 {
   $Log$
-  Revision 1.44  1998-09-19 15:23:58  florian
+  Revision 1.45  1998-09-20 08:31:29  florian
+    + bit 6 of tpropinfo.propprocs is set, if the property contains a
+      constant index
+
+  Revision 1.44  1998/09/19 15:23:58  florian
     * rtti for ordtypes corrected
 
   Revision 1.43  1998/09/18 17:12:40  florian
