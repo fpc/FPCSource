@@ -116,6 +116,8 @@
 %
 \newenvironment{functionl}[2]{\subsection{#1}\index{#1}\label{fu:#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{procedurel}[2]{\subsection{#1}\index{#1}\label{pro:#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{method}[2]{\subsection{#1}\index{#1}\label{#2}\begin{FPCList}}{\end{FPCList}}
+\newenvironment{property}[2]{\subsection{#1}\index{#1}\label{#2}\begin{FPCList}}{\end{FPCList}}
 \newenvironment{function}[1]{\begin{functionl}{#1}{#1}}{\end{functionl}}
 \newenvironment{procedure}[1]{\begin{procedurel}{#1}{#1}}{\end{procedurel}}
 \newenvironment{typel}[2]{\subsection{#1}\index{#1}\label{ty:#2}\begin{FPCList}}{\end{FPCList}}
@@ -127,6 +129,9 @@
 \newcommand{\Declaration}{\item[Declaration]\ttfamily}
 \newcommand{\Description}{\item[Description]\rmfamily}
 \newcommand{\Errors}{\item[Errors]\rmfamily}
+\newcommand{\Visibility}{\item[Visibility]\ttfamily}
+\newcommand{\Synopsis}{\item[Synopsis]\rmfamily}
+\newcommand{\Arguments}{\item[Arguments]\rmfamily}
 \newcommand{\SeeAlso}{\item[See also]\rmfamily}
 %
 % Ref without labels

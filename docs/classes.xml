@@ -3286,14 +3286,12 @@ If one of the strings contains spaces, comma's or quotes it will be enclosed by
 double quotes. Any double quotes in a string will be doubled. For instance
 the following strings:
 </p>
-<!-- ***PRE*** -->
-<code>
+<pre>
 Comma,string
 Quote"string
 Space string
 NormalSttring
-</code>
-<!-- ***PRE*** -->
+</pre>
 <p>
 is converted to
 </p>
@@ -3308,24 +3306,20 @@ separators, unless the string as a whole is contained in double quotes.
 Spaces that occur next to a delimiter will be ignored.
 The following string:
 </p>
-<!-- ***PRE*** -->
-<code>
+<pre>
 "Comma,string" , "Quote""String",Space string,, NormalString
-</code>
-<!-- ***PRE*** -->
+</pre>
 <p>
 Will be converted to
 </p>
-<!-- ***PRE*** -->
-<code>
+<pre>
 Comma,String
 Quote"String
 Space
 String
 
 NormalString
-</code>
-<!-- ***PRE*** -->
+</pre>
 </descr>
 <seealso>
 <link id="TStrings.Text"/>
@@ -4810,7 +4804,7 @@ file, and thus the valid range depends on the value of <var>Origin</var>.
 </descr>
 <errors>
 On error, -1 is returned, and the position is not changed.
-</error>
+</errors>
 <seealso>
 <link id="TStream.Position"/>
 <link id="TStream.Size"/>
@@ -4850,13 +4844,20 @@ the memory area where the stream data is kept.
 The only thing which <var>TCustomMemoryStream</var> does not do is obtain 
 memory to store data when writing data  or the writing of data. This
 functionality is implemented in descendent streams such as <link
-id='TMemoryData'/>. The reason for this approach is that this way it is
+id='TMemoryStream'/>. The reason for this approach is that this way it is
 possible to create e.g. read-only descendents of
 <var>TCustomMemoryStream</var> that point to a fixed part in memory which
 can be read from, but not written to. 
+</p>
+<remark>
+Since <var>TCustomMemoryStream</var> is an abstract class, do not create 
+instances of <var>TMemoryStream</var> directly. Instead,
+create instances of descendents such as <link id="TMemoryStream"/>. 
+</remark>
 </descr>
 <seealso>
 <link id="TMemoryStream"/>
+<link id="TStream"/>
 </seealso>
 </element>
 
@@ -4873,6 +4874,8 @@ the memory the stream should read from or write to.
 </p>
 </descr>
 <seealso>
+<link id="TCustomMemoryStream.Memory"/>
+<link id="TStream.Size"/>
 </seealso>
 </element>
 
@@ -4920,24 +4923,86 @@ an exception at the next read or write operation.
 <element name="TCustomMemoryStream.SaveToStream">  <!-- Procedure -->
 <short>Writes the contents of the memory stream to another stream.</short>
 <descr>
+<p>
+<var>SaveToStream</var> writes the contents of the memory stream to  
+<var>Stream</var>. The content of <var>Stream</var> is not cleared first.
+The current position of the memory stream is not changed by this action.
+</p>
+<remark>
+<p>
+This method will work much faster than the use of the 
+<link id="TStream.CopyFrom"/> method:
+</p>
+<code>
+  Seek(0,soFromBeginning);
+  Stream.CopyFrom(Self,Size);
+</code>
+<p>
+because the <var>CopyFrom</var> method copies the contents in blocks, while
+<var>SaveToStream</var> writes the contents of the memory as one big block.
+</p>
+</remark>
 </descr>
+<errors>
+If an error occurs when writing to <var>Stream</var> an <link
+id="EStreamError"/> exception will be raised.
+</errors>
 <seealso>
+<link id="TCustomMemoryStream.SaveToFile"/>
+<link id="TStream.CopyFrom"/>
 </seealso>
 </element>
 
 <element name="TCustomMemoryStream.SaveToFile">  <!-- Procedure -->
-<short></short>
+<short>Writes the contents of the stream to a file.</short>
 <descr>
+<p>
+<var>SaveToFile</var> writes the contents of the stream to a file with name
+<var>FileName</var>.
+It simply creates a filestream and writes the contents of the memorystream
+to this file stream using <link id="TCustomMemoryStream.SaveToStream"/>.
+</p>
+<remark>
+<p>
+This method will work much faster than the use of the <link
+id="TStream.CopyFrom"/> method:
+</p>
+<code>
+  Stream:=TFileStream.Create(fmCreate,FileName);
+  Seek(0,soFromBeginning);
+  Stream.CopyFrom(Self,Size);
+</code>
+<p>
+because the <var>CopyFrom</var> method copies the contents in blocks, while
+<var>SaveToFile</var> writes the contents of the memory as one big block.
+</p>
+</remark>
 </descr>
+<errors>
+If an error occurs when creating or writing to the file, an <link
+id="EStreamError"/> exception may occur.
+</errors>
 <seealso>
+<link id="TCustomMemoryStream.SaveToStream"/>
+<link id="TFileStream"/>
+<link id="TStream.CopyFrom"/>
 </seealso>
 </element>
 
 <element name="TCustomMemoryStream.Memory">  <!-- Property -->
-<short></short>
+<short>Pointer to the data kept in the memory stream.</short>
 <descr>
+<p>
+<var>Memory</var> points to the memory area where stream keeps it's data.
+The property is read-only, so the pointer cannot be set this way.
+</p>
+<remark>
+Do not write to the memory pointed to by <var>Memory</var>, since the memory
+content may be read-only, and thus writing to it may cause errors.
+</remark>
 </descr>
 <seealso>
+<link id="TStream.Size"/>
 </seealso>
 </element>
 
@@ -4950,89 +5015,187 @@ an exception at the next read or write operation.
 <element name="TMemoryStream">  <!-- Class -->
 <short>Standard implementation of a stream that stores its data in memory</short>
 <descr>
+<p>
+<var>TMemoryStream</var> is a <link id="TStream"/> descendent that stores
+it's data in memory. It descends directly from <link id="TCustomMemoryStream"/>
+and implements the necessary to allocate and de-allocate memory diretly from
+the heap. It implements the <link id="TMemoryStream.Write">Write</link> method
+which is missing in <var>TCustomMemoryStream</var>.
+</p>
+<p>
+<var>TMemoryStream</var> also introduces methods to load the contents of
+another stream or a file into the memory stream.
+</p>
+<p>
+It is not necessary to do any memory management manually, as the stream 
+will allocate or de-allocate memory as needed. When the stream is freed, all
+allocated memory will be freed as well.
+</p>
 </descr>
 <seealso>
-</seealso>
-</element>
-
-<element name="TMemoryStream.FCapacity">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TMemoryStream.SetCapacity">  <!-- Procedure -->
-<short></short>
-<descr>
-</descr>
-<seealso>
+<link id="TCustomMemoryStream"/>
+<link id="TStream"/>
 </seealso>
 </element>
 
 <element name="TMemoryStream.Realloc">  <!-- Function -->
-<short></short>
+<short>Sets the new capacity for the memory stream</short>
 <descr>
+<p>
+<var>SetCapacity</var> sets the capacity of the memory stream, i.e.
+does the actual allocation or de-allocation of memory for the stream. It
+allocates at least <var>NewCapacity</var> bytes on the heap, moves the 
+current contents of the stream to this location (as much as fits in) and 
+returns the new memory location. 
+Extra allocated memory is not initialized, i.e. may contain garbage.
+</p>
+<p>
+Memory is allocated in blocks of 4 Kb; this can be changed by overriding 
+the method.
+</p>
 </descr>
 <seealso>
+<link id="TMemoryStream.Capacity"/>
 </seealso>
 </element>
 
 <element name="TMemoryStream.Capacity">  <!-- Property -->
-<short></short>
+<short>Current capacity of the stream.</short>
 <descr>
+<p>
+<var>Capacity</var> is the current capacity of the stream, this is the 
+current size of the memory allocated to the stream. This is not necessarily
+equal to the size of the stream, but will always be larger than or equal to
+the size of the stream. When writing to the stream, the <link
+id="TMemoryStream.Write"/> sets the capacity to the needed value.
+</p>
+<p>
+If a lot of write operations will occur, performance may be improved by
+setting the capacity to a large value, so less reallocations of memory will
+occur while writing to the stream.
+</p>
 </descr>
 <seealso>
+<link id="TMemoryStream.ReAlloc"/>
 </seealso>
 </element>
 
 <element name="TMemoryStream.Destroy">  <!-- Destructor -->
-<short></short>
+<short>Frees any allocated memory and destroys the memory stream.</short>
 <descr>
+<var>Free</var> clears the memory stream, thus in effect freeing any memory 
+allocated for it, and then frees the memory stream.
 </descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TMemoryStream.Clear">  <!-- Procedure -->
-<short></short>
+<short>Zeroes the position, capacity and size of the stream.</short>
 <descr>
+<var>Clear</var> sets the position and size to 0, and sets the capacity of
+the stream to 0, thus freeing all memory allocated for the stream.
 </descr>
 <seealso>
+<link id="TStream.Size"/>
+<link id="TStream.Position"/>
+<link id="TCustomMemoryStream.Memory"/>
 </seealso>
 </element>
 
 <element name="TMemoryStream.LoadFromStream">  <!-- Procedure -->
-<short></short>
+<short>Loads the contents of a stream into memory.</short>
 <descr>
+<p>
+<var>LoadFromStream</var> loads the contents of <var>Stream</var> into
+the memorybuffer of the stream. Any previous contents of the memory 
+stream are overwritten. Memory is allocated as needed.
+</p>
+<remark>
+<p>
+The <var>LoadFromStream</var> uses the <link id="TStream.Size">Size</link>
+property of <var>Stream</var> to determine how much memory must be
+allocated. Some streams do not allow the stream size to be determined, so
+care must be taken when using this method.
+</p>
+<p>
+This method will work much faster than the use of the <link
+id="TStream.CopyFrom"/> method:
+</p>
+<code>
+  Seek(0,soFromBeginning);
+  CopyFrom(Stream,Stream.Size);
+</code>
+<p>
+because the <var>CopyFrom</var> method copies the contents in blocks, while
+<var>LoadFromStream</var> reads the contents of the stream as one big block.
+</p>
+</remark>
 </descr>
+<errors>
+If an error occurs when reading from the stream, an <link
+id="EStreamError"/> may occur.
+</errors>
 <seealso>
+<link id="TStream.CopyFrom"/>
+<link id="TMemoryStream.LoadFromFile"/>
 </seealso>
 </element>
 
 <element name="TMemoryStream.LoadFromFile">  <!-- Procedure -->
-<short></short>
+<short>Loads the contents of a file into memory.</short>
 <descr>
+<p>
+<var>LoadFromFile</var> loads the contents of the file with name
+<var>FileName</var> into the memory stream. The current contents of the
+memory stream is replaced by the contents of the file. Memory is allocated
+as needed.
+</p>
+<p>
+The <var>LoadFromFile</var> method simply creates a filestream and then
+calls the <link id="TMemoryStream.LoadFromStream"/> method.
+</p>
 </descr>
+If an error occurs when creating or reading from the stream, an <link
+id="EStreamError"/> may occur.
 <seealso>
+<link id="TMemoryStream.LoadFromStream"/>
 </seealso>
 </element>
 
 <element name="TMemoryStream.SetSize">  <!-- Procedure -->
-<short></short>
+<short>Sets the size for the memory stream.</short>
 <descr>
+<var>SetSize</var> sets the size of the memory stream to <var>NewSize</var>.
+This will set the capacity of the stream to <var>NewSize</var> and correct
+the current position in the stream when needed.
 </descr>
 <seealso>
+<link id="TStream.Position"/>
+<link id="TStream.Size"/>
 </seealso>
 </element>
 
 <element name="TMemoryStream.Write">  <!-- Function -->
-<short></short>
+<short>Writes data to the stream's memory.</short>
 <descr>
+<p>
+<var>Write</var> writes <var>Count</var> bytes from <var>Buffer</var>
+to the stream's memory, starting at the current position in the stream.
+If more memory is needed than currently allocated, more memory will be
+allocated. Any contents in the memory stream at the current position will be
+overwritten. The function returns the number of bytes actually written
+(which should under normal circumstances always equal <var>Count</var>).
+</p>
+<p>
+This method overrides the abstract <link id="TStream.Write"/> method.
+</p>
 </descr>
+<errors>
+If no more memory could be allocated, then an exception will be raised.
+</errors>
 <seealso>
+<link id="TCustomMemoryStream.Read"/>
 </seealso>
+
 </element>
 
 <!--
@@ -5044,62 +5207,95 @@ an exception at the next read or write operation.
 <element name="TStringStream">  <!-- Class -->
 <short>Stream that stores its data in a string.</short>
 <descr>
+<p>
+<var>TStringStream</var> stores its data in an ansistring. The contents of
+this string is available as the 
+<link id="TStringStream.DataString">DataString</link> property. It also
+introduces some methods to read or write parts of the stringstream's data
+as a string.
+</p>
+<p>The main purpose of a <var>TStringSTream</var> is to be able to treat a
+string as a stream from which can be read.
+</p>
 </descr>
 <seealso>
-</seealso>
-</element>
-
-<element name="TStringStream.FDataString">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TStringStream.FPosition">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
+<link id="TStream"/>
+<link id="TStringStream.DataString"/>
+<link id="TStringStream.ReadString"/>
+<link id="TStringStream.WriteString"/>
 </seealso>
 </element>
 
 <element name="TStringStream.SetSize">  <!-- Procedure -->
-<short></short>
+<short>Sets the size of the stream.</short>
 <descr>
+<var>SetSize</var> sets the size of the stream to <var>newsize</var>. 
+It does this by setting the size of the ansisting in which the stream 
+is stored. <var>NewSize</var> can have any value greater than or equal to
+zero.
 </descr>
+<errors>
+In case there is not enough memory, an exception may be raised.
+</errors>
 <seealso>
+<link id="TStream.Size"/>
 </seealso>
 </element>
 
 <element name="TStringStream.Create">  <!-- Constructor -->
-<short></short>
+<short>Creates a new stringstream and sets its initial content.</short>
 <descr>
+<var>Create</var> creates a new <var>TStringStream</var> instance and
+sets its initial content to <var>Astring</var>. The position is still 0 but
+the size of the stream will equal the length of the string.
 </descr>
 <seealso>
+<link id="TStringStream.DataString"/>
 </seealso>
 </element>
 
 <element name="TStringStream.Read">  <!-- Function -->
-<short></short>
+<short>Reads from the stream.</short>
 <descr>
+<var>Read</var> implements the abstract <link id="TStream.Read">Read</link>
+from <link id="TStream"/>. It tries to read <var>Count</var> bytes into
+<var>Buffer</var>. It returns the number of bytes actually read. The
+position of the stream is advanced with the number of bytes actually read;
+When the reading has reached the end of the <link
+id="TStringSTream.DataString">DataString</link>, then the reading stops,
+i.e. it is not possible to read beyond the end of the datastring.
 </descr>
 <seealso>
+<link id="TStream.Read"/>
+<link id="TStringStream.Write"/>
+<link id="TStringStream.DataString"/>
 </seealso>
 </element>
 
 <element name="TStringStream.ReadString">  <!-- Function -->
-<short></short>
+<short>Reads a string of length <var>Count</var></short>
 <descr>
+<p>
+<var>ReadString<var> reads <var>Count</var> bytes from the stream and
+returns the read bytes as a string. If less than <var>Count</var> bytes 
+were available, the string has as many characters as bytes could be read.
+</p>
+<p>The <var>ReadString</var> method is a wrapper around the <link
+id="TStringStream.Read">Read</link> method. It does not do the same stringas
+the <link id="TStream.ReadAnsiString"/> method, which first reads a length
+integer to determine the length of the string to be read.
 </descr>
 <seealso>
+<link id="TStringStream.Read"/>
+<link id="TStream.ReadAnsiString"/>
 </seealso>
 </element>
 
 <element name="TStringStream.Seek">  <!-- Function -->
-<short></short>
+<short>Sets the position in the stream.</short>
 <descr>
+<var>Seek</var> implements the abstract <link id="TStream.Seek">Seek</link>
+method.
 </descr>
 <seealso>
 </seealso>
@@ -5137,22 +5333,6 @@ an exception at the next read or write operation.
 
 <element name="TResourceStream">  <!-- Class -->
 <short>Stream that reads its data from a resource object.</short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TResourceStream.HResInfo">  <!-- Variable -->
-<short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
-</element>
-
-<element name="TResourceStream.HGlobal">  <!-- Variable -->
-<short></short>
 <descr>
 </descr>
 <seealso>
@@ -5209,122 +5389,62 @@ an exception at the next read or write operation.
 
 <element name="TValueType.vaNull">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaList">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaInt8">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaInt16">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaInt32">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaExtended">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaString">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaIdent">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaFalse">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaTrue">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaBinary">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaSet">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaLString">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaNil">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaCollection">  <!-- Enumeration value -->
 <short></short>
-<descr>
-</descr>
-<seealso>
-</seealso>
 </element>
 
 <element name="TValueType.vaSingle">  <!-- Enumeration value -->
