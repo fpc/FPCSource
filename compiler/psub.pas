@@ -1135,6 +1135,16 @@ implementation
                tcgprocinfo(current_procinfo.parent).nestedprocs.insert(current_procinfo)
              else
                begin
+                 { We can't support inlining for procedures that have nested
+                   procedures because the nested procedures use a fixed offset
+                   for accessing locals in the parent procedure (PFV) }
+                 if (current_procinfo.procdef.proccalloption=pocall_inline) and
+                    (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
+                   begin
+                     Message1(parser_w_not_supported_for_inline,'nested procedures');
+                     Message(parser_w_inlining_disabled);
+                     current_procinfo.procdef.proccalloption:=pocall_default;
+                   end;
                  if status.errorcount=0 then
                    do_generate_code(tcgprocinfo(current_procinfo));
                end;
@@ -1196,11 +1206,13 @@ implementation
                 var_dec;
               _THREADVAR:
                 threadvar_dec;
-              _CONSTRUCTOR,_DESTRUCTOR,
-              _FUNCTION,_PROCEDURE,_OPERATOR,_CLASS:
-                begin
-                   read_proc;
-                end;
+              _CONSTRUCTOR,
+              _DESTRUCTOR,
+              _FUNCTION,
+              _PROCEDURE,
+              _OPERATOR,
+              _CLASS:
+                read_proc;
               _RESOURCESTRING:
                 resourcestring_dec;
               _EXPORTS:
@@ -1221,13 +1233,15 @@ implementation
                         consume(_BEGIN);
                      end;
                 end
-              else break;
+              else
+                break;
            end;
          until false;
+
          { check for incomplete class definitions, this is only required
            for fpc modes }
          if (m_fpc in aktmodeswitches) then
-          symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class,nil);
+           symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}check_forward_class,nil);
       end;
 
 
@@ -1263,7 +1277,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.164  2003-10-19 01:34:30  florian
+  Revision 1.165  2003-10-20 19:28:51  peter
+    * disable inlining when nested procedures are found
+
+  Revision 1.164  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 
