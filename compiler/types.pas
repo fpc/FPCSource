@@ -1415,18 +1415,26 @@ implementation
              begin
                if (def_from.deftype=enumdef) then
                 begin
-                  hd1:=def_from;
-                  while assigned(tenumdef(hd1).basedef) do
-                   hd1:=tenumdef(hd1).basedef;
-                  hd2:=def_to;
-                  while assigned(tenumdef(hd2).basedef) do
-                    hd2:=tenumdef(hd2).basedef;
-                  if (hd1=hd2) then
-                    begin
-                       b:=1;
-                       { because of packenum they can have different sizes! (JM) }
-                       doconv:=tc_int_2_int;
-                    end;
+                  if explicit then
+                   begin
+                     b:=1;
+                     doconv:=tc_int_2_int;
+                   end
+                  else
+                   begin
+                     hd1:=def_from;
+                     while assigned(tenumdef(hd1).basedef) do
+                      hd1:=tenumdef(hd1).basedef;
+                     hd2:=def_to;
+                     while assigned(tenumdef(hd2).basedef) do
+                      hd2:=tenumdef(hd2).basedef;
+                     if (hd1=hd2) then
+                      begin
+                        b:=1;
+                        { because of packenum they can have different sizes! (JM) }
+                        doconv:=tc_int_2_int;
+                      end;
+                   end;
                 end;
              end;
 
@@ -1800,7 +1808,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2001-10-22 15:13:49  jonas
+  Revision 1.52  2001-10-22 21:21:09  peter
+    * allow enum(enum)
+
+  Revision 1.51  2001/10/22 15:13:49  jonas
     * allow typeconversion of open array-of-char to string
 
   Revision 1.50  2001/10/20 19:28:39  peter
