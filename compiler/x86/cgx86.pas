@@ -403,7 +403,7 @@ unit cgx86;
               else
                 pushsize:=OS_32;
             {$ifdef newra}
-              tmpreg:=rg.getregisterint(list,pushsize)
+              tmpreg:=rg.getregisterint(list,pushsize);
             {$else}
               tmpreg:=get_scratch_reg_int(list,pushsize);
             {$endif}
@@ -1186,10 +1186,10 @@ unit cgx86;
                 end;
               dec(len,copysize);
               r:=rg.getregisterint(list,cgsize);
-              a_load_ref_reg(list,cgsize,srcref,r);
+              a_load_ref_reg(list,cgsize,cgsize,srcref,r);
               if (len=0) and delsource then
                 reference_release(list,source);
-              a_load_reg_ref(list,cgsize,r,dstref);
+              a_load_reg_ref(list,cgsize,cgsize,r,dstref);
               inc(srcref.offset,copysize);
               inc(dstref.offset,copysize);
               rg.ungetregisterint(list,r);
@@ -1201,7 +1201,7 @@ unit cgx86;
           a_loadaddr_ref_reg(list,dest,destreg);
           srcreg:=rg.getexplicitregisterint(list,NR_ESI);
           if loadref then
-            a_load_ref_reg(list,OS_ADDR,source,srcreg)
+            a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,srcreg)
           else
             begin
               a_loadaddr_ref_reg(list,source,srcreg);
@@ -1932,7 +1932,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.53  2003-06-07 10:24:10  peter
+  Revision 1.54  2003-06-12 18:31:18  peter
+    * fix newra cycle for i386
+
+  Revision 1.53  2003/06/07 10:24:10  peter
     * fixed copyvaluepara for left-to-right pushing
 
   Revision 1.52  2003/06/07 10:06:55  jonas

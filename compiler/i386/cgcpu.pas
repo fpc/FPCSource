@@ -116,7 +116,7 @@ unit cgcpu;
           OP_NEG :
             begin
               if (regsrc.reglo.number<>regdst.reglo.number) then
-                a_load64_reg_reg(list,regsrc,regdst);
+                a_load64_reg_reg(list,regsrc,regdst{$ifdef newra},false{$endif});
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NEG,S_L,regdst.reglo));
               list.concat(taicpu.op_const_reg(A_SBB,S_L,aword(-1),regdst.reghi));
@@ -125,7 +125,7 @@ unit cgcpu;
           OP_NOT :
             begin
               if (regsrc.reglo.number<>regdst.reglo.number) then
-                a_load64_reg_reg(list,regsrc,regdst);
+                a_load64_reg_reg(list,regsrc,regdst{$ifdef newra},false{$endif});
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reghi));
               list.concat(taicpu.op_reg(A_NOT,S_L,regdst.reglo));
               exit;
@@ -193,7 +193,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2003-06-03 21:11:09  peter
+  Revision 1.36  2003-06-12 18:31:18  peter
+    * fix newra cycle for i386
+
+  Revision 1.35  2003/06/03 21:11:09  peter
     * cg.a_load_* get a from and to size specifier
     * makeregsize only accepts newregister
     * i386 uses generic tcgnotnode,tcgunaryminus
