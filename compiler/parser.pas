@@ -461,20 +461,23 @@ implementation
          it's the default to release the trees }
          codegen_donemodule;
 
-         { free ppu }
-         if assigned(tppumodule(current_module).ppufile) then
+         if assigned(current_module) then
           begin
-            tppumodule(current_module).ppufile.free;
-            tppumodule(current_module).ppufile:=nil;
-          end;
+            { free ppu }
+            if assigned(tppumodule(current_module).ppufile) then
+             begin
+               tppumodule(current_module).ppufile.free;
+               tppumodule(current_module).ppufile:=nil;
+             end;
 
-         { free scanner }
-         if assigned(current_module.scanner) then
-          begin
-            if current_scanner=tscannerfile(current_module.scanner) then
-              current_scanner:=nil;
-            tscannerfile(current_module.scanner).free;
-            current_module.scanner:=nil;
+            { free scanner }
+            if assigned(current_module.scanner) then
+             begin
+               if current_scanner=tscannerfile(current_module.scanner) then
+                 current_scanner:=nil;
+               tscannerfile(current_module.scanner).free;
+               current_module.scanner:=nil;
+             end;
           end;
 
          if (compile_level>1) then
@@ -540,53 +543,55 @@ implementation
            end
          else
            begin
-              parser_current_file:='';
-           end;
-
-       { Shut down things when the last file is compiled }
-         if (compile_level=1) then
-          begin
-          { Close script }
-            if (not AsmRes.Empty) then
-             begin
-               Message1(exec_i_closing_script,AsmRes.Fn);
-               AsmRes.WriteToDisk;
-             end;
+             parser_current_file:='';
+             { Shut down things when the last file is compiled }
+             if (compile_level=1) then
+              begin
+                { Close script }
+                if (not AsmRes.Empty) then
+                 begin
+                   Message1(exec_i_closing_script,AsmRes.Fn);
+                   AsmRes.WriteToDisk;
+                 end;
 
 {$ifdef USEEXCEPT}
-            if not longjump_used then
+                if not longjump_used then
 {$endif USEEXCEPT}
-            { do not create browsers on errors !! }
-            if status.errorcount=0 then
-              begin
-{$ifdef BrowserLog}
-              { Write Browser Log }
-              if (cs_browser_log in aktglobalswitches) and
-                 (cs_browser in aktmoduleswitches) then
                  begin
-                 if browserlog.elements_to_list.empty then
-                   begin
-                   Message1(parser_i_writing_browser_log,browserlog.Fname);
-                   WriteBrowserLog;
-                   end
-                 else
-                  browserlog.list_elements;
-                 end;
+                   { do not create browsers on errors !! }
+                   if status.errorcount=0 then
+                    begin
+{$ifdef BrowserLog}
+                      { Write Browser Log }
+                      if (cs_browser_log in aktglobalswitches) and
+                         (cs_browser in aktmoduleswitches) then
+                       begin
+                         if browserlog.elements_to_list.empty then
+                          begin
+                            Message1(parser_i_writing_browser_log,browserlog.Fname);
+                            WriteBrowserLog;
+                          end
+                         else
+                          browserlog.list_elements;
+                       end;
 {$endif BrowserLog}
 
-                 { Write Browser Collections }
-                 do_extractsymbolinfo{$ifdef FPC}(){$endif};
+                      { Write Browser Collections }
+                      do_extractsymbolinfo{$ifdef FPC}(){$endif};
+                    end;
+                 end;
+
+{$ifdef dummy}
+                if current_module.in_second_compile then
+                 begin
+                   current_module.in_second_compile:=false;
+                   current_module.in_compile:=true;
+                 end
+                else
+                 current_module.in_compile:=false;
+{$endif dummy}
               end;
-
-            if current_module.in_second_compile then
-              begin
-                current_module.in_second_compile:=false;
-                current_module.in_compile:=true;
-              end
-            else
-              current_module.in_compile:=false;
-
-          end;
+           end;
 
          dec(compile_level);
          compiled_module:=old_compiled_module;
@@ -599,7 +604,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  2002-08-18 19:58:28  peter
+  Revision 1.44  2002-09-05 19:27:06  peter
+    * fixed crash when current_module becomes nil
+
+  Revision 1.43  2002/08/18 19:58:28  peter
     * more current_scanner fixes
 
   Revision 1.42  2002/08/16 15:31:08  peter

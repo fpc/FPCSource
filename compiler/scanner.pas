@@ -936,7 +936,8 @@ implementation
 
     destructor tscannerfile.destroy;
       begin
-        if (not current_module.in_second_load) and
+        if assigned(current_module) and
+           (not current_module.in_second_load) and
            (status.errorcount=0) then
           checkpreprocstack
         else
@@ -2780,7 +2781,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.45  2002-09-05 14:17:27  pierre
+  Revision 1.46  2002-09-05 19:27:05  peter
+    * fixed crash when current_module becomes nil
+
+  Revision 1.45  2002/09/05 14:17:27  pierre
    * fix for bug 2004 merged
 
   Revision 1.44  2002/08/12 16:46:04  peter
