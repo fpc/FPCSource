@@ -2143,6 +2143,15 @@ MCI_OVLY_LOAD_PARMS = MCI_OVLY_LOAD_PARMSA;
 PMCI_OVLY_LOAD_PARMS = PMCI_OVLY_LOAD_PARMSA;
 LPMCI_OVLY_LOAD_PARMS = LPMCI_OVLY_LOAD_PARMSA;
 {$endif}
+
+Type // Delphi compatibility
+  TMMIOInfo = _MMIOINFO;
+  TMMCKInfo = _MMCKINFO;
+  pcmwaveformat_tag = PCMWAVEFORMAT;
+  TPCMWaveFormat = pcmwaveformat_tag;
+        
+        
+
 (*////////////////////////////////////////////////////////*)
 (* Function prototypes*)
 (*////////////////////////////////////////////////////////*)
