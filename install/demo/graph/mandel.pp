@@ -32,7 +32,7 @@ const
 var
   SearchPoint,ActualPoint,NextPoint       : PointType;
   LastColor                              : longint;
-  Gd,Gm,
+  Gd,Gm                                  : smallint;
   Max_Color,Max_X_Width,
   Max_Y_Width,Y_Width                    : word;
   Y1,Y2,X1,X2,Dy,Dx                      : Real;
@@ -254,7 +254,7 @@ end ;
                               MAINROUTINE
 ------------------------------------------------------------------------------}
   var
-     error,dummy : word;
+     error,dummy : smallint;
 
 var i,neededtime,starttime : longint;
   hour, minute, second, sec100 : word;
@@ -284,7 +284,7 @@ begin
 {$endif go32v2}
     end;
   gd:=d8bit;
-  if gm=$ffff then
+  if gm=-1 then
     GetModeRange(gd,dummy,gm);
   GetTime(hour, minute, second, sec100);
   starttime:=((hour*60+minute)*60+second)*100+sec100;
@@ -336,7 +336,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:08  michael
+  Revision 1.3  2001-04-25 22:45:41  peter
+    * regenerated
+
+  Revision 1.2  2000/07/13 11:33:08  michael
   + removed logs
- 
+
 }

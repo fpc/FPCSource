@@ -2,8 +2,11 @@
 #   Makefile.fpc for FPC OS/2 demos (part of FPC demo package)
 #
 
-[targets]
+[target]
 programs_os2=basicpm pmdemo1 getctry
+
+[default]
+fpcdir=../..
 
 [rules]
 basicpm.exe: basicpm.pas
@@ -14,7 +17,3 @@ pmdemo1.exe: pmdemo1.pp pmdemo1.res
 
 pmdemo1.res: pmdemo1.rc pmdemo1.h
         $(RC) -r pmdemo1
-
-[dirs]
-fpcdir=../..
-targetdir=.

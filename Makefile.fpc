@@ -91,7 +91,7 @@ PPNEW=$(BASEDIR)/compiler/ppc386$(EXEEXT)
 
 # Don't use ppufiles for win32 becuase of commandline length problems
 ifneq ($(OS_TARGET),win32)
-PPUFILESNEW=$(BASEDIR)/utils/ppufiles$(EXEEXT)
+PPUFILESNEW=$(BASEDIR)/compiler/utils/ppufiles$(EXEEXT)
 endif
 
 # Build/install options
@@ -151,13 +151,10 @@ help:
 # Compiler
 #######################################
 
-.PHONY: compiler_cycle compiler_fpcexe
+.PHONY: compiler_cycle
 
 compiler_cycle:
         $(MAKE) -C compiler cycle
-
-compiler_fpcexe:
-        $(MAKE) -C compiler fpcexe
 
 
 #######################################
@@ -171,7 +168,8 @@ ide_comp:
         $(MAKE) -C ide full
 
 # Look if libgdb.a is available then use fullgdb
-ifneq ($(wildcard packages/gdbint/libgdb/$(OS_TARGET)/libgdb.a),)
+LIBGDB:=$(strip $(wildcard packages/gdbint/libgdb/$(OS_TARGET)/libgdb.a))
+ifneq ($(LIBGDB),)
 ide_full:
         $(MAKE) -C compiler ppuclean
         $(MAKE) -C ide fullgdb
@@ -269,8 +267,8 @@ else
 endif
 # clean
         $(MAKE) rtl_clean
-        $(MAKE) fcl_clean
         $(MAKE) packages_clean
+        $(MAKE) fcl_clean
         $(MAKE) utils_clean
 ifdef IDE
         $(MAKE) fv_clean
@@ -278,10 +276,9 @@ ifdef IDE
 endif
 # build everything
         $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
-        $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) packages_$(ALLTARGET) $(BUILDOPTS)
+        $(MAKE) fcl_$(ALLTARGET) $(BUILDOPTS)
         $(MAKE) utils_all $(BUILDOPTS)
-        $(MAKE) compiler_fpcexe $(BUILDOPTS)
 ifdef IDE
         $(MAKE) ide_full $(BUILDOPTS)
 endif
@@ -317,18 +314,18 @@ endif
 
 install: build-stamp.$(OS_TARGET)
         $(MAKE) installbase $(INSTALLOPTS)
-        $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
-        $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
         $(MAKE) packages_$(INSTALLTARGET) $(INSTALLOPTS)
+        $(MAKE) fcl_$(INSTALLTARGET) $(INSTALLOPTS)
+        $(MAKE) utils_$(INSTALLTARGET) $(INSTALLOPTS)
 ifdef IDE
         $(NOSTOP)$(MAKE) ide_$(INSTALLTARGET) $(BUILDOPTS)
 endif
 
 zipinstall: build-stamp.$(OS_TARGET)
         $(MAKE) fpc_zipinstall ZIPTARGET=installbase ZIPNAME=base$(ZIPSUFFIX) $(INSTALLOPTS)
-        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=util$(ZIPSUFFIX)
-        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
         $(MAKE) packages_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
+        $(MAKE) fcl_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPPREFIX=$(PKGPRE)
+        $(MAKE) utils_zip$(INSTALLTARGET) $(INSTALLOPTS) ZIPNAME=util$(ZIPSUFFIX)
 ifdef IDE
         $(NOSTOP)$(MAKE) ide_zip$(INSTALLTARGET) $(INSTALLOPTS)
 endif
@@ -384,8 +381,8 @@ sourcezip: distclean
         $(MAKE) fpc_zipinstall ZIPTARGET=sourcebase ZIPNAME=basesrc
         $(MAKE) compiler_zipsourceinstall
         $(MAKE) rtl_zipsourceinstall
-        $(MAKE) fcl_zipsourceinstall
         $(MAKE) packages_zipsourceinstall
+        $(MAKE) fcl_zipsourceinstall
         $(MAKE) utils_zipsourceinstall
         $(MAKE) ide_zipsourceinstall
 #        $(MAKE) installersrc

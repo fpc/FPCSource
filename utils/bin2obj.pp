@@ -18,13 +18,24 @@ program bin2obj;
 
 {$mode objfpc}
 
+{$ifdef linux}
+  {$define unix}
+{$endif}
+{$ifdef freebsd}
+  {$define unix}
+{$endif}
+
 uses classes,getopts, iostream,zstream,idea,sysutils
 {$ifdef unix}
+  {$ifdef ver1_0}
+  ,linux
+  {$else}
   ,unix
+  {$endif}
 {$else}
   ,dos
 {$endif}
-;
+  ;
 
 var
   ConstName,
@@ -263,7 +274,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-01-29 21:48:26  peter
+  Revision 1.3  2001-04-25 22:45:45  peter
+    * regenerated
+
+  Revision 1.2  2001/01/29 21:48:26  peter
     * linux -> unix
 
   Revision 1.1  2000/07/13 10:16:21  michael

@@ -4,3 +4,6 @@
 
 [target]
 programs_win32=winhello menu dlltest testdll edit
+
+[default]
+fpcdir=../..
