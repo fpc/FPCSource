@@ -447,7 +447,7 @@ function FindExecutable(_para1:pchar; _para2:pchar;_para3:pchar):HINST; external
 function ShellAbout(_para1:HWND; _para2:pchar; _para3:pchar;_para4:HICON):longint; external 'shell32' name 'ShellAboutA';
 function ShellExecute(_para1:HWND; _para2:pchar; _para3:pchar;_para4:pchar; _para5:pchar;_para6:longint):HINST; external 'shell32' name 'ShellExecuteA';
 function DdeCreateStringHandle(_para1:DWORD; _para2:pchar;_para3:longint):HSZ; external 'user32' name 'DdeCreateStringHandleA';
-function DdeInitialize(_para1:LPDWORD; _para2:CALLB; _para3:DWORD; _para4:DWORD):UINT;external 'user32' name 'DdeInitializeA';
+function DdeInitialize(_para1:LPDWORD; _para2:PFNCALLBACK; _para3:DWORD; _para4:DWORD):UINT;external 'user32' name 'DdeInitializeA';
 function DdeQueryString(_para1:DWORD; _para2:HSZ; _para3:pchar;_para4:DWORD; _para5:longint):DWORD; external 'user32' name 'DdeQueryStringA';
 function LogonUser(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:DWORD; _para5:DWORD;_para6:PHANDLE):WINBOOL; external 'advapi32' name 'LogonUserA';
 function CreateProcessAsUser(_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _para4:LPSECURITY_ATTRIBUTES; _para5:LPSECURITY_ATTRIBUTES;_para6:WINBOOL; _para7:DWORD; _para8:LPVOID; _para9:LPCTSTR;
@@ -487,7 +487,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:58  michael
+  Revision 1.3  2000-10-11 16:05:55  peter
+    * stdcall for callbacks (merged)
+
+  Revision 1.2  2000/07/13 11:33:58  michael
   + removed logs
  
 }
