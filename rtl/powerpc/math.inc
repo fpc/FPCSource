@@ -21,10 +21,7 @@
  ****************************************************************************}
 
     {$define FPC_SYSTEM_HAS_PI}
-    function pi : double;[internconst:in_pi];
-      begin
-        pi := 3.14159265358979320;
-      end;
+    function pi : double;[internproc:in_pi];
 
     {$define FPC_SYSTEM_HAS_ABS}
     function abs(d : extended) : extended;[internproc:in_abs_extended];
@@ -270,7 +267,10 @@ end ['R0','R3','F0','F1','F2','F3'];
 
 {
   $Log$
-  Revision 1.11  2002-09-07 16:01:26  peter
+  Revision 1.12  2002-09-08 13:00:21  jonas
+    * made pi an internproc instead of internconst
+
+  Revision 1.11  2002/09/07 16:01:26  peter
     * old logs removed and tabs fixed
 
   Revision 1.10  2002/08/18 22:11:10  florian
