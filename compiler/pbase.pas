@@ -276,7 +276,7 @@ implementation
         { if nothing found give error and return errorsym }
         if srsym=nil then
          begin
-           identifier_not_found(pattern);
+           identifier_not_found(orgpattern);
            srsym:=generrorsym;
            srsymtable:=nil;
          end;
@@ -322,7 +322,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2001-03-11 22:58:49  peter
+  Revision 1.9  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.8  2001/03/11 22:58:49  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.7  2000/12/25 00:07:27  peter

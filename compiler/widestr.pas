@@ -124,7 +124,8 @@ unit widestr;
     function comparewidestringwidestring(const s1,s2 : tcompilerwidestring) : longint;
 
       begin
-         { !!!! }
+        {$warning todo}
+        comparewidestringwidestring:=0;
       end;
 
     procedure copywidestring(const s : tcompilerwidestring;var d : tcompilerwidestring);
@@ -146,10 +147,12 @@ unit widestr;
       end;
 }
       begin
+        {$warning todo}
+        asciichar2unicode:=0;
       end;
 
     procedure ascii2unicode(const s : string;var r : tcompilerwidestring);
-{!!!!!!
+(*
       var
          m : punicodemap;
          i : longint;
@@ -163,7 +166,7 @@ unit widestr;
            begin
            end;
       end;
-}
+*)
       begin
       end;
 
@@ -175,12 +178,16 @@ unit widestr;
 }
 
       begin
+        cpavailable:=false;
       end;
 
 end.
 {
   $Log$
-  Revision 1.1  2000-11-29 00:30:43  florian
+  Revision 1.2  2001-04-02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.1  2000/11/29 00:30:43  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -125,7 +125,6 @@ interface
           constructor inittext;
           constructor inituntyped;
           constructor inittyped(const tt : ttype);
-          constructor inittypeddef(p : pdef);
           constructor load;
           procedure write;virtual;
           procedure deref;virtual;
@@ -189,8 +188,6 @@ interface
           is_far : boolean;
           constructor init(const tt : ttype);
           constructor initfar(const tt : ttype);
-          constructor initdef(p : pdef);
-          constructor initfardef(p : pdef);
           constructor load;
           destructor  done;virtual;
           procedure write;virtual;
@@ -295,7 +292,7 @@ interface
 
        pclassrefdef = ^tclassrefdef;
        tclassrefdef = object(tpointerdef)
-          constructor init(def : pdef);
+          constructor init(const t:ttype);
           constructor load;
           procedure write;virtual;
           function gettypename:string;virtual;
@@ -319,7 +316,7 @@ interface
           IsArrayOfConst : boolean;
           function gettypename:string;virtual;
           function elesize : longint;
-          constructor init(l,h : longint;rd : pdef);
+          constructor init(l,h : longint;const t : ttype);
           constructor load;
           procedure write;virtual;
 {$ifdef GDB}
@@ -423,7 +420,7 @@ interface
           destructor done;virtual;
           procedure  write;virtual;
           procedure deref;virtual;
-          procedure concatpara(tt:ttype;vsp : tvarspez;defval:psym);
+          procedure concatpara(const tt:ttype;vsp : tvarspez;defval:psym);
           function  para_size(alignsize:longint) : longint;
           function  demangled_paras : string;
           function  proccalloption2str : string;
@@ -591,7 +588,7 @@ interface
        tsetdef = object(tstoreddef)
           elementtype : ttype;
           settype : tsettype;
-          constructor init(s : pdef;high : longint);
+          constructor init(const t:ttype;high : longint);
           constructor load;
           destructor  done;virtual;
           procedure write;virtual;
@@ -622,66 +619,59 @@ interface
 {$endif GDB}
 
     { default types }
-       generrordef : pdef;       { error in definition }
-
-       voidpointerdef : ppointerdef; { pointer for Void-Pointerdef }
-       charpointerdef : ppointerdef; { pointer for Char-Pointerdef }
-       voidfarpointerdef : ppointerdef;
-
-       cformaldef : pformaldef;    { unique formal definition }
-       voiddef   : porddef;        { Pointer to Void (procedure) }
-       cchardef  : porddef;        { Pointer to Char }
-       cwidechardef : porddef;     { Pointer to WideChar }
-       booldef   : porddef;        { pointer to boolean type }
-       u8bitdef  : porddef;        { Pointer to 8-Bit unsigned }
-       u16bitdef : porddef;        { Pointer to 16-Bit unsigned }
-       u32bitdef : porddef;        { Pointer to 32-Bit unsigned }
-       s32bitdef : porddef;        { Pointer to 32-Bit signed }
-
-       cu64bitdef : porddef;       { pointer to 64 bit unsigned def }
-       cs64bitdef : porddef;       { pointer to 64 bit signed def, }
-                                   { calculated by the int unit on i386 }
-
-       s32floatdef : pfloatdef;    { pointer for realconstn }
-       s64floatdef : pfloatdef;    { pointer for realconstn }
-       s80floatdef : pfloatdef;    { pointer to type of temp. floats }
-       s32fixeddef : pfloatdef;    { pointer to type of temp. fixed }
-
-       cshortstringdef : pstringdef;     { pointer to type of short string const   }
-       clongstringdef  : pstringdef;     { pointer to type of long string const   }
-       cansistringdef  : pstringdef;     { pointer to type of ansi string const  }
-       cwidestringdef  : pstringdef;     { pointer to type of wide string const  }
-       openshortstringdef : pstringdef;  { pointer to type of an open shortstring,
-                                           needed for readln() }
-       openchararraydef : parraydef;     { pointer to type of an open array of char,
-                                            needed for readln() }
-
-       cfiledef : pfiledef;       { get the same definition for all file }
+       generrortype,              { error in definition }
+       voidpointertype,           { pointer for Void-Pointerdef }
+       charpointertype,           { pointer for Char-Pointerdef }
+       voidfarpointertype,
+       cformaltype,               { unique formal definition }
+       voidtype,                  { Pointer to Void (procedure) }
+       cchartype,                 { Pointer to Char }
+       cwidechartype,             { Pointer to WideChar }
+       booltype,                  { pointer to boolean type }
+       u8bittype,                 { Pointer to 8-Bit unsigned }
+       u16bittype,                { Pointer to 16-Bit unsigned }
+       u32bittype,                { Pointer to 32-Bit unsigned }
+       s32bittype,                { Pointer to 32-Bit signed }
+       cu64bittype,               { pointer to 64 bit unsigned def }
+       cs64bittype,               { pointer to 64 bit signed def, }
+       s32floattype,              { pointer for realconstn }
+       s64floattype,              { pointer for realconstn }
+       s80floattype,              { pointer to type of temp. floats }
+       s32fixedtype,              { pointer to type of temp. fixed }
+       cshortstringtype,          { pointer to type of short string const   }
+       clongstringtype,           { pointer to type of long string const   }
+       cansistringtype,           { pointer to type of ansi string const  }
+       cwidestringtype,           { pointer to type of wide string const  }
+       openshortstringtype,       { pointer to type of an open shortstring,
+                                    needed for readln() }
+       openchararraytype,         { pointer to type of an open array of char,
+                                    needed for readln() }
+       cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
+       cvarianttype,              { we use only one variant def }
+       pvmttype      : ttype;     { type of classrefs, used for stabs }
 
-       cvariantdef : pvariantdef; { we use only one variant def }
 
-       class_tobject : pobjectdef;   { pointer to the anchestor of all classes }
+       class_tobject : pobjectdef;      { pointer to the anchestor of all classes }
        interface_iunknown : pobjectdef; { KAZ: pointer to the ancestor }
        rec_tguid : precorddef;          { KAZ: pointer to the TGUID type }
                                         { of all interfaces            }
-       pvmtdef       : ppointerdef;  { type of classrefs }
 
     const
 {$ifdef i386}
-       bestrealdef : ^pfloatdef = @s80floatdef;
+       pbestrealtype : ^ttype = @s80floattype;
 {$endif}
 {$ifdef m68k}
-       bestrealdef : ^pfloatdef = @s64floatdef;
+       pbestrealtype : ^ttype = @s64floattype;
 {$endif}
 {$ifdef alpha}
-       bestrealdef : ^pfloatdef = @s64floatdef;
+       pbestrealtype : ^ttype = @s64floattype;
 {$endif}
 {$ifdef powerpc}
-       bestrealdef : ^pfloatdef = @s64floatdef;
+       pbestrealtype : ^ttype = @s64floattype;
 {$endif}
 {$ifdef ia64}
-       bestrealdef : ^pfloatdef = @s64floatdef;
+       pbestrealtype : ^ttype = @s64floattype;
 {$endif}
 
 {$ifdef GDB}
@@ -834,13 +824,6 @@ implementation
            nextglobal^.previousglobal:=previousglobal;
          previousglobal:=nil;
          nextglobal:=nil;
-{$ifdef SYNONYM}
-         while assigned(typesym) do
-           begin
-              ptypesym(typesym)^.restype.setdef(nil);
-              typesym:=ptypesym(typesym)^.synonym;
-           end;
-{$endif}
       end;
 
 
@@ -922,7 +905,7 @@ implementation
       {formal def have no type !}
       if deftype = formaldef then
         begin
-        numberstring := voiddef^.numberstring;
+        numberstring := pstoreddef(voidtype.def)^.numberstring;
         exit;
         end;
       if (not assigned(typesym)) or (not ptypesym(typesym)^.isusedinstab) then
@@ -1142,7 +1125,7 @@ implementation
    function tstoreddef.is_fpuregable : boolean;
 
      begin
-        is_fpuregable:=(deftype=floatdef) and not(pfloatdef(@self)^.typ in [f32bit,f16bit]);
+        is_fpuregable:=(deftype=floatdef);
      end;
 
 
@@ -1161,7 +1144,7 @@ implementation
 
 
 {****************************************************************************
-                               TSTRINGDEF
+                               Tstringdef
 ****************************************************************************}
 
     constructor tstringdef.shortinit(l : byte);
@@ -1784,9 +1767,9 @@ implementation
         s64bit    : stabstring := strpnew('-31;');
 {$endif not Use_integer_types_for_boolean}
          { u32bit : stabstring := strpnew('r'+
-              s32bitdef^.numberstring+';0;-1;'); }
+              s32bittype^.numberstring+';0;-1;'); }
         else
-          stabstring := strpnew('r'+s32bitdef^.numberstring+';'+tostr(low)+';'+tostr(high)+';');
+          stabstring := strpnew('r'+pstoreddef(s32bittype.def)^.numberstring+';'+tostr(low)+';'+tostr(high)+';');
         end;
       end;
 {$endif GDB}
@@ -1895,8 +1878,6 @@ implementation
     procedure tfloatdef.setsize;
       begin
          case typ of
-            f16bit : savesize:=2;
-            f32bit,
            s32real : savesize:=4;
            s64real : savesize:=8;
            s80real : savesize:=extended_size;
@@ -1921,21 +1902,14 @@ implementation
          case typ of
             s32real,
             s64real : stabstring := strpnew('r'+
-               s32bitdef^.numberstring+';'+tostr(savesize)+';0;');
-            { for fixed real use longint instead to be able to }
-            { debug something at least                         }
-            f32bit:
-              stabstring := s32bitdef^.stabstring;
-            f16bit:
-              stabstring := strpnew('r'+s32bitdef^.numberstring+';0;'+
-                tostr($ffff)+';');
+               pstoreddef(s32bittype.def)^.numberstring+';'+tostr(savesize)+';0;');
             { found this solution in stabsread.c from GDB v4.16 }
             s64comp : stabstring := strpnew('r'+
-               s32bitdef^.numberstring+';-'+tostr(savesize)+';0;');
+               pstoreddef(s32bittype.def)^.numberstring+';-'+tostr(savesize)+';0;');
 {$ifdef i386}
             { under dos at least you must give a size of twelve instead of 10 !! }
             { this is probably do to the fact that in gcc all is pushed in 4 bytes size }
-            s80real : stabstring := strpnew('r'+s32bitdef^.numberstring+';12;0;');
+            s80real : stabstring := strpnew('r'+pstoreddef(s32bittype.def)^.numberstring+';12;0;');
 {$endif i386}
             else
               internalerror(10005);
@@ -1946,9 +1920,9 @@ implementation
 
     procedure tfloatdef.write_rtti_data;
       const
-         {tfloattype = (s32real,s64real,s80real,s64bit,f16bit,f32bit);}
+         {tfloattype = (s32real,s64real,s80real,s64bit);}
          translate : array[tfloattype] of byte =
-           (ftSingle,ftDouble,ftExtended,ftComp,ftFixed16,ftFixed32);
+           (ftSingle,ftDouble,ftExtended,ftComp);
       begin
          rttiList.concat(Tai_const.Create_8bit(tkFloat));
          write_rtti_name;
@@ -1965,7 +1939,7 @@ implementation
 
       const
         names : array[tfloattype] of string[20] = (
-          'Single','Double','Extended','Comp','Fixed','Fixed16');
+          'Single','Double','Extended','Comp');
 
       begin
          gettypename:=names[typ];
@@ -2001,16 +1975,6 @@ implementation
          deftype:=filedef;
          filetyp:=ft_typed;
          typedfiletype:=tt;
-         setsize;
-      end;
-
-
-    constructor tfiledef.inittypeddef(p : pdef);
-      begin
-         inherited init;
-         deftype:=filedef;
-         filetyp:=ft_typed;
-         typedfiletype.setdef(p);
          setsize;
       end;
 
@@ -2068,7 +2032,7 @@ implementation
         ft_untyped :
           stabstring := strpnew('d'+voiddef^.numberstring{+';'});
         ft_text :
-          stabstring := strpnew('d'+cchardef^.numberstring{+';'});
+          stabstring := strpnew('d'+cchartype^.numberstring{+';'});
       end;
    {$Else}
       {based on
@@ -2191,25 +2155,6 @@ implementation
       end;
 
 
-    constructor tpointerdef.initdef(p : pdef);
-      var
-        t : ttype;
-      begin
-        t.setdef(p);
-        tpointerdef.init(t);
-      end;
-
-
-    constructor tpointerdef.initfardef(p : pdef);
-      var
-        t : ttype;
-      begin
-        t.setdef(p);
-        tpointerdef.initfar(t);
-      end;
-
-
-
     constructor tpointerdef.load;
       begin
          inherited load;
@@ -2322,9 +2267,9 @@ implementation
                               TCLASSREFDEF
 ****************************************************************************}
 
-    constructor tclassrefdef.init(def : pdef);
+    constructor tclassrefdef.init(const t:ttype);
       begin
-         inherited initdef(def);
+         inherited init(t);
          deftype:=classrefdef;
       end;
 
@@ -2352,7 +2297,7 @@ implementation
 {$ifdef GDB}
     function tclassrefdef.stabstring : pchar;
       begin
-         stabstring:=strpnew(pvmtdef^.numberstring+';');
+         stabstring:=strpnew(pstoreddef(pvmttype.def)^.numberstring+';');
       end;
 
 
@@ -2380,11 +2325,11 @@ implementation
 {$define usesmallset}
 {$endif i386}
 
-    constructor tsetdef.init(s : pdef;high : longint);
+    constructor tsetdef.init(const t:ttype;high : longint);
       begin
          inherited init;
          deftype:=setdef;
-         elementtype.setdef(s);
+         elementtype:=t;
 {$ifdef usesmallset}
          { small sets only working for i386 PM }
          if high<32 then
@@ -2459,7 +2404,7 @@ implementation
            this is obsolete with GDBPAS !!
            and anyhow creates problems with version 4.18!! PM
          if settype=smallset then
-           stabstring := strpnew('r'+s32bitdef^.numberstring+';0;0xffffffff;')
+           stabstring := strpnew('r'+s32bittype^.numberstring+';0;0xffffffff;')
          else }
            stabstring := strpnew('S'+pstoreddef(elementtype.def)^.numberstring);
       end;
@@ -2576,13 +2521,13 @@ implementation
                            TARRAYDEF
 ***************************************************************************}
 
-    constructor tarraydef.init(l,h : longint;rd : pdef);
+    constructor tarraydef.init(l,h : longint;const t : ttype);
       begin
          inherited init;
          deftype:=arraydef;
          lowrange:=l;
          highrange:=h;
-         rangetype.setdef(rd);
+         rangetype:=t;
          elementtype.reset;
          IsVariant:=false;
          IsConstructor:=false;
@@ -2884,9 +2829,9 @@ implementation
          aktrecordsymtable:=oldrecsyms;
          { assign TGUID? }
          if not(assigned(rec_tguid)) and
-           (upper(typename)='TGUID') and
-           assigned(owner) and
-           (owner^.name^='SYSTEM') then
+            (upper(typename)='TGUID') and
+            assigned(owner) and
+            (owner^.unitid=0) then
            rec_tguid:=@self;
       end;
 
@@ -3134,7 +3079,7 @@ implementation
          proctypeoption:=potype_none;
          proccalloptions:=[];
          procoptions:=[];
-         rettype.setdef(voiddef);
+         rettype:=voidtype;
          symtablelevel:=0;
          savesize:=target_os.size_of_pointer;
       end;
@@ -3147,7 +3092,7 @@ implementation
       end;
 
 
-    procedure tabstractprocdef.concatpara(tt:ttype;vsp : tvarspez;defval:psym);
+    procedure tabstractprocdef.concatpara(const tt:ttype;vsp : tvarspez;defval:psym);
       var
         hp : TParaItem;
       begin
@@ -3170,8 +3115,7 @@ implementation
     procedure tabstractprocdef.test_if_fpu_result;
       begin
          if assigned(rettype.def) and
-            (rettype.def^.deftype=floatdef) and
-            (pfloatdef(rettype.def)^.typ<>f32bit) then
+            (rettype.def^.deftype=floatdef) then
            fpu_used:=2;
       end;
 
@@ -3521,7 +3465,7 @@ implementation
       begin
         s:=fullprocname;
         if assigned(rettype.def) and
-          not(is_equal(rettype.def,voiddef)) then
+          not(is_equal(rettype.def,voidtype.def)) then
                s:=s+' : '+rettype.def^.gettypename;
         fullprocnamewithret:=s;
       end;
@@ -4070,7 +4014,7 @@ Const local_symtable_index : longint = $8001;
              write_rtti_name;
 
              { write kind of method (can only be function or procedure)}
-             if rettype.def = pdef(voiddef) then    { ### typecast shoudln't be necessary! (sg) }
+             if rettype.def = voidtype.def then
                methodkind := mkProcedure
              else
                methodkind := mkFunction;
@@ -4127,7 +4071,7 @@ Const local_symtable_index : longint = $8001;
     function tprocvardef.gettypename : string;
       begin
          if assigned(rettype.def) and
-            (rettype.def<>pdef(voiddef)) then
+            (rettype.def<>voidtype.def) then
            gettypename:='<procedure variable type of function'+demangled_paras+
              ':'+rettype.def^.gettypename+';'+proccalloption2str+'>'
          else
@@ -5626,7 +5570,10 @@ Const local_symtable_index : longint = $8001;
 end.
 {
   $Log$
-  Revision 1.23  2001-03-22 23:28:39  florian
+  Revision 1.24  2001-04-02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.23  2001/03/22 23:28:39  florian
     * correct initialisation of rec_tguid when loading the system unit
 
   Revision 1.22  2001/03/22 00:10:58  florian
@@ -5654,7 +5601,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.16  2000/11/30 23:12:57  florian

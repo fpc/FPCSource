@@ -68,8 +68,6 @@ const
   ftExtended = 2;
   ftComp     = 3;
   ftCurr     = 4;
-  ftFixed16  = 5;
-  ftFixed32  = 6;
 
   mkProcedure= 0;
   mkFunction = 1;
@@ -177,8 +175,7 @@ type
   { float types }
   tfloattype = (
     s32real,s64real,s80real,
-    s64comp,
-    f16bit,f32bit
+    s64comp
   );
 
   { string types }
@@ -455,7 +452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2001-03-22 00:10:58  florian
+  Revision 1.15  2001-04-02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.14  2001/03/22 00:10:58  florian
     + basic variant type support in the compiler
 
   Revision 1.13  2001/02/26 19:44:55  peter

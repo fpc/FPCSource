@@ -32,20 +32,24 @@ interface
     type
        tmoddivnode = class(tbinopnode)
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tshlshrnode = class(tbinopnode)
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tunaryminusnode = class(tunarynode)
-         constructor create(expr : tnode);virtual;
+          constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tnotnode = class(tunarynode)
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
     var
@@ -58,8 +62,11 @@ interface
 implementation
 
     uses
-      globtype,systems,tokens,
+      systems,tokens,
       verbose,globals,
+{$ifdef support_mmx}
+      globtype,
+{$endif}
       symconst,symtype,symtable,symdef,types,
       htypechk,pass_1,cpubase,cpuinfo,
 {$ifdef newcg}
@@ -71,40 +78,116 @@ implementation
 {****************************************************************************
                               TMODDIVNODE
  ****************************************************************************}
-    function tmoddivnode.pass_1 : tnode;
+
+    function tmoddivnode.det_resulttype:tnode;
       var
          t : tnode;
-         rv,lv : tconstexprint;
          rd,ld : pdef;
-
       begin
-         pass_1:=nil;
-         firstpass(left);
+         result:=nil;
+         resulttypepass(left);
+         resulttypepass(right);
          set_varstate(left,true);
-         firstpass(right);
          set_varstate(right,true);
          if codegenerror then
            exit;
 
+         { allow operator overloading }
          t:=self;
          if isbinaryoverloaded(t) then
            begin
-              pass_1:=t;
+              resulttypepass(t);
+              result:=t;
               exit;
            end;
 
-         { check for division by zero }
-         rv:=tordconstnode(right).value;
-         lv:=tordconstnode(left).value;
-         if is_constintnode(right) and (rv=0) then
-          begin
-            Message(parser_e_division_by_zero);
-            { recover }
-            rv:=1;
-          end;
+         { if one operand is a cardinal and the other is a positive constant, convert the }
+         { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
+
+         { Do the same for qwords and positive constants as well, otherwise things like   }
+         { "qword mod 10" are evaluated with int64 as result, which is wrong if the       }
+         { "qword" was > high(int64) (JM)                                                 }
+         if (left.resulttype.def^.deftype=orddef) and (right.resulttype.def^.deftype=orddef) then
+           if (porddef(right.resulttype.def)^.typ in [u32bit,u64bit]) and
+              is_constintnode(left) and
+              (tordconstnode(left).value >= 0) then
+             inserttypeconv(left,right.resulttype)
+           else if (porddef(left.resulttype.def)^.typ in [u32bit,u64bit]) and
+              is_constintnode(right) and
+              (tordconstnode(right).value >= 0) then
+             inserttypeconv(right,left.resulttype);
+
+         if (left.resulttype.def^.deftype=orddef) and (right.resulttype.def^.deftype=orddef) and
+            (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def) or
+             { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
+             ((porddef(right.resulttype.def)^.typ = u32bit) and
+              is_signed(left.resulttype.def)) or
+             ((porddef(left.resulttype.def)^.typ = u32bit) and
+              is_signed(right.resulttype.def))) then
+           begin
+              rd:=right.resulttype.def;
+              ld:=left.resulttype.def;
+              { issue warning if necessary }
+              if not (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
+                CGMessage(type_w_mixed_signed_unsigned);
+              if is_signed(rd) or is_signed(ld) then
+                begin
+                   if (porddef(ld)^.typ<>s64bit) then
+                     inserttypeconv(left,cs64bittype);
+                   if (porddef(rd)^.typ<>s64bit) then
+                     inserttypeconv(right,cs64bittype);
+                end
+              else
+                begin
+                   if (porddef(ld)^.typ<>u64bit) then
+                     inserttypeconv(left,cu64bittype);
+                   if (porddef(rd)^.typ<>u64bit) then
+                     inserttypeconv(right,cu64bittype);
+                end;
+              resulttype:=left.resulttype;
+           end
+         else
+           begin
+              if not(right.resulttype.def^.deftype=orddef) or
+                 not(porddef(right.resulttype.def)^.typ in [s32bit,u32bit]) then
+                inserttypeconv(right,s32bittype);
+
+              if not(left.resulttype.def^.deftype=orddef) or
+                 not(porddef(left.resulttype.def)^.typ in [s32bit,u32bit]) then
+                inserttypeconv(left,s32bittype);
+
+              { the resulttype.def depends on the right side, because the left becomes }
+              { always 64 bit                                                      }
+              resulttype:=right.resulttype;
+           end;
+      end;
+
+
+    function tmoddivnode.pass_1 : tnode;
+      var
+         t : tnode;
+         rv,lv : tconstexprint;
+
+      begin
+         result:=nil;
+         firstpass(left);
+         firstpass(right);
+         if codegenerror then
+           exit;
 
          if is_constintnode(left) and is_constintnode(right) then
            begin
+              rv:=tordconstnode(right).value;
+              lv:=tordconstnode(left).value;
+
+              { check for division by zero }
+              if (rv=0) then
+               begin
+                 Message(parser_e_division_by_zero);
+                 { recover }
+                 rv:=1;
+               end;
+
               case nodetype of
                 modn:
                   t:=genintconstnode(lv mod rv);
@@ -112,97 +195,21 @@ implementation
                   t:=genintconstnode(lv div rv);
               end;
               firstpass(t);
-              pass_1:=t;
+              result:=t;
               exit;
            end;
-         { if one operand is a cardinal and the other is a positive constant, convert the }
-         { constant to a cardinal as well so we don't have to do a 64bit division (JM)    }
 
-         { Do the same for qwords and positive constants as well, otherwise things like   }
-         { "qword mod 10" are evaluated with int64 as result, which is wrong if the       }
-         { "qword" was > high(int64) (JM)                                                 }
-         if (left.resulttype^.deftype=orddef) and (right.resulttype^.deftype=orddef) then
-           if (porddef(right.resulttype)^.typ in [u32bit,u64bit]) and
-              is_constintnode(left) and
-              (tordconstnode(left).value >= 0) then
-             begin
-               left := gentypeconvnode(left,right.resulttype);
-               firstpass(left);
-             end
-           else if (porddef(left.resulttype)^.typ in [u32bit,u64bit]) and
-              is_constintnode(right) and
-              (tordconstnode(right).value >= 0) then
-             begin
-               right := gentypeconvnode(right,left.resulttype);
-               firstpass(right);
-             end;
-
-         if (left.resulttype^.deftype=orddef) and (right.resulttype^.deftype=orddef) and
-            (is_64bitint(left.resulttype) or is_64bitint(right.resulttype) or
-             { when mixing cardinals and signed numbers, convert everythign to 64bit (JM) }
-             ((porddef(right.resulttype)^.typ = u32bit) and
-              is_signed(left.resulttype)) or
-             ((porddef(left.resulttype)^.typ = u32bit) and
-              is_signed(right.resulttype))) then
+         { 64bit }
+         if (left.resulttype.def^.deftype=orddef) and (right.resulttype.def^.deftype=orddef) and
+            (is_64bitint(left.resulttype.def) or is_64bitint(right.resulttype.def)) then
            begin
-              rd:=right.resulttype;
-              ld:=left.resulttype;
-              { issue warning if necessary }
-              if not (is_64bitint(left.resulttype) or is_64bitint(right.resulttype)) then
-                CGMessage(type_w_mixed_signed_unsigned);
-              if is_signed(rd) or is_signed(ld) then
-                begin
-                   if (porddef(ld)^.typ<>s64bit) then
-                     begin
-                       left:=gentypeconvnode(left,cs64bitdef);
-                       firstpass(left);
-                     end;
-                   if (porddef(rd)^.typ<>s64bit) then
-                     begin
-                        right:=gentypeconvnode(right,cs64bitdef);
-                        firstpass(right);
-                     end;
-                   calcregisters(self,2,0,0);
-                end
-              else
-                begin
-                   if (porddef(ld)^.typ<>u64bit) then
-                     begin
-                       left:=gentypeconvnode(left,cu64bitdef);
-                       firstpass(left);
-                     end;
-                   if (porddef(rd)^.typ<>u64bit) then
-                     begin
-                        right:=gentypeconvnode(right,cu64bitdef);
-                        firstpass(right);
-                     end;
-                   calcregisters(self,2,0,0);
-                end;
-              resulttype:=left.resulttype;
+             calcregisters(self,2,0,0);
            end
          else
            begin
-              if not(right.resulttype^.deftype=orddef) or
-                not(porddef(right.resulttype)^.typ in [s32bit,u32bit]) then
-                right:=gentypeconvnode(right,s32bitdef);
-
-              if not(left.resulttype^.deftype=orddef) or
-                not(porddef(left.resulttype)^.typ in [s32bit,u32bit]) then
-                left:=gentypeconvnode(left,s32bitdef);
-
-              firstpass(left);
-              firstpass(right);
-
-              { the resulttype depends on the right side, because the left becomes }
-              { always 64 bit                                                      }
-              resulttype:=right.resulttype;
-
-              if codegenerror then
-                exit;
-
-              left_right_max;
-              if left.registers32<=right.registers32 then
-                inc(registers32);
+             left_right_max;
+             if left.registers32<=right.registers32 then
+              inc(registers32);
            end;
          location.loc:=LOC_REGISTER;
       end;
@@ -213,25 +220,50 @@ implementation
                               TSHLSHRNODE
  ****************************************************************************}
 
+    function tshlshrnode.det_resulttype:tnode;
+      var
+         t : tnode;
+      begin
+         result:=nil;
+         resulttypepass(left);
+         resulttypepass(right);
+         set_varstate(right,true);
+         set_varstate(left,true);
+         if codegenerror then
+           exit;
+
+         { allow operator overloading }
+         t:=self;
+         if isbinaryoverloaded(t) then
+           begin
+              resulttypepass(t);
+              result:=t;
+              exit;
+           end;
+
+         { 64 bit ints have their own shift handling }
+         if not(is_64bitint(left.resulttype.def)) then
+           begin
+              if porddef(left.resulttype.def)^.typ <> u32bit then
+               inserttypeconv(left,s32bittype);
+           end;
+
+         inserttypeconv(right,s32bittype);
+
+         resulttype:=left.resulttype;
+      end;
+
+
     function tshlshrnode.pass_1 : tnode;
       var
          t : tnode;
          regs : longint;
       begin
-         pass_1:=nil;
+         result:=nil;
          firstpass(left);
-         set_varstate(left,true);
          firstpass(right);
-         set_varstate(right,true);
          if codegenerror then
            exit;
-
-         t:=self;
-         if isbinaryoverloaded(t) then
-           begin
-              pass_1:=t;
-              exit;
-           end;
 
          if is_constintnode(left) and is_constintnode(right) then
            begin
@@ -242,29 +274,15 @@ implementation
                    t:=genintconstnode(tordconstnode(left).value shl tordconstnode(right).value);
               end;
               firstpass(t);
-              pass_1:=t;
+              result:=t;
               exit;
            end;
+
          { 64 bit ints have their own shift handling }
-         if not(is_64bitint(left.resulttype)) then
-           begin
-              if porddef(left.resulttype)^.typ <> u32bit then
-                left:=gentypeconvnode(left,s32bitdef);
-              firstpass(left);
-              regs:=1;
-              resulttype:=left.resulttype;
-           end
+         if not(is_64bitint(left.resulttype.def)) then
+          regs:=1
          else
-           begin
-              resulttype:=left.resulttype;
-              regs:=2;
-           end;
-
-         right:=gentypeconvnode(right,s32bitdef);
-         firstpass(right);
-
-         if codegenerror then
-           exit;
+          regs:=2;
 
          if (right.nodetype<>ordconstn) then
           inc(regs);
@@ -277,101 +295,46 @@ implementation
 {****************************************************************************
                             TUNARYMINUSNODE
  ****************************************************************************}
-    constructor tunaryminusnode.create(expr : tnode);
 
+    constructor tunaryminusnode.create(expr : tnode);
       begin
          inherited create(unaryminusn,expr);
       end;
 
-   function tunaryminusnode.pass_1 : tnode;
+    function tunaryminusnode.det_resulttype : tnode;
       var
          t : tnode;
          minusdef : pprocdef;
       begin
-         pass_1:=nil;
-         firstpass(left);
+         result:=nil;
+         resulttypepass(left);
          set_varstate(left,true);
-         registers32:=left.registers32;
-         registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-         resulttype:=left.resulttype;
          if codegenerror then
            exit;
-         if is_constintnode(left) then
+         resulttype:=left.resulttype;
+
+         if (left.resulttype.def^.deftype=floatdef) then
            begin
-              t:=genintconstnode(-tordconstnode(left).value);
-              firstpass(t);
-              pass_1:=t;
-              exit;
-           end;
-         if is_constrealnode(left) then
-           begin
-              t:=genrealconstnode(-trealconstnode(left).value_real,bestrealdef^);
-              firstpass(t);
-              pass_1:=t;
-              exit;
-           end;
-         if (left.resulttype^.deftype=floatdef) then
-           begin
-              if pfloatdef(left.resulttype)^.typ=f32bit then
-                begin
-                   if (left.location.loc<>LOC_REGISTER) and
-                     (registers32<1) then
-                     registers32:=1;
-                   location.loc:=LOC_REGISTER;
-                end
-              else
-                location.loc:=LOC_FPU;
            end
 {$ifdef SUPPORT_MMX}
          else if (cs_mmx in aktlocalswitches) and
-           is_mmx_able_array(left.resulttype) then
+           is_mmx_able_array(left.resulttype.def) then
              begin
-               if (left.location.loc<>LOC_MMXREGISTER) and
-                 (registersmmx<1) then
-                 registersmmx:=1;
-               { if saturation is on, left.resulttype isn't
+               { if saturation is on, left.resulttype.def isn't
                  "mmx able" (FK)
                if (cs_mmx_saturation in aktlocalswitches^) and
-                 (porddef(parraydef(resulttype)^.definition)^.typ in
+                 (porddef(parraydef(resulttype.def)^.definition)^.typ in
                  [s32bit,u32bit]) then
                  CGMessage(type_e_mismatch);
                }
              end
 {$endif SUPPORT_MMX}
-         else if is_64bitint(left.resulttype) then
+         else if is_64bitint(left.resulttype.def) then
            begin
-              firstpass(left);
-              registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-              registers32:=left.registers32;
-              if codegenerror then
-                exit;
-              if (left.location.loc<>LOC_REGISTER) and
-                (registers32<2) then
-              registers32:=2;
-              location.loc:=LOC_REGISTER;
-              resulttype:=left.resulttype;
            end
-         else if (left.resulttype^.deftype=orddef) then
+         else if (left.resulttype.def^.deftype=orddef) then
            begin
-              left:=gentypeconvnode(left,s32bitdef);
-              firstpass(left);
-              registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-              registers32:=left.registers32;
-              if codegenerror then
-                exit;
-              if (left.location.loc<>LOC_REGISTER) and
-                (registers32<1) then
-              registers32:=1;
-              location.loc:=LOC_REGISTER;
+              inserttypeconv(left,s32bittype);
               resulttype:=left.resulttype;
            end
          else
@@ -382,19 +345,79 @@ implementation
                 minusdef:=nil;
               while assigned(minusdef) do
                 begin
-                   if is_equal(tparaitem(minusdef^.para.first).paratype.def,left.resulttype) and
+                   if is_equal(tparaitem(minusdef^.para.first).paratype.def,left.resulttype.def) and
                       (tparaitem(minusdef^.para.first).next=nil) then
                      begin
-                        t:=gencallnode(overloaded_operators[_minus],nil);
-                        tcallnode(t).left:=gencallparanode(left,nil);
+                        t:=ccallnode.create(ccallparanode.create(left,nil),
+                                            overloaded_operators[_minus],nil,nil);
                         left:=nil;
-                        firstpass(t);
-                        pass_1:=t;
+                        resulttypepass(t);
+                        result:=t;
                         exit;
                      end;
                    minusdef:=minusdef^.nextoverloaded;
                 end;
               CGMessage(type_e_mismatch);
+           end;
+      end;
+
+
+    function tunaryminusnode.pass_1 : tnode;
+      var
+         t : tnode;
+      begin
+         result:=nil;
+         firstpass(left);
+         if codegenerror then
+           exit;
+
+         if is_constintnode(left) then
+           begin
+              t:=cordconstnode.create(-tordconstnode(left).value,resulttype);
+              firstpass(t);
+              result:=t;
+              exit;
+           end;
+         if is_constrealnode(left) then
+           begin
+              t:=crealconstnode.create(-trealconstnode(left).value_real,resulttype);
+              firstpass(t);
+              result:=t;
+              exit;
+           end;
+
+         registers32:=left.registers32;
+         registersfpu:=left.registersfpu;
+{$ifdef SUPPORT_MMX}
+         registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+
+         if (left.resulttype.def^.deftype=floatdef) then
+           begin
+             location.loc:=LOC_FPU;
+           end
+{$ifdef SUPPORT_MMX}
+         else if (cs_mmx in aktlocalswitches) and
+           is_mmx_able_array(left.resulttype.def) then
+             begin
+               if (left.location.loc<>LOC_MMXREGISTER) and
+                  (registersmmx<1) then
+                 registersmmx:=1;
+             end
+{$endif SUPPORT_MMX}
+         else if is_64bitint(left.resulttype.def) then
+           begin
+              if (left.location.loc<>LOC_REGISTER) and
+                 (registers32<2) then
+                registers32:=2;
+              location.loc:=LOC_REGISTER;
+           end
+         else if (left.resulttype.def^.deftype=orddef) then
+           begin
+              if (left.location.loc<>LOC_REGISTER) and
+                 (registers32<1) then
+                registers32:=1;
+              location.loc:=LOC_REGISTER;
            end;
       end;
 
@@ -409,12 +432,67 @@ implementation
          inherited create(notn,expr);
       end;
 
-    function tnotnode.pass_1 : tnode;
+    function tnotnode.det_resulttype : tnode;
       var
          t : tnode;
          notdef : pprocdef;
       begin
-         pass_1:=nil;
+         result:=nil;
+         resulttypepass(left);
+         set_varstate(left,true);
+         if codegenerror then
+           exit;
+
+         resulttype:=left.resulttype;
+         if is_boolean(resulttype.def) then
+           begin
+           end
+         else
+{$ifdef SUPPORT_MMX}
+           if (cs_mmx in aktlocalswitches) and
+             is_mmx_able_array(left.resulttype.def) then
+             begin
+             end
+         else
+{$endif SUPPORT_MMX}
+           if is_64bitint(left.resulttype.def) then
+             begin
+             end
+         else if is_integer(left.resulttype.def) then
+           begin
+              if (porddef(left.resulttype.def)^.typ <> u32bit) then
+                inserttypeconv(left,s32bittype);
+           end
+         else
+           begin
+              if assigned(overloaded_operators[_op_not]) then
+                notdef:=overloaded_operators[_op_not]^.definition
+              else
+                notdef:=nil;
+              while assigned(notdef) do
+                begin
+                   if is_equal(tparaitem(notdef^.para.first).paratype.def,left.resulttype.def) and
+                      (tparaitem(notdef^.para.first).next=nil) then
+                     begin
+                        t:=ccallnode.create(ccallparanode.create(left,nil),
+                                            overloaded_operators[_op_not],nil,nil);
+                        left:=nil;
+                        resulttypepass(t);
+                        result:=t;
+                        exit;
+                     end;
+                   notdef:=notdef^.nextoverloaded;
+                end;
+              CGMessage(type_e_mismatch);
+           end;
+      end;
+
+
+    function tnotnode.pass_1 : tnode;
+      var
+         t : tnode;
+      begin
+         result:=nil;
          firstpass(left);
          set_varstate(left,true);
          if codegenerror then
@@ -422,24 +500,25 @@ implementation
 
          if (left.nodetype=ordconstn) then
            begin
-              if is_boolean(left.resulttype) then
+              if is_boolean(left.resulttype.def) then
                 { here we do a boolena(byte(..)) type cast because }
                 { boolean(<int64>) is buggy in 1.00                }
-                t:=genordinalconstnode(byte(not(boolean(byte(tordconstnode(left).value)))),left.resulttype)
+                t:=cordconstnode.create(byte(not(boolean(byte(tordconstnode(left).value)))),left.resulttype)
               else
-                t:=genordinalconstnode(not(tordconstnode(left).value),left.resulttype);
+                t:=cordconstnode.create(not(tordconstnode(left).value),left.resulttype);
               firstpass(t);
-              pass_1:=t;
+              result:=t;
               exit;
            end;
-         resulttype:=left.resulttype;
+
          location.loc:=left.location.loc;
+         resulttype:=left.resulttype;
+         registers32:=left.registers32;
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-         if is_boolean(resulttype) then
+         if is_boolean(resulttype.def) then
            begin
-             registers32:=left.registers32;
              if (location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
               begin
                 location.loc:=LOC_REGISTER;
@@ -456,7 +535,7 @@ implementation
          else
 {$ifdef SUPPORT_MMX}
            if (cs_mmx in aktlocalswitches) and
-             is_mmx_able_array(left.resulttype) then
+             is_mmx_able_array(left.resulttype.def) then
              begin
                if (left.location.loc<>LOC_MMXREGISTER) and
                  (registersmmx<1) then
@@ -464,9 +543,8 @@ implementation
              end
          else
 {$endif SUPPORT_MMX}
-           if is_64bitint(left.resulttype) then
+           if is_64bitint(left.resulttype.def) then
              begin
-                registers32:=left.registers32;
                 if (location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
                  begin
                    location.loc:=LOC_REGISTER;
@@ -474,53 +552,14 @@ implementation
                     registers32:=2;
                  end;
              end
-         else if is_integer(left.resulttype) then
+         else if is_integer(left.resulttype.def) then
            begin
-              if (porddef(left.resulttype)^.typ <> u32bit) then
-                begin
-                  left:=gentypeconvnode(left,s32bitdef);
-                  firstpass(left);
-                  if codegenerror then
-                    exit;
-                end;
-
-              resulttype:=left.resulttype;
-              registers32:=left.registers32;
-{$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-
               if (left.location.loc<>LOC_REGISTER) and
                  (registers32<1) then
                 registers32:=1;
               location.loc:=LOC_REGISTER;
            end
-         else
-           begin
-              if assigned(overloaded_operators[_op_not]) then
-                notdef:=overloaded_operators[_op_not]^.definition
-              else
-                notdef:=nil;
-              while assigned(notdef) do
-                begin
-                   if is_equal(tparaitem(notdef^.para.first).paratype.def,left.resulttype) and
-                      (tparaitem(notdef^.para.first).next=nil) then
-                     begin
-                        t:=gencallnode(overloaded_operators[_op_not],nil);
-                        tcallnode(t).left:=gencallparanode(left,nil);
-                        left:=nil;
-                        firstpass(t);
-                        pass_1:=t;
-                        exit;
-                     end;
-                   notdef:=notdef^.nextoverloaded;
-                end;
-              CGMessage(type_e_mismatch);
-           end;
-
-         registersfpu:=left.registersfpu;
       end;
-
 
 begin
    cmoddivnode:=tmoddivnode;
@@ -530,7 +569,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-03-20 18:11:03  jonas
+  Revision 1.17  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.16  2001/03/20 18:11:03  jonas
     * not (cardinal) now has cardinal instead of longint result (bug reported
       in mailinglist) ("merged")
 
@@ -552,7 +594,7 @@ end.
       tlinkedlist objects)
 
   Revision 1.10  2000/12/16 15:54:01  jonas
-    * 'resulttype of cardinal shl/shr x' is cardinal instead of longint
+    * 'resulttype.def of cardinal shl/shr x' is cardinal instead of longint
 
   Revision 1.9  2000/11/29 00:30:34  florian
     * unused units removed from uses clause

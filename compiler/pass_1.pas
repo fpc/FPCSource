@@ -29,6 +29,13 @@ interface
     uses
        node;
 
+    var
+      resulttypepasscnt,
+      multiresulttypepasscnt : longint;
+
+    procedure resulttypepass(var p : tnode);
+    function  do_resulttypepass(var p : tnode) : boolean;
+
     procedure firstpass(var p : tnode);
     function  do_firstpass(var p : tnode) : boolean;
 
@@ -40,8 +47,8 @@ implementation
 
     uses
       globtype,systems,
-      cutils,cobjects,globals,
-      hcodegen,
+      cutils,cobjects,globals,verbose,
+      hcodegen,symdef,
 {$ifdef extdebug}
       htypechk,
 {$endif extdebug}
@@ -55,20 +62,65 @@ implementation
                             Global procedures
 *****************************************************************************}
 
-    procedure firstpass(var p : tnode);
+    procedure resulttypepass(var p : tnode);
+      var
+         oldcodegenerror  : boolean;
+         oldlocalswitches : tlocalswitches;
+         oldpos    : tfileposinfo;
+         hp        : tnode;
+      begin
+        inc(resulttypepasscnt);
+        if (p.resulttype.def=nil) then
+         begin
+           oldcodegenerror:=codegenerror;
+           oldpos:=aktfilepos;
+           oldlocalswitches:=aktlocalswitches;
+           codegenerror:=false;
+           aktfilepos:=p.fileinfo;
+           aktlocalswitches:=p.localswitches;
+           hp:=p.det_resulttype;
+//writeln('result: ',nodetype2str[p.nodetype],' ',dword(hp));
+           { should the node be replaced? }
+           if assigned(hp) then
+            begin
+               p.free;
+               p:=hp;
+            end;
+{$ifdef EXTDEBUG}
+           { save resulttype for checking of changes in pass_1 }
+           p.oldresulttype:=p.resulttype;
+{$endif EXTDEBUG}
+           aktlocalswitches:=oldlocalswitches;
+           aktfilepos:=oldpos;
+           if codegenerror then
+            begin
+              include(p.flags,nf_error);
+              { default to errortype if no type is set yet }
+              if p.resulttype.def=nil then
+               p.resulttype:=generrortype;
+            end;
+           codegenerror:=codegenerror or oldcodegenerror;
+         end
+        else
+         inc(multiresulttypepasscnt);
+      end;
 
+
+    function do_resulttypepass(var p : tnode) : boolean;
+      begin
+         aktexceptblock:=nil;
+         codegenerror:=false;
+         resulttypepass(p);
+         do_resulttypepass:=codegenerror;
+      end;
+
+
+    procedure firstpass(var p : tnode);
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
          hp : tnode;
-{$ifdef extdebug}
-   {$ifdef dummy}
-         str1,str2 : string;
-         oldp      : tnode;
-   {$endif}
-         not_first : boolean;
-{$endif extdebug}
       begin
 {$ifdef extdebug}
          inc(total_of_firstpass);
@@ -80,25 +132,29 @@ implementation
          oldlocalswitches:=aktlocalswitches;
 {$ifdef extdebug}
          if p.firstpasscount>0 then
-           begin
-    {$ifdef dummy}
-              move(p^,str1[1],sizeof(ttree));
-              str1[0]:=char(sizeof(ttree));
-              new(oldp);
-              old^:=p^;
-    {$endif}
-              not_first:=true;
-              inc(firstpass_several);
-           end
-         else
-           not_first:=false;
+          inc(firstpass_several);
 {$endif extdebug}
-
          if not(nf_error in p.flags) then
            begin
               codegenerror:=false;
               aktfilepos:=p.fileinfo;
               aktlocalswitches:=p.localswitches;
+              { determine the resulttype if not done }
+              if (p.resulttype.def=nil) then
+               begin
+                 hp:=p.det_resulttype;
+                 { should the node be replaced? }
+                 if assigned(hp) then
+                  begin
+                     p.free;
+                     p:=hp;
+                  end;
+{$ifdef EXTDEBUG}
+                 { save resulttype for checking of changes in pass_1 }
+                 p.oldresulttype:=p.resulttype;
+{$endif EXTDEBUG}
+               end;
+              { first pass }
               hp:=p.pass_1;
               { should the node be replaced? }
               if assigned(hp) then
@@ -106,6 +162,12 @@ implementation
                    p.free;
                    p:=hp;
                 end;
+{$ifdef EXTDEBUG}
+              { check if the resulttype is still the same }
+              if (p.oldresulttype.def<>p.resulttype.def) and
+                 (p.oldresulttype.sym<>p.resulttype.sym) then
+               Comment(V_Warning,'Resulttype change in '+nodetype2str[p.nodetype]+'.pass_1');
+{$endif EXTDEBUG}
               aktlocalswitches:=oldlocalswitches;
               aktfilepos:=oldpos;
               if codegenerror then
@@ -115,21 +177,6 @@ implementation
          else
            codegenerror:=true;
 {$ifdef extdebug}
-         if not_first then
-           begin
-    {$ifdef dummy}
-              { dirty trick to compare two ttree's (PM) }
-              move(p^,str2[1],sizeof(ttree));
-              str2[0]:=char(sizeof(ttree));
-              if str1<>str2 then
-                begin
-                   comment(v_debug,'tree changed after first counting pass '
-                     +tostr(longint(p.treetype)));
-                   compare_trees(oldp,p);
-                end;
-              dispose(oldp);
-    {$endif dummy}
-           end;
          if count_ref then
            inc(p.firstpasscount);
 {$endif extdebug}
@@ -147,7 +194,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-12-18 21:56:52  peter
+  Revision 1.12  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.11  2000/12/18 21:56:52  peter
     * extdebug fixes
 
   Revision 1.10  2000/11/29 00:30:35  florian

@@ -45,31 +45,37 @@ interface
        end;
 
        twhilerepeatnode = class(tloopnode)
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tifnode = class(tloopnode)
           constructor create(l,r,_t1 : tnode);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tfornode = class(tloopnode)
           constructor create(l,r,_t1,_t2 : tnode;back : boolean);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        texitnode = class(tunarynode)
           constructor create(l:tnode);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tbreaknode = class(tnode)
           constructor create;virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tcontinuenode = class(tnode)
           constructor create;virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -78,6 +84,7 @@ interface
           labsym : plabelsym;
           constructor create(p : pasmlabel);virtual;
           function getcopy : tnode;override;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
@@ -88,6 +95,7 @@ interface
           labsym : plabelsym;
           constructor create(p : pasmlabel;l:tnode);virtual;
           function getcopy : tnode;override;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
@@ -97,17 +105,20 @@ interface
           constructor create(l,taddr,tframe:tnode);virtual;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
 
        ttryexceptnode = class(tloopnode)
           constructor create(l,r,_t1 : tnode);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        ttryfinallynode = class(tbinarynode)
           constructor create(l,r:tnode);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -116,6 +127,7 @@ interface
           excepttype : pobjectdef;
           constructor create(l,r:tnode);virtual;
           destructor destroy;override;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
           function getcopy : tnode;override;
           function docompare(p: tnode): boolean; override;
@@ -123,6 +135,7 @@ interface
 
        tfailnode = class(tnode)
           constructor create;virtual;
+          function det_resulttype:tnode;override;
           function pass_1: tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
@@ -245,12 +258,19 @@ implementation
                                TWHILEREPEATNODE
 *****************************************************************************}
 
+    function twhilerepeatnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function twhilerepeatnode.pass_1 : tnode;
 
       var
          old_t_times : longint;
       begin
-         pass_1:=nil;
+         result:=nil;
          old_t_times:=t_times;
 
          { calc register weight }
@@ -266,7 +286,7 @@ implementation
          set_varstate(left,true);
          if codegenerror then
            exit;
-         if not is_boolean(left.resulttype) then
+         if not is_boolean(left.resulttype.def) then
            begin
              CGMessage(type_e_mismatch);
              exit;
@@ -314,12 +334,20 @@ implementation
          inherited create(ifn,l,r,_t1,nil);
       end;
 
+
+    function tifnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function tifnode.pass_1 : tnode;
       var
          old_t_times : longint;
          hp : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          old_t_times:=t_times;
 {$ifdef newcg}
          tg.cleartempgen;
@@ -333,8 +361,8 @@ implementation
            the right also needs to be firstpassed }
          if not codegenerror then
           begin
-            if not is_boolean(left.resulttype) then
-              Message1(type_e_boolean_expr_expected,left.resulttype^.typename);
+            if not is_boolean(left.resulttype.def) then
+              Message1(type_e_boolean_expr_expected,left.resulttype.def^.typename);
           end;
 
          registers32:=left.registers32;
@@ -403,9 +431,9 @@ implementation
                    right:=nil;
                    { we cannot set p to nil !!! }
                    if assigned(hp) then
-                     pass_1:=hp
+                     result:=hp
                    else
-                     pass_1:=cnothingnode.create;
+                     result:=cnothingnode.create;
                 end
               else
                 begin
@@ -413,9 +441,9 @@ implementation
                    t1:=nil;
                    { we cannot set p to nil !!! }
                    if assigned(hp) then
-                     pass_1:=hp
+                     result:=hp
                    else
-                     pass_1:=cnothingnode.create;
+                     result:=cnothingnode.create;
                 end;
            end;
 
@@ -434,6 +462,14 @@ implementation
          if back then
            include(flags,nf_backward);
       end;
+
+
+    function tfornode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
 
     function tfornode.pass_1 : tnode;
 
@@ -515,7 +551,7 @@ implementation
           begin
             if tloadnode(hp).symtableentry^.typ=varsym then
               pvarsym(tloadnode(hp).symtableentry)^.varstate:=vs_used;
-            if (not(is_ordinal(t2.resulttype)) or is_64bitint(t2.resulttype)) then
+            if (not(is_ordinal(t2.resulttype.def)) or is_64bitint(t2.resulttype.def)) then
               CGMessagePos(hp.fileinfo,type_e_ordinal_expr_expected);
           end
          else
@@ -539,7 +575,7 @@ implementation
          set_varstate(right,true);
          if right.nodetype<>ordconstn then
            begin
-              right:=gentypeconvnode(right,t2.resulttype);
+              inserttypeconv(right,t2.resulttype);
 {$ifdef newcg}
               tg.cleartempgen;
 {$else newcg}
@@ -568,35 +604,41 @@ implementation
 *****************************************************************************}
 
     constructor texitnode.create(l:tnode);
-
+      var
+         pt : tnode;
       begin
         inherited create(exitn,l);
+
+        { Check the 2 types }
+        if assigned(left) then
+         begin
+           inserttypeconv(left,procinfo^.returntype);
+           if ret_in_param(procinfo^.returntype.def) or procinfo^.no_fast_exit then
+            begin
+              pt:=cfuncretnode.create(procinfo);
+              left:=cassignmentnode.create(pt,left);
+            end;
+         end;
       end;
 
-    function texitnode.pass_1 : tnode;
-      var
-         pt : tfuncretnode;
+
+    function texitnode.det_resulttype:tnode;
       begin
-         pass_1:=nil;
-         resulttype:=voiddef;
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
+    function texitnode.pass_1 : tnode;
+      begin
+         result:=nil;
          if assigned(left) then
            begin
               firstpass(left);
               set_varstate(left,true);
-              procinfo^.funcret_state:=vs_assigned;
               if codegenerror then
                exit;
-              { Check the 2 types }
-              left:=gentypeconvnode(left,procinfo^.returntype.def);
-              firstpass(left);
-              if ret_in_param(procinfo^.returntype.def) or procinfo^.no_fast_exit then
-                begin
-                  pt:=cfuncretnode.create;
-                  pt.rettype.setdef(procinfo^.returntype.def);
-                  pt.funcretprocinfo:=procinfo;
-                  left:=cassignmentnode.create(pt,left);
-                  firstpass(left);
-                end;
+              procinfo^.funcret_state:=vs_assigned;
               registers32:=left.registers32;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -616,6 +658,14 @@ implementation
         inherited create(breakn);
       end;
 
+
+    function tbreaknode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function tbreaknode.pass_1 : tnode;
       begin
         result:=nil;
@@ -631,6 +681,14 @@ implementation
       begin
         inherited create(continuen);
       end;
+
+
+    function tcontinuenode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
 
     function tcontinuenode.pass_1 : tnode;
       begin
@@ -650,10 +708,16 @@ implementation
       end;
 
 
+    function tgotonode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function tgotonode.pass_1 : tnode;
       begin
-         pass_1:=nil;
-         resulttype:=voiddef;
+         result:=nil;
       end;
 
    function tgotonode.getcopy : tnode;
@@ -687,10 +751,17 @@ implementation
       end;
 
 
+    function tlabelnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function tlabelnode.pass_1 : tnode;
 
       begin
-         pass_1:=nil;
+         result:=nil;
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -703,7 +774,6 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-         resulttype:=voiddef;
       end;
 
 
@@ -720,10 +790,12 @@ implementation
         result:=p;
      end;
 
+
     function tlabelnode.docompare(p: tnode): boolean;
       begin
         docompare := false;
       end;
+
 
 {*****************************************************************************
                             TRAISENODE
@@ -735,6 +807,7 @@ implementation
          inherited create(raisen,l,taddr);
          frametree:=tframe;
       end;
+
 
     function traisenode.getcopy : tnode;
 
@@ -750,21 +823,28 @@ implementation
          getcopy:=n;
       end;
 
-    procedure traisenode.insertintolist(l : tnodelist);
 
+    procedure traisenode.insertintolist(l : tnodelist);
       begin
       end;
 
+
+    function traisenode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function traisenode.pass_1 : tnode;
       begin
-         pass_1:=nil;
-         resulttype:=voiddef;
+         result:=nil;
          if assigned(left) then
            begin
               { first para must be a _class_ }
               firstpass(left);
-              if assigned(left.resulttype) and
-                 not(is_class(left.resulttype)) then
+              if assigned(left.resulttype.def) and
+                 not(is_class(left.resulttype.def)) then
                 CGMessage(type_e_mismatch);
               set_varstate(left,true);
               if codegenerror then
@@ -774,7 +854,7 @@ implementation
                begin
                  { addr }
                  firstpass(right);
-                 right:=gentypeconvnode(right,s32bitdef);
+                 inserttypeconv(right,s32bittype);
                  firstpass(right);
                  if codegenerror then
                   exit;
@@ -782,7 +862,7 @@ implementation
                  if assigned(frametree) then
                   begin
                     firstpass(frametree);
-                    frametree:=gentypeconvnode(frametree,s32bitdef);
+                    inserttypeconv(frametree,s32bittype);
                     firstpass(frametree);
                     if codegenerror then
                      exit;
@@ -808,13 +888,21 @@ implementation
          inherited create(tryexceptn,l,r,_t1,nil);
       end;
 
+
+    function ttryexceptnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function ttryexceptnode.pass_1 : tnode;
 
       var
          oldexceptblock : tnode;
 
       begin
-         pass_1:=nil;
+         result:=nil;
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -868,14 +956,21 @@ implementation
         inherited create(tryfinallyn,l,r);
       end;
 
+
+    function ttryfinallynode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function ttryfinallynode.pass_1 : tnode;
 
       var
          oldexceptblock : tnode;
 
       begin
-         pass_1:=nil;
-         resulttype:=voiddef;
+         result:=nil;
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -933,13 +1028,20 @@ implementation
          result:=n;
       end;
 
+    function tonnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function tonnode.pass_1 : tnode;
 
       var
          oldexceptblock : tnode;
 
       begin
-         pass_1:=nil;
+         result:=nil;
          { that's really an example procedure for a firstpass :) }
          if not(is_class(excepttype)) then
            CGMessage(type_e_mismatch);
@@ -948,7 +1050,6 @@ implementation
 {$else newcg}
          cleartempgen;
 {$endif newcg}
-         resulttype:=voiddef;
          registers32:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
@@ -995,16 +1096,23 @@ implementation
 
 
     constructor tfailnode.create;
-
       begin
          inherited create(failn);
       end;
 
-    function tfailnode.pass_1 : tnode;
 
+    function tfailnode.det_resulttype:tnode;
       begin
-         pass_1:=nil;
+        result:=nil;
+        resulttype:=voidtype;
       end;
+
+
+    function tfailnode.pass_1 : tnode;
+      begin
+         result:=nil;
+      end;
+
 
     function tfailnode.docompare(p: tnode): boolean;
       begin
@@ -1028,7 +1136,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-03-25 12:27:59  peter
+  Revision 1.15  2001-04-02 21:20:30  peter
+    * resulttype rewrite
+
+  Revision 1.14  2001/03/25 12:27:59  peter
     * set funcret to assigned (merged)
 
   Revision 1.13  2001/02/26 19:44:53  peter

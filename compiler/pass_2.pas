@@ -47,6 +47,9 @@ procedure secondpass(var p : tnode);
 implementation
 
    uses
+{$ifdef logsecondpass}
+     cutils,
+{$endif}
      globtype,systems,
      cobjects,globals,
      symconst,symbase,symtype,symsym,aasm,
@@ -57,21 +60,11 @@ implementation
 *****************************************************************************}
 
 {$ifdef logsecondpass}
-     procedure logsecond(const s: string; entry: boolean);
-     var p: pchar;
-     begin
-       if entry then
-         p := strpnew(s+' (entry)')
-       else p := strpnew(s+' (exit)');
-       exprasmlist^.concat(new(pai_asm_comment,init(p)));
-     end;
-{$endif logsecondpass}
-
-     procedure secondpass(var p : tnode);
-{$ifdef logsecondpass}
-      secondnames: array[ttreetyp] of string[13] =
+     procedure logsecond(ht:tnodetype; entry: boolean);
+       const
+         secondnames: array[tnodetype] of string[13] =
             ('add-addn',  {addn}
-             'add-muln)',  {muln}
+             'add-muln',  {muln}
              'add-subn',  {subn}
              'moddiv-divn',      {divn}
              'add-symdifn',      {symdifn}
@@ -151,8 +144,18 @@ implementation
              'nothing-nothg',     {nothingn}
              'loadvmt'      {loadvmtn}
              );
-
+      var
+        p: pchar;
+      begin
+        if entry then
+          p := strpnew('second'+secondnames[ht]+' (entry)')
+        else
+          p := strpnew('second'+secondnames[ht]+' (exit)');
+        exprasmlist.concat(tai_asm_comment.create(p));
+      end;
 {$endif logsecondpass}
+
+     procedure secondpass(var p : tnode);
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
@@ -176,11 +179,11 @@ implementation
             aktlocalswitches:=p.localswitches;
             codegenerror:=false;
 {$ifdef logsecondpass}
-            logsecond('second'+secondnames[p.nodetype],true);
+            logsecond(p.nodetype,true);
 {$endif logsecondpass}
             p.pass_2;
 {$ifdef logsecondpass}
-            logsecond('second'+secondnames[p.nodetype],false);
+            logsecond(p.nodetype,false);
 {$endif logsecondpass}
             if codegenerror then
               include(p.flags,nf_error);
@@ -301,7 +304,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-12-25 00:07:27  peter
+  Revision 1.13  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.12  2000/12/25 00:07:27  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

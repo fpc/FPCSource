@@ -97,7 +97,7 @@ uses
 {$endif Delphi}
   verbose,comphook,systems,
   cutils,cclasses,globals,options,fmodule,parser,symtable,
-  link,import,export,tokens,
+  link,import,export,tokens,pass_1,
   { cpu overrides }
   cpuswtch,cpunode
   ;
@@ -306,9 +306,8 @@ begin
     LostMemory:=system.HeapSize-MemAvail-EntryMemUsed;
     CheckMemory(LostMemory);
   {$endif FPC}
-  {$ifndef newcg}
-    Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
-  {$endif newcg}
+  Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
+  Writeln('Repetitive resulttypepass = ',multiresulttypepasscnt,'/',resulttypepasscnt);
 {$endif EXTDEBUG}
 {$ifdef MEMDEBUG}
   Writeln('Memory used: ',system.Heapsize);
@@ -321,7 +320,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2000-12-26 15:57:25  peter
+  Revision 1.16  2001-04-02 21:20:29  peter
+    * resulttype rewrite
+
+  Revision 1.15  2000/12/26 15:57:25  peter
     * use system.paramstr()
 
   Revision 1.14  2000/12/25 00:07:25  peter

@@ -51,16 +51,19 @@ interface
 
        tsetelementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        tinnode = class(tbinopnode)
           constructor create(l,r : tnode);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
        trangenode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
        end;
 
@@ -71,6 +74,7 @@ interface
           destructor destroy;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
+          function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
@@ -131,24 +135,32 @@ implementation
          inherited create(setelementn,l,r);
       end;
 
-    function tsetelementnode.pass_1 : tnode;
 
+    function tsetelementnode.det_resulttype:tnode;
       begin
-         pass_1:=nil;
-         firstpass(left);
+         result:=nil;
+         resulttypepass(left);
+         if assigned(right) then
+          resulttypepass(right);
          set_varstate(left,true);
          if codegenerror then
           exit;
 
+         resulttype:=left.resulttype;
+      end;
+
+
+    function tsetelementnode.pass_1 : tnode;
+
+      begin
+         result:=nil;
+         firstpass(left);
          if assigned(right) then
-          begin
-            firstpass(right);
-            if codegenerror then
-             exit;
-          end;
+          firstpass(right);
+         if codegenerror then
+          exit;
 
          calcregisters(self,0,0,0);
-         resulttype:=left.resulttype;
          set_location(location,left.location);
       end;
 
@@ -158,58 +170,54 @@ implementation
 *****************************************************************************}
 
     constructor tinnode.create(l,r : tnode);
-
       begin
          inherited create(inn,l,r);
       end;
 
-    function tinnode.pass_1 : tnode;
-      type
-        byteset = set of byte;
+
+    function tinnode.det_resulttype:tnode;
       var
         t : tnode;
         pst : pconstset;
 
-    function createsetconst(psd : psetdef) : pconstset;
-      var
-        pcs : pconstset;
-        pes : penumsym;
-        i : longint;
-      begin
-        new(pcs);
-        case psd^.elementtype.def^.deftype of
-          enumdef :
-            begin
-              pes:=penumsym(penumdef(psd^.elementtype.def)^.firstenum);
-              while assigned(pes) do
-                begin
-                  pcs^[pes^.value div 8]:=pcs^[pes^.value div 8] or (1 shl (pes^.value mod 8));
-                  pes:=pes^.nextenum;
-                end;
-            end;
-          orddef :
-            begin
-              for i:=porddef(psd^.elementtype.def)^.low to porddef(psd^.elementtype.def)^.high do
-                begin
-                  pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
-                end;
-            end;
+        function createsetconst(psd : psetdef) : pconstset;
+        var
+          pcs : pconstset;
+          pes : penumsym;
+          i : longint;
+        begin
+          new(pcs);
+          case psd^.elementtype.def^.deftype of
+            enumdef :
+              begin
+                pes:=penumsym(penumdef(psd^.elementtype.def)^.firstenum);
+                while assigned(pes) do
+                  begin
+                    pcs^[pes^.value div 8]:=pcs^[pes^.value div 8] or (1 shl (pes^.value mod 8));
+                    pes:=pes^.nextenum;
+                  end;
+              end;
+            orddef :
+              begin
+                for i:=porddef(psd^.elementtype.def)^.low to porddef(psd^.elementtype.def)^.high do
+                  begin
+                    pcs^[i div 8]:=pcs^[i div 8] or (1 shl (i mod 8));
+                  end;
+              end;
+          end;
+          createsetconst:=pcs;
         end;
-       createsetconst:=pcs;
-      end;
 
       begin
-         pass_1:=nil;
-         location.loc:=LOC_FLAGS;
-         resulttype:=booldef;
-
-         firstpass(right);
+         result:=nil;
+         resulttype:=booltype;
+         resulttypepass(right);
          set_varstate(right,true);
          if codegenerror then
           exit;
 
          { Convert array constructor first to set }
-         if is_array_constructor(right.resulttype) then
+         if is_array_constructor(right.resulttype.def) then
           begin
             arrayconstructor_to_set(tarrayconstructornode(right));
             firstpass(right);
@@ -217,59 +225,66 @@ implementation
              exit;
           end;
 
-         { if right is a typen then the def
-         is in typenodetype PM }
-         if right.nodetype=typen then
-           right.resulttype:=ttypenode(right).typenodetype;
-
-         if right.resulttype^.deftype<>setdef then
+         if right.resulttype.def^.deftype<>setdef then
            CGMessage(sym_e_set_expected);
-         if codegenerror then
-           exit;
 
          if (right.nodetype=typen) then
            begin
              { we need to create a setconstn }
-             pst:=createsetconst(psetdef(ttypenode(right).typenodetype));
-             t:=gensetconstnode(pst,psetdef(ttypenode(right).typenodetype));
+             pst:=createsetconst(psetdef(ttypenode(right).resulttype.def));
+             t:=csetconstnode.create(pst,ttypenode(right).resulttype);
              dispose(pst);
              right.free;
              right:=t;
            end;
 
-         firstpass(left);
+         resulttypepass(left);
          set_varstate(left,true);
          if codegenerror then
            exit;
 
-         { empty set then return false }
-         if not assigned(psetdef(right.resulttype)^.elementtype.def) then
-          begin
-            t:=genordinalconstnode(0,booldef);
-            firstpass(t);
-            pass_1:=t;
-            exit;
-          end;
-
          { type conversion/check }
-         left:=gentypeconvnode(left,psetdef(right.resulttype)^.elementtype.def);
+         if assigned(psetdef(right.resulttype.def)^.elementtype.def) then
+          inserttypeconv(left,psetdef(right.resulttype.def)^.elementtype);
+      end;
+
+
+    function tinnode.pass_1 : tnode;
+      type
+        byteset = set of byte;
+      var
+        t : tnode;
+      begin
+         result:=nil;
+         location.loc:=LOC_FLAGS;
+
+         firstpass(right);
          firstpass(left);
          if codegenerror then
            exit;
 
+         { empty set then return false }
+         if not assigned(psetdef(right.resulttype.def)^.elementtype.def) then
+          begin
+            t:=cordconstnode.create(0,booltype);
+            firstpass(t);
+            result:=t;
+            exit;
+          end;
+
          { constant evaulation }
          if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
-            t:=genordinalconstnode(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booldef);
+            t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booltype);
             firstpass(t);
-            pass_1:=t;
+            result:=t;
             exit;
           end;
 
          left_right_max;
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
-         if psetdef(right.resulttype)^.settype<>smallset then
+         if psetdef(right.resulttype.def)^.settype<>smallset then
            procinfo^.flags:=procinfo^.flags or pi_do_call
          else
            begin
@@ -292,32 +307,42 @@ implementation
          inherited create(rangen,l,r);
       end;
 
-    function trangenode.pass_1 : tnode;
+
+    function trangenode.det_resulttype : tnode;
       var
          ct : tconverttype;
       begin
-         pass_1:=nil;
-         firstpass(left);
+         result:=nil;
+         resulttypepass(left);
+         resulttypepass(right);
          set_varstate(left,true);
-         firstpass(right);
          set_varstate(right,true);
          if codegenerror then
            exit;
          { both types must be compatible }
-         if not(is_equal(left.resulttype,right.resulttype)) and
-            (isconvertable(left.resulttype,right.resulttype,ct,nil,ordconstn,false)=0) then
+         if not(is_equal(left.resulttype.def,right.resulttype.def)) and
+            (isconvertable(left.resulttype.def,right.resulttype.def,ct,ordconstn,false)=0) then
            CGMessage(type_e_mismatch);
          { Check if only when its a constant set }
          if (left.nodetype=ordconstn) and (right.nodetype=ordconstn) then
           begin
-          { upper limit must be greater or equal than lower limit }
-          { not if u32bit }
+            { upper limit must be greater or equal than lower limit }
             if (tordconstnode(left).value>tordconstnode(right).value) and
                ((tordconstnode(left).value<0) or (tordconstnode(right).value>=0)) then
               CGMessage(cg_e_upper_lower_than_lower);
           end;
-        left_right_max;
         resulttype:=left.resulttype;
+      end;
+
+
+    function trangenode.pass_1 : tnode;
+      begin
+         result:=nil;
+         firstpass(left);
+         firstpass(right);
+         if codegenerror then
+           exit;
+        left_right_max;
         set_location(location,left.location);
       end;
 
@@ -405,7 +430,6 @@ implementation
 *****************************************************************************}
 
     constructor tcasenode.create(l,r : tnode;n : pcaserecord);
-
       begin
          inherited create(casen,l,r);
          nodes:=n;
@@ -413,20 +437,29 @@ implementation
          set_file_line(l);
       end;
 
-    destructor tcasenode.destroy;
 
+    destructor tcasenode.destroy;
       begin
          elseblock.free;
          deletecaselabels(nodes);
          inherited destroy;
       end;
 
+
+    function tcasenode.det_resulttype : tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
+
     function tcasenode.pass_1 : tnode;
       var
          old_t_times : longint;
          hp : tbinarynode;
       begin
-         pass_1:=nil;
+         result:=nil;
          { evalutes the case expression }
 {$ifdef newcg}
          tg.cleartempgen;
@@ -505,6 +538,7 @@ implementation
          if registers32<1 then registers32:=1;
       end;
 
+
     function tcasenode.getcopy : tnode;
 
       var
@@ -526,16 +560,16 @@ implementation
       end;
 
     function casenodesequal(n1,n2: pcaserecord): boolean;
-    begin
-      casenodesequal :=
-        (not assigned(n1) and not assigned(n2)) or
-        (assigned(n1) and assigned(n2) and
-         (n1^._low = n2^._low) and
-         (n1^._high = n2^._high) and
-         { the rest of the fields don't matter for equality (JM) }
-         casenodesequal(n1^.less,n2^.less) and
-         casenodesequal(n1^.greater,n2^.greater))
-    end;
+      begin
+        casenodesequal :=
+          (not assigned(n1) and not assigned(n2)) or
+          (assigned(n1) and assigned(n2) and
+           (n1^._low = n2^._low) and
+           (n1^._high = n2^._high) and
+           { the rest of the fields don't matter for equality (JM) }
+           casenodesequal(n1^.less,n2^.less) and
+           casenodesequal(n1^.greater,n2^.greater))
+      end;
 
 
     function tcasenode.docompare(p: tnode): boolean;
@@ -554,7 +588,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-12-31 11:14:11  jonas
+  Revision 1.12  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.11  2000/12/31 11:14:11  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together

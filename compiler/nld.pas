@@ -35,9 +35,11 @@ interface
           symtableentry : psym;
           symtable : psymtable;
           constructor create(v : psym;st : psymtable);virtual;
-          function getcopy : tnode;override;
-          function pass_1 : tnode;override;
-          function docompare(p: tnode): boolean; override;
+          procedure set_mp(p:tnode);
+          function  getcopy : tnode;override;
+          function  pass_1 : tnode;override;
+          function  det_resulttype:tnode;override;
+          function  docompare(p: tnode): boolean; override;
        end;
 
        { different assignment types }
@@ -48,37 +50,39 @@ interface
           constructor create(l,r : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
 
        tfuncretnode = class(tnode)
           funcretprocinfo : pointer;
-          rettype : ttype;
-          constructor create;virtual;
+          constructor create(p:pointer);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
 
        tarrayconstructorrangenode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tarrayconstructornode = class(tbinarynode)
-          constructordef : pdef;
+          constructortype : ttype;
           constructor create(l,r : tnode);virtual;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
 
        ttypenode = class(tnode)
-          typenodetype : pdef;
-          typenodesym:ptypesym;
-          constructor create(t : pdef;sym:ptypesym);virtual;
-          function getcopy : tnode;override;
+          restype : ttype;
+          constructor create(t : ttype);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
 
@@ -90,11 +94,6 @@ interface
        carrayconstructornode : class of tarrayconstructornode;
        ctypenode : class of ttypenode;
 
-    function genloadnode(v : pvarsym;st : psymtable) : tloadnode;
-    function gentypenode(t : pdef;sym:ptypesym) : ttypenode;
-    function genloadcallnode(v: pprocsym;st: psymtable): tloadnode;
-    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp: tnode): tloadnode;
-    function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : tloadnode;
 
 implementation
 
@@ -109,54 +108,6 @@ implementation
 {$endif newcg}
       ;
 
-    function genloadnode(v : pvarsym;st : psymtable) : tloadnode;
-
-      var
-         n : tloadnode;
-
-      begin
-         n:=cloadnode.create(v,st);
-         n.resulttype:=v^.vartype.def;
-         genloadnode:=n;
-      end;
-
-    function genloadcallnode(v: pprocsym;st: psymtable): tloadnode;
-      var
-         n : tloadnode;
-
-      begin
-         n:=cloadnode.create(v,st);
-         n.resulttype:=v^.definition;
-         genloadcallnode:=n;
-      end;
-
-    function genloadmethodcallnode(v: pprocsym;st: psymtable; mp: tnode): tloadnode;
-      var
-         n : tloadnode;
-
-      begin
-         n:=cloadnode.create(v,st);
-         n.resulttype:=v^.definition;
-         n.left:=mp;
-         genloadmethodcallnode:=n;
-      end;
-
-
-    function gentypedconstloadnode(sym : ptypedconstsym;st : psymtable) : tloadnode;
-
-      var
-         n : tloadnode;
-
-      begin
-         n:=cloadnode.create(sym,st);
-         n.resulttype:=sym^.typedconsttype.def;
-         gentypedconstloadnode:=n;
-      end;
-
-    function gentypenode(t : pdef;sym:ptypesym) : ttypenode;
-      begin
-         gentypenode:=ctypenode.create(t,sym);
-      end;
 
 {*****************************************************************************
                              TLOADNODE
@@ -170,8 +121,14 @@ implementation
          symtable:=st;
       end;
 
-    function tloadnode.getcopy : tnode;
 
+    procedure tloadnode.set_mp(p:tnode);
+      begin
+        left:=p;
+      end;
+
+
+    function tloadnode.getcopy : tnode;
       var
          n : tloadnode;
 
@@ -181,6 +138,26 @@ implementation
          n.symtableentry:=symtableentry;
          result:=n;
       end;
+
+
+    function tloadnode.det_resulttype:tnode;
+      begin
+         result:=nil;
+         case symtableentry^.typ of
+           absolutesym,
+           varsym :
+             resulttype:=pvarsym(symtableentry)^.vartype;
+           constsym :
+             resulttype:=pconstsym(symtableentry)^.consttype;
+           typedconstsym :
+             resulttype:=ptypedconstsym(symtableentry)^.typedconsttype;
+           procsym :
+             resulttype.setdef(pprocsym(symtableentry)^.definition);
+           else
+             internalerror(534785349);
+         end;
+      end;
+
 
     function tloadnode.pass_1 : tnode;
       var
@@ -192,7 +169,7 @@ implementation
             (symtableentry^.typ=varsym) then
            begin
               p1:=tnode(pwithsymtable(symtable)^.withrefnode).getcopy;
-              p1:=gensubscriptnode(pvarsym(symtableentry),p1);
+              p1:=csubscriptnode.create(pvarsym(symtableentry),p1);
               left:=nil;
               firstpass(p1);
               result:=p1;
@@ -208,7 +185,6 @@ implementation
          { handle first absolute as it will replace the symtableentry }
          if symtableentry^.typ=absolutesym then
            begin
-             resulttype:=pabsolutesym(symtableentry)^.vartype.def;
              { replace the symtableentry when it points to a var, else
                we are finished }
              if pabsolutesym(symtableentry)^.abstyp=tovar then
@@ -223,9 +199,7 @@ implementation
          case symtableentry^.typ of
             funcretsym :
               begin
-                p1:=cfuncretnode.create;
-                tfuncretnode(p1).funcretprocinfo:=pprocinfo(pfuncretsym(symtableentry)^.funcretprocinfo);
-                tfuncretnode(p1).rettype:=pfuncretsym(symtableentry)^.rettype;
+                p1:=cfuncretnode.create(pfuncretsym(symtableentry)^.funcretprocinfo);
                 firstpass(p1);
                 { if it's refered as absolute then we need to have the
                   type of the absolute instead of the function return,
@@ -242,7 +216,7 @@ implementation
               begin
                  if pconstsym(symtableentry)^.consttyp=constresourcestring then
                    begin
-                      resulttype:=cansistringdef;
+                      resulttype:=cansistringtype;
                       { we use ansistrings so no fast exit here }
                       if assigned(procinfo) then
                         procinfo^.no_fast_exit:=true;
@@ -253,13 +227,10 @@ implementation
               end;
             varsym :
                 begin
-                { if it's refered by absolute then it's used }
-                if nf_absolute in flags then
-                 pvarsym(symtableentry)^.varstate:=vs_used
-                else
-                 if (resulttype=nil) then
-                     resulttype:=pvarsym(symtableentry)^.vartype.def;
-                   if (symtable^.symtabletype in [parasymtable,localsymtable]) and
+                  { if it's refered by absolute then it's used }
+                  if nf_absolute in flags then
+                   pvarsym(symtableentry)^.varstate:=vs_used;
+                  if (symtable^.symtabletype in [parasymtable,localsymtable]) and
                       (lexlevel>symtable^.symtablelevel) then
                      begin
                        { if the variable is in an other stackframe then we need
@@ -300,20 +271,22 @@ implementation
                 end;
             typedconstsym :
                 if not(nf_absolute in flags) then
-                  resulttype:=ptypedconstsym(symtableentry)^.typedconsttype.def;
+                  resulttype:=ptypedconstsym(symtableentry)^.typedconsttype;
             procsym :
                 begin
                    if assigned(pprocsym(symtableentry)^.definition^.nextoverloaded) then
                      CGMessage(parser_e_no_overloaded_procvars);
-                   resulttype:=pprocsym(symtableentry)^.definition;
+                   resulttype.setdef(pprocsym(symtableentry)^.definition);
                    { if the owner of the procsym is a object,  }
                    { left must be set, if left isn't set       }
                    { it can be only self                       }
                    { this code is only used in TP procvar mode }
                    if (m_tp_procvar in aktmodeswitches) and
                       not(assigned(left)) and
-                     (pprocsym(symtableentry)^.owner^.symtabletype=objectsymtable) then
-                      left:=genselfnode(pobjectdef(symtableentry^.owner^.defowner));
+                      (pprocsym(symtableentry)^.owner^.symtabletype=objectsymtable) then
+                    begin
+                      left:=cselfnode.create(pobjectdef(symtableentry^.owner^.defowner));
+                    end;
                    { method pointer ? }
                    if assigned(left) then
                      begin
@@ -329,6 +302,7 @@ implementation
              internalerror(3);
          end;
       end;
+
 
     function tloadnode.docompare(p: tnode): boolean;
       begin
@@ -360,77 +334,69 @@ implementation
          getcopy:=n;
       end;
 
+
+    function tassignmentnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+
+        { must be made unique }
+        if assigned(left) then
+          begin
+             set_unique(left);
+
+             { set we the function result? }
+             set_funcret_is_valid(left);
+          end;
+
+        resulttypepass(left);
+        resulttypepass(right);
+        set_varstate(left,false);
+        set_varstate(right,true);
+        if codegenerror then
+          exit;
+
+        { assignments to open arrays aren't allowed }
+        if is_open_array(left.resulttype.def) then
+          CGMessage(type_e_mismatch);
+
+        { some string functions don't need conversion, so treat them separatly }
+        if not (
+                is_shortstring(left.resulttype.def) and
+                (
+                 is_shortstring(right.resulttype.def) or
+                 is_ansistring(right.resulttype.def) or
+                 is_char(right.resulttype.def)
+                )
+               ) then
+         inserttypeconv(right,left.resulttype);
+
+        { test if node can be assigned, properties are allowed }
+        valid_for_assign(left,true);
+
+        { check if local proc/func is assigned to procvar }
+        if right.resulttype.def^.deftype=procvardef then
+          test_local_to_procvar(pprocvardef(right.resulttype.def),left.resulttype.def);
+      end;
+
+
     function tassignmentnode.pass_1 : tnode;
-{$ifdef newoptimizations2}
-      var
-        hp : tnode;
-{$endif newoptimizations2}
       begin
          result:=nil;
-         { must be made unique }
-         if assigned(left) then
-           begin
-              set_unique(left);
-
-              { set we the function result? }
-              set_funcret_is_valid(left);
-           end;
 
          firstpass(left);
-         set_varstate(left,false);
-         if codegenerror then
-           exit;
-
-         { assignements to open arrays aren't allowed }
-         if is_open_array(left.resulttype) then
-           CGMessage(type_e_mismatch);
-
-         { test if we can avoid copying string to temp
-           as in s:=s+...; (PM) }
-{$ifdef dummyi386}
-         if ((right.treetype=addn) or (right.treetype=subn)) and
-            equal_trees(left,right.left) and
-            (ret_in_acc(left.resulttype)) and
-            (not cs_rangechecking in aktmoduleswitches^) then
-           begin
-              disposetree(right.left);
-              hp:=right;
-              right:=right.right;
-              if hp.treetype=addn then
-                assigntyp:=at_plus
-              else
-                assigntyp:=at_minus;
-              putnode(hp);
-           end;
-         if assigntyp<>at_normal then
-           begin
-              { for fpu type there is no faster way }
-              if is_fpu(left.resulttype) then
-                case assigntyp of
-                  at_plus  : right:=gennode(addn,getcopy(left),right);
-                  at_minus : right:=gennode(subn,getcopy(left),right);
-                  at_star  : right:=gennode(muln,getcopy(left),right);
-                  at_slash : right:=gennode(slashn,getcopy(left),right);
-                end;
-           end;
-{$endif i386}
          firstpass(right);
-         set_varstate(right,true);
          if codegenerror then
            exit;
 
          { some string functions don't need conversion, so treat them separatly }
-         if is_shortstring(left.resulttype) and (assigned(right.resulttype)) then
+         if is_shortstring(left.resulttype.def) and
+            (
+             is_shortstring(right.resulttype.def) or
+             is_ansistring(right.resulttype.def) or
+             is_char(right.resulttype.def)
+            ) then
           begin
-            if not (is_shortstring(right.resulttype) or
-                    is_ansistring(right.resulttype) or
-                    is_char(right.resulttype)) then
-             begin
-               right:=gentypeconvnode(right,left.resulttype);
-               firstpass(right);
-               if codegenerror then
-                exit;
-             end;
             { we call STRCOPY }
             procinfo^.flags:=procinfo^.flags or pi_do_call;
             { test for s:=s+anything ... }
@@ -458,27 +424,8 @@ implementation
                   end;
               end;
 {$endif newoptimizations2}
-          end
-         else
-          begin
-            right:=gentypeconvnode(right,left.resulttype);
-            firstpass(right);
-            if codegenerror then
-             exit;
           end;
 
-         { test if node can be assigned, properties are allowed }
-         valid_for_assign(left,true);
-
-         { check if local proc/func is assigned to procvar }
-         if right.resulttype^.deftype=procvardef then
-           test_local_to_procvar(pprocvardef(right.resulttype),left.resulttype);
-
-         resulttype:=voiddef;
-         {
-           registers32:=max(left.registers32,right.registers32);
-           registersfpu:=max(left.registersfpu,right.registersfpu);
-         }
          registers32:=left.registers32+right.registers32;
          registersfpu:=max(left.registersfpu,right.registersfpu);
 {$ifdef SUPPORT_MMX}
@@ -497,31 +444,33 @@ implementation
                                  TFUNCRETNODE
 *****************************************************************************}
 
-    constructor tfuncretnode.create;
+    constructor tfuncretnode.create(p:pointer);
 
       begin
          inherited create(funcretn);
-         funcretprocinfo:=nil;
+         funcretprocinfo:=p;
       end;
 
     function tfuncretnode.getcopy : tnode;
-
       var
          n : tfuncretnode;
-
       begin
          n:=tfuncretnode(inherited getcopy);
          n.funcretprocinfo:=funcretprocinfo;
-         n.rettype:=rettype;
          getcopy:=n;
+      end;
+
+    function tfuncretnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=pprocinfo(funcretprocinfo)^.returntype;
       end;
 
     function tfuncretnode.pass_1 : tnode;
       begin
          result:=nil;
-         resulttype:=rettype.def;
          location.loc:=LOC_REFERENCE;
-         if ret_in_param(rettype.def) or
+         if ret_in_param(resulttype.def) or
             (procinfo<>pprocinfo(funcretprocinfo)) then
            registers32:=1;
       end;
@@ -530,9 +479,7 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (funcretprocinfo = tfuncretnode(p).funcretprocinfo) and
-          (rettype.def = tfuncretnode(p).rettype.def) and
-          (rettype.sym = tfuncretnode(p).rettype.sym);
+          (funcretprocinfo = tfuncretnode(p).funcretprocinfo);
       end;
 
 {*****************************************************************************
@@ -545,15 +492,25 @@ implementation
          inherited create(arrayconstructorrangen,l,r);
       end;
 
-    function tarrayconstructorrangenode.pass_1 : tnode;
+    function tarrayconstructorrangenode.det_resulttype:tnode;
       begin
         result:=nil;
-        firstpass(left);
+        resulttypepass(left);
+        resulttypepass(right);
         set_varstate(left,true);
-        firstpass(right);
         set_varstate(right,true);
-        calcregisters(self,0,0,0);
+        if codegenerror then
+         exit;
         resulttype:=left.resulttype;
+      end;
+
+
+    function tarrayconstructorrangenode.pass_1 : tnode;
+      begin
+        firstpass(left);
+        firstpass(right);
+        calcregisters(self,0,0,0);
+        result:=nil;
       end;
 
 
@@ -565,7 +522,7 @@ implementation
 
       begin
          inherited create(arrayconstructorn,l,r);
-         constructordef:=nil;
+         constructortype.reset;
       end;
 
     function tarrayconstructornode.getcopy : tnode;
@@ -575,13 +532,64 @@ implementation
 
       begin
          n:=tarrayconstructornode(inherited getcopy);
-         n.constructordef:=constructordef;
+         n.constructortype:=constructortype;
          result:=n;
       end;
 
+    function tarrayconstructornode.det_resulttype:tnode;
+      var
+        htype : ttype;
+        hp : tarrayconstructornode;
+        len : longint;
+        varia : boolean;
+      begin
+        result:=nil;
+      { are we allowing array constructor? Then convert it to a set }
+        if not allow_array_constructor then
+         begin
+           hp:=tarrayconstructornode(getcopy);
+           arrayconstructor_to_set(hp);
+           resulttypepass(hp);
+           result:=hp;
+           exit;
+         end;
+      { only pass left tree, right tree contains next construct if any }
+        htype:=constructortype;
+        len:=0;
+        varia:=false;
+        if assigned(left) then
+         begin
+           hp:=self;
+           while assigned(hp) do
+            begin
+              resulttypepass(hp.left);
+              set_varstate(hp.left,true);
+              if (htype.def=nil) then
+               htype:=hp.left.resulttype
+              else
+               begin
+                 if ((nf_novariaallowed in flags) or (not varia)) and
+                    (not is_equal(htype.def,hp.left.resulttype.def)) then
+                  begin
+                    varia:=true;
+                  end;
+               end;
+              inc(len);
+              hp:=tarrayconstructornode(hp.right);
+            end;
+         end;
+         if not assigned(htype.def) then
+          htype:=voidtype;
+         resulttype.setdef(new(parraydef,init(0,len-1,s32bittype)));
+         parraydef(resulttype.def)^.elementtype:=htype;
+         parraydef(resulttype.def)^.IsConstructor:=true;
+         parraydef(resulttype.def)^.IsVariant:=varia;
+      end;
+
+
     function tarrayconstructornode.pass_1 : tnode;
       var
-        pd : pdef;
+        htype : ttype;
         thp,
         chp,
         hp : tarrayconstructornode;
@@ -597,34 +605,25 @@ implementation
            { is_open_array checks now for isconstructor (FK)   }
            { if no type is set then we set the type to voiddef to overcome a
            0 addressing }
-           if not assigned(pd) then
-             pd:=voiddef;
+           if not assigned(htype.def) then
+             htype:=voidtype;
            { skip if already done ! (PM) }
-           if not assigned(t.resulttype) or
-              (t.resulttype^.deftype<>arraydef) or
-              not parraydef(t.resulttype)^.IsConstructor or
-              (parraydef(t.resulttype)^.lowrange<>0) or
-              (parraydef(t.resulttype)^.highrange<>len-1) then
-             t.resulttype:=new(parraydef,init(0,len-1,s32bitdef));
+           if not assigned(t.resulttype.def) or
+              (t.resulttype.def^.deftype<>arraydef) or
+              not parraydef(t.resulttype.def)^.IsConstructor or
+              (parraydef(t.resulttype.def)^.lowrange<>0) or
+              (parraydef(t.resulttype.def)^.highrange<>len-1) then
+             t.resulttype.setdef(new(parraydef,init(0,len-1,s32bittype)));
 
-           parraydef(t.resulttype)^.elementtype.def:=pd;
-           parraydef(t.resulttype)^.IsConstructor:=true;
-           parraydef(t.resulttype)^.IsVariant:=varia;
+           parraydef(t.resulttype.def)^.elementtype:=htype;
+           parraydef(t.resulttype.def)^.IsConstructor:=true;
+           parraydef(t.resulttype.def)^.IsVariant:=varia;
            t.location.loc:=LOC_MEM;
         end;
       begin
         result:=nil;
-      { are we allowing array constructor? Then convert it to a set }
-        if not allow_array_constructor then
-         begin
-           hp:=tarrayconstructornode(getcopy);
-           arrayconstructor_to_set(hp);
-           firstpass(hp);
-           pass_1:=hp;
-           exit;
-         end;
       { only pass left tree, right tree contains next construct if any }
-        pd:=constructordef;
+        htype:=constructortype;
         len:=0;
         varia:=false;
         if assigned(left) then
@@ -637,57 +636,57 @@ implementation
               if (not get_para_resulttype) and
                 (not(nf_novariaallowed in flags)) then
                begin
-                 case hp.left.resulttype^.deftype of
+                 case hp.left.resulttype.def^.deftype of
                    enumdef :
                      begin
-                       hp.left:=gentypeconvnode(hp.left,s32bitdef);
+                       hp.left:=ctypeconvnode.create(hp.left,s32bittype);
                        firstpass(hp.left);
                      end;
                    orddef :
                      begin
-                       if is_integer(hp.left.resulttype) and
-                         not(is_64bitint(hp.left.resulttype)) then
+                       if is_integer(hp.left.resulttype.def) and
+                         not(is_64bitint(hp.left.resulttype.def)) then
                         begin
-                          hp.left:=gentypeconvnode(hp.left,s32bitdef);
+                          hp.left:=ctypeconvnode.create(hp.left,s32bittype);
                           firstpass(hp.left);
                         end;
                      end;
                    floatdef :
                      begin
-                       hp.left:=gentypeconvnode(hp.left,bestrealdef^);
+                       hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
                        firstpass(hp.left);
                      end;
                    stringdef :
                      begin
                        if nf_cargs in flags then
                         begin
-                          hp.left:=gentypeconvnode(hp.left,charpointerdef);
+                          hp.left:=ctypeconvnode.create(hp.left,charpointertype);
                           firstpass(hp.left);
                         end;
                      end;
                    procvardef :
                      begin
-                       hp.left:=gentypeconvnode(hp.left,voidpointerdef);
+                       hp.left:=ctypeconvnode.create(hp.left,voidpointertype);
                        firstpass(hp.left);
                      end;
                    pointerdef,
                    classrefdef,
                    objectdef : ;
                    else
-                     CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype^.typename);
+                     CGMessagePos1(hp.left.fileinfo,type_e_wrong_type_in_array_constructor,hp.left.resulttype.def^.typename);
                  end;
                end;
-              if (pd=nil) then
-               pd:=hp.left.resulttype
+              if (htype.def=nil) then
+               htype:=hp.left.resulttype
               else
                begin
                  if ((nf_novariaallowed in flags) or (not varia)) and
-                    (not is_equal(pd,hp.left.resulttype)) then
+                    (not is_equal(htype.def,hp.left.resulttype.def)) then
                   begin
                     { if both should be equal try inserting a conversion }
                     if nf_novariaallowed in flags then
                      begin
-                       hp.left:=gentypeconvnode(hp.left,pd);
+                       hp.left:=ctypeconvnode.create(hp.left,htype);
                        firstpass(hp.left);
                      end;
                     varia:=true;
@@ -713,7 +712,7 @@ implementation
               include(chp.flags,nf_cargs);
               include(chp.flags,nf_cargswap);
               postprocess(chp);
-              pass_1:=chp;
+              result:=chp;
               exit;
             end;
          end;
@@ -724,46 +723,36 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (constructordef = tarrayconstructornode(p).constructordef);
+          (constructortype.def = tarrayconstructornode(p).constructortype.def);
       end;
+
 
 {*****************************************************************************
                               TTYPENODE
 *****************************************************************************}
 
-    constructor ttypenode.create(t : pdef;sym:ptypesym);
+    constructor ttypenode.create(t : ttype);
 
       begin
          inherited create(typen);
-         resulttype:=generrordef;
-         typenodetype:=t;
-         typenodesym:=sym;
+         restype:=t;
       end;
 
-    function ttypenode.getcopy : tnode;
-
-      var
-         n : ttypenode;
-
+    function ttypenode.det_resulttype:tnode;
       begin
-         n:=ttypenode(inherited getcopy);
-         n.typenodetype:=typenodetype;
-         n.typenodesym:=typenodesym;
-         result:=n;
+        result:=nil;
+        resulttype:=restype;
       end;
 
     function ttypenode.pass_1 : tnode;
       begin
-         pass_1:=nil;
-         { do nothing, resulttype is already set }
+         result:=nil;
       end;
 
     function ttypenode.docompare(p: tnode): boolean;
       begin
         docompare :=
-          inherited docompare(p) and
-          (typenodetype = ttypenode(p).typenodetype) and
-          (typenodesym = ttypenode(p).typenodesym);
+          inherited docompare(p);
       end;
 
 begin
@@ -776,7 +765,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2000-12-31 11:14:10  jonas
+  Revision 1.11  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.10  2000/12/31 11:14:10  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together

@@ -52,7 +52,6 @@ interface
           procedure loadsyms;
           procedure writedefs;
           procedure writesyms;
-          procedure prederef;
           procedure deref;
           procedure insert(sym : psymentry);virtual;
           procedure insert_in(psymt : psymtable;offset : longint);
@@ -130,7 +129,7 @@ interface
 ****************************************************************************}
 
 {*** Misc ***}
-    function  globaldef(const s : string) : pdef;
+    procedure globaldef(const s : string;var t:ttype);
     function  findunitsymtable(st:psymtable):psymtable;
     procedure duplicatesym(sym:psym);
     procedure identifier_not_found(const s:string);
@@ -737,20 +736,6 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.prederef;
-      var
-        hs : psym;
-      begin
-        { first deref the ttypesyms }
-        hs:=psym(symindex^.first);
-        while assigned(hs) do
-         begin
-           hs^.prederef;
-           hs:=psym(hs^.indexnext);
-         end;
-      end;
-
-
     procedure tstoredsymtable.deref;
       var
         hp : pdef;
@@ -762,6 +747,13 @@ implementation
          begin
            hp^.deref;
            hp:=pdef(hp^.indexnext);
+         end;
+        { first deref the ttypesyms }
+        hs:=psym(symindex^.first);
+        while assigned(hs) do
+         begin
+           hs^.prederef;
+           hs:=psym(hs^.indexnext);
          end;
         { deref the symbols }
         hs:=psym(symindex^.first);
@@ -885,7 +877,7 @@ implementation
          if not (typ in [localsymtable,parasymtable,recordsymtable,objectsymtable]) then
           begin
             { now we can deref the syms and defs }
-            prederef;
+            deref;
             { restore symtablestack }
             symtablestack:=next;
           end;
@@ -2157,7 +2149,7 @@ implementation
                             Definition Helpers
 *****************************************************************************}
 
-    function globaldef(const s : string) : pdef;
+    procedure globaldef(const s : string;var t:ttype);
 
       var st : string;
           symt : psymtable;
@@ -2187,9 +2179,10 @@ implementation
             (srsym^.typ<>typesym) then
            begin
              Message(type_e_type_id_expected);
+             t:=generrortype;
              exit;
            end;
-         globaldef := pdef(ptypesym(srsym)^.restype.def);
+         t := ptypesym(srsym)^.restype;
       end;
 
 {****************************************************************************
@@ -2354,7 +2347,7 @@ implementation
 {$endif GDB}
      { create error syms and def }
         generrorsym:=new(perrorsym,init);
-        generrordef:=new(perrordef,init);
+        generrortype.setdef(new(perrordef,init));
 {$ifdef UNITALIASES}
      { unit aliases }
         unitaliases:=new(pdictionary,init);
@@ -2367,7 +2360,7 @@ implementation
    procedure DoneSymtable;
       begin
         dispose(generrorsym,done);
-        dispose(generrordef,done);
+        dispose(generrortype.def,done);
 {$ifdef UNITALIASES}
         dispose(unitaliases,done);
 {$endif}
@@ -2376,7 +2369,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-03-22 00:10:58  florian
+  Revision 1.30  2001-04-02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.29  2001/03/22 00:10:58  florian
     + basic variant type support in the compiler
 
   Revision 1.28  2001/03/13 18:45:07  peter

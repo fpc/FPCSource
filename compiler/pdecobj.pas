@@ -78,7 +78,7 @@ implementation
                 else
                   begin
                      { OBJECT constructors return a boolean }
-                     aktprocsym^.definition^.rettype.setdef(booldef);
+                     aktprocsym^.definition^.rettype:=booltype;
                   end;
              end;
         end;
@@ -180,7 +180,7 @@ implementation
                                  consume(_ARRAY);
                                  consume(_OF);
                                  { define range and type of range }
-                                 tt.setdef(new(parraydef,init(0,-1,s32bitdef)));
+                                 tt.setdef(new(parraydef,init(0,-1,s32bittype)));
                                  { define field type }
                                  single_type(parraydef(tt.def)^.elementtype,s,false);
                               end
@@ -188,7 +188,7 @@ implementation
                               single_type(tt,s,false);
                          end
                        else
-                         tt.setdef(cformaldef);
+                         tt:=cformaltype;
                        repeat
                          s:=sc.get(declarepos);
                          if s='' then
@@ -218,15 +218,15 @@ implementation
                           consume(_INDEX);
                           pt:=comp_expr(true);
                           do_firstpass(pt);
-                          if is_ordinal(pt.resulttype) and
-                             (not is_64bitint(pt.resulttype)) then
+                          if is_ordinal(pt.resulttype.def) and
+                             (not is_64bitint(pt.resulttype.def)) then
                             p^.index:=tordconstnode(pt).value
                           else
                             begin
                               Message(parser_e_invalid_property_index_value);
                               p^.index:=0;
                             end;
-                          p^.indextype.setdef(pt.resulttype);
+                          p^.indextype.setdef(pt.resulttype.def);
                           include(p^.propoptions,ppo_indexed);
                           { concat a longint to the para template }
                           hp2:=TParaItem.Create;
@@ -249,7 +249,7 @@ implementation
                        end
                      else
                        begin
-                         p^.proptype.setdef(generrordef);
+                         p^.proptype:=generrortype;
                          message(parser_e_no_property_found_to_override);
                        end;
                   end;
@@ -416,14 +416,14 @@ implementation
                                              end;
                                            { found we a procedure and does it really return a bool? }
                                            if not(assigned(pp)) or
-                                              not(is_equal(pp^.rettype.def,booldef)) then
+                                              not(is_boolean(pp^.rettype.def)) then
                                              Message(parser_e_ill_property_storage_sym);
                                            p^.storedaccess^.setdef(pp);
                                          end;
                                        varsym :
                                          begin
                                            if not(propertyparas.empty) or
-                                              not(is_equal(pvarsym(sym)^.vartype.def,booldef)) then
+                                              not(is_boolean(pvarsym(sym)^.vartype.def)) then
                                              Message(parser_e_stored_property_must_be_boolean);
                                          end;
                                        else
@@ -460,7 +460,7 @@ implementation
                          arrayconstructor_to_set(tarrayconstructornode(pt));
                          do_firstpass(pt);
                        end;
-                     pt:=gentypeconvnode(pt,p^.proptype.def);
+                     pt:=ctypeconvnode.create(pt,p^.proptype);
                      do_firstpass(pt);
                      if not(is_constnode(pt)) then
                        Message(parser_e_property_default_value_must_const);
@@ -523,7 +523,7 @@ implementation
              if not (m_tp in aktmodeswitches) then
                Message(parser_e_no_paras_for_destructor);
            { no return value }
-           aktprocsym^.definition^.rettype.def:=voiddef;
+           aktprocsym^.definition^.rettype:=voidtype;
         end;
 
       var
@@ -787,13 +787,13 @@ implementation
                         if (tt.def^.deftype=forwarddef) or
                            is_class(tt.def) then
                           begin
-                             pcrd:=new(pclassrefdef,init(tt.def));
+                             pcrd:=new(pclassrefdef,init(tt));
                              object_dec:=pcrd;
                           end
                         else
                           begin
-                             object_dec:=generrordef;
-                             Message1(type_e_class_type_expected,generrordef^.typename);
+                             object_dec:=generrortype.def;
+                             Message1(type_e_class_type_expected,generrortype.def^.typename);
                           end;
                         typecanbeforward:=storetypecanbeforward;
                         readobjecttype:=false;
@@ -1165,7 +1165,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-03-16 14:56:38  marco
+  Revision 1.18  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.17  2001/03/16 14:56:38  marco
    * Pavel's fixes commited (Peter asked). Cycled to test
 
   Revision 1.16  2001/03/11 22:58:49  peter

@@ -312,7 +312,11 @@ implementation
 
     procedure ttype.write;
       begin
-        if assigned(sym) then
+        { Don't write symbol references for the current unit
+          and for the system unit }
+        if assigned(sym) and
+           (sym^.owner^.unitid<>0) and
+           (sym^.owner^.unitid<>1) then
          begin
            writederef(nil);
            writederef(sym);
@@ -558,16 +562,13 @@ implementation
          sym:=nil;
       end;
 
-
-
-
-
-
-
 end.
 {
   $Log$
-  Revision 1.4  2000-12-25 00:07:30  peter
+  Revision 1.5  2001-04-02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.4  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

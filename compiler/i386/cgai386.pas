@@ -119,7 +119,7 @@ interface
     procedure floatloadops(t : tfloattype;var op : tasmop;var s : topsize);
     procedure floatstoreops(t : tfloattype;var op : tasmop;var s : topsize);
 
-    procedure maybe_loadesi;
+    procedure maybe_loadself;
     procedure emitloadord2reg(const location:Tlocation;orddef:Porddef;destreg:Tregister;delloc:boolean);
     procedure concatcopy(source,dest : treference;size : longint;delsource : boolean;loadref:boolean);
 
@@ -1023,7 +1023,7 @@ implementation
           emitpushreferenceaddr(sref);
          push_int(len);
          emitcall('FPC_SHORTSTR_COPY');
-         maybe_loadesi;
+         maybe_loadself;
       end;
 
     procedure copylongstring(const dref,sref : treference;len : longint;loadref:boolean);
@@ -1036,7 +1036,7 @@ implementation
          push_int(len);
          saveregvars($ff);
          emitcall('FPC_LONGSTR_COPY');
-         maybe_loadesi;
+         maybe_loadself;
       end;
 
 
@@ -1409,7 +1409,7 @@ implementation
                 ungetregister32(R_ECX);
 
               { loading SELF-reference again }
-              maybe_loadesi;
+              maybe_loadself;
            end;
          if delsource then
            ungetiftemp(source);
@@ -1479,7 +1479,7 @@ implementation
     end;
 
     { if necessary ESI is reloaded after a call}
-    procedure maybe_loadesi;
+    procedure maybe_loadself;
 
       var
          hp : preference;
@@ -2142,7 +2142,7 @@ implementation
 
          if assigned(procinfo^._class) and  { !!!!! shouldn't we load ESI always? }
             (lexlevel>normal_function_level) then
-           maybe_loadesi;
+           maybe_loadself;
 
       { When message method contains self as a parameter,
         we must load it into ESI }
@@ -2276,7 +2276,7 @@ implementation
           generate_interrupt_stackframe_entry;
 
       { initialize return value }
-      if (procinfo^.returntype.def<>pdef(voiddef)) and
+      if (not is_void(procinfo^.returntype.def)) and
          (procinfo^.returntype.def^.needs_inittable) then
         begin
            procinfo^.flags:=procinfo^.flags or pi_needs_implicit_finally;
@@ -2342,7 +2342,7 @@ implementation
             exprasmList.concat(Taicpu.op_reg_reg(A_TEST,S_L,R_EAX,R_EAX));
             emitjmp(C_NE,aktexitlabel);
             { probably we've to reload self here }
-            maybe_loadesi;
+            maybe_loadself;
         end;
 
       if not inlined then
@@ -2409,7 +2409,7 @@ implementation
   begin
       uses_eax:=false;
       uses_edx:=false;
-      if procinfo^.returntype.def<>pdef(voiddef) then
+      if not is_void(procinfo^.returntype.def) then
           begin
               {if ((procinfo^.flags and pi_operator)<>0) and
                  assigned(opsym) then
@@ -2602,7 +2602,7 @@ implementation
              end
            else
            { must be the return value finalized before reraising the exception? }
-           if (procinfo^.returntype.def<>pdef(voiddef)) and
+           if (not is_void(procinfo^.returntype.def)) and
              (procinfo^.returntype.def^.needs_inittable) and
              ((procinfo^.returntype.def^.deftype<>objectdef) or
               not is_class(procinfo^.returntype.def)) then
@@ -2776,7 +2776,7 @@ implementation
                        (po_staticmethod in aktprocsym^.definition^.procoptions) then
                       begin
                         exprasmList.concat(Tai_stabs.Create(strpnew(
-                         '"pvmt:p'+pvmtdef^.numberstring+'",'+
+                         '"pvmt:p'+pstoreddef(pvmttype.def)^.numberstring+'",'+
                          tostr(N_PSYM)+',0,0,'+tostr(procinfo^.selfpointer_offset))));
                       end
                     else
@@ -2805,10 +2805,10 @@ implementation
               { this enables test if the function is a local one !! }
               if  assigned(procinfo^.parent) and (lexlevel>normal_function_level) then
                 exprasmList.concat(Tai_stabs.Create(strpnew(
-                 '"parent_ebp:'+voidpointerdef^.numberstring+'",'+
+                 '"parent_ebp:'+pstoreddef(voidpointertype.def)^.numberstring+'",'+
                  tostr(N_LSYM)+',0,0,'+tostr(procinfo^.framepointer_offset))));
 
-              if (pdef(aktprocsym^.definition^.rettype.def) <> pdef(voiddef)) then
+              if (not is_void(aktprocsym^.definition^.rettype.def)) then
                 begin
                   if ret_in_param(aktprocsym^.definition^.rettype.def) then
                     exprasmList.concat(Tai_stabs.Create(strpnew(
@@ -2922,7 +2922,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2001-01-05 17:36:58  florian
+  Revision 1.18  2001-04-02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.17  2001/01/05 17:36:58  florian
   * the info about exception frames is stored now on the stack
   instead on the heap
 

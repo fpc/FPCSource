@@ -82,7 +82,7 @@ implementation
     procedure StoreDirectFuncResult(var dest:tnode);
       var
         hp : tnode;
-        hdef : porddef;
+        htype : ttype;
         hreg : tregister;
         hregister : tregister;
         oldregisterdef : boolean;
@@ -91,37 +91,37 @@ implementation
 
       begin
         { Get the accumulator first so it can't be used in the dest }
-        if (dest.resulttype^.deftype=orddef) and
-          not(is_64bitint(dest.resulttype)) then
+        if (dest.resulttype.def^.deftype=orddef) and
+          not(is_64bitint(dest.resulttype.def)) then
           hregister:=getexplicitregister32(accumulator);
         { process dest }
         SecondPass(dest);
         if Codegenerror then
          exit;
         { store the value }
-        Case dest.resulttype^.deftype of
+        Case dest.resulttype.def^.deftype of
           floatdef:
             if dest.location.loc=LOC_CFPUREGISTER then
               begin
-                 floatstoreops(pfloatdef(dest.resulttype)^.typ,op,opsize);
+                 floatstoreops(pfloatdef(dest.resulttype.def)^.typ,op,opsize);
                  emit_reg(op,opsize,correct_fpuregister(dest.location.register,fpuvaroffset+1));
               end
             else
               begin
                  inc(fpuvaroffset);
-                 floatstore(PFloatDef(dest.resulttype)^.typ,dest.location.reference);
+                 floatstore(PFloatDef(dest.resulttype.def)^.typ,dest.location.reference);
                  { floatstore decrements the fpu var offset }
                  { but in fact we didn't increment it       }
               end;
           orddef:
             begin
-              if is_64bitint(dest.resulttype) then
+              if is_64bitint(dest.resulttype.def) then
                 begin
                    emit_movq_reg_loc(R_EDX,R_EAX,dest.location);
                 end
               else
                begin
-                 Case dest.resulttype^.size of
+                 Case dest.resulttype.def^.size of
                   1 : hreg:=regtoreg8(hregister);
                   2 : hreg:=regtoreg16(hregister);
                   4 : hreg:=hregister;
@@ -129,26 +129,26 @@ implementation
                  emit_mov_reg_loc(hreg,dest.location);
                  If (cs_check_range in aktlocalswitches) and
                     {no need to rangecheck longints or cardinals on 32bit processors}
-                    not((porddef(dest.resulttype)^.typ = s32bit) and
-                        (porddef(dest.resulttype)^.low = longint($80000000)) and
-                        (porddef(dest.resulttype)^.high = $7fffffff)) and
-                    not((porddef(dest.resulttype)^.typ = u32bit) and
-                        (porddef(dest.resulttype)^.low = 0) and
-                        (porddef(dest.resulttype)^.high = longint($ffffffff))) then
+                    not((porddef(dest.resulttype.def)^.typ = s32bit) and
+                        (porddef(dest.resulttype.def)^.low = longint($80000000)) and
+                        (porddef(dest.resulttype.def)^.high = $7fffffff)) and
+                    not((porddef(dest.resulttype.def)^.typ = u32bit) and
+                        (porddef(dest.resulttype.def)^.low = 0) and
+                        (porddef(dest.resulttype.def)^.high = longint($ffffffff))) then
                   Begin
                     {do not register this temporary def}
                     OldRegisterDef := RegisterDef;
                     RegisterDef := False;
-                    hdef:=nil;
-                    Case PordDef(dest.resulttype)^.typ of
+                    htype.reset;
+                    Case PordDef(dest.resulttype.def)^.typ of
                       u8bit,u16bit,u32bit:
                         begin
-                          new(hdef,init(u32bit,0,longint($ffffffff)));
+                          htype.setdef(new(porddef,init(u32bit,0,longint($ffffffff))));
                           hreg:=hregister;
                         end;
                       s8bit,s16bit,s32bit:
                         begin
-                          new(hdef,init(s32bit,longint($80000000),$7fffffff));
+                          htype.setdef(new(porddef,init(s32bit,longint($80000000),$7fffffff)));
                           hreg:=hregister;
                         end;
                     end;
@@ -156,14 +156,14 @@ implementation
                     hp := cnothingnode.create;
                     hp.location.loc := LOC_REGISTER;
                     hp.location.register := hreg;
-                    if assigned(hdef) then
-                      hp.resulttype:=hdef
+                    if assigned(htype.def) then
+                      hp.resulttype:=htype
                     else
                       hp.resulttype:=dest.resulttype;
                     { emit the range check }
-                    emitrangecheck(hp,dest.resulttype);
-                    if assigned(hdef) then
-                      Dispose(hdef, Done);
+                    emitrangecheck(hp,dest.resulttype.def);
+                    if assigned(htype.def) then
+                      Dispose(htype.def, Done);
                     RegisterDef := OldRegisterDef;
                     hp.free;
                   End;
@@ -267,11 +267,11 @@ implementation
                 npara := nb_para;
                 { calculate data variable }
                 { is first parameter a file type ? }
-                if node.left.resulttype^.deftype=filedef then
+                if node.left.resulttype.def^.deftype=filedef then
                   begin
-                     ft:=pfiledef(node.left.resulttype)^.filetyp;
+                     ft:=pfiledef(node.left.resulttype.def)^.filetyp;
                      if ft=ft_typed then
-                       typedtyp:=pfiledef(node.left.resulttype)^.typedfiletype.def;
+                       typedtyp:=pfiledef(node.left.resulttype.def)^.typedfiletype.def;
                      secondpass(node.left);
                      if codegenerror then
                        exit;
@@ -313,7 +313,7 @@ implementation
                 if ft=ft_typed then
                   { this is to avoid copy of simple const parameters }
                   {dummycoll.data:=new(pformaldef,init)}
-                  dummycoll.paratype.setdef(cformaldef)
+                  dummycoll.paratype:=cformaltype
                 else
                   { I think, this isn't a good solution (FK) }
                   dummycoll.paratype.reset;
@@ -331,17 +331,17 @@ implementation
                        convert here else we loose the old float type }
                      if (not doread) and
                         (ft<>ft_typed) and
-                        (tcallparanode(hp).left.resulttype^.deftype=floatdef) then
+                        (tcallparanode(hp).left.resulttype.def^.deftype=floatdef) then
                       begin
-                        orgfloattype:=pfloatdef(tcallparanode(hp).left.resulttype)^.typ;
-                        tcallparanode(hp).left:=gentypeconvnode(tcallparanode(hp).left,bestrealdef^);
+                        orgfloattype:=pfloatdef(tcallparanode(hp).left.resulttype.def)^.typ;
+                        tcallparanode(hp).left:=ctypeconvnode.create(tcallparanode(hp).left,pbestrealtype^);
                         firstpass(tcallparanode(hp).left);
                       end;
                      { when read ord,floats are functions, so they need this
                        parameter as their destination instead of being pushed }
                      if doread and
                         (ft<>ft_typed) and
-                        (tcallparanode(hp).resulttype^.deftype in [orddef,floatdef]) then
+                        (tcallparanode(hp).resulttype.def^.deftype in [orddef,floatdef]) then
                       begin
                       end
                      else
@@ -351,11 +351,11 @@ implementation
                         { reset data type }
                         dummycoll.paratype.reset;
                         { create temporary defs for high tree generation }
-                        if doread and (is_shortstring(tcallparanode(hp).resulttype)) then
-                          dummycoll.paratype.setdef(openshortstringdef)
+                        if doread and (is_shortstring(tcallparanode(hp).resulttype.def)) then
+                          dummycoll.paratype:=openshortstringtype
                         else
-                          if (is_chararray(tcallparanode(hp).resulttype)) then
-                            dummycoll.paratype.setdef(openchararraydef);
+                          if (is_chararray(tcallparanode(hp).resulttype.def)) then
+                            dummycoll.paratype:=openchararraytype;
                         tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                         if ft=ft_typed then
                           never_copy_const_param:=false;
@@ -388,7 +388,7 @@ implementation
                      else
                        begin
                           { save current position }
-                          pararesult:=tcallparanode(hp).left.resulttype;
+                          pararesult:=tcallparanode(hp).left.resulttype.def;
                           { handle possible field width  }
                           { of course only for write(ln) }
                           if not doread then
@@ -399,7 +399,7 @@ implementation
                                    hp:=node;
                                    node:=tcallparanode(node.right);
                                    tcallparanode(hp).right:=nil;
-                                   dummycoll.paratype.setdef(hp.resulttype);
+                                   dummycoll.paratype.setdef(hp.resulttype.def);
                                    dummycoll.paratyp:=vs_value;
                                    tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                                    tcallparanode(hp).right:=node;
@@ -417,7 +417,7 @@ implementation
                                    hp:=node;
                                    node:=tcallparanode(node.right);
                                    tcallparanode(hp).right:=nil;
-                                   dummycoll.paratype.setdef(hp.resulttype);
+                                   dummycoll.paratype.setdef(hp.resulttype.def);
                                    dummycoll.paratyp:=vs_value;
                                    tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                                    tcallparanode(hp).right:=node;
@@ -455,12 +455,12 @@ implementation
                               begin
                                 emitcall(rdwrprefix[doread]+'FLOAT');
                                 {
-                                if pfloatdef(resulttype)^.typ<>f32bit then
+                                if pfloatdef(resulttype.def)^.typ<>f32bit then
                                   dec(fpuvaroffset);
                                 }
                                 if doread then
                                   begin
-                                     maybe_loadesi;
+                                     maybe_loadself;
                                      esireloaded:=true;
                                      StoreDirectFuncResult(tcallparanode(hp).left);
                                   end;
@@ -485,7 +485,7 @@ implementation
                                 end;
                                 if doread then
                                   begin
-                                     maybe_loadesi;
+                                     maybe_loadself;
                                      esireloaded:=true;
                                      StoreDirectFuncResult(tcallparanode(hp).left);
                                   end;
@@ -495,7 +495,7 @@ implementation
                    { load ESI in methods again }
                      popusedregisters(pushed);
                      if not(esireloaded) then
-                       maybe_loadesi;
+                       maybe_loadself;
                   end;
              end;
          { Insert end of writing for textfiles }
@@ -519,7 +519,7 @@ implementation
                     emitcall('FPC_WRITE_END');
                 end;
                popusedregisters(pushed);
-               maybe_loadesi;
+               maybe_loadself;
              end;
          { Insert IOCheck if set }
            if assigned(iolabel) then
@@ -565,10 +565,10 @@ implementation
            is_real:=false;
            while assigned(node.right) do node:=tcallparanode(node.right);
            { if a real parameter somewhere then call REALSTR }
-           if (node.left.resulttype^.deftype=floatdef) then
+           if (node.left.resulttype.def^.deftype=floatdef) then
             begin
               is_real:=true;
-              realtype:=pfloatdef(node.left.resulttype)^.typ;
+              realtype:=pfloatdef(node.left.resulttype.def)^.typ;
             end;
 
            node:=tcallparanode(left);
@@ -580,11 +580,11 @@ implementation
            node:=tcallparanode(node.right);
            hp.right:=nil;
            dummycoll.paratyp:=vs_var;
-           if is_shortstring(hp.resulttype) then
-             dummycoll.paratype.setdef(openshortstringdef)
+           if is_shortstring(hp.resulttype.def) then
+             dummycoll.paratype:=openshortstringtype
            else
-             dummycoll.paratype.setdef(hp.resulttype);
-           procedureprefix:='FPC_'+pstringdef(hp.resulttype)^.stringtypname+'_';
+             dummycoll.paratype:=hp.resulttype;
+           procedureprefix:='FPC_'+pstringdef(hp.resulttype.def)^.stringtypname+'_';
            tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
              begin
@@ -608,12 +608,12 @@ implementation
            if (cpf_is_colon_para in hp.callparaflags) and assigned(node) and
               (cpf_is_colon_para in node.callparaflags) then
              begin
-                dummycoll.paratype.setdef(hp.resulttype);
+                dummycoll.paratype.setdef(hp.resulttype.def);
                 dummycoll.paratyp:=vs_value;
                 tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
-                  begin  
-                    dummycoll.free;   
+                  begin
+                    dummycoll.free;
                     exit;
                   end;
                 hp.free;
@@ -628,12 +628,12 @@ implementation
            { third arg, length only if is_real }
            if (cpf_is_colon_para in hp.callparaflags) then
              begin
-                dummycoll.paratype.setdef(hp.resulttype);
+                dummycoll.paratype.setdef(hp.resulttype.def);
                 dummycoll.paratyp:=vs_value;
                 tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                 if codegenerror then
-                  begin  
-                    dummycoll.free;   
+                  begin
+                    dummycoll.free;
                     exit;
                   end;
                 hp.free;
@@ -650,17 +650,17 @@ implementation
            { Convert float to bestreal }
            if is_real then
             begin
-              hp.left:=gentypeconvnode(hp.left,bestrealdef^);
+              hp.left:=ctypeconvnode.create(hp.left,pbestrealtype^);
               firstpass(hp.left);
             end;
 
            { last arg longint or real }
-           dummycoll.paratype.setdef(hp.resulttype);
+           dummycoll.paratype.setdef(hp.resulttype.def);
            dummycoll.paratyp:=vs_value;
            tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
-             begin  
-               dummycoll.free;   
+             begin
+               dummycoll.free;
                exit;
              end;
 
@@ -668,7 +668,7 @@ implementation
            if is_real then
              emitcall(procedureprefix+'FLOAT')
            else
-             case porddef(hp.resulttype)^.typ of
+             case porddef(hp.resulttype.def)^.typ of
                 u32bit:
                   emitcall(procedureprefix+'CARDINAL');
 
@@ -719,7 +719,7 @@ implementation
                hp := node;
                node := tcallparanode(node.right);
                hp.right := nil;
-               has_32bit_code := (porddef(tcallparanode(code_para).left.resulttype)^.typ in [u32bit,s32bit]);
+               has_32bit_code := (porddef(tcallparanode(code_para).left.resulttype.def)^.typ in [u32bit,s32bit]);
              End;
 
           {hp = destination now, save for later use}
@@ -731,7 +731,7 @@ implementation
 
           {load and push the address of the destination}
            dummycoll.paratyp:=vs_var;
-           dummycoll.paratype.setdef(dest_para.resulttype);
+           dummycoll.paratype.setdef(dest_para.resulttype.def);
            dest_para.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
            begin
@@ -748,7 +748,7 @@ implementation
            If has_32bit_code Then
              Begin
                dummycoll.paratyp:=vs_var;
-               dummycoll.paratype.setdef(code_para.resulttype);
+               dummycoll.paratype.setdef(code_para.resulttype.def);
                code_para.secondcallparan(dummycoll,false,false,false,0,0);
                if codegenerror then
                  begin
@@ -766,7 +766,7 @@ implementation
 
           {node = first parameter = string}
            dummycoll.paratyp:=vs_const;
-           dummycoll.paratype.setdef(node.resulttype);
+           dummycoll.paratype.setdef(node.resulttype.def);
            node.secondcallparan(dummycoll,false,false,false,0,0);
            if codegenerror then
              begin
@@ -774,29 +774,28 @@ implementation
                exit;
              end;
 
-           Case dest_para.resulttype^.deftype of
+           Case dest_para.resulttype.def^.deftype of
              floatdef:
                begin
                   procedureprefix := 'FPC_VAL_REAL_';
-                  if pfloatdef(resulttype)^.typ<>f32bit then
-                    inc(fpuvaroffset);
+                  inc(fpuvaroffset);
                end;
              orddef:
-               if is_64bitint(dest_para.resulttype) then
+               if is_64bitint(dest_para.resulttype.def) then
                  begin
-                    if is_signed(dest_para.resulttype) then
+                    if is_signed(dest_para.resulttype.def) then
                       procedureprefix := 'FPC_VAL_INT64_'
                     else
                       procedureprefix := 'FPC_VAL_QWORD_';
                  end
                else
                  begin
-                    if is_signed(dest_para.resulttype) then
+                    if is_signed(dest_para.resulttype.def) then
                       begin
                         {if we are converting to a signed number, we have to include the
                          size of the destination, so the Val function can extend the sign
                          of the result to allow proper range checking}
-                        emit_const(A_PUSH,S_L,dest_para.resulttype^.size);
+                        emit_const(A_PUSH,S_L,dest_para.resulttype.def^.size);
                         procedureprefix := 'FPC_VAL_SINT_'
                       end
                     else
@@ -805,7 +804,7 @@ implementation
            End;
 
            saveregvars($ff);
-           emitcall(procedureprefix+pstringdef(node.resulttype)^.stringtypname);
+           emitcall(procedureprefix+pstringdef(node.resulttype.def)^.stringtypname);
            { before disposing node we need to ungettemp !! PM }
            if node.left.location.loc in [LOC_REFERENCE,LOC_MEM] then
              ungetiftemp(node.left.location.reference);
@@ -813,15 +812,15 @@ implementation
            left := nil;
 
           {reload esi in case the dest_para/code_para is a class variable or so}
-           maybe_loadesi;
+           maybe_loadself;
 
-           If (dest_para.resulttype^.deftype = orddef) Then
+           If (dest_para.resulttype.def^.deftype = orddef) Then
              Begin
               {store the result in a safe place, because EAX may be used by a
                register variable}
                hreg := getexplicitregister32(R_EAX);
                emit_reg_reg(A_MOV,S_L,R_EAX,hreg);
-               if is_64bitint(dest_para.resulttype) then
+               if is_64bitint(dest_para.resulttype.def) then
                  begin
                     hreg2:=getexplicitregister32(R_EDX);
                     emit_reg_reg(A_MOV,S_L,R_EDX,hreg2);
@@ -862,11 +861,11 @@ implementation
            hr2.base := R_EDI;
 
           {save the function result in the destination variable}
-           Case dest_para.left.resulttype^.deftype of
+           Case dest_para.left.resulttype.def^.deftype of
              floatdef:
-               floatstore(PFloatDef(dest_para.left.resulttype)^.typ, hr2);
+               floatstore(PFloatDef(dest_para.left.resulttype.def)^.typ, hr2);
              orddef:
-               Case PordDef(dest_para.left.resulttype)^.typ of
+               Case PordDef(dest_para.left.resulttype.def)^.typ of
                  u8bit,s8bit:
                    emit_reg_ref(A_MOV, S_B,
                      RegToReg8(hreg),newreference(hr2));
@@ -891,18 +890,18 @@ implementation
            ungetregister32(R_EDI);
 {$endif noAllocEdi}
            If (cs_check_range in aktlocalswitches) and
-              (dest_para.left.resulttype^.deftype = orddef) and
-              (not(is_64bitint(dest_para.left.resulttype))) and
+              (dest_para.left.resulttype.def^.deftype = orddef) and
+              (not(is_64bitint(dest_para.left.resulttype.def))) and
             {the following has to be changed to 64bit checking, once Val
              returns 64 bit values (unless a special Val function is created
              for that)}
             {no need to rangecheck longints or cardinals on 32bit processors}
-               not((porddef(dest_para.left.resulttype)^.typ = s32bit) and
-                   (porddef(dest_para.left.resulttype)^.low = longint($80000000)) and
-                   (porddef(dest_para.left.resulttype)^.high = $7fffffff)) and
-               not((porddef(dest_para.left.resulttype)^.typ = u32bit) and
-                   (porddef(dest_para.left.resulttype)^.low = 0) and
-                   (porddef(dest_para.left.resulttype)^.high = longint($ffffffff))) then
+               not((porddef(dest_para.left.resulttype.def)^.typ = s32bit) and
+                   (porddef(dest_para.left.resulttype.def)^.low = longint($80000000)) and
+                   (porddef(dest_para.left.resulttype.def)^.high = $7fffffff)) and
+               not((porddef(dest_para.left.resulttype.def)^.typ = u32bit) and
+                   (porddef(dest_para.left.resulttype.def)^.low = 0) and
+                   (porddef(dest_para.left.resulttype.def)^.high = longint($ffffffff))) then
              Begin
                hp:=tcallparanode(dest_para.left.getcopy);
                hp.location.loc := LOC_REGISTER;
@@ -910,14 +909,14 @@ implementation
               {do not register this temporary def}
                OldRegisterDef := RegisterDef;
                RegisterDef := False;
-               Case PordDef(dest_para.left.resulttype)^.typ of
+               Case PordDef(dest_para.left.resulttype.def)^.typ of
                  u8bit,u16bit,u32bit: new(hdef,init(u32bit,0,longint($ffffffff)));
                  s8bit,s16bit,s32bit: new(hdef,init(s32bit,longint($80000000),$7fffffff));
                end;
-               hp.resulttype := hdef;
-               emitrangecheck(hp,dest_para.left.resulttype);
+               hp.resulttype.def := hdef;
+               emitrangecheck(hp,dest_para.left.resulttype.def);
                hp.right := nil;
-               Dispose(hp.resulttype, Done);
+               Dispose(hp.resulttype.def, Done);
                RegisterDef := OldRegisterDef;
                hp.free;
              End;
@@ -962,7 +961,8 @@ implementation
                  { lineno }
                  emit_const(A_PUSH,S_L,aktfilepos.line);
                  { filename string }
-                 hp2:=genstringconstnode(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
+                 hp2:=cstringconstnode.createstr(current_module.sourcefiles.get_file_name(aktfilepos.fileindex),st_shortstring);
+                 firstpass(hp2);
                  secondpass(hp2);
                  if codegenerror then
                   exit;
@@ -1011,7 +1011,7 @@ implementation
                    begin
                       location.register:=getregister32;
                       emit_sym_ofs_reg(A_MOV,
-                        S_L,newasmsymbol(pobjectdef(left.resulttype)^.vmt_mangledname),0,
+                        S_L,newasmsymbol(pobjectdef(left.resulttype.def)^.vmt_mangledname),0,
                         location.register);
                    end
                  else
@@ -1022,7 +1022,7 @@ implementation
                       location.register:=getregister32;
                       { load VMT pointer }
                       inc(left.location.reference.offset,
-                        pobjectdef(left.resulttype)^.vmt_offset);
+                        pobjectdef(left.resulttype.def)^.vmt_offset);
                       emit_ref_reg(A_MOV,S_L,
                       newreference(left.location.reference),
                         location.register);
@@ -1109,10 +1109,10 @@ implementation
                  secondpass(left);
                  set_location(location,left.location);
                  { length in ansi strings is at offset -8 }
-                 if is_ansistring(left.resulttype) then
+                 if is_ansistring(left.resulttype.def) then
                    dec(location.reference.offset,8)
                  { char is always 1, so make it a constant value }
-                 else if is_char(left.resulttype) then
+                 else if is_char(left.resulttype.def) then
                    begin
                      clear_location(location);
                      location.loc:=LOC_MEM;
@@ -1134,7 +1134,7 @@ implementation
                      asmop:=A_SUB
                    else
                      asmop:=A_ADD;
-                 case resulttype^.size of
+                 case resulttype.def^.size of
                    8 : opsize:=S_L;
                    4 : opsize:=S_L;
                    2 : opsize:=S_W;
@@ -1143,7 +1143,7 @@ implementation
                    internalerror(10080);
                  end;
                  location.loc:=LOC_REGISTER;
-                 if resulttype^.size=8 then
+                 if resulttype.def^.size=8 then
                    begin
                       if left.location.loc<>LOC_REGISTER then
                         begin
@@ -1198,9 +1198,9 @@ implementation
                              del_reference(left.location.reference);
 
                            location.register:=getregister32;
-                           if (resulttype^.size=2) then
+                           if (resulttype.def^.size=2) then
                              location.register:=reg32toreg16(location.register);
-                           if (resulttype^.size=1) then
+                           if (resulttype.def^.size=1) then
                              location.register:=reg32toreg8(location.register);
                            if left.location.loc=LOC_CREGISTER then
                              emit_reg_reg(A_MOV,opsize,left.location.register,
@@ -1221,7 +1221,7 @@ implementation
                         location.register);
                    end;
                  emitoverflowcheck(self);
-                 emitrangecheck(self,resulttype);
+                 emitrangecheck(self,resulttype.def);
               end;
             in_dec_x,
             in_inc_x :
@@ -1231,10 +1231,10 @@ implementation
                 addconstant:=true;
               { load first parameter, must be a reference }
                 secondpass(tcallparanode(left).left);
-                case tcallparanode(left).left.resulttype^.deftype of
+                case tcallparanode(left).left.resulttype.def^.deftype of
                   orddef,
                  enumdef : begin
-                             case tcallparanode(left).left.resulttype^.size of
+                             case tcallparanode(left).left.resulttype.def^.size of
                               1 : opsize:=S_B;
                               2 : opsize:=S_W;
                               4 : opsize:=S_L;
@@ -1243,10 +1243,10 @@ implementation
                            end;
               pointerdef : begin
                              opsize:=S_L;
-                             if porddef(ppointerdef(tcallparanode(left).left.resulttype)^.pointertype.def)=voiddef then
+                             if is_void(ppointerdef(tcallparanode(left).left.resulttype.def)^.pointertype.def) then
                               addvalue:=1
                              else
-                              addvalue:=ppointerdef(tcallparanode(left).left.resulttype)^.pointertype.def^.size;
+                              addvalue:=ppointerdef(tcallparanode(left).left.resulttype.def)^.pointertype.def^.size;
                            end;
                 else
                  internalerror(10081);
@@ -1331,16 +1331,16 @@ implementation
                    ungetregister32(hregister);
                  end;
                 emitoverflowcheck(tcallparanode(left).left);
-                emitrangecheck(tcallparanode(left).left,tcallparanode(left).left.resulttype);
+                emitrangecheck(tcallparanode(left).left,tcallparanode(left).left.resulttype.def);
               end;
 
             in_typeinfo_x:
                begin
-                  pstoreddef(ttypenode(tcallparanode(left).left).typenodetype)^.generate_rtti;
+                  pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.generate_rtti;
                   location.register:=getregister32;
                   new(r);
                   reset_reference(r^);
-                  r^.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).typenodetype)^.rtti_label;
+                  r^.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.rtti_label;
                   emit_ref_reg(A_LEA,S_L,r,location.register);
                end;
 
@@ -1348,12 +1348,12 @@ implementation
                begin
                   pushusedregisters(pushed,$ff);
                   { force rtti generation }
-                  pstoreddef(ttypenode(tcallparanode(left).left).resulttype)^.generate_rtti;
+                  pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.generate_rtti;
                   { if a count is passed, push size, typeinfo and count }
                   if assigned(tcallparanode(left).right) then
                     begin
                        secondpass(tcallparanode(tcallparanode(left).right).left);
-                       push_int(tcallparanode(left).left.resulttype^.size);
+                       push_int(tcallparanode(left).left.resulttype.def^.size);
                        if codegenerror then
                         exit;
                        emit_push_loc(tcallparanode(tcallparanode(left).right).left.location);
@@ -1361,7 +1361,7 @@ implementation
 
                   { generate a reference }
                   reset_reference(hr);
-                  hr.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).resulttype)^.rtti_label;
+                  hr.symbol:=pstoreddef(ttypenode(tcallparanode(left).left).resulttype.def)^.rtti_label;
                   emitpushreferenceaddr(hr);
 
                   { data to finalize }
@@ -1399,7 +1399,7 @@ implementation
              in_reset_typedfile,in_rewrite_typedfile :
                begin
                   pushusedregisters(pushed,$ff);
-                  emit_const(A_PUSH,S_L,pfiledef(left.resulttype)^.typedfiletype.def^.size);
+                  emit_const(A_PUSH,S_L,pfiledef(left.resulttype.def)^.typedfiletype.def^.size);
                   secondpass(left);
                   emitpushreferenceaddr(left.location.reference);
                   saveregvars($ff);
@@ -1420,7 +1420,7 @@ implementation
                        inc(l);
                        hp:=tcallparanode(hp).right;
                     end;
-                  def:=tcallparanode(hp).left.resulttype;
+                  def:=tcallparanode(hp).left.resulttype.def;
                   hp:=left;
                   if is_dynamic_array(def) then
                     begin
@@ -1452,7 +1452,7 @@ implementation
                     begin
                       dummycoll:=TParaItem.Create;
                       dummycoll.paratyp:=vs_var;
-                      dummycoll.paratype.setdef(openshortstringdef);
+                      dummycoll.paratype:=openshortstringtype;
                       tcallparanode(hp).secondcallparan(dummycoll,false,false,false,0,0);
                       if codegenerror then
                         exit;
@@ -1506,7 +1506,7 @@ implementation
             in_str_x_string :
               begin
                  handle_str;
-                 maybe_loadesi;
+                 maybe_loadself;
               end;
             in_val_x :
               Begin
@@ -1558,7 +1558,7 @@ implementation
                         asmop:=A_BTS
                       else
                         asmop:=A_BTR;
-                      if psetdef(left.resulttype)^.settype=smallset then
+                      if psetdef(left.resulttype.def)^.settype=smallset then
                         begin
                            if tcallparanode(tcallparanode(left).right).left.location.loc in [LOC_CREGISTER,LOC_REGISTER] then
                              { we don't need a mod 32 because this is done automatically  }
@@ -1571,7 +1571,7 @@ implementation
                                 getexplicitregister32(R_EDI);
                                 hregister:=R_EDI;
                                 opsize:=def2def_opsize(
-                                  tcallparanode(tcallparanode(left).right).left.resulttype,u32bitdef);
+                                  tcallparanode(tcallparanode(left).right).left.resulttype.def,u32bittype.def);
                                 if opsize in [S_B,S_W,S_L] then
                                  op:=A_MOV
                                 else
@@ -1627,7 +1627,7 @@ implementation
                       end;
                     LOC_REFERENCE,LOC_MEM:
                       begin
-                         floatload(pfloatdef(left.resulttype)^.typ,left.location.reference);
+                         floatload(pfloatdef(left.resulttype.def)^.typ,left.location.reference);
                          del_reference(left.location.reference);
                       end
                     else
@@ -1704,7 +1704,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-03-13 11:52:48  jonas
+  Revision 1.13  2001-04-02 21:20:37  peter
+    * resulttype rewrite
+
+  Revision 1.12  2001/03/13 11:52:48  jonas
     * fixed some memory leaks
 
   Revision 1.11  2000/12/25 00:07:33  peter
@@ -1723,7 +1726,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.8  2000/12/05 11:44:33  jonas

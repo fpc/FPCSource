@@ -877,17 +877,11 @@ implementation
 
     procedure tcoffobjectinput.handle_symbols;
       var
-        filename  : string[18];
         sec       : tsection;
-        sectionval,
         i,nsyms,
         symidx    : longint;
-        globalval : byte;
-        secrec    : coffsectionrec;
-        sym,
-        sym2      : coffsymbol;
-        strname,
-        strname2  : string;
+        sym       : coffsymbol;
+        strname   : string;
         p         : pasmsymbol;
         auxrec    : array[0..17] of byte;
       begin
@@ -984,18 +978,11 @@ implementation
 
     procedure tcoffobjectinput.readfromdisk;
       var
-        datapos,
-        secsymidx,
-        nsects,
         strsize,
-        sympos,i : longint;
-        hstab    : coffstab;
-        gotreloc : boolean;
+        i        : longint;
         sec      : tsection;
         header   : coffheader;
         sechdr   : coffsechdr;
-        empty    : array[0..15] of byte;
-        hp       : pdynamicblock;
       begin
         with tcoffdata(data) do
          begin
@@ -1101,7 +1088,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2001-03-13 18:45:07  peter
+  Revision 1.11  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.10  2001/03/13 18:45:07  peter
     * fixed some memory leaks
 
   Revision 1.9  2001/03/05 21:40:38  peter

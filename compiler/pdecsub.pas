@@ -96,6 +96,7 @@ implementation
         s       : string;
         hpos,
         storetokenpos : tfileposinfo;
+        htype,
         tt      : ttype;
         hvs,
         vs      : Pvarsym;
@@ -143,7 +144,8 @@ implementation
 {$else UseNiceNames}
                  hs2:=hs2+tostr(length('self'))+'self';
 {$endif UseNiceNames}
-                 vs:=new(Pvarsym,initdef('@',procinfo^._class));
+                 htype.setdef(procinfo^._class);
+                 vs:=new(Pvarsym,init('@',htype));
                  vs^.varspez:=vs_var;
                { insert the sym in the parasymtable }
                  pprocdef(aktprocdef)^.parast^.insert(vs);
@@ -175,7 +177,7 @@ implementation
                      consume(_ARRAY);
                      consume(_OF);
                    { define range and type of range }
-                     tt.setdef(new(Parraydef,init(0,-1,s32bitdef)));
+                     tt.setdef(new(Parraydef,init(0,-1,s32bittype)));
                    { array of const ? }
                      if (token=_CONST) and (m_objpas in aktmodeswitches) then
                       begin
@@ -208,7 +210,7 @@ implementation
                              (idtoken=_OPENSTRING)) then
                       begin
                         consume(token);
-                        tt.setdef(openshortstringdef);
+                        tt:=openshortstringtype;
                         hs1:='openstring';
                         inserthigh:=true;
                       end
@@ -247,7 +249,7 @@ implementation
 {$else UseNiceNames}
                   hs1:='var';
 {$endif UseNiceNames}
-                  tt.setdef(cformaldef);
+                  tt:=cformaltype;
                 end;
                if not is_procvar then
                 hs2:=pprocdef(aktprocdef)^.mangledname;
@@ -287,7 +289,7 @@ implementation
                    { also need to push a high value? }
                      if inserthigh then
                       begin
-                        hvs:=new(Pvarsym,initdef('$high'+Upper(s),s32bitdef));
+                        hvs:=new(Pvarsym,init('$high'+Upper(s),s32bittype));
                         hvs^.varspez:=vs_const;
                         pprocdef(aktprocdef)^.parast^.insert(hvs);
                       end;
@@ -662,7 +664,7 @@ begin
     _PROCEDURE : begin
                    consume(_PROCEDURE);
                    parse_proc_head(potype_none);
-                   aktprocsym^.definition^.rettype.def:=voiddef;
+                   aktprocsym^.definition^.rettype:=voidtype;
                  end;
   _CONSTRUCTOR : begin
                    consume(_CONSTRUCTOR);
@@ -671,23 +673,18 @@ begin
                       is_class(procinfo^._class) then
                     begin
                       { CLASS constructors return the created instance }
-                      aktprocsym^.definition^.rettype.def:=procinfo^._class;
+                      aktprocsym^.definition^.rettype.setdef(procinfo^._class);
                     end
                    else
                     begin
                       { OBJECT constructors return a boolean }
-{$IfDef GDB}
-                      { GDB doesn't like unnamed types !}
-                      aktprocsym^.definition^.rettype.def:=globaldef('boolean');
-{$else GDB}
-                      aktprocsym^.definition^.rettype.def:=new(porddef,init(bool8bit,0,1));
-{$Endif GDB}
+                      aktprocsym^.definition^.rettype:=booltype;
                     end;
                  end;
    _DESTRUCTOR : begin
                    consume(_DESTRUCTOR);
                    parse_proc_head(potype_destructor);
-                   aktprocsym^.definition^.rettype.def:=voiddef;
+                   aktprocsym^.definition^.rettype:=voidtype;
                  end;
      _OPERATOR : begin
                    if lexlevel>normal_function_level then
@@ -715,13 +712,13 @@ begin
                      end
                    else
                      begin
-                       opsym:=new(pvarsym,initdef(pattern,voiddef));
+                       opsym:=new(pvarsym,init(pattern,voidtype));
                        consume(_ID);
                      end;
                    if not try_to_consume(_COLON) then
                      begin
                        consume(_COLON);
-                       aktprocsym^.definition^.rettype.def:=generrordef;
+                       aktprocsym^.definition^.rettype:=generrortype;
                        consume_all_until(_SEMICOLON);
                      end
                    else
@@ -1870,7 +1867,7 @@ begin
         s:=Copy(name,4,255);
         if not(po_assembler in aktprocsym^.definition^.procoptions) then
          begin
-           vs:=new(Pvarsym,initdef(s,vartype.def));
+           vs:=new(Pvarsym,init(s,vartype));
            vs^.fileinfo:=fileinfo;
            vs^.varspez:=varspez;
            aktprocsym^.definition^.localst^.insert(vs);
@@ -1892,7 +1889,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2001-03-24 12:18:11  florian
+  Revision 1.16  2001-04-02 21:20:33  peter
+    * resulttype rewrite
+
+  Revision 1.15  2001/03/24 12:18:11  florian
     * procedure p(); is now allowed in all modes except TP
 
   Revision 1.14  2001/03/22 22:35:42  florian

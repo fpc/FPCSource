@@ -733,7 +733,7 @@ Begin
   SetupResult:=false;
   { replace by correct offset. }
   if assigned(procinfo^.returntype.def) and
-     (procinfo^.returntype.def<>pdef(voiddef)) then
+     (not is_void(procinfo^.returntype.def)) then
    begin
      if (procinfo^.return_offset=0) and ((m_tp in aktmodeswitches) or
         (m_delphi in aktmodeswitches)) then
@@ -1498,7 +1498,6 @@ end;
           s64real : p.concat(Tai_real_64bit.Create(value));
           s80real : p.concat(Tai_real_80bit.Create(value));
           s64comp : p.concat(Tai_comp_64bit.Create(value));
-          f32bit  : p.concat(Tai_const.Create_32bit(trunc(value*$10000)));
        end;
     end;
 
@@ -1565,7 +1564,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2001-03-11 22:58:50  peter
+  Revision 1.17  2001-04-02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.16  2001/03/11 22:58:50  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.15  2001/02/26 19:44:54  peter

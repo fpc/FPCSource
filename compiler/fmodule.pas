@@ -508,7 +508,6 @@ uses
          Function SourceSearchPath(const s:string):boolean;
          var
            found   : boolean;
-           ext     : string[8];
            hs      : string;
          begin
            Found:=false;
@@ -523,8 +522,6 @@ uses
             begin
               { Check for .pas }
               Found:=UnitExists(target_os.pasext,hs);
-              if Found then
-               Ext:=target_os.pasext;
             end;
            stringdispose(mainsource);
            if Found then
@@ -881,7 +878,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.9  2001-03-13 18:45:06  peter
+  Revision 1.10  2001-04-02 21:20:29  peter
+    * resulttype rewrite
+
+  Revision 1.9  2001/03/13 18:45:06  peter
     * fixed some memory leaks
 
   Revision 1.8  2001/03/06 18:28:02  peter

@@ -103,7 +103,7 @@ implementation
             exit;
           end;
 
-         if procinfo^.returntype.def<>pdef(voiddef) then
+         if not is_void(procinfo^.returntype.def) then
            begin
               { if the current is a function aktprocsym is non nil }
               { and there is a local symtable set }
@@ -135,24 +135,14 @@ implementation
          { !!!!!   this means that we can not set the return value
          in a subfunction !!!!! }
          { because we don't know yet where the address is }
-         if procinfo^.returntype.def<>pdef(voiddef) then
+         if not is_void(procinfo^.returntype.def) then
            begin
               if ret_in_acc(procinfo^.returntype.def) or (procinfo^.returntype.def^.deftype=floatdef) then
-              { if (procinfo^.retdef^.deftype=orddef) or
-                 (procinfo^.retdef^.deftype=pointerdef) or
-                 (procinfo^.retdef^.deftype=enumdef) or
-                 (procinfo^.retdef^.deftype=procvardef) or
-                 (procinfo^.retdef^.deftype=floatdef) or
-                 (
-                   (procinfo^.retdef^.deftype=setdef) and
-                   (psetdef(procinfo^.retdef)^.settype=smallset)
-                 ) then  }
                 begin
                    { the space has been set in the local symtable }
                    procinfo^.return_offset:=-funcretsym^.address;
                    if ((procinfo^.flags and pi_operator)<>0) and
-                     assigned(opsym) then
-                     {opsym^.address:=procinfo^.para_offset; is wrong PM }
+                      assigned(opsym) then
                      opsym^.address:=-procinfo^.return_offset;
                    { eax is modified by a function }
 {$ifndef newcg}
@@ -528,7 +518,7 @@ implementation
               s:=Copy(name,4,255);
               if not(po_assembler in aktprocsym^.definition^.procoptions) then
                begin
-                 vs:=new(Pvarsym,initdef(s,vartype.def));
+                 vs:=new(Pvarsym,init(s,vartype));
                  vs^.fileinfo:=fileinfo;
                  vs^.varspez:=varspez;
                  aktprocsym^.definition^.localst^.insert(vs);
@@ -823,7 +813,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-02-26 19:44:53  peter
+  Revision 1.26  2001-04-02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.25  2001/02/26 19:44:53  peter
     * merged generic m68k updates from fixes branch
 
   Revision 1.24  2000/12/25 00:07:27  peter

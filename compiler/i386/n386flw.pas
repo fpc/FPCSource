@@ -261,7 +261,7 @@ implementation
          { only calculate reference }
          cleartempgen;
          secondpass(t2);
-         hs:=t2.resulttype^.size;
+         hs:=t2.resulttype.def^.size;
          if t2.location.loc <> LOC_CREGISTER then
            cmp32:=getregister32;
          case hs of
@@ -308,7 +308,7 @@ implementation
          { produce start assignment }
          cleartempgen;
          secondpass(left);
-         count_var_is_signed:=is_signed(porddef(t2.resulttype));
+         count_var_is_signed:=is_signed(porddef(t2.resulttype.def));
          if temptovalue then
              begin
               if t2.location.loc=LOC_CREGISTER then
@@ -546,19 +546,8 @@ implementation
                         end;
              floatdef : begin
                           cleanleft;
-                          if pfloatdef(procinfo^.returntype.def)^.typ=f32bit then
-                           begin
-                             exprasmlist.concat(tairegalloc.alloc(R_EAX));
-                             allocated_eax := true;
-                             if is_mem then
-                               emit_ref_reg(A_MOV,S_L,
-                                 newreference(left.location.reference),R_EAX)
-                             else
-                               emit_reg_reg(A_MOV,S_L,left.location.register,R_EAX);
-                           end
-                          else
-                           if is_mem then
-                            floatload(pfloatdef(procinfo^.returntype.def)^.typ,left.location.reference);
+                          if is_mem then
+                           floatload(pfloatdef(procinfo^.returntype.def)^.typ,left.location.reference);
                         end;
               { orddef,
               enumdef : }
@@ -756,7 +745,7 @@ do_jmp:
          emit_reg(A_PUSH,S_L,R_EAX);
          emitcall('FPC_DESTROYEXCEPTION');
          exprasmList.concat(Tairegalloc.DeAlloc(R_EAX));
-         maybe_loadesi;
+         maybe_loadself;
       end;
 
     { pops one element from the exception address stack }
@@ -910,7 +899,7 @@ do_jmp:
               }
               push_int (-1);
               emitcall('FPC_CATCHES');
-              maybe_loadesi;
+              maybe_loadself;
 
               { the destruction of the exception object must be also }
               { guarded by an exception frame                        }
@@ -1125,7 +1114,7 @@ do_jmp:
                end;
 
               { esi is destroyed by FPC_CATCHES }
-              maybe_loadesi;
+              maybe_loadself;
               oldexceptblock:=aktexceptblock;
               aktexceptblock:=right;
               secondpass(right);
@@ -1396,7 +1385,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-01-27 21:29:35  florian
+  Revision 1.9  2001-04-02 21:20:37  peter
+    * resulttype rewrite
+
+  Revision 1.8  2001/01/27 21:29:35  florian
      * behavior -Oa optimized
 
   Revision 1.7  2001/01/06 23:35:05  jonas

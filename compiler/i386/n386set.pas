@@ -168,13 +168,13 @@ implementation
 
        begin
          { We check first if we can generate jumps, this can be done
-           because the resulttype is already set in firstpass }
+           because the resulttype.def is already set in firstpass }
 
          { check if we can use smallset operation using btl which is limited
            to 32 bits, the left side may also not contain higher values !! }
-         use_small:=(psetdef(right.resulttype)^.settype=smallset) and
-                    ((left.resulttype^.deftype=orddef) and (porddef(left.resulttype)^.high<=32) or
-                     (left.resulttype^.deftype=enumdef) and (penumdef(left.resulttype)^.max<=32));
+         use_small:=(psetdef(right.resulttype.def)^.settype=smallset) and
+                    ((left.resulttype.def^.deftype=orddef) and (porddef(left.resulttype.def)^.high<=32) or
+                     (left.resulttype.def^.deftype=enumdef) and (penumdef(left.resulttype.def)^.max<=32));
 
          { Can we generate jumps? Possible for all types of sets }
          genjumps:=(right.nodetype=setconstn) and
@@ -694,7 +694,7 @@ implementation
              if assigned(t^.less) then
                genitem(t^.less);
              { need we to test the first value }
-             if first and (t^._low>get_min_value(left.resulttype)) then
+             if first and (t^._low>get_min_value(left.resulttype.def)) then
                begin
                   emit_const_reg(A_CMP,opsize,longint(t^._low),hregister);
                   emitjmp(jmp_le,elselabel);
@@ -716,7 +716,7 @@ implementation
                   if first then
                     begin
                        { have we to ajust the first value ? }
-                       if (t^._low>get_min_value(left.resulttype)) then
+                       if (t^._low>get_min_value(left.resulttype.def)) then
                          gensub(t^._low);
                     end
                   else
@@ -847,7 +847,7 @@ implementation
            jumpsegment:=procinfo^.aktlocaldata
          else
            jumpsegment:=datasegment;
-         with_sign:=is_signed(left.resulttype);
+         with_sign:=is_signed(left.resulttype.def);
          if with_sign then
            begin
               jmp_gt:=C_G;
@@ -872,7 +872,7 @@ implementation
            end;
          secondpass(left);
          { determines the size of the operand }
-         opsize:=bytes2Sxx[left.resulttype^.size];
+         opsize:=bytes2Sxx[left.resulttype.def^.size];
          { copy the case expression to a register }
          case left.location.loc of
             LOC_REGISTER:
@@ -965,7 +965,7 @@ implementation
                    max_label:=case_get_max(nodes);
                    labels:=case_count_labels(nodes);
                    { can we omit the range check of the jump table ? }
-                   getrange(left.resulttype,lv,hv);
+                   getrange(left.resulttype.def,lv,hv);
                    jumptable_no_range:=(lv=min_label) and (hv=max_label);
                    { hack a little bit, because the range can be greater }
                    { than the positive range of a longint            }
@@ -1067,7 +1067,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2001-02-11 12:14:56  jonas
+  Revision 1.12  2001-04-02 21:20:38  peter
+    * resulttype rewrite
+
+  Revision 1.11  2001/02/11 12:14:56  jonas
     * simplified and optimized code generated for in-statements
 
   Revision 1.10  2000/12/25 00:07:33  peter

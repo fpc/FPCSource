@@ -285,7 +285,7 @@ implementation
                   symtablestack^.insert(pconstsym);
                   akttokenpos:=storetokenpos;
                   consume(_EQUAL);
-                  readtypedconst(tt.def,pconstsym,false);
+                  readtypedconst(tt,pconstsym,false);
                   symdone:=true;
                end;
              { for a record there doesn't need to be a ; before the END or ) }
@@ -527,7 +527,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-03-11 22:58:50  peter
+  Revision 1.12  2001-04-02 21:20:33  peter
+    * resulttype rewrite
+
+  Revision 1.11  2001/03/11 22:58:50  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.10  2001/03/06 18:28:02  peter

@@ -127,19 +127,12 @@ interface
 
        ptypesym = ^ttypesym;
        ttypesym = object(tstoredsym)
-{$ifdef SYNONYM}
-          synonym    : ptypesym;
-{$endif}
           restype    : ttype;
 {$ifdef GDB}
           isusedinstab : boolean;
 {$endif GDB}
           constructor init(const n : string;const tt : ttype);
-          constructor initdef(const n : string;d : pdef);
           constructor load;
-{$ifdef SYNONYM}
-          destructor done;virtual;
-{$endif}
           procedure write;virtual;
           function  gettypedef:pdef;virtual;
           procedure prederef;virtual;
@@ -163,7 +156,6 @@ interface
           constructor init(const n : string;const tt : ttype);
           constructor init_dll(const n : string;const tt : ttype);
           constructor init_C(const n,mangled : string;const tt : ttype);
-          constructor initdef(const n : string;p : pdef);
           constructor load;
           destructor  done;virtual;
           procedure write;virtual;
@@ -230,7 +222,6 @@ interface
           ref     : pstoredsym;
           asmname : pstring;
           constructor init(const n : string;const tt : ttype);
-          constructor initdef(const n : string;p : pdef);
           constructor load;
           procedure deref;virtual;
           function  mangledname : string;virtual;
@@ -268,7 +259,7 @@ interface
           value      : tconstexprint;
           len        : longint; { len is needed for string length }
           constructor init(const n : string;t : tconsttyp;v : tconstexprint);
-          constructor init_def(const n : string;t : tconsttyp;v : tconstexprint;def : pdef);
+          constructor init_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
           constructor init_string(const n : string;t : tconsttyp;str:pchar;l:longint);
           constructor load;
           destructor  done;virtual;
@@ -689,9 +680,6 @@ implementation
 
     destructor tprocsym.done;
       begin
-         { don't check if errors !! }
-         if Errorcount=0 then
-           check_forward;
          inherited done;
       end;
 
@@ -742,7 +730,7 @@ implementation
 {$ifdef DONOTCHAINOPERATORS}
         t    : ttoken;
         last : pprocdef;
-{$endif DONOTCHAINOPERATORS}
+{$endif  DONOTCHAINOPERATORS}
         pd : pprocdef;
       begin
          resolvedef(pdef(definition));
@@ -1166,15 +1154,6 @@ implementation
       end;
 
 
-    constructor tabsolutesym.initdef(const n : string;p : pdef);
-      var
-        t : ttype;
-      begin
-        t.setdef(p);
-        tabsolutesym.init(n,t);
-      end;
-
-
     constructor tabsolutesym.load;
       begin
          tvarsym.load;
@@ -1317,15 +1296,6 @@ implementation
          tvarsym.init(n,tt);
          include(varoptions,vo_is_C_var);
          setmangledname(mangled);
-      end;
-
-
-    constructor tvarsym.initdef(const n : string;p : pdef);
-      var
-        t : ttype;
-      begin
-        t.setdef(p);
-        tvarsym.init(n,t);
       end;
 
 
@@ -1944,13 +1914,14 @@ implementation
       end;
 
 
-    constructor tconstsym.init_def(const n : string;t : tconsttyp;v : TConstExprInt;def : pdef);
+    constructor tconstsym.init_typed(const n : string;t : tconsttyp;v : tconstexprint;const tt:ttype);
       begin
          inherited init(n);
          typ:=constsym;
          consttyp:=t;
          value:=v;
-         consttype.setdef(def);
+         ResStrIndex:=0;
+         consttype:=tt;
          len:=0;
       end;
 
@@ -1964,8 +1935,7 @@ implementation
          consttype.reset;
          len:=l;
          if t=constresourcestring then
-           ResStrIndex:=ResourceStrings.Register(name,
-             pchar(tpointerord(value)),len);
+           ResStrIndex:=ResourceStrings.Register(name,pchar(tpointerord(value)),len);
       end;
 
     constructor tconstsym.load;
@@ -2260,74 +2230,23 @@ implementation
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
-{$ifdef SYNONYM}
-         if assigned(restype.def) then
-          begin
-             if not(assigned(restype.def^.typesym)) then
-               begin
-                  restype.def^.typesym:=@self;
-                  synonym:=nil;
-                  include(symoptions,sp_primary_typesym);
-               end
-             else
-               begin
-                  synonym:=restype.def^.typesym^.synonym;
-                  restype.def^.typesym^.synonym:=@self;
-               end;
-          end;
-{$else}
         { register the typesym for the definition }
         if assigned(restype.def) and
            not(assigned(restype.def^.typesym)) then
          restype.def^.typesym:=@self;
-{$endif}
       end;
 
-    constructor ttypesym.initdef(const n : string;d : pdef);
-      var
-        t : ttype;
-      begin
-        t.setdef(d);
-        ttypesym.init(n,t);
-      end;
 
     constructor ttypesym.load;
       begin
          inherited load;
          typ:=typesym;
-{$ifdef SYNONYM}
-         synonym:=nil;
-{$endif}
 {$ifdef GDB}
          isusedinstab := false;
 {$endif GDB}
          restype.load;
       end;
 
-{$ifdef SYNONYM}
-    destructor ttypesym.done;
-      var
-        prevsym : ptypesym;
-      begin
-         if assigned(restype.def) then
-           begin
-              prevsym:=restype.def^.typesym;
-              if prevsym=@self then
-                restype.def^.typesym:=synonym;
-              while assigned(prevsym) do
-                begin
-                   if (prevsym^.synonym=@self) then
-                     begin
-                        prevsym^.synonym:=synonym;
-                        break;
-                     end;
-                   prevsym:=prevsym^.synonym;
-                end;
-           end;
-         synonym:=nil;
-         inherited done;
-      end;
-{$endif}
 
     function  ttypesym.gettypedef:pdef;
       begin
@@ -2338,31 +2257,6 @@ implementation
     procedure ttypesym.prederef;
       begin
          restype.resolve;
-{$ifdef SYNONYM}
-         if assigned(restype.def) then
-          begin
-            if (sp_primary_typesym in symoptions) then
-              begin
-                 if restype.def^.typesym<>@self then
-                   synonym:=restype.def^.typesym;
-                 restype.def^.typesym:=@self;
-              end
-            else
-              begin
-                 if assigned(restype.def^.typesym) then
-                   begin
-                      synonym:=restype.def^.typesym^.synonym;
-                      if restype.def^.typesym<>@self then
-                        restype.def^.typesym^.synonym:=@self;
-                   end
-                 else
-                   restype.def^.typesym:=@self;
-              end;
-            if (restype.def^.deftype=recorddef) and assigned(precorddef(restype.def)^.symtable) and
-               (restype.def^.typesym=@self) then
-              precorddef(restype.def)^.symtable^.name:=stringdup('record '+name);
-          end;
-{$endif}
       end;
 
 
@@ -2471,7 +2365,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2001-03-11 22:58:51  peter
+  Revision 1.9  2001-04-02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.8  2001/03/11 22:58:51  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.7  2000/12/25 00:07:30  peter

@@ -91,7 +91,7 @@ interface
           is_fpu(procinfo^.returntype.def) then
          procinfo^.funcret_state:=vs_assigned;
        if assigned(procinfo^.returntype.def) and
-          (procinfo^.returntype.def<>pdef(voiddef)) then
+          (not is_void(procinfo^.returntype.def)) then
          retstr:=upper(tostr(procinfo^.return_offset)+'('+att_reg2str[procinfo^.framepointer]+')')
        else
          retstr:='';
@@ -243,7 +243,7 @@ interface
                                            else if upper(hs)='__RESULT' then
                                              begin
                                                 if assigned(procinfo^.returntype.def) and
-                                                  (procinfo^.returntype.def<>pdef(voiddef)) then
+                                                  (not is_void(procinfo^.returntype.def)) then
                                                   hs:=retstr
                                                 else
                                                   Message(asmr_e_void_function);
@@ -288,7 +288,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.5  2001-03-11 22:58:52  peter
+  Revision 1.6  2001-04-02 21:20:40  peter
+    * resulttype rewrite
+
+  Revision 1.5  2001/03/11 22:58:52  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.4  2000/12/25 00:07:34  peter

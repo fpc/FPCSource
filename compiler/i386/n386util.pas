@@ -153,7 +153,7 @@ implementation
            begin
               if (p^.location.loc=LOC_REGISTER) then
                 begin
-                   if isint64(p^.resulttype) then
+                   if isint64(p^.resulttype.def) then
                      begin
                         gettempofsizereference(href,8);
                         p^.temp_offset:=href.offset;
@@ -353,41 +353,37 @@ implementation
            LOC_REGISTER,
            LOC_CREGISTER:
              begin
-                case p.location.register of
+                  if p.resulttype.def^.size=8 then
+                    begin
+                       inc(pushedparasize,8);
+                       if inlined then
+                         begin
+                            r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
+                            exprasmlist.concat(taicpu.op_reg_ref(A_MOV,S_L,p.location.registerlow,r));
+                            r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize+4);
+                            exprasmlist.concat(taicpu.op_reg_ref(A_MOV,S_L,p.location.registerhigh,r));
+                         end
+                       else
+                         begin
+                           exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,p.location.registerhigh));
+                           exprasmlist.concat(taicpu.op_reg(A_PUSH,S_L,p.location.registerlow));
+                         end;
+                       ungetregister32(p.location.registerhigh);
+                       ungetregister32(p.location.registerlow);
+                    end
+                  else case p.location.register of
                    R_EAX,R_EBX,R_ECX,R_EDX,R_ESI,
                    R_EDI,R_ESP,R_EBP :
                       begin
-                        if p.resulttype^.size=8 then
-                          begin
-                             inc(pushedparasize,8);
-                             if inlined then
-                               begin
-                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,
-                                    p.location.registerlow,r));
-                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize+4);
-                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,
-                                    p.location.registerhigh,r));
-                               end
-                             else
-                               exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.location.registerhigh));
-                             ungetregister32(p.location.registerhigh);
-                               exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.location.registerlow));
-                             ungetregister32(p.location.registerlow);
-                          end
+                        inc(pushedparasize,4);
+                        if inlined then
+                         begin
+                           r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
+                           exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,p.location.register,r));
+                         end
                         else
-                          begin
-                             inc(pushedparasize,4);
-                             if inlined then
-                               begin
-                                  r:=new_reference(procinfo^.framepointer,para_offset-pushedparasize);
-                                  exprasmList.concat(Taicpu.Op_reg_ref(A_MOV,S_L,
-                                    p.location.register,r));
-                               end
-                             else
-                               exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.location.register));
-                             ungetregister32(p.location.register);
-                          end;
+                         exprasmList.concat(Taicpu.Op_reg(A_PUSH,S_L,p.location.register));
+                        ungetregister32(p.location.register);
                       end;
                    R_AX,R_BX,R_CX,R_DX,R_SI,R_DI:
                       begin
@@ -441,7 +437,7 @@ implementation
              end;
            LOC_FPU:
              begin
-                size:=align(pfloatdef(p.resulttype)^.size,alignment);
+                size:=align(pfloatdef(p.resulttype.def)^.size,alignment);
                 inc(pushedparasize,size);
                 if not inlined then
                  emit_const_reg(A_SUB,S_L,size,R_ESP);
@@ -451,7 +447,7 @@ implementation
                   exprasmList.concat(Tai_force_line.Create);
 {$endif GDB}
                 r:=new_reference(R_ESP,0);
-                floatstoreops(pfloatdef(p.resulttype)^.typ,op,opsize);
+                floatstoreops(pfloatdef(p.resulttype.def)^.typ,op,opsize);
                 { this is the easiest case for inlined !! }
                 if inlined then
                   begin
@@ -465,7 +461,7 @@ implementation
              begin
                 exprasmList.concat(Taicpu.Op_reg(A_FLD,S_NO,
                   correct_fpuregister(p.location.register,fpuvaroffset)));
-                size:=align(pfloatdef(p.resulttype)^.size,alignment);
+                size:=align(pfloatdef(p.resulttype.def)^.size,alignment);
                 inc(pushedparasize,size);
                 if not inlined then
                  emit_const_reg(A_SUB,S_L,size,R_ESP);
@@ -475,7 +471,7 @@ implementation
                   exprasmList.concat(Tai_force_line.Create);
 {$endif GDB}
                 r:=new_reference(R_ESP,0);
-                floatstoreops(pfloatdef(p.resulttype)^.typ,op,opsize);
+                floatstoreops(pfloatdef(p.resulttype.def)^.typ,op,opsize);
                 { this is the easiest case for inlined !! }
                 if inlined then
                   begin
@@ -488,11 +484,11 @@ implementation
              begin
                 tempreference:=p.location.reference;
                 del_reference(p.location.reference);
-                case p.resulttype^.deftype of
+                case p.resulttype.def^.deftype of
                   enumdef,
                   orddef :
                     begin
-                      case p.resulttype^.size of
+                      case p.resulttype.def^.size of
                        8 : begin
                              inc(pushedparasize,8);
                              if inlined then
@@ -556,7 +552,7 @@ implementation
                                 ungetregister32(R_EDI);
                               end
                              else
-                              emit_push_mem_size(tempreference,p.resulttype^.size);
+                              emit_push_mem_size(tempreference,p.resulttype.def^.size);
                            end;
                          else
                            internalerror(234231);
@@ -564,8 +560,7 @@ implementation
                     end;
                   floatdef :
                     begin
-                      case pfloatdef(p.resulttype)^.typ of
-                        f32bit,
+                      case pfloatdef(p.resulttype.def)^.typ of
                         s32real :
                           begin
                              inc(pushedparasize,4);
@@ -695,23 +690,23 @@ implementation
                   objectdef :
                     begin
                        { even some structured types are 32 bit }
-                       if is_widestring(p.resulttype) or
-                          is_ansistring(p.resulttype) or
-                          is_smallset(p.resulttype) or
-                          ((p.resulttype^.deftype in [recorddef,arraydef]) and
+                       if is_widestring(p.resulttype.def) or
+                          is_ansistring(p.resulttype.def) or
+                          is_smallset(p.resulttype.def) or
+                          ((p.resulttype.def^.deftype in [recorddef,arraydef]) and
                            (
-                            (p.resulttype^.deftype<>arraydef) or not
-                            (parraydef(p.resulttype)^.IsConstructor or
-                             parraydef(p.resulttype)^.isArrayOfConst or
-                             is_open_array(p.resulttype))
+                            (p.resulttype.def^.deftype<>arraydef) or not
+                            (parraydef(p.resulttype.def)^.IsConstructor or
+                             parraydef(p.resulttype.def)^.isArrayOfConst or
+                             is_open_array(p.resulttype.def))
                            ) and
-                           (p.resulttype^.size<=4)
+                           (p.resulttype.def^.size<=4)
                           ) or
-                          is_class(p.resulttype) or
-                          is_interface(p.resulttype) then
+                          is_class(p.resulttype.def) or
+                          is_interface(p.resulttype.def) then
                          begin
-                            if (p.resulttype^.size>2) or
-                               ((alignment=4) and (p.resulttype^.size>0)) then
+                            if (p.resulttype.def^.size>2) or
+                               ((alignment=4) and (p.resulttype.def^.size>0)) then
                               begin
                                 inc(pushedparasize,4);
                                 if inlined then
@@ -724,7 +719,7 @@ implementation
                               end
                             else
                               begin
-                                if p.resulttype^.size>0 then
+                                if p.resulttype.def^.size>0 then
                                   begin
                                     inc(pushedparasize,2);
                                     if inlined then
@@ -741,7 +736,7 @@ implementation
                        else if is_cdecl then
                          begin
                            { push on stack }
-                           size:=align(p.resulttype^.size,alignment);
+                           size:=align(p.resulttype.def^.size,alignment);
                            inc(pushedparasize,size);
                            emit_const_reg(A_SUB,S_L,size,R_ESP);
                            r:=new_reference(R_ESP,0);
@@ -865,7 +860,7 @@ implementation
            exit;
          storepos:=aktfilepos;
          aktfilepos:=p.fileinfo;
-         if is_boolean(p.resulttype) then
+         if is_boolean(p.resulttype.def) then
            begin
               load_all_regvars(exprasmlist);
               if is_constboolnode(p) then
@@ -877,7 +872,7 @@ implementation
                 end
               else
                 begin
-                   opsize:=def_opsize(p.resulttype);
+                   opsize:=def_opsize(p.resulttype.def);
                    case p.location.loc of
                       LOC_CREGISTER,LOC_REGISTER : begin
                                         emit_reg_reg(A_OR,opsize,p.location.register,
@@ -914,9 +909,9 @@ implementation
          if not(cs_check_overflow in aktlocalswitches) then
           exit;
          getlabel(hl);
-         if not ((p.resulttype^.deftype=pointerdef) or
-                ((p.resulttype^.deftype=orddef) and
-                 (porddef(p.resulttype)^.typ in [u64bit,u16bit,u32bit,u8bit,uchar,
+         if not ((p.resulttype.def^.deftype=pointerdef) or
+                ((p.resulttype.def^.deftype=orddef) and
+                 (porddef(p.resulttype.def)^.typ in [u64bit,u16bit,u32bit,u8bit,uchar,
                                                   bool8bit,bool16bit,bool32bit]))) then
            emitjmp(C_NO,hl)
          else
@@ -943,7 +938,7 @@ implementation
         from_signed,to_signed: boolean;
 
       begin
-         fromdef:=p.resulttype;
+         fromdef:=p.resulttype.def;
          from_signed := is_signed(fromdef);
          to_signed := is_signed(todef);
 
@@ -984,12 +979,12 @@ implementation
              { simple cardinal                                          }
              emitlab(poslabel);
              new(hdef,init(u32bit,0,longint($ffffffff)));
-             { the real p.resulttype is already saved in fromdef }
-             p.resulttype := hdef;
+             { the real p.resulttype.def is already saved in fromdef }
+             p.resulttype.def := hdef;
              emitrangecheck(p,todef);
              dispose(hdef,done);
-             { restore original resulttype }
-             p.resulttype := todef;
+             { restore original resulttype.def }
+             p.resulttype.def := todef;
 
              if from_signed and to_signed then
                begin
@@ -1019,14 +1014,14 @@ implementation
                  { longint($80000000) and -1 (JM)               }
                  emitlab(neglabel);
                  new(hdef,init(s32bit,longint($80000000),-1));
-                 p.resulttype := hdef;
+                 p.resulttype.def := hdef;
                  emitrangecheck(p,todef);
                  dispose(hdef,done);
                  emitlab(endlabel);
                end;
              registerdef := oldregisterdef;
-             p.resulttype := fromdef;
-             { restore p's resulttype }
+             p.resulttype.def := fromdef;
+             { restore p's resulttype.def }
            end
          else
            { todef = 64bit int }
@@ -1048,7 +1043,7 @@ implementation
                else
                  begin
                    hreg := getexplicitregister32(R_EDI);
-                   case p.resulttype^.size of
+                   case p.resulttype.def^.size of
                      1: opsize := S_BL;
                      2: opsize := S_WL;
                      4,8: opsize := S_L;
@@ -1060,7 +1055,7 @@ implementation
                    else
                      opcode := A_MOV;
                    href := newreference(p.location.reference);
-                   if p.resulttype^.size = 8 then
+                   if p.resulttype.def^.size = 8 then
                      inc(href^.offset,4);
                    emit_ref_reg(opcode,opsize,href,hreg);
                  end;
@@ -1078,7 +1073,7 @@ implementation
      procedure emitrangecheck(p:tnode;todef:pdef);
      {
        generate range checking code for the value at location t. The
-       type used is the checked against todefs ranges. fromdef (p.resulttype)
+       type used is the checked against todefs ranges. fromdef (p.resulttype.def)
        is the original type used at that location, when both defs are
        equal the check is also insert (needed for succ,pref,inc,dec)
      }
@@ -1097,7 +1092,7 @@ implementation
           exit;
         { only check when assigning to scalar, subranges are different,
           when todef=fromdef then the check is always generated }
-        fromdef:=p.resulttype;
+        fromdef:=p.resulttype.def;
         { no range check if from and to are equal and are both longint/dword or }
         { int64/qword, since such operations can at most cause overflows (JM)   }
         if (fromdef = todef) and
@@ -1120,7 +1115,7 @@ implementation
         getrange(todef,lto,hto);
         if todef<>fromdef then
          begin
-           getrange(p.resulttype,lfrom,hfrom);
+           getrange(p.resulttype.def,lfrom,hfrom);
            { first check for not being u32bit, then if the to is bigger than
              from }
            if (lto<hto) and (lfrom<hfrom) and
@@ -1130,7 +1125,7 @@ implementation
         { generate the rangecheck code for the def where we are going to
           store the result }
       { get op and opsize }
-        opsize:=def2def_opsize(fromdef,u32bitdef);
+        opsize:=def2def_opsize(fromdef,u32bittype.def);
         if opsize in [S_B,S_W,S_L] then
          op:=A_MOV
         else
@@ -1213,8 +1208,8 @@ implementation
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
-            (p.left.resulttype^.deftype=orddef) and
-            (porddef(p.left.resulttype)^.typ in [bool8bit,bool16bit,bool32bit]) then
+            (p.left.resulttype.def^.deftype=orddef) and
+            (porddef(p.left.resulttype.def)^.typ in [bool8bit,bool16bit,bool32bit]) then
            begin
              { p.swaped:=false}
              if nf_swaped in p.flags then
@@ -1249,10 +1244,10 @@ implementation
         hightree : tnode;
         srsym    : psym;
       begin
-        if is_open_string(p.resulttype) then
+        if is_open_string(p.resulttype.def) then
          begin
            srsym:=searchsymonlyin(tloadnode(p).symtable,'high'+pvarsym(tloadnode(p).symtableentry)^.name);
-           hightree:=genloadnode(pvarsym(srsym),tloadnode(p).symtable);
+           hightree:=cloadnode.create(pvarsym(srsym),tloadnode(p).symtable);
            firstpass(hightree);
            secondpass(hightree);
            push_value_para(hightree,false,false,0,4);
@@ -1261,7 +1256,7 @@ implementation
          end
         else
          begin
-           push_int(pstringdef(p.resulttype)^.len);
+           push_int(pstringdef(p.resulttype.def)^.len);
          end;
       end;
 
@@ -1276,7 +1271,7 @@ implementation
       var
         href: treference;
       begin
-         case source.resulttype^.deftype of
+         case source.resulttype.def^.deftype of
             stringdef:
               begin
                  if (source.nodetype=stringconstn) and
@@ -1289,7 +1284,7 @@ implementation
                      emitpushreferenceaddr(source.location.reference);
                      push_shortstring_length(dest);
                      emitcall('FPC_SHORTSTR_COPY');
-                     maybe_loadesi;
+                     maybe_loadself;
                    end;
               end;
             orddef:
@@ -1337,7 +1332,7 @@ implementation
          r : preference;
 
       begin
-         case p.right.resulttype^.deftype of
+         case p.right.resulttype.def^.deftype of
             stringdef:
               begin
                  if (p.right.nodetype=stringconstn) and
@@ -1349,7 +1344,7 @@ implementation
                      emitpushreferenceaddr(p.right.location.reference);
                      push_shortstring_length(p.left);
                      emitcall('FPC_LONGSTR_COPY');
-                     maybe_loadesi;
+                     maybe_loadself;
                    end;
               end;
             orddef:
@@ -1422,7 +1417,7 @@ implementation
          saveregvars($ff);
          emitcall('FPC_ANSISTR_TO_SHORTSTR');
          popusedregisters(pushed);
-         maybe_loadesi;
+         maybe_loadself;
       end;
 
     procedure loadinterfacecom(p: tbinarynode);
@@ -1466,7 +1461,7 @@ implementation
          del_reference(p.left.location.reference);
          saveregvars($ff);
          emitcall('FPC_INTF_ASSIGN');
-         maybe_loadesi;
+         maybe_loadself;
          popusedregisters(pushed);
          if ungettemp then
            ungetiftemp(p.right.location.reference);
@@ -1477,7 +1472,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-03-11 22:58:52  peter
+  Revision 1.14  2001-04-02 21:20:39  peter
+    * resulttype rewrite
+
+  Revision 1.13  2001/03/11 22:58:52  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.12  2001/03/04 10:26:56  jonas
@@ -1506,7 +1504,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.6  2000/12/05 11:44:34  jonas

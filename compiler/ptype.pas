@@ -55,7 +55,7 @@ implementation
 
     uses
        { common }
-       cutils,cobjects,cpuinfo,
+       cutils,cpuinfo,
        { global }
        globals,tokens,verbose,
        systems,
@@ -125,23 +125,23 @@ implementation
          if not assigned(srsym) then
           begin
             Message1(sym_e_id_not_found,s);
-            tt.setdef(generrordef);
+            tt:=generrortype;
             exit;
           end;
          { type sym ? }
          if (srsym^.typ<>typesym) then
           begin
             Message(type_e_type_id_expected);
-            tt.setdef(generrordef);
+            tt:=generrortype;
             exit;
           end;
          { Types are first defined with an error def before assigning
            the real type so check if it's an errordef. if so then
            give an error }
-         if (ptypesym(srsym)^.restype.def=generrordef) then
+         if (ptypesym(srsym)^.restype.def^.deftype=errordef) then
           begin
             Message(sym_e_error_in_type_def);
-            tt.setdef(generrordef);
+            tt:=generrortype;
             exit;
           end;
          { Only use the definitions for system/current unit, becuase
@@ -167,7 +167,7 @@ implementation
           case token of
             _STRING:
                 begin
-                   tt.setdef(string_dec);
+                   string_dec(tt);
                    s:='STRING';
                 end;
             _FILE:
@@ -182,7 +182,7 @@ implementation
                      end
                    else
                      begin
-                        tt.setdef(cfiledef);
+                        tt:=cfiletype;
                         s:='FILE';
                      end;
                 end;
@@ -268,7 +268,7 @@ implementation
                   (pt2.nodetype=ordconstn) then
                  begin
                  { check types }
-                   if CheckTypes(pt1.resulttype,pt2.resulttype) then
+                   if CheckTypes(pt1.resulttype.def,pt2.resulttype.def) then
                      begin
                      { Check bounds }
                        if tordconstnode(pt2).value<tordconstnode(pt1).value then
@@ -276,15 +276,15 @@ implementation
                        else
                         begin
                         { All checks passed, create the new def }
-                          case pt1.resulttype^.deftype of
+                          case pt1.resulttype.def^.deftype of
                             enumdef :
-                              tt.setdef(new(penumdef,init_subrange(penumdef(pt1.resulttype),tordconstnode(pt1).value,tordconstnode(pt2).value)));
+                              tt.setdef(new(penumdef,init_subrange(penumdef(pt1.resulttype.def),tordconstnode(pt1).value,tordconstnode(pt2).value)));
                             orddef :
                               begin
-                                if is_char(pt1.resulttype) then
+                                if is_char(pt1.resulttype.def) then
                                   tt.setdef(new(porddef,init(uchar,tordconstnode(pt1).value,tordconstnode(pt2).value)))
                                 else
-                                  if is_boolean(pt1.resulttype) then
+                                  if is_boolean(pt1.resulttype.def) then
                                     tt.setdef(new(porddef,init(bool8bit,tordconstnode(pt1).value,tordconstnode(pt2).value)))
                                   else
                                     tt.setdef(new(porddef,init(uauto,tordconstnode(pt1).value,tordconstnode(pt2).value)));
@@ -301,12 +301,7 @@ implementation
              begin
                { a simple type renaming }
                if (pt1.nodetype=typen) then
-                 begin
-                   if assigned(ttypenode(pt1).typenodesym) then
-                     tt.setsym(ttypenode(pt1).typenodesym)
-                   else
-                     tt.setdef(pt1.resulttype);
-                 end
+                 tt:=ttypenode(pt1).resulttype
                else
                  Message(sym_e_error_in_type_def);
              end;
@@ -317,32 +312,32 @@ implementation
         var
           lowval,
           highval   : longint;
-          arraytype : pdef;
+          arraytype : ttype;
           ht        : ttype;
 
-          procedure setdefdecl(p:pdef);
+          procedure setdefdecl(const t:ttype);
           begin
-            case p^.deftype of
+            case t.def^.deftype of
               enumdef :
                 begin
-                  lowval:=penumdef(p)^.min;
-                  highval:=penumdef(p)^.max;
-                  arraytype:=p;
+                  lowval:=penumdef(t.def)^.min;
+                  highval:=penumdef(t.def)^.max;
+                  arraytype:=t;
                 end;
               orddef :
                 begin
-                  if porddef(p)^.typ in [uchar,
+                  if porddef(t.def)^.typ in [uchar,
                     u8bit,u16bit,
                     s8bit,s16bit,s32bit,
                     bool8bit,bool16bit,bool32bit,
                     uwidechar] then
                     begin
-                       lowval:=porddef(p)^.low;
-                       highval:=porddef(p)^.high;
-                       arraytype:=p;
+                       lowval:=porddef(t.def)^.low;
+                       highval:=porddef(t.def)^.high;
+                       arraytype:=t;
                     end
                   else
-                    Message1(parser_e_type_cant_be_used_in_array_index,p^.gettypename);
+                    Message1(parser_e_type_cant_be_used_in_array_index,t.def^.gettypename);
                 end;
               else
                 Message(sym_e_error_in_type_def);
@@ -356,7 +351,7 @@ implementation
              begin
                 consume(_LECKKLAMMER);
                 { defaults }
-                arraytype:=generrordef;
+                arraytype:=generrortype;
                 lowval:=longint($80000000);
                 highval:=$7fffffff;
                 tt.reset;
@@ -367,7 +362,7 @@ implementation
                   if token=_LKLAMMER then
                    begin
                      read_type(ht,'');
-                     setdefdecl(ht.def);
+                     setdefdecl(ht);
                    end
                   else
                    begin
@@ -421,7 +416,7 @@ implementation
              end
            else
              begin
-                ap:=new(parraydef,init(0,-1,s32bitdef));
+                ap:=new(parraydef,init(0,-1,s32bittype));
                 ap^.IsDynamicArray:=true;
                 tt.setdef(ap);
              end;
@@ -497,19 +492,19 @@ implementation
                      { don't forget that min can be negativ  PM }
                      enumdef :
                        if penumdef(tt2.def)^.min>=0 then
-                        tt.setdef(new(psetdef,init(tt2.def,penumdef(tt2.def)^.max)))
+                        tt.setdef(new(psetdef,init(tt2,penumdef(tt2.def)^.max)))
                        else
                         Message(sym_e_ill_type_decl_set);
                      orddef :
                        begin
                          case porddef(tt2.def)^.typ of
                            uchar :
-                             tt.setdef(new(psetdef,init(tt2.def,255)));
+                             tt.setdef(new(psetdef,init(tt2,255)));
                            u8bit,u16bit,u32bit,
                            s8bit,s16bit,s32bit :
                              begin
                                if (porddef(tt2.def)^.low>=0) then
-                                tt.setdef(new(psetdef,init(tt2.def,porddef(tt2.def)^.high)))
+                                tt.setdef(new(psetdef,init(tt2,porddef(tt2.def)^.high)))
                                else
                                 Message(sym_e_ill_type_decl_set);
                              end;
@@ -522,7 +517,7 @@ implementation
                    end;
                  end
                 else
-                 tt.setdef(generrordef);
+                 tt:=generrortype;
               end;
            _CARET:
               begin
@@ -589,13 +584,16 @@ implementation
               expr_type;
          end;
          if tt.def=nil then
-          tt.setdef(generrordef);
+          tt:=generrortype;
       end;
 
 end.
 {
   $Log$
-  Revision 1.20  2001-03-22 22:35:42  florian
+  Revision 1.21  2001-04-02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.20  2001/03/22 22:35:42  florian
     + support for type a = (a=1); in Delphi mode added
     + procedure p(); in Delphi mode supported
     + on isn't keyword anymore, it can be used as
@@ -616,7 +614,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.16  2000/11/29 00:30:38  florian

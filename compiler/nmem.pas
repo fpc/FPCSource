@@ -35,41 +35,49 @@ interface
        tloadvmtnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        thnewnode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tnewnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        thdisposenode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tsimplenewdisposenode = class(tunarynode)
           constructor create(n : tnodetype;l : tnode);
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        taddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tdoubleaddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tderefnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tsubscriptnode = class(tunarynode)
@@ -78,16 +86,20 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
+          function det_resulttype:tnode;override;
        end;
 
        tvecnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tselfnode = class(tnode)
-          constructor create(_class : pdef);virtual;
+          classdef : pobjectdef;
+          constructor create(_class : pobjectdef);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        twithnode = class(tbinarynode)
@@ -99,11 +111,8 @@ interface
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
+          function det_resulttype:tnode;override;
        end;
-
-    function gensubscriptnode(varsym : pvarsym;l : tnode) : tsubscriptnode;
-    function genselfnode(_class : pdef) : tselfnode;
-    function genwithnode(symtable:pwithsymtable;l,r : tnode;count : longint) : twithnode;
 
     var
        cloadvmtnode : class of tloadvmtnode;
@@ -133,37 +142,28 @@ implementation
 {$endif newcg}
       ;
 
-    function genselfnode(_class : pdef) : tselfnode;
-
-      begin
-         genselfnode:=cselfnode.create(_class);
-      end;
-
-   function genwithnode(symtable : pwithsymtable;l,r : tnode;count : longint) : twithnode;
-
-      begin
-         genwithnode:=cwithnode.create(symtable,l,r,count);
-      end;
-
-    function gensubscriptnode(varsym : pvarsym;l : tnode) : tsubscriptnode;
-
-      begin
-         gensubscriptnode:=csubscriptnode.create(varsym,l);
-      end;
-
 {*****************************************************************************
                             TLOADVMTNODE
 *****************************************************************************}
 
     constructor tloadvmtnode.create(l : tnode);
-
       begin
          inherited create(loadvmtn,l);
       end;
 
+    function tloadvmtnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttypepass(left);
+        if codegenerror then
+         exit;
+
+        resulttype.setdef(new(pclassrefdef,init(left.resulttype)));;
+      end;
+
     function tloadvmtnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          registers32:=1;
          location.loc:=LOC_REGISTER;
       end;
@@ -173,14 +173,21 @@ implementation
 *****************************************************************************}
 
     constructor thnewnode.create;
-
       begin
          inherited create(hnewn);
       end;
 
+
+    function thnewnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype:=voidtype;
+      end;
+
+
     function thnewnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
       end;
 
 
@@ -189,33 +196,39 @@ implementation
 *****************************************************************************}
 
     constructor tnewnode.create(l : tnode);
-
       begin
          inherited create(newn,l);
       end;
 
+
+    function tnewnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        if assigned(left) then
+         resulttypepass(left);
+        resulttype:=voidtype;
+      end;
+
+
     function tnewnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          if assigned(left) then
-           firstpass(left);
+          begin
+            firstpass(left);
+            if codegenerror then
+             exit;
 
-         if codegenerror then
-           exit;
-         if assigned(left) then
-           begin
-              registers32:=left.registers32;
-              registersfpu:=left.registersfpu;
+            registers32:=left.registers32;
+            registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
-              registersmmx:=left.registersmmx;
+            registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-           end;
-         { result type is already set }
-         procinfo^.flags:=procinfo^.flags or pi_do_call;
-         if assigned(left) then
-           location.loc:=LOC_REGISTER
+            location.loc:=LOC_REGISTER
+          end
          else
-           location.loc:=LOC_REFERENCE;
+          location.loc:=LOC_REFERENCE;
+         procinfo^.flags:=procinfo^.flags or pi_do_call;
       end;
 
 
@@ -224,16 +237,25 @@ implementation
 *****************************************************************************}
 
     constructor thdisposenode.create(l : tnode);
-
       begin
          inherited create(hdisposen,l);
       end;
 
+
+    function thdisposenode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttypepass(left);
+        if codegenerror then
+         exit;
+        resulttype:=ppointerdef(left.resulttype.def)^.pointertype;
+      end;
+
+
     function thdisposenode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          firstpass(left);
-
          if codegenerror then
            exit;
 
@@ -251,7 +273,6 @@ implementation
          if left.location.loc=LOC_CREGISTER then
            inc(registers32);
          location.loc:=LOC_REFERENCE;
-         resulttype:=ppointerdef(left.resulttype)^.pointertype.def;
       end;
 
 
@@ -265,21 +286,28 @@ implementation
          inherited create(n,l);
       end;
 
+
+    function tsimplenewdisposenode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttypepass(left);
+        if codegenerror then
+         exit;
+        if (left.resulttype.def^.deftype<>pointerdef) then
+          CGMessage1(type_e_pointer_type_expected,left.resulttype.def^.typename);
+        resulttype:=voidtype;
+      end;
+
+
     function tsimplenewdisposenode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          { this cannot be in a register !! }
          make_not_regable(left);
 
          firstpass(left);
          if codegenerror then
           exit;
-
-         { check the type }
-         if left.resulttype=nil then
-          left.resulttype:=generrordef;
-         if (left.resulttype^.deftype<>pointerdef) then
-           CGMessage1(type_e_pointer_type_expected,left.resulttype^.typename);
 
          if (left.location.loc<>LOC_REFERENCE) {and
             (left.location.loc<>LOC_CREGISTER)} then
@@ -290,7 +318,6 @@ implementation
 {$ifdef SUPPORT_MMX}
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
-         resulttype:=voiddef;
          procinfo^.flags:=procinfo^.flags or pi_do_call;
       end;
 
@@ -305,174 +332,164 @@ implementation
          inherited create(addrn,l);
       end;
 
-    function taddrnode.pass_1 : tnode;
+
+    function taddrnode.det_resulttype:tnode;
       var
          hp  : tnode;
          hp2 : TParaItem;
          hp3 : pabstractprocdef;
       begin
-         pass_1:=nil;
-         make_not_regable(left);
-         if not(assigned(resulttype)) then
-           begin
-              { tp @procvar support (type of @procvar is a void pointer)
-                Note: we need to leave the addrn in the tree,
-                else we can't see the difference between @procvar and procvar.
-                we set the procvarload flag so a secondpass does nothing for
-                this node (PFV) }
-              if (m_tp_procvar in aktmodeswitches) then
+        result:=nil;
+        resulttypepass(left);
+        if codegenerror then
+         exit;
+
+        { don't allow constants }
+        if is_constnode(left) then
+         begin
+           aktfilepos:=left.fileinfo;
+           CGMessage(type_e_no_addr_of_constant);
+           exit;
+         end;
+
+        { tp @procvar support (type of @procvar is a void pointer)
+          Note: we need to leave the addrn in the tree,
+          else we can't see the difference between @procvar and procvar.
+          we set the procvarload flag so a secondpass does nothing for
+          this node (PFV) }
+        if (m_tp_procvar in aktmodeswitches) then
+         begin
+           case left.nodetype of
+             calln :
                begin
-                 hp:=left;
-                 case hp.nodetype of
-                   calln :
-                     begin
-                       { is it a procvar? }
-                       hp:=tcallnode(hp).right;
-                       if assigned(hp) then
-                         begin
-                           { remove calln node }
-                           tcallnode(left).right:=nil;
-                           left.free;
-                           { first do firstpass, then assignment in case hp }
-                           { gets changed by firstpass (JM)                 }
-                           firstpass(hp);
-                           left:=hp;
-                           include(flags,nf_procvarload);
-                         end;
-                     end;
-                   loadn,
-                   subscriptn,
-                   typeconvn,
-                   vecn,
-                   derefn :
-                     begin
-                       firstpass(hp);
-                       { in case hp gets changed by firstpass (JM) }
-                       left := hp;
-                       if codegenerror then
-                        exit;
-                       if hp.resulttype^.deftype=procvardef then
-                         include(flags,nf_procvarload);
-                     end;
-                 end;
-               end;
-              if nf_procvarload in flags then
-               begin
-                 registers32:=left.registers32;
-                 registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-                 registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-                 if registers32<1 then
-                   registers32:=1;
-                 location.loc:=left.location.loc;
-                 resulttype:=voidpointerdef;
-                 exit;
-               end;
-
-              { proc 2 procvar ? }
-              if left.nodetype=calln then
-                begin
-                  { generate a methodcallnode or proccallnode }
-                  { we shouldn't convert things like @tcollection.load }
-                  if (tcallnode(left).symtableprocentry^.owner^.symtabletype=objectsymtable) and
-                    not(assigned(tcallnode(left).methodpointer) and (tcallnode(left).methodpointer.nodetype=typen)) then
+                 { is it a procvar? }
+                 hp:=tcallnode(left).right;
+                 if assigned(hp) then
                    begin
-                     hp:=genloadmethodcallnode(pprocsym(tcallnode(left).symtableprocentry),tcallnode(left).symtableproc,
-                       tcallnode(left).methodpointer.getcopy);
-                     firstpass(hp);
-                     pass_1:=hp;
-                     exit;
-                   end
-                  else
-                   hp:=genloadcallnode(pprocsym(tcallnode(left).symtableprocentry),
-                     tcallnode(left).symtableproc);
-
-                  { result is a procedure variable }
-                  { No, to be TP compatible, you must return a pointer to
-                    the procedure that is stored in the procvar.}
-                  if not(m_tp_procvar in aktmodeswitches) then
-                    begin
-                       resulttype:=new(pprocvardef,init);
-
-                    { it could also be a procvar, not only pprocsym ! }
-                       if tcallnode(left).symtableprocentry^.typ=varsym then
-                        hp3:=pabstractprocdef(pvarsym(tcallnode(left).symtableprocentry)^.vartype.def)
-                       else
-                        hp3:=pabstractprocdef(pprocsym(tcallnode(left).symtableprocentry)^.definition);
-
-                       pprocvardef(resulttype)^.proctypeoption:=hp3^.proctypeoption;
-                       pprocvardef(resulttype)^.proccalloptions:=hp3^.proccalloptions;
-                       pprocvardef(resulttype)^.procoptions:=hp3^.procoptions;
-                       pprocvardef(resulttype)^.rettype:=hp3^.rettype;
-                       pprocvardef(resulttype)^.symtablelevel:=hp3^.symtablelevel;
-
-                     { method ? then set the methodpointer flag }
-                       if (hp3^.owner^.symtabletype=objectsymtable) and
-                          is_class(pdef(hp3^.owner^.defowner)) then
-                         include(pprocvardef(resulttype)^.procoptions,po_methodpointer);
-                       { we need to process the parameters reverse so they are inserted
-                         in the correct right2left order (PFV) }
-                       hp2:=TParaItem(hp3^.Para.last);
-                       while assigned(hp2) do
-                         begin
-                            pprocvardef(resulttype)^.concatpara(hp2.paratype,hp2.paratyp,hp2.defaultvalue);
-                            hp2:=TParaItem(hp2.previous);
-                         end;
-                    end
-                  else
-                    resulttype:=voidpointerdef;
-
-                  left.free;
-                  left:=hp;
-                end
-              else
-                begin
-                  firstpass(left);
-                  { what are we getting the address from an absolute sym? }
-                  hp:=left;
-                  while assigned(hp) and (hp.nodetype in [vecn,derefn,subscriptn]) do
-                   hp:=tunarynode(hp).left;
-                  if assigned(hp) and (hp.nodetype=loadn) and
-                     ((tloadnode(hp).symtableentry^.typ=absolutesym) and
-                      pabsolutesym(tloadnode(hp).symtableentry)^.absseg) then
-                   begin
-                     if not(cs_typed_addresses in aktlocalswitches) then
-                       resulttype:=voidfarpointerdef
-                     else
-                       resulttype:=new(ppointerdef,initfardef(left.resulttype));
-                   end
-                  else
-                   begin
-                     if not(cs_typed_addresses in aktlocalswitches) then
-                       resulttype:=voidpointerdef
-                     else
-                       resulttype:=new(ppointerdef,initdef(left.resulttype));
+                     { remove calln node }
+                     tcallnode(left).right:=nil;
+                     left.free;
+                     left:=hp;
+                     include(flags,nf_procvarload);
                    end;
-                end;
+               end;
+             loadn,
+             subscriptn,
+             typeconvn,
+             vecn,
+             derefn :
+               begin
+                 if left.resulttype.def^.deftype=procvardef then
+                   include(flags,nf_procvarload);
+               end;
            end;
-         firstpass(left);
+           if nf_procvarload in flags then
+            begin
+              resulttype:=voidpointertype;
+              exit;
+            end;
+         end;
+
+        { proc 2 procvar ? }
+        if left.nodetype=calln then
+         internalerror(200103253)
+        else
+         if (left.nodetype=loadn) and (tloadnode(left).symtableentry^.typ=procsym) then
+          begin
+            { the address is already available when loading a procedure of object }
+            if assigned(tloadnode(left).left) then
+             include(flags,nf_procvarload);
+
+            { result is a procedure variable }
+            { No, to be TP compatible, you must return a voidpointer to
+              the procedure that is stored in the procvar.}
+            if not(m_tp_procvar in aktmodeswitches) then
+              begin
+
+                 hp3:=pabstractprocdef(pprocsym(tloadnode(left).symtableentry)^.definition);
+
+                 { create procvardef }
+                 resulttype.setdef(new(pprocvardef,init));
+                 pprocvardef(resulttype.def)^.proctypeoption:=hp3^.proctypeoption;
+                 pprocvardef(resulttype.def)^.proccalloptions:=hp3^.proccalloptions;
+                 pprocvardef(resulttype.def)^.procoptions:=hp3^.procoptions;
+                 pprocvardef(resulttype.def)^.rettype:=hp3^.rettype;
+                 pprocvardef(resulttype.def)^.symtablelevel:=hp3^.symtablelevel;
+
+                 { method ? then set the methodpointer flag }
+                 if (hp3^.owner^.symtabletype=objectsymtable) then
+                   include(pprocvardef(resulttype.def)^.procoptions,po_methodpointer);
+
+                 { we need to process the parameters reverse so they are inserted
+                   in the correct right2left order (PFV) }
+                 hp2:=TParaItem(hp3^.Para.last);
+                 while assigned(hp2) do
+                   begin
+                      pprocvardef(resulttype.def)^.concatpara(hp2.paratype,hp2.paratyp,hp2.defaultvalue);
+                      hp2:=TParaItem(hp2.previous);
+                   end;
+              end
+            else
+              resulttype:=voidpointertype;
+          end
+        else
+          begin
+            { what are we getting the address from an absolute sym? }
+            hp:=left;
+            while assigned(hp) and (hp.nodetype in [vecn,derefn,subscriptn]) do
+             hp:=tunarynode(hp).left;
+            if assigned(hp) and (hp.nodetype=loadn) and
+               ((tloadnode(hp).symtableentry^.typ=absolutesym) and
+                pabsolutesym(tloadnode(hp).symtableentry)^.absseg) then
+             begin
+               if not(cs_typed_addresses in aktlocalswitches) then
+                 resulttype:=voidfarpointertype
+               else
+                 resulttype.setdef(new(ppointerdef,initfar(left.resulttype)));
+             end
+            else
+             begin
+               if not(cs_typed_addresses in aktlocalswitches) then
+                 resulttype:=voidpointertype
+               else
+                 resulttype.setdef(new(ppointerdef,init(left.resulttype)));
+             end;
+          end;
+
          { this is like the function addr }
          inc(parsing_para_level);
          set_varstate(left,false);
          dec(parsing_para_level);
-         if codegenerror then
-           exit;
 
-         { don't allow constants }
-         if is_constnode(left) then
+      end;
+
+
+    function taddrnode.pass_1 : tnode;
+      begin
+         result:=nil;
+         firstpass(left);
+         if codegenerror then
+          exit;
+
+         make_not_regable(left);
+         if nf_procvarload in flags then
           begin
-            aktfilepos:=left.fileinfo;
-            CGMessage(type_e_no_addr_of_constant);
-          end
-         else
+            registers32:=left.registers32;
+            registersfpu:=left.registersfpu;
+{$ifdef SUPPORT_MMX}
+            registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+            if registers32<1 then
+             registers32:=1;
+            location.loc:=left.location.loc;
+            exit;
+          end;
+
+         { we should allow loc_mem for @string }
+         if not(left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
            begin
-             { we should allow loc_mem for @string }
-             if not(left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
-               begin
-                 aktfilepos:=left.fileinfo;
-                 CGMessage(cg_e_illegal_expression);
-               end;
+             aktfilepos:=left.fileinfo;
+             CGMessage(cg_e_illegal_expression);
            end;
 
          registers32:=left.registers32;
@@ -492,26 +509,36 @@ implementation
 *****************************************************************************}
 
     constructor tdoubleaddrnode.create(l : tnode);
-
       begin
          inherited create(doubleaddrn,l);
       end;
 
-    function tdoubleaddrnode.pass_1 : tnode;
+
+    function tdoubleaddrnode.det_resulttype:tnode;
       begin
-         pass_1:=nil;
-         make_not_regable(left);
-         firstpass(left);
+        result:=nil;
+         resulttypepass(left);
+         if codegenerror then
+          exit;
+
          inc(parsing_para_level);
          set_varstate(left,false);
          dec(parsing_para_level);
-         if resulttype=nil then
-           resulttype:=voidpointerdef;
+
+         if (left.resulttype.def^.deftype)<>procvardef then
+           CGMessage(cg_e_illegal_expression);
+
+         resulttype:=voidpointertype;
+      end;
+
+
+    function tdoubleaddrnode.pass_1 : tnode;
+      begin
+         result:=nil;
+         make_not_regable(left);
+         firstpass(left);
          if codegenerror then
            exit;
-
-         if (left.resulttype^.deftype)<>procvardef then
-           CGMessage(cg_e_illegal_expression);
 
          if (left.location.loc<>LOC_REFERENCE) then
            CGMessage(cg_e_illegal_expression);
@@ -535,18 +562,29 @@ implementation
 
       begin
          inherited create(derefn,l);
+
+      end;
+
+    function tderefnode.det_resulttype:tnode;
+      begin
+         result:=nil;
+         resulttypepass(left);
+         set_varstate(left,true);
+         if codegenerror then
+          exit;
+
+         if left.resulttype.def^.deftype=pointerdef then
+          resulttype:=ppointerdef(left.resulttype.def)^.pointertype
+         else
+          CGMessage(cg_e_invalid_qualifier);
       end;
 
     function tderefnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          firstpass(left);
-         set_varstate(left,true);
          if codegenerror then
-           begin
-             resulttype:=generrordef;
-             exit;
-           end;
+          exit;
 
          registers32:=max(left.registers32,1);
          registersfpu:=left.registersfpu;
@@ -554,10 +592,6 @@ implementation
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
 
-         if left.resulttype^.deftype<>pointerdef then
-          CGMessage(cg_e_invalid_qualifier);
-
-         resulttype:=ppointerdef(left.resulttype)^.pointertype.def;
          location.loc:=LOC_REFERENCE;
       end;
 
@@ -585,16 +619,22 @@ implementation
          getcopy:=p;
       end;
 
+
+    function tsubscriptnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttypepass(left);
+        set_varstate(left,false);
+        resulttype:=vs^.vartype;
+      end;
+
+
     function tsubscriptnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          firstpass(left);
          if codegenerror then
-           begin
-             resulttype:=generrordef;
-             exit;
-           end;
-         resulttype:=vs^.vartype.def;
+          exit;
 
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -602,7 +642,7 @@ implementation
          registersmmx:=left.registersmmx;
 {$endif SUPPORT_MMX}
          { classes must be dereferenced implicit }
-         if is_class_or_interface(left.resulttype) then
+         if is_class_or_interface(left.resulttype.def) then
            begin
               if registers32=0 then
                 registers32:=1;
@@ -635,74 +675,85 @@ implementation
          inherited create(vecn,l,r);
       end;
 
-    function tvecnode.pass_1 : tnode;
+
+    function tvecnode.det_resulttype:tnode;
       var
-         harr : pdef;
+         htype : ttype;
          ct : tconverttype;
-{$ifdef consteval}
-         tcsym : ptypedconstsym;
-{$endif}
       begin
-         pass_1:=nil;
-         firstpass(left);
-         firstpass(right);
+         result:=nil;
+         resulttypepass(left);
+         resulttypepass(right);
          if codegenerror then
-           exit;
+          exit;
 
          { range check only for arrays }
-         if (left.resulttype^.deftype=arraydef) then
+         if (left.resulttype.def^.deftype=arraydef) then
            begin
-              if (isconvertable(right.resulttype,parraydef(left.resulttype)^.rangetype.def,
-                    ct,nil,ordconstn,false)=0) and
-                 not(is_equal(right.resulttype,parraydef(left.resulttype)^.rangetype.def)) then
+              if (isconvertable(right.resulttype.def,parraydef(left.resulttype.def)^.rangetype.def,
+                    ct,ordconstn,false)=0) and
+                 not(is_equal(right.resulttype.def,parraydef(left.resulttype.def)^.rangetype.def)) then
                 CGMessage(type_e_mismatch);
            end;
          { Never convert a boolean or a char !}
          { maybe type conversion }
-         if (right.resulttype^.deftype<>enumdef) and
-            not(is_char(right.resulttype)) and
-            not(is_boolean(right.resulttype)) then
+         if (right.resulttype.def^.deftype<>enumdef) and
+            not(is_char(right.resulttype.def)) and
+            not(is_boolean(right.resulttype.def)) then
            begin
-             right:=gentypeconvnode(right,s32bitdef);
-             firstpass(right);
-             if codegenerror then
-              exit;
+             inserttypeconv(right,s32bittype);
            end;
 
          { are we accessing a pointer[], then convert the pointer to
            an array first, in FPC this is allowed for all pointers in
            delphi/tp7 it's only allowed for pchars }
-         if (left.resulttype^.deftype=pointerdef) and
+         if (left.resulttype.def^.deftype=pointerdef) and
             ((m_fpc in aktmodeswitches) or
-             is_pchar(left.resulttype) or
-             is_pwidechar(left.resulttype)) then
+             is_pchar(left.resulttype.def) or
+             is_pwidechar(left.resulttype.def)) then
           begin
             { convert pointer to array }
-            harr:=new(parraydef,init(0,$7fffffff,s32bitdef));
-            parraydef(harr)^.elementtype.def:=ppointerdef(left.resulttype)^.pointertype.def;
-            left:=gentypeconvnode(left,harr);
-            firstpass(left);
-            if codegenerror then
-             exit;
-            resulttype:=parraydef(harr)^.elementtype.def
+            htype.setdef(new(parraydef,init(0,$7fffffff,s32bittype)));
+            parraydef(htype.def)^.elementtype:=ppointerdef(left.resulttype.def)^.pointertype;
+            inserttypeconv(left,htype);
+
+            resulttype:=parraydef(htype.def)^.elementtype;
           end;
 
          { determine return type }
-         if not assigned(resulttype) then
-           if left.resulttype^.deftype=arraydef then
-             resulttype:=parraydef(left.resulttype)^.elementtype.def
-           else if left.resulttype^.deftype=stringdef then
+         if not assigned(resulttype.def) then
+           if left.resulttype.def^.deftype=arraydef then
+             resulttype:=parraydef(left.resulttype.def)^.elementtype
+           else if left.resulttype.def^.deftype=stringdef then
              begin
                 { indexed access to strings }
-                case pstringdef(left.resulttype)^.string_typ of
-                   st_widestring : resulttype:=cwidechardef;
-                   st_ansistring : resulttype:=cchardef;
-                   st_longstring : resulttype:=cchardef;
-                   st_shortstring : resulttype:=cchardef;
+                case pstringdef(left.resulttype.def)^.string_typ of
+                   st_widestring :
+                     resulttype:=cwidechartype;
+                   st_ansistring :
+                     resulttype:=cchartype;
+                   st_longstring :
+                     resulttype:=cchartype;
+                   st_shortstring :
+                     resulttype:=cchartype;
                 end;
              end
            else
              CGMessage(type_e_array_required);
+      end;
+
+
+    function tvecnode.pass_1 : tnode;
+{$ifdef consteval}
+      var
+         tcsym : ptypedconstsym;
+{$endif}
+      begin
+         result:=nil;
+         firstpass(left);
+         firstpass(right);
+         if codegenerror then
+           exit;
 
          { the register calculation is easy if a const index is used }
          if right.nodetype=ordconstn then
@@ -722,10 +773,10 @@ implementation
               registers32:=left.registers32;
 
               { for ansi/wide strings, we need at least one register }
-              if is_ansistring(left.resulttype) or
-                is_widestring(left.resulttype) or
+              if is_ansistring(left.resulttype.def) or
+                is_widestring(left.resulttype.def) or
               { ... as well as for dynamic arrays }
-                is_dynamic_array(left.resulttype) then
+                is_dynamic_array(left.resulttype.def) then
                 registers32:=max(registers32,1);
            end
          else
@@ -735,10 +786,10 @@ implementation
               registers32:=max(left.registers32,right.registers32);
 
               { for ansi/wide strings, we need at least one register }
-              if is_ansistring(left.resulttype) or
-                is_widestring(left.resulttype) or
+              if is_ansistring(left.resulttype.def) or
+                is_widestring(left.resulttype.def) or
               { ... as well as for dynamic arrays }
-                is_dynamic_array(left.resulttype) then
+                is_dynamic_array(left.resulttype.def) then
                 registers32:=max(registers32,1);
 
               { need we an extra register when doing the restore ? }
@@ -778,18 +829,24 @@ implementation
                                TSELFNODE
 *****************************************************************************}
 
-    constructor tselfnode.create(_class : pdef);
+    constructor tselfnode.create(_class : pobjectdef);
 
       begin
          inherited create(selfn);
-         resulttype:=_class;
+         classdef:=_class;
+      end;
+
+    function tselfnode.det_resulttype:tnode;
+      begin
+        result:=nil;
+        resulttype.setdef(classdef);
       end;
 
     function tselfnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
-         if (resulttype^.deftype=classrefdef) or
-           is_class(resulttype) then
+         result:=nil;
+         if (resulttype.def^.deftype=classrefdef) or
+           is_class(resulttype.def) then
            location.loc:=LOC_CREGISTER
          else
            location.loc:=LOC_REFERENCE;
@@ -810,6 +867,7 @@ implementation
          set_file_line(l);
       end;
 
+
     destructor twithnode.destroy;
       var
         symt : psymtable;
@@ -828,6 +886,7 @@ implementation
         inherited destroy;
       end;
 
+
     function twithnode.getcopy : tnode;
 
       var
@@ -841,39 +900,55 @@ implementation
          result:=p;
       end;
 
-    function twithnode.pass_1 : tnode;
+    function twithnode.det_resulttype:tnode;
       var
          symtable : pwithsymtable;
          i : longint;
       begin
-         pass_1:=nil;
+         result:=nil;
+         resulttype:=voidtype;
+         if assigned(left) and assigned(right) then
+          begin
+            resulttypepass(left);
+            unset_varstate(left);
+            set_varstate(left,true);
+            if codegenerror then
+             exit;
+
+            symtable:=withsymtable;
+            for i:=1 to tablecount do
+             begin
+               if (left.nodetype=loadn) and
+                  (tloadnode(left).symtable=aktprocsym^.definition^.localst) then
+                symtable^.direct_with:=true;
+               symtable^.withnode:=self;
+               symtable:=pwithsymtable(symtable^.next);
+             end;
+
+            resulttypepass(right);
+            if codegenerror then
+             exit;
+          end;
+        resulttype:=voidtype;
+      end;
+
+
+    function twithnode.pass_1 : tnode;
+      begin
+         result:=nil;
          if assigned(left) and assigned(right) then
             begin
                firstpass(left);
-               unset_varstate(left);
-               set_varstate(left,true);
-               if codegenerror then
-                 exit;
-               symtable:=withsymtable;
-               for i:=1 to tablecount do
-                 begin
-                    if (left.nodetype=loadn) and
-                       (tloadnode(left).symtable=aktprocsym^.definition^.localst) then
-                      symtable^.direct_with:=true;
-                    symtable^.withnode:=self;
-                    symtable:=pwithsymtable(symtable^.next);
-                  end;
                firstpass(right);
                if codegenerror then
                  exit;
 
                left_right_max;
-               resulttype:=voiddef;
             end
          else
            begin
               { optimization }
-              pass_1:=nil;
+              result:=nil;
            end;
       end;
 
@@ -901,7 +976,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2001-03-23 00:16:07  florian
+  Revision 1.16  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.15  2001/03/23 00:16:07  florian
     + some stuff to compile FreeCLX added
 
   Revision 1.14  2000/12/31 11:14:11  jonas

@@ -66,7 +66,7 @@ interface
     tDLLScannerWin32=class(tDLLScanner)
     private
       cstring : array[0..127]of char;
-      function DOSstubOK(var x:cardinal):longbool;
+      function DOSstubOK(var x:longint):boolean;
       function FindDLL(const s:string;var founddll:string):boolean;
       function DllName(Const Name : string) : string;
     public
@@ -722,11 +722,9 @@ end;
 
 Function TLinkerWin32.WriteResponseFile(isdll:boolean) : Boolean;
 Var
-  linkres  : TLinkRes;
-  i        : longint;
-  HPath    : TStringListItem;
-  s,s2     : string;
-  found:boolean;
+  linkres : TLinkRes;
+  HPath   : TStringListItem;
+  s       : string;
 begin
   WriteResponseFile:=False;
 
@@ -1149,20 +1147,20 @@ end;
                             TDLLScannerWin32
 ****************************************************************************}
 
-function tDLLScannerWin32.DOSstubOK(var x:cardinal):longbool;
- begin
-  blockread(f,TheWord,2,loaded);
-  if loaded<>2 then
-   DOSstubOK:=false
-  else
-   begin
-    DOSstubOK:=TheWord='MZ';
-    seek(f,$3C);
-    blockread(f,x,4,loaded);
-    if(loaded<>4)or(x>filesize(f))then
-     DOSstubOK:=false;
-   end;
- end;
+    function tDLLScannerWin32.DOSstubOK(var x:longint):boolean;
+      begin
+        blockread(f,TheWord,2,loaded);
+        if loaded<>2 then
+         DOSstubOK:=false
+        else
+         begin
+           DOSstubOK:=(TheWord='MZ');
+           seek(f,$3C);
+           blockread(f,x,4,loaded);
+           if(loaded<>4)or(x>filesize(f))then
+            DOSstubOK:=false;
+         end;
+      end;
 
     function TDLLScannerWin32.FindDLL(const s:string;var founddll:string):boolean;
       var
@@ -1210,7 +1208,7 @@ function tDLLScannerWin32.isSuitableFileType(x:cardinal):longbool;
   isSuitableFileType:=(loaded=2)and(TheWord='PE');
  end;
 
- 
+
 function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
  type
   TObjInfo=packed record
@@ -1256,7 +1254,7 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
      hp:=tExternalsItem(hp.next);
     end;
   end;
- 
+
  procedure Store(index:cardinal;name:pchar;isData:longbool);
   begin
    if not isUsedFunction(name)then
@@ -1323,7 +1321,7 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
       begin
        seek(f,RawOffset-VirtAddr+ExpDir.AddrOrds+j*2);
        blockread(f,Ordinal,2);
-       seek(f,RawOffset-VirtAddr+ExpDir.AddrFuncs+Ordinal*4);
+       seek(f,RawOffset-VirtAddr+ExpDir.AddrFuncs+cardinal(Ordinal)*4);
        blockread(f,ProcEntry,4);
        seek(f,RawOffset-VirtAddr+ExpDir.AddrNames+j*4);
        blockread(f,ulongval,4);
@@ -1383,7 +1381,10 @@ function tDLLScannerWin32.scan(const binname:string):longbool;
 end.
 {
   $Log$
-  Revision 1.2  2001-03-06 18:28:02  peter
+  Revision 1.3  2001-04-02 21:20:40  peter
+    * resulttype rewrite
+
+  Revision 1.2  2001/03/06 18:28:02  peter
     * patch from Pavel with a new and much faster DLL Scanner for
       automatic importing so $linklib works for DLLs. Thanks Pavel!
 

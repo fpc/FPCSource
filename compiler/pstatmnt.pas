@@ -39,7 +39,7 @@ implementation
 
     uses
        { common }
-       cutils,cobjects,
+       cutils,
        { global }
        globtype,globals,verbose,
        systems,cpuinfo,
@@ -198,16 +198,16 @@ implementation
          caseexpr:=comp_expr(true);
        { determines result type }
          cleartempgen;
-         do_firstpass(caseexpr);
+         do_resulttypepass(caseexpr);
          casedeferror:=false;
-         casedef:=caseexpr.resulttype;
+         casedef:=caseexpr.resulttype.def;
          if (not assigned(casedef)) or
             not(is_ordinal(casedef)) then
           begin
             CGMessage(type_e_ordinal_expr_expected);
             { create a correct tree }
             caseexpr.free;
-            caseexpr:=genordinalconstnode(0,u32bitdef);
+            caseexpr:=cordconstnode.create(0,u32bittype);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;
@@ -230,8 +230,8 @@ implementation
              if (p.nodetype=rangen) then
                begin
                   { type checking for case statements }
-                  if is_subequal(casedef, trangenode(p).left.resulttype) and
-                     is_subequal(casedef, trangenode(p).right.resulttype) then
+                  if is_subequal(casedef, trangenode(p).left.resulttype.def) and
+                     is_subequal(casedef, trangenode(p).right.resulttype.def) then
                     begin
                       hl1:=get_ordinal_value(trangenode(p).left);
                       hl2:=get_ordinal_value(trangenode(p).right);
@@ -250,7 +250,7 @@ implementation
              else
                begin
                   { type checking for case statements }
-                  if not is_subequal(casedef, p.resulttype) then
+                  if not is_subequal(casedef, p.resulttype.def) then
                     CGMessage(parser_e_case_mismatch);
                   hl1:=get_ordinal_value(p);
                   if not casedeferror then
@@ -385,15 +385,15 @@ implementation
          hp : tnode;
       begin
          p:=comp_expr(true);
-         do_firstpass(p);
+         do_resulttypepass(p);
          set_varstate(p,false);
          right:=nil;
          if (not codegenerror) and
-            (p.resulttype^.deftype in [objectdef,recorddef]) then
+            (p.resulttype.def^.deftype in [objectdef,recorddef]) then
           begin
-            case p.resulttype^.deftype of
+            case p.resulttype.def^.deftype of
              objectdef : begin
-                           obj:=pobjectdef(p.resulttype);
+                           obj:=pobjectdef(p.resulttype.def);
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.symsearch:=obj^.symtable^.symsearch;
                            withsymtable^.defowner:=obj;
@@ -423,7 +423,7 @@ implementation
                            symtablestack:=withsymtable;
                          end;
              recorddef : begin
-                           symtab:=precorddef(p.resulttype)^.symtable;
+                           symtab:=precorddef(p.resulttype.def)^.symtable;
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.symsearch:=symtab^.symsearch;
@@ -432,7 +432,7 @@ implementation
                            pwithsymtable(withsymtable)^.direct_with:=true;
                            {symtab^.withnode:=p; not yet allocated !! }
                            pwithsymtable(withsymtable)^.withrefnode:=p;
-                           withsymtable^.defowner:=precorddef(p.resulttype);
+                           withsymtable^.defowner:=precorddef(p.resulttype.def);
                            withsymtable^.next:=symtablestack;
                            symtablestack:=withsymtable;
                         end;
@@ -452,7 +452,7 @@ implementation
              end;
             for i:=1 to levelcount do
              symtablestack:=symtablestack^.next;
-            _with_statement:=genwithnode(pwithsymtable(withsymtable),p,right,levelcount);
+            _with_statement:=cwithnode.create(pwithsymtable(withsymtable),p,right,levelcount);
           end
          else
           begin
@@ -519,17 +519,16 @@ implementation
       var
          p_try_block,p_finally_block,first,last,
          p_default,p_specific,hp : tnode;
-         ot : pobjectdef;
+         ot : ttype;
          sym : pvarsym;
          old_block_type : tblock_type;
          exceptsymtable : psymtable;
-         objname : stringid;
+         objname,objrealname : stringid;
          srsym : psym;
          srsymtable : psymtable;
 
       begin
-         procinfo^.flags:=procinfo^.flags or
-           pi_uses_exceptions;
+         procinfo^.flags:=procinfo^.flags or pi_uses_exceptions;
 
          p_default:=nil;
          p_specific:=nil;
@@ -568,9 +567,9 @@ implementation
               consume(_EXCEPT);
               old_block_type:=block_type;
               block_type:=bt_except;
-              ot:=pobjectdef(generrordef);
+              ot:=generrortype;
               p_specific:=nil;
-              if (token=_ID) and (idtoken=_ON) then
+              if (idtoken=_ON) then
                 { catch specific exceptions }
                 begin
                    repeat
@@ -578,6 +577,7 @@ implementation
                      if token=_ID then
                        begin
                           objname:=pattern;
+                          objrealname:=orgpattern;
                           { can't use consume_sym here, because we need already
                             to check for the colon }
                           searchsym(objname,srsym,srsymtable);
@@ -589,16 +589,16 @@ implementation
                                if (srsym^.typ=typesym) and
                                   is_class(ptypesym(srsym)^.restype.def) then
                                  begin
-                                    ot:=pobjectdef(ptypesym(srsym)^.restype.def);
-                                    sym:=new(pvarsym,initdef(objname,ot));
+                                    ot:=ptypesym(srsym)^.restype;
+                                    sym:=new(pvarsym,init(objrealname,ot));
                                  end
                                else
                                  begin
-                                    sym:=new(pvarsym,initdef(objname,new(perrordef,init)));
+                                    sym:=new(pvarsym,init(objrealname,generrortype));
                                     if (srsym^.typ=typesym) then
                                       Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename)
                                     else
-                                      Message1(type_e_class_type_expected,ot^.typename);
+                                      Message1(type_e_class_type_expected,ot.def^.typename);
                                  end;
                                exceptsymtable:=new(pstoredsymtable,init(stt_exceptsymtable));
                                exceptsymtable^.insert(sym);
@@ -612,7 +612,7 @@ implementation
                                  with "e: Exception" the e is not necessary }
                                if srsym=nil then
                                 begin
-                                  identifier_not_found(objname);
+                                  identifier_not_found(objrealname);
                                   srsym:=generrorsym;
                                 end;
                                { support unit.identifier }
@@ -620,25 +620,25 @@ implementation
                                  begin
                                     consume(_POINT);
                                     srsym:=searchsymonlyin(punitsym(srsym)^.unitsymtable,pattern);
-                                    consume(_ID);
                                     if srsym=nil then
                                      begin
-                                       identifier_not_found(objname);
+                                       identifier_not_found(orgpattern);
                                        srsym:=generrorsym;
                                      end;
+                                    consume(_ID);
                                  end;
                                { check if type is valid, must be done here because
                                  with "e: Exception" the e is not necessary }
                                if (srsym^.typ=typesym) and
                                   is_class(ptypesym(srsym)^.restype.def) then
-                                 ot:=pobjectdef(ptypesym(srsym)^.restype.def)
+                                 ot:=ptypesym(srsym)^.restype
                                else
                                  begin
-                                    ot:=pobjectdef(generrordef);
+                                    ot:=generrortype;
                                     if (srsym^.typ=typesym) then
                                       Message1(type_e_class_type_expected,ptypesym(srsym)^.restype.def^.typename)
                                     else
-                                      Message1(type_e_class_type_expected,ot^.typename);
+                                      Message1(type_e_class_type_expected,ot.def^.typename);
                                  end;
                                exceptsymtable:=nil;
                             end;
@@ -647,7 +647,7 @@ implementation
                        consume(_ID);
                      consume(_DO);
                      hp:=connode.create(nil,statement);
-                     if ot^.deftype=errordef then
+                     if ot.def^.deftype=errordef then
                        begin
                           hp.free;
                           hp:=cerrornode.create;
@@ -667,7 +667,7 @@ implementation
                      { that last and hp are errornodes (JM)                            }
                      if last.nodetype = onn then
                        begin
-                         tonnode(last).excepttype:=ot;
+                         tonnode(last).excepttype:=pobjectdef(ot.def);
                          tonnode(last).exceptsymtable:=exceptsymtable;
                        end;
                      { remove exception symtable }
@@ -716,14 +716,13 @@ implementation
               consume(_RKLAMMER);
               if (block_type=bt_except) then
                 Message(parser_e_exit_with_argument_not__possible);
-              if procinfo^.returntype.def=pdef(voiddef) then
+              if is_void(procinfo^.returntype.def) then
                 Message(parser_e_void_function);
            end
          else
            p:=nil;
          p:=cexitnode.create(p);
-         // p.resulttype:=procinfo^.returntype.def;
-         p.resulttype:=voiddef;
+         p.resulttype:=voidtype;
          exit_statement:=p;
       end;
 
@@ -844,7 +843,6 @@ implementation
         destructorname : stringid;
         sym      : psym;
         classh   : pobjectdef;
-        pd,pd2   : pdef;
         destructorpos,
         storepos : tfileposinfo;
         is_new   : boolean;
@@ -860,7 +858,6 @@ implementation
         p:=comp_expr(true);
         { calc return type }
         cleartempgen;
-        do_firstpass(p);
         set_varstate(p,(not is_new));
         { constructor,destructor specified }
         if try_to_consume(_COMMA) then
@@ -872,13 +869,9 @@ implementation
             destructorpos:=akttokenpos;
             consume(_ID);
 
-            pd:=p.resulttype;
-            if pd=nil then
-             pd:=generrordef;
-            pd2:=pd;
-            if (pd^.deftype<>pointerdef) then
+            if (p.resulttype.def^.deftype<>pointerdef) then
               begin
-                 Message1(type_e_pointer_type_expected,pd^.typename);
+                 Message1(type_e_pointer_type_expected,p.resulttype.def^.typename);
                  p.free;
                  p:=factor(false);
                  p.free;
@@ -887,7 +880,7 @@ implementation
                  exit;
               end;
             { first parameter must be an object or class }
-            if ppointerdef(pd)^.pointertype.def^.deftype<>objectdef then
+            if ppointerdef(p.resulttype.def)^.pointertype.def^.deftype<>objectdef then
               begin
                  Message(parser_e_pointer_to_class_expected);
                  p.free;
@@ -897,7 +890,7 @@ implementation
                  exit;
               end;
             { check, if the first parameter is a pointer to a _class_ }
-            classh:=pobjectdef(ppointerdef(pd)^.pointertype.def);
+            classh:=pobjectdef(ppointerdef(p.resulttype.def)^.pointertype.def);
             if is_class(classh) then
               begin
                  Message(parser_e_no_new_or_dispose_for_classes);
@@ -929,23 +922,17 @@ implementation
                  p2:=chnewnode.create
                 else
                  p2:=chdisposenode.create(p);
+                do_resulttypepass(p2);
+                p2.resulttype:=ppointerdef(p.resulttype.def)^.pointertype;
                 if is_new then
-                  begin
-                    { Constructors can take parameters.}
-                    p2.resulttype:=ppointerdef(pd)^.pointertype.def;
-                    do_member_read(false,sym,p2,pd,again);
-                  end
+                  do_member_read(false,sym,p2,again)
                 else
                   begin
                     if (m_tp in aktmodeswitches) then
-                      begin
-                        { Constructors can take parameters.}
-                        p2.resulttype:=ppointerdef(pd)^.pointertype.def;
-                        do_member_read(false,sym,p2,pd,again);
-                      end
+                      do_member_read(false,sym,p2,again)
                     else
                       begin
-                        p2:=ccallnode.create(pprocsym(sym),sym^.owner,p2);
+                        p2:=ccallnode.create(nil,pprocsym(sym),sym^.owner,p2);
                         { support dispose(p,done()); }
                         if try_to_consume(_LKLAMMER) then
                           begin
@@ -961,16 +948,17 @@ implementation
 
                 { we need the real called method }
                 cleartempgen;
-                do_firstpass(p2);
-
+                do_resulttypepass(p2);
                 if not codegenerror then
                  begin
                    if is_new then
                     begin
                       if (tcallnode(p2).procdefinition^.proctypeoption<>potype_constructor) then
                         Message(parser_e_expr_have_to_be_constructor_call);
-                      p2:=cassignmentnode.create(p,cnewnode.create(p2));
-                      tassignmentnode(p2).right.resulttype:=pd2;
+                      p2:=cnewnode.create(p2);
+                      do_resulttypepass(p2);
+                      p2.resulttype:=p.resulttype;
+                      p2:=cassignmentnode.create(p,p2);
                     end
                    else
                     begin
@@ -983,20 +971,18 @@ implementation
           end
         else
           begin
-             if p.resulttype=nil then
-              p.resulttype:=generrordef;
-             if (p.resulttype^.deftype<>pointerdef) then
+             if (p.resulttype.def^.deftype<>pointerdef) then
                Begin
-                  Message1(type_e_pointer_type_expected,p.resulttype^.typename);
+                  Message1(type_e_pointer_type_expected,p.resulttype.def^.typename);
                   new_dispose_statement:=cerrornode.create;
                end
              else
                begin
-                  if (ppointerdef(p.resulttype)^.pointertype.def^.deftype=objectdef) and
-                     (oo_has_vmt in pobjectdef(ppointerdef(p.resulttype)^.pointertype.def)^.objectoptions) then
+                  if (ppointerdef(p.resulttype.def)^.pointertype.def^.deftype=objectdef) and
+                     (oo_has_vmt in pobjectdef(ppointerdef(p.resulttype.def)^.pointertype.def)^.objectoptions) then
                     Message(parser_w_use_extended_syntax_for_objects);
-                  if (ppointerdef(p.resulttype)^.pointertype.def^.deftype=orddef) and
-                     (porddef(ppointerdef(p.resulttype)^.pointertype.def)^.typ=uvoid) then
+                  if (ppointerdef(p.resulttype.def)^.pointertype.def^.deftype=orddef) and
+                     (porddef(ppointerdef(p.resulttype.def)^.pointertype.def)^.typ=uvoid) then
                     begin
                       if (m_tp in aktmodeswitches) or
                          (m_delphi in aktmodeswitches) then
@@ -1186,7 +1172,7 @@ implementation
 
          { assembler code does not allocate }
          { space for the return value       }
-          if procinfo^.returntype.def<>pdef(voiddef) then
+          if not is_void(procinfo^.returntype.def) then
            begin
               if ret_in_acc(procinfo^.returntype.def) then
                 begin
@@ -1240,7 +1226,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2001-03-22 22:35:42  florian
+  Revision 1.22  2001-04-02 21:20:34  peter
+    * resulttype rewrite
+
+  Revision 1.21  2001/03/22 22:35:42  florian
     + support for type a = (a=1); in Delphi mode added
     + procedure p(); in Delphi mode supported
     + on isn't keyword anymore, it can be used as

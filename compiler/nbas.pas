@@ -33,12 +33,14 @@ interface
        tnothingnode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
           procedure pass_2;override;
        end;
 
        terrornode = class(tnode)
           constructor create;virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
        tasmnode = class(tnode)
@@ -47,12 +49,14 @@ interface
           destructor destroy;override;
           function getcopy : tnode;override;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
           function docompare(p: tnode): boolean; override;
        end;
 
        tstatementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
 {$ifdef extdebug}
           procedure dowrite;override;
 {$endif extdebug}
@@ -61,6 +65,7 @@ interface
        tblocknode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
     var
@@ -73,9 +78,9 @@ interface
 implementation
 
     uses
-      cutils,cclasses,
+      cutils,
       verbose,globals,globtype,systems,
-      symconst,symtype,symdef,types,
+      symconst,symdef,types,
       pass_1,
       ncal,nflw,tgcpu,hcodegen
 {$ifdef newcg}
@@ -88,15 +93,19 @@ implementation
 *****************************************************************************}
 
     constructor tnothingnode.create;
-
       begin
          inherited create(nothingn);
       end;
 
+    function tnothingnode.det_resulttype:tnode;
+      begin
+         result:=nil;
+         resulttype:=voidtype;
+      end;
+
     function tnothingnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
-         resulttype:=voiddef;
+         result:=nil;
       end;
 
     procedure tnothingnode.pass_2;
@@ -116,12 +125,18 @@ implementation
          inherited create(errorn);
       end;
 
-    function terrornode.pass_1 : tnode;
+    function terrornode.det_resulttype:tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          include(flags,nf_error);
          codegenerror:=true;
-         resulttype:=generrordef;
+         resulttype:=generrortype;
+      end;
+
+    function terrornode.pass_1 : tnode;
+      begin
+         result:=nil;
+         codegenerror:=true;
       end;
 
 {*****************************************************************************
@@ -134,11 +149,31 @@ implementation
          inherited create(statementn,l,r);
       end;
 
+    function tstatementnode.det_resulttype:tnode;
+      begin
+         result:=nil;
+         resulttype:=voidtype;
+
+         { right is the statement itself calln assignn or a complex one }
+         resulttypepass(right);
+         if (not (cs_extsyntax in aktmoduleswitches)) and
+            assigned(right.resulttype.def) and
+            not((right.nodetype=calln) and
+                (tcallnode(right).procdefinition^.proctypeoption=potype_constructor)) and
+            not(is_void(right.resulttype.def)) then
+           CGMessage(cg_e_illegal_expression);
+         if codegenerror then
+           exit;
+
+         { left is the next in the list }
+         resulttypepass(left);
+         if codegenerror then
+           exit;
+      end;
+
     function tstatementnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
-         { left is the next statement in the list }
-         resulttype:=voiddef;
+         result:=nil;
          { no temps over several statements }
 {$ifdef newcg}
          tg.cleartempgen;
@@ -146,14 +181,7 @@ implementation
          cleartempgen;
 {$endif newcg}
          { right is the statement itself calln assignn or a complex one }
-         {must_be_valid:=true; obsolete PM }
          firstpass(right);
-         if (not (cs_extsyntax in aktmoduleswitches)) and
-            assigned(right.resulttype) and
-            not((right.nodetype=calln) and
-                (tcallnode(right).procdefinition^.proctypeoption=potype_constructor)) and
-            (right.resulttype<>pdef(voiddef)) then
-           CGMessage(cg_e_illegal_expression);
          if codegenerror then
            exit;
          registers32:=right.registers32;
@@ -203,12 +231,37 @@ implementation
          inherited create(blockn,l);
       end;
 
+    function tblocknode.det_resulttype:tnode;
+      var
+         hp : tstatementnode;
+      begin
+         result:=nil;
+         resulttype:=voidtype;
+
+         hp:=tstatementnode(left);
+         while assigned(hp) do
+           begin
+              if assigned(hp.right) then
+                begin
+                   codegenerror:=false;
+                   resulttypepass(hp.right);
+                   if (not (cs_extsyntax in aktmoduleswitches)) and
+                      assigned(hp.right.resulttype.def) and
+                      not((hp.right.nodetype=calln) and
+                          (tcallnode(hp.right).procdefinition^.proctypeoption=potype_constructor)) and
+                      not(is_void(hp.right.resulttype.def)) then
+                     CGMessage(cg_e_illegal_expression);
+                end;
+              hp:=tstatementnode(hp.left);
+           end;
+      end;
+
     function tblocknode.pass_1 : tnode;
       var
          hp : tstatementnode;
          count : longint;
       begin
-         pass_1:=nil;
+         result:=nil;
          count:=0;
          hp:=tstatementnode(left);
          while assigned(hp) do
@@ -265,14 +318,7 @@ implementation
 {$endif newcg}
                    codegenerror:=false;
                    firstpass(hp.right);
-                   if (not (cs_extsyntax in aktmoduleswitches)) and
-                      assigned(hp.right.resulttype) and
-                      not((hp.right.nodetype=calln) and
-                          (tcallnode(hp.right).procdefinition^.proctypeoption=potype_constructor)) and
-                      (hp.right.resulttype<>pdef(voiddef)) then
-                     CGMessage(cg_e_illegal_expression);
-                   {if codegenerror then
-                     exit;}
+
                    hp.registers32:=hp.right.registers32;
                    hp.registersfpu:=hp.right.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -328,9 +374,15 @@ implementation
         getcopy := n;
       end;
 
+    function tasmnode.det_resulttype:tnode;
+      begin
+         result:=nil;
+         resulttype:=voidtype;
+      end;
+
     function tasmnode.pass_1 : tnode;
       begin
-         pass_1:=nil;
+         result:=nil;
          procinfo^.flags:=procinfo^.flags or pi_uses_asm;
       end;
 
@@ -349,7 +401,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2001-02-05 20:45:49  peter
+  Revision 1.9  2001-04-02 21:20:30  peter
+    * resulttype rewrite
+
+  Revision 1.8  2001/02/05 20:45:49  peter
     * fixed buf 1364
 
   Revision 1.7  2000/12/31 11:14:10  jonas

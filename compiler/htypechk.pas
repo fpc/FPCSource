@@ -125,7 +125,7 @@ implementation
        globtype,systems,
        cutils,verbose,globals,
        symconst,symsym,symtable,
-       types,pass_1,cpubase,
+       types,cpubase,
        ncnv,nld,
        nmem,ncal,nmat,
 {$ifdef newcg}
@@ -288,6 +288,7 @@ implementation
           end;
       end;
 
+
     function isbinaryoverloaded(var t : tnode) : boolean;
 
      var
@@ -298,9 +299,9 @@ implementation
         isbinaryoverloaded:=false;
         { overloaded operator ? }
         { load easier access variables }
-        rd:=tbinarynode(t).right.resulttype;
-        ld:=tbinarynode(t).left.resulttype;
-        if isbinaryoperatoroverloadable(ld,rd,voiddef,t.nodetype) then
+        rd:=tbinarynode(t).right.resulttype.def;
+        ld:=tbinarynode(t).left.resulttype.def;
+        if isbinaryoperatoroverloadable(ld,rd,voidtype.def,t.nodetype) then
           begin
              isbinaryoverloaded:=true;
              {!!!!!!!!! handle paras }
@@ -346,7 +347,7 @@ implementation
              end;
              { the nil as symtable signs firstcalln that this is
                an overloaded operator }
-             ht:=gencallnode(overloaded_operators[optoken],nil);
+             ht:=ccallnode.create(nil,overloaded_operators[optoken],nil,nil);
              { we have to convert p^.left and p^.right into
               callparanodes }
              if tcallnode(ht).symtableprocentry=nil then
@@ -364,21 +365,23 @@ implementation
                   if assigned(tbinarynode(t).left) then
                     if assigned(tbinarynode(t).right) then
                       tcallnode(ht).left :=
-                        gencallparanode(tbinarynode(t).right.getcopy,
-                                          gencallparanode(tbinarynode(t).left.getcopy,nil))
+                        ccallparanode.create(tbinarynode(t).right.getcopy,
+                                             ccallparanode.create(tbinarynode(t).left.getcopy,nil))
                     else
                       tcallnode(ht).left :=
-                        gencallparanode(nil,gencallparanode(tbinarynode(t).left.getcopy,nil))
+                        ccallparanode.create(nil,
+                                             ccallparanode.create(tbinarynode(t).left.getcopy,nil))
                   else if assigned(tbinarynode(t).right) then
-                         gencallparanode(tbinarynode(t).right.getcopy,
-                                           gencallparanode(nil,nil));
+                      tcallnode(ht).left :=
+                         ccallparanode.create(tbinarynode(t).right.getcopy,
+                                              ccallparanode.create(nil,nil));
                   if t.nodetype=unequaln then
                     ht:=cnotnode.create(ht);
-                  firstpass(ht);
                   t:=ht;
                end;
           end;
       end;
+
 
 {****************************************************************************
                           Register Calculation
@@ -584,7 +587,7 @@ implementation
         gotpointer:=false;
         gotwith:=false;
         hp:=p;
-        if is_void(hp.resulttype) then
+        if is_void(hp.resulttype.def) then
          begin
            CGMessagePos(hp.fileinfo,type_e_argument_cant_be_assigned);
            exit;
@@ -607,18 +610,18 @@ implementation
                end;
              typeconvn :
                begin
-                 case hp.resulttype^.deftype of
+                 case hp.resulttype.def^.deftype of
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface(hp.resulttype);
+                     gotclass:=is_class_or_interface(hp.resulttype.def);
                    classrefdef :
                      gotclass:=true;
                    arraydef :
                      begin
                        { pointer -> array conversion is done then we need to see it
                          as a deref, because a ^ is then not required anymore }
-                       if (ttypeconvnode(hp).left.resulttype^.deftype=pointerdef) then
+                       if (ttypeconvnode(hp).left.resulttype.def^.deftype=pointerdef) then
                         gotderef:=true;
                      end;
                  end;
@@ -633,7 +636,7 @@ implementation
                  { a class/interface access is an implicit }
                  { dereferencing                           }
                  hp:=tsubscriptnode(hp).left;
-                 if is_class_or_interface(hp.resulttype) then
+                 if is_class_or_interface(hp.resulttype.def) then
                    gotderef:=true;
                end;
              subn,
@@ -641,8 +644,8 @@ implementation
                begin
                  { Allow add/sub operators on a pointer, or an integer
                    and a pointer typecast and deref has been found }
-                 if (hp.resulttype^.deftype=pointerdef) or
-                    (is_integer(hp.resulttype) and gotpointer and gotderef) then
+                 if (hp.resulttype.def^.deftype=pointerdef) or
+                    (is_integer(hp.resulttype.def) and gotpointer and gotderef) then
                   valid_for_assign:=true
                  else
                   CGMessagePos(hp.fileinfo,type_e_variable_id_expected);
@@ -664,11 +667,11 @@ implementation
              calln :
                begin
                  { check return type }
-                 case hp.resulttype^.deftype of
+                 case hp.resulttype.def^.deftype of
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface(hp.resulttype);
+                     gotclass:=is_class_or_interface(hp.resulttype.def);
                    recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;
@@ -762,7 +765,7 @@ implementation
              vecn:
                begin
                  set_varstate(tbinarynode(p).right,true);
-                 if not(tunarynode(p).left.resulttype^.deftype in [stringdef,arraydef]) then
+                 if not(tunarynode(p).left.resulttype.def^.deftype in [stringdef,arraydef]) then
                   must_be_valid:=true;
                  p:=tunarynode(p).left;
                end;
@@ -814,11 +817,11 @@ implementation
                       begin
                         if (hsym^.varstate=vs_assigned) and
                            (must_be_valid or (parsing_para_level>0) or
-                            (p.resulttype^.deftype=procvardef)) then
+                            (p.resulttype.def^.deftype=procvardef)) then
                           hsym^.varstate:=vs_used;
                         if (hsym^.varstate=vs_declared_and_first_found) and
                            (must_be_valid or (parsing_para_level>0) or
-                           (p.resulttype^.deftype=procvardef)) then
+                           (p.resulttype.def^.deftype=procvardef)) then
                           hsym^.varstate:=vs_set_but_first_not_passed;
                       end;
                   end;
@@ -911,7 +914,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.22  2001-02-20 21:46:26  peter
+  Revision 1.23  2001-04-02 21:20:29  peter
+    * resulttype rewrite
+
+  Revision 1.22  2001/02/20 21:46:26  peter
     * don't allow assign to void type (merged)
 
   Revision 1.21  2001/02/04 11:12:17  jonas

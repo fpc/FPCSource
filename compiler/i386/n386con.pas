@@ -34,10 +34,6 @@ interface
           procedure pass_2;override;
        end;
 
-       ti386fixconstnode = class(tfixconstnode)
-          procedure pass_2;override;
-       end;
-
        ti386ordconstnode = class(tordconstnode)
           procedure pass_2;override;
        end;
@@ -76,7 +72,7 @@ implementation
     procedure ti386realconstnode.pass_2;
       const
         floattype2ait:array[tfloattype] of tait=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_none,ait_none);
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit);
 
       var
          hp1 : tai;
@@ -99,7 +95,7 @@ implementation
          else
            begin
               lastlabel:=nil;
-              realait:=floattype2ait[pfloatdef(resulttype)^.typ];
+              realait:=floattype2ait[pfloatdef(resulttype.def)^.typ];
               { const already used ? }
               if not assigned(lab_real) then
                 begin
@@ -159,19 +155,6 @@ implementation
 
 
 {*****************************************************************************
-                            TI386FIXCONSTNODE
-*****************************************************************************}
-
-    procedure ti386fixconstnode.pass_2;
-      begin
-         { an fix comma const. behaves as a memory reference }
-         location.loc:=LOC_MEM;
-         location.reference.is_immediate:=true;
-         location.reference.offset:=value_fix;
-      end;
-
-
-{*****************************************************************************
                             TI386ORDCONSTNODE
 *****************************************************************************}
 
@@ -181,7 +164,7 @@ implementation
 
       begin
          location.loc:=LOC_MEM;
-         if is_64bitint(resulttype) then
+         if is_64bitint(resulttype.def) then
            begin
               getdatalabel(l);
               if (cs_create_smart in aktmoduleswitches) then
@@ -229,7 +212,7 @@ implementation
          i,mylength  : longint;
       begin
          { for empty ansistrings we could return a constant 0 }
-         if is_ansistring(resulttype) and
+         if is_ansistring(resulttype.def) and
             (len=0) then
           begin
             location.loc:=LOC_MEM;
@@ -241,12 +224,12 @@ implementation
          lastlabel:=nil;
          if not assigned(lab_str) then
            begin
-              if is_shortstring(resulttype) then
+              if is_shortstring(resulttype.def) then
                 mylength:=len+2
               else
                 mylength:=len+1;
               { widestrings can't be reused yet }
-              if not(is_widestring(resulttype)) then
+              if not(is_widestring(resulttype.def)) then
                 begin
                   { tries to found an old entry }
                   hp1:=tai(Consts.first);
@@ -268,7 +251,7 @@ implementation
                                  same_string:=true;
                                  { if shortstring then check the length byte first and
                                    set the start index to 1 }
-                                 if is_shortstring(resulttype) then
+                                 if is_shortstring(resulttype.def) then
                                   begin
                                     if len<>ord(tai_string(hp1).str[0]) then
                                      same_string:=false;
@@ -294,7 +277,7 @@ implementation
                                   begin
                                     lab_str:=lastlabel;
                                     { create a new entry for ansistrings, but reuse the data }
-                                    if (stringtype in [st_ansistring,st_widestring]) then
+                                    if (st_type in [st_ansistring,st_widestring]) then
                                      begin
                                        getdatalabel(l2);
                                        Consts.concat(Tai_label.Create(l2));
@@ -319,7 +302,7 @@ implementation
                     Consts.concat(Tai_cut.Create);
                    Consts.concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
-                   case stringtype of
+                   case st_type of
                       st_ansistring:
                         begin
                            { an empty ansi string is nil! }
@@ -408,14 +391,14 @@ implementation
          neededtyp   : tait;
       begin
         { small sets are loaded as constants }
-        if psetdef(resulttype)^.settype=smallset then
+        if psetdef(resulttype.def)^.settype=smallset then
          begin
            location.loc:=LOC_MEM;
            location.reference.is_immediate:=true;
            location.reference.offset:=plongint(value_set)^;
            exit;
          end;
-        if psetdef(resulttype)^.settype=smallset then
+        if psetdef(resulttype.def)^.settype=smallset then
          neededtyp:=ait_const_32bit
         else
          neededtyp:=ait_const_8bit;
@@ -478,7 +461,7 @@ implementation
                  if (cs_create_smart in aktmoduleswitches) then
                   Consts.concat(Tai_cut.Create);
                  Consts.concat(Tai_label.Create(lastlabel));
-                 if psetdef(resulttype)^.settype=smallset then
+                 if psetdef(resulttype.def)^.settype=smallset then
                   begin
                     move(value_set^,i,sizeof(longint));
                     Consts.concat(Tai_const.Create_32bit(i));
@@ -509,7 +492,6 @@ implementation
 
 begin
    crealconstnode:=ti386realconstnode;
-   cfixconstnode:=ti386fixconstnode;
    cordconstnode:=ti386ordconstnode;
    cpointerconstnode:=ti386pointerconstnode;
    cstringconstnode:=ti386stringconstnode;
@@ -518,7 +500,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-12-25 00:07:32  peter
+  Revision 1.7  2001-04-02 21:20:37  peter
+    * resulttype rewrite
+
+  Revision 1.6  2000/12/25 00:07:32  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

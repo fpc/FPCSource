@@ -77,13 +77,13 @@ implementation
          shrdiv := false;
          andmod := false;
          secondpass(left);
-         pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype));
+         pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype.def));
          secondpass(right);
          if pushed then
-           restore(left,is_64bitint(left.resulttype));
+           restore(left,is_64bitint(left.resulttype.def));
          set_location(location,left.location);
 
-         if is_64bitint(resulttype) then
+         if is_64bitint(resulttype.def) then
            begin
               { save lcoation, because we change it now }
               set_location(hloc,location);
@@ -102,7 +102,7 @@ implementation
               clear_location(hloc);
               emit_pushq_loc(right.location);
 
-              if porddef(resulttype)^.typ=u64bit then
+              if porddef(resulttype.def)^.typ=u64bit then
                 typename:='QWORD'
               else
                 typename:='INT64';
@@ -148,7 +148,7 @@ implementation
                     {for signed numbers, the numerator must be adjusted before the
                      shift instruction, but not wih unsigned numbers! Otherwise,
                      "Cardinal($ffffffff) div 16" overflows! (JM)}
-                    If is_signed(left.resulttype) Then
+                    If is_signed(left.resulttype.def) Then
                       Begin
                         If (aktOptProcessor <> class386) and
                            not(CS_LittleSize in aktglobalswitches) then
@@ -200,7 +200,7 @@ implementation
                   End
                 else
                   if (nodetype=modn) and (right.nodetype=ordconstn) and
-                    ispowerof2(tordconstnode(right).value,power) and Not(is_signed(left.resulttype)) Then
+                    ispowerof2(tordconstnode(right).value,power) and Not(is_signed(left.resulttype.def)) Then
                    {is there a similar trick for MOD'ing signed numbers? (JM)}
                    Begin
                      emit_const_reg(A_AND,S_L,tordconstnode(right).value-1,hreg1);
@@ -260,13 +260,13 @@ implementation
                           end;
                      end;
                    { sign extension depends on the left type }
-                   if porddef(left.resulttype)^.typ=u32bit then
+                   if porddef(left.resulttype.def)^.typ=u32bit then
                       emit_reg_reg(A_XOR,S_L,R_EDX,R_EDX)
                    else
                       emit_none(A_CDQ,S_NO);
 
                    { division depends on the right type }
-                   if porddef(right.resulttype)^.typ=u32bit then
+                   if porddef(right.resulttype.def)^.typ=u32bit then
                      emit_reg(A_DIV,S_L,R_EDI)
                    else
                      emit_reg(A_IDIV,S_L,R_EDI);
@@ -346,12 +346,12 @@ implementation
          popecx:=false;
 
          secondpass(left);
-         pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype));
+         pushed:=maybe_push(right.registers32,left,is_64bitint(left.resulttype.def));
          secondpass(right);
          if pushed then
-           restore(left,is_64bitint(left.resulttype));
+           restore(left,is_64bitint(left.resulttype.def));
 
-         if is_64bitint(left.resulttype) then
+         if is_64bitint(left.resulttype.def) then
            begin
               { load left operator in a register }
               if left.location.loc<>LOC_REGISTER then
@@ -663,7 +663,7 @@ implementation
         begin
            location.loc:=LOC_MMXREGISTER;
            if cs_mmx_saturation in aktlocalswitches then
-             case mmx_type(resulttype) of
+             case mmx_type(resulttype.def) of
                 mmxs8bit:
                   op:=A_PSUBSB;
                 mmxu8bit:
@@ -674,7 +674,7 @@ implementation
                   op:=A_PSUBUSW;
              end
            else
-             case mmx_type(resulttype) of
+             case mmx_type(resulttype.def) of
                 mmxs8bit,mmxu8bit:
                   op:=A_PSUBB;
                 mmxs16bit,mmxu16bit,mmxfixed16:
@@ -688,7 +688,7 @@ implementation
 {$endif}
 
       begin
-         if is_64bitint(left.resulttype) then
+         if is_64bitint(left.resulttype.def) then
            begin
               secondpass(left);
               clear_location(location);
@@ -761,16 +761,15 @@ implementation
                  LOC_REFERENCE,LOC_MEM:
                                 begin
                                    del_reference(left.location.reference);
-                                   if (left.resulttype^.deftype=floatdef) and
-                                      (pfloatdef(left.resulttype)^.typ<>f32bit) then
+                                   if (left.resulttype.def^.deftype=floatdef) then
                                      begin
                                         location.loc:=LOC_FPU;
-                                        floatload(pfloatdef(left.resulttype)^.typ,
+                                        floatload(pfloatdef(left.resulttype.def)^.typ,
                                           left.location.reference);
                                         emit_none(A_FCHS,S_NO);
                                      end
 {$ifdef SUPPORT_MMX}
-                                   else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype) then
+                                   else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
                                      begin
                                         location.register:=getregistermmx;
                                         emit_reg_reg(A_PXOR,S_NO,R_MM7,R_MM7);
@@ -827,9 +826,9 @@ implementation
          hl : pasmlabel;
          opsize : topsize;
       begin
-         if is_boolean(resulttype) then
+         if is_boolean(resulttype.def) then
           begin
-            opsize:=def_opsize(resulttype);
+            opsize:=def_opsize(resulttype.def);
             { the second pass could change the location of left }
             { if it is a register variable, so we've to do      }
             { this before the case statement                    }
@@ -864,7 +863,7 @@ implementation
                 begin
                   clear_location(location);
                   location.loc:=LOC_REGISTER;
-                  location.register:=def_getreg(resulttype);
+                  location.register:=def_getreg(resulttype.def);
                   emit_reg_reg(A_MOV,opsize,left.location.register,location.register);
                   emit_reg_reg(A_TEST,opsize,location.register,location.register);
                   ungetregister(location.register);
@@ -878,7 +877,7 @@ implementation
                   location.loc:=LOC_REGISTER;
                   del_reference(left.location.reference);
                   { this was placed before del_ref => internaalerror(10) }
-                  location.register:=def_getreg(resulttype);
+                  location.register:=def_getreg(resulttype.def);
                   emit_ref_reg(A_MOV,opsize,
                     newreference(left.location.reference),location.register);
                   emit_reg_reg(A_TEST,opsize,location.register,location.register);
@@ -890,7 +889,7 @@ implementation
           end
 {$ifdef SUPPORT_MMX}
          else
-          if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype) then
+          if (cs_mmx in aktlocalswitches) and is_mmx_able_array(left.resulttype.def) then
            begin
              secondpass(left);
              location.loc:=LOC_MMXREGISTER;
@@ -925,7 +924,7 @@ implementation
              emit_reg_reg(A_PXOR,S_D,R_MM7,location.register);
            end
 {$endif SUPPORT_MMX}
-         else if is_64bitint(left.resulttype) then
+         else if is_64bitint(left.resulttype.def) then
            begin
               secondpass(left);
               clear_location(location);
@@ -998,7 +997,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-02-03 12:52:34  jonas
+  Revision 1.11  2001-04-02 21:20:38  peter
+    * resulttype rewrite
+
+  Revision 1.10  2001/02/03 12:52:34  jonas
     * fixed web bug 1383
 
   Revision 1.9  2000/12/07 17:19:46  jonas
@@ -1010,7 +1012,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.8  2000/12/05 11:44:33  jonas

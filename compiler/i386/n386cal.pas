@@ -106,7 +106,7 @@ implementation
          getlabel(falselabel);
          secondpass(left);
          { filter array constructor with c styled args }
-         if is_array_constructor(left.resulttype) and (nf_cargs in left.flags) then
+         if is_array_constructor(left.resulttype.def) and (nf_cargs in left.flags) then
            begin
              { nothing, everything is already pushed }
            end
@@ -178,7 +178,7 @@ implementation
            end
          else
            begin
-              tempdeftype:=resulttype^.deftype;
+              tempdeftype:=resulttype.def^.deftype;
               if tempdeftype=filedef then
                CGMessage(cg_e_file_must_call_by_reference);
               { open array must always push the address, this is needed to
@@ -189,7 +189,7 @@ implementation
                    is_array_of_const(defcoll.paratype.def))
                  ) or
                  (
-                  push_addr_param(resulttype) and
+                  push_addr_param(resulttype.def) and
                   not is_cdecl
                  ) then
                 begin
@@ -364,7 +364,7 @@ implementation
             (right=nil)) and
             (procdefinition^.proctypeoption=potype_constructor) and
             { quick'n'dirty check if it is a class or an object }
-            (resulttype^.deftype=orddef) then
+            (resulttype.def^.deftype=orddef) then
            pop_allowed:=false
          else
            pop_allowed:=true;
@@ -415,8 +415,8 @@ implementation
          else
 {$endif dummy}
            pop_esp:=false;
-         if (resulttype<>pdef(voiddef)) and
-            ret_in_param(resulttype) then
+         if (not is_void(resulttype.def)) and
+            ret_in_param(resulttype.def) then
            begin
               funcretref.symbol:=nil;
 {$ifdef test_dest_loc}
@@ -449,7 +449,7 @@ implementation
                 para_offset:=0;
               if not(inlined) and
                  assigned(right) then
-                tcallparanode(params).secondcallparan(TParaItem(pabstractprocdef(right.resulttype)^.Para.first),
+                tcallparanode(params).secondcallparan(TParaItem(pabstractprocdef(right.resulttype.def)^.Para.first),
                   (pocall_leftright in procdefinition^.proccalloptions),inlined,
                   (([pocall_cdecl,pocall_cppdecl]*procdefinition^.proccalloptions)<>[]),
                   para_alignment,para_offset)
@@ -461,7 +461,7 @@ implementation
            end;
          if inlined then
            inlinecode.retoffset:=gettempofsizepersistant(4);
-         if ret_in_param(resulttype) then
+         if ret_in_param(resulttype.def) then
            begin
               { This must not be counted for C code
                 complex return address is removed from stack
@@ -522,7 +522,7 @@ implementation
                    r^:=twithnode(pwithsymtable(symtableproc)^.withnode).withreference^;
                    if ((not(nf_islocal in twithnode(pwithsymtable(symtableproc)^.withnode).flags)) and
                        (not pwithsymtable(symtableproc)^.direct_with)) or
-                      is_class_or_interface(methodpointer.resulttype) then
+                      is_class_or_interface(methodpointer.resulttype.def) then
                      emit_ref_reg(A_MOV,S_L,r,R_ESI)
                    else
                      emit_ref_reg(A_LEA,S_L,r,R_ESI);
@@ -536,7 +536,7 @@ implementation
                    if assigned(methodpointer) then
                      begin
                         {
-                        if methodpointer^.resulttype=classrefdef then
+                        if methodpointer^.resulttype.def=classrefdef then
                           begin
                               two possibilities:
                                1. constructor
@@ -567,12 +567,12 @@ implementation
 {$ifndef noAllocEDI}
                                          getexplicitregister32(R_ESI);
 {$endif noAllocEDI}
-                                         if not(oo_has_vmt in pobjectdef(methodpointer.resulttype)^.objectoptions) then
+                                         if not(oo_has_vmt in pobjectdef(methodpointer.resulttype.def)^.objectoptions) then
                                            emit_const_reg(A_MOV,S_L,0,R_ESI)
                                          else
                                            begin
                                              emit_sym_ofs_reg(A_MOV,S_L,
-                                               newasmsymbol(pobjectdef(methodpointer.resulttype)^.vmt_mangledname),
+                                               newasmsymbol(pobjectdef(methodpointer.resulttype.def)^.vmt_mangledname),
                                                0,R_ESI);
                                            end;
                                          { emit_reg(A_PUSH,S_L,R_ESI);
@@ -583,7 +583,7 @@ implementation
                                       loadesi:=false;
 
                                     { a class destructor needs a flag }
-                                    if is_class(pobjectdef(methodpointer.resulttype)) and
+                                    if is_class(pobjectdef(methodpointer.resulttype.def)) and
                                        {assigned(aktprocsym) and
                                        (aktprocsym^.definition^.proctypeoption=potype_destructor)}
                                        (procdefinition^.proctypeoption=potype_destructor) then
@@ -593,7 +593,7 @@ implementation
                                       end;
 
                                     if not(is_con_or_destructor and
-                                           is_class(methodpointer.resulttype) and
+                                           is_class(methodpointer.resulttype.def) and
                                            {assigned(aktprocsym) and
                                           (aktprocsym^.definition^.proctypeoption in [potype_constructor,potype_destructor])}
                                            (procdefinition^.proctypeoption in [potype_constructor,potype_destructor])
@@ -604,7 +604,7 @@ implementation
                                     { will be made                                  }
                                     { con- and destructors need a pointer to the vmt }
                                     if is_con_or_destructor and
-                                      is_object(methodpointer.resulttype) and
+                                      is_object(methodpointer.resulttype.def) and
                                       assigned(aktprocsym) then
                                       begin
                                          if not(aktprocsym^.definition^.proctypeoption in
@@ -615,12 +615,12 @@ implementation
                                     { constructor flags ?                    }
                                     if is_con_or_destructor and
                                       not(
-                                        is_class(methodpointer.resulttype) and
+                                        is_class(methodpointer.resulttype.def) and
                                         assigned(aktprocsym) and
                                         (aktprocsym^.definition^.proctypeoption=potype_destructor)) then
                                       begin
                                          { a constructor needs also a flag }
-                                         if is_class(methodpointer.resulttype) then
+                                         if is_class(methodpointer.resulttype.def) then
                                            push_int(0);
                                          push_int(0);
                                       end;
@@ -636,7 +636,7 @@ implementation
                                     emit_reg(A_PUSH,S_L,R_ESI);
                                     { insert the vmt }
                                     emit_sym(A_PUSH,S_L,
-                                      newasmsymbol(pobjectdef(methodpointer.resulttype)^.vmt_mangledname));
+                                      newasmsymbol(pobjectdef(methodpointer.resulttype.def)^.vmt_mangledname));
                                     extended_new:=true;
                                  end;
                                hdisposen:
@@ -653,7 +653,7 @@ implementation
                                     del_reference(methodpointer.location.reference);
                                     emit_reg(A_PUSH,S_L,R_ESI);
                                     emit_sym(A_PUSH,S_L,
-                                      newasmsymbol(pobjectdef(methodpointer.resulttype)^.vmt_mangledname));
+                                      newasmsymbol(pobjectdef(methodpointer.resulttype.def)^.vmt_mangledname));
                                  end;
                                else
                                  begin
@@ -673,8 +673,8 @@ implementation
                                               end;
                                             else
                                               begin
-                                                 if (methodpointer.resulttype^.deftype=classrefdef) or
-                                                    is_class_or_interface(methodpointer.resulttype) then
+                                                 if (methodpointer.resulttype.def^.deftype=classrefdef) or
+                                                    is_class_or_interface(methodpointer.resulttype.def) then
                                                    emit_ref_reg(A_MOV,S_L,
                                                      newreference(methodpointer.location.reference),R_ESI)
                                                  else
@@ -689,7 +689,7 @@ implementation
                                     if not(po_containsself in procdefinition^.procoptions) then
                                       begin
                                         if (po_classmethod in procdefinition^.procoptions) and
-                                           not(methodpointer.resulttype^.deftype=classrefdef) then
+                                           not(methodpointer.resulttype.def^.deftype=classrefdef) then
                                           begin
                                              { class method needs current VMT }
                                              getexplicitregister32(R_ESI);
@@ -702,12 +702,12 @@ implementation
 
                                         { direct call to destructor: remove data }
                                         if (procdefinition^.proctypeoption=potype_destructor) and
-                                           is_class(methodpointer.resulttype) then
+                                           is_class(methodpointer.resulttype.def) then
                                           emit_const(A_PUSH,S_L,1);
 
                                         { direct call to class constructor, don't allocate memory }
                                         if (procdefinition^.proctypeoption=potype_constructor) and
-                                           is_class(methodpointer.resulttype) then
+                                           is_class(methodpointer.resulttype.def) then
                                           begin
                                              emit_const(A_PUSH,S_L,0);
                                              emit_const(A_PUSH,S_L,0);
@@ -716,8 +716,8 @@ implementation
                                           begin
                                              { constructor call via classreference => allocate memory }
                                              if (procdefinition^.proctypeoption=potype_constructor) and
-                                                (methodpointer.resulttype^.deftype=classrefdef) and
-                                                is_class(pclassrefdef(methodpointer.resulttype)^.pointertype.def) then
+                                                (methodpointer.resulttype.def^.deftype=classrefdef) and
+                                                is_class(pclassrefdef(methodpointer.resulttype.def)^.pointertype.def) then
                                                 emit_const(A_PUSH,S_L,1);
                                              emit_reg(A_PUSH,S_L,R_ESI);
                                           end;
@@ -726,13 +726,13 @@ implementation
                                     if is_con_or_destructor then
                                       begin
                                          { classes don't get a VMT pointer pushed }
-                                         if is_object(methodpointer.resulttype) then
+                                         if is_object(methodpointer.resulttype.def) then
                                            begin
                                               if (procdefinition^.proctypeoption=potype_constructor) then
                                                 begin
                                                    { it's no bad idea, to insert the VMT }
                                                    emit_sym(A_PUSH,S_L,newasmsymbol(
-                                                     pobjectdef(methodpointer.resulttype)^.vmt_mangledname));
+                                                     pobjectdef(methodpointer.resulttype.def)^.vmt_mangledname));
                                                 end
                                               { destructors haven't to dispose the instance, if this is }
                                               { a direct call                                           }
@@ -807,7 +807,7 @@ implementation
                 if (procdefinition^.proctypeoption=potype_destructor) and
                    assigned(methodpointer) and
                    (methodpointer.nodetype<>typen) and
-                   is_class(pobjectdef(methodpointer.resulttype)) and
+                   is_class(pobjectdef(methodpointer.resulttype.def)) and
                    (inlined or
                    (right=nil)) then
                   begin
@@ -898,7 +898,7 @@ implementation
                         ((procdefinition^.proctypeoption=potype_constructor) and
                         { esi contains the vmt if we call a constructor via a class ref }
                          assigned(methodpointer) and
-                         (methodpointer.resulttype^.deftype=classrefdef)
+                         (methodpointer.resulttype.def^.deftype=classrefdef)
                         ) or
                         { is_interface(pprocdef(procdefinition)^._class) or }
                         { ESI is loaded earlier }
@@ -1114,7 +1114,7 @@ implementation
            end;
 
          { call to AfterConstruction? }
-         if is_class(resulttype) and
+         if is_class(resulttype.def) and
            (inlined or
            (right=nil)) and
            (procdefinition^.proctypeoption=potype_constructor) and
@@ -1143,7 +1143,7 @@ implementation
          { handle function results }
          { structured results are easy to handle.... }
          { needed also when result_no_used !! }
-         if (resulttype<>pdef(voiddef)) and ret_in_param(resulttype) then
+         if (not is_void(resulttype.def)) and ret_in_param(resulttype.def) then
            begin
               location.loc:=LOC_MEM;
               location.reference.symbol:=nil;
@@ -1151,15 +1151,15 @@ implementation
            end;
          { we have only to handle the result if it is used, but }
          { ansi/widestrings must be registered, so we can dispose them }
-         if (resulttype<>pdef(voiddef)) and ((nf_return_value_used in flags) or
-           is_ansistring(resulttype) or is_widestring(resulttype)) then
+         if (not is_void(resulttype.def)) and ((nf_return_value_used in flags) or
+           is_ansistring(resulttype.def) or is_widestring(resulttype.def)) then
            begin
               { a contructor could be a function with boolean result }
               if (inlined or
                   (right=nil)) and
                  (procdefinition^.proctypeoption=potype_constructor) and
                  { quick'n'dirty check if it is a class or an object }
-                 (resulttype^.deftype=orddef) then
+                 (resulttype.def^.deftype=orddef) then
                 begin
                    { this fails if popsize > 0 PM }
                    location.loc:=LOC_FLAGS;
@@ -1181,7 +1181,7 @@ implementation
                      end;
                 end
                { structed results are easy to handle.... }
-              else if ret_in_param(resulttype) then
+              else if ret_in_param(resulttype.def) then
                 begin
                    {location.loc:=LOC_MEM;
                    stringdispose(location.reference.symbol);
@@ -1190,10 +1190,10 @@ implementation
                 end
               else
                 begin
-                   if (resulttype^.deftype in [orddef,enumdef]) then
+                   if (resulttype.def^.deftype in [orddef,enumdef]) then
                      begin
                         location.loc:=LOC_REGISTER;
-                        case resulttype^.size of
+                        case resulttype.def^.size of
                           4 :
                             begin
 {$ifdef test_dest_loc}
@@ -1257,35 +1257,18 @@ implementation
                      end
 
                 end
-              else if (resulttype^.deftype=floatdef) then
-                case pfloatdef(resulttype)^.typ of
-                  f32bit:
-                    begin
-                       location.loc:=LOC_REGISTER;
-{$ifdef test_dest_loc}
-                       if dest_loc_known and (dest_loc_tree=p) then
-                         mov_reg_to_dest(p,S_L,R_EAX)
-                       else
-{$endif test_dest_loc}
-                         begin
-                            hregister:=getexplicitregister32(R_EAX);
-                            emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
-                            location.register:=hregister;
-                         end;
-                    end;
-                  else
-                    begin
-                       location.loc:=LOC_FPU;
-                       inc(fpuvaroffset);
-                    end;
+              else if (resulttype.def^.deftype=floatdef) then
+                begin
+                  location.loc:=LOC_FPU;
+                  inc(fpuvaroffset);
                 end
-              else if is_ansistring(resulttype) or
-                is_widestring(resulttype) then
+              else if is_ansistring(resulttype.def) or
+                is_widestring(resulttype.def) then
                 begin
                    hregister:=getexplicitregister32(R_EAX);
                    emit_reg_reg(A_MOV,S_L,R_EAX,hregister);
                    gettempansistringreference(hr);
-                   decrstringref(resulttype,hr);
+                   decrstringref(resulttype.def,hr);
                    emit_reg_ref(A_MOV,S_L,hregister,
                      newreference(hr));
                    ungetregister32(hregister);
@@ -1323,7 +1306,7 @@ implementation
 
          { at last, restore instance pointer (SELF) }
          if loadesi then
-           maybe_loadesi;
+           maybe_loadself;
          pp:=tbinarynode(params);
          while assigned(pp) do
            begin
@@ -1355,17 +1338,17 @@ implementation
 
 
          { from now on the result can be freed normally }
-         if inlined and ret_in_param(resulttype) then
+         if inlined and ret_in_param(resulttype.def) then
            persistanttemptonormal(funcretref.offset);
 
          { if return value is not used }
-         if (not(nf_return_value_used in flags)) and (resulttype<>pdef(voiddef)) then
+         if (not(nf_return_value_used in flags)) and (not is_void(resulttype.def)) then
            begin
               if location.loc in [LOC_MEM,LOC_REFERENCE] then
                 begin
                    { data which must be finalized ? }
-                   if (resulttype^.needs_inittable) then
-                      finalize(resulttype,location.reference,false);
+                   if (resulttype.def^.needs_inittable) then
+                      finalize(resulttype.def,location.reference,false);
                    { release unused temp }
                    ungetiftemp(location.reference)
                 end
@@ -1589,7 +1572,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2001-03-11 22:58:51  peter
+  Revision 1.20  2001-04-02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.19  2001/03/11 22:58:51  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.18  2001/01/27 21:29:35  florian
@@ -1614,7 +1600,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.13  2000/12/05 11:44:33  jonas

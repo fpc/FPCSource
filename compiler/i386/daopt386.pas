@@ -2454,7 +2454,10 @@ End.
 
 {
   $Log$
-  Revision 1.15  2000-12-31 11:00:31  jonas
+  Revision 1.16  2001-04-02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.15  2000/12/31 11:00:31  jonas
     * fixed potential bug in writeToMemDestroysContents
 
   Revision 1.14  2000/12/25 00:07:32  peter
@@ -2572,7 +2575,7 @@ End.
       ignore labels who have is_addr set
     + daopt386/csopt386: remove loads of registers which are overwritten
        before their contents are used (especially usefull for removing superfluous
-      maybe_loadesi outputs and push/pops transformed by below optimization
+      maybe_loadself outputs and push/pops transformed by below optimization
     + popt386: transform pop/pop/pop/.../push/push/push to sequences of
       'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
       currently because I don't know whether it's safe to do this under Win32/

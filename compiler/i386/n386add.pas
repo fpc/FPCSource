@@ -102,12 +102,12 @@ interface
       begin
          { remove temporary location if not a set or string }
          { that's a bad hack (FK) who did this ?            }
-         if (left.resulttype^.deftype<>stringdef) and
-            ((left.resulttype^.deftype<>setdef) or (psetdef(left.resulttype)^.settype=smallset)) and
+         if (left.resulttype.def^.deftype<>stringdef) and
+            ((left.resulttype.def^.deftype<>setdef) or (psetdef(left.resulttype.def)^.settype=smallset)) and
             (left.location.loc in [LOC_MEM,LOC_REFERENCE]) then
            ungetiftemp(left.location.reference);
-         if (right.resulttype^.deftype<>stringdef) and
-            ((right.resulttype^.deftype<>setdef) or (psetdef(right.resulttype)^.settype=smallset)) and
+         if (right.resulttype.def^.deftype<>stringdef) and
+            ((right.resulttype.def^.deftype<>setdef) or (psetdef(right.resulttype.def)^.settype=smallset)) and
             (right.location.loc in [LOC_MEM,LOC_REFERENCE]) then
            ungetiftemp(right.location.reference);
          { in case of comparison operation the put result in the flags }
@@ -142,7 +142,7 @@ interface
         { string operations are not commutative }
         if nf_swaped in flags then
           swapleftright;
-        case pstringdef(left.resulttype)^.string_typ of
+        case pstringdef(left.resulttype.def)^.string_typ of
            st_ansistring:
              begin
                 case nodetype of
@@ -165,7 +165,7 @@ interface
                         clear_location(location);
                         location.loc:=LOC_MEM;
                         gettempansistringreference(location.reference);
-                        decrstringref(cansistringdef,location.reference);
+                        decrstringref(cansistringtype.def,location.reference);
                         { release used registers }
                         del_location(right.location);
                         del_location(left.location);
@@ -178,7 +178,7 @@ interface
                         saveregvars($ff);
                         emitcall('FPC_ANSISTR_CONCAT');
                         popusedregisters(pushedregs);
-                        maybe_loadesi;
+                        maybe_loadself;
                         ungetiftempansi(left.location.reference);
                         ungetiftempansi(right.location.reference);
                      end;
@@ -249,7 +249,7 @@ interface
                              emitcall('FPC_ANSISTR_COMPARE');
                              emit_reg_reg(A_OR,S_L,R_EAX,R_EAX);
                              popusedregisters(pushedregs);
-                             maybe_loadesi;
+                             maybe_loadself;
                              ungetiftempansi(left.location.reference);
                              ungetiftempansi(right.location.reference);
                           end;
@@ -296,7 +296,7 @@ interface
                              { length of temp string = 255 (JM) }
                              { *** redefining a type is not allowed!! (thanks, Pierre) }
                              { also problem with constant string!                      }
-                             pstringdef(left.resulttype)^.len := 255;
+                             pstringdef(left.resulttype.def)^.len := 255;
 
 {$endif newoptimizations2}
                           end;
@@ -307,8 +307,8 @@ interface
                         { special case for string := string + char (JM) }
                         { needs string length stuff from above!         }
                         hreg := R_NO;
-                        if is_shortstring(left.resulttype) and
-                           is_char(right.resulttype) then
+                        if is_shortstring(left.resulttype.def) and
+                           is_char(right.resulttype.def) then
                           begin
                             getlabel(l);
                             getexplicitregister32(R_EDI);
@@ -317,7 +317,7 @@ interface
                               newreference(left.location.reference),R_EDI);
                             { is it already maximal? }
                             emit_const_reg(A_CMP,S_L,
-                              pstringdef(left.resulttype)^.len,R_EDI);
+                              pstringdef(left.resulttype.def)^.len,R_EDI);
                             emitjmp(C_E,l);
                             { no, so add the new character }
                             { is it a constant char? }
@@ -332,7 +332,7 @@ interface
                                   emit_ref_reg(A_MOV,S_B,
                                     newreference(right.location.reference),
                                     hreg);
-                                 { I don't think a temp char exists, but it won't hurt (JM)Ê}
+                                 { I don't think a temp char exists, but it won't hurt (JM) }
                                  ungetiftemp(right.location.reference);
                                 end
                               else hreg := right.location.register;
@@ -392,7 +392,7 @@ interface
 {$ifdef newoptimizations2}
                            { string (could be < 255 chars now) (JM)         }
                             emit_const(A_PUSH,S_L,
-                              pstringdef(left.resulttype)^.len);
+                              pstringdef(left.resulttype.def)^.len);
 {$endif newoptimizations2}
                             emitpushreferenceaddr(left.location.reference);
                            { the optimizer can more easily put the          }
@@ -408,7 +408,7 @@ interface
                             emitcall('FPC_SHORTSTR_CONCAT');
 {$endif newoptimizations2}
                             ungetiftemp(right.location.reference);
-                            maybe_loadesi;
+                            maybe_loadself;
                             popusedregisters(pushedregs);
 {$ifdef newoptimizations2}
                         end;
@@ -453,7 +453,7 @@ interface
                              del_reference(right.location.reference);
                              saveregvars($ff);
                              emitcall('FPC_SHORTSTR_COMPARE');
-                             maybe_loadesi;
+                             maybe_loadself;
                              popusedregisters(pushedregs);
                           end;
                         ungetiftemp(left.location.reference);
@@ -514,21 +514,16 @@ interface
         case nodetype of
           equaln,
         unequaln
-{$IfNDef NoSetInclusion}
         ,lten, gten
-{$EndIf NoSetInclusion}
                   : begin
                      cmpop:=true;
                      del_location(left.location);
                      del_location(right.location);
                      pushusedregisters(pushedregs,$ff);
-{$IfNDef NoSetInclusion}
                      If (nodetype in [equaln, unequaln, lten]) Then
                        Begin
-{$EndIf NoSetInclusion}
                          emitpushreferenceaddr(right.location.reference);
                          emitpushreferenceaddr(left.location.reference);
-{$IfNDef NoSetInclusion}
                        End
                      Else  {gten = lten, if the arguments are reversed}
                        Begin
@@ -538,9 +533,7 @@ interface
                      saveregvars($ff);
                      Case nodetype of
                        equaln, unequaln:
-{$EndIf NoSetInclusion}
                          emitcall('FPC_SET_COMP_SETS');
-{$IfNDef NoSetInclusion}
                        lten, gten:
                          Begin
                            emitcall('FPC_SET_CONTAINS_SETS');
@@ -548,8 +541,7 @@ interface
                            nodetype := equaln;
                         End;
                      End;
-{$EndIf NoSetInclusion}
-                     maybe_loadesi;
+                     maybe_loadself;
                      popusedregisters(pushedregs);
                      ungetiftemp(left.location.reference);
                      ungetiftemp(right.location.reference);
@@ -591,11 +583,7 @@ interface
                       { add a range or a single element? }
                         if right.nodetype=setelementn then
                          begin
-{$IfNDef regallocfix}
                            concatcopy(left.location.reference,href,32,false,false);
-{$Else regallocfix}
-                           concatcopy(left.location.reference,href,32,true,false);
-{$EndIf regallocfix}
                            if assigned(tbinarynode(right).right) then
                             begin
                               pushsetelement(tbinarynode(right).right);
@@ -617,18 +605,12 @@ interface
                          { must be an other set }
                            emitpushreferenceaddr(href);
                            emitpushreferenceaddr(right.location.reference);
-{$IfDef regallocfix}
-                           del_location(right.location);
-{$EndIf regallocfix}
                            emitpushreferenceaddr(left.location.reference);
-{$IfDef regallocfix}
-                           del_location(left.location);
-{$EndIf regallocfix}
                            saveregvars(regstopush);
                            emitcall('FPC_SET_ADD_SETS');
                          end;
                       end;
-                     maybe_loadesi;
+                     maybe_loadself;
                      popusedregisters(pushedregs);
                      ungetiftemp(left.location.reference);
                      ungetiftemp(right.location.reference);
@@ -661,7 +643,7 @@ interface
                    symdifn : emitcall('FPC_SET_SYMDIF_SETS');
                       muln : emitcall('FPC_SET_MUL_SETS');
                      end;
-                     maybe_loadesi;
+                     maybe_loadself;
                      popusedregisters(pushedregs);
                      ungetiftemp(left.location.reference);
                      ungetiftemp(right.location.reference);
@@ -781,14 +763,14 @@ interface
       begin
       { to make it more readable, string and set (not smallset!) have their
         own procedures }
-         case left.resulttype^.deftype of
+         case left.resulttype.def^.deftype of
          stringdef : begin
                        addstring;
                        exit;
                      end;
             setdef : begin
                      { normalsets are handled separate }
-                       if not(psetdef(left.resulttype)^.settype=smallset) then
+                       if not(psetdef(left.resulttype.def)^.settype=smallset) then
                         begin
                           addset;
                           exit;
@@ -805,21 +787,21 @@ interface
 
          { are we a (small)set, must be set here because the side can be
            swapped ! (PFV) }
-         is_set:=(left.resulttype^.deftype=setdef);
+         is_set:=(left.resulttype.def^.deftype=setdef);
 
          { calculate the operator which is more difficult }
          firstcomplex(self);
 
          { handling boolean expressions extra: }
-         if is_boolean(left.resulttype) and
-            is_boolean(right.resulttype) then
+         if is_boolean(left.resulttype.def) and
+            is_boolean(right.resulttype.def) then
            begin
-             if (porddef(left.resulttype)^.typ=bool8bit) or
-                (porddef(right.resulttype)^.typ=bool8bit) then
+             if (porddef(left.resulttype.def)^.typ=bool8bit) or
+                (porddef(right.resulttype.def)^.typ=bool8bit) then
                opsize:=S_B
              else
-               if (porddef(left.resulttype)^.typ=bool16bit) or
-                  (porddef(right.resulttype)^.typ=bool16bit) then
+               if (porddef(left.resulttype.def)^.typ=bool16bit) or
+                  (porddef(right.resulttype.def)^.typ=bool16bit) then
                  opsize:=S_W
              else
                opsize:=S_L;
@@ -926,36 +908,36 @@ interface
                 set_location(location,left.location);
 
               { are too few registers free? }
-              pushed:=maybe_push(right.registers32,self,is_64bitint(left.resulttype));
+              pushed:=maybe_push(right.registers32,self,is_64bitint(left.resulttype.def));
               secondpass(right);
               if pushed then
                 begin
-                  restore(self,is_64bitint(left.resulttype));
+                  restore(self,is_64bitint(left.resulttype.def));
                   set_location(left.location,location);
                 end;
 
-              if (left.resulttype^.deftype=pointerdef) or
+              if (left.resulttype.def^.deftype=pointerdef) or
 
-                 (right.resulttype^.deftype=pointerdef) or
+                 (right.resulttype.def^.deftype=pointerdef) or
 
-                 (is_class_or_interface(right.resulttype) and is_class_or_interface(left.resulttype)) or
+                 (is_class_or_interface(right.resulttype.def) and is_class_or_interface(left.resulttype.def)) or
 
-                 (left.resulttype^.deftype=classrefdef) or
+                 (left.resulttype.def^.deftype=classrefdef) or
 
-                 (left.resulttype^.deftype=procvardef) or
+                 (left.resulttype.def^.deftype=procvardef) or
 
-                 ((left.resulttype^.deftype=enumdef) and
-                  (left.resulttype^.size=4)) or
+                 ((left.resulttype.def^.deftype=enumdef) and
+                  (left.resulttype.def^.size=4)) or
 
-                 ((left.resulttype^.deftype=orddef) and
-                 (porddef(left.resulttype)^.typ=s32bit)) or
-                 ((right.resulttype^.deftype=orddef) and
-                 (porddef(right.resulttype)^.typ=s32bit)) or
+                 ((left.resulttype.def^.deftype=orddef) and
+                 (porddef(left.resulttype.def)^.typ=s32bit)) or
+                 ((right.resulttype.def^.deftype=orddef) and
+                 (porddef(right.resulttype.def)^.typ=s32bit)) or
 
-                ((left.resulttype^.deftype=orddef) and
-                 (porddef(left.resulttype)^.typ=u32bit)) or
-                 ((right.resulttype^.deftype=orddef) and
-                 (porddef(right.resulttype)^.typ=u32bit)) or
+                ((left.resulttype.def^.deftype=orddef) and
+                 (porddef(left.resulttype.def)^.typ=u32bit)) or
+                 ((right.resulttype.def^.deftype=orddef) and
+                 (porddef(right.resulttype.def)^.typ=u32bit)) or
 
                 { as well as small sets }
                  is_set then
@@ -963,8 +945,8 @@ interface
           do_normal:
                    mboverflow:=false;
                    cmpop:=false;
-                   unsigned := not(is_signed(left.resulttype)) or
-                               not(is_signed(right.resulttype));
+                   unsigned := not(is_signed(left.resulttype.def)) or
+                               not(is_signed(right.resulttype.def));
                    case nodetype of
                       addn : begin
                                { this is a really ugly hack!!!!!!!!!! }
@@ -1070,7 +1052,6 @@ interface
                   ltn,lten,
                   gtn,gten,
            equaln,unequaln : begin
-{$IfNDef NoSetInclusion}
                                If is_set Then
                                  Case nodetype of
                                    lten,gten:
@@ -1116,7 +1097,6 @@ interface
                            {no < or > support for sets}
                                    ltn,gtn: CGMessage(type_e_mismatch);
                                  End;
-{$EndIf NoSetInclusion}
                                op:=A_CMP;
                                cmpop:=true;
                              end;
@@ -1154,7 +1134,7 @@ interface
                            { constant (JM)                             }
                            release_loc(right.location);
                            location.register := getregister32;
-                           emitloadord2reg(right.location,u32bitdef,location.register,false);
+                           emitloadord2reg(right.location,porddef(u32bittype.def),location.register,false);
                            emit_const_reg(A_SHL,S_L,power,location.register)
                          End
                        Else
@@ -1180,13 +1160,13 @@ interface
                          { left.location can be R_EAX !!! }
                          getexplicitregister32(R_EDI);
                          { load the left value }
-                         emitloadord2reg(left.location,u32bitdef,R_EDI,true);
+                         emitloadord2reg(left.location,porddef(u32bittype.def),R_EDI,true);
                          release_loc(left.location);
                          { allocate EAX }
                          if R_EAX in unused then
                            exprasmList.concat(Tairegalloc.Alloc(R_EAX));
                          { load he right value }
-                         emitloadord2reg(right.location,u32bitdef,R_EAX,true);
+                         emitloadord2reg(right.location,porddef(u32bittype.def),R_EAX,true);
                          release_loc(right.location);
                          { allocate EAX if it isn't yet allocated (JM) }
                          if (R_EAX in unused) then
@@ -1449,11 +1429,11 @@ interface
               else
 
               { Char type }
-                if ((left.resulttype^.deftype=orddef) and
-                    (porddef(left.resulttype)^.typ=uchar)) or
+                if ((left.resulttype.def^.deftype=orddef) and
+                    (porddef(left.resulttype.def)^.typ=uchar)) or
               { enumeration type 16 bit }
-                   ((left.resulttype^.deftype=enumdef) and
-                    (left.resulttype^.size=1)) then
+                   ((left.resulttype.def^.deftype=enumdef) and
+                    (left.resulttype.def^.size=1)) then
                  begin
                    case nodetype of
                       ltn,lten,gtn,gten,
@@ -1527,8 +1507,8 @@ interface
                 end
               else
               { 16 bit enumeration type }
-                if ((left.resulttype^.deftype=enumdef) and
-                    (left.resulttype^.size=2)) then
+                if ((left.resulttype.def^.deftype=enumdef) and
+                    (left.resulttype.def^.size=2)) then
                  begin
                    case nodetype of
                       ltn,lten,gtn,gten,
@@ -1602,14 +1582,14 @@ interface
                 end
               else
               { 64 bit types }
-              if is_64bitint(left.resulttype) then
+              if is_64bitint(left.resulttype.def) then
                 begin
                    mboverflow:=false;
                    cmpop:=false;
-                   unsigned:=((left.resulttype^.deftype=orddef) and
-                       (porddef(left.resulttype)^.typ=u64bit)) or
-                      ((right.resulttype^.deftype=orddef) and
-                       (porddef(right.resulttype)^.typ=u64bit));
+                   unsigned:=((left.resulttype.def^.deftype=orddef) and
+                       (porddef(left.resulttype.def)^.typ=u64bit)) or
+                      ((right.resulttype.def^.deftype=orddef) and
+                       (porddef(right.resulttype.def)^.typ=u64bit));
                    case nodetype of
                       addn : begin
                                 begin
@@ -1678,7 +1658,7 @@ interface
                         clear_location(hloc);
                         emit_pushq_loc(right.location);
                         saveregvars($ff);
-                        if porddef(resulttype)^.typ=u64bit then
+                        if porddef(resulttype.def)^.typ=u64bit then
                           emitcall('FPC_MUL_QWORD')
                         else
                           emitcall('FPC_MUL_INT64');
@@ -1944,8 +1924,7 @@ interface
                 end
               else
               { Floating point }
-               if (left.resulttype^.deftype=floatdef) and
-                  (pfloatdef(left.resulttype)^.typ<>f32bit) then
+               if (left.resulttype.def^.deftype=floatdef) then
                  begin
                     { real constants to the right, but only if it
                       isn't on the FPU stack, i.e. 1.0 or 0.0! }
@@ -1975,7 +1954,7 @@ interface
                               inc(fpuvaroffset);
                             end
                          else
-                           floatload(pfloatdef(right.resulttype)^.typ,right.location.reference);
+                           floatload(pfloatdef(right.resulttype.def)^.typ,right.location.reference);
                          if (left.location.loc<>LOC_FPU) then
                            begin
                               if left.location.loc=LOC_CFPUREGISTER then
@@ -1985,7 +1964,7 @@ interface
                                    inc(fpuvaroffset);
                                 end
                               else
-                                floatload(pfloatdef(left.resulttype)^.typ,left.location.reference)
+                                floatload(pfloatdef(left.resulttype.def)^.typ,left.location.reference)
                            end
                          { left was on the stack => swap }
                          else
@@ -2004,7 +1983,7 @@ interface
                               inc(fpuvaroffset);
                            end
                          else
-                           floatload(pfloatdef(left.resulttype)^.typ,left.location.reference)
+                           floatload(pfloatdef(left.resulttype.def)^.typ,left.location.reference)
                       end
                     { fpu operands are always in the wrong order on the stack }
                     else
@@ -2091,10 +2070,10 @@ interface
                else
 
                { MMX Arrays }
-                if is_mmx_able_array(left.resulttype) then
+                if is_mmx_able_array(left.resulttype.def) then
                  begin
                    cmpop:=false;
-                   mmxbase:=mmx_type(left.resulttype);
+                   mmxbase:=mmx_type(left.resulttype.def);
                    case nodetype of
                       addn : begin
                                 if (cs_mmx_saturation in aktlocalswitches) then
@@ -2294,7 +2273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-12-31 11:14:11  jonas
+  Revision 1.10  2001-04-02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.9  2000/12/31 11:14:11  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together

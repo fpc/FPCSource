@@ -174,9 +174,6 @@ interface
           tc_bool_2_int,
           tc_real_2_real,
           tc_int_2_real,
-          tc_int_2_fix,
-          tc_real_2_fix,
-          tc_fix_2_real,
           tc_proc_2_procvar,
           tc_arrayconstructor_2_set,
           tc_load_smallset,
@@ -194,7 +191,7 @@ interface
        2 - Convertable, but not first choice }
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;
-             fromtree: tnode; fromtreetype : tnodetype;
+             fromtreetype : tnodetype;
              explicit : boolean) : byte;
 
     { same as is_equal, but with error message if failed }
@@ -389,7 +386,7 @@ implementation
               case acp of
               cp_value_equal_const :
                 begin
-                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,nil,callparan,false)=0) or
+                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,callparan,false)=0) or
                      ((def1.paratyp<>def2.paratyp) and
                       ((def1.paratyp in [vs_out,vs_var]) or
                        (def2.paratyp in [vs_out,vs_var])
@@ -402,7 +399,7 @@ implementation
                 end;
               cp_all :
                 begin
-                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,nil,callparan,false)=0) or
+                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,callparan,false)=0) or
                      (def1.paratyp<>def2.paratyp) then
                      begin
                         convertable_paras:=false;
@@ -411,7 +408,7 @@ implementation
                 end;
               cp_none :
                 begin
-                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,nil,callparan,false)=0) then
+                   if (isconvertable(def1.paratype.def,def2.paratype.def,doconv,callparan,false)=0) then
                      begin
                         convertable_paras:=false;
                         exit;
@@ -467,9 +464,7 @@ implementation
     { returns true, if def uses FPU }
     function is_fpu(def : pdef) : boolean;
       begin
-         is_fpu:=(def^.deftype=floatdef) and
-                 (pfloatdef(def)^.typ<>f32bit) and
-                 (pfloatdef(def)^.typ<>f16bit);
+         is_fpu:=(def^.deftype=floatdef);
       end;
 
 
@@ -482,7 +477,7 @@ implementation
            orddef :
              begin
                dt:=porddef(def)^.typ;
-               is_ordinal:=dt in [uchar,
+               is_ordinal:=dt in [uchar,uwidechar,
                                   u8bit,u16bit,u32bit,u64bit,
                                   s8bit,s16bit,s32bit,s64bit,
                                   bool8bit,bool16bit,bool32bit];
@@ -591,10 +586,10 @@ implementation
     { true, if p points to an open array def }
     function is_open_array(p : pdef) : boolean;
       begin
-         { check for s32bitdef is needed, because for u32bit the high
+         { check for s32bittype is needed, because for u32bit the high
            range is also -1 ! (PFV) }
          is_open_array:=(p^.deftype=arraydef) and
-                        (parraydef(p)^.rangetype.def=pdef(s32bitdef)) and
+                        (parraydef(p)^.rangetype.def=s32bittype.def) and
                         (parraydef(p)^.lowrange=0) and
                         (parraydef(p)^.highrange=-1) and
                         not(parraydef(p)^.IsConstructor) and
@@ -671,7 +666,7 @@ implementation
     function is_chararray(p : pdef) : boolean;
       begin
         is_chararray:=(p^.deftype=arraydef) and
-                      is_equal(parraydef(p)^.elementtype.def,cchardef) and
+                      is_equal(parraydef(p)^.elementtype.def,cchartype.def) and
                       not(is_special_array(p));
       end;
 
@@ -679,7 +674,7 @@ implementation
     function is_widechararray(p : pdef) : boolean;
       begin
         is_widechararray:=(p^.deftype=arraydef) and
-                      is_equal(parraydef(p)^.elementtype.def,cwidechardef) and
+                      is_equal(parraydef(p)^.elementtype.def,cwidechartype.def) and
                       not(is_special_array(p));
       end;
 
@@ -688,7 +683,7 @@ implementation
     function is_pchar(p : pdef) : boolean;
       begin
         is_pchar:=(p^.deftype=pointerdef) and
-                  (is_equal(ppointerdef(p)^.pointertype.def,cchardef) or
+                  (is_equal(ppointerdef(p)^.pointertype.def,cchartype.def) or
                    (is_zero_based_array(ppointerdef(p)^.pointertype.def) and
                     is_chararray(ppointerdef(p)^.pointertype.def)));
       end;
@@ -697,7 +692,7 @@ implementation
     function is_pwidechar(p : pdef) : boolean;
       begin
         is_pwidechar:=(p^.deftype=pointerdef) and
-                  (is_equal(ppointerdef(p)^.pointertype.def,cwidechardef) or
+                  (is_equal(ppointerdef(p)^.pointertype.def,cwidechartype.def) or
                    (is_zero_based_array(ppointerdef(p)^.pointertype.def) and
                     is_widechararray(ppointerdef(p)^.pointertype.def)));
       end;
@@ -707,7 +702,8 @@ implementation
     function is_voidpointer(p : pdef) : boolean;
       begin
         is_voidpointer:=(p^.deftype=pointerdef) and
-                        is_equal(Ppointerdef(p)^.pointertype.def,voiddef);
+                        (ppointerdef(p)^.pointertype.def^.deftype=orddef) and
+                        (porddef(ppointerdef(p)^.pointertype.def)^.typ=uvoid);
       end;
 
 
@@ -726,8 +722,7 @@ implementation
                      ((def^.deftype=stringdef) and (pstringdef(def)^.string_typ in [st_ansistring,st_widestring])) or
                      ((def^.deftype=procvardef) and not(po_methodpointer in pprocvardef(def)^.procoptions)) or
                      ((def^.deftype=objectdef) and not is_object(def)) or
-                     ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset)) or
-                     ((def^.deftype=floatdef) and (pfloatdef(def)^.typ=f32bit));
+                     ((def^.deftype=setdef) and (psetdef(def)^.settype=smallset));
       end;
 
 
@@ -844,7 +839,7 @@ implementation
              2: l := l and $ffff;
              { work around sign extension bug (to be fixed) (JM) }
              4: l := l and (int64($fffffff) shl 4 + $f);
-           end
+           end;
       end;
 
 
@@ -882,8 +877,6 @@ implementation
                 case pfloatdef(parraydef(p)^.elementtype.def)^.typ of
                   s32real:
                     mmx_type:=mmxsingle;
-                  f16bit:
-                    mmx_type:=mmxfixed16
                 end
               else
                 case porddef(parraydef(p)^.elementtype.def)^.typ of
@@ -934,11 +927,6 @@ implementation
                   (parraydef(p)^.elementtype.def^.deftype=floatdef) and
                   (
                    (parraydef(p)^.lowrange=0) and
-                   (parraydef(p)^.highrange=3) and
-                   (pfloatdef(parraydef(p)^.elementtype.def)^.typ=f16bit)
-                  ) or
-                  (
-                   (parraydef(p)^.lowrange=0) and
                    (parraydef(p)^.highrange=1) and
                    (pfloatdef(parraydef(p)^.elementtype.def)^.typ=s32real)
                   )
@@ -976,17 +964,9 @@ implementation
                  (
                   (parraydef(p)^.elementtype.def^.deftype=floatdef) and
                   (
-                   (
-                    (parraydef(p)^.lowrange=0) and
-                    (parraydef(p)^.highrange=3) and
-                    (pfloatdef(parraydef(p)^.elementtype.def)^.typ=f32bit)
-                   )
-                   or
-                   (
-                    (parraydef(p)^.lowrange=0) and
-                    (parraydef(p)^.highrange=1) and
-                    (pfloatdef(parraydef(p)^.elementtype.def)^.typ=s32real)
-                   )
+                   (parraydef(p)^.lowrange=0) and
+                   (parraydef(p)^.highrange=1) and
+                   (pfloatdef(parraydef(p)^.elementtype.def)^.typ=s32real)
                   )
                  )
                 );
@@ -1084,8 +1064,8 @@ implementation
                   (pfiledef(def2)^.typedfiletype.def<>nil) and
                   is_equal(pfiledef(def1)^.typedfiletype.def,pfiledef(def2)^.typedfiletype.def)
                  ) or
-                 ( (pfiledef(def1)^.typedfiletype.def=pdef(voiddef)) or
-                   (pfiledef(def2)^.typedfiletype.def=pdef(voiddef))
+                 ( (pfiledef(def1)^.typedfiletype.def=pdef(voidtype.def)) or
+                   (pfiledef(def2)^.typedfiletype.def=pdef(voidtype.def))
                  )))
          { sets with the same element base type are equal }
          else
@@ -1214,7 +1194,7 @@ implementation
             begin
               if is_equal(passproc^.rettype.def,to_def) and
                  (is_equal(TParaItem(passproc^.Para.first).paratype.def,from_def) or
-                 (isconvertable(from_def,TParaItem(passproc^.Para.first).paratype.def,convtyp,nil,ordconstn,false)=1)) then
+                 (isconvertable(from_def,TParaItem(passproc^.Para.first).paratype.def,convtyp,ordconstn,false)=1)) then
                 begin
                    assignment_overloaded:=passproc;
                    break;
@@ -1230,7 +1210,7 @@ implementation
        2 - Convertable, but not first choice }
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;
-             fromtree: tnode; fromtreetype : tnodetype;
+             fromtreetype : tnodetype;
              explicit : boolean) : byte;
 
       { Tbasetype:  uauto,uvoid,uchar,
@@ -1366,10 +1346,7 @@ implementation
                    begin { ordinal to real }
                      if is_integer(def_from) then
                        begin
-                          if pfloatdef(def_to)^.typ=f32bit then
-                            doconv:=tc_int_2_fix
-                          else
-                            doconv:=tc_int_2_real;
+                          doconv:=tc_int_2_real;
                           b:=1;
                        end;
                    end;
@@ -1378,15 +1355,7 @@ implementation
                      if pfloatdef(def_from)^.typ=pfloatdef(def_to)^.typ then
                        doconv:=tc_equal
                      else
-                       begin
-                          if pfloatdef(def_from)^.typ=f32bit then
-                            doconv:=tc_fix_2_real
-                          else
-                            if pfloatdef(def_to)^.typ=f32bit then
-                              doconv:=tc_real_2_fix
-                            else
-                              doconv:=tc_real_2_real;
-                       end;
+                       doconv:=tc_real_2_real;
                      b:=1;
                    end;
                end;
@@ -1437,7 +1406,7 @@ implementation
                             end
                            else
                             if isconvertable(parraydef(def_from)^.elementtype.def,
-                                             parraydef(def_to)^.elementtype.def,hct,nil,arrayconstructorn,false)<>0 then
+                                             parraydef(def_to)^.elementtype.def,hct,arrayconstructorn,false)<>0 then
                              begin
                                doconv:=hct;
                                b:=2;
@@ -1504,7 +1473,7 @@ implementation
                      { char constant to zero terminated string constant }
                      if (fromtreetype=ordconstn) then
                       begin
-                        if is_equal(def_from,cchardef) and
+                        if is_equal(def_from,cchartype.def) and
                            is_pchar(def_to) then
                          begin
                            doconv:=tc_cchar_2_pchar;
@@ -1538,10 +1507,10 @@ implementation
                            pobjectdef(ppointerdef(def_to)^.pointertype.def))
                         ) or
                         { all pointers can be assigned to void-pointer }
-                        is_equal(ppointerdef(def_to)^.pointertype.def,voiddef) or
+                        is_equal(ppointerdef(def_to)^.pointertype.def,voidtype.def) or
                         { in my opnion, is this not clean pascal }
                         { well, but it's handy to use, it isn't ? (FK) }
-                        is_equal(ppointerdef(def_from)^.pointertype.def,voiddef) then
+                        is_equal(ppointerdef(def_from)^.pointertype.def,voidtype.def) then
                        begin
                          { but don't allow conversion between farpointer-pointer }
                          if (ppointerdef(def_to)^.is_far=ppointerdef(def_from)^.is_far) then
@@ -1656,6 +1625,15 @@ implementation
                      begin
                         doconv:=tc_class_2_intf;
                         b:=1;
+                     end
+                   { Interface 2 GUID handling }
+                   else if (def_to=pdef(rec_tguid)) and
+                           (fromtreetype=typen) and
+                           is_interface(def_from) and
+                           pobjectdef(def_from)^.isiidguidvalid then
+                     begin
+                       b:=1;
+                       doconv:=tc_equal;
                      end;
                  end;
              end;
@@ -1694,8 +1672,8 @@ implementation
                     (pfiledef(def_from)^.filetyp = ft_typed) and
                     (pfiledef(def_to)^.filetyp = ft_typed) and
                     (
-                     (pfiledef(def_from)^.typedfiletype.def = pdef(voiddef)) or
-                     (pfiledef(def_to)^.typedfiletype.def = pdef(voiddef))
+                     (pfiledef(def_from)^.typedfiletype.def = pdef(voidtype.def)) or
+                     (pfiledef(def_to)^.typedfiletype.def = pdef(voidtype.def))
                     )
                    ) or
                    (
@@ -1717,20 +1695,9 @@ implementation
 
            else
              begin
-                { Interface 2 GUID handling }
-                if (def_from^.deftype=errordef) and (def_to=pdef(rec_tguid)) and
-                   assigned(fromtree) and (fromtree.nodetype=typen) and
-                   assigned(ttypenode(fromtree).typenodetype) and
-                   is_interface(ttypenode(fromtree).typenodetype) and
-                   pobjectdef(ttypenode(fromtree).typenodetype)^.isiidguidvalid then
-                  begin
-                    b:=1;
-                    doconv:=tc_equal;
-                  end
-                else
-                  { assignment overwritten ?? }
-                  if assignment_overloaded(def_from,def_to)<>nil then
-                    b:=2;
+               { assignment overwritten ?? }
+               if assignment_overloaded(def_from,def_to)<>nil then
+                 b:=2;
              end;
          end;
         isconvertable:=b;
@@ -1766,7 +1733,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2001-03-23 00:16:07  florian
+  Revision 1.37  2001-04-02 21:20:35  peter
+    * resulttype rewrite
+
+  Revision 1.36  2001/03/23 00:16:07  florian
     + some stuff to compile FreeCLX added
 
   Revision 1.35  2001/03/03 12:38:33  jonas

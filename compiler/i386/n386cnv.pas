@@ -40,11 +40,8 @@ interface
           procedure second_chararray_to_string;virtual;
           procedure second_char_to_string;virtual;
           procedure second_int_to_real;virtual;
-          procedure second_real_to_fix;virtual;
           procedure second_real_to_real;virtual;
-          procedure second_fix_to_real;virtual;
           procedure second_cord_to_pointer;virtual;
-          procedure second_int_to_fix;virtual;
           procedure second_proc_to_procvar;virtual;
           procedure second_bool_to_int;virtual;
           procedure second_int_to_bool;virtual;
@@ -91,27 +88,27 @@ implementation
       begin
         { insert range check if not explicit conversion }
         if not(nf_explizit in flags) then
-          emitrangecheck(left,resulttype);
+          emitrangecheck(left,resulttype.def);
 
         { is the result size smaller ? }
-        if resulttype^.size<left.resulttype^.size then
+        if resulttype.def^.size<left.resulttype.def^.size then
           begin
             { only need to set the new size of a register }
             if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
              begin
-               case resulttype^.size of
+               case resulttype.def^.size of
                 1 : location.register:=makereg8(left.location.register);
                 2 : location.register:=makereg16(left.location.register);
                 4 : location.register:=makereg32(left.location.register);
                end;
                { we can release the upper register }
-               if is_64bitint(left.resulttype) then
+               if is_64bitint(left.resulttype.def) then
                  ungetregister32(left.location.registerhigh);
              end;
           end
 
         { is the result size bigger ? }
-        else if resulttype^.size>left.resulttype^.size then
+        else if resulttype.def^.size>left.resulttype.def^.size then
           begin
             { remove reference }
             if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
@@ -125,19 +122,19 @@ implementation
               movz doesn't support constant values }
             if (left.location.loc=LOC_MEM) and (left.location.reference.is_immediate) then
              begin
-               if is_64bitint(resulttype) then
+               if is_64bitint(resulttype.def) then
                  opsize:=S_L
                else
-                 opsize:=def_opsize(resulttype);
+                 opsize:=def_opsize(resulttype.def);
                op:=A_MOV;
              end
             else
              begin
-               opsize:=def2def_opsize(left.resulttype,resulttype);
+               opsize:=def2def_opsize(left.resulttype.def,resulttype.def);
                if opsize in [S_B,S_W,S_L] then
                 op:=A_MOV
                else
-                if is_signed(left.resulttype) then
+                if is_signed(left.resulttype.def) then
                  op:=A_MOVSX
                 else
                  op:=A_MOVZX;
@@ -153,12 +150,12 @@ implementation
             location.loc:=LOC_REGISTER;
 
             { do we need a second register for a 64 bit type ? }
-            if is_64bitint(resulttype) then
+            if is_64bitint(resulttype.def) then
               begin
                  hregister2:=getregister32;
                  location.registerhigh:=hregister2;
               end;
-            case resulttype^.size of
+            case resulttype.def^.size of
              1:
                location.register:=makereg8(hregister);
              2:
@@ -174,7 +171,7 @@ implementation
                 newreference(left.location.reference),location.register);
 
             { do we need a sign extension for int64? }
-            if is_64bitint(resulttype) then
+            if is_64bitint(resulttype.def) then
               { special case for constants (JM) }
               if is_constintnode(left) then
                 begin
@@ -188,8 +185,8 @@ implementation
                 begin
                   emit_reg_reg(A_XOR,S_L,
                     hregister2,hregister2);
-                  if (porddef(resulttype)^.typ=s64bit) and
-                    is_signed(left.resulttype) then
+                  if (porddef(resulttype.def)^.typ=s64bit) and
+                    is_signed(left.resulttype.def) then
                     begin
                        getlabel(l);
                        emit_const_reg(A_TEST,S_L,longint($80000000),makereg32(hregister));
@@ -211,15 +208,15 @@ implementation
       begin
          { does anybody know a better solution than this big case statement ? }
          { ok, a proc table would do the job                              }
-         case pstringdef(resulttype)^.string_typ of
+         case pstringdef(resulttype.def)^.string_typ of
 
             st_shortstring:
-              case pstringdef(left.resulttype)^.string_typ of
+              case pstringdef(left.resulttype.def)^.string_typ of
                  st_shortstring:
                    begin
-                      gettempofsizereference(resulttype^.size,location.reference);
+                      gettempofsizereference(resulttype.def^.size,location.reference);
                       copyshortstring(location.reference,left.location.reference,
-                        pstringdef(resulttype)^.len,false,true);
+                        pstringdef(resulttype.def)^.len,false,true);
 {                      done by copyshortstring now (JM)          }
 {                      del_reference(left.location.reference); }
                       ungetiftemp(left.location.reference);
@@ -231,7 +228,7 @@ implementation
                    end;
                  st_ansistring:
                    begin
-                      gettempofsizereference(resulttype^.size,location.reference);
+                      gettempofsizereference(resulttype.def^.size,location.reference);
                       loadansi2short(left,self);
                       { this is done in secondtypeconv (FK)
                       removetemps(exprasmlist,temptoremove);
@@ -246,7 +243,7 @@ implementation
               end;
 
             st_longstring:
-              case pstringdef(left.resulttype)^.string_typ of
+              case pstringdef(left.resulttype.def)^.string_typ of
                  st_shortstring:
                    begin
                       {!!!!!!!}
@@ -265,13 +262,13 @@ implementation
               end;
 
             st_ansistring:
-              case pstringdef(left.resulttype)^.string_typ of
+              case pstringdef(left.resulttype.def)^.string_typ of
                  st_shortstring:
                    begin
                       clear_location(location);
                       location.loc:=LOC_REFERENCE;
                       gettempansistringreference(location.reference);
-                      decrstringref(cansistringdef,location.reference);
+                      decrstringref(cansistringtype.def,location.reference);
                       { We don't need the source regs anymore (JM) }
                       regs_to_push := $ff;
                       remove_non_regvars_from_loc(left.location,regs_to_push);
@@ -281,7 +278,7 @@ implementation
                       emit_push_lea_loc(location,false);
                       saveregvars(regs_to_push);
                       emitcall('FPC_SHORTSTR_TO_ANSISTR');
-                      maybe_loadesi;
+                      maybe_loadself;
                       popusedregisters(pushed);
                    end;
                  st_longstring:
@@ -297,7 +294,7 @@ implementation
               end;
 
             st_widestring:
-              case pstringdef(left.resulttype)^.string_typ of
+              case pstringdef(left.resulttype.def)^.string_typ of
                  st_shortstring:
                    begin
                       {!!!!!!!}
@@ -330,7 +327,7 @@ implementation
          clear_location(location);
          location.loc:=LOC_REGISTER;
          location.register:=getregister32;
-         case pstringdef(left.resulttype)^.string_typ of
+         case pstringdef(left.resulttype.def)^.string_typ of
            st_shortstring :
              begin
                inc(left.location.reference.offset);
@@ -373,7 +370,7 @@ implementation
          arrsize, strtype: longint;
          regstopush: byte;
       begin
-         with parraydef(resulttype)^ do
+         with parraydef(resulttype.def)^ do
           begin
             if highrange<lowrange then
              internalerror(75432653);
@@ -383,7 +380,7 @@ implementation
          if (left.nodetype = stringconstn) and
             { left.length+1 since there's always a terminating #0 character (JM) }
             (tstringconstnode(left).len+1 >= arrsize) and
-            (pstringdef(left.resulttype)^.string_typ=st_shortstring) then
+            (pstringdef(left.resulttype.def)^.string_typ=st_shortstring) then
            begin
              inc(location.reference.offset);
              exit;
@@ -398,7 +395,7 @@ implementation
 
          emit_push_lea_loc(location,false);
 
-         case pstringdef(left.resulttype)^.string_typ of
+         case pstringdef(left.resulttype.def)^.string_typ of
            st_shortstring :
              begin
                { 0 means shortstring }
@@ -495,12 +492,12 @@ implementation
          l : longint;
       begin
          { calc the length of the array }
-         l:=parraydef(left.resulttype)^.highrange-parraydef(left.resulttype)^.lowrange+1;
+         l:=parraydef(left.resulttype.def)^.highrange-parraydef(left.resulttype.def)^.lowrange+1;
          { this is a type conversion which copies the data, so we can't }
          { return a reference                                        }
          clear_location(location);
          location.loc:=LOC_MEM;
-         case pstringdef(resulttype)^.string_typ of
+         case pstringdef(resulttype.def)^.string_typ of
            st_shortstring :
              begin
                if l>255 then
@@ -508,15 +505,15 @@ implementation
                   CGMessage(type_e_mismatch);
                   l:=255;
                 end;
-               gettempofsizereference(resulttype^.size,location.reference);
+               gettempofsizereference(resulttype.def^.size,location.reference);
                { we've also to release the registers ... }
                { Yes, but before pushusedregisters since that one resets unused! }
                { This caused web bug 1073 (JM)                                   }
                regstopush := $ff;
                remove_non_regvars_from_loc(left.location,regstopush);
                pushusedregisters(pushed,regstopush);
-               if l>=resulttype^.size then
-                 push_int(resulttype^.size-1)
+               if l>=resulttype.def^.size then
+                 push_int(resulttype.def^.size-1)
                else
                  push_int(l);
                { ... here only the temp. location is released }
@@ -525,13 +522,13 @@ implementation
                emitpushreferenceaddr(location.reference);
                saveregvars(regstopush);
                emitcall('FPC_CHARARRAY_TO_SHORTSTR');
-               maybe_loadesi;
+               maybe_loadself;
                popusedregisters(pushed);
              end;
            st_ansistring :
              begin
                gettempansistringreference(location.reference);
-               decrstringref(cansistringdef,location.reference);
+               decrstringref(cansistringtype.def,location.reference);
                regstopush := $ff;
                remove_non_regvars_from_loc(left.location,regstopush);
                pushusedregisters(pushed,regstopush);
@@ -542,7 +539,7 @@ implementation
                saveregvars(regstopush);
                emitcall('FPC_CHARARRAY_TO_ANSISTR');
                popusedregisters(pushed);
-               maybe_loadesi;
+               maybe_loadself;
              end;
            st_longstring:
              begin
@@ -565,7 +562,7 @@ implementation
       begin
          clear_location(location);
          location.loc:=LOC_MEM;
-         case pstringdef(resulttype)^.string_typ of
+         case pstringdef(resulttype.def)^.string_typ of
            st_shortstring :
              begin
                gettempofsizereference(256,location.reference);
@@ -574,7 +571,7 @@ implementation
            st_ansistring :
              begin
                gettempansistringreference(location.reference);
-               decrstringref(cansistringdef,location.reference);
+               decrstringref(cansistringtype.def,location.reference);
                release_loc(left.location);
                pushusedregisters(pushed,$ff);
                emit_pushw_loc(left.location);
@@ -582,7 +579,7 @@ implementation
                saveregvars($ff);
                emitcall('FPC_CHAR_TO_ANSISTR');
                popusedregisters(pushed);
-               maybe_loadesi;
+               maybe_loadself;
              end;
            else
             internalerror(4179);
@@ -601,16 +598,16 @@ implementation
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
          hregister:=R_EDI;
-         if porddef(left.resulttype)^.typ=u32bit then
+         if porddef(left.resulttype.def)^.typ=u32bit then
             push_int(0);
          if (left.location.loc=LOC_REGISTER) or
             (left.location.loc=LOC_CREGISTER) then
            begin
 {$ifndef noAllocEdi}
-              if not (porddef(left.resulttype)^.typ in [u32bit,s32bit,u64bit,s64bit]) then
+              if not (porddef(left.resulttype.def)^.typ in [u32bit,s32bit,u64bit,s64bit]) then
                 getexplicitregister32(R_EDI);
 {$endif noAllocEdi}
-              case porddef(left.resulttype)^.typ of
+              case porddef(left.resulttype.def)^.typ of
                  s8bit : emit_reg_reg(A_MOVSX,S_BL,left.location.register,R_EDI);
                  u8bit : emit_reg_reg(A_MOVZX,S_BL,left.location.register,R_EDI);
                  s16bit : emit_reg_reg(A_MOVSX,S_WL,left.location.register,R_EDI);
@@ -631,7 +628,7 @@ implementation
 {$ifndef noAllocEdi}
               getexplicitregister32(R_EDI);
 {$endif noAllocEdi}
-              case porddef(left.resulttype)^.typ of
+              case porddef(left.resulttype.def)^.typ of
                  s8bit:
                    emit_ref_reg(A_MOVSX,S_BL,r,R_EDI);
                  u8bit:
@@ -661,7 +658,7 @@ implementation
            ungetregister32(R_EDI);
 {$endif noAllocEdi}
          r:=new_reference(R_ESP,0);
-         case porddef(left.resulttype)^.typ of
+         case porddef(left.resulttype.def)^.typ of
            u32bit:
              begin
                 emit_ref(A_FILD,S_IQ,r);
@@ -722,51 +719,6 @@ implementation
       end;
 
 
-    procedure ti386typeconvnode.second_real_to_fix;
-      var
-         rreg : tregister;
-         ref : treference;
-      begin
-         { real must be on fpu stack }
-         if (left.location.loc<>LOC_FPU) then
-           emit_ref(A_FLD,S_FL,newreference(left.location.reference));
-         push_int($1f3f);
-         push_int(65536);
-         reset_reference(ref);
-         ref.base:=R_ESP;
-
-         emit_ref(A_FIMUL,S_IL,newreference(ref));
-
-         ref.offset:=4;
-         emit_ref(A_FSTCW,S_NO,newreference(ref));
-
-         ref.offset:=6;
-         emit_ref(A_FLDCW,S_NO,newreference(ref));
-
-         ref.offset:=0;
-         emit_ref(A_FISTP,S_IL,newreference(ref));
-
-         ref.offset:=4;
-         emit_ref(A_FLDCW,S_NO,newreference(ref));
-
-         rreg:=getregister32;
-         emit_reg(A_POP,S_L,rreg);
-         { better than an add on all processors }
-{$ifndef noAllocEdi}
-         getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
-         emit_reg(A_POP,S_L,R_EDI);
-{$ifndef noAllocEdi}
-         ungetregister32(R_EDI);
-{$endif noAllocEdi}
-
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
-         location.register:=rreg;
-         inc(fpuvaroffset);
-      end;
-
-
     procedure ti386typeconvnode.second_real_to_real;
       begin
          case left.location.loc of
@@ -779,7 +731,7 @@ implementation
             LOC_MEM,
             LOC_REFERENCE:
               begin
-                 floatload(pfloatdef(left.resulttype)^.typ,
+                 floatload(pfloatdef(left.resulttype.def)^.typ,
                    left.location.reference);
                  { we have to free the reference }
                  del_reference(left.location.reference);
@@ -790,123 +742,11 @@ implementation
       end;
 
 
-    procedure ti386typeconvnode.second_fix_to_real;
-      var
-        popeax,popebx,popecx,popedx : boolean;
-        startreg : tregister;
-        hl : pasmlabel;
-        r : treference;
-      begin
-         if (left.location.loc=LOC_REGISTER) or
-            (left.location.loc=LOC_CREGISTER) then
-           begin
-              startreg:=left.location.register;
-              ungetregister(startreg);
-              popeax:=(startreg<>R_EAX) and not (R_EAX in unused);
-              if popeax then
-                emit_reg(A_PUSH,S_L,R_EAX);
-              { mov eax,eax is removed by emit_reg_reg }
-              emit_reg_reg(A_MOV,S_L,startreg,R_EAX);
-           end
-         else
-           begin
-              emit_ref_reg(A_MOV,S_L,newreference(
-                left.location.reference),R_EAX);
-              del_reference(left.location.reference);
-              startreg:=R_NO;
-           end;
-
-         popebx:=(startreg<>R_EBX) and not (R_EBX in unused);
-         if popebx then
-           emit_reg(A_PUSH,S_L,R_EBX);
-
-         popecx:=(startreg<>R_ECX) and not (R_ECX in unused);
-         if popecx then
-           emit_reg(A_PUSH,S_L,R_ECX);
-
-         popedx:=(startreg<>R_EDX) and not (R_EDX in unused);
-         if popedx then
-           emit_reg(A_PUSH,S_L,R_EDX);
-
-         emit_none(A_CDQ,S_NO);
-         emit_reg_reg(A_XOR,S_L,R_EDX,R_EAX);
-         emit_reg_reg(A_MOV,S_L,R_EAX,R_EBX);
-         emit_reg_reg(A_SUB,S_L,R_EDX,R_EAX);
-         getlabel(hl);
-         emitjmp(C_Z,hl);
-         emit_const_reg(A_RCL,S_L,1,R_EBX);
-         emit_reg_reg(A_BSR,S_L,R_EAX,R_EDX);
-         emit_const_reg(A_MOV,S_B,32,R_CL);
-         emit_reg_reg(A_SUB,S_B,R_DL,R_CL);
-         emit_reg_reg(A_SHL,S_L,R_CL,R_EAX);
-         emit_const_reg(A_ADD,S_W,1007,R_DX);
-         emit_const_reg(A_SHL,S_W,5,R_DX);
-         emit_const_reg_reg(A_SHLD,S_W,11,R_DX,R_BX);
-         emit_const_reg_reg(A_SHLD,S_L,20,R_EAX,R_EBX);
-
-         emit_const_reg(A_SHL,S_L,20,R_EAX);
-         emitlab(hl);
-         { better than an add on all processors }
-         emit_reg(A_PUSH,S_L,R_EBX);
-         emit_reg(A_PUSH,S_L,R_EAX);
-
-         reset_reference(r);
-         r.base:=R_ESP;
-         emit_ref(A_FLD,S_FL,newreference(r));
-         emit_const_reg(A_ADD,S_L,8,R_ESP);
-         if popedx then
-           emit_reg(A_POP,S_L,R_EDX);
-         if popecx then
-           emit_reg(A_POP,S_L,R_ECX);
-         if popebx then
-           emit_reg(A_POP,S_L,R_EBX);
-         if popeax then
-           emit_reg(A_POP,S_L,R_EAX);
-
-         clear_location(location);
-         location.loc:=LOC_FPU;
-      end;
-
-
     procedure ti386typeconvnode.second_cord_to_pointer;
       begin
         { this can't happend, because constants are already processed in
           pass 1 }
         internalerror(47423985);
-      end;
-
-
-    procedure ti386typeconvnode.second_int_to_fix;
-      var
-         hregister : tregister;
-      begin
-         if (left.location.loc=LOC_REGISTER) then
-           hregister:=left.location.register
-         else if (left.location.loc=LOC_CREGISTER) then
-           hregister:=getregister32
-         else
-           begin
-              del_reference(left.location.reference);
-              hregister:=getregister32;
-              case porddef(left.resulttype)^.typ of
-                s8bit : emit_ref_reg(A_MOVSX,S_BL,newreference(left.location.reference),
-                  hregister);
-                u8bit : emit_ref_reg(A_MOVZX,S_BL,newreference(left.location.reference),
-                  hregister);
-                s16bit : emit_ref_reg(A_MOVSX,S_WL,newreference(left.location.reference),
-                  hregister);
-                u16bit : emit_ref_reg(A_MOVZX,S_WL,newreference(left.location.reference),
-                  hregister);
-                u32bit,s32bit : emit_ref_reg(A_MOV,S_L,newreference(left.location.reference),
-                  hregister);
-                {!!!! u32bit }
-              end;
-           end;
-         emit_const_reg(A_SHL,S_L,16,hregister);
-
-         clear_location(location);
-         location.loc:=LOC_REGISTER;
-         location.register:=hregister;
       end;
 
 
@@ -945,7 +785,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (nf_explizit in flags) and
-            (left.resulttype^.size=resulttype^.size) and
+            (left.resulttype.def^.size=resulttype.def^.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(location,left.location);
@@ -956,16 +796,16 @@ implementation
          clear_location(location);
          location.loc:=LOC_REGISTER;
          del_reference(left.location.reference);
-         case left.resulttype^.size of
+         case left.resulttype.def^.size of
           1 : begin
-                case resulttype^.size of
+                case resulttype.def^.size of
                  1 : opsize:=S_B;
                  2 : opsize:=S_BW;
                  4 : opsize:=S_BL;
                 end;
               end;
           2 : begin
-                case resulttype^.size of
+                case resulttype.def^.size of
                  1 : begin
                        if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                         left.location.register:=reg16toreg8(left.location.register);
@@ -976,7 +816,7 @@ implementation
                 end;
               end;
           4 : begin
-                case resulttype^.size of
+                case resulttype.def^.size of
                  1 : begin
                        if left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
                         left.location.register:=reg32toreg8(left.location.register);
@@ -994,12 +834,12 @@ implementation
          if opsize in [S_B,S_W,S_L] then
           op:=A_MOV
          else
-          if is_signed(resulttype) then
+          if is_signed(resulttype.def) then
            op:=A_MOVSX
           else
            op:=A_MOVZX;
          hregister:=getregister32;
-         case resulttype^.size of
+         case resulttype.def^.size of
           1 : begin
                 location.register:=reg32toreg8(hregister);
                 newsize:=S_B;
@@ -1058,7 +898,7 @@ implementation
          { byte(boolean) or word(wordbool) or longint(longbool) must
          be accepted for var parameters }
          if (nf_explizit in flags) and
-            (left.resulttype^.size=resulttype^.size) and
+            (left.resulttype.def^.size=resulttype.def^.size) and
             (left.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(location,left.location);
@@ -1066,11 +906,11 @@ implementation
            end;
          location.loc:=LOC_REGISTER;
          del_reference(left.location.reference);
-         opsize:=def_opsize(left.resulttype);
+         opsize:=def_opsize(left.resulttype.def);
          case left.location.loc of
             LOC_MEM,LOC_REFERENCE :
               begin
-                hregister:=def_getreg(left.resulttype);
+                hregister:=def_getreg(left.resulttype.def);
                 emit_ref_reg(A_MOV,opsize,
                   newreference(left.location.reference),hregister);
                 emit_reg_reg(A_OR,opsize,hregister,hregister);
@@ -1090,7 +930,7 @@ implementation
             else
               internalerror(10062);
          end;
-         case resulttype^.size of
+         case resulttype.def^.size of
           1 : location.register:=makereg8(hregister);
           2 : location.register:=makereg16(hregister);
           4 : location.register:=makereg32(hregister);
@@ -1113,7 +953,7 @@ implementation
         emitpushreferenceaddr(href);
         saveregvars($ff);
         emitcall('FPC_SET_LOAD_SMALL');
-        maybe_loadesi;
+        maybe_loadself;
         popusedregisters(pushedregs);
         clear_location(location);
         location.loc:=LOC_MEM;
@@ -1155,11 +995,11 @@ implementation
         pushed : tpushed;
         regs_to_push: byte;
       begin
-         case pstringdef(resulttype)^.string_typ of
+         case pstringdef(resulttype.def)^.string_typ of
            st_shortstring:
              begin
                 location.loc:=LOC_REFERENCE;
-                gettempofsizereference(resulttype^.size,location.reference);
+                gettempofsizereference(resulttype.def^.size,location.reference);
                 pushusedregisters(pushed,$ff);
                 case left.location.loc of
                    LOC_REGISTER,LOC_CREGISTER:
@@ -1178,14 +1018,14 @@ implementation
                 emitpushreferenceaddr(location.reference);
                 saveregvars($ff);
                 emitcall('FPC_PCHAR_TO_SHORTSTR');
-                maybe_loadesi;
+                maybe_loadself;
                 popusedregisters(pushed);
              end;
            st_ansistring:
              begin
                 location.loc:=LOC_REFERENCE;
                 gettempansistringreference(location.reference);
-                decrstringref(cansistringdef,location.reference);
+                decrstringref(cansistringtype.def,location.reference);
                 { Find out which regs have to be pushed (JM) }
                 regs_to_push := $ff;
                 remove_non_regvars_from_loc(left.location,regs_to_push);
@@ -1209,7 +1049,7 @@ implementation
                 emitpushreferenceaddr(location.reference);
                 saveregvars(regs_to_push);
                 emitcall('FPC_PCHAR_TO_ANSISTR');
-                maybe_loadesi;
+                maybe_loadself;
                 popusedregisters(pushed);
              end;
          else
@@ -1247,8 +1087,8 @@ implementation
          emit_reg_reg(A_TEST,S_L,hreg,hreg);
          getlabel(l1);
          emitjmp(C_Z,l1);
-         emit_const_reg(A_ADD,S_L,pobjectdef(left.resulttype)^.implementedinterfaces^.ioffsets(
-           pobjectdef(left.resulttype)^.implementedinterfaces^.searchintf(resulttype))^,hreg);
+         emit_const_reg(A_ADD,S_L,pobjectdef(left.resulttype.def)^.implementedinterfaces^.ioffsets(
+           pobjectdef(left.resulttype.def)^.implementedinterfaces^.searchintf(resulttype.def))^,hreg);
          emitlab(l1);
          location.loc:=LOC_REGISTER;
          location.register:=hreg;
@@ -1286,9 +1126,6 @@ implementation
            @ti386typeconvnode.second_bool_to_int,
            @ti386typeconvnode.second_real_to_real,
            @ti386typeconvnode.second_int_to_real,
-           @ti386typeconvnode.second_int_to_fix,
-           @ti386typeconvnode.second_real_to_fix,
-           @ti386typeconvnode.second_fix_to_real,
            @ti386typeconvnode.second_proc_to_procvar,
            @ti386typeconvnode.second_nothing, {arrayconstructor_to_set}
            @ti386typeconvnode.second_load_smallset,
@@ -1337,10 +1174,10 @@ implementation
 {$ifdef TESTOBJEXT2}
                   { Check explicit conversions to objects pointers !! }
                      if p^.explizit and
-                        (p^.resulttype^.deftype=pointerdef) and
-                        (ppointerdef(p^.resulttype)^.definition^.deftype=objectdef) and not
-                        (pobjectdef(ppointerdef(p^.resulttype)^.definition)^.isclass) and
-                        ((pobjectdef(ppointerdef(p^.resulttype)^.definition)^.options and oo_hasvmt)<>0) and
+                        (p^.resulttype.def^.deftype=pointerdef) and
+                        (ppointerdef(p^.resulttype.def)^.definition^.deftype=objectdef) and not
+                        (pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.isclass) and
+                        ((pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.options and oo_hasvmt)<>0) and
                         (cs_check_range in aktlocalswitches) then
                        begin
                           new(r);
@@ -1363,13 +1200,13 @@ implementation
                           getlabel(nillabel);
                           emitjmp(C_E,nillabel);
                           { this is one point where we need vmt_offset (PM) }
-                          r^.offset:= pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_offset;
+                          r^.offset:= pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.vmt_offset;
 {$ifndef noAllocEdi}
                           getexplicitregister32(R_EDI);
 {$endif noAllocEdi}
                           emit_ref_reg(A_MOV,S_L,r,R_EDI);
                           emit_sym(A_PUSH,S_L,
-                            newasmsymbol(pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_mangledname));
+                            newasmsymbol(pobjectdef(ppointerdef(p^.resulttype.def)^.definition)^.vmt_mangledname));
                           emit_reg(A_PUSH,S_L,R_EDI);
 {$ifndef noAllocEdi}
                           ungetregister32(R_EDI);
@@ -1435,7 +1272,7 @@ implementation
          emitcall('FPC_DO_IS');
          emit_reg_reg(A_OR,S_B,R_AL,R_AL);
          popusedregisters(pushed);
-         maybe_loadesi;
+         maybe_loadself;
       end;
 
 
@@ -1487,7 +1324,7 @@ implementation
          { restore register, this restores automatically the }
          { result                                           }
          popusedregisters(pushed);
-         maybe_loadesi;
+         maybe_loadself;
       end;
 
 begin
@@ -1497,7 +1334,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  2001-01-08 21:45:11  peter
+  Revision 1.13  2001-04-02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.12  2001/01/08 21:45:11  peter
     * internalerror for string to chararray
 
   Revision 1.11  2000/12/25 00:07:32  peter
@@ -1513,7 +1353,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.9  2000/12/05 11:44:33  jonas

@@ -1716,7 +1716,10 @@ End.
 
 {
   $Log$
-  Revision 1.13  2001-01-10 08:52:40  michael
+  Revision 1.14  2001-04-02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.13  2001/01/10 08:52:40  michael
   + Patch from jonas so 1.0.2 can be used to cycle
 
   Revision 1.12  2001/01/07 15:51:17  jonas
@@ -1818,7 +1821,7 @@ End.
       ignore labels who have is_addr set
     + daopt386/csopt386: remove loads of registers which are overwritten
        before their contents are used (especially usefull for removing superfluous
-      maybe_loadesi outputs and push/pops transformed by below optimization
+      maybe_loadself outputs and push/pops transformed by below optimization
     + popt386: transform pop/pop/pop/.../push/push/push to sequences of
       'movl x(%esp),%reg' (only active when compiling a go32v2 compiler
       currently because I don't know whether it's safe to do this under Win32/

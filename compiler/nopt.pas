@@ -50,6 +50,7 @@ type
     { sometimes (it's initialized/updated by calling updatecurmaxlen)     }
     curmaxlen: byte;
     { pass_1 must be overridden, otherwise we get an endless loop }
+    function det_resulttype: tnode; override;
     function pass_1: tnode; override;
     function getcopy: tnode; override;
     function docompare(p: tnode): boolean; override;
@@ -121,26 +122,25 @@ end;
                         TADDSSTRINGOPTNODE
 *****************************************************************************}
 
+function taddsstringoptnode.det_resulttype: tnode;
+begin
+  result := nil;
+  updatecurmaxlen;
+  { left and right are already firstpass'ed by taddnode.pass_1 }
+  if not is_shortstring(left.resulttype.def) then
+   inserttypeconv(left,cshortstringtype);
+  if not is_shortstring(right.resulttype.def) then
+   inserttypeconv(right,cshortstringtype);
+  resulttype := left.resulttype;
+end;
+
 function taddsstringoptnode.pass_1: tnode;
 begin
   pass_1 := nil;
-  updatecurmaxlen;
-  { left and right are already firstpass'ed by taddnode.pass_1 }
-  if not is_shortstring(left.resulttype) then
-    begin
-      left := gentypeconvnode(left,cshortstringdef);
-      firstpass(left);
-    end;
-  if not is_shortstring(right.resulttype) then
-    begin
-      right := gentypeconvnode(right,cshortstringdef);
-      firstpass(right);
-    end;
   location.loc := LOC_MEM;
   calcregisters(self,0,0,0);
   { here we call STRCONCAT or STRCMP or STRCOPY }
   procinfo^.flags:=procinfo^.flags or pi_do_call;
-  resulttype := left.resulttype;
 end;
 
 function taddsstringoptnode.getcopy: tnode;
@@ -186,7 +186,7 @@ begin
     end
   else if (left.nodetype = stringconstn) then
     curmaxlen := min(tstringconstnode(left).len,255)
-  else if is_char(left.resulttype) then
+  else if is_char(left.resulttype.def) then
     curmaxlen := 1
   else if (left.nodetype = typeconvn) then
     begin
@@ -196,7 +196,7 @@ begin
 {       doesn't work yet, don't know why (JM)
         tc_chararray_2_string:
           curmaxlen :=
-            min(ttypeconvnode(left).left.resulttype^.size,255); }
+            min(ttypeconvnode(left).left.resulttype.def^.size,255); }
         else curmaxlen := 255;
       end;
     end
@@ -234,9 +234,9 @@ begin
     (cs_optimize in aktglobalswitches) and
 
 {   the shortstring will be gotten through conversion if necessary (JM)
-    is_shortstring(p.left.resulttype) and }
+    is_shortstring(p.left.resulttype.def) and }
     ((p.nodetype = addn) and
-     is_char(p.right.resulttype));
+     is_char(p.right.resulttype.def));
 end;
 
 function genaddsstringcharoptnode(p: taddnode): tnode;
@@ -256,7 +256,7 @@ begin
     (cs_optimize in aktglobalswitches) and
 
 {   the shortstring will be gotten through conversion if necessary (JM)
-    is_shortstring(p.left.resulttype) and }
+    is_shortstring(p.left.resulttype.def) and }
     ((p.nodetype = addn) and
      (p.right.nodetype = stringconstn));
 end;
@@ -278,7 +278,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2001-01-04 11:24:19  jonas
+  Revision 1.2  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.1  2001/01/04 11:24:19  jonas
     + initial implementation (still needs to be made more modular)
 
 }

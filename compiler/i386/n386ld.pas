@@ -298,40 +298,51 @@ implementation
                  begin
                     if assigned(left) then
                       begin
-                         secondpass(left);
                          location.loc:=LOC_MEM;
                          gettempofsizereference(8,location.reference);
+                         if left.nodetype=typen then
+                          begin
+                            if left.resulttype.def^.deftype<>objectdef then
+                             internalerror(200103261);
+                            getexplicitregister32(R_EDI);
+                            hregister:=R_EDI;
+                            new(hp);
+                            emit_sym_ofs_reg(A_MOV,S_L,
+                              newasmsymbol(pobjectdef(left.resulttype.def)^.vmt_mangledname),0,R_EDI);
+                          end
+                         else
+                          begin
+                            secondpass(left);
 
-                         { load class instance address }
-                         case left.location.loc of
+                            { load class instance address }
+                            case left.location.loc of
 
-                            LOC_CREGISTER,
-                            LOC_REGISTER:
-                              begin
-                                 hregister:=left.location.register;
-                                 ungetregister32(left.location.register);
-                                 if is_object(left.resulttype) then
-                                   CGMessage(cg_e_illegal_expression);
-                              end;
+                               LOC_CREGISTER,
+                               LOC_REGISTER:
+                                 begin
+                                    hregister:=left.location.register;
+                                    ungetregister32(left.location.register);
+                                    if is_object(left.resulttype.def) then
+                                      CGMessage(cg_e_illegal_expression);
+                                 end;
 
-                            LOC_MEM,
-                            LOC_REFERENCE:
-                              begin
-{$ifndef noAllocEdi}
-                                 getexplicitregister32(R_EDI);
-{$endif noAllocEdi}
-                                 hregister:=R_EDI;
-                                 if is_class_or_interface(left.resulttype) then
-                                   emit_ref_reg(A_MOV,S_L,
-                                     newreference(left.location.reference),R_EDI)
-                                 else
-                                   emit_ref_reg(A_LEA,S_L,
-                                     newreference(left.location.reference),R_EDI);
-                                 del_reference(left.location.reference);
-                                 ungetiftemp(left.location.reference);
-                              end;
-                            else internalerror(26019);
-                         end;
+                               LOC_MEM,
+                               LOC_REFERENCE:
+                                 begin
+                                    getexplicitregister32(R_EDI);
+                                    hregister:=R_EDI;
+                                    if is_class_or_interface(left.resulttype.def) then
+                                      emit_ref_reg(A_MOV,S_L,
+                                        newreference(left.location.reference),R_EDI)
+                                    else
+                                      emit_ref_reg(A_LEA,S_L,
+                                        newreference(left.location.reference),R_EDI);
+                                    del_reference(left.location.reference);
+                                    ungetiftemp(left.location.reference);
+                                 end;
+                               else internalerror(26019);
+                            end;
+                          end;
 
                          { store the class instance address }
                          new(hp);
@@ -470,9 +481,9 @@ implementation
               exit;
            end;
 {$endif test_dest_loc}
-         if left.resulttype^.deftype=stringdef then
+         if left.resulttype.def^.deftype=stringdef then
            begin
-              if is_ansistring(left.resulttype) then
+              if is_ansistring(left.resulttype.def) then
                 begin
                   { before pushing any parameter, we have to save all used      }
                   { registers, but before that we have to release the       }
@@ -510,16 +521,16 @@ implementation
                   del_reference(left.location.reference);
                   saveregvars($ff);
                   emitcall('FPC_ANSISTR_ASSIGN');
-                  maybe_loadesi;
+                  maybe_loadself;
                   popusedregisters(regspushed);
                   if ungettemp then
                     ungetiftemp(right.location.reference);
                 end
               else
-              if is_shortstring(left.resulttype) and
+              if is_shortstring(left.resulttype.def) and
                 not (nf_concat_string in flags) then
                 begin
-                  if is_ansistring(right.resulttype) then
+                  if is_ansistring(right.resulttype.def) then
                     begin
                       if (right.nodetype=stringconstn) and
                          (tstringconstnode(right).len=0) then
@@ -541,7 +552,7 @@ implementation
                        ungetiftemp(right.location.reference);
                     end;
                 end
-              else if is_longstring(left.resulttype) then
+              else if is_longstring(left.resulttype.def) then
                 begin
                 end
               else
@@ -550,7 +561,7 @@ implementation
                   del_reference(right.location.reference);
                 end
            end
-        else if is_interfacecom(left.resulttype) then
+        else if is_interfacecom(left.resulttype.def) then
           begin
              loadinterfacecom(self);
           end
@@ -558,10 +569,10 @@ implementation
             LOC_REFERENCE,
             LOC_MEM : begin
                          { extra handling for ordinal constants }
-                         if (right.nodetype in [ordconstn,fixconstn]) or
+                         if (right.nodetype=ordconstn) or
                             (loc=LOC_CREGISTER) then
                            begin
-                              case left.resulttype^.size of
+                              case left.resulttype.def^.size of
                                  1 : opsize:=S_B;
                                  2 : opsize:=S_W;
                                  4 : opsize:=S_L;
@@ -574,7 +585,7 @@ implementation
                                   emit_ref_reg(A_MOV,opsize,
                                     newreference(right.location.reference),
                                     left.location.register);
-                                  if is_64bitint(right.resulttype) then
+                                  if is_64bitint(right.resulttype.def) then
                                     begin
                                        r:=newreference(right.location.reference);
                                        inc(r^.offset,4);
@@ -587,7 +598,7 @@ implementation
                                 end
                               else
                                 begin
-                                  if is_64bitint(right.resulttype) then
+                                  if is_64bitint(right.resulttype.def) then
                                     begin
                                        emit_const_ref(A_MOV,opsize,
                                          longint(lo(tordconstnode(right).value)),
@@ -614,7 +625,7 @@ implementation
                            end
                          else if loc=LOC_CFPUREGISTER then
                            begin
-                              floatloadops(pfloatdef(right.resulttype)^.typ,op,opsize);
+                              floatloadops(pfloatdef(right.resulttype.def)^.typ,op,opsize);
                               emit_ref(op,opsize,
                                 newreference(right.location.reference));
                               emit_reg(A_FSTP,S_NO,
@@ -622,16 +633,16 @@ implementation
                            end
                          else
                            begin
-                              if (right.resulttype^.needs_inittable) then
+                              if (right.resulttype.def^.needs_inittable) then
                                 begin
                                    { this would be a problem }
-                                   if not(left.resulttype^.needs_inittable) then
+                                   if not(left.resulttype.def^.needs_inittable) then
                                      internalerror(3457);
 
                                    { increment source reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=pstoreddef(right.resulttype)^.get_inittable_label;
+                                   r^.symbol:=pstoreddef(right.resulttype.def)^.get_inittable_label;
                                    emitpushreferenceaddr(r^);
 
                                    emitpushreferenceaddr(right.location.reference);
@@ -639,7 +650,7 @@ implementation
                                    { decrement destination reference counter }
                                    new(r);
                                    reset_reference(r^);
-                                   r^.symbol:=pstoreddef(left.resulttype)^.get_inittable_label;
+                                   r^.symbol:=pstoreddef(left.resulttype.def)^.get_inittable_label;
                                    emitpushreferenceaddr(r^);
                                    emitpushreferenceaddr(left.location.reference);
                                    emitcall('FPC_DECREF');
@@ -647,11 +658,11 @@ implementation
 
 {$ifdef regallocfix}
                               concatcopy(right.location.reference,
-                                left.location.reference,left.resulttype^.size,true,false);
+                                left.location.reference,left.resulttype.def^.size,true,false);
                               ungetiftemp(right.location.reference);
 {$Else regallocfix}
                               concatcopy(right.location.reference,
-                                left.location.reference,left.resulttype^.size,false,false);
+                                left.location.reference,left.resulttype.def^.size,false,false);
                               ungetiftemp(right.location.reference);
 {$endif regallocfix}
                            end;
@@ -670,7 +681,7 @@ implementation
 {$endif SUPPORT_MMX}
             LOC_REGISTER,
             LOC_CREGISTER : begin
-                              case right.resulttype^.size of
+                              case right.resulttype.def^.size of
                                  1 : opsize:=S_B;
                                  2 : opsize:=S_W;
                                  4 : opsize:=S_L;
@@ -694,7 +705,7 @@ implementation
                                   del_reference(left.location.reference);
 {$EndIf regallocfix}
                                 end;
-                              if is_64bitint(right.resulttype) then
+                              if is_64bitint(right.resulttype.def) then
                                 begin
                                    { simplified with op_reg_loc  }
                                    if loc=LOC_CREGISTER then
@@ -715,15 +726,15 @@ implementation
 
                            end;
             LOC_FPU : begin
-                              if (left.resulttype^.deftype=floatdef) then
-                               fputyp:=pfloatdef(left.resulttype)^.typ
+                              if (left.resulttype.def^.deftype=floatdef) then
+                               fputyp:=pfloatdef(left.resulttype.def)^.typ
                               else
-                               if (right.resulttype^.deftype=floatdef) then
-                                fputyp:=pfloatdef(right.resulttype)^.typ
+                               if (right.resulttype.def^.deftype=floatdef) then
+                                fputyp:=pfloatdef(right.resulttype.def)^.typ
                               else
                                if (right.nodetype=typeconvn) and
-                                  (ttypeconvnode(right).left.resulttype^.deftype=floatdef) then
-                                fputyp:=pfloatdef(ttypeconvnode(right).left.resulttype)^.typ
+                                  (ttypeconvnode(right).left.resulttype.def^.deftype=floatdef) then
+                                fputyp:=pfloatdef(ttypeconvnode(right).left.resulttype.def)^.typ
                               else
                                 fputyp:=s32real;
                               case loc of
@@ -740,15 +751,15 @@ implementation
                               end;
                            end;
             LOC_CFPUREGISTER: begin
-                              if (left.resulttype^.deftype=floatdef) then
-                               fputyp:=pfloatdef(left.resulttype)^.typ
+                              if (left.resulttype.def^.deftype=floatdef) then
+                               fputyp:=pfloatdef(left.resulttype.def)^.typ
                               else
-                               if (right.resulttype^.deftype=floatdef) then
-                                fputyp:=pfloatdef(right.resulttype)^.typ
+                               if (right.resulttype.def^.deftype=floatdef) then
+                                fputyp:=pfloatdef(right.resulttype.def)^.typ
                               else
                                if (right.nodetype=typeconvn) and
-                                  (ttypeconvnode(right).left.resulttype^.deftype=floatdef) then
-                                fputyp:=pfloatdef(ttypeconvnode(right).left.resulttype)^.typ
+                                  (ttypeconvnode(right).left.resulttype.def^.deftype=floatdef) then
+                                fputyp:=pfloatdef(ttypeconvnode(right).left.resulttype.def)^.typ
                               else
                                 fputyp:=s32real;
                               emit_reg(A_FLD,S_NO,
@@ -855,7 +866,7 @@ implementation
              location.reference.base:=procinfo^.framepointer;
              location.reference.offset:=procinfo^.return_offset;
            end;
-         if ret_in_param(rettype.def) then
+         if ret_in_param(resulttype.def) then
            begin
               if not hr_valid then
                 hr:=getregister32;
@@ -901,12 +912,12 @@ implementation
         dovariant : boolean;
         elesize : longint;
       begin
-        dovariant:=(nf_forcevaria in flags) or parraydef(resulttype)^.isvariant;
+        dovariant:=(nf_forcevaria in flags) or parraydef(resulttype.def)^.isvariant;
         if dovariant then
          elesize:=8
         else
          begin
-           elesize:=parraydef(resulttype)^.elesize;
+           elesize:=parraydef(resulttype.def)^.elesize;
            if elesize>4 then
             internalerror(8765678);
          end;
@@ -915,10 +926,10 @@ implementation
            reset_reference(location.reference);
            { Allocate always a temp, also if no elements are required, to
              be sure that location is valid (PFV) }
-            if parraydef(resulttype)^.highrange=-1 then
+            if parraydef(resulttype.def)^.highrange=-1 then
               gettempofsizereference(elesize,location.reference)
             else
-              gettempofsizereference((parraydef(resulttype)^.highrange+1)*elesize,location.reference);
+              gettempofsizereference((parraydef(resulttype.def)^.highrange+1)*elesize,location.reference);
            href:=location.reference;
          end;
         hp:=self;
@@ -935,7 +946,7 @@ implementation
                  { find the correct vtype value }
                  vtype:=$ff;
                  vaddr:=false;
-                 lt:=hp.left.resulttype;
+                 lt:=hp.left.resulttype.def;
                  case lt^.deftype of
                    enumdef,
                    orddef :
@@ -1004,7 +1015,7 @@ implementation
                   begin
                     if vaddr then
                      begin
-                       emit_to_mem(hp.left.location,hp.left.resulttype);
+                       emit_to_mem(hp.left.location,hp.left.resulttype.def);
                        emit_push_lea_loc(hp.left.location,freetemp);
                        del_reference(hp.left.location.reference);
                      end
@@ -1018,7 +1029,7 @@ implementation
                     inc(href.offset,4);
                     if vaddr then
                      begin
-                       emit_to_mem(hp.left.location,hp.left.resulttype);
+                       emit_to_mem(hp.left.location,hp.left.resulttype.def);
                        emit_lea_loc_ref(hp.left.location,href,freetemp);
                      end
                     else
@@ -1061,7 +1072,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2000-12-25 00:07:33  peter
+  Revision 1.12  2001-04-02 21:20:37  peter
+    * resulttype rewrite
+
+  Revision 1.11  2000/12/25 00:07:33  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

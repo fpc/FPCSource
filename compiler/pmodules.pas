@@ -443,8 +443,6 @@ implementation
             end;
            pu:=tused_unit(pu.next);
          end;
-        { deref }
-        punitsymtable(current_module.globalsymtable)^.deref;
         { load browser info if stored }
         if ((current_module.flags and uf_has_browser)<>0) and load_refs then
           punitsymtable(current_module.globalsymtable)^.load_symtable_refs;
@@ -973,7 +971,7 @@ implementation
         { set some informations about the main program }
         with procinfo^ do
          begin
-           returntype.setdef(voiddef);
+           returntype:=voidtype;
            _class:=nil;
            para_offset:=8;
            framepointer:=frame_pointer;
@@ -1663,7 +1661,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-03-13 18:45:07  peter
+  Revision 1.26  2001-04-02 21:20:33  peter
+    * resulttype rewrite
+
+  Revision 1.25  2001/03/13 18:45:07  peter
     * fixed some memory leaks
 
   Revision 1.24  2001/03/06 18:28:02  peter

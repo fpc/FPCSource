@@ -86,16 +86,15 @@ implementation
            ordconstn:
              begin
                 if is_constintnode(p) then
-                  hp:=new(pconstsym,init_def(name,constint,tordconstnode(p).value,
-                                               tordconstnode(p).resulttype))
+                  hp:=new(pconstsym,init_typed(name,constint,tordconstnode(p).value,tordconstnode(p).resulttype))
                 else if is_constcharnode(p) then
-                  hp:=new(pconstsym,init_def(name,constchar,tordconstnode(p).value,nil))
+                  hp:=new(pconstsym,init(name,constchar,tordconstnode(p).value))
                 else if is_constboolnode(p) then
-                  hp:=new(pconstsym,init_def(name,constbool,tordconstnode(p).value,nil))
-                else if p.resulttype^.deftype=enumdef then
-                  hp:=new(pconstsym,init_def(name,constord,tordconstnode(p).value,p.resulttype))
-                else if p.resulttype^.deftype=pointerdef then
-                  hp:=new(pconstsym,init_def(name,constord,tordconstnode(p).value,p.resulttype))
+                  hp:=new(pconstsym,init(name,constbool,tordconstnode(p).value))
+                else if p.resulttype.def^.deftype=enumdef then
+                  hp:=new(pconstsym,init_typed(name,constord,tordconstnode(p).value,p.resulttype))
+                else if p.resulttype.def^.deftype=pointerdef then
+                  hp:=new(pconstsym,init_typed(name,constord,tordconstnode(p).value,p.resulttype))
                 else internalerror(111);
              end;
            stringconstn:
@@ -114,15 +113,15 @@ implementation
              begin
                new(ps);
                ps^:=tsetconstnode(p).value_set^;
-               hp:=new(pconstsym,init_def(name,constset,longint(ps),p.resulttype));
+               hp:=new(pconstsym,init_typed(name,constset,longint(ps),p.resulttype));
              end;
            pointerconstn :
              begin
-               hp:=new(pconstsym,init_def(name,constpointer,tordconstnode(p).value,p.resulttype));
+               hp:=new(pconstsym,init_typed(name,constpointer,tordconstnode(p).value,p.resulttype));
              end;
            niln :
              begin
-               hp:=new(pconstsym,init_def(name,constnil,0,p.resulttype));
+               hp:=new(pconstsym,init_typed(name,constnil,0,p.resulttype));
              end;
            else
              Message(cg_e_illegal_expression);
@@ -217,10 +216,10 @@ implementation
                       consume(_EQUAL);
 {$ifdef DELPHI_CONST_IN_RODATA}
                       if m_delphi in aktmodeswitches then
-                       readtypedconst(tt.def,ptypedconstsym(sym),true)
+                       readtypedconst(tt,ptypedconstsym(sym),true)
                       else
 {$endif DELPHI_CONST_IN_RODATA}
-                       readtypedconst(tt.def,ptypedconstsym(sym),false);
+                       readtypedconst(tt,ptypedconstsym(sym),false);
                       consume(_SEMICOLON);
                     end;
                 end;
@@ -338,7 +337,7 @@ implementation
                      begin
                        MessagePos1(psym(p)^.fileinfo,sym_e_forward_type_not_resolved,psym(p)^.realname);
                        { try to recover }
-                       ppointerdef(pd)^.pointertype.def:=generrordef;
+                       ppointerdef(pd)^.pointertype:=generrortype;
                      end;
                   end;
                end;
@@ -417,7 +416,7 @@ implementation
               { insert the new type first with an errordef, so that
                 referencing the type before it's really set it
                 will give an error (PFV) }
-              tt.setdef(generrordef);
+              tt:=generrortype;
               storetokenpos:=akttokenpos;
               newtype:=new(ptypesym,init(orgtypename,tt));
               symtablestack^.insert(newtype);
@@ -546,7 +545,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  2001-03-11 22:58:49  peter
+  Revision 1.26  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.25  2001/03/11 22:58:49  peter
     * getsym redesign, removed the globals srsym,srsymtable
 
   Revision 1.24  2000/12/25 00:07:27  peter
@@ -562,7 +564,7 @@ end.
     * added lots of longint typecast to prevent range check errors in the
       compiler and rtl
     * type casts of symbolic ordinal constants are now preserved
-    * fixed bug where the original resulttype wasn't restored correctly
+    * fixed bug where the original resulttype.def wasn't restored correctly
       after doing a 64bit rangecheck
 
   Revision 1.22  2000/11/29 00:30:35  florian

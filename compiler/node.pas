@@ -69,7 +69,6 @@ interface
           calln,           {Represents a call node.}
           callparan,       {Represents a parameter.}
           realconstn,      {Represents a real value.}
-          fixconstn,       {Represents a fixed value.}
           unaryminusn,     {Represents a sign change (i.e. -2).}
           asmn,     {Represents an assembler node }
           vecn,     {Represents array indexing.}
@@ -123,6 +122,90 @@ interface
           loadvmtn
        );
 
+      const
+        nodetype2str : array[tnodetype] of string[20] = (
+          'addn',
+          'muln',
+          'subn',
+          'divn',
+          'symdifn',
+          'modn',
+          'assignn',
+          'loadn',
+          'rangen',
+          'ltn',
+          'lten',
+          'gtn',
+          'gten',
+          'equaln',
+          'unequaln',
+          'inn',
+          'orn',
+          'xorn',
+          'shrn',
+          'shln',
+          'slashn',
+          'andn',
+          'subscriptn',
+          'derefn',
+          'addrn',
+          'doubleaddrn',
+          'ordconstn',
+          'typeconvn',
+          'calln',
+          'callparan',
+          'realconstn',
+          'umminusn',
+          'asmn',
+          'vecn',
+          'pointerconstn',
+          'stringconstn',
+          'funcretn',
+          'selfn',
+          'notn',
+          'inlinen',
+          'niln',
+          'errorn',
+          'typen',
+          'hnewn',
+          'hdisposen',
+          'newn',
+          'simpledisposen',
+          'setelementn',
+          'setconstn',
+          'blockn',
+          'statementn',
+          'loopn',
+          'ifn',
+          'breakn',
+          'continuen',
+          'repeatn',
+          'whilen',
+          'forn',
+          'exitn',
+          'withn',
+          'casen',
+          'labeln',
+          'goton',
+          'simplenewn',
+          'tryexceptn',
+          'raisen',
+          'switchesn',
+          'tryfinallyn',
+          'onn',
+          'isn',
+          'asn',
+          'caretn',
+          'failn',
+          'starstarn',
+          'procinlinen',
+          'arrayconstructn',
+          'arrayconstructrangen',
+          'addoptn',
+          'nothingn',
+          'loadvmtn');
+
+    type
        { all boolean field of ttree are now collected in flags }
        tnodeflags = (
          nf_needs_truefalselabel,
@@ -197,6 +280,7 @@ interface
 
        { later (for the newcg) tnode will inherit from tlinkedlist_item }
        tnode = class
+       public
           nodetype : tnodetype;
           { the location of the result of this node }
           location : tlocation;
@@ -210,10 +294,11 @@ interface
 {$ifdef SUPPORT_MMX}
           registersmmx,registerskni : longint;
 {$endif SUPPORT_MMX}
-          resulttype : pdef;
+          resulttype : ttype;
           fileinfo : tfileposinfo;
           localswitches : tlocalswitches;
 {$ifdef extdebug}
+          oldresulttype : ttype; { to detect changed resulttype }
           maxfirstpasscount,
           firstpasscount : longint;
 {$endif extdebug}
@@ -231,9 +316,9 @@ interface
           { and it need not to implement det_* then    }
           { 1.1: pass_1 returns a value<>0 if the node has been transformed }
           { 2.0: runs det_resulttype and det_temp                           }
-          function pass_1 : tnode;virtual;
+          function pass_1 : tnode;virtual;abstract;
           { dermines the resulttype of the node }
-          procedure det_resulttype;virtual;abstract;
+          function det_resulttype : tnode;virtual;abstract;
           { dermines the number of necessary temp. locations to evaluate
             the node }
           procedure det_temp;virtual;abstract;
@@ -279,8 +364,6 @@ interface
           destructor destroy;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
-          procedure det_resulttype;override;
-          procedure det_temp;override;
           function docompare(p : tnode) : boolean;override;
           function getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -297,8 +380,6 @@ interface
           destructor destroy;override;
           procedure concattolist(l : tlinkedlist);override;
           function ischild(p : tnode) : boolean;override;
-          procedure det_resulttype;override;
-          procedure det_temp;override;
           function docompare(p : tnode) : boolean;override;
           procedure swapleftright;
           function getcopy : tnode;override;
@@ -342,12 +423,17 @@ implementation
          { save local info }
          fileinfo:=aktfilepos;
          localswitches:=aktlocalswitches;
-         resulttype:=nil;
+         resulttype.reset;
          registers32:=0;
          registersfpu:=0;
 {$ifdef SUPPORT_MMX}
          registersmmx:=0;
 {$endif SUPPORT_MMX}
+{$ifdef EXTDEBUG}
+         oldresulttype.reset;
+         maxfirstpasscount:=0;
+         firstpasscount:=0;
+{$endif EXTDEBUG}
          flags:=[];
       end;
 
@@ -368,27 +454,12 @@ implementation
     destructor tnode.destroy;
 
       begin
-         { reference info }
-         {if (location.loc in [LOC_MEM,LOC_REFERENCE]) and
-            assigned(location.reference.symbol) then
-           dispose(location.reference.symbol,done);}
-
 {$ifdef EXTDEBUG}
          if firstpasscount>maxfirstpasscount then
             maxfirstpasscount:=firstpasscount;
 {$endif EXTDEBUG}
       end;
 
-    function tnode.pass_1 : tnode;
-
-      begin
-         pass_1:=nil;
-
-         if not(assigned(resulttype)) then
-           det_resulttype;
-
-         det_temp;
-      end;
 
     procedure tnode.concattolist(l : tlinkedlist);
 
@@ -412,89 +483,6 @@ implementation
       end;
 
     procedure tnode.dowritenodetype;
-      const nodetype2str : array[tnodetype] of string[20] = (
-          'addn',
-          'muln',
-          'subn',
-          'divn',
-          'symdifn',
-          'modn',
-          'assignn',
-          'loadn',
-          'rangen',
-          'ltn',
-          'lten',
-          'gtn',
-          'gten',
-          'equaln',
-          'unequaln',
-          'inn',
-          'orn',
-          'xorn',
-          'shrn',
-          'shln',
-          'slashn',
-          'andn',
-          'subscriptn',
-          'derefn',
-          'addrn',
-          'doubleaddrn',
-          'ordconstn',
-          'typeconvn',
-          'calln',
-          'callparan',
-          'realconstn',
-          'fixconstn',
-          'umminusn',
-          'asmn',
-          'vecn',
-          'pointerconstn',
-          'stringconstn',
-          'funcretn',
-          'selfn',
-          'notn',
-          'inlinen',
-          'niln',
-          'errorn',
-          'typen',
-          'hnewn',
-          'hdisposen',
-          'newn',
-          'simpledisposen',
-          'setelementn',
-          'setconstn',
-          'blockn',
-          'statementn',
-          'loopn',
-          'ifn',
-          'breakn',
-          'continuen',
-          'repeatn',
-          'whilen',
-          'forn',
-          'exitn',
-          'withn',
-          'casen',
-          'labeln',
-          'goton',
-          'simplenewn',
-          'tryexceptn',
-          'raisen',
-          'switchesn',
-          'tryfinallyn',
-          'onn',
-          'isn',
-          'asn',
-          'caretn',
-          'failn',
-          'starstarn',
-          'procinlinen',
-          'arrayconstructn',
-          'arrayconstructrangen',
-          'addoptn',
-          'nothingn',
-          'loadvmtn');
-
       begin
          write(writenodeindention,'(',nodetype2str[nodetype]);
       end;
@@ -589,8 +577,9 @@ implementation
     function tunarynode.docompare(p : tnode) : boolean;
 
       begin
-         docompare:=(inherited docompare(p)) and
-           left.isequal(tunarynode(p).left);
+         docompare:=(inherited docompare(p) and
+           ((left=nil) or left.isequal(tunarynode(p).left))
+         );
       end;
 
     function tunarynode.getcopy : tnode;
@@ -649,18 +638,6 @@ implementation
          ischild:=p=left;
       end;
 
-    procedure tunarynode.det_resulttype;
-
-      begin
-         left.det_resulttype;
-      end;
-
-    procedure tunarynode.det_temp;
-
-      begin
-         left.det_temp;
-      end;
-
 {****************************************************************************
                             TBINARYNODE
  ****************************************************************************}
@@ -693,29 +670,15 @@ implementation
     function tbinarynode.ischild(p : tnode) : boolean;
 
       begin
-         ischild:=(p=right) or (p=right);
-      end;
-
-    procedure tbinarynode.det_resulttype;
-
-      begin
-         left.det_resulttype;
-         right.det_resulttype;
-      end;
-
-    procedure tbinarynode.det_temp;
-
-      begin
-         left.det_temp;
-         right.det_temp;
+         ischild:=(p=right);
       end;
 
     function tbinarynode.docompare(p : tnode) : boolean;
 
       begin
-         docompare:=
-           inherited docompare(p) and
-           right.isequal(tbinarynode(p).right);
+         docompare:=(inherited docompare(p) and
+             ((right=nil) or right.isequal(tbinarynode(p).right))
+         );
       end;
 
     function tbinarynode.getcopy : tnode;
@@ -745,8 +708,7 @@ implementation
       begin
          swapp:=right;
          right:=left;
-         left:=
-         swapp;
+         left:=swapp;
          if nf_swaped in flags then
            exclude(flags,nf_swaped)
          else
@@ -830,7 +792,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.13  2001-01-13 00:08:09  peter
+  Revision 1.14  2001-04-02 21:20:31  peter
+    * resulttype rewrite
+
+  Revision 1.13  2001/01/13 00:08:09  peter
     * added missing addoptn
 
   Revision 1.12  2001/01/01 11:38:45  peter

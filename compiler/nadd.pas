@@ -31,8 +31,9 @@ interface
 
     type
        taddnode = class(tbinopnode)
-          procedure make_bool_equal_size;
+          constructor create(tt : tnodetype;l,r : tnode);override;
           function pass_1 : tnode;override;
+          function det_resulttype:tnode;override;
        end;
 
     var
@@ -67,25 +68,501 @@ implementation
 {$maxfpuregisters 0}
 {$endif fpc}
 
-    procedure taddnode.make_bool_equal_size;
-
+    constructor taddnode.create(tt : tnodetype;l,r : tnode);
       begin
-        if porddef(left.resulttype)^.typ>porddef(right.resulttype)^.typ then
-         begin
-           right:=gentypeconvnode(right,porddef(left.resulttype));
-           ttypeconvnode(right).convtype:=tc_bool_2_int;
-           include(right.flags,nf_explizit);
-           firstpass(right);
-         end
-        else
-         if porddef(left.resulttype)^.typ<porddef(right.resulttype)^.typ then
+         inherited create(tt,l,r);
+      end;
+
+
+    function taddnode.det_resulttype:tnode;
+      var
+         hp    : tnode;
+         lt,rt   : tnodetype;
+         rd,ld   : pdef;
+         htype   : ttype;
+      begin
+         result:=nil;
+
+         { first do the two subtrees }
+         resulttypepass(left);
+         resulttypepass(right);
+         { both left and right need to be valid }
+         set_varstate(left,true);
+         set_varstate(right,true);
+         if codegenerror then
+           exit;
+
+         { load easier access variables }
+         rd:=right.resulttype.def;
+         ld:=left.resulttype.def;
+         rt:=right.nodetype;
+         lt:=left.nodetype;
+
+         { convert array constructors to sets, because there is no other operator
+           possible for array constructors }
+         if is_array_constructor(ld) then
           begin
-            left:=gentypeconvnode(left,porddef(right.resulttype));
-            ttypeconvnode(left).convtype:=tc_bool_2_int;
-            include(left.flags,nf_explizit);
-            firstpass(left);
+            arrayconstructor_to_set(tarrayconstructornode(left));
+            resulttypepass(left);
+            ld:=left.resulttype.def;
+          end;
+         if is_array_constructor(rd) then
+          begin
+            arrayconstructor_to_set(tarrayconstructornode(right));
+            resulttypepass(right);
+            rd:=right.resulttype.def;
+          end;
+
+         { allow operator overloading }
+         hp:=self;
+         if isbinaryoverloaded(hp) then
+           begin
+              resulttypepass(hp);
+              result:=hp;
+              exit;
+           end;
+
+         { but an int/int gives real/real! }
+         if nodetype=slashn then
+          begin
+            CGMessage(type_h_use_div_for_int);
+            inserttypeconv(right,pbestrealtype^);
+            inserttypeconv(left,pbestrealtype^);
+          end
+
+         { if both are orddefs then check sub types }
+         else if (ld^.deftype=orddef) and (rd^.deftype=orddef) then
+           begin
+             { 2 booleans? Make them equal to the largest boolean }
+             if is_boolean(ld) and is_boolean(rd) then
+              begin
+                if porddef(left.resulttype.def)^.size>porddef(right.resulttype.def)^.size then
+                 begin
+                   inserttypeconv(right,left.resulttype);
+                   ttypeconvnode(right).convtype:=tc_bool_2_int;
+                   include(right.flags,nf_explizit);
+                 end
+                else if porddef(left.resulttype.def)^.size<porddef(right.resulttype.def)^.size then
+                 begin
+                   inserttypeconv(left,right.resulttype);
+                   ttypeconvnode(left).convtype:=tc_bool_2_int;
+                   include(left.flags,nf_explizit);
+                 end
+              end
+             { Both are chars? }
+             else if is_char(rd) and is_char(ld) then
+               begin
+                 if nodetype=addn then
+                  begin
+                    resulttype:=cshortstringtype;
+                    if not(is_constcharnode(left) and is_constcharnode(right)) then
+                     begin
+                       inserttypeconv(left,cshortstringtype);
+                       hp := genaddsstringcharoptnode(self);
+                       resulttypepass(hp);
+                       result := hp;
+                       exit;
+                     end;
+                  end;
+               end
+             { is there a signed 64 bit type ? }
+             else if ((porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit)) then
+               begin
+                  if (porddef(ld)^.typ<>s64bit) then
+                   inserttypeconv(left,cs64bittype);
+                  if (porddef(rd)^.typ<>s64bit) then
+                   inserttypeconv(right,cs64bittype);
+               end
+             { is there a unsigned 64 bit type ? }
+             else if ((porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit)) then
+               begin
+                  if (porddef(ld)^.typ<>u64bit) then
+                   inserttypeconv(left,cu64bittype);
+                  if (porddef(rd)^.typ<>u64bit) then
+                   inserttypeconv(right,cu64bittype);
+               end
+             { is there a cardinal? }
+             else if ((porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit)) then
+               begin
+                 if is_signed(ld) and
+                    { then rd = u32bit }
+                    { convert positive constants to u32bit }
+                    not(is_constintnode(left) and
+                        (tordconstnode(left).value >= 0)) and
+                    { range/overflow checking on mixed signed/cardinal expressions }
+                    { is only possible if you convert everything to 64bit (JM)     }
+                    ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
+                     (nodetype in [addn,subn,muln])) then
+                   begin
+                     { perform the operation in 64bit }
+                     CGMessage(type_w_mixed_signed_unsigned);
+                     inserttypeconv(left,cs64bittype);
+                     inserttypeconv(right,cs64bittype);
+                   end
+                 else
+                   begin
+                     if is_signed(ld) and
+                        not(is_constintnode(left) and
+                            (tordconstnode(left).value >= 0)) and
+                        (cs_check_range in aktlocalswitches) then
+                       CGMessage(type_w_mixed_signed_unsigned2);
+                     inserttypeconv(left,u32bittype);
+
+                     if is_signed(rd) and
+                        { then ld = u32bit }
+                        { convert positive constants to u32bit }
+                        not(is_constintnode(right) and
+                            (tordconstnode(right).value >= 0)) and
+                        ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
+                         (nodetype in [addn,subn,muln])) then
+                       begin
+                         { perform the operation in 64bit }
+                         CGMessage(type_w_mixed_signed_unsigned);
+                         inserttypeconv(left,cs64bittype);
+                         inserttypeconv(right,cs64bittype);
+                       end
+                     else
+                       begin
+                         if is_signed(rd) and
+                            not(is_constintnode(right) and
+                                (tordconstnode(right).value >= 0)) and
+                            (cs_check_range in aktlocalswitches) then
+                           CGMessage(type_w_mixed_signed_unsigned2);
+                         inserttypeconv(right,u32bittype);
+                       end;
+                   end;
+               end
+             { generic ord conversion is s32bit }
+             else
+               begin
+                 inserttypeconv(right,s32bittype);
+                 inserttypeconv(left,s32bittype);
+               end;
+           end
+
+         { left side a setdef, must be before string processing,
+           else array constructor can be seen as array of char (PFV) }
+         else if (ld^.deftype=setdef) then
+          begin
+            { trying to add a set element? }
+            if (nodetype=addn) and (rd^.deftype<>setdef) then
+             begin
+               if (rt=setelementn) then
+                begin
+                  if not(is_equal(psetdef(ld)^.elementtype.def,rd)) then
+                   CGMessage(type_e_set_element_are_not_comp);
+                end
+               else
+                CGMessage(type_e_mismatch)
+             end
+            else
+             begin
+               if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln,lten,gten]) then
+                CGMessage(type_e_set_operation_unknown);
+               { right def must be a also be set }
+               if (rd^.deftype<>setdef) or not(is_equal(rd,ld)) then
+                CGMessage(type_e_set_element_are_not_comp);
+             end;
+
+            { ranges require normsets }
+            if (psetdef(ld)^.settype=smallset) and
+               (rt=setelementn) and
+               assigned(tsetelementnode(right).right) then
+             begin
+               { generate a temporary normset def, it'll be destroyed
+                 when the symtable is unloaded }
+               htype.setdef(new(psetdef,init(psetdef(ld)^.elementtype,255)));
+               inserttypeconv(left,htype);
+             end;
+          end
+
+         { compare pchar to char arrays by addresses like BP/Delphi }
+         else if (is_pchar(ld) and is_chararray(rd)) or
+                 (is_pchar(rd) and is_chararray(ld)) then
+           begin
+             if is_chararray(rd) then
+              inserttypeconv(right,left.resulttype)
+             else
+              inserttypeconv(left,right.resulttype);
+           end
+
+         { is one of the operands a string?,
+           chararrays are also handled as strings (after conversion), also take
+           care of chararray+chararray and chararray+char }
+         else if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
+                 ((is_chararray(rd) or is_char(rd)) and
+                  (is_chararray(ld) or is_char(ld))) then
+          begin
+            if is_widestring(rd) or is_widestring(ld) then
+              begin
+                 if not(is_widestring(rd)) then
+                   inserttypeconv(right,cwidestringtype);
+                 if not(is_widestring(ld)) then
+                   inserttypeconv(left,cwidestringtype);
+              end
+            else if is_ansistring(rd) or is_ansistring(ld) then
+              begin
+                 if not(is_ansistring(rd)) then
+                   inserttypeconv(right,cansistringtype);
+                 if not(is_ansistring(ld)) then
+                   inserttypeconv(left,cansistringtype);
+              end
+            else if is_longstring(rd) or is_longstring(ld) then
+              begin
+                 if not(is_longstring(rd)) then
+                   inserttypeconv(right,clongstringtype);
+                 if not(is_longstring(ld)) then
+                   inserttypeconv(left,clongstringtype);
+                 location.loc:=LOC_MEM;
+              end
+            else
+              begin
+                 if not(is_shortstring(ld)) then
+                   inserttypeconv(left,cshortstringtype);
+                 { don't convert char, that can be handled by the optimized node }
+                 if not(is_shortstring(rd) or is_char(rd)) then
+                   inserttypeconv(right,cshortstringtype);
+              end;
+          end
+
+         { is one a real float ? }
+         else if (rd^.deftype=floatdef) or (ld^.deftype=floatdef) then
+          begin
+          { convert both to bestreal }
+            inserttypeconv(right,pbestrealtype^);
+            inserttypeconv(left,pbestrealtype^);
+          end
+
+         { pointer comparision and subtraction }
+         else if (rd^.deftype=pointerdef) and (ld^.deftype=pointerdef) then
+          begin
+            case nodetype of
+               equaln,unequaln :
+                 begin
+                    if is_voidpointer(right.resulttype.def) then
+                      inserttypeconv(right,left.resulttype)
+                    else if is_voidpointer(left.resulttype.def) then
+                      inserttypeconv(left,right.resulttype)
+                    else if not(is_equal(ld,rd)) then
+                      CGMessage(type_e_mismatch);
+                 end;
+               ltn,lten,gtn,gten:
+                 begin
+                    if (cs_extsyntax in aktmoduleswitches) then
+                     begin
+                       if is_voidpointer(right.resulttype.def) then
+                        inserttypeconv(right,left.resulttype)
+                       else if is_voidpointer(left.resulttype.def) then
+                        inserttypeconv(left,right.resulttype)
+                       else if not(is_equal(ld,rd)) then
+                        CGMessage(type_e_mismatch);
+                     end
+                    else
+                     CGMessage(type_e_mismatch);
+                 end;
+               subn:
+                 begin
+                    if (cs_extsyntax in aktmoduleswitches) then
+                     begin
+                       if is_voidpointer(right.resulttype.def) then
+                        inserttypeconv(right,left.resulttype)
+                       else if is_voidpointer(left.resulttype.def) then
+                        inserttypeconv(left,right.resulttype)
+                       else if not(is_equal(ld,rd)) then
+                        CGMessage(type_e_mismatch);
+                     end
+                    else
+                     CGMessage(type_e_mismatch);
+                    resulttype:=s32bittype;
+                    exit;
+                 end;
+               addn:
+                 begin
+                    if (cs_extsyntax in aktmoduleswitches) then
+                     begin
+                       if is_voidpointer(right.resulttype.def) then
+                        inserttypeconv(right,left.resulttype)
+                       else if is_voidpointer(left.resulttype.def) then
+                        inserttypeconv(left,right.resulttype)
+                       else if not(is_equal(ld,rd)) then
+                        CGMessage(type_e_mismatch);
+                     end
+                    else
+                     CGMessage(type_e_mismatch);
+                    resulttype:=s32bittype;
+                    exit;
+                 end;
+               else
+                 CGMessage(type_e_mismatch);
+            end;
+          end
+
+         { class or interface equation }
+         else if is_class_or_interface(rd) or is_class_or_interface(ld) then
+          begin
+            if is_class_or_interface(rd) and is_class_or_interface(ld) then
+             begin
+               if pobjectdef(rd)^.is_related(pobjectdef(ld)) then
+                inserttypeconv(right,left.resulttype)
+               else
+                inserttypeconv(left,right.resulttype);
+             end
+            else if is_class_or_interface(rd) then
+              inserttypeconv(left,right.resulttype)
+            else
+              inserttypeconv(right,left.resulttype);
+
+            if not(nodetype in [equaln,unequaln]) then
+             CGMessage(type_e_mismatch);
+          end
+
+         else if (rd^.deftype=classrefdef) and (ld^.deftype=classrefdef) then
+          begin
+            if pobjectdef(pclassrefdef(rd)^.pointertype.def)^.is_related(
+                    pobjectdef(pclassrefdef(ld)^.pointertype.def)) then
+              inserttypeconv(right,left.resulttype)
+            else
+              inserttypeconv(left,right.resulttype);
+
+            if not(nodetype in [equaln,unequaln]) then
+             CGMessage(type_e_mismatch);
+          end
+
+         { allows comperasion with nil pointer }
+         else if is_class_or_interface(rd) or (rd^.deftype=classrefdef) then
+          begin
+            inserttypeconv(left,right.resulttype);
+            if not(nodetype in [equaln,unequaln]) then
+             CGMessage(type_e_mismatch);
+          end
+
+         else if is_class_or_interface(ld) or (ld^.deftype=classrefdef) then
+          begin
+            inserttypeconv(right,left.resulttype);
+            if not(nodetype in [equaln,unequaln]) then
+             CGMessage(type_e_mismatch);
+          end
+
+       { support procvar=nil,procvar<>nil }
+         else if ((ld^.deftype=procvardef) and (rt=niln)) or
+                 ((rd^.deftype=procvardef) and (lt=niln)) then
+          begin
+            if not(nodetype in [equaln,unequaln]) then
+             CGMessage(type_e_mismatch);
+          end
+
+{$ifdef SUPPORT_MMX}
+       { mmx support, this must be before the zero based array
+         check }
+         else if (cs_mmx in aktlocalswitches) and
+                 is_mmx_able_array(ld) and
+                 is_mmx_able_array(rd) and
+                 is_equal(ld,rd) then
+            begin
+              case nodetype of
+                addn,subn,xorn,orn,andn:
+                  ;
+                { mul is a little bit restricted }
+                muln:
+                  if not(mmx_type(ld) in [mmxu16bit,mmxs16bit,mmxfixed16]) then
+                    CGMessage(type_e_mismatch);
+                else
+                  CGMessage(type_e_mismatch);
+              end;
+            end
+{$endif SUPPORT_MMX}
+
+         { this is a little bit dangerous, also the left type }
+         { pointer to should be checked! This broke the mmx support      }
+         else if (rd^.deftype=pointerdef) or is_zero_based_array(rd) then
+          begin
+            if is_zero_based_array(rd) then
+              begin
+                resulttype.setdef(new(ppointerdef,init(parraydef(rd)^.elementtype)));
+                inserttypeconv(right,resulttype);
+              end;
+            inserttypeconv(left,s32bittype);
+            if nodetype=addn then
+              begin
+                if not(cs_extsyntax in aktmoduleswitches) or
+                   (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
+                  CGMessage(type_e_mismatch);
+                if (rd^.deftype=pointerdef) and
+                   (ppointerdef(rd)^.pointertype.def^.size>1) then
+                  left:=caddnode.create(muln,left,cordconstnode.create(ppointerdef(rd)^.pointertype.def^.size,s32bittype));
+              end
+            else
+              CGMessage(type_e_mismatch);
+          end
+
+         else if (ld^.deftype=pointerdef) or is_zero_based_array(ld) then
+          begin
+            if is_zero_based_array(ld) then
+              begin
+                 resulttype.setdef(new(ppointerdef,init(parraydef(ld)^.elementtype)));
+                 inserttypeconv(left,resulttype);
+              end;
+            inserttypeconv(right,s32bittype);
+            if nodetype in [addn,subn] then
+              begin
+                if not(cs_extsyntax in aktmoduleswitches) or
+                   (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
+                  CGMessage(type_e_mismatch);
+                if (ld^.deftype=pointerdef) and
+                   (ppointerdef(ld)^.pointertype.def^.size>1) then
+                  right:=caddnode.create(muln,right,cordconstnode.create(ppointerdef(ld)^.pointertype.def^.size,s32bittype));
+              end
+            else
+              CGMessage(type_e_mismatch);
+         end
+
+         else if (rd^.deftype=procvardef) and (ld^.deftype=procvardef) and is_equal(rd,ld) then
+          begin
+            if not (nodetype in [equaln,unequaln]) then
+             CGMessage(type_e_mismatch);
+          end
+
+         { enums }
+         else if (ld^.deftype=enumdef) and (rd^.deftype=enumdef) then
+          begin
+            if not(is_equal(ld,rd)) then
+             inserttypeconv(right,left.resulttype);
+            if not(nodetype in [equaln,unequaln,ltn,lten,gtn,gten]) then
+             CGMessage(type_e_mismatch);
+          end
+
+         { generic conversion }
+         else
+           begin
+{$ifdef EXTDEBUG}
+             Comment(V_Warning,'Generic conversion to s32bit');
+{$endif}
+             inserttypeconv(right,s32bittype);
+             inserttypeconv(left,s32bittype);
+           end;
+
+         { set resulttype if not already done }
+         if not assigned(resulttype.def) then
+          begin
+             case nodetype of
+                ltn,lten,gtn,gten,equaln,unequaln :
+                  resulttype:=booltype;
+                slashn :
+                  resulttype:=pbestrealtype^;
+                addn:
+                  begin
+                    { for strings, return is always a 255 char string }
+                    if is_shortstring(left.resulttype.def) then
+                     resulttype:=cshortstringtype
+                    else
+                     resulttype:=left.resulttype;
+                  end;
+                else
+                  resulttype:=left.resulttype;
+             end;
           end;
       end;
+
 
     function taddnode.pass_1 : tnode;
 
@@ -96,70 +573,30 @@ implementation
          rv,lv   : tconstexprint;
          rvd,lvd : bestreal;
          rd,ld   : pdef;
-         tempdef : pdef;
          concatstrings : boolean;
 
          { to evalute const sets }
          resultset : pconstset;
          i : longint;
          b : boolean;
-         boolres,
-         convdone : boolean;
          s1,s2 : pchar;
          l1,l2 : longint;
 
       begin
-         pass_1:=nil;
+         result:=nil;
          { first do the two subtrees }
          firstpass(left);
          firstpass(right);
          if codegenerror then
            exit;
 
-         { convert array constructors to sets, because there is no other operator
-           possible for array constructors }
-         if is_array_constructor(left.resulttype) then
-           arrayconstructor_to_set(tarrayconstructornode(left));
-         if is_array_constructor(right.resulttype) then
-           arrayconstructor_to_set(tarrayconstructornode(right));
-
-         { both left and right need to be valid }
-         set_varstate(left,true);
-         set_varstate(right,true);
-
          { load easier access variables }
-         lt:=left.nodetype;
+         rd:=right.resulttype.def;
+         ld:=left.resulttype.def;
          rt:=right.nodetype;
-         rd:=right.resulttype;
-         ld:=left.resulttype;
-         convdone:=false;
+         lt:=left.nodetype;
 
-         hp:=self;
-         if isbinaryoverloaded(hp) then
-           begin
-              pass_1:=hp;
-              exit;
-           end;
-         { compact consts }
-
-         { convert int consts to real consts, if the }
-         { other operand is a real const             }
-         if (rt=realconstn) and is_constintnode(left) then
-           begin
-              t:=genrealconstnode(tordconstnode(left).value,right.resulttype);
-              left.free;
-              left:=t;
-              lt:=realconstn;
-           end;
-         if (lt=realconstn) and is_constintnode(right) then
-           begin
-              t:=genrealconstnode(tordconstnode(right).value,left.resulttype);
-              right.free;
-              right:=t;
-              rt:=realconstn;
-           end;
-
-       { both are int constants }
+         { both are int constants }
          if (((is_constintnode(left) and is_constintnode(right)) or
               (is_constboolnode(left) and is_constboolnode(right) and
                (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,andn,xorn,orn])))) or
@@ -169,83 +606,67 @@ implementation
             ((lt = pointerconstn) and (rt = pointerconstn) and
              (nodetype in [ltn,lten,gtn,gten,equaln,unequaln,subn])) then
            begin
-              { when comparing/substracting  pointers, make sure they are }
-              { of the same  type (JM)                                    }
-              if (lt = pointerconstn) and (rt = pointerconstn) then
-                if not(cs_extsyntax in aktmoduleswitches) and
-                   not(nodetype in [equaln,unequaln]) then
-                  CGMessage(type_e_mismatch)
-                else
-                  if (nodetype <> subn) and
-                     is_equal(right.resulttype,voidpointerdef) then
-                    begin
-                       right:=gentypeconvnode(right,ld);
-                       firstpass(right);
-                       rd := right.resulttype;
-                    end
-                  else if (nodetype <> subn) and
-                          is_equal(left.resulttype,voidpointerdef) then
-                    begin
-                       left:=gentypeconvnode(left,rd);
-                       firstpass(left);
-                       ld := left.resulttype;
-                    end
-                  else if not(is_equal(ld,rd)) then
-                    CGMessage(type_e_mismatch);
-              { xor, and, or are handled different from arithmetic }
-              { operations regarding the result type               }
-              { return a boolean for boolean operations (and,xor,or) }
-              boolres:=is_constboolnode(left);
-              if (left.nodetype = ordconstn) then
+              if (lt = ordconstn) then
                 lv:=tordconstnode(left).value
-              else lv := tpointerconstnode(left).value;
-              if (right.nodetype = ordconstn) then
+              else
+                lv:=tpointerconstnode(left).value;
+              if (rt = ordconstn) then
                 rv:=tordconstnode(right).value
-              else rv := tpointerconstnode(right).value;
+              else
+                rv:=tpointerconstnode(right).value;
               if (lt = pointerconstn) and
                  (rt <> pointerconstn) then
-                rv := rv * ppointerdef(left.resulttype)^.pointertype.def^.size;
+                rv := rv * ppointerdef(left.resulttype.def)^.pointertype.def^.size;
+              if (rt = pointerconstn) and
+                 (lt <> pointerconstn) then
+                lv := lv * ppointerdef(right.resulttype.def)^.pointertype.def^.size;
               case nodetype of
-                addn : if (lt <> pointerconstn) then
-                         t:=genintconstnode(lv+rv)
-                       else t := genpointerconstnode(lv+rv,left.resulttype);
-                subn : if (lt <> pointerconstn) or (rt = pointerconstn) then
-                         t:=genintconstnode(lv-rv)
-                       else t := genpointerconstnode(lv-rv,left.resulttype);
-                muln : t:=genintconstnode(lv*rv);
-                xorn : if boolres then
-                        t:=genordinalconstnode(lv xor rv,booldef)
-                       else
-                        t:=genintconstnode(lv xor rv);
-                 orn : if boolres then
-                        t:=genordinalconstnode(lv or rv,booldef)
-                       else
-                        t:=genintconstnode(lv or rv);
-                andn : if boolres then
-                        t:=genordinalconstnode(lv and rv,booldef)
-                       else
-                        t:=genintconstnode(lv and rv);
-                 ltn : t:=genordinalconstnode(ord(lv<rv),booldef);
-                lten : t:=genordinalconstnode(ord(lv<=rv),booldef);
-                 gtn : t:=genordinalconstnode(ord(lv>rv),booldef);
-                gten : t:=genordinalconstnode(ord(lv>=rv),booldef);
-              equaln : t:=genordinalconstnode(ord(lv=rv),booldef);
-            unequaln : t:=genordinalconstnode(ord(lv<>rv),booldef);
-              slashn : begin
-                       { int/int becomes a real }
-                         if int(rv)=0 then
-                          begin
-                            Message(parser_e_invalid_float_operation);
-                            t:=genrealconstnode(0,bestrealdef^);
-                          end
-                         else
-                          t:=genrealconstnode(int(lv)/int(rv),bestrealdef^);
-                         firstpass(t);
-                       end;
-              else
-                CGMessage(type_e_mismatch);
+                addn :
+                  if (lt <> pointerconstn) then
+                    t := cordconstnode.create(lv+rv,resulttype)
+                  else
+                    t := cpointerconstnode.create(lv+rv,resulttype);
+                subn :
+                  if (lt <> pointerconstn) or (rt = pointerconstn) then
+                    t := cordconstnode.create(lv-rv,resulttype)
+                  else
+                    t := cpointerconstnode.create(lv-rv,resulttype);
+                muln :
+                  t:=cordconstnode.create(lv*rv,resulttype);
+                xorn :
+                  t:=cordconstnode.create(lv xor rv,resulttype);
+                orn :
+                  t:=cordconstnode.create(lv or rv,resulttype);
+                andn :
+                  t:=cordconstnode.create(lv and rv,resulttype);
+                ltn :
+                  t:=cordconstnode.create(ord(lv<rv),resulttype);
+                lten :
+                  t:=cordconstnode.create(ord(lv<=rv),resulttype);
+                gtn :
+                  t:=cordconstnode.create(ord(lv>rv),resulttype);
+                gten :
+                  t:=cordconstnode.create(ord(lv>=rv),resulttype);
+                equaln :
+                  t:=cordconstnode.create(ord(lv=rv),resulttype);
+                unequaln :
+                  t:=cordconstnode.create(ord(lv<>rv),resulttype);
+                slashn :
+                  begin
+                    { int/int becomes a real }
+                    if int(rv)=0 then
+                     begin
+                       Message(parser_e_invalid_float_operation);
+                       t:=crealconstnode.create(0,resulttype);
+                     end
+                    else
+                     t:=crealconstnode.create(int(lv)/int(rv),resulttype);
+                  end;
+                else
+                  CGMessage(type_e_mismatch);
               end;
-              pass_1:=t;
+              firstpass(t);
+              result:=t;
               exit;
            end;
 
@@ -255,41 +676,52 @@ implementation
               lvd:=trealconstnode(left).value_real;
               rvd:=trealconstnode(right).value_real;
               case nodetype of
-                 addn : t:=genrealconstnode(lvd+rvd,bestrealdef^);
-                 subn : t:=genrealconstnode(lvd-rvd,bestrealdef^);
-                 muln : t:=genrealconstnode(lvd*rvd,bestrealdef^);
-               starstarn,
-               caretn : begin
-                          if lvd<0 then
-                           begin
-                             Message(parser_e_invalid_float_operation);
-                             t:=genrealconstnode(0,bestrealdef^);
-                           end
-                          else if lvd=0 then
-                            t:=genrealconstnode(1.0,bestrealdef^)
-                          else
-                            t:=genrealconstnode(exp(ln(lvd)*rvd),bestrealdef^);
-                        end;
-               slashn :
-                        begin
-                          if rvd=0 then
-                           begin
-                             Message(parser_e_invalid_float_operation);
-                             t:=genrealconstnode(0,bestrealdef^);
-                           end
-                          else
-                           t:=genrealconstnode(lvd/rvd,bestrealdef^);
-                        end;
-                  ltn : t:=genordinalconstnode(ord(lvd<rvd),booldef);
-                 lten : t:=genordinalconstnode(ord(lvd<=rvd),booldef);
-                  gtn : t:=genordinalconstnode(ord(lvd>rvd),booldef);
-                 gten : t:=genordinalconstnode(ord(lvd>=rvd),booldef);
-               equaln : t:=genordinalconstnode(ord(lvd=rvd),booldef);
-             unequaln : t:=genordinalconstnode(ord(lvd<>rvd),booldef);
-              else
-                CGMessage(type_e_mismatch);
+                 addn :
+                   t:=crealconstnode.create(lvd+rvd,pbestrealtype^);
+                 subn :
+                   t:=crealconstnode.create(lvd-rvd,pbestrealtype^);
+                 muln :
+                   t:=crealconstnode.create(lvd*rvd,pbestrealtype^);
+                 starstarn,
+                 caretn :
+                   begin
+                     if lvd<0 then
+                      begin
+                        Message(parser_e_invalid_float_operation);
+                        t:=crealconstnode.create(0,pbestrealtype^);
+                      end
+                     else if lvd=0 then
+                       t:=crealconstnode.create(1.0,pbestrealtype^)
+                     else
+                       t:=crealconstnode.create(exp(ln(lvd)*rvd),pbestrealtype^);
+                   end;
+                 slashn :
+                   begin
+                     if rvd=0 then
+                      begin
+                        Message(parser_e_invalid_float_operation);
+                        t:=crealconstnode.create(0,pbestrealtype^);
+                      end
+                     else
+                      t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
+                   end;
+                 ltn :
+                   t:=cordconstnode.create(ord(lvd<rvd),booltype);
+                 lten :
+                   t:=cordconstnode.create(ord(lvd<=rvd),booltype);
+                 gtn :
+                   t:=cordconstnode.create(ord(lvd>rvd),booltype);
+                 gten :
+                   t:=cordconstnode.create(ord(lvd>=rvd),booltype);
+                 equaln :
+                   t:=cordconstnode.create(ord(lvd=rvd),booltype);
+                 unequaln :
+                   t:=cordconstnode.create(ord(lvd<>rvd),booltype);
+                 else
+                   CGMessage(type_e_mismatch);
               end;
-              pass_1:=t;
+              firstpass(t);
+              result:=t;
               exit;
            end;
 
@@ -332,34 +764,132 @@ implementation
               l2:=tstringconstnode(right).len;
               concatstrings:=true;
            end;
-
-         { I will need to translate all this to ansistrings !!! }
          if concatstrings then
            begin
               case nodetype of
                  addn :
-                   t:=genpcharconstnode(concatansistrings(s1,s2,l1,l2),l1+l2);
+                   t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
                  ltn :
-                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)<0),booldef);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype);
                  lten :
-                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)<=0),booldef);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),booltype);
                  gtn :
-                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)>0),booldef);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),booltype);
                  gten :
-                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)>=0),booldef);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),booltype);
                  equaln :
-                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)=0),booldef);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype);
                  unequaln :
-                   t:=genordinalconstnode(byte(compareansistrings(s1,s2,l1,l2)<>0),booldef);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype);
               end;
               ansistringdispose(s1,l1);
               ansistringdispose(s2,l2);
-              pass_1:=t;
+              firstpass(t);
+              result:=t;
               exit;
            end;
 
-       { if both are orddefs then check sub types }
-         if (ld^.deftype=orddef) and (rd^.deftype=orddef) then
+         { set constant evaluation }
+         if (right.nodetype=setconstn) and
+            not assigned(tsetconstnode(right).left) and
+            (left.nodetype=setconstn) and
+            not assigned(tsetconstnode(left).left) then
+           begin
+              new(resultset);
+              case nodetype of
+                 addn :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 muln :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 subn :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 symdifn :
+                   begin
+                      for i:=0 to 31 do
+                        resultset^[i]:=tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
+                      t:=csetconstnode.create(resultset,left.resulttype);
+                   end;
+                 unequaln :
+                   begin
+                      b:=true;
+                      for i:=0 to 31 do
+                       if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
+                        begin
+                          b:=false;
+                          break;
+                        end;
+                      t:=cordconstnode.create(ord(b),booltype);
+                   end;
+                 equaln :
+                   begin
+                      b:=true;
+                      for i:=0 to 31 do
+                       if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
+                        begin
+                          b:=false;
+                          break;
+                        end;
+                      t:=cordconstnode.create(ord(b),booltype);
+                   end;
+                 lten :
+                   begin
+                     b := true;
+                     For i := 0 to 31 Do
+                       If (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
+                           tsetconstnode(left).value_set^[i] Then
+                         Begin
+                           b := false;
+                           Break
+                         End;
+                     t := cordconstnode.create(ord(b),booltype);
+                   End;
+                 gten :
+                   Begin
+                     b := true;
+                     For i := 0 to 31 Do
+                       If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
+                           tsetconstnode(right).value_set^[i] Then
+                         Begin
+                           b := false;
+                           Break
+                         End;
+                     t := cordconstnode.create(ord(b),booltype);
+                   End;
+              end;
+              dispose(resultset);
+              firstpass(t);
+              result:=t;
+              exit;
+           end;
+
+         { int/int gives real/real! }
+         if nodetype=slashn then
+           begin
+             { maybe we need an integer register to save }
+             { a reference                               }
+             if ((left.location.loc<>LOC_FPU) or
+                 (right.location.loc<>LOC_FPU)) and
+                (left.registers32=right.registers32) then
+               calcregisters(self,1,1,0)
+             else
+               calcregisters(self,0,1,0);
+             location.loc:=LOC_FPU;
+           end
+
+         { if both are orddefs then check sub types }
+         else if (ld^.deftype=orddef) and (rd^.deftype=orddef) then
            begin
            { 2 booleans ? }
              if is_boolean(ld) and is_boolean(rd) then
@@ -367,9 +897,8 @@ implementation
                 if (cs_full_boolean_eval in aktlocalswitches) or
                    (nodetype in [xorn,ltn,lten,gtn,gten]) then
                   begin
-                     make_bool_equal_size;
                      if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                       (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                        (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
                        calcregisters(self,2,0,0)
                      else
                        calcregisters(self,1,0,0);
@@ -379,14 +908,12 @@ implementation
                     andn,
                     orn:
                       begin
-                        make_bool_equal_size;
                         calcregisters(self,0,0,0);
                         location.loc:=LOC_JUMP;
                       end;
                     unequaln,
                     equaln:
                       begin
-                        make_bool_equal_size;
                         { Remove any compares with constants }
                         if (left.nodetype=ordconstn) then
                          begin
@@ -402,7 +929,7 @@ implementation
                               hp:=cnotnode.create(hp);
                               firstpass(hp);
                             end;
-                           pass_1:=hp;
+                           result:=hp;
                            exit;
                          end;
                         if (right.nodetype=ordconstn) then
@@ -420,390 +947,91 @@ implementation
                               hp:=cnotnode.create(hp);
                               firstpass(hp);
                             end;
-                           pass_1:=hp;
+                           result:=hp;
                            exit;
                          end;
                         if (left.location.loc in [LOC_JUMP,LOC_FLAGS]) and
-                          (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                           (left.location.loc in [LOC_JUMP,LOC_FLAGS]) then
                           calcregisters(self,2,0,0)
                         else
-                        calcregisters(self,1,0,0);
+                          calcregisters(self,1,0,0);
                       end;
                   else
                     CGMessage(type_e_mismatch);
                   end;
-(*
-                { these one can't be in flags! }
-
-                Yes they can, secondadd converts the loc_flags to a register.
-                The typeconversions below are simply removed by firsttypeconv()
-                because the resulttype of left = left.resulttype
-                (surprise! :) (JM)
-
-                if nodetype in [xorn,unequaln,equaln] then
-                  begin
-                     if left.location.loc=LOC_FLAGS then
-                       begin
-                          left:=gentypeconvnode(left,porddef(left.resulttype));
-                          left.convtype:=tc_bool_2_int;
-                          left.explizit:=true;
-                          firstpass(left);
-                       end;
-                     if right.location.loc=LOC_FLAGS then
-                       begin
-                          right:=gentypeconvnode(right,porddef(right.resulttype));
-                          right.convtype:=tc_bool_2_int;
-                          right.explizit:=true;
-                          firstpass(right);
-                       end;
-                     { readjust registers }
-                     calcregisters(p,1,0,0);
-                  end;
-*)
-                convdone:=true;
               end
              else
              { Both are chars? only convert to shortstrings for addn }
-              if is_char(rd) and is_char(ld) then
+              if is_char(ld) then
                begin
                  if nodetype=addn then
-                   begin
-                     left:=gentypeconvnode(left,cshortstringdef);
-                     firstpass(left);
-                     hp := genaddsstringcharoptnode(self);
-                     firstpass(hp);
-                     pass_1 := hp;
-                     exit;
-                   end
-                 else
-                   calcregisters(self,1,0,0);
-                 convdone:=true;
+                  internalerror(200103291);
+                 calcregisters(self,1,0,0);
                end
               { is there a 64 bit type ? }
-             else if ((porddef(rd)^.typ=s64bit) or (porddef(ld)^.typ=s64bit)) and
-               { the / operator is handled later }
-               (nodetype<>slashn) then
+             else if (porddef(ld)^.typ in [s64bit,u64bit]) then
+               calcregisters(self,2,0,0)
+             { is there a cardinal? }
+             else if (porddef(ld)^.typ=u32bit) then
                begin
-                  if (porddef(ld)^.typ<>s64bit) then
-                    begin
-                      left:=gentypeconvnode(left,cs64bitdef);
-                      firstpass(left);
-                    end;
-                  if (porddef(rd)^.typ<>s64bit) then
-                    begin
-                       right:=gentypeconvnode(right,cs64bitdef);
-                       firstpass(right);
-                    end;
-                  calcregisters(self,2,0,0);
-                  convdone:=true;
-               end
-             else if ((porddef(rd)^.typ=u64bit) or (porddef(ld)^.typ=u64bit)) and
-               { the / operator is handled later }
-               (nodetype<>slashn) then
-               begin
-                  if (porddef(ld)^.typ<>u64bit) then
-                    begin
-                      left:=gentypeconvnode(left,cu64bitdef);
-                      firstpass(left);
-                    end;
-                  if (porddef(rd)^.typ<>u64bit) then
-                    begin
-                       right:=gentypeconvnode(right,cu64bitdef);
-                       firstpass(right);
-                    end;
-                  calcregisters(self,2,0,0);
-                  convdone:=true;
-               end
-             else
-              { is there a cardinal? }
-              if ((porddef(rd)^.typ=u32bit) or (porddef(ld)^.typ=u32bit)) and
-               { the / operator is handled later }
-               (nodetype<>slashn) then
-               begin
-                 if is_signed(ld) and
-                    { then rd = u32bit }
-                    { convert positive constants to u32bit }
-                    not(is_constintnode(left) and
-                        (tordconstnode(left).value >= 0)) and
-                    { range/overflow checking on mixed signed/cardinal expressions }
-                    { is only possible if you convert everything to 64bit (JM)     }
-                    ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
-                     (nodetype in [addn,subn,muln])) then
-                   begin
-                     { perform the operation in 64bit }
-                     CGMessage(type_w_mixed_signed_unsigned);
-                     left := gentypeconvnode(left,cs64bitdef);
-                     firstpass(left);
-                     right := gentypeconvnode(right,cs64bitdef);
-                     firstpass(right);
-                   end
-                 else
-                   begin
-                     if is_signed(ld) and
-                        not(is_constintnode(left) and
-                            (tordconstnode(left).value >= 0)) and
-                        (cs_check_range in aktlocalswitches) then
-                       CGMessage(type_w_mixed_signed_unsigned2);
-                     left := gentypeconvnode(left,u32bitdef);
-                     firstpass(left);
-
-                     if is_signed(rd) and
-                        { then ld = u32bit }
-                        { convert positive constants to u32bit }
-                        not(is_constintnode(right) and
-                            (tordconstnode(right).value >= 0)) and
-                        ((aktlocalswitches * [cs_check_overflow,cs_check_range] <> []) and
-                         (nodetype in [addn,subn,muln])) then
-                       begin
-                         { perform the operation in 64bit }
-                         CGMessage(type_w_mixed_signed_unsigned);
-                         left := gentypeconvnode(left,cs64bitdef);
-                         firstpass(left);
-                         right := gentypeconvnode(right,cs64bitdef);
-                         firstpass(right);
-                       end
-                     else
-                       begin
-                         if is_signed(rd) and
-                            not(is_constintnode(right) and
-                                (tordconstnode(right).value >= 0)) and
-                            (cs_check_range in aktlocalswitches) then
-                           CGMessage(type_w_mixed_signed_unsigned2);
-                         right := gentypeconvnode(right,u32bitdef);
-                         firstpass(right);
-                       end;
-                   end;
-                 { did we convert things to 64bit? }
-                 if porddef(left.resulttype)^.typ = s64bit then
-                   calcregisters(self,2,0,0)
-                 else
-                   begin
-                     calcregisters(self,1,0,0);
+                 calcregisters(self,1,0,0);
                  { for unsigned mul we need an extra register }
-                     if nodetype=muln then
-                       inc(registers32);
-                   end;
-                 convdone:=true;
-               end;
+                 if nodetype=muln then
+                  inc(registers32);
+               end
+             { generic s32bit conversion }
+             else
+               calcregisters(self,1,0,0);
            end
-         else
 
          { left side a setdef, must be before string processing,
            else array constructor can be seen as array of char (PFV) }
-           if (ld^.deftype=setdef) {or is_array_constructor(ld)} then
-             begin
-             { trying to add a set element? }
-                if (nodetype=addn) and (rd^.deftype<>setdef) then
-                 begin
-                   if (rt=setelementn) then
-                    begin
-                      if not(is_equal(psetdef(ld)^.elementtype.def,rd)) then
-                       CGMessage(type_e_set_element_are_not_comp);
-                    end
-                   else
-                    CGMessage(type_e_mismatch)
-                 end
-                else
-                 begin
-                   if not(nodetype in [addn,subn,symdifn,muln,equaln,unequaln
-{$IfNDef NoSetInclusion}
-                                          ,lten,gten
-{$EndIf NoSetInclusion}
-                   ]) then
-                    CGMessage(type_e_set_operation_unknown);
-                 { right def must be a also be set }
-                   if (rd^.deftype<>setdef) or not(is_equal(rd,ld)) then
-                    CGMessage(type_e_set_element_are_not_comp);
-                 end;
-
-                { ranges require normsets }
-                if (psetdef(ld)^.settype=smallset) and
-                   (rt=setelementn) and
-                   assigned(tsetelementnode(right).right) then
-                 begin
-                   { generate a temporary normset def, it'll be destroyed
-                     when the symtable is unloaded }
-                   tempdef:=new(psetdef,init(psetdef(ld)^.elementtype.def,255));
-                   left:=gentypeconvnode(left,tempdef);
-                   firstpass(left);
-                   ld:=left.resulttype;
-                 end;
-
-                { if the destination is not a smallset then insert a typeconv
-                  which loads a smallset into a normal set }
-                if (psetdef(ld)^.settype<>smallset) and
-                   (psetdef(rd)^.settype=smallset) then
-                 begin
-                   if (right.nodetype=setconstn) then
-                     begin
-                        t:=gensetconstnode(tsetconstnode(right).value_set,psetdef(left.resulttype));
-                        tsetconstnode(t).left:=tsetconstnode(right).left;
-                        tsetconstnode(right).left:=nil;
-                        right.free;
-                        right:=t;
-                     end
-                   else
-                     right:=gentypeconvnode(right,psetdef(left.resulttype));
-                   firstpass(right);
-                 end;
-
-                { do constant evaluation }
-                if (right.nodetype=setconstn) and
-                   not assigned(tsetconstnode(right).left) and
-                   (left.nodetype=setconstn) and
-                   not assigned(tsetconstnode(left).left) then
-                  begin
-                     new(resultset);
-                     case nodetype of
-                        addn : begin
-                                  for i:=0 to 31 do
-                                    resultset^[i]:=
-                                      tsetconstnode(right).value_set^[i] or tsetconstnode(left).value_set^[i];
-                                  t:=gensetconstnode(resultset,psetdef(ld));
-                               end;
-                        muln : begin
-                                  for i:=0 to 31 do
-                                    resultset^[i]:=
-                                      tsetconstnode(right).value_set^[i] and tsetconstnode(left).value_set^[i];
-                                  t:=gensetconstnode(resultset,psetdef(ld));
-                               end;
-                        subn : begin
-                                  for i:=0 to 31 do
-                                    resultset^[i]:=
-                                      tsetconstnode(left).value_set^[i] and not(tsetconstnode(right).value_set^[i]);
-                                  t:=gensetconstnode(resultset,psetdef(ld));
-                               end;
-                     symdifn : begin
-                                  for i:=0 to 31 do
-                                    resultset^[i]:=
-                                      tsetconstnode(left).value_set^[i] xor tsetconstnode(right).value_set^[i];
-                                  t:=gensetconstnode(resultset,psetdef(ld));
-                               end;
-                    unequaln : begin
-                                 b:=true;
-                                 for i:=0 to 31 do
-                                  if tsetconstnode(right).value_set^[i]=tsetconstnode(left).value_set^[i] then
-                                   begin
-                                     b:=false;
-                                     break;
-                                   end;
-                                 t:=genordinalconstnode(ord(b),booldef);
-                               end;
-                      equaln : begin
-                                 b:=true;
-                                 for i:=0 to 31 do
-                                  if tsetconstnode(right).value_set^[i]<>tsetconstnode(left).value_set^[i] then
-                                   begin
-                                     b:=false;
-                                     break;
-                                   end;
-                                 t:=genordinalconstnode(ord(b),booldef);
-                               end;
-{$IfNDef NoSetInclusion}
-                       lten : Begin
-                                b := true;
-                                For i := 0 to 31 Do
-                                  If (tsetconstnode(right).value_set^[i] And tsetconstnode(left).value_set^[i]) <>
-                                      tsetconstnode(left).value_set^[i] Then
-                                    Begin
-                                      b := false;
-                                      Break
-                                    End;
-                                t := genordinalconstnode(ord(b),booldef);
-                              End;
-                       gten : Begin
-                                b := true;
-                                For i := 0 to 31 Do
-                                  If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
-                                      tsetconstnode(right).value_set^[i] Then
-                                    Begin
-                                      b := false;
-                                      Break
-                                    End;
-                                t := genordinalconstnode(ord(b),booldef);
-                              End;
-{$EndIf NoSetInclusion}
-                     end;
-                     dispose(resultset);
-                     firstpass(t);
-                     pass_1:=t;
-                     exit;
-                  end
-                else
-                 if psetdef(ld)^.settype=smallset then
-                  begin
-                     { are we adding set elements ? }
-                     if right.nodetype=setelementn then
-                       calcregisters(self,2,0,0)
-                     else
-                       calcregisters(self,1,0,0);
-                     location.loc:=LOC_REGISTER;
-                  end
+         else if (ld^.deftype=setdef) then
+           begin
+             if psetdef(ld)^.settype=smallset then
+              begin
+                 { are we adding set elements ? }
+                 if right.nodetype=setelementn then
+                   calcregisters(self,2,0,0)
                  else
-                  begin
-                     calcregisters(self,0,0,0);
-                     { here we call SET... }
-                     procinfo^.flags:=procinfo^.flags or pi_do_call;
-                     location.loc:=LOC_MEM;
-                  end;
-              convdone:=true;
-            end
-         else
-           { compare pchar to char arrays by addresses
-             like BP/Delphi }
-           if (is_pchar(ld) and is_chararray(rd)) or
-              (is_pchar(rd) and is_chararray(ld)) then
-             begin
-               if is_chararray(rd) then
-                 begin
-                   right:=gentypeconvnode(right,ld);
-                   firstpass(right);
-                 end
-               else
-                 begin
-                   left:=gentypeconvnode(left,rd);
-                   firstpass(left);
-                 end;
-               location.loc:=LOC_REGISTER;
-               calcregisters(self,1,0,0);
-               convdone:=true;
-             end
-         else
-           { is one of the operands a string?,
-             chararrays are also handled as strings (after conversion) }
-           if (rd^.deftype=stringdef) or (ld^.deftype=stringdef) or
-              ((is_chararray(rd) or is_char(rd)) and
-               (is_chararray(ld) or is_char(ld))) then
+                   calcregisters(self,1,0,0);
+                 location.loc:=LOC_REGISTER;
+              end
+             else
+              begin
+                 calcregisters(self,0,0,0);
+                 { here we call SET... }
+                 procinfo^.flags:=procinfo^.flags or pi_do_call;
+                 location.loc:=LOC_MEM;
+              end;
+           end
+
+         { compare pchar by addresses like BP/Delphi }
+         else if is_pchar(ld) then
+           begin
+             location.loc:=LOC_REGISTER;
+             calcregisters(self,1,0,0);
+           end
+
+         { is one of the operands a string }
+         else if (ld^.deftype=stringdef) then
             begin
-              if is_widestring(rd) or is_widestring(ld) then
+              if is_widestring(ld) then
                 begin
-                   if not(is_widestring(rd)) then
-                     right:=gentypeconvnode(right,cwidestringdef);
-                   if not(is_widestring(ld)) then
-                     left:=gentypeconvnode(left,cwidestringdef);
-                   resulttype:=cwidestringdef;
+                   { we use reference counted widestrings so no fast exit here }
+                   procinfo^.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_REGISTER;
                 end
-              else if is_ansistring(rd) or is_ansistring(ld) then
+              else if is_ansistring(ld) then
                 begin
-                   if not(is_ansistring(rd)) then
-                     right:=gentypeconvnode(right,cansistringdef);
-                   if not(is_ansistring(ld)) then
-                     left:=gentypeconvnode(left,cansistringdef);
                    { we use ansistrings so no fast exit here }
                    procinfo^.no_fast_exit:=true;
-                   resulttype:=cansistringdef;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_REGISTER;
                 end
-              else if is_longstring(rd) or is_longstring(ld) then
+              else if is_longstring(ld) then
                 begin
-                   if not(is_longstring(rd)) then
-                     right:=gentypeconvnode(right,clongstringdef);
-                   if not(is_longstring(ld)) then
-                     left:=gentypeconvnode(left,clongstringdef);
-                   resulttype:=clongstringdef;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_MEM;
                 end
@@ -815,6 +1043,15 @@ implementation
                        firstpass(hp);
                        pass_1 := hp;
                        exit;
+                     end
+                   else
+                     begin
+                       { Fix right to be shortstring }
+                       if is_char(right.resulttype.def) then
+                        begin
+                          inserttypeconv(right,cshortstringtype);
+                          firstpass(right);
+                        end;
                      end;
                    if canbeaddsstringcsstringoptnode(self) then
                      begin
@@ -823,427 +1060,108 @@ implementation
                        pass_1 := hp;
                        exit;
                      end;
-                   if not(is_shortstring(ld)) then
-                     left:=gentypeconvnode(left,cshortstringdef);
-                   if not(is_shortstring(rd)) then
-                      right:=gentypeconvnode(right,cshortstringdef);
-                   resulttype:=left.resulttype;
                    { this is only for add, the comparisaion is handled later }
                    location.loc:=LOC_MEM;
                 end;
-              { only if there is a type cast we need to do again }
-              { the first pass                             }
-              if left.nodetype=typeconvn then
-                firstpass(left);
-              if right.nodetype=typeconvn then
-                firstpass(right);
               { here we call STRCONCAT or STRCMP or STRCOPY }
               procinfo^.flags:=procinfo^.flags or pi_do_call;
               if location.loc=LOC_MEM then
                 calcregisters(self,0,0,0)
               else
                 calcregisters(self,1,0,0);
-              convdone:=true;
            end
-         else
 
          { is one a real float ? }
-           if (rd^.deftype=floatdef) or (ld^.deftype=floatdef) then
+         else if (rd^.deftype=floatdef) or (ld^.deftype=floatdef) then
             begin
-            { if one is a fixed, then convert to f32bit }
-              if ((rd^.deftype=floatdef) and (pfloatdef(rd)^.typ=f32bit)) or
-                 ((ld^.deftype=floatdef) and (pfloatdef(ld)^.typ=f32bit)) then
-               begin
-                 if not is_integer(rd) or (nodetype<>muln) then
-                   right:=gentypeconvnode(right,s32fixeddef);
-                 if not is_integer(ld) or (nodetype<>muln) then
-                   left:=gentypeconvnode(left,s32fixeddef);
-                 firstpass(left);
-                 firstpass(right);
-                 calcregisters(self,1,0,0);
-                 location.loc:=LOC_REGISTER;
-               end
-              else
-              { convert both to bestreal }
-                begin
-                  right:=gentypeconvnode(right,bestrealdef^);
-                  left:=gentypeconvnode(left,bestrealdef^);
-                  firstpass(left);
-                  firstpass(right);
-                  calcregisters(self,0,1,0);
-                  location.loc:=LOC_FPU;
-                end;
-              convdone:=true;
+              calcregisters(self,0,1,0);
+              location.loc:=LOC_FPU;
             end
-         else
 
          { pointer comperation and subtraction }
-           if (rd^.deftype=pointerdef) and (ld^.deftype=pointerdef) then
+         else if (ld^.deftype=pointerdef) then
             begin
               location.loc:=LOC_REGISTER;
-              { right:=gentypeconvnode(right,ld); }
-              { firstpass(right); }
               calcregisters(self,1,0,0);
-              case nodetype of
-                 equaln,unequaln :
-                   begin
-                      if is_equal(right.resulttype,voidpointerdef) then
-                        begin
-                           right:=gentypeconvnode(right,ld);
-                           firstpass(right);
-                        end
-                      else if is_equal(left.resulttype,voidpointerdef) then
-                        begin
-                           left:=gentypeconvnode(left,rd);
-                           firstpass(left);
-                        end
-                      else if not(is_equal(ld,rd)) then
-                        CGMessage(type_e_mismatch);
-                   end;
-                 ltn,lten,gtn,gten:
-                   begin
-                      if is_equal(right.resulttype,voidpointerdef) then
-                        begin
-                           right:=gentypeconvnode(right,ld);
-                           firstpass(right);
-                        end
-                      else if is_equal(left.resulttype,voidpointerdef) then
-                        begin
-                           left:=gentypeconvnode(left,rd);
-                           firstpass(left);
-                        end
-                      else if not(is_equal(ld,rd)) then
-                        CGMessage(type_e_mismatch);
-                      if not(cs_extsyntax in aktmoduleswitches) then
-                        CGMessage(type_e_mismatch);
-                   end;
-                 subn:
-                   begin
-                      if not(is_equal(ld,rd)) then
-                        CGMessage(type_e_mismatch);
-                      if not(cs_extsyntax in aktmoduleswitches) then
-                        CGMessage(type_e_mismatch);
-                      resulttype:=s32bitdef;
-                      exit;
-                   end;
-                 else CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
            end
-         else
-           if is_class_or_interface(rd) or is_class_or_interface(ld) then
+
+         else if is_class_or_interface(ld) then
             begin
               location.loc:=LOC_REGISTER;
-              if is_class_or_interface(rd) and is_class_or_interface(ld) then
-                begin
-                   if pobjectdef(rd)^.is_related(pobjectdef(ld)) then
-                     right:=gentypeconvnode(right,ld)
-                   else
-                     left:=gentypeconvnode(left,rd);
-                end
-              else if is_class_or_interface(rd) then
-                left:=gentypeconvnode(left,rd)
-              else
-                right:=gentypeconvnode(right,ld);
-
-              firstpass(right);
-              firstpass(left);
               calcregisters(self,1,0,0);
-              case nodetype of
-                 equaln,unequaln:
-                   ;
-                 else CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
             end
-         else
 
-           if (rd^.deftype=classrefdef) and (ld^.deftype=classrefdef) then
+         else if (ld^.deftype=classrefdef) then
             begin
               location.loc:=LOC_REGISTER;
-              if pobjectdef(pclassrefdef(rd)^.pointertype.def)^.is_related(pobjectdef(
-                pclassrefdef(ld)^.pointertype.def)) then
-                right:=gentypeconvnode(right,ld)
-              else
-                left:=gentypeconvnode(left,rd);
-              firstpass(right);
-              firstpass(left);
               calcregisters(self,1,0,0);
-              case nodetype of
-                 equaln,unequaln : ;
-                 else CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
-           end
-         else
-
-         { allows comperasion with nil pointer }
-           if is_class_or_interface(rd) then
-            begin
-              location.loc:=LOC_REGISTER;
-              left:=gentypeconvnode(left,rd);
-              firstpass(left);
-              calcregisters(self,1,0,0);
-              case nodetype of
-                 equaln,unequaln : ;
-                 else CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
             end
-         else
-
-           if is_class_or_interface(ld) then
-            begin
-              location.loc:=LOC_REGISTER;
-              right:=gentypeconvnode(right,ld);
-              firstpass(right);
-              calcregisters(self,1,0,0);
-              case nodetype of
-                 equaln,unequaln : ;
-                 else CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
-            end
-         else
-
-           if (rd^.deftype=classrefdef) then
-            begin
-              left:=gentypeconvnode(left,rd);
-              firstpass(left);
-              calcregisters(self,1,0,0);
-              case nodetype of
-                 equaln,unequaln : ;
-                 else CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
-            end
-         else
-
-           if (ld^.deftype=classrefdef) then
-            begin
-              right:=gentypeconvnode(right,ld);
-              firstpass(right);
-              calcregisters(self,1,0,0);
-              case nodetype of
-                equaln,unequaln : ;
-              else
-                CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
-           end
-         else
 
          { support procvar=nil,procvar<>nil }
-           if ((ld^.deftype=procvardef) and (rt=niln)) or
-              ((rd^.deftype=procvardef) and (lt=niln)) then
+         else if ((ld^.deftype=procvardef) and (rt=niln)) or
+                 ((rd^.deftype=procvardef) and (lt=niln)) then
             begin
               calcregisters(self,1,0,0);
               location.loc:=LOC_REGISTER;
-              case nodetype of
-                 equaln,unequaln : ;
-              else
-                CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
             end
-         else
 
 {$ifdef SUPPORT_MMX}
-           if (cs_mmx in aktlocalswitches) and is_mmx_able_array(ld) and
-             is_mmx_able_array(rd) and is_equal(ld,rd) then
+       { mmx support, this must be before the zero based array
+         check }
+         else if (cs_mmx in aktlocalswitches) and is_mmx_able_array(ld) and
+                 is_mmx_able_array(rd) then
             begin
-              firstpass(right);
-              firstpass(left);
-              case nodetype of
-                addn,subn,xorn,orn,andn:
-                  ;
-                { mul is a little bit restricted }
-                muln:
-                  if not(mmx_type(left.resulttype) in
-                    [mmxu16bit,mmxs16bit,mmxfixed16]) then
-                    CGMessage(type_e_mismatch);
-                else
-                  CGMessage(type_e_mismatch);
-              end;
               location.loc:=LOC_MMXREGISTER;
               calcregisters(self,0,0,1);
-              convdone:=true;
             end
-          else
 {$endif SUPPORT_MMX}
 
-           { this is a little bit dangerous, also the left type }
-           { should be checked! This broke the mmx support      }
-           if (rd^.deftype=pointerdef) or
-             is_zero_based_array(rd) then
+         else if (rd^.deftype=pointerdef) or (ld^.deftype=pointerdef) then
             begin
-              if is_zero_based_array(rd) then
-                begin
-                   resulttype:=new(ppointerdef,init(parraydef(rd)^.elementtype));
-                   right:=gentypeconvnode(right,resulttype);
-                   firstpass(right);
-                   rd := right.resulttype;
-                end;
               location.loc:=LOC_REGISTER;
-              left:=gentypeconvnode(left,s32bitdef);
-              firstpass(left);
               calcregisters(self,1,0,0);
-              if nodetype=addn then
-                begin
-                  if not(cs_extsyntax in aktmoduleswitches) or
-                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
-                    CGMessage(type_e_mismatch);
-                  { Dirty hack, to support multiple firstpasses (PFV) }
-                  if (resulttype=nil) and
-                     (rd^.deftype=pointerdef) and
-                     (ppointerdef(rd)^.pointertype.def^.size>1) then
-                   begin
-                     left:=caddnode.create(muln,left,genordinalconstnode(ppointerdef(rd)^.pointertype.def^.size,s32bitdef));
-                     firstpass(left);
-                   end;
-                end
-              else
-                CGMessage(type_e_mismatch);
-              convdone:=true;
             end
-         else
 
-           if (ld^.deftype=pointerdef) or
-             is_zero_based_array(ld) then
-            begin
-              if is_zero_based_array(ld) then
-                begin
-                   resulttype:=new(ppointerdef,init(parraydef(ld)^.elementtype));
-                   left:=gentypeconvnode(left,resulttype);
-                   firstpass(left);
-                   ld := left.resulttype;
-                end;
-              location.loc:=LOC_REGISTER;
-              right:=gentypeconvnode(right,s32bitdef);
-              firstpass(right);
-              calcregisters(self,1,0,0);
-              case nodetype of
-                addn,subn : begin
-                              if not(cs_extsyntax in aktmoduleswitches) or
-                                 (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
-                               CGMessage(type_e_mismatch);
-                              { Dirty hack, to support multiple firstpasses (PFV) }
-                              if (resulttype=nil) and
-                                 (ld^.deftype=pointerdef) and
-                                 (ppointerdef(ld)^.pointertype.def^.size>1) then
-                               begin
-                                 right:=caddnode.create(muln,right,
-                                   genordinalconstnode(ppointerdef(ld)^.pointertype.def^.size,s32bitdef));
-                                 firstpass(right);
-                               end;
-                            end;
-              else
-                CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
+         else  if (rd^.deftype=procvardef) and (ld^.deftype=procvardef) and is_equal(rd,ld) then
+           begin
+             calcregisters(self,1,0,0);
+             location.loc:=LOC_REGISTER;
            end
-         else
 
-           if (rd^.deftype=procvardef) and (ld^.deftype=procvardef) and is_equal(rd,ld) then
-            begin
+         else if (ld^.deftype=enumdef) then
+           begin
               calcregisters(self,1,0,0);
-              location.loc:=LOC_REGISTER;
-              case nodetype of
-                 equaln,unequaln : ;
-              else
-                CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
+           end
+
+{$ifdef SUPPORT_MMX}
+         else if (cs_mmx in aktlocalswitches) and
+                 is_mmx_able_array(ld) and
+                 is_mmx_able_array(rd) then
+            begin
+              location.loc:=LOC_MMXREGISTER;
+              calcregisters(self,0,0,1);
             end
-         else
-
-           if (ld^.deftype=enumdef) and (rd^.deftype=enumdef) then
-            begin
-              if not(is_equal(ld,rd)) then
-                begin
-                   right:=gentypeconvnode(right,ld);
-                   firstpass(right);
-                end;
-              calcregisters(self,1,0,0);
-              case nodetype of
-                 equaln,unequaln,
-                 ltn,lten,gtn,gten : ;
-                 else CGMessage(type_e_mismatch);
-              end;
-              convdone:=true;
-            end;
+{$endif SUPPORT_MMX}
 
          { the general solution is to convert to 32 bit int }
-         if not convdone then
+         else
            begin
-              { but an int/int gives real/real! }
-              if nodetype=slashn then
-                begin
-                   CGMessage(type_h_use_div_for_int);
-                   right:=gentypeconvnode(right,bestrealdef^);
-                   left:=gentypeconvnode(left,bestrealdef^);
-                   firstpass(left);
-                   firstpass(right);
-                   { maybe we need an integer register to save }
-                   { a reference                               }
-                   if ((left.location.loc<>LOC_FPU) or
-                       (right.location.loc<>LOC_FPU)) and
-                       (left.registers32=right.registers32) then
-                     calcregisters(self,1,1,0)
-                   else
-                     calcregisters(self,0,1,0);
-                   location.loc:=LOC_FPU;
-                end
-              else
-                begin
-                   right:=gentypeconvnode(right,s32bitdef);
-                   left:=gentypeconvnode(left,s32bitdef);
-                   firstpass(left);
-                   firstpass(right);
-                   calcregisters(self,1,0,0);
-                   location.loc:=LOC_REGISTER;
-                end;
+             calcregisters(self,1,0,0);
+             location.loc:=LOC_REGISTER;
            end;
 
-         if codegenerror then
-           exit;
-
-         { determines result type for comparions }
-         { here the is a problem with multiple passes }
-         { example length(s)+1 gets internal 'longint' type first }
-         { if it is a arg it is converted to 'LONGINT' }
-         { but a second first pass will reset this to 'longint' }
          case nodetype of
             ltn,lten,gtn,gten,equaln,unequaln:
               begin
-                 if (not assigned(resulttype)) or
-                   (resulttype^.deftype=stringdef) then
-                   resulttype:=booldef;
-                 if is_64bitint(left.resulttype) then
+                 if is_64bitint(left.resulttype.def) then
                    location.loc:=LOC_JUMP
                  else
                    location.loc:=LOC_FLAGS;
               end;
             xorn:
               begin
-                if not assigned(resulttype) then
-                  resulttype:=left.resulttype;
-                 location.loc:=LOC_REGISTER;
+                location.loc:=LOC_REGISTER;
               end;
-            addn:
-              begin
-                if not assigned(resulttype) then
-                 begin
-                 { for strings, return is always a 255 char string }
-                   if is_shortstring(left.resulttype) then
-                     resulttype:=cshortstringdef
-                   else
-                    resulttype:=left.resulttype;
-                 end;
-              end;
-            else
-              if not assigned(resulttype) then
-                resulttype:=left.resulttype;
          end;
       end;
 
@@ -1252,7 +1170,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2001-02-04 11:12:17  jonas
+  Revision 1.23  2001-04-02 21:20:30  peter
+    * resulttype rewrite
+
+  Revision 1.22  2001/02/04 11:12:17  jonas
     * fixed web bug 1377 & const pointer arithmtic
 
   Revision 1.21  2001/01/14 22:13:13  peter

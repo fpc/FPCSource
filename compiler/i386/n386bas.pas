@@ -152,7 +152,7 @@ unit n386bas;
          if not (nf_object_preserved in flags) then
           begin
 {$ifdef i386}
-            maybe_loadesi;
+            maybe_loadself;
 {$endif}
 {$ifdef m68k}
             maybe_loada5;
@@ -204,7 +204,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-12-25 00:07:32  peter
+  Revision 1.6  2001-04-02 21:20:36  peter
+    * resulttype rewrite
+
+  Revision 1.5  2000/12/25 00:07:32  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 

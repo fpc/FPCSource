@@ -29,6 +29,7 @@ uses node, nopt;
 
 type
   ti386addsstringcharoptnode = class(taddsstringcharoptnode)
+     function det_resulttype: tnode; override;
      function pass_1: tnode; override;
      procedure pass_2; override;
   end;
@@ -40,7 +41,7 @@ type
 
 implementation
 
-uses pass_1, types, htypechk, temp_gen, cpubase, cpuasm, cgai386, verbose,
+uses pass_1, types, htypechk, hcodegen, temp_gen, cpubase, cgai386,
      tgcpu, aasm, ncnv, ncon, pass_2, symdef;
 
 
@@ -48,28 +49,34 @@ uses pass_1, types, htypechk, temp_gen, cpubase, cpuasm, cgai386, verbose,
                              TI386ADDOPTNODE
 *****************************************************************************}
 
+function ti386addsstringcharoptnode.det_resulttype: tnode;
+begin
+  det_resulttype := nil;
+  resulttypepass(left);
+  resulttypepass(right);
+  if codegenerror then
+    exit;
+  { update the curmaxlen field (before converting to a string!) }
+  updatecurmaxlen;
+  if not is_shortstring(left.resulttype.def) then
+    inserttypeconv(left,cshortstringtype);
+  resulttype:=left.resulttype;
+end;
+
+
 function ti386addsstringcharoptnode.pass_1: tnode;
 begin
   pass_1 := nil;
-{ already done before it's created (JM)
   firstpass(left);
   firstpass(right);
   if codegenerror then
-    exit; }
-  { update the curmaxlen field (before converting to a string!) }
-  updatecurmaxlen;
-  if not is_shortstring(left.resulttype) then
-    begin
-      left := gentypeconvnode(left,cshortstringdef);
-      firstpass(left);
-    end;
+    exit;
   location.loc := LOC_MEM;
   if not is_constcharnode(right) then
     { it's not sure we need the register, but we can't know it here yet }
     calcregisters(self,2,0,0)
   else
     calcregisters(self,1,0,0);
-  resulttype := left.resulttype;
 end;
 
 
@@ -128,7 +135,7 @@ begin
   if istemp(left.location.reference) then
     checklength := curmaxlen = 255
   else
-    checklength := curmaxlen >= pstringdef(left.resulttype)^.len;
+    checklength := curmaxlen >= pstringdef(left.resulttype.def)^.len;
   if checklength then
     begin
       { is it already maximal? }
@@ -136,7 +143,7 @@ begin
       if istemp(left.location.reference) then
         emit_const_reg(A_CMP,S_L,255,lengthreg)
       else
-        emit_const_reg(A_CMP,S_L,pstringdef(left.resulttype)^.len,lengthreg);
+        emit_const_reg(A_CMP,S_L,pstringdef(left.resulttype.def)^.len,lengthreg);
       emitjmp(C_E,l);
     end;
 
@@ -229,7 +236,7 @@ begin
   saveregvars(regstopush);
   emitcall('FPC_SHORTSTR_CONCAT');
   ungetiftemp(right.location.reference);
-  maybe_loadesi;
+  maybe_loadself;
   popusedregisters(pushedregs);
   set_location(location,left.location);
 end;
@@ -241,7 +248,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-01-06 19:12:31  jonas
+  Revision 1.3  2001-04-02 21:20:38  peter
+    * resulttype rewrite
+
+  Revision 1.2  2001/01/06 19:12:31  jonas
     * fixed IE 10 (but code is less efficient now :( )
 
   Revision 1.1  2001/01/04 11:24:19  jonas
