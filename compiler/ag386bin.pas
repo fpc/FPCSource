@@ -107,6 +107,7 @@ unit ag386bin;
          begin
            hp:=nil;
            s:=StrPas(P);
+           i:=-2; {needed below (PM) }
          end;
       { When in pass 1 then only alloc and leave }
         if currpass=1 then
@@ -125,6 +126,7 @@ unit ag386bin;
         Val(Copy(s,1,j-1),nidx,code);
         if code<>0 then
          internalerror(33002);
+        i:=i+2+j;
         Delete(s,1,j);
         j:=pos(',',s);
         if (j=0) then
@@ -132,6 +134,7 @@ unit ag386bin;
         Val(Copy(s,1,j-1),nother,code);
         if code<>0 then
          internalerror(33004);
+        i:=i+j;
         Delete(s,1,j);
         j:=pos(',',s);
         if j=0 then
@@ -143,15 +146,16 @@ unit ag386bin;
         if code<>0 then
           internalerror(33005);
         if ofs=0 then
-          Delete(s,1,j);
-        if ofs=0 then
           begin
+            Delete(s,1,j);
+            i:=i+j;
             Val(s,ofs,code);
             if code=0 then
               reloc:=false
             else
               begin
                 ofs:=0;
+                s:=strpas(@p[i]);
                 { handle asmsymbol or
                     asmsymbol - asmsymbol }
                 j:=pos(' ',s);
@@ -171,9 +175,16 @@ unit ag386bin;
                   end;
                 if j<256 then
                   begin
-                    delete(s,1,j);
-                    while (s<>'') and (s[1]=' ') do
-                      delete(s,1,1);
+                    i:=i+j;
+                    s:=strpas(@p[i]);
+                    if (s<>'') and (s[1]=' ') then
+                      begin
+                         j:=0;
+                         while (s[j+1]=' ') do
+                           inc(j);
+                         i:=i+j;
+                         s:=strpas(@p[i]);
+                      end;
                     ps:=getasmsymbol(s);
                     if not assigned(ps) then
                       internalerror(33007)
@@ -801,7 +812,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.12  1999-05-27 19:43:59  peter
+  Revision 1.13  1999-06-01 10:24:09  pierre
+   * ts010021.pp problem solved for ag386bin !
+
+  Revision 1.12  1999/05/27 19:43:59  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
