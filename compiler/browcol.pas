@@ -397,7 +397,8 @@ begin
       RightS:=Upper(RightP^.GetName);
       if copy(MidS,1,length(UpS))=UpS then
         begin
-          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
+          Idx:=Mid;
+          FoundS:=MidS;
         end;
 {      else}
         if UpS<MidS then
@@ -487,7 +488,8 @@ begin
       RightS:=Upper(RightP^.GetName);
       if copy(MidS,1,length(UpS))=UpS then
         begin
-          Idx:=Mid; FoundS:=copy(MidS,1,length(S));
+          Idx:=Mid;
+          FoundS:=MidS;
         end;
 {      else}
         if UpS<MidS then
@@ -1697,7 +1699,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  1999-11-06 14:34:17  peter
+  Revision 1.27  1999-11-10 00:42:42  pierre
+    * LookUp function now returns the complete name in browcol
+      and fpsymbol only yakes a part of LoopUpStr
+
+  Revision 1.26  1999/11/06 14:34:17  peter
     * truncated log to 20 revs
 
   Revision 1.25  1999/10/26 12:30:40  peter

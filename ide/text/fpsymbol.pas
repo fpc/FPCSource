@@ -523,10 +523,11 @@ begin
 end;
 
 procedure TSymbolScopeView.LookUp(S: string);
-var Idx: Sw_integer;
+var Idx,Slength: Sw_integer;
     NS: string;
 begin
   NS:=LookUpStr;
+  Slength:=Length(S);
   if (Symbols=nil) or (S='') then NS:='' else
     begin
       S:=Symbols^.LookUp(S,Idx);
@@ -536,7 +537,7 @@ begin
           FocusItem(Idx);
         end;
     end;
-  LookUpStr:=NS;
+  LookUpStr:=Copy(NS,1,Slength);
   SetState(sfCursorVis,LookUpStr<>'');
   DrawView;
 end;
@@ -1160,7 +1161,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.19  1999-09-16 14:34:59  pierre
+  Revision 1.20  1999-11-10 00:42:42  pierre
+    * LookUp function now returns the complete name in browcol
+      and fpsymbol only yakes a part of LoopUpStr
+
+  Revision 1.19  1999/09/16 14:34:59  pierre
     + TBreakpoint and TWatch registering
     + WatchesCollection and BreakpointsCollection stored in desk file
     * Syntax highlighting was broken
