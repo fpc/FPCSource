@@ -64,13 +64,23 @@ unit compiler;
      {$fatal cannot define two CPU switches}
    {$endif}
    {$endif}
-    {$ifdef SPARC}
-    {$ifndef CPUOK}
-    {$DEFINE CPUOK}
-    {$else}
-      {$fatal cannot define two CPU switches}
-    {$endif}
-    {$endif}
+   
+   {$ifdef SPARC}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+
+   {$ifdef x86_64}
+   {$ifndef CPUOK}
+   {$DEFINE CPUOK}
+   {$else}
+     {$fatal cannot define two CPU switches}
+   {$endif}
+   {$endif}
+
 
    {$ifndef CPUOK}
    {$fatal One of the switches I386, iA64, Alpha, PowerPC or M68K must be defined}
@@ -337,7 +347,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2002-07-01 18:46:22  peter
+  Revision 1.31  2002-07-04 19:00:23  florian
+    + x86_64 define added
+
+  Revision 1.30  2002/07/01 18:46:22  peter
     * internal linker
     * reorganized aasm layer
 
