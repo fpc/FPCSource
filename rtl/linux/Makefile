@@ -110,6 +110,9 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 OBJPASDIR=$(RTL)/objpas
 
+# Where to place the resuts
+TARGETDIR=.
+
 # Get some defaults for Programs and OSes.
 # This will set the following variables :
 # inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
@@ -140,8 +143,10 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # Define Linux Units
 SYSTEMPPU=syslinux$(PPUEXT)
 OBJECTS=strings linux \
-	dos crt objects printer \
-	getopts heaptrc errors sockets ports graph objpas sysutils
+	dos crt objects printer ports \
+	objpas sysutils typinfo \
+	cpu mmx getopts heaptrc ports \
+	errors sockets graph
 
 # Which units may be placed in the shared lib file
 SHAREDLIBFILES=syslinux strings linux objpas sysutils math \
@@ -198,7 +203,7 @@ install : all
 clean :
 	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) $(PPAS) link.res log
 	-$(DELTREE) *$(SMARTEXT)
-	make -C $(OBJPASDIR) clean
+
 
 #####################################################################
 # Files
@@ -228,9 +233,7 @@ $(SYSTEMPPU) : syslinux.pp $(SYSLINUXDEPS) $(SYSDEPS)
 	$(COMPILER) -Us -Sg syslinux.pp $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/strings.pp .
-	$(COMPILER) strings $(REDIR)
-	$(DEL) strings.pp
+	$(COMPILER) $(PROCINC)/strings.pp $(REDIR)
 
 linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
 		 syscalls.inc systypes.inc sysconst.inc $(SYSTEMPPU)
@@ -240,17 +243,7 @@ linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(COMPILER) -S2 -I$(OBJPASDIR) objpas $(REDIR)
-	$(DEL) objpas.pp
-
-SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
-
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
-	$(DEL) sysutils.pp
+include $(OBJPASDIR)/makefile.op
 
 #
 # System Dependent Units
@@ -268,38 +261,38 @@ errors$(PPUEXT) : errors.pp strings$(PPUEXT) $(SYSTEMPPU)
 #
 
 dos$(PPUEXT) : $(DOSDEPS) $(SYSTEMPPU)
-	$(COMPILER) dos $(REDIR)
+	$(COMPILER) dos.pp $(REDIR)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
-	$(COMPILER) crt $(REDIR)
+	$(COMPILER) crt.pp $(REDIR)
 
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
-	$(COPY) $(INC)/objects.pp .
-	$(COMPILER) objects $(REDIR)
-	$(DEL) objects.pp
+	$(COMPILER) $(INC)/objects.pp $(REDIR)
 
 printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
-	$(COMPILER) printer $(REDIR)
+	$(COMPILER) printer.pp $(REDIR)
 
 graph$(PPUEXT) : graph.pp linux$(PPUEXT) objects$(PPUEXT)
-	$(COMPILER) graph $(REDIR)
+	$(COMPILER) graph.pp $(REDIR)
 
 ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
-	$(COMPILER) ports $(REDIR)
+	$(COMPILER) ports.pp $(REDIR)
 
 #
 # Other RTL Units
 #
 
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
+	$(COMPILER) $(PROCINC)/cpu.pp $(REDIR)
+
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
+	$(COMPILER) $(PROCINC)/mmx.pp $(REDIR)
+
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
-	$(COPY) $(INC)/getopts.pp .
-	$(COMPILER) getopts $(REDIR)
-	$(DEL) getopts.pp
+	$(COMPILER) $(INC)/getopts.pp $(REDIR)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
-	$(COPY) $(INC)/heaptrc.pp .
-	$(COMPILER) heaptrc $(REDIR)
-	$(DEL) heaptrc.pp
+	$(COMPILER) $(INC)/heaptrc $(REDIR)
 
 
 #####################################################################
@@ -343,7 +336,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.11  1998-12-11 00:10:50  peter
+# Revision 1.12  1998-12-21 13:07:05  peter
+#   * use -FE
+#
+# Revision 1.11  1998/12/11 00:10:50  peter
 #   * use $mode directive
 #
 # Revision 1.10  1998/12/07 16:38:48  michael

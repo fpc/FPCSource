@@ -58,6 +58,9 @@ INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU)
 OBJPASDIR=$(RTL)/objpas
 
+# Where are the results placed
+TARGETDIR=.
+
 
 #####################################################################
 # Include default makefile
@@ -73,9 +76,10 @@ include $(CFG)/makefile.cfg
 # Define Win32 Units
 SYSTEMPPU=syswin32$(PPUEXT)
 LOADERS=wprt0 wdllprt0
-OBJECTS=strings dos \
-	windows objects \
-	cpu mmx getopts heaptrc objpas sysutils
+OBJECTS=strings windows \
+	dos objects \
+	objpas sysutils typinfo \
+	cpu mmx getopts heaptrc
 
 # Files used by windows.pp
 WINDOWS_FILES=base errors defines \
@@ -152,25 +156,13 @@ $(SYSTEMPPU) : syswin32.pp win32.inc $(SYSDEPS)
 	$(COMPILER) -Us -Sg syswin32.pp $(REDIR)
 
 strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/strings.pp .
-	$(COMPILER) strings $(REDIR)
-	$(DEL) strings.pp
+	$(COMPILER) $(PROCINC)/strings.pp $(REDIR)
 
 #
 # Delphi Object Model
 #
 
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(COMPILER) -S2 -I$(OBJPASDIR) objpas $(REDIR)
-	$(DEL) objpas.pp
-
-SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
-
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
-	$(DEL) sysutils.pp
+include $(OBJPASDIR)/makefile.op
 
 
 #
@@ -194,36 +186,26 @@ windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMPPU)
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc $(SYSTEMPPU)
-	$(COMPILER) dos $(REDIR)
+	$(COMPILER) dos.pp $(REDIR)
 
 objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
-	 $(COPY) $(INC)/objects.pp .
-	 $(COMPILER) objects $(REDIR)
-	 $(DEL) objects.pp
+	 $(COMPILER) $(INC)/objects.pp $(REDIR)
 
 #
 # Other RTL Units
 #
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/cpu.pp .
-	$(COMPILER) cpu.pp $(REDIR)
-	$(DEL) cpu.pp
+	$(COMPILER) $(PROCINC)/cpu.pp $(REDIR)
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
-	$(COPY) $(PROCINC)/mmx.pp .
-	$(COMPILER) mmx.pp $(REDIR)
-	$(DEL) mmx.pp
+	$(COMPILER) $(PROCINC)/mmx.pp $(REDIR)
 
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
-	$(COPY) $(INC)/getopts.pp .
-	$(COMPILER) getopts.pp $(REDIR)
-	$(DEL) getopts.pp
+	$(COMPILER) $(INC)/getopts.pp $(REDIR)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
-	$(COPY) $(INC)/heaptrc.pp .
-	$(COMPILER) heaptrc $(REDIR)
-	$(DEL) heaptrc.pp
+	$(COMPILER) $(INC)/heaptrc $(REDIR)
 
 
 #####################################################################
@@ -397,7 +379,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.14  1998-11-30 13:13:40  pierre
+# Revision 1.15  1998-12-21 13:07:07  peter
+#   * use -FE
+#
+# Revision 1.14  1998/11/30 13:13:40  pierre
 #  * needs asw to link correctly wprt0 or wdllprt0 file
 #
 # Revision 1.13  1998/11/30 09:16:57  pierre

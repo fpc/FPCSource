@@ -664,7 +664,10 @@ end;
 
 {
     $Log$
-    Revision 1.6  1998-11-02 12:52:46  michael
+    Revision 1.7  1998-12-21 13:07:06  peter
+      * use -FE
+
+    Revision 1.6  1998/11/02 12:52:46  michael
     Minimum/maximum functions
 
     Revision 1.5  1998/09/24 23:45:26  peter

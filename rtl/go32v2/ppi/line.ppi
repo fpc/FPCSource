@@ -1,0 +1,702 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1993,97 by the Free Pascal development team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+procedure DrawPattern(x1,x2,y:integer);
+begin
+  if BytesPerPixel=3 then
+   { big problem one point can be across boundary !! }
+   begin
+     if ((Y_Array[y]+X_array[x1]) and winlomask)+3 > winlomask then
+       begin
+         { special point !! }
+         { not implemented yet !! }
+         inc(x1);
+       end;
+   end;
+
+  asm
+    movswl x1,%ebx
+    movswl x2,%ecx
+    movswl y,%edx
+    subl   %ebx,%ecx
+    incl   %ecx
+    movl   _X_ARRAY(,%ebx,4),%eax
+    movl   _Y_ARRAY(,%edx,4),%edi       // { Offset in %edi }
+    addl   %eax,%edi
+    andl   _WINLOMASK,%edi
+    andl   $0x7,%edx                    // { y and $7                }
+    shll   $0x5,%edx                    // { y * 8 * sizeof(longint) }
+    leal   _PATTERNBUFFER,%esi          //
+    addl   %edx,%esi                    // { Offset in Patternbuffer }
+    movl   $0x7,%edx
+    addl   _WBUFFER,%edi
+    pushw  %es
+    movw   _SEG_WRITE,%ax
+    movw   %ax,%es
+    testw  $1,_AKTWRITEMODE
+    jnz    .Lpl_xord
+ .Lpl_movd:
+    cmpw   $2,_BYTESPERPIXEL
+    je     .Lpl_movdw
+    jb     .Lpl_movdb
+
+{$ifdef TEST_24BPP}
+    cmpw   $3,_BYTESPERPIXEL
+    je     .Lpl_movd24BPP
+ .align 4,0x90
+ .Lpl_movd32BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    movl   %eax,%es:(%edi)
+    addl   $4,%edi
+    { should not be necessary !! }
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_movd32BPP
+    jz     .Lpl_d_exit
+ .align 4,0x90
+ .Lpl_movd24BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    andl   $0x00FFFFFF,%eax
+    movl   %es:(%edi),%edx
+    andl   $0xFF000000,%edx
+    orl    %edx,%eax
+    movl   %eax,%es:(%edi)
+    addl   $3,%edi
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_movd24BPP
+    jz     .Lpl_d_exit
+{$endif TEST_24BPP}
+ .align 4,0x90
+ .Lpl_movdb:
+    andl   %edx,%ebx
+    movb   (%esi,%ebx,4),%al
+    movb   %al,%es:(%edi)
+    incl   %edi
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_movdb
+    jz     .Lpl_d_exit
+
+ .align 4,0x90
+ .Lpl_movdw:
+    andl   %edx,%ebx
+    movw   (%esi,%ebx,4),%ax
+    movw   %ax,%es:(%edi)
+    addl   $2,%edi
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_movdw
+    jz     .Lpl_d_exit
+ .Lpl_xord:
+    cmpw   $2,_BYTESPERPIXEL
+    je     .Lpl_xordw
+    jb     .Lpl_xordb
+
+{$ifdef TEST_24BPP}
+    cmpw   $3,_BYTESPERPIXEL
+    je     .Lpl_xord24BPP
+ .align 4,0x90
+ .Lpl_xord32BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    movl   %es:(%edi),%edx
+    xorl   %edx,%eax
+    movl   %eax,%es:(%edi)
+    addl   $4,%edi
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_xord32BPP
+    jz     .Lpl_d_exit
+ .align 4,0x90
+ .Lpl_xord24BPP:
+    andl   $7,%ebx
+    movl   (%esi,%ebx,4),%eax
+    andl   $0x00FFFFFF,%eax
+    movl   %es:(%edi),%edx
+    xorl   %edx,%eax
+    movl   %eax,%es:(%edi)
+    addl   $3,%edi
+    cmpl   _WINLOMASKMINUSPIXELSIZE,%edi
+    ja     .Lpl_d_exit
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_xord24BPP
+    jz     .Lpl_d_exit
+{$endif TEST_24BPP}
+ .align 4,0x90
+ .Lpl_xordb:
+    andl   %edx,%ebx
+    movb   (%esi,%ebx,4),%al
+    xorb   %al,%es:(%edi)
+    incl   %edi
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_xordb
+    jz     .Lpl_d_exit
+ .align 4,0x90
+ .Lpl_xordw:
+    andl   %edx,%ebx
+    movw   (%esi,%ebx,4),%ax
+    xorw   %ax,%es:(%edi)
+    addl   $2,%edi
+    incl   %ebx
+    decl   %ecx
+    jnz    .Lpl_xordw
+ .Lpl_d_exit:
+    popw   %es
+ .Lpl_exit:
+ end;
+end;
+
+procedure PatternLine(x1,x2,y:integer);
+var bank1,bank2    : longint;
+    ofs1,ofs2      : longint;
+    diff           : integer;
+    viewport       : ViewPortType;
+begin
+  x1:= x1 + aktviewport.x1 ;
+  y:=  y +  aktviewport.y1 ;
+  x2:= x2 + aktviewport.x1 ;
+
+  if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
+  if (y < viewport.y1) or (y > viewport.y2) then exit;
+  if x1 > x2 then begin diff:=x2; x2:=x1; x1:=diff; end;
+  if (x1> viewport.x2) or (x2< viewport.x1) then exit;
+  if x1 < viewport.x1 then x1:=viewport.x1;
+  if x2 > viewport.x2 then x2:=viewport.x2;
+  ofs1:= Y_ARRAY[y];
+  ofs2:= ofs1 + X_ARRAY[x2];
+  ofs1:= ofs1 + X_ARRAY[x1];
+  bank1:=ofs1 shr winshift;
+  bank2:=ofs2 shr winshift;
+  if bank1 <> A_BANK then
+  begin
+    Switchbank(bank1);
+  end;
+  if bank1 <> bank2 then begin
+     diff:=(((bank2 shl winshift)-ofs1) div BytesPerPixel)+x1;
+     DrawPattern(x1,diff-1,y);
+     Switchbank(bank2);
+     DrawPattern(diff,x2,y);
+  end else DrawPattern(x1,x2,y);
+end;
+
+
+procedure HorizontalLine(x1,x2,y:integer);
+{ without bankswitching }
+{ nothing for 24BPP yet (PM) }
+{$ifdef TEST_24BPP}
+var i,j : longint;
+{$endif TEST_24BPP}
+begin
+{$ifdef TEST_24BPP}
+  if BytesPerPixel=3 then
+   { big problem one point can be across boundary !! }
+   begin
+     if ((Y_Array[y]+X_array[x1]) and winlomask)+3 > winlomask then
+       begin
+         { special point !! }
+         { not implemented yet !! }
+         inc(x1);
+       end;
+     j:=Y_array[y]+X_array[x1];
+     for i:=x1 to x2 do
+       begin
+          if aktwritemode=normalput then
+            pixel(j)
+          else
+            begin
+              putpixeli(i,y,aktcolor xor getpixel(i,y));
+            end;
+         inc(j,3);
+       end;
+      exit;
+   end;
+{$endif TEST_24BPP}
+
+  asm
+    movw   %es,%dx
+    movzwl y,%ebx
+    movzwl x1,%eax
+    movzwl x2,%ecx
+    incl   %ecx
+    movl   _X_ARRAY(,%eax,4),%eax
+    movl   _X_ARRAY(,%ecx,4),%ecx
+    movl   _Y_ARRAY(,%ebx,4),%edi       // { Offset in %edi }
+    subl   %eax,%ecx                    // { Counter }
+    addl   %eax,%edi
+    andl   _WINLOMASK,%edi
+    movl   _AKTCOLOR,%eax
+    movzwl _AKTWRITEMODE,%esi
+    addl   _WBUFFER,%edi
+    movw   _SEG_WRITE,%bx
+    movw   %bx,%es
+    testl  %esi,%esi                    // { Writemode ?       }
+    jnz    .Lhl_xor
+    shrl   %ecx
+    jnc    .L_movw
+    stosb
+ .L_movw:
+    shrl   %ecx
+    jnc    .L_movd
+    stosw
+ .L_movd:
+    rep
+    stosl
+    jmp    .Lhl_exit
+
+ .Lhl_xor:   // -------------------------------------------------
+
+    movl   $4,%esi
+    shrl   %ecx
+    jnc    .Lhl_xorw
+    xorb   %al,%es:(%edi)
+    incl   %edi
+ .Lhl_xorw:
+    shrl   %ecx
+    jnc    .Lhl_xord
+    xorw   %ax,%es:(%edi)
+    addl   $2,%edi
+ .Lhl_xord:
+    jecxz  .Lhl_exit
+ .align 4,0x90
+ .Lhl_xorloop:
+    xorl   %eax,%es:(%edi)
+    addl   %esi,%edi
+    decl   %ecx
+    jnz    .Lhl_xorloop
+ .Lhl_exit:
+    movw   %dx,%es
+ end;
+end;
+
+procedure Line(x1,y1,x2,y2: integer);
+var dx,dy,d        : longint;
+    i,j            : integer;
+    ofs,ofs2       : longint;
+    i1,i2,ix       : longint;
+    x,y            : Integer;
+    flag,dontcheck : Boolean;
+    viewport       : ViewPortType;
+begin
+
+  x1:= x1 + aktviewport.x1 ;
+  y1:= y1 + aktviewport.y1 ;
+  x2:= x2 + aktviewport.x1 ;
+  y2:= y2 + aktviewport.y1 ;
+  if aktviewport.clip then viewport:=aktviewport else viewport:=aktscreen;
+
+  { ************ Horizontalline ************** }
+
+  if y1=y2 then begin
+    if x1>x2 then begin d:=x1; x1:=x2; x2:=d; end;
+    if aktlineinfo.thickness=3 then y1:=y1-1;
+    i:=0;
+    if x1 < viewport.x1 then x1:=viewport.x1;
+    if x2 > viewport.x2 then x2:=viewport.x2;
+    if (y1 > viewport.y2) or (x1 > x2 ) then exit;
+    repeat
+      if (y1 >= viewport.y1) and (y1 <=viewport.y2)
+      then begin
+        ofs:= Y_ARRAY[y1];
+        ofs2:=ofs+X_ARRAY[x2];
+        ofs:= ofs+X_ARRAY[x1];
+        i1:=ofs shr winshift; i2:=ofs2 shr winshift;
+        if i1 <> a_bank then
+          begin
+            switchbank(i1);
+          end;
+        if i1=i2 then Horizontalline(x1,x2,y1)
+          else
+            begin
+            dx:=((i2 shl winshift)-ofs) div BytesPerPixel;
+            horizontalline(x1,x1+dx-1,y1);
+            Switchbank(i2);
+            horizontalline(dx+x1,x2,y1);
+          end;
+      end;
+      i:=i+1; y1:=y1+1;
+    until i=aktlineinfo.thickness;
+    exit;
+  end;
+
+  { *********** End Horizontalline *********** }
+
+  if y1 > y2 then begin
+    x:=x1; x1:=x2; x2:=x;
+    y:=y1; y1:=y2; y2:=y;
+  end;
+
+  { ************** Verticalline ************** }
+
+  if x1=x2 then
+  begin
+    if y1 < viewport.y1 then y1:=viewport.y1;
+    if y2 > viewport.y2 then y2:=viewport.y2;
+    if ( y1 > y2) or (x1 < viewport.x1) or (x1 > viewport.x2) then exit;
+    ofs:= Y_Array[y2]+X_Array[x1];
+    ofs2:=Y_Array[y1]+X_Array[x1];
+    while ofs >= ofs2 do begin
+       pixel(ofs);
+       if aktlineinfo.thickness=3 then begin
+         if x1>viewport.x1 then pixel(ofs-1);
+         if x1<viewport.x2 then pixel(ofs+1);
+       end;
+       ofs:=ofs-BytesPerLine;
+    end;
+    exit;
+  end;
+
+  { ************ End Verticalline ************ }
+
+  dy:=y2-y1;
+  dx:=abs(x2-x1);
+  if x1>x2 then ix:=-1 else ix:= 1;
+  if dx<dy then begin d:=dx; dx:=dy; dy:=d; Flag:=true end else Flag:=false;
+  i1:=dy shl 1;
+   d:=i1 - dx;
+  i2:=(dx shl 1)-i1;
+
+  { for 24BPP use slow checking code,easy and poor implementation ! PM }
+dontcheck:=(y1>=viewport.y1) and (y2<=viewport.y2) and
+           (x1>=viewport.x1) and (x1<=viewport.x2) and
+           (x2>=viewport.x1) and (x2<=viewport.x2) and
+           (BytesPerPixel<3);
+
+if aktlineinfo.thickness=3 then
+
+    { *************************************** }
+    { **** Thickness=3 with rangechecking *** }
+    { *************************************** }
+
+begin
+  repeat
+    for i:=y1-1 to y1+1 do
+      for j:=x1-1 to x1+1 do
+      if (i>=viewport.y1) and (j>=viewport.x1) and
+         (j<=viewport.x2) and (i<=viewport.y2) then pixel(X_ARRAY[j]+Y_ARRAY[i]);
+    if d < 0
+    then begin
+      if Flag then y1:=y1+1 else x1:=x1+ix;
+      d:=d+i1;
+    end
+    else begin
+      d:=d-i2; x1:=x1+ix; y1:=y1+1;
+    end;
+  dx:=dx-1;
+  until ( dx=0 ) or ( y1 > viewport.y2 )
+end else
+  if dontcheck then
+
+    { *************************************** }
+    { ** Thickness=1 without rangechecking ** }
+    { *************************************** }
+
+    begin
+    asm
+     pushw  %gs
+     movw   _SEG_WRITE,%ax
+     movw   %ax,%gs                   // { ScreenSelector }
+
+  // selfmodify to speedup Code
+     xorl   %ebx,%ebx
+     movl   ix,%eax
+     testl  %eax,%eax
+     jns    line1_inc
+     movl   $0x08,%ebx
+   line1_inc:
+     addl   $0x43,%ebx                // Opcode incl %ebx
+     movb   %bl,inc_dec1
+     movb   %bl,inc_dec2
+     movl   i1,%eax
+     movl   %eax,i1long1
+     movl   %eax,i1long2
+     movl   i2,%eax
+     movl   %eax,i2long
+     movl   _WBUFFER,%eax
+     movl   %eax,.Lwbuffer
+     movzbl _WINSHIFT,%eax
+     movb   %al,.Lwinshift
+     movl   _WINLOMASK,%eax
+     movl   %eax,.Lwinlomask
+     movb   $0x90,operandprefix       // Opcade nop
+     testw  $1,_AKTWRITEMODE
+     jnz    line1XOR
+     movb   $0x88,linemode            // Opcode movb
+     jmp    linedepth
+    line1XOR:
+      movb   $0x30,linemode           // Opcode xorb
+    linedepth:
+      testw  $1,_BYTESPERPIXEL
+      jnz    is_byte
+      movb   $0x66,operandprefix      // Prefix for operandsize
+      incb   linemode                 // incr. for wordacces
+    is_byte:
+      movl   dx,%ecx
+      movl   _AKTCOLOR,%eax
+      movzwl y1,%esi
+      movzwl x1,%ebx
+      movswl d,%edx
+   //----------------//
+   //  Linemainloop  //
+   //----------------//
+.align 4,0x90
+line1_loop:
+      pushl  %ecx
+      pushl  %eax
+      movl   _Y_ARRAY(,%esi,4),%edi
+      addl   _X_ARRAY(,%ebx,4),%edi
+      movl   %edi,%eax
+      .byte 0x81,0xe7                 // andl ..,%edi
+    .Lwinlomask:                        //
+      .long 0x88888888                // _WINLOMASK
+      .byte 0xc1,0xe8                 // shrl ..,%eax
+    .Lwinshift:                         //
+      .byte 0x88                      // _WINSHIFT
+
+      pushl  %edi
+      cmpl   _A_BANK,%eax
+      je     line1_dontswitch
+
+      pushl  %ebx
+      pushl  %edx
+      pushl  %esi
+      pushl  %eax
+      movl   _BANKSWITCHPTR,%eax
+      call   %eax
+      popl   %esi
+      popl   %edx
+      popl   %ebx
+.align 4,0x90
+line1_dontswitch:
+      popl   %edi
+      popl   %eax
+      popl   %ecx
+     .byte   0x81,0xc7                 // addl ..,%edi
+    .Lwbuffer:                           //
+     .long   0x88888888                // _WBUFFER
+    operandprefix:
+     .byte   0x90                      // Operandprefix (nop for Byte,$66 for Word)
+     .byte   0x65                      // Segmentprefix %gs:
+    linemode:
+     .byte   0x88,0x07                 // modified OpCode<movb,xorb...>,%edi
+      decl   %ecx
+      jz     line1_end
+      testl  %edx,%edx                 // { if d < 0 then }
+      jns    is_positive
+      testb  $1,flag                   // { if flag then }
+      jz     no_flag
+      incl   %esi                      // { y1:=y1+1  }
+     .byte   0x81,0xc2
+    i1long1:
+     .long   0x88888888                // { d:=d+i1   }
+      jmp    line1_loop
+.align 4,0x90
+no_flag:
+    inc_dec1:
+     .byte   0x88                      // { x1:=x1+ix }
+     .byte   0x81,0xc2
+    i1long2:
+     .long   0x88888888                // { d:=d+i1   }
+      jmp    line1_loop
+.align 4,0x90
+is_positive:
+    inc_dec2:
+     .byte   0x88                      // { x1:=x1+ix }
+      incl   %esi                      // { y1:=y1+1  }
+     .byte   0x81,0xea
+    i2long:
+     .long   0x88888888                // { d:=d-i2   }
+      jmp    line1_loop
+line1_end:
+      popw   %gs
+    end;
+  end else
+
+    { *************************************** }
+    { **** Thickness=1 with rangechecking *** }
+    { *************************************** }
+
+    begin
+    repeat
+      if y1 > viewport.y2 then exit;
+      if (y1>=viewport.y1) and (x1>=viewport.x1) and
+         (x1<=viewport.x2) then pixel(Y_ARRAY[y1]+X_ARRAY[x1]);
+      if d < 0
+      then begin
+        if Flag then y1:=y1+1 else x1:=x1+ix;
+        d:=d+i1;
+      end
+      else begin
+        d:=d-i2; x1:=x1+ix; y1:=y1+1;
+      end;
+    dx:=dx-1;
+    until  dx=0 ;
+  end;
+end;
+
+procedure MoveTo(x,y : integer);
+begin
+  _graphresult:=grOk;
+  if not isgraphmode then
+     begin
+       _graphresult:=grnoinitgraph;
+       exit;
+     end;
+  curx:=x;
+  cury:=y;
+end;
+
+procedure MoveRel(dx,dy : integer);
+begin
+  _graphresult:=grOk;
+  if not isgraphmode then
+     begin
+       _graphresult:=grnoinitgraph;
+       exit;
+     end;
+  curx:=curx+dx;
+  cury:=cury+dy;
+end;
+
+procedure LineTo(x,y : integer);
+begin
+  _graphresult:=grOk;
+  if not isgraphmode then
+     begin
+       _graphresult:=grnoinitgraph;
+       exit;
+     end;
+  Line(curx,cury,x,y);
+  MoveTo(x,y);
+end;
+
+procedure LineRel(dx,dy : integer);
+begin
+  _graphresult:=grOk;
+  if not isgraphmode then
+     begin
+       _graphresult:=grnoinitgraph;
+     exit;
+   end;
+  Line(curx,cury,curx+dx,cury+dy);
+  curx:=curx+dx;
+  cury:=cury+dy;
+end;
+
+procedure SetLineStyle(LineStyle : word;pattern : word;thickness : word);
+const
+  linepatterns : array[0..3] of word =
+  ($ffff,$aaaa,$fafa,$ffff);
+
+begin
+  if (linestyle<0) or (linestyle>4) or
+     ((thickness<>1) and (thickness<>3)) then
+     begin
+       _graphresult:=grerror;
+       exit;
+     end;
+     aktlineinfo.linestyle:=linestyle;
+     if aktlineinfo.linestyle=UserBitLn then
+       aktlineinfo.pattern:=pattern
+     else
+       aktlineinfo.pattern:=linepatterns[aktlineinfo.linestyle];
+     aktlineinfo.thickness:=thickness;
+end;
+
+    procedure DrawPoly(points : word;var polypoints);
+
+      type
+         ppointtype = ^pointtype;
+
+      var
+         i : longint;
+
+      begin
+         _graphresult:=grOk;
+         if not isgraphmode then
+           begin
+              _graphresult:=grnoinitgraph;
+              exit;
+           end;
+         line(ppointtype(@polypoints)[points-1].x,
+              ppointtype(@polypoints)[points-1].y,
+              ppointtype(@polypoints)[0].x,
+              ppointtype(@polypoints)[0].y);
+         for i:=0 to points-2 do
+           line(ppointtype(@polypoints)[i].x,
+                ppointtype(@polypoints)[i].y,
+                ppointtype(@polypoints)[i+1].x,
+                ppointtype(@polypoints)[i+1].y);
+      end;
+
+{
+  $Log$
+  Revision 1.1  1998-12-21 13:07:03  peter
+    * use -FE
+
+  Revision 1.4  1998/11/18 13:23:35  pierre
+    * floodfill got into an infinite loop !!
+    + added partial support for fillpoly
+      (still wrong if the polygon is not convex)
+      Simply make a floodfill from the barycenter !
+    * some 24BPP code changed (still does not work for my S3VBE program !)
+
+  Revision 1.3  1998/11/18 09:31:37  pierre
+    * changed color scheme
+      all colors are in RGB format if more than 256 colors
+    + added 24 and 32 bits per pixel mode
+      (compile with -dDEBUG)
+      24 bit mode with banked still as problems on pixels across
+      the bank boundary, but works in LinearFrameBufferMode
+      Look at install/demo/nmandel.pp
+
+  Revision 1.2  1998/09/02 08:16:00  pierre
+    * local asm labels with global variable names removed !!
+
+  Revision 1.1.1.1  1998/03/25 11:18:42  root
+  * Restored version
+
+  Revision 1.4  1998/03/03 22:48:43  florian
+    + graph.drawpoly procedure
+    + putimage with xorput uses mmx if available
+
+  Revision 1.3  1998/01/26 11:58:18  michael
+  + Added log at the end
+
+  Working file: rtl/dos/ppi/line.ppi
+  description:
+  ----------------------------
+  revision 1.2
+  date: 1997/12/01 12:21:31;  author: michael;  state: Exp;  lines: +14 -0
+  + added copyright reference in header.
+  ----------------------------
+  revision 1.1
+  date: 1997/11/27 08:33:51;  author: michael;  state: Exp;
+  Initial revision
+  ----------------------------
+  revision 1.1.1.1
+  date: 1997/11/27 08:33:51;  author: michael;  state: Exp;  lines: +0 -0
+  FPC RTL CVS start
+  =============================================================================
+}
