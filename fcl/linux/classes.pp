@@ -22,7 +22,6 @@ unit Classes;
 interface
 
 uses
-  objpas, 
   sysutils, {!!!TSE 21.09.1998 needed for exceptions and strtoint}
   strings;
 
@@ -40,7 +39,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-23 07:46:57  michael
+  Revision 1.6  1998-10-02 09:17:57  michael
+  Removed objpas from uses clause
+
+  Revision 1.5  1998/09/23 07:46:57  michael
   * patches by TSE
 
   Revision 1.4  1998/06/10 21:53:09  michael
