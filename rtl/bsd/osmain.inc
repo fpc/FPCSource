@@ -328,7 +328,7 @@ Begin
    oflags:=oflags or (O_CREAT or O_TRUNC)
   else
    if (flags and $100)=$100 then
-    oflags:=oflags or (O_APPEND);
+    oflags:=oflags or (O_APPEND or O_CREAT);
 { empty name is special }
   if p[0]=#0 then
    begin
@@ -593,7 +593,10 @@ end;
 
 {
    $Log$
-   Revision 1.11  2004-01-03 14:56:10  marco
+   Revision 1.12  2004-01-06 15:42:05  marco
+    * o_creat added when o_append
+
+   Revision 1.11  2004/01/03 14:56:10  marco
     * typo fix
 
    Revision 1.10  2004/01/03 12:35:39  marco
