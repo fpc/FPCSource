@@ -132,10 +132,11 @@ type
     oo_has_msgint,
     oo_has_abstract,       { the object/class has an abstract method => no instances can be created }
     oo_can_have_published, { the class has rtti, i.e. you can publish properties }
-    oo_cppvmt              { the object/class uses an C++ compatible }
-                           { vmt, all members of the same class tree }
-                           { must use then a C++ compatible vmt      }
+    oo_cpp_class,          { the object/class uses an C++ compatible }
+                           { class layout }
+    oo_interface           { delphi styled interface }
   );
+
   tobjectoptions=set of tobjectoption;
 
   { options for properties }
@@ -212,7 +213,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-01-09 23:16:06  peter
+  Revision 1.11  2000-03-19 14:56:38  florian
+    * bug 873 fixed
+    * some cleanup in objectdec
+
+  Revision 1.10  2000/01/09 23:16:06  peter
     * added st_default stringtype
     * genstringconstnode extended with stringtype parameter using st_default
       will do the old behaviour
@@ -252,4 +257,3 @@ end.
     * some other type/const renamings
 
 }
-

@@ -723,10 +723,233 @@ uses
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel : pasmlabel;
          storetypecanbeforward : boolean;
-         vmtlist : taasmoutput;
+
+      procedure setclassattributes;
+
+        begin
+           if is_a_class then
+             begin
+{$ifdef INCLUDEOK}
+                include(aktclass^.objectoptions,oo_is_class);
+{$else}
+                aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class];
+{$endif}
+                if (cs_generate_rtti in aktlocalswitches) or
+                    (assigned(aktclass^.childof) and
+                     (oo_can_have_published in aktclass^.childof^.objectoptions)) then
+                  begin
+                     include(aktclass^.objectoptions,oo_can_have_published);
+                     { in "publishable" classes the default access type is published }
+                     actmembertype:=[sp_published];
+                     { don't know if this is necessary (FK) }
+                     current_object_option:=[sp_published];
+                  end;
+             end;
+        end;
+
+     procedure setclassparent;
+
+        begin
+           { is the current class tobject?   }
+           { so you could define your own tobject }
+           if (cs_compilesystem in aktmoduleswitches) and
+             (n='TOBJECT') then
+             begin
+                if assigned(fd) then
+                  aktclass:=fd
+                else
+                  aktclass:=new(pobjectdef,init(n,nil));
+                class_tobject:=aktclass;
+             end
+           else
+             begin
+                childof:=class_tobject;
+                if assigned(fd) then
+                  begin
+                     { the forward of the child must be resolved to get
+                       correct field addresses
+                     }
+                     if (oo_is_forward in childof^.objectoptions) then
+                       Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
+                     aktclass:=fd;
+                     aktclass^.set_parent(childof);
+                  end
+                else
+                  begin
+                     aktclass:=new(pobjectdef,init(n,childof));
+                     aktclass^.set_parent(childof);
+                  end;
+             end;
+         end;
+
+      { generates the vmt for classes as well as for objects }
+      procedure writevmt;
+
+        var
+           vmtlist : taasmoutput;
 {$ifdef WITHDMT}
-         dmtlabel : pasmlabel;
+           dmtlabel : pasmlabel;
 {$endif WITHDMT}
+
+        begin
+{$ifdef WITHDMT}
+           dmtlabel:=gendmt(aktclass);
+{$endif WITHDMT}
+           { this generates the entries }
+           vmtlist.init;
+           genvmt(@vmtlist,aktclass);
+
+           { write tables for classes, this must be done before the actual
+             class is written, because we need the labels defined }
+           if is_a_class then
+            begin
+              methodnametable:=genpublishedmethodstable(aktclass);
+              { rtti }
+              if (oo_can_have_published in aktclass^.objectoptions) then
+               aktclass^.generate_rtti;
+              { write class name }
+              getdatalabel(classnamelabel);
+              datasegment^.concat(new(pai_label,init(classnamelabel)));
+              datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.objname^))));
+              datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
+              { generate message and dynamic tables }
+              if (oo_has_msgstr in aktclass^.objectoptions) then
+                strmessagetable:=genstrmsgtab(aktclass);
+              if (oo_has_msgint in aktclass^.objectoptions) then
+                intmessagetable:=genintmsgtab(aktclass)
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+            end;
+
+          { write debug info }
+{$ifdef GDB}
+          if (cs_debuginfo in aktmoduleswitches) then
+           begin
+             do_count_dbx:=true;
+             if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
+               datasegment^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
+                 typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
+           end;
+{$endif GDB}
+           datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname,0)));
+
+           { determine the size with symtable^.datasize, because }
+           { size gives back 4 for classes                    }
+           datasegment^.concat(new(pai_const,init_32bit(aktclass^.symtable^.datasize)));
+           datasegment^.concat(new(pai_const,init_32bit(-aktclass^.symtable^.datasize)));
+{$ifdef WITHDMT}
+           if not(is_a_class) then
+             begin
+                if assigned(dmtlabel) then
+                  datasegment^.concat(new(pai_const_symbol,init(dmtlabel)))
+                else
+                  datasegment^.concat(new(pai_const,init_32bit(0)));
+             end;
+{$endif WITHDMT}
+           { write pointer to parent VMT, this isn't implemented in TP }
+           { but this is not used in FPC ? (PM) }
+           { it's not used yet, but the delphi-operators as and is need it (FK) }
+           { it is not written for parents that don't have any vmt !! }
+           if assigned(aktclass^.childof) and
+              (oo_has_vmt in aktclass^.childof^.objectoptions) then
+             datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)))
+           else
+             datasegment^.concat(new(pai_const,init_32bit(0)));
+
+           { write extended info for classes, for the order see rtl/inc/objpash.inc }
+           if is_a_class then
+            begin
+              { pointer to class name string }
+              datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
+              { pointer to dynamic table }
+              if (oo_has_msgint in aktclass^.objectoptions) then
+                datasegment^.concat(new(pai_const_symbol,init(intmessagetable)))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+              { pointer to method table }
+              if assigned(methodnametable) then
+                datasegment^.concat(new(pai_const_symbol,init(methodnametable)))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+              { pointer to field table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { pointer to type info of published section }
+              if (oo_can_have_published in aktclass^.objectoptions) then
+                datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+              { inittable for con-/destruction }
+              {
+              if aktclass^.needs_inittable then
+              }
+              { we generate the init table for classes always, because needs_inittable }
+              { for classes is always false, it applies only for objects               }
+              datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)));
+              {
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+              }
+              { auto table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { interface table }
+              datasegment^.concat(new(pai_const,init_32bit(0)));
+              { table for string messages }
+              if (oo_has_msgstr in aktclass^.objectoptions) then
+                datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
+              else
+                datasegment^.concat(new(pai_const,init_32bit(0)));
+            end;
+           datasegment^.concatlist(@vmtlist);
+           vmtlist.done;
+           { write the size of the VMT }
+           datasegment^.concat(new(pai_symbol_end,initname(aktclass^.vmt_mangledname)));
+        end;
+
+      procedure readparentclasses;
+
+        begin
+           { reads the parent class }
+           if token=_LKLAMMER then
+             begin
+                consume(_LKLAMMER);
+                id_type(tt,pattern,false);
+                childof:=pobjectdef(tt.def);
+                if (childof^.deftype<>objectdef) then
+                 begin
+                   Message1(type_e_class_type_expected,childof^.typename);
+                   childof:=nil;
+                   aktclass:=new(pobjectdef,init(n,nil));
+                 end
+                else
+                 begin
+                   { a mix of class and object isn't allowed }
+                   if (childof^.is_class and not is_a_class) or
+                      (not childof^.is_class and is_a_class) then
+                    Message(parser_e_mix_of_classes_and_objects);
+                   { the forward of the child must be resolved to get
+                     correct field addresses }
+                   if assigned(fd) then
+                    begin
+                      if (oo_is_forward in childof^.objectoptions) then
+                       Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
+                      aktclass:=fd;
+                      { we must inherit several options !!
+                        this was missing !!
+                        all is now done in set_parent
+                        including symtable datasize setting PM }
+                      fd^.set_parent(childof);
+                    end
+                   else
+                    aktclass:=new(pobjectdef,init(n,childof));
+                 end;
+                consume(_RKLAMMER);
+             end
+           { if no parent class, then a class get tobject as parent }
+           else if is_a_class then
+             setclassparent
+           else
+             aktclass:=new(pobjectdef,init(n,nil));
+        end;
 
       begin
          {Nowadays aktprocsym may already have a value, so we need to save
@@ -750,161 +973,87 @@ uses
            typecanbeforward:=false;
 
          { distinguish classes and objects }
-         if token=_OBJECT then
-           begin
-              is_a_class:=false;
-              consume(_OBJECT)
-           end
-         else
-           begin
-              is_a_class:=true;
-              consume(_CLASS);
-              if not(assigned(fd)) and (token=_OF) then
-                begin
-                   { a hack, but it's easy to handle }
-                   { class reference type }
-                   consume(_OF);
-                   single_type(tt,hs,typecanbeforward);
+         case token of
+            _OBJECT:
+              begin
+                 is_a_class:=false;
+                 consume(_OBJECT)
+              end;
+            _CPPCLASS:
+              begin
+                 internalerror(2003001);
+              end;
+            _INTERFACE:
+              begin
+                 internalerror(2003002);
+              end;
+            _CLASS:
+              begin
+                 is_a_class:=true;
+                 consume(_CLASS);
+                 if not(assigned(fd)) and (token=_OF) then
+                   begin
+                      { a hack, but it's easy to handle }
+                      { class reference type }
+                      consume(_OF);
+                      single_type(tt,hs,typecanbeforward);
 
-                   { accept hp1, if is a forward def or a class }
-                   if (tt.def^.deftype=forwarddef) or
-                      ((tt.def^.deftype=objectdef) and pobjectdef(tt.def)^.is_class) then
-                     begin
-                        pcrd:=new(pclassrefdef,init(tt.def));
-                        object_dec:=pcrd;
-                     end
-                   else
-                     begin
-                        object_dec:=generrordef;
-                        Message1(type_e_class_type_expected,generrordef^.typename);
-                     end;
-                   typecanbeforward:=storetypecanbeforward;
-                   exit;
-                end
-              { forward class }
-              else if not(assigned(fd)) and (token=_SEMICOLON) then
-                begin
-                   { also anonym objects aren't allow (o : object a : longint; end;) }
-                   if n='' then
-                    begin
-                       Message(parser_f_no_anonym_objects)
-                    end;
-                   if n='TOBJECT' then
-                     begin
+                      { accept hp1, if is a forward def or a class }
+                      if (tt.def^.deftype=forwarddef) or
+                         ((tt.def^.deftype=objectdef) and pobjectdef(tt.def)^.is_class) then
+                        begin
+                           pcrd:=new(pclassrefdef,init(tt.def));
+                           object_dec:=pcrd;
+                        end
+                      else
+                        begin
+                           object_dec:=generrordef;
+                           Message1(type_e_class_type_expected,generrordef^.typename);
+                        end;
+                      typecanbeforward:=storetypecanbeforward;
+                      exit;
+                   end
+                 { forward class }
+                 else if not(assigned(fd)) and (token=_SEMICOLON) then
+                   begin
+                      { also anonym objects aren't allow (o : object a : longint; end;) }
+                      if n='' then
+                       begin
+                          Message(parser_f_no_anonym_objects)
+                       end;
+                      if (cs_compilesystem in aktmoduleswitches) and
+                        (n='TOBJECT') then
+                        begin
+                           aktclass:=new(pobjectdef,init(n,nil));
+                           class_tobject:=aktclass;
+                        end
+                      else
                         aktclass:=new(pobjectdef,init(n,nil));
-                        class_tobject:=aktclass;
-                     end
-                   else
-                     aktclass:=new(pobjectdef,init(n,nil));
-                   aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class,oo_is_forward];
-                   { all classes must have a vmt !!  at offset zero }
-                   if not(oo_has_vmt in aktclass^.objectoptions) then
-                     aktclass^.insertvmt;
+                      aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class,oo_is_forward];
+                      { all classes must have a vmt !!  at offset zero }
+                      if not(oo_has_vmt in aktclass^.objectoptions) then
+                        aktclass^.insertvmt;
 
-                   object_dec:=aktclass;
-                   typecanbeforward:=storetypecanbeforward;
-                   exit;
-                end;
-           end;
+                      object_dec:=aktclass;
+                      typecanbeforward:=storetypecanbeforward;
+                      exit;
+                   end;
+              end;
+            else
+              consume(_OBJECT);
+         end;
 
          { also anonym objects aren't allow (o : object a : longint; end;) }
          if n='' then
            Message(parser_f_no_anonym_objects);
 
-         { read the parent class }
-         if token=_LKLAMMER then
-           begin
-              consume(_LKLAMMER);
-              id_type(tt,pattern,false);
-              childof:=pobjectdef(tt.def);
-              if (childof^.deftype<>objectdef) then
-               begin
-                 Message1(type_e_class_type_expected,childof^.typename);
-                 childof:=nil;
-                 aktclass:=new(pobjectdef,init(n,nil));
-               end
-              else
-               begin
-                 { a mix of class and object isn't allowed }
-                 if (childof^.is_class and not is_a_class) or
-                    (not childof^.is_class and is_a_class) then
-                  Message(parser_e_mix_of_classes_and_objects);
-                 { the forward of the child must be resolved to get
-                   correct field addresses }
-                 if assigned(fd) then
-                  begin
-                    if (oo_is_forward in childof^.objectoptions) then
-                     Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
-                    aktclass:=fd;
-                    { we must inherit several options !!
-                      this was missing !!
-                      all is now done in set_parent
-                      including symtable datasize setting PM }
-                    fd^.set_parent(childof);
-                  end
-                 else
-                  aktclass:=new(pobjectdef,init(n,childof));
-               end;
-              consume(_RKLAMMER);
-           end
-         { if no parent class, then a class get tobject as parent }
-         else if is_a_class then
-           begin
-              { is the current class tobject?   }
-              { so you could define your own tobject }
-              if n='TOBJECT' then
-                begin
-                   if assigned(fd) then
-                     aktclass:=fd
-                   else
-                     aktclass:=new(pobjectdef,init(n,nil));
-                   class_tobject:=aktclass;
-                end
-              else
-                begin
-                   childof:=class_tobject;
-                   if assigned(fd) then
-                     begin
-                        { the forward of the child must be resolved to get
-                          correct field addresses
-                        }
-                        if (oo_is_forward in childof^.objectoptions) then
-                          Message1(parser_e_forward_declaration_must_be_resolved,childof^.objname^);
-                        aktclass:=fd;
-                        aktclass^.set_parent(childof);
-                     end
-                   else
-                     begin
-                        aktclass:=new(pobjectdef,init(n,childof));
-                        aktclass^.set_parent(childof);
-                     end;
-                end;
-           end
-         else
-           aktclass:=new(pobjectdef,init(n,nil));
+         readparentclasses;
 
          { default access is public }
          actmembertype:=[sp_public];
 
-         { set the class attribute }
-         if is_a_class then
-           begin
-{$ifdef INCLUDEOK}
-              include(aktclass^.objectoptions,oo_is_class);
-{$else}
-              aktclass^.objectoptions:=aktclass^.objectoptions+[oo_is_class];
-{$endif}
-              if (cs_generate_rtti in aktlocalswitches) or
-                  (assigned(aktclass^.childof) and
-                   (oo_can_have_published in aktclass^.childof^.objectoptions)) then
-                begin
-                   include(aktclass^.objectoptions,oo_can_have_published);
-                   { in "publishable" classes the default access type is published }
-                   actmembertype:=[sp_published];
-                   { don't know if this is necessary (FK) }
-                   current_object_option:=[sp_published];
-                end;
-           end;
+         { set class flags and inherits published, if necessary? }
+         setclassattributes;
 
          aktobjectdef:=aktclass;
          aktclass^.symtable^.next:=symtablestack;
@@ -1052,121 +1201,8 @@ uses
          if (cs_create_smart in aktmoduleswitches) then
            datasegment^.concat(new(pai_cut,init));
 
-         { Write the start of the VMT, wich is equal for classes and objects }
          if (oo_has_vmt in aktclass^.objectoptions) then
-           begin
-{$ifdef WITHDMT}
-              dmtlabel:=gendmt(aktclass);
-{$endif WITHDMT}
-              { this generates the entries }
-              vmtlist.init;
-              genvmt(@vmtlist,aktclass);
-
-              { write tables for classes, this must be done before the actual
-                class is written, because we need the labels defined }
-              if is_a_class then
-               begin
-                 methodnametable:=genpublishedmethodstable(aktclass);
-                 { rtti }
-                 if (oo_can_have_published in aktclass^.objectoptions) then
-                  aktclass^.generate_rtti;
-                 { write class name }
-                 getdatalabel(classnamelabel);
-                 datasegment^.concat(new(pai_label,init(classnamelabel)));
-                 datasegment^.concat(new(pai_const,init_8bit(length(aktclass^.objname^))));
-                 datasegment^.concat(new(pai_string,init(aktclass^.objname^)));
-                 { generate message and dynamic tables }
-                 if (oo_has_msgstr in aktclass^.objectoptions) then
-                   strmessagetable:=genstrmsgtab(aktclass);
-                 if (oo_has_msgint in aktclass^.objectoptions) then
-                   intmessagetable:=genintmsgtab(aktclass)
-                 else
-                   datasegment^.concat(new(pai_const,init_32bit(0)));
-               end;
-
-             { write debug info }
-{$ifdef GDB}
-             if (cs_debuginfo in aktmoduleswitches) then
-              begin
-                do_count_dbx:=true;
-                if assigned(aktclass^.owner) and assigned(aktclass^.owner^.name) then
-                  datasegment^.concat(new(pai_stabs,init(strpnew('"vmt_'+aktclass^.owner^.name^+n+':S'+
-                    typeglobalnumber('__vtbl_ptr_type')+'",'+tostr(N_STSYM)+',0,0,'+aktclass^.vmt_mangledname))));
-              end;
-{$endif GDB}
-              datasegment^.concat(new(pai_symbol,initname_global(aktclass^.vmt_mangledname,0)));
-
-              { determine the size with symtable^.datasize, because }
-              { size gives back 4 for classes                    }
-              datasegment^.concat(new(pai_const,init_32bit(aktclass^.symtable^.datasize)));
-              datasegment^.concat(new(pai_const,init_32bit(-aktclass^.symtable^.datasize)));
-{$ifdef WITHDMT}
-              if not(is_a_class) then
-                begin
-                   if assigned(dmtlabel) then
-                     datasegment^.concat(new(pai_const_symbol,init(dmtlabel)))
-                   else
-                     datasegment^.concat(new(pai_const,init_32bit(0)));
-                end;
-{$endif WITHDMT}
-              { write pointer to parent VMT, this isn't implemented in TP }
-              { but this is not used in FPC ? (PM) }
-              { it's not used yet, but the delphi-operators as and is need it (FK) }
-              { it is not written for parents that don't have any vmt !! }
-              if assigned(aktclass^.childof) and
-                 (oo_has_vmt in aktclass^.childof^.objectoptions) then
-                datasegment^.concat(new(pai_const_symbol,initname(aktclass^.childof^.vmt_mangledname)))
-              else
-                datasegment^.concat(new(pai_const,init_32bit(0)));
-
-              { write extended info for classes, for the order see rtl/inc/objpash.inc }
-              if is_a_class then
-               begin
-                 { pointer to class name string }
-                 datasegment^.concat(new(pai_const_symbol,init(classnamelabel)));
-                 { pointer to dynamic table }
-                 if (oo_has_msgint in aktclass^.objectoptions) then
-                   datasegment^.concat(new(pai_const_symbol,init(intmessagetable)))
-                 else
-                   datasegment^.concat(new(pai_const,init_32bit(0)));
-                 { pointer to method table }
-                 if assigned(methodnametable) then
-                   datasegment^.concat(new(pai_const_symbol,init(methodnametable)))
-                 else
-                   datasegment^.concat(new(pai_const,init_32bit(0)));
-                 { pointer to field table }
-                 datasegment^.concat(new(pai_const,init_32bit(0)));
-                 { pointer to type info of published section }
-                 if (oo_can_have_published in aktclass^.objectoptions) then
-                   datasegment^.concat(new(pai_const_symbol,initname(aktclass^.rtti_name)))
-                 else
-                   datasegment^.concat(new(pai_const,init_32bit(0)));
-                 { inittable for con-/destruction }
-                 {
-                 if aktclass^.needs_inittable then
-                 }
-                 { we generate the init table for classes always, because needs_inittable }
-                 { for classes is always false, it applies only for objects               }
-                 datasegment^.concat(new(pai_const_symbol,init(aktclass^.get_inittable_label)));
-                 {
-                 else
-                   datasegment^.concat(new(pai_const,init_32bit(0)));
-                 }
-                 { auto table }
-                 datasegment^.concat(new(pai_const,init_32bit(0)));
-                 { interface table }
-                 datasegment^.concat(new(pai_const,init_32bit(0)));
-                 { table for string messages }
-                 if (oo_has_msgstr in aktclass^.objectoptions) then
-                   datasegment^.concat(new(pai_const_symbol,init(strmessagetable)))
-                 else
-                   datasegment^.concat(new(pai_const,init_32bit(0)));
-               end;
-              datasegment^.concatlist(@vmtlist);
-              vmtlist.done;
-              { write the size of the VMT }
-              datasegment^.concat(new(pai_symbol_end,initname(aktclass^.vmt_mangledname)));
-           end;
+           writevmt;
 
          { restore old state }
          symtablestack:=symtablestack^.next;
@@ -1499,6 +1535,12 @@ uses
                   end;
               end;
             _CLASS,
+{$ifdef SUPPORTCPPCLASS}
+            _CPPCLASS,
+{$endif SUPPORTCPPCLASS}
+{$ifdef SUPPORTINTERFACES}
+            _INTERFACE,
+{$endif SUPPORTINTERFACES}
             _OBJECT:
               begin
                 tt.setdef(object_dec(name,nil));
@@ -1549,7 +1591,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.22  2000-03-14 16:37:26  pierre
+  Revision 1.23  2000-03-19 14:56:38  florian
+    * bug 873 fixed
+    * some cleanup in objectdec
+
+  Revision 1.22  2000/03/14 16:37:26  pierre
    * destructor can have args in TP mode only (bug825 and 839)
 
   Revision 1.21  2000/03/11 21:11:24  daniel

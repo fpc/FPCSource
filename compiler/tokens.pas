@@ -177,6 +177,7 @@ type
     _ABSOLUTE,
     _ABSTRACT,
     _CONTINUE,
+    _CPPCLASS,
     _EXTERNAL,
     _FUNCTION,
     _OPERATOR,
@@ -376,6 +377,7 @@ const
       (str:'ABSOLUTE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'ABSTRACT'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CONTINUE'      ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'CPPCLASS'      ;special:false;keyword:m_fpc;op:NOTOKEN),
       (str:'EXTERNAL'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FUNCTION'      ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'OPERATOR'      ;special:false;keyword:m_fpc;op:NOTOKEN),
@@ -511,7 +513,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2000-02-12 23:53:18  carl
+  Revision 1.22  2000-03-19 14:56:39  florian
+    * bug 873 fixed
+    * some cleanup in objectdec
+
+  Revision 1.21  2000/02/12 23:53:18  carl
     * bugfixes in tokens using TP conditional
 
   Revision 1.20  2000/02/09 13:23:08  peter
