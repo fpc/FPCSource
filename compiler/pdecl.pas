@@ -899,6 +899,30 @@ unit pdecl;
              root:=hp;
           end;
 
+          function copypropsymlist(s:ppropsymlist):ppropsymlist;
+          var
+            root,last,hp : ppropsymlist;
+          begin
+            copypropsymlist:=nil;
+            if not assigned(s) then
+             exit;
+            last:=nil;
+            root:=nil;
+            while assigned(s) do
+             begin
+               new(hp);
+               hp^.sym:=s^.sym;
+               hp^.next:=nil;
+               if assigned(last) then
+                last^.next:=hp;
+               last:=hp;
+               if not assigned(root) then
+                root:=hp;
+               s:=s^.next;
+             end;
+            copypropsymlist:=root;
+          end;
+
         var
            hp2,datacoll : pdefcoll;
            p,p2 : ppropertysym;
@@ -1025,11 +1049,11 @@ unit pdecl;
                           p^.propoptions:=ppropertysym(overriden)^.propoptions;
                           p^.index:=ppropertysym(overriden)^.index;
                           p^.proptype:=ppropertysym(overriden)^.proptype;
-                          p^.writeaccesssym:=ppropertysym(overriden)^.writeaccesssym;
-                          p^.readaccesssym:=ppropertysym(overriden)^.readaccesssym;
+                          p^.writeaccesssym:=copypropsymlist(ppropertysym(overriden)^.writeaccesssym);
+                          p^.readaccesssym:=copypropsymlist(ppropertysym(overriden)^.readaccesssym);
+                          p^.storedsym:=copypropsymlist(ppropertysym(overriden)^.storedsym);
                           p^.writeaccessdef:=ppropertysym(overriden)^.writeaccessdef;
                           p^.readaccessdef:=ppropertysym(overriden)^.readaccessdef;
-                          p^.storedsym:=ppropertysym(overriden)^.storedsym;
                           p^.storeddef:=ppropertysym(overriden)^.storeddef;
                           p^.default:=ppropertysym(overriden)^.default;
                        end
@@ -2407,7 +2431,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.146  1999-09-01 13:44:56  florian
+  Revision 1.147  1999-09-02 09:23:51  peter
+    * fixed double dispose of propsymlist
+
+  Revision 1.146  1999/09/01 13:44:56  florian
     * fixed writing of class rtti: vmt offset were written wrong
 
   Revision 1.145  1999/08/26 21:17:39  peter
