@@ -41,12 +41,14 @@ interface
 {Platform specific information}
 type
   THandle = Longint;
+
 const
  LineEnding = #13#10;
 { LFNSupport is a variable here, defined below!!! }
  DirectorySeparator = '\';
  DriveSeparator = ':';
  PathSeparator = ';';
+ ExtensionSeparator = '.';
 { FileNameCaseSensitive is defined separately below!!! }
  maxExitCode = 255;
 
@@ -896,25 +898,9 @@ end;
                               Heap Management
 *****************************************************************************}
 
-var
-  int_heap : longint;external name 'HEAP';
-  int_heapsize : longint;external name 'HEAPSIZE';
-
-function getheapstart:pointer;
-begin
-  getheapstart:=@int_heap;
-end;
-
-
-function getheapsize:longint;
-begin
-  getheapsize:=int_heapsize;
-end;
-
-
 function ___sbrk(size:longint):longint;cdecl;external name '___sbrk';
 
-function Sbrk(size : longint):pointer;assembler;
+function SysOSAlloc (size: PtrInt): pointer; assembler;
 asm
 {$ifdef SYSTEMDEBUG}
         cmpb    $1,accept_sbrk
@@ -936,11 +922,11 @@ end;
       OS Memory allocation / deallocation
  ****************************************************************************}
 
-function SysOSAlloc(size: ptrint): pointer;
+{function SysOSAlloc(size: ptrint): pointer;
 begin
   result := sbrk(size);
 end;
-
+}
 {.$define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptrint);
@@ -1227,11 +1213,8 @@ procedure do_open(var f;p:pchar;flags:longint);
 var
   regs   : trealregs;
   action : longint;
-  Avoid6c00 : boolean;
 begin
   AllowSlash(p);
-{ check if Extended Open/Create API is safe to use }
-  Avoid6c00 := lo(dos_version) < 7;
 { close first if opened }
   if ((flags and $10000)=0) then
    begin
@@ -1277,27 +1260,22 @@ begin
   syscopytodos(longint(p),strlen(p)+1);
 {$ifndef RTLLITE}
   if LFNSupport then
-   regs.realeax := $716c                           { Use LFN Open/Create API }
+   begin
+     regs.realeax := $716c;                        { Use LFN Open/Create API }
+     regs.realedx := action;             { action if file does/doesn't exist }
+     regs.realesi := tb_offset;
+     regs.realebx := $2000 + (flags and $ff);               { file open mode }
+   end
   else
 {$endif RTLLITE}
-   if Avoid6c00 then
-     regs.realeax := $3d00 + (flags and $ff)      { For now, map to Open API }
-   else
-     regs.realeax := $6c00;                   { Use Extended Open/Create API }
-  if byte(regs.realeax shr 8) = $3d then
-    begin  { Using the older Open or Create API's }
-      if (action and $00f0) <> 0 then
-        regs.realeax := $3c00;                   { Map to Create/Replace API }
-      regs.realds := tb_segment;
-      regs.realedx := tb_offset;
-    end
-  else
-    begin  { Using LFN or Extended Open/Create API }
-      regs.realedx := action;            { action if file does/doesn't exist }
-      regs.realds := tb_segment;
-      regs.realesi := tb_offset;
-      regs.realebx := $2000 + (flags and $ff);              { file open mode }
-    end;
+   begin
+     if (action and $00f0) <> 0 then
+       regs.realeax := $3c00                     { Map to Create/Replace API }
+     else
+       regs.realeax := $3d00 + (flags and $ff);   { Map to Open_Existing API }
+     regs.realedx := tb_offset;
+   end;
+  regs.realds := tb_segment;
   regs.realecx := $20;                                     { file attributes }
   sysrealintr($21,regs);
 {$ifndef RTLLITE}
@@ -1307,26 +1285,21 @@ begin
         begin
           { Try again }
           if LFNSupport then
-            regs.realeax := $716c                    {Use LFN Open/Create API}
-          else
-            if Avoid6c00 then
-              regs.realeax := $3d00+(flags and $ff) {For now, map to Open API}
-            else
-              regs.realeax := $6c00;            {Use Extended Open/Create API}
-          if byte(regs.realeax shr 8) = $3d then
-            begin  { Using the older Open or Create API's }
-              if (action and $00f0) <> 0 then
-                regs.realeax := $3c00;             {Map to Create/Replace API}
-              regs.realds := tb_segment;
-              regs.realedx := tb_offset;
+            begin
+              regs.realeax := $716c;                 {Use LFN Open/Create API}
+              regs.realedx := action;      {action if file does/doesn't exist}
+              regs.realesi := tb_offset;
+              regs.realebx := $2000 + (flags and $ff);        {file open mode}
             end
           else
-            begin  { Using LFN or Extended Open/Create API }
-              regs.realedx := action;      {action if file does/doesn't exist}
-              regs.realds := tb_segment;
-              regs.realesi := tb_offset;
-              regs.realebx := $2000+(flags and $ff);          {file open mode}
+            begin
+              if (action and $00f0) <> 0 then
+                regs.realeax := $3c00              {Map to Create/Replace API}
+              else
+                regs.realeax := $3d00 + (flags and $ff);     {Map to Open API}
+              regs.realedx := tb_offset;
             end;
+          regs.realds := tb_segment;
           regs.realecx := $20;                               {file attributes}
           sysrealintr($21,regs);
         end;
@@ -1362,7 +1335,8 @@ begin
 {$endif SYSTEMDEBUG}
     end;
 { append mode }
-  if (flags and $100)<>0 then
+  if ((flags and $100) <> 0) and
+   (FileRec (F).Handle <> UnusedHandle) then
    begin
      do_seekend(filerec(f).handle);
      filerec(f).mode:=fmoutput; {fool fmappend}
@@ -1579,6 +1553,10 @@ begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
+function GetProcessID: SizeUInt;
+begin
+ GetProcessID := SizeUInt (Go32_info_block.pid);
+end;
 
 var
   temp_int : tseginfo;
@@ -1613,6 +1591,7 @@ Begin
    FileNameCaseSensitive:=true;
 { Reset IO Error }
   InOutRes:=0;
+  ThreadID := 1;
 {$ifdef  EXCEPTIONS_IN_SYSTEM}
   InitDPMIExcp;
   InstallDefaultHandlers;
@@ -1623,7 +1602,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.39  2004-09-18 11:17:17  hajny
+  Revision 1.40  2004-10-27 18:52:05  hajny
+    * HEAP and HEAPSIZE removal reflected
+
+  Revision 1.39  2004/09/18 11:17:17  hajny
     * handle type changed to thandle in do_isdevice
 
   Revision 1.38  2004/09/03 19:25:49  olle
