@@ -266,7 +266,7 @@ Implementation
       begin
         DoPipe:=(cs_asm_pipe in aktglobalswitches) and
                 not(cs_asm_leave in aktglobalswitches)
-                and ((aktoutputformat=as_gas));
+                and ((aktoutputformat in [as_gas,as_darwin]));
       end;
 
 
@@ -1661,7 +1661,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.59  2003-11-10 17:22:28  marco
+  Revision 1.60  2004-01-30 15:44:23  jonas
+    + support for piped assembling under Darwin
+
+  Revision 1.59  2003/11/10 17:22:28  marco
    * havelinuxrtl10 fixes
 
   Revision 1.58  2003/10/21 15:15:36  peter
