@@ -478,7 +478,7 @@ implementation
                   location.register:=NR_FPU_RESULT_REG;
 {$ifdef x86}
                 tcgx86(cg).inc_fpu_stack;
-{$else x86} 
+{$else x86}
                 cg.ungetregister(exprasmlist,location.register);
                 hregister := cg.getfpuregister(exprasmlist,location.size);
                 cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
@@ -719,7 +719,7 @@ implementation
                 end;
               LOC_FPUREGISTER,LOC_CFPUREGISTER:
                 begin
-                  include(regs_to_push_fpu,procdefinition.funcret_paraloc[callerside].register);
+                  include(regs_to_push_fpu,getsupreg(procdefinition.funcret_paraloc[callerside].register));
                 end;
               LOC_MMREGISTER,LOC_CMMREGISTER:
                 begin
@@ -727,10 +727,6 @@ implementation
                 end;
             end;
           end;
-
-         { Save registers destroyed by the call }
-         {$warning fime saveusedotherregisters.}
-{         cg.saveusedotherregisters(exprasmlist,pushedother,regs_to_push_other);}
 
          { Initialize for pushing the parameters }
          oldpushedparasize:=pushedparasize;
@@ -928,10 +924,6 @@ implementation
               cg.a_call_name(exprasmlist,'FPC_IOCHECK');
               cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
            end;
-
-         { restore registers }
-         {$warning fixme restoreusedotherregisters}
-{         rg.restoreusedotherregisters(exprasmlist,pushedother);}
 
          { release temps of paras }
          release_para_temps;
@@ -1154,7 +1146,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2003-10-29 21:24:14  jonas
+  Revision 1.135  2003-10-30 17:12:49  peter
+    * fixed rangecheck error
+
+  Revision 1.134  2003/10/29 21:24:14  jonas
     + support for fpu temp parameters
     + saving/restoring of fpu register before/after a procedure call
 
