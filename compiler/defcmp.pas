@@ -1215,15 +1215,9 @@ implementation
                          exit;
                        eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
                                             convtype,hpd,cdoptions);
-                       if (eq>te_incompatible) and
-                          (eq<te_equal) and
-                          not(
-                              (convtype in [tc_equal,tc_int_2_int]) and
-                              (currpara1.paratype.def.size=currpara2.paratype.def.size)
-                             ) then
-                        begin
-                          eq:=te_incompatible;
-                        end;
+                       { Parameters must be at least equal otherwise the are incompatible }
+                       if (eq<te_equal) then
+                         eq:=te_incompatible;
                     end;
                   else
                     eq:=compare_defs_ext(currpara1.paratype.def,currpara2.paratype.def,nothingn,
@@ -1302,7 +1296,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.56  2004-11-01 08:02:26  peter
+  Revision 1.57  2004-11-01 10:31:48  peter
+    * procvar arguments need to be at least equal
+
+  Revision 1.56  2004/11/01 08:02:26  peter
     * remove previous patch
 
   Revision 1.55  2004/10/31 22:05:25  peter
