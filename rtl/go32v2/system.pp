@@ -1389,6 +1389,8 @@ end;
 
 procedure rmdir(const s : string);[IOCheck];
 begin
+  if (s = '.' ) then
+    InOutRes := 16;
   If (s='') or (InOutRes <> 0) then
    exit;
   DosDir($3a,s);
@@ -1562,7 +1564,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.14  2001-10-28 17:43:51  peter
+  Revision 1.15  2002-03-11 19:10:33  peter
+    * Regenerated with updated fpcmake
+
+  Revision 1.14  2001/10/28 17:43:51  peter
     * add trtlcriticalsection type
 
   Revision 1.13  2001/08/12 17:57:54  peter

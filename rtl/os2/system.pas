@@ -786,6 +786,8 @@ procedure rmdir(const s : string);[IOCHECK];
 var buffer:array[0..255] of char;
     Rc : word;
 begin
+  if (s = '.' ) then
+    InOutRes := 16;
   If (s='') or (InOutRes <> 0) then
    exit;
   if os_mode = osOs2 then
@@ -1073,7 +1075,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2002-02-10 13:46:20  hajny
+  Revision 1.19  2002-03-11 19:10:33  peter
+    * Regenerated with updated fpcmake
+
+  Revision 1.18  2002/02/10 13:46:20  hajny
     * heap management corrected (heap_brk)
 
   Revision 1.17  2001/11/15 18:49:43  hajny

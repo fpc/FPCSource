@@ -450,7 +450,7 @@ implementation
                if token<>_SEMICOLON then
                 right:=statement
                else
-                right:=nil;
+                right:=cerrornode.create;
              end;
             for i:=1 to levelcount do
              symtablestack:=symtablestack.next;
@@ -1222,7 +1222,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-03-04 17:54:59  peter
+  Revision 1.48  2002-03-11 19:10:28  peter
+    * Regenerated with updated fpcmake
+
+  Revision 1.47  2002/03/04 17:54:59  peter
     * allow oridinal labels again
 
   Revision 1.46  2002/01/29 21:32:03  peter

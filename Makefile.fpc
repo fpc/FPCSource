@@ -328,6 +328,9 @@ endif
 
 .PHONY: docspdf docs docsrcinstall docsrc
 
+# We don't want the package name fpc in the path
+DOCSOURCEDIR=$(INSTALL_SOURCEDIR)/../docs
+
 docspdf:
         $(MAKE) -C docs pdfinstall
 
@@ -336,8 +339,8 @@ docs:
 
 docsrcinstall:
         $(MAKE) -C docs clean
-        $(MKDIR) $(INSTALL_SOURCEDIR)
-        $(COPYTREE) docs $(INSTALL_SOURCEDIR)
+        $(MKDIR) $(DOCSOURCEDIR)
+        $(COPYTREE) docs/* $(DOCSOURCEDIR)
 
 docsrc:
         $(MAKE) fpc_zipinstall ZIPTARGET=docsrcinstall ZIPNAME=docsrc
@@ -350,10 +353,7 @@ docsrc:
 .PHONY: demozip
 
 demozip:
-	$(MKDIR) $(PACKDIR)/source/demo
-	$(COPYTREE) ./demo/* $(PACKDIR)/source/demo
-	$(MAKE) -C demo demozip ZIPNAME=demo PACKDIR=$(PACKDIR)
-	$(DELTREE) $(PACKDIR)/source/demo
+	$(MAKE) -C demo zipsourceinstall ZIPNAME=demo
 
 
 ##########################################################################

@@ -567,7 +567,7 @@ implementation
           FOutput.Add('ifdef CHECKDEPEND');
           FOutput.Add('$('+packdirvar+')/$(FPCMADE):');
           FOutput.Add(#9'$(MAKE) -C $('+packdirvar+') $(FPCMADE)');
-          FOutput.Add('override ALL_DEPENDENCIES+=$('+packdirvar+')/$(FPCMADE)');
+          FOutput.Add('override ALLDEPENDENCIES+=$('+packdirvar+')/$(FPCMADE)');
           FOutput.Add('endif');
           { Package dir doesn't exists, check unit dir }
           FOutput.Add('else');
@@ -697,7 +697,8 @@ implementation
         if SkippedSecs=4 then
          begin
            FHasSection[sec_compile]:=false;
-           if (not CheckTargetVariable('install_units')) and
+           if (not CheckTargetVariable('package_name')) and
+              (not CheckTargetVariable('install_units')) and
               (not CheckTargetVariable('install_files')) and
               (not CheckTargetVariable('install_createpackagefpc')) then
             FHasSection[sec_install]:=false;
@@ -865,7 +866,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2002-02-28 17:03:47  pierre
+  Revision 1.22  2002-03-11 19:10:36  peter
+    * Regenerated with updated fpcmake
+
+  Revision 1.21  2002/02/28 17:03:47  pierre
    + CHECKDEPEND var to check if packages are up to date
 
   Revision 1.20  2002/01/27 21:42:35  peter

@@ -218,6 +218,7 @@ begin
     Sys_EROFS,
    Sys_EEXIST,
    Sys_EISDIR,
+   Sys_ENOTEMPTY,
    Sys_EACCES : Inoutres:=5;
   Sys_ETXTBSY : Inoutres:=162;
   else
@@ -234,12 +235,37 @@ End;
 
 
 Procedure Do_Erase(p:pchar);
+{$ifdef BSD}
+ var FileInfo : Stat;
+{$endif}
+
 Begin
+  {$ifdef BSD} {or POSIX}
+  { verify if the filename is actually a directory }
+  { if so return error and do nothing, as defined  }
+  { by POSIX                                       }
+  if sys_stat(p,fileinfo)<0 then
+   begin
+     Errno2Inoutres;
+     exit;
+   end;
+  {$ifdef BSD}
+   if (fileinfo.mode and STAT_IFMT)=STAT_IFDIR then
+  {$else}
+   if s_ISDIR(fileinfo.st_mode) then
+  {$endif}
+   begin
+     InOutRes := 2;
+     exit;
+   end;
+  {$endif}
   sys_unlink(p);
   Errno2Inoutres;
+  {$ifdef Linux}
   { tp compatible result }
   if (Errno=Sys_EISDIR) then
    InOutRes:=2;
+  {$endif}
 End;
 
 
@@ -442,11 +468,18 @@ Procedure RmDir(Const s: String);[IOCheck];
 Var
   Buffer: Array[0..255] of Char;
 Begin
+  if (s ='.') then
+    InOutRes := 16;
   If (s='') or (InOutRes <> 0) then
    exit;
   Move(s[1], Buffer, Length(s));
   Buffer[Length(s)] := #0;
   sys_rmdir(@buffer);
+  {$ifdef BSD}
+    if (Errno=Sys_EINVAL) Then
+     InOutRes:=5
+    Else
+   {$endif}
   Errno2Inoutres;
 End;
 
@@ -731,7 +764,10 @@ End.
 
 {
   $Log$
-  Revision 1.18  2001-10-14 13:33:21  peter
+  Revision 1.19  2002-03-11 19:10:33  peter
+    * Regenerated with updated fpcmake
+
+  Revision 1.18  2001/10/14 13:33:21  peter
     * start of thread support for linux
 
   Revision 1.17  2001/09/30 21:10:20  peter
