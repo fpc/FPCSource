@@ -283,9 +283,17 @@ implementation
 
 
     function tsymtable.search(const s : stringid) : tsymentry;
-      begin
-        search:=speedsearch(s,getspeedvalue(s));
-      end;
+
+    var senc:string;
+
+    begin
+    {$ifdef compress}
+      senc:=minilzw_encode(s);
+      search:=speedsearch(senc,getspeedvalue(senc));
+    {$else}
+      search:=speedsearch(s,getspeedvalue(s));
+    {$endif}
+    end;
 
 
     function tsymtable.speedsearch(const s : stringid;speedvalue : cardinal) : tsymentry;
@@ -333,7 +341,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2003-12-01 18:44:15  peter
+  Revision 1.17  2004-01-11 23:56:20  daniel
+    * Experiment: Compress strings to save memory
+      Did not save a single byte of mem; clearly the core size is boosted by
+      temporary memory usage...
+
+  Revision 1.16  2003/12/01 18:44:15  peter
     * fixed some crashes
     * fixed varargs and register calling probs
 

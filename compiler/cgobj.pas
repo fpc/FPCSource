@@ -63,6 +63,9 @@ unit cgobj;
           alignment : talignment;
           rg        : array[tregistertype] of trgobj;
           t_times:cardinal;
+       {$ifdef flowgraph}
+          aktflownode:word;
+       {$endif}
           {************************************************}
           {                 basic routines                 }
           constructor create;
@@ -72,6 +75,10 @@ unit cgobj;
           {# Clean up the register allocators needed for the codegenerator.}
           procedure done_register_allocators;virtual;
 
+       {$ifdef flowgraph}
+          procedure init_flowgraph;
+          procedure done_flowgraph;
+       {$endif}
           {# Gets a register suitable to do integer operations on.}
           function getintregister(list:Taasmoutput;size:Tcgsize):Tregister;virtual;
           {# Gets a register suitable to do integer operations on.}
@@ -590,6 +597,18 @@ implementation
         add_reg_instruction_hook:=nil;
       end;
 
+    {$ifdef flowgraph}
+    procedure Tcg.init_flowgraph;
+
+    begin
+      aktflownode:=0;
+    end;
+
+    procedure Tcg.done_flowgraph;
+
+    begin
+    end;
+    {$endif}
 
     function tcg.getintregister(list:Taasmoutput;size:Tcgsize):Tregister;
       begin
@@ -2047,7 +2066,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.146  2003-12-26 14:02:30  peter
+  Revision 1.147  2004-01-11 23:56:19  daniel
+    * Experiment: Compress strings to save memory
+      Did not save a single byte of mem; clearly the core size is boosted by
+      temporary memory usage...
+
+  Revision 1.146  2003/12/26 14:02:30  peter
     * sparc updates
     * use registertype in spill_register
 

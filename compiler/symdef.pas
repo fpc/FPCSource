@@ -3769,7 +3769,7 @@ implementation
          ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putbyte(byte(has_mangledname));
          if has_mangledname then
-          ppufile.putstring(mangledname);
+          ppufile.putstring(_mangledname^);
          ppufile.putword(overloadnumber);
          ppufile.putword(extnumber);
          ppufile.putbyte(parast.symtablelevel);
@@ -4282,29 +4282,35 @@ implementation
 
     function tprocdef.mangledname : string;
       var
-        s  : string;
         hp : TParaItem;
       begin
         if assigned(_mangledname) then
          begin
+         {$ifdef compress}
+           mangledname:=minilzw_decode(_mangledname^);
+         {$else}
            mangledname:=_mangledname^;
+         {$endif}
            exit;
          end;
         { we need to use the symtable where the procsym is inserted,
           because that is visible to the world }
-        s:=make_mangledname('',procsym.owner,procsym.name);
+        mangledname:=make_mangledname('',procsym.owner,procsym.name);
         if overloadnumber>0 then
-         s:=s+'$'+tostr(overloadnumber);
+         mangledname:=mangledname+'$'+tostr(overloadnumber);
         { add parameter types }
         hp:=TParaItem(Para.first);
         while assigned(hp) do
          begin
            if not hp.is_hidden then
-             s:=s+'$'+hp.paratype.def.mangledparaname;
+             mangledname:=mangledname+'$'+hp.paratype.def.mangledparaname;
            hp:=TParaItem(hp.next);
          end;
-        _mangledname:=stringdup(s);
-        mangledname:=_mangledname^;
+       {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(mangledname));
+       {$else}
+        _mangledname:=stringdup(mangledname);
+       {$endif}
       end;
 
 
@@ -4381,7 +4387,11 @@ implementation
     procedure tprocdef.setmangledname(const s : string);
       begin
         stringdispose(_mangledname);
+      {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(s));
+      {$else}
         _mangledname:=stringdup(s);
+      {$endif}
         has_mangledname:=true;
       end;
 
@@ -5249,7 +5259,7 @@ implementation
       end;
 
     procedure tobjectdef.concatstabto(asmlist : taasmoutput);
-      var st : pstring;
+      var st:string;
       begin
         if objecttype<>odt_class then
           begin
@@ -5270,15 +5280,12 @@ implementation
           is_def_stab_written:=not_written;
           if assigned(typesym) then
             begin
-              st:=typesym.FName;
-              typesym.FName:=stringdup(' ');
+              st:=typesym.name;
+              typesym.name:=' ';
             end;
           inherited concatstabto(asmlist);
           if assigned(typesym) then
-            begin
-              stringdispose(typesym.FName);
-              typesym.FName:=st;
-            end;
+              typesym.name:=st;
         end;
       end;
 {$endif GDB}
@@ -6156,7 +6163,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.197  2004-01-04 21:10:04  jonas
+  Revision 1.198  2004-01-11 23:56:20  daniel
+    * Experiment: Compress strings to save memory
+      Did not save a single byte of mem; clearly the core size is boosted by
+      temporary memory usage...
+
+  Revision 1.197  2004/01/04 21:10:04  jonas
     * Darwin's assembler assumes that all labels starting with 'L' are local
       -> rename symbols starting with 'L'
 

@@ -102,20 +102,19 @@ interface
     { ambivalent to pchar2pstring }
     function pstring2pchar(p : pstring) : pchar;
 
-{ Speed/Hash value }
+    { Speed/Hash value }
     Function GetSpeedValue(Const s:String):cardinal;
 
-{ Ansistring (pchar+length) support }
-procedure ansistringdispose(var p : pchar;length : longint);
-function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
-function concatansistrings(p1,p2 : pchar;length1,length2 : longint) : pchar;
-
-{*****************************************************************************
-                                 File Functions
-*****************************************************************************}
+    { Ansistring (pchar+length) support }
+    procedure ansistringdispose(var p : pchar;length : longint);
+    function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
+    function concatansistrings(p1,p2 : pchar;length1,length2 : longint) : pchar;
 
     function DeleteFile(const fn:string):boolean;
 
+    {Lzw encode/decode to compress strings -> save memory.}
+    function minilzw_encode(const s:string):string;
+    function minilzw_decode(const s:string):string;
 
 implementation
 
@@ -851,13 +850,145 @@ uses
         DeleteFile:=(IOResult=0);
       end;
 
+{*****************************************************************************
+                       Ultra basic KISS Lzw (de)compressor
+*****************************************************************************}
+
+    {This is an extremely basic implementation of the Lzw algorithm. It
+     compresses 7-bit ASCII strings into 8-bit compressed strings.
+     The Lzw dictionary is preinitialized with 0..127, therefore this
+     part of the dictionary does not need to be stored in the arrays.
+     The Lzw code size is allways 8 bit, so we do not need complex code
+     that can write partial bytes.}
+
+    function minilzw_encode(const s:string):string;
+
+    var t,u,i:byte;
+        c:char;
+        data:array[128..255] of char;
+        previous:array[128..255] of byte;
+        lzwptr:byte;
+        next_avail:set of 0..255;
+
+    label l1;
+
+    begin
+      minilzw_encode:='';
+      if s<>'' then
+        begin
+          lzwptr:=127;
+          t:=byte(s[1]);
+          i:=2;
+          u:=128;
+          next_avail:=[];
+          while i<=length(s) do
+            begin
+              c:=s[i];
+              if not(t in next_avail) or (u>lzwptr) then goto l1;
+              while (previous[u]<>t) or (data[u]<>c) do
+                begin
+                  inc(u);
+                  if u>lzwptr then goto l1;
+                end;
+              t:=u;
+              inc(i);
+              continue;
+            l1:
+              {It's a pity that we still need those awfull tricks
+               with this modern compiler. Without this performance
+               of the entire procedure drops about 3 times.}
+              inc(minilzw_encode[0]);
+              minilzw_encode[length(minilzw_encode)]:=char(t);
+              if lzwptr=255 then
+                begin
+                  lzwptr:=127;
+                  next_avail:=[];
+                end
+              else
+                begin
+                  inc(lzwptr);
+                  data[lzwptr]:=c;
+                  previous[lzwptr]:=t;
+                  include(next_avail,t);
+                end;
+              t:=byte(c);
+              u:=128;
+              inc(i);
+            end;
+          inc(minilzw_encode[0]);
+          minilzw_encode[length(minilzw_encode)]:=char(t);
+        end;
+    end;
+
+    function minilzw_decode(const s:string):string;
+
+    var oldc,newc,c:char;
+        i,j:byte;
+        data:array[128..255] of char;
+        previous:array[128..255] of byte;
+        lzwptr:byte;
+        t:string;
+
+    begin
+      minilzw_decode:='';
+      if s<>'' then
+        begin
+          lzwptr:=127;
+          oldc:=s[1];
+          c:=oldc;
+          i:=2;
+          minilzw_decode:=oldc;
+          while i<=length(s) do
+            begin
+              newc:=s[i];
+              if byte(newc)>lzwptr then
+                begin
+                  t:=c;
+                  c:=oldc;
+                end
+              else
+                begin
+                  c:=newc;
+                  t:='';
+                end;
+              while c>=#128 do
+                begin
+                  inc(t[0]);
+                  t[length(t)]:=data[byte(c)];
+                  byte(c):=previous[byte(c)];
+                end;
+              inc(minilzw_decode[0]);
+              minilzw_decode[length(minilzw_decode)]:=c;
+              for j:=length(t) downto 1 do
+                begin
+                  inc(minilzw_decode[0]);
+                  minilzw_decode[length(minilzw_decode)]:=t[j];
+                end;
+              if lzwptr=255 then
+                lzwptr:=127
+              else
+                begin
+                  inc(lzwptr);
+                  previous[lzwptr]:=byte(oldc);
+                  data[lzwptr]:=c;
+                end;
+              oldc:=newc;
+              inc(i);
+            end;
+        end;
+    end;
 
 initialization
   initupperlower;
 end.
 {
   $Log$
-  Revision 1.29  2003-10-31 15:51:11  peter
+  Revision 1.30  2004-01-11 23:56:19  daniel
+    * Experiment: Compress strings to save memory
+      Did not save a single byte of mem; clearly the core size is boosted by
+      temporary memory usage...
+
+  Revision 1.29  2003/10/31 15:51:11  peter
     * USEINLINE directive added (not enabled yet)
 
   Revision 1.28  2003/09/03 15:55:00  peter
@@ -916,4 +1047,3 @@ end.
   + more documentation of basic unit
 
 }
-

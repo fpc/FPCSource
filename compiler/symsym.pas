@@ -623,7 +623,11 @@ implementation
            if not assigned(_mangledname) then
             internalerror(200204171);
          end;
+      {$ifdef compress}
+        mangledname:=minilzw_decode(_mangledname^)
+      {$else}
         mangledname:=_mangledname^
+      {$endif}
       end;
 
 
@@ -663,9 +667,14 @@ implementation
 
 
     procedure tlabelsym.generate_mangledname;
-      begin
-        _mangledname:=stringdup(lab.name);
-      end;
+
+    begin
+    {$ifdef compress}
+      _mangledname:=stringdup(minilzw_encode(lab.name));
+    {$else}
+      _mangledname:=stringdup(lab.name);
+    {$endif}
+    end;
 
 
     procedure tlabelsym.ppuwrite(ppufile:tcompilerppufile);
@@ -1645,7 +1654,11 @@ implementation
       begin
          tvarsym(self).create(n,vsp,tt);
          stringdispose(_mangledname);
+       {$ifdef compress}
+         _mangledname:=stringdup(minilzw_encode(mangled));
+       {$else}
          _mangledname:=stringdup(mangled);
+       {$endif}
       end;
 
 
@@ -1700,21 +1713,29 @@ implementation
          hvo:=varoptions-[vo_regable,vo_fpuregable];
          ppufile.putsmallset(hvo);
          if (vo_is_C_var in varoptions) then
-           ppufile.putstring(mangledname);
+           ppufile.putstring(_mangledname^);
          ppufile.writeentry(ibvarsym);
       end;
 
 
     procedure tvarsym.generate_mangledname;
       begin
+      {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(make_mangledname('U',owner,name)));
+      {$else}
         _mangledname:=stringdup(make_mangledname('U',owner,name));
+      {$endif}
       end;
 
 
     procedure tvarsym.set_mangledname(const s:string);
       begin
         stringdispose(_mangledname);
+      {$ifdef compress}
+        _mangledname:=stringdup(minilzw_encode(s));
+      {$else}
         _mangledname:=stringdup(s);
+      {$endif}
       end;
 
 
@@ -2002,7 +2023,11 @@ implementation
 
     procedure ttypedconstsym.generate_mangledname;
       begin
+      {$ifdef compress}
         _mangledname:=stringdup(make_mangledname('TC',owner,name));
+      {$else}
+        _mangledname:=stringdup(make_mangledname('TC',owner,name));
+      {$endif}
       end;
 
 
@@ -2689,7 +2714,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.140  2004-01-06 15:46:12  peter
+  Revision 1.141  2004-01-11 23:56:20  daniel
+    * Experiment: Compress strings to save memory
+      Did not save a single byte of mem; clearly the core size is boosted by
+      temporary memory usage...
+
+  Revision 1.140  2004/01/06 15:46:12  peter
     * fix stabs for locals
 
   Revision 1.139  2003/12/23 22:13:26  peter

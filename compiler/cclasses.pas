@@ -170,11 +170,11 @@ interface
          FSpeedValue : cardinal;
        { singleList }
          FListNext   : TNamedIndexItem;
+         FName       : Pstring;
        protected
          function  GetName:string;virtual;
          procedure SetName(const n:string);virtual;
        public
-         FName       : Pstring;
          constructor Create;
          constructor CreateName(const n:string);
          destructor  Destroy;override;
@@ -870,7 +870,11 @@ end;
         Fleft:=nil;
         Fright:=nil;
         Fspeedvalue:=cardinal($ffffffff);
+      {$ifdef compress}
+        FName:=stringdup(minilzw_encode(n));
+      {$else}
         FName:=stringdup(n);
+      {$endif}
         { List }
         FListNext:=nil;
       end;
@@ -888,7 +892,11 @@ end;
          begin
            if assigned(FName) then
              stringdispose(FName);
+         {$ifdef compress}
+           FName:=stringdup(minilzw_encode(n));
+         {$else}
            FName:=stringdup(n);
+         {$endif}
          end;
       end;
 
@@ -896,7 +904,11 @@ end;
     function TNamedIndexItem.GetName:string;
       begin
         if assigned(FName) then
+        {$ifdef compress}
+         Getname:=minilzw_decode(FName^)
+        {$else}
          Getname:=FName^
+        {$endif}
         else
          Getname:='';
       end;
@@ -975,6 +987,11 @@ end;
       var
         p,SpeedValue : cardinal;
         n : TNamedIndexItem;
+      {$ifdef compress}
+        senc:string;
+      {$else}
+        senc:string absolute s;
+      {$endif}
 
         procedure insert_right_bottom(var root,Atree:TNamedIndexItem);
           begin
@@ -1005,10 +1022,10 @@ end;
                   lr:=left;
                 end;
              end;
-            while (root<>nil) and (root.FName^<>s) do
+            while (root<>nil) and (root.FName^<>senc) do
              begin
                oldroot:=root;
-               if s<root.FName^ then
+               if senc<root.FName^ then
                 begin
                   root:=root.FRight;
                   lr:=right;
@@ -1044,7 +1061,10 @@ end;
           end;
 
       begin
-        SpeedValue:=GetSpeedValue(s);
+      {$ifdef compress}
+        senc:=minilzw_encode(s);
+      {$endif}
+        SpeedValue:=GetSpeedValue(senc);
         n:=FRoot;
         if assigned(FHashArray) then
          begin
@@ -1053,7 +1073,7 @@ end;
            p:=SpeedValue mod hasharraysize;
            n:=FHashArray^[p];
            if (n<>nil) and (n.SpeedValue=SpeedValue) and
-              (n.FName^=s) then
+              (n.FName^=senc) then
             begin
               { The Node to delete is directly located under the
                 hasharray. Make the hasharray point to the left
@@ -1075,7 +1095,7 @@ end;
          begin
            { First check if the Node to delete is the root.}
            if (FRoot<>nil) and (n.SpeedValue=SpeedValue) and
-              (n.FName^=s) then
+              (n.FName^=senc) then
             begin
               if n.FLeft<>nil then
                begin
@@ -1305,8 +1325,18 @@ end;
         spdval : cardinal;
         lasthp,
         hp,hp2,hp3 : TNamedIndexItem;
+      {$ifdef compress}
+        oldsenc,newsenc:string;
+      {$else}
+        oldsenc:string absolute olds;
+        newsenc:string absolute news;
+      {$endif}
       begin
-        spdval:=GetSpeedValue(olds);
+      {$ifdef compress}
+        oldsenc:=minilzw_encode(olds);
+        newsenc:=minilzw_encode(news);
+      {$endif}
+        spdval:=GetSpeedValue(oldsenc);
         if assigned(FHashArray) then
          hp:=FHashArray^[spdval mod hasharraysize]
         else
@@ -1327,7 +1357,7 @@ end;
               end
             else
              begin
-               if (hp.FName^=olds) then
+               if (hp.FName^=oldsenc) then
                 begin
                   { Get in hp2 the replacer for the root or hasharr }
                   hp2:=hp.FLeft;
@@ -1358,8 +1388,8 @@ end;
                   hp.FLeft:=nil;
                   hp.FRight:=nil;
                   stringdispose(hp.FName);
-                  hp.FName:=stringdup(newS);
-                  hp.FSpeedValue:=GetSpeedValue(newS);
+                  hp.FName:=stringdup(newsenc);
+                  hp.FSpeedValue:=GetSpeedValue(newsenc);
                   { reinsert }
                   if assigned(FHashArray) then
                    rename:=insertNode(hp,FHashArray^[hp.SpeedValue mod hasharraysize])
@@ -1368,7 +1398,7 @@ end;
                   exit;
                 end
                else
-                if olds>hp.FName^ then
+                if oldsenc>hp.FName^ then
                  begin
                    lasthp:=hp;
                    hp:=hp.FLeft
@@ -1385,9 +1415,17 @@ end;
 
 
     function Tdictionary.search(const s:string):TNamedIndexItem;
-      begin
-        search:=speedsearch(s,GetSpeedValue(s));
-      end;
+
+    var t:string;
+
+    begin
+    {$ifdef compress}
+      t:=minilzw_encode(s);
+      search:=speedsearch(t,getspeedvalue(t));
+    {$else}
+      search:=speedsearch(s,getspeedvalue(s));
+    {$endif}
+    end;
 
 
     function Tdictionary.speedsearch(const s:string;SpeedValue:cardinal):TNamedIndexItem;
@@ -1905,7 +1943,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.28  2003-10-23 14:44:07  peter
+  Revision 1.29  2004-01-11 23:56:19  daniel
+    * Experiment: Compress strings to save memory
+      Did not save a single byte of mem; clearly the core size is boosted by
+      temporary memory usage...
+
+  Revision 1.28  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 

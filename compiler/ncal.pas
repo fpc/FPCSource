@@ -1317,7 +1317,11 @@ type
              begin
                if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
                 begin
-                  srprocsym:=tprocsym(srsymtable.speedsearch(symtableprocentry.name,symtableprocentry.speedvalue));
+                {$ifdef compress}
+                  srprocsym:=tprocsym(srsymtable.speedsearch(minilzw_encode(symtableprocentry.name),symtableprocentry.speedvalue));
+                {$else}
+                  srprocsym:=tprocsym(srsymtable.speedsearch(minilzw_encode(symtableprocentry.name),symtableprocentry.speedvalue));
+                {$endif}
                   { process only visible procsyms }
                   if assigned(srprocsym) and
                      (srprocsym.typ=procsym) and
@@ -2702,7 +2706,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.217  2003-12-28 22:09:12  florian
+  Revision 1.218  2004-01-11 23:56:19  daniel
+    * Experiment: Compress strings to save memory
+      Did not save a single byte of mem; clearly the core size is boosted by
+      temporary memory usage...
+
+  Revision 1.217  2003/12/28 22:09:12  florian
     + setting of bit 6 of cr for c var args on ppc implemented
 
   Revision 1.216  2003/12/21 19:42:42  florian
