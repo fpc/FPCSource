@@ -1348,6 +1348,13 @@ begin
   loweststack:=maxlongint;
 { real test stack depth        }
 {   stacklimit := setupstack;  }
+{$ifdef MT}
+  { allocate one threadvar entry from windows, we use this entry }
+  { for a pointer to our threadvars                              }
+  dataindex:=TlsAlloc;
+  { the exceptions use threadvars so do this _before_ initexceptions }
+  AllocateThreadVars;
+{$endif MT}
 { Setup heap }
   InitHeap;
   InitExceptions;
@@ -1380,7 +1387,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-12-18 17:28:58  jonas
+  Revision 1.3  2001-01-05 15:44:35  florian
+    * some stuff for MT
+
+  Revision 1.2  2000/12/18 17:28:58  jonas
     * fixed range check errors
 
   Revision 1.1  2000/10/15 08:19:49  peter
