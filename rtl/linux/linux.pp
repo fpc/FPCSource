@@ -497,13 +497,18 @@ Function  GetEGid:Longint;
 
 Function  fdOpen(pathname:string;flags:longint):longint;
 Function  fdOpen(pathname:string;flags,mode:longint):longint;
+Function  fdOpen(pathname:pchar;flags:longint):longint;
+Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
 Function  fdClose(fd:longint):boolean;
 Function  fdRead(fd:longint;var buf;size:longint):longint;
 Function  fdWrite(fd:longint;var buf;size:longint):longint;
 Function  fdTruncate(fd,size:longint):boolean;
+Function  fdSeek (fd,pos,seektype :longint): longint;
+Function  fdFlush (fd : Longint) : Boolean;
 Function  Link(OldPath,NewPath:pathstr):boolean;
 Function  SymLink(OldPath,NewPath:pathstr):boolean;
 Function  UnLink(Path:pathstr):boolean;
+Function  UnLink(Path:pchar):Boolean;
 Function  Chown(path:pathstr;NewUid,NewGid:longint):boolean;
 Function  Chmod(path:pathstr;Newmode:longint):boolean;
 Function  Utime(path:pathstr;utim:utimbuf):boolean;
@@ -1215,6 +1220,25 @@ end;
 
 
 
+Function  fdOpen(pathname:pchar;flags:longint):longint;
+
+begin
+  fdOpen:=Sys_Open(pathname,flags,0);
+  LinuxError:=Errno;
+end;
+
+
+
+
+Function  fdOpen(pathname:pchar;flags,mode:longint):longint;
+
+begin
+  fdOpen:=Sys_Open(pathname,flags,mode);
+  LinuxError:=Errno;
+end;
+
+
+
 Function fdClose(fd:longint):boolean;
 begin
   fdClose:=(Sys_Close(fd)=0);
@@ -1246,6 +1270,31 @@ begin
   Regs.reg2:=fd;
   Regs.reg3:=size;
   fdTruncate:=(SysCall(Syscall_nr_ftruncate,regs)=0);
+  LinuxError:=Errno;
+end;
+
+
+
+Function  fdSeek (fd,pos,seektype :longint): longint;
+{
+  Do a Seek on a file descriptor fd to position pos, starting from seektype 
+}
+begin
+   fdseek:=Sys_LSeek (fd,pos,seektype);
+   LinuxError:=Errno;
+end;
+
+
+
+Function  fdFlush (fd : Longint) : Boolean;
+
+
+var
+  SR: SysCallRegs;
+
+begin
+  SR.reg2 := fd;
+  fdFlush := (SysCall(syscall_nr_fsync, SR)=0);
   LinuxError:=Errno;
 end;
 
@@ -1529,6 +1578,16 @@ begin
   linuxerror:=errno;
 end;
 
+
+Function  UnLink(Path:pchar):Boolean;
+{
+  Removes the file in 'Path' (that is, it decreases the link count with one.
+  if the link count is zero, the file is removed from the disk.
+}
+begin
+  Unlink:=(Sys_unlink(path)=0);
+  linuxerror:=errno;
+end;
 
 
 Function Umask(Mask:Integer):integer;
@@ -3162,7 +3221,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  1998-04-10 15:23:03  michael
+  Revision 1.6  1998-04-15 11:23:53  michael
+  + Added some calls to make common API more efficient
+
+  Revision 1.5  1998/04/10 15:23:03  michael
   + Pclose now returns exit status of process
 
   Revision 1.4  1998/04/07 13:08:29  michael
