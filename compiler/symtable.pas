@@ -2427,26 +2427,31 @@ implementation
 
    procedure InitSymtable;
      begin
-        { Reset symbolstack }
-        registerdef:=false;
-        symtablestack:=nil;
-        macrosymtablestack:=nil;
-        systemunit:=nil;
+       { Reset symbolstack }
+       registerdef:=false;
+       symtablestack:=nil;
+       macrosymtablestack:=nil;
+       systemunit:=nil;
 {$ifdef GDB}
-        globaltypecount:=1;
-        pglobaltypecount:=@globaltypecount;
+       globaltypecount:=1;
+       pglobaltypecount:=@globaltypecount;
 {$endif GDB}
-        { create error syms and def }
-        generrorsym:=terrorsym.create;
-        generrortype.setdef(terrordef.create);
+       { create error syms and def }
+       generrorsym:=terrorsym.create;
+       generrortype.setdef(terrordef.create);
 {$ifdef UNITALIASES}
-        { unit aliases }
-        unitaliases:=tdictionary.create;
+       { unit aliases }
+       unitaliases:=tdictionary.create;
 {$endif}
-        initialmacrosymtable:= tmacrosymtable.create(false);
-        macrosymtablestack:= initialmacrosymtable;
+       initialmacrosymtable:= tmacrosymtable.create(false);
+       macrosymtablestack:= initialmacrosymtable;
 
-        dupnr:=0;
+       { set some global vars to nil, might be important for the ide }
+       class_tobject:=nil;
+       interface_iunknown:=nil;
+       rec_tguid:=nil;
+
+       dupnr:=0;
      end;
 
 
@@ -2463,7 +2468,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.171  2005-02-14 17:13:08  peter
+  Revision 1.172  2005-03-13 12:15:44  florian
+    + reset in InitSymtable some global vars to avoid trouble with the ide
+
+  Revision 1.171  2005/02/14 17:13:08  peter
     * truncate log
 
   Revision 1.170  2005/01/20 16:38:45  peter
