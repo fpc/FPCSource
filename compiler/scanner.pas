@@ -996,16 +996,13 @@ implementation
                '*' :
                  begin
                    if found=3 then
-                    begin
-                      inc_comment_level;
-                      found:=0;
-                    end
+                    found:=4
                    else
                     found:=1;
                  end;
                ')' :
                  begin
-                   if found=1 then
+                   if found in [1,4] then
                     begin
                       dec_comment_level;
                       if comment_level=0 then
@@ -1015,9 +1012,17 @@ implementation
                     end;
                  end;
                '(' :
-                 found:=3;
+                 begin
+                   if found=4 then
+                    inc_comment_level;
+                   found:=3;
+                 end;
                else
-                 found:=0;
+                 begin
+                   if found=4 then
+                    inc_comment_level;
+                   found:=0;
+                 end;
              end;
              c:=inputpointer^;
              if c=#0 then
@@ -1684,7 +1689,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.97  1999-10-30 12:32:30  peter
+  Revision 1.98  1999-11-02 15:05:08  peter
+    * fixed oldtp comment parsing
+
+  Revision 1.97  1999/10/30 12:32:30  peter
     * fixed line counter when the first line had #10 only. This was buggy
       for both the main file as for include files
 
