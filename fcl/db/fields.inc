@@ -406,7 +406,7 @@ begin
       FDataset.DataEvent(deDatasetchange,0);
 end;
 
-procedure TField.ReadState(Reader: TReader); 
+procedure TField.ReadState(Reader: TAbstractReader); 
 
 begin
   //!! To be implemented
@@ -1752,7 +1752,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2000-01-07 01:24:32  peter
+  Revision 1.8  2000-03-14 19:06:04  michael
+  + everyting compiles again
+
+  Revision 1.7  2000/01/07 01:24:32  peter
     * updated copyright to 2000
 
   Revision 1.6  2000/01/06 01:20:32  peter

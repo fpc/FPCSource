@@ -198,7 +198,7 @@ type
     function HasParent: Boolean; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure PropertyChanged(LayoutAffected: Boolean);
-    procedure ReadState(Reader: TReader); override;
+    procedure ReadState(Reader: TAbstractReader); override;
     procedure SetAsBoolean(AValue: Boolean); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
     procedure SetAsFloat(AValue: Extended); virtual;
@@ -952,7 +952,7 @@ type
     property RecNo: Longint read FRecNo write FRecNo;
     property RecordSize: Word read FRecordSize;
     property State: TDataSetState read FState;
-    property Fields : TFields Read FFieldList;
+//    property Fields : TFields Read FFieldList;
     property Filter: string read FFilterText write FFilterText;
     property Filtered: Boolean read FFiltered write FFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write FFilterOptions;
@@ -1260,7 +1260,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2000-01-07 01:24:32  peter
+  Revision 1.9  2000-03-14 19:06:04  michael
+  + everyting compiles again
+
+  Revision 1.8  2000/01/07 01:24:32  peter
     * updated copyright to 2000
 
   Revision 1.7  2000/01/06 01:20:32  peter
