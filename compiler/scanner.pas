@@ -2388,14 +2388,20 @@ implementation
 
              '&' :
                begin
-                 if not(m_fpc in aktmodeswitches) then
-                  Illegal_Char(c)
-                 else
+                 if m_fpc in aktmodeswitches then
                   begin
                     readnumber;
                     token:=_INTCONST;
                     goto exit_label;
-                  end;
+                  end
+                 else if m_mac in aktmodeswitches then
+                  begin
+                    readchar;
+                    token:=_AMPERSAND;
+                    goto exit_label;
+                  end
+                 else
+                  Illegal_Char(c);
                end;
 
              '0'..'9' :
@@ -2588,6 +2594,16 @@ implementation
                  token:=_SLASH;
                  goto exit_label;
                end;
+
+             '|' :
+               if m_mac in aktmodeswitches then
+                begin
+                  readchar;
+                  token:=_PIPE;
+                  goto exit_label;
+                end
+               else
+                Illegal_Char(c);
 
              '=' :
                begin
@@ -3145,7 +3161,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.80  2004-06-20 08:55:30  florian
+  Revision 1.81  2004-07-05 23:25:34  olle
+    + adding operators "|" and "&" for macpas
+
+  Revision 1.80  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.79  2004/05/23 20:55:38  peter

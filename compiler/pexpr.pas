@@ -2231,9 +2231,9 @@ implementation
       { Warning these stay be ordered !! }
       operator_levels:array[Toperator_precedence] of set of Ttoken=
          ([_LT,_LTE,_GT,_GTE,_EQUAL,_UNEQUAL,_OP_IN,_OP_IS],
-          [_PLUS,_MINUS,_OP_OR,_OP_XOR],
+          [_PLUS,_MINUS,_OP_OR,_PIPE,_OP_XOR],
           [_CARET,_SYMDIF,_STARSTAR,_STAR,_SLASH,
-           _OP_AS,_OP_AND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
+           _OP_AS,_OP_AND,_AMPERSAND,_OP_DIV,_OP_MOD,_OP_SHL,_OP_SHR],
           [_STARSTAR] );
 
     function sub_expr(pred_level:Toperator_precedence;accept_equal : boolean):tnode;
@@ -2289,9 +2289,11 @@ implementation
                  p1:=cinnode.create(p1,p2);
                _OP_IS :
                  p1:=cisnode.create(p1,p2);
-               _OP_OR :
+               _OP_OR,
+               _PIPE {macpas only} :
                  p1:=caddnode.create(orn,p1,p2);
-               _OP_AND :
+               _OP_AND,
+               _AMPERSAND {macpas only} :
                  p1:=caddnode.create(andn,p1,p2);
                _OP_DIV :
                  p1:=cmoddivnode.create(divn,p1,p2);
@@ -2453,7 +2455,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.161  2004-07-05 21:49:43  olle
+  Revision 1.162  2004-07-05 23:25:34  olle
+    + adding operators "|" and "&" for macpas
+
+  Revision 1.161  2004/07/05 21:49:43  olle
     + macpas style: exit, cycle, leave
     + macpas compiler directive: PUSH POP
 

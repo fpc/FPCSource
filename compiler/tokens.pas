@@ -68,6 +68,8 @@ type
     _KLAMMERAFFE,
     _POINTPOINT,
     _POINTPOINTPOINT,
+    _PIPE,
+    _AMPERSAND,
     _EOF,
     _ID,
     _NOID,
@@ -296,6 +298,8 @@ const
       (str:'@'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'..'            ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'...'           ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'|'             ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'&'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'end of file'   ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'identifier'    ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'non identifier';special:true ;keyword:m_none;op:NOTOKEN),
@@ -514,7 +518,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2004-06-20 08:55:30  florian
+  Revision 1.31  2004-07-05 23:25:34  olle
+    + adding operators "|" and "&" for macpas
+
+  Revision 1.30  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.29  2004/06/16 20:07:10  florian
