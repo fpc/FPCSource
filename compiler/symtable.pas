@@ -2175,6 +2175,7 @@ implementation
         search_default_property:=_defaultprop;
      end;
 
+
 {****************************************************************************
                                Macro's
 ****************************************************************************}
@@ -2347,7 +2348,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  1999-08-13 14:24:22  pierre
+  Revision 1.42  1999-08-13 21:33:13  peter
+    * support for array constructors extended and more error checking
+
+  Revision 1.41  1999/08/13 14:24:22  pierre
     + stabs for classes and classref working,
       a class still needs an ^ to get that content of it,
       but the class fields inside a class don't result into an

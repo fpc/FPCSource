@@ -231,7 +231,7 @@ unit tree;
              labeln,goton : (labelnr : pasmlabel);
              withn : (withsymtable : pwithsymtable;tablecount : longint;withreference:preference;islocal:boolean);
              onn : (exceptsymtable : psymtable;excepttype : pobjectdef);
-             arrayconstructn : (cargs,cargswap: boolean);
+             arrayconstructn : (cargs,cargswap,novariaallowed: boolean);
            end;
 
     function gennode(t : ttreetyp;l,r : ptree) : ptree;
@@ -1739,7 +1739,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.87  1999-08-09 22:14:46  peter
+  Revision 1.88  1999-08-13 21:33:18  peter
+    * support for array constructors extended and more error checking
+
+  Revision 1.87  1999/08/09 22:14:46  peter
     * fixed disposing of tree node
 
   Revision 1.86  1999/08/04 00:23:49  florian

@@ -829,16 +829,27 @@ implementation
         lt    : pdef;
         vaddr : boolean;
         vtype : longint;
+        dovariant : boolean;
+        elesize : longint;
       begin
+        dovariant:=parraydef(p^.resulttype)^.isvariant;
+        if dovariant then
+         elesize:=8
+        else
+         begin
+           elesize:=parraydef(p^.resulttype)^.elesize;
+           if elesize>4 then
+            internalerror(8765678);
+         end;
         if not p^.cargs then
          begin
            reset_reference(p^.location.reference);
            { Allocate always a temp, also if no elements are required, to
-             ensure that location is valid (PFV) }
+             be sure that location is valid (PFV) }
             if parraydef(p^.resulttype)^.highrange=-1 then
-              gettempofsizereference(8,p^.location.reference)
+              gettempofsizereference(elesize,p^.location.reference)
             else
-              gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
+              gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*elesize,p^.location.reference);
            href:=p^.location.reference;
          end;
         hp:=p;
@@ -849,83 +860,101 @@ implementation
               secondpass(hp^.left);
               if codegenerror then
                exit;
-              { find the correct vtype value }
-              vtype:=$ff;
-              vaddr:=false;
-              lt:=hp^.left^.resulttype;
-              case lt^.deftype of
-                enumdef,
-                orddef :
-                  begin
-                    if (lt^.deftype=enumdef) or
-                       is_integer(lt) then
-                      vtype:=vtInteger
-                    else
-                      if is_boolean(lt) then
-                        vtype:=vtBoolean
-                      else
-                        if (lt^.deftype=orddef) and (porddef(lt)^.typ=uchar) then
-                          vtype:=vtChar;
-                  end;
-                floatdef :
-                  begin
-                    vtype:=vtExtended;
-                    vaddr:=true;
-                  end;
-                procvardef,
-                pointerdef :
-                  begin
-                    if is_pchar(lt) then
-                      vtype:=vtPChar
-                    else
-                      vtype:=vtPointer;
-                  end;
-                classrefdef :
-                  vtype:=vtClass;
-                objectdef :
-                  begin
-                    vtype:=vtObject;
-                  end;
-                stringdef :
-                  begin
-                    if is_shortstring(lt) then
+              if dovariant then
+               begin
+                 { find the correct vtype value }
+                 vtype:=$ff;
+                 vaddr:=false;
+                 lt:=hp^.left^.resulttype;
+                 case lt^.deftype of
+                   enumdef,
+                   orddef :
                      begin
-                       vtype:=vtString;
+                       if (lt^.deftype=enumdef) or
+                          is_integer(lt) then
+                         vtype:=vtInteger
+                       else
+                         if is_boolean(lt) then
+                           vtype:=vtBoolean
+                         else
+                           if (lt^.deftype=orddef) and (porddef(lt)^.typ=uchar) then
+                             vtype:=vtChar;
+                     end;
+                   floatdef :
+                     begin
+                       vtype:=vtExtended;
                        vaddr:=true;
+                     end;
+                   procvardef,
+                   pointerdef :
+                     begin
+                       if is_pchar(lt) then
+                         vtype:=vtPChar
+                       else
+                         vtype:=vtPointer;
+                     end;
+                   classrefdef :
+                     vtype:=vtClass;
+                   objectdef :
+                     begin
+                       vtype:=vtObject;
+                     end;
+                   stringdef :
+                     begin
+                       if is_shortstring(lt) then
+                        begin
+                          vtype:=vtString;
+                          vaddr:=true;
+                        end
+                       else
+                        if is_ansistring(lt) then
+                         vtype:=vtAnsiString;
+                     end;
+                 end;
+                 if vtype=$ff then
+                   internalerror(14357);
+                 { write C style pushes or an pascal array }
+                 if p^.cargs then
+                  begin
+                    if vaddr then
+                     begin
+                       emit_to_reference(hp^.left);
+                       emit_push_lea_loc(hp^.left^.location);
                      end
                     else
-                     if is_ansistring(lt) then
-                      vtype:=vtAnsiString;
-                  end;
-              end;
-              if vtype=$ff then
-                internalerror(14357);
-              { write C style pushes or an pascal array }
-              if p^.cargs then
-               begin
-                 if vaddr then
-                  begin
-                    emit_to_reference(hp^.left);
-                    emit_push_lea_loc(hp^.left^.location);
+                     emit_push_loc(hp^.left^.location);
                   end
                  else
-                  emit_push_loc(hp^.left^.location);
+                  begin
+                    { update href to the vtype field and write it }
+                    exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
+                      vtype,newreference(href))));
+                    inc(href.offset,4);
+                    { write changing field update href to the next element }
+                    if vaddr then
+                     begin
+                       emit_to_reference(hp^.left);
+                       emit_lea_loc_ref(hp^.left^.location,href);
+                     end
+                    else
+                     emit_mov_loc_ref(hp^.left^.location,href,S_L);
+                    inc(href.offset,4);
+                  end;
                end
               else
+              { normal array constructor of the same type }
                begin
-                 { update href to the vtype field and write it }
-                 exprasmlist^.concat(new(pai386,op_const_ref(A_MOV,S_L,
-                   vtype,newreference(href))));
-                 inc(href.offset,4);
-                 { write changing field update href to the next element }
-                 if vaddr then
-                  begin
-                    emit_to_reference(hp^.left);
-                    emit_lea_loc_ref(hp^.left^.location,href);
-                  end
-                 else
-                  emit_mov_loc_ref(hp^.left^.location,href);
-                 inc(href.offset,4);
+                 case elesize of
+                   1 :
+                     emit_mov_loc_ref(hp^.left^.location,href,S_B);
+                   2 :
+                     emit_mov_loc_ref(hp^.left^.location,href,S_W);
+                   4 :
+                     emit_mov_loc_ref(hp^.left^.location,href,S_L);
+                   else
+                     internalerror(87656781);
+                 end;
+                 inc(href.offset,elesize);
                end;
             end;
            { load next entry }
@@ -937,7 +966,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.72  1999-08-09 22:19:50  peter
+  Revision 1.73  1999-08-13 21:33:09  peter
+    * support for array constructors extended and more error checking
+
+  Revision 1.72  1999/08/09 22:19:50  peter
     * classes vmt changed to only positive addresses
     * sharedlib creation is working
 

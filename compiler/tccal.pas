@@ -242,12 +242,17 @@ implementation
                           CGMessage(parser_e_call_by_ref_without_typeconv);
                        end;
                    { process cargs arrayconstructor }
-                   if is_array_constructor(p^.left^.resulttype) and
-                      assigned(aktcallprocsym) and
-                      (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
-                      (po_external in aktcallprocsym^.definition^.procoptions) then
+                   if is_array_constructor(p^.left^.resulttype) then
                     begin
-                      p^.left^.cargs:=true;
+                      if is_array_of_const(defcoll^.data) then
+                       begin
+                         if assigned(aktcallprocsym) and
+                            (pocall_cdecl in aktcallprocsym^.definition^.proccalloptions) and
+                            (po_external in aktcallprocsym^.definition^.procoptions) then
+                           p^.left^.cargs:=true;
+                       end
+                      else
+                       p^.left^.novariaallowed:=true;
                       old_array_constructor:=allow_array_constructor;
                       allow_array_constructor:=true;
                       firstpass(p^.left);
@@ -1198,7 +1203,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  1999-08-12 14:34:28  peter
+  Revision 1.59  1999-08-13 21:33:16  peter
+    * support for array constructors extended and more error checking
+
+  Revision 1.58  1999/08/12 14:34:28  peter
     * tp_procvar mode call->loadn fixed
 
   Revision 1.57  1999/08/05 16:53:19  peter

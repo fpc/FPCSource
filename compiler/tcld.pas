@@ -389,7 +389,7 @@ implementation
            while assigned(hp) do
             begin
               firstpass(hp^.left);
-              if not get_para_resulttype then
+              if (not get_para_resulttype) and (not p^.novariaallowed) then
                begin
                  case hp^.left^.resulttype^.deftype of
                    enumdef :
@@ -426,8 +426,15 @@ implementation
               if (pd=nil) then
                pd:=hp^.left^.resulttype
               else
-               if (not varia) and (not is_equal(pd,hp^.left^.resulttype)) then
-                varia:=true;
+               begin
+                 if ((p^.novariaallowed) or (not varia)) and
+                    (not is_equal(pd,hp^.left^.resulttype)) then
+                  begin
+                    if p^.novariaallowed then
+                     CGMessage2(type_e_incompatible_types,hp^.left^.resulttype^.typename,pd^.typename);
+                    varia:=true;
+                  end;
+               end;
               inc(len);
               hp:=hp^.right;
             end;
@@ -480,7 +487,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.39  1999-08-05 16:53:24  peter
+  Revision 1.40  1999-08-13 21:33:17  peter
+    * support for array constructors extended and more error checking
+
+  Revision 1.39  1999/08/05 16:53:24  peter
     * V_Fatal=1, all other V_ are also increased
     * Check for local procedure when assigning procvar
     * fixed comment parsing because directives

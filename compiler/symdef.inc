@@ -1836,7 +1836,7 @@
       begin
         {Tarraydef.size may never be called for an open array!}
         if highrange<lowrange then
-            internalerror($99080501);
+            internalerror(99080501);
         If (highrange-lowrange = $7fffffff) or
            { () are needed around elesize-1 to avoid a possible
              integer overflow for elesize=1 !! PM }
@@ -1884,7 +1884,12 @@
 
       begin
          if isarrayofconst or isConstructor then
-           gettypename:='Array Of Const'
+           begin
+             if isvariant then
+               gettypename:='Array Of Const'
+             else
+               gettypename:='Array Of '+definition^.typename;
+           end
          else if is_open_array(@self) then
            gettypename:='Array Of '+definition^.typename
          else
@@ -3710,7 +3715,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.152  1999-08-13 14:24:18  pierre
+  Revision 1.153  1999-08-13 21:33:11  peter
+    * support for array constructors extended and more error checking
+
+  Revision 1.152  1999/08/13 14:24:18  pierre
     + stabs for classes and classref working,
       a class still needs an ^ to get that content of it,
       but the class fields inside a class don't result into an

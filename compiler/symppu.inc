@@ -233,8 +233,6 @@
        { create unit flags }
          with Current_Module^ do
           begin
-            if cs_smartlink in aktmoduleswitches then
-             flags:=flags or uf_smart_linked;
 {$ifdef GDB}
             if cs_gdb_dbx in aktglobalswitches then
              flags:=flags or uf_has_dbx;
@@ -606,7 +604,10 @@
 
 {
   $Log$
-  Revision 1.45  1999-08-03 22:03:17  peter
+  Revision 1.46  1999-08-13 21:33:12  peter
+    * support for array constructors extended and more error checking
+
+  Revision 1.45  1999/08/03 22:03:17  peter
     * moved bitmask constants to sets
     * some other type/const renamings
 
