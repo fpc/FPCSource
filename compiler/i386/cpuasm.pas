@@ -1015,7 +1015,7 @@ begin
        R_GS : c:=$65;
        R_SS : c:=$36;
      end;
-     objectoutput^.writebytes(c,1);
+     objectdata.writebytes(c,1);
      { fix the offset for GenNode }
      inc(InsOffset);
    end;
@@ -1405,7 +1405,7 @@ begin
       ((codes[0]=#1) and ((codes[2]=#5) or (codes[2]=#7)))) then
     begin
       bytes[0]:=$66;
-      objectoutput^.writebytes(bytes,1);
+      objectdata.writebytes(bytes,1);
     end;
   repeat
     c:=ord(codes^);
@@ -1415,7 +1415,7 @@ begin
         break;
       1,2,3 :
         begin
-          objectoutput^.writebytes(codes^,c);
+          objectdata.writebytes(codes^,c);
           inc(codes,c);
         end;
       4,6 :
@@ -1453,7 +1453,7 @@ begin
             else
               InternalError(777004);
           end;
-          objectoutput^.writebytes(bytes,1);
+          objectdata.writebytes(bytes,1);
         end;
       5,7 :
         begin
@@ -1475,18 +1475,18 @@ begin
             else
               InternalError(777005);
           end;
-          objectoutput^.writebytes(bytes,1);
+          objectdata.writebytes(bytes,1);
         end;
       8,9,10 :
         begin
           bytes[0]:=ord(codes^)+regval(oper[c-8].reg);
           inc(codes);
-          objectoutput^.writebytes(bytes,1);
+          objectdata.writebytes(bytes,1);
         end;
       15 :
         begin
           bytes[0]:=0;
-          objectoutput^.writebytes(bytes,1);
+          objectdata.writebytes(bytes,1);
         end;
       12,13,14 :
         begin
@@ -1494,9 +1494,9 @@ begin
           if (currval<-128) or (currval>127) then
            Message2(asmw_e_value_exceeds_bounds,'signed byte',tostr(currval));
           if assigned(currsym) then
-            objectoutput^.writereloc(currval,1,currsym,relative_false)
+            objectdata.writereloc(currval,1,currsym,relative_false)
           else
-            objectoutput^.writebytes(currval,1);
+            objectdata.writebytes(currval,1);
         end;
       16,17,18 :
         begin
@@ -1504,9 +1504,9 @@ begin
           if (currval<-256) or (currval>255) then
            Message2(asmw_e_value_exceeds_bounds,'byte',tostr(currval));
           if assigned(currsym) then
-           objectoutput^.writereloc(currval,1,currsym,relative_false)
+           objectdata.writereloc(currval,1,currsym,relative_false)
           else
-           objectoutput^.writebytes(currval,1);
+           objectdata.writebytes(currval,1);
         end;
       20,21,22 :
         begin
@@ -1514,9 +1514,9 @@ begin
           if (currval<0) or (currval>255) then
            Message2(asmw_e_value_exceeds_bounds,'unsigned byte',tostr(currval));
           if assigned(currsym) then
-           objectoutput^.writereloc(currval,1,currsym,relative_false)
+           objectdata.writereloc(currval,1,currsym,relative_false)
           else
-           objectoutput^.writebytes(currval,1);
+           objectdata.writebytes(currval,1);
         end;
       24,25,26 :
         begin
@@ -1524,25 +1524,25 @@ begin
           if (currval<-65536) or (currval>65535) then
            Message2(asmw_e_value_exceeds_bounds,'word',tostr(currval));
           if assigned(currsym) then
-           objectoutput^.writereloc(currval,2,currsym,relative_false)
+           objectdata.writereloc(currval,2,currsym,relative_false)
           else
-           objectoutput^.writebytes(currval,2);
+           objectdata.writebytes(currval,2);
         end;
       28,29,30 :
         begin
           getvalsym(c-28);
           if assigned(currsym) then
-           objectoutput^.writereloc(currval,4,currsym,relative_false)
+           objectdata.writereloc(currval,4,currsym,relative_false)
           else
-           objectoutput^.writebytes(currval,4);
+           objectdata.writebytes(currval,4);
         end;
       32,33,34 :
         begin
           getvalsym(c-32);
           if assigned(currsym) then
-           objectoutput^.writereloc(currval,4,currsym,relative_false)
+           objectdata.writereloc(currval,4,currsym,relative_false)
           else
-           objectoutput^.writebytes(currval,4);
+           objectdata.writebytes(currval,4);
         end;
       40,41,42 :
         begin
@@ -1552,47 +1552,47 @@ begin
            inc(data,currsym^.address);
           if (data>127) or (data<-128) then
            Message1(asmw_e_short_jmp_out_of_range,tostr(data));
-          objectoutput^.writebytes(data,1);
+          objectdata.writebytes(data,1);
         end;
       52,53,54 :
         begin
           getvalsym(c-52);
           if assigned(currsym) then
-           objectoutput^.writereloc(currval,4,currsym,relative_true)
+           objectdata.writereloc(currval,4,currsym,relative_true)
           else
-           objectoutput^.writereloc(currval-insend,4,nil,relative_false)
+           objectdata.writereloc(currval-insend,4,nil,relative_false)
         end;
       56,57,58 :
         begin
           getvalsym(c-56);
           if assigned(currsym) then
-           objectoutput^.writereloc(currval,4,currsym,relative_true)
+           objectdata.writereloc(currval,4,currsym,relative_true)
           else
-           objectoutput^.writereloc(currval-insend,4,nil,relative_false)
+           objectdata.writereloc(currval-insend,4,nil,relative_false)
         end;
       192,193,194 :
         begin
           if NeedAddrPrefix(c-192) then
            begin
              bytes[0]:=$67;
-             objectoutput^.writebytes(bytes,1);
+             objectdata.writebytes(bytes,1);
            end;
         end;
       200 :
         begin
           bytes[0]:=$67;
-          objectoutput^.writebytes(bytes,1);
+          objectdata.writebytes(bytes,1);
         end;
       208 :
         begin
           bytes[0]:=$66;
-          objectoutput^.writebytes(bytes,1);
+          objectdata.writebytes(bytes,1);
         end;
       216 :
         begin
           bytes[0]:=ord(codes^)+condval[condition];
           inc(codes);
-          objectoutput^.writebytes(bytes,1);
+          objectdata.writebytes(bytes,1);
         end;
       201,
       202,
@@ -1636,24 +1636,24 @@ begin
               end;
 
              s:=pb-pchar(@bytes);
-             objectoutput^.writebytes(bytes,s);
+             objectdata.writebytes(bytes,s);
 
              case ea_data.bytes of
                0 : ;
                1 :
                  begin
                    if (oper[opidx].ot and OT_MEMORY)=OT_MEMORY then
-                    objectoutput^.writereloc(oper[opidx].ref^.offset,1,oper[opidx].ref^.symbol,relative_false)
+                    objectdata.writereloc(oper[opidx].ref^.offset,1,oper[opidx].ref^.symbol,relative_false)
                    else
                     begin
                       bytes[0]:=oper[opidx].ref^.offset;
-                      objectoutput^.writebytes(bytes,1);
+                      objectdata.writebytes(bytes,1);
                     end;
                    inc(s);
                  end;
                2,4 :
                  begin
-                   objectoutput^.writereloc(oper[opidx].ref^.offset,ea_data.bytes,
+                   objectdata.writereloc(oper[opidx].ref^.offset,ea_data.bytes,
                      oper[opidx].ref^.symbol,relative_false);
                    inc(s,ea_data.bytes);
                  end;
@@ -1670,7 +1670,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-12-07 17:19:45  jonas
+  Revision 1.5  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.4  2000/12/07 17:19:45  jonas
     * new constant handling: from now on, hex constants >$7fffffff are
       parsed as unsigned constants (otherwise, $80000000 got sign extended
       and became $ffffffff80000000), all constants in the longint range

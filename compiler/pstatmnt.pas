@@ -427,13 +427,13 @@ implementation
                            levelcount:=1;
                            withsymtable:=new(pwithsymtable,init);
                            withsymtable^.symsearch:=symtab^.symsearch;
-                           withsymtable^.next:=symtablestack;
-                              if (p.nodetype=loadn) and
-                                 (tloadnode(p).symtable=aktprocsym^.definition^.localst) then
-                                pwithsymtable(withsymtable)^.direct_with:=true;
-                              {symtab^.withnode:=p; not yet allocated !! }
-                              pwithsymtable(withsymtable)^.withrefnode:=p;
+                           if (p.nodetype=loadn) and
+                              (tloadnode(p).symtable=aktprocsym^.definition^.localst) then
+                           pwithsymtable(withsymtable)^.direct_with:=true;
+                           {symtab^.withnode:=p; not yet allocated !! }
+                           pwithsymtable(withsymtable)^.withrefnode:=p;
                            withsymtable^.defowner:=precorddef(p.resulttype);
+                           withsymtable^.next:=symtablestack;
                            symtablestack:=withsymtable;
                         end;
             end;
@@ -1259,7 +1259,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-12-16 22:45:55  jonas
+  Revision 1.18  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.17  2000/12/16 22:45:55  jonas
     * fixed case statements with int64 values
 
   Revision 1.16  2000/11/29 00:30:37  florian

@@ -29,7 +29,10 @@ unit ag386bin;
 interface
 
     uses
-       cpubase,cobjects,aasm,fmodule,finput,assemble;
+      cobjects,
+      cpubase,aasm,
+      fmodule,finput,
+      ogbase,assemble;
 
     type
       togtype=(og_none,og_dbg,og_coff,og_pecoff,og_elf);
@@ -82,8 +85,10 @@ interface
 {$ifdef GDB}
        gdb,
 {$endif}
-       ogbase,
-       ogcoff,ogelf;
+       { binary writers }
+       ogcoff,ogelf
+       ;
+
 
 {$ifdef GDB}
 
@@ -122,7 +127,7 @@ interface
       { When in pass 1 then only alloc and leave }
         if currpass=1 then
          begin
-           objectalloc^.staballoc(hp);
+           objectalloc.staballoc(hp);
            if assigned(hp) then
             p[i]:='"';
            exit;
@@ -217,11 +222,14 @@ interface
         if assigned(ps) and (ps^.section=sec_none) then
           begin
             if currpass=2 then
-              objectoutput^.writesymbol(ps);
-            objectoutput^.WriteSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
+              begin
+                objectdata.writesymbol(ps);
+                objectoutput.exportsymbol(ps);
+              end;
+            objectdata.WriteSymStabs(sec,ofs,hp,ps,nidx,nother,line,reloc)
           end
         else
-          objectoutput^.WriteStabs(sec,ofs,hp,nidx,nother,line,reloc);
+          objectdata.WriteStabs(sec,ofs,hp,nidx,nother,line,reloc);
         if assigned(hp) then
          p[ii]:='"';
       end;
@@ -233,13 +241,13 @@ interface
       begin
         if currpass=1 then
           begin
-            objectalloc^.staballoc(nil);
+            objectalloc.staballoc(nil);
             exit;
           end;
 
         if (nidx=n_textline) and assigned(funcname) and
            (target_os.use_function_relative_addresses) then
-          objectoutput^.WriteStabs(sec_code,objectoutput^.sectionsize(sec_code)-funcname^.address,
+          objectdata.WriteStabs(sec_code,objectdata.sectionsize(sec_code)-funcname^.address,
               nil,nidx,0,line,false)
         else
           begin
@@ -249,7 +257,7 @@ interface
               sec:=sec_data
             else
               sec:=sec_bss;
-            objectoutput^.WriteStabs(sec,objectoutput^.sectionsize(sec),
+            objectdata.WriteStabs(sec,objectdata.sectionsize(sec),
               nil,nidx,0,line,true);
           end;
       end;
@@ -284,11 +292,11 @@ interface
            hp:=newasmsymboltype('Ltext'+ToStr(IncludeCount),AB_LOCAL,AT_FUNCTION);
            if currpass=1 then
              begin
-                hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+                hp^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
                 UsedAsmSymbolListInsert(hp);
              end
            else
-             objectoutput^.writesymbol(hp);
+             objectdata.writesymbol(hp);
            { emit stabs }
            if (infile^.path^<>'') then
              EmitStabs('"'+lower(BsToSlash(FixPath(infile^.path^,false)))+'",'+tostr(curr_n)+
@@ -327,18 +335,18 @@ interface
           if not ((cs_debuginfo in aktmoduleswitches) or
              (cs_gdb_lineinfo in aktglobalswitches)) then
            exit;
-        store_sec:=objectalloc^.currsec;
-        objectalloc^.setsection(sec_code);
+        store_sec:=objectalloc.currsec;
+        objectalloc.setsection(sec_code);
         hp:=newasmsymboltype('Letext',AB_LOCAL,AT_FUNCTION);
         if currpass=1 then
           begin
-            hp^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+            hp^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
             UsedAsmSymbolListInsert(hp);
           end
         else
-          objectoutput^.writesymbol(hp);
+          objectdata.writesymbol(hp);
         EmitStabs('"",'+tostr(n_sourcefile)+',0,0,Letext');
-        objectalloc^.setsection(store_sec);
+        objectalloc.setsection(store_sec);
       end;
 {$endif GDB}
 
@@ -376,7 +384,7 @@ interface
                  { always use the maximum fillsize in this pass to avoid possible
                    short jumps to become out of range }
                  pai_align(hp)^.fillsize:=pai_align(hp)^.aligntype;
-                 objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
+                 objectalloc.sectionalloc(pai_align(hp)^.fillsize);
                end;
              ait_datablock :
                begin
@@ -386,52 +394,52 @@ interface
                      begin
                         l:=pai_datablock(hp)^.size;
                         if l>2 then
-                          objectalloc^.sectionalign(4)
+                          objectalloc.sectionalign(4)
                         else if l>1 then
-                          objectalloc^.sectionalign(2);
-                        objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                          objectalloc.sectionalign(2);
+                        objectalloc.sectionalloc(pai_datablock(hp)^.size);
                      end;
                   end
                  else
                   begin
                     l:=pai_datablock(hp)^.size;
                     if l>2 then
-                      objectalloc^.sectionalign(4)
+                      objectalloc.sectionalign(4)
                     else if l>1 then
-                      objectalloc^.sectionalign(2);
-                    objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                      objectalloc.sectionalign(2);
+                    objectalloc.sectionalloc(pai_datablock(hp)^.size);
                   end;
                end;
              ait_const_32bit :
-               objectalloc^.sectionalloc(4);
+               objectalloc.sectionalloc(4);
              ait_const_16bit :
-               objectalloc^.sectionalloc(2);
+               objectalloc.sectionalloc(2);
              ait_const_8bit :
-               objectalloc^.sectionalloc(1);
+               objectalloc.sectionalloc(1);
              ait_real_80bit :
-               objectalloc^.sectionalloc(10);
+               objectalloc.sectionalloc(10);
              ait_real_64bit :
-               objectalloc^.sectionalloc(8);
+               objectalloc.sectionalloc(8);
              ait_real_32bit :
-               objectalloc^.sectionalloc(4);
+               objectalloc.sectionalloc(4);
              ait_comp_64bit :
-               objectalloc^.sectionalloc(8);
+               objectalloc.sectionalloc(8);
              ait_const_rva,
              ait_const_symbol :
-               objectalloc^.sectionalloc(4);
+               objectalloc.sectionalloc(4);
              ait_section:
-               objectalloc^.setsection(pai_section(hp)^.sec);
+               objectalloc.setsection(pai_section(hp)^.sec);
              ait_symbol :
-               pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+               pai_symbol(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
              ait_label :
-               pai_label(hp)^.l^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+               pai_label(hp)^.l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
              ait_string :
-               objectalloc^.sectionalloc(pai_string(hp)^.len);
+               objectalloc.sectionalloc(pai_string(hp)^.len);
              ait_instruction :
                begin
                  { reset instructions which could change in pass 2 }
                  paicpu(hp)^.resetpass2;
-                 objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
+                 objectalloc.sectionalloc(paicpu(hp)^.Pass1(objectalloc.sectionsize));
                end;
              ait_cut :
                if SmartAsm then
@@ -454,7 +462,7 @@ interface
           if ((cs_debuginfo in aktmoduleswitches) or
              (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
-              if (objectalloc^.currsec<>sec_none) and
+              if (objectalloc.currsec<>sec_none) and
                  not(hp^.typ in  [
                      ait_label,
                      ait_regalloc,ait_tempalloc,
@@ -467,13 +475,13 @@ interface
              ait_align :
                begin
                  { here we must determine the fillsize which is used in pass2 }
-                 pai_align(hp)^.fillsize:=align(objectalloc^.sectionsize,pai_align(hp)^.aligntype)-
-                   objectalloc^.sectionsize;
-                 objectalloc^.sectionalloc(pai_align(hp)^.fillsize);
+                 pai_align(hp)^.fillsize:=align(objectalloc.sectionsize,pai_align(hp)^.aligntype)-
+                   objectalloc.sectionsize;
+                 objectalloc.sectionalloc(pai_align(hp)^.fillsize);
                end;
              ait_datablock :
                begin
-                 if objectalloc^.currsec<>sec_bss then
+                 if objectalloc.currsec<>sec_bss then
                   Message(asmw_e_alloc_data_only_in_bss);
                  if not SmartAsm then
                   begin
@@ -488,49 +496,49 @@ interface
                      begin
                        l:=pai_datablock(hp)^.size;
                        if l>2 then
-                         objectalloc^.sectionalign(4)
+                         objectalloc.sectionalign(4)
                        else if l>1 then
-                         objectalloc^.sectionalign(2);
-                       pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,
+                         objectalloc.sectionalign(2);
+                       pai_datablock(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,
                          pai_datablock(hp)^.size);
-                       objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                       objectalloc.sectionalloc(pai_datablock(hp)^.size);
                      end;
                    end
                   else
                    begin
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
-                       objectalloc^.sectionalign(4)
+                       objectalloc.sectionalign(4)
                      else if l>1 then
-                       objectalloc^.sectionalign(2);
-                     pai_datablock(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,pai_datablock(hp)^.size);
-                     objectalloc^.sectionalloc(pai_datablock(hp)^.size);
+                       objectalloc.sectionalign(2);
+                     pai_datablock(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,pai_datablock(hp)^.size);
+                     objectalloc.sectionalloc(pai_datablock(hp)^.size);
                    end;
                  UsedAsmSymbolListInsert(pai_datablock(hp)^.sym);
                end;
              ait_const_32bit :
-               objectalloc^.sectionalloc(4);
+               objectalloc.sectionalloc(4);
              ait_const_16bit :
-               objectalloc^.sectionalloc(2);
+               objectalloc.sectionalloc(2);
              ait_const_8bit :
-               objectalloc^.sectionalloc(1);
+               objectalloc.sectionalloc(1);
              ait_real_80bit :
-               objectalloc^.sectionalloc(10);
+               objectalloc.sectionalloc(10);
              ait_real_64bit :
-               objectalloc^.sectionalloc(8);
+               objectalloc.sectionalloc(8);
              ait_real_32bit :
-               objectalloc^.sectionalloc(4);
+               objectalloc.sectionalloc(4);
              ait_comp_64bit :
-               objectalloc^.sectionalloc(8);
+               objectalloc.sectionalloc(8);
              ait_const_rva,
              ait_const_symbol :
                begin
-                 objectalloc^.sectionalloc(4);
+                 objectalloc.sectionalloc(4);
                  UsedAsmSymbolListInsert(pai_const_symbol(hp)^.sym);
                end;
              ait_section:
                begin
-                 objectalloc^.setsection(pai_section(hp)^.sec);
+                 objectalloc.setsection(pai_section(hp)^.sec);
 {$ifdef GDB}
                  case pai_section(hp)^.sec of
                   sec_code : n_line:=n_textline;
@@ -562,27 +570,27 @@ interface
 {$endif}
              ait_symbol :
                begin
-                 pai_symbol(hp)^.sym^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+                 pai_symbol(hp)^.sym^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
                  UsedAsmSymbolListInsert(pai_symbol(hp)^.sym);
                end;
              ait_symbol_end :
                begin
                  if target_info.target=target_i386_linux then
                   begin
-                    pai_symbol(hp)^.sym^.size:=objectalloc^.sectionsize-pai_symbol(hp)^.sym^.address;
+                    pai_symbol(hp)^.sym^.size:=objectalloc.sectionsize-pai_symbol(hp)^.sym^.address;
                     UsedAsmSymbolListInsert(pai_symbol(hp)^.sym);
                   end;
                 end;
              ait_label :
                begin
-                 pai_label(hp)^.l^.setaddress(objectalloc^.currsec,objectalloc^.sectionsize,0);
+                 pai_label(hp)^.l^.setaddress(objectalloc.currsec,objectalloc.sectionsize,0);
                  UsedAsmSymbolListInsert(pai_label(hp)^.l);
                end;
              ait_string :
-               objectalloc^.sectionalloc(pai_string(hp)^.len);
+               objectalloc.sectionalloc(pai_string(hp)^.len);
              ait_instruction :
                begin
-                 objectalloc^.sectionalloc(paicpu(hp)^.Pass1(objectalloc^.sectionsize));
+                 objectalloc.sectionalloc(paicpu(hp)^.Pass1(objectalloc.sectionsize));
                  { fixup the references }
                  for i:=1 to paicpu(hp)^.ops do
                   begin
@@ -629,7 +637,7 @@ interface
           if ((cs_debuginfo in aktmoduleswitches) or
              (cs_gdb_lineinfo in aktglobalswitches)) then
             begin
-              if (objectoutput^.currsec<>sec_none) and
+              if (objectdata.currsec<>sec_none) and
                  not(hp^.typ in [
                      ait_label,
                      ait_regalloc,ait_tempalloc,
@@ -640,10 +648,10 @@ interface
 {$endif GDB}
            case hp^.typ of
              ait_align :
-               objectoutput^.writebytes(pai_align(hp)^.getfillbuf^,pai_align(hp)^.fillsize);
+               objectdata.writebytes(pai_align(hp)^.getfillbuf^,pai_align(hp)^.fillsize);
              ait_section :
                begin
-                 objectoutput^.defaultsection(pai_section(hp)^.sec);
+                 objectdata.defaultsection(pai_section(hp)^.sec);
 {$ifdef GDB}
                  case pai_section(hp)^.sec of
                   sec_code : n_line:=n_textline;
@@ -656,32 +664,36 @@ interface
 {$endif GDB}
                end;
              ait_symbol :
-               objectoutput^.writesymbol(pai_symbol(hp)^.sym);
+               begin
+                 objectdata.writesymbol(pai_symbol(hp)^.sym);
+                 objectoutput.exportsymbol(pai_symbol(hp)^.sym);
+               end;
              ait_datablock :
                begin
-                 objectoutput^.writesymbol(pai_datablock(hp)^.sym);
+                 objectdata.writesymbol(pai_datablock(hp)^.sym);
+                 objectoutput.exportsymbol(pai_datablock(hp)^.sym);
                  if SmartAsm or (not pai_datablock(hp)^.is_global) then
                    begin
                      l:=pai_datablock(hp)^.size;
                      if l>2 then
-                       objectoutput^.allocalign(4)
+                       objectdata.allocalign(4)
                      else if l>1 then
-                       objectoutput^.allocalign(2);
-                     objectoutput^.alloc(pai_datablock(hp)^.size);
+                       objectdata.allocalign(2);
+                     objectdata.alloc(pai_datablock(hp)^.size);
                    end;
                end;
              ait_const_32bit :
-               objectoutput^.writebytes(pai_const(hp)^.value,4);
+               objectdata.writebytes(pai_const(hp)^.value,4);
              ait_const_16bit :
-               objectoutput^.writebytes(pai_const(hp)^.value,2);
+               objectdata.writebytes(pai_const(hp)^.value,2);
              ait_const_8bit :
-               objectoutput^.writebytes(pai_const(hp)^.value,1);
+               objectdata.writebytes(pai_const(hp)^.value,1);
              ait_real_80bit :
-               objectoutput^.writebytes(pai_real_80bit(hp)^.value,10);
+               objectdata.writebytes(pai_real_80bit(hp)^.value,10);
              ait_real_64bit :
-               objectoutput^.writebytes(pai_real_64bit(hp)^.value,8);
+               objectdata.writebytes(pai_real_64bit(hp)^.value,8);
              ait_real_32bit :
-               objectoutput^.writebytes(pai_real_32bit(hp)^.value,4);
+               objectdata.writebytes(pai_real_32bit(hp)^.value,4);
              ait_comp_64bit :
                begin
 {$ifdef FPC}
@@ -689,18 +701,23 @@ interface
 {$else}
                  co:=pai_comp_64bit(hp)^.value;
 {$endif}
-                 objectoutput^.writebytes(co,8);
+                 objectdata.writebytes(co,8);
                end;
              ait_string :
-               objectoutput^.writebytes(pai_string(hp)^.str^,pai_string(hp)^.len);
+               objectdata.writebytes(pai_string(hp)^.str^,pai_string(hp)^.len);
              ait_const_rva :
-               objectoutput^.writereloc(pai_const_symbol(hp)^.offset,4,
+               objectdata.writereloc(pai_const_symbol(hp)^.offset,4,
                  pai_const_symbol(hp)^.sym,relative_rva);
              ait_const_symbol :
-               objectoutput^.writereloc(pai_const_symbol(hp)^.offset,4,
+               objectdata.writereloc(pai_const_symbol(hp)^.offset,4,
                  pai_const_symbol(hp)^.sym,relative_false);
              ait_label :
-               objectoutput^.writesymbol(pai_label(hp)^.l);
+               begin
+                 objectdata.writesymbol(pai_label(hp)^.l);
+                 { exporting shouldn't be necessary as labels are local,
+                   but it's better to be on the safe side (PFV) }
+                 objectoutput.exportsymbol(pai_label(hp)^.l);
+               end;
              ait_instruction :
                paicpu(hp)^.Pass2;
 {$ifdef GDB}
@@ -732,18 +749,18 @@ interface
       label
         doexit;
       begin
-        objectalloc^.resetsections;
-        objectalloc^.setsection(sec_code);
+        objectalloc.resetsections;
+        objectalloc.setsection(sec_code);
 
-        objectoutput^.initwriting(cut_normal);
-        objectoutput^.defaultsection(sec_code);
+        objectdata:=objectoutput.initwriting(cut_normal);
+        objectdata.defaultsection(sec_code);
       { reset the asmsymbol list }
         InitUsedAsmsymbolList;
 
 {$ifdef MULTIPASS}
       { Pass 0 }
         currpass:=0;
-        objectalloc^.setsection(sec_code);
+        objectalloc.setsection(sec_code);
         { start with list 1 }
         currlistidx:=1;
         currlist:=list[currlistidx];
@@ -760,8 +777,8 @@ interface
 
       { Pass 1 }
         currpass:=1;
-        objectalloc^.resetsections;
-        objectalloc^.setsection(sec_code);
+        objectalloc.resetsections;
+        objectalloc.setsection(sec_code);
 {$ifdef GDB}
         StartFileLineInfo;
 {$endif GDB}
@@ -781,7 +798,7 @@ interface
         UsedAsmSymbolListCheckUndefined;
 
         { set section sizes }
-        objectoutput^.setsectionsizes(objectalloc^.secsize);
+        objectdata.setsectionsizes(objectalloc.secsize);
         { leave if errors have occured }
         if errorcount>0 then
          goto doexit;
@@ -809,7 +826,8 @@ interface
          goto doexit;
 
         { write last objectfile }
-        objectoutput^.donewriting;
+        objectoutput.donewriting;
+        objectdata:=nil;
 
       doexit:
         { reset the used symbols back, must be after the .o has been
@@ -825,11 +843,11 @@ interface
         startsec : tsection;
         place: tcutplace;
       begin
-        objectalloc^.resetsections;
-        objectalloc^.setsection(sec_code);
+        objectalloc.resetsections;
+        objectalloc.setsection(sec_code);
 
-        objectoutput^.initwriting(cut_normal);
-        objectoutput^.defaultsection(sec_code);
+        objectdata:=objectoutput.initwriting(cut_normal);
+        objectdata.defaultsection(sec_code);
         startsec:=sec_code;
 
         { start with list 1 }
@@ -844,8 +862,8 @@ interface
 {$ifdef MULTIPASS}
          { Pass 0 }
            currpass:=0;
-           objectalloc^.resetsections;
-           objectalloc^.setsection(startsec);
+           objectalloc.resetsections;
+           objectalloc.setsection(startsec);
            TreePass0(hp);
            { leave if errors have occured }
            if errorcount>0 then
@@ -854,8 +872,8 @@ interface
 
          { Pass 1 }
            currpass:=1;
-           objectalloc^.resetsections;
-           objectalloc^.setsection(startsec);
+           objectalloc.resetsections;
+           objectalloc.setsection(startsec);
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
@@ -867,14 +885,14 @@ interface
            UsedAsmSymbolListCheckUndefined;
 
            { set section sizes }
-           objectoutput^.setsectionsizes(objectalloc^.secsize);
+           objectdata.setsectionsizes(objectalloc.secsize);
            { leave if errors have occured }
            if errorcount>0 then
             exit;
 
          { Pass 2 }
            currpass:=2;
-           objectoutput^.defaultsection(startsec);
+           objectdata.defaultsection(startsec);
 {$ifdef GDB}
            StartFileLineInfo;
 {$endif GDB}
@@ -887,7 +905,8 @@ interface
             exit;
 
            { if not end then write the current objectfile }
-           objectoutput^.donewriting;
+           objectoutput.donewriting;
+           objectdata:=nil;
 
            { reset the used symbols back, must be after the .o has been
              written }
@@ -899,7 +918,7 @@ interface
             break;
            { save section for next loop }
            { this leads to a problem if startsec is sec_none !! PM }
-           startsec:=objectalloc^.currsec;
+           startsec:=objectalloc.currsec;
 
            { we will start a new objectfile so reset everything }
            { The place can still change in the next while loop, so don't init }
@@ -920,7 +939,7 @@ interface
               hp:=pai(hp^.next);
             end;
 
-           objectoutput^.initwriting(place);
+           objectdata:=objectoutput.initwriting(place);
 
            hp:=pai(hp^.next);
 
@@ -973,15 +992,15 @@ interface
           og_none :
             Message(asmw_f_no_binary_writer_selected);
           og_coff :
-            objectoutput:=new(pcoffoutput,initdjgpp(smart));
+            objectoutput:=tcoffoutput.createdjgpp(smart);
           og_pecoff :
-            objectoutput:=new(pcoffoutput,initwin32(smart));
+            objectoutput:=tcoffoutput.createwin32(smart);
           og_elf :
-            objectoutput:=new(pelf32output,init(smart));
+            objectoutput:=telf32output.create(smart);
           else
             internalerror(43243432);
         end;
-        objectalloc:=new(pobjectalloc,init);
+        objectalloc:=tobjectalloc.create;
         SmartAsm:=smart;
         currpass:=0;
       end;
@@ -996,8 +1015,8 @@ interface
 {$ifdef MEMDEBUG}
          d.init('agbin');
 {$endif}
-        dispose(objectoutput,done);
-        dispose(objectalloc,done);
+        objectoutput.free;
+        objectalloc.free;
 {$ifdef MEMDEBUG}
          d.done;
 {$endif}
@@ -1006,7 +1025,11 @@ interface
 end.
 {
   $Log$
-  Revision 1.2  2000-12-12 19:50:21  peter
+  Revision 1.3  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.2  2000/12/12 19:50:21  peter
     * clear usedasmsymbol at exit of writetree
 
   Revision 1.1  2000/11/30 22:18:48  florian

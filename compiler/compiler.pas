@@ -98,7 +98,8 @@ uses
   verbose,comphook,systems,
   cutils,cobjects,globals,options,fmodule,parser,symtable,
   link,import,export,tokens,
-  cpunode
+  { cpu overrides }
+  cpuswtch,cpunode
   ;
 
 function Compile(const cmd:string):longint;
@@ -318,7 +319,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-11-29 00:30:30  florian
+  Revision 1.12  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.11  2000/11/29 00:30:30  florian
     * unused units removed from uses clause
     * some changes for widestrings
 

@@ -40,14 +40,13 @@ type
     fmag : array[0..1] of char;
   end;
 
-  parobjectwriter=^tarobjectwriter;
-  tarobjectwriter=object(tobjectwriter)
-    constructor Init(const Aarfn:string);
-    destructor  Done;virtual;
-    procedure create(const fn:string);virtual;
-    procedure close;virtual;
-    procedure writesym(const sym:string);virtual;
-    procedure write(const b;len:longint);virtual;
+  tarobjectwriter=class(tobjectwriter)
+    constructor create(const Aarfn:string);
+    destructor  destroy;override;
+    procedure createfile(const fn:string);override;
+    procedure closefile;override;
+    procedure writesym(const sym:string);override;
+    procedure write(const b;len:longint);override;
   private
     arfn        : string;
     arhdr       : tarhdr;
@@ -115,7 +114,7 @@ end;
                                 TArObjectWriter
 *****************************************************************************}
 
-constructor tarobjectwriter.init(const Aarfn:string);
+constructor tarobjectwriter.create(const Aarfn:string);
 var
   time  : datetime;
   dummy : word;
@@ -132,7 +131,7 @@ begin
 end;
 
 
-destructor tarobjectwriter.done;
+destructor tarobjectwriter.destroy;
 begin
   if Errorcount=0 then
    writear;
@@ -172,7 +171,7 @@ begin
 end;
 
 
-procedure tarobjectwriter.create(const fn:string);
+procedure tarobjectwriter.createfile(const fn:string);
 begin
   objfn:=fn;
   objpos:=ardata^.size;
@@ -180,7 +179,7 @@ begin
 end;
 
 
-procedure tarobjectwriter.close;
+procedure tarobjectwriter.closefile;
 begin
   ardata^.align(2);
 { fix the size in the header }
@@ -282,7 +281,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-09-24 15:06:20  peter
+  Revision 1.6  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.5  2000/09/24 15:06:20  peter
     * use defines.inc
 
   Revision 1.4  2000/08/19 18:44:27  peter

@@ -27,12 +27,11 @@ unit owbase;
 interface
 
 type
-  pobjectwriter=^tobjectwriter;
-  tobjectwriter=object
-    constructor Init;
-    destructor  Done;virtual;
-    procedure create(const fn:string);virtual;
-    procedure close;virtual;
+  tobjectwriter=class
+    constructor create;
+    destructor  destroy;override;
+    procedure createfile(const fn:string);virtual;
+    procedure closefile;virtual;
     procedure writesym(const sym:string);virtual;
     procedure write(const b;len:longint);virtual;
   private
@@ -53,7 +52,7 @@ uses
 const
   bufsize = 32768;
 
-constructor tobjectwriter.init;
+constructor tobjectwriter.create;
 begin
   getmem(buf,bufsize);
   bufidx:=0;
@@ -62,15 +61,15 @@ begin
 end;
 
 
-destructor tobjectwriter.done;
+destructor tobjectwriter.destroy;
 begin
   if opened then
-   close;
+   closefile;
   freemem(buf,bufsize);
 end;
 
 
-procedure tobjectwriter.create(const fn:string);
+procedure tobjectwriter.createfile(const fn:string);
 begin
   assign(f,fn);
   {$I-}
@@ -87,7 +86,7 @@ begin
 end;
 
 
-procedure tobjectwriter.close;
+procedure tobjectwriter.closefile;
 begin
   if bufidx>0 then
    writebuf;
@@ -150,7 +149,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-09-24 15:06:20  peter
+  Revision 1.5  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.4  2000/09/24 15:06:20  peter
     * use defines.inc
 
   Revision 1.3  2000/08/19 18:44:27  peter

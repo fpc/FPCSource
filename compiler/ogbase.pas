@@ -59,7 +59,7 @@ interface
 
        poutputsymbol = ^toutputsymbol;
        toutputsymbol = packed record
-         namestr : string[8]; { namestr or nameidx is used }
+         namestr : string[8];    { namestr or nameidx will be used }
          nameidx : longint;
          section : tsection;
          value   : longint;
@@ -68,14 +68,13 @@ interface
          size    : longint;
        end;
 
-       poutputsection = ^toutputsection;
-       toutputsection = object
+       tobjectsection = class
           name      : string[32];
           secsymidx : longint; { index for the section in symtab }
           addralign : longint;
           { size of the data and in the file }
           data      : PDynamicArray;
-          datasize   : longint;
+          datasize  : longint;
           datapos   : longint;
           { size and position in memory, set by setsectionsize }
           memsize,
@@ -84,8 +83,8 @@ interface
           nrelocs   : longint;
           relochead : POutputReloc;
           reloctail : ^POutputReloc;
-          constructor init(const Aname:string;Aalign:longint;alloconly:boolean);
-          destructor  done;
+          constructor create(const Aname:string;Aalign:longint;alloconly:boolean);
+          destructor  destroy;override;
           function  write(var d;l:longint):longint;
           function  writestr(const s:string):longint;
           procedure writealign(l:longint);
@@ -96,12 +95,30 @@ interface
           procedure addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
        end;
 
-       pobjectalloc = ^tobjectalloc;
-       tobjectalloc = object
+       tobjectdata = class
+         { section }
+         currsec   : tsection;
+         sects     : array[TSection] of tobjectsection;
+         constructor create;
+         destructor  destroy;override;
+         procedure createsection(sec:tsection);virtual;
+         procedure defaultsection(sec:tsection);
+         function  sectionsize(s:tsection):longint;
+         procedure setsectionsizes(var s:tsecsize);virtual;
+         procedure alloc(len:longint);
+         procedure allocalign(len:longint);
+         procedure writebytes(var data;len:longint);
+         procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;abstract;
+         procedure writesymbol(p:pasmsymbol);virtual;abstract;
+         procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);virtual;abstract;
+       end;
+
+       tobjectalloc = class
          currsec : tsection;
          secsize : tsecsize;
-         constructor init;
-         destructor  done;
+         constructor create;
+         destructor  destroy;override;
          procedure setsection(sec:tsection);
          function  sectionsize:longint;
          procedure sectionalloc(l:longint);
@@ -110,9 +127,8 @@ interface
          procedure resetsections;
        end;
 
-       pobjectoutput = ^tobjectoutput;
-       tobjectoutput = object
-         writer    : pobjectwriter;
+       tobjectoutput = class
+       protected
          path      : pathstr;
          ObjFile   : string;
          { smartlinking }
@@ -120,34 +136,32 @@ interface
          place     : tcutplace;
          SmartFilesCount,
          SmartHeaderCount : longint;
+         { writer }
+         writer    : tobjectwriter;
          { section }
-         currsec   : tsection;
-         sects     : array[TSection] of POutputSection;
-         constructor init(smart:boolean);
-         destructor  done;virtual;
+         data      : tobjectdata;
          { Writing }
          procedure NextSmartName;
-         procedure initwriting(Aplace:tcutplace);virtual;
+       protected
+         procedure writetodisk;virtual;
+       public
+         constructor create(smart:boolean);
+         destructor  destroy;override;
+         function  initwriting(Aplace:tcutplace):tobjectdata;virtual;
          procedure donewriting;virtual;
-         procedure createsection(sec:tsection);virtual;
-         procedure defaultsection(sec:tsection);
-         function  sectionsize(s:tsection):longint;
-         procedure setsectionsizes(var s:tsecsize);virtual;
-         procedure alloc(len:longint);
-         procedure allocalign(len:longint);
-         procedure writebytes(var data;len:longint);
-         procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
-         procedure writesymbol(p:pasmsymbol);virtual;
-         procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
-         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
-                                 nidx,nother,line:longint;reloc:boolean);virtual;
+         procedure exportsymbol(p:pasmsymbol);
        end;
 
     var
-      objectalloc  : pobjectalloc;
-      objectoutput : pobjectoutput;
+      { current object data, used in ag386bin/cpuasm }
+      objectdata   : tobjectdata;
+      { current object allocator }
+      objectalloc  : tobjectalloc;
+      { current object writer used }
+      objectoutput : tobjectoutput;
 
-  implementation
+
+implementation
 
     uses
       comphook,
@@ -158,12 +172,12 @@ interface
                                 tobjectalloc
 ****************************************************************************}
 
-    constructor tobjectalloc.init;
+    constructor tobjectalloc.create;
       begin
       end;
 
 
-    destructor tobjectalloc.done;
+    destructor tobjectalloc.destroy;
       begin
       end;
 
@@ -211,7 +225,7 @@ interface
                               TSectionOutput
 ****************************************************************************}
 
-    constructor toutputsection.init(const Aname:string;Aalign:longint;alloconly:boolean);
+    constructor tobjectsection.create(const Aname:string;Aalign:longint;alloconly:boolean);
       begin
         name:=Aname;
         secsymidx:=0;
@@ -233,14 +247,14 @@ interface
       end;
 
 
-    destructor toutputsection.done;
+    destructor tobjectsection.destroy;
       begin
         if assigned(Data) then
           dispose(Data,done);
       end;
 
 
-    function toutputsection.write(var d;l:longint):longint;
+    function tobjectsection.write(var d;l:longint):longint;
       begin
         write:=datasize;
         if not assigned(Data) then
@@ -250,7 +264,7 @@ interface
       end;
 
 
-    function toutputsection.writestr(const s:string):longint;
+    function tobjectsection.writestr(const s:string):longint;
       begin
         writestr:=datasize;
         if not assigned(Data) then
@@ -260,7 +274,7 @@ interface
       end;
 
 
-    procedure toutputsection.writealign(l:longint);
+    procedure tobjectsection.writealign(l:longint);
       var
         i : longint;
         empty : array[0..63] of char;
@@ -281,19 +295,19 @@ interface
       end;
 
 
-    function toutputsection.aligneddatasize:longint;
+    function tobjectsection.aligneddatasize:longint;
       begin
         aligneddatasize:=align(datasize,addralign);
       end;
 
 
-    procedure toutputsection.alignsection;
+    procedure tobjectsection.alignsection;
       begin
         writealign(addralign);
       end;
 
 
-    procedure toutputsection.alloc(l:longint);
+    procedure tobjectsection.alloc(l:longint);
       begin
         if assigned(Data) then
          Internalerror(3334442);
@@ -301,7 +315,7 @@ interface
       end;
 
 
-    procedure toutputsection.addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
+    procedure tobjectsection.addsymreloc(ofs:longint;p:pasmsymbol;relative:relative_type);
       var
         r : POutputReloc;
       begin
@@ -317,7 +331,7 @@ interface
       end;
 
 
-    procedure toutputsection.addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
+    procedure tobjectsection.addsectionreloc(ofs:longint;sec:tsection;relative:relative_type);
       var
         r : POutputReloc;
       begin
@@ -334,10 +348,86 @@ interface
 
 
 {****************************************************************************
+                                tobjectdata
+****************************************************************************}
+
+    constructor tobjectdata.create;
+      begin
+        { reset }
+        FillChar(Sects,sizeof(Sects),0);
+      end;
+
+
+    destructor tobjectdata.destroy;
+      var
+        sec : tsection;
+      begin
+        { free memory }
+        for sec:=low(tsection) to high(tsection) do
+         if assigned(sects[sec]) then
+          sects[sec].free;
+      end;
+
+
+    procedure tobjectdata.createsection(sec:tsection);
+      begin
+        sects[sec]:=tobjectsection.create(target_asm.secnames[sec],1,(sec=sec_bss));
+      end;
+
+
+    function tobjectdata.sectionsize(s:tsection):longint;
+      begin
+        if assigned(sects[s]) then
+         sectionsize:=sects[s].datasize
+        else
+         sectionsize:=0;
+      end;
+
+
+    procedure tobjectdata.setsectionsizes(var s:tsecsize);
+      begin
+      end;
+
+
+    procedure tobjectdata.defaultsection(sec:tsection);
+      begin
+        currsec:=sec;
+      end;
+
+
+    procedure tobjectdata.writebytes(var data;len:longint);
+      begin
+        if not assigned(sects[currsec]) then
+         createsection(currsec);
+        sects[currsec].write(data,len);
+      end;
+
+
+    procedure tobjectdata.alloc(len:longint);
+      begin
+        if not assigned(sects[currsec]) then
+         createsection(currsec);
+        sects[currsec].alloc(len);
+      end;
+
+
+    procedure tobjectdata.allocalign(len:longint);
+      var
+        modulo : longint;
+      begin
+        if not assigned(sects[currsec]) then
+         createsection(currsec);
+        modulo:=sects[currsec].datasize mod len;
+        if modulo > 0 then
+          sects[currsec].alloc(len-modulo);
+      end;
+
+
+{****************************************************************************
                                 tobjectoutput
 ****************************************************************************}
 
-    constructor tobjectoutput.init(smart:boolean);
+    constructor tobjectoutput.create(smart:boolean);
       begin
         SmartFilesCount:=0;
         SmartHeaderCount:=0;
@@ -358,15 +448,16 @@ interface
          path:=current_module^.path^;
       { init writer }
         if objsmart and
-           not(cs_asm_leave in aktglobalswitches) then          writer:=New(parobjectwriter,Init(current_module^.staticlibfilename^))
+           not(cs_asm_leave in aktglobalswitches) then
+          writer:=tarobjectwriter.create(current_module^.staticlibfilename^)
         else
-          writer:=New(pobjectwriter,Init);
+          writer:=tobjectwriter.create;
       end;
 
 
-    destructor tobjectoutput.done;
+    destructor tobjectoutput.destroy;
       begin
-        Dispose(writer,done);
+        writer.free;
       end;
 
 
@@ -396,117 +487,57 @@ interface
       end;
 
 
-    procedure tobjectoutput.initwriting(Aplace:tcutplace);
+    procedure tobjectoutput.writetodisk;
+      begin
+      end;
+
+
+    function tobjectoutput.initwriting(Aplace:tcutplace):tobjectdata;
       begin
         place:=Aplace;
+        { the data should be set by the real output like coffoutput }
+        data:=nil;
+        initwriting:=nil;
         { open the writer }
         if objsmart then
          NextSmartName;
-        writer^.create(objfile);
-        { reset }
-        FillChar(Sects,sizeof(Sects),0);
+        writer.createfile(objfile);
       end;
 
 
     procedure tobjectoutput.donewriting;
-      var
-        sec : tsection;
       begin
-        { free memory }
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) then
-          dispose(sects[sec],done);
+        { Only write the .o if there are no errors }
+        if errorcount=0 then
+          writetodisk;
         { close the writer }
-        writer^.close;
+        writer.closefile;
+        { free data }
+        data.free;
+        data:=nil;
       end;
 
 
-    procedure tobjectoutput.createsection(sec:tsection);
+    procedure tobjectoutput.exportsymbol(p:pasmsymbol);
       begin
-        sects[sec]:=new(poutputsection,init(target_asm.secnames[sec],1,(sec=sec_bss)));
-      end;
-
-
-    function tobjectoutput.sectionsize(s:tsection):longint;
-      begin
-        if assigned(sects[s]) then
-         sectionsize:=sects[s]^.datasize
-        else
-         sectionsize:=0;
-      end;
-
-
-    procedure tobjectoutput.setsectionsizes(var s:tsecsize);
-      begin
-      end;
-
-
-    procedure tobjectoutput.defaultsection(sec:tsection);
-      begin
-        currsec:=sec;
-      end;
-
-
-    procedure tobjectoutput.writebytes(var data;len:longint);
-      begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
-        sects[currsec]^.write(data,len);
-      end;
-
-
-    procedure tobjectoutput.alloc(len:longint);
-      begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
-        sects[currsec]^.alloc(len);
-      end;
-
-
-    procedure tobjectoutput.allocalign(len:longint);
-      var
-        modulo : longint;
-      begin
-        if not assigned(sects[currsec]) then
-         createsection(currsec);
-        modulo:=sects[currsec]^.datasize mod len;
-        if modulo > 0 then
-          sects[currsec]^.alloc(len-modulo);
-      end;
-
-
-    procedure tobjectoutput.writesymbol(p:pasmsymbol);
-      begin
-        Do_halt(211);
-      end;
-
-
-    procedure tobjectoutput.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
-      begin
-        Do_halt(211);
-      end;
-
-
-   procedure tobjectoutput.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);
-      begin
-        Do_halt(211);
-      end;
-
-
-   procedure tobjectoutput.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
-                                         nidx,nother,line:longint;reloc:boolean);
-      begin
-        Do_halt(211);
+        { export globals and common symbols, this is needed
+          for .a files }
+        if p^.bind in [AB_GLOBAL,AB_COMMON] then
+         writer.writesym(p^.name);
       end;
 
 end.
 {
   $Log$
-  Revision 1.2  2000-11-13 21:56:07  peter
+  Revision 1.3  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.2  2000/11/13 21:56:07  peter
     * removed some virtual from methods
     * sectionsize method implemented (fixes lineinfo stabs)
 
   Revision 1.1  2000/11/12 22:20:37  peter
-    * create generic toutputsection for binary writers
+    * create generic tobjectsection for binary writers
 
 }

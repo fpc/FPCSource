@@ -41,36 +41,44 @@ interface
        ogbase;
 
     type
-       pcoffsection = ^tcoffsection;
-       tcoffsection = object(toutputsection)
+       tcoffsection = class(tobjectsection)
+       public
           flags    : cardinal;
           relocpos : longint;
-          constructor initsec(sec:TSection;AAlign,AFlags:cardinal);
+          constructor createsec(sec:TSection;AAlign,AFlags:cardinal);
        end;
 
-       pcoffoutput = ^tcoffoutput;
-       tcoffoutput = object(tobjectoutput)
+       tcoffdata = class(tobjectdata)
+       private
          win32   : boolean;
+         procedure reset;
+       public
+         constructor createdjgpp;
+         constructor createwin32;
+         destructor  destroy;override;
+         procedure setsectionsizes(var s:tsecsize);override;
+         procedure createsection(sec:tsection);override;
+         procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);override;
+         procedure writesymbol(p:pasmsymbol);override;
+         procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);override;
+         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;nidx,nother,line:longint;reloc:boolean);override;
          strs,
          syms    : Pdynamicarray;
-         initsym : longint;
-         constructor initdjgpp(smart:boolean);
-         constructor initwin32(smart:boolean);
-         destructor  done;virtual;
-         procedure initwriting(Aplace:tcutplace);virtual;
-         procedure donewriting;virtual;
-         procedure setsectionsizes(var s:tsecsize);virtual;
-         procedure createsection(sec:tsection);virtual;
-         procedure writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);virtual;
-         procedure writesymbol(p:pasmsymbol);virtual;
-         procedure writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc:boolean);virtual;
-         procedure writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
-                                 nidx,nother,line:longint;reloc:boolean);virtual;
+       end;
+
+       tcoffoutput = class(tobjectoutput)
        private
-         procedure write_relocs(s:poutputsection);
+         win32   : boolean;
+         initsym : longint;
+         procedure write_relocs(s:tobjectsection);
          procedure write_symbol(const name:string;strpos,value,section,typ,aux:longint);
          procedure write_symbols;
-         procedure writetodisk;
+       protected
+         procedure writetodisk;override;
+       public
+         constructor createdjgpp(smart:boolean);
+         constructor createwin32(smart:boolean);
+         function  initwriting(Aplace:tcutplace):tobjectdata;override;
        end;
 
 
@@ -146,44 +154,43 @@ implementation
                                TCoffSection
 ****************************************************************************}
 
-    constructor tcoffsection.initsec(sec:TSection;AAlign,AFlags:cardinal);
+    constructor tcoffsection.createsec(sec:TSection;AAlign,AFlags:cardinal);
       begin
-        inherited init(target_asm.secnames[sec],AAlign,(sec=sec_bss));
+        inherited create(target_asm.secnames[sec],AAlign,(sec=sec_bss));
         Flags:=AFlags;
       end;
 
 
 {****************************************************************************
-                                TCoffOutput
+                                TCoffData
 ****************************************************************************}
 
-    constructor tcoffoutput.initdjgpp(smart:boolean);
+    constructor tcoffdata.createdjgpp;
       begin
-        inherited init(smart);
+        inherited create;
         win32:=false;
+        reset;
       end;
 
 
-    constructor tcoffoutput.initwin32(smart:boolean);
+    constructor tcoffdata.createwin32;
       begin
-        inherited init(smart);
+        inherited create;
         win32:=true;
+        reset;
       end;
 
 
-    destructor tcoffoutput.done;
+    destructor tcoffdata.destroy;
       begin
-        inherited done;
+        inherited destroy;
       end;
 
 
-    procedure tcoffoutput.initwriting(Aplace:tcutplace);
+    procedure tcoffdata.reset;
       var
         s : string;
       begin
-        inherited initwriting(Aplace);
-        { reset }
-        initsym:=0;
         new(syms,init(symbolresize));
         new(strs,init(strsresize));
         { we need at least the following 3 sections }
@@ -198,23 +205,12 @@ implementation
            writestabs(sec_none,0,nil,0,0,0,false);
            { write zero pchar and name together (PM) }
            s:=#0+SplitFileName(current_module^.mainsource^)+#0;
-           sects[sec_stabstr]^.write(s[1],length(s));
+           sects[sec_stabstr].write(s[1],length(s));
          end;
       end;
 
 
-    procedure tcoffoutput.donewriting;
-      begin
-        { Only write the .o if there are no errors }
-        if errorcount=0 then
-          writetodisk;
-        dispose(syms,done);
-        dispose(strs,done);
-        inherited donewriting;
-      end;
-
-
-    procedure tcoffoutput.createsection(sec:TSection);
+    procedure tcoffdata.createsection(sec:TSection);
       var
         Flags,
         AAlign : cardinal;
@@ -263,11 +259,11 @@ implementation
                Flags:=$c0300040;
             end;
         end;
-        sects[sec]:=new(PcoffSection,InitSec(Sec,AAlign,Flags));
+        sects[sec]:=tcoffSection.createsec(Sec,AAlign,Flags);
       end;
 
 
-    procedure tcoffoutput.writesymbol(p:pasmsymbol);
+    procedure tcoffdata.writesymbol(p:pasmsymbol);
       var
         sym : toutputsymbol;
         s   : string;
@@ -287,7 +283,7 @@ implementation
         if sym.bind in [AB_LOCAL,AB_GLOBAL] then
          begin
            sym.section:=p^.section;
-           sym.value:=p^.address+sects[sym.section]^.mempos;
+           sym.value:=p^.address+sects[sym.section].mempos;
          end;
         { store the symbol, but not the local ones }
         if (sym.bind<>AB_LOCAL) then
@@ -314,14 +310,10 @@ implementation
          begin
            p^.idx:=-2; { local }
          end;
-        { make the exported syms known to the objectwriter
-          (needed for .a generation) }
-        if (sym.bind in [AB_GLOBAL,AB_COMMON]) then
-          writer^.writesym(p^.name);
       end;
 
 
-    procedure tcoffoutput.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
+    procedure tcoffdata.writereloc(data,len:longint;p:pasmsymbol;relative:relative_type);
       var
         curraddr,
         symaddr : longint;
@@ -331,27 +323,27 @@ implementation
         if assigned(p) then
          begin
            { current address }
-           curraddr:=sects[currsec]^.mempos+sects[currsec]^.datasize;
+           curraddr:=sects[currsec].mempos+sects[currsec].datasize;
            { real address of the symbol }
            symaddr:=p^.address;
            if p^.section<>sec_none then
-            inc(symaddr,sects[p^.section]^.mempos);
+            inc(symaddr,sects[p^.section].mempos);
            { no symbol relocation need inside a section }
            if p^.section=currsec then
              begin
                case relative of
                  relative_false :
                    begin
-                     sects[currsec]^.addsectionreloc(curraddr,currsec,relative_false);
+                     sects[currsec].addsectionreloc(curraddr,currsec,relative_false);
                      inc(data,symaddr);
                    end;
                  relative_true :
                    begin
-                     inc(data,symaddr-len-sects[currsec]^.datasize);
+                     inc(data,symaddr-len-sects[currsec].datasize);
                    end;
                  relative_rva :
                    begin
-                     sects[currsec]^.addsectionreloc(curraddr,currsec,relative_rva);
+                     sects[currsec].addsectionreloc(curraddr,currsec,relative_rva);
                      inc(data,symaddr);
                    end;
                end;
@@ -360,9 +352,9 @@ implementation
              begin
                writesymbol(p);
                if (p^.section<>sec_none) and (relative<>relative_true) then
-                 sects[currsec]^.addsectionreloc(curraddr,p^.section,relative)
+                 sects[currsec].addsectionreloc(curraddr,p^.section,relative)
                else
-                 sects[currsec]^.addsymreloc(curraddr,p,relative);
+                 sects[currsec].addsymreloc(curraddr,p,relative);
                if not win32 then {seems wrong to me (PM) }
                 inc(data,symaddr)
                else
@@ -373,15 +365,15 @@ implementation
                   if win32 then
                     dec(data,len-4)
                   else
-                    dec(data,len+sects[currsec]^.datasize);
+                    dec(data,len+sects[currsec].datasize);
                 end;
             end;
          end;
-        sects[currsec]^.write(data,len);
+        sects[currsec].write(data,len);
       end;
 
 
-    procedure tcoffoutput.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc : boolean);
+    procedure tcoffdata.writestabs(section:tsection;offset:longint;p:pchar;nidx,nother,line:longint;reloc : boolean);
       var
         stab : coffstab;
         s : tsection;
@@ -396,15 +388,15 @@ implementation
               if s=sec_none then
                offset:=0
               else
-               offset:=sects[s]^.datasize;
+               offset:=sects[s].datasize;
             end;
            if (s<>sec_none) then
-            inc(offset,sects[s]^.datapos);
+            inc(offset,sects[s].datapos);
          end;
         if assigned(p) and (p[0]<>#0) then
          begin
-           stab.strpos:=sects[sec_stabstr]^.datasize;
-           sects[sec_stabstr]^.write(p^,strlen(p)+1);
+           stab.strpos:=sects[sec_stabstr].datasize;
+           sects[sec_stabstr].write(p^,strlen(p)+1);
          end
         else
          stab.strpos:=0;
@@ -412,22 +404,24 @@ implementation
         stab.ndesc:=line;
         stab.nother:=nother;
         stab.nvalue:=offset;
-        sects[sec_stab]^.write(stab,sizeof(stab));
+        sects[sec_stab].write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
-        { current address }
-        curraddr:=sects[sec_stab]^.mempos+sects[sec_stab]^.datasize;
         if reloc then
-          if DLLSource and RelocSection then
-          { avoid relocation in the .stab section
-            because it ends up in the .reloc section instead }
-            sects[sec_stab]^.addsectionreloc(curraddr-4,s,relative_rva)
-          else
-            sects[sec_stab]^.addsectionreloc(curraddr-4,s,relative_false);
+         begin
+           { current address }
+           curraddr:=sects[sec_stab].mempos+sects[sec_stab].datasize;
+           if DLLSource and RelocSection then
+           { avoid relocation in the .stab section
+             because it ends up in the .reloc section instead }
+             sects[sec_stab].addsectionreloc(curraddr-4,s,relative_rva)
+           else
+             sects[sec_stab].addsectionreloc(curraddr-4,s,relative_false);
+         end;
       end;
 
 
-    procedure tcoffoutput.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
+    procedure tcoffdata.writesymstabs(section:tsection;offset:longint;p:pchar;ps:pasmsymbol;
                                                  nidx,nother,line:longint;reloc:boolean);
       var
         stab : coffstab;
@@ -445,15 +439,15 @@ implementation
               if section=sec_none then
                offset:=0
               else
-               offset:=sects[section]^.datasize;
+               offset:=sects[section].datasize;
             end;
            if (section<>sec_none) then
-            inc(offset,sects[section]^.mempos);
+            inc(offset,sects[section].mempos);
          end;
         if assigned(p) and (p[0]<>#0) then
          begin
-           stab.strpos:=sects[sec_stabstr]^.datasize;
-           sects[sec_stabstr]^.write(p^,strlen(p)+1);
+           stab.strpos:=sects[sec_stabstr].datasize;
+           sects[sec_stabstr].write(p^,strlen(p)+1);
          end
         else
          stab.strpos:=0;
@@ -461,24 +455,24 @@ implementation
         stab.ndesc:=line;
         stab.nother:=nother;
         stab.nvalue:=offset;
-        sects[sec_stab]^.write(stab,sizeof(stab));
+        sects[sec_stab].write(stab,sizeof(stab));
         { when the offset is not 0 then write a relocation, take also the
           hdrstab into account with the offset }
-        { current address }
-        curraddr:=sects[sec_stab]^.mempos+sects[sec_stab]^.datasize;
         if reloc then
          begin
+           { current address }
+           curraddr:=sects[sec_stab].mempos+sects[sec_stab].datasize;
            if DLLSource and RelocSection then
             { avoid relocation in the .stab section
               because it ends up in the .reloc section instead }
-            sects[sec_stab]^.addsymreloc(curraddr-4,ps,relative_rva)
+            sects[sec_stab].addsymreloc(curraddr-4,ps,relative_rva)
            else
-            sects[sec_stab]^.addsymreloc(curraddr-4,ps,relative_false);
+            sects[sec_stab].addsymreloc(curraddr-4,ps,relative_false);
          end;
       end;
 
 
-    procedure tcoffoutput.setsectionsizes(var s:tsecsize);
+    procedure tcoffdata.setsectionsizes(var s:tsecsize);
       var
         mempos : longint;
         sec    : tsection;
@@ -500,35 +494,61 @@ implementation
              createsection(sec);
            if assigned(sects[sec]) then
             begin
-              sects[sec]^.memsize:=s[sec];
+              sects[sec].memsize:=s[sec];
               { memory position }
               if not win32 then
                begin
-                 sects[sec]^.mempos:=mempos;
-                 inc(mempos,align(sects[sec]^.memsize,sects[sec]^.addralign));
+                 sects[sec].mempos:=mempos;
+                 inc(mempos,align(sects[sec].memsize,sects[sec].addralign));
                end;
             end;
          end;
       end;
 
 
-{***********************************************
-             Writing to disk
-***********************************************}
+{****************************************************************************
+                                TCoffOutput
+****************************************************************************}
 
-    procedure tcoffoutput.write_relocs(s:poutputsection);
+    constructor tcoffoutput.createdjgpp(smart:boolean);
+      begin
+        inherited create(smart);
+        win32:=false;
+      end;
+
+
+    constructor tcoffoutput.createwin32(smart:boolean);
+      begin
+        inherited create(smart);
+        win32:=true;
+      end;
+
+
+    function tcoffoutput.initwriting(Aplace:tcutplace):tobjectdata;
+      begin
+        inherited initwriting(Aplace);
+        initsym:=0;
+        if win32 then
+         data:=tcoffdata.createwin32
+        else
+         data:=tcoffdata.createdjgpp;
+        initwriting:=data;
+      end;
+
+
+    procedure tcoffoutput.write_relocs(s:tobjectsection);
       var
         rel  : coffreloc;
         hr,r : poutputreloc;
       begin
-        r:=s^.relochead;
+        r:=s.relochead;
         while assigned(r) do
          begin
            rel.address:=r^.address;
            if assigned(r^.symbol) then
             begin
               if (r^.symbol^.bind=AB_LOCAL) then
-               rel.sym:=2*sects[r^.symbol^.section]^.secsymidx
+               rel.sym:=2*data.sects[r^.symbol^.section].secsymidx
               else
                begin
                  if r^.symbol^.idx=-1 then
@@ -539,7 +559,7 @@ implementation
            else
             begin
               if r^.section<>sec_none then
-               rel.sym:=2*sects[r^.section]^.secsymidx
+               rel.sym:=2*data.sects[r^.section].secsymidx
               else
                rel.sym:=0;
             end;
@@ -548,7 +568,7 @@ implementation
              relative_false : rel.relative:=$6;
              relative_rva   : rel.relative:=$7;
            end;
-           writer^.write(rel,sizeof(rel));
+           writer.write(rel,sizeof(rel));
            { goto next and dispose this reloc }
            hr:=r;
            r:=r^.next;
@@ -570,7 +590,7 @@ implementation
         sym.section:=section;
         sym.typ:=typ;
         sym.aux:=aux;
-        writer^.write(sym,sizeof(sym));
+        writer.write(sym,sizeof(sym));
       end;
 
 
@@ -578,43 +598,45 @@ implementation
       var
         filename  : string[18];
         sec       : tsection;
-        value,
         sectionval,
         i         : longint;
         globalval : byte;
         secrec    : coffsectionrec;
         sym       : toutputsymbol;
       begin
-        { The `.file' record, and the file name auxiliary record }
-        write_symbol ('.file', -1, 0, -2, $67, 1);
-        fillchar(filename,sizeof(filename),0);
-        filename:=SplitFileName(current_module^.mainsource^);
-        writer^.write(filename[1],sizeof(filename)-1);
-        { The section records, with their auxiliaries, also store the
-          symbol index }
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) then
-          begin
-            write_symbol(target_asm.secnames[sec],-1,sects[sec]^.mempos,sects[sec]^.secsymidx,3,1);
-            fillchar(secrec,sizeof(secrec),0);
-            secrec.len:=sects[sec]^.aligneddatasize;
-            secrec.nrelocs:=sects[sec]^.nrelocs;
-            writer^.write(secrec,sizeof(secrec));
-          end;
-        { The real symbols }
-        syms^.seek(0);
-        for i:=1 to syms^.size div sizeof(TOutputSymbol) do
+        with tcoffdata(data) do
          begin
-           syms^.read(sym,sizeof(TOutputSymbol));
-           if sym.bind=AB_LOCAL then
-             globalval:=3
-           else
-             globalval:=2;
-           if assigned(sects[sym.section]) then
-            sectionval:=sects[sym.section]^.secsymidx
-           else
-            sectionval:=0;
-           write_symbol(sym.namestr,sym.nameidx,sym.value,sectionval,globalval,0);
+           { The `.file' record, and the file name auxiliary record }
+           write_symbol ('.file', -1, 0, -2, $67, 1);
+           fillchar(filename,sizeof(filename),0);
+           filename:=SplitFileName(current_module^.mainsource^);
+           writer.write(filename[1],sizeof(filename)-1);
+           { The section records, with their auxiliaries, also store the
+             symbol index }
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) then
+             begin
+               write_symbol(target_asm.secnames[sec],-1,sects[sec].mempos,sects[sec].secsymidx,3,1);
+               fillchar(secrec,sizeof(secrec),0);
+               secrec.len:=sects[sec].aligneddatasize;
+               secrec.nrelocs:=sects[sec].nrelocs;
+               writer.write(secrec,sizeof(secrec));
+             end;
+           { The real symbols }
+           syms^.seek(0);
+           for i:=1 to syms^.size div sizeof(TOutputSymbol) do
+            begin
+              syms^.read(sym,sizeof(TOutputSymbol));
+              if sym.bind=AB_LOCAL then
+                globalval:=3
+              else
+                globalval:=2;
+              if assigned(sects[sym.section]) then
+               sectionval:=sects[sym.section].secsymidx
+              else
+               sectionval:=0;
+              write_symbol(sym.namestr,sym.nameidx,sym.value,sectionval,globalval,0);
+            end;
          end;
       end;
 
@@ -633,122 +655,134 @@ implementation
         empty    : array[0..15] of byte;
         hp       : pdynamicblock;
       begin
-      { calc amount of sections we have }
-        fillchar(empty,sizeof(empty),0);
-        nsects:=0;
-        initsym:=2;   { 2 for the file }
-        secsymidx:=0;
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) then
-          begin
-            inc(nsects);
-            inc(secsymidx);
-            sects[sec]^.secsymidx:=secsymidx;
-            inc(initsym,2); { 2 for each section }
-          end;
-      { For the stab section we need an HdrSym which can now be
-        calculated more easily }
-        if assigned(sects[sec_stab]) then
+        with tcoffdata(data) do
          begin
-           hstab.strpos:=1;
-           hstab.ntype:=0;
-           hstab.nother:=0;
-           hstab.ndesc:=(sects[sec_stab]^.datasize div sizeof(coffstab))-1{+1 according to gas output PM};
-           hstab.nvalue:=sects[sec_stabstr]^.datasize;
-           sects[sec_stab]^.data^.seek(0);
-           sects[sec_stab]^.data^.write(hstab,sizeof(hstab));
-         end;
-      { Calculate the filepositions }
-        datapos:=sizeof(coffheader)+sizeof(coffsechdr)*nsects;
-        { sections first }
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) then
-          begin
-            sects[sec]^.datapos:=datapos;
-            if assigned(sects[sec]^.data) then
-              inc(datapos,sects[sec]^.aligneddatasize);
-          end;
-        { relocs }
-        gotreloc:=false;
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) then
-          begin
-            PCoffSection(sects[sec])^.relocpos:=datapos;
-            inc(datapos,10*sects[sec]^.nrelocs);
-            if (not gotreloc) and (sects[sec]^.nrelocs>0) then
-             gotreloc:=true;
-          end;
-        { symbols }
-        sympos:=datapos;
-      { COFF header }
-        fillchar(header,sizeof(coffheader),0);
-        header.mach:=$14c;
-        header.nsects:=nsects;
-        header.sympos:=sympos;
-        header.syms:=(syms^.size div sizeof(TOutputSymbol))+initsym;
-        if gotreloc then
-         header.flag:=$104
-        else
-         header.flag:=$105;
-        writer^.write(header,sizeof(header));
-      { Section headers }
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) then
-          begin
-            fillchar(sechdr,sizeof(sechdr),0);
-            move(target_asm.secnames[sec][1],sechdr.name,length(target_asm.secnames[sec]));
-            if not win32 then
-              begin
-                sechdr.rvaofs:=sects[sec]^.mempos;
-                sechdr.vsize:=sects[sec]^.mempos;
-              end
-            else
-              begin
-                if sec=sec_bss then
-                  sechdr.vsize:=sects[sec]^.aligneddatasize;
-              end;
-            sechdr.datasize:=sects[sec]^.aligneddatasize;
-            if (sects[sec]^.datasize>0) and assigned(sects[sec]^.data) then
-              sechdr.datapos:=sects[sec]^.datapos;
-            sechdr.nrelocs:=sects[sec]^.nrelocs;
-            sechdr.relocpos:=PCoffSection(sects[sec])^.relocpos;
-            sechdr.flags:=PCoffSection(sects[sec])^.flags;
-            writer^.write(sechdr,sizeof(sechdr));
-          end;
-      { Sections }
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) and
-            assigned(sects[sec]^.data) then
-          begin
-            sects[sec]^.alignsection;
-            hp:=sects[sec]^.data^.firstblock;
-            while assigned(hp) do
+         { calc amount of sections we have }
+           fillchar(empty,sizeof(empty),0);
+           nsects:=0;
+           initsym:=2;   { 2 for the file }
+           secsymidx:=0;
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) then
              begin
-               writer^.write(hp^.data,hp^.used);
-               hp:=hp^.next;
+               inc(nsects);
+               inc(secsymidx);
+               sects[sec].secsymidx:=secsymidx;
+               inc(initsym,2); { 2 for each section }
              end;
-          end;
-      { Relocs }
-        for sec:=low(tsection) to high(tsection) do
-         if assigned(sects[sec]) then
-          write_relocs(sects[sec]);
-      { Symbols }
-        write_symbols;
-      { Strings }
-        i:=strs^.size+4;
-        writer^.write(i,4);
-        hp:=strs^.firstblock;
-        while assigned(hp) do
-         begin
-           writer^.write(hp^.data,hp^.used);
-           hp:=hp^.next;
+         { For the stab section we need an HdrSym which can now be
+           calculated more easily }
+           if assigned(sects[sec_stab]) then
+            begin
+              hstab.strpos:=1;
+              hstab.ntype:=0;
+              hstab.nother:=0;
+              hstab.ndesc:=(sects[sec_stab].datasize div sizeof(coffstab))-1{+1 according to gas output PM};
+              hstab.nvalue:=sects[sec_stabstr].datasize;
+              sects[sec_stab].data^.seek(0);
+              sects[sec_stab].data^.write(hstab,sizeof(hstab));
+            end;
+         { Calculate the filepositions }
+           datapos:=sizeof(coffheader)+sizeof(coffsechdr)*nsects;
+           { sections first }
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) then
+             begin
+               sects[sec].datapos:=datapos;
+               if assigned(sects[sec].data) then
+                 inc(datapos,sects[sec].aligneddatasize);
+             end;
+           { relocs }
+           gotreloc:=false;
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) then
+             begin
+               tcoffsection(sects[sec]).relocpos:=datapos;
+               inc(datapos,10*sects[sec].nrelocs);
+               if (not gotreloc) and (sects[sec].nrelocs>0) then
+                gotreloc:=true;
+             end;
+           { symbols }
+           sympos:=datapos;
+         { COFF header }
+           fillchar(header,sizeof(coffheader),0);
+           header.mach:=$14c;
+           header.nsects:=nsects;
+           header.sympos:=sympos;
+           header.syms:=(syms^.size div sizeof(TOutputSymbol))+initsym;
+           if gotreloc then
+            header.flag:=$104
+           else
+            header.flag:=$105;
+           writer.write(header,sizeof(header));
+         { Section headers }
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) then
+             begin
+               fillchar(sechdr,sizeof(sechdr),0);
+               move(target_asm.secnames[sec][1],sechdr.name,length(target_asm.secnames[sec]));
+               if not win32 then
+                 begin
+                   sechdr.rvaofs:=sects[sec].mempos;
+                   sechdr.vsize:=sects[sec].mempos;
+                 end
+               else
+                 begin
+                   if sec=sec_bss then
+                     sechdr.vsize:=sects[sec].aligneddatasize;
+                 end;
+               sechdr.datasize:=sects[sec].aligneddatasize;
+               if (sects[sec].datasize>0) and assigned(sects[sec].data) then
+                 sechdr.datapos:=sects[sec].datapos;
+               sechdr.nrelocs:=sects[sec].nrelocs;
+               sechdr.relocpos:=TCoffSection(sects[sec]).relocpos;
+               sechdr.flags:=TCoffSection(sects[sec]).flags;
+               writer.write(sechdr,sizeof(sechdr));
+             end;
+         { Sections }
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) and
+               assigned(sects[sec].data) then
+             begin
+               sects[sec].alignsection;
+               hp:=sects[sec].data^.firstblock;
+               while assigned(hp) do
+                begin
+                  writer.write(hp^.data,hp^.used);
+                  hp:=hp^.next;
+                end;
+             end;
+         { Relocs }
+           for sec:=low(tsection) to high(tsection) do
+            if assigned(sects[sec]) then
+             write_relocs(sects[sec]);
+         { Symbols }
+           write_symbols;
+         { Strings }
+           i:=strs^.size+4;
+           writer.write(i,4);
+           hp:=strs^.firstblock;
+           while assigned(hp) do
+            begin
+              writer.write(hp^.data,hp^.used);
+              hp:=hp^.next;
+            end;
          end;
       end;
+
+{****************************************************************************
+                                TCoffInput
+****************************************************************************}
+
 
 end.
 {
   $Log$
-  Revision 1.5  2000-12-21 12:06:38  jonas
+  Revision 1.6  2000-12-23 19:59:35  peter
+    * object to class for ow/og objects
+    * split objectdata from objectoutput
+
+  Revision 1.5  2000/12/21 12:06:38  jonas
     * changed type of all "flags" variables/parameters/fields to cardinal
       and removed longint typecasts around constants
 
