@@ -30,6 +30,8 @@ type
  tsampleclass = class
   constructor create;
   destructor destroy;
+  constructor create_second;
+  destructor destroy_second;
   procedure method_none;
   class procedure class_method_none;
   class procedure class_method_none_1;
@@ -105,7 +107,16 @@ destructor tvmtobject.destructor_none;
   destructor tsampleclass.destroy;
    begin
    end;
+ 
+ constructor tsampleclass.create_second;
+   begin
+   end;
    
+  destructor tsampleclass.destroy_second;
+   begin
+   end;
+  
+ 
   procedure tsampleclass.method_none;
    begin
    end;
@@ -186,6 +197,8 @@ begin
  {!!! HOW TO DO A DIRECT CALL TO CLASS DESTRUCTOR/CONSTRUCTOR? }
  tsampleclass.class_method_none;
  sampleclass.class_method_none;
+ sampleclass.create_second;
+ sampleclass.destroy_second;
  tsampleclass.destroy_class;
  tsampleclass.create_class;
 { sampleclass.destroy;}
@@ -209,7 +222,7 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-04-10 19:11:00  carl
-  + first tries at first calln testing for objects (totally unfinished!)
+  Revision 1.2  2002-04-10 19:23:31  carl
+  + added direct destructor / constructor call
 
 }  
