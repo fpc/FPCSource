@@ -250,7 +250,7 @@ asm
   push %rax
   movq param7,%rax
   push %rax
-  xorq %rax,  %rax
+  movq $syscall_nr__syscall,  %rax
   mov %rcx,%r10
   call actualsyscall
   add $16,%rsp
@@ -259,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2004-05-16 20:48:32  marco
+  Revision 1.2  2004-05-16 21:01:23  marco
+   * syscallnr for __syscall entered
+
+  Revision 1.1  2004/05/16 20:48:32  marco
    * Initial versions
 
 
