@@ -26,14 +26,13 @@ unit m68k;
   interface
 
     uses
-       strings,systems,cobjects,globals,aasm,verbose;
+       cobjects,aasm;
 
     const
       { if real fpu is used }
       { otherwise maps to   }
       { s32real.            }
       extended_size = 12;
-
 
     type
     {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
@@ -347,11 +346,8 @@ type
 
     const
        maxvarregs = 5;
-
        varregs : array[1..maxvarregs] of tregister =
-     (R_D2,R_D3,R_D4,R_D5,R_D7);
-
-       nextlabelnr : longint = 1;
+        (R_D2,R_D3,R_D4,R_D5,R_D7);
 
 
     { resets all values of ref to defaults }
@@ -361,25 +357,12 @@ type
     { use this only for already used references       }
     procedure clear_reference(var ref : treference);
 
-    { make l as a new label }
-    procedure getlabel(var l : plabel);
-    { frees the label if unused }
-    procedure freelabel(var l : plabel);
-    { make a new zero label }
-    procedure getzerolabel(var l : plabel);
-    { reset a label to a zero label }
-    procedure setzerolabel(var l : plabel);
-    {just get a label number }
-    procedure getlabelnr(var l : longint);
-
     function newreference(const r : treference) : preference;
 
     function reg2str(r : tregister) : string;
 
     { generates an help record for constants }
     function newcsymbol(const s : string;l : longint) : pcsymbol;
-
-    function lab2str(l : plabel) : string;
 
     const
        ao_unknown = $0;
@@ -868,6 +851,9 @@ type
 
   implementation
 
+    uses
+      strings,globals,verbose;
+
     function reg2str(r : tregister) : string;
 
       const
@@ -896,23 +882,6 @@ type
      newreference:=p;
       end;
 
-    function lab2str(l : plabel) : string;
-
-      begin
-         if (l=nil) or (l^.nb=0) then
-{$ifdef EXTDEBUG}
-           lab2str:='ILLEGAL'
-         else
-           lab2str:=target_asm.labelprefix+tostr(l^.nb);
-{$else EXTDEBUG}
-           internalerror(2000);
-         lab2str:=target_asm.labelprefix+tostr(l^.nb);
-{$endif EXTDEBUG}
-
-         l^.is_used:=true;
-      end;
-
-
     procedure reset_reference(var ref : treference);
 
       begin
@@ -934,51 +903,6 @@ type
       begin
      stringdispose(ref.symbol);
      reset_reference(ref);
-      end;
-
-    procedure getlabel(var l : plabel);
-
-      begin
-     new(l);
-     l^.nb:=nextlabelnr;
-     l^.is_used:=false;
-     l^.is_set:=false;
-     l^.refcount:=0;
-     inc(nextlabelnr);
-      end;
-
-    procedure freelabel(var l : plabel);
-
-      begin
-     if (l<>nil) and (not l^.is_set) and (not l^.is_used) then
-       dispose(l);
-     l:=nil;
-      end;
-
-    procedure setzerolabel(var l : plabel);
-
-      begin
-     l^.nb:=0;
-     l^.is_used:=false;
-     l^.is_set:=false;
-     l^.refcount:=0;
-      end;
-
-    procedure getzerolabel(var l : plabel);
-
-      begin
-     new(l);
-     l^.nb:=0;
-     l^.is_used:=false;
-     l^.is_set:=false;
-     l^.refcount:=0;
-      end;
-
-    procedure getlabelnr(var l : longint);
-
-      begin
-     l:=nextlabelnr;
-     inc(nextlabelnr);
       end;
 
     function newcsymbol(const s : string;l : longint) : pcsymbol;
@@ -1642,7 +1566,14 @@ type
 end.
 {
   $Log$
-  Revision 1.3  1998-05-11 13:07:54  peter
+  Revision 1.4  1998-05-23 01:21:10  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.3  1998/05/11 13:07:54  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

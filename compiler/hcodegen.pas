@@ -121,15 +121,12 @@ unit hcodegen;
     procedure codegen_newmodule;
     procedure codegen_newprocedure;
 
-
-
     { counts the labels }
     function case_count_labels(root : pcaserecord) : longint;
     { searches the highest label }
     function case_get_max(root : pcaserecord) : longint;
     { searches the lowest label }
     function case_get_min(root : pcaserecord) : longint;
-
 
     { concates/inserts the ASCII string to the data segment }
     procedure generate_ascii(const hs : string);
@@ -140,7 +137,6 @@ unit hcodegen;
     procedure generate_pascii(hs : pchar;length : longint);
     procedure generate_pascii_insert(hs : pchar;length : longint);
 
-
     { convert/concats a label for constants in the consts section }
     function constlabel2str(l : plabel;ctype:tconsttype):string;
     function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
@@ -150,7 +146,7 @@ unit hcodegen;
 implementation
 
      uses
-        systems,cobjects,globals,files,strings;
+        systems,cobjects,verbose,globals,files,strings;
 
 {*****************************************************************************
          initialize/terminate the codegen for procedure and modules
@@ -219,7 +215,7 @@ implementation
           dispose(resourcesection,done);
       end;
 
-        
+
 {*****************************************************************************
                               Case Helpers
 *****************************************************************************}
@@ -292,7 +288,6 @@ implementation
       end;
 
 
-
     { concates the ASCII string from pchar to the const segment }
     procedure generate_pascii(hs : pchar;length : longint);
       var
@@ -347,7 +342,6 @@ implementation
            end;
       end;
 
-
 {*****************************************************************************
                               Const Helpers
 *****************************************************************************}
@@ -360,16 +354,16 @@ implementation
       { we must use the number directly !!! (PM) }
     function constlabel2str(l : plabel;ctype:tconsttype):string;
       begin
-        if smartlink or (current_module^.output_format in [of_nasm,of_obj]) then
-         constlabel2str:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(l^.nb)
+        if (cs_smartlink in aktswitches) or (aktoutputformat in [as_tasm]) then
+         constlabel2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(l^.nb)
         else
          constlabel2str:=lab2str(l);
       end;
 
     function constlabelnb2str(pnb : longint;ctype:tconsttype):string;
       begin
-        if smartlink or (current_module^.output_format in [of_nasm,of_obj]) then
-         constlabelnb2str:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(pnb)
+        if (cs_smartlink in aktswitches) or (aktoutputformat in [as_tasm]) then
+         constlabelnb2str:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(pnb)
         else
          constlabelnb2str:=target_asm.labelprefix+tostr(pnb);
       end;
@@ -379,10 +373,10 @@ implementation
       var
         s : string;
       begin
-        if smartlink or (current_module^.output_format in [of_nasm,of_obj]) then
+        if (cs_smartlink in aktswitches) or (aktoutputformat in [as_tasm]) then
          begin
-           s:='_$'+current_module^.unitname^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb);
-           if smartlink then
+           s:='_$'+current_module^.modulename^+'$'+consttypestr[ctype]+'_const_'+tostr(p^.nb);
+           if (cs_smartlink in aktswitches) then
             begin
               consts^.concat(new(pai_cut,init));
               consts^.concat(new(pai_symbol,init_global(s)))
@@ -398,7 +392,14 @@ end.
 
 {
   $Log$
-  Revision 1.5  1998-05-20 09:42:34  pierre
+  Revision 1.6  1998-05-23 01:21:08  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.5  1998/05/20 09:42:34  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

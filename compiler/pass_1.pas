@@ -63,9 +63,9 @@ unit pass_1;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message(t);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -77,9 +77,9 @@ unit pass_1;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message1(t,s);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -91,9 +91,9 @@ unit pass_1;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message2(t,s1,s2);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -105,9 +105,9 @@ unit pass_1;
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message3(t,s1,s2,s3);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -1473,7 +1473,7 @@ unit pass_1;
            { nasm can not cope with negativ reals !! }
          if is_constrealnode(p^.left)
 {$ifdef i386}
-         and not(current_module^.output_format in [of_nasm,of_obj])
+         and not(aktoutputformat in [as_nasmcoff,as_nasmelf,as_nasmobj])
 {$endif}
            then
            begin
@@ -4894,7 +4894,14 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.19  1998-05-20 09:42:34  pierre
+  Revision 1.20  1998-05-23 01:21:17  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.19  1998/05/20 09:42:34  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

@@ -66,6 +66,7 @@ implementation
 {$ifdef TP}
      ,cgi3862
 {$endif}
+     ,cg386con
      ;
 
     const
@@ -105,9 +106,9 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message(t);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -119,9 +120,9 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message1(t,s);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -133,9 +134,9 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message2(t,s1,s2);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -147,9 +148,9 @@ implementation
       begin
          if not(codegenerror) then
            begin
-              olderrorcount:=errorcount;
+              olderrorcount:=status.errorcount;
               verbose.Message3(t,s1,s2,s3);
-              codegenerror:=olderrorcount<>errorcount;
+              codegenerror:=olderrorcount<>status.errorcount;
            end;
       end;
 
@@ -586,177 +587,6 @@ implementation
              end;
          { this register is always used when shl/shr are present }
          usedinproc:=usedinproc or ($80 shr byte(R_ECX));
-      end;
-
-    procedure secondrealconst(var p : ptree);
-
-      var
-         hp1 : pai;
-         lastlabel : plabel;
-         found : boolean;
-      begin
-         clear_reference(p^.location.reference);
-         lastlabel:=nil;
-         found:=false;
-         { const already used ? }
-         if p^.labnumber=-1 then
-           begin
-              { tries to found an old entry }
-              hp1:=pai(consts^.first);
-              while assigned(hp1) do
-                begin
-                   if hp1^.typ=ait_label then
-                     lastlabel:=pai_label(hp1)^.l
-                   else
-                     begin
-                        if (hp1^.typ=p^.realtyp) and (lastlabel<>nil) then
-                          begin
-                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.valued)) or
-                               ((p^.realtyp=ait_real_extended) and (pai_extended(hp1)^.value=p^.valued)) or
-                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.valued)) then
-                               begin
-                                  { found! }
-                                  p^.labnumber:=lastlabel^.nb;
-                                  break;
-                               end;
-                          end;
-                        lastlabel:=nil;
-                     end;
-                   hp1:=pai(hp1^.next);
-                end;
-              { :-(, we must generate a new entry }
-              if p^.labnumber=-1 then
-                begin
-                   getlabel(lastlabel);
-                   p^.labnumber:=lastlabel^.nb;
-                   concat_constlabel(lastlabel,constreal);
-                   case p^.realtyp of
-                     ait_real_64bit : consts^.concat(new(pai_double,init(p^.valued)));
-                     ait_real_32bit : consts^.concat(new(pai_single,init(p^.valued)));
-                  ait_real_extended : consts^.concat(new(pai_extended,init(p^.valued)));
-                   else
-                     internalerror(10120);
-                   end;
-                end;
-           end;
-         stringdispose(p^.location.reference.symbol);
-         if assigned(lastlabel) then
-           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,constreal))
-         else
-           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,constreal));
-      end;
-
-    procedure secondfixconst(var p : ptree);
-
-      begin
-         { an fix comma const. behaves as a memory reference }
-         p^.location.loc:=LOC_MEM;
-         p^.location.reference.isintvalue:=true;
-         p^.location.reference.offset:=p^.valuef;
-      end;
-
-    procedure secondordconst(var p : ptree);
-
-      begin
-         { an integer const. behaves as a memory reference }
-         p^.location.loc:=LOC_MEM;
-         p^.location.reference.isintvalue:=true;
-         p^.location.reference.offset:=p^.value;
-      end;
-
-    procedure secondniln(var p : ptree);
-
-      begin
-         p^.location.loc:=LOC_MEM;
-         p^.location.reference.isintvalue:=true;
-         p^.location.reference.offset:=0;
-      end;
-
-    procedure secondstringconst(var p : ptree);
-
-      var
-         hp1 : pai;
-         lastlabel : plabel;
-         pc : pchar;
-         same_string : boolean;
-         i : word;
-
-      begin
-         clear_reference(p^.location.reference);
-         lastlabel:=nil;
-         { const already used ? }
-         if p^.labstrnumber=-1 then
-           begin
-              { tries to found an old entry }
-              hp1:=pai(consts^.first);
-              while assigned(hp1) do
-                begin
-                   if hp1^.typ=ait_label then
-                     lastlabel:=pai_label(hp1)^.l
-                   else
-                     begin
-                        if (hp1^.typ=ait_string) and (lastlabel<>nil) and
-                          (pai_string(hp1)^.len=length(p^.values^)+2) then
-                          begin
-                             same_string:=true;
-{$ifndef UseAnsiString}
-                             for i:=1 to length(p^.values^) do
-                               if pai_string(hp1)^.str[i]<>p^.values^[i] then
-{$else}
-                             for i:=0 to p^.length do
-                               if pai_string(hp1)^.str[i]<>p^.values[i] then
-{$endif}
-                                 begin
-                                    same_string:=false;
-                                    break;
-                                 end;
-                             if same_string then
-                               begin
-                                  { found! }
-                                  p^.labstrnumber:=lastlabel^.nb;
-                                  break;
-                               end;
-                          end;
-                        lastlabel:=nil;
-                     end;
-                   hp1:=pai(hp1^.next);
-                end;
-              { :-(, we must generate a new entry }
-              if p^.labstrnumber=-1 then
-                begin
-                   getlabel(lastlabel);
-                   p^.labstrnumber:=lastlabel^.nb;
-{$ifndef UseAnsiString}
-                   getmem(pc,length(p^.values^)+3);
-                   move(p^.values^,pc^,length(p^.values^)+1);
-                   pc[length(p^.values^)+1]:=#0;
-{$else UseAnsiString}
-                   pc:=getpcharcopy(p);
-{$endif UseAnsiString}
-
-                   concat_constlabel(lastlabel,conststring);
-{$ifdef UseAnsiString}
-  {$ifdef debug}
-                   consts^.concat(new(pai_asm_comment,init('Header of ansistring')));
-  {$endif debug}
-                   consts^.concat(new(pai_const,init_32bit(p^.length)));
-                   consts^.concat(new(pai_const,init_32bit(p^.length)));
-                   consts^.concat(new(pai_const,init_32bit(-1)));
-                   { to overcome this problem we set the length explicitly }
-                   { with the ending null char }
-                   consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
-{$else UseAnsiString}
-                   { we still will have a problem if there is a #0 inside the pchar }
-                   consts^.concat(new(pai_string,init_length_pchar(pc,length(p^.values^)+2)));
-{$endif UseAnsiString}
-                end;
-           end;
-         stringdispose(p^.location.reference.symbol);
-         if assigned(lastlabel) then
-           p^.location.reference.symbol:=stringdup(constlabel2str(lastlabel,conststring))
-         else
-           p^.location.reference.symbol:=stringdup(constlabelnb2str(p^.labnumber,conststring));
-         p^.location.loc := LOC_MEM;
       end;
 
     procedure secondumminus(var p : ptree);
@@ -1255,7 +1085,7 @@ implementation
                    LOC_FLAGS:
                      begin
                         ind:=getregister32;
-                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_NO,reg32toreg8(ind))));
+                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,reg32toreg8(ind))));
                         emit_reg_reg(A_MOVZX,S_BL,reg32toreg8(ind),ind);
                      end
                    else
@@ -2067,7 +1897,7 @@ implementation
                 hp^.location.register,p^.location.register)));
            LOC_FLAGS:
               begin
-                 exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_NO,
+                 exprasmlist^.concat(new(pai386,op_reg(flag_2_set[hp^.location.resflags],S_B,
                    p^.location.register)))
               end;
            LOC_JUMP:
@@ -2347,10 +2177,10 @@ implementation
                            end;
             LOC_FLAGS    : begin
                               if loc=LOC_CREGISTER then
-                                exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_NO,
+                                exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,
                                   p^.left^.location.register)))
                               else
-                                exprasmlist^.concat(new(pai386,op_ref(flag_2_set[p^.right^.location.resflags],S_NO,
+                                exprasmlist^.concat(new(pai386,op_ref(flag_2_set[p^.right^.location.resflags],S_B,
                                   newreference(p^.left^.location.reference))));
                            end;
          end;
@@ -2834,7 +2664,7 @@ implementation
                         { clear full EAX is faster }
                         { but dont you set the equal flag ? }
                         {exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EAX,R_EAX)));}
-                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.left^.location.resflags],S_NO,
+                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.left^.location.resflags],S_B,
                           R_AL)));
                         exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,R_AL,R_AX)));
                         {exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,R_EAX,R_EAX)));}
@@ -3421,7 +3251,7 @@ implementation
                    { but the registers must be different!              }
                    else if (pushedparasize=8) and
                      not(cs_littlesize in aktswitches) and
-                     (opt_processors=pentium) and
+                     (aktoptprocessor=pentium) and
                      (procinfo._class=nil) then
                        begin
                           exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
@@ -3690,24 +3520,22 @@ implementation
       procedure handlereadwrite(doread,callwriteln : boolean);
 
         procedure loadstream;
-
-          const     io:array[0..1] of string[7]=('_OUTPUT','_INPUT');
-          var     r : preference;
-
-            begin
-                 new(r);
-                 reset_reference(r^);
-                 r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
-                 if assem_need_external_list and
-                   not (cs_compilesystem in aktswitches) then
-                 concat_external(r^.symbol^,EXT_NEAR);
-
-                 exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_EDI)))
-            end;
+          const
+            io:array[0..1] of string[7]=('_OUTPUT','_INPUT');
+          var
+            r : preference;
+          begin
+            new(r);
+            reset_reference(r^);
+            r^.symbol:=stringdup('U_'+upper(target_info.system_unit)+io[byte(doread)]);
+{           if not (cs_compilesystem in aktswitches) then }
+              concat_external(r^.symbol^,EXT_NEAR);
+            exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,r,R_EDI)))
+          end;
 
         var
-             node,hp : ptree;
-            typedtyp,pararesult : pdef;
+           node,hp : ptree;
+           typedtyp,pararesult : pdef;
            doflush,has_length : boolean;
            dummycoll : tdefcoll;
            iolabel : plabel;
@@ -4253,7 +4081,7 @@ implementation
                           p^.location.register)
                       else
                       if p^.left^.location.loc=LOC_FLAGS then
-                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.left^.location.resflags],S_NO,
+                        exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.left^.location.resflags],S_B,
                                   p^.location.register)))
                       else
                         begin
@@ -5416,7 +5244,7 @@ implementation
                  LOC_CREGISTER,
                  LOC_REGISTER : is_mem:=false;
                      LOC_FLAGS : begin
-                                exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_NO,R_AL)));
+                                exprasmlist^.concat(new(pai386,op_reg(flag_2_set[p^.right^.location.resflags],S_B,R_AL)));
                                         goto do_jmp;
                              end;
                  LOC_JUMP : begin
@@ -5738,7 +5566,7 @@ do_jmp:
       begin
          getlabel(endlabel);
          getlabel(elselabel);
-         if smartlink then
+         if (cs_smartlink in aktswitches) then
            jumpsegment:=procinfo.aktlocaldata
          else
            jumpsegment:=datasegment;
@@ -5812,11 +5640,11 @@ do_jmp:
                    else
                      max_linear_list:=2;
                    { a jump table crashes the pipeline! }
-                   if opt_processors=i486 then
+                   if aktoptprocessor=i486 then
                      inc(max_linear_list,3);
-                       if opt_processors=pentium then
+                       if aktoptprocessor=pentium then
                      inc(max_linear_list,6);
-                   if opt_processors>=pentiumpro then
+                   if aktoptprocessor>=pentiumpro then
                      inc(max_linear_list,9);
 
                    if (labels<=max_linear_list) then
@@ -6370,7 +6198,14 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.25  1998-05-21 19:33:31  peter
+  Revision 1.26  1998-05-23 01:21:03  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.25  1998/05/21 19:33:31  peter
     + better procedure directive handling and only one table
 
   Revision 1.24  1998/05/20 09:42:33  pierre

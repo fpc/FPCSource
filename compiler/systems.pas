@@ -32,22 +32,22 @@ unit systems;
        tos = (os_GO32V1, os_GO32V2, os_Linux, os_OS2,
               os_WIN32, os_Amiga, os_Atari, os_Mac68k);
 
-       tasm = (as_as
+       tasm = (as_o
        {$ifdef i386}
-              ,as_nasmcoff, as_nasmelf, as_nasmobj
+              ,as_nasmcoff, as_nasmelf, as_nasmobj, as_tasm, as_masm
        {$endif}
        {$ifdef m68k}
-              ,as_as68k
+              ,as_gas,as_mit,as_mot
        {$endif}
        );
 
        tlink = (link_ld
        {$ifdef i386}
-              ,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2);
+              ,link_ldgo32v1, link_ldgo32v2, link_ldw, link_ldos2
        {$endif i386}
        {$ifdef m68k}
-              );
        {$endif}
+       );
 
        tendian = (endian_little,en_big_endian);
 
@@ -70,6 +70,7 @@ unit systems;
           idtxt       : string[8];
           asmbin      : string[8];
           asmcmd      : string[50];
+          externals   : boolean;
           labelprefix : string[2];
           comment     : string[2];
        end;
@@ -102,6 +103,7 @@ unit systems;
           assem       : tasm;
        end;
 
+
     var
        target_info : ttargetinfo;
        target_os   : tosinfo;
@@ -110,10 +112,16 @@ unit systems;
        source_os   : tosinfo;
 
     function set_string_target(const s : string) : boolean;
+    function set_string_asm(const s : string) : boolean;
 
-  implementation
+
+implementation
 
     const
+
+{****************************************************************************
+                                 OS Info
+****************************************************************************}
        os_infos : array[tos] of tosinfo = (
           (
             name         : 'GO32 V1 DOS extender';
@@ -221,61 +229,100 @@ unit systems;
           )
           );
 
+{****************************************************************************
+                             Assembler Info
+****************************************************************************}
        as_infos : array[tasm] of tasminfo = (
           (
-            id     : as_as;
+            id     : as_o;
             idtxt  : 'O';
             asmbin : 'as';
             asmcmd : '-D -o $OBJ $ASM';
+            externals : false;
             labelprefix : '.L';
             comment : '# '
           )
 {$ifdef i386}
           ,(
             id     : as_nasmcoff;
-{$ifdef linux}
-            idtxt  : 'NASM';
-{$else}
             idtxt  : 'NASMCOFF';
-{$endif}
             asmbin : 'nasm';
             asmcmd : '-f coff -o $OBJ $ASM';
+            externals : true;
             labelprefix : 'L';
             comment : '; '
           )
           ,(
             id     : as_nasmelf;
-{$ifdef linux}
-            idtxt  : 'NASM';
-{$else}
             idtxt  : 'NASMELF';
-{$endif}
             asmbin : 'nasm';
             asmcmd : '-f elf -o $OBJ $ASM';
+            externals : true;
             labelprefix : 'L';
             comment : '; '
           )
           ,(
             id     : as_nasmobj;
-            idtxt  : 'OBJ';
+            idtxt  : 'NASMOBJ';
             asmbin : 'nasm';
             asmcmd : '-f obj -o $OBJ $ASM';
+            externals : true;
             labelprefix : 'L';
+            comment : '; '
+          )
+          ,(
+            id     : as_tasm;
+            idtxt  : 'TASM';
+            asmbin : 'tasm';
+            asmcmd : '/m2 $ASM $OBJ';
+            externals : true;
+            labelprefix : '.L';
+            comment : '; '
+          )
+          ,(
+            id     : as_tasm;
+            idtxt  : 'MASM';
+            asmbin : 'masm';
+            asmcmd : '$ASM $OBJ';
+            externals : true;
+            labelprefix : '.L';
             comment : '; '
           )
 {$endif}
 {$ifdef m68k}
           ,(
-            id     : as_as68k;
-            idtxt  : 'O';
+            id     : as_gas;
+            idtxt  : 'GAS';
             asmbin : 'as68k'; { Gas for the Amiga}
             asmcmd : '-D --register-prefix-optional -o $OBJ $ASM';
+            externals : false;
+            labelprefix : '__L';
+            comment : '| '
+          )
+          ,(
+            id     : as_mit;
+            idtxt  : 'MIT';
+            asmbin : '';
+            asmcmd : '-o $OBJ $ASM';
+            externals : false;
+            labelprefix : '__L';
+            comment : '| '
+          )
+          ,(
+            id     : as_mot;
+            idtxt  : 'MOT';
+            asmbin : '';
+            asmcmd : '-o $OBJ $ASM';
+            externals : false;
             labelprefix : '__L';
             comment : '| '
           )
 {$endif}
           );
 
+{****************************************************************************
+                                Linker Info
+****************************************************************************}
        link_infos : array[tlink] of tlinkinfo = (
           (
             linkbin : 'ld';
@@ -341,6 +388,9 @@ unit systems;
 {$endif i386}
           );
 
+{****************************************************************************
+                             Targets Info
+****************************************************************************}
        target_infos : array[ttarget] of ttargetinfo = (
           (
             target      : target_GO32V1;
@@ -354,7 +404,7 @@ unit systems;
             objext      : '.O1';
             os          : os_GO32V1;
             link        : link_ldgo32v1;
-            assem       : as_as
+            assem       : as_o
           ),
           (
             target      : target_GO32V2;
@@ -376,7 +426,7 @@ unit systems;
 {$endif UseAnsiString}
             os          : os_GO32V2;
             link        : link_ldgo32v2;
-            assem       : as_as
+            assem       : as_o
           ),
           (
             target      : target_LINUX;
@@ -390,7 +440,7 @@ unit systems;
             objext      : '.o';
             os          : os_Linux;
             link        : link_ld;
-            assem       : as_as
+            assem       : as_o
           ),
           (
             target      : target_OS2;
@@ -404,7 +454,7 @@ unit systems;
             objext      : '.oo2';
             os          : os_OS2;
             link        : link_ldos2;
-            assem       : as_as
+            assem       : as_o
           ),
           (
             target      : target_WIN32;
@@ -418,7 +468,7 @@ unit systems;
             objext      : '.o';
             os          : os_Win32;
             link        : link_ldw;
-            assem       : as_as
+            assem       : as_o
           ),
           (
             target      : target_Amiga;
@@ -432,7 +482,7 @@ unit systems;
             objext      : '.o';
             os          : os_Amiga;
             link        : link_ld;
-            assem       : as_as
+            assem       : as_o
           ),
           (
             target      : target_Atari;
@@ -446,7 +496,7 @@ unit systems;
             objext      : '.o';
             os          : os_Atari;
             link        : link_ld;
-            assem       : as_as
+            assem       : as_o
           ),
           (
             target      : target_Mac68k;
@@ -460,10 +510,14 @@ unit systems;
             objext      : '.o';
             os          : os_Mac68k;
             link        : link_ld;
-            assem       : as_as
+            assem       : as_o
           )
           );
 
+
+{****************************************************************************
+                                Helpers
+****************************************************************************}
 
 procedure set_target(t : ttarget);
 begin
@@ -474,6 +528,9 @@ begin
 end;
 
 
+{****************************************************************************
+                             Load from string
+****************************************************************************}
 
 function set_string_target(const s : string) : boolean;
 var
@@ -488,6 +545,24 @@ begin
     end;
 end;
 
+
+function set_string_asm(const s : string) : boolean;
+var
+  j : longint;
+begin
+  set_string_asm:=false;
+  for j:=0 to (sizeof(as_infos) div sizeof(tasminfo))-1 do
+   if as_infos[tasm(j)].idtxt=s then
+    begin
+      target_asm:=as_infos[tasm(j)];
+      set_string_asm:=true;
+    end;
+end;
+
+
+{****************************************************************************
+                      Initialization of default target
+****************************************************************************}
 
 procedure default_os(t:ttarget);
 begin
@@ -531,7 +606,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1998-05-22 12:32:49  peter
+  Revision 1.12  1998-05-23 01:21:32  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.11  1998/05/22 12:32:49  peter
     * fixed -L on the commandline, Dos commandline is only 128 bytes
 
   Revision 1.10  1998/05/11 13:07:58  peter

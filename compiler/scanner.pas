@@ -179,8 +179,9 @@ unit scanner;
   implementation
 
      uses
-       dos,verbose,pbase,
-       symtable,switches;
+       dos,verbose,systems,
+       pbase,symtable,
+       switches;
 
 {*****************************************************************************
                               TPreProcStack
@@ -375,17 +376,12 @@ unit scanner;
               inc(longint(inputpointer));
           end;
         c:=newline;
-      { Update Status and show status }
-        with status do
-         begin
-           totalcompiledlines:=abslines;
-           currentline:=current_module^.current_inputfile^.line_no;
-         end;
+      { show status }
         Comment(V_Status,'');
-
-      { increase line counters }        
+      { increase line counters }
         inc(current_module^.current_inputfile^.line_no);
-        inc(abslines);
+        status.currentline:=current_module^.current_inputfile^.line_no;
+        inc(status.compiledlines);
         lastlinepos:=longint(inputpointer);
       end;
 
@@ -841,7 +837,7 @@ unit scanner;
                       end;
                 '+' : begin
                         readchar;
-                        if (c='=') and c_like_operators then
+                        if (c='=') and support_c_operators then
                          begin
                            readchar;
                            yylex:=_PLUSASN;
@@ -852,7 +848,7 @@ unit scanner;
                       end;
                 '-' : begin
                         readchar;
-                        if (c='=') and c_like_operators then
+                        if (c='=') and support_c_operators then
                          begin
                            readchar;
                            yylex:=_MINUSASN;
@@ -874,7 +870,7 @@ unit scanner;
                       end;
                 '*' : begin
                         readchar;
-                        if (c='=') and c_like_operators then
+                        if (c='=') and support_c_operators then
                          begin
                            readchar;
                            yylex:=_STARASN;
@@ -891,7 +887,7 @@ unit scanner;
                         readchar;
                         case c of
                          '=' : begin
-                                 if c_like_operators then
+                                 if support_c_operators then
                                   begin
                                     readchar;
                                     yylex:=_SLASHASN;
@@ -1218,7 +1214,14 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.19  1998-05-20 09:42:37  pierre
+  Revision 1.20  1998-05-23 01:21:30  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.19  1998/05/20 09:42:37  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

@@ -29,11 +29,6 @@ unit aasm;
 
 {$I version.inc}
     type
-{$ifdef klaempfl}
-{$ifdef ver0_9_2}
-       extended = double;
-{$endif ver0_9_2}
-{$endif klaempfl}
        tait = (
           ait_string,
           ait_label,
@@ -81,7 +76,6 @@ unit aasm;
        end;
 
        pai_string = ^tai_string;
-
        tai_string = object(tai)
           str : pchar;
           { extra len so the string can contain an \0 }
@@ -117,22 +111,23 @@ unit aasm;
           destructor done; virtual;
        end;
 
-       { type for a temporary label }
-       { test if used for dispose of unnecessary labels }
-       pai_label = ^tai_label;
+     { type for a temporary label test if used for dispose of
+       unnecessary labels }
+       plabel = ^tlabel;
        tlabel = record
-                nb : longint;
-                is_used : boolean;
-                is_set : boolean;
-                refcount : word;
+                  nb       : longint;
+                  is_used  : boolean;
+                  is_set   : boolean;
+                  refcount : word;
                 end;
 
-       plabel = ^tlabel;
+       pai_label = ^tai_label;
        tai_label = object(tai)
           l : plabel;
           constructor init(_l : plabel);
           destructor done; virtual;
        end;
+
 
        pai_direct = ^tai_direct;
        tai_direct = object(tai)
@@ -272,10 +267,27 @@ type
     procedure concat_external(const _name : string;exttype : texternal_typ);
     procedure concat_internal(const _name : string;exttype : texternal_typ);
 
-  implementation
+  { label functions }
+    const
+      nextlabelnr : longint = 1;
+    { convert label to string}
+    function lab2str(l : plabel) : string;
+    { make l as a new label }
+    procedure getlabel(var l : plabel);
+    { frees the label if unused }
+    procedure freelabel(var l : plabel);
+    { make a new zero label }
+    procedure getzerolabel(var l : plabel);
+    { reset a label to a zero label }
+    procedure setzerolabel(var l : plabel);
+    {just get a label number }
+    procedure getlabelnr(var l : longint);
 
-  uses
-    strings,verbose;
+
+implementation
+
+uses
+  strings,verbose,systems;
 
 {****************************************************************************
                              TAI
@@ -400,66 +412,6 @@ type
       begin
          strdispose(name);
          inherited done;
-      end;
-
-    function search_assembler_symbol(pl : paasmoutput;const _name : string;exttype : texternal_typ) : pai_external;
-
-      var
-         p : pai;
-
-      begin
-         search_assembler_symbol:=nil;
-         if pl=nil then
-           internalerror(2001)
-         else
-           begin
-              p:=pai(pl^.first);
-              while (p<>nil) and
-                    (p<>pai(pl^.last)) do
-                { if we get the same name with a different typ }
-                { there is probably an error                   }
-                if (p^.typ=ait_external) and
-                   ((exttype=EXT_ANY) or (pai_external(p)^.exttyp=exttype)) and
-                   (strpas(pai_external(p)^.name)=_name) then
-                  begin
-                     search_assembler_symbol:=pai_external(p);
-                     exit;
-                  end
-                else
-                  p:=pai(p^.next);
-              if (p<>nil) and
-                 (p^.typ=ait_external) and
-                 (pai_external(p)^.exttyp=exttype) and
-                 (strpas(pai_external(p)^.name)=_name) then
-                begin
-                   search_assembler_symbol:=pai_external(p);
-                   exit;
-                end;
-           end;
-      end;
-
-    { insert each need external only once }
-    procedure concat_external(const _name : string;exttype : texternal_typ);
-
-      var
-         p : pai_external;
-
-      begin
-         p:=search_assembler_symbol(externals,_name,exttype);
-         if p=nil then
-           externals^.concat(new(pai_external,init(_name,exttype)));
-      end;
-
-    { insert each need external only once }
-    procedure concat_internal(const _name : string;exttype : texternal_typ);
-
-      var
-         p : pai_external;
-
-      begin
-         p:=search_assembler_symbol(internals,_name,exttype);
-         if p=nil then
-           internals^.concat(new(pai_external,init(_name,exttype)));
       end;
 
 {****************************************************************************
@@ -721,10 +673,147 @@ type
           typ:=ait_cut;
        end;
 
+
+{*****************************************************************************
+                           External Helpers
+*****************************************************************************}
+
+    function search_assembler_symbol(pl : paasmoutput;const _name : string;exttype : texternal_typ) : pai_external;
+      var
+         p : pai;
+      begin
+         search_assembler_symbol:=nil;
+         if pl=nil then
+           internalerror(2001)
+         else
+           begin
+              p:=pai(pl^.first);
+              while (p<>nil) and
+                    (p<>pai(pl^.last)) do
+                { if we get the same name with a different typ }
+                { there is probably an error                   }
+                if (p^.typ=ait_external) and
+                   ((exttype=EXT_ANY) or (pai_external(p)^.exttyp=exttype)) and
+                   (strpas(pai_external(p)^.name)=_name) then
+                  begin
+                     search_assembler_symbol:=pai_external(p);
+                     exit;
+                  end
+                else
+                  p:=pai(p^.next);
+              if (p<>nil) and
+                 (p^.typ=ait_external) and
+                 (pai_external(p)^.exttyp=exttype) and
+                 (strpas(pai_external(p)^.name)=_name) then
+                begin
+                   search_assembler_symbol:=pai_external(p);
+                   exit;
+                end;
+           end;
+      end;
+
+
+    { insert each need external only once }
+    procedure concat_external(const _name : string;exttype : texternal_typ);
+      begin
+        if not target_asm.externals then
+         exit;
+        if search_assembler_symbol(externals,_name,exttype)=nil then
+         externals^.concat(new(pai_external,init(_name,exttype)));
+      end;
+
+
+    { insert each need internal only once }
+    procedure concat_internal(const _name : string;exttype : texternal_typ);
+      begin
+        if not target_asm.externals then
+         exit;
+        if search_assembler_symbol(internals,_name,exttype)=nil then
+         internals^.concat(new(pai_external,init(_name,exttype)));
+      end;
+
+
+{*****************************************************************************
+                              Label Helpers
+*****************************************************************************}
+
+    function lab2str(l : plabel) : string;
+      begin
+         if (l=nil) or (l^.nb=0) then
+{$ifdef EXTDEBUG}
+           lab2str:='ILLEGAL'
+         else
+           lab2str:=target_asm.labelprefix+tostr(l^.nb);
+{$else EXTDEBUG}
+         internalerror(2000);
+         lab2str:=target_asm.labelprefix+tostr(l^.nb);
+{$endif EXTDEBUG}
+         { was missed: }
+         inc(l^.refcount);
+         l^.is_used:=true;
+      end;
+
+
+    procedure getlabel(var l : plabel);
+      begin
+         new(l);
+         l^.nb:=nextlabelnr;
+         l^.is_used:=false;
+         l^.is_set:=false;
+         l^.refcount:=0;
+         inc(nextlabelnr);
+      end;
+
+
+    procedure freelabel(var l : plabel);
+      begin
+         if (l<>nil) and (not l^.is_set) and (not l^.is_used) then
+           dispose(l);
+         l:=nil;
+      end;
+
+
+    procedure setzerolabel(var l : plabel);
+      begin
+        with l^ do
+         begin
+           nb:=0;
+           is_used:=false;
+           is_set:=false;
+           refcount:=0;
+         end;
+      end;
+
+
+    procedure getzerolabel(var l : plabel);
+      begin
+         new(l);
+         l^.nb:=0;
+         l^.is_used:=false;
+         l^.is_set:=false;
+         l^.refcount:=0;
+      end;
+
+
+    procedure getlabelnr(var l : longint);
+      begin
+         l:=nextlabelnr;
+         inc(nextlabelnr);
+      end;
+
+
+
 end.
 {
   $Log$
-  Revision 1.7  1998-05-07 00:16:59  peter
+  Revision 1.8  1998-05-23 01:20:53  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.7  1998/05/07 00:16:59  peter
     * smartlinking for sets
     + consts labels are now concated/generated in hcodegen
     * moved some cpu code to cga and some none cpu depended code from cga

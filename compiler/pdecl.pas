@@ -995,7 +995,7 @@ unit pdecl;
          testcurobject:=0;
          curobjectname:='';
 
-         if smartlink then
+         if (cs_smartlink in aktswitches) then
            datasegment^.concat(new(pai_cut,init));
 {$ifdef GDB}
          { generate the VMT }
@@ -1773,7 +1773,14 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.18  1998-05-20 09:42:35  pierre
+  Revision 1.19  1998-05-23 01:21:19  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.18  1998/05/20 09:42:35  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

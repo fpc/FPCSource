@@ -2,7 +2,8 @@
     $Id$
     Copyright (c) 1996,97 by Florian Klaempfl
 
-    This unit implements an asmoutput class for Intel syntax with Intel i386+
+    This unit implements an asmoutput class for the Nasm assembler with
+    Intel syntax for the i386+
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,15 +21,15 @@
 
  ****************************************************************************
 }
-unit ag386int;
+unit ag386nsm;
 
     interface
 
     uses aasm,assemble;
 
     type
-      pi386intasmlist=^ti386intasmlist;
-      ti386intasmlist = object(tasmlist)
+      pi386nasmasmlist=^ti386nasmasmlist;
+      ti386nasmasmlist = object(tasmlist)
         procedure WriteTree(p:paasmoutput);virtual;
         procedure WriteAsmList;virtual;
       end;
@@ -49,7 +50,6 @@ unit ag386int;
       extstr : array[EXT_NEAR..EXT_ABS] of String[8] =
              ('NEAR','FAR','PROC','BYTE','WORD','DWORD',
               'CODEPTR','DATAPTR','FWORD','PWORD','QWORD','TBYTE','ABS');
-
 
     function double2str(d : double) : string;
       var
@@ -80,6 +80,7 @@ unit ag386int;
          comp2str:=double2str(dd^);
       end;
 
+
     function getreferencestring(const ref : treference) : string;
     var
       s     : string;
@@ -92,7 +93,7 @@ unit ag386int;
         begin
           first:=true;
           if ref.segment<>R_DEFAULT_SEG then
-           s:=int_reg2str[segment]+':['
+           s:='['+int_reg2str[segment]+':'
           else
            s:='[';
          if assigned(symbol) then
@@ -132,58 +133,59 @@ unit ag386int;
       hs : string;
     begin
       case t of
-       top_reg : getopstr:=int_reg2str[tregister(o)];
+       top_reg : getopstr:=int_nasmreg2str[tregister(o)];
      top_const,
        top_ref : begin
                    if t=top_const then
                      hs := tostr(longint(o))
                    else
                      hs:=getreferencestring(preference(o)^);
-                   { can possibly give a range check error under tp }
-                   { if using in...                                 }
-                   if ((_operator <> A_LGS) and (_operator <> A_LSS) and
-                       (_operator <> A_LFS) and (_operator <> A_LDS) and
-                       (_operator <> A_LES)) then
-                    Begin
-                      case s of
-                       S_B : hs:='byte ptr '+hs;
-                       S_W : hs:='word ptr '+hs;
-                       S_L : hs:='dword ptr '+hs;
-                      S_IS : hs:='word ptr '+hs;
-                      S_IL : hs:='dword ptr '+hs;
-                      S_IQ : hs:='qword ptr '+hs;
-                      S_FS : hs:='dword ptr '+hs;
-                      S_FL : hs:='qword ptr '+hs;
-                      S_FX : hs:='tbyte ptr '+hs;
-                      S_BW : if dest then
-                              hs:='word ptr '+hs
-                             else
-                              hs:='byte ptr '+hs;
-                      S_BL : if dest then
-                              hs:='dword ptr '+hs
-                             else
-                              hs:='byte ptr '+hs;
-                      S_WL : if dest then
-                              hs:='dword ptr '+hs
-                             else
-                              hs:='word ptr '+hs;
-                      end;
-                    end;
+                   if not ((_operator = A_LEA) or (_operator = A_LGS) or
+                           (_operator = A_LSS) or (_operator = A_LFS) or
+                           (_operator = A_LES) or (_operator = A_LDS) or
+                           (_operator = A_SHR) or (_operator = A_SHL) or
+                           (_operator = A_SAR) or (_operator = A_SAL) or
+                           (_operator = A_OUT) or (_operator = A_IN)) then
+                     begin
+                       case s of
+                          S_B : hs:='byte '+hs;
+                          S_W : hs:='word '+hs;
+                          S_L : hs:='dword '+hs;
+                          S_IS : hs:='word '+hs;
+                          S_IL : hs:='dword '+hs;
+                          S_IQ : hs:='qword '+hs;
+                          S_FS : hs:='dword '+hs;
+                          S_FL : hs:='qword '+hs;
+                          S_FX : hs:='tword '+hs;
+                          S_BW : if dest then
+                              hs:='word '+hs
+                            else
+                              hs:='byte '+hs;
+                          S_BL : if dest then
+                              hs:='dword '+hs
+                            else
+                              hs:='byte '+hs;
+                          S_WL : if dest then
+                              hs:='dword '+hs
+                            else
+                              hs:='word '+hs;
+                       end
+                     end;
                    getopstr:=hs;
                  end;
     top_symbol : begin
                    hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
                    move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
-                   hs:='offset '+hs;
+                   hs:='dword '+hs;
                    if pcsymbol(o)^.offset>0 then
-                    hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
+                     hs:=hs+'+'+tostr(pcsymbol(o)^.offset)
                    else
-                    if pcsymbol(o)^.offset<0 then
-                     hs:=hs+tostr(pcsymbol(o)^.offset);
+                     if pcsymbol(o)^.offset<0 then
+                       hs:=hs+tostr(pcsymbol(o)^.offset);
                    getopstr:=hs;
                  end;
       else
-       internalerror(10001);
+        internalerror(10001);
       end;
     end;
 
@@ -192,9 +194,9 @@ unit ag386int;
       hs : string;
     begin
       case t of
-         top_reg : getopstr_jmp:=int_reg2str[tregister(o)];
-         top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
-       top_const : getopstr_jmp:=tostr(longint(o));
+          top_reg : getopstr_jmp:=int_reg2str[tregister(o)];
+          top_ref : getopstr_jmp:=getreferencestring(preference(o)^);
+        top_const : getopstr_jmp:=tostr(longint(o));
        top_symbol : begin
                       hs[0]:=chr(strlen(pchar(pcsymbol(o)^.symbol)));
                       move(pchar(pcsymbol(o)^.symbol)^,hs[1],byte(hs[0]));
@@ -206,13 +208,12 @@ unit ag386int;
                       getopstr_jmp:=hs;
                     end;
       else
-       internalerror(10001);
+        internalerror(10001);
       end;
     end;
 
-
 {****************************************************************************
-                               TI386INTASMLIST
+                               Ti386nasmasmlist
  ****************************************************************************}
 
     var
@@ -222,9 +223,8 @@ unit ag386int;
       ait_const2str:array[ait_const_32bit..ait_const_8bit] of string[8]=
         (#9'DD'#9,'',#9'DW'#9,#9'DB'#9);
 
-      ait_section2masmstr : array[tsection] of string[6]=
-       ('','CODE','DATA','BSS','');
-
+      ait_section2nasmstr : array[tsection] of string[6]=
+       ('','.text','.data','.bss','.idata');
 
     Function PadTabs(p:pchar;addch:char):string;
     var
@@ -245,7 +245,8 @@ unit ag386int;
        PadTabs:=s+#9;
     end;
 
-    procedure ti386intasmlist.WriteTree(p:paasmoutput);
+
+    procedure ti386nasmasmlist.WriteTree(p:paasmoutput);
     type
       twowords=record
         word1,word2:word;
@@ -274,29 +275,19 @@ unit ag386int;
                        AsmLn;
                      End;
        ait_section : begin
-                       if LastSec<>sec_none then
-                        AsmWriteLn('_'+ait_section2masmstr[LastSec]+#9#9'ENDS');
                        if pai_section(hp)^.sec<>sec_none then
                         begin
                           AsmLn;
-                          AsmWriteLn('_'+ait_section2masmstr[pai_section(hp)^.sec]+#9#9+
-                                     'SEGMENT'#9'PARA PUBLIC USE32 '''+
-                                     ait_section2masmstr[pai_section(hp)^.sec]+'''');
+                          AsmWriteLn('SECTION '+ait_section2nasmstr[pai_section(hp)^.sec]);
                         end;
                        LastSec:=pai_section(hp)^.sec;
                      end;
-         ait_align : begin
-                     { CAUSES PROBLEMS WITH THE SEGMENT DEFINITION   }
-                     { SEGMENT DEFINITION SHOULD MATCH TYPE OF ALIGN }
-                     { HERE UNDER TASM!                              }
-                       AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
-                     end;
-      ait_external : AsmWriteLn(#9'EXTRN'#9+StrPas(pai_external(hp)^.name)+
-                                ' :'+extstr[pai_external(hp)^.exttyp]);
+         ait_align : AsmWriteLn(#9'ALIGN '+tostr(pai_align(hp)^.aligntype));
+      ait_external : AsmWriteLn('EXTERN '+StrPas(pai_external(hp)^.name));
      ait_datablock : begin
                        if pai_datablock(hp)^.is_global then
-                         AsmWriteLn(#9'PUBLIC'#9+StrPas(pai_datablock(hp)^.name));
-                       AsmWriteLn(PadTabs(pai_datablock(hp)^.name,#0)+'DB'#9+tostr(pai_datablock(hp)^.size)+' DUP(?)');
+                        AsmWriteLn(#9'GLOBAL '+StrPas(pai_datablock(hp)^.name));
+                       AsmWriteLn(PadTabs(pai_datablock(hp)^.name,':')+'RESB'#9+tostr(pai_datablock(hp)^.size));
                      end;
    ait_const_32bit,
     ait_const_8bit,
@@ -317,13 +308,13 @@ unit ag386int;
                        AsmLn;
                      end;
   ait_const_symbol : begin
-                       AsmWrite(#9#9+'DD '#9'offset ');
+                       AsmWrite(#9#9+'DD '#9);
                        AsmWritePChar(pchar(pai_const(hp)^.value));
                        AsmLn;
                      end;
     ait_real_32bit : AsmWriteLn(#9#9'DD'#9+double2str(pai_single(hp)^.value));
     ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(pai_double(hp)^.value));
- ait_real_extended : AsmWriteLn(#9#9'DT'#9+double2str(pai_extended(hp)^.value));
+ ait_real_extended : AsmWriteLn(#9#9'DD'#9+double2str(pai_extended(hp)^.value));
           ait_comp : AsmWriteLn(#9#9'DQ'#9+comp2str(pai_extended(hp)^.value));
         ait_string : begin
                        counter := 0;
@@ -401,26 +392,27 @@ unit ag386int;
                      end;
          ait_label : begin
                        if pai_label(hp)^.l^.is_used then
-                        begin
-                          AsmWrite(lab2str(pai_label(hp)^.l));
-                          if (assigned(hp^.next) and not(pai(hp^.next)^.typ in
-                             [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
-                              ait_real_32bit,ait_real_64bit,ait_real_extended,ait_string])) then
-                           AsmWriteLn(':');
-                        end;
+                        AsmWriteLn(lab2str(pai_label(hp)^.l)+':');
                      end;
         ait_direct : begin
                        AsmWritePChar(pai_direct(hp)^.str);
                        AsmLn;
                      end;
-ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+lab2str(pai_labeled(hp)^.lab));
+ait_labeled_instruction :
+                     begin
+                       if not (pai_labeled(hp)^._operator in [A_JMP,A_LOOP,A_LOOPZ,A_LOOPE,
+                          A_LOOPNZ,A_LOOPNE,A_JCXZ,A_JECXZ]) then
+                        AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+'near '+lab2str(pai_labeled(hp)^.lab))
+                       else
+                        AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]+#9+lab2str(pai_labeled(hp)^.lab));
+                     end;
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
-                         AsmWriteLn(#9'PUBLIC'#9+StrPas(pai_symbol(hp)^.name));
+                        AsmWriteLn(#9'GLOBAL '+StrPas(pai_symbol(hp)^.name));
                        AsmWritePChar(pai_symbol(hp)^.name);
                        if assigned(hp^.next) and not(pai(hp^.next)^.typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,ait_const_symbol,
-                           ait_real_64bit,ait_real_extended,ait_string]) then
+                           ait_real_64bit,ait_string]) then
                         AsmWriteLn(':')
                      end;
    ait_instruction : begin
@@ -442,25 +434,22 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]
                              AsmWriteLn(s);
                              break;
                            end;
+                          { nasm prefers prefix on a line alone }
+                          AsmWriteln(#9#9+prefix);
+                          prefix:='';
                         end
                        else
                         prefix:= '';
+                       { A_FNSTS need the w as suffix at least for nasm}
+                       if (pai386(hp)^._operator = A_FNSTS) then
+                        pai386(hp)^._operator:=A_FNSTSW
+                       else
+                        if (pai386(hp)^._operator = A_FSTS) then
+                         pai386(hp)^._operator:=A_FSTSW;
                        if pai386(hp)^.op1t<>top_none then
                         begin
                           if pai386(hp)^._operator in [A_CALL] then
-                           begin
-                           { with tasm call near ptr [edi+12] does not
-                             work but call near [edi+12] works ?? (PM)
-
-                             It works with call dword ptr [], but you
-                             need /m2 (2 passes) with tasm (PFV)
-                           }
-{                                    if pai386(hp)^.op1t=top_ref then
-                              s:='near '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1)
-                             else
-                              s:='near ptr '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1);}
-                             s:='dword ptr '+getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1);
-                           end
+                           s:=getopstr_jmp(pai386(hp)^.op1t,pai386(hp)^.op1)
                           else
                            begin
                              s:=getopstr(pai386(hp)^.op1t,pai386(hp)^.op1,pai386(hp)^.size,pai386(hp)^._operator,false);
@@ -469,8 +458,8 @@ ait_labeled_instruction : AsmWriteLn(#9#9+int_op2str[pai_labeled(hp)^._operator]
                                 if pai386(hp)^.op2t<>top_none then
                                  s:=getopstr(pai386(hp)^.op2t,pointer(longint(twowords(pai386(hp)^.op2).word1)),
                                              pai386(hp)^.size,pai386(hp)^._operator,true)+','+s;
-                                s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),
-                                            pai386(hp)^.size,pai386(hp)^._operator,false)+','+s;
+                                          s:=getopstr(pai386(hp)^.op3t,pointer(longint(twowords(pai386(hp)^.op2).word2)),
+                                           pai386(hp)^.size,pai386(hp)^._operator,false)+','+s;
                               end
                              else
                               if pai386(hp)^.op2t<>top_none then
@@ -518,22 +507,18 @@ ait_stab_function_name : ;
     end;
 
 
-    procedure ti386intasmlist.WriteAsmList;
-
+    procedure ti386nasmasmlist.WriteAsmList;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
-       comment(v_info,'Start writing intel-styled assembler output for '+current_module^.mainsource^);
+       comment(v_info,'Start writing nasm-styled assembler output for '+current_module^.mainsource^);
 {$endif}
       LastSec:=sec_none;
-      AsmWriteLn(#9'.386p');
-      AsmWriteLn(#9'LOCALS '+target_asm.labelprefix);
-      AsmWriteLn('DGROUP'#9'GROUP'#9'_BSS,_DATA');
-      AsmWriteLn(#9'ASSUME'#9'CS:_CODE,ES:DGROUP,DS:DGROUP,SS:DGROUP');
+      AsmWriteLn('BITS 32');
       AsmLn;
 
       WriteTree(externals);
-    { INTEL ASM doesn't support stabs
+    { Nasm doesn't support stabs
       WriteTree(debuglist);}
 
       WriteTree(codesegment);
@@ -542,62 +527,21 @@ ait_stab_function_name : ;
       WriteTree(rttilist);
       WriteTree(bsssegment);
 
-      AsmWriteLn(#9'END');
       AsmLn;
-
 {$ifdef EXTDEBUG}
       if assigned(current_module^.mainsource) then
-       comment(v_info,'Done writing intel-styled assembler output for '+current_module^.mainsource^);
+       comment(v_info,'Done writing nasm-styled assembler output for '+current_module^.mainsource^);
 {$endif EXTDEBUG}
    end;
 
 end.
 {
   $Log$
-  Revision 1.9  1998-05-23 01:20:55  peter
+  Revision 1.1  1998-05-23 01:20:56  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in
     * splitted cgi386 a bit (codeseg to large for bp7)
     * nasm, tasm works again. nasm moved to ag386nsm.pas
 
-  Revision 1.8  1998/05/06 18:36:53  peter
-    * tai_section extended with code,data,bss sections and enumerated type
-    * ident 'compiled by FPC' moved to pmodules
-    * small fix for smartlink
-
-  Revision 1.7  1998/05/06 08:38:32  pierre
-    * better position info with UseTokenInfo
-      UseTokenInfo greatly simplified
-    + added check for changed tree after first time firstpass
-      (if we could remove all the cases were it happen
-      we could skip all firstpass if firstpasscount > 1)
-      Only with ExtDebug
-
-  Revision 1.6  1998/05/04 17:54:24  peter
-    + smartlinking works (only case jumptable left todo)
-    * redesign of systems.pas to support assemblers and linkers
-    + Unitname is now also in the PPU-file, increased version to 14
-
-  Revision 1.5  1998/05/01 07:43:52  florian
-    + basics for rtti implemented
-    + switch $m (generate rtti for published sections)
-
-  Revision 1.4  1998/04/29 10:33:41  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.3  1998/04/08 16:58:01  pierre
-    * several bugfixes
-      ADD ADC and AND are also sign extended
-      nasm output OK (program still crashes at end
-      and creates wrong assembler files !!)
-      procsym types sym in tdef removed !!
-
-  Revision 1.2  1998/04/08 11:34:17  peter
-    * nasm works (linux only tested)
 }

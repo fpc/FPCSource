@@ -32,12 +32,12 @@ type
      _DIR_FATAL,
      _DIR_I,_DIR_I386_ATT,_DIR_I386_DIRECT,_DIR_I386_INTEL,_DIR_IOCHECKS,
        _DIR_IF,_DIR_IFDEF,_DIR_IFNDEF,_DIR_IFOPT,_DIR_INFO,
-     _DIR_L,_DIR_LINKLIB,
+     _DIR_L,_DIR_LIBNAME,_DIR_LINKLIB,
      _DIR_MESSAGE,_DIR_MMX,
      _DIR_NOTE,
      _DIR_OUTPUT_FORMAT,
      _DIR_PACKRECORDS,
-     _DIR_SATURATION,_DIR_STOP,
+     _DIR_SATURATION,_DIR_SMARTLINK,_DIR_STOP,
      _DIR_UNDEF,
      _DIR_WAIT,_DIR_WARNING
      );
@@ -52,12 +52,12 @@ const
      'FATAL',
      'I','I386_ATT','I386_DIRECT','I386_INTEL','IOCHECKS',
        'IF','IFDEF','IFNDEF','IFOPT','INFO',
-     'L','LINKLIB',
+     'L','LIBNAME','LINKLIB',
      'MESSAGE','MMX',
      'NOTE',
      'OUTPUT_FORMAT',
      'PACKRECORDS',
-     'SATURATION','STOP',
+     'SATURATION','SMARTLINK','STOP',
      'UNDEF',
      'WAIT','WARNING'
      );
@@ -566,17 +566,21 @@ const
 
 
     procedure dir_switch(t:tdirectivetoken);
-{$ifdef SUPPORT_MMX}
       var
         sw : tcswitch;
-{$endif}
       begin
-{$ifdef SUPPORT_MMX}
         case t of
+{$ifdef SUPPORT_MMX}
           _DIR_MMX : sw:=cs_mmx;
    _DIR_SATURATION : sw:=cs_mmx_saturation;
-        end;
 {$endif}
+   _DIR_SMARTLINK : sw:=cs_smartlink;
+        end;
+        skipspace;
+        if c='-' then
+         aktswitches:=aktswitches-[sw]
+        else
+         aktswitches:=aktswitches+[sw];
       end;
 
 
@@ -635,6 +639,14 @@ const
       end;
 
 
+    procedure dir_libname(t:tdirectivetoken);
+      begin
+        skipspace;
+        stringdispose(current_module^.libfilename);
+        current_module^.libfilename:=stringdup(readstring);
+      end;
+
+
     procedure dir_outputformat(t:tdirectivetoken);
       var
         hs : string;
@@ -645,25 +657,13 @@ const
           begin
             skipspace;
             hs:=readid;
-{$ifdef i386}
-            if hs='NASM' then
-              current_module^.output_format:=of_nasm
+            if set_string_asm(hs) then
+             aktoutputformat:=target_asm.id
             else
-             if hs='MASM' then
-              current_module^.output_format:=of_masm
-            else
-             if hs='O' then
-              current_module^.output_format:=of_o
-            else
-             if hs='OBJ' then
-              current_module^.output_format:=of_obj
-            else
-{$endif}
-              Message(scan_w_illegal_switch);
+             Message(scan_w_illegal_switch);
           end;
-      { for use in globals }
-        output_format:=current_module^.output_format;
       end;
+
 
     procedure dir_packrecords(t:tdirectivetoken);
       var
@@ -748,6 +748,7 @@ const
          {_DIR_IFOPT} dir_conditional,
          {_DIR_INFO} dir_message,
          {_DIR_L} dir_linkobject,
+         {_DIR_LIBNAME} dir_libname,
          {_DIR_LINKLIB} dir_linklib,
          {_DIR_MESSAGE} dir_message,
          {_DIR_MMX} dir_switch,
@@ -755,6 +756,7 @@ const
          {_DIR_OUTPUT_FORMAT} dir_outputformat,
          {_DIR_PACKRECORDS} dir_packrecords,
          {_DIR_SATURATION} dir_switch,
+         {_DIR_SMARTLINK} dir_switch,
          {_DIR_STOP} dir_message,
          {_DIR_UNDEF} dir_undef,
          {_DIR_WAIT} dir_wait,
@@ -814,7 +816,14 @@ const
 
 {
   $Log$
-  Revision 1.8  1998-05-11 13:07:57  peter
+  Revision 1.9  1998-05-23 01:21:28  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.8  1998/05/11 13:07:57  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

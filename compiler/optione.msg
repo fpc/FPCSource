@@ -122,11 +122,12 @@ Report bugs,suggestions etc to:
 **2Xs_strip all symbols from executable
 **0*_Processor specific options:
 3*1A_output format
-3*2Aatt_AT&T assembler
 3*2Ao_coff file using GNU AS
-3*2Aobj_OMF file using NASM
-3*2Anasm_coff file using NASM
-3*2Amasm_assembler for the Microsoft/Borland/Watcom assembler
+3*2Anasmcoff_coff file using Nasm
+3*2Anasmelf_elf32 (linux) file using Nasm
+3*2Anasmobj_obj file using Nasm
+3*2Amasm_obj using Masm (Mircosoft)
+3*2Atasm_obj using Tasm (Borland)
 3*1R_assembler reading style
 3*2Ratt_read AT&T style assembler
 3*2Rintel_read Intel style assembler
@@ -145,10 +146,10 @@ Report bugs,suggestions etc to:
 3*2O7_optimize for the Cyrix 6x86
 3*2O8_optimize for the AMD K6
 6*1A_output format
+6*2Ao_Unix o-file using GNU AS
 6*2Agas_GNU Motorola assembler
-6*2Ao_UNIX o-file
-6*2Am_Standard Motorola assembler
-6*2Ai_MIT Syntax (old GAS)
+6*2Amit_MIT Syntax (old GAS)
+6*2Amot_Standard Motorola assembler
 6*1O_optimizations
 6*2Oa_simple optimizations
 6*2Og_optimize for size

@@ -82,7 +82,7 @@ uses
 {$endif}
   ,strings
 {$ifdef i386}
-  ,ag386att,ag386int
+  ,ag386att,ag386int,ag386nsm
 {$endif}
 {$ifdef m68k}
   ,ag68kmot,ag68kgas,ag68kmit
@@ -110,7 +110,7 @@ end;
 
 Function DoPipe:boolean;
 begin
-  DoPipe:=use_pipe and (not WriteAsmFile) and (current_module^.output_format=of_o);
+  DoPipe:=use_pipe and (not WriteAsmFile) and (aktoutputformat=as_o);
 end;
 
 
@@ -276,7 +276,7 @@ end;
 
 procedure TAsmList.AsmCreate;
 begin
-  if SmartLink then
+  if (cs_smartlink in aktswitches) then
    NextSmartName;
 {$ifdef linux}
   if DoPipe then
@@ -353,7 +353,7 @@ begin
   OutCnt:=0;
 {Smartlinking}
   SmartLinkFilesCnt:=0;
-  if smartlink then
+  if (cs_smartlink in aktswitches) then
    begin
      path:=SmartLinkPath(name);
      {$I-}
@@ -378,20 +378,19 @@ Procedure GenerateAsm(const fn:string);
 var
   a : PAsmList;
 begin
-  case current_module^.output_format of
+  case aktoutputformat of
 {$ifdef i386}
-     of_o,
- of_win32,
-   of_att : a:=new(pi386attasmlist,Init(fn));
-   of_obj,
-  of_masm,
-  of_nasm : a:=new(pi386intasmlist,Init(fn));
+        as_o : a:=new(pi386attasmlist,Init(fn));
+ as_nasmcoff,
+  as_nasmelf,
+  as_nasmobj : a:=new(pi386nasmasmlist,Init(fn));
+     as_tasm : a:=new(pi386intasmlist,Init(fn));
 {$endif}
 {$ifdef m68k}
-     of_o,
-   of_gas : a:=new(pm68kgasasmlist,Init(fn));
-   of_mot : a:=new(pm68kmotasmlist,Init(fn));
-   of_mit : a:=new(pm68kmitasmlist,Init(fn));
+     as_o,
+   as_gas : a:=new(pm68kgasasmlist,Init(fn));
+   as_mot : a:=new(pm68kmotasmlist,Init(fn));
+   as_mit : a:=new(pm68kmitasmlist,Init(fn));
 {$endif}
   else
    internalerror(30000);
@@ -417,7 +416,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  1998-05-11 13:07:53  peter
+  Revision 1.9  1998-05-23 01:21:01  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.8  1998/05/11 13:07:53  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

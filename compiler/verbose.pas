@@ -56,16 +56,16 @@ Const
 
 type
   TCompileStatus = record
-    currentsource : string;       { filename }
-    currentline   : longint;      { current line number }
-    totalcompiledlines : longint; { the number of lines which are compiled  }
-    totallines         : longint; { total lines to compile, can be 0 }
+    currentsource : string;   { filename }
+    currentline   : longint;  { current line number }
+    compiledlines : longint;  { the number of lines which are compiled }
+    totallines    : longint;  { total lines to compile, can be 0 }
+    errorcount    : longint;  { number of generated errors }
   end;
 
 
 var
   status      : tcompilestatus;
-  errorcount  : longint;  { number of generated errors }
   msg         : pmessage;
   UseStdErr,
   Use_Rhide   : boolean;
@@ -225,8 +225,8 @@ var
 begin
   dostop:=((l and V_Fatal)<>0);
   if (l and V_Error)<>0 then
-   inc(errorcount);
-  if do_comment(l,s) or dostop or (errorcount>=maxerrorcount) then
+   inc(status.errorcount);
+  if do_comment(l,s) or dostop or (status.errorcount>=maxerrorcount) then
    stop
 end;
 
@@ -255,7 +255,7 @@ begin
                 end;
           'E' : begin
                   v:=v or V_Error;
-                  inc(errorcount);
+                  inc(status.errorcount);
                 end;
           'O' : v:=v or V_Normal;
           'W' : v:=v or V_Warning;
@@ -277,7 +277,7 @@ begin
   Delete(s,1,idx);
   Replace(s,'$VER',version_string);
   Replace(s,'$TARGET',target_string);
-  if do_comment(v,s) or dostop or (errorcount>=maxerrorcount) then
+  if do_comment(v,s) or dostop or (status.errorcount>=maxerrorcount) then
    stop;
 end;
 
@@ -314,7 +314,14 @@ end.
 
 {
   $Log$
-  Revision 1.7  1998-05-21 19:33:40  peter
+  Revision 1.8  1998-05-23 01:21:35  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.7  1998/05/21 19:33:40  peter
     + better procedure directive handling and only one table
 
   Revision 1.6  1998/05/12 10:47:01  peter

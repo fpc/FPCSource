@@ -491,7 +491,7 @@ End;
                        (Pai386(p)^.Size = S_L) And
                        ((Pai386(p)^.op3t = Top_Reg) or
                         (Pai386(p)^.op3t = Top_None)) And
-                       (Opt_Processors < PentiumPro) And
+                       (aktoptprocessor < PentiumPro) And
                        (Longint(Pai386(p)^.op1) <= 12) And
                        Not(CS_LittleSize in AktSwitches) And
                        (Not(GetNextInstruction(p, hp1)) Or
@@ -548,7 +548,7 @@ End;
                                imul 6, reg1 to
                                  lea (reg1,reg1,2), reg1
                                  add reg1, reg1}
-                                If (Opt_Processors <= i486)
+                                If (aktoptprocessor <= i486)
                                   Then
                                     Begin
                                       TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -618,7 +618,7 @@ End;
                                imul 10, reg1 to
                                  lea (reg1,reg1,4), reg1
                                  add reg1, reg1}
-                                 If (Opt_Processors <= i486) Then
+                                 If (aktoptprocessor <= i486) Then
                                    Begin
                                      If (Pai386(p)^.op3t = Top_Reg)
                                        Then
@@ -653,7 +653,7 @@ End;
                                imul 12, reg1 to
                                  lea (reg1,reg1,2), reg1
                                  lea (,reg1,4), reg1}
-                                 If (Opt_Processors <= i486)
+                                 If (aktoptprocessor <= i486)
                                    Then
                                      Begin
                                        TmpRef^.Index := TRegister(Pai386(p)^.op2);
@@ -1105,8 +1105,8 @@ End;
                                           Else
                                             If IsGP32Reg(TRegister(Pai386(p)^.op2)) And
                                                Not(CS_LittleSize in AktSwitches) And
-                                               (Opt_Processors >= Pentium) And
-                                               (Opt_Processors < PentiumPro)
+                                               (aktoptprocessor >= Pentium) And
+                                               (aktoptprocessor < PentiumPro)
                                               Then
                                                 {Change "movzbl %reg1, %reg2" to
                                                  "xorl %reg2, %reg2; movb %reg1, %reg2" for Pentium and
@@ -1162,8 +1162,8 @@ End;
                                    (PReference(Pai386(p)^.op1)^.index <> TRegister(Pai386(p)^.op2)) And
                                    Not(CS_LittleSize in AktSwitches) And
                                    IsGP32Reg(TRegister(Pai386(p)^.op2)) And
-                                   (Opt_Processors >= Pentium) And
-                                   (Opt_Processors < PentiumPro) And
+                                   (aktoptprocessor >= Pentium) And
+                                   (aktoptprocessor < PentiumPro) And
                                    (Pai386(p)^.Size = S_BL)
                                   Then
                                     {changes "movzbl mem, %reg" to "xorl %reg, %reg; movb mem, %reg8" for
@@ -1318,7 +1318,7 @@ End;
                                           End;
                                   End;
                                 If TmpBool2 Or
-                                   ((Opt_Processors < PentiumPro) And
+                                   ((aktoptprocessor < PentiumPro) And
                                     (Longint(Pai386(p)^.op1) <= 3) And
                                     Not(CS_LittleSize in AktSwitches))
                                    Then
@@ -1340,7 +1340,7 @@ End;
                                      End;
                              End
                            Else
-                             If (Opt_Processors < PentiumPro) And
+                             If (aktoptprocessor < PentiumPro) And
                                 (Pai386(p)^.op1t = top_const) And
                                 (Pai386(p)^.op2t = top_reg) Then
                                If (Longint(Pai386(p)^.op1) = 1)
@@ -1621,7 +1621,14 @@ end;
 End.
 {
   $Log$
-  Revision 1.10  1998-05-10 12:06:30  jonas
+  Revision 1.11  1998-05-23 01:21:00  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.10  1998/05/10 12:06:30  jonas
     * bugfix in a_mov optimizations; completed bugfix of "sub $2,esp;...;movw reg, y(%esp)"
 
   Revision 1.9  1998/05/06 08:38:34  pierre

@@ -98,7 +98,7 @@ begin
    { Status info?, Called every line }
      if ((Level and V_Status)<>0) and (s='') then
       begin
-        if (abslines=1) then
+        if (status.compiledlines=1) then
           WriteLn(memavail shr 10,' Kb Free');
         if (status.currentline mod 100=0) then
           Write(status.currentline,' ',memavail shr 10,' Kb Free'#13);
@@ -176,7 +176,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1998-05-21 19:33:38  peter
+  Revision 1.9  1998-05-23 01:21:33  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.8  1998/05/21 19:33:38  peter
     + better procedure directive handling and only one table
 
   Revision 1.7  1998/05/12 10:47:01  peter

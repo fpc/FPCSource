@@ -134,18 +134,19 @@ unit parser;
          olds_point,oldparse_only : boolean;
          oldc : char;
          oldcomment_level : word;
+         oldnextlabelnr : longint;
+         oldmacros,oldrefsymtable,oldsymtablestack : psymtable;
 
          oldimports,oldexports,oldresource,oldrttilist,
          oldbsssegment,olddatasegment,oldcodesegment,
          oldexprasmlist,olddebuglist,
          oldinternals,oldexternals,oldconsts : paasmoutput;
 
-
-         oldnextlabelnr : longint;
-
-         oldswitches : Tcswitches;
-         oldmacros,oldrefsymtable,oldsymtablestack : psymtable;
-
+         oldswitches     : tcswitches;
+         oldpackrecords  : word;
+         oldoutputformat : tasm;
+         oldoptprocessor : tprocessors;
+         oldasmmode      : tasmmode;
 
       procedure def_macro(const s : string);
 
@@ -193,7 +194,7 @@ unit parser;
            hp : pstring_item;
 
         begin
-           hp:=pstring_item(commandlinedefines.first);
+           hp:=pstring_item(initdefines.first);
            while assigned(hp) do
              begin
                def_macro(hp^.str^);
@@ -246,6 +247,7 @@ unit parser;
          oldc:=c;
          oldcomment_level:=comment_level;
 
+         oldnextlabelnr:=nextlabelnr;
          oldparse_only:=parse_only;
 
          { save assembler lists }
@@ -262,23 +264,30 @@ unit parser;
          oldexports:=exportssection;
          oldresource:=resourcesection;
 
+         { save the current state }
          oldswitches:=aktswitches;
-         oldnextlabelnr:=nextlabelnr;
+         oldpackrecords:=aktpackrecords;
+         oldoutputformat:=aktoutputformat;
+         oldoptprocessor:=aktoptprocessor;
+         oldasmmode:=aktasmmode;
 
          Message1(parser_i_compiling,filename);
 
          InitScanner(filename);
 
+       { Load current state from the init values }
          aktswitches:=initswitches;
+         aktpackrecords:=initpackrecords;
+         aktoutputformat:=initoutputformat;
+         aktoptprocessor:=initoptprocessor;
+         aktasmmode:=initasmmode;
 
          { we need this to make the system unit }
          if compile_system then
           aktswitches:=aktswitches+[cs_compilesystem];
 
-         aktpackrecords:=initpackrecords;
 
-         { init code generator for a new module }
-         codegen_newmodule;
+         { macros }
          macros:=new(psymtable,init(macrosymtable));
          macros^.name:=stringdup('Conditionals for '+filename);
          define_macros;
@@ -286,22 +295,13 @@ unit parser;
          { startup scanner }
          token:=yylex;
 
+         { init code generator for a new module }
+         codegen_newmodule;
          reset_gdb_info;
-         { init asm writing }
-         datasegment:=new(paasmoutput,init);
-         codesegment:=new(paasmoutput,init);
-         bsssegment:=new(paasmoutput,init);
-         debuglist:=new(paasmoutput,init);
-         externals:=new(paasmoutput,init);
-         internals:=new(paasmoutput,init);
-         consts:=new(paasmoutput,init);
-         rttilist:=new(paasmoutput,init);
-         importssection:=nil;
-         exportssection:=nil;
-         resourcesection:=nil;
 
          { global switches are read, so further changes aren't allowed }
          current_module^.in_main:=true;
+
          { open assembler response }
          if (compile_level=1) then
           AsmRes.Init('ppas');
@@ -384,16 +384,16 @@ unit parser;
              proc_program(token=_LIBRARY);
            end;
 
-         if errorcount=0 then
+         if status.errorcount=0 then
            begin
              if current_module^.uses_imports then
               importlib^.generatelib;
 
              GenerateAsm(filename);
 
-             if smartlink then
+             if (cs_smartlink in aktswitches) then
               begin
-                Linker.SetLibName(FileName);
+                Linker.SetLibName(current_module^.libfilename^);
                 Linker.MakeStaticLibrary(SmartLinkPath(FileName),SmartLinkFilesCnt);
               end;
 
@@ -413,9 +413,7 @@ unit parser;
                end;
            end
          else
-           Message1(unit_f_errors_in_unit,tostr(errorcount));
-        
-
+           Message1(unit_f_errors_in_unit,tostr(status.errorcount));
 done:
          { clear memory }
 {$ifdef Splitheap}
@@ -465,19 +463,19 @@ done:
          dispose(macros,done);
          macros:=oldmacros;
 
-
+         { restore scanner }
          preprocstack:=oldpreprocstack;
-
-         aktswitches:=oldswitches;
          inputbuffer:=oldinputbuffer;
          inputpointer:=oldinputpointer;
          s_point:=olds_point;
          c:=oldc;
          comment_level:=oldcomment_level;
 
+         nextlabelnr:=oldnextlabelnr;
          parse_only:=oldparse_only;
 
          { restore asmlists }
+         exprasmlist:=oldexprasmlist;
          datasegment:=olddatasegment;
          bsssegment:=oldbsssegment;
          codesegment:=oldcodesegment;
@@ -489,8 +487,12 @@ done:
          exportssection:=oldexports;
          resourcesection:=oldresource;
 
-         nextlabelnr:=oldnextlabelnr;
-         exprasmlist:=oldexprasmlist;
+         { restore current state }
+         aktswitches:=oldswitches;
+         aktpackrecords:=oldpackrecords;
+         aktoutputformat:=oldoutputformat;
+         aktoptprocessor:=oldoptprocessor;
+         aktasmmode:=oldasmmode;
 
          if (compile_level=1) then
           begin
@@ -506,7 +508,14 @@ done:
 end.
 {
   $Log$
-  Revision 1.17  1998-05-20 09:42:34  pierre
+  Revision 1.18  1998-05-23 01:21:15  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.17  1998/05/20 09:42:34  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

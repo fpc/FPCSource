@@ -56,6 +56,34 @@ unit ag68kgas;
       infile : pextfile;
       includecount,lastline : longint;
 
+    function double2str(d : double) : string;
+      var
+         hs : string;
+         p : byte;
+      begin
+         str(d,hs);
+       { replace space with + }
+         if hs[1]=' ' then
+          hs[1]:='+';
+         double2str:='0d'+hs
+      end;
+
+
+    function comp2str(d : bestreal) : string;
+      type
+        pdouble = ^double;
+      var
+        c  : comp;
+        dd : pdouble;
+      begin
+         c:=d;
+      {$ifndef TP}
+         {$warning The following warning can be ignored}
+      {$endif TP}
+         dd:=pdouble(@c); { this makes a bitwise copy of c into a double }
+         comp2str:=double2str(dd^);
+      end;
+
     function getreferencestring(const ref : treference) : string;
       var
          s : string;
@@ -553,7 +581,14 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-29 10:33:41  pierre
+  Revision 1.3  1998-05-23 01:20:56  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.2  1998/04/29 10:33:41  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

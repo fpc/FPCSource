@@ -80,34 +80,34 @@ unit pmodules;
     procedure insertsegment;
       begin
       {Insert Ident of the compiler}
-        if (not smartlink)
-{$ifndef EXTDEBUG}      
+        if (not (cs_smartlink in aktswitches))
+{$ifndef EXTDEBUG}
            and (not current_module^.is_unit)
-{$endif}        
-
+{$endif}
            then
          begin
            datasegment^.insert(new(pai_align,init(4)));
            datasegment^.insert(new(pai_string,init('FPC '+version_string+' for '+target_string+' - '+target_info.short_name)));
          end;
-
+      { Insert start and end of sections }
         codesegment^.insert(new(pai_section,init(sec_code)));
+        codesegment^.concat(new(pai_section,init(sec_none)));
         datasegment^.insert(new(pai_section,init(sec_data)));
+        datasegment^.concat(new(pai_section,init(sec_none)));
         bsssegment^.insert(new(pai_section,init(sec_bss)));
-        consts^.insert(new(pai_section,init(sec_data)));
+        bsssegment^.concat(new(pai_section,init(sec_none)));
         consts^.insert(new(pai_asm_comment,init('Constants')));
+        consts^.insert(new(pai_section,init(sec_data)));
+        consts^.concat(new(pai_section,init(sec_none)));
       end;
 
     procedure insertheap;
       begin
-         if smartlink then
+         if (cs_smartlink in aktswitches) then
            begin
              bsssegment^.concat(new(pai_cut,init));
              datasegment^.concat(new(pai_cut,init));
            end;
-
-
-
         { On the Macintosh Classic M68k Architecture
           The Heap variable is simply a POINTER to the
           real HEAP. The HEAP must be set up by the RTL
@@ -129,7 +129,6 @@ unit pmodules;
       var
         i : longint;
       begin
-
         case target_info.target of
        target_GO32V2 : begin
                        { stacksize can be specified }
@@ -147,16 +146,11 @@ unit pmodules;
                            importssection^.concat(new(pai_const,init_32bit(0)));
                        end;
         end;
-
       end;
 
 
-
-
     { all intern procedures for system unit }
-
     procedure insertinternsyms(p : psymtable);
-
       begin
          p^.insert(new(psyssym,init('CONCAT',in_concat_x)));
          p^.insert(new(psyssym,init('WRITE',in_write_x)));
@@ -177,7 +171,6 @@ unit pmodules;
          p^.insert(new(psyssym,init('INCLUDE',in_include_x_y)));
          p^.insert(new(psyssym,init('BREAK',in_break)));
          p^.insert(new(psyssym,init('CONTINUE',in_continue)));
-
          { for testing purpose }
          p^.insert(new(psyssym,init('DECI',in_dec_x)));
          p^.insert(new(psyssym,init('INCI',in_inc_x)));
@@ -194,7 +187,6 @@ unit pmodules;
          vmtarraydef : parraydef;
          vmtsymtable : psymtable;
 {$endif GDB}
-
       begin
          p^.insert(new(ptypesym,init('longint',s32bitdef)));
          p^.insert(new(ptypesym,init('ulong',u32bitdef)));
@@ -274,8 +266,8 @@ unit pmodules;
          insertinternsyms(p);
       end;
 
-    procedure load_ppu(oldhp,hp : pmodule;compile_system : boolean);
 
+    procedure load_ppu(oldhp,hp : pmodule;compile_system : boolean);
       var
          loaded_unit  : pmodule;
          b            : byte;
@@ -283,8 +275,6 @@ unit pmodules;
 {$ifndef NEWPPU}
          count,
 {$endif NEWPPU}
-
-
          nextmapentry : longint;
          hs           : string;
       begin
@@ -301,11 +291,9 @@ unit pmodules;
              begin
                hs:=hp^.ppufile^.getstring;
                checksum:=hp^.ppufile^.getlongint;
-
                loaded_unit:=loadunit(hs,false,false);
                if hp^.compiled then
                 exit;
-
              { if the crc of a used unit is the same as written to the
                PPU file, we needn't to recompile the current unit }
                if (loaded_unit^.crc<>checksum) then
@@ -335,7 +323,6 @@ unit pmodules;
                    end;
                   exit;
                 end;
-
              { setup the map entry for deref }
                hp^.map^[nextmapentry]:=loaded_unit^.symtable;
                inc(nextmapentry);
@@ -344,17 +331,14 @@ unit pmodules;
              end;
           { ok, now load the unit }
             hp^.symtable:=new(punitsymtable,load(hp^.unitname^));
-
           { if this is the system unit insert the intern symbols }
             make_ref:=false;
             if compile_system then
               insertinternsyms(psymtable(hp^.symtable));
             make_ref:=true;
           end;
-
        { now only read the implementation part }
          hp^.in_implementation:=true;
-
        { load the used units from implementation }
          b:=hp^.ppufile^.readentry;
          if b=ibloadunit_imp then
@@ -363,7 +347,6 @@ unit pmodules;
              begin
                hs:=hp^.ppufile^.getstring;
                checksum:=hp^.ppufile^.getlongint;
-
                loaded_unit:=loadunit(hs,false,false);
                if hp^.compiled then
                 exit;
@@ -371,9 +354,7 @@ unit pmodules;
           end;
          hp^.ppufile^.close;
 {!         dispose(hp^.ppufile,done);}
-
 {$else}
-
          { load the used units from interface }
          hp^.ppufile^.read_data(b,1,count);
          while (b=ibloadunit) do
@@ -399,7 +380,7 @@ unit pmodules;
                    dispose(hp^.ppufile,done);
                    hp^.ppufile:=nil;
                    if not(hp^.sources_avail) then
-                    Message1(unit_f_cant_compile_unit,hp^.unitname^)
+                    Message1(unit_f_cant_compile_unit,hp^.modulename^)
                    else
                     begin
 {$ifdef TEST_TEMPCLOSE}
@@ -417,26 +398,21 @@ unit pmodules;
               { setup the map entry for deref }
               hp^.map^[nextmapentry]:=loaded_unit^.symtable;
               inc(nextmapentry);
-
               if nextmapentry>maxunits then
                Message(unit_f_too_much_units);
-
               { read until ibend }
               hp^.ppufile^.read_data(b,1,count);
            end;
          { ok, now load the unit }
-         hp^.symtable:=new(punitsymtable,load(hp^.unitname^));
-
+         hp^.symtable:=new(punitsymtable,load(hp^.modulename^));
          { if this is the system unit insert the intern }
          { symbols                                      }
          make_ref:=false;
          if compile_system then
            insertinternsyms(psymtable(hp^.symtable));
          make_ref:=true;
-
          { now only read the implementation part }
          hp^.in_implementation:=true;
-
          { load the used units from implementation }
          hp^.ppufile^.read_data(b,1,count);
          while (b<>ibend) and (b=ibloadunit) do
@@ -489,7 +465,6 @@ unit pmodules;
 
 
     function loadunit(const s : string;compile_system, in_uses : boolean) : pmodule;
-
       var
          st : punitsymtable;
          old_current_module,hp,nextmodule : pmodule;
@@ -505,7 +480,7 @@ unit pmodules;
          hp:=pmodule(loaded_units.first);
          while assigned(hp) do
            begin
-              if hp^.unitname^=s then
+              if hp^.modulename^=s then
                 begin
                    { the unit is already registered   }
                    { and this means that the unit     }
@@ -524,7 +499,6 @@ unit pmodules;
               { the next unit }
               hp:=pmodule(hp^.next);
            end;
-
        { no error and the unit isn't loaded }
          if not(assigned(hp)) and (st=nil) then
            begin
@@ -532,7 +506,6 @@ unit pmodules;
               hp:=new(pmodule,init(s,true));
               { now we can register the unit }
               loaded_units.insert(hp);
-
               current_module:=hp;
               { force build ? }
               if (hp^.do_compile) or (hp^.sources_avail and do_build) then
@@ -544,7 +517,7 @@ unit pmodules;
                         hp^.ppufile:=nil;
                      end;
                    if not(hp^.sources_avail) then
-                    Message1(unit_f_cant_compile_unit,hp^.unitname^)
+                    Message1(unit_f_cant_compile_unit,hp^.modulename^)
                    else
                     begin
 {$ifdef TEST_TEMPCLOSE}
@@ -574,7 +547,6 @@ unit pmodules;
                  { add the files for the linker }
                   addlinkerfiles(hp);
                 end;
-
               { register the unit _once_ }
               usedunits.concat(new(pused_unit,init(hp,0)));
               { the unit is written, so we can set the symtable type }
@@ -640,15 +612,14 @@ unit pmodules;
          loadunit:=hp;
       end;
 
-    procedure loadunits;
 
+    procedure loadunits;
       var
          s : stringid;
          hp : pused_unit;
          hp2 : pmodule;
          hp3 : psymtable;
          oldprocsym:Pprocsym;
-
       begin
          oldprocsym:=aktprocsym;
          consume(_USES);
@@ -752,7 +723,8 @@ unit pmodules;
           begin
           { create filenames and unit name }
              current_module^.SetFileName(current_module^.current_inputfile^.path^,current_module^.current_inputfile^.name^);
-             current_module^.unitname:=stringdup(upper(pattern));
+             stringdispose(current_module^.modulename);
+             current_module^.modulename:=stringdup(upper(pattern));
 
           { check for system unit }
              new(s1);
@@ -762,20 +734,20 @@ unit pmodules;
              if (cs_compilesystem in aktswitches)  then
               begin
                 if (cs_check_unit_name in aktswitches) and
-                   ((length(current_module^.unitname^)>8) or
-                    (current_module^.unitname^<>s1^) or
-                    (current_module^.unitname^<>s2^)) then
+                   ((length(current_module^.modulename^)>8) or
+                    (current_module^.modulename^<>s1^) or
+                    (current_module^.modulename^<>s2^)) then
                   Message1(unit_e_illegal_unit_name,s1^);
               end
              else
-              if (current_module^.unitname^=s1^) then
+              if (current_module^.modulename^=s1^) then
                Message(unit_w_switch_us_missed);
              dispose(s2);
              dispose(s1);
 
           { Add Object File }
-             if smartlink then
-              current_module^.linkstaticlibs.insert(current_module^.arfilename^)
+             if (cs_smartlink in aktswitches) then
+              current_module^.linkstaticlibs.insert(current_module^.libfilename^)
              else
               current_module^.linkofiles.insert(current_module^.objfilename^);
           end;
@@ -786,7 +758,7 @@ unit pmodules;
 
          { this should be placed after uses !!}
 {$ifndef UseNiceNames}
-         procprefix:='_'+current_module^.unitname^+'$$';
+         procprefix:='_'+current_module^.modulename^+'$$';
 {$else UseNiceNames}
          procprefix:='_'+tostr(length(current_module^.unitname^))+lowercase(current_module^.unitname^)+'_';
 {$endif UseNiceNames}
@@ -794,7 +766,7 @@ unit pmodules;
          parse_only:=true;
 
          { generate now the global symboltable }
-         p:=new(punitsymtable,init(globalsymtable,current_module^.unitname^));
+         p:=new(punitsymtable,init(globalsymtable,current_module^.modulename^));
          refsymtable:=p;
          unitst:=punitsymtable(p);
 
@@ -802,7 +774,7 @@ unit pmodules;
          { inside the unit itself (PM)                      }
          { this also forbids to have another symbol         }
          { with the same name as the unit                   }
-         refsymtable^.insert(new(punitsym,init(current_module^.unitname^,unitst)));
+         refsymtable^.insert(new(punitsym,init(current_module^.modulename^,unitst)));
          { set the symbol table for the current unit }
          { this must be set later for interdependency }
          { current_module^.symtable:=psymtable(p); }
@@ -895,15 +867,15 @@ unit pmodules;
          only_calculate_crc:=false;
          }
          { generates static symbol table }
-         p:=new(punitsymtable,init(staticsymtable,current_module^.unitname^));
+         p:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
          { must be done only after _USES !! (PM)
          refsymtable:=p;}
 
          {Generate a procsym.}
-         aktprocsym:=new(Pprocsym,init(current_module^.unitname^+'_init'));
+         aktprocsym:=new(Pprocsym,init(current_module^.modulename^+'_init'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pounitinit;
-         aktprocsym^.definition^.setmangledname(current_module^.unitname^+'_init');
+         aktprocsym^.definition^.setmangledname(current_module^.modulename^+'_init');
 
          {The generated procsym has a local symtable. Discard it and turn
           it into the static one.}
@@ -956,8 +928,8 @@ unit pmodules;
          codegen_newprocedure;
 
          names.init;
-         names.insert(current_module^.unitname^+'_init');
-         names.insert('INIT$$'+current_module^.unitname^);
+         names.insert(current_module^.modulename^+'_init');
+         names.insert('INIT$$'+current_module^.modulename^);
          compile_proc_body(names,true,false);
          names.done;
 
@@ -994,7 +966,7 @@ unit pmodules;
          punitsymtable(symtablestack)^.is_stab_written:=false;
 
          {Write out the unit if the compile was succesfull.}
-         if errorcount=0 then
+         if status.errorcount=0 then
           writeunitas(current_module^.ppufilename^,punitsymtable(symtablestack));
 
          pu:=pused_unit(usedunits.first);
@@ -1013,9 +985,8 @@ unit pmodules;
     procedure proc_program(islibrary : boolean);
 
       var
-         st : psymtable;
-         programname : stringid;
-         names:Tstringcontainer;
+         st    : psymtable;
+         names : Tstringcontainer;
       begin
          { Trying to compile the system unit... }
          { if no unit defined... then issue a   }
@@ -1032,12 +1003,11 @@ unit pmodules;
          end;}
 
          parse_only:=false;
-         programname:='';
-
          if islibrary then
            begin
               consume(_LIBRARY);
-              programname:=pattern;
+              stringdispose(current_module^.modulename);
+              current_module^.modulename:=stringdup(pattern);
               consume(ID);
               consume(SEMICOLON);
            end
@@ -1046,7 +1016,8 @@ unit pmodules;
            if token=_PROGRAM then
             begin
               consume(_PROGRAM);
-              programname:=pattern;
+              stringdispose(current_module^.modulename);
+              current_module^.modulename:=stringdup(pattern);
               consume(ID);
               if token=LKLAMMER then
                 begin
@@ -1059,7 +1030,7 @@ unit pmodules;
 
          { insert after the unit symbol tables the static symbol table }
          { of the program                                              }
-         st:=new(punitsymtable,init(staticsymtable,programname));
+         st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
 
          {Generate a procsym.}
          aktprocsym:=new(Pprocsym,init('main'));
@@ -1087,24 +1058,22 @@ unit pmodules;
            loadunits;
 
          {Insert the name of the main program into the symbol table.}
-         if programname<>'' then
-           st^.insert(new(pprogramsym,init(programname)));
+         if current_module^.modulename^<>'' then
+           st^.insert(new(pprogramsym,init(current_module^.modulename^)));
 
          { ...is also constsymtable, this is the symtable where }
          { the elements of enumeration types are inserted       }
          constsymtable:=st;
 
          { set some informations about the main program }
-         procinfo.retdef:=voiddef;
-         procinfo._class:=nil;
-         procinfo.call_offset:=8;
-
-         {Set the framepointer of the program initialization to the
-          default framepointer (EBP on i386).}
-         procinfo.framepointer:=frame_pointer;
-
-         { clear flags }
-         procinfo.flags:=0;
+         with procinfo do
+          begin
+            retdef:=voiddef;
+            _class:=nil;
+            call_offset:=8;
+            framepointer:=frame_pointer;
+            flags:=0;
+          end;
 
          procprefix:='';
          in_except_block:=false;
@@ -1124,22 +1093,16 @@ unit pmodules;
 
          consume(POINT);
 
-
-
-         if smartlink then
-          current_module^.linkstaticlibs.insert(current_module^.arfilename^)
+         if (cs_smartlink in aktswitches) then
+          current_module^.linkstaticlibs.insert(current_module^.libfilename^)
          else
           current_module^.linkofiles.insert(current_module^.objfilename^);
 
          insertheap;
          inserttargetspecific;
 
-
-
          datasize:=symtablestack^.datasize;
-         { symtablestack^.check_forwards;
-         symtablestack^.allsymbolsused;
-         done in compile_proc_body }
+
          { finish asmlist by adding segment starts }
          insertsegment;
       end;
@@ -1147,7 +1110,14 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.14  1998-05-20 09:42:35  pierre
+  Revision 1.15  1998-05-23 01:21:22  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.14  1998/05/20 09:42:35  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

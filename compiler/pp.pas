@@ -341,10 +341,10 @@ begin
 
    start:=getrealtime;
    compile(inputdir+inputfile+inputextension,false);
-   if errorcount=0 then
+   if status.errorcount=0 then
     begin
       start:=getrealtime-start;
-      Message2(general_i_abslines_compiled,tostr(abslines),tostr(trunc(start))+'.'+tostr(trunc(frac(start)*10)));
+      Message2(general_i_abslines_compiled,tostr(status.compiledlines),tostr(trunc(start))+'.'+tostr(trunc(frac(start)*10)));
     end;
 
    clearnodes;
@@ -353,14 +353,21 @@ begin
    Comment(V_Info,'Memory lost = '+tostr(EntryMemAvail-MemAvail));
 {$endif EXTDEBUG}
 { exits with error 1 if no codegeneration }
-   if errorcount=0 then
+   if status.errorcount=0 then
     halt(0)
    else
     halt(1);
 end.
 {
   $Log$
-  Revision 1.11  1998-05-20 09:42:35  pierre
+  Revision 1.12  1998-05-23 01:21:23  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.11  1998/05/20 09:42:35  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

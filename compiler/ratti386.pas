@@ -1536,7 +1536,7 @@ const
     { the att version only if the processor > i386 or we are compiling  }
     { the system unit then this will be allowed...                      }
     if (instruc >= lastop_in_table) and
-       ((cs_compilesystem in aktswitches) or (opt_processors > globals.i386)) then
+       ((cs_compilesystem in aktswitches) or (aktoptprocessor > globals.i386)) then
       begin
          Message1(assem_w_opcode_not_in_table,att_op2str[instruc]);
          fits:=true;
@@ -3681,7 +3681,14 @@ end.
 
 {
   $Log$
-  Revision 1.6  1998-05-20 09:42:37  pierre
+  Revision 1.7  1998-05-23 01:21:27  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.6  1998/05/20 09:42:37  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

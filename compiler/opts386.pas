@@ -39,51 +39,14 @@ uses
 
 procedure toption386.interpret_proc_specific_options(const opt:string);
 var
-  j : longint;
+  j     : longint;
+  More  : string;
 begin
+  More:=Upper(copy(opt,3,length(opt)-2));
   case opt[2] of
    'A' : begin
-           if copy(opt,3,length(opt)-2)='o' then
-            begin
-              output_format:=of_o;
-              assem_need_external_list:=false;
-            end
-           else
-            if copy(opt,3,length(opt)-2)='masm' then
-             begin
-               output_format:=of_masm;
-               assem_need_external_list:=true;
-             end
-           else
-            if copy(opt,3,length(opt)-2)='att' then
-             begin
-               output_format:=of_att;
-               assem_need_external_list:=false;
-             end
-           else
-            if copy(opt,3,length(opt)-2)='win32' then
-             begin
-               output_format:=of_win32;
-               assem_need_external_list:=false;
-             end
-           else
-           { nasm supports local labels but
-             only inside one global label :
-             this does not work for const strings and
-             real references !! }
-            if copy(opt,3,length(opt)-2)='obj' then
-             begin
-               output_format:=of_obj;
-               assem_need_external_list:=true;
-               { target_info.labelprefix:='?L'; }
-             end
-           else
-            if copy(opt,3,length(opt)-2)='nasm' then
-             begin
-               output_format:=of_nasm;
-               assem_need_external_list:=true;
-               { target_info.labelprefix:='?L'; }
-             end
+           if set_string_asm(More) then
+            initoutputformat:=target_asm.id
            else
             IllegalPara(opt);
          end;
@@ -96,36 +59,44 @@ begin
             'G' : initswitches:=initswitches-[cs_littlesize];
             'x' : initswitches:=initswitches+[cs_optimize,cs_maxoptimieren];
             'z' : initswitches:=initswitches+[cs_optimize,cs_uncertainopts];
-            '2' : opt_processors:=pentium2;
-            '3' : opt_processors:=globals.i386;
-            '4' : opt_processors:=i486;
-            '5' : opt_processors:=pentium;
-            '6' : opt_processors:=pentiumpro;
-            '7' : opt_processors:=cx6x86;
-            '8' : opt_processors:=amdk6
+            '2' : initoptprocessor:=pentium2;
+            '3' : initoptprocessor:=globals.i386;
+            '4' : initoptprocessor:=i486;
+            '5' : initoptprocessor:=pentium;
+            '6' : initoptprocessor:=pentiumpro;
+            '7' : initoptprocessor:=cx6x86;
+            '8' : initoptprocessor:=amdk6
             else IllegalPara(opt);
             end;
           end;
     'R' : begin
-            if copy(opt,3,length(opt)-2)='att' then
+            if More='ATT' then
              aktasmmode:=I386_ATT
             else
-             if copy(opt,3,length(opt)-2)='intel' then
+             if More='INTEL' then
               aktasmmode:=I386_INTEL
             else
-             if copy(opt,3,length(opt)-2)='direct' then
+             if More='DIRECT' then
               aktasmmode:=I386_DIRECT
             else
              IllegalPara(opt);
           end;
-  else IllegalPara(opt);
+  else
+   IllegalPara(opt);
   end;
 end;
 
 end.
 {
   $Log$
-  Revision 1.4  1998-05-10 12:07:15  jonas
+  Revision 1.5  1998-05-23 01:21:14  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.4  1998/05/10 12:07:15  jonas
     + switches for 6x86 and k6 optimizations
 
   Revision 1.3  1998/04/29 10:33:55  pierre

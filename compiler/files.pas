@@ -104,7 +104,6 @@ unit files;
           unitcount     : word;     { local unit counter }
           unit_index    : word;     { global counter for browser }
           symtable      : pointer;  { pointer to the psymtable of this unit }
-          output_format : tof;      { how to write this file }
 
           uses_imports  : boolean;  { Set if the module imports from DLL's.}
           imports       : plinkedlist;
@@ -118,11 +117,11 @@ unit files;
           { used in firstpass for faster settings }
           current_index : word;
 
-          unitname,                 { name of the (unit) module in uppercase }
+          modulename,               { name of the module in uppercase }
           objfilename,              { fullname of the objectfile }
           asmfilename,              { fullname of the assemblerfile }
           ppufilename,              { fullname of the ppufile }
-          arfilename,               { fullname of the archivefile }
+          libfilename,              { fullname of the libraryfile }
           mainsource    : pstring;  { name of the main sourcefile }
 
           constructor init(const s:string;_is_unit:boolean);
@@ -273,7 +272,7 @@ unit files;
 
       begin
         if Use_Rhide then
-          get_file_line:=lowercase(bstoslash(path^)+name^+ext^)+':'+tostr(line_no)+':'
+          get_file_line:=lower(bstoslash(path^)+name^+ext^)+':'+tostr(line_no)+':'
         else
           get_file_line:=name^+ext^+'('+tostr(line_no)+')'
       end;
@@ -350,12 +349,12 @@ unit files;
          stringdispose(objfilename);
          stringdispose(asmfilename);
          stringdispose(ppufilename);
-         stringdispose(arfilename);
+         stringdispose(libfilename);
          s:=FixFileName(FixPath(path)+name);
          objfilename:=stringdup(s+target_info.objext);
          asmfilename:=stringdup(s+target_info.asmext);
          ppufilename:=stringdup(s+target_info.unitext);
-         arfilename:=stringdup(s+target_os.staticlibext);
+         libfilename:=stringdup(s+target_os.staticlibext);
       end;
 
 {$ifdef NEWPPU}
@@ -665,8 +664,8 @@ unit files;
        begin
          ppufile^.read_data(hs[0],1,count);
          ppufile^.read_data(hs[1],ord(hs[0]),count);
-         stringdispose(unitname);
-         unitname:=stringdup(hs);
+         stringdispose(modulename);
+         modulename:=stringdup(hs);
          ppufile^.read_data(b,1,count);
        end;
 
@@ -730,7 +729,7 @@ unit files;
     { check the object and assembler file if not a library }
       if (flags and uf_smartlink)<>0 then
        begin
-         objfiletime:=getnamedfiletime(arfilename^);
+         objfiletime:=getnamedfiletime(libfilename^);
          if (ppufiletime<0) or (objfiletime<0) or (ppufiletime>objfiletime) then
            do_compile:=true;
        end
@@ -848,11 +847,11 @@ unit files;
         e : extstr;
       begin
          FSplit(s,p,n,e);
-         unitname:=stringdup(Upper(n));
+         modulename:=stringdup(Upper(n));
          mainsource:=stringdup(s);
          objfilename:=nil;
          asmfilename:=nil;
-         arfilename:=nil;
+         libfilename:=nil;
          ppufilename:=nil;
          setfilename(p,n);
          used_units.init;
@@ -878,13 +877,12 @@ unit files;
          is_unit:=_is_unit;
          uses_imports:=false;
          imports:=new(plinkedlist,init);
-         output_format:=commandline_output_format;
        { set smartlink flag }
-         if smartlink then
+         if (cs_smartlink in aktswitches) then
           flags:=flags or uf_smartlink;
        { search the PPU file if it is an unit }
          if is_unit then
-          search_unit(unitname^);
+          search_unit(modulename^);
       end;
 
     destructor tmodule.special_done;
@@ -929,7 +927,14 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.12  1998-05-20 09:42:33  pierre
+  Revision 1.13  1998-05-23 01:21:05  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.12  1998/05/20 09:42:33  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)

@@ -620,7 +620,7 @@ unit pexpr;
                         Message(parser_e_only_class_methods_via_class_ref);
                       if (sym^.properties and sp_static)<>0 then
                         begin
-                           static_name:=lowercase(srsymtable^.name^)+'_'+sym^.name;
+                           static_name:=lower(srsymtable^.name^)+'_'+sym^.name;
                            getsym(static_name,true);
                            disposetree(p1);
                            p1:=genloadnode(pvarsym(srsym),srsymtable);
@@ -1016,7 +1016,7 @@ unit pexpr;
 
                                        if (srsym^.properties and sp_static)<>0 then
                                          begin
-                                            static_name:=lowercase(srsymtable^.name^)+'_'+srsym^.name;
+                                            static_name:=lower(srsymtable^.name^)+'_'+srsym^.name;
                                             getsym(static_name,true);
                                          end;
                                        p1:=genloadnode(pvarsym(srsym),srsymtable);
@@ -1733,7 +1733,14 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.17  1998-05-22 12:37:03  carl
+  Revision 1.18  1998-05-23 01:21:20  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.17  1998/05/22 12:37:03  carl
     * crash bugfix (patched msanually to main branch)
 
   Revision 1.16  1998/05/21 19:33:32  peter

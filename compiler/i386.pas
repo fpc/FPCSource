@@ -25,7 +25,7 @@ unit i386;
   interface
 
     uses
-       strings,systems,cobjects,globals,aasm,files,verbose;
+      cobjects,aasm;
 
     const
       extended_size = 10;
@@ -294,11 +294,8 @@ unit i386;
 
     const
        maxvarregs = 4;
-
        varregs : array[1..maxvarregs] of tregister =
          (R_EBX,R_EDX,R_ECX,R_EAX);
-
-       nextlabelnr : longint = 1;
 
     { the following functions allow to convert registers }
     { for example reg8toreg32(R_AL) returns R_EAX        }
@@ -321,25 +318,12 @@ unit i386;
     { use this only for already used references       }
     procedure clear_reference(var ref : treference);
 
-    { make l as a new label }
-    procedure getlabel(var l : plabel);
-    { frees the label if unused }
-    procedure freelabel(var l : plabel);
-    { make a new zero label }
-    procedure getzerolabel(var l : plabel);
-    { reset a label to a zero label }
-    procedure setzerolabel(var l : plabel);
-    {just get a label number }
-    procedure getlabelnr(var l : longint);
-
     function newreference(const r : treference) : preference;
 
     function reg2str(r : tregister) : string;
 
     { generates an help record for constants }
     function newcsymbol(const s : string;l : longint) : pcsymbol;
-
-    function lab2str(l : plabel) : string;
 
     const
        ao_unknown = $0;
@@ -1075,48 +1059,30 @@ unit i386;
 
   implementation
 
-    function reg2str(r : tregister) : string;
+    uses
+      strings,globals,verbose;
 
+
+    function reg2str(r : tregister) : string;
       const
          a : array[R_NO..R_BL] of string[3] =
           ('','EAX','ECX','EDX','EBX','ESP','EBP','ESI','EDI',
            'AX','CX','DX','BX','SP','BP','SI','DI',
            'AL','CL','DL','BL');
-
       begin
          reg2str:=a[r];
       end;
 
-    function newreference(const r : treference) : preference;
 
+    function newreference(const r : treference) : preference;
       var
          p : preference;
-
       begin
          new(p);
          p^:=r;
          if assigned(r.symbol) then
            p^.symbol:=stringdup(r.symbol^);
          newreference:=p;
-      end;
-
-    function lab2str(l : plabel) : string;
-
-      begin
-         if (l=nil) or (l^.nb=0) then
-{$ifdef EXTDEBUG}
-           lab2str:='ILLEGAL'
-         else
-         begin
-            lab2str:=target_asm.labelprefix+tostr(l^.nb);
-         end;
-{$else EXTDEBUG}
-           internalerror(2000);
-           lab2str:=target_asm.labelprefix+tostr(l^.nb);
-{$endif EXTDEBUG}
-         { was missed: }
-         inc(l^.refcount);
-         l^.is_used:=true;
       end;
 
     function reg8toreg16(reg : tregister) : tregister;
@@ -1197,51 +1163,6 @@ unit i386;
       begin
          stringdispose(ref.symbol);
          reset_reference(ref);
-      end;
-
-    procedure getlabel(var l : plabel);
-
-      begin
-         new(l);
-         l^.nb:=nextlabelnr;
-         l^.is_used:=false;
-         l^.is_set:=false;
-         l^.refcount:=0;
-         inc(nextlabelnr);
-      end;
-
-    procedure freelabel(var l : plabel);
-
-      begin
-         if (l<>nil) and (not l^.is_set) and (not l^.is_used) then
-           dispose(l);
-         l:=nil;
-      end;
-
-    procedure setzerolabel(var l : plabel);
-
-      begin
-         l^.nb:=0;
-         l^.is_used:=false;
-         l^.is_set:=false;
-         l^.refcount:=0;
-      end;
-
-    procedure getzerolabel(var l : plabel);
-
-      begin
-         new(l);
-         l^.nb:=0;
-         l^.is_used:=false;
-         l^.is_set:=false;
-         l^.refcount:=0;
-      end;
-
-    procedure getlabelnr(var l : longint);
-
-      begin
-         l:=nextlabelnr;
-         inc(nextlabelnr);
       end;
 
     function newcsymbol(const s : string;l : longint) : pcsymbol;
@@ -1793,7 +1714,14 @@ unit i386;
 end.
 {
   $Log$
-  Revision 1.7  1998-05-20 09:42:34  pierre
+  Revision 1.8  1998-05-23 01:21:09  peter
+    + aktasmmode, aktoptprocessor, aktoutputformat
+    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
+    + $LIBNAME to set the library name where the unit will be put in
+    * splitted cgi386 a bit (codeseg to large for bp7)
+    * nasm, tasm works again. nasm moved to ag386nsm.pas
+
+  Revision 1.7  1998/05/20 09:42:34  pierre
     + UseTokenInfo now default
     * unit in interface uses and implementation uses gives error now
     * only one error for unknown symbol (uses lastsymknown boolean)
