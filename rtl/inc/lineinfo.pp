@@ -504,7 +504,7 @@ begin
      processaddress := cardinal(info.text)
   else
      processaddress := 0;
-  LoadElf32:=false;
+  LoadElf32Beos:=false;
   stabofs:=-1;
   stabstrofs:=-1;
   { read and check header }
@@ -781,7 +781,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.14  2003-02-01 22:31:34  marco
+  Revision 1.15  2003-02-07 20:55:06  marco
+   * fix from oco
+
+  Revision 1.14  2003/02/01 22:31:34  marco
    * Last change broke beos. Fixed.
 
   Revision 1.13  2003/01/14 16:17:37  peter
