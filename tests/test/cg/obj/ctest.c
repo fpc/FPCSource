@@ -11,9 +11,9 @@
 
 unsigned char global_u8bit;
 unsigned short global_u16bit;
-unsigned long global_u32bit;
+unsigned int global_u32bit;
 short global_s16bit;
-long global_s32bit;
+int global_s32bit;
 long long global_s64bit;
 unsigned long long global_u64bit;
 float global_float;
@@ -53,7 +53,7 @@ struct _3BYTE_S
 struct _5BYTE_
 {
 	unsigned char  u8;
-	unsigned long u32;
+	unsigned int u32;
 };
 
 struct _7BYTE_
@@ -79,7 +79,7 @@ void test_param_u16(unsigned short v)
   global_u16bit = v;
 }
 
-void test_param_u32(unsigned long v)
+void test_param_u32(unsigned int v)
 {
   global_u32bit = v;
 }
@@ -90,7 +90,7 @@ void test_param_s16(short v)
   global_s16bit = v;
 }
 
-void test_param_s32(long v)
+void test_param_s32(int v)
 {
   global_s32bit = v;
 }
@@ -134,7 +134,7 @@ void test_array_param_u16(unsigned short v[2])
   global_u16bit = v[1];
 }
 
-void test_array_param_u32(unsigned long v[2])
+void test_array_param_u32(unsigned int v[2])
 {
   global_u32bit = v[1];
 }
@@ -145,7 +145,7 @@ void test_array_param_s16(short v[2])
   global_s16bit = v[1];
 }
 
-void test_array_param_s32(long v[2])
+void test_array_param_s32(int v[2])
 {
   global_s32bit = v[1];
 }
@@ -190,7 +190,7 @@ void test_param_mixed_u16(unsigned char z, unsigned short x, unsigned char y)
 	global_u8bit = y;
 }
 
-void test_param_mixed_u32(unsigned char z, unsigned long x, unsigned char y)
+void test_param_mixed_u32(unsigned char z, unsigned int x, unsigned char y)
 {
 	global_u32bit = x;
 	global_u8bit = y;
@@ -300,7 +300,7 @@ unsigned short test_function_u16()
 	return RESULT_U16BIT;
 }
 
-unsigned long test_function_u32()
+unsigned int test_function_u32()
 {
 	return RESULT_U32BIT;
 }
@@ -315,7 +315,7 @@ unsigned short test_function_s16()
 	return RESULT_S16BIT;
 }
 
-unsigned long test_function_s32()
+unsigned int test_function_s32()
 {
 	return RESULT_S32BIT;
 }
@@ -385,7 +385,10 @@ struct _7BYTE_ test_function_struct()
 
 /*
   $Log$
-  Revision 1.6  2002-11-18 00:42:16  pierre
+  Revision 1.7  2005-02-06 20:00:41  peter
+    * use int for 32bit types
+
+  Revision 1.6  2002/11/18 00:42:16  pierre
    + records with really 3 byte size tests added
 
   Revision 1.5  2002/11/04 15:17:45  pierre
