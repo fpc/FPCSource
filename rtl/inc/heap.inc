@@ -378,14 +378,14 @@ end;
 {$ifdef ValueGetmem}
 
 { Needed for calls from Assembler }
-function AsmGetMem(size:longint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
+function fpc_getmem(size:longint):pointer;compilerproc;[public,alias:'FPC_GETMEM'];
 begin
 {$ifdef MT}
   if IsMultiThread then
    begin
      try
        EnterCriticalSection(cs_systemheap);
-       AsmGetMem:=MemoryManager.GetMem(size);
+       fpc_GetMem:=MemoryManager.GetMem(size);
      finally
        LeaveCriticalSection(cs_systemheap);
      end;
@@ -393,7 +393,7 @@ begin
   else
 {$endif MT}
    begin
-     AsmGetMem:=MemoryManager.GetMem(size);
+     fpc_GetMem:=MemoryManager.GetMem(size);
    end;
 end;
 
@@ -409,7 +409,7 @@ end;
 
 {$ifdef ValueFreemem}
 
-procedure AsmFreeMem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
+procedure fpc_freemem(p:pointer);compilerproc;[public,alias:'FPC_FREEMEM'];
 begin
 {$ifdef MT}
   if IsMultiThread then
@@ -1106,7 +1106,10 @@ begin
   if size=0 then
    begin
      if p<>nil then
-      MemoryManager.FreeMem(p);
+      begin
+        MemoryManager.FreeMem(p);
+        p:=nil;
+      end;
    end
   else
    { Allocate a new block? }
@@ -1256,7 +1259,10 @@ end;
 
 {
   $Log$
-  Revision 1.12  2002-02-10 15:33:45  carl
+  Revision 1.13  2002-04-21 18:56:59  peter
+    * fpc_freemem and fpc_getmem compilerproc
+
+  Revision 1.12  2002/02/10 15:33:45  carl
   * fixed some missing IsMultiThreaded variables
 
   Revision 1.11  2002/01/02 13:43:09  jonas

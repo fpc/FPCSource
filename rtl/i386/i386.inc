@@ -428,7 +428,7 @@ asm
       { Memory size }
         pushl   (%eax)
 {$ifdef valuegetmem}
-        call    AsmGetMem
+        call    fpc_getmem
         movl    %eax,(%esi)
 {$else valuegetmem}
         pushl   %esi
@@ -513,7 +513,7 @@ asm
         { push object position }
 {$ifdef valuefreemem}
         pushl   %esi
-        call    AsmFreeMem
+        call    fpc_freemem
 {$else valuefreemem}
         leal    12(%ebp),%eax
         pushl   %eax
@@ -552,7 +552,7 @@ asm
 {$ifdef valuefreemem}
       { Freemem }
         pushl   %eax
-        call    AsmFreeMem
+        call    fpc_freemem
 {$else valuefreemem}
       { temporary Variable }
         subl    $4,%esp
@@ -1170,7 +1170,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.21  2002-04-01 14:23:17  carl
+  Revision 1.22  2002-04-21 18:56:59  peter
+    * fpc_freemem and fpc_getmem compilerproc
+
+  Revision 1.21  2002/04/01 14:23:17  carl
   - no need for runerror 203, already fixed!
 
   Revision 1.20  2002/03/30 14:52:04  carl

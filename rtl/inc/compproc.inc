@@ -32,10 +32,10 @@ type
 
 { Needed to solve overloading problem with call from assembler (PFV) }
 {$ifdef valuegetmem}
-Function  AsmGetmem(size:Longint):pointer;compilerproc;
+Function  fpc_getmem(size:Longint):pointer;compilerproc;
 {$endif}
 {$ifdef valuefreemem}
-Procedure AsmFreemem(p:pointer);compilerproc;
+Procedure fpc_freemem(p:pointer);compilerproc;
 {$endif valuefreemem}
 
 procedure fpc_Shortstr_SetLength(var s:shortstring;len:StrLenInt); compilerproc;
@@ -256,7 +256,10 @@ Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;var Buf); compiler
 
 {
   $Log$
-  Revision 1.13  2002-01-21 20:16:08  peter
+  Revision 1.14  2002-04-21 18:56:59  peter
+    * fpc_freemem and fpc_getmem compilerproc
+
+  Revision 1.13  2002/01/21 20:16:08  peter
     * updated for dynarr:=nil
 
   Revision 1.12  2001/12/03 21:39:20  peter
