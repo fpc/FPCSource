@@ -2571,6 +2571,15 @@ on an operating system basis can be found in Appendix \ref{ch:AppH}. The \var{re
 modifier is currently not supported, and maps to the default calling
 convention.
 
+Furthermore, the \var{saveregisters} modifier can be used with
+any of the calling mechanism specifiers. When \var{saveregisters}
+is used, all registers will be saved on entry to the routine,
+and will be restored upon exit. Of course, if the routine is
+a function, and it normally returns its retun value in a register,
+that register will not be saved. Also, if the self register is
+used, it will also neither be saved nor restored.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Nested subroutines
 \section{Nested procedure and functions}
@@ -3741,8 +3750,12 @@ be used for special purposes by software developpers.
 
 \subsection{procedural types}
 
-A procedural type is stored as a generic pointer, which stores
-the address of the routine.
+A procedural type to a normal procedure or function is stored as a generic pointer, 
+which stores the address of the entry point of the routine. 
+
+In the case of a method procedural type, the storage consists of two pointers,
+the first being a pointer to the entry point of the method, and the second
+one being a pointer to \var{self} (the object instance).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The alignment of data elements
