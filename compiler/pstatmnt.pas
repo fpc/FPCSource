@@ -835,7 +835,7 @@ unit pstatmnt;
                          end;
                    { the second parameter of new/dispose must be a call }
                    { to a cons-/destructor                                }
-                   if (sym^.typ<>procsym) then
+                   if (not assigned(sym)) or (sym^.typ<>procsym) then
                          begin
                             Message(parser_e_expr_have_to_be_destructor_call);
                             new_dispose_statement:=genzeronode(errorn);
@@ -1216,7 +1216,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.46  1998-10-20 08:06:53  pierre
+  Revision 1.47  1998-10-30 16:20:22  peter
+    * fixed dispose(destructor) crash when destructor didn't exists
+
+  Revision 1.46  1998/10/20 08:06:53  pierre
     * several memory corruptions due to double freemem solved
       => never use p^.loc.location:=p^.left^.loc.location;
     + finally I added now by default
