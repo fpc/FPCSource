@@ -179,9 +179,12 @@ Procedure Flush(var t : Text);[IOCheck];
 Begin
   If InOutRes<>0 then
    exit;
-  If TextRec(t).mode<>fmOutput Then
+  if TextRec(t).mode<>fmOutput then
    begin
-     InOutres:=105;
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=105;
      exit;
    end;
 { Not the flushfunc but the inoutfunc should be used, becuase that
@@ -241,7 +244,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit(true);
    end;
   If TextRec(t).BufPos>=TextRec(t).BufEnd Then
@@ -270,7 +276,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit(true);
    end;
   repeat
@@ -304,7 +313,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit(true);
    end;
   If TextRec(t).BufPos>=TextRec(t).BufEnd Then
@@ -329,7 +341,10 @@ Begin
    exit(true);
   if (TextRec(t).mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit(true);
    end;
   repeat
@@ -446,7 +461,10 @@ Begin
    exit;
   if (f.mode<>fmOutput) Then
    begin
-     InOutRes:=105;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=105;
      exit;
    end;
   If Len>Length(s) Then
@@ -464,7 +482,10 @@ Begin
    exit;
   if (f.mode<>fmOutput) Then
    begin
-     InOutRes:=105;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=105;
      exit;
    end;
   p:=pchar(@s);
@@ -485,7 +506,10 @@ Begin
    exit;
   if (f.mode<>fmOutput) Then
    begin
-     InOutRes:=105;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=105;
      exit;
    end;
   PCharLen:=StrLen(p);
@@ -580,7 +604,10 @@ Begin
    exit;
   if (TextRec(t).mode<>fmOutput) Then
    begin
-     InOutRes:=105;
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=105;
      exit;
    end;
   If Len>1 Then
@@ -691,7 +718,10 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit;
    end;
   repeat
@@ -722,7 +752,10 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit;
    end;
 { Read maximal until Maxlen is reached }
@@ -803,7 +836,10 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit;
    end;
 { Read next char or EOF }
@@ -830,7 +866,10 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -856,7 +895,10 @@ Begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -881,7 +923,10 @@ begin
    exit;
   if (f.mode<>fmInput) Then
    begin
-     InOutRes:=104;
+     if TextRec(f).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=104;
      exit;
    end;
   If f.BufPos>=f.BufEnd Then
@@ -949,7 +994,10 @@ end;
 
 {
   $Log$
-  Revision 1.58  1999-10-04 20:42:45  peter
+  Revision 1.59  1999-10-26 12:25:19  peter
+    * inoutres 103 for closed files, just like delphi
+
+  Revision 1.58  1999/10/04 20:42:45  peter
     * read ansistring speedup (no length(s) calls anymore)
 
   Revision 1.57  1999/09/10 17:14:43  peter
