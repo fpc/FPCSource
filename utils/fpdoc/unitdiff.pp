@@ -1,11 +1,9 @@
 {
     $Id$
 
-    FPDoc  -  Free Pascal Documentation Tool
-    Copyright (C) 2000 - 2003 by
-      Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
+    UnitDiff Copyright (C) 2004 by the Free Pascal team
 
-    * Skeleton XML description file generator
+    Show differences between unit interfaces.
 
     See the file COPYING, included in this distribution,
     for details about the copyright.
@@ -335,7 +333,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2004-11-14 21:18:58  michael
+  Revision 1.2  2004-11-14 21:20:31  michael
+  + Changed copyright
+
+  Revision 1.1  2004/11/14 21:18:58  michael
   + Initial check-in
 
   Revision 1.13  2004/09/13 16:04:52  peter
