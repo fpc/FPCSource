@@ -39,7 +39,7 @@ unit cpunode;
 //       nppccal,
 //       nppccon,
 //       nppcflw,
-//       nppcmem,
+       nppcmem,
 //       nppcset,
 //       nppcinl,
 //       nppcopt,
@@ -52,7 +52,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.10  2002-07-28 20:45:22  florian
+  Revision 1.11  2002-07-29 09:22:20  jonas
+    + nppcmem
+
+  Revision 1.10  2002/07/28 20:45:22  florian
     + added direct assembler reader for PowerPC
 
   Revision 1.9  2002/07/26 12:31:56  jonas
