@@ -100,11 +100,9 @@ unit cgcpu;
 
       private
 
-        procedure g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
-        procedure g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
-        procedure g_stackframe_entry_aix(list : taasmoutput;localsize : longint);
-        procedure g_return_from_proc_aix(list : taasmoutput;parasize : aword);
+        (* NOT IN USE: *)
         procedure g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
+        (* NOT IN USE: *)
         procedure g_return_from_proc_mac(list : taasmoutput;parasize : aword);
 
 
@@ -999,43 +997,6 @@ const
 { *********** entry/exit code and address loading ************ }
 
     procedure tcgppc.g_stackframe_entry(list : taasmoutput;localsize : longint);
-
-      begin
-        case target_info.abi of
-          abi_powerpc_macos:
-            g_stackframe_entry_mac(list,localsize);
-          abi_powerpc_sysv:
-            g_stackframe_entry_sysv(list,localsize);
-          abi_powerpc_aix:
-            g_stackframe_entry_aix(list,localsize);
-          else
-            internalerror(2204001);
-        end;
-      end;
-
-    procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
-
-      begin
-        case target_info.abi of
-          abi_powerpc_macos:
-            g_return_from_proc_mac(list,parasize);
-          abi_powerpc_sysv:
-            g_return_from_proc_sysv(list,parasize);
-          abi_powerpc_aix:
-            g_return_from_proc_aix(list,parasize);
-          else
-            internalerror(2204001);
-        end;
-      end;
-
-
-    procedure tcgppc.g_stackframe_entry_aix(list : taasmoutput;localsize : longint);
-      begin
-         g_stackframe_entry_sysv(list,localsize);
-      end;
-
-
-    procedure tcgppc.g_stackframe_entry_sysv(list : taasmoutput;localsize : longint);
      { generated the entry code of a procedure/function. Note: localsize is the }
      { sum of the size necessary for local variables and the maximum possible   }
      { combined size of ALL the parameters of a procedure called by the current }
@@ -1102,11 +1063,31 @@ const
                r.enum:=R_INTREGISTER;
                r.number:=NR_R0;
                list.concat(taicpu.op_reg(A_MFLR,r));
-               { ... in caller's rframe }
-               reference_reset_base(href,rsp,4);
+               { ... in caller's frame }
+               case target_info.abi of
+                 abi_powerpc_aix:
+                   reference_reset_base(href,rsp,LA_LR_AIX);
+                 abi_powerpc_sysv:
+                   reference_reset_base(href,rsp,LA_LR_SYSV);
+               end;
                list.concat(taicpu.op_reg_ref(A_STW,r,href));
                a_reg_dealloc(list,r);
             end;
+
+        { save the CR if necessary in callers frame. }
+        if not (po_assembler in current_procinfo.procdef.procoptions) then
+          if target_info.abi = abi_powerpc_aix then
+            if false then { Not needed at the moment. }
+              begin
+                r.enum:=R_INTREGISTER;
+                r.number:=NR_R0;
+                a_reg_alloc(list,r);
+                r2.enum:=R_CR;
+                list.concat(taicpu.op_reg_reg(A_MFSPR,r,r2));
+                reference_reset_base(href,rsp,LA_CR_AIX);
+                list.concat(taicpu.op_reg_ref(A_STW,r,href));
+                a_reg_dealloc(list,r);
+              end;
 
         { !!! always allocate space for all registers for now !!! }
         if not (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1281,14 +1262,7 @@ const
           end;
       end;
 
-
-    procedure tcgppc.g_return_from_proc_aix(list : taasmoutput;parasize : aword);
-      begin
-         g_return_from_proc_sysv(list,parasize);
-      end;
-
-
-    procedure tcgppc.g_return_from_proc_sysv(list : taasmoutput;parasize : aword);
+    procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
 
       var
          regcounter,firstregfpu,firstreggpr: TRegister;
@@ -1357,7 +1331,7 @@ const
                        a_loadfpu_ref_reg(list,OS_F64,href,regcounter);
                        dec(href.offset,8);
                      end;
-                   inc(href.offset,4);
+                 inc(href.offset,4);
                end
              else
                reference_reset_base(href,r2,-4);
@@ -1401,6 +1375,7 @@ const
           end;
 *)
 
+
         { if we didn't generate the return code, we've to do it now }
         if genret then
           begin
@@ -1410,16 +1385,39 @@ const
              a_op_const_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r);
              { load link register? }
              if not (po_assembler in current_procinfo.procdef.procoptions) then
-               if (pi_do_call in current_procinfo.flags) then
-                 begin
-                    r.enum:=R_INTREGISTER;
-                    r.number:=NR_STACK_POINTER_REG;
-                    reference_reset_base(href,r,4);
-                    r.enum:=R_INTREGISTER;
-                    r.number:=NR_R0;
-                    list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
-                    list.concat(taicpu.op_reg(A_MTLR,r));
-                 end;
+               begin
+                 if (pi_do_call in current_procinfo.flags) then
+                   begin
+                      r.enum:=R_INTREGISTER;
+                      r.number:=NR_STACK_POINTER_REG;
+                      case target_info.abi of
+                        abi_powerpc_aix:
+                          reference_reset_base(href,r,LA_LR_AIX);
+                        abi_powerpc_sysv:
+                          reference_reset_base(href,r,LA_LR_SYSV);
+                      end;
+                      r.enum:=R_INTREGISTER;
+                      r.number:=NR_R0;
+                      list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
+                      list.concat(taicpu.op_reg(A_MTLR,r));
+                   end;
+
+                 { restore the CR if necessary from callers frame}
+                 if target_info.abi = abi_powerpc_aix then
+                   if false then { Not needed at the moment. }
+                     begin
+                      r.enum:=R_INTREGISTER;
+                      r.number:=NR_STACK_POINTER_REG;
+                      reference_reset_base(href,r,LA_CR_AIX);
+                      r.enum:=R_INTREGISTER;
+                      r.number:=NR_R0;
+                      list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
+                      r2.enum:=R_CR;
+                      list.concat(taicpu.op_reg_reg(A_MTSPR,r,r2));
+                      a_reg_dealloc(list,r);
+                     end;
+               end;
+
              list.concat(taicpu.op_none(A_BLR));
           end;
       end;
@@ -1584,6 +1582,8 @@ const
 
 
     procedure tcgppc.g_stackframe_entry_mac(list : taasmoutput;localsize : longint);
+ (* NOT IN USE *)
+
  { generated the entry code of a procedure/function. Note: localsize is the }
  { sum of the size necessary for local variables and the maximum possible   }
  { combined size of ALL the parameters of a procedure called by the current }
@@ -1626,7 +1626,7 @@ const
         a_reg_alloc(list,r);
         r2.enum:=R_CR;
         list.concat(taicpu.op_reg_reg(A_MFSPR,r,r2));
-        reference_reset_base(href,rsp,LA_CR);
+        reference_reset_base(href,rsp,LA_CR_AIX);
         list.concat(taicpu.op_reg_ref(A_STW,r,href));
         a_reg_dealloc(list,r);
 
@@ -1679,6 +1679,7 @@ const
       end;
 
     procedure tcgppc.g_return_from_proc_mac(list : taasmoutput;parasize : aword);
+ (* NOT IN USE *)
 
       var
         regcounter: TRegister;
@@ -1701,7 +1702,7 @@ const
 
         { restore the CR if necessary from callers frame
             ( !!! always done currently ) }
-        reference_reset_base(href,rsp,LA_CR);
+        reference_reset_base(href,rsp,LA_CR_AIX);
         r.enum:=R_INTREGISTER;
         r.number:=NR_R0;
         list.concat(taicpu.op_reg_ref(A_LWZ,r,href));
@@ -1763,37 +1764,32 @@ const
                      reference_reset(tmpref);
                      tmpref.offset := ref2.offset;
                      tmpref.symbol := ref2.symbol;
-                     tmpref.symaddr := refs_full;
                      tmpref.base.number := NR_NO;
                      r2.enum:=R_INTREGISTER;
                      r2.number:=NR_RTOC;
                      list.concat(taicpu.op_reg_reg_ref(A_ADDI,r,r2,tmpref));
-                     if ref2.base.number <> NR_NO then
-                       list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,ref2.base));
                    end
                  else
                    begin
                      reference_reset(tmpref);
                      tmpref.symbol := ref2.symbol;
                      tmpref.offset := 0;
-                     tmpref.symaddr := refs_full;
                      tmpref.base.enum := R_INTREGISTER;
                      tmpref.base.number := NR_RTOC;
                      list.concat(taicpu.op_reg_ref(A_LWZ,r,tmpref));
 
-                     if ref2.base.number <> NR_NO then
-                       begin
-                         list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,ref2.base));
-                       end;
                      if ref2.offset <> 0 then
                        begin
                          reference_reset(tmpref);
                          tmpref.offset := ref2.offset;
-                         tmpref.symaddr := refs_full;
                          tmpref.base:= r;
                          list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
                        end;
                    end;
+
+                 if ref2.base.number <> NR_NO then
+                   list.concat(taicpu.op_reg_reg_reg(A_ADD,r,r,ref2.base));
+
                  //list.concat(tai_comment.create(strpnew('*** a_loadaddr_ref_reg')));
                end
              else
@@ -2430,112 +2426,73 @@ const
 
       var
         tmpreg: tregister;
+        tmpregUsed: Boolean;
         tmpref: treference;
-        r : Tregister;
+        largeOffset: Boolean;
 
       begin
         tmpreg.number := NR_NO;
-        if assigned(ref.symbol) or
-           (cardinal(ref.offset-low(smallint)) >
-            high(smallint)-low(smallint)) then
+
+        if target_info.system = system_powerpc_macos then
           begin
-            if target_info.system = system_powerpc_macos then
-              begin
-                if ref.base.number <> NR_NO then
-                  begin
-                    if macos_direct_globals then
-                      begin
-                        {Generates
-                          add   tempreg, ref.base, RTOC
-                          op    reg, symbolplusoffset, tempreg
-                        which is eqvivalent to the more comprehensive
-                          addi  tempreg, RTOC, symbolplusoffset
-                          add   tempreg, ref.base, tempreg
-                          op    reg, tempreg
-                        but which saves one instruction.}
+            largeOffset:= (cardinal(ref.offset-low(smallint)) >
+                  high(smallint)-low(smallint));
 
 {$ifndef newra}
-                        tmpreg := get_scratch_reg_address(list);
+            tmpreg := get_scratch_reg_address(list);
 {$else newra}
-                        tmpreg := rg.getregisterint(list,OS_ADDR);
+            tmpreg := rg.getregisterint(list,OS_ADDR);
 {$endif newra}
-                        reference_reset(tmpref);
-                        tmpref.symbol := ref.symbol;
-                        tmpref.offset := ref.offset;
-                        tmpref.symaddr := refs_full;
-                        tmpref.base:= tmpreg;
+            tmpregUsed:= false;
 
-                        r.enum:=R_INTREGISTER;
-                        r.number:=NR_RTOC;
-                        list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
-                            ref.base,r));
-                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
-                      end
-                    else
-                      begin
-{$ifndef newra}
-                        tmpreg := get_scratch_reg_address(list);
-{$else newra}
-                        tmpreg := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
-                        reference_reset(tmpref);
-                        tmpref.symbol := ref.symbol;
-                        tmpref.offset := 0;
-                        tmpref.symaddr := refs_full;
-                        tmpref.base.enum:= R_INTREGISTER;
-                        tmpref.base.number:= NR_RTOC;
-                        list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
-                        list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
-                            ref.base,tmpreg));
-
-                        reference_reset(tmpref);
-                        tmpref.offset := ref.offset;
-                        tmpref.symaddr := refs_full;
-                        tmpref.base:= tmpreg;
-                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
-
-                      end;
-
-                    //list.concat(tai_comment.create(strpnew('**** a_load_store 1')));
-                  end
+            if assigned(ref.symbol) then
+              begin //Load symbol's value
+                reference_reset(tmpref);
+                tmpref.symbol := ref.symbol;
+                tmpref.base.enum:= R_INTREGISTER;
+                tmpref.base.number:= NR_RTOC;
+                if macos_direct_globals then
+                  list.concat(taicpu.op_reg_ref(A_LA,tmpreg,tmpref))
                 else
-                  begin
-                    if macos_direct_globals then
-                      begin
-                        reference_reset(tmpref);
-                        tmpref.symbol := ref.symbol;
-                        tmpref.offset := ref.offset;
-                        tmpref.symaddr := refs_full;
-                        tmpref.base.enum:= R_INTREGISTER;
-                        tmpref.base.number:= NR_RTOC;
-                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
-                      end
-                    else
-                      begin
-{$ifndef newra}
-                        tmpreg := get_scratch_reg_address(list);
-{$else newra}
-                        tmpreg := rg.getregisterint(list,OS_ADDR);
-{$endif newra}
-                        reference_reset(tmpref);
-                        tmpref.symbol := ref.symbol;
-                        tmpref.offset := 0;
-                        tmpref.symaddr := refs_full;
-                        tmpref.base.enum:= R_INTREGISTER;
-                        tmpref.base.number:= NR_RTOC;
-                        list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+                  list.concat(taicpu.op_reg_ref(A_LWZ,tmpreg,tmpref));
+                tmpregUsed:= true;
+              end;
 
-                        reference_reset(tmpref);
-                        tmpref.offset := ref.offset;
-                        tmpref.symaddr := refs_full;
-                        tmpref.base:= tmpreg;
-                        list.concat(taicpu.op_reg_ref(op,reg,tmpref));
+            if largeOffset then
+              begin //Add hi part of offset
+                reference_reset(tmpref);
+                tmpref.offset := Hi(ref.offset);
+                if tmpregUsed then
+                  list.concat(taicpu.op_reg_reg_ref(A_ADDIS,tmpreg,
+                    tmpreg,tmpref))
+                else
+                  list.concat(taicpu.op_reg_ref(A_LIS,tmpreg,tmpref));
+                tmpregUsed:= true;
+              end;
 
-                      end;
-                    //list.concat(tai_comment.create(strpnew('*** a_load_store 2')));
-                  end;
+            if tmpregUsed then
+              begin
+                //Add content of base register
+                if ref.base.number <> NR_NO then
+                  list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,
+                    ref.base,tmpreg));
+
+                //Make ref ready to be used by op
+                ref.symbol:= nil;
+                ref.base:= tmpreg;
+                if largeOffset then
+                  ref.offset := Lo(ref.offset);
+                list.concat(taicpu.op_reg_ref(op,reg,ref));
+                //list.concat(tai_comment.create(strpnew('*** a_load_store indirect global')));
               end
             else
+              list.concat(taicpu.op_reg_ref(op,reg,ref));
+          end
+        else {if target_info.system <> system_powerpc_macos}
+          begin
+            if assigned(ref.symbol) or
+               (cardinal(ref.offset-low(smallint)) >
+                high(smallint)-low(smallint)) then
               begin
 {$ifndef newra}
                 tmpreg := get_scratch_reg_address(list);
@@ -2555,9 +2512,11 @@ const
                 ref.symaddr := refs_l;
                 list.concat(taicpu.op_reg_ref(op,reg,ref));
               end
-          end
-        else
-          list.concat(taicpu.op_reg_ref(op,reg,ref));
+            else
+              list.concat(taicpu.op_reg_ref(op,reg,ref));
+          end;
+
+
         if (tmpreg.number <> NR_NO) then
 {$ifndef newra}
           free_scratch_reg(list,tmpreg);
@@ -2713,7 +2672,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.116  2003-07-23 11:02:23  jonas
+  Revision 1.118  2003-08-08 15:50:45  olle
+    * merged macos entry/exit code generation into the general one.
+
+  Revision 1.117  2002/10/01 05:24:28  olle
+    * made a_load_store more robust and to accept large offsets and cleaned up code
+
+  Revision 1.116  2003/07/23 11:02:23  jonas
     * don't use rg.getregisterint() anymore in g_stackframe_entry_*, because
       the register colouring has already occurred then, use a hard-coded
       register instead

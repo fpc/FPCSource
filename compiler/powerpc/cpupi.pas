@@ -49,7 +49,7 @@ unit cpupi;
   implementation
 
     uses
-       globtype,globals,
+       globtype,globals,systems,
        cpubase,
        aasmtai,
        tgobj,
@@ -69,7 +69,12 @@ unit cpupi;
       begin
          if not(po_assembler in procdef.procoptions) then
            begin
-             ofs:=align(maxpushedparasize+LinkageAreaSize,16);
+             case target_info.abi of
+               abi_powerpc_aix:
+                 ofs:=align(maxpushedparasize+LinkageAreaSizeAIX,16);
+               abi_powerpc_sysv:
+                 ofs:=align(maxpushedparasize+LinkageAreaSizeSYSV,16);
+             end;
              inc(procdef.parast.address_fixup,ofs);
              // inc(selfpointer_offset,ofs);
              // inc(vmtpointer_offset,ofs);
@@ -114,7 +119,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2003-07-06 20:25:03  jonas
+  Revision 1.25  2003-08-08 15:52:50  olle
+    * merged macos entry/exit code generation into the general one.
+
+  Revision 1.24  2003/07/06 20:25:03  jonas
     * fixed ppc compiler
 
   Revision 1.23  2003/06/13 21:19:32  peter

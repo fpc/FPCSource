@@ -707,16 +707,18 @@ uses
                             CPU Dependent Constants
 *****************************************************************************}
 
-      LinkageAreaSize = 24;
+      LinkageAreaSizeAIX = 24;
+      LinkageAreaSizeSYSV = 8;
       { offset in the linkage area for the saved stack pointer }
       LA_SP = 0;
       { offset in the linkage area for the saved conditional register}
-      LA_CR = 4;
+      LA_CR_AIX = 4;
       { offset in the linkage area for the saved link register}
-      LA_LR = 8;
+      LA_LR_AIX = 8;
+      LA_LR_SYSV = 4;
       { offset in the linkage area for the saved RTOC register}
-      LA_RTOC = 20;
-      
+      LA_RTOC_AIX = 20;
+
       PARENT_FRAMEPOINTER_OFFSET = 12;
 
 {*****************************************************************************
@@ -886,7 +888,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-07-23 11:00:09  jonas
+  Revision 1.63  2003-08-08 15:51:16  olle
+    * merged macos entry/exit code generation into the general one.
+
+  Revision 1.62  2003/07/23 11:00:09  jonas
     * "lastsaveintreg" is RS_R31 instead of RS_R27 with -dnewra, because
       there are no scratch regs anymore
 

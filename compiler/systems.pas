@@ -150,7 +150,7 @@ interface
        );
 
        tabi = (abi_default
-            ,abi_powerpc_sysv,abi_powerpc_aix,abi_powerpc_macos
+            ,abi_powerpc_sysv,abi_powerpc_aix
        );
 
 {*****************************************************************************
@@ -695,7 +695,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.66  2003-07-21 11:52:57  florian
+  Revision 1.67  2003-08-08 15:49:24  olle
+    * merged macos entry/exit code generation into the general one.
+
+  Revision 1.66  2003/07/21 11:52:57  florian
     * very basic stuff for the arm
 
   Revision 1.65  2003/05/31 16:17:27  marco

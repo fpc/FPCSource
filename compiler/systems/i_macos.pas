@@ -88,7 +88,8 @@ unit i_macos;
             heapsize     : 256*1024;
             stacksize    : 262144;
             DllScanSupported:false;
-            use_function_relative_addresses : true
+            use_function_relative_addresses : true;
+            abi : abi_powerpc_aix;
           );
 
   implementation
@@ -102,7 +103,13 @@ initialization
 end.
 {
   $Log$
-  Revision 1.9  2003-06-18 10:19:07  olle
+  Revision 1.11  2003-08-08 15:54:01  olle
+    * merged macos entry/exit code generation into the general one.
+
+  Revision 1.10  2002/08/18 17:10:15  olle
+    + abi_powerpc_macos added to TSystemInfo
+
+  Revision 1.9  2003/06/18 10:19:07  olle
     * changed .p to .pas to make the compiler compile
 
   Revision 1.8  2003/01/13 22:15:58  florian
