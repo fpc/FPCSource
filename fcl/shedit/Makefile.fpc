@@ -4,6 +4,7 @@
 
 [targets]
 units=doc_text shedit sh_pas sh_xml
+units_linux=gtkshedit
 programs_win32=gtkdemo
 programs_linux=gtkdemo
 
