@@ -150,7 +150,7 @@ This has as a consequence that any additional actions that are done by
 
 \subsection{\var{\$C} or \var{\$ASSERTIONS} : Assertion support}
 
-The \var{\{\$ASSERTION\}} switch determines if assert statements are
+The \var{\{\$ASSERTIONS\}} switch determines if assert statements are
 compiled into the binary or not. If the switch is on, the statement
 \begin{verbatim}
 Assert(BooleanExpression,AssertMessage);
@@ -2780,17 +2780,23 @@ as passing a byte value parameter to the stack).
 
 
 
-\subsection{Processor limitations}
+\section{Processor limitations}
 
 Certain processors have limitations on the size of the parameters
-which can be passed to routine. This is shown in \seet{CPUStackLimits}.
+and local variables in routines. This is shown in \seet{CPULimits}.
 
-\begin{FPCltable}{ll}{Maximum parameter sizes for processors}{CPUStackLimits}
+\begin{FPCltable}{lll}{Maximum limits for processors}{CPULimits}
 \hline
-Processor & Limit (in Bytes) \\ \hline
-Intel 80x86 &  64K \\
-Motorola 680x0 & 32K \\ \hline
+Processor &  Parameters & Local variables \\ \hline
+Intel 80x86 (all) &  64K  & No limit\\
+Motorola 68020 (default) & 32K & No limit\\
+Motorola 68000 & 32K & 32K \\ \hline
 \end{FPCltable}
+
+Furthermore, the m68k compiler, in \var{68000} mode, limits the
+size of data elements to 32K (arrays, records, objects, etc.). 
+This restriction does not exist in \var{68020} mode.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Local variables
@@ -6763,8 +6769,9 @@ starting from \fpc version 1.0.5.
 Define & When defined? \\ \hline
 CPU86 & \fpc target is an Intel 80x86 or compatible.\\
 CPU87 & \fpc target is an Intel 80x86 or compatible.\\
-CPUI386 & \fpc target is an Intel 80x86 or compatible.\\
+CPUI386 & \fpc target is an Intel 80386 or later.\\
 CPU68k & \fpc target is a Motorola 680x0 or compatible.\\
+CPUM68020 & \fpc target is a Motorola 68020 or later.\\
 CPU68 & \fpc target is a Motorola 680x0 or compatible.\\
 CPUSPARC & \fpc target is a SPARC v7 or compatible.\\
 CPUALPHA & \fpc target is an Alpha AXP or compatible.\\
