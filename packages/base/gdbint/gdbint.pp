@@ -50,10 +50,12 @@ interface
 {$ifdef GDB_V503}
   {$define GDB_V502}
   {$define GDB_SYMTAB_HAS_MACROS}
+  {$define GDB_V5}
 {$endif GDB_V503}
 
 {$ifdef GDB_V502}
   {$define GDB_V501}
+  {$define GDB_V5}
 {$endif GDB_V502}
 
 {$ifdef GDB_V501}
@@ -317,8 +319,6 @@ type
   ui_file_rewind_ftype = procedure(stream : pui_file);cdecl;
   ui_file_put_method_ftype = procedure(var _object; buffer : pchar;length_buffer : longint);cdecl;
   ui_file_put_ftype = procedure(stream : pui_file;method : ui_file_put_method_ftype;var context);cdecl;
-
-  plongint = ^longint;
 
   ui_file = record
       magic : plongint;
@@ -2682,7 +2682,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2003-09-18 16:34:19  marco
+  Revision 1.17  2003-11-05 15:41:30  florian
+   * GDB_V5 define fixed
+
+  Revision 1.16  2003/09/18 16:34:19  marco
    * unix reform
 
   Revision 1.15  2003/03/30 11:15:51  armin
