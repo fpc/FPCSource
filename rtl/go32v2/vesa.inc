@@ -1065,7 +1065,7 @@ end;
     Port[$3ce] := 4;
     shift := 7 - (X and 7);
     Port[$3cf] := 0;
-    dummy := (Mem[$a000:offset] shr shift) and 1;
+    dummy := (Mem[WinReadSeg:offset] shr shift) and 1;
     Port[$3cf] := 1;
     dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 1);
     Port[$3cf] := 2;
@@ -1947,7 +1947,10 @@ end;
 
 {
 $Log$
-Revision 1.3  1999-11-28 12:18:39  jonas
+Revision 1.4  1999-11-30 02:25:15  carl
+  * GetPixVESA16 bugfix with read segment.
+
+Revision 1.3  1999/11/28 12:18:39  jonas
    + all available mode numbers are logged if you compile the unit with
      -dlogging
 
