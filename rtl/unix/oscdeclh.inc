@@ -58,7 +58,7 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 //    {$endif}
 
     {$ifdef BSD}
-    function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; external name 'sigprocmask';
+    function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external name 'sigprocmask';
     {$endif}
     function  FpStat	  (path: pchar; var buf : stat): cint; cdecl; external name 'stat';
     {$ifdef FPC_IS_SYSTEM}
@@ -91,7 +91,10 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
 {
    $Log$
-   Revision 1.3  2003-12-30 15:43:20  marco
+   Revision 1.4  2004-01-01 14:09:14  marco
+    * FPC_USE_LIBC fixes
+
+   Revision 1.3  2003/12/30 15:43:20  marco
     * linux now compiles with FPC_USE_LIBC
 
    Revision 1.2  2003/12/30 12:24:01  marco
@@ -102,6 +105,5 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
    Revision 1.1  2002/12/18 16:43:26  marco
     * new unix rtl, linux part.....
-
 
 }
