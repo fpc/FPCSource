@@ -1,4 +1,6 @@
-{ $mode objfpc}
+{ %fail }
+
+{$ifdef fpc}{$mode objfpc}{$endif}
 type
   tmyclass = class
     function f2 : ansistring;
