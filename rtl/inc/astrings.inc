@@ -519,12 +519,12 @@ begin
 end;
 
 
-Function ValAnsiUnsigendInt (Const S : AnsiString; Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
+Function ValAnsiUnsignedInt (Const S : AnsiString; Var Code : ValSInt): ValUInt; [public, alias:'FPC_VAL_UINT_ANSISTR'];
 Var
   SS : ShortString;
 begin
   AnsiStr_To_ShortStr(SS,Pointer(S));
-  ValAnsiUnsigendInt := ValUnsignedInt(SS,Code);
+  ValAnsiUnsignedInt := ValUnsignedInt(SS,Code);
 end;
 
 
@@ -642,7 +642,10 @@ end;
 
 {
   $Log$
-  Revision 1.42  2000-06-11 07:02:30  peter
+  Revision 1.43  2000-07-04 07:57:46  pierre
+   * Change Code to var param in ValAnsiUnsignedInt function
+
+  Revision 1.42  2000/06/11 07:02:30  peter
     * UniqueAnsiString -> UniqueString for Delphi compatibility
 
   Revision 1.41  2000/05/18 17:04:48  peter
