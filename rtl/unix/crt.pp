@@ -1611,17 +1611,19 @@ var
   WinInfo : TWinSize;
 begin
   if Assigned(ConsoleBuf) then
-   FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
+    FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
+  ScreenWidth:=0;
+  ScreenHeight:=0;
   if (not OutputRedir) and (fpIOCtl(TextRec(Output).Handle,TIOCGWINSZ,@Wininfo)>=0) then
-   begin
-     ScreenWidth:=Wininfo.ws_col;
-     ScreenHeight:=Wininfo.ws_row;
-   end
-  else
-   begin
+    begin
+    ScreenWidth:=Wininfo.ws_col;
+    ScreenHeight:=Wininfo.ws_row;
+    end;
+  // Set some arbitrary defaults which make some sense...  
+  If (ScreenWidth=0) then
      ScreenWidth:=80;
+  If (ScreenHeight=0) then
      ScreenHeight:=25;
-   end;
   GetMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
   FillChar(ConsoleBuf^,ScreenHeight*ScreenWidth*2,0);
 end;
@@ -1681,7 +1683,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.15  2003-11-19 17:11:40  marco
+  Revision 1.16  2003-11-24 22:27:25  michael
+  + Bugfix for bug 2741
+
+  Revision 1.15  2003/11/19 17:11:40  marco
    * termio unit
 
   Revision 1.14  2003/11/17 10:05:51  marco
