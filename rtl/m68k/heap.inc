@@ -1020,8 +1020,10 @@ begin
                     end;
                end;
           end;
-        { the wanted size has to be substracted }
-        _memavail:=cal_memavail-wantedsize;
+        { the wanted size has to be substracted
+          why it will be substracted in the second try
+          to get the memory PM }
+		  _memavail:=cal_memavail;
         { set the total new heap size }
         asm
           move.l Size,d0
@@ -1074,7 +1076,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  1998-08-25 14:15:53  pierre
+  Revision 1.8  1998-09-04 17:27:09  pierre
+    * small modifications
+
+  Revision 1.7  1998/08/25 14:15:53  pierre
     * corrected a bug introduced by my last change
       (allocating 1Mb but only using a small part !!)
 
