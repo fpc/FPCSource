@@ -852,7 +852,7 @@ end;
 
 Function StartOfADay(const AYear, ADayOfYear: Word): TDateTime;
 begin
-  Result:=StartOfAYear(AYear)+ADayOfYear;
+  Result:=StartOfAYear(AYear)+ADayOfYear-1;
 end;
 
 
@@ -1996,7 +1996,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2004-09-20 15:07:19  peter
+  Revision 1.7  2004-12-29 18:28:21  michael
+  * Fixed StartOfADay
+
+  Revision 1.6  2004/09/20 15:07:19  peter
     * typo
 
   Revision 1.5  2004/09/20 06:58:59  michael
