@@ -1,0 +1,71 @@
+Från: devprograms@apple.com
+Till: <olle.raab@freepascal.org>
+Datum: måndag 10 januari 2005 22.33
+Ämne: Re: Creator Registration Request
+
+Please include the line below in follow-up emails for this request.
+
+Follow-up:  6855616
+
+Re: Creator Registration Request
+
+Dear Olle Raab,
+
+Thank you for registering your application creator information. We appreciate your continued product development and support of Apple Computer!  The following product information has been registered:
+
+Company: Free Pascal Team
+Contact: Olle Raab
+Address: Vikingavägen 28 A
+S-224 77 Lund
+Sweden
+
+
+Application: Free Pascal Compiler
+Phone: +46-46-120053
+EMail Address: olle.raab@freepascal.org
+
+Application Signatures:
+FPas  (Hex) 46506173
+
+This letter serves as your confirmation. Please keep it on file. Additionally, you should review the information for accuracy. If you locate discrepancies, please contact Developer Support at devprograms@apple.com with your corrections.
+
+Thanks for supporting Apple!
+
+Best regards,
+
+Elisa Molson
+Apple Developer Connection
+-----------------------------------
+Spotlight, 64-bit Support, Dashboard, Automator, and more.
+Start developing today with the powerful new technologies in Mac OS X Tiger.
+
+REQUEST ------------------------------------------------------------------------
+
+WEB CREATOR/FILE TYPE Registration Request
+==========================================
+%UNIQUE REGISTRATION%: 
+%NAME%: Olle Raab
+%COMPANY%: Free Pascal Team
+%ADDRESS%: Vikingavägen 28 A
+S-224 77 Lund
+Sweden
+%TELEPHONE%: +46-46-120053
+%E-MAIL%: olle.raab@freepascal.org
+%PRODUCT NAME%: Free Pascal Compiler
+%DEVICE DRIVER%: 
+%SIGNATURE (HEX)%: 46506173
+%END
+
+
+DB REFERENCE -------------------------------------------------------------------
+
+TIME IN:			10-Jan-2005  10:45 PST
+TIME OUT:		10-Jan-2005  13:16 PST
+
+Copyright 2005, Apple Computer, Inc.
+
+SECURITY: NON-DISCLOSURE USE ONLY
+
+
+
+
