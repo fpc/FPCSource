@@ -21,7 +21,7 @@ interface
 { force ansistrings }
 {$H+}
 
-{$DEFINE HAS_EXEC_ANSI}
+{$DEFINE HAS_SLEEP}
 
 uses
   Unix,errors,sysconst;
@@ -517,7 +517,25 @@ Begin
     end;
 End;
 
+procedure Sleep(milliseconds: Cardinal);
 
+Var
+  fd : Integer;
+  fds : TfdSet;
+  timeout : TimeVal;
+  
+begin
+  fd:=FileOpen('/dev/null',fmOpenRead);
+  If Not(Fd<0) then
+    begin
+    fpfd_zero(fds);
+    fpfd_set(0,fds);
+    timeout.tv_sec:=Milliseconds div 1000;
+    timeout.tv_usec:=(Milliseconds mod 1000) * 1000;
+    fpSelect(1,Nil,Nil,@fds,@timeout);
+    end;
+end;
+  
 {****************************************************************************
                               Initialization code
 ****************************************************************************}
@@ -531,7 +549,10 @@ end.
 {
 
   $Log$
-  Revision 1.29  2004-01-05 22:42:35  florian
+  Revision 1.30  2004-01-10 17:34:36  michael
+  + Implemented sleep() on Unix.
+
+  Revision 1.29  2004/01/05 22:42:35  florian
     * compilation error fixed
 
   Revision 1.28  2004/01/05 22:37:15  florian

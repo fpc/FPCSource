@@ -16,11 +16,17 @@
 { OS handling utilities }
 
 Function GetEnvironmentVariable(Const EnvVar : String) : String;
+{$IFDEF HAS_SLEEP}
+procedure Sleep(milliseconds: Cardinal);
+{$ENDIF}
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 
 {
   $Log$
-  Revision 1.3  2004-01-05 22:37:24  florian
+  Revision 1.4  2004-01-10 17:34:36  michael
+  + Implemented sleep() on Unix.
+
+  Revision 1.3  2004/01/05 22:37:24  florian
     * changed sysutils.exec to ExecuteProcess
 
   Revision 1.2  2004/01/03 08:55:58  marco
