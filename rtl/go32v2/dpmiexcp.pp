@@ -35,11 +35,15 @@ function do_faulting_finish_message : integer;
 
 { SetJmp/LongJmp }
 type
+  { must also contain exception_state !! }
+  pdpmi_jmp_buf = ^dpmi_jmp_buf;
   dpmi_jmp_buf = packed record
       eax,ebx,ecx,edx,esi,edi,ebp,esp,eip,flags : longint;
       cs,ds,es,fs,gs,ss : word;
+      sigmask : longint;        {  for POSIX signals only  }
+      signum : longint;         {  for expansion ie 386 exception number }
+      exception_ptr : pdpmi_jmp_buf;  { pointer to previous exception if exists }
   end;
-  pdpmi_jmp_buf = ^dpmi_jmp_buf;
 function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
 procedure dpmi_longjmp(var rec : dpmi_jmp_buf;return_value : longint);
 
@@ -81,16 +85,16 @@ function _raise(sig : longint) : longint;
 
 { Exceptions }
 type
+  pexception_state = ^texception_state;
   texception_state = record
     __eax, __ebx, __ecx, __edx, __esi : longint;
     __edi, __ebp, __esp, __eip, __eflags : longint;
     __cs, __ds, __es, __fs, __gs, __ss : word;
     __sigmask : longint;        {  for POSIX signals only  }
     __signum : longint;         {  for expansion  }
-    __exception_ptr : longint;  {  pointer to previous exception  }
+    __exception_ptr : pexception_state;  {  pointer to previous exception  }
     __fpu_state : array [0..108-1] of byte; {  for future use  }
   end;
-  pexception_state = ^texception_state;
 
 procedure djgpp_exception_toggle;
 procedure djgpp_exception_setup;
@@ -129,6 +133,9 @@ procedure djgpp_cbrk_hdlr;external name '___djgpp_cbrk_hdlr';
 
 var
   exceptions_on : boolean;
+  old_int00 : tseginfo;cvar;external;
+  old_int75 : tseginfo;cvar;external;
+
 const
   cbrk_vect : byte = $1b;
   exception_level : longint = 0;
@@ -162,6 +169,11 @@ end;
                               SetJmp/LongJmp
 ****************************************************************************}
 
+{ function c_setjmp(var rec : dpmi_jmp_buf) : longint;cdecl;[public, alias : '_setjmp'];
+  begin
+     c_setjmp:=dpmi_setjmp(rec);
+  end; }
+  
 function dpmi_setjmp(var rec : dpmi_jmp_buf) : longint;
 begin
   asm
@@ -204,12 +216,19 @@ begin
         pop     %edi
         { we come from the initial call }
         xorl    %eax,%eax
-        leave
-        ret $4
+        movl    %eax,__RESULT
+        { leave USING RET inside CDECL functions is risky as
+        some registers are pushed at entry
+        ret  $4 not anymore since cdecl !! }
   end;
 end;
 
 
+{procedure c_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);cdecl;[public, alias : '_longjmp'];
+  begin
+     dpmi_longjmp(rec,return_value);
+  end; }
+  
 procedure dpmi_longjmp(var  rec : dpmi_jmp_buf;return_value : longint);
 begin
   if (@rec=pdpmi_jmp_buf(djgpp_exception_state)) and (exception_level>0) then
@@ -396,7 +415,7 @@ begin
 end;
 
 
-procedure show_call_frame;
+procedure show_call_frame(djgpp_exception_state : pexception_state);
 begin
   errln('Call frame traceback EIPs:');
   errln('  0x'+hexstr(djgpp_exception_state^.__eip, 8));
@@ -545,7 +564,23 @@ begin
   dump_selector('ss', djgpp_exception_state^.__ss);
   errln('');
   if (djgpp_exception_state^.__cs = get_cs) then
-    show_call_frame;
+    show_call_frame(djgpp_exception_state)
+{$ifdef SYSTEMDEBUG}
+  else
+    errln('Exception occured in another context');
+{$endif def SYSTEMDEBUG}
+   ;
+  if assigned(djgpp_exception_state^.__exception_ptr) then
+    if (djgpp_exception_state^.__exception_ptr^.__cs = get_cs) then
+    begin
+       Errln('First exception level stack');
+       show_call_frame(djgpp_exception_state^.__exception_ptr);
+    end
+{$ifdef SYSTEMDEBUG}
+  else
+    errln('First exception occured in another context');
+{$endif def SYSTEMDEBUG}
+   ;
   { must not return !! }
   if exceptions_on then
     djgpp_exception_toggle;
@@ -566,8 +601,13 @@ procedure djgpp_exception_processor;[public,alias : '___djgpp_exception_processo
 var
   sig : longint;
 begin
-  inc(exception_level);
+  if not assigned(djgpp_exception_state^.__exception_ptr) then
+    exception_level:=1
+  else
+    inc(exception_level);
+    
   sig:=djgpp_exception_state^.__signum;
+  
   if (exception_level=1) or (sig=$78) then
     begin
        sig := except_to_sig(sig);
@@ -605,6 +645,9 @@ type
   pseginfo = ^tseginfo;
 var
   except_ori : array [0..EXCEPTIONCOUNT-1] of tseginfo;
+{$ifdef SYSTEMDEBUG}
+   export name '_ori_exceptions';
+{$endif def SYSTEMDEBUG}
   kbd_ori    : tseginfo;
   npx_ori    : tseginfo;
   cbrk_ori,
@@ -833,7 +876,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1998-12-21 14:23:12  pierre
+  dpmiexcp.pp
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.11  1998/11/17 09:42:50  pierre
