@@ -460,7 +460,7 @@ endif
 override PPOPTDEF:=$(OPTDEF) -d$(CPU)
 
 # Load commandline OPT and add target and unit dir to be sure
-override PPOPT:=$(OPT) -T$(OS_TARGET) $(NEEDOPT)
+override PPOPT:=-T$(OS_TARGET) $(NEEDOPT) $(OPT)
 
 # RTL first and then Unit dir (a unit can override RTLunit)
 ifdef RTLDIR
@@ -961,7 +961,11 @@ endif
 
 #
 # $Log$
-# Revision 1.11  1999-03-16 00:46:55  peter
+# Revision 1.12  1999-03-29 16:04:58  peter
+#   * place -T as the first parameter on the commandline so a OPT=-A can
+#     overwrite it
+#
+# Revision 1.11  1999/03/16 00:46:55  peter
 #   * makefile.fpc targets start with fpc_
 #   * small updates for install scripts
 #
