@@ -71,9 +71,15 @@ begin
   GetMem(Act, SizeOf(SigActionRec));
   GetMem(OldAct, SizeOf(SigActionRec));
 
-  Act^.handler.sh := @SIGCHLDHandler;
+  {$ifndef ver_1_0}
+    Act^.sa_handler := @SIGCHLDHandler;
+    fillchar(Act^.sa_mask,sizeof(sigset_t),#0);
+  {$else}
+    Act^.handler.sh := @SIGCHLDHandler;
+    Act^.sa_mask := 0; 
+  {$endif}
   Act^.sa_flags := SA_NOCLDSTOP {or SA_NOMASK or SA_RESTART};
-  Act^.sa_mask := 0; //Do not block all signals ??. Don't need if SA_NOMASK in flags
+			//Do not block all signals ??. Don't need if SA_NOMASK in flags
 
   SigAction(SIGCHLD, Act, OldAct);
 
@@ -284,7 +290,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:24  peter
+  Revision 1.7  2002-10-24 12:47:54  marco
+   * Fix emptying sa_mask
+
+  Revision 1.6  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
 }
