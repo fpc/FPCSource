@@ -2761,6 +2761,7 @@ procedure TCodeEditor.DelSelect;
 var LineDelta, LineCount, CurLine: Sw_integer;
     StartX,EndX,LastX: Sw_integer;
     S: string;
+    SPos : TPoint;
 begin
   if IsReadOnly or (ValidBlock=false) then Exit;
 
@@ -2773,26 +2774,36 @@ begin
     S:=GetDisplayText(CurLine);
     if LineDelta=0 then StartX:=SelStart.X else StartX:=0;
     if LineDelta=LineCount-1 then EndX:=SelEnd.X else EndX:=length(S);
-    if (LineDelta<LineCount-1) and
-       ( (StartX=0) and (EndX>=length(S)) )
-       then begin
-         DeleteLine(CurLine);
-         if CurLine>0 then LastX:=length(GetDisplayText(CurLine-1))
-            else LastX:=0;
-       end
-       else begin
-         SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)+copy(S,EndX+1,255));
-         LastX:=StartX;
-         if (StartX=0) and (0<LineDelta) and
-       not(((LineDelta=LineCount-1) and (StartX=0) and (StartX=EndX))) then
-         begin
-      S:=GetDisplayText(CurLine-1);
-      SetDisplayText(CurLine-1,S+GetLineText(CurLine));
-      DeleteLine(CurLine);
-      LastX:=length(S);
-         end else
+    if (LineDelta<LineCount-1) and ((StartX=0) and (EndX>=length(S))) then
+      begin
+      { delete the complete line }
+        DeleteLine(CurLine);
+        if CurLine>0 then
+          LastX:=length(GetDisplayText(CurLine-1))
+        else
+          LastX:=0;
+      end
+    else
+      begin
+        if StoreUndo then
+          begin
+            SPos.X:=StartX;
+            SPos.Y:=CurLine;
+            AddAction(eaDeleteText,SPos,SPos,Copy(S,StartX+1,EndX-StartX));
+          end;
+        SetDisplayText(CurLine,RExpand(copy(S,1,StartX),StartX)+copy(S,EndX+1,255));
+        LastX:=StartX;
+        if (StartX=0) and (0<LineDelta) and
+           not(((LineDelta=LineCount-1) and (StartX=0) and (StartX=EndX))) then
+          begin
+            S:=GetDisplayText(CurLine-1);
+            SetDisplayText(CurLine-1,S+GetLineText(CurLine));
+            DeleteLine(CurLine);
+            LastX:=length(S);
+          end
+        else
          Inc(CurLine);
-       end;
+      end;
     Inc(LineDelta);
   end;
   HideSelect;
@@ -4923,7 +4934,7 @@ end;
 
 function TFileEditor.IsChangedOnDisk : boolean;
 begin
-  IsChangedOnDisk:=OnDiskLoadTime<>GetFileTime(FileName);
+  IsChangedOnDisk:=(OnDiskLoadTime<>GetFileTime(FileName)) and (OnDiskLoadTime<>-1);
 end;
 
 function TFileEditor.SaveFile: boolean;
@@ -4980,6 +4991,8 @@ begin
   begin
     FileName := FExpand(FileName);
     Message(Owner, evBroadcast, cmUpdateTitle, @Self);
+    { if we rename the file the OnDiskLoadTime is wrong so we reset it }
+    OnDiskLoadTime:=-1;
     SaveAs := SaveFile;
     if IsClipboard then FileName := '';
     Message(Application,evBroadcast,cmFileNameChanged,@Self);
@@ -5418,7 +5431,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.67  2000-01-03 11:38:35  michael
+  Revision 1.68  2000-01-04 12:33:08  pierre
+    * reinserted version 1.66 lost changes
+    + CtrlT Undo works now !
+
+  Revision 1.67  2000/01/03 11:38:35  michael
   Changes from Gabor
 
   Revision 1.65  1999/12/08 16:02:46  pierre
