@@ -37,15 +37,9 @@ const
       cmReadBlock            = 51246;
       cmPrintBlock           = 51247;
 
-{$ifdef FPC}
-      EditorTextBufSize = 32768;
-      MaxLineLength = 255;
-      MaxLineCount  = 16380;
-{$else}
-      EditorTextBufSize = 4096;
-      MaxLineLength = 255;
-      MaxLineCount  = 16380;
-{$endif}
+      EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
+      MaxLineLength     = {$ifdef FPC}  255{$else}  255{$endif};
+      MaxLineCount      = {$ifdef FPC}16380{$else}16380{$endif};
 
       efBackupFiles         = $00000001;
       efInsertMode          = $00000002;
@@ -59,6 +53,7 @@ const
       efHighlightColumn     = $00000200;
       efHighlightRow        = $00000400;
       efAutoBrackets        = $00000800;
+      efStoreContent        = $80000000;
 
       attrAsm       = 1;
       attrComment   = 2;
@@ -220,9 +215,10 @@ type
       procedure   LimitsChanged; virtual;
       procedure   SelectionChanged; virtual;
       procedure   HighlightChanged; virtual;
+      procedure   Update; virtual;
       procedure   ScrollTo(X, Y: sw_Integer);
       procedure   SetInsertMode(InsertMode: boolean); virtual;
-      procedure   SetCurPtr(X, Y: sw_Integer); virtual;
+      procedure   SetCurPtr(X,Y: sw_integer); virtual;
       procedure   SetSelection(A, B: TPoint); virtual;
       procedure   SetHighlight(A, B: TPoint); virtual;
       procedure   SetHighlightRow(Row: sw_integer); virtual;
@@ -233,6 +229,8 @@ type
       function    IsClipboard: Boolean;
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
+      function    LoadFromStream(Stream: PStream): boolean; virtual;
+      function    SaveToStream(Stream: PStream): boolean; virtual;
       destructor  Done; virtual;
     public
       { Text & info storage abstraction }
@@ -264,6 +262,7 @@ type
       Bookmarks   : array[0..9] of TEditorBookmark;
       LockFlag    : integer;
       DrawCalled  : boolean;
+      CurEvent    : PEvent;
       function    Overwrite: boolean;
       function    GetLine(I: sw_integer): PLine;
       procedure   CheckSels;
@@ -272,6 +271,7 @@ type
       procedure   DrawLines(FirstLine: sw_integer);
       procedure   HideHighlight;
       procedure   AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText: string);
+      function    ShouldExtend: boolean;
       function    ValidBlock: boolean;
     public
      { Syntax highlight support }
@@ -1050,7 +1050,7 @@ end;
 *****************************************************************************}
 
 constructor TCodeEditor.Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-          PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
+          PScrollBar; AIndicator: PIndicator; ABufSize:Sw_Word);
 begin
   inherited Init(Bounds,AHScrollBar,AVScrollBar);
   StoreUndo:=false;
@@ -1105,7 +1105,7 @@ procedure TCodeEditor.UnLock;
 begin
 {$ifdef DEBUG}
   if lockflag=0 then
-    messagebox('Error: negative lockflag',nil,mferror+mfcancelbutton)
+    Bug('negative lockflag',nil)
   else
 {$endif DEBUG}
     Dec(LockFlag);
@@ -1212,7 +1212,7 @@ var
 begin
   if Event.What = evKeyDown then
   begin
-    if (GetShiftState and kbShift <> 0) and
+    if (Event.KeyShift and kbShift <> 0) and
       (Event.ScanCode >= $47) and (Event.ScanCode <= $51) then
       Event.CharCode := #0;
     Key := Event.KeyCode;
@@ -1259,7 +1259,10 @@ var DontClear : boolean;
 
 var
   StartP,P: TPoint;
+  E: TEvent;
 begin
+  E:=Event;
+  CurEvent:=@E;
   if (InASCIIMode=false) or (Event.What<>evKeyDown) then
     ConvertEvent(Event);
   case Event.What of
@@ -1380,6 +1383,8 @@ begin
       end;
     evBroadcast :
       case Event.Command of
+        cmUpdate :
+          Update;
         cmClearLineHighlights :
           SetHighlightRow(-1);
         cmScrollBarChanged:
@@ -1392,6 +1397,15 @@ begin
       end;
   end;
   inherited HandleEvent(Event);
+  CurEvent:=nil;
+end;
+
+procedure TCodeEditor.Update;
+begin
+  LimitsChanged;
+  SelectionChanged; HighlightChanged;
+  UpdateIndicator;
+  DrawView;
 end;
 
 function TCodeEditor.GetLocalMenu: PMenu;
@@ -2340,6 +2354,7 @@ var LineDelta, LineCount, CurLine: Sw_integer;
 begin
   if IsReadOnly then Exit;
   if (SelStart.X=SelEnd.X) and (SelStart.Y=SelEnd.Y) then Exit;
+  Lock;
   LineCount:=(SelEnd.Y-SelStart.Y)+1;
   LineDelta:=0; LastX:=CurPos.X;
   CurLine:=SelStart.Y;
@@ -2376,11 +2391,13 @@ begin
   DrawLines(CurPos.Y);
   Modified:=true;
   UpdateIndicator;
+  UnLock;
 end;
 
 procedure TCodeEditor.HideSelect;
 begin
   SetSelection(CurPos,CurPos);
+  DrawLines(Delta.Y);
 end;
 
 procedure TCodeEditor.CopyBlock;
@@ -2901,9 +2918,14 @@ end;
   because GetShitState tells to extend the
   selection which gives wrong results (PM) }
 
-function ShouldExtend : boolean;
+function TCodeEditor.ShouldExtend: boolean;
+var ShiftInEvent: boolean;
 begin
-  ShouldExtend:=((GetShiftState and kbShift)<>0) and
+  ShiftInEvent:=false;
+  if Assigned(CurEvent) then
+    if CurEvent^.What=evKeyDown then
+      ShiftInEvent:=((CurEvent^.KeyShift and kbShift)<>0);
+  ShouldExtend:=ShiftInEvent and
     not DontConsiderShiftState;
 end;
 
@@ -2988,7 +3010,9 @@ var
 
   var MatchedSymbol: boolean;
       MatchingSymbol: string;
-  function MatchesAnySpecSymbol(What: string; SClass: TSpecSymbolClass; PartialMatch, CaseInsensitive: boolean): boolean;
+  type TPartialType = (pmNone,pmLeft,pmRight,pmAny);
+  function MatchesAnySpecSymbol(What: string; SClass: TSpecSymbolClass; PartialMatch: TPartialType;
+           CaseInsensitive: boolean): boolean;
   var S: string;
       I: Sw_integer;
       Match,Found: boolean;
@@ -3001,12 +3025,25 @@ var
     begin
       SymbolIndex:=I;
       S:=GetSpecSymbol(SClass,I-1);
-      if CaseInsensitive then
-        S:=UpcaseStr(S);
-      if PartialMatch then Match:=MatchSymbol(What,S)
-            else Match:=What=S;
+      if (length(What)<length(S)) or
+         ((PartialMatch=pmNone) and (length(S)<>length(What)))
+          then
+        Match:=false
+      else
+        begin
+          if CaseInsensitive then
+            S:=UpcaseStr(S);
+          case PartialMatch of
+            pmNone : Match:=What=S;
+            pmRight:
+              Match:=copy(What,length(What)-length(S)+1,length(S))=S;
+          else Match:=MatchSymbol(What,S);
+          end;
+        end;
       if Match then
-    begin MatchingSymbol:=S; Found:=true; Break; end;
+      begin
+        MatchingSymbol:=S; Found:=true; Break;
+      end;
     end;
     MatchedSymbol:=MatchedSymbol or Found;
     MatchesAnySpecSymbol:=Found;
@@ -3014,48 +3051,48 @@ var
 
   function IsCommentPrefix: boolean;
   begin
-    IsCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentPrefix,true,false);
+    IsCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentPrefix,pmLeft,false);
   end;
 
   function IsSingleLineCommentPrefix: boolean;
   begin
-    IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSingleLinePrefix,true,false);
+    IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSingleLinePrefix,pmLeft,false);
   end;
 
   function IsCommentSuffix: boolean;
   begin
-    IsCommentSuffix:=(MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,true,false))
+    IsCommentSuffix:=(MatchesAnySpecSymbol(SymbolConcat,ssCommentSuffix,pmRight,false))
       and (CurrentCommentType=SymbolIndex);
   end;
 
   function IsStringPrefix: boolean;
   begin
-    IsStringPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssStringPrefix,true,false);
+    IsStringPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssStringPrefix,pmLeft,false);
   end;
 
   function IsStringSuffix: boolean;
   begin
-    IsStringSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssStringSuffix,true,false);
+    IsStringSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssStringSuffix,pmRight,false);
   end;
 
   function IsDirectivePrefix: boolean;
   begin
-    IsDirectivePrefix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectivePrefix,true,false);
+    IsDirectivePrefix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectivePrefix,pmLeft,false);
   end;
 
   function IsDirectiveSuffix: boolean;
   begin
-    IsDirectiveSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectiveSuffix,true,false);
+    IsDirectiveSuffix:=MatchesAnySpecSymbol(SymbolConcat,ssDirectiveSuffix,pmRight,false);
   end;
 
   function IsAsmPrefix(const WordS: string): boolean;
   begin
-    IsAsmPrefix:=MatchesAnySpecSymbol(WordS,ssAsmPrefix,false,true);
+    IsAsmPrefix:=MatchesAnySpecSymbol(WordS,ssAsmPrefix,pmNone,true);
   end;
 
   function IsAsmSuffix(const WordS: string): boolean;
   begin
-    IsAsmSuffix:=MatchesAnySpecSymbol(WordS,ssAsmSuffix,false,true);
+    IsAsmSuffix:=MatchesAnySpecSymbol(WordS,ssAsmSuffix,pmNone,true);
   end;
 
   function GetCharClass(C: char): TCharClass;
@@ -3263,6 +3300,7 @@ end;
 
 procedure TCodeEditor.DrawLines(FirstLine: sw_integer);
 begin
+  if FirstLine>=(Delta.Y+Size.Y) then Exit; { falls outside of the screen }
   DrawView;
 end;
 
@@ -3409,6 +3447,12 @@ end;
 procedure TCodeEditor.SelectionChanged;
 var Enable,CanPaste: boolean;
 begin
+  if SelEnd.Y>GetLineCount-1 then
+    begin
+      SelEnd.Y:=GetLineCount-1;
+      SelEnd.X:=length(GetDisplayText(SelEnd.Y));
+    end;
+
   Enable:=((SelStart.X<>SelEnd.X) or (SelStart.Y<>SelEnd.Y)) and (Clipboard<>nil);
   SetCmdState(ToClipCmds,Enable and (Clipboard<>@Self));
   SetCmdState(NulClipCmds,Enable);
@@ -3437,6 +3481,8 @@ begin
 end;
 
 constructor TCodeEditor.Load(var S: TStream);
+var TS: PSubStream;
+    TSize: longint;
 begin
   inherited Load(S);
 
@@ -3446,6 +3492,17 @@ begin
   Lines^.Insert(NewLine(''));
 
   GetPeerViewPtr(S,Indicator);
+  S.Read(Flags,SizeOf(Flags));
+  S.Read(TabSize,SizeOf(TabSize));
+
+  if (Flags and efStoreContent)<>0 then
+    begin
+      S.Read(TSize,SizeOf(TSize));
+      New(TS, Init(@S,S.GetPos,TSize));
+      LoadFromStream(TS);
+      Dispose(TS, Done);
+    end;
+
   S.Read(SelStart,SizeOf(SelStart));
   S.Read(SelEnd,SizeOf(SelEnd));
   S.Read(Highlight,SizeOf(Highlight));
@@ -3453,17 +3510,34 @@ begin
   S.Read(StoreUndo,SizeOf(StoreUndo));
   S.Read(IsReadOnly,SizeOf(IsReadOnly));
   S.Read(NoSelect,SizeOf(NoSelect));
-  S.Read(Flags,SizeOf(Flags));
-  S.Read(TabSize,SizeOf(TabSize));
   S.Read(HighlightRow,SizeOf(HighlightRow));
 
-  UpdateIndicator; LimitsChanged;
+  LimitsChanged;
+  SelectionChanged; HighlightChanged;
+  UpdateIndicator;
 end;
 
 procedure TCodeEditor.Store(var S: TStream);
+var NS: TNulStream;
+    TSize: longint;
 begin
   inherited Store(S);
+
   PutPeerViewPtr(S,Indicator);
+  S.Write(Flags,SizeOf(Flags));
+  S.Write(TabSize,SizeOf(TabSize));
+
+  if (Flags and efStoreContent)<>0 then
+    begin
+      NS.Init;
+      SaveToStream(@NS);
+      TSize:=NS.GetSize;
+      NS.Done;
+
+      S.Write(TSize,SizeOf(TSize));
+      SaveToStream(@S);
+    end;
+
   S.Write(SelStart,SizeOf(SelStart));
   S.Write(SelEnd,SizeOf(SelEnd));
   S.Write(Highlight,SizeOf(Highlight));
@@ -3471,9 +3545,53 @@ begin
   S.Write(StoreUndo,SizeOf(StoreUndo));
   S.Write(IsReadOnly,SizeOf(IsReadOnly));
   S.Write(NoSelect,SizeOf(NoSelect));
-  S.Write(Flags,SizeOf(Flags));
-  S.Write(TabSize,SizeOf(TabSize));
   S.Write(HighlightRow,SizeOf(HighlightRow));
+end;
+
+function TCodeEditor.LoadFromStream(Stream: PStream): boolean;
+var S: string;
+    OK: boolean;
+    Line: Sw_integer;
+begin
+  DeleteAllLines;
+  OK:=(Stream^.Status=stOK);
+  if eofstream(Stream) then
+   AddLine('')
+  else
+   while OK and (eofstream(Stream)=false) and (GetLineCount<MaxLineCount) do
+   begin
+     readlnfromstream(Stream,S);
+     OK:=OK and (Stream^.Status=stOK);
+     if OK then AddLine(S);
+   end;
+  LimitsChanged;
+  if (Flags and efSyntaxHighlight)<>0 then
+    UpdateAttrsRange(0,GetLineCount-1,attrAll+attrForceFull);
+  TextStart;
+  LoadFromStream:=OK;
+end;
+
+function TCodeEditor.SaveToStream(Stream: PStream): boolean;
+var S: string;
+    OK: boolean;
+    Line: Sw_integer;
+    P: PLine;
+    EOL: string[2];
+begin
+  {$ifdef Linux}EOL:=#10;{$else}EOL:=#13#10;{$endif}
+  OK:=(Stream^.Status=stOK); Line:=0;
+  while OK and (Line<GetLineCount) do
+  begin
+    P:=Lines^.At(Line);
+    if P^.Text=nil then S:='' else S:=P^.Text^;
+    if (Flags and efUseTabCharacters)<>0 then
+      S:=CompressUsingTabs(S,TabSize);
+    Stream^.Write(S[1],length(S));
+    Stream^.Write(EOL[1],length(EOL));
+    Inc(Line);
+    OK:=OK and (Stream^.Status=stOK);
+  end;
+  SaveToStream:=OK;
 end;
 
 destructor TCodeEditor.Done;
@@ -3500,7 +3618,7 @@ begin
   Message(@Self,evBroadcast,cmFileNameChanged,@Self);
 end;
 
-function TFileEditor.LoadFile: boolean;
+(*function TFileEditor.LoadFile: boolean;
 var S: string;
     OK: boolean;
     f: text;
@@ -3510,6 +3628,7 @@ begin
   DeleteAllLines;
   GetMem(Buf,EditorTextBufSize);
 {$I-}
+  EatIO;
   FM:=FileMode; FileMode:=0;
   Assign(f,FileName);
   SetTextBuf(f,Buf^,EditorTextBufSize);
@@ -3529,25 +3648,31 @@ begin
   EatIO;
 {$I+}
   LimitsChanged;
-  Line:=-1;
-  repeat
-    Line:=UpdateAttrs(Line+1,attrAll+attrForceFull);
-  until Line>=GetLineCount-1;
+  if (Flags and efSyntaxHighlight)<>0 then
+    UpdateAttrsRange(0,GetLineCount-1,attrAll+attrForceFull);
   TextStart;
   LoadFile:=OK;
   FreeMem(Buf,EditorTextBufSize);
+end;*)
+
+function TFileEditor.LoadFile: boolean;
+var S: PBufStream;
+    OK: boolean;
+begin
+  New(S, Init(FileName,stOpenRead,EditorTextBufSize));
+  OK:=Assigned(S);
+  if OK then OK:=LoadFromStream(S);
+  if Assigned(S) then Dispose(S, Done);
+
+  LoadFile:=OK;
 end;
 
 function TFileEditor.SaveFile: boolean;
-var S: string;
-    OK: boolean;
-    f: text;
-    Line: Sw_integer;
-    P: PLine;
+var OK: boolean;
     BAKName: string;
-    Buf : Pointer;
+    S: PBufStream;
+    f: text;
 begin
-  GetMem(Buf,EditorTextBufSize);
 {$I-}
   if (Flags and efBackupFiles)<>0 then
   begin
@@ -3559,26 +3684,13 @@ begin
      Rename(F,BAKName);
      EatIO;
   end;
-  Assign(f,FileName);
-  Rewrite(f);
-  SetTextBuf(f,Buf^,EditorTextBufSize);
-  OK:=(IOResult=0); Line:=0;
-  while OK and (Line<GetLineCount) do
-  begin
-    P:=Lines^.At(Line);
-    if P^.Text=nil then S:='' else S:=P^.Text^;
-    if (Flags and efUseTabCharacters)<>0 then
-      S:=CompressUsingTabs(S,TabSize);
-    writeln(f,S);
-    Inc(Line);
-    OK:=OK and (IOResult=0);
-  end;
-  Close(F);
-  EatIO;
 {$I+}
+  New(S, Init(FileName,stCreate,EditorTextBufSize));
+  OK:=Assigned(S);
+  if OK then OK:=SaveToStream(S);
+  if Assigned(S) then Dispose(S, Done);
   if OK then begin Modified:=false; UpdateIndicator; end;
   SaveFile:=OK;
-  FreeMem(Buf,EditorTextBufSize);
 end;
 
 function TFileEditor.ShouldSave: boolean;
@@ -3661,6 +3773,8 @@ end;
 
 constructor TFileEditor.Load(var S: TStream);
 var P: PString;
+    SSP,SEP,CP,DP: TPoint;
+    HR: TRect;
 begin
   inherited Load(S);
   P:=S.ReadStr;
@@ -3668,7 +3782,23 @@ begin
   if P<>nil then DisposeStr(P);
 
   UpdateIndicator;
-  Message(@Self,evBroadcast,cmFileNameChanged,@Self);
+{  Message(@Self,evBroadcast,cmFileNameChanged,@Self);}
+
+  SSP:=SelStart; SEP:=SelEnd;
+  CP:=CurPos;
+  HR:=Highlight;
+  DP:=Delta;
+
+  if FileName<>'' then
+    LoadFile;
+
+  SetHighlight(HR.A,HR.B);
+  SetSelection(SSP,SEP);
+  SetCurPtr(CP.X,CP.Y);
+  ScrollTo(DP.X,DP.Y);
+  Modified:=false;
+
+  LimitsChanged; UpdateIndicator;
 end;
 
 procedure TFileEditor.Store(var S: TStream);
@@ -3676,7 +3806,6 @@ begin
   inherited Store(S);
   S.WriteStr(@FileName);
 end;
-
 
 function CreateFindDialog: PDialog;
 var R,R1,R2: TRect;
@@ -3959,7 +4088,29 @@ end;
 END.
 {
   $Log$
-  Revision 1.39  1999-07-28 23:11:26  peter
+  Revision 1.40  1999-08-03 20:22:42  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.39  1999/07/28 23:11:26  peter
     * fixes from gabor
 
   Revision 1.38  1999/07/12 13:14:24  pierre

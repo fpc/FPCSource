@@ -38,6 +38,16 @@ type
     procedure FreeItem(Item: Pointer); virtual;
   end;
 
+  PNulStream = ^TNulStream;
+  TNulStream = object(TStream)
+    constructor Init;
+    function    GetPos: Longint; virtual;
+    function    GetSize: Longint; virtual;
+    procedure   Read(var Buf; Count: Word); virtual;
+    procedure   Seek(Pos: Longint); virtual;
+    procedure   Write(var Buf; Count: Word); virtual;
+  end;
+
   PSubStream = ^TSubStream;
   TSubStream = object(TStream)
     constructor Init(AStream: PStream; AStartPos, ASize: longint);
@@ -48,7 +58,6 @@ type
     procedure   Write(var Buf; Count: Word); virtual;
   private
     StartPos: longint;
-    Size    : longint;
     S       : PStream;
   end;
 
@@ -56,6 +65,8 @@ type
   procedure readln(var t:text;var s:string);
 {$endif}
 
+procedure readlnfromstream(Stream: PStream; var s:string);
+function eofstream(s: pstream): boolean;
 
 function Min(A,B: longint): longint;
 function Max(A,B: longint): longint;
@@ -118,6 +129,32 @@ uses
      end;
   end;
 {$endif}
+
+function eofstream(s: pstream): boolean;
+begin
+  eofstream:=(s^.getpos>=s^.getsize);
+end;
+
+procedure readlnfromstream(Stream: PStream; var S:string);
+  var
+    c : char;
+    i : longint;
+  begin
+    c:=#0;
+    i:=0;
+    while (not eofstream(stream)) and (c<>#10) do
+     begin
+       stream^.read(c,sizeof(c));
+       if c<>#10 then
+        begin
+          inc(i);
+          s[i]:=c;
+        end;
+     end;
+    if (i>0) and (s[i]=#13) then
+      dec(i);
+    s[0]:=chr(i);
+  end;
 
 
 function Max(A,B: longint): longint;
@@ -303,23 +340,56 @@ begin
   if Item<>nil then DisposeStr(Item);
 end;
 
+constructor TNulStream.Init;
+begin
+  inherited Init;
+  Position:=0;
+end;
+
+function TNulStream.GetPos: Longint;
+begin
+  GetPos:=Position;
+end;
+
+function TNulStream.GetSize: Longint;
+begin
+  GetSize:=Position;
+end;
+
+procedure TNulStream.Read(var Buf; Count: Word);
+begin
+  Error(stReadError,0);
+end;
+
+procedure TNulStream.Seek(Pos: Longint);
+begin
+  if Pos<=Position then
+    Position:=Pos;
+end;
+
+procedure TNulStream.Write(var Buf; Count: Word);
+begin
+  Inc(Position,Count);
+end;
+
 constructor TSubStream.Init(AStream: PStream; AStartPos, ASize: longint);
 begin
   inherited Init;
-  S:=AStream; StartPos:=AStartPos; Size:=ASize;
-  inherited Seek(StartPos);
+  if Assigned(AStream)=false then Fail;
+  S:=AStream; StartPos:=AStartPos; StreamSize:=ASize;
+  Seek(0);
 end;
 
 function TSubStream.GetPos: Longint;
 var Pos: longint;
 begin
-  Pos:=inherited GetPos; Dec(Pos,StartPos);
+  Pos:=S^.GetPos; Dec(Pos,StartPos);
   GetPos:=Pos;
 end;
 
 function TSubStream.GetSize: Longint;
 begin
-  GetSize:=Size;
+  GetSize:=StreamSize;
 end;
 
 procedure TSubStream.Read(var Buf; Count: Word);
@@ -327,8 +397,8 @@ var Pos: longint;
     RCount: word;
 begin
   Pos:=GetPos;
-  if Pos+Count>Size then RCount:=Size-Pos else RCount:=Count;
-  inherited Read(Buf,RCount);
+  if Pos+Count>StreamSize then RCount:=StreamSize-Pos else RCount:=Count;
+  S^.Read(Buf,RCount);
   if RCount<Count then
     Error(stReadError,0);
 end;
@@ -336,19 +406,41 @@ end;
 procedure TSubStream.Seek(Pos: Longint);
 var RPos: longint;
 begin
-  if (Pos<=Size) then RPos:=Pos else RPos:=Size;
-  inherited Seek(StartPos+RPos);
+  if (Pos<=StreamSize) then RPos:=Pos else RPos:=StreamSize;
+  S^.Seek(StartPos+RPos);
 end;
 
 procedure TSubStream.Write(var Buf; Count: Word);
 begin
-  inherited Write(Buf,Count);
+  S^.Write(Buf,Count);
 end;
 
 END.
 {
   $Log$
-  Revision 1.4  1999-04-07 21:56:06  peter
+  Revision 1.5  1999-08-03 20:22:45  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.4  1999/04/07 21:56:06  peter
     + object support for browser
     * html help fixes
     * more desktop saving things

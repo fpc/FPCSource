@@ -32,7 +32,8 @@ uses
   WViews,
   FPIDE,FPCalc,FPCompile,
   FPIni,FPViews,FPConst,FPVars,FPUtils,FPHelp,FPSwitch,FPUsrScr,
-  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk;
+  FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPTemplt,FPCatch,FPRedir,FPDesk,
+  FPSymbol;
 
 
 procedure ProcessParams(BeforeINI: boolean);
@@ -81,16 +82,19 @@ end;
 Procedure MyStreamError(Var S: TStream); {$ifndef FPC}far;{$endif}
 var ErrS: string;
 begin
-  {$ifdef GABOR}{$ifdef TP}asm int 3;end;{$endif}{$endif}
   case S.Status of
     stGetError : ErrS:='Get of unregistered object type';
     stPutError : ErrS:='Put of unregistered object type';
   else ErrS:='';
   end;
-  if Assigned(Application) then
-    ErrorBox('Stream error: '+#13+ErrS,nil)
-  else
-    writeln('Error: ',ErrS);
+  if ErrS<>'' then
+  begin
+    {$ifdef GABOR}{$ifdef TP}asm int 3;end;{$endif}{$endif}
+    if Assigned(Application) then
+      ErrorBox('Stream error: '+#13+ErrS,nil)
+    else
+      writeln('Error: ',ErrS);
+  end;
 end;
 
 procedure RegisterIDEObjects;
@@ -111,6 +115,7 @@ begin
   RegisterFPViews;
   RegisterMenus;
   RegisterStdDlg;
+  RegisterSymbols;
   RegisterObjects;
   RegisterValidate;
   RegisterViews;
@@ -160,18 +165,12 @@ BEGIN
   ProcessParams(false);
 
   repeat
-  MyApp.Run;
+    MyApp.Run;
     if (AutoSaveOptions and asEditorFiles)=0 then CanExit:=true else
       CanExit:=MyApp.SaveAll;
   until CanExit;
 
-  { must be written before done for open files }
-  if (AutoSaveOptions and asEnvironment)<>0 then
-    if WriteINIFile=false then
-      ErrorBox('Error saving configuration.',nil);
-  if (AutoSaveOptions and asDesktop)<>0 then
-    if SaveDesktop=false then
-      ErrorBox('Error saving desktop.',nil);
+  MyApp.AutoSave;
 
   DoneDesktopFile;
 
@@ -196,7 +195,29 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.28  1999-07-10 01:24:11  pierre
+  Revision 1.29  1999-08-03 20:22:25  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.28  1999/07/10 01:24:11  pierre
    + First implementation of watches window
 
   Revision 1.27  1999/06/29 22:43:12  peter

@@ -1869,7 +1869,7 @@ end;
 procedure InitDebugger;
 begin
 {$ifdef DEBUG}
-  Assign(gdb_file,'gdb$$$.out');
+  Assign(gdb_file,GDBOutFileName);
   Rewrite(gdb_file);
   Use_gdb_file:=true;
 {$endif}
@@ -1952,7 +1952,29 @@ end.
 
 {
   $Log$
-  Revision 1.23  1999-07-28 23:11:17  peter
+  Revision 1.24  1999-08-03 20:22:28  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.23  1999/07/28 23:11:17  peter
     * fixes from gabor
 
   Revision 1.22  1999/07/12 13:14:15  pierre

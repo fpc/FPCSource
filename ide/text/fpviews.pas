@@ -55,8 +55,11 @@ type
 
     TFPWindow = object(TWindow)
       AutoNumber: boolean;
-      procedure HandleEvent(var Event: TEvent); virtual;
-      procedure SetState(AState: Word; Enable: Boolean); virtual;
+      procedure   HandleEvent(var Event: TEvent); virtual;
+      procedure   SetState(AState: Word; Enable: Boolean); virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
+      procedure   Update;
     end;
 
     PFPHelpViewer = ^TFPHelpViewer;
@@ -73,6 +76,8 @@ type
       procedure   Hide; virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
       function    GetPalette: PPalette; virtual;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
     end;
 
     PTextScroller = ^TTextScroller;
@@ -241,6 +246,7 @@ type
       function    AtTab(Index: integer): PTabDef; virtual;
       procedure   SelectTab(Index: integer); virtual;
       function    TabCount: integer;
+      procedure   SelectNextTab(Forwards: boolean);
       function    Valid(Command: Word): Boolean; virtual;
       procedure   ChangeBounds(var Bounds: TRect); virtual;
       procedure   HandleEvent(var Event: TEvent); virtual;
@@ -291,6 +297,12 @@ type
       function    GetText(Item: pointer; MaxLen: sw_integer): string; virtual;
     end;
 
+    PFPDesktop = ^TFPDesktop;
+    TFPDesktop = object(TDesktop)
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
+    end;
+
 function  SearchFreeWindowNo: integer;
 
 function IsThereAnyEditor: boolean;
@@ -331,7 +343,7 @@ const
 
       CalcClipboard   : extended = 0;
 
-      OpenFileName    : string = '';
+      OpenFileName    : string{$ifdef GABOR}[50]{$endif} = '';
       OpenFileLastExt : string[12] = '*.pas';
       NewEditorOpened : boolean = false;
 
@@ -353,7 +365,8 @@ uses
   gdbint,
 {$endif NODEBUG}
   {$ifdef VESA}Vesa,{$endif}
-  FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp;
+  FPSwitch,FPSymbol,FPDebug,FPVars,FPUtils,FPCompile,FPHelp,
+  FPTools;
 
 const
   RSourceEditor: TStreamRec = (
@@ -391,6 +404,12 @@ const
      VmtLink: Ofs(TypeOf(TMessageListBox)^);
      Load:    @TMessageListBox.Load;
      Store:   @TMessageListBox.Store
+  );
+  RFPDesktop: TStreamRec = (
+     ObjType: 1506;
+     VmtLink: Ofs(TypeOf(TFPDesktop)^);
+     Load:    @TFPDesktop.Load;
+     Store:   @TFPDesktop.Store
   );
 
 
@@ -829,19 +848,37 @@ begin
         Number:=0;
 end;
 
+procedure TFPWindow.Update;
+begin
+  ReDraw;
+end;
+
 procedure TFPWindow.HandleEvent(var Event: TEvent);
 begin
   case Event.What of
     evBroadcast :
       case Event.Command of
         cmUpdate :
-          ReDraw;
+          Update;
         cmSearchWindow+1..cmSearchWindow+99 :
           if (Event.Command-cmSearchWindow=Number) then
               ClearEvent(Event);
       end;
   end;
   inherited HandleEvent(Event);
+end;
+
+
+constructor TFPWindow.Load(var S: TStream);
+begin
+  inherited Load(S);
+  S.Read(AutoNumber,SizeOf(AutoNumber));
+end;
+
+procedure TFPWindow.Store(var S: TStream);
+begin
+  inherited Store(S);
+  S.Write(AutoNumber,SizeOf(AutoNumber));
 end;
 
 function TFPHelpViewer.GetLocalMenu: PMenu;
@@ -915,6 +952,16 @@ function TFPHelpWindow.GetPalette: PPalette;
 const P: string[length(CIDEHelpDialog)] = CIDEHelpDialog;
 begin
   GetPalette:=@P;
+end;
+
+constructor TFPHelpWindow.Load(var S: TStream);
+begin
+  Abstract;
+end;
+
+procedure TFPHelpWindow.Store(var S: TStream);
+begin
+  Abstract;
 end;
 
 constructor TSourceWindow.Init(var Bounds: TRect; AFileName: string);
@@ -1505,14 +1552,16 @@ end;
 
 procedure TMessageListBox.Store(var S: TStream);
 var OL: PCollection;
+    ORV: sw_integer;
 begin
-  OL:=List;
-  New(List, Init(1,1));
+  OL:=List; ORV:=Range;
+
+  New(List, Init(1,1)); Range:=0;
 
   inherited Store(S);
 
   Dispose(List, Done);
-  List:=OL;
+  List:=OL; Range:=ORV;
   { ^^^ nasty trick - has anyone a better idea how to avoid storing the
     collection? Pasting here a modified version of TListBox.Store+
     TAdvancedListBox.Store isn't a better solution, since by eventually
@@ -1788,6 +1837,17 @@ begin
     end;
 end;
 
+procedure TTab.SelectNextTab(Forwards: boolean);
+var Index: integer;
+begin
+  Index:=ActiveDef;
+  if Index=-1 then Exit;
+  if Forwards then Inc(Index) else Dec(Index);
+  if Index<0 then Index:=DefCount-1 else
+  if Index>DefCount-1 then Index:=0;
+  SelectTab(Index);
+end;
+
 procedure TTab.HandleEvent(var Event: TEvent);
 var Index : integer;
     I     : integer;
@@ -1841,6 +1901,11 @@ begin
      begin
        Index:=-1;
        case Event.KeyCode of
+            kbCtrlTab :
+              begin
+                SelectNextTab((Event.KeyShift and kbShift)=0);
+                ClearEvent(Event);
+              end;
             kbTab,kbShiftTab  :
               if GetState(sfSelected) then
                  begin
@@ -2581,6 +2646,16 @@ begin
   GetText:=copy(S,1,MaxLen);
 end;
 
+constructor TFPDesktop.Load(var S: TStream);
+begin
+  inherited Load(S);
+end;
+
+procedure TFPDesktop.Store(var S: TStream);
+begin
+  inherited Store(S);
+end;
+
 {$ifdef VESA}
 function VESASetVideoModeProc(const VideoMode: TVideoMode; Params: Longint): Boolean; {$ifndef FPC}far;{$endif}
 begin
@@ -2618,13 +2693,36 @@ begin
   RegisterType(RFPHelpWindow);
   RegisterType(RClipboardWindow);
   RegisterType(RMessageListBox);
+  RegisterType(RFPDesktop);
 end;
 
 
 END.
 {
   $Log$
-  Revision 1.35  1999-07-12 13:14:22  pierre
+  Revision 1.36  1999-08-03 20:22:39  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.35  1999/07/12 13:14:22  pierre
     * LineEnd bug corrected, now goes end of text even if selected
     + Until Return for debugger
     + Code for Quit inside GDB Window

@@ -108,10 +108,16 @@ const
 
 function FormatPath(Path: string): string;
 var P: sw_integer;
+    SC: char;
 begin
+  if DirSep='/' then
+    SC:='\'
+  else
+    SC:='/';
+
   repeat
-    if DirSep='/' then P:=Pos('\',Path)
-                  else P:=Pos('/',Path);
+    P:=Pos(SC,Path);
+    if Path[P]<>SC then P:=0;
     if P>0 then Path[P]:=DirSep;
   until P=0;
   FormatPath:=Path;

@@ -114,6 +114,8 @@ type
                    var Source: TStream; ADataSize: longint): boolean; virtual;
        function    DeleteResourceEntry(const ResName: string; ALangID: longint): boolean; virtual;
        function    DeleteResource(const ResName: string): boolean; virtual;
+       function    ReadResourceEntry(const ResName: string; ALangID: longint; var Buf; var BufSize: sw_word): boolean;
+       function    ReadResourceEntryToStream(const ResName: string; ALangID: longint; var DestS: TStream): boolean;
        procedure   Flush; virtual;
        destructor  Done; virtual;
      public
@@ -322,6 +324,7 @@ begin
     Modified:=true
   else
     begin
+      S^.Reset;
       BaseOfs:=S^.GetPos;
       S^.Read(Header,SizeOf(Header));
       OK:=(S^.Status=stOK) and
@@ -431,6 +434,7 @@ begin
       AddResEntryPtr(P,E);
       UpdateBlockDatas;
       RemSize:=ADataSize; CurOfs:=0;
+      S^.Reset;
       S^.Seek(BaseOfs+E^.DataOfs);
       while (RemSize>0) do
       begin
@@ -463,6 +467,7 @@ begin
       UpdateBlockDatas;
       GetMem(Buf,BufSize);
       RemSize:=ADataSize;
+      S^.Reset;
       S^.Seek(BaseOfs+E^.DataOfs);
       while (RemSize>0) do
       begin
@@ -513,6 +518,78 @@ begin
   end;
   if OK then Resources^.Free(P);
   DeleteResource:=OK;
+end;
+
+function TResourceFile.ReadResourceEntry(const ResName: string; ALangID: longint; var Buf; var BufSize: sw_word): boolean;
+var E: PResourceEntry;
+    P: PResource;
+    OK: boolean;
+    CurOfs,CurFrag: sw_word;
+    TempBuf: pointer;
+const TempBufSize = 4096;
+begin
+  P:=FindResource(ResName);
+  OK:=P<>nil;
+  if OK then E:=P^.Items^.SearchEntryForLang(ALangID);
+  OK:=OK and (E<>nil);
+  OK:=OK and (E^.DataLen<=BufSize);
+  if OK then
+    begin
+      GetMem(TempBuf,TempBufSize);
+      S^.Reset;
+      S^.Seek(BaseOfs+E^.DataOfs);
+      OK:=(S^.Status=stOK);
+      CurOfs:=0;
+
+      while OK and (CurOfs<E^.DataLen) do
+      begin
+        CurFrag:=Min(E^.DataLen-CurOfs,TempBufSize);
+        S^.Read(TempBuf^,CurFrag);
+        OK:=OK and (S^.Status=stOK);
+        if OK then
+          Move(TempBuf^,PByteArray(@Buf)^[CurOfs],CurFrag);
+        Inc(CurOfs,CurFrag);
+      end;
+
+      FreeMem(TempBuf,TempBufSize);
+    end;
+  ReadResourceEntry:=OK;
+end;
+
+function TResourceFile.ReadResourceEntryToStream(const ResName: string; ALangID: longint; var DestS: TStream): boolean;
+var E: PResourceEntry;
+    P: PResource;
+    OK: boolean;
+    CurOfs,CurFrag: sw_word;
+    TempBuf: pointer;
+const TempBufSize = 4096;
+begin
+  P:=FindResource(ResName);
+  OK:=P<>nil;
+  if OK then E:=P^.Items^.SearchEntryForLang(ALangID);
+  OK:=OK and (E<>nil);
+  if OK then
+    begin
+      GetMem(TempBuf,TempBufSize);
+      S^.Reset;
+      S^.Seek(BaseOfs+E^.DataOfs);
+      OK:=(S^.Status=stOK);
+      CurOfs:=0;
+
+      while OK and (CurOfs<E^.DataLen) do
+      begin
+        CurFrag:=Min(E^.DataLen-CurOfs,TempBufSize);
+        S^.Read(TempBuf^,CurFrag);
+        OK:=OK and (S^.Status=stOK);
+        if OK then
+          DestS.Write(TempBuf^,CurFrag);
+        OK:=OK and (DestS.Status=stOK);
+        Inc(CurOfs,CurFrag);
+      end;
+
+      FreeMem(TempBuf,TempBufSize);
+    end;
+  ReadResourceEntryToStream:=OK;
 end;
 
 function TResourceFile.FindResource(const ResName: string): PResource;
@@ -691,7 +768,7 @@ end;
 constructor TResourceFile.LoadFile(AFileName: string);
 var B: PBufStream;
 begin
-  New(B, Init(AFileName, stCreate, 4096));
+  New(B, Init(AFileName, stOpen, 4096));
   if (B<>nil) and (B^.Status<>stOK) then
     begin Dispose(B, Done); B:=nil; end;
   if B=nil then Fail;
@@ -703,7 +780,29 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-06-17 23:45:21  pierre
+  Revision 1.6  1999-08-03 20:22:44  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.5  1999/06/17 23:45:21  pierre
    * dipsoe of S field in TResourceFile destructor
 
   Revision 1.4  1999/04/07 21:56:05  peter

@@ -51,6 +51,7 @@ var Title,ProgramPath,Params: string;
     Err: integer;
     CaptureFile: string;
     ExecMode: TExecType;
+    Executed: boolean;
 begin
   if (Idx<1) or (Idx>GetToolCount) then Exit;
   GetToolParams(Idx-1,Title,ProgramPath,Params,Wo);
@@ -82,11 +83,12 @@ begin
   if CaptureToolTo<>capNone then
     ShowMessage('Executing tool '+KillTilde(Title)+'...');
 
-  DoExecute(ProgramPath,Params,'',CaptureFile,ExecMode);
+  Executed:=DoExecute(ProgramPath,Params,'',CaptureFile,ExecMode);
 
   if CaptureToolTo<>capNone then
     HideMessage;
 
+  if Executed then
   if (DosError=0) and (DosExitCode=0) then
     begin
       if CaptureToolTo=capEditWindow then
@@ -260,7 +262,29 @@ end;
 
 {
   $Log$
-  Revision 1.12  1999-07-12 13:14:20  pierre
+  Revision 1.13  1999-08-03 20:22:35  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.12  1999/07/12 13:14:20  pierre
     * LineEnd bug corrected, now goes end of text even if selected
     + Until Return for debugger
     + Code for Quit inside GDB Window

@@ -509,7 +509,7 @@ procedure RedirDisableAll;
     If RedirChangedError and not ErrorRedirDisabled then
       DisableRedirError;
   end;
-  
+
 {............................................................................}
 
 procedure RedirEnableAll;
@@ -536,22 +536,19 @@ end;
                                  Linux
 *****************************************************************************}
 
-function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
-
-  begin
-     ExecuteRedir:=false;
-  end;
+function ExecuteRedir (Const ProgName, ComLine, RedirStdOut, RedirStdErr : String) : boolean;
+begin
+  ExecuteRedir:=false;
+end;
 
 function ChangeRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
-
-  begin
-     ChangeRedir:=false;
-  end;
+begin
+  ChangeRedir:=false;
+end;
 
 procedure RestoreRedir;
-
-  begin
-  end;
+begin
+end;
 
 function ChangeErrorRedir(Const Redir : String; AppendToFile : Boolean) : Boolean;
 begin
@@ -559,87 +556,12 @@ begin
 end;
 
 procedure RestoreErrorRedir;
-
-  begin
-  end;
+begin
+end;
 
 procedure InitRedir;
-
-  begin
-  end;
-
-function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
-
-  begin
-     ChangeReDirOut:=false;
-  end;
-
-procedure RestoreRedirOut;
-
-  begin
-  end;
-
-procedure DisableRedirOut;
-
-  begin
-  end;
-
-procedure EnableRedirOut;
-
-  begin
-  end;
-
-function  ChangeRedirIn(Const Redir : String) : Boolean;
-
-  begin
-     ChangeRedirIn:=false;
-  end;
-
-procedure RestoreRedirIn;
-
-  begin
-  end;
-
-procedure DisableRedirIn;
-
-  begin
-  end;
-
-procedure EnableRedirIn;
-
-  begin
-  end;
-
-function  ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolean;
-
-  begin
-     ChangeRedirError:=false;
-  end;
-
-procedure RestoreRedirError;
-
-  begin
-  end;
-
-procedure DisableRedirError;
-
-  begin
-  end;
-
-procedure EnableRedirError;
-
-  begin
-  end;
-
-procedure RedirDisableAll;
-
-  begin
-  end;
-
-procedure RedirEnableAll;
-
-  begin
-  end;
+begin
+end;
 
 {$endif not implemented}
 
@@ -647,10 +569,10 @@ procedure RedirEnableAll;
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
-{$ifdef implemented}
+
 var oldexit : pointer;
 
-procedure RedirExit;
+procedure RedirExit; {$ifndef FPC}far;{$endif}
 begin
   exitproc:=oldexit;
   Dispose(FIn); Dispose(FOut); Dispose(FErr);
@@ -661,13 +583,29 @@ Begin
   exitproc:=@RedirExit;
   New(FIn); New(FOut); New(FErr);
 End.
-{$else implemented}
-end.
-{$endif implemented}
 {
   $Log$
-  Revision 1.18  1999-07-18 16:26:39  florian
-    * IDE compiles with for Win32 and basic things are working
+  Revision 1.19  1999-08-03 20:22:36  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
 
   Revision 1.17  1999/05/01 23:45:07  pierre
    * FIn FOut FErr dispsoed at exit

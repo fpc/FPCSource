@@ -22,8 +22,8 @@ uses
 const
     ININame = 'fp.ini';
 
-    ConfigDir  : string = '.'+DirSep;
-    INIFileName: string = ININame;
+    ConfigDir  : string{$ifdef GABOR}[50]{$endif} = '.'+DirSep;
+    INIFileName: string{$ifdef GABOR}[50]{$endif} = ININame;
 
 
 procedure InitINIFile;
@@ -57,8 +57,8 @@ const
 
   { INI file tags }
   ieRecentFile       = 'RecentFile';
-  ieOpenFile         = 'OpenFile';
-  ieOpenFileCount    = 'OpenFileCount';
+(*  ieOpenFile         = 'OpenFile';
+  ieOpenFileCount    = 'OpenFileCount'; *)
   ieRunParameters    = 'Parameters';
   iePrimaryFile      = 'PrimaryFile';
   ieCompileMode      = 'CompileMode';
@@ -309,7 +309,7 @@ begin
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_161_200',PaletteToStr(copy(S,161,40))));
   PS:=PS+StrToPalette(INIFile^.GetEntry(secColors,iePalette+'_201_240',PaletteToStr(copy(S,201,40))));
   AppPalette:=PS;
-  { Open files }
+(*  { Open files }
   for I:=INIFile^.GetIntEntry(secFiles,ieOpenFileCount,0) downto 1 do
     begin
       S:=INIFile^.GetEntry(secFiles,ieOpenFile+IntToStr(I),'');
@@ -348,6 +348,7 @@ begin
       { remove it because otherwise we allways keep old files }
       INIFile^.DeleteEntry(secFiles,ieOpenFile+IntToStr(I));
     end;
+*)
   { Desktop }
   DesktopFileFlags:=INIFile^.GetIntEntry(secPreferences,ieDesktopFlags,DesktopFileFlags);
   { Preferences }
@@ -366,7 +367,7 @@ var INIFile: PINIFile;
     S1,S2,S3: string;
     W: word;
     BreakPointCount:longint;
-    I,OpenFileCount: integer;
+    I(*,OpenFileCount*): integer;
     OK: boolean;
     PW,PPW : PSourceWindow;
 
@@ -378,7 +379,7 @@ end;
 begin
   New(INIFile, Init(INIPath));
   { Files }
-  { avoid keeping old files } 
+  { avoid keeping old files }
   INIFile^.DeleteSection(secFiles);
   INIFile^.SetEntry(secFiles,ieOpenExts,'"'+OpenExts+'"');
   for I:=1 to High(RecentFiles) do
@@ -390,6 +391,7 @@ begin
       INIFile^.SetEntry(secFiles,ieRecentFile+IntToStr(I),S);
     end;
 
+(*
     PW:=FirstEditorWindow;
     PPW:=PW;
     I:=1;
@@ -413,7 +415,9 @@ begin
         If PW=PPW then
           break;
       end;
+
   INIFile^.SetIntEntry(secFiles,ieOpenFileCount,OpenFileCount);
+*)
   { Run }
   INIFile^.SetEntry(secRun,ieRunParameters,GetRunParameters);
   { Compile }
@@ -490,7 +494,29 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  1999-06-28 12:36:51  pierre
+  Revision 1.21  1999-08-03 20:22:33  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.20  1999/06/28 12:36:51  pierre
    * avoid keeping old open file names
 
   Revision 1.19  1999/04/07 21:55:48  peter

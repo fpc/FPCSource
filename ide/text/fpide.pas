@@ -27,11 +27,13 @@ type
 
     TIDEApp = object(TApplication)
       constructor Init;
+      procedure   InitDesktop; virtual;
       procedure   InitMenuBar; virtual;
       procedure   InitStatusLine; virtual;
       procedure   Open(FileName: string);
       function    OpenSearch(FileName: string) : boolean;
       function    SaveAll: boolean;
+      function    AutoSave: boolean;
       procedure   Idle; virtual;
       procedure   Update;
       procedure   UpdateTarget;
@@ -60,7 +62,7 @@ type
       procedure DoRun;
       procedure DoResetDebugger;
       procedure DoContToCursor;
-      procedure DoContUntilReturn; 
+      procedure DoContUntilReturn;
       procedure Target;
       procedure DoCompilerMessages;
       procedure DoPrimaryFile;
@@ -107,7 +109,7 @@ type
       procedure HelpFiles;
       procedure About;
     private
-      procedure DoExecute(ProgramPath, Params, InFile, OutFile: string; ExecType: TExecType);
+      function  DoExecute(ProgramPath, Params, InFile, OutFile: string; ExecType: TExecType): boolean;
     private
       procedure AddRecentFile(AFileName: string; CurX, CurY: integer);
       function  SearchRecentFile(AFileName: string): integer;
@@ -137,7 +139,8 @@ uses
   Systems,
   WUtils,WHelp,WHlpView,WINI,WViews,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompile,FPHelp,
-  FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir;
+  FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
+  FPDesk;
 
 
 function IDEUseSyntaxHighlight(Editor: PFileEditor): boolean; {$ifndef FPC}far;{$endif}
@@ -182,6 +185,16 @@ begin
   GetExtent(R); Dec(R.B.X); R.A.X:=R.B.X-9; R.A.Y:=R.B.Y-1;
   New(HeapView, InitKb(R));
   Insert(HeapView);
+end;
+
+procedure TIDEApp.InitDesktop;
+var
+  R: TRect;
+begin
+  GetExtent(R);
+  Inc(R.A.Y);
+  Dec(R.B.Y);
+  Desktop:=New(PFPDesktop, Init(R));
 end;
 
 procedure TIDEApp.InitMenuBar;
@@ -550,32 +563,64 @@ begin
   UpdateScreen(true);
 end;
 
-
-procedure TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile: string; ExecType: TExecType);
+function TIDEApp.AutoSave: boolean;
+var IOK,SOK,DOK: boolean;
 begin
-  if UserScreen=nil then
-   begin
-     ErrorBox('Sorry, user screen not available.',nil);
-     Exit;
-   end;
+  IOK:=true; SOK:=true; DOK:=true;
+  if (AutoSaveOptions and asEnvironment)<>0 then
+    begin
+      IOK:=WriteINIFile;
+      if IOK=false then
+        ErrorBox('Error saving configuration.',nil);
+    end;
+  if (AutoSaveOptions and asEditorFiles)=0 then
+      SOK:=MyApp.SaveAll;
+  if (AutoSaveOptions and asDesktop)<>0 then
+    begin
+      { destory all help & browser windows - we don't want to store them }
+      CloseHelpWindows;
+      CloseAllBrowsers;
+      DOK:=SaveDesktop;
+      if DOK=false then
+        ErrorBox('Error saving desktop file.',nil);
+    end;
+  AutoSave:=IOK and SOK and DOK;
+end;
 
-  if ExecType<>exNoSwap then
-    ShowUserScreen;
+function TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile: string; ExecType: TExecType): boolean;
+var CanRun: boolean;
+begin
+  SaveCancelled:=false;
+  CanRun:=AutoSave;
+  if (CanRun=false) and (SaveCancelled=false) then
+    CanRun:=true; { do not care about .DSK or .INI saving problems - just like TP }
+  if CanRun then
+  begin
+    if UserScreen=nil then
+     begin
+       ErrorBox('Sorry, user screen not available.',nil);
+       Exit;
+     end;
 
-  if ExecType=exDosShell then
-    WriteShellMsg;
+    if ExecType<>exNoSwap then
+      ShowUserScreen;
 
-{$ifdef linux}
-  Shell(ProgramPath+' '+Params);
-{$else}
-  if (InFile='') and (OutFile='') then
-    Dos.Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
-  else
-    ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
-{$endif}
+    if ExecType=exDosShell then
+      WriteShellMsg;
 
-  if ExecType<>exNoSwap then
-    ShowIDEScreen;
+  {$ifdef linux}
+    Shell(ProgramPath+' '+Params);
+  {$else}
+    if (InFile='') and (OutFile='') then
+      Dos.Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params)
+    else
+      ExecuteRedir(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params,InFile,OutFile,'stderr');
+  {$endif}
+
+    if ExecType<>exNoSwap then
+      ShowIDEScreen;
+  end;
+  DoExecute:=CanRun;
 end;
 
 
@@ -769,7 +814,29 @@ end;
 END.
 {
   $Log$
-  Revision 1.33  1999-07-12 13:14:18  pierre
+  Revision 1.34  1999-08-03 20:22:32  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.33  1999/07/12 13:14:18  pierre
     * LineEnd bug corrected, now goes end of text even if selected
     + Until Return for debugger
     + Code for Quit inside GDB Window

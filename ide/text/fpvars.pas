@@ -23,7 +23,7 @@ uses Objects,Views,App,
 
 type
     TRecentFileEntry = record
-      FileName  : string{$ifdef GABOR}[20]{$endif};
+      FileName  : string{$ifdef GABOR}[80]{$endif};
       LastPos   : TPoint;
     end;
 
@@ -33,19 +33,19 @@ type
 const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
       RecentFileCount  : integer = 0;
-      OpenExts         : string{$ifdef GABOR}[24]{$endif} = '*.pas;*.pp;*.inc';
-      HighlightExts    : string{$ifdef GABOR}[24]{$endif} = '*.pas;*.pp;*.inc';
-      TabsPattern      : string{$ifdef GABOR}[30]{$endif} = 'make*;make*.*';
-      SourceDirs       : string{$ifdef GABOR}[30]{$endif} = '';
-      PrimaryFile      : string{$ifdef GABOR}[60]{$endif} = '';
-      PrimaryFileMain  : string{$ifdef GABOR}[60]{$endif} = '';
-      PrimaryFileSwitches : string{$ifdef GABOR}[30]{$endif} = '';
-      PrimaryFilePara  : string{$ifdef GABOR}[40]{$endif} = '';
-      GDBOutputFile    : string{$ifdef GABOR}[30]{$endif} = 'gdb$$$.txt';
+      OpenExts         : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
+      HighlightExts    : string{$ifdef GABOR}[40]{$endif} = '*.pas;*.pp;*.inc';
+      TabsPattern      : string{$ifdef GABOR}[40]{$endif} = 'make*;make*.*';
+      SourceDirs       : string{$ifdef GABOR}[40]{$endif} = '';
+      PrimaryFile      : string{$ifdef GABOR}[80]{$endif} = '';
+      PrimaryFileMain  : string{$ifdef GABOR}[80]{$endif} = '';
+      PrimaryFileSwitches : string{$ifdef GABOR}[80]{$endif} = '';
+      PrimaryFilePara  : string{$ifdef GABOR}[80]{$endif} = '';
+      GDBOutputFile    : string{$ifdef GABOR}[80]{$endif} = GDBOutputFileName;
       IsEXECompiled    : boolean = false;
       LinkAfter        : boolean = true;
-      MainFile         : string{$ifdef GABOR}[60]{$endif} = '';
-      EXEFile          : string{$ifdef GABOR}[60]{$endif} = '';
+      MainFile         : string{$ifdef GABOR}[80]{$endif} = '';
+      EXEFile          : string{$ifdef GABOR}[80]{$endif} = '';
       CompilationPhase : TCompPhase = cpNothing;
       ProgramInfoWindow: PProgramInfoWindow = nil;
       GDBWindow        : PGDBWindow = nil;
@@ -55,16 +55,16 @@ const ClipboardWindow  : PClipboardWindow = nil;
       HeapView         : PFPHeapView = nil;
       HelpFiles        : WUtils.PUnsortedStringCollection = nil;
       ShowStatusOnError: boolean = true;
-      StartupDir       : string{$ifdef GABOR}[50]{$endif} = '.'+DirSep;
-      IDEDir           : string{$ifdef GABOR}[50]{$endif} = '.'+DirSep;
-      INIPath          : string{$ifdef GABOR}[50]{$endif} = ININame;
-      SwitchesPath     : string{$ifdef GABOR}[50]{$endif} = SwitchesName;
+      StartupDir       : string{$ifdef GABOR}[80]{$endif} = '.'+DirSep;
+      IDEDir           : string{$ifdef GABOR}[80]{$endif} = '.'+DirSep;
+      INIPath          : string{$ifdef GABOR}[80]{$endif} = ININame;
+      SwitchesPath     : string{$ifdef GABOR}[80]{$endif} = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
       StartupOptions   : longint = 0;
       LastExitCode     : integer = 0;
       ASCIIChart       : PFPASCIIChart = nil;
-      DesktopPath      : string{$ifdef GABOR}[50]{$endif} = DesktopName;
+      DesktopPath      : string{$ifdef GABOR}[80]{$endif} = DesktopName;
       DesktopFileFlags : longint = dfHistoryLists+dfOpenWindows;
       DesktopLocation  : byte    = dlConfigFileDir;
       AutoSaveOptions  : longint = asEnvironment+asDesktop;
@@ -83,7 +83,29 @@ implementation
 END.
 {
   $Log$
-  Revision 1.20  1999-07-28 23:11:25  peter
+  Revision 1.21  1999-08-03 20:22:38  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.20  1999/07/28 23:11:25  peter
     * fixes from gabor
 
   Revision 1.19  1999/07/10 01:24:21  pierre

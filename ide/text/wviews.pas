@@ -172,6 +172,7 @@ type
 procedure InsertOK(ADialog: PDialog);
 procedure InsertButtons(ADialog: PDialog);
 
+procedure Bug(const S: string; Params: pointer);
 procedure ErrorBox(const S: string; Params: pointer);
 procedure WarningBox(const S: string; Params: pointer);
 procedure InformationBox(const S: string; Params: pointer);
@@ -1299,7 +1300,7 @@ end;
 function TLocalMenuListBox.GetLocalMenu: PMenu;
 begin
   GetLocalMenu:=nil;
-  Abstract;
+{  Abstract;}
 end;
 
 function TLocalMenuListBox.GetCommandTarget: PView;
@@ -1379,6 +1380,10 @@ begin
   end;
 end;
 
+procedure Bug(const S: string; Params: pointer);
+begin
+  ErrorBox('Bug check failed: '+S+#13+'Please report to author!',Params);
+end;
 
 procedure ErrorBox(const S: string; Params: pointer);
 begin
@@ -2074,7 +2079,29 @@ end;
 END.
 {
   $Log$
-  Revision 1.9  1999-06-28 19:32:37  peter
+  Revision 1.10  1999-08-03 20:22:46  peter
+    + TTab acts now on Ctrl+Tab and Ctrl+Shift+Tab...
+    + Desktop saving should work now
+       - History saved
+       - Clipboard content saved
+       - Desktop saved
+       - Symbol info saved
+    * syntax-highlight bug fixed, which compared special keywords case sensitive
+      (for ex. 'asm' caused asm-highlighting, while 'ASM' didn't)
+    * with 'whole words only' set, the editor didn't found occourences of the
+      searched text, if the text appeared previously in the same line, but didn't
+      satisfied the 'whole-word' condition
+    * ^QB jumped to (SelStart.X,SelEnd.X) instead of (SelStart.X,SelStart.Y)
+      (ie. the beginning of the selection)
+    * when started typing in a new line, but not at the start (X=0) of it,
+      the editor inserted the text one character more to left as it should...
+    * TCodeEditor.HideSelection (Ctrl-K+H) didn't update the screen
+    * Shift shouldn't cause so much trouble in TCodeEditor now...
+    * Syntax highlight had problems recognizing a special symbol if it was
+      prefixed by another symbol character in the source text
+    * Auto-save also occours at Dos shell, Tool execution, etc. now...
+
+  Revision 1.9  1999/06/28 19:32:37  peter
     * fixes from gabor
 
   Revision 1.8  1999/06/28 12:29:56  pierre

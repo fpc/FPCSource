@@ -20,7 +20,7 @@
 {$endif}
 
 { --- Include VESA support --- }
-{$ifdef GO32V2}
+{$ifndef LINUX}
   {$ifndef FV20}
     {$define VESA}
   {$endif}
@@ -43,6 +43,6 @@
 {$endif}
 
 {$ifdef GABOR}
-  {$define NOOBJREG}
+  {.$define NOOBJREG}
   {$define NODEBUG}
 {$endif}
