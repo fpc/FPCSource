@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Armin Diehl
+    Copyright (c) 2005 by Armin Diehl
     member of the Free Pascal development team
 
     Video unit for netware libc
@@ -71,18 +71,6 @@ begin
   GetOutputCursorPosition(ScreenHandle,y,x);
   CursorX := x;
   CursorY := y;
-(* done in video.inc
-  { allocate back buffer }
-  MaxVideoBufSize:= ScreenWidth * ScreenHeight * 2;
-  VideoBufSize   := ScreenWidth * ScreenHeight * 2;
-
-  GetMem(VideoBuf,MaxVideoBufSize);
-  GetMem(OldVideoBuf,MaxVideoBufSize);
-*)
-  {grab current screen contents}
-//  Libc.SaveFullScreen (ScreenHandle,VideoBuf);
-//  Move (VideoBuf^, OldVideoBuf^, MaxVideoBufSize);
-//  LockUpdateScreen := 0;
   SysSetCursorType (crBlock);
 end;
 
@@ -115,7 +103,6 @@ begin
   end;
   Libc.GetCursorStyle (ScreenHandle,style);
   case style of
-    //CURSOR_NORMAL : SysGetCursorType := crUnderline;
     CURSOR_THICK  : SysGetCursorType := crBlock;
     CURSOR_BLOCK  : SysGetCursorType := crBlock;
     CURSOR_TOP    : SysGetCursorType := crHalfBlock
@@ -127,13 +114,8 @@ end;
 
 procedure SysUpdateScreen(Force: Boolean);
 begin
-  {$ifdef debug}
   if VideoBuf = nil then
-  begin
-    __ConsolePrintf ('Fatal: Video buff accessed after DoneVideo');
     exit;
-  end;
-  {$endif}
   if (LockUpdateScreen<>0) or (VideoBufSize = 0) then
    exit;
   if not force then
@@ -175,7 +157,6 @@ begin
 end;
 
 Function SysGetVideoModeCount : Word;
-
 begin
   SysGetVideoModeCount:=SysVideoModeCount;
 end;
@@ -204,3 +185,9 @@ initialization
   SetVideoDriver (SysVideoDriver);
 end.
 
+{
+  $Log$
+  Revision 1.4  2005-01-10 23:34:09  armin
+  * code cleanup
+
+}
