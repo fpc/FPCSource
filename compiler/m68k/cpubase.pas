@@ -493,7 +493,7 @@ uses
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accmulator;
+	return_result_reg		=	accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
@@ -592,7 +592,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2002-11-17 17:49:09  mazen
+  Revision 1.13  2002-11-17 18:26:16  mazen
+  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
+
+  Revision 1.12  2002/11/17 17:49:09  mazen
   + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.11  2002/10/14 16:32:36  carl

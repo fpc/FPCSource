@@ -135,7 +135,7 @@ unit cpubase;
   {the return_result_reg, is used inside the called function to store its return
   value when that is a scalar value otherwise a pointer to the address of the
   result is placed inside it}
-	return_result_reg		=	accmulator;
+	return_result_reg		=	accumulator;
 
   {the function_result_reg contains the function result after a call to a scalar
   function othewise it contains a pointer to the returned result}
@@ -458,7 +458,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2002-11-17 17:49:08  mazen
+  Revision 1.6  2002-11-17 18:26:15  mazen
+  * fixed a compilation bug accmulator-->accumulator, in definition of return_result_reg
+
+  Revision 1.5  2002/11/17 17:49:08  mazen
   + return_result_reg and function_result_reg are now used, in all plateforms, to pass functions result between called function and its caller. See the explanation of each one
 
   Revision 1.4  2002/09/29 23:54:12  florian
