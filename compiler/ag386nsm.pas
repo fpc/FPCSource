@@ -41,7 +41,7 @@ unit ag386nsm;
   implementation
 
     uses
-      dos,strings,
+      strings,
       globtype,globals,systems,cobjects,
       files,verbose
       ,i386base,i386asm
@@ -597,7 +597,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.43  1999-06-02 22:44:02  pierre
+  Revision 1.44  1999-07-18 10:19:41  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.43  1999/06/02 22:44:02  pierre
    * previous wrong log corrected
 
   Revision 1.42  1999/06/02 22:25:27  pierre

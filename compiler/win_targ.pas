@@ -27,6 +27,9 @@ unit win_targ;
 
   uses import,export;
 
+  const
+     winstackpagesize = 4096;
+
   type
     pimportlibwin32=^timportlibwin32;
     timportlibwin32=object(timportlib)
@@ -714,7 +717,11 @@ unit win_targ;
 end.
 {
   $Log$
-  Revision 1.27  1999-05-27 19:45:30  peter
+  Revision 1.28  1999-07-18 10:20:03  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.27  1999/05/27 19:45:30  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

@@ -34,12 +34,17 @@ unit cobjects;
   interface
 
     uses
+{$ifdef DELPHI4}
+       dmisc,
+       sysutils
+{$else DELPHI4}
        strings
 {$ifndef linux}
        ,dos
 {$else}
        ,linux
 {$endif}
+{$endif DELPHI4}
       ;
 
     const
@@ -2204,7 +2209,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  1999-07-03 00:29:45  peter
+  Revision 1.38  1999-07-18 10:19:46  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.37  1999/07/03 00:29:45  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

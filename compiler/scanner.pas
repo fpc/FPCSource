@@ -130,7 +130,10 @@ unit scanner;
 implementation
 
     uses
-      dos,systems,symtable,switches;
+{$ifndef delphi}
+      dos,
+{$endif delphi}
+      systems,symtable,switches;
 
 {*****************************************************************************
                               Helper routines
@@ -1670,7 +1673,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  1999-06-02 22:44:19  pierre
+  Revision 1.87  1999-07-18 10:20:02  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.86  1999/06/02 22:44:19  pierre
    * previous wrong log corrected
 
   Revision 1.85  1999/06/02 22:25:49  pierre

@@ -27,8 +27,10 @@ interface
 uses
 {$ifdef Delphi}
   dmisc,
+{$else Delphi}
+  dos,
 {$endif Delphi}
-  dos,cobjects,globtype,globals,aasm;
+  cobjects,globtype,globals,aasm;
 
 const
 {$ifdef tp}
@@ -555,7 +557,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  1999-07-10 10:12:03  peter
+  Revision 1.52  1999-07-18 10:19:42  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.51  1999/07/10 10:12:03  peter
     * assembler smartlink message
 
   Revision 1.50  1999/07/03 00:27:05  peter

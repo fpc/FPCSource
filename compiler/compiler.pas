@@ -94,8 +94,10 @@ uses
 {$endif BrowserCol}
 {$ifdef Delphi}
   dmisc,
+{$else Delphi}
+  dos,
 {$endif Delphi}
-  dos,verbose,comphook,systems,
+  verbose,comphook,systems,
   globals,options,parser,symtable,link,import,export;
 
 function Compile(const cmd:string):longint;
@@ -271,7 +273,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.23  1999-06-22 16:24:41  pierre
+  Revision 1.24  1999-07-18 10:19:48  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.23  1999/06/22 16:24:41  pierre
    * local browser stuff corrected
 
   Revision 1.22  1999/05/17 14:24:32  pierre

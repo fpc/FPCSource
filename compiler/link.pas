@@ -72,6 +72,8 @@ Implementation
 uses
 {$ifdef Delphi}
   dmisc,
+{$else Delphi}
+  dos,
 {$endif Delphi}
   globtype,systems,
   script,globals,verbose,ppu
@@ -81,7 +83,6 @@ uses
 {$ifdef linux}
   ,linux
 {$endif}
-  ,dos
   ;
 
 {$ifndef linux}
@@ -715,7 +716,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.60  1999-07-07 20:33:53  peter
+  Revision 1.61  1999-07-18 10:19:53  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.60  1999/07/07 20:33:53  peter
     * warning instead of error when switching to static linking
 
   Revision 1.59  1999/07/05 16:21:26  peter

@@ -40,7 +40,7 @@ unit ag386int;
   implementation
 
     uses
-      dos,strings,
+      strings,
       globtype,globals,systems,cobjects,
       files,verbose
       ,i386base,i386asm
@@ -627,7 +627,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.47  1999-06-02 22:44:01  pierre
+  Revision 1.48  1999-07-18 10:19:39  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.47  1999/06/02 22:44:01  pierre
    * previous wrong log corrected
 
   Revision 1.46  1999/06/02 22:25:26  pierre

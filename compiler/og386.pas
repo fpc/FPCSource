@@ -30,8 +30,9 @@ unit og386;
     uses
 {$ifdef Delphi}
        dmisc,
-{$endif Delphi}
+{$else Delphi}
        dos,
+{$endif Delphi}
        owbase,owar,
        systems,i386base,aasm;
 
@@ -277,7 +278,11 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.9  1999-07-03 00:27:03  peter
+  Revision 1.10  1999-07-18 10:19:56  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.9  1999/07/03 00:27:03  peter
     * better smartlinking support
 
   Revision 1.8  1999/05/19 12:41:48  florian

@@ -30,17 +30,18 @@ unit globals;
   interface
 
     uses
-{$ifdef TP}
-      objects,
-{$endif}
 {$ifdef Delphi4}
       dmisc,
       sysutils,
+{$else}
+      strings,dos,
 {$endif}
 {$ifdef linux}
+{$ifdef TP}
+      objects,
+{$endif}
       linux,
 {$endif}
-      strings,dos,
       globtype,version,tokens,systems,cobjects;
 
     const
@@ -1209,7 +1210,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1999-07-13 19:14:44  michael
+  Revision 1.13  1999-07-18 10:19:52  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.12  1999/07/13 19:14:44  michael
   + Defaultreplacemens now more logical
 
   Revision 1.11  1999/07/10 10:26:18  peter

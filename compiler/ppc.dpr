@@ -81,6 +81,7 @@
    {$endif support_mmx}
 {$endif}
 
+{$ifndef DELPHI}
 {$ifdef TP}
   {$IFNDEF DPMI}
     {$M 24000,0,655360}
@@ -89,6 +90,7 @@
   {$ENDIF DPMI}
   {$E+,N+,F+,S-,R-}
 {$endif TP}
+{$endif DELPHI}
 
 
 program pp;
@@ -243,7 +245,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-05-04 21:44:58  florian
+  Revision 1.3  1999-07-18 10:20:00  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.2  1999/05/04 21:44:58  florian
     * changes to compile it with Delphi 4.0
 
   Revision 1.1  1998/09/18 16:03:44  florian

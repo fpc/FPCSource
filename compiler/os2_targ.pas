@@ -50,8 +50,10 @@ implementation
   uses
 {$ifdef Delphi}
      dmisc,
+{$else Delphi}
+     dos, 
 {$endif Delphi}
-     globtype,dos,strings,globals,link,files;
+     globtype,strings,globals,link,files;
 
 const   profile_flag:boolean=false;
 
@@ -333,7 +335,11 @@ end.
 
 {
   $Log$
-  Revision 1.8  1999-07-03 00:29:55  peter
+  Revision 1.9  1999-07-18 10:19:58  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.8  1999/07/03 00:29:55  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

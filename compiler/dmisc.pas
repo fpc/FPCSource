@@ -151,7 +151,7 @@ Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
 implementation
-uses strings,globals;
+uses globals;
 
 {******************************************************************************
                            --- Conversion ---
@@ -847,7 +847,11 @@ End;
 end.
 {
   $Log$
-  Revision 1.4  1999-05-05 09:19:05  florian
+  Revision 1.5  1999-07-18 10:19:50  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.4  1999/05/05 09:19:05  florian
     * more fixes to get it with delphi running
 
   Revision 1.3  1999/05/05 08:20:12  michael

@@ -44,8 +44,10 @@ unit ag386att;
     uses
 {$ifdef Delphi}
       dmisc,
+{$else Delphi}
+      dos, 
 {$endif Delphi}
-      dos,strings,
+      strings,
       globtype,globals,systems,
       files,verbose
       ,i386base,i386asm
@@ -814,7 +816,11 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.3  1999-07-03 00:27:04  peter
+  Revision 1.4  1999-07-18 10:19:38  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.3  1999/07/03 00:27:04  peter
     * better smartlinking support
 
   Revision 1.2  1999/06/22 15:25:14  peter

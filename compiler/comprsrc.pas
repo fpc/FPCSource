@@ -32,8 +32,9 @@ implementation
 uses
 {$ifdef Delphi}
   dmisc,
+{$else Delphi}
+  dos,
 {$endif Delphi}
-  Dos,
   Systems,Globtype,Globals,Verbose,Files,
   Script;
 
@@ -110,7 +111,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-07-03 00:29:46  peter
+  Revision 1.6  1999-07-18 10:19:49  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.5  1999/07/03 00:29:46  peter
     * new link writing to the ppu, one .ppu is needed for all link types,
       static (.o) is now always created also when smartlinking is used
 

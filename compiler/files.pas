@@ -264,8 +264,10 @@ implementation
 uses
 {$ifdef Delphi}
    dmisc,
+{$else Delphi}
+   dos,
 {$endif Delphi}
-  dos,verbose,systems,
+  verbose,systems,
   symtable,scanner;
 
 {****************************************************************************
@@ -1312,7 +1314,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.97  1999-07-14 21:19:03  florian
+  Revision 1.98  1999-07-18 10:19:51  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.97  1999/07/14 21:19:03  florian
     + implemented a better error message if a PPU file isn't found as suggested
       by Lee John
 

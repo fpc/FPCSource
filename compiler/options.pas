@@ -57,9 +57,11 @@ implementation
 uses
 {$ifdef Delphi}
   dmisc,
+{$else Delphi}
+  dos,
 {$endif Delphi}
   globtype,version,systems,
-  dos,cobjects,globals,
+  cobjects,globals,
   scanner,link,messages
 {$ifdef BrowserLog}
   ,browlog
@@ -1139,7 +1141,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1999-07-05 20:13:14  peter
+  Revision 1.5  1999-07-18 10:19:57  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.4  1999/07/05 20:13:14  peter
     * removed temp defines
 
   Revision 1.3  1999/07/03 00:29:54  peter

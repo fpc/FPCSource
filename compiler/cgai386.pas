@@ -30,7 +30,7 @@ unit cgai386;
 {$ifdef dummy}
        end { to get correct syntax highlighting }
 {$endif dummy}
-       aasm,symtable;
+       aasm,symtable,win_targ;
 
 {$define TESTGETTEMP to store const that
  are written into temps for later release PM }
@@ -2351,6 +2351,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       r    : preference;
       len  : longint;
       opsize : topsize;
+      again,ok : pasmlabel;
     begin
        if (psym(p)^.typ=varsym) and
           (pvarsym(p)^.varspez=vs_value) and
@@ -2373,9 +2374,47 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
               exprasmlist^.concat(new(pai386,
                 op_const_reg(A_IMUL,S_L,
                 parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
+              { windows guards only a few pages for stack growing, }
+              { so we have to access every page first              }
+              if target_os.id=os_i386_win32 then
+                begin
+                   getlabel(again);
+                   getlabel(ok);
+                   exprasmlist^.concat(new(pai386,
+                     op_const_reg(A_CMP,S_L,winstackpagesize,R_EDI)));
+                   emitjmp(C_NC,ok);
+                   emitlab(again);
+                   exprasmlist^.concat(new(pai386,
+                     op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP)));
+                   exprasmlist^.concat(new(pai386,
+                     op_reg(A_PUSH,S_L,R_EAX)));
+                   exprasmlist^.concat(new(pai386,
+                     op_const_reg(A_SUB,S_L,winstackpagesize,R_EDI)));
+                   emitjmp(C_NC,again);
 
-              exprasmlist^.concat(new(pai386,
-                op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+                   emitlab(ok);
+                   exprasmlist^.concat(new(pai386,
+                     op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+                   { now reload EDI }
+                   new(r);
+                   reset_reference(r^);
+                   r^.base:=procinfo.framepointer;
+                   r^.offset:=pvarsym(p)^.address+4+procinfo.call_offset;
+                   exprasmlist^.concat(new(pai386,
+                     op_ref_reg(A_MOV,S_L,r,R_EDI)));
+
+                   exprasmlist^.concat(new(pai386,
+                     op_reg(A_INC,S_L,R_EDI)));
+
+                   exprasmlist^.concat(new(pai386,
+                     op_const_reg(A_IMUL,S_L,
+                     parraydef(pvarsym(p)^.definition)^.definition^.size,R_EDI)));
+                end
+              else
+                begin
+                   exprasmlist^.concat(new(pai386,
+                     op_reg_reg(A_SUB,S_L,R_EDI,R_ESP)));
+                end;
               { load destination }
               exprasmlist^.concat(new(pai386,
                 op_reg_reg(A_MOV,S_L,R_ESP,R_EDI)));
@@ -2530,6 +2569,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       r : treference;
       oldlist,
       oldexprasmlist : paasmoutput;
+      again : pasmlabel;
+      i : longint;
+
     begin
        oldexprasmlist:=exprasmlist;
        exprasmlist:=alist;
@@ -2644,17 +2686,52 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                       else
 {$endif unused}
                           begin
+                            { windows guards only a few pages for stack growing, }
+                            { so we have to access every page first              }
+                            if (target_os.id=os_i386_win32) and
+                              (stackframe>=winstackpagesize) then
+                              begin
+                                  if stackframe div winstackpagesize<=5 then
+                                    begin
+                                       exprasmlist^.insert(new(pai386,op_const_reg(A_SUB,S_L,stackframe-4,R_ESP)));
+                                       for i:=1 to stackframe div winstackpagesize do
+                                         begin
+                                            hr:=new_reference(R_ESP,stackframe-i*winstackpagesize);
+                                            exprasmlist^.concat(new(pai386,
+                                              op_const_ref(A_MOV,S_L,0,hr)));
+                                         end;
+                                       exprasmlist^.concat(new(pai386,
+                                         op_reg(A_PUSH,S_L,R_EAX)));
+                                    end
+                                  else
+                                    begin
+                                       getlabel(again);
+                                       exprasmlist^.concat(new(pai386,
+                                         op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI)));
+                                       emitlab(again);
+                                       exprasmlist^.concat(new(pai386,
+                                         op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP)));
+                                       exprasmlist^.concat(new(pai386,
+                                         op_reg(A_PUSH,S_L,R_EAX)));
+                                       exprasmlist^.concat(new(pai386,
+                                         op_reg(A_DEC,S_L,R_EDI)));
+                                       emitjmp(C_NZ,again);
+                                       exprasmlist^.concat(new(pai386,
+                                         op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP)));
+                                    end
+                              end
+                            else
                               exprasmlist^.insert(new(pai386,op_const_reg(A_SUB,S_L,stackframe,R_ESP)));
-                              if (cs_check_stack in aktlocalswitches) and
-                                 not(target_info.target in [target_i386_linux,target_i386_win32]) then
-                                begin
-                                   exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_STACKCHECK'))));
-                                   exprasmlist^.insert(new(pai386,op_const(A_PUSH,S_L,stackframe)));
-                                end;
-                              if cs_profile in aktmoduleswitches then
-                               genprofilecode;
-                              exprasmlist^.insert(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
-                              exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
+                            if (cs_check_stack in aktlocalswitches) and
+                              not(target_info.target in [target_i386_linux,target_i386_win32]) then
+                              begin
+                                 exprasmlist^.insert(new(pai386,op_sym(A_CALL,S_NO,newasmsymbol('FPC_STACKCHECK'))));
+                                 exprasmlist^.insert(new(pai386,op_const(A_PUSH,S_L,stackframe)));
+                              end;
+                            if cs_profile in aktmoduleswitches then
+                              genprofilecode;
+                            exprasmlist^.insert(new(pai386,op_reg_reg(A_MOV,S_L,R_ESP,R_EBP)));
+                            exprasmlist^.insert(new(pai386,op_reg(A_PUSH,S_L,R_EBP)));
                           end;
                   end { endif stackframe <> 0 }
               else
@@ -3033,7 +3110,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.14  1999-07-06 21:48:11  florian
+  Revision 1.15  1999-07-18 10:19:44  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.14  1999/07/06 21:48:11  florian
     * a lot bug fixes:
        - po_external isn't any longer necessary for procedure compatibility
        - m_tp_procvar is in -Sd now available

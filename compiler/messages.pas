@@ -46,7 +46,11 @@ type
 implementation
 
 uses
+{$ifdef DELPHI}
+  sysutils;
+{$else DELPHI}
   strings;
+{$endif DELPHI}
 
 constructor TMessage.Init(p:pointer;n:longint);
 begin
@@ -260,7 +264,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-05-01 12:27:51  peter
+  Revision 1.8  1999-07-18 10:19:55  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.7  1999/05/01 12:27:51  peter
     * fixed endless loop with replace $1 with $1
 
   Revision 1.6  1998/12/11 00:03:20  peter

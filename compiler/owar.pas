@@ -66,9 +66,10 @@ implementation
 uses
    verbose,
 {$ifdef Delphi}
-   dmisc,
-{$endif Delphi}
+   dmisc;
+{$else Delphi}
    dos;
+{$endif Delphi}
 
 const
 {$ifdef TP}
@@ -278,7 +279,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-09 11:38:06  peter
+  Revision 1.4  1999-07-18 10:19:59  florian
+    * made it compilable with Dlephi 4 again
+    + fixed problem with large stack allocations on win32
+
+  Revision 1.3  1999/05/09 11:38:06  peter
     * don't write .o and link if errors occure during assembling
 
   Revision 1.2  1999/05/04 21:44:53  florian
