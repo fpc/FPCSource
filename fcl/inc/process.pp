@@ -726,7 +726,7 @@ Function TProcess.WaitOnExit : Dword;
 
 begin
 {$ifdef unix}
-  Result:=WaitPid(Handle,@FExitCode,0);
+  Result:=Dword(WaitPid(Handle,@FExitCode,0));
   If Result=Handle then
     FExitCode:=WexitStatus(FExitCode);
 {$else}
@@ -917,7 +917,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  2002-09-07 15:15:25  peter
+  Revision 1.14  2003-04-27 21:21:42  sg
+  * Added typecast to prevent range check error in TProcess.WaitOnExit
+
+  Revision 1.13  2002/09/07 15:15:25  peter
     * old logs removed and tabs fixed
 
 }
