@@ -89,9 +89,16 @@
   {$define cpufpemu}
 {$endif m68k}
 
+{$IFDEF MACOS}
+{$DEFINE MACOS_USE_FAKE_SYSUTILS}
+{$ENDIF MACOS}
+
 {
   $Log$
-  Revision 1.47  2004-11-14 16:26:29  florian
+  Revision 1.48  2005-02-08 22:33:51  olle
+    * fixed compilation on MacOS
+
+  Revision 1.47  2004/11/14 16:26:29  florian
     * fixed morphos syscall
 
   Revision 1.46  2004/10/31 18:54:24  peter

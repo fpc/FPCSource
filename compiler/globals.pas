@@ -355,12 +355,10 @@ interface
        be placed in data/const segment, according to the current alignment requirements }
     function const_align(siz: longint): longint;
 
-{$IFDEF MACOS}
+{$IFDEF MACOS_USE_FAKE_SYSUTILS}
 
 {Since SysUtils is not yet available for MacOS, fake
  Exceptions classes are included here.}
-
-{$DEFINE MACOS_USE_FAKE_SYSUTILS}
 
 type
    { exceptions }
@@ -381,7 +379,7 @@ type
    EOverflow   = Class(EMathError);
    EUnderflow  = Class(EMathError);
 
-{$ENDIF MACOS}
+{$ENDIF MACOS_USE_FAKE_SYSUTILS}
 
 implementation
 
@@ -2291,7 +2289,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.170  2005-02-07 21:30:25  florian
+  Revision 1.171  2005-02-08 22:33:51  olle
+    * fixed compilation on MacOS
+
+  Revision 1.170  2005/02/07 21:30:25  florian
     * fixed typo in define
 
   Revision 1.169  2005/02/06 21:33:28  peter
