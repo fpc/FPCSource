@@ -469,6 +469,13 @@ begin
          b^.WriteBin;
          dispose(b,done);
          if assigned(current_module^.ppufilename) then
+          begin
+            if (cs_smartlink in aktmoduleswitches) then
+              SynchronizeFileTime(current_module^.ppufilename^,current_module^.staticlibfilename^)
+            else
+              SynchronizeFileTime(current_module^.ppufilename^,current_module^.objfilename^);
+          end;
+         if assigned(current_module^.ppufilename) then
            SynchronizeFileTime(current_module^.ppufilename^,current_module^.objfilename^);
          exit;
        end;
@@ -534,7 +541,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  1999-03-01 15:43:48  peter
+  Revision 1.40  1999-03-18 20:30:44  peter
+    + .a writer
+
+  Revision 1.39  1999/03/01 15:43:48  peter
     * synchronize also the objfile for ag386bin
 
   Revision 1.38  1999/02/26 00:48:15  peter

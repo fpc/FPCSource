@@ -152,27 +152,27 @@ unit cobjects;
           procedure clear;
        end;
 
-        Pnamed_object=^Tnamed_object;
-        Pdictionary=^Tdictionary;
-        Pdictionaryhasharray=^Tdictionaryhasharray;
+       Pnamed_object=^Tnamed_object;
+       Pdictionary=^Tdictionary;
+       Pdictionaryhasharray=^Tdictionaryhasharray;
 
-        Tdictionaryhasharray=array[0..hasharraysize-1] of Pnamed_object;
+       Tdictionaryhasharray=array[0..hasharraysize-1] of Pnamed_object;
 
-        Tcallback = procedure(p:Pnamed_object);
+       Tcallback = procedure(p:Pnamed_object);
 
-        Tdictionary=object
-            root:Pnamed_object;
-            hasharray:Pdictionaryhasharray;
-            replace_existing : boolean;
-            constructor init(usehash:boolean);
-            procedure clear;virtual;
-            procedure foreach(proc2call:Tcallback);
-            function insert(obj:Pnamed_object):Pnamed_object;virtual;
-            function search(const s:string):Pnamed_object;
-            function speedsearch(const s:string;
-             speedvalue:longint):Pnamed_object;virtual;
-            destructor done;virtual;
-        end;
+       Tdictionary=object
+           root:Pnamed_object;
+           hasharray:Pdictionaryhasharray;
+           replace_existing : boolean;
+           constructor init(usehash:boolean);
+           procedure clear;virtual;
+           procedure foreach(proc2call:Tcallback);
+           function insert(obj:Pnamed_object):Pnamed_object;virtual;
+           function search(const s:string):Pnamed_object;
+           function speedsearch(const s:string;
+            speedvalue:longint):Pnamed_object;virtual;
+           destructor done;virtual;
+       end;
 
         Tnamed_object=object
             _name:Pstring;
@@ -183,6 +183,28 @@ unit cobjects;
             destructor done;virtual;
             function name:string;
         end;
+
+       pdynamicarray = ^tdynamicarray;
+       tdynamicarray = object
+         posn,
+         count,
+         limit,
+         elemlen,
+         growcount : longint;
+         data      : pchar;
+         constructor init(Aelemlen,Agrow:longint);
+         destructor  done;
+         function  size:longint;
+         function  usedsize:longint;
+         procedure grow;
+         procedure align(i:longint);
+         procedure seek(i:longint);
+         procedure write(var d;len:longint);
+         procedure read(var d;len:longint);
+         procedure writepos(pos:longint;var d;len:longint);
+         procedure readpos(pos:longint;var d;len:longint);
+       end;
+
 
 {$ifdef BUFFEREDFILE}
        { this is implemented to allow buffered binary I/O }
@@ -1036,6 +1058,119 @@ begin
         dispose(hasharray);
 end;
 
+
+{****************************************************************************
+                                tdynamicarray
+****************************************************************************}
+
+    constructor tdynamicarray.init(Aelemlen,Agrow:longint);
+      begin
+        posn:=0;
+        count:=0;
+        limit:=0;
+        data:=nil;
+        elemlen:=Aelemlen;
+        growcount:=Agrow;
+        grow;
+      end;
+
+    function  tdynamicarray.size:longint;
+      begin
+        size:=limit*elemlen;
+      end;
+
+    function  tdynamicarray.usedsize:longint;
+      begin
+        usedsize:=count*elemlen;
+      end;
+
+    procedure tdynamicarray.grow;
+      var
+        osize : longint;
+        odata : pchar;
+      begin
+        osize:=size;
+        odata:=data;
+        inc(limit,growcount);
+        getmem(data,size);
+        if assigned(odata) then
+         begin
+           move(odata^,data^,osize);
+           freemem(odata,osize);
+         end;
+        fillchar(data[osize],growcount*elemlen,0);
+      end;
+
+    procedure tdynamicarray.align(i:longint);
+      var
+        j : longint;
+      begin
+        j:=(posn*elemlen mod i);
+        if j<>0 then
+         begin
+           j:=i-j;
+           while limit<(posn+j) do
+            grow;
+           inc(posn,j);
+           if (posn>count) then
+            count:=posn;
+         end;
+      end;
+
+    procedure tdynamicarray.seek(i:longint);
+      begin
+        while limit<i do
+         grow;
+        posn:=i;
+        if (posn>count) then
+         count:=posn;
+      end;
+
+    procedure tdynamicarray.write(var d;len:longint);
+      begin
+        while limit<(posn+len) do
+         grow;
+        move(d,data[posn*elemlen],len*elemlen);
+        inc(posn,len);
+        if (posn>count) then
+         count:=posn;
+      end;
+
+    procedure tdynamicarray.read(var d;len:longint);
+      begin
+        move(data[posn*elemlen],d,len*elemlen);
+        inc(posn,len);
+        if (posn>count) then
+         count:=posn;
+      end;
+
+    procedure tdynamicarray.writepos(pos:longint;var d;len:longint);
+      begin
+        while limit<(pos+len) do
+         grow;
+        move(d,data[pos*elemlen],len*elemlen);
+        posn:=pos+len;
+        if (posn>count) then
+         count:=posn;
+      end;
+
+    procedure tdynamicarray.readpos(pos:longint;var d;len:longint);
+      begin
+        while limit<(pos+len) do
+         grow;
+        move(data[pos*elemlen],d,len*elemlen);
+        posn:=pos+len;
+        if (posn>count) then
+         count:=posn;
+      end;
+
+    destructor tdynamicarray.done;
+      begin
+        if assigned(data) then
+         freemem(data,size);
+      end;
+
+
 {$ifdef BUFFEREDFILE}
 
 {****************************************************************************
@@ -1424,7 +1559,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-03-01 13:32:00  pierre
+  Revision 1.20  1999-03-18 20:30:45  peter
+    + .a writer
+
+  Revision 1.19  1999/03/01 13:32:00  pierre
    * external used before implemented problem fixed
 
   Revision 1.18  1999/02/24 00:59:13  peter

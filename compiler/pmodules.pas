@@ -66,8 +66,11 @@ unit pmodules;
         if (cs_create_sharedlib in aktmoduleswitches) then
           Linker.MakeSharedLibrary
         else
-          if (cs_create_staticlib in aktmoduleswitches) or
-             (cs_smartlink in aktmoduleswitches) then
+          if (cs_create_staticlib in aktmoduleswitches)
+{$ifndef AG386BIN}
+             or (cs_smartlink in aktmoduleswitches)
+{$endif}
+             then
             Linker.MakeStaticLibrary(SmartLinkFilesCnt);
       end;
 
@@ -1256,7 +1259,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.102  1999-03-16 21:07:25  peter
+  Revision 1.103  1999-03-18 20:30:46  peter
+    + .a writer
+
+  Revision 1.102  1999/03/16 21:07:25  peter
     * check for dup uses
 
   Revision 1.101  1999/02/25 21:02:43  peter
