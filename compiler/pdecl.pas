@@ -1020,7 +1020,7 @@ unit pdecl;
                 consume(ID);
                 consume(SEMICOLON);
              end;
-           if not(assigned(propertyparas)) then
+           if assigned(propertyparas) then
              disposepdefcoll(propertyparas);
         end;
 
@@ -2068,7 +2068,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.68  1998-10-09 11:47:54  pierre
+  Revision 1.69  1998-10-09 12:07:49  pierre
+    * typo error for propertyparas dispose corrected
+
+  Revision 1.68  1998/10/09 11:47:54  pierre
     * still more memory leaks fixes !!
 
   Revision 1.67  1998/10/08 13:48:46  peter
