@@ -755,14 +755,13 @@ implementation
 
     procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;const f:tresflags;reg:TRegister);
       var
-        ai : taicpu;
+        hl : tasmlabel;
       begin
-        ai:=Taicpu.Op_reg_reg(A_RDPSR,NR_PSR,reg);
-{$warning Need to retrieve the correct flag setting in reg}
-//        ai.SetCondition(flags_to_cond(f));
-        list.Concat(ai);
-        { Delay slot }
-        list.Concat(TAiCpu.Op_none(A_NOP));
+        objectlibrary.getlabel(hl);
+        a_load_const_reg(list,size,1,reg);
+        a_jmp_flags(list,f,hl);
+        a_load_const_reg(list,size,0,reg);
+        a_label(list,hl);
       end;
 
 
@@ -1057,11 +1056,6 @@ implementation
               op1:=A_AND;
               op2:=A_AND;
             end;
-          OP_NOT :
-            begin
-              op1:=A_NOT;
-              op2:=A_NOT;
-            end;
           else
             internalerror(200203241);
         end;
@@ -1078,6 +1072,12 @@ implementation
               list.concat(taicpu.op_reg_reg_reg(A_XNOR,NR_G0,regsrc.reghi,regdst.reghi));
               list.concat(taicpu.op_reg_reg_reg(A_SUBcc,NR_G0,regsrc.reglo,regdst.reglo));
               list.concat(taicpu.op_reg_const_reg(A_ADDX,regdst.reglo,aword(-1),regdst.reglo));
+              exit;
+            end;
+          OP_NOT :
+            begin
+              list.concat(taicpu.op_reg_reg_reg(A_XNOR,regsrc.reglo,NR_G0,regdst.reglo));
+              list.concat(taicpu.op_reg_reg_reg(A_XNOR,regsrc.reghi,NR_G0,regdst.reghi));
               exit;
             end;
         end;
@@ -1107,7 +1107,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.67  2003-09-14 19:19:04  peter
+  Revision 1.68  2003-09-14 21:35:52  peter
+    * flags2reg fixed
+    * fixed 64bit not
+
+  Revision 1.67  2003/09/14 19:19:04  peter
     * updates for new ra
 
   Revision 1.66  2003/09/03 15:55:01  peter
