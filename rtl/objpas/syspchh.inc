@@ -46,12 +46,15 @@ function StrPas(Str: PChar): string;
 function StrPCopy(Dest: PChar; Source: string): PChar;
 function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
 function StrAlloc(Size: cardinal): PChar;
-function StrBufSize(var Str: PChar): cardinal;
-procedure StrDispose(var Str: PChar);
+function StrBufSize(Str: PChar): cardinal;
+procedure StrDispose(Str: PChar);
 
 {
   $Log$
-  Revision 1.3  1999-02-25 07:39:58  michael
+  Revision 1.4  1999-08-24 13:14:51  peter
+    * disposestr allocstr compatible with delphi
+
+  Revision 1.3  1999/02/25 07:39:58  michael
   * Joined strings and sysutils
 
   Revision 1.2  1998/09/16 08:28:41  michael

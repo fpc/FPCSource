@@ -37,8 +37,8 @@ type
 
 function StrPas(Str: PChar): string;
 begin
-SetLength(result, StrLen(Str));
-Move(Str^, result[1], Length(result));
+  SetLength(result, StrLen(Str));
+  Move(Str^, result[1], Length(result));
 end ;
 
 {  StrAlloc allocates a buffer of Size + 4
@@ -46,20 +46,19 @@ end ;
    StrDispose should be used to destroy the buffer  }
 
 function StrAlloc(Size: cardinal): PChar;
-var Temp: pointer;
 begin
-GetMem(Temp, Size + SizeOf(cardinal));
-Move(Size, Temp^, SizeOf(cardinal));
-pbyte(Temp + SizeOf(cardinal))^ := 0;
-result := PChar(Temp + SizeOf(cardinal));
-end ;
+  inc(size,sizeof(cardinal));
+  getmem(result,size);
+  cardinal(pointer(result)^):=size;
+  inc(result,sizeof(cardinal));
+end;
 
 
 {  StrPCopy copies the pascal string Source to Dest and returns Dest  }
 
 function StrPCopy(Dest: PChar; Source: string): PChar;
 begin
-result := StrMove(Dest, PChar(Source), length(Source)+1);
+  result := StrMove(Dest, PChar(Source), length(Source)+1);
 end ;
 
 {  StrPLCopy copies MaxLen or less characters from the pascal string
@@ -81,30 +80,31 @@ end ;
 
 {   StrDispose clears the memory allocated with StrAlloc   }
 
-procedure StrDispose(var Str: PChar);
-var Size: cardinal;
+procedure StrDispose(Str: PChar);
 begin
-if (Str <> Nil) then begin
-   Str := PChar(Str - SizeOf(cardinal));
-   Move(Str^, Size, SizeOf(cardinal));
-   FreeMem(Str, Size + SizeOf(cardinal));
-   Str := Nil;
-   end ;
-end ;
+  if (Str <> Nil) then
+   begin
+     dec(Str,sizeof(cardinal));
+     Freemem(str,cardinal(pointer(str)^));
+   end;
+end;
 
 {  StrBufSize returns the amount of memory allocated for pchar Str allocated with StrAlloc  }
 
-function StrBufSize(var Str: PChar): cardinal;
+function StrBufSize(Str: PChar): cardinal;
 begin
-if Str <> Nil then
-   result := Cardinal(pointer(Str - SizeOf(cardinal))^)
-else
+  if Str <> Nil then
+   result := cardinal(pointer(Str - SizeOf(cardinal))^)-sizeof(cardinal)
+  else
    result := 0;
 end ;
 
 {
   $Log$
-  Revision 1.5  1999-07-09 10:06:34  peter
+  Revision 1.6  1999-08-24 13:14:50  peter
+    * disposestr allocstr compatible with delphi
+
+  Revision 1.5  1999/07/09 10:06:34  peter
     * merged
 
   Revision 1.4.2.1  1999/07/09 10:05:05  peter
