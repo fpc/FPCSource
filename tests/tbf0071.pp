@@ -1,4 +1,4 @@
-program tbs0071;
+program tbf0071;
 
 begin
   writeln ('

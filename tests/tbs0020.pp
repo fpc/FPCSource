@@ -3,7 +3,6 @@
 {$ifdef linux}
 uses
   Gpm;
-{$endif def linux}
 
 var
   Conn: TGPMConnect;
