@@ -82,6 +82,8 @@ unit pmodules;
          p^.insert(new(psyssym,init('SUCC',in_succ_x)));
          p^.insert(new(psyssym,init('EXCLUDE',in_exclude_x_y)));
          p^.insert(new(psyssym,init('INCLUDE',in_include_x_y)));
+         p^.insert(new(psyssym,init('BREAK',in_break)));
+         p^.insert(new(psyssym,init('CONTINUE',in_continue)));
 
          { for testing purpose }
          p^.insert(new(psyssym,init('DECI',in_dec_x)));
@@ -112,12 +114,9 @@ unit pmodules;
          p^.insert(new(ptypesym,init('cs32fixed',s32fixeddef)));
          p^.insert(new(ptypesym,init('byte',u8bitdef)));
          p^.insert(new(ptypesym,init('string',cstringdef)));
-{$ifdef UseLongString}
          p^.insert(new(ptypesym,init('longstring',clongstringdef)));
-{$endif UseLongString}
-{$ifdef UseAnsiString}
          p^.insert(new(ptypesym,init('ansistring',cansistringdef)));
-{$endif UseAnsiString}
+         p^.insert(new(ptypesym,init('widestring',cansistringdef)));
          p^.insert(new(ptypesym,init('word',u16bitdef)));
          p^.insert(new(ptypesym,init('boolean',booldef)));
          p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
@@ -145,12 +144,9 @@ unit pmodules;
          p^.insert(new(ptypesym,init('SINGLE',new(pfloatdef,init(s32real)))));
          p^.insert(new(ptypesym,init('POINTER',new(ppointerdef,init(voiddef)))));
          p^.insert(new(ptypesym,init('STRING',cstringdef)));
-{$ifdef UseLongString}
          p^.insert(new(ptypesym,init('LONGSTRING',clongstringdef)));
-{$endif UseLongString}
-{$ifdef UseAnsiString}
          p^.insert(new(ptypesym,init('ANSISTRING',cansistringdef)));
-{$endif UseAnsiString}
+         p^.insert(new(ptypesym,init('WIDESTRING',cwidestringdef)));
          p^.insert(new(ptypesym,init('BOOLEAN',new(porddef,init(bool8bit,0,1)))));
          p^.insert(new(ptypesym,init('CHAR',new(porddef,init(uchar,0,255)))));
          p^.insert(new(ptypesym,init('TEXT',new(pfiledef,init(ft_text,nil)))));
@@ -955,7 +951,14 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.8  1998-04-30 15:59:41  pierre
+  Revision 1.9  1998-05-01 16:38:45  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.8  1998/04/30 15:59:41  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

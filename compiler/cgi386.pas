@@ -1624,16 +1624,18 @@ implementation
               { call shortstring to ansistring conversion }
               { result is in register }
               del_reference(p^.left^.location.reference);
+              {!!!!
               copyshortstringtoansistring(p^.location,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
+              }
               ungetiftemp(p^.left^.location.reference);
            end
-         else if not is_ansistring(p^.resulttype) and is_ansistring(p^.left.resulttype) then
+         else if not is_ansistring(p^.resulttype) and is_ansistring(p^.left^.resulttype) then
            begin
               { call ansistring to shortstring conversion }
               { result is in mem }
               stringdispose(p^.location.reference.symbol);
               gettempofsizereference(p^.resulttype^.size,p^.location.reference);
-              if p^.left^.location.locin [LOC_MEM,LOC_REFERENCE] then
+              if p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE] then
                 del_reference(p^.left^.location.reference);
               copyansistringtoshortstring(p^.location.reference,p^.left^.location.reference,pstringdef(p^.resulttype)^.len);
               ungetiftemp(p^.left^.location.reference);
@@ -2296,11 +2298,10 @@ implementation
 {$ifdef UseAnsiString}
               if is_ansistring(p^.left^.resulttype) then
                 begin
-
-                  { we do not need destination anymore }
-                  del_reference(p^.left^.location.reference);
-                  { only source if withresult is set }
-                  del_reference(p^.right^.location.reference);
+                  { the source and destinations are released
+                    in loadansistring, because an ansi string can
+                    also be in a register
+                  }
                   loadansistring(p);
                 end
               else
@@ -2309,7 +2310,6 @@ implementation
                 begin
                   { we do not need destination anymore }
                   del_reference(p^.left^.location.reference);
-                  { only source if withresult is set }
                   del_reference(p^.right^.location.reference);
                   loadstring(p);
                   ungetiftemp(p^.right^.location.reference);
@@ -3971,7 +3971,7 @@ implementation
                  set_location(p^.location,p^.left^.location);
                  { length in ansi strings is at offset -8 }
 {$ifdef UseAnsiString}
-                 if is_ansistring(p^.left^.resultype)) then
+                 if is_ansistring(p^.left^.resulttype) then
                    dec(p^.location.reference.offset,8);
 {$endif UseAnsiString}
               end;
@@ -6033,7 +6033,14 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.19  1998-04-30 15:59:39  pierre
+  Revision 1.20  1998-05-01 16:38:44  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.19  1998/04/30 15:59:39  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

@@ -120,7 +120,7 @@ unit pexpr;
          prev_in_args:=in_args;
          Store_valid:=Must_be_valid;
          case l of
-            in_ord_x :
+            in_ord_x:
               begin
                  consume(LKLAMMER);
                  in_args:=true;
@@ -132,6 +132,16 @@ unit pexpr;
                  do_firstpass(p1);
                  statement_syssym := p1;
                  pd:=p1^.resulttype;
+              end;
+            in_break:
+              begin
+                 statement_syssym:=genzeronode(breakn);
+                 pd:=voiddef;
+              end;
+            in_continue:
+              begin
+                 statement_syssym:=genzeronode(continuen);
+                 pd:=voiddef;
               end;
             in_typeof_x : begin
                              consume(LKLAMMER);
@@ -580,6 +590,13 @@ unit pexpr;
          else
            begin
               isclassref:=pd^.deftype=classrefdef;
+              { check protected and private members }
+              if ((sym^.properties and sp_private)<>0) and
+                 (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
+                Message(parser_e_cant_access_private_member);
+              if ((sym^.properties and sp_protected)<>0) and
+                (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
+               Message(parser_e_cant_access_protected_member);
               { we assume, that only procsyms and varsyms are in an object }
               { symbol table, for classes, properties are allowed          }
               case sym^.typ of
@@ -938,6 +955,14 @@ unit pexpr;
                              end
                            else
                              unit_specific:=false;
+                           { check semantics of private }
+                           if srsymtable^.symtabletype=objectsymtable then
+                             begin
+                                if ((srsym^.properties and sp_private)<>0) and
+                                  (pobjectdef(srsym^.owner^.defowner)^.
+                                  owner^.symtabletype=unitsymtable) then
+                                  Message(parser_e_cant_access_private_member);
+                             end;
                            case srsym^.typ of
                               absolutesym:
                                 begin
@@ -1640,7 +1665,14 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.9  1998-04-29 10:33:58  pierre
+  Revision 1.10  1998-05-01 16:38:45  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.9  1998/04/29 10:33:58  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

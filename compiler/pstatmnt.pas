@@ -889,11 +889,13 @@ unit pstatmnt;
                        consume(_FAIL);
                        code:=genzeronode(failn);
                     end;
+            {
             _BREAK:
               begin
                  consume(_BREAK);
                  code:=genzeronode(breakn);
               end;
+             }
             _EXIT : code:=exit_statement;
             _ASM : code:=_asm_statement;
          else
@@ -928,9 +930,8 @@ unit pstatmnt;
                      end;
                 end;
               p:=expr;
-              if (p^.treetype<>calln) and
-                (p^.treetype<>assignn) and
-                (p^.treetype<>inlinen) then
+              if not(p^.treetype in [calln,assignn,breakn,inlinen,
+                continuen]) then
                 Message(cg_e_illegal_expression);
               code:=p;
            end;
@@ -1076,7 +1077,14 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.6  1998-04-30 15:59:42  pierre
+  Revision 1.7  1998-05-01 16:38:46  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.6  1998/04/30 15:59:42  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position

@@ -40,6 +40,15 @@ unit types;
     { true if o is an ansi string def }
     function is_ansistring(p : pdef) : boolean;
 
+    { true if o is a long string def }
+    function is_longstring(p : pdef) : boolean;
+
+    { true if o is a wide string def }
+    function is_widestring(p : pdef) : boolean;
+
+    { true if o is a short string def }
+    function is_shortstring(p : pdef) : boolean;
+
     { returns true, if def defines a signed data type (only for ordinal types) }
     function is_signed(def : pdef) : boolean;
 
@@ -226,6 +235,27 @@ unit types;
       begin
          is_ansistring:=(p^.deftype=stringdef) and
                  (pstringdef(p)^.string_typ=ansistring);
+      end;
+
+    { true if o is an long string def }
+    function is_longstring(p : pdef) : boolean;
+      begin
+         is_longstring:=(p^.deftype=stringdef) and
+                 (pstringdef(p)^.string_typ=longstring);
+      end;
+
+    { true if o is an long string def }
+    function is_widestring(p : pdef) : boolean;
+      begin
+         is_widestring:=(p^.deftype=stringdef) and
+                 (pstringdef(p)^.string_typ=widestring);
+      end;
+
+    { true if o is an short string def }
+    function is_shortstring(p : pdef) : boolean;
+      begin
+         is_shortstring:=(p^.deftype=stringdef) and
+                 (pstringdef(p)^.string_typ=shortstring);
       end;
 
     { true if the return value is in accumulator (EAX for i386), D0 for 68k }
@@ -935,7 +965,14 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.10  1998-04-29 10:34:08  pierre
+  Revision 1.11  1998-05-01 16:38:46  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.10  1998/04/29 10:34:08  pierre
     + added some code for ansistring (not complete nor working yet)
     * corrected operator overloading
     * corrected nasm output

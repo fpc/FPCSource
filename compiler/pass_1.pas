@@ -525,13 +525,6 @@ unit pass_1;
                      p^.registers32:=1;
                    if p^.symtable^.symtabletype=withsymtable then
                      p^.registers32:=1;
-                   { check semantics of private }
-                   if p^.symtable^.symtabletype=objectsymtable then
-                     begin
-                        if (pobjectdef(pvarsym(p^.symtableentry)^.owner^.defowner)^.owner^.symtabletype=unitsymtable) and
-                          ((p^.vs^.properties and sp_private)<>0) then
-                          Message(parser_e_cant_access_private_member);
-                     end;
 
                    { a class variable is a pointer !!!
                      yes, but we have to resolve the reference in an
@@ -1995,24 +1988,24 @@ unit pass_1;
 
     procedure first_string_chararray(var p : ptree);
 
-           begin
-                   p^.registers32:=1;
-                   p^.location.loc:=LOC_REGISTER;
-           end;
+      begin
+         p^.registers32:=1;
+         p^.location.loc:=LOC_REGISTER;
+      end;
 
     procedure first_string_string(var p : ptree);
 
+      begin
+         if pstringdef(p^.resulttype)^.string_typ<>
+            pstringdef(p^.left^.resulttype)^.string_typ then
            begin
-              if pstringdef(p^.resulttype)^.string_typ<>
-                 pstringdef(p^.left^.resulttype)^.string_typ then
-                begin
-                   { call shortstring_to_ansistring or ansistring_to_shortstring }
-                   procinfo.flags:=procinfo.flags or pi_do_call;
-                end;
-              { for simplicity lets first keep all ansistrings
-                as LOC_MEM, could also become LOC_REGISTER }
-              p^.location.loc:=LOC_MEM;
+              { call shortstring_to_ansistring or ansistring_to_shortstring }
+              procinfo.flags:=procinfo.flags or pi_do_call;
            end;
+         { for simplicity lets first keep all ansistrings
+           as LOC_MEM, could also become LOC_REGISTER }
+         p^.location.loc:=LOC_MEM;
+      end;
 
     procedure first_char_to_string(var p : ptree);
 
@@ -3856,16 +3849,6 @@ unit pass_1;
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=p^.left^.registersmmx;
 {$endif SUPPORT_MMX}
-        { check protected and private members }
-        if (p^.left^.resulttype^.deftype=objectdef) then
-          begin
-             if (pobjectdef(p^.vs^.owner^.defowner)^.owner^.symtabletype=unitsymtable) and
-               ((p^.vs^.properties and sp_private)<>0) then
-               Message(parser_e_cant_access_private_member);
-             if (pobjectdef(p^.left^.resulttype)^.owner^.symtabletype=unitsymtable) and
-               ((p^.vs^.properties and sp_protected)<>0) then
-               Message(parser_e_cant_access_protected_member);
-          end;
          { classes must be dereferenced implicit }
          if (p^.left^.resulttype^.deftype=objectdef) and
            pobjectdef(p^.left^.resulttype)^.isclass then
@@ -4846,7 +4829,14 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.15  1998-05-01 09:01:23  florian
+  Revision 1.16  1998-05-01 16:38:45  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.15  1998/05/01 09:01:23  florian
     + correct semantics of private and protected
     * small fix in variable scope:
        a id can be used in a parameter list of a method, even it is used in

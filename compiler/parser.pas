@@ -64,12 +64,9 @@ unit parser;
          s32bitdef:=porddef(globaldef('longint'));
          u32bitdef:=porddef(globaldef('ulong'));
          cstringdef:=pstringdef(globaldef('string'));
-{$ifdef UseLongString}
          clongstringdef:=pstringdef(globaldef('longstring'));
-{$endif UseLongString}
-{$ifdef UseAnsiString}
          cansistringdef:=pstringdef(globaldef('ansistring'));
-{$endif UseAnsiString}
+         cwidestringdef:=pstringdef(globaldef('widestring'));
          cchardef:=porddef(globaldef('char'));
 {$ifdef i386}
          c64floatdef:=pfloatdef(globaldef('s64real'));
@@ -351,12 +348,9 @@ unit parser;
               u32bitdef:=new(porddef,init(u32bit,0,$ffffffff));
               cstringdef:=new(pstringdef,init(255));
               { should we give a length to the default long and ansi string definition ?? }
-{$ifdef UseLongString}
               clongstringdef:=new(pstringdef,longinit(-1));
-{$endif UseLongString}
-{$ifdef UseAnsiString}
               cansistringdef:=new(pstringdef,ansiinit(-1));
-{$endif UseAnsiString}
+              cwidestringdef:=new(pstringdef,wideinit(-1));
               cchardef:=new(porddef,init(uchar,0,255));
 {$ifdef i386}
               c64floatdef:=new(pfloatdef,init(s64real));
@@ -542,7 +536,14 @@ done:
 end.
 {
   $Log$
-  Revision 1.10  1998-05-01 07:43:56  florian
+  Revision 1.11  1998-05-01 16:38:45  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.10  1998/05/01 07:43:56  florian
     + basics for rtti implemented
     + switch $m (generate rtti for published sections)
 

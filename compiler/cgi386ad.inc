@@ -223,7 +223,7 @@
                        { we do not need destination anymore }
                        del_reference(p^.left^.location.reference);
                        del_reference(p^.right^.location.reference);
-                       concatansistring(p);
+                       { concatansistring(p); }
                     end;
                   ltn,lten,gtn,gten,
                   equaln,unequaln :
@@ -1271,7 +1271,14 @@
 
 {
      $Log$
-     Revision 1.6  1998-04-30 15:59:40  pierre
+     Revision 1.7  1998-05-01 16:38:44  florian
+       * handling of private and protected fixed
+       + change_keywords_to_tp implemented to remove
+         keywords which aren't supported by tp
+       * break and continue are now symbols of the system unit
+       + widestring, longstring and ansistring type released
+
+     Revision 1.6  1998/04/30 15:59:40  pierre
        * GDB works again better :
          correct type info in one pass
        + UseTokenInfo for better source position

@@ -188,6 +188,7 @@ unit files;
        iblongstringdef = 32;
        ibansistringdef = 33;
        ibunitname      = 34;
+       ibwidestringdef = 35;
        ibend           = 255;
 
        { unit flags }
@@ -630,7 +631,14 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.6  1998-05-01 07:43:53  florian
+  Revision 1.7  1998-05-01 16:38:44  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.6  1998/05/01 07:43:53  florian
     + basics for rtti implemented
     + switch $m (generate rtti for published sections)
 

@@ -18,8 +18,14 @@ compiler version and your short cut.
   - message qualifier
         - correct handling of constructor result type ............ 0.99.6 (FK)
   - rtti
+  - published
   - dynamic methods
-  - correct handling of access specifiers
+  - correct handling of access specifiers ........................ 0.99.7 (FK)
+  - interface
+* rtti
+  - generation
+  - use when copying etc.
+* AnsiString, LongString and WideString
 * MMX support by the compiler
           - unary minus .......................................... 0.99.1 (FK)
           - proper handling of fixed type ........................ 0.99.1 (FK)

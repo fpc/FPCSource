@@ -44,17 +44,24 @@ unit scanner;
        ident = string[id_len];
 
     const
-      max_keywords = 71;
+      max_keywords = 69;
       anz_keywords : longint = max_keywords;
 
+      { the following keywords are no keywords in TP, they
+        are internal procedures
+
+      CONTINUE, DISPOSE, EXIT, FAIL, FALSE, NEW, SELF
+      TRUE
+      }
+      { INLINE is a keyword in TP, but only an modifier in FPC }
       keyword : array[1..max_keywords] of ident = (
 {        'ABSOLUTE',}
          'AND',
          'ARRAY','AS','ASM',
 {        'ASSEMBLER',}
          'BEGIN',
-         'BREAK','CASE','CLASS',
-         'CONST','CONSTRUCTOR','CONTINUE',
+         'CASE','CLASS',
+         'CONST','CONSTRUCTOR',
          'DESTRUCTOR','DISPOSE','DIV','DO','DOWNTO','ELSE','END',
          'EXCEPT',
          'EXIT',
@@ -89,8 +96,8 @@ unit scanner;
          _ARRAY,_AS,_ASM,
 {        _ASSEMBLER,}
          _BEGIN,
-         _BREAK,_CASE,_CLASS,
-         _CONST,_CONSTRUCTOR,_CONTINUE,
+         _CASE,_CLASS,
+         _CONST,_CONSTRUCTOR,
          _DESTRUCTOR,_DISPOSE,_DIV,_DO,_DOWNTO,
          _ELSE,_END,_EXCEPT,
          _EXIT,
@@ -177,6 +184,8 @@ unit scanner;
         procedure InitScanner(const fn: string);
         procedure DoneScanner(testendif:boolean);
 
+        { changes to keywords to be tp compatible }
+        procedure change_to_tp_keywords;
 
   implementation
 
@@ -1413,10 +1422,53 @@ unit scanner;
         end;
      end;
 
+   procedure change_to_tp_keywords;
+
+     const
+        non_tp : array[0..13] of string[id_len] = (
+          'AS','CLASS','EXCEPT','FINALLY','INITIALIZATION','IS',
+          'ON','OPERATOR','OTHERWISE','PROPERTY','RAISE','TRY',
+          'EXPORTS','LIBRARY');
+
+     var
+        i : longint;
+
+     begin
+        for i:=0 to 13 do
+          remove_keyword(non_tp[i]);
+     end;
+
+   procedure change_to_delphi_keywords;
+
+     {
+     const
+        non_tp : array[0..13] of string[id_len] = (
+          'AS','CLASS','EXCEPT','FINALLY','INITIALIZATION','IS',
+          'ON','OPERATOR','OTHERWISE','PROPERTY','RAISE','TRY',
+          'EXPORTS','LIBRARY');
+
+     var
+        i : longint;
+     }
+
+     begin
+     {
+        for i:=0 to 13 do
+          remove_keyword(non_tp[i]);
+     }
+     end;
+
 end.
 {
   $Log$
-  Revision 1.14  1998-04-30 15:59:42  pierre
+  Revision 1.15  1998-05-01 16:38:46  florian
+    * handling of private and protected fixed
+    + change_keywords_to_tp implemented to remove
+      keywords which aren't supported by tp
+    * break and continue are now symbols of the system unit
+    + widestring, longstring and ansistring type released
+
+  Revision 1.14  1998/04/30 15:59:42  pierre
     * GDB works again better :
       correct type info in one pass
     + UseTokenInfo for better source position
