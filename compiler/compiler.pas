@@ -133,6 +133,7 @@ uses
 var
   CompilerInitedAfterArgs,
   CompilerInited : boolean;
+  olddo_stop : tstopprocedure;
 
 {$ifdef USEEXCEPT}
 
@@ -144,7 +145,6 @@ begin
     Do_Halt(1);
 end;
 {$endif USEEXCEPT}
-
 
 {****************************************************************************
                                 Compiler
@@ -210,6 +210,12 @@ begin
   CompilerInitedAfterArgs:=true;
 end;
 
+procedure minimal_stop;
+begin
+  DoneCompiler;
+  olddo_stop;
+end;
+
 
 function Compile(const cmd:string):longint;
 
@@ -225,10 +231,15 @@ var
   starttime  : real;
 {$ifdef USEEXCEPT}
   recoverpos : jmp_buf;
-  olddo_stop : tstopprocedure;
 {$endif}
 begin
 
+  olddo_stop:=do_stop;
+{$ifdef TP}
+  do_stop:=minimal_stop;
+{$else TP}
+  do_stop:=@minimal_stop;
+{$endif TP}
 { Initialize the compiler }
   InitCompiler(cmd);
 
@@ -250,7 +261,6 @@ begin
 {$ifdef USEEXCEPT}
   if setjmp(recoverpos)=0 then
    begin
-     olddo_stop:=do_stop;
      recoverpospointer:=@recoverpos;
 {$ifdef TP}
      do_stop:=recoverstop;
@@ -270,10 +280,10 @@ begin
       end;
 {$ifdef USEEXCEPT}
     end;
-{ Stop is always called, so we come here when a program is compiled or not }
-  do_stop:=olddo_stop;
 {$endif USEEXCEPT}
 
+{ Stop is always called, so we come here when a program is compiled or not }
+  do_stop:=olddo_stop;
 { Stop the compiler, frees also memory }
 { no message possible after this !!    }
   DoneCompiler;
@@ -300,7 +310,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.37  1999-11-06 14:34:20  peter
+  Revision 1.38  1999-11-09 23:47:53  pierre
+   + minimal_stop to avoid memory loss with -iTO switch
+
+  Revision 1.37  1999/11/06 14:34:20  peter
     * truncated log to 20 revs
 
   Revision 1.36  1999/10/12 21:20:41  florian
