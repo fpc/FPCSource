@@ -68,18 +68,42 @@ end;
 Procedure SecondInSets;
 { SET_IN_BYTE TESTS }
 var
- op : tasmop;
+ op,op2 : tasmop;
  oplist: set of tasmop;
 Begin
  Write('TESTING SET_IN_BYTE:');
  oplist:=[];
  op:=A_JSR;
+ if A_JSR in oplist then
+  WriteLn('A_JSR in [] FAILED.')
+ else
+  Writeln('A_JSR in [] PASSED.');
  if op in oplist then
-  WriteLn(' FAILED.');
+  WriteLn('op(A_JSR) in [] FAILED.')
+ else
+  Writeln('op (A_JSR) in [] PASSED.');
  op:=A_MOVE;
  oplist:=oplist+[A_MOVE];
+ if A_MOVE in oplist then
+  WriteLn('A_MOVE in ([]+[A_MOVE]) PASSED.')
+ else
+  Writeln('A_MOVE in ([]+[A_MOVE]) FAILED.');
  if op in oplist then
-  WriteLn(' PASSED.');
+  WriteLn('op(A_MOVE) in ([]+[A_MOVE]) PASSED.')
+ else
+  Writeln('op(A_MOVE) in ([]+[A_MOVE]) FAILED.');
+  op:=A_MOVE;
+  oplist:=[];
+  oplist:=[A_SUB]+[op];
+  op2:=A_MOVE;
+ if A_MOVE in oplist then
+  WriteLn('A_MOVE in ([A_SUB]+[op(A_MOVE)]) PASSED.')
+ else
+  Writeln('A_MOVE in ([A_SUB]+[op(A_MOVE)]) FAILED.');
+ if op2 in oplist then
+  WriteLn('op2(A_MOVE) in ([A_SUB]+[op(A_MOVE)]) PASSED.')
+ else
+  Writeln('op2(A_MOVE) in ([A_SUB]+[op(A_MOVE)]) FAILED.');
 end;
 
 Procedure SetSetByte;
