@@ -714,6 +714,7 @@ implementation
                           end
                         else
                           begin
+                             emit_reg(A_PUSH,S_L,R_ESI);
                              if is_con_or_destructor then
                                begin
                                   if (p^.procdefinition^.proctypeoption=potype_constructor) then
@@ -726,9 +727,7 @@ implementation
                                   { a direct call                                           }
                                   else
                                     push_int(0);
-                               end
-                             else
-                               emit_reg(A_PUSH,S_L,R_ESI);
+                               end;
                           end;
                      end;
                 end;
@@ -1333,7 +1332,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2000-01-21 22:06:16  florian
+  Revision 1.121  2000-01-23 18:50:07  peter
+    * fixed missing push esi for constructor calling
+
+  Revision 1.120  2000/01/21 22:06:16  florian
     * fixed for the fix of bug 793
     * fpu variables modified by nested subroutines aren't regable anymore
     * $maxfpuregisters doesn't modify anymore the behavior of a procedure before
