@@ -888,6 +888,9 @@ implementation
               { warnings only on local copy ! }
               varstate:=vs_used;
             end;
+           if is_shortstring(vartype.def) and
+              (varspez = vs_value) then
+             include(current_procinfo.flags,pi_do_call);
          end;
       end;
 
@@ -1210,7 +1213,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2003-05-30 23:57:08  peter
+  Revision 1.121  2003-05-31 20:23:39  jonas
+    * added pi_do_call if a procedure has a value shortstring parameter
+      (it's copied to the local stackframe with a helper)
+
+  Revision 1.120  2003/05/30 23:57:08  peter
     * more sparc cleanup
     * accumulator removed, splitted in function_return_reg (called) and
       function_result_reg (caller)
