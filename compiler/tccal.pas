@@ -554,8 +554,11 @@ implementation
 
                 { now we can compare parameter after parameter }
                    pt:=p^.left;
+                   { we start with the last parameter }
+                   l:=paralength+1;
                    while assigned(pt) do
                      begin
+                        dec(l);
                         { matches a parameter of one procedure exact ? }
                         exactmatch:=false;
                         hp:=procs;
@@ -637,7 +640,10 @@ implementation
                              hp:=hp^.next;
                           end;
                         { load next parameter }
-                        pt:=pt^.right;
+                        if assigned(procs) then
+                          pt:=pt^.right
+                        else
+                          pt:=nil;
                      end;
 
                    if not assigned(procs) then
@@ -647,7 +653,7 @@ implementation
                       if ((parsing_para_level=0) or (p^.left<>nil)) and
                          (nextprocsym=nil) then
                        begin
-                          CGMessage(parser_e_wrong_parameter_type);
+                          CGMessage1(parser_e_wrong_parameter_type,tostr(l));
                           aktcallprocsym^.write_parameter_lists;
                           exit;
                        end
@@ -1061,7 +1067,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  1999-01-21 22:10:49  peter
+  Revision 1.22  1999-01-29 11:34:55  pierre
+   + better info for impossible type conversion in calln
+
+  Revision 1.21  1999/01/21 22:10:49  peter
     * fixed array of const
     * generic platform independent high() support
 
