@@ -330,18 +330,6 @@ const
 {$endif GDB}
 
 const
-  { relevant options for assigning a proc or a procvar to a procvar }
-  po_compatibility_options = [
-    po_staticmethod,
-    po_methodpointer,
-    po_containsself,
-    po_interrupt,
-    po_iocheck,
-    po_varargs,
-    po_exports
-  ];
-
-const
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','variable','type','proc','unit',
        'const','enum','typed const','errorsym','system sym',
@@ -366,7 +354,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2003-01-16 22:13:52  peter
+  Revision 1.47  2003-04-23 11:37:33  peter
+    * po_comp for proc to procvar fixed
+
+  Revision 1.46  2003/01/16 22:13:52  peter
     * convert_l3 convertlevel added. This level is used for conversions
       where information can be lost like converting widestring->ansistring
       or dword->byte

@@ -1147,7 +1147,8 @@ implementation
             exit;
           end;
          { check return value and options, methodpointer is already checked }
-         po_comp:=po_compatibility_options-[po_methodpointer];
+         po_comp:=[po_staticmethod,po_containsself,po_interrupt,
+                   po_iocheck,po_varargs];
          if (m_delphi in aktmodeswitches) then
            exclude(po_comp,po_varargs);
          if ((po_comp * def1.procoptions)= (po_comp * def2.procoptions)) and
@@ -1182,7 +1183,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2003-04-10 17:57:52  peter
+  Revision 1.22  2003-04-23 11:37:33  peter
+    * po_comp for proc to procvar fixed
+
+  Revision 1.21  2003/04/10 17:57:52  peter
     * vs_hidden released
 
   Revision 1.20  2003/03/20 17:52:18  peter
