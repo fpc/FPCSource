@@ -26,6 +26,11 @@
 unit ppu;
 interface
 
+{ Also write the ppu if only crc if done, this can be used with ppudump to
+  see the differences between the intf and implementation }
+{ define INTFPPU}
+{$define ORDERSOURCES}
+
 {$ifdef Test_Double_checksum}
 var
   CRCFile : text;
@@ -39,15 +44,15 @@ type
 const
 {$ifdef newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=101;
+  CurrentPPUVersion=103;
 {$else ORDERSOURCES}
-  CurrentPPUVersion=100;
+  CurrentPPUVersion=102;
 {$endif ORDERSOURCES}
 {$else newcg}
 {$ifdef ORDERSOURCES}
-  CurrentPPUVersion=19;
+  CurrentPPUVersion=22;
 {$else ORDERSOURCES}
-  CurrentPPUVersion=18;
+  CurrentPPUVersion=20;
 {$endif ORDERSOURCES}
 {$endif newcg}
 
@@ -246,94 +251,11 @@ type
 
 implementation
 
-{$ifdef Test_Double_checksum}
   uses
-    comphook;
+{$ifdef Test_Double_checksum}
+    comphook,
 {$endif def Test_Double_checksum}
-
-
-{*****************************************************************************
-                                   Crc 32
-*****************************************************************************}
-
-var
-{$ifdef Delphi}
-  Crc32Tbl : array[0..255] of longword;
-{$else Delphi}
-  Crc32Tbl : array[0..255] of longint;
-{$endif Delphi}
-
-procedure MakeCRC32Tbl;
-var
-{$ifdef Delphi}
-  crc : longword;
-{$else Delphi}
-  crc : longint;
-{$endif Delphi}
-  i,n : byte;
-begin
-  for i:=0 to 255 do
-   begin
-     crc:=i;
-     for n:=1 to 8 do
-      if odd(crc) then
-       crc:=(crc shr 1) xor $edb88320
-      else
-       crc:=crc shr 1;
-     Crc32Tbl[i]:=crc;
-   end;
-end;
-
-
-{$ifopt R+}
-{$define Range_check_on}
-{$endif opt R+}
-
-{$R- needed here }
-{CRC 32}
-Function Crc32(Const HStr:String):longint;
-var
-  i,InitCrc : longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  InitCrc:=$ffffffff;
-  for i:=1to Length(Hstr) do
-   InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(Hstr[i])] xor (InitCrc shr 8);
-  Crc32:=InitCrc;
-end;
-
-
-
-Function UpdateCrc32(InitCrc:longint;var InBuf;InLen:Longint):longint;
-var
-  i : word;
-  p : pchar;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  p:=@InBuf;
-  for i:=1 to InLen do
-   begin
-     InitCrc:=Crc32Tbl[byte(InitCrc) xor byte(p^)] xor (InitCrc shr 8);
-     inc(longint(p));
-   end;
-  UpdateCrc32:=InitCrc;
-end;
-
-
-
-Function UpdCrc32(InitCrc:longint;b:byte):longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  UpdCrc32:=Crc32Tbl[byte(InitCrc) xor b] xor (InitCrc shr 8);
-end;
-
-{$ifdef Range_check_on}
-{$R+}
-{$undef Range_check_on}
-{$endif Range_check_on}
+    crc;
 
 {*****************************************************************************
                                   TPPUFile
@@ -713,6 +635,13 @@ end;
 function tppufile.create:boolean;
 begin
   create:=false;
+{$ifdef INTFPPU}
+  if crc_only then
+   begin
+     fname:=fname+'.intf';
+     crc_only:=false;
+   end;
+{$endif}
   if not crc_only then
     begin
       assign(f,fname);
@@ -994,100 +923,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
-  + Initial import
+  Revision 1.2  2000-08-13 12:58:06  peter
+    * updated for ppu additions
 
-  Revision 1.9  2000/01/07 16:46:02  daniel
-    * copyright 2000
-
-  Revision 1.8  1999/11/30 10:35:36  peter
-    * support new readtype
-
-  Revision 1.51  1999/11/23 09:42:38  peter
-    * makefile updates to work with new fpcmake
-
-  Revision 1.50  1999/11/21 01:42:37  pierre
-   * Nextoverloading ordering fix
-
-  Revision 1.49  1999/11/18 15:34:48  pierre
-    * Notes/Hints for local syms changed to
-      Set_varstate function
-
-  Revision 1.48  1999/11/17 17:05:02  pierre
-   * Notes/hints changes
-
-  Revision 1.47  1999/11/06 14:34:23  peter
-    * truncated log to 20 revs
-
-  Revision 1.46  1999/09/17 09:14:56  peter
-    * ppu header writting now uses currentppuversion
-
-  Revision 1.45  1999/09/16 13:27:08  pierre
-    + error if PPU modulename is different from what is searched
-      (8+3 limitations!)
-    + cond ORDERSOURCES to allow recompilation of FP
-      if symppu.inc is changed (need PPUversion change!)
-
-  Revision 1.44  1999/09/16 11:34:58  pierre
-   * typo correction
-
-  Revision 1.43  1999/09/10 18:48:09  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.42  1999/08/31 15:47:56  pierre
-   + startup conditionals stored in PPU file for debug info
-
-  Revision 1.41  1999/08/30 16:21:40  pierre
-   * tempclosing of ppufiles under dos was wrong
-
-  Revision 1.40  1999/08/27 10:48:40  pierre
-    + tppufile.tempclose and tempopen added
-    * some changes so that nothing is writtedn to disk while
-      calculating CRC only
-
-  Revision 1.39  1999/08/24 12:01:36  michael
-  + changes for resourcestrings
-
-  Revision 1.38  1999/08/15 10:47:48  peter
-    + normalset,smallset writing
-
-  Revision 1.37  1999/08/02 23:13:20  florian
-    * more changes to compile for the Alpha
-
-  Revision 1.36  1999/07/23 16:05:25  peter
-    * alignment is now saved in the symtable
-    * C alignment added for records
-    * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.35  1999/07/05 16:21:30  peter
-    * fixed linking for units without linking necessary
-
-  Revision 1.34  1999/07/03 00:29:57  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.33  1999/05/13 21:59:36  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.32  1999/05/05 09:19:15  florian
-    * more fixes to get it with delphi running
-
-  Revision 1.31  1999/05/04 21:44:59  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.30  1999/04/26 18:30:00  peter
-    * farpointerdef moved into pointerdef.is_far
-
-  Revision 1.29  1999/04/26 13:31:41  peter
-    * release storenumber,double_checksum
-
-  Revision 1.28  1999/04/26 09:33:07  peter
-    * header extended to 40 bytes so there is room for future
-
-  Revision 1.27  1999/04/17 13:16:20  peter
-    * fixes for storenumber
+  Revision 1.2  2000/07/13 11:32:45  michael
+  + removed logs
 
 }

@@ -30,7 +30,7 @@ uses
   ppu;
 
 const
-  Version   = 'Version 1.00';
+  Version   = 'Version 1.10';
   Title     = 'PPU-Analyser';
   Copyright = 'Copyright (c) 1998-2000 by the Free Pascal Development Team';
 
@@ -493,6 +493,8 @@ begin
      repeat
        write(space,'  - ',tvarspez[ppufile^.getbyte],' : ');
        readtype;
+       write(space,'    Default : ');
+       readsymref;
        dec(params);
      until params=0;
    end;
@@ -900,6 +902,14 @@ begin
              readdefref;
              write  (space,'         File Pos : ');
              readposinfo;
+             space:='    '+space;
+             { parast }
+             readdefinitions(false);
+             readsymbols;
+             { localst }
+             {readdefinitions(false);
+             readsymbols;}
+             delete(space,1,4);
            end;
 
          ibprocvardef :
@@ -1453,7 +1463,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2000-07-13 10:16:22  michael
+  Revision 1.2  2000-08-13 12:58:06  peter
+    * updated for ppu additions
+
+  Revision 1.1  2000/07/13 10:16:22  michael
   + Initial import
 
   Revision 1.15  2000/07/04 19:05:54  peter
