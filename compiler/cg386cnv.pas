@@ -890,12 +890,7 @@ implementation
                             pfrom^.location.register,pto^.location.register)));
                       end;
           LOC_FLAGS : begin
-                        hregister:=reg32toreg8(hregister);
-                        emit_flag2reg(pfrom^.location.resflags,hregister);
-                        case pto^.resulttype^.size of
-                         2 : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,pto^.location.register)));
-                         4 : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,pto^.location.register)));
-                        end;
+                        emit_flag2reg(pfrom^.location.resflags,pto^.location.register);
                       end;
            LOC_JUMP : begin
                         getlabel(hlabel);
@@ -919,6 +914,7 @@ implementation
     procedure second_int_to_bool(pto,pfrom : ptree;convtyp : tconverttype);
       var
         hregister : tregister;
+        flags     : tresflags;
       begin
          clear_location(pto^.location);
          { byte(boolean) or word(wordbool) or longint(longbool) must
@@ -938,34 +934,31 @@ implementation
                 hregister:=getregister32;
                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,
                   newreference(pfrom^.location.reference),hregister)));
+                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
+                flags:=F_NE;
               end;
             LOC_FLAGS :
               begin
                 hregister:=getregister32;
-                emit_flag2reg(pfrom^.location.resflags,hregister);
+                flags:=pfrom^.location.resflags;
               end;
             LOC_REGISTER,LOC_CREGISTER :
               begin
                 hregister:=pfrom^.location.register;
+                exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
+                flags:=F_NE;
               end;
-          else
-            internalerror(10062);
-          end;
-         exprasmlist^.concat(new(pai386,op_reg_reg(A_OR,S_L,hregister,hregister)));
-         hregister:=reg32toreg8(hregister);
+            else
+              internalerror(10062);
+         end;
          case pto^.resulttype^.size of
-          1 : pto^.location.register:=hregister;
-          2 : begin
-                pto^.location.register:=reg8toreg16(hregister);
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BW,hregister,pto^.location.register)));
-              end;
-          4 : begin
-                pto^.location.register:=reg8toreg32(hregister);
-                exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,hregister,pto^.location.register)));
-              end;
+          1 : pto^.location.register:=makereg8(hregister);
+          2 : pto^.location.register:=makereg16(hregister);
+          4 : pto^.location.register:=makereg32(hregister);
          else
           internalerror(10064);
          end;
+         emit_flag2reg(flags,pto^.location.register);
       end;
 
 
@@ -1263,7 +1256,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.60  1999-03-02 18:24:19  peter
+  Revision 1.61  1999-03-05 16:14:20  peter
+    * fixed boolean() typecast
+
+  Revision 1.60  1999/03/02 18:24:19  peter
     * fixed overloading of array of char
 
   Revision 1.59  1999/03/01 15:46:18  peter
