@@ -215,16 +215,17 @@ implementation
              end;
           end;
 
-         { if one operand is a widechar or a widestring, both operands    }
-         { are converted to widestring. This must be done before constant }
-         { folding to allow char+widechar etc.                            }
-         if is_widestring(right.resulttype.def) or
-            is_widestring(left.resulttype.def) or
-            is_widechar(right.resulttype.def) or
-            is_widechar(left.resulttype.def) then
+         { If both operands are constant and there is a widechar
+           or widestring then convert everything to widestring. This
+           allows constant folding like char+widechar }
+         if is_constnode(right) and is_constnode(left) and
+            (is_widestring(right.resulttype.def) or
+             is_widestring(left.resulttype.def) or
+             is_widechar(right.resulttype.def) or
+             is_widechar(left.resulttype.def)) then
            begin
-              inserttypeconv(right,cwidestringtype);
-              inserttypeconv(left,cwidestringtype);
+             inserttypeconv(right,cwidestringtype);
+             inserttypeconv(left,cwidestringtype);
            end;
 
          { load easier access variables }
@@ -736,6 +737,25 @@ implementation
 {$endif addstringopt}
                      end;
                   end;
+               end
+             { There is a widechar? }
+             else if is_widechar(rd) or is_widechar(ld) then
+               begin
+                 { widechar+widechar gives widestring }
+                 if nodetype=addn then
+                   begin
+                     inserttypeconv(left,cwidestringtype);
+                     if (torddef(rd).typ<>uwidechar) then
+                       inserttypeconv(right,cwidechartype);
+                     resulttype:=cwidestringtype;
+                   end
+                 else
+                   begin
+                     if (torddef(ld).typ<>uwidechar) then
+                       inserttypeconv(left,cwidechartype);
+                     if (torddef(rd).typ<>uwidechar) then
+                       inserttypeconv(right,cwidechartype);
+                   end;
                end
              { is there a currency type ? }
              else if ((torddef(rd).typ=scurrency) or (torddef(ld).typ=scurrency)) then
@@ -1957,7 +1977,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2004-05-21 13:08:14  florian
+  Revision 1.121  2004-05-23 14:08:39  peter
+    * only convert widechar to widestring when both operands are
+      constant
+    * support widechar-widechar operations in orddef part
+
+  Revision 1.120  2004/05/21 13:08:14  florian
     * fixed <ordinal>+<pointer>
 
   Revision 1.119  2004/05/20 21:54:33  florian
