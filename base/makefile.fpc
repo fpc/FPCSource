@@ -228,7 +228,7 @@ endif
 ifndef ECHO
 ECHO=$(strip $(wildcard $(addsuffix /echo$(EXEEXT),$(SEARCHPATH))))
 ifeq ($(ECHO),)
-ECHO=echo
+ECHO=@echo
 else
 export ECHO:=@$(firstword $(ECHO))
 endif
@@ -512,29 +512,7 @@ endif
 
 # Smartlinking
 ifeq ($(SMARTLINK),YES)
-ifeq ($(LIBTYPE),shared)
-override SMARTLINK=NO
-else
 override PPOPT+=-Cx
-ifneq ($(LIBNAME),)
-override PPOPT+=-o$(LIBNAME)
-endif
-endif
-endif
-
-# Add library type, for static libraries smartlinking is automatic used
-ifeq ($(LIBTYPE),shared)
-override PPOPT+=-CD
-ifneq ($(LIBNAME),)
-override PPOPT+=-o$(LIBNAME)
-endif
-else
-ifeq ($(LIBTYPE),static)
-override PPOPT+=-CS
-ifneq ($(LIBNAME),)
-override PPOPT+=-o$(LIBNAME)
-endif
-endif
 endif
 
 # Add defines from PPOPTDEF to PPOPT
@@ -606,13 +584,6 @@ SHAREDLIBEXT=.dll
 PACKAGESUFFIX=os2
 endif
 
-# determine libary extension.
-ifeq ($(LIBTYPE),static)
-LIBEXT=$(STATICLIBEXT)
-else
-LIBEXT=$(SHAREDLIBEXT)
-endif
-
 # library prefix
 LIBPREFIX=lib
 ifeq ($(OS_TARGET),go32v2)
@@ -659,7 +630,7 @@ export FPCDIR FPCMAKE
 
 # Compiler info
 export FPC_VERSION OS_SOURCE OS_TARGET CPU
-export OPT OPTDEF PP RELEASE VERBOSE SMARTLINK LIBTYPE LIBNAME
+export OPT OPTDEF PP RELEASE VERBOSE SMARTLINK
 
 # Installation
 export PREFIXINSTALLDIR PACKAGESUFFIX
@@ -731,15 +702,24 @@ fpc_exes: $(EXEFILES)
 # Library
 #####################################################################
 
+# Default sharedlib units are all unit objects
+ifndef SHAREDLIBUNITOBJECTS
+SHAREDLIBUNITOBJECTS=UNITOBJECTS
+endif
+
 fpc_staticlib:
 	$(MAKE) libsclean
-	$(MAKE) all SMARTLINK=YES LIBTYPE=static
-
+	$(MAKE) all SMARTLINK=YES
 
 fpc_sharedlib:
 ifdef inlinux
+ifndef LIBNAME
+	$(ECHO) LIBNAME not set
+else	
 	$(MAKE) libsclean
-	$(MAKE) all LIBTYPE=shared
+	$(MAKE) all
+	$(PPUMOVE) $(SHAREDLIBUNITOBJECTS) -o$(LIBNAME)
+endif	
 else
 	@$(ECHO) Shared Libraries not supported
 endif
@@ -1034,7 +1014,10 @@ endif
 
 #
 # $Log$
-# Revision 1.29  1999-06-01 13:27:24  peter
+# Revision 1.30  1999-06-03 09:36:31  peter
+#   * first things for sharedlib to work again
+#
+# Revision 1.29  1999/06/01 13:27:24  peter
 #   * updates for linux
 #
 # Revision 1.28  1999/05/30 11:33:04  peter
