@@ -206,6 +206,7 @@ type tmsgconst=(
   parser_e_division_by_zero,
   parser_e_invalid_float_operation,
   parser_e_array_lower_less_than_upper_bound,
+  parser_w_string_too_long,
   parser_e_string_larger_array,
   parser_e_ill_msg_expr,
   parser_e_ill_msg_param,

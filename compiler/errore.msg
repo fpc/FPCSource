@@ -766,6 +766,9 @@ parser_e_invalid_float_operation=E_Invalid floating point operation
 parser_e_array_lower_less_than_upper_bound=E_Upper bound of range is less than lower bound
 % The upper bound of a \var{case} label is less than the lower bound and this
 % is not possible
+parser_w_string_too_long=W_string "$1" is longer than $2
+% The size of the constant string is larger than the size you specified in
+% string type definition
 parser_e_string_larger_array=E_string length is larger than array of char length
 % The size of the constant string is larger than the size you specified in
 % the array[x..y] of char definition

@@ -417,7 +417,10 @@ unit ptconst;
                       if p^.treetype=stringconstn then
                         begin
                            if p^.length>=def^.size then
-                             strlength:=def^.size-1
+                             begin
+                               message2(parser_w_string_too_long,strpas(p^.value_str),tostr(def^.size-1));
+                               strlength:=def^.size-1;
+                             end
                            else
                              strlength:=p^.length;
                            curconstsegment^.concat(new(pai_const,init_8bit(strlength)));
@@ -794,7 +797,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.64  2000-04-02 09:12:51  florian
+  Revision 1.65  2000-05-11 09:15:15  pierre
+    + add a warning if a const string is longer than the
+      length of the string type
+
+  Revision 1.64  2000/04/02 09:12:51  florian
     + constant procedure variables can have a @ in front:
          const p : procedure = @p;
       til now only
