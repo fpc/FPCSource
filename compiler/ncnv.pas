@@ -1196,6 +1196,8 @@ implementation
         cdoptions:=[cdo_check_operator,cdo_allow_variant];
         if nf_explicit in flags then
           include(cdoptions,cdo_explicit);
+        if nf_internal in flags then
+          include(cdoptions,cdo_internal);
         eq:=compare_defs_ext(left.resulttype.def,resulttype.def,left.nodetype,convtype,aprocdef,cdoptions);
         case eq of
           te_exact,
@@ -2482,7 +2484,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.163  2004-11-21 15:35:23  peter
+  Revision 1.164  2004-11-26 22:34:28  peter
+    * internal flag for compare_defs_ext
+
+  Revision 1.163  2004/11/21 15:35:23  peter
     * float routines all use internproc and compilerproc helpers
 
   Revision 1.162  2004/11/02 20:15:53  jonas
