@@ -181,6 +181,7 @@ binary-indep: build-indep install-indep debian-files
 	dh_testroot
 	dh_installdocs -i
 	dh_installchangelogs -i
+	dh_installchangelogs -pfp-docs logs/Changes.docs
 	dh_movefiles -i
 	dh_compress -i -X.pdf
 	dh_fixperms -i
