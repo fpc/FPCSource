@@ -256,46 +256,95 @@ Begin
               A_FLD:
                 Begin
                   If (Pai386(p)^.op1t = top_ref) And
-                     GetLastInstruction(p, hp1) And
-                     (hp1^.typ = Ait_Instruction) And
-                     ((Pai386(hp1)^._operator = A_FLD) Or
-                      (Pai386(hp1)^._operator = A_FST)) And
-                     (Pai386(hp1)^.size = Pai386(p)^.size) And
-                     (Pai386(hp1)^.op1t = top_ref) And
-                     RefsEqual(TReference(Pai386(p)^.Op1^), TReference(Pai386(hp1)^.Op1^)) Then
-  { we have "fld/fst mem1; fld mem1 }
-                    If GetNextInstruction(p, hp2) And
-                       (hp2^.typ = Ait_Instruction) And
-                       (Pai386(hp2)^._operator in [A_FMULP, A_FADDP]) And
-                       (Pai386(hp2)^.Op1t = top_reg) And
-                       (Pai386(hp2)^.Op2t = top_reg) And
-                       (TRegister(Pai386(hp2)^.Op1) = R_ST) And
-                       (TRegister(Pai386(hp2)^.Op2) = R_ST1) Then
+                     GetNextInstruction(p, hp2) And
+                     (hp2^.typ = Ait_Instruction) And
+                     (Pai386(hp2)^.Op1t = top_reg) And
+                     (Pai386(hp2)^.Op2t = top_reg) And
+                     (Pai386(p)^.Size in [S_FS, S_FL]) And
+                     (TRegister(Pai386(hp2)^.Op1) = R_ST) And
+                     (TRegister(Pai386(hp2)^.Op2) = R_ST1) Then
+                    If GetLastInstruction(p, hp1) And
+                       (hp1^.typ = Ait_Instruction) And
+                       ((Pai386(hp1)^._operator = A_FLD) Or
+                        (Pai386(hp1)^._operator = A_FST)) And
+                       (Pai386(hp1)^.size = Pai386(p)^.size) And
+                       (Pai386(hp1)^.op1t = top_ref) Then
+                      If Not(Pai386(hp2)^._operator in [A_FSUBP, A_FSUBRP, A_FDIVP, A_FDIVRP]) Then
+                        If RefsEqual(TReference(Pai386(p)^.Op1^), TReference(Pai386(hp1)^.Op1^)) Then
+                          If (Pai386(hp2)^._operator in [A_FMULP, A_FADDP]) Then
+                      { change                      to
+                          fld/fst   mem1              fld/fst   mem1
+                          fld       mem1              fadd/
+                          faddp/                       fmul     st, st
+                           fmulp  st, st1 }
+                            Begin
+                              AsmL^.Remove(p);
+                              Dispose(p, Done);
+                              p := hp1;
+                              If (Pai386(hp2)^._operator = A_FADDP)
+                                Then Pai386(hp2)^._operator := A_FADD
+                                Else Pai386(hp2)^._operator := A_FMUL;
+                              Pai386(hp2)^.op2 := Pointer(R_ST);
+                            End
+                          Else
+                      { change              to
+                          fldl/fstl mem1         fldl/fstl mem1
+                          fldl      mem1         fldl      st}
+                            Begin
+                              Pai386(p)^.Size := S_FL;
+                              Clear_Reference(TReference(Pai386(p)^.Op1^));
+                              Pai386(p)^.Op1 := Pointer(R_ST);
+                              Pai386(p)^.Opxt := top_reg;
+                            End
+                        Else
+                          Begin
+                            If (Pai386(hp2)^._operator in [A_FMULP, A_FADDP]) Then
+                         { change                        to
+                             fld        mem1  (hp1)      fld        mem1
+                             fld        mem2  (p)
+                             faddp            (hp2)      faddp
+                               /fmulp   st, st1            /fmulp   mem2 }
+
+                              Begin
+                                If (Pai386(hp2)^._operator = A_FADDP) Then
+                                  Pai386(p)^._operator := A_FADD
+                                Else Pai386(p)^._operator := A_FMUL;
+                                AsmL^.Remove(hp2);
+                                Dispose(hp2, Done);
+                              End;
+                          End
+                      Else
                   { change                      to
-                      fld/fst   mem1              fld/fst   mem1
-                      fld       mem1              fadd/
-                      faddp/                       fmul     st, st
-                       fmulp  st, st1 }
-                      Begin
-                        AsmL^.Remove(p);
-                        Dispose(p, Done);
-                        p := hp1;
-                        If (Pai386(hp2)^._operator = A_FADDP)
-                          Then Pai386(hp2)^._operator := A_FADD
-                          Else Pai386(hp2)^._operator := A_FMUL;
-                        Pai386(hp2)^.op2 := Pointer(R_ST);
-                      End
-                    Else
-                  { change              to
-                      fldl/fstl mem1         fldl/fstl mem1
-                      fldl      mem1         fldl      st}
-                      If (Pai386(p)^.Size in [S_FS,S_FL]) Then
+                      fld       mem1            fld mem2
+                      fld       mem2
+                      fsub(r)p/                 fsub(r)p/
+                       fdiv(r)p st, st1          fdiv(r)p mem1 }
                         Begin
-                          Pai386(p)^.Size := S_FL;
-                          Clear_Reference(TReference(Pai386(p)^.Op1^));
-                          Pai386(p)^.Op1 := Pointer(R_ST);
-                          Pai386(p)^.Opxt := top_reg;
-                      End;
+                          AsmL^.Remove(hp1);
+                          InsertLLItem(AsmL, p, p^.Next, hp1);
+                          Case Pai386(hp2)^._operator of
+                            A_FSUBP: Pai386(hp1)^._operator := A_FSUB;
+                            A_FDIVP: Pai386(hp1)^._operator := A_FDIV;
+                            A_FSUBRP: Pai386(hp1)^._operator := A_FSUBR;
+                            A_FDIVRP: Pai386(hp1)^._operator := A_FDIVR;
+                          End;
+                          AsmL^.Remove(hp2);
+                          Dispose(hp2, Done);
+                        End
+                    Else
+                 { change                        to
+                     fld        mem1  (p)
+                     faddp            (hp2)      faddp
+                      /fmulp   st, st1            /fmulp   mem1 }
+
+                      If (Pai386(hp2)^._operator in [A_FMULP, A_FADDP]) Then
+                        Begin
+                          If (Pai386(hp2)^._operator = A_FADDP) Then
+                             Pai386(p)^._operator := A_FADD
+                          Else Pai386(p)^._operator := A_FMUL;
+                          AsmL^.Remove(hp2);
+                          Dispose(hp2, Done);
+                       End;
                 End;
               A_FSTP:
                 Begin
@@ -1478,7 +1527,11 @@ End.
 
 {
  $Log$
- Revision 1.19  1998-10-23 15:38:23  jonas
+ Revision 1.20  1998-10-28 12:32:46  jonas
+   + no loading of values on the fpu stack if the memory expression can be used
+     inside the next mathematical operation
+
+ Revision 1.19  1998/10/23 15:38:23  jonas
    + some small FPU peephole optimizations (use value in FP regs instead of loading it
       from memory if possible, mostly with var1+var1 and var1*var1)
 
