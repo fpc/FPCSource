@@ -8,16 +8,18 @@
 CONST SockLib = 'nlmlib.nlm';
 
 Function _NWsocket(Domain,SocketType,Protocol:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'socket';
-Function _NWSend(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'send';
+Function _NWSend(Sock:Longint;Const Addr;AddrLen,Flags:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'send';
+Function _NWSendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint; Var Addr; AddrLen : longint):Longint; CDECL; EXTERNAL SockLib NAME 'sendto';
 Function _NWRecv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'recv';
-Function _NWBind(Sock:Longint;Var Addr;AddrLen:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'bind';
+Function _NWRecvFrom(Sock:Longint;Var Buf;BufLen,Flags:Longint; Var Addr; AddrLen : Longint):Longint; CDECL; EXTERNAL SockLib NAME 'recvfrom';
+Function _NWBind(Sock:Longint;Const Addr;AddrLen:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'bind';
 Function _NWListen(Sock,MaxConnect:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'listen';
 Function _NWAccept(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'accept';
-Function _NWConnect(Sock:Longint;Var Addr;Addrlen:Longint): longint; CDECL; EXTERNAL SockLib NAME 'connect';
+Function _NWConnect(Sock:Longint;Const Addr;Addrlen:Longint): longint; CDECL; EXTERNAL SockLib NAME 'connect';
 Function _NWShutdown(Sock:Longint;How:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'shutdown';
 Function _NWGetSocketName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'getsocketname';
 Function _NWGetPeerName(Sock:Longint;Var Addr;Var Addrlen:Longint):Longint; CDECL; EXTERNAL SockLib NAME 'getpeername';
-Function _NWSetSockOpt(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint; CDECL; EXTERNAL SockLib NAME 'setsockopt';
+Function _NWSetSockOpt(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint; CDECL; EXTERNAL SockLib NAME 'setsockopt';
 Function _NWGetSockOpt(Sock,Level,OptName:Longint;Var OptVal;Var optlen:longint):Longint; CDECL; EXTERNAL SockLib NAME 'getsockopt';
 
 
@@ -30,17 +32,29 @@ begin
   Socket:=_NWSocket(Domain,SocketType,Protocol);
 end;
 
-Function Send(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
-  Send:=_NWSend(Sock,Addr,AddrLen,Flags);
+  Send:=_NWSend(Sock,Buf,BufLen,Flags);
 end;
 
-Function Recv(Sock:Longint;Var Addr;AddrLen,Flags:Longint):Longint;
+Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
 begin
-  Recv:=_NWRecv(Sock,Addr,AddrLen,Flags);
+  SendTo := _NWSendTo (Sock, Buf, BufLen, Flags, Addr, AddrLen);
 end;
 
-Function Bind(Sock:Longint;Var Addr;AddrLen:Longint):Boolean;
+
+Function Recv(Sock:Longint;Var Buf; BufLen,Flags:Longint):Longint;
+begin
+  Recv:=_NWRecv(Sock,Buf,BufLen,Flags);
+end;
+
+Function RecvFrom(Sock : Longint; Var Buf; Buflen,Flags : Longint; Var Addr ; AddrLen : Integer) : longint;
+begin
+  RecvFrom := _NWRecvFrom (Sock, Buf, BufLen, Flags, Addr, AddrLen);
+end;
+
+
+Function Bind(Sock:Longint;Const Addr;AddrLen:Longint):Boolean;
 begin
   Bind:=(_NWBind(Sock,Addr,AddrLen)=0);
 end;
@@ -57,7 +71,7 @@ begin
     Accept:=-1;
 end;
 
-Function Connect(Sock:Longint;Var Addr;Addrlen:Longint): boolean;
+Function Connect(Sock:Longint;Const Addr;Addrlen:Longint): boolean;
 begin
   Connect:=_NWConnect(Sock,Addr,AddrLen)=0;
 end;
@@ -83,7 +97,7 @@ end;
 
 
 
-Function SetSocketOptions(Sock,Level,OptName:Longint;Var OptVal;optlen:longint):Longint;
+Function SetSocketOptions(Sock,Level,OptName:Longint;Const OptVal;optlen:longint):Longint;
 begin
   SetSocketOptions:=_NWSetsockopt(Sock,Level,OptName,OptVal,OptLen);
 end;
