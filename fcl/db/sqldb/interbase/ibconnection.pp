@@ -78,7 +78,7 @@ type
     procedure CommitRetaining(trans : TSQLHandle); override;
     procedure RollBackRetaining(trans : TSQLHandle); override;
     procedure UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string); override;
-
+    function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
   published
     property Dialect  : integer read FDialect write FDialect;
     property DatabaseName;
@@ -478,6 +478,7 @@ var
   lenset    : boolean;
   TransLen  : word;
   TransType : TFieldType;
+  FD        : TFieldDef;
 
 begin
   {$R-}
@@ -486,13 +487,11 @@ begin
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
-       lenset, TransType, TransLen);
-      if TransType = ftBCD then
-        TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
-          TransLen, False, (x + 1)).precision := SQLDA^.SQLVar[x].SQLLen
-      else
-        TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
-          TransLen, False, (x + 1));
+        lenset, TransType, TransLen);
+      FD := TFieldDef.Create(FieldDefs, SQLDA^.SQLVar[x].SQLName, TransType,
+         TransLen, False, (x + 1));
+      if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
+      FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
       end;
     end;
   {$R+}
@@ -531,9 +530,9 @@ begin
     begin
 {$R-}
     for x := 0 to SQLDA^.SQLD - 1 do
-      if SQLDA^.SQLVar[x].SQLName = FieldDef.Name then break;
+      if SQLDA^.SQLVar[x].AliasName = FieldDef.Name then break;
 
-    if SQLDA^.SQLVar[x].SQLName <> FieldDef.Name then
+    if SQLDA^.SQLVar[x].AliasName <> FieldDef.Name then
       DatabaseErrorFmt(SFieldNotFound,[FieldDef.Name],self);
 
     if SQLDA^.SQLVar[x].SQLInd^ = -1 then
@@ -616,6 +615,70 @@ begin
   PTime := SystemTimeToDateTime(STime);
   Move(PTime, Buffer^, SizeOf(PTime));
 end;
+
+function TIBConnection.GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string;
+
+var s : string;
+
+begin
+  case SchemaType of
+    stTables     : s := 'select '+
+                          'rdb$relation_id          as recno, '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          '''''                     as schema_name, '+
+                          'rdb$relation_name        as table_name, '+
+                          '0                        as table_type '+
+                        'from '+
+                          'rdb$relations '+
+                        'where '+
+                          '(rdb$system_flag = 0 or rdb$system_flag is null)'; // and rdb$view_blr is null
+    stSysTables  : s := 'select '+
+                          'rdb$relation_id          as recno, '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          '''''                     as schema_name, '+
+                          'rdb$relation_name        as table_name, '+
+                          '0                        as table_type '+
+                        'from '+
+                          'rdb$relations '+
+                        'where '+
+                          '(rdb$system_flag > 0)'; // and rdb$view_blr is null
+    stProcedures : s := 'select '+
+                           'rdb$procedure_id        as recno, '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          '''''                     as schema_name, '+
+                          'rdb$procedure_name       as proc_name, '+
+                          '0                        as proc_type, '+
+                          'rdb$procedure_inputs     as in_params, '+
+                          'rdb$procedure_outputs    as out_params '+
+                        'from '+
+                          'rdb$procedures '+
+                        'WHERE '+
+                          '(rdb$system_flag = 0 or rdb$system_flag is null)';
+    stColumns    : s := 'select '+
+                           'rdb$procedure_id        as recno, '+
+                          '''' + DatabaseName + ''' as catalog_name, '+
+                          '''''                     as schema_name, '+
+                          'rdb$relation_name        as table_name, '+
+                          'rdb$field_name           as column name, '+
+                          'rdb$field_position       as column_position, '+
+                          '0                        as column_type, '+
+                          '0                        as column_datatype, '+
+                          '''''                     as column_typename, '+
+                          '0                        as column_subtype, '+
+                          '0                        as column_precision, '+
+                          '0                        as column_scale, '+
+                          '0                        as column_length, '+
+                          '0                        as column_nullable '+
+                        'from '+
+                          'rdb$relation_fields '+
+                        'WHERE '+
+                          '(rdb$system_flag = 0 or rdb$system_flag is null)';
+  else
+    DatabaseError(SMetadataUnavailable)
+  end; {case}
+  result := s;
+end;
+
 
 procedure TIBConnection.UpdateIndexDefs(var IndexDefs : TIndexDefs;TableName : string);
 
