@@ -77,6 +77,10 @@ Procedure fpc_AnsiStr_Decr_Ref (Var S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Incr_Ref (S : Pointer); compilerproc;
 Procedure fpc_AnsiStr_Assign (Var S1 : Pointer;S2 : Pointer); compilerproc;
 function fpc_AnsiStr_Concat (const S1,S2 : AnsiString): AnsiString; compilerproc;
+Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); compilerproc;
+Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); compilerproc;
+Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); compilerproc;
+
 {$ifdef EXTRAANSISHORT}
 Procedure fpc_AnsiStr_ShortStr_Concat (Var S1: AnsiString; Var S2 : ShortString); compilerproc;
 {$endif EXTRAANSISHORT}
@@ -280,7 +284,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.27  2002-10-10 19:24:28  florian
+  Revision 1.28  2002-10-17 12:43:00  florian
+    + ansistring_append* implemented
+
+  Revision 1.27  2002/10/10 19:24:28  florian
     + write(ln) support for variants added
 
   Revision 1.26  2002/10/10 16:08:50  florian

@@ -62,12 +62,17 @@ Function NewAnsiString(Len : Longint) : Pointer;
 }
 Var
   P : Pointer;
+  l : StrLenInt;
 begin
-  { Also add +1 for a terminating zero }
-  GetMem(P,Len+AnsiRecLen);
+  l:=Len+AnsiRecLen;
+
+  { request a multiple of 16 because the heap manager alloctes anyways chunks of 16 bytes }
+  if (l mod 16)<>0 then
+    inc(l,16-(l mod 16));
+  GetMem(P,l);
   If P<>Nil then
    begin
-     PAnsiRec(P)^.Maxlen:=Len;    { Maximal length }
+     PAnsiRec(P)^.Maxlen:=l-AnsiRecLen;    { Maximal length }
      PAnsiRec(P)^.Len:=0;         { Initial length }
      PAnsiRec(P)^.Ref:=1;         { Set reference count }
      PAnsiRec(P)^.First:=#0;      { Terminating #0 }
@@ -518,6 +523,32 @@ begin
    end;
 end;
 
+Procedure fpc_ansistr_append_char(Var S : AnsiString;c : char); [Public,Alias : 'FPC_ANSISTR_APPEND_CHAR']; {$ifdef hascompilerproc} compilerproc; {$endif}
+begin
+   SetLength(S,length(S)+1);
+   S[length(S)]:=c;
+end;
+
+Procedure fpc_ansistr_append_shortstring(Var S : AnsiString;Str : ShortString); [Public,Alias : 'FPC_ANSISTR_APPEND_SHORTSTRING']; {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+   ofs : StrLenInt;
+begin
+   ofs:=Length(S);
+   SetLength(S,ofs+length(Str));
+   move(Str[1],S[ofs+1],length(Str));
+end;
+
+Procedure fpc_ansistr_append_ansistring(Var S : AnsiString;Str : AnsiString); [Public,Alias : 'FPC_ANSISTR_APPEND_ANSISTRING']; {$ifdef hascompilerproc} compilerproc; {$endif}
+var
+   ofs : StrLenInt;
+begin
+   if Str<>'' then
+     begin
+        ofs:=Length(S);
+        SetLength(S,ofs+length(Str));
+        move(Str[1],S[ofs+1],length(Str));
+     end;
+end;
 
 {$ifdef interncopy}
 Function Fpc_Ansistr_Copy (Const S : AnsiString; Index,Size : Longint) : AnsiString;compilerproc;
@@ -790,7 +821,10 @@ end;
 
 {
   $Log$
-  Revision 1.29  2002-10-02 18:21:51  peter
+  Revision 1.30  2002-10-17 12:43:00  florian
+    + ansistring_append* implemented
+
+  Revision 1.29  2002/10/02 18:21:51  peter
     * Copy() changed to internal function calling compilerprocs
     * FPC_SHORTSTR_COPY renamed to FPC_SHORTSTR_ASSIGN because of the
       new copy functions
