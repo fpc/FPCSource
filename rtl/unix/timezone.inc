@@ -5,8 +5,6 @@
 }
 
 type
-  plongint=^longint;
-  pbyte=^byte;
 
   ttzhead=packed record
     tzh_reserved : array[0..19] of byte;
@@ -123,7 +121,7 @@ begin
 end;
 
 
-procedure ReadTimezoneFile(fn:string);
+procedure ReadTimezoneFile(fn:shortstring);
 
   procedure decode(var l:longint);
   var
@@ -144,7 +142,7 @@ procedure ReadTimezoneFile(fn:string);
 
 var
   f      : longint;
-  tzdir  : string;
+  tzdir  : shortstring;
   tzhead : ttzhead;
   i      : longint;
   chars  : longint;
@@ -238,10 +236,10 @@ Const
 {$ENDIF} 
   
 
-function GetTimezoneFile:string;
+function GetTimezoneFile:shortstring;
 var
   f,len : longint;
-  s : string;
+  s : shortstring;
   info : stat;
 
 begin
@@ -297,7 +295,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2003-11-01 17:10:21  marco
+  Revision 1.8  2004-10-30 21:18:23  marco
+   * more commits from unix interface cleanup
+
+  Revision 1.7  2003/11/01 17:10:21  marco
    * Show stopping bug. Had to comment out lines around 279 to get 1.9
    to build
 

@@ -33,7 +33,7 @@ end;
 function settimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
 begin
-  result:=stime(@tp^.tv_sec);
+  settimeofday:=stime(@tp^.tv_sec);
 end;
 
 {$else}
@@ -44,14 +44,17 @@ function settimeofday(tp:ptimeval;tzp:ptimezone):cint; external clib name 'setti
 function settimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
 begin
-  settimeofday:=do_SysCall(Syscal_nr_settimeofday,TSysParam(@tp),tzp);
+  settimeofday:=do_SysCall(Syscall_nr_settimeofday,TSysParam(@tp),TSysParam(tzp));
 end;
 {$endif}
 {$endif}
 
 {
   $Log$
-  Revision 1.3  2004-10-27 04:22:29  marco
+  Revision 1.4  2004-10-30 21:18:23  marco
+   * more commits from unix interface cleanup
+
+  Revision 1.3  2004/10/27 04:22:29  marco
   *** empty log message ***
 
   Revision 1.2  2004/10/27 04:22:04  marco
