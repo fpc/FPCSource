@@ -52,6 +52,7 @@ interface
 
       psymcoll = ^tsymcoll;
       tsymcoll = record
+         speedvalue : cardinal;
          name : pstring;
          data : pprocdefcoll;
          next : psymcoll;
@@ -510,6 +511,7 @@ implementation
          hp : pprocdeflist;
          symcoll : psymcoll;
          _name : string;
+         _speed : cardinal;
 
       procedure newdefentry(pd:tprocdef);
         begin
@@ -546,6 +548,7 @@ implementation
         begin
            { if not, generate a new symbol item }
            new(symcoll);
+           symcoll^.speedvalue:=sym.speedvalue;
            symcoll^.name:=stringdup(sym.name);
            symcoll^.next:=wurzel;
            symcoll^.data:=nil;
@@ -578,11 +581,15 @@ implementation
               is_visible:=tprocsym(sym).is_visible_for_object(_class);
               { check the current list of symbols }
               _name:=sym.name;
+              _speed:=sym.speedvalue;
               symcoll:=wurzel;
               while assigned(symcoll) do
                begin
-                 { does the symbol already exist in the list ? }
-                 if _name=symcoll^.name^ then
+                 { does the symbol already exist in the list? First
+                   compare speedvalue before doing the string compare to
+                   speed it up a little }
+                 if (_speed=symcoll^.speedvalue) and
+                    (_name=symcoll^.name^) then
                   begin
                     { walk through all defs of the symbol }
                     for i:=1 to Tprocsym(sym).procdef_count do
@@ -1307,7 +1314,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2002-10-06 16:40:25  florian
+  Revision 1.31  2002-10-15 19:00:42  peter
+    * small tweak to use speedvalue before comparing strings
+
+  Revision 1.30  2002/10/06 16:40:25  florian
     * interface wrapper name mangling improved
 
   Revision 1.29  2002/10/05 12:43:25  carl
