@@ -537,10 +537,30 @@ begin
         do_seekend(filerec(f).handle);
 end;
 
-function do_isdevice(handle:longint):boolean;
+{$ASMMODE INTEL}
+function do_isdevice (Handle: longint): boolean; assembler;
+(*
+var HT, Attr: longint;
 begin
-  do_isdevice:=(handle<=5);
+    if os_mode = osOS2 then
+        begin
+            if DosQueryHType (Handle, HT, Attr) <> 0 then HT := 1;
+        end
+    else
+*)
+asm
+    mov ebx, Handle
+    mov eax, 4400h
+    call syscall
+    mov eax, 1
+    jc @IsDevEnd
+    test edx, 80h
+    jnz IsDevEnd
+    dec eax
+@IsDevEnd:
 end;
+(*        do_isdevice := (Handle <= 5);*)
+{$ASMMODE ATT}
 
 
 {*****************************************************************************
@@ -752,7 +772,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2000-05-21 15:58:50  hajny
+  Revision 1.29  2000-05-28 18:17:39  hajny
+    do_isdevice corrected
+
+  Revision 1.28  2000/05/21 15:58:50  hajny
     + FileNameCaseSensitive added
 
   Revision 1.27  2000/04/07 17:47:34  hajny
