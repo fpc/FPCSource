@@ -1573,6 +1573,7 @@ implementation
                      '^' :
                        begin
                          readchar;
+                         c:=upcase(c);
                          if c<#64 then
                           c:=chr(ord(c)+64)
                          else
@@ -1789,7 +1790,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.108  2000-03-12 17:53:16  florian
+  Revision 1.109  2000-03-13 21:21:57  peter
+    * ^m support also after a string
+
+  Revision 1.108  2000/03/12 17:53:16  florian
     * very small change to scanner ...
 
   Revision 1.107  2000/02/29 23:59:47  pierre
