@@ -44,6 +44,7 @@
 % Start of document.
 %
 \begin{document}
+\renewcommand{\hline}{\xspace}
 \title{Free Pascal :\\ Reference guide.}
 \docdescription{Reference guide for Free Pascal, version \fpcversion}
 \docversion{1.9}
@@ -111,21 +112,21 @@ Keywords which must be typed exactly as in the diagram:
 \end{mysyntdiag}
 When something can be repeated, there is an arrow around it:
 \begin{mysyntdiag}
-\<[b] \synt{this\ can\ be\ repeated} \\ \>
+\begin{rep}[b] \synt{this\ can\ be\ repeated} \\ \end{rep}
 \end{mysyntdiag}
 When there are different possibilities, they are listed in columns:
 \begin{mysyntdiag}
-\(
+\begin{stack}
 \synt{First\ possibility} \\
 \synt{Second\ possibility}
-\)
+\end{stack}
 \end{mysyntdiag}
 Note, that one of the possibilities can be empty:
 \begin{mysyntdiag}
-\[
+\begin{stack}\\
 \synt{First\ possibility} \\
 \synt{Second\ possibility}
-\]
+\end{stack}
 \end{mysyntdiag}
 This means that both the first or second possibility are optional.
 Of course, all these elements can be combined and nested.
@@ -565,7 +566,13 @@ check error if range checking is enabled.
 \end{enumerate}
 \subsubsection{Integers}
 A list of pre-defined integer types is presented in \seet{integerstyp}
-\begin{FPCltable}{l}{Predefined integer types}{integerstyp}
+%
+\begin{table}[ht]
+\caption{Predefined integer types}
+\label{tab:integerstyp}
+\begin{center}
+\begin{tabular}{l}
+%\begin{FPCltable}{l}{Predefined integer types}{integerstyp}
 Name\\ \hline
 Integer \\
 Shortint \\
@@ -581,7 +588,10 @@ Boolean \\
 ByteBool \\
 LongBool \\
 Char \\ \hline
-\end{FPCltable}
+\end{tabular}
+\end{center}
+\end{table}
+%\end{FPCltable}
 The integer types, and their ranges and sizes, that are predefined in
 \fpc are listed in \seet{integersranges}. It is to note that
 the \var{qword} and \var{int64} types are not true ordinals, so
