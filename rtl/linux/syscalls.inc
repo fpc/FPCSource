@@ -84,6 +84,30 @@ asm
   move.l d1,(a0)
 end;
 {$endif m68k}
+{$ifdef powerpc}
+{$define fpc_syscall_ok}
+var
+  tmp: pointer;
+asm
+{ load the registers... }
+  lwz  r5, 8(r4)
+  lwz  r6, 12(r4)
+  lwz  r7, 16(r4)
+  mr   r0, r3
+  lwz  r3, 0(r4)
+  stw  r4, tmp
+  lwz  r4, 4(r4)
+{ Go ! }
+  sc
+{ Put back the registers... }
+  lwz    r0, tmp
+  stw    r3, 0(r0)
+  stw    r4, 4(r0)
+  stw    r5, 8(r0) 
+  stw    r6, 12(r0)
+  stw    r7, 16(r0)
+end;
+{$endif powerpc}
 {$ifndef fpc_syscall_ok}
 {$error Cannot decide which processor you have!}
 asm
@@ -558,7 +582,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-07-29 21:28:17  florian
+  Revision 1.8  2002-08-19 18:24:05  jonas
+    + ppc support for do_syscall
+
+  Revision 1.7  2002/07/29 21:28:17  florian
     * several fixes to get further with linux/ppc system unit compilation
 
   Revision 1.6  2002/07/28 20:43:48  florian
