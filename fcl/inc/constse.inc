@@ -41,6 +41,7 @@ const
   SInvalidPropertyPath = 'Invalid property path';
   SUnknownProperty = 'Unknown property';
   SReadOnlyProperty = 'Read-only property';
+  SUnknownPropertyType = 'Unknown property type %d';
   SPropertyException = 'Error while reading %s%s%s: %s';
   SAncestorNotFound = 'Ancestor of ''%s'' not found';
   SInvalidBitmap = 'Invalid Bitmap';
@@ -73,7 +74,6 @@ const
   SVisibleChanged = 'Visible property cannot be changed in OnShow or OnHide handlers';
   SCannotShowModal = 'A visible Window can not be made modal';
   SScrollBarRange = 'Scrollbar property out of range';
-  SUnknownPropertyType = 'Unknown property type ''%s''';
   SPropertyOutOfRange = 'Property %s out of range';
   SMenuIndexError = 'Menu Index out of range';
   SMenuReinserted = 'Menu reinserted';
@@ -273,7 +273,10 @@ const
 
 {
   $Log$
-  Revision 1.3  2000-12-22 22:39:36  peter
+  Revision 1.4  2000-12-23 22:54:50  sg
+  * Fixed SUnknownPropertyType
+
+  Revision 1.3  2000/12/22 22:39:36  peter
     * added missing sunknownpropertytype
 
   Revision 1.2  2000/07/13 11:32:59  michael
