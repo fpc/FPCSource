@@ -399,7 +399,7 @@ VAR w : longint;                 {Current Position in slide}
     compsize,               {comressed size of file}
     reachedsize,            {number of bytes read from zipfile}
     uncompsize : longint;     {uncompressed size of file}
-    crc32val : longint;       {crc calculated from data}
+    crc32val : cardinal;       {crc calculated from data}
     hufttype : word;          {coding type=bit_flag from header}
     totalabort,             {User pressed abort button, set in showpercent!}
     zipeof : boolean;         {read over end of zip section for this file}
@@ -472,7 +472,7 @@ CONST cpdist8 : ARRAY [ 0..63 ] of word = ( 1, 129, 257, 385, 513, 641, 769, 897
 
 {************************************ CRC-Calculation ************************************}
 
-CONST crc_32_tab : ARRAY [ 0..255 ] of longint =
+CONST crc_32_tab : ARRAY [ 0..255 ] of cardinal =
 (
    $00000000, $77073096, $ee0e612c, $990951ba, $076dc419,
    $706af48f, $e963a535, $9e6495a3, $0edb8832, $79dcb8a4,
@@ -3331,7 +3331,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2001-01-30 19:26:18  peter
+  Revision 1.2  2001-05-18 23:24:42  peter
+    * removed warnings
+
+  Revision 1.1  2001/01/30 19:26:18  peter
     * renamed zip to unzip
 
   Revision 1.1  2000/07/13 06:34:24  michael
