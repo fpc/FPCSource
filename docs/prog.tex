@@ -2560,9 +2560,13 @@ point mode have not been extensively tested as of version 0.99.5.
 \chapter{Anatomy of a unit file}
 \label{ch:AppA}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Basics
+\section{Basics}
+
 The best and most updated documentation about the ppu files can be found
-in \file{ppu.pas and \file{ppudump.pp} which can be found in
-\dir{rtl/utils/}.
+in \file{ppu.pas} and \file{ppudump.pp} which can be found in
+\file{rtl/utils/}.
 
 To read or write the ppufile, you can use the ppu unit \file{ppu.pas}
 which has an object called tppufile which holds all routines that deal
@@ -2577,16 +2581,16 @@ A unit file consists of basically five or six parts:
 \item A symbol part. Contains all symbol names and references to their
 definitions.
 \item A browser part. Contains all references from this unit to other
-units and inside this unit. Only available when the uf_has_browser flag is
+units and inside this unit. Only available when the \var{uf\_has\_browser} flag is
 set in the unit flags
 \item A file implementation part (currently unused).
 implementation part.
 \end{enumerate}
 
-
 We will first create an object ppufile which will be used below. We are
-opening unit test.ppu as an example.
+opening unit \file{test.ppu} as an example.
 
+\begin{verbatim}
 var
   ppufile : pppufile;
 begin
@@ -2603,14 +2607,18 @@ begin
 { release object }
   dispose(ppufile,done);
 end;
+\end{verbatim}
 
+\emph{ Remark: }  When a function fails (for example not enough bytes left in an
+entry) it sets the \var{ppufile.error} variable.
 
-Note: When a function fails (for example not enough bytes left in an
-entry) it sets the ppufile.error variable.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The Header
+\section{The Header}
 
+The header consists of a record containing 24 bytes:
 
-The header constist of a record containing 24 bytes:
-
+\begin{verbatim}
 tppuheader=packed record                                                      
     id       : array[1..3] of char; { = 'PPU' }                                 
     ver      : array[1..3] of char;                                             
@@ -2621,66 +2629,82 @@ tppuheader=packed record
     size     : longint; { size of the ppufile without header }                  
     checksum : longint; { checksum for this ppufile }                           
   end;                 
+\end{verbatim}
 
 The header is already read by the ppufile.open command. You can access all
 fields using ppufile.header which holds the current header record
 
-id	 this is allways 'PPU', function:
-          function ppufile.CheckPPUId:boolean;
-ver	 ppu version, currently '015'
-	  function ppufile.GetPPUVersion:longint; (returns 15)
-compiler compiler version used to create the unit. Doesn't contain the
-	 patchlevel. Currently 0.99 where 0 is the high byte and 99 the
-	 low byte
-cpu	 cpu for which this unit is created.
-          0 = i386
-          1 = m68k
-target   target for which this unit is created, this depends also on the
-	 cpu! 
-	 For i386:
-	  0 : Go32v1
-	  1 : Go32V2
-	  2 : Linux-i386
-	  3 : OS/2
-          4 : Win32
-         For m68k:
-	  0 : Amiga
-	  1 : Mac68k
-	  2 : Atari
-	  3 : Linux-m68k
-flags	 the unit flags, contains a combination of the uf_ constants which
-	 are definied in ppu.pas
-size	 size of this unit without this header
-checksum checksum of the interface parts of this unit, which determine if
-         a unit is changed or not, so other units can see if they need to
-	 be recompiled
+\begin{description}
+\item[\var{id}] this is always 'PPU' \\
+  \var{function ppufile.CheckPPUId:boolean;}
+\item[\var{ver}] ppu version, currently '015' \\
+  \var{function ppufile.GetPPUVersion:longint;} (returns 15)
+\item[\var{compiler}] compiler version used to create the unit. Doesn't contain the
+patchlevel. Currently 0.99 where 0 is the high byte and 99 the low byte
+\item[\var{cpu}]      cpu for which this unit is created
+  \begin{description}
+     \item[0] i386
+     \item[1] m68k
+  \end{description}
+\item[\var{target}]  target for which this unit is created, this
+depends also on the cpu!
+For i386:
+  \begin{description}
+    \item[\var{0}] Go32v1
+    \item[\var{1}] Go32V2
+    \item[\var{2}] Linux-i386
+    \item[\var{3}] OS/2
+    \item[\var{4}] Win32 (Windows 95/98/NT)
+  \end{description}
+For m68k:
+  \begin{description}
+    \item[\var{0}] Amiga
+    \item[\var{1}] Mac68k
+    \item[\var{2}] Atari
+    \item[\var{3}] Linux-m68k
+  \end{description}
 
+\item[\var{flags}] the unit flags, contains a combination of
+the uf\_ constants which are definied in \file{ppu.pas}
+\item[\var{size}] size of this unit without this header
+\item[\var{checksum}] checksum of the interface parts of this
+unit, which determine if a unit is changed or not,
+so other units can see if they need to be recompiled
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The sections
+\section{The sections}
 
 After this header follow the sections. All sections work the same! 
 A section contains of entries and is ended with also an entry, but
-containing the specific ibend constant (see ppu.pas for a list).
+containing the specific ibend constant (see \file{ppu.pas} for a list).
 
 Each entry starts with an entryheader.
+\begin{verbatim}
   tppuentry=packed record                                                       
     id   : byte;                                                                
     nr   : byte;                                                                
     size : longint;                                                             
   end;      
+\end{verbatim}
 
-id	this is 1 or 2 and can be check if it the entry is correctly
-	found. 1 means its a main entry, which says that it is part of the
-	basic layout as explained before. 2 toggles that it it a sub entry
-	of a record or object
-nr	contains the ib constant number which determines what kind of
-	entry it is
-size	size of this entry without the header, can be used to skip entries
-	very easily.
+\begin{description}
+\item[\var{id}] this is 1 or 2 and can be check if it the entry is correctly
+found. 1 means its a main entry, which says that it is part of the
+basic layout as explained before. 2 toggles that it it a sub entry
+of a record or object
+\item[\var{nr}] contains the ib constant number which determines what kind of
+entry it is
+\item[\var{size}] size of this entry without the header, can be used to skip entries
+very easily.
+\end{description}
 
-
-To read an entry you can simply call ppufile.readentry:byte it returns the
-tppuentry.nr field, which holds the type of the entry. A common way how
+To read an entry you can simply call \var{ppufile.readentry:byte} it returns the
+\var{tppuentry.nr} field, which holds the type of the entry. A common way how
 this works is (example is for the symbols):
 
+\begin{verbatim}
   repeat
     b:=ppufile.readentry;
     case b of
@@ -2689,90 +2713,123 @@ this works is (example is for the symbols):
  ibendsyms : break;
     end;
   until false;
+\end{verbatim}
 
-Then you can parse each entry type yourself. ppufile.readentry will take
+Then you can parse each entry type yourself. \var{ppufile.readentry} will take
 care of skipping unread byte in the entry an read the next entry
-correctly! A special function is skipuntilentry(untilb:byte):boolean;
+correctly! A special function is \var{skipuntilentry(untilb:byte):boolean;}
 which will read the ppufile until it finds entry untilb in the main
 entrys.
 
-Parsing an entry can be done with ppufile.get<type> functions. The
+Parsing an entry can be done with \var{ppufile.get<type>} functions. The
 available functions are:
+
+\begin{verbatim}
     procedure ppufile.getdata(var b;len:longint);
     function  getbyte:byte;                                                     
     function  getword:word;                                                     
     function  getlongint:longint;                                               
     function  getreal:ppureal;                                                  
     function  getstring:string;      
+\end{verbatim}
 
 To check if you're at the end of an entry you can use the following
 function:
-    function  EndOfEntry:boolean;                                               
 
-Note 1: ppureal is the bestreal that is possible for the cpu where the
+\begin{verbatim}
+   function  EndOfEntry:boolean;                                               
+\end{verbatim}
+
+\emph{ Remark: } ppureal is the bestreal that is possible for the cpu where the
 unit is created for. Currently its extended for i386 and single for m68k.
-Note 2: the ibobjectdef and ibrecorddef have stored a definition and
+
+\emph{ Remark: }  the ibobjectdef and ibrecorddef have stored a definition and
 symbol section for themselves. So you'll need a recursive call. See
-ppudump.pas for a good implementation.
+\file{ppudump.pas} for a good implementation.
 
-For a complete list of entrys and what their fields contain can be found
-in ppudump.pp
+For a complete list of entries and what their fields contain can be found
+in \file{ppudump.pp}
 
-
-
-Creating ppufiles.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Creating ppufiles
+\section{Creating ppufiles}
 
 To create a new ppufile works almost the same as writing. First you need
 to init the object and call create:
+
+\begin{verbatim}
   ppufile:=new(pppufile,'output.ppu');
   ppufile.create;
+\end{verbatim}
 
 After that you can simply write all needed entries. You'll have to take
 care that you write at least the basic entries for the sections:
 
+\begin{verbatim}
   ibendinterface
   ibenddefs
   ibendsyms
   ibendbrowser (only when you've set uf_has_browser!)
   ibendimplementation
   ibend
+\end{verbatim}
 
 Writing an entry is a little different than reading it. You need to first
-put everything in the entry with ppufile.put<type>:
-    procedure putdata(var b;len:longint);                                       
+put everything in the entry with \var{ppufile.put<type>}:
+
+\begin{verbatim}
+    procedure putdata(var b;len:longint);
     procedure putbyte(b:byte);                                                  
     procedure putword(w:word);                                                  
     procedure putlongint(l:longint);                                            
     procedure putreal(d:ppureal);                                               
-    procedure putstring(s:string);      
+    procedure putstring(s:string);
+\end{verbatim}
+
 After putting all the things in the entry you need to call
-ppufile.writeentry(ibnr:byte) where ibnr is the entry number you're 
-writing.
+\var{ppufile.writeentry(ibnr:byte)} where \var{ibnr}
+is the entry number you're writing.
 
 At the end of the file you need to call ppufile.writeheader to write the
 new header to the file. This takes automaticly care of the new size of the
-ppufile. When that's also done you can call ppufile.close and dispose the
+ppufile. When that's also done you can call \var{ppufile.close} and dispose the
 object.
 
 Extra functions/variables available for writing are:
+
+\begin{verbatim}
     ppufile.NewHeader;                                           
-    ppufile.NewEntry;   
+    ppufile.NewEntry;
+\end{verbatim}
+
 this will give you a clean header or entry. Normally called automaticly
-in ppufile.writeentry(), so you can't forget it.
-    ppufile.flush;                                                            
+in \var{ppufile.writeentry()}, so you can't forget it.
+\begin{verbatim}
+ppufile.flush;
+\end{verbatim}
 to flush the current buffers to the disk
-    ppufile.do_crc:boolean;
+\begin{verbatim}
+ppufile.do_crc:boolean;
+\end{verbatim}
 set to false if you don't want that the crc is updated, this is necessary
 if you write for example the browser data.
-
    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendix B
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%\chapter{Compiler and RTL source tree structure}
-%\label{ch:AppB}
+\chapter{Compiler and RTL source tree structure}
+\label{ch:AppB}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The compiler source tree
+\section{The compiler source tree}
+
+All compiler source files are in one directory, normally in
+\file{source/compiler}. For more informations
+about the structure of the compiler have a look at the
+Compiler Manual which contains also some informations about
+compiler internals.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Appendix C
