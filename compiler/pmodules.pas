@@ -521,9 +521,10 @@ writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_c
                   { try to load the unit a second time first }
                   current_module:=hp;
                   current_module^.in_second_compile:=true;
-                { now realy load the ppu }
+                  { now realy load the ppu }
+                  current_ppu:=current_module^.ppufile;
                   loadppufile;
-                { set compiled flag }
+                  { set compiled flag }
                   current_module^.compiled:=true;
                 end;
 {$else Double_Checksum}
@@ -1397,7 +1398,10 @@ writeln('loaded intfc: ',loaded_unit^.interface_crc,' pu intfc ',pu^.interface_c
 end.
 {
   $Log$
-  Revision 1.111  1999-04-21 09:43:46  peter
+  Revision 1.112  1999-04-25 15:08:38  peter
+    * small fixes for double_checksum
+
+  Revision 1.111  1999/04/21 09:43:46  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)

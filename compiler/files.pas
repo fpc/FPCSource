@@ -918,10 +918,24 @@ uses
          fnd:=SearchPath('.');
          if (not fnd) and assigned(current_module^.LocalUnitSearchPath) then
           fnd:=SearchPath(current_module^.LocalUnitSearchPath^);
-         if not fnd then
+         if (not fnd) then
           fnd:=SearchPath(UnitSearchPath);
+
+         { try to find a file with the first 8 chars of the modulename, like
+           dos }
+         if (not fnd) and (length(filename)>8) then
+          begin
+            filename:=copy(filename,1,8);
+            fnd:=SearchPath('.');
+            if (not fnd) and assigned(current_module^.LocalUnitSearchPath) then
+             fnd:=SearchPath(current_module^.LocalUnitSearchPath^);
+            if not fnd then
+             fnd:=SearchPath(UnitSearchPath);
+          end;
          search_unit:=fnd;
       end;
+
+
 
     procedure tmodule.reset;
 
@@ -966,9 +980,16 @@ uses
         pm:=pdependent_unit(dependent_units.first);
         while assigned(pm) do
           begin
-            pm^.u^.do_reload_ppu:=true;
-            def_comment(v_warning,'Reloading '+pm^.u^.mainsource^+' needed because '+
-              mainsource^+' is reloaded');
+            if pm^.u^.in_second_compile then
+             begin
+               writeln('No reload already in second compile: ',pm^.u^.modulename^);
+             end
+            else
+             begin
+               pm^.u^.do_reload_ppu:=true;
+               def_comment(v_warning,'Reloading '+pm^.u^.modulename^+' needed because '+
+                 modulename^+' is reloaded');
+             end;
             pm:=pdependent_unit(pm^.next);
           end;
 {$endif Double_checksum}
@@ -1082,10 +1103,7 @@ uses
          _exports:=new(plinkedlist,init);
        { search the PPU file if it is an unit }
          if is_unit then
-          begin
-            if (not search_unit(modulename^,false)) and (length(modulename^)>8) then
-             search_unit(copy(modulename^,1,8),false);
-          end;
+          search_unit(modulename^,false);
       end;
 
 
@@ -1193,7 +1211,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.91  1999-04-21 09:43:36  peter
+  Revision 1.92  1999-04-25 15:08:36  peter
+    * small fixes for double_checksum
+
+  Revision 1.91  1999/04/21 09:43:36  peter
     * storenumber works
     * fixed some typos in double_checksum
     + incompatible types type1 and type2 message (with storenumber)
