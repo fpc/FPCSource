@@ -249,10 +249,18 @@ begin
   InOutRes:=1;
 end;
 
-procedure getdir(drivenr : byte;var dir : shortstring);
+function GetDirIO (DriveNr: byte; var Dir: ShortString): word;
+                                               [public, alias: 'FPC_GETDIRIO'];
 begin
-  InOutRes:=1;
+  GetDirIO:=1;
 end;
+
+procedure GetDir (DriveNr: byte; var Dir: ShortString);
+
+begin
+  InOutRes := GetDirIO (DriveNr, Dir);
+end;
+
 
 {*****************************************************************************
                          SystemUnit Initialization
@@ -274,7 +282,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:56  michael
+  Revision 1.3  2001-03-16 20:42:44  hajny
+    * universal FExpand
+
+  Revision 1.2  2000/07/13 11:33:56  michael
   + removed logs
  
 }
