@@ -23,7 +23,7 @@
 { RIGHT NODE (operand)                                          }
 {  LOC_FPU                                                      }
 {  LOC_REFERENCE / LOC_MEM                                      }
-{$E-}
+{$E+}
 
  Procedure RealTestSub;
  var
@@ -46,7 +46,7 @@
   j:=j-10.0;
   if j <> 0.0 then
     result := false;
-  WriteLn('Result (10.0) :',i);
+  WriteLn('Result (0.0) :',j);
   if not result then
     WriteLn('Failure.')
   else
@@ -260,7 +260,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2001-06-12 01:12:34  carl
+  Revision 1.3  2001-07-31 01:55:23  carl
+  * corrected comparing value for real
+
+  Revision 1.2  2001/06/12 01:12:34  carl
   + added header
 
   Revision 1.1  2001/05/19 11:51:50  peter
