@@ -739,7 +739,13 @@ implementation
               { Copy data }
               reference_reset_base(href2,localcopyloc.reference.index,localcopyloc.reference.offset);
               if is_shortstring(tvarsym(p).vartype.def) then
-                cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,loadref)
+                begin
+                  { this code is only executed before the code for the body and the entry/exit code is generated
+                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                  }
+                  include(current_procinfo.flags,pi_do_call);
+                  cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,loadref)
+                end
               else
                 cg.g_concatcopy(list,href1,href2,tvarsym(p).vartype.def.size,true,loadref);
               { update localloc of varsym }
@@ -1834,44 +1840,47 @@ implementation
                   begin
                     if not(po_assembler in current_procinfo.procdef.procoptions) then
                       begin
-                        if (paraitem.paraloc[calleeside].loc=LOC_REGISTER) then
-                          begin
-                            (*
-                            if paraitem.paraloc[calleeside].register=NR_NO then
-                              begin
-                                paraitem.paraloc[calleeside].loc:=LOC_REGISTER;
-                                paraitem.paraloc[calleeside].size:=paraitem.paraloc[calleeside].size;
+                        case paraitem.paraloc[calleeside].loc of
+                          LOC_FPUREGISTER,
+                          LOC_REGISTER:
+                            begin
+                              (*
+                              if paraitem.paraloc[calleeside].register=NR_NO then
+                                begin
+                                  paraitem.paraloc[calleeside].loc:=LOC_REGISTER;
+                                  paraitem.paraloc[calleeside].size:=paraitem.paraloc[calleeside].size;
 {$ifndef cpu64bit}
-                                if paraitem.paraloc[calleeside].size in [OS_64,OS_S64] then
-                                  begin
-                                    paraitem.paraloc[calleeside].registerlow:=cg.getregisterint(list,OS_32);
-                                    paraitem.paraloc[calleeside].registerhigh:=cg.getregisterint(list,OS_32);
-                                  end
-                                else
+                                  if paraitem.paraloc[calleeside].size in [OS_64,OS_S64] then
+                                    begin
+                                      paraitem.paraloc[calleeside].registerlow:=cg.getregisterint(list,OS_32);
+                                      paraitem.paraloc[calleeside].registerhigh:=cg.getregisterint(list,OS_32);
+                                    end
+                                  else
 {$endif cpu64bit}
-                                  paraitem.paraloc[calleeside].register:=cg.getregisterint(list,localloc.size);
-                              end;
-                             *)
-                            (*
+                                    paraitem.paraloc[calleeside].register:=cg.getregisterint(list,localloc.size);
+                                end;
+                               *)
+                              (*
 {$warning TODO Allocate register paras}
-                            localloc.loc:=LOC_REGISTER;
-                           localloc.size:=paraitem.paraloc[calleeside].size;
+                              localloc.loc:=LOC_REGISTER;
+                             localloc.size:=paraitem.paraloc[calleeside].size;
 {$ifndef cpu64bit}
-                            if localloc.size in [OS_64,OS_S64] then
-                              begin
-                                localloc.registerlow:=cg.getregisterint(list,OS_32);
-                                localloc.registerhigh:=cg.getregisterint(list,OS_32);
-                              end
-                            else
+                              if localloc.size in [OS_64,OS_S64] then
+                                begin
+                                  localloc.registerlow:=cg.getregisterint(list,OS_32);
+                                  localloc.registerhigh:=cg.getregisterint(list,OS_32);
+                                end
+                              else
 {$endif cpu64bit}
-                              localloc.register:=cg.getregisterint(list,localloc.size);
-                              *)
-                            localloc.loc:=LOC_REFERENCE;
-                            localloc.size:=paraitem.paraloc[calleeside].size;
-                            tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
-                          end
-                        else
-                          localloc:=paraitem.paraloc[calleeside];
+                                localloc.register:=cg.getregisterint(list,localloc.size);
+                                *)
+                              localloc.loc:=LOC_REFERENCE;
+                              localloc.size:=paraitem.paraloc[calleeside].size;
+                              tg.GetLocal(list,tcgsize2size[localloc.size],localloc.reference);
+                            end
+                          else
+                            localloc:=paraitem.paraloc[calleeside];
+                        end;
                       end
                     else
                       localloc:=paraitem.paraloc[calleeside];
@@ -1965,7 +1974,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.161  2003-10-19 01:34:30  florian
+  Revision 1.162  2003-10-25 11:34:02  florian
+    * fixed compilation of ppc system unit
+
+  Revision 1.161  2003/10/19 01:34:30  florian
     * some ppc stuff fixed
     * memory leak fixed
 
