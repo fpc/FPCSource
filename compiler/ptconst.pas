@@ -739,7 +739,10 @@ implementation
                              else break;
                           end;
                    end;
-                end;
+                 for i:=1 to def^.size-aktpos do
+                   curconstsegment^.concat(new(pai_const,init_8bit(0)));
+                 consume(_RKLAMMER);
+              end;
            end;
          { reads a typed object }
          objectdef:
@@ -835,7 +838,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-11-04 14:25:21  florian
+  Revision 1.12  2000-11-06 15:54:15  florian
+    * fixed two bugs to get make cycle work, but it's not enough
+
+  Revision 1.11  2000/11/04 14:25:21  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.10  2000/10/31 22:02:51  peter

@@ -124,20 +124,6 @@ interface
        systemunit     : punitsymtable;  { pointer to the system unit }
        read_member : boolean;      { reading members of an symtable }
 
-       aktprocsym : pprocsym;      { pointer to the symbol for the
-                                     currently be parsed procedure }
-
-       aktcallprocsym : pprocsym;  { pointer to the symbol for the
-                                     currently be called procedure,
-                                     only set/unset in firstcall }
-
-       aktvarsym : pvarsym;     { pointer to the symbol for the
-                                     currently read var, only used
-                                     for variable directives }
-
-       procprefix : string;     { eindeutige Namen bei geschachtel- }
-                                   { ten Unterprogrammen erzeugen      }
-
        lexlevel : longint;       { level of code                     }
                                    { 1 for main procedure             }
                                    { 2 for normal function or proc     }
@@ -2366,7 +2352,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-11-04 14:25:22  florian
+  Revision 1.15  2000-11-06 15:54:15  florian
+    * fixed two bugs to get make cycle work, but it's not enough
+
+  Revision 1.14  2000/11/04 14:25:22  florian
     + merged Attila's changes for interfaces, not tested yet
 
   Revision 1.13  2000/11/01 23:04:38  peter
