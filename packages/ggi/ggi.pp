@@ -302,7 +302,7 @@ const
   
   // Bit that influence drawing logic
 
-  GI_BM_TYPE_LOGIC	= $030000;
+  GGI_BM_TYPE_LOGIC	= $030000;
 
   GGI_BM_SUB_ZBUFFER	= $0100;
   GGI_BM_SUB_WRITEPROT	= $1000;
@@ -788,7 +788,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-04-15 11:13:30  sg
+  Revision 1.5  2000-05-02 10:27:39  sg
+  * Fixed a small typo (GI_BM_TYPE_LOGIC instead of GGI_BM_TYPE_LOGIC)
+
+  Revision 1.4  2000/04/15 11:13:30  sg
   * Hopefully the final fix for the second argument of ggiSetGCForeground
     and ggiSetGCBackground... :-)
 
