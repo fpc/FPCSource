@@ -15,7 +15,7 @@ uses X;
 
     type
        TXPointer = ^char;
-       TBool = Longint;
+       TBool = LongBool;
        PBool = ^TBool;
        TStatus = Longint; { Also a choice. MVC }
        { Some pointers : }
@@ -855,7 +855,7 @@ uses X;
             send_event : TBool;
             display : PDisplay;
             window : TWindow;
-            message_eventtype : TAtom;
+            message_type : TAtom;
             format : longint;
             data : record
                 case longint of
@@ -1142,7 +1142,7 @@ uses X;
        XBufferOverflow = -(1);
        XLookupNone = 1;
        XLookupChars = 2;
-       XLookupKeySym = 3;
+       XLookupKeySymConst = 3;
        XLookupBoth = 4;
 
     type
@@ -1359,9 +1359,7 @@ Function XListExtensions(_para1 : PDisplay;_para2 : Plongint) : PPChar; cdecl;ex
 Function XListProperties(_para1 : PDisplay;_para2 : TWindow;_para3 : Plongint) : PAtom; cdecl;external;
 Function XListHosts(_para1 : PDisplay;_para2 : Plongint;_para3 : PBool) : PXHostAddress; cdecl;external;
 Function XKeycodeToKeysym(_para1 : PDisplay;_para3 : TKeyCode;_para4 : longint) : TKeySym; cdecl;external;
-{ Doesn't want ? MVC
 Function XLookupKeysym(_para1 : PXKeyEvent;_para2 : longint) : TKeySym; cdecl;external;
-}
 Function XGetKeyboardMapping(_para1 : PDisplay;_para2 : cardinal;_para3 : TKeyCode;_para4 : longint;_para5 : Plongint) : PKeySym; cdecl;external;
 Function XStringToKeysym(_para1 : pchar) : TKeySym; cdecl;external;
 Function XMaxRequestSize(_para1 : PDisplay) : longint; cdecl;external;
@@ -1726,7 +1724,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-05-22 08:21:05  sg
+  Revision 1.7  2000-05-24 09:37:29  sg
+  * translated more X11 functions
+
+  Revision 1.6  2000/05/22 08:21:05  sg
   * Added pointer types for all events. (PXxxxEvent = ^TXxxxEvent)
 
   Revision 1.5  2000/03/06 16:15:43  peter

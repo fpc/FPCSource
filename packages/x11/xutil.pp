@@ -2,6 +2,9 @@
   $Id$
 }
 Unit XUtil;
+
+{$MODE objfpc}
+
 interface
 uses
   x,xlib;
@@ -29,6 +32,7 @@ Const
 }
 Type
   long = Cardinal; { Untill we know better. M.}
+  PInteger = ^Integer;
 
 Type
   TAspectRecord = record
@@ -82,6 +86,7 @@ Type
         window_group : TXID ;   { id of related window group }
         { this structure may be extended in the future }
   end;
+  PXWMHints = ^TXWMHints;
 
 { definition for flags of XWMHints }
 Const
@@ -138,6 +143,7 @@ Type
         width_inc, height_inc : longint;
   end;
   PXIconSize = ^TXIconSize;
+  PPXIconSize = ^PXIconSize;
 
 type
   TXClassHint = record
@@ -171,7 +177,7 @@ type
     compose_ptr : TXPointer ;   { state table pointer }
     chars_matched : longint ;           { match state }
   end;
-  PTXComposeStatus = ^TXComposeStatus;
+  PXComposeStatus = ^TXComposeStatus;
 
 {
  * Keysym macros, used on Keysyms to test for classes of symbols
@@ -203,9 +209,12 @@ type
 {
  * opaque reference to Region data type
  }
+
+type
 {
 typedef struct _XRegion *Region;
 }
+  TRegion = Pointer;
 
 { Return values from XRectInRegion() }
 Const
@@ -264,7 +273,8 @@ Type
         visualid : TVisualID;           { added by ICCCM version 1 }
         killid : TXID ;                 { added by ICCCM version 1 }
   end;
-  PXStandardColormap= ^TXStandardColormap;
+  PXStandardColormap = ^TXStandardColormap;
+  PPXStandardColormap = ^PXStandardColormap;
 
 Const
   ReleaseByFreeingColormap = 1;  { for killid field above }
@@ -295,149 +305,40 @@ function XGetVisualInfo(display: PDisplay; vinfo_mask: LongInt;
   vinfo_template: PXVisualInfo; var nitems_return: longint): PXVisualInfo;
   cdecl; external;
 
-(*
-_XFUNCPROTOBEGIN
-
 { The following declarations are alphabetized. }
 
-extern XClassHlongint *XAllocClassHlongint (
-#if NeedFunctionPrototypes
-    void
-#endif
-);
+function XAllocClassHint: PXClassHint; cdecl; external;
+function XAllocIconSize: PXIconSize; cdecl; external;
+function XAllocSizeHints: PXSizeHints; cdecl; external;
+function XAllocStandardColormap: PXStandardColormap; cdecl; external;
+function XAllocWMHints: PXWMHints; cdecl; external;
+procedure XClipBox(r: TRegion; rect_return: PXRectangle); cdecl; external;
+function XCreateRegion: TRegion; cdecl; external;
+function XDefaultString: PChar; cdecl; external;
+function XDeleteContext(display: PDisplay; rid: TXID;
+  context: TXContext): LongInt; cdecl; external;
+procedure XDestroyRegion(r: TRegion); cdecl; external;
+function XEmptyRegion(r: TRegion): TBool; cdecl; external;
+function XEqualRegion(r1, r2: TRegion): TBool; cdecl; external;
+function XFindContext(display: PDisplay; rid: TXID; context: TXContext;
+  data_return: PXPointer): LongInt; cdecl; external;
+function XGetClassHint(display: PDisplay; w: TWindow;
+  class_hints_return: PXClassHint): TStatus; cdecl; external;
+function XGetIconSizes(display: PDisplay; w: TWindow;
+  size_list_return: PPXIconSize; count_return: PInteger): TStatus;
+  cdecl; external;
+function XGetNormalHints(display: PDisplay; w: TWindow;
+  hints_return: PXSizeHints): TStatus; cdecl; external;
+function XGetRGBColormaps(display: PDisplay; w: TWindow;
+  stdcmap_return: PPXStandardColormap; count_return: PInteger;
+  _property: TAtom): TStatus; cdecl; external;
+function XGetSizeHints(display: PDisplay; w: TWindow;
+  hints_return: PXSizeHints; _property: TAtom): TStatus; cdecl; external;
+function XGetStandardColormap(display: PDisplay; w: TWindow;
+  colormap_return: PXStandardColormap; _property: TAtom): TStatus;
+  cdecl; external;
 
-extern XIconSize *XAllocIconSize (
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern XSizeHints *XAllocSizeHints (
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern XStandardColormap *XAllocStandardColormap (
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern XWMHints *XAllocWMHints (
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern XClipBox(
-#if NeedFunctionPrototypes
-    Region              { r },
-    XRectangle*         { rect_return }
-#endif
-);
-
-extern Region XCreateRegion(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern char *XDefaultString(
-#if NeedFunctionPrototypes
-    void
-#endif
-);
-
-extern longint XDeleteContext(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    XID                 { rid },
-    XContext            { context }
-#endif
-);
-
-extern XDestroyRegion(
-#if NeedFunctionPrototypes
-    Region              { r }
-#endif
-);
-
-extern XEmptyRegion(
-#if NeedFunctionPrototypes
-    Region              { r }
-#endif
-);
-
-extern XEqualRegion(
-#if NeedFunctionPrototypes
-    Region              { r1 },
-    Region              { r2 }
-#endif
-);
-
-extern longint XFindContext(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    XID                 { rid },
-    XContext            { context },
-    XPointer*           { data_return }
-#endif
-);
-
-extern Status XGetClassHint(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XClassHint*         { class_hints_return }
-#endif
-);
-
-extern Status XGetIconSizes(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XIconSize**         { size_list_return },
-    int*                { count_return }
-#endif
-);
-
-extern Status XGetNormalHints(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XSizeHints*         { hints_return }
-#endif
-);
-
-extern Status XGetRGBColormaps(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XStandardColormap** { stdcmap_return },
-    int*                { count_return },
-    Atom                { property }
-#endif
-);
-
-extern Status XGetSizeHints(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XSizeHints*         { hints_return },
-    Atom                { property }
-#endif
-);
-
-extern Status XGetStandardColormap(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XStandardColormap*  { colormap_return },
-    Atom                { property }
-#endif
-);
-
+(*
 extern Status XGetTextProperty(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -528,18 +429,13 @@ extern void XConvertCase(
     KeySym*             { lower },
     KeySym*             { upper }
 #endif
-);
+); *)
 
-extern longint XLookupString(
-#if NeedFunctionPrototypes
-    XKeyEvent*          { event_struct },
-    char*               { buffer_return },
-    int                 { bytes_buffer },
-    KeySym*             { keysym_return },
-    XComposeStatus*     { status_in_out }
-#endif
-);
+function XLookupString(event_struct: PXKeyEvent; buffer_return: PChar;
+  bytes_buffer: Integer; keysym_return: PKeySym;
+  status_in_out: PXComposeStatus): Integer; cdecl; external;
 
+(*
 extern Status XMatchVisualInfo(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -635,21 +531,14 @@ extern XSetSizeHints(
     XSizeHints*         { hints },
     Atom                { property }
 #endif
-);
+); *)
 
-extern XSetStandardProperties(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    _Xconst char*       { window_name },
-    _Xconst char*       { icon_name },
-    Pixmap              { icon_pixmap },
-    char**              { argv },
-    int                 { argc },
-    XSizeHints*         { hints }
-#endif
-);
+function XSetStandardProperties(display: PDisplay; w: TWindow;
+  const window_name, icon_name: PChar; icon_pixmap: TPixmap;
+  argv: PPChar; argc: Integer; hints: PXSizeHints): Integer;
+  cdecl; external;
 
+(*
 extern void XSetTextProperty(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -666,15 +555,11 @@ extern void XSetWMClientMachine(
     XTextProperty*      { text_prop }
 #endif
 );
+*)
 
-extern XSetWMHints(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XWMHints*           { wm_hints }
-#endif
-);
+function XSetWMHints(display: PDisplay; w: TWindow; wm_hints: PXWMHints): Integer; cdecl; external;
 
+(*
 extern void XSetWMIconName(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -689,16 +574,12 @@ extern void XSetWMName(
     Window              { w },
     XTextProperty*      { text_prop }
 #endif
-);
+); *)
 
-extern void XSetWMNormalHints(
-#if NeedFunctionPrototypes
-    Display*            { display },
-    Window              { w },
-    XSizeHints*         { hints }
-#endif
-);
+procedure XSetWMNormalHints(display: PDisplay; w: TWindow; hints: PXSizeHints);
+  cdecl; external;
 
+(*
 extern void XSetWMProperties(
 #if NeedFunctionPrototypes
     Display*            { display },
@@ -887,7 +768,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-03-06 16:15:43  peter
+  Revision 1.7  2000-05-24 09:37:29  sg
+  * translated more X11 functions
+
+  Revision 1.6  2000/03/06 16:15:43  peter
     * removed comment warnings
 
   Revision 1.5  2000/03/01 09:16:13  sg
