@@ -56,7 +56,7 @@ Implementation
 
 {TODO Perhaps add some kind of "Procedure AddDisk" for accessing other
  volumes. At lest accessing the possible disk drives with
- driver number 1 and 2 should be easy.}
+ drive number 1 and 2 should be easy.}
 
 {TODO Perhaps use LongDateTime for time functions. But the function
  calls must then be weak linked.}
@@ -736,7 +736,8 @@ End;
     if (Pos('?', Path) <> 0) or (Pos('*', Path) <> 0) then
       Exit;
 
-    path := TranslatePathToMac(path, false);
+    if pathTranslation then
+      path := TranslatePathToMac(path, false);
 
     {Search in working directory, or as full path}
     fpcerr := PathArgToFSSpec(path, spec);
@@ -757,7 +758,11 @@ End;
           p1 := Pos(PathSeparator, DirList);
           if p1 = 0 then
             p1 := 255;
-          NewDir := TranslatePathToMac(Copy(DirList, 1, P1 - 1), false);
+
+          if pathTranslation then
+            NewDir := TranslatePathToMac(Copy(DirList, 1, P1 - 1), false)
+					else
+            NewDir := Copy(DirList, 1, P1 - 1);					
 
           NewDir := ConcatMacPath(NewDir, Path);
 

@@ -396,6 +396,9 @@ function PathArgToFSSpec(s: string; var spec: FSSpec): Integer;
 var
   err: OSErr;
 begin
+  if pathTranslation then
+    s := TranslatePathToMac(s, false);
+
   err:= FSMakeFSSpec(workingDirectorySpec.vRefNum,
       workingDirectorySpec.parID, s, spec);
   PathArgToFSSpec := MacOSErr2RTEerr(err);

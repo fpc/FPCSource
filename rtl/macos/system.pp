@@ -63,6 +63,11 @@ procedure Yield;
 procedure SetDefaultMacOSFiletype(ftype: ShortString);
 procedure SetDefaultMacOSCreator(creator: ShortString);
 
+var
+  {Whether unix and dos style paths should be translated. Default false}
+  pathTranslation: Boolean;
+
+
 {*********************************}
 {**  Available features on macos **}
 {*********************************}
@@ -464,7 +469,6 @@ begin
 {$WARNING To be implemented - using GetProcessInformation???}
 end;
 
-
 var
   resHdl: Mac_Handle;
   isFolder, hadAlias, leafIsAlias: Boolean;
@@ -500,6 +504,7 @@ begin
 
   StackLength := InitialStkLen;
   StackBottom := SPtr - StackLength;
+  pathTranslation:= false;
 
   { Setup working directory }
   if StandAlone <> 0 then
@@ -554,7 +559,10 @@ end.
 
 {
   $Log$
-  Revision 1.30  2005-02-14 17:13:30  peter
+  Revision 1.31  2005-03-20 19:37:31  olle
+    + Added optional path translation mechanism
+
+  Revision 1.30  2005/02/14 17:13:30  peter
     * truncate log
 
   Revision 1.29  2005/02/07 21:30:12  peter
