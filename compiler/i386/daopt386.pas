@@ -790,7 +790,7 @@ begin
     A_IDIV,A_DIV,A_MUL:
       begin
         regReadByInstruction :=
-          regInOp(reg,p.oper[0]) or (reg = R_EAX);
+          regInOp(reg,p.oper[0]) or (reg = R_EAX) or (reg = R_EDX);
       end;
     else
       begin
@@ -2591,7 +2591,10 @@ End.
 
 {
   $Log$
-  Revision 1.38  2002-05-18 13:34:22  peter
+  Revision 1.39  2002-06-09 12:56:04  jonas
+    * IDIV reads edx too (but now the div/mod optimization fails :/ )
+
+  Revision 1.38  2002/05/18 13:34:22  peter
     * readded missing revisions
 
   Revision 1.37  2002/05/16 19:46:51  carl
