@@ -1212,7 +1212,7 @@ unit pmodules;
 
          { Compile the unit }
          codegen_newprocedure;
-         gen_main_procsym(current_module^.modulename^+'_init',potype_unitinit,st);
+         gen_main_procsym('$'+current_module^.modulename^+'_init',potype_unitinit,st);
 {$ifdef fixLeaksOnError}
          new(names,init);
          strContStack.push(names);
@@ -1257,7 +1257,7 @@ unit pmodules;
 
               { Compile the finalize }
               codegen_newprocedure;
-              gen_main_procsym(current_module^.modulename^+'_finalize',potype_unitfinalize,st);
+              gen_main_procsym('$'+current_module^.modulename^+'_finalize',potype_unitfinalize,st);
 {$ifdef fixLeaksOnError}
               new(names,init);
               strContStack.push(names);
@@ -1714,7 +1714,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.7  2000-08-27 20:19:39  peter
+  Revision 1.8  2000-08-29 19:00:01  peter
+    * _init and _finalize procsyms also need a $ prefix
+
+  Revision 1.7  2000/08/27 20:19:39  peter
     * store strings with case in ppu, when an internal symbol is created
       a '$' is prefixed so it's not automatic uppercased
 
