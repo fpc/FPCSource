@@ -51,7 +51,7 @@ endif
 ifdef X86_64
 PPC_TARGET=x86_64
 endif
-ifdef X86_64
+ifdef ARM
 PPC_TARGET=arm
 endif
 
