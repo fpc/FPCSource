@@ -157,6 +157,9 @@ uses
     ,Dpmiexcp, Go32
     {$endif}
   {$endif}
+  {$ifdef fvision}
+    ,Drivers
+  {$endif}
   {$ifdef VESA}
     ,VESA
   {$endif}
@@ -647,6 +650,9 @@ begin
   IDEScreenBufferHandle:=NewScreenBufferHandle;
   DosScreenBufferHandle:=StartScreenBufferHandle;
   Capture;
+{$ifdef fvision}
+  if TextModeGFV then
+{$endif fvision}
   SwitchBackToIDEScreen;
 end;
 
@@ -846,29 +852,44 @@ end;
   do hold all the info }
 procedure TWin32Screen.SaveIDEScreen;
 begin
-  GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
-  { set the dummy buffer as active already now PM }
-  SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
-  UpdateFileHandles;
+{$ifdef fvision}
+  if TextModeGFV then
+{$endif fvision}
+    begin
+      GetConsoleMode(GetStdHandle(Std_Input_Handle), @IdeMode);
+      { set the dummy buffer as active already now PM }
+      SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
+      UpdateFileHandles;
+    end;
 end;
 
 { dummy for win32 as the Buffer screen
   do hold all the info }
 procedure TWin32Screen.SaveConsoleScreen;
 begin
-  GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
-  { set the dummy buffer as active already now PM }
-  SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
-  UpdateFileHandles;
+{$ifdef fvision}
+  if TextModeGFV then
+{$endif fvision}
+    begin
+      GetConsoleMode(GetStdHandle(Std_Input_Handle), @ConsoleMode);
+      { set the dummy buffer as active already now PM }
+      SetStdHandle(Std_Output_Handle,DummyScreenBufferHandle);
+      UpdateFileHandles;
+    end;
 end;
 
 procedure TWin32Screen.SwitchToConsoleScreen;
 begin
-  SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
-  SetStdHandle(Std_Output_Handle,DosScreenBufferHandle);
+{$ifdef fvision}
+  if TextModeGFV then
+{$endif fvision}
+    begin
+      SetConsoleActiveScreenBuffer(DosScreenBufferHandle);
+      SetStdHandle(Std_Output_Handle,DosScreenBufferHandle);
+      SetConsoleMode(GetStdHandle(Std_Input_Handle), ConsoleMode);
+      UpdateFileHandles;
+    end;
   IDEActive:=false;
-  SetConsoleMode(GetStdHandle(Std_Input_Handle), ConsoleMode);
-  UpdateFileHandles;
 end;
 
 procedure TWin32Screen.SwitchBackToIDEScreen;
@@ -878,29 +899,34 @@ var
   res : boolean;
   error : longint;
 begin
-  SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
-  UpdateFileHandles;
-  GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
-    @ConsoleScreenBufferInfo);
-  SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
-  IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT;
-  SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
-  WindowPos.left:=0;
-  WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
-                   -ConsoleScreenBufferInfo.srWindow.left;
-  WindowPos.top:=0;
-  WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
-                   -ConsoleScreenBufferInfo.srWindow.top;
-  with ConsoleScreenBufferInfo.dwMaximumWindowSize do
+{$ifdef fvision}
+  if TextModeGFV then
+{$endif fvision}
     begin
-    if WindowPos.Right<X-1 then
-      WindowPos.right:=X-1;
-    if WindowPos.Bottom<Y-1 then
-      WindowPos.Bottom:=Y-1;
+      SetStdHandle(Std_Output_Handle,IDEScreenBufferHandle);
+      UpdateFileHandles;
+      GetConsoleScreenBufferInfo(IDEScreenBufferHandle,
+        @ConsoleScreenBufferInfo);
+      SetConsoleActiveScreenBuffer(IDEScreenBufferHandle);
+      IdeMode:=(IdeMode or ENABLE_MOUSE_INPUT) and not ENABLE_PROCESSED_INPUT;
+      SetConsoleMode(GetStdHandle(Std_Input_Handle), IdeMode);
+      WindowPos.left:=0;
+      WindowPos.right:=ConsoleScreenBufferInfo.srWindow.right
+                       -ConsoleScreenBufferInfo.srWindow.left;
+      WindowPos.top:=0;
+      WindowPos.bottom:=ConsoleScreenBufferInfo.srWindow.bottom
+                       -ConsoleScreenBufferInfo.srWindow.top;
+      with ConsoleScreenBufferInfo.dwMaximumWindowSize do
+        begin
+        if WindowPos.Right<X-1 then
+          WindowPos.right:=X-1;
+        if WindowPos.Bottom<Y-1 then
+          WindowPos.Bottom:=Y-1;
+        end;
+      res:=SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
+      if not res then
+        error:=GetLastError;
     end;
-  res:=SetConsoleWindowInfo(IDEScreenBufferHandle,true,WindowPos);
-  if not res then
-    error:=GetLastError;
   IDEActive:=true;
 end;
 
@@ -943,7 +969,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2002-04-25 13:34:17  pierre
+  Revision 1.10  2002-06-06 06:46:28  pierre
+   * No videobuffer switch necessary for fvision win32 graphic version
+
+  Revision 1.9  2002/04/25 13:34:17  pierre
    * fix the disappearing desktop for win32
 
   Revision 1.8  2002/01/22 16:29:52  pierre
