@@ -833,6 +833,49 @@ implementation
              { generic ord conversion is s32bit }
              else
                begin
+                 { if the left or right value is smaller than the normal
+                   type s32bittype and is unsigned, and the other value
+                   is a constant < 0, the result will always be false/true
+                   for equal / unequal nodes.
+                 }
+                 if (
+                      { left : unsigned ordinal var, right : < 0 constant }
+                      (
+                       ((is_signed(ld)=false) and (is_constintnode(left) =false)) and
+                       ((is_constintnode(right)) and (tordconstnode(right).value < 0))
+                      ) or
+                      { right : unsigned ordinal var, left : < 0 constant }
+                      (
+                       ((is_signed(rd)=false) and (is_constintnode(right) =false)) and
+                       ((is_constintnode(left)) and (tordconstnode(left).value < 0))
+                      )
+                    )  then
+                    begin
+                      if nodetype = equaln then
+                         CGMessage(type_w_signed_unsigned_always_false)
+                      else
+                      if nodetype = unequaln then
+                         CGMessage(type_w_signed_unsigned_always_true)
+                      else
+                      if (is_constintnode(left) and (nodetype in [ltn,lten])) or
+                         (is_constintnode(right) and (nodetype in [gtn,gten])) then
+                         CGMessage(type_w_signed_unsigned_always_true)
+                      else
+                      if (is_constintnode(right) and (nodetype in [ltn,lten])) or
+                         (is_constintnode(left) and (nodetype in [gtn,gten])) then
+                         CGMessage(type_w_signed_unsigned_always_false);
+                    end
+                 else
+                 { give out a warning if types are not of the same sign, and are 
+                   not constants.
+                 }
+                 if (((byte(is_signed(rd)) xor byte(is_signed(ld))) and 1)<>0) and 
+                      (nodetype in [ltn,gtn,gten,lten,equaln,unequaln]) and (not is_constintnode(left)) and
+                      (not is_constintnode(right)) then
+                   begin
+                       CGMessage(type_w_mixed_signed_unsigned3); 
+                   end;
+
                  inserttypeconv(right,s32bittype);
                  inserttypeconv(left,s32bittype);
                end;
@@ -1844,7 +1887,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2002-11-16 14:20:22  peter
+  Revision 1.71  2002-11-23 22:50:06  carl
+    * some small speed optimizations
+    + added several new warnings/hints
+
+  Revision 1.70  2002/11/16 14:20:22  peter
     * fix tbs0417
 
   Revision 1.69  2002/11/15 01:58:50  peter

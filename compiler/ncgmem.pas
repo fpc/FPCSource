@@ -259,7 +259,8 @@ implementation
          end;
          if (cs_gdb_heaptrc in aktglobalswitches) and
             (cs_checkpointer in aktglobalswitches) and
-            not(cs_compilesystem in aktmoduleswitches) then
+            not(cs_compilesystem in aktmoduleswitches) and
+            (not tpointerdef(left.resulttype.def).is_far) then
           begin
             cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
             cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
@@ -303,6 +304,14 @@ implementation
                      cg.a_load_loc_reg(exprasmlist,left.location,location.reference.base);
                   end;
              end;
+             { implicit deferencing }
+             if (cs_gdb_heaptrc in aktglobalswitches) and
+                (cs_checkpointer in aktglobalswitches) and
+                not(cs_compilesystem in aktmoduleswitches) then
+              begin
+                cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
+                cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
+              end;
            end
          else if is_interfacecom(left.resulttype.def) then
            begin
@@ -897,7 +906,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-11-15 01:58:51  peter
+  Revision 1.33  2002-11-23 22:50:06  carl
+    * some small speed optimizations
+    + added several new warnings/hints
+
+  Revision 1.32  2002/11/15 01:58:51  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing

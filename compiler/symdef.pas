@@ -3711,7 +3711,7 @@ implementation
      if assigned(owner) then
       begin
         if (owner.symtabletype = objectsymtable) then
-         obj := upper(owner.name^)+'__'+procsym.name;
+         obj := owner.name^+'__'+procsym.name;
         { this code was correct only as long as the local symboltable
           of the parent had the same name as the function
           but this is no true anymore !! PM
@@ -5537,7 +5537,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.108  2002-11-22 22:48:10  carl
+  Revision 1.109  2002-11-23 22:50:06  carl
+    * some small speed optimizations
+    + added several new warnings/hints
+
+  Revision 1.108  2002/11/22 22:48:10  carl
   * memory optimization with tconstsym (1.5%)
 
   Revision 1.107  2002/11/19 16:21:29  pierre

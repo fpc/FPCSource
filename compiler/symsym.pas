@@ -1719,7 +1719,7 @@ implementation
           (sp_static in symoptions) then
          begin
             if (cs_gdb_gsym in aktglobalswitches) then st := 'G'+st else st := 'S'+st;
-            stabstring := strpnew('"'+upper(owner.name^)+'__'+name+':'+st+
+            stabstring := strpnew('"'+owner.name^+'__'+name+':'+st+
                      '",'+
                      tostr(N_LCSYM)+',0,'+tostr(fileinfo.line)+','+mangledname);
          end
@@ -2499,7 +2499,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.74  2002-11-22 22:48:11  carl
+  Revision 1.75  2002-11-23 22:50:09  carl
+    * some small speed optimizations
+    + added several new warnings/hints
+
+  Revision 1.74  2002/11/22 22:48:11  carl
   * memory optimization with tconstsym (1.5%)
 
   Revision 1.73  2002/11/18 17:31:59  peter

@@ -86,13 +86,6 @@ implementation
          aktglobalswitches:=oldglobalswitches;
          if tpointerdef(left.resulttype.def).is_far then
           location.reference.segment:=R_FS;
-         if not tpointerdef(left.resulttype.def).is_far and
-            (cs_gdb_heaptrc in aktglobalswitches) and
-            (cs_checkpointer in aktglobalswitches) then
-          begin
-            cg.a_param_reg(exprasmlist, OS_ADDR,location.reference.base,paramanager.getintparaloc(1));
-            cg.a_call_name(exprasmlist,'FPC_CHECKPOINTER');
-          end;
       end;
 
 
@@ -156,7 +149,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.44  2002-09-07 15:25:11  peter
+  Revision 1.45  2002-11-23 22:50:09  carl
+    * some small speed optimizations
+    + added several new warnings/hints
+
+  Revision 1.44  2002/09/07 15:25:11  peter
     * old logs removed and tabs fixed
 
   Revision 1.43  2002/09/01 19:27:35  peter

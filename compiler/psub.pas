@@ -400,7 +400,9 @@ implementation
             (aktprocdef.proccalloption<>pocall_inline) then
            begin
              if lexlevel>=normal_function_level then
+              begin
                aktprocdef.localst.free;
+              end;
              aktprocdef.localst:=nil;
            end;
 
@@ -802,7 +804,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2002-11-18 17:31:58  peter
+  Revision 1.77  2002-11-23 22:50:06  carl
+    * some small speed optimizations
+    + added several new warnings/hints
+
+  Revision 1.76  2002/11/18 17:31:58  peter
     * pass proccalloption to ret_in_xxx and push_xxx functions
 
   Revision 1.75  2002/11/17 16:31:57  carl

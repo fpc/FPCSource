@@ -951,10 +951,14 @@ parser_h_c_arrays_are_references=03187_H_C arrays are passed by reference
 % Any array passed to a C functions is passed
 % by a pointer (i.e. by reference).
 parser_e_C_array_of_const_must_be_last=03188_E_C array of const must be the last argument
-% You can not add any other argument after
-% an \var{array of const} for \var{cdecl} functions,
-% as the size pushed on stack for this arg is
-% unknown.
+% You can not add any other argument after an \var{array of const} for 
+% \var{cdecl} functions, as the size pushed on stack for this argument is
+% not known.
+parser_h_type_redef=03189_H_Type "$1" redefinition
+% This is an indicator that a previously declared type is
+% being redefined as something else. This may, or may not
+% be, a cause for errors.
+%
 % \end{description}
 #
 # Type Checking
@@ -1102,10 +1106,10 @@ type_e_array_required=04033_E_Array type required
 type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
 type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and longwords gives a 64bit result
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
-% or if you have overflow and/or range checking turned on and use an arithmetical
+% or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
 % then everything has to be evaluated in 64bit which is slower than normal
-% 32bit arithmetics. You can avoid this by typecasting one operand so it
+% 32bit arithmetic. You can avoid this by typecasting one operand so it
 % matches the resulttype of the other one.
 type_w_mixed_signed_unsigned2=04036_W_Mixing signed expressions and cardinals here may cause a range check error
 % If you use a binary operator (and, or, xor) and one of
@@ -1131,6 +1135,20 @@ type_e_type_is_not_completly_defined=04042_E_Type "$1" is not completly defined
 type_w_string_too_long=04043_W_String literal has more characters than short string length
 % The size of the constant string, which is assigned to a shortstring,
 % is longer than the maximum size of the shortstring
+type_w_signed_unsigned_always_false=04044_W_Comparison is always false due to range of values
+% There is a comparison between an unsigned value and a signed constant which is
+% less than zero. Because of type promotion, the statement will always evaluate to
+% false. Exlicitly typecast the constant to the correct range to avoid this problem.
+type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to range of values
+% There is a comparison between an unsigned value and a signed constant which is
+% less than zero. Because of type promotion, the statement will always evaluate to
+% true. Exlicitly typecast the constant to the correct range to avoid this problem.
+%
+type_w_mixed_signed_unsigned3=04046_W_Comparison might always be true (or false) due to range of values
+% There is a comparison between an unsigned value and a signed value which might
+% be less than zero. Because of type promotion, the statement might incorrectly
+% be evaluated. Exlicitly typecast the signed value to the same type as the
+% unsigned value to avoid this problem.
 % \end{description}
 #
 # Symtable
