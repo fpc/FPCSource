@@ -16,18 +16,18 @@
 %   You should have received a copy of the GNU Library General Public
 %   License along with the FPC documentation; see the file COPYING.LIB.  If not,
 %   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-%   Boston, MA 02111-1307, USA. 
+%   Boston, MA 02111-1307, USA.
 %
 \chapter{The SYSUTILS unit.}
 \FPCexampledir{sysutex}
 
-This chapter describes the \file{sysutils} unit. The \file{sysutils} unit 
-was largely written by Gertjan Schouten, and completed by Michael Van Canneyt. 
-It aims to be compatible to the Delphi \file{sysutils} unit, but in contrast 
+This chapter describes the \file{sysutils} unit. The \file{sysutils} unit
+was largely written by Gertjan Schouten, and completed by Michael Van Canneyt.
+It aims to be compatible to the Delphi \file{sysutils} unit, but in contrast
 with  the latter, it is designed to work on multiple platforms. It is implemented
 on all supported platforms.
 
-This chapter starts out with a definition of all types and constants 
+This chapter starts out with a definition of all types and constants
 that are defined, followed by an overview of functions grouped by
 functionality, and lastly the complete explanation of each function.
 
@@ -38,12 +38,12 @@ tfilename = string;
 
 tsyscharset = set of char;
 tintegerset = set of 0..sizeof(integer)*8-1;
-    
+
 longrec = packed record
    lo,hi : word;
 end;
 
-wordrec = packed record   
+wordrec = packed record
    lo,hi : byte;
 end;
 
@@ -78,28 +78,28 @@ type
       Date: integer;   { One plus number of days since 1/1/0001 }
    end ;
 \end{verbatim}
-The following type is used in the \seef{FindFirst},\seef{FindNext} 
-and \seepl{FindClose}{FindCloseSys} functions. The \var{win32} version differs from 
-the other versions. If code is to be portable, that part  shouldn't 
+The following type is used in the \seef{FindFirst},\seef{FindNext}
+and \seepl{FindClose}{FindCloseSys} functions. The \var{win32} version differs from
+the other versions. If code is to be portable, that part  shouldn't
 be used.
 \begin{verbatim}
-Type 
-  THandle = Longint; 
+Type
+  THandle = Longint;
   TSearchRec = Record
     Time,Size, Attr : Longint;
     Name : TFileName;
     ExcludeAttr : Longint;
     FindHandle : THandle;
     {$ifdef Win32}
-    FindData : TWin32FindData;        
+    FindData : TWin32FindData;
     {$endif}
     end;
 \end{verbatim}
-The following constants are file-attributes that need to be matched in the 
+The following constants are file-attributes that need to be matched in the
 findfirst call.
 \begin{verbatim}
-Const 
-  faReadOnly  = $00000001; 
+Const
+  faReadOnly  = $00000001;
   faHidden    = $00000002;
   faSysFile   = $00000004;
   faVolumeId  = $00000008;
@@ -130,16 +130,16 @@ var
    UpperCaseTable: TCaseTranslationTable;
    LowerCaseTable: TCaseTranslationTable;
 \end{verbatim}
-The initialization code of the \file{sysutils} unit fills these 
+The initialization code of the \file{sysutils} unit fills these
 tables with the appropriate values. For the win32 and go32v2
 versions, this information is obtained from the operating system.
 
 The following constants control the formatting of dates.
-For the Win32 version of the \file{sysutils} unit, these 
-constants are set according to the internationalization 
+For the Win32 version of the \file{sysutils} unit, these
+constants are set according to the internationalization
 settings of Windows by the initialization code of the unit.
 \begin{verbatim}
-Const 
+Const
    DateSeparator: char = '-';
    ShortDateFormat: string = 'd/m/y';
    LongDateFormat: string = 'dd" "mmmm" "yyyy';
@@ -155,11 +155,11 @@ Const
    LongDayNames: array[1..7] of string[128] =
      ('Sunday','Monday','Tuesday','Wednesday',
        'Thursday','Friday','Saturday');
-\end{verbatim}  
+\end{verbatim}
 
 The following constants control the formatting of times.
-For the Win32 version of the \file{sysutils} unit, these 
-constants are set according to the internationalization 
+For the Win32 version of the \file{sysutils} unit, these
+constants are set according to the internationalization
 settings of Windows by the initialization code of the unit.
 \begin{verbatim}
 Const
@@ -170,9 +170,9 @@ Const
    TimePMString: string[7] = 'PM';
 \end{verbatim}
 
-The following constants control the formatting of currencies 
-and numbers. For the Win32 version of the \file{sysutils} unit, 
-these  constants are set according to the internationalization 
+The following constants control the formatting of currencies
+and numbers. For the Win32 version of the \file{sysutils} unit,
+these  constants are set according to the internationalization
 settings of Windows by the initialization code of the unit.
 \begin{verbatim}
 Const
@@ -182,8 +182,8 @@ Const
   CurrencyString : String[7] = '$';
   { Format to use when formatting currency :
     0 = $1        1 = 1$         2 = $ 1      3 = 1 $
-    4 = Currency string replaces decimal indicator. 
-        e.g. 1$50 
+    4 = Currency string replaces decimal indicator.
+        e.g. 1$50
    }
   CurrencyFormat : Byte = 1;
   { Same as above, only for negative currencies:
@@ -208,11 +208,11 @@ type
    TFloatFormat = (ffGeneral, ffExponent, ffFixed, ffNumber, ffCurrency);
 \end{verbatim}
 The following constants are used in the file name handling routines. Do not
-use a slash of backslash character directly as a path separator; instead 
+use a slash of backslash character directly as a path separator; instead
 use the \var{OsDirSeparator} character.
 \begin{verbatim}
 Const
-  DirSeparators : set of char = ['/','\'];  
+  DirSeparators : set of char = ['/','\'];
 {$ifdef unix}
   OSDirSeparator = '/';
 {$else}
@@ -266,7 +266,7 @@ Functions for handling strings.
 \end{funclist}
 
 \subsection{Formatting strings}
-Functions for formatting strings. 
+Functions for formatting strings.
 \begin{funclist}
 \funcref{AdjustLineBreaks}{Convert line breaks to line breaks for system}
 \funcref{FormatBuf}{Format a buffer}
@@ -422,7 +422,7 @@ as follows:
 \begin{itemize}
 \item The date part is stored in the integer part of the double as the
 number of days passed since January 1, 1900.
-\item The time part is stored in the fractional part of the double, as 
+\item The time part is stored in the fractional part of the double, as
 the number of milliseconds passed since midnight (00:00), divided by the
 total number of milliseconds in a day.
 \end{itemize}
@@ -432,7 +432,7 @@ total number of milliseconds in a day.
 \Declaration
 Function Date: TDateTime;
 \Description
-\var{Date} returns the current date in \var{TDateTime} format. 
+\var{Date} returns the current date in \var{TDateTime} format.
 For more information about the \var{TDateTime} type, see \seetype{TDateTime}.
 \Errors
 None.
@@ -448,7 +448,7 @@ None.
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
 \Description
 \var{DateTimeToFileDate} function converts a date/time indication in
-\var{TDateTime} format to a filedate function, such as returned for 
+\var{TDateTime} format to a filedate function, such as returned for
 instance by the \seef{FileAge} function.
 \Errors
 None.
@@ -459,14 +459,14 @@ None.
 
 \FPCexample{ex2}
 
- 
+
 \begin{function}{DateTimeToStr}
 \Declaration
 Function DateTimeToStr(DateTime: TDateTime): string;
 \Description
-\var{DateTimeToStr} returns a string representation of 
+\var{DateTimeToStr} returns a string representation of
 \var{DateTime} using the formatting specified in
-\var{ShortDateTimeFormat}. It corresponds to a call to 
+\var{ShortDateTimeFormat}. It corresponds to a call to
 \var{FormatDateTime('c',DateTime)} (see \sees{formatchars}).
 \Errors
 None.
@@ -476,13 +476,13 @@ None.
 
 \FPCexample{ex3}
 
- 
+
 \begin{procedure}{DateTimeToString}
 \Declaration
 Procedure DateTimeToString(var Result: string; const FormatStr: string; const DateTime: TDateTime);
 \Description
-\var{DateTimeToString} returns in \var{Result} a string representation of 
-\var{DateTime} using the formatting specified in \var{FormatStr}. 
+\var{DateTimeToString} returns in \var{Result} a string representation of
+\var{DateTime} using the formatting specified in \var{FormatStr}.
 
 for a list of characters that can be used in the \var{FormatStr} formatting
 string, see \sees{formatchars}.
@@ -495,7 +495,7 @@ raised.
 
 \FPCexample{ex4}
 
- 
+
 \begin{procedure}{DateTimeToSystemTime}
 \Declaration
 Procedure DateTimeToSystemTime(DateTime: TDateTime; var SystemTime: TSystemTime);
@@ -545,15 +545,15 @@ None.
 
 \FPCexample{ex7}
 
- 
+
 \begin{function}{DayOfWeek}
 \Declaration
 Function DayOfWeek(DateTime: TDateTime): integer;
 \Description
 \var{DayOfWeek} returns the day of the week from \var{DateTime}.
-\var{Sunday} is counted as day 1, \var{Saturday} is counted as 
-day 7. The result of \var{DayOfWeek} can serve as an index to 
-the \var{LongDayNames} constant array, to retrieve the name of 
+\var{Sunday} is counted as day 1, \var{Saturday} is counted as
+day 7. The result of \var{DayOfWeek} can serve as an index to
+the \var{LongDayNames} constant array, to retrieve the name of
 the day.
 \Errors
 None.
@@ -580,12 +580,12 @@ None.
 \FPCexample{ex9}
 
 
- 
+
 \begin{procedure}{DecodeTime}
 \Declaration
 Procedure DecodeTime(Time: TDateTime; var Hour, Minute, Second, MilliSecond: word);
 \Description
-\var{DecodeDate} decodes the hours, minutes, second and milliseconds stored 
+\var{DecodeDate} decodes the hours, minutes, second and milliseconds stored
 in \var{Time}, and returns them in the \var{Hour}, \var{Minute} and
 \var{Second} and \var{MilliSecond} variables.
 \Errors
@@ -596,12 +596,12 @@ None.
 
 \FPCexample{ex10}
 
- 
+
 \begin{function}{EncodeDate}
 \Declaration
 Function EncodeDate(Year, Month, Day :word): TDateTime;
 \Description
-\var{EncodeDate} encodes the \var{Year}, \var{Month} and \var{Day} variables to 
+\var{EncodeDate} encodes the \var{Year}, \var{Month} and \var{Day} variables to
 a date in \var{TDateTime} format. It does the opposite of the
 \seep{DecodeDate} procedure.
 
@@ -643,14 +643,14 @@ In case one of the parameters is outside of it's valid range, 0 is returned.
 \FPCexample{ex12}
 
 
- 
+
 \begin{function}{FileDateToDateTime}
 \Declaration
 Function FileDateToDateTime(Filedate : Longint) : TDateTime;
 \Description
 \var{FileDateToDateTime} converts the date/time encoded in \var{filedate}
-to a \var{TDateTime} encoded form. It can be used to convert date/time values 
-returned by the \seef{FileAge} or \seef{FindFirst}/\seef{FindNext} 
+to a \var{TDateTime} encoded form. It can be used to convert date/time values
+returned by the \seef{FileAge} or \seef{FindFirst}/\seef{FindNext}
 functions to \var{TDateTime} form.
 \Errors
 None.
@@ -660,13 +660,13 @@ None.
 
 \FPCexample{ex13}
 
- 
+
 \begin{function}{FormatDateTime}
 \Declaration
 Function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
 \Description
 \var{FormatDateTime} formats the date and time encoded in \var{DateTime}
-according to the formatting given in \var{FormatStr}. The complete list 
+according to the formatting given in \var{FormatStr}. The complete list
 of formatting characters can be found in \sees{formatchars}.
 \Errors
 On error (such as an invalid character in the formatting string), and
@@ -679,7 +679,7 @@ On error (such as an invalid character in the formatting string), and
 \FPCexample{ex14}
 
 
- 
+
 \begin{function}{IncMonth}
 \Declaration
 Function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
@@ -697,7 +697,7 @@ None.
 
 \FPCexample{ex15}
 
- 
+
 \begin{function}{IsLeapYear}
 \Declaration
 Function IsLeapYear(Year: Word): boolean;
@@ -712,7 +712,7 @@ None.
 
 \FPCexample{ex16}
 
- 
+
 \begin{function}{MSecsToTimeStamp}
 \Declaration
 Function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
@@ -725,17 +725,17 @@ time.
 \Errors
 None.
 \SeeAlso
-\seef{TimeStampToMSecs}, \seef{DateTimeToTimeStamp}, 
+\seef{TimeStampToMSecs}, \seef{DateTimeToTimeStamp},
 \end{function}
 
 \FPCexample{ex17}
 
- 
+
 \begin{function}{Now}
 \Declaration
 Function Now: TDateTime;
 \Description
-\var{Now} returns the current date and time. It is equivalent to 
+\var{Now} returns the current date and time. It is equivalent to
 \var{Date+Time}.
 \Errors
 None.
@@ -745,22 +745,22 @@ None.
 
 \FPCexample{ex18}
 
- 
+
 \begin{function}{StrToDate}
 \Declaration
 Function StrToDate(const S: string): TDateTime;
 \Description
-\var{StrToDate} converts the string \var{S} to a \var{TDateTime} date 
-value. The Date must consist of 1 to three digits, separated by the 
+\var{StrToDate} converts the string \var{S} to a \var{TDateTime} date
+value. The Date must consist of 1 to three digits, separated by the
 \var{DateSeparator} character. If two numbers are given, they
-are supposed to form the day and month of the current year. If only 
-one number is given, it is supposed to represent the day of the 
+are supposed to form the day and month of the current year. If only
+one number is given, it is supposed to represent the day of the
 current month. (This is \em{not} supported in Delphi)
 
-The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the
 \var{ShortDateFormat} variable.
 \Errors
-On error (e.g. an invalid date or invalid character), 
+On error (e.g. an invalid date or invalid character),
 an \var{EConvertError} exception is raised.
 \SeeAlso
 \seef{StrToTime}, \seef{DateToStr}n \seef{TimeToStr}.
@@ -773,17 +773,17 @@ an \var{EConvertError} exception is raised.
 \Declaration
 Function StrToDateTime(const S: string): TDateTime;
 \Description
-\var{StrToDateTime} converts the string \var{S} to a \var{TDateTime} date 
-and time value. The Date must consist of 1 to three digits, separated by the 
+\var{StrToDateTime} converts the string \var{S} to a \var{TDateTime} date
+and time value. The Date must consist of 1 to three digits, separated by the
 \var{DateSeparator} character. If two numbers are given, they
-are supposed to form the day and month of the current year. If only 
-one number is given, it is supposed to represent the day of the 
+are supposed to form the day and month of the current year. If only
+one number is given, it is supposed to represent the day of the
 current month. (This is \em{not} supported in Delphi)
 
-The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the
 \var{ShortDateFormat} variable.
 \Errors
-On error (e.g. an invalid date or invalid character), 
+On error (e.g. an invalid date or invalid character),
 an \var{EConvertError} exception is raised.
 \SeeAlso
 \seef{StrToDate}, \seef{StrToTime}, \seef{DateTimeToStr}
@@ -791,17 +791,17 @@ an \var{EConvertError} exception is raised.
 
 \FPCexample{ex20}
 
- 
+
 \begin{function}{StrToTime}
 \Declaration
 Function StrToTime(const S: string): TDateTime;
 \Description
-\var{StrToTime} converts the string \var{S} to a \var{TDateTime} time 
-value. The time must consist of 1 to 4 digits, separated by the 
+\var{StrToTime} converts the string \var{S} to a \var{TDateTime} time
+value. The time must consist of 1 to 4 digits, separated by the
 \var{TimeSeparator} character. If two numbers are given, they
-are supposed to form the hour and minutes. 
+are supposed to form the hour and minutes.
 \Errors
-On error (e.g. an invalid date or invalid character), 
+On error (e.g. an invalid date or invalid character),
 an \var{EConvertError} exception is raised.
 \SeeAlso
 \seef{StrToDate}, \seef{StrToDateTime}, \seef{TimeToStr}
@@ -840,7 +840,7 @@ None.
 
 \FPCexample{ex23}
 
- 
+
 \begin{function}{TimeStampToDateTime}
 \Declaration
 Function TimeStampToDateTime(const TimeStamp: TTimeStamp): TDateTime;
@@ -888,7 +888,7 @@ None.
 
 \FPCexample{ex25}
 
- 
+
 
 \section{Disk functions}
 
@@ -896,10 +896,10 @@ None.
 \Declaration
 Function AddDisk (Const PAth : String) : Longint;
 \Description
-On Linux  both the \seef{DiskFree} and \seef{DiskSize} functions need a 
+On Linux  both the \seef{DiskFree} and \seef{DiskSize} functions need a
 file on the specified drive, since is required for the statfs system call.
 
-These filenames are set in drivestr[0..26], and the first 4 have been 
+These filenames are set in drivestr[0..26], and the first 4 have been
 preset to :
 \begin{description}
 \item[Disk 0]  \var{'.'} default drive - hence current directory is used.
@@ -913,7 +913,7 @@ The \var{AddDisk} call adds \var{Path} to the names of drive files, and
 returns the number of the disk that corresponds to this drive. If you
 add more than 21 drives, the count is wrapped to 4.
 \Errors
-None. 
+None.
 \SeeAlso
 \seefl{DiskFree}{DiskFreeSys}, \seefl{DiskSize}{DiskSizeSys}
 \end{functionl}
@@ -926,7 +926,7 @@ Function CreateDir(Const NewDir : String) : Boolean;
 If the directory doesn't contain an absolute path, then the directory is
 created below the current working directory.
 
-The function returns \var{True} if the directory was successfully 
+The function returns \var{True} if the directory was successfully
 created, \var{False} otherwise.
 \Errors
 In case of an error, the function returns \var{False}.
@@ -936,13 +936,13 @@ In case of an error, the function returns \var{False}.
 
 \FPCexample{ex26}
 
- 
+
 \begin{functionl}{DiskFree}{DiskFreeSys}
 \Declaration
 Function DiskFree(Drive : Byte) : Int64;
 \Description
 \var{DiskFree} returns the free space (in bytes) on disk \var{Drive}.
-Drive is the number of the disk drive: 
+Drive is the number of the disk drive:
 \begin{description}
 \item[0] for the current drive.
 \item[1] for the first floppy drive.
@@ -964,13 +964,13 @@ On error, \var{-1} is returned.
 
 \FPCexample{ex27}
 
- 
+
 \begin{functionl}{DiskSize}{DiskSizeSys}
 \Declaration
 Function DiskSize(Drive : Byte) : Int64;
 \Description
 \var{DiskSize} returns the size (in bytes) of disk \var{Drive}.
-Drive is the number of the disk drive: 
+Drive is the number of the disk drive:
 \begin{description}
 \item[0] for the current drive.
 \item[1] for the first floppy drive.
@@ -991,7 +991,7 @@ On error, \var{-1} is returned.
 \end{functionl}
 
 For an example, see \seefl{DiskFree}{DiskFreeSys}.
- 
+
 \begin{function}{GetCurrentDir}
 \Declaration
 Function GetCurrentDir : String;
@@ -1005,22 +1005,22 @@ None.
 
 \FPCexample{ex28}
 
- 
+
 \begin{function}{RemoveDir}
 \Declaration
 Function RemoveDir(Const Dir : String) : Boolean;
 \Description
 \var{RemoveDir} removes directory \var{Dir} from the disk.
-If the directory is not absolue, it is appended to the current working 
+If the directory is not absolue, it is appended to the current working
 directory.
 \Errors
-In case of error (e.g. the directory isn't empty) the function returns 
+In case of error (e.g. the directory isn't empty) the function returns
 \var{False}. If successful, \var{True} is returned.
 \SeeAlso
 \end{function}
 
 For an example, see \seef{CreateDir}.
- 
+
 \begin{function}{SetCurrentDir}
 \Declaration
 Function SetCurrentDir(Const NewDir : String) : Boolean;
@@ -1044,7 +1044,7 @@ In case of error, \var{False} is returned.
 Function ChangeFileExt(const FileName, Extension: string): string;
 \Description
 \var{ChangeFileExt} changes the file extension in \var{FileName} to
-\var{Extension}. 
+\var{Extension}.
 The extension \var{Extension} includes the starting \var{.} (dot).
 The previous extension of \var{FileName} are all characters after the
 last \var{.}, the \var{.} character included.
@@ -1073,7 +1073,7 @@ On error, \var{False} is returned.
 
 \FPCexample{ex31}
 
- 
+
 \begin{procedure}{DoDirSeparators}
 \Declaration
 Procedure DoDirSeparators(Var FileName : String);
@@ -1106,7 +1106,7 @@ None.
 \FPCexample{ex33}
 
 
- 
+
 \begin{function}{ExpandUNCFileName}
 \Declaration
 Function ExpandUNCFileName(Const FileName : string): String;
@@ -1119,14 +1119,14 @@ and then attempts to replace the driveletter by the name of a shared disk.
 \seef{ExtractFileDrive}, \seef{ExtractFileExt}, \seef{ExtractRelativePath}
 \end{function}
 
- 
+
 \begin{function}{ExtractFileDir}
 \Declaration
 Function ExtractFileDir(Const FileName : string): string;
 \Description
 \var{ExtractFileDir} returns only the directory part of \var{FileName},
 not including a driveletter. The directory name has NO ending directory
-separator, in difference with \seef{ExtractFilePath}. 
+separator, in difference with \seef{ExtractFilePath}.
 \Errors
 None.
 \SeeAlso
@@ -1149,12 +1149,12 @@ Function ExtractFileDrive(const FileName: string): string;
 \end{function}
 
 For an example, see \seef{ExtractFileDir}.
- 
+
 \begin{function}{ExtractFileExt}
 \Declaration
-Function ExtractFileExt(const FileName: string): string; 
+Function ExtractFileExt(const FileName: string): string;
 \Description
-\var{ExtractFileExt} returns the extension (including the 
+\var{ExtractFileExt} returns the extension (including the
 \var{.}(dot) character) of \var{FileName}.
 \Errors
 None.
@@ -1164,14 +1164,14 @@ None.
 \end{function}
 
 For an example, see \seef{ExtractFileDir}.
- 
+
 \begin{function}{ExtractFileName}
 \Declaration
 Function ExtractFileName(const FileName: string): string;
 \Description
 \var{ExtractFileName} returns the filename part from \var{FileName}.
 The filename consists of all characters after the last directory separator
-character ('/' or '\') or drive letter. 
+character ('/' or '\') or drive letter.
 
 The full filename can always be reconstucted by concatenating the result
 of \seef{ExtractFilePath} and \var{ExtractFileName}.
@@ -1183,15 +1183,15 @@ None.
 \end{function}
 
 For an example, see \seef{ExtractFileDir}.
- 
+
 \begin{function}{ExtractFilePath}
 \Declaration
 Function ExtractFilePath(const FileName: string): string;
 \Description
-\var{ExtractFilePath} returns the path part (including driveletter) from 
-\var{FileName}. The path consists of all characters before the last 
+\var{ExtractFilePath} returns the path part (including driveletter) from
+\var{FileName}. The path consists of all characters before the last
 directory separator character ('/' or '\'), including the directory
-separator itself. 
+separator itself.
 In case there is only a drive letter, that will be returned.
 
 The full filename can always be reconstucted by concatenating the result
@@ -1204,7 +1204,7 @@ None.
 \end{function}
 
 For an example, see \seef{ExtractFileDir}.
- 
+
 \begin{function}{ExtractRelativePath}
 \Declaration
 Function ExtractRelativePath(Const BaseName,DestNAme : String): String;
@@ -1240,7 +1240,7 @@ In case of errors, \var{-1} is returned.
 \FPCexample{ex36}
 
 
- 
+
 \begin{procedure}{FileClose}
 \Declaration
 Procedure FileClose(Handle : Longint);
@@ -1293,14 +1293,14 @@ None.
 \FPCexample{ex38}
 
 
- 
+
 \begin{function}{FileGetAttr}
 \Declaration
 Function FileGetAttr(Const FileName : String) : Longint;
 \Description
-\var{FileGetAttr} returns the attribute settings of file 
+\var{FileGetAttr} returns the attribute settings of file
 \var{FileName}. The attribute is a \var{OR}-ed combination
-of the following constants: 
+of the following constants:
 \begin{description}
 \item[faReadOnly] The file is read-only.
 \item[faHidden] The file is hidden. (On \linux, this means that the filename
@@ -1336,7 +1336,7 @@ On error, -1 is returned.
 
 \FPCexample{ex39}
 
- 
+
 \begin{function}{FileOpen}
 \Declaration
 Function FileOpen(Const FileName : string; Mode : Integer) : Longint;
@@ -1363,7 +1363,7 @@ On Error, -1 is returned.
 \end{function}
 
 For an example, see \seef{FileRead}
- 
+
 \begin{function}{FileRead}
 \Declaration
 Function FileRead(Handle : Longint; Var Buffer; Count : longint) : Longint;
@@ -1401,8 +1401,8 @@ On error, an empty string is returned.
 \Declaration
 Function FileSeek(Handle,Offset,Origin : Longint) : Longint;
 \Description
-\var{FileSeek} sets the file pointer on position \var{Offset}, starting from 
-\var{Origin}. Origin can be one of the following values: 
+\var{FileSeek} sets the file pointer on position \var{Offset}, starting from
+\var{Origin}. Origin can be one of the following values:
 \begin{description}
 \item[fsFromBeginning]  \var{Offset} is relative to the first byte of the file. This
 position is zero-based. i.e. the first byte is at offset 0.
@@ -1425,7 +1425,7 @@ On error, -1 is returned.
 
 
 For an example, see \seef{FileCreate}
- 
+
 \begin{functionl}{FileSetAttr (Not on Linux)}{FileSetAttr}
 \Declaration
 Function FileSetAttr(Const Filename : String; Attr: longint) : Longint;
@@ -1433,20 +1433,20 @@ Function FileSetAttr(Const Filename : String; Attr: longint) : Longint;
 \var{FileSetAttr} sets the attributes of \var{FileName} to \var{Attr}.
 If the function was successful, 0 is returned, -1 otherwise.
 
-\var{Attr} can be set to an OR-ed combination of the pre-defined 
+\var{Attr} can be set to an OR-ed combination of the pre-defined
 \var{faXXX} constants.
 \Errors
-On error, -1 is returned (always on linux). 
+On error, -1 is returned (always on linux).
 \SeeAlso
 \seef{FileGetAttr}, \seef{FileGetDate}, \seef{FileSetDate}.
 \end{functionl}
 
- 
+
 \begin{functionl}{FileSetDate (Not on Linux)}{FileSetDate}
 \Declaration
 Function FileSetDate(Handle,Age : Longint) : Longint;
 \Description
-\var{FileSetDate} sets the file date of the file with handle \var{Handle} 
+\var{FileSetDate} sets the file date of the file with handle \var{Handle}
 to \var{Age}, where \var{Age} is a DOS date-and-time stamp value.
 
 The function returns zero of successfull.
@@ -1456,7 +1456,7 @@ On Windows and DOS, a negative error code is returned.
 \SeeAlso
 \end{functionl}
 
- 
+
 \begin{function}{FileTruncate}
 \Declaration
 Function FileTruncate(Handle,Size: Longint) : boolean;
@@ -1473,14 +1473,14 @@ On error, the function returns \var{False}.
 \end{function}
 
 For an example, see \seef{FileCreate}.
- 
+
 \begin{function}{FileWrite}
 \Declaration
 Function FileWrite(Handle : Longint; Var Buffer; Count : Longint) : Longint;
 \Description
 \var{FileWrite} writes \var{Count} bytes from \var{Buffer} to the file with
-handle \var{Handle}. Prior to this call, the file must have been opened 
-for writing. \var{Buffer} must be at least \var{Count} bytes large, or 
+handle \var{Handle}. Prior to this call, the file must have been opened
+for writing. \var{Buffer} must be at least \var{Count} bytes large, or
 a memory access error may occur.
 
 The function returns the number of bytes written, or -1 in case of an
@@ -1492,7 +1492,7 @@ In case of error, -1 is returned.
 \seef{FileRead}, \seef{FileTruncate}, \seef{FileSeek}
 \end{function}
 
-For an example, see \seef{FileCreate}. 
+For an example, see \seef{FileCreate}.
 
 \begin{procedurel}{FindClose}{FindCloseSys}
 \Declaration
@@ -1508,7 +1508,7 @@ None.
 \end{procedurel}
 
 For an example, see \seef{FindFirst}.
- 
+
 \begin{function}{FindFirst}
 \Declaration
 Function FindFirst(Const Path : String; Attr : Longint; Var Rslt : TSearchRec) : Longint;
@@ -1516,7 +1516,7 @@ Function FindFirst(Const Path : String; Attr : Longint; Var Rslt : TSearchRec) :
 \var{FindFirst} looks for files that match the name (possibly with
 wildcards) in \var{Path} and attributes \var{Attr}. It then fills up the
 \var{Rslt} record with data gathered about the file. It returns 0 if a file
-matching the specified criteria is found, a nonzero value (-1 on linux) 
+matching the specified criteria is found, a nonzero value (-1 on linux)
 otherwise.
 
 The \var{Rslt} record can be fed to subsequent calls to \var{FindNext}, in
@@ -1552,10 +1552,10 @@ On error (no more file is found), a nonzero constant is returned.
 \end{function}
 
 For an example, see \seef{FindFirst}
- 
+
 \begin{function}{GetDirs}
 \Declaration
-Function GetDirs(Var DirName : String; Var Dirs : Array of pchar) : Longint; 
+Function GetDirs(Var DirName : String; Var Dirs : Array of pchar) : Longint;
 \Description
 \var{GetDirs} splits DirName in a null-byte separated list of directory names,
 \var{Dirs} is an array of \var{PChars}, pointing to these directory names.
@@ -1569,7 +1569,7 @@ None.
 
 \FPCexample{ex45}
 
- 
+
 \begin{function}{RenameFile}
 \Declaration
 Function RenameFile(Const OldName, NewName : String) : Boolean;
@@ -1577,7 +1577,7 @@ Function RenameFile(Const OldName, NewName : String) : Boolean;
 \var{RenameFile} renames a file from \var{OldName} to \var{NewName}. The
 function returns \var{True} if successful, \var{False} otherwise.
 
-{\em Remark:} you cannot rename across disks or partitions. 
+{\em Remark:} you cannot rename across disks or partitions.
 \Errors
 On Error, \var{False} is returned.
 \SeeAlso
@@ -1626,16 +1626,16 @@ another.
 \item \seef{StrLen} : Returns the length (exclusive terminating null byte)
 of a \var{PChar} string.
 \item \seef{StrLIComp} : Case insensitive compare of at most L characters of 2
- \var{PChar} strings.  
+ \var{PChar} strings.
 \item \seef{StrLower} : Converts a \var{PChar} to all lowercase letters.
 \item \seef{StrMove} : Moves one \var{PChar} to another.
 \item \seef{StrNew} : Makes a copy of a \var{PChar} on the heap, and returns
 a pointer to this copy.
 \item \seef{StrPos} : Returns the position of one \var{PChar} string in
 another?
-\item \seef{StrRScan} : returns a pointer to the last occurrence of on 
+\item \seef{StrRScan} : returns a pointer to the last occurrence of on
  \var{PChar} string in another one.
-\item \seef{StrScan} : returns a pointer to the first occurrence of on 
+\item \seef{StrScan} : returns a pointer to the first occurrence of on
  \var{PChar} string in another one.
 \item \seef{StrUpper} : Converts a \var{PChar} to all uppercase letters.
 \end{enumerate}
@@ -1651,7 +1651,7 @@ Function StrAlloc(Size: cardinal): PChar;
 terminating \var{\#0} included, and returns a pointer to it.
 
 Additionally, \var{StrAlloc} allocates 4 extra bytes to store the size of
-the allocated memory. Therefore this function is NOT compatible with the 
+the allocated memory. Therefore this function is NOT compatible with the
 \seef{StrAlloc} function of the \var{Strings} unit.
 \Errors
 None.
@@ -1660,7 +1660,7 @@ None.
 \end{functionl}
 
 For an example, see \seef{StrBufSize}.
- 
+
 \begin{function}{StrBufSize}
 \Declaration
 Function StrBufSize(var Str: PChar): cardinal;
@@ -1677,7 +1677,7 @@ If no more memory is available, a runtime error occurs.
 \FPCexample{ex46}
 
 
- 
+
 \begin{procedurel}{StrDispose}{StrDisposeSys}
 \Declaration
 Procedure StrDispose(var Str: PChar);
@@ -1693,12 +1693,12 @@ If an invalid pointer is passed, or a pointer not allocated with
 \end{procedurel}
 
 For an example, see \seef{StrBufSize}.
- 
+
 \begin{functionl}{StrPCopy}{StrPCopySys}
 \Declaration
 Function StrPCopy(Dest: PChar; Source: string): PChar;
 \Description
-\var{StrPCopy} Converts the Ansistring in \var{Source} to a Null-terminated 
+\var{StrPCopy} Converts the Ansistring in \var{Source} to a Null-terminated
 string, and copies it to \var{Dest}. \var{Dest} needs enough room to contain
 the string \var{Source}, i.e. \var{Length(Source)+1} bytes.
 \Errors
@@ -1714,8 +1714,8 @@ For an example, see \seef{StrPCopy}.
 \Declaration
 Function StrPLCopy(Dest: PChar; Source: string; MaxLen: cardinal): PChar;
 \Description
-\var{StrPLCopy} Converts maximally \var{MaxLen} characters of the 
-Ansistring in \var{Source} to a Null-terminated  string, and copies 
+\var{StrPLCopy} Converts maximally \var{MaxLen} characters of the
+Ansistring in \var{Source} to a Null-terminated  string, and copies
 it to \var{Dest}. \var{Dest} needs enough room to contain
 the  characters.
 \Errors
@@ -1732,7 +1732,7 @@ to contain L characters of \var{Source}.
 Function StrPas(Str: PChar): string;
 \Description
 Converts a null terminated string in \var{Str} to an Ansitring, and returns
-this string. This string is NOT truncated at 255 characters as is the 
+this string. This string is NOT truncated at 255 characters as is the
 \Errors
 None.
 \SeeAlso
@@ -1759,7 +1759,7 @@ None.
 
 \FPCexample{ex48}
 
- 
+
 \begin{function}{AnsiCompareStr}
 \Declaration
 Function AnsiCompareStr(const S1, S2: string): integer;
@@ -1772,7 +1772,7 @@ result:
 \item[>0] if \var{S1>S2}.
 \end{description}
 the comparision takes into account Ansi characters, i.e. it takes
-care of strange accented characters. Contrary to \seef{AnsiCompareText}, 
+care of strange accented characters. Contrary to \seef{AnsiCompareText},
 the comparision is case sensitive.
 \Errors
 None.
@@ -1782,7 +1782,7 @@ None.
 
 \FPCexample{ex49}
 
- 
+
 \begin{function}{AnsiCompareText}
 \Declaration
 Function AnsiCompareText(const S1, S2: string): integer;
@@ -1796,7 +1796,7 @@ result:
 \item[>0] if \var{S1>S2}.
 \end{description}
 the comparision takes into account Ansi characters, i.e. it takes
-care of strange accented characters. Contrary to \seef{AnsiCompareStr}, 
+care of strange accented characters. Contrary to \seef{AnsiCompareStr},
 the comparision is case insensitive.
 \Errors
 None.
@@ -1811,9 +1811,9 @@ None.
 \Declaration
 Function AnsiExtractQuotedStr(var Src: PChar; Quote: Char): string;
 \Description
-\var{AnsiExtractQuotedStr} Returns \var{Src} as a string,, with \var{Quute} 
-characters removed from the beginning and end of the string, and double 
-\var{Quote} characters replaced by a single \var{Quote} characters. 
+\var{AnsiExtractQuotedStr} Returns \var{Src} as a string, with \var{Quote}
+characters removed from the beginning and end of the string, and double
+\var{Quote} characters replaced by a single \var{Quote} characters.
 As such, it revereses the action of \seef{AnsiQuotedStr}.
 \Errors
 None.
@@ -1823,7 +1823,7 @@ None.
 
 \FPCexample{ex51}
 
- 
+
 \begin{function}{AnsiLastChar}
 \Declaration
 Function AnsiLastChar(const S: string): PChar;
@@ -1839,13 +1839,13 @@ None.
 
 \FPCexample{ex52}
 
- 
+
 \begin{function}{AnsiLowerCase}
 \Declaration
 Function AnsiLowerCase(const s: string): string;
 \Description
-\var{AnsiLowerCase} converts the string \var{S} to lowercase characters 
-and returns the resulting string. 
+\var{AnsiLowerCase} converts the string \var{S} to lowercase characters
+and returns the resulting string.
 It takes into account the operating system language
 settings when doing this, so spcial characters are converted correctly as
 well.
@@ -1859,14 +1859,14 @@ None.
 
 \FPCexample{ex53}
 
- 
+
 \begin{function}{AnsiQuotedStr}
 \Declaration
 Function AnsiQuotedStr(const S: string; Quote: char): string;
 \Description
 \var{AnsiQuotedString} quotes the string \var{S} and returns the result.
 This means that it puts the \var{Quote} character at both the beginning and
-end of the string and replaces any occurrence of \var{Quote} in \var{S} 
+end of the string and replaces any occurrence of \var{Quote} in \var{S}
 with 2 \var{Quote} characters. The action of \var{AnsiQuotedString} can be
 reversed by \seef{AnsiExtractQuotedStr}.
 \Errors
@@ -1876,7 +1876,7 @@ None.
 \end{function}
 
 For an example, see \seef{AnsiExtractQuotedStr}
- 
+
 \begin{function}{AnsiStrComp}
 \Declaration
 Function AnsiStrComp(S1, S2: PChar): integer;
@@ -1898,7 +1898,7 @@ None.
 
 \FPCexample{ex54}
 
- 
+
 \begin{function}{AnsiStrIComp}
 \Declaration
 Function AnsiStrIComp(S1, S2: PChar): integer;
@@ -1979,7 +1979,7 @@ None.
 \SeeAlso
 \seef{AnsiCompareText}, \seef{AnsiCompareStr}
 \end{function}
- 
+
 \FPCexample{ex57}
 
 
@@ -1989,7 +1989,7 @@ None.
 \Declaration
 Function AnsiStrLower(Str: PChar): PChar;
 \Description
-\var{AnsiStrLower} converts the PChar \var{Str} to lowercase characters 
+\var{AnsiStrLower} converts the PChar \var{Str} to lowercase characters
 and returns the resulting pchar. Note that \var{Str} itself is modified,
 not a copy, as in the case of \seef{AnsiLowerCase}.
 It takes into account the operating system language
@@ -2005,12 +2005,12 @@ None.
 
 \FPCexample{ex59}
 
- 
+
 \begin{function}{AnsiStrUpper}
 \Declaration
 Function AnsiStrUpper(Str: PChar): PChar;
 \Description
-\var{AnsiStrUpper} converts the \var{PChar} \var{Str} to uppercase characters 
+\var{AnsiStrUpper} converts the \var{PChar} \var{Str} to uppercase characters
 and returns the resulting string. Note that \var{Str} itself is modified,
 not a copy, as in the case of \seef{AnsiUpperCase}.
 It takes into account the operating system language
@@ -2026,13 +2026,13 @@ None.
 
 \FPCexample{ex60}
 
- 
+
 \begin{function}{AnsiUpperCase}
 \Declaration
 Function AnsiUpperCase(const s: string): string;
 \Description
-\var{AnsiUpperCase} converts the string \var{S} to uppercase characters 
-and returns the resulting string. 
+\var{AnsiUpperCase} converts the string \var{S} to uppercase characters
+and returns the resulting string.
 It takes into account the operating system language
 settings when doing this, so spcial characters are converted correctly as
 well.
@@ -2046,12 +2046,12 @@ None.
 
 \FPCexample{ex61}
 
- 
+
 \begin{procedure}{AppendStr}
 \Declaration
 Procedure AppendStr(var Dest: String; const S: string);
 \Description
-\var{AppendStr} appends \var{S} to Dest. 
+\var{AppendStr} appends \var{S} to Dest.
 
 This function is provided for Delphi
 compatibility only, since it is completely equivalent to \var{Dest:=Dest+S}.
@@ -2063,7 +2063,7 @@ None.
 
 \FPCexample{ex62}
 
- 
+
 \begin{procedure}{AssignStr}
 \Declaration
 Procedure AssignStr(var P: PString; const S: string);
@@ -2082,7 +2082,7 @@ None.
 
 \FPCexample{ex63}
 
- 
+
 \begin{function}{BCDToInt}
 \Declaration
 Function BCDToInt(Value: integer): integer;
@@ -2097,13 +2097,13 @@ None.
 \FPCexample{ex64}
 
 
- 
+
 \begin{function}{CompareMem}
 \Declaration
 Function CompareMem(P1, P2: Pointer; Length: cardinal): integer;
 \Description
-\var{CompareMem} compares, byte by byte,  2 memory areas pointed 
-to by \var{P1} and \var{P2}, for a length of \var{L} bytes. 
+\var{CompareMem} compares, byte by byte,  2 memory areas pointed
+to by \var{P1} and \var{P2}, for a length of \var{L} bytes.
 
 It returns the following values:
 \begin{description}
@@ -2116,12 +2116,12 @@ same postion at \var{P2}.
 \SeeAlso
 \end{function}
 
- 
+
 \begin{function}{CompareStr}
 \Declaration
 Function CompareStr(const S1, S2: string): Integer;
 \Description
-\var{CompareStr} compares two strings, \var{S1} and \var{S2}, 
+\var{CompareStr} compares two strings, \var{S1} and \var{S2},
 and returns the following
 result:
 \begin{description}
@@ -2145,7 +2145,7 @@ None.
 \Declaration
 Function CompareText(const S1, S2: string): integer;
 \Description
-\var{CompareText} compares two strings, \var{S1} and \var{S2}, 
+\var{CompareText} compares two strings, \var{S1} and \var{S2},
 and returns the following
 result:
 \begin{description}
@@ -2166,7 +2166,7 @@ None.
 
 
 
- 
+
 \begin{procedurel}{DisposeStr}{DisposeStrSys}
 \Declaration
 Procedure DisposeStr(S: PString);
@@ -2184,12 +2184,12 @@ None.
 \end{procedurel}
 
 For an example, see \seep{DisposeStr}.
- 
+
 \begin{function}{FloatToStr}
 \Declaration
 Function FloatToStr(Value: Extended): String;
 \Description
-\var{FloatToStr} converts the floating point variable \var{Value} to a 
+\var{FloatToStr} converts the floating point variable \var{Value} to a
 string representation.  It will choose the shortest possible notation of the
 two following formats:
 \begin{description}
@@ -2218,7 +2218,7 @@ representation, according to the settings of the parameters \var{Format},
 \var{Precision} and \var{Digits}.
 
 The meaning of the \var{Precision} and \var{Digits} parameter depends on the
-\var{Format} parameter. The format is controlled mainly by the \var{Format} 
+\var{Format} parameter. The format is controlled mainly by the \var{Format}
 parameter. It can have one of the following values:
 \begin{description}
 \item[ffcurrency] Money format. \var{Value} is converted to a string using
@@ -2227,14 +2227,14 @@ the global variables \var{CurrencyString}, \var{CurrencyFormat} and
 following the decimal point and should be in the range -1 to 18. If Digits
 equals \var{-1}, \var{CurrencyDecimals} is assumed. The \var{Precision} parameter is ignored.
 %
-\item[ffExponent] Scientific format. \var{Value} is converted to a 
-string using scientific notation: 1 digit before the decimal point, possibly 
+\item[ffExponent] Scientific format. \var{Value} is converted to a
+string using scientific notation: 1 digit before the decimal point, possibly
 preceded by a minus sign if \var{Value} is negative. The number of
 digits after the decimal point is controlled by \var{Precision} and must lie
-in the range 0 to 15.  
+in the range 0 to 15.
 %
 \item[ffFixed] Fixed point format. \var{Value} is converted to a string
-using fixed point notation. The result is composed of all digits of the 
+using fixed point notation. The result is composed of all digits of the
 integer part of \var{Value}, preceded by a minus sign if \var{Value} is
 negative. Following the integer part is \var{DecimalSeparator} and then the
 fractional part of \var{Value}, rounded off to \var{Digits} numbers.
@@ -2263,7 +2263,7 @@ None.
 \Declaration
 Function FloatToText(Buffer : Pchar;Value: Extended; Format: TFloatFormat; Precision, Digits: Integer): Longint;
 \Description
-\var{FloatToText} converts the floating point variable \var{Value} to a 
+\var{FloatToText} converts the floating point variable \var{Value} to a
 string representation and stores it in \var{Buffer}.  The conversion is
 giverned by \var{format}, \var{Precisison} and \var{Digits}.
 more information on these parameters can be found in \seef{FloatToStrF}.
@@ -2276,7 +2276,7 @@ None.
 \SeeAlso
 \seef{FloatToStr}, \seef{FloatToStrF}
 \end{function}
- 
+
 \FPCexample{ex69}
 
 
@@ -2306,12 +2306,12 @@ Format replaces all placeholders in\var{Fmt} with the arguments passed in
 '%' [Index':'] ['-'] [Width] ['.' Precision] ArgType
 \end{verbatim}
 elements between single quotes must be typed as shown without the quotes,
-and elements between square brackets \var{[ ]} are optional. The meaning 
+and elements between square brackets \var{[ ]} are optional. The meaning
 of the different elements is shown below:
 \begin{description}
 \item['\%'] starts the placeholder. If you want to insert a literal
 \var{\%} character, then you must insert two of them : \var{\%\%}.
-\item[Index ':'] takes the \var{Index}-th element in the argument array 
+\item[Index ':'] takes the \var{Index}-th element in the argument array
 as the element to insert.
 \item['-'] tells \var{Format} to left-align the inserted text. The default
 behaviour is to right-align inserted text. This can only take effect if the
@@ -2347,9 +2347,9 @@ FloatToStrF(Argument,ffexponent,Precision,3)
 \end{verbatim}
 
 \item[F] fixed point format. The next argument in the \var{Args} array
-should be a floating point value. The argument is converted to a 
-decimal string, using fixed notation (see \seef{FloatToStrF}). 
-\var{Precision} indicates the number of digits following the 
+should be a floating point value. The argument is converted to a
+decimal string, using fixed notation (see \seef{FloatToStrF}).
+\var{Precision} indicates the number of digits following the
 decimal point.
 
 In short, the \var{F} specifier formats it's arguument as follows:
@@ -2357,7 +2357,7 @@ In short, the \var{F} specifier formats it's arguument as follows:
 FloatToStrF(Argument,ffFixed,ffixed,9999,Precision)
 \end{verbatim}
 
-\item[G] General number format. The next argument in the \var{Args} array 
+\item[G] General number format. The next argument in the \var{Args} array
 should be a floating point value. The argument is converted to a decimal
 string using fixed point notation or scientific notation, depending on which
 gives the shortest result. \var{Precision} is used to determine the number
@@ -2368,11 +2368,11 @@ In short, the \var{G} specifier formats it's arguument as follows:
 FloatToStrF(Argument,ffGeneral,Precision,3)
 \end{verbatim}
 
-\item[M] Currency format. the next argument in the var{Args} array must 
+\item[M] Currency format. the next argument in the var{Args} array must
 be a floating point value. The argument is converted to a decimal string
-using currency notation. This means that fixed-point notation is used, but 
-that the currency symbol is appended. If precision is specified, then 
-then it overrides the \var{CurrencyDecimals} global variable used in the 
+using currency notation. This means that fixed-point notation is used, but
+that the currency symbol is appended. If precision is specified, then
+then it overrides the \var{CurrencyDecimals} global variable used in the
 \seef{FloatToStrF}
 
 In short, the \var{M} specifier formats it's arguument as follows:
@@ -2385,7 +2385,7 @@ thousand separators are inserted in the resulting string.
 
 \item[P] Pointer format. The next argument in the \var{Args} array must be a
 pointer (typed or untyped). The pointer value is converted to a string of
-length 8, representing the hexadecimal value of the pointer. 
+length 8, representing the hexadecimal value of the pointer.
 
 \item[S] String format. The next argument in the \var{Args} array must be
 a string. The argument is simply copied to the result string. If
@@ -2402,7 +2402,7 @@ least \var{Precision} characters in it (with a maximum value of 32).
 In case of error, an \var{EConversionError} exception is raised. Possible
 errors are:
 \begin{enumerate}
-\item Errors in the format specifiers. 
+\item Errors in the format specifiers.
 \item The next argument is not of the type needed by a specifier.
 \item The number of arguments is not sufficient for all format specifiers.
 \end{enumerate}
@@ -2412,7 +2412,7 @@ errors are:
 
 \FPCexample{ex71}
 
- 
+
 \begin{function}{FormatBuf}
 \Declaration
 Function FormatBuf(Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; Const Args : Array of const) : Cardinal;
@@ -2430,7 +2430,7 @@ Function FormatBuf(Var Buffer; BufLen : Cardinal; Const Fmt; fmtLen : Cardinal; 
 Function IntToHex(Value: integer; Digits: integer): string;
 \Description
 \var{IntToHex} converts \var{Value} to a hexadecimal string
-representation. The result will contain at least \var{Digits} 
+representation. The result will contain at least \var{Digits}
 characters. If \var{Digits} is less than the needed number of characters,
 the string will NOT be truncated. If \var{Digits} is larger than the needed
 number of characters, the result is padded with zeroes.
@@ -2449,7 +2449,7 @@ Function IntToStr(Value: integer): string;
 \Description
 \var{IntToStr} coverts \var{Value} to it's string representation.
 The resulting string has only as much characters as needed to represent
-the value. If the value is negative a minus sign is prepended to the 
+the value. If the value is negative a minus sign is prepended to the
 string.
 \Errors
 None.
@@ -2459,7 +2459,7 @@ None.
 
 \FPCexample{ex74}
 
- 
+
 \begin{function}{IsValidIdent}
 \Declaration
 Function IsValidIdent(const Ident: string): boolean;
@@ -2475,13 +2475,13 @@ None.
 
 \FPCexample{ex75}
 
- 
+
 \begin{function}{LastDelimiter}
 \Declaration
 Function LastDelimiter(const Delimiters, S: string): Integer;
 \Description
 \var{LastDelimiter} returns the {\em last} occurrence of any character in
-the set \var{Delimiters} in the string \var{S}. 
+the set \var{Delimiters} in the string \var{S}.
 \Errors
 \SeeAlso
 \end{function}
@@ -2518,7 +2518,7 @@ This function is not yet implemented. resources are not yet supported.
 Function LowerCase(const s: string): string;
 \Description
 \var{LowerCase} returns the lowercase equivalent of \var{S}. Ansi characters
-are not taken into account, only ASCII codes below 127 are converted. It is 
+are not taken into account, only ASCII codes below 127 are converted. It is
 completely equivalent to the lowercase function of the system unit, and is
 provided for compatiibility only.
 \Errors
@@ -2529,7 +2529,7 @@ None.
 
 \FPCexample{ex77}
 
- 
+
 \begin{functionl}{NewStr}{NewStrSys}
 \Declaration
 Function NewStr(const S: string): PString;
@@ -2547,13 +2547,13 @@ If not enough memory is present, an EOutOfMemory exception will be raised.
 \end{functionl}
 
 For an example, see \seep{AssignStr}.
- 
+
 \begin{function}{QuotedStr}
 \Declaration
 Function QuotedStr(const S: string): string;
 \Description
 \var{QuotedStr} returns the string \var{S}, quoted with single quotes. This means
-that \var{S} is enclosed in single quotes, and every single quote in \var{S} 
+that \var{S} is enclosed in single quotes, and every single quote in \var{S}
 is doubled. It is equivalent to a call to \var{AnsiQuotedStr(s, '''')}.
 \Errors
 None.
@@ -2563,8 +2563,8 @@ None.
 
 \FPCexample{ex78}
 
- 
- 
+
+
 \begin{function}{RightStr}
 \Declaration
 Function RightStr(const S: string; Count: integer): string;
@@ -2582,12 +2582,12 @@ None.
 
 \FPCexample{ex79}
 
- 
+
 \begin{function}{StrFmt}
 \Declaration
 Function StrFmt(Buffer,Fmt : PChar; Const args: Array of const) : Pchar;
 \Description
-\var{StrFmt} will format \var{fmt} with \var{Args}, as the \seef{Format} 
+\var{StrFmt} will format \var{fmt} with \var{Args}, as the \seef{Format}
 function does, and it will store the result in \var{Buffer}. The function
 returns \var{Buffer}. \var{Buffer} should point to enough space to contain
 the whole result.
@@ -2599,14 +2599,14 @@ for a list of errors, see \seef{Format}.
 
 \FPCexample{ex80}
 
- 
+
 \begin{function}{StrLFmt}
 \Declaration
 Function StrLFmt(Buffer : PCHar; Maxlen : Cardinal;Fmt : PChar; Const args: Array of const) : Pchar;
 \Description
-\var{StrLFmt} will format \var{fmt} with \var{Args}, as the \seef{Format} 
-function does, and it will store maximally \var{Maxlen characters} of the 
-result in \var{Buffer}. The function returns \var{Buffer}. \var{Buffer} 
+\var{StrLFmt} will format \var{fmt} with \var{Args}, as the \seef{Format}
+function does, and it will store maximally \var{Maxlen characters} of the
+result in \var{Buffer}. The function returns \var{Buffer}. \var{Buffer}
 should point to enough space to contain \var{MaxLen} characters.
 \Errors
 for a list of errors, see \seef{Format}.
@@ -2616,14 +2616,14 @@ for a list of errors, see \seef{Format}.
 
 \FPCexample{ex81}
 
- 
+
 \begin{function}{StrToInt}
 \Declaration
 Function StrToInt(const s: string): integer;
 \Description
-\var{StrToInt} will convert the string \var{S}to an integer. 
-If the string contains invalid characters or has an invalid format, 
-then an \var{EConvertError} is raised. 
+\var{StrToInt} will convert the string \var{S}to an integer.
+If the string contains invalid characters or has an invalid format,
+then an \var{EConvertError} is raised.
 
 To be successfully converted, a string can contain a combination
 of \var{numerical} characters, possibly preceded by a minus sign (\var{-}).
@@ -2636,7 +2636,7 @@ In case of error, an \var{EConvertError} is raised.
 
 \FPCexample{ex82}
 
- 
+
 \begin{function}{StrToIntDef}
 \Declaration
 Function StrToIntDef(const S: string; Default: integer): integer;
@@ -2644,7 +2644,7 @@ Function StrToIntDef(const S: string; Default: integer): integer;
 \var{StrToIntDef} will convert a string to an integer. If the string contains
 invalid characters or has an invalid format, then \var{Default} is returned.
 
-To be successfully converted, a string can contain a combination of 
+To be successfully converted, a string can contain a combination of
 \var{numerical} characters, possibly preceded by a minus sign (\var{-}).
 Spaces are not allowed.
 \Errors
@@ -2655,7 +2655,7 @@ None.
 
 \FPCexample{ex83}
 
- 
+
 \begin{function}{Trim}
 \Declaration
 Function Trim(const S: string): string;
@@ -2672,7 +2672,7 @@ None.
 
 \FPCexample{ex84}
 
- 
+
 \begin{function}{TrimLeft}
 \Declaration
 Function TrimLeft(const S: string): string;
@@ -2689,7 +2689,7 @@ None.
 
 \FPCexample{ex85}
 
- 
+
 \begin{function}{TrimRight}
 \Declaration
 Function TrimRight(const S: string): string;
@@ -2707,13 +2707,13 @@ None.
 \FPCexample{ex86}
 
 
- 
+
 \begin{function}{UpperCase}
 \Declaration
 Function UpperCase(const s: string): string;
 \Description
 \var{UpperCase} returns the uppercase equivalent of \var{S}. Ansi characters
-are not taken into account, only ASCII codes below 127 are converted. It is 
+are not taken into account, only ASCII codes below 127 are converted. It is
 completely equivalent to the \var{UpCase} function of the system unit, and is
 provided for compatiibility only.
 \Errors
@@ -2726,4 +2726,4 @@ None.
 
 \FPCexample{ex87}
 
- 
+
