@@ -98,7 +98,7 @@ general_i_writingresourcefile=I_Writing Resource String Table file: $1
 % This message is shown when the compiler writes the Resource String Table
 % file containing all the resource strings for a program.
 general_e_errorwritingresourcefile=E_Writing Resource String Table file: $1
-% This message is shown when the compiler encountered an error when writing 
+% This message is shown when the compiler encountered an error when writing
 % the Resource String Table file
 % \end{description}
 #
@@ -166,7 +166,7 @@ scan_w_only_pack_records=W_Records fields can be aligned to 1,2,4 or 16 bytes on
 scan_w_only_pack_enum=W_Enumerated can be saved in 1,2 or 4 bytes only
 % You are specifying the \var{\{\$PACKENUM n\}} with an illegal value for
 % \var{n}. Only 1,2 or 4 are valid in this case.
-scan_e_endif_expected=E_$1 expected for $2 defined in line $3
+scan_e_endif_expected=E_$ENDIF expected for $1 $2 defined in line $3
 % Your conditional compilation statements are unbalanced.
 scan_e_preproc_syntax_error=E_Syntax error while parsing a conditional compiling expression
 % There is an error in the expression following the \var{\{\$if ..\}} compiler

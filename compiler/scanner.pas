@@ -99,6 +99,7 @@ unit scanner;
           procedure gettokenpos;
           procedure inc_comment_level;
           procedure dec_comment_level;
+          procedure end_of_file;
           procedure checkpreprocstack;
           procedure poppreprocstack;
           procedure addpreprocstack(atyp : preproctyp;a:boolean;const s:string;w:tmsgconst);
@@ -525,6 +526,13 @@ implementation
       end;
 
 
+    procedure tscannerfile.end_of_file;
+      begin
+        checkpreprocstack;
+        Message(scan_f_end_of_file);
+      end;
+
+
     procedure tscannerfile.checkpreprocstack;
       begin
       { check for missing ifdefs }
@@ -757,7 +765,7 @@ implementation
                  end;
               end;
            #26 :
-              Message(scan_f_end_of_file);
+              end_of_file;
           else
             begin
               if (i<255) then
@@ -838,10 +846,11 @@ implementation
          repeat
            case c of
              #26 :
-               Message(scan_f_end_of_file);
+               end_of_file;
              '{' :
                begin
-                 if comment_level=0 then
+                 if not(m_nested_comment in aktmodeswitches) or
+                    (comment_level=0) then
                   found:=1;
                  inc_comment_level;
                end;
@@ -863,7 +872,7 @@ implementation
                     readchar;
                     case c of
                       #26 :
-                        Message(scan_f_end_of_file);
+                        end_of_file;
                       newline :
                         break;
                       '''' :
@@ -922,7 +931,7 @@ implementation
            case c of
             '{' : inc_comment_level;
             '}' : dec_comment_level;
-            #26 : Message(scan_f_end_of_file);
+            #26 : end_of_file;
            end;
            c:=inputpointer^;
            if c=#0 then
@@ -951,7 +960,7 @@ implementation
         while c<>newline do
          begin
            if c=#26 then
-             Message(scan_f_end_of_file);
+            end_of_file;
            readchar;
          end;
         dec_comment_level;
@@ -975,29 +984,33 @@ implementation
            found:=0;
            repeat
              case c of
-              #26 : Message(scan_f_end_of_file);
-              '*' : begin
-                      if found=3 then
-                       begin
-                         inc_comment_level;
-                         found:=0;
-                       end
+               #26 :
+                 end_of_file;
+               '*' :
+                 begin
+                   if found=3 then
+                    begin
+                      inc_comment_level;
+                      found:=0;
+                    end
+                   else
+                    found:=1;
+                 end;
+               ')' :
+                 begin
+                   if found=1 then
+                    begin
+                      dec_comment_level;
+                      if comment_level=0 then
+                       found:=2
                       else
-                       found:=1;
+                       found:=0;
                     end;
-              ')' : begin
-                      if found=1 then
-                       begin
-                         dec_comment_level;
-                         if comment_level=0 then
-                          found:=2
-                         else
-                          found:=0;
-                       end;
-                    end;
-              '(' : found:=3;
-             else
-              found:=0;
+                 end;
+               '(' :
+                 found:=3;
+               else
+                 found:=0;
              end;
              c:=inputpointer^;
              if c=#0 then
@@ -1031,29 +1044,33 @@ implementation
            found:=0;
            repeat
              case c of
-              #26 : Message(scan_f_end_of_file);
-              '*' : begin
-                      if found=3 then
-                       begin
-                         inc_comment_level;
-                         found:=0;
-                       end
+               #26 :
+                 end_of_file;
+               '*' :
+                 begin
+                   if found=3 then
+                    begin
+                      inc_comment_level;
+                      found:=0;
+                    end
+                   else
+                    found:=1;
+                 end;
+               '/' :
+                 begin
+                   if found=1 then
+                    begin
+                      dec_comment_level;
+                      if comment_level=0 then
+                       found:=2
                       else
-                       found:=1;
-                    end;
-              '/' : begin
-                      if found=1 then
-                       begin
-                         dec_comment_level;
-                         if comment_level=0 then
-                          found:=2
-                         else
-                          found:=0;
-                       end
-                      else found:=3;
-                    end;
-             else
-              found:=0;
+                       found:=0;
+                    end
+                   else
+                    found:=3;
+                 end;
+               else
+                 found:=0;
              end;
              c:=inputpointer^;
              if c=#0 then
@@ -1482,7 +1499,7 @@ implementation
                            readchar;
                            case c of
                              #26 :
-                               Message(scan_f_end_of_file);
+                               end_of_file;
                              newline :
                                Message(scan_f_string_exceeds_line);
                              '''' :
@@ -1650,10 +1667,8 @@ exit_label:
                      else   readpreproc:=LT;
                      end;
                    end;
-             #26 : begin
-                     checkpreprocstack;
-                     Message(scan_f_end_of_file);
-                   end;
+             #26 :
+               end_of_file;
          else
           begin
             readpreproc:=_EOF;
@@ -1718,7 +1733,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  1999-07-24 11:20:59  peter
+  Revision 1.89  1999-07-29 11:43:22  peter
+    * always output preprocstack when unexpected eof is found
+    * fixed tp7/delphi skipuntildirective parsing
+
+  Revision 1.88  1999/07/24 11:20:59  peter
     * directives are allowed in (* *)
     * fixed parsing of (* between conditional code
 
