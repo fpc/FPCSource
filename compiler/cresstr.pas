@@ -21,142 +21,107 @@
  ****************************************************************************
 }
 unit cresstr;
-
 interface
 
-  Procedure ResetResourceStrings;
-  Procedure InsertResourceStrings;
-  Function registerresourcestring(Const name : string;p : pchar;len : longint) : longint;
-  Function calc_resstring_hashvalue(P : Pchar; Len : longint) : longint;
-  Procedure WriteResourceFile(FileName : String);
+uses
+  cobjects;
+
+Type
+  { These are used to form a singly-linked list, ordered by hash value }
+  PResourceStringItem = ^TResourceStringItem;
+  TResourceStringItem = object(TLinkedList_Item)
+    Name  : String;
+    Value : Pchar;
+    Len,
+    hash  : longint;
+    constructor Init(const AName:string;AValue:pchar;ALen:longint);
+    destructor  Done;virtual;
+    procedure CalcHash;
+  end;
+
+  PResourceStrings=^TResourceStrings;
+  TResourceStrings=object
+  private
+    List : TLinkedList;
+  public
+    ResStrCount : longint;
+    constructor Init;
+    destructor  Done;
+    function  Register(Const name : string;p : pchar;len : longint) : longint;
+    procedure CreateResourceStringList;
+    Procedure WriteResourceFile(FileName : String);
+  end;
+
+var
+  ResourceStrings : PResourceStrings;
+
 
 implementation
 
 uses
    globals,aasm,verbose,files;
 
-Type
-  { These are used to form a singly-linked list, ordered by hash value }
-  PResourcestring = ^TResourceString;
-  TResourceString = record
-    Name : String;
-    Value : Pchar;
-    Len,hash : longint;
-    Next : PResourcestring;
-    end;
-
-const
-   { we can use a static constant because we compile a program only once }
-   { per compiler call                                                   }
-   resstrcount : longint = 0;
-   resourcefilename = 'resource.rst';
-
-Var
-  ResourceListRoot : PResourceString;
-  ResourceListCurrent : PResourceString;
 
 { ---------------------------------------------------------------------
    Calculate hash value, based on the string
   ---------------------------------------------------------------------}
 
-function calc_resstring_hashvalue(P : Pchar; Len : longint) : longint;
-
-  Var hash,g,I : longint;
-
-  begin
-     hash:=0;
-     For I:=0 to Len-1 do { 0 terminated }
-       begin
-       hash:=hash shl 4;
-       inc(Hash,Ord(P[i]));
-       g:=hash and ($f shl 28);
-       if g<>0 then
-         begin
-         hash:=hash xor (g shr 24);
-         hash:=hash xor g;
-         end;
-       end;
-     If Hash=0 then
-       Calc_resstring_hashvalue:=Not(0)
-     else
-       calc_resstring_hashvalue:=Hash;
-  end;
-
-
 { ---------------------------------------------------------------------
-    Append 1 resourcestring to the linked list of resource strings.
+                          TRESOURCESTRING_ITEM
   ---------------------------------------------------------------------}
 
-Function AppendToResourceList(const name : string;p : pchar;len,hash : longint) : longint;
+constructor TResourceStringItem.Init(const AName:string;AValue:pchar;ALen:longint);
 begin
-  If ResourceListCurrent<>Nil then
-    begin
-    New(ResourceListCurrent^.Next);
-    ResourceListCurrent:=ResourceListCurrent^.Next;
-    end
-  else
-    begin
-    New(ResourceListCurrent);
-    ResourceListRoot:=ResourceListCurrent;
-    end;
-  ResourceListCurrent^.Next:=Nil;
-  { name is lower case... }
-  ResourceListCurrent^.Name:=Name;
-  ResourceListCurrent^.Len:=Len;
-  ResourceListCurrent^.Hash:=hash;
-  GetMem(ResourceListCurrent^.Value,Len);
-  Move(P^,ResourceListCurrent^.Value^,Len);
-  AppendToResourceList:=ResStrCount;
-  inc(Resstrcount);
+  inherited Init;
+  Name:=AName;
+  Len:=ALen;
+  GetMem(Value,Len);
+  Move(AValue^,Value^,Len);
+  CalcHash;
 end;
 
+
+destructor TResourceStringItem.Done;
+begin
+  FreeMem(Value,Len);
+end;
+
+
+procedure TResourceStringItem.CalcHash;
+Var
+  g,I : longint;
+begin
+  hash:=0;
+  For I:=0 to Len-1 do { 0 terminated }
+   begin
+     hash:=hash shl 4;
+     inc(Hash,Ord(Value[i]));
+     g:=hash and ($f shl 28);
+     if g<>0 then
+      begin
+        hash:=hash xor (g shr 24);
+        hash:=hash xor g;
+      end;
+   end;
+  If Hash=0 then
+    Hash:=Not(0);
+end;
+
+
 { ---------------------------------------------------------------------
-    Append 1 resource string to the resourcestring asm list
+                          TRESOURCESTRINGS
   ---------------------------------------------------------------------}
 
-Procedure AppendToAsmResList (P : PResourceString);
-
-Var
- l1 : pasmlabel;
- s : pchar;
- l : longint;
-
+Constructor TResourceStrings.Init;
 begin
- With P^ Do
-   begin
-   if (Value=nil) or (len=0) then
-     resourcestringlist^.concat(new(pai_const,init_32bit(0)))
-   else
-     begin
-        getdatalabel(l1);
-        resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
-        consts^.concat(new(pai_const,init_32bit(len)));
-        consts^.concat(new(pai_const,init_32bit(len)));
-        consts^.concat(new(pai_const,init_32bit(-1)));
-        consts^.concat(new(pai_label,init(l1)));
-        getmem(s,len+1);
-        move(Value^,s^,len);
-        s[len]:=#0;
-        consts^.concat(new(pai_string,init_length_pchar(s,len)));
-        consts^.concat(new(pai_const,init_8bit(0)));
-     end;
-   { append Current value (nil) and hash...}
-   resourcestringlist^.concat(new(pai_const,init_32bit(0)));
-   resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
-   { Append the name as a ansistring. }
-   getdatalabel(l1);
-   L:=Length(Name);
-   resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
-   consts^.concat(new(pai_const,init_32bit(l)));
-   consts^.concat(new(pai_const,init_32bit(l)));
-   consts^.concat(new(pai_const,init_32bit(-1)));
-   consts^.concat(new(pai_label,init(l1)));
-   getmem(s,l+1);
-   move(Name[1],s^,l);
-   s[l]:=#0;
-   consts^.concat(new(pai_string,init_length_pchar(s,l)));
-   consts^.concat(new(pai_const,init_8bit(0)));
-   end;
+  List.Init;
+  ResStrCount:=0;
+end;
+
+
+Destructor TResourceStrings.Done;
+begin
+  List.Done;
 end;
 
 
@@ -164,63 +129,98 @@ end;
     Create the full asmlist for resourcestrings.
   ---------------------------------------------------------------------}
 
-procedure insertresourcestrings;
+procedure TResourceStrings.CreateResourceStringList;
 
-  Var R : PresourceString;
-
+  Procedure AppendToAsmResList (P : PResourceStringItem);
+  Var
+    l1 : pasmlabel;
+    s : pchar;
+    l : longint;
   begin
+    With P^ Do
+     begin
+       if (Value=nil) or (len=0) then
+         resourcestringlist^.concat(new(pai_const,init_32bit(0)))
+       else
+         begin
+            getdatalabel(l1);
+            resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
+            consts^.concat(new(pai_const,init_32bit(len)));
+            consts^.concat(new(pai_const,init_32bit(len)));
+            consts^.concat(new(pai_const,init_32bit(-1)));
+            consts^.concat(new(pai_label,init(l1)));
+            getmem(s,len+1);
+            move(Value^,s^,len);
+            s[len]:=#0;
+            consts^.concat(new(pai_string,init_length_pchar(s,len)));
+            consts^.concat(new(pai_const,init_8bit(0)));
+         end;
+       { append Current value (nil) and hash...}
+       resourcestringlist^.concat(new(pai_const,init_32bit(0)));
+       resourcestringlist^.concat(new(pai_const,init_32bit(hash)));
+       { Append the name as a ansistring. }
+       getdatalabel(l1);
+       L:=Length(Name);
+       resourcestringlist^.concat(new(pai_const_symbol,init(l1)));
+       consts^.concat(new(pai_const,init_32bit(l)));
+       consts^.concat(new(pai_const,init_32bit(l)));
+       consts^.concat(new(pai_const,init_32bit(-1)));
+       consts^.concat(new(pai_label,init(l1)));
+       getmem(s,l+1);
+       move(Name[1],s^,l);
+       s[l]:=#0;
+       consts^.concat(new(pai_string,init_length_pchar(s,l)));
+       consts^.concat(new(pai_const,init_8bit(0)));
+     end;
+  end;
+
+Var
+  R : PresourceStringItem;
+begin
   if not(assigned(resourcestringlist)) then
     resourcestringlist:=new(paasmoutput,init);
   resourcestringlist^.insert(new(pai_const,init_32bit(resstrcount)));
   resourcestringlist^.insert(new(pai_symbol,initname_global(current_module^.modulename^+'_'+'RESOURCESTRINGLIST',0)));
-  R:=ResourceListRoot;
-  While R<>Nil do
-    begin
-    AppendToAsmResList(R);
-    R:=R^.Next;
-    end;
+  R:=PResourceStringItem(List.First);
+  While assigned(R) do
+   begin
+     AppendToAsmResList(R);
+     R:=PResourceStringItem(R^.Next);
+   end;
   resourcestringlist^.concat(new(pai_symbol_end,initname(current_module^.modulename^+'_'+'RESOURCESTRINGLIST')));
+end;
 
-  end;
 
 { ---------------------------------------------------------------------
     Insert 1 resource string in all tables.
   ---------------------------------------------------------------------}
 
-function  registerresourcestring(const name : string;p : pchar;len : longint) : longint;
-
-var
-   fullname : string;
-   hash : longint;
+function  TResourceStrings.Register(const name : string;p : pchar;len : longint) : longint;
 begin
-   { Calculate result }
-   fullname:=lower(current_module^.modulename^+'.'+Name);
-   hash:=calc_resstring_hashvalue(p,len);
-   if not(assigned(resourcestringlist)) then
-     resourcestringlist:=new(paasmoutput,init);
-   registerresourcestring:=AppendToResourceList(fullname,P,Len,Hash);
+  inc(ResStrCount);
+  List.Concat(new(PResourceStringItem,Init(lower(current_module^.modulename^+'.'+Name),p,len)));
+  Register:=ResStrCount;
 end;
 
-Procedure WriteResourceFile(Filename : String);
 
+Procedure TResourceStrings.WriteResourceFile(Filename : String);
 Type
-   TMode = (quoted,unquoted);
+  TMode = (quoted,unquoted);
+Var
+  F : Text;
+  Mode : TMode;
+  R : PResourceStringItem;
+  C : char;
+  Col,i : longint;
 
-Var F : Text;
-    Mode : TMode;
-    old : PresourceString;
-    C : char;
-    Col,i : longint;
-
-   Procedure Add(Const S : String);
-
-   begin
-     Write(F,S);
-     Col:=Col+length(s);
-   end;
+  Procedure Add(Const S : String);
+  begin
+    Write(F,S);
+    Col:=Col+length(s);
+  end;
 
 begin
-  If (ResourceListRoot=Nil) then
+  If List.Empty then
     exit;
   FileName:=ForceExtension(lower(FileName),'.rst');
   message1 (general_i_writingresourcefile,filename);
@@ -233,83 +233,61 @@ begin
     message(general_e_errorwritingresourcefile);
     exit;
     end;
-  While ResourceListRoot<>Nil do
-    With ResourceListRoot^ do
-      begin
-      writeln(f);
-      Writeln (f,'# hash value = ',hash);
+  R:=PResourceStringItem(List.First);
+  While assigned(R) do
+   begin
+     writeln(f);
+     Writeln(f,'# hash value = ',R^.hash);
      col:=0;
-     Add(Name+'=');
+     Add(R^.Name+'=');
      Mode:=unquoted;
-     For I:=0 to Len-1 do
-       begin
-       C:=Value[i];
-       If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
+     For I:=0 to R^.Len-1 do
+      begin
+        C:=R^.Value[i];
+        If (ord(C)>31) and (Ord(c)<=128) and (c<>'''') then
          begin
-         If mode=Quoted then
-           Add(c)
-         else
-           begin
-           Add(''''+c);
-           mode:=quoted
-           end
+           If mode=Quoted then
+            Add(c)
+           else
+            begin
+              Add(''''+c);
+              mode:=quoted
+            end;
          end
-       else
+        else
          begin
-         If Mode=quoted then
-           begin
-           Add('''');
-           mode:=unquoted;
-           end;
-         Add('#'+tostr(ord(c)));
+           If Mode=quoted then
+            begin
+              Add('''');
+              mode:=unquoted;
+            end;
+           Add('#'+tostr(ord(c)));
          end;
-       If Col>72 then
+        If Col>72 then
          begin
-         if mode=quoted then
-           Write (F,'''');
-         Writeln(F,'+');
-         Col:=0;
-         Mode:=unQuoted;
+           if mode=quoted then
+            Write (F,'''');
+           Writeln(F,'+');
+           Col:=0;
+           Mode:=unQuoted;
          end;
-       end;
-     if mode=quoted then writeln (f,'''');
+      end;
+     if mode=quoted then
+      writeln (f,'''');
      Writeln(f);
-     Old :=ResourceListRoot;
-     ResourceListRoot:=old^.Next;
-     FreeMem(Old^.Value,Len);
-     Dispose(Old);
-     end;
-   close(f);
+     R:=PResourceStringItem(R^.Next);
+   end;
+  close(f);
 end;
 
-
-Procedure ResetResourceStrings;
-
-Var R,T : PResourceString;
-
-begin
-  If ResourceStringList<>Nil then
-    begin
-    Dispose(ResourceStringlist,Done);
-    ResourceStringList:=Nil;
-    end;
-  R:=ResourceListRoot;
-  While R<>Nil do
-    begin
-    FreeMem(R^.Value,R^.Len);
-    T:=R^.Next;
-    Dispose(R);
-    R:=T;
-    end;
-  ResStrCount:=0;
-  ResourceListCurrent:=Nil;
-  ResourceListRoot:=Nil;
-end;
 
 end.
 {
   $Log$
-  Revision 1.16  2000-01-07 01:14:23  peter
+  Revision 1.17  2000-06-01 19:09:57  peter
+    * made resourcestrings OOP so it's easier to handle it per module
+
+  Revision 1.16  2000/01/07 01:14:23  peter
     * updated copyright to 2000
 
   Revision 1.15  1999/11/06 14:34:20  peter

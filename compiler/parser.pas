@@ -261,6 +261,8 @@ unit parser;
          oldwithdebuglist,
          oldconsts     : paasmoutput;
          oldasmsymbollist : pasmsymbollist;
+       { resourcestrings }
+         OldResourceStrings : PResourceStrings;
        { akt.. things }
          oldaktlocalswitches  : tlocalswitches;
          oldaktmoduleswitches : tmoduleswitches;
@@ -324,6 +326,7 @@ unit parser;
          oldresource:=resourcesection;
          oldresourcestringlist:=resourcestringlist;
          oldasmsymbollist:=asmsymbollist;
+         OldResourceStrings:=ResourceStrings;
        { save akt... state }
        { handle the postponed case first }
         if localswitcheschanged then
@@ -514,8 +517,8 @@ unit parser;
               resourcesection:=oldresource;
               rttilist:=oldrttilist;
               resourcestringlist:=oldresourcestringlist;
-
               asmsymbollist:=oldasmsymbollist;
+              ResourceStrings:=OldResourceStrings;
               { restore symtable state }
               refsymtable:=oldrefsymtable;
               symtablestack:=oldsymtablestack;
@@ -604,7 +607,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.104  2000-05-29 10:04:40  pierre
+  Revision 1.105  2000-06-01 19:09:57  peter
+    * made resourcestrings OOP so it's easier to handle it per module
+
+  Revision 1.104  2000/05/29 10:04:40  pierre
     * New bunch of Gabor changes
 
   Revision 1.103  2000/05/11 06:52:37  pierre

@@ -1672,7 +1672,7 @@
          consttype.reset;
          len:=l;
          if t=constresourcestring then
-           ResStrIndex:=registerresourcestring(name,pchar(value),len);
+           ResStrIndex:=ResourceStrings^.Register(name,pchar(value),len);
       end;
 
     constructor tconstsym.load;
@@ -2162,7 +2162,10 @@
 
 {
   $Log$
-  Revision 1.146  2000-05-18 17:05:17  peter
+  Revision 1.147  2000-06-01 19:09:56  peter
+    * made resourcestrings OOP so it's easier to handle it per module
+
+  Revision 1.146  2000/05/18 17:05:17  peter
     * fixed size of const parameters in asm readers
 
   Revision 1.145  2000/05/03 14:34:05  pierre

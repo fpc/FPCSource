@@ -1285,13 +1285,13 @@ unit pmodules;
          { the last char should always be a point }
          consume(_POINT);
 
-         If ResourceStringList<>Nil then
+         If ResourceStrings^.ResStrCount>0 then
           begin
-            insertresourcestrings;
+            ResourceStrings^.CreateResourceStringList;
             current_module^.flags:=current_module^.flags or uf_has_resources;
             { only write if no errors found }
             if (Errorcount=0) then
-             WriteResourceFile(Current_module^.ModuleName^);
+             ResourceStrings^.WriteResourceFile(Current_module^.ModuleName^);
           end;
 
          { avoid self recursive destructor call !! PM }
@@ -1585,12 +1585,12 @@ unit pmodules;
          current_module^.globalsymtable:=current_module^.localsymtable;
          current_module^.localsymtable:=nil;
 
-         If ResourceStringList<>Nil then
+         If ResourceStrings^.ResStrCount>0 then
           begin
-            insertresourcestrings;
+            ResourceStrings^.CreateResourceStringList;
             { only write if no errors found }
             if (Errorcount=0) then
-             WriteResourceFile(Current_module^.ModuleName^);
+             ResourceStrings^.WriteResourceFile(Current_module^.ModuleName^);
           end;
 
          codegen_doneprocedure;
@@ -1706,7 +1706,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.195  2000-05-11 09:40:11  pierre
+  Revision 1.196  2000-06-01 19:09:57  peter
+    * made resourcestrings OOP so it's easier to handle it per module
+
+  Revision 1.195  2000/05/11 09:40:11  pierre
     * some DBX changes but it still does not work !
 
   Revision 1.194  2000/05/08 13:18:09  peter

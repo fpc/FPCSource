@@ -356,12 +356,15 @@ implementation
          withdebuglist:=new(paasmoutput,init);
          consts:=new(paasmoutput,init);
          rttilist:=new(paasmoutput,init);
+         ResourceStringList:=Nil;
          importssection:=nil;
          exportssection:=nil;
          resourcesection:=nil;
          { assembler symbols }
          asmsymbollist:=new(pasmsymbollist,init);
          asmsymbollist^.usehash;
+         { resourcestrings }
+         new(ResourceStrings,Init);
       end;
 
 
@@ -383,6 +386,8 @@ implementation
          dispose(withdebuglist,done);
          dispose(consts,done);
          dispose(rttilist,done);
+         if assigned(ResourceStringList) then
+          dispose(ResourceStringList,done);
          if assigned(importssection) then
           dispose(importssection,done);
          if assigned(exportssection) then
@@ -400,8 +405,8 @@ implementation
 {$ifdef MEMDEBUG}
          d.done;
 {$endif}
-         { resourcestrings }
-         ResetResourceStrings;
+         { resource strings }
+         dispose(ResourceStrings,done);
       end;
 
 
@@ -445,7 +450,10 @@ end.
 
 {
   $Log$
-  Revision 1.58  2000-04-02 18:30:12  florian
+  Revision 1.59  2000-06-01 19:09:57  peter
+    * made resourcestrings OOP so it's easier to handle it per module
+
+  Revision 1.58  2000/04/02 18:30:12  florian
     * fixed another problem with readln(<floating point register variable>);
     * the register allocator takes now care of necessary pushes/pops for
       readln/writeln
