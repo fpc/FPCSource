@@ -299,7 +299,9 @@ implementation
            Message(parser_e_illegal_set_expr);
           pconst32bitset(constset)^[l]:=pconst32bitset(constset)^[l] or mask;
   {$else}
-    include(constset^,pos);
+          if pos in constset^ then
+            Message(parser_e_illegal_set_expr);
+          include(constset^,pos);
   {$endif}
         end;
 
@@ -1992,7 +1994,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.92  2002-11-27 19:43:21  carl
+  Revision 1.93  2002-11-30 10:45:14  carl
+    * fix bug with checking of duplicated items in sets (new sets bug only)
+
+  Revision 1.92  2002/11/27 19:43:21  carl
     * updated notes and hints
 
   Revision 1.91  2002/11/27 13:11:38  peter
