@@ -13,5 +13,7 @@
  var ti:t;
 begin
  ti:=t.Init(1,2);
- writeln(ti.f1, ', ', ti.f2) // prints garbage instead of t2
+ writeln(ti.f1, ', ', ti.f2); // prints garbage instead of t2
+ if ti.f2<>2 then
+   Halt(1);
 end.
