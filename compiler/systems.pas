@@ -75,14 +75,16 @@ unit systems;
        end;
 
        tlinkinfo = record
-          linkbin   : string[8];
-          linkcmd   : string[50];
-          stripopt  : string[2];
-          groupstart,
-          groupend,
-          inputstart,
-          inputend  : string[8];
-          libprefix : string[2];
+          linkbin       : string[8];
+          linkcmd       : string[50];
+          stripopt      : string[2];
+          libpathprefix : string[12];
+          libpathsuffix : string[2];
+          groupstart    : string[8];
+          groupend      : string[2];
+          inputstart    : string[8];
+          inputend      : string[2];
+          libprefix     : string[2];
        end;
 
        ttargetinfo = record
@@ -279,6 +281,8 @@ unit systems;
             linkbin : 'ld';
             linkcmd : '$OPT -o $EXE $RES';
             stripopt   : '-s';
+            libpathprefix : 'SEARCH_DIR(';
+            libpathsuffix : ')';
             groupstart : 'GROUP(';
             groupend   : ')';
             inputstart : 'INPUT(';
@@ -290,6 +294,8 @@ unit systems;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32 $OPT -o $EXE @$RES';
             stripopt   : '-s';
+            libpathprefix : '-L';
+            libpathsuffix : '';
             groupstart : '-(';
             groupend   : '-)';
             inputstart : '';
@@ -300,6 +306,8 @@ unit systems;
             linkbin : 'ld';
             linkcmd : '-oformat coff-go32-exe $OPT -o $EXE @$RES';
             stripopt   : '-s';
+            libpathprefix : '-L';
+            libpathsuffix : '';
             groupstart : '-(';
             groupend   : '-)';
             inputstart : '';
@@ -310,6 +318,8 @@ unit systems;
             linkbin : 'ldw';
             linkcmd : '$OPT -o $EXE $RES';
             stripopt   : '-s';
+            libpathprefix : 'SEARCH_DIR(';
+            libpathsuffix : ')';
             groupstart : 'GROUP(';
             groupend   : ')';
             inputstart : 'INPUT(';
@@ -320,6 +330,8 @@ unit systems;
             linkbin : 'ld';
             linkcmd : '-o $EXE @$RES';
             stripopt   : '-s';
+            libpathprefix : '-L';
+            libpathsuffix : '';
             groupstart : '-(';
             groupend   : '-)';
             inputstart : '';
@@ -519,7 +531,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  1998-05-11 13:07:58  peter
+  Revision 1.11  1998-05-22 12:32:49  peter
+    * fixed -L on the commandline, Dos commandline is only 128 bytes
+
+  Revision 1.10  1998/05/11 13:07:58  peter
     + $ifdef NEWPPU for the new ppuformat
     + $define GDB not longer required
     * removed all warnings and stripped some log comments

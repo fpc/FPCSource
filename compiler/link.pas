@@ -255,7 +255,7 @@ Function TLinker.WriteResponseFile : Boolean;
 Var
   LinkResponse : Text;
   i            : longint;
-  prtobj,s     : string;
+  prtobj,s,s2  : string;
 begin
 { Open linkresponse and write header }
   assign(linkresponse,inputdir+LinkResName);
@@ -275,8 +275,19 @@ begin
                   end;
   end;
 
-  writeln(linkresponse,target_link.inputstart);
+{ Add library searchpath }
+  S2:=LibrarySearchPath;
+  Repeat
+    i:=Pos(';',S2);
+    If i=0 then
+     i:=255;
+    S:=Copy(S2,1,i-1);
+    If S<>'' then
+      WriteLn(linkresponse,target_link.libpathprefix+s+target_link.libpathsuffix);
+    Delete (S2,1,i);
+  until S2='';
 
+  writeln(linkresponse,target_link.inputstart);
 { add objectfiles, start with prt0 always }
   if prtobj<>'' then
    Writeln(linkresponse,FindObjectFile(prtobj));
@@ -286,7 +297,6 @@ begin
      if s<>'' then
       Writeln(linkresponse,s);
    end;
-
 { Write sharedlibraries like -l<lib> }
   While not SharedLibFiles.Empty do
    begin
@@ -296,7 +306,6 @@ begin
       Delete(S,i,255);
      writeln(linkresponse,target_link.libprefix+s);
    end;
-
   writeln(linkresponse,target_link.inputend);
 
 { Write staticlibraries }
@@ -341,20 +350,6 @@ begin
    LinkOptions:='-dynamic-linker='+DynamicLinker+' '+LinkOptions;
   if Strip then
    LinkOptions:=LinkOptions+target_link.stripopt;
-
-{ Add library searchpath to the commandline }
-
-  S2:=LibrarySearchPath;
-  Repeat
-    i:=Pos(';',S2);
-    If i=0 then
-     i:=255;
-    S:=Copy(S2,1,i-1);
-    If S<>'' then
-      LinkOptions:=LinkOptions+' -L'+s;
-    Delete (S2,1,i);
-  until S2='';
-
 
 { Write used files and libraries }
   WriteResponseFile;
@@ -443,7 +438,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-05-12 10:46:59  peter
+  Revision 1.10  1998-05-22 12:32:47  peter
+    * fixed -L on the commandline, Dos commandline is only 128 bytes
+
+  Revision 1.9  1998/05/12 10:46:59  peter
     * moved printstatus to verb_def
     + V_Normal which is between V_Error and V_Warning and doesn't have a
       prefix like error: warning: and is included in V_Default
