@@ -28,6 +28,46 @@ Const
   PF_UNIX         = AF_UNIX;
   PF_INET         = AF_INET;
 
+{$ifdef linux}
+{ For setsockoptions(2) }
+         SOL_SOCKET  =   1;
+         SO_DEBUG    =   1;
+         SO_REUSEADDR=   2;
+         SO_TYPE     =   3;
+         SO_ERROR    =   4;
+         SO_DONTROUTE=   5;
+         SO_BROADCAST=   6;
+         SO_SNDBUF   =   7;
+         SO_RCVBUF   =   8;
+         SO_KEEPALIVE=   9;
+         SO_OOBINLINE=   10;
+         SO_NO_CHECK =   11;
+         SO_PRIORITY =   12;
+         SO_LINGER   =   13;
+         SO_BSDCOMPAT=   14;
+{ To add :         SO_REUSEPORT 15 }
+         SO_PASSCRED=    16;
+         SO_PEERCRED=    17;
+         SO_RCVLOWAT=    18;
+         SO_SNDLOWAT=    19;
+         SO_RCVTIMEO=    20;
+         SO_SNDTIMEO=    21;
+
+{ Security levels - as per NRL IPv6 - don't actually do anything }
+
+         SO_SECURITY_AUTHENTICATION      =   22;
+         SO_SECURITY_ENCRYPTION_TRANSPORT=   23;
+         SO_SECURITY_ENCRYPTION_NETWORK  =   24;
+
+         SO_BINDTODEVICE=   25;
+
+{ Socket filtering }
+
+         SO_ATTACH_FILTER=  26;
+         SO_DETACH_FILTER=  27;
+
+         SO_PEERNAME     =  28;
+{$endif}
 const
   { Two constants to determine whether part of soket is for in or output }
   S_IN = 0;
@@ -80,7 +120,11 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.5  2000-02-09 16:59:31  peter
+  Revision 1.6  2000-06-02 17:30:43  marco
+   * added some constants for getsocketoptions under a linux define.
+  	Allows server example to work ok.
+
+  Revision 1.5  2000/02/09 16:59:31  peter
     * truncated log
 
   Revision 1.4  2000/01/07 16:41:36  daniel
