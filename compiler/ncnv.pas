@@ -1166,6 +1166,25 @@ implementation
                     end;
                  end
 
+              { ordinal to pointer }
+              else
+                if (m_delphi in aktmodeswitches) and
+                   is_ordinal(left.resulttype.def) and
+                   (resulttype.def.deftype=pointerdef) then
+                 begin
+                   if left.nodetype=pointerconstn then
+                    begin
+                      hp:=cordconstnode.create(tpointerconstnode(left).value,resulttype);
+                      result:=hp;
+                      exit;
+                    end
+                   else
+                    begin
+                      if IsConvertable(left.resulttype.def,ordpointertype.def,convtype,ordconstn,false)=0 then
+                        CGMessage2(type_e_incompatible_types,left.resulttype.def.typename,resulttype.def.typename);
+                    end;
+                 end
+
                { only if the same size or formal def }
                { why do we allow typecasting of voiddef ?? (PM) }
                else
@@ -1893,7 +1912,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2002-08-09 07:33:01  florian
+  Revision 1.67  2002-08-11 15:28:00  florian
+    + support of explicit type case <any ordinal type>->pointer
+      (delphi mode only)
+
+  Revision 1.66  2002/08/09 07:33:01  florian
     * a couple of interface related fixes
 
   Revision 1.65  2002/07/29 21:23:42  florian

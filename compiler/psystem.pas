@@ -217,6 +217,21 @@ begin
   globaldef('file',cfiletype);
   globaldef('pvmt',pvmttype);
   globaldef('variant',cvarianttype);
+{$ifdef i386}
+  ordpointertype:=u32bittype;
+{$endif i386}
+{$ifdef x86_64}
+  ordpointertype:=cu64bittype;
+{$endif x86_64}
+{$ifdef powerpc}
+  ordpointertype:=u32bittype;
+{$endif powerpc}
+{$ifdef sparc}
+  ordpointertype:=u32bittype;
+{$endif sparc}
+{$ifdef m68k}
+  ordpointertype:=u32bittype;
+{$endif}
 end;
 
 
@@ -251,21 +266,30 @@ begin
   openchararraytype.setdef(tarraydef.create(0,-1,s32bittype));
   tarraydef(openchararraytype.def).elementtype:=cchartype;
 {$ifdef x86}
+{$ifdef i386}
+  ordpointertype:=u32bittype;
+{$endif i386}
+{$ifdef x86_64}
+  ordpointertype:=cu64bittype;
+{$endif x86_64}
   s32floattype.setdef(tfloatdef.create(s32real));
   s64floattype.setdef(tfloatdef.create(s64real));
   s80floattype.setdef(tfloatdef.create(s80real));
 {$endif x86}
 {$ifdef powerpc}
+  ordpointertype:=u32bittype;
   s32floattype.setdef(tfloatdef.create(s32real));
   s64floattype.setdef(tfloatdef.create(s64real));
   s80floattype.setdef(tfloatdef.create(s80real));
 {$endif powerpc}
 {$ifdef sparc}
+  ordpointertype:=u32bittype;
   s32floattype.setdef(tfloatdef.create(s32real));
   s64floattype.setdef(tfloatdef.create(s64real));
 {$endif sparc}
   s64currencytype.setdef(tfloatdef.create(s64currency));
 {$ifdef m68k}
+  ordpointertype:=u32bittype;
   s32floattype.setdef(tfloatdef.create(s32real));
   if (cs_fp_emulation in aktmoduleswitches) then
    begin
@@ -291,7 +315,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2002-07-25 17:54:24  carl
+  Revision 1.33  2002-08-11 15:28:00  florian
+    + support of explicit type case <any ordinal type>->pointer
+      (delphi mode only)
+
+  Revision 1.32  2002/07/25 17:54:24  carl
    + Extended is now CPU dependant (equal to bestrealtype)
 
   Revision 1.30  2002/07/07 09:52:32  florian

@@ -664,7 +664,10 @@ interface
                                     needed for readln() }
        cfiletype,                 { get the same definition for all file }
                                   { used for stabs }
-       cvarianttype,              { we use only one variant def }
+       { we use only one variant def }
+       cvarianttype,
+       { unsigned ord type with the same size as a pointer }
+       ordpointertype,
        pvmttype      : ttype;     { type of classrefs, used for stabs }
 
 
@@ -5501,7 +5504,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2002-08-11 14:32:28  peter
+  Revision 1.89  2002-08-11 15:28:00  florian
+    + support of explicit type case <any ordinal type>->pointer
+      (delphi mode only)
+
+  Revision 1.88  2002/08/11 14:32:28  peter
     * renamed current_library to objectlibrary
 
   Revision 1.87  2002/08/11 13:24:13  peter
