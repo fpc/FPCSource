@@ -152,7 +152,7 @@ N_BINCL to N_EINCL
           for (; *str != '\0'; str++)
             (
               val += *str;
-              if (*str == '(')
+              if *str == '('
             (
                Skip the file number.
               ++str;
@@ -263,7 +263,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  1999-03-02 02:56:12  peter
+  Revision 1.8  1999-03-17 10:52:38  peter
+    * fixed comment in directive
+
+  Revision 1.7  1999/03/02 02:56:12  peter
     + stabs support for binary writers
     * more fixes and missing updates from the previous commit :(
 
