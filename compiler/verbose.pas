@@ -129,15 +129,19 @@ begin
    begin
      for i:=1 to length(s) do
        begin
-          c:=s[i];
-          if (i<length(s)) and (s[i+1]='-') then
-            begin
-               inc(i);
-               inverse:=true;
-            end
-          else
-            inverse:=false;
-          case upcase(s[i]) of
+          c:=upcase(s[i]);
+          inverse:=false;
+        { on/off ? }
+          if (i<length(s)) then
+           case s[i+1] of
+            '-' : begin
+                    inc(i);
+                    inverse:=true;
+                  end;
+            '+' : inc(i);
+           end;
+         { handle switch }
+          case c of
           { Special cases }
            'A' : status.verbosity:=V_All;
            '0' : status.verbosity:=V_Default;
@@ -394,7 +398,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  1998-08-29 13:52:40  peter
+  Revision 1.19  1998-09-01 12:49:52  peter
+    * better setverbosity to support W+/W- etc.
+
+  Revision 1.18  1998/08/29 13:52:40  peter
     + new messagefile
     * merged optione.msg into errore.msg
 
