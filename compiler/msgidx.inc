@@ -99,6 +99,7 @@ type tmsgconst=(
   parser_w_should_use_override,
   parser_e_nothing_to_be_overridden,
   parser_e_no_procedure_to_access_property,
+  parser_w_stored_not_implemented,
   parser_e_ill_property_access_sym,
   parser_e_cant_access_protected_member,
   parser_e_cant_access_private_member,

@@ -98,6 +98,7 @@ implementation
                         gten : flags:=F_AE;
                      end;
                 end;
+              clear_location(p^.location);
               p^.location.loc:=LOC_FLAGS;
               p^.location.resflags:=flags;
            end;
@@ -475,6 +476,7 @@ implementation
              case p^.treetype of
               andn,
                orn : begin
+                       clear_location(p^.location);
                        p^.location.loc:=LOC_JUMP;
                        cmpop:=false;
                        case p^.treetype of
@@ -1077,7 +1079,10 @@ implementation
                        cmpop:=false;
                      end
                     else
-                     p^.location.loc:=LOC_FPU;
+                     begin
+                        clear_location(p^.location);
+                        p^.location.loc:=LOC_FPU;
+                     end;
                  end
 {$ifdef SUPPORT_MMX}
                else
@@ -1203,6 +1208,7 @@ implementation
                                     newreference(p^.left^.location.reference),hregister)));
                                end;
                           end;
+                        clear_location(p^.location);
                         p^.location.loc:=LOC_MMXREGISTER;
                         p^.location.register:=hregister;
                      end
@@ -1284,7 +1290,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1998-10-09 08:56:21  pierre
+  Revision 1.17  1998-10-09 11:47:45  pierre
+    * still more memory leaks fixes !!
+
+  Revision 1.16  1998/10/09 08:56:21  pierre
     * several memory leaks fixed
 
   Revision 1.15  1998/10/08 17:17:10  pierre

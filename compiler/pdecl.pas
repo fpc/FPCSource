@@ -760,13 +760,13 @@ unit pdecl;
            if (aktclass^.options and oois_class=0) then
             Message(parser_e_syntax_error);
            consume(_PROPERTY);
+           propertyparas:=nil;
+           datacoll:=nil;
            if token=ID then
              begin
                 p:=new(ppropertysym,init(pattern));
                 propname:=pattern;
                 consume(ID);
-                propertyparas:=nil;
-                datacoll:=nil;
                 { property parameters ? }
                 if token=LECKKLAMMER then
                   begin
@@ -945,6 +945,7 @@ unit pdecl;
                                pp:=get_procdef;
                                { ... and remove it }
                                propertyparas:=propertyparas^.next;
+                               datacoll^.next:=nil;
                                if not(assigned(pp)) then
                                  Message(parser_e_ill_property_access_sym);
                                p^.writeaccessdef:=pp;
@@ -962,6 +963,7 @@ unit pdecl;
                 if (idtoken=_STORED) then
                   begin
                      consume(_STORED);
+                     Message(parser_w_stored_not_implemented);
                      { !!!!!!!! }
                   end;
                 if (idtoken=_DEFAULT) then
@@ -1011,13 +1013,15 @@ unit pdecl;
                   end;
                 { clean up }
                 if assigned(datacoll) then
-                  dispose(datacoll);
+                  disposepdefcoll(datacoll);
              end
            else
              begin
                 consume(ID);
                 consume(SEMICOLON);
              end;
+           if not(assigned(propertyparas)) then
+             disposepdefcoll(propertyparas);
         end;
 
       procedure destructor_head;
@@ -2064,7 +2068,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.67  1998-10-08 13:48:46  peter
+  Revision 1.68  1998-10-09 11:47:54  pierre
+    * still more memory leaks fixes !!
+
+  Revision 1.67  1998/10/08 13:48:46  peter
     * fixed memory leaks for do nothing source
     * fixed unit interdependency
 

@@ -1840,7 +1840,7 @@
 
 
 
-    destructor tabstractprocdef.done;
+    procedure disposepdefcoll(var para1 : pdefcoll);
       var
          hp : pdefcoll;
       begin
@@ -1851,6 +1851,11 @@
               dispose(hp);
               hp:=para1;
            end;
+      end;
+      
+    destructor tabstractprocdef.done;
+      begin
+         disposepdefcoll(para1);
          inherited done;
       end;
 
@@ -3075,7 +3080,10 @@
 
 {
   $Log$
-  Revision 1.55  1998-10-06 17:16:55  pierre
+  Revision 1.56  1998-10-09 11:47:56  pierre
+    * still more memory leaks fixes !!
+
+  Revision 1.55  1998/10/06 17:16:55  pierre
     * some memory leaks fixed (thanks to Peter for heaptrc !)
 
   Revision 1.54  1998/10/05 21:33:28  peter

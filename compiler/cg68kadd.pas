@@ -197,6 +197,7 @@ implementation
                         gten : flags:=F_AE;
                      end;
                 end;
+              clear_location(p^.location);
               p^.location.loc:=LOC_FLAGS;
               p^.location.resflags:=flags;
            end;
@@ -548,6 +549,7 @@ implementation
              case p^.treetype of
               andn,
                orn : begin
+                       clear_location(p^.location);
                        p^.location.loc:=LOC_JUMP;
                        cmpop:=false;
                        case p^.treetype of
@@ -780,6 +782,7 @@ implementation
                                    newreference(p^.left^.location.reference),hregister)));
                                end;
                           end;
+                        clear_location(p^.location);
                         p^.location.loc:=LOC_REGISTER;
                         p^.location.register:=hregister;
                      end
@@ -1008,6 +1011,7 @@ implementation
                              exprasmlist^.concat(new(pai68k,op_ref_reg(A_MOVE,S_B,newreference(p^.location.reference),
                                hregister)));
                           end;
+                        clear_location(p^.location);
                         p^.location.loc:=LOC_REGISTER;
                         p^.location.register:=hregister;
                      end;
@@ -1264,7 +1268,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-10-08 17:17:15  pierre
+  Revision 1.8  1998-10-09 11:47:47  pierre
+    * still more memory leaks fixes !!
+
+  Revision 1.7  1998/10/08 17:17:15  pierre
     * current_module old scanner tagged as invalid if unit is recompiled
     + added ppheap for better info on tracegetmem of heaptrc
       (adds line column and file index)
