@@ -1866,10 +1866,8 @@ Const
 
   function SetupLinear(var ModeInfo: TVESAModeInfo;mode : word) : boolean;
    begin
-{$ifndef FPC}
-     { !!!!!!!!!!!!!!!!!!!!!!!!!!!!!! }
      SetUpLinear:=false;
-{$else FPC}
+{$ifdef FPC}
      case mode of
        m320x200x32k,
        m320x200x64k,
@@ -1907,10 +1905,7 @@ Const
            PatternLine := @PatternLineDefault;
          end;
      else
-       begin
-         SetUpLinear:=false;
-         exit;
-       end;
+       exit;
      end;
      FrameBufferLinearAddress:=Get_linear_addr(VESAModeInfo.PhysAddress and $FFFF0000,
        VESAInfo.TotalMem shl 16);
@@ -2600,7 +2595,12 @@ Const
 
 (*
 $Log$
-Revision 1.23  2000-05-13 14:08:42  jonas
+Revision 1.24  2000-06-07 07:41:44  jonas
+  * always set SetupLinear to false at the start of the routine (there
+    were some "exit" statements which returned without the function
+    result being set otherwise)
+
+Revision 1.23  2000/05/13 14:08:42  jonas
   * set some more procedures back to the defaults when using linear
     VESA modes because they only work for windowed VESA modes
 
