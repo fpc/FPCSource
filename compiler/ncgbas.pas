@@ -358,7 +358,7 @@ interface
             tg.GetTempTyped(exprasmlist,tempinfo^.restype.def,tempinfo^.temptype,tempinfo^.loc.ref);
             tempinfo^.loc.loc := LOC_REFERENCE;
           end
-        else if may_be_in_reg then
+        else if tempinfo^.may_be_in_reg then
           begin
             cgsize := def_cgsize(tempinfo^.restype.def);
             if (TCGSize2Size[cgsize]>TCGSize2Size[OS_INT]) then
@@ -475,7 +475,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.58  2004-03-02 17:32:12  florian
+  Revision 1.59  2004-03-10 20:41:17  peter
+    * maybe_in_reg moved to tempinfo
+    * fixed expectloc for maybe_in_reg
+
+  Revision 1.58  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

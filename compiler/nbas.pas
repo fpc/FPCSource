@@ -95,7 +95,7 @@ interface
            LOC_REFERENCE: (ref: treference);
            LOC_REGISTER:  (reg: tregister);
        end;
-         
+
        { to allow access to the location by temp references even after the temp has }
        { already been disposed and to make sure the coherency between temps and     }
        { temp references is kept after a getcopy                                    }
@@ -107,6 +107,7 @@ interface
          restype                    : ttype;
          temptype                   : ttemptype;
          owner                      : ttempcreatenode;
+         may_be_in_reg              : boolean;
          valid                      : boolean;
          nextref_set_hookoncopy_nil : boolean;
          loc                        : ttemplocation;
@@ -117,7 +118,6 @@ interface
        ttempcreatenode = class(tnode)
           size: longint;
           tempinfo: ptempinfo;
-          may_be_in_reg: boolean;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
           { when the temp has to be freed (using a ttempdeletenode)             }
@@ -671,7 +671,7 @@ implementation
     constructor ttempcreatenode.create_reg(const _restype: ttype; _size: longint; _temptype: ttemptype);
       begin
         create(_restype,_size,_temptype);
-        may_be_in_reg:=
+        tempinfo^.may_be_in_reg:=
           not (_restype.def.needs_inittable) and
           ((_restype.def.deftype <> pointerdef) or
            (not tpointerdef(_restype.def).pointertype.def.needs_inittable));
@@ -686,7 +686,6 @@ implementation
         tempinfo^.restype := _restype;
         tempinfo^.temptype := _temptype;
         tempinfo^.owner:=self;
-        may_be_in_reg:=false;
       end;
 
     function ttempcreatenode.getcopy: tnode;
@@ -695,7 +694,6 @@ implementation
       begin
         n := ttempcreatenode(inherited getcopy);
         n.size := size;
-        n.may_be_in_reg := may_be_in_reg;
 
         new(n.tempinfo);
         fillchar(n.tempinfo^,sizeof(n.tempinfo^),0);
@@ -723,9 +721,9 @@ implementation
         inherited ppuload(t,ppufile);
 
         size:=ppufile.getlongint;
-        may_be_in_reg:=boolean(ppufile.getbyte);
         new(tempinfo);
         fillchar(tempinfo^,sizeof(tempinfo^),0);
+        tempinfo^.may_be_in_reg:=boolean(ppufile.getbyte);
         ppufile.gettype(tempinfo^.restype);
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
@@ -736,7 +734,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putlongint(size);
-        ppufile.putbyte(byte(may_be_in_reg));
+        ppufile.putbyte(byte(tempinfo^.may_be_in_reg));
         ppufile.puttype(tempinfo^.restype);
         ppufile.putbyte(byte(tempinfo^.temptype));
       end;
@@ -772,7 +770,7 @@ implementation
         result :=
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
-          (ttempcreatenode(p).may_be_in_reg = may_be_in_reg) and
+          (ttempcreatenode(p).tempinfo^.may_be_in_reg = tempinfo^.may_be_in_reg) and
           equal_defs(ttempcreatenode(p).tempinfo^.restype.def,tempinfo^.restype.def);
       end;
 
@@ -863,7 +861,17 @@ implementation
 
     function ttemprefnode.pass_1 : tnode;
       begin
-        expectloc:=LOC_REFERENCE;
+        expectloc := LOC_REFERENCE;
+        if tempinfo^.may_be_in_reg then
+          begin
+            if (tempinfo^.temptype = tt_persistent) then
+              begin
+                { !!tell rgobj this register is now a regvar, so it can't be freed!! }
+                expectloc := LOC_CREGISTER
+              end
+            else
+              expectloc := LOC_REGISTER;
+          end;
         result := nil;
       end;
 
@@ -1005,7 +1013,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2004-02-06 20:22:58  jonas
+  Revision 1.81  2004-03-10 20:41:17  peter
+    * maybe_in_reg moved to tempinfo
+    * fixed expectloc for maybe_in_reg
+
+  Revision 1.80  2004/02/06 20:22:58  jonas
     * don't put types that need init/fini in register temps
 
   Revision 1.79  2004/02/03 22:32:54  peter
