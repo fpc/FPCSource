@@ -1086,6 +1086,7 @@ Begin
                                  mov mem1, reg2
                                  mov reg2, mem2}
                                       Begin
+                                        AllocRegBetween(asmL,reg32(Paicpu(hp2)^.oper[1].reg),p,hp2);
                                         Paicpu(p)^.Loadoper(1,Paicpu(hp2)^.oper[1]);
                                         Paicpu(hp1)^.loadoper(0,Paicpu(hp2)^.oper[1]);
                                         AsmL^.Remove(hp2);
@@ -1999,7 +2000,10 @@ End.
 
 {
   $Log$
-  Revision 1.2  2000-10-24 10:40:54  jonas
+  Revision 1.3  2000-11-14 09:53:18  jonas
+    * added missing allocregbetween() (merged)
+
+  Revision 1.2  2000/10/24 10:40:54  jonas
     + register renaming ("fixes" bug1088)
     * changed command line options meanings for optimizer:
         O2 now means peepholopts, CSE and register renaming in 1 pass
