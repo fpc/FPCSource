@@ -90,12 +90,9 @@ end;
 
 Constructor TLinker.Init;
 begin
-  ObjectFiles.Init;
-  SharedLibFiles.Init;
-  StaticLibFiles.Init;
-  ObjectFiles.Doubles:=False;
-  SharedLibFiles.Doubles:=False;
-  StaticLibFiles.Doubles:=False;
+  ObjectFiles.Init_no_double;
+  SharedLibFiles.Init_no_double;
+  StaticLibFiles.Init_no_double;
   LinkToC:=False;
   Glibc2:=false;
   Strip:=false;
@@ -517,7 +514,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  1998-10-16 13:37:18  florian
+  Revision 1.35  1998-10-19 18:06:23  peter
+    * use no_double
+
+  Revision 1.34  1998/10/16 13:37:18  florian
     + switch -FD added to specify the path for utilities
 
   Revision 1.33  1998/10/14 13:38:22  peter
