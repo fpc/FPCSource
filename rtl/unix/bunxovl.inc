@@ -144,7 +144,7 @@ begin
 end;
 
 {$ifdef FPC_USE_LIBC} // can't remember why this is the case. Might be legacy.
-function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'read';
+function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external clib name 'read';
 {$else}
 function xFpread(fd: cint; buf: pchar; nbytes : size_t): ssize_t; external name 'FPC_SYSC_READ';
 {$endif}
@@ -331,7 +331,11 @@ end;
 
 {
  $Log$
- Revision 1.8  2003-12-30 12:24:01  marco
+ Revision 1.9  2004-01-04 21:04:08  jonas
+   * declare C-library routines as external in libc for Darwin (so we
+     generate proper import entries)
+
+ Revision 1.8  2003/12/30 12:24:01  marco
   * FPC_USE_LIBC
 
  Revision 1.7  2003/10/27 17:12:45  marco

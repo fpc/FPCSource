@@ -30,6 +30,7 @@ Interface
 {$i errno.inc}		{ Error numbers }
 {$i bunxtype.inc}	{ Types }
 {$ifdef FPC_USE_LIBC}
+const clib = 'c';
 {$i oscdeclh.inc}
 {$ELSE}
 {$i bunxh.inc}          { Functions}
@@ -73,7 +74,11 @@ end.
 
 {
   $Log$
-  Revision 1.7  2003-12-31 20:01:00  marco
+  Revision 1.8  2004-01-04 21:04:08  jonas
+    * declare C-library routines as external in libc for Darwin (so we
+      generate proper import entries)
+
+  Revision 1.7  2003/12/31 20:01:00  marco
    * workaround for buggy 1.0 building
 
   Revision 1.6  2003/12/30 12:36:56  marco
