@@ -115,6 +115,15 @@ implementation
             resulttypepass(right);
           end;
 
+         { allow operator overloading }
+         hp:=self;
+         if isbinaryoverloaded(hp) then
+           begin
+              resulttypepass(hp);
+              result:=hp;
+              exit;
+           end;
+
          { is one a real float, then both need to be floats, this
            need to be done before the constant folding so constant
            operation on a float and int are also handled }
@@ -440,15 +449,6 @@ implementation
               dispose(resultset);
               resulttypepass(t);
               result:=t;
-              exit;
-           end;
-
-         { allow operator overloading }
-         hp:=self;
-         if isbinaryoverloaded(hp) then
-           begin
-              resulttypepass(hp);
-              result:=hp;
               exit;
            end;
 
@@ -1217,7 +1217,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2001-05-19 12:53:52  peter
+  Revision 1.27  2001-05-19 21:11:50  peter
+    * first check for overloaded operator before doing inserting any
+      typeconvs
+
+  Revision 1.26  2001/05/19 12:53:52  peter
     * check set types when doing constant set evaluation
 
   Revision 1.25  2001/04/13 01:22:08  peter
