@@ -180,6 +180,7 @@ Function  Swap (X:Int64):Int64;
 {$endif RTLLITE}
 
 Function  Random(l:cardinal):cardinal;
+Function  Random(l:longint):longint;
 Function  Random: extended;
 Procedure Randomize;
 
@@ -399,7 +400,10 @@ const
 
 {
   $Log$
-  Revision 1.68  1999-11-25 13:34:57  michael
+  Revision 1.69  1999-12-01 12:37:13  jonas
+    + function random(longint): longint
+
+  Revision 1.68  1999/11/25 13:34:57  michael
   + Added Ansistring setstring call
 
   Revision 1.67  1999/11/20 12:48:09  jonas

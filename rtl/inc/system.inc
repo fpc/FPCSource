@@ -243,6 +243,12 @@ begin
   random := trunc(random()*l);
 end;
 
+function random(l:longint): longint;
+begin
+  random := trunc(random()*l);
+end;
+
+
 Procedure NewSeed;
 begin
     randseed := randseed mod 1000003;
@@ -583,7 +589,10 @@ end;
 
 {
   $Log$
-  Revision 1.73  1999-11-20 12:48:09  jonas
+  Revision 1.74  1999-12-01 12:37:13  jonas
+    + function random(longint): longint
+
+  Revision 1.73  1999/11/20 12:48:09  jonas
     * reinstated old random generator, but modified it so the integer
       one now has a much longer period
 
