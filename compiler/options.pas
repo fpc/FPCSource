@@ -1826,6 +1826,7 @@ begin
 {$endif}
 {$ifdef arm}
   def_symbol('CPUARM');
+  def_symbol('FPUFPA');
   def_symbol('CPU32');
   def_symbol('FPC_HAS_TYPE_DOUBLE');
   def_symbol('FPC_HAS_TYPE_SINGLE');
@@ -2101,7 +2102,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.158  2005-01-03 20:27:47  peter
+  Revision 1.159  2005-01-04 16:19:52  florian
+    * arm sets FPUFPA by default for now
+
+  Revision 1.158  2005/01/03 20:27:47  peter
   fix outline of 3rd level of options (-SI option mainly)
 
   Revision 1.157  2004/12/28 20:43:01  hajny
