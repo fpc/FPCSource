@@ -642,6 +642,7 @@ implementation
              genitem(t^.less);
            if t^._low=t^._high then
              begin
+{$ifndef cpu64bit}
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
@@ -655,6 +656,7 @@ implementation
                      cg.a_label(exprasmlist,l1);
                   end
                 else
+{$endif cpu64bit}
                   begin
                      cg.a_cmp_const_reg_label(exprasmlist, opsize, OC_EQ, aword(t^._low),hregister, t^.statement);
                   end;
@@ -669,6 +671,7 @@ implementation
                 { ELSE-label                                }
                 if first or (t^._low-last>1) then
                   begin
+{$ifndef cpu64bit}
                      if opsize in [OS_64,OS_S64] then
                        begin
                           objectlibrary.getlabel(l1);
@@ -690,12 +693,13 @@ implementation
                           cg.a_label(exprasmlist,l1);
                        end
                      else
+{$endif cpu64bit}
                        begin
                         cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_lt, aword(t^._low), hregister,
                            elselabel);
                        end;
                   end;
-
+{$ifndef cpu64bit}
                 if opsize in [OS_S64,OS_64] then
                   begin
                      objectlibrary.getlabel(l1);
@@ -715,6 +719,7 @@ implementation
                     cg.a_label(exprasmlist,l1);
                   end
                 else
+{$endif cpu64bit}
                   begin
                      cg.a_cmp_const_reg_label(exprasmlist, opsize, jmp_le, aword(t^._high), hregister, t^.statement);
                   end;
@@ -850,13 +855,15 @@ implementation
          opsize:=def_cgsize(left.resulttype.def);
          { copy the case expression to a register }
          location_force_reg(exprasmlist,left.location,opsize,false);
+{$ifndef cpu64bit}
          if opsize in [OS_S64,OS_64] then
-          begin
-            hregister:=left.location.registerlow;
-            hregister2:=left.location.registerhigh;
-          end
+           begin
+             hregister:=left.location.registerlow;
+             hregister2:=left.location.registerhigh;
+           end
          else
-          hregister:=left.location.register;
+{$endif cpu64bit}
+           hregister:=left.location.register;
          if isjump then
           begin
             truelabel:=otl;
@@ -871,9 +878,11 @@ implementation
          load_all_regvars(exprasmlist);
 {$endif OLDREGVARS}
          { now generate the jumps }
+{$ifndef cpu64bit}
          if opsize in [OS_64,OS_S64] then
            genlinearcmplist(nodes)
          else
+{$endif cpu64bit}
            begin
               if cs_optimize in aktglobalswitches then
                 begin
@@ -1008,7 +1017,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2004-01-31 23:37:07  florian
+  Revision 1.58  2004-02-05 19:35:27  florian
+    * more x86-64 fixes
+
+  Revision 1.57  2004/01/31 23:37:07  florian
     * another improvement to tcginnode.pass_2
 
   Revision 1.56  2004/01/31 17:45:17  peter

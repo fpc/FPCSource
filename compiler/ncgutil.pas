@@ -306,7 +306,7 @@ implementation
         cg.deallocexplicitregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
 
         cg.g_exception_reason_save(list, href);
-        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,NR_FUNCTION_RESULT_REG,exceptlabel);
+        cg.a_cmp_const_reg_label(list,OS_S32,OC_NE,0,cg.makeregsize(NR_FUNCTION_RESULT_REG,OS_S32),exceptlabel);
      end;
 
 
@@ -2137,7 +2137,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.190  2004-02-05 01:24:08  florian
+  Revision 1.191  2004-02-05 19:35:27  florian
+    * more x86-64 fixes
+
+  Revision 1.190  2004/02/05 01:24:08  florian
     * several fixes to compile x86-64 system
 
   Revision 1.189  2004/02/04 22:15:15  daniel
