@@ -703,19 +703,21 @@ type
 
 function PreviousFramePointer: FramePointer;assembler;
 {$undef FPC_PreviousFramePointer_Implemented}
-asm
 {$ifdef cpui386}
 {$define FPC_PreviousFramePointer_Implemented}
+asm
     movl (%ebp), %eax
 end ['EAX'];
 {$endif}
 {$ifdef cpum68k}
 {$define FPC_PreviousFramePointer_Implemented}
+asm
     move.l (a6),d0
 end ['D0'];
 {$endif}
 {$ifdef cpusparc}
 {$define FPC_PreviousFramePointer_Implemented}
+asm
     { we have first our own frame }
     ld [%fp],%i0
     ld [%i0],%i0
@@ -723,12 +725,20 @@ end;
 {$endif}
 {$ifdef cpupowerpc}
 {$define FPC_PreviousFramePointer_Implemented}
-    {$warning FIX ME !!!! }
-    { getting the previous stack frame is quite hard for the standard powerpc calling conventions
+{$warning FIX ME !!!! }
+asm
+    (* getting the previous stack frame is quite hard for the standard powerpc calling conventions
       because we don't know the size of the locals, it seems that we need some compiler magic for this
-    }
+    *)
 end;
-{$endif}
+{$endif cpupowerpc}
+{$ifdef cpuarm}
+{$define FPC_PreviousFramePointer_Implemented}
+{$warning FIX ME !!!! }
+asm
+   mov r0,fp
+end;
+{$endif cpuarm}
 {$ifndef FPC_PreviousFramePointer_Implemented}
 {$error PreviousFramePointer function not implemented}
 {$endif not FPC_PreviousFramePointer_Implemented}
@@ -2932,7 +2942,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.25  2003-11-03 17:46:37  peter
+  Revision 1.26  2003-11-30 19:48:20  florian
+    * fixed some arm stuff
+
+  Revision 1.25  2003/11/03 17:46:37  peter
     * fixed crash in bufstream.write
 
   Revision 1.24  2003/11/03 09:42:28  marco

@@ -223,7 +223,7 @@
       freed automatically. To avoid this, call this function.
       If within the exception object you decide that you don't need
       the exception after all, call @link(ReleaseExceptionObject).
-      Otherwise, if the reference count is > 0, the exception object 
+      Otherwise, if the reference count is > 0, the exception object
       goes into your "property" and you need to free it manually.
       The effect of this function is countered by re-raising an exception
       via "raise;", this zeroes the reference count again.
@@ -234,7 +234,7 @@
     { @abstract(decrease exception reference count)
       After calling @link(AcquireExceptionObject) you can call this method
       to decrease the exception reference count again.
-      If the reference count is > 0, the exception object 
+      If the reference count is > 0, the exception object
       goes into your "property" and you need to free it manually.
       Calling this method is only valid within an except block. }
     procedure ReleaseExceptionObject;
@@ -293,7 +293,10 @@
 
 {
   $Log$
-  Revision 1.18  2003-11-03 09:42:28  marco
+  Revision 1.19  2003-11-30 19:48:20  florian
+    * fixed some arm stuff
+
+  Revision 1.18  2003/11/03 09:42:28  marco
    * Peter's Cardinal<->Longint fixes patch
 
   Revision 1.17  2003/10/06 15:59:20  florian

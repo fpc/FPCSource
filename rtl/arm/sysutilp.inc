@@ -1,0 +1,57 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+
+    Copyright (c) 2001 by Florian Klaempfl
+    member of the Free Pascal development team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{ ---------------------------------------------------------------------
+  This include contains cpu-specific routines
+  ---------------------------------------------------------------------}
+
+
+{ the ARM doesn't know multiprocessor system which would require locking }
+
+
+function InterLockedDecrement (var Target: integer) : Integer;
+  begin
+    dec(Target);
+    result:=target;
+  end;
+
+
+function InterLockedIncrement (var Target: integer) : Integer;
+  begin
+    inc(Target);
+    result:=target;
+  end;
+
+
+function InterLockedExchange (var Target: integer;Source : integer) : Integer;
+  begin
+    Result:=Target;
+    Target:=Source;
+  end;
+
+
+function InterLockedExchangeAdd (var Target: integer;Source : integer) : Integer;
+  begin
+    Result:=Target;
+    inc(Target,Source);
+  end;
+
+
+{
+  $Log$
+  Revision 1.1  2003-11-30 19:48:20  florian
+    * fixed some arm stuff
+}
