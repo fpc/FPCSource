@@ -225,12 +225,20 @@ var
 {$else : go32v2}
   CalcSigJmp : dpmi_jmp_buf;
 {$endif go32v2}
+const
+  fpucw : word = $1332;
 {$ifdef Unix}
 Procedure CalcSigFPE(sig : longint);cdecl;
 {$else}
 function CalcSigFPE(sig : longint) : longint;
 {$endif}
 begin
+{$ifdef CPUI386}
+  asm
+    fninit
+    fldcw fpucw
+  end;
+{$endif}
   ErrorBox('Error while computing math expression',nil);
 {$ifdef go32v2}
   Dpmi_LongJmp(CalcSigJmp,1);
@@ -263,6 +271,11 @@ begin
   CalcKey:=true;
   Key := UpCaseStr(Key);
 {$ifdef HasSignal}
+{$ifdef CPUI386}
+  asm
+    fstcw fpucw
+  end;
+{$endif}
 {$ifdef go32v2}
   if Dpmi_SetJmp(CalcSigJmp)=0 then
 {$else : not go32v2}
@@ -534,7 +547,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2001-11-14 23:55:38  pierre
+  Revision 1.4  2002-01-22 13:56:04  pierre
+   * fix multiple FPU excpetion trapping problem for unix
+
+  Revision 1.3  2001/11/14 23:55:38  pierre
    * fix bug 1680 for go32v2 and hopefully for linux
 
   Revision 1.2  2001/08/05 02:01:47  peter
