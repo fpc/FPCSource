@@ -1,13 +1,4 @@
-{*****************************************************************************}
-{ File                   : cpuinfo.pas                                        }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\26\26                                         }
-{ Last modification date : 2002\08\20                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{
+{******************************************************************************
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl
 
@@ -30,6 +21,7 @@
  ****************************************************************************}
 UNIT cpuinfo;
 {$INCLUDE fpcdefs.inc}
+
 INTERFACE
 TYPE
 {# Natural integer register type and size for the target machine }
@@ -39,20 +31,19 @@ TYPE
   TConstExprInt=int64;
 { this must be an ordinal type with the same size as a pointer }
 { Note: must be unsigned!! Otherwise, ugly code like           }
-{ pointer(-1) will result in a pointer with the value          }
-{ $fffffffffffffff on a 32bit machine if the compiler uses     }
-{ int64 constants internally (JM)                              }
   TConstPtrUInt=cardinal;
-  bestreal = extended;
+  bestreal = double;
   ts32real = single;
   ts64real = double;
   ts80real = extended;
   ts64comp = extended;
   pbestreal=^bestreal;
+
 { possible supported processors for this target }
   tprocessors=(no_processor,SPARC_V8,SPARC_V9);
 CONST
 {# Size of native extended floating point type }
+{SPARC architecture uses IEEE double floating point numbers}
   extended_size = 8;
 {# Size of a pointer                           }
   pointer_size  = 4;
@@ -63,6 +54,14 @@ CONST
 { size of the buffer used for setjump/longjmp
   the size of this buffer is deduced from the
   jmp_buf structure in setjumph.inc file }
-  jmp_buf_size = 24;
+{$warning jmp_buf_size not set!}  
+  jmp_buf_size = 0;
+
 IMPLEMENTATION
 END.
+{
+  $Log$
+  Revision 1.5  2002-10-16 12:36:54  mazen
+  * patch of Carl Eric added
+
+}  
