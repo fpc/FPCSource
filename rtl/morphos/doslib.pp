@@ -16,6 +16,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$INLINE ON}
 
 unit doslib;
 
@@ -120,7 +121,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2004-08-09 00:10:19  karoly
+  Revision 1.3  2004-08-09 12:57:07  karoly
+    + added {$INLINE ON} to fix cycle
+
+  Revision 1.2  2004/08/09 00:10:19  karoly
     + added most of missing stuff
 
   Revision 1.1  2004/06/26 20:46:17  karoly
