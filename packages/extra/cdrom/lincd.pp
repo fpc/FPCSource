@@ -3,7 +3,7 @@
     Copyright (c) 1999-2000 by Michael Van Canneyt
 
     Unit containing definitions from the Linux CDROM kernel interface.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -18,12 +18,18 @@ unit lincd;
 
 interface
 
-uses linux;
+uses
+{$ifdef ver1_0}
+  linux
+{$else}
+  unix
+{$endif}
+  ;
 
 { ---------------------------------------------------------------------
     cdrom.h header translation.
   ---------------------------------------------------------------------}
-  
+
   { Pointers to basic pascal types, inserted by h2pas conversion program.}
 Type
   PLongint  = ^Longint;
@@ -37,7 +43,7 @@ Type
   PU8  = ^TU8;
   TU32 = Cardinal;
   PU32 = ^TU32;
-   
+
 {$PACKRECORDS C}
 
 const
@@ -707,7 +713,7 @@ procedure set_sense_key(var a : Trequest_sense; __sense_key : Tu8);
 { ---------------------------------------------------------------------
     Utility functions
   ---------------------------------------------------------------------}
-  
+
 Function IsCDDevice(Device : String) : Boolean;
 Function DetectCd : String;
 
@@ -718,7 +724,7 @@ uses major,sysutils;
 { ---------------------------------------------------------------------
     Functions from cdrom.h translation.
   ---------------------------------------------------------------------}
-  
+
 function cdsc_adr(var a : Tcdrom_subchnl) : Tu8;
 begin
   cdsc_adr:=(a.flag0 and bm_Tcdrom_subchnl_cdsc_adr) shr bp_Tcdrom_subchnl_cdsc_adr;
@@ -1075,7 +1081,7 @@ end;
 { ---------------------------------------------------------------------
     Implementation of utility functions.
   ---------------------------------------------------------------------}
-  
+
 
 Const
   NrDevices = 14;
@@ -1097,25 +1103,25 @@ Const
 
 Function DetectCD : String;
 
-Var 
+Var
   I,J,L : Integer;
-  S,RS : String;
-  
+  S : String;
+
 begin
   Result:='';
   I:=0;
   While (Result='') and (I<NrDevices) do
     begin
     Inc(I);
-    S:=Devices[i]; 
+    S:=Devices[i];
     L:=Length(S);
     If S[l]='?' then
       begin
       S:=Copy(S,1,L-1);
       For J:=0 to 3 do
         If IsCdDevice(S+Chr(Ord('0')+J)) then
-          Result:=S+Chr(Ord('0')+J) 
-        else If IsCdDevice(S+Chr(Ord('a')+J)) then 
+          Result:=S+Chr(Ord('0')+J)
+        else If IsCdDevice(S+Chr(Ord('a')+J)) then
           Result:=S+Chr(Ord('a')+J)
       end
     else
@@ -1143,25 +1149,25 @@ Var
   Info : stat;
   S : String;
   DeviceMajor,F : Integer;
-  
+
 begin
 {$ifdef debug}
   Writeln('Testing device : ',Device);
-{$endif}  
+{$endif}
   Result:=False;
   If not fstat(device,info) then
     exit;
   if not (S_ISCHR(info.mode) or S_ISBLK(info.mode)) then
     exit;
   S:=ReadLink(Device);
-  If (S<>'') then 
-    Device:=S;  
-  If Not FStat(Device,info) then 
+  If (S<>'') then
+    Device:=S;
+  If Not FStat(Device,info) then
     exit;
   DeviceMajor:=info.rdev shr 8;
   If DeviceMajor in [IDE0_MAJOR,IDE1_MAJOR,IDE2_MAJOR,IDE3_MAJOR] then
       Result:=TestCDRomIOCTL(Device)
-  else 
+  else
     begin
     Result:=DeviceMajor in CDMajor;
     If Not Result then
@@ -1172,10 +1178,10 @@ begin
       begin
       F:=fdOpen(Device,OPEN_RDONLY or OPEN_NONBLOCK);
       Result:=(F>=0);
-      If Result then 
+      If Result then
         fdClose(F);
       end;
-    end;  
+    end;
 end;
 
 Function TestCDRomIOCTL(Device : String) : Boolean;
@@ -1183,14 +1189,14 @@ Function TestCDRomIOCTL(Device : String) : Boolean;
 Var
   F : Integer;
   info : Tcdrom_volctrl;
-  
+
 begin
 {$ifdef debug}
   Writeln('Testing for ATAPI');
 {$endif}
   Result:=False;
   f:=fdOpen(device,OPEN_RDONLY or OPEN_NONBLOCK);
-  If (f<0) then 
+  If (f<0) then
     exit;
   Result:=ioctl(f,CDROMVOLREAD,@info);
   fdClose(f);

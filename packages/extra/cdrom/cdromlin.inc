@@ -1,4 +1,10 @@
-uses linux,lincd;
+uses
+{$ifdef ver1_0}
+  linux,
+{$else}
+  unix,
+{$endif}
+  lincd;
 
 Function ReadCDTOC(Device : String; Var CDTOC : Array of TTocEntry) : Integer;
 
@@ -6,7 +12,7 @@ Var
   I,Drive    : Integer;
   tochdr   : Tcdrom_tochdr;
   tocentry : tcdrom_tocentry;
-  
+
 begin
   drive:=fdopen(Device, Open_RDONLY or Open_NONBLOCK);
   if drive<0 then
@@ -21,7 +27,7 @@ begin
     end;
   If (tochdr.cdth_trk1-tochdr.cdth_trk0)>High(CDToc) then
     Result:=-2
-  else  
+  else
     begin
     Result:=0;
     for i := tochdr.cdth_trk0 to tochdr.cdth_trk1 do
@@ -37,7 +43,7 @@ begin
         frame := tocentry.cdte_addr.msf.frame;
         inc(frame,min*60*75);
         inc(frame,sec*75);
-        end;  
+        end;
       Inc(result);
       end;
     tocentry.cdte_track := $AA;
@@ -51,12 +57,12 @@ begin
       inc(frame, min*60*75);
       inc(frame, sec*75);
       end;
-    end;  
+    end;
   fdclose(drive);
 end;
 
 { ---------------------------------------------------------------------
-    /etc/fstab scanning. 
+    /etc/fstab scanning.
   ---------------------------------------------------------------------}
 
 Function ExtractDevice(S : String) : String;
@@ -70,7 +76,7 @@ begin
   If P<>0 then
     S:=Copy(S,1,P-1);
   If Length(S)>0 then
-    begin  
+    begin
     P:=1;
     While (P<=Length(S)) and (S[P] in [#9,' ']) do
       Inc(p);
@@ -78,16 +84,16 @@ begin
     While (L<=Length(S)) and (Not (S[L] in [#9,' '])) do
       Inc(L);
     If L>P then
-      Result:=Copy(S,P,L-P);    
-    end;  
+      Result:=Copy(S,P,L-P);
+    end;
 end;
-  
+
 Function TestFSTab(var Devices : Array of String) : Integer;
 
-Var 
+Var
   fstab : text;
   Line : String;
-  
+
 begin
   Result:=0;
   Assign(FSTab,'/etc/fstab');
@@ -106,10 +112,10 @@ begin
         inc(Result);
         end;
       end;
-    Close(fstab);  
+    Close(fstab);
     end
   else
-    Result:=-1;  
+    Result:=-1;
 end;
 
 Function GetCDRomDevices(Var Devices : Array of string) : Integer;
@@ -122,7 +128,7 @@ begin
   If (Result<1) then
     begin
     S:=DetectCD;
-    If (S<>'') then 
+    If (S<>'') then
       begin
       Devices[0]:=S;
       Result:=1;
