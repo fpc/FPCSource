@@ -97,7 +97,7 @@ unit cg64f32;
         tmpreg: tregister;
         tmpref: treference;
       begin
-        if target_info.endian=endian_big then
+        if target_info.endian = endian_big then
           begin
             tmpreg:=reg.reglo;
             reg.reglo:=reg.reghi;
@@ -114,7 +114,7 @@ unit cg64f32;
         tmpvalue : DWord;
         tmpref: treference;
       begin
-        if target_info.endian<>source_info.endian then
+        if target_info.endian = endian_big then
           swap_qword(value);
         cg.a_load_const_ref(list,OS_32,lo(value),ref);
         tmpref := ref;
@@ -173,7 +173,7 @@ unit cg64f32;
     procedure tcg64f32.a_load64_const_reg(list : taasmoutput;value : qword;reg : tregister64);
 
       begin
-        if target_info.endian<>source_info.endian then
+        if target_info.endian = endian_big then
           swap_qword(value);
         cg.a_load_const_reg(list,OS_32,lo(value),reg.reglo);
         cg.a_load_const_reg(list,OS_32,hi(value),reg.reghi);
@@ -408,7 +408,7 @@ unit cg64f32;
     procedure tcg64f32.a_param64_const(list : taasmoutput;value : qword;const locpara : tparalocation);
       begin
 {$warning FIX ME}
-        if target_info.endian<>source_info.endian then
+        if target_info.endian = endian_big then
           swap_qword(value);
          cg.a_param_const(list,OS_32,hi(value),locpara);
          { the nr+1 needs definitivly a fix FK }
@@ -620,7 +620,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2002-07-11 07:23:17  jonas
+  Revision 1.20  2002-07-12 10:14:26  jonas
+    * some big-endian fixes
+
+  Revision 1.19  2002/07/11 07:23:17  jonas
     + generic implementations of a_op64_ref_reg() and a_op64_const_ref()
       (only works for processors with >2 scratch registers)
 
