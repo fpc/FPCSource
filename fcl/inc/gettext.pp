@@ -68,7 +68,7 @@ type
     function Translate(AOrig: String): String;
   end;
 
-  EMOFileError = type Exception;
+  EMOFileError = class(Exception);
 
 
   procedure TranslateResourceStrings(AFile: TMOFile);
@@ -310,7 +310,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:24  peter
+  Revision 1.7  2003-01-05 15:55:06  florian
+    * fixed type = type ...; statement for 1.1
+
+  Revision 1.6  2002/09/07 15:15:24  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/01/19 11:54:52  peter

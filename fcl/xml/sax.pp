@@ -148,7 +148,7 @@ type
 { TSAXReader: Reading an XML document using callbacks }
 
   TCharactersEvent = procedure(Sender: TObject; const ch: PSAXChar; AStart, ALength: Integer) of object;
-  TCommentEvent = type TCharactersEvent;
+  TCommentEvent = procedure(Sender: TObject; const ch: PSAXChar; AStart, ALength: Integer) of object;
   TEndElementEvent = procedure(Sender: TObject; const NamespaceURI, LocalName, QName: SAXString) of object;
   TEndPrefixMappingEvent = procedure(Sender: TObject; const Prefix: SAXString) of object;
   TIgnorableWhitespaceEvent = procedure(Sender: TObject; const ch: PSAXChar; AStart, ALength: Integer) of object;
@@ -934,7 +934,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2002-12-12 13:43:38  michael
+  Revision 1.3  2003-01-05 15:55:16  florian
+    * fixed type = type ...; statement for 1.1
+
+  Revision 1.2  2002/12/12 13:43:38  michael
   + Patches from peter to fix 1.1 compile
 
   Revision 1.1  2002/12/11 21:06:07  sg
