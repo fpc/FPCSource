@@ -23,12 +23,12 @@ type
 {$ENDIF}
 
   intf   = int;
-{$IFDEF MSDOS}
-  uInt   = Word;
+{$IFDEF FPC}
+  uInt = Longint;     { 16 bits or more }
+  { Should be cardinal, but that crashes }
 {$ELSE}
-  {$IFDEF FPC}
-    uInt = Longint;     { 16 bits or more }
-    { Should be cardinal, but that crashes }
+  {$IFDEF MSDOS}
+    uInt   = Word;
   {$ENDIF}
 {$ENDIF}
   uIntf  = uInt;
