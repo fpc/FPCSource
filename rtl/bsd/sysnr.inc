@@ -17,14 +17,14 @@ const
  syscall_nr_setup			= 0;
  syscall_nr_exit			= 1; {*}
  syscall_nr_fork			= 2; {*}
- syscall_nr_read			= 3;
- syscall_nr_write			= 4;
- syscall_nr_open			= 5;
+ syscall_nr_read			= 3; {*}
+ syscall_nr_write			= 4; {*}
+ syscall_nr_open			= 5; {*}
  syscall_nr_close			= 6; {*}
  syscall_nr_waitpid			= 7; {*}
  syscall_nr_creat			= 8;
  syscall_nr_link			= 9; {*}
- syscall_nr_unlink			= 10;
+ syscall_nr_unlink			= 10; {*}
  syscall_nr_execve                      = 59; {*}
  syscall_nr_chdir                       = 12;
  syscall_nr_time			= 13;
@@ -33,7 +33,7 @@ const
  syscall_nr_chown			= 16; {*}
  syscall_nr_break			= 17;
  syscall_nr_oldstat			= 18;
- syscall_nr_lseek			= 19;
+ syscall_nr_lseek			= 199; {*}
  syscall_nr_getpid			= 20; {*}
  syscall_nr_mount			= 21;
  syscall_nr_umount			= 22;
@@ -52,9 +52,9 @@ const
  syscall_nr_ftime			= 35;
  syscall_nr_sync			= 36;
  syscall_nr_kill			= 37; {*}
- syscall_nr_rename			= 38;
- syscall_nr_mkdir			= 39;
- syscall_nr_rmdir			= 40;
+ syscall_nr_rename			= 38; {*}
+ syscall_nr_mkdir			= 136; {*}
+ syscall_nr_rmdir			= 137; {*}
  syscall_nr_dup				= 41;
  syscall_nr_pipe			= 42; {*}
  syscall_nr_times			= 43;
@@ -68,7 +68,7 @@ const
  syscall_nr_acct			= 51;
  syscall_nr_phys			= 52;
  syscall_nr_lock			= 53;
- syscall_nr_ioctl			= 54;
+ syscall_nr_ioctl			= 54;  {*}
  syscall_nr_fcntl			= 92;
  syscall_nr_mpx				= 56;
  syscall_nr_setpgid			= 57;
@@ -86,7 +86,7 @@ const
  syscall_nr_ssetmask			= 69;
  syscall_nr_setreuid			= 70;
  syscall_nr_setregid			= 71;
- syscall_nr_sigsuspend			= 72;
+ syscall_nr_sigsuspend			= 111; {*}
  syscall_nr_sigpending			= 52; {*}
  syscall_nr_sethostname			= 74;
  syscall_nr_setrlimit			= 75;
@@ -99,12 +99,12 @@ const
  syscall_nr_select                      = 93; {*}
  syscall_nr_symlink			= 57; {*}
  syscall_nr_oldlstat			= 84;
- syscall_nr_readlink			= 85;
+ syscall_nr_readlink			= 58; {*}
  syscall_nr_uselib			= 86;
  syscall_nr_swapon			= 87;
  syscall_nr_reboot			= 88;
  syscall_nr_readdir			= 89;
- syscall_nr_mmap			= 90;
+ syscall_nr_mmap			= 197; {*}
  syscall_nr_munmap			= 91;
  syscall_nr_truncate			= 92;
  syscall_nr_ftruncate			= 201;  {*}
@@ -120,7 +120,7 @@ const
  syscall_nr_syslog			= 103;
  syscall_nr_setitimer			= 104;
  syscall_nr_getitimer			= 105;
- syscall_nr_stat			= 106;
+ syscall_nr_stat			= 188; {*}
  syscall_nr_lstat			= 190; {*}
  syscall_nr_fstat			= 189; {*}
  syscall_nr_olduname			= 109;
@@ -155,7 +155,7 @@ const
  syscall_nr_setfsuid			= 138;
  syscall_nr_setfsgid			= 139;
  syscall_nr__llseek			= 140;
- syscall_nr_getdents			= 141;
+ syscall_nr_getdents			= 272;
  syscall_nr__newselect			= 142;
  syscall_nr_flock			= 131;
  syscall_nr_msync			= 144;
@@ -360,7 +360,10 @@ const
 
 {
   $Log$
-  Revision 1.1  2000-04-05 13:06:24  marco
+  Revision 1.2  2000-04-05 13:59:10  marco
+   * added constants for syscall.inc
+
+  Revision 1.1  2000/04/05 13:06:24  marco
    * Initial version. (copied from linux.) Patch for BSD not ready yeT
 
   Revision 1.5  2000/02/09 16:59:32  peter
