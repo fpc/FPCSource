@@ -416,6 +416,42 @@ end;
                           Error / Exit / ExitProc
 *****************************************************************************}
 
+Procedure system_exit;forward;
+
+Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
+var
+  current_exit : Procedure;
+Begin
+  while exitProc<>nil Do
+   Begin
+     InOutRes:=0;
+     current_exit:=tProcedure(exitProc);
+     exitProc:=nil;
+     current_exit();
+   End;
+  { Finalize units }
+  FinalizeUnits;
+  { Show runtime error }
+  If erroraddr<>nil Then
+   Begin
+     Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
+     { to get a nice symify }
+     Writeln(stdout,BackTraceStrFunc(Longint(Erroraddr)));
+     dump_stack(stdout,ErrorBase);
+     Writeln(stdout,'');
+   End;
+  { call system dependent exit code }
+  System_exit;
+End;
+
+
+Procedure Halt(ErrNum: Byte);
+Begin
+  ExitCode:=Errnum;
+  Do_Exit;
+end;
+
+
 function SysBackTraceStr (Addr: longint): ShortString;
 begin
   SysBackTraceStr:='  0x'+HexStr(addr,8);
@@ -489,35 +525,6 @@ Begin
      prevbp:=bp;
      bp:=get_caller_frame(bp);
    End;
-End;
-
-
-Procedure system_exit;forward;
-
-Procedure do_exit;[Public,Alias:'FPC_DO_EXIT'];
-var
-  current_exit : Procedure;
-Begin
-  while exitProc<>nil Do
-   Begin
-     InOutRes:=0;
-     current_exit:=tProcedure(exitProc);
-     exitProc:=nil;
-     current_exit();
-   End;
-  { Finalize units }
-  FinalizeUnits;
-  { Show runtime error }
-  If erroraddr<>nil Then
-   Begin
-     Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
-     { to get a nice symify }
-     Writeln(stdout,BackTraceStrFunc(Longint(Erroraddr)));
-     dump_stack(stdout,ErrorBase);
-     Writeln(stdout,'');
-   End;
-  { call system dependent exit code }
-  System_exit;
 End;
 
 
@@ -605,7 +612,11 @@ end;
 
 {
   $Log$
-  Revision 1.81  2000-02-06 17:19:22  peter
+  Revision 1.82  2000-02-09 12:17:51  peter
+    * moved halt to system.inc
+    * syslinux doesn't use direct asm anymore
+
+  Revision 1.81  2000/02/06 17:19:22  peter
     * lineinfo unit added which uses stabs to get lineinfo for backtraces
 
   Revision 1.80  2000/01/10 09:54:30  peter

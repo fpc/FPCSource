@@ -84,21 +84,17 @@ Implementation
                        Misc. System Dependent Functions
 *****************************************************************************}
 
-{$ifdef i386}
-  {$ASMMODE DIRECT}
-{$endif}
+procedure prthaltproc;external name '_haltproc';
 
-Procedure Halt(ErrNum: Byte);
-Begin
-  ExitCode:=Errnum;
-  Do_Exit;
+procedure System_exit;
+begin
 {$ifdef i386}
   asm
-        jmp     _haltproc
+        jmp     prthaltproc
   end;
 {$else}
   asm
-        jmp     _haltproc
+        jmp     prthaltproc
   end;
 {$endif}
 End;
@@ -139,11 +135,7 @@ end;
 
 Procedure Randomize;
 Begin
-{$ifdef crtlib}
-  _rtl_gettime(longint(@randseed));
-{$else}
   randseed:=sys_time;
-{$endif}
 End;
 
 
@@ -151,14 +143,18 @@ End;
                               Heap Management
 *****************************************************************************}
 
+var
+  _HEAP : longint;external name 'HEAP';
+  _HEAPSIZE : longint;external name 'HEAPSIZE';
+
 function getheapstart:pointer;assembler;
 {$ifdef i386}
 asm
-        leal    HEAP,%eax
+        leal    _HEAP,%eax
 end ['EAX'];
 {$else}
 asm
-        lea.l   HEAP,a0
+        lea.l   _HEAP,a0
         move.l  a0,d0
 end;
 {$endif}
@@ -167,11 +163,11 @@ end;
 function getheapsize:longint;assembler;
 {$ifdef i386}
 asm
-        movl    HEAPSIZE,%eax
+        movl    _HEAPSIZE,%eax
 end ['EAX'];
 {$else}
 asm
-       move.l   HEAP_SIZE,d0
+       move.l   _HEAPSIZE,d0
 end ['D0'];
 {$endif}
 
@@ -624,15 +620,6 @@ end;
 
 
 {*****************************************************************************
-                         System Dependent Exit code
-*****************************************************************************}
-
-Procedure system_exit;
-begin
-end;
-
-
-{*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
 
@@ -735,7 +722,11 @@ End.
 
 {
   $Log$
-  Revision 1.35  2000-02-08 11:47:09  peter
+  Revision 1.36  2000-02-09 12:17:51  peter
+    * moved halt to system.inc
+    * syslinux doesn't use direct asm anymore
+
+  Revision 1.35  2000/02/08 11:47:09  peter
     * paramstr(0) support
 
   Revision 1.34  2000/01/20 23:38:02  peter

@@ -77,26 +77,32 @@ const
       zero   = '0000000000000000000000000000000000000000';
 
 type
+{$ifdef SUPPORT_EXTENDED}
   TSplitExtended = packed record
     case byte of
       0: (bytes: Array[0..9] of byte);
       1: (words: Array[0..4] of word);
       2: (cards: Array[0..1] of cardinal; w: word);
   end;
-
+{$else}
+{$ifdef SUPPORT_DOUBLE}
   TSplitDouble = packed record
     case byte of
       0: (bytes: Array[0..7] of byte);
       1: (words: Array[0..3] of word);
       2: (cards: Array[0..1] of cardinal);
   end;
-
+{$else}
+{$ifdef SUPPORT_SINGLE}
   TSplitSingle = packed record
     case byte of
       0: (bytes: Array[0..3] of byte);
       1: (words: Array[0..1] of word);
       2: (cards: Array[0..0] of cardinal);
   end;
+{$endif SUPPORT_SINGLE}
+{$endif SUPPORT_DOUBLE}
+{$endif SUPPORT_EXTENDED}
 
 var correct : longint;  { Power correction }
     currprec : longint;
@@ -347,7 +353,11 @@ end;
 
 {
   $Log$
-  Revision 1.20  2000-01-17 13:00:51  jonas
+  Revision 1.21  2000-02-09 12:17:51  peter
+    * moved halt to system.inc
+    * syslinux doesn't use direct asm anymore
+
+  Revision 1.20  2000/01/17 13:00:51  jonas
     + support for NaN's, cleaner support for Inf
 
   Revision 1.19  2000/01/07 16:41:36  daniel
