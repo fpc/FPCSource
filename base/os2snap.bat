@@ -45,7 +45,7 @@ rem *** reside in the same directory as the other required tools (AS.EXE,
 rem *** LD.EXE, etc.).
 rem *** Environment variable OTHEROPTS may be used to specify additional
 rem *** switches (e.g. setting level of verbosity, etc.).
-rem *** Environment variable FPCERRLOG can specify a file for error logging
+rem *** Environment variable FPCLOG can specify a file for error logging
 rem *** (full path needed). Please, note, that the previous contents of
 rem *** file will be overwritten each time the batch file is run.
 rem *** Environment variable VERBOSEOPT may be used to specify level of
@@ -56,6 +56,7 @@ rem *** Environment variable FPCSNAPPATH may be used to specify path, where
 rem *** the compiled files should be placed and possibly the ZIP file
 rem *** created.
 
+set FPCERRLOG=%FPCLOG%
 if .%FPCERRLOG% == . set FPCERRLOG=CON
 if .%FPCERRLOG% == . echo Error: Not enough environment space!!!
 if .%FPCERRLOG% == . exit
@@ -196,7 +197,8 @@ set STACKOPT=-Cs256000
 rem Path to object files
 set OS2OBJP=-Fo%OS2RTL%
 rem Path to units
-set OS2UNITP=-Fu%FPCSNAPRTL%;%OS2RTL%
+rem set OS2UNITP=-Fu%FPCSNAPRTL%;%OS2RTL%
+set OS2UNITP=-Fu%FPCSNAPRTL%
 rem Path to compiler units
 set COMPUNITP=-Fu%COMPSPATH%
 rem Path to compiler include files
@@ -410,7 +412,7 @@ echo %OS2UNITE% >> %OS2OPTF%
 echo -FD%REALTOOLS% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
-if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
+if not .%FPCLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -a >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -s >> %OS2OPTF%
 if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
@@ -449,10 +451,6 @@ echo *Compiling unit MMX ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLP%\MMX.PP
 if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
-echo *Compiling unit TypInfo ... >> %FPCERRLOG%
-%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\TYPINFO.PP
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
-if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit DosCalls ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOSCALLS.PAS
 if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
@@ -461,16 +459,20 @@ echo *Compiling unit DOS ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\DOS.PAS
 if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit SysUtils ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
+echo *Compiling unit TypInfo ... >> %FPCERRLOG%
+%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\TYPINFO.PP
+if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
+if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit CRT ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\CRT.PAS
 if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Printer ... >> %FPCERRLOG%
 %REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTL%\PRINTER.PAS
-if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
-if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
-echo *Compiling unit SysUtils ... >> %FPCERRLOG%
-%REALTOOLS%%COMPILER% @%OS2OPTF% %OTHEROPTS% %OS2RTLO%\SYSUTILS.PP
 if .%FORCEPPAS% == .1 echo * Calling the PPAS script >> %FPCERRLOG%
 if .%FORCEPPAS% == .1 call %FPCSNAPRTL%\%PPASNAME% >> %FPCERRLOG%
 echo *Compiling unit Math ... >> %FPCERRLOG%
@@ -541,7 +543,7 @@ echo %STACKOPT% >> %OS2OPTF%
 echo %OS2EXET% >> %OS2OPTF%
 if not .%CURRENTOPT1% == . echo %CURRENTOPT1% >> %OS2OPTF%
 if not .%CURRENTOPT2% == . echo %CURRENTOPT2% >> %OS2OPTF%
-if not .%FPCERRLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
+if not .%FPCLOG% == . echo -Fe%FPCERRLOG% >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -a >> %OS2OPTF%
 if not .%FORCEPPAS% == . echo -s >> %OS2OPTF%
 if .%DOVERBOSE% == .1 echo %VERBOSEOPT% >> %OS2OPTF%
@@ -659,7 +661,10 @@ goto End
 
 
   $Log$
-  Revision 1.11  2000-03-12 13:37:24  hajny
+  Revision 1.12  2000-03-12 18:29:40  hajny
+    * wrong order corrected
+
+  Revision 1.11  2000/03/12 13:37:24  hajny
     * support for calling PPAS script, compiler stack increased
 
   Revision 1.10  2000/03/06 17:38:39  hajny
