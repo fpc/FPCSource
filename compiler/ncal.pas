@@ -44,6 +44,9 @@ interface
           { only the processor specific nodes need to override this }
           { constructor                                             }
           constructor create(l:tnode; v : tprocsym;st : tsymtable; mp : tnode);virtual;
+{$ifdef hascompilerproc}
+          constructor createintern(const name: string; params: tnode);
+{$endif hascompilerproc}
           destructor destroy;override;
           function  getcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
@@ -537,6 +540,18 @@ implementation
          procdefinition:=nil;
       end;
 
+{$ifdef hascompilerproc}
+     constructor tcallnode.createintern(const name: string; params: tnode);
+       var
+         srsym: tsym;
+       begin
+         srsym := searchsymonlyin(systemunit,name);
+         if not assigned(srsym) or
+            (srsym.typ <> procsym) then
+           internalerror(200107271);
+         self.create(params,tprocsym(srsym),systemunit,nil);
+       end;
+{$endif hascompilerproc}
 
     destructor tcallnode.destroy;
       begin
@@ -1666,7 +1681,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.38  2001-07-30 20:52:25  peter
+  Revision 1.39  2001-08-01 15:07:29  jonas
+    + "compilerproc" directive support, which turns both the public and mangled
+      name to lowercase(declaration_name). This prevents a normal user from
+      accessing the routine, but they can still be easily looked up within
+      the compiler. This is used for helper procedures and should facilitate
+      the writing of more processor independent code in the code generator
+      itself (mostly written by Peter)
+    + new "createintern" constructor for tcal nodes to create a call to
+      helper exported using the "compilerproc" directive
+    + support for high(dynamic_array) using the the above new things
+    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
+      compiler and rtl whether the "compilerproc" directive is supported)
+
+  Revision 1.38  2001/07/30 20:52:25  peter
     * fixed array constructor passing with type conversions
 
   Revision 1.37  2001/07/09 21:15:40  peter

@@ -1105,6 +1105,7 @@ begin
     end;
 end;
 
+
 type
    pd_handler=procedure;
    proc_dir_rec=record
@@ -1119,7 +1120,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=33;
+  num_proc_directives=34;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1428,6 +1429,15 @@ const
                        pocall_leftright,pocall_inline];
       mutexclpotype : [];
       mutexclpo     : [po_assembler,po_interrupt]
+    ),(
+      idtok:_COMPILERPROC;
+      pd_flags : pd_interface+pd_implemen+pd_body+pd_notobjintf;
+      handler  : nil;
+      pocall   : [pocall_compilerproc];
+      pooption : [];
+      mutexclpocall : [];
+      mutexclpotype : [];
+      mutexclpo     : [po_interrupt]
     )
    );
 
@@ -1811,6 +1821,17 @@ const
                          else
                            p:=pd;
                          aktprocsym.definition:=hd;
+                         { for compilerproc defines we need to rename and update the
+                           mangledname }
+                         if (pocall_compilerproc in aktprocsym.definition.proccalloptions) then
+                          begin
+                            { rename to lowercase so users can't access it }
+                            aktprocsym.owner.rename(aktprocsym.name,lower(aktprocsym.name));
+                            { also update the realname that is stored in the ppu }
+                            stringdispose(aktprocsym._realname);
+                            aktprocsym._realname:=stringdup('$'+aktprocsym.name);
+                            aktprocsym.definition.setmangledname(aktprocsym.name);
+                          end;
                          check_identical_proc:=true;
                          break;
                        end
@@ -1886,7 +1907,20 @@ const
 end.
 {
   $Log$
-  Revision 1.29  2001-07-09 21:11:14  peter
+  Revision 1.30  2001-08-01 15:07:29  jonas
+    + "compilerproc" directive support, which turns both the public and mangled
+      name to lowercase(declaration_name). This prevents a normal user from
+      accessing the routine, but they can still be easily looked up within
+      the compiler. This is used for helper procedures and should facilitate
+      the writing of more processor independent code in the code generator
+      itself (mostly written by Peter)
+    + new "createintern" constructor for tcal nodes to create a call to
+      helper exported using the "compilerproc" directive
+    + support for high(dynamic_array) using the the above new things
+    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
+      compiler and rtl whether the "compilerproc" directive is supported)
+
+  Revision 1.29  2001/07/09 21:11:14  peter
     * fixed overload checking for delphi. Empty parameters are only
       allowed in implementation and not when the forward declaration
       contains overload directive

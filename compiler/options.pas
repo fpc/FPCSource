@@ -1280,6 +1280,7 @@ begin
   def_symbol('PACKENUMFIXED');
   def_symbol('HAS_ADDR_STACK_ON_STACK');
   def_symbol('NOBOUNDCHECK');
+  def_symbol('HASCOMPILERPROC');
 
 { some stuff for TP compatibility }
 {$ifdef i386}
@@ -1563,7 +1564,20 @@ finalization
 end.
 {
   $Log$
-  Revision 1.51  2001-07-31 19:38:46  peter
+  Revision 1.52  2001-08-01 15:07:29  jonas
+    + "compilerproc" directive support, which turns both the public and mangled
+      name to lowercase(declaration_name). This prevents a normal user from
+      accessing the routine, but they can still be easily looked up within
+      the compiler. This is used for helper procedures and should facilitate
+      the writing of more processor independent code in the code generator
+      itself (mostly written by Peter)
+    + new "createintern" constructor for tcal nodes to create a call to
+      helper exported using the "compilerproc" directive
+    + support for high(dynamic_array) using the the above new things
+    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
+      compiler and rtl whether the "compilerproc" directive is supported)
+
+  Revision 1.51  2001/07/31 19:38:46  peter
     * removed fpu_in_rtl define (merged)
 
   Revision 1.50  2001/07/30 21:39:26  peter

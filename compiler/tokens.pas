@@ -214,6 +214,7 @@ type
     _INTERNCONST,
     _REINTRODUCE,
     _SHORTSTRING,
+    _COMPILERPROC,
     _FINALIZATION,
     _DISPINTERFACE,
     _SAVEREGISTERS,
@@ -436,6 +437,7 @@ const
       (str:'INTERNCONST'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'REINTRODUCE'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'COMPILERPROC'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
       (str:'DISPINTERFACE' ;special:false;keyword:m_class;op:NOTOKEN),
       (str:'SAVEREGISTERS' ;special:false;keyword:m_none;op:NOTOKEN),
@@ -495,7 +497,20 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2001-07-30 20:59:28  peter
+  Revision 1.13  2001-08-01 15:07:29  jonas
+    + "compilerproc" directive support, which turns both the public and mangled
+      name to lowercase(declaration_name). This prevents a normal user from
+      accessing the routine, but they can still be easily looked up within
+      the compiler. This is used for helper procedures and should facilitate
+      the writing of more processor independent code in the code generator
+      itself (mostly written by Peter)
+    + new "createintern" constructor for tcal nodes to create a call to
+      helper exported using the "compilerproc" directive
+    + support for high(dynamic_array) using the the above new things
+    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
+      compiler and rtl whether the "compilerproc" directive is supported)
+
+  Revision 1.12  2001/07/30 20:59:28  peter
     * m68k updates from v10 merged
 
   Revision 1.11  2001/06/03 21:57:38  peter

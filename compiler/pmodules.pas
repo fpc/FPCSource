@@ -1044,15 +1044,13 @@ implementation
          if (Errorcount=0) then
            tppumodule(current_module).writeppu;
 
-         if not(cs_compilesystem in aktmoduleswitches) then
-           if store_interface_crc<>current_module.interface_crc then
-             Comment(V_Warning,current_module.ppufilename^+' Interface CRC changed '+
-               hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
 {$ifdef EXTDEBUG}
-         if not(cs_compilesystem in aktmoduleswitches) then
-           if (store_crc<>current_module.crc) and simplify_ppu then
-             Comment(V_Warning,current_module.ppufilename^+' implementation CRC changed '+
-               hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
+         if store_interface_crc<>current_module.interface_crc then
+           Comment(V_Warning,current_module.ppufilename^+' Interface CRC changed '+
+                   hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
+         if (store_crc<>current_module.crc) and simplify_ppu then
+           Comment(V_Warning,current_module.ppufilename^+' implementation CRC changed '+
+                   hexstr(store_crc,8)+'<>'+hexstr(current_module.interface_crc,8));
 {$endif EXTDEBUG}
 
          { remove static symtable (=refsymtable) here to save some mem }
@@ -1335,7 +1333,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  2001-07-30 20:59:27  peter
+  Revision 1.39  2001-08-01 15:07:29  jonas
+    + "compilerproc" directive support, which turns both the public and mangled
+      name to lowercase(declaration_name). This prevents a normal user from
+      accessing the routine, but they can still be easily looked up within
+      the compiler. This is used for helper procedures and should facilitate
+      the writing of more processor independent code in the code generator
+      itself (mostly written by Peter)
+    + new "createintern" constructor for tcal nodes to create a call to
+      helper exported using the "compilerproc" directive
+    + support for high(dynamic_array) using the the above new things
+    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
+      compiler and rtl whether the "compilerproc" directive is supported)
+
+  Revision 1.38  2001/07/30 20:59:27  peter
     * m68k updates from v10 merged
 
   Revision 1.37  2001/06/18 20:36:25  peter

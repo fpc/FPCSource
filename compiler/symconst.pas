@@ -199,8 +199,8 @@ type
     pocall_inline,        { Procedure is an assembler macro }
     pocall_internproc,    { Procedure has compiler magic}
     pocall_internconst,   { procedure has constant evaluator intern }
-    pocall_cppdecl        { C++ calling conventions }
-    ,pocall_13
+    pocall_cppdecl,       { C++ calling conventions }
+    pocall_compilerproc   { Procedure is used for internal compiler calls }
     ,pocall_14
     ,pocall_15
     ,pocall_16
@@ -450,7 +450,20 @@ implementation
 end.
 {
   $Log$
-  Revision 1.20  2001-06-04 18:14:54  peter
+  Revision 1.21  2001-08-01 15:07:29  jonas
+    + "compilerproc" directive support, which turns both the public and mangled
+      name to lowercase(declaration_name). This prevents a normal user from
+      accessing the routine, but they can still be easily looked up within
+      the compiler. This is used for helper procedures and should facilitate
+      the writing of more processor independent code in the code generator
+      itself (mostly written by Peter)
+    + new "createintern" constructor for tcal nodes to create a call to
+      helper exported using the "compilerproc" directive
+    + support for high(dynamic_array) using the the above new things
+    + definition of 'HASCOMPILERPROC' symbol (to be able to check in the
+      compiler and rtl whether the "compilerproc" directive is supported)
+
+  Revision 1.20  2001/06/04 18:14:54  peter
     * varargs added for proc to procvar comparison
 
   Revision 1.19  2001/06/04 11:53:13  peter
