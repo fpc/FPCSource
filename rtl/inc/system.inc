@@ -282,10 +282,9 @@ end;
 
 {$ifndef RTLLITE}
 
-Function Ptr(sel,off : Longint) : pointer;[internconst:in_const_ptr];
+Function Ptr(sel,off : Longint) : farpointer;[internconst:in_const_ptr];
 Begin
-  sel:=0;
-  ptr:=pointer(off);
+  ptr:=farpointer((sel shl 4)+off);
 End;
 
 Function CSeg : Word;
@@ -640,7 +639,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2000-11-06 21:35:59  peter
+  Revision 1.9  2000-11-11 16:12:01  peter
+    * ptr returns farpointer
+
+  Revision 1.8  2000/11/06 21:35:59  peter
     * removed some warnings
 
   Revision 1.7  2000/11/04 17:52:46  florian

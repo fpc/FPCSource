@@ -253,7 +253,7 @@ Function odd(l:Longint):Boolean;
 ****************************************************************************}
 
 {$ifndef RTLLITE}
-Function  ptr(sel,off:Longint):pointer;
+Function  ptr(sel,off:Longint):farpointer;
 Function  Cseg:Word;
 Function  Dseg:Word;
 Function  Sseg:Word;
@@ -484,7 +484,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2000-11-06 21:35:59  peter
+  Revision 1.11  2000-11-11 16:12:01  peter
+    * ptr returns farpointer
+
+  Revision 1.10  2000/11/06 21:35:59  peter
     * removed some warnings
 
   Revision 1.9  2000/11/06 20:34:24  peter
