@@ -99,6 +99,7 @@ asm
   sc
 { Put back the registers... }
   lwz    r8, regs
+  stw    r3, 0(r8)
   stw    r3, 4(r8)
   stw    r4, 8(r8)
   stw    r5, 12(r8)
@@ -580,7 +581,10 @@ end;
 
 {
   $Log$
-  Revision 1.11  2002-09-03 21:37:54  florian
+  Revision 1.12  2002-09-07 13:14:04  florian
+    * hopefully final fix for ppc syscall BTW: The regX numbering is somehow messy
+
+  Revision 1.11  2002/09/03 21:37:54  florian
     * hopefully final fix for ppc syscall
 
   Revision 1.10  2002/09/02 20:42:22  florian
