@@ -344,7 +344,8 @@ implementation
            @second_class_to_intf,
            @second_char_to_char,
            @second_nothing,  { normal_2_smallset }
-           @second_nothing   { dynarray_2_openarray }
+           @second_nothing,   { dynarray_2_openarray }
+           @second_nothing
          );
       type
          tprocedureofobject = procedure of object;
@@ -390,7 +391,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2002-09-17 18:54:06  jonas
+  Revision 1.26  2002-10-18 16:38:42  jonas
+    + added entry for pwchar_to_string conversion addition
+
+  Revision 1.25  2002/09/17 18:54:06  jonas
     * a_load_reg_reg() now has two size parameters: source and dest. This
       allows some optimizations on architectures that don't encode the
       register size in the register name.
