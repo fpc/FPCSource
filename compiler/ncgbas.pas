@@ -175,6 +175,8 @@ interface
 
          if getposition then
            begin
+             { Add a marker, to be sure the list is not empty }
+             exprasmlist.concat(tai_marker.create(marker_position));
              currenttai:=tai(exprasmlist.last);
              exit;
            end;
@@ -372,7 +374,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.45  2003-10-21 15:15:36  peter
+  Revision 1.46  2003-10-24 17:39:41  peter
+    * asmnode.get_position now inserts a marker
+
+  Revision 1.45  2003/10/21 15:15:36  peter
     * taicpu_abstract.oper[] changed to pointers
 
   Revision 1.44  2003/10/10 17:48:13  peter

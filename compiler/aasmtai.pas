@@ -192,7 +192,8 @@ interface
 
        TMarker = (NoPropInfoStart,NoPropInfoEnd,
                   AsmBlockStart,AsmBlockEnd,
-                  InlineStart,InlineEnd,marker_blockstart);
+                  InlineStart,InlineEnd,marker_blockstart,
+                  marker_position);
 
        { Buffer type used for alignment }
        tfillbuffer = array[0..63] of char;
@@ -2139,7 +2140,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2003-10-23 14:44:07  peter
+  Revision 1.48  2003-10-24 17:39:41  peter
+    * asmnode.get_position now inserts a marker
+
+  Revision 1.47  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 
