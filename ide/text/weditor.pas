@@ -124,6 +124,7 @@ type
       EndsWithAsm   : boolean;
       IsBreakpoint : boolean;
       BeginsWithComment,
+      EndsInSingleLineComment,
       EndsWithComment : boolean;
       BeginsWithDirective,
       EndsWithDirective : boolean;
@@ -147,7 +148,7 @@ type
     end;
 
     TSpecSymbolClass =
-      (ssCommentPrefix,ssCommentSuffix,ssStringPrefix,ssStringSuffix,
+      (ssCommentPrefix,ssCommentSingleLinePrefix,ssCommentSuffix,ssStringPrefix,ssStringSuffix,
        ssDirectivePrefix,ssDirectiveSuffix,ssAsmPrefix,ssAsmSuffix);
 
     PCodeEditor = ^TCodeEditor;
@@ -1382,7 +1383,9 @@ begin
       end;
     if FreeFormat[X] then
      if X<=length(Format) then
-       Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
+       {Color:=ColorTab[ord(Format[X])] else Color:=ColorTab[coTextColor];
+         this give BoundsCheckError with -Cr quite often PM }
+       Color:=ColorTab[ord(Format[X]) mod (coLastColor + 1)] else Color:=ColorTab[coTextColor];
 
     if ( ((Flags and efHighlightRow)   <>0) and
        (PX.Y=CurPos.Y) ) and (HighlightRow=-1) then
@@ -2480,7 +2483,7 @@ type
     TCharClass = (ccWhiteSpace,ccTab,ccAlpha,ccNumber,ccSymbol);
 var
   LastCC: TCharClass;
-  InAsm,InComment,InDirective,InString: boolean;
+  InAsm,InComment,InSingleLineComment,InDirective,InString: boolean;
   X,ClassStart: Sw_integer;
   SymbolConcat: string;
   LineText,Format: string;
@@ -2519,6 +2522,11 @@ var
   function IsCommentPrefix: boolean;
   begin
     IsCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentPrefix,true);
+  end;
+
+  function IsSingleLineCommentPrefix: boolean;
+  begin
+    IsSingleLineCommentPrefix:=MatchesAnySpecSymbol(SymbolConcat,ssCommentSingleLinePrefix,true);
   end;
 
   function IsCommentSuffix: boolean;
@@ -2646,8 +2654,13 @@ var
        if IsDirectiveSuffix and (InComment=false) and (InDirective=true) then
           InDirective:=false else
        if IsCommentPrefix and (InString=false) then
-      begin InComment:=true; {InString:=false; }Dec(ClassStart,length(MatchingSymbol)-1); end else
-       if IsCommentSuffix and (InComment) then
+         begin
+           InComment:=true;
+           InSingleLineComment:=IsSingleLineCommentPrefix;
+           {InString:=false; }
+           Dec(ClassStart,length(MatchingSymbol)-1);
+         end
+       else if IsCommentSuffix and (InComment) then
       begin InComment:=false; InString:=false; end else
        if IsStringPrefix and (InComment=false) and (InString=false) then
           begin InString:=true; Dec(ClassStart,length(MatchingSymbol)-1); end else
@@ -2676,7 +2689,7 @@ begin
     if PrevLine<>nil then
      begin
        InAsm:=PrevLine^.EndsWithAsm;
-       InComment:=PrevLine^.EndsWithComment;
+       InComment:=PrevLine^.EndsWithComment and not PrevLine^.EndsInSingleLineComment;
        InDirective:=PrevLine^.EndsWithDirective;
      end
     else
@@ -2705,6 +2718,7 @@ begin
     SetLineFormat(CurLine,Format);
     Line^.EndsWithAsm:=InAsm;
     Line^.EndsWithComment:=InComment;
+    Line^.EndsInSingleLineComment:=InSingleLineComment;
     Line^.EndsWithDirective:=InDirective;
     Inc(CurLine);
     if CurLine>=GetLineCount then
@@ -3306,7 +3320,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  1999-02-11 19:07:26  pierre
+  Revision 1.17  1999-02-15 09:32:58  pierre
+   * single line comment // fix : comments intermix still wrong !!
+
+  Revision 1.16  1999/02/11 19:07:26  pierre
     * GDBWindow redesigned :
       normal editor apart from
       that any kbEnter will send the line (for begin to cursor)
