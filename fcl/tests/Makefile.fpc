@@ -12,6 +12,11 @@ programs_win32=showver testproc testhres testnres testsres testrhre \
                testrnre testrsre testur
 programs_linux=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
                testhres testnres testsres testrhre testrnre testrsre testur
+programs_darwin=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
+               testhres testnres testsres testrhre testrnre testrsre testur
+programs_freebsd=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
+               testhres testnres testsres testrhre testrnre testrsre testur
+
 rst=restest
 
 [require]
