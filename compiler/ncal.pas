@@ -1803,25 +1803,20 @@ type
          { bind parasyms to the callparanodes and insert hidden parameters }
          bind_parasym;
 
-         { methodpointer is only needed for virtual calls, and
-           it should then be loaded with the VMT }
-         if (po_virtualmethod in procdefinition.procoptions) and
-            not(assigned(methodpointer) and
-                (methodpointer.nodetype=typen)) then
+         { methodpointer needs to be a pointer to the VMT for virtual calls.
+           Note: We need to keep the methodpointer in the callnode for TP
+           procvar support, because this calln still maybe converted to a loadn,
+           see tw3499 }
+         if (po_virtualmethod in procdefinition.procoptions) then
           begin
             if not assigned(methodpointer) then
               internalerror(200305063);
-            if (methodpointer.resulttype.def.deftype<>classrefdef) then
+            if (methodpointer.nodetype<>typen) and
+               (methodpointer.resulttype.def.deftype<>classrefdef) then
               begin
                 methodpointer:=cloadvmtaddrnode.create(methodpointer);
                 resulttypepass(methodpointer);
               end;
-          end
-         else
-          begin
-            { not needed anymore }
-            methodpointer.free;
-            methodpointer:=nil;
           end;
 
          { insert type conversions for parameters }
@@ -2450,7 +2445,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.273  2004-12-27 16:36:10  peter
+  Revision 1.274  2005-01-02 16:58:48  peter
+    * Don't release methodpointer. It is maybe still needed when we need to
+     convert the calln to loadn
+
+  Revision 1.273  2004/12/27 16:36:10  peter
     * fix crash with callnode.ppuload when symtableproc=nil
 
   Revision 1.272  2004/12/26 16:22:01  peter

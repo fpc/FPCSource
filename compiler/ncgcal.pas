@@ -852,8 +852,11 @@ implementation
          { procedure variable or normal function call ? }
          if (right=nil) then
            begin
+             { When methodpointer is typen we don't need (and can't) load
+               a pointer. We can directly call the correct procdef (PFV) }
              if (po_virtualmethod in procdefinition.procoptions) and
-                assigned(methodpointer) then
+                assigned(methodpointer) and
+                (methodpointer.nodetype<>typen) then
                begin
                  secondpass(methodpointer);
                  location_force_reg(exprasmlist,methodpointer.location,OS_ADDR,false);
@@ -869,40 +872,34 @@ implementation
                  if not(is_interface(tprocdef(procdefinition)._class)) and
                     not(is_cppclass(tprocdef(procdefinition)._class)) then
                    cg.g_maybe_testvmt(exprasmlist,methodpointer.location.register,tprocdef(procdefinition)._class);
-               end;
-               {$warning fixme regvars}
-{              rg.saveotherregvars(exprasmlist,regs_to_push_other);}
 
-              if (po_virtualmethod in procdefinition.procoptions) and
-                 assigned(methodpointer) then
-                begin
-                   vmtreg:=methodpointer.location.register;
-                   pvreg:=cg.getintregister(exprasmlist,OS_ADDR);
-                   reference_reset_base(href,vmtreg,
-                      tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
-                   cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
+                 vmtreg:=methodpointer.location.register;
+                 pvreg:=cg.getintregister(exprasmlist,OS_ADDR);
+                 reference_reset_base(href,vmtreg,
+                    tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber));
+                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,OS_ADDR,href,pvreg);
 
-                   { Load parameters that are in temporary registers in the
-                     correct parameter register }
-                   if assigned(left) then
-                     begin
-                       pushparas;
-                       { free the resources allocated for the parameters }
-                       freeparas;
-                     end;
+                 { Load parameters that are in temporary registers in the
+                   correct parameter register }
+                 if assigned(left) then
+                   begin
+                     pushparas;
+                     { free the resources allocated for the parameters }
+                     freeparas;
+                   end;
 
-                   cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
-                   if cg.uses_registers(R_FPUREGISTER) then
-                     cg.alloccpuregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
-                   if cg.uses_registers(R_MMREGISTER) then
-                     cg.alloccpuregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
+                 cg.alloccpuregisters(exprasmlist,R_INTREGISTER,regs_to_save_int);
+                 if cg.uses_registers(R_FPUREGISTER) then
+                   cg.alloccpuregisters(exprasmlist,R_FPUREGISTER,regs_to_save_fpu);
+                 if cg.uses_registers(R_MMREGISTER) then
+                   cg.alloccpuregisters(exprasmlist,R_MMREGISTER,regs_to_save_mm);
 
-                   { call method }
-                   extra_call_code;
-                   cg.a_call_reg(exprasmlist,pvreg);
-                end
-              else
-                begin
+                 { call method }
+                 extra_call_code;
+                 cg.a_call_reg(exprasmlist,pvreg);
+               end
+             else
+               begin
                   { Load parameters that are in temporary registers in the
                     correct parameter register }
                   if assigned(left) then
@@ -1253,7 +1250,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.190  2004-12-05 12:28:11  peter
+  Revision 1.191  2005-01-02 16:58:48  peter
+    * Don't release methodpointer. It is maybe still needed when we need to
+     convert the calln to loadn
+
+  Revision 1.190  2004/12/05 12:28:11  peter
     * procvar handling for tp procvar mode fixed
     * proc to procvar moved from addrnode to typeconvnode
     * inlininginfo is now allocated only for inline routines that
