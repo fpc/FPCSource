@@ -962,10 +962,22 @@ The running program will then be aborted.
 \section{Debugging programs}
 \label{se:debugging}
 To debug a program, it must be compiled with debug information. Compiling a
-program with debug information allows to
+program with debug information allows to:
 \begin{enumerate}
 \item Execute the program line by line.
+\item Run the program till a certain point (a breakpoint)
+\item Inspect the contents of variables or memory locations while the
+program is running.
 \end{enumerate}
+
+\subsection{Using breakpoints}
+Breakpoints will cause a running program to stop when the execution
+reaches the line where the breakpoint was set. At that moment, control
+is returned to the IDE, and it is possible to continue execution.
+
+To set a breakpoint,
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The tools menu
 \section{The tools menu}
@@ -1360,7 +1372,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.3  2000-11-14 23:24:09  michael
+%  Revision 1.1.2.4  2000-11-15 18:58:35  michael
+%  + Debug continued
+%
+%  Revision 1.1.2.3  2000/11/14 23:24:09  michael
 %  + Documented run menu
 %
 %  Revision 1.1.2.2  2000/11/13 23:46:03  michael
