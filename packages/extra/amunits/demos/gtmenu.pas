@@ -1,4 +1,5 @@
 Program GadtoolsMenu;
+{$mode objfpc}
 
 {* gadtoolsmenu.p
 ** Example showing the basic usage of the menu system with a window.
@@ -6,52 +7,76 @@ Program GadtoolsMenu;
 **
 *}
 
-uses Exec, Intuition, Utility, GadTools;
+{
+   Changed to use TAGS and pas2c.
+   1 Nov 1998.
 
-{$I tagutils.inc}
+   Updated for systemvartags.
+   28 Nov 2002.
+
+   nils.sjoholm@mailbox.swipnet.se
+}
+
+uses Exec, Intuition, Utility, GadTools, systemvartags;
+
+
 
 const
 
     mynewmenu : array[0..15] of tNewMenu = (
-    (nm_Type: NM_TITLE; nm_Label:'Project';   nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Open...';   nm_CommKey:'O';   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Save';      nm_CommKey:'S';   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_TITLE; nm_Label:'Project';   nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Open...';   nm_CommKey:'O';   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Save';      nm_CommKey:'S';   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type: NM_ITEM;  nm_Label:'Print';     nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_SUB;   nm_Label:'Draft';     nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_SUB;   nm_Label:'NLQ';       nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Print';     nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_SUB;   nm_Label:'Draft';     nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_SUB;   nm_Label:'NLQ';       nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type: NM_ITEM;  nm_Label:'Quit...';   nm_CommKey:'Q';   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Quit...';   nm_CommKey:'Q';   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type: NM_TITLE; nm_Label:'Edit';      nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Cut';       nm_CommKey:'X';   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Copy';      nm_CommKey:'C';   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:'Paste';     nm_CommKey:'V';   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
-    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_TITLE; nm_Label:'Edit';      nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Cut';       nm_CommKey:'X';   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Copy';      nm_CommKey:'C';   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Paste';     nm_CommKey:'V';   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:nil;         nm_CommKey: NIL;  nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type: NM_ITEM;  nm_Label:'Undo';      nm_CommKey:'Z';   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL),
+    (nm_Type: NM_ITEM;  nm_Label:'Undo';      nm_CommKey:'Z';   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL),
 
-    (nm_Type:   NM_END; nm_Label:NIL;         nm_CommKey:NIL;   nm_Flags:0; nm_MutualExclude:0; nm_UserData:NIL));
+    (nm_Type:   NM_END; nm_Label:NIL;         nm_CommKey:NIL;   nm_Flags:0; 
+nm_MutualExclude:0; nm_UserData:NIL));
 
 var
    win : pWindow;
    myVisualInfo : Pointer;
    menuStrip : pMenu;
-   tags : array[0..6] of tTagItem;
    msg  : pMessage;
    done : boolean;
 
 Procedure Die;
 begin
-    if MenuStrip <> nil then begin
+    if assigned(MenuStrip) then begin
        ClearMenuStrip(win);
        FreeMenus(MenuStrip);
     end;
-    if myVisualInfo <> nil then FreeVisualInfo(myVisualInfo);
-    if win <> Nil then CloseWindow(win);
-    if GadToolsBase <> nil then CloseLibrary(GadToolsBase);
+    if assigned(myVisualInfo) then FreeVisualInfo(myVisualInfo);
+    if assigned(win) then CloseWindow(win);
     Halt(0);
 end;
 
@@ -100,17 +125,16 @@ end;
 *}
 
 begin
-    GadToolsBase := OpenLibrary(PChar('gadtools.library'#0), 37);
-    if GadToolsBase = nil then die;
 
-    tags[0] := TagItem(WA_Width,  400);
-    tags[1] := TagItem(WA_Activate,    1);
-    tags[2] := TagItem(WA_Height, 100);
-    tags[3] := TagItem(WA_CloseGadget, 1);
-    tags[4] := TagItem(WA_Title,  Long(PChar('Menu Test Window'#0)));
-    tags[5] := TagItem(WA_IDCMP,  IDCMP_CLOSEWINDOW or IDCMP_MENUPICK);
-    tags[6].ti_Tag := TAG_END;
-    win := OpenWindowTagList(NIL, @tags);
+    win := OpenWindowTags(NIL, [
+                             WA_Width,  400,
+                             WA_Activate,    ltrue,
+                             WA_Height, 100,
+                             WA_CloseGadget, ltrue,
+                             WA_Title,  'Menu Test Window',
+                             WA_IDCMP,  IDCMP_CLOSEWINDOW or IDCMP_MENUPICK,
+                             TAG_END]);
+    
     if win = nil then die;
 
     myVisualInfo := GetVisualInfoA(win^.WScreen,nil);
@@ -124,9 +148,9 @@ begin
     mynewmenu[13].nm_Label := PChar(NM_BARLABEL);
 
     if pExecBase(_ExecBase)^.LibNode.Lib_Version >= 39 then begin
-        tags[0] := TagItem(GTMN_FrontPen, 1);
-        tags[1].ti_Tag := TAG_END;
-        MenuStrip := CreateMenusA(@mynewmenu,@tags);
+        MenuStrip := CreateMenus(@mynewmenu, [
+	                         GTMN_FrontPen, 1,
+                                 TAG_END]);
     end else MenuStrip := CreateMenusA(@mynewmenu,NIL);
 
     if menuStrip = nil then die;
@@ -143,4 +167,9 @@ begin
     die;
 end.
 
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
 
+}

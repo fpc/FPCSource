@@ -1,5 +1,5 @@
 Program Moire;
-
+{$mode objfpc}
 {
       Will now open a default screen (can be any size) with
       the new look. The window get it's size depending on
@@ -8,22 +8,30 @@ Program Moire;
 
       Translated to FPC from PCQ Pascal.
       15 Aug 1998.
+
+      Changed to use vartags and pas2c.
+      18 Jan 2000.
+
+      Removed opening of graphics.library.
+      21 Mar 2001.
+
+      Reworked to use systemvartags.
+      28 Nov 2002.
+
       nils.sjoholm@mailbox.swipnet.se
 }
 
-uses Exec, Intuition, Graphics, Utility;
+uses Exec, Intuition, Graphics, Utility, systemvartags;
 
-{$I tagutils.inc}
 
 const
     pens : array [0..0] of Integer = ( not 0);
-    ltrue = 1;
+    
 
 var
     w  : pWindow;
     s  : pScreen;
     m  : pMessage;
-    thetags : array[0..17] of tTagItem;
 
 
 Procedure DoDrawing(RP : pRastPort);
@@ -70,38 +78,37 @@ begin
       the startup code created.  Same with DOS, although we don't
       use that here. }
 
-    GfxBase := OpenLibrary(GRAPHICSNAME,0);
-    if GfxBase <> nil then begin
+    
 
-    thetags[0] := TagItem(SA_Pens,      longint(@pens));
-    thetags[1] := TagItem(SA_Depth,     2);
-    thetags[2] := TagItem(SA_DisplayID, HIRES_KEY);
-    thetags[3] := TagItem(SA_Title,     Long(PChar('Close the Window to End This Demonstration'#0)));
-    thetags[4].ti_Tag := TAG_END;
+    s := OpenScreenTags(NIL, [
+    SA_Pens,      @pens,
+    SA_Depth,     2,
+    SA_DisplayID, HIRES_KEY,
+    SA_Title,     'Close the Window to End This Demonstration',
+    TAG_END]);
 
-    s := OpenScreenTagList(NIL, @thetags);
     if s <> NIL then begin
 
-    thetags[0] := TagItem(WA_IDCMP,        IDCMP_CLOSEWINDOW);
-    thetags[1] := TagItem(WA_Left,         20);
-    thetags[2] := TagItem(WA_Top,          50);
-    thetags[3] := TagItem(WA_Width,        336);
-    thetags[4] := TagItem(WA_Height,       100);
-    thetags[5] := TagItem(WA_MinWidth,     50);
-    thetags[6] := TagItem(WA_MinHeight,    20);
-    thetags[7] := TagItem(WA_MaxWidth,     -1);
-    thetags[8] := TagItem(WA_MaxHeight,    -1);
-    thetags[9] := TagItem(WA_DepthGadget,  ltrue);
-    thetags[10] := TagItem(WA_DragBar,      -1);
-    thetags[11] := TagItem(WA_CloseGadget,  -1);
-    thetags[12] := TagItem(WA_SizeGadget,   -1);
-    thetags[13] := TagItem(WA_SmartRefresh, -1);
-    thetags[14] := TagItem(WA_Activate,     -1);
-    thetags[15] := TagItem(WA_Title,        Long(PChar('Feel Free to Re-Size the Window'#0)));
-    thetags[16] := TagItem(WA_CustomScreen, Long(s));
-    thetags[17].ti_Tag := TAG_END;
+    w := OpenWindowTags(NIL, [
+    WA_IDCMP,        IDCMP_CLOSEWINDOW,
+    WA_Left,         20,
+    WA_Top,          50,
+    WA_Width,        336,
+    WA_Height,       100,
+    WA_MinWidth,     50,
+    WA_MinHeight,    20,
+    WA_MaxWidth,     -1,
+    WA_MaxHeight,    -1,
+    WA_DepthGadget,  ltrue,
+    WA_DragBar,      -1,
+    WA_CloseGadget,  -1,
+    WA_SizeGadget,   -1,
+    WA_SmartRefresh, -1,
+    WA_Activate,     -1,
+    WA_Title,        'Feel Free to Re-Size the Window',
+    WA_CustomScreen, s,
+    TAG_END]);
 
-    w := OpenWindowTagList(NIL, @thetags);
     IF w <> NIL THEN begin
 
         DoDrawing(w^.RPort);
@@ -116,7 +123,13 @@ begin
         CloseScreen(s);
     end else
         writeln('Could not open the screen.');
-    CloseLibrary(GfxBase);
-    end else writeln('no graphics.library');
 end.
 
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
+
+}
+
+  

@@ -23,17 +23,27 @@ PROGRAM SortDemo;
     window stayed locked.
     Aug 23 1998.
 
+    Added MessageBox for report.
+    31 Jul 2000.
+
+    Removed opening of graphics.library.
+    21 Mar 2001.
+
+    Reworked to use systemvartags.
+    28 Nov 2002.
+
     nils.sjoholm@mailbox.swipnet.se
 
     One last remark, the heapsort can't be stoped
     so you have to wait until it's finished.
 }
 
-uses Exec, Intuition, Graphics, Utility, GadTools;
+uses Exec, Intuition, Graphics, Utility, GadTools, msgbox,systemvartags;
+{$mode objfpc}
 
-{$I tagutils.inc}
 
-CONST version : PChar = '$VER: SortDemo 1.3  (23-Aug-98)';
+CONST
+      vers : string = '$VER: SortDemo 1.3 ' + {$I %DATE%} + ' ' + {$I %TIME%}#0;
 
       nmax=2000;
 
@@ -44,7 +54,7 @@ CONST version : PChar = '$VER: SortDemo 1.3  (23-Aug-98)';
       s         : pScreen  = Nil;
       MenuStrip : pMenu    = Nil;
       vi        : Pointer  = Nil;
-      ltrue     : longint  = -1;
+    
 
       modenames : Array[0..7] of string[10] = (
                                 'Heapsort',
@@ -63,31 +73,53 @@ CONST version : PChar = '$VER: SortDemo 1.3  (23-Aug-98)';
       }
 
       nm : array[0..21] of tNewMenu = (
-      (nm_Type: NM_TITLE; nm_Label: 'Demo';        nm_CommKey: NIL; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Start';       nm_CommKey: 'S'; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Stop';        nm_CommKey: 'H'; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_TITLE; nm_Label: 'Demo';nm_CommKey: NIL; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'Start';nm_CommKey: 'S'; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'Stop';nm_CommKey: 'H'; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
 
       { this will be a barlabel, have to set this one later }
-      (nm_Type: NM_ITEM;  nm_Label: NIL;           nm_CommKey: NIL; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: NIL; nm_CommKey: NIL; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
 
-      (nm_Type: NM_ITEM;  nm_Label: 'Quit';        nm_CommKey: 'Q'; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_TITLE; nm_Label: 'Algorithm';   nm_CommKey: NIL; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'HeapSort';    nm_CommKey: '1'; nm_Flags: CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 254; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'ShellSort';   nm_CommKey: '2'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 253; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Pick out';    nm_CommKey: '3'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 251; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Insert';      nm_CommKey: '4'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 247; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'ShakerSort';  nm_CommKey: '5'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 239; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'BubbleSort';  nm_CommKey: '6'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 223; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'QuickSort';   nm_CommKey: '7'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 191; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'MergeSort';   nm_CommKey: '8'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 127; nm_UserData: NIL),
-      (nm_Type: NM_TITLE; nm_Label: 'Preferences'; nm_CommKey: NIL; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Data';        nm_CommKey: NIL; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Random';      nm_CommKey: 'R'; nm_Flags: CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 2; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Malicious';   nm_CommKey: 'M'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 1; nm_UserData: NIL),
-      (nm_Type: NM_ITEM;  nm_Label: 'Diagram';     nm_CommKey: NIL; nm_Flags: 0; nm_MutualExclude: 0; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Needles';     nm_CommKey: 'N'; nm_Flags: CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 2; nm_UserData: NIL),
-      (nm_Type: NM_SUB;   nm_Label: 'Dots';        nm_CommKey: 'D'; nm_Flags: CHECKIT+MENUTOGGLE; nm_MutualExclude: 1; nm_UserData: NIL),
-      (nm_Type: NM_END;   nm_Label: NIL;           nm_CommKey: NIL; nm_Flags: 0;nm_MutualExclude:0;nm_UserData:NIL));
+      (nm_Type: NM_ITEM;  nm_Label: 'Quit';  nm_CommKey: 'Q'; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_TITLE; nm_Label: 'Algorithm'; nm_CommKey: NIL; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'HeapSort'; nm_CommKey: '1'; nm_Flags: 
+       CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 254; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'ShellSort'; nm_CommKey: '2'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 253; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'Pick out'; nm_CommKey: '3'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 251; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'Insert'; nm_CommKey: '4'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 247; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'ShakerSort'; nm_CommKey: '5'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 239; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'BubbleSort'; nm_CommKey: '6'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 223; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'QuickSort'; nm_CommKey: '7'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 191; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'MergeSort'; nm_CommKey: '8'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 127; nm_UserData: NIL),
+      (nm_Type: NM_TITLE; nm_Label: 'Preferences'; nm_CommKey: NIL; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'Data'; nm_CommKey: NIL; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_SUB;   nm_Label: 'Random'; nm_CommKey: 'R'; nm_Flags: 
+       CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 2; nm_UserData: NIL),
+      (nm_Type: NM_SUB;   nm_Label: 'Malicious'; nm_CommKey: 'M'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 1; nm_UserData: NIL),
+      (nm_Type: NM_ITEM;  nm_Label: 'Diagram'; nm_CommKey: NIL; nm_Flags: 0; 
+       nm_MutualExclude: 0; nm_UserData: NIL),
+      (nm_Type: NM_SUB;   nm_Label: 'Needles'; nm_CommKey: 'N'; nm_Flags: 
+       CHECKIT+CHECKED+MENUTOGGLE; nm_MutualExclude: 2; nm_UserData: NIL),
+      (nm_Type: NM_SUB;   nm_Label: 'Dots'; nm_CommKey: 'D'; nm_Flags: 
+       CHECKIT+MENUTOGGLE; nm_MutualExclude: 1; nm_UserData: NIL),
+      (nm_Type: NM_END;   nm_Label: NIL; nm_CommKey: NIL; nm_Flags: 
+       0;nm_MutualExclude:0;nm_UserData:NIL));
 
 
 VAR sort: ARRAY[1..nmax] OF Real;
@@ -99,19 +131,16 @@ VAR sort: ARRAY[1..nmax] OF Real;
     Msg             : pMessage;
     wintitle        : string[80];
     scrtitle        : string[80];
-    tags            : array[1..18] of tTagItem;
 
 Procedure CleanUp(s : string; err : Integer);
 begin
-    if MenuStrip <> nil then begin
+    if assigned(MenuStrip) then begin
        ClearMenuStrip(w);
        FreeMenus(MenuStrip);
     end;
-    if vi <> nil then FreeVisualInfo(vi);
-    if w <> nil then CloseWindow(w);
-    if GfxBase <> nil then CloseLibrary(GfxBase);
-    if GadToolsBase <> nil then CloseLibrary(GadToolsBase);
-    if s <> '' then writeln(s);
+    if assigned(vi) then FreeVisualInfo(vi);
+    if assigned(w) then CloseWindow(w);
+    if s <> '' then MessageBox('SortDemo Report',s,'OK');
     Halt(err);
 end;
 
@@ -220,7 +249,7 @@ BEGIN
     wintitle := '<- ' + IntToStr(num) + ' Data ->'
   ELSE
     wintitle := IntToStr(time) + ' Seconds';
-  scrtitle := strpas(@version[6]) + ' - ' + s;
+  scrtitle := strpas(@vers[6]) + ' - ' + s;
   wintitle := wintitle + #0;
   scrtitle := scrtitle + #0;
   SetWindowTitles(w,@wintitle[1],@scrtitle[1]);
@@ -463,10 +492,6 @@ END;
 
 Procedure OpenEverything;
 begin
-    GadToolsBase := OpenLibrary(PChar('gadtools.library'#0),37);
-    if GadToolsBase = nil then CleanUp('Can''t open gadtools.library',20);
-    GfxBase := OpenLibrary(GRAPHICSNAME,37);
-    if GfxBase = nil then CleanUp('Can''t open graphics.library',20);
 
     s := LockPubScreen(nil);
     if s = nil then CleanUp('Could not lock pubscreen',10);
@@ -474,25 +499,27 @@ begin
     vi := GetVisualInfoA(s, NIL);
     if vi = nil then CleanUp('No visual info',10);
 
-                tags[1] := TagItem(WA_IDCMP,         IDCMP_CLOSEWINDOW or IDCMP_MENUPICK or IDCMP_NEWSIZE);
-                tags[2] := TagItem(WA_Left,          0);
-                tags[3] := TagItem(WA_Top,           s^.BarHeight+1);
-                tags[4] := TagItem(WA_Width,         224);
-                tags[5] := TagItem(WA_Height,        s^.Height-(s^.BarHeight-1));
-                tags[6] := TagItem(WA_MinWidth,      MinWinX);
-                tags[7] := TagItem(WA_MinHeight,     MinWinY);
-                tags[8] := TagItem(WA_MaxWidth,      -1);
-                tags[9] := TagItem(WA_MaxHeight,     -1);
-                tags[10] := TagItem(WA_DepthGadget,   ltrue);
-                tags[11] := TagItem(WA_DragBar,       ltrue);
-                tags[12] := TagItem(WA_CloseGadget,   ltrue);
-                tags[13] := TagItem(WA_SizeGadget,    ltrue);
-                tags[14] := TagItem(WA_Activate,      ltrue);
-                tags[15] := TagItem(WA_SizeBRight,    ltrue);
-                tags[16] := TagItem(WA_GimmeZeroZero, ltrue);
-                tags[17] := TagItem(WA_PubScreen,     longint(s));
-                tags[18].ti_Tag := TAG_END;
-    w := OpenWindowTagList(NIL, @tags[1]);
+    w := OpenWindowTags(NIL, [
+                WA_IDCMP,         IDCMP_CLOSEWINDOW or IDCMP_MENUPICK or 
+IDCMP_NEWSIZE,
+                WA_Left,          0,
+                WA_Top,           s^.BarHeight+1,
+                WA_Width,         224,
+                WA_Height,        s^.Height-(s^.BarHeight-1),
+                WA_MinWidth,      MinWinX,
+                WA_MinHeight,     MinWinY,
+                WA_MaxWidth,      -1,
+                WA_MaxHeight,     -1,
+                WA_DepthGadget,   ltrue,
+                WA_DragBar,       ltrue,
+                WA_CloseGadget,   ltrue,
+                WA_SizeGadget,    ltrue,
+                WA_Activate,      ltrue,
+                WA_SizeBRight,    ltrue,
+                WA_GimmeZeroZero, ltrue,
+                WA_PubScreen,     s,
+                TAG_END]);
+
     IF w=NIL THEN CleanUp('Could not open window',20);
 
     Rast := w^.RPort;
@@ -501,9 +528,8 @@ begin
     nm[3].nm_Label := PChar(NM_BARLABEL);
 
     if pExecBase(_ExecBase)^.LibNode.Lib_Version >= 39 then begin
-        tags[1] := TagItem(GTMN_FrontPen, 1);
-        tags[2].ti_Tag := TAG_END;
-        MenuStrip := CreateMenusA(@nm,@tags[1]);
+        MenuStrip := CreateMenus(@nm,[
+                     GTMN_FrontPen, 1, TAG_END]);
     end else MenuStrip := CreateMenusA(@nm,NIL);
 
     if MenuStrip = nil then CleanUp('Could not open Menus',10);
@@ -612,5 +638,12 @@ begin
    CleanUp('',0);
 end.
 
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
 
+}
+
+  
 

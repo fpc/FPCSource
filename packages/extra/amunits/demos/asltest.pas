@@ -1,33 +1,57 @@
 PROGRAM AslTest;
+{$mode objfpc}
 
-uses Exec, Utility, Asl;
+uses Exec, Utility, Asl, msgbox, systemvartags;
 
-{$I tagutils.inc}
+
+{    
+     History:
+     Now use TAGS and pas2c.
+     Removed the opening of asl.library,
+     handled by unit asl.
+     1 Nov 1998.
+
+     Added MessageBox for report.
+     31 Jul 2000.
+
+     Changed to use systemvartags and
+     AllocAslRequestTags.
+     09 Nov 2002.
+
+     nils.sjoholm@mailbox.swipnet.se
+}
 
 VAR
     fr    : pFileRequester;
     dummy : BOOLEAN;
-    thetags : array [0..3] of tTagItem;
 BEGIN
-    AslBase := OpenLibrary(AslName,37);
-    IF AslBase <> NIL THEN BEGIN
-       thetags[0] := TagItem(ASLFR_InitialPattern,Longint(PChar('#?'#0)));
-       thetags[1] := TagItem(ASLFR_TitleText,Longint(PChar('Test av ASL-Requester by NS'#0)));
-       thetags[2] := TagItem(ASLFR_DoPatterns,1);
-       thetags[3].ti_Tag := TAG_DONE;
 
-       fr := AllocAslRequest(ASL_FileRequest,@thetags);
-       IF fr <> nil THEN BEGIN
-           dummy := AslRequest(fr,NIL);
-           if dummy then begin
-              writeln('The path is     :',fr^.rf_Dir);
-              writeln('And the file is :',fr^.rf_File);
-           end else writeln('You canceled');
-           FreeAslRequest(fr);
-       END;
-    CloseLibrary(AslBase);
-    END else writeln('no asl.library');
+    fr := AllocAslRequestTags(ASL_FileRequest,[
+                          ASLFR_InitialPattern,'#?',
+                          ASLFR_TitleText,'Test av ASL-Requester by NS',
+                          ASLFR_DoPatterns,ltrue,
+                          TAG_DONE]);
+
+    IF fr <> nil THEN BEGIN
+        dummy := AslRequest(fr,NIL);
+        if dummy then begin
+           MessageBox('Test of Asl',
+                      ' The path is :' +
+                      strpas(fr^.rf_Dir) +
+                      chr(10) +
+                      'And the file is :' +
+                      strpas(fr^.rf_File),
+                      'OK');
+        end else MessageBox('Test of Asl','You canceled','OK');
+        FreeAslRequest(fr);
+    END;
 END.
 
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
 
+}
+  
 

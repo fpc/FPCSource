@@ -1,5 +1,7 @@
 Program Bezier;
 
+{$mode objfpc}
+
 {
    This program draws Bezier curves using the degree elevation
    method.  For large numbers of points (more than 10, for
@@ -7,6 +9,7 @@ Program Bezier;
 }
 
 {
+   History:
    Changed the source to use 2.0+.
    Looks a lot better.
    Added CloseWindowSafely.
@@ -17,12 +20,23 @@ Program Bezier;
    Translated the source to fpc.
    20 Aug 1998.
 
+   Changed to use TAGS and pas2c.
+   31 Oct 1998.
+
+   Removed Opening of graphics.library,
+   handled by graphics.pas.
+   21 Mar 2001.
+
+   Uses systemvartags and
+   OpenScreenTags
+   OpenWindowTags
+   Text to GText.
+   09 Nov 2002.
+
    nils.sjoholm@mailbox.swipnet.se
 }
 
-uses exec, intuition, graphics, utility;
-
-{$I tagutils.inc}
+uses exec, intuition, graphics, utility,pastoc, systemvartags;
 
 type
     PointRec = packed Record
@@ -32,7 +46,7 @@ type
 Const
     w  : pWindow  = Nil;
     s  : pScreen   = Nil;
-    ltrue : longint = 1;
+
 {
     This will make the new look for screen.
     SA_Pens, Integer(pens)
@@ -40,22 +54,17 @@ Const
     pens : array [0..0] of integer = (not 0);
 
 Var
-    m  : pMessage;
     rp : pRastPort;
 
     PointCount : Word;
     Points : Array [1..200] of PointRec;
 
-    t, tprime : Real;
-
     LastX, LastY : Word;
-    tags : array[0..13] of tTagItem;
 
 Procedure CleanUpAndDie;
 begin
-    if w <> Nil then CloseWindow(w);
-    if s <> Nil then CloseScreen(s);
-    if Gfxbase <> nil then CloseLibrary(GfxBase);
+    if assigned(w) then CloseWindow(w);
+    if assigned(s) then CloseScreen(s);
     Halt(0);
 end;
 
@@ -123,7 +132,8 @@ var
     end;
 
 begin
-    dummy := ModifyIDCMP(w, IDCMP_CLOSEWINDOW or IDCMP_MOUSEBUTTONS or IDCMP_MOUSEMOVE);
+    dummy := ModifyIDCMP(w, IDCMP_CLOSEWINDOW or IDCMP_MOUSEBUTTONS or
+IDCMP_MOUSEMOVE);
     SetDrMd(rp, COMPLEMENT);
     PointCount := 0;
     Leave := False;
@@ -198,8 +208,6 @@ begin
 end;
 
 Procedure DrawBezier;
-var
-    i : Word;
 begin
     SetAPen(rp, 2);
     while PointCount < 100 do begin
@@ -213,41 +221,50 @@ begin
 end;
 
 begin
-   GfxBase := OpenLibrary(GRAPHICSNAME,37);
 
-                       tags[0] := TagItem(SA_Pens,      Long(@pens));
-                       tags[1] := TagItem(SA_Depth,     2);
-                       tags[2] := TagItem(SA_DisplayID, HIRES_KEY);
-                       tags[3] := TagItem(SA_Title,     Long(PChar('Simple Bezier Curves'#0)));
-                       tags[4].ti_Tag := TAG_END;
-    s := OpenScreenTagList(nil, @tags);
+   s := OpenScreenTags(nil,[SA_Pens,@pens,
+      SA_Depth,     2,
+      SA_DisplayID, HIRES_KEY,
+      SA_Title,     'Simple Bezier Curves',
+      TAG_END]);
+
     if s = NIL then CleanUpAndDie;
 
-                        tags[0] := TagItem(WA_IDCMP,        IDCMP_CLOSEWINDOW);
-                        tags[1] := TagItem(WA_Left,         0);
-                        tags[2] := TagItem(WA_Top,          s^.BarHeight +1);
-                        tags[3] := TagItem(WA_Width,        s^.Width);
-                        tags[4] := TagItem(WA_Height,       s^.Height - (s^.BarHeight + 1));
-                        tags[5] := TagItem(WA_DepthGadget,  ltrue);
-                        tags[6] := TagItem(WA_DragBar,      ltrue);
-                        tags[7] := TagItem(WA_CloseGadget,  ltrue);
-                        tags[8] := TagItem(WA_ReportMouse,  ltrue);
-                        tags[9] := TagItem(WA_SmartRefresh, ltrue);
-                        tags[10] := TagItem(WA_Activate,     ltrue);
-                        tags[11] := TagItem(WA_Title,        long(PChar('Close the Window to Quit'#0)));
-                        tags[12] := TagItem(WA_CustomScreen, long(s));
-                        tags[13].ti_Tag := TAG_END;
-    w := OpenWindowTagList(nil, @tags);
+      w := OpenWindowTags(nil,[
+      WA_IDCMP,        IDCMP_CLOSEWINDOW,
+      WA_Left,         0,
+      WA_Top,          s^.BarHeight +1,
+      WA_Width,        s^.Width,
+      WA_Height,       s^.Height - (s^.BarHeight + 1),
+      WA_DepthGadget,  ltrue,
+      WA_DragBar,      ltrue,
+      WA_CloseGadget,  ltrue,
+      WA_ReportMouse,  ltrue,
+      WA_SmartRefresh, ltrue,
+      WA_Activate,     ltrue,
+      WA_Title,        'Close the Window to Quit',
+      WA_CustomScreen, s,
+      TAG_END]);
+
     IF w=NIL THEN CleanUpAndDie;
 
     rp := w^.RPort;
-    Move(rp, 252, 20);
-    Text(rp, PChar('Enter points by pressing the left mouse button'#0), 46);
     Move(rp, 252, 30);
-    Text(rp, PChar('Double click on the last point to begin drawing'#0), 47);
+    GText(rp, pas2c('Enter points by pressing the left mouse button'), 46);
+    Move(rp, 252, 40);
+    GText(rp, pas2c('Double click on the last point to begin drawing'), 47);
     repeat
         GetPoints;  { Both these routines will quit if }
         DrawBezier; { the window is closed. }
     until False;
     CleanUpAndDie;
 end.
+
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
+
+}
+
+  

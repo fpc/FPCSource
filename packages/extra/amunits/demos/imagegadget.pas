@@ -1,19 +1,31 @@
 PROGRAM ImageGadget;
+{$mode objfpc}
 
 {
    An example on how to use GadTools gadgets,
    on the same time how to use images.
-
    20 Sep 1998.
+
+   Changed the code to use TAGS, now also use
+   pas2c for strings-pchar.
+   1 Nov 1998.
+
+   Removed opening of gadtools.library.
+   Will be opened by unit gadtools.
+   16 Jul 2000.
+
+   Update to use systemvartags. Not a
+   very nice demo, needs to rewrite to
+   handle more bitplanes.
+   28 Nov 2002.
+
    nils.sjoholm@mailbox.swipnet.se
 }
 
-USES Intuition, Exec, Graphics, GadTools, Utility;
+USES Intuition, Exec, Graphics, GadTools, Utility, systemvartags,pastoc;
 
-{$I tagutils.inc}
 
 CONST
-  MSG_CANT_OPEN_GTLIB  : PChar = 'Can''t open gadtools.library V37 or higher.';
   MSG_NO_PS            : PChar = 'Can''t lock Public Screen';
   MSG_NO_VI            : PChar = 'Can''t get Visual Info';
   MSG_NO_MEM           : PChar = 'Not enough memory free';
@@ -229,11 +241,11 @@ VAR
   renderi,
   selecti           : tImage;
   wp                : pWindow;
-  t                 : ARRAY[0..6] OF tTagItem;
 
 
 function NewGadget(left,top,width,height : Integer; txt : PChar; txtattr: pTextAttr;
-                   id : word; flags: Longint; visinfo, userdata : Pointer): tNewGadget;
+                   id : word; flags: Longint; visinfo, userdata : Pointer):
+tNewGadget;
 var
     ng : tNewGadget;
 begin
@@ -290,13 +302,12 @@ END;
 
 PROCEDURE CleanUp(why : PChar; rc : BYTE);
 BEGIN
-  IF wp <> NIL THEN CloseWindow(wp);
-  IF gl <> NIL THEN FreeGadgets(gl);
-  IF vi <> NIL THEN FreeVisualInfo(vi);
-  IF firstimage <> NIL THEN FreeVec(firstimage);
-  IF secondimage <> NIL THEN FreeVec(secondimage);
+  IF assigned(wp) THEN CloseWindow(wp);
+  IF assigned(gl) THEN FreeGadgets(gl);
+  IF assigned(vi) THEN FreeVisualInfo(vi);
+  IF assigned(firstimage) THEN FreeVec(firstimage);
+  IF assigned(secondimage) THEN FreeVec(secondimage);
    IF why <> nil THEN i := EasyReq(NIL,WIN_TITLE,why,OK_TEXT);
-  IF GadToolsBase <> NIL THEN CloseLibrary(GadToolsBase);
   HALT(rc);
 END;
 
@@ -349,17 +360,17 @@ BEGIN
   g^.GadgetRender := @renderi;
   g^.SelectRender := @selecti;
 
-  t[0] := TagItem(WA_Gadgets, LONG(gl));
-  t[1].ti_Tag := WA_Title;
-  t[1].ti_Data := long(PChar('Images in Gadgets'#0));
-  t[2] := TagItem(WA_Flags, WFLG_SMART_REFRESH OR WFLG_NOCAREREFRESH OR
-                  WFLG_DEPTHGADGET OR WFLG_DRAGBAR OR WFLG_CLOSEGADGET OR
-                        WFLG_ACTIVATE);
-  t[3] := TagItem(WA_Idcmp, IDCMP_GADGETUP OR IDCMP_CLOSEWINDOW);
-  t[4] := TagItem(WA_InnerWidth, 100);
-  t[5] := TagItem(WA_InnerHeight, 50);
-  t[6].ti_Tag := TAG_DONE;
-  wp := OpenWindowTagList(NIL,@t);
+  wp := OpenWindowTags(NIL,[
+                WA_Gadgets,gl,
+                WA_Title, 'Images in Gadgets',
+                WA_Flags, WFLG_SMART_REFRESH OR WFLG_NOCAREREFRESH OR
+                                WFLG_DEPTHGADGET OR WFLG_DRAGBAR OR WFLG_CLOSEGADGET OR
+                                WFLG_ACTIVATE,
+                WA_Idcmp, IDCMP_GADGETUP OR IDCMP_CLOSEWINDOW,
+                WA_InnerWidth, 100,
+                WA_InnerHeight, 50,
+                TAG_DONE]);
+
   IF wp = NIL THEN CleanUp(MSG_NO_WP, 20);
 END;
 
@@ -380,7 +391,7 @@ BEGIN
         CASE iclass OF
           IDCMP_CLOSEWINDOW : ende := TRUE;
           IDCMP_GADGETUP :
-             i := EasyReq(wp,WIN_TITLE,PChar('You have clicked on the Gadget!'#0),pchar('Wheeew!'#0));
+             i := EasyReq(wp,WIN_TITLE,pas2c('You have clicked on the Gadget!'),pas2c('Wheeew!'));
         ELSE END;
        msg := GT_GetIMsg(wp^.UserPort);
      END;
@@ -388,8 +399,6 @@ BEGIN
 END;
 
 BEGIN
-  GadToolsBase := OpenLibrary(GADTOOLSNAME,37);
-  IF GadToolsBase = NIL THEN CleanUp(MSG_CANT_OPEN_GTLIB, 20);
   new(gl);
   CloneDatas;
   AllocateImages;
@@ -397,5 +406,12 @@ BEGIN
   MainWait;
   CleanUp(nil,0);
 END.
+
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
+
+}
 
 

@@ -1,9 +1,9 @@
 PROGRAM Sterne;
+{$mode objfpc}
+
+uses Exec, Graphics, Intuition, Utility, systemvartags;
 
 
-uses Exec, Graphics, Intuition, Utility;
-
-{$I tagutils.inc}
 
 CONST   MAX_STERNE = 42;
         MAX_GESCHW = 15;
@@ -92,38 +92,32 @@ END;
 PROCEDURE CleanUp(str:string; code : Longint);
 
 BEGIN
-  If Win<>Nil Then
+  If assigned(Win) Then
     CloseWindow(Win);
-  If (Scr<>Nil) then CloseScreen(Scr);
-  if GfxBase <> nil then CloseLibrary(GfxBase);
+  If assigned(Scr) then CloseScreen(Scr);
   if str <> '' then writeln(str);
   Halt(code);
 END;
 
-
 PROCEDURE Init;
-var
-  thetags : array[0..3] of tTagItem;
 
 BEGIN
-  GfxBase := OpenLibrary(GRAPHICSNAME,0);
-  if GfxBase = nil then CleanUp('no graphics.library',20);
 
   Scr:=Nil;  Win:=Nil;
 
-  thetags[0] := TagItem(SA_Depth,     3);
-  thetags[1] := TagItem(SA_DisplayID, HIRES_KEY);
-  thetags[2].ti_Tag := TAG_END;
+  Scr := OpenScreenTags(NIL,[
+                   SA_Depth,     3,
+                   SA_DisplayID, HIRES_KEY,
+                   TAG_END]);
 
-  Scr := OpenScreenTagList(NIL,@thetags);
   If Scr=Nil Then CleanUp('No screen',20);
 
-  thetags[0] := TagItem(WA_Flags, WFLG_BORDERLESS);
-  thetags[1] := TagItem(WA_IDCMP, IDCMP_MOUSEBUTTONS);
-  thetags[2] := TagItem(WA_CustomScreen, Longint(Scr));
-  thetags[3].ti_Tag := TAG_DONE;
+  Win:=OpenWindowTags(Nil, [
+                        WA_Flags, WFLG_BORDERLESS,
+                        WA_IDCMP, IDCMP_MOUSEBUTTONS,
+                        WA_CustomScreen, Scr,
+                        TAG_DONE]);
 
-  Win:=OpenWindowTagList(Nil, @thetags);
   If Win=Nil Then CleanUp('No window',20);
 
   initSterne;
@@ -155,3 +149,11 @@ BEGIN
   CleanUp('',0);
 END.
 
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
+
+}
+
+  

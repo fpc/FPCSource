@@ -1,13 +1,38 @@
 PROGRAM Talk2Boopsi;
 
-{ This example creates a Boopsi prop gadget and integer string gadget, connecting them so they }
-{ update each other when the user changes their value.  The example program only initializes   }
-{ the gadgets and puts them on the window; it doesn't have to interact with them to make them  }
-{ talk to each other.                                                                          }
+{$mode objfpc}
 
-uses Exec, Intuition, Utility;
+{ This example creates a Boopsi prop gadget and integer string gadget, connecting them
+so they }
+{ update each other when the user changes their value.  The example program only
+initializes   }
+{ the gadgets and puts them on the window; it doesn't have to interact with them to
+make them  }
+{ talk to each other.
+}
 
-{$I tagutils.inc}
+{
+    History:
+
+    Changed to use TAGS.
+    16 Jul 2000.
+
+    Added MessageBox for report.
+    31 Jul 2000.
+
+    Changed to use array of const.
+    OpenWindowTags,
+    NewObject and
+    SetGadgetAttrs
+    12 Nov 2002.
+
+    nils.sjoholm@mailbox.swipnet.se
+
+}
+
+uses Exec, Intuition, Utility,msgbox, systemvartags;
+
+
 
 VAR
    w      : pWindow;
@@ -17,7 +42,6 @@ VAR
    done   : BOOLEAN;
    dummy  : Word;
    temp   : Longint;
-   thetags : array[0..11] of tTagItem;
    prop2intmap : array[0..1] of tTagItem;
    int2propmap : array[0..1] of tTagItem;
 
@@ -25,7 +49,7 @@ CONST
 
    vers  : PChar = '$VER: Talk2boopsi 37.1';
 
-    PROPGADGET_ID       = 1;
+   PROPGADGET_ID       = 1;
    INTGADGET_ID        = 2;
    PROPGADGETWIDTH     = 10;
    PROPGADGETHEIGHT    = 80;
@@ -39,10 +63,10 @@ CONST
 
 PROCEDURE CleanUp(Why : STRING; err: Word);
 BEGIN
-    IF prop <> NIL THEN DisposeObject(prop);
-    IF int <> NIL THEN DisposeObject(int);
-    IF w <> NIL THEN CloseWindow(w);
-    IF Why <> '' THEN WriteLN(Why);
+    IF assigned(prop) THEN DisposeObject(prop);
+    IF assigned(int) THEN DisposeObject(int);
+    IF assigned(w) THEN CloseWindow(w);
+    IF Why <> '' THEN MessageBox('Boopsi Report',Why,'OK');
     Halt(err);
 END;
 
@@ -50,64 +74,61 @@ BEGIN
 
     done := FALSE;
 
-    prop2intmap[0] := TagItem(PGA_Top, STRINGA_LongVal);
+    prop2intmap[0].ti_Tag := PGA_Top;
+    prop2intmap[0].ti_Data := STRINGA_LongVal;
     prop2intmap[1].ti_Tag := TAG_END;
 
-    int2propmap[0] := TagItem(STRINGA_LongVal, PGA_Top);
+    int2propmap[0].ti_Tag := STRINGA_LongVal;
+    int2propmap[0].ti_Data := PGA_Top;
     int2propmap[1].ti_Tag := TAG_END;
 
-    thetags[0] := TagItem(WA_Flags,     WFLG_DEPTHGADGET + WFLG_DRAGBAR +
-                               WFLG_CLOSEGADGET + WFLG_SIZEGADGET + WFLG_ACTIVATE);
-    thetags[1] := TagItem(WA_IDCMP,     IDCMP_CLOSEWINDOW);
-    thetags[2] := TagItem(WA_Width,     MINWINDOWWIDTH + 10);
-    thetags[3] := TagItem(WA_Height,    MINWINDOWHEIGHT + 10);
-    thetags[4] := TagItem(WA_MinWidth,  MINWINDOWWIDTH);
-    thetags[5] := TagItem(WA_MinHeight, MINWINDOWHEIGHT);
-    thetags[6].ti_Tag := TAG_END;
-
-    w := OpenWindowTagList(NIL,@thetags);
+    w := OpenWindowTags(NIL,[
+    WA_Flags,     WFLG_DEPTHGADGET + WFLG_DRAGBAR +
+                               WFLG_CLOSEGADGET + WFLG_SIZEGADGET + WFLG_ACTIVATE,
+    WA_IDCMP,     IDCMP_CLOSEWINDOW,
+    WA_Width,     MINWINDOWWIDTH + 10,
+    WA_Height,    MINWINDOWHEIGHT + 10,
+    WA_MinWidth,  MINWINDOWWIDTH,
+    WA_MinHeight, MINWINDOWHEIGHT,
+    TAG_END]);
 
     IF w=NIL THEN CleanUp('No window',20);
 
-    thetags[0] := TagItem(GA_ID,       PROPGADGET_ID);
-    thetags[1] := TagItem(GA_Top,      (w^.BorderTop) + 5);
-    thetags[2] := TagItem(GA_Left,     (w^.BorderLeft) + 5);
-    thetags[3] := TagItem(GA_Width,    PROPGADGETWIDTH);
-    thetags[4] := TagItem(GA_Height,   PROPGADGETHEIGHT);
-    thetags[5] := TagItem(ICA_MAP,     Longint(@prop2intmap));
-    thetags[6] := TagItem(PGA_Total,   TOTAL);
-    thetags[7] := TagItem(PGA_Top,     INITIALVAL);
-    thetags[8] := TagItem(PGA_Visible, VISIBLE);
-    thetags[9] := TagItem(PGA_NewLook, 1); { true }
-    thetags[10].ti_Tag := TAG_END;
-
-    prop := NewObjectA(NIL, PChar('propgclass'#0),@thetags);
+    prop := NewObject(NIL, 'propgclass',[
+    GA_ID,       PROPGADGET_ID,
+    GA_Top,      (w^.BorderTop) + 5,
+    GA_Left,     (w^.BorderLeft) + 5,
+    GA_Width,    PROPGADGETWIDTH,
+    GA_Height,   PROPGADGETHEIGHT,
+    ICA_MAP,     @prop2intmap,
+    PGA_Total,   TOTAL,
+    PGA_Top,     INITIALVAL,
+    PGA_Visible, VISIBLE,
+    PGA_NewLook, ltrue,
+    TAG_END]);
 
     IF prop = NIL THEN CleanUp('No propgadget',20);
 
-
-    thetags[0] := TagItem(GA_ID,      INTGADGET_ID);
-    thetags[2] := TagItem(GA_Top,     (w^.BorderTop) + 5);
-    thetags[3] := TagItem(GA_Left,    (w^.BorderLeft) + PROPGADGETWIDTH + 10);
-    thetags[4] := TagItem(GA_Width,   MINWINDOWWIDTH -
+    int := NewObject(NIL, 'strgclass',[
+    GA_ID,      INTGADGET_ID,
+    GA_Top,     (w^.BorderTop) + 5,
+    GA_Left,    (w^.BorderLeft) + PROPGADGETWIDTH + 10,
+    GA_Width,   MINWINDOWWIDTH -
                                   (w^.BorderLeft + w^.BorderRight +
-                                  PROPGADGETWIDTH + 15));
-    thetags[5] := TagItem(GA_Height,  INTGADGETHEIGHT);
+                                  PROPGADGETWIDTH + 15),
+    GA_Height,  INTGADGETHEIGHT,
 
-    thetags[6] := TagItem(ICA_MAP,    Longint(@int2propmap));
-    thetags[7] := TagItem(ICA_TARGET, Longint(prop));
-    thetags[8] := TagItem(GA_Previous, Longint(prop));
+    ICA_MAP,    @int2propmap,
+    ICA_TARGET, prop,
+    GA_Previous, prop,
 
-    thetags[9] := TagItem(STRINGA_LongVal,  INITIALVAL);
-    thetags[10] := TagItem(STRINGA_MaxChars, MAXCHARS);
-    thetags[11].ti_Tag := TAG_END;
+    STRINGA_LongVal,  INITIALVAL,
+    STRINGA_MaxChars, MAXCHARS,
+    TAG_END]);
 
-    int := NewObjectA(NIL, PChar('strgclass'#0),@thetags);
-
-    thetags[0] := TagItem(ICA_TARGET, Longint(int));
-    thetags[1].ti_Tag := TAG_END;
-
-    temp := SetGadgetAttrsA(prop, w, NIL,@thetags);
+    temp := SetGadgetAttrs(prop, w, NIL,[
+    ICA_TARGET, int,
+    TAG_END]);
 
     IF int = NIL THEN CleanUp('No INTEGER gadget',20);
 
@@ -125,7 +146,14 @@ BEGIN
     CleanUp('',0);
 END.
 
+{
+  $Log$
+  Revision 1.2  2002-11-28 19:40:45  nils
+    * update
 
+}
+
+  
 
 
 
