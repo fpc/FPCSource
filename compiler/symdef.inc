@@ -3198,9 +3198,9 @@ Const local_symtable_index : longint = $8001;
       begin
         { for offset of methods for classes, see rtl/inc/objpash.inc }
         if is_class then
-         vmtmethodoffset:=index*4+48
+         vmtmethodoffset:=(index+12)*target_os.size_of_pointer
         else
-         vmtmethodoffset:=index*4+12;
+         vmtmethodoffset:=(index+3)*target_os.size_of_pointer;
       end;
 
 
@@ -3629,7 +3629,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.148  1999-08-10 12:32:13  pierre
+  Revision 1.149  1999-08-10 13:22:08  pierre
+   * vmtmethodoffset made cross target compatible
+
+  Revision 1.148  1999/08/10 12:32:13  pierre
    * avoid overflow in tarraydef.size
 
   Revision 1.147  1999/08/09 22:19:55  peter
