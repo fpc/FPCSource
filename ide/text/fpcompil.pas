@@ -525,7 +525,7 @@ procedure DoCompile(Mode: TCompileMode);
 var
   s,FileName: string;
   ErrFile : Text;
-  Error : longint;
+  Error,LinkErrorCount : longint;
   E : TEvent;
 const
   PpasFile = 'ppas';
@@ -585,6 +585,10 @@ begin
   split_heap;
   switch_to_temp_heap;
 {$endif TEMPHEAP}
+  { insert "" around name so that spaces are allowed }
+  { only supported in compiler after 2000/01/14 PM   }
+  if pos(' ',FileName)>0 then
+    FileName:='"'+FileName+'"';
   if mode=cBuild then
     FileName:='-B '+FileName;
   { tokens are created and distroed by compiler.compile !! PM }
@@ -623,11 +627,17 @@ begin
            CompilerMessageWindow^.AddMessage(V_error,'could not create '+ExeFile,'',0,0);
            Assign(ErrFile,FPErrFileName);
            Reset(ErrFile);
-           While not eof(ErrFile) do
+           LinkErrorCount:=0;
+           While not eof(ErrFile) and (LinkErrorCount<25) do
              begin
                readln(ErrFile,s);
                CompilerMessageWindow^.AddMessage(V_error,s,'',0,0);
+               inc(LinkErrorCount);
              end;
+           if not eof(ErrFile) then
+             CompilerMessageWindow^.AddMessage(V_error,
+               'There are more errors in file '+FPErrFileName,'',0,0);
+
            Close(ErrFile);
          end;
     end;
@@ -726,7 +736,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  2000-01-03 11:38:33  michael
+  Revision 1.48  2000-01-14 15:38:28  pierre
+    + support for long filenames with spaces for compilation
+    * avoid too long linker error output
+
+  Revision 1.47  2000/01/03 11:38:33  michael
   Changes from Gabor
 
   Revision 1.46  1999/12/01 17:08:19  pierre
