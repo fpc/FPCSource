@@ -19,7 +19,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ****************************************************************************
 }
-{ This unit implements support information structures for FreeBSD/NetBSD. }
+{ This unit implements support information structures for FreeBSD/NetBSD.
+  OpenBSD and Darwin must be added still.}
+
 unit i_fbsd;
 
   interface
@@ -36,7 +38,7 @@ unit i_fbsd;
             flags        : [];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;BSD';
+            extradefines : 'UNIX;BSD;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -100,7 +102,7 @@ unit i_fbsd;
             flags        : [tf_under_development];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;BSD';
+            extradefines : 'UNIX;BSD;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -164,7 +166,7 @@ unit i_fbsd;
             flags        : [tf_under_development];
             cpu          : cpu_m68k;
             unit_env     : 'BSDUNITS';
-            extradefines : 'UNIX;BSD';
+            extradefines : 'UNIX;BSD;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -239,7 +241,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2003-01-11 16:35:15  marco
+   * HASUNIX defined for now.
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.3  2002/08/13 18:01:51  carl

@@ -36,7 +36,7 @@ unit i_linux;
             flags        : [];
             cpu          : cpu_i386;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
+            extradefines : 'UNIX;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -100,7 +100,7 @@ unit i_linux;
             flags        : [];
             cpu          : cpu_m68k;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
+            extradefines : 'UNIX;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -164,7 +164,7 @@ unit i_linux;
             flags        : [];
             cpu          : cpu_powerpc;
             unit_env     : '';
-            extradefines : 'UNIX';
+            extradefines : 'UNIX;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -228,7 +228,7 @@ unit i_linux;
             flags        : [];
             cpu          : cpu_alpha;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
+            extradefines : 'UNIX;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -292,7 +292,7 @@ unit i_linux;
             flags        : [];
             cpu          : cpu_x86_64;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
+            extradefines : 'UNIX;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -356,7 +356,7 @@ unit i_linux;
             flags        : [];
             cpu          : cpu_SPARC;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX';
+            extradefines : 'UNIX;HASUNIX';
             sourceext    : '.pp';
             pasext       : '.pas';
             exeext       : '';
@@ -446,7 +446,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-10-04 21:57:42  mazen
+  Revision 1.3  2003-01-11 16:35:15  marco
+   * HASUNIX defined for now.
+
+  Revision 1.2  2002/10/04 21:57:42  mazen
   * register allocation for parameters now done in cpupara, but InternalError(200109223) in cgcpu.pas:1053 is still not fixed du to location_force problem in ncgutils.pas:419
 
   Revision 1.1  2002/09/06 15:03:51  carl
