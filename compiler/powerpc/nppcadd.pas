@@ -295,7 +295,7 @@ interface
             if left.nodetype in [ordconstn,realconstn] then
              swapleftright;
 
-            isjump:=(left.location.loc=LOC_JUMP);
+            isjump:=(left.expectloc=LOC_JUMP);
             if isjump then
               begin
                  otl:=truelabel;
@@ -310,9 +310,11 @@ interface
              begin
                truelabel:=otl;
                falselabel:=ofl;
-             end;
+             end
+            else if left.location.loc=LOC_JUMP then
+              internalerror(2003122901);
 
-            isjump:=(right.location.loc=LOC_JUMP);
+            isjump:=(right.expectloc=LOC_JUMP);
             if isjump then
               begin
                  otl:=truelabel;
@@ -327,7 +329,9 @@ interface
              begin
                truelabel:=otl;
                falselabel:=ofl;
-             end;
+             end
+            else if right.location.loc=LOC_JUMP then
+              internalerror(20031122902);
 
             cmpop := nodetype in [ltn,lten,gtn,gten,equaln,unequaln];
 
@@ -1490,7 +1494,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-12-09 20:39:43  jonas
+  Revision 1.41  2003-12-29 11:35:19  jonas
+    * hopefully fixed tb0454
+
+  Revision 1.40  2003/12/09 20:39:43  jonas
     * forgot call to cg.g_overflowcheck() in nppcadd
     * fixed overflow flag definition
     * fixed cg.g_overflowcheck() for signed numbers (jump over call to
