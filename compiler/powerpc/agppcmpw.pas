@@ -756,7 +756,7 @@ var
               AsmWriteLn(#9'.stabd'#9+tostr(n_line)+',0,'+tostr(fileinfo.line));
             *)
             if isInFunction then
-              AsmWriteln(#9'line '+ tostr(fileinfo.line - firstLineInFunction - 1));
+              AsmWriteln(#9'line '+ tostr(fileinfo.line - firstLineInFunction + 1));
           end;
           stabslastfileinfo:=fileinfo;
         end;
@@ -1462,7 +1462,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.42  2004-10-31 21:45:03  peter
+  Revision 1.43  2005-02-08 22:46:00  olle
+    * fixed erroneous asm line directive
+
+  Revision 1.42  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
