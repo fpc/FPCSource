@@ -64,7 +64,7 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
-{$ifndef FPU_EMULATION}  
+{$IFOPT E-}  
   str(f,s);
   check('-1.123450000000000E+000');
 {$endif}  
@@ -242,7 +242,7 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
-{$ifndef FPU_EMULATION}  
+{$IFOPT E-}  
   str(f,s);
   check('-1.123450000000000E+000');
 {$endif}  
@@ -421,7 +421,7 @@ begin
 
   { for more in-depth tests of str_real, see ../tstreal[1,2].pp }
   f := -1.12345;
-{$ifndef FPU_EMULATION}  
+{$IFOPT E-}  
   str(f,s);
   check('-1.123450000000000E+000');
 {$endif}  
