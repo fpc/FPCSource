@@ -42,6 +42,9 @@ const
 type
   PAsmList=^TAsmList;
   TAsmList=object
+  private
+    procedure CreateSmartLinkPath(const s:string);
+  public
   {filenames}
     path     : pathstr;
     name     : namestr;
@@ -427,6 +430,40 @@ begin
 end;
 
 
+procedure TAsmList.CreateSmartLinkPath(const s:string);
+var
+  dir : searchrec;
+begin
+  if PathExists(s) then
+   begin
+     { the path exists, now we clean only all the .o and .s files }
+     { .o files }
+     findfirst(s+dirsep+'*'+target_info.objext,anyfile,dir);
+     while (doserror=0) do
+      begin
+        RemoveFile(s+dirsep+dir.name);
+        findnext(dir);
+      end;
+     findclose(dir);
+     { .s files }
+     findfirst(s+dirsep+'*'+target_info.asmext,anyfile,dir);
+     while (doserror=0) do
+      begin
+        RemoveFile(s+dirsep+dir.name);
+        findnext(dir);
+      end;
+     findclose(dir);
+   end
+  else
+   begin
+     {$I-}
+      mkdir(s);
+     {$I+}
+     if ioresult<>0 then;
+   end;
+end;
+
+
 Constructor TAsmList.Init(smart:boolean);
 begin
 { load start values }
@@ -443,10 +480,7 @@ begin
   if SmartAsm then
    begin
      path:=current_module^.outputpath^+FixFileName(current_module^.modulename^)+target_info.smartext;
-     {$I-}
-      mkdir(path);
-     {$I+}
-     if ioresult<>0 then;
+     CreateSmartLinkPath(path);
      path:=FixPath(path,false);
    end
   else
@@ -565,7 +599,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.63  2000-04-04 15:05:03  pierre
+  Revision 1.64  2000-06-01 13:02:45  peter
+    * clean .o and .s from smartlinkpath when starting the writer
+
+  Revision 1.63  2000/04/04 15:05:03  pierre
    + accept nasmwin32 output
 
   Revision 1.62  2000/02/24 18:41:38  peter
