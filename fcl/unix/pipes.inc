@@ -25,12 +25,15 @@ Uses
 Function CreatePipeHandles (Var Inhandle,OutHandle : Longint) : Boolean;
 
 begin
-  Result := AssignPipe (Inhandle,OutHandle);
+  Result := (AssignPipe (Inhandle,OutHandle)<>-1);
 end;
 
 {
   $Log$
-  Revision 1.5  2002-09-07 15:15:29  peter
+  Revision 1.6  2003-11-14 11:08:50  marco
+   * assignpipe fix
+
+  Revision 1.5  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }
