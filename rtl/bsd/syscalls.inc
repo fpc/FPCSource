@@ -260,60 +260,79 @@ begin
   end;   
 Sys_Stat:=checkreturnvalue(retval,retval);
 end;
-
-
+ 
 Function Sys_Symlink(oldname,newname:pchar):longint;
 {
   We need this for erase
 }
-var
-  regs : SysCallregs;
-begin
-  regs.reg2:=longint(oldname);
-  regs.reg3:=longint(newname);
-  Sys_symlink:=SysCall(SysCall_nr_symlink,regs);
-end;
+var retval : longint;
 
+begin
+ asm
+    pushl newname
+    pushl oldname
+    mov   $57,%eax
+    int   $0x80
+    addl  $8,%eax
+    mov   %eax,retval
+  end;   
+ Sys_Symlink:=checkreturnvalue(retval,retval);
+end;
 
 {*****************************************************************************
                --- Directory:Directory related calls ---
 *****************************************************************************}
 
-
 Function Sys_Chdir(Filename:pchar):longint;
-var
-  regs : SysCallregs;
+
+var retval : longint;
 
 begin
-  regs.reg2:=longint(filename);
-  Sys_ChDir:=SysCall(SysCall_nr_chdir,regs);
+ asm
+    pushl FileName
+    mov   $12,%eax
+    int   $0x80
+    addl  $4,%eax
+    mov   %eax,retval
+  end;   
+ Sys_ChDir:=checkreturnvalue(retval,retval);
 end;
-
-
 
 Function Sys_Mkdir(Filename:pchar;mode:longint):longint;
-var
-  regs : SysCallregs;
-begin
-  regs.reg2:=longint(filename);
-  regs.reg3:=mode;
-  Sys_MkDir:=SysCall(SysCall_nr_mkdir,regs);
+
+var retval : longint;
+
+begin {Mode is 16-bit on F-BSD}
+ asm
+    mov  mode,%eax
+    pushw %ax
+    pushl FileName
+    mov   $136,%eax
+    int   $0x80
+    addl  $6,%eax
+    mov   %eax,retval
+  end;   
+ Sys_MkDir:=checkreturnvalue(retval,retval);
 end;
-
-
 
 Function Sys_Rmdir(Filename:pchar):longint;
-var
-  regs : SysCallregs;
+
+var retval : longint;
+
 begin
-  regs.reg2:=longint(filename);
-  Sys_Rmdir:=SysCall(SysCall_nr_rmdir,regs);
+ asm
+    pushl FileName
+    mov   $137,%eax
+    int   $0x80
+    addl  $4,%eax
+    mov   %eax,retval
+  end;   
+ Sys_ChDir:=checkreturnvalue(retval,retval);
 end;
 
-
-
-{ we need this for getcwd }
+{ we need this for getcwd, NOT touched for BSD version }
 Function OpenDir(f:pchar):pdir;
+
 var
   fd:integer;
   st:stat;
@@ -345,15 +364,12 @@ begin
   opendir:=ptr;
 end;
 
-
-
 function CloseDir(p:pdir):integer;
 begin
   closedir:=sys_close(p^.fd);
   dispose(p^.buf);
   dispose(p);
 end;
-
 
 
 Function Sys_ReadDir(p:pdir):pdirent;
@@ -378,20 +394,30 @@ end;
 *****************************************************************************}
 
 Procedure Sys_Exit(ExitCode:Integer);
-var
-  regs : SysCallregs;
+
+var retval : longint;
+
 begin
-  regs.reg2:=exitcode;
-  SysCall(SysCall_nr_exit,regs)
+ asm
+    pushl ExitCode
+    mov   $1,%eax
+    int   $0x80
+    addl  $4,%eax
+    mov   %eax,retval
+  end;   
+ Sys_Exit:=checkreturnvalue(retval,retval);
 end;
 
 {
   $Log$
-  Revision 1.2  2000-02-02 16:35:10  marco
+  Revision 1.3  2000-02-02 18:07:27  marco
+   * Ported except for readdir which is 200 lines C code in FBSD linux
+  	emulator
+
+  Revision 1.2  2000/02/02 16:35:10  marco
    * Ported more functions. Half done now.
 
   Revision 1.1  2000/02/02 15:41:56  marco
    * Initial BSD version. Still needs a lot of work.
-
 
 }
