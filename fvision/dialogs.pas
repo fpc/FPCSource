@@ -1419,7 +1419,13 @@ END;
 PROCEDURE TInputLine.DrawCursor;
 VAR I, X: Sw_Integer; S: String;
 BEGIN
-   If (State AND sfFocused <> 0) Then Begin           { Focused window }
+   if (TextModeGFV) then
+     begin
+       Cursor.Y:=0;
+       Cursor.X:=CurPos-FirstPos;
+       TView.ResetCursor;
+     end
+   else If (State AND sfFocused <> 0) Then Begin           { Focused window }
      X := TextWidth(LeftArr);                         { Preset x position }
      I := 0;                                          { Preset cursor width }
      If (Data <> Nil) Then Begin                      { Data pointer valid }
@@ -4180,7 +4186,10 @@ END;
 END.
 {
  $Log$
- Revision 1.13  2002-05-16 20:36:24  pierre
+ Revision 1.14  2002-05-23 09:06:53  pierre
+  * use normal cursor for textmode TInputLine
+
+ Revision 1.13  2002/05/16 20:36:24  pierre
   * break lines of static text if too long
 
  Revision 1.12  2001/08/05 02:03:13  peter
