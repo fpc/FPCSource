@@ -72,7 +72,7 @@ var
 
   procedure fail;
    begin
-     Fail;
+     WriteLn('Failed!');
      halt(1);
    end;
   
@@ -601,7 +601,10 @@ end.
 
 {
    $Log$
-   Revision 1.1  2002-04-13 11:04:40  carl
+   Revision 1.2  2002-04-13 21:04:10  carl
+   * fixed stupid typo
+
+   Revision 1.1  2002/04/13 11:04:40  carl
    + procedure variable testing (stil not sure about class/object proc. variables)
 
 }
