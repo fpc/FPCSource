@@ -451,8 +451,16 @@ unit og386cff;
         s:=p^.name;
         if length(s)>8 then
          begin
-           s:=s+#0;
+           if length(s)<255 then
+             s:=s+#0;
            strs^.write(s[1],length(s));
+           { if the length is 255 we need to addd the terminal #0
+             separately bug report from Florian 20/6/2000 }
+           if length(s)=255 then
+             begin
+               s:=#0;
+               strs^.write(s[1],length(s));
+             end;
          end
         else
          pos:=-1;
@@ -995,7 +1003,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.23  2000-04-12 12:42:29  pierre
+  Revision 1.24  2000-06-21 20:56:37  pierre
+   * fix the problem of long mangledname in internal writer
+
+  Revision 1.23  2000/04/12 12:42:29  pierre
    * fix the -g-l option
 
   Revision 1.22  2000/03/10 16:05:28  pierre
