@@ -107,6 +107,7 @@ type
     private
       IDE_screen: pvideobuf;
       IDE_size : longint;
+      IsXterm : boolean;
     end;
 {$endif}
 
@@ -515,6 +516,8 @@ constructor TLinuxScreen.Init;
 begin
   inherited Init;
   IDE_screen := nil;
+  IsXterm:=getenv('TERM')='xterm';
+  Capture;
 end;
 
 
@@ -552,6 +555,7 @@ end;
 
 procedure TLinuxScreen.Capture;
 begin
+  SaveConsoleScreen;
 end;
 
 procedure TLinuxScreen.SaveIDEScreen;
@@ -565,11 +569,18 @@ end;
 
 procedure TLinuxScreen.SaveConsoleScreen;
 begin
+  if IsXTerm then
+    write(#27'7'#27'[?47h');
 end;
 
 
 procedure TLinuxScreen.SwitchToConsoleScreen;
 begin
+  if IsXterm then
+    begin
+      write(#27'[0m');
+      write(#27'[?47l'#27'8'#27'[m');
+    end;
 end;
 
 procedure TLinuxScreen.SwitchBackToIDEScreen;
@@ -975,7 +986,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2002-06-07 14:10:24  pierre
+  Revision 1.13  2002-06-13 11:18:32  pierre
+   + xterm window switching support
+
+  Revision 1.12  2002/06/07 14:10:24  pierre
    * try to get resizing to work
 
   Revision 1.11  2002/06/06 14:10:34  pierre
