@@ -196,10 +196,10 @@ const msgtxt : array[0..00088,1..240] of char=(+
   'F_Internal Error in SymTableStack()'#000+
   'E_Duplicate identifier $1'#000+
   'E_Unknown identifier $1'#000+
-  'E_Forward declaration not solved: $1'#000+
+  'E_Forward declaration not solved $1'#000+
   'F_Identifier type already defined as type'#000+
-  'E_Error in type defeni','tion'#000+
-  'E_Type identifier not defined'#000+
+  'E_Error in type definit','ion'#000+
+  'E_Forward type not resolved $1'#000+
   'E_Only static variables can be used in static methods or outside metho'+
   'ds'#000+
   'E_Invalid call to tvarsym.mangledname()'#000+

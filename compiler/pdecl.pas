@@ -1462,30 +1462,37 @@ unit pdecl;
          record_dec:=new(precdef,init(symtable));
       end;
 
+
     { search in symtablestack used, but not defined type }
     procedure testforward_types(p : psym);{$ifndef FPC}far;{$endif}
-
       var
-         recsymtable : psymtable;
-
+        recsymtable : psymtable;
+        oldaktfilepos : tfileposinfo;
       begin
-         if (p^.typ=typesym) then
+         if not(p^.typ=typesym) then
+          exit;
          if ((p^.properties and sp_forwarddef)<>0) then
-           Message(sym_e_type_id_not_defined)
-         else if (ptypesym(p)^.definition^.deftype=recorddef) or
-           (ptypesym(p)^.definition^.deftype=objectdef) then
            begin
-              if (ptypesym(p)^.definition^.deftype=recorddef) then
-                recsymtable:=precdef(ptypesym(p)^.definition)^.symtable
-              else
-                recsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
-{$ifdef tp}
-              recsymtable^.foreach(testforward_types);
-{$else}
-              recsymtable^.foreach(@testforward_types);
-{$endif}
-            end;
+             oldaktfilepos:=aktfilepos;
+             aktfilepos:=p^.fileinfo;
+             Message1(sym_e_forward_type_not_resolved,p^.name);
+             aktfilepos:=oldaktfilepos;
+           end
+         else
+          if (ptypesym(p)^.definition^.deftype in [recorddef,objectdef]) then
+           begin
+             if (ptypesym(p)^.definition^.deftype=recorddef) then
+               recsymtable:=precdef(ptypesym(p)^.definition)^.symtable
+             else
+               recsymtable:=pobjectdef(ptypesym(p)^.definition)^.publicsyms;
+           {$ifdef tp}
+             recsymtable^.foreach(testforward_types);
+           {$else}
+             recsymtable^.foreach(@testforward_types);
+           {$endif}
+           end;
       end;
+
 
     { reads a type definition and returns a pointer to it }
     function read_type(const name : stringid) : pdef;
@@ -2041,7 +2048,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.61  1998-10-02 09:23:24  peter
+  Revision 1.62  1998-10-02 17:06:02  peter
+    * better error message for unresolved forward types
+
+  Revision 1.61  1998/10/02 09:23:24  peter
     * fixed error msg with type l=<var>
     * block_type bt_const is now set in read_const_dec
 

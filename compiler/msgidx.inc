@@ -192,7 +192,7 @@ type tmsgconst=(
   sym_e_forward_not_resolved,
   sym_f_id_already_typed,
   sym_e_error_in_type_def,
-  sym_e_type_id_not_defined,
+  sym_e_forward_type_not_resolved,
   sym_e_only_static_in_static,
   sym_e_invalid_call_tvarsymmangledname,
   sym_f_type_must_be_rec_or_class,
