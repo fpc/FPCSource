@@ -306,21 +306,21 @@ unit cpupara;
       procedure assignintreg;
 
         begin
-           if nextintreg<=ord(NR_R10) then
-             begin
-                paraloc^.loc:=LOC_REGISTER;
-                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
-                inc(nextintreg);
-                if target_info.abi=abi_powerpc_aix then
-                  inc(stack_offset,4);
-             end
-           else
-              begin
-                 paraloc^.loc:=LOC_REFERENCE;
-                 paraloc^.reference.index:=NR_STACK_POINTER_REG;
-                 paraloc^.reference.offset:=stack_offset;
+          if nextintreg<=ord(NR_R10) then
+            begin
+               paraloc^.loc:=LOC_REGISTER;
+               paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
+               inc(nextintreg);
+               if target_info.abi=abi_powerpc_aix then
                  inc(stack_offset,4);
-             end;
+            end
+          else
+             begin
+                paraloc^.loc:=LOC_REFERENCE;
+                paraloc^.reference.index:=NR_STACK_POINTER_REG;
+                paraloc^.reference.offset:=stack_offset;
+                inc(stack_offset,4);
+            end;
         end;
 
       begin
@@ -583,7 +583,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.68  2004-09-21 17:25:13  peter
+  Revision 1.69  2004-09-25 20:28:20  florian
+    * indention fixed
+
+  Revision 1.68  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.67.4.3  2004/09/18 20:21:08  jonas
