@@ -74,6 +74,9 @@ USES
      OS2Def, OS2Base, OS2PMAPI,                       { Standard units }
    {$ENDIF}
 
+{$IFDEF GRAPH_API}
+   graph,
+{$ENDIF GRAPH_API}
    GFVGraph,                                          { GFV standard unit }
    Objects, FVCommon, Drivers;                          { GFV standard units }
 
@@ -914,8 +917,11 @@ begin
      HideMouse;
      if TextModeGFV then
        UpdateScreen(false)
+{$IFDEF GRAPH_API}
      else
-       GraphUpdateScreen(false);
+       GraphUpdateScreen(false)
+{$ENDIF GRAPH_API}
+       ;
      ShowMouse;
    end;
 {$endif USE_VIDEO_API}
@@ -3920,7 +3926,7 @@ BEGIN
            end;
          end;
          { MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);}
-         WriteLine(CurCol, I, Min(Size.X-1,CurCol+ColWidth-2), 1, B[CurCol]);
+         WriteLine(CurCol, I, Min(Size.X-1-CurCol,ColWidth-2), 1, B[CurCol]);
        End;
      End;
    End;
@@ -3972,7 +3978,7 @@ BEGIN
            end;
          end;
          { MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);}
-         WriteLine(CurCol, I, Min(Size.X-1,CurCol+ColWidth-2), 1, B[CurCol]);
+         WriteLine(CurCol, I, Min(Size.X-1-CurCol,ColWidth-2), 1, B[CurCol]);
        End;
      End;
    End;
@@ -4291,16 +4297,17 @@ END;
 
 {--TWindow------------------------------------------------------------------}
 {  GetTitle -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB          }
+{  Modified 31may2002 PM  (No number included anymore)                      }
 {---------------------------------------------------------------------------}
 FUNCTION TWindow.GetTitle (MaxSize: Sw_Integer): TTitleStr;
 VAR S: String;
 BEGIN
-   If (Number <> 0) Then begin                        { Valid window number }
-     Str(Number, S);                                  { Window number }
-     S := '(' + S + ') ';                             { Insert in brackets }
-   End Else S := '';                                  { Empty string }
-   If (Title <> Nil) Then GetTitle := S + Title^
-     Else GetTitle := S;                              { Return title }
+   If (Title <> Nil) Then S:=Title^
+   Else S := '';
+   if Length(S)>MaxSize then
+     GetTitle:=Copy(S,1,MaxSize)
+   else
+     GetTitle:=S;
 END;
 
 {--TWindow------------------------------------------------------------------}
@@ -4555,7 +4562,7 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.GraphLine (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
 VAR ViewPort: ViewPortType;
-    x,y,i,j,pv : sw_integer;
+    x,y,i,j : sw_integer;
 BEGIN
    GetViewSettings(ViewPort, TextModeGFV);            { Get viewport settings }
    If (TextModeGFV <> TRUE) Then Begin
@@ -4564,39 +4571,33 @@ BEGIN
        RawOrigin.Y + Y1 - ViewPort.Y1, RawOrigin.X + X2
        - ViewPort.X1, RawOrigin.Y + Y2-ViewPort.Y1);  { Draw the line }
        { mark the corresponding lines as without chars }
-     If UseFixedFont and assigned(OldVideoBuf) then
+{$IFDEF GRAPH_API}
+     If UseFixedFont then
        begin
-         pv:=-1;
-         if x1=x2 then
+         if abs(x1-x2)<abs(y1-y2) then
            begin
-             x:=(RawOrigin.X + X1) div SysFontWidth;
              for j:=y1 to y2 do
                begin
-                 y:=(RawOrigin.y + j) div SysFontHeight;
-                 if y<>pv then
-                   begin
-                     i:=y*TextScreenWidth+x;
-                     OldVideoBuf^[i]:=0;
-                     pv:=y;
-                   end;
+                 y:=(RawOrigin.y + j);
+                 x:=(RawOrigin.X + X1 + ((x2-x1)*(j-y1)) div (y2-y1));
+                 if (x>=0) and (x<=Graph.GetMaxX) and (y>=0) and (y<=Graph.GetMaxY) then
+                   SetExtraInfo(x div SysFontWidth,y div SysFontHeight,
+                     x mod SysFontWidth,y mod SysFontHeight, true);
                end;
            end
-         else if y1=y2 then
+         else
            begin
-             y:=(RawOrigin.y + y1) div SysFontHeight;
              for j:=x1 to x2 do
                begin
-                 x:=(RawOrigin.X + j) div SysFontWidth;
-                 if x<>pv then
-                   begin
-                     { mark the corresponding lines as without chars }
-                     i:=y*TextScreenWidth+x;
-                     OldVideoBuf^[i]:=0;
-                     pv:=x;
-                   end;
+                 x:=(RawOrigin.x + j);
+                 y:=(RawOrigin.y + y1 + ((j-x1)*(y2-y1)) div (x2-x1));
+                 if (x>=0) and (x<=Graph.GetMaxX) and (y>=0) and (y<=Graph.GetMaxY) then
+                   SetExtraInfo(x div SysFontWidth,y div SysFontHeight,
+                     x mod SysFontWidth,y mod SysFontHeight, true);
                end;
            end;
        end;
+{$ENDIF GRAPH_API}
    End Else Begin                                     { LEON???? }
    End;
 END;
@@ -5026,7 +5027,7 @@ END;
 
 PROCEDURE TView.WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
   Count: Sw_Integer);
-VAR Fc, Bc: Byte; I, Ti, Tix, Tiy: Sw_Integer; Col: Word; S: String; ViewPort: ViewPortType;
+VAR Fc, Bc, B: Byte; I, Ti, Tix, Tiy: Sw_Integer; Col: Word; S: String; ViewPort: ViewPortType;
     Buf : TDrawBuffer;
 BEGIN
    If (State AND sfVisible <> 0) AND                  { View visible }
@@ -5035,6 +5036,13 @@ BEGIN
      Col := GetColor(Color);                          { Get view color }
      Fc := Col AND $0F;                               { Foreground colour }
      Bc := Col AND $F0 SHR 4;                         { Background colour }
+
+     If RevCol Then Begin
+       B := Bc;
+       Bc := Fc;
+       Fc := B;
+     End;
+
      If (X >= 0) AND (Y >= 0) AND ((GOptions and goGraphView)=0) Then Begin
        X := RawOrigin.X+X*FontWidth;                    { X position }
        Y := RawOrigin.Y+Y*FontHeight;                   { Y position }
@@ -5160,25 +5168,7 @@ VAR
   ViewPort : ViewPortType;
   Skip : boolean;
 BEGIN
-  { Direct wrong method }
   GetViewSettings(ViewPort, TextModeGFV);          { Get set viewport }
-{$ifdef DirectWriteShadow}
-  For J:=Y1 to Y2-1 do Begin
-    For i:=X1 to X2-1 do Begin
-      { if (I>=ViewPort.X1) AND (J>=ViewPort.Y1) AND
-         (I<ViewPort.X2) AND (J<ViewPort.Y2) Then }
-        Begin
-          B:=VideoBuf^[J*ScreenWidth+i];
-          OrigCol:=B shr 8;
-          if OrigCol and $F >= 8 then
-            Col:=OrigCol and $7
-          else
-            Col:=0;
-          VideoBuf^[J*ScreenWidth+i]:= (col shl 8) or (B and $FF);
-        End;
-    End;
-  End;
-{$else not DirectWriteShadow}
   { Pedestrian character method }
   { Must be in area }
   {If (X+L<ViewPort.X1) OR (Y<ViewPort.Y1) OR
@@ -5241,7 +5231,6 @@ BEGIN
     End;
   End;
   End;
-{$endif not DirectWriteShadow}
 END;
 
 PROCEDURE TView.DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
@@ -5549,15 +5538,19 @@ BEGIN
      WriteChar(1,Size.Y-1,HorizontalBar,Color,Size.X-2);
      WriteChar(Size.X-1,Size.Y-1,RightLowCorner,Color,1);
    End;
+   If not TextModeGFV then
+     GOptions := GOptions OR goGraphView;             { Graphics co-ords mode }
    If (Title<>Nil) AND (GOptions AND goTitled<>0)
    Then Begin                                         { View has a title }
      GetViewSettings(ViewPort, TextModeGFV);
      X := (RawSize.X DIV 2);                          { Half way point }
      X := X - ((Length(Title^)+2)*FontWidth) DIV 2;       { Calc start point }
      If (TextModeGFV <> TRUE) Then Begin              { GRAPHICS MODE GFV }
-       SetColor(Fc);
+      (* SetColor(Fc);
        OutTextXY(RawOrigin.X+X-ViewPort.X1,
-         RawOrigin.Y+Y+1-ViewPort.Y1+2, ' '+Title^+' ');      { Write the title }
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, ' '+Title^+' ');      { Write the title }*)
+         WriteStr(X,Y+1,' '+Title^+' ',Color);
+
      End Else Begin                                   { LEON??? }
        WriteStr(X div SysFontWidth,0,' '+Title^+' ',Color);
      End;
@@ -5569,18 +5562,20 @@ BEGIN
      else
        I:=3;
      If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
-       SetColor(GetColor(2) AND $0F);
+       (* SetColor(GetColor(2) AND $0F);
        OutTextXY(RawOrigin.X+RawSize.X-I*FontWidth-ViewPort.X1,
-         RawOrigin.Y+Y+1-ViewPort.Y1+2, S);           { Write number }
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, S);           { Write number } *)
+       WriteCStr(RawSize.X-I*FontWidth,Y+1,S,1,Color);
      End Else Begin                                   { LEON ????? }
        WriteCStr(Size.X-I,0,S,1,Color);
      End;
    End;
    If Focused and (Flags AND wfClose<>0) Then Begin   { Close icon request }
      If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
-       SetColor(Fc);
+       (*SetColor(Fc);
        OutTextXY(RawOrigin.X+Y+FontWidth-ViewPort.X1,
-         RawOrigin.Y+Y+1-ViewPort.Y1+2, '[*]');       { Write close icon }
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, '[*]');       { Write close icon } *)
+       WriteCStr(2*FontWidth,Y+1,'[~'+ClickC[LowAscii]+'~]', 2, 3);
      End Else Begin                                   { LEON??? }
        WriteCStr(2,0,'[~'+ClickC[LowAscii]+'~]', 2, 3);
      End;
@@ -5592,9 +5587,11 @@ BEGIN
      else
       C:=LargeC[LowAscii];
      If (TextModeGFV <> True) Then Begin              { GRAPHICS MODE GFV }
-       SetColor(GetColor(2) AND $0F);
+       (* SetColor(GetColor(2) AND $0F);
        OutTextXY(RawOrigin.X+RawSize.X-4*FontWidth-Y-ViewPort.X1,
-         RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+C+']'); { Write zoom icon }
+         RawOrigin.Y+Y+1-ViewPort.Y1+2, '['+C+']'); { Write zoom icon } *)
+       WriteCStr(RawSize.X-5*FontWidth,Y+1,'[~'+C+'~]', 2, 3);
+       WriteCStr(RawSize.X-2*FontWidth,RawSize.Y-FontHeight+Y+1,'~ды~',2, 3);
      End Else Begin                                   { LEON??? }
        WriteCStr(Size.X-5,0,'[~'+C+'~]', 2, 3);
        WriteCStr(Size.X-2,Size.Y-1,'~ды~',2, 3);
@@ -5606,6 +5603,7 @@ BEGIN
          White, DarkGray, False);                         { Draw 3d effect }
        BiColorRectangle(Y+1, Y+1, RawSize.X-Y-2, Y+FontHeight-1,
          White, DarkGray, False);                         { Draw 3d effect }
+       GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
      end;
    { Ensure that the scrollers are repainted }
    NP:=Last;
@@ -5720,7 +5718,10 @@ END.
 
 {
  $Log$
- Revision 1.28  2002-05-30 22:28:33  pierre
+ Revision 1.29  2002-05-31 12:40:48  pierre
+  * several fixes + graph enhancements
+
+ Revision 1.28  2002/05/30 22:28:33  pierre
   * tried to get a faster RedrawArea method
 
  Revision 1.27  2002/05/30 14:53:54  pierre
