@@ -602,6 +602,38 @@ implementation
              end;
         end;
 
+
+      procedure read_default_value(sc : tsinglelist;tt : ttype;is_threadvar : boolean);
+        var
+          vs : tvarsym;
+          tcsym : ttypedconstsym;
+        begin
+          vs:=tvarsym(sc.first);
+          if assigned(vs.listnext) then
+             Message(parser_e_initialized_only_one_var);
+          if is_threadvar then
+             Message(parser_e_initialized_not_for_threadvar);
+          if symtablestack.symtabletype=localsymtable then
+            begin
+              consume(_EQUAL);
+              tcsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
+              vs.defaultconstsym:=tcsym;
+              symtablestack.insert(tcsym);
+              insertconstdata(tcsym);
+              readtypedconst(tt,tcsym,false);
+            end
+          else
+            begin
+              tcsym:=ttypedconstsym.createtype(vs.realname,tt,true);
+              tcsym.fileinfo:=vs.fileinfo;
+              symtablestack.replace(vs,tcsym);
+              vs.free;
+              insertconstdata(tcsym);
+              consume(_EQUAL);
+              readtypedconst(tt,tcsym,true);
+            end;
+        end;
+
       var
          sc : tsinglelist;
          old_block_type : tblock_type;
@@ -616,8 +648,6 @@ implementation
          old_current_object_option : tsymoptions;
          hs,sorg,C_name,dll_name : string;
          tt,casetype : ttype;
-         { Delphi initialized vars }
-         tconstsym : ttypedconstsym;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
          maxsize, startvarrecsize : longint;
@@ -810,7 +840,6 @@ implementation
                  { try to parse the hint directives }
                  dummysymoptions:=[];
                  try_consume_hintdirective(dummysymoptions);
-
                  { for a record there doesn't need to be a ; before the END or ) }
                  if not(token in [_END,_RKLAMMER]) then
                    consume(_SEMICOLON);
@@ -844,37 +873,12 @@ implementation
                     not is_record and
                     not is_object then
                    begin
-                     vs:=tvarsym(sc.first);
-                     if assigned(vs.listnext) then
-                        Message(parser_e_initialized_only_one_var);
-                     if is_threadvar then
-                        Message(parser_e_initialized_not_for_threadvar);
-                     if symtablestack.symtabletype=localsymtable then
-                       begin
-                         consume(_EQUAL);
-                         tconstsym:=ttypedconstsym.createtype('default'+vs.realname,tt,false);
-                         vs.defaultconstsym:=tconstsym;
-                         symtablestack.insert(tconstsym);
-                         insertconstdata(tconstsym);
-                         readtypedconst(tt,tconstsym,false);
-                       end
-                     else
-                       begin
-                         tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
-                         tconstsym.fileinfo:=vs.fileinfo;
-                         symtablestack.replace(vs,tconstsym);
-                         vs.free;
-                         insertconstdata(tconstsym);
-                         consume(_EQUAL);
-                         readtypedconst(tt,tconstsym,true);
-                         symdone:=true;
-                       end;
-                     consume(_SEMICOLON);
-                   end
-                 else
-                   begin
-                     consume(_SEMICOLON);
+                     read_default_value(sc,tt,is_threadvar);
+                     { for locals we've created typedconstsym with a different name }
+                     if symtablestack.symtabletype<>localsymtable then
+                       symdone:=true;
                    end;
+                 consume(_SEMICOLON);
                end;
              { Add calling convention for procvars }
              if (tt.def.deftype=procvardef) and
@@ -892,6 +896,17 @@ implementation
                  { Add calling convention for procvar }
                  handle_calling_convention(tprocvardef(tt.def));
                  calc_parast(tprocvardef(tt.def));
+                 { Handling of Delphi typed const = initialized vars ! }
+                 if (token=_EQUAL) and
+                    not(m_tp7 in aktmodeswitches) and
+                    not(symtablestack.symtabletype in [parasymtable]) and
+                    not is_record and
+                    not is_object then
+                   begin
+                     read_default_value(sc,tt,is_threadvar);
+                     consume(_SEMICOLON);
+                     symdone:=true;
+                   end;
                end;
              { Check for variable directives }
              if not symdone and (token=_ID) then
@@ -1135,7 +1150,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.67  2004-02-20 21:55:59  peter
+  Revision 1.68  2004-02-26 16:10:23  peter
+    * another procvar directive fix, this time for initialized vars
+
+  Revision 1.67  2004/02/20 21:55:59  peter
     * procvar cleanup
 
   Revision 1.66  2004/02/17 15:57:49  peter
