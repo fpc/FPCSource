@@ -3788,9 +3788,11 @@ Const local_symtable_index : longint = $8001;
               end;
             {virtual table to implement yet}
             RecOffset := 0;
-            inc(globalnb);
+            if is_class then
+              inc(globalnb);
             symtable^.foreach({$ifdef FPCPROCVAR}@{$endif}addname);
-            dec(globalnb);
+            if is_class then
+              dec(globalnb);
             if (oo_has_vmt in objectoptions) then
               if not assigned(childof) or not(oo_has_vmt in childof^.objectoptions) then
                  begin
@@ -3804,9 +3806,11 @@ Const local_symtable_index : longint = $8001;
                  while assigned(anc^.childof) and (oo_has_vmt in anc^.childof^.objectoptions) do
                    anc := anc^.childof;
                  { just in case anc = self }
-                 inc(globalnb);
+                 if is_class then
+                   inc(globalnb);
                  str_end:=';~%'+anc^.classnumberstring+';';
-                 dec(globalnb);
+                 if is_class then
+                   dec(globalnb);
               end
             else
               str_end:=';';
@@ -4316,7 +4320,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.20  2000-10-01 19:48:25  peter
+  Revision 1.21  2000-10-04 23:16:48  pierre
+   * object stabs fix (merged)
+
+  Revision 1.20  2000/10/01 19:48:25  peter
     * lot of compile updates for cg11
 
   Revision 1.19  2000/09/24 21:19:52  peter
