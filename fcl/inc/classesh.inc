@@ -103,7 +103,7 @@ type
   TShiftState = set of (ssShift, ssAlt, ssCtrl,
     ssLeft, ssRight, ssMiddle, ssDouble,
     // Extra additions
-    ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum, 
+    ssMeta, ssSuper, ssHyper, ssAltGr, ssCaps, ssNum,
     ssScroll,ssTriple,ssQuad);
 
   THelpContext = -MaxLongint..MaxLongint;
@@ -1293,6 +1293,31 @@ type
 
   TActiveXRegType = (axrComponentOnly, axrIncludeDescendants);
 
+{$ifdef HASINTF}
+  IInterfaceList = interface ['{285DEA8A-B865-11D1-AAA7-00C04FB17A72}']
+    function Get(i : Integer) : IUnknown;
+    function GetCapacity : Integer;
+    function GetCount : Integer;
+    procedure Put(i : Integer;item : IUnknown);
+    procedure SetCapacity(NewCapacity : Integer);
+    procedure SetCount(NewCount : Integer);
+    procedure Clear;
+    procedure Delete(index : Integer);
+    procedure Exchange(index1,index2 : Integer);
+    function First : IUnknown;
+    function IndexOf(item : IUnknown) : Integer;
+    function Add(item : IUnknown) : Integer;
+    procedure Insert(i : Integer;item : IUnknown);
+    function Last : IUnknown;
+    function Remove(item : IUnknown): Integer;
+    procedure Lock;
+    procedure Unlock;
+    property Capacity : Integer read GetCapacity write SetCapacity;
+    property Count : Integer read GetCount write SetCount;
+    property Items[index : Integer] : IUnknown read Get write Put;default;
+  end;
+{$endif HASINTF}
+
 var
   RegisterComponentsProc: procedure(const Page: string;
     ComponentClasses: array of TComponentClass);
@@ -1390,7 +1415,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.19  2002-03-28 12:08:47  michael
+  Revision 1.20  2002-07-15 18:35:04  florian
+    + IInterfaceList added
+
+  Revision 1.19  2002/03/28 12:08:47  michael
   + Added sstriple and ssquad in shiftstate
 
   Revision 1.18  2002/01/06 21:54:49  peter
