@@ -172,7 +172,7 @@ begin
   S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointTyp+S2,BreakpointTypeStr[typ]);
   for typ:=low(BreakpointType) to high(BreakpointType) do
     If pos(BreakpointTypeStr[typ],S)>0 then break;
-  state:=bs_invalid;
+  state:=bs_deleted;
   S:=INIFile^.GetEntry(secBreakpoint,ieBreakpointState+S2,BreakpointStateStr[state]);
   for state:=low(BreakpointState) to high(BreakpointState) do
     If pos(BreakpointStateStr[state],S)>0 then break;
@@ -363,7 +363,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  1999-02-04 17:19:24  peter
+  Revision 1.8  1999-02-04 17:52:38  pierre
+   * bs_invalid renamed bs_deleted
+
+  Revision 1.7  1999/02/04 17:19:24  peter
     * linux fixes
 
   Revision 1.6  1999/02/04 13:32:04  pierre
