@@ -947,12 +947,11 @@ begin
   if fmtlen > 0 then
     Move(fmt,F[1],fmtlen);
   S:=Format (F,Args);
-  If Cardinal(Length(S))>Buflen then
+  If Length(S)<Buflen then
     Result:=Length(S)
   else
     Result:=Buflen;
-  if Result > 0 then
-    Move(S[1],Buffer,Result);
+  Move(S[1],Buffer,Result);
 end;
 
 Procedure FmtStr(Var Res: String; Const Fmt : String; Const args: Array of const);
@@ -1338,7 +1337,10 @@ const
 
 {
   $Log$
-  Revision 1.17  2002-08-29 10:04:48  michael
+  Revision 1.18  2002-09-02 06:07:16  michael
+  + Fix for formatbuf not applied correct
+
+  Revision 1.17  2002/08/29 10:04:48  michael
   + Fix for bug report 2097 in formatbuf
 
   Revision 1.16  2002/08/29 10:04:25  michael
