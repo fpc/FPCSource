@@ -1,3 +1,4 @@
+{ %NORUN }
 { Old file: tbs0263.pp }
 { export directive is not necessary in delphi anymore  OK 0.99.13 (PFV) }
 
