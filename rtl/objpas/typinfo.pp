@@ -43,6 +43,7 @@ unit typinfo;
       ptField = 0;
       ptStatic = 1;
       ptVirtual = 2;
+      ptConst = 3;
 
    const
       tkString        = tkSString;
@@ -184,6 +185,11 @@ unit typinfo;
                  caller.Address:=PPointer(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^;
                  IsStoredProc:=tbfunction(caller);
               end;
+            4:
+              begin
+              IsStoredProp:=
+                LongBool(PropInfo^.StoredProc);
+              end;
          end;
       end;
 
@@ -191,7 +197,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-09-07 08:32:59  florian
+  Revision 1.4  1998-09-07 19:34:47  florian
+    * constant value is now supported as stored condition
+
+  Revision 1.3  1998/09/07 08:32:59  florian
     + procedure IsStoredProc added
 
   Revision 1.2  1998/09/06 21:27:05  florian
