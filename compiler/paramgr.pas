@@ -71,6 +71,13 @@ unit paramgr;
             function results will be passed.
           }
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;virtual;
+
+          {
+            Returns the location where the invisible parameter for nested
+            subroutines is passed.
+          }
+          function getframepointerloc(p : tabstractprocdef) : tparalocation;virtual;
+
           { Returns the self pointer location for the given tabstractprocdef,
             when the stack frame is already created. This is used by the code
             generating the wrappers for implemented interfaces.
@@ -174,6 +181,16 @@ unit paramgr;
 
 
     function tparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
+      begin
+         result.loc:=LOC_REFERENCE;
+         result.size:=OS_ADDR;
+         result.sp_fixup:=pointer_size;
+         result.reference.index:=stack_pointer_reg;
+         result.reference.offset:=0;
+      end;
+
+
+    function tparamanager.getframepointerloc(p : tabstractprocdef) : tparalocation;
       begin
          result.loc:=LOC_REFERENCE;
          result.size:=OS_ADDR;
@@ -314,7 +331,10 @@ end.
 
 {
    $Log$
-   Revision 1.17  2002-09-07 19:40:39  florian
+   Revision 1.18  2002-09-09 09:10:51  florian
+     + added generic tparamanager.getframepointerloc
+
+   Revision 1.17  2002/09/07 19:40:39  florian
      * tvarsym.paraitem is set now
 
    Revision 1.16  2002/09/01 21:04:48  florian
