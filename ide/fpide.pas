@@ -551,6 +551,12 @@ begin
   while GetTargetedEvent(P,Event) do
     P^.HandleEvent(Event);
   inherited GetEvent(Event);
+{$ifdef DEBUG}
+  if (Event.What=evKeyDown) and (Event.KeyCode=kbAltF11) then
+    begin
+      Generate_SIGSEGV;
+    end;
+{$endif DEBUG}
   if (Event.What=evKeyDown) and (Event.KeyCode=kbAltF12) then
     begin
       CreateAnsiFile;
@@ -1177,7 +1183,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.8  2002-01-24 09:21:42  pierre
+  Revision 1.9  2002-03-20 14:52:01  pierre
+   + deliberatly generate a SIGSEGV if Alt+F11 is pressed (DEBUG code)
+
+  Revision 1.8  2002/01/24 09:21:42  pierre
    * only disable Alt-X in Options|Compiler dialog
 
   Revision 1.7  2001/11/07 00:28:53  pierre
