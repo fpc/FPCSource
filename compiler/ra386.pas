@@ -36,6 +36,7 @@ Procedure FWaitWarning;
 type
   P386Operand=^T386Operand;
   T386Operand=object(TOperand)
+    Procedure SetCorrectSize(opcode:tasmop);virtual;
   end;
 
   P386Instruction=^T386Instruction;
@@ -141,6 +142,27 @@ begin
    Message(asmr_w_fwait_emu_prob);
 end;
 
+{*****************************************************************************
+                              T386Operand
+*****************************************************************************}
+
+Procedure T386Operand.SetCorrectSize(opcode:tasmop);
+begin
+  if att_needsuffix[opcode]=attsufFPU then
+    begin
+     case size of
+      S_L : size:=S_FS;
+      S_IQ : size:=S_FL;
+     end;
+    end
+  else if att_needsuffix[opcode]=attsufFPUint then
+    begin
+      case size of
+      S_W : size:=S_IS;
+      S_L : size:=S_IL;
+      end;
+    end;
+end;
 
 {*****************************************************************************
                               T386Instruction
@@ -156,6 +178,8 @@ var
   so : longint;
 begin
   for i:=1to ops do
+   begin
+   operands[i]^.SetCorrectSize(opcode);
    if (operands[i]^.size=S_NO) then
     begin
       case operands[i]^.Opr.Typ of
@@ -190,6 +214,7 @@ begin
           end;
       end;
     end;
+   end;
 end;
 
 
@@ -339,7 +364,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.12  2000-02-09 13:23:01  peter
+  Revision 1.13  2000-04-04 13:48:44  pierre
+    + TOperand.SetCorrectSize virtual method added
+      to be able to change the suffix according to the instruction
+      (FIADD word ptr w need a s as ATT suffix
+      wheras FILD word ptr w need a w suffix :( )
+
+  Revision 1.12  2000/02/09 13:23:01  peter
     * log truncated
 
   Revision 1.11  2000/01/07 01:14:34  peter

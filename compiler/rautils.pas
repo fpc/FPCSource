@@ -94,6 +94,7 @@ type
     destructor  done;virtual;
     Procedure BuildOperand;virtual;
     Procedure SetSize(_size:longint);
+    Procedure SetCorrectSize(opcode:tasmop);virtual;
     Function  SetupResult:boolean;
     Function  SetupSelf:boolean;
     Function  SetupOldEBP:boolean;
@@ -657,6 +658,10 @@ destructor TOperand.done;
 begin
 end;
 
+
+Procedure TOperand.SetCorrectSize(opcode:tasmop);
+begin
+end;
 
 Procedure TOperand.SetSize(_size:longint);
 begin
@@ -1508,7 +1513,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  2000-03-28 22:10:12  pierre
+  Revision 1.39  2000-04-04 13:48:45  pierre
+    + TOperand.SetCorrectSize virtual method added
+      to be able to change the suffix according to the instruction
+      (FIADD word ptr w need a s as ATT suffix
+      wheras FILD word ptr w need a w suffix :( )
+
+  Revision 1.38  2000/03/28 22:10:12  pierre
    * Object fields are simple offsets in TP/Delphi mode
 
   Revision 1.37  2000/03/16 15:10:25  pierre

@@ -134,6 +134,9 @@ const
   att_sizefpusuffix : array[0..9] of topsize = (
     S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_FL,S_FS,S_IQ,S_FX
   );
+  att_sizefpuintsuffix : array[0..9] of topsize = (
+    S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_IL,S_IS,S_IQ,S_NO
+  );
 var
   i    : tasmop;
   cond : string[4];
@@ -163,6 +166,8 @@ Begin
             actopcode:=i;
             if att_needsuffix[actopcode]=attsufFPU then
              actopsize:=att_sizefpusuffix[sufidx]
+            else if att_needsuffix[actopcode]=attsufFPUint then
+             actopsize:=att_sizefpuintsuffix[sufidx]
             else
              actopsize:=att_sizesuffix[sufidx];
             actasmtoken:=AS_OPCODE;
@@ -184,6 +189,8 @@ Begin
                      actopcode:=CondASmOp[j];
                      if att_needsuffix[actopcode]=attsufFPU then
                       actopsize:=att_sizefpusuffix[sufidx]
+                     else if att_needsuffix[actopcode]=attsufFPUint then
+                      actopsize:=att_sizefpuintsuffix[sufidx]
                      else
                       actopsize:=att_sizesuffix[sufidx];
                      actcondition:=cnd;
@@ -1985,7 +1992,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.72  2000-03-15 23:10:01  pierre
+  Revision 1.73  2000-04-04 13:48:44  pierre
+    + TOperand.SetCorrectSize virtual method added
+      to be able to change the suffix according to the instruction
+      (FIADD word ptr w need a s as ATT suffix
+      wheras FILD word ptr w need a w suffix :( )
+
+  Revision 1.72  2000/03/15 23:10:01  pierre
     * fix for bug 848 (that still genrated wrong code)
     + better testing for variables used in assembler
       (gives an error if variable is not directly reachable !)
