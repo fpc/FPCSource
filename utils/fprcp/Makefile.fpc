@@ -8,5 +8,9 @@ programs=fprcp
 [clean]
 units=comments expr pasprep
 
+[default]
+fpcdir=../..
+
+
 [rules]
 fpcrp$(EXEEXT): fpcrp.pp comments.pp pexpr.pp pasprep.pp

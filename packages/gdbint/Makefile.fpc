@@ -17,6 +17,9 @@ libdir=libgdb/$(OS_TARGET)
 [require]
 libc=y
 
+[default]
+fpcdir=../..
+
 
 [rules]
 gdbint$(PPUEXT): gdbint.pp

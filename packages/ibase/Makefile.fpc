@@ -13,8 +13,5 @@ examples=testib40 testib60
 [require]
 libc=y
 
-[rules]
-testib40$(EXEEXT): testib40.pp ibase40$(PPUEXT)
-
-testib60$(EXEEXT): testib60.pp ibase60$(PPUEXT)
-
+[default]
+fpcdir=../..

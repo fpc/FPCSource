@@ -8,13 +8,16 @@ version=1.1
 
 [target]
 dirs=fpcm tply h2pas fprcp
-programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc fpcmake delp bin2obj postw32
+programs=ppufiles ppudump ppumove ppdep ptop rstconv data2inc delp bin2obj postw32
 
 [clean]
 units=ppu ptopu makeini crc
 
 [require]
 packages=fcl
+
+[default]
+fpcdir=..
 
 
 [rules]

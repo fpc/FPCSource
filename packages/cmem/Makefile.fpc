@@ -9,3 +9,6 @@ version=1.0.5
 [target]
 units=cmem
 examples=testcmem
+
+[default]
+fpcdir=../..

@@ -10,6 +10,10 @@ version=1.0.5
 units=uncgi
 examples=testcgi
 
+[default]
+fpcdir=../..
+
+
 [rules]
 exampleinstall: fpc_exampleinstall
-        $(COPY) testcgi.sh testcgi.bat $(EXAMPLEINSTALLDIR)
+        $(COPY) testcgi.sh testcgi.bat $(INSTALL_EXAMPLEDIR)

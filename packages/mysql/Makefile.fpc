@@ -13,3 +13,5 @@ examples=testdb
 [require]
 libc=y
 
+[default]
+fpcdir=../..

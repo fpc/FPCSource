@@ -7,3 +7,6 @@ programs=$(subst .pp,,$(wildcard tut*.pp))
 
 [require]
 packages=gtk
+
+[default]
+fpcdir=../../../..

@@ -10,3 +10,6 @@ packages=fcl
 
 [compiler]
 options=-S2
+
+[default]
+fpcdir=../../..

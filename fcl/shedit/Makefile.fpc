@@ -11,3 +11,6 @@ units=doc_text shedit sh_xml sh_pas
 [compiler]
 options=-S2
 targetdir=../$(OS_TARGET)
+
+[default]
+fpcdir=../..

@@ -2,6 +2,9 @@
 #   Makefile.fpc for Go32v2 RTL
 #
 
+[package]
+main=rtl
+
 [target]
 loaders=prt0 exceptn fpu
 units=system objpas strings \
@@ -17,6 +20,7 @@ rst=math varutils
 nortl=y
 
 [default]
+fpcdir=../..
 target=go32v2
 cpu=i386
 

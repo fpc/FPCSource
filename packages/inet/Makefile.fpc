@@ -9,3 +9,6 @@ version=1.0.5
 [target]
 units=inet
 examples=testinet pfinger
+
+[default]
+fpcdir=../..

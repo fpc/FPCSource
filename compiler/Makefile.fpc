@@ -15,6 +15,9 @@ includedir=$(CPU_TARGET)
 packages=rtl
 tools=diff cmp
 
+[default]
+fpcdir=..
+
 
 [prerules]
 # Don't export OS_SOURCE because it can change after the first compile

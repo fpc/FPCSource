@@ -10,4 +10,10 @@ units=gtkglarea
 examples=gtkgldemo
 
 [require]
-packages=opengl gtk
+packages=opengl
+
+[compiler]
+targetdir=..
+
+[default]
+fpcdir=../../..

@@ -26,16 +26,16 @@ interface
       Title='fpcmake '+Version;
       TitleDate=Title+' ['+{$ifdef fpc}{$i %DATE}{$else}'n/a'{$endif}+']';
     type
-      TTarget=(t_all,
+      TTarget=(
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd
       );
 
     const
-      TargetStr : array[TTarget] of string=('all',
+      TargetStr : array[TTarget] of string=(
         'linux','go32v2','win32','os2','freebsd'
       );
 
-      TargetSuffix : array[TTarget] of string=('',
+      TargetSuffix : array[TTarget] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd'
       );
 
@@ -80,6 +80,8 @@ interface
         property Dictionary:TKeyValue read FDictionary;
       end;
 
+      TTargetRequireList = array[ttarget] of TStringList;
+
       TFPCMake = class
       private
         FStream         : TStream;
@@ -92,14 +94,15 @@ interface
         FIsPackage      : boolean;
         FPackageName,
         FPackageVersion : string;
-        FRequireList    : TStringList;
+        FRequireList    : TTargetRequireList;
         FVariables      : TKeyValue;
         procedure Init;
         procedure ParseSec(p:TDictionaryItem);
         procedure PrintSec(p:TDictionaryItem);
         function  GetSec(const AName:string):TDictionaryItem;
-        procedure LoadRequiredPackage(const ReqName,ReqVersion:string);
-        procedure LoadRequires(FromFPCMake:TFPCMake);
+        procedure LoadRequiredPackage(t:TTarget;const ReqName,ReqVersion:string);
+        procedure LoadRequiredDir(t:TTarget;const MainPack,currdir,subdir:string);
+        procedure LoadRequires(t:Ttarget;FromFPCMake:TFPCMake);
         function  CopySection(Sec:TFPCMakeSection;Secname:string):TFPCMakeSection;
       public
         constructor Create(const AFileName:string);
@@ -114,10 +117,10 @@ interface
         procedure CreateExportSection;
         procedure SubstVariables(var s:string);
         function  GetVariable(const inivar:string):string;
-        function  SetVariable(const inivar,value:string):string;
+        function  SetVariable(const inivar,value:string;add:boolean):string;
         procedure Print;
         property Section[const s:string]:TDictionaryItem read GetSec;default;
-        property RequireList:TStringList read FRequireList;
+        property RequireList:TTargetRequireList read FRequireList;
         property Variables:TKeyValue read FVariables;
         property IsPackage:boolean read FIsPackage;
         property PackageName:string read FPackageName;
@@ -129,6 +132,7 @@ interface
       end;
 
     function posidx(const substr,s : string;idx:integer):integer;
+    function GetToken(var s:string):string;
 
 
 implementation
@@ -387,7 +391,7 @@ implementation
            if j=len then
             Raise Exception.Create(Format(s_err_not_key_value,[s]));
            Value:=Copy(s,j+1,len-j);
-           p:=TKeyValueItem(FDictionary[NewKey]);
+           p:=TKeyValueItem(FDictionary.Search(NewKey));
            { Concat values if key already exists }
            if assigned(p) then
             p.Value:=p.Value+' '+Value
@@ -460,9 +464,12 @@ implementation
 
 
     procedure TFPCMake.Init;
+      var
+        t : ttarget;
       begin
         FSections:=TDictionary.Create;
-        FRequireList:=TStringList.Create;
+        for t:=low(ttarget) to high(ttarget) do
+         FRequireList[t]:=TStringList.Create;
         FVariables:=TKeyValue.Create;
         FCommentChars:=[';','#'];
         FEmptyLines:=false;
@@ -475,9 +482,12 @@ implementation
 
 
     destructor TFPCMake.Destroy;
+      var
+        t : ttarget;
       begin
         FSections.Free;
-        FRequireList.Free;
+        for t:=low(ttarget) to high(ttarget) do
+         FRequireList[t].Free;
         FVariables.Free;
       end;
 
@@ -534,20 +544,17 @@ implementation
 
     function TFPCMake.CopySection(Sec:TFPCMakeSection;Secname:string):TFPCMakeSection;
       begin
-        if assigned(FSections[SecName]) then
-         Result:=TFPCMakeSection(FSections[SecName])
+        Result:=TFPCMakeSection(FSections[SecName]);
+        if Sec=Nil then
+         exit;
+        if assigned(Result) then
+         Result.BuildIni
         else
-         begin
-           Result:=nil;
-           if assigned(Sec) then
-            begin
-              Sec.BuildIni;
-              Result:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)));
-              Result.List.AddStrings(Sec.List);
-              Result.ParseIni;
-              Sec.ParseIni;
-            end;
-         end;
+         Result:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.Create(SecName)));
+        Sec.BuildIni;
+        Result.List.AddStrings(Sec.List);
+        Result.ParseIni;
+        Sec.ParseIni;
       end;
 
 
@@ -576,8 +583,8 @@ implementation
         s:=FPackageSec['main'];
         if s<>'' then
          begin
-           LoadRequiredPackage(FPackageSec['main'],'');
-           SetVariable('package.name',s);
+           SetVariable('package.name',s,false);
+           FPackageName:=s;
          end
         else
          begin
@@ -619,7 +626,7 @@ implementation
       end;
 
 
-    procedure TFPCMake.LoadRequiredPackage(const ReqName,ReqVersion:string);
+    procedure TFPCMake.LoadRequiredPackage(t:TTarget;const ReqName,ReqVersion:string);
 
         function TryFile(const fn:string):boolean;
         var
@@ -639,7 +646,7 @@ implementation
              if (ReqVersion<>'') and (ReqFPCMake.PackageVersion<ReqVersion) then
               raise Exception.Create('s_wrong_package_version');
              { First load the requirements of this package }
-             LoadRequires(ReqFPCMake);
+             LoadRequires(t,ReqFPCMake);
              { Get a copy of the package section }
              CopySection(ReqFPCMake.PackageSec,ReqName+'_package');
              { Get a copy of the export section }
@@ -666,62 +673,95 @@ implementation
         SubstVariables(s);
         if TryFile(s+'/Makefile.fpc') then
          exit;
+        {s:=GetVariable('default.fpcdir');
+        writeln('s: ',s);
+        if (s<>'') and (TryFile(s+'/Makefile.fpc')) then
+         exit; }
+
         Raise Exception.Create('s_package_not_found '+Reqname);
       end;
 
 
-    procedure TFPCMake.LoadRequires(FromFPCMake:TFPCMake);
+    procedure TFPCMake.LoadRequiredDir(t:TTarget;const MainPack,currdir,subdir:string);
+        var
+          ReqFPCMake : TFPCMake;
+          s : string;
+        begin
+          writeln('Subdir: ',currdir+subdir+'/Makefile.fpc');
+          if not FileExists(currdir+subdir+'/Makefile.fpc') then
+           Raise Exception.Create('s_no_makefile.fpc_found');
+          ReqFPCMake:=TFPCMake.Create(currdir+subdir+'/Makefile.fpc');
+          ReqFPCMake.LoadSections;
+          ReqFPCMake.LoadPackageSection;
+          { Are we a subpackage? }
+          if (ReqFPCMake.GetVariable('package.name')<>MainPack) then
+           begin
+             ReqFPCMake.Free;
+             exit;
+           end;
+          { Load the requirements of this package }
+          LoadRequires(t,ReqFPCMake);
+          { Add the current requirements to our parents requirements }
+          s:=ReqFPCMake.GetVariable('require.packages')+' '+ReqFPCMake.GetVariable('require.packages'+targetsuffix[t]);
+          SetVariable('require.packages'+targetsuffix[t],s,true);
+          if ReqFPCMake.GetVariable('require.libc')<>'' then
+           SetVariable('require.libc','y',false);
+          { Free }
+          ReqFPCMake.Free;
+        end;
+
+
+    procedure TFPCMake.LoadRequires(t:Ttarget;FromFPCMake:TFPCMake);
       var
         s,
+        ReqDir,
         ReqName,
         ReqVersion : string;
         i,j : integer;
-        t : TTarget;
         Sec : TFPCMakeSection;
       begin
         Sec:=TFPCMakeSection(FromFPCMake['require']);
-        if Sec=nil then
-         exit;
-        Sec.ParseIni;
-        for t:=low(TTarget) to high(TTarget) do
+        if assigned(Sec) then
          begin
-           s:=Sec['packages'+TargetSuffix[t]];
-           repeat
-             i:=pos(' ',s);
-             if i=0 then
-              begin
-                ReqName:=Trim(s);
-                s:='';
-              end
-             else
-              begin
-                ReqName:=Trim(Copy(s,1,i));
-                Delete(s,1,i);
-                s:=TrimLeft(s);
-              end;
-             if ReqName<>'' then
-              begin
-                i:=Pos('(',ReqName);
-                if i>0 then
-                 begin
-                   j:=Pos(')',ReqName);
-                   if (i=1) or (j=0) then
-                    Raise Exception.Create(Format(s_err_require_format,[ReqName]));
-                   ReqVersion:=Copy(ReqName,i+1,j-i-1);
-                   ReqName:=Copy(ReqName,1,i-1);
-                 end
-                else
-                 ReqVersion:='';
-                { We only use lowercase names }
-                ReqName:=Lowercase(ReqName);
-                { Already loaded ? }
-                if (RequireList.IndexOf(ReqName)=-1) then
-                 begin
-                   LoadRequiredPackage(ReqName,ReqVersion);
-                   RequireList.Add(ReqName);
-                 end;
-              end;
-           until s='';
+           Sec.ParseIni;
+               s:=Sec['packages']+' '+Sec['packages'+TargetSuffix[t]];
+               repeat
+                 reqname:=GetToken(s);
+                 if reqname='' then
+                  break;
+                 i:=Pos('(',ReqName);
+                 if i>0 then
+                  begin
+                    j:=Pos(')',ReqName);
+                    if (i=1) or (j=0) then
+                     Raise Exception.Create(Format(s_err_require_format,[ReqName]));
+                    ReqVersion:=Copy(ReqName,i+1,j-i-1);
+                    ReqName:=Copy(ReqName,1,i-1);
+                  end
+                 else
+                  ReqVersion:='';
+                 { We only use lowercase names }
+                 ReqName:=Lowercase(ReqName);
+                 { Already loaded ? }
+                 if (RequireList[t].IndexOf(ReqName)=-1) then
+                  begin
+                    LoadRequiredPackage(t,ReqName,ReqVersion);
+                    RequireList[t].Add(ReqName);
+                  end;
+               until false;
+         end;
+        { target.dirs }
+        Sec:=TFPCMakeSection(FromFPCMake['target']);
+        if assigned(Sec) then
+         begin
+           Sec.ParseIni;
+               s:=Sec['dirs']+' '+Sec['dirs'+TargetSuffix[t]];
+               repeat
+                 reqdir:=GetToken(s);
+                 if reqdir='' then
+                  break;
+                 LoadRequiredDir(t,FromFPCMake.FPackageName,ExtractFilePath(FromFPCMake.FFileName),ReqDir)
+               until false;
          end;
       end;
 
@@ -733,6 +773,11 @@ implementation
           t : ttarget;
         begin
           result:=false;
+          if GetVariable(s)<>'' then
+           begin
+             result:=true;
+             exit;
+           end;
           for t:=low(ttarget) to high(ttarget) do
            begin
              if GetVariable(s+targetsuffix[t])<>'' then
@@ -745,6 +790,7 @@ implementation
 
       var
         s : string;
+        t : ttarget;
       begin
         { Maybe add an implicit rtl dependency if there is something
           to compile }
@@ -756,10 +802,11 @@ implementation
            (Pos('rtl(',s)=0) then
          begin
            s:='rtl '+s;
-           SetVariable('require.packages',s);
+           SetVariable('require.packages',s,false);
          end;
         { Load recursively all required packages starting with this Makefile.fpc }
-        LoadRequires(self);
+        for t:=low(TTarget) to high(TTarget) do
+         LoadRequires(t,self);
       end;
 
 
@@ -775,41 +822,25 @@ implementation
           RSec : TFPCMakeSection;
           i : integer;
         begin
-          if t<>t_all then
-           s:=Sec['packages']+' '+Sec['packages'+TargetSuffix[t]]
-          else
-           s:=Sec['packages'];
-          while s<>'' do
-           begin
-             i:=pos(' ',s);
-             if i=0 then
-              begin
-                ReqName:=Trim(s);
-                s:='';
-              end
-             else
-              begin
-                ReqName:=Trim(Copy(s,1,i));
-                Delete(s,1,i);
-                s:=TrimLeft(s);
-              end;
-             if ReqName<>'' then
-              begin
-                i:=Pos('(',ReqName);
-                if i>0 then
-                 ReqName:=Copy(ReqName,1,i-1);
-                { We only use lowercase names }
-                ReqName:=Lowercase(ReqName);
-                { Already loaded ? }
-                if (ReqList.IndexOf(ReqName)=-1) then
-                 begin
-                   RSec:=TFPCMakeSection(FSections[ReqName+'_require']);
-                   if assigned(RSec) then
-                    AddReqSec(t,RSec);
-                   ReqList.Add(ReqName);
-                 end;
-              end;
-           end;
+          s:=Sec['packages']+' '+Sec['packages'+TargetSuffix[t]];
+          repeat
+            ReqName:=GetToken(s);
+            if ReqName='' then
+             break;
+            i:=Pos('(',ReqName);
+            if i>0 then
+             ReqName:=Copy(ReqName,1,i-1);
+            { We only use lowercase names }
+            ReqName:=Lowercase(ReqName);
+            { Already loaded ? }
+            if (ReqList.IndexOf(ReqName)=-1) then
+             begin
+               RSec:=TFPCMakeSection(FSections[ReqName+'_require']);
+               if assigned(RSec) then
+                AddReqSec(t,RSec);
+               ReqList.Add(ReqName);
+             end;
+          until false;
         end;
 
       begin
@@ -825,6 +856,7 @@ implementation
       var
         i : integer;
         RSec : TFPCMakeSection;
+        t : ttarget;
       begin
         Result:=false;
         if GetVariable('require.libc')<>'' then
@@ -832,9 +864,10 @@ implementation
            Result:=true;
            exit;
          end;
-        for i:=0 to RequireList.Count-1 do
+        for t:=low(ttarget) to high(ttarget) do
+        for i:=0 to RequireList[t].Count-1 do
          begin
-           RSec:=TFPCMakeSection(FSections[RequireList[i]+'_require']);
+           RSec:=TFPCMakeSection(FSections[RequireList[t][i]+'_require']);
            if assigned(RSec) then
             begin
               if RSec['libc']<>'' then
@@ -902,11 +935,12 @@ implementation
       end;
 
 
-    function TFPCMake.SetVariable(const inivar,value:string):string;
+    function TFPCMake.SetVariable(const inivar,value:string;add:boolean):string;
       var
         Sec : TFPCMakeSection;
-        Dic : TKeyValue;
+        P   : TKeyValueItem;
         i   : integer;
+        key : string;
       begin
         Result:='';
         i:=Pos('.',inivar);
@@ -915,8 +949,17 @@ implementation
            Sec:=TFPCMakeSection(FSections[Copy(Inivar,1,i-1)]);
            if Sec=nil then
             Sec:=TFPCMakeSection(FSections.Insert(TFPCMakeSection.CreateKeyValue(Copy(Inivar,1,i-1))));
-           Dic:=TKeyValue(Sec.Dictionary);
-           Dic[Copy(IniVar,i+1,Length(IniVar)-i)]:=value;
+           key:=Copy(IniVar,i+1,Length(IniVar)-i);
+           p:=TKeyValueItem(Sec.Dictionary.Search(Key));
+           if assigned(p) then
+            begin
+              if Add then
+               p.Value:=p.Value+' '+Value
+              else
+               p.Value:=Value;
+            end
+           else
+            TKeyValue(Sec.Dictionary).Add(key,value);
          end
         else
          Variables[IniVar]:=value;
@@ -949,7 +992,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-01-29 21:49:10  peter
+  Revision 1.3  2001-02-01 22:00:10  peter
+    * default.fpcdir is back
+    * subdir requirement checking works, but not very optimal yet as
+      it can load the same Makefile.fpc multiple times
+
+  Revision 1.2  2001/01/29 21:49:10  peter
     * lot of updates
 
   Revision 1.1  2001/01/24 21:59:36  peter

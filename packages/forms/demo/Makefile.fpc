@@ -12,3 +12,6 @@ programs=pushme yesno pushbutton touchbutton minput inputall choice butttypes \
 
 [require]
 packages=forms
+
+[default]
+fpcdir=../../..

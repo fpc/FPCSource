@@ -13,3 +13,5 @@ examples=testpg1 testpg2
 [require]
 libc=y
 
+[default]
+fpcdir=../..

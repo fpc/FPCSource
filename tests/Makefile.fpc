@@ -2,8 +2,10 @@
 # Makefile.fpc for Free Pascal Tests directory
 #
 
-[defaults]
-defaultrule=alltests
+[default]
+fpcdir=..
+rule=alltests
+
 
 [rules]
 # Unix like OS ?

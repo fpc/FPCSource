@@ -14,6 +14,9 @@ examples=test01
 packages=fcl
 libc=y
 
+[default]
+fpcdir=../..
+
 # in libdir variable must be path to libraries
 # libclntsh.*,libnlsrtl3.*
 #[compiler]

@@ -12,3 +12,5 @@ units=zlib
 [require]
 libc=y
 
+[default]
+fpcdir=../..

@@ -12,3 +12,6 @@ examples=testreg1
 
 [compiler]
 options=-S2
+
+[default]
+fpcdir=../..

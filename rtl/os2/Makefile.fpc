@@ -2,6 +2,9 @@
 #   Makefile.fpc for Free Pascal OS/2 RTL
 #
 
+[package]
+main=rtl
+
 [target]
 loaders=prt0 prt1 code2 code3
 units=$(SYSTEMUNIT) objpas strings \
@@ -17,6 +20,7 @@ rsts=math varutils
 nortl=y
 
 [default]
+fpcdir=../..
 target=os2
 cpu=i386
 

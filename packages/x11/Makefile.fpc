@@ -12,3 +12,5 @@ units=x xlib xutil xresource xcms xshm xrender
 [require]
 libc=y
 
+[default]
+fpcdir=../..

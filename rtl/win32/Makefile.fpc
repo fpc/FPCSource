@@ -2,6 +2,9 @@
 #   Makefile.fpc for Free Pascal Win32 RTL
 #
 
+[package]
+main=rtl
+
 [target]
 loaders=wprt0 wdllprt0
 units=$(SYSTEMUNIT) objpas strings \
@@ -17,6 +20,7 @@ rst=math varutils
 nortl=y
 
 [default]
+fpcdir=../..
 target=win32
 cpu=i386
 

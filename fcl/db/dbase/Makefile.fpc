@@ -12,3 +12,6 @@ examples=testdbf
 [compiler]
 options=-S2 -Sh
 targetdir=../../$(OS_TARGET)
+
+[default]
+fpcdir=../../..

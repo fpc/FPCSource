@@ -6,6 +6,9 @@
 [target]
 units=erroru
 
+[default]
+fpcdir=../..
+
 
 [rules]
 .PHONY: rtl fcl clean

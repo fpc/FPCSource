@@ -29,3 +29,6 @@ sourcedir=$(OS_TARGET) inc
 
 [libs]
 libname=fpfcl
+
+[default]
+fpcdir=..

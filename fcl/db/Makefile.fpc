@@ -16,6 +16,10 @@ exampledirs=tests
 options=-S2
 targetdir=../$(OS_TARGET)
 
+[default]
+fpcdir=../..
+
+
 [rules]
 db$(PPUEXT): db.pp fields.inc dataset.inc dbs.inc
 

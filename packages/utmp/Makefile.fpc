@@ -9,3 +9,6 @@ version=1.0.5
 [target]
 units=utmp
 examples=testutmp
+
+[default]
+fpcdir=../..

@@ -19,3 +19,6 @@ exampledirs=examples
 [compiler]
 sourcedir=$(OS_TARGET)
 targetdir=$(OS_TARGET)
+
+[default]
+fpcdir=../..

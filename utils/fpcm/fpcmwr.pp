@@ -314,6 +314,11 @@ implementation
         t : TTarget;
       begin
         result:=false;
+        if FInput.GetVariable(IniVar)<>'' then
+         begin
+           result:=true;
+           exit;
+         end;
         for t:=low(TTarget) to high(TTarget) do
          if FInput.GetVariable(IniVar+TargetSuffix[t])<>'' then
           begin
@@ -334,16 +339,17 @@ implementation
         s : string;
         T : TTarget;
       begin
+        s:=FInput.GetVariable(IniVar);
+        if s<>'' then
+         FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
         for t:=low(TTarget) to high(TTarget) do
          begin
            s:=FInput.GetVariable(IniVar+TargetSuffix[t]);
            if s<>'' then
             begin
-              if t<>t_all then
-               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+              FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
               FOutput.Add('override '+FixVariable(IniVar)+'+='+s);
-              if t<>t_all then
-               FOutput.Add('endif');
+              FOutput.Add('endif');
             end;
          end;
       end;
@@ -364,22 +370,14 @@ implementation
         s : string;
         T : TTarget;
         name : string;
-        i,k1,k2 : integer;
+        k1,k2 : integer;
       begin
         result:='';
-        for t:=low(TTarget) to high(TTarget) do
-         begin
-           s:=FInput.GetVariable(IniVar+TargetSuffix[t]);
-           if s<>'' then
-            begin
-              if t<>t_all then
-               FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
-              repeat
-                i:=pos(' ',s);
-                if i=0 then
-                 i:=length(s)+1;
-                name:=Copy(s,1,i-1);
-                s:=TrimLeft(Copy(s,i+1,Length(s)-i));
+        s:=FInput.GetVariable(IniVar);
+        repeat
+          name:=GetToken(s);
+          if Name='' then
+           break;
                 { Remove (..) }
                 k1:=pos('(',name);
                 if k1>0 then
@@ -392,9 +390,31 @@ implementation
                 FOutput.Add(prefix+VarName(name)+'=1');
                 { add to the list of dirs without duplicates }
                 AddStrNoDup(result,name);
-              until s='';
-              if t<>t_all then
-               FOutput.Add('endif');
+        until false;
+        for t:=low(TTarget) to high(TTarget) do
+         begin
+           s:=FInput.GetVariable(IniVar+TargetSuffix[t]);
+           if s<>'' then
+            begin
+              FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
+              repeat
+                Name:=GetToken(s);
+                if Name='' then
+                 break;
+                { Remove (..) }
+                k1:=pos('(',name);
+                if k1>0 then
+                 begin
+                   k2:=PosIdx(')',name,k1);
+                   if k2=0 then
+                    k2:=length(name)+1;
+                   Delete(Name,k1,k2);
+                 end;
+                FOutput.Add(prefix+VarName(name)+'=1');
+                { add to the list of dirs without duplicates }
+                AddStrNoDup(result,name);
+              until false;
+              FOutput.Add('endif');
             end;
          end;
       end;
@@ -422,18 +442,15 @@ implementation
         end;
 
       var
-        i  : integer;
-        hs : string;
+        hs,tool : string;
       begin
         hs:=FInput.GetVariable(inivar);
-        while hs<>'' do
-         begin
-           i:=pos(' ',hs);
-           if i=0 then
-            i:=length(hs)+1;
-           AddTool(Copy(hs,1,i-1));
-           hs:=TrimLeft(Copy(hs,i+1,Length(hs)-i));
-         end;
+        repeat
+          Tool:=GetToken(hs);
+          if Tool='' then
+           break;
+          AddTool(Tool);
+        until false;
       end;
 
 
@@ -528,20 +545,17 @@ implementation
         end;
 
       var
-        i  : integer;
-        hs : string;
+        hs,dir : string;
         prefix : string;
       begin
         prefix:=FixVariable(inivar)+'_';
         hs:=AddTargetDefines(inivar,prefix);
-        while hs<>'' do
-         begin
-           i:=pos(' ',hs);
-           if i=0 then
-            i:=length(hs)+1;
-           AddTargetDir(Copy(hs,1,i-1),prefix);
-           hs:=TrimLeft(Copy(hs,i+1,Length(hs)-i));
-         end;
+        repeat
+          Dir:=GetToken(hs);
+          if Dir='' then
+           break;
+          AddTargetDir(Dir,prefix);
+        until false;
       end;
 
 
@@ -592,18 +606,19 @@ implementation
 
       var
         i  : integer;
-        prefix : string;
+        reqs,req,prefix : string;
         t : Ttarget;
-        sl,slall : TStringList;
+        sl : TStringList;
       begin
         prefix:='REQUIRE_PACKAGES_';
-        slall:=FInput.GetTargetRequires(t_all);
+//        slall:=FInput.GetTargetRequires(t_all);
+        reqs:='';
         { Add target defines }
         for t:=low(ttarget) to high(ttarget) do
          begin
            sl:=FInput.GetTargetRequires(t);
            { optimize by removing the requires already in t_all }
-           if t<>t_all then
+{           if t<>t_all then
             begin
               i:=0;
               while (i<sl.Count) do
@@ -613,28 +628,33 @@ implementation
                  else
                   inc(i);
                end;
-            end;
+            end; }
            if sl.count>0 then
             begin
               write(TargetStr[t]+' requires:');
-              if t<>t_all then
+//              if t<>t_all then
                FOutput.Add('ifeq ($(OS_TARGET),'+TargetStr[t]+')');
               for i:=0 to sl.count-1 do
                begin
                  FOutput.Add(prefix+VarName(sl[i])+'=1');
                  write(' ',sl[i]);
+                 AddStrNoDup(reqs,sl[i]);
                end;
               writeln;
-              if t<>t_all then
+//              if t<>t_all then
                FOutput.Add('endif');
             end;
            sl.Free;
          end;
         { Add all require packages }
-        for i:=0 to FInput.RequireList.Count-1 do
-         AddPackage(FInput.RequireList[i],prefix);
+        repeat
+          req:=GetToken(reqs);
+          if Req='' then
+           break;
+          AddPackage(req,prefix);
+        until false;
         WritePhony;
-        slall.Free;
+//        slall.Free;
       end;
 
     procedure TMakefileWriter.WriteGenericMakefile;
@@ -663,13 +683,25 @@ implementation
             Add('override CPU_TARGET='+FInput.GetVariable('default.cpu'));
            { FPC Detection }
            AddIniSection('fpcdetect');
+           AddIniSection('fpcdircheckenv');
+           if CheckVariable('default.fpcdir') then
+            begin
+              Add('ifeq ($(FPCDIR),wrong)');
+              Add('override FPCDIR='+FInput.GetVariable('default.fpcdir'));
+              Add('ifeq ($(wildcard $(FPCDIR)/rtl),)');
+              Add('ifeq ($(wildcard $(FPCDIR)/units),)');
+              Add('override FPCDIR=wrong');
+              Add('endif');
+              Add('endif');
+              Add('endif');
+            end;
            AddIniSection('fpcdirdetect');
            { Package }
            AddVariable('package.name');
            AddVariable('package.version');
            { First add the required packages sections }
-           for i:=0 to FInput.RequireList.Count-1 do
-            AddCustomSection(FInput.Requirelist[i]);
+//           for i:=0 to FInput.RequireList.Count-1 do
+//            AddCustomSection(FInput.Requirelist[i]);
            { prerules section }
            if assigned(FInput['prerules']) then
             AddStrings(TFPCMakeSection(FInput['prerules']).List);
@@ -763,7 +795,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2001-01-29 21:49:10  peter
+  Revision 1.3  2001-02-01 22:00:10  peter
+    * default.fpcdir is back
+    * subdir requirement checking works, but not very optimal yet as
+      it can load the same Makefile.fpc multiple times
+
+  Revision 1.2  2001/01/29 21:49:10  peter
     * lot of updates
 
   Revision 1.1  2001/01/24 21:59:36  peter

@@ -14,3 +14,6 @@ exampledirs=demo
 [require]
 packages=x11
 libc=y
+
+[default]
+fpcdir=../..

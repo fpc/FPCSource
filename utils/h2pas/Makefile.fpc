@@ -11,6 +11,8 @@ units=options lexlib scan yacclib converu
 [compiler]
 options=-Sg
 
+[default]
+fpcdir=../..
 
 [rules]
 # do we have pyacc?

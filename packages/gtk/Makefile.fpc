@@ -22,6 +22,10 @@ targetdir=.
 libname=libfpgtk.so
 libversion=1.0
 
+[default]
+fpcdir=../..
+
+
 [rules]
 glib$(PPUEXT): $(wildcard glib/glib*.pp)
 

@@ -23,6 +23,10 @@ packages=fv
 [compiler]
 unitdir=../ide/text
 
+[default]
+fpcdir=..
+
+
 [rules]
 installer.pas: install.pas
         $(COPY) install.pas installer.pas

@@ -12,3 +12,6 @@ examples=ggi1
 
 [require]
 libc=y
+
+[default]
+fpcdir=../..

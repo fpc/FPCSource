@@ -13,3 +13,5 @@ examples=testlog
 [require]
 libc=y
 
+[default]
+fpcdir=../..

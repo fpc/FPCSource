@@ -2,8 +2,8 @@
 #   Makefile.fpc for Free Pascal Linux RTL
 #
 
-[require]
-nortl=1
+[package]
+main=rtl
 
 [target]
 loaders=prt0 cprt0 gprt0 cprt21 gprt21
@@ -16,10 +16,14 @@ units=$(SYSTEMUNIT) objpas strings \
       video mouse keyboard
 rst=math varutils
 
+[require]
+nortl=y
+
 [clean]
 units=syslinux
 
 [default]
+fpcdir=../..
 target=linux
 cpu=i386
 
