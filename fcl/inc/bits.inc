@@ -18,7 +18,8 @@
 ResourceString
   SErrInvalidBitIndex = 'Invalid bit index : %d';
   SErrindexTooLarge   = 'Bit index exceeds array limit: %d';
-    
+  SErrOutOfMemory     = 'Out of memory';
+      
 Procedure BitsError (Msg : string);
 
 begin
@@ -30,13 +31,14 @@ begin
   Raise EBitsError.CreateFmt(Msg,args); 
 end;
 
-procedure CheckBitIndex (Bit : longint);
+procedure TBits.CheckBitIndex (Bit : longint;CurrentSize : Boolean);
 
 begin
- if (bit<0) then
+ if (bit<0) or (CurrentSize and (Bit>Size)) then
    BitsErrorFmt(SErrInvalidBitIndex,[bit]);
  if (bit>=MaxBitFlags) then
    BitsErrorFmt(SErrIndexTooLarge,[bit])
+   
 end;
 
 { ************* functions to match TBits class ************* }
@@ -113,7 +115,7 @@ var
    newSize : longint;
    loop : longint;
 begin
-   CheckBitindex(nbit);
+   CheckBitindex(nbit,false);
    
    newSize :=  (nbit shr BITSHIFT) + 1;
 
@@ -121,13 +123,14 @@ begin
    begin
       ReAllocMem(FBits, newSize * SizeOf(longint));
       if FBits <> nil then
-      begin
+        begin
          if newSize > FSize then
             for loop := FSize to newSize - 1 do
                FBits^[loop] := 0;
-
          FSize := newSize;
-      end;
+       end
+      else 
+        BitsError(SErrOutOfMemory);
    end;
 end;
 
@@ -149,7 +152,7 @@ procedure TBits.clear(bit : longint);
 var
    n : longint;
 begin
-   CheckBitIndex(bit);
+   CheckBitIndex(bit,false);
    n := bit shr BITSHIFT;
    grow(bit);
    FBits^[n] := FBits^[n] and not(longint(1) shl (bit and MASK));
@@ -167,7 +170,7 @@ function TBits.get(bit : longint) : Boolean;
 var
    n : longint;
 begin
-   CheckBitIndex(bit);
+   CheckBitIndex(bit,true);
    result := False;
    n := bit shr BITSHIFT;
    if (n < FSize) then
@@ -368,7 +371,10 @@ end;
 
 {
   $Log$
-  Revision 1.1.2.1  2000-10-14 23:14:42  michael
+  Revision 1.1.2.2  2000-10-15 09:35:56  michael
+  + Capitalization of TBits interface fixed; CheckBitIndex now checks for size
+
+  Revision 1.1.2.1  2000/10/14 23:14:42  michael
   + Added some index checking. Centralized error handling
 
   Revision 1.1  2000/07/13 06:31:29  michael

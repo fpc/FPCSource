@@ -202,31 +202,33 @@ type
 
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
-      function getSize : longint;
-      procedure setSize(value : longint);
+      function GetSize : longint;
+      procedure SetSize(value : longint);
+      procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
+
    public
       { Public declarations }
-      constructor Create(theSize : longint); virtual;
+      constructor Create(TheSize : longint); virtual;
       destructor Destroy; override;
-      function  getFSize : longint;
-      procedure seton(bit : longint);
-      procedure clear(bit : longint);
-      procedure clearall;
-      procedure andbits(bitset : TBits);
-      procedure orbits(bitset : TBits);
-      procedure xorbits(bitset : TBits);
-      procedure notbits(bitset : TBits);
-      function  get(bit : longint) : boolean;
-      procedure grow(nbit : longint);
-      function  equals(bitset : TBits) : Boolean;
-      procedure SetIndex(index : longint);
-      function  FindFirstBit(state : boolean) : longint;
+      function  GetFSize : longint;
+      procedure SetOn(Bit : longint);
+      procedure Clear(Bit : longint);
+      procedure Clearall;
+      procedure AndBits(BitSet : TBits);
+      procedure OrBits(BitSet : TBits);
+      procedure XorBits(BitSet : TBits);
+      procedure NotBits(BitSet : TBits);
+      function  Get(Bit : longint) : boolean;
+      procedure Grow(NBit : longint);
+      function  Equals(BitSet : TBits) : Boolean;
+      procedure SetIndex(Index : longint);
+      function  FindFirstBit(State : boolean) : longint;
       function  FindNextBit : longint;
       function  FindPrevBit : longint;
 
       { functions and properties to match TBits class }
       function OpenBit: longint;
-      property Bits[bit: longint]: Boolean read get write SetBit; default;
+      property Bits[Bit: longint]: Boolean read get write SetBit; default;
       property Size: longint read getSize write setSize;
    end;
 
@@ -1234,7 +1236,90 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:59  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-10-15 09:35:55  michael
+  + Capitalization of TBits interface fixed; CheckBitIndex now checks for size
+
+  Revision 1.1  2000/07/13 06:31:30  michael
+  + Initial import
+
+  Revision 1.23  2000/07/08 07:26:23  sg
+  * Destructor of TThreadList is now virtual; this fixes some memory leak
+    problems in FCL.
+
+  Revision 1.22  2000/06/29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.21  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
+
+  Revision 1.20  2000/01/06 01:20:32  peter
+    * moved out of packages/ back to topdir
+
+  Revision 1.3  2000/01/05 11:05:29  michael
+  + Better collection support
+
+  Revision 1.2  2000/01/04 18:07:16  michael
+  + Streaming implemented
+
+  Revision 1.1  2000/01/03 19:33:07  peter
+    * moved to packages dir
+
+  Revision 1.18  1999/11/30 15:28:38  michael
+  + Added FileNAme property for filestreams
+
+  Revision 1.17  1999/10/20 20:24:21  florian
+    + sc* constants added as suggested by Shane Miller
+
+  Revision 1.16  1999/09/13 08:35:16  fcl
+  * Changed some argument names (Root->ARoot etc.) because the new compiler
+    now performs more ambiguity checks  (sg)
+
+  Revision 1.15  1999/09/11 22:01:03  fcl
+  * Activated component registration callbacks  (sg)
+
+  Revision 1.14  1999/08/26 21:11:25  peter
+    * ShiftState extended
+
+  Revision 1.13  1999/05/31 12:43:10  peter
+    * fixed tthread for linux additions
+
+  Revision 1.12  1999/05/14 17:52:53  peter
+    * removed wrong destroy overrides (gave errors with the new compiler)
+
+  Revision 1.11  1999/04/09 12:13:30  michael
+  + Changed TBits to TbitsPlus from Michael A. Hess (renamed to Tbits)
+
+  Revision 1.10  1998/10/30 14:52:49  michael
+  + Added format in interface
+  + Some errors in parser fixed, it uses exceptions now
+  + Strings now has no more syntax errors.
+
+  Revision 1.9  1998/10/24 13:45:35  michael
+  + Implemented stringlist. Untested, since classes broken.
+
+  Revision 1.8  1998/09/23 07:47:41  michael
+  + Some changes by TSE
+
+  Revision 1.7  1998/08/22 10:41:00  michael
+  + Some adaptations for changed comment and published handling
+
+  Revision 1.6  1998/06/11 13:46:32  michael
+  + Fixed some functions. TFileStream OK.
+
+  Revision 1.5  1998/06/10 21:53:06  michael
+  + Implemented Handle/FileStreams
+
+  Revision 1.4  1998/05/27 11:41:43  michael
+  Implemented TCollection and TCollectionItem
+
+  Revision 1.3  1998/05/06 12:58:35  michael
+  + Added WriteAnsiString method to TStream
+
+  Revision 1.2  1998/05/04 14:30:11  michael
+  * Split file according to Class; implemented dummys for all methods, so unit compiles.
+
+  Revision 1.1  1998/05/04 12:16:01  florian
+    + Initial revisions after making a new directory structure
+
 }
