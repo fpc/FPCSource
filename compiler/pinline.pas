@@ -221,7 +221,7 @@ implementation
 
                      { create call to fpc_getmem }
                      para := ccallparanode.create(cordconstnode.create
-                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32bittype),nil);
+                         (tpointerdef(p.resulttype.def).pointertype.def.size,s32bittype,true),nil);
                      addstatement(newstatement,cassignmentnode.create(
                          ctemprefnode.create(temp),
                          ccallnode.createintern('fpc_getmem',para)));
@@ -305,7 +305,7 @@ implementation
 
             { create call to fpc_getmem }
             para := ccallparanode.create(cordconstnode.create
-                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32bittype),nil);
+                (tpointerdef(p1.resulttype.def).pointertype.def.size,s32bittype,true),nil);
             addstatement(newstatement,cassignmentnode.create(
                 ctemprefnode.create(temp),
                 ccallnode.createintern('fpc_getmem',para)));
@@ -480,7 +480,7 @@ implementation
             npara:=ccallparanode.create(caddrnode.create
                       (ctemprefnode.create(temp)),
                    ccallparanode.create(cordconstnode.create
-                      (counter,s32bittype),
+                      (counter,s32bittype,true),
                    ccallparanode.create(caddrnode.create
                       (crttinode.create(tstoreddef(destppn.resulttype.def),initrtti)),
                    ccallparanode.create(ctypeconvnode.create_explicit(destppn,voidpointertype),nil))));
@@ -536,7 +536,7 @@ implementation
             end;
            { create call to fpc_finalize_array }
            npara:=ccallparanode.create(cordconstnode.create
-                     (destppn.left.resulttype.def.size,s32bittype),
+                     (destppn.left.resulttype.def.size,s32bittype,true),
                   ccallparanode.create(ctypeconvnode.create
                      (ppn.left,s32bittype),
                   ccallparanode.create(caddrnode.create
@@ -565,7 +565,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-07-20 11:57:56  florian
+  Revision 1.7  2002-09-07 12:16:03  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.6  2002/07/20 11:57:56  florian
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added

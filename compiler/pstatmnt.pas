@@ -196,7 +196,7 @@ implementation
             CGMessage(type_e_ordinal_expr_expected);
             { create a correct tree }
             caseexpr.free;
-            caseexpr:=cordconstnode.create(0,u32bittype);
+            caseexpr:=cordconstnode.create(0,u32bittype,false);
             { set error flag so no rangechecks are done }
             casedeferror:=true;
           end;
@@ -1146,7 +1146,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2002-09-02 18:40:52  peter
+  Revision 1.76  2002-09-07 12:16:03  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.75  2002/09/02 18:40:52  peter
     * fixed parsing of register names with lowercase
 
   Revision 1.74  2002/09/01 14:43:12  peter

@@ -277,23 +277,23 @@ implementation
                 muln :
                   t:=genintconstnode(lv*rv);
                 xorn :
-                  t:=cordconstnode.create(lv xor rv,left.resulttype);
+                  t:=cordconstnode.create(lv xor rv,left.resulttype,true);
                 orn :
-                  t:=cordconstnode.create(lv or rv,left.resulttype);
+                  t:=cordconstnode.create(lv or rv,left.resulttype,true);
                 andn :
-                  t:=cordconstnode.create(lv and rv,left.resulttype);
+                  t:=cordconstnode.create(lv and rv,left.resulttype,true);
                 ltn :
-                  t:=cordconstnode.create(ord(lv<rv),booltype);
+                  t:=cordconstnode.create(ord(lv<rv),booltype,true);
                 lten :
-                  t:=cordconstnode.create(ord(lv<=rv),booltype);
+                  t:=cordconstnode.create(ord(lv<=rv),booltype,true);
                 gtn :
-                  t:=cordconstnode.create(ord(lv>rv),booltype);
+                  t:=cordconstnode.create(ord(lv>rv),booltype,true);
                 gten :
-                  t:=cordconstnode.create(ord(lv>=rv),booltype);
+                  t:=cordconstnode.create(ord(lv>=rv),booltype,true);
                 equaln :
-                  t:=cordconstnode.create(ord(lv=rv),booltype);
+                  t:=cordconstnode.create(ord(lv=rv),booltype,true);
                 unequaln :
-                  t:=cordconstnode.create(ord(lv<>rv),booltype);
+                  t:=cordconstnode.create(ord(lv<>rv),booltype,true);
                 slashn :
                   begin
                     { int/int becomes a real }
@@ -350,17 +350,17 @@ implementation
                       t:=crealconstnode.create(lvd/rvd,pbestrealtype^);
                    end;
                  ltn :
-                   t:=cordconstnode.create(ord(lvd<rvd),booltype);
+                   t:=cordconstnode.create(ord(lvd<rvd),booltype,true);
                  lten :
-                   t:=cordconstnode.create(ord(lvd<=rvd),booltype);
+                   t:=cordconstnode.create(ord(lvd<=rvd),booltype,true);
                  gtn :
-                   t:=cordconstnode.create(ord(lvd>rvd),booltype);
+                   t:=cordconstnode.create(ord(lvd>rvd),booltype,true);
                  gten :
-                   t:=cordconstnode.create(ord(lvd>=rvd),booltype);
+                   t:=cordconstnode.create(ord(lvd>=rvd),booltype,true);
                  equaln :
-                   t:=cordconstnode.create(ord(lvd=rvd),booltype);
+                   t:=cordconstnode.create(ord(lvd=rvd),booltype,true);
                  unequaln :
-                   t:=cordconstnode.create(ord(lvd<>rvd),booltype);
+                   t:=cordconstnode.create(ord(lvd<>rvd),booltype,true);
                  else
                    CGMessage(type_e_mismatch);
               end;
@@ -389,17 +389,17 @@ implementation
                       t:=cstringconstnode.createwstr(ws1);
                    end;
                  ltn :
-                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),booltype);
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<0),booltype,true);
                  lten :
-                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),booltype);
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<=0),booltype,true);
                  gtn :
-                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),booltype);
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>0),booltype,true);
                  gten :
-                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),booltype);
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)>=0),booltype,true);
                  equaln :
-                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),booltype);
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)=0),booltype,true);
                  unequaln :
-                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype);
+                   t:=cordconstnode.create(byte(comparewidestrings(ws1,ws2)<>0),booltype,true);
               end;
               donewidestring(ws1);
               donewidestring(ws2);
@@ -453,17 +453,17 @@ implementation
                  addn :
                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
                  ltn :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype,true);
                  lten :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),booltype);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<=0),booltype,true);
                  gtn :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),booltype);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>0),booltype,true);
                  gten :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),booltype);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)>=0),booltype,true);
                  equaln :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)=0),booltype,true);
                  unequaln :
-                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype);
+                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<>0),booltype,true);
               end;
               ansistringdispose(s1,l1);
               ansistringdispose(s2,l2);
@@ -527,7 +527,7 @@ implementation
                   b:=false;
                   break;
                 end;
-              t:=cordconstnode.create(ord(b),booltype);
+              t:=cordconstnode.create(ord(b),booltype,true);
            end;
         equaln :
            begin
@@ -538,7 +538,7 @@ implementation
                   b:=false;
                   break;
                 end;
-              t:=cordconstnode.create(ord(b),booltype);
+              t:=cordconstnode.create(ord(b),booltype,true);
            end;
         lten :
            begin
@@ -550,65 +550,65 @@ implementation
                    b := false;
                    break
                  end;
-             t := cordconstnode.create(ord(b),booltype);
+             t := cordconstnode.create(ord(b),booltype,true);
            end;
             gten :
                    begin
-                 b := true;
-                 for i := 0 to 31 Do
+                    b := true;
+                    for i := 0 to 31 Do
                        If (tsetconstnode(left).value_set^[i] And tsetconstnode(right).value_set^[i]) <>
                        tsetconstnode(right).value_set^[i] Then
                          begin
-                       b := false;
-                       break
+                          b := false;
+                          break
                          end;
-                     t := cordconstnode.create(ord(b),booltype);
+                     t := cordconstnode.create(ord(b),booltype,true);
                    end;
               end;
 
 {$else}
-              case nodetype of
-                 addn :
-            begin
-            resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
+           case nodetype of
+           addn :
+             begin
+                  resultset:=tsetconstnode(right).value_set^ + tsetconstnode(left).value_set^;
                         t:=csetconstnode.create(@resultset,left.resulttype);
-            end;
-                 muln :
-            begin
+             end;
+            muln :
+              begin
             resultset:=tsetconstnode(right).value_set^ * tsetconstnode(left).value_set^;
                         t:=csetconstnode.create(@resultset,left.resulttype);
-            end;
-                 subn :
-            begin
-            resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
-                        t:=csetconstnode.create(@resultset,left.resulttype);
-            end;
-                 symdifn :
-                    begin
-            resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
-                    t:=csetconstnode.create(@resultset,left.resulttype);
-                    end;
-                 unequaln :
-                    begin
-            b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype);
-                    end;
-                 equaln :
-                    begin
-            b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype);
-                    end;
-                 lten :
-                    begin
-            b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype);
-                    end;
-                 gten :
-                    begin
-            b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
-                    t:=cordconstnode.create(byte(b),booltype);
-                    end;
               end;
+           subn :
+              begin
+                resultset:=tsetconstnode(left).value_set^ - tsetconstnode(right).value_set^;
+                        t:=csetconstnode.create(@resultset,left.resulttype);
+              end;
+           symdifn :
+              begin
+                resultset:=tsetconstnode(right).value_set^ >< tsetconstnode(left).value_set^;
+                    t:=csetconstnode.create(@resultset,left.resulttype);
+              end;
+           unequaln :
+              begin
+                b:=tsetconstnode(right).value_set^ <> tsetconstnode(left).value_set^;
+                t:=cordconstnode.create(byte(b),booltype,true);
+              end;
+           equaln :
+              begin
+                b:=tsetconstnode(right).value_set^ = tsetconstnode(left).value_set^;
+                t:=cordconstnode.create(byte(b),booltype,true);
+              end;
+           lten :
+              begin
+                b:=tsetconstnode(left).value_set^ <= tsetconstnode(right).value_set^;
+                t:=cordconstnode.create(byte(b),booltype,true);
+              end;
+           gten :
+              begin
+                b:=tsetconstnode(left).value_set^ >= tsetconstnode(right).value_set^;
+                t:=cordconstnode.create(byte(b),booltype,true);
+              end;
+           end;
 {$endif}
               result:=t;
               exit;
@@ -1077,7 +1077,8 @@ implementation
                   CGMessage(type_e_mismatch);
                 if (rd.deftype=pointerdef) and
                    (tpointerdef(rd).pointertype.def.size>1) then
-                  left:=caddnode.create(muln,left,cordconstnode.create(tpointerdef(rd).pointertype.def.size,s32bittype));
+                  left:=caddnode.create(muln,left,
+                      cordconstnode.create(tpointerdef(rd).pointertype.def.size,s32bittype,true));
               end
             else
               CGMessage(type_e_mismatch);
@@ -1098,7 +1099,8 @@ implementation
                   CGMessage(type_e_mismatch);
                 if (ld.deftype=pointerdef) and
                    (tpointerdef(ld).pointertype.def.size>1) then
-                  right:=caddnode.create(muln,right,cordconstnode.create(tpointerdef(ld).pointertype.def.size,s32bittype));
+                  right:=caddnode.create(muln,right,
+                    cordconstnode.create(tpointerdef(ld).pointertype.def.size,s32bittype,true));
               end
             else
               CGMessage(type_e_mismatch);
@@ -1190,7 +1192,7 @@ implementation
                     { compare the length with 0 }
                     result := caddnode.create(nodetype,
                       cinlinenode.create(in_length_x,false,left),
-                      cordconstnode.create(0,s32bittype))
+                      cordconstnode.create(0,s32bittype,false))
                   else
                     begin
                       { compare the pointer with nil (for ansistrings etc), }
@@ -1214,7 +1216,7 @@ implementation
                 ccallparanode.create(right,ccallparanode.create(left,nil)));
               { and compare its result with 0 according to the original operator }
               result := caddnode.create(nodetype,result,
-                cordconstnode.create(0,s32bittype));
+                cordconstnode.create(0,s32bittype,false));
               left := nil;
               right := nil;
               firstpass(result);
@@ -1409,7 +1411,7 @@ implementation
 
         { otherwise, create the parameters for the helper }
         right := ccallparanode.create(
-          cordconstnode.create(ord(cs_check_overflow in aktlocalswitches),booltype),
+          cordconstnode.create(ord(cs_check_overflow in aktlocalswitches),booltype,true),
           ccallparanode.create(right,ccallparanode.create(left,nil)));
         left := nil;
         if torddef(resulttype.def).typ = s64bit then
@@ -1812,7 +1814,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.63  2002-09-04 19:32:56  jonas
+  Revision 1.64  2002-09-07 12:16:05  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.63  2002/09/04 19:32:56  jonas
     * changed some ctypeconvnode/toggleflag(nf_explizit) combo's to
       ctypeconvnode.create_explicit() statements
 

@@ -272,7 +272,7 @@ implementation
              (tsetconstnode(right).value_set^ = [])) then
 {$endif oldset}
           begin
-            t:=cordconstnode.create(0,booltype);
+            t:=cordconstnode.create(0,booltype,false);
             resulttypepass(t);
             result:=t;
             exit;
@@ -282,9 +282,11 @@ implementation
          if (left.nodetype=ordconstn) and (right.nodetype=setconstn) then
           begin
         {$ifdef oldset}
-            t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),booltype);
+            t:=cordconstnode.create(byte(tordconstnode(left).value in byteset(tsetconstnode(right).value_set^)),
+              booltype,true);
         {$else}
-            t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),booltype);
+            t:=cordconstnode.create(byte(tordconstnode(left).value in Tsetconstnode(right).value_set^),
+              booltype,true);
         {$endif}
             resulttypepass(t);
             result:=t;
@@ -689,7 +691,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2002-08-19 19:36:44  peter
+  Revision 1.33  2002-09-07 12:16:03  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.32  2002/08/19 19:36:44  peter
     * More fixes for cross unit inlining, all tnodes are now implemented
     * Moved pocall_internconst to po_internconst because it is not a
       calling type at all and it conflicted when inlining of these small

@@ -497,7 +497,7 @@ implementation
             end;
         if not is_constboolnode(condition) then
             aktstate.store_fact(condition,
-             cordconstnode.create(byte(checknegate),booltype))
+             cordconstnode.create(byte(checknegate),booltype,true))
         else
             condition.destroy;
     end;
@@ -1405,7 +1405,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2002-09-01 18:47:00  peter
+  Revision 1.51  2002-09-07 12:16:04  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.50  2002/09/01 18:47:00  peter
     * assignn check in exitnode changed to use a separate boolean as the
       assignn can be changed to a calln
 

@@ -51,7 +51,12 @@ interface
        tordconstnode = class(tnode)
           restype : ttype;
           value : TConstExprInt;
-          constructor create(v : tconstexprint;const t:ttype);virtual;
+          rangecheck : boolean;
+          { create an ordinal constant node of the specified type and value. 
+            _rangecheck determines if the value of the ordinal should be checked
+            against the ranges of the type definition.
+          }  
+          constructor create(v : tconstexprint;const t:ttype; _rangecheck : boolean);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure derefimpl;override;
@@ -180,11 +185,11 @@ implementation
          { maxcardinal }
          i2 := i+i+1;
          if (v<=i) and (v>=-i-1) then
-           genintconstnode:=cordconstnode.create(v,s32bittype)
+           genintconstnode:=cordconstnode.create(v,s32bittype,true)
          else if (v > i) and (v <= i2) then
-           genintconstnode:=cordconstnode.create(v,u32bittype)
+           genintconstnode:=cordconstnode.create(v,u32bittype,true)
          else
-           genintconstnode:=cordconstnode.create(v,cs64bittype);
+           genintconstnode:=cordconstnode.create(v,cs64bittype,true);
       end;
 
 
@@ -193,7 +198,7 @@ implementation
         htype : ttype;
       begin
          htype.setdef(v.definition);
-         genenumnode:=cordconstnode.create(v.value,htype);
+         genenumnode:=cordconstnode.create(v.value,htype,true);
       end;
 
 
@@ -312,15 +317,15 @@ implementation
               p1:=cstringconstnode.createpchar(pc,len);
             end;
           constchar :
-            p1:=cordconstnode.create(p.valueord,cchartype);
+            p1:=cordconstnode.create(p.valueord,cchartype,true);
           constreal :
             p1:=crealconstnode.create(pbestreal(p.valueptr)^,pbestrealtype^);
           constbool :
-            p1:=cordconstnode.create(p.valueord,booltype);
+            p1:=cordconstnode.create(p.valueord,booltype,true);
           constset :
             p1:=csetconstnode.create(pconstset(p.valueptr),p.consttype);
           constord :
-            p1:=cordconstnode.create(p.valueord,p.consttype);
+            p1:=cordconstnode.create(p.valueord,p.consttype,true);
           constpointer :
             p1:=cpointerconstnode.create(p.valueordptr,p.consttype);
           constnil :
@@ -410,12 +415,13 @@ implementation
                               TORDCONSTNODE
 *****************************************************************************}
 
-    constructor tordconstnode.create(v : tconstexprint;const t:ttype);
+    constructor tordconstnode.create(v : tconstexprint;const t:ttype;_rangecheck : boolean);
 
       begin
          inherited create(ordconstn);
          value:=v;
          restype:=t;
+         rangecheck := _rangecheck;
       end;
 
 
@@ -424,6 +430,10 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.gettype(restype);
         value:=ppufile.getexprint;
+        { normally, the value is already compiled, so we don't need 
+          to do once again a range check
+        }  
+        rangecheck := false;
       end;
 
 
@@ -458,7 +468,9 @@ implementation
       begin
         result:=nil;
         resulttype:=restype;
-        testrange(resulttype.def,value,false);
+        { only do range checking when explicitly asked for it }
+        if rangecheck then
+           testrange(resulttype.def,value,false);
       end;
 
     function tordconstnode.pass_1 : tnode;
@@ -912,7 +924,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2002-08-22 11:21:44  florian
+  Revision 1.41  2002-09-07 12:16:04  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.40  2002/08/22 11:21:44  florian
     + register32 is now written by tnode.dowrite
     * fixed write of value of tconstnode
 

@@ -642,7 +642,7 @@ implementation
                  else
                    begin
                      hightree:=caddnode.create(subn,geninlinenode(in_length_x,false,left.getcopy),
-                                               cordconstnode.create(1,s32bittype));
+                                               cordconstnode.create(1,s32bittype,false));
                      loadconst:=false;
                    end;
                end;
@@ -651,7 +651,7 @@ implementation
           len:=0;
         end;
         if loadconst then
-          hightree:=cordconstnode.create(len,s32bittype)
+          hightree:=cordconstnode.create(len,s32bittype,true)
         else
           hightree:=ctypeconvnode.create(hightree,s32bittype);
         firstpass(hightree);
@@ -2595,7 +2595,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.96  2002-09-05 14:53:41  peter
+  Revision 1.97  2002-09-07 12:16:05  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.96  2002/09/05 14:53:41  peter
     * fixed old callnode.det_resulttype code
     * old ncal code is default again
 

@@ -593,7 +593,7 @@ implementation
         result := ccallnode.createinternres(
           'fpc_'+tstringdef(left.resulttype.def).stringtypname+
           '_to_chararray',ccallparanode.create(left,ccallparanode.create(
-          cordconstnode.create(arrsize,s32bittype),nil)),resulttype);
+          cordconstnode.create(arrsize,s32bittype,true),nil)),resulttype);
         left := nil;
       end;
 
@@ -702,11 +702,11 @@ implementation
                left.toggleflag(nf_explizit);
                if (target_info.endian = endian_little) then
                  left := caddnode.create(orn,
-                   cshlshrnode.create(shln,left,cordconstnode.create(8,s32bittype)),
-                   cordconstnode.create(1,s32bittype))
+                   cshlshrnode.create(shln,left,cordconstnode.create(8,s32bittype,false)),
+                   cordconstnode.create(1,s32bittype,false))
                else
                  left := caddnode.create(orn,left,
-                   cordconstnode.create(1 shl 8,s32bittype));
+                   cordconstnode.create(1 shl 8,s32bittype,false));
                left := ctypeconvnode.create(left,u16bittype);
                left.toggleflag(nf_explizit);
                resulttypepass(left);
@@ -743,14 +743,16 @@ implementation
                 (torddef(left.resulttype.def).typ=uwidechar) then
               begin
                 hp:=cordconstnode.create(
-                      ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),cchartype);
+                      ord(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value))),
+                      cchartype,true);
                 result:=hp;
               end
              else if (torddef(resulttype.def).typ=uwidechar) and
                      (torddef(left.resulttype.def).typ=uchar) then
               begin
                 hp:=cordconstnode.create(
-                      asciichar2unicode(chr(tordconstnode(left).value)),cwidechartype);
+                      asciichar2unicode(chr(tordconstnode(left).value)),
+                      cwidechartype,true);
                 result:=hp;
               end
              else
@@ -1065,7 +1067,8 @@ implementation
                begin
                  if left.nodetype=ordconstn then
                   begin
-                    hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                    hp:=cordconstnode.create(tordconstnode(left).value,
+                       resulttype,true);
                     result:=hp;
                     exit;
                   end
@@ -1083,7 +1086,8 @@ implementation
                 begin
                   if left.nodetype=ordconstn then
                    begin
-                     hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                     hp:=cordconstnode.create(tordconstnode(left).value,
+                       resulttype,true);
                      result:=hp;
                      exit;
                    end
@@ -1097,7 +1101,7 @@ implementation
                { nil to ordinal node }
                else if (left.nodetype=niln) and is_ordinal(resulttype.def) then
                   begin
-                     hp:=cordconstnode.create(0,resulttype);
+                     hp:=cordconstnode.create(0,resulttype,true);
                      result:=hp;
                      exit;
                   end
@@ -1106,7 +1110,8 @@ implementation
               else if is_ordinal(resulttype.def) and
                       (left.nodetype=pointerconstn) then
                 begin
-                   hp:=cordconstnode.create(tpointerconstnode(left).value,resulttype);
+                   hp:=cordconstnode.create(tpointerconstnode(left).value,
+                     resulttype,true);
                    result:=hp;
                    exit;
                 end
@@ -1143,7 +1148,8 @@ implementation
                  begin
                    if left.nodetype=ordconstn then
                     begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                      hp:=cordconstnode.create(tordconstnode(left).value,
+                        resulttype,true);
                       result:=hp;
                       exit;
                     end
@@ -1161,7 +1167,8 @@ implementation
                  begin
                    if left.nodetype=ordconstn then
                     begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                      hp:=cordconstnode.create(tordconstnode(left).value,
+                        resulttype,true);
                       result:=hp;
                       exit;
                     end
@@ -1179,7 +1186,8 @@ implementation
                  begin
                    if left.nodetype=ordconstn then
                     begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                      hp:=cordconstnode.create(tordconstnode(left).value,
+                        resulttype,true);
                       result:=hp;
                       exit;
                     end
@@ -1196,7 +1204,8 @@ implementation
                  begin
                    if left.nodetype=ordconstn then
                     begin
-                      hp:=cordconstnode.create(tordconstnode(left).value,resulttype);
+                      hp:=cordconstnode.create(tordconstnode(left).value,
+                         resulttype,true);
                       result:=hp;
                       exit;
                     end
@@ -1215,7 +1224,8 @@ implementation
                  begin
                    if left.nodetype=pointerconstn then
                     begin
-                      hp:=cordconstnode.create(tpointerconstnode(left).value,resulttype);
+                      hp:=cordconstnode.create(tpointerconstnode(left).value,
+                         resulttype,true);
                       result:=hp;
                       exit;
                     end
@@ -2027,7 +2037,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.77  2002-09-05 05:56:07  jonas
+  Revision 1.78  2002-09-07 12:16:04  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.77  2002/09/05 05:56:07  jonas
     - reverted my last commit, it was completely bogus :(
 
   Revision 1.75  2002/09/02 19:24:42  peter

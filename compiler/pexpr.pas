@@ -317,7 +317,7 @@ implementation
                statement_syssym:=geninlinenode(in_sizeof_x,false,p1)
               else
                begin
-                 statement_syssym:=cordconstnode.create(p1.resulttype.def.size,s32bittype);
+                 statement_syssym:=cordconstnode.create(p1.resulttype.def.size,s32bittype,true);
                  { p1 not needed !}
                  p1.destroy;
                end;
@@ -741,7 +741,7 @@ implementation
                sl_subscript :
                  p1:=csubscriptnode.create(plist^.sym,p1);
                sl_vec :
-                 p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32bittype));
+                 p1:=cvecnode.create(p1,cordconstnode.create(plist^.value,s32bittype,true));
                else
                  internalerror(200110205);
              end;
@@ -769,7 +769,7 @@ implementation
          { indexed property }
          if (ppo_indexed in tpropertysym(sym).propoptions) then
            begin
-              p2:=cordconstnode.create(tpropertysym(sym).index,tpropertysym(sym).indextype);
+              p2:=cordconstnode.create(tpropertysym(sym).index,tpropertysym(sym).indextype,true);
               paras:=ccallparanode.create(p2,paras);
            end;
          { we need only a write property if a := follows }
@@ -1179,12 +1179,12 @@ implementation
                           { do a very dirty trick to bootstrap this code }
                           if (tconstsym(srsym).valueord>=-(int64(2147483647)+int64(1))) and
                              (tconstsym(srsym).valueord<=2147483647) then
-                           p1:=cordconstnode.create(tconstsym(srsym).valueord,s32bittype)
+                           p1:=cordconstnode.create(tconstsym(srsym).valueord,s32bittype,true)
                           else if (tconstsym(srsym).valueord > maxlongint) and
                                   (tconstsym(srsym).valueord <= int64(maxlongint)+int64(maxlongint)+1) then
-                           p1:=cordconstnode.create(tconstsym(srsym).valueord,u32bittype)
+                           p1:=cordconstnode.create(tconstsym(srsym).valueord,u32bittype,true)
                           else
-                           p1:=cordconstnode.create(tconstsym(srsym).valueord,cs64bittype);
+                           p1:=cordconstnode.create(tconstsym(srsym).valueord,cs64bittype,true);
                         end;
                       conststring :
                         begin
@@ -1197,15 +1197,15 @@ implementation
                           p1:=cstringconstnode.createpchar(pc,len);
                         end;
                       constchar :
-                        p1:=cordconstnode.create(tconstsym(srsym).valueord,cchartype);
+                        p1:=cordconstnode.create(tconstsym(srsym).valueord,cchartype,true);
                       constreal :
                         p1:=crealconstnode.create(pbestreal(tconstsym(srsym).valueptr)^,pbestrealtype^);
                       constbool :
-                        p1:=cordconstnode.create(tconstsym(srsym).valueord,booltype);
+                        p1:=cordconstnode.create(tconstsym(srsym).valueord,booltype,true);
                       constset :
                         p1:=csetconstnode.create(pconstset(tconstsym(srsym).valueptr),tconstsym(srsym).consttype);
                       constord :
-                        p1:=cordconstnode.create(tconstsym(srsym).valueord,tconstsym(srsym).consttype);
+                        p1:=cordconstnode.create(tconstsym(srsym).valueord,tconstsym(srsym).consttype,true);
                       constpointer :
                         p1:=cpointerconstnode.create(tconstsym(srsym).valueordptr,tconstsym(srsym).consttype);
                       constnil :
@@ -1468,7 +1468,7 @@ implementation
                                     if (token=_COLON) then
                                      begin
                                        consume(_COLON);
-                                       p3:=caddnode.create(muln,cordconstnode.create($10,s32bittype),p2);
+                                       p3:=caddnode.create(muln,cordconstnode.create($10,s32bittype,false),p2);
                                        p2:=comp_expr(true);
                                        p2:=caddnode.create(addn,p2,p3);
                                        p1:=cvecnode.create(p1,p2);
@@ -1784,7 +1784,7 @@ implementation
                                 Message(cg_e_invalid_integer);
                                 consume(_INTCONST);
                                 l:=1;
-                                p1:=cordconstnode.create(l,s32bittype);
+                                p1:=cordconstnode.create(l,s32bittype,true);
                              end
                             else
                              begin
@@ -1795,13 +1795,13 @@ implementation
                        else
                          begin
                             consume(_INTCONST);
-                            p1:=cordconstnode.create(ic,cs64bittype);
+                            p1:=cordconstnode.create(ic,cs64bittype,true);
                          end
                      end
                    else
                      begin
                        consume(_INTCONST);
-                       p1:=cordconstnode.create(l,s32bittype)
+                       p1:=cordconstnode.create(l,s32bittype,true)
                      end
                  end
                else
@@ -1811,9 +1811,9 @@ implementation
                    { (longint is easier to perform calculations with) (JM)      }
                    if card <= $7fffffff then
                      { no sign extension necessary, so not longint typecast (JM) }
-                     p1:=cordconstnode.create(card,s32bittype)
+                     p1:=cordconstnode.create(card,s32bittype,true)
                    else
-                     p1:=cordconstnode.create(card,u32bittype)
+                     p1:=cordconstnode.create(card,u32bittype,true)
                 end;
              end;
 
@@ -1878,7 +1878,7 @@ implementation
 
            _CCHAR :
              begin
-               p1:=cordconstnode.create(ord(pattern[1]),cchartype);
+               p1:=cordconstnode.create(ord(pattern[1]),cchartype,true);
                consume(_CCHAR);
              end;
 
@@ -1890,7 +1890,7 @@ implementation
 
            _CWCHAR:
              begin
-               p1:=cordconstnode.create(ord(getcharwidestring(patternw,0)),cwidechartype);
+               p1:=cordconstnode.create(ord(getcharwidestring(patternw,0)),cwidechartype,true);
                consume(_CWCHAR);
              end;
 
@@ -1967,13 +1967,13 @@ implementation
            _TRUE :
              begin
                consume(_TRUE);
-               p1:=cordconstnode.create(1,booltype);
+               p1:=cordconstnode.create(1,booltype,false);
              end;
 
            _FALSE :
              begin
                consume(_FALSE);
-               p1:=cordconstnode.create(0,booltype);
+               p1:=cordconstnode.create(0,booltype,false);
              end;
 
            _NIL :
@@ -2248,7 +2248,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2002-09-03 16:26:27  daniel
+  Revision 1.79  2002-09-07 12:16:03  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.78  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.77  2002/08/18 20:06:24  peter

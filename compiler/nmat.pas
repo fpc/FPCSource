@@ -257,9 +257,9 @@ implementation
                     left := caddnode.create(addn,left,
                       caddnode.create(andn,
                         cshlshrnode.create(sarn,left.getcopy,
-                          cordconstnode.create(shiftval,s32bittype)),
+                          cordconstnode.create(shiftval,s32bittype,false)),
                         cordconstnode.create(tordconstnode(right).value-1,
-                          right.resulttype)));
+                          right.resulttype,false)));
                     newtype := sarn;
                   end
                 else
@@ -630,7 +630,7 @@ implementation
                 else
                   CGMessage(type_e_mismatch);
               end;
-              t:=cordconstnode.create(v,left.resulttype);
+              t:=cordconstnode.create(v,left.resulttype,true);
               result:=t;
               exit;
            end;
@@ -747,7 +747,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-09-03 16:26:26  daniel
+  Revision 1.42  2002-09-07 12:16:04  carl
+    * second part bug report 1996 fix, testrange in cordconstnode
+      only called if option is set (also make parsing a tiny faster)
+
+  Revision 1.41  2002/09/03 16:26:26  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.40  2002/08/25 11:32:33  peter
