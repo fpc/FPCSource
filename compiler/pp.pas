@@ -256,6 +256,10 @@ begin
   if (erroraddr<>nil) then
    begin
      case exitcode of
+      101: begin
+              erroraddr:=nil;
+              writeln('Error: Disk full');
+           end;
       202 : begin
               erroraddr:=nil;
               Writeln('Error: Stack Overflow');
@@ -284,7 +288,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2000-03-14 16:30:14  pierre
+  Revision 1.58  2000-03-16 10:29:06  florian
+    * disk full runerror writes now a nice message
+
+  Revision 1.57  2000/03/14 16:30:14  pierre
    + lineinfo for win32 with debug
 
   Revision 1.56  2000/02/18 12:34:43  pierre
