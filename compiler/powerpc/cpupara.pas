@@ -167,6 +167,8 @@ unit cpupara;
 
 
     function tppcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+      var
+        size, dummy: aint;
       begin
         { var,out always require address }
         if varspez in [vs_var,vs_out] then
@@ -176,7 +178,18 @@ unit cpupara;
           end;
         case def.deftype of
           recorddef:
-            result:=true;
+            begin
+              if (target_info.abi = abi_powerpc_aix) then
+                begin
+                  // all records should be passed by value under the aix abi,
+                  // but we can only fake this for 1, 2 and 4 bytes for now
+                  size := def.size;
+                  result := (size > 4) or
+                            not(byte(size) in [1,2,4]);
+                end
+              else
+                result := true;
+            end;
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
@@ -377,10 +390,21 @@ unit cpupara;
                 begin
                   paradef := hp.vartype.def;
                   loc:=getparaloc(paradef);
-                  paracgsize:=def_cgsize(paradef);
-                  { for things like formaldef }
-                  if paracgsize=OS_NO then
-                    paracgsize:=OS_ADDR;
+                  if (hp.vartype.def.deftype = recorddef) and
+                     (target_info.abi = abi_powerpc_aix) and
+                     (hp.vartype.def.size <= 4) and
+                     (byte(hp.vartype.def.size) in [1,2,4]) then
+                    begin
+                      loc := LOC_REGISTER;
+                      paracgsize := def_cgsize(paradef);
+                    end
+                  else
+                    begin
+                      paracgsize:=def_cgsize(paradef);
+                      { for things like formaldef }
+                      if paracgsize=OS_NO then
+                        paracgsize:=OS_ADDR;
+                   end
                 end;
               hp.paraloc[side].alignment:=std_param_align;
               hp.paraloc[side].size:=paracgsize;
@@ -606,7 +630,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.76  2004-12-15 19:30:32  peter
+  Revision 1.77  2004-12-24 15:00:11  jonas
+    * fixed call-by-value passing of records with size 1, 2 or 4 for AIX abi
+      (using a hack, normally all records should by passed by value under the
+       aix abi, but that's currently impossible)
+
+  Revision 1.76  2004/12/15 19:30:32  peter
     * syscall with sysv abi for morphos
 
   Revision 1.75  2004/12/04 21:47:46  jonas
