@@ -319,7 +319,10 @@ implementation
                   else
                     t := cpointerconstnode.create(lv+rv,left.resulttype);
                 subn :
-                  if (lt <> pointerconstn) or (rt = pointerconstn) then
+                  if (lt=pointerconstn) and (rt=pointerconstn) and
+                    (tpointerdef(rd).pointertype.def.size>1) then
+                    t := genintconstnode((lv-rv) div tpointerdef(left.resulttype.def).pointertype.def.size)
+                  else if (lt <> pointerconstn) or (rt = pointerconstn) then
                     t := genintconstnode(lv-rv)
                   else
                     t := cpointerconstnode.create(lv-rv,left.resulttype);
@@ -935,16 +938,24 @@ implementation
                subn:
                  begin
                     if (cs_extsyntax in aktmoduleswitches) then
-                     begin
-                       if is_voidpointer(right.resulttype.def) then
-                        inserttypeconv(right,left.resulttype)
-                       else if is_voidpointer(left.resulttype.def) then
-                        inserttypeconv(left,right.resulttype)
-                       else if not(equal_defs(ld,rd)) then
-                        IncompatibleTypes(ld,rd);
-                     end
+                      begin
+                        if is_voidpointer(right.resulttype.def) then
+                          inserttypeconv(right,left.resulttype)
+                        else if is_voidpointer(left.resulttype.def) then
+                          inserttypeconv(left,right.resulttype)
+                        else if not(equal_defs(ld,rd)) then
+                          IncompatibleTypes(ld,rd);
+                      end
                     else
-                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                      CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+
+                    if not(nf_has_pointerdiv in flags) and
+                      (tpointerdef(rd).pointertype.def.size>1) then
+                      begin
+                        hp:=getcopy;
+                        include(hp.flags,nf_has_pointerdiv);
+                        result:=cmoddivnode.create(divn,hp,cordconstnode.create(tpointerdef(rd).pointertype.def.size,sinttype,false));
+                      end;
                     resulttype:=sinttype;
                     exit;
                  end;
@@ -953,14 +964,14 @@ implementation
                     if (cs_extsyntax in aktmoduleswitches) then
                      begin
                        if is_voidpointer(right.resulttype.def) then
-                        inserttypeconv(right,left.resulttype)
+                         inserttypeconv(right,left.resulttype)
                        else if is_voidpointer(left.resulttype.def) then
-                        inserttypeconv(left,right.resulttype)
+                         inserttypeconv(left,right.resulttype)
                        else if not(equal_defs(ld,rd)) then
-                        IncompatibleTypes(ld,rd);
+                         IncompatibleTypes(ld,rd);
                      end
                     else
-                     CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                      CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
                     resulttype:=sinttype;
                     exit;
                  end;
@@ -1155,26 +1166,26 @@ implementation
           end
 
          else if (ld.deftype=pointerdef) or is_zero_based_array(ld) then
-          begin
-            if is_zero_based_array(ld) then
-              begin
-                 resulttype.setdef(tpointerdef.create(tarraydef(ld).elementtype));
-                 inserttypeconv(left,resulttype);
-              end;
-            inserttypeconv(right,sinttype);
-            if nodetype in [addn,subn] then
-              begin
-                if not(cs_extsyntax in aktmoduleswitches) or
-                   (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
-                  CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-                if (ld.deftype=pointerdef) and
-                   (tpointerdef(ld).pointertype.def.size>1) then
-                  right:=caddnode.create(muln,right,
-                    cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
-              end
-            else
-              CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
-         end
+           begin
+             if is_zero_based_array(ld) then
+               begin
+                  resulttype.setdef(tpointerdef.create(tarraydef(ld).elementtype));
+                  inserttypeconv(left,resulttype);
+               end;
+             inserttypeconv(right,sinttype);
+             if nodetype in [addn,subn] then
+               begin
+                 if not(cs_extsyntax in aktmoduleswitches) or
+                    (not(is_pchar(ld)) and not(m_add_pointer in aktmodeswitches)) then
+                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+                 if (ld.deftype=pointerdef) and
+                    (tpointerdef(ld).pointertype.def.size>1) then
+                   right:=caddnode.create(muln,right,
+                     cordconstnode.create(tpointerdef(ld).pointertype.def.size,sinttype,true));
+               end
+             else
+               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
+           end
 
          else if (rd.deftype=procvardef) and
                  (ld.deftype=procvardef) and
@@ -1937,7 +1948,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.118  2004-05-19 23:29:26  peter
+  Revision 1.119  2004-05-20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.118  2004/05/19 23:29:26  peter
     * don't change sign for unsigned shl/shr operations
     * cleanup for u32bit
 

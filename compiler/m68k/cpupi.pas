@@ -29,23 +29,24 @@ unit cpupi;
   interface
 
     uses
-       procinfo,cgbase;
+      procinfo,cgbase,psub;
 
     type
-       tm68kprocinfo = class(tprocinfo)
-       end;
+      tm68kprocinfo = class(tcgprocinfo)
+      end;
 
   implementation
-
-    uses
-       verbose;
 
 begin
    cprocinfo:=tm68kprocinfo;
 end.
 {
   $Log$
-  Revision 1.3  2004-05-01 23:29:01  florian
+  Revision 1.4  2004-05-20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.3  2004/05/01 23:29:01  florian
     * continued to fix m68k compiler compilation
 
   Revision 1.2  2002/08/18 09:02:12  florian

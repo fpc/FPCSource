@@ -33,7 +33,7 @@ interface
       symdef,procinfo;
 
     type
-      tcgprocinfo=class(tprocinfo)
+      tcgprocinfo = class(tprocinfo)
         { code for the subroutine as tree }
         code : tnode;
         { positions in the tree for init/final }
@@ -1345,7 +1345,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.189  2004-05-19 22:25:56  jonas
+  Revision 1.190  2004-05-20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.189  2004/05/19 22:25:56  jonas
     * fixed web bug 3104: if stack checking is on, procedures pi_do_call
       must be set
 

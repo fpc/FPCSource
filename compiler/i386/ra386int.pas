@@ -51,7 +51,6 @@ Unit Ra386int;
          prevasmtoken : tasmtoken;
          ActOpsize : topsize;
          constructor create;override;
-         destructor destroy;override;
          function is_asmopcode(const s: string):boolean;
          function is_asmoperator(const s: string):boolean;
          function is_asmdirective(const s: string):boolean;
@@ -150,12 +149,6 @@ Unit Ra386int;
           end;
       end;
 
-
-    destructor ti386intreader.destroy;
-      begin
-        if assigned(iasmops) then
-          iasmops.Free;
-      end;
 
 {---------------------------------------------------------------------}
 {                     Routines for the tokenizing                     }
@@ -1977,7 +1970,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.71  2004-03-02 17:32:12  florian
+  Revision 1.72  2004-05-20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.71  2004/03/02 17:32:12  florian
     * make cycle fixed
     + pic support for darwin
     + support of importing vars from shared libs on darwin implemented

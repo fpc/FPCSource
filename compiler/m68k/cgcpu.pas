@@ -1072,7 +1072,8 @@ unit cgcpu;
                 { point to nowhere!                                   }
 
                 { save the PC counter (pop it from the stack)         }
-                hregister:=getaddressregister(list);
+                hregister:=NR_A3;
+                a_reg_alloc(list,hregister);
                 reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_inc;
                 list.concat(taicpu.op_ref_reg(A_MOVE,S_L,ref,hregister));
@@ -1087,11 +1088,10 @@ unit cgcpu;
                 reference_reset_base(ref,NR_STACK_POINTER_REG,0);
                 ref.direction:=dir_dec;
                 list.concat(taicpu.op_reg_ref(A_MOVE,S_L,hregister,ref));
+                a_reg_alloc(list,hregister);
                 list.concat(taicpu.op_none(A_RTS,S_NO));
-                ungetregister(list,hregister);
                end;
            end;
-
       end;
 
 
@@ -1313,7 +1313,11 @@ end.
 
 {
   $Log$
-  Revision 1.26  2004-05-06 22:01:54  florian
+  Revision 1.27  2004-05-20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.26  2004/05/06 22:01:54  florian
     * register numbers for address registers fixed
 
   Revision 1.25  2004/05/06 20:30:51  florian

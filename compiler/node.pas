@@ -229,6 +229,7 @@ interface
 
          { taddnode }
          nf_is_currency,
+         nf_has_pointerdiv,
 
          { tassignmentnode }
          nf_concat_string,
@@ -1087,7 +1088,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.81  2004-02-03 22:32:54  peter
+  Revision 1.82  2004-05-20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.81  2004/02/03 22:32:54  peter
     * renamed xNNbittype to xNNinttype
     * renamed registers32 to registersint
     * replace some s32bit,u32bit with torddef([su]inttype).def.typ

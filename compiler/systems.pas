@@ -71,6 +71,7 @@ interface
             ,asmmode_arm_gas
             ,asmmode_sparc_gas
             ,asmmode_x86_64_gas
+            ,asmmode_m68k_mot
        );
 
      (* IMPORTANT NOTE:
@@ -694,7 +695,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.87  2004-03-20 22:57:42  florian
+  Revision 1.88  2004-05-20 21:54:33  florian
+    + <pointer> - <pointer> result is divided by the pointer element size now
+      this is delphi compatible as well as resulting in the expected result for p1+(p2-p1)
+
+  Revision 1.87  2004/03/20 22:57:42  florian
     + cpu2str added
 
   Revision 1.86  2004/02/22 16:51:50  peter
