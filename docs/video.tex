@@ -39,8 +39,12 @@ character and color code of the top-left character on the screen.
 \var{VideoBuf[ScreenWidth]} contains the data for the character in the
 first column of the second row on the screen, and so on.
 
+To write to the 'screen', the text to be written should be written to the
+\var{VideoBuf} array. Calling \seep{UpdateScreen} will then cp the text to
+the screen in the most optimal way. (an example can be found further on).
+
 The color attribute is a combination of the foreground and background color,
-plus the blink bit. The bits descrie the various color combinations:
+plus the blink bit. The bits describe the various color combinations:
 \begin{description}
 \item[bits 0-3] The foreground color. Can be set using all color constants. 
 \item[bits 4-6] The background color. Can be set using a subset of the
@@ -59,7 +63,7 @@ as possible.
 
 The updating of the screen can be prohibited to optimize performance; To
 this end, the \seep{LockScreenUpdate} function can be used: This will
-increment an internal counter. As long as the counter different from zero,
+increment an internal counter. As long as the counter differs from zero,
 calling \seep{UpdateScreen} will not do anything. The counter can be
 lowered with \seep{UnlockScreenUpdate}. When it reaches zero, the next call
 to \seep{UpdateScreen} will actually update the screen. This is useful when
@@ -105,7 +109,7 @@ White         = 15;
 The foreground and background color can be combined to a color attribute
 with the following code:
 \begin{verbatim}
-Attr:=ForeGroundColor + (BackGroundColor shr 4);
+Attr:=ForeGroundColor + (BackGroundColor shl 4);
 \end{verbatim}
 The color attribute can be logically or-ed with the blink attribute to
 produce a blinking character:
@@ -251,6 +255,12 @@ unit mainly so drivers that need it can make use of it.
 
 \section{Functions and Procedures}
 
+The examples in this section make use of the unit \file{vidutil}, which 
+contains the \var{TextOut} function. This function writes a text to the
+screen at a given location. It looks as follows:
+
+\FPCexample{vidutil}
+
 \begin{procedure}{ClearScreen}
 \Declaration
 procedure ClearScreen; 
@@ -308,7 +318,7 @@ For an example, see most other functions.
 function GetCapabilities: Word; 
 \Description
 \var{GetCapabilities} returns the capabilities of the current driver.
-environment. It is an or-ed combination of the following constants:
+It is an or-ed combination of the following constants:
 \begin{description}
 \item[cpUnderLine] The driver supports underlined characters.
 \item[cpBlink] The driver supports blinking characters.
@@ -437,10 +447,10 @@ For an example, see \seef{GetVideoModeCount}.
 procedure InitVideo; 
 \Description
 \var{InitVideo} Initializes the video subsystem. If the video system was
-already initialized, it does nothing. If the video subsystem was not
-initialized, it initializes the video subsystem. It initializes the video
-driver, and assigns the \var{VideoBuf} and \var{OldVideoBuf} pointers. After
-that, the screen is cleared.
+already initialized, it does nothing. 
+After the driver has been initialized, the \var{VideoBuf} and \var{OldVideoBuf} 
+pointers are initialized, based on the \var{ScreenWidth} and
+\var{ScreenHeight} variables. When this is done, the screen is cleared.
 \Errors
 if the driver fails to initialize, the \var{ErrorCode} variable is set.
 \SeeAlso
@@ -523,7 +533,7 @@ For more information about installing a videodriver, see \sees{viddriver}.
 \Errors
 If the current driver is initialized, then \var{False} is returned.
 \SeeAlso
-\sees{viddriver}
+The example video driver in \sees{viddriver}
 \end{function}
 
 For an example, see the section on writing a custom video driver.
@@ -574,7 +584,7 @@ Procedure UnlockScreenUpdate;
 \Description
 \var{UnlockScreenUpdate} decrements the screen update lock count with one if
 it is larger than zero. When the lock count reaches zero, the 
-\seep{UpdateScreen} will actually update the screen. No screen upate will 
+\seep{UpdateScreen} will actually update the screen. No screen update will 
 be performed as long as the screen update lock count is nonzero. This 
 mechanism can be used to increase screen performance in case a lot of 
 writing is done. 
@@ -613,7 +623,7 @@ For an example, see most other functions.
 
 \section{Writing a custom video driver}
 \label{se:viddriver}
-Writing custom video driver is not difficult, and generally means
+Writing a custom video driver is not difficult, and generally means
 implementing a couple of functions, which whould be registered with
 the \seef{SetVideoDriver} function. The various functions that can be
 implemented are located in the \var{TVideoDriver} record:
@@ -649,7 +659,7 @@ can only be called again after a call to \var{DoneVideo}. The variables
 after a call to this function, as the \var{InitVideo} call will initialize
 the \var{VideoBuf} and \var{OldVideoBuf} arrays based on their values.
 \item[DoneDriver] This should clean up any structures that have been
-initialized in the \var{InitDriver} function. It should possible also
+initialized in the \var{InitDriver} function. It should possibly also
 restore the screen as it was before the driver was initialized. The VideoBuf
 and \var{OldVideoBuf} arrays will be disposed of by the general \var{DoneVideo}
 call.
@@ -674,7 +684,7 @@ general routines will return 1. (for the current mode)
 returned correctly, false if \var{Index} contains an invalid index.
 If this is not implemented, then the general routine will return the current 
 video mode when \var{Index} equals 0.
-\item[GetCapabilities] If this function is not implemented, zero will (i.e.
+\item[GetCapabilities] If this function is not implemented, zero (i.e.
 no capabilities) will be returned by the general function.
 \end{description}
 
