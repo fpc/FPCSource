@@ -55,10 +55,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.2  2002-09-07 15:15:27  peter
-    * old logs removed and tabs fixed
+  Revision 1.1  2003-10-06 20:56:45  peter
+    * moved more targets
 
-  Revision 1.1  2002/07/30 16:03:29  marco
-   * Added for OpenBSD. Plain copy of NetBSD
+  Revision 1.2  2002/09/07 15:15:27  peter
+    * old logs removed and tabs fixed
 
 }

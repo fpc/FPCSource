@@ -3,7 +3,7 @@
     This file is part of the Free Component Library (FCL)
     Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
 
-    Classes unit for win32
+    Classes unit for linux
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -25,23 +25,43 @@ interface
 
 uses
   sysutils,
-  typinfo,
-  systhrds;
+  typinfo;
 
 {$i classesh.inc}
 
 implementation
 
+uses
+{$ifdef ver1_0}
+  linux
+{$else}
+  unix
+{$endif}
+  ;
+
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
+
+
+initialization
+  CommonInit;
+
+finalization
+  CommonCleanup;
+
+  if ThreadsInited then
+     DoneThreads;
 
 end.
 {
   $Log$
-  Revision 1.1  2003-03-25 17:56:19  armin
-  * first fcl implementation for netware
+  Revision 1.1  2003-10-06 20:56:45  peter
+    * moved more targets
 
-  Revision 1.3  2002/09/07 15:15:28  peter
+  Revision 1.2  2002/09/07 15:15:27  peter
     * old logs removed and tabs fixed
+
+  Revision 1.1  2002/07/30 16:03:29  marco
+   * Added for OpenBSD. Plain copy of NetBSD
 
 }
