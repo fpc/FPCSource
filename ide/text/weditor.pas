@@ -4458,6 +4458,11 @@ begin
       Exit;
     end;
   Lock;
+
+  { every data in the clipboard gets a new line }
+  if (Clipboard=@Self) and (CurPos.X>0) then
+    InsertLine;
+
   OK:=(Editor^.SelStart.X<>Editor^.SelEnd.X) or (Editor^.SelStart.Y<>Editor^.SelEnd.Y);
   if OK then
   begin
@@ -5519,7 +5524,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.78  2000-01-28 22:20:04  pierre
+  Revision 1.79  2000-02-05 14:50:59  florian
+    * applied fix from Gabor regarding the limited line length of the clipboard
+
+  Revision 1.78  2000/01/28 22:20:04  pierre
    * Test_partial_syntax released
 
   Revision 1.77  2000/01/27 22:30:38  florian
