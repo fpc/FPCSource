@@ -159,6 +159,8 @@ unit go32;
     function get_run_mode : word;
 
     function transfer_buffer : longint;
+    function tb_selector : longint;
+    function tb_offset : longint;
     function tb_size : longint;
     procedure copytodos(var addr; len : longint);
     procedure copyfromdos(var addr; len : longint);
@@ -560,33 +562,23 @@ end ['EAX','EDX'];
 {$endif VER0_99_5}
 
 
-    function get_cs : word;
-
-      begin
-         asm
+    function get_cs : word;assembler;
+      asm
             movw %cs,%ax
-            movw %ax,__RESULT;
-         end;
       end;
 
 
-    function get_ss : word;
-
-      begin
-         asm
+    function get_ss : word;assembler;
+      asm
             movw %ss,%ax
-            movw %ax,__RESULT;
-         end;
       end;
 
-    function get_ds : word;
 
-      begin
-         asm
+    function get_ds : word;assembler;
+      asm
             movw %ds,%ax
-            movw %ax,__RESULT;
-         end;
       end;
+
 
     procedure test_int31(flag : longint);[alias : 'test_int31'];
       begin
@@ -1160,24 +1152,39 @@ end ['EAX','EDX'];
          end;
       end;
 
-{$ifndef V0_6}
+
+{*****************************************************************************
+                              Transfer Buffer
+*****************************************************************************}
 
     function transfer_buffer : longint;
-
       begin
          transfer_buffer := go32_info_block.linear_address_of_transfer_buffer;
       end;
 
-    function tb_size : longint;
 
+    function tb_selector : longint;
+      begin
+        tb_selector:=go32_info_block.linear_address_of_transfer_buffer shr 4;
+      end;
+
+
+    function tb_offset : longint;
+      begin
+        tb_offset:=go32_info_block.linear_address_of_transfer_buffer and $f;
+      end;
+
+
+    function tb_size : longint;
       begin
          tb_size := go32_info_block.size_of_transfer_buffer;
       end;
 
-     procedure copytodos(var addr; len : longint);
 
+    procedure copytodos(var addr; len : longint);
        begin
-          if len>tb_size then runerror(217);
+          if len>tb_size then
+            runerror(217);
 {$ifdef GO32V2}
           seg_move(get_ds,longint(@addr),dosmemselector,transfer_buffer,len);
 {$else GO32V2}
@@ -1185,10 +1192,11 @@ end ['EAX','EDX'];
 {$endif GO32V2}
        end;
 
-     procedure copyfromdos(var addr; len : longint);
 
+    procedure copyfromdos(var addr; len : longint);
        begin
-          if len > tb_size then runerror(217);
+          if len>tb_size then
+            runerror(217);
 {$ifdef GO32V2}
           seg_move(dosmemselector,transfer_buffer,get_ds,longint(@addr),len);
 {$else GO32V2}
@@ -1196,7 +1204,7 @@ end ['EAX','EDX'];
 {$endif GO32V2}
        end;
 
-{$endif not V0_6}
+
 
 begin
    int31error:=0;
@@ -1218,7 +1226,12 @@ end.
 
 {
   $Log$
-  Revision 1.10  1998-08-11 00:07:17  peter
+  Revision 1.11  1998-08-26 10:04:02  peter
+    * new lfn check from mailinglist
+    * renamed win95 -> LFNSupport
+    + tb_selector, tb_offset for easier access to transferbuffer
+
+  Revision 1.10  1998/08/11 00:07:17  peter
     * $ifdef ver0_99_5 instead of has_property
 
   Revision 1.9  1998/07/21 12:06:03  carl

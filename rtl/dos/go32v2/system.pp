@@ -53,7 +53,7 @@ var
 
 {$ifndef RTLLITE}
 { System info }
-  Win95 : boolean;
+  LFNSupport : boolean;
 {$endif RTLLITE}
 
 type
@@ -210,6 +210,18 @@ end;
 function tb : longint;
 begin
   tb:=go32_info_block.linear_address_of_transfer_buffer;
+end;
+
+
+function tb_selector : longint;
+begin
+  tb_selector:=go32_info_block.linear_address_of_transfer_buffer shr 4;
+end;
+
+
+function tb_offset : longint;
+begin
+  tb_offset:=go32_info_block.linear_address_of_transfer_buffer and $f;
 end;
 
 
@@ -588,7 +600,7 @@ end;
    var
       opennames : array [0..max_files-1] of pchar;
       openfiles : array [0..max_files-1] of boolean;
-      
+
 {$endif SYSTEMDEBUG}
 
 procedure do_close(handle : longint);
@@ -611,10 +623,10 @@ var
 begin
   AllowSlash(p);
   syscopytodos(longint(p),strlen(p)+1);
-  regs.realedx:=tb and 15;
-  regs.realds:=tb shr 4;
+  regs.realedx:=tb_offset;
+  regs.realds:=tb_selector;
 {$ifndef RTLLITE}
-  if Win95 then
+  if LFNSupport then
    regs.realeax:=$7141
   else
 {$endif RTLLITE}
@@ -637,12 +649,12 @@ begin
    HandleError(217);
   sysseg_move(get_ds,longint(p2),dos_selector,tb,strlen(p2)+1);
   sysseg_move(get_ds,longint(p1),dos_selector,tb+strlen(p2)+2,strlen(p1)+1);
-  regs.realedi:=tb and 15;
-  regs.realedx:=tb and 15 + strlen(p2)+2;
-  regs.realds:=tb shr 4;
-  regs.reales:=regs.realds;
+  regs.realedi:=tb_offset;
+  regs.realedx:=tb_offset + strlen(p2)+2;
+  regs.realds:=tb_selector;
+  regs.reales:=tb_selector;
 {$ifndef RTLLITE}
-  if Win95 then
+  if LFNSupport then
    regs.realeax:=$7156
   else
 {$endif RTLLITE}
@@ -669,8 +681,8 @@ begin
       size:=len;
      syscopytodos(addr+writesize,size);
      regs.realecx:=size;
-     regs.realedx:=tb and 15;
-     regs.realds:=tb shr 4;
+     regs.realedx:=tb_offset;
+     regs.realds:=tb_selector;
      regs.realebx:=h;
      regs.realeax:=$4000;
      sysrealintr($21,regs);
@@ -700,8 +712,8 @@ begin
      else
       size:=len;
      regs.realecx:=size;
-     regs.realedx:=tb and 15;
-     regs.realds:=tb shr 4;
+     regs.realedx:=tb_offset;
+     regs.realds:=tb_selector;
      regs.realebx:=h;
      regs.realeax:=$3f00;
      sysrealintr($21,regs);
@@ -796,8 +808,8 @@ var
 begin
   do_seek(handle,pos);
   regs.realecx:=0;
-  regs.realedx:=tb and 15;
-  regs.realds:=tb shr 4;
+  regs.realedx:=tb_offset;
+  regs.realds:=tb_selector;
   regs.realebx:=handle;
   regs.realeax:=$4000;
   sysrealintr($21,regs);
@@ -862,14 +874,14 @@ begin
 { real dos call }
   syscopytodos(longint(p),strlen(p)+1);
 {$ifndef RTLLITE}
-  if Win95 then
+  if LFNSupport then
    regs.realeax:=$716c
   else
 {$endif RTLLITE}
    regs.realeax:=$6c00;
   regs.realedx:=action;
-  regs.realds:=tb shr 4;
-  regs.realesi:=tb and 15;
+  regs.realds:=tb_selector;
+  regs.realesi:=tb_offset;
   regs.realebx:=$2000+(flags and $ff);
   regs.realecx:=$20;
   sysrealintr($21,regs);
@@ -943,10 +955,10 @@ begin
   buffer[length(s)]:=#0;
   AllowSlash(pchar(@buffer));
   syscopytodos(longint(@buffer),length(s)+1);
-  regs.realedx:=tb and 15;
-  regs.realds:=tb shr 4;
+  regs.realedx:=tb_offset;
+  regs.realds:=tb_selector;
 {$ifndef RTLLITE}
-  if Win95 then
+  if LFNSupport then
    regs.realeax:=$7100+func
   else
 {$endif RTLLITE}
@@ -959,21 +971,24 @@ end;
 
 procedure mkdir(const s : string);[IOCheck];
 begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   DosDir($39,s);
 end;
 
 
 procedure rmdir(const s : string);[IOCheck];
 begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   DosDir($3a,s);
 end;
 
 
 procedure chdir(const s : string);[IOCheck];
 begin
-  If InOutRes <> 0 then exit;
+  If InOutRes <> 0 then
+   exit;
   DosDir($3b,s);
 end;
 
@@ -985,10 +1000,10 @@ var
   regs : trealregs;
 begin
   regs.realedx:=drivenr;
-  regs.realesi:=tb and 15;
-  regs.realds:=tb shr 4;
+  regs.realesi:=tb_offset;
+  regs.realds:=tb_selector;
 {$ifndef RTLLITE}
-  if Win95 then
+  if LFNSupport then
    regs.realeax:=$7147
   else
 {$endif RTLLITE}
@@ -1034,13 +1049,24 @@ end;
 *****************************************************************************}
 
 {$ifndef RTLLITE}
-function CheckWin95:boolean;
+function CheckLFN:boolean;
 var
-  regs : TRealRegs;
+  regs     : TRealRegs;
+  Buffers,
+  RootName : pchar;
 begin
-  regs.realeax:=$160a;
-  sysrealintr($2f,regs);
-  CheckWin95:=(regs.realeax=0) and ((regs.realebx and $ff00)=$400);
+  RootName:='C:\'+#0;
+  Buffers:='                    '+#0;
+  syscopytodos(longint(RootName),strlen(RootName)+1);
+  regs.realeax:=$71a0;
+  regs.reales:=tb_selector;
+  regs.realedi:=tb_offset;
+  regs.realecx:=strlen(Buffers)+1;
+  regs.realds:=tb_selector;
+  regs.realedx:=tb_offset;
+  sysrealintr($21,regs);
+  syscopyfromdos(longint(Buffers),strlen(Buffers)+1);
+  CheckLFN:=(regs.realecx=255);
 end;
 {$endif RTLLITE}
 
@@ -1057,14 +1083,19 @@ Begin
 { Setup environment and arguments }
   Setup_Environment;
   Setup_Arguments;
-{ Use Win95 LFN }
-  Win95:=CheckWin95;
+{ Use LFNSupport LFN }
+  LFNSupport:=CheckLFN;
 { Reset IO Error }
   InOutRes:=0;
 End.
 {
   $Log$
-  Revision 1.15  1998-08-19 10:56:34  pierre
+  Revision 1.16  1998-08-26 10:04:03  peter
+    * new lfn check from mailinglist
+    * renamed win95 -> LFNSupport
+    + tb_selector, tb_offset for easier access to transferbuffer
+
+  Revision 1.15  1998/08/19 10:56:34  pierre
     + added some special code for C interface
       to avoid loading of crt1.o or dpmiexcp.o from the libc.a
 
@@ -1117,5 +1148,5 @@ End.
     * fix for smartlinking with _ARGS
 
   Revision 1.3  1998/05/04 16:21:54  florian
-    + win95 flag to the interface moved
+    + LFNSupport flag to the interface moved
 }

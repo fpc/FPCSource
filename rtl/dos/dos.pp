@@ -611,11 +611,11 @@ begin
     if path[i]='/' then path[i]:='\';
   dosregs.si:=1; { use ms-dos time }
   dosregs.ecx:=attr;
-  dosregs.edx:=(transfer_buffer and 15) + Sizeof(LFNSearchrec)+1;
-  dosmemput(transfer_buffer shr 4,(transfer_buffer and 15)+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
-  dosregs.ds:=transfer_buffer shr 4;
-  dosregs.edi:=transfer_buffer and 15;
-  dosregs.es:=transfer_buffer shr 4;
+  dosregs.edx:=tb_offset+Sizeof(LFNSearchrec)+1;
+  dosmemput(tb_selector,tb_offset+Sizeof(LFNSearchrec)+1,path^,strlen(path)+1);
+  dosregs.ds:=tb_selector;
+  dosregs.edi:=tb_offset;
+  dosregs.es:=tb_selector;
   dosregs.ax:=$714e;
   msdos(dosregs);
   LoadDosError;
@@ -631,8 +631,8 @@ var
 begin
   Move(s.Fill,hdl,4);
   dosregs.si:=1; { use ms-dos time }
-  dosregs.edi:=transfer_buffer and 15;
-  dosregs.es:=transfer_buffer shr 4;
+  dosregs.edi:=tb_offset;
+  dosregs.es:=tb_selector;
   dosregs.ebx:=hdl;
   dosregs.ax:=$714f;
   msdos(dosregs);
@@ -680,14 +680,14 @@ begin
   for i:=0 to strlen(path) do
     if path[i]='/' then path[i]:='\';
   copytodos(f,sizeof(searchrec));
-  dosregs.edx:=transfer_buffer and 15;
-  dosregs.ds:=transfer_buffer shr 4;
+  dosregs.edx:=tb_offset;
+  dosregs.ds:=tb_selector;
   dosregs.ah:=$1a;
   msdos(dosregs);
   dosregs.ecx:=attr;
-  dosregs.edx:=(transfer_buffer mod 16) + Sizeof(searchrec)+1;
-  dosmemput(transfer_buffer div 16,(transfer_buffer mod 16) +Sizeof(searchrec)+1,path^,strlen(path)+1);
-  dosregs.ds:=transfer_buffer div 16;
+  dosregs.edx:=tb_offset+Sizeof(searchrec)+1;
+  dosmemput(tb_selector,tb_offset+Sizeof(searchrec)+1,path^,strlen(path)+1);
+  dosregs.ds:=tb_selector;
   dosregs.ah:=$4e;
   msdos(dosregs);
   copyfromdos(f,sizeof(searchrec));
@@ -699,8 +699,8 @@ end;
 procedure Dosfindnext(var f : searchrec);
 begin
   copytodos(f,sizeof(searchrec));
-  dosregs.edx:=transfer_buffer mod 16;
-  dosregs.ds:=transfer_buffer div 16;
+  dosregs.edx:=tb_offset;
+  dosregs.ds:=tb_selector;
   dosregs.ah:=$1a;
   msdos(dosregs);
   dosregs.ah:=$4f;
@@ -764,7 +764,7 @@ begin
   doserror:=0;
   strpcopy(path0,path);
 {$ifdef Go32V2}
-  if Win95 then
+  if LFNSupport then
    LFNFindFirst(path0,attr,f)
   else
    Dosfindfirst(path0,attr,f);
@@ -778,7 +778,7 @@ procedure findnext(var f : searchRec);
 begin
   doserror:=0;
 {$ifdef Go32V2}
-  if Win95 then
+  if LFNSupport then
    LFNFindnext(f)
   else
    Dosfindnext(f);
@@ -791,7 +791,7 @@ end;
 Procedure FindClose(Var f: SearchRec);
 begin
 {$ifdef Go32V2}
-  if Win95 then
+  if LFNSupport then
    LFNFindClose(f);
 {$endif}
 end;
@@ -877,7 +877,7 @@ end;
           for i:=1 to length(pa) do
            if pa[i]='/' then
             pa[i]:='\';
- 
+
           if (length(pa)>1) and (pa[1] in ['A'..'Z']) and (pa[2]=':') then
             begin
                { we must get the right directory }
@@ -895,14 +895,14 @@ end;
               pa:=s+pa
             else
               pa:=s+'\'+pa;
- 
+
         { Turbo Pascal gives current dir on drive if only drive given as parameter! }
         if length(pa) = 2 then
          begin
            getdir(byte(pa[1])-64,s);
            pa := s;
          end;
- 
+
         {First remove all references to '\.\'}
           while pos ('\.\',pa)<>0 do
            delete (pa,pos('\.\',pa),2);
@@ -918,9 +918,9 @@ end;
                delete (pa,j,i-j+3);
              end;
           until i=0;
- 
+
           { Turbo Pascal gets rid of a \.. at the end of the path }
-          { Now remove also any reference to '\..'  at end of line 
+          { Now remove also any reference to '\..'  at end of line
             + of course previous dir.. }
           i:=pos('\..',pa);
           if i<>0 then
@@ -937,7 +937,7 @@ end;
           { Remove End . and \}
           if (length(pa)>0) and (pa[length(pa)]='.') then
            dec(byte(pa[0]));
-          { if only the drive + a '\' is left then the '\' should be left to prevtn the program 
+          { if only the drive + a '\' is left then the '\' should be left to prevtn the program
             accessing the current directory on the drive rather than the root!}
           { if the last char of path = '\' then leave it in as this is what TP does! }
           if ((length(pa)>3) and (pa[length(pa)]='\')) and (path[length(path)] <> '\') then
@@ -1021,13 +1021,13 @@ var
 begin
 {$ifdef GO32V2}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-  dosregs.edx:=transfer_buffer and 15;
-  dosregs.ds:=transfer_buffer shr 4;
+  dosregs.edx:=tb_offset;
+  dosregs.ds:=tb_selector;
 {$else}
   strpcopy(n,filerec(f).name);
   dosregs.edx:=longint(@n);
 {$endif}
-  if Win95 then
+  if LFNSupport then
    begin
      dosregs.ax:=$7143;
      dosregs.bx:=0;
@@ -1048,13 +1048,13 @@ var
 begin
 {$ifdef GO32V2}
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
-  dosregs.edx:=transfer_buffer mod 16;
-  dosregs.ds:=transfer_buffer div 16;
+  dosregs.edx:=tb_offset;
+  dosregs.ds:=tb_selector;
 {$else}
   strpcopy(n,filerec(f).name);
   dosregs.edx:=longint(@n);
 {$endif}
-  if Win95 then
+  if LFNSupport then
    begin
      dosregs.ax:=$7143;
      dosregs.bx:=1;
@@ -1139,7 +1139,12 @@ End;
 end.
 {
   $Log$
-  Revision 1.8  1998-08-16 20:39:49  peter
+  Revision 1.9  1998-08-26 10:04:01  peter
+    * new lfn check from mailinglist
+    * renamed win95 -> LFNSupport
+    + tb_selector, tb_offset for easier access to transferbuffer
+
+  Revision 1.8  1998/08/16 20:39:49  peter
     + LFN Support
 
   Revision 1.7  1998/08/16 09:12:13  michael
