@@ -1258,7 +1258,7 @@ type
                pd.is_visible_for_object(topclassh) then
              begin
                { we have at least one procedure that is visible }
-               paravisible:=false;
+               paravisible:=true;
                { only when the # of parameter are supported by the
                  procedure }
                if (paralength>=pd.minparacount) and
@@ -2226,8 +2226,10 @@ type
                  tvarsym(tloadnode(hpt).symtableentry).varstate:=vs_used;
              end;
 
-            { if we are calling the constructor }
-            if procdefinition.proctypeoption=potype_constructor then
+            { if we are calling the constructor, ignore inherited
+              calls }
+            if (procdefinition.proctypeoption=potype_constructor) and
+               not(nf_inherited in flags) then
               verifyabstractcalls;
           end
          else
@@ -2548,7 +2550,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.189  2003-10-04 19:00:52  florian
+  Revision 1.190  2003-10-05 12:54:17  peter
+    * don't check for abstract methods when the constructor is called
+      by inherited
+    * fix private member error instead of wrong number of parameters
+
+  Revision 1.189  2003/10/04 19:00:52  florian
     * fixed TP 6.0 styled inherited call; fixes IDE with 1.1
 
   Revision 1.188  2003/10/03 22:00:33  peter
