@@ -290,7 +290,11 @@ unit parser;
               getsym('POWER',false);
               if assigned(srsym) and (srsym^.typ=procsym) and
                  (overloaded_operators[STARSTAR]=nil) then
-                overloaded_operators[STARSTAR]:=pprocsym(srsym);
+                begin
+                   overloaded_operators[STARSTAR]:=
+                     new(pprocsym,init(overloaded_names[STARSTAR]));
+                   overloaded_operators[STARSTAR]^.definition:=pprocsym(srsym)^.definition;
+                end;
               make_ref:=true;
            end
          else
@@ -466,7 +470,11 @@ done:
 end.
 {
   $Log$
-  Revision 1.24  1998-06-13 00:10:08  peter
+  Revision 1.25  1998-06-15 15:38:07  pierre
+    * small bug in systems.pas corrected
+    + operators in different units better hanlded
+
+  Revision 1.24  1998/06/13 00:10:08  peter
     * working browser and newppu
     * some small fixes against crashes which occured in bp7 (but not in
       fpc?!)

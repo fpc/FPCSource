@@ -489,13 +489,22 @@
 
     procedure tprocsym.deref;
       var t : ttoken;
-
+          last : pprocdef;
       begin
          resolvedef(pdef(definition));
-         for t:=PLUS to last_overloaded do
-           if (overloaded_operators[t]=nil) and
-              (name=overloaded_names[t]) then
-              overloaded_operators[t]:=@self;
+         if (definition^.options and pooperator) <> 0 then
+           begin
+              last:=definition;
+              while assigned(last^.nextoverloaded) do
+                last:=last^.nextoverloaded;
+              for t:=PLUS to last_overloaded do
+              if (name=overloaded_names[t]) then
+                begin
+                   if assigned(overloaded_operators[t]) then
+                     last^.nextoverloaded:=overloaded_operators[t]^.definition;
+                   overloaded_operators[t]:=@self;
+                end;
+           end;
       end;
 
     procedure tprocsym.write;
@@ -1671,7 +1680,11 @@
 
 {
   $Log$
-  Revision 1.12  1998-06-15 14:23:44  daniel
+  Revision 1.13  1998-06-15 15:38:10  pierre
+    * small bug in systems.pas corrected
+    + operators in different units better hanlded
+
+  Revision 1.12  1998/06/15 14:23:44  daniel
 
   * Reverted my changes.
 

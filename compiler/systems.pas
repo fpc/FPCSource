@@ -324,7 +324,7 @@ implementation
 		  )
 		  ,(
 			id     : as_o_aout;
-			idtxt  : 'O';
+			idtxt  : 'O_AOUT';
 			asmbin : 'as';
 			asmcmd : '-D -o $OBJ $ASM';
 			externals : false;
@@ -844,7 +844,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  1998-06-15 13:34:24  daniel
+  Revision 1.20  1998-06-15 15:38:14  pierre
+    * small bug in systems.pas corrected
+    + operators in different units better hanlded
+
+  Revision 1.19  1998/06/15 13:34:24  daniel
 
 
   * Fixed spelling mistakes in comments.

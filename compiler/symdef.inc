@@ -282,10 +282,16 @@
 
     procedure tdef.writename;
 
+      var
+         str : string;
+         
       begin
          { name }
          if assigned(sym) then
-           rttilist^.concat(new(pai_string,init(chr(length(sym^.name))+sym^.name)))
+           begin
+              str:=sym^.name;
+              rttilist^.concat(new(pai_string,init(chr(length(str))+str)));
+           end
          else
            rttilist^.concat(new(pai_string,init(#0)))
       end;
@@ -2023,7 +2029,16 @@
 {$endif alpha}
          writestring(mangledname);
          writelong(extnumber);
-         writedefref(nextoverloaded);
+         if (options and pooperator) = 0 then
+           writedefref(nextoverloaded)
+         else
+           begin
+              { only write the overloads from the same unit }
+              if nextoverloaded^.owner=owner then
+                writedefref(nextoverloaded)
+              else
+                writedefref(nil);
+           end;
          writedefref(_class);
          if (options and poinline) <> 0 then
            begin
@@ -2631,7 +2646,11 @@
 
 {
   $Log$
-  Revision 1.12  1998-06-15 14:30:12  daniel
+  Revision 1.13  1998-06-15 15:38:09  pierre
+    * small bug in systems.pas corrected
+    + operators in different units better hanlded
+
+  Revision 1.12  1998/06/15 14:30:12  daniel
 
   * Reverted my changes.
 
