@@ -204,11 +204,9 @@ type
          begin
            if aExp<$3fe then
              begin
-               if (aExp or aSig)<>0 then
-                 HandleError(207);
                result:=0;
                exit;
-           end;
+             end;
            z:=aSig shr -shiftCount;
            {
            if (aSig shl (shiftCount and 63))<>0 then
@@ -1246,7 +1244,10 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
 
 {
   $Log$
-  Revision 1.25  2004-10-03 14:00:21  florian
+  Revision 1.26  2004-10-03 14:09:39  florian
+    * fixed trunc for abs(value) < 1
+
+  Revision 1.25  2004/10/03 14:00:21  florian
     + made generic trunc 64 bit aware
 
   Revision 1.24  2004/05/31 20:25:04  peter
