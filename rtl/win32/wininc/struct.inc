@@ -6559,6 +6559,15 @@ type
   TWIN32FILEATTRIBUTEDATA     = _WIN32_FILE_ATTRIBUTE_DATA ;  
   PWIN32FILEATTRIBUTEDATA     = ^_WIN32_FILE_ATTRIBUTE_DATA;
 
+  // TrackMouseEvent. NT or higher only.
+  TTrackMouseEvent = Record
+    cbize : DWORD;
+    dwFlags : DWORD;
+    hwndTrack : HWND;
+    dwHoverTime : DWORD;
+  end;
+  PTrackMouseEvent = ^TTrackMouseEvent;
+
 {$endif read_interface}
 
 
@@ -7028,7 +7037,10 @@ type
 
 {
   $Log$
-  Revision 1.24  2004-05-04 10:34:29  marco
+  Revision 1.25  2004-07-26 06:48:30  michael
+  + Added trackmouseevent call and structures
+
+  Revision 1.24  2004/05/04 10:34:29  marco
    * pcritical section missed a ^
 
   Revision 1.23  2004/03/10 15:08:10  marco

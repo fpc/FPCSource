@@ -837,7 +837,9 @@ function TabbedTextOutW(hDC: HDC; X, Y: Integer; lpString: LPWSTR; nCount, nTabP
 //function ToAscii(uVirtKey, uScanCode: UINT; const KeyState: TKeyboardState; lpChar: PChar; uFlags: UINT): Integer; external 'user32' name 'ToAscii';
 //function ToAsciiEx(uVirtKey: UINT; uScanCode: UINT; const KeyState: TKeyboardState; lpChar: PChar; uFlags: UINT; dwhkl: HKL): Integer; external 'user32' name 'ToAsciiEx';
 //function ToUnicode(wVirtKey, wScanCode: UINT; const KeyState: TKeyboardState; var pwszBuff; cchBuff: Integer; wFlags: UINT): Integer; external 'user32' name 'ToUnicode';
-//function TrackMouseEvent(var EventTrack: TTrackMouseEvent): BOOL;external 'user32' name 'TrackMouseEvent';
+// Careful, NT and higher only.
+function TrackMouseEvent(var EventTrack: TTrackMouseEvent): BOOL;external 'user32' name 'TrackMouseEvent';
+function TrackMouseEvent(lpEventTrack: PTrackMouseEvent): BOOL;external 'user32' name 'TrackMouseEvent';
 function TransactNamedPipe(hNamedPipe: THandle; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesRead: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'TransactNamedPipe';
 function TranslateAccelerator(hWnd: HWND; hAccTable: HACCEL; var lpMsg: TMsg): Integer;external 'user32' name 'TranslateAcceleratorA';
 function TranslateAcceleratorA(hWnd: HWND; hAccTable: HACCEL; var lpMsg: TMsg): Integer; external 'user32' name 'TranslateAcceleratorA';
@@ -1060,7 +1062,10 @@ end;
 
 {
   $Log$
-  Revision 1.23  2004-05-09 10:46:34  peter
+  Revision 1.24  2004-07-26 06:48:30  michael
+  + Added trackmouseevent call and structures
+
+  Revision 1.23  2004/05/09 10:46:34  peter
   fix compile with 1.0.x
 
   Revision 1.22  2004/05/07 13:26:31  marco
