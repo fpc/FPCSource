@@ -339,12 +339,23 @@ implementation
       end;
 
 
+    procedure set_addr_param_regable(p:tnamedindexitem;arg:pointer);
+      begin
+        if (tsym(p).typ<>varsym) then
+         exit;
+        with tvarsym(p) do
+         begin
+           if paramanager.push_addr_param(varspez,vartype.def,tprocdef(arg).proccalloption) then
+             varregable:=vr_intreg;
+         end;
+      end;
+
+
     procedure parse_parameter_dec(pd:tabstractprocdef);
       {
         handle_procvar needs the same changes
       }
       var
-        is_procvar : boolean;
         sc      : tsinglelist;
         tt      : ttype;
         arrayelementtype : ttype;
@@ -367,7 +378,6 @@ implementation
           not(m_tp7 in aktmodeswitches) then
           exit;
         { parsing a proc or procvar ? }
-        is_procvar:=(pd.deftype=procvardef);
         currparast:=tparasymtable(pd.parast);
         { reset }
         sc:=tsinglelist.create;
@@ -526,13 +536,6 @@ implementation
            begin
              { update varsym }
              vs.vartype:=tt;
-             { For proc vars we only need the definitions }
-             if not is_procvar then
-              begin
-                if (varspez in [vs_var,vs_const,vs_out]) and
-                   paramanager.push_addr_param(varspez,tt.def,pd.proccalloption) then
-                  vs.varregable:=vr_intreg;
-              end;
              pd.concatpara(nil,tt,vs,defaultvalue,false);
 
              if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
@@ -1867,6 +1870,10 @@ const
             end;
          end;
 
+        { Make var parameters regable, this must be done after the calling
+          convention is set. }
+        pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}set_addr_param_regable,pd);
+
         { add mangledname to external list }
         if (pd.deftype=procdef) and
            (po_external in pd.procoptions) and
@@ -2263,7 +2270,10 @@ const
 end.
 {
   $Log$
-  Revision 1.192  2004-10-10 21:08:55  peter
+  Revision 1.193  2004-10-11 15:45:35  peter
+    * mark non-regable after calling convention is set
+
+  Revision 1.192  2004/10/10 21:08:55  peter
     * parameter regvar fixes
 
   Revision 1.191  2004/10/08 17:09:43  peter
