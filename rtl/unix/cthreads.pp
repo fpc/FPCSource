@@ -381,9 +381,6 @@ Var
 
 Procedure SetCThreadManager;
 
-Var
-  Dummy : TThreadManager;
-
 begin
   With CThreadManager do
     begin
@@ -410,7 +407,7 @@ begin
     ReleaseThreadVars      :=@CReleaseThreadVars;
 {$endif}    
     end;
-  SetThreadManager(CThreadManager,Dummy);
+  SetThreadManager(CThreadManager);
   InitHeapMutexes;
 end;
 
@@ -419,7 +416,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2003-11-27 20:24:53  michael
+  Revision 1.4  2003-11-29 17:34:14  michael
+  + Removed dummy variable from SetCthreadManager
+
+  Revision 1.3  2003/11/27 20:24:53  michael
   + Compiles on BSD too now
 
   Revision 1.2  2003/11/27 20:16:59  michael

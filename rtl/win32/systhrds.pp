@@ -354,9 +354,6 @@ Var
 
 Procedure SetWinThreadManager;
 
-Var
-  Dummy : TThreadManager;
-
 begin
   With WinThreadManager do
     begin
@@ -383,7 +380,7 @@ begin
     ReleaseThreadVars      :=@SysReleaseThreadVars;
 {$endif HASTHREADVAR}
     end;
-  SetThreadManager(WinThreadManager,Dummy);
+  SetThreadManager(WinThreadManager);
   InitHeapMutexes;
 end;
 
@@ -393,7 +390,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-11-27 10:28:41  michael
+  Revision 1.9  2003-11-29 17:34:53  michael
+  + Removed dummy variable from SetCthreadManager
+
+  Revision 1.8  2003/11/27 10:28:41  michael
   + Patch from peter to fix make cycle
 
   Revision 1.7  2003/11/26 20:10:59  michael
