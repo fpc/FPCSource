@@ -1,4 +1,4 @@
-{
+ {
     $Id$
     Copyright (c) 1993-98 by Florian Klaempfl
 
@@ -195,13 +195,6 @@ var
 procedure myexit;{$ifndef FPC}far;{$endif}
 begin
   exitproc:=oldexit;
-{$ifdef UseBrowser}
-  if browser_file_open then
-    begin
-       close(browserfile);
-       browser_file_open:=false;
-    end;
-{$endif UseBrowser}
 {$ifdef tp}
   if use_big then
    symbolstream.done;
@@ -217,6 +210,11 @@ begin
               erroraddr:=nil;
               Writeln('Error: Out of memory');
             end;
+     else
+      begin
+        erroraddr:=nil;
+        Writeln('Error: Runtime Error ',exitcode);
+      end;
      end;
    {when the module is assigned, then the messagefile is also loaded}
      if assigned(current_module) and assigned(current_module^.current_inputfile) then
@@ -338,6 +336,9 @@ begin
 {$ifdef linux}
    Message1(general_u_gcclibpath,Linker.librarysearchpath);
 {$endif}
+{$ifdef TP}
+   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
+{$endif}
 
    start:=getrealtime;
    compile(inputdir+inputfile+inputextension,false);
@@ -349,6 +350,9 @@ begin
 
    clearnodes;
    done_symtable;
+{$ifdef TP}
+   Comment(V_Info,'Memory: '+tostr(MemAvail)+' Bytes Free');
+{$endif}
 {$ifdef EXTDEBUG}
    Comment(V_Info,'Memory lost = '+tostr(EntryMemAvail-MemAvail));
 {$endif EXTDEBUG}
@@ -360,7 +364,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1998-05-23 01:21:23  peter
+  Revision 1.13  1998-06-13 00:10:11  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.12  1998/05/23 01:21:23  peter
     + aktasmmode, aktoptprocessor, aktoutputformat
     + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
     + $LIBNAME to set the library name where the unit will be put in

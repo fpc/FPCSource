@@ -171,7 +171,7 @@ unit pass_1;
         end;
 
     function is_assignment_overloaded(from_def,to_def : pdef) : boolean;forward;
-    
+
     function isconvertable(def_from,def_to : pdef;
              var doconv : tconverttype;fromtreetype : ttreetyp;
              explicit : boolean) : boolean;
@@ -2589,7 +2589,7 @@ unit pass_1;
       overloaded function
       this is the reason why it is not in the parser
        PM }
-      
+
     procedure test_protected_sym(sym : psym);
 
       begin
@@ -2599,7 +2599,7 @@ unit pass_1;
            (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable))) then
           Message(parser_e_cant_access_protected_member);
       end;
-      
+
     procedure test_protected(p : ptree);
 
       begin
@@ -2623,7 +2623,7 @@ unit pass_1;
               test_protected_sym(p^.vs);
            end;
       end;
-      
+
     procedure firstcallparan(var p : ptree;defcoll : pdefcoll);
 
       var store_valid : boolean;
@@ -3210,7 +3210,7 @@ unit pass_1;
                    if make_ref then
                      begin
                         get_cur_file_pos(curtokenpos);
-                        add_new_ref(procs^.data^.lastref,@curtokenpos);
+                        procs^.data^.lastref:=new(pref,init(procs^.data^.lastref,@curtokenpos));
                      end;
      {$endif UseBrowser}
 
@@ -5012,7 +5012,12 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.30  1998-06-12 10:32:28  pierre
+  Revision 1.31  1998-06-13 00:10:09  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.30  1998/06/12 10:32:28  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

@@ -203,10 +203,12 @@ unit pmodules;
           { ok, now load the unit }
             hp^.symtable:=new(punitsymtable,load(hp));
           { if this is the system unit insert the intern symbols }
-            make_ref:=false;
             if compile_system then
-              insertinternsyms(psymtable(hp^.symtable));
-            make_ref:=true;
+              begin
+                make_ref:=false;
+                insertinternsyms(psymtable(hp^.symtable));
+                make_ref:=true;
+              end;
           end;
        { now only read the implementation part }
          hp^.in_implementation:=true;
@@ -715,10 +717,12 @@ unit pmodules;
          p:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
 
          {Generate a procsym.}
+         make_ref:=false;
          aktprocsym:=new(Pprocsym,init(current_module^.modulename^+'_init'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or pounitinit;
          aktprocsym^.definition^.setmangledname(current_module^.modulename^+'_init');
+         make_ref:=true;
 
          {The generated procsym has a local symtable. Discard it and turn
           it into the static one.}
@@ -879,10 +883,12 @@ unit pmodules;
          st:=new(punitsymtable,init(staticsymtable,current_module^.modulename^));
 
          {Generate a procsym.}
+         make_ref:=false;
          aktprocsym:=new(Pprocsym,init('main'));
          aktprocsym^.definition:=new(Pprocdef,init);
          aktprocsym^.definition^.options:=aktprocsym^.definition^.options or poproginit;
          aktprocsym^.definition^.setmangledname(target_os.Cprefix+'main');
+         make_ref:=true;
          {The localst is a local symtable. Change it into the static
           symtable.}
          dispose(aktprocsym^.definition^.localst,done);
@@ -962,7 +968,12 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.27  1998-06-11 13:58:08  peter
+  Revision 1.28  1998-06-13 00:10:10  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.27  1998/06/11 13:58:08  peter
     * small fix to let newppu compile
 
   Revision 1.26  1998/06/09 16:01:47  pierre

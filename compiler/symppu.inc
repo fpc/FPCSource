@@ -42,30 +42,36 @@
         ppufile^.putbyte(b);
       end;
 
+
     procedure writeword(w:word);
       begin
         ppufile^.putword(w);
       end;
+
 
     procedure writelong(l:longint);
       begin
         ppufile^.putlongint(l);
       end;
 
+
     procedure writedouble(d:double);
       begin
         ppufile^.putdata(d,sizeof(double));
       end;
+
 
     procedure writestring(const s:string);
       begin
         ppufile^.putstring(s);
       end;
 
+
     procedure writeset(var s); {You cannot pass an array[0..31] of byte!}
       begin
         ppufile^.putdata(s,32);
       end;
+
 
     procedure writecontainer(var p:tstringcontainer;id:byte;hold:boolean);
       var
@@ -86,12 +92,14 @@
          p:=hcontainer;
       end;
 
+
     procedure writeposinfo(const p:tfileposinfo);
       begin
         writeword(p.fileindex);
         writelong(p.line);
         writeword(p.column);
       end;
+
 
     procedure writedefref(p : pdef);
       begin
@@ -103,12 +111,11 @@
             ppufile^.putword($ffff)
            else
             ppufile^.putword(p^.owner^.unitid);
-           ppufile^.putword(p^.number);
+           ppufile^.putword(p^.indexnb);
          end;
       end;
 
 
-{$ifdef UseBrowser}
     procedure writesymref(p : psym);
       begin
         if p=nil then
@@ -122,13 +129,9 @@
            writeword(p^.indexnb);
          end;
       end;
-{$endif UseBrowser}
 
-    procedure writeunitas(const s : string;unit_symtable : punitsymtable);
-{$ifdef UseBrowser}
-      var
-         pus : punitsymtable;
-{$endif UseBrowser}
+
+    procedure writeunitas(const s : string;unittable : punitsymtable);
       begin
          Message1(unit_u_ppu_write,s);
 
@@ -142,31 +145,25 @@
                  flags:=flags or uf_in_library;
              end;
             if use_dbx then
-             flags:=flags or uf_uses_dbx;
+             flags:=flags or uf_has_dbx;
             if target_os.endian=en_big_endian then
              flags:=flags or uf_big_endian;
 {$ifdef UseBrowser}
-            if use_browser then
-             flags:=flags or uf_uses_browser;
+            if cs_browser in aktswitches then
+             flags:=flags or uf_has_browser;
 {$endif UseBrowser}
           end;
 
+       { open ppufile }
          ppufile:=new(pppufile,init(s));
          ppufile^.change_endian:=source_os.endian<>target_os.endian;
          if not ppufile^.create then
           Message(unit_f_ppu_cannot_write);
-         unit_symtable^.writeasunit;
-{$ifdef UseBrowser}
-         { write all new references to old unit elements }
-         pus:=punitsymtable(unit_symtable^.next);
-         if use_browser then
-         while assigned(pus) do
-           begin
-              if pus^.symtabletype = unitsymtable then
-                pus^.write_external_references;
-              pus:=punitsymtable(pus^.next);
-           end;
-{$endif UseBrowser}
+
+       { write symbols and definitions }
+         unittable^.writeasunit;
+
+       { flush to be sure }
          ppufile^.flush;
        { create and write header }
          ppufile^.header.size:=ppufile^.size;
@@ -234,6 +231,7 @@
          p:=hcontainer;
       end;
 
+
     procedure writeposinfo(const p:tfileposinfo);
       begin
         writeword(p.fileindex);
@@ -251,12 +249,10 @@
             writeword($ffff)
            else
             writeword(p^.owner^.unitid);
-           writeword(p^.number);
+           writeword(p^.indexnb);
          end;
       end;
 
-
-{$ifdef UseBrowser}
     procedure writesymref(p : psym);
       begin
         if p=nil then
@@ -270,10 +266,8 @@
            writeword(p^.indexnb);
          end;
       end;
-{$endif UseBrowser}
 
-
-    procedure writeunitas(const s : string;unit_symtable : punitsymtable);
+    procedure writeunitas(const s : string;unittable : punitsymtable);
 {$ifdef UseBrowser}
       var
          pus : punitsymtable;
@@ -291,7 +285,7 @@
                  flags:=flags or uf_in_library;
              end;
             if use_dbx then
-             flags:=flags or uf_uses_dbx;
+             flags:=flags or uf_has_dbx;
             if target_os.endian=en_big_endian then
              flags:=flags or uf_big_endian;
 {$ifdef UseBrowser}
@@ -312,12 +306,12 @@
          ppufile.write_data(unitheader,sizeof(unitheader));
          ppufile.clear_crc;
          ppufile.do_crc:=true;
-         unit_symtable^.writeasunit;
+         unittable^.writeasunit;
          ppufile.flush;
          ppufile.do_crc:=false;
 {$ifdef UseBrowser}
          { write all new references to old unit elements }
-         pus:=punitsymtable(unit_symtable^.next);
+         pus:=punitsymtable(unittable^.next);
          if use_browser then
          while assigned(pus) do
            begin
@@ -532,7 +526,12 @@
 
 {
   $Log$
-  Revision 1.2  1998-05-28 14:40:28  peter
+  Revision 1.3  1998-06-13 00:10:17  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.2  1998/05/28 14:40:28  peter
     * fixes for newppu, remake3 works now with it
 
   Revision 1.1  1998/05/27 19:45:09  peter
@@ -540,4 +539,4 @@
     * symtable adapted for $ifdef NEWPPU
 
 }
-  
+

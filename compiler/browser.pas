@@ -1,8 +1,8 @@
 {
     $Id$
-    Copyright (c) 1996-98 by Florian Klaempfl
+    Copyright (c) 1993-98 by the FPC development team
 
-    This unit implements a browser object
+    Support routines for the browser
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,78 +17,98 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-}
 
+ ****************************************************************************
+}
+{$ifdef TP}
+  {$N+,E+}
+{$endif}
 unit browser;
 
 interface
+uses
+  cobjects,files;
 
-uses globals,cobjects,files;
-
+const
+{$ifdef TP}
+  logbufsize   = 1024;
+{$else}
+  logbufsize   = 16384;
+{$endif}
 type
   pref = ^tref;
   tref = object
-         nextref   : pref;
-         posinfo : tfileposinfo;
-         moduleindex : word;
-         constructor init(ref : pref;pos : pfileposinfo);
-         constructor load(var ref : pref;fileindex : word;line,column : longint);
-         destructor done; virtual;
-         function  get_file_line : string;
-         end;
+    nextref     : pref;
+    posinfo     : tfileposinfo;
+    moduleindex : word;
+    constructor init(ref:pref;pos:pfileposinfo);
+    destructor  done; virtual;
+    function  get_file_line : string;
+  end;
 
-  { simple method to chain all refs }
-  procedure add_new_ref(var ref : pref;pos : pfileposinfo);
+  pbrowser=^tbrowser;
+  tbrowser=object
+    fname    : string;
+    logopen  : boolean;
+    f        : file;
+    buf      : pchar;
+    bufidx   : longint;
+    identidx : longint;
+    constructor init;
+    destructor done;
+    procedure setfilename(const fn:string);
+    procedure createlog;
+    procedure flushlog;
+    procedure addlog(const s:string);
+    procedure addlogrefs(p:pref);
+    procedure closelog;
+    procedure ident;
+    procedure unident;
+  end;
+
+var
+  browse : tbrowser;
 
   function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
-  { one big problem remains for overloaded procedure }
-  { we should be able to separate them               }
-  { this might be feasable in pass_1                 }
-
 implementation
 
-  uses scanner,verbose;
+  uses
+    globals,systems,verbose;
 
-  constructor tref.init(ref :pref;pos : pfileposinfo);
+{****************************************************************************
+                               TRef
+****************************************************************************}
 
-    begin
-       nextref:=nil;
-       if ref<>nil then
+
+    constructor tref.init(ref :pref;pos : pfileposinfo);
+      begin
+        nextref:=nil;
+        if assigned(pos) then
+          posinfo:=pos^;
+        if assigned(current_module) then
+          moduleindex:=current_module^.unit_index;
+        if assigned(ref) then
           ref^.nextref:=@self;
-       if assigned(pos) then
-         posinfo:=pos^;
-       if current_module<>nil then
-         begin
-            moduleindex:=current_module^.unit_index;
-         end;
-    end;
+      end;
 
-  constructor tref.load(var ref : pref;fileindex : word;line,column : longint);
 
-    begin
-       moduleindex:=current_module^.unit_index;
-       if assigned(ref) then
-         ref^.nextref:=@self;
-       nextref:=nil;
-       posinfo.fileindex:=fileindex;
-       posinfo.line:=line;
-       posinfo.column:=column;
-       ref:=@self;
-    end;
+    destructor tref.done;
+      var
+         inputfile : pinputfile;
+         ref : pref;
+      begin
+         inputfile:=get_source_file(moduleindex,posinfo.fileindex);
+         if inputfile<>nil then
+           dec(inputfile^.ref_count);
+         ref:=@self;
+         if assigned(ref^.nextref) then
+          dispose(ref^.nextref,done);
+         nextref:=nil;
+      end;
 
-  destructor tref.done;
-
-    var
-       inputfile : pinputfile;
-    begin
-       inputfile:=get_source_file(moduleindex,posinfo.fileindex);
-       if inputfile<>nil then
-         dec(inputfile^.ref_count);
-    end;
 
     function tref.get_file_line : string;
-
       var
          inputfile : pinputfile;
       begin
@@ -110,15 +130,125 @@ implementation
               +tostr(posinfo.line)+','+tostr(posinfo.column)+')'
       end;
 
-  procedure add_new_ref(var ref : pref;pos : pfileposinfo);
+{****************************************************************************
+                              TBrowser
+****************************************************************************}
 
-    var
-       newref : pref;
+    constructor tbrowser.init;
+      begin
+        fname:=FixFileName('browser.log');
+        logopen:=false;
+      end;
 
-    begin
-       new(newref,init(ref,pos));
-       ref:=newref;
-    end;
+
+    destructor tbrowser.done;
+      begin
+        if logopen then
+         closelog;
+      end;
+
+
+    procedure tbrowser.setfilename(const fn:string);
+      begin
+        fname:=FixFileName(fn);
+      end;
+
+
+    procedure tbrowser.createlog;
+      begin
+        if logopen then
+         closelog;
+        assign(f,fname);
+        {$I-}
+         rewrite(f,1);
+        {$I+}
+        if ioresult<>0 then
+         exit;
+        logopen:=true;
+        getmem(buf,logbufsize);
+        bufidx:=0;
+        identidx:=0;
+      end;
+
+
+    procedure tbrowser.flushlog;
+      begin
+        if logopen then
+         blockwrite(f,buf^,bufidx);
+        bufidx:=0;
+      end;
+
+
+    procedure tbrowser.closelog;
+      begin
+        if logopen then
+         begin
+           flushlog;
+           close(f);
+           freemem(buf,logbufsize);
+           logopen:=false;
+         end;
+      end;
+
+
+    procedure tbrowser.addlog(const s:string);
+      begin
+        if not logopen then
+         exit;
+      { add ident }
+        if identidx>0 then
+         begin
+           if bufidx+identidx>logbufsize then
+            flushlog;
+           fillchar(buf[bufidx],identidx,' ');
+           inc(bufidx,identidx);
+         end;
+      { add text }
+        if bufidx+length(s)>logbufsize-2 then
+         flushlog;
+        move(s[1],buf[bufidx],length(s));
+        inc(bufidx,length(s));
+      { add crlf }
+        buf[bufidx]:=target_os.newline[1];
+        inc(bufidx);
+        if length(target_os.newline)=2 then
+         begin
+           buf[bufidx]:=target_os.newline[2];
+           inc(bufidx);
+         end;
+      end;
+
+
+    procedure tbrowser.addlogrefs(p:pref);
+      var
+        ref : pref;
+      begin
+        ref:=p;
+        Ident;
+        while assigned(ref) do
+         begin
+           Browse.AddLog(ref^.get_file_line);
+           ref:=ref^.nextref;
+         end;
+        Unident;
+      end;
+
+
+    procedure tbrowser.ident;
+      begin
+        inc(identidx,2);
+      end;
+
+
+    procedure tbrowser.unident;
+      begin
+        dec(identidx,2);
+      end;
+
+{****************************************************************************
+                             Helpers
+****************************************************************************}
+
 
     function get_source_file(moduleindex,fileindex : word) : pinputfile;
 
@@ -145,10 +275,17 @@ implementation
            end;
       end;
 
+begin
+  browse.init
 end.
 {
   $Log$
-  Revision 1.4  1998-06-11 10:11:57  peter
+  Revision 1.5  1998-06-13 00:10:04  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.4  1998/06/11 10:11:57  peter
     * -gb works again
 
   Revision 1.3  1998/05/20 09:42:32  pierre
@@ -167,34 +304,5 @@ end.
     + UseTokenInfo for better source position
     * fixed one remaining bug in scanner for line counts
     * several little fixes
-
-  Revision 1.1.1.1  1998/03/25 11:18:12  root
-  * Restored version
-
-  Revision 1.5  1998/03/10 16:27:36  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.4  1998/03/10 01:17:15  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.3  1998/03/02 01:48:06  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.2  1998/02/13 10:34:37  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.1.1.1  1997/11/27 08:32:51  michael
-  FPC Compiler CVS start
 }
 

@@ -210,8 +210,8 @@ unit files;
 
        { unit flags }
        uf_init           = $1;
-       uf_uses_dbx       = $2;
-       uf_uses_browser   = $4;
+       uf_has_dbx        = $2;
+       uf_has_browser    = $4;
        uf_in_library     = $8;
        uf_shared_library = $10;
        uf_big_endian     = $20;
@@ -945,7 +945,12 @@ unit files;
 end.
 {
   $Log$
-  Revision 1.20  1998-06-12 14:50:48  peter
+  Revision 1.21  1998-06-13 00:10:05  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.20  1998/06/12 14:50:48  peter
     * removed the tree dependency to types.pas
     * long_fil.pas support (not fully tested yet)
 

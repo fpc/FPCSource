@@ -36,6 +36,9 @@ unit parser;
       systems,cobjects,globals,verbose,
       symtable,files,aasm,hcodegen,
       assemble,link,script,gendef,
+{$ifdef UseBrowser}
+      browser,
+{$endif UseBrowser}
       scanner,pbase,pdecl,psystem,pmodules;
 
 
@@ -82,6 +85,7 @@ unit parser;
          oldpreprocstack : ppreprocstack;
          oldorgpattern,oldprocprefix : string;
          old_block_type : tblock_type;
+         oldlastlinepos,
          oldinputbuffer,
          oldinputpointer : pchar;
          olds_point,oldparse_only : boolean;
@@ -196,6 +200,7 @@ unit parser;
 
          oldinputbuffer:=inputbuffer;
          oldinputpointer:=inputpointer;
+         oldlastlinepos:=lastlinepos;
          olds_point:=s_point;
          oldc:=c;
          oldcomment_level:=comment_level;
@@ -235,30 +240,38 @@ unit parser;
          aktoptprocessor:=initoptprocessor;
          aktasmmode:=initasmmode;
 
-         { we need this to make the system unit }
+       { we need this to make the system unit }
          if compile_system then
           aktswitches:=aktswitches+[cs_compilesystem];
 
 
-         { macros }
+       { macros }
          macros:=new(psymtable,init(macrosymtable));
          macros^.name:=stringdup('Conditionals for '+filename);
          define_macros;
 
-         { startup scanner }
+       { startup scanner }
          token:=yylex;
 
-         { init code generator for a new module }
+       { init code generator for a new module }
          codegen_newmodule;
 {$ifdef GDB}
          reset_gdb_info;
 {$endif GDB}
-         { global switches are read, so further changes aren't allowed }
+       { global switches are read, so further changes aren't allowed }
          current_module^.in_main:=true;
 
-         { open assembler response }
+       { Handle things which need to be once }
          if (compile_level=1) then
-          AsmRes.Init('ppas');
+          begin
+          { open assembler response }
+            AsmRes.Init('ppas');
+{$ifdef UseBrowser}
+          { open browser if set }
+            if cs_browser in initswitches then
+             Browse.CreateLog;
+{$endif UseBrowser}
+          end;
 
          { if the current file isn't a system unit  }
          { the the system unit will be loaded       }
@@ -339,7 +352,6 @@ unit parser;
                    Linker.MakeExecutable;
                  end;
               end;
-
            end
          else
            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
@@ -373,11 +385,14 @@ done:
 
          procprefix:=oldprocprefix;
 
-         { close the inputfiles }
 {$ifdef UseBrowser}
-         {  we need the names for the browser ! }
-         current_module^.sourcefiles.close_all;
+       {  close input files, but dont remove if we use the browser ! }
+         if cs_browser in initswitches then
+          current_module^.sourcefiles.close_all
+         else
+          current_module^.sourcefiles.done;
 {$else UseBrowser}
+       { close the inputfiles }
          current_module^.sourcefiles.done;
 {$endif not UseBrowser}
          { restore scanner state }
@@ -398,6 +413,7 @@ done:
          preprocstack:=oldpreprocstack;
          inputbuffer:=oldinputbuffer;
          inputpointer:=oldinputpointer;
+         lastlinepos:=oldlastlinepos;
          s_point:=olds_point;
          c:=oldc;
          comment_level:=oldcomment_level;
@@ -417,6 +433,7 @@ done:
          importssection:=oldimports;
          exportssection:=oldexports;
          resourcesection:=oldresource;
+         rttilist:=oldrttilist;
 
          { restore current state }
          aktswitches:=oldswitches;
@@ -425,13 +442,23 @@ done:
          aktoptprocessor:=oldoptprocessor;
          aktasmmode:=oldasmmode;
 
+       { Shut down things when the last file is compiled }
          if (compile_level=1) then
           begin
+          { Close script }
             if (not AsmRes.Empty) then
              begin
                Message1(exec_i_closing_script,AsmRes.Fn);
                AsmRes.WriteToDisk;
              end;
+{$ifdef UseBrowser}
+          { Write Browser }
+            if cs_browser in initswitches then
+             begin
+               Comment(V_Info,'Writing Browser '+Browse.Fname);
+               write_browser_log;
+             end;
+{$endif UseBrowser}
           end;
          dec(compile_level);
       end;
@@ -439,7 +466,12 @@ done:
 end.
 {
   $Log$
-  Revision 1.23  1998-06-08 22:59:48  peter
+  Revision 1.24  1998-06-13 00:10:08  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.23  1998/06/08 22:59:48  peter
     * smartlinking works for win32
     * some defines to exclude some compiler parts
 

@@ -146,12 +146,11 @@ unit scanner;
         c              : char;
         orgpattern,
         pattern        : string;
-        macrobuffer    : ^tmacrobuffer;
+        macrobuffer    : pmacrobuffer;
         lastlinepos,
         lasttokenpos,
         inputbuffer,
         inputpointer   : pchar;
-{        parse_types,   }                   { true, if type declarations are parsed }
         s_point        : boolean;
         comment_level,
         yylexcount,
@@ -263,19 +262,10 @@ unit scanner;
       begin
          get_current_col:=current_column;
       end;
-      
+
     function get_file_col : longint;
       begin
-(*  how was expecting files larger than 2Go ???
-{$ifdef TP}
-        if lastlinepos<=lasttokenpos then
-          get_file_col:=longint(lasttokenpos)-longint(lastlinepos)
-        else
-          get_file_col:=longint(lastlinepos)-longint(lasttokenpos);
-{$else}
-         get_file_col:=cardinal(lasttokenpos)-cardinal(lastlinepos);
-{$endif} *)
-          get_file_col:=longint(lasttokenpos)-longint(lastlinepos);
+        get_file_col:=lasttokenpos-lastlinepos;
       end;
 
 
@@ -346,6 +336,7 @@ unit scanner;
             end;
            inputbuffer[readsize]:=#0;
            inputpointer:=inputbuffer;
+           lastlinepos:=inputpointer;
          { Set EOF when main source and at endoffile }
            if eof(current_module^.current_inputfile^.f) then
             begin
@@ -363,6 +354,7 @@ unit scanner;
            status.currentsource:=current_module^.current_inputfile^.name^+current_module^.current_inputfile^.ext^;
            inputbuffer:=current_module^.current_inputfile^.buf;
            inputpointer:=inputbuffer+current_module^.current_inputfile^.bufpos;
+           lastlinepos:=inputpointer;
          end;
       { load next char }
         c:=inputpointer^;
@@ -522,7 +514,6 @@ unit scanner;
                end;
             end;
           end;
-{          readchar; }
           c:=inputpointer^;
           if c=#0 then
            reload
@@ -539,7 +530,6 @@ unit scanner;
       begin
         while c in [' ',#9..#13] do
          begin
-{           readchar; }
            c:=inputpointer^;
            if c=#0 then
             reload
@@ -576,7 +566,6 @@ unit scanner;
            else
             found:=0;
            end;
-{           readchar;}
            c:=inputpointer^;
            if c=#0 then
             reload
@@ -584,7 +573,6 @@ unit scanner;
             inc(longint(inputpointer));
            if c in [#10,#13] then
             linebreak;
-
          until (found=2);
       end;
 
@@ -605,7 +593,6 @@ unit scanner;
             '}' : dec_comment_level;
             #26 : Message(scan_f_end_of_file);
            end;
-{           readchar; }
            c:=inputpointer^;
            if c=#0 then
             reload
@@ -669,7 +656,6 @@ unit scanner;
              else
               found:=0;
              end;
-{             readchar; }
              c:=inputpointer^;
              if c=#0 then
               reload
@@ -728,9 +714,7 @@ unit scanner;
         tokenpos.column:=get_file_col;
         tokenpos.fileindex:=current_module^.current_index;
 
-
       { Check first for a identifier/keyword, this is 20+% faster (PFV) }
-
         if c in ['_','A'..'Z','a'..'z'] then
          begin
            orgpattern:=readstring;
@@ -865,11 +849,11 @@ unit scanner;
                         if c='*' then
                          begin
                            skipoldtpcomment;
-{$ifndef TP}
+                        {$ifndef TP}
                            yylex:=yylex();
-{$else TP}
+                        {$else}
                            yylex:=yylex;
-{$endif TP}
+                        {$endif}
                            exit;
                          end;
                         yylex:=LKLAMMER;
@@ -941,11 +925,11 @@ unit scanner;
                                end;
                          '/' : begin
                                  skipdelphicomment;
-{$ifndef TP}
+                               {$ifndef TP}
                                  yylex:=yylex();
-{$else TP}
+                               {$else TP}
                                  yylex:=yylex;
-{$endif TP}
+                               {$endif TP}
                                  exit;
                                end;
                         end;
@@ -1199,8 +1183,6 @@ unit scanner;
         with fileinfo do
          begin
            line:=current_module^.current_inputfile^.line_no;
-        {fileinfo.fileindex:=current_module^.current_inputfile^.ref_index;}
-        { should allways be the same !! }
            fileindex:=current_module^.current_index;
            column:=get_current_col;
          end;
@@ -1281,7 +1263,12 @@ unit scanner;
 end.
 {
   $Log$
-  Revision 1.24  1998-06-12 10:32:36  pierre
+  Revision 1.25  1998-06-13 00:10:15  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.24  1998/06/12 10:32:36  pierre
     * column problem hopefully solved
     + C vars declaration changed
 

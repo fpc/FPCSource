@@ -36,13 +36,15 @@ const
 {$endif}
 
 {ppu entries}
+  mainentryid         = 1;
+  subentryid          = 2;
   {special}
   iberror             = 0;
   ibenddefs           = 250;
   ibendsyms           = 251;
   ibendinterface      = 252;
   ibendimplementation = 253;
-  ibentry             = 254;
+  ibendbrowser        = 254;
   ibend               = 255;
   {general}
   ibmodulename     = 1;
@@ -54,7 +56,8 @@ const
   iblinksharedlibs = 7;
   iblinkstaticlibs = 8;
   ibdbxcount       = 9;
-  ibref            = 10;
+  ibsymref         = 10;
+  ibdefref         = 11;
   {syms}
   ibtypesym       = 20;
   ibprocsym       = 21;
@@ -65,7 +68,6 @@ const
   ibabsolutesym   = 26;
   ibpropertysym   = 27;
   ibvarsym_C      = 28;
-  
   {defenitions}
   iborddef        = 40;
   ibpointerdef    = 41;
@@ -89,8 +91,8 @@ const
 
 { unit flags }
   uf_init           = $1;
-  uf_uses_dbx       = $2;
-  uf_uses_browser   = $4;
+  uf_has_dbx        = $2;
+  uf_has_browser    = $4;
   uf_big_endian     = $8;
   uf_in_library     = $10;
   uf_shared_library = $20;
@@ -113,7 +115,7 @@ type
   tppuentry=packed record
     id   : byte;
     nr   : byte;
-    size : word;
+    size : longint;
   end;
 
   pppufile=^tppufile;
@@ -133,10 +135,11 @@ type
     bufstart,
     bufsize,
     bufidx   : longint;
-    entry    : tppuentry;
     entrybufstart,
     entrystart,
     entryidx : longint;
+    entry    : tppuentry;
+    entrytyp : byte;
 
     constructor init(fn:string);
     destructor  done;
@@ -153,12 +156,14 @@ type
     procedure skipdata(len:longint);
     function  readentry:byte;
     function  EndOfEntry:boolean;
+    procedure getdatabuf(var b;len:longint;var result:longint);
     procedure getdata(var b;len:longint);
     function  getbyte:byte;
     function  getword:word;
     function  getlongint:longint;
     function  getdouble:double;
     function  getstring:string;
+    function  skipuntilentry(untilb:byte):boolean;
   {write}
     function  create:boolean;
     procedure writeheader;
@@ -352,6 +357,9 @@ begin
   bufidx:=0;
   Mode:=1;
   FillChar(entry,sizeof(tppuentry),0);
+  entryidx:=0;
+  entrystart:=0;
+  entrybufstart:=0;
   Error:=false;
   open:=true;
 end;
@@ -432,8 +440,9 @@ begin
   if entryidx<entry.size then
    skipdata(entry.size-entryidx);
   readdata(entry,sizeof(tppuentry));
+  entrystart:=bufstart+bufidx;
   entryidx:=0;
-  if entry.id<>ibentry then
+  if not entry.id in [mainentryid,subentryid] then
    begin
      readentry:=iberror;
      error:=true;
@@ -446,6 +455,17 @@ end;
 function tppufile.endofentry:boolean;
 begin
   endofentry:=(entryidx>=entry.size);
+end;
+
+
+procedure tppufile.getdatabuf(var b;len:longint;var result:longint);
+begin
+  if entryidx+len>entry.size then
+   result:=entry.size-entryidx
+  else
+   result:=len;
+  readdata(b,result);
+  inc(entryidx,result);
 end;
 
 
@@ -470,9 +490,6 @@ begin
      error:=true;
      exit;
    end;
-{  if bufidx+1>bufsize then
-  getbyte:=ord(buf[bufidx]);
-  inc(bufidx);}
   readdata(b,1);
   getbyte:=b;
   inc(entryidx);
@@ -490,7 +507,6 @@ begin
      error:=true;
      exit;
    end;
-{  getword:=pword(@entrybuf[entrybufidx])^;}
   readdata(w,2);
   getword:=w;
   inc(entryidx,2);
@@ -510,8 +526,6 @@ begin
    end;
   readdata(l,4);
   getlongint:=l;
-{
-  getlongint:=plongint(@entrybuf[entrybufidx])^;}
   inc(entryidx,4);
 end;
 
@@ -529,8 +543,6 @@ begin
    end;
   readdata(d,sizeof(double));
   getdouble:=d;
-{
-  getlongint:=plongint(@entrybuf[entrybufidx])^;}
   inc(entryidx,sizeof(double));
 end;
 
@@ -547,10 +559,19 @@ begin
    end;
   ReadData(s[1],length(s));
   getstring:=s;
-{ move(entrybuf[entrybufidx],s[1],length(s));}
   inc(entryidx,length(s));
 end;
 
+
+function tppufile.skipuntilentry(untilb:byte):boolean;
+var
+  b : byte;
+begin
+  repeat
+    b:=readentry;
+  until (b in [ibend,iberror]) or ((b=untilb) and (entry.id=mainentryid));
+  skipuntilentry:=(b=untilb);
+end;
 
 {*****************************************************************************
                                 TPPUFile Writing
@@ -576,6 +597,7 @@ begin
   Error:=false;
   do_crc:=true;
   size:=0;
+  entrytyp:=mainentryid;
 {start}
   NewEntry;
   create:=true;
@@ -600,8 +622,6 @@ end;
 
 procedure tppufile.writebuf;
 begin
-  if do_crc then
-   UpdateCrc32(crc,buf,bufidx);
   blockwrite(f,buf^,bufidx);
   inc(bufstart,bufidx);
   bufidx:=0;
@@ -641,7 +661,7 @@ procedure tppufile.NewEntry;
 begin
   with entry do
    begin
-     id:=ibentry;
+     id:=entrytyp;
      nr:=ibend;
      size:=0;
    end;
@@ -659,15 +679,14 @@ var
   opos : longint;
 begin
 {create entry}
-  entry.id:=ibentry;
+  entry.id:=entrytyp;
   entry.nr:=ibnr;
   entry.size:=entryidx;
 {it's already been sent to disk ?}
   if entrybufstart<>bufstart then
    begin
-   {flush when the entry is partly in the new buffer}
-     if entrybufstart+sizeof(entry)>bufstart then
-      WriteBuf;
+   {flush to be sure}
+     WriteBuf;
    {write entry}
      opos:=filepos(f);
      seek(f,entrystart);
@@ -685,6 +704,8 @@ end;
 
 procedure tppufile.putdata(var b;len:longint);
 begin
+  if do_crc then
+   crc:=UpdateCrc32(crc,b,len);
   writedata(b,len);
   inc(entryidx,len);
 end;
@@ -694,57 +715,47 @@ end;
 procedure tppufile.putbyte(b:byte);
 begin
   writedata(b,1);
-{
-  entrybuf[entrybufidx]:=chr(b);}
   inc(entryidx);
 end;
 
 
 procedure tppufile.putword(w:word);
-type
-  pword = ^word;
 begin
   if change_endian then
    w:=swap(w);
-{  pword(@entrybuf[entrybufidx])^:=w;}
-  writedata(w,2);
-  inc(entryidx,2);
+  putdata(w,2);
 end;
 
 
 procedure tppufile.putlongint(l:longint);
-type
-  plongint = ^longint;
 begin
-{  plongint(@entrybuf[entrybufidx])^:=l;}
   if change_endian then
    l:=swap(l shr 16) or (longint(swap(l and $ffff)) shl 16);
-  writedata(l,4);
-  inc(entryidx,4);
+  putdata(l,4);
 end;
 
 
 procedure tppufile.putdouble(d:double);
-type
-  pdouble = ^double;
 begin
-{  plongint(@entrybuf[entrybufidx])^:=l;}
-  writedata(d,sizeof(double));
-  inc(entryidx,sizeof(double));
+  putdata(d,sizeof(double));
 end;
+
 
 procedure tppufile.putstring(s:string);
 begin
-  writedata(s,length(s)+1);
-{  move(s,entrybuf[entrybufidx],length(s)+1);}
-  inc(entryidx,length(s)+1);
+  putdata(s,length(s)+1);
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.4  1998-06-09 16:01:48  pierre
+  Revision 1.5  1998-06-13 00:10:12  peter
+    * working browser and newppu
+    * some small fixes against crashes which occured in bp7 (but not in
+      fpc?!)
+
+  Revision 1.4  1998/06/09 16:01:48  pierre
     + added procedure directive parsing for procvars
       (accepted are popstack cdecl and pascal)
     + added C vars with the following syntax
