@@ -1,3 +1,5 @@
+{ %NORUN }
+
 {$ifdef win32}
  {$define supported}
  {$define supportidx}
