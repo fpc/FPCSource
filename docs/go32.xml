@@ -1,0 +1,2139 @@
+<?xml version="1.0" encoding="ISO8859-1"?>
+<fpdoc-descriptions>
+<!--  
+
+   $Id$ 
+   This file is part of the FPC documentation. 
+   Copyright (C) 1997, by Michael Van Canneyt 
+ 
+   The FPC documentation is free text; you can redistribute it and/or 
+   modify it under the terms of the GNU Library General Public License as 
+   published by the Free Software Foundation; either version 2 of the 
+   License, or (at your option) any later version. 
+ 
+   The FPC Documentation is distributed in the hope that it will be useful, 
+   but WITHOUT ANY WARRANTY; without even the implied warranty of 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU 
+   Library General Public License for more details. 
+ 
+   You should have received a copy of the GNU Library General Public 
+   License along with the FPC documentation; see the file COPYING.LIB.  If not, 
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, 
+   Boston, MA 02111-1307, USA. 
+ -->
+<package name="rtl">
+<module name="go32">
+<short>GO32 - acces to the 32-bit DOS extender</short>
+<!-- \FPCexampledir{go32ex} -->
+<descr>
+<p>
+This document describes the GO32 unit for the Free Pascal
+compiler under dos. It was donated by Thomas Schatzl
+(tom_at_work@geocities.com), for which my thanks.
+This unit was first written for dos by Florian Klaempfl.
+</p>
+<p>
+Only the GO32V2 DPMI
+mode is discussed by me here due to the fact that new applications shouldn't
+be created with the older GO32V1 model. The go32v2 version is much more advanced and
+better. Additionally a lot of functions only work in DPMI mode anyway.
+I hope the following explanations and introductions aren't too confusing at
+all. If you notice an error or bug send it to the FPC mailing list or
+directly to me.
+So let's get started and happy and error free coding I wish you....
+Thomas Schatzl, 25. August 1998
+</p>
+</descr>
+
+<topic name="DPMI">
+<short>What is DPMI</short>
+<descr>
+The dos Protected Mode Interface helps you with various aspects of protected
+mode programming. These are roughly divided into descriptor handling, access
+to dos memory, management of interrupts and exceptions, calls to real mode
+functions and other stuff. Additionally it automatically provides swapping
+to disk for memory intensive applications.
+A DPMI host (either a Windows dos box or CWSDPMI.EXE) provides these
+functions for your programs.
+</descr>
+</topic>
+
+<topic name="SelectorsDescriptors">
+<short>Selectors and descriptors</short>
+<descr>
+Descriptors are a bit like real mode segments; they describe (as the name
+implies) a memory area in protected mode. A descriptor contains information
+about segment length, its base address and the attributes of it (i.e. type,
+access rights, ...).
+These descriptors are stored internally in a so-called descriptor table,
+which is basically an array of such descriptors.
+Selectors are roughly an index into this table.
+Because these 'segments' can be up to 4 GB in size, 32 bits aren't
+sufficient anymore to describe a single memory location like in real mode.
+48 bits are now needed to do this, a 32 bit address and a 16 bit sized
+selector. The GO32 unit provides the tseginfo record to store such a
+pointer.
+But due to the fact that most of the time data is stored and accessed in the
+%ds selector, FPC assumes that all pointers point to a memory location of
+this selector. So a single pointer is still only 32 bits in size. This value
+represents the offset from the data segment base address to this memory
+location.
+</descr>
+</topic>
+
+<topic name="FPCspecs">
+<short>FPC specialities</short>
+<descr>
+<p>
+The %ds and %es selector MUST always contain the same value or some system
+routines may crash when called. The %fs selector is preloaded with the
+DOSMEMSELECTOR variable at startup, and it MUST be restored after use,
+because again FPC relys on this for some functions. Luckily we asm
+programmers can still use the %gs selector for our own purposes, but for how
+long ?
+</p>
+</descr>
+<seealso>
+ <link id="get_cs"/>
+ <link id="get_ds"/>
+ <link id="get_ss"/> 
+ <link id="allocate_ldt_descriptors"/>
+ <link id="free_ldt_descriptor"/>
+ <link id="segment_to_descriptor"/>
+ <link id="get_next_selector_increment_value"/>
+ <link id="get_segment_base_address"/>
+ <link id="set_segment_base_address"/>
+ <link id="set_segment_limit"/>
+ <link id="create_code_segment_alias_descriptor"/>
+</seealso>
+</topic>
+
+<topic name="DosMemory">
+<short>dos memory access</short>
+<descr>
+Dos memory is accessed by the predefined <var>dosmemselector</var> selector; 
+the GO32 unit additionally provides some functions to help you with standard tasks,
+like copying memory from heap to dos memory and the likes. Because of this
+it is strongly recommened to use them, but you are still free to use the
+provided standard memory accessing functions which use 48 bit pointers. The
+third, but only thought for compatibility purposes, is using the
+<var>mem[]</var>-arrays. These arrays map the whole 1 Mb dos space. They shouldn't be
+used within new programs.
+To convert a segment:offset real mode address to a protected mode linear
+address you have to multiply the segment by 16 and add its offset. This
+linear address can be used in combination with the DOSMEMSELECTOR variable.
+</descr>
+<seealso>
+<link id="dosmemget"/>
+<link id="dosmemput"/>
+<link id="dosmemmove"/>
+<link id="dosmemfillchar"/>
+<link id="dosmemfillword"/>
+<link id="seg_move"/>
+<link id="seg_fillchar"/>
+<link id="seg_fillword"/>
+</seealso>
+</topic>
+
+<topic name="IOPorts">
+<short>I/O port access</short>
+<descr>
+The I/O port access is done via the various <link id="inportb"/>,
+<link id="outportb"/>
+functions which are available. Additionally Free Pascal supports the Turbo Pascal
+PORT[]-arrays but it is by no means recommened to use them, because they're
+only for compatibility purposes.
+</descr>
+<seealso>
+<link id="outportb"/>
+<link id="inportb"/>
+</seealso>
+</topic>
+
+<topic name="ProcessorAccess">
+<short>Processor access</short>
+<descr>
+These are some functions to access various segment registers (%cs, %ds, %ss)
+which makes your work a bit easier.
+</descr>
+<seealso>
+<link id="get_cs"/>
+<link id="get_ds"/>
+<link id="get_ss"/> 
+</seealso>
+</topic>
+
+<topic name="InterruptHandling">
+<short>Interrupt redirection</short>
+<descr>
+Interrupts are program interruption requests, which in one or another way
+get to the processor; there's a distinction between software and hardware
+interrupts. The former are explicitely called by an 'int' instruction and
+are a bit comparable to normal functions. Hardware interrupts come from
+external devices like the keyboard or mouse. Functions that handle hardware
+interrupts are called handlers.
+</descr>
+</topic>
+
+<topic name="DPMIInterrupts">
+<short>Handling interrupts with DPMI</short>
+<descr>
+The interrupt functions are real-mode procedures; they normally can't be
+called in protected mode without the risk of an protection fault. So the
+DPMI host creates an interrupt descriptor table for the application.
+Initially all software interrupts (except for int 31h, 2Fh and 21h function
+4Ch) or external hardware interrupts are simply directed to a handler that
+reflects the interrupt in real-mode, i.e. the DPMI host's default handlers
+switch the CPU to real-mode, issue the interrupt and switch back to
+protected mode. The contents of general registers and flags are passed to
+the real mode handler and the modified registers and flags are returned to
+the protected mode handler. Segment registers and stack pointer are not
+passed between modes.
+</descr>
+</topic>
+
+<topic name="DPMIvsProtectedInterrupts">
+<short>Protected mode interrupts vs. Real mode interrupts</short>
+<descr>
+As mentioned before, there's a distinction between real mode interrupts and
+protected mode interrupts; the latter are protected mode programs, while the
+former must be real mode programs. To call a protected mode interrupt
+handler, an assembly 'int' call must be issued, while the other is called
+via the realintr() or intr() function. Consequently, a real mode interrupt
+then must either reside in dos memory (&lt;1MB) or the application must
+allocate a real mode callback address via the get_rm_callback() function.
+</descr>
+</topic>
+
+<topic name="CreatingInterruptHandlers">
+<short>Creating your own interrupt handlers</short>
+<descr>
+Interrupt redirection with FPC pascal is done via the set_pm_interrupt() for
+protected mode interrupts or via the set_rm_interrupt() for real mode
+interrupts.
+</descr>
+</topic>
+
+<topic name="DisablingInterrupts">
+<short>Disabling interrupts</short>
+<descr>
+The GO32 unit provides the two procedures disable() and enable() to disable
+and enable all interrupts.
+</descr>
+</topic>
+
+<topic name="HardwareInterrupts">
+<short>Hardware interrupts</short>
+<descr>
+Hardware interrupts are generated by hardware devices when something unusual
+happens; this could be a keypress or a mouse move or any other action. This
+is done to minimize CPU time, else the CPU would have to check all installed
+hardware for data in a big loop (this method is called 'polling') and this
+would take much time.
+A standard IBM-PC has two interrupt controllers, that are responsible for
+these hardware interrupts: both allow up to 8 different interrupt sources
+(IRQs, interrupt requests). The second controller is connected to the first
+through IRQ 2 for compatibility reasons, e.g. if controller 1 gets an IRQ 2,
+he hands the IRQ over to controller 2. Because of this up to 15 different
+hardware interrupt sources can be handled.
+IRQ 0 through IRQ 7 are mapped to interrupts 8h to Fh and the second
+controller (IRQ 8 to 15) is mapped to interrupt 70h to 77h.
+All of the code and data touched by these handlers MUST be locked (via the
+various locking functions) to avoid page faults at interrupt time. Because
+hardware interrupts are called (as in real mode) with interrupts disabled,
+the handler has to enable them before it returns to normal program
+execution. Additionally a hardware interrupt must send an EOI (end of
+interrupt) command to the responsible controller; this is acomplished by
+sending the value 20h to port 20h (for the first controller) or A0h (for the
+second controller).
+The following example shows how to redirect the keyboard interrupt.
+</descr>
+<example file="go32ex/keyclick"/>
+</topic>
+
+<topic name="SoftwareInterrupts">
+<short>Software interrupts</short>
+<descr>
+<p>
+Ordinarily, a handler installed with
+<link id="set_pm_interrupt"/> only services software
+interrupts that are executed in protected mode; real mode software
+interrupts can be redirected by <link id="set_rm_interrupt"/>.
+</p>
+</descr>
+<seealso>
+<link id="set_rm_interrupt"/>
+<link id="get_rm_interrupt"/>
+<link id="set_pm_interrupt"/>
+<link id="get_pm_interrupt"/> 
+<link id="lock_data"/> 
+<link id="lock_code"/> 
+<link id="enable"/>
+<link id="disable"/>
+<link id="outportb"/> 
+</seealso>
+</topic>
+
+<topic name="ExecutingInterrupts">
+<short>Executing software interrupts</short>
+<descr>
+Simply execute a realintr() call with the desired interrupt number and the
+supplied register data structure.
+But some of these interrupts require you to supply them a pointer to a
+buffer where they can store data to or obtain data from in memory. These
+interrupts are real mode functions and so they only can access the first Mb
+of linear address space, not FPC's data segment.
+For this reason FPC supplies a pre-initialized dos memory location within
+the GO32 unit. This buffer is internally used for dos functions too and so
+it's contents may change when calling other procedures. It's size can be
+obtained with <link id="tb_size"/> and it's linear address via 
+<link id="transfer_buffer"/>.
+Another way is to allocate a completely new dos memory area via the
+<link id="global_dos_alloc"/> function for your use and 
+supply its real mode address.
+</descr>
+<seealso>
+<link id="tb_size"/>
+<link id="transfer_buffer"/>
+<link id="global_dos_alloc"/>
+<link id="global_dos_free"/>
+<link id="realintr"/>
+</seealso>
+<example file="go32ex/softint"/>
+<example file="go32ex/rmpmint"/>
+</topic>
+
+<topic name="RealModeCallBacks">
+<short>Real mode callbacks</short>
+<descr>
+<p>
+The callback mechanism can be thought of as the converse of calling a real
+mode procedure (i.e. interrupt), which allows your program to pass
+information to a real mode program, or obtain services from it in a manner
+that's transparent to the real mode program.
+In order to make a real mode callback available, you must first get the real
+mode callback address of your procedure and the selector and offset of a
+register data structure. This real mode callback address (this is a
+segment:offset address) can be passed to a real mode program via a software
+interrupt, a dos memory block or any other convenient mechanism.
+When the real mode program calls the callback (via a far call), the DPMI
+host saves the registers contents in the supplied register data structure,
+switches into protected mode, and enters the callback routine with the
+following settings:
+</p>
+<ul>
+<li> interrupts disabled</li>
+<li> <var>%CS:%EIP</var> = 48 bit pointer specified in the original call to 
+<link id="get_rm_callback"/></li>
+<li> <var>%DS:%ESI</var> = 48 bit pointer to to real mode <var>SS:SP</var></li>
+<li> <var>%ES:%EDI</var> = 48 bit pointer of real mode register data
+structure. </li>
+<li> <var>%SS:%ESP</var> = locked protected mode stack</li>
+<li>  All other registers undefined</li>
+</ul>
+<p>
+The callback procedure can then extract its parameters from the real mode
+register data structure and/or copy parameters from the real mode stack to
+the protected mode stack. Recall that the segment register fields of the
+real mode register data structure contain segment or paragraph addresses
+that are not valid in protected mode. Far pointers passed in the real mode
+register data structure must be translated to virtual addresses before they
+can be used with a protected mode program.
+The callback procedure exits by executing an IRET with the address of the
+real mode register data structure in <var>%ES:%EDI</var>, passing information back to
+the real mode caller by modifying the contents of the real mode register
+data structure and/or manipulating the contents of the real mode stack. The
+callback procedure is responsible for setting the proper address for
+resumption of real mode execution into the real mode register data
+structure; typically, this is accomplished by extracting the return address
+from the real mode stack and placing it into the <var>%CS:%EIP</var> fields of the real
+mode register data structure. After the IRET, the DPMI host switches the CPU
+back into real mode, loads ALL registers with the contents of the real mode
+register data structure, and finally returns control to the real mode
+program.
+All variables and code touched by the callback procedure MUST be locked to
+prevent page faults.
+</p>
+</descr>
+<seealso>
+<link id="get_rm_callback"/>
+<link id="free_rm_callback"/>
+<link id="lock_code"/>
+<link id="lock_data"/>
+</seealso>
+</topic>
+
+<element name="rm_unknown">
+<short><link id="get_run_mode"/> return value: Unknown runmode</short>
+</element>
+<element name="rm_raw">
+<short><link id="get_run_mode"/> return value: raw (without HIMEM)</short>
+</element>
+<element name="rm_xms">
+<short><link id="get_run_mode"/> return value: XMS (with HIMEM, without EMM386)</short>
+</element>
+<element name="rm_vcpi">
+<short><link id="get_run_mode"/> return value: VCPI (with HIMEM and EMM386)</short>
+</element>
+<element name="rm_dpmi">
+<short><link id="get_run_mode"/> return value: DPMI (e.g. dos box or 386Max)</short>
+</element>
+
+<element name="carryflag">
+<short>Check for carry flag in <link id="trealregs"/></short>
+</element>
+<element name="parityflag">
+<short>Check for parity flag in <link id="trealregs"/></short>
+</element>
+<element name="auxcarryflag">
+<short>Check for auxiliary carry flag in <link id="trealregs"/></short>
+</element>
+<element name="zeroflag">
+<short>Check for zero flag in <link id="trealregs"/></short>
+</element>
+<element name="signflag">
+<short>Check for sign flag in <link id="trealregs"/></short>
+</element>
+<element name="trapflag">
+<short>Check for trap flag in <link id="trealregs"/></short>
+</element>
+<element name="interruptflag">
+<short>Check for interrupt flag in <link id="trealregs"/></short>
+</element>
+<element name="directionflag">
+<short>Check for direction flag in <link id="trealregs"/></short>
+</element>
+<element name="overflowflag">
+<short>Check for overflow flag in <link id="trealregs"/></short>
+</element>
+
+<element name="tmeminfo">
+<short>Memory information record</short>
+<descr>
+<p>
+<var>tmeminfo</var> Holds information about the memory allocation, etc.
+</p>
+<p>
+<em>NOTE:</em> The value of a field is -1 (0ffffffffh) if the value is unknown, it's
+only guaranteed, that <var>available_memory</var> contains a valid value.
+The size of the pages can be determined by the get_page_size() function.
+</p>
+</descr>
+</element>
+<element name="TMemInfo.available_memory">
+<short>Largest available free block in bytes. </short>
+</element>
+<element name="TMemInfo.available_pages">
+<short>Maximum unlocked page allocation in pages </short>
+</element>
+<element name="TMemInfo.available_lockable_pages">
+<short>Maximum locked page allocation in pages. </short>
+</element>
+<element name="TMemInfo.linear_space">
+<short>Linear address space size in pages. </short>
+</element>
+<element name="TMemInfo.unlocked_pages">
+<short>Total number of unlocked pages. </short>
+</element>
+<element name="TMemInfo.available_physical_pages">
+<short>Total number of free pages.</short>
+</element>
+<element name="TMemInfo.total_physical_pages">
+<short>Total number of physical pages. </short>
+</element>
+<element name="TMemInfo.free_linear_space">
+<short>Free linear address space in pages.</short>
+</element>
+<element name="TMemInfo.max_pages_in_paging_file">
+<short> Size of paging file/partition in pages</short>
+</element>
+
+<element name="trealregs">
+<short>Record describing all processor registers</short>
+<descr>
+The <var>trealregs</var> type contains the data structure to pass register values to a
+interrupt handler or real mode callback.
+</descr>
+</element>
+
+<element name="registers">
+<short>Alias for <link id="trealregs"/></short>
+</element>
+
+<element name="tseginfo">
+<short>Record to store 48-bits pointer</short>
+<descr>
+<p>
+This record is used to store a full 48-bit pointer. This may be either a
+protected mode selector:offset address or in real mode a segment:offset
+address, depending on application.
+</p>
+<p>
+See also: Selectors and descriptors, dos memory access, Interrupt
+redirection
+</p>
+</descr>
+</element>
+
+<element name="tseginfo.offset">
+<short>Offset in segment</short>
+</element>
+<element name="tseginfo.Segment">
+<short>Segment</short>
+</element>
+
+<element name="dosmemselector">
+<short>Selector to DOS memory</short>
+<descr>
+Selector to the dos memory. The whole dos memory is automatically mapped to
+this single descriptor at startup. This selector is the recommened way to
+access dos memory.
+</descr>
+</element>
+
+<element name="int31error">
+<short>DPMI interrupt call result</short>
+<descr>
+This variable holds the result of a DPMI interrupt call. Any nonzero value
+must be treated as a critical failure.
+</descr>
+</element>
+
+<element name="allocate_ldt_descriptors">
+<short>Allocate a number of descriptors</short>
+<descr>
+<p>
+Allocates a number of new descriptors.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>count:\ </dt><dd> specifies the number of requested unique descriptors.</dd>
+</dl>
+<p>
+Return value: The base selector.
+</p>
+<remark>
+Notes: The descriptors allocated must be initialized by the application with
+other function calls. This function returns descriptors with a limit and
+size value set to zero. If more than one descriptor was requested, the
+function returns a base selector referencing the first of a contiguous array
+of descriptors. The selector values for subsequent descriptors in the array
+can be calculated by adding the value returned by the
+<link id="get_next_selector_increment_value"/> 
+function.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable. 
+</errors>
+<seealso>
+<link id="free_ldt_descriptor"/>
+<link id="get_next_selector_increment_value"/>
+<link id="segment_to_descriptor"/>
+<link id="create_code_segment_alias_descriptor"/>
+<link id="set_segment_limit"/>
+<link id="set_segment_base_address"/> 
+</seealso>
+<example file="go32ex/seldes"/>
+</element>
+
+<element name="allocate_memory_block">
+<short>Allocate a block of linear memory</short>
+<descr>
+<p>
+Allocates a block of linear memory.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>size:</dt><dd> Size of requested linear memory block in bytes.</dd>
+</dl>
+<p>
+Returned values: blockhandle - the memory handle to this memory block. Linear
+address of the requested memory.
+</p>
+<remark>
+<em>warning</em> According to my DPMI docs this function is not implemented
+correctly. Normally you should also get a blockhandle to this block after
+successful operation. This handle can then be used to free the memory block
+afterwards or use this handle for other purposes. Since the function isn't
+implemented correctly, and doesn't return a blockhandle, the block can't be
+deallocated and is hence unusuable !
+This function doesn't allocate any descriptors for this block, it's the
+applications resposibility to allocate and initialize for accessing this
+memory.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="free_memory_block"/> 
+</seealso>
+</element>
+
+<element name="copyfromdos">
+<short>Copy data from DOS to to heap</short>
+<descr>
+<p>
+Copies data from the pre-allocated dos memory transfer buffer to the heap.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>addr</dt><dd>data to copy to.</dd>
+<dt>len</dt><dd>number of bytes to copy to heap.</dd>
+</dl>
+<p>
+Notes:
+Can only be used in conjunction with the dos memory transfer buffer.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="tb_size"/>
+<link id="transfer_buffer"/> 
+<link id="copytodos"/>
+</seealso>
+</element>
+
+
+<element name="copytodos">
+<short>Copy data from heap to DOS memory</short>
+<descr>
+<p>
+Copies data from heap to the pre-allocated dos memory buffer.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>addr</dt><dd> data to copy from.</dd>
+<dt>len</dt><dd> number of bytes to copy to dos memory buffer.</dd>
+</dl>
+<p>
+Notes: This function fails if you try to copy more bytes than the transfer
+buffer is in size. It can only be used in conjunction with the transfer
+buffer.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="tb_size"/>
+<link id="transfer_buffer"/> 
+<link id="copyfromdos"/>
+</seealso>
+</element>
+
+<element name="create_code_segment_alias_descriptor">
+<short>Create new descriptor from existing descriptor</short>
+<descr>
+<p>
+Creates a new descriptor that has the same base and limit as the specified
+descriptor.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>seg</dt><dd> Descriptor.</dd>
+</dl>
+<p>
+Return values: The data selector (alias).
+</p>
+<p>
+Notes: In effect, the function returns a copy of the descriptor. The
+descriptor alias returned by this function will not track changes to the
+original descriptor. In other words, if an alias is created with this
+function, and the base or limit of the original segment is then changed, the
+two descriptors will no longer map the same memory.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="set_segment_limit"/> 
+<link id="set_segment_base_address"/> 
+</seealso>
+</element>
+
+<element name="disable">
+<short>Disable hardware interrupts</short>
+<descr>
+<p>
+Disables all hardware interrupts by execution a CLI instruction.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="enable"/>
+</seealso>
+</element>
+
+<element name="dosmemfillchar">
+<short>Fill a region of DOS memory with a specific byte-sized value</short>
+<descr>
+<p>
+Sets a region of dos memory to a specific byte value.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>seg</dt><dd> real mode segment.</dd>
+<dt>ofs</dt><dd> real mode offset.</dd>
+<dt>count</dt><dd> number of bytes to set.</dd>
+<dt>c</dt><dd> value to set memory to.</dd>
+</dl>
+<p>
+Notes: No range check is performed.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="dosmemput"/>
+<link id="dosmemget"/>
+<link id="dosmemmove"/>
+<link id="dosmemfillword"/> 
+<link id="seg_move"/>
+<link id="seg_fillchar"/>
+<link id="seg_fillword"/> 
+</seealso>
+<example file="go32ex/textmess"/>
+</element>
+
+<element name="dosmemfillword">
+<short>Fill a region of DOS memory with a specific word-sized value</short>
+<descr>
+<p>
+Sets a region of dos memory to a specific word value.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>seg</dt><dd> real mode segment.</dd>
+<dt>ofs</dt><dd> real mode offset. </dd>
+<dt>count</dt><dd> number of words to set.</dd>
+<dt>w</dt><dd> value to set memory to.</dd>
+</dl>
+<p>
+Notes: No range check is performed.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="dosmemput"/>
+<link id="dosmemget"/>
+<link id="dosmemmove"/>
+<link id="dosmemfillchar"/>
+<link id="seg_move"/> 
+<link id="seg_fillchar"/>
+<link id="seg_fillword"/> 
+</seealso>
+</element>
+
+<element name="dosmemget">
+<short>Copy data from DOS memory to the heap.</short>
+<descr>
+<p>
+Copies data from the dos memory onto the heap.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>seg</dt><dd> source real mode segment.</dd>
+<dt>ofs</dt><dd> source real mode offset.</dd>
+<dt>data</dt><dd> destination. </dd>
+<dt>count</dt><dd> number of bytes to copy.</dd>
+</dl>
+<p>
+Notes: No range checking is performed.
+</p>
+<p>
+For an example, see <link id="global_dos_alloc"/>.
+</p>
+</descr>
+<errors>
+ None. 
+</errors>
+<seealso>
+<link id="dosmemput"/>
+<link id="dosmemmove"/>
+<link id="dosmemfillchar"/>
+<link id="dosmemfillword"/>
+<link id="seg_move"/>
+<link id="seg_fillchar"/> 
+<link id="seg_fillword"/>  
+</seealso>
+</element>
+
+<element name="dosmemmove">
+<short>Move data between 2 DOS real mode memory locations</short>
+<descr>
+<p>
+Copies count bytes of data between two dos real mode memory locations.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>sseg</dt><dd> source real mode segment.</dd>
+<dt>sofs</dt><dd> source real mode offset.</dd>
+<dt>dseg</dt><dd> destination real mode segment. </dd>
+<dt>dofs</dt><dd> destination real mode offset.</dd>
+<dt>count</dt><dd> number of bytes to copy.</dd>
+</dl>
+<p>
+Notes: No range check is performed in any way.
+</p>
+</descr>
+<errors>
+ None.
+</errors>
+<seealso>
+<link id="dosmemput"/>, 
+<link id="dosmemget"/>
+<link id="dosmemfillchar"/>, 
+<link id="dosmemfillword"/>
+<link id="seg_move"/> 
+<link id="seg_fillchar"/>
+<link id="seg_fillword"/> 
+</seealso>
+</element>
+For an example, see <link id="seg_fillchar"/>.
+
+<element name="dosmemput">
+<short>Copy data from the heap to DOS real mode memory</short>
+<descr>
+<p>
+Copies heap data to dos real mode memory.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>seg</dt><dd>destination real mode segment.</dd>
+<dt>ofs</dt><dd>destination real mode offset. </dd>
+<dt>data</dt><dd>source.</dd>
+<dt>count</dt><dd> number of bytes to copy.</dd>
+</dl>
+<p>
+Notes: No range checking is performed.
+</p>
+<p>
+For an example, see <link id="global_dos_alloc"/>.
+</p>
+</descr>
+<errors>
+None. 
+</errors>
+<seealso>
+<link id="dosmemget"/>, 
+<link id="dosmemmove"/>
+<link id="dosmemfillchar"/>
+<link id="dosmemfillword"/>
+<link id="seg_move"/>
+<link id="seg_fillchar"/>
+<link id="seg_fillword"/> 
+</seealso>
+</element>
+
+<element name="enable">
+<short>Enable hardware interrupts</short>
+<descr>
+Enables all hardware interrupts by executing a STI instruction.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="disable"/> 
+</seealso>
+</element>
+
+<element name="free_ldt_descriptor">
+<short>Free a descriptor</short>
+<descr>
+<p>
+Frees a previously allocated descriptor.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>des</dt><dd> The descriptor to be freed.</dd>
+</dl>
+<p>
+Return value: <var>True</var> if successful, <var>False</var> otherwise.
+Notes: After this call this selector is invalid and must not be used for any
+memory operations anymore. Each descriptor allocated with
+<link id="allocate_ldt_descriptors"/> must be freed 
+individually with this function,
+even if it was previously allocated as a part of a contiguous array of
+descriptors.
+</p>
+<p>
+For an example, see <link id="allocate_ldt_descriptors"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="get_next_selector_increment_value"/> 
+</seealso>
+</element>
+
+<element name="free_memory_block">
+<short>Free allocated memory block</short>
+<descr>
+<p>
+Frees a previously allocated memory block.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>blockhandle</dt><dd> the handle to the memory area to free.</dd>
+</dl>
+<p>
+Return value: <var>True</var> if successful, <var>false</var> otherwise.
+Notes: Frees memory that was previously allocated with
+<link id="allocate_memory_block"/> . 
+This function doesn't free any descriptors mapped to this block, 
+it's the application's responsibility.
+</p>
+</descr>
+<errors>
+Check <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_memory_block"/> 
+</seealso>
+</element>
+
+<element name="free_rm_callback">
+<short>Release real mode callback.</short>
+<descr>
+<p>
+Releases a real mode callback address that was previously allocated with the
+<link id="get_rm_callback"/>  function.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>intaddr</dt><dd> real mode address buffer returned by <link id="get_rm_callback"/> .
+</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> if not
+</p>
+<p>
+For an example, see <link id="get_rm_callback"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="set_rm_interrupt"/>
+<link id="get_rm_callback"/>
+</seealso>
+</element>
+
+<element name="get_cs">
+<short>Get CS selector</short>
+<descr>
+<p>
+Returns the cs selector.
+</p>
+<p>
+Return value: The content of the cs segment register.
+</p>
+<p>
+For an example, see <link id="set_pm_interrupt"/>.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="get_ds"/>
+<link id="get_ss"/>
+</seealso>
+</element>
+
+<element name="get_descriptor_access_right">
+<short>Get descriptor's access rights</short>
+<descr>
+<p>
+Gets the access rights of a descriptor.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>d</dt><dd> selector to descriptor.</dd>
+</dl>
+<p>
+Return value: Access rights bit field.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="set_descriptor_access_right"/>
+</seealso>
+</element>
+
+<element name="get_ds">
+<short>Get DS Selector</short>
+<descr>
+<p>
+Returns the ds selector.
+</p>
+<p>
+Return values: The content of the ds segment register.
+</p>
+</descr>
+<errors>
+ None.
+</errors>
+<seealso>
+<link id="get_cs"/>
+<link id="get_ss"/>
+</seealso>
+</element>
+
+<element name="get_linear_addr">
+<short>Convert physical to linear address</short>
+<descr>
+<p>
+Converts a physical address into a linear address.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>phys_addr</dt><dd>physical address of device.</dd>
+<dt>size</dt><dd>Size of region to map in bytes.</dd>
+</dl>
+<p>
+Return value: Linear address that can be used to access the physical memory.
+Notes: It's the applications resposibility to allocate and set up a
+descriptor for access to the memory. This function shouldn't be used to map
+real mode addresses.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="set_segment_limit"/>
+<link id="set_segment_base_address"/> 
+</seealso>
+</element>
+
+<element name="get_meminfo">
+<short>Return information on the available memory</short>
+<descr>
+<p>
+Returns information about the amount of available physical memory, linear
+address space, and disk space for page swapping.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>meminfo</dt><dd> buffer to fill memory information into.</dd>
+</dl>
+<p>
+Return values: Due to an implementation bug this function always returns
+<var>False</var>, but it always succeeds.
+</p>
+<remark>
+Notes: Only the first field of the returned structure is guaranteed to
+contain a valid value. Any fields that are not supported by the DPMI host
+will be set by the host to <var>-1 (0FFFFFFFFH)</var> to indicate that the information
+is not available. The size of the pages used by the DPMI host can be
+obtained with the <link id="get_page_size"/>  function.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="get_page_size"/> 
+</seealso>
+<example file="go32ex/meminfo"/>
+</element>
+
+<element name="get_next_selector_increment_value">
+<short>Return selector increment value</short>
+<descr>
+<p>
+Returns the selector increment value when allocating multiple subsequent
+descriptors via <link id="allocate_ldt_descriptors"/>.
+</p>
+<p>
+Return value: Selector increment value.
+</p>
+<remark>
+Notes: Because <link id="allocate_ldt_descriptors"/> only returns the selector for the
+first descriptor and so the value returned by this function can be used to
+calculate the selectors for subsequent descriptors in the array.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/> 
+<link id="free_ldt_descriptor"/> 
+</seealso>
+</element>
+
+<element name="get_page_size">
+<short>Return the page size</short>
+<descr>
+<p>
+Returns the size of a single memory page.
+</p>
+<p>
+Return value: Size of a single page in bytes.
+</p>
+<remark>
+The returned size is typically 4096 bytes.
+</remark>
+<p>
+For an example, see <link id="get_meminfo"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="get_meminfo"/> 
+</seealso>
+</element>
+
+<element name="get_pm_interrupt">
+<short>Return protected mode interrupt handler</short>
+<descr>
+<p>
+Returns the address of a current protected mode interrupt handler.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>vector</dt><dd> interrupt handler number you want the address to.</dd>
+<dt>intaddr</dt><dd> buffer to store address.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> if not.
+</p>
+<remark>
+The returned address is a protected mode selector:offset address.
+</remark>
+<p>
+For an example, see <link id="set_pm_interrupt"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="set_pm_interrupt"/>
+<link id="set_rm_interrupt"/>
+<link id="get_rm_interrupt"/> 
+</seealso>
+</element>
+
+<element name="get_rm_callback">
+<short>Return real mode callback</short>
+<descr>
+<p>
+Returns a unique real mode <var>segment:offset</var> address, known as a "real mode
+callback," that will transfer control from real mode to a protected mode
+procedure.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>pm_func</dt><dd>  pointer to the protected mode callback function.</dd>
+<dt>reg</dt><dd> supplied registers structure.</dd>
+<dt>rmcb</dt><dd> buffer to real mode address of callback function.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, otherwise <var>False</var>.
+</p>
+<remark>
+Callback addresses obtained with this function can be passed by a
+protected mode program for example to an interrupt handler, device driver,
+or TSR, so that the real mode program can call procedures within the
+protected mode program or notify the protected mode program of an event. The
+contents of the supplied regs structure is not valid after function call,
+but only at the time of the actual callback.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="free_rm_callback"/> 
+</seealso>
+<example file="go32ex/callback"/>
+</element>
+
+<element name="get_rm_interrupt">
+<short>Get real mode interrupt vector</short>
+<descr>
+<p>
+Returns the contents of the current machine's real mode interrupt vector for
+the specified interrupt.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>vector</dt><dd> interrupt vector number. </dd>
+<dt>intaddr</dt><dd> buffer to store real mode <var>segment:offset</var> address.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<remark>
+The returned address is a real mode segment address, which isn't
+valid in protected mode.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="set_rm_interrupt"/> 
+<link id="set_pm_interrupt"/> 
+<link id="get_pm_interrupt"/> 
+</seealso>
+</element>
+
+<element name="get_run_mode">
+<short>Return current run mode</short>
+<descr>
+<p>
+Returns the current mode your application runs with.
+</p>
+<p>
+Return values: One of the constants used by this function.
+</p>
+</descr>
+<errors>
+None. 
+</errors>
+<seealso>
+constants returned by <link id="get_run_mode"/>  
+</seealso>
+<example file="go32ex/getrunmd"/>
+</element>
+
+<element name="get_segment_base_address">
+<short>Return base address from descriptor table</short>
+<descr>
+<p>
+Returns the 32-bit linear base address from the descriptor table for the
+specified segment.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>d</dt><dd> selector of the descriptor you want the base address of.</dd>
+</dl>
+<p>
+Return values: Linear base address of specified descriptor.
+</p>
+<p>
+For an example, see  <link id="allocate_ldt_descriptors"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="set_segment_base_address"/> 
+<link id="allocate_ldt_descriptors"/>
+<link id="set_segment_limit"/>
+<link id="get_segment_limit"/> 
+</seealso>
+</element>
+
+<element name="get_segment_limit">
+<short>Return segment limite from descriptor</short>
+<descr>
+<p>
+Returns a descriptors segment limit.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>d</dt><dd> selector.</dd>
+</dl>
+<p>
+Return value: Limit of the descriptor in bytes.
+</p>
+</descr>
+<errors>
+Returns zero if descriptor is invalid. 
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="set_segment_limit"/> 
+<link id="set_segment_base_address"/>
+<link id="get_segment_base_address"/> 
+</seealso>
+</element>
+
+<element name="get_ss">
+<short>Return SS selector</short>
+<descr>
+<p>
+Returns the ss selector.
+</p>
+<p>
+Return values: The content of the ss segment register.
+</p>
+</descr>
+<errors>
+ None.
+</errors>
+<seealso>
+<link id="get_ds"/>
+<link id="get_cs"/>
+</seealso>
+</element>
+
+<element name="global_dos_alloc">
+<short>Allocate DOS real mode memory</short>
+<descr>
+<p>
+Allocates a block of dos real mode memory.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>bytes</dt><dd>size of requested real mode memory.</dd>
+</dl>
+<p>
+Return values: The low word of the returned value contains the selector to
+the allocated dos memory block, the high word the corresponding real mode
+segment value. The offset value is always zero.
+This function allocates memory from dos memory pool, i.e. memory below the 1
+MB boundary that is controlled by dos. Such memory blocks are typically used
+to exchange data with real mode programs, TSRs, or device drivers. The
+function returns both the real mode segment base address of the block and
+one descriptor that can be used by protected mode applications to access the
+block. This function should only used for temporary buffers to get real mode
+information (e.g. interrupts that need a data structure in ES:(E)DI),
+because every single block needs an unique selector. The returned selector
+should only be freed by a <link id="global_dos_free"/>  call.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="global_dos_free"/> 
+</seealso>
+<example file="go32ex/buffer"/>
+</element>
+
+<element name="global_dos_free">
+<short>Free DOS memory block</short>
+<descr>
+<p>
+Frees a previously allocated dos memory block.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>selector</dt><dd> selector to the dos memory block.</dd>
+</dl>
+<p>
+Return value: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<remark>
+The descriptor allocated for the memory block is automatically freed
+and hence invalid for further use. This function should only be used for
+memory allocated by <link id="global_dos_alloc"/>.
+</remark>
+<p>
+For an example, see <link id="global_dos_alloc"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="global_dos_alloc"/> 
+</seealso>
+</element>
+
+<element name="inportb">
+<short>Read byte from I/O port</short>
+<descr>
+<p>
+Reads 1 byte from the selected I/O port.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>port</dt><dd> the I/O port number which is read.</dd>
+</dl>
+<p>
+Return values: Current I/O port value.
+</p>
+</descr>
+<errors>
+ None. 
+</errors>
+<seealso>
+<link id="outportb"/>
+<link id="inportw"/>
+<link id="inportl"/>
+</seealso>
+</element>
+
+<element name="inportl">
+<short>Read longint from I/O port</short>
+<descr>
+<p>
+Reads 1 longint from the selected I/O port.
+</p>
+<p>
+Parameters: 
+</p>
+<dl>
+<dt>port</dt><dd> the I/O port number which is read.</dd>
+</dl>
+<p>
+Return values: Current I/O port value.
+</p>
+</descr>
+<errors>
+None. 
+</errors>
+<seealso>
+<link id="outportb"/>
+<link id="inportb"/>
+<link id="inportw"/> 
+</seealso>
+</element>
+
+<element name="inportw">
+<short>Read word from I/O port</short>
+<descr>
+<p>
+Reads 1 word from the selected I/O port.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>port</dt><dd> the I/O port number which is read.</dd>
+</dl>
+<p>
+Return values: Current I/O port value.
+</p>
+</descr>
+<errors>
+None. 
+</errors>
+<seealso>
+<link id="outportw"/> 
+<link id="inportb"/>
+<link id="inportl"/> 
+</seealso>
+</element>
+
+<element name="lock_code">
+<short>Lock code memory range</short>
+<descr>
+<p>
+Locks a memory range which is in the code segment selector.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>functionaddr</dt><dd> address of the function to be locked.</dd>
+<dt>size</dt><dd> size in bytes to be locked.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="get_rm_callback"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="lock_linear_region"/>
+<link id="lock_data"/>
+<link id="unlock_linear_region"/>
+<link id="unlock_data"/>
+<link id="unlock_code"/> 
+</seealso>
+</element>
+
+<element name="lock_data">
+<short>Lock data memory range</short>
+<descr>
+<p>
+Locks a memory range which resides in the data segment selector.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>data</dt><dd> address of data to be locked.</dd>
+<dt>size</dt><dd> length of data to be locked.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="get_rm_callback"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="lock_linear_region"/>
+<link id="lock_code"/>
+<link id="unlock_linear_region"/>
+<link id="unlock_data"/>
+<link id="unlock_code"/> 
+</seealso>
+</element>
+
+<element name="lock_linear_region">
+<short>Lock linear memory region</short>
+<descr>
+<p>
+Locks a memory region to prevent swapping of it.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>linearaddr</dt><dd> the linear address of the memory are to be locked.</dd>
+<dt>size</dt><dd> size in bytes to be locked.</dd>
+</dl>
+<p>
+Return value: <var>True</var> if successful, False otherwise.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="lock_data"/>
+<link id="lock_code"/>
+<link id="unlock_linear_region"/>
+<link id="unlock_data"/>
+<link id="unlock_code"/>
+</seealso>
+</element>
+
+<element name="outportb">
+<short>Write byte to I/O port</short>
+<descr>
+<p>
+Sends 1 byte of data to the specified I/O port.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>port</dt><dd> the I/O port number to send data to.</dd>
+<dt>data</dt><dd> value sent to I/O port.</dd>
+</dl>
+<p>
+Return values: None.
+</p>
+</descr>
+<errors>
+ None. 
+</errors>
+<seealso>
+<link id="inportb"/>
+<link id="outportl"/>
+<link id="outportw"/> 
+</seealso>
+<example file="go32ex/outport"/>
+</element>
+
+<element name="outportl">
+<short>Write longint to I/O port</short>
+<descr>
+<p>
+Sends 1 longint of data to the specified I/O port.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>port</dt><dd> the I/O port number to send data to.</dd>
+<dt>data</dt><dd> value sent to I/O port.</dd>
+</dl>
+<p>
+Return values: None.
+</p>
+<p>
+For an example, see <link id="outportb"/>.
+</p>
+</descr>
+<errors>
+None. 
+</errors>
+<seealso>
+<link id="inportl"/>
+<link id="outportw"/>
+<link id="outportb"/>
+</seealso>
+</element>
+
+<element name="outportw">
+<short>Write word to I/O port</short>
+<descr>
+<p>
+Sends 1 word of data to the specified I/O port.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>port</dt><dd> the I/O port number to send data to.</dd>
+<dt>data</dt><dd> value sent to I/O port.</dd>
+</dl>
+<p>
+Return values: None.
+</p>
+<p>
+For an example, see <link id="outportb"/>.
+</p>
+</descr>
+<errors>
+ None. 
+</errors>
+<seealso>
+<link id="inportw"/>
+<link id="outportl"/>
+<link id="outportb"/>
+</seealso>
+</element>
+
+<element name="realintr">
+<short>Simulate interrupt</short>
+<descr>
+<p>
+Simulates an interrupt in real mode.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>intnr</dt><dd> interrupt number to issue in real mode.</dd>
+<dt>regs</dt><dd> registers data structure.</dd>
+</dl>
+<p>
+Return values: The supplied registers data structure contains the values
+that were returned by the real mode interrupt. <var>True</var> if successful, <var>False</var> if
+not.
+</p>
+<remark>
+The function transfers control to the address specified by the real
+mode interrupt vector of intnr. The real mode handler must return by
+executing an IRET.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+</seealso>
+<example file="go32ex/flags"/>
+</element>
+
+<element name="seg_fillchar">
+<short>Fill segment with byte value</short>
+<descr>
+<p>
+Sets a memory area to a specific value.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>seg</dt><dd> selector to memory area.</dd>
+<dt>ofs</dt><dd> offset to memory.</dd>
+<dt>count</dt><dd> number of bytes to set.</dd>
+<dt>c</dt><dd> byte data which is set.</dd>
+</dl>
+<p>
+Return values: None.
+</p>
+<p>
+Notes: No range check is done in any way.
+</p>
+</descr>
+<errors>
+ None. 
+</errors>
+<seealso>
+<link id="seg_move"/>
+<link id="seg_fillword"/>
+<link id="dosmemfillchar"/>
+<link id="dosmemfillword"/>
+<link id="dosmemget"/>
+<link id="dosmemput"/>
+<link id="dosmemmove"/> 
+</seealso>
+<example file="go32ex/vgasel"/>
+</element>
+
+<element name="seg_fillword">
+<short>Fill segment with word value</short>
+<descr>
+<p>
+Sets a memory area to a specific value.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>seg</dt><dd> selector to memory area.</dd>
+<dt>ofs</dt><dd> offset to memory.</dd>
+<dt>count</dt><dd> number of words to set.</dd>
+<dt>w</dt><dd> word data which is set.</dd>
+</dl>
+<p>
+Return values: None.
+</p>
+<p>
+Notes: No range check is done in any way.
+</p>
+<p>
+For an example, see <link id="allocate_ldt_descriptors"/>.
+</p>
+</descr>
+<errors>
+None. 
+</errors>
+<seealso>
+<link id="seg_move"/>
+<link id="seg_fillchar"/> 
+<link id="dosmemfillchar"/> 
+<link id="dosmemfillword"/>
+<link id="dosmemget"/>
+<link id="dosmemput"/>
+<link id="dosmemmove"/> 
+</seealso>
+</element>
+
+<element name="segment_to_descriptor">
+<short>Map segment address to descriptor</short>
+<descr>
+<p>
+Maps a real mode segment (paragraph) address onto an descriptor that can be
+used by a protected mode program to access the same memory.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>seg</dt><dd>the real mode segment you want the descriptor to.</dd>
+</dl>
+<p>
+Return values: Descriptor to real mode segment address.
+</p>
+<remark>
+The returned descriptors limit will be set to 64 kB. Multiple calls
+to this function with the same segment address will return the same
+selector. Descriptors created by this function can never be modified or
+freed. Programs which need to examine various real mode addresses using the
+same selector should use the function 
+<link id="allocate_ldt_descriptors"/> and change
+the base address as necessary.
+</remark>
+<p>
+For an example, see <link id="seg_fillchar"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable. 
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="free_ldt_descriptor"/>
+<link id="set_segment_base_address"/> 
+</seealso>
+</element>
+
+<element name="seg_move">
+<short>Move data between 2 locations</short>
+<descr>
+<p>
+Copies data between two memory locations.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>sseg</dt><dd> source selector. </dd>
+<dt>source</dt><dd> source offset. </dd>
+<dt>dseg</dt><dd> destination selector.</dd>
+<dt>dest</dt><dd> destination offset.</dd>
+<dt>count</dt><dd> size in bytes to copy.</dd>
+</dl>
+<p>
+Return values: None.
+</p>
+<remark>
+Overlapping is only checked if the source selector is equal to the
+destination selector. No range check is done.
+</remark>
+<p>
+For an example, see <link id="allocate_ldt_descriptors"/>.
+</p>
+</descr>
+<errors>
+ None.
+</errors>
+<seealso>
+<link id="seg_fillchar"/>
+<link id="seg_fillword"/>
+<link id="dosmemfillchar"/>
+<link id="dosmemfillword"/>
+<link id="dosmemget"/>
+<link id="dosmemput"/>
+<link id="dosmemmove"/> 
+</seealso>
+</element>
+
+<element name="set_descriptor_access_rights">
+<short>Set descriptor access rights</short>
+<descr>
+<p>
+Sets the access rights of a descriptor.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>d</dt><dd> selector.</dd>
+<dt>w</dt><dd> new descriptor access rights.</dd>
+</dl>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="get_descriptor_access_rights"/> 
+</seealso>
+</element>
+
+<element name="set_pm_interrupt">
+<short>Set protected mode interrupt handler</short>
+<descr>
+<p>
+Sets the address of the protected mode handler for an interrupt.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>vector</dt><dd> number of protected mode interrupt to set.</dd>
+<dt>intaddr</dt><dd> selector:offset address to the interrupt vector.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<remark>
+The address supplied must be a valid <var>selector:offset</var> 
+protected mode address.
+</remark>
+</descr>
+<errors>
+ Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="get_pm_interrupt"/> 
+<link id="set_rm_interrupt"/>
+<link id="get_rm_interrupt"/> 
+</seealso>
+<example file="go32ex/intpm"/>
+</element>
+
+<element name="set_rm_interrupt">
+<short>Set real mode interrupt handler</short>
+<descr>
+<p>
+Sets a real mode interrupt handler.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>vector</dt><dd> the interrupt vector number to set.</dd>
+<dt>intaddr</dt><dd> address of new interrupt vector.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, otherwise <var>False</var>.
+</p>
+<remark>
+The address supplied MUST be a real mode segment address, not a
+<var>selector:offset</var> address. So the interrupt handler must either reside in dos
+memory (below 1 Mb boundary) or the application must allocate a real mode
+callback address with <link id="get_rm_callback"/>.
+</remark>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="get_rm_interrupt"/> 
+<link id="set_pm_interrupt"/>
+<link id="get_pm_interrupt"/> 
+<link id="get_rm_callback"/> 
+</seealso>
+</element>
+
+<element name="set_segment_base_address">
+<short>Set descriptor's base address</short>
+<descr>
+<p>
+Sets the 32-bit linear base address of a descriptor.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>d</dt><dd> selector.</dd>
+<dt>s</dt><dd> new base address of the descriptor.</dd>
+</dl>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="get_segment_base_address"/> 
+<link id="allocate_ldt_descriptors"/> 
+<link id="set_segment_limit"/>
+<link id="get_segment_base_address"/>
+<link id="get_segment_limit"/> 
+</seealso>
+</element>
+
+<element name="set_segment_limit">
+<short>Set descriptor limit</short>
+<descr>
+<p>
+Sets the limit of a descriptor.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>d</dt><dd> selector.</dd>
+<dt>s</dt><dd> new limit of the descriptor.</dd>
+</dl>
+<p>
+Return values: Returns <var>True</var> if successful, else <var>False</var>.
+</p>
+<remark>
+The new limit specified must be the byte length of the segment - 1.
+Segment limits bigger than or equal to 1MB must be page aligned, they must
+have the lower 12 bits set.
+</remark>
+<p>
+For an example, see <link id="allocate_ldt_descriptors"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="allocate_ldt_descriptors"/>
+<link id="set_segment_base_address"/>
+<link id="get_segment_limit"/> 
+<link id="set_segment_limit"/> 
+</seealso>
+</element>
+
+<element name="tb_size">
+<short>Return DOS transfer memory buffer size</short>
+<descr>
+<p>
+Returns the size of the pre-allocated dos memory buffer.
+</p>
+<p>
+Return values: The size of the pre-allocated dos memory buffer.
+This block always seems to be 16k in size, but don't rely on this.
+</p>
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="transfer_buffer"/>
+<link id="copyfromdos"/>
+<link id="copytodos"/>
+</seealso>
+</element>
+
+
+<element name="transfer_buffer">
+<short>Return offset of DOS transfer buffer</short>
+<descr>
+<var>transfer_buffer</var> returns the offset of the transfer buffer.
+</descr>
+<errors>
+None.
+</errors>
+<seealso>
+<link id="tb_size"/>
+</seealso>
+</element>
+
+
+<element name="unlock_code">
+<short>Unlock code segment</short>
+<descr>
+<p>
+Unlocks a memory range which resides in the code segment selector.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>functionaddr</dt><dd> address of function to be unlocked. </dd>
+<dt>size</dt><dd> size bytes to be unlocked.</dd>
+</dl>
+<p>
+Return value: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="get_rm_callback"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="unlock_linear_region"/>
+<link id="unlock_data"/>
+<link id="lock_linear_region"/>
+<link id="lock_data"/>
+<link id="lock_code"/> 
+</seealso>
+</element>
+
+<element name="unlock_data">
+<short>Unlock data segment</short>
+<descr>
+<p>
+Unlocks a memory range which resides in the data segment selector.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>data</dt><dd> address of memory to be unlocked. </dd>
+<dt>size</dt><dd> size bytes to be unlocked.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+<p>
+For an example, see <link id="get_rm_callback"/>.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="unlock_linear_region"/>
+<link id="unlock_code"/>
+<link id="lock_linear_region"/>
+<link id="lock_data"/>
+<link id="lock_code"/> 
+</seealso>
+</element>
+
+<element name="unlock_linear_region">
+<short>Unlock linear memory region</short>
+<descr>
+<p>
+Unlocks a previously locked linear region range to allow it to be swapped
+out again if needed.
+</p>
+<p>
+Parameters:
+</p>
+<dl>
+<dt>linearaddr</dt><dd> linear address of the memory to be unlocked. </dd>
+<dt>size</dt><dd> size bytes to be unlocked.</dd>
+</dl>
+<p>
+Return values: <var>True</var> if successful, <var>False</var> otherwise.
+</p>
+</descr>
+<errors>
+Check the <link id="int31error"/> variable.
+</errors>
+<seealso>
+<link id="unlock_data"/>
+<link id="unlock_code"/>
+<link id="lock_linear_region"/>
+<link id="lock_data"/>
+<link id="lock_code"/>
+</seealso>
+</element>
+
+</module>
+</package>
+</fpdoc-descriptions>

@@ -24,7 +24,6 @@
 <package name="rtl">
 <module name="gpm">
 <short>Interface to GPM (General Purpose Mouse) library</short>
-<!-- \FPCexampledir{gpmex} -->
 <descr>
 <p>
 The <file>GPM</file> unit implements an interface to <file>libgpm</file>, 
@@ -302,9 +301,6 @@ version 1.17 or higher of the <file>libgpm</file> library.
 </element>
 <element name="Gpm_HandleRoi">
 <short>Internal gpm library variable. Do not use.</short>
-</element>
-<element name="">
-<short></short>
 </element>
 
 <element name="Gpm_AnyDouble">

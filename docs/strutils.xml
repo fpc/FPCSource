@@ -3343,7 +3343,7 @@ No checking is performed to see whether <var>S</var> contains a valid number usi
         <errors>None.</errors>
         <seealso>
           <link id="Hex2Dec"/>
-          <link id="Hex2USA"/>
+          <link id="Numb2USA"/>
         </seealso>
       </element>
       <element name="Numb2Dec.Result">
