@@ -26,6 +26,7 @@ interface
 
     uses
       cpubase,
+      aasmtai,
       symconst,symbase,symtype,symdef,paramgr;
 
     type
@@ -33,7 +34,7 @@ interface
         {Returns a structure giving the information on the storage of the parameter
         (which must be an integer parameter)
         @param(nr Parameter number of routine, starting from 1)}
-        function GetIntParaLoc(nr:longint):TParaLocation;override;
+        function GetIntParaLoc(List:TAasmOutput;nr:longint):TParaLocation;override;
         {Creates location information related to the parameter of the function}
         procedure create_param_loc_info(p:TAbstractProcDef);override;
         {Returns the location where the invisible parameter for structured function
@@ -49,7 +50,7 @@ implementation
       cpuinfo,cginfo,cgbase,
       defutil;
 
-    function TSparcParaManager.GetIntParaLoc(nr:longint):TParaLocation;
+    function TSparcParaManager.GetIntParaLoc(List:TAasmOutput;nr:longint):TParaLocation;
       begin
         if nr<1 then
           InternalError(2002100806);
@@ -311,7 +312,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.19  2003-06-01 21:38:06  peter
+  Revision 1.20  2003-06-09 21:44:14  mazen
+  * fix compile problem related to modification
+    of the declareation of GetIntParaLoc in the
+    ancestor's declaration
+
+  Revision 1.19  2003/06/01 21:38:06  peter
     * getregisterfpu size parameter added
     * op_const_reg size parameter added
     * sparc updates
