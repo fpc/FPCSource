@@ -4127,12 +4127,12 @@ implementation
                    p^.location.reference.index)));
               end;
             LOC_MEM,LOC_REFERENCE :
-                            begin
-                               del_reference(p^.left^.location.reference);
-                               p^.location.reference.index:=getregister32;
-                               exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
-                                 p^.location.reference.index)));
-                            end;
+              begin
+                 del_reference(p^.left^.location.reference);
+                 p^.location.reference.index:=getregister32;
+                 exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,newreference(p^.left^.location.reference),
+                   p^.location.reference.index)));
+              end;
          end;
       end;
 
@@ -5875,7 +5875,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.15  1998-04-22 21:06:49  florian
+  Revision 1.16  1998-04-23 21:52:08  florian
+    * fixes of Jonas applied
+
+  Revision 1.15  1998/04/22 21:06:49  florian
     * last fixes before the release:
       - veryyyy slow firstcall fixed
 

@@ -1441,7 +1441,8 @@ End;
                            hp1 := Pai(p^.next);
                            While Assigned(hp1) And
                                  (Pai(hp1)^.typ In [ait_instruction]+SkipInstr) And
-                                 (Pai386(hp1)^._operator <> A_PUSH) Do
+                                  Not((Pai(hp1)^.typ = ait_instruction) And
+                                      (Pai386(hp1)^._operator in [A_CALL,A_PUSH])) do
                              hp1 := Pai(hp1^.next);
                            If Assigned(hp1) And
                                (Pai(hp1)^.typ = ait_instruction) And
@@ -1614,7 +1615,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.6  1998-04-21 11:30:14  peter
+  Revision 1.7  1998-04-23 21:52:08  florian
+    * fixes of Jonas applied
+
+  Revision 1.6  1998/04/21 11:30:14  peter
     * fixed $ifdef regalloc
 
   Revision 1.5  1998/04/16 16:53:56  jonas
