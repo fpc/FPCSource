@@ -18,6 +18,7 @@ procedure P1(var s:string);export;
 var
   p:array[0..255] of char;
 begin
+  length(s);
   getmodulefilename(Hinstance,@p,255);
   writeln('DLL: Hello, I''m DLL ',pchar(@p));
 end;
@@ -30,10 +31,12 @@ end;
 
 procedure P3(var t);export;
 begin
+  Addr(T);
 end;
 
 procedure P4(x1:pointer);export;
 begin
+  x1:=Nil;
 end;
 
 procedure NewExit;
@@ -56,7 +59,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  1999-01-12 14:20:36  peter
+  Revision 1.2  1999-06-30 22:04:56  michael
+  * Added code to remove warnings
+
+  Revision 1.1  1999/01/12 14:20:36  peter
     + dll example
 
 }
