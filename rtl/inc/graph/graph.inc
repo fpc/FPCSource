@@ -1362,12 +1362,12 @@ const CrtAddress: word = 0;
          exit;
      end;
 {$ifndef asmgraph}
-     Dummy := color;
-     offset := y * 80 + x shr 2 + VideoOfs;
-     PortW[$3c4] := FirstPlane shl (x and 3);
-     If CurrentWriteMode = XorPut Then
-       Dummy := Dummy Xor Mem[SegA000:offset];
-     Mem[SegA000:offset] := Dummy;
+    Dummy := color;
+    offset := y * 80 + x shr 2 + VideoOfs;
+    PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
+    If CurrentWriteMode = XorPut Then
+      Dummy := Dummy Xor Mem[SegA000:offset];
+    Mem[SegA000:offset] := Dummy;
 {$else asmgraph}
      asm
       mov di,[Y]                   ; (* DI = Y coordinate                 *)
@@ -1411,7 +1411,7 @@ const CrtAddress: word = 0;
  begin
    dummy := CurrentColor;
    offset := y * 80 + x shr 2 + VideoOfs;
-   PortW[$3c4] := FirstPlane shl (x and 3);
+   PortW[$3c4] := (hi(word(FirstPlane)) shl 8) shl (x and 3)+ lo(word(FirstPlane));
    case CurrentWriteMode of
      XorPut: dummy := dummy xor Mem[Sega000:offset];
      OrPut: dummy := dummy or Mem[SegA000:offset];
@@ -2460,7 +2460,10 @@ const CrtAddress: word = 0;
 
 {
 $Log$
-Revision 1.25  1999-11-03 20:23:01  florian
+Revision 1.26  1999-11-05 12:18:23  jonas
+  * fixed pascal version of (direct)putpixelx
+
+Revision 1.25  1999/11/03 20:23:01  florian
   + first release of win32 gui support
 
 Revision 1.24  1999/10/24 15:51:22  carl
