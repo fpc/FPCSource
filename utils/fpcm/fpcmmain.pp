@@ -55,7 +55,7 @@ interface
       TTarget=(
         t_linux,t_go32v2,t_win32,t_os2,t_freebsd,t_beos,t_netbsd,
         t_amiga,t_atari, t_sunos, t_qnx, t_netware, t_openbsd,t_wdosx,
-        t_palmos
+        t_palmos,t_macos,t_macosx
       );
       TTargetSet=set of TTarget;
 
@@ -63,13 +63,13 @@ interface
       TargetStr : array[TTarget] of string=(
         'linux','go32v2','win32','os2','freebsd','beos','netbsd',
         'amiga','atari','sunos', 'qnx', 'netware','openbsd','wdosx',
-        'palmos'
+        'palmos','macos','macosx'
       );
 
       TargetSuffix : array[TTarget] of string=(
         '_linux','_go32v2','_win32','_os2','_freebsd','_beos','_netbsd',
         '_amiga','_atari','_sunos', '_qnx', '_netware','_openbsd','_wdosx',
-        '_palmos'
+        '_palmos','_macos','_macosx'
       );
 
 
@@ -1486,7 +1486,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2003-01-13 11:54:02  pierre
+  Revision 1.29  2003-01-13 15:09:16  florian
+    + macos and macosx target
+    * fixed target detection, first we should try the default target
+
+  Revision 1.28  2003/01/13 11:54:02  pierre
    + palmos target added
 
   Revision 1.27  2002/10/07 18:41:02  peter
