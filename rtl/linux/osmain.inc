@@ -32,9 +32,11 @@ const
                        Misc. System Dependent Functions
 *****************************************************************************}
 
+procedure haltproc(e:longint);cdecl;external name '_haltproc';
+
 procedure System_exit;
 begin
-   Fpexit(cint(ExitCode));
+  haltproc(ExitCode);
 End;
 
 
@@ -579,7 +581,10 @@ end;
 
 {
  $Log$
- Revision 1.12  2004-01-01 14:19:55  marco
+ Revision 1.13  2004-03-10 20:35:33  peter
+   * call _haltproc instead of exit(). This is required for libc linking
+
+ Revision 1.12  2004/01/01 14:19:55  marco
   * use_getcwd updates because FPC_USE_LIBC uses that
 
  Revision 1.11  2003/12/30 16:26:10  marco
