@@ -770,19 +770,20 @@ Begin
         Str(Value:Precision + 8, Result);
         Result[3] := DecimalSeparator;
         If (Digits < 4) And (Result[Precision + 5] = '0') Then
-        Begin
-          Delete(Result, Precision + 5, 1);
-          If (Digits < 3) And (Result[Precision + 5] = '0') Then
           Begin
-            Delete(Result, Precision + 5, 1);
+          system.Delete(Result, Precision + 5, 1);
+          If (Digits < 3) And (Result[Precision + 5] = '0') Then
+            Begin
+            system.Delete(Result, Precision + 5, 1);
             If (Digits < 2) And (Result[Precision + 5] = '0') Then
             Begin
-              Delete(Result, Precision + 5, 1);
-              If (Digits < 1) And (Result[Precision + 5] = '0') Then Delete(Result, Precision + 3, 3);
+              system.Delete(Result, Precision + 5, 1);
+              If (Digits < 1) And (Result[Precision + 5] = '0') Then system.Delete(Result, Precision + 3, 3);
             End;
           End;
         End;
-        If Result[1] = ' ' Then Delete(Result, 1, 1);
+        If Result[1] = ' ' Then 
+          System.Delete(Result, 1, 1);
       End;
 
     ffFixed:
@@ -791,7 +792,8 @@ Begin
         If Digits = -1 Then Digits := 2
         Else If Digits > 15 Then Digits := 15;
         Str(Value:0:Digits, Result);
-        If Result[1] = ' ' Then Delete(Result, 1, 1);
+        If Result[1] = ' ' Then 
+          System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then Result[P] := DecimalSeparator;
       End;
@@ -802,7 +804,7 @@ Begin
         If Digits = -1 Then Digits := 2
         Else If Digits > 15 Then Digits := 15;
         Str(Value:0:Digits, Result);
-        If Result[1] = ' ' Then Delete(Result, 1, 1);
+        If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then Result[P] := DecimalSeparator;
         Dec(P, 3);
@@ -826,7 +828,7 @@ Begin
         If Digits = -1 Then Digits := CurrencyDecimals
         Else If Digits > 15 Then Digits := 15;
         Str(Value:0:Digits, Result);
-        If Result[1] = ' ' Then Delete(Result, 1, 1);
+        If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
         If P <> 0 Then Result[P] := DecimalSeparator;
         Dec(P, 3);
@@ -955,7 +957,10 @@ const
 
 {
   $Log$
-  Revision 1.13  1999-02-28 13:17:35  michael
+  Revision 1.14  1999-03-01 12:40:06  michael
+  changed delete to system.delete
+
+  Revision 1.13  1999/02/28 13:17:35  michael
   + Added internationalization support and more format functions
 
   Revision 1.12  1999/02/24 15:56:29  michael
