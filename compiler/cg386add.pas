@@ -673,7 +673,7 @@ implementation
          pushed,mboverflow,cmpop : boolean;
          op,op2 : tasmop;
          flags : tresflags;
-         otl,ofl,hl : pasmlabel;
+         otl,ofl : pasmlabel;
          power : longint;
          opsize : topsize;
          hl4: pasmlabel;
@@ -2324,7 +2324,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-27 09:25:05  jonas
+  Revision 1.4  2000-08-04 22:00:50  peter
+    * merges from fixes
+
+  Revision 1.3  2000/07/27 09:25:05  jonas
     * moved locflags2reg() procedure from cg386add to cgai386
     + added locjump2reg() procedure to cgai386
     * fixed internalerror(2002) when the result of a case expression has

@@ -898,7 +898,7 @@ implementation
          l : longint;
          ispushed : boolean;
          hregister : tregister;
-         otlabel,oflabel,l1   : pasmlabel;
+         otlabel,oflabel{,l1}   : pasmlabel;
          oldpushedparasize : longint;
 
       begin
@@ -1468,7 +1468,7 @@ implementation
                          else
                            emit_none(A_FCOS,S_NO);
                          {
-			 getlabel(l1);
+                         getlabel(l1);
                          emit_reg(A_FNSTSW,S_NO,R_AX);
                          emit_none(A_SAHF,S_NO);
                          emitjmp(C_NP,l1);
@@ -1528,7 +1528,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-07-29 18:27:53  sg
+  Revision 1.5  2000-08-04 22:00:50  peter
+    * merges from fixes
+
+  Revision 1.4  2000/07/29 18:27:53  sg
   * Applied patch by Markus Kaemmerer which removes a tiny memory leak
     for the generation of code for in_[sin|cos]_extended code
     (a label has been created but never used afterwards)

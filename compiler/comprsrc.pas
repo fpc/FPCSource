@@ -66,17 +66,21 @@ end;
 
 procedure tresourcefile.compile;
 var
+  respath : pathstr;
+  n       : namestr;
+  e       : extstr;
   s,
   resobj,
-  respath,
-  resbin : string;
+  resbin   : string;
   resfound : boolean;
 begin
+  resbin:='';
   if utilsdirectory<>'' then
-   respath:=FindFile(target_res.resbin+source_os.exeext,utilsdirectory,resfound)
-  else
-   respath:=FindExe(target_res.resbin,resfound);
-  resbin:=respath+target_res.resbin+source_os.exeext;
+   resbin:=FindFile(target_res.resbin+source_os.exeext,utilsdirectory,resfound)+target_res.resbin+source_os.exeext;
+  if resbin='' then
+   resbin:=FindExe(target_res.resbin,resfound);
+  { get also the path to be searched for the windres.h }
+  fsplit(resbin,respath,n,e);
   if (not resfound) and not(cs_link_extern in aktglobalswitches) then
    begin
      Message(exec_w_res_not_found);
@@ -136,7 +140,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:38  michael
+  Revision 1.3  2000-08-04 22:00:51  peter
+    * merges from fixes
+
+  Revision 1.2  2000/07/13 11:32:38  michael
   + removed logs
 
 }

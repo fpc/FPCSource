@@ -342,6 +342,9 @@ begin
   Writeln('Repetitive firstpass = '+tostr(firstpass_several)+'/'+tostr(total_of_firstpass));
 {$endif newcg}
 {$endif EXTDEBUG}
+{$ifdef MEMDEBUG}
+  Writeln('Memory used: ',system.Heapsize);
+{$endif}
 {$ifdef fixLeaksOnError}
  {$ifdef tp}
   do_stop;
@@ -355,7 +358,9 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:38  michael
-  + removed logs
+  Revision 1.3  2000-08-04 22:00:50  peter
+    * merges from fixes
 
+  Revision 1.2  2000/07/13 11:32:38  michael
+  + removed logs
 }

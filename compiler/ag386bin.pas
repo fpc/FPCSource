@@ -977,15 +977,28 @@ unit ag386bin;
 
 
    destructor ti386binasmlist.done;
+{$ifdef MEMDEBUG}
+      var
+        d : tmemdebug;
+{$endif}
       begin
+{$ifdef MEMDEBUG}
+         d.init('agbin');
+{$endif}
         dispose(objectoutput,done);
         dispose(objectalloc,done);
+{$ifdef MEMDEBUG}
+         d.done;
+{$endif}
       end;
 
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:24  michael
+  Revision 1.4  2000-08-04 22:00:50  peter
+    * merges from fixes
+
+  Revision 1.3  2000/07/13 12:08:24  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:29  michael

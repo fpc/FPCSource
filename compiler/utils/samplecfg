@@ -4,18 +4,26 @@
 #
 #  Generate Sample Free Pascal configuration file
 #
-if [ $# != 1 ]; then
+if [ $# == 0 ]; then
   echo 'Usage :'
-  echo 'samplecfg fpcdir'
+  echo 'samplecfg fpcdir confdir'
   echo 'fpcdir = Path where FPC is installed'
+  echo 'confdir = Path to /etc'
   exit 1
 fi
-# Detect if we have write permission in root.
-if [ -w /etc ] ; then
-  echo Write permission in /etc.
-  thefile=/etc/ppc386.cfg
+if [ $2 ]; then
+  sysdir=$2
+  [ -d $sysdir ] || mkdir $sysdir 
 else
-  echo No write premission in /etc.
+  sysdir=/etc
+fi
+
+# Detect if we have write permission in root.
+if [ -w $sysdir ] ; then
+  echo Write permission in $sysdir.
+  thefile=$sysdir/ppc386.cfg
+else
+  echo No write premission in $sysdir.
   thefile=$HOME/.ppc386.cfg
 fi
 #
@@ -38,7 +46,7 @@ echo Found libgcc.a in $GCCDIR
 echo Writing sample configuration file to $thefile
 cat <<EOFCFG > $thefile
 #
-# Example ppc386.cfg for Free Pascal Compiler Version 1.00
+# Example ppc386.cfg for Free Pascal Compiler
 #
 
 # ----------------------
@@ -193,7 +201,7 @@ cat <<EOFCFG > $thefile
 # a : Show everything             0 : Show nothing (except errors)
 
 # Display Info, Warnings, Notes and Hints
--viwnh
+-viwn
 # If you don't want so much verbosity use
 #-vw
 

@@ -141,7 +141,7 @@ unit pexpr;
                do_firstpass(p);
                set_varstate(p,false);
                { reset varstateset to maybe set used state later web bug769 PM }
-               p^.varstateset:=false;
+               unset_varstate(p);
                if not(getprocvar) and (p^.resulttype^.deftype=procvardef) then
                  begin
                     p1:=gencallnode(nil,nil);
@@ -2170,7 +2170,9 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
-  + removed logs
+  Revision 1.3  2000-08-04 22:00:52  peter
+    * merges from fixes
 
+  Revision 1.2  2000/07/13 11:32:44  michael
+  + removed logs
 }

@@ -607,10 +607,7 @@ implementation
          if assigned(p^.left) and assigned(p^.right) then
             begin
                firstpass(p^.left);
-               { is this correct ?  At least after is like if used
-               set_varstate(p^.left,false);
-                 already done in _with_statment }
-               p^.left^.varstateset:=false;
+               unset_varstate(p^.left);
                set_varstate(p^.left,true);
                if codegenerror then
                  exit;
@@ -642,7 +639,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-02 19:49:59  peter
+  Revision 1.5  2000-08-04 22:00:52  peter
+    * merges from fixes
+
+  Revision 1.4  2000/08/02 19:49:59  peter
     * first things for default parameters
 
   Revision 1.3  2000/07/13 12:08:28  michael

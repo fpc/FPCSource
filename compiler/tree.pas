@@ -342,6 +342,7 @@ unit tree;
       vsr_is_used_after,vsr_must_be_valid_and_is_used_after); }
 
     { sets varsym varstate field correctly }
+    procedure unset_varstate(p : ptree);
     procedure set_varstate(p : ptree;must_be_valid : boolean);
 
     { gibt den ordinalen Werten der Node zurueck oder falls sie }
@@ -1808,6 +1809,24 @@ unit tree;
            end;
       end;
 
+
+    procedure unset_varstate(p : ptree);
+      begin
+        while assigned(p) do
+         begin
+           p^.varstateset:=false;
+           case p^.treetype of
+             typeconvn,
+             subscriptn,
+             vecn :
+               p:=p^.left;
+             else
+               break;
+           end;
+         end;
+      end;
+
+
     procedure set_varstate(p : ptree;must_be_valid : boolean);
 
       begin
@@ -1838,18 +1857,10 @@ unit tree;
              set_varstate(p^.left,must_be_valid);
            vecn:
              begin
-             {$IFDEF NEWST}
-               if (typeof(p^.left^.resulttype^)=typeof(Tstringdef)) or
-                (typeof(p^.left^.resulttype^)=typeof(Tarraydef)) then
-                 set_varstate(p^.left,must_be_valid)
-               else
-                 set_varstate(p^.left,true);
-             {$ELSE}
                if (p^.left^.resulttype^.deftype in [stringdef,arraydef]) then
                  set_varstate(p^.left,must_be_valid)
                else
                  set_varstate(p^.left,true);
-             {$ENDIF NEWST}
                set_varstate(p^.right,true);
              end;
            { do not parse calln }
@@ -1860,50 +1871,6 @@ unit tree;
                set_varstate(p^.right,must_be_valid);
              end;
            loadn :
-         {$IFDEF NEWST}
-         if (typeof(p^.symtableentry^)=typeof(Tvarsym)) or
-           (typeof(p^.symtableentry^)=typeof(Tparamsym)) then
-          begin
-            if must_be_valid and p^.is_first then
-              begin
-                if (pvarsym(p^.symtableentry)^.state=vs_declared_and_first_found) or
-                   (pvarsym(p^.symtableentry)^.state=vs_set_but_first_not_passed) then
-                 if (assigned(pvarsym(p^.symtableentry)^.owner) and
-                    assigned(aktprocsym) and
-                    (pvarsym(p^.symtableentry)^.owner=
-                     Pcontainingsymtable(aktprocdef^.localst))) then
-                  begin
-                    if typeof(p^.symtable^)=typeof(Tprocsymtable) then
-                     CGMessage1(sym_n_uninitialized_local_variable,pvarsym(p^.symtableentry)^.name)
-                    else
-                     CGMessage1(sym_n_uninitialized_variable,pvarsym(p^.symtableentry)^.name);
-                  end;
-              end;
-          if (p^.is_first) then
-           begin
-             if pvarsym(p^.symtableentry)^.state=vs_declared_and_first_found then
-             { this can only happen at left of an assignment, no ? PM }
-              if (parsing_para_level=0) and not must_be_valid then
-               pvarsym(p^.symtableentry)^.state:=vs_assigned
-              else
-               pvarsym(p^.symtableentry)^.state:=vs_used;
-             if pvarsym(p^.symtableentry)^.state=vs_set_but_first_not_passed then
-               pvarsym(p^.symtableentry)^.state:=vs_used;
-             p^.is_first:=false;
-           end
-         else
-           begin
-             if (pvarsym(p^.symtableentry)^.state=vs_assigned) and
-                (must_be_valid or (parsing_para_level>0) or
-                 (typeof(p^.resulttype^)=typeof(Tprocvardef))) then
-               pvarsym(p^.symtableentry)^.state:=vs_used;
-             if (pvarsym(p^.symtableentry)^.state=vs_declared_and_first_found) and
-                (must_be_valid or (parsing_para_level>0) or
-                (typeof(p^.resulttype^)=typeof(Tprocvardef))) then
-               pvarsym(p^.symtableentry)^.state:=vs_set_but_first_not_passed;
-           end;
-         end;
-         {$ELSE}
          if (p^.symtableentry^.typ=varsym) then
           begin
             if must_be_valid and p^.is_first then
@@ -1944,7 +1911,6 @@ unit tree;
                pvarsym(p^.symtableentry)^.varstate:=vs_set_but_first_not_passed;
            end;
          end;
-         {$ENDIF NEWST}
          funcretn:
          begin
          { no claim if setting higher return value_str }
@@ -2121,7 +2087,9 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
-  + removed logs
+  Revision 1.3  2000-08-04 22:00:52  peter
+    * merges from fixes
 
+  Revision 1.2  2000/07/13 11:32:52  michael
+  + removed logs
 }

@@ -101,7 +101,7 @@ Procedure PeepHoleOptPass1(Asml: PAasmOutput; BlockStart, BlockEnd: Pai);
 {First pass of peepholeoptimizations}
 
 Var
-  l, l1 : longint;
+  l : longint;
   p,hp1,hp2 : pai;
   hp3,hp4: pai;
 
@@ -1945,7 +1945,10 @@ End.
 
 {
   $Log$
-  Revision 1.6  2000-07-31 08:44:05  jonas
+  Revision 1.7  2000-08-04 22:00:52  peter
+    * merges from fixes
+
+  Revision 1.6  2000/07/31 08:44:05  jonas
     - removed imul support from -dfoldarithops since "imull [reg32],[mem32]"
       doesn't exist (merged from fixes branch)
 
