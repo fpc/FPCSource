@@ -243,7 +243,8 @@ Procedure TextColor(Color: Byte);
   Switch foregroundcolor
 }
 Begin
-  TextAttr:=(Color and $8f) or (TextAttr and $70);
+  TextAttr:=(Color and $f) or (TextAttr and $70);
+  If (Color>15) Then TextAttr:=TextAttr Or Blink;
 End;
 
 
@@ -814,7 +815,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-01-07 16:41:29  daniel
+  Revision 1.5  2000-04-14 12:18:11  pierre
+   * fix for bug 923
+
+  Revision 1.4  2000/01/07 16:41:29  daniel
     * copyright 2000
 
   Revision 1.3  2000/01/07 16:32:23  daniel
@@ -873,5 +877,4 @@ end.
     * fixed read_text_as_array
     + read_text_as_pchar which was not yet in the rtl
 }
-
 
