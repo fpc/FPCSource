@@ -350,4 +350,4 @@ bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !
 bug0246.pp   const para can be changed without error
 bug0252.pp   typecasting not possible within typed const
 bug0255.pp   internal error 10 with in and function calls
-
+bug0258.pp   bug in small const set extension to large sets
