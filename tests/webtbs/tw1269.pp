@@ -2,10 +2,9 @@
 { Submitted by "Rob Kolstad" on  2000-11-28 }
 { e-mail: kolstad@ace.delos.com }
 
-{$ifdef cpu68k}
+{$ifndef cpui386}
   {$define COMP_IS_INT64}
-{$endif cpu68k}
-
+{$endif cpui386}
 
 var
   A : array [0..25, 0..100] of comp;
