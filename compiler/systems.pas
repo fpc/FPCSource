@@ -1724,7 +1724,7 @@ begin
   default_os(target_alpha_linux);
 {$endif alpha}
 {$ifdef powerpc}
-  default_os(target_alpha_linux);
+  default_os(target_powerpc_linux);
 {$endif powerpc}
 end;
 
@@ -1734,7 +1734,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.91  1999-08-16 15:35:29  pierre
+  Revision 1.92  1999-09-07 15:02:41  pierre
+   * powerpc default was alpha !!
+
+  Revision 1.91  1999/08/16 15:35:29  pierre
     * fix for DLL relocation problems
     * external bss vars had wrong stabs for pecoff
     + -WB11000000 to specify default image base, allows to
@@ -1948,7 +1951,7 @@ end.
   Revision 1.39  1998/10/13 08:19:42  pierre
     + source_os is now set correctly for cross-processor compilers
       (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionnals to
+       we use CPU86 and CPU68 conditionals to
        get the source operating system
        this only works if you do not undefine
        the source target  !!)
