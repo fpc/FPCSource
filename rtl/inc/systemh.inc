@@ -136,6 +136,22 @@ Type
   Comp = Int64;
 {$endif powerpc}
 
+{$ifdef sparc}
+  StrLenInt = LongInt;
+
+  {$define DEFAULT_DOUBLE}
+
+  {$define SUPPORT_SINGLE}
+  {$define SUPPORT_DOUBLE}
+
+  ValSInt = Longint;
+  ValUInt = Cardinal;
+  ValReal = Double;
+
+  { map comp to int64, but this doesn't mean to compile the comp support in! }
+  Comp = Int64;
+{$endif sparc}
+
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
@@ -145,8 +161,20 @@ Type
   PAnsiChar           = ^TAnsiChar;
   PPAnsiChar          = ^PAnsiChar;
 
-  UCS4Char            = Cardinal;
+// UCS4Char            = type LongWord;
+  UCS4Char            = LongWord;
   PUCS4Char           = ^UCS4Char;
+  TUCS4CharArray      = array[0..$effffff] of UCS4Char;
+  PUCS4CharArray      = ^TUCS4CharArray;
+{$ifndef VER1_0}
+  UCS4String          = array of UCS4Char;
+{$endif VER1_0}
+
+
+//  UTF8String          = type ansistring;
+  UTF8String          = ansistring;
+  PUTF8String         = ^UTF8String;
+
 {$ifndef HASCURRENCY}
   Currency            = Int64;
 {$endif HASCURRENCY}
@@ -626,7 +654,11 @@ const
 
 {
   $Log$
-  Revision 1.59  2002-10-14 19:39:17  peter
+  Revision 1.60  2002-11-16 20:12:22  florian
+    + sparc types added
+    + UTF*/UCS* types added
+
+  Revision 1.59  2002/10/14 19:39:17  peter
     * threads unit added for thread support
 
   Revision 1.58  2002/10/06 13:56:47  carl
