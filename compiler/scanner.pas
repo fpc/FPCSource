@@ -600,7 +600,7 @@ implementation
 {$ifdef SourceLine}
          hp  : plongint;
 {$endif SourceLine}
-         oldaktfilepos : tfileposinfo;
+         oldtokenpos,oldaktfilepos : tfileposinfo;
       begin
         if (byte(inputpointer^)=0) and
            filenotatend then
@@ -640,10 +640,12 @@ implementation
       { update for status and call the show status routine,
         but don't touch aktfilepos ! }
         oldaktfilepos:=aktfilepos;
+        oldtokenpos:=tokenpos;
         gettokenpos; { update for v_status }
         inc(status.compiledlines);
         ShowStatus;
         aktfilepos:=oldaktfilepos;
+        tokenpos:=oldtokenpos;
       end;
 
 
@@ -1559,7 +1561,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.43  1998-08-20 09:26:45  pierre
+  Revision 1.44  1998-08-20 16:09:55  pierre
+    * tokenpos has to be restored also after
+      printstatus
+
+  Revision 1.43  1998/08/20 09:26:45  pierre
     + funcret setting in underproc testing
       compile with _dTEST_FUNCRET
 
