@@ -512,7 +512,7 @@ implementation
               consume(_RKLAMMER);
               if (p1.nodetype<>typen) and
                  (
-                  ((p1.resulttype.def.deftype=objectdef) and
+                  (is_object(p1.resulttype.def) and
                    (oo_has_constructor in tobjectdef(p1.resulttype.def).objectoptions)) or
                   is_open_array(p1.resulttype.def) or
                   is_open_string(p1.resulttype.def)
@@ -2452,7 +2452,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2002-02-03 09:30:04  peter
+  Revision 1.58  2002-03-01 14:08:26  peter
+    * fixed sizeof(TClass) to return only 4
+
+  Revision 1.57  2002/02/03 09:30:04  peter
     * more fixes for protected handling
 
   Revision 1.56  2002/01/29 21:25:22  peter
