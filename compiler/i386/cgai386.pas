@@ -1497,6 +1497,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
            begin
               getaddrlabel(pl);
               emitcall('mcount');
+              usedinproc:=usedinproc or ($80 shr byte(R_EDX));
               exprasmlist^.insert(new(paicpu,op_sym_ofs_reg(A_MOV,S_L,pl,0,R_EDX)));
               exprasmlist^.insert(new(pai_section,init(sec_code)));
               exprasmlist^.insert(new(pai_const,init_32bit(0)));
@@ -2814,7 +2815,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:47:42  peter
+  Revision 1.2  2000-10-24 07:20:03  pierre
+   * fix for bug 1193 (merged)
+
+  Revision 1.1  2000/10/15 09:47:42  peter
     * moved to i386/
 
   Revision 1.19  2000/10/14 10:14:46  peter
