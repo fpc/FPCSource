@@ -193,7 +193,7 @@ TYPE
       CONSTRUCTOR Init (Var Bounds: TRect; APattern: Char);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
-      PROCEDURE DrawBackGround; Virtual;
+      PROCEDURE Draw; Virtual;
       PROCEDURE Store (Var S: TStream);
    END;
    PBackGround = ^TBackGround;
@@ -444,7 +444,7 @@ END;
 {--TBackGround--------------------------------------------------------------}
 {  DrawBackground -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB    }
 {---------------------------------------------------------------------------}
-PROCEDURE TBackground.DrawBackground;
+PROCEDURE TBackground.Draw;
 VAR B: TDrawBuffer;
 BEGIN
    MoveChar(B, Pattern, GetColor($01), Size.X);       { Fill draw buffer }
@@ -655,9 +655,9 @@ END;
 {  Init -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB              }
 {---------------------------------------------------------------------------}
 CONSTRUCTOR TProgram.Init;
-VAR I: Integer; R: TRect;
+VAR R: TRect;
 BEGIN
-   R.Assign(0, 0, -(ScreenWidth+1), -(ScreenHeight+1)); { Full screen area }
+   R.Assign(0, 0, ScreenWidth, ScreenHeight);         { Full screen area }
    Inherited Init(R);                                 { Call ancestor }
    Application := @Self;                              { Set application ptr }
    InitScreen;                                        { Initialize screen }
@@ -678,7 +678,6 @@ END;
 {  Done -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB              }
 {---------------------------------------------------------------------------}
 DESTRUCTOR TProgram.Done;
-VAR I: Integer;
 BEGIN
    { Do not free the Buffer of Video Unit }
    If Buffer = Views.PVideoBuf(VideoBuf) then
@@ -1158,47 +1157,7 @@ END;
 END.
 {
  $Log$
- Revision 1.24  2004-11-04 20:57:58  peter
- sysmsgs is always available
-
- Revision 1.23  2004/11/03 20:33:05  peter
-   * removed unnecesasry graphfv stuff
-
- Revision 1.22  2002/09/22 19:42:52  hajny
-   + FPC/2 support added
-
- Revision 1.21  2002/09/09 08:04:05  pierre
-  * remove all warnings about far
-
- Revision 1.20  2002/09/07 15:06:35  peter
-   * old logs removed and tabs fixed
-
- Revision 1.19  2002/08/22 13:39:29  pierre
-  * Postpone InitDesktop to set the correct size
-
- Revision 1.18  2002/06/07 14:12:21  pierre
-  * try to get resizing to work
-
- Revision 1.17  2002/06/06 20:34:19  pierre
-  + also check for system events
-
- Revision 1.16  2002/05/25 23:24:29  pierre
-  * add DoneResource to fix memory leak
-
- Revision 1.15  2002/05/23 07:30:33  pierre
-  * fix problem in InitScreen
+ Revision 1.25  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     12 Dec 96   First multi platform release       }
-{  1.10     12 Sep 97   FPK pascal 0.92 conversion added.  }
-{  1.20     29 Aug 97   Platform.inc sort added.           }
-{  1.30     05 May 98   Virtual pascal 2.0 code added.     }
-{  1.40     22 Oct 99   Object registration added.         }
-{  1.50     22 Oct 99   Complete recheck preformed         }
-{  1.51     03 Nov 99   FPC Windows support added          }
-{  1.60     26 Nov 99   Graphics stuff moved to GFVGraph   }
-
-

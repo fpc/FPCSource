@@ -323,17 +323,7 @@ end;
 END.
 {
  $Log$
- Revision 1.4  2004-11-03 20:33:05  peter
-   * removed unnecesasry graphfv stuff
-
- Revision 1.3  2002/05/30 22:23:15  pierre
-  * current char color changed
-
- Revision 1.2  2002/05/30 14:52:53  pierre
-  * some more fixes
-
- Revision 1.1  2002/05/29 22:14:53  pierre
-  Newfile
-
+ Revision 1.5  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

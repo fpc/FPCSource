@@ -1059,13 +1059,7 @@ END.
 
 {
  $Log$
- Revision 1.8  2002-10-17 11:24:17  pierre
-  * Clean up the Load/Store routines so they are endian independent
-
- Revision 1.7  2002/09/09 08:14:48  pierre
-  * remove virtual modifer from store methods
-
- Revision 1.6  2002/09/07 15:06:38  peter
-   * old logs removed and tabs fixed
+ Revision 1.9  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

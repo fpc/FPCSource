@@ -626,13 +626,7 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2002-09-07 15:06:36  peter
-    * old logs removed and tabs fixed
-
-  Revision 1.4  2002/05/21 12:21:53  pierre
-   * fix various graphic problems
-
-  Revision 1.3  2002/05/21 12:00:49  pierre
-   + cmResizeApp added
+  Revision 1.6  2004-11-06 17:08:48  peter
+    * drawing of tview merged from old fv code
 
 }

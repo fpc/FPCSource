@@ -115,7 +115,7 @@ TYPE
       constructor InitKb(var Bounds: TRect);
       constructor InitMb(var Bounds: TRect);
       PROCEDURE Update;
-      PROCEDURE DrawBackGround; Virtual;
+      PROCEDURE Draw; Virtual;
       Function  Comma ( N : LongInt ) : String;
    END;
    PHeapView = ^THeapView;                            { Heapview pointer }
@@ -132,7 +132,7 @@ TYPE
       CONSTRUCTOR Init (Var Bounds: TRect);
       FUNCTION FormatTimeStr (H, M, S: Word): String; Virtual;
       PROCEDURE Update; Virtual;
-      PROCEDURE DrawBackGround; Virtual;
+      PROCEDURE Draw; Virtual;
    END;
    PClockView = ^TClockView;                          { Clockview ptr }
 
@@ -183,16 +183,18 @@ PROCEDURE THeapView.Update;
 BEGIN
    If (OldMem <> MemAvail) Then Begin                 { Memory differs }
      OldMem := MemAvail;                              { Hold memory avail }
-     SetDrawMask(vdBackGnd OR vdInner);               { Set draw masks }
      DrawView;                                        { Now redraw }
    End;
 END;
 
 {--THeapView----------------------------------------------------------------}
-{  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB    }
+{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE THeapView.DrawBackGround;
-VAR HOfs: Integer; S: String;
+PROCEDURE THeapView.Draw;
+VAR
+  C : Byte;
+  S : String;
+  B : TDrawBuffer;
 begin
   case mode of
     HVNormal :
@@ -210,11 +212,10 @@ begin
         S:=S+'M';
       end;
   end;
-  HOfs := ColourOfs;                                 { Hold any offset }
-  ColourOfs := 2;                                    { Set colour offset }
-  Inherited DrawBackGround;                          { Clear the backgound }
-  ColourOfs := HOfs;                                 { Reset any offset }
-  WriteStr(-(Size.X-TextWidth(S)), 0, S, 2);    { Write the string }
+  C:=GetColor(2);
+  MoveChar(B,' ',C,Size.X);
+  MoveStr(B,S,C);
+  WriteLine(0,0,Size.X,1,B);
 END;
 
 Function THeapView.Comma ( n : LongInt) : String;
@@ -282,7 +283,6 @@ BEGIN
    If (Abs(Sec - LastTime) >= Refresh) Then Begin     { Refresh time elapsed }
      LastTime := Sec;                                 { Hold second }
      TimeStr := FormatTimeStr(Hour, Min, Sec);        { Create time string }
-     SetDrawMask(vdBackGnd OR vdInner);               { Set draw masks }
      DrawView;                                        { Now redraw }
    End;
 END;
@@ -290,23 +290,21 @@ END;
 {--TClockView---------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Nov99 LdB    }
 {---------------------------------------------------------------------------}
-PROCEDURE TClockView.DrawBackGround;
-VAR HOfs: Integer;
+PROCEDURE TClockView.Draw;
+VAR
+  C : Byte;
+  B : TDrawBuffer;
 BEGIN
-   HOfs := ColourOfs;                                 { Hold any offset }
-   ColourOfs := 2;                                    { Set colour offset }
-   Inherited DrawBackGround;                          { Clear the backgound }
-   ColourOfs := HOfs;                                 { Reset any offset }
-   WriteStr(0, 0, TimeStr, 2);                        { Write the string }
+  C:=GetColor(2);
+  MoveChar(B,' ',C,Size.X);
+  MoveStr(B,TimeStr,C);
+  WriteLine(0,0,Size.X,1,B);
 END;
 
 END.
 {
  $Log$
- Revision 1.6  2004-11-03 20:33:05  peter
-   * removed unnecesasry graphfv stuff
-
- Revision 1.5  2002/09/07 15:06:36  peter
-   * old logs removed and tabs fixed
+ Revision 1.7  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

@@ -146,14 +146,10 @@ CONST
 {---------------------------------------------------------------------------}
 CONST
    goThickFramed = $0001;                             { Thick framed mask }
-   goDrawFocus   = $0002;                             { Draw focus mask }
-   goTitled      = $0004;                             { Draw titled mask }
-   goTabSelect   = $0008;                             { Tab selectable }
-   goEveryKey    = $0020;                             { Report every key }
-   goEndModal    = $0040;                             { End modal }
-   goNoShadow    = $0080;                             { Do not write shadows }
+   goTabSelect   = $0002;                             { Tab selectable }
+   goEveryKey    = $0004;                             { Report every key }
+   goEndModal    = $0008;                             { End modal }
    goNativeClass = $4000;                             { Native class window }
-   goNoDrawView  = $8000;                             { View does not draw }
 
 {---------------------------------------------------------------------------}
 {                       >> NEW << TAB OPTION MASKS                          }
@@ -352,7 +348,6 @@ TYPE
    TView = OBJECT (TObject)
          GrowMode : Byte;                             { View grow mode }
          DragMode : Byte;                             { View drag mode }
-         DrawMask : Byte;                             { Draw masks }
          TabMask  : Byte;                             { Tab move masks }
          ColourOfs: Sw_Integer;                          { View palette offset }
          HelpCtx  : Word;                             { View help context }
@@ -383,6 +378,7 @@ TYPE
       FUNCTION GetHelpCtx: Word; Virtual;
       FUNCTION EventAvail: Boolean;
       FUNCTION GetPalette: PPalette; Virtual;
+      function MapColor (color:byte):byte;
       FUNCTION GetColor (Color: Word): Word;
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION GetState (AState: Word): Boolean;
@@ -400,27 +396,18 @@ TYPE
       PROCEDURE Awaken; Virtual;
       PROCEDURE DrawView;
       PROCEDURE MakeFirst;
-      PROCEDURE DrawFocus; Virtual;
       PROCEDURE DrawCursor; Virtual;
-      PROCEDURE DrawBorder; Virtual;
-      PROCEDURE DrawShadow; Virtual;
       PROCEDURE HideCursor;
       PROCEDURE ShowCursor;
       PROCEDURE BlockCursor;
       PROCEDURE NormalCursor;
       PROCEDURE FocusFromTop; Virtual;
-      PROCEDURE SetViewLimits;
-      PROCEDURE DrawBackGround; Virtual;
-      PROCEDURE ReleaseViewLimits;
       PROCEDURE MoveTo (X, Y: Sw_Integer);
       PROCEDURE GrowTo (X, Y: Sw_Integer);
-      PROCEDURE SetDrawMask (Mask: Byte);
       PROCEDURE EndModal (Command: Word); Virtual;
       PROCEDURE SetCursor (X, Y: Sw_Integer);
       PROCEDURE PutInFrontOf (Target: PView);
-      PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SetCommands (Commands: TCommandSet);
-      PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
       PROCEDURE EnableCommands (Commands: TCommandSet);
       PROCEDURE DisableCommands (Commands: TCommandSet);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -446,19 +433,25 @@ TYPE
       PROCEDURE CalcBounds (Var Bounds: TRect; Delta: TPoint); Virtual;
 
       FUNCTION Exposed: Boolean;   { This needs help!!!!! }
-      PROCEDURE ClearArea (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
       PROCEDURE WriteBuf (X, Y, W, H: Sw_Integer; Var Buf);
       PROCEDURE WriteLine (X, Y, W, H: Sw_Integer; Var Buf);
       PROCEDURE MakeLocal (Source: TPoint; Var Dest: TPoint);
       PROCEDURE MakeGlobal (Source: TPoint; Var Dest: TPoint);
       PROCEDURE WriteStr (X, Y: Sw_Integer; Str: String; Color: Byte);
-      PROCEDURE WriteCStr (X, Y: Sw_Integer; Str: String; Color1, Color2 : Byte);
       PROCEDURE WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
         Count: Sw_Integer);
       PROCEDURE DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
         MinSize, MaxSize: TPoint);
-      PROCEDURE WriteAbs(X, Y, L :Sw_Integer;var Buf);
-      PROCEDURE WriteShadow(X1, Y1, X2, Y2 : Sw_Integer);
+   private
+      procedure DrawHide(LastView: PView);
+      procedure DrawShow(LastView: PView);
+      procedure DrawUnderRect(var R: TRect; LastView: PView);
+      procedure DrawUnderView(DoShadow: Boolean; LastView: PView);
+      procedure do_WriteView(x1,x2,y:Sw_Integer; var Buf);
+      procedure do_WriteViewRec1(x1,x2:Sw_integer; p:PView; shadowCounter:Sw_integer);
+      procedure do_WriteViewRec2(x1,x2:Sw_integer; p:PView; shadowCounter:Sw_integer);
+      function  do_ExposedRec1(x1,x2:Sw_integer; p:PView):boolean;
+      function  do_ExposedRec2(x1,x2:Sw_integer; p:PView):boolean;
    END;
 
    SelectMode = (NormalSelect, EnterSelect, LeaveSelect);
@@ -484,21 +477,17 @@ TYPE
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       FUNCTION FocusNext (Forwards: Boolean): Boolean;
       PROCEDURE Draw; Virtual;
-      PROCEDURE DrawBackGround; Virtual;
       PROCEDURE Lock;
       PROCEDURE UnLock;
       PROCEDURE ResetCursor; Virtual;
       PROCEDURE Awaken; Virtual;
       PROCEDURE ReDraw;
-      PROCEDURE ReDrawArea (X1, Y1, X2, Y2: Sw_Integer); Virtual;
-      PROCEDURE ReDrawVisibleArea (X1, Y1, X2, Y2: Sw_Integer;Cur : PView);
       PROCEDURE SelectDefaultView;
       PROCEDURE Insert (P: PView);
       PROCEDURE Delete (P: PView);
       PROCEDURE ForEach (P: Pointer);
       { ForEach can't be virtual because it generates SIGSEGV }
       PROCEDURE EndModal (Command: Word); Virtual;
-      PROCEDURE DisplaceBy (Dx, Dy: Sw_Integer); Virtual;
       PROCEDURE SelectNext (Forwards: Boolean);
       PROCEDURE InsertBefore (P, Target: PView);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -510,6 +499,10 @@ TYPE
       PROCEDURE ChangeBounds (Var Bounds: TRect); Virtual;
       PROCEDURE GetSubViewPtr (Var S: TStream; Var P);
       PROCEDURE PutSubViewPtr (Var S: TStream; P: PView);
+      procedure BeforeInsert(P: PView); virtual;
+      procedure AfterInsert(P: PView); virtual;
+      procedure BeforeDelete(P: PView); virtual;
+      procedure AfterDelete(P: PView); virtual;
 
       PRIVATE
          LockFlag: Byte;
@@ -521,6 +514,7 @@ TYPE
       PROCEDURE RemoveView (P: PView);
       PROCEDURE InsertView (P, Target: PView);
       PROCEDURE SetCurrent (P: PView; Mode: SelectMode);
+      procedure DrawSubViews(P, Bottom: PView);
    END;
 
 {---------------------------------------------------------------------------}
@@ -530,6 +524,12 @@ TYPE
    TFrame = OBJECT (TView)
       CONSTRUCTOR Init (Var Bounds: TRect);
       FUNCTION GetPalette: PPalette; Virtual;
+      procedure Draw; virtual;
+      procedure HandleEvent(var Event: TEvent); virtual;
+      procedure SetState(AState: Word; Enable: Boolean); virtual;
+   private
+      FrameMode: Word;
+      procedure FrameLine(var FrameBuf; Y, N: Sw_Integer; Color: Byte);
    END;
    PFrame = ^TFrame;
 
@@ -552,7 +552,6 @@ TYPE
       FUNCTION ScrollStep (Part: Sw_Integer): Sw_Integer; Virtual;
       PROCEDURE Draw; Virtual;
       PROCEDURE ScrollDraw;                                          Virtual;
-      PROCEDURE DrawBackGround;                                      Virtual;
       PROCEDURE SetValue (AValue: Sw_Integer);
       PROCEDURE SetRange (AMin, AMax: Sw_Integer);
       PROCEDURE SetStep (APgStep, AArStep: Sw_Integer);
@@ -564,7 +563,6 @@ TYPE
       FUNCTION GetPos: Sw_Integer;
       FUNCTION GetSize: Sw_Integer;
       PROCEDURE DrawPos (Pos: Sw_Integer);
-      PROCEDURE ClearPos (Pos: Sw_Integer);
    END;
    PScrollBar = ^TScrollBar;
 
@@ -611,9 +609,7 @@ TYPE
       FUNCTION GetPalette: PPalette; Virtual;
       FUNCTION IsSelected (Item: Sw_Integer): Boolean; Virtual;
       FUNCTION GetText (Item: Sw_Integer; MaxLen: Sw_Integer): String; Virtual;
-      PROCEDURE DrawFocus; Virtual;
-      PROCEDURE DrawLoseFocus; Virtual;
-      PROCEDURE DrawBackGround; Virtual;
+      PROCEDURE Draw; Virtual;
       PROCEDURE FocusItem (Item: Sw_Integer); Virtual;
       PROCEDURE SetTopItem (Item: Sw_Integer);
       PROCEDURE SetRange (ARange: Sw_Integer);
@@ -646,8 +642,6 @@ TYPE
       PROCEDURE Zoom; Virtual;
       PROCEDURE Close; Virtual;
       PROCEDURE InitFrame; Virtual;
-      PROCEDURE DrawBorder; Virtual;
-      PROCEDURE ReDraw; Virtual;
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
@@ -867,7 +861,23 @@ CONST
    CurCommandSet: TCommandSet = ([0..255] -
      [cmZoom, cmClose, cmResize, cmNext, cmPrev]);    { All active but these }
 
-   vdInSetCursor = $80;                               { AVOID RECURSION IN SetCursor }
+  vdInSetCursor  = $80;                               { AVOID RECURSION IN SetCursor }
+
+  { Flags for TFrame }
+  fmCloseClicked = $01;
+  fmZoomClicked  = $02;
+
+
+type
+  TstatVar2 = record
+    target : PView;
+    offset,y : integer;
+  end;
+
+var
+  staticVar1 : PDrawBuffer;
+  staticVar2 : TstatVar2;
+
 
 {***************************************************************************}
 {                          PRIVATE INTERNAL ROUTINES                        }
@@ -1147,6 +1157,43 @@ BEGIN
 END;
 
 {--TView--------------------------------------------------------------------}
+{  MapColor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB          }
+{---------------------------------------------------------------------------}
+function TView.MapColor(color:byte):byte;
+var
+  cur : PView;
+  p   : PPalette;
+begin
+  if color=0 then
+   MapColor:=errorAttr
+  else
+   begin
+     cur:=@Self;
+     repeat
+       p:=cur^.GetPalette;
+       if (p<>Nil) then
+        if ord(p^[0])<>0 then
+         begin
+           if color>ord(p^[0]) then
+            begin
+              MapColor:=errorAttr;
+              Exit;
+            end;
+           color:=ord(p^[color]);
+           if color=0 then
+            begin
+              MapColor:=errorAttr;
+              Exit;
+            end;
+         end;
+       cur:=cur^.Owner;
+     until (cur=Nil);
+     MapColor:=color;
+   end;
+end;
+
+
+{--TView--------------------------------------------------------------------}
 {  GetColor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Jul99 LdB          }
 {---------------------------------------------------------------------------}
 FUNCTION TView.GetColor (Color: Word): Word;
@@ -1327,15 +1374,13 @@ begin
    begin
      p:=@Self;
      cur:=cursor;
-     { in FVISION origin is always relative to screen corner
-       for inserted views PM }
-     inc(cur.X,p^.origin.X);
-     inc(cur.Y,p^.origin.Y);
      while true do
       begin
-        if (cur.x<p^.origin.x) or (cur.x>=p^.origin.x+p^.size.x) or
-           (cur.y<p^.origin.y) or (cur.y>=p^.origin.y+p^.size.y) then
+        if (cur.x<0) or (cur.x>=p^.size.x) or
+           (cur.y<0) or (cur.y>=p^.size.y) then
           break;
+        inc(cur.X,p^.origin.X);
+        inc(cur.Y,p^.origin.Y);
         p2:=p;
         G:=p^.owner;
         if G=Nil then { top view }
@@ -1376,87 +1421,6 @@ PROCEDURE TView.Awaken;
 BEGIN                                                 { Abstract method }
 END;
 
-{--TView--------------------------------------------------------------------}
-{  DrawView -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06May98 LdB          }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.DrawView;
-VAR ViewPort: ViewPortType;                           { Common variables }
-    Parent : PGroup;
-BEGIN
-   If (State AND sfVisible <> 0) AND                  { View is visible }
-   (State AND sfExposed <> 0) AND                     { View is exposed }
-   (State AND sfIconised = 0) Then Begin              { View not iconised }
-     SetViewLimits;                                   { Set view limits }
-     GetViewSettings(ViewPort);          { Get set viewport }
-     If OverlapsArea(ViewPort.X1, ViewPort.Y1,
-                     ViewPort.X2, ViewPort.Y2) Then
-      Begin             { Must be in area }
-         Parent:=Owner;
-         While Assigned(Parent) do Begin
-           If (Parent^.LockFlag>0) then
-             Begin
-               If (DrawMask = 0) OR (DrawMask = vdNoChild)  then
-                 SetDrawMask(vdAll);
-               ReleaseViewLimits;
-               exit;
-             End;
-           Parent:=Parent^.Owner;
-         End;
-         LockScreenUpdate;                            { don't update the screen yet }
-         HideMouseCursor;                             { Hide mouse cursor }
-         If (DrawMask = 0) OR (DrawMask = vdNoChild)  { No special masks set }
-            { OR Assigned(LimitsLocked) }
-         Then Begin                                   { Treat as a full redraw }
-           DrawBackGround;                            { Draw background }
-           If (GOptions AND goDrawFocus <> 0) Then
-             DrawFocus;                               { Draw focus }
-           If (Options AND ofFramed <> 0) OR
-           (GOptions AND goThickFramed <> 0)          { View has border }
-             Then DrawBorder;                         { Draw border }
-           If ((State AND sfShadow) <> 0) AND
-              (GOptions And goNoShadow = 0) Then
-             DrawShadow;
-           Draw;                                      { Draw interior }
-         End Else Begin                               { Masked draws only  }
-           If (DrawMask AND vdBackGnd <> 0) Then      { Chk background mask }
-             Begin
-               DrawMask := DrawMask and Not vdBackGnd;
-               DrawBackGround;                          { Draw background }
-             end;
-           If (DrawMask AND vdFocus <> 0)
-           AND (GOptions AND goDrawFocus <> 0) then
-             Begin
-               DrawMask := DrawMask and Not vdFocus;
-               DrawFocus;                          { Check focus mask }
-             End;
-           If (DrawMask AND vdBorder <> 0) Then       { Check border mask }
-             Begin
-               DrawMask := DrawMask and Not vdBorder;
-               DrawBorder;                              { Draw border }
-             End;
-           If (DrawMask AND vdInner <> 0) Then        { Check Inner mask }
-             Begin
-               DrawMask := DrawMask and Not vdInner;
-               Draw;                                    { Draw interior }
-             End;
-           If ((State AND sfShadow) <> 0) AND
-              (DrawMask AND vdShadow <> 0) AND
-              (GOptions And goNoShadow = 0) AND
-              (not assigned(Owner) OR (Owner^.GOptions And goNoShadow = 0)) Then
-             Begin
-               DrawMask := DrawMask and Not vdShadow;
-               DrawShadow;
-             End;
-         End;
-      end;
-     ShowMouseCursor;                             { Show mouse cursor }
-     UnlockScreenUpdate;
-     DrawScreenBuf;
-     TView.DrawCursor;
-     ReleaseViewLimits;                               { Release the limits }
-   End;
-   DrawMask := 0;                                     { Clear the draw mask }
-END;
 
 {--TView--------------------------------------------------------------------}
 {  MakeFirst -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 29Sep99 LdB         }
@@ -1469,20 +1433,6 @@ BEGIN
 END;
 
 {--TView--------------------------------------------------------------------}
-{  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB         }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.DrawFocus;
-BEGIN                                                 { Abstract method }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  DrawBorder -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB         }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.DrawBorder;
-BEGIN                                                 { Abstract method }
-END;
-
-{--TView--------------------------------------------------------------------}
 {  DrawCursor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.DrawCursor;
@@ -1492,36 +1442,55 @@ BEGIN                                                 { Abstract method }
 END;
 
 
-PROCEDURE TView.DrawShadow;
-VAR X1, Y1, X2, Y2 : Sw_Integer;
-BEGIN
-{$ifdef DEBUG}
-   if WriteDebugInfo then
-     Begin
-       Writeln(stderr,'TView(',hexstr(longint(@self),8),')');
-       Writeln(stderr,'Object Type(',hexstr(plongint(@self)^,8),')');
-       Writeln(stderr,'DrawShadow');
-     End;
-{$endif DEBUG}
-  If Assigned(Owner) Then Begin
-    X1:=Origin.X+Size.X;
-    X2:=Origin.X+Size.X+ShadowSize.X;
-    Y1:=Origin.Y+ShadowSize.Y;
-    Y2:=Origin.Y+Size.Y+ShadowSize.Y;
-    GOptions := GOptions OR goNoShadow;
-    Owner^.GOptions := Owner^.GOptions OR goNoShadow;
-    Owner^.RedrawArea(X1,Y1,X2,Y2);
-    WriteShadow(X1,Y1,X2,Y2);
-    X1:=Origin.X+ShadowSize.X;
-    X2:=Origin.X+Size.X;
-    Y1:=Origin.Y+Size.Y;
-    Y2:=Origin.Y+Size.Y+ShadowSize.Y;
-    Owner^.RedrawArea(X1,Y1,X2,Y2);
-    WriteShadow(X1,Y1,X2,Y2);
-    GOptions := GOptions AND not goNoShadow;
-    Owner^.GOptions := Owner^.GOptions AND not goNoShadow;
-  End;
-END;
+procedure TView.DrawHide(LastView: PView);
+begin
+  TView.DrawCursor;
+  DrawUnderView(State and sfShadow <> 0, LastView);
+end;
+
+
+procedure TView.DrawShow(LastView: PView);
+begin
+  DrawView;
+  if State and sfShadow <> 0 then
+   DrawUnderView(True, LastView);
+end;
+
+
+procedure TView.DrawUnderRect(var R: TRect; LastView: PView);
+begin
+  Owner^.Clip.Intersect(R);
+  Owner^.DrawSubViews(NextView, LastView);
+  Owner^.GetExtent(Owner^.Clip);
+end;
+
+
+procedure TView.DrawUnderView(DoShadow: Boolean; LastView: PView);
+var
+  R: TRect;
+begin
+  GetBounds(R);
+  if DoShadow then
+   begin
+     inc(R.B.X,ShadowSize.X);
+     inc(R.B.Y,ShadowSize.Y);
+   end;
+  DrawUnderRect(R, LastView);
+end;
+
+
+procedure TView.DrawView;
+begin
+  if Exposed then
+   begin
+     LockScreenUpdate; { don't update the screen yet }
+     Draw;
+     UnLockScreenUpdate;
+     DrawScreenBuf;
+     TView.DrawCursor;
+   end;
+end;
+
 
 {--TView--------------------------------------------------------------------}
 {  HideCursor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB        }
@@ -1568,108 +1537,6 @@ BEGIN
 END;
 
 {--TView--------------------------------------------------------------------}
-{  SetViewLimits -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Sep99 LdB     }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.SetViewLimits;
-VAR X1, Y1, X2, Y2: Sw_Integer; P: PGroup; ViewPort: ViewPortType; Ca: PComplexArea;
-BEGIN
-{$ifndef PPC_FPC}
-   If (MaxAvail >= SizeOf(TComplexArea)) Then
-{$endif}
-    Begin   { Check enough memory }
-     GetMem(Ca, SizeOf(TComplexArea));                { Allocate memory }
-     GetViewSettings(ViewPort);          { Fetch view port }
-     Ca^.X1 := ViewPort.X1;                           { Hold current X1 }
-     Ca^.Y1 := ViewPort.Y1;                           { Hold current Y1 }
-     Ca^.X2 := ViewPort.X2;                           { Hold current X2 }
-     Ca^.Y2 := ViewPort.Y2;                           { Hold current Y2 }
-     Ca^.NextArea := HoldLimit;                       { Pointer to next }
-     HoldLimit := Ca;                                 { Move down chain }
-     X1 := Origin.X;                               { Xfer x raw origin }
-     Y1 := Origin.Y;                               { Xfer y raw origin }
-     X2 := X1 + Size.X;                            { Calc right value }
-     Y2 := Y1 + Size.Y;                            { Calc lower value }
-     P := Owner;                                      { Start on owner }
-     While (P <> Nil) Do Begin                        { While owner valid }
-      If (X1 < P^.Origin.X) Then
-         X1 := P^.Origin.X;                        { X minimum contain }
-       If (Y1 < P^.Origin.Y) Then
-         Y1 := P^.Origin.Y;                        { Y minimum contain }
-       If (X2 > P^.Origin.X + P^.Size.X)
-         Then X2 := P^.Origin.X + P^.Size.X;    { X maximum contain }
-       If (Y2 > P^.Origin.Y + P^.Size.Y)
-         Then Y2 := P^.Origin.Y + P^.Size.Y;    { Y maximum contain }
-       P := P^.Owner;                                 { Move to owners owner }
-     End;
-
-     If (LimitsLocked <> Nil) Then Begin              { Locked = area redraw }
-       If (X2 < ViewPort.X1) Then Exit;               { View left of locked }
-       If (X1 > ViewPort.X2) Then Exit;               { View right of locked }
-       If (Y2 < ViewPort.Y1) Then Exit;               { View above locked }
-       If (Y1 > ViewPort.Y2) Then Exit;               { View below locked }
-       If (X1 < ViewPort.X1) Then X1 := ViewPort.X1;  { Adjust x1 to locked }
-       If (Y1 < ViewPort.Y1) Then Y1 := ViewPort.Y1;  { Adjust y1 to locked }
-       If (X2 > ViewPort.X2) Then X2 := ViewPort.X2;  { Adjust x2 to locked }
-       If (Y2 > ViewPort.Y2) Then Y2 := ViewPort.Y2;  { Adjust y2 to locked }
-     End;
-
-     SetViewPort(X1, Y1, X2, Y2, true);{ Set new clip limits }
-   End;
-END;
-
-{--TView--------------------------------------------------------------------}
-{  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 21Sep99 LdB    }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.DrawBackGround;
-VAR Bc: Byte; X1, Y1, X2, Y2: Sw_Integer; ViewPort: ViewPortType;
-    X, Y: Sw_Integer;
-    Buf : TDrawBuffer;
-BEGIN
-   If (GOptions AND goNoDrawView = 0) Then Begin      { Non draw views exit }
-     If (State AND sfDisabled = 0) Then
-       Bc := GetColor(1) AND $F0 SHR 4 Else           { Select back colour }
-       Bc := GetColor(4) AND $F0 SHR 4;               { Disabled back colour }
-     GetViewSettings(ViewPort);          { Get view settings }
-   If (ViewPort.X1 <= Origin.X) Then
-     X1 := Origin.X     { Right to left edge }
-     Else X1 := ViewPort.X1;            { Offset from left }
-   If (ViewPort.Y1 <= Origin.Y) Then
-     Y1 := Origin.Y     { Right to top edge }
-     Else Y1 := ViewPort.Y1;            { Offset from top }
-   If (ViewPort.X2 >= Origin.X+Size.X) Then
-     X2 := Origin.X + Size.X Else                           { Right to right edge }
-     X2 := ViewPort.X2;                 { Offset from right }
-   If (ViewPort.Y2 >= Origin.Y+Size.Y) Then
-     Y2 := Origin.Y + Size.Y Else                           { Right to bottom edge }
-     Y2 := ViewPort.Y2;                 { Offset from bottom }
-     If (State AND sfDisabled = 0) Then
-       Bc := GetColor(1) Else           { Select back colour }
-       Bc := GetColor(4);               { Disabled back colour }
-     For X := X1 To X2 Do Begin
-       Buf[X-X1]:=(Bc shl 8) or ord(BackgroundChar){not a directive,was $20};
-     End;
-     For Y := Y1 To Y2 Do Begin
-       WriteAbs(X1,Y, X2-X1, Buf);
-     End;
-     DrawScreenBuf;
-   End;
-END;
-
-{--TView--------------------------------------------------------------------}
-{  ReleaseViewLimits -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05May98 LdB }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.ReleaseViewLimits;
-VAR P: PComplexArea;
-BEGIN
-   P := HoldLimit;                                    { Transfer pointer }
-   If (P <> Nil) Then Begin                           { Valid complex area }
-     HoldLimit := P^.NextArea;                        { Move to prior area }
-     SetViewPort(P^.X1, P^.Y1, P^.X2, P^.Y2, true);
-     FreeMem(P, SizeOf(TComplexArea));                { Release memory }
-   End;
-END;
-
-{--TView--------------------------------------------------------------------}
 {  MoveTo -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.MoveTo (X, Y: Sw_Integer);
@@ -1691,22 +1558,6 @@ BEGIN
 END;
 
 {--TView--------------------------------------------------------------------}
-{  SetDrawMask -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Sep99 LdB       }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.SetDrawMask (Mask: Byte);
-BEGIN
-   If (Options AND ofFramed = 0) AND                  { Check for no frame }
-     (GOptions AND goThickFramed = 0) AND             { Check no thick frame }
-     (GOptions AND goTitled = 0) Then                 { Check for title }
-       Mask := Mask AND NOT vdBorder;                 { Clear border draw }
-   If (State AND sfCursorVis = 0) Then                { Check for no cursor }
-     Mask := Mask AND NOT vdCursor;                   { Clear cursor draw }
-   If (GOptions AND goDrawFocus = 0) Then             { Check no focus draw }
-     Mask := Mask AND NOT vdFocus;                    { Clear focus draws }
-   DrawMask := DrawMask OR Mask;                      { Set draw masks }
-END;
-
-{--TView--------------------------------------------------------------------}
 {  EndModal -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.EndModal (Command: Word);
@@ -1723,8 +1574,7 @@ PROCEDURE TView.SetCursor (X, Y: Sw_Integer);
 BEGIN
    Cursor.X := X;                                     { New x position }
    Cursor.Y := Y;                                     { New y position }
-   If ((DrawMask and vdInSetCursor)=0) and (State AND sfCursorVis <> 0) Then
-     TView.DrawCursor
+   TView.DrawCursor
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1749,18 +1599,13 @@ BEGIN
        End;
        State := State AND NOT sfVisible;              { Temp stop drawing }
        If (LastView = Target) Then
-         If (Owner <> Nil) Then Owner^.ReDrawArea(
-           Origin.X, Origin.Y, Origin.X + Size.X,
-           Origin.Y + Size.Y);       { Redraw old area }
+         DrawHide(LastView);
        Owner^.Lock;
        Owner^.RemoveView(@Self);                      { Remove from list }
        Owner^.InsertView(@Self, Target);              { Insert into list }
        State := State OR sfVisible;                   { Allow drawing again }
        If (LastView <> Target) Then
-         Begin
-           SetDrawMask(vdAll);
-           DrawView;         { Draw the view now }
-         End;
+         DrawShow(LastView);
        If (Options AND ofSelectable <> 0) Then        { View is selectable }
          begin
            Owner^.ResetCurrent;  { Reset current }
@@ -1768,16 +1613,6 @@ BEGIN
          end;
        Owner^.Unlock;
      End;
-END;
-
-
-{--TView--------------------------------------------------------------------}
-{  DisplaceBy -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15May98 LdB        }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.DisplaceBy (Dx, Dy: Sw_Integer);
-BEGIN
-   Origin.X := Origin.X + Dx;                   { Displace raw x }
-   Origin.Y := Origin.Y + Dy;                   { Displace raw y }
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1788,35 +1623,6 @@ BEGIN
    CommandSetChanged := CommandSetChanged OR
      (CurCommandSet <> Commands);                     { Set change flag }
    CurCommandSet := Commands;                         { Set command set }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  ReDrawArea -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05May98 LdB        }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
-var
-  StoreDrawMask : Byte;
-VAR HLimit: PView; ViewPort: ViewPortType;
-BEGIN
-{$ifdef DEBUG}
-   if WriteDebugInfo then
-     Begin
-       Writeln(stderr,'TView(',hexstr(longint(@self),8),')');
-       Writeln(stderr,'Object Type(',hexstr(plongint(@self)^,8),')');
-       Writeln(stderr,'ReDrawArea(',X1,',',Y1,',',X2,',',Y2,')');
-     End;
-{$endif DEBUG}
-   GetViewSettings(ViewPort);            { Hold view port }
-   SetViewPort(X1, Y1, X2, Y2, true);  { Set new clip limits }
-   HLimit := LimitsLocked;                            { Hold lock limits }
-   LimitsLocked := @Self;                             { We are the lock view }
-   StoreDrawMask:=DrawMask;
-   DrawMask:=vdAll;
-   DrawView;                                          { Redraw the area }
-   DrawMask:=StoreDrawMask;
-   LimitsLocked := HLimit;                            { Release our lock }
-   SetViewPort(ViewPort.X1, ViewPort.Y1,
-     ViewPort.X2, ViewPort.Y2, true);  { Reset old limits }
 END;
 
 {--TView--------------------------------------------------------------------}
@@ -1843,55 +1649,43 @@ END;
 {  SetState -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 23Sep99 LdB          }
 {---------------------------------------------------------------------------}
 PROCEDURE TView.SetState (AState: Word; Enable: Boolean);
-VAR OldState, Command: Word;
-    ShouldDrawCursor,
-    ShouldDraw : Boolean;
-BEGIN
-   OldState := State;
-   If Enable Then State := State OR AState            { Set state mask }
-     Else State := State AND NOT AState;              { Clear state mask }
-   ShouldDraw:=false;
-   ShouldDrawCursor:=false;
-   If (AState AND sfVisible <> 0) Then Begin          { Visibilty change }
-     If (Owner <> Nil) AND                            { valid owner }
-     (Owner^.State AND sfExposed <> 0)                { If owner exposed }
-       Then SetState(sfExposed, Enable);              { Expose this view }
-     If Enable Then
-       ShouldDraw:=true
-     Else
-       If (Owner <> Nil) Then
-          Owner^.ReDrawArea(      { Owner valid }
-            Origin.X, Origin.Y,
-            Origin.X + Size.X + ShadowSize.X,
-            Origin.Y + Size.Y + ShadowSize.Y);         { Owner redraws area }
-     If (Options AND ofSelectable <> 0) Then          { View is selectable }
-       If (Owner <> Nil) Then
-         Owner^.ResetCurrent;    { Reset selected }
-     ShouldDrawCursor:=true;
-   End;
-   If (AState AND sfFocused <> 0) Then Begin          { Focus change }
-     If (Owner <> Nil) Then Begin                     { Owner valid }
-       If Enable Then Command := cmReceivedFocus      { View gaining focus }
-         Else Command := cmReleasedFocus;             { View losing focus }
-       Message(Owner, evBroadcast, Command, @Self);   { Send out message }
-       SetDrawMask(vdBorder);                           { Set border draw mask }
-       ShouldDraw:=true;
-     End;
-     If (GOptions AND goDrawFocus <> 0) AND
-        (((AState XOR OldState) AND sfFocused) <> 0) Then Begin    { Draw focus view }
-       SetDrawMask(vdFocus);                          { Set focus draw mask }
-       ShouldDraw:=true;
-     End;
-     ShouldDrawCursor:=true;
-   End;
-   If (AState AND (sfCursorVis + sfCursorIns) <> 0) and  { Change cursor state }
-      (OldState<>State) then
-     ShouldDrawCursor:=true;
-   If ShouldDraw then
-     DrawView;                                      { Redraw the border }
-   if ShouldDrawCursor Then
-     DrawCursor;
-END;
+var
+  Command: Word;
+begin
+  if Enable then
+    State := State or AState
+  else
+    State := State and not AState;
+  if Owner <> nil then
+    case AState of
+      sfVisible:
+        begin
+          if Owner^.State and sfExposed <> 0 then
+            SetState(sfExposed, Enable);
+          if Enable then
+            DrawShow(nil)
+          else
+            DrawHide(nil);
+          if Options and ofSelectable <> 0 then
+            Owner^.ResetCurrent;
+        end;
+      sfCursorVis,
+      sfCursorIns:
+        TView.DrawCursor;
+      sfShadow:
+        DrawUnderView(True, nil);
+      sfFocused:
+        begin
+          ResetCursor;
+          if Enable then
+            Command := cmReceivedFocus
+          else
+            Command := cmReleasedFocus;
+          Message(Owner, evBroadcast, Command, @Self);
+        end;
+    end;
+end;
+
 
 {--TView--------------------------------------------------------------------}
 {  SetCmdState -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB       }
@@ -1946,7 +1740,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TView.Locate (Var Bounds: TRect);
 VAR
-    X1, Y1, X2, Y2: Sw_Integer;
     Min, Max: TPoint; R: TRect;
 
    FUNCTION Range(Val, Min, Max: Sw_Integer): Sw_Integer;
@@ -1957,10 +1750,6 @@ VAR
    END;
 
 BEGIN
-   X1 := Origin.X;                                 { Current x origin }
-   Y1 := Origin.Y;                                 { Current y origin }
-   X2 := Origin.X + Size.X;                     { Current x size }
-   Y2 := Origin.Y + Size.Y;                     { Current y size }
    SizeLimits(Min, Max);                              { Get size limits }
    Bounds.B.X := Bounds.A.X + Range(Bounds.B.X -
      Bounds.A.X, Min.X, Max.X);                       { X bound limit }
@@ -1971,8 +1760,16 @@ BEGIN
      ChangeBounds(Bounds);                            { Change bounds }
      If (State AND sfVisible <> 0) AND                { View is visible }
      (State AND sfExposed <> 0) AND (Owner <> Nil)    { Check view exposed }
-       Then Owner^.ReDrawArea(X1, Y1, X2, Y2);        { Owner redraw }
-     DrawView;                                        { Redraw the view }
+       Then
+      begin
+        if State and sfShadow <> 0 then
+          begin
+            R.Union(Bounds);
+            Inc(R.B.X, ShadowSize.X);
+            Inc(R.B.Y, ShadowSize.Y);
+          end;
+        DrawUnderRect(R, nil);
+      end;
    End;
 END;
 
@@ -2021,54 +1818,18 @@ BEGIN
    Bounds.A := Origin;                                { Get first corner }
    Bounds.B.X := Origin.X + Size.X;                   { Calc corner x value }
    Bounds.B.Y := Origin.Y + Size.Y;                   { Calc corner y value }
-   If (Owner <> Nil) Then
-     Bounds.Move(-Owner^.Origin.X, -Owner^.Origin.Y); { Sub owner offset }
 END;
 
 {--TView--------------------------------------------------------------------}
 {  SetBounds -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 24Sep99 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE TView.SetBounds (Var Bounds: TRect);
-VAR D, COrigin: TPoint;
-BEGIN
-   { Remove shadow first }
-   if (State and (sfShadow or sfVisible or sfExposed) =
-        (sfShadow or sfVisible or sfExposed)) and
-      assigned(Owner) then
-     begin
-       State:= State and not sfShadow;
-       Owner^.ReDrawArea(Origin.X + Size.X, Origin.Y,
-         Origin.X + Size.X + ShadowSize.X,
-         Origin.Y + Size.Y + ShadowSize.Y);         { Owner redraws area }
-       Owner^.ReDrawArea(Origin.X, Origin.Y + Size.Y,
-         Origin.X + Size.X + ShadowSize.X,
-         Origin.Y + Size.Y + ShadowSize.Y);         { Owner redraws area }
-       State:= State or sfShadow;
-     end;
-   If (Bounds.B.X > 0) AND (Bounds.B.Y > 0) Then Begin      { Normal text view }
-     If (Owner <> Nil) Then Begin                     { Owner is valid }
-       COrigin.X := Origin.X - Owner^.Origin.X;       { Corrected x origin }
-       COrigin.Y := Origin.Y - Owner^.Origin.Y;       { Corrected y origin }
-       D.X := Bounds.A.X - COrigin.X;                 { X origin disp }
-       D.Y := Bounds.A.Y - COrigin.Y;                 { Y origin disp }
-       If ((D.X <> 0) OR (D.Y <> 0)) Then
-         DisplaceBy(D.X, D.Y);   { Offset the view }
-     End Else Origin := Bounds.A;                     { Hold as origin }
-     Size.X := Bounds.B.X-Bounds.A.X;                 { Hold view x size }
-     Size.Y := Bounds.B.Y-Bounds.A.Y;                 { Hold view y size }
-   End Else Begin                                     { Graphical co-ords }
-     If (Owner <> Nil) Then Begin                     { Owner is valid }
-       COrigin.X := Origin.X - Owner^.Origin.X; { Corrected x origin }
-       COrigin.Y := Origin.Y - Owner^.Origin.Y; { Corrected y origin }
-       D.X := Bounds.A.X - COrigin.X;                 { X origin disp }
-       D.Y := Bounds.A.Y - COrigin.Y;                 { Y origin disp }
-       If ((D.X <> 0) OR (D.Y <> 0)) Then
-         DisplaceBy(D.X, D.Y);                        { Offset the view }
-     End Else Origin := Bounds.A;                  { Hold as origin }
-     Size.X := Abs(Bounds.B.X) - Bounds.A.X;       { Set raw x size }
-     Size.Y := Abs(Bounds.B.Y) - Bounds.A.Y;       { Set raw y size }
-   End;
-END;
+procedure TView.SetBounds(var Bounds: TRect);
+begin
+  Origin := Bounds.A;                                { Get first corner }
+  Size := Bounds.B;                                 { Get second corner }
+  Dec(Size.X,Origin.X);
+  Dec(Size.Y,Origin.Y);
+end;
 
 {--TView--------------------------------------------------------------------}
 {  GetClipRect -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 12Sep97 LdB       }
@@ -2215,7 +1976,6 @@ CONSTRUCTOR TGroup.Init (Var Bounds: TRect);
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    Options := Options OR (ofSelectable + ofBuffered); { Set options }
-   GOptions := GOptions OR goNoDrawView;              { Non drawing view }
    GetExtent(Clip);                                   { Get clip extents }
    EventMask := $FFFF;                                { See all events }
    GOptions := GOptions OR goTabSelect;               { Set graphic options }
@@ -2430,96 +2190,25 @@ BEGIN
    If (P <> Nil) Then FocusNext := P^.Focus;          { Check next focus }
 END;
 
-{--TGroup-------------------------------------------------------------------}
-{  ReDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
-{---------------------------------------------------------------------------}
-PROCEDURE TGroup.ReDraw;
-VAR P: PView;
-BEGIN
-   If (DrawMask AND vdNoChild = 0) Then Begin         { No draw child clear }
-     P := Last;                                       { Start on Last }
-     While (P <> Nil) Do Begin
-       P^.DrawView;                                   { Redraw each subview }
-       P := P^.PrevView;                              { Move to prior view }
-     End;
-   End;
-END;
+
+procedure TGroup.DrawSubViews(P, Bottom: PView);
+begin
+  if P <> nil then
+   while P <> Bottom do
+    begin
+      P^.DrawView;
+      P := P^.NextView;
+    end;
+end;
+
 
 {--TGroup-------------------------------------------------------------------}
 {  ReDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 17Sep97 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE TGroup.ReDrawArea (X1, Y1, X2, Y2: Sw_Integer);
-VAR P: PView;
-BEGIN
-   { redraw this }
-   // inherited RedrawArea(X1,Y1,X2,Y2);
-   { This should do the whole job now }
-   If (DrawMask AND vdNoChild = 0) and
-      (State AND (sfExposed or sfVisible) = (sfExposed or sfVisible)) and
-      (X1<Origin.X+Size.X) and
-      (Y1<Origin.Y+Size.Y) and
-      (X2>=Origin.X) and                      { No need to parse childs for Shadows }
-      (Y2>=Origin.Y) Then                     { No draw child clear }
-   ReDrawVisibleArea(X1, Y1, X2, Y2,First); { Redraw each subview }
-END;
-
-PROCEDURE TGroup.ReDrawVisibleArea (X1, Y1, X2, Y2: Sw_Integer;Cur : PView);
-var
-  StoreDrawMask : Byte;
-VAR CurN: PView; ViewPort: ViewPortType;
-   x3,x4,y3,y4 : sw_integer;
-BEGIN
-   while(assigned(Cur) and ((Cur^.State and sfvisible)=0)) and (Cur<>Last) do
-       Cur:=Cur^.Next;
-
-   if not assigned(Cur) then
-     Begin
-       TView.ReDrawArea(x1,y1,x2,y2);
-       exit;
-     End;
-
-   x3:=Cur^.Origin.x;
-   x4:=x3+Cur^.Size.x;
-   y3:=Cur^.Origin.Y;
-   y4:=y3+Cur^.Size.Y;
-   { depending on relative positions of x1,x2,x3,x4
-     we should only draw subrectangles }
-   if cur=last then
-     CurN:=nil
-   else
-     curN:=Cur^.Next;
-   { number of possible cases :
-      x3<x1, x1<=x3<x2, x3>=x2 : 3 possibilities
-      total : 3^4: 81... }
-   if ((x3>=x2) or (x4<=x1) or (y3>=y2) or (y4<=y1)) or
-      (assigned(Cur) and ((Cur^.State and sfvisible)=0)) then
-     ReDrawVisibleArea(x1,y1,x2,y2,curn)
-   else
-     begin
-       if x3>x1 then
-         begin
-           ReDrawVisibleArea(x1,y1,x3,y2,curn);
-           x1:=x3;
-         end;
-       if x4<x2 then
-         begin
-           ReDrawVisibleArea(x4,y1,x2,y2,curn);
-           x2:=x4;
-         end;
-       if y3>y1 then
-         Begin
-           ReDrawVisibleArea(x1,y1,x2,y3,curn);
-           y1:=y3;
-         End;
-       if y4<y2 then
-         Begin
-           ReDrawVisibleArea(x1,y4,x2,y2,curn);
-           y2:=y4;
-         End;
-       if (x1<=x2) and (y1<=y2) then
-         Cur^.ReDrawArea(x1,y1,x2,y2);
-     end;
-END;
+procedure TGroup.Redraw;
+begin
+  DrawSubViews(First, nil);
+end;
 
 
 PROCEDURE TGroup.ResetCursor;
@@ -2554,21 +2243,6 @@ BEGIN
      WriteBuf(0,0,Size.X,Size.Y,Buffer);
 END;
 
-{--TGroup-------------------------------------------------------------------}
-{  DrawBackground                                                           }
-{---------------------------------------------------------------------------}
-PROCEDURE TGroup.DrawBackground;
-var
-   P : PView;
-BEGIN
-   Inherited DrawBackground;
-   P:=Last;
-     While (P <> Nil) Do Begin
-       If P^.Exposed then
-         P^.SetDrawMask(vdAll);                       { Redraw each exposed subview }
-       P := P^.PrevView;                              { Move to prior view }
-     End;
-END;
 
 {--TGroup-------------------------------------------------------------------}
 {  SelectDefaultView -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22Oct99 LdB }
@@ -2585,16 +2259,35 @@ BEGIN
    End;
 END;
 
+
+procedure TGroup.BeforeInsert(P: PView);
+begin
+  { abstract }
+end;
+
+procedure TGroup.AfterInsert(P: PView);
+begin
+  { abstract }
+end;
+
+procedure TGroup.BeforeDelete(P: PView);
+begin
+  { abstract }
+end;
+
+procedure TGroup.AfterDelete(P: PView);
+begin
+  { abstract }
+end;
+
 {--TGroup-------------------------------------------------------------------}
 {  Insert -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 29Sep99 LdB            }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.Insert (P: PView);
 BEGIN
-   If (P <> Nil) and assigned(P^.Owner) Then          { View is valid and already inserted }
-       P^.DisplaceBy(-P^.Owner^.Origin.X,-P^.Owner^.Origin.Y);               { Displace old view }
-   If (P <> Nil) Then                                 { View is valid }
-       P^.DisplaceBy(Origin.X,Origin.Y);                        { Displace old view }
-   InsertBefore(P, First);                            { Insert the view }
+  BeforeInsert(P);
+  InsertBefore(P, First);
+  AfterInsert(P);
 END;
 
 {--TGroup-------------------------------------------------------------------}
@@ -2603,15 +2296,15 @@ END;
 PROCEDURE TGroup.Delete (P: PView);
 VAR SaveState: Word;
 BEGIN
+   BeforeDelete(P);
    SaveState := P^.State;                             { Save state }
    P^.Hide;                                           { Hide the view }
    RemoveView(P);                                     { Remove the view }
    P^.Owner := Nil;                                   { Clear owner ptr }
    P^.Next := Nil;                                    { Clear next ptr }
-   { We need to recalculate correct position }
-   If (P <> Nil) Then                                 { View is valid }
-       P^.DisplaceBy(-Origin.X, -Origin.Y);                        { Displace old view }
-   If (SaveState AND sfVisible <> 0) Then P^.Show;    { Show view }
+   if SaveState and sfVisible <> 0 then
+     P^.Show;
+   AfterDelete(P);
 END;
 
 { ********************************* REMARK ******************************** }
@@ -2657,20 +2350,6 @@ BEGIN
 END;
 
 {--TGroup-------------------------------------------------------------------}
-{  DisplaceBy -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15May98 LdB        }
-{---------------------------------------------------------------------------}
-PROCEDURE TGroup.DisplaceBy (Dx, Dy: Sw_Integer);
-VAR P: PView;
-BEGIN
-   P := First;                                        { Get first view }
-   While (P <> Nil) Do Begin
-     P^.DisplaceBy(Dx, Dy);                           { Displace subviews }
-     P := P^.NextView;                                { Next view }
-   End;
-   Inherited DisplaceBy(Dx, Dy);                      { Call ancestor }
-END;
-
-{--TGroup-------------------------------------------------------------------}
 {  SelectNext -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 15Sep97 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.SelectNext (Forwards: Boolean);
@@ -2685,23 +2364,14 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TGroup.InsertBefore (P, Target: PView);
 VAR SaveState : Word;
-    I: Sw_integer;
 BEGIN
    If (P <> Nil) AND (P^.Owner = Nil) AND             { View valid }
    ((Target = Nil) OR (Target^.Owner = @Self))        { Target valid }
    Then Begin
-     If (P^.Options AND ofCenterX <> 0) Then Begin    { Centre on x axis }
-       I := Size.X; { Calc owner x size }
-       I := (I - P^.Size.X) DIV 2;    { Calc view offset }
-       I := I - P^.Origin.X;          { Subtract x origin }
-       P^.DisplaceBy(I, 0);                           { Displace the view }
-     End;
-     If (P^.Options AND ofCenterY <> 0) Then Begin    { Centre on y axis }
-       I := Size.Y;{ Calc owner y size }
-       I := (I - (P^.Size.Y)) DIV 2;   { Calc view offset }
-       I := I - (P^.Origin.Y);         { Subtract y origin }
-       P^.DisplaceBy(0, I);                           { Displace the view }
-     End;
+     If (P^.Options AND ofCenterX <> 0) Then     { Centre on x axis }
+       P^.Origin.X := (Size.X - P^.Size.X) div 2;
+     If (P^.Options AND ofCenterY <> 0) Then     { Centre on y axis }
+       P^.Origin.Y := (Size.Y - P^.Size.Y) div 2;
      SaveState := P^.State;                           { Save view state }
      P^.Hide;                                         { Make sure hidden }
      InsertView(P, Target);                           { Insert into list }
@@ -3055,6 +2725,174 @@ BEGIN
    EventMask := EventMask OR evBroadcast;             { See broadcasts }
 END;
 
+procedure TFrame.FrameLine(var FrameBuf; Y, N: Sw_Integer; Color: Byte);
+const
+  InitFrame: array[0..17] of Byte =
+    ($06, $0A, $0C, $05, $00, $05, $03, $0A, $09,
+     $16, $1A, $1C, $15, $00, $15, $13, $1A, $19);
+  FrameChars: array[0..31] of Char =
+    '   À ³ÚÃ ÙÄÁ¿´ÂÅ   È ºÉÇ ¼ÍÏ»¶Ñ ';
+var
+  FrameMask : array[0..MaxViewWidth-1] of Byte;
+  ColorMask : word;
+  i,j,k     : {Sw_  lo and hi are used !! }integer;
+  CurrView  : PView;
+begin
+  FrameMask[0]:=InitFrame[n];
+  FillChar(FrameMask[1],Size.X-2,InitFrame[n+1]);
+  FrameMask[Size.X-1]:=InitFrame[n+2];
+  CurrView:=Owner^.Last^.Next;
+  while (CurrView<>@Self) do
+   begin
+     if ((CurrView^.Options and ofFramed)<>0) and
+        ((CurrView^.State and sfVisible)<>0) then
+      begin
+        i:=Y-CurrView^.Origin.Y;
+        if (i<0) then
+         begin
+           inc(i);
+           if i=0 then
+            i:=$0a06
+           else
+            i:=0;
+         end
+        else
+         begin
+           if i<CurrView^.Size.Y then
+            i:=$0005
+           else
+            if i=CurrView^.Size.Y then
+             i:=$0a03
+           else
+            i:=0;
+         end;
+        if (i<>0) then
+         begin
+           j:=CurrView^.Origin.X;
+           k:=CurrView^.Size.X+j;
+           if j<1 then
+            j:=1;
+           if k>Size.X then
+            k:=Size.X;
+           if (k>j) then
+            begin
+              FrameMask[j-1]:=FrameMask[j-1] or lo(i);
+              i:=(lo(i) xor hi(i)) or (i and $ff00);
+              FrameMask[k]:=FrameMask[k] or lo(i);
+              if hi(i)<>0 then
+               begin
+                 dec(k,j);
+                 repeat
+                   FrameMask[j]:=FrameMask[j] or hi(i);
+                   inc(j);
+                   dec(k);
+                 until k=0;
+               end;
+            end;
+         end;
+      end;
+     CurrView:=CurrView^.Next;
+   end;
+  ColorMask:=Color shl 8;
+  for i:=0 to Size.X-1 do
+    TVideoBuf(FrameBuf)[i]:=ord(FrameChars[FrameMask[i]]) or ColorMask;
+end;
+
+
+procedure TFrame.Draw;
+const
+  LargeC:array[boolean] of char=('^',#24);
+  RestoreC:array[boolean] of char=('|',#18);
+  ClickC:array[boolean] of char=('*',#15);
+var
+  CFrame, CTitle: Word;
+  F, I, L, Width: Sw_Integer;
+  B: TDrawBuffer;
+  Title: TTitleStr;
+  Min, Max: TPoint;
+begin
+  if State and sfDragging <> 0 then
+   begin
+     CFrame := $0505;
+     CTitle := $0005;
+     F := 0;
+   end
+  else if State and sfActive = 0 then
+   begin
+     CFrame := $0101;
+     CTitle := $0002;
+     F := 0;
+   end
+  else
+   begin
+     CFrame := $0503;
+     CTitle := $0004;
+     F := 9;
+   end;
+  CFrame := GetColor(CFrame);
+  CTitle := GetColor(CTitle);
+  Width := Size.X;
+  L := Width - 10;
+  if PWindow(Owner)^.Flags and (wfClose+wfZoom) <> 0 then
+   Dec(L,6);
+  FrameLine(B, 0, F, Byte(CFrame));
+  if (PWindow(Owner)^.Number <> wnNoNumber) and
+     (PWindow(Owner)^.Number < 10) then
+   begin
+     Dec(L,4);
+     if PWindow(Owner)^.Flags and wfZoom <> 0 then
+      I := 7
+     else
+      I := 3;
+     WordRec(B[Width - I]).Lo := PWindow(Owner)^.Number + $30;
+   end;
+  if Owner <> nil then
+   Title := PWindow(Owner)^.GetTitle(L)
+  else
+   Title := '';
+  if Title <> '' then
+   begin
+     L := Length(Title);
+     if L > Width - 10 then
+      L := Width - 10;
+     if L < 0 then
+      L := 0;
+     I := (Width - L) shr 1;
+     MoveChar(B[I - 1], ' ', CTitle, 1);
+     MoveBuf(B[I], Title[1], CTitle, L);
+     MoveChar(B[I + L], ' ', CTitle, 1);
+   end;
+  if State and sfActive <> 0 then
+  begin
+    if PWindow(Owner)^.Flags and wfClose <> 0 then
+      if FrameMode and fmCloseClicked = 0 then
+        MoveCStr(B[2], '[~þ~]', CFrame)
+      else
+        MoveCStr(B[2], '[~'+ClickC[LowAscii]+'~]', CFrame);
+    if PWindow(Owner)^.Flags and wfZoom <> 0 then
+    begin
+      MoveCStr(B[Width - 5], '[~'+LargeC[LowAscii]+'~]', CFrame);
+      Owner^.SizeLimits(Min, Max);
+      if FrameMode and fmZoomClicked <> 0 then
+        WordRec(B[Width - 4]).Lo := ord(ClickC[LowAscii])
+      else
+        if (Owner^.Size.X=Max.X) and (Owner^.Size.Y=Max.Y) then
+          WordRec(B[Width - 4]).Lo := ord(RestoreC[LowAscii]);
+    end;
+  end;
+  WriteLine(0, 0, Size.X, 1, B);
+  for I := 1 to Size.Y - 2 do
+  begin
+    FrameLine(B, I, F + 3, Byte(CFrame));
+    WriteLine(0, I, Size.X, 1, B);
+  end;
+  FrameLine(B, Size.Y - 1, F + 6, Byte(CFrame));
+  if State and sfActive <> 0 then
+    if PWindow(Owner)^.Flags and wfGrow <> 0 then
+      MoveCStr(B[Width - 2], '~ÄÙ~', CFrame);
+  WriteLine(0, Size.Y - 1, Size.X, 1, B);
+end;
+
 {--TFrame-------------------------------------------------------------------}
 {  GetPalette -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jul99 LdB        }
 {---------------------------------------------------------------------------}
@@ -3063,6 +2901,93 @@ CONST P: String[Length(CFrame)] = CFrame;             { Always normal string }
 BEGIN
    GetPalette := @P;                                  { Return palette }
 END;
+
+procedure TFrame.HandleEvent(var Event: TEvent);
+var
+  Mouse: TPoint;
+
+  procedure DragWindow(Mode: Byte);
+  var
+    Limits: TRect;
+    Min, Max: TPoint;
+  begin
+    Owner^.Owner^.GetExtent(Limits);
+    Owner^.SizeLimits(Min, Max);
+    Owner^.DragView(Event, Owner^.DragMode or Mode, Limits, Min, Max);
+    ClearEvent(Event);
+  end;
+
+begin
+  TView.HandleEvent(Event);
+  if Event.What = evMouseDown then
+  begin
+    MakeLocal(Event.Where, Mouse);
+    if Mouse.Y = 0 then
+    begin
+      if (PWindow(Owner)^.Flags and wfClose <> 0) and
+        (State and sfActive <> 0) and (Mouse.X >= 2) and (Mouse.X <= 4) then
+      begin
+        repeat
+          MakeLocal(Event.Where, Mouse);
+          if (Mouse.X >= 2) and (Mouse.X <= 4) and (Mouse.Y = 0) then
+            FrameMode := fmCloseClicked
+          else FrameMode := 0;
+          DrawView;
+        until not MouseEvent(Event, evMouseMove + evMouseAuto);
+        FrameMode := 0;
+        if (Mouse.X >= 2) and (Mouse.X <= 4) and (Mouse.Y = 0) then
+        begin
+          Event.What := evCommand;
+          Event.Command := cmClose;
+          Event.InfoPtr := Owner;
+          PutEvent(Event);
+        end;
+        ClearEvent(Event);
+        DrawView;
+      end else
+        if (PWindow(Owner)^.Flags and wfZoom <> 0) and
+          (State and sfActive <> 0) and (Event.Double or
+          (Mouse.X >= Size.X - 5) and
+          (Mouse.X <= Size.X - 3)) then
+        begin
+          if not Event.Double then
+            repeat
+              MakeLocal(Event.Where, Mouse);
+              if (Mouse.X >= Size.X - 5) and (Mouse.X <= Size.X - 3) and
+                (Mouse.Y = 0) then
+                FrameMode := fmZoomClicked
+              else FrameMode := 0;
+              DrawView;
+            until not MouseEvent(Event, evMouseMove + evMouseAuto);
+          FrameMode := 0;
+          if ((Mouse.X >= Size.X - 5) and (Mouse.X <= Size.X - 3) and
+              (Mouse.Y = 0)) or Event.Double then
+          begin
+            Event.What := evCommand;
+            Event.Command := cmZoom;
+            Event.InfoPtr := Owner;
+            PutEvent(Event);
+          end;
+          ClearEvent(Event);
+          DrawView;
+        end else
+          if PWindow(Owner)^.Flags and wfMove <> 0 then
+            DragWindow(dmDragMove);
+    end else
+      if (State and sfActive <> 0) and (Mouse.X >= Size.X - 2) and
+          (Mouse.Y >= Size.Y - 1) then
+        if PWindow(Owner)^.Flags and wfGrow <> 0 then
+          DragWindow(dmDragGrow);
+  end;
+end;
+
+
+procedure TFrame.SetState(AState: Word; Enable: Boolean);
+begin
+  TView.SetState(AState, Enable);
+  if AState and (sfActive + sfDragging) <> 0 then
+   DrawView;
+end;
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                         TScrollBar OBJECT METHODS                         }
@@ -3131,15 +3056,6 @@ BEGIN
 END;
 
 {--TScrollBar---------------------------------------------------------------}
-{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB              }
-{---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.Draw;
-BEGIN
-   If (GOptions AND goNativeClass = 0) Then
-     DrawPos(GetPos);                                 { Draw position }
-END;
-
-{--TScrollBar---------------------------------------------------------------}
 {  ScrollDraw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB        }
 {---------------------------------------------------------------------------}
 PROCEDURE TScrollBar.ScrollDraw;
@@ -3154,28 +3070,6 @@ BEGIN
      Id, Value, @Self);                               { Old TV style message }
 END;
 
-{--TScrollBar---------------------------------------------------------------}
-{  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 22May98 LdB    }
-{---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.DrawBackGround;
-VAR Bc: Byte;
-    I : Longint;
-    B : TDrawBuffer;
-BEGIN
-   If (GOptions AND goNativeClass = 0) Then Begin     { Non natives draw }
-     Inherited DrawBackGround;                        { Call ancestor }
-     Bc := GetColor(1) AND $F0 SHR 4;                 { Background colour }
-     WriteChar(0,0,Chars[0],Bc,1);
-     If (Size.X = 1) Then Begin                         { Vertical scrollbar }
-       For i:=1 to Size.Y-2 do
-         WriteChar(0,i,Chars[2],Bc,1);
-       WriteChar(0,Size.Y-1,Chars[1],Bc,1);
-     End Else Begin
-       WriteChar(1,0,Chars[2],Bc,Size.X-2);
-       WriteChar(Size.X-1,0,Chars[1],Bc,1);
-     End;
-   End;
-END;
 
 {--TScrollBar---------------------------------------------------------------}
 {  SetValue -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19May98 LdB          }
@@ -3205,36 +3099,21 @@ END;
 {  SetParams -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 21Jul99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TScrollBar.SetParams (AValue, AMin, AMax, APgStep, AArStep: Sw_Integer);
+var
+  OldValue : Sw_Integer;
 BEGIN
    If (AMax < AMin) Then AMax := AMin;                { Max below min fix up }
    If (AValue < AMin) Then AValue := AMin;            { Value below min fix }
    If (AValue > AMax) Then AValue := AMax;            { Value above max fix }
+   OldValue:=Value;
    If (Value <> AValue) OR (Min <> AMin) OR
    (Max <> AMax) Then Begin                           { Something changed }
-     If (Min <> AMin) OR (Max <> AMax) Then Begin     { Range has changed }
-       If (GOptions AND goNativeClass = 0) Then
-         ClearPos(GetPos);                            { Clear old position }
-       Min := AMin;                                   { Set new minimum }
-       Max := AMax;                                   { Set new maximum }
-       { This was removed as found not needed but if you
-       change limits but value unchanged scrollbar is not redrawm..LdB }
-       {If (Value = AValue) AND (State and sfVisible <> 0)
-         Then ScrollDraw;}                             { Send message out }
-     End Else Begin
-       If (GOptions AND goNativeClass = 0) Then       { Not in native mode }
-         ClearPos(GetPos);                            { Clear old position }
-     End;
-     If (Value <> AValue) Then Begin                  { Position moved }
-       Value := AValue;                               { Set new value }
-       If (GOptions AND goNativeClass = 0) Then Begin { Not in native mode }
-         SetDrawMask(vdInner);                        { Set draw masks }
-         DrawView;                                    { Redraw changed }
-       End;
-       {If (State AND sfVisible <> 0) Then }
-       { We need to inform the owner if the value changes
-         even if not visible !! }
-       ScrollDraw;                                    { Send update message }
-     End;
+     Min := AMin;                                   { Set new minimum }
+     Max := AMax;                                   { Set new maximum }
+     Value := AValue;                               { Set new value }
+     DrawView;
+     if OldValue <> AValue then
+       ScrollDraw;
    End;
    PgStep := APgStep;                                 { Hold page step }
    ArStep := AArStep;                                 { Hold arrow step }
@@ -3395,9 +3274,9 @@ FUNCTION TScrollBar.GetPos: Sw_Integer;
 VAR R: Sw_Integer;
 BEGIN
    R := Max - Min;                                    { Get full range }
-   If (R = 0) Then GetPos := 0 Else                   { Return zero }
-     GetPos := LongInt((LongInt(Value-Min) * GetSize)
-       + (R SHR 1)) DIV R;                            { Calc position }
+   If (R = 0) Then GetPos := 1 Else                   { Return zero }
+     GetPos := LongInt((LongInt(Value-Min) * (GetSize -3))
+       + (R SHR 1)) DIV R + 1;                        { Calc position }
 END;
 
 {--TScrollBar---------------------------------------------------------------}
@@ -3407,79 +3286,41 @@ FUNCTION TScrollBar.GetSize: Sw_Integer;
 VAR S: Sw_Integer;
 BEGIN
    If Size.X = 1 Then
-     S:= (Size.Y-3)
+     S:= Size.Y
    else
-     S:= (Size.X-3);
-   If (S < 1) Then S := 1;                            { Fix minimum size }
+     S:= Size.X;
+   If (S < 3) Then S := 3;                            { Fix minimum size }
    GetSize := S;                                      { Return size }
 END;
 
-{--TScrollBar---------------------------------------------------------------}
-{  DrawPos -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27OctMay99 LdB        }
-{---------------------------------------------------------------------------}
-{   This could be called from a message handling event so it must check the }
-{  view is visible, exposed and not obstructed before drawing the thumbnail }
-{  square area.                                                             }
-{---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.DrawPos (Pos: Sw_Integer);
-VAR i, X1, Y1, X2, Y2: Sw_Integer; ViewPort: ViewPortType;
-BEGIN
-   If (State AND sfVisible <> 0) AND                  { View is visible }
-   (State AND sfExposed <> 0) AND                     { View is exposed }
-   (Max <> Min) Then Begin                            { View has some size }
-     SetViewLimits;                                   { Set view limits }
-     GetViewSettings(ViewPort);          { Get set viewport }
-     If OverlapsArea(ViewPort.X1, ViewPort.Y1,
-     ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
-       HideMouseCursor;                               { Hide the mouse }
-       X1 := 0;                                       { Initial x position }
-       Y1 := 0;                                       { Initial y position }
-       If (Size.X = 1) Then Begin                         { Vertical scrollbar }
-         WriteChar(0,0,Chars[0],2,1);
-         For i:=1 to Size.Y-2 do
-           WriteChar(0,i,Chars[2],2,1);
-         WriteChar(0,Size.Y-1,Chars[1],2,1);
-       End Else Begin
-         WriteChar(0,0,Chars[0],2,1);
-         WriteChar(1,0,Chars[2],2,Size.X-2);
-         WriteChar(Size.X-1,0,Chars[1],2,1);
-       End;
-       If (Size.X=1) Then Y1 := Pos+1                 { Vertical bar }
-         Else X1 := Pos+1;                            { Horizontal bar }
-         WriteChar(X1,Y1,Chars[3],2,1);
-       ShowMouseCursor;                               { Show the mouse }
-     End;
-     ReleaseViewLimits;                               { Release the limits }
-   End;
-END;
 
 {--TScrollBar---------------------------------------------------------------}
-{  ClearPos -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB          }
+{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB              }
 {---------------------------------------------------------------------------}
-{   This could be called from a message handling event so it must check the }
-{  view is visible, exposed and not obstructed before clearing the old      }
-{  thumbnail area.                                                          }
-{---------------------------------------------------------------------------}
-PROCEDURE TScrollBar.ClearPos (Pos: Sw_Integer);
-VAR X, Y: Sw_Integer; ViewPort: ViewPortType;
+PROCEDURE TScrollBar.Draw;
 BEGIN
-   If (State AND sfVisible <> 0) AND                  { View is visible }
-   (State AND sfExposed <> 0) Then Begin              { View is exposed }
-     SetViewLimits;                                   { Set view limits }
-     GetViewSettings(ViewPort);          { Get set viewport }
-     If OverlapsArea(ViewPort.X1, ViewPort.Y1,
-     ViewPort.X2, ViewPort.Y2) Then Begin             { Must be in area }
-       HideMouseCursor;                               { Hide the mouse }
-       X := 0;                                        { Initial x position }
-       Y := 0;                                        { Initial y position }
-       If (Size.X=1) Then Y := Pos + 1       { Vertical bar }
-         Else X := Pos + 1;                   { Horizontal bar }
-       ClearArea(X, Y, X, Y, GetColor(1) AND $F0 SHR 4);                  { Clear the area }
-       ShowMouseCursor;                               { Show the mouse }
-     End;
-     ReleaseViewLimits;                               { Release the limits }
-   End;
+  DrawPos(GetPos);                                 { Draw position }
 END;
+
+
+procedure TScrollBar.DrawPos(Pos: Sw_Integer);
+var
+  S: Sw_Integer;
+  B: TDrawBuffer;
+begin
+  S := GetSize - 1;
+  MoveChar(B[0], Chars[0], GetColor(2), 1);
+  if Max = Min then
+    MoveChar(B[1], Chars[4], GetColor(1), S - 1)
+  else
+   begin
+     MoveChar(B[1], Chars[2], GetColor(1), S - 1);
+     MoveChar(B[Pos], Chars[3], GetColor(3), 1);
+   end;
+  MoveChar(B[S], Chars[1], GetColor(2), 1);
+  WriteBuf(0, 0, Size.X, Size.Y, B);
+end;
+
 
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 {                         TScroller OBJECT METHODS                          }
@@ -3630,7 +3471,6 @@ BEGIN
      AHScrollBar^.SetStep(Size.X DIV NumCols, 1);     { Set step size }
    HScrollBar := AHScrollBar;                         { Horz scrollbar held }
    VScrollBar := AVScrollBar;                         { Vert scrollbar held }
-   GOptions := GOptions OR goDrawFocus;               { Draw focus changes }
 END;
 
 {--TListViewer--------------------------------------------------------------}
@@ -3677,140 +3517,48 @@ END;
 {--TListViewer--------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB    }
 {---------------------------------------------------------------------------}
-PROCEDURE TListViewer.DrawBackGround;
-VAR  I, J, ColWidth, Item, Indent, CurCol: Sw_Integer; Color: Word;
-    Text: String; B: TDrawBuffer;
-
+PROCEDURE TListViewer.Draw;
+VAR  I, J, ColWidth, Item, Indent, CurCol: Sw_Integer;
+     Color: Word; SCOff: Byte;
+     Text: String; B: TDrawBuffer;
 BEGIN
    ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
    If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
      Indent := HScrollBar^.Value;                     { Fetch any indent }
-   Inherited DrawBackGround;                          { Call ancestor }
-   Color := GetColor(2);                              { Normal colour }
    For I := 0 To Size.Y - 1 Do Begin                  { For each line }
      For J := 0 To NumCols-1 Do Begin                 { For each column }
        Item := J*Size.Y + I + TopItem;                { Process this item }
        CurCol := J*ColWidth;                          { Current column }
-       MoveChar(B[CurCol], ' ', Color, ColWidth);     { Clear buffer }
+       If (State AND (sfSelected + sfActive) =
+       (sfSelected + sfActive)) AND (Focused = Item)  { Focused item }
+       AND (Range > 0) Then Begin
+         Color := GetColor(3);                        { Focused colour }
+         SetCursor(CurCol+1,I);                       { Set the cursor }
+         SCOff := 0;                                  { Zero colour offset }
+       End Else If (Item < Range) AND IsSelected(Item){ Selected item }
+       Then Begin
+         Color := GetColor(4);                        { Selected color }
+         SCOff := 2;                                  { Colour offset=2 }
+       End Else Begin
+         Color := GetColor(2);                        { Normal Color }
+         SCOff := 4;                                  { Colour offset=4 }
+       End;
+      MoveChar(B[CurCol], ' ', Color, ColWidth);     { Clear buffer }
        If (Item < Range) Then Begin                   { Within text range }
          Text := GetText(Item, ColWidth + Indent);    { Fetch text }
          Text := Copy(Text, Indent, ColWidth);        { Select right bit }
          MoveStr(B[CurCol+1], Text, Color);           { Transfer to buffer }
          If ShowMarkers Then Begin
            WordRec(B[CurCol]).Lo := Byte(
-             SpecialChars[4]);                        { Set marker character }
+             SpecialChars[SCOff]);                        { Set marker character }
            WordRec(B[CurCol+ColWidth-2]).Lo := Byte(
-             SpecialChars[5]);                        { Set marker character }
+             SpecialChars[SCOff+1]);                        { Set marker character }
          End;
        End;
        MoveChar(B[CurCol+ColWidth-1], #179,
          GetColor(5), 1);                             { Put centre line marker }
      End;
-     WriteLine(0, I, Size.X-1, 1, B);                 { Write line to screen }
-   End;
-END;
-
-{--TListViewer--------------------------------------------------------------}
-{  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB         }
-{---------------------------------------------------------------------------}
-PROCEDURE TListViewer.DrawFocus;
-VAR DrawIt: Boolean; SCOff: Byte; I, J, Item, CurCol, ColWidth: Sw_Integer;
-    Color: Word;
-
-  Indent: Sw_Integer;
-  B: TDrawBuffer;
-  Text: String;
-BEGIN
-   ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
-   If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
-     Indent := HScrollBar^.Value;                     { Fetch any indent }
-   For I := 0 To Size.Y - 1 Do Begin                  { For each line }
-     For J := 0 To NumCols-1 Do Begin                 { For each column }
-       Item := J*Size.Y + I + TopItem;                { Process this item }
-       CurCol := J*ColWidth;                          { Current column }
-       DrawIt := False;                               { Preset false }
-       If (State AND (sfSelected + sfActive) =
-       (sfSelected + sfActive)) AND (Focused = Item)  { Focused item }
-       AND (Range > 0) Then Begin
-         DrawIt := True;                              { Draw this item }
-         Color := GetColor(3);                        { Focused colour }
-         SetCursor(CurCol+1,I);                       { Set the cursor }
-         SCOff := 0;                                  { Zero colour offset }
-       End Else If (Item < Range) AND IsSelected(Item){ Selected item }
-       Then Begin
-         DrawIt := True;                              { Draw this item }
-         If (State AND sfActive <> 0) Then
-           Color := GetColor(4) Else                  { Selected colour }
-           Color := GetColor(2);                      { Remove focus }
-         SCOff := 2;                                  { Colour offset=2 }
-       End;
-       If DrawIt Then Begin                           { We are drawing item }
-         ClearArea(CurCol, I, (CurCol+ColWidth-1), I, Color AND $F0 SHR 4);  { Draw the bar }
-         MoveChar(B[CurCol], ' ', Color, ColWidth);
-         if Item < Range then begin
-           Text := GetText(Item, ColWidth + Indent);
-           Text := Copy(Text,Indent,ColWidth);
-           MoveStr(B[CurCol+1], Text, Color);
-           if ShowMarkers then begin
-             WordRec(B[CurCol]).Lo := Byte(SpecialChars[SCOff]);
-             WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
-           end;
-         end;
-         { MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);}
-         WriteLine(CurCol, I, Min(Size.X-1-CurCol,ColWidth-2), 1, B[CurCol]);
-       End;
-     End;
-   End;
-END;
-
-{--TListViewer--------------------------------------------------------------}
-{  DrawLoseFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 27Oct99 LdB         }
-{---------------------------------------------------------------------------}
-PROCEDURE TListViewer.DrawLoseFocus;
-VAR DrawIt: Boolean; SCOff: Byte; I, J, Item, CurCol, ColWidth: Sw_Integer;
-    Color: Word;
-
-  Indent: Sw_Integer;
-  B: TDrawBuffer;
-  Text: String;
-BEGIN
-   ColWidth := Size.X DIV NumCols + 1;                { Calc column width }
-   If (HScrollBar = Nil) Then Indent := 0 Else        { Set indent to zero }
-     Indent := HScrollBar^.Value;                     { Fetch any indent }
-   For I := 0 To Size.Y - 1 Do Begin                  { For each line }
-     For J := 0 To NumCols-1 Do Begin                 { For each column }
-       Item := J*Size.Y + I + TopItem;                { Process this item }
-       CurCol := J*ColWidth;                          { Current column }
-       DrawIt := False;                               { Preset false }
-       If (State AND (sfSelected + sfActive) =
-       (sfSelected + sfActive)) AND (Focused = Item)  { Focused item }
-       AND (Range > 0) Then Begin
-         DrawIt := True;                              { Draw this item }
-         Color := GetColor(2);                        { Focused colour }
-         SetCursor(CurCol+1,I);                       { Set the cursor }
-         SCOff := 2;                                  { Zero colour offset }
-       End Else If (Item < Range) AND IsSelected(Item){ Selected item }
-       Then Begin
-         DrawIt := True;                              { Draw this item }
-         Color := GetColor(2);                        { Remove focus }
-         SCOff := 2;                                  { Colour offset=2 }
-       End;
-       If DrawIt Then Begin                           { We are drawing item }
-         ClearArea(CurCol, I, (CurCol+ColWidth-1), I, Color AND $F0 SHR 4);  { Draw the bar }
-         MoveChar(B[CurCol], ' ', Color, ColWidth);
-         if Item < Range then begin
-           Text := GetText(Item, ColWidth + Indent);
-           Text := Copy(Text,Indent,ColWidth);
-           MoveStr(B[CurCol+1], Text, Color);
-           if ShowMarkers then begin
-             WordRec(B[CurCol]).Lo := Byte(SpecialChars[SCOff]);
-             WordRec(B[CurCol+ColWidth-2]).Lo := Byte(SpecialChars[SCOff+1]);
-           end;
-         end;
-         { MoveChar(B[CurCol+ColWidth-1], #179, GetColor(5), 1);}
-         WriteLine(CurCol, I, Min(Size.X-1-CurCol,ColWidth-2), 1, B[CurCol]);
-       End;
-     End;
+     WriteLine(0, I, Size.X, 1, B);                 { Write line to screen }
    End;
 END;
 
@@ -3820,8 +3568,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TListViewer.FocusItem (Item: Sw_Integer);
 BEGIN
-   If Focused<>Item then
-     DrawLoseFocus;
    Focused := Item;                                   { Set focus to item }
    If (VScrollBar <> Nil) Then
      VScrollBar^.SetValue(Item);                      { Scrollbar to value }
@@ -3876,25 +3622,10 @@ PROCEDURE TListViewer.SetState (AState: Word; Enable: Boolean);
          Then SBar^.Show Else SBar^.Hide;             { Show or hide }
    END;
 
-   PROCEDURE LoseFocus;
-   VAR Cs: Sw_Integer;
-   BEGIN
-     If (GOptions AND goNativeClass = 0) Then Begin   { Not in native mode }
-       Cs := State;                                   { Hold current state }
-       State := State AND NOT sfActive;               { Must remove focus }
-       SetDrawmask(vdFocus);                          { Set focus mask }
-       DrawView;                                      { Remove focus box }
-       State := Cs;                                   { Reset state masks }
-     End;
-   END;
-
 BEGIN
    Inherited SetState(AState, Enable);                { Call ancestor }
-   If (AState AND sfFocused <> 0) Then                { Focus change }
-     If NOT Enable Then LoseFocus;                    { Redraw drop focus }
    If (AState AND (sfSelected + sfActive + sfVisible) <> 0)
    Then Begin                                         { Check states }
-     SetDrawMask(vdFocus);
      DrawView;                                        { Draw the view }
      ShowSBar(HScrollBar);                            { Show horz scrollbar }
      ShowSBar(VScrollBar);                            { Show vert scrollbar }
@@ -3924,23 +3655,9 @@ CONST MouseAutosToSkip = 4;
 VAR Oi, Ni: Sw_Integer; Ct, Cw: Word; Mouse: TPoint;
 
    PROCEDURE MoveFocus (Req: Sw_Integer);
-   VAR Ti, Cs: Sw_Integer;
    BEGIN
-     If (GOptions AND goNativeClass = 0) Then Begin   { Not in native mode }
-       Ti := TopItem;                                 { Hold top item }
-       Cs := State;                                   { Hold current state }
-       State := State AND NOT sfActive;               { Must remove focus }
-       SetDrawmask(vdFocus);                          { Set focus mask }
-       DrawView;                                      { Remove focus box }
-       State := Cs;                                   { Reset state masks }
-     End;
      FocusItemNum(Req);                               { Focus req item }
-     If (GOptions AND goNativeClass = 0) Then Begin   { Not in native mode }
-       If (Ti <> TopItem) Then DrawView Else Begin    { Redraw all view }
-         SetDrawmask(vdFocus);                        { Set focus mask }
-         DrawView;                                    { Redraw focus box }
-       End;
-     End;
+     DrawView;                                      { Redraw focus box }
    END;
 
 BEGIN
@@ -4076,8 +3793,6 @@ BEGIN
    Number := ANumber;                                 { Hold number }
    Palette := wpBlueWindow;                           { Default palette }
    GOptions := GOptions OR goThickFramed;             { Thick frame }
-   GOptions := GOptions OR goTitled;                  { Title window }
-   GOptions := GOptions AND NOT goNoDrawView;         { View does draw self }
    InitFrame;                                         { Initialize frame }
    If (Frame <> Nil) Then Insert(Frame);              { Insert any frame }
    GetBounds(ZoomRect);                               { Default zoom rect }
@@ -4188,7 +3903,11 @@ END;
 {  InitFrame -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Jul99 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TWindow.InitFrame;
-BEGIN                                                 { Compatability only }
+VAR
+  R: TRect;
+BEGIN
+  GetExtent(R);
+  Frame := New(PFrame, Init(R));
 END;
 
 {--TWindow------------------------------------------------------------------}
@@ -4240,8 +3959,8 @@ END;
 {  HandleEvent -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11Aug99 LdB       }
 {---------------------------------------------------------------------------}
 PROCEDURE TWindow.HandleEvent (Var Event: TEvent);
-VAR I, J: Sw_Integer;
-    Min, Max: TPoint; Limits: TRect;
+VAR
+  Min, Max: TPoint; Limits: TRect;
 
    PROCEDURE DragWindow (Mode: Byte);
    VAR Limits: TRect; Min, Max: TPoint;
@@ -4308,49 +4027,6 @@ BEGIN
          End;
        End;
      End;
-     evMouseDown:                                     { MOUSE DOWN EVENT }
-       If (GOptions AND goTitled <> 0) Then Begin     { Must have title area }
-         I:=0;
-         If (Event.Where.Y >= (Origin.Y + I)) AND
-            (Event.Where.Y < Origin.Y+1+I)
-         Then Begin                                   { Within top line }
-           If (Current <> Nil) AND
-           (Current^.Options AND ofSelectable <> 0)
-             Then Current^.FocusFromTop Else
-             FocusFromTop;
-           If (Flags AND wfClose <> 0) Then Begin     { Has close icon }
-             J := I + 2;                      { Set X value }
-             If (Event.Where.X >= Origin.X+J) AND
-             (Event.Where.X < Origin.X+J+3)
-             Then Begin                               { In close area }
-               Event.What := evCommand;               { Command event }
-               Event.Command := cmClose;              { Close command }
-               Event.InfoPtr := Nil;                  { Clear pointer }
-               PutEvent(Event);                       { Put event on queue }
-               ClearEvent(Event);                     { Clear the event }
-               Exit;                                  { Now exit }
-             End;
-           End;
-           If (Flags AND wfZoom <> 0) Then Begin     { Has Zoom icon }
-             J := (SIZE.X-5);                      { Set X value }
-             If (Event.Where.X >= Origin.X+J) AND
-             (Event.Where.X < Origin.X+J+3)
-             Then Begin                               { In close area }
-               Event.What := evCommand;               { Command event }
-               Event.Command := cmZoom;               { Close command }
-               Event.InfoPtr := Nil;                  { Clear pointer }
-               PutEvent(Event);                       { Put event on queue }
-               ClearEvent(Event);                     { Clear the event }
-               Exit;                                  { Now exit }
-             End;
-           End;
-           If (Owner <> Nil) AND (Flags AND wfMove <> 0)
-             Then DragWindow(dmDragMove);             { Drag the window }
-         End Else If (Event.Where.X >= Origin.X + Size.X-2) AND
-         (Event.Where.Y >= Origin.Y + Size.Y - 1)
-         Then If (Flags AND wfGrow <> 0) Then         { Check grow flags }
-           DragWindow(dmDragGrow);                    { Change window size }
-       End;
    End;                                               { Event.What case end }
 END;
 
@@ -4364,100 +4040,122 @@ BEGIN
    Min.Y := MinWinSize.Y;                             { Set min y size }
 END;
 
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-{                       UNCOMPLETED OBJECT METHODS                          }
-{+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
-
 
 
 {--TView--------------------------------------------------------------------}
 {  Exposed -> Platforms DOS/DPMI/WIN/OS2 - Checked 17Sep97 LdB              }
 {---------------------------------------------------------------------------}
-{ This needs big help!!!!!   }
-FUNCTION TView.Exposed: Boolean;
-VAR ViewPort: ViewPortType;
-BEGIN
-   GetViewSettings(ViewPort);            { Fetch viewport }
-   If (State AND sfVisible<>0) AND                    { View visible }
-     (State AND sfExposed<>0) AND                     { View exposed }
-     OverlapsArea(ViewPort.X1, ViewPort.Y1,
-     ViewPort.X2, ViewPort.Y2) Then Exposed := True   { Must be exposed }
-       Else Exposed := False;                         { Is hidden }
-END;
-
-{--TView--------------------------------------------------------------------}
-{  ClearArea -> Platforms DOS/DPMI/WIN/OS2 - Checked 19Sep97 LdB            }
-{---------------------------------------------------------------------------}
-PROCEDURE TView.ClearArea (X1, Y1, X2, Y2: Sw_Integer; Colour: Byte);
-VAR
-    X, Y: Sw_Integer; ViewPort: ViewPortType;
-    Buf : TDrawBuffer;
-BEGIN
-   GetViewSettings(ViewPort);            { Get viewport }
-   X1 := Origin.X+X1;
-   Y1 := Origin.Y+Y1;
-   X2 := Origin.X+X2-1;
-   Y2 := Origin.Y+Y2-1;
-   For X := X1 To X2 Do Begin
-     Buf[X-X1]:=(Colour shl 12) or $20;
-   End;
-   For Y := Y1 To Y2 Do
-     WriteAbs(X1,Y, X2-X1, Buf);
-   DrawScreenBuf;
-END;
-
-
-PROCEDURE TView.WriteBuf (X, Y, W, H: Sw_Integer; Var Buf);
-VAR I, J, K, L, CW: Sw_Integer; P: PDrawBuffer;
-    Tix, Tiy: Sw_Integer; ViewPort: ViewPortType;
-BEGIN
-   If (State AND sfVisible <> 0) AND                  { View is visible }
-   (State AND sfIconised = 0) AND                     { View is not icon}
-   (State AND sfExposed <> 0) AND (W > 0) AND (H > 0) { View is exposed }
-     then begin
-       P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
-       L := 0;                                          { Set buffer position }
-     If (X >= 0) AND (Y >= 0) Then Begin
-       X := Origin.X+X;                    { X position }
-       Y := Origin.Y+Y;                   { Y position }
-     End Else Begin
-       X := Origin.X + Abs(X);
-       Y := Origin.Y + Abs(Y);
-     End;
-     GetViewSettings(ViewPort);          { Get current viewport }
-     For J := 1 To H Do Begin                         { For each line }
-       WriteAbs(X,Y,W,P^[L]);
-       Inc(Y);
-       Inc(L,W);
-       DrawScreenBuf;
-     End;
+function TView.do_ExposedRec1(x1,x2:sw_integer; p:PView):boolean;
+var
+  G : PGroup;
+  dy,dx : sw_integer;
+begin
+  while true do
+   begin
+     p:=p^.Next;
+     G:=p^.Owner;
+     if p=staticVar2.target then
+      begin
+        do_exposedRec1:=do_exposedRec2(x1,x2,G);
+        Exit;
+      end;
+     dy:=p^.origin.y;
+     dx:=p^.origin.x;
+     if ((p^.state and sfVisible)<>0) and (staticVar2.y>=dy) then
+      begin
+        if staticVar2.y<dy+p^.size.y then
+         begin
+           if x1<dx then
+            begin
+              if x2<=dx then
+               continue;
+              if x2>dx+p^.size.x then
+               begin
+                 if do_exposedRec1(x1,dx,p) then
+                  begin
+                    do_exposedRec1:=True;
+                    Exit;
+                  end;
+                 x1:=dx+p^.size.x;
+               end
+              else
+               x2:=dx;
+           end
+          else
+           begin
+             if x1<dx+p^.size.x then
+              x1:=dx+p^.size.x;
+             if x1>=x2 then
+              begin
+                do_exposedRec1:=False;
+                Exit;
+              end;
+           end;
+        end;
+      end;
    end;
-END;
+end;
 
-PROCEDURE TView.WriteLine (X, Y, W, H: Sw_Integer; Var Buf);
-VAR I, J, K, Cw: Sw_Integer; P: PDrawBuffer;
-    Tix, Tiy: Sw_Integer; ViewPort: ViewPortType;
-BEGIN
-   If (State AND sfVisible <> 0) AND                  { View is visible }
-   (State AND sfIconised = 0) AND                     { View is not icon}
-   (State AND sfExposed <> 0) AND (W > 0) AND (H > 0) { View is exposed }
-     then begin
-       P := @TDrawBuffer(Buf);                          { Set draw buffer ptr }
-     If (X >= 0) AND (Y >= 0) Then Begin
-       X := Origin.X+X;                    { X position }
-       Y := Origin.Y+Y;                   { Y position }
-     End Else Begin
-       X := Origin.X + Abs(X);
-       Y := Origin.Y + Abs(Y);
-     End;
-     GetViewSettings(ViewPort);          { Get current viewport }
-     For J := 1 To H Do Begin                         { For each line }
-       WriteAbs(X,Y,W,P^);
-       Inc(Y);
-     end;
-     DrawScreenBuf;
-   End;
-END;
+
+function TView.do_ExposedRec2(x1,x2:Sw_integer; p:PView):boolean;
+var
+  G : PGroup;
+  savedStat : TStatVar2;
+begin
+  if (p^.state and sfVisible)=0 then
+   do_ExposedRec2:=false
+  else
+   begin
+     G:=p^.Owner;
+     if (G=Nil) or (G^.Buffer<>Nil) then
+      do_ExposedRec2:=true
+     else
+      begin
+        savedStat:=staticVar2;
+        inc(staticVar2.y,p^.origin.y);
+        inc(x1,p^.origin.x);
+        inc(x2,p^.origin.x);
+        staticVar2.target:=p;
+        if (staticVar2.y<G^.clip.a.y) or (staticVar2.y>=G^.clip.b.y) then
+         do_ExposedRec2:=false
+        else
+         begin
+           if (x1<G^.clip.a.x) then
+            x1:=G^.clip.a.x;
+           if (x2>G^.clip.b.x) then
+            x2:=G^.clip.b.x;
+           if (x1>=x2) then
+            do_ExposedRec2:=false
+           else
+            do_ExposedRec2:=do_exposedRec1(x1,x2,G^.Last);
+         end;
+        staticVar2 := savedStat;
+      end;
+   end;
+end;
+
+
+function TView.Exposed: Boolean;
+var
+  OK : boolean;
+  y  : sw_integer;
+begin
+  if ((State and sfExposed)<>0) and (Size.X>0) and (Size.Y>0) then
+   begin
+     OK:=false;
+     y:=0;
+     while (y<Size.Y) and (not OK) do
+      begin
+        staticVar2.y:=y;
+        OK:=do_ExposedRec2(0,Size.X,@Self);
+        inc(y);
+      end;
+     Exposed:=OK;
+   end
+  else
+   Exposed:=False
+end;
+
 
 {--TView--------------------------------------------------------------------}
 {  MakeLocal -> Platforms DOS/DPMI/WIN/OS2 - Checked 12Sep97 LdB            }
@@ -4477,449 +4175,314 @@ BEGIN
   Dest.Y := Source.Y + Origin.Y;                   { Global y value }
 END;
 
-PROCEDURE TView.WriteCStr (X, Y: Sw_Integer; Str: String; Color1, Color2 : Byte);
-VAR I, J, Fc, Bc, B: Byte; X1, Y1, X2, Y2: Sw_Integer;
-    Xw, Yw, TiBuf, Tix, Tiy, Ti: Sw_Integer; ViewPort: ViewPortType;
-    Buf : TDrawBuffer;
-    FoundSwap : boolean;
-BEGIN
-   If (State AND sfVisible <> 0) AND                  { View is visible }
-   (State AND sfExposed <> 0) AND                     { View is exposed }
-   (State AND sfIconised = 0) AND                     { View not iconized }
-   (Length(Str) > 0) Then Begin                       { String is valid }
-
-     j:=1;
-     repeat
-       FoundSwap:=false;
-       i:=PosIdx('~',Str,j);
-       if i>0 then
-        FoundSwap:=true
-       else
-        i:=Length(Str)+1;
-
-        Fc := GetColor(Color1);                          { Get view color }
-        Bc := Fc AND $F0 SHR 4;                          { Calc back colour }
-        Fc := Fc AND $0F;                                { Calc text colour }
-
-        If RevCol Then Begin
-          B := Bc;
-          Bc := Fc;
-          Fc := B;
-        End;
-
-        If (X >= 0) AND (Y >= 0) Then Begin
-          Xw := Origin.X+X;                    { X position }
-          Yw := Origin.Y+Y;                   { Y position }
-        End Else Begin
-          Xw := Origin.X + Abs(X);
-          Yw := Origin.Y + Abs(Y);
-        End;
-        GetViewSettings(ViewPort);
-
-       Tix := Xw;
-       Tiy := Yw;
-       TiBuf := 0;
-       For Ti := j To i-1 Do Begin
-         Buf[TiBuf]:=((Fc or (Bc shl 4)) shl 8) or Ord(Str[Ti]);
-         inc(TiBuf);
-       end;
-       WriteAbs(Tix,TiY,i-j,Buf);
-
-      { increase position on screen }
-      If (X >= 0) AND (Y >= 0) Then
-        inc(X,(i-j))
-      else if X>0 then
-        inc(X,(i-j))
-      else
-        dec(X,(i-j));
-      { Swap colors }
-      if FoundSwap then
-       begin
-         { Swap color1 and color2 }
-         B := Color1;
-         Color1 := Color2;
-         Color2 := B;
-         { increase position in string }
-         j:=i+1;
-         { we're at the last char }
-         if (j>length(Str)) then
-          break;
-       end;
-
-     until not FoundSwap;
-     DrawScreenBuf;
-   End;
-END;
-
-PROCEDURE TView.WriteStr (X, Y: Sw_Integer; Str: String; Color: Byte);
-VAR Fc, Bc, B: Byte; X1, Y1, X2, Y2: Sw_Integer;
-    Tix, Tiy, Ti: Sw_Integer; ViewPort: ViewPortType;
-    Buf : TDrawBuffer;
-BEGIN
-   If (State AND sfVisible <> 0) AND                  { View is visible }
-   (State AND sfExposed <> 0) AND                     { View is exposed }
-   (State AND sfIconised = 0) AND                     { View not iconized }
-   (Length(Str) > 0) Then Begin                       { String is valid }
-
-     Fc := GetColor(Color);                           { Get view color }
-     Bc := Fc AND $F0 SHR 4;                          { Calc back colour }
-     Fc := Fc AND $0F;                                { Calc text colour }
-
-     If RevCol Then Begin
-       B := Bc;
-       Bc := Fc;
-       Fc := B;
-     End;
-
-     If (X >= 0) AND (Y >= 0) Then Begin
-       X := Origin.X+X;                    { X position }
-       Y := Origin.Y+Y;                   { Y position }
-     End Else Begin
-       X := Origin.X + Abs(X);
-       Y := Origin.Y + Abs(Y);
-     End;
-     GetViewSettings(ViewPort);
-     Tix := X;
-     Tiy := Y;
-     For Ti := 1 To length(Str) Do Begin
-       Buf[Ti-1]:=(GetColor(Color) shl 8) or Ord(Str[Ti]);
-     end;
-     WriteAbs(Tix,TiY,Length(Str),Buf);
-     DrawScreenBuf;
-   End;
-END;
-
-PROCEDURE TView.WriteChar (X, Y: Sw_Integer; C: Char; Color: Byte;
-  Count: Sw_Integer);
-VAR Fc, Bc, B: Byte; I, Ti, Tix, Tiy: Sw_Integer; Col: Word; S: String; ViewPort: ViewPortType;
-    Buf : TDrawBuffer;
-BEGIN
-   If (State AND sfVisible <> 0) AND                  { View visible }
-   (State AND sfExposed <> 0) Then Begin              { View exposed }
-     GetViewSettings(ViewPort);
-     Col := GetColor(Color);                          { Get view color }
-     Fc := Col AND $0F;                               { Foreground colour }
-     Bc := Col AND $F0 SHR 4;                         { Background colour }
-
-     If RevCol Then Begin
-       B := Bc;
-       Bc := Fc;
-       Fc := B;
-     End;
-
-     If (X >= 0) AND (Y >= 0) Then Begin
-       X := Origin.X+X;                    { X position }
-       Y := Origin.Y+Y;                   { Y position }
-     End Else Begin
-       X := Origin.X + Abs(X);
-       Y := Origin.Y + Abs(Y);
-     End;
-     FillChar(S[1], 255, C);                          { Fill the string }
-     While (Count>0) Do Begin
-       If (Count>Size.X) Then I := Size.X Else I := Count;  { Size to make }
-       S[0] := Chr(I);                                { Set string length }
-       Tix := X;
-       Tiy := Y;
-       For Ti := 1 To I Do Begin
-         Buf[Ti-1]:=(GetColor(Color) shl 8) or Ord(S[Ti]);
-       End;
-       WriteAbs(TiX,TiY,Length(S),Buf);
-       Count := Count - I;                            { Subtract count }
-       X := X + I                                    { Move x position }
-     End;
-     DrawScreenBuf;
-   End;
-END;
-
-PROCEDURE TView.WriteAbs(X, Y, L : Sw_Integer; Var Buf);
-VAR
-  P: PGroup;
-  PrevP,PP : PView;
-  CurOrigin : TPoint;
-  I,XI : longint;
-  B : Word;
-  ViewPort : ViewPortType;
-  Shadowed,
-  Skip : boolean;
-BEGIN
-{$ifdef DEBUG}
-   if WriteDebugInfo then
-     Begin
-       Writeln(stderr,'TView(',hexstr(longint(@self),8),')');
-       Writeln(stderr,'Object Type(',hexstr(plongint(@self)^,8),')');
-       Writeln(stderr,'WriteAbs(',X,',',Y,',',L,',',hexstr(longint(@Buf),8),')');
-     End;
-{$endif DEBUG}
-  { Direct wrong method }
-  GetViewSettings(ViewPort);          { Get set viewport }
-  { Pedestrian character method }
-  { Must be in area }
-  If (X+L<ViewPort.X1) OR (Y<ViewPort.Y1) OR
-     (X>=ViewPort.X2) OR (Y>=ViewPort.Y2) Then
-     Exit;
-  For I:=0 to L-1 do Begin
-    P:=Owner;
-    PrevP :=@Self;
-    XI:=X+I;
-    { Must be in area }
-    If (XI<ViewPort.X1) OR
-       (XI>=ViewPort.X2) Then
-      Continue;
-    Shadowed:=false;
-    Skip:=false;
-    While Assigned(P) do Begin
-      { If parent not visible or
-        position outside parent's limit then skip }
-      if not assigned(P^.Buffer) AND
-         (((P^.State AND sfVisible) = 0) OR
-         (XI<P^.Origin.X) OR (XI>=P^.Origin.X+P^.Size.X) OR
-         (Y<P^.Origin.Y) OR (Y>=P^.Origin.Y+P^.Size.Y)) then
-        Begin
-          Skip:=true;
-          Break;
-        End;
-      { Here we must check if X,Y is exposed for this view }
-      PP:=P^.Last;
-      { move to first }
-      If Assigned(PP) then
-        PP:=PP^.Next;
-      While Assigned(PP) and (PP<>P^.Last) and (PP<>PrevP) do Begin
-        { If position is owned by another view that is before self
-         then skip }
-        If ((PP^.State AND sfVisible) <> 0) then
-          begin
-            if (XI>=PP^.Origin.X) AND
-               (XI<PP^.Origin.X+PP^.Size.X) AND
-               (Y>=PP^.Origin.Y) AND
-               (Y<PP^.Origin.Y+PP^.Size.Y) then
-              Begin
-                Skip:=true;
-                break;
-              End;
-            If ((PP^.State AND sfShadow) <> 0) AND
-               { Vertical Shadow }
-               (
-                (
-                 (XI>=PP^.Origin.X+PP^.Size.X) AND
-                 (XI<PP^.Origin.X+PP^.Size.X+ShadowSize.X) AND
-                 (Y>=PP^.Origin.Y+1) AND
-                 (Y<PP^.Origin.Y+PP^.Size.Y+ShadowSize.Y)
-                ) or
-                { Horizontal Shadow }
-                (
-                 (XI>=PP^.Origin.X+1) AND
-                 (XI<PP^.Origin.X+PP^.Size.X+ShadowSize.X) AND
-                 (Y>=PP^.Origin.Y+PP^.Size.Y) AND
-                 (Y<PP^.Origin.Y+PP^.Size.Y+ShadowSize.Y)
-                )
-               ) then
-              Begin
-                Shadowed:=true;
-              End;
-          end;
-        PP:=PP^.Next;
-      End;
-
-      If Not Skip and Assigned(P^.Buffer) then Begin
+procedure TView.do_writeViewRec1(x1,x2:Sw_integer; p:PView; shadowCounter:Sw_integer);
+var
+  G      : PGroup;
+  c      : Word;
+  BufPos,
+  SrcPos,
+  l,dx : Sw_integer;
+begin
+  repeat
+    p:=p^.Next;
+    if (p=staticVar2.target) then
+     begin
+       G:=p^.Owner;
+       if (G^.buffer<>Nil) then
         begin
-          B:=TDrawBuffer(Buf)[I];
-          if Shadowed then
-            B:=$0800 or (B and $FF);
-          P^.Buffer^[(Y-P^.Origin.Y)*P^.size.X+(XI-P^.Origin.X)]:=B;
+          BufPos:=G^.size.x * staticVar2.y + x1;
+          SrcPos:=x1 - staticVar2.offset;
+          l:=x2-x1;
+          if (shadowCounter=0) then
+           move(staticVar1^[SrcPos],PVideoBuf(G^.buffer)^[BufPos],l shl 1)
+          else
+           begin { paint with shadowAttr }
+             while (l>0) do
+              begin
+                c:=staticVar1^[SrcPos];
+                WordRec(c).hi:=shadowAttr;
+                PVideoBuf(G^.buffer)^[BufPos]:=c;
+                inc(BufPos);
+                inc(SrcPos);
+                dec(l);
+              end;
+           end;
         end;
-      End;
-      PrevP:=P;
-      If Skip then
-        P:=Nil
-      else
-        P:=P^.Owner;
-    End;
-  End;
-END;
+       if G^.lockFlag=0 then
+         do_writeViewRec2(x1,x2,G,shadowCounter);
+       exit;
+     end; { p=staticVar2.target }
 
-{define DirectWriteShadow}
-PROCEDURE TView.WriteShadow(X1, Y1, X2, Y2 : Sw_Integer);
-VAR
-  P: PGroup;
-  PrevP,PP : PView;
-  CurOrigin : TPoint;
-  I,J : longint;
-  B : Word;
-  ViewPort : ViewPortType;
-  Skip : boolean;
-BEGIN
-  GetViewSettings(ViewPort);          { Get set viewport }
-  { Pedestrian character method }
-  { Must be in area }
-  {If (X+L<ViewPort.X1) OR (Y<ViewPort.Y1) OR
-     (X>=ViewPort.X2) OR (Y>=ViewPort.Y2) Then
-     Exit;}
-  If Y2>ScreenHeight then
-    Y2:=ScreenHeight;
-  If X2>ScreenWidth then
-    X2:=ScreenWidth;
-  For J:=Y1 to Y2-1 do Begin
-    For i:=X1 to X2-1 do Begin
-    P:=Owner;
-    PrevP :=@Self;
-    { Must be in area
-    If (XI<ViewPort.X1) OR
-       (XI>=ViewPort.X2) Then
-      Continue;    }
-    Skip:=false;
-    While Assigned(P) do Begin
-      if not assigned(P^.Buffer) AND
-         (((P^.State AND sfVisible) = 0) OR
-         (I<P^.Origin.X) OR (I>=P^.Origin.X+P^.Size.X) OR
-         (J<P^.Origin.Y) OR (J>=P^.Origin.Y+P^.Size.Y)) then
-        Begin
-          Skip:=true;
-          Break;
-        End;
-      { Here we must check if X,Y is exposed for this view }
-      PP:=P^.Last;
-      { move to first }
-      If Assigned(PP) then
-        PP:=PP^.Next;
-      While Assigned(PP) and (PP<>P^.Last) and (PP<>PrevP) do Begin
-        If ((PP^.State AND sfVisible) <> 0) AND
-           (I>=PP^.Origin.X) AND
-           (I<PP^.Origin.X+PP^.Size.X) AND
-           (J>=PP^.Origin.Y) AND
-           (J<PP^.Origin.Y+PP^.Size.Y) then
-          Begin
-            Skip:=true;
-            Break;
-          End;
-        PP:=PP^.Next;
-      End;
+    if ((p^.state and sfVisible)<>0) and (staticVar2.y>=p^.Origin.Y) then
+     begin
+       if staticVar2.y<p^.Origin.Y+p^.size.Y then
+        begin
+          if x1<p^.origin.x then
+           begin
+             if x2<=p^.origin.x then
+              continue;
+             do_writeViewRec1(x1,p^.origin.x,p,shadowCounter);
+             x1:=p^.origin.x;
+           end;
+          dx:=p^.origin.x+p^.size.x;
+          if (x2<=dx) then
+           exit;
+          if (x1<dx) then
+           x1:=dx;
+          inc(dx,shadowSize.x);
+          if ((p^.state and sfShadow)<>0) and (staticVar2.y>=p^.origin.y+shadowSize.y) then
+           if (x1>dx) then
+            continue
+           else
+            begin
+              inc(shadowCounter);
+              if (x2<=dx) then
+               continue
+              else
+               begin
+                 do_writeViewRec1(x1,dx,p,shadowCounter);
+                 x1:=dx;
+                 dec(shadowCounter);
+                 continue;
+               end;
+            end
+           else
+            continue;
+        end;
 
-      If not Skip and Assigned(P^.Buffer) then Begin
-        B:=P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)];
-        B:=$0800 or (B and $FF);
-        P^.Buffer^[(J-P^.Origin.Y)*P^.size.X+(I-P^.Origin.X)]:=B;
-      End;
-      PrevP:=P;
-      If Skip then
-        P:=Nil
-      else
-        P:=P^.Owner;
-    End;
-  End;
-  End;
-END;
+       if ((p^.state and sfShadow)<>0) and (staticVar2.y<p^.origin.y+p^.size.y+shadowSize.y) then
+        begin
+          dx:=p^.origin.x+shadowSize.x;
+          if x1<dx then
+           begin
+             if x2<=dx then
+              continue;
+             do_writeViewRec1(x1,dx,p,shadowCounter);
+             x1:=dx;
+           end;
+          inc(dx,p^.size.x);
+          if x1>=dx then
+           continue;
+          inc(shadowCounter);
+          if x2<=dx then
+           continue
+          else
+           begin
+             do_writeViewRec1(x1,dx,p,shadowCounter);
+             x1:=dx;
+             dec(shadowCounter);
+           end;
+        end;
+     end;
+  until false;
+end;
 
-PROCEDURE TView.DragView (Event: TEvent; Mode: Byte; Var Limits: TRect;
-  MinSize, MaxSize: TPoint);
-VAR PState: Word; Mouse, Q, R, P, S, Op1, Op2: TPoint; SaveBounds: TRect;
 
-   PROCEDURE MoveGrow (P, S: TPoint);
-   VAR R: TRect;
-   BEGIN
-     S.X := Min(Max(S.X, MinSize.X), MaxSize.X);      { Minimum S.X value }
-     S.Y := Min(Max(S.Y, MinSize.Y), MaxSize.Y);      { Minimum S.Y value }
-     P.X := Min(Max(P.X, Limits.A.X - S.X + 1),
-       Limits.B.X - 1);                               { Minimum P.X value }
-     P.Y := Min(Max(P.Y, Limits.A.Y - S.Y + 1),
-       Limits.B.Y - 1);                               { Mimimum P.Y value }
-     If (Mode AND dmLimitLoX <> 0) Then
-       P.X := Max(P.X, Limits.A.X);                   { Left side move }
-     If (Mode AND dmLimitLoY <> 0) Then
-       P.Y := Max(P.Y, Limits.A.Y);                   { Top side move }
-     If (Mode AND dmLimitHiX <> 0) Then
-       P.X := Min(P.X, Limits.B.X - S.X);             { Right side move }
-     If (Mode AND dmLimitHiY <> 0) Then
-       P.Y := Min(P.Y, Limits.B.Y - S.Y);             { Bottom side move }
-     R.Assign(P.X, P.Y, P.X + S.X, P.Y + S.Y);        { Assign area }
-     Locate(R);                                       { Locate view }
-   END;
+procedure TView.do_writeViewRec2(x1,x2:Sw_integer; p:PView; shadowCounter:Sw_integer);
+var
+  savedStatics : TstatVar2;
+  dx : Sw_integer;
+  G  : PGroup;
+begin
+  G:=P^.Owner;
+  if ((p^.State and sfVisible) <> 0) and (G<>Nil) then
+   begin
+     savedStatics:=staticVar2;
+     inc(staticVar2.y,p^.Origin.Y);
+     dx:=p^.Origin.X;
+     inc(x1,dx);
+     inc(x2,dx);
+     inc(staticVar2.offset,dx);
+     staticVar2.target:=p;
+     if (staticVar2.y >= G^.clip.a.y) and (staticVar2.y < G^.clip.b.y) then
+      begin
+        if (x1<g^.clip.a.x) then
+         x1 := g^.clip.a.x;
+        if (x2>g^.clip.b.x) then
+         x2 := g^.clip.b.x;
+        if x1<x2 then
+         do_writeViewRec1(x1,x2,G^.Last,shadowCounter);
+      end;
+     staticVar2 := savedStatics;
+   end;
+end;
 
-   PROCEDURE Change (DX, DY: Sw_Integer);
-   BEGIN
-     If (Mode AND dmDragMove <> 0) AND
-     (GetShiftState AND $03 = 0) Then Begin
-       Inc(P.X, DX); Inc(P.Y, DY);                    { Adjust values }
-     End Else If (Mode AND dmDragGrow <> 0) AND
-     (GetShiftState AND $03 <> 0) Then Begin
-       Inc(S.X, DX); Inc(S.Y, DY);                    { Adjust values }
-     End;
-   END;
 
-   PROCEDURE Update (X, Y: Sw_Integer);
-   BEGIN
-     If (Mode AND dmDragMove <> 0) Then Begin
-       P.X := X; P.Y := Y;                            { Adjust values }
-     End;
-   END;
+procedure TView.do_WriteView(x1,x2,y:Sw_integer; var Buf);
+begin
+  if (y>=0) and (y<Size.Y) then
+   begin
+     if x1<0 then
+      x1:=0;
+     if x2>Size.X then
+      x2:=Size.X;
+     if x1<x2 then
+      begin
+        staticVar2.offset:=x1;
+        staticVar2.y:=y;
+        staticVar1:=@Buf;
+        do_writeViewRec2( x1, x2, @Self, 0 );
+      end;
+   end;
+end;
 
-BEGIN
-   SetState(sfDragging, True);                        { Set drag state }
-   If (Event.What = evMouseDown) Then Begin           { Mouse down event }
-     Q.X := Event.Where.X - Origin.X;   { Offset mouse x origin }
-     Q.Y := Event.Where.Y - Origin.Y;  { Offset mouse y origin }
-     Op1.X := Origin.X;
-     Op1.Y := Origin.Y;      { Hold origin point }
-     Op2.X := Origin.X+Size.X;                  { Right side x value }
-     Op2.Y := Origin.Y+Size.Y;                  { Right side y value }
-     PState := State;                                 { Hold current state }
-     HideMouseCursor;                                 { Hide the mouse }
-     ShowMouseCursor;                                 { Show the mouse }
-     Repeat
-       Mouse.X := Event.Where.X-Q.X; { New x origin point }
-       Mouse.Y := Event.Where.Y-Q.Y;{ New y origin point }
-       If (Mode AND dmDragMove<>0) Then Begin
-         If (Owner<>Nil) Then Begin
-           Dec(Mouse.X, Owner^.Origin.X);             { Sub owner x origin }
-           Dec(Mouse.Y, Owner^.Origin.Y);             { Sub owner y origin }
-         End;
-         R := Mouse; Mouse := Size;                   { Exchange values }
-       End Else Begin
-         R := Origin;                                 { Start at origin }
-         If (Owner<>Nil) Then Begin
-           Dec(R.X, Owner^.Origin.X);                 { Sub owner x origin }
-           Dec(R.Y, Owner^.Origin.Y);                 { Sub owner y origin }
-         End;
-         Mouse.X := Mouse.X+Q.X-Origin.X;
-         Mouse.Y := Mouse.Y+Q.Y-Origin.Y;
-       End;
-       HideMouseCursor;                               { Hide the mouse }
-       MoveGrow(R, Mouse);                            { Resize the view }
-       ShowMouseCursor;                               { Show the mouse }
-     Until NOT MouseEvent(Event, evMouseMove);        { Finished moving }
-     State := PState;                                 { Restore view state }
-     If (Owner<>Nil) Then
-       Owner^.ReDrawArea(Op1.X, Op1.Y, Op2.X, Op2.Y); { Redraw old area }
-     SetState(sfDragging, False);                     { Clr dragging flag }
-     DrawView;                                        { Now redraw the view }
-   End Else Begin
-     GetBounds(SaveBounds);                           { Get current bounds }
-     Repeat
-       P := Origin; S := Size;                        { Set values }
-       If Assigned(Owner) then
-         Begin
-           Dec(P.X,Owner^.Origin.X);
-           Dec(P.Y,Owner^.Origin.Y);
-         End;
-       KeyEvent(Event);                               { Get key event }
-       Case Event.KeyCode AND $FF00 Of
-         kbLeft: Change(-1, 0);                       { Move left }
-         kbRight: Change(1, 0);                       { Move right }
-         kbUp: Change(0, -1);                         { Move up }
-         kbDown: Change(0, 1);                        { Move down }
-         kbCtrlLeft: Change(-8, 0);
-         kbCtrlRight: Change(8, 0);
-         kbHome: Update(Limits.A.X, P.Y);
-         kbEnd: Update(Limits.B.X - S.X, P.Y);
-         kbPgUp: Update(P.X, Limits.A.Y);
-         kbPgDn: Update(P.X, Limits.B.Y - S.Y);
-       End;
-       MoveGrow(P, S);                                { Now move the view }
-     Until (Event.KeyCode = kbEnter) OR
-     (Event.KeyCode = kbEsc);
-     If (Event.KeyCode=kbEsc) Then Locate(SaveBounds);{ Restore original }
-   End;
-   SetState(sfDragging, False);                       { Clr dragging flag }
-END;
+
+procedure TView.WriteBuf(X, Y, W, H: Sw_Integer; var Buf);
+var
+  i : Sw_integer;
+begin
+  if h>0 then
+   for i:= 0 to h-1 do
+    do_writeView(X,X+W,Y+i,TVideoBuf(Buf)[W*i]);
+end;
+
+
+procedure TView.WriteChar(X,Y:Sw_Integer; C:Char; Color:Byte; Count:Sw_Integer);
+var
+  B : TDrawBuffer;
+  myChar : word;
+  i : Sw_integer;
+begin
+  myChar:=MapColor(Color);
+  myChar:=(myChar shl 8) + ord(C);
+  if Count>0 then
+   begin
+     if Count>maxViewWidth then
+      Count:=maxViewWidth;
+     for i:=0 to Count-1 do
+      B[i]:=myChar;
+     do_writeView(X,X+Count,Y,B);
+   end;
+  DrawScreenBuf;
+end;
+
+
+procedure TView.WriteLine(X, Y, W, H: Sw_Integer; var Buf);
+var
+  i:Sw_integer;
+begin
+  if h>0 then
+   for i:=0 to h-1 do
+    do_writeView(x,x+w,y+i,buf);
+  DrawScreenBuf;
+end;
+
+
+procedure TView.WriteStr(X, Y: Sw_Integer; Str: String; Color: Byte);
+var
+  l,i : Sw_word;
+  B : TDrawBuffer;
+  myColor : word;
+begin
+  l:=length(Str);
+  if l>0 then
+   begin
+     if l>maxViewWidth then
+      l:=maxViewWidth;
+     MyColor:=MapColor(Color);
+     MyColor:=MyColor shl 8;
+     for i:=0 to l-1 do
+      B[i]:=MyColor+ord(Str[i+1]);
+     do_writeView(x,x+l,y,b);
+   end;
+  DrawScreenBuf;
+end;
+
+
+procedure TView.DragView(Event: TEvent; Mode: Byte;
+  var Limits: TRect; MinSize, MaxSize: TPoint);
+var
+  P, S: TPoint;
+  SaveBounds: TRect;
+
+  procedure MoveGrow(P, S: TPoint);
+  var
+    R: TRect;
+  begin
+    S.X := Min(Max(S.X, MinSize.X), MaxSize.X);
+    S.Y := Min(Max(S.Y, MinSize.Y), MaxSize.Y);
+    P.X := Min(Max(P.X, Limits.A.X - S.X + 1), Limits.B.X - 1);
+    P.Y := Min(Max(P.Y, Limits.A.Y - S.Y + 1), Limits.B.Y - 1);
+    if Mode and dmLimitLoX <> 0 then P.X := Max(P.X, Limits.A.X);
+    if Mode and dmLimitLoY <> 0 then P.Y := Max(P.Y, Limits.A.Y);
+    if Mode and dmLimitHiX <> 0 then P.X := Min(P.X, Limits.B.X - S.X);
+    if Mode and dmLimitHiY <> 0 then P.Y := Min(P.Y, Limits.B.Y - S.Y);
+    R.Assign(P.X, P.Y, P.X + S.X, P.Y + S.Y);
+    Locate(R);
+  end;
+
+  procedure Change(DX, DY: Sw_Integer);
+  begin
+    if (Mode and dmDragMove <> 0) and (Event.KeyShift{GetShiftState} and $03 = 0) then
+    begin
+      Inc(P.X, DX);
+      Inc(P.Y, DY);
+    end else
+    if (Mode and dmDragGrow <> 0) and (Event.KeyShift{GetShiftState} and $03 <> 0) then
+    begin
+      Inc(S.X, DX);
+      Inc(S.Y, DY);
+    end;
+  end;
+
+  procedure Update(X, Y: Sw_Integer);
+  begin
+    if Mode and dmDragMove <> 0 then
+    begin
+      P.X := X;
+      P.Y := Y;
+    end;
+  end;
+
+begin
+  SetState(sfDragging, True);
+  if Event.What = evMouseDown then
+  begin
+    if Mode and dmDragMove <> 0 then
+    begin
+      P.X := Origin.X - Event.Where.X;
+      P.Y := Origin.Y - Event.Where.Y;
+      repeat
+        Inc(Event.Where.X, P.X);
+        Inc(Event.Where.Y, P.Y);
+        MoveGrow(Event.Where, Size);
+      until not MouseEvent(Event, evMouseMove);
+    end else
+    begin
+      P.X := Size.X - Event.Where.X;
+      P.Y := Size.Y - Event.Where.Y;
+      repeat
+        Inc(Event.Where.X, P.X);
+        Inc(Event.Where.Y, P.Y);
+        MoveGrow(Origin, Event.Where);
+      until not MouseEvent(Event, evMouseMove);
+    end;
+  end else
+  begin
+    GetBounds(SaveBounds);
+    repeat
+      P := Origin;
+      S := Size;
+      KeyEvent(Event);
+      case Event.KeyCode and $FF00 of
+        kbLeft: Change(-1, 0);
+        kbRight: Change(1, 0);
+        kbUp: Change(0, -1);
+        kbDown: Change(0, 1);
+        kbCtrlLeft: Change(-8, 0);
+        kbCtrlRight: Change(8, 0);
+        kbHome: Update(Limits.A.X, P.Y);
+        kbEnd: Update(Limits.B.X - S.X, P.Y);
+        kbPgUp: Update(P.X, Limits.A.Y);
+        kbPgDn: Update(P.X, Limits.B.Y - S.Y);
+      end;
+      MoveGrow(P, S);
+    until (Event.KeyCode = kbEnter) or (Event.KeyCode = kbEsc);
+    if Event.KeyCode = kbEsc then
+      Locate(SaveBounds);
+  end;
+  SetState(sfDragging, False);
+end;
 
 
 {***************************************************************************}
@@ -5014,126 +4577,6 @@ BEGIN
 END;
 
 
-PROCEDURE TWindow.DrawBorder;
-const
-  LargeC:array[boolean] of char=('^',#24);
-  RestoreC:array[boolean] of char=('|',#18);
-  ClickC:array[boolean] of char=('*',#15);
-VAR Fc, Bc: Byte; X, Y: Sw_Integer; S: String;
-    ViewPort: ViewPortType;
-    I : Sw_Integer;
-    LeftUpCorner,
-    RightUpCorner,
-    HorizontalBar,
-    VerticalBar,
-    LeftLowCorner,
-    RightLowCorner,C : Char;
-    Color : Byte;
-    Focused : Boolean;
-    Min, Max: TPoint;
-    NP : PView;
-
-BEGIN
-   Fc := GetColor(2) AND $0F;                        { Foreground colour }
-   Bc := (GetColor(2) AND $70) SHR 4;                { Background colour }
-   Y:=0;
-   ClearArea(0, Y, Size.X, Y, Bc);      { Clear background }
-     {Focused:=(State AND (sfSelected + sfModal)<>0);
-     if Assigned(Owner) then
-       Focused := Focused AND (@Self = Owner^.Current); }
-     Focused:=(State AND sfActive)<>0;
-     If not Focused or (GOptions AND goThickFramed = 0) then
-       begin
-         LeftUpCorner:='Ú';
-         RightUpCorner:='¿';
-         HorizontalBar:='Ä';
-         VerticalBar:='³';
-         LeftLowCorner:='À';
-         RightLowCorner:='Ù';
-       end
-     else
-       begin
-         LeftUpCorner:='É';
-         RightUpCorner:='»';
-         HorizontalBar:='Í';
-         VerticalBar:='º';
-         LeftLowCorner:='È';
-         RightLowCorner:='¼';
-       end;
-     if (State AND sfDragging)<>0 then
-       Color := 5
-     else if Focused then
-       Color := 2
-     else
-       Color := 1;
-     WriteChar(0,0,LeftUpCorner,Color,1);
-     WriteChar(1,0,HorizontalBar,Color,Size.X-2);
-     WriteChar(Size.X-1,0,RightUpcorner,Color,1);
-     For i:=1 to Size.Y -1 do
-       begin
-         WriteChar(0,i,VerticalBar,Color,1);
-         WriteChar(Size.X-1,i,VerticalBar,Color,1);
-       end;
-     WriteChar(0,Size.Y-1,LeftLowCorner,Color,1);
-     WriteChar(1,Size.Y-1,HorizontalBar,Color,Size.X-2);
-     WriteChar(Size.X-1,Size.Y-1,RightLowCorner,Color,1);
-   If (Title<>Nil) AND (GOptions AND goTitled<>0)
-   Then Begin                                         { View has a title }
-     GetViewSettings(ViewPort);
-     X := (Size.X DIV 2);                          { Half way point }
-     X := X - ((Length(Title^)+2)) DIV 2;       { Calc start point }
-     WriteStr(X ,0,' '+Title^+' ',Color);
-   End;
-   If (Number>0) AND (Number<10) Then Begin           { Valid number }
-     Str(Number, S);                                  { Make number string }
-     If (Flags and wfZoom)<>0 then
-       I:=7
-     else
-       I:=3;
-     WriteCStr(Size.X-I,0,S,1,Color);
-   End;
-   If Focused and (Flags AND wfClose<>0) Then Begin   { Close icon request }
-     WriteCStr(2,0,'[~'+ClickC[LowAscii]+'~]', 2, 3);
-   End;
-   If Focused and (Flags AND wfZoom<>0) Then Begin
-     if assigned(Owner) and
-        (Size.X=Owner^.Size.X) and (Size.Y=Owner^.Size.Y) then
-      C:=RestoreC[LowAscii]
-     else
-      C:=LargeC[LowAscii];
-     WriteCStr(Size.X-5,0,'[~'+C+'~]', 2, 3);
-     WriteCStr(Size.X-2,Size.Y-1,'~ÄÙ~',2, 3);
-   End;
-   { Ensure that the scrollers are repainted }
-   NP:=Last;
-   while assigned(NP) do
-     begin
-       If (NP^.Origin.X<=Origin.X) or
-          (NP^.Origin.Y<=Origin.Y) or
-          (NP^.Origin.X>=Origin.X+Size.X) or
-          (NP^.Origin.Y>=Origin.Y+Size.Y) then
-         begin
-           NP^.ReDrawArea(Origin.X,Origin.Y,
-             Origin.X+Size.X,Origin.Y+1);
-           NP^.ReDrawArea(Origin.X,Origin.Y+(Size.Y-1),
-             Origin.X+Size.X,Origin.Y+Size.Y);
-           NP^.ReDrawArea(Origin.X,Origin.Y+1,
-             Origin.X+1,Origin.Y+(Size.Y-1));
-           NP^.ReDrawArea(Origin.X+(Size.X-1),Origin.Y+1,
-             Origin.X+Size.X,Origin.Y+(Size.Y-1));
-         end;
-       NP:=NP^.Prevview;
-     end;
-END;
-
-
-PROCEDURE TWindow.Redraw;
-BEGIN
-  DrawView;
-  inherited Redraw;
-END;
-
-
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
 {***************************************************************************}
@@ -5224,88 +4667,7 @@ END.
 
 {
  $Log$
- Revision 1.46  2004-11-04 23:58:39  peter
- redraw of twindow fixed
-
- Revision 1.45  2004/11/03 20:51:36  florian
-   * fixed problems on targets requiring proper alignment
-
- Revision 1.44  2004/11/03 20:33:05  peter
-   * removed unnecesasry graphfv stuff
-
- Revision 1.43  2004/11/03 12:09:08  peter
-   * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
-
- Revision 1.42  2004/11/03 10:37:24  peter
-   * cursor probs fixed
-
- Revision 1.41  2004/11/02 23:53:19  peter
-   * fixed crashes with ide and 1.9.x
-
- Revision 1.40  2002/10/17 11:24:17  pierre
-  * Clean up the Load/Store routines so they are endian independent
-
- Revision 1.39  2002/09/22 19:42:21  hajny
-   + FPC/2 support added
-
- Revision 1.38  2002/09/12 12:03:13  pierre
-  * handle unix mouse differently as it uses video buffer
-
- Revision 1.37  2002/09/09 08:06:33  pierre
-  * remove other warnings
-
- Revision 1.36  2002/09/09 08:04:06  pierre
-  * remove all warnings about far
-
- Revision 1.35  2002/09/07 15:06:38  peter
-   * old logs removed and tabs fixed
-
- Revision 1.34  2002/08/22 13:40:49  pierre
-  * several graphic mode improovements
-
- Revision 1.33  2002/06/10 13:47:38  pierre
-  * correct the check for drawing a double line border
-
- Revision 1.32  2002/06/10 12:39:43  pierre
-  * always call ScrooDraw if TscrollBar.value filed is changed
-
- Revision 1.31  2002/06/06 06:42:21  pierre
-  + use gfvgraph cursor functions for UseFixedFont
-
- Revision 1.30  2002/05/31 13:36:42  pierre
-  * avoid SIGSEGV in owner^.close code by removing virtual attribute to ForEach method
-
- Revision 1.29  2002/05/31 12:40:48  pierre
-  * several fixes + graph enhancements
-
- Revision 1.28  2002/05/30 22:28:33  pierre
-  * tried to get a faster RedrawArea method
-
- Revision 1.27  2002/05/30 14:53:54  pierre
-  * try to follow TV better
-
- Revision 1.26  2002/05/29 19:36:52  pierre
-  * fix UseFixedFont related code
-
- Revision 1.25  2002/05/28 19:15:16  pierre
-  * adapt to new GraphUpdateScreen function
-
- Revision 1.24  2002/05/25 23:30:47  pierre
-  * partly fix the scrollbar behavior
-
- Revision 1.23  2002/05/24 13:16:11  pierre
-  * add window number and resize handle
-
- Revision 1.22  2002/05/23 10:27:12  pierre
-  * avoid problems with shadows when moving or resizing a window
-
- Revision 1.21  2002/05/23 09:06:01  pierre
-  * force views to have raworigin multiples of cell width and height
-
- Revision 1.20  2002/05/21 11:47:36  pierre
-  * avoid infinite recursions in graphic mode
-
- Revision 1.19  2002/05/16 21:23:34  pierre
-  * fix some display problems
+ Revision 1.47  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

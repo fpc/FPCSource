@@ -178,7 +178,6 @@ TYPE
       FUNCTION Valid (Command: Word): Boolean; Virtual;
       PROCEDURE Draw; Virtual;
       PROCEDURE DrawCursor; Virtual;
-      PROCEDURE DrawbackGround; Virtual;
       PROCEDURE SelectAll (Enable: Boolean);
       PROCEDURE SetValidator (AValid: PValidator);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -206,7 +205,7 @@ TYPE
       DESTRUCTOR Done; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
       PROCEDURE Press; Virtual;
-      PROCEDURE DrawFocus; Virtual;
+      PROCEDURE Draw; Virtual;
       PROCEDURE DrawState (Down: Boolean);
       PROCEDURE MakeDefault (Enable: Boolean);
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -243,7 +242,7 @@ TYPE
       FUNCTION Mark (Item: Sw_Integer): Boolean; Virtual;
       FUNCTION MultiMark (Item: Sw_Integer): Byte; Virtual;
       FUNCTION ButtonState (Item: Sw_Integer): Boolean;
-      PROCEDURE DrawFocus;                                           Virtual;
+      PROCEDURE Draw;                                           Virtual;
       PROCEDURE Press (Item: Sw_Integer); Virtual;
       PROCEDURE MovedTo (Item: Sw_Integer); Virtual;
       PROCEDURE SetState (AState: Word; Enable: Boolean); Virtual;
@@ -275,7 +274,7 @@ TYPE
 TYPE
    TRadioButtons = OBJECT (TCluster)
       FUNCTION Mark (Item: Sw_Integer): Boolean; Virtual;
-      PROCEDURE DrawFocus; Virtual;
+      PROCEDURE Draw; Virtual;
       PROCEDURE Press (Item: Sw_Integer); Virtual;
       PROCEDURE MovedTo(Item: Sw_Integer); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
@@ -295,7 +294,7 @@ TYPE
 TYPE
    TCheckBoxes = OBJECT (TCluster)
       FUNCTION Mark (Item: Sw_Integer): Boolean; Virtual;
-      PROCEDURE DrawFocus; Virtual;
+      PROCEDURE Draw; Virtual;
       PROCEDURE Press (Item: Sw_Integer); Virtual;
    END;
    PCheckBoxes = ^TCheckBoxes;
@@ -321,7 +320,7 @@ TYPE
       DESTRUCTOR Done; Virtual;
       FUNCTION DataSize: Sw_Word; Virtual;
       FUNCTION MultiMark (Item: Sw_Integer): Byte; Virtual;
-      PROCEDURE DrawFocus; Virtual;
+      PROCEDURE Draw; Virtual;
       PROCEDURE Press (Item: Sw_Integer); Virtual;
       PROCEDURE GetData (Var Rec); Virtual;
       PROCEDURE SetData (Var Rec); Virtual;
@@ -398,7 +397,7 @@ TYPE
       CONSTRUCTOR Load (Var S: TStream);
       DESTRUCTOR Done; Virtual;
       FUNCTION GetPalette: PPalette; Virtual;
-      PROCEDURE DrawBackGround;                                      Virtual;
+      PROCEDURE Draw;                                      Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE GetText (Var S: String); Virtual;
    END;
@@ -436,7 +435,7 @@ TYPE
       CONSTRUCTOR Init (Var Bounds: TRect; CONST AText: String; ALink: PView);
       CONSTRUCTOR Load (Var S: TStream);
       FUNCTION GetPalette: PPalette; Virtual;
-      PROCEDURE DrawBackGround; Virtual;
+      PROCEDURE Draw; Virtual;
       PROCEDURE Store (Var S: TStream);
       PROCEDURE HandleEvent (Var Event: TEvent); Virtual;
    END;
@@ -1370,48 +1369,39 @@ END;
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TInputLine.Draw;
-VAR Color: Byte; X, L, R: Sw_Integer; S, T: String;
+VAR Color: Byte; L, R: Sw_Integer;
+  B : TDrawBuffer;
 BEGIN
-   If (State AND sfFocused = 0) Then Color := 1       { Not focused colour }
-     Else Color := 2;                                 { Focused colour }
-   If CanScroll(-1) Then WriteStr(0, 0, LeftArr, 4);  { Set left scroll mark }
-   If CanScroll(1) Then WriteStr(-(Size.X + 1 -
-     TextWidth(RightArr)), 0, RightArr, 4);           { Set right scroll mark }
-   If (Data <> Nil) Then S := Copy(Data^, FirstPos+1,
-    Length(Data^)-FirstPos) Else S := '';             { Fetch data string }
-   X := TextWidth(LeftArr);                           { left arrow width }
-   While (TextWidth(S) > (Size.X-X-TextWidth(
-     RightArr))) Do Delete(S, Length(S), 1);          { Cut to right length }
-   If (State AND sfFocused <> 0) Then Begin
-     L := SelStart - FirstPos;                        { Selected left end }
-     R := SelEnd - FirstPos;                          { Selected right end }
-     If (L < 0) Then L := 0;                          { Fix any negative }
-     If (R > Length(S)) Then R := Length(S);          { Fix to long case }
-     If (L > 0) Then Begin
-       T := Copy(S, 1, L);                            { Unhighlight bit }
-       WriteStr(-X, 0, T, Color);                     { Write string to screen }
-       X := X + TextWidth(T);                         { New x position }
-       Delete(S, 1, L);                               { Reduce string }
-     End;
-     If (L < R) Then Begin
-       T := Copy(S, 1, R-L);                          { Highlight bit }
-       WriteStr(-X, 0, T, 3);                         { Write string to screen }
-       X := X + TextWidth(T);                         { New x position }
-       Delete(S, 1, R-L);                             { Reduce string }
-     End;
-     If (Length(S) > 0) Then
-       WriteStr(-X, 0, S, Color);                     { Write string to screen }
-   End Else WriteStr(-X, 0, S, Color);                { Write string to screen }
-   Cursor.X := CurPos - FirstPos + 1;                 { Update cursor position }
-END;
+  if Options and ofSelectable = 0 then
+    Color := GetColor(5)
+  else
+    If (State AND sfFocused = 0) Then
+      Color := GetColor(1)       { Not focused colour }
+    Else
+      Color := GetColor(2);      { Focused colour }
+  MoveChar(B, ' ',      Color, Size.X);
+  MoveStr(B[1], Copy(Data^, FirstPos + 1, Size.X - 2), Color);
+  if CanScroll(1) then
+    MoveChar(B[Size.X - 1], RightArr, GetColor(4), 1);
+  if (State and sfFocused <> 0) and
+     (Options and ofSelectable <> 0) then
+    begin
+      if CanScroll(-1) then
+        MoveChar(B[0], LeftArr, GetColor(4), 1);
+      { Highlighted part }
+      L := SelStart - FirstPos;
+      R := SelEnd - FirstPos;
+      if L < 0 then
+        L := 0;
+      if R > Size.X - 2 then
+        R := Size.X - 2;
+      if L < R then
+        MoveChar(B[L + 1], #0, GetColor(3), R - L);
+      SetCursor(CurPos - FirstPos + 1, 0);
+    end;
+  WriteLine(0, 0, Size.X, Size.Y, B);
+end;
 
-{--TInputLine---------------------------------------------------------------}
-{  DrawbackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04Oct99 LdB    }
-{---------------------------------------------------------------------------}
-PROCEDURE TInputLine.DrawBackGround;
-BEGIN
-   Inherited DrawBackGround;                          { Call ancestor }
-END;
 
 {--TInputLine---------------------------------------------------------------}
 {  DrawCursor -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 05Oct99 LdB        }
@@ -1766,7 +1756,6 @@ CONSTRUCTOR TButton.Init (Var Bounds: TRect; ATitle: TTitleStr;
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
    EventMask := EventMask OR evBroadcast;             { Handle broadcasts }
-   GOptions := GOptions OR goDrawFocus;               { Set new option mask }
    Options := Options OR (ofSelectable + ofFirstClick
      + ofPreProcess + ofPostProcess);                 { Set option flags }
    If NOT CommandEnabled(ACommand) Then
@@ -1831,10 +1820,10 @@ BEGIN
 END;
 
 {--TButton------------------------------------------------------------------}
-{  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB         }
+{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE TButton.DrawFocus;
-VAR B: Byte; I, J, Pos: Sw_Integer;
+PROCEDURE TButton.Draw;
+VAR I, J, Pos: Sw_Integer;
     Bc: Word; Db: TDrawBuffer;
     C : char;
 BEGIN
@@ -1893,7 +1882,6 @@ END;
 PROCEDURE TButton.DrawState (Down: Boolean);
 BEGIN
    DownFlag := Down;                                  { Set down flag }
-   SetDrawMask(vdFocus);                              { Set focus mask }
    DrawView;                                          { Redraw the view }
 END;
 
@@ -2021,7 +2009,6 @@ CONSTRUCTOR TCluster.Init (Var Bounds: TRect; AStrings: PSItem);
 VAR I: Sw_Integer; P: PSItem;
 BEGIN
    Inherited Init(Bounds);                            { Call ancestor }
-   GOptions := GOptions OR goDrawFocus;               { Draw focus view }
    Options := Options OR (ofSelectable + ofFirstClick
      + ofPreProcess + ofPostProcess + ofVersion20);   { Set option masks }
    I := 0;                                            { Zero string count }
@@ -2040,7 +2027,7 @@ BEGIN
    Sel := 0;
    SetCursor(2,0);
    ShowCursor;
-   EnableMask := $FFFFFFFF;                           { Enable bit masks }
+   EnableMask := Sw_Integer($FFFFFFFF);                           { Enable bit masks }
 END;
 
 {--TCluster-----------------------------------------------------------------}
@@ -2059,9 +2046,9 @@ BEGIN
    Else
      Begin
      w:=Value;
-     S.Read(w, SizeOf(w)); Value:=w;               { Read value }
+     S.Read(w, SizeOf(w)); Value:=w;                  { Read value }
      S.Read(Sel, SizeOf(Sel));                        { Read select item }
-     EnableMask := $FFFFFFFF;                         { Enable all masks }
+     EnableMask := Sw_integer($FFFFFFFF);             { Enable all masks }
      Options := Options OR ofVersion20;               { Set version 2 mask }
    End;
    Strings.Load(S);                                   { Load string data }
@@ -2072,7 +2059,6 @@ END;
 {  Done -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Jul99 LdB              }
 {---------------------------------------------------------------------------}
 DESTRUCTOR TCluster.Done;
-VAR I: Sw_Integer;
 BEGIN
    Strings.Done;                                      { Dispose of strings }
    Inherited Done;                                    { Call ancestor }
@@ -2131,9 +2117,9 @@ BEGIN
 END;
 
 {--TCluster-----------------------------------------------------------------}
-{  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Jul99 LdB         }
+{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 28Jul99 LdB         }
 {---------------------------------------------------------------------------}
-PROCEDURE TCluster.DrawFocus;
+PROCEDURE TCluster.Draw;
 BEGIN
 END;
 
@@ -2162,7 +2148,6 @@ PROCEDURE TCluster.SetState (AState: Word; Enable: Boolean);
 BEGIN
    Inherited SetState(AState, Enable);                { Call ancestor }
    If (AState AND sfFocused <> 0) Then Begin
-     SetDrawMask(vdFocus OR vdInner);                 { Set redraw masks }
      DrawView;                                        { Redraw masked areas }
    End;
 END;
@@ -2172,7 +2157,6 @@ END;
 {---------------------------------------------------------------------------}
 PROCEDURE TCluster.DrawMultiBox (Const Icon, Marker: String);
 VAR I, J, K, Cur, Col: Sw_Integer; CNorm, CSel, CDis, Color: Word; B: TDrawBuffer;
-    Tb, SCOff: Byte;
 BEGIN
    CNorm := GetColor($0301);                          { Normal colour }
    CSel := GetColor($0402);                           { Selected colour }
@@ -2259,7 +2243,6 @@ END;
 PROCEDURE TCluster.SetData (Var Rec);
 BEGIN
    Value :=sw_Word(Rec);                              { Set current value }
-   SetDrawMask(vdFocus OR vdInner);                   { Set redraw mask }
    DrawView;                                          { Redraw masked areas }
 END;
 
@@ -2295,7 +2278,6 @@ VAR C: Char; I, J, S, Vh: Sw_Integer; Key: Word; Mouse: TPoint; Ts: PString;
      If (I <= Strings.Count) Then Begin
        Sel := S;                                      { Set selected item }
        MovedTo(Sel);                                  { Move to selected }
-       SetDrawMask(vdInner OR vdFocus);               { Set draw masks }
        DrawView;                                      { Now draw changes }
      End;
    END;
@@ -2308,7 +2290,6 @@ BEGIN
      I := FindSel(Mouse);                             { Find selected item }
      If (I <> -1) Then                                { Check in view }
        If ButtonState(I) Then Sel := I;               { If enabled select }
-     SetDrawMask(vdFocus OR vdInner);                 { Set draw mask }
      DrawView;                                        { Now draw changes }
      Repeat
        MakeLocal(Event.Where, Mouse);                 { Make point local }
@@ -2317,7 +2298,6 @@ BEGIN
      If (FindSel(Mouse) = Sel) AND ButtonState(Sel)   { If valid/selected }
      Then Begin
        Press(Sel);                                    { Call pressed }
-       SetDrawMask(vdFocus OR vdInner);               { Set draw mask }
        DrawView;                                      { Now draw changes }
      End;
      ClearEvent(Event);                               { Event was handled }
@@ -2369,7 +2349,6 @@ BEGIN
                  Sel := I;                            { Set selected }
                  MovedTo(Sel);                        { Move to selected }
                  Press(Sel);                          { Call pressed }
-                 SetDrawMask(vdFocus OR vdInner);     { Set draw mask }
                  DrawView;                            { Now draw changes }
                End;
                ClearEvent(Event);                     { Event was handled }
@@ -2381,7 +2360,6 @@ BEGIN
          (State AND sfFocused <> 0) AND               { Check focused view }
          ButtonState(Sel) Then Begin                  { Check item enabled }
            Press(Sel);                                { Call pressed }
-           SetDrawMask(vdFocus OR vdInner);           { Set draw mask }
            DrawView;                                  { Now draw changes }
            ClearEvent(Event);                         { Event was handled }
          End;
@@ -2469,10 +2447,10 @@ END;
 {--TRadioButtons------------------------------------------------------------}
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04May98 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE TRadioButtons.DrawFocus;
+PROCEDURE TRadioButtons.Draw;
 CONST Button = ' ( ) ';
 BEGIN
-   Inherited DrawFocus;
+   Inherited Draw;
    DrawMultiBox(Button, ' *');                       { Redraw the text }
 END;
 
@@ -2520,10 +2498,10 @@ END;
 {--TCheckBoxes--------------------------------------------------------------}
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 04May98 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE TCheckBoxes.DrawFocus;
+PROCEDURE TCheckBoxes.Draw;
 CONST Button = ' [ ] ';
 BEGIN
-   Inherited DrawFocus;
+   Inherited Draw;
    DrawMultiBox(Button, ' X');                        { Redraw the text }
 END;
 
@@ -2592,10 +2570,10 @@ END;
 {--TMultiCheckBoxes---------------------------------------------------------}
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Jun98 LdB              }
 {---------------------------------------------------------------------------}
-PROCEDURE TMultiCheckBoxes.DrawFocus;
+PROCEDURE TMultiCheckBoxes.Draw;
 CONST Button = ' [ ] ';
 BEGIN
-   Inherited DrawFocus;
+   Inherited Draw;
    DrawMultiBox(Button, States^);                     { Draw the items }
 END;
 
@@ -2631,7 +2609,6 @@ END;
 PROCEDURE TMultiCheckBoxes.SetData (Var Rec);
 BEGIN
    Value := Longint(Rec);                             { Set value }
-   SetDrawMask(vdFocus OR vdInner);                   { Set redraw mask }
    DrawView;                                          { Redraw masked areas }
 END;
 
@@ -2867,42 +2844,54 @@ END;
 {--TStaticText--------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB    }
 {---------------------------------------------------------------------------}
-PROCEDURE TStaticText.DrawBackGround;
-VAR Just: Byte; I, J, P, Y, L: Sw_Integer; S, T: String;
+PROCEDURE TStaticText.Draw;
+VAR Just: Byte; I, J, P, Y, L: Sw_Integer; S: String;
+  B : TDrawBuffer;
+  Color : Byte;
 BEGIN
-   Inherited DrawBackGround;                          { Call ancestor }
    GetText(S);                                        { Fetch text to write }
+   Color := GetColor(1);
    P := 1;                                            { X start position }
    Y := 0;                                            { Y start position }
    L := Length(S);                                    { Length of text }
-   While (Y < Size.Y) AND (P <= L) Do Begin
-     Just := 0;                                       { Default left justify }
-     If (S[P] = #2) Then Begin                        { Right justify char }
-       Just := 2;                                     { Set right justify }
-       Inc(P);                                        { Next character }
-     End;
-     If (S[P] = #3) Then Begin                        { Centre justify char }
-       Just := 1;                                     { Set centre justify }
-       Inc(P);                                        { Next character }
-     End;
-     I := P;                                          { Start position }
-     While (P <= L) AND (P-I <= Size.X) AND (S[P] <> #13) Do
-       Inc(P);                                        { Scan for end }
-     T := Copy(S, I, P-I);                            { String to write }
-     Case Just Of
-       0: J := 0;                                     { Left justify }
-       1: J := (Size.X - TextWidth(T)) DIV 2;      { Centre justify }
-       2: J := Size.X - TextWidth(T);              { Right justify }
-     End;
-     While (J < 0) Do Begin                           { Text to long }
-       J := J + TextWidth(T[1]);                      { Add width to J }
-       Delete(T, 1, 1);                               { Delete the char }
-     End;
-     WriteStr(-J, -Y, T, 1);             { Write the text }
-     While (P <= L) AND (P-I <= Size.X) AND ((S[P] = #13) OR (S[P] = #10))
-       Do Inc(P);                                     { Remove CR/LF }
-     Inc(Y);                                          { Next line }
-   End;
+   While (Y < Size.Y) Do Begin
+    MoveChar(B, ' ', Color, Size.X);
+    if P <= L then
+    begin
+      Just := 0;                                       { Default left justify }
+      If (S[P] = #2) Then Begin                        { Right justify char }
+        Just := 2;                                     { Set right justify }
+        Inc(P);                                        { Next character }
+      End;
+      If (S[P] = #3) Then Begin                        { Centre justify char }
+        Just := 1;                                     { Set centre justify }
+        Inc(P);                                        { Next character }
+      End;
+      I := P;                                          { Start position }
+      repeat
+        J := P;
+        while (P <= L) and (S[P] = ' ') do
+          Inc(P);
+        while (P <= L) and (S[P] <> ' ') and (S[P] <> #13) do
+          Inc(P);
+      until (P > L) or (P >= I + Size.X) or (S[P] = #13);
+      If P > I + Size.X Then                           { Text to long }
+        If J > I Then
+          P := J
+        Else
+          P := I + Size.X;
+      Case Just Of
+        0: J := 0;                           { Left justify }
+        1: J := (Size.X - (P-I)) DIV 2;      { Centre justify }
+        2: J := Size.X - (P-I);              { Right justify }
+      End;
+      MoveBuf(B[J], S[I], Color, P - I);
+      While (P <= L) AND (P-I <= Size.X) AND ((S[P] = #13) OR (S[P] = #10))
+        Do Inc(P);                                     { Remove CR/LF }
+    End;
+    WriteLine(0, Y, Size.X, 1, B);
+    Inc(Y);                                          { Next line }
+  End;
 END;
 
 {--TStaticText--------------------------------------------------------------}
@@ -3027,10 +3016,9 @@ END;
 {--TLabel-------------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 26Oct99 LdB    }
 {---------------------------------------------------------------------------}
-PROCEDURE TLabel.DrawBackGround;
+PROCEDURE TLabel.Draw;
 VAR SCOff: Byte; Color: Word; B: TDrawBuffer;
 BEGIN
-   TView.DrawBackGround;                              { Explict call to TView }
    If Light Then Begin                                { Light colour select }
      Color := GetColor($0402);                        { Choose light colour }
      SCOff := 0;                                      { Zero offset }
@@ -3705,7 +3693,6 @@ end;
 procedure TEditListBox.EditField (var Event : TEvent);
 var R : TRect;
     InputLine : PModalInputLine;
-    Data : String;
 begin
   R.Assign(StartColumn,(Origin.Y + Focused - TopItem),
            (StartColumn + FieldWidth + 2),(Origin.Y + Focused - TopItem + 1));
@@ -4168,58 +4155,7 @@ END;
 END.
 {
  $Log$
- Revision 1.26  2004-11-03 20:33:05  peter
-   * removed unnecesasry graphfv stuff
-
- Revision 1.25  2004/11/03 12:09:08  peter
-   * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
-
- Revision 1.24  2004/11/03 10:37:24  peter
-   * cursor probs fixed
-
- Revision 1.23  2004/11/02 23:53:19  peter
-   * fixed crashes with ide and 1.9.x
-
- Revision 1.22  2002/10/17 13:27:53  pierre
-  * fix TCluster.Get/SetData on big endian machines
-
- Revision 1.21  2002/10/17 11:24:16  pierre
-  * Clean up the Load/Store routines so they are endian independent
-
- Revision 1.20  2002/09/22 19:42:23  hajny
-   + FPC/2 support added
-
- Revision 1.19  2002/09/09 08:14:47  pierre
-  * remove virtual modifer from store methods
-
- Revision 1.18  2002/09/07 15:06:36  peter
-   * old logs removed and tabs fixed
-
- Revision 1.17  2002/05/31 12:35:21  pierre
-  * use graph mode to display button title
-
- Revision 1.16  2002/05/24 21:00:10  pierre
-  * correct cursor position for TInputLine
-
- Revision 1.15  2002/05/23 12:16:11  pierre
-  * fix textmode button to be displayed like in TV
-
- Revision 1.14  2002/05/23 09:06:53  pierre
-  * use normal cursor for textmode TInputLine
-
- Revision 1.13  2002/05/16 20:36:24  pierre
-  * break lines of static text if too long
+ Revision 1.27  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }
-{******************[ REVISION HISTORY ]********************}
-{  Version  Date        Fix                                }
-{  -------  ---------   ---------------------------------  }
-{  1.00     11 Nov 96   First DOS/DPMI platform release.   }
-{  1.10     13 Jul 97   Windows platform code added.       }
-{  1.20     29 Aug 97   Platform.inc sort added.           }
-{  1.30     13 Oct 97   Delphi 2 32 bit code added.        }
-{  1.40     05 May 98   Virtual pascal 2.0 code added.     }
-{  1.50     27 Oct 99   All objects completed and checked  }
-{  1.51     03 Nov 99   FPC windows support added          }
-{  1.60     26 Nov 99   Graphics stuff moved to GFVGraph   }
-{**********************************************************}

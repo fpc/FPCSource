@@ -424,22 +424,7 @@ END.
 
 {
  $Log$
- Revision 1.11  2004-11-03 20:51:36  florian
-   * fixed problems on targets requiring proper alignment
-
- Revision 1.10  2002/10/17 11:24:16  pierre
-  * Clean up the Load/Store routines so they are endian independent
-
- Revision 1.9  2002/09/07 15:06:37  peter
-   * old logs removed and tabs fixed
-
- Revision 1.8  2002/06/10 11:51:08  pierre
-  * render history load/store compatible with older fvnew lib
-
- Revision 1.7  2002/06/03 20:07:44  pierre
-  * DeleteString was moving to much memory
-
- Revision 1.6  2002/05/24 09:30:33  pierre
-  * fix bug with HistoryUsed, now is really a used size
+ Revision 1.12  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

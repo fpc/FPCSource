@@ -848,16 +848,7 @@ END.
 
 {
  $Log$
- Revision 1.8  2004-11-03 20:51:36  florian
-   * fixed problems on targets requiring proper alignment
-
- Revision 1.7  2002/09/22 19:42:22  hajny
-   + FPC/2 support added
-
- Revision 1.6  2002/09/09 08:04:06  pierre
-  * remove all warnings about far
-
- Revision 1.5  2002/09/07 15:06:37  peter
-   * old logs removed and tabs fixed
+ Revision 1.9  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

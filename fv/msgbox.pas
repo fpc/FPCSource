@@ -291,10 +291,7 @@ END.
 
 {
  $Log$
- Revision 1.5  2004-02-18 05:50:38  pierre
-  *fix for MessageBox error by Berthold Studemund
-
- Revision 1.4  2002/09/07 15:06:38  peter
-   * old logs removed and tabs fixed
+ Revision 1.6  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

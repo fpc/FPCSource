@@ -216,7 +216,6 @@ TYPE
       CONSTRUCTOR Init (Var Bounds: TRect; AMenu: PMenu);
       DESTRUCTOR Done; Virtual;
       PROCEDURE Draw; Virtual;
-      PROCEDURE DrawBackGround; Virtual;
       private
       PROCEDURE GetItemRectX (Item: PMenuItem; Var R: TRect); Virtual;
    END;
@@ -230,7 +229,6 @@ TYPE
       CONSTRUCTOR Init (Var Bounds: TRect; AMenu: PMenu;
         AParentMenu: PMenuView);
       PROCEDURE Draw; Virtual;
-      PROCEDURE DrawBackGround; Virtual;
       private
       PROCEDURE GetItemRectX (Item: PMenuItem; Var R: TRect); Virtual;
    END;
@@ -665,7 +663,6 @@ BEGIN
      If (ItemShown <> Current) Then Begin             { New current item }
        OldItem := ItemShown;                          { Hold old item }
        ItemShown := Current;                          { Hold new item }
-       SetDrawMask(vdFocus OR vdInner);               { Set the draw mask }
        DrawView;                                      { Redraw the items }
        OldItem := Nil;                                { Clear old item }
      End;
@@ -934,55 +931,17 @@ BEGIN
 END;
 
 {--TMenuBar-----------------------------------------------------------------}
-{  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08May98 LdB              }
-{---------------------------------------------------------------------------}
-PROCEDURE TMenuBar.Draw;
-VAR I, J, K, L, CNormal, CSelect, CNormDisabled, CSelDisabled, Color: Word;
-    P: PMenuItem; B: TDrawBuffer;
-BEGIN
-   CNormal := GetColor($0301);                        { Normal colour }
-   CSelect := GetColor($0604);                        { Select colour }
-   CNormDisabled := GetColor($0202);                  { Disabled colour }
-   CSelDisabled := GetColor($0505);                   { Select disabled }
-   If (Menu <> Nil) Then Begin                        { Valid menu }
-     I := 0;                                          { Set start position }
-     P := Menu^.Items;                                { First item }
-     While (P <> Nil) Do Begin
-       If (P^.Name <> Nil) Then Begin                 { Name valid }
-         J := CStrLen(P^.Name^) + 2;                  { Name string length }
-         If (P = OldItem) OR (P = Current) Then Begin { Matches a state }
-           If P^.Disabled Then Begin
-             If (P = Current) Then
-               Color := CSelDisabled                  { Select disabled }
-               Else Color := CNormDisabled            { Normal disabled }
-           End Else Begin
-             If (P = Current) Then Color := CSelect   { Select colour }
-               Else Color := CNormal;                 { Normal colour }
-           End;
-           MoveCStr(B, ' '+P^.Name^+' ', Color);      { Name to buffer }
-           WriteBuf(I, 0, J, 1, B);                   { Write the string }
-           K := I;                          { X start position }
-           L := K + CTextWidth(' '+P^.Name^+' ');      { X end position }
-         End;
-         Inc(I, J);                                   { Advance position }
-       End;
-       P := P^.Next;                                  { Next item }
-     End;
-   End;
-END;
-
-{--TMenuBar-----------------------------------------------------------------}
 {  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 08May98 LdB    }
 {---------------------------------------------------------------------------}
-PROCEDURE TMenuBar.DrawBackGround;
+PROCEDURE TMenuBar.Draw;
 VAR I, J, CNormal, CSelect, CNormDisabled, CSelDisabled, Color: Word;
     P: PMenuItem; B: TDrawBuffer;
 BEGIN
-   Inherited DrawBackGround;                          { Call ancestor }
    CNormal := GetColor($0301);                        { Normal colour }
    CSelect := GetColor($0604);                        { Select colour }
    CNormDisabled := GetColor($0202);                  { Disabled colour }
    CSelDisabled := GetColor($0505);                   { Select disabled }
+   MoveChar(B, ' ', Byte(CNormal), Size.X);           { Empty bar }
    If (Menu <> Nil) Then Begin                        { Valid menu }
      I := 0;                                          { Set start position }
      P := Menu^.Items;                                { First item }
@@ -995,14 +954,16 @@ BEGIN
            If (P = Current) Then Color := CSelect     { Select colour }
              Else Color := CNormal;                   { Normal colour }
          End;
-         J := CStrLen(P^.Name^) + 2;                  { Length of string }
-         MoveCStr(B, ' '+P^.Name^+' ', Color);        { Name to buffer }
-         WriteBuf(I, 0, J, 1, B);                     { Write the string }
-         Inc(I, J);                                   { Advance position }
+         J := CStrLen(P^.Name^);                      { Length of string }
+         MoveChar(B[I], ' ', Byte(Color), 1);
+         MoveCStr(B[I+1], P^.Name^, Color);           { Name to buffer }
+         MoveChar(B[I+1+J], ' ', Byte(Color), 1);
+         Inc(I, J+2);                                 { Advance position }
        End;
        P := P^.Next;                                  { Next item }
      End;
    End;
+  WriteBuf(0, 0, Size.X, 1, B);                       { Write the string }
 END;
 
 {--TMenuBar-----------------------------------------------------------------}
@@ -1070,7 +1031,7 @@ END;
 {  Draw -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB              }
 {---------------------------------------------------------------------------}
 PROCEDURE TMenuBox.Draw;
-VAR CNormal, CSelect, CSelectDisabled, CDisabled, Color: Word; Index, Tx, Ty, Y: Integer;
+VAR CNormal, CSelect, CSelectDisabled, CDisabled, Color: Word; Index, Y: Integer;
     S: String; P: PMenuItem; B: TDrawBuffer;
 Type
    FrameLineType = (UpperLine,NormalLine,SeparationLine,LowerLine);
@@ -1127,10 +1088,6 @@ BEGIN
             (Current = P) Then
            Begin                     { We need to fix draw }
              WriteBuf(0, Y, Size.X, 1, B);             { Write the whole line }
-           If (P = Current) Then Begin                { Selected item }
-             Tx := 2;                     { X offset }
-             Ty := Y;                    { Y offset }
-           End;
          End;
        End Else Begin { no text NewLine }
          Color := CNormal;                              { Normal colour }
@@ -1146,13 +1103,6 @@ BEGIN
    WriteBuf(0, Size.Y-1, Size.X, 1, B);                  { Write the line }
 END;
 
-{--TMenuBox-----------------------------------------------------------------}
-{  DrawBackGround -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB    }
-{---------------------------------------------------------------------------}
-PROCEDURE TMenuBox.DrawBackGround;
-BEGIN
-   Inherited DrawBackGround;                          { Call ancestor }
-END;
 
 {--TMenuBox-----------------------------------------------------------------}
 {  GetItemRectX -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 11May98 LdB      }
@@ -1503,7 +1453,7 @@ BEGIN
    CSelect := GetColor($0604);                        { Select colour }
    CNormDisabled := GetColor($0202);                  { Disabled colour }
    CSelDisabled := GetColor($0505);                   { Select disabled }
-   MoveChar(B, ' ', Byte(CNormal), 80);               { Clear the buffer }
+   MoveChar(B, ' ', Byte(CNormal), Size.X);      { Clear the buffer }
    T := Items;                                        { First item }
    I := 0;                                            { Clear the count }
    L := 0;
@@ -1532,7 +1482,7 @@ BEGIN
      MoveStr(B[I], HintBuf, Byte(CNormal));           { Move hint to buffer }
      I := I + Length(HintBuf);                        { Hint length }
    End;
-   WriteLine(0, 0, I, 1, B);                          { Write the buffer }
+   WriteLine(0, 0, Size.X, 1, B);                          { Write the buffer }
 END;
 
 {***************************************************************************}
@@ -1703,34 +1653,7 @@ END;
 END.
 {
  $Log$
- Revision 1.20  2004-11-03 20:51:36  florian
-   * fixed problems on targets requiring proper alignment
-
- Revision 1.19  2004/11/03 20:33:05  peter
-   * removed unnecesasry graphfv stuff
-
- Revision 1.18  2004/11/03 12:09:08  peter
-   * textwidth doesn't support ~ anymore, added CTextWidth with ~ support
-
- Revision 1.17  2004/11/02 23:53:19  peter
-   * fixed crashes with ide and 1.9.x
-
- Revision 1.16  2002/10/17 11:24:17  pierre
-  * Clean up the Load/Store routines so they are endian independent
-
- Revision 1.15  2002/09/07 15:06:37  peter
-   * old logs removed and tabs fixed
-
- Revision 1.14  2002/06/10 18:41:26  pierre
-  + add Submenu recognition sign
-
- Revision 1.13  2002/05/30 06:58:28  pierre
-  * fix grpah related menubar draw issues
-
- Revision 1.12  2002/05/29 19:36:52  pierre
-  * fix UseFixedFont related code
-
- Revision 1.11  2002/05/21 10:53:25  pierre
-  * fix graphical separation lines
+ Revision 1.21  2004-11-06 17:08:48  peter
+   * drawing of tview merged from old fv code
 
 }

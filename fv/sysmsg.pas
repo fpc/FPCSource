@@ -128,10 +128,7 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2004-11-04 20:57:59  peter
-  sysmsgs is always available
-
-  Revision 1.1  2002/05/21 11:59:57  pierre
-   + system messages unit added
+  Revision 1.3  2004-11-06 17:08:48  peter
+    * drawing of tview merged from old fv code
 
 }
