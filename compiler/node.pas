@@ -282,7 +282,10 @@ interface
        { later (for the newcg) tnode will inherit from tlinkedlist_item }
        tnode = class
        public
+          { type of this node }
           nodetype : tnodetype;
+          { type of the current code block, general/const/type }
+          blocktype : tblock_type;
           { the location of the result of this node }
           location : tlocation;
           { the parent node of this is node    }
@@ -418,6 +421,7 @@ implementation
       begin
          inherited create;
          nodetype:=tt;
+         blocktype:=block_type;
          { this allows easier error tracing }
          location.loc:=LOC_INVALID;
          { save local info }
@@ -791,7 +795,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  2001-06-04 11:53:13  peter
+  Revision 1.17  2001-06-04 18:14:16  peter
+    * store blocktype info in tnode
+
+  Revision 1.16  2001/06/04 11:53:13  peter
     + varargs directive
 
   Revision 1.15  2001/04/13 01:22:10  peter
