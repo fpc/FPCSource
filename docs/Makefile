@@ -44,7 +44,7 @@ endif
 
 # Latex2html conversion.
 ifndef LATEX2HTML
-LATEX2HTML = /usr/local/bin/latex2html
+LATEX2HTML = /usr/bin/latex2html
 endif
 
 # Options for converter
@@ -335,7 +335,11 @@ html: $(HTML)
 # Installation
 #####################################################################
 
-install:
+pdfinstall:
+	install -d -m 755 $(DOCINSTALLDIR)
+	cp $(PDF) $(DOCINSTALLDIR)
+
+htmlinstall:
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
@@ -345,7 +349,7 @@ install:
 	rm -f $(DOCINSTALLDIR)/search/*.linux
 	cp -R $(HTML) $(DOCINSTALLDIR)
 
-dosinstall:
+doshtmlinstall:
 	install -d -m 755 $(DOCINSTALLDIR)
 	cp fpctoc.html $(DOCINSTALLDIR)
 	cp -R buttons $(DOCINSTALLDIR)
@@ -353,9 +357,14 @@ dosinstall:
 	rm -f $(DOCINSTALLDIR)/search/*.linux
 	cp -R $(HTML) $(DOCINSTALLDIR)
 
-www-install: psdist htmldist htm
+www-install: psdist htmlinstall
 	scp fpcdoc.zip fpcdocps.zip fpcdocps.tar.gz fpcdoc.tar.gz tfdec1:htdocs/fpk
 	ssh tfdec1 '(cd htdocs/fpk/docs ; /usr/local/bin/tar -xzf ../fpcdoc.tar.gz)'
+
+install:
+	@echo Choose install from:
+	@echo pdfinstall,htmlinstall,htmldosinstall
+	@exit
 
 #####################################################################
 # Archives
@@ -432,7 +441,10 @@ linuxexamples: examples
 
 #
 # $Log$
-# Revision 1.28  1999-06-25 22:12:10  michael
+# Revision 1.29  1999-07-16 10:15:31  peter
+#   * install targets renamed
+#
+# Revision 1.28  1999/06/25 22:12:10  michael
 # + Update to version 0.19 of listings package
 #
 # Revision 1.27  1999/06/15 13:53:16  peter
