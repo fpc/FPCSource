@@ -127,7 +127,7 @@ begin
     hcObjects       : S:='Open a browser displaying all objects in the program';
     hcModules       : S:='Open a browser displaying all modules of the program';
     hcGlobals       : S:='Open a browser displaying all global symbols in the program';
-
+    hcSymbol        : S:='Open a browser a current word (not yet scope sensitive)';
     hcRunMenu       : S:='Execution and parameters';
     hcRun           : S:='Run the current program';
     hcParameters    : S:='Set command-line parameters passed to program at execution';
@@ -147,6 +147,9 @@ begin
     hcDebugMenu     : S:='Debug Program';
     hcToggleBreakpoint : S:='Toggles Breakpoint';
     hcOpenGDBWindow : S:='Open direct window to GDB';
+    hcAddWatch      : S:='Add a new watch';
+    hcStack         : S:='Show calling stack';
+    hcBreakpointList : S:='Edit breakpoints';
     hcToolsMenu     : S:='User installed tools';
     hcCalculator    : S:='Show calculator';
 {    hcGrep          : S:='Run grep';}
@@ -379,7 +382,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.14  1999-04-07 21:55:46  peter
+  Revision 1.15  1999-06-25 00:39:58  pierre
+   help for cmSymbol,cmAddWatch,cmStack and cmBreakpoint list
+
+  Revision 1.14  1999/04/07 21:55:46  peter
     + object support for browser
     * html help fixes
     * more desktop saving things
