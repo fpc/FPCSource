@@ -9,6 +9,7 @@
 
 
 Compiler:
+  + arm-linux cross compiler for i386-linux
   + SysV style syscalls added for MorphOS
   + Exportable macros for mode MacPas
   + Support procvar declaration in parameters for mode MacPas
@@ -26,6 +27,7 @@ Compiler:
   * Lot of small bugs and compatibility fixes
 
 RTL:
+  + arm Linux support
   * Basic threading support moved to the system unit
   * Operator ** moved to math unit; system.power removed
   * Improved variant support
