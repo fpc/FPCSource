@@ -173,14 +173,15 @@ procedure insertresourcestrings;
   if not(assigned(resourcestringlist)) then
     resourcestringlist:=new(paasmoutput,init);
   resourcestringlist^.insert(new(pai_const,init_32bit(resstrcount)));
-  resourcestringlist^.insert(new(pai_symbol,initname_global('RESOURCESTRINGLIST',0)));
+  resourcestringlist^.insert(new(pai_symbol,initname_global(current_module^.modulename^+'_'+'RESOURCESTRINGLIST',0)));
   R:=ResourceListRoot;
   While R<>Nil do
     begin
     AppendToAsmResList(R);
     R:=R^.Next;
     end;
-  resourcestringlist^.concat(new(pai_symbol_end,initname('RESOURCESTRINGLIST')));
+  resourcestringlist^.concat(new(pai_symbol_end,initname(current_module^.modulename^+'_'+'RESOURCESTRINGLIST')));
+
   end;
 
 { ---------------------------------------------------------------------
@@ -307,7 +308,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  1999-08-23 11:45:41  michael
+  Revision 1.11  1999-08-23 11:48:23  michael
+  * resourcestrings ams list needs unitname prepended
+
+  Revision 1.10  1999/08/23 11:45:41  michael
   * Hopefully final attempt at resourcestrings
 
   Revision 1.9  1999/08/15 21:57:59  michael
