@@ -42,8 +42,8 @@ var
      end;
 begin
   { First copy the whole screen untouched }
-  GetMem(Buf,VideoBufSize * SizeOf(TVideoCell));
-  Move(VideoBuf^,Buf^,VideoBufSize * SizeOf(TVideoCell));
+  GetMem(Buf,VideoBufSize);
+  Move(VideoBuf^,Buf^,VideoBufSize);
   { partial screen save ? }
   PushStatus(msg_click_upper_left);
   UL.X:=0;UL.Y:=0;
@@ -81,7 +81,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2001-08-04 11:30:23  peter
+  Revision 1.2  2001-10-12 14:20:11  pierre
+   * use correct video buffer size
+
+  Revision 1.1  2001/08/04 11:30:23  peter
     * ide works now with both compiler versions
 
   Revision 1.1.2.2  2000/11/22 11:03:32  pierre
