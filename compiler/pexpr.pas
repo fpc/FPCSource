@@ -635,17 +635,12 @@ unit pexpr;
          { has parameters                                             }
          if ppo_hasparameters in ppropertysym(sym)^.propoptions then
            begin
-              { property parameters?
               if token=_LECKKLAMMER then
                 begin
                    consume(_LECKKLAMMER);
                    paras:=parse_paras(false,true);
                    consume(_RECKKLAMMER);
                 end;
-              }
-              consume(_LECKKLAMMER);
-              paras:=parse_paras(false,true);
-              consume(_RECKKLAMMER);
               { indexed property }
               if (ppo_indexed in ppropertysym(sym)^.propoptions) then
                 begin
@@ -2118,7 +2113,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.155  1999-11-07 23:16:49  florian
+  Revision 1.156  1999-11-07 23:21:30  florian
+    * previous fix for 517 was imcomplete: there was a problem if the property
+      had only an index
+
+  Revision 1.155  1999/11/07 23:16:49  florian
     * finally bug 517 solved ...
 
   Revision 1.154  1999/11/06 14:34:21  peter
