@@ -56,7 +56,7 @@ nor a definition of the Pascal language. Look at the
 \refref for these things. 
 For a description of the
 possibilities and the inner workings of the compiler, see the
-\progref. In the appendices of this document you will find lists of 
+\progref . In the appendices of this document you will find lists of 
 reserved words and compiler error messages (with descriptions).
 
 This document describes the compiler as it is/functions at the time of 
@@ -71,14 +71,16 @@ The \file{README} files are, in case of conflict with this manual,
 % About the compiler
 \section{About the compiler}
 \fpc is a 32-bit compiler for the i386 and m68k processors\footnote{Work is being done
-on a port to ALPHA Architecture}. Currently, it supports 3 operating systems:
+on a port to ALPHA Architecture}. Currently, it supports 6 operating systems:
 \begin{itemize}
 \item \dos
 \item \linux
+\item \atari (version 0.99.5 only)
+\item \amiga (version 0.99.5 only)
 \item \windowsnt
+\item \ostwo (using the EMX package, so it also works on DOS/Windows)
 \end{itemize}
-and work is in progress to port it to other platforms (notably, \ostwo and
-).
+and work is in progress to port it to other platforms (notably, \freebsd).
 
 \fpc is designed to be, as much as possible, source compatible with 
 Turbo Pascal 7.0 and Delphi 4 (although this goal is not yet attained), 
@@ -269,7 +271,7 @@ allows you to do an installation if you don't have root permissions.
 When downloading the \var{.tar} file, or the separate files,
  installation is more interactive.
 
-I nCAse you downloaded the \file{.tar} file, you should first untar 
+In case you downloaded the \file{.tar} file, you should first untar 
 the file, in some directory where 
 you have write permission, using the following command:
 \begin{verbatim}
@@ -365,13 +367,13 @@ To compile a program (e.g \verb|demo\hello.pp|) simply type :
 \begin{verbatim}
   ppc386 hello
 \end{verbatim}
-at the command prompt. If you don't have a configuretion file, then you may
+at the command prompt. If you don't have a configuration file, then you may
 need to tell the compiler where it can find the units, for instance as
 follows:
 \begin{verbatim}
 ppc386 -Upc:\pp\rtl\dos\go32v2 hello
 \end{verbatim}
-under \dos, and under\linux you could type
+under \dos, and under \linux you could type
 \begin{verbatim}
 ppc386 -Up/usr/lib/fpc/0.99.7/linuxunits hello
 \end{verbatim}
@@ -404,7 +406,7 @@ Here we describe the essentials to compile a program and a unit.
 We also describe how to make a stand-alone executable of the 
 compiled program under \dos. For more advanced uses of the compiler, 
 see the section on configuring the compiler, and the 
-\progref.
+\progref{}.
 
 The examples in this section suppose that you have a \file{ppc386.cfg} which
 is set up correctly, and which contains at least the path setting for the
@@ -743,6 +745,8 @@ On the command line, and the \file{strip} program will remove all unnecessary
 information from your program. This can lead to size reductions of up to
 30 \%.
 
+{\em remark: in the \win32{} version, strip is called stripw}
+
 You can use the \var{-Xs} switch to let the compiler do this stripping
 automatically at program compile time (the switch has no effect when
 compiling units). 
@@ -995,7 +999,7 @@ caution).
 \item[u] uncertain optimizations
 \item[1] Level 1 optimizations (quick optimizations).
 \item[2] Level 2 optimizations (\var{-O1} plus some slower optimizations).
-\item[3] Level 2 optimizations (\var{-O2} plus \var{-Ou}).
+\item[3] Level 3 optimizations (\var{-O2} plus \var{-Ou}).
 \item[Pn] Specify processor: \var{n} can be one of 
 \begin{description}
 \item[1] optimize for 386/486
@@ -1014,11 +1018,11 @@ executable.
 \item[-Txxx] \olabel{T}Specifies the target operating system. \var{xxx} can be one of
 the following:
 \begin{itemize}
-\item \textbf{GO32V1} : \dos and version 1 of the DJ DELORIE extender.
+\item \textbf{GO32V1} : \dos and version 1 of the DJ DELORIE extender (no longer maintained).
 \item \textbf{GO32V2} : \dos and version 2 of the DJ DELORIE extender.
 \item \textbf{LINUX} : \linux.
 \item \textbf{OS2} : OS/2 (2.x) (this is still under development).
-\item \textbf{WIN32} : Windows 32 bit (this is still under development).
+\item \textbf{WIN32} : Windows 32 bit.
 \end{itemize}
 \item [-uxxx] \olabel{u} undefine the symbol \var{xxx}. This is the opposite
 of the \var{-d} option.
@@ -1251,7 +1255,7 @@ Syntax:
 #INCLUDE filename
 \end{verbatim}
 \var{\#INCLUDE} instructs the compiler to read the contents of
-\file{filename} before continuing to process the current file.
+\file{filename} before continuing to process options in the current file.
 
 This can be useful if you want to have a particular configuration file
 for a project (or, under \linux, in your home directory), but still want to
@@ -2636,7 +2640,7 @@ a slash.
 \end{description}
 
 \chapter{Run time errors}
-The \fpc Run-tim library generates the following errors at run-time
+The \fpc Run-time library generates the following errors at run-time
 \footnote{The \linux port will generate only a subset of these.}:
 
 \begin{description}

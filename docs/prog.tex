@@ -308,10 +308,10 @@ compilation continues as if the directive wasn't there.
 
 \subsection{\var{\$IFOPT} : Start conditional compilation}
 
-The \var{\{\$IFOPT switch\}} will skip the compilation of the text that
-follows it if the switch \var{switch} is currently not in the specified 
-state.  If it is in the specified state, then compilation continues as if the directive 
-wasn't there. 
+The \var{\{\$IFOPT switch\}} will compile the text that follows it if the
+switch \var{switch} is currently in the specified state.
+If it isn't in the specified state, then compilation continues after the
+corresponding \var{\{\$ENDIF\}} directive.
 
 As an example:
 \begin{verbatim}
@@ -511,13 +511,18 @@ the same as the \var{\{\$INFO\}} directive.
  
 \subsection{\var{\$MMX} : Intel MMX support}
 As of version 0.9.8, \fpc supports optimization for the \textbf{MMX} Intel
-processor (see also \ref{ch:MMXSupport}). This optimizes certain code parts for the \textbf{MMX} Intel
+processor (see also \ref{ch:MMXSupport}).
+
+This optimizes certain code parts for the \textbf{MMX} Intel
 processor, thus greatly improving speed. The speed is noticed mostly when
 moving large amounts of data. Things that change are
 \begin{itemize}
 \item Data with a size that is a multiple of 8 bytes is moved using the
 \var{movq} assembler instruction, which moves 8 bytes at a time
 \end{itemize}
+Remark that MMX support is NOT emulated on non-MMX systems, i.e. if
+the processor doesn't have the MMX extensions, you cannot use the MMX
+optimizations.
 
 When \textbf{MMX} support is on, you aren't allowed to do floating point
 arithmetic. You are allowed to move floating point data, but no arithmetic
@@ -585,8 +590,6 @@ wasm & assembler for the Watcom assembler. \\ \hline
 
 \subsection{\var{\$P} or \var{\$OPENSTRINGS} : Use open strings}
 
-This switch is provided for compatibility only, as open strings aren't
-implemented yet.
 
 \subsection{\var{\$PACKENUM} : Minimum enumeration type size}
 
@@ -726,7 +729,7 @@ parameters of the procedure.
 
 \subsection{\var{\$WAIT} : Wait for enter key press}
 
-If the compiler encaounters a
+If the compiler encounters a
 \begin{verbatim}
 {$WAIT }
 \end{verbatim}
@@ -853,7 +856,7 @@ Wher \var{StackSize} and \var{HeapSize} should be two integer values,
 greater than 1024. The first number sets the size of the stack, and the
 second the size of the heap. (Stack setting is ignored under \linux).
 The two numbers can be set on the command line using the \var{-Ch}
-(and \var{-Cs} switches.
+and \var{-Cs} switches.
 
 \subsection{\var{\$MODE} : Set compiler compatibility mode}
 
@@ -944,7 +947,7 @@ Defining a symbol goes as follows:
 \begin{verbatim}
 {$Define Symbol }
 \end{verbatim}
-From this point on in your code, the compiler know the symbol \var{Symbol}
+From this point on in your code, the compiler knows the symbol \var{Symbol}.
 Symbols are, like the Pascal language, case insensitive.
 
 You can also define a symbol on the command line. the \var{-dSymbol} option
@@ -1006,10 +1009,12 @@ you should change \var{v} with the version number of the compiler
 you're using, \var{r} with the release number and \var{p}
 with the patch-number of the compiler. 'OS' needs to be changed by the type
 of operating system. Currently this can be one of \var{DOS}, \var{GO32V2},
-\var{LINUX}, \var{OS2}, \var{WIN32}, \var{MACOS}, \var{AMIGA} or \var{ATARI}. This symbol is undefined if you
-specify a target that is different from the platform you're compiling on.
-the \var{-TSomeOS} option on the command line will define the \var{SomeOS} symbol,
-and will undefined the existing platform symbol\footnote{In versions prior to
+\var{LINUX}, \var{OS2}, \var{WIN32}, \var{MACOS}, \var{AMIGA} or \var{ATARI}.
+
+This symbol is undefined if you specify a target that is different from the
+platform you're compiling on.
+The \var{-TSomeOS} option on the command line will define the \var{SomeOS} symbol,
+and will undefine the existing platform symbol\footnote{In versions prior to
 0.9.4, this didn't happen, thus making Cross-compiling impossible.}.
 
 \begin{FPCltable}{c}{Symbols defined by the compiler.}{Symbols} \hline
@@ -1029,9 +1034,9 @@ symbol, and will define the \var{OS2} symbol.
 {\em Remark: } Symbols, even when they're defined in the interface part of 
 a unit, are not available outside that unit.
 
-\fpc supports the \var{\{\$IFOPT \}} directive for Turbo Pascal
-compatibility, but doesn't act on it. It always rejects the condition, so
-code between \var{\{\$IFOPT \}} and \var{\{\$Endif\}} is never compiled.
+%\fpc supports the \var{\{\$IFOPT \}} directive for Turbo Pascal
+%compatibility, but doesn't act on it. It always rejects the condition, so
+%code between \var{\{\$IFOPT \}} and \var{\{\$Endif\}} is never compiled.
 
 Except for the Turbo Pascal constructs, from version 0.9.8 and higher,
 the \fpc compiler also supports a stronger conditional compile mechanism:
@@ -1051,7 +1056,7 @@ in which case they are evaluated using numbers\footnote{Otherwise
 \var{\{\$If 8>54} would evaluate to \var{True}}.
 If the complemete expression evaluates to \var{'0'}, then it is considered 
 false and rejected. Otherwise it is considered true and accepted. This may
-have unsexpected consequences :
+have unexpected consequences :
 \begin{verbatim}
 {$If 0}
 \end{verbatim}
