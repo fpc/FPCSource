@@ -464,7 +464,7 @@ var
                  if found then
                   begin
                     hp:=tai(hp.next);
-                    s:=','+tostr(tai_const(hp).value);
+                    s:=','+tostru(tai_const(hp).value);
                     AsmWrite(s);
                     inc(l,length(s));
                   end;
@@ -832,7 +832,10 @@ var
 end.
 {
   $Log$
-  Revision 1.37  2003-11-12 16:05:39  florian
+  Revision 1.38  2003-12-10 17:13:22  peter
+    * fix range error with tai_const
+
+  Revision 1.37  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
