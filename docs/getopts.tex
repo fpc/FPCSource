@@ -20,7 +20,7 @@
 %
 \chapter{The GETOPTS unit.}
 This document describes the GETOPTS unit for Free Pascal. It was written for
-\linux\ by Micha\"el Van Canneyt. It also works under DOS.
+\linux\ by Micha\"el Van Canneyt. It also works under DOS and Tp7.
 
 The chapter is divided in 2 sections:
 \begin{itemize}
@@ -41,13 +41,13 @@ argument. \\
 there are no more options.
 \subsection{Types}
 \begin{verbatim}
-Option = record
-  Name    : string;
+TOption = record
+  Name    : String;
   Has_arg : Integer;
-  Flag    : ^Char;
+  Flag    : PChar;
   Value   : Char;
   end;
-POption = ^Option;
+POption = ^TOption;
 \end{verbatim}
 The \var{option} type is used to communicate the long options to \var{GetLongOpts}.
 The \var{Name} field is the name of the option. \var{Has\_arg} specifies if the option
@@ -61,7 +61,7 @@ function.
 \subsection{Variables}
 \var{OptArg:String} \ Is set to the argument of an option, if the option needs
 one.\\
-\var{Optind:Integer} \ Is the index of the current \var{paramstr()}. When
+\var{Optind:Longint} \ Is the index of the current \var{paramstr()}. When
 all options have been processed, \var{optind} is the index of the first
 non-option parameter. This is a read-only variable. Note that it can become
 equal to \var{paramcount+1}\\
@@ -72,7 +72,7 @@ error.
 \section {Procedures and functions}
 
 \function {GetLongOpts}{(Shortopts : String, LongOpts : POption; var Longint
-: Integer )}{Char}
+: Longint )}{Char}
 {
 Returns the next option found on the command-line, taking into account long
 options as well. If no more options are
