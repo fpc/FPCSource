@@ -534,9 +534,9 @@ ait_labeled_instruction :
                        if not((op=A_JMP) or (op=A_LOOP) or (op=A_LOOPZ) or
                               (op=A_LOOPE) or (op=A_LOOPNZ) or (op=A_LOOPNE) or
                               (op=A_JCXZ) or (op=A_JECXZ)) then
-                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+#9+'near '+lab2str(pai386_labeled(hp)^.lab))
+                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+cond2str[pai386_labeled(hp)^.condition]+#9+'near '+lab2str(pai386_labeled(hp)^.lab))
                        else
-                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+#9+lab2str(pai386_labeled(hp)^.lab));
+                        AsmWriteLn(#9#9+int_op2str[pai386_labeled(hp)^.opcode]+cond2str[pai386_labeled(hp)^.condition]+#9+lab2str(pai386_labeled(hp)^.lab));
                      end;
         ait_symbol : begin
                        if pai_symbol(hp)^.is_global then
@@ -573,7 +573,7 @@ ait_labeled_instruction :
                         AsmWriteln(#9#9'DB'#9'09bh')
                        else
                         AsmWriteLn(#9#9+prefix+int_op2str[pai386(hp)^.opcode]+
-                          cond2str[pai386_labeled(hp)^.condition]+suffix+s);
+                          cond2str[pai386(hp)^.condition]+suffix+s);
 {$else}
                      { added prefix instructions, must be on same line as opcode }
                        if (pai386(hp)^.op1t = top_none) and
@@ -733,7 +733,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.34  1999-05-08 19:52:34  peter
+  Revision 1.35  1999-05-10 15:18:16  peter
+    * fixed condition writing
+
+  Revision 1.34  1999/05/08 19:52:34  peter
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings
