@@ -1128,7 +1128,7 @@ for the last instruction of an include file !}
               skipspace;
               Message1(scan_f_user_defined,readmessage);
            end
-         else if hs='L' then
+         else if (hs='L') and (c in [' ',#9]) then
            begin
               skipspace;
               hs:='';
@@ -2103,7 +2103,10 @@ for the last instruction of an include file !}
 end.
 {
   $Log$
-  Revision 1.7  1998-04-10 15:39:48  florian
+  Revision 1.8  1998-04-16 12:07:55  peter
+    * quick $L+ hack
+
+  Revision 1.7  1998/04/10 15:39:48  florian
     * more fixes to get classes.pas compiled
 
   Revision 1.6  1998/04/09 09:33:15  pierre
