@@ -1249,9 +1249,11 @@ have the global options that are set in a global configuration file.
 Example:
 \begin{verbatim}
 #IFDEF LINUX
-#INCLUDE /etc/ppc386.cfg
-#IFDEF DOS
-#INCLUDE c:\pp\bin\ppc386.cfg
+  #INCLUDE /etc/ppc386.cfg
+#ELSE
+  #IFDEF GO32V2
+    #INCLUDE c:\pp\bin\ppc386.cfg
+  #ENDIF
 #ENDIF
 \end{erbatim}
 This will include \file{/etc/ppc386.cfg} if you're on a linux machine,
