@@ -237,16 +237,17 @@ implementation
              begin
                if (def_from^.deftype=enumdef) then
                 begin
-                  if assigned(penumdef(def_from)^.basedef) then
-                   hd1:=penumdef(def_from)^.basedef
-                  else
-                   hd1:=def_from;
-                  if assigned(penumdef(def_to)^.basedef) then
-                   hd2:=penumdef(def_to)^.basedef
-                  else
-                   hd2:=def_to;
+                  hd1:=def_from;
+                  while assigned(penumdef(hd1)^.basedef) do
+                   hd1:=penumdef(hd1)^.basedef;
+                  hd2:=def_to;
+                  while assigned(penumdef(hd2)^.basedef) do
+                    hd2:=penumdef(hd2)^.basedef;
                   if (hd1=hd2) then
-                   b:=1;
+                    begin
+                       b:=1;
+                       doconv:=tc_equal;
+                    end;
                 end;
              end;
 
@@ -912,7 +913,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2000-05-26 18:21:41  peter
+  Revision 1.62  2000-05-30 18:38:45  florian
+    * fixed assignments of subrange enumeration types
+
+  Revision 1.61  2000/05/26 18:21:41  peter
     * give error for @ with formal const,var parameter. Because @ generates
       a constant value and not a reference
 
