@@ -858,8 +858,10 @@ begin
    { redirect the standard output }
    assigncrt(Output);
    Rewrite(Output);
+   TextRec(Output).Handle:=StdOutputHandle;
    assigncrt(Input);
    Reset(Input);
+   TextRec(Input).Handle:=StdInputHandle;
 
    { calculates delay calibration }
    initdelay;
@@ -867,7 +869,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  1998-05-27 00:19:16  peter
+  Revision 1.4  1998-05-28 10:21:38  pierre
+    * Handles of input and output restored
+
+  Revision 1.3  1998/05/27 00:19:16  peter
     * fixed crt input
 
   Revision 1.2  1998/05/21 19:30:46  peter
