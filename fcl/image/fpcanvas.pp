@@ -20,6 +20,9 @@ interface
 
 uses sysutils, classes, FPImage;
 
+const
+  PatternBitCount = sizeof(longword) * 8;
+
 type
 
   TFPCanvasException = class (Exception);
@@ -90,6 +93,7 @@ type
   TFPPenStyle = (psClear, psSolid, psDash, psDot, psDashDot, psDashDotDot, psPattern);
   TFPPenStyleSet = set of TFPPenStyle;
   TFPPenMode = (pmCopy, pmAnd, pmOr, pmXor);
+  TPenPattern = Longword;
 
   TFPCustomPen = class (TFPCanvasHelper)
   private
@@ -105,7 +109,7 @@ type
     procedure SetPattern (AValue : longword); virtual;
   public
     function CopyPen : TFPCustomPen;
-    // Creates a copy of the font with all properties the same, but not allocated
+    // Creates a copy of the pen with all properties the same, but not allocated
     property Style : TFPPenStyle read FStyle write SetStyle;
     property Width : byte read FWidth write SetWidth;
     property Mode : TFPPenMode read FMode write SetMode;
@@ -113,13 +117,15 @@ type
   end;
   TFPCustomPenClass = class of TFPCustomPen;
 
-  TFPBrushStyle = (bsClear, bsSolid, bsDiagonal, bsFDiagonal, bsCross,bsDiagCross,
+  TFPBrushStyle = (bsClear, bsSolid, bsDiagonal, bsFDiagonal, bsCross, bsDiagCross,
                    bsHorizontal, bsVertical, bsImage, bsPattern);
+  TBrushPattern = array[0..PatternBitCount-1] of TPenPattern;
 
   TFPCustomBrush = class (TFPCanvasHelper)
   private
     FStyle : TFPBrushStyle;
     FImage : TFPCustomImage;
+    FPattern : TBrushPattern;
   protected
     procedure SetStyle (AValue : TFPBrushStyle); virtual;
     procedure SetImage (AValue : TFPCustomImage); virtual;
@@ -128,6 +134,7 @@ type
     function CopyBrush : TFPCustomBrush;
     property Style : TFPBrushStyle read FStyle write SetStyle;
     property Image : TFPCustomImage read FImage write SetImage;
+    property Pattern : TBrushPattern read FPattern write FPattern;
   end;
   TFPCustomBrushClass = class of TFPCustomBrush;
 
@@ -290,6 +297,11 @@ type
   TFPEmptyBrush = class (TFPCustomBrush)
   end;
 
+procedure DecRect (var rect : TRect; delta:integer);
+procedure IncRect (var rect : TRect; delta:integer);
+procedure DecRect (var rect : TRect);
+procedure IncRect (var rect : TRect);
+
 implementation
 
 uses clipping;
@@ -302,6 +314,38 @@ const
   ErrAlloc : array [boolean] of string = ('may not','must');
   ErrCouldNotCreate = 'Could not create a %s.';
   ErrNoLock = 'Canvas not locked.';
+
+procedure DecRect (var rect : TRect; delta:integer);
+begin
+  with rect do
+    begin
+    left := left + delta;
+    right := right - delta;
+    top := top + delta;
+    bottom := bottom - delta;
+    end;
+end;
+
+procedure DecRect (var rect : trect);
+begin
+  DecRect (rect, 1);
+end;
+
+procedure IncRect (var rect : trect);
+begin
+  IncRect (rect, 1);
+end;
+
+procedure IncRect (var rect : TRect; delta:integer);
+begin
+  with rect do
+    begin
+    left := left - delta;
+    right := right + delta;
+    top := top - delta;
+    bottom := bottom + delta;
+    end;
+end;
 
 {$i FPHelper.inc}
 {$i FPFont.inc}
