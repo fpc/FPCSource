@@ -462,7 +462,7 @@ begin
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
   s:=target_ar.arcmd;
-  Replace(s,'$LIB',current_module^.path+current_module^.staticlibfilename^);
+  Replace(s,'$LIB',current_module^.path^+current_module^.staticlibfilename^);
   if filescnt=0 then
    Replace(s,'$FILES',current_module^.objfilename^)
   else
@@ -499,7 +499,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1998-10-14 11:01:21  daniel
+  Revision 1.32  1998-10-14 11:03:55  daniel
+  * Forgot to dereference a pointer.
+
+  Revision 1.31  1998/10/14 11:01:21  daniel
   * Staticlibfilename no longer not include a path. Correction when calling
   ar.
 
