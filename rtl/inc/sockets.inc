@@ -74,6 +74,7 @@ begin
   TextRec(SockIn).InOutFunc:=@IOSock;
   TextRec(SockIn).FlushFunc:=@FlushSock;
   TextRec(SockIn).CloseFunc:=@CloseSock;
+  TextRec(SockIn).Mode := fmInput;
 { Now the writing part. }
   Assign(SockOut,'.');
   Textrec(SockOut).Handle:=Sock;
@@ -82,6 +83,7 @@ begin
   TextRec(SockOut).InOutFunc:=@IOSock;
   TextRec(SockOut).FlushFunc:=@FlushSock;
   TextRec(SockOut).CloseFunc:=@CloseSock;
+  TextRec(SockOut).Mode := fmAppend;
 end;
 
 
@@ -167,7 +169,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.6  2003-09-15 07:55:29  marco
+  Revision 1.7  2003-11-22 10:32:41  marco
+   fix from johill
+
+  Revision 1.6  2003/09/15 07:55:29  marco
    * fixed typo
 
   Revision 1.5  2003/09/15 07:51:09  marco
