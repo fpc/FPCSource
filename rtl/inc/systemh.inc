@@ -476,6 +476,8 @@ Function  Pos (c : Char; Const s : WideString) : Longint;
 Function  Pos (c : WideChar; Const s : WideString) : Longint;
 Procedure Insert (Const Source : WideString; Var S : WideString; Index : Longint);
 Procedure Delete (Var S : WideString; Index,Size: Longint);
+Procedure SetString (Var S : WideString; Buf : PWideChar; Len : Longint);
+Procedure SetString (Var S : WideString; Buf : PChar; Len : Longint);
 
 function WideCharToString(S : PWideChar) : AnsiString;
 function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : LongInt) : PWideChar;
@@ -654,7 +656,10 @@ const
 
 {
   $Log$
-  Revision 1.60  2002-11-16 20:12:22  florian
+  Revision 1.61  2002-12-15 22:33:12  peter
+    * SetString(WideString,[PChar|PWideChar],Len) added
+
+  Revision 1.60  2002/11/16 20:12:22  florian
     + sparc types added
     + UTF*/UCS* types added
 

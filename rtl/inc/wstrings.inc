@@ -823,12 +823,37 @@ begin
 end;
 
 
-{!!!:Procedure SetString (Var S : WideString; Buf : PWideChar; Len : Longint);
-
+Procedure SetString (Var S : WideString; Buf : PWideChar; Len : Longint);
+var
+  BufLen: longint;
 begin
   SetLength(S,Len);
-  Move (Buf[0],S[1],Len*2);
-end;}
+  If (Buf<>Nil) and (Len>0) then
+    begin
+      BufLen := IndexWord(Buf^, Len+1, 0);
+      If (BufLen>0) and (BufLen < Len) then
+        Len := BufLen;
+      Move (Buf[0],S[1],Len*sizeof(WideChar));
+      PWideChar(Pointer(S)+Len*sizeof(WideChar))^:=#0;
+    end;
+end;
+
+
+Procedure SetString (Var S : WideString; Buf : PChar; Len : Longint);
+var
+  BufLen: longint;
+begin
+  SetLength(S,Len);
+  If (Buf<>Nil) and (Len>0) then
+    begin
+      BufLen := IndexByte(Buf^, Len+1, 0);
+      If (BufLen>0) and (BufLen < Len) then
+        Len := BufLen;
+      Ansi2WideMoveProc(Buf,PWideChar(S),Len);
+      PWideChar(Pointer(S)+Len*sizeof(WideChar))^:=#0;
+    end;
+end;
+
 
 Function fpc_Val_Real_WideStr(Const S : WideString; Var Code : ValSInt): ValReal; [public, alias:'FPC_VAL_REAL_WIDESTR']; {$ifdef hascompilerproc} compilerproc; {$endif}
 Var
@@ -935,7 +960,10 @@ end;
 
 {
   $Log$
-  Revision 1.26  2002-12-14 19:16:45  sg
+  Revision 1.27  2002-12-15 22:33:12  peter
+    * SetString(WideString,[PChar|PWideChar],Len) added
+
+  Revision 1.26  2002/12/14 19:16:45  sg
   * Ported improvements from the AnsiString equivalents to NewWideString and
     fpc_WideStr_SetLength
 
