@@ -208,7 +208,10 @@ Function FileSize(var f:File):Longint;[IOCheck];
   Return the size of file f in records
 }
 Begin
-  FileSize:=Do_FileSize(FileRec(f).Handle) div FileRec(f).RecSize;
+  if FileRec(f).RecSize=0 then
+   FileSize:=0
+  else 
+   FileSize:=Do_FileSize(FileRec(f).Handle) div FileRec(f).RecSize;
 End;
 
 
@@ -291,7 +294,10 @@ End;
 
 {
   $Log$
-  Revision 1.3  1998-05-21 19:30:56  peter
+  Revision 1.4  1998-06-23 16:57:16  peter
+    * fixed the filesize() problems under linux and filerec.size=0 error
+
+  Revision 1.3  1998/05/21 19:30:56  peter
     * objects compiles for linux
     + assign(pchar), assign(char), rename(pchar), rename(char)
     * fixed read_text_as_array

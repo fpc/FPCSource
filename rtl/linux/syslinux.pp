@@ -253,7 +253,7 @@ begin
  Sys_ENAMETOOLONG,
     Sys_ELOOP,
   Sys_ENOTDIR : Inoutres:=3;
-    Sys_EROFS : Inoutres:=150;
+    Sys_EROFS,
    Sys_EEXIST,
    Sys_EACCES : Inoutres:=5;
   Sys_ETXTBSY : Inoutres:=162;
@@ -366,7 +366,7 @@ Begin
   if SysCall(SysCall_nr_fstat,regs)=0 then
    Do_FileSize:=Info.Size
   else
-   Do_FileSize:=-1;
+   Do_FileSize:=0;
   Errno2Inoutres;
 {$endif}
 End;
@@ -425,7 +425,6 @@ Begin
          oflags :=Open_WRONLY;
          FileRec(f).mode:=fmoutput;
        end;
-
    2 : begin
          oflags :=Open_RDWR;
          FileRec(f).mode:=fminout;
@@ -458,6 +457,11 @@ Begin
    InOutRes:=0;
 {$else}
   FileRec(f).Handle:=sys_open(p,oflags,438);
+  if (ErrNo=Sys_EROFS) and ((OFlags and Open_RDWR)<>0) then
+   begin
+     Oflags:=Oflags and not(Open_RDWR);
+     FileRec(f).Handle:=sys_open(p,oflags,438);
+   end;     
   Errno2Inoutres;
 {$endif}
 End;
@@ -661,7 +665,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  1998-05-30 14:18:43  peter
+  Revision 1.5  1998-06-23 16:57:17  peter
+    * fixed the filesize() problems under linux and filerec.size=0 error
+
+  Revision 1.4  1998/05/30 14:18:43  peter
     * fixed to remake with -Rintel in the ppc386.cfg
 
   Revision 1.3  1998/05/12 10:42:48  peter
