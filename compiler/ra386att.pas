@@ -1801,18 +1801,18 @@ Begin
           commname:=actasmpattern;
           Consume(AS_ID);
           Consume(AS_COMMA);
-          ConcatLocalBss(actasmpattern,BuildConstExpression(false,false));
+          ConcatLocalBss(commname,BuildConstExpression(false,false));
           if actasmtoken<>AS_SEPARATOR then
            Consume(AS_SEPARATOR);
         end;
 
       AS_COMM:
         Begin
-          Consume(AS_LCOMM);
+          Consume(AS_COMM);
           commname:=actasmpattern;
           Consume(AS_ID);
           Consume(AS_COMMA);
-          ConcatGlobalBss(actasmpattern,BuildConstExpression(false,false));
+          ConcatGlobalBss(commname,BuildConstExpression(false,false));
           if actasmtoken<>AS_SEPARATOR then
            Consume(AS_SEPARATOR);
         end;
@@ -1882,7 +1882,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  1999-05-27 19:44:56  peter
+  Revision 1.49  1999-06-03 16:28:03  pierre
+   * typo corrected
+
+  Revision 1.48  1999/05/27 19:44:56  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly
