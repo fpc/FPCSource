@@ -8,10 +8,10 @@ version=1.0.6
 
 [require]
 packages=paszlib
-packages_linux=inet
-packages_freebsd=inet
-packages_netbsd=inet
-packages_openbsd=inet
+packages_linux=netdb
+packages_freebsd=netdb
+packages_netbsd=netdb
+packages_openbsd=netdb
 
 # clean package units
 [clean]
