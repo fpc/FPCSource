@@ -819,7 +819,7 @@ unit pstatmnt;
           p,p2 : ptree;
           ht : ttoken;
           again : boolean; { dummy for do_proc_call }
-          {destrukname : stringid;}
+          destructorname : stringid;
           sym : psym;
           classh : pobjectdef;
           pd,pd2 : pdef;
@@ -854,7 +854,7 @@ unit pstatmnt;
                    { extended syntax of new and dispose }
                    { function styled new is handled in factor }
                    { destructors have no parameters }
-                   {destrukname:=pattern;}
+                   destructorname:=pattern;
                    destructorpos:=tokenpos;
                    consume(_ID);
 
@@ -892,28 +892,42 @@ unit pstatmnt;
                    { search cons-/destructor, also in parent classes }
                    storepos:=tokenpos;
                    tokenpos:=destructorpos;
-                   sym:=search_class_member(classh,pattern);
+                   sym:=search_class_member(classh,destructorname);
                    tokenpos:=storepos;
 
                    { the second parameter of new/dispose must be a call }
                    { to a cons-/destructor                              }
                    if (not assigned(sym)) or (sym^.typ<>procsym) then
                          begin
-                            Message(parser_e_expr_have_to_be_destructor_call);
+                            if tt=hnewn then
+                             Message(parser_e_expr_have_to_be_constructor_call)
+                            else
+                             Message(parser_e_expr_have_to_be_destructor_call);
                             new_dispose_statement:=genzeronode(errorn);
                          end
                    else
                          begin
                            p2:=gensinglenode(tt,p);
                            if ht=_NEW then
-                                 begin
-                                    { Constructors can take parameters.}
-                                    p2^.resulttype:=ppointerdef(pd)^.pointertype.def;
-                                    do_member_read(false,sym,p2,pd,again);
-                                 end
+                             begin
+                               { Constructors can take parameters.}
+                               p2^.resulttype:=ppointerdef(pd)^.pointertype.def;
+                               do_member_read(false,sym,p2,pd,again);
+                             end
                            else
-                             { destructors can't.}
-                             p2:=genmethodcallnode(pprocsym(sym),srsymtable,p2);
+                             begin
+                               p2:=genmethodcallnode(pprocsym(sym),srsymtable,p2);
+                               { support dispose(p,done()); }
+                               if try_to_consume(_LKLAMMER) then
+                                begin
+                                  if not try_to_consume(_RKLAMMER) then
+                                   begin
+                                     Message(parser_e_no_paras_for_destructor);
+                                     consume_all_until(_RKLAMMER);
+                                     consume(_RKLAMMER);
+                                   end;
+                                end;
+                             end;
 
                            { we need the real called method }
                            cleartempgen;
@@ -1331,7 +1345,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.120  2000-01-16 22:17:12  peter
+  Revision 1.121  2000-01-23 16:33:49  peter
+    * fixed destructor parsing with preprocessor things
+    * support dipsoe(p,done())
+    * fixed constructor message with dispose(p,<nonexist>)
+
+  Revision 1.120  2000/01/16 22:17:12  peter
     * renamed call_offset to para_offset
 
   Revision 1.119  2000/01/12 10:30:50  peter
