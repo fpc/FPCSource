@@ -27,10 +27,9 @@ unit cpupara;
 
     uses
        globtype,
-       cclasses,
        aasmtai,
-       cpubase,cpuinfo,
-       symconst,symbase,symtype,symdef,symsym,
+       cpubase,
+       symconst,symtype,symdef,symsym,
        paramgr,parabase,cgbase;
 
     type
@@ -55,8 +54,6 @@ unit cpupara;
 
     uses
        verbose,systems,
-       procinfo,
-       rgobj,
        defutil,
        cgutils;
 
@@ -304,12 +301,11 @@ unit cpupara;
          paralen: aint;
          nextintreg,nextfloatreg,nextmmreg, maxfpureg : tsuperregister;
          paradef : tdef;
-         paraloc,paraloc2 : pcgparalocation;
+         paraloc : pcgparalocation;
          i  : integer;
          hp : tparavarsym;
          loc : tcgloc;
          paracgsize: tcgsize;
-         def64bit: boolean;
 
 (*
       procedure assignintreg;
@@ -572,16 +568,19 @@ unit cpupara;
     function tppcparamanager.parseparaloc(p : tparavarsym;const s : string) : boolean;
       var
         paraloc : pcgparalocation;
+        paracgsize : tcgsize;
       begin
         result:=false;
         case target_info.system of
           system_powerpc_morphos:
             begin
+              paracgsize:=def_cgsize(p.vartype.def);
               p.paraloc[callerside].alignment:=4;
-              p.paraloc[callerside].size:=def_cgsize(p.vartype.def);
+              p.paraloc[callerside].size:=paracgsize;
+              p.paraloc[callerside].intsize:=tcgsize2size[paracgsize];
               paraloc:=p.paraloc[callerside].add_location;
               paraloc^.loc:=LOC_REFERENCE;
-              paraloc^.size:=def_cgsize(p.vartype.def);
+              paraloc^.size:=paracgsize;
               paraloc^.reference.index:=newreg(R_INTREGISTER,RS_R2,R_SUBWHOLE);
               { pattern is always uppercase'd }
               if s='D0' then
@@ -646,7 +645,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2005-01-20 17:47:01  peter
+  Revision 1.86  2005-01-31 17:46:25  peter
+    * fixed parseparaloc
+
+  Revision 1.85  2005/01/20 17:47:01  peter
     * remove copy_value_on_stack and a_param_copy_ref
 
   Revision 1.84  2005/01/14 20:59:17  jonas
