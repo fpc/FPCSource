@@ -289,11 +289,8 @@ asm
         jmp     .LExitAddRef
         // Dynamic Arrays
 .LDoDynArrayAddRef:
-        movl    Data,%eax
-        orl     %eax,%eax
-        jz      .LExitAddRef
-        lock
-        incl    -8(%eax)
+        pushl    Data
+        call    FPC_DYNARRAY_INCR_REF
         jmp     .LExitAddRef
 .LDoClassAddRef:
 .LDoObjectAddRef:
@@ -406,7 +403,7 @@ asm
 .LDoDynArrayDecRef:
         pushl   TypeInfo
         pushl   Data
-        call    DYNARRAY_DECR_REF
+        call    FPC_DYNARRAY_DECR_REF
         jmp     .LExitDecRef
 .LDoClassDecRef:
 .LDoObjectDecRef:
@@ -476,7 +473,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-04-23 18:25:44  peter
+  Revision 1.9  2001-05-31 22:42:56  florian
+    * some fixes for widestrings and variants
+
+  Revision 1.8  2001/04/23 18:25:44  peter
     * m68k updates
 
   Revision 1.7  2000/11/09 17:49:34  florian
@@ -501,3 +501,4 @@ end;
   Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
 }
+

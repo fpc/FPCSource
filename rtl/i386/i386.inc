@@ -1076,47 +1076,49 @@ end;
 
 { do a thread save inc/dec }
 
-procedure declocked(var l : longint);assembler;
+function declocked(var l : longint) : boolean;assembler;
 
   asm
+     movl       l,%edi
 {$ifdef MTRTL}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithreaded
      jz         .Ldeclockednolock
-     movl       l,%edi
      lock
      decl       (%edi)
      jmp        .Ldeclockedend
 .Ldeclockednolock:
 {$endif MTRTL}
-     movl       l,%edi
      decl       (%edi);
 .Ldeclockedend:
-  end ['EDI'];
+     setzb      %al
+  end ['EDI','EAX'];
 
 procedure inclocked(var l : longint);assembler;
 
   asm
+     movl       l,%edi
 {$ifdef MTRTL}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
      cmpb       $0,IsMultithreaded
      jz         .Linclockednolock
-     movl       l,%edi
      lock
      incl       (%edi)
      jmp        .Linclockedend
 .Linclockednolock:
 {$endif MTRTL}
-     movl       l,%edi
-     incl       (%edi);
+     incl       (%edi)
 .Linclockedend:
   end ['EDI'];
 
 {
   $Log$
-  Revision 1.11  2001-04-21 12:18:09  peter
+  Revision 1.12  2001-05-31 22:42:56  florian
+    * some fixes for widestrings and variants
+
+  Revision 1.11  2001/04/21 12:18:09  peter
     * add nop after popa (merged)
 
   Revision 1.9  2001/04/08 13:19:28  jonas
@@ -1143,5 +1145,4 @@ procedure inclocked(var l : longint);assembler;
 
   Revision 1.2  2000/07/13 11:33:41  michael
   + removed logs
-
 }
