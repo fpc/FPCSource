@@ -27,7 +27,7 @@
 {$i textrec.inc}
 
 Procedure HandleError (Errno : Longint); forward;
-Procedure HandleErrorFrame (Errno : longint;frame : longint); forward;
+Procedure HandleErrorFrame (Errno : longint;frame : Pointer); forward;
 
 type
   FileFunc = Procedure(var t : TextRec);
@@ -42,7 +42,7 @@ const
   Seed3 : Cardinal = 0;
 
 { For Error Handling.}
-  ErrorBase : Longint = 0;
+  ErrorBase : Pointer = nil;
 
 { Used by the ansistrings and maybe also other things in the future }
 var
@@ -558,7 +558,7 @@ Begin
    Begin
      Writeln(stdout,'Runtime error ',Errorcode,' at 0x',hexstr(Longint(Erroraddr),8));
      { to get a nice symify }
-     Writeln(stdout,BackTraceStrFunc(Longint(Erroraddr)));
+     Writeln(stdout,BackTraceStrFunc(Erroraddr));
      dump_stack(stdout,ErrorBase);
      Writeln(stdout,'');
    End;
@@ -585,24 +585,24 @@ Begin
 end;
 
 
-function SysBackTraceStr (Addr: longint): ShortString;
+function SysBackTraceStr (Addr: Pointer): ShortString;
 begin
-  SysBackTraceStr:='  0x'+HexStr(addr,8);
+  SysBackTraceStr:='  0x'+HexStr(Longint(addr),8);
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : longint);[public,alias:'FPC_BREAK_ERROR'];
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR'];
 begin
   If pointer(ErrorProc)<>Nil then
-    ErrorProc(Errno,pointer(addr),pointer(frame));
+    ErrorProc(Errno,addr,frame);
   errorcode:=word(Errno);
   exitcode:=word(Errno);
-  erroraddr:=pointer(addr);
+  erroraddr:=addr;
   errorbase:=frame;
   halt(errorcode);
 end;
 
-Procedure HandleErrorFrame (Errno : longint;frame : longint);
+Procedure HandleErrorFrame (Errno : longint;frame : Pointer);
 {
   Procedure to handle internal errors, i.e. not user-invoked errors
   Internal function should ALWAYS call HandleError instead of RunError.
@@ -627,7 +627,7 @@ procedure runerror(w : word);[alias: 'FPC_RUNERROR'];
 begin
   errorcode:=w;
   exitcode:=w;
-  erroraddr:=pointer(get_caller_addr(get_frame));
+  erroraddr:=get_caller_addr(get_frame);
   errorbase:=get_caller_frame(get_frame);
   halt(errorcode);
 end;
@@ -647,11 +647,12 @@ End;
 
 function do_isdevice(handle:longint):boolean;forward;
 
-Procedure dump_stack(var f : text;bp : Longint);
+Procedure dump_stack(var f : text;bp : Pointer);
 var
-  i, prevbp : Longint;
+  i : Longint;
+  prevbp : Pointer;
   is_dev : boolean;
-  caller_addr : longint;
+  caller_addr : Pointer;
 Begin
   prevbp:=bp-1;
   i:=0;
@@ -659,7 +660,7 @@ Begin
   while bp > prevbp Do
    Begin
      caller_addr := get_caller_addr(bp);
-     if caller_addr <> 0 then
+     if caller_addr <> nil then
          Writeln(f,BackTraceStrFunc(caller_addr));
      Inc(i);
      If ((i>max_frame_dump) and is_dev) or (i>256) Then
@@ -723,7 +724,7 @@ end;
 procedure fpc_AbstractErrorIntern;  compilerproc; external name 'FPC_ABSTRACTERROR';
 {$endif hascompilerproc}
 
-Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); [SaveRegisters,Public,Alias : 'FPC_ASSERT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+Procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); [SaveRegisters,Public,Alias : 'FPC_ASSERT']; {$ifdef hascompilerproc} compilerproc; {$endif}
 begin
   if pointer(AssertErrorProc)<>nil then
     AssertErrorProc(Msg,FName,LineNo,ErrorAddr)
@@ -732,7 +733,7 @@ begin
 end;
 
 
-Procedure SysAssert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint);
+Procedure SysAssert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer);
 begin
   If msg='' then
     write(stderr,'Assertion failed')
@@ -765,7 +766,11 @@ end;
 
 {
   $Log$
-  Revision 1.39  2003-02-05 21:48:34  mazen
+  Revision 1.40  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.39  2003/02/05 21:48:34  mazen
   * fixing run time errors related to unimplemented abstract methods in CG
   + giving empty emplementations for some RTL functions
 

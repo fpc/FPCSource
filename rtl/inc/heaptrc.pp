@@ -118,7 +118,7 @@ type
     release_sig : longword;
     prev_valid  : pheap_mem_info;
 {$endif EXTRA}
-    calls    : array [1..tracesize] of longint;
+    calls    : array [1..tracesize] of pointer;
     exact_info_size : word;
     extra_info_size : word;
     extra_info      : pheap_extra_info;
@@ -235,7 +235,7 @@ var
 begin
   writeln(ptext,'Call trace for block 0x',hexstr(longint(pointer(pp)+sizeof(theap_mem_info)),8),' size ',pp^.size);
   for i:=1 to tracesize do
-   if pp^.calls[i]<>0 then
+   if pp^.calls[i]<>nil then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(pp^.extra_info) and
@@ -251,11 +251,11 @@ var
 begin
   writeln(ptext,'Call trace for block at 0x',hexstr(longint(pointer(pp)+sizeof(theap_mem_info)),8),' size ',pp^.size);
   for i:=1 to tracesize div 2 do
-   if pp^.calls[i]<>0 then
+   if pp^.calls[i]<>nil then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
   writeln(ptext,' was released at ');
   for i:=(tracesize div 2)+1 to tracesize do
-   if pp^.calls[i]<>0 then
+   if pp^.calls[i]<>nil then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
   { the check is done to be sure that the procvar is not overwritten }
   if assigned(pp^.extra_info) and
@@ -343,9 +343,10 @@ end;
 
 Function TraceGetMem(size:longint):pointer;
 var
-  allocsize,i,bp : longint;
+  allocsize,i : longint;
+  bp : pointer;
   pl : pdword;
-  p : pointer;
+  p  : pointer;
   pp : pheap_mem_info;
 begin
   inc(getmem_size,size);
@@ -426,7 +427,8 @@ end;
 
 function TraceFreeMemSize(p:pointer;size:longint):longint;
 var
-  i,bp, ppsize : longint;
+  i,ppsize : longint;
+  bp : pointer;
   pp : pheap_mem_info;
 {$ifdef EXTRA}
   pp2 : pheap_mem_info;
@@ -582,7 +584,8 @@ var
   newP: pointer;
   oldsize,
   allocsize,
-  i,bp : longint;
+  i  : longint;
+  bp : pointer;
   pl : pdword;
   pp : pheap_mem_info;
   oldextrasize,
@@ -1149,7 +1152,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.22  2002-12-26 10:46:54  peter
+  Revision 1.23  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.22  2002/12/26 10:46:54  peter
     * set p to nil when 0 is passed to reallocmem
 
   Revision 1.21  2002/11/30 23:34:43  carl

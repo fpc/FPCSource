@@ -852,7 +852,7 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:longint;assembler;
+function get_frame:pointer;assembler;
 asm
   { all abi's I know use r1 as stack pointer }
   mr r3, r1
@@ -860,7 +860,7 @@ end ['R3'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:longint):longint;assembler;
+function get_caller_addr(framebp:pointer):pointer;assembler;
 asm
    {$warning FIX ME!}
     //     !!!!!!! depends on ABI !!!!!!!!
@@ -868,7 +868,7 @@ end ['R3'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:longint):longint;assembler;
+function get_caller_frame(framebp:pointer):pointer;assembler;
 asm
     {$warning FIX ME!}
    //     !!!!!!! depends on ABI !!!!!!!!
@@ -948,7 +948,11 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.30  2003-03-12 19:21:29  jonas
+  Revision 1.31  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.30  2003/03/12 19:21:29  jonas
     + implemented get_frame()
     * fixed bug in IndexDWord()
 

@@ -942,14 +942,14 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    %ebp,%eax
 end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    framebp,%eax
         orl     %eax,%eax
@@ -960,7 +960,7 @@ end ['EAX'];
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:longint):longint;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer):pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
         movl    framebp,%eax
         orl     %eax,%eax
@@ -1174,7 +1174,11 @@ end;
 
 {
   $Log$
-  Revision 1.39  2003-02-18 17:56:06  jonas
+  Revision 1.40  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.39  2003/02/18 17:56:06  jonas
     - removed buggy i386-specific FPC_CHARARRAY_TO_SHORTSTR
     * fixed generic FPC_CHARARRAY_TO_SHORTSTR (web bug 2382)
     * fixed some potential range errors in indexchar/word/dword

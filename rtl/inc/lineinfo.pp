@@ -739,7 +739,7 @@ begin
 end;
 
 
-function StabBackTraceStr(addr:longint):shortstring;
+function StabBackTraceStr(addr:Pointer):shortstring;
 var
   func,
   source : string;
@@ -752,7 +752,7 @@ begin
   BackTraceStrFunc:=@SysBackTraceStr;
   GetLineInfo(dword(addr),func,source,line);
 { create string }
-  StabBackTraceStr:='  0x'+HexStr(addr,8);
+  StabBackTraceStr:='  0x'+HexStr(Longint(addr),8);
   if func<>'' then
    StabBackTraceStr:=StabBackTraceStr+'  '+func;
   if source<>'' then
@@ -781,7 +781,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.15  2003-02-07 20:55:06  marco
+  Revision 1.16  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.15  2003/02/07 20:55:06  marco
    * fix from oco
 
   Revision 1.14  2003/02/01 22:31:34  marco

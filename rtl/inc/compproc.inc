@@ -265,12 +265,12 @@ procedure fpc_InitializeUnits; compilerproc;
 {
 Procedure fpc_do_exit; compilerproc;
 Procedure fpc_lib_exit; compilerproc;
-Procedure fpc_HandleErrorAddrFrame (Errno : longint;addr,frame : longint); compilerproc;
+Procedure fpc_HandleErrorAddrFrame (Errno : longint;addr,frame : pointer); compilerproc;
 Procedure fpc_HandleError (Errno : longint); compilerproc;
 }
 
 procedure fpc_AbstractErrorIntern;compilerproc;
-procedure fpc_assert(Const Msg,FName:Shortstring;LineNo,ErrorAddr:Longint); compilerproc;
+procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointer); compilerproc;
 
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
@@ -286,7 +286,11 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.35  2003-01-11 00:17:29  florian
+  Revision 1.36  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.35  2003/01/11 00:17:29  florian
     * uncommented the variant<->dyn. array stuff
 
   Revision 1.34  2003/01/09 20:14:20  florian

@@ -1,17 +1,17 @@
 {$define FPC_SYSTEM_HAS_GET_FRAME}
-function get_frame:longint;{assembler;}
+function get_frame:pointer;{assembler;}
 begin{asm}
     {$warning FIX ME!}
     //    !!!!!!! depends on ABI !!!!!!!!
 end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
-function get_caller_addr(framebp:longint):longint;{assembler;}
+function get_caller_addr(framebp:pointer):pointer;{assembler;}
 begin{asm}
    {$warning FIX ME!}
     //     !!!!!!! depends on ABI !!!!!!!!
 end;
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
-function get_caller_frame(framebp:longint):longint;{assembler;}
+function get_caller_frame(framebp:pointer):pointer;{assembler;}
 begin{asm}
     {$warning FIX ME!}
    //     !!!!!!! depends on ABI !!!!!!!!
@@ -31,7 +31,11 @@ begin{asm}
 end;
 {
   $Log$
-  Revision 1.2  2003-02-05 21:48:34  mazen
+  Revision 1.3  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.2  2003/02/05 21:48:34  mazen
   * fixing run time errors related to unimplemented abstract methods in CG
   + giving empty emplementations for some RTL functions
 

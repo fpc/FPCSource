@@ -237,7 +237,7 @@ Type
 
 { procedure type }
   TProcedure  = Procedure;
-  
+
 const
 { Maximum value of the biggest signed and unsigned integer type available}
   MaxSIntValue = High(ValSInt);
@@ -248,13 +248,13 @@ const
   maxSmallint = 32767;
 
   maxint   = maxsmallint;
-  
-type  
+
+type
   IntegerArray  = array[0..$effffff] of Integer;
   PIntegerArray = ^IntegerArray;
   PointerArray = array [0..512*1024*1024 - 2] of Pointer;
   PPointerArray = ^PointerArray;
-  
+
 {$ifndef VER1_0}
   TBoundArray = array of Integer;
 {$endif VER1_0}
@@ -584,9 +584,9 @@ Procedure getdir(drivenr:byte;Var dir:ansistring);
 *****************************************************************************}
 
 { os independent calls to allow backtraces }
-function get_frame:longint;{$ifdef SYSTEMINLINE}inline;{$endif}
-function get_caller_addr(framebp:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
-function get_caller_frame(framebp:longint):longint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
+function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Sptr:Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -598,7 +598,7 @@ Function Sptr:Longint;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 Function  Paramcount:Longint;
 Function  ParamStr(l:Longint):string;
-Procedure Dump_Stack(var f : text;bp:Longint);
+Procedure Dump_Stack(var f : text;bp:pointer);
 Procedure RunError(w:Word);
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
 Procedure halt(errnum:byte);
@@ -615,15 +615,15 @@ Procedure SysResetFPU;
 *****************************************************************************}
 
 procedure AbstractError;
-Function  SysBackTraceStr(Addr: Longint): ShortString;
-Procedure SysAssert(Const Msg,FName:ShortString;LineNo,ErrorAddr:Longint);
+Function  SysBackTraceStr(Addr:Pointer): ShortString;
+Procedure SysAssert(Const Msg,FName:ShortString;LineNo:Longint;ErrorAddr:Pointer);
 
 { Error handlers }
 Type
-  TBackTraceStrFunc = Function (Addr: Longint): ShortString;
+  TBackTraceStrFunc = Function (Addr: Pointer): ShortString;
   TErrorProc = Procedure (ErrNo : Longint; Address,Frame : Pointer);
   TAbstractErrorProc = Procedure;
-  TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno,erroraddr:longint);
+  TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno:longint;erroraddr:pointer);
 
 
 
@@ -665,7 +665,11 @@ const
 
 {
   $Log$
-  Revision 1.63  2003-01-13 14:37:11  florian
+  Revision 1.64  2003-03-17 14:30:11  peter
+    * changed address parameter/return values to pointer instead
+      of longint
+
+  Revision 1.63  2003/01/13 14:37:11  florian
     * cpu defines fixed
     * ... = type ...; stuff reactived, should work now with 1.1
 
