@@ -337,7 +337,7 @@ unit i_bsd;
                 localalignmax   : 4;
                 recordalignmin  : 0;
                 recordalignmax  : 2;
-                maxCrecordalign : 4
+                maxCrecordalign : 4	// should be 8 probably
               );
             first_parm_offset : 8;
             heapsize     : 256*1024;
@@ -443,7 +443,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2004-01-21 20:53:51  marco
+  Revision 1.8  2004-01-29 15:48:10  marco
+   * fix added as comment till I can test (8 byte C alignment on netbsd/ppc)
+
+  Revision 1.7  2004/01/21 20:53:51  marco
    * Copy and pasted some structures from Net- to OpenBSD (3.4+ ELF!)
 
   Revision 1.6  2004/01/06 21:26:18  jonas
