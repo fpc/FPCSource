@@ -2,10 +2,14 @@
 
 #
 # A script to build the crossutils for a set of platforms.
+# Note:cygwin seems to like to have all platforms qualified.
 #
 
 # where to store the built tree of binutils?
 DESTDIR=~/cross
+
+# directory where logs go
+LOGDIR=~/logs
 
 # where can I decrunch and build?
 WORKDIR=~/bintst1
@@ -49,7 +53,6 @@ export CFLAGS="${CFLAGS} -static"
 export CPPFLAGS="${CPPFLAGS} -static"
 export CXXFLAGS="${CXXFLAGS} -static"
 
-
 #
 # Make a list of targets
 #
@@ -83,6 +86,7 @@ done;
 
 DESTDIR=${DESTDIR%/}/
 WORKDIR=${WORKDIR%/}/
+LOGDIR=${LOGDIR%/}/
 BINUTILSPATH=${BINUTILSPATH%/}/
 BINUTILSARCHIVE=${BINUTILSPATH}${BINUTILSBASE}-${BINUTILSVERSION}
 MAKE=make
@@ -120,9 +124,9 @@ cd ${WORKDIR}
 
 if [ ! -d ${WORKDIR}${BINUTILSBASE}-${BINUTILSVERSION} ]; then
 if [ $BINUTILS_GZIP = "no" ]; then
-bzip2 -dc  $BINUTILSARCHIVE |tar xvf -       >  ~/log-extract
+bzip2 -dc  $BINUTILSARCHIVE |tar xvf -       >  ${LOGDIR}log-extract
 else
-tar xvzf $BINUTILSARCHIVE  >  ~/log-extract
+tar xvzf $BINUTILSARCHIVE  >  ${LOGDIR}log-extract
 fi
 
 if [ ! $? = 0 ]; then
