@@ -17,10 +17,7 @@
 type
 
   palrec = packed record              { record used for set/get DAC palette }
-       align: byte;
-       blue : byte;
-       green: byte;
-       red: byte;
+       blue, green, red, align: byte;
   end;
 
 const
@@ -2437,7 +2434,10 @@ end;
 
 (*
 $Log$
-Revision 1.12  1999-12-26 10:36:00  jonas
+Revision 1.13  1999-12-27 12:10:57  jonas
+  * fixed VESA palrec structure
+
+Revision 1.12  1999/12/26 10:36:00  jonas
   * finished patternlineVESA256 and enabled it
   * folded (direct)put/getpixVESA32k and 64k into one procedure since
     they were exactly the same code
