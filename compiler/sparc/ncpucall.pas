@@ -50,9 +50,9 @@ function TSparcCallNode.pass_1:TNode;
     if ProcDefinition is TProcDef
     then
       with TProcDef(procdefinition).parast do
-        if datasize>TSparcProcInfo(procinfo).maxpushedparasize
+        if datasize>TSparcProcInfo(current_procinfo).maxpushedparasize
         then
-          TSparcProcInfo(procinfo).maxpushedparasize:=datasize;
+          TSparcProcInfo(current_procinfo).maxpushedparasize:=datasize;
   end;
 procedure TSparcCallNode.push_framepointer;
   begin
@@ -63,7 +63,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2003-04-04 15:38:56  peter
+  Revision 1.10  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.9  2003/04/04 15:38:56  peter
     * moved generic code from n386cal to ncgcal, i386 now also
       uses the generic ncgcal
 

@@ -915,7 +915,7 @@ implementation
          result:=nil;
          if (resulttype.def.deftype=classrefdef) or
             is_class(resulttype.def) or
-            (po_staticmethod in aktprocdef.procoptions) then
+            (po_staticmethod in current_procdef.procoptions) then
            expectloc:=LOC_REGISTER
          else
            expectloc:=LOC_CREFERENCE;
@@ -1003,7 +1003,7 @@ implementation
             for i:=1 to tablecount do
              begin
                if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=aktprocdef.localst) then
+                  (tloadnode(left).symtable=current_procdef.localst) then
                 twithsymtable(symtable).direct_with:=true;
                twithsymtable(symtable).withnode:=self;
                symtable:=symtable.next;
@@ -1059,8 +1059,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.51  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.50  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

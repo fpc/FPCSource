@@ -40,7 +40,7 @@ unit cpupi;
           { max. of space need for parameters, currently used by the PowerPC port only }
           maxpushedparasize : aword;
 
-          constructor create;override;
+          constructor create(aparent:tprocinfo);override;
           procedure after_header;override;
           procedure after_pass1;override;
        end;
@@ -55,10 +55,10 @@ unit cpupi;
        tgobj,
        symconst, symsym,paramgr;
 
-    constructor tppcprocinfo.create;
+    constructor tppcprocinfo.create(aparent:tprocinfo);
 
       begin
-         inherited create;
+         inherited create(aparent);
          maxpushedparasize:=0;
          localsize:=0;
       end;
@@ -78,33 +78,33 @@ unit cpupi;
            begin
              ofs:=align(maxpushedparasize+LinkageAreaSize,16);
              inc(procdef.parast.address_fixup,ofs);
-             inc(procinfo.framepointer_offset,ofs);
-             inc(procinfo.selfpointer_offset,ofs);
+             inc(framepointer_offset,ofs);
+             inc(selfpointer_offset,ofs);
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
 
 //             Already done with an "inc" above now, not sure if it's correct (JM)
              procdef.localst.address_fixup:=procdef.parast.address_fixup+procdef.parast.datasize;
-             if assigned(procinfo.procdef.funcretsym) then
-               procinfo.return_offset:=tvarsym(procinfo.procdef.funcretsym).address+tvarsym(procinfo.procdef.funcretsym).owner.address_fixup;
+             if assigned(procdef.funcretsym) then
+               return_offset:=tvarsym(procdef.funcretsym).address+tvarsym(procdef.funcretsym).owner.address_fixup;
 
 {
              Already done with an "inc" above, should be correct (JM)
              if assigned(procdef.funcretsym) and
                not(paramanager.ret_in_param(procdef.rettype.def,procdef.proccalloption)) then
-               procinfo.return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address+procdef.localst.address_fixup;
+               return_offset:=tg.direction*tfuncretsym(procdef.funcretsym).address+procdef.localst.address_fixup;
 }
 
              if cs_asm_source in aktglobalswitches then
                aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
 
-             procinfo.firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
+             firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
              if cs_asm_source in aktglobalswitches then
-               aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: r1+'+tostr(procinfo.firsttemp_offset))));
+               aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: r1+'+tostr(firsttemp_offset))));
 
-             //!!!! tg.setfirsttemp(procinfo.firsttemp_offset);
-             tg.firsttemp:=procinfo.firsttemp_offset;
-             tg.lasttemp:=procinfo.firsttemp_offset;
+             //!!!! tg.setfirsttemp(firsttemp_offset);
+             tg.firsttemp:=firsttemp_offset;
+             tg.lasttemp:=firsttemp_offset;
            end;
       end;
 
@@ -113,7 +113,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  2003-04-27 07:48:05  peter
+  Revision 1.12  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.11  2003/04/27 07:48:05  peter
     * updated for removed lexlevel
 
   Revision 1.10  2003/04/26 11:31:00  florian

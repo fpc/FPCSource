@@ -191,7 +191,7 @@ implementation
                               inlinelocalsymtable,
                               inlineparasymtable :
                                 begin
-                                  location.reference.base:=procinfo.framepointer;
+                                  location.reference.base:=current_procinfo.framepointer;
                                   if (symtabletype in [inlinelocalsymtable,
                                                        localsymtable])
 {$ifdef powerpc}
@@ -215,14 +215,14 @@ implementation
                                          location.reference.offset:=-location.reference.offset;
                                     end;
 {$endif powerpc}
-                                  if (aktprocdef.parast.symtablelevel>symtable.symtablelevel) then
+                                  if (current_procdef.parast.symtablelevel>symtable.symtablelevel) then
                                     begin
                                        hregister:=rg.getaddressregister(exprasmlist);
                                        { make a reference }
-                                       reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
+                                       reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
                                        cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                                        { walk parents }
-                                       i:=aktprocdef.parast.symtablelevel-1;
+                                       i:=current_procdef.parast.symtablelevel-1;
                                        while (i>symtable.symtablelevel) do
                                          begin
                                             { make a reference }
@@ -240,7 +240,7 @@ implementation
                                 end;
                               stt_exceptsymtable:
                                 begin
-                                   location.reference.base:=procinfo.framepointer;
+                                   location.reference.base:=current_procinfo.framepointer;
                                    location.reference.offset:=tvarsym(symtableentry).address;
                                 end;
                               objectsymtable:
@@ -953,8 +953,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.54  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.53  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

@@ -96,6 +96,7 @@ interface
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : tsymtable;{ pointer to the local symtable of this unit }
         scanner       : pointer;  { scanner object used }
+        procinfo      : pointer;  { current procedure being compiled }
         loaded_from   : tmodule;
         uses_imports  : boolean;  { Set if the module imports from DLL's.}
         imports       : tlinkedlist;
@@ -169,7 +170,8 @@ uses
   dos,
 {$endif}
   verbose,systems,
-  scanner;
+  scanner,
+  cgbase;
 
 
 {*****************************************************************************
@@ -391,10 +393,11 @@ uses
 
 
     destructor tmodule.Destroy;
-{$ifdef MEMDEBUG}
       var
+{$ifdef MEMDEBUG}
         d : tmemdebug;
 {$endif}
+        hpi : tprocinfo;
       begin
         if assigned(map) then
          dispose(map);
@@ -412,6 +415,18 @@ uses
              current_scanner:=nil;
             tscannerfile(scanner).free;
          end;
+        if assigned(procinfo) then
+          begin
+            if current_procinfo=tprocinfo(procinfo) then
+             current_procinfo:=nil;
+            { release procinfo tree }
+            while assigned(procinfo) do
+             begin
+               hpi:=tprocinfo(procinfo).parent;
+               tprocinfo(procinfo).free;
+               procinfo:=hpi;
+             end;
+          end;
         used_units.free;
         dependent_units.free;
         resourcefiles.Free;
@@ -459,6 +474,8 @@ uses
 
 
     procedure tmodule.reset;
+      var
+        hpi : tprocinfo;
       begin
         if assigned(scanner) then
           begin
@@ -468,6 +485,18 @@ uses
              current_scanner:=nil;
             tscannerfile(scanner).free;
             scanner:=nil;
+          end;
+        if assigned(procinfo) then
+          begin
+            if current_procinfo=tprocinfo(procinfo) then
+             current_procinfo:=nil;
+            { release procinfo tree }
+            while assigned(procinfo) do
+             begin
+               hpi:=tprocinfo(procinfo).parent;
+               tprocinfo(procinfo).free;
+               procinfo:=hpi;
+             end;
           end;
         if assigned(globalsymtable) then
           begin
@@ -610,7 +639,16 @@ uses
 end.
 {
   $Log$
-  Revision 1.32  2002-12-29 14:57:50  peter
+  Revision 1.33  2003-04-27 11:21:32  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.32  2002/12/29 14:57:50  peter
     * unit loading changed to first register units and load them
       afterwards. This is needed to support uses xxx in yyy correctly
     * unit dependency check fixed

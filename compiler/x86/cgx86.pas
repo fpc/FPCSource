@@ -1817,10 +1817,10 @@ unit cgx86;
       begin
         { Routines with the poclearstack flag set use only a ret }
         { also routines with parasize=0     }
-        if (po_clearstack in aktprocdef.procoptions) then
+        if (po_clearstack in current_procdef.procoptions) then
          begin
            { complex return values are removed from stack in C code PM }
-           if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+           if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
              list.concat(Taicpu.Op_const(A_RET,S_NO,4))
            else
              list.concat(Taicpu.Op_none(A_RET,S_NO));
@@ -1938,7 +1938,16 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.42  2003-04-23 14:42:08  daniel
+  Revision 1.43  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.42  2003/04/23 14:42:08  daniel
     * Further register allocator work. Compiler now smaller with new
       allocator than without.
     * Somebody forgot to adjust ppu version number

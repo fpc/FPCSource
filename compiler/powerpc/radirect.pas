@@ -96,20 +96,20 @@ interface
            if s<>'' then
             code.concat(Tai_direct.Create(strpnew(s)));
             { consider it set function set if the offset was loaded }
-           if assigned(aktprocdef.funcretsym) and
+           if assigned(current_procdef.funcretsym) and
               (pos(retstr,upper(s))>0) then
-             tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
+             tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
            s:='';
          end;
 
      begin
        ende:=false;
        s:='';
-       if assigned(aktprocdef.funcretsym) and
-          is_fpu(aktprocdef.rettype.def) then
-         tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
+       if assigned(current_procdef.funcretsym) and
+          is_fpu(current_procdef.rettype.def) then
+         tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
        { !!!!!
-       if (not is_void(aktprocdef.rettype.def)) then
+       if (not is_void(current_procdef.rettype.def)) then
          retstr:=upper(tostr(procinfo^.return_offset)+'('+gas_reg2str[procinfo^.framepointer]+')')
        else
        }
@@ -155,7 +155,7 @@ interface
                            end
                          else
                            { access to local variables }
-                           if assigned(aktprocdef) then
+                           if assigned(current_procdef) then
                              begin
                                 { I don't know yet, what the ppc port requires }
                                 { we'll see how things settle down             }
@@ -164,16 +164,16 @@ interface
                                 { char ?                                   }
                                 { !!!
                                 if (s[length(s)]='%') and
-                                   ret_in_acc(aktprocdef.rettype.def) and
+                                   ret_in_acc(current_procdef.rettype.def) and
                                    ((pos('AX',upper(hs))>0) or
                                    (pos('AL',upper(hs))>0)) then
-                                  tfuncretsym(aktprocdef.funcretsym).funcretstate:=vs_assigned;
+                                  tfuncretsym(current_procdef.funcretsym).funcretstate:=vs_assigned;
                                 }
                                 if ((s[length(s)]<>'0') or (hs[1]<>'x')) and not(is_register(hs)) then
                                   begin
-                                     if assigned(aktprocdef.localst) and
-                                        (aktprocdef.localst.symtablelevel >= normal_function_level) then
-                                       sym:=tsym(aktprocdef.localst.search(upper(hs)))
+                                     if assigned(current_procdef.localst) and
+                                        (current_procdef.localst.symtablelevel >= normal_function_level) then
+                                       sym:=tsym(current_procdef.localst.search(upper(hs)))
                                      else
                                        sym:=nil;
                                      if assigned(sym) then
@@ -205,8 +205,8 @@ interface
                                        end
                                      else
                                        begin
-                                          if assigned(aktprocdef.parast) then
-                                            sym:=tsym(aktprocdef.parast.search(upper(hs)))
+                                          if assigned(current_procdef.parast) then
+                                            sym:=tsym(current_procdef.parast.search(upper(hs)))
                                           else
                                             sym:=nil;
                                           if assigned(sym) then
@@ -215,7 +215,7 @@ interface
                                                  begin
                                                     l:=tvarsym(sym).address;
                                                     { set offset }
-                                                    inc(l,aktprocdef.parast.address_fixup);
+                                                    inc(l,current_procdef.parast.address_fixup);
 //                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
                                                     hs:=tostr(l)+'('+gas_reg2str[STACK_POINTER_REG]+')';
                                                     if pos(',',s) > 0 then
@@ -281,7 +281,7 @@ interface
                                                  end
                                                else if upper(hs)='__RESULT' then
                                                  begin
-                                                    if (not is_void(aktprocdef.rettype.def)) then
+                                                    if (not is_void(current_procdef.rettype.def)) then
                                                       hs:=retstr
                                                     else
                                                       Message(asmr_e_void_function);
@@ -311,7 +311,7 @@ interface
               '{',';',#10,#13:
                 begin
                    if pos(retstr,s) > 0 then
-                     tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
+                     tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
                    writeasmline;
                    c:=current_scanner.asmgetchar;
                 end;
@@ -347,7 +347,16 @@ initialization
 end.
 {
   $Log$
-  Revision 1.12  2003-04-27 07:48:05  peter
+  Revision 1.13  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.12  2003/04/27 07:48:05  peter
     * updated for removed lexlevel
 
   Revision 1.11  2003/04/25 21:05:22  florian

@@ -170,7 +170,7 @@ implementation
                 begin
                   if calloption=pocall_inline then
                     begin
-                       reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                       reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                        cg.a_load_loc_ref(exprasmlist,left.location,href);
                     end
                   else
@@ -190,7 +190,7 @@ implementation
                        tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                      {$endif newra}
                        cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                       reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                       reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                        cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
                      {$ifdef newra}
                        rg.ungetregisterint(exprasmlist,tmpreg);
@@ -228,7 +228,7 @@ implementation
                    tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                 {$endif}
                    cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                   reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                   reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                    cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
                 {$ifdef newra}
                    rg.ungetregisterint(exprasmlist,tmpreg);
@@ -281,7 +281,7 @@ implementation
                         tmpreg:=cg.get_scratch_reg_address(exprasmlist);
                      {$endif}
                         cg.a_loadaddr_ref_reg(exprasmlist,left.location.reference,tmpreg);
-                        reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                        reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                         cg.a_load_reg_ref(exprasmlist,OS_ADDR,tmpreg,href);
                      {$ifdef newra}
                         rg.ungetregisterint(exprasmlist,tmpreg);
@@ -415,7 +415,7 @@ implementation
                        if not(
                               is_class(methodpointer.resulttype.def) and
                               (procdefinition.proctypeoption=potype_constructor) and
-                              (aktprocdef.proctypeoption<>potype_constructor)
+                              (current_procdef.proctypeoption<>potype_constructor)
                              ) then
                         begin
                           location_reset(selfloc,LOC_REGISTER,OS_ADDR);
@@ -429,8 +429,8 @@ implementation
                        begin
                          { reset self when calling constructor from destructor }
                          if (procdefinition.proctypeoption=potype_constructor) and
-                            assigned(aktprocdef) and
-                            (aktprocdef.proctypeoption=potype_destructor) then
+                            assigned(current_procdef) and
+                            (current_procdef.proctypeoption=potype_destructor) then
                           begin
                             location_release(exprasmlist,selfloc);
                             location_reset(selfloc,LOC_CONSTANT,OS_ADDR);
@@ -576,13 +576,13 @@ implementation
                 { Load VMT from self? }
                 if (
                     (po_classmethod in procdefinition.procoptions) and
-                    not(assigned(aktprocdef) and
-                        (po_classmethod in aktprocdef.procoptions))
+                    not(assigned(current_procdef) and
+                        (po_classmethod in current_procdef.procoptions))
                    ) or
                    (
                     (po_staticmethod in procdefinition.procoptions) and
-                     not(assigned(aktprocdef) and
-                         (po_staticmethod in aktprocdef.procoptions))
+                     not(assigned(current_procdef) and
+                         (po_staticmethod in current_procdef.procoptions))
                    ) then
                   begin
                     if (oo_has_vmt in tprocdef(procdefinition)._class.objectoptions) then
@@ -671,26 +671,26 @@ implementation
         i : integer;
       begin
         { this routine is itself not nested }
-        if aktprocdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
+        if current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel) then
           begin
-            reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
+            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
             cg.a_param_ref(exprasmlist,OS_ADDR,href,paramanager.getintparaloc(1));
           end
         { one nesting level }
-        else if (aktprocdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
+        else if (current_procdef.parast.symtablelevel=(tprocdef(procdefinition).parast.symtablelevel)-1) then
           begin
-            cg.a_param_reg(exprasmlist,OS_ADDR,procinfo.framepointer,paramanager.getintparaloc(1));
+            cg.a_param_reg(exprasmlist,OS_ADDR,current_procinfo.framepointer,paramanager.getintparaloc(1));
           end
         { very complex nesting level ... }
-        else if (aktprocdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
+        else if (current_procdef.parast.symtablelevel>(tprocdef(procdefinition).parast.symtablelevel)) then
           begin
             hregister:=rg.getaddressregister(exprasmlist);
-            reference_reset_base(href,procinfo.framepointer,procinfo.framepointer_offset);
+            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.framepointer_offset);
             cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
-            i:=aktprocdef.parast.symtablelevel;
+            i:=current_procdef.parast.symtablelevel;
             while (i>tprocdef(procdefinition).parast.symtablelevel) do
               begin
-                reference_reset_base(href,hregister,procinfo.framepointer_offset);
+                reference_reset_base(href,hregister,current_procinfo.framepointer_offset);
                 cg.a_load_ref_reg(exprasmlist,OS_ADDR,href,hregister);
                 dec(i);
               end;
@@ -913,7 +913,7 @@ implementation
               right:=nil;
               { set it to the same lexical level as the local symtable, becuase
                 the para's are stored there }
-              tprocdef(procdefinition).parast.symtablelevel:=aktprocdef.localst.symtablelevel;
+              tprocdef(procdefinition).parast.symtablelevel:=current_procdef.localst.symtablelevel;
               if assigned(left) then
                begin
                  inlinecode.para_size:=tprocdef(procdefinition).para_size(para_alignment);
@@ -940,7 +940,7 @@ implementation
            begin
               if (cs_check_io in aktlocalswitches) and
                  (po_iocheck in procdefinition.procoptions) and
-                 not(po_iocheck in aktprocdef.procoptions) then
+                 not(po_iocheck in current_procdef.procoptions) then
                 begin
                    objectlibrary.getaddrlabel(iolabel);
                    cg.a_label(exprasmlist,iolabel);
@@ -1040,7 +1040,7 @@ implementation
               { can/will be gottten from the current procedure's symtable }
               { (JM) }
               if not inlined then
-                if (aktprocdef.parast.symtablelevel>=normal_function_level) and
+                if (current_procdef.parast.symtablelevel>=normal_function_level) and
                    assigned(tprocdef(procdefinition).parast) and
                    ((tprocdef(procdefinition).parast.symtablelevel)>normal_function_level) then
                   push_framepointer;
@@ -1143,8 +1143,8 @@ implementation
 
 {$ifdef powerpc}
          { this calculation must be done in pass_1 anyway, so don't worry }
-         if tppcprocinfo(procinfo).maxpushedparasize<pushedparasize then
-           tppcprocinfo(procinfo).maxpushedparasize:=pushedparasize;
+         if tppcprocinfo(current_procinfo).maxpushedparasize<pushedparasize then
+           tppcprocinfo(current_procinfo).maxpushedparasize:=pushedparasize;
 {$endif powerpc}
 
          { Restore }
@@ -1160,7 +1160,7 @@ implementation
             (procdefinition.proctypeoption=potype_constructor) and
             assigned(methodpointer) and
             (methodpointer.nodetype=typen) and
-            (aktprocdef.proctypeoption=potype_constructor) then
+            (current_procdef.proctypeoption=potype_constructor) then
           begin
             accreg.enum:=R_INTREGISTER;
             accreg.number:=NR_ACCUMULATOR;
@@ -1276,9 +1276,9 @@ implementation
 {$endif GDB}
        begin
           { deallocate the registers used for the current procedure's regvars }
-          if assigned(aktprocdef.regvarinfo) then
+          if assigned(current_procdef.regvarinfo) then
             begin
-              with pregvarinfo(aktprocdef.regvarinfo)^ do
+              with pregvarinfo(current_procdef.regvarinfo)^ do
                 for i := 1 to maxvarregs do
                   if assigned(regvars[i]) then
                     store_regvar(exprasmlist,regvars[i].reg);
@@ -1305,28 +1305,27 @@ implementation
           oldexitlabel:=aktexitlabel;
           oldexit2label:=aktexit2label;
           oldquickexitlabel:=quickexitlabel;
-          oldprocdef:=aktprocdef;
-          oldprocinfo:=procinfo;
+          oldprocdef:=current_procdef;
+          oldprocinfo:=current_procinfo;
           objectlibrary.getlabel(aktexitlabel);
           objectlibrary.getlabel(aktexit2label);
           { we're inlining a procedure }
           inlining_procedure:=true;
-          aktprocdef:=inlineprocdef;
+          current_procdef:=inlineprocdef;
 
           { clone procinfo, but not the asmlists }
-          procinfo:=tprocinfo(cprocinfo.newinstance);
-          move(pointer(oldprocinfo)^,pointer(procinfo)^,cprocinfo.InstanceSize);
-          procinfo.aktentrycode:=nil;
-          procinfo.aktexitcode:=nil;
-          procinfo.aktproccode:=nil;
-          procinfo.aktlocaldata:=nil;
+          current_procinfo:=tprocinfo(cprocinfo.newinstance);
+          move(pointer(oldprocinfo)^,pointer(current_procinfo)^,cprocinfo.InstanceSize);
+          current_procinfo.aktentrycode:=nil;
+          current_procinfo.aktexitcode:=nil;
+          current_procinfo.aktproccode:=nil;
+          current_procinfo.aktlocaldata:=nil;
 
           { set new procinfo }
-          procinfo.return_offset:=retoffset;
-          procinfo.no_fast_exit:=false;
+          current_procinfo.return_offset:=retoffset;
 
           { arg space has been filled by the parent secondcall }
-          st:=aktprocdef.localst;
+          st:=current_procdef.localst;
           { set it to the same lexical level }
           st.symtablelevel:=oldprocdef.localst.symtablelevel;
           if st.datasize>0 then
@@ -1376,12 +1375,12 @@ implementation
           ps:=para_size;
           make_global:=false; { to avoid warning }
           genentrycode(inlineentrycode,make_global,0,ps,nostackframe,true);
-          if po_assembler in aktprocdef.procoptions then
+          if po_assembler in current_procdef.procoptions then
             inlineentrycode.insert(Tai_marker.Create(asmblockstart));
           exprasmList.concatlist(inlineentrycode);
           secondpass(inlinetree);
           genexitcode(inlineexitcode,0,false,true);
-          if po_assembler in aktprocdef.procoptions then
+          if po_assembler in current_procdef.procoptions then
             inlineexitcode.concat(Tai_marker.Create(asmblockend));
           exprasmList.concatlist(inlineexitcode);
 
@@ -1399,8 +1398,8 @@ implementation
               st.address_fixup:=0;
             end;
           { restore procinfo }
-          procinfo.free;
-          procinfo:=oldprocinfo;
+          current_procinfo.free;
+          current_procinfo:=oldprocinfo;
 {$ifdef GDB}
           if (cs_debuginfo in aktmoduleswitches) then
             begin
@@ -1416,7 +1415,7 @@ implementation
             end;
 {$endif GDB}
           { restore }
-          aktprocdef:=oldprocdef;
+          current_procdef:=oldprocdef;
           aktexitlabel:=oldexitlabel;
           aktexit2label:=oldexit2label;
           quickexitlabel:=oldquickexitlabel;
@@ -1425,7 +1424,7 @@ implementation
           { reallocate the registers used for the current procedure's regvars, }
           { since they may have been used and then deallocated in the inlined  }
           { procedure (JM)                                                     }
-          if assigned(aktprocdef.regvarinfo) then
+          if assigned(current_procdef.regvarinfo) then
             begin
               rg.restoreStateAfterInline(oldregstate);
             end;
@@ -1439,8 +1438,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.54  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.55  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.54  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

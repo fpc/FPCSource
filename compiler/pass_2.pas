@@ -278,36 +278,45 @@ implementation
            begin
               { assign parameter locations }
 {$ifndef i386}
-              setparalocs(procinfo.procdef);
+              setparalocs(current_procinfo.procdef);
 {$endif i386}
 
-              procinfo.after_pass1;
+              current_procinfo.after_pass1;
 
               { process register variable stuff (JM) }
               assign_regvars(p);
-              load_regvars(procinfo.aktentrycode,p);
+              load_regvars(current_procinfo.aktentrycode,p);
 
               { for the i386 it must be done in genexitcode because it has  }
               { to add 'fstp' instructions when using fpu regvars and those }
               { must come after the "exitlabel" (JM)                        }
 {$ifndef i386}
-              cleanup_regvars(procinfo.aktexitcode);
+              cleanup_regvars(current_procinfo.aktexitcode);
 {$endif i386}
 
               do_secondpass(p);
 
-              if assigned(procinfo.procdef) then
-                procinfo.procdef.fpu_used:=p.registersfpu;
+              if assigned(current_procinfo.procdef) then
+                current_procinfo.procdef.fpu_used:=p.registersfpu;
 
            end;
-         procinfo.aktproccode.concatlist(exprasmlist);
+         current_procinfo.aktproccode.concatlist(exprasmlist);
       end;
 
 end.
 {
   $Log$
-  Revision 1.48  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.49  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.48  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

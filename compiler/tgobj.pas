@@ -431,7 +431,7 @@ unit tgobj;
     procedure ttgobj.GetTemp(list: taasmoutput; size : longint;temptype:ttemptype;var ref : treference);
 
     begin
-      reference_reset_base(ref,procinfo.framepointer,alloctemp(list,size,temptype));
+      reference_reset_base(ref,current_procinfo.framepointer,alloctemp(list,size,temptype));
     end;
 
 
@@ -444,17 +444,17 @@ unit tgobj;
            internalerror(200301225);
          if (ref.index.enum<>R_NO) and (ref.index.enum<>R_INTREGISTER) then
            internalerror(200301225);
-         if procinfo.framepointer.enum<>R_INTREGISTER then
+         if current_procinfo.framepointer.enum<>R_INTREGISTER then
            internalerror(200301225);
          if direction = 1 then
            begin
-             istemp:=((ref.base.number=procinfo.framepointer.number) and
+             istemp:=((ref.base.number=current_procinfo.framepointer.number) and
                      (ref.index.number=NR_NO) and
                       (ref.offset>=firsttemp));
            end
         else
            begin
-             istemp:=((ref.base.number=procinfo.framepointer.number) and
+             istemp:=((ref.base.number=current_procinfo.framepointer.number) and
                      (ref.index.number=NR_NO) and
                       (ref.offset<firsttemp));
            end;
@@ -544,7 +544,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.30  2003-04-25 20:59:35  peter
+  Revision 1.31  2003-04-27 11:21:35  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.30  2003/04/25 20:59:35  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

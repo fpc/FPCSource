@@ -138,8 +138,8 @@ interface
          if inlining_procedure then
            begin
              objectlibrary.CreateUsedAsmSymbolList;
-             localfixup:=aktprocdef.localst.address_fixup;
-             parafixup:=aktprocdef.parast.address_fixup;
+             localfixup:=current_procdef.localst.address_fixup;
+             parafixup:=current_procdef.parast.address_fixup;
              hp:=tai(p_asm.first);
              while assigned(hp) do
               begin
@@ -212,7 +212,7 @@ interface
            begin
              { if the routine is an inline routine, then we must hold a copy
                because it can be necessary for inlining later }
-             if (aktprocdef.proccalloption=pocall_inline) then
+             if (current_procdef.proccalloption=pocall_inline) then
                exprasmList.concatlistcopy(p_asm)
              else
                exprasmList.concatlist(p_asm);
@@ -239,7 +239,8 @@ interface
               if assigned(hp.left) then
                begin
                {$ifndef newra}
-                 rg.cleartempgen;
+                 if nf_releasetemps in flags then
+                   rg.cleartempgen;
                {$endif newra}
                  secondpass(hp.left);
                  location_copy(hp.location,hp.left.location);
@@ -315,7 +316,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-04-22 23:50:22  peter
+  Revision 1.33  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.32  2002/04/25 20:15:39  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.31  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

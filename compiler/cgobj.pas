@@ -1573,14 +1573,14 @@ unit cgobj;
          p  : tprocinfo;
          self_reg : tregister;
       begin
-         if not assigned(procinfo.procdef._class) then
+         if not assigned(current_procdef._class) then
            internalerror(200303211);
          self_reg:=rg.getaddressregister(list);
-         if procinfo.procdef.parast.symtablelevel>normal_function_level then
+         if current_procdef.parast.symtablelevel>normal_function_level then
            begin
-             reference_reset_base(hp,procinfo.framepointer,procinfo.framepointer_offset);
+             reference_reset_base(hp,current_procinfo.framepointer,current_procinfo.framepointer_offset);
              a_load_ref_reg(list,OS_ADDR,hp,self_reg);
-             p:=procinfo.parent;
+             p:=current_procinfo.parent;
              while (p.procdef.parast.symtablelevel>normal_function_level) do
               begin
                 reference_reset_base(hp,self_reg,p.framepointer_offset);
@@ -1592,7 +1592,7 @@ unit cgobj;
            end
          else
            begin
-             reference_reset_base(hp,procinfo.framepointer,procinfo.selfpointer_offset);
+             reference_reset_base(hp,current_procinfo.framepointer,current_procinfo.selfpointer_offset);
              a_load_ref_reg(list,OS_ADDR,hp,self_reg);
            end;
         g_load_self:=self_reg;
@@ -1644,44 +1644,44 @@ unit cgobj;
        href : treference;
        acc : Tregister;
      begin
-        if procinfo.vmtpointer_offset=0 then
+        if current_procinfo.vmtpointer_offset=0 then
          internalerror(200303251);
-        if procinfo.selfpointer_offset=0 then
+        if current_procinfo.selfpointer_offset=0 then
          internalerror(200303252);
         acc.enum:=R_INTREGISTER;
         acc.number:=NR_ACCUMULATOR;
-        if is_class(procinfo.procdef._class) then
+        if is_class(current_procdef._class) then
           begin
             if (cs_implicit_exceptions in aktmoduleswitches) then
-              procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+              include(current_procinfo.flags,pi_needs_implicit_finally);
             { parameter 2 : vmt pointer, 0 when called by inherited }
-            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(2));
             { parameter 1 : self pointer }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_NEW_CLASS');
             { save the self pointer }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
             a_load_reg_ref(list,OS_ADDR,acc,href);
             { fail? }
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,acc,faillabel);
           end
-        else if is_object(procinfo.procdef._class) then
+        else if is_object(current_procdef._class) then
           begin
             { parameter 3 : vmt_offset }
-            a_param_const(list, OS_32, procinfo.procdef._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, current_procdef._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : address of pointer to vmt,
               this is required to allow setting the vmt to -1 to indicate
               that memory was allocated }
-            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
             a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
             { parameter 1 : self pointer }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
             a_param_ref(list,OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_HELP_CONSTRUCTOR');
             { save the self pointer }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
             a_load_reg_ref(list,OS_ADDR,acc,href);
             { fail? }
             a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,acc,faillabel);
@@ -1697,48 +1697,48 @@ unit cgobj;
         href : treference;
         reg  : tregister;
      begin
-        if is_class(procinfo.procdef._class) then
+        if is_class(current_procdef._class) then
          begin
-           if procinfo.selfpointer_offset=0 then
+           if current_procinfo.selfpointer_offset=0 then
             internalerror(200303253);
            { parameter 2 : flag }
-           if procinfo.inheritedflag_offset=0 then
+           if current_procinfo.inheritedflag_offset=0 then
             internalerror(200303251);
-           reference_reset_base(href, procinfo.framepointer,procinfo.inheritedflag_offset);
+           reference_reset_base(href, current_procinfo.framepointer,current_procinfo.inheritedflag_offset);
            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(2));
            { parameter 1 : self }
-           if procinfo.selfpointer_offset=0 then
+           if current_procinfo.selfpointer_offset=0 then
             internalerror(200303252);
-           reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+           reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
            a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
            a_call_name(list,'FPC_DISPOSE_CLASS')
          end
-        else if is_object(procinfo.procdef._class) then
+        else if is_object(current_procdef._class) then
          begin
-            if procinfo.selfpointer_offset=0 then
+            if current_procinfo.selfpointer_offset=0 then
              internalerror(200303254);
-            if procinfo.vmtpointer_offset=0 then
+            if current_procinfo.vmtpointer_offset=0 then
              internalerror(200303255);
             { must the object be finalized ? }
-            if procinfo.procdef._class.needs_inittable then
+            if current_procdef._class.needs_inittable then
              begin
                objectlibrary.getlabel(nofinal);
-               reference_reset_base(href,procinfo.framepointer,target_info.first_parm_offset);
+               reference_reset_base(href,current_procinfo.framepointer,target_info.first_parm_offset);
                a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nofinal);
                reg:=g_load_self(list);
                reference_reset_base(href,reg,0);
-               g_finalize(list,procinfo.procdef._class,href,false);
+               g_finalize(list,current_procdef._class,href,false);
                reference_release(list,href);
                a_label(list,nofinal);
              end;
             { actually call destructor }
             { parameter 3 : vmt_offset }
-            a_param_const(list, OS_32, procinfo.procdef._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, current_procdef._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : pointer to vmt }
-            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
             a_param_ref(list, OS_ADDR, href ,paramanager.getintparaloc(2));
             { parameter 1 : address of self pointer }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR, href ,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_HELP_DESTRUCTOR');
          end
@@ -1751,37 +1751,37 @@ unit cgobj;
       var
         href : treference;
      begin
-        if is_class(procinfo.procdef._class) then
+        if is_class(current_procdef._class) then
           begin
-            if procinfo.selfpointer_offset=0 then
+            if current_procinfo.selfpointer_offset=0 then
              internalerror(200303256);
             { parameter 2 : flag, 0 -> inherited call (=no dispose) }
             a_param_const(list,OS_32,1,paramanager.getintparaloc(2));
             { parameter 1 : self }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
             a_param_ref(list, OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_DISPOSE_CLASS');
           end
-        else if is_object(procinfo.procdef._class) then
+        else if is_object(current_procdef._class) then
           begin
-            if procinfo.selfpointer_offset=0 then
+            if current_procinfo.selfpointer_offset=0 then
              internalerror(200303257);
-            if procinfo.vmtpointer_offset=0 then
+            if current_procinfo.vmtpointer_offset=0 then
              internalerror(200303258);
             { parameter 3 : vmt_offset }
-            a_param_const(list, OS_32, procinfo.procdef._class.vmt_offset, paramanager.getintparaloc(3));
+            a_param_const(list, OS_32, current_procdef._class.vmt_offset, paramanager.getintparaloc(3));
             { parameter 2 : pointer to vmt, will be reset to 0 when freed }
-            reference_reset_base(href, procinfo.framepointer,procinfo.vmtpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
             a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
             { parameter 1 : self pointer }
-            reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+            reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
             a_param_ref(list,OS_ADDR,href,paramanager.getintparaloc(1));
             a_call_name(list,'FPC_HELP_FAIL');
           end
         else
           internalerror(200006163);
         { set self to nil }
-        reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+        reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
         a_load_const_ref(list,OS_ADDR,0,href);
       end;
 
@@ -1853,8 +1853,17 @@ finalization
 end.
 {
   $Log$
-  Revision 1.91  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.92  2003-04-27 11:21:32  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.91  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

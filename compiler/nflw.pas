@@ -739,8 +739,8 @@ implementation
          if (
              (hp.nodetype=loadn) and
              (
-              (tloadnode(hp).symtable.symtablelevel=normal_function_level) or
-              (tloadnode(hp).symtable.symtablelevel=aktprocdef.parast.symtablelevel)
+              (tloadnode(hp).symtable.symtablelevel=main_program_level) or
+              (tloadnode(hp).symtable.symtablelevel=current_procdef.parast.symtablelevel)
              ) and
              not(
                  (tloadnode(hp).symtableentry.typ=varsym) and
@@ -886,21 +886,22 @@ implementation
          begin
            if assigned(left) then
             begin
-              inserttypeconv(left,aktprocdef.rettype);
-              if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) or
-                 (procinfo.no_fast_exit) or
-                 ((procinfo.flags and pi_uses_exceptions)<>0) then
+              inserttypeconv(left,current_procdef.rettype);
+              if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) or
+                 (current_procdef.proctypeoption=potype_constructor) or
+                 (pi_needs_implicit_finally in current_procinfo.flags) or
+                 (pi_uses_exceptions in current_procinfo.flags) then
                begin
                  left:=cassignmentnode.create(
-                     cloadnode.create(aktprocdef.funcretsym,aktprocdef.funcretsym.owner),
+                     cloadnode.create(current_procdef.funcretsym,current_procdef.funcretsym.owner),
                      left);
                  onlyassign:=true;
                end
               else
                begin
                  { mark funcretsym as assigned }
-                 inc(tvarsym(aktprocdef.funcretsym).refs);
-                 tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
+                 inc(tvarsym(current_procdef.funcretsym).refs);
+                 tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
                end;
             end;
          end;
@@ -1498,8 +1499,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.71  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.70  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead
@@ -1614,7 +1624,7 @@ end.
     * some ppc stuff fixed
 
   Revision 1.45  2002/08/17 09:23:37  florian
-    * first part of procinfo rewrite
+    * first part of current_procinfo rewrite
 
   Revision 1.44  2002/07/21 06:58:49  daniel
   * Changed booleans into flags

@@ -93,7 +93,7 @@ implementation
       { Please leave this here, this module should NOT use
         these variables.
         Declaring it as string here results in an error when compiling (PFV) }
-      aktprocdef = 'error';
+      current_procdef = 'error';
 
 
     procedure insert_funcret_para(pd:tabstractprocdef);
@@ -285,7 +285,6 @@ implementation
              CGMessage(parser_e_self_call_by_value);
            if (pd.deftype=procdef) then
             begin
-              inc(procinfo.selfpointer_offset,tvarsym(hpara.parasym).address);
               if compare_defs(hpara.paratype.def,tprocdef(pd)._class,nothingn)=te_incompatible then
                 CGMessage2(type_e_incompatible_types,hpara.paratype.def.typename,tprocdef(pd)._class.typename);
             end;
@@ -563,7 +562,7 @@ implementation
               aprocsym:=tprocsym(aclass.symtable.search(sp));
               { The procedure has been found. So it is
                 a global one. Set the flags to mark this.}
-              procinfo.flags:=procinfo.flags or pi_is_global;
+              include(current_procinfo.flags,pi_is_global);
               { we solve this below }
               if assigned(aprocsym) then
                begin
@@ -674,7 +673,7 @@ implementation
            { Set global flag when found in globalsytmable }
            if (not parse_only) and
               (aprocsym.owner.symtabletype=globalsymtable) then
-             procinfo.flags:=procinfo.flags or pi_is_global;
+             include(current_procinfo.flags,pi_is_global);
          end;
 
         { to get the correct symtablelevel we must ignore objectsymtables }
@@ -742,7 +741,7 @@ implementation
                  pd.test_if_fpu_result;
                  if (pd.rettype.def.deftype=stringdef) and
                     (tstringdef(pd.rettype.def).string_typ<>st_shortstring) then
-                   procinfo.no_fast_exit:=true;
+                   include(current_procinfo.flags,pi_needs_implicit_finally);
                  dec(testcurobject);
                end;
               if isclassmethod then
@@ -784,7 +783,6 @@ implementation
               consume(_OPERATOR);
               if (token in [first_overloaded..last_overloaded]) then
                begin
-                 procinfo.flags:=procinfo.flags or pi_operator;
                  optoken:=token;
                end
               else
@@ -865,7 +863,6 @@ begin
   if target_info.system in [system_i386_os2,system_i386_emx] then
    begin
      tprocdef(pd).aliasnames.insert(tprocdef(pd).procsym.realname);
-     procinfo.exported:=true;
      if cs_link_deffile in aktglobalswitches then
        deffile.AddExport(tprocdef(pd).mangledname);
    end;
@@ -1867,11 +1864,6 @@ const
         po_comp : tprocoptions;
         aprocsym : tprocsym;
       begin
-        { check if the addresses in parasymtable are calculated }
-        if (pd.para.count>0) and
-           (pd.parast.datasize=0) then
-          internalerror(200304254);
-
         forwardfound:=false;
         aprocsym:=tprocsym(pd.procsym);
 
@@ -2131,8 +2123,17 @@ const
 end.
 {
   $Log$
-  Revision 1.118  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.119  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.118  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

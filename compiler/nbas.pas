@@ -383,9 +383,9 @@ implementation
                    { concat function result to exit }
                    { this is wrong for string or other complex
                      result types !!! }
-                   if {ret_in_acc(aktprocdef.rettype.def) and }
-                      (is_ordinal(aktprocdef.rettype.def) or
-                       is_smallset(aktprocdef.rettype.def)) and
+                   if {ret_in_acc(current_procdef.rettype.def) and }
+                      (is_ordinal(current_procdef.rettype.def) or
+                       is_smallset(current_procdef.rettype.def)) and
                       assigned(hp.right) and
                       assigned(tstatementnode(hp.right).left) and
                       (tstatementnode(hp.right).left.nodetype=exitn) and
@@ -559,7 +559,7 @@ implementation
       begin
          result:=nil;
          expectloc:=LOC_VOID;
-         procinfo.flags:=procinfo.flags or pi_uses_asm;
+         include(current_procinfo.flags,pi_uses_asm);
       end;
 
 
@@ -803,7 +803,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2003-04-25 20:59:33  peter
+  Revision 1.48  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.47  2003/04/25 20:59:33  peter
     * removed funcretn,funcretsym, function result is now in varsym
       and aliases for result and function name are added using absolutesym
     * vs_hidden parameter for funcret passed in parameter

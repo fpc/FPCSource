@@ -76,7 +76,7 @@ implementation
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if tsetdef(right.resulttype.def).settype<>smallset then
-           procinfo.flags:=procinfo.flags or pi_do_call
+           include(current_procinfo.flags,pi_do_call)
          else
            begin
               { a smallset needs maybe an misc. register }
@@ -612,7 +612,7 @@ implementation
 
       begin
         if (cs_create_smart in aktmoduleswitches) then
-          jumpsegment:=procinfo.aktlocaldata
+          jumpsegment:=current_procinfo.aktlocaldata
         else
           jumpsegment:=datasegment;
         if not(jumptable_no_range) then
@@ -738,7 +738,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.56  2003-04-25 08:25:26  daniel
+  Revision 1.57  2003-04-27 11:21:35  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.56  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills

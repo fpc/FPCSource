@@ -40,24 +40,22 @@ unit cgbase;
       ;
 
 
-
-    const
-       {# bitmask indicating if the procedure uses asm }
-       pi_uses_asm  = $1;
-       {# bitmask indicating if the procedure is exported by an unit }
-       pi_is_global = $2;
-       {# bitmask indicating if the procedure does a call }
-       pi_do_call   = $4;
-       {# bitmask indicating if the procedure is an operator   }
-       pi_operator  = $8;
-       {# bitmask indicating if the procedure is an external C function }
-       pi_c_import  = $10;
-       {# bitmask indicating if the procedure has a try statement = no register optimization }
-       pi_uses_exceptions = $20;
-       {# bitmask indicating if the procedure is declared as @var(assembler), don't optimize}
-       pi_is_assembler = $40;
-       {# bitmask indicating if the procedure contains data which needs to be finalized }
-       pi_needs_implicit_finally = $80;
+    type
+      tprocinfoflag=(
+        {# procedure uses asm }
+        pi_uses_asm,
+        {# procedure is exported by an unit }
+        pi_is_global,
+        {# procedure does a call }
+        pi_do_call,
+        {# procedure has a try statement = no register optimization }
+        pi_uses_exceptions,
+        {# procedure is declared as @var(assembler), don't optimize}
+        pi_is_assembler,
+        {# procedure contains data which needs to be finalized }
+        pi_needs_implicit_finally
+      );
+      tprocinfoflags=set of tprocinfoflag;
 
     type
        {# This object gives information on the current routine being
@@ -87,19 +85,10 @@ unit cgbase;
           {# some collected informations about the procedure
              see pi_xxxx constants above
           }
-          flags : longint;
+          flags : tprocinfoflags;
 
           {# register used as frame pointer }
           framepointer : tregister;
-
-          {# true, if the procedure is exported by a unit }
-          globalsymbol : boolean;
-
-          {# true, if the procedure should be exported (only OS/2) }
-          exported : boolean;
-
-          {# true, if we can not use fast exit code }
-          no_fast_exit : boolean;
 
           {# Holds the environment reference for default exceptions
 
@@ -149,7 +138,7 @@ unit cgbase;
           aktexitcode: taasmoutput;
           aktlocaldata : taasmoutput;
 
-          constructor create;virtual;
+          constructor create(aparent:tprocinfo);virtual;
           destructor destroy;override;
 
           procedure allocate_interrupt_stackframe;virtual;
@@ -185,10 +174,9 @@ unit cgbase;
        tcprocinfo = class of tprocinfo;
 
     var
-       {# information about the current sub routine being parsed (@var(pprocinfo))}
-       procinfo : tprocinfo;
-
        cprocinfo : tcprocinfo;
+       {# information about the current sub routine being parsed (@var(pprocinfo))}
+       current_procinfo : tprocinfo;
 
        { labels for BREAK and CONTINUE }
        aktbreaklabel,aktcontinuelabel : tasmlabel;
@@ -211,9 +199,6 @@ unit cgbase;
 
        { save the size of pushed parameter, needed for aligning }
        pushedparasize : longint;
-
-       { procinfo instance which is used in procedures created automatically by the compiler }
-       voidprocpi : tprocinfo;
 
     { message calls with codegenerror support }
     procedure cgmessage(t : longint);
@@ -253,16 +238,9 @@ implementation
         tgobj,rgobj,
         defutil,
         fmodule
-{$ifdef fixLeaksOnError}
-        ,comphook
-{$endif fixLeaksOnError}
         ,symbase,paramgr
         ;
 
-{$ifdef fixLeaksOnError}
-     var procinfoStack: TStack;
-         hcodegen_old_do_stop: tstopprocedure;
-{$endif fixLeaksOnError}
 
 {*****************************************************************************
             override the message calls to set codegenerror
@@ -370,9 +348,9 @@ implementation
                                  TProcInfo
 ****************************************************************************}
 
-    constructor tprocinfo.create;
+    constructor tprocinfo.create(aparent:tprocinfo);
       begin
-        parent:=nil;
+        parent:=aparent;
         procdef:=nil;
         framepointer_offset:=0;
         selfpointer_offset:=0;
@@ -380,12 +358,9 @@ implementation
         inheritedflag_offset:=0;
         return_offset:=0;
         firsttemp_offset:=0;
-        flags:=0;
-        framepointer.enum:=R_NO;
-        framepointer.number:=NR_NO;
-        globalsymbol:=false;
-        exported:=false;
-        no_fast_exit:=false;
+        flags:=[];
+        framepointer.enum:=R_INTREGISTER;
+        framepointer.number:=NR_FRAME_POINTER_REG;
 
         aktentrycode:=Taasmoutput.Create;
         aktexitcode:=Taasmoutput.Create;
@@ -415,9 +390,9 @@ implementation
       begin
          { temporary space is set, while the BEGIN of the procedure }
          if (symtablestack.symtabletype=localsymtable) then
-           procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
+           current_procinfo.firsttemp_offset := tg.direction*symtablestack.datasize
          else
-           procinfo.firsttemp_offset := 0;
+           current_procinfo.firsttemp_offset := 0;
          { space for the return value }
          { !!!!!   this means that we can not set the return value
          in a subfunction !!!!! }
@@ -443,14 +418,17 @@ implementation
            end;
          if assigned(procdef._class) then
            begin
-              { self pointer offset, must be done after parsing the parameters }
-              { self isn't pushed in nested procedure of methods }
-              if not(po_containsself in procdef.procoptions) and
-                 (procdef.parast.symtablelevel=normal_function_level) then
+              if (po_containsself in procdef.procoptions) then
                begin
-                 selfpointer_offset:=procdef.parast.address_fixup;
-                 inc(procdef.parast.address_fixup,POINTER_SIZE);
-               end;
+                 inc(current_procinfo.selfpointer_offset,tvarsym(procdef.selfpara.parasym).address);
+               end
+              else
+               { self isn't pushed in nested procedure of methods }
+               if (procdef.parast.symtablelevel=normal_function_level) then
+                begin
+                  selfpointer_offset:=procdef.parast.address_fixup;
+                  inc(procdef.parast.address_fixup,POINTER_SIZE);
+                end;
 
               { Special parameters for de-/constructors }
               case procdef.proctypeoption of
@@ -485,10 +463,10 @@ implementation
          { Retrieve function result offset }
          if assigned(procdef.funcretsym) then
            begin
-             procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
+             current_procinfo.return_offset:=tvarsym(procdef.funcretsym).address+
                                      tvarsym(procdef.funcretsym).owner.address_fixup;
              if tvarsym(procdef.funcretsym).owner.symtabletype=localsymtable then
-              procinfo.return_offset:=tg.direction*procinfo.return_offset;
+              current_procinfo.return_offset:=tg.direction*current_procinfo.return_offset;
            end;
       end;
 
@@ -649,32 +627,20 @@ implementation
         commutativeop := list[op];
       end;
 
-{$ifdef fixLeaksOnError}
-procedure hcodegen_do_stop;
-var p: pprocinfo;
-begin
-  p := pprocinfo(procinfoStack.pop);
-  while p <> nil Do
-    begin
-      if p<>voidprocpi then
-        p.free;
-      p := pprocinfo(procinfoStack.pop);
-    end;
-  procinfoStack.done;
-  do_stop := hcodegen_old_do_stop;
-  do_stop{$ifdef FPCPROCVAR}(){$endif};
-end;
-
-begin
-  hcodegen_old_do_stop := do_stop;
-  do_stop := {$ifdef FPCPROCVAR}@{$endif}hcodegen_do_stop;
-  procinfoStack.init;
-{$endif fixLeaksOnError}
 end.
 {
   $Log$
-  Revision 1.44  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.45  2003-04-27 11:21:32  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.44  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

@@ -52,7 +52,7 @@ implementation
       { Please leave this here, this module should NOT use
         these variables.
         Declaring it as string here results in an error when compiling (PFV) }
-      aktprocdef = 'error';
+      current_procdef = 'error';
 
 
     function object_dec(const n : stringid;fd : tobjectdef) : tdef;
@@ -571,7 +571,7 @@ implementation
          pcrd       : tclassrefdef;
          tt     : ttype;
          old_object_option : tsymoptions;
-         oldprocinfo : tprocinfo;
+         old_current_procinfo : tprocinfo;
          oldparse_only : boolean;
          storetypecanbeforward : boolean;
 
@@ -946,9 +946,9 @@ implementation
          testcurobject:=1;
          curobjectname:=Upper(n);
 
-         { new procinfo }
-         oldprocinfo:=procinfo;
-         procinfo:=cprocinfo.create;
+         { temp procinfo }
+         old_current_procinfo:=current_procinfo;
+         current_procinfo:=cprocinfo.create(nil);
 
          { short class declaration ? }
          if (classtype<>odt_class) or (token<>_SEMICOLON) then
@@ -1134,8 +1134,8 @@ implementation
          symtablestack:=symtablestack.next;
          aktobjectdef:=nil;
          {Restore procinfo}
-         procinfo.free;
-         procinfo:=oldprocinfo;
+         current_procinfo.free;
+         current_procinfo:=old_current_procinfo;
          current_object_option:=old_object_option;
 
          object_dec:=aktclass;
@@ -1144,8 +1144,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.62  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.63  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.62  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

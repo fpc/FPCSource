@@ -75,8 +75,8 @@ begin
          (hp2.typ = ait_instruction) and
          ((Taicpu(hp2).opcode = A_LEAVE) or
           (Taicpu(hp2).opcode = A_RET)) and
-         (Taicpu(p).oper[0].ref^.Base.enum = procinfo.FramePointer.enum) and
-         (Taicpu(p).oper[0].ref^.Offset >= procinfo.Return_Offset) and
+         (Taicpu(p).oper[0].ref^.Base.enum = current_procinfo.FramePointer.enum) and
+         (Taicpu(p).oper[0].ref^.Offset >= current_procinfo.Return_Offset) and
          (Taicpu(p).oper[0].ref^.Index.enum = R_NO) then
         begin
           asml.remove(p);
@@ -994,8 +994,8 @@ Begin
                               If ((Taicpu(hp1).opcode = A_LEAVE) Or
                                   (Taicpu(hp1).opcode = A_RET)) And
                                  (Taicpu(p).oper[1].typ = top_ref) And
-                                 (Taicpu(p).oper[1].ref^.base.enum = procinfo.FramePointer.enum) And
-                                 (Taicpu(p).oper[1].ref^.offset >= procinfo.Return_Offset) And
+                                 (Taicpu(p).oper[1].ref^.base.enum = current_procinfo.FramePointer.enum) And
+                                 (Taicpu(p).oper[1].ref^.offset >= current_procinfo.Return_Offset) And
                                  (Taicpu(p).oper[1].ref^.index.enum = R_NO) And
                                  (Taicpu(p).oper[0].typ = top_reg)
                                 Then
@@ -1561,9 +1561,9 @@ Begin
                      (hp2.typ = ait_instruction) And
                      ((Taicpu(hp2).opcode = A_LEAVE) or
                       (Taicpu(hp2).opcode = A_RET)) And
-                     (Taicpu(p).oper[0].ref^.Base.enum = procinfo.FramePointer.enum) And
+                     (Taicpu(p).oper[0].ref^.Base.enum = current_procinfo.FramePointer.enum) And
                      (Taicpu(p).oper[0].ref^.Index.enum = R_NO) And
-                     (Taicpu(p).oper[0].ref^.Offset >= procinfo.Return_Offset) And
+                     (Taicpu(p).oper[0].ref^.Offset >= current_procinfo.Return_Offset) And
                      (hp1.typ = ait_instruction) And
                      (Taicpu(hp1).opcode = A_MOV) And
                      (Taicpu(hp1).opsize = S_B) And
@@ -2058,7 +2058,16 @@ End.
 
 {
   $Log$
-  Revision 1.42  2003-03-28 19:16:57  peter
+  Revision 1.43  2003-04-27 11:21:35  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.42  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

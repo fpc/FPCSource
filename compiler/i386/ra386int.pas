@@ -1109,7 +1109,7 @@ Begin
               end;
              if GotOffset then
               begin
-                if hasvar and (opr.ref.base.number=procinfo.framepointer.number) then
+                if hasvar and (opr.ref.base.number=current_procinfo.framepointer.number) then
                  begin
                    opr.ref.base.enum:=R_INTREGISTER;
                    opr.ref.base.number:=NR_NO;
@@ -1961,7 +1961,16 @@ finalization
 end.
 {
   $Log$
-  Revision 1.45  2003-04-21 20:05:10  peter
+  Revision 1.46  2003-04-27 11:21:35  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.45  2003/04/21 20:05:10  peter
     * removed some ie checks
 
   Revision 1.44  2003/03/28 19:16:57  peter

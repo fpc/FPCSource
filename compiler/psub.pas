@@ -111,15 +111,15 @@ implementation
          { parse const,types and vars }
          read_declarations(islibrary);
 
-         procinfo.handle_body_start;
+         current_procinfo.handle_body_start;
 
          { do we have an assembler block without the po_assembler?
            we should allow this for Delphi compatibility (PFV) }
          if (token=_ASM) and (m_delphi in aktmodeswitches) then
-          include(aktprocdef.procoptions,po_assembler);
+          include(current_procdef.procoptions,po_assembler);
 
          { Handle assembler block different }
-         if (po_assembler in aktprocdef.procoptions) then
+         if (po_assembler in current_procdef.procoptions) then
           begin
             block:=assembler_block;
             exit;
@@ -127,8 +127,8 @@ implementation
 
          {Unit initialization?.}
          if (
-             assigned(aktprocdef.localst) and
-             (aktprocdef.localst.symtablelevel=main_program_level) and
+             assigned(current_procdef.localst) and
+             (current_procdef.localst.symtablelevel=main_program_level) and
              (current_module.is_unit)
             ) or
             islibrary then
@@ -177,8 +177,6 @@ implementation
             end
          else
             begin
-               if current_module.is_unit then
-                 current_module.flags:=current_module.flags or uf_init;
                block:=statement_block(_BEGIN);
                if symtablestack.symtabletype=localsymtable then
                  symtablestack.foreach_static({$ifdef FPCPROCVAR}@{$endif}initializevars,block);
@@ -220,7 +218,7 @@ implementation
          end;
         writeln(printnodefile);
         writeln(printnodefile,'*******************************************************************************');
-        writeln(printnodefile,aktprocdef.fullprocname(false));
+        writeln(printnodefile,current_procdef.fullprocname(false));
         writeln(printnodefile,'*******************************************************************************');
         printnode(printnodefile,pd.code);
         close(printnodefile);
@@ -250,17 +248,17 @@ implementation
          exitpos   : tfileposinfo;
          oldprocdef : tprocdef;
       begin
-         oldprocdef:=aktprocdef;
-         aktprocdef:=pd;
+         oldprocdef:=current_procdef;
+         current_procdef:=pd;
 
          { calculate the lexical level }
-         if aktprocdef.parast.symtablelevel>maxnesting then
+         if current_procdef.parast.symtablelevel>maxnesting then
            Message(parser_e_too_much_lexlevel);
 
          { static is also important for local procedures !! }
-         if (po_staticmethod in aktprocdef.procoptions) then
+         if (po_staticmethod in current_procdef.procoptions) then
            allow_only_static:=true
-         else if (aktprocdef.parast.symtablelevel=normal_function_level) then
+         else if (current_procdef.parast.symtablelevel=normal_function_level) then
            allow_only_static:=false;
 
          { save old labels }
@@ -272,7 +270,7 @@ implementation
          objectlibrary.getlabel(aktexitlabel);
          objectlibrary.getlabel(aktexit2label);
          { exit for fail in constructors }
-         if (aktprocdef.proctypeoption=potype_constructor) then
+         if (current_procdef.proctypeoption=potype_constructor) then
            begin
              objectlibrary.getlabel(faillabel);
              objectlibrary.getlabel(quickexitlabel);
@@ -286,33 +284,33 @@ implementation
     {$endif state_tracking}
 
          { insert symtables for the class, but only if it is no nested function }
-         if assigned(aktprocdef._class) and not(parent_has_class) then
+         if assigned(current_procdef._class) and not(parent_has_class) then
            begin
              { insert them in the reverse order }
              hp:=nil;
              repeat
-               _class:=aktprocdef._class;
+               _class:=current_procdef._class;
                while _class.childof<>hp do
                  _class:=_class.childof;
                hp:=_class;
                _class.symtable.next:=symtablestack;
                symtablestack:=_class.symtable;
-             until hp=aktprocdef._class;
+             until hp=current_procdef._class;
            end;
 
          { insert parasymtable in symtablestack when parsing
            a function }
-         if aktprocdef.parast.symtablelevel>=normal_function_level then
+         if current_procdef.parast.symtablelevel>=normal_function_level then
            begin
-              aktprocdef.parast.next:=symtablestack;
-              symtablestack:=aktprocdef.parast;
+              current_procdef.parast.next:=symtablestack;
+              symtablestack:=current_procdef.parast;
            end;
          { create a local symbol table for this routine }
-         if not assigned(aktprocdef.localst) then
-            aktprocdef.insert_localst;
+         if not assigned(current_procdef.localst) then
+            current_procdef.insert_localst;
          { insert localsymtable in symtablestack}
-         aktprocdef.localst.next:=symtablestack;
-         symtablestack:=aktprocdef.localst;
+         current_procdef.localst.next:=symtablestack;
+         symtablestack:=current_procdef.localst;
          { constant symbols are inserted in this symboltable }
          constsymtable:=symtablestack;
 
@@ -330,10 +328,10 @@ implementation
          { store a copy of the original tree for inline, for
            normal procedures only store a reference to the
            current tree }
-         if (aktprocdef.proccalloption=pocall_inline) then
-           aktprocdef.code:=code.getcopy
+         if (current_procdef.proccalloption=pocall_inline) then
+           current_procdef.code:=code.getcopy
          else
-           aktprocdef.code:=code;
+           current_procdef.code:=code;
          { get a better entry point }
          if assigned(code) then
            entrypos:=code.fileinfo;
@@ -349,7 +347,7 @@ implementation
           code=nil, when we use aktprocsym.}
 
          { set the start offset to the start of the temp area in the stack }
-         tg.setfirsttemp(procinfo.firsttemp_offset);
+         tg.setfirsttemp(current_procinfo.firsttemp_offset);
 
          { ... and generate assembler }
          { but set the right switches for entry !! }
@@ -359,10 +357,10 @@ implementation
          if assigned(code) then
           begin
             { the procedure is now defined }
-            aktprocdef.forwarddef:=false;
+            current_procdef.forwarddef:=false;
 
             if paraprintnodetree=1 then
-              printnode_procdef(aktprocdef);
+              printnode_procdef(current_procdef);
 
             { only generate the code if no type errors are found, else
               finish at least the type checking pass }
@@ -373,10 +371,11 @@ implementation
                 { first generate entry code with the correct position and switches }
                 aktfilepos:=entrypos;
                 aktlocalswitches:=entryswitches;
-                genentrycode(procinfo.aktentrycode,make_global,0,parasize,nostackframe,false);
+                genentrycode(current_procinfo.aktentrycode,make_global,0,parasize,nostackframe,false);
 
                 { FPC_POPADDRSTACK destroys all registers (JM) }
-                if (procinfo.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0 then
+                if (pi_needs_implicit_finally in current_procinfo.flags) or
+                   (pi_uses_exceptions in current_procinfo.flags) then
                  begin
                    rg.usedinproc := ALL_REGISTERS;
                  end;
@@ -384,13 +383,13 @@ implementation
                 { now generate exit code with the correct position and switches }
                 aktfilepos:=exitpos;
                 aktlocalswitches:=exitswitches;
-                genexitcode(procinfo.aktexitcode,parasize,nostackframe,false);
+                genexitcode(current_procinfo.aktexitcode,parasize,nostackframe,false);
 
                 { now all the registers used are known }
-                aktprocdef.usedintregisters:=rg.usedintinproc;
-                aktprocdef.usedotherregisters:=rg.usedinproc;
-                procinfo.aktproccode.insertlist(procinfo.aktentrycode);
-                procinfo.aktproccode.concatlist(procinfo.aktexitcode);
+                current_procdef.usedintregisters:=rg.usedintinproc;
+                current_procdef.usedotherregisters:=rg.usedinproc;
+                current_procinfo.aktproccode.insertlist(current_procinfo.aktentrycode);
+                current_procinfo.aktproccode.concatlist(current_procinfo.aktexitcode);
 {$ifdef newra}
 {                rg.writegraph;}
 {$endif}
@@ -409,31 +408,31 @@ implementation
                         slow_spill(rg);
                       }
                     until rg.spillednodes='';
-                    procinfo.aktproccode.translate_registers(rg.colour);
-                    procinfo.aktproccode.convert_registers;
+                    current_procinfo.aktproccode.translate_registers(rg.colour);
+                    current_procinfo.aktproccode.convert_registers;
 {$else newra}
-                    procinfo.aktproccode.convert_registers;
+                    current_procinfo.aktproccode.convert_registers;
 {$ifndef NoOpt}
                     if (cs_optimize in aktglobalswitches) and
                     { do not optimize pure assembler procedures }
-                       ((procinfo.flags and pi_is_assembler)=0)  then
-                      optimize(procinfo.aktproccode);
+                       not(pi_is_assembler in current_procinfo.flags)  then
+                      optimize(current_procinfo.aktproccode);
 {$endif NoOpt}
 {$endif newra}
                   end;
                 { save local data (casetable) also in the same file }
-                if assigned(procinfo.aktlocaldata) and
-                   (not procinfo.aktlocaldata.empty) then
+                if assigned(current_procinfo.aktlocaldata) and
+                   (not current_procinfo.aktlocaldata.empty) then
                  begin
-                   procinfo.aktproccode.concat(Tai_section.Create(sec_data));
-                   procinfo.aktproccode.concatlist(procinfo.aktlocaldata);
-                   procinfo.aktproccode.concat(Tai_section.Create(sec_code));
+                   current_procinfo.aktproccode.concat(Tai_section.Create(sec_data));
+                   current_procinfo.aktproccode.concatlist(current_procinfo.aktlocaldata);
+                   current_procinfo.aktproccode.concat(Tai_section.Create(sec_code));
                 end;
 
                 { add the procedure to the codesegment }
                 if (cs_create_smart in aktmoduleswitches) then
                  codeSegment.concat(Tai_cut.Create);
-                codeSegment.concatlist(procinfo.aktproccode);
+                codeSegment.concatlist(current_procinfo.aktproccode);
               end
             else
               do_resulttypepass(code);
@@ -443,7 +442,7 @@ implementation
           end;
 
          { ... remove symbol tables }
-         if aktprocdef.parast.symtablelevel>=normal_function_level then
+         if current_procdef.parast.symtablelevel>=normal_function_level then
            symtablestack:=symtablestack.next.next
          else
            symtablestack:=symtablestack.next;
@@ -455,20 +454,20 @@ implementation
              if (Errorcount=0) then
                begin
                  { check if forwards are resolved }
-                 tstoredsymtable(aktprocdef.localst).check_forwards;
+                 tstoredsymtable(current_procdef.localst).check_forwards;
                  { check if all labels are used }
-                 tstoredsymtable(aktprocdef.localst).checklabels;
+                 tstoredsymtable(current_procdef.localst).checklabels;
                  { remove cross unit overloads }
-                 tstoredsymtable(aktprocdef.localst).unchain_overloaded;
+                 tstoredsymtable(current_procdef.localst).unchain_overloaded;
                end;
-             if (procinfo.flags and pi_uses_asm)=0 then
+             if not(pi_uses_asm in current_procinfo.flags) then
                begin
                   { not for unit init, becuase the var can be used in finalize,
                     it will be done in proc_unit }
-                  if not(aktprocdef.proctypeoption
+                  if not(current_procdef.proctypeoption
                      in [potype_proginit,potype_unitinit,potype_unitfinalize]) then
-                     tstoredsymtable(aktprocdef.localst).allsymbolsused;
-                  tstoredsymtable(aktprocdef.parast).allsymbolsused;
+                     tstoredsymtable(current_procdef.localst).allsymbolsused;
+                  tstoredsymtable(current_procdef.parast).allsymbolsused;
                end;
            end;
 
@@ -480,11 +479,11 @@ implementation
          { so no dispose here !!                              }
          if assigned(code) and
             not(cs_browser in aktmoduleswitches) and
-            (aktprocdef.proccalloption<>pocall_inline) then
+            (current_procdef.proccalloption<>pocall_inline) then
            begin
-             if aktprocdef.parast.symtablelevel>=normal_function_level then
-               aktprocdef.localst.free;
-             aktprocdef.localst:=nil;
+             if current_procdef.parast.symtablelevel>=normal_function_level then
+               current_procdef.localst.free;
+             current_procdef.localst:=nil;
            end;
 
          { all registers can be used again }
@@ -496,10 +495,10 @@ implementation
          if assigned(code) then
           begin
             { the inline procedure has already got a copy of the tree
-              stored in aktprocdef.code }
+              stored in current_procdef.code }
             code.free;
-            if (aktprocdef.proccalloption<>pocall_inline) then
-              aktprocdef.code:=nil;
+            if (current_procdef.proccalloption<>pocall_inline) then
+              current_procdef.code:=nil;
           end;
 
          { remove class member symbol tables }
@@ -520,10 +519,10 @@ implementation
          faillabel:=oldfaillabel;
 
          { reset to normal non static function }
-         if (aktprocdef.parast.symtablelevel=normal_function_level) then
+         if (current_procdef.parast.symtablelevel=normal_function_level) then
            allow_only_static:=false;
 
-         aktprocdef:=oldprocdef;
+         current_procdef:=oldprocdef;
       end;
 
 
@@ -568,7 +567,7 @@ implementation
       }
       var
         oldprocdef       : tprocdef;
-        oldprocinfo      : tprocinfo;
+        old_current_procinfo : tprocinfo;
         oldconstsymtable : tsymtable;
         oldselftokenmode,
         oldfailtokenmode : tmodeswitch;
@@ -576,33 +575,25 @@ implementation
         pd               : tprocdef;
       begin
          { save old state }
-         oldprocdef:=aktprocdef;
+         oldprocdef:=current_procdef;
          oldconstsymtable:=constsymtable;
-         oldprocinfo:=procinfo;
+         old_current_procinfo:=current_procinfo;
 
-         { reset aktprocdef to nil to be sure that nothing is writing
+         { reset current_procdef to nil to be sure that nothing is writing
            to an other procdef }
-         aktprocdef:=nil;
+         current_procdef:=nil;
 
          { create a new procedure }
-         procinfo:=cprocinfo.create;
-         with procinfo do
-          begin
-            parent:=oldprocinfo;
-            { clear flags }
-            flags:=0;
-            { standard frame pointer }
-            framepointer.enum:=R_INTREGISTER;
-            framepointer.number:=NR_FRAME_POINTER_REG;
-          end;
+         current_procinfo:=cprocinfo.create(old_current_procinfo);
+         current_module.procinfo:=current_procinfo;
 
          { parse procedure declaration }
-         if assigned(oldprocinfo) and
-            assigned(oldprocinfo.procdef) then
-          pd:=parse_proc_dec(oldprocinfo.procdef._class)
+         if assigned(current_procinfo.parent) and
+            assigned(current_procinfo.parent.procdef) then
+          pd:=parse_proc_dec(current_procinfo.parent.procdef._class)
          else
           pd:=parse_proc_dec(nil);
-         procinfo.procdef:=pd;
+         current_procinfo.procdef:=pd;
 
          { set the default function options }
          if parse_only then
@@ -620,7 +611,6 @@ implementation
              pdflags:=pdflags or pd_implemen;
             if (not current_module.is_unit) or (cs_create_smart in aktmoduleswitches) then
              pdflags:=pdflags or pd_global;
-            procinfo.exported:=false;
             pd.forwarddef:=false;
           end;
 
@@ -641,7 +631,7 @@ implementation
            begin
              { A method must be forward defined (in the object declaration) }
              if assigned(pd._class) and
-                (not assigned(oldprocinfo.procdef._class)) then
+                (not assigned(current_procinfo.parent.procdef._class)) then
               begin
                 Message1(parser_e_header_dont_match_any_member,pd.fullprocname(false));
                 tprocsym(pd.procsym).write_parameter_lists(pd);
@@ -665,7 +655,7 @@ implementation
                    { check the global flag, for delphi this is not
                      required }
                    if not(m_delphi in aktmodeswitches) and
-                      ((procinfo.flags and pi_is_global)<>0) then
+                      (pi_is_global in current_procinfo.flags) then
                      Message(parser_e_overloaded_must_be_all_global);
                  end;
               end;
@@ -673,7 +663,7 @@ implementation
 
          { update procinfo, because the procdef can be
            changed by check_identical_proc (PFV) }
-         procinfo.procdef:=pd;
+         current_procinfo.procdef:=pd;
 
          { compile procedure when a body is needed }
          if (pdflags and pd_body)<>0 then
@@ -688,15 +678,15 @@ implementation
             pd.parast.foreach_static({$ifdef FPCPROCVAR}@{$endif}insert_local_value_para,nil);
 
             { Update parameter information }
-            procinfo.allocate_implicit_parameter;
+            current_procinfo.allocate_implicit_parameter;
 {$ifdef i386}
             { add implicit pushes for interrupt routines }
             if (po_interrupt in pd.procoptions) then
-              procinfo.allocate_interrupt_stackframe;
+              current_procinfo.allocate_interrupt_stackframe;
 {$endif i386}
 
             { Calculate offsets }
-            procinfo.after_header;
+            current_procinfo.after_header;
 
             { set _FAIL as keyword if constructor }
             if (pd.proctypeoption=potype_constructor) then
@@ -711,7 +701,7 @@ implementation
                tokeninfo^[_SELF].keyword:=m_all;
              end;
 
-            compile_proc_body(pd,((pdflags and pd_global)<>0),assigned(oldprocinfo.procdef._class));
+            compile_proc_body(pd,((pdflags and pd_global)<>0),assigned(current_procinfo.parent.procdef._class));
 
             { reset _FAIL as _SELF normal }
             if (pd.proctypeoption=potype_constructor) then
@@ -721,13 +711,17 @@ implementation
              consume(_SEMICOLON);
           end;
 
-         { close }
-         procinfo.free;
+         { release procinfo }
+         if tprocinfo(current_module.procinfo)<>current_procinfo then
+          internalerror(200304274);
+         current_module.procinfo:=current_procinfo.parent;
+         current_procinfo.free;
+
          { Restore old state }
          constsymtable:=oldconstsymtable;
 
-         aktprocdef:=oldprocdef;
-         procinfo:=oldprocinfo;
+         current_procdef:=oldprocdef;
+         current_procinfo:=old_current_procinfo;
       end;
 
 
@@ -749,17 +743,17 @@ implementation
 
         procedure Not_supported_for_inline(t : ttoken);
         begin
-           if (aktprocdef.proccalloption=pocall_inline) then
+           if (current_procdef.proccalloption=pocall_inline) then
              Begin
                 Message1(parser_w_not_supported_for_inline,tokenstring(t));
                 Message(parser_w_inlining_disabled);
-                aktprocdef.proccalloption:=pocall_fpccall;
+                current_procdef.proccalloption:=pocall_fpccall;
              End;
         end;
 
       begin
          repeat
-           if not assigned(aktprocdef) then
+           if not assigned(current_procdef) then
              internalerror(200304251);
            case token of
               _LABEL:
@@ -792,8 +786,8 @@ implementation
               _EXPORTS:
                 begin
                    Not_supported_for_inline(token);
-                   if not(assigned(aktprocdef.localst)) or
-                      (aktprocdef.localst.symtablelevel>main_program_level) or
+                   if not(assigned(current_procdef.localst)) or
+                      (current_procdef.localst.symtablelevel>main_program_level) or
                       (current_module.is_unit) then
                      begin
                         Message(parser_e_syntax_error);
@@ -849,8 +843,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.106  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.107  2003-04-27 11:21:34  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.106  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead
@@ -1001,7 +1004,7 @@ end.
     * noopt for non-i386 targets
 
   Revision 1.72  2002/09/10 20:31:48  florian
-    * call to procinfo.after_header added
+    * call to current_procinfo.after_header added
 
   Revision 1.71  2002/09/07 15:25:07  peter
     * old logs removed and tabs fixed

@@ -33,7 +33,7 @@ type
     LocalSize:aword;
     {max of space need for parameters, currently used by the PowerPC port only}
     maxpushedparasize:aword;
-    constructor create;override;
+    constructor create(aparent:tprocinfo);override;
 {According the the SPARC ABI the standard stack frame must include :
   *  16 word save for the in and local registers in case of overflow/underflow.
 this save area always must exist at the %o6+0,
@@ -52,9 +52,9 @@ implementation
 uses
         tgobj,paramgr,symsym,systems;
 
-constructor TSparcprocinfo.create;
+constructor TSparcprocinfo.create(aparent:tprocinfo);
         begin
-                inherited create;
+                inherited create(aparent);
                 maxpushedparasize:=0;
                 LocalSize:=(16+1)*4;
         {First 16 words are in the frame are used to save registers in case of a
@@ -95,7 +95,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2003-04-27 07:48:05  peter
+  Revision 1.14  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.13  2003/04/27 07:48:05  peter
     * updated for removed lexlevel
 
   Revision 1.12  2003/02/06 22:36:55  mazen

@@ -140,7 +140,7 @@ begin
   expectloc:= LOC_REFERENCE;
   calcregisters(self,0,0,0);
   { here we call STRCONCAT or STRCMP or STRCOPY }
-  procinfo.flags:=procinfo.flags or pi_do_call;
+  include(current_procinfo.flags,pi_do_call);
 end;
 
 function taddsstringoptnode.getcopy: tnode;
@@ -278,7 +278,16 @@ end.
 
 {
   $Log$
-  Revision 1.14  2003-04-26 09:12:55  peter
+  Revision 1.15  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.14  2003/04/26 09:12:55  peter
     * add string returns in LOC_REFERENCE
 
   Revision 1.13  2003/04/22 23:50:23  peter
@@ -292,7 +301,7 @@ end.
     * made operator search faster by walking the list only once
 
   Revision 1.11  2002/08/17 09:23:37  florian
-    * first part of procinfo rewrite
+    * first part of current_procinfo rewrite
 
   Revision 1.10  2002/07/20 11:57:55  florian
     * types.pas renamed to defbase.pas because D6 contains a types

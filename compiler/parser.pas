@@ -68,12 +68,12 @@ implementation
          testcurobject:=0;
 
          { Symtable }
-         aktprocdef:=nil;
+         current_procdef:=nil;
 
          objectlibrary:=nil;
          current_module:=nil;
          compiled_module:=nil;
-         procinfo:=nil;
+         current_procinfo:=nil;
 
          loaded_units:=TLinkedList.Create;
 
@@ -116,15 +116,6 @@ implementation
          { codegen }
          if paraprintnodetree<>0 then
            printnode_reset;
-
-         { for the implicitly generated init/final. procedures for global init. variables,
-           a dummy procinfo is necessary }
-         voidprocpi:=cprocinfo.create;
-         with voidprocpi do
-           begin
-              framepointer.enum:=R_INTREGISTER;
-              framepointer.number:=NR_FRAME_POINTER_REG;
-           end;
       end;
 
 
@@ -151,9 +142,6 @@ implementation
 
          { free list of .o files }
          SmartLinkOFiles.Free;
-
-         { codegen }
-         voidprocpi.free;
       end;
 
 
@@ -264,7 +252,7 @@ implementation
           olddefaultsymtablestack,
           oldsymtablestack : tsymtable;
           oldaktprocsym    : tprocsym;
-          oldaktprocdef    : tprocdef;
+          oldcurrent_procdef    : tprocdef;
           oldoverloaded_operators : toverloaded_operators;
         { cg }
           oldparse_only  : boolean;
@@ -327,7 +315,7 @@ implementation
             oldsymtablestack:=symtablestack;
             olddefaultsymtablestack:=defaultsymtablestack;
             oldrefsymtable:=refsymtable;
-            oldaktprocdef:=aktprocdef;
+            oldcurrent_procdef:=current_procdef;
             oldaktdefproccall:=aktdefproccall;
             move(overloaded_operators,oldoverloaded_operators,sizeof(toverloaded_operators));
           { save scanner state }
@@ -544,7 +532,7 @@ implementation
                  symtablestack:=oldsymtablestack;
                  defaultsymtablestack:=olddefaultsymtablestack;
                  aktdefproccall:=oldaktdefproccall;
-                 aktprocdef:=oldaktprocdef;
+                 current_procdef:=oldcurrent_procdef;
                  move(oldoverloaded_operators,overloaded_operators,sizeof(toverloaded_operators));
                  aktsourcecodepage:=oldsourcecodepage;
                  aktlocalswitches:=oldaktlocalswitches;
@@ -634,8 +622,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.52  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.51  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

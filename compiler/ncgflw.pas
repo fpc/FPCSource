@@ -751,7 +751,7 @@ implementation
                         goto do_jmp;
                       end;
                   end;
-                  case aktprocdef.rettype.def.deftype of
+                  case current_procdef.rettype.def.deftype of
                     pointerdef,
                     procvardef :
                       begin
@@ -776,7 +776,7 @@ implementation
                       end;
                     else
                       begin
-                        cgsize:=def_cgsize(aktprocdef.rettype.def);
+                        cgsize:=def_cgsize(current_procdef.rettype.def);
                         allocated_acc := true;
 {$ifndef cpu64bit}
 
@@ -819,7 +819,7 @@ implementation
 {$endif cpu64bit}
 {$ifndef i386}
                   r.enum:=fpu_result_reg;
-                  if (aktprocdef.rettype.def.deftype = floatdef) then
+                  if (current_procdef.rettype.def.deftype = floatdef) then
                     cg.a_reg_dealloc(exprasmlist,r);
 {$endif not i386}
                end;
@@ -1531,7 +1531,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.55  2003-04-22 23:50:22  peter
+  Revision 1.56  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.55  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG

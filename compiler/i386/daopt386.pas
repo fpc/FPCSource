@@ -397,18 +397,18 @@ Procedure RemoveLastDeallocForFuncRes(asmL: TAAsmOutput; p: Tai);
   end;
 
 begin
-    case aktprocdef.rettype.def.deftype of
+    case current_procdef.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
         DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
       orddef:
-        if aktprocdef.rettype.def.size <> 0 then
+        if current_procdef.rettype.def.size <> 0 then
           begin
             DoRemoveLastDeallocForFuncRes(asmL,R_EAX);
             { for int64/qword }
-            if aktprocdef.rettype.def.size = 8 then
+            if current_procdef.rettype.def.size = 8 then
               DoRemoveLastDeallocForFuncRes(asmL,R_EDX);
           end;
     end;
@@ -418,18 +418,18 @@ procedure getNoDeallocRegs(var regs: TRegSet);
 var regCounter: ToldRegister;
 begin
   regs := [];
-    case aktprocdef.rettype.def.deftype of
+    case current_procdef.rettype.def.deftype of
       arraydef,recorddef,pointerdef,
          stringdef,enumdef,procdef,objectdef,errordef,
          filedef,setdef,procvardef,
          classrefdef,forwarddef:
        regs := [R_EAX];
       orddef:
-        if aktprocdef.rettype.def.size <> 0 then
+        if current_procdef.rettype.def.size <> 0 then
           begin
             regs := [R_EAX];
             { for int64/qword }
-            if aktprocdef.rettype.def.size = 8 then
+            if current_procdef.rettype.def.size = 8 then
               regs := regs + [R_EDX];
           end;
     end;
@@ -1341,7 +1341,7 @@ Begin
           (Taicpu(p).opcode = A_LEA)) and
          (Taicpu(p).oper[0].typ = top_ref) Then
         With Taicpu(p).oper[0].ref^ Do
-          If ((Base.enum = procinfo.FramePointer.enum) or
+          If ((Base.enum = current_procinfo.FramePointer.enum) or
               (assigned(symbol) and (base.enum = R_NO))) And
              (Index.enum = R_NO) Then
             Begin
@@ -1425,27 +1425,27 @@ Begin
     Begin
       Case Taicpu(p).oper[0].typ Of
         top_reg:
-          If Not(Taicpu(p).oper[0].reg in [R_NO,R_ESP,procinfo.FramePointer]) Then
+          If Not(Taicpu(p).oper[0].reg in [R_NO,R_ESP,current_procinfo.FramePointer]) Then
             RegSet := RegSet + [Taicpu(p).oper[0].reg];
         top_ref:
           With TReference(Taicpu(p).oper[0]^) Do
             Begin
-              If Not(Base in [procinfo.FramePointer,R_NO,R_ESP])
+              If Not(Base in [current_procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
-              If Not(Index in [procinfo.FramePointer,R_NO,R_ESP])
+              If Not(Index in [current_procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Index];
             End;
       End;
       Case Taicpu(p).oper[1].typ Of
         top_reg:
-          If Not(Taicpu(p).oper[1].reg in [R_NO,R_ESP,procinfo.FramePointer]) Then
+          If Not(Taicpu(p).oper[1].reg in [R_NO,R_ESP,current_procinfo.FramePointer]) Then
             If RegSet := RegSet + [TRegister(TwoWords(Taicpu(p).oper[1]).Word1];
         top_ref:
           With TReference(Taicpu(p).oper[1]^) Do
             Begin
-              If Not(Base in [procinfo.FramePointer,R_NO,R_ESP])
+              If Not(Base in [current_procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Base];
-              If Not(Index in [procinfo.FramePointer,R_NO,R_ESP])
+              If Not(Index in [current_procinfo.FramePointer,R_NO,R_ESP])
                 Then RegSet := RegSet + [Index];
             End;
       End;
@@ -1547,9 +1547,9 @@ Begin {checks whether two Taicpu instructions are equal}
               Begin
                 With Taicpu(p2).oper[0].ref^ Do
                   Begin
-                    If Not(Base.enum in [procinfo.FramePointer.enum, R_NO, R_ESP]) Then
+                    If Not(Base.enum in [current_procinfo.FramePointer.enum, R_NO, R_ESP]) Then
                       RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Base.enum];
-                    If Not(Index.enum in [procinfo.FramePointer.enum, R_NO, R_ESP]) Then
+                    If Not(Index.enum in [current_procinfo.FramePointer.enum, R_NO, R_ESP]) Then
                       RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index.enum];
                   End;
  {add the registers from the reference (.oper[0]) to the RegInfo, all registers
@@ -1570,7 +1570,7 @@ Begin {checks whether two Taicpu instructions are equal}
           Begin
             With Taicpu(p2).oper[0].ref^ Do
               Begin
-                If Not(Base.enum in [procinfo.FramePointer.enum,
+                If Not(Base.enum in [current_procinfo.FramePointer.enum,
                      Reg32(Taicpu(p2).oper[1].reg).enum,R_NO,R_ESP]) Then
  {it won't do any harm if the register is already in RegsLoadedForRef}
                   Begin
@@ -1579,7 +1579,7 @@ Begin {checks whether two Taicpu instructions are equal}
                     Writeln(std_reg2str[base], ' added');
 {$endif csdebug}
                   end;
-                If Not(Index.enum in [procinfo.FramePointer.enum,
+                If Not(Index.enum in [current_procinfo.FramePointer.enum,
                      Reg32(Taicpu(p2).oper[1].reg).enum,R_NO,R_ESP]) Then
                   Begin
                     RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef + [Index.enum];
@@ -1589,7 +1589,7 @@ Begin {checks whether two Taicpu instructions are equal}
                   end;
 
               End;
-            If Not(Reg32(Taicpu(p2).oper[1].reg).enum In [procinfo.FramePointer.enum,R_NO,R_ESP])
+            If Not(Reg32(Taicpu(p2).oper[1].reg).enum In [current_procinfo.FramePointer.enum,R_NO,R_ESP])
               Then
                 Begin
                   RegInfo.RegsLoadedForRef := RegInfo.RegsLoadedForRef -
@@ -1738,7 +1738,7 @@ function isSimpleRef(const ref: treference): boolean;
 begin
   isSimpleRef :=
     assigned(ref.symbol) or
-    (ref.base.enum = procinfo.framepointer.enum);
+    (ref.base.enum = current_procinfo.framepointer.enum);
 end;
 
 function containsPointerRef(p: Tai): boolean;
@@ -2669,7 +2669,16 @@ End.
 
 {
   $Log$
-  Revision 1.48  2003-03-28 19:16:57  peter
+  Revision 1.49  2003-04-27 11:21:35  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.48  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

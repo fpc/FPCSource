@@ -771,7 +771,7 @@ implementation
                   { this is the easiest case for inlined !! }
                   r.enum:=stack_pointer_reg;
                   if calloption=pocall_inline then
-                   reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize)
+                   reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize)
                   else
                    reference_reset_base(href,r,0);
 
@@ -810,7 +810,7 @@ implementation
                          end;
                         if calloption=pocall_inline then
                          begin
-                           reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                           reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                            cg.a_load_ref_ref(list,cgsize,tempreference,href);
                          end
                         else
@@ -858,7 +858,7 @@ implementation
                        inc(pushedparasize,8);
                        if calloption=pocall_inline then
                         begin
-                          reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                           if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                             begin
                               size:=align(p.resulttype.def.size,alignment);
@@ -897,7 +897,7 @@ implementation
                        inc(pushedparasize,alignment);
                        if calloption=pocall_inline then
                         begin
-                          reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                           if p.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
                             begin
                               size:=align(p.resulttype.def.size,alignment);
@@ -921,7 +921,7 @@ implementation
                      inc(pushedparasize,8);
                      if calloption=pocall_inline then
                        begin
-                          reference_reset_base(href,procinfo.framepointer,para_offset-pushedparasize);
+                          reference_reset_base(href,current_procinfo.framepointer,para_offset-pushedparasize);
                           cg.a_loadmm_reg_ref(list,p.location.register,href);
                        end
                      else
@@ -948,15 +948,15 @@ implementation
         list:=taasmoutput(arg);
         if (tsym(p).typ=varsym) and
            (tvarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tvarsym(p).vartype.def,procinfo.procdef.proccalloption)) then
+           (paramanager.push_addr_param(tvarsym(p).vartype.def,current_procinfo.procdef.proccalloption)) then
          begin
-           reference_reset_base(href1,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+           reference_reset_base(href1,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
            if is_open_array(tvarsym(p).vartype.def) or
               is_array_of_const(tvarsym(p).vartype.def) then
              cg.g_copyvaluepara_openarray(list,href1,tarraydef(tvarsym(p).vartype.def).elesize)
            else
             begin
-              reference_reset_base(href2,procinfo.framepointer,-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup);
+              reference_reset_base(href2,current_procinfo.framepointer,-tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup);
               if is_shortstring(tvarsym(p).vartype.def) then
                cg.g_copyshortstring(list,href1,href2,tstringdef(tvarsym(p).vartype.def).len,false,true)
               else
@@ -979,11 +979,10 @@ implementation
            not(is_class(tvarsym(p).vartype.def)) and
            tvarsym(p).vartype.def.needs_inittable then
          begin
-           if assigned(procinfo) and
-              (cs_implicit_exceptions in aktmoduleswitches) then
-            procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+           if (cs_implicit_exceptions in aktmoduleswitches) then
+            include(current_procinfo.flags,pi_needs_implicit_finally);
            if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
-            reference_reset_base(href,procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
+            reference_reset_base(href,current_procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
            else
             reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
            cg.g_initialize(list,tvarsym(p).vartype.def,href,false);
@@ -1007,7 +1006,7 @@ implementation
                  tvarsym(p).vartype.def.needs_inittable then
                begin
                  if tsym(p).owner.symtabletype in [localsymtable,inlinelocalsymtable] then
-                  reference_reset_base(href,procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
+                  reference_reset_base(href,current_procinfo.framepointer,-tvarsym(p).address+tvarsym(p).owner.address_fixup)
                  else
                   reference_reset_symbol(href,objectlibrary.newasmsymboldata(tvarsym(p).mangledname),0);
                  cg.g_finalize(list,tvarsym(p).vartype.def,href,false);
@@ -1043,17 +1042,17 @@ implementation
              vs_value :
                begin
                  if (cs_implicit_exceptions in aktmoduleswitches) then
-                   procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
+                  include(current_procinfo.flags,pi_needs_implicit_finally);
                  if assigned(tvarsym(p).localvarsym) then
-                  reference_reset_base(href,procinfo.framepointer,
+                  reference_reset_base(href,current_procinfo.framepointer,
                       -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
                  else
-                  reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+                  reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
                  cg.g_incrrefcount(list,tvarsym(p).vartype.def,href);
                end;
              vs_out :
                begin
-                 reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+                 reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
                {$ifdef newra}
                  tmpreg:=rg.getaddressregister(list);
                {$else}
@@ -1086,10 +1085,10 @@ implementation
            if (tvarsym(p).varspez=vs_value) then
             begin
               if assigned(tvarsym(p).localvarsym) then
-               reference_reset_base(href,procinfo.framepointer,
+               reference_reset_base(href,current_procinfo.framepointer,
                    -tvarsym(p).localvarsym.address+tvarsym(p).localvarsym.owner.address_fixup)
               else
-               reference_reset_base(href,procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
+               reference_reset_base(href,current_procinfo.framepointer,tvarsym(p).address+tvarsym(p).owner.address_fixup);
               cg.g_decrrefcount(list,tvarsym(p).vartype.def,href);
             end;
          end;
@@ -1110,8 +1109,8 @@ implementation
                                tt_interfacecom,tt_freeinterfacecom] then
             begin
               if (cs_implicit_exceptions in aktmoduleswitches) then
-                procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
-              reference_reset_base(href,procinfo.framepointer,hp^.pos);
+                include(current_procinfo.flags,pi_needs_implicit_finally);
+              reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
               cg.a_load_const_ref(list,OS_ADDR,0,href);
             end;
            hp:=hp^.next;
@@ -1131,20 +1130,20 @@ implementation
              tt_ansistring,
              tt_freeansistring :
                begin
-                 reference_reset_base(href,procinfo.framepointer,hp^.pos);
+                 reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                  cg.a_call_name(list,'FPC_ANSISTR_DECR_REF');
                end;
              tt_widestring,
              tt_freewidestring :
                begin
-                 reference_reset_base(href,procinfo.framepointer,hp^.pos);
+                 reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
                  cg.a_call_name(list,'FPC_WIDESTR_DECR_REF');
                end;
              tt_interfacecom :
                begin
-                 reference_reset_base(href,procinfo.framepointer,hp^.pos);
+                 reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
                  cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(2));
                  cg.a_call_name(list,'FPC_INTF_DECR_REF');
                end;
@@ -1161,14 +1160,14 @@ implementation
         hreg,r,r2 : tregister;
         cgsize : TCGSize;
       begin
-        if not is_void(aktprocdef.rettype.def) then
+        if not is_void(current_procdef.rettype.def) then
          begin
-           reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-           cgsize:=def_cgsize(aktprocdef.rettype.def);
+           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+           cgsize:=def_cgsize(current_procdef.rettype.def);
            { Here, we return the function result. In most architectures, the value is
              passed into the accumulator, but in a windowed architecure like sparc a
              function returns in a register and the caller receives it in an other one }
-           case aktprocdef.rettype.def.deftype of
+           case current_procdef.rettype.def.deftype of
              orddef,
              enumdef :
                begin
@@ -1206,7 +1205,7 @@ implementation
                end;
              else
                begin
-                 if paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+                 if paramanager.ret_in_acc(current_procdef.rettype.def,current_procdef.proccalloption) then
                   begin
                     uses_acc:=true;
                     r.enum:=R_INTREGISTER;
@@ -1243,11 +1242,11 @@ implementation
         cgsize : TCGSize;
         r,r2 : Tregister;
       begin
-        if not is_void(aktprocdef.rettype.def) then
+        if not is_void(current_procdef.rettype.def) then
          begin
-           reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-           cgsize:=def_cgsize(aktprocdef.rettype.def);
-           case aktprocdef.rettype.def.deftype of
+           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+           cgsize:=def_cgsize(current_procdef.rettype.def);
+           case current_procdef.rettype.def.deftype of
              orddef,
              enumdef :
                begin
@@ -1276,7 +1275,7 @@ implementation
              else
                begin
                  r.enum:=accumulator;
-                 if paramanager.ret_in_acc(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+                 if paramanager.ret_in_acc(current_procdef.rettype.def,current_procdef.proccalloption) then
                   cg.a_load_reg_ref(list,cgsize,r,href);
                end;
            end;
@@ -1310,23 +1309,23 @@ implementation
 
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in aktprocdef.procoptions) then
+        if (po_saveregisters in current_procdef.procoptions) then
           cg.g_save_all_registers(list)
         else
          { should we save edi,esi,ebx like C ? }
-         if (po_savestdregs in aktprocdef.procoptions) then
-           cg.g_save_standard_registers(list,aktprocdef.usedintregisters);
+         if (po_savestdregs in current_procdef.procoptions) then
+           cg.g_save_standard_registers(list,current_procdef.usedintregisters);
 
         { Save stackpointer value }
         if not inlined and
-           (procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
-           ((po_savestdregs in aktprocdef.procoptions) or
-            (po_saveregisters in aktprocdef.procoptions)) then
+           (current_procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
+           ((po_savestdregs in current_procdef.procoptions) or
+            (po_saveregisters in current_procdef.procoptions)) then
          begin
-           tg.GetTemp(list,POINTER_SIZE,tt_noreuse,procinfo.save_stackptr_ref);
+           tg.GetTemp(list,POINTER_SIZE,tt_noreuse,current_procinfo.save_stackptr_ref);
            rsp.enum:=R_INTREGISTER;
            rsp.number:=NR_STACK_POINTER_REG;
-           cg.a_load_reg_ref(list,OS_ADDR,rsp,procinfo.save_stackptr_ref);
+           cg.a_load_reg_ref(list,OS_ADDR,rsp,current_procinfo.save_stackptr_ref);
          end;
 
         { the actual profile code can clobber some registers,
@@ -1334,7 +1333,7 @@ implementation
           the actual call to the profile code
         }
         if (cs_profile in aktmoduleswitches) and
-           not(po_assembler in aktprocdef.procoptions) and
+           not(po_assembler in current_procdef.procoptions) and
            not(inlined) then
           begin
             { non-win32 can call mcout even in main }
@@ -1342,28 +1341,28 @@ implementation
               cg.g_profilecode(list)
             else
             { wdosx, and win32 should not call mcount before monstartup has been called }
-            if not (aktprocdef.proctypeoption=potype_proginit) then
+            if not (current_procdef.proctypeoption=potype_proginit) then
               cg.g_profilecode(list);
           end;
 
         { a constructor needs a help procedure }
-        if (aktprocdef.proctypeoption=potype_constructor) then
+        if (current_procdef.proctypeoption=potype_constructor) then
          begin
            cg.g_call_constructor_helper(list);
          end;
 
-        if not is_void(aktprocdef.rettype.def) then
+        if not is_void(current_procdef.rettype.def) then
           begin
              { for now the pointer to the result can't be a register }
-             if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+             if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                begin
 {$ifdef powerpc}
                   { no stack space is allocated in this case -> can't save the result reg on the stack }
-                  if not(po_assembler in aktprocdef.procoptions) then
+                  if not(po_assembler in current_procdef.procoptions) then
 {$endif powerpc}
                     begin
-                      paraloc:=paramanager.getfuncretparaloc(aktprocdef);
-                      reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
+                      paraloc:=paramanager.getfuncretparaloc(current_procdef);
+                      reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
                       case paraloc.loc of
                         LOC_CREGISTER,
                         LOC_REGISTER:
@@ -1382,21 +1381,21 @@ implementation
                end;
 
              { initialize return value }
-             if (aktprocdef.rettype.def.needs_inittable) then
+             if (current_procdef.rettype.def.needs_inittable) then
                begin
 {$ifdef powerpc}
-                  if (po_assembler in aktprocdef.procoptions) then
+                  if (po_assembler in current_procdef.procoptions) then
                     internalerror(200304161);
 {$endif powerpc}
                   if (cs_implicit_exceptions in aktmoduleswitches) then
-                    procinfo.flags:=procinfo.flags or pi_needs_implicit_finally;
-                  reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-                  cg.g_initialize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption));
+                    include(current_procinfo.flags,pi_needs_implicit_finally);
+                  reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+                  cg.g_initialize(list,current_procdef.rettype.def,href,paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption));
                end;
           end;
 
         { initialize local data like ansistrings }
-        case aktprocdef.proctypeoption of
+        case current_procdef.proctypeoption of
            potype_unitinit:
              begin
                 { this is also used for initialization of variables in a
@@ -1410,26 +1409,26 @@ implementation
            { program init/final is generated in separate procedure }
            potype_proginit: ;
            else
-             aktprocdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
+             current_procdef.localst.foreach_static({$ifndef TP}@{$endif}initialize_data,list);
         end;
 
         { initialisizes temp. ansi/wide string data }
         inittempvariables(list);
 
         { generate copies of call by value parameters }
-        if not(po_assembler in aktprocdef.procoptions) then
-          aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
+        if not(po_assembler in current_procdef.procoptions) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
 
-        if assigned(aktprocdef.parast) then
+        if assigned(current_procdef.parast) then
           begin
-             aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
+             current_procdef.parast.foreach_static({$ifndef TP}@{$endif}init_paras,list);
 
-             if not (po_assembler in aktprocdef.procoptions) then
+             if not (po_assembler in current_procdef.procoptions) then
                begin
                  { move register parameters which aren't regable into memory                                          }
                  { we do this after init_paras because it saves some code in init_paras if parameters are in register }
                  { instead in memory                                                                                  }
-                 hp:=tparaitem(aktprocdef.para.first);
+                 hp:=tparaitem(current_procdef.para.first);
                  while assigned(hp) do
                    begin
                      if Tvarsym(hp.parasym).reg.enum>lastreg then
@@ -1450,7 +1449,7 @@ implementation
                       LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMREGISTER]) and
                       (tvarsym(hp.parasym).reg.enum=R_NO) then
                        begin
-                         reference_reset_base(href,procinfo.framepointer,tvarsym(hp.parasym).address+
+                         reference_reset_base(href,current_procinfo.framepointer,tvarsym(hp.parasym).address+
                            tvarsym(hp.parasym).owner.address_fixup);
                          case hp.paraloc.loc of
                            LOC_CREGISTER,
@@ -1474,7 +1473,7 @@ implementation
         if (not inlined) then
          begin
            { call startup helpers from main program }
-           if (aktprocdef.proctypeoption=potype_proginit) then
+           if (current_procdef.proctypeoption=potype_proginit) then
             begin
               { initialize profiling for win32 }
               if (target_info.system in [system_i386_win32,system_i386_wdosx]) and
@@ -1492,17 +1491,17 @@ implementation
             end;
 
            { do we need an exception frame because of ansi/widestrings/interfaces ? }
-           if ((procinfo.flags and pi_needs_implicit_finally)<>0) and
+           if (pi_needs_implicit_finally in current_procinfo.flags) and
               { but it's useless in init/final code of units }
-              not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+              not(current_procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
             begin
               include(rg.usedinproc,accumulator);
-              tg.GetTemp(list,JMP_BUF_SIZE,tt_noreuse,procinfo.exception_jmp_ref);
-              tg.GetTemp(list,12,tt_noreuse,procinfo.exception_env_ref);
-              tg.GetTemp(list,sizeof(aword),tt_noreuse,procinfo.exception_result_ref);
-              new_exception(list,procinfo.exception_jmp_ref,
-                  procinfo.exception_env_ref,
-                  procinfo.exception_result_ref,1,aktexitlabel);
+              tg.GetTemp(list,JMP_BUF_SIZE,tt_noreuse,current_procinfo.exception_jmp_ref);
+              tg.GetTemp(list,12,tt_noreuse,current_procinfo.exception_env_ref);
+              tg.GetTemp(list,sizeof(aword),tt_noreuse,current_procinfo.exception_result_ref);
+              new_exception(list,current_procinfo.exception_jmp_ref,
+                  current_procinfo.exception_env_ref,
+                  current_procinfo.exception_result_ref,1,aktexitlabel);
             end;
 
 {$ifdef GDB}
@@ -1512,13 +1511,13 @@ implementation
          end;
 
         { maybe call BeforeDestruction for classes }
-        if (aktprocdef.proctypeoption=potype_destructor) and
-           is_class(aktprocdef._class) then
+        if (current_procdef.proctypeoption=potype_destructor) and
+           is_class(current_procdef._class) then
          begin
            objectlibrary.getlabel(inheriteddesctructorlabel);
-           reference_reset_base(href,procinfo.framepointer,procinfo.inheritedflag_offset);
+           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.inheritedflag_offset);
            cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,inheriteddesctructorlabel);
-           reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
+           reference_reset_base(href,current_procinfo.framepointer,current_procinfo.selfpointer_offset);
          {$ifdef newra}
            tmpreg:=rg.getaddressregister(list);
          {$else}
@@ -1555,23 +1554,24 @@ implementation
             stackalloclist.concat(Tai_align.Create(aktalignment.procalign));
 
            if (cs_profile in aktmoduleswitches) or
-              (aktprocdef.owner.symtabletype=globalsymtable) or
-              (assigned(aktprocdef._class) and
-               (aktprocdef._class.owner.symtabletype=globalsymtable)) then
+              (current_procdef.owner.symtabletype=globalsymtable) or
+              (assigned(current_procdef._class) and
+               (current_procdef._class.owner.symtabletype=globalsymtable)) then
             make_global:=true;
 
 {$ifdef GDB}
            if (cs_debuginfo in aktmoduleswitches) then
             begin
-              if make_global or ((procinfo.flags and pi_is_global) <> 0) then
-                tprocsym(aktprocdef.procsym).is_global:=true;
-              aktprocdef.concatstabto(stackalloclist);
-              tprocsym(aktprocdef.procsym).isstabwritten:=true;
+              if make_global or
+                 (pi_is_global in current_procinfo.flags) then
+                tprocsym(current_procdef.procsym).is_global:=true;
+              current_procdef.concatstabto(stackalloclist);
+              tprocsym(current_procdef.procsym).isstabwritten:=true;
             end;
 {$endif GDB}
 
            repeat
-             hs:=aktprocdef.aliasnames.getfirst;
+             hs:=current_procdef.aliasnames.getfirst;
              if hs='' then
               break;
 {$ifdef GDB}
@@ -1594,14 +1594,14 @@ implementation
 {$ifndef powerpc}
            { at least for the ppc this applies always, so this code isn't usable (FK) }
            { omit stack frame ? }
-           if (procinfo.framepointer.number=NR_STACK_POINTER_REG) then
+           if (current_procinfo.framepointer.number=NR_STACK_POINTER_REG) then
             begin
               CGMessage(cg_d_stackframe_omited);
               nostackframe:=true;
-              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+              if (current_procdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocdef.parast.datasize+aktprocdef.parast.address_fixup-4;
+                parasize:=current_procdef.parast.datasize+current_procdef.parast.address_fixup-4;
               if stackframe<>0 then
                 cg.g_stackpointer_alloc(stackalloclist,stackframe);
             end
@@ -1609,12 +1609,12 @@ implementation
 {$endif powerpc}
             begin
               nostackframe:=false;
-              if (aktprocdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
+              if (current_procdef.proctypeoption in [potype_unitinit,potype_proginit,potype_unitfinalize]) then
                 parasize:=0
               else
-                parasize:=aktprocdef.parast.datasize+aktprocdef.parast.address_fixup-target_info.first_parm_offset;
+                parasize:=current_procdef.parast.datasize+current_procdef.parast.address_fixup-target_info.first_parm_offset;
 
-              if (po_interrupt in aktprocdef.procoptions) then
+              if (po_interrupt in current_procdef.procoptions) then
                 cg.g_interrupt_stackframe_entry(stackalloclist);
 
               cg.g_stackframe_entry(stackalloclist,stackframe);
@@ -1622,7 +1622,7 @@ implementation
               { never call stack checking before the standard system unit
                 has not been initialized
               }
-              if (cs_check_stack in aktlocalswitches) and (aktprocdef.proctypeoption<>potype_proginit) then
+              if (cs_check_stack in aktlocalswitches) and (current_procdef.proctypeoption<>potype_proginit) then
                 cg.g_stackcheck(stackalloclist,stackframe);
             end;
             list.insertlist(stackalloclist);
@@ -1651,7 +1651,8 @@ implementation
         rsp,tmpreg,r  : Tregister;
       begin
         if aktexit2label.is_used and
-           ((procinfo.flags and (pi_needs_implicit_finally or pi_uses_exceptions)) <> 0) then
+           ((pi_needs_implicit_finally in current_procinfo.flags) or
+            (pi_uses_exceptions in current_procinfo.flags)) then
           begin
             cg.a_jmp_always(list,aktexitlabel);
             cg.a_label(list,aktexit2label);
@@ -1664,15 +1665,15 @@ implementation
         cleanup_regvars(list);
 
         { call the destructor help procedure }
-        if (aktprocdef.proctypeoption=potype_destructor) and
-           assigned(aktprocdef._class) then
+        if (current_procdef.proctypeoption=potype_destructor) and
+           assigned(current_procdef._class) then
          cg.g_call_destructor_helper(list);
 
         { finalize temporary data }
         finalizetempvariables(list);
 
         { finalize local data like ansistrings}
-        case aktprocdef.proctypeoption of
+        case current_procdef.proctypeoption of
            potype_unitfinalize:
              begin
                 { this is also used for initialization of variables in a
@@ -1686,52 +1687,52 @@ implementation
            { program init/final is generated in separate procedure }
            potype_proginit: ;
            else
-             aktprocdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data,list);
+             current_procdef.localst.foreach_static({$ifndef TP}@{$endif}finalize_data,list);
         end;
 
         { finalize paras data }
-        if assigned(aktprocdef.parast) then
-          aktprocdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
+        if assigned(current_procdef.parast) then
+          current_procdef.parast.foreach_static({$ifndef TP}@{$endif}final_paras,list);
 
         { do we need to handle exceptions because of ansi/widestrings ? }
         if not inlined and
-           ((procinfo.flags and pi_needs_implicit_finally)<>0) and
+           (pi_needs_implicit_finally in current_procinfo.flags) and
            { but it's useless in init/final code of units }
-           not(aktprocdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
+           not(current_procdef.proctypeoption in [potype_unitfinalize,potype_unitinit]) then
           begin
              { the exception helper routines modify all registers }
-             aktprocdef.usedintregisters:=all_intregisters;
-             aktprocdef.usedotherregisters:=all_registers;
+             current_procdef.usedintregisters:=all_intregisters;
+             current_procdef.usedotherregisters:=all_registers;
              objectlibrary.getlabel(noreraiselabel);
              free_exception(list,
-                  procinfo.exception_jmp_ref,
-                  procinfo.exception_env_ref,
-                  procinfo.exception_result_ref,0,
+                  current_procinfo.exception_jmp_ref,
+                  current_procinfo.exception_env_ref,
+                  current_procinfo.exception_result_ref,0,
                   noreraiselabel,false);
-             tg.Ungettemp(list,procinfo.exception_jmp_ref);
-             tg.Ungettemp(list,procinfo.exception_env_ref);
-             tg.Ungettemp(list,procinfo.exception_result_ref);
+             tg.Ungettemp(list,current_procinfo.exception_jmp_ref);
+             tg.Ungettemp(list,current_procinfo.exception_env_ref);
+             tg.Ungettemp(list,current_procinfo.exception_result_ref);
 
-             if (aktprocdef.proctypeoption=potype_constructor) then
+             if (current_procdef.proctypeoption=potype_constructor) then
                begin
-                  if assigned(aktprocdef._class) then
+                  if assigned(current_procdef._class) then
                     begin
-                       pd:=aktprocdef._class.searchdestructor;
+                       pd:=current_procdef._class.searchdestructor;
                        if assigned(pd) then
                          begin
                             objectlibrary.getlabel(nodestroycall);
-                            reference_reset_base(href,procinfo.framepointer,procinfo.selfpointer_offset);
+                            reference_reset_base(href,current_procinfo.framepointer,current_procinfo.selfpointer_offset);
                             cg.a_cmp_const_ref_label(list,OS_ADDR,OC_EQ,0,href,nodestroycall);
                             r:=cg.g_load_self(list);
-                            if is_class(aktprocdef._class) then
+                            if is_class(current_procdef._class) then
                              begin
                                cg.a_param_const(list,OS_INT,1,paramanager.getintparaloc(2));
                                cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
                              end
-                            else if is_object(aktprocdef._class) then
+                            else if is_object(current_procdef._class) then
                              begin
                                cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(2));
-                               reference_reset_symbol(href,objectlibrary.newasmsymboldata(aktprocdef._class.vmt_mangledname),0);
+                               reference_reset_symbol(href,objectlibrary.newasmsymboldata(current_procdef._class.vmt_mangledname),0);
                                cg.a_paramaddr_ref(list,href,paramanager.getintparaloc(1));
                              end
                             else
@@ -1740,7 +1741,7 @@ implementation
                              begin
                                reference_reset_base(href,r,0);
                                cg.a_load_ref_reg(list,OS_ADDR,href,r);
-                               reference_reset_base(href,r,aktprocdef._class.vmtmethodoffset(pd.extnumber));
+                               reference_reset_base(href,r,current_procdef._class.vmtmethodoffset(pd.extnumber));
                                cg.a_call_ref(list,href);
                              end
                             else
@@ -1756,13 +1757,13 @@ implementation
               begin
                 { no constructor }
                 { must be the return value finalized before reraising the exception? }
-                if (not is_void(aktprocdef.rettype.def)) and
-                   (aktprocdef.rettype.def.needs_inittable) and
-                   ((aktprocdef.rettype.def.deftype<>objectdef) or
-                    not is_class(aktprocdef.rettype.def)) then
+                if (not is_void(current_procdef.rettype.def)) and
+                   (current_procdef.rettype.def.needs_inittable) and
+                   ((current_procdef.rettype.def.deftype<>objectdef) or
+                    not is_class(current_procdef.rettype.def)) then
                   begin
-                     reference_reset_base(href,procinfo.framepointer,procinfo.return_offset);
-                     cg.g_finalize(list,aktprocdef.rettype.def,href,paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption));
+                     reference_reset_base(href,current_procinfo.framepointer,current_procinfo.return_offset);
+                     cg.g_finalize(list,current_procdef.rettype.def,href,paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption));
                   end;
               end;
 
@@ -1773,7 +1774,7 @@ implementation
         { call __EXIT for main program }
         if (not DLLsource) and
            (not inlined) and
-           (aktprocdef.proctypeoption=potype_proginit) then
+           (current_procdef.proctypeoption=potype_proginit) then
          begin
            cg.a_call_name(list,'FPC_DO_EXIT');
          end;
@@ -1783,11 +1784,11 @@ implementation
         usesacc:=false;
         usesacchi:=false;
         usesself:=false;
-        if not(po_assembler in aktprocdef.procoptions) or
-           (assigned(aktprocdef.funcretsym) and
-            (tvarsym(aktprocdef.funcretsym).refcount>1)) then
+        if not(po_assembler in current_procdef.procoptions) or
+           (assigned(current_procdef.funcretsym) and
+            (tvarsym(current_procdef.funcretsym).refcount>1)) then
           begin
-            if (aktprocdef.proctypeoption=potype_constructor) then
+            if (current_procdef.proctypeoption=potype_constructor) then
               begin
                 objectlibrary.getlabel(inheritedconstructorlabel);
                 objectlibrary.getlabel(okexitlabel);
@@ -1802,12 +1803,12 @@ implementation
                 r.number:=NR_ACCUMULATOR;
                 cg.a_reg_alloc(list,r);
                 { maybe call AfterConstructor for classes }
-                if is_class(aktprocdef._class) then
+                if is_class(current_procdef._class) then
                  begin
-                   reference_reset_base(href,procinfo.framepointer,procinfo.vmtpointer_offset);
+                   reference_reset_base(href,current_procinfo.framepointer,current_procinfo.vmtpointer_offset);
                    cg.a_load_ref_reg(list,OS_ADDR,href,r);
                    cg.a_cmp_const_reg_label(list,OS_ADDR,OC_EQ,0,r,inheritedconstructorlabel);
-                   reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+                   reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
                    cg.a_load_ref_reg(list,OS_ADDR,href,r);
                    cg.a_param_reg(list,OS_ADDR,r,paramanager.getintparaloc(1));
                    reference_reset_base(href,r,0);
@@ -1827,7 +1828,7 @@ implementation
                  end;
                 { return the self pointer }
                 cg.a_label(list,inheritedconstructorlabel);
-                reference_reset_base(href, procinfo.framepointer,procinfo.selfpointer_offset);
+                reference_reset_base(href, current_procinfo.framepointer,current_procinfo.selfpointer_offset);
                 cg.a_load_ref_reg(list,OS_ADDR,href,r);
                 cg.a_reg_dealloc(list,r);
                 usesacc:=true;
@@ -1849,24 +1850,24 @@ implementation
 
         { Restore stackpointer if it was saved }
         if not inlined and
-           (procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
-           ((po_savestdregs in aktprocdef.procoptions) or
-            (po_saveregisters in aktprocdef.procoptions)) then
+           (current_procinfo.framepointer.number<>NR_STACK_POINTER_REG) and
+           ((po_savestdregs in current_procdef.procoptions) or
+            (po_saveregisters in current_procdef.procoptions)) then
          begin
            rsp.enum:=R_INTREGISTER;
            rsp.number:=NR_STACK_POINTER_REG;
-           cg.a_load_ref_reg(list,OS_ADDR,procinfo.save_stackptr_ref,rsp);
-           tg.UngetTemp(list,procinfo.save_stackptr_ref);
+           cg.a_load_ref_reg(list,OS_ADDR,current_procinfo.save_stackptr_ref,rsp);
+           tg.UngetTemp(list,current_procinfo.save_stackptr_ref);
          end;
 
         { for the save all registers we can simply use a pusha,popa which
           push edi,esi,ebp,esp(ignored),ebx,edx,ecx,eax }
-        if (po_saveregisters in aktprocdef.procoptions) then
+        if (po_saveregisters in current_procdef.procoptions) then
           cg.g_restore_all_registers(list,usesself,usesacc,usesacchi)
         else
          { should we restore edi ? }
-         if (po_savestdregs in aktprocdef.procoptions) then
-           cg.g_restore_standard_registers(list,aktprocdef.usedintregisters);
+         if (po_savestdregs in current_procdef.procoptions) then
+           cg.g_restore_standard_registers(list,current_procdef.usedintregisters);
 
         { remove stackframe }
         if not inlined then
@@ -1884,7 +1885,7 @@ implementation
         { at last, the return is generated }
         if not inlined then
          begin
-           if (po_interrupt in aktprocdef.procoptions) then
+           if (po_interrupt in current_procdef.procoptions) then
             cg.g_interrupt_stackframe_exit(list,usesself,usesacc,usesacchi)
            else
              begin
@@ -1900,99 +1901,99 @@ implementation
          end;
 
         if not inlined then
-          list.concat(Tai_symbol_end.Createname(aktprocdef.mangledname));
+          list.concat(Tai_symbol_end.Createname(current_procdef.mangledname));
 
 {$ifdef GDB}
         if (cs_debuginfo in aktmoduleswitches) and not inlined  then
           begin
-            if assigned(aktprocdef._class) then
-              if (not assigned(procinfo.parent) or
-                  not assigned(procinfo.parent.procdef._class)) then
+            if assigned(current_procdef._class) then
+              if (not assigned(current_procinfo.parent) or
+                  not assigned(current_procinfo.parent.procdef._class)) then
                 begin
-                  if (po_classmethod in aktprocdef.procoptions) or
-                     ((po_virtualmethod in aktprocdef.procoptions) and
-                      (potype_constructor=aktprocdef.proctypeoption)) or
-                     (po_staticmethod in aktprocdef.procoptions) then
+                  if (po_classmethod in current_procdef.procoptions) or
+                     ((po_virtualmethod in current_procdef.procoptions) and
+                      (potype_constructor=current_procdef.proctypeoption)) or
+                     (po_staticmethod in current_procdef.procoptions) then
                     begin
                       list.concat(Tai_stabs.Create(strpnew(
                        '"pvmt:p'+tstoreddef(pvmttype.def).numberstring+'",'+
-                       tostr(N_tsym)+',0,0,'+tostr(procinfo.selfpointer_offset))));
+                       tostr(N_tsym)+',0,0,'+tostr(current_procinfo.selfpointer_offset))));
                     end
                   else
                     begin
-                      if not(is_class(aktprocdef._class)) then
+                      if not(is_class(current_procdef._class)) then
                         st:='v'
                       else
                         st:='p';
                       list.concat(Tai_stabs.Create(strpnew(
-                       '"$t:'+st+aktprocdef._class.numberstring+'",'+
-                       tostr(N_tsym)+',0,0,'+tostr(procinfo.selfpointer_offset))));
+                       '"$t:'+st+current_procdef._class.numberstring+'",'+
+                       tostr(N_tsym)+',0,0,'+tostr(current_procinfo.selfpointer_offset))));
                     end;
                 end
               else
                 begin
-                  if not is_class(aktprocdef._class) then
+                  if not is_class(current_procdef._class) then
                     st:='*'
                   else
                     st:='';
 {$warning GDB self}
                   {list.concat(Tai_stabs.Create(strpnew(
-                   '"$t:r'+st+aktprocdef._class.numberstring+'",'+
+                   '"$t:r'+st+current_procdef._class.numberstring+'",'+
                    tostr(N_RSYM)+',0,0,'+tostr(stab_regindex[SELF_POINTER_REG]))));}
                 end;
 
             { define calling EBP as pseudo local var PM }
             { this enables test if the function is a local one !! }
-            if  assigned(procinfo.parent) and
-                (aktprocdef.parast.symtablelevel>normal_function_level) then
+            if  assigned(current_procinfo.parent) and
+                (current_procdef.parast.symtablelevel>normal_function_level) then
               list.concat(Tai_stabs.Create(strpnew(
                '"parent_ebp:'+tstoreddef(voidpointertype.def).numberstring+'",'+
-               tostr(N_LSYM)+',0,0,'+tostr(procinfo.framepointer_offset))));
+               tostr(N_LSYM)+',0,0,'+tostr(current_procinfo.framepointer_offset))));
 
-            if (not is_void(aktprocdef.rettype.def)) then
+            if (not is_void(current_procdef.rettype.def)) then
               begin
-                if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+                if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                   list.concat(Tai_stabs.Create(strpnew(
-                   '"'+aktprocdef.procsym.name+':X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
-                   tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))))
+                   '"'+current_procdef.procsym.name+':X*'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
+                   tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))))
                 else
                   list.concat(Tai_stabs.Create(strpnew(
-                   '"'+aktprocdef.procsym.name+':X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
-                   tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))));
+                   '"'+current_procdef.procsym.name+':X'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
+                   tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))));
                 if (m_result in aktmodeswitches) then
-                  if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+                  if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                     list.concat(Tai_stabs.Create(strpnew(
-                     '"RESULT:X*'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
-                     tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))))
+                     '"RESULT:X*'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
+                     tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))))
                   else
                     list.concat(Tai_stabs.Create(strpnew(
-                     '"RESULT:X'+tstoreddef(aktprocdef.rettype.def).numberstring+'",'+
-                     tostr(N_tsym)+',0,0,'+tostr(procinfo.return_offset))));
+                     '"RESULT:X'+tstoreddef(current_procdef.rettype.def).numberstring+'",'+
+                     tostr(N_tsym)+',0,0,'+tostr(current_procinfo.return_offset))));
               end;
-            mangled_length:=length(aktprocdef.mangledname);
+            mangled_length:=length(current_procdef.mangledname);
             getmem(p,2*mangled_length+50);
             strpcopy(p,'192,0,0,');
-            strpcopy(strend(p),aktprocdef.mangledname);
+            strpcopy(strend(p),current_procdef.mangledname);
             if (target_info.use_function_relative_addresses) then
               begin
                 strpcopy(strend(p),'-');
-                strpcopy(strend(p),aktprocdef.mangledname);
+                strpcopy(strend(p),current_procdef.mangledname);
               end;
             list.concat(Tai_stabn.Create(strnew(p)));
             {List.concat(Tai_stabn.Create(strpnew('192,0,0,'
-             +aktprocdef.mangledname))));
+             +current_procdef.mangledname))));
             p[0]:='2';p[1]:='2';p[2]:='4';
             strpcopy(strend(p),'_end');}
             strpcopy(p,'224,0,0,'+stabsendlabel.name);
             if (target_info.use_function_relative_addresses) then
               begin
                 strpcopy(strend(p),'-');
-                strpcopy(strend(p),aktprocdef.mangledname);
+                strpcopy(strend(p),current_procdef.mangledname);
               end;
             list.concatlist(withdebuglist);
             list.concat(Tai_stabn.Create(strnew(p)));
              { strpnew('224,0,0,'
-             +aktprocdef.mangledname+'_end'))));}
+             +current_procdef.mangledname+'_end'))));}
             freemem(p,2*mangled_length+50);
           end;
 {$endif GDB}
@@ -2004,8 +2005,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.91  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.92  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.91  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

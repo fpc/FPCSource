@@ -340,7 +340,7 @@ interface
 
 
     var
-       aktprocdef : tprocdef;
+       current_procdef : tprocdef;
 
        aktcallprocdef : tabstractprocdef;  { pointer to the definition of the
                                              currently called procedure,
@@ -2557,12 +2557,21 @@ implementation
 end.
 {
   $Log$
-  Revision 1.99  2003-04-27 10:03:18  jonas
+  Revision 1.100  2003-04-27 11:21:34  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.99  2003/04/27 10:03:18  jonas
     * fixed stabs generation for local variables on systems where they have
       a positive offset relative to the stack/framepointer
 
   Revision 1.98  2003/04/27 07:29:51  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

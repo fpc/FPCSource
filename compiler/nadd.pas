@@ -1745,8 +1745,7 @@ implementation
                  expectloc:=LOC_CREFERENCE;
                  calcregisters(self,0,0,0);
                  { here we call SET... }
-                 if assigned(procinfo) then
-                    procinfo.flags:=procinfo.flags or pi_do_call;
+                 include(current_procinfo.flags,pi_do_call);
               end;
            end
 
@@ -1765,17 +1764,11 @@ implementation
             begin
               if is_widestring(ld) then
                 begin
-                   { we use reference counted widestrings so no fast exit here }
-                   if assigned(procinfo) then
-                     procinfo.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
                    expectloc:=LOC_REGISTER;
                 end
               else if is_ansistring(ld) then
                 begin
-                   { we use ansistrings so no fast exit here }
-                   if assigned(procinfo) then
-                     procinfo.no_fast_exit:=true;
                    { this is only for add, the comparisaion is handled later }
                    expectloc:=LOC_REGISTER;
                 end
@@ -1957,7 +1950,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.86  2003-04-26 09:12:55  peter
+  Revision 1.87  2003-04-27 11:21:32  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.86  2003/04/26 09:12:55  peter
     * add string returns in LOC_REFERENCE
 
   Revision 1.85  2003/04/24 22:29:57  florian
@@ -2056,7 +2058,7 @@ end.
       ctypeconvnode.create_explicit() statements
 
   Revision 1.62  2002/08/17 09:23:34  florian
-    * first part of procinfo rewrite
+    * first part of current_procinfo rewrite
 
   Revision 1.61  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)

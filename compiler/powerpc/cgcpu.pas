@@ -253,7 +253,7 @@ const
          list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
          if target_info.system=system_powerpc_macos then
            list.concat(taicpu.op_none(A_NOP));
-         procinfo.flags:=procinfo.flags or pi_do_call;
+         include(current_procinfo.flags,pi_do_call);
       end;
 
     { calling a procedure by address }
@@ -284,7 +284,7 @@ const
         //if target_info.system=system_powerpc_macos then
         //  //NOP is not needed here.
         //  list.concat(taicpu.op_none(A_NOP));
-        procinfo.flags:=procinfo.flags or pi_do_call;
+        include(current_procinfo.flags,pi_do_call);
         //list.concat(tai_comment.create(strpnew('***** a_call_reg')));
       end;
 
@@ -316,7 +316,7 @@ const
         //if target_info.system=system_powerpc_macos then
         //  //NOP is not needed here.
         //  list.concat(taicpu.op_none(A_NOP));
-        procinfo.flags:=procinfo.flags or pi_do_call;
+        include(current_procinfo.flags,pi_do_call);
         //list.concat(tai_comment.create(strpnew('***** a_call_ref')));
       end;
 
@@ -966,7 +966,7 @@ const
         r.number:=NR_R0;
         a_reg_alloc(list,r);
 
-        if aktprocdef.parast.symtablelevel>1 then
+        if current_procdef.parast.symtablelevel>1 then
           begin
              r.enum:=R_INTREGISTER;
              r.number:=NR_R11;
@@ -981,7 +981,7 @@ const
           end;
 
         usesfpr:=false;
-        if not (po_assembler in aktprocdef.procoptions) then
+        if not (po_assembler in current_procdef.procoptions) then
           for regcounter.enum:=R_F14 to R_F31 do
             if regcounter.enum in rg.usedbyproc then
               begin
@@ -991,7 +991,7 @@ const
               end;
 
         usesgpr:=false;
-        if not (po_assembler in aktprocdef.procoptions) then
+        if not (po_assembler in current_procdef.procoptions) then
           for regcounter2:=RS_R14 to RS_R31 do
             begin
               if regcounter2 in rg.usedintbyproc then
@@ -1004,8 +1004,8 @@ const
             end;
 
         { save link register? }
-        if not (po_assembler in aktprocdef.procoptions) then
-          if (procinfo.flags and pi_do_call)<>0 then
+        if not (po_assembler in current_procdef.procoptions) then
+          if (pi_do_call in current_procinfo.flags) then
             begin
                { save return address... }
                r.enum:=R_INTREGISTER;
@@ -1039,7 +1039,7 @@ const
 
         localsize:=align(localsize,16);
 
-        tppcprocinfo(procinfo).localsize:=localsize;
+        tppcprocinfo(current_procinfo).localsize:=localsize;
 
         if (localsize <> 0) then
           begin
@@ -1124,11 +1124,11 @@ const
         { now comes the AltiVec context save, not yet implemented !!! }
 
         { if we're in a nested procedure, we've to save R11 }
-        if aktprocdef.parast.symtablelevel>2 then
+        if current_procdef.parast.symtablelevel>2 then
           begin
              r.enum:=R_INTREGISTER;
              r.number:=NR_R11;
-             reference_reset_base(href,rsp,procinfo.framepointer_offset);
+             reference_reset_base(href,rsp,current_procinfo.framepointer_offset);
              list.concat(taicpu.op_reg_ref(A_STW,r,href));
           end;
       end;
@@ -1153,7 +1153,7 @@ const
         { AltiVec context restore, not yet implemented !!! }
 
         usesfpr:=false;
-        if not (po_assembler in aktprocdef.procoptions) then
+        if not (po_assembler in current_procdef.procoptions) then
           for regcounter.enum:=R_F14 to R_F31 do
             if regcounter.enum in rg.usedbyproc then
               begin
@@ -1163,7 +1163,7 @@ const
               end;
 
         usesgpr:=false;
-        if not (po_assembler in aktprocdef.procoptions) then
+        if not (po_assembler in current_procdef.procoptions) then
           for regcounter2:=RS_R14 to RS_R30 do
             begin
               if regcounter2 in rg.usedintbyproc then
@@ -1185,9 +1185,9 @@ const
              r2.enum:=R_INTREGISTER;
              r2.number:=NR_R12;
              if usesfpr then
-               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(procinfo).localsize-(ord(R_F31)-ord(firstregfpu.enum)+1)*8,r,r2)
+               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize-(ord(R_F31)-ord(firstregfpu.enum)+1)*8,r,r2)
              else
-               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(procinfo).localsize,r,r2);
+               a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r,r2);
 
              { restore gprs }
              { at least for now we use LMW }
@@ -1206,7 +1206,7 @@ const
              r.number:=NR_R12;
              list.concat(taicpu.op_reg_reg_const(A_ADDI,r,r,(ord(R_F31)-ord(firstregfpu.enum)+1)*8));
              {
-             if (procinfo.flags and pi_do_call)<>0 then
+             if (pi_do_call in current_procinfo.flags) then
                a_call_name(objectlibrary.newasmsymbol('_restfpr_'+tostr(ord(firstregfpu)-ord(R_F14)+14)+
                  '_x')
              else
@@ -1222,10 +1222,10 @@ const
              { adjust r1 }
              r.enum:=R_INTREGISTER;
              r.number:=NR_R1;
-             a_op_const_reg(list,OP_ADD,tppcprocinfo(procinfo).localsize,r);
+             a_op_const_reg(list,OP_ADD,tppcprocinfo(current_procinfo).localsize,r);
              { load link register? }
-             if not (po_assembler in aktprocdef.procoptions) then
-               if (procinfo.flags and pi_do_call)<>0 then
+             if not (po_assembler in current_procdef.procoptions) then
+               if (pi_do_call in current_procinfo.flags) then
                  begin
                     r.enum:=R_INTREGISTER;
                     r.number:=NR_STACK_POINTER_REG;
@@ -1253,7 +1253,7 @@ const
 
     begin
       usesfpr:=false;
-      if not (po_assembler in aktprocdef.procoptions) then
+      if not (po_assembler in current_procdef.procoptions) then
         for regcounter.enum:=R_F14 to R_F31 do
           if regcounter.enum in rg.usedbyproc then
             begin
@@ -1263,7 +1263,7 @@ const
             end;
 
       usesgpr:=false;
-      if not (po_assembler in aktprocdef.procoptions) then
+      if not (po_assembler in current_procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
           begin
             if regcounter2 in rg.usedintbyproc then
@@ -1332,7 +1332,7 @@ const
 
     begin
       usesfpr:=false;
-      if not (po_assembler in aktprocdef.procoptions) then
+      if not (po_assembler in current_procdef.procoptions) then
         for regcounter.enum:=R_F14 to R_F31 do
           if regcounter.enum in rg.usedbyproc then
             begin
@@ -1342,7 +1342,7 @@ const
             end;
 
       usesgpr:=false;
-      if not (po_assembler in aktprocdef.procoptions) then
+      if not (po_assembler in current_procdef.procoptions) then
         for regcounter2:=RS_R13 to RS_R31 do
           begin
             if regcounter2 in rg.usedintbyproc then
@@ -1480,7 +1480,7 @@ const
         localsize:= align(localsize + macosLinkageAreaSize + registerSaveAreaSize, 16);
         inc(localsize,tg.lasttemp);
         localsize:=align(localsize,16);
-        tppcprocinfo(procinfo).localsize:=localsize;
+        tppcprocinfo(current_procinfo).localsize:=localsize;
 
         if (localsize <> 0) then
           begin
@@ -2364,7 +2364,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.85  2003-04-26 22:56:11  jonas
+  Revision 1.86  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.85  2003/04/26 22:56:11  jonas
     * fix to a_op64_const_reg_reg
 
   Revision 1.84  2003/04/26 16:08:41  jonas

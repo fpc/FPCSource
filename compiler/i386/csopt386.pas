@@ -411,7 +411,7 @@ Begin {CheckSequence}
                     if (found <> 0) and
                        ((base.enum = R_NO) or
                         regModified[base.enum] or
-                        (base.enum = procinfo.framepointer.enum)) and
+                        (base.enum = current_procinfo.framepointer.enum)) and
                        ((index.enum = R_NO) or
                         regModified[index.enum]) and
                         not(regInRef(tmpReg,Taicpu(hp3).oper[0].ref^)) then
@@ -1418,7 +1418,7 @@ begin
   for regcount := LoGPReg to HiGPReg do
     if assigned(pTaiProp(t1.optinfo)^.regs[regcount].memwrite) and
        (taicpu(pTaiProp(t1.optinfo)^.regs[regcount].memwrite).oper[1].ref^.base
-         = procinfo.framepointer) then
+         = current_procinfo.framepointer) then
       begin
         pTaiProp(pTaiProp(t1.optinfo)^.regs[regcount].memwrite.optinfo)^.canberemoved := true;
         clearmemwrites(pTaiProp(t1.optinfo)^.regs[regcount].memwrite,regcount);
@@ -1564,7 +1564,7 @@ Begin
  { If some registers were different in the old and the new sequence, move }
  { the contents of those old registers to the new ones                    }
                                    For RegCounter.enum := R_EAX To R_EDI Do
-                                     If Not(RegCounter.enum in [R_ESP,procinfo.framepointer.enum]) And
+                                     If Not(RegCounter.enum in [R_ESP,current_procinfo.framepointer.enum]) And
                                         (RegInfo.New2OldReg[RegCounter.enum].enum <> R_NO) Then
                                        Begin
                                          AllocRegBetween(AsmL,RegInfo.New2OldReg[RegCounter.enum],
@@ -1997,7 +1997,16 @@ End.
 
 {
   $Log$
-  Revision 1.43  2003-03-28 19:16:57  peter
+  Revision 1.44  2003-04-27 11:21:35  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.43  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

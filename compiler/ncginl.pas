@@ -245,7 +245,7 @@ implementation
               LOC_REGISTER :
                 begin
                   if (left.resulttype.def.deftype=classrefdef) or
-                     (po_staticmethod in aktprocdef.procoptions) then
+                     (po_staticmethod in current_procdef.procoptions) then
                     cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,left.location.register,hregister)
                   else
                    begin
@@ -671,7 +671,16 @@ end.
 
 {
   $Log$
-  Revision 1.27  2003-04-25 08:25:26  daniel
+  Revision 1.28  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.27  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills

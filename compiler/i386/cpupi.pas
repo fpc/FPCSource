@@ -39,8 +39,8 @@ unit cpupi;
 
   implementation
 
-    procedure ti386procinfo.allocate_interrupt_stackframe;
 
+    procedure ti386procinfo.allocate_interrupt_stackframe;
       begin
          { we push Flags and CS as long
            to cope with the IRETD
@@ -53,7 +53,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2003-04-27 07:48:05  peter
+  Revision 1.3  2003-04-27 11:21:35  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.2  2003/04/27 07:48:05  peter
     * updated for removed lexlevel
 
   Revision 1.1  2002/08/17 09:23:44  florian

@@ -1079,10 +1079,10 @@ Implementation
       begin
        {Routines with the poclearstack flag set use only a ret.}
        { also routines with parasize=0     }
-         if (po_clearstack in aktprocdef.procoptions) then
+         if (po_clearstack in current_procdef.procoptions) then
            begin
              { complex return values are removed from stack in C code PM }
-             if paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption) then
+             if paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption) then
                list.concat(taicpu.op_const(A_RTD,S_NO,4))
              else
                list.concat(taicpu.op_none(A_RTS,S_NO));
@@ -1337,7 +1337,16 @@ end.
 
 {
   $Log$
-  Revision 1.19  2003-04-23 13:40:33  peter
+  Revision 1.20  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.19  2003/04/23 13:40:33  peter
     * fix m68k compile
 
   Revision 1.18  2003/02/19 22:00:16  daniel

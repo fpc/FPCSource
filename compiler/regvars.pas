@@ -73,7 +73,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxvarregs do
                 begin
-                  with pregvarinfo(aktprocdef.regvarinfo)^ do
+                  with pregvarinfo(current_procdef.regvarinfo)^ do
                    if ((regvars[i]=nil) or (j>regvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxvarregs-1 downto i do
@@ -114,7 +114,7 @@ implementation
               { walk through all momentary register variables }
               for i:=1 to maxfpuvarregs do
                 begin
-                  with pregvarinfo(aktprocdef.regvarinfo)^ do
+                  with pregvarinfo(current_procdef.regvarinfo)^ do
                    if ((fpuregvars[i]=nil) or (j>fpuregvars_refs[i])) and (j>0) then
                      begin
                         for k:=maxfpuvarregs-1 downto i do
@@ -146,11 +146,12 @@ implementation
       { only if no asm is used }
       { and no try statement   }
       if (cs_regalloc in aktglobalswitches) and
-         ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+         not(pi_uses_asm in current_procinfo.flags) and
+         not(pi_uses_exceptions in current_procinfo.flags) then
         begin
           new(regvarinfo);
           fillchar(regvarinfo^,sizeof(regvarinfo^),0);
-          aktprocdef.regvarinfo := regvarinfo;
+          current_procdef.regvarinfo := regvarinfo;
           if (p.registers32<4) then
             begin
               parasym:=false;
@@ -184,7 +185,7 @@ implementation
                       { call by reference/const ? }
                       if (regvarinfo^.regvars[i].varspez in [vs_var,vs_out]) or
                          ((regvarinfo^.regvars[i].varspez=vs_const) and
-                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,aktprocdef.proccalloption)) then
+                           paramanager.push_addr_param(regvarinfo^.regvars[i].vartype.def,current_procdef.proccalloption)) then
                         begin
                            r.enum:=varregs[i];
                            regvarinfo^.regvars[i].reg:=r;
@@ -238,7 +239,7 @@ implementation
                 { with assigning registers                       }
                 if aktmaxfpuregisters=-1 then
                   begin
-                   if (procinfo.flags and pi_do_call)<>0 then
+                   if (pi_do_call in current_procinfo.flags) then
                      begin
                       for i:=maxfpuvarregs downto 2 do
                         regvarinfo^.fpuregvars[i]:=nil;
@@ -288,7 +289,7 @@ implementation
     begin
       if reg.enum>lastreg then
         internalerror(200301081);
-      regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
+      regvarinfo := pregvarinfo(current_procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
@@ -307,7 +308,7 @@ implementation
                       hr.offset:=-vsym.address+vsym.owner.address_fixup
                     else
                       hr.offset:=vsym.address+vsym.owner.address_fixup;
-                    hr.base:=procinfo.framepointer;
+                    hr.base:=current_procinfo.framepointer;
                     cg.a_load_reg_ref(asml,def_cgsize(vsym.vartype.def),vsym.reg,hr);
                   end;
                 asml.concat(tai_regalloc.dealloc(rg.makeregsize(reg,OS_INT)));
@@ -334,10 +335,10 @@ implementation
             hr.offset:=-vsym.address+vsym.owner.address_fixup
           else
             hr.offset:=vsym.address+vsym.owner.address_fixup;
-          hr.base:=procinfo.framepointer;
+          hr.base:=current_procinfo.framepointer;
           if (vsym.varspez in [vs_var,vs_out]) or
              ((vsym.varspez=vs_const) and
-               paramanager.push_addr_param(vsym.vartype.def,aktprocdef.proccalloption)) then
+               paramanager.push_addr_param(vsym.vartype.def,current_procdef.proccalloption)) then
             opsize := OS_ADDR
           else
             opsize := def_cgsize(vsym.vartype.def);
@@ -352,7 +353,7 @@ implementation
       regvarinfo: pregvarinfo;
       reg_spare : tregister;
     begin
-      regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
+      regvarinfo := pregvarinfo(current_procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       reg_spare := rg.makeregsize(reg,OS_INT);
@@ -369,7 +370,7 @@ implementation
       i: longint;
       regvarinfo: pregvarinfo;
     begin
-      regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
+      regvarinfo := pregvarinfo(current_procdef.regvarinfo);
       if not assigned(regvarinfo) then
         exit;
       for i := 1 to maxvarregs do
@@ -386,9 +387,10 @@ implementation
       r:Tregister;
     begin
       if (cs_regalloc in aktglobalswitches) and
-         ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
+         not(pi_uses_asm in current_procinfo.flags) and
+         not(pi_uses_exceptions in current_procinfo.flags) then
         begin
-          regvarinfo := pregvarinfo(aktprocdef.regvarinfo);
+          regvarinfo := pregvarinfo(current_procdef.regvarinfo);
           { can happen when inlining assembler procedures (JM) }
           if not assigned(regvarinfo) then
             exit;
@@ -466,11 +468,12 @@ implementation
       r,reg : tregister;
     begin
       { can happen when inlining assembler procedures (JM) }
-      if not assigned(aktprocdef.regvarinfo) then
+      if not assigned(current_procdef.regvarinfo) then
         exit;
       if (cs_regalloc in aktglobalswitches) and
-         ((procinfo.flags and (pi_uses_asm or pi_uses_exceptions))=0) then
-        with pregvarinfo(aktprocdef.regvarinfo)^ do
+         not(pi_uses_asm in current_procinfo.flags) and
+         not(pi_uses_exceptions in current_procinfo.flags) then
+        with pregvarinfo(current_procdef.regvarinfo)^ do
           begin
 {$ifdef i386}
             r.enum:=R_ST0;
@@ -497,7 +500,16 @@ end.
 
 {
   $Log$
-  Revision 1.46  2003-03-28 19:16:57  peter
+  Revision 1.47  2003-04-27 11:21:34  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.46  2003/03/28 19:16:57  peter
     * generic constructor working for i386
     * remove fixed self register
     * esi added as address register for i386

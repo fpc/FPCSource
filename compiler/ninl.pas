@@ -361,7 +361,7 @@ implementation
         { create a blocknode in which the successive write/read statements will be  }
         { put, since they belong together. Also create a dummy statement already to }
         { make inserting of additional statements easier                            }
-        newblock:=internalstatements(newstatement);
+        newblock:=internalstatements(newstatement,true);
 
         { if we don't have a filepara, create one containing the default }
         if not assigned(filepara) then
@@ -910,7 +910,7 @@ implementation
         { create the blocknode which will hold the generated statements + }
         { an initial dummy statement                                      }
 
-        newblock:=internalstatements(newstatement);
+        newblock:=internalstatements(newstatement,true);
 
         { do we need a temp for code? Yes, if no code specified, or if  }
         { code is not a 32bit parameter (we already checked whether the }
@@ -1388,7 +1388,7 @@ implementation
               in_sizeof_x:
                 begin
                   set_varstate(left,false);
-                  if paramanager.push_high_param(left.resulttype.def,aktprocdef.proccalloption) then
+                  if paramanager.push_high_param(left.resulttype.def,current_procdef.proccalloption) then
                    begin
                      hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
                      if assigned(hightree) then
@@ -2351,7 +2351,20 @@ begin
 end.
 {
   $Log$
-  Revision 1.107  2003-04-23 20:16:04  peter
+  Revision 1.109  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.108  2002/04/25 20:15:39  florian
+    * block nodes within expressions shouldn't release the used registers,
+      fixed using a flag till the new rg is ready
+
+  Revision 1.107  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors

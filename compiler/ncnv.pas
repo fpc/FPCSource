@@ -1126,7 +1126,7 @@ implementation
 
           te_convert_operator :
             begin
-              procinfo.flags:=procinfo.flags or pi_do_call;
+              include(current_procinfo.flags,pi_do_call);
               hp:=ccallnode.create(ccallparanode.create(left,nil),
                                    overloaded_operators[_assignment],nil,nil);
               { tell explicitly which def we must use !! (PM) }
@@ -2091,7 +2091,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.108  2003-04-23 20:16:04  peter
+  Revision 1.109  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.108  2003/04/23 20:16:04  peter
     + added currency support based on int64
     + is_64bit for use in cg units instead of is_64bitint
     * removed cgmessage from n386add, replace with internalerrors
@@ -2235,7 +2244,7 @@ end.
       functions was requested
 
   Revision 1.70  2002/08/17 09:23:36  florian
-    * first part of procinfo rewrite
+    * first part of current_procinfo rewrite
 
   Revision 1.69  2002/08/14 19:26:55  carl
     + generic int_to_real type conversion

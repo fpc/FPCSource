@@ -491,7 +491,7 @@ implementation
          oldprocdef : tprocdef;
          unitsym : tunitsym;
       begin
-         oldprocdef:=aktprocdef;
+         oldprocdef:=current_procdef;
          consume(_USES);
 {$ifdef DEBUG}
          test_symtablestack;
@@ -614,7 +614,7 @@ implementation
                 end;
               pu:=tused_unit(pu.next);
            end;
-          aktprocdef:=oldprocdef;
+          current_procdef:=oldprocdef;
       end;
 
 
@@ -707,12 +707,15 @@ implementation
       end;
 
 
-    function gen_main_procsym(const name:string;potype:tproctypeoption;st:tsymtable):tprocdef;
+    function create_main_proc(const name:string;potype:tproctypeoption;st:tsymtable):tprocdef;
       var
         stt : tsymtable;
         ps  : tprocsym;
         pd  : tprocdef;
       begin
+        { there should be no current_procinfo available }
+        if assigned(current_procinfo) then
+         internalerror(200304275);
         {Generate a procsym for main}
         make_ref:=false;
         { try to insert in in static symtable ! }
@@ -737,7 +740,29 @@ implementation
           symtable }
         pd.localst.free;
         pd.localst:=st;
-        gen_main_procsym:=pd;
+        { set procinfo and current_procdef }
+        current_procinfo:=cprocinfo.create(nil);
+        current_module.procinfo:=current_procinfo;
+        current_procinfo.procdef:=pd;
+        current_procdef:=pd;
+        { return procdef }
+        create_main_proc:=pd;
+      end;
+
+
+    procedure release_main_proc(pd:tprocdef);
+      begin
+        { this is a main proc, so there should be no parent }
+        if not(assigned(current_procinfo)) or
+           assigned(current_procinfo.parent) or
+           not(current_procinfo.procdef=pd) then
+         internalerror(200304276);
+        { remove procinfo }
+        current_module.procinfo:=nil;
+        current_procinfo.free;
+        current_procinfo:=nil;
+        { remove localst as it was replaced by staticsymtable }
+        pd.localst:=nil;
       end;
 
 
@@ -745,16 +770,10 @@ implementation
       var
         parasize : longint;
         nostackframe : boolean;
-        pd,
-        oldprocdef : tprocdef;
-        oldprocinfo : tprocinfo;
+        pd : tprocdef;
         oldexitlabel,
         oldexit2label : tasmlabel;
       begin
-        oldprocinfo:=procinfo;
-        oldprocdef:=aktprocdef;
-        oldexitlabel:=aktexitlabel;
-        oldexit2label:=aktexit2label;
         { update module flags }
         current_module.flags:=current_module.flags or flag;
         { now we can insert a cut }
@@ -764,23 +783,22 @@ implementation
         case flag of
           uf_init :
             begin
-              pd:=gen_main_procsym(current_module.modulename^+'_init',potype_unitinit,st);
+              pd:=create_main_proc(current_module.modulename^+'_init_implicit',potype_unitinit,st);
               pd.aliasnames.insert('INIT$$'+current_module.modulename^);
               pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
             end;
           uf_finalize :
             begin
-              pd:=gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
+              pd:=create_main_proc(current_module.modulename^+'_finalize_implicit',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
               pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
             end;
           else
             internalerror(200304253);
         end;
-        { set procinfo and aktprocdef }
-        procinfo:=voidprocpi;
-        procinfo.procdef:=pd;
-        aktprocdef:=pd;
+        { save labels }
+        oldexitlabel:=aktexitlabel;
+        oldexit2label:=aktexit2label;
         { generate a dummy function }
         parasize:=0;
         nostackframe:=false;
@@ -789,14 +807,10 @@ implementation
         genentrycode(list,true,0,parasize,nostackframe,false);
         genexitcode(list,parasize,nostackframe,false);
         list.convert_registers;
-        { cleanup }
-        pd.localst:=nil;
-        procinfo.procdef:=nil;
+        release_main_proc(pd);
         { restore }
         aktexitlabel:=oldexitlabel;
         aktexit2label:=oldexit2label;
-        aktprocdef:=oldprocdef;
-        procinfo:=oldprocinfo;
       end;
 
 
@@ -1029,15 +1043,11 @@ implementation
 //         Message1(parser_u_parsing_implementation,current_module.modulename^);
 
          { Compile the unit }
-         pd:=gen_main_procsym(current_module.modulename^+'_init',potype_unitinit,st);
+         pd:=create_main_proc(current_module.modulename^+'_init',potype_unitinit,st);
          pd.aliasnames.insert('INIT$$'+current_module.modulename^);
          pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_init');
-         procinfo:=voidprocpi;
-         procinfo.procdef:=pd;
          compile_proc_body(pd,true,false);
-         procinfo.procdef:=nil;
-         { avoid self recursive destructor call }
-         pd.localst:=nil;
+         release_main_proc(pd);
 
          { if the unit contains ansi/widestrings, initialization and
            finalization code must be forced }
@@ -1058,14 +1068,11 @@ implementation
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              pd:=gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
+              pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
               pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
-              procinfo:=voidprocpi;
-              procinfo.procdef:=pd;
               compile_proc_body(pd,true,false);
-              procinfo.procdef:=nil;
-              pd.localst:=nil;
+              release_main_proc(pd);
            end
          else if force_init_final then
            begin
@@ -1333,7 +1340,7 @@ implementation
            from the bootstrap code.}
          if islibrary then
           begin
-            pd:=gen_main_procsym(current_module.modulename^+'_main',potype_proginit,st);
+            pd:=create_main_proc(current_module.modulename^+'_main',potype_proginit,st);
             pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_main');
             { Win32 startup code needs a single name }
 //            if (target_info.system in [system_i386_win32,system_i386_wdosx]) then
@@ -1344,23 +1351,19 @@ implementation
           end
          else
           begin
-            pd:=gen_main_procsym('main',potype_proginit,st);
+            pd:=create_main_proc('main',potype_proginit,st);
             pd.aliasnames.insert('program_init');
             pd.aliasnames.insert('PASCALMAIN');
             pd.aliasnames.insert(target_info.cprefix+'main');
           end;
-         procinfo:=voidprocpi;
-         procinfo.procdef:=pd;
 {$IFDEF SPARC}
-         ProcInfo.After_Header;
+         current_procinfo.After_Header;
 {main function is declared as
   PROCEDURE main(ArgC:Integer;ArgV,EnvP:ARRAY OF PChar):Integer;CDECL;
 So, all parameters are passerd into registers in sparc architecture.}
 {$ENDIF SPARC}
          compile_proc_body(pd,true,false);
-         procinfo.procdef:=nil;
-         { remove localst, it's not needed anymore }
-         pd.localst:=nil;
+         release_main_proc(pd);
 
          { should we force unit initialization? }
          if tstaticsymtable(current_module.localsymtable).needs_init_final then
@@ -1395,13 +1398,11 @@ So, all parameters are passerd into registers in sparc architecture.}
               current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
-              pd:=gen_main_procsym(current_module.modulename^+'_finalize',potype_unitfinalize,st);
+              pd:=create_main_proc(current_module.modulename^+'_finalize',potype_unitfinalize,st);
               pd.aliasnames.insert('FINALIZE$$'+current_module.modulename^);
               pd.aliasnames.insert(target_info.cprefix+current_module.modulename^+'_finalize');
-              procinfo:=voidprocpi;
-              procinfo.procdef:=pd;
               compile_proc_body(pd,true,false);
-              procinfo.procdef:=nil;
+              release_main_proc(pd);
            end;
 
          { consume the last point }
@@ -1492,8 +1493,17 @@ So, all parameters are passerd into registers in sparc architecture.}
 end.
 {
   $Log$
-  Revision 1.102  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.103  2003-04-27 11:21:34  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.102  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

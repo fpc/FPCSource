@@ -246,7 +246,7 @@ procedure TCgSparc.a_call_reg(list:TAasmOutput;Reg:TRegister);
     if target_info.system=system_sparc_linux
     then
       list.concat(taicpu.op_none(A_NOP));
-    procinfo.flags:=procinfo.flags or pi_do_call;
+    include(current_procinfo.flags,pi_do_call);
  end;
 {********************** branch instructions ********************}
 procedure TCgSparc.a_jmp_always(List:TAasmOutput;l:TAsmLabel);
@@ -906,7 +906,7 @@ procedure TCgSparc.g_flags2reg(list:TAasmOutput;Size:TCgSize;CONST f:tresflags;r
   VAR
     ai:taicpu;
     r,hreg:tregister;
-    
+
   BEGIN
     r.enum:=R_PSR;
     hreg := rg.makeregsize(reg,OS_8);
@@ -1428,7 +1428,16 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.42  2003-03-16 20:45:45  mazen
+  Revision 1.43  2003-04-27 11:21:36  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.42  2003/03/16 20:45:45  mazen
   * fixing an LD operation without refernce in loading address parameters
 
   Revision 1.41  2003/03/10 21:59:54  mazen

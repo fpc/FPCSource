@@ -371,16 +371,14 @@ implementation
               begin
                  if tconstsym(symtableentry).consttyp=constresourcestring then
                    begin
-                      { we use ansistrings so no fast exit here }
-                      if assigned(procinfo) then
-                        procinfo.no_fast_exit:=true;
+                      include(current_procinfo.flags,pi_needs_implicit_finally);
                       expectloc:=LOC_CREFERENCE;
                    end;
               end;
             varsym :
               begin
                 if (symtable.symtabletype in [parasymtable,localsymtable]) and
-                   (aktprocdef.parast.symtablelevel>symtable.symtablelevel) then
+                   (current_procdef.parast.symtablelevel>symtable.symtablelevel) then
                   begin
                     { if the variable is in an other stackframe then we need
                       a register to dereference }
@@ -1129,8 +1127,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.89  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.90  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.89  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

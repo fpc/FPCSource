@@ -404,7 +404,7 @@ implementation
                    symtab:=twithsymtable.Create(obj,obj.symtable.symsearch);
                    withsymtable:=symtab;
                    if (p.nodetype=loadn) and
-                      (tloadnode(p).symtable=aktprocdef.localst) then
+                      (tloadnode(p).symtable=current_procdef.localst) then
                      twithsymtable(symtab).direct_with:=true;
                    twithsymtable(symtab).withrefnode:=p;
                    levelcount:=1;
@@ -414,7 +414,7 @@ implementation
                       symtab.next:=twithsymtable.create(obj,obj.symtable.symsearch);
                       symtab:=symtab.next;
                       if (p.nodetype=loadn) and
-                         (tloadnode(p).symtable=aktprocdef.localst) then
+                         (tloadnode(p).symtable=current_procdef.localst) then
                         twithsymtable(symtab).direct_with:=true;
                       twithsymtable(symtab).withrefnode:=p;
                       obj:=obj.childof;
@@ -429,7 +429,7 @@ implementation
                    levelcount:=1;
                    withsymtable:=twithsymtable.create(trecorddef(p.resulttype.def),symtab.symsearch);
                    if (p.nodetype=loadn) and
-                      (tloadnode(p).symtable=aktprocdef.localst) then
+                      (tloadnode(p).symtable=current_procdef.localst) then
                    twithsymtable(withsymtable).direct_with:=true;
                    twithsymtable(withsymtable).withrefnode:=p;
                    withsymtable.next:=symtablestack;
@@ -528,7 +528,7 @@ implementation
          oldaktexceptblock: integer;
 
       begin
-         procinfo.flags:=procinfo.flags or pi_uses_exceptions;
+         include(current_procinfo.flags,pi_uses_exceptions);
 
          p_default:=nil;
          p_specific:=nil;
@@ -739,11 +739,11 @@ implementation
              begin
                if not target_asm.allowdirect then
                  Message(parser_f_direct_assembler_not_allowed);
-               if (aktprocdef.proccalloption=pocall_inline) then
+               if (current_procdef.proccalloption=pocall_inline) then
                  Begin
                     Message1(parser_w_not_supported_for_inline,'direct asm');
                     Message(parser_w_inlining_disabled);
-                    aktprocdef.proccalloption:=pocall_fpccall;
+                    current_procdef.proccalloption:=pocall_fpccall;
                  End;
                asmstat:=tasmnode(radirect.assemble);
              end;
@@ -878,7 +878,7 @@ implementation
              code:=cnothingnode.create;
            _FAIL :
              begin
-                if (aktprocdef.proctypeoption<>potype_constructor) then
+                if (current_procdef.proctypeoption<>potype_constructor) then
                   Message(parser_e_fail_only_in_constructor);
                 consume(_FAIL);
                 code:=cfailnode.create;
@@ -1014,15 +1014,15 @@ implementation
         i : longint;
       begin
         { replace framepointer with stackpointer }
-        procinfo.framepointer.enum:=R_INTREGISTER;
-        procinfo.framepointer.number:=NR_STACK_POINTER_REG;
+        current_procinfo.framepointer.enum:=R_INTREGISTER;
+        current_procinfo.framepointer.number:=NR_STACK_POINTER_REG;
         { set the right value for parameters }
-        dec(aktprocdef.parast.address_fixup,pointer_size);
+        dec(current_procdef.parast.address_fixup,pointer_size);
         { replace all references to parameters in the instructions,
           the parameters can be identified by the parafixup option
           that is set. For normal user coded [ebp+4] this field is not
           set }
-        parafixup:=aktprocdef.parast.address_fixup;
+        parafixup:=current_procdef.parast.address_fixup;
         hp:=tai(p.p_asm.first);
         while assigned(hp) do
          begin
@@ -1073,13 +1073,13 @@ implementation
         p : tnode;
       begin
          { Rename the funcret so that recursive calls are possible }
-         if not is_void(aktprocdef.rettype.def) then
-           symtablestack.rename(aktprocdef.resultname,'$hiddenresult');
+         if not is_void(current_procdef.rettype.def) then
+           symtablestack.rename(current_procdef.resultname,'$hiddenresult');
 
          { force the asm statement }
          if token<>_ASM then
            consume(_ASM);
-         procinfo.Flags := procinfo.Flags Or pi_is_assembler;
+         include(current_procinfo.flags,pi_is_assembler);
          p:=_asm_statement;
 
          { set the framepointer to esp for assembler functions when the
@@ -1091,20 +1091,20 @@ implementation
            - target processor has optional frame pointer save
              (vm, i386, vm only currently)
          }
-         if (po_assembler in aktprocdef.procoptions) and
+         if (po_assembler in current_procdef.procoptions) and
 {$ifndef powerpc}
             { is this really necessary??? }
-            (aktprocdef.parast.datasize=0) and
+            (current_procdef.parast.datasize=0) and
 {$endif powerpc}
-            (aktprocdef.localst.datasize=aktprocdef.rettype.def.size) and
-            (aktprocdef.owner.symtabletype<>objectsymtable) and
-            (not assigned(aktprocdef.funcretsym) or
-             (tvarsym(aktprocdef.funcretsym).refcount<=1)) and
-            not(paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
+            (current_procdef.localst.datasize=current_procdef.rettype.def.size) and
+            (current_procdef.owner.symtabletype<>objectsymtable) and
+            (not assigned(current_procdef.funcretsym) or
+             (tvarsym(current_procdef.funcretsym).refcount<=1)) and
+            not(paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) then
             begin
                { we don't need to allocate space for the locals }
-               aktprocdef.localst.datasize:=0;
-               procinfo.firsttemp_offset:=0;
+               current_procdef.localst.datasize:=0;
+               current_procinfo.firsttemp_offset:=0;
                { only for cpus with different frame- and stack pointer the code must be changed }
                if (NR_STACK_POINTER_REG<>NR_FRAME_POINTER_REG)
 {$ifdef CHECKFORPUSH}
@@ -1117,9 +1117,9 @@ implementation
         { Flag the result as assigned when it is returned in a
           register.
         }
-        if assigned(aktprocdef.funcretsym) and
-           (not paramanager.ret_in_param(aktprocdef.rettype.def,aktprocdef.proccalloption)) then
-          tvarsym(aktprocdef.funcretsym).varstate:=vs_assigned;
+        if assigned(current_procdef.funcretsym) and
+           (not paramanager.ret_in_param(current_procdef.rettype.def,current_procdef.proccalloption)) then
+          tvarsym(current_procdef.funcretsym).varstate:=vs_assigned;
 
         { because the END is already read we need to get the
           last_endtoken_filepos here (PFV) }
@@ -1131,8 +1131,17 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2003-04-27 07:29:50  peter
-    * aktprocdef cleanup, aktprocdef is now always nil when parsing
+  Revision 1.94  2003-04-27 11:21:34  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.93  2003/04/27 07:29:50  peter
+    * current_procdef cleanup, current_procdef is now always nil when parsing
       a new procdef declaration
     * aktprocsym removed
     * lexlevel removed, use symtable.symtablelevel instead

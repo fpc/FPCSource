@@ -332,7 +332,7 @@ implementation
          { this is not allways true due to optimization }
          { but if we don't set this we get problems with optimizing self code }
          if tsetdef(right.resulttype.def).settype<>smallset then
-           procinfo.flags:=procinfo.flags or pi_do_call
+           include(current_procinfo.flags,pi_do_call)
          else
            begin
               { a smallset needs maybe an misc. register }
@@ -714,7 +714,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-04-25 08:25:26  daniel
+  Revision 1.41  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.40  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills
@@ -760,7 +769,7 @@ end.
       functions was requested
 
   Revision 1.31  2002/08/17 09:23:38  florian
-    * first part of procinfo rewrite
+    * first part of current_procinfo rewrite
 
   Revision 1.30  2002/07/23 13:19:40  jonas
     * fixed evaluation of expressions with empty sets that are calculated

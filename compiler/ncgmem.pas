@@ -350,7 +350,7 @@ implementation
       begin
          if (resulttype.def.deftype=classrefdef) or
             (is_class(resulttype.def) or
-             (po_staticmethod in aktprocdef.procoptions)) then
+             (po_staticmethod in current_procdef.procoptions)) then
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.g_load_self(exprasmlist);
@@ -397,7 +397,7 @@ implementation
 
                usetemp:=false;
                if (left.nodetype=loadn) and
-                  (tloadnode(left).symtable=aktprocdef.localst) then
+                  (tloadnode(left).symtable=current_procdef.localst) then
                  begin
                     { for locals use the local storage }
                     withreference:=left.location.reference;
@@ -434,7 +434,7 @@ implementation
                for i:=1 to tablecount do
                 begin
                   if (left.nodetype=loadn) and
-                     (tloadnode(left).symtable=aktprocdef.localst) then
+                     (tloadnode(left).symtable=current_procdef.localst) then
                     twithsymtable(symtable).direct_with:=true;
                   twithsymtable(symtable).withnode:=self;
                   symtable:=symtable.next;
@@ -471,13 +471,13 @@ implementation
                          '"with'+tostr(withlevel)+':'+tostr(symtablestack.getnewtypecount)+
                          '=*'+tstoreddef(left.resulttype.def).numberstring+'",'+
                          tostr(N_LSYM)+',0,0,'+tostr(withreference.offset))));
-                      mangled_length:=length(aktprocdef.mangledname);
+                      mangled_length:=length(current_procdef.mangledname);
                       getmem(pp,mangled_length+50);
                       strpcopy(pp,'192,0,0,'+withstartlabel.name);
                       if (target_info.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocdef.mangledname);
+                          strpcopy(strend(pp),current_procdef.mangledname);
                         end;
                       withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                     end;
@@ -499,7 +499,7 @@ implementation
                       if (target_info.use_function_relative_addresses) then
                         begin
                           strpcopy(strend(pp),'-');
-                          strpcopy(strend(pp),aktprocdef.mangledname);
+                          strpcopy(strend(pp),current_procdef.mangledname);
                         end;
                        withdebugList.concat(Tai_stabn.Create(strnew(pp)));
                        freemem(pp,mangled_length+50);
@@ -580,7 +580,7 @@ implementation
             is_array_of_const(left.resulttype.def) then
           begin
             { cdecl functions don't have high() so we can not check the range }
-            if not(aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+            if not(current_procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
              begin
                { Get high value }
                hightree:=load_high_value(tvarsym(tloadnode(left).symtableentry));
@@ -946,7 +946,16 @@ begin
 end.
 {
   $Log$
-  Revision 1.48  2003-04-22 23:50:22  peter
+  Revision 1.49  2003-04-27 11:21:33  peter
+    * aktprocdef renamed to current_procdef
+    * procinfo renamed to current_procinfo
+    * procinfo will now be stored in current_module so it can be
+      cleaned up properly
+    * gen_main_procsym changed to create_main_proc and release_main_proc
+      to also generate a tprocinfo structure
+    * fixed unit implicit initfinal
+
+  Revision 1.48  2003/04/22 23:50:22  peter
     * firstpass uses expectloc
     * checks if there are differences between the expectloc and
       location.loc from secondpass in EXTDEBUG
