@@ -266,6 +266,8 @@ implementation
 
 
     procedure first_string_to_string(var p : ptree);
+      var
+        hp : ptree;
       begin
          if pstringdef(p^.resulttype)^.string_typ<>
             pstringdef(p^.left^.resulttype)^.string_typ then
@@ -273,9 +275,12 @@ implementation
               if p^.left^.treetype=stringconstn then
                 begin
                    p^.left^.stringtype:=pstringdef(p^.resulttype)^.string_typ;
-                   { we don't have to do anything, the const }
-                   { node generates an ansistring           }
-                   p^.convtyp:=tc_equal;
+                   p^.left^.resulttype:=p^.resulttype;
+                   { remove typeconv node }
+                   hp:=p;
+                   p:=p^.left;
+                   putnode(hp);
+                   exit;
                 end
               else
                 procinfo.flags:=procinfo.flags or pi_do_call;
@@ -919,7 +924,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35.2.4  1999-06-28 00:33:50  pierre
+  Revision 1.35.2.5  1999-06-28 19:07:47  peter
+    * remove cstring->string typeconvs after updating cstringn
+
+  Revision 1.35.2.4  1999/06/28 00:33:50  pierre
    * better error position bug0269
 
   Revision 1.35.2.3  1999/06/17 12:51:48  pierre
