@@ -2217,85 +2217,59 @@ implementation
                 parasize:=aktprocsym.definition.parast.datasize+procinfo^.para_offset-8;
               nostackframe:=false;
               if stackframe<>0 then
-                  begin
-{$ifdef unused}
-                      if (cs_littlesize in aktglobalswitches) and (stackframe<=65535) then
-                          begin
-                              if (cs_check_stack in aktlocalswitches) and
-                                 not(target_info.target in [target_386_freebsd,
-                                                target_i386_linux,target_i386_win32]) then
-                                begin
-                                  emitinsertcall('FPC_STACKCHECK');
-                                  exprasmList.insert(Taicpu.Op_const(A_PUSH,S_L,stackframe));
-                                end;
-                              if cs_profile in aktmoduleswitches then
-                                genprofilecode;
-
-                            { %edi is already saved when pocdecl is used
-                              if ((target_info.target=target_linux) or (target_info.target=target_freebsd)) and
-                               ((aktprocsym.definition.options and poexports)<>0) then
-                                  exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EDI)); }
-                              { ATTENTION:
-                                never use ENTER in linux !!! (or freebsd MvdV)
-                                the stack page fault does not support it PM }
-                              exprasmList.insert(Taicpu.Op_const_const(A_ENTER,S_NO,stackframe,0)))
-                          end
-                      else
-{$endif unused}
-                          begin
+               begin
 {$ifndef NOTARGETWIN32}
-                            { windows guards only a few pages for stack growing, }
-                            { so we have to access every page first              }
-                            if (target_info.target=target_i386_win32) and
-                              (stackframe>=winstackpagesize) then
-                              begin
-                                  if stackframe div winstackpagesize<=5 then
-                                    begin
-                                       exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe-4,R_ESP));
-                                       for i:=1 to stackframe div winstackpagesize do
-                                         begin
-                                            hr:=new_reference(R_ESP,stackframe-i*winstackpagesize);
-                                            exprasmList.concat(Taicpu.op_const_ref(A_MOV,S_L,0,hr));
-                                         end;
-                                       exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
-                                    end
-                                  else
-                                    begin
-                                       getlabel(again);
-                                       getexplicitregister32(R_EDI);
-                                       exprasmList.concat(Taicpu.op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI));
-                                       emitlab(again);
-                                       exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP));
-                                       exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
-                                       exprasmList.concat(Taicpu.op_reg(A_DEC,S_L,R_EDI));
-                                       emitjmp(C_NZ,again);
-                                       ungetregister32(R_EDI);
-                                       exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP));
-                                    end
-                              end
-                            else
+                 { windows guards only a few pages for stack growing, }
+                 { so we have to access every page first              }
+                 if (target_info.target=target_i386_win32) and
+                    (stackframe>=winstackpagesize) then
+                   begin
+                     if stackframe div winstackpagesize<=5 then
+                       begin
+                          exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe-4,R_ESP));
+                          for i:=1 to stackframe div winstackpagesize do
+                            begin
+                               hr:=new_reference(R_ESP,stackframe-i*winstackpagesize);
+                               exprasmList.concat(Taicpu.op_const_ref(A_MOV,S_L,0,hr));
+                            end;
+                          exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+                       end
+                     else
+                       begin
+                          getlabel(again);
+                          getexplicitregister32(R_EDI);
+                          exprasmList.concat(Taicpu.op_const_reg(A_MOV,S_L,stackframe div winstackpagesize,R_EDI));
+                          emitlab(again);
+                          exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,winstackpagesize-4,R_ESP));
+                          exprasmList.concat(Taicpu.op_reg(A_PUSH,S_L,R_EAX));
+                          exprasmList.concat(Taicpu.op_reg(A_DEC,S_L,R_EDI));
+                          emitjmp(C_NZ,again);
+                          ungetregister32(R_EDI);
+                          exprasmList.concat(Taicpu.op_const_reg(A_SUB,S_L,stackframe mod winstackpagesize,R_ESP));
+                       end
+                   end
+                 else
 {$endif NOTARGETWIN32}
-                              exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe,R_ESP));
-                            if (cs_check_stack in aktlocalswitches) and
-                              not(target_info.target in [target_i386_freebsd,
-                                         target_i386_linux,target_i386_win32]) then
-                              begin
-                                 emitinsertcall('FPC_STACKCHECK');
-                                 exprasmList.insert(Taicpu.Op_const(A_PUSH,S_L,stackframe));
-                              end;
-                            if cs_profile in aktmoduleswitches then
-                              genprofilecode;
-                            exprasmList.insert(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
-                            exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
-                          end;
-                  end { endif stackframe <> 0 }
+                   exprasmList.insert(Taicpu.Op_const_reg(A_SUB,S_L,stackframe,R_ESP));
+                 if (cs_check_stack in aktlocalswitches) and
+                   not(target_info.target in [target_i386_freebsd,target_i386_netbsd,
+                                              target_i386_linux,target_i386_win32]) then
+                   begin
+                      emitinsertcall('FPC_STACKCHECK');
+                      exprasmList.insert(Taicpu.Op_const(A_PUSH,S_L,stackframe));
+                   end;
+                 if cs_profile in aktmoduleswitches then
+                   genprofilecode;
+                 exprasmList.insert(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
+                 exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
+               end { endif stackframe <> 0 }
               else
-                 begin
-                   if cs_profile in aktmoduleswitches then
-                     genprofilecode;
-                   exprasmList.insert(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
-                   exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
-                 end;
+               begin
+                 if cs_profile in aktmoduleswitches then
+                   genprofilecode;
+                 exprasmList.insert(Taicpu.Op_reg_reg(A_MOV,S_L,R_ESP,R_EBP));
+                 exprasmList.insert(Taicpu.Op_reg(A_PUSH,S_L,R_EBP));
+               end;
           end;
 
       if (po_interrupt in aktprocsym.definition.procoptions) then
@@ -3006,7 +2980,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.28  2001-08-07 18:47:13  peter
+  Revision 1.29  2001-08-12 20:23:02  peter
+    * netbsd doesn't use stackchecking
+
+  Revision 1.28  2001/08/07 18:47:13  peter
     * merged netbsd start
     * profile for win32
 
