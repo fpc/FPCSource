@@ -82,16 +82,7 @@ begin
   if not debugger^.debuggee_started then
     Debugger^.StartTrace
   else
-   Debugger^.TraceStep;
-  { I think we should not try to go deeper !
-    if the source is not found PM }
-  While (Debugger^.InvalidSourceLine and
-         Debugger^.debuggee_started and
-         not Debugger^.error) do
-    begin
-      Inc(Debugger^.HiddenStepsCount);
-      Debugger^.TraceNext;
-    end;
+   Debugger^.UntilReturn;
   Debugger^.AnnotateError;
 {$else NODEBUG}
   NoDebugger;
@@ -238,7 +229,10 @@ end;
 
 {
   $Log$
-  Revision 1.18  1999-08-16 18:25:23  peter
+  Revision 1.19  1999-08-31 16:20:37  pierre
+   * DoContUntilReturn call Step instead of UnitlReturn
+
+  Revision 1.18  1999/08/16 18:25:23  peter
     * Adjusting the selection when the editor didn't contain any line.
     * Reserved word recognition redesigned, but this didn't affect the overall
       syntax highlight speed remarkably (at least not on my Amd-K6/350).
