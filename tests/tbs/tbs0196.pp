@@ -1,4 +1,4 @@
-{$OPT= -So}
+{ $OPT= -So }
 Unit tbs0196;
 interface
 
