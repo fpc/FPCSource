@@ -571,14 +571,11 @@ implementation
               OS_32,
               OS_S32 :
                 begin
-                  if reg1<>reg2 then
-                    begin
-                      instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-                      list.Concat(instr);
-                      { Notify the register allocator that we have written a move instruction so
-                        it can try to eliminate it. }
-                      add_move_instruction(instr);
-                    end;
+                  instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+                  list.Concat(instr);
+                  { Notify the register allocator that we have written a move instruction so
+                   it can try to eliminate it. }
+                  add_move_instruction(instr);
                 end;
               OS_S8 :
                 begin
@@ -597,14 +594,11 @@ implementation
         else
           begin
             { same size, only a register mov required }
-            if reg1<>reg2 then
-              begin
-                instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
-                list.Concat(instr);
-                { Notify the register allocator that we have written a move instruction so
-                  it can try to eliminate it. }
-                add_move_instruction(instr);
-              end;
+            instr:=taicpu.op_reg_reg(A_MOV,reg1,reg2);
+            list.Concat(instr);
+            { Notify the register allocator that we have written a move instruction so
+              it can try to eliminate it. }
+            add_move_instruction(instr);
           end;
       end;
 
@@ -1233,7 +1227,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2004-09-21 17:25:13  peter
+  Revision 1.88  2004-09-21 20:33:00  peter
+    * don't remove MOV reg1,reg1 it is needed for the RA
+
+  Revision 1.87  2004/09/21 17:25:13  peter
     * paraloc branch merged
 
   Revision 1.86.4.5  2004/09/20 20:43:15  peter
