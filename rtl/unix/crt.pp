@@ -1652,7 +1652,10 @@ Finalization
 End.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:47  michael
+  Revision 1.2  2000-09-18 13:14:50  marco
+   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+
+  Revision 1.2  2000/07/13 11:33:47  michael
   + removed logs
  
 }

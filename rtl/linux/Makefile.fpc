@@ -24,7 +24,7 @@ unitsubdir=rtl
 
 [dirs]
 fpcdir=.
-incdir=$(INC) $(PROCINC)
+incdir=$(INC) $(PROCINC) $(UNIXINC)
 targetdir=.
 
 [libs]
@@ -37,11 +37,11 @@ libunits=$(SYSTEMUNIT) objpas strings \
       cpu mmx getopts heaptrc \
       errors sockets ipc dl dynlibs varutils
 
-
 [presettings]
 RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
+UNIXINC=$(RTL)/unix
 
 UNITPREFIX=rtl
 
@@ -60,7 +60,6 @@ SYSTEMUNIT=syslinux
 ifndef USELIBGGI
 USELIBGGI=NO
 endif
-
 
 [postsettings]
 SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
@@ -82,7 +81,7 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
 
 [rules]
-vpath %$(PASEXT) $(INC) $(PROCINC)
+vpath %$(PASEXT) $(INC) $(PROCINC) $(UNIXINC)
 
 #
 # Loaders
@@ -124,14 +123,14 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 #
 
 linux$(PPUEXT) : linux.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
-                 syscalls.inc systypes.inc sysconst.inc timezone.inc $(SYSTEMPPU) \
-                 linsysca.inc
+                 syscalls.inc systypes.inc sysconst.inc $(UNIXINC)/timezone.inc $(SYSTEMPPU) \
+                 $(UNIXINC)/linsysca.inc
 
 ports$(PPUEXT) : ports.pp linux$(PPUEXT) objpas$(PPUEXT)
 
 dl$(PPUEXT) : dl.pp
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pp dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pp $(UNIXINC)/dynlibs.inc dl$(PPUEXT) objpas$(PPUEXT)
 
 
 #
@@ -143,7 +142,7 @@ dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 
-objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+objects$(PPUEXT) : $(INC)/objects.pp $(UNIXINC)/objinc.inc $(SYSTEMPPU)
 
 printer$(PPUEXT) : printer.pp $(INC)/textrec.inc linux$(PPUEXT) $(SYSTEMPPU)
 
@@ -154,12 +153,12 @@ include $(GRAPHDIR)/makefile.inc
 GRAPHINCDEPS=$(addprefix $(GRAPHDIR)/,$(GRAPHINCNAMES))
 
 graph$(PPUEXT) : graph.pp linux$(PPUEXT) $(SYSTEMPPU) \
-                 $(GRAPHINCDEPS) vgagraph16.inc
-        $(COMPILER) -I$(GRAPHDIR) graph.pp $(REDIR)
+                 $(GRAPHINCDEPS) $(UNIXINC)/vgagraph16.inc
+        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/graph.pp $(REDIR)
 
-ggigraph$(PPUEXT) : ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
+ggigraph$(PPUEXT) : $(UNIXINC)/ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
                  $(GRAPHINCDEPS)
-        $(COMPILER) -I$(GRAPHDIR) ggigraph.pp $(REDIR)
+        $(COMPILER) -I$(GRAPHDIR) $(UNIXINC)/ggigraph.pp $(REDIR)
 
 #
 # Delphi Compatible Units
@@ -167,7 +166,7 @@ ggigraph$(PPUEXT) : ggigraph.pp linux$(PPUEXT) $(SYSTEMPPU) \
 
 sysutils$(PPUEXT) : sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
                     objpas$(PPUEXT) linux$(PPUEXT)
-        $(COMPILER) -I$(OBJPASDIR) sysutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/sysutils.pp $(REDIR)
 
 typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
         $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
@@ -180,7 +179,7 @@ gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
 
 varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
                     $(OBJPASDIR)/varutilh.inc varutils.pp
-        $(COMPILER) -I$(OBJPASDIR) varutils.pp $(REDIR)
+        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp $(REDIR)
 
 #
 # Other system-independent RTL Units

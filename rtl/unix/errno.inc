@@ -144,7 +144,10 @@ Sys_EDQUOT	= 122;	{ Quota exceeded }
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:48  michael
+  Revision 1.2  2000-09-18 13:14:50  marco
+   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+
+  Revision 1.2  2000/07/13 11:33:48  michael
   + removed logs
  
 }

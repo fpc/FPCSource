@@ -372,7 +372,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-09-12 08:51:43  marco
+  Revision 1.2  2000-09-18 13:14:50  marco
+   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+
+  Revision 1.3  2000/09/12 08:51:43  marco
    * fixed some small problems left from merging. (waitpid has now last param longint)
 
   Revision 1.2  2000/07/13 11:33:48  michael

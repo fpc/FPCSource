@@ -262,7 +262,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-09-11 14:05:31  marco
+  Revision 1.2  2000-09-18 13:14:50  marco
+   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+
+  Revision 1.2  2000/09/11 14:05:31  marco
    * FreeBSD support and removed old signalhandling
 
 }

@@ -56,7 +56,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2000-08-18 19:15:34  michael
+  Revision 1.1  2000-09-18 13:14:50  marco
+   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+
+  Revision 1.1  2000/08/18 19:15:34  michael
   + Implemented loading of dynamical libraries
 
 }

@@ -40,7 +40,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2000-08-29 18:20:13  michael
+  Revision 1.1  2000-09-18 13:14:51  marco
+   * Global Linux +bsd to (rtl/freebsd rtl/unix rtl/linux structure)
+
+  Revision 1.1  2000/08/29 18:20:13  michael
   + new include files
 
 }
