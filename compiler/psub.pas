@@ -632,6 +632,8 @@ implementation
         { firstpass everything }
         flowcontrol:=[];
         do_firstpass(code);
+        if code.registersfpu>0 then
+          include(current_procinfo.flags,pi_uses_fpu);
 
         { only do secondpass if there are no errors }
         if ErrorCount=0 then
@@ -1334,7 +1336,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.179  2003-12-16 22:36:19  florian
+  Revision 1.180  2003-12-19 22:08:44  daniel
+    * Some work to restore the MMX capabilities
+
+  Revision 1.179  2003/12/16 22:36:19  florian
     * forgot a commit
 
   Revision 1.178  2003/12/16 21:29:24  florian

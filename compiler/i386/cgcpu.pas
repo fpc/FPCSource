@@ -61,16 +61,41 @@ unit cgcpu;
 
 
     class function tcg386.reg_cgsize(const reg: tregister): tcgsize;
-      const
+
+    const subreg2cgsize:array[Tsubregister] of Tcgsize =
+          (OS_NO,OS_8,OS_8,OS_16,OS_32,OS_64,OS_NO);
+
+    begin
+      case getregtype(reg) of
+        R_INTREGISTER :
+          reg_cgsize:=subreg2cgsize[getsubreg(reg)];
+        R_FPUREGISTER :
+          reg_cgsize:=OS_F80;
+        R_MMXREGISTER,
+        R_MMREGISTER :
+          reg_cgsize:=OS_M64;
+        R_SPECIALREGISTER :
+          case reg of
+            NR_CS,NR_DS,NR_ES,NR_SS,NR_FS,NR_GS:
+              reg_cgsize:=OS_16
+            else
+              reg_cgsize:=OS_32
+          end
+        else
+            internalerror(200303181);
+        end;
+      end;
+
+{      const
         opsize_2_cgsize: array[topsize] of tcgsize = (OS_NO,
           OS_8,OS_16,OS_32,OS_NO,OS_NO,OS_NO,
           OS_32,OS_64,OS_64,
-          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_NO,OS_NO,
+          OS_F32,OS_F64,OS_F80,OS_F32,OS_F64,OS_M64,OS_NO,
           OS_NO,OS_NO,OS_NO
         );
       begin
         result := opsize_2_cgsize[reg2opsize(reg)];
-      end;
+      end;}
 
 
 { ************* 64bit operations ************ }
@@ -207,7 +232,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.40  2003-10-10 17:48:14  peter
+  Revision 1.41  2003-12-19 22:08:44  daniel
+    * Some work to restore the MMX capabilities
+
+  Revision 1.40  2003/10/10 17:48:14  peter
     * old trgobj moved to x86/rgcpu and renamed to trgx86fpu
     * tregisteralloctor renamed to trgobj
     * removed rgobj from a lot of units

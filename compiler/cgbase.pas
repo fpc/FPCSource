@@ -165,6 +165,10 @@ interface
       end;
 {$endif cpu64bit}
 
+      Tregistermmxset = packed record
+        reg0,reg1,reg2,reg3:Tregister
+      end;
+
       { Set type definition for registers }
       tcpuregisterset = set of byte;
       tsuperregisterset = array[byte] of set of byte;
@@ -574,7 +578,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.79  2003-12-15 21:25:48  peter
+  Revision 1.80  2003-12-19 22:08:44  daniel
+    * Some work to restore the MMX capabilities
+
+  Revision 1.79  2003/12/15 21:25:48  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

@@ -270,7 +270,11 @@ uses
                 4 : (register64 : tregister64);
               );
             { it's only for better handling }
-            LOC_MMXREGISTER,LOC_CMMXREGISTER : (mmxreg : tregister);
+            LOC_MMXREGISTER,LOC_CMMXREGISTER : (
+              case longint of
+              0: (mmxreg : tregister);
+              1: (mmxregset : Tregistermmxset);
+            );
       end;
 
       tlocation = packed record
@@ -415,6 +419,8 @@ implementation
             cgsize2subreg:=R_SUBD;
           OS_64,OS_S64:
             cgsize2subreg:=R_SUBQ;
+          OS_M64:
+            cgsize2subreg:=R_SUBNONE;
           else
             internalerror(200301231);
         end;
@@ -526,7 +532,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2003-12-15 21:25:49  peter
+  Revision 1.32  2003-12-19 22:08:44  daniel
+    * Some work to restore the MMX capabilities
+
+  Revision 1.31  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

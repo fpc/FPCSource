@@ -40,7 +40,9 @@ unit cgx86;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        function  getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function getfpuregister(list:Taasmoutput;size:Tcgsize):Tregister;override;
+        function getmmxregister(list:Taasmoutput):Tregister;
+
         procedure getexplicitregister(list:Taasmoutput;r:Tregister);override;
         procedure ungetregister(list:Taasmoutput;r:Tregister);override;
         procedure allocexplicitregisters(list:Taasmoutput;rt:Tregistertype;r:Tcpuregisterset);override;
@@ -172,6 +174,7 @@ unit cgx86;
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP,RS_EBX])
         else
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_EBX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP]);
+        rg[R_MMXREGISTER]:=trgcpu.create(R_MMXREGISTER,R_SUBNONE,[RS_MM0,RS_MM1,RS_MM2,RS_MM3,RS_MM4,RS_MM5,RS_MM6,RS_MM7],first_sse_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,[RS_MM0,RS_MM1,RS_MM2,RS_MM3,RS_MM4,RS_MM5,RS_MM6,RS_MM7],first_sse_imreg,[]);
         rgfpu:=Trgx86fpu.create;
       end;
@@ -183,6 +186,8 @@ unit cgx86;
         rg[R_INTREGISTER]:=nil;
         rg[R_MMREGISTER].free;
         rg[R_MMREGISTER]:=nil;
+        rg[R_MMXREGISTER].free;
+        rg[R_MMXREGISTER]:=nil;
         rgfpu.free;
       end;
 
@@ -192,6 +197,13 @@ unit cgx86;
         result:=rgfpu.getregisterfpu(list);
       end;
 
+    function Tcgx86.getmmxregister(list:Taasmoutput):Tregister;
+
+    begin
+      if not assigned(rg[R_MMXREGISTER]) then
+        internalerror(200312124);
+      result:=rg[R_MMXREGISTER].getregister(list,R_SUBNONE);
+    end;
 
     procedure Tcgx86.getexplicitregister(list:Taasmoutput;r:Tregister);
       begin
@@ -1142,99 +1154,161 @@ unit cgx86;
 
     procedure Tcgx86.g_concatcopy(list:Taasmoutput;const source,dest:Treference;
                                   len:aword;delsource,loadref:boolean);
+
+    type  copymode=(copy_move,copy_mmx,copy_string);
+
     var srcref,dstref:Treference;
-        r:Tregister;
+        r,r0,r1,r2,r3:Tregister;
         helpsize:aword;
         copysize:byte;
         cgsize:Tcgsize;
+        cm:copymode;
 
     begin
+      cm:=copy_move;
       helpsize:=12;
       if cs_littlesize in aktglobalswitches then
         helpsize:=8;
-      if not loadref and (len<=helpsize) then
-        begin
-          dstref:=dest;
-          srcref:=source;
-          copysize:=4;
-          cgsize:=OS_32;
-          while len<>0 do
-            begin
-              if len<2 then
-                begin
-                  copysize:=1;
-                  cgsize:=OS_8;
-                end
-              else if len<4 then
-                begin
-                  copysize:=2;
-                  cgsize:=OS_16;
-                end;
-              dec(len,copysize);
-              if (len=0) and delsource then
-                reference_release(list,source);
-              r:=getintregister(list,cgsize);
-              a_load_ref_reg(list,cgsize,cgsize,srcref,r);
-              ungetregister(list,r);
-              a_load_reg_ref(list,cgsize,cgsize,r,dstref);
-              inc(srcref.offset,copysize);
-              inc(dstref.offset,copysize);
-            end;
-        end
-      else
-        begin
-          getexplicitregister(list,NR_EDI);
-          a_loadaddr_ref_reg(list,dest,NR_EDI);
-          getexplicitregister(list,NR_ESI);
-          if loadref then
-            a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,NR_ESI)
-          else
-            begin
-              a_loadaddr_ref_reg(list,source,NR_ESI);
-              if delsource then
-                begin
-                  srcref:=source;
-                  { Don't release ESI register yet, it's needed
-                    by the movsl }
-                  if (srcref.base=NR_ESI) then
-                    srcref.base:=NR_NO
-                  else if (srcref.index=NR_ESI) then
-                    srcref.index:=NR_NO;
-                  reference_release(list,srcref);
-                end;
-            end;
-
-          getexplicitregister(list,NR_ECX);
-
-          list.concat(Taicpu.op_none(A_CLD,S_NO));
-          if cs_littlesize in aktglobalswitches  then
-            begin
-              a_load_const_reg(list,OS_INT,len,NR_ECX);
-              list.concat(Taicpu.op_none(A_REP,S_NO));
-              list.concat(Taicpu.op_none(A_MOVSB,S_NO));
-            end
-          else
-            begin
-              helpsize:=len shr 2;
-              len:=len and 3;
-              if helpsize>1 then
-                begin
-                  a_load_const_reg(list,OS_INT,helpsize,NR_ECX);
-                  list.concat(Taicpu.op_none(A_REP,S_NO));
-                end;
-              if helpsize>0 then
-                list.concat(Taicpu.op_none(A_MOVSD,S_NO));
-              if len>1 then
-                begin
-                  dec(len,2);
-                  list.concat(Taicpu.op_none(A_MOVSW,S_NO));
-                end;
-              if len=1 then
-                list.concat(Taicpu.op_none(A_MOVSB,S_NO));
+      if (cs_mmx in aktlocalswitches) and
+         not(pi_uses_fpu in current_procinfo.flags) and
+         ((len=8) or (len=16) or (len=24) or (len=32)) then
+        cm:=copy_mmx;
+      if (cs_littlesize in aktglobalswitches) and 
+         (len>helpsize) and
+         not((len<=16) and (cm=copy_mmx)) then
+        cm:=copy_string;
+      if loadref then
+        cm:=copy_string;
+      case cm of
+        copy_move:
+          begin
+            dstref:=dest;
+            srcref:=source;
+            copysize:=4;
+            cgsize:=OS_32;
+            while len<>0 do
+              begin
+                if len<2 then
+                  begin
+                    copysize:=1;
+                    cgsize:=OS_8;
+                  end
+                else if len<4 then
+                  begin
+                    copysize:=2;
+                    cgsize:=OS_16;
+                  end;
+                dec(len,copysize);
+                if (len=0) and delsource then
+                  reference_release(list,source);
+                r:=getintregister(list,cgsize);
+                a_load_ref_reg(list,cgsize,cgsize,srcref,r);
+                ungetregister(list,r);
+                a_load_reg_ref(list,cgsize,cgsize,r,dstref);
+                inc(srcref.offset,copysize);
+                inc(dstref.offset,copysize);
               end;
-          ungetregister(list,NR_ECX);
-          ungetregister(list,NR_ESI);
-          ungetregister(list,NR_EDI);
+          end;
+        copy_mmx:
+          begin
+            dstref:=dest;
+            srcref:=source;
+            r0:=getmmxregister(list);
+            a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r0,nil);
+            if len>=16 then
+              begin
+                inc(srcref.offset,8);
+                r1:=getmmxregister(list);
+                a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r1,nil);
+              end;
+            if len>=24 then
+              begin
+                inc(srcref.offset,8);
+                r2:=getmmxregister(list);
+                a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r2,nil);
+              end;
+            if len>=32 then
+              begin
+                inc(srcref.offset,8);
+                r3:=getmmxregister(list);
+                a_loadmm_ref_reg(list,OS_M64,OS_M64,srcref,r3,nil);
+              end;
+            a_loadmm_reg_ref(list,OS_M64,OS_M64,r0,dstref,nil);
+            ungetregister(list,r0);
+            if len>=16 then
+              begin
+                inc(dstref.offset,8);
+                a_loadmm_reg_ref(list,OS_M64,OS_M64,r1,dstref,nil);
+                ungetregister(list,r1);
+              end;
+            if len>=24 then
+              begin
+                inc(dstref.offset,8);
+                a_loadmm_reg_ref(list,OS_M64,OS_M64,r2,dstref,nil);
+                ungetregister(list,r2);
+              end;
+            if len>=32 then
+              begin
+                inc(dstref.offset,8);
+                a_loadmm_reg_ref(list,OS_M64,OS_M64,r3,dstref,nil);
+                ungetregister(list,r3);
+              end;
+          end
+        else {copy_string, should be a good fallback in case of unhandled}
+          begin
+            getexplicitregister(list,NR_EDI);
+            a_loadaddr_ref_reg(list,dest,NR_EDI);
+            getexplicitregister(list,NR_ESI);
+            if loadref then
+              a_load_ref_reg(list,OS_ADDR,OS_ADDR,source,NR_ESI)
+            else
+              begin
+                a_loadaddr_ref_reg(list,source,NR_ESI);
+                if delsource then
+                  begin
+                    srcref:=source;
+                    { Don't release ESI register yet, it's needed
+                      by the movsl }
+                    if (srcref.base=NR_ESI) then
+                      srcref.base:=NR_NO
+                    else if (srcref.index=NR_ESI) then
+                      srcref.index:=NR_NO;
+                    reference_release(list,srcref);
+                  end;
+              end;
+
+            getexplicitregister(list,NR_ECX);
+
+            list.concat(Taicpu.op_none(A_CLD,S_NO));
+            if cs_littlesize in aktglobalswitches  then
+              begin
+                a_load_const_reg(list,OS_INT,len,NR_ECX);
+                list.concat(Taicpu.op_none(A_REP,S_NO));
+                list.concat(Taicpu.op_none(A_MOVSB,S_NO));
+              end
+            else
+              begin
+                helpsize:=len shr 2;
+                len:=len and 3;
+                if helpsize>1 then
+                  begin
+                    a_load_const_reg(list,OS_INT,helpsize,NR_ECX);
+                    list.concat(Taicpu.op_none(A_REP,S_NO));
+                  end;
+                if helpsize>0 then
+                  list.concat(Taicpu.op_none(A_MOVSD,S_NO));
+                if len>1 then
+                  begin
+                    dec(len,2);
+                    list.concat(Taicpu.op_none(A_MOVSW,S_NO));
+                  end;
+                if len=1 then
+                  list.concat(Taicpu.op_none(A_MOVSB,S_NO));
+                end;
+            ungetregister(list,NR_ECX);
+            ungetregister(list,NR_ESI);
+            ungetregister(list,NR_EDI);
+          end;
         end;
       if delsource then
         tg.ungetiftemp(list,source);
@@ -1528,6 +1602,8 @@ unit cgx86;
         list.concat(tai_regalloc.dealloc(NR_EBX));
       list.concat(tai_regalloc.dealloc(NR_EBP));
       list.concat(Taicpu.op_none(A_LEAVE,S_NO));
+      if assigned(rg[R_MMXREGISTER]) and (rg[R_MMXREGISTER].uses_registers) then
+        list.concat(Taicpu.op_none(A_EMMS,S_NO));
     end;
 
 
@@ -1682,7 +1758,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.91  2003-12-15 21:25:49  peter
+  Revision 1.92  2003-12-19 22:08:44  daniel
+    * Some work to restore the MMX capabilities
+
+  Revision 1.91  2003/12/15 21:25:49  peter
     * reg allocations for imaginary register are now inserted just
       before reg allocation
     * tregister changed to enum to allow compile time check

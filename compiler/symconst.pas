@@ -329,7 +329,9 @@ type
     {# procedure is declared as @var(assembler), don't optimize}
     pi_is_assembler,
     {# procedure contains data which needs to be finalized }
-    pi_needs_implicit_finally
+    pi_needs_implicit_finally,
+    {# procedure uses fpu}
+    pi_uses_fpu
   );
   tprocinfoflags=set of tprocinfoflag;
 
@@ -393,7 +395,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.72  2003-12-16 21:29:24  florian
+  Revision 1.73  2003-12-19 22:08:44  daniel
+    * Some work to restore the MMX capabilities
+
+  Revision 1.72  2003/12/16 21:29:24  florian
     + inlined procedures inherit procinfo flags
 
   Revision 1.71  2003/11/23 17:05:16  peter
