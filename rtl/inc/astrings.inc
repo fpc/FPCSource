@@ -159,7 +159,12 @@ Var
   Size,Location : Longint;
 
 begin
-  DisposeAnsiString(S3);
+  if S3<>nil then
+    begin
+       AnsiStr_Decr_Ref(S3);
+       S3:=nil;
+    end;
+
   if (S1=Nil) then
     AnsiStr_Assign(S3,S2)
   else
@@ -250,6 +255,11 @@ Procedure PChar_To_AnsiStr(var a : ansistring;p : pchar);[Public,Alias : 'FPC_PC
 Var
   L : Longint;
 begin
+  if pointer(a)<>nil then
+    begin
+       AnsiStr_Decr_Ref(Pointer(a));
+       pointer(a):=nil;
+    end;
   if (not assigned(p)) or (p[0]=#0) Then
     Pointer(a):=nil
   else
@@ -770,7 +780,10 @@ end;
 
 {
   $Log$
-  Revision 1.24  1999-05-17 21:52:35  florian
+  Revision 1.25  1999-05-17 22:41:24  florian
+    * small fixes for the new ansistring temp. management
+
+  Revision 1.24  1999/05/17 21:52:35  florian
     * most of the Object Pascal stuff moved to the system unit
 
   Revision 1.23  1999/05/06 09:05:11  peter
