@@ -177,7 +177,11 @@ type
   PSignalHandler  = ^SignalHandler;
   SignalRestorer  = Procedure;cdecl;
   PSignalRestorer = ^SignalRestorer;
+{$ifdef CPUARM}  
+  SigActionHandler = procedure(Sig: longint; _a2,_a3,_a4 : dword; SigContext: PSigInfo; uContext : PuContext); cdecl;
+{$else}  
   SigActionHandler = procedure(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+{$endif}
 
 {$ifdef CPUARM}
 {$define NEWSIGNAL}
@@ -204,7 +208,10 @@ type
 
 {
   $Log$
-  Revision 1.23  2005-01-30 18:01:15  peter
+  Revision 1.24  2005-02-05 22:45:54  peter
+    * sigactionhandler fixed for arm
+
+  Revision 1.23  2005/01/30 18:01:15  peter
     * signal cleanup for linux
     * sigactionhandler instead of tsigaction for bsds
     * sigcontext moved to cpu dir
