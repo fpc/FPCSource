@@ -27,6 +27,7 @@ type
   { normally the array shall be maxlongint big, but that will confuse
     the debugger }
   fpc_big_chararray = array[0..1023] of char;
+  fpc_big_widechararray = array[0..1023] of widechar;
   fpc_small_set = longint;
   fpc_normal_set = array[0..7] of longint;
 
@@ -160,6 +161,12 @@ Function fpc_Char_To_WideStr(const c : WideChar): WideString; compilerproc;
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char): WideString; compilerproc;
 function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray; compilerproc;
+Function fpc_WideCharArray_To_ShortStr(const arr: array of widechar): shortstring; compilerproc;
+Function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray; compilerproc;
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar): AnsiString; compilerproc;
+Function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray; compilerproc;
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar): WideString; compilerproc;
+Function fpc_widestr_to_widechararray(arraysize: SizeInt; const src: WideString): fpc_big_widechararray; compilerproc;
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
 Procedure fpc_WideStr_CheckRange(len,index : SizeInt); compilerproc;
@@ -349,7 +356,10 @@ function fpc_qword_to_double(q: qword): double; compilerproc;
 
 {
   $Log$
-  Revision 1.62  2004-12-05 11:49:06  florian
+  Revision 1.63  2005-01-06 13:39:59  florian
+    * widecharray patch from Peter
+
+  Revision 1.62  2004/12/05 11:49:06  florian
     * implemented helper for variant<->dyn. array type cast
 
   Revision 1.61  2004/11/21 16:14:59  jonas
