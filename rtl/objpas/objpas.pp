@@ -156,7 +156,7 @@ interface
        PVarRec = ^TVarRec;
        TVarRec = record
          case Byte of
-           vtInteger    : (VInteger: Integer; VType: Byte);
+           vtInteger    : (VInteger: Integer; VType:Longint);
            vtBoolean    : (VBoolean: Boolean);
            vtChar       : (VChar: Char);
            vtExtended   : (VExtended: PExtended);
@@ -398,7 +398,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.11  1998-09-22 15:30:07  peter
+  Revision 1.12  1998-09-23 10:00:47  peter
+    * tvarrec should be 8 bytes
+
+  Revision 1.11  1998/09/22 15:30:07  peter
     * array of const update
 
   Revision 1.9  1998/09/16 13:08:19  michael
