@@ -95,7 +95,7 @@ end;
 
 { TThread }
 
-function ThreadProc(Thread: TThread): Integer;
+function ThreadProc(Thread: TThread): Integer; Stdcall;
 var
   FreeThread: Boolean;
 begin
@@ -219,7 +219,10 @@ begin
 end;
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:07  peter
+  Revision 1.2  2004-01-29 16:58:28  marco
+   * threadproc is passed to OS and must be stdcall;
+
+  Revision 1.1  2003/10/06 21:01:07  peter
     * moved classes unit to rtl
 
   Revision 1.8  2003/10/06 17:06:55  florian
