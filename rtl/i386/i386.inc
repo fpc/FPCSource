@@ -29,6 +29,9 @@ asm
         movl    source,%esi
         movl    %edi,%eax
         movl    count,%ebx
+{ check for zero or negative count }        
+        cmpl    $0,%ebx
+        jle     .LMoveEnd
 { Check for back or forward }
         sub     %esi,%eax
         jz      .LMoveEnd               { Do nothing when source=dest }
@@ -99,6 +102,9 @@ asm
         movl    x,%edi
         movb    value,%al
         movl    count,%ecx
+{ check for zero or negative count }        
+        cmpl    $0,%ecx
+        jle     .LFillEnd
         cmpl    $7,%ecx
         jl      .LFill1
         movb    %al,%ah
@@ -121,6 +127,7 @@ asm
 .LFill1:
         rep
         stosb
+.LFillEnd:        
 end;
 
 
@@ -129,6 +136,9 @@ procedure fillword(var x;count : longint;value : word);assembler;
 asm
         movl    x,%edi
         movl    count,%ecx
+{ check for zero or negative count }        
+        cmpl    $0,%ecx
+        jle     .LFillWordEnd
         movzwl  value,%eax
         movl    %eax,%edx
         shll    $16,%eax
@@ -142,6 +152,7 @@ asm
         andl    $1,%ecx
         rep
         stosw
+.LFillWordEnd:        
 end ['EAX','ECX','EDX','EDI'];
 
 
@@ -150,10 +161,14 @@ procedure filldword(var x;count : longint;value : dword);assembler;
 asm
         movl    x,%edi
         movl    count,%ecx
+{ check for zero or negative count }        
+        cmpl    $0,%ecx
+        jle     .LFillDWordEnd
         movl    value,%eax
         cld
         rep
         stosl
+.LFillDWordEnd:        
 end ['EAX','ECX','EDX','EDI'];
 
 
@@ -1195,7 +1210,10 @@ end;
 
 {
   $Log$
-  Revision 1.34  2002-10-15 19:24:47  carl
+  Revision 1.35  2002-10-20 11:50:57  carl
+   * avoid crashes with negative len counts on fills/moves
+
+  Revision 1.34  2002/10/15 19:24:47  carl
     * Replace 220 -> 219
 
   Revision 1.33  2002/10/14 19:39:16  peter
