@@ -33,8 +33,9 @@ utils. Provided units are the runtime library (RTL), free component library
 NEWPP=`pwd`/compiler/ppc386
 	make compiler_cycle FPC_VERSION=`ppc386 -iV`
 	make rtl_clean rtl_smart FPC=${NEWPP}
-	make packages_smart FPC=${NEWPP}
+	make packages_base_smart FPC=${NEWPP}
 	make fcl_smart FPC=${NEWPP}
+	make packages_extra_smart FPC=${NEWPP}
 	make utils_all FPC=${NEWPP}
 
 %install
