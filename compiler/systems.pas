@@ -190,12 +190,11 @@ interface
           rescmd  : string[50];
        end;
 
+       {# } 
        ttargetflags = (tf_none,
             tf_under_development,
             tf_need_export,tf_needs_isconsole
-{$ifdef m68k}
-            ,tf_code_small,tf_static_a5_based
-{$endif m68k}
+            ,tf_code_small,tf_static_reg_based
        );
 
        ptargetinfo = ^ttargetinfo;
@@ -250,7 +249,6 @@ interface
           heapsize,
           stacksize       : longint;
           DllScanSupported : boolean;
-          use_bound_instruction : boolean;
           use_function_relative_addresses : boolean;
        end;
 
@@ -684,7 +682,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2002-04-20 21:32:26  carl
+  Revision 1.41  2002-04-24 16:08:30  carl
+
+  * fix compilation problem
+
+  Revision 1.40  2002/04/20 21:32:26  carl
   + generic FPC_CHECKPOINTER
   + first parameter offset in stack now portable
   * rename some constants
