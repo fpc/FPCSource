@@ -82,19 +82,43 @@ Const
        do_count_dbx : boolean = false;
 
 {$ifdef i386}
-           { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi",
-             "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
            { this is the register order for GDB }
-        GDB_i386index : array[tregister] of shortint =(-1,
-          0,1,2,3,4,5,6,7,0,1,2,3,4,5,7,0,1,2,3,0,1,2,3,
-          -1,10,12,13,14,15,11,
-          -1,-1,-1,-1,-1,-1,-1,-1,-1,
+           { 0 "eax",   "ecx",    "edx",   "ebx",     \
+             4 "esp",   "ebp",    "esi",   "edi",        \
+             8 "eip",   "eflags", "cs",    "ss",        \
+             12 "ds",    "es",     "fs",    "gs",        \
+             16 "st0",   "st1",    "st2",   "st3",        \
+             20 "st4",   "st5",    "st6",   "st7",        \
+             24 "fctrl", "fstat",  "ftag",  "fiseg",        \
+             28 "fioff", "foseg",  "fooff", "fop",     \
+             32 "xmm0",  "xmm1",   "xmm2",  "xmm3",        \
+             36 "xmm4",  "xmm5",   "xmm6",  "xmm7",        \
+             40 "mxcsr"                                \
+           }
+  { tregister = (R_NO,
+    R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
+    R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
+    R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
+    R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
+    R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
+    R_DR0,R_DR1,R_DR2,R_DR3,R_DR6,R_DR7,
+    R_CR0,R_CR2,R_CR3,R_CR4,
+    R_TR3,R_TR4,R_TR5,R_TR6,R_TR7,
+    R_MM0,R_MM1,R_MM2,R_MM3,R_MM4,R_MM5,R_MM6,R_MM7,
+    R_XMM0,R_XMM1,R_XMM2,R_XMM3,R_XMM4,R_XMM5,R_XMM6,R_XMM7
+  ); }
+           GDB_i386index : array[tregister] of shortint =(-1,
+          0,1,2,3,4,5,6,7,
+          0,1,2,3,4,5,6,7,
+          0,1,2,3,0,1,2,3,
+          10,12,13,11,14,15,
+          16,16,17,18,19,20,21,22,23,
           -1,-1,-1,-1,-1,-1,
           -1,-1,-1,-1,
           -1,-1,-1,-1,-1,
           { I think, GDB doesn't know MMX (FK) }
-          -1,-1,-1,-1,-1,-1,-1,-1,
-          -1,-1,-1,-1,-1,-1,-1,-1
+          16,17,18,19,20,21,22,23,
+          32,33,34,35,36,37,38,39
         );
 {$endif i386}
 {$ifdef m68k}
@@ -266,7 +290,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2001-04-21 12:03:11  peter
+  Revision 1.8  2001-10-12 16:05:36  peter
+    * more registers (merged)
+
+  Revision 1.7  2001/04/21 12:03:11  peter
     * m68k updates merged from fixes branch
 
   Revision 1.6  2001/04/13 01:22:07  peter
