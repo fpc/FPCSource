@@ -260,7 +260,7 @@ begin
 
     CurBytesInBuffer := FBytesInBuffer;
 
-    while i <= CurBytesInBuffer - 2 do
+    while i <= CurBytesInBuffer - 1 do
     begin
       if (RealBuffer[i] = #13) or (RealBuffer[i] = #10) then
       begin
@@ -269,7 +269,8 @@ begin
 	if LineLength > 0 then
 	  Move(RealBuffer[LastEndOfLine], line[1], LineLength);
 
-	if (RealBuffer[i] = #13) and (RealBuffer[i + 1] = #10) then
+	if (i < CurBytesInBuffer - 1) and (RealBuffer[i] = #13) and
+	  (RealBuffer[i + 1] = #10) then
 	  Inc(i);
 	LastEndOfLine := i + 1;
 
@@ -512,7 +513,22 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:58  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-08-24 22:28:34  sg
+  * Line reader now reports a read line after a single #10 at the end of the
+    current input buffer
+
+  Revision 1.1  2000/07/13 06:31:29  michael
+  + Initial import
+
+  Revision 1.2  2000/07/09 11:49:05  sg
+  * Added methods for reading event handlers in TAsyncIOManager
+  * Fixed problems when LineReader gets destroyed while it still was
+    parsing input data.
+
+  Revision 1.1  2000/02/18 23:14:48  michael
+  + Initial implementation
+
+  Revision 1.1  2000/02/17 22:40:05  sg
+  * First version. This unit should go into FCL soon...
+
 }
