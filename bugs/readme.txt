@@ -246,7 +246,6 @@ bug0155.pp   Asm, Missing string return for asm functions
               complex return values are not allowed for assembler
               functions (PM) )
 
-
 Unfixed bugs:
 -------------
 bug0123.pp   Asm, problem with intel assembler (shrd)
@@ -265,5 +264,3 @@ bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 bug0196.pp   "function a;" is accepted (should require result type)
 bug0198.pp   calling specifications aren't allowed in class declarations,
              this should be allowed
-bug0200.pp   problem with constant strings which exceed length of pascal
-             strings
