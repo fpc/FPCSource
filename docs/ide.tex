@@ -850,6 +850,34 @@ change in future implementations of the IDE.
 \end{remark}
 
 %
+% Jumping to a source line
+%
+\subsection{Jumping to a source line}
+It is possible to go directly to a specific source line. To do this, open
+the {\em goto line} dialog via the \menu{Search|Goto line} menu.
+
+In the dialog that appears, the line-number the IDE should jump to can be
+entered.
+\begin{htmlonly}
+The goto line dialog.
+\fpcaddimg{../pics/ide/gotoline.png}
+\end{htmlonly}
+\begin{latexonly}
+The goto line dialog is shown in \seefig{gotoline}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The code completion dialog.}\label{fig:gotoline}
+\ifpdf
+\epsfig{file=pics/ide/gotoline.png}
+\else
+\epsfig{file=pics/ide/gotoline.eps}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+
+
+%
 % Syntax highlighting and code completion
 %
 \subsection{Syntax highlighting}
@@ -2197,6 +2225,97 @@ linked in can be set:
 \end{description}
 \end{description}
 %
+% Memory sizes dialog
+%
+\subsection{Memory sizes}
+The memory sizes dialog (reachable via \menu{options|Memory sizes}) allows 
+to enter the memory sizes for the project.
+\begin{htmlonly}
+The memory sizes dialog looks as follows:
+\fpcaddimg{../pics/ide/omemsize.png}
+\end{htmlonly}
+\begin{latexonly}
+The memory sizes dialog is shown in \seefig{omemsize}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The memory sizes dialog.}\label{fig:omemsize}
+\ifpdf
+\epsfig{file=pics/ide/omemsize.png}%,width=\textwidth}
+\else
+\epsfig{file=pics/ide/omemsize.eps}%,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+The following sizes can be entered:
+\begin{description}
+\item[Stack size] Sets the size of the stack in bytes; 
+(option \var{-Cs} on the command line). This size may be ignored on some
+systems.
+\item[Heap size] Sets the size of the heap in bytes; (option \var{-Ch} on
+the command-line). Note that the heap grows dynamically as much as the OS
+allows.
+\end{description}
+
+%
+% Debugging options
+%
+\subsection{Debug options}
+\label{se:debugoptions}
+In the debug options dialog some options for inclusion of debug information
+in the binary can be set; it i salso possible to add additional compiler
+options in this dialog.
+\begin{htmlonly}
+The debug options dialog looks as follows:
+\fpcaddimg{../pics/ide/odebug.png}
+\end{htmlonly}
+\begin{latexonly}
+The debug options dialog is shown in \seefig{odebug}.
+\begin{figure}[ht]
+\begin{center}
+\caption{The debug options dialog.}\label{fig:odebug}
+\ifpdf
+\epsfig{file=pics/ide/odebug.png,width=\textwidth}
+\else
+\epsfig{file=pics/ide/odebug.eps,width=\textwidth}
+\fi
+\end{center}
+\end{figure}
+\end{latexonly}
+The following opions can be set:
+\begin{description}
+\item[Debugging information] tells the compiler which debug information
+should be compiled in. One of following options can be chosen:
+\begin{description}
+\item[Strip all debug symbols from executable] Will strip all debug nd
+symbol information from the binary. (option \var{-Xs} on the command-line).
+\item[Generate debug symbol information] include debug information in the
+binary (option \var{-g} on the command-line). Please note that no debug
+information for units in the Run-Time Library will be included, unless a 
+version of the RTL compiled with debug information is available. Only units
+specific to the current project will have debug information included.
+\item[Generate also backtrace lines information] Will compile with debu
+information, and will additionally include the \file{lineinfo} unit in the
+binary, so in case of an error the backtrace will contain the filenames and
+linenumbers of procedures in the call-stack. (Option \var{-gl} on the
+command-line)
+\end{description}
+\item[Profiling switches] Tells the compiler whether or not profile code
+should be included in the binary.
+\begin{description}
+\item[No profile information] Has no effect, as it is the default.
+\item[Generate Profile code for gprof] If checked, profiling code is
+included in the binary (option \var{-p} on the command-line).
+\end{description}
+\item[Addition compiler args] Here arbitrary options can be entered as they
+would be entered on the command-line, they will be passed on to the compiler
+as typed here.
+\item[Debuggee redirection]
+If checked, an attempt will be made to redirect the output of the program
+being debugged to another window (terminal). 
+\end{description}
+ 
+%
 % The switches mode.
 %
 \subsection{The switches mode}
@@ -2836,7 +2955,10 @@ Undo & \key{Alt-Backspace} & \\
 \end{FPCltable}
 %
 %  $Log$
-%  Revision 1.1.2.14  2000-12-06 23:08:56  michael
+%  Revision 1.1.2.15  2000-12-07 23:19:04  michael
+%  + Added memsizes, goto line and debug options
+%
+%  Revision 1.1.2.14  2000/12/06 23:08:56  michael
 %  + Linker options dialog documented
 %
 %  Revision 1.1.2.13  2000/12/03 22:32:06  michael
