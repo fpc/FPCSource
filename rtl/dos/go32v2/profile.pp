@@ -362,8 +362,8 @@ _mcount_init;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:42  root
+  * Restored version
 
   Revision 1.4  1998/01/26 11:57:39  michael
   + Added log at the end
@@ -376,8 +376,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:42  root
+  * Restored version
 
   Revision 1.4  1998/01/26 11:57:39  michael
   + Added log at the end

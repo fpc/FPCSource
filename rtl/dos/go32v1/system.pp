@@ -628,8 +628,8 @@ End.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:41  root
+  * Restored version
 
   Revision 1.9  1998/02/14 01:41:35  peter
     * fixed unusedhandle bug which was -1

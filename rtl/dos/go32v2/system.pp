@@ -1036,8 +1036,8 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:42  root
+  * Restored version
 
   Revision 1.18  1998/03/24 21:48:47  florian
     * extended to support mem*

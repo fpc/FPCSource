@@ -1220,8 +1220,8 @@
 
 {
      $Log$
-     Revision 1.1  1998-03-25 11:18:12  root
-     Initial revision
+     Revision 1.1.1.1  1998-03-25 11:18:12  root
+     * Restored version
 
      Revision 1.15  1998/03/10 23:48:36  florian
        * a couple of bug fixes to get the compiler with -OGaxz compiler, sadly

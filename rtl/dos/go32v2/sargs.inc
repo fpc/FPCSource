@@ -214,8 +214,8 @@ end;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:42  root
+  * Restored version
 
   Revision 1.3  1998/01/26 11:57:15  michael
   + Added log at the end

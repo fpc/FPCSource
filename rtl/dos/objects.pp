@@ -2001,8 +2001,8 @@ END.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:41  root
+  * Restored version
 
   Revision 1.6  1998/02/06 18:49:21  florian
     * range check error when compiling fixed

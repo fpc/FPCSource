@@ -94,8 +94,8 @@ function growheap(size:longint):integer;
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:47  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:47  root
+  * Restored version
 
   Revision 1.2  1998/03/05 22:39:06  florian
     + log and history

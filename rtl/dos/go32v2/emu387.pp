@@ -192,8 +192,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:42  root
+  * Restored version
 
   Revision 1.6  1998/03/18 15:34:46  pierre
     + fpu state is restaured in excep_exit
@@ -222,8 +222,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:42  root
+  * Restored version
 
   Revision 1.6  1998/03/18 15:34:46  pierre
     + fpu state is restaured in excep_exit

@@ -2169,8 +2169,8 @@ Begin
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:15  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:15  root
+  * Restored version
 
   Revision 1.14  1998/03/22 12:45:38  florian
     * changes of Carl-Eric to m68k target commit:

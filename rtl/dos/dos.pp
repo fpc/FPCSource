@@ -1118,8 +1118,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:41  root
+  * Restored version
 
   Revision 1.10  1998/03/12 04:02:32  carl
     * bugfix of Range Check error in FExpand

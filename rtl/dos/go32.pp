@@ -1104,8 +1104,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:41  root
+  * Restored version
 
   Revision 1.8  1998/03/24 15:54:14  peter
     - raw_ functions are not necessary for go32v2, $ifdef'd them

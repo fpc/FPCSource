@@ -134,8 +134,8 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:12  root
+  * Restored version
 
   Revision 1.5  1998/03/10 16:27:36  pierre
     * better line info in stabs debug

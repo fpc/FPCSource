@@ -48,8 +48,8 @@ unit cgi3862;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:12  root
+  * Restored version
 
   Revision 1.9  1998/03/10 01:17:18  peter
     * all files have the same header

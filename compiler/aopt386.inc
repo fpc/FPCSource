@@ -1169,8 +1169,8 @@ End;
 
 {
  $Log$
- Revision 1.1  1998-03-25 11:18:12  root
- Initial revision
+ Revision 1.1.1.1  1998-03-25 11:18:12  root
+ * Restored version
 
  Revision 1.22  1998/03/24 21:48:29  florian
    * just a couple of fixes applied:

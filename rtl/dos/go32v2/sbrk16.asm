@@ -2,8 +2,8 @@
 ;
 ; $Id$
 ; $Log$
-; Revision 1.1  1998-03-25 11:18:42  root
-; Initial revision
+; Revision 1.1.1.1  1998-03-25 11:18:42  root
+; * Restored version
 ;
 ; Revision 1.2  1997/11/27 16:28:13  michael
 ; Change submitted by Pierre Muller.

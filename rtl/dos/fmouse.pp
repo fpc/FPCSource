@@ -326,8 +326,8 @@ Begin
 End.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:41  root
+  * Restored version
 
   Revision 1.4  1998/03/24 15:53:12  peter
     * cleanup and doesn't give warnings when compiling

@@ -59,8 +59,8 @@ procedure EndTime  ; begin Gettime(h1,m1,s1,d1); end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:41  root
+  * Restored version
 
   Revision 1.3  1998/01/26 11:56:54  michael
   + Added log at the end

@@ -1626,8 +1626,8 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:12  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:12  root
+  * Restored version
 
   Revision 1.15  1998/03/10 01:17:14  peter
     * all files have the same header

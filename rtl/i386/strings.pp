@@ -590,8 +590,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:42  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:42  root
+  * Restored version
 
   Revision 1.7  1998/02/24 17:50:46  peter
     * upto 100% (255's char is different ;) faster STRCMP

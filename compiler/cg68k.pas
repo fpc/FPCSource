@@ -5067,8 +5067,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:16  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:16  root
+  * Restored version
 
   Revision 1.51  1998/03/22 12:45:37  florian
     * changes of Carl-Eric to m68k target commit:

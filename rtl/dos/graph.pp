@@ -822,8 +822,8 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-03-25 11:18:41  root
-  Initial revision
+  Revision 1.1.1.1  1998-03-25 11:18:41  root
+  * Restored version
 
   Revision 1.7  1998/03/03 22:48:41  florian
     + graph.drawpoly procedure
