@@ -41,9 +41,27 @@ begin
   ShowIDEScreen;
 end;
 
+procedure TIDEApp.DoShowCallStack;
+begin
+  NotImplemented;                                                                                                                                                                                                                                              
+end;
+
+procedure TIDEApp.DoShowBreakpointList;
+begin
+  NotImplemented;
+end;
+
+procedure TIDEApp.DoAddWatch;
+begin
+  NotImplemented;
+end;
+
 {
   $Log$
-  Revision 1.3  1999-02-02 16:41:40  peter
+  Revision 1.4  1999-06-25 00:36:51  pierre
+   + missing Debug menu added (not implemented yet)
+
+  Revision 1.3  1999/02/02 16:41:40  peter
     + automatic .pas/.pp adding by opening of file
     * better debuggerscreen changes
 
