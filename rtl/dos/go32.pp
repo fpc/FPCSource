@@ -15,69 +15,67 @@
 
 unit go32;
 
-{$i os.inc}
-
 {$S-}{no stack check, used by DPMIEXCP !! }
+{$i os.inc}
+  interface
 
-interface
+    const
+    { contants for the run modes returned by get_run_mode }
+       rm_unknown = 0;
+       rm_raw     = 1;     { raw (without HIMEM) }
+       rm_xms     = 2;     { XMS (for example with HIMEM, without EMM386) }
+       rm_vcpi    = 3;     { VCPI (for example HIMEM and EMM386) }
+       rm_dpmi    = 4;     { DPMI (for example DOS box or 386Max) }
 
-const
-{ contants for the run modes returned by get_run_mode }
-   rm_unknown = 0;
-   rm_raw     = 1;     { raw (without HIMEM) }
-   rm_xms     = 2;     { XMS (for example with HIMEM, without EMM386) }
-   rm_vcpi    = 3;     { VCPI (for example HIMEM and EMM386) }
-   rm_dpmi    = 4;     { DPMI (for example DOS box or 386Max) }
+    { flags }
+       carryflag     = $001;
+       parityflag    = $004;
+       auxcarryflag  = $010;
+       zeroflag      = $040;
+       signflag      = $080;
+       trapflag      = $100;
+       interruptflag = $200;
+       directionflag = $400;
+       overflowflag  = $800;
 
-{ flags }
-   carryflag     = $001;
-   parityflag    = $004;
-   auxcarryflag  = $010;
-   zeroflag      = $040;
-   signflag      = $080;
-   trapflag      = $100;
-   interruptflag = $200;
-   directionflag = $400;
-   overflowflag  = $800;
+    type
+       tmeminfo = record
+          available_memory,
+          available_pages,
+          available_lockable_pages,
+          linear_space,
+          unlocked_pages,
+          available_physical_pages,
+          total_physical_pages,
+          free_linear_space,
+          max_pages_in_paging_file,
+          reserved0,
+          reserved1,
+          reserved2 : longint;
+       end;
 
-type
-   tmeminfo = packed record
-      available_memory,
-      available_pages,
-      available_lockable_pages,
-      linear_space,
-      unlocked_pages,
-      available_physical_pages,
-      total_physical_pages,
-      free_linear_space,
-      max_pages_in_paging_file,
-      reserved0,
-      reserved1,
-      reserved2 : longint;
-   end;
+       tseginfo = record
+          offset  : pointer;
+          segment : word;
+       end;
 
-   tseginfo = packed record
-      offset  : pointer;
-      segment : word;
-   end;
+       trealregs = record
+         case integer of
+          1: { 32-bit } (EDI, ESI, EBP, Res, EBX, EDX, ECX, EAX: longint;
+                         Flags, ES, DS, FS, GS, IP, CS, SP, SS: word);
+          2: { 16-bit } (DI, DI2, SI, SI2, BP, BP2, R1, R2: word;
+                         BX, BX2, DX, DX2, CX, CX2, AX, AX2: word);
+          3: { 8-bit }  (stuff: array[1..4] of longint;
+                         BL, BH, BL2, BH2, DL, DH, DL2, DH2,
+                         CL, CH, CL2, CH2, AL, AH, AL2, AH2: byte);
+          4: { Compat } (RealEDI, RealESI, RealEBP, RealRES,
+                         RealEBX, RealEDX, RealECX, RealEAX: longint;
+                         RealFlags,
+                         RealES, RealDS, RealFS, RealGS,
+                         RealIP, RealCS, RealSP, RealSS: word);
+       end;
 
-   trealregs = packed record
-     case integer of
-      1: { 32-bit } (EDI, ESI, EBP, Res, EBX, EDX, ECX, EAX: longint;
-                     Flags, ES, DS, FS, GS, IP, CS, SP, SS: word);
-      2: { 16-bit } (DI, DI2, SI, SI2, BP, BP2, R1, R2: word;
-                     BX, BX2, DX, DX2, CX, CX2, AX, AX2: word);
-      3: { 8-bit }  (stuff: array[1..4] of longint;
-                     BL, BH, BL2, BH2, DL, DH, DL2, DH2,
-                     CL, CH, CL2, CH2, AL, AH, AL2, AH2: byte);
-      4: { Compat } (RealEDI, RealESI, RealEBP, RealRES,
-                     RealEBX, RealEDX, RealECX, RealEAX: longint;
-                     RealFlags,
-                     RealES, RealDS, RealFS, RealGS,
-                     RealIP, RealCS, RealSP, RealSS: word);
-   end;
-  registers = trealregs;
-
+      registers = trealregs;
 
     { this works only with real DPMI }
     function allocate_ldt_descriptors(count : word) : word;
@@ -151,12 +149,21 @@ type
     procedure disable;
     procedure enable;
 
+    function inportb(port : word) : byte;
+    function inportw(port : word) : word;
+    function inportl(port : word) : longint;
+
+    procedure outportb(port : word;data : byte);
+    procedure outportw(port : word;data : word);
+    procedure outportl(port : word;data : longint);
     function get_run_mode : word;
 
+{$ifndef V0_6}
     function transfer_buffer : longint;
     function tb_size : longint;
     procedure copytodos(var addr; len : longint);
     procedure copyfromdos(var addr; len : longint);
+{$endif not VER0_6}
 
     procedure dpmi_dosmemput(seg : word;ofs : word;var data;count : longint);
     procedure dpmi_dosmemget(seg : word;ofs : word;var data;count : longint);
@@ -164,26 +171,6 @@ type
     procedure dpmi_dosmemfillchar(seg,ofs : word;count : longint;c : char);
     procedure dpmi_dosmemfillword(seg,ofs : word;count : longint;w : word);
 
-    const
-       { this procedures are assigned to the procedure which are needed }
-       { for the current mode to access DOS memory                      }
-       { It's strongly recommended to use this procedures!              }
-       dosmemput      : procedure(seg : word;ofs : word;var data;count : longint)=dpmi_dosmemput;
-       dosmemget      : procedure(seg : word;ofs : word;var data;count : longint)=dpmi_dosmemget;
-       dosmemmove     : procedure(sseg,sofs,dseg,dofs : word;count : longint)=dpmi_dosmemmove;
-       dosmemfillchar : procedure(seg,ofs : word;count : longint;c : char)=dpmi_dosmemfillchar;
-       dosmemfillword : procedure(seg,ofs : word;count : longint;w : word)=dpmi_dosmemfillword;
-
-{*****************************************************************************
-                               IO Port Access
-*****************************************************************************}
-
-function inportb(port : word) : byte;
-function inportw(port : word) : word;
-function inportl(port : word) : longint;
-procedure outportb(port : word;data : byte);
-procedure outportw(port : word;data : word);
-procedure outportl(port : word;data : longint);
 
 {$IFDEF HAS_PROPERTY}
 type
@@ -213,10 +200,17 @@ var
    portl : tportl;
 {$ENDIF HAS_PROPERTY}
 
+    const
+       { this procedures are assigned to the procedure which are needed }
+       { for the current mode to access DOS memory                      }
+       { It's strongly recommended to use this procedures!              }
+       dosmemput      : procedure(seg : word;ofs : word;var data;count : longint)=dpmi_dosmemput;
+       dosmemget      : procedure(seg : word;ofs : word;var data;count : longint)=dpmi_dosmemget;
+       dosmemmove     : procedure(sseg,sofs,dseg,dofs : word;count : longint)=dpmi_dosmemmove;
+       dosmemfillchar : procedure(seg,ofs : word;count : longint;c : char)=dpmi_dosmemfillchar;
+       dosmemfillword : procedure(seg,ofs : word;count : longint;w : word)=dpmi_dosmemfillword;
 
-implementation
-
-{$I386_ATT}
+  implementation
 
 {$ifndef go32v2}
 
@@ -456,6 +450,118 @@ implementation
            end ['ESI','EDI','ECX'];
       end;
 
+    procedure outportb(port : word;data : byte);
+
+      begin
+         asm
+            movw port,%dx
+            movb data,%al
+            outb %al,%dx
+         end ['EAX','EDX'];
+      end;
+
+    procedure outportw(port : word;data : word);
+
+      begin
+         asm
+            movw port,%dx
+            movw data,%ax
+            outw %ax,%dx
+         end ['EAX','EDX'];
+      end;
+
+    procedure outportl(port : word;data : longint);
+
+      begin
+         asm
+            movw port,%dx
+            movl data,%eax
+            outl %eax,%dx
+         end ['EAX','EDX'];
+      end;
+
+    function inportb(port : word) : byte;
+
+      begin
+         asm
+            movw port,%dx
+            inb %dx,%al
+            movb %al,__RESULT
+         end ['EAX','EDX'];
+      end;
+
+    function inportw(port : word) : word;
+
+      begin
+         asm
+            movw port,%dx
+            inw %dx,%ax
+            movw %ax,__RESULT
+         end ['EAX','EDX'];
+      end;
+
+    function inportl(port : word) : longint;
+
+      begin
+         asm
+            movw port,%dx
+            inl %dx,%eax
+            movl %eax,__RESULT
+         end ['EAX','EDX'];
+      end;
+
+
+{$IFDEF HAS_PROPERTY}
+
+{ to give easy port access like tp with port[] }
+
+procedure tport.writeport(p : word;data : byte);assembler;
+asm
+        movw    p,%dx
+        movb    data,%al
+        outb    %al,%dx
+end ['EAX','EDX'];
+
+
+function tport.readport(p : word) : byte;assembler;
+asm
+        movw    p,%dx
+        inb     %dx,%al
+end ['EAX','EDX'];
+
+
+procedure tportw.writeport(p : word;data : word);assembler;
+asm
+        movw    p,%dx
+        movw    data,%ax
+        outw    %ax,%dx
+end ['EAX','EDX'];
+
+
+function tportw.readport(p : word) : word;assembler;
+asm
+        movw    p,%dx
+        inw     %dx,%ax
+end ['EAX','EDX'];
+
+
+procedure tportl.writeport(p : word;data : longint);assembler;
+asm
+        movw    p,%dx
+        movl    data,%eax
+        outl    %eax,%dx
+end ['EAX','EDX'];
+
+
+function tportl.readport(p : word) : longint;assembler;
+asm
+        movw    p,%dx
+        inl     %dx,%eax
+end ['EAX','EDX'];
+
+{$ENDIF HAS_PROPERTY}
+
+
     function get_cs : word;
 
       begin
@@ -484,7 +590,6 @@ implementation
          end;
       end;
 
-{$I386_DIRECT}
     procedure test_int31(flag : longint);[alias : 'test_int31'];
       begin
          asm
@@ -502,7 +607,6 @@ implementation
             popl  %ebx
          end;
       end;
-{$I386_ATT}
 
     function set_pm_interrupt(vector : byte;const intaddr : tseginfo) : boolean;
 
@@ -651,7 +755,6 @@ implementation
     because the exception processor sets the ds limit to $fff
     at hardware exceptions }
 
-{$I386_DIRECT}
     function get_rm_callback(pm_func : pointer;const reg : trealregs;var rmcb : tseginfo) : boolean;
       begin
          asm
@@ -680,7 +783,6 @@ implementation
             movw  %cx,4(%eax)
          end;
       end;
-{$I386_ATT}
 
     function allocate_ldt_descriptors(count : word) : word;
 
@@ -1026,15 +1128,14 @@ implementation
          sti
       end;
 
-{$I386_DIRECT}
     function get_run_mode : word;
+
       begin
          asm
             movw _run_mode,%ax
             movw %ax,__RESULT
          end ['EAX'];
       end;
-{$I386_ATT}
 
     function map_device_in_memory_block(handle,offset,pagecount,device:longint):boolean;
       begin
@@ -1052,7 +1153,6 @@ implementation
          end;
       end;
 
-{$I386_DIRECT}
     function get_core_selector : word;
 
       begin
@@ -1061,10 +1161,11 @@ implementation
             movw %ax,__RESULT
          end;
       end;
-{$I386_ATT}
 
+{$ifndef V0_6}
 
     function transfer_buffer : longint;
+
       begin
          transfer_buffer := go32_info_block.linear_address_of_transfer_buffer;
       end;
@@ -1097,147 +1198,80 @@ implementation
 {$endif GO32V2}
        end;
 
-
-{*****************************************************************************
-                              IO PORT ACCESS
-*****************************************************************************}
-
-procedure outportb(port : word;data : byte);assembler;
-asm
-        movw port,%dx
-        movb data,%al
-        outb %al,%dx
-end ['EAX','EDX'];
-
-
-procedure outportw(port : word;data : word);assembler;
-asm
-        movw port,%dx
-        movw data,%ax
-        outw %ax,%dx
-end ['EAX','EDX'];
-
-
-procedure outportl(port : word;data : longint);assembler;
-asm
-        movw port,%dx
-        movl data,%eax
-        outl %eax,%dx
-end ['EAX','EDX'];
-
-
-function inportb(port : word) : byte;assembler;
-asm
-        movw port,%dx
-        inb %dx,%al
-end ['EAX','EDX'];
-
-
-function inportw(port : word) : word;assembler;
-asm
-        movw    port,%dx
-        inw     %dx,%ax
-end ['EAX','EDX'];
-
-
-function inportl(port : word) : longint;assembler;
-asm
-        movw port,%dx
-        inl %dx,%eax
-end ['EAX','EDX'];
-
-{$IFDEF HAS_PROPERTY}
-
-{ to give easy port access like tp with port[] }
-
-procedure tport.writeport(p : word;data : byte);assembler;
-asm
-        movw    p,%dx
-        movb    data,%al
-        outb    %al,%dx
-end ['EAX','EDX'];
-
-
-function tport.readport(p : word) : byte;assembler;
-asm
-        movw    p,%dx
-        inb     %dx,%al
-end ['EAX','EDX'];
-
-
-procedure tportw.writeport(p : word;data : word);assembler;
-asm
-        movw    p,%dx
-        movw    data,%ax
-        outw    %ax,%dx
-end ['EAX','EDX'];
-
-
-function tportw.readport(p : word) : word;assembler;
-asm
-        movw    p,%dx
-        inw     %dx,%ax
-end ['EAX','EDX'];
-
-
-procedure tportl.writeport(p : word;data : longint);assembler;
-asm
-        movw    p,%dx
-        movl    data,%eax
-        outl    %eax,%dx
-end ['EAX','EDX'];
-
-
-function tportl.readport(p : word) : longint;assembler;
-asm
-        movw    p,%dx
-        inl     %dx,%eax
-end ['EAX','EDX'];
-
-{$ENDIF HAS_PROPERTY}
-
-
-{*****************************************************************************
-                               Initialization
-*****************************************************************************}
+{$endif not V0_6}
 
 begin
+   int31error:=0;
 {$ifndef go32v2}
-  if not (get_run_mode=rm_dpmi) then
-   begin
-     dosmemget:=@raw_dosmemget;
-     dosmemput:=@raw_dosmemput;
-     dosmemmove:=@raw_dosmemmove;
-     dosmemfillchar:=@raw_dosmemfillchar;
-     dosmemfillword:=@raw_dosmemfillword;
-   end
-  else
+   if not (get_run_mode=rm_dpmi) then
+     begin
+        dosmemget:=@raw_dosmemget;
+        dosmemput:=@raw_dosmemput;
+        dosmemmove:=@raw_dosmemmove;
+        dosmemfillchar:=@raw_dosmemfillchar;
+        dosmemfillword:=@raw_dosmemfillword;
+     end
+   else
 {$endif}
-   begin
-     dosmemselector:=get_core_selector;
-   end;
+     begin
+       dosmemselector:=get_core_selector;
+     end;
 end.
 
 {
   $Log$
-  Revision 1.8  1998-07-08 12:33:26  peter
-    * packed records
+  Revision 1.9  1998-07-21 12:06:03  carl
+    * restored working version
 
-  Revision 1.7  1998/07/07 12:25:20  carl
-    * compiles under fpc v0995, don't modify now now! :)
+  Revision 1.2  1998/03/29 17:26:20  florian
+    * small improvements
 
-  Revision 1.6  1998/07/04 10:04:41  peter
-    + ifdef has_property for 0.99.5 backward support
+  Revision 1.1.1.1  1998/03/25 11:18:41  root
+  * Restored version
 
-  Revision 1.5  1998/05/31 14:16:49  peter
-    + released port[] and made them assembler procedures
+  Revision 1.8  1998/03/24 15:54:14  peter
+    - raw_ functions are not necessary for go32v2, $ifdef'd them
 
-  Revision 1.4  1998/04/24 08:26:50  pierre
-    * had to rename property from p to pp to
-      avoid duplicate identifier error in
-      implementation of readport and writeport
-      that have p as argument
+  Revision 1.7  1998/03/24 09:33:59  peter
+    + new trealregs from the mailinglist
+    + 2 new functions get_page_size, map_device_in_mem_block
 
-  Revision 1.3  1998/04/12 22:35:29  florian
-    + support of port-array added
+  Revision 1.6  1998/02/01 09:32:21  florian
+    * some clean up
+
+  Revision 1.5  1998/01/26 11:56:27  michael
+  + Added log at the end
+
+  revision 1.4
+  date: 1997/12/12 13:14:37;  author: pierre;  state: Exp;  lines: +2 -1
+     + added handling of swap_vectors if under exceptions
+       i.e. swapvector is not dummy under go32v2
+     * bug in output, exceptions where not allways reset correctly
+       now the code in dpmiexcp is called from v2prt0.as exit routine
+     * in crt.pp corrected init_delay calibration loop
+       and added it for go32v2 also (was disabled before due to crashes !!)
+       the previous code did a wrong assumption on the time need to call
+       get_ticks compared to an internal loop without call
+  ----------------------------
+  revision 1.3
+  date: 1997/12/11 11:50:37;  author: pierre;  state: Exp;  lines: +2 -2
+    *  bug in get_linear_addr corrected
+       thanks to Raul who found this bug.
+  ----------------------------
+  revision 1.2
+  date: 1997/12/01 12:15:46;  author: michael;  state: Exp;  lines: +10 -3
+  + added copyright reference in header.
+  ----------------------------
+  revision 1.1
+  date: 1997/11/27 08:33:50;  author: michael;  state: Exp;
+  Initial revision
+  ----------------------------
+  revision 1.1.1.1
+  date: 1997/11/27 08:33:50;  author: michael;  state: Exp;  lines: +0 -0
+  FPC RTL CVS start
+  =============================================================================
+
+  History:
+       6th november 1996:
+         + dosmem* implemented
 }
