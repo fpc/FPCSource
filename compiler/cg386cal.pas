@@ -1378,7 +1378,7 @@ implementation
          addvalue : longint;
 
 
-      procedure handlereadwrite(doread,callwriteln : boolean);
+      procedure handlereadwrite(doread,doln : boolean);
       { produces code for READ(LN) and WRITE(LN) }
 
         procedure loadstream;
@@ -1395,12 +1395,13 @@ implementation
           end;
 
         var
-           node,hp : ptree;
-           typedtyp,pararesult : pdef;
-           doflush,has_length : boolean;
-           dummycoll : tdefcoll;
-           iolabel : plabel;
-           npara : longint;
+           node,hp    : ptree;
+           typedtyp,
+           pararesult : pdef;
+           has_length : boolean;
+           dummycoll  : tdefcoll;
+           iolabel    : plabel;
+           npara      : longint;
 
         begin
            { I/O check }
@@ -1411,8 +1412,6 @@ implementation
              end
            else
              iolabel:=nil;
-           { no automatic call from flush }
-           doflush:=false;
            { for write of real with the length specified }
            has_length:=false;
            hp:=nil;
@@ -1424,11 +1423,9 @@ implementation
            { and state a parameter ? }
            if p^.left=nil then
              begin
-                { state screen address}
-                doflush:=true;
                 { the following instructions are for "writeln;" }
                 loadstream;
-                { save @Dateivarible in temporary variable }
+                { save @aktfile in temporary variable }
                 exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,newreference(aktfile))));
              end
            else
@@ -1449,7 +1446,7 @@ implementation
                      if codegenerror then
                        exit;
 
-                     { save reference in temporary variables }                     { reference in tempor„re Variable retten }
+                     { save reference in temporary variables }
                      if node^.left^.location.loc<>LOC_REFERENCE then
                        begin
                           Message(cg_e_illegal_expression);
@@ -1463,25 +1460,23 @@ implementation
                   end
                 else
                   begin
-                     { if we write to stdout/in then flush after the write(ln) }
-                     doflush:=true;
+                  { load stdin/stdout stream }
                      loadstream;
                   end;
 
-                    { save @Dateivarible in temporary variable }
+                { save @aktfile in temporary variable }
                 exprasmlist^.concat(new(pai386,op_reg_ref(A_MOV,S_L,R_EDI,newreference(aktfile))));
                 if doread then
-                  { parameter by READ gives call by reference }
+                { parameter by READ gives call by reference }
                   dummycoll.paratyp:=vs_var
                 { an WRITE Call by "Const" }
-                else dummycoll.paratyp:=vs_const;
+                else
+                  dummycoll.paratyp:=vs_const;
 
                 { because of secondcallparan, which otherwise attaches }
                 if ft=ft_typed then
-                  begin
-                     { this is to avoid copy of simple const parameters }
-                     dummycoll.data:=new(pformaldef,init);
-                  end
+                  { this is to avoid copy of simple const parameters }
+                  dummycoll.data:=new(pformaldef,init)
                 else
                   { I think, this isn't a good solution (FK) }
                   dummycoll.data:=nil;
@@ -1496,13 +1491,11 @@ implementation
                        Message(parser_e_illegal_colon_qualifier);
                      if ft=ft_typed then
                        never_copy_const_param:=true;
-                     secondcallparan(hp,@dummycoll,false
-                       ,false,0
-                     );
+                     secondcallparan(hp,@dummycoll,false,false,0);
                      if ft=ft_typed then
                        never_copy_const_param:=false;
                      hp^.right:=node;
-                          if codegenerror then
+                     if codegenerror then
                        exit;
 
                      emit_push_mem(aktfile);
@@ -1510,21 +1503,20 @@ implementation
                        begin
                           { OK let's try this }
                           { first we must only allow the right type }
-                            { we have to call blockread or blockwrite }
-                                   { but the real problem is that            }
-                            { reset and rewrite should have set       }
-                            { the type size                           }
-                                   { as recordsize for that file !!!!        }
-                            { how can we make that                    }
-                            { I think that is only possible by adding }
-                            { reset and rewrite to the inline list a call        }
-                                   { allways read only one record by element }
+                          { we have to call blockread or blockwrite }
+                          { but the real problem is that            }
+                          { reset and rewrite should have set       }
+                          { the type size                           }
+                          { as recordsize for that file !!!!        }
+                          { how can we make that                    }
+                          { I think that is only possible by adding }
+                          { reset and rewrite to the inline list a call        }
+                          { allways read only one record by element }
                             push_int(typedtyp^.size);
                             if doread then
                               emitcall('TYPED_READ',true)
                             else
-                              emitcall('TYPED_WRITE',true)
-                          {!!!!!!!}
+                              emitcall('TYPED_WRITE',true);
                        end
                      else
                        begin
@@ -1533,170 +1525,169 @@ implementation
                           { handle possible field width  }
                           { of course only for write(ln) }
                           if not doread then
-                               begin
+                            begin
                                { handle total width parameter }
-                               if assigned(node) and node^.is_colon_para then
-                                 begin
-                                    hp:=node;
-                                    node:=node^.right;
-                                    hp^.right:=nil;
-                                    secondcallparan(hp,@dummycoll,false
-                                      ,false,0
-                                    );
-                                    hp^.right:=node;
-                                    if codegenerror then
-                                      exit;
-                                    has_length:=true;
-                                 end
-                               else
-                                 if pararesult^.deftype<>floatdef then
-                                   push_int(0)
-                                 else
-                                  push_int(-32767);
-                              { a second colon para for a float ? }
                               if assigned(node) and node^.is_colon_para then
                                 begin
-                                    hp:=node;
-                                    node:=node^.right;
-                                    hp^.right:=nil;
-                                    secondcallparan(hp,@dummycoll,false
-                                      ,false,0
-                                    );
-                                    hp^.right:=node;
-                                    if pararesult^.deftype<>floatdef then
-                                      Message(parser_e_illegal_colon_qualifier);
-                                    if codegenerror then
-                                      exit;
+                                   hp:=node;
+                                   node:=node^.right;
+                                   hp^.right:=nil;
+                                   secondcallparan(hp,@dummycoll,false,false,0);
+                                   hp^.right:=node;
+                                   if codegenerror then
+                                     exit;
+                                   has_length:=true;
+                                end
+                              else
+                                if pararesult^.deftype<>floatdef then
+                                  push_int(0)
+                                else
+                                  push_int(-32767);
+                            { a second colon para for a float ? }
+                              if assigned(node) and node^.is_colon_para then
+                                begin
+                                   hp:=node;
+                                   node:=node^.right;
+                                   hp^.right:=nil;
+                                   secondcallparan(hp,@dummycoll,false,false,0);
+                                   hp^.right:=node;
+                                   if pararesult^.deftype<>floatdef then
+                                     Message(parser_e_illegal_colon_qualifier);
+                                   if codegenerror then
+                                     exit;
                                 end
                               else
                                 begin
-                                if pararesult^.deftype=floatdef then
+                                  if pararesult^.deftype=floatdef then
                                     push_int(-1);
                                 end
-                              end;
-                          case pararesult^.deftype of
-                             stringdef:
-                               begin
-                                  if doread then
-                                    emitcall('READ_TEXT_STRING',true)
-                                  else
-                                    begin
-                                      emitcall('WRITE_TEXT_STRING',true);
-                                      {ungetiftemp(hp^.left^.location.reference);}
-                                    end;
-                               end;
-                                    pointerdef : begin
-                                                        if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
-                                                          begin
-                                                              if doread then
-                                                                 emitcall('READ_TEXT_PCHAR_AS_POINTER',true)
-                                                              else
-                                                                 emitcall('WRITE_TEXT_PCHAR_AS_POINTER',true);
-                                                          end
-                                                        else
-                                                         Message(parser_e_illegal_parameter_list);
-                                                    end;
-                                    arraydef : begin
-                                                     if (parraydef(pararesult)^.lowrange=0)
-                                                        and is_equal(parraydef(pararesult)^.definition,cchardef) then
-                                                        begin
-                                                            if doread then
-                                                                 emitcall('READ_TEXT_PCHAR_AS_ARRAY',true)
-                                                            else
-                                                                 emitcall('WRITE_TEXT_PCHAR_AS_ARRAY',true);
-                                                        end
-                                                     else
-                                                      Message(parser_e_illegal_parameter_list);
-                                                  end;
-
-                             floatdef:
-                               begin
-                                  if doread then
-                                    emitcall('READ_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true)
-                                  else
-                                    emitcall('WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
-                               end;
-                                    orddef : begin
-                                                     case porddef(pararesult)^.typ of
-                                                         u8bit : if doread then
-                                                                       emitcall('READ_TEXT_BYTE',true);
-                                                         s8bit : if doread then
-                                                                       emitcall('READ_TEXT_SHORTINT',true);
-                                                         u16bit : if doread then
-                                                                       emitcall('READ_TEXT_WORD',true);
-                                                         s16bit : if doread then
-                                                                       emitcall('READ_TEXT_INTEGER',true);
-                                                         s32bit : if doread then
-                                                                       emitcall('READ_TEXT_LONGINT',true)
-                                                                    else
-                                                                       emitcall('WRITE_TEXT_LONGINT',true);
-                                                         u32bit : if doread then
-                                                                       emitcall('READ_TEXT_CARDINAL',true)
-                                                                    else
-                                                                       emitcall('WRITE_TEXT_CARDINAL',true);
-                                                         uchar : if doread then
-                                                                       emitcall('READ_TEXT_CHAR',true)
-                                                                    else
-                                                                       emitcall('WRITE_TEXT_CHAR',true);
-                                                         bool8bit,
-                                                         bool16bit,
-                                                         bool32bit : if  doread then
-                                                                       { emitcall('READ_TEXT_BOOLEAN',true) }
-                                                                       Message(parser_e_illegal_parameter_list)
-                                                                    else
-                                                                       emitcall('WRITE_TEXT_BOOLEAN',true);
-                                                         else Message(parser_e_illegal_parameter_list);
-                                                         end;
-                                                     end;
-                                    else Message(parser_e_illegal_parameter_list);
-                                end;
                             end;
-                          { load ESI in methods again }
-                          popusedregisters(pushed);
-                          maybe_loadesi;
+                          case pararesult^.deftype of
+                       stringdef : begin
+                                     if doread then
+                                       emitcall('READ_TEXT_STRING',true)
+                                     else
+                                       emitcall('WRITE_TEXT_STRING',true);
+                                   end;
+                      pointerdef : begin
+                                     if is_equal(ppointerdef(pararesult)^.definition,cchardef) then
+                                       begin
+                                         if doread then
+                                           emitcall('READ_TEXT_PCHAR_AS_POINTER',true)
+                                         else
+                                           emitcall('WRITE_TEXT_PCHAR_AS_POINTER',true);
+                                       end
+                                     else
+                                      Message(parser_e_illegal_parameter_list);
+                                   end;
+                        arraydef : begin
+                                     if (parraydef(pararesult)^.lowrange=0) and
+                                        is_equal(parraydef(pararesult)^.definition,cchardef) then
+                                       begin
+                                         if doread then
+                                           emitcall('READ_TEXT_PCHAR_AS_ARRAY',true)
+                                         else
+                                           emitcall('WRITE_TEXT_PCHAR_AS_ARRAY',true);
+                                       end
+                                     else
+                                      Message(parser_e_illegal_parameter_list);
+                                   end;
+                        floatdef : begin
+                                     if doread then
+                                       emitcall('READ_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true)
+                                     else
+                                       emitcall('WRITE_TEXT_'+float_name[pfloatdef(pararesult)^.typ],true);
+                                   end;
+                          orddef : begin
+                                     case porddef(pararesult)^.typ of
+                                          u8bit : if doread then
+                                                    emitcall('READ_TEXT_BYTE',true);
+                                          s8bit : if doread then
+                                                    emitcall('READ_TEXT_SHORTINT',true);
+                                         u16bit : if doread then
+                                                    emitcall('READ_TEXT_WORD',true);
+                                         s16bit : if doread then
+                                                    emitcall('READ_TEXT_INTEGER',true);
+                                         s32bit : if doread then
+                                                    emitcall('READ_TEXT_LONGINT',true)
+                                                  else
+                                                    emitcall('WRITE_TEXT_LONGINT',true);
+                                         u32bit : if doread then
+                                                    emitcall('READ_TEXT_CARDINAL',true)
+                                                  else
+                                                    emitcall('WRITE_TEXT_CARDINAL',true);
+                                          uchar : if doread then
+                                                    emitcall('READ_TEXT_CHAR',true)
+                                                  else
+                                                    emitcall('WRITE_TEXT_CHAR',true);
+                                       bool8bit,
+                                      bool16bit,
+                                      bool32bit : if  doread then
+                                                  { emitcall('READ_TEXT_BOOLEAN',true) }
+                                                    Message(parser_e_illegal_parameter_list)
+                                                  else
+                                                    emitcall('WRITE_TEXT_BOOLEAN',true);
+                                     else
+                                       Message(parser_e_illegal_parameter_list);
+                                     end;
+                                   end;
+                          else
+                            Message(parser_e_illegal_parameter_list);
+                          end;
+                       end;
+                   { load ESI in methods again }
+                     popusedregisters(pushed);
+                     maybe_loadesi;
                   end;
              end;
-           if callwriteln then
+         { Insert end of writing for textfiles }
+           if ft=ft_text then
              begin
-                pushusedregisters(pushed,$ff);
-                emit_push_mem(aktfile);
-                { pushexceptlabel; }
-                if ft<>ft_text then
-                  Message(parser_e_illegal_parameter_list)                                    ;
-                emitcall('WRITELN_TEXT',true);
-                popusedregisters(pushed);
-                maybe_loadesi;
+               pushusedregisters(pushed,$ff);
+               emit_push_mem(aktfile);
+               if doread then
+                begin
+                  if doln then
+                    emitcall('READLN_END',true)
+                  else
+
+                    emitcall('READ_END',true);
+                end
+
+               else
+                begin
+                  if doln then
+                    emitcall('WRITELN_END',true)
+                  else
+
+                    emitcall('WRITE_END',true);
+                end;
+               popusedregisters(pushed);
+               maybe_loadesi;
              end;
-           if doflush and not(doread) then
-             begin
-                pushusedregisters(pushed,$ff);
-                { pushexceptlabel; }
-                emitcall('FLUSH_STDOUT',true);
-                popusedregisters(pushed);
-                maybe_loadesi;
-             end;
-           if iolabel<>nil then
+         { Insert IOCheck if set }
+           if assigned(iolabel) then
              begin
                 { registers are saved in the procedure }
                 exprasmlist^.concat(new(pai386,op_csymbol(A_PUSH,S_L,newcsymbol(lab2str(iolabel),0))));
                 emitcall('IOCHECK',true);
              end;
+         { Freeup all used temps }
            ungetiftemp(aktfile);
            if assigned(p^.left) then
              begin
                 p^.left:=reversparameter(p^.left);
-                    if npara<>nb_para then
-                     Message(cg_f_internal_error_in_secondinline);
-                    hp:=p^.left;
-                    while assigned(hp) do
+                if npara<>nb_para then
+                  Message(cg_f_internal_error_in_secondinline);
+                hp:=p^.left;
+                while assigned(hp) do
                   begin
                      if assigned(hp^.left) then
-                       if (hp^.left^.location.loc=LOC_REFERENCE) or
-                         (hp^.left^.location.loc=LOC_MEM) then
+                       if (hp^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
                          ungetiftemp(hp^.left^.location.reference);
                      hp:=hp^.right;
                   end;
-            end;
+             end;
         end;
 
       procedure handle_str;
@@ -2090,17 +2081,7 @@ implementation
             in_read_x :
               handlereadwrite(true,false);
             in_readln_x :
-              begin
-                handlereadwrite(true,false);
-                pushusedregisters(pushed,$ff);
-                emit_push_mem(aktfile);
-                { pushexceptlabel; }
-                if ft<>ft_text then
-                  Message(parser_e_illegal_parameter_list);
-                emitcall('READLN_TEXT',true);
-                popusedregisters(pushed);
-                maybe_loadesi;
-              end;
+              handlereadwrite(true,true);
             in_str_x_string :
               begin
                  handle_str;
@@ -2273,7 +2254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-06-25 14:04:17  peter
+  Revision 1.6  1998-07-01 15:28:48  peter
+    + better writeln/readln handling, now 100% like tp7
+
+  Revision 1.5  1998/06/25 14:04:17  peter
     + internal inc/dec
 
   Revision 1.4  1998/06/25 08:48:06  florian
