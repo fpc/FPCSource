@@ -148,7 +148,7 @@ type
   public
     destructor Destroy; override;
     function Add(Item: Pointer): Integer;
-    procedure Clear;
+    procedure Clear; dynamic;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: Integer); virtual;
     procedure Exchange(Index1, Index2: Integer);
@@ -1236,7 +1236,10 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 
 {
   $Log$
-  Revision 1.1.2.1  2000-10-15 09:35:55  michael
+  Revision 1.1.2.2  2000-10-26 22:20:57  peter
+    * tlist.clear is dynamic
+
+  Revision 1.1.2.1  2000/10/15 09:35:55  michael
   + Capitalization of TBits interface fixed; CheckBitIndex now checks for size
 
   Revision 1.1  2000/07/13 06:31:30  michael
