@@ -37,6 +37,7 @@ CONST PTHREAD_EXPLICIT_SCHED       = 0;
     __startroutine_t= function (p :pointer):pointer;cdecl;
     pthread_mutex_attr_t  = pointer;
     ppthread_mutex_attr_t = ^pthread_mutex_t;
+    sem_t	    = cint;
 
 function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external 'c';
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external 'c';
@@ -56,9 +57,22 @@ function  pthread_cancel(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external 'c';
 
+function sem_init(__sem:Psem_t; __pshared:cint;__value:cuint):cint;cdecl; external;
+function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
+function sem_close(__sem:Psem_t):cint;cdecl;external ;
+function sem_unlink(__name:Pchar):cint;cdecl;external ;
+function sem_wait(__sem:Psem_t):cint;cdecl;external ;
+function sem_trywait(__sem:Psem_t):cint;cdecl;external ;
+function sem_post(__sem:Psem_t):cint;cdecl;external ;
+function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external;
+
+
 {
   $Log$
-  Revision 1.1  2004-01-04 20:05:38  jonas
+  Revision 1.2  2004-05-26 19:23:17  marco
+   * first iteration
+
+  Revision 1.1  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 
