@@ -1,5 +1,5 @@
-The different directories are organized as follows:
-
+Directories
+-----------
 webtbs...........Tests for web-bug-database bugs (success in compilation)
                    Digits in filename refer to bug database entry
 webtbf...........Tests for web-bug-database bugs (fail compile)
@@ -9,12 +9,13 @@ tbs..............Tests for other bugs, added by the fpc core team
                    (success in compilation) Digits in filename is a serial no
 tbf..............Tests for other bugs, added by the fpc core team
                    (fail compile) Digits in filename is a serial no
-units............Unit helper for doing the tests
+units............Helper units for doing the tests
 utils............Utilities for processing tests
 
 
-
-At the top of the test source code, some options
+Test directives
+---------------
+At the top of the test source code, some directives
 can be used to determine how the tests will be
 processed (if processed automatically via make),
 e. g. {%CPU=i386} :
@@ -51,7 +52,8 @@ KNOWNCOMPILEERROR..Known bug, which manifest itself at compile time. To
   NOTE: A list consists of comma separated items, e. g. CPU=i386,m68k,linux
         No space between the elements and the comma.
 
-
+Usage
+-----
 To actually start the testsuite:
 do a simple
 make full This should create a log of all failed tests.
@@ -64,7 +66,42 @@ are compiled in a clean determined way and put in the units directory. Then
 webtbs/webtbf/test/tbs/tbf are searched for t*.pp to be compiled
 and executed as tests.
 
+Controling testing in more detail
+---------------------------------
+Calling "make full" will preform tests in a standard manner. To have
+more control of the test process we must differentiate between:
 
+* Driver enviroment: compiler/rtl etc to be used by the tools which
+  runs and analyze the tests. All normal options to make, like FPC
+  OS_TARGET, OPT etc controls this.
+
+* Test environment:  compiler/rtl etc to be tested, to be used
+  *in* the tests. Ususal options, prepended with TEST_ , controls
+  this. If no such options are given, test and driver environment
+  will be the same.
+
+This differentiation also enables cross testing.
+
+The following test options can be given:
+
+TEST_FPC               defaults to FPC
+TEST_OS_TARGET         defaults to OS_TARGET
+TEST_CPU_TARGET        defaults to CPU_TARGET
+TEST_OPT               defaults to ""
+TEST_FPC_VERSION       defaults to version of TEST_FPC
+TEST_CCOMPILER         defaults to installed gcc compiler, but only
+                       if driver and test full-targets are the same.
+
+  (Please add more test options if needed)
+
+NOTE To clean after a test session, "make clean" must be given the same
+options as when running the tests.
+
+The utils directory is considerd to belong to the driver environment,
+all other directories belongs to the test environment.
+
+Remote execution
+----------------
 Also remote execution of the testsuite is possible
 Requirements:
 - current build tree contains a cross compiled rtl/fcl
