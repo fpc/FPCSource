@@ -61,7 +61,7 @@ implementation
        globtype,systems,tokens,
        cobjects,verbose,globals,
        symconst,
-       types,
+       types,pass_1,
 {$ifdef newcg}
        cgbase
 {$else}
@@ -741,9 +741,17 @@ implementation
                  gotderef:=true;
                  hp:=hp^.left;
                end;
-             typeconvn,
-             asn,
+             typeconvn :
+               begin
+                 { pchar -> array conversion is done then we need to see it
+                   as a deref, because a ^ is then not required anymore }
+                 if is_chararray(hp^.resulttype) and
+                    is_pchar(hp^.left^.resulttype) then
+                  gotderef:=true;
+                 hp:=hp^.left;
+               end;
              vecn,
+             asn,
              subscriptn :
                hp:=hp^.left;
              subn,
@@ -826,7 +834,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.43  1999-10-27 16:04:45  peter
+  Revision 1.44  1999-11-04 23:11:21  peter
+    * fixed pchar and deref detection for assigning
+
+  Revision 1.43  1999/10/27 16:04:45  peter
     * valid_for_assign support for calln,asn
 
   Revision 1.42  1999/10/26 12:30:41  peter
