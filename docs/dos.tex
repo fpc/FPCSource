@@ -297,7 +297,7 @@ and time.
 Procedure AddDisk (Const S : String);
 \Description
 \var{AddDisk} adds a filename \var{S} to the internal list of disks. It is
-implemented for \linux only.
+implemented for systems which do not use DOS type drive letters.
  This list is used to determine which disks to use in the \seef{DiskFree}
 and \seef{DiskSize} calls. 
 The \seef{DiskFree} and \seef{DiskSize} functions need a file on the 
@@ -306,8 +306,8 @@ The names are added sequentially. The dos
 initialization code presets the first three disks to:
 \begin{itemize}
 \item \var{'.'} for the current drive, 
-\item \var{'/fd0/.'} for the first floppy-drive.
-\item \var{'/fd1/.'} for the second floppy-drive.
+\item \var{'/fd0/.'} for the first floppy-drive (linux only).
+\item \var{'/fd1/.'} for the second floppy-drive (linux only).
 \item \var{'/'} for the first hard disk.
 \end{itemize}
 The first call to \var{AddDisk} will therefore add a name for the second
@@ -337,8 +337,8 @@ These filenames are set in the initialization of the dos unit, and have
 been preset to :
 \begin{itemize}
 \item \var{'.'} for the current drive, 
-\item \var{'/fd0/.'} for the first floppy-drive.
-\item \var{'/fd1/.'} for the second floppy-drive.
+\item \var{'/fd0/.'} for the first floppy-drive (linux only).
+\item \var{'/fd1/.'} for the second floppy-drive (linux only).
 \item \var{'/'} for the first hard disk.
 \end{itemize}
 There is room for 1-26 drives. You can add a drive with the
@@ -370,8 +370,8 @@ is required for the \var{statfs} system call.
 been preset to :
 \begin{itemize}
 \item \var{'.'} for the current drive, 
-\item \var{'/fd0/.'} for the first floppy-drive.
-\item \var{'/fd1/.'} for the second floppy-drive.
+\item \var{'/fd0/.'} for the first floppy-drive (linux only).
+\item \var{'/fd1/.'} for the second floppy-drive (linux only).
 \item \var{'/'} for the first hard disk.
 \end{itemize}
 There is room for 1-26 drives. You can add a drive with the
