@@ -18,7 +18,7 @@ unit VESA;
 interface
 
 uses
-  Dos,
+  Dos
   {$ifdef TP}
     {$ifdef DPMI}
     ,WinDos,WinAPI
@@ -29,7 +29,7 @@ uses
     ,Go32
     {$endif}
   {$endif}
-  Objects,Strings,WUtils;
+  ,Objects,Strings,WUtils;
 
 const
      { Video Mode Attributes mask constants }
@@ -481,7 +481,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  1999-03-23 15:11:39  peter
+  Revision 1.2  1999-03-26 19:09:44  peter
+    * fixed for go32v2
+
+  Revision 1.1  1999/03/23 15:11:39  peter
     * desktop saving things
     * vesa mode
     * preferences dialog
