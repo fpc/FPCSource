@@ -1300,8 +1300,8 @@ var
   {  pl: procedure which either draws a patternline (for   }
   {      FillEllipse) or does nothing (arc etc)            }
   {--------------------------------------------------------}
-  { NOTE: - uses the current write mode.                   }
-  {       - Angles must both be between 0 and 360          }
+  { NOTE: -                                                }
+  {       -                                                }
   {********************************************************}
 
   Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
@@ -1369,7 +1369,7 @@ var
    { equation of an ellipse.                                              }
    { In the worst case, we have to calculate everything from the }
    { quadrant, so divide the circumference value by 4 (JM)       }
-   NumOfPixels:=Round(2.5*sqrt((sqr(XRadius)+sqr(YRadius)) div 2));
+   NumOfPixels:=Round(Sqrt(3)*sqrt(sqr(XRadius)+sqr(YRadius)));
    { Calculate the angle precision required }
    Delta := 90.0 / (NumOfPixels);
    { Adjust for screen aspect ratio }
@@ -1440,7 +1440,7 @@ var
          PutPixel(xp,ym,CurrentColor);
        end;
      If (ynext <> ytemp) and
-        (xp-xm >2) then
+        (xp <> xm) then
        begin
          CurrentColor := FillSettings.Color;
          pl(plxmyp+1,plxpyp-1,yp);
@@ -1886,19 +1886,19 @@ Begin
    Begin
      for i:=X to X1 do
       begin
-            case BitBlt of
+        case BitBlt of
 {$R-}
-         CopyPut: color:= pt(Bitmap)[k];  { also = normalput }
-             XORPut: color:= pt(Bitmap)[k] XOR GetPixel(i,j);
-             OrPut: color:= pt(Bitmap)[k] OR GetPixel(i,j);
-             AndPut: color:= pt(Bitmap)[k] AND GetPixel(i,j);
-             NotPut: color:= not pt(Bitmap)[k];
+          CopyPut: color:= pt(Bitmap)[k];  { also = normalput }
+          XORPut: color:= pt(Bitmap)[k] XOR GetPixel(i,j);
+          OrPut: color:= pt(Bitmap)[k] OR GetPixel(i,j);
+          AndPut: color:= pt(Bitmap)[k] AND GetPixel(i,j);
+          NotPut: color:= not pt(Bitmap)[k];
 {$ifdef debug}
 {$R+}
 {$endif debug}
-           end;
-           putpixel(i,j,color);
-           Inc(k);
+        end;
+        putpixel(i,j,color);
+        Inc(k);
      end;
    end;
 end;
@@ -2100,14 +2100,6 @@ end;
   { and XRadius and YRadius as the horizontal and vertical }
   { axes. The ellipse is filled with the current fill color}
   { and fill style, and is bordered with the current color.}
-  {--------------------------------------------------------}
-  { Important notes:                                       }
-  {  - CONTRRARY to VGA BGI - SetWriteMode DOES not        }
-  {    affect the contour of the ellipses. BGI mode        }
-  {    supports XORPut but the FloodFill() is still bounded}
-  {    by the ellipse. In OUR case, XOR Mode is simply     }
-  {    not supported.                                      }
-  {  - update: other write modes are now supported (JM     }
   {********************************************************}
   begin
     InternalEllipse(X,Y,XRadius,YRadius,0,360,PatternLine)
@@ -2312,7 +2304,7 @@ end;
          close(t);
 {$endif sectorpldebug}
        End;
-   If plx2 - plx1 > 2 then
+   If plx2 > plx1 then
      Begin
 {$ifdef sectorpldebug}
        append(t);
@@ -2334,34 +2326,6 @@ end;
 {$endif fpc}
      Line(ArcCall.XStart, ArcCall.YStart, x,y);
      Line(x,y,ArcCall.Xend,ArcCall.YEnd);
-
-(*
-     Ellipse(x,y,stAngle,endAngle,XRadius,YRadius);
-    { As in the TP graph unit - the line settings are used to }
-    { define the outline of the sector.                       }
-     writemode:=Currentwritemode;
-     Currentwritemode:=normalput;
-     Line(ArcCall.XStart, ArcCall.YStart, x,y);
-     Line(x,y,ArcCall.Xend,ArcCall.YEnd);
-     { we must take care of clipping so we call PutPixel instead }
-     { of DirectPutPixel...                                      }
-     PutPixel(ArcCall.xstart,ArcCall.ystart,CurrentColor);
-     PutPixel(x,y,CurrentColor);
-     PutPixel(ArcCall.xend,ArcCall.yend,CurrentColor);
-     stangle:=Stangle mod 360; EndAngle:=Endangle mod 360;
-{     if stAngle<=Endangle then}
-       Angle:=(stAngle+EndAngle) div 2
-{     else
-       angle:=(stAngle-360+EndAngle) div 2};
-     { fill from the point in the middle of the slice }
-     XRadius:=(longint(XRadius)*10000) div XAspect;
-     YRadius:=(longint(YRadius)*10000) div YAspect;
-     { avoid rounding errors }
-     if (abs(ArcCall.xstart-ArcCall.xend)
-        +abs(ArcCall.ystart-ArcCall.yend)>2) then
-       FloodFill(x+round(sin((angle+90)*Pi/180)*XRadius/2),
-         y+round(cos((angle+90)*Pi/180)*YRadius/2),CurrentColor);
-     CurrentWriteMode := writemode;*)
   end;
 
 
@@ -2629,8 +2593,6 @@ end;
    end;
 
    Function GetDriverName: string;
-    var
-     mode: PModeInfo;
     begin
       GetDriverName:=DriverName;
     end;
@@ -2703,10 +2665,12 @@ end;
 
 
   procedure SetWriteMode(WriteMode : integer);
+  { TP sets the writemodes according to the following scheme (JM) }
    begin
-     if (writemode<>xorput) and (writemode<>CopyPut) then
-            exit;
-     CurrentWriteMode := WriteMode;
+     Case writemode of
+       xorput, andput: CurrentWriteMode := XorPut;
+       notput, orput, copyput: CurrentWriteMode := CopyPut;
+     End;
    end;
 
 
@@ -2757,20 +2721,46 @@ end;
 {$i gtext.inc}
 
 
+  procedure DetectGraph(var GraphDriver:Integer;var GraphMode:Integer);
+  var LoMode, HiMode: Integer;
+      CpyMode: Integer;
+      CpyDriver: Integer;
+  begin
+    HiMode := -1;
+    LoMode := -1;
+    { We start at VGA }
+    GraphDriver := VGA;
+    CpyMode := 0;
+    { search all possible graphic drivers in ascending order...}
+    { usually the new driver numbers indicate newest hardware...}
+    { Internal driver numbers start at VGA=9 }
+    repeat
+       GetModeRange(GraphDriver,LoMode,HiMode);
+       { save the highest mode possible...}
+       if HiMode = -1 then break;
+       CpyMode:=HiMode;
+       CpyDriver:=GraphDriver;
+       { go to next driver if it exists...}
+       Inc(GraphDriver);
+    until (CpyMode=-1);
+    { If this is equal to -1 then no graph mode possible...}
+    if CpyMode = -1 then
+      begin
+        _GraphResult := grNotDetected;
+        exit;
+      end;
+    GraphDriver := CpyDriver;
+    GraphMode := CpyMode;
+  end;
+
   procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;
     const PathToDriver:String);
-  var i,index:Integer;
-     LoMode, HiMode: Integer;
-     CpyMode: Integer;
-     CpyDriver: Integer;
   begin
     { path to the fonts (where they will be searched)...}
     bgipath:=PathToDriver;
     if bgipath[length(bgipath)]<>'\' then
     bgipath:=bgipath+'\';
 
-    { make sure our driver list is setup...}
-{    QueryAdapterInfo;}
     if not assigned(SaveVideoState) then
       RunError(216);
 {$ifdef logging}
@@ -2782,32 +2772,11 @@ end;
 
     if (Graphdriver=Detect) then
       begin
-          HiMode := -1;
-          LoMode := -1;
-          { We start at VGA-1 }
-          GraphDriver := VGA;
-          CpyMode := 0;
-          { search all possible graphic drivers in ascending order...}
-          { usually the new driver numbers indicate newest hardware...}
-          { Internal driver numbers start at VGA=9 }
-          repeat
-             GetModeRange(GraphDriver,LoMode,HiMode);
-             { save the highest mode possible...}
-             if HiMode = -1 then break;
-             CpyMode:=HiMode;
-             CpyDriver:=GraphDriver;
-             { go to next driver if it exists...}
-             Inc(GraphDriver);
-          until (CpyMode=-1);
-        IntCurrentDriver := CpyDriver;
-        { If this is equal to -1 then no graph mode possible...}
-        if CpyMode = -1 then
-         begin
-           _GraphResult := grNotDetected;
-           exit;
-         end;
+        DetectGraph(GraphDriver,GraphMode);
+        If _GraphResult = grNotDetected then Exit;
+        IntCurrentDriver := GraphDriver;
         { Actually set the graph mode...}
-        SetGraphMode(CpyMode);
+        SetGraphMode(GraphMode);
       end
     else
       begin
@@ -2880,7 +2849,13 @@ DetectGraph
 
 {
   $Log$
-  Revision 1.27  1999-09-24 22:52:38  jonas
+  Revision 1.28  1999-09-25 11:48:43  jonas
+    + detectgraph
+    * small change to internalellipsedefault so less pixels are
+      calculated twice
+    * some small corrections to graph.tex
+
+  Revision 1.27  1999/09/24 22:52:38  jonas
     * optimized patternline a bit (always use hline when possible)
     * isgraphmode stuff cleanup
     * vesainfo.modelist now gets disposed in cleanmode instead of in

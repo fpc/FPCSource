@@ -81,7 +81,6 @@ below:
   return errors, as they are not directly supported.
 \item \textit{DrawPoly} XORPut write mode does not have the same behaviour
  as the one in the Turbo Pascal graph unit.
-\item XORPut write mode is not supported by \textit{FillEllipse}.
 \item XORPut write mode is not supported by \textit{Bar3d}.
 \item Passing invalid parameters to \textit{SetTextStyle} will not
   result in the same visual appearance. Make sure your input is valid.
@@ -156,8 +155,8 @@ others don't :
 \item \textit{Bar}                      --- ok
 \item \textit{Bar3D}                    --- ok
 \item \textit{ClearViewPort}
-\item \textit{CloseGraph}
-\item \textit{DetectGraph}
+\item \textit{CloseGraph}               --- ok
+\item \textit{DetectGraph}              --- ok
 \item \textit{DrawPoly}                 --- ok
 \item \textit{FillPoly}                 --- ok
 \item \textit{FloodFill}                --- ok
@@ -196,6 +195,7 @@ The following routines support XORPut write modes (all routines support
 CopyPut modes):
 
 \begin{itemize}
+\item \textit{FillEllipse}
 \item \textit{FillPoly}
 \item \textit{Arc} with ThickWidth line styles only
 \item \textit{Circle} with ThickWidth line styles only
@@ -271,7 +271,8 @@ This routine is one of the most important callback routines with
 PutPixel, it is called by most of the routines in the graph unit. It
 is about the same as PutPixel except that the coordinates passed to
 it are already in global (screen) coordinates, and that clipping has
-already been performed.
+already been performed. Note that the current WriteMode has to be taken
+into account in this procedure.
 
 \var{InitMode}
 
@@ -294,7 +295,7 @@ SaveVideoState was called.
 \var{QueryAdapterInfo}
 
 This routine might be called by the user BEFORE we are in graphics
-mode. In all cases it is called by DetectGraph and InitGraph. It
+mode. It is called by the initialization code of the graph unit. It
 creates a linked list of video capabilities and procedural hooks for
 all supported video modes on the platform. Look at the DOS version,
 to see how it works. This linked list can be read by the user before a
@@ -327,7 +328,7 @@ empty string and sets GraphResult to grInvalidMode.
 \Declaration
 Procedure SetAllPalette(var Palette: PaletteType) ;
 \Description
-\var{Palette} is of type PaletteType. Thie first field in Palette
+\var{Palette} is of type PaletteType. The first field in Palette
 contains the length of the palette. The next \textit{n} fields of
 type \var{RGBRec} contains the Red-Green-Blue components to replace
 that specific color with. A value of -1 will not change the previous
@@ -460,7 +461,7 @@ access the video memory.
 
 The behaviour of this routine depends on the platform, and is required
 for example to use the graph unit under older multitaskers such as
-Desqview (DOS platform). Certain modes simply are simply not supported
+Desqview (DOS platform). Certain modes re simply not supported
 via Operating system calls, while others are only supported by the
 operating system. In those cases this routine is simply ignored.
 
@@ -1820,7 +1821,7 @@ If there is an error when using this routine, \var{GraphResult} might return
 \Errors
 None.
 \SeeAlso
-\seep{GetTextSettings} 
+\seep{GetTextSettings}
 \end{procedure}
 \begin{procedure}{SetUserCharSize}
 \Declaration
@@ -1854,7 +1855,7 @@ None.
 Procedure SetVisualPage (Page : Word);
 
 \Description
-\var{SetVisualPage} sets the video page to page number \var{Page}. 
+\var{SetVisualPage} sets the video page to page number \var{Page}.
 \Errors
 None
 \SeeAlso
@@ -1872,6 +1873,14 @@ be one of the following pre-defined constants:
 \item CopyPut=0;
 \item XORPut=1;
 \end{itemize}
+
+If you specify another mode, it is mapped to one of the above acoording to
+the following table (for TP compatibility, may be changed in the future):
+\begin{itemize}
+\item Notput, Orput: CopyPut
+\item AndPut: XorPut
+\end{itemize}
+
 \Errors
 None.
 \SeeAlso
@@ -1903,4 +1912,5 @@ None.
 \SeeAlso
 \seef{TextHeight}
 \end{function}
-                                                                                                                                                                                                                                                               
+
+
