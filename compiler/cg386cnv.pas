@@ -1131,6 +1131,10 @@ implementation
             (pfrom^.location.loc in [LOC_REFERENCE,LOC_MEM,LOC_CREGISTER]) then
            begin
               set_location(pto^.location,pfrom^.location);
+              freelabel(truelabel);
+              freelabel(falselabel);
+              truelabel:=oldtruelabel;
+              falselabel:=oldfalselabel;
               exit;
            end;
 {$endif ndef OLDBOOL}
@@ -1614,7 +1618,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  1999-02-12 10:43:57  florian
+  Revision 1.56  1999-02-15 11:30:39  pierre
+   * memory leaks removed
+
+  Revision 1.55  1999/02/12 10:43:57  florian
     * internal error 10 with ansistrings fixed
 
   Revision 1.54  1999/02/02 12:35:02  florian
