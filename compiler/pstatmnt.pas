@@ -491,7 +491,7 @@ unit pstatmnt;
          p1:=nil;
          p2:=nil;
          consume(_RAISE);
-         if token<>_SEMICOLON then
+         if not(token in [_SEMICOLON,_END]) then
            begin
               p1:=comp_expr(true);
               if (idtoken=_AT) then
@@ -1320,7 +1320,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.106  1999-11-06 14:34:23  peter
+  Revision 1.107  1999-11-09 13:02:46  peter
+    * fixed 'raise end;'
+
+  Revision 1.106  1999/11/06 14:34:23  peter
     * truncated log to 20 revs
 
   Revision 1.105  1999/10/22 10:39:35  peter
