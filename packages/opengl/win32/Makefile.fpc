@@ -1,0 +1,15 @@
+#
+#   Makefile.fpc for Win32 dynamic and static GL units
+#
+
+[defaults]
+defaulttarget=win32
+
+[require]
+packages=gtk
+
+[targets]
+units=gl glut glaux gl_sl glut_sl glaux_sl gtkglarea
+
+[dirs]
+fpcdir=../../..

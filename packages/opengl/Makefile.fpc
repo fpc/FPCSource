@@ -1,0 +1,12 @@
+#
+#   Makefile.fpc for OpenGL for FPC
+#
+
+[targets]
+dirs_win32=win32 gtkgl
+dirs_linux=linux gtkgl
+exampledirs=examples
+
+[install]
+packagename=opengl
+examplesubdir=opengl
