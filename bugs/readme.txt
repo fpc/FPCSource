@@ -284,7 +284,7 @@ Fixed bugs:
   bug0229.pp   consts > 255 are truncated (should work in -S2,-Sd)  OK 0.99.11 (PFV)
   bug0231.pp   Problem with comments                                OK 0.99.11 (PFV)
   bug0233.pp   Problem with enum sets in args                       OK 0.99.11 (PFV)
-  bug0234.pp   New with void pointer                                OK 0.99.11 (PM) 
+  bug0234.pp   New with void pointer                                OK 0.99.11 (PM)
   bug0235.pp   Val(cardinal) bug                                    OK 0.99.11 (JM)
   bug0236.pp   Problem with range check of subsets !! compile with -Cr OK 0.99.11 (PFV)
   bug0238.pp   Internal error 432645 (from Frank MCCormick, mailinglist 24/2) OK 0.99.11 (PM)
@@ -324,3 +324,4 @@ bug0230.pp   several strange happen on the ln function: ln(0): no
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0237.pp   Can't have sub procedures with names defined in interface
+bug0242.pp   Crash when passing a procedure to formal parameter
