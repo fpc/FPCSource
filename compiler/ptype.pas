@@ -65,7 +65,12 @@ uses
 {$endif}
   tree,hcodegen,hcgdata,
   scanner,pbase,pexpr,pdecl,psub,
-  tccnv,pass_1;
+{$ifdef newcg}
+  cgbase,
+{$else}
+  tccnv,
+{$endif}
+  pass_1;
 
 
     function string_dec : pdef;
@@ -433,7 +438,7 @@ uses
                   end;
                 { overriden property ?                                 }
                 { force property interface, if there is a property parameter }
-                if (token=_COLON) or assigned(propertyparas) then
+                if (token=_COLON) or not(propertyparas^.empty) then
                   begin
                      consume(_COLON);
                      p^.proptype:=single_type(hs,false);
@@ -1593,7 +1598,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.3  1999-10-26 12:30:45  peter
+  Revision 1.4  1999-10-27 14:17:08  florian
+    * property overriding fixed
+
+  Revision 1.3  1999/10/26 12:30:45  peter
     * const parameter is now checked
     * better and generic check if a node can be used for assigning
     * export fixes
