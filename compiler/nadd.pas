@@ -772,44 +772,29 @@ implementation
                    end
                  else
                    begin
-                     if is_signed(ld) and
-                        { then rd = u32bit }
-                        { convert positive constants to u32bit }
-                        not(is_constintnode(left) and
-                            (tordconstnode(left).value >= 0)) then
+                     { convert positive constants to u32bit }
+                     if (torddef(ld).typ<>u32bit) and
+                        is_constintnode(left) and
+                        (tordconstnode(left).value >= 0) then
+                       inserttypeconv(left,u32inttype);
+                     if (torddef(rd).typ<>u32bit) and
+                        is_constintnode(right) and
+                        (tordconstnode(right).value >= 0) then
+                       inserttypeconv(right,u32inttype);
+                     { when one of the operand is signed perform
+                       the operation in 64bit }
+                     if is_signed(ld) or is_signed(rd) then
                        begin
-                         { perform the operation in 64bit }
                          CGMessage(type_w_mixed_signed_unsigned);
                          inserttypeconv(left,s64inttype);
                          inserttypeconv(right,s64inttype);
                        end
                      else
                        begin
-                         if is_signed(ld) and
-                            not(is_constintnode(left) and
-                                (tordconstnode(left).value >= 0)) then
-                           CGMessage(type_w_mixed_signed_unsigned2);
-                         inserttypeconv(left,u32inttype);
-
-                         if is_signed(rd) and
-                            { then ld = u32bit }
-                            { convert positive constants to u32bit }
-                            not(is_constintnode(right) and
-                                (tordconstnode(right).value >= 0)) then
-                           begin
-                             { perform the operation in 64bit }
-                             CGMessage(type_w_mixed_signed_unsigned);
-                             inserttypeconv(left,s64inttype);
-                             inserttypeconv(right,s64inttype);
-                           end
-                         else
-                           begin
-                             if is_signed(rd) and
-                                not(is_constintnode(right) and
-                                    (tordconstnode(right).value >= 0)) then
-                               CGMessage(type_w_mixed_signed_unsigned2);
-                             inserttypeconv(right,u32inttype);
-                           end;
+                         if (torddef(ld).typ<>u32bit) then
+                           inserttypeconv(left,u32inttype);
+                         if (torddef(rd).typ<>u32bit) then
+                           inserttypeconv(right,u32inttype);
                        end;
                    end;
                end
@@ -1952,7 +1937,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.117  2004-04-29 19:56:37  daniel
+  Revision 1.118  2004-05-19 23:29:26  peter
+    * don't change sign for unsigned shl/shr operations
+    * cleanup for u32bit
+
+  Revision 1.117  2004/04/29 19:56:37  daniel
     * Prepare compiler infrastructure for multiple ansistring types
 
   Revision 1.116  2004/04/18 07:52:43  florian

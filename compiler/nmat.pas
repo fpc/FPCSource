@@ -171,11 +171,10 @@ implementation
          if (rd.typ in [u32bit,u64bit]) and
             is_constintnode(left) and
             (tordconstnode(left).value >= 0) then
-           inserttypeconv(left,right.resulttype)
-         else
-          if (ld.typ in [u32bit,u64bit]) and
-             is_constintnode(right) and
-             (tordconstnode(right).value >= 0) then
+           inserttypeconv(left,right.resulttype);
+         if (ld.typ in [u32bit,u64bit]) and
+            is_constintnode(right) and
+            (tordconstnode(right).value >= 0) then
            inserttypeconv(right,left.resulttype);
 
          { when there is one currency value, everything is done
@@ -454,13 +453,16 @@ implementation
               exit;
            end;
 
+         { expand to cpu wordsize, but don't change sign. For
+           32bit ignore 64bit since that has it's own code }
 {$ifndef cpu64bit}
-         { 64 bit ints have their own shift handling }
          if not is_64bit(left.resulttype.def) then
-{$endif cpu64bit}
+{$endif}
            begin
-             if torddef(left.resulttype.def).typ<>torddef(uinttype.def).typ then
-               inserttypeconv(left,sinttype);
+             if is_signed(left.resulttype.def) then
+               inserttypeconv(left,sinttype)
+             else
+               inserttypeconv(left,uinttype);
            end;
 
          inserttypeconv(right,sinttype);
@@ -852,7 +854,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.61  2004-03-29 14:44:10  peter
+  Revision 1.62  2004-05-19 23:29:25  peter
+    * don't change sign for unsigned shl/shr operations
+    * cleanup for u32bit
+
+  Revision 1.61  2004/03/29 14:44:10  peter
     * fixes to previous constant integer commit
 
   Revision 1.60  2004/03/23 22:34:49  peter
