@@ -1,7 +1,6 @@
 Program DParser;
 
-uses ObjPas,
-     Classes;
+uses Classes;
 
 var
   InFile           : TFileStream;

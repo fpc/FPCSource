@@ -1,6 +1,6 @@
 Program TestList;
 
-Uses objpas, classes;
+Uses classes;
 
 const a1 : pchar = '0';
       a2 : pchar = '1';

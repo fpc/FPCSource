@@ -1,6 +1,6 @@
 Program TestStream;
 
-uses objpas, classes;
+uses classes;
 
 Var Stream : TMemoryStream;
     S,T : String;
