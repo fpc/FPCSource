@@ -677,8 +677,6 @@ const
     Getmem  : TraceGetMem;
     Freemem : TraceFreeMem
   );
-var
-  SaveExit : pointer;
 
 procedure TraceExit;
 begin
@@ -752,18 +750,24 @@ Initialization
 {$endif EXTRA}
   Heap_at_init:=HeapPtr;
 finalization
-  TraceExit;    
+  TraceExit;
 end.
 {
   $Log$
-  Revision 1.18  1999-07-09 10:38:10  michael
+  Revision 1.19  1999-07-10 10:33:50  peter
+    * merged
+
+  Revision 1.18  1999/07/09 10:38:10  michael
   + + heaptrc now uses finalize instead of exitproc
 
   Revision 1.17  1999/07/05 20:22:08  peter
     * merged
 
-  Revision 1.16.2.1  1999/07/05 20:12:27  peter
-    * removed warning
+  Revision 1.16.2.3  1999/07/10 10:31:56  peter
+    * removed unused var
+
+  Revision 1.16.2.2  1999/07/09 10:44:23  michael
+  + Merged finalize
 
   Revision 1.16  1999/05/23 00:07:17  pierre
     * support for heap allocated before TraceGetMem is used in
