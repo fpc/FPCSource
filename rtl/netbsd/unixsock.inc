@@ -9,6 +9,13 @@ begin
   Socket:=Do_Syscall(syscall_nr_socket,Domain,SocketType,Protocol);
 end;
 
+Function CloseSocket (Sock:Longint):Longint;
+begin
+  if fdClose (Sock) then
+    CloseSocket := 0 else
+    CloseSocket := -1;
+end;
+
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
   Send:=do_syscall(syscall_nr_sendto,Sock,Longint(@Buf),BufLen,Flags,0,0);
@@ -190,7 +197,10 @@ end;
 
 {
  $Log$
- Revision 1.2  2003-01-21 15:39:45  marco
+ Revision 1.3  2003-03-23 17:47:15  armin
+ * CloseSocket added
+
+ Revision 1.2  2003/01/21 15:39:45  marco
   * NetBSD first rtl. Still not 100%, but close
 
  Revision 1.1.2.3  2002/09/20 07:06:15  pierre

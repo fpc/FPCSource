@@ -78,6 +78,13 @@ begin
   Socket:=SocketCall(Socket_Sys_Socket,Domain,SocketType,ProtoCol);
 end;
 
+Function CloseSocket (Sock:Longint):Longint;
+begin
+  if fdClose (Sock) then
+    CloseSocket := 0 else
+    CloseSocket := -1;
+end;
+
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
   Send:=SocketCall(Socket_Sys_Send,Sock,Longint(@Buf),BufLen,Flags,0,0);
@@ -267,7 +274,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:20  peter
+  Revision 1.7  2003-03-23 17:47:15  armin
+  * CloseSocket added
+
+  Revision 1.6  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/02/04 21:29:34  michael

@@ -132,6 +132,7 @@ Var
 
 {Basic Socket Functions}
 Function Socket(Domain,SocketType,Protocol:Longint):Longint;
+Function CloseSocket(Sock:Longint):Longint;
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 Function SendTo(Sock:Longint;Const Buf;BufLen,Flags:Longint;Var Addr; AddrLen : Longint):Longint;
 Function Recv(Sock:Longint;Var Buf;BufLen,Flags:Longint):Longint;
@@ -161,7 +162,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.8  2002-09-07 15:07:46  peter
+  Revision 1.9  2003-03-23 17:47:15  armin
+  * CloseSocket added
+
+  Revision 1.8  2002/09/07 15:07:46  peter
     * old logs removed and tabs fixed
 
   Revision 1.7  2002/02/04 21:29:34  michael

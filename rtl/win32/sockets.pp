@@ -44,6 +44,21 @@ begin
     SocketError:=0;
 end;
 
+Function CloseSocket(Sock:Longint):Longint;
+var i : longint;
+begin
+  i := Winsock.CloseSocket (Sock);
+  if i <> 0 then
+  begin
+    SocketError:=WSAGetLastError;
+    CloseSocket := i;
+  end else
+  begin
+    CloseSocket := 0;
+    SocketError := 0;
+  end;
+end;
+
 Function Send(Sock:Longint;Const Buf;BufLen,Flags:Longint):Longint;
 begin
   Send:=WinSock.Send(Sock,Buf,BufLen,Flags);
@@ -245,7 +260,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.10  2003-01-01 14:34:22  peter
+  Revision 1.11  2003-03-23 17:47:15  armin
+  * CloseSocket added
+
+  Revision 1.10  2003/01/01 14:34:22  peter
     * sendto overload
 
   Revision 1.9  2002/09/07 16:01:29  peter
