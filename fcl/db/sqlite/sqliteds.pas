@@ -711,7 +711,7 @@ begin
         SqlTemp:=SqlTemp + ' INTEGER'
       else
         SqlTemp:=SqlTemp + ' VARCHAR';
-      if Counter <>  FRowCount -1 then
+      if Counter <>  FieldDefs.Count - 1 then
         SqlTemp:=SqlTemp+ ' , ';   
     end;
     SqlTemp:=SqlTemp+');';
