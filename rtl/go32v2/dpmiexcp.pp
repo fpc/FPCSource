@@ -591,10 +591,10 @@ begin
   errln('');
   if (djgpp_exception_state_ptr^.__cs = get_cs) then
     show_call_frame(djgpp_exception_state_ptr)
-{$ifdef SYSTEMDEBUG}
+{$ifdef DPMIEXCP_DEBUG}
   else
     errln('Exception occured in another context');
-{$endif def SYSTEMDEBUG}
+{$endif def DPMIEXCP_DEBUG}
    ;
   if assigned(djgpp_exception_state_ptr^.__exception_ptr) then
     if (djgpp_exception_state_ptr^.__exception_ptr^.__cs = get_cs) then
@@ -602,14 +602,14 @@ begin
        Errln('First exception level stack');
        show_call_frame(djgpp_exception_state_ptr^.__exception_ptr);
     end
-{$ifdef SYSTEMDEBUG}
+{$ifdef DPMIEXCP_DEBUG}
   else
     begin
        errln('First exception occured in another context');
        djgpp_exception_state_ptr:=djgpp_exception_state_ptr^.__exception_ptr;
        do_faulting_finish_message();
     end;
-{$endif def SYSTEMDEBUG}
+{$endif def DPMIEXCP_DEBUG}
    ;
   { must not return !! }
 simple_exit:
@@ -676,9 +676,9 @@ type
   pseginfo = ^tseginfo;
 var
   except_ori : array [0..EXCEPTIONCOUNT-1] of tseginfo;
-{$ifdef SYSTEMDEBUG}
+{$ifdef DPMIEXCP_DEBUG}
    export name '_ori_exceptions';
-{$endif def SYSTEMDEBUG}
+{$endif def DPMIEXCP_DEBUG}
   kbd_ori    : tseginfo;
   npx_ori    : tseginfo;
   cbrk_ori,
@@ -693,12 +693,12 @@ var
   i : longint;
   local_ex : boolean;
 begin
-{$ifdef SYSTEMDEBUG}
+{$ifdef DPMIEXCP_DEBUG}
   if exceptions_on then
    errln('Disabling FPC exceptions')
   else
    errln('Enabling FPC exceptions');
-{$endif SYSTEMDEBUG}
+{$endif DPMIEXCP_DEBUG}
   { toggle here to avoid infinite recursion }
   { if a subfunction calls runerror !!      }
   exceptions_on:=not exceptions_on;
@@ -742,21 +742,21 @@ begin
      set_rm_interrupt(cbrk_vect,cbrk_ori);
      free_rm_callback(cbrk_rmcb);
      cbrk_hooked := false;
-{$ifdef SYSTEMDEBUG}
+{$ifdef DPMIEXCP_DEBUG}
      errln('back to ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
-{$endif SYSTEMDEBUG}
+{$endif DPMIEXCP_DEBUG}
    end
   else
    begin
      get_rm_interrupt(cbrk_vect, cbrk_ori);
-{$ifdef SYSTEMDEBUG}
+{$ifdef DPMIEXCP_DEBUG}
      errln('ori rm cbrk  '+hexstr(cbrk_ori.segment,4)+':'+hexstr(longint(cbrk_ori.offset),4));
-{$endif SYSTEMDEBUG}
+{$endif DPMIEXCP_DEBUG}
      get_rm_callback(@djgpp_cbrk_hdlr, cbrk_regs, cbrk_rmcb);
      set_rm_interrupt(cbrk_vect, cbrk_rmcb);
-{$ifdef SYSTEMDEBUG}
+{$ifdef DPMIEXCP_DEBUG}
      errln('now rm cbrk  '+hexstr(cbrk_rmcb.segment,4)+':'+hexstr(longint(cbrk_rmcb.offset),4));
-{$endif SYSTEMDEBUG}
+{$endif DPMIEXCP_DEBUG}
      cbrk_hooked := true;
    end;
 end;
@@ -907,7 +907,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-01-22 15:46:33  pierre
+  Revision 1.6  1999-02-05 12:49:25  pierre
+   <> debug conditionnal renamed DPMIEXCP_DEBUG
+
+  Revision 1.5  1999/01/22 15:46:33  pierre
    * PsignalHandler is now a pointer as changed in linux.pp
 
   Revision 1.4  1999/01/22 12:39:19  pierre
