@@ -31,6 +31,11 @@ ifndef OS_TARGET
 OS_TARGET=amiga
 endif
 
+# use as68k if crosscompiling 
+ifneq ($(OS_SOURCE),$(OS_TARGET))
+override OPT+= -AGAS
+endif
+
 # What is the target processor :
 ifndef CPU
 #CPU=i386
@@ -245,7 +250,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.3  1998-10-13 08:07:01  pierre
+# Revision 1.4  1998-10-13 16:31:14  pierre
+#  + added -AGAS for crosscompilers
+#
+# Revision 1.3  1998/10/13 08:07:01  pierre
 #   * uses AS variable (can be set to as68k when crosscompiling)
 #   * correct command line for sysamiga.pas
 #
