@@ -297,10 +297,7 @@ begin
     I:=0;
     While (I<Count) and not H.AClass.InheritsFrom(TInitHandler(Items[i]).AClass) do 
       Inc(I);
-    If I=Count then
-      InitHandlerList.Add(H)
-    else
-      InitHandlerList.Insert(I,H);
+    InitHandlerList.Insert(I,H);
     end;  
 end;
 
@@ -1215,7 +1212,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2003-06-04 15:27:24  michael
+  Revision 1.14  2003-06-04 17:40:44  michael
+  + Minor fix by Mattias Gaertner
+
+  Revision 1.13  2003/06/04 15:27:24  michael
   + TDataModule en InitInheritedComponent erbij voor Delphi 6 compatibility
 
   Revision 1.12  2003/04/19 14:29:25  michael
