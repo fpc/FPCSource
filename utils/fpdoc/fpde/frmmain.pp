@@ -195,7 +195,7 @@ begin
   FFormatBold:=FormatMenuItem(SMenuFormatBold,ttBold,MakeAccelKeyDef(Self,FaccelGroup,GDK_B,[amcontrol]));
   FFormatItalic:=FormatMenuItem(SMenuFormatItalics,ttItalic,MakeAccelKeyDef(Self,FaccelGroup,GDK_I,[amcontrol]));
   FFormatUnderline:=FormatMenuItem(SMenuFormatUnderline,ttUnderline,MakeAccelKeyDef(Self,FaccelGroup,GDK_U,[amcontrol]));
-  FFormatVariable:=FormatMenuItem(SMenuFormatVariable,ttVariable);
+  FFormatVariable:=FormatMenuItem(SMenuFormatVariable,ttVariable,MakeAccelKeyDef(Self,FaccelGroup,GDK_R,[amcontrol]));
   FFormatFile:=FormatMenuItem(SMenuFormatFile,ttFile);
   FFormatParagraph:=FormatMenuItem(SMenuFormatParagraph,ttParagraph);
   FFormatRemark:=FormatMenuItem(SMenuFormatRemark,ttRemark);
