@@ -21,12 +21,6 @@
 }
 
 {****************************************************************************
-                   Support for multiple compiler versions
-****************************************************************************}
-
-{$i version.inc}
-
-{****************************************************************************
                              Needed switches
 ****************************************************************************}
 
@@ -162,9 +156,6 @@ Function  Swap (X:Cardinal):Cardinal;
 Function  Swap (X:Longint):Longint;
 {$endif RTLLITE}
 
-Function Chr(b:byte):Char;
-Function Length(s:string):byte;
-
 Function  Random(l:Longint):Longint;
 Function  Random:real;
 Procedure Randomize;
@@ -202,12 +193,14 @@ Procedure Insert(const source:shortstring;Var s:shortstring;index:StrLenInt);
 Function  Pos(const substr:shortstring;const s:shortstring):StrLenInt;
 Function  Pos(C:Char;const s:shortstring):StrLenInt;
 Procedure SetLength(var s:shortstring;len:StrLenInt);
+Function  Length(s:string):byte;
 
 { Char functions to overcome overloading problem with ansistrings }
 function  copy(c:char;index : StrLenInt;count : StrLenInt): shortstring;
 function  pos(const substr : shortstring;c:char): StrLenInt;
 function  length(c:char):byte;
 
+Function  Chr(b:byte):Char;
 Function  upCase(const s:shortstring):shortstring;
 Function  upCase(c:Char):Char;
 {$ifndef RTLLITE}
@@ -439,7 +432,11 @@ const
 
 {
   $Log$
-  Revision 1.41  1998-11-16 10:21:26  peter
+  Revision 1.42  1998-11-24 17:12:43  peter
+    * fixed length(char)
+    - removed obsolete version.inc
+
+  Revision 1.41  1998/11/16 10:21:26  peter
     * fixes for H+
 
   Revision 1.40  1998/11/05 10:29:37  pierre
