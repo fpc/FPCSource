@@ -70,7 +70,7 @@ begin
   if name<>'' then
    begin
      aprocdef.setmangledname(name);
-   end
+   end  
   else
     message(parser_e_empty_import_name);
 end;
@@ -166,7 +166,7 @@ begin
       Add('PPCLink '#182);
 
       { Add MPW standard libraries}
-      if apptype <> app_tool then
+      if apptype = app_cui then
         begin
           Add('"{PPCLibraries}PPCSIOW.o" '#182);
           Add('"{PPCLibraries}PPCToolLibs.o" '#182);
@@ -190,7 +190,7 @@ begin
       if apptype = app_tool then
         Add('-t "MPST" -c "MPS " '#182);
 
-      if apptype <> app_tool then //If SIOW, to avoid some warnings.
+      if apptype = app_cui then {If SIOW, to avoid some warnings.}
         Add('-ignoredups __start -ignoredups .__start -ignoredups main -ignoredups .main '#182); 
 
       Add('-tocdataref off -sym on -dead on -o '+ ScriptFixFileName(current_module.exefilename^)); 
@@ -198,7 +198,7 @@ begin
       Add('Exit If "{Status}" != 0');
 
       {Add mac resources}
-      if apptype <> app_tool then //If SIOW
+      if apptype = app_cui then
         begin
           Add('Rez -append "{RIncludes}"SIOW.r -o ' + ScriptFixFileName(current_module.exefilename^));
           Add('Exit If "{Status}" != 0');
@@ -228,7 +228,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.8  2004-04-06 22:44:22  olle
+  Revision 1.9  2004-05-11 18:24:39  olle
+    + added GUI apptype to MacOS
+
+  Revision 1.8  2004/04/06 22:44:22  olle
     + Status checks in scripts
     + Scripts support apptype tool
     + Added some ScriptFixFileName
