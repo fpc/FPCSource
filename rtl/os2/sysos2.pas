@@ -169,12 +169,11 @@ end;
 
 ****************************************************************************}
 
-procedure halt(errnum:byte);
-
+procedure system_exit;
 begin
     asm
         movb $0x4c,%ah
-        movb errnum,%al
+        movb exitcode,%al
         call syscall
     end;
 end;
@@ -667,13 +666,6 @@ end;
 
 
 
-{*****************************************************************************
-                         System Dependent Exit code
-*****************************************************************************}
-Procedure system_exit;
-begin
-end;
-
 {****************************************************************************
 
                         System unit initialization.
@@ -760,7 +752,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.24  2000-01-20 23:38:02  peter
+  Revision 1.25  2000-02-09 12:39:11  peter
+    * halt moved to system.inc
+
+  Revision 1.24  2000/01/20 23:38:02  peter
     * support fm_inout as stdoutput for assign(f,'');rewrite(f,1); becuase
       rewrite opens always with filemode 2
 

@@ -626,18 +626,11 @@ begin
 end;
 
 
-procedure halt(errnum : byte);
-begin
-  exitcode:=errnum;
-  do_exit;
-  { do_exit should call system_exit but this does not hurt }
-  System_exit;
-end;
-
 procedure new_int00;
 begin
   HandleError(200);
 end;
+
 
 procedure new_int75;
 begin
@@ -1377,7 +1370,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.31  2000-01-24 11:57:18  daniel
+  Revision 1.32  2000-02-09 12:41:14  peter
+    * halt moved to system.inc
+
+  Revision 1.31  2000/01/24 11:57:18  daniel
     * !proxy support in environment added (Peter)
 
   Revision 1.30  2000/01/20 23:38:02  peter
