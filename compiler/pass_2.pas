@@ -130,6 +130,18 @@ implementation
            begin
              localfixup:=aktprocsym^.definition^.localst^.address_fixup;
              parafixup:=aktprocsym^.definition^.parast^.address_fixup;
+             { first reallocate all local labels }
+             hp:=pai(p^.p_asm^.first);
+             while assigned(hp) do
+              begin
+                if hp^.typ=ait_label then
+                  if Copy(pai_label(hp)^.l^.name,1,length(target_asm.labelprefix))
+                     = target_asm.labelprefix then
+                    begin
+                      getlabel(pai_label(hp)^.l);
+                    end;
+                hp:=pai(hp^.next);
+              end;
              hp:=pai(p^.p_asm^.first);
              while assigned(hp) do
               begin
@@ -700,7 +712,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  1999-12-14 09:58:42  florian
+  Revision 1.46  1999-12-19 23:37:18  pierre
+   * fix for web bug735
+
+  Revision 1.45  1999/12/14 09:58:42  florian
     + compiler checks now if a goto leaves an exception block
 
   Revision 1.44  1999/11/30 10:40:44  peter
