@@ -500,20 +500,23 @@ implementation
         hp : tdef;
         hs : tsym;
       begin
-        { deref the interface definitions }
-        hp:=tdef(defindex.first);
-        while assigned(hp) do
-         begin
-           hp.deref;
-           hp:=tdef(hp.indexnext);
-         end;
-        { first deref the interface ttype symbols }
+        { first deref the interface ttype symbols. This is needs
+          to be done before the interface defs are derefed, because
+          the interface defs can contain references to the type symbols
+          which then already need to contain a resolved restype field (PFV) }
         hs:=tsym(symindex.first);
         while assigned(hs) do
          begin
            if hs.typ=typesym then
              hs.deref;
            hs:=tsym(hs.indexnext);
+         end;
+        { deref the interface definitions }
+        hp:=tdef(defindex.first);
+        while assigned(hp) do
+         begin
+           hp.deref;
+           hp:=tdef(hp.indexnext);
          end;
         { deref the interface symbols }
         hs:=tsym(symindex.first);
@@ -2338,7 +2341,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.85  2002-12-07 14:27:10  carl
+  Revision 1.86  2002-12-21 13:07:34  peter
+    * type redefine fix for tb0437
+
+  Revision 1.85  2002/12/07 14:27:10  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for

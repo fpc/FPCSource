@@ -466,11 +466,15 @@ implementation
 
     procedure tcompilerppufile.puttype(const t:ttype);
       begin
-        { Don't write symbol references for the current unit
+        { Write symbol references when the symbol is a redefine,
+          but don't write symbol references for the current unit
           and for the system unit }
         if assigned(t.sym) and
-           (t.sym.owner.unitid<>0) and
-           (t.sym.owner.unitid<>1) then
+           (
+            (t.sym<>t.def.typesym) or
+            ((t.sym.owner.unitid<>0) and
+             (t.sym.owner.unitid<>1))
+           ) then
          begin
            putderef(nil);
            putderef(t.sym);
@@ -502,7 +506,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2002-10-05 12:43:29  carl
+  Revision 1.18  2002-12-21 13:07:34  peter
+    * type redefine fix for tb0437
+
+  Revision 1.17  2002/10/05 12:43:29  carl
     * fixes for Delphi 6 compilation
      (warning : Some features do not work under Delphi)
 

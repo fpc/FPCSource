@@ -158,12 +158,13 @@ implementation
             tt:=generrortype;
             exit;
           end;
-         { Only use the definitions for current unit, becuase
+         { Use the definitions for current unit, becuase
            they can be refered from the parameters and symbols are not
-           loaded at that time. A symbol reference to an other unit
-           is still possible, because it's already loaded (PFV)
-           can't use in [] here, becuase unitid can be > 255 }
-         if (ttypesym(srsym).owner.unitid=0) then
+           loaded at that time. Only write the definition when the
+           symbol is the real owner of the definition (not a redefine) }
+         if (ttypesym(srsym).owner.unitid=0) and
+            ((ttypesym(srsym).restype.def.typesym=nil) or
+             (srsym=ttypesym(srsym).restype.def.typesym)) then
           tt.setdef(ttypesym(srsym).restype.def)
          else
           tt.setsym(srsym);
@@ -641,7 +642,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-11-25 17:43:23  peter
+  Revision 1.47  2002-12-21 13:07:34  peter
+    * type redefine fix for tb0437
+
+  Revision 1.46  2002/11/25 17:43:23  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
