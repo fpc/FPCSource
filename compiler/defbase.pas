@@ -214,6 +214,15 @@ interface
              var doconv : tconverttype;
              fromtreetype : tnodetype;
              explicit : boolean) : byte;
+             
+    { this routine is recusrive safe, and is used by the
+      checking of overloaded assignment operators ONLY!
+    }  
+    function overloaded_assignment_isconvertable(def_from,def_to : tdef;
+             var doconv : tconverttype;
+             fromtreetype : tnodetype;
+             explicit : boolean; var overload_procs : pprocdeflist) : byte;
+             
 
     { Same as is_equal, but with error message if failed }
     function CheckTypes(def1,def2 : tdef) : boolean;
@@ -387,6 +396,7 @@ implementation
       var
         def1,def2 : TParaItem;
         doconv : tconverttype;
+        p : pointer;
       begin
          def1:=TParaItem(paralist1.first);
          def2:=TParaItem(paralist2.first);
@@ -1266,40 +1276,71 @@ implementation
             end;
        end;
 *)
-
-    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
-
-       begin
-          assignment_overloaded:=nil;
+    { this is an internal routine to take care of recursivity }
+    function internal_assignment_overloaded(from_def,to_def : tdef; 
+        var overload_procs : pprocdeflist) : tprocdef;
+     var
+       p :pprocdeflist;
+     begin
+          internal_assignment_overloaded:=nil;
+          p := nil;
           if not assigned(overloaded_operators[_ASSIGNMENT]) then
             exit;
 
-          { look for an exact match first }
-      assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
-       search_procdef_byretdef_by1paradef(to_def,from_def,dm_exact);
-      if assigned(assignment_overloaded) then
-        exit;
+          { look for an exact match first, from start of list }
+          internal_assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+             search_procdef_byretdef_by1paradef(to_def,from_def,dm_exact,
+               p);
+          if assigned(internal_assignment_overloaded) then
+            exit;
 
-          { .... then look for an equal match }
-      assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
-       search_procdef_byretdef_by1paradef(to_def,from_def,dm_equal);
-      if assigned(assignment_overloaded) then
-        exit;
+          { .... then look for an equal match, from start of list }
+          internal_assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+           search_procdef_byretdef_by1paradef(to_def,from_def,dm_equal,
+                p);
+          if assigned(internal_assignment_overloaded) then
+            exit;
 
-          {  .... then for convert level 1 }
-      assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
-       search_procdef_byretdef_by1paradef(to_def,from_def,dm_convertl1);
+          {  .... then for convert level 1, continue from where we were at }
+          internal_assignment_overloaded:=overloaded_operators[_ASSIGNMENT].
+           search_procdef_byretdef_by1paradef(to_def,from_def,dm_convertl1,
+                overload_procs);
+     end;
+
+
+    function assignment_overloaded(from_def,to_def : tdef) : tprocdef;
+
+       var
+         p : pprocdeflist;
+       begin
+          p:=nil;
+          assignment_overloaded:=nil;
+          assignment_overloaded:=internal_assignment_overloaded(
+            from_def, to_def, p);
        end;
 
 
     { Returns:
        0 - Not convertable
        1 - Convertable
-       2 - Convertable, but not first choice }
+       2 - Convertable, but not first choice 
+    }   
     function isconvertable(def_from,def_to : tdef;
              var doconv : tconverttype;
              fromtreetype : tnodetype;
              explicit : boolean) : byte;
+      var
+       p: pprocdeflist;
+      begin
+        p:=nil;
+        isconvertable:=overloaded_assignment_isconvertable(def_from,def_to,
+          doconv, fromtreetype, explicit,p);
+      end;
+      
+    function overloaded_assignment_isconvertable(def_from,def_to : tdef;
+             var doconv : tconverttype;
+             fromtreetype : tnodetype;
+             explicit : boolean; var overload_procs : pprocdeflist) : byte;
 
       { Tbasetype:
            uvoid,
@@ -1333,7 +1374,7 @@ implementation
        { safety check }
          if not(assigned(def_from) and assigned(def_to)) then
           begin
-            isconvertable:=0;
+            overloaded_assignment_isconvertable :=0;
             exit;
           end;
 
@@ -1859,22 +1900,22 @@ implementation
                else
                 begin
                   { assignment overwritten ?? }
-                  if assignment_overloaded(def_from,def_to)<>nil then
+                  if internal_assignment_overloaded(def_from,def_to,overload_procs)<>nil then
                     b:=2;
                 end;
              end;
-     formaldef:
-       {Just about everything can be converted to a formaldef...}
-       if not (def_from.deftype in [abstractdef,errordef]) then
-          b:=1;
-           else
-             begin
-               { assignment overwritten ?? }
-               if assignment_overloaded(def_from,def_to)<>nil then
-                 b:=2;
-             end;
+          formaldef:
+            {Just about everything can be converted to a formaldef...}
+            if not (def_from.deftype in [abstractdef,errordef]) then
+               b:=1;
+            else
+                begin
+                  { assignment overwritten ?? }
+                  if internal_assignment_overloaded(def_from,def_to,overload_procs)<>nil then
+                    b:=2;
+                end;
          end;
-        isconvertable:=b;
+        overloaded_assignment_isconvertable :=b;
       end;
 
     function CheckTypes(def1,def2 : tdef) : boolean;
@@ -1908,7 +1949,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2002-09-07 15:25:02  peter
+  Revision 1.10  2002-09-08 11:10:17  carl
+    * bugfix 2109 (bad imho, but only way)
+
+  Revision 1.9  2002/09/07 15:25:02  peter
     * old logs removed and tabs fixed
 
   Revision 1.8  2002/09/07 09:16:55  carl

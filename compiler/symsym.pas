@@ -143,7 +143,7 @@ interface
           function search_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function search_procdef_by1paradef(firstpara:Tdef):Tprocdef;
           function search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-                                                      matchtype:Tdefmatch):Tprocdef;
+             matchtype:Tdefmatch; var pd : pprocdeflist):Tprocdef;
           function  write_references(ppufile:tcompilerppufile;locals:boolean):boolean;override;
 {$ifdef GDB}
           function stabstring : pchar;override;
@@ -1100,17 +1100,20 @@ implementation
     end;
 
     function Tprocsym.search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
-                                                         matchtype:Tdefmatch):Tprocdef;
+                                                         matchtype:Tdefmatch; var pd : pprocdeflist):Tprocdef;
 
-    var pd:Pprocdeflist;
-        convtyp:Tconverttype;
+    var 
+        convtyp:tconverttype;
         a,b:boolean;
+        oldpd : pprocdeflist;
 
     begin
         search_procdef_byretdef_by1paradef:=nil;
-        pd:=defs;
+        if not assigned(pd) then
+           pd:=defs;
         while assigned(pd) do
             begin
+                oldpd := pd;
                 a:=is_equal(retdef,pd^.def.rettype.def);
                 {Alert alert alert alert alert alert alert!!!
 
@@ -1125,8 +1128,8 @@ implementation
                         dm_equal:
                             b:=is_equal(Tparaitem(pd^.def.para.first).paratype.def,firstpara);
                         dm_convertl1:
-                            b:=isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
-                                convtyp,ordconstn,false)=1;
+                            b:=overloaded_assignment_isconvertable(firstpara,Tparaitem(pd^.def.para.first).paratype.def,
+                                convtyp,ordconstn,false,oldpd)=1;
                     end;
                 if a and b then
                     begin
@@ -2497,7 +2500,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.63  2002-09-07 18:17:41  florian
+  Revision 1.64  2002-09-08 11:10:17  carl
+    * bugfix 2109 (bad imho, but only way)
+
+  Revision 1.63  2002/09/07 18:17:41  florian
     + tvarsym.paraitem added
 
   Revision 1.62  2002/09/07 15:25:10  peter
