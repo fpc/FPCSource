@@ -87,6 +87,7 @@ Function FloatToStrF(Value: Extended; format: TFloatFormat; Precision, Digits: I
 Function FloatToStr(Value: Extended): String;
 Function StrToFloat(Value : String) : Extended;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
+<<<<<<< sysstrh.inc
 
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
 Function FloattoCurr (Const Value : Extended) : Currency;
@@ -95,6 +96,9 @@ function StrToCurr(const S: string): Currency;
 function StrToBool(const S: string): Boolean;
 function BoolToStr(B: Boolean): string;
 
+=======
+function LastDelimiter(const Delimiters, S: string): Integer;
+>>>>>>> 1.1.2.2
 
 {==============================================================================}
 {   extra functions                                                            }
@@ -106,7 +110,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.4  2000-08-13 17:55:38  michael
+  Revision 1.5  2000-12-07 21:58:30  michael
+  + Merged lastdelimiter from fixbranch
+
+  Revision 1.4  2000/08/13 17:55:38  michael
   + Added some missing functions needed for variant support
 
   Revision 1.3  2000/08/09 07:48:05  marco

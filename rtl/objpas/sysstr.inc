@@ -1211,6 +1211,14 @@ for i := 0 to SizeOf(Value) shr 1 - 1 do begin
    end ;
 end ;
 
+Function LastDelimiter(const Delimiters, S: string): Integer;
+
+begin
+  Result:=Length(S);
+  While (Result>0) and (Pos(S[Result],Delimiters)=0) do 
+    Dec(Result);
+end;
+
 {
    Case Translation Tables
    Can be used in internationalization support.
@@ -1269,22 +1277,12 @@ const
 
 {
   $Log$
-  Revision 1.8  2000-12-06 22:55:29  michael
+  Revision 1.9  2000-12-07 21:58:30  michael
+  + Merged lastdelimiter from fixbranch
+
+  Revision 1.8  2000/12/06 22:55:29  michael
   + Merged format fix from fixbranch
 
-  Revision 1.1.2.3  2000/12/06 22:51:58  michael
-  + Fixed formatting of 0-expanded negative integer
-
-  Revision 1.1.2.2  2000/09/30 15:07:41  michael
-  + Fixed format to handle int64 in case of "d"
-
-  Revision 1.1.2.1  2000/08/09 19:31:03  peter
-    * int64 updates from Marco
-
-  Revision 1.3  2000/08/09 07:48:05  marco
-   * Uncommented some int64 functions, now that int64 support is ok
-
-  Revision 1.2  2000/07/13 11:33:51  michael
-  + removed logs
- 
+  Revision 1.1.2.4  2000/12/07 21:48:57  michael
+  + Added LastDelimiter function
 }
