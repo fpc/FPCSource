@@ -35,7 +35,8 @@ interface
        { ppu }
        ppu,symppu,
        { aasm }
-       aasm,cpubase
+       aasm,cpubase,
+       globals
        ;
 
     type
@@ -351,7 +352,7 @@ implementation
        strings,
 {$endif Delphi}
        { global }
-       globtype,globals,verbose,
+       globtype,verbose,
        { target }
        systems,
        { symtable }
@@ -2513,7 +2514,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-02-03 09:30:04  peter
+  Revision 1.32  2002-04-07 13:37:29  carl
+  + change unit use
+
+  Revision 1.31  2002/02/03 09:30:04  peter
     * more fixes for protected handling
 
   Revision 1.30  2001/12/31 16:59:43  peter
