@@ -44,7 +44,7 @@ unit cpunode;
        nppcinl,
 //       nppcopt,
        { this not really a node }
-//       nppcobj,
+       nppcobj,
        nppcmat,
        nppccnv
        ;
@@ -52,7 +52,10 @@ unit cpunode;
 end.
 {
   $Log$
-  Revision 1.16  2003-04-24 11:24:00  florian
+  Revision 1.17  2003-12-10 01:10:25  florian
+    + initial interface support added
+
+  Revision 1.16  2003/04/24 11:24:00  florian
     * fixed several issues with nested procedures
 
   Revision 1.15  2002/08/13 21:40:58  florian
