@@ -59,4 +59,7 @@ ex55.pp contains an example of the TCGetAttr,TCSetAttr,CFMakeRaw functions.
 ex56.pp contains an example of the Shell function.
 ex57.pp contains an example of the SigAction function.
 ex58.pp contains an example of the Signal function.
-serial.pp contains an example of serial port programming in FPC.ex59.pp contains an example of the alarm function.
+ex59.pp contains an example of the Alarm function.
+ex60.pp contains an example of the GetDateTime function.
+serial.pp contains an example of serial port programming in FPC.
+ex61.pp contains an example of the CreateShellArgV function.
