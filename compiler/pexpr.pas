@@ -1980,6 +1980,12 @@ implementation
              begin
                consume(_NIL);
                p1:=cnilnode.create;
+               { It's really ugly code nil^, but delphi allows it }
+               if token in [_CARET] then
+                begin
+                  again:=true;
+                  postfixoperators(p1,again);
+                end;
              end;
 
            else
@@ -2248,7 +2254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.80  2002-09-07 15:25:07  peter
+  Revision 1.81  2002-09-16 19:06:14  peter
+    * allow ^ after nil
+
+  Revision 1.80  2002/09/07 15:25:07  peter
     * old logs removed and tabs fixed
 
   Revision 1.79  2002/09/07 12:16:03  carl
