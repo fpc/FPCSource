@@ -15,6 +15,8 @@
 
  **********************************************************************
 }
+
+
 Unit dxeload;
 interface
 
@@ -38,7 +40,8 @@ function dxe_load(filename : string) : pointer;
   translated to Free Pascal by Pierre Muller
 }
 type
-  pointer_array = array[0..0] of pointer;
+  { to avoid range check problems }
+  pointer_array = array[0..maxlongint] of pointer;
   tpa = ^pointer_array;
   plongint = ^longint;
   ppointer = ^pointer;
@@ -87,7 +90,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-05-31 14:18:24  peter
+  Revision 1.3  1998-10-21 16:51:08  pierre
+   * dxeload range check problem solved
+
+  Revision 1.2  1998/05/31 14:18:24  peter
     * force att or direct assembling
     * cleanup of some files
 

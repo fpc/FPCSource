@@ -185,7 +185,7 @@ dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
 profile$(PPUEXT) : profile.pp dpmiexcp$(PPUEXT) go32$(PPUEXT) $(SYSTEMPPU)
 	$(COMPILER) profile.pp $(REDIR)
 
-dxeload$(PPUEXT) : $(SYSTEMPPU)
+dxeload$(PPUEXT) : dxeload.pp $(SYSTEMPPU)
 	$(COMPILER) dxeload.pp $(REDIR)
 
 emu387$(PPUEXT) : emu387.pp fpu$(OEXT) strings$(PPUEXT) dxeload$(PPUEXT) \
@@ -286,7 +286,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.9  1998-10-14 07:56:02  pierre
+# Revision 1.10  1998-10-21 16:51:07  pierre
+#  * dxeload range check problem solved
+#
+# Revision 1.9  1998/10/14 07:56:02  pierre
 #  * -Sv now necessary for dpmiexcp unit
 #
 # Revision 1.8  1998/10/12 08:36:31  pierre
