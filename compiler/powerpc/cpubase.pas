@@ -142,14 +142,6 @@ uses
         {$i rppcdwrf.inc}
       );
 
-      { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R3..RS_R12];
-{$warning FIXME!!}
-      { FIXME: only R_F1..R_F8 under the SYSV ABI -> has to become a }
-      {   typed const (JM)                                                                                                                                                                       }
-      VOLATILE_FPUREGISTERS = [RS_F3..RS_F13];
-
-
 {*****************************************************************************
                                 Conditions
 *****************************************************************************}
@@ -558,7 +550,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2004-12-28 02:25:43  olle
+  Revision 1.94  2005-01-10 21:48:45  jonas
+    - removed deprecated constants
+
+  Revision 1.93  2004/12/28 02:25:43  olle
     * fixed compilation for PowerPC
 
   Revision 1.92  2004/10/31 21:45:03  peter
