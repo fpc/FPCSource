@@ -886,7 +886,9 @@ implementation
                 end
                else
                 begin
-                  b:=(parraydef(def1)^.lowrange=parraydef(def2)^.lowrange) and
+                  b:=not(m_tp in aktmodeswitches) and
+                     not(m_delphi in aktmodeswitches) and
+                     (parraydef(def1)^.lowrange=parraydef(def2)^.lowrange) and
                      (parraydef(def1)^.highrange=parraydef(def2)^.highrange) and
                      is_equal(parraydef(def1)^.definition,parraydef(def2)^.definition) and
                      is_equal(parraydef(def1)^.rangedef,parraydef(def2)^.rangedef);
@@ -966,7 +968,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  1999-07-29 11:41:51  peter
+  Revision 1.78  1999-07-30 12:26:42  peter
+    * array is_equal disabled for tp,delphi mode
+
+  Revision 1.77  1999/07/29 11:41:51  peter
     * array is_equal extended
 
   Revision 1.76  1999/07/27 23:39:15  peter
