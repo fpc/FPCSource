@@ -6,6 +6,9 @@
 units=regexpr
 examples=testreg1
 
+[require]
+options=-S2
+
 [install]
 examplesubdir=regexpr
 
