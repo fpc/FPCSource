@@ -3290,6 +3290,8 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
             exprasmlist^.concat(new(paicpu,
               op_reg_reg(A_TEST,S_L,R_EAX,R_EAX)));
             emitjmp(C_NE,aktexitlabel);
+            { probably we've to reload self here }
+            maybe_loadesi;
         end;
 
       if not inlined then
@@ -3467,6 +3469,9 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
       { do we need to handle exceptions because of ansi/widestrings ? }
       if (procinfo^.flags and pi_needs_implicit_finally)<>0 then
         begin
+           { the excpetion helper routines modify all registers }
+           aktprocsym^.definition^.usedregisters:=$ff;
+
            getlabel(noreraiselabel);
            emitcall('FPC_POPADDRSTACK');
            exprasmlist^.concat(new(paicpu,
@@ -3503,9 +3508,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                           else
                             emitcall(pd^.mangledname);
                           { not necessary because the result is never assigned in the
-                            case of an exception (FK) }
+                            case of an exception (FK)
                           emit_const_reg(A_MOV,S_L,0,R_ESI);
                           emit_const_ref(A_MOV,S_L,0,new_reference(procinfo^.framepointer,8));
+                          }
                           emitlab(nodestroycall);
                        end;
                   end
@@ -3732,7 +3738,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.77  2000-02-04 20:00:21  florian
+  Revision 1.78  2000-02-04 21:00:31  florian
+    * some (small) problems with register saving fixed
+
+  Revision 1.77  2000/02/04 20:00:21  florian
     * an exception in a construcor calls now the destructor (this applies only
       to classes)
 
