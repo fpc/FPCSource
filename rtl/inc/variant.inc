@@ -34,26 +34,32 @@ procedure vardisperror;
     Compiler helper routines.
   ---------------------------------------------------------------------}
 
-
 procedure varclear(var v : tvardata);
 begin
    if not(v.vtype in [varempty,varerror,varnull]) then
      invalidvariantop;
 end;
 
-procedure variant_init(var v : variant);[Public,Alias:'FPC_VARIANT_INIT'];
 
+procedure variant_init(var v : variant);[Public,Alias:'FPC_VARIANT_INIT'];
   begin
      { calling the variant manager here is a problem because the static/global variants
        are initialized while the variant manager isn't assigned }
      fillchar(v,sizeof(variant),0);
   end;
 
-procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
 
+procedure variant_clear(var v : variant);[Public,Alias:'FPC_VARIANT_CLEAR'];
   begin
      variantmanager.varclear(v);
   end;
+
+
+procedure variant_addref(var v : variant);[Public,Alias:'FPC_VARIANT_ADDREF'];
+  begin
+     variantmanager.varaddref(v);
+  end;
+
 
 Procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); iocheck; [Public,Alias:'FPC_WRITE_TEXT_VARIANT']; compilerproc;
 Begin
@@ -616,7 +622,10 @@ procedure initvariantmanager;
 
 {
   $Log$
-  Revision 1.20  2005-01-07 21:15:46  florian
+  Revision 1.21  2005-01-08 20:43:44  florian
+    + init/cleaning code for variants added
+
+  Revision 1.20  2005/01/07 21:15:46  florian
     + basic rtl support for variant <-> interface implemented
 
   Revision 1.19  2004/12/05 11:49:06  florian

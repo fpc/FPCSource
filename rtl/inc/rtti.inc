@@ -202,6 +202,10 @@ begin
     tkInterface:
       Intf_Incr_Ref(PPointer(Data)^);
 {$endif HASINTF}
+{$ifdef HASVARIANT}
+    tkVariant:
+      variant_addref(PVariant(Data)^);
+{$endif HASVARIANT}
   end;
 end;
 
@@ -231,6 +235,10 @@ begin
     tkInterface:
       Intf_Decr_Ref(PPointer(Data)^);
 {$endif HASINTF}
+{$ifdef HASVARIANT}
+    tkVariant:
+      variant_clear(PVariant(Data)^);
+{$endif HASVARIANT}
   end;
 end;
 
@@ -247,7 +255,10 @@ procedure fpc_finalize_array(data,typeinfo : pointer;count,size : longint); [Pub
 
 {
   $Log$
-  Revision 1.19  2004-11-02 15:52:04  florian
+  Revision 1.20  2005-01-08 20:43:44  florian
+    + init/cleaning code for variants added
+
+  Revision 1.19  2004/11/02 15:52:04  florian
     * fixed rtti reading of arrays for 64 bit
 
   Revision 1.18  2004/10/26 15:02:51  peter
