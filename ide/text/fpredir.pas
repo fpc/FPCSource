@@ -50,6 +50,7 @@ Var
 {------------------------------------------------------------------------------}
 procedure InitRedir;
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
+procedure DosExecute(ProgName, ComLine : String);
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 procedure RestoreRedirOut;
@@ -520,40 +521,6 @@ end;
 
 {............................................................................}
 
-  procedure DosExecute(ProgName, ComLine : String);
-{$ifdef win32}
-    var
-      StoreInherit : BOOL;
-{$endif win32}
-
-  Begin
-{$IfDef MsDos}
-  SmallHeap;
-{$EndIf MsDos}
-    SwapVectors;
-    { Must use shell() for linux for the wildcard expansion (PFV) }
-{$ifdef linux}
-    Shell(Progname+' '+Comline);
-{$else}
-{$ifdef win32}
-    StoreInherit:=ExecInheritsHandles;
-    ExecInheritsHandles:=true;
-{$endif win32}
-    Dos.Exec (ProgName, ComLine);
-{$ifdef win32}
-    ExecInheritsHandles:=StoreInherit;
-{$endif win32}
-{$endif}
-    IOStatus:=DosError;
-    ExecuteResult:=DosExitCode;
-    SwapVectors;
-{$IfDef MsDos}
-  Fullheap;
-{$EndIf MsDos}
-  End;
-
-{............................................................................}
-
 function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirStdErr : String) : boolean;
 Begin
   RedirErrorOut:=0; RedirErrorIn:=0; RedirErrorError:=0;
@@ -697,6 +664,40 @@ end;
 {$endif not implemented}
 
 
+{............................................................................}
+
+  procedure DosExecute(ProgName, ComLine : String);
+{$ifdef win32}
+    var
+      StoreInherit : BOOL;
+{$endif win32}
+
+  Begin
+{$IfDef MsDos}
+  SmallHeap;
+{$EndIf MsDos}
+    SwapVectors;
+    { Must use shell() for linux for the wildcard expansion (PFV) }
+{$ifdef linux}
+    Shell(Progname+' '+Comline);
+{$else}
+{$ifdef win32}
+    StoreInherit:=ExecInheritsHandles;
+    ExecInheritsHandles:=true;
+{$endif win32}
+    Dos.Exec (ProgName, ComLine);
+{$ifdef win32}
+    ExecInheritsHandles:=StoreInherit;
+{$endif win32}
+{$endif}
+    IOStatus:=DosError;
+    ExecuteResult:=DosExitCode;
+    SwapVectors;
+{$IfDef MsDos}
+  Fullheap;
+{$EndIf MsDos}
+  End;
+
 {*****************************************************************************
                                   Initialize
 *****************************************************************************}
@@ -716,7 +717,10 @@ Begin
 End.
 {
   $Log$
-  Revision 1.23  1999-09-22 13:03:27  pierre
+  Revision 1.24  1999-11-10 17:10:59  pierre
+   + DosExecute to interface
+
+  Revision 1.23  1999/09/22 13:03:27  pierre
    * Win32 ExecInheritsHandles typo problem
 
   Revision 1.22  1999/09/22 09:03:58  peter
