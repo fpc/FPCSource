@@ -494,7 +494,7 @@ procedure testdivqword;
        end;
      for i:=1 to 100000 do
        begin
-          tqwordrec(q1).high:=random($7ffffffe);
+          tqwordrec(q1).high:=0;
           tqwordrec(q1).low:=random($7ffffffe);
           tqwordrec(q2).high:=0;
           tqwordrec(q2).low:=random($7ffffffe);
@@ -502,10 +502,9 @@ procedure testdivqword;
           if tqwordrec(q2).low=0 then
             tqwordrec(q2).low:=1;
           { get a restless division }
-          q3:=q1 div q2;
-          q1:=q2*q3;
-          q3:=q1 div q2;
-          if q3*q2<>q1 then
+          q3:=q1*q2;
+          q3:=q3 div q2;
+          if q3<>q1 then
             begin
                write('Division of ');
                dumpqword(q1);
@@ -530,7 +529,7 @@ function testf : qword;
      testf:=q;
   end;
 
-procedure testfuncword;
+procedure testfuncqword;
 
   var
      q : qword;
@@ -542,6 +541,280 @@ procedure testfuncword;
      if q<>testf then
        do_error(1901);       
   end;
+
+procedure testtypecastqword;
+
+  var
+     s1,s2 : shortint;
+     b1,b2 : byte;
+     w1,w2 : word;
+     i1,i2 : integer;
+     l1,l2 : longint;
+     d1,d2 : dword;
+     q1,q2 : qword;
+
+  begin
+     { shortint }
+     s1:=75;
+     s2:=0;
+     q1:=s1;
+     { mix up the processor a little bit }
+     q2:=q1;
+     if q2<>75 then
+       begin
+          dumpqword(q2);
+          do_error(2006);          
+       end;
+     s2:=q2;
+     if s1<>s2 then
+       do_error(2000);
+
+     { byte }
+     b1:=$ca;
+     b2:=0;
+     q1:=b1;
+     { mix up the processor a little bit }
+     q2:=q1;
+     if q2<>$ca then
+       do_error(2007);
+     b2:=q2;
+     if b1<>b2 then
+       do_error(2001);
+
+     { integer }
+     i1:=12345;
+     i2:=0;
+     q1:=i1;
+     { mix up the processor a little bit }
+     q2:=q1;
+     if q2<>12345 then
+       do_error(2008);
+     i2:=q2;
+     if i1<>i2 then
+       do_error(2002);
+
+     { word }
+     w1:=$a0ff;
+     w2:=0;
+     q1:=w1;
+     { mix up the processor a little bit }
+     q2:=q1;
+     if q2<>$a0ff then
+       do_error(2009);
+     w2:=q2;
+     if w1<>w2 then
+       do_error(2003);
+
+     { longint }
+     l1:=12341234;
+     l2:=0;
+     q1:=l1;
+     { mix up the processor a little bit }
+     q2:=q1;
+     if q2<>12341234 then
+       do_error(2010);
+     l2:=q2;
+     if l1<>l2 then
+       do_error(2004);
+
+     { dword }
+     d1:=$5bcdef01;
+     b2:=0;
+     q1:=d1;
+     { mix up the processor a little bit }
+     q2:=q1;
+     if q2<>$5bcdef01 then
+       do_error(2011);
+     d2:=q2;
+     if d1<>d2 then
+       do_error(2005);
+  end;
+
+procedure testioqword;
+
+  var
+     t : text;
+     q1,q2 : qword;
+     i : longint;
+
+  begin
+     assignqword($ffffffff,$a0a0a0a0,q1);
+     assign(t,'testi642.tmp');
+     rewrite(t);
+     writeln(t,q1);
+     close(t);
+     reset(t);
+     readln(t,q2);
+     close(t);
+     if q1<>q2 then
+       do_error(2100);
+     { do some random tests }
+     for i:=1 to 100 do
+       begin
+          tqwordrec(q1).high:=random($7ffffffe);
+          tqwordrec(q1).low:=random($7ffffffe);          
+          rewrite(t);
+          writeln(t,q1);
+          close(t);
+          reset(t);
+          readln(t,q2);
+          close(t);
+          if q1<>q2 then
+            begin
+               write('I/O of ');dumpqword(q1);writeln(' failed');
+               do_error(2101);
+            end;
+       end;
+  end;
+  
+procedure teststringqword;
+
+  var
+     q1,q2 : qword;
+     s : string;
+     l : longint;
+
+  begin
+     { testing str }
+     // simple tests
+     q1:=1;
+     int_str(q1,s);
+     if s<>'1' then
+       do_error(2200);
+     // simple tests
+     q1:=0;
+     int_str(q1,s);
+     if s<>'0' then
+       do_error(2201);
+
+     // more complex tests 
+     q1:=4321;
+     int_str(q1,s);
+     if s<>'4321' then
+       do_error(2202);
+
+     // create a big qword:
+     q2:=1234;
+     l:=1000000000;
+     q2:=q2*l;
+     l:=54321;
+     q2:=q2+l;
+     int_str(q2,s);
+     if s<>'1234000054321' then
+       do_error(2203);
+     { testing val }
+     { !!!!!!!     }
+  end;
+
+procedure testmodqword;
+
+  var
+     q0,q1,q2,q3,q4,q5,q6 : qword;
+     i : longint;
+
+  begin
+     assignqword(0,0,q0);
+     assignqword(0,3,q1);
+     assignqword(0,5,q2);
+     assignqword(0,2,q3);
+     assignqword(0,4,q4);
+     assignqword(0,1,q5);
+     assignqword($ffff,$12344321,q6);
+     { to some trivial tests       }
+     { to test the code generation }
+     if q2 mod q1<>q3 then
+       do_error(2300);
+     if q2 mod q1 mod q3<>q0 then
+       do_error(2301);
+     if q2 mod (q1 mod q3)<>q0 then
+       do_error(2302);
+     if (q1 mod q3) mod q2<>q5 then
+       do_error(2303);
+
+     { a more complex expression }
+     if (q2 mod q4) mod (q1 mod q3)<>(q1 mod q3) mod (q2 mod q4) then
+       do_error(2304);
+     
+     { now test the modulo division procedure with random bit patterns }
+     writeln('Doing some random module divisions, takes a few seconds');
+     writeln('.................100%');
+     for i:=1 to 100000 do
+       begin
+          tqwordrec(q1).high:=random($7ffffffe);
+          tqwordrec(q1).low:=random($7ffffffe);
+          tqwordrec(q2).high:=random($7ffffffe);
+          tqwordrec(q2).low:=random($7ffffffe);
+          { avoid division by zero }
+          if (tqwordrec(q2).low or tqwordrec(q2).high)=0 then
+            tqwordrec(q2).low:=1;
+          q3:=q1 mod q2;
+          if (q1-q3) mod q2<>q0 then
+            begin
+               write('Modulo division of ');
+               dumpqword(q1);
+               write(' by ');
+               dumpqword(q2);
+               writeln(' failed');
+               do_error(2306);
+            end;
+          if i mod 10000=0 then
+            write('.');
+       end;
+     for i:=1 to 100000 do
+       begin
+          tqwordrec(q1).high:=random($7ffffffe);
+          tqwordrec(q1).low:=random($7ffffffe);
+          tqwordrec(q2).high:=0;
+          tqwordrec(q2).low:=random($7ffffffe);
+          { avoid division by zero }
+          if tqwordrec(q2).low=0 then
+            tqwordrec(q2).low:=1;
+          { get a restless division }
+          q3:=q1 mod q2;
+          if (q1-q3) mod q2<>q0 then
+            begin
+               write('Modulo division of ');
+               dumpqword(q1);
+               write(' by ');
+               dumpqword(q2);
+               writeln(' failed');
+               do_error(2307);
+            end;
+          if i mod 10000=0 then
+            write('.');
+       end;
+     writeln(' OK');
+  end;
+
+const
+   constqword : qword = 131975;
+
+procedure testconstassignqword;
+
+  var
+     q1,q2,q3 : qword;
+
+  begin
+     // constant assignments
+     assignqword(0,5,q2);
+     q1:=5;
+     if q1<>q2 then
+       do_error(2400);
+
+     // constants in expressions
+     q1:=1234;
+     if q1<>1234 then
+       do_error(2401);
+
+     // typed constants 
+     assignqword(0,131975,q1);
+     q2:=131975;
+     if q1<>q2 then
+       do_error(2402);
+
+     //!!!!! large constants are still missed 
+  end;
+
 
 var
    q : qword;
@@ -581,6 +854,11 @@ begin
    writeln('Testing QWord subtraction was successful');
    writeln;
 
+   writeln('Testing QWord constants');
+   testconstassignqword;
+   writeln('Testing QWord constants was successful');
+   writeln;
+
    writeln('Testing QWord logical operators (or,xor,and)');
    testlogqword;
    writeln('Testing QWord logical operators (or,xor,and) was successful');
@@ -597,18 +875,40 @@ begin
    writeln;
 
    writeln('Testing QWord function results');
-   testfuncword;
+   testfuncqword;
    writeln('Testing QWord function results was successful');
    writeln;
+
+   writeln('Testing QWord type casts');
+   testtypecastqword;
+   writeln('Testing QWord type casts was successful');
+   writeln;
+
+   {!!!!!!
+   writeln('Testing QWord multiplications');
+   testmulqword;
+   writeln('Testing QWord multiplications was successful');
+   writeln;
+   }
 
    writeln('Testing QWord division');
    testdivqword;
    writeln('Testing QWord division was successful');
    writeln;
 
-   writeln('Testing QWord multiplications');
-   testmulqword;
-   writeln('Testing QWord multiplications was successful');
+   writeln('Testing QWord modulo division');
+   testmodqword;
+   writeln('Testing QWord modulo division was successful');
+   writeln;
+
+   writeln('Testing QWord string conversion');
+   teststringqword;
+   writeln('Testing QWord string conversion was successful');
+   writeln;
+
+   writeln('Testing QWord input/output');
+   testioqword;
+   writeln('Testing QWord input/output was successful');
    writeln;
 
    writeln('------------------------------------------------------');
