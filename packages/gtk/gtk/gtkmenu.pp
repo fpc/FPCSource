@@ -56,19 +56,15 @@ procedure gtk_menu_reposition(menu:PGtkMenu);cdecl;external gtkdll name 'gtk_men
 procedure gtk_menu_popdown(menu:PGtkMenu);cdecl;external gtkdll name 'gtk_menu_popdown';
 function  gtk_menu_get_active(menu:PGtkMenu):PGtkWidget;cdecl;external gtkdll name 'gtk_menu_get_active';
 procedure gtk_menu_set_active(menu:PGtkMenu; index:guint);cdecl;external gtkdll name 'gtk_menu_set_active';
-{$ifndef gtkwin}
 procedure gtk_menu_set_accel_group(menu:PGtkMenu; accel_group:PGtkAccelGroup);cdecl;external gtkdll name 'gtk_menu_set_accel_group';
 function  gtk_menu_get_accel_group(menu:PGtkMenu):PGtkAccelGroup;cdecl;external gtkdll name 'gtk_menu_get_accel_group';
 function  gtk_menu_get_uline_accel_group(menu:PGtkMenu):PGtkAccelGroup;cdecl;external gtkdll name 'gtk_menu_get_uline_accel_group';
 function  gtk_menu_ensure_uline_accel_group(menu:PGtkMenu):PGtkAccelGroup;cdecl;external gtkdll name 'gtk_menu_ensure_uline_accel_group';
-{$endif}
 procedure gtk_menu_attach_to_widget(menu:PGtkMenu; attach_widget:PGtkWidget; detacher:TGtkMenuDetachFunc);cdecl;external gtkdll name 'gtk_menu_attach_to_widget';
 function  gtk_menu_get_attach_widget(menu:PGtkMenu):PGtkWidget;cdecl;external gtkdll name 'gtk_menu_get_attach_widget';
 procedure gtk_menu_detach(menu:PGtkMenu);cdecl;external gtkdll name 'gtk_menu_detach';
 procedure gtk_menu_set_tearoff_state(menu:PGtkMenu; torn_off:gboolean);cdecl;external gtkdll name 'gtk_menu_set_tearoff_state';
-{$ifndef gtkwin}
 procedure gtk_menu_set_title(menu:PGtkMenu; title:Pgchar);cdecl;external gtkdll name 'gtk_menu_set_title';
-{$endif}
 procedure gtk_menu_reorder_child(menu:PGtkMenu; child:PGtkWidget; position:gint);cdecl;external gtkdll name 'gtk_menu_reorder_child';
 
 {$endif read_interface}
@@ -105,7 +101,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  1999-11-24 23:36:36  peter
+  Revision 1.2  2000-06-23 20:23:13  peter
+    * removed gtkwin checks
+
+  Revision 1.1  1999/11/24 23:36:36  peter
     * moved to packages dir
 
   Revision 1.10  1999/10/06 17:42:49  peter
