@@ -747,7 +747,8 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : Longint;
         begin
         inc(chpos);
         ReadInteger;
-        If Value=-1 then DoFormaterror(feMissingArgument);
+        If Value=-1 then
+         Value:=0;
         prec:=Value;
         end;
 {$ifdef fmtdebug}
@@ -1067,7 +1068,10 @@ Begin
         Str(Value:0:Digits, Result);
         If Result[1] = ' ' Then System.Delete(Result, 1, 1);
         P := Pos('.', Result);
-        If P <> 0 Then Result[P] := DecimalSeparator;
+        If P <> 0 Then
+          Result[P] := DecimalSeparator
+        else
+          P := Length(Result)+1;
         Dec(P, 3);
         While (P > 1) Do
         Begin
@@ -1228,7 +1232,11 @@ const
 
 {
   $Log$
-  Revision 1.1.2.6  2001-07-30 10:17:50  sg
+  Revision 1.1.2.7  2001-08-01 21:45:22  peter
+    * fix thousend separator when no decimal separator is available
+    * allow precision to be left away like %10.n
+
+  Revision 1.1.2.6  2001/07/30 10:17:50  sg
   * Two moves with a string as target are now only exectuted if the number of
     bytes to move is greater than 0. This prevents RTE201's when compiled
     with range checks enabled.
