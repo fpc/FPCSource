@@ -221,25 +221,42 @@ implementation
            case left.location.loc of
              LOC_MMREGISTER,
              LOC_CMMREGISTER:
-               begin
-                 if tempparaloc.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+               case tempparaloc.loc of
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE,
+                 LOC_MMREGISTER,
+                 LOC_CMMREGISTER:
+                   cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
                    begin
                      location_force_fpureg(exprasmlist,left.location,false);
                      cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
-                   end
+                   end;
                  else
-                   cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
+                   internalerror(2002042433);
                end;
              LOC_FPUREGISTER,
              LOC_CFPUREGISTER:
-               begin
-                 if tempparaloc.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
+               case tempparaloc.loc of
+                 LOC_MMREGISTER,
+                 LOC_CMMREGISTER:
                    begin
                      location_force_mmregscalar(exprasmlist,left.location,false);
                      cg.a_parammm_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc,mms_movescalar);
-                   end
-                 else
+                   end;
+{$ifdef sparc}
+                 { sparc pushes floats in normal registers }
+                 LOC_REGISTER,
+                 LOC_CREGISTER,
+{$endif sparc}
+                 LOC_REFERENCE,
+                 LOC_CREFERENCE,
+                 LOC_FPUREGISTER,
+                 LOC_CFPUREGISTER:
                    cg.a_paramfpu_reg(exprasmlist,def_cgsize(left.resulttype.def),left.location.register,tempparaloc);
+                 else
+                   internalerror(2002042433);
                end;
              LOC_REFERENCE,
              LOC_CREFERENCE:
@@ -247,6 +264,11 @@ implementation
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
                    cg.a_parammm_ref(exprasmlist,def_cgsize(left.resulttype.def),left.location.reference,tempparaloc,mms_movescalar);
+{$ifdef sparc}
+                 { sparc pushes floats in normal registers }
+                 LOC_REGISTER,
+                 LOC_CREGISTER,
+{$endif sparc}
                  LOC_REFERENCE,
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
@@ -1242,7 +1264,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.161  2004-03-09 13:04:12  mazen
+  Revision 1.162  2004-03-09 16:28:31  peter
+    * fix for sparc that pushes floats in int registers
+
+  Revision 1.161  2004/03/09 13:04:12  mazen
   + difference between three similar internal errors
 
   Revision 1.160  2004/02/27 10:21:05  florian
