@@ -604,7 +604,7 @@ unit cgx86;
       begin
         check_register_size(tosize,reg);
         sizes2load(fromsize,tosize,op,s);
-{$ifdef x86_64}
+ {$ifdef x86_64}
         { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
           64 bit (FK) }
@@ -623,7 +623,14 @@ unit cgx86;
       begin
         check_register_size(fromsize,reg1);
         check_register_size(tosize,reg2);
-        sizes2load(fromsize,tosize,op,s);
+        if tcgsize2size[fromsize]>tcgsize2size[tosize] then
+          begin
+            reg1:=makeregsize(reg1,tosize);
+            s:=tcgsize2opsize[tosize];
+            op:=A_MOV;
+          end
+        else
+          sizes2load(fromsize,tosize,op,s);
 {$ifdef x86_64}
         { zero extensions to 64 bit on the x86_64 are simply done by writting to the lower 32 bit
           which clears the upper 64 bit too, so it could be that s is S_L while the reg is
@@ -1040,7 +1047,7 @@ unit cgx86;
           OP_SHR,OP_SHL,OP_SAR:
             begin
               getexplicitregister(list,NR_CL);
-              a_load_reg_reg(list,size,OS_8,dst,NR_CL);
+              a_load_reg_reg(list,OS_8,OS_8,makeregsize(dst,OS_8),NR_CL);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],S_B,src,NR_CL));
               ungetregister(list,NR_CL);
             end;
@@ -1880,7 +1887,10 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.110  2004-02-09 22:14:17  peter
+  Revision 1.111  2004-02-20 16:01:49  peter
+    * allow mov to smaller sizes
+
+  Revision 1.110  2004/02/09 22:14:17  peter
     * more x86_64 parameter fixes
     * tparalocation.lochigh is now used to indicate if registerhigh
       is used and what the type is
