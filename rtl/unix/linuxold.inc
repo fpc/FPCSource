@@ -2116,6 +2116,7 @@ begin
      exit(-1); // give an error result
    end;
 {$ifdef cpui386}
+{$ASMMODE ATT}
   asm
         { Insert the argument onto the new stack. }
         movl    sp,%ecx
@@ -5907,7 +5908,10 @@ End.
 
 {
   $Log$
-  Revision 1.10  2003-11-10 16:54:28  marco
+  Revision 1.11  2003-12-10 09:36:16  mazen
+  + added explicit ATT mode request for assembler  input
+
+  Revision 1.10  2003/11/10 16:54:28  marco
    * new oldlinux unit. 1_0 defines killed in some former FCL parts.
 
 
