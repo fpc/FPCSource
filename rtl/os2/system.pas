@@ -464,9 +464,9 @@ begin
     movl size,%edx
     movw $0x7f00,%ax
     call syscall     { result directly in EAX }
-    inc eax          { Result in EAX, -1 = error (has to be transformed to 0) }
+    inc %eax         { Result in EAX, -1 = error (has to be transformed to 0) }
     jz .LSbrk_End
-    dec eax          { No error - back to previous value }
+    dec %eax         { No error - back to previous value }
 .LSbrk_End:
     mov  %eax,L
   end ['eax', 'edx'];
@@ -1179,7 +1179,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.49  2003-10-19 09:06:28  hajny
+  Revision 1.50  2003-10-19 09:37:00  hajny
+    * minor fix in non-default sbrk code
+
+  Revision 1.49  2003/10/19 09:06:28  hajny
     * fix for terrible long-time bug in do_open
 
   Revision 1.48  2003/10/18 16:58:39  hajny
