@@ -30,6 +30,7 @@ Procedure Do_SysCallspec( callnr:longint;var regs : SysCallregs );assembler;{$if
   copies back the registers as they are after the SysCall.
 }
 {$ifdef cpui386}
+{$ASMMODE ATT}
 {$define fpc_syscall_ok}
 asm
 { load the registers... }
@@ -188,7 +189,10 @@ end;
 
 {
   $Log$
-  Revision 1.1  2003-10-30 16:16:49  marco
+  Revision 1.2  2003-10-31 09:22:02  mazen
+  + assembler mode forced to ATT style for x86 cpu
+
+  Revision 1.1  2003/10/30 16:16:49  marco
    * moved legacy syscall to i386/
 
   Revision 1.7  2003/10/29 19:45:44  peter
