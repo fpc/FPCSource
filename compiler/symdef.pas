@@ -5572,6 +5572,9 @@ implementation
          if needs_prop_entry(tsym(sym)) and
           (tsym(sym).typ=fieldvarsym) then
           begin
+{$ifdef cpurequiresproperalignment}
+             rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
              rttiList.concat(Tai_const.Create_32bit(tfieldvarsym(sym).fieldoffset));
              hp:=searchclasstablelist(tobjectdef(tfieldvarsym(sym).vartype.def));
              if not(assigned(hp)) then
@@ -5601,6 +5604,9 @@ implementation
          symtable.foreach({$ifdef FPC}@{$endif}count_published_fields,nil);
          rttiList.concat(Tai_label.Create(fieldtable));
          rttiList.concat(Tai_const.Create_16bit(count));
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          rttiList.concat(Tai_const.Create_sym(classtable));
          symtable.foreach({$ifdef FPC}@{$endif}writefields,nil);
 
@@ -5608,6 +5614,9 @@ implementation
          rttilist.concat(tai_align.create(const_align(sizeof(aint))));
          rttiList.concat(Tai_label.Create(classtable));
          rttiList.concat(Tai_const.Create_16bit(tablecount));
+{$ifdef cpurequiresproperalignment}
+         rttilist.concat(Tai_align.Create(sizeof(TConstPtrUInt)));
+{$endif cpurequiresproperalignment}
          hp:=tclasslistitem(classtablelist.first);
          while assigned(hp) do
            begin
@@ -6155,7 +6164,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.284  2004-12-07 15:41:11  peter
+  Revision 1.285  2004-12-27 15:54:54  florian
+    * fixed class field info alignment
+
+  Revision 1.284  2004/12/07 15:41:11  peter
     * modified algorithm for shortening manglednames to fix compilation
       of procedures with a lot of longtypenames that are equal, see
       tw343

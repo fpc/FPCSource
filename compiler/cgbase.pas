@@ -56,7 +56,7 @@ interface
 
        { since we have only 16 offsets, we need to be able to specify the high
          and low 16 bits of the address of a symbol                            }
-       trefaddr = (addr_no,addr_full,addr_hi,addr_lo);
+       trefaddr = (addr_no,addr_full,addr_hi,addr_lo,addr_pic);
 
        {# Generic opcodes, which must be supported by all processors
        }
@@ -597,7 +597,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.99  2004-12-12 10:50:34  florian
+  Revision 1.100  2004-12-27 15:54:54  florian
+    * fixed class field info alignment
+
+  Revision 1.99  2004/12/12 10:50:34  florian
     * fixed operand size calculation for sse operands
     + all nasm assembler targets to help page output added
 
