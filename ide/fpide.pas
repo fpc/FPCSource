@@ -452,7 +452,7 @@ begin
       nil))))))))),
     nil)))))))))))));
   DisableCommands(EditorCmds+SourceCmds+CompileCmds);
-  Update;
+  // Update; Desktop is still nil at that point ...
 end;
 
 procedure TIDEApp.InitStatusLine;
@@ -1216,7 +1216,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.16  2002-08-13 08:59:12  pierre
+  Revision 1.17  2002-08-26 13:02:15  pierre
+   * avoid a crash with fvision
+
+  Revision 1.16  2002/08/13 08:59:12  pierre
    + Run menu changes depending on wether the debuggee is running or not
 
   Revision 1.15  2002/07/12 14:17:39  pierre
