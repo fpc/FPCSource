@@ -582,7 +582,7 @@ begin
                       if UnsetBool(More, 0) then
                         begin
                           initmoduleswitches:=initmoduleswitches-[cs_debuginfo];
-                          if (length(More)>1) and (More[1]='l') then
+                          if (length(More)>1) and (More[2]='l') then
                             initglobalswitches:=initglobalswitches+[cs_gdb_lineinfo];
                         end
                       else
@@ -1450,7 +1450,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.64  2000-04-07 14:56:18  peter
+  Revision 1.65  2000-04-10 11:36:19  pierre
+   * get -g-l to work
+
+  Revision 1.64  2000/04/07 14:56:18  peter
     * correctfldcw define added
 
   Revision 1.63  2000/04/05 21:57:34  pierre
