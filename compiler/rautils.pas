@@ -1211,7 +1211,10 @@ Begin
       i:=255;
      base:=Copy(s,1,i-1);
      delete(s,1,i);
-     sym:=st^.search(base);
+     if st^.symtabletype=objectsymtable then
+       sym:=search_class_member(pobjectdef(st^.defowner),base)
+     else
+       sym:=st^.search(base);
      if not assigned(sym) then
       begin
         GetRecordOffsetSize:=false;
@@ -1438,7 +1441,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.31  1999-11-30 10:40:54  peter
+  Revision 1.32  1999-12-17 10:43:34  florian
+    * 761 fixed
+
+  Revision 1.31  1999/11/30 10:40:54  peter
     + ttype, tsymlist
 
   Revision 1.30  1999/11/17 17:05:04  pierre
