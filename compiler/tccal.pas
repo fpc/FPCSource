@@ -718,17 +718,25 @@ implementation
                end;{ end of procedure to call determination }
 
               is_const:=((p^.procdefinition^.options and pointernconst)<>0) and
-                         (p^.left^.left^.treetype in [realconstn,ordconstn]);
+                        ((block_type=bt_const) or
+                         (assigned(p^.left) and (p^.left^.left^.treetype in [realconstn,ordconstn])));
               { handle predefined procedures }
               if ((p^.procdefinition^.options and pointernproc)<>0) or is_const then
                 begin
-                   { settextbuf needs two args }
-                   if assigned(p^.left^.right) then
-                     pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,is_const,p^.left)
+                   if assigned(p^.left) then
+                     begin
+                     { settextbuf needs two args }
+                       if assigned(p^.left^.right) then
+                         pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,is_const,p^.left)
+                       else
+                         begin
+                           pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,is_const,p^.left^.left);
+                           putnode(p^.left);
+                         end;
+                     end
                    else
                      begin
-                        pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,is_const,p^.left^.left);
-                        putnode(p^.left);
+                       pt:=geninlinenode(pprocdef(p^.procdefinition)^.extnumber,is_const,nil);
                      end;
                    putnode(p);
                    firstpass(pt);
@@ -913,7 +921,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  1998-09-28 11:22:17  pierre
+  Revision 1.6  1998-10-02 09:24:22  peter
+    * more constant expression evaluators
+
+  Revision 1.5  1998/09/28 11:22:17  pierre
    * did not compile for browser
    * merge from fixes
 

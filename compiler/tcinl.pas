@@ -114,10 +114,34 @@ implementation
          { handle intern constant functions in separate case }
          if p^.inlineconst then
           begin
-            isreal:=(p^.left^.treetype=realconstn);
-            vl:=p^.left^.value;
-            vr:=p^.left^.value_real;
-            case p^.inlinenumber of
+            { no parameters? }
+            if not assigned(p^.left) then
+             begin
+               case p^.inlinenumber of
+            in_const_pi : begin
+                            hp:=genrealconstnode(pi);
+                          end;
+               else
+                 internalerror(89);
+               end;
+             end
+            else
+            { process constant expression with parameter }
+             begin
+               if not(p^.left^.treetype in [realconstn,ordconstn]) then
+                begin
+                  CGMessage(cg_e_illegal_expression);
+                  vl:=0;
+                  vr:=0;
+                  isreal:=false;
+                end
+               else
+                begin
+                  isreal:=(p^.left^.treetype=realconstn);
+                  vl:=p^.left^.value;
+                  vr:=p^.left^.value_real;
+                end;
+               case p^.inlinenumber of
          in_const_trunc : begin
                             if isreal then
                              hp:=genordinalconstnode(trunc(vr),s32bitdef)
@@ -178,9 +202,46 @@ implementation
                             else
                              hp:=genordinalconstnode(vl,voidpointerdef);
                           end;
-            else
-              internalerror(88);
-            end;
+          in_const_sqrt : begin
+                            if isreal then
+                             hp:=genrealconstnode(sqrt(vr))
+                            else
+                             hp:=genrealconstnode(sqrt(vl));
+                          end;
+        in_const_arctan : begin
+                            if isreal then
+                             hp:=genrealconstnode(arctan(vr))
+                            else
+                             hp:=genrealconstnode(arctan(vl));
+                          end;
+           in_const_cos : begin
+                            if isreal then
+                             hp:=genrealconstnode(cos(vr))
+                            else
+                             hp:=genrealconstnode(cos(vl));
+                          end;
+           in_const_sin : begin
+                            if isreal then
+                             hp:=genrealconstnode(sin(vr))
+                            else
+                             hp:=genrealconstnode(sin(vl));
+                          end;
+           in_const_exp : begin
+                            if isreal then
+                             hp:=genrealconstnode(exp(vr))
+                            else
+                             hp:=genrealconstnode(exp(vl));
+                          end;
+            in_const_ln : begin
+                            if isreal then
+                             hp:=genrealconstnode(ln(vr))
+                            else
+                             hp:=genrealconstnode(ln(vl));
+                          end;
+               else
+                 internalerror(88);
+               end;
+             end;
             disposetree(p);
             firstpass(hp);
             p:=hp;
@@ -760,7 +821,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  1998-09-23 20:42:24  peter
+  Revision 1.2  1998-10-02 09:24:23  peter
+    * more constant expression evaluators
+
+  Revision 1.1  1998/09/23 20:42:24  peter
     * splitted pass_1
 
 }
