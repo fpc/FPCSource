@@ -1248,8 +1248,8 @@ function returns in a register and the caller receives it in an other one}
           therefore if the context must be saved, do it before
           the actual call to the profile code
         }
-        if (cs_profile in aktmoduleswitches) 
-         and not(po_assembler in aktprocdef.procoptions) 
+        if (cs_profile in aktmoduleswitches)
+         and not(po_assembler in aktprocdef.procoptions)
          and not(inlined) then
           begin
             { non-win32 can call mcout even in main }
@@ -1480,7 +1480,7 @@ function returns in a register and the caller receives it in an other one}
 {$ifndef m68k}
           { give a warning if the limit of local variables is reached }
           if stackframe > maxlocalsize then
-            Message(cg_w_localsize_too_big); 
+            Message(cg_w_localsize_too_big);
 {$endif}
 {$ifndef powerpc}
            { at least for the ppc this applies always, so this code isn't usable (FK) }
@@ -1754,7 +1754,7 @@ function returns in a register and the caller receives it in an other one}
                { give a warning if the limit of parameters allowed for
                  certain processors is reached.
                }
-               if (parasize > maxparasize) 
+               if (parasize > maxparasize) then
                  Message(cg_w_parasize_too_big);
 {$endif}
                cg.g_return_from_proc(list,parasize);
@@ -1902,7 +1902,10 @@ function returns in a register and the caller receives it in an other one}
 end.
 {
   $Log$
-  Revision 1.69  2002-12-03 22:13:39  carl
+  Revision 1.70  2002-12-05 14:39:21  florian
+    * added missing then, Carl did you really a make fullcycle :) ?
+
+  Revision 1.69  2002/12/03 22:13:39  carl
      * bugfix of problems with profile code which clobbers some registers
 
   Revision 1.68  2002/12/01 22:06:59  carl
