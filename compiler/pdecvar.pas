@@ -400,7 +400,10 @@ implementation
                      handle_calling_convention(readprocdef);
                      calc_parast(readprocdef);
                      { search procdefs matching readprocdef }
-                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,[cpo_allowdefaults,cpo_allowconvert]);
+                     { we ignore hidden stuff here because the property access symbol might have
+                       non default calling conventions which might change the hidden stuff;
+                       see tw3216.pp (FK) }
+                     p.readaccess.procdef:=Tprocsym(sym).search_procdef_bypara(readprocdef.para,p.proptype.def,[cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert]);
                      if not assigned(p.readaccess.procdef) then
                        Message(parser_e_ill_property_access_sym);
                    end;
@@ -1228,7 +1231,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2004-07-14 23:19:22  olle
+  Revision 1.77  2004-08-07 19:14:50  florian
+    * fixed problem with explicit specified calling conventions for property symbols
+
+  Revision 1.76  2004/07/14 23:19:22  olle
     + added external facilities for macpas
 
   Revision 1.75  2004/06/20 08:55:30  florian
