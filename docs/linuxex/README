@@ -71,4 +71,5 @@ ex67.pp contains an example of the FSplit function.
 ex68.pp contains an example of the Octal function.
 ex69.pp contains an example of the FNMatch function.
 ex70.pp contains an example of the StringToPPchar function.
+ex71.pp contains an example of the clone function.
 serial.pp contains an example of serial port programming in FPC.

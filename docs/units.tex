@@ -19,7 +19,7 @@
 %   Boston, MA 02111-1307, USA.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preamble. 
+% Preamble.
 % Uncomment the one you need here. The book version is for the published
 % book version.
 \documentclass{report}
@@ -27,34 +27,27 @@
 %
 % Preamble
 %
+\usepackage{multicol}
 \ifx\pdfoutput\undefined
   \usepackage{html}
   \usepackage{htmllist}
   \latex{\usepackage{fpc}}
+  \html{\input{fpc-html.tex}}
 \else
-  \usepackage{fpc}
-\fi
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Uncomment the fpc or fpcbook version, depending on the output format 
+% Uncomment the fpc or fpcbook version, depending on the output format
 % you want.
-\usepackage{fpc}
-%\usepackage{fpcbook}
-\latex{\usepackage{multicol}}
+  \usepackage{fpc}
+  %\usepackage{fpcbook}
+\fi
 \latex{%
   \ifpdf
-  \pdfcompresslevel=9
-  \pdfpagewidth=210mm
-  \pdfpageheight=297mm
-%
-\html{\input{fpc-html.tex}}
-%
-\ifpdf
-  \pdfinfo{/Author(Michael Van Canneyt)
-           /Title(Standard units Reference Guide)
-           /Subject(Free Pascal Standard units reference guide)
-           /Keywords(Free Pascal, Units, RTL)
-           }
-\fi
+    \pdfinfo{/Author(Michael Van Canneyt)
+             /Title(Standard units Reference Guide)
+             /Subject(Free Pascal Standard units reference guide)
+             /Keywords(Free Pascal, Units, RTL)
+             }
+  \fi
+}
 %
 % Settings
 %

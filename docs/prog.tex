@@ -19,7 +19,7 @@
 %   Boston, MA 02111-1307, USA.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preamble. 
+% Preamble.
 % Uncomment the one you need here. The book version is for the published
 % book version.
 \documentclass{report}
@@ -32,14 +32,13 @@
   \usepackage{html}
   \usepackage{htmllist}
   \latex{\usepackage{fpc}}
+  \html{\input{fpc-html.tex}}
 \else
+  % Uncomment the fpc or fpcbook version, depending on the output format
+  % you want.
   \usepackage{fpc}
+  %\usepackage{fpcbook}
 \fi
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Uncomment the fpc or fpcbook version, depending on the output format 
-% you want.
-%\usepackage{fpc}
-%\usepackage{fpcbook}
 \latex{%
   \ifpdf
   \pdfinfo{/Author(Michael Van Canneyt)
@@ -47,7 +46,7 @@
            /Subject(Free Pascal Programmers' guide)
            /Keywords(Free Pascal)
            }
-\fi
+  \fi
 }
 %
 % Settings
@@ -3049,7 +3048,7 @@ of your program.  This returns zero in the \fpc implementation of the
 system unit, since both code and data are in the same memory space.
 \item [Ptr:] Accepted a segment and offset from an address, and would return
 a pointer to this address. This has been changed in the run-time library, it
-now simply returns the offset. 
+now simply returns the offset.
 \item [memw and mem] These arrays gave access to the \dos memory. \fpc
 supports them on the go32v2 platform, they are mapped into \dos memory
 space. You need the \var{GO32} unit for this. On other platforms, they are

@@ -19,7 +19,7 @@
 %   Boston, MA 02111-1307, USA.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preamble. 
+% Preamble.
 % Uncomment the one you need here. The book version is for the published
 % book version.
 %\documentclass{report}
@@ -31,12 +31,12 @@
   \usepackage{html}
   \usepackage{htmllist}
   \latex{\usepackage{fpc}}
+  \html{\input{fpc-html.tex}}
 \else
-b%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Uncomment the fpc or fpcbook version, depending on the output format 
+% Uncomment the fpc or fpcbook version, depending on the output format
 % you want.
   \usepackage{fpc}
-  \usepackage{fpcbook}
+%  \usepackage{fpcbook}
 \fi
 \latex{%
   \ifpdf
@@ -5096,8 +5096,8 @@ None.
 \Declaration
 function CompareByte(var buf1,buf2;len:longint):longint;
 \Description
-\var{CompareByte} compares two memory regions \var{buf1},\var{buf2} on a 
-byte-per-byte basis for a total of \var{len} bytes. 
+\var{CompareByte} compares two memory regions \var{buf1},\var{buf2} on a
+byte-per-byte basis for a total of \var{len} bytes.
 
 The function returns one of the following values:
 \begin{description}
@@ -5123,8 +5123,8 @@ None.
 function  CompareChar(var buf1,buf2;len:longint):longint;
 function  CompareChar0(var buf1,buf2;len:longint):longint;
 \Description
-\var{CompareChar} compares two memory regions \var{buf1},\var{buf2} on a 
-character-per-character basis for a total of \var{len} characters. 
+\var{CompareChar} compares two memory regions \var{buf1},\var{buf2} on a
+character-per-character basis for a total of \var{len} characters.
 
 The \var{CompareChar0} variant compares \var{len} bytes, or until
 a zero character is found.
@@ -5137,7 +5137,7 @@ than the character at the same position in \var{buf2}.
 \item[0]  if the first \var{len} characters in \var{buf1} and \var{buf2} are
 equal.
 \item [1] if \var{buf1} and \var{buf2} contain different characters
-in the first \var{len} positions, and the first such character is larger in 
+in the first \var{len} positions, and the first such character is larger in
 \var{buf1} than the character at the same position in \var{buf2}.
 \end{description}
 
@@ -5153,7 +5153,7 @@ None.
 \Declaration
 function  CompareDWord(var buf1,buf2;len:longint):longint;
 \Description
-\var{CompareDWord} compares two memory regions \var{buf1},\var{buf2} on a 
+\var{CompareDWord} compares two memory regions \var{buf1},\var{buf2} on a
 DWord-per-DWord basis for a total of \var{len} DWords. (A DWord is 4 bytes).
 
 The function returns one of the following values:
@@ -5179,7 +5179,7 @@ None.
 \Declaration
 function  CompareWord(var buf1,buf2;len:longint):longint;
 \Description
-\var{CompareWord} compares two memory regions \var{buf1},\var{buf2} on a 
+\var{CompareWord} compares two memory regions \var{buf1},\var{buf2} on a
 Word-per-Word basis for a total of \var{len} Words. (A Word is 2 bytes).
 
 The function returns one of the following values:
@@ -5485,8 +5485,8 @@ with value equal to \var{Value}.
 
 This is useful for quickly zeroing out a memory location. If you know
 that the size of the memory location to be filled out is a multiple of
-2 bytes, it is better to use \seep{Fillword}, and if it is a multiple 
-of 4 bytes it's better to use \seep{FillDWord}, these routines are 
+2 bytes, it is better to use \seep{Fillword}, and if it is a multiple
+of 4 bytes it's better to use \seep{FillDWord}, these routines are
 optimized for their respective sizes.
 
 \Errors
@@ -5726,7 +5726,7 @@ error, if you try to increase \var{X} over its maximum value.
 
 \begin{function}{IndexByte}
 \Declaration
-function  IndexByte(var buf;len:longint;b:byte):longint;  
+function  IndexByte(var buf;len:longint;b:byte):longint;
 \Description
 \var{IndexByte} searches the memory at \var{buf} for maximally \var{len}
 positions for the byte \var{b} and returns it's position if it found one.
@@ -5743,8 +5743,8 @@ The position is zero-based.
 
 \begin{function}{IndexChar}
 \Declaration
-function  IndexChar(var buf;len:longint;b:char):longint;  
-function  IndexChar0(var buf;len:longint;b:char):longint;  
+function  IndexChar(var buf;len:longint;b:char):longint;
+function  IndexChar0(var buf;len:longint;b:char):longint;
 \Description
 \var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
 positions for the character \var{b} and returns it's position if it found one.
@@ -5778,7 +5778,7 @@ The position is zero-based.
 
 \begin{function}{IndexWord}
 \Declaration
-function  IndexWord(var buf;len:longint;W:word):longint;  
+function  IndexWord(var buf;len:longint;W:word):longint;
 \var{IndexChar} searches the memory at \var{buf} for maximally \var{len}
 positions for the Word \var{W} and returns it's position if it found one.
 If \var{W} is not found then -1 is returned.
