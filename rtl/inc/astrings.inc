@@ -169,11 +169,8 @@ begin
     begin
        Size:=PAnsiRec(S2-FirstOff)^.Len;
        Location:=Length(AnsiString(S1));
-       { Setlength takes case of uniqueness
-         and allocated memory. We need to use length,
-         to take into account possibility of S1=Nil }
        SetLength (AnsiString(S3),Size+Location);
-       Move (S1^,S3^,PAnsiRec(S1-FirstOff)^.Len);
+       Move (S1^,S3^,Location);
        Move (S2^,(S3+location)^,Size+1);
     end;
   AnsiStr_Concat:=S3;
@@ -764,7 +761,10 @@ end;
 
 {
   $Log$
-  Revision 1.19  1999-04-08 15:57:53  peter
+  Revision 1.20  1999-04-09 07:33:15  michael
+  * More fixes and optimizing for ansistr_concat
+
+  Revision 1.19  1999/04/08 15:57:53  peter
     + subrange checking for readln()
 
   Revision 1.18  1999/04/08 10:19:55  peter
