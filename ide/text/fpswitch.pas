@@ -685,6 +685,10 @@ end;
 *****************************************************************************}
 
 procedure InitSwitches;
+
+var
+   i,OldSwitchesMode : TSwitchMode;
+
 begin
   New(SyntaxSwitches,Init('S'));
   with SyntaxSwitches^ do
@@ -813,6 +817,59 @@ begin
   if SwitchesPath='' then
     SwitchesPath:=SwitchesName;
   SwitchesPath:=FExpand(SwitchesPath);
+
+  { setup some useful defaults }
+  OldSwitchesMode:=SwitchesMode;
+  for i:=low(TSwitchMode) to high(TSwitchMode) do
+    begin
+       SwitchesMode:=i;
+       { default is Pentium }
+       ProcessorSwitches^.SetCurrSel(1);
+       { AT&T reader }
+       AsmReaderSwitches^.SetCurrSel(1);
+       { 128k stack }
+       MemorySwitches^.SetLongintItem(0,65536*2);
+       { 2 MB heap }
+       MemorySwitches^.SetLongintItem(1,1024*1024*2);
+       { goto/lable allowed }
+       SyntaxSwitches^.SetBooleanItem(3,true);
+       case i of
+          om_debug:
+            begin
+               { debugging info on }
+               DebugInfoSwitches^.SetCurrSel(1);
+               { range checking }
+               CodegenSwitches^.SetBooleanItem(0,true);
+               { io checking }
+               CodegenSwitches^.SetBooleanItem(2,true);
+               { overflow checking }
+               CodegenSwitches^.SetBooleanItem(3,true);
+            end;
+          om_normal:
+            begin
+               OptimizationSwitches^.SetBooleanItem(2,true);
+            end;
+          om_release:
+            begin
+               OptimizationSwitches^.SetBooleanItem(2,true);
+               OptimizationSwitches^.SetBooleanItem(3,true);
+            end;
+       end;
+       { set appriopriate default target }
+{$ifdef go32v2}
+       TargetSwitches^.SetCurrSel(1);
+{$endif}
+{$ifdef linux}
+       TargetSwitches^.SetCurrSel(2);
+{$endif}
+{$ifdef win32}
+       TargetSwitches^.SetCurrSel(4);
+{$endif}
+{$ifdef os2}
+       TargetSwitches^.SetCurrSel(3);
+{$endif}
+    end;
+  SwitchesMode:=OldSwitchesMode;
 end;
 
 
@@ -841,7 +898,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.13  1999-04-29 09:36:12  peter
+  Revision 1.14  1999-10-14 14:22:23  florian
+    * if no ini file is found the ide uses some useful defaults
+
+  Revision 1.13  1999/04/29 09:36:12  peter
     * fixed hotkeys with Compiler switches
     * fixed compiler status dialog
     * Run shows again the output

@@ -263,5 +263,8 @@ end;
 end.
 
 {
- $Log $
+ $Log$
+ Revision 1.3  1999-10-14 14:22:23  florian
+   * if no ini file is found the ide uses some useful defaults
+
 }
