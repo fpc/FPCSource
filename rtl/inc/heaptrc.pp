@@ -66,6 +66,7 @@ const
     this allows to test for writing into that part }
   usecrc : boolean = true;
 
+
 implementation
 
 type
@@ -96,7 +97,7 @@ type
     sig      : longint;
 {$ifdef EXTRA}
     release_sig : longint;
-    prev_valid : pheap_mem_info;
+    prev_valid  : pheap_mem_info;
 {$endif EXTRA}
     calls    : array [1..tracesize] of longint;
     extra_info : record
@@ -243,7 +244,7 @@ var
   i  : longint;
 
 begin
-  writeln(ptext,'Call trace for block 0x',hexstr(longint(pointer(pp)+sizeof(theap_mem_info)),8),' size ',pp^.size);
+  writeln(ptext,'Call trace for block at 0x',hexstr(longint(pointer(pp)+sizeof(theap_mem_info)),8),' size ',pp^.size);
   for i:=1 to tracesize div 2 do
    if pp^.calls[i]<>0 then
      writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
@@ -258,7 +259,7 @@ end;
 
 procedure dump_already_free(p : pheap_mem_info;var ptext : text);
 begin
-  Writeln(ptext,'Marked memory at ',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' released');
+  Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' released');
   call_free_stack(p,ptext);
   Writeln(ptext,'freed again at');
   dump_stack(ptext,get_caller_frame(get_frame));
@@ -266,7 +267,7 @@ end;
 
 procedure dump_error(p : pheap_mem_info;var ptext : text);
 begin
-  Writeln(ptext,'Marked memory at ',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
+  Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
   Writeln(ptext,'Wrong signature $',hexstr(p^.sig,8)
     ,' instead of ',hexstr(calculate_sig(p),8));
   dump_stack(ptext,get_caller_frame(get_frame));
@@ -277,7 +278,7 @@ procedure dump_change_after(p : pheap_mem_info;var ptext : text);
  var pp : pchar;
      i : longint;
 begin
-  Writeln(ptext,'Marked memory at ',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
+  Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
   Writeln(ptext,'Wrong release CRC $',hexstr(p^.release_sig,8)
     ,' instead of ',hexstr(calculate_release_sig(p),8));
   Writeln(ptext,'This memory was changed after call to freemem !');
@@ -293,7 +294,7 @@ procedure dump_wrong_size(p : pheap_mem_info;size : longint;var ptext : text);
 var
   i : longint;
 begin
-  Writeln(ptext,'Marked memory at ',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
+  Writeln(ptext,'Marked memory at 0x',HexStr(longint(pointer(p)+sizeof(theap_mem_info)),8),' invalid');
   Writeln(ptext,'Wrong size : ',p^.size,' allocated ',size,' freed');
   dump_stack(ptext,get_caller_frame(get_frame));
   for i:=0 to (exact_info_size div 4)-1 do
@@ -536,6 +537,102 @@ end;
 
 
 {*****************************************************************************
+                                ReAllocMem
+*****************************************************************************}
+
+function TraceReAllocMem(var p:pointer;size:longint):Pointer;
+var
+  newP: pointer;
+  oldsize,
+  i,bp : longint;
+  pl : plongint;
+  pp : pheap_mem_info;
+begin
+{ Free block? }
+  if size=0 then
+   begin
+     if p<>nil then
+      TraceFreeMem(p);
+     TraceReallocMem:=P;
+     exit;
+   end;
+{ Allocate a new block? }
+  if p=nil then
+   begin
+     p:=TraceGetMem(size);
+     TraceReallocMem:=P;
+     exit;
+   end;
+{ Resize block }
+  dec(p,sizeof(theap_mem_info)+extra_info_size);
+  pp:=pheap_mem_info(p);
+  { test block }
+  if ((pp^.sig<>$DEADBEEF) or usecrc) and
+     ((pp^.sig<>calculate_sig(pp)) or not usecrc) then
+   begin
+     error_in_heap:=true;
+     dump_error(pp,ptext^);
+{$ifdef EXTRA}
+     dump_error(pp,error_file);
+{$endif EXTRA}
+     { don't release anything in this case !! }
+     if haltonerror then halt(1);
+     exit;
+   end;
+  { Do the real ReAllocMem, but alloc also for the info block }
+  bp:=size+sizeof(theap_mem_info)+extra_info_size;
+  if add_tail then
+   inc(bp,sizeof(longint));
+  { the internal ReAllocMem is not allowed to move any data }
+  if not SysTryResizeMem(p,bp) then
+   begin
+     { restore p }
+     inc(p,sizeof(theap_mem_info)+extra_info_size);
+     { get a new block }
+     oldsize:=TraceMemSize(p);
+     newP := TraceGetMem(size);
+     { move the data }
+     if newP <> nil then
+       move(p^,newP^,oldsize);
+     { release p }
+     traceFreeMem(p);
+     p := newP;
+     traceReAllocMem := p;
+     exit;
+   end;
+  pp:=pheap_mem_info(p);
+{ adjust like a freemem and then a getmem, so you get correct
+  results in the summary display }
+  inc(freemem_size,pp^.size);
+  inc(freemem8_size,((pp^.size+7) div 8)*8);
+  inc(getmem_size,size);
+  inc(getmem8_size,((size+7) div 8)*8);
+{ Create the info block }
+  pp^.sig:=$DEADBEEF;
+  pp^.size:=size;
+  if add_tail then
+    begin
+      pl:=pointer(p)+bp-sizeof(longint);
+      pl^:=$DEADBEEF;
+    end;
+  bp:=get_caller_frame(get_frame);
+  for i:=1 to tracesize do
+   begin
+     pp^.calls[i]:=get_caller_addr(bp);
+     bp:=get_caller_frame(bp);
+   end;
+  if assigned(fill_extra_info) then
+    fill_extra_info(@pp^.extra_info);
+{ update the pointer }
+  if usecrc then
+    pp^.sig:=calculate_sig(pp);
+  inc(p,sizeof(theap_mem_info)+extra_info_size);
+  TraceReAllocmem:=p;
+end;
+
+
+
+{*****************************************************************************
                               Check pointer
 *****************************************************************************}
 
@@ -728,7 +825,7 @@ begin
        begin
           dump_error(pp,ptext^);
 {$ifdef EXTRA}
-       dump_error(pp,error_file);
+          dump_error(pp,error_file);
 {$endif EXTRA}
           error_in_heap:=true;
        end
@@ -766,107 +863,6 @@ end;
 function TraceAllocMem(size:longint):Pointer;
 begin
   TraceAllocMem:=SysAllocMem(size);
-end;
-
-
-{*****************************************************************************
-                                ReAllocMem
-*****************************************************************************}
-
-function TraceReAllocMem(var p:pointer;size:longint):Pointer;
-var
-  newP: pointer;
-  oldsize,
-  i,bp : longint;
-  pl : plongint;
-  pp : pheap_mem_info;
-begin
-{ Free block? }
-  if size=0 then
-   begin
-     if p<>nil then
-      TraceFreeMem(p);
-     TraceReallocMem:=P;
-     exit;
-   end;
-{ Allocate a new block? }
-  if p=nil then
-   begin
-     p:=TraceGetMem(size);
-     TraceReallocMem:=P;
-     exit;
-   end;
-{ Resize block }
-  dec(p,sizeof(theap_mem_info)+extra_info_size);
-  { remove heap_mem_info from linked list }
-  pp:=pheap_mem_info(p);
-  if pp^.next<>nil then
-   pp^.next^.previous:=pp^.previous;
-  if pp^.previous<>nil then
-   pp^.previous^.next:=pp^.next;
-  if pp=heap_mem_root then
-   heap_mem_root:=heap_mem_root^.previous;
-  { Do the real ReAllocMem, but alloc also for the info block }
-   bp:=size+sizeof(theap_mem_info)+extra_info_size;
-   if add_tail then
-     inc(bp,sizeof(longint));
-  { the internal ReAllocMem is not allowed to move any data }
-  if not SysTryResizeMem(p,bp) then
-   begin
-     { restore p }
-     inc(p,sizeof(theap_mem_info)+extra_info_size);
-     { get a new block }
-     oldsize:=TraceMemSize(p);
-     newP := TraceGetMem(size);
-     { move the data }
-     if newP <> nil then
-       move(p^,newP^,oldsize);
-     { release p }
-     traceFreeMem(p);
-     p := newP;
-     traceReAllocMem := p;
-     exit;
-   end;
-  { adjust getmem/freemem sizes }
-  if pp^.size > size then
-    inc(freemem_size,pp^.size-size)
-  else
-    inc(getmem_size,size-pp^.size);
-{ Create the info block }
-  pheap_mem_info(p)^.sig:=$DEADBEEF;
-  pheap_mem_info(p)^.size:=size;
-  if add_tail then
-    begin
-      pl:=pointer(p)+bp-sizeof(longint);
-      pl^:=$DEADBEEF;
-    end;
-  bp:=get_caller_frame(get_frame);
-  for i:=1 to tracesize do
-   begin
-     pheap_mem_info(p)^.calls[i]:=get_caller_addr(bp);
-     bp:=get_caller_frame(bp);
-   end;
-  { insert in the linked list }
-  if heap_mem_root<>nil then
-   heap_mem_root^.next:=pheap_mem_info(p);
-  pheap_mem_info(p)^.previous:=heap_mem_root;
-  pheap_mem_info(p)^.next:=nil;
-{$ifdef EXTRA}
-  pheap_mem_info(p)^.prev_valid:=nil;
-  if assigned(heap_valid_last) then
-    heap_valid_last^.prev_valid:=pheap_mem_info(p);
-  heap_valid_last:=pheap_mem_info(p);
-  if not assigned(heap_valid_first) then
-    heap_valid_first:=pheap_mem_info(p);
-{$endif EXTRA}
-  heap_mem_root:=p;
-  if assigned(fill_extra_info) then
-    fill_extra_info(@pheap_mem_info(p)^.extra_info);
-{ update the pointer }
-  if usecrc then
-    pheap_mem_info(p)^.sig:=calculate_sig(pheap_mem_info(p));
-  inc(p,sizeof(theap_mem_info)+extra_info_size);
-  TraceReAllocmem:=p;
 end;
 
 
@@ -994,7 +990,12 @@ finalization
 end.
 {
   $Log$
-  Revision 1.42  2000-04-27 15:35:50  pierre
+  Revision 1.43  2000-05-18 17:03:27  peter
+    * fixed reallocmem with double removing from heap_mem_root list
+    * fixed reallocmem getmem/freemem count, now both are increased and
+      the _size8 counts are also increased
+
+  Revision 1.42  2000/04/27 15:35:50  pierre
    * fix for bug report 929
 
   Revision 1.41  2000/02/10 13:59:35  peter
