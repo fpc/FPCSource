@@ -2371,9 +2371,10 @@ var
                   Dec(ClassStart,length(MatchingSymbol)-1);
                 end
               else if (InComment=false) and
-                (InDirective=true) and IsDirectiveSuffix then
+                 (InDirective=true) and IsDirectiveSuffix then
                  InDirective:=false
-              else if (InComment=false) and (InString=false) and IsCommentPrefix then
+              else if (InComment=false) and
+                 (InString=false) and (InDirective=false) and IsCommentPrefix then
                 begin
                   InComment:=true;
                   CurrentCommentType:=SymbolIndex;
@@ -7273,7 +7274,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.43  2004-02-10 07:16:28  pierre
+  Revision 1.44  2004-02-13 06:53:57  pierre
+   * fix for webbug 2940
+
+  Revision 1.43  2004/02/10 07:16:28  pierre
   * fix webbug 2932
 
   Revision 1.42  2003/01/31 12:04:50  pierre
