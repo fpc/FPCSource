@@ -147,8 +147,15 @@ implementation
              ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
          end;
       { finish codesegment }
+{$ifdef i386}
         codeSegment.concat(Tai_align.Create(16));
-      { Insert start and end of sections }
+{$else}
+        if cs_littlesize in aktglobalswitches then
+          codesegment.concat(tai_align.create(2))
+        else
+          codesegment.concat(tai_align.create(4));
+{$endif}
+       { Insert start and end of sections }
         fixseg(codesegment,sec_code);
         fixseg(datasegment,sec_data);
         fixseg(bsssegment,sec_bss);
@@ -1300,7 +1307,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2001-05-09 14:11:10  jonas
+  Revision 1.32  2001-05-18 22:26:36  peter
+    * merged alignment for non-i386
+
+  Revision 1.31  2001/05/09 14:11:10  jonas
     * range check error fixes from Peter
 
   Revision 1.30  2001/05/06 14:49:17  peter
