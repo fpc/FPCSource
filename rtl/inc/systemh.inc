@@ -234,21 +234,6 @@ Var
   InOutRes    : Word;
 
 {****************************************************************************
-                        System specific variables
-****************************************************************************}
-
-const
-{$ifndef unix}
-  PathDelim  = '\';
-  DriveDelim = ':';
-  PathSep    = ';';
-{$else}
-  PathDelim  = '/';
-  DriveDelim = ''; 
-  PathSep    = ':';
-{$endif}
-
-{****************************************************************************
                         Processor specific routines
 ****************************************************************************}
 
@@ -569,7 +554,10 @@ const
 
 {
   $Log$
-  Revision 1.37  2001-11-07 13:52:37  michael
+  Revision 1.38  2001-11-07 14:59:20  michael
+  + Moved PathDelim,DriveDelim,PathSep to sysutilh
+
+  Revision 1.37  2001/11/07 13:52:37  michael
   + Added PathDelim,DriveDelim,PathSep
 
   Revision 1.36  2001/10/09 02:32:51  carl
