@@ -47,7 +47,7 @@
 \renewcommand{\hline}{\xspace}
 \title{Free Pascal :\\ Reference guide.}
 \docdescription{Reference guide for Free Pascal, version \fpcversion}
-\docversion{1.9}
+\docversion{1.10}
 \input{date.inc}
 \author{Micha\"el Van Canneyt}
 \maketitle
@@ -383,14 +383,11 @@ specified in binary notation as \var{\%11111111}.
 The following diagrams show the syntax for numbers.
 \input{syntax/numbers.syn}
 
-%%%  !!!!!!!!!!!!
-%%%  For 2.0, the range has changed, and constants within
-%%%  a 64bit range are parsed as int64. and no longer
-%%%  as reals (except if they don't fit in int64!) !!!! - carl
 \begin{remark}
 It is to note that all decimal constants which do no fit within
 the -2147483648..2147483647 range, are silently and automatically
-parsed as real-type constants.
+parsed as 64-bit integer constants as of version 1.9.0. Earliers 
+versions would convert it to a real-typed constant.
 \end{remark}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1958,6 +1955,30 @@ entered.
 Note that the behaviour for local initialized variables is different from
 the one of a local typed constant. A local typed constant behaves like a
 global initialized variable.
+
+\section{Thread Variables}
+For a program which uses threads, the variables can be really global, i.e. the same for all 
+threads, or thread-local: this means that each thread gets a copy of the variable. 
+Local variables (defined inside a procedure) are always thread-local. Global 
+variables are normally the same for all threads. A global variable can be 
+declared thread-local by replacing the \var{var} keyword at the start of the 
+variable declaration block with \var{Threadvar}:
+\begin{verbatim}
+Threadvar
+  IOResult : Integer;
+\end{verbatim}
+If no threads are used, the variable behaves as an ordinary variable. 
+If threads are used then a copy is made 
+for each thread (including the main thread). Note that the copy is 
+made with the original value  of the variable, {\em not} with the 
+value of the variable at the time the thread is started.
+
+Threadvars should be used sparingly: There is an overhead for retrieving 
+or setting the variable's value. If possible at all, consider using local 
+variables; they are always faster than thread variables.
+
+Threads are not enabled by default. For more information about programming 
+threads, see the chapter on threads in the \progref.
 
 \section{Properties}
 A global block can declare properties, just as they could be defined in a
@@ -4054,6 +4075,7 @@ begin
   Average := Temp / (High(Row)+1);
 end;
 \end{verbatim}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The array of const construct
 \subsection{Array of const}
@@ -4520,6 +4542,15 @@ it also aligns all the parameters to a default alignment.
 
 More information about this modifier can be found in the \progref, in the
 section on the calling mechanism and the chapter on linking.
+
+\subsection{varargs}
+This modifier can only be used together with the \var{cdecl} modifier, for
+external C procedures. It indicates that the procedure accepts a variable
+number of arguments after the last declared variable. These arguments are
+passed on without any type checking. It is equivalent to using the
+\var{array of const} construction for \var{cdecl} procedures, without having
+to declare the \var{array of const}. The square brackets around the variable
+arguments do not need to be used when this form of declaration is used.
 
 
 

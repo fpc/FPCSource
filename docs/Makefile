@@ -323,8 +323,7 @@ endif
 #####################################################################
 # Tex from XML
 #####################################################################
-FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/fcl/classes/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/fcl/inc -Fi$(FPCSRCDIR)/fcl/classes'
-#FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
+FCLOPTS=--package=fcl --descr=classes.xml --input='$(FPCSRCDIR)/rtl/$(HOSTOS)/classes.pp -Fi$(FPCSRCDIR)/rtl/objpas/classes'
 
 fcl.inc: classes.xml
 	$(FPDOC) --output=fcl.inc $(FCLOPTS) --format=latex
@@ -559,7 +558,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.25  2004-03-19 17:39:03  peter
+# Revision 1.26  2004-05-18 22:10:56  michael
+# + Updates for 1.9.4. Mostly MACPas related
+#
+# Revision 1.25  2004/03/19 17:39:03  peter
 #   * use fpdoc from utils tree if found
 #
 # Revision 1.24  2003/11/16 00:03:03  michael

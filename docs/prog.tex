@@ -42,7 +42,7 @@
 \begin{document}
 \title{Free Pascal \\ Programmers' manual}
 \docdescription{Programmers' manual for \fpc, version \fpcversion}
-\docversion{1.9}
+\docversion{1.10}
 \input{date.inc}
 \author{Micha\"el Van Canneyt}
 \maketitle
@@ -111,9 +111,16 @@ until the moment another switch annihilates their behaviour, or the end
 of the current unit or program is reached.
 
 \subsection{\var{\protect\$A} or \var{\protect\$ALIGN} : Align Data}
+\label{se:Align}
 
-This switch is recognized for Turbo Pascal Compatibility, but is not
-yet implemented. The alignment of data will be different in any case.
+The \var{\{\$ALIGN} directive can be used to select the data alignment 
+strategy of the compiler for the \macos. Only valid in MACPAS mode, 
+it can have the following values:
+\begin{description}
+\item[MAC68K]
+\item[POWER]
+\item[RESET]
+\end{description}
 
 \subsection{\var{\protect\$ASMMODE} : Assembler mode (Intel 80x86 only)}
 \label{se:AsmReader}
@@ -205,13 +212,13 @@ is the same as
 This is useful for indication what switch is meant.
 
 \subsection{\var{\protect\$ELSEC} : Switch conditional compilation}
-In MAC mode, this directive can be used as an alternative to the \var{\$ELSE}
+In MACPAS mode, this directive can be used as an alternative to the \var{\$ELSE}
 directive. It is supported for compatibility with existing \macos pascal
 compilers.
 
 
 \subsection{\var{\protect\$ENDC} : End conditional compilation}
-In MAC mode, this directive can be used as an alternative to the
+In MACPAS mode, this directive can be used as an alternative to the
 \var{\$ENDIF} directive. It is supported for compatibility with existing \macos pascal
 compilers.
 
@@ -392,7 +399,7 @@ More information on this can be found in the section about
 conditionals.
 
 \subsection{\var{\protect\$IFC} : Start conditional compilation}
-In MAC mode, this directive can be used as an alternative to the \var{\$IF}
+In MACPAS mode, this directive can be used as an alternative to the \var{\$IF}
 directive. It is supported for compatibility with existing \macos pascal
 compilers.
 
@@ -467,7 +474,7 @@ By default, \var{Inline} procedures are not allowed. This directive must be
 specified to use inlined code. The directive is equivalent to the command-line
  switch \var{-Si}. For more information on inline routines, consult the \refref.
 
-\subsection{\var{\protect\$INTERFACES\}} : Specify Interface type.}
+\subsection{\var{\protect\$INTERFACES} : Specify Interface type.}
 The \var{\{\$INTERFACES\}} directive tells the compiler what it should take
 as the parent interface of an interface declaration which does not
 explicitly specify a parent interface. By default the Windows COM \var{IUnknown}
@@ -697,11 +704,12 @@ switch \var{-Sm}.
 
 By default, macros are not allowed.
 
-\subsection{\var{\protect\$MAXFPUREGISTERS} : Maximum number of FPU registers for variables (Intel 80x86 only)}
+\subsection{\var{\protect\$MAXFPUREGISTERS} : Maximum number of FPU registers for variables}
 
 The \var{\{\$MAXFPUREGISTERS XXX\}} directive tells the compiler how much floating point
-variables can be kept in the floating point processor registers. This switch is ignored
-unless the \var{-Or} (use register variables) optimization is used.
+variables can be kept in the floating point processor registers on an Intel
+X86 processor. This switch is ignored unless the \var{-Or} (use register variables) 
+optimization is used.
 
 This is quite tricky because the Intel FPU stack is limited to 8 entries.
 The compiler uses a heuristic algorithm to determine how much variables should be
@@ -940,10 +948,30 @@ This works only on the intel compiler, and MMX support must be on
 saturation support (\sees{SaturationSupport}) for more information
 on the effect of this directive.
 
-\subsection{\var{\protect\$SETC} : Define a symbol}
-In MAC mode, this directive can be used as an alternative to the
-\var{\$DEFINE} directive. It is supported for compatibility with existing \macos pascal
-compilers.
+\subsection{\var{\protect\$SETC} : Define and assign a value to a symbol}
+
+In MAC mode, this directive can be used to define compiler symbols. It is
+an alternative to the \var{\$DEFINE} directive for macros. It is supported for 
+compatibility with existing \macos pascal compilers. It will define a symbol
+with a certain value (called a compiler variable expression). 
+
+The expression syntax is similar to expressions used in macros, but the
+expression must be evaluated at compile-time by the compiler. This means
+that only some basic arithmetic and logical operators can be used,
+and some extra possibilities such as the \var{TRUE},\var{FALSE} and 
+\var{UNDEFINED}
+operators:
+\begin{verbatim}
+{$SETC TARGET_CPU_PPC  := NOT UNDEFINED CPUPOWERPC}
+{$SETC TARGET_CPU_68K  := NOT UNDEFINED CPUM68K}
+{$SETC TARGET_CPU_X86  := NOT UNDEFINED CPUI386}
+{$SETC TARGET_CPU_MIPS := FALSE}
+{$SETC TARGET_OS_UNIX  := (NOT UNDEFINED UNIX) AND (UNDEFINED DARWIN)}
+\end{verbatim}
+The \var{:=} assignment symbol may be replaced with the \var{=} symbol.
+
+Note that this command works only in MACPAS mode, but independent of the
+\var{-Sm} command-line option or \var{\{\$MACROS \}} directive.
 
 \subsection{\var{\protect\$STATIC} : Allow use of \var{Static} keyword.}
 
@@ -1066,7 +1094,7 @@ given for each of the directives. They must be specified {\em before} the
 \var{unit} or \var{program} clause in a source file, or they will have no
 effect.
 
-\subsection{\var{\protect\$APPNAME} : Specify application name.}
+\subsection{\var{\protect\$APPID} : Specify application ID.}
 Used on the PALM os only, it can be set to specify the application name,
 which can be viewed on the Palm only. This directive only makes sense in a
 program source file, not in a unit.
@@ -1075,8 +1103,8 @@ program source file, not in a unit.
 {$APPID MyApplication}
 \end{verbatim}
 
-\subsection{\var{\protect\$APPNAME} : Specify application name.}
-Used on the PALM os only, it can be set to specify the application name,
+\subsection{\var{\protect\$APPID} : Specify application name.}
+Used on the PALM os only, it can be set to specify the application name
 which can be viewed on the Palm only. This directive only makes sense in a
 program source file, not in a unit.
 
@@ -1099,7 +1127,8 @@ default.
 
 Note that on \macos such applications cannot take command-line
 options, nor return a result code. They will run in a special 
-terminal window.
+terminal window, implemented as a SIOW application, see the MPW 
+documentation for details.
 
 On \ostwo, these applications can run both full-screen and in a terminal
 window.
@@ -1315,7 +1344,7 @@ supplied.
 command-line option.
 \item[GPC] GNU pascal mode. This is the same as the \var{-Sp} command-line
 option.
-\item[MAC] MAC mode. In this mode, the compiler tries to be more compatible
+\item[MACPAS] MACPAS mode. In this mode, the compiler tries to be more compatible
 to commonly used pascal dialects on the \macos, such as Think Pascal, Metrowerks 
 Pascal, MPW Pascal. 
 \end{description}
@@ -1424,7 +1453,6 @@ will enable some threading features. This directive defines or undefines the
 
 Specifying \var{\{\$THREADING OFF\}} will disable threading. The
 \var{FPC\_THREADING} will be undefined.
-
 
 \subsection{\var{\protect\$UNITPATH} : Specify unit path.}
 
@@ -4001,27 +4029,19 @@ the name of the file.
 
 \item[userdata] The \var{userdata} field is never used by \fpc, and can
 be used for special purposes by software developpers.
-
 \end{description}
 
 \subsection{procedural types}
-<<<<<<< prog.tex
-
 A procedural type is stored as a generic pointer, which stores
 the address of the routine.
-=======
 
 A procedural type to a normal procedure or function is stored as a generic pointer, 
 which stores the address of the entry point of the routine. 
->>>>>>> 1.29
 
-<<<<<<< prog.tex
-=======
 In the case of a method procedural type, the storage consists of two pointers,
 the first being a pointer to the entry point of the method, and the second
 one being a pointer to \var{self} (the object instance).
 
->>>>>>> 1.29
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The alignment of data elements
 \section{Data alignment}
@@ -4711,6 +4731,329 @@ again in order for the change to become visible. This is important,
 especially for GUI programs which have e.g. a menu. In order for the
 change in resource strings to become visible, the new values must be
 reloaded by program code into the menus \dots
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Thread programming
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Thread programming}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+\section{Introduction}
+\fpc supports thread programming: There is a language construct 
+available for thread-local storage (\var{ThreadVar}), and cross-platform
+low-level thread routines are available.
+
+The compiler must be told to enable threading in a program. This is done 
+using the \var{\{\$THREADING\}} directive:
+\begin{verbatim}
+Program MyThreads;
+
+{$THREADING ON}
+
+Uses Xyz;
+\end{verbatim}
+The threading directive must appear in the program source code, before the
+uses clause: One of the effects of the directive is that the \file{systhrds} 
+unit is inserted in the \var{uses} clause of the program. This unit contains
+all threading routines.
+
+Although it is not forbidden to do so, it is not recommended to use system-specific 
+threading routines: The language support for multithreaded programs will not be 
+enabled, meaning that threadvars will not work, the heap manager will be confused 
+which may lead to severe program errors.
+
+The above code only enables language support for threading. The actual threading 
+is implemented using a thread manager. On OSes which have built-in support for 
+threading (such as \windows), the system thread manager will be used and threading 
+is functional. For other OSes (for example, \linux) the threading code resides in
+the C library (it uses pthreads) and must be enabled specifically: this means that
+a thread manager must be used which uses Libc's threading routines to implement 
+the necessary threading routines. The system thread manager will raise an exception
+if threads are started. 
+
+For \linux (and other Unixes), the C thread manager can be enabled by inserting the
+\var{cthreads} unit in the program's unit clause. Without this, threading programs 
+will give an error when started.
+
+At a later time, a system thread manager may be implemented which implements threads
+without Libc support.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Programming threads
+\section{Programming threads}
+To start a new thread, the \var{BeginThread} function should be used. It has one 
+mandatory argument: the function which will be executed in the new thread. The result
+of the function is the exit result of the thread. The thread function can be passed a 
+pointer, which can be used to acces initialization data: The programmer must make sure 
+that the data is accessible from the thread and does not go out of scope before the 
+thread has accessed it.
+\begin{verbatim}
+Type
+  TThreadFunc = function(parameter : pointer) : longint;
+function BeginThread(ThreadFunction: tthreadfunc) : DWord;
+
+function BeginThread(ThreadFunction: tthreadfunc;
+                     p: pointer): DWord;
+function BeginThread(ThreadFunction: tthreadfunc;
+                     p: pointer; 
+                     var ThreadId : THandle) : DWord;
+\end{verbatim}
+If present, the pointer \var{p} will be passed to the thread function 
+when it is started (otherwise, \var{Nil} is passed). If \var{ThreadID}
+is present, the ID of the thread will be stored in it.
+
+The newly started thread will run until the \var{ThreadFunction} exits, 
+or until it explicitly calls the \var{EndThread} function:
+\begin{verbatim}
+procedure EndThread(ExitCode : DWord);
+procedure EndThread;
+\end{verbatim}
+The exitcode can be examined by the code which started the thread.
+
+The following is a small example of how to program a thread:
+\begin{verbatim}
+{$mode objfpc}
+{$threading on}
+
+uses
+  sysutils {$ifdef unix},cthreads{$endif} ;
+
+const
+  threadcount = 100;
+  stringlen = 10000;
+
+var
+   finished : longint;
+
+threadvar
+   thri : longint;
+
+function f(p : pointer) : longint;
+
+var
+  s : ansistring;
+
+begin
+  Writeln('thread ',longint(p),' started');
+  thri:=0;
+  while (thri<stringlen) do
+    begin
+    s:=s+'1';
+    inc(thri);
+    end;
+  Writeln('thread ',longint(p),' finished');
+  InterLockedIncrement(finished);
+  f:=0;
+end;
+
+var
+   i : longint;
+
+begin
+   finished:=0;
+   for i:=1 to threadcount do
+     BeginThread(@f,pointer(i));
+   while finished<threadcount do ;
+   Writeln(finished);
+end.
+\end{verbatim}
+The \var{InterLockedIncrement} is a thread-safe version of the standard \var{Inc} function.
+
+To provide system-independent support for thread programming, some utility functions are 
+implemented to manipulate threads. To use these functions the thread ID must have been 
+retrieved when the thread was started, because most functions require the ID to identify 
+the thread on which they should act:
+\begin{verbatim}
+function SuspendThread(threadHandle: dword): dword;
+function ResumeThread(threadHandle: dword): dword;
+function KillThread(threadHandle: dword): dword;
+function WaitForThreadTerminate(threadHandle: dword;
+                                TimeoutMs : longint): dword;
+function ThreadSetPriority(threadHandle: dword; 
+                           Prio: longint): boolean;
+function ThreadGetPriority(threadHandle: dword): Integer;
+function GetCurrentThreadId: dword;
+procedure ThreadSwitch;
+\end{verbatim}
+The meaning of these functions should be clear:
+\begin{description}
+\item[SuspendThread] Suspends the execution of the thread.
+\item[ResumeThread] Resumes execution of a suspended thread.
+\item[KillThread] Kills the thread: the thread is removed from memory.
+\item[WaitForThreadTerminate] Waits for the thread to terminate. 
+The function returns when the thread has finished executing, or 
+when the timeout expired.
+\item[ThreadSetPriority] Sets the execution priority of the thread. 
+This call is not always allowed.
+\item[ThreadGetPriority] Returns the current execution priority of the thread.
+\item[GetCurrentThreadId] Returns the ID of the current thread.
+\item[ThreadSwitch] Allows other threads to execute at this point, 
+can cause a thread switch, but this is not guaranteed, it depends 
+on the OS and the number of processors.
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Critical sections
+\section{Critical sections}
+When programming threads, it is sometimes necessary to avoid concurrent 
+access to certain resources, or to avoid having a certain routine 
+executed by two threads. This can be done using a Critical Section.
+The FPC heap manager uses critical sections when multithreading is 
+enabled.
+
+The \var{TRTLCriticalSection} type is an Opaque type; it depends on the 
+OS on which the code is executed. It should be initialized before it 
+is first used, and should be disposed of when it is no longer necessary.
+
+To protect a piece of code, a call to \var{EnterCriticalSection} should 
+be made: When this call returns, it is guaranteed that the current thread 
+is the only thread executing the subsequent code. The call may have 
+suspended the current thread for an indefinite time to ensure this. 
+
+When the protected code is finished, \var{LeaveCriticalSection} must 
+be called: this will enable other threads to start executing the protected
+code. To minimize waiting time for the threads, it is important to keep 
+the protected block as small as possible.
+
+The definition of these calls is as follows:
+\begin{verbatim}
+procedure InitCriticalSection(var cs: TRTLCriticalSection);
+procedure DoneCriticalSection(var cs: TRTLCriticalSection);
+procedure EnterCriticalSection(var cs: TRTLCriticalSection);
+procedure LeaveCriticalSection(var cs: TRTLCriticalSection);
+\end{verbatim}
+The meaning of these calls is again almost obvious:
+\begin{description}
+\item[InitCriticalSection] Initializes a critical section. 
+This call must be made before either \var{EnterCrititicalSection} 
+or \var{LeaveCriticalSection} is used.
+\item[DoneCriticalSection] Frees the resources associated with a
+critical section. After this call neither \var{EnterCrititicalSection} 
+nor \var{LeaveCriticalSection} may be used.
+\item[EnterCriticalSection] When this call returns, the calling 
+thread is the only thread running the code between the \var{EnterCriticalSection} 
+call and the following \var{LeaveCriticalsection} call.
+\item[LeaveCriticalSection] Signals that the protected code can be executed 
+by other threads.
+\end{description}
+Note that the \var{LeaveCriticalsection} call {\em must} be executed. 
+Failing to do so will prevent all other threads from executing the code 
+in the critical section. It is therefore good practice to enclose the 
+critical section in a \var{Try..finally} block. Typically, the code
+will look as follows:
+
+\begin{verbatim}
+Var
+  MyCS : TRTLCriticalSection;
+
+Procedure CriticalProc;
+
+begin
+  EnterCriticalSection(MyCS);
+  Try
+    // Protected Code
+  Finally
+    LeaveCriticalSection(MyCS);
+  end;
+end;
+
+Procedure ThreadProcedure;
+
+begin
+  // Code executed in threads...
+ CriticalProc;
+  // More Code executed in threads...
+end;
+
+begin
+  InitCriticalSection(MyCS);
+  // Code to start threads.
+  DoneCriticalSection(MyCS);
+end.
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The Thread Manager
+\section{The Thread Manager}
+Just like the heap is implemented using a heap manager, and widestring
+management is left to a widestring manager, the threads have been
+implemented using a thread manager. This means that there is a record which
+has fields of procedural type for all possible functions used in the thread 
+routines. The thread routines use these fields to do the actual work. 
+
+The thread routines install a system thread manager specific for each
+system. On Windows, the normal Windows routines are used to implement the
+functions in the thread manager. On Linux and other unices, the system
+thread manager does nothing: it will generate an error when thread routines
+are used. The rationale is that the routines for thread management are
+located in the C library. Implementing the system thread manager would make
+the RTL dependent on the C library, which is not desirable. To avoid 
+dependency on the C library, the Thread Manager is implemented in a separate
+unit (\file{cthreads}). The initialization code of this unit sets the thread
+manager to a thread manager record which uses the C (pthreads) routines.
+
+The thread manager record can be retrieved and set just as the record for
+the heap manager. The record looks (currently) as follows:
+\begin{verbatim}
+TThreadManager = Record
+  InitManager            : Function : Boolean;
+  DoneManager            : Function : Boolean;
+  BeginThread            : TBeginThreadHandler;
+  EndThread              : TEndThreadHandler;
+  SuspendThread          : TThreadHandler;
+  ResumeThread           : TThreadHandler;
+  KillThread             : TThreadHandler;
+  ThreadSwitch           : TThreadSwitchHandler;
+  WaitForThreadTerminate : TWaitForThreadTerminateHandler;
+  ThreadSetPriority      : TThreadSetPriorityHandler;
+  ThreadGetPriority      : TThreadGetPriorityHandler;
+  GetCurrentThreadId     : TGetCurrentThreadIdHandler;
+  InitCriticalSection    : TCriticalSectionHandler;
+  DoneCriticalSection    : TCriticalSectionHandler;
+  EnterCriticalSection   : TCriticalSectionHandler;
+  LeaveCriticalSection   : TCriticalSectionHandler;
+  InitThreadVar          : TInitThreadVarHandler;
+  RelocateThreadVar      : TRelocateThreadVarHandler;
+  AllocateThreadVars     : TAllocateThreadVarsHandler;
+  ReleaseThreadVars      : TReleaseThreadVarsHandler;
+end;
+\end{verbatim}
+The meaning of most of these functions should be obvious from the descriptions in
+previous sections.
+
+The \var{InitManager} and \var{DoneManager} are called when the
+threadmanager is set (\var{InitManager}), or when it is unset
+(\var{DoneManager}). They can be used to initialize the thread manager or to
+clean up when it is done. If either of them returns \var{False}, the
+operation fails.
+
+There are some special entries in the record, linked to thread variable
+management:
+\begin{description}
+\item[InitThreadVar] is called when a thread variable must be initialized.
+It is of type
+\begin{verbatim}
+TInitThreadVarHandler = Procedure(var offset : dword;size : dword);
+\end{verbatim}
+The \var{offset} parameter indicates the offset in the thread variable
+block: All thread variables are located in a single block, one after the
+other. The size parameter indicates the size of the thread variable. This
+function will be called once for all thread variables in the program.
+\item[RelocateThreadVar] is called each time when a thread is started, and
+once for the main thread. It is of type:
+\begin{verbatim}
+TRelocateThreadVarHandler = Function(offset : dword) : pointer;
+\end{verbatim}
+It should return the new location for the thread-local variable.
+\item[AllocateThreadVars] is called when room must be allocated for all
+threadvars for a new thread. It's a simple procedure, without parameters. The total size of the threadvars is
+stored by the compiler in the \var{threadvarblocksize} global variable.
+The heap manager may {\em not} be used in this procedure: the heap manager
+itself uses threadvars, which have not yet been allocated.
+\item[ReleaseThreadVars] This procedure (without parameters) is called when
+a thread terminates, and all memory allocated must be released again.
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Optimizations done in the compiler
@@ -5802,14 +6145,19 @@ following directories exist:
 \item \file{amiga} for the \amiga.
 \item \file{beos}  for \beos. It has one subdirectory for each of the
 supported processors.
+\item \file{darwin} for the unix-compatibility layer on \macos.
 \item \file{freebsd} for the \freebsd platform.
 \item \file{go32v1} For \dos, using the GO32v1 extender. Not maintained any
 more.
 \item \file{go32v2} For \dos, using the GO32v2 extender.
 \item \file{linux} for \linux platforms. It has one subdirectory for each of the supported
 processors.
+\item \file{macos} for the \macos platform. 
+\item \file{morphos} for the MorphOS platform. 
 \item \file{netbsd} for \netbsd platforms. It has one subdirectory for each of the supported
 processors.
+\item \file{netware} for the Novell netware platform.
+\item \file{openbsd} for the OpenBSD platform.
 \item \file{palmos} for the \palmos Dragonball processor based platform.
 \item \file{os2} for \ostwo.
 \item \file{sunos} for the \solaris platform. It has one subdirectory for each of the supported
@@ -5825,6 +6173,9 @@ for a specific processor. The following directories exist:
 \begin{itemize}
 \item \file{i386} for the Intel 80x86 series of processors.
 \item \file{m68k} for the Motorola 680x0 series of processors.
+\item \file{powerpc} for the PowerPC processor.
+\item \file{sparc} for the SUN SPARC processor.
+\item \file{x86\_64} for Intel compatible 64-bit processors such as the AMD64.
 \end{itemize}
 \item An OS-independent and Processor independent directory: \file{inc}. This
 contains complete units, and include files containing interface parts of
@@ -5967,6 +6318,17 @@ directives.
 \item Support for the \var{UNDEFINED} construct in macros.
 \item Support for \var{TRUE} and \var{FALSE} as values in macro expressions.
 \item Macros may be assigned hexadecimal numbers, like \var{\$2345}.
+\item The \var {Implementation} keyword can be omitted if the implementation
+section is empty.
+\item The \var{cdecl} modifier keyword can be abbreviated to \var{C}.
+\item \var{UNIV} modifer for types in parameter lists is accepted, but is
+otherwise ignored.
+\item \var{...} (ellipsis) is allowed in procedure declarations, is
+functionally equal to the \var{varargs} keyword.
+\item Procedures declared in the interface section which do not have a counterpart
+in the implementation section are considered external (implicit externals).
+In other words, for external procedures, the \var{external} keyword may be
+omitted.
 \end{enumerate}
 (Note: Macros are called 'Compiler Variables' in \macos dialects.)
 
@@ -7140,8 +7502,6 @@ on stack checking when compiling for this target platform.
 % Appendix I : Operating system specific behavior
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-=======
->>>>>>> 1.27
 \chapter{Operating system specific behavior}
 \label{ch:AppH}
 
