@@ -514,10 +514,10 @@ begin
     If UseHeader then 
       begin
       Dec(Rows);
-      T:='<tr>';
+      T:='<th>';
       For I:=1 to Cols do
-        T:=T+'<th></th>';
-      T:=T+'</tr>'+lineEnding;  
+        T:=T+'<td></td>';
+      T:=T+'</th>'+lineEnding;  
       end;
     For I:=1 to rows do
       T:=T+R;
