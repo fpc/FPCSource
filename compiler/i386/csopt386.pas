@@ -203,10 +203,10 @@ var
   passedJump                  : boolean;
 
   function getPrevSequence(p: Tai; reg: tregister; currentPrev: Tai; var newPrev: Tai): tregister;
-  
+
   const
     current_reg: tregister = R_NO;
-  
+
     function stillValid(p: Tai): boolean;
     begin
       stillValid :=
@@ -224,7 +224,7 @@ var
       passedFlagsModifyingInstr :=
         instrWritesFlags(currentPrev);
     end;
-  
+
     function findChangedRegister(p: Tai): tregister;
     var
       regCounter: tregister;
@@ -245,7 +245,7 @@ var
       current_reg := R_NO;
       findChangedRegister := R_NO;
     end;
-  
+
   var
     hp, prevFound: Tai;
     tmpResult, regCounter: tregister;
@@ -259,20 +259,20 @@ var
             exit;
           end;
       end;
-  
+
     getPrevSequence := R_NO;
     passedJump := passedJump or
       ((currentPrev.typ = ait_instruction) and
        (Taicpu(currentPrev).is_jmp));
     passedFlagsModifyingInstr := instrWritesFlags(currentPrev);
-  
+
     if (passedJump and not(reg in (usableregs+[R_EDI]))) or
        not getLastInstruction(currentPrev,hp) then
       exit;
-  
+
     prevFound := currentPrev;
     tmpResult := R_NO;
-  
+
     while (tmpResult = R_NO) and
           stillValid(hp) and
           (pTaiprop(prevFound.optinfo)^.canBeRemoved or
@@ -284,7 +284,7 @@ var
           for regCounter := R_EAX to R_EDI do
             if regReadByInstruction(regCounter,prevFound) then
               exclude(regsNotRead,regCounter);
-  
+
         { in case getPreviousInstruction fails and sets hp to nil in the }
         { next iteration                                                 }
         prevFound := hp;
@@ -301,7 +301,7 @@ var
     if tmpResult <> R_NO then
       newPrev := prevFound;
   end;
-  
+
 
   function getNextRegToTest(var prev: Tai; currentReg: tregister): tregister;
   begin
@@ -1317,7 +1317,7 @@ var
   p: pTaiprop;
   regcounter: tregister;
 begin
-  if not getlastinstruction(t,hp) then 
+  if not getlastinstruction(t,hp) then
     begin
       memtoreg := R_NO;
       exit;
@@ -1343,7 +1343,7 @@ begin
                     memtoreg := reg32toreg8(regcounter);
                   S_W,S_WL:
                     memtoreg := reg32toreg16(regcounter);
-                  S_L: 
+                  S_L:
                     memtoreg := regcounter;
                 end;
                 exit;
@@ -1710,9 +1710,8 @@ Begin
                               ((taicpu(p).opcode > A_IN) and
                                (taicpu(p).opcode < A_OUT)) or
                               (taicpu(p).opcode = A_PUSH) or
-                              (taicpu(p).opcode = A_SUB) or
-                              (taicpu(p).opcode = A_TEST) or
-                              (taicpu(p).opcode = A_XOR))then
+                              ((taicpu(p).opcode >= A_RCL) and
+                               (taicpu(p).opcode <= A_XOR))) then
                             begin
                               regcounter :=
                                 memtoreg(taicpu(p),
@@ -1725,7 +1724,34 @@ Begin
                                     p);
                                 end;
                             end;
-
+                        Ch_MOp1:
+                          if Not(CS_LittleSize in aktglobalswitches) And
+                             (taicpu(p).oper[0].typ = top_ref) then
+                            begin
+                              regcounter :=
+                                memtoreg(taicpu(p),
+                                Taicpu(p).oper[0].ref^);
+                              if (regcounter <> R_NO) (* and
+                                 (not getNextInstruction(p,hp1) or
+                                  (RegLoadedWithNewValue(reg32(regcounter),false,hp1) or
+                                   FindRegDealloc(reg32(regcounter),hp1))) *) then
+                                begin
+                                  hp1 := Tai_Marker.Create(NoPropInfoEnd);
+                                  insertllitem(asml,p,p.next,hp1);
+                                  hp1 := taicpu.op_reg_ref(A_MOV,
+                                    regsize(regcounter),regcounter,
+                                    newreference(taicpu(p).oper[0].ref^));
+                                  new(pTaiprop(hp1.optinfo));
+                                  pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
+                                  insertllitem(asml,p,p.next,hp1);
+                                  hp1 := Tai_Marker.Create(NoPropInfoStart);
+                                  insertllitem(asml,p,p.next,hp1);
+                                  Taicpu(p).loadreg(0,regcounter);
+                                  allocregbetween(asml,reg32(regcounter),
+                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
+                                    tai(p.next.next));
+                                end;
+                            end;
                         Ch_ROp2:
                           if ((taicpu(p).opcode = A_CMP) or
                               (taicpu(p).opcode = A_TEST)) and
@@ -1740,6 +1766,40 @@ Begin
                                   allocregbetween(asml,reg32(regcounter),
                                     pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
                                     p);
+                                end;
+                            end;
+                        Ch_MOp2:
+                          if not(cs_littlesize in aktglobalswitches) and
+                             (taicpu(p).oper[1].typ = top_ref) and
+                             ((taicpu(p).opcode < A_BT) or
+                              ((taicpu(p).opcode > A_IN) and
+                               (taicpu(p).opcode < A_OUT)) or
+                              (taicpu(p).opcode = A_PUSH) or
+                              ((taicpu(p).opcode >= A_RCL) and
+                               (taicpu(p).opcode <= A_XOR))) then
+                            begin
+                              regcounter :=
+                                memtoreg(taicpu(p),
+                                Taicpu(p).oper[1].ref^);
+                              if (regcounter <> R_NO) (* and
+                                 (not getNextInstruction(p,hp1) or
+                                  (RegLoadedWithNewValue(reg32(regcounter),false,hp1) or
+                                   FindRegDealloc(reg32(regcounter),hp1))) *) then
+                                begin
+                                  hp1 := Tai_Marker.Create(NoPropInfoEnd);
+                                  insertllitem(asml,p,p.next,hp1);
+                                  hp1 := taicpu.op_reg_ref(A_MOV,
+                                    regsize(regcounter),regcounter,
+                                    newreference(taicpu(p).oper[1].ref^));
+                                  new(pTaiprop(hp1.optinfo));
+                                  pTaiProp(hp1.optinfo)^ := pTaiProp(p.optinfo)^;
+                                  insertllitem(asml,p,p.next,hp1);
+                                  hp1 := Tai_Marker.Create(NoPropInfoStart);
+                                  insertllitem(asml,p,p.next,hp1);
+                                  Taicpu(p).loadreg(1,regcounter);
+                                  allocregbetween(asml,reg32(regcounter),
+                                    pTaiprop(p.optinfo)^.regs[reg32(regcounter)].startmod,
+                                    tai(p.next.next));
                                 end;
                             end;
                       end;
@@ -1844,7 +1904,10 @@ End.
 
 {
   $Log$
-  Revision 1.19  2001-10-12 13:58:05  jonas
+  Revision 1.20  2001-10-14 11:50:21  jonas
+    + also replace mem references in modify operands with regs
+
+  Revision 1.19  2001/10/12 13:58:05  jonas
     + memory references are now replaced by register reads in "regular"
       instructions (e.g. "addl ref1,%eax" will be replaced by "addl %ebx,%eax"
       if %ebx contains ref1). Previously only complete load sequences were
