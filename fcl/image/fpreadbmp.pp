@@ -112,9 +112,10 @@ procedure TFPReaderBMP.InternalRead(Stream:TStream; Img:TFPCustomImage);
                   Red:=R shl 8;
                   Green:=G shl 8;
                   Blue:=B shl 8;
+                  alpha:=AlphaOpaque;
                   img.colors[Coulumn,Row]:=aColor;
                 end;
-            Stream.Write(aLine{$IFNDEF UseDynArray}^{$ENDIF UseDynArray},ReadSize);
+            Stream.Read(aLine{$IFNDEF UseDynArray}^{$ENDIF UseDynArray},ReadSize);
           end;
       end;
 {$IFNDEF UseDynArray}
@@ -143,7 +144,11 @@ initialization
 end.
 {
 $Log$
-Revision 1.2  2003-09-09 11:26:59  mazen
+Revision 1.3  2003-09-15 11:39:01  mazen
+* fixed InternalRead method to load BMP files.
+  But still too long to load images.
+
+Revision 1.2  2003/09/09 11:26:59  mazen
 + setting image attributes when loading images
 * fixing copyright section in the file header
 
