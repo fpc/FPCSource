@@ -650,13 +650,13 @@ Begin
               Case InstrProp.Ch[Cnt] Of
                 Ch_WEAX..Ch_MEDI:
                   TmpResult := Reg = TCh2Reg(InstrProp.Ch[Cnt]);
-                Ch_RWOp1,Ch_WOp1{$ifdef arithopt},C_Mop1{$endif arithopt}:
+                Ch_RWOp1,Ch_WOp1{$ifdef arithopt},Ch_Mop1{$endif arithopt}:
                   TmpResult := (paicpu(p1)^.oper[0].typ = top_reg) and
                                (Reg32(paicpu(p1)^.oper[0].reg) = reg);
-                Ch_RWOp2,Ch_WOp2{$ifdef arithopt},C_Mop2{$endif arithopt}:
+                Ch_RWOp2,Ch_WOp2{$ifdef arithopt},Ch_Mop2{$endif arithopt}:
                   TmpResult := (paicpu(p1)^.oper[1].typ = top_reg) and
                                (Reg32(paicpu(p1)^.oper[1].reg) = reg);
-                Ch_RWOp3,Ch_WOp3{$ifdef arithopt},C_Mop3{$endif arithopt}:
+                Ch_RWOp3,Ch_WOp3{$ifdef arithopt},Ch_Mop3{$endif arithopt}:
                   TmpResult := (paicpu(p1)^.oper[2].typ = top_reg) and
                                (Reg32(paicpu(p1)^.oper[2].reg) = reg);
                 Ch_FPU: TmpResult := Reg in [R_ST..R_ST7,R_MM0..R_MM7];
@@ -1931,7 +1931,10 @@ End.
 
 {
  $Log$
- Revision 1.70  1999-11-14 11:25:38  jonas
+ Revision 1.71  1999-11-20 12:50:32  jonas
+   * fixed small typo (C_M* -> Ch_M*) so -darithopt compiles again
+
+ Revision 1.70  1999/11/14 11:25:38  jonas
    * fixed stupid typo in previous commit :(
 
  Revision 1.69  1999/11/13 19:01:51  jonas
