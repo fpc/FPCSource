@@ -1179,6 +1179,8 @@ implementation
               s8bit,s16bit,s32bit:
                 is_intregable:=true;
             end;
+          objectdef:
+            is_intregable:=is_class(self) or is_interface(self);
           setdef:
             is_intregable:=(tsetdef(self).settype=smallset);
         end;
@@ -5738,7 +5740,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.146  2003-05-26 21:17:18  peter
+  Revision 1.147  2003-06-02 22:55:28  florian
+    * classes and interfaces can be stored in integer registers
+
+  Revision 1.146  2003/05/26 21:17:18  peter
     * procinlinenode removed
     * aktexit2label removed, fast exit removed
     + tcallnode.inlined_pass_2 added
