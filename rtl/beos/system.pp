@@ -17,7 +17,6 @@
  **********************************************************************}
 { no stack check in system }
 
-{$DEFINE SHORT_LINEBREAK}
 {$S-}
 unit System;
 
@@ -550,7 +549,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.13  2004-06-17 16:16:13  peter
+  Revision 1.14  2004-06-21 18:50:51  olle
+    + cleanup
+
+  Revision 1.13  2004/06/17 16:16:13  peter
     * New heapmanager that releases memory back to the OS, donated
       by Micha Nelissen
 
