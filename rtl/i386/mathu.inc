@@ -1,0 +1,71 @@
+{
+    $Id$
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2003 by Florian Klaempfl
+    member of the Free Pascal development team
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+function GetRoundMode: TFPURoundingMode;
+begin
+  Result := TFPURoundingMode((Get8087CW shr 10) and 3);
+end;
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+var
+  CtlWord: Word;
+begin
+  CtlWord := Get8087CW;
+  Set8087CW((CtlWord and $F3FF) or (Ord(RoundMode) shl 10));
+  Result := TFPURoundingMode((CtlWord shr 10) and 3);
+end;
+
+function GetPrecisionMode: TFPUPrecisionMode;
+begin
+  Result := TFPUPrecisionMode((Get8087CW shr 8) and 3);
+end;
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+var
+  CtlWord: Word;
+begin
+  CtlWord := Get8087CW;
+  Set8087CW((CtlWord and $FCFF) or (Ord(Precision) shl 8));
+  Result := TFPUPrecisionMode((CtlWord shr 8) and 3);
+end;
+
+function GetExceptionMask: TFPUExceptionMask;
+begin
+  Result := TFPUExceptionMask(Get8087CW and $3F);
+end;
+
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+var
+  CtlWord: Word;
+begin
+  CtlWord := Get8087CW;
+  Set8087CW( (CtlWord and $FFC0) or Byte(Longint(Mask)) );
+  Result := TFPUExceptionMask(CtlWord and $3F);
+end;
+
+procedure ClearExceptions(RaisePending: Boolean);assembler;
+asm
+  cmpb $0,RaisePending
+  je .Lclear
+  fwait
+.Lclear:
+  fnclex
+end;
+
+{
+  $Log$
+  Revision 1.1  2003-04-24 09:16:31  florian
+    * initial implementation with code from math.pp
+}
