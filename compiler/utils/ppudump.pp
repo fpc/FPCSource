@@ -913,6 +913,7 @@ var
   proctypeoption  : tproctypeoption;
   i     : longint;
   first : boolean;
+  tempbuf : array[0..255] of byte;
 begin
   write(space,'      Return type : ');
   readtype;
@@ -951,6 +952,11 @@ begin
        end;
      writeln;
    end;
+  if (po_explicitparaloc in procoptions) then
+    begin
+      i:=ppufile.getbyte;
+      ppufile.getdata(tempbuf,i);
+    end;
 end;
 
 
@@ -1481,11 +1487,12 @@ begin
              readposinfo;
              write  (space,'       SymOptions : ');
              readsymoptions;
-{$ifdef powerpc}
-             { library symbol for AmigaOS/MorphOS }
-             write  (space,'   Library symbol : ');
-             readderef;
-{$endif powerpc}
+             if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
+	       begin
+                 { library symbol for AmigaOS/MorphOS }
+                 write  (space,'   Library symbol : ');
+                 readderef;
+	       end;	 
              if (calloption=pocall_inline) then
               begin
                 write  (space,'       FuncretSym : ');
@@ -2144,7 +2151,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2005-02-14 17:13:10  peter
+  Revision 1.67  2005-03-07 18:38:46  peter
+    * explicit paraloc for funcret
+    * libsym for powerpc ppu's
+
+  Revision 1.66  2005/02/14 17:13:10  peter
     * truncate log
 
   Revision 1.65  2005/01/19 22:19:41  peter
