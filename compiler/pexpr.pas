@@ -470,13 +470,16 @@ implementation
                begin
                  { With tp procvars we allways need to load a
                    procvar when it is passed, but not when the
-                   callnode is inserted due a property }
+                   callnode is inserted due a property or has
+                   arguments }
                  if (m_tp_procvar in aktmodeswitches) and
                     (p1.nodetype=calln) and
+                    not(assigned(tcallnode(p1).left)) and
                     not(nf_isproperty in tcallnode(p1).flags) then
                    load_procvar_from_calln(p1);
 
                  case p1.resulttype.def.deftype of
+                   procdef, { procvar }
                    pointerdef,
                    procvardef,
                    classrefdef : ;
@@ -2472,7 +2475,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.136  2003-10-28 15:36:01  peter
+  Revision 1.137  2003-11-04 16:42:13  peter
+    * assigned(proc()) does not change the calln to loadn
+
+  Revision 1.136  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.135  2003/10/09 15:20:56  peter
