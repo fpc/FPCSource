@@ -407,6 +407,7 @@ var tty:string;
 label err;
 
 begin
+  tty:='';
   options.consolename:='';
 
 {   gpm_report(GPM_PR_DEBUG,"VC: %d",flag);}
@@ -953,7 +954,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2004-07-09 23:10:14  peter
+  Revision 1.11  2004-11-02 09:37:35  peter
+    * fixed uninitialzied local
+
+  Revision 1.10  2004/07/09 23:10:14  peter
     * fixed range check errors
 
   Revision 1.9  2004/07/09 22:40:02  daniel
