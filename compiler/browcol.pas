@@ -469,6 +469,14 @@ procedure CreateBrowserCol;
             end;
           typesym :
             begin
+            with ptypesym(sym)^ do
+              if assigned(definition) then
+                case definition^.deftype of
+                  objectdef :
+                    ProcessSymTable(Symbol^.Items,pobjectdef(definition)^.publicsyms);
+                  recorddef :
+                    ProcessSymTable(Symbol^.Items,precdef(definition)^.symtable);
+                end;
             end;
         end;
         Ref:=Sym^.defref;
@@ -561,7 +569,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-02-03 09:44:32  pierre
+  Revision 1.6  1999-02-04 09:31:59  pierre
+   + added objects and records symbol tables
+
+  Revision 1.5  1999/02/03 09:44:32  pierre
     * symbol nubering begins with 1 in number_symbols
     * program tmodule has globalsymtable for its staticsymtable
       (to get it displayed in IDE globals list)
