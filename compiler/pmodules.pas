@@ -494,6 +494,7 @@ unit pmodules;
          Message3(unit_u_load_unit,current_module^.modulename^,ImplIntf[current_module^.in_implementation],s);
          { unit not found }
          st:=nil;
+         dummy:=nil;
          { search all loaded units }
          hp:=pmodule(loaded_units.first);
          while assigned(hp) do
@@ -531,10 +532,14 @@ unit pmodules;
                        end;
                     end;
                    break;
-                end;
+                end
+              else if copy(hp^.modulename^,1,8)=s then
+                dummy:=hp;
               { the next unit }
               hp:=pmodule(hp^.next);
            end;
+         if assigned(dummy) and not assigned(hp) then
+           Message2(unit_w_unit_name_error,s,dummy^.modulename^);
        { the unit is not in the symtable stack }
          if (not assigned(st)) then
           begin
@@ -1459,7 +1464,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.153  1999-09-13 22:56:17  peter
+  Revision 1.154  1999-09-16 14:18:12  pierre
+   + warning if truncate unit name found
+
+  Revision 1.153  1999/09/13 22:56:17  peter
     * fixed crashes under plain dos
 
   Revision 1.152  1999/09/01 22:18:42  peter
