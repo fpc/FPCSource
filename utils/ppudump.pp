@@ -149,6 +149,7 @@ begin
    end;
 end;
 
+
 Procedure ReadContainer(const prefix:string);
 {
   Read a serie of strings and write to the screen starting every line
@@ -216,10 +217,12 @@ begin
   until false;
 end;
 
+
 procedure readdefref;
 begin
   readderef('Definition');
 end;
+
 
 procedure readsymref;
 begin
@@ -291,8 +294,11 @@ begin
   if params>0 then
    begin
      repeat
-       write(space,'       - ',tvarspez[ppufile^.getbyte],' ');
+       writeln(space,'       - ',tvarspez[ppufile^.getbyte]);
+       write  (space,'         def : ');
        readdefref;
+       write  (space,'         defsym : ');
+       readsymref;
        dec(params);
      until params=0;
    end;
@@ -461,12 +467,14 @@ begin
              writeln(space,'        Type: ',getbyte);
              if read_member then
                writeln(space,'     Address: ',getlongint);
-             write  (space,'  Definition: ');
+             write  (space,'    Definition: ');
              readdefref;
+             write  (space,' DefinitionSym: ');
+             readsymref;
              i:=getbyte;
-             writeln(space,'     Options: ',i);
+             writeln(space,'       Options: ',i);
              if (i and vo_is_C_var)<>0 then
-              writeln(space,' Mangledname: ',getstring);
+              writeln(space,'   Mangledname: ',getstring);
            end;
 
          ibenumsym :
@@ -486,21 +494,26 @@ begin
          ibtypedconstsym :
            begin
              readcommonsym('Typed constant ');
-             write  (space,'  Definition: ');
+             write  (space,'    Definition: ');
              readdefref;
-             writeln(space,'       Label: ',getstring);
+             write  (space,' DefinitionSym: ');
+             readsymref;
+             writeln(space,'         Label: ',getstring);
+             writeln(space,'   ReallyConst: ',(getbyte<>0));
            end;
 
          ibabsolutesym :
            begin
              readcommonsym('Absolute variable symbol ');
-             writeln(space,'        Type: ',getbyte);
+             writeln(space,'          Type: ',getbyte);
              if read_member then
-               writeln(space,'     Address: ',getlongint);
-             write  (space,'  Definition: ');
+               writeln(space,'       Address: ',getlongint);
+             write  (space,'    Definition: ');
              readdefref;
+             write  (space,'   DefinitionSym: ');
+             readsymref;
              writeln(space,'     Options: ',getbyte);
-             Write (space,'  Relocated to ');
+             Write (space,'    Relocated to ');
              b:=getbyte;
              case absolutetyp(b) of
                tovar :
@@ -510,7 +523,7 @@ begin
                toaddr :
                  begin
                    Write('Address : ',getlongint);
-                   write(' (Far: ',getbyte<>0,')');
+                   WriteLn(' (Far: ',getbyte<>0,')');
                  end;
                else
                  Writeln ('!! Invalid unit format : Invalid absolute type encountered: ',b);
@@ -527,20 +540,15 @@ begin
              writeln(space,'     Default: ',getlongint);
              write(space,'   Read symbol: ');
              readsymref;
-             write(space,'  Write symbol: ');
+             write  (space,'  Write symbol: ');
              readsymref;
-             write(space,' Stored symbol: ');
+             write  (space,' Stored symbol: ');
              readsymref;
-             {
-             writeln(space,'   Read Name: ',getstring);
-             writeln(space,'  Write Name: ',getstring);
-             writeln(space,' Stored Name: ',getstring);
-             }
-             write(space,'   Read Definition: ');
+             write  (space,'   Read Definition: ');
              readdefref;
-             write(space,'  Write Definition: ');
+             write  (space,'  Write Definition: ');
              readdefref;
-             write(space,' Stored Definition: ');
+             write  (space,' Stored Definition: ');
              readdefref;
            end;
 
@@ -583,7 +591,8 @@ type
   tbasetype = (uauto,uvoid,uchar,
                u8bit,u16bit,u32bit,
                s8bit,s16bit,s32bit,
-               bool8bit,bool16bit,bool32bit);
+               bool8bit,bool16bit,bool32bit,
+               u64bit,s64bit);
 var
   b : byte;
   oldread_member : boolean;
@@ -638,6 +647,8 @@ begin
                bool8bit  : writeln('bool8bit');
                bool16bit : writeln('bool16bit');
                bool32bit : writeln('bool32bit');
+               u64bit    : writeln('u64bit');
+               s64bit    : writeln('s64bit');
                else        writeln('!! Warning: Invalid base type ',b);
              end;
              writeln(space,'            Range : ',getlongint,' to ',getlongint);
@@ -1233,7 +1244,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  1999-07-05 12:32:40  florian
+  Revision 1.6  1999-07-27 23:45:29  peter
+    * updated for typesym writing
+
+  Revision 1.5  1999/07/05 12:32:40  florian
     * new property ppu writing implemented
 
   Revision 1.4  1999/07/03 00:25:44  peter
