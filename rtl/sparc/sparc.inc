@@ -81,10 +81,212 @@ function Sptr:Pointer;assembler;nostackframe;
     mov %sp,%o0
   end;
 
+{ $ifdef dummy}
+{$define FPC_SYSTEM_HAS_MOVE}
+procedure Move(const source;var dest;count:longint);[public, alias: 'FPC_MOVE'];assembler;
+{
+  Registers:
+    %l0 temp. to do copying
+    %l1 inc/decrement
+    %l2/l3/l4/l5 qword move
+}
+  asm
+    // count < 0 ?
+    cmp %g0,%i2
+    bge .Lmoveexit
+    nop
+
+    // possible overlap?
+    cmp %i0,%i1
+    bcc .Lnopossibleoverlap
+    nop
+    // source < dest ....
+    add %i0,%i2,%l0
+    // overlap?
+    cmp %l0,%i1
+    // source+count < dest ?
+    bcs .Lnopossibleoverlap
+    nop
+
+  .Lcopybackward:
+    // check alignment of source and dest
+    or %i0,%i1,%l0
+
+    // move src and dest to the end of the blocks
+    // assuming 16 byte block size
+    sub %i2,1,%l1
+    add %i0,%l1,%i0
+    add %i1,%l1,%i1
+{
+    // everything 16 byte aligned ?
+    andcc %l0,15,%l0
+    be .Lmovetwordwise
+    // load direction in delay slot
+    mov -16,%l1
+
+    // adjust according to block size
+    add %i0,8,%i0
+    add %i1,8,%i1
+    andcc %l0,7,%l0
+    be .Lmoveqwordwise
+    mov -8,%l1
+
+// adjust according to block size
+    add %i0,4,%i0
+    add %i1,4,%i1
+    andcc %l0,3,%l0
+    be .Lmovedwordwise
+    mov -4,%l1
+
+// adjust according to block size
+    add %i0,2,%i0
+    add %i1,2,%i1
+    andcc %l0,1,%l0
+    be .Lmovewordwise
+    mov -2,%l1
+
+// adjust according to block size
+    add %i0,1,%i0
+    add %i1,1,%i1
+}
+    ba .Lmovebytewise
+    mov -1,%l1
+
+  .Lnopossibleoverlap:
+    // check alignment of source and dest
+    or %i0,%i1,%l0
+
+    // everything 16 byte aligned ?
+    andcc %l0,15,%l0
+    be .Lmovetwordwise
+    // load direction in delay slot
+    mov 16,%l1
+    andcc %l0,7,%l0
+    be .Lmoveqwordwise
+    mov 8,%l1
+    andcc %l0,3,%l0
+    be .Lmovedwordwise
+    mov 4,%l1
+    andcc %l0,1,%l0
+    be .Lmovewordwise
+    mov 2,%l1
+    ba .Lmovebytewise
+    mov 1,%l1
+
+  .Lmovetwordwise:
+    srl %i2,4,%l6
+    cmp %g0,%l6
+    sll %l6,4,%l7
+    be .Lmoveqwordwise_shift
+    nop
+
+  .Lmovetwordwise_loop:
+    ld [%i0],%l2
+    ld [%i0+4],%l3
+    subcc %l6,1,%l6
+    ld [%i0+8],%l4
+    ld [%i0+12],%l5
+    add %i0,%l1,%i0
+    st  %l2,[%i1]
+    st  %l3,[%i1+4]
+    st  %l4,[%i1+8]
+    st  %l5,[%i1+12]
+    add %i1,%l1,%i1
+    bne .Lmovetwordwise_loop
+    nop
+    subcc %i2,%l7,%i2
+    be .Lmoveexit
+    nop
+
+  .Lmoveqwordwise_shift:
+    sra %l1,1,%l1
+  .Lmoveqwordwise:
+    srl %i2,3,%l6
+    cmp %g0,%l6
+    sll %l6,3,%l7
+    be .Lmovedwordwise_shift
+    nop
+
+  .Lmoveqwordwise_loop:
+    ld [%i0],%l2
+    ld [%i0+4],%l3
+    subcc %l6,1,%l6
+    add %i0,%l1,%i0
+    st  %l2,[%i1]
+    st  %l3,[%i1+4]
+    add %i1,%l1,%i1
+    bne .Lmoveqwordwise_loop
+    nop
+    subcc %i2,%l7,%i2
+    be .Lmoveexit
+    nop
+
+  .Lmovedwordwise_shift:
+    sra %l1,1,%l1
+  .Lmovedwordwise:
+    srl %i2,2,%l6
+    cmp %g0,%l6
+    sll %l6,2,%l7
+    be .Lmovewordwise_shift
+    nop
+
+  .Lmovedwordwise_loop:
+    ld [%i0],%l0
+    subcc %l6,1,%l6
+    add %i0,%l1,%i0
+    st %l0,[%i1]
+    add %i1,%l1,%i1
+    bne .Lmovedwordwise_loop
+    nop
+    subcc %i2,%l7,%i2
+    be .Lmoveexit
+    nop
+
+  .Lmovewordwise_shift:
+    sra %l1,1,%l1
+  .Lmovewordwise:
+    srl %i2,1,%l6
+    cmp %g0,%l6
+    sll %l6,1,%l7
+    be .Lmovebytewise_shift
+    nop
+
+  .Lmovewordwise_loop:
+    lduh [%i0],%l0
+    subcc %l6,1,%l6
+    add %i0,%l1,%i0
+    sth %l0,[%i1]
+    add %i1,%l1,%i1
+    bne .Lmovewordwise_loop
+    nop
+    subcc %i2,%l7,%i2
+    be .Lmoveexit
+    nop
+
+  .Lmovebytewise_shift:
+    sra %l1,1,%l1
+  .Lmovebytewise:
+    cmp %g0,%i2
+    be .Lmoveexit
+    nop
+
+    ldub [%i0],%l0
+    subcc %i2,1,%i2
+    add %i0,%l1,%i0
+    stb %l0,[%i1]
+    add %i1,%l1,%i1
+    bne .Lmovebytewise
+    nop
+  .Lmoveexit:
+  end;
+{ $endif dummy}
 
 {
   $Log$
-  Revision 1.10  2004-09-23 11:30:41  florian
+  Revision 1.11  2004-10-02 20:46:20  florian
+    * made assembler implementation of move
+
+  Revision 1.10  2004/09/23 11:30:41  florian
     * fixed indention
 
   Revision 1.9  2004/09/12 12:04:23  peter
