@@ -33,7 +33,6 @@ Type
   protected
     Procedure ConnectToServer; virtual;
     Procedure SelectDatabase; virtual;
-    function MySQLDataSize(AType: enum_field_types; ASize: Integer): Integer;
     function MySQLDataType(AType: enum_field_types; ASize: Integer; var NewType: TFieldType; var NewSize: Integer): Boolean;
     function MySQLWriteData(AType: enum_field_types; ASize: Integer; Source, Dest: PChar): Integer;
     // SQLConnection methods
@@ -49,10 +48,8 @@ Type
     procedure FreeFldBuffers(cursor : TSQLHandle); override;
     procedure Execute(cursor: TSQLHandle;atransaction:tSQLtransaction); override;
     procedure AddFieldDefs(cursor: TSQLHandle; FieldDefs : TfieldDefs); override;
-    function GetFieldSizes(cursor : TSQLHandle) : integer; override;
     function Fetch(cursor : TSQLHandle) : boolean; override;
-    procedure LoadFieldsFromBuffer(cursor : TSQLHandle;buffer: pchar); override;
-    function GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean; override;
+    function LoadField(cursor : TSQLHandle;FieldDef : TfieldDef;buffer : pointer) : boolean; override;
     function GetTransactionHandle(trans : TSQLHandle): pointer; override;
     function Commit(trans : TSQLHandle) : boolean; override;
     function RollBack(trans : TSQLHandle) : boolean; override;
@@ -233,31 +230,6 @@ begin
     end;
 end;
 
-function TMySQLConnection.MySQLDataSize(AType: enum_field_types; ASize: Integer): Integer;
-
-begin
-  Result := 0;
-  case AType of
-    FIELD_TYPE_TINY, FIELD_TYPE_SHORT, FIELD_TYPE_LONG, FIELD_TYPE_LONGLONG,
-    FIELD_TYPE_INT24:
-      begin
-      Result := SizeOf(Integer);
-      end;
-    FIELD_TYPE_DECIMAL, FIELD_TYPE_FLOAT, FIELD_TYPE_DOUBLE:
-      begin
-      Result := SizeOf(Double);
-      end;
-    FIELD_TYPE_TIMESTAMP, FIELD_TYPE_DATE, FIELD_TYPE_TIME, FIELD_TYPE_DATETIME:
-      begin
-      Result := SizeOf(TDateTime);
-      end;
-    FIELD_TYPE_VAR_STRING, FIELD_TYPE_STRING, FIELD_TYPE_ENUM, FIELD_TYPE_SET:
-      begin
-      Result := ASize;
-      end;
-  end;
-end;
-
 function TMySQLConnection.MySQLDataType(AType: enum_field_types; ASize: Integer;
    var NewType: TFieldType; var NewSize: Integer): Boolean;
 begin
@@ -323,31 +295,12 @@ begin
   For I:= 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(C.FRES, I);
-  //  Writeln('MySQL: creating fielddef ',I+1);
+//    Writeln('MySQL: creating fielddef ',I+1);
+
     if MySQLDataType(field^.ftype, field^.length, DFT, DFS) then
       TFieldDef.Create(FieldDefs, field^.name, DFT, DFS, False, I+1);
     end;
 //  Writeln('MySQL: Finished adding fielddefs');
-end;
-
-
-function TMySQLConnection.GetFieldSizes(cursor: TSQLHandle): integer;
-
-var
-  I, FC: Integer;
-  field: PMYSQL_FIELD;
-  C : TMySQLCursor;
-begin
-//  Writeln('GetFieldSizes');
-  C:=Cursor as TMySQLCursor;
-  Result:=0;
-  FC:=mysql_num_fields(C.FRES);
-  for I:=0 to FC-1 do
-    begin
-    field := mysql_fetch_field_direct(C.FRES, I);
-    Result:=Result+MySQLDataSize(field^.ftype, field^.length);
-    end;
-//  Writeln('GetFieldSizes result :',Result);
 end;
 
 function TMySQLConnection.Fetch(cursor: TSQLHandle): boolean;
@@ -361,9 +314,9 @@ begin
   Result:=(C.Row<>Nil);
 end;
 
-procedure TMySQLConnection.LoadFieldsFromBuffer(cursor: TSQLHandle;
-  buffer: pchar);
-  
+function TMySQLConnection.LoadField(cursor : TSQLHandle;
+  FieldDef : TfieldDef;buffer : pointer) : boolean;
+
 var
   I, FC, CT: Integer;
   field: PMYSQL_FIELD;
@@ -380,13 +333,16 @@ begin
      end;
   Row:=C.Row;
   FC := mysql_num_fields(C.FRES);
+
   for I := 0 to FC-1 do
     begin
     field := mysql_fetch_field_direct(C.FRES, I);
-    CT := MySQLWriteData(field^.ftype, field^.length, Row^, Buffer);
-    Inc(Buffer, CT);
+    if field^.name=FieldDef.name then break;
     Inc(Row);
     end;
+
+  CT := MySQLWriteData(field^.ftype, field^.length, Row^, Buffer);
+  result := true;
 end;
 
 function InternalStrToFloat(S: string): Extended;
@@ -564,38 +520,6 @@ begin
   end;
 end;
 
-function TMySQLConnection.GetFieldData(Cursor : TSQLHandle;Field: TField; FieldDefs : TfieldDefs; Buffer: Pointer;currbuff : pchar): Boolean;
-  
-var
-  I, FC: Integer;
-  fld: PMYSQL_FIELD;
-  C : TMySQLCursor;
-  
-begin
-  Result := False;
-  C:=Cursor as TMySQLCursor;
-  FC:= mysql_num_fields(C.FRES);
-  I:=0;
-  While (I<FC) and not Result do
-    begin
-    fld:=mysql_fetch_field_direct(C.FRES,I);
-    if CompareText(Field.FieldName,fld^.name)=0 then
-      begin
-      Move(CurrBuff^, PChar(Buffer)^, MySQLDataSize(fld^.ftype, fld^.length));
-      if Field.DataType in [ftString{, ftWideString}] then
-        begin
-        Result:=PChar(buffer)^<>#0;
-        if Result then
-          PChar(buffer)[fld^.length]:=#0;
-        end
-      else
-        Result := True;
-      end;
-    Inc(CurrBuff, MySQLDataSize(fld^.ftype, fld^.length));
-    Inc(I);
-    end;
-end;
-
 Function GetSQLStatementType(SQL : String) : TStatementType;
 
 Var
@@ -644,16 +568,6 @@ begin
     if (S=StatementTokens[t]) then
       Exit(t);
 end;
-
-{function TMySQLConnection.GetStatementType(cursor: TSQLHandle): tStatementType;
-
-Var
-  C : TMySQLCursor;
-
-begin
-  C:=Cursor as TMySQLCursor;
-  Result:=GetSQLStatementType(C.FStatement);
-end;}
 
 function TMySQLConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
