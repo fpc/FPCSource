@@ -2250,8 +2250,8 @@ S*2Aas_assemble using GNU AS
 **2Sh_Use ansistrings
 **2Si_support C++ styled INLINE
 **2SI<x>_set interface style to <x>
-**3SIcom COM compatible interface (default)
-**3SIcorba CORBA compatible interface
+**3SIcom_COM compatible interface (default)
+**3SIcorba_CORBA compatible interface
 **2Sm_support macros like C (global)
 **2So_same as -Mtp
 **2Sp_same as -Mgpc
