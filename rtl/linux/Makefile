@@ -314,7 +314,6 @@ staticlibinstall: staticlib
 	$(MKDIR) $(STATIC_LIBINSTALLDIR)
 	$(MKDIR) $(STATIC_UNITINSTALLDIR)
 	$(INSTALLEXE) libfpc$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
-	$(INSTALLEXE) libobjpas$(STATICLIBEXT) $(STATIC_LIBINSTALLDIR)
 	$(INSTALL) *$(PPUEXT) $(OBJLOADERS) $(STATIC_UNITINSTALLDIR)
 
 sharedlibinstall: sharedlib
@@ -337,7 +336,10 @@ include $(CFG)/makefile.def
 
 #
 # $Log$
-# Revision 1.7  1998-10-11 13:47:21  michael
+# Revision 1.8  1998-11-10 17:56:56  peter
+#   * fixes to build correct again
+#
+# Revision 1.7  1998/10/11 13:47:21  michael
 # sysutils disk.inc
 #
 # Revision 1.6  1998/10/11 12:21:49  michael

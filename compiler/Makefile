@@ -45,7 +45,6 @@ ifndef GCCLIBPATH
 GCCLIBPATH=/usr/lib/gcc-lib/i486-linux/2.7.2.3
 endif
 
-export RTLOPTS
 
 #####################################################################
 # Defaults
@@ -77,6 +76,7 @@ endif
 # include OPT also for the RTL (also needed to pass the RELEASE options
 # to the RTL !!)
 override RTLOPTS+=$(OPT)
+
 
 #####################################################################
 # Setup Targets
@@ -271,13 +271,10 @@ cvstest:
 # Installation
 #####################################################################
 
-install:
+installlib:
 ifdef inlinux
-	umask 022
-	strip ppc386
 	$(MKDIR) $(LIBINSTALLDIR)
 	$(INSTALLEXE) ppc386 $(LIBINSTALLDIR)
-	ln -sf $(LIBINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
 	chmod 755 makecfg
 	makecfg $(LIBINSTALLDIR)/samplecfg $(UNITINSTALLDIR) $(MSGINSTALLDIR) $(GCCLIBPATH)
 else
@@ -286,6 +283,13 @@ else
 endif
 	$(MKDIR) $(MSGINSTALLDIR)
 	$(INSTALL) errore.msg errorn.msg $(MSGINSTALLDIR)
+
+# this also installs the link /usr/bin/ppc386. The .deb does that later
+install: installlib
+ifdef inlinux
+	$(MKDIR) $(BININSTALLDIR)
+	ln -sf $(LIBINSTALLDIR)/ppc386 $(BININSTALLDIR)/ppc386
+endif
 
 
 #####################################################################
@@ -333,7 +337,10 @@ $(M68KEXENAME): $(PASFILES) $(INCFILES)
 
 #
 # $Log$
-# Revision 1.13  1998-10-22 23:55:24  peter
+# Revision 1.14  1998-11-10 17:56:48  peter
+#   * fixes to build correct again
+#
+# Revision 1.13  1998/10/22 23:55:24  peter
 #   * dependencies,mkdep target is not linux only
 #
 # Revision 1.12  1998/10/22 19:15:46  peter

@@ -376,7 +376,7 @@ endif
 override PPOPTDEF=$(OPTDEF) -d$(CPU)
 
 # Load commandline OPT and add target and unit dir to be sure
-override PPOPT=$(OPT) -T$(OS_TARGET) -Fu$(UNITDIR)
+override PPOPT=$(OPT) -T$(OS_TARGET) -Fu$(UNITDIR) $(NEEDOPT)
 
 # Add include dirs INC and PROCINC
 ifdef INC
@@ -659,7 +659,10 @@ endif
 
 #
 # $Log$
-# Revision 1.3  1998-11-10 15:06:25  peter
+# Revision 1.4  1998-11-10 17:56:53  peter
+#   * fixes to build correct again
+#
+# Revision 1.3  1998/11/10 15:06:25  peter
 #   + PREFIXINSTALLDIR to allow /usr/local and pwd/debian/tmp
 #
 # Revision 1.2  1998/10/28 00:14:13  peter

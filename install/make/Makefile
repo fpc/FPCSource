@@ -23,6 +23,9 @@ INC=
 PROCINC=
 OSINC=
 
+# Needed options, without it won't compile
+NEEDOPT=
+
 # Add this dir also to the path as first
 UNITDIR=
 
@@ -49,7 +52,10 @@ include $(MAKEFILEFPC)
 
 #
 # $Log$
-# Revision 1.1  1998-10-27 14:20:12  peter
+# Revision 1.2  1998-11-10 17:56:51  peter
+#   * fixes to build correct again
+#
+# Revision 1.1  1998/10/27 14:20:12  peter
 #   + initial versions
 #
 #

@@ -18,6 +18,9 @@ OPT             General commandline options you want to give
 OPTDEF          Commandline defines, which also need to be passed to
                 programs that don't want other options (like mkdep)
 
+NEEDOPT         Realy needed commandline options, also used when
+                RELEASE=1. Example: NEEDOPT=-Sg to allow goto
+
 PP              compiler to use, default is ppc386
                 Example to compile with version 0.99.8: PP=ppc998
 

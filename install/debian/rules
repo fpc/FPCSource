@@ -9,7 +9,7 @@ build-stamp:
 	dh_testdir
 
 #       Add here commands to compile the package.
-	make
+	$(MAKE)
 	
 	touch build-stamp
 
@@ -19,7 +19,7 @@ clean:
 	rm -f build-stamp
 
 #       Add here commands to clean up after the build process.
-	-$(MAKE) distclean
+	-$(MAKE) clean
 
 	dh_clean
 
