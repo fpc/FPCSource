@@ -262,3 +262,5 @@ bug0194.pp   @procedure var returns value in it instead of address !!
 bug0196.pp   "function a;" is accepted (should require result type)
 bug0197.pp   should produce an error: problem with c1:=c2<c3 where c? is
              a comp type
+bug0198.pp   calling specifications aren't allowed in class declarations,
+             this should be allowed
