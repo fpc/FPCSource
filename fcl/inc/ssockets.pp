@@ -146,11 +146,13 @@ Implementation
 
 uses
 {$ifdef linux}
+ {$ifndef freebsd}
   {$ifdef ver1_0}
     Linux,
   {$else}
     Unix,
   {$endif}
+ {$endif}
 {$endif}
 {$ifdef freebsd}
   {$ifdef ver1_0}
@@ -513,7 +515,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2001-04-08 11:26:03  peter
+  Revision 1.6  2001-04-20 18:50:00  marco
+   * FreeVSD fixy
+
+  Revision 1.5  2001/04/08 11:26:03  peter
     * update so it can be compiled by both 1.0.x and 1.1
 
   Revision 1.4  2001/01/21 20:45:09  marco
