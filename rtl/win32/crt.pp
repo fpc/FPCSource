@@ -193,12 +193,15 @@ var
 begin
   DestCoor.X := WindMinX - 1;
   DestCoor.Y := WindMinY - 1;
-  numChars := (WindMaxX - WindMinX + 1) * (WindMaxY - WindMinY + 1);
+  numChars := (WindMaxX - WindMinX + 1);
 
-  FillConsoleOutputAttribute(GetStdHandle(STD_OUTPUT_HANDLE), TextAttr,
-    numChars, DestCoor, x);
-  FillConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE), #32,
-    numChars, DestCoor, x);
+  repeat
+    FillConsoleOutputAttribute(GetStdHandle(STD_OUTPUT_HANDLE), TextAttr,
+      numChars, DestCoor, x);
+    FillConsoleOutputCharacter(GetStdHandle(STD_OUTPUT_HANDLE), #32,
+      numChars, DestCoor, x);
+    inc(DestCoor.Y);
+  until DWord(DestCoor.Y)=WindMaxY;
 
   GotoXY(1, 1);
 end; { proc. ClrScr }
@@ -580,7 +583,7 @@ procedure cursorbig;
 var CursorInfo: TConsoleCursorInfo;
 begin
   GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
-  CursorInfo.dwSize := 100;
+  CursorInfo.dwSize := 93;
   CursorInfo.bVisible := true;
   SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), CursorInfo);
 end;
@@ -828,7 +831,11 @@ end. { unit Crt }
 
 {
   $Log$
-  Revision 1.22  2004-05-02 13:05:39  marco
+  Revision 1.23  2005-01-03 18:16:12  peter
+  fix clrscr with windowsize<>screensize
+  fix cursorbig
+
+  Revision 1.22  2004/05/02 13:05:39  marco
    * Fixes for numeric keypad enter and /
 
   Revision 1.21  2004/02/08 16:22:20  michael
