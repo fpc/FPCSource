@@ -4,20 +4,19 @@ Please indent tasks which are done with 8 spaces.
 Item                                          Priority        Implemented by
 -----------------------------------------------------------------------------
 Free Vision                                   high
-  - FPC API
-    - FileCtrl
-            - Keyboard..............................................TH
-            - Video.................................................TH
-            - Mouse.................................................TH
+          - Keyboard................................................TH
+          - Video...................................................TH
+          - Mouse...................................................TH
 
 finish PM support                             high
           - PMWin...................................................RB
           - PMGPI...................................................RB
           - PMBitmap................................................RB
-    - PMStdDlg
+          - PMStdDlg................................................YP
 
 RTL
     - sockets
+    - winsock
     - graph
     - pass dos compatibility tests
 
@@ -36,22 +35,23 @@ OS/2 only rtl                                 medium
 FCL                                           medium
           - disk.inc................................................TH
           - filutil.inc.............................................TH
-  - thread.inc
+          - thread.inc..............................................TH
           - pipes.inc...............................................TH
   - ? unit SyncObjs
   - ? unit HTTPApp
 
 other OS/2 APIs                               low
   - TCP/IP
-    - Sockets
-    - FTP API
+    - Sockets (so32dll)
+          - FTP API.................................................YP
   - NetAPI (NetBIOS)
           - DIVE....................................................KB
   - DART
   - Unicode
-  - OpenGL
+  - OpenGL/MesaGL
   - MMOS2
   - SOM
+  - WPS
 
 packages                                      low
   - SVGAlib
