@@ -268,7 +268,6 @@ implementation
 
       var
          hp : pprocdef;
-         pt : pprocdeftree;
          l : pasmlabel;
 
       begin
@@ -615,7 +614,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.16  1999-09-12 14:50:50  florian
+  Revision 1.17  1999-09-13 16:23:42  peter
+    * remvoed unused var
+
+  Revision 1.16  1999/09/12 14:50:50  florian
     + implemented creation of methodname/address tables
 
   Revision 1.15  1999/09/01 13:44:56  florian
