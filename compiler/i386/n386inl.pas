@@ -31,7 +31,7 @@ interface
 
     type
        ti386inlinenode = class(tcginlinenode)
-          { first pass override 
+          { first pass override
             so that the code generator will actually generate
             these nodes.
           }
@@ -80,8 +80,8 @@ implementation
         registersfpu:=1;
         first_pi := nil;
       end;
-      
-      
+
+
      function ti386inlinenode.first_arctan_real : tnode;
       begin
         location.loc:=LOC_FPUREGISTER;
@@ -92,7 +92,7 @@ implementation
 {$endif SUPPORT_MMX}
         first_arctan_real := nil;
       end;
-      
+
      function ti386inlinenode.first_abs_real : tnode;
       begin
         location.loc:=LOC_FPUREGISTER;
@@ -103,7 +103,7 @@ implementation
 {$endif SUPPORT_MMX}
         first_abs_real := nil;
       end;
-      
+
      function ti386inlinenode.first_sqr_real : tnode;
       begin
         location.loc:=LOC_FPUREGISTER;
@@ -114,7 +114,7 @@ implementation
 {$endif SUPPORT_MMX}
         first_sqr_real := nil;
       end;
-      
+
      function ti386inlinenode.first_sqrt_real : tnode;
       begin
         location.loc:=LOC_FPUREGISTER;
@@ -125,7 +125,7 @@ implementation
 {$endif SUPPORT_MMX}
         first_sqrt_real := nil;
       end;
-      
+
      function ti386inlinenode.first_ln_real : tnode;
       begin
         location.loc:=LOC_FPUREGISTER;
@@ -136,7 +136,7 @@ implementation
 {$endif SUPPORT_MMX}
         first_ln_real := nil;
       end;
-      
+
      function ti386inlinenode.first_cos_real : tnode;
       begin
         location.loc:=LOC_FPUREGISTER;
@@ -147,7 +147,7 @@ implementation
 {$endif SUPPORT_MMX}
         first_cos_real := nil;
       end;
-      
+
      function ti386inlinenode.first_sin_real : tnode;
       begin
         location.loc:=LOC_FPUREGISTER;
@@ -159,16 +159,16 @@ implementation
         first_sin_real := nil;
       end;
 
- 
+
      procedure ti386inlinenode.second_Pi;
        begin
          location_reset(location,LOC_FPUREGISTER,def_cgsize(resulttype.def));
          emit_none(A_FLDPI,S_NO);
          inc(trgcpu(rg).fpuvaroffset);
          location.register:=FPU_RESULT_REG;
-         
+
        end;
-     
+
        { load the FPU into the an fpu register }
        procedure ti386inlinenode.load_fpu_location;
          begin
@@ -194,32 +194,32 @@ implementation
               internalerror(309991);
            end;
          end;
-       
+
      procedure ti386inlinenode.second_arctan_real;
        begin
          load_fpu_location;
          emit_none(A_FLD1,S_NO);
          emit_none(A_FPATAN,S_NO);
        end;
-       
+
      procedure ti386inlinenode.second_abs_real;
        begin
          load_fpu_location;
          emit_none(A_FABS,S_NO);
        end;
-       
+
      procedure ti386inlinenode.second_sqr_real;
        begin
          load_fpu_location;
          emit_reg_reg(A_FMUL,S_NO,R_ST0,R_ST0);
        end;
-       
+
      procedure ti386inlinenode.second_sqrt_real;
        begin
          load_fpu_location;
          emit_none(A_FSQRT,S_NO);
        end;
-       
+
      procedure ti386inlinenode.second_ln_real;
        begin
          load_fpu_location;
@@ -227,13 +227,13 @@ implementation
          emit_none(A_FXCH,S_NO);
          emit_none(A_FYL2X,S_NO);
        end;
-       
+
      procedure ti386inlinenode.second_cos_real;
        begin
          load_fpu_location;
          emit_none(A_FCOS,S_NO);
        end;
-       
+
      procedure ti386inlinenode.second_sin_real;
        begin
          load_fpu_location;
@@ -250,7 +250,7 @@ implementation
          hregister : tregister;
          asmop : tasmop;
          L : cardinal;
-         pushedregs : TMaybesave;         
+         pushedregs : TMaybesave;
          cgop : topcg;
         begin
           location_copy(location,left.location);
@@ -320,15 +320,18 @@ implementation
               if scratch_reg then
                 cg.free_scratch_reg(exprasmlist,hregister);
             end;
-        end;           
-     
-       
+        end;
+
+
 begin
    cinlinenode:=ti386inlinenode;
 end.
 {
   $Log$
-  Revision 1.52  2002-08-02 07:44:31  jonas
+  Revision 1.53  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.52  2002/08/02 07:44:31  jonas
     * made assigned() handling generic
     * add nodes now can also evaluate constant expressions at compile time
       that contain nil nodes

@@ -1146,7 +1146,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.76  2002-09-07 12:16:03  carl
+  Revision 1.77  2002-09-07 15:25:07  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.76  2002/09/07 12:16:03  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 
@@ -1242,63 +1245,4 @@ end.
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
 
-  Revision 1.55  2002/05/06 19:56:42  carl
-  + added more patches from Mazen for SPARC port
-
-  Revision 1.54  2002/04/21 19:02:05  peter
-    * removed newn and disposen nodes, the code is now directly
-      inlined from pexpr
-    * -an option that will write the secondpass nodes to the .s file, this
-      requires EXTDEBUG define to actually write the info
-    * fixed various internal errors and crashes due recent code changes
-
-  Revision 1.53  2002/04/20 21:32:24  carl
-  + generic FPC_CHECKPOINTER
-  + first parameter offset in stack now portable
-  * rename some constants
-  + move some cpu stuff to other units
-  - remove unused constents
-  * fix stacksize for some targets
-  * fix generic size problems which depend now on EXTEND_SIZE constant
-
-  Revision 1.52  2002/04/16 16:11:17  peter
-    * using inherited; without a parent having the same function
-      will do nothing like delphi
-
-  Revision 1.51  2002/04/15 19:01:28  carl
-  + target_info.size_of_pointer -> pointer_Size
-
-  Revision 1.50  2002/04/14 16:53:54  carl
-  + asm statement uses ALL_REGISTERS
-
-  Revision 1.49  2002/03/31 20:26:36  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.48  2002/03/11 19:10:28  peter
-    * Regenerated with updated fpcmake
-
-  Revision 1.47  2002/03/04 17:54:59  peter
-    * allow oridinal labels again
-
-  Revision 1.46  2002/01/29 21:32:03  peter
-    * allow accessing locals in other lexlevel when the current assembler
-      routine doesn't have locals.
-
-  Revision 1.45  2002/01/24 18:25:49  peter
-   * implicit result variable generation for assembler routines
-   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 }

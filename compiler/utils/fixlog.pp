@@ -153,8 +153,9 @@ end;
 var
   dir : tsearchrec;
   i   : integer;
+  path : string;
 begin
-  writeln('fixlog v1.00 (C) 1999-2002 Peter Vreman');
+  writeln('fixlog v1.01 (C) 1999-2002 Peter Vreman');
   if paramcount<3 then
    begin
      writeln('usage: fixlog <revisions> <yyyy-mm-dd> <files> [files]');
@@ -164,16 +165,20 @@ begin
   Date2Int(ParamStr(2),MYear,MMonth,MDay);
   for i:=3 to paramcount do
    begin
+     path:=ExtractFilePath(paramstr(i));
      if findfirst(paramstr(i),faAnyFile,dir)=0 then
       repeat
-        dofile(dir.name);
+        dofile(path+dir.name);
       until findnext(dir)<>0;
      findclose(dir);
    end;
 end.
 {
   $Log$
-  Revision 1.6  2002-05-18 13:34:27  peter
+  Revision 1.7  2002-09-07 15:25:15  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/05/18 13:34:27  peter
     * readded missing revisions
 
   Revision 1.5  2002/05/16 19:46:53  carl

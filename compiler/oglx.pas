@@ -43,12 +43,12 @@ uses
 
 { An LX executable is called a module; it can be either an executable
   or a DLL.
-  
+
   A module consists of objects. In other executable formats, these
   are usually called sections.
-  
+
   Objects consist of pages.
-  
+
   The objects are numbered, numbers do not have any special meaning. The
   pages of the object are loaded into memory with the access rights specified
   the object table entry. (DM)}
@@ -115,12 +115,12 @@ type    Tlxheader = packed record
         inst_demand_count:cardinal;
         heapsize:cardinal;          {Only used for 16-bit programs.}
     end;
-    
+
     Tlxobject_flags = (ofreadable,ofwriteable,ofexecutable,ofresource,
                ofdiscardable,ofshared,ofpreload,ofinvalid,
                ofzerofilled);
     Tlxobject_flag_set = set of Tlxobject_flags;
-    
+
     Tlxobject_table_entry = packed record
         virtual_size:cardinal;
         reloc_base_addr:cardinal;
@@ -317,7 +317,7 @@ function gen_section_header(sec:Tsection;obj:cardinal):Tlxobject_table_entry;
 
 begin
     gen_section_header.virtual_size:=sections[sec.memsize];
-    
+
 end;
 
 function Tlxexeoutput.writedata:boolean;
@@ -399,7 +399,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-08-12 15:08:40  carl
+  Revision 1.5  2002-09-07 15:25:05  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/08/12 15:08:40  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

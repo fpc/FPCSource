@@ -421,7 +421,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-08-30 06:15:27  mazen
+  Revision 1.3  2002-09-07 15:25:14  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/30 06:15:27  mazen
   ncgcall.pas moved to ncpucall.pas (I'd like ncpu* insteade of nsparc* since it
   provides processor independent units naming)
 
@@ -493,8 +496,5 @@ end.
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.5  2002/04/06 18:13:02  jonas
-    * several powerpc-related additions and fixes
 
 }

@@ -170,7 +170,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-07-20 19:28:47  florian
+  Revision 1.30  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.29  2002/07/20 19:28:47  florian
     * splitting of i386\cgcpu.pas into x86\cgx86.pas and i386\cgcpu.pas
       cgx86.pas will contain the common code for i386 and x86_64
 
@@ -274,25 +277,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.8  2002/03/31 20:26:37  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.7  2002/03/04 19:10:12  peter
-    * removed compiler warnings
 
 }

@@ -62,15 +62,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2002-07-25 22:55:34  florian
+  Revision 1.3  2002-09-07 15:25:15  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/07/25 22:55:34  florian
     * several fixes, small test units can be compiled
 
   Revision 1.1  2002/07/24 22:38:15  florian
     + initial release of x86-64 target code
 
-  Revision 1.2  2001/06/03 15:12:47  peter
-    * t_beos target inclusion
-
-  Revision 1.1  2001/04/18 22:02:01  peter
-    * registration of targets and assemblers
 }

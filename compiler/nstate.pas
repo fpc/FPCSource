@@ -27,23 +27,23 @@ unit nstate;
 
 interface
 
-uses	cclasses,node;
+uses    cclasses,node;
 
-type	Tstate_entry=class(Tlinkedlistitem)
-	    what:Tnode;
-	    value:Tnode;
-	    constructor create(w,v:Tnode);
-	end;
+type    Tstate_entry=class(Tlinkedlistitem)
+            what:Tnode;
+            value:Tnode;
+            constructor create(w,v:Tnode);
+        end;
 
-	Tstate_storage=class
-	    storage:Tlinkedlist;
-	    constructor create;
-	    procedure store_fact(w,v:Tnode);
-	    function find_fact(what:Tnode):Tnode;
-	    procedure delete_fact(what:Tnode);
-	end;
+        Tstate_storage=class
+            storage:Tlinkedlist;
+            constructor create;
+            procedure store_fact(w,v:Tnode);
+            function find_fact(what:Tnode):Tnode;
+            procedure delete_fact(what:Tnode);
+        end;
 
-var	aktstate:Tstate_storage;
+var     aktstate:Tstate_storage;
 
 implementation
 
@@ -72,15 +72,15 @@ begin
     writenode(v);}
     se:=Tstate_entry(storage.first);
     while assigned(se) do
-	begin
-	    if se.what.isequal(w) then
-		begin
-	    	    storage.remove(se);
-	    	    se.destroy;
-	    	    break;
-		end;
-	    se:=Tstate_entry(se.next);
-	end;
+        begin
+            if se.what.isequal(w) then
+                begin
+                    storage.remove(se);
+                    se.destroy;
+                    break;
+                end;
+            se:=Tstate_entry(se.next);
+        end;
     se:=Tstate_entry.create(w,v);
     storage.concat(se);
 end;
@@ -93,14 +93,14 @@ begin
     find_fact:=nil;
     se:=storage.first as Tstate_entry;
     while assigned(se) do
-	begin
-	    if se.what.isequal(what) then
-		begin
-		    find_fact:=se.value;
-		    break;
-		end;
-	    se:=se.next as Tstate_entry;
-	end;
+        begin
+            if se.what.isequal(what) then
+                begin
+                    find_fact:=se.value;
+                    break;
+                end;
+            se:=se.next as Tstate_entry;
+        end;
 end;
 
 procedure Tstate_storage.delete_fact(what:Tnode);
@@ -110,22 +110,25 @@ var se:Tstate_entry;
 begin
     se:=storage.first as Tstate_entry;
     while assigned(se) do
-	begin
-	    if se.what.isequal(what) then
-		begin
-		    storage.remove(se);
-		    se.destroy;
-		    break;
-		end;
-	    se:=se.next as Tstate_entry;
-	end;
+        begin
+            if se.what.isequal(what) then
+                begin
+                    storage.remove(se);
+                    se.destroy;
+                    break;
+                end;
+            se:=se.next as Tstate_entry;
+        end;
 end;
 
 end.
 
 {
   $Log$
-  Revision 1.2  2002-07-15 18:03:15  florian
+  Revision 1.3  2002-09-07 15:25:05  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/07/15 18:03:15  florian
     * readded removed changes
 
   Revision 1.1  2002/07/14 18:00:44  daniel

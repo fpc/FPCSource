@@ -61,7 +61,7 @@ implementation
       begin
         { In case we are in emulation mode, we must
           always call the helpers
-        }  
+        }
         if (cs_fp_emulation in aktmoduleswitches) then
           begin
             result := inherited first_int_to_real;
@@ -87,8 +87,8 @@ implementation
             if is_signed(left.resulttype.def) then
               inserttypeconv(left,s32bittype)
             else
-              { the fpu always considers 32-bit values as signed 
-                therefore we need to call the helper in case of 
+              { the fpu always considers 32-bit values as signed
+                therefore we need to call the helper in case of
                 a cardinal value.
               }
               begin
@@ -134,7 +134,7 @@ implementation
         { has to be handled by a helper }
         if not signed then
            internalerror(20020814);
-          
+
         location.register := rg.getregisterfpu(exprasmlist);
         case left.location.loc of
           LOC_REGISTER, LOC_CREGISTER:
@@ -292,7 +292,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-08-14 19:31:26  carl
+  Revision 1.3  2002-09-07 15:25:13  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/14 19:31:26  carl
     * fix small compilation problem
 
   Revision 1.1  2002/08/14 19:16:34  carl

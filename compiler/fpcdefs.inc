@@ -29,7 +29,7 @@
 
 {$ifdef i386}
   {$define x86}
-{$else}  
+{$else}
   {$define oldset}
 {$endif i386}
 {$ifdef x86_64}
@@ -37,7 +37,10 @@
 {$endif x86_64}
 {
   $Log$
-  Revision 1.8  2002-08-30 13:42:29  mazen
+  Revision 1.9  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/08/30 13:42:29  mazen
   - undefining win32 when SPARC defined removed, no more needed.
 
 

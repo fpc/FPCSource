@@ -113,19 +113,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-08-18 09:06:54  florian
+  Revision 1.2  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/18 09:06:54  florian
     * alpha files moved compiler/alpha
-
-  Revision 1.1  2000/07/13 06:30:09  michael
-  + Initial import
-
-  Revision 1.5  2000/01/07 01:14:55  peter
-    * updated copyright to 2000
-
-  Revision 1.4  1999/08/25 12:00:16  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.3  1999/08/05 15:50:31  michael
-  * more changes
 
 }

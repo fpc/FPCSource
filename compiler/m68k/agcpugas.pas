@@ -93,10 +93,10 @@ interface
        { Useful for assembly langage output }
        '','','','');
 
-     gas_opsize2str : array[topsize] of string[2] = 
+     gas_opsize2str : array[topsize] of string[2] =
      ('','.b','.w','.l','.s','.d','.x',''
      );
-     
+
      gas_reg2str : reg2strtable =
       ('', '%d0','%d1','%d2','%d3','%d4','%d5','%d6','%d7',
        '%a0','%a1','%a2','%a3','%a4','%a5','%a6','%sp',
@@ -104,7 +104,7 @@ interface
        '%ccr','%fp0','%fp1','%fp2','%fp3','%fp4','%fp5',
        '%fp6','%fp7','%fpcr','%sr','%ssp','%dfc',
        '%sfc','%vbr','%fpsr');
-     
+
 
   implementation
 
@@ -170,10 +170,10 @@ interface
                   else
                     s:=s+'('+basestr+','+indexstr+'.l*'+tostr(scalefactor)+')';
                 end;
-          end;      
+          end;
          getreferencestring:=s;
       end;
-      
+
 
     function getopstr(const o:toper) : string;
     var
@@ -337,7 +337,7 @@ ait_labeled_instruction : begin
          s:=gas_op2str[op]+cond2str[taicpu(hp).condition]+gas_opsize2str[taicpu(hp).opsize]
         else
          s:=gas_op2str[op]+gas_opsize2str[taicpu(hp).opsize];
-        getopcodestring:=s; 
+        getopcodestring:=s;
       end;
 
     procedure TM68kAssembler. WriteInstruction(hp: tai);
@@ -417,7 +417,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2002-08-13 18:58:54  carl
+  Revision 1.3  2002-09-07 15:25:11  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.2  2002/08/13 18:58:54  carl
     + m68k problems with cvs fixed?()!
 
 }

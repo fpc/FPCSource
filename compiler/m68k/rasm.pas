@@ -1229,8 +1229,8 @@ type
     Until false;
   end;
 
-  
-  
+
+
   Procedure TM68kOperand.BuildReference;
   {*********************************************************************}
   { PROCEDURE BuildBracketExpression                                    }
@@ -1349,7 +1349,7 @@ type
        end;
      end; { end case }
   end;
-  
+
 
 
 
@@ -1411,7 +1411,7 @@ type
               Begin
                  if actasmpattern = '@RESULT' then
                     SetUpResult
-                 else 
+                 else
                  if actasmpattern = 'SELF' then
                     SetUpSelf
                  else
@@ -1471,7 +1471,7 @@ type
                         end
                        else
                           Message1(sym_e_unknown_id,actasmpattern);
-                   end;       
+                   end;
                    expr := actasmpattern;
                    Consume(AS_ID);
                    case actasmtoken of
@@ -1863,17 +1863,17 @@ type
           p.concat((taicpu.op_none(opcode,S_NO)));
      1: Begin
           case operands[1].opr.typ of
-           OPR_SYMBOL: 
+           OPR_SYMBOL:
               Begin
                 p.concat((taicpu.op_sym_ofs(opcode,
                   opsize, operands[1].opr.symbol,operands[1].opr.symofs)));
               end;
-           OPR_CONSTANT: 
+           OPR_CONSTANT:
               Begin
                 p.concat((taicpu.op_const(opcode,
                   opsize, operands[1].opr.val)));
               end;
-           OPR_REGISTER:  
+           OPR_REGISTER:
               p.concat((taicpu.op_reg(opcode,opsize,operands[1].opr.reg)));
            OPR_REFERENCE:
               if opsize <> S_NO then
@@ -1893,7 +1893,7 @@ type
                   else
                     Message(asmr_e_invalid_opcode_and_operand);
                 end;
-           OPR_NONE: 
+           OPR_NONE:
                 Message(asmr_e_invalid_opcode_and_operand);
           else
            Begin
@@ -2177,7 +2177,7 @@ type
                     else
                       instr.ConcatInstruction(curlist);
                     instr.Free;
-{        
+{
                    instr.init;
                    BuildOpcode;
                    instr.ops := operandnum;
@@ -2225,7 +2225,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.7  2002-09-03 19:04:18  daniel
+  Revision 1.8  2002-09-07 15:25:13  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.7  2002/09/03 19:04:18  daniel
     * Fixed PowerPC & M68000 compilation
 
   Revision 1.6  2002/08/13 18:58:54  carl
@@ -2252,58 +2255,6 @@ end.
 
   Revision 1.1  2002/08/06 15:15:42  carl
     + more m68k fixes
-
-  Revision 1.1.2.7  2001/08/09 11:41:08  pierre
-   + add more errors
-
-  Revision 1.1.2.6  2001/08/08 12:21:49  pierre
-   * generate correct labeled instruction for DBRA
-   * improoved checking of operands
-   + support for OPR_SYMBOL in generic instructions like MOVE
-   + support for labels in constants like movel #datalabel + const,d0
-
-  Revision 1.1.2.5  2001/08/07 15:55:33  pierre
-   + new code for NetBSD, behaves like FreeBSD for now
-
-  Revision 1.1.2.4  2001/08/01 10:58:50  pierre
-   * avoid warning about supposed external in asm label is already known
-
-  Revision 1.1.2.3  2001/07/24 23:41:32  pierre
-   * firstreg and lastreg renamed firstasmreg and lastasmreg to aviod confusions
-
-  Revision 1.1.2.2  2001/04/24 11:58:37  carl
-  * correction of DBRA problems
-
-  Revision 1.1.2.1  2001/03/04 02:19:54  carl
-  - renamefest!
-
-  Revision 1.1.2.1  2001/02/25 01:32:56  carl
-  - imported from mian directory
-
-  Revision 1.1.2.2  2001/02/23 11:20:40  pierre
-   * fix an update problem
-
-  Revision 1.1.2.1  2001/02/23 10:05:19  pierre
-   * first bunch of m68k cpu updates
-
-  Revision 1.1  2000/07/13 06:29:56  michael
-  + Initial import
-
-  Revision 1.13  2000/02/09 13:23:02  peter
-    * log truncated
-
-  Revision 1.12  2000/01/07 01:14:37  peter
-    * updated copyright to 2000
-
-  Revision 1.11  1999/11/10 00:06:08  pierre
-   * adapted to procinfo as pointer
-
-  Revision 1.10  1999/11/09 23:06:46  peter
-    * esi_offset -> selfpointer_offset to be newcg compatible
-    * hcogegen -> cgbase fixes for newcg
-
-  Revision 1.9  1999/09/16 23:05:56  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
 
 }
 

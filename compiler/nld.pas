@@ -1143,7 +1143,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2002-09-03 16:26:26  daniel
+  Revision 1.58  2002-09-07 15:25:03  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.57  2002/09/03 16:26:26  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.56  2002/09/01 13:28:37  daniel
@@ -1253,46 +1256,5 @@ end.
     * add pinline unit that inserts compiler supported functions using
       one or more statements
     * moved finalize and setlength from ninl to pinline
-
-  Revision 1.36  2002/04/22 16:30:06  peter
-    * fixed @methodpointer
-
-  Revision 1.35  2002/04/21 19:02:04  peter
-    * removed newn and disposen nodes, the code is now directly
-      inlined from pexpr
-    * -an option that will write the secondpass nodes to the .s file, this
-      requires EXTDEBUG define to actually write the info
-    * fixed various internal errors and crashes due recent code changes
-
-  Revision 1.34  2002/04/02 17:11:29  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.33  2002/03/31 20:26:34  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.32  2002/01/19 11:52:32  peter
-    * dynarr:=nil support added
 
 }

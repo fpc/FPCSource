@@ -33,8 +33,8 @@ interface
      function assemble : tnode;
 
   implementation
-  
-  uses 
+
+  uses
     verbose;
 
 
@@ -52,7 +52,10 @@ interface
 end.
 {
   $Log$
-  Revision 1.1  2002-08-13 18:01:52  carl
+  Revision 1.2  2002-09-07 15:25:13  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/13 18:01:52  carl
     * rename swatoperands to swapoperands
     + m68k first compilable version (still needs a lot of testing):
         assembler generator, system information , inline

@@ -52,10 +52,10 @@ interface
           restype : ttype;
           value : TConstExprInt;
           rangecheck : boolean;
-          { create an ordinal constant node of the specified type and value. 
+          { create an ordinal constant node of the specified type and value.
             _rangecheck determines if the value of the ordinal should be checked
             against the ranges of the type definition.
-          }  
+          }
           constructor create(v : tconstexprint;const t:ttype; _rangecheck : boolean);virtual;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -430,9 +430,9 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.gettype(restype);
         value:=ppufile.getexprint;
-        { normally, the value is already compiled, so we don't need 
+        { normally, the value is already compiled, so we don't need
           to do once again a range check
-        }  
+        }
         rangecheck := false;
       end;
 
@@ -924,7 +924,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-09-07 12:16:04  carl
+  Revision 1.42  2002-09-07 15:25:03  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.41  2002/09/07 12:16:04  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 

@@ -269,7 +269,7 @@ implementation
 *****************************************************************************}
 
 
-    function ti386shlshrnode.first_shlshr64bitint: tnode; 
+    function ti386shlshrnode.first_shlshr64bitint: tnode;
       begin
         result := nil;
       end;
@@ -838,7 +838,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2002-08-15 15:15:55  carl
+  Revision 1.40  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.39  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

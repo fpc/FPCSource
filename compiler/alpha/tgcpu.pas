@@ -28,7 +28,7 @@ unit tgcpu;
        tgobj;
 
     type
-    
+
        ttgalpha = Object(ttgobj)
        end;
 
@@ -42,22 +42,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-18 09:06:54  florian
+  Revision 1.2  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/18 09:06:54  florian
     * alpha files moved compiler/alpha
-
-  Revision 1.1  2000/07/13 06:30:10  michael
-  + Initial import
-
-  Revision 1.4  2000/01/07 01:14:56  peter
-    * updated copyright to 2000
-
-  Revision 1.3  1999/08/03 00:28:24  florian
-    - removed the stuff of the last commit :)
-
-  Revision 1.2  1999/08/03 00:25:28  florian
-    * added reg var stuff
-
-  Revision 1.1  1999/08/03 00:24:01  michael
-  + Initial implementation
 
 }

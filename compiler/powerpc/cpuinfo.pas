@@ -38,9 +38,9 @@ Type
    ts64comp = comp;
 
    pbestreal=^bestreal;
-   
+
    { possible supported processors for this target }
-   tprocessors = 
+   tprocessors =
       (no_processor,
        ppc601,
        ppc604
@@ -55,11 +55,11 @@ Const
    mmreg_size = 16;
    { target cpu string (used by compiler options) }
    target_cpu_string = 'powerpc';
-   { size of the buffer used for setjump/longjmp  
+   { size of the buffer used for setjump/longjmp
      the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file 
+     jmp_buf structure in setjumph.inc file
    }
-{$warning setjmp buf_size unknown!}   
+{$warning setjmp buf_size unknown!}
    jmp_buf_size = 0;
 
 Implementation
@@ -67,7 +67,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-08-15 15:15:55  carl
+  Revision 1.11  2002-09-07 15:25:14  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.10  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

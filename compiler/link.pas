@@ -614,12 +614,12 @@ end;
 *****************************************************************************}
 
 procedure InitLinker;
-var 
+var
  lk : TlinkerClass;
 begin
   if (cs_link_internal in aktglobalswitches) and
      assigned(target_info.link) then
-   begin  
+   begin
      lk:=TLinkerClass(target_info.link);
      linker:=lk.Create;
    end
@@ -660,7 +660,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.30  2002-08-12 15:08:39  carl
+  Revision 1.31  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.30  2002/08/12 15:08:39  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

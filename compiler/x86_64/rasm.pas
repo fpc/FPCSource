@@ -30,10 +30,10 @@ Interface
 uses
   node;
 
-   { 
+   {
      This routine is called to parse the instructions in assembler
      blocks. It returns a complete list of directive and instructions
-   }  
+   }
    function assemble: tnode;
 
 
@@ -59,15 +59,18 @@ Implementation
     function assemble : tnode;
      begin
      end;
-     
+
 Begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-10 14:53:38  carl
+  Revision 1.2  2002-09-07 15:25:15  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/10 14:53:38  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's
     * move from nppcmem.pas -> ncgmem.pas vec. node.
 
-}  
+}

@@ -40,9 +40,9 @@ Type
    ts80real = extended;
    { on the ia64 comp will be mapped to int64 }
    ts64comp = comp;
-   
+
    pbestreal=^bestreal;
-   
+
 
 Const
    { Size of native extended type }
@@ -52,7 +52,7 @@ Const
    c_countusableregsfpu = 95;
    c_countusableregsmm  = 0;
    c_countusableregsqp  = 48;
-   
+
    { target cpu string (used by compiler options) }
    target_cpu_string = 'ia64';
 
@@ -61,7 +61,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.6  2002-08-12 15:08:42  carl
+  Revision 1.7  2002-09-07 15:25:11  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.6  2002/08/12 15:08:42  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class
@@ -82,12 +85,5 @@ end.
 
   Revision 1.3  2002/04/07 13:42:40  carl
   - moved type constant
-
-  Revision 1.2  2001/01/05 17:36:58  florian
-  * the info about exception frames is stored now on the stack
-  instead on the heap
-
-  Revision 1.1  2000/12/31 16:54:19  florian
-    + initial revision
 
 }

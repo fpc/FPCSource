@@ -41,13 +41,13 @@ Type
    { $fffffffffffffff on a 32bit machine if the compiler uses     }
    { int64 constants internally (JM)                              }
    TConstPtrUInt = qword;
-   
+
    bestreal = extended;
    ts32real = single;
    ts64real = double;
    ts80real = extended;
    ts64comp = extended;
-   
+
    pbestreal=^bestreal;
 
 Const
@@ -66,7 +66,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-08-12 15:08:45  carl
+  Revision 1.5  2002-09-07 15:25:15  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/08/12 15:08:45  carl
     + stab register indexes for powerpc (moved from gdb to cpubase)
     + tprocessor enumeration moved to cpuinfo
     + linker in target_info is now a class

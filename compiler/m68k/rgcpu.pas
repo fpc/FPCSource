@@ -46,7 +46,7 @@ unit rgcpu;
              const saved : tpushedsaved);override;
           procedure saveusedregisters(list: taasmoutput;
         var saved : tpushedsaved; const s: tregisterset);override;
-             
+
        end;
 
   implementation
@@ -59,21 +59,21 @@ unit rgcpu;
          ungetregistergen(list,r,usableregsaddr,unusedregsaddr,
            countunusedregsaddr);
        end;
-       
-       
-     function trgcpu.getaddressregister(list: taasmoutput): tregister; 
+
+
+     function trgcpu.getaddressregister(list: taasmoutput): tregister;
        begin
          result := getregistergen(list,firstsaveaddrreg,lastsaveaddrreg,
                    unusedregsaddr,countunusedregsaddr);
        end;
-       
+
 
      function trgcpu.isaddressregister(reg: tregister): boolean;
        begin
          isaddressregister := reg in addrregs;
        end;
-       
-       
+
+
     procedure trgcpu.resetusableregisters;
 
       begin
@@ -82,8 +82,8 @@ unit rgcpu;
         countusableregsaddr := cpubase.c_countusableregsaddr;
         usableregsaddr := cpubase.usableregsaddr;
       end;
-       
-       
+
+
     procedure trgcpu.restoreusedregisters(list : taasmoutput;
         const saved : tpushedsaved);
       var
@@ -141,9 +141,9 @@ unit rgcpu;
                 inc(countunusedregsint);
               end;
           end;
-        
+
       end;
-         
+
 
 initialization
   rg := trgcpu.create;
@@ -151,7 +151,10 @@ end.
 
 {
   $Log$
-  Revision 1.3  2002-08-23 16:14:50  peter
+  Revision 1.4  2002-09-07 15:25:14  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/08/23 16:14:50  peter
     * tempgen cleanup
     * tt_noreuse temp type added that will be used in genentrycode
 

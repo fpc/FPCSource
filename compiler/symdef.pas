@@ -5537,7 +5537,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2002-09-05 19:29:42  peter
+  Revision 1.93  2002-09-07 15:25:07  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.92  2002/09/05 19:29:42  peter
     * memdebug enhancements
 
   Revision 1.91  2002/08/25 19:25:20  peter
@@ -5649,65 +5652,5 @@ end.
   - remove unused constents
   * fix stacksize for some targets
   * fix generic size problems which depend now on EXTEND_SIZE constant
-
-  Revision 1.71  2002/04/19 15:46:03  peter
-    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
-      in most cases and not written to the ppu
-    * add mangeledname_prefix() routine to generate the prefix of
-      manglednames depending on the current procedure, object and module
-    * removed static procprefix since the mangledname is now build only
-      on demand from tprocdef.mangledname
-
-  Revision 1.70  2002/04/15 19:06:34  carl
-  + target_info.size_of_pointer -> pointer_Size
-
-  Revision 1.69  2002/04/14 16:55:43  carl
-  + replace some stuff by ALL_REGISTERS
-
-  Revision 1.68  2002/04/02 17:11:29  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.67  2002/03/31 20:26:36  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.66  2002/03/24 19:10:14  carl
-  + patch for SPARC from Mazen NEIFER
-
-  Revision 1.65  2002/02/04 08:16:07  jonas
-    * fixed severe slowdown when compiling a program with arrays that have
-      a lot (15+) dimensions ("merged")
-
-  Revision 1.64  2002/01/19 15:12:34  peter
-    * check for unresolved forward classes in the interface
-
-  Revision 1.63  2002/01/06 21:52:30  peter
-
-    * fixed previous commit
-
-  Revision 1.62  2002/01/06 12:08:15  peter
-    * removed uauto from orddef, use new range_to_basetype generating
-      the correct ordinal type for a range
 
 }

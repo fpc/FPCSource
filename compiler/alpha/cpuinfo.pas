@@ -29,7 +29,7 @@ Type
 Const
    { Size of native extended type }
    extended_size = 16;
-   
+
 Implementation
 
 end.

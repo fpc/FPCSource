@@ -252,15 +252,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.1  2002-07-20 17:11:48  florian
+  Revision 1.2  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/07/20 17:11:48  florian
     + source code page support
 
-  Revision 1.2  2000/10/21 18:20:17  florian
-    * a lot of small changes:
-       - setlength is internal
-       - win32 graph unit extended
-       ....
-
-  Revision 1.1  2000/08/17 07:29:39  florian
-    + initial revision
 }

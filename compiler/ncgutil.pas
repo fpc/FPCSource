@@ -1792,7 +1792,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2002-09-02 18:44:48  peter
+  Revision 1.48  2002-09-07 15:25:03  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.47  2002/09/02 18:44:48  peter
     * fixed (not) pushing of empty parameters
     * fixed implicit initialization/finalization generation
     * fixed/optimized local copy of value arguments init/final
@@ -1887,139 +1890,5 @@ end.
   Revision 1.28  2002/07/29 21:23:42  florian
     * more fixes for the ppc
     + wrappers for the tcnvnode.first_* stuff introduced
-
-  Revision 1.27  2002/07/28 15:59:57  jonas
-    * fixed bug in location_force_reg32() when converting smaller values to
-      64 bit locations
-    * use cg.op_const_reg_reg() instead of a move and then cg.op_const_reg()
-      in location_force_reg32()
-
-  Revision 1.26  2002/07/27 19:53:51  jonas
-    + generic implementation of tcg.g_flags2ref()
-    * tcg.flags2xxx() now also needs a size parameter
-
-  Revision 1.25  2002/07/26 21:15:38  florian
-    * rewrote the system handling
-
-  Revision 1.24  2002/07/25 17:58:24  carl
-    + FPURESULTREG -> FPU_RESULT_REG
-
-  Revision 1.23  2002/07/20 11:57:54  florian
-    * types.pas renamed to defbase.pas because D6 contains a types
-      unit so this would conflicts if D6 programms are compiled
-    + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.22  2002/07/11 14:41:28  florian
-    * start of the new generic parameter handling
-
-  Revision 1.21  2002/07/11 07:33:25  jonas
-    * big-endian fixes for location_force_reg*()
-
-  Revision 1.20  2002/07/07 09:52:32  florian
-    * powerpc target fixed, very simple units can be compiled
-    * some basic stuff for better callparanode handling, far from being finished
-
-  Revision 1.19  2002/07/01 18:46:23  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.18  2002/07/01 16:23:53  peter
-    * cg64 patch
-    * basics for currency
-    * asnode updates for class and interface (not finished)
-
-  Revision 1.17  2002/05/20 13:30:40  carl
-  * bugfix of hdisponen (base must be set, not index)
-  * more portability fixes
-
-  Revision 1.16  2002/05/18 13:34:09  peter
-    * readded missing revisions
-
-  Revision 1.15  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.13  2002/05/13 19:54:37  peter
-    * removed n386ld and n386util units
-    * maybe_save/maybe_restore added instead of the old maybe_push
-
-  Revision 1.12  2002/05/12 19:58:36  carl
-  * some small portability fixes
-
-  Revision 1.11  2002/05/12 16:53:07  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.10  2002/04/21 19:02:03  peter
-    * removed newn and disposen nodes, the code is now directly
-      inlined from pexpr
-    * -an option that will write the secondpass nodes to the .s file, this
-      requires EXTDEBUG define to actually write the info
-    * fixed various internal errors and crashes due recent code changes
-
-  Revision 1.9  2002/04/21 15:24:38  carl
-  + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
-  + changeregsize -> rg.makeregsize
-
-  Revision 1.8  2002/04/19 15:39:34  peter
-    * removed some more routines from cga
-    * moved location_force_reg/mem to ncgutil
-    * moved arrayconstructnode secondpass to ncgld
-
-  Revision 1.7  2002/04/15 18:58:47  carl
-  + target_info.size_of_pointer -> pointer_Size
-
-  Revision 1.6  2002/04/06 18:10:42  jonas
-    * several powerpc-related additions and fixes
-
-  Revision 1.5  2002/04/04 19:05:57  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.4  2002/04/02 17:11:28  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.3  2002/03/31 20:26:34  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.2  2002/03/04 19:10:11  peter
-    * removed compiler warnings
 
 }

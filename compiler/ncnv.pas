@@ -2037,7 +2037,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.78  2002-09-07 12:16:04  carl
+  Revision 1.79  2002-09-07 15:25:03  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.78  2002/09/07 12:16:04  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 
@@ -2117,64 +2120,5 @@ end.
 
   Revision 1.58  2002/05/18 13:34:09  peter
     * readded missing revisions
-
-  Revision 1.57  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.55  2002/05/12 16:53:07  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.54  2002/04/25 20:16:38  peter
-    * moved more routines from cga/n386util
-
-  Revision 1.53  2002/04/23 19:16:34  peter
-    * add pinline unit that inserts compiler supported functions using
-      one or more statements
-    * moved finalize and setlength from ninl to pinline
-
-  Revision 1.52  2002/04/21 19:02:03  peter
-    * removed newn and disposen nodes, the code is now directly
-      inlined from pexpr
-    * -an option that will write the secondpass nodes to the .s file, this
-      requires EXTDEBUG define to actually write the info
-    * fixed various internal errors and crashes due recent code changes
-
-  Revision 1.51  2002/04/06 18:10:42  jonas
-    * several powerpc-related additions and fixes
-
-  Revision 1.50  2002/04/04 19:05:58  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.49  2002/04/02 17:11:28  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.48  2002/02/03 09:30:03  peter
-    * more fixes for protected handling
 
 }

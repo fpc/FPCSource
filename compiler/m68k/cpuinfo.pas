@@ -36,16 +36,16 @@ Type
    ts64real = double;
    ts80real = extended;
    ts64comp = extended;
-   
+
    pbestreal=^bestreal;
-   
+
    { possible supported processors for this target }
-   tprocessors = 
+   tprocessors =
       (no_processor,
        MC68000,
        MC68020,
        Coldfire
-      ); 
+      );
 
 Const
    {# Size of native extended floating point type }
@@ -54,9 +54,9 @@ Const
    pointer_size  = 4;
    {# Size of a multimedia register               }
    mmreg_size = 16;
-   { size of the buffer used for setjump/longjmp  
+   { size of the buffer used for setjump/longjmp
      the size of this buffer is deduced from the
-     jmp_buf structure in setjumph.inc file 
+     jmp_buf structure in setjumph.inc file
    }
    jmp_buf_size = 28;
    { target cpu string (used by compiler options) }
@@ -67,7 +67,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-08-15 15:15:55  carl
+  Revision 1.4  2002-09-07 15:25:13  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

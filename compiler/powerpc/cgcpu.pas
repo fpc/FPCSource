@@ -270,7 +270,7 @@ const
         list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
         list.concat(taicpu.op_none(A_BCCTRL));
         list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
-        procinfo.flags:=procinfo.flags or pi_do_call;        
+        procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
 
@@ -1703,7 +1703,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2002-09-02 10:14:51  jonas
+  Revision 1.53  2002-09-07 15:25:14  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.52  2002/09/02 10:14:51  jonas
     + a_call_reg()
     * small fix in a_call_ref()
 
@@ -1777,83 +1780,5 @@ end.
 
   Revision 1.33  2002/08/04 12:57:55  jonas
     * more misc. fixes, mostly constant-related
-
-  Revision 1.32  2002/08/02 11:10:42  jonas
-    * some misc constant fixes
-
-  Revision 1.31  2002/07/30 20:50:44  florian
-    * the code generator knows now if parameters are in registers
-
-  Revision 1.30  2002/07/29 21:23:44  florian
-    * more fixes for the ppc
-    + wrappers for the tcnvnode.first_* stuff introduced
-
-  Revision 1.29  2002/07/28 21:38:30  florian
-    - removed debug code which was commited by accident
-
-  Revision 1.28  2002/07/28 21:34:31  florian
-    * more powerpc fixes
-    + dummy tcgvecnode
-
-  Revision 1.27  2002/07/28 16:01:59  jonas
-    + tcg64fppc.a_op64_const_reg_reg() and tcg64fppc.a_op64_reg_reg_reg()
-    * several fixes, most notably in a_load_reg_reg(): it didn't do any
-      conversion from smaller to larger sizes or vice versa
-    * some small optimizations
-
-  Revision 1.26  2002/07/27 19:59:29  jonas
-    * fixed a_loadaddr_ref_reg()
-    * fixed g_flags2reg()
-    * optimized g_concatcopy()
-
-  Revision 1.25  2002/07/26 21:15:45  florian
-    * rewrote the system handling
-
-  Revision 1.24  2002/07/21 17:00:23  jonas
-    * make sure we use rlwi* when possible instead of andi.
-
-  Revision 1.23  2002/07/11 14:41:34  florian
-    * start of the new generic parameter handling
-
-  Revision 1.22  2002/07/11 07:38:28  jonas
-    + tcg64fpc implementation (only a_op64_reg_reg and a_op64_const_reg for
-      now)
-    * fixed and improved tcgppc.a_load_const_reg
-    * improved tcgppc.a_op_const_reg, tcgppc.a_cmp_const_reg_label
-    * A_CMP* -> A_CMPW* (this means that 32bit compares should be done)
-
-  Revision 1.21  2002/07/09 19:45:01  jonas
-    * unarynminus and shlshr node fixed for 32bit and smaller ordinals
-    * small fixes in the assembler writer
-    * changed scratch registers, because they were used by the linker (r11
-      and r12) and by the abi under linux (r31)
-
-  Revision 1.20  2002/07/07 09:44:31  florian
-    * powerpc target fixed, very simple units can be compiled
-
-  Revision 1.19  2002/05/20 13:30:41  carl
-  * bugfix of hdisponen (base must be set, not index)
-  * more portability fixes
-
-  Revision 1.18  2002/05/18 13:34:26  peter
-    * readded missing revisions
-
-  Revision 1.17  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.14  2002/05/13 19:52:46  peter
-    * a ppcppc can be build again
-
-  Revision 1.13  2002/04/20 21:41:51  carl
-  * renamed some constants
-
-  Revision 1.12  2002/04/06 18:13:01  jonas
-    * several powerpc-related additions and fixes
-
-  Revision 1.11  2002/01/02 14:53:04  jonas
-    * fixed small bug in a_jmp_flags
 
 }

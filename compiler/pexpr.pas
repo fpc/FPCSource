@@ -2248,7 +2248,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.79  2002-09-07 12:16:03  carl
+  Revision 1.80  2002-09-07 15:25:07  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.79  2002/09/07 12:16:03  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 
@@ -2355,21 +2358,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.58  2002/03/01 14:08:26  peter
-    * fixed sizeof(TClass) to return only 4
-
-  Revision 1.57  2002/02/03 09:30:04  peter
-    * more fixes for protected handling
-
-  Revision 1.56  2002/01/29 21:25:22  peter
-    * more checks for private and protected
-
-  Revision 1.55  2002/01/24 18:25:49  peter
-   * implicit result variable generation for assembler routines
-   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.54  2002/01/06 21:47:32  peter
-    * removed getprocvar, use only getprocvardef
 
 }

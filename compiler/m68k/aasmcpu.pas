@@ -73,7 +73,7 @@ type
      { for DBxx opcodes }
      constructor op_reg_sym(op: tasmop; _size : topsize; _op1: tregister; _op2 :tasmsymbol);
      constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
-     
+
      constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
      constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
 
@@ -86,7 +86,7 @@ type
   tai_align = class(tai_align_abstract)
         { nothing to add }
   end;
-  
+
   procedure InitAsm;
   procedure DoneAsm;
 
@@ -409,7 +409,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2002-08-13 18:58:54  carl
+  Revision 1.5  2002-09-07 15:25:11  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.4  2002/08/13 18:58:54  carl
     + m68k problems with cvs fixed?()!
 
   Revision 1.2  2002/08/12 15:08:43  carl

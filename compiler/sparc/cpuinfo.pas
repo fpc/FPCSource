@@ -50,7 +50,7 @@ TYPE
   ts64comp = extended;
   pbestreal=^bestreal;
 { possible supported processors for this target }
-  tprocessors=(no_processor,SPARC_V8,SPARC_V9); 
+  tprocessors=(no_processor,SPARC_V8,SPARC_V9);
 CONST
 {# Size of native extended floating point type }
   extended_size = 10;
@@ -60,7 +60,7 @@ CONST
   mmreg_size = 8;
 { target cpu string (used by compiler options) }
   target_cpu_string = 'SPARC';
-{ size of the buffer used for setjump/longjmp  
+{ size of the buffer used for setjump/longjmp
   the size of this buffer is deduced from the
   jmp_buf structure in setjumph.inc file }
   jmp_buf_size = 24;

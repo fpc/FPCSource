@@ -61,16 +61,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.1  2002-08-22 08:30:50  mazen
+  Revision 1.2  2002-09-07 15:25:14  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/22 08:30:50  mazen
   first insertion 2002\08\22
 
   Revision 1.3  2002/03/28 20:48:04  carl
   - remove go32v1 support
-
-  Revision 1.2  2001/06/03 15:12:47  peter
-    * t_beos target inclusion
-
-  Revision 1.1  2001/04/18 22:02:01  peter
-    * registration of targets and assemblers
 
 }

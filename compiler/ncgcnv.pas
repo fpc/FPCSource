@@ -496,7 +496,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2002-09-02 18:46:00  peter
+  Revision 1.30  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.29  2002/09/02 18:46:00  peter
     * reuse a reference when resizing ordinal values to smaller sizes,
       this is required for constructions like byte(w):=1 that are
       allowed in tp mode only
@@ -603,40 +606,5 @@ end.
     * removed some more routines from cga unit
     * fixed returnvalue handling
     * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
-
-  Revision 1.8  2002/04/06 18:10:42  jonas
-    * several powerpc-related additions and fixes
-
-  Revision 1.7  2002/04/04 19:05:57  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.6  2002/04/02 17:11:28  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.5  2002/03/31 20:26:34  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
 
 }

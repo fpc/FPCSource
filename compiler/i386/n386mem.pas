@@ -156,7 +156,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.43  2002-09-01 19:27:35  peter
+  Revision 1.44  2002-09-07 15:25:11  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.43  2002/09/01 19:27:35  peter
     * use index register when available for generating a reference with
       only a signle register. Using the base register could possibly
       destroy the framepointer
@@ -276,28 +279,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.22  2002/04/01 09:44:04  jonas
-    * better fix for new/dispose bug with init/final data
-
-  Revision 1.21  2002/03/31 20:26:39  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.20  2002/03/04 19:10:14  peter
-    * removed compiler warnings
 
 }

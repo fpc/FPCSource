@@ -690,60 +690,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2002-08-22 08:30:50  mazen
+  Revision 1.2  2002-09-07 15:25:15  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/22 08:30:50  mazen
   first insertion 2002\08\22
 
-  Revision 1.8  2001/12/31 09:53:16  jonas
-    * changed remaining "getregister32" calls to "getregisterint"
-
-  Revision 1.7  2001/12/29 15:29:59  jonas
-    * powerpc/cgcpu.pas compiles :)
-    * several powerpc-related fixes
-    * cpuasm unit is now based on common tainst unit
-    + nppcmat unit for powerpc (almost complete)
-
-  Revision 1.5  2001/08/26 13:37:03  florian
-    * some cg reorganisation
-    * some PPC updates
-
-  Revision 1.4  2001/04/13 01:22:21  peter
-    * symtable change to classes
-    * range check generation and errors fixed, make cycle DEBUG=1 works
-    * memory leaks fixed
-
-  Revision 1.3  2000/12/25 00:07:34  peter
-    + new tlinkedlist class (merge of old tstringqueue,tcontainer and
-      tlinkedlist objects)
-
-  Revision 1.2  2000/12/05 11:44:34  jonas
-    + new integer regvar handling, should be much more efficient
-
-  Revision 1.1  2000/11/29 00:30:51  florian
-    * unused units removed from uses clause
-    * some changes for widestrings
-
-  Revision 1.9  2000/10/31 22:30:13  peter
-    * merged asm result patch part 2
-
-  Revision 1.8  2000/10/14 10:14:56  peter
-    * moehrendorf oct 2000 rewrite
-
-  Revision 1.7  2000/09/30 16:08:46  peter
-    * more cg11 updates
-
-  Revision 1.6  2000/09/24 15:06:32  peter
-    * use defines.inc
-
-  Revision 1.5  2000/08/27 16:11:55  peter
-    * moved some util functions from globals,cobjects to cutils
-    * splitted files into finput,fmodule
-
-  Revision 1.4  2000/08/05 13:32:39  peter
-    * fixed build prob without support_mmx
-
-  Revision 1.3  2000/08/04 05:09:49  jonas
-    * forgot to commit :( (part of regvar changes)
-
-  Revision 1.2  2000/07/13 11:32:52  michael
-  + removed logs
 }

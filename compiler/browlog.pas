@@ -415,15 +415,15 @@ implementation
 
     begin
         if assigned(p.defref) then
-	    begin
-        	browserlog.AddLog('***'+p.mangledname);
+            begin
+                browserlog.AddLog('***'+p.mangledname);
                 browserlog.AddLogRefs(p.defref);
                 if (current_module.flags and uf_local_browser)<>0 then
                     begin
                         if assigned(p.parast) then
-                    	    writesymtable(p.parast);
+                            writesymtable(p.parast);
                         if assigned(p.localst) then
-                    	    writesymtable(p.localst);
+                            writesymtable(p.localst);
                     end;
              end;
     end;
@@ -464,7 +464,7 @@ implementation
                       writesymtable(tobjectdef(ttypesym(hp).restype.def).symtable);
                   end;
                 procsym :
-		    Tprocsym(hp).foreach_procdef_static({$IFDEF FPCPROCVAR}@{$ENDIF}writelocalsymtables,nil);
+                    Tprocsym(hp).foreach_procdef_static({$IFDEF FPCPROCVAR}@{$ENDIF}writelocalsymtables,nil);
               end;
               hp:=tstoredsym(hp.indexnext);
             end;
@@ -515,7 +515,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-08-20 10:31:26  daniel
+  Revision 1.16  2002-09-07 15:25:00  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.15  2002/08/20 10:31:26  daniel
    * Tcallnode.det_resulttype rewritten
 
   Revision 1.14  2002/07/23 09:51:22  daniel

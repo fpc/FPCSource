@@ -1976,7 +1976,10 @@ const
 end.
 {
   $Log$
-  Revision 1.70  2002-09-03 16:26:27  daniel
+  Revision 1.71  2002-09-07 15:25:06  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.70  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.69  2002/09/01 12:11:33  peter
@@ -2090,24 +2093,5 @@ end.
       manglednames depending on the current procedure, object and module
     * removed static procprefix since the mangledname is now build only
       on demand from tprocdef.mangledname
-
-  Revision 1.49  2002/04/15 19:00:33  carl
-  + target_info.size_of_pointer -> pointer_Size
-
-  Revision 1.48  2002/03/29 13:29:32  peter
-    * fixed memory corruption created by previous fix
-
-  Revision 1.47  2002/03/29 11:23:24  michael
-  + Patch from Pavel Ozerski
-
-  Revision 1.46  2002/01/24 18:25:49  peter
-   * implicit result variable generation for assembler routines
-   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.45  2002/01/09 07:38:03  michael
-  + Patch from peter for library imports
-
-  Revision 1.44  2002/01/06 21:54:07  peter
-    * fixed external <dll> name <c-name> manglednames
 
 }

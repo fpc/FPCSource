@@ -1386,7 +1386,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.77  2002-09-03 16:26:27  daniel
+  Revision 1.78  2002-09-07 15:25:07  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.77  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.76  2002/09/02 18:46:26  peter
@@ -1495,35 +1498,5 @@ end.
   Revision 1.58  2002/04/04 19:06:03  peter
     * removed unused units
     * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.57  2002/04/04 18:42:49  carl
-  + added wdosx support (patch from Pavel)
-
-  Revision 1.56  2002/04/02 17:11:29  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.55  2002/04/01 13:43:32  armin
-  addToLocalThreadvarList used '_'+name instead of mangledname to find asm symbol
-
-  Revision 1.54  2002/03/29 17:19:50  armin
-  + allow exports for netware
-
-  Revision 1.53  2002/03/29 09:00:56  armin
-  + forgot to delete a debug writeln
-
-  Revision 1.52  2002/03/28 16:07:52  armin
-  + initialize threadvars defined local in units
-
-  Revision 1.51  2002/01/24 18:25:49  peter
-   * implicit result variable generation for assembler routines
-   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
 
 }

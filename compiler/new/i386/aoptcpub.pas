@@ -214,38 +214,7 @@ End.
 
 {
  $Log$
- Revision 1.1  2000-07-13 06:30:10  michael
- + Initial import
-
- Revision 1.8  2000/01/07 01:14:56  peter
-   * updated copyright to 2000
-
- Revision 1.7  1999/11/09 22:57:09  peter
-   * compiles again both i386,alpha both with optimizer
-
- Revision 1.6  1999/09/08 15:05:43  jonas
-   * some small changes so the new optimizer is again compilable
-
- Revision 1.5  1999/08/25 12:00:19  jonas
-   * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
- Revision 1.4  1999/08/23 14:41:14  jonas
-   + checksequence (processor independent)\n  + processor independent part of docse
-
- Revision 1.3  1999/08/18 14:32:25  jonas
-   + compilable!
-   + dataflow analyzer finished
-   + start of CSE units
-   + aoptbase which contains a base object for all optimizer objects
-   * some constants and type definitions moved around to avoid circular
-     dependencies
-   * moved some methods from base objects to specialized objects because
-     they're not used anywhere else
-
- Revision 1.2  1999/08/11 14:24:38  jonas
-   - removed RefsHaveSymbol define (I think references on all processors can have a symbol)
-
- Revision 1.1  1999/08/09 14:07:28  jonas
- commit.msg
+ Revision 1.2  2002-09-07 15:25:14  peter
+   * old logs removed and tabs fixed
 
 }

@@ -2595,7 +2595,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.97  2002-09-07 12:16:05  carl
+  Revision 1.98  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.97  2002/09/07 12:16:05  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 
@@ -2684,116 +2687,5 @@ end.
 
   Revision 1.78  2002/07/04 20:43:00  florian
     * first x86-64 patches
-
-  Revision 1.77  2002/07/01 16:23:52  peter
-    * cg64 patch
-    * basics for currency
-    * asnode updates for class and interface (not finished)
-
-  Revision 1.76  2002/05/18 13:34:09  peter
-    * readded missing revisions
-
-  Revision 1.75  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.73  2002/05/12 16:53:06  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.72  2002/04/25 20:16:38  peter
-    * moved more routines from cga/n386util
-
-  Revision 1.71  2002/04/20 21:32:23  carl
-  + generic FPC_CHECKPOINTER
-  + first parameter offset in stack now portable
-  * rename some constants
-  + move some cpu stuff to other units
-  - remove unused constents
-  * fix stacksize for some targets
-  * fix generic size problems which depend now on EXTEND_SIZE constant
-
-  Revision 1.70  2002/04/16 16:09:08  peter
-    * allow passing the address of a procedure to a formal parameter
-      in delphi mode
-
-  Revision 1.69  2002/04/15 19:44:19  peter
-    * fixed stackcheck that would be called recursively when a stack
-      error was found
-    * generic changeregsize(reg,size) for i386 register resizing
-    * removed some more routines from cga unit
-    * fixed returnvalue handling
-    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
-
-  Revision 1.68  2002/04/15 18:57:22  carl
-  + target_info.size_of_pointer -> POINTER_SIZE
-
-  Revision 1.67  2002/04/02 17:11:28  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.66  2002/03/31 20:26:33  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.65  2002/03/30 23:02:42  carl
-  * avoid crash with inline routines
-
-  Revision 1.64  2002/01/24 18:25:48  peter
-   * implicit result variable generation for assembler routines
-   * removed m_tp modeswitch, use m_tp7 or not(m_fpc) instead
-
-  Revision 1.63  2002/01/24 12:33:52  jonas
-    * adapted ranges of native types to int64 (e.g. high cardinal is no
-      longer longint($ffffffff), but just $fffffff in psystem)
-    * small additional fix in 64bit rangecheck code generation for 32 bit
-      processors
-    * adaption of ranges required the matching talgorithm used for selecting
-      which overloaded procedure to call to be adapted. It should now always
-      select the closest match for ordinal parameters.
-    + inttostr(qword) in sysstr.inc/sysstrh.inc
-    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
-      fixes were required to be able to add them)
-    * is_in_limit() moved from ncal to types unit, should always be used
-      instead of direct comparisons of low/high values of orddefs because
-      qword is a special case
-
-  Revision 1.62  2002/01/19 11:57:05  peter
-    * fixed path appending for lib
 
 }

@@ -76,7 +76,7 @@ unit cg64f32;
            removing superfluous opcodes. Returns TRUE if normal processing
            must continue in op64_const_reg, otherwise, everything is processed
            entirely in this routine, by emitting the appropriate 32-bit opcodes.
-        }   
+        }
         function optimize64_op_const_reg(list: taasmoutput; var op: topcg; var a : qword; var reg: tregister64): boolean;override;
 
         procedure g_rangecheck64(list: taasmoutput; const p: tnode;
@@ -639,7 +639,7 @@ unit cg64f32;
         case op of
         OP_ADD:
            begin
-             if a = 0 then 
+             if a = 0 then
                 exit;
            end;
         OP_AND:
@@ -648,7 +648,7 @@ unit cg64f32;
                 cg.a_op_const_reg(list,op,lowvalue,reg.reglo);
               if highvalue <> high(cardinal) then
                 cg.a_op_const_reg(list,op,highvalue,reg.reghi);
-              { already emitted correctly }  
+              { already emitted correctly }
               exit;
            end;
         OP_OR:
@@ -657,12 +657,12 @@ unit cg64f32;
                 cg.a_op_const_reg(list,op,lowvalue,reg.reglo);
               if highvalue <> 0 then
                 cg.a_op_const_reg(list,op,highvalue,reg.reghi);
-              { already emitted correctly }  
+              { already emitted correctly }
               exit;
            end;
         OP_SUB:
            begin
-             if a = 0 then 
+             if a = 0 then
                 exit;
            end;
         OP_XOR:
@@ -670,9 +670,9 @@ unit cg64f32;
            end;
         OP_SHL:
            begin
-             if a = 0 then 
+             if a = 0 then
                  exit;
-             { simply clear low-register 
+             { simply clear low-register
                and shift the rest and swap
                registers.
              }
@@ -683,14 +683,14 @@ unit cg64f32;
                  { swap the registers }
                  hreg := reg.reghi;
                  reg.reghi := reg.reglo;
-                 reg.reglo := hreg; 
+                 reg.reglo := hreg;
                  exit;
                end;
            end;
-        OP_SHR:   
+        OP_SHR:
            begin
              if a = 0 then exit;
-             { simply clear high-register 
+             { simply clear high-register
                and shift the rest and swap
                registers.
              }
@@ -701,7 +701,7 @@ unit cg64f32;
                  { swap the registers }
                  hreg := reg.reghi;
                  reg.reghi := reg.reglo;
-                 reg.reglo := hreg; 
+                 reg.reglo := hreg;
                  exit;
                end;
            end;
@@ -715,7 +715,7 @@ unit cg64f32;
             end;
         else
            internalerror(20020817);
-        end;   
+        end;
         optimize64_op_const_reg := false;
       end;
 
@@ -732,7 +732,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-08-19 18:17:47  carl
+  Revision 1.28  2002-09-07 15:25:00  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.27  2002/08/19 18:17:47  carl
     + optimize64_op_const_reg implemented (optimizes 64-bit constant opcodes)
     * more fixes to m68k for 64-bit operations
 
@@ -828,37 +831,5 @@ end.
 
   Revision 1.7  2002/04/07 13:21:18  carl
   + more documentation
-
-  Revision 1.6  2002/04/03 10:41:35  jonas
-    + a_load64_const_loc method
-
-  Revision 1.5  2002/04/02 17:11:27  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.4  2002/03/04 19:10:11  peter
-    * removed compiler warnings
-
-  Revision 1.3  2002/01/24 12:33:52  jonas
-    * adapted ranges of native types to int64 (e.g. high cardinal is no
-      longer longint($ffffffff), but just $fffffff in psystem)
-    * small additional fix in 64bit rangecheck code generation for 32 bit
-      processors
-    * adaption of ranges required the matching talgorithm used for selecting
-      which overloaded procedure to call to be adapted. It should now always
-      select the closest match for ordinal parameters.
-    + inttostr(qword) in sysstr.inc/sysstrh.inc
-    + abs(int64), sqr(int64), sqr(qword) in systemh.inc/generic.inc (previous
-      fixes were required to be able to add them)
-    * is_in_limit() moved from ncal to types unit, should always be used
-      instead of direct comparisons of low/high values of orddefs because
-      qword is a special case
 
 }

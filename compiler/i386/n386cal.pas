@@ -1307,7 +1307,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.69  2002-09-01 18:43:27  peter
+  Revision 1.70  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.69  2002/09/01 18:43:27  peter
     * include accumulator in regs_to_push list
 
   Revision 1.68  2002/09/01 12:13:00  peter
@@ -1413,61 +1416,5 @@ end.
       a rangecheck warning/error.
     * fixed pascal calling method with reversing also the high tree in
       the parast, detected by tcalcst3 test
-
-  Revision 1.48  2002/04/25 20:16:40  peter
-    * moved more routines from cga/n386util
-
-  Revision 1.47  2002/04/21 19:02:07  peter
-    * removed newn and disposen nodes, the code is now directly
-      inlined from pexpr
-    * -an option that will write the secondpass nodes to the .s file, this
-      requires EXTDEBUG define to actually write the info
-    * fixed various internal errors and crashes due recent code changes
-
-  Revision 1.46  2002/04/21 15:34:25  carl
-  * changeregsize -> rg.makeregsize
-
-  Revision 1.45  2002/04/15 19:44:21  peter
-    * fixed stackcheck that would be called recursively when a stack
-      error was found
-    * generic changeregsize(reg,size) for i386 register resizing
-    * removed some more routines from cga unit
-    * fixed returnvalue handling
-    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
-
-  Revision 1.44  2002/04/04 19:06:10  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.43  2002/04/02 17:11:35  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.42  2002/03/31 20:26:38  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.41  2002/03/04 19:10:13  peter
-    * removed compiler warnings
 
 }

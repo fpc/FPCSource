@@ -1908,7 +1908,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2002-09-07 09:16:55  carl
+  Revision 1.9  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.8  2002/09/07 09:16:55  carl
     * fix my stupid copy and paste bug
 
   Revision 1.7  2002/09/06 19:58:31  carl
@@ -2017,12 +2020,5 @@ end.
     * is_in_limit() moved from ncal to types unit, should always be used
       instead of direct comparisons of low/high values of orddefs because
       qword is a special case
-
-  Revision 1.62  2002/01/06 21:50:44  peter
-    * proc_to_procvar_equal fixed for procvar-procvar
-
-  Revision 1.61  2002/01/06 12:08:16  peter
-    * removed uauto from orddef, use new range_to_basetype generating
-      the correct ordinal type for a range
 
 }

@@ -1483,7 +1483,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2002-09-07 11:50:02  jonas
+  Revision 1.22  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.21  2002/09/07 11:50:02  jonas
     * fixed small regalloction info bug
 
   Revision 1.20  2002/09/02 11:25:20  florian
@@ -1575,6 +1578,4 @@ end.
   Revision 1.2  2002/07/13 19:38:43  florian
     * some more generic calling stuff fixed
 
-  Revision 1.1  2002/07/11 14:41:28  florian
-    * start of the new generic parameter handling
 }

@@ -788,7 +788,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-09-03 16:26:27  daniel
+  Revision 1.71  2002-09-07 15:25:07  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.70  2002/09/03 16:26:27  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.69  2002/08/25 19:25:20  peter
@@ -881,71 +884,5 @@ end.
 
   Revision 1.51  2002/05/14 19:34:49  peter
     * removed old logs and updated copyright year
-
-  Revision 1.50  2002/05/12 16:53:09  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.49  2002/04/20 21:32:24  carl
-  + generic FPC_CHECKPOINTER
-  + first parameter offset in stack now portable
-  * rename some constants
-  + move some cpu stuff to other units
-  - remove unused constents
-  * fix stacksize for some targets
-  * fix generic size problems which depend now on EXTEND_SIZE constant
-
-  Revision 1.48  2002/04/19 15:46:02  peter
-    * mangledname rewrite, tprocdef.mangledname is now created dynamicly
-      in most cases and not written to the ppu
-    * add mangeledname_prefix() routine to generate the prefix of
-      manglednames depending on the current procedure, object and module
-    * removed static procprefix since the mangledname is now build only
-      on demand from tprocdef.mangledname
-
-  Revision 1.47  2002/04/15 19:01:28  carl
-  + target_info.size_of_pointer -> pointer_Size
-
-  Revision 1.46  2002/04/04 18:45:19  carl
-  + added wdosx support (patch from Pavel)
-
-  Revision 1.45  2002/03/31 20:26:36  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.44  2002/01/19 15:37:24  peter
-    * commited the wrong file :(
-
-  Revision 1.43  2002/01/19 15:20:09  peter
-    * also check at the end of the implementation for incomplete classes
-
-  Revision 1.42  2002/01/19 15:12:34  peter
-    * check for unresolved forward classes in the interface
 
 }

@@ -655,7 +655,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2002-09-05 19:29:42  peter
+  Revision 1.28  2002-09-07 15:25:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.27  2002/09/05 19:29:42  peter
     * memdebug enhancements
 
   Revision 1.26  2002/08/18 20:06:23  peter
@@ -763,8 +766,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.6  2002/03/04 19:10:11  peter
-    * removed compiler warnings
 
 }

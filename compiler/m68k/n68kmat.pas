@@ -35,7 +35,7 @@ interface
       tm68knotnode = class(tnotnode)
          procedure pass_2;override;
       end;
-      
+
 
 implementation
 
@@ -128,7 +128,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2002-08-15 15:15:55  carl
+  Revision 1.4  2002-09-07 15:25:13  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/08/15 15:15:55  carl
     * jmpbuf size allocation for exceptions is now cpu specific (as it should)
     * more generic nodes for maths
     * several fixes for better m68k support

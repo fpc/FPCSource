@@ -84,7 +84,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.15  2002-08-10 14:46:31  carl
+  Revision 1.16  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.15  2002/08/10 14:46:31  carl
     + moved target_cpu_string to cpuinfo
     * renamed asmmode enum.
     * assembler reader has now less ifdef's

@@ -120,7 +120,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2002-09-07 15:25:15  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.2  2002/08/12 15:08:39  carl

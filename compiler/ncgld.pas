@@ -946,7 +946,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.28  2002-09-01 19:26:32  peter
+  Revision 1.29  2002-09-07 15:25:03  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.28  2002/09/01 19:26:32  peter
     * fixed register variable loading from parasymtable, the call by
       reference code was moved wrong
 
@@ -1030,50 +1033,5 @@ end.
   Revision 1.9  2002/05/20 13:30:40  carl
   * bugfix of hdisponen (base must be set, not index)
   * more portability fixes
-
-  Revision 1.8  2002/05/18 13:34:09  peter
-    * readded missing revisions
-
-  Revision 1.7  2002/05/18 11:17:03  peter
-    * fixed internalerror due to releasing an not initialized register
-
-  Revision 1.6  2002/05/16 19:46:37  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.5  2002/05/14 19:34:42  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.4  2002/05/13 19:54:37  peter
-    * removed n386ld and n386util units
-    * maybe_save/maybe_restore added instead of the old maybe_push
-
-  Revision 1.3  2002/05/12 16:53:07  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.2  2002/04/21 15:24:38  carl
-  + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
-  + changeregsize -> rg.makeregsize
-
-  Revision 1.1  2002/04/19 15:39:34  peter
-    * removed some more routines from cga
-    * moved location_force_reg/mem to ncgutil
-    * moved arrayconstructnode secondpass to ncgld
 
 }

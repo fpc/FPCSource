@@ -978,7 +978,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2002-09-03 16:26:26  daniel
+  Revision 1.43  2002-09-07 15:25:03  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.42  2002/09/03 16:26:26  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.41  2002/09/01 13:28:38  daniel
@@ -1084,8 +1087,5 @@ end.
       R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
     - list field removed of the tnode class because it's not used currently
       and can cause hard-to-find bugs
-
-  Revision 1.21  2002/01/19 11:52:32  peter
-    * dynarr:=nil support added
 
 }

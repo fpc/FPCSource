@@ -620,19 +620,7 @@ unit agatt;
 end.
 {
  $Log$
- Revision 1.1  2000-07-13 06:30:07  michael
- + Initial import
-
- Revision 1.4  2000/05/01 11:03:32  jonas
-   * some fixes, does not yet compile
-
- Revision 1.3  2000/01/07 01:14:50  peter
-   * updated copyright to 2000
-
- Revision 1.2  1999/09/03 13:08:36  jonas
-   * defined some necessary virtual helper methods
-
- Revision 1.1  1999/08/03 13:48:50  michael
- + Initial implementation
+ Revision 1.2  2002-09-07 15:25:14  peter
+   * old logs removed and tabs fixed
 
 }

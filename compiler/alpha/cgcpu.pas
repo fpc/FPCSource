@@ -67,7 +67,7 @@ constructor tcgalpha.init;
 procedure tcgalpha.g_stackframe_entry(list : paasmoutput;localsize : longint);
 
 begin
-  With List^ do 
+  With List^ do
     begin
     concat(new(paicpu,op_reg_ref(A_LDGP,Global_pointer,new_reference(R_27,0))));
     concat(new(paicpu,op_reg_ref(A_LDA,Stack_Pointer,new_reference(Stack_pointer,-LocalSize))));
@@ -200,49 +200,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-08-18 09:06:54  florian
+  Revision 1.2  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/18 09:06:54  florian
     * alpha files moved compiler/alpha
 
-  Revision 1.1  2000/07/13 06:30:10  michael
-  + Initial import
-
-  Revision 1.9  2000/01/07 01:14:56  peter
-    * updated copyright to 2000
-
-  Revision 1.8  1999/09/15 20:35:47  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.7  1999/08/25 12:00:17  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.6  1999/08/06 18:05:57  florian
-    * implemented some stuff for assignments
-
-  Revision 1.5  1999/08/06 14:15:53  florian
-    * made the alpha version compilable
-
-  Revision 1.4  1999/08/06 13:53:54  michael
-  Empty Virtual methods inserted
-
-  Revision 1.3  1999/08/05 15:50:32  michael
-  * more changes
-
-  Revision 1.2  1999/08/04 00:24:00  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.1  1999/08/03 22:39:46  florian
-    * initial revision
-
-  Revision 1.2  1999/08/01 23:19:59  florian
-    + make a new makefile using the old compiler makefile
-
-  Revision 1.1  1999/08/01 23:11:24  florian
-    + renamed ot tp cgcpu.pas
-
-  Revision 1.1  1999/08/01 22:08:26  florian
-    * reorganisation of directory structure
 }

@@ -303,68 +303,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2002-08-18 09:06:54  florian
+  Revision 1.2  2002-09-07 15:25:10  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.1  2002/08/18 09:06:54  florian
     * alpha files moved compiler/alpha
-
-  Revision 1.1  2000/07/13 06:30:10  michael
-  + Initial import
-
-  Revision 1.17  2000/03/01 15:36:13  florian
-    * some new stuff for the new cg
-
-  Revision 1.16  2000/01/07 01:14:56  peter
-    * updated copyright to 2000
-
-  Revision 1.15  1999/11/09 22:57:09  peter
-    * compiles again both i386,alpha both with optimizer
-
-  Revision 1.14  1999/08/23 23:27:55  pierre
-   + dummy InitCpu/DoneCpu
-
-  Revision 1.13  1999/08/06 16:41:10  jonas
-    * PowerPC compiles again, several routines implemented in cgcpu.pas
-    * added constant to cpubase of alpha and powerpc for maximum
-      number of operands
-
-  Revision 1.12  1999/08/06 16:04:08  michael
-  + introduced tainstruction
-
-  Revision 1.11  1999/08/06 15:53:52  florian
-    * made the alpha version compilable
-
-  Revision 1.10  1999/08/06 14:15:55  florian
-    * made the alpha version compilable
-
-  Revision 1.9  1999/08/06 13:26:53  florian
-    * more changes ...
-
-  Revision 1.8  1999/08/05 17:10:58  florian
-    * some more additions, especially procedure
-      exit code generation
-
-  Revision 1.7  1999/08/05 15:50:34  michael
-  * more changes
-
-  Revision 1.6  1999/08/05 14:58:17  florian
-    * some fixes for the floating point registers
-    * more things for the new code generator
-
-  Revision 1.5  1999/08/03 17:09:48  florian
-    * the alpha compiler can be compiled now
-
-  Revision 1.4  1999/08/03 15:52:40  michael
-  * Additional changes
-
-  Revision 1.3  1999/08/03 00:35:54  michael
-  + Added varregs
-
-  Revision 1.2  1999/08/02 17:16:44  michael
-  + Changes for alpha
-
-  Revision 1.1  1999/08/01 23:18:36  michael
-  + Fixes for new code generator
-
-  Revision 1.2  1998/09/09 20:14:00  peter
-    - dup files already used elsewhere
 
 }

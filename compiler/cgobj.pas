@@ -1585,7 +1585,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.56  2002-09-01 21:04:47  florian
+  Revision 1.57  2002-09-07 15:25:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.56  2002/09/01 21:04:47  florian
     * several powerpc related stuff fixed
 
   Revision 1.55  2002/09/01 17:05:43  florian
@@ -1665,155 +1668,5 @@ end.
     * types.pas renamed to defbase.pas because D6 contains a types
       unit so this would conflicts if D6 programms are compiled
     + Willamette/SSE2 instructions to assembler added
-
-  Revision 1.36  2002/07/11 14:41:27  florian
-    * start of the new generic parameter handling
-
-  Revision 1.35  2002/07/07 10:16:29  florian
-    * problems with last commit fixed
-
-  Revision 1.33  2002/07/07 09:52:32  florian
-    * powerpc target fixed, very simple units can be compiled
-    * some basic stuff for better callparanode handling, far from being finished
-
-  Revision 1.32  2002/07/06 20:09:10  carl
-  * updated generic constructor / destructor calling
-
-  Revision 1.31  2002/07/02 11:40:00  jonas
-    * fixed cg64 memory leak
-
-  Revision 1.30  2002/07/01 18:46:22  peter
-    * internal linker
-    * reorganized aasm layer
-
-  Revision 1.29  2002/07/01 16:23:52  peter
-    * cg64 patch
-    * basics for currency
-    * asnode updates for class and interface (not finished)
-
-  Revision 1.28  2002/06/06 18:53:17  jonas
-    * fixed internalerror(10) with -Or for i386 (a_load_ref_ref now saves
-      a general purpose register if it needs one but none are available)
-
-  Revision 1.27  2002/05/22 19:02:16  carl
-  + generic FPC_HELP_FAIL
-  + generic FPC_HELP_DESTRUCTOR instated (original from Pierre)
-  + generic FPC_DISPOSE_CLASS
-  + TEST_GENERIC define
-
-  Revision 1.26  2002/05/20 13:30:40  carl
-  * bugfix of hdisponen (base must be set, not index)
-  * more portability fixes
-
-  Revision 1.25  2002/05/18 13:34:05  peter
-    * readded missing revisions
-
-  Revision 1.24  2002/05/16 19:46:35  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.23  2002/05/14 19:34:40  peter
-    * removed old logs and updated copyright year
-
-  Revision 1.22  2002/05/13 19:54:36  peter
-    * removed n386ld and n386util units
-    * maybe_save/maybe_restore added instead of the old maybe_push
-
-  Revision 1.21  2002/05/12 19:57:16  carl
-  * maybe_loadself portable
-
-  Revision 1.20  2002/05/12 16:53:04  peter
-    * moved entry and exitcode to ncgutil and cgobj
-    * foreach gets extra argument for passing local data to the
-      iterator function
-    * -CR checks also class typecasts at runtime by changing them
-      into as
-    * fixed compiler to cycle with the -CR option
-    * fixed stabs with elf writer, finally the global variables can
-      be watched
-    * removed a lot of routines from cga unit and replaced them by
-      calls to cgobj
-    * u32bit-s32bit updates for and,or,xor nodes. When one element is
-      u32bit then the other is typecasted also to u32bit without giving
-      a rangecheck warning/error.
-    * fixed pascal calling method with reversing also the high tree in
-      the parast, detected by tcalcst3 test
-
-  Revision 1.19  2002/04/26 15:19:04  peter
-    * use saveregisters for incr routines, saves also problems with
-      the optimizer
-
-  Revision 1.18  2002/04/25 20:16:38  peter
-    * moved more routines from cga/n386util
-
-  Revision 1.17  2002/04/22 16:30:05  peter
-    * fixed @methodpointer
-
-  Revision 1.16  2002/04/21 15:25:30  carl
-  + a_jmp_cond -> a_jmp_always (a_jmp_cond is NOT portable)
-  + changeregsize -> rg.makeregsize
-
-  Revision 1.15  2002/04/20 21:32:23  carl
-  + generic FPC_CHECKPOINTER
-  + first parameter offset in stack now portable
-  * rename some constants
-  + move some cpu stuff to other units
-  - remove unused constents
-  * fix stacksize for some targets
-  * fix generic size problems which depend now on EXTEND_SIZE constant
-
-  Revision 1.14  2002/04/15 19:44:18  peter
-    * fixed stackcheck that would be called recursively when a stack
-      error was found
-    * generic changeregsize(reg,size) for i386 register resizing
-    * removed some more routines from cga unit
-    * fixed returnvalue handling
-    * fixed default stacksize of linux and go32v2, 8kb was a bit small :-)
-
-  Revision 1.13  2002/04/07 13:22:11  carl
-  + more documentation
-
-  Revision 1.12  2002/04/07 09:12:46  carl
-  + documentation
-
-  Revision 1.11  2002/04/06 18:10:42  jonas
-    * several powerpc-related additions and fixes
-
-  Revision 1.10  2002/04/04 19:05:54  peter
-    * removed unused units
-    * use tlocation.size in cg.a_*loc*() routines
-
-  Revision 1.9  2002/04/02 17:11:27  peter
-    * tlocation,treference update
-    * LOC_CONSTANT added for better constant handling
-    * secondadd splitted in multiple routines
-    * location_force_reg added for loading a location to a register
-      of a specified size
-    * secondassignment parses now first the right and then the left node
-      (this is compatible with Kylix). This saves a lot of push/pop especially
-      with string operations
-    * adapted some routines to use the new cg methods
-
-  Revision 1.8  2002/03/31 20:26:33  jonas
-    + a_loadfpu_* and a_loadmm_* methods in tcg
-    * register allocation is now handled by a class and is mostly processor
-      independent (+rgobj.pas and i386/rgcpu.pas)
-    * temp allocation is now handled by a class (+tgobj.pas, -i386\tgcpu.pas)
-    * some small improvements and fixes to the optimizer
-    * some register allocation fixes
-    * some fpuvaroffset fixes in the unary minus node
-    * push/popusedregisters is now called rg.save/restoreusedregisters and
-      (for i386) uses temps instead of push/pop's when using -Op3 (that code is
-      also better optimizable)
-    * fixed and optimized register saving/restoring for new/dispose nodes
-    * LOC_FPU locations now also require their "register" field to be set to
-      R_ST, not R_ST0 (the latter is used for LOC_CFPUREGISTER locations only)
-    - list field removed of the tnode class because it's not used currently
-      and can cause hard-to-find bugs
-
-  Revision 1.7  2002/03/04 19:10:11  peter
-    * removed compiler warnings
 
 }

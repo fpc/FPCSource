@@ -710,7 +710,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-09-01 21:04:49  florian
+  Revision 1.32  2002-09-07 15:25:14  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.31  2002/09/01 21:04:49  florian
     * several powerpc related stuff fixed
 
   Revision 1.30  2002/08/18 22:16:15  florian
@@ -785,15 +788,4 @@ end.
     * tai_align_abstract moved to tainst, cpuasm must define
       the tai_align class now, which may be empty
 
-  Revision 1.10  2002/05/13 19:52:46  peter
-    * a ppcppc can be build again
-
-  Revision 1.9  2002/04/21 15:48:39  carl
-  * some small updates according to i386 version
-
-  Revision 1.8  2002/04/20 21:41:51  carl
-  * renamed some constants
-
-  Revision 1.7  2002/04/06 18:13:02  jonas
-    * several powerpc-related additions and fixes
 }

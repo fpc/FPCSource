@@ -32,7 +32,7 @@ USES globals,cutils,cclasses,aasmbase,cpuinfo,cginfo;
 CONST
 {Size of the instruction table converted by nasmconv.pas}
   maxinfolen    = 8;
-{Defines the default address size for a processor}  
+{Defines the default address size for a processor}
   OS_ADDR=OS_32;{$WARNING "OS_ADDR" was set to "OS_32" but not verified!}
 {the natural int size for a processor}
   OS_INT=OS_32;{$WARNING "OS_INT" was set to "OS_32" but not verified!}
@@ -264,7 +264,7 @@ CONST
 TYPE
   { enumeration for registers, don't change the order }
   { it's used by the register size conversions        }
-  TRegister=({$INCLUDE registers.inc}); 
+  TRegister=({$INCLUDE registers.inc});
   TRegister64=PACKED RECORD
   {A type to store register locations for 64 Bit values.}
      RegLo,RegHi:TRegister;

@@ -50,7 +50,7 @@ interface
             where the emulation switches is on. Otherwise
             returns nil, and everything must be done in
             the code generation phase.
-          }  
+          }
           function first_addfloat : tnode; virtual;
        end;
        taddnodeclass = class of taddnode;
@@ -1422,8 +1422,8 @@ implementation
         right := nil;
         firstpass(result);
       end;
-      
-      
+
+
     function taddnode.first_addfloat: tnode;
       var
         procname: string[31];
@@ -1436,11 +1436,11 @@ implementation
         notnode := false;
         { In non-emulation mode, real opcodes are
           emitted for floating point values.
-        }  
+        }
         if not (cs_fp_emulation in aktmoduleswitches) then
           exit;
-          
-        procname := 'FPC_REAL_';  
+
+        procname := 'FPC_REAL_';
         case nodetype of
           addn : procname := procname + 'ADD';
           muln : procname := procname + 'MUL';
@@ -1448,7 +1448,7 @@ implementation
           slashn : procname := procname + 'DIV';
           ltn : procname := procname + 'LESS_THAN';
           lten: procname := procname + 'LESS_EQUAL_THAN';
-          gtn: 
+          gtn:
             begin
              procname := procname + 'LESS_EQUAL_THAN';
              notnode := true;
@@ -1459,7 +1459,7 @@ implementation
               notnode := true;
             end;
           equaln: procname := procname + 'EQUAL';
-          unequaln : 
+          unequaln :
             begin
               procname := procname + 'EQUAL';
               notnode := true;
@@ -1478,7 +1478,7 @@ implementation
         right := nil;
         firstpass(result);
       end;
-      
+
 
     function taddnode.pass_1 : tnode;
       var
@@ -1814,7 +1814,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.64  2002-09-07 12:16:05  carl
+  Revision 1.65  2002-09-07 15:25:02  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.64  2002/09/07 12:16:05  carl
     * second part bug report 1996 fix, testrange in cordconstnode
       only called if option is set (also make parsing a tiny faster)
 
@@ -1926,8 +1929,5 @@ end.
       (this is compatible with Kylix). This saves a lot of push/pop especially
       with string operations
     * adapted some routines to use the new cg methods
-
-  Revision 1.43  2002/03/30 23:12:09  carl
-  * avoid crash with procinfo ('merged')
 
 }

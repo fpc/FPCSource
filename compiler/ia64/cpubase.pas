@@ -128,7 +128,7 @@ Const
 
   varregs : Array [1..6] of Tregister =
             (R_9,R_10,R_11,R_12,R_13,R_14);
-            
+
 {*****************************************************************************
                        GCC /ABI linking information
 *****************************************************************************}
@@ -136,20 +136,20 @@ Const
   {# Registers which must be saved when calling a routine declared as
      cppdecl, cdecl, stdcall, safecall, palmossyscall. The registers
      saved should be the ones as defined in the target ABI and / or GCC.
-     
+
      This value can be deduced from CALLED_USED_REGISTERS array in the
      GCC source.
   }
   std_saved_registers = [R_9..R_14,R_F2..R_F9];
   {# Required parameter alignment when calling a routine declared as
      stdcall and cdecl. The alignment value should be the one defined
-     by GCC or the target ABI. 
-     
-     The value of this constant is equal to the constant 
+     by GCC or the target ABI.
+
+     The value of this constant is equal to the constant
      PARM_BOUNDARY / BITS_PER_UNIT in the GCC source.
-  }     
+  }
   std_param_align = ???;
-            
+
 
 Type
    TReference = record
@@ -275,24 +275,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2002-04-20 21:38:45  carl
+  Revision 1.4  2002-09-07 15:25:11  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.3  2002/04/20 21:38:45  carl
   * renamed some constants
-
-  Revision 1.2  2001/01/05 17:36:58  florian
-  * the info about exception frames is stored now on the stack
-  instead on the heap
-
-  Revision 1.1  2000/12/31 16:54:19  florian
-    + initial revision
-
-  Revision 1.1  2000/07/13 06:30:11  michael
-  + Initial import
-
-  Revision 1.1  2000/07/09 10:40:12  peter
-    * renamed to lowercase
-
-  Revision 1.1  2000/03/09 20:28:00  florian
-    * initial release derieved from the ALPHA cpubase.pas, the
-      file still contains some ALPHA stuff
 
 }

@@ -30,8 +30,8 @@ interface
   uses cpuinfo,symconst;
 
     type
-       {# Generic opcodes, which must be supported by all processors 
-       }   
+       {# Generic opcodes, which must be supported by all processors
+       }
        topcg =
        (
           OP_NONE,
@@ -107,7 +107,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  2002-08-05 18:27:48  carl
+  Revision 1.16  2002-09-07 15:25:01  peter
+    * old logs removed and tabs fixed
+
+  Revision 1.15  2002/08/05 18:27:48  carl
     + more more more documentation
     + first version include/exclude (can't test though, not enough scratch for i386 :()...
 
