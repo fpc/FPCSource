@@ -96,7 +96,7 @@ implementation
 {$else newcg}
       hcodegen,
 {$endif newcg}
-      htypechk,pass_1,cpubase;
+      htypechk,pass_1,cpubase,cpuinfo;
 
 
     function gentypeconvnode(node : tnode;t : pdef) : ttypeconvnode;
@@ -657,7 +657,23 @@ implementation
         first_cord_to_pointer:=nil;
         if left.nodetype=ordconstn then
           begin
-            t:=genpointerconstnode(tordconstnode(left).value,resulttype);
+            { check if we have a valid pointer constant (JM) }
+            if (sizeof(tordconstnode) > sizeof(tpointerord)) then
+              if (sizeof(tpointerord) = 4) then
+                begin
+                  if (tordconstnode(left).value < low(longint)) or
+                     (tordconstnode(left).value > high(cardinal)) then
+                  CGMessage(parser_e_range_check_error);
+                end
+              else if (sizeof(tpointerord) = 8) then
+                begin
+                  if (tordconstnode(left).value < low(int64)) or
+                     (tordconstnode(left).value > high(qword)) then
+                  CGMessage(parser_e_range_check_error);
+                end
+              else
+                internalerror(2001020801);
+            t:=genpointerconstnode(tpointerord(tordconstnode(left).value),resulttype);
             firstpass(t);
             first_cord_to_pointer:=t;
             exit;
@@ -1203,7 +1219,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2000-12-31 11:14:10  jonas
+  Revision 1.17  2001-02-08 13:09:03  jonas
+    * fixed web bug 1396: tpointerord is now a cardinal instead of a longint,
+      but added a hack in ncnv so that pointer(-1) still works
+
+  Revision 1.16  2000/12/31 11:14:10  jonas
     + implemented/fixed docompare() mathods for all nodes (not tested)
     + nopt.pas, nadd.pas, i386/n386opt.pas: optimized nodes for adding strings
       and constant strings/chars together

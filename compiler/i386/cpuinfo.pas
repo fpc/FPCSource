@@ -37,7 +37,11 @@ Type
    { this must be an ordinal type with the same size as a pointer }
    { to allow some dirty type casts for example when using        }
    { tconstsym.value                                              }
-   TPointerOrd = longint;
+   { Note: must be unsigned!! Otherwise, ugly code like           }
+   { pointer(-1) will result in a pointer with the value          }
+   { $fffffffffffffff on a 32bit machine if the compiler uses     }
+   { int64 constants internally (JM)                              }
+   TPointerOrd = cardinal;
 
 Const
    { Size of native extended type }
@@ -48,7 +52,11 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.1  2000-10-15 09:39:37  peter
+  Revision 1.2  2001-02-08 13:09:03  jonas
+    * fixed web bug 1396: tpointerord is now a cardinal instead of a longint,
+      but added a hack in ncnv so that pointer(-1) still works
+
+  Revision 1.1  2000/10/15 09:39:37  peter
     * moved cpu*.pas to i386/
     * renamed n386 to common cpunode
 
