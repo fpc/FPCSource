@@ -1156,10 +1156,38 @@ implementation
 
         { is_signed now also works for arrays (it checks the rangetype) (JM) }
         if is_signed(fromdef) xor is_signed(todef) then
-          begin
-            lto := max(lto,0);
-            hto := hto and $7fffffff;
-          end;
+          if is_signed(fromdef) then
+            { from is signed, to is unsigned }
+            begin
+              { if high(from) < 0 -> always range error }
+              if (hfrom < 0) or
+                 { if low(to) > maxlongint (== < 0, since we only have }
+                 { longints here), also range error                    }
+                 (lto < 0) then
+                begin
+                  emitcall('FPC_RANGEERROR');
+                  exit
+                end;
+              { to is unsigned -> hto < 0 == hto > maxlongint              }
+              { since from is signed, values > maxlongint are < 0 and must }
+              { be rejected                                                }
+              if hto < 0 then
+                hto := maxlongint; 
+            end
+          else
+            { from is unsigned, to is signed }
+            begin
+              if (lfrom < 0) or
+                 (hto < 0) then
+                begin
+                  emitcall('FPC_RANGEERROR');
+                  exit
+                end;
+              { since from is unsigned, values > maxlongint are < 0 and must }
+              { be rejected                                                  }
+              if lto < 0 then
+                lto := 0;
+            end;
 
         if is_reg and
            (opsize = S_L) then
@@ -1454,7 +1482,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2001-03-03 12:41:22  jonas
+  Revision 1.12  2001-03-04 10:26:56  jonas
+    * new rangecheck code now handles conversion between signed and cardinal types correctly
+
+  Revision 1.11  2001/03/03 12:41:22  jonas
     * simplified and optimized range checking code, FPC_BOUNDCHECK is no longer necessary
 
   Revision 1.10  2000/12/31 11:02:12  jonas
