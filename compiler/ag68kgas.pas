@@ -38,6 +38,7 @@ unit ag68kgas;
         procedure WriteAsmList;virtual;
 {$ifdef GDB}
         procedure WriteFileLineInfo(var fileinfo : tfileposinfo);
+        procedure WriteFileEndInfo;
 {$endif}
       end;
 
@@ -256,7 +257,8 @@ unit ag68kgas;
 
       procedure tm68kgasasmlist.WriteFileLineInfo(var fileinfo : tfileposinfo);
         begin
-          if not (cs_debuginfo in aktmoduleswitches) then
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
            exit;
         { file changed ? (must be before line info) }
           if lastfileindex<>fileinfo.fileindex then
@@ -295,6 +297,19 @@ unit ag68kgas;
              lastline:=fileinfo.line;
            end;
         end;
+
+      procedure tm68kgasasmlist.WriteFileEndInfo;
+
+        begin
+          if not ((cs_debuginfo in aktmoduleswitches) or
+             (cs_gdb_lineinfo in aktglobalswitches)) then
+           exit;
+          AsmLn;
+          AsmWriteLn(ait_section2str(sec_code));
+          AsmWriteLn(#9'.stabs "",'+tostr(n_sourcefile)+',0,0,Letext');
+          AsmWriteLn('Letext:');
+        end;
+
 {$endif GDB}
 
 
@@ -319,7 +334,8 @@ unit ag68kgas;
        begin
        { write debugger informations }
 {$ifdef GDB}
-         if cs_debuginfo in aktmoduleswitches then
+         if ((cs_debuginfo in aktmoduleswitches) or
+            (cs_gdb_lineinfo in aktglobalswitches)) then
           begin
             if not (hp^.typ in  [ait_external,ait_regalloc, ait_regdealloc,ait_stabn,ait_stabs,
                     ait_label,ait_cut,ait_marker,ait_align,ait_stab_function_name]) then
@@ -685,7 +701,8 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
       { there should be nothing but externals so we don't need to process
       WriteTree(externals); }
 
-      WriteTree(debuglist);
+      If (cs_debuginfo in aktmoduleswitches) then
+        WriteTree(debuglist);
       WriteTree(codesegment);
       WriteTree(datasegment);
       WriteTree(consts);
@@ -706,7 +723,10 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.25  2000-02-09 13:22:44  peter
+  Revision 1.26  2000-04-14 12:49:11  pierre
+   * some debug related updates
+
+  Revision 1.25  2000/02/09 13:22:44  peter
     * log truncated
 
   Revision 1.24  2000/01/07 01:14:18  peter
