@@ -773,7 +773,7 @@ Begin
   { was it a LF? then leave }
     if p^=#10 then
      begin
-       if (spos>1) and (s[spos]=#13) then
+       if (spos>0) and (s[spos]=#13) then
         dec(sPos);
        break;
      end;
@@ -1242,7 +1242,10 @@ end;
 
 {
   $Log$
-  Revision 1.27  1998-09-18 12:23:22  peter
+  Revision 1.28  1998-09-24 23:32:24  peter
+    * fixed small bug with a #13#10 on a line
+
+  Revision 1.27  1998/09/18 12:23:22  peter
     * fixed a bug introduced by my previous update
 
   Revision 1.26  1998/09/17 16:34:18  peter
