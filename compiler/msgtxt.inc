@@ -851,46 +851,47 @@ const msgtxt : array[0..000153,1..240] of char=(
   '3*2Tgo32v2_Version 2 of DJ Delorie DOS extender'#010+
   '3*2Tlinux_Li','nux'#010+
   '3*2Tnetware_Novell Netware Module (clib)'#010+
+  '3*2Tnetwlibc_Novell Netware Module (libc)'#010+
   '3*2Tos2_OS/2 / eComStation'#010+
   '3*2Tsunos_SunOS/Solaris'#010+
   '3*2Twatcom_Watcom compatible DOS extender'#010+
   '3*2Twdosx_WDOSX DOS extender'#010+
   '3*2Twin32_Windows 32 Bit'#010+
-  '3*1W<x>_Win32-like target options'#010+
-  '3*2WB<x>_Set I','mage base to Hexadecimal <x> value'#010+
+  '3*1W<x','>_Win32-like target options'#010+
+  '3*2WB<x>_Set Image base to Hexadecimal <x> value'#010+
   '3*2WC_Specify console type application'#010+
   '3*2WD_Use DEFFILE to export functions of DLL or EXE'#010+
   '3*2WF_Specify full-screen type application (OS/2 only)'#010+
-  '3*2WG_Specify graphic type application'#010+
-  '3*2WN_Do not generat','e relocation code (necessary for debugging)'#010+
+  '3*2WG_Specify gra','phic type application'#010+
+  '3*2WN_Do not generate relocation code (necessary for debugging)'#010+
   '3*2WR_Generate relocation code'#010+
   '6*1A<x>_output format'#010+
   '6*2Aas_Unix o-file using GNU AS'#010+
   '6*2Agas_GNU Motorola assembler'#010+
   '6*2Amit_MIT Syntax (old GAS)'#010+
-  '6*2Amot_Standard Motorola assembler'#010+
-  '6*1O_optimizati','ons:'#010+
+  '6*2Amot_S','tandard Motorola assembler'#010+
+  '6*1O_optimizations:'#010+
   '6*2Oa_turn on the optimizer'#010+
   '6*2Og_generate smaller code'#010+
   '6*2OG_generate faster code (default)'#010+
   '6*2Ox_optimize maximum (still BUGGY!!!)'#010+
   '6*2O0_set target processor to a MC68000'#010+
-  '6*2O2_set target processor to a MC68020+ (default)'#010+
-  '6*1R<x>_ass','embler reading style:'#010+
+  '6*2O2_set target pro','cessor to a MC68020+ (default)'#010+
+  '6*1R<x>_assembler reading style:'#010+
   '6*2RMOT_read motorola style assembler'#010+
   '6*1T<x>_Target operating system:'#010+
   '6*2Tamiga_Commodore Amiga'#010+
   '6*2Tatari_Atari ST/STe/TT'#010+
   '6*2Tlinux_Linux-68k'#010+
-  '6*2Tmacos_Macintosh m68k (not supported)'#010+
+  '6*2Tmacos_Macintosh m68k (not sup','ported)'#010+
   '6*2Tpalmos_PalmOS'#010+
-  'P*1T<x>_Target o','perating system:'#010+
+  'P*1T<x>_Target operating system:'#010+
   'P*2Tdarwin_Darwin and MacOS X on PowerPC'#010+
   'P*2Tlinux_Linux on PowerPC'#010+
   'P*2Tmacos_MacOS (classic) on PowerPC'#010+
   'P*2Tmorphos_MorphOS'#010+
   'P*2WC_Specify console type application (MacOS only)'#010+
-  'P*2WG_Specify graphic type application (MacOS ','only)'#010+
+  'P*2W','G_Specify graphic type application (MacOS only)'#010+
   'P*2WT_Specify tool type application (MPW tool, MacOS only)'#010+
   '**1*_'#010+
   '**1?_shows this help'#010+

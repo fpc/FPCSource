@@ -1372,12 +1372,15 @@ implementation
           end
          else
           begin
-	    if target_info.system <> system_i386_netware then
+	    if (target_info.system = system_i386_netware) or
+	       (target_info.system = system_i386_netwlibc) then
 	    begin
-              pd:=create_main_proc('main',potype_proginit,st);
-              pd.aliasnames.insert('PASCALMAIN');
+              pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
 	    end else
-	      pd:=create_main_proc('PASCALMAIN',potype_proginit,st); { main is need by the netware rtl }
+	    begin
+	      pd:=create_main_proc('main',potype_proginit,st);
+              pd.aliasnames.insert('PASCALMAIN');
+	    end;
           end;
          tcgprocinfo(current_procinfo).parse_body;
          tcgprocinfo(current_procinfo).generate_code;
@@ -1527,7 +1530,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.162  2004-09-03 16:12:32  armin
+  Revision 1.163  2004-09-04 21:18:47  armin
+  * target netwlibc added (libc is preferred for newer netware versions)
+
+  Revision 1.162  2004/09/03 16:12:32  armin
   * dont create main for netware (only PASCALMAIN)
 
   Revision 1.161  2004/08/16 22:52:35  olle

@@ -2189,6 +2189,7 @@ option_help_pages=11025_[
 3*2Tgo32v2_DJ Delorie DOS extender - wersja 2
 3*2Tlinux_Linux
 3*2Tnetware_Novell Netware Module (clib)
+3*2Tnetwlibc_Novell Netware Module (libc)
 3*2Tos2_OS/2 / eComStation
 3*2Tsunos_SunOS/Solaris
 3*2Twatcom_DOS extendery zgodne z Watcomem

@@ -176,6 +176,9 @@ uses
 {$ifdef nwm}
   ,i_nwm
 {$endif nwm}
+{$ifdef nwl}
+  ,i_nwl
+{$endif nwm}
 {$ifdef os2}
  {$ifdef emx}
   ,i_emx
@@ -426,7 +429,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  2004-06-20 08:55:29  florian
+  Revision 1.46  2004-09-04 21:18:47  armin
+  * target netwlibc added (libc is preferred for newer netware versions)
+
+  Revision 1.45  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.44  2004/01/14 23:39:05  florian

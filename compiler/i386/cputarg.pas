@@ -57,6 +57,9 @@ implementation
     {$ifndef NOTARGETNETWARE}
       ,t_nwm
     {$endif}
+    {$ifndef NOTARGETNETWLIBC}
+      ,t_nwl
+    {$endif}
     {$ifndef NOTARGETGO32V2}
       ,t_go32v2
     {$endif}
@@ -91,7 +94,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:31  florian
+  Revision 1.15  2004-09-04 21:18:47  armin
+  * target netwlibc added (libc is preferred for newer netware versions)
+
+  Revision 1.14  2004/06/20 08:55:31  florian
     * logs truncated
 
 }

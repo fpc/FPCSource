@@ -1345,7 +1345,7 @@ implementation
                         consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
-                           (target_info.system in [system_i386_WIN32,system_i386_wdosx,system_i386_Netware]) then
+                           (target_info.system in [system_i386_WIN32,system_i386_wdosx,system_i386_Netware,system_i386_netwlibc]) then
                      read_exports
                    else
                      begin
@@ -1423,7 +1423,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.203  2004-08-14 14:50:42  florian
+  Revision 1.204  2004-09-04 21:18:47  armin
+  * target netwlibc added (libc is preferred for newer netware versions)
+
+  Revision 1.203  2004/08/14 14:50:42  florian
     * fixed several sparc alignment issues
     + Jonas' inline node patch; non functional yet
 

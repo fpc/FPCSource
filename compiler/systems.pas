@@ -111,7 +111,8 @@ interface
              system_arm_linux,          { 31 }
              system_i386_watcom,        { 32 }
              system_powerpc_MorphOS,    { 33 }
-	     system_x86_64_freebsd	{ 34 }
+	     system_x86_64_freebsd,     { 34 }
+             system_i386_netwlibc       { 35 }
        );
 
        tasm = (as_none
@@ -702,7 +703,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.91  2004-06-29 21:00:08  peter
+  Revision 1.92  2004-09-04 21:18:47  armin
+  * target netwlibc added (libc is preferred for newer netware versions)
+
+  Revision 1.91  2004/06/29 21:00:08  peter
     * only enable dwarf for supported platforms
 
   Revision 1.90  2004/06/20 08:55:30  florian
