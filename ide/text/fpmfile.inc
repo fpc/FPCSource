@@ -77,19 +77,20 @@ procedure TIDEApp.Open(FileName: string);
 var D: PFileDialog;
     OpenIt: boolean;
 begin
-  New(D, Init('*.pas','Open a file','*.pas',fdOpenButton,0));
   OpenIt:=FileName<>'';
   if not OpenIt then
-  begin
+   begin
+     New(D, Init('*.pas','Open a file','*.pas',fdOpenButton,0));
      OpenIt:=Desktop^.ExecView(D)<>cmCancel;
-     if OpenIt then D^.GetFileName(FileName);
-  end;
+     if OpenIt then
+       D^.GetFileName(FileName);
+     Dispose(D, Done);
+   end;
   if OpenIt then
-  begin
-    FileName := FExpand(FileName);
-    OpenEditorWindow(nil,FileName,0,0);
-  end;
-  Dispose(D, Done);
+   begin
+     FileName:=FExpand(LocatePasFile(FileName));
+     OpenEditorWindow(nil,FileName,0,0);
+   end;
 end;
 
 
@@ -120,7 +121,11 @@ end;
 
 {
   $Log$
-  Revision 1.5  1999-01-21 11:54:17  peter
+  Revision 1.6  1999-02-02 16:41:41  peter
+    + automatic .pas/.pp adding by opening of file
+    * better debuggerscreen changes
+
+  Revision 1.5  1999/01/21 11:54:17  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

@@ -31,6 +31,9 @@ type
       function    GetPalette: PPalette; virtual;
       procedure   DosShell; virtual;
       destructor  Done; virtual;
+    public
+      procedure ShowUserScreen;
+      procedure ShowIDEScreen;
     private
       procedure NewEditor;
       procedure NewFromTemplate;
@@ -48,8 +51,8 @@ type
       procedure Target;
       procedure PrimaryFile_;
       procedure ClearPrimary;
-      procedure ShowScreenWindow;
-      procedure ShowUserScreen;
+      procedure DoUserScreenWindow;
+      procedure DoUserScreen;
       procedure Information;
       procedure Calculator;
       procedure ExecuteTool(Idx: integer);
@@ -326,7 +329,7 @@ begin
              cmClearPrimary  : ClearPrimary;
              cmInformation   : Information;
            { -- Debug menu -- }
-             cmUserScreen    : ShowUserScreen;
+             cmUserScreen    : DoUserScreen;
            { -- Options menu -- }
              cmSwitchesMode  : SetSwitchesMode;
              cmCompiler      : DoCompilerSwitch;
@@ -350,7 +353,7 @@ begin
            { -- Window menu -- }
              cmCloseAll      : CloseAll;
              cmWindowList    : WindowList;
-             cmUserScreenWindow: ShowScreenWindow;
+             cmUserScreenWindow: DoUserScreenWindow;
            { -- Help menu -- }
              cmHelpContents  : HelpContents;
              cmHelpIndex     : HelpHelpIndex;
@@ -378,31 +381,26 @@ begin
   inherited HandleEvent(Event);
 end;
 
-procedure TIDEApp.DoExecute(ProgramPath, Params: string; IsDosShell: boolean);
-begin
-  if UserScreen=nil then
-   begin
-     ErrorBox('Sorry, user screen not available.',nil);
-     Exit;
-   end;
 
+{****************************************************************************
+                                 Switch Screens
+****************************************************************************}
+
+procedure TIDEApp.ShowUserScreen;
+begin
   DoneSysError;
   DoneEvents;
   DoneMouse;
-  { Not found ?? (PM)
-   DoneScreen;       }
+  DoneScreen; { this is available in FV app.pas (PFV) }
   DoneDosMem;
 
   if Assigned(UserScreen) then
     UserScreen^.SwitchTo;
+end;
 
-  if IsDOSShell then
-    WriteShellMsg;
 
-  SwapVectors;
-  Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params);
-  SwapVectors;
-
+procedure TIDEApp.ShowIDEScreen;
+begin
   if Assigned(UserScreen) then
     UserScreen^.SwitchBack;
 
@@ -416,6 +414,28 @@ begin
   Message(Application,evBroadcast,cmUpdate,nil);
   UpdateScreen(true);
 end;
+
+
+procedure TIDEApp.DoExecute(ProgramPath, Params: string; IsDosShell: boolean);
+begin
+  if UserScreen=nil then
+   begin
+     ErrorBox('Sorry, user screen not available.',nil);
+     Exit;
+   end;
+
+  ShowUserScreen;
+
+  if IsDOSShell then
+    WriteShellMsg;
+
+  SwapVectors;
+  Exec(GetEnv('COMSPEC'),'/C '+ProgramPath+' '+Params);
+  SwapVectors;
+
+  ShowIDEScreen;
+end;
+
 
 procedure TIDEApp.Update;
 begin
@@ -603,7 +623,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.5  1999-01-22 18:13:22  pierre
+  Revision 1.6  1999-02-02 16:41:39  peter
+    + automatic .pas/.pp adding by opening of file
+    * better debuggerscreen changes
+
+  Revision 1.5  1999/01/22 18:13:22  pierre
    * DoneScreen Removed I did not find any such proc ??
 
   Revision 1.4  1999/01/22 10:24:03  peter

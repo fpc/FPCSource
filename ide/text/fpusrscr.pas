@@ -339,7 +339,12 @@ var r: registers;
 {$I realintr.inc}
 {$endif}
 begin
-  r.ah:=$00; r.al:=MI.Mode; intr($10,r);
+  r.ah:=$0f;
+  intr($10,r);
+  if r.al<>MI.Mode then
+   begin
+     r.ah:=$00; r.al:=MI.Mode; intr($10,r);
+   end;
   r.ah:=$05; r.al:=MI.Page; intr($10,r);
   r.ah:=$02; r.bh:=MI.Page; r.dl:=MI.CurPos.X; r.dh:=MI.CurPos.Y; intr($10,r);
   r.ah:=$01; r.ch:=MI.CurShapeT; r.cl:=MI.CurShapeB; intr($10,r);
@@ -459,7 +464,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1999-01-04 11:49:51  peter
+  Revision 1.3  1999-02-02 16:41:42  peter
+    + automatic .pas/.pp adding by opening of file
+    * better debuggerscreen changes
+
+  Revision 1.2  1999/01/04 11:49:51  peter
    * 'Use tab characters' now works correctly
    + Syntax highlight now acts on File|Save As...
    + Added a new class to syntax highlight: 'hex numbers'.

@@ -23,9 +23,13 @@ const
 {$ifdef linux}
   dirsep = '/';
   exeext = '';
+  pasext = '.pas';
+  ppext  = '.pp';
 {$else}
   dirsep = '\';
   exeext = '.exe';
+  pasext = '.pas';
+  ppext  = '.pp';
 {$endif}
 
 function IntToStr(L: longint): string;
@@ -42,7 +46,7 @@ function FixFileName(const s:string):string;
 function MakeExeName(const fn:string):string;
 function LExpand(S: string; MinLen: byte): string;
 function RExpand(S: string; MinLen: byte): string;
-function FitStr(S: string; Len: byte): string;
+function FitStr(const S: string; Len: byte): string;
 function LTrim(S: string): string;
 function RTrim(S: string): string;
 function Trim(S: string): string;
@@ -51,9 +55,10 @@ function UpcaseStr(S: string): string;
 function LowerCaseStr(S: string): string;
 function Max(A,B: longint): longint;
 function Min(A,B: longint): longint;
-function DirOf(S: string): string;
-function NameOf(S: string): string;
-function NameAndExtOf(S: string): string;
+function DirOf(const S: string): string;
+function ExtOf(const S: string): string;
+function NameOf(const S: string): string;
+function NameAndExtOf(const S: string): string;
 function StrToExtended(S: string): Extended;
 function Power(const A,B: double): double;
 function GetCurDir: string;
@@ -61,9 +66,10 @@ function MatchesMask(What, Mask: string): boolean;
 function MatchesMaskList(What, MaskList: string): boolean;
 function MatchesFileList(What, FileList: string): boolean;
 function EatIO: integer;
-function ExistsFile(FileName: string): boolean;
-function CompleteDir(Path: string): string;
+function ExistsFile(const FileName: string): boolean;
+function CompleteDir(const Path: string): string;
 function LocateFile(FileList: string): string;
+function LocatePasFile(const FileName:string):string;
 function GetStr(P: PString): string;
 
 const LastStrToIntResult : integer = 0;
@@ -197,24 +203,25 @@ begin
 end;
 
 
-function FitStr(S: string; Len: byte): string;
+function FitStr(const S: string; Len: byte): string;
 begin
   FitStr:=RExpand(copy(S,1,Len),Len);
 end;
 
 
 function KillTilde(S: string): string;
-var P: byte;
+var P: longint;
 begin
   repeat
     P:=Pos('~',S);
-    if P>0 then Delete(S,P,1);
+    if P>0 then
+      Delete(S,P,1);
   until P=0;
   KillTilde:=S;
 end;
 
 function UpcaseStr(S: string): string;
-var I: integer;
+var I: Longint;
 begin
   for I:=1 to length(S) do
       S[I]:=Upcase(S[I]);
@@ -239,22 +246,33 @@ begin
   if A<B then Min:=A else Min:=B;
 end;
 
-function DirOf(S: string): string;
+function DirOf(const S: string): string;
 var D: DirStr; E: ExtStr; N: NameStr;
 begin
   FSplit(S,D,N,E);
-  if copy(D,1,length(D))<>DirSep then D:=D+DirSep;
-  DirOf:=D;
+  if (D<>'') and (D[Length(D)]<>DirSep) then
+   DirOf:=D+DirSep
+  else
+   DirOf:=D;
 end;
 
-function NameOf(S: string): string;
+
+function ExtOf(const S: string): string;
+var D: DirStr; E: ExtStr; N: NameStr;
+begin
+  FSplit(S,D,N,E);
+  ExtOf:=E;
+end;
+
+
+function NameOf(const S: string): string;
 var D: DirStr; E: ExtStr; N: NameStr;
 begin
   FSplit(S,D,N,E);
   NameOf:=N;
 end;
 
-function NameAndExtOf(S: string): string;
+function NameAndExtOf(const S: string): string;
 var D: DirStr; E: ExtStr; N: NameStr;
 begin
   FSplit(S,D,N,E);
@@ -408,24 +426,20 @@ begin
   EatIO:=IOResult;
 end;
 
-function ExistsFile(FileName: string): boolean;
-var f: file;
-    Exists: boolean;
+function ExistsFile(const FileName: string): boolean;
+var
+  Dir : SearchRec;
 begin
-  {$I-}
-  Assign(f,FileName);
-  Reset(f,1);
-  Exists:=EatIO=0;
-  Close(f);
-  EatIO;
-  {$I+}
-  ExistsFile:=Exists;
+  FindFirst(FileName,Archive+ReadOnly,Dir);
+  ExistsFile:=(DosError=0);
 end;
 
-function CompleteDir(Path: string): string;
+function CompleteDir(const Path: string): string;
 begin
-  if copy(Path,length(Path),1)<>DirSep then Path:=Path+DirSep;
-  CompleteDir:=Path;
+  if (Path<>'') and (Path[Length(Path)]<>DirSep) then
+   CompleteDir:=Path+DirSep
+  else
+   CompleteDir:=Path;
 end;
 
 function LocateFile(FileList: string): string;
@@ -459,6 +473,28 @@ begin
   LocateFile:=FilePath;
 end;
 
+function LocatePasFile(const FileName:string):string;
+var
+  s : string;
+begin
+  LocatePasFile:=FileName;
+  if ExistsFile(FileName) or (ExtOf(FileName)<>'') then
+   exit;
+  S:=FileName+PPExt;
+  if ExistsFile(S) then
+   begin
+     LocatePasFile:=S;
+     exit;
+   end;
+  S:=FileName+PasExt;
+  if ExistsFile(S) then
+   begin
+     LocatePasFile:=S;
+     exit;
+   end;
+end;
+
+
 function GetStr(P: PString): string;
 begin
   if P=nil then GetStr:='' else GetStr:=P^;
@@ -469,7 +505,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  1999-01-21 11:54:25  peter
+  Revision 1.5  1999-02-02 16:41:43  peter
+    + automatic .pas/.pp adding by opening of file
+    * better debuggerscreen changes
+
+  Revision 1.4  1999/01/21 11:54:25  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command

@@ -45,7 +45,7 @@ uses
   Dos,Mouse,Video,
   App,
   FPViews,FPVars,FPUtils,FPIntf,
-  FPCompile,FPUsrScr;
+  FPCompile,FPIDe;
 
 
 {****************************************************************************
@@ -79,22 +79,20 @@ begin
    begin
      W^.Editor^.SetHighlightRow(Line);
      W^.Select;
-   end;  
+   end;
   Desktop^.UnLock;
 end;
 
 
 procedure TDebugController.DoDebuggerScreen;
 begin
-  if assigned(FPUsrScr.UserScreen) then
-    FPUsrScr.UserScreen^.SwitchBack;
+  MyApp.ShowIDEScreen;
 end;
 
 
 procedure TDebugController.DoUserScreen;
 begin
-  if assigned(FPUsrScr.UserScreen) then
-    FPUsrScr.UserScreen^.SwitchTo;
+  MyApp.ShowUserScreen;
 end;
 
 
@@ -131,7 +129,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  1999-01-22 18:14:09  pierre
+  Revision 1.3  1999-02-02 16:41:38  peter
+    + automatic .pas/.pp adding by opening of file
+    * better debuggerscreen changes
+
+  Revision 1.2  1999/01/22 18:14:09  pierre
    * adaptd to changes in gdbint and gdbcon for  to /
 
   Revision 1.1  1999/01/22 10:24:03  peter

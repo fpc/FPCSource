@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-procedure TIDEApp.ShowScreenWindow;
+procedure TIDEApp.DoUserScreenWindow;
 begin
   if UserScreenWindow=nil then
     begin
@@ -24,31 +24,30 @@ begin
   UserScreenWindow^.MakeFirst;
 end;
 
-procedure TIDEApp.ShowUserScreen;
+procedure TIDEApp.DoUserScreen;
 begin
   if UserScreen=nil then
    begin
      ErrorBox('Sorry, user screen not available.',nil);
      Exit;
    end;
-  DoneMouse;
-  DoneVideo;
 
-  UserScreen^.SwitchTo;
+  ShowUserScreen;
+
   Keyboard.GetKeyEvent;
   while (Keyboard.PollKeyEvent<>0) do
    Keyboard.GetKeyEvent;
-  UserScreen^.SwitchBack;
 
-  InitVideo;
-  InitMouse;
-  ReDraw;
-  UpdateScreen(true);
+  ShowIDEScreen;
 end;
 
 {
   $Log$
-  Revision 1.2  1999-01-21 11:54:16  peter
+  Revision 1.3  1999-02-02 16:41:40  peter
+    + automatic .pas/.pp adding by opening of file
+    * better debuggerscreen changes
+
+  Revision 1.2  1999/01/21 11:54:16  peter
     + tools menu
     + speedsearch in symbolbrowser
     * working run command
