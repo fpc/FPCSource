@@ -803,7 +803,7 @@ var
          { MOV to rel8 }
        end
        else
-        Message(assem_e_invalid_operand);
+        Message1(assem_e_invalid_operand,'');
     end;
 
 
@@ -1107,6 +1107,11 @@ var
                     (instruc = A_IN) then
                     Begin
                        operands[1].opinfo := ao_acc;
+                       case operands[1].reg of
+                         R_EAX: operands[1].size := S_L;
+                         R_AX:  operands[1].size := S_W;
+                         R_AL:  operands[1].size := S_B;
+                       end;
                     end
                end
               else
@@ -1158,6 +1163,11 @@ var
                      (instruc = A_OUT) then
                      Begin
                        operands[2].opinfo := ao_acc;
+                       case operands[2].reg of
+                         R_EAX: operands[2].size := S_L;
+                         R_AX:  operands[2].size := S_W;
+                         R_AL:  operands[2].size := S_B;
+                       end;
                        fits := TRUE;
                      end
                 end;
@@ -1493,6 +1503,7 @@ var
                      Begin
                        case operands[2].operandtype of
                          OPR_REGISTER:
+                          Begin
                             { see info in ratti386.pas, about the problem }
                             { which can cause gas here.                   }
                             if (opsize = operands[2].size) then
@@ -1501,17 +1512,24 @@ var
                                opsize,operands[1].reg,operands[2].reg)));
                             end
                             else
+                            if  instruc = A_IN then
+                               p^.concat(new(pai386,op_reg_reg(instruc,
+                               operands[2].size,operands[1].reg,operands[2].reg)))
+                            else
+                            if  instruc = A_OUT then
+                               p^.concat(new(pai386,op_reg_reg(instruc,
+                               operands[1].size,operands[1].reg,operands[2].reg)))
+                            else
                             { these do not require any size specification. }
-                            if (instruc in [A_IN,A_OUT,A_SAL,A_SAR,A_SHL,A_SHR,A_ROL,
+                            if (instruc in [A_SAL,A_SAR,A_SHL,A_SHR,A_ROL,
                                A_ROR,A_RCR,A_RCL])  then
                                { outs and ins are already taken care by }
                                { the first pass.                        }
                                p^.concat(new(pai386,op_reg_reg(instruc,
                                S_NO,operands[1].reg,operands[2].reg)))
                             else
-                            Begin
                               Message(assem_e_invalid_opcode_and_operand);
-                            end;
+                          end;
                          OPR_REFERENCE:
                            { variable name. }
                            { here we must check the instruction type }
@@ -3376,7 +3394,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  1998-09-02 01:23:40  carl
+  Revision 1.8  1998-10-07 04:29:44  carl
+    * Concatlabel now gives output on error
+    * in/out bugfix (still ins/outs left to fix)
+
+  Revision 1.7  1998/09/02 01:23:40  carl
     * bugfix of operand overrides, VERY stupid bugfix BTW...
 
   Revision 1.6  1998/08/27 00:42:17  carl
