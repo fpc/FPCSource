@@ -42,8 +42,9 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
-
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+         
+//          function copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean; override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
@@ -86,6 +87,7 @@ unit cpupara;
       begin
         cgpara.reset;
         cgpara.size:=OS_INT;
+        cgpara.intsize:=tcgsize2size[OS_INT];
         cgpara.alignment:=get_para_align(calloption);
         paraloc:=cgpara.add_location;
         with paraloc^ do
@@ -102,7 +104,10 @@ unit cpupara;
              begin
                loc:=LOC_REFERENCE;
                paraloc^.reference.index:=NR_STACK_POINTER_REG;
-               reference.offset:=sizeof(aint)*(nr-8);
+               if (target_info.abi <> abi_powerpc_aix) then
+                 reference.offset:=sizeof(aint)*(nr-8)
+               else
+                 reference.offset:=sizeof(aint)*(nr);
              end;
           end;
       end;
@@ -129,7 +134,10 @@ unit cpupara;
             classrefdef:
               result:=LOC_REGISTER;
             recorddef:
-              result:=LOC_REFERENCE;
+              if (target_info.abi<>abi_powerpc_aix) then
+                result:=LOC_REFERENCE
+              else
+                result:=LOC_REGISTER;
             objectdef:
               if is_object(p) then
                 result:=LOC_REFERENCE
@@ -166,8 +174,6 @@ unit cpupara;
 
 
     function tppcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
-      var
-        size, dummy: aint;
       begin
         { var,out always require address }
         if varspez in [vs_var,vs_out] then
@@ -177,18 +183,7 @@ unit cpupara;
           end;
         case def.deftype of
           recorddef:
-            begin
-              if (target_info.abi = abi_powerpc_aix) then
-                begin
-                  // all records should be passed by value under the aix abi,
-                  // but we can only fake this for 1, 2 and 4 bytes for now
-                  size := def.size;
-                  result := (size > 4) or
-                            not(byte(size) in [1,2,4]);
-                end
-              else
-                result := true;
-            end;
+            result :=(target_info.abi<>abi_powerpc_aix);
           arraydef:
             result:=(tarraydef(def).highrange>=tarraydef(def).lowrange) or
                              is_open_array(def) or
@@ -221,6 +216,14 @@ unit cpupara;
         curmmreg:=RS_M1;
       end;
 
+{
+    function tppcparamanager.copy_value_on_stack(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
+      begin
+        result := false;
+        if (target_info.abi <> abi_powerpc_aix) then
+          result := inherited copy_value_on_stack(varspez,def,calloption);
+      end;
+}
 
     procedure tppcparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
       var
@@ -304,7 +307,8 @@ unit cpupara;
     function tppcparamanager.create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras:tparalist;
                var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
       var
-         stack_offset: aword;
+         stack_offset, parasize: longint;
+         paralen: aint;
          nextintreg,nextfloatreg,nextmmreg, maxfpureg : tsuperregister;
          paradef : tdef;
          paraloc,paraloc2 : pcgparalocation;
@@ -312,8 +316,9 @@ unit cpupara;
          hp : tparavarsym;
          loc : tcgloc;
          paracgsize: tcgsize;
-         is_64bit: boolean;
+         def64bit: boolean;
 
+(*
       procedure assignintreg;
 
         begin
@@ -336,6 +341,7 @@ unit cpupara;
                 inc(stack_offset,4);
             end;
         end;
+*)
 
       begin
 {$ifdef extdebug}
@@ -348,6 +354,7 @@ unit cpupara;
          nextfloatreg := curfloatreg;
          nextmmreg := curmmreg;
          stack_offset := cur_stack_offset;
+         parasize := cur_stack_offset;
          case target_info.abi of
            abi_powerpc_aix:
              maxfpureg := RS_F13;
@@ -359,6 +366,7 @@ unit cpupara;
           for i:=0 to paras.count-1 do
             begin
               hp:=tparavarsym(paras[i]);
+              paradef := hp.vartype.def;
               { Syscall for Morphos can have already a paraloc set }
               if (vo_has_explicit_paraloc in hp.varoptions) then
                 begin
@@ -369,7 +377,7 @@ unit cpupara;
               hp.paraloc[side].reset;
               { currently only support C-style array of const }
               if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
-                 is_array_of_const(hp.vartype.def) then
+                 is_array_of_const(paradef) then
                 begin
                   paraloc:=hp.paraloc[side].add_location;
                   { hack: the paraloc must be valid, but is not actually used }
@@ -379,146 +387,144 @@ unit cpupara;
                   break;
                 end;
 
-              if (hp.varspez in [vs_var,vs_out]) then
+              if (hp.varspez in [vs_var,vs_out]) or
+                 push_addr_param(hp.varspez,paradef,p.proccalloption) or
+                 is_open_array(paradef) or
+                 is_array_of_const(paradef) then
                 begin
                   paradef:=voidpointertype.def;
                   loc:=LOC_REGISTER;
                   paracgsize := OS_ADDR;
+                  paralen := tcgsize2size[OS_ADDR];
                 end
               else
                 begin
-                  paradef := hp.vartype.def;
-                  loc:=getparaloc(paradef);
-                  if (hp.vartype.def.deftype = recorddef) and
-                     (target_info.abi = abi_powerpc_aix) and
-                     (hp.vartype.def.size <= 4) and
-                     (byte(hp.vartype.def.size) in [1,2,4]) then
+                  if not is_special_array(paradef) then
+                    paralen := paradef.size
+                  else
+                    paralen := tcgsize2size[def_cgsize(paradef)];
+                  if (target_info.abi = abi_powerpc_aix) and 
+                     (paradef.deftype = recorddef) and
+                     (hp.varspez in [vs_value,vs_const]) then
                     begin
-                      loc := LOC_REGISTER;
-                      paracgsize := def_cgsize(paradef);
+                      { if a record has only one field and that field is }
+                      { non-composite (not array or record), it must be  }
+                      { passed according to the rules of that type.       }
+                      if (trecorddef(hp.vartype.def).symtable.symindex.count = 1) and
+                         ((tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype = floatdef) or
+                          ((target_info.system = system_powerpc_darwin) and
+                           (tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def.deftype in [orddef,enumdef]))) then
+                        begin
+                          paradef :=
+                           tabstractvarsym(trecorddef(hp.vartype.def).symtable.symindex.search(1)).vartype.def;
+                          loc := getparaloc(paradef);
+                          paracgsize:=def_cgsize(paradef);
+                        end
+                      else
+                        begin
+                          loc := LOC_REGISTER;
+                          paracgsize := int_cgsize(paralen);
+                        end;
                     end
                   else
                     begin
+                      loc:=getparaloc(paradef);
                       paracgsize:=def_cgsize(paradef);
                       { for things like formaldef }
-                      if paracgsize=OS_NO then
-                        paracgsize:=OS_ADDR;
-                   end
+                      if (paracgsize=OS_NO) then
+                        begin
+                          paracgsize:=OS_ADDR;
+                          paralen := tcgsize2size[OS_ADDR];
+                        end;
+                    end
                 end;
               hp.paraloc[side].alignment:=std_param_align;
               hp.paraloc[side].size:=paracgsize;
-              { First location }
-              paraloc:=hp.paraloc[side].add_location;
-              paraloc^.size:=paracgsize;
-              case loc of
-                 LOC_REGISTER:
-                   begin
-                      is_64bit:=paraloc^.size in [OS_64,OS_S64];
-                      if nextintreg<=(RS_R10-ord(is_64bit))  then
-                        begin
-                           paraloc^.loc:=LOC_REGISTER;
+              hp.paraloc[side].intsize:=paralen;
+              if (target_info.abi = abi_powerpc_aix) and
+                 (paradef.deftype = recorddef) then
+                hp.paraloc[side].composite:=true;
 {$ifndef cpu64bit}
-                           if is_64bit then
-                             begin
-                               if odd(nextintreg-RS_R3) and (target_info.abi=abi_powerpc_sysv) Then
-                                 inc(nextintreg);
-                               paraloc^.size:=OS_32;
-                               paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
-                               inc(nextintreg);
-                               paraloc2:=hp.paraloc[side].add_location;
-                               paraloc2^.loc:=LOC_REGISTER;
-                               paraloc2^.size:=OS_32;
-                               paraloc2^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
-                               inc(nextintreg);
-                               if target_info.abi=abi_powerpc_aix then
-                                 inc(stack_offset,8);
-                             end
-                           else
-{$endif cpu64bit}
-                             begin
-                               paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
-                               inc(nextintreg);
-                               if target_info.abi=abi_powerpc_aix then
-                                 inc(stack_offset,sizeof(aword));
-                              end;
-                        end
+              if (target_info.abi=abi_powerpc_sysv) and
+                 is_64bit(paradef) and
+                 odd(nextintreg-RS_R3) then
+                inc(nextintreg);
+{$endif not cpu64bit}
+              { can become < 0 for e.g. 3-byte records }
+              while (paralen > 0) do
+                begin
+                  paraloc:=hp.paraloc[side].add_location;
+                  if (loc = LOC_REGISTER) and
+                     (nextintreg <= RS_R10) then
+                    begin
+                      paraloc^.loc := loc;
+                      paracgsize := int_cgsize(paralen);
+                      if (paracgsize in [OS_NO,OS_64,OS_S64]) then
+                        paraloc^.size := OS_INT
                       else
-                         begin
-                            nextintreg:=RS_R11;
-                            paraloc^.loc:=LOC_REFERENCE;
-                            if (side = callerside) then
-                              paraloc^.reference.index:=NR_STACK_POINTER_REG
-                            else
-                              paraloc^.reference.index:=NR_R12;
-                            paraloc^.reference.offset:=stack_offset;
-                            if not is_64bit then
-                              inc(stack_offset,4)
-                            else
-                              inc(stack_offset,8);
-                        end;
-                   end;
-                 LOC_FPUREGISTER:
-                   begin
-                      if nextfloatreg<=maxfpureg then
-                        begin
-                           paraloc^.loc:=LOC_FPUREGISTER;
-                           paraloc^.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
-                           inc(nextfloatreg);
-                        end
-                      else
-                         begin
-                            paraloc^.loc:=LOC_REFERENCE;
-                            if (side = callerside) then
-                              paraloc^.reference.index:=NR_STACK_POINTER_REG
-                            else
-                              paraloc^.reference.index:=NR_R12;
-                            paraloc^.reference.offset:=stack_offset;
-                        end;
+                        paraloc^.size := paracgsize;
+                      paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBNONE);
+                      inc(nextintreg);
+                      dec(paralen,tcgsize2size[paraloc^.size]);
+                      inc(parasize,tcgsize2size[paraloc^.size]);
                       if target_info.abi=abi_powerpc_aix then
+                        stack_offset := parasize;
+                    end
+                  else if (loc = LOC_FPUREGISTER) and
+                          (nextfloatreg <= maxfpureg) then
+                    begin
+                      paraloc^.loc:=loc;
+                      paraloc^.size := paracgsize;
+                      paraloc^.register:=newreg(R_FPUREGISTER,nextfloatreg,R_SUBWHOLE);
+                      inc(nextfloatreg);
+                      dec(paralen,tcgsize2size[paraloc^.size]);
+                      { if nextfpureg > maxfpureg, all intregs are already used, since there }
+                      { are less of those available for parameter passing in the AIX abi     }
+{$ifndef cpu64bit}
+                      if (paracgsize = OS_F32) then
                         begin
-                          if paraloc^.size = OS_F32 then
-                            begin
-                              inc(stack_offset,4);
-                              if (nextintreg < RS_R11) then
-                                inc(nextintreg);
-                            end
-                          else
-                            begin
-                              inc(stack_offset,8);
-                              if (nextintreg < RS_R10) then
-                                inc(nextintreg,2)
-                              else
-                                nextintreg := RS_R11;
-                            end;
-                        end;
-                   end;
-                 LOC_REFERENCE:
-                   begin
-                      paraloc^.size:=OS_ADDR;
-                      if push_addr_param(hp.varspez,paradef,p.proccalloption) or
-                        is_open_array(paradef) or
-                        is_array_of_const(paradef) then
-                        assignintreg
+                          inc(parasize,4);
+                          if (nextintreg < RS_R11) then
+                            inc(nextintreg);
+                        end
                       else
                         begin
-                           paraloc^.loc:=LOC_REFERENCE;
-                           if (side = callerside) then
-                             paraloc^.reference.index:=NR_STACK_POINTER_REG
-                           else
-                             paraloc^.reference.index:=NR_R12;
-                           paraloc^.reference.offset:=stack_offset;
-                           inc(stack_offset,hp.vartype.def.size);
+                          inc(parasize,8);
+                          if (nextintreg < RS_R10) then
+                            inc(nextintreg,2)
+                          else
+                            nextintreg := RS_R11;
                         end;
-                   end;
-                 else
-                   internalerror(2002071002);
-              end;
-           end;
+{$else not cpu64bit}
+                        begin
+                          inc(parasize,tcgsize2size[paracgsize]);
+                          if (nextintreg < RS_R11) then
+                            inc(nextintreg);
+                        end;
+{$endif not cpu64bit}
+                      if target_info.abi=abi_powerpc_aix then
+                        stack_offset := parasize;
+                    end
+                  else { LOC_REFERENCE }
+                    begin
+                       paraloc^.loc:=LOC_REFERENCE;
+                       paraloc^.size:=int_cgsize(paralen);
+                       if (side = callerside) then
+                         paraloc^.reference.index:=NR_STACK_POINTER_REG
+                       else
+                         paraloc^.reference.index:=NR_R12;
+                       paraloc^.reference.offset:=stack_offset;
+                       inc(stack_offset,align(paralen,4));
+                       inc(parasize,align(paralen,4));
+                       paralen := 0;
+                    end;
+                end;
+            end;
          curintreg:=nextintreg;
          curfloatreg:=nextfloatreg;
          curmmreg:=nextmmreg;
          cur_stack_offset:=stack_offset;
-         result:=cur_stack_offset;
+         result:=parasize;
       end;
 
 
@@ -537,7 +543,13 @@ unit cpupara;
         result:=create_paraloc_info_intern(p,callerside,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
         if (p.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
           { just continue loading the parameters in the registers }
-          result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset)
+          begin
+            result:=create_paraloc_info_intern(p,callerside,varargspara,curintreg,curfloatreg,curmmreg,cur_stack_offset);
+            { varargs routines have to reserve at least 32 bytes for the AIX abi }
+            if (target_info.abi = abi_powerpc_aix) and
+               (result < 32) then
+              result := 32;
+           end
         else
           begin
             parasize:=cur_stack_offset;
@@ -637,7 +649,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.80  2005-01-07 10:58:03  jonas
+  Revision 1.81  2005-01-10 21:50:05  jonas
+    + support for passing records in registers under darwin
+    * tcgpara now also has an intsize field, which contains the size in
+      bytes of the whole parameter
+
+  Revision 1.80  2005/01/07 10:58:03  jonas
     * fixed stupid tregister/tsuperregister bug (type checking circumvented
       using explicit typecase), caused bug3523
 

@@ -192,6 +192,7 @@ unit cpupara;
       begin
         cgpara.reset;
         cgpara.size:=OS_INT;
+        cgpara.intsize:=tcgsize2size[OS_INT];
         cgpara.alignment:=get_para_align(calloption);
         paraloc:=cgpara.add_location;
         with paraloc^ do
@@ -313,12 +314,16 @@ unit cpupara;
           begin
             hp:=tparavarsym(paras[i]);
             if push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption) then
-              paracgsize:=OS_ADDR
+              begin
+                paracgsize:=OS_ADDR;
+                hp.paraloc[side].intsize:=tcgsize2size[OS_ADDR];
+              end
             else
               begin
                 paracgsize:=def_cgSize(hp.vartype.def);
                 if paracgsize=OS_NO then
                   paracgsize:=OS_ADDR;
+                hp.paraloc[side].intsize := tcgsize2size[paracgsize];
               end;
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
@@ -388,9 +393,19 @@ unit cpupara;
             hp:=tparavarsym(paras[i]);
             pushaddr:=push_addr_param(hp.varspez,hp.vartype.def,p.proccalloption);
             if pushaddr then
-              paracgsize:=OS_ADDR
+              begin
+                paracgsize:=OS_ADDR;
+                hp.paraloc[side].intsize:=tcgsize2size[OS_ADDR];
+              end
             else
-              paracgsize:=def_cgsize(hp.vartype.def);
+              begin
+                paracgsize:=def_cgSize(hp.vartype.def);
+                hp.paraloc[side].intsize := hp.vartype.def.size;
+                if (hp.paraloc[side].intsize = 0) and
+                   { records can have size 0}
+                   (hp.vartype.def.deftype <> recorddef) then
+                  hp.paraloc[side].intsize := tcgsize2size[OS_ADDR];
+              end;
             is_64bit:=(paracgsize in [OS_64,OS_S64,OS_F64]);
             hp.paraloc[side].reset;
             hp.paraloc[side].size:=paracgsize;
@@ -514,7 +529,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.60  2004-11-22 22:01:19  peter
+  Revision 1.61  2005-01-10 21:50:05  jonas
+    + support for passing records in registers under darwin
+    * tcgpara now also has an intsize field, which contains the size in
+      bytes of the whole parameter
+
+  Revision 1.60  2004/11/22 22:01:19  peter
     * fixed varargs
     * replaced dynarray with tlist
 

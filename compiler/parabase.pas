@@ -54,6 +54,10 @@ unit parabase;
           Location  : PCGParalocation;
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
+          IntSize: aint; { size of the total location in bytes }
+{$ifdef powerpc}
+          composite: boolean; { under the AIX abi, how certain parameters are passed depends on whether they are composite or not }
+{$endif powerpc}
           constructor init;
           destructor  done;
           procedure   reset;
@@ -97,7 +101,11 @@ implementation
       begin
         alignment:=0;
         size:=OS_NO;
+        intsize:=0;
         location:=nil;
+{$ifdef powerpc}
+        composite:=false;
+{$endif powerpc}
       end;
 
 
@@ -119,6 +127,10 @@ implementation
           end;
         alignment:=0;
         size:=OS_NO;
+        intsize:=0;
+{$ifdef powerpc}
+        composite:=false;
+{$endif powerpc}
       end;
 
 
@@ -136,6 +148,10 @@ implementation
           end;
         result.alignment:=alignment;
         result.size:=size;
+        result.intsize:=intsize;
+{$ifdef powerpc}
+        result.composite:=composite;
+{$endif powerpc}
       end;
 
 
@@ -251,7 +267,12 @@ end.
 
 {
    $Log$
-   Revision 1.7  2005-01-07 16:22:54  florian
+   Revision 1.8  2005-01-10 21:50:05  jonas
+     + support for passing records in registers under darwin
+     * tcgpara now also has an intsize field, which contains the size in
+       bytes of the whole parameter
+
+   Revision 1.7  2005/01/07 16:22:54  florian
      + implemented abi compliant handling of strucutured functions results on sparc platform
 
    Revision 1.6  2004/11/22 22:01:19  peter

@@ -1267,7 +1267,7 @@ implementation
          end;
 
 
-       procedure gen_load_ref(const paraloc:TCGParaLocation;const ref:treference);
+       procedure gen_load_ref(const paraloc:TCGParaLocation;const ref:treference;sizeleft:aint);
          var
            href : treference;
          begin
@@ -1284,7 +1284,7 @@ implementation
                   { use concatcopy, because it can also be a float which fails when
                     load_ref_ref is used. Don't copy data when the references are equal }
                   if not((href.base=ref.base) and (href.offset=ref.offset)) then
-                    cg.g_concatcopy(list,href,ref,tcgsize2size[paraloc.size]);
+                    cg.g_concatcopy(list,href,ref,sizeleft);
                 end;
               else
                 internalerror(2002081302);
@@ -1323,7 +1323,7 @@ implementation
          end;
 
       var
-        i : integer;
+        i, sizeleft : aint;
         currpara : tparavarsym;
         paraloc : pcgparalocation;
 {$ifdef sparc}
@@ -1339,6 +1339,7 @@ implementation
           begin
             currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
             paraloc:=currpara.paraloc[calleeside].location;
+            sizeleft:=currpara.paraloc[calleeside].intsize;
             while assigned(paraloc) do
               begin
                 if paraloc^.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER] then
@@ -1352,6 +1353,7 @@ implementation
           begin
             currpara:=tparavarsym(current_procinfo.procdef.paras[i]);
             paraloc:=currpara.paraloc[calleeside].location;
+            sizeleft:=currpara.paraloc[calleeside].intsize;
             if not assigned(paraloc) then
               internalerror(200408203);
             case currpara.localloc.loc of
@@ -1361,8 +1363,9 @@ implementation
                   while assigned(paraloc) do
                     begin
                       unget_para(paraloc^);
-                      gen_load_ref(paraloc^,href);
+                      gen_load_ref(paraloc^,href,sizeleft);
                       inc(href.offset,TCGSize2Size[paraloc^.size]);
+                      dec(sizeleft,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
                     end;
                 end;
@@ -1422,13 +1425,15 @@ implementation
 {$ifdef sparc}
                   { Sparc passes floats in int registers, when loading to fpu register
                     we need a temp }
-                  tg.GetTemp(list,TCGSize2Size[currpara.localloc.size],tt_normal,tempref);
+                  sizeleft := TCGSize2Size[currpara.localloc.size];
+                  tg.GetTemp(list,sizeleft,tt_normal,tempref);
                   href:=tempref;
                   while assigned(paraloc) do
                     begin
                       unget_para(paraloc^);
-                      gen_load_ref(paraloc^,href);
+                      gen_load_ref(paraloc^,href,sizeleft);
                       inc(href.offset,TCGSize2Size[paraloc^.size]);
+                      dec(sizeleft,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
                     end;
                   cg.a_loadfpu_ref_reg(list,currpara.localloc.size,tempref,currpara.localloc.register);
@@ -2341,7 +2346,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.251  2005-01-03 22:27:56  peter
+  Revision 1.252  2005-01-10 21:50:05  jonas
+    + support for passing records in registers under darwin
+    * tcgpara now also has an intsize field, which contains the size in
+      bytes of the whole parameter
+
+  Revision 1.251  2005/01/03 22:27:56  peter
     * insert stack_check helper call before doing register allocation
       so the used registers can't be reused when parameters are loaded
       into register variables

@@ -329,7 +329,8 @@ implementation
                 LOC_CREFERENCE :
                   begin
 {$ifndef cpu64bit}
-                    if left.location.size in [OS_64,OS_S64] then
+                    { don't call the cg64 stuff for 8-byte sized records etc }
+                    if is_64bit(left.resulttype.def) then
                       cg64.a_param64_loc(exprasmlist,left.location,tempcgpara)
                     else
 {$endif cpu64bit}
@@ -684,6 +685,7 @@ implementation
          ppn : tcgcallparanode;
          callerparaloc,
          tmpparaloc : pcgparalocation;
+         sizeleft: aint;
 {$ifdef cputargethasfixedstack}
          htempref,
          href : treference;
@@ -703,6 +705,7 @@ implementation
 {$endif PASS2INLINE}
                    paramanager.freeparaloc(exprasmlist,ppn.tempcgpara);
                  tmpparaloc:=ppn.tempcgpara.location;
+                 sizeleft:=ppn.tempcgpara.intsize;
                  callerparaloc:=ppn.parasym.paraloc[callerside].location;
                  while assigned(callerparaloc) do
                    begin
@@ -745,6 +748,8 @@ implementation
 {$endif PASS2INLINE}
                              begin
 {$ifdef cputargethasfixedstack}
+                               if (assigned(tmpparaloc^.next)) then
+                                 internalerror(20050111);
                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
                                { copy parameters in case they were moved to a temp. location because we've a fixed stack }
                                case tmpparaloc^.loc of
@@ -753,7 +758,7 @@ implementation
                                      reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
                                      { use concatcopy, because it can also be a float which fails when
                                        load_ref_ref is used }
-                                     cg.g_concatcopy(exprasmlist,htempref,href,tcgsize2size[tmpparaloc^.size]);
+                                     cg.g_concatcopy(exprasmlist,htempref,href,sizeleft);
                                    end;
                                  LOC_REGISTER:
                                    cg.a_load_reg_ref(exprasmlist,tmpparaloc^.size,tmpparaloc^.size,tmpparaloc^.register,href);
@@ -768,6 +773,7 @@ implementation
                              end;
                          end;
                      end;
+                     dec(sizeleft,tcgsize2size[tmpparaloc^.size]);
                      callerparaloc:=callerparaloc^.next;
                      tmpparaloc:=tmpparaloc^.next;
                    end;
@@ -1256,7 +1262,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.193  2005-01-07 16:22:54  florian
+  Revision 1.194  2005-01-10 21:50:05  jonas
+    + support for passing records in registers under darwin
+    * tcgpara now also has an intsize field, which contains the size in
+      bytes of the whole parameter
+
+  Revision 1.193  2005/01/07 16:22:54  florian
     + implemented abi compliant handling of strucutured functions results on sparc platform
 
   Revision 1.192  2005/01/04 16:36:51  peter

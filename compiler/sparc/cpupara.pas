@@ -84,6 +84,7 @@ implementation
           InternalError(2002100806);
         cgpara.reset;
         cgpara.size:=OS_INT;
+        cgpara.intsize:=tcgsize2size[OS_INT];
         cgpara.alignment:=std_param_align;
         paraloc:=cgpara.add_location;
         with paraloc^ do
@@ -249,6 +250,7 @@ implementation
             hp.paraloc[side].size:=paracgsize;
             hp.paraloc[side].Alignment:=std_param_align;
             paralen:=tcgsize2size[paracgsize];
+            hp.paraloc[side].intsize:=paralen;
             while paralen>0 do
               begin
                 paraloc:=hp.paraloc[side].add_location;
@@ -327,7 +329,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2005-01-07 16:22:54  florian
+  Revision 1.53  2005-01-10 21:50:05  jonas
+    + support for passing records in registers under darwin
+    * tcgpara now also has an intsize field, which contains the size in
+      bytes of the whole parameter
+
+  Revision 1.52  2005/01/07 16:22:54  florian
     + implemented abi compliant handling of strucutured functions results on sparc platform
 
   Revision 1.51  2004/11/22 22:01:19  peter

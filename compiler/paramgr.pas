@@ -379,7 +379,11 @@ implementation
       begin
         cgpara.reset;
         cgpara.size:=parasym.paraloc[callerside].size;
+        cgpara.intsize:=parasym.paraloc[callerside].intsize;
         cgpara.alignment:=parasym.paraloc[callerside].alignment;
+{$ifdef powerpc}
+        cgpara.composite:=parasym.paraloc[callerside].composite;
+{$endif powerpc}
         paraloc:=parasym.paraloc[callerside].location;
         while assigned(paraloc) do
           begin
@@ -423,7 +427,11 @@ implementation
       begin
         cgpara.reset;
         cgpara.size:=parasym.paraloc[callerside].size;
+        cgpara.intsize:=parasym.paraloc[callerside].intsize;
         cgpara.alignment:=parasym.paraloc[callerside].alignment;
+{$ifdef powerpc}
+        cgpara.composite:=parasym.paraloc[callerside].composite;
+{$endif powerpc}
         paraloc:=parasym.paraloc[callerside].location;
         while assigned(paraloc) do
           begin
@@ -451,7 +459,12 @@ end.
 
 {
    $Log$
-   Revision 1.82  2004-11-21 17:17:03  florian
+   Revision 1.83  2005-01-10 21:50:05  jonas
+     + support for passing records in registers under darwin
+     * tcgpara now also has an intsize field, which contains the size in
+       bytes of the whole parameter
+
+   Revision 1.82  2004/11/21 17:17:03  florian
      * changed funcret location back to tlocation
 
    Revision 1.81  2004/11/15 23:35:31  peter

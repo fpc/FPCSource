@@ -244,31 +244,90 @@ const
     procedure tcgppc.a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const paraloc : tcgpara);
 
       var
-        ref: treference;
-        tmpreg: tregister;
+        tmpref, ref: treference;
+        location: pcgparalocation;
+        sizeleft: aint;
 
       begin
-        paraloc.check_simple_location;
-        case paraloc.location^.loc of
-          LOC_REGISTER,LOC_CREGISTER:
-            a_load_ref_reg(list,size,size,r,paraloc.location^.register);
-          LOC_REFERENCE:
-            begin
-               reference_reset_base(ref,paraloc.location^.reference.index,paraloc.location^.reference.offset);
-               tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-               a_load_ref_reg(list,size,size,r,tmpreg);
-               a_load_reg_ref(list,size,size,tmpreg,ref);
+        location := paraloc.location;
+        tmpref := r;
+        sizeleft := paraloc.intsize;
+        while assigned(location) do
+          begin
+            case location^.loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+{$ifndef cpu64bit}
+                  if (sizeleft <> 3) then
+                    begin
+                      a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
+                      { the following is only for AIX abi systems, but the }
+                      { conditions should never be true for SYSV (if they  }
+                      { are, there is a bug in cpupara)                    }
+                      
+                      { update: this doesn't work yet (we have to shift     }
+                      { right again in ncgutil when storing the parameters, }
+                      { and additionally Apple's documentation seems to be  }
+                      { wrong, in that these values are always kept in the  }
+                      { lower bytes of the registers                        }
+                      
+{
+                      if (paraloc.composite) and
+                         (sizeleft <= 2) and
+                         ((paraloc.intsize > 4) or
+                          (target_info.system <> system_powerpc_darwin)) then
+                        begin
+                          case sizeleft of
+                            1:
+                              a_op_const_reg(list,OP_SHL,OS_INT,24,location^.register);
+                            2:
+                              a_op_const_reg(list,OP_SHL,OS_INT,16,location^.register);
+                            else
+                              internalerror(2005010910);
+                          end;
+                        end;
+}
+                    end
+                  else
+                    begin
+                      a_load_ref_reg(list,OS_16,OS_16,tmpref,location^.register);
+                      a_reg_alloc(list,NR_R0);
+                      inc(tmpref.offset,2);
+                      a_load_ref_reg(list,OS_8,OS_8,tmpref,newreg(R_INTREGISTER,RS_R0,R_SUBNONE));
+                      a_op_const_reg(list,OP_SHL,OS_INT,16,location^.register);
+                      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,location^.register,newreg(R_INTREGISTER,RS_R0,R_SUBNONE),8,16,31-8));
+                      a_reg_dealloc(list,NR_R0);
+                      dec(tmpref.offset,2);
+                    end;
+{$else not cpu64bit}
+{$error add 64 bit support for non power of 2 loads in a_param_ref}
+{$endif not cpu64bit}
+                end;
+              LOC_REFERENCE:
+                begin
+                   reference_reset_base(ref,location^.reference.index,location^.reference.offset);
+                   g_concatcopy(list,tmpref,ref,sizeleft);
+                   if assigned(location^.next) then
+                     internalerror(2005010710);
+                end;
+              LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                case location^.size of
+                   OS_F32, OS_F64:
+                     a_loadfpu_ref_reg(list,location^.size,tmpref,location^.register);
+                   else
+                     internalerror(2002072801);
+                end;
+              LOC_VOID:
+                begin
+                  // nothing to do
+                end;
+              else
+                internalerror(2002081103);
             end;
-          LOC_FPUREGISTER,LOC_CFPUREGISTER:
-            case size of
-               OS_F32, OS_F64:
-                 a_loadfpu_ref_reg(list,size,r,paraloc.location^.register);
-               else
-                 internalerror(2002072801);
-            end;
-          else
-            internalerror(2002081103);
-        end;
+            inc(tmpref.offset,tcgsize2size[location^.size]);
+            dec(sizeleft,tcgsize2size[location^.size]);
+            location := location^.next;
+          end;
       end;
 
 
@@ -2299,7 +2358,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.190  2005-01-05 19:01:53  karoly
+  Revision 1.191  2005-01-10 21:50:05  jonas
+    + support for passing records in registers under darwin
+    * tcgpara now also has an intsize field, which contains the size in
+      bytes of the whole parameter
+
+  Revision 1.190  2005/01/05 19:01:53  karoly
     * sysv abi also uses F0-F13 as volatile registers
 
   Revision 1.189  2004/12/24 11:51:55  jonas
