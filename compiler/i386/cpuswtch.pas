@@ -56,7 +56,11 @@ begin
                  'a' : initglobalswitches:=initglobalswitches+[cs_align];
                  'g' : initglobalswitches:=initglobalswitches+[cs_littlesize];
                  'G' : initglobalswitches:=initglobalswitches-[cs_littlesize];
-                 'r' : initglobalswitches:=initglobalswitches+[cs_regalloc];
+                 'r' :
+                   begin
+                     initglobalswitches:=initglobalswitches+[cs_regalloc];
+                     Simplify_ppu:=false;
+                   end;
                  'u' : initglobalswitches:=initglobalswitches+[cs_uncertainopts];
                  '1' : initglobalswitches:=initglobalswitches-[cs_fastoptimize,cs_slowoptimize]+[cs_optimize];
                  '2' : initglobalswitches:=initglobalswitches-[cs_slowoptimize]+[cs_optimize,cs_fastoptimize];
@@ -117,7 +121,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.2  2000-12-23 19:46:49  peter
+  Revision 1.3  2001-05-12 12:11:31  peter
+    * simplify_ppu is now the default, a recompile of the compiler now
+      only compiles pp.pas
+
+  Revision 1.2  2000/12/23 19:46:49  peter
     * object to class conversion
     * more verbosity for -vt and -vd
     * -i options can be put after eachother so the Makefiles only need

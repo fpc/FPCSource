@@ -214,7 +214,7 @@ interface
        { used to set all registers used for each global function
          this should dramatically decrease the number of
          recompilations needed PM }
-       simplify_ppu : boolean = false;
+       simplify_ppu : boolean = true;
 
        { should we allow non static members ? }
        allow_only_static : boolean = false;
@@ -1273,7 +1273,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.33  2001-05-06 14:49:17  peter
+  Revision 1.34  2001-05-12 12:11:31  peter
+    * simplify_ppu is now the default, a recompile of the compiler now
+      only compiles pp.pas
+
+  Revision 1.33  2001/05/06 14:49:17  peter
     * ppu object to class rewrite
     * move ppu read and write stuff to fppu
 

@@ -394,10 +394,7 @@ begin
                       while j <= length(more) Do
                         Begin
                           case more[j] of
-                            'a' : If UnsetBool(More, j) then
-                                    Simplify_ppu:=false
-                                  else
-                                    Simplify_ppu:=true;
+                            'a' : Message2(option_obsolete_switch_use_new,'-Ca','-Or');
                             'h' :
                                begin
                                  val(copy(more,j+1,length(more)-j),heapsize,code);
@@ -1556,7 +1553,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.40  2001-04-18 22:01:54  peter
+  Revision 1.41  2001-05-12 12:11:31  peter
+    * simplify_ppu is now the default, a recompile of the compiler now
+      only compiles pp.pas
+
+  Revision 1.40  2001/04/18 22:01:54  peter
     * registration of targets and assemblers
 
   Revision 1.39  2001/04/13 01:22:10  peter
