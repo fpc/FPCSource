@@ -137,6 +137,7 @@ Type
 {$ifdef HASWIDECHAR}
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
+  WChar		      = WideChar;
 {$endif HASWIDECHAR}
 {$ifdef HASWIDESTRING}
   PWideString         = ^WideString;
@@ -519,7 +520,10 @@ const
 
 {
   $Log$
-  Revision 1.29  2001-07-29 13:49:15  peter
+  Revision 1.30  2001-07-30 14:34:29  marco
+   * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar. * Added wchar=widechar.
+
+  Revision 1.29  2001/07/29 13:49:15  peter
     * m68k updates merged
 
   Revision 1.28  2001/07/15 11:57:16  peter
