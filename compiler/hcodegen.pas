@@ -25,7 +25,7 @@ unit hcodegen;
   interface
 
     uses
-      aasm,tree,symtable
+      verbose,aasm,tree,symtable
 {$ifdef i386}
       ,i386
 {$endif}
@@ -121,6 +121,13 @@ unit hcodegen;
        { true, if an error while code generation occurs }
        codegenerror : boolean;
 
+    { message calls with codegenerror support }
+    procedure message(const t : tmsgconst);
+    procedure message1(const t : tmsgconst;const s : string);
+    procedure message2(const t : tmsgconst;const s1,s2 : string);
+    procedure message3(const t : tmsgconst;const s1,s2,s3 : string);
+
+
     { initialize respectively terminates the code generator }
     { for a new module or procedure                         }
     procedure codegen_doneprocedure;
@@ -156,7 +163,60 @@ unit hcodegen;
 implementation
 
      uses
-        systems,cobjects,verbose,globals,files,strings;
+        systems,comphook,cobjects,globals,files,strings;
+
+{*****************************************************************************
+            override the message calls to set codegenerror
+*****************************************************************************}
+
+    procedure message(const t : tmsgconst);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=status.errorcount;
+              verbose.Message(t);
+              codegenerror:=olderrorcount<>status.errorcount;
+           end;
+      end;
+
+    procedure message1(const t : tmsgconst;const s : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=status.errorcount;
+              verbose.Message1(t,s);
+              codegenerror:=olderrorcount<>status.errorcount;
+           end;
+      end;
+
+    procedure message2(const t : tmsgconst;const s1,s2 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=status.errorcount;
+              verbose.Message2(t,s1,s2);
+              codegenerror:=olderrorcount<>status.errorcount;
+           end;
+      end;
+
+    procedure message3(const t : tmsgconst;const s1,s2,s3 : string);
+      var
+         olderrorcount : longint;
+      begin
+         if not(codegenerror) then
+           begin
+              olderrorcount:=status.errorcount;
+              verbose.Message3(t,s1,s2,s3);
+              codegenerror:=olderrorcount<>status.errorcount;
+           end;
+      end;
+
 
 {*****************************************************************************
          initialize/terminate the codegen for procedure and modules
@@ -407,7 +467,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  1998-08-21 14:08:43  pierre
+  Revision 1.15  1998-09-01 09:02:51  peter
+    * moved message() to hcodegen, so pass_2 also uses them
+
+  Revision 1.14  1998/08/21 14:08:43  pierre
     + TEST_FUNCRET now default (old code removed)
       works also for m68k (at least compiles)
 

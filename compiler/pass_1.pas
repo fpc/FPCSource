@@ -30,7 +30,9 @@ unit pass_1;
 
     uses tree;
 
-    function do_firstpass(var p : ptree) : boolean;
+    procedure firstpass(var p : ptree);
+    function  do_firstpass(var p : ptree) : boolean;
+
 
   implementation
 
@@ -55,63 +57,6 @@ unit pass_1;
     const
        count_ref : boolean = true;
 
-    procedure message(const t : tmsgconst);
-
-      var
-         olderrorcount : longint;
-
-      begin
-         if not(codegenerror) then
-           begin
-              olderrorcount:=status.errorcount;
-              verbose.Message(t);
-              codegenerror:=olderrorcount<>status.errorcount;
-           end;
-      end;
-
-    procedure message1(const t : tmsgconst;const s : string);
-
-      var
-         olderrorcount : longint;
-
-      begin
-         if not(codegenerror) then
-           begin
-              olderrorcount:=status.errorcount;
-              verbose.Message1(t,s);
-              codegenerror:=olderrorcount<>status.errorcount;
-           end;
-      end;
-
-    procedure message2(const t : tmsgconst;const s1,s2 : string);
-
-      var
-         olderrorcount : longint;
-
-      begin
-         if not(codegenerror) then
-           begin
-              olderrorcount:=status.errorcount;
-              verbose.Message2(t,s1,s2);
-              codegenerror:=olderrorcount<>status.errorcount;
-           end;
-      end;
-
-    procedure message3(const t : tmsgconst;const s1,s2,s3 : string);
-
-      var
-         olderrorcount : longint;
-
-      begin
-         if not(codegenerror) then
-           begin
-              olderrorcount:=status.errorcount;
-              verbose.Message3(t,s1,s2,s3);
-              codegenerror:=olderrorcount<>status.errorcount;
-           end;
-      end;
-
-    procedure firstpass(var p : ptree);forward;
 
     { marks an lvalue as "unregable" }
     procedure make_not_regable(p : ptree);
@@ -4748,8 +4693,13 @@ unit pass_1;
            t_times:=t_times*8;
 
          cleartempgen;
-         if p^.t1<>nil then
-           firstpass(p^.t1);
+         if assigned(p^.t1) then
+          begin
+            firstpass(p^.t1);
+            if codegenerror then
+             exit;
+          end;
+
 
          p^.registers32:=p^.t1^.registers32;
          p^.registersfpu:=p^.t1^.registersfpu;
@@ -5324,7 +5274,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.67  1998-09-01 07:54:20  pierre
+  Revision 1.68  1998-09-01 09:02:52  peter
+    * moved message() to hcodegen, so pass_2 also uses them
+
+  Revision 1.67  1998/09/01 07:54:20  pierre
     * UseBrowser a little updated (might still be buggy !!)
     * bug in psub.pas in function specifier removed
     * stdcall allowed in interface and in implementation
