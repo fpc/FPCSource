@@ -361,8 +361,8 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
    {RCL} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
    {RCR} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
    {SAL} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
-  {SHLD} (Ch: (C_RWOp3, C_RWFlags, C_ROp1)),
-  {SHRD} (Ch: (C_RWOp3, C_RWFlags, C_ROp1)),
+  {SHLD} (Ch: (C_RWOp3, C_RWFlags, C_ROp2)),
+  {SHRD} (Ch: (C_RWOp3, C_RWFlags, C_ROp2)),
  {LCALL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {LJMP} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {LRET} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
@@ -1251,7 +1251,7 @@ Begin
       Case Pai386(p)^.op2t Of
         top_reg:
           If Not(TRegister(Pai386(p)^.op2) in [R_NO,R_ESP,ProcInfo.FramePointer]) Then
-            RegSet := RegSet + [TRegister(Pai386(p)^.op2)];
+            If RegSet := RegSet + [TRegister(TwoWords(Pai386(p)^.op2).Word1];
         top_ref:
           With TReference(Pai386(p)^.op2^) Do
             Begin
@@ -1293,7 +1293,8 @@ Begin {checks whether two Pai386 instructions are equal}
      (Pai(p1)^.typ = ait_instruction) And
      (Pai386(p1)^._operator = Pai386(p2)^._operator) And
      (Pai386(p1)^.op1t = Pai386(p2)^.op1t) And
-     (Pai386(p1)^.op2t = Pai386(p2)^.op2t)
+     (Pai386(p1)^.op2t = Pai386(p2)^.op2t) And
+     (Pai386(p1)^.op3t = Pai386(p2)^.op3t)
     Then
  {both instructions have the same structure:
   "<operator> <operand of type1>, <operand of type 2>"}
@@ -1378,9 +1379,17 @@ Begin {checks whether two Pai386 instructions are equal}
           End
       Else
  {an instruction <> mov, movzx, movsx}
-        InstructionsEquivalent :=
-           OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
-           OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+        If (Pai386(p1)^.op3t = top_none) Then
+          InstructionsEquivalent :=
+            OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
+            OpsEquivalent(Pai386(p1)^.op2t, Pai386(p1)^.op2, Pai386(p2)^.op2, RegInfo)
+        Else
+          InstructionsEquivalent :=
+            OpsEquivalent(Pai386(p1)^.op1t, Pai386(p1)^.op1, Pai386(p2)^.op1, RegInfo) And
+            OpsEquivalent(Pai386(p1)^.op2t, Pointer(Longint(TwoWords(Pai386(p1)^.op2).Word1)),
+                          Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word1)), RegInfo) And
+            OpsEquivalent(Pai386(p1)^.op3t, Pointer(Longint(TwoWords(Pai386(p1)^.op2).Word2)),
+                          Pointer(Longint(TwoWords(Pai386(p2)^.op2).Word2)), RegInfo)
  {the instructions haven't even got the same structure, so they're certainly
   not equivalent}
     Else InstructionsEquivalent := False;
@@ -1882,8 +1891,8 @@ Begin
               A_IMUL:
                 Begin
                   ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1);
-                  If (Pai386(p)^.Op2t <> Top_Ref) Then
-                    ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1)
+                  If (Pai386(p)^.Op2t = Top_Ref) Then
+                    ReadOp(CurProp, Pai386(p)^.Op2t, Pai386(p)^.Op2)
                   Else ReadOp(CurProp, Pai386(p)^.Op2t, Pointer(Longint(TwoWords(Pai386(p)^.Op2).Word1)));
                   ReadOp(CurProp, Pai386(p)^.Op3t, Pointer(LongInt(TwoWords(Pai386(p)^.Op2).Word2)));
                   If (Pai386(p)^.Op3t = top_none)
@@ -1894,15 +1903,8 @@ Begin
                            DestroyReg(CurProp, R_EAX);
                            DestroyReg(CurProp, R_EDX)
                          End
-                       Else
-                         Begin
-                           ReadOp(CurProp, Pai386(p)^.Op1t, Pai386(p)^.Op1);
-                           ReadOp(CurProp, Pai386(p)^.Op2t, Pai386(p)^.Op2);
-                           If (Pai386(p)^.Op2t = top_reg) Then
-                             DestroyReg(CurProp, TRegister(Pai386(p)^.Op2));
-                         End
-                   Else If (Pai386(p)^.Op3t = top_reg) Then
-                          DestroyReg(CurProp, TRegister(longint(twowords(Pai386(p)^.Op2).word2)));
+                       Else Destroy(p, Pai386(p)^.Op2t, Pai386(p)^.Op2)
+                   Else DestroyReg(CurProp, TRegister(longint(twowords(Pai386(p)^.Op2).word2)));
                 End;
               A_XOR:
                 Begin
@@ -1936,7 +1938,9 @@ Begin
                         C_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         C_SDirFlag: CurProp^.DirFlag := F_Set;
                         C_ROp1: ReadOp(CurProp, Pai386(p)^.op1t, Pai386(p)^.op1);
-                        C_ROp2: ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2);
+                        C_ROp2: If (Pai386(p)^.Op3t = top_none) Then
+                                  ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2)
+                                Else ReadOp(CurProp, Pai386(p)^.op2t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word1)));
                         C_ROp3: ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                         C_WOp1..C_RWOp1:
                           Begin
@@ -1947,13 +1951,17 @@ Begin
                         C_WOp2..C_RWOp2:
                           Begin
                             If (InstrProp.Ch[Cnt] = C_RWOp2) Then
-                              ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2);
-                            Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
+                              If (Pai386(p)^.Op3t = top_none) Then
+                                ReadOp(CurProp, Pai386(p)^.op2t, Pai386(p)^.op2)
+                              Else ReadOp(CurProp, Pai386(p)^.op2t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word1)));
+                            If (Pai386(p)^.Op3t = top_none) Then
+                              Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2)
+                            Else Destroy(p, Pai386(p)^.op2t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word1)));
                           End;
                         C_WOp3..C_RWOp3:
                           Begin
                             If (InstrProp.Ch[Cnt] = C_RWOp3) Then
-                              ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));;
+                              ReadOp(CurProp, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                             Destroy(p, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
                           End;
                         C_MemEDI:
@@ -2073,7 +2081,10 @@ End.
 
 {
  $Log$
- Revision 1.26  1998-11-24 12:50:09  peter
+ Revision 1.27  1998-11-24 19:47:22  jonas
+   * fixed problems posiible with 3 operand instructions
+
+ Revision 1.26  1998/11/24 12:50:09  peter
    * fixed crash
 
  Revision 1.25  1998/11/18 17:58:22  jonas

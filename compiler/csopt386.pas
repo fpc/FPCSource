@@ -118,11 +118,7 @@ Begin {CheckSequence}
               (Pai386(hp3)^.op1t = top_ref) And
               (Pai386(hp3)^.op2t = top_reg) And
                (Pai386(hp2)^._operator <> Pai386(hp3)^._operator) And
-{$IfDef RegInfo}
               RefsEquivalent(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^), RegInfo)
-{$Else RegInfo}
-              RefsEqual(TReference(Pai386(hp2)^.op1^),TReference(Pai386(hp3)^.op1^))
-{$EndIf RegInfo}
              Then
 
 {hack to be able to optimize
@@ -139,13 +135,8 @@ Begin {CheckSequence}
                  Then
                    Begin
                     If (Pai386(hp2)^.Size = S_B) And
-{$IfDef RegInfo}
                        RegsEquivalent(Reg8toReg32(TRegister(Pai386(hp2)^.op2)),
                                       TRegister(Pai386(hp3)^.op2), RegInfo)
-{$Else RegInfo}
-                        (Reg8toReg32(TRegister(Pai386(hp2)^.op2)) =
-                         TRegister(Pai386(hp3)^.op2))
-{$EndIf RegInfo}
                        Then
                          Begin
                            Pai386(hp2)^._operator := A_MOVZX;
@@ -164,14 +155,9 @@ Begin {CheckSequence}
                  Else
                    Begin
                      If (Pai386(hp3)^.Size = S_B) And
-{$IfDef RegInfo}
                        RegsEquivalent(TRegister(Pai386(hp2)^.op2),
                                       Reg8toReg32(TRegister(Pai386(hp3)^.op2)),
                                       RegInfo)
-{$Else RegInfo}
-                        (Reg8toReg32(TRegister(Pai386(hp3)^.op2)) =
-                         TRegister(Pai386(hp2)^.op2))
-{$EndIf RegInfo}
                        Then
                          Begin
                            TmpResult := True;
@@ -566,7 +552,10 @@ End.
 
 {
  $Log$
- Revision 1.14  1998-11-09 19:40:48  jonas
+ Revision 1.15  1998-11-24 19:47:24  jonas
+   * fixed problems posiible with 3 operand instructions
+
+ Revision 1.14  1998/11/09 19:40:48  jonas
    * fixed comments from last commit (apparently there's still a 255 char limit :( )
 
  Revision 1.13  1998/11/09 19:33:39  jonas
