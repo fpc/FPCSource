@@ -1736,8 +1736,9 @@ unit rgobj;
         for i:=1 to length(adj^) do
           begin
             m:=adj^[i];
-            if (pos(m,selectstack) or pos(m,coalescednodes))=0 then
-               decrement_degree(Tsuperregister(m));
+            if ((pos(m,selectstack) or pos(m,coalescednodes))=0) and
+                not (Tsuperregister(m) in [first_supreg..last_supreg]) then
+              decrement_degree(Tsuperregister(m));
           end;
     end;
 
@@ -1882,7 +1883,8 @@ unit rgobj;
                  lists while the degree does not change (add_edge will increase it).
                  Instead, we will decrement manually. (Only if the degree has been
                  increased.)}
-                if decrement and (degree[Tsuperregister(t)]>0) then
+                if decrement and not (Tsuperregister(t) in [first_supreg..last_supreg])
+                   and (degree[Tsuperregister(t)]>0) then
                   dec(degree[Tsuperregister(t)]);
               end;
           end;
@@ -2563,7 +2565,10 @@ end.
 
 {
   $Log$
-  Revision 1.66  2003-08-17 16:59:20  jonas
+  Revision 1.67  2003-08-23 10:46:21  daniel
+    * Register allocator bugfix for h2pas
+
+  Revision 1.66  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to
