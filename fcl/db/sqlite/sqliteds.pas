@@ -96,8 +96,7 @@ type
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     // Additional procedures
     function ApplyUpdates: Boolean;
-    procedure CloseHandle;
-    function CreateDataSet(MustCloseHandle:Boolean): Boolean;
+    function CreateTable: Boolean;
     function ExecSQL:Integer;
     function ExecSQL(ASql:String):Integer;
     function SqliteReturnString: String;
@@ -131,12 +130,14 @@ type
     property OnDeleteError;
     property OnEditError;
   end;
-
+  
+  procedure Register;
+  
 implementation
 
 uses SQLite;
 
-function GetFieldDefs(TheDataset: TDataset; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
+function GetFieldDefs(TheDataset: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
 var
   FieldSize:Word;
   Counter:Integer;
@@ -156,13 +157,37 @@ begin
    begin  
      AType:= ftInteger;
      FieldSize:=SizeOf(Integer); 
-   end  
-   else
+   end else if (ColumnStr = 'BOOLEAN') then
+   begin
+     AType:= ftBoolean;
+     FieldSize:=SizeOf(Boolean);
+   end else if (ColumnStr = 'FLOAT') then
+   begin
+     AType:= ftFloat;
+     FieldSize:=SizeOf(Double);
+   end else if (ColumnStr = 'WORD') then
+   begin
+     AType:= ftWord;
+     FieldSize:=SizeOf(Word);
+   end else if (ColumnStr = 'DATETIME') then
+   begin
+     AType:= ftDateTime;
+     FieldSize:=SizeOf(TDateTime);
+   end else if (ColumnStr = 'DATE') then
+   begin
+     AType:= ftDate;
+     FieldSize:=SizeOf(TDateTime);
+   end else if (ColumnStr = 'TIME') then
+   begin
+     AType:= ftTime;
+     FieldSize:=SizeOf(TDateTime);
+   end  else
    begin
      AType:= ftString;
      FieldSize:=0;
    end;
-   with TheDataset.FieldDefs do
+   
+   with TDataset(TheDataset).FieldDefs do
    begin
      Add(StrPas(ColumnNames[Counter]), AType, FieldSize, False); 
      If Items[Counter].Name = '_ROWID_' then
@@ -333,11 +358,16 @@ begin
       begin
         Move(FieldRow^,PChar(Buffer)^,StrLen(FieldRow)+1);
       end;
-    ftInteger:
+    ftInteger,ftBoolean,ftWord:
       begin
         Val(StrPas(FieldRow),LongInt(Buffer^),ValError);
         Result:= ValError = 0;  
       end;
+    ftFloat,ftDateTime,ftTime,ftDate:
+      begin
+        Val(StrPas(FieldRow),Double(Buffer^),ValError);
+        Result:= ValError = 0; 
+      end;    
     end;
   end;        
 end;
@@ -439,7 +469,7 @@ begin
     DisposeLinkedList;  
   if FSqliteHandle <> nil then
   begin
-    CloseHandle;
+    sqlite_close(FSqliteHandle);
     FSqliteHandle := nil;
   end;
   FAddedItems.Clear;
@@ -560,7 +590,8 @@ var
   TempStr:String;
   ActiveItem:PDataRecord;
 begin
-  if FRecordCount = 0 then exit; //avoid exception in win32 + lcl + TDbEdit
+  if (FRecordCount = 0) and (State <> dsInsert) then //avoid exception in win32 + lcl + TDbEdit
+    Exit; 
   ActiveItem:=PPDataRecord(ActiveBuffer)^;
   if (ActiveItem <> FCacheItem) and (FUpdatedItems.IndexOf(ActiveItem) = -1) and (FAddedItems.IndexOf(ActiveItem) = -1) then
     FUpdatedItems.Add(ActiveItem);
@@ -573,13 +604,20 @@ begin
         StrDispose(ActiveItem^.Row[Field.Index]);  
         ActiveItem^.Row[Field.Index]:=StrNew(PChar(Buffer));
       end;
-    ftInteger:
+    ftInteger,ftBoolean,ftWord:
       begin
         StrDispose(ActiveItem^.Row[Field.Index]);  
         Str(LongInt(Buffer^),TempStr);  
         ActiveItem^.Row[Field.Index]:=StrAlloc(Length(TempStr)+1);
         StrPCopy(ActiveItem^.Row[Field.Index],TempStr);
       end;
+    ftFloat,ftDateTime,ftDate,ftTime:
+      begin
+        StrDispose(ActiveItem^.Row[Field.Index]);  
+        Str(Double(Buffer^),TempStr);  
+        ActiveItem^.Row[Field.Index]:=StrAlloc(Length(TempStr)+1);
+        StrPCopy(ActiveItem^.Row[Field.Index],TempStr);
+      end;    
     end;        
 end;
 
@@ -691,12 +729,7 @@ begin
   {$endif}   
 end;    
 
-procedure TSqliteDataset.CloseHandle;
-begin
-  sqlite_close(FSqliteHandle);
-end;  
-
-function TSqliteDataset.CreateDataSet(MustCloseHandle:Boolean): Boolean;
+function TSqliteDataset.CreateTable: Boolean;
 var
   SqlTemp:String;
   Counter:Integer;
@@ -708,21 +741,36 @@ begin
     for Counter := 0 to FieldDefs.Count-1 do
     begin
       SqlTemp:=SqlTemp + FieldDefs[Counter].Name;
-      if FieldDefs[Counter].DataType = ftInteger then
-        SqlTemp:=SqlTemp + ' INTEGER'
+      case FieldDefs[Counter].DataType of
+        ftInteger:
+          SqlTemp:=SqlTemp + ' INTEGER';
+        ftString:
+          SqlTemp:=SqlTemp + ' VARCHAR';
+        ftBoolean:
+          SqlTemp:=SqlTemp + ' BOOLEAN';
+        ftFloat:
+          SqlTemp:=SqlTemp + ' FLOAT';  
+        ftWord:
+          SqlTemp:=SqlTemp + ' WORD';
+        ftDateTime:
+          SqlTemp:=SqlTemp + ' DATETIME';
+        ftDate:
+          SqlTemp:=SqlTemp + ' DATE';
+        ftTime:
+          SqlTemp:=SqlTemp + ' TIME';                
       else
-        SqlTemp:=SqlTemp + ' VARCHAR';
+        SqlTemp:=SqlTemp + ' VARCHAR';    
+      end;
       if Counter <>  FieldDefs.Count - 1 then
         SqlTemp:=SqlTemp+ ' , ';   
     end;
     SqlTemp:=SqlTemp+');';
     {$ifdef DEBUG}
-    writeln('CreateDataSet Sql: ',SqlTemp);
+    writeln('CreateTable Sql: ',SqlTemp);
     {$endif}  
     FSqliteReturnId:=sqlite_exec(FSqliteHandle,PChar(SqlTemp),nil,nil,nil);   
     Result:= FSqliteReturnId = SQLITE_OK;
-    if MustCloseHandle then
-      CloseHandle;
+    sqlite_close(FSqliteHandle);
   end
   else
     Result:=False;  
@@ -763,5 +811,10 @@ begin
     Result:='Unknow Return Value';    
  end;
 end;  
+ 
+procedure Register;
+begin
+  RegisterComponents('Data Access', [TSqliteDataset]);
+end;
  
 end. 

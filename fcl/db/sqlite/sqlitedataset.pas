@@ -408,18 +408,20 @@ var
   size: Integer;
   MsgLen: Integer;
 begin
-  msglen:=0;
+{  msglen:=0;
   size := 256;
   GetMem(buf, size);
-{
+
   If ErrNo = - 1 then
     ErrNo := GetLastError;
   MsgLen := FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nil, ErrNo, 0, buf, size, nil);
-}
+
   if MsgLen = 0 then
     Result := 'ERROR'
   else
     Result := buf;
+}
+  Result := ('SystemErrorMsg Not Implemented');
 end;
 
 function SystemErrorMsg: String;
@@ -1118,7 +1120,7 @@ procedure tSqliteRows.clearBuffer;
 var i : integer;
 begin
 if internalcount>0 then begin
-for i:=0 to internalCount do begin
+for i:=0 to internalCount -1  do begin
         if fBuffer[i]<>nil then begin
                 fBuffer[i].Free;
                 fBuffer[i]:=nil;
