@@ -746,9 +746,18 @@ begin
   if not crc_only then
     begin
       assign(f,fname);
+      {$ifdef MACOS}
+      {FPas is FreePascal's creator code on MacOS. See systems/mac_crea.txt}
+      SetDefaultMacOSCreator('FPas');  
+      SetDefaultMacOSFiletype('FPPU');
+      {$endif}
       {$I-}
-       rewrite(f,1);
+      rewrite(f,1);
       {$I+}
+      {$ifdef MACOS}
+      SetDefaultMacOSCreator('MPS ');
+      SetDefaultMacOSFiletype('TEXT');
+      {$endif}
       if ioresult<>0 then
        exit;
       Mode:=2;
@@ -1060,7 +1069,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.62  2005-01-19 22:19:41  peter
+  Revision 1.63  2005-01-24 17:46:18  olle
+    + ppu files now has FPas as creator code on MacOS
+
+  Revision 1.62  2005/01/19 22:19:41  peter
     * unit mapping rewrite
     * new derefmap added
 
