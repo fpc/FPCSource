@@ -91,11 +91,16 @@ implementation
                       begin
                         pl.addsym(sl_call,sym);
                       end;
+                    else
+                      begin
+                        Message1(parser_e_illegal_field_or_method,orgpattern);
+                        result:=false;
+                      end;
                   end;
                 end
                else
                 begin
-                  Message1(parser_e_illegal_field_or_method,pattern);
+                  Message1(parser_e_illegal_field_or_method,orgpattern);
                   result:=false;
                 end;
                consume(_ID);
@@ -123,14 +128,14 @@ implementation
                                     def:=tfieldvarsym(sym).vartype.def;
                                   else
                                     begin
-                                      Message1(sym_e_illegal_field,pattern);
+                                      Message1(sym_e_illegal_field,orgpattern);
                                       result:=false;
                                     end;
                                 end;
                               end
                              else
                               begin
-                                Message1(sym_e_illegal_field,pattern);
+                                Message1(sym_e_illegal_field,orgpattern);
                                 result:=false;
                               end;
                            end
@@ -1307,7 +1312,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.88  2004-12-11 15:19:08  jonas
+  Revision 1.89  2005-01-04 16:37:38  peter
+    * give error when property doesn't reference a method or field
+
+  Revision 1.88  2004/12/11 15:19:08  jonas
     * external vars are not regable
 
   Revision 1.87  2004/12/07 16:11:52  peter
