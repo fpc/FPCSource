@@ -624,7 +624,7 @@ end;
 function fexpand(const path : pathstr) : pathstr;
 
 var
-   s,pa : string[79];
+   s,pa : string[255];
    i,j  : longint;
 begin
    getdir(0,s);
@@ -895,7 +895,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.23  1999-09-22 12:34:05  pierre
+  Revision 1.24  1999-10-12 08:56:48  pierre
+   * fix form bug660
+
+  Revision 1.23  1999/09/22 12:34:05  pierre
    ExecInheritsHandles  reset to false by default
 
   Revision 1.22  1999/09/21 13:24:32  pierre
