@@ -6,7 +6,7 @@
 programs=fprcp
 
 [clean]
-units=comments pexpr pasprep
+units=comments expr pasprep
 
 [dirs]
 fpcdir=../..
