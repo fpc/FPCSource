@@ -8,6 +8,19 @@ unsigned short global_u16bit;
 unsigned long global_u32bit;
 unsigned long long global_s64bit;
 
+struct _3BYTE_
+{
+	unsigned char  u8;
+	unsigned short u16;
+};
+
+struct _7BYTE_
+{
+	unsigned char u8;
+	long long s64;
+	unsigned short u16;
+};
+
 
 /* simple parameter testing */
 void test_param_u8(unsigned char v)
@@ -51,9 +64,26 @@ void test_param_mixed_s64(unsigned char z, long long x, unsigned char y)
 	global_u8bit = y;
 }
 
+/* simple record testing */
+void test_param_struct_small(struct _3BYTE_ buffer)
+{
+	global_u8bit = buffer.u8;
+	global_u16bit = buffer.u16;
+}
+
+void test_param_struct_large(struct _7BYTE_ buffer)
+{
+	global_u8bit = buffer.u8;
+	global_u16bit = buffer.u16;
+	global_s64bit = buffer.s64;
+}
+
 /*
   $Log$
-  Revision 1.1  2002-04-13 21:06:39  carl
+  Revision 1.2  2002-04-22 19:09:12  carl
+  + added structure testing
+
+  Revision 1.1  2002/04/13 21:06:39  carl
   + c module testing
 
 */

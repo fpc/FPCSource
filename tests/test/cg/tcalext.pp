@@ -21,11 +21,25 @@ program tcalext;
 {$R+}
 
 {$L ctest.o}
+{ Use C alignment of records }
+{$PACKRECORDS C}
 const
    RESULT_U8BIT = $55;
    RESULT_U16BIT = $500F;
    RESULT_U32BIT = $500F0000;
    RESULT_S64BIT = -12000;
+
+type
+ _3byte_ = record
+  u8 : byte;
+  u16 : word;
+ end;
+ 
+_7byte_ = record
+  u8: byte;
+  s64: int64;
+  u16: word;
+end;
 
 
 { simple parameter passing }
@@ -37,6 +51,13 @@ procedure test_param_s64(x: int64); cdecl; external;
 procedure test_param_mixed_u16(z: byte; x : word; y :byte); cdecl; external;
 procedure test_param_mixed_u32(z: byte; x: cardinal; y: byte); cdecl; external;
 procedure test_param_mixed_s64(z: byte; x: int64; y: byte); cdecl; external;
+{ structure parameter testing }
+procedure test_param_struct_small(buffer :  _3BYTE_); cdecl; external;
+procedure test_param_struct_large(buffer :  _7BYTE_); cdecl; external;
+
+
+
+
 
 
 var
@@ -73,6 +94,8 @@ var
 
 
 var failed : boolean;
+    smallstruct : _3BYTE_;
+    bigstruct : _7BYTE_;
 begin
   Write('External simple parameter testing...');
   failed := false;
@@ -155,11 +178,49 @@ begin
   else
     WriteLn('Passed!');
 
+  Write('External struct parameter testing...');
+  
+  failed := false;
+
+  clear_values;
+  clear_globals;
+  
+  smallstruct.u8 := RESULT_U8BIT;
+  smallstruct.u16 := RESULT_u16BIT;
+  test_param_struct_small(smallstruct);
+  if global_u16bit <> RESULT_U16BIT then
+    failed := true;
+  if global_u8bit <> RESULT_U8BIT then
+    failed := true;
+
+  clear_values;
+  clear_globals;
+
+
+  bigstruct.u8 := RESULT_U8BIT;
+  bigstruct.u16 := RESULT_U16BIT;
+  bigstruct.s64 := RESULT_S64BIT;
+  test_param_struct_large(bigstruct);
+  if global_s64bit <> RESULT_S64BIT then
+    failed := true;
+  if global_u16bit <> RESULT_U16BIT then
+    failed := true;
+  if global_u8bit <> RESULT_U8BIT then
+    failed := true;
+
+  If failed then 
+   fail
+  else
+    WriteLn('Passed!');
+  
 end.
 
 {
   $Log$
-  Revision 1.1  2002-04-13 21:03:43  carl
+  Revision 1.2  2002-04-22 19:09:28  carl
+  + added structure testing
+
+  Revision 1.1  2002/04/13 21:03:43  carl
   + C module testing (unfinished)
 
 }
