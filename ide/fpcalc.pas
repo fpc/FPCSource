@@ -234,7 +234,7 @@ const
 {$ifdef Unix}
 Procedure CalcSigFPE(sig : longint);cdecl;
 {$else}
-function CalcSigFPE(sig : longint) : longint;cdecl;
+function CalcSigFPE(sig : longint) : longint;{$ifndef go32v2}cdecl;{$endif}
 {$endif}
 begin
 {$ifdef CPUI386}
@@ -572,7 +572,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2004-03-09 12:08:47  marco
+  Revision 1.11  2004-03-15 15:50:01  peter
+    * no cdecl for go32v2 signalhandler
+
+  Revision 1.10  2004/03/09 12:08:47  marco
    * fix calling convention sighandler
 
   Revision 1.9  2003/09/29 14:36:59  peter
