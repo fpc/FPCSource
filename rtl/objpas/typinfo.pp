@@ -82,7 +82,7 @@ unit typinfo;
                     MinValue,MaxValue : Longint;
                     case TTypeKind of
                       tkEnumeration:
-                        ( 
+                        (
                         BaseType : PTypeInfo;
                         NameList : ShortString)
                     );
@@ -183,6 +183,26 @@ unit typinfo;
 
   implementation
 
+{$ASMMODE INTEL}
+
+    function CallMethod_Integer(s : Pointer;Address : Pointer) : Integer;assembler;
+
+      asm
+         mov ESI,s
+         mov EDI,Address
+         call [EDI]
+         // now the result should be in EAX, untested yet (FK)
+      end;
+
+    function CallMethod_Boolean(s : Pointer;Address : Pointer) : Boolean;assembler;
+
+      asm
+         mov ESI,s
+         mov EDI,Address
+         call [EDI]
+         // now the result should be in EAX, untested yet (FK)
+      end;
+
     function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 
       begin
@@ -194,7 +214,7 @@ unit typinfo;
       var
          hp : PTypeData;
          i : longint;
-                  
+
       begin
          Result:=Nil;
          while Assigned(TypeInfo) do
@@ -221,36 +241,16 @@ unit typinfo;
 
     function IsStoredProp(Instance : TObject;PropInfo : PPropInfo) : Boolean;
 
-      type
-         tbfunction = function : boolean of object;
-
-      var
-         caller : packed record
-            Instance : Pointer;
-            Address : Pointer;
-         end;
-
       begin
-         caller.Instance:=Instance;
          case (PropInfo^.PropProcs shr 4) and 3 of
             0:
-              IsStoredProp:=
-                PBoolean(Pointer(Instance)+Longint(PropInfo^.StoredProc))^;
+              IsStoredProp:=PBoolean(Pointer(Instance)+Longint(PropInfo^.StoredProc))^;
             1:
-              begin
-                 caller.Address:=PropInfo^.StoredProc;
-              //   IsStoredProp:=tbfunction(caller);
-              end;
+              IsStoredProp:=CallMethod(Instance,PropInfo^.StoredProc);
             2:
-              begin
-                 caller.Address:=PPointer(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc))^;
-               //  IsStoredProp:=tbfunction(caller);
-              end;
-            4:
-              begin
-              IsStoredProp:=
-                LongBool(PropInfo^.StoredProc);
-              end;
+              IsStoredProp:=CallMethod(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.StoredProc)^);
+            3:
+              IsStoredProp:=LongBool(PropInfo^.StoredProc);
          end;
       end;
 
@@ -269,8 +269,26 @@ unit typinfo;
 
     function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
 
+      var
+         value : longint;
+
       begin
-         {!!!!!!!!!!!}
+         case (PropInfo^.PropProcs) and 3 of
+            0:
+              Value:=PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+            1:
+              Value:=CallMethod(Instance,PropInfo^.GetProc);
+            2:
+              Value:=CallMethod(Instance,(PPointer(Instance.ClassType)+Longint(PropInfo^.GetProc)^);
+         end;
+         { cut off unnecessary stuff }
+         case GetTypeData(PropInfo^.PropType)^.OrdType of
+            otSWord,otUWord:
+              Value:=Value and $ffff;
+            otSByte,otUByte:
+              Value:=Value and $ff;
+         end;
+         GetOrdProp:=Value;
       end;
 
     procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;
@@ -348,7 +366,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  1998-09-19 08:33:53  florian
+  Revision 1.9  1998-09-19 15:25:45  florian
+    * procedure GetOrdProp added
+
+  Revision 1.8  1998/09/19 08:33:53  florian
     + some procedures added
 
   Revision 1.7  1998/09/08 09:52:31  florian
