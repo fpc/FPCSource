@@ -1,5 +1,4 @@
 {
-    $Id$
     Copyright (c) 1998 by Michael Van Canneyt
     member of the Free Pascal development team
 
@@ -377,6 +376,10 @@ Var
     Function waddnstr(_para1:pWINDOW; _para2:pchar; _para3:longint):longint; cdecl;external;
     Function wattr_on(_para1:pWINDOW; _para2:attr_t):longint; cdecl;external;
     Function wattr_off(_para1:pWINDOW; _para2:attr_t):longint; cdecl;external;
+    Function wattr_set(win : pwindow; at : longint) : longint; cdecl;external;
+    function wattron(win : pwindow;at : longint) : longint; cdecl;external;
+    function wattroff(win : pwindow;at : longint) : longint; cdecl;external;
+    function wattrset(win : pwindow;at : longint) : longint; cdecl;external;
     Function wbkgd(_para1:pWINDOW; _para2:chtype):longint; cdecl;external;
     procedure wbkgdset(_para1:pWINDOW; _para2:chtype);cdecl;external;
     Function wborder(_para1:pWINDOW; _para2:chtype; _para3:chtype; _para4:chtype; _para5:chtype;
@@ -392,7 +395,7 @@ Var
     Function wgetch(_para1:pWINDOW):longint; cdecl;external;
     Function wgetnstr(_para1:pWINDOW; _para2:pchar; _para3:longint):longint; cdecl;external;
     Function whline(_para1:pWINDOW; _para2:chtype; _para3:longint):longint; cdecl;external;
-    Function winch (win : PWindow) : longint;
+    Function winch (win : PWindow) : longint; cdecl;external;
     Function winchnstr(_para1:pWINDOW; _para2:pchtype; _para3:longint):longint; cdecl;external;
     Function winnstr(_para1:pWINDOW; _para2:pchar; _para3:longint):longint; cdecl;external;
     Function winsch(_para1:pWINDOW; _para2:chtype):longint; cdecl;external;
@@ -420,6 +423,7 @@ Var
     Function mvwchgat(_para1:pWINDOW; _para2:longint; _para3:longint;
                       _para4:longint; _para5:longint; _para6:longint;
                       _para7:longint):longint;cdecl;external;
+    Function PAIR_NUMBER(_para1:longint):longint;cdecl;external;
 
     const
            A_NORMAL = 0;
@@ -474,10 +478,12 @@ Var
     function getpary(win : pwindow) : longint;
     function wstandout(win : pwindow) : longint;
     function wstandend(win : pwindow) : longint;
+{kjw, 08/24/2000, changed to cdecl; external
     function wattr_set(win : pwindow; at : longint) : longint;
     function wattron(win : pwindow;at : longint) : longint;
     function wattroff(win : pwindow;at : longint) : longint;
     function wattrset(win : pwindow;at : longint) : longint;
+}
     function scroll(win : pwindow) : longint;
     function touchwin(win : pwindow) : longint;
     function touchline(win : pwindow;s,c : longint) : longint;
@@ -851,6 +857,7 @@ begin
   wstandend:=wattr_set(win,A_NORMAL);
 end;
 
+(*
 function wattron(win : pwindow;at : longint) : longint;
 begin
   wattron:=wattr_on(win,at);
@@ -865,7 +872,7 @@ function wattrset(win : pwindow;at : longint) : longint;
 begin
   wattrset:=wattr_set(win,at);
 end;
-
+*)
 function scroll(win : pwindow) : longint;
 begin
   scroll:=wscrl(win,1);
@@ -1329,7 +1336,7 @@ begin
      X:=Win^._parx;
    end;
 end;
-
+(* kjw, 08/23/2000, external in v4.2
 function winch (win : PWindow) : longint;
 begin
   if win<>nil then
@@ -1348,7 +1355,7 @@ begin
   else
    wattr_set:=0;
 end;
-
+*)
 procedure setsyx (y,x : longint);
 begin
   stdscr^._cury := y;
@@ -1674,8 +1681,11 @@ end;
 
 end.
 {
-  $Log$
-  Revision 1.2  2000-07-13 11:33:27  michael
-  + removed logs
- 
+  $ Log: ncurses.pp,v $
+  Revision 1.7  2000/05/31 09:36:26  jonas
+    * restored (version included with ncrt 2.06 was outdated)
+
+  Revision 1.5  2000/02/27 14:40:41  peter
+    * removed warnings/notes
+
 }
