@@ -343,7 +343,7 @@ begin
   HelpCreateWindow;
   with HelpWindow^ do
   begin
-    HelpWindow^.ShowTopic(0,Context);
+    HelpWindow^.ShowTopic(FileID,Context);
     if GetState(sfVisible)=false then Show;
     MakeFirst;
   end;
@@ -504,7 +504,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:47  peter
+  Revision 1.3  2001-09-10 10:52:59  pierre
+   * fix web bug 1368
+
+  Revision 1.2  2001/08/05 02:01:47  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:23  peter
