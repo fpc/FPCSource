@@ -325,18 +325,18 @@ implementation
           hp:=hp^.left;
          { we need a simple loadn, but the load must be in a global symtable or
            in the same lexlevel }
-         if (hp^.treetype<>funcretn) and
-            (hp^.treetype<>loadn) and
-            (hp^.symtable^.symtablelevel>1) and
-            (hp^.symtable^.symtablelevel<>lexlevel) then
-          CGMessagePos(hp^.fileinfo,cg_e_illegal_count_var)
-         else
+         if (hp^.treetype=funcretn) or
+            ((hp^.treetype=loadn) and
+             ((hp^.symtable^.symtablelevel<=1) or
+              (hp^.symtable^.symtablelevel=lexlevel))) then
           begin
             if hp^.symtableentry^.typ=varsym then
               pvarsym(hp^.symtableentry)^.varstate:=vs_used;
             if (not(is_ordinal(p^.t2^.resulttype)) or is_64bitint(p^.t2^.resulttype)) then
               CGMessagePos(hp^.fileinfo,type_e_ordinal_expr_expected);
-          end;
+          end
+         else
+          CGMessagePos(hp^.fileinfo,cg_e_illegal_count_var);
 
          if p^.t2^.registers32>p^.registers32 then
            p^.registers32:=p^.t2^.registers32;
@@ -637,7 +637,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2000-09-03 11:44:00  peter
+  Revision 1.8  2000-09-10 21:19:40  peter
+    * fixed for counter var check (merged)
+
+  Revision 1.7  2000/09/03 11:44:00  peter
     * error for not specified operand size, which is now required for
       newer binutils (merged)
     * previous commit fix for tcflw (merged)
