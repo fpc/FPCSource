@@ -28,11 +28,11 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (1 shl 14)+(1 shl 7) + 0;
+       wordversion = (1 shl 14)+(9 shl 7) + 0;
 
        { version string }
        version_nr = '1';
-       release_nr = '1';
+       release_nr = '9';
        patch_nr   = '0';
        minorpatch = '';
 
@@ -96,7 +96,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2003-04-24 22:29:58  florian
+  Revision 1.18  2003-11-01 16:27:46  peter
+    * 1.9.0
+
+  Revision 1.17  2003/04/24 22:29:58  florian
     * fixed a lot of PowerPC related stuff
 
   Revision 1.16  2002/09/07 15:25:10  peter
