@@ -1632,10 +1632,10 @@ var
                          if actasmpattern = 'SELF' then
                           { special self variable }
                          Begin
-                           if assigned(procinfo._class) then
+                           if assigned(procinfo^._class) then
                              Begin
-                               instr.operands[operandnum].ref.offset := procinfo.selfpointer_offset;
-                               instr.operands[operandnum].ref.base := procinfo.framepointer;
+                               instr.operands[operandnum].ref.offset := procinfo^.selfpointer_offset;
+                               instr.operands[operandnum].ref.base := procinfo^.framepointer;
                              end
                            else
                              Message(assem_e_cannot_use_SELF_outside_a_method);
@@ -2178,7 +2178,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.10  1999-11-09 23:06:46  peter
+  Revision 1.11  1999-11-10 00:06:08  pierre
+   * adapted to procinfo as pointer
+
+  Revision 1.10  1999/11/09 23:06:46  peter
     * esi_offset -> selfpointer_offset to be newcg compatible
     * hcogegen -> cgbase fixes for newcg
 
@@ -2272,5 +2275,4 @@ end.
     + AG... files for the Assembler generation
 
 }
-
 

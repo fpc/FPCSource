@@ -93,7 +93,7 @@ implementation
                          if (symtabletype=parasymtable) or (symtabletype=localsymtable) then
                            begin
 
-                              p^.location.reference.base:=procinfo.framepointer;
+                              p^.location.reference.base:=procinfo^.framepointer;
                               p^.location.reference.offset:=pvarsym(p^.symtableentry)^.address;
 
                               if (symtabletype=localsymtable) then
@@ -109,8 +109,8 @@ implementation
                                    { make a reference }
                                    new(hp);
                                    reset_reference(hp^);
-                                   hp^.offset:=procinfo.framepointer_offset;
-                                   hp^.base:=procinfo.framepointer;
+                                   hp^.offset:=procinfo^.framepointer_offset;
+                                   hp^.base:=procinfo^.framepointer;
 
                                    exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hregister)));
 
@@ -157,7 +157,7 @@ implementation
                                                   new(hp);
                                                   reset_reference(hp^);
                                                   hp^.offset:=p^.symtable^.datasize;
-                                                  hp^.base:=procinfo.framepointer;
+                                                  hp^.base:=procinfo^.framepointer;
 
                                                   exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hregister)));
 
@@ -177,7 +177,7 @@ implementation
                               if hregister=R_NO then
                                 hregister:=getaddressreg;
                               { ADDED FOR OPEN ARRAY SUPPORT. }
-                              if (p^.location.reference.base=procinfo.framepointer) then
+                              if (p^.location.reference.base=procinfo^.framepointer) then
                                 begin
                                    highframepointer:=p^.location.reference.base;
                                    highoffset:=p^.location.reference.offset;
@@ -414,11 +414,11 @@ implementation
            begin
               hr:=getaddressreg;
               hr_valid:=true;
-              hp:=new_reference(procinfo.framepointer,
-                procinfo.framepointer_offset);
+              hp:=new_reference(procinfo^.framepointer,
+                procinfo^.framepointer_offset);
               exprasmlist^.concat(new(paicpu,op_ref_reg(A_MOVE,S_L,hp,hr)));
 
-              pp:=procinfo.parent;
+              pp:=procinfo^.parent;
               { walk up the stack frame }
               while pp<>pprocinfo(p^.funcretprocinfo) do
                 begin
@@ -430,8 +430,8 @@ implementation
               p^.location.reference.base:=hr;
            end
          else
-           p^.location.reference.base:=procinfo.framepointer;
-         p^.location.reference.offset:=procinfo.retoffset;
+           p^.location.reference.base:=procinfo^.framepointer;
+         p^.location.reference.offset:=procinfo^.retoffset;
          if ret_in_param(p^.retdef) then
            begin
               if not hr_valid then
@@ -473,7 +473,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1999-09-16 23:05:51  florian
+  Revision 1.10  1999-11-10 00:06:08  pierre
+   * adapted to procinfo as pointer
+
+  Revision 1.9  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
   Revision 1.8  1999/09/16 11:34:54  pierre
@@ -515,4 +518,3 @@ end.
     * m68k fixes, splitted cg68k like cgi386
 
 }
-
