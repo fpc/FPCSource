@@ -291,6 +291,8 @@ Fixed bugs:
                FPE and writeln can't write non numeric values
                Gives out an exception on compiling because of zero div OK 0.99.11 (PM)
   bug0231.pp   Problem with comments                                OK 0.99.11 (PFV)
+  bug0232.pp   const. procedure variables need a special syntax     OK 0.99.13 (PFV)
+               if they use calling specification modifiers
   bug0233.pp   Problem with enum sets in args                       OK 0.99.11 (PFV)
   bug0234.pp   New with void pointer                                OK 0.99.11 (PM)
   bug0235.pp   Val(cardinal) bug                                    OK 0.99.11 (JM)
@@ -377,8 +379,6 @@ bug0289.pp   no hint/note for unused types
 
 Unfixed bugs:
 -------------
-bug0232.pp   const. procedure variables need a special syntax
-             if they use calling specification modifiers
 bug0246.pp   const para can be changed without error
 bug0262.pp   problems with virtual and overloaded methods
 bug0263.pp   export directive is not necessary in delphi anymore
