@@ -4052,7 +4052,8 @@ implementation
          begin
            if (owner.symtabletype = objectsymtable) then
              obj := owner.name^+'__'+procsym.name;
-           if (owner.symtabletype=localsymtable) and
+           if not(cs_gdb_valgrind in aktglobalswitches) and
+              (owner.symtabletype=localsymtable) and
               assigned(owner.defowner) and
               assigned(tprocdef(owner.defowner).procsym) then
              info := ','+procsym.name+','+tprocdef(owner.defowner).procsym.name;
@@ -6060,7 +6061,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.230  2004-03-14 20:06:40  peter
+  Revision 1.231  2004-03-14 22:51:46  peter
+    * valgrind doesn't like nested procedure info in stabs
+
+  Revision 1.230  2004/03/14 20:06:40  peter
     * don't write line numbers in stabs for defs
 
   Revision 1.229  2004/03/10 22:52:57  peter
