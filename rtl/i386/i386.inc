@@ -1122,7 +1122,7 @@ function declocked(var l : longint) : boolean;assembler;
 {$ifdef MTRTL}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithreaded
+     cmpb       $0,IsMultithread
      jz         .Ldeclockednolock
      lock
      decl       (%edi)
@@ -1141,7 +1141,7 @@ procedure inclocked(var l : longint);assembler;
 {$ifdef MTRTL}
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithreaded
+     cmpb       $0,IsMultithread
      jz         .Linclockednolock
      lock
      incl       (%edi)
@@ -1154,7 +1154,10 @@ procedure inclocked(var l : longint);assembler;
 
 {
   $Log$
-  Revision 1.17  2001-08-30 15:43:14  jonas
+  Revision 1.18  2001-10-09 02:43:58  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.17  2001/08/30 15:43:14  jonas
     * converted adding/comparing of strings to compileproc. Note that due
       to the way the shortstring helpers for i386 are written, they are
       still handled by the old code (reason: fpc_shortstr_compare returns

@@ -183,7 +183,7 @@ begin
 {$ifdef DEBUG_MT}
  WriteLn ('Creating new thread');
 {$endif DEBUG_MT}
- IsMultiThreaded := true;
+ IsMultiThread := true;
  { the only way to pass data to the newly created thread }
  { in a MT safe way, is to use the heap                  }
  New (TI);
@@ -325,7 +325,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-02-04 01:53:58  hajny
+  Revision 1.5  2001-10-09 02:42:05  carl
+  * bugfix #1639 (IsMultiThread varialbe setting)
+
+  Revision 1.4  2001/02/04 01:53:58  hajny
     * HandleError instead of RunError
 
   Revision 1.3  2001/02/01 21:30:01  hajny
