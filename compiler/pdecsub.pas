@@ -131,7 +131,6 @@ implementation
                 begin
                   { change type to normal short string }
                   Message(parser_w_cdecl_no_openstring);
-                  vartype:=cshortstringtype;
                 end;
               if assigned(indexnext) and
                  (tsym(indexnext).typ=varsym) and
@@ -970,6 +969,8 @@ procedure pd_message;
 var
   pt : tnode;
 begin
+  if not is_class(aktprocdef._class) then
+    Message(parser_e_msg_only_for_classes);
   { check parameter type }
   if not(po_containsself in aktprocdef.procoptions) and
      ((aktprocdef.minparacount<>1) or
@@ -1138,7 +1139,7 @@ const
       pocall   : pocall_cdecl;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_DYNAMIC;
@@ -1301,7 +1302,7 @@ const
       pocall   : pocall_none;
       pooption : [po_clearstack];
       mutexclpocall : [pocall_inline,pocall_internproc,pocall_stdcall];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_PUBLIC;
@@ -1337,7 +1338,7 @@ const
       pocall   : pocall_safecall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_SAVEREGISTERS;
@@ -1346,7 +1347,7 @@ const
       pocall   : pocall_none;
       pooption : [po_saveregisters];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_STATIC;
@@ -1364,7 +1365,7 @@ const
       pocall   : pocall_stdcall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
@@ -1373,7 +1374,7 @@ const
       pocall   : pocall_palmossyscall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_SYSTEM;
@@ -1382,7 +1383,7 @@ const
       pocall   : pocall_system;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_external,po_assembler,po_interrupt]
     ),(
       idtok:_VIRTUAL;
@@ -1400,7 +1401,7 @@ const
       pocall   : pocall_cppdecl;
       pooption : [po_savestdregs];
       mutexclpocall : [];
-      mutexclpotype : [];
+      mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
@@ -1847,6 +1848,8 @@ const
         Add definition aprocdef to the overloaded definitions of aprocsym. If a
         forwarddef is found and reused it returns true
       }
+      const
+        po_comp = po_compatibility_options - [po_iocheck];
       var
         hd    : tprocdef;
         ad,fd : tsym;
@@ -1905,6 +1908,7 @@ const
                      begin
                        MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
                                    aprocdef.fullprocname);
+                       aprocsym.write_parameter_lists(aprocdef);
                        break;
                      end;
 
@@ -1933,12 +1937,24 @@ const
                         take the options from the interface }
                       if not(m_delphi in aktmodeswitches) or
                          (aprocdef.proccalloption<>pocall_none) then
-                        MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
+                       begin
+                         MessagePos(aprocdef.fileinfo,parser_e_call_convention_dont_match_forward);
+                         aprocsym.write_parameter_lists(aprocdef);
+                       end;
                       { restore interface settings }
                       aprocdef.proccalloption:=hd.proccalloption;
                       if hd.has_mangledname then
                         aprocdef.setmangledname(hd.mangledname);
                     end;
+
+                   { Check procedure options }
+                   if ((po_comp * hd.procoptions)<>(po_comp * aprocdef.procoptions)) then
+                     begin
+                       MessagePos1(aprocdef.fileinfo,parser_e_header_dont_match_forward,
+                                   aprocdef.fullprocname);
+                       aprocsym.write_parameter_lists(aprocdef);
+                       { This error is non-fatal, we can recover }
+                     end;
 
                    { Check manglednames }
                    if (m_repeat_forward in aktmodeswitches) or
@@ -2096,7 +2112,11 @@ const
 end.
 {
   $Log$
-  Revision 1.94  2002-12-25 01:26:56  peter
+  Revision 1.95  2002-12-27 15:25:14  peter
+    * check procoptions when a forward is found
+    * exclude some call directives for constructor/destructor
+
+  Revision 1.94  2002/12/25 01:26:56  peter
     * duplicate procsym-unitsym fix
 
   Revision 1.93  2002/12/24 21:21:06  peter
