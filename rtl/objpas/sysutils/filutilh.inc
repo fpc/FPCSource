@@ -78,11 +78,15 @@ Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : String) : Boolean;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
 Function FileSearch (Const Name, DirList : String) : String;
+Function FileIsReadOnly(const FileName: String): Boolean; 
 
 
 {
   $Log$
-  Revision 1.1  2003-10-06 21:01:06  peter
+  Revision 1.2  2004-02-08 14:50:51  michael
+  + Added fileIsReadOnly
+
+  Revision 1.1  2003/10/06 21:01:06  peter
     * moved classes unit to rtl
 
   Revision 1.10  2003/04/01 15:57:41  peter

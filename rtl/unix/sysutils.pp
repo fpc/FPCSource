@@ -35,6 +35,8 @@ implementation
 
 Uses UnixUtil,Baseunix;
 
+{$Define OS_FILEISREADONLY} // Specific implementation for Unix.
+
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -316,6 +318,11 @@ begin
   RenameFile:=BaseUnix.FpRename(OldNAme,NewName)>=0;
 end;
 
+Function FileIsReadOnly(const FileName: String): Boolean; 
+ 
+begin
+  Result := fpAccess(PChar(FileName),W_OK)= 0;
+end;  
 
 {****************************************************************************
                               Disk Functions
@@ -564,7 +571,10 @@ end.
 {
 
   $Log$
-  Revision 1.32  2004-02-08 11:01:17  michael
+  Revision 1.33  2004-02-08 14:50:51  michael
+  + Added fileIsReadOnly
+
+  Revision 1.32  2004/02/08 11:01:17  michael
   + Implemented getlastoserror
 
   Revision 1.31  2004/01/20 23:13:53  hajny

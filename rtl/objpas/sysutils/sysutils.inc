@@ -46,7 +46,16 @@
       until (length(temp)=0) or (length(result)<>0);
     end;
 
-      { Read String Handling functions implementation }
+  {$ifndef OS_FILEISREADONLY}
+  Function FileIsReadOnly(const FileName: String): Boolean; 
+  
+  begin
+    Result := (FileGetAttr(FileName) and faReadOnly) <> 0;
+  end;  
+  {$endif OS_FILEISREADONLY}
+  
+
+  { Read String Handling functions implementation }
   {$i sysstr.inc}
 
   { Read date & Time function implementations }
