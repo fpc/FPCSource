@@ -1,0 +1,17 @@
+#
+#   Makefile.fpc for MD5 checksum.
+#
+
+[package]
+name=md5
+version=1.0.6
+
+[target]
+units=md5
+examples=md5test
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
