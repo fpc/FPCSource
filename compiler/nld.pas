@@ -838,12 +838,12 @@ implementation
             { result, the current left node is modified and that one may     }
             { still be an argument to the function or even accessed in the   }
             { function                                                       }
-            (left.nodetype = temprefn) and
-            { doesn't work correctlyfor refcounted things }
-            not(not is_class(right.resulttype.def) and
-                right.resulttype.def.needs_inittable) and
-            paramanager.ret_in_param(right.resulttype.def,
-             tcallnode(right).procdefinition.proccalloption) then
+            (((left.nodetype = temprefn) and
+              paramanager.ret_in_param(right.resulttype.def,
+                tcallnode(right).procdefinition.proccalloption)) or
+             { there's special support for ansi/widestrings in the callnode }
+             is_ansistring(right.resulttype.def) or
+             is_widestring(right.resulttype.def))  then
            begin
              tcallnode(right).funcretnode := left;
              result := right;
@@ -1286,7 +1286,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2003-06-08 18:27:15  jonas
+  Revision 1.101  2003-06-08 20:01:53  jonas
+    * optimized assignments with on the right side a function that returns
+      an ansi- or widestring
+
+  Revision 1.100  2003/06/08 18:27:15  jonas
     + ability to change the location of a ttempref node with changelocation()
       method. Useful to use instead of copying the contents from one temp to
       another

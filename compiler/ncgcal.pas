@@ -409,6 +409,8 @@ implementation
       var
         cgsize : tcgsize;
         r,hregister : tregister;
+        href: treference;
+        tempnode: tnode;
       begin
         { structured results are easy to handle.... }
         { needed also when result_no_used !! }
@@ -423,13 +425,34 @@ implementation
          if is_ansistring(resulttype.def) or
             is_widestring(resulttype.def) then
           begin
-            location_reset(location,LOC_CREFERENCE,OS_ADDR);
-            location.reference:=refcountedtemp;
             r.enum:=R_INTREGISTER;
             r.number:=NR_FUNCTION_RETURN_REG;
             cg.a_reg_alloc(exprasmlist,r);
-            cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,location.reference);
-            cg.a_reg_dealloc(exprasmlist,r);
+            if not assigned(funcretnode) then
+              begin
+                location_reset(location,LOC_CREFERENCE,OS_ADDR);
+                location.reference:=refcountedtemp;
+                cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,location.reference);
+                cg.a_reg_dealloc(exprasmlist,r);
+              end
+            else
+              begin
+                tg.gettemp(exprasmlist,pointer_size,tt_normal,href);
+                cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,href);
+                cg.a_reg_dealloc(exprasmlist,r);
+                { in case of a regular funcretnode with ret_in_param, the }
+                { original funcretnode isn't touched -> make sure it's    }
+                { the same here (not sure if it's necessary)              }
+                tempnode := funcretnode.getcopy;
+                tempnode.pass_2;
+                location := tempnode.location;
+                tempnode.free;
+                cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference, false);
+                cg.a_load_ref_ref(exprasmlist,OS_ADDR,OS_ADDR,href,location.reference);
+                { since we used a normal temp, it won't be finalized or }
+                { decref'd later -> no need to zero it                  }
+                tg.ungettemp(exprasmlist,href);
+              end;
           end
         else
         { we have only to handle the result if it is used }
@@ -611,18 +634,22 @@ implementation
          iolabel:=nil;
          rg.saveunusedstate(unusedstate);
 
-         { if we allocate the temp. location for ansi- or widestrings }
-         { already here, we avoid later a push/pop                    }
-         if is_widestring(resulttype.def) then
+         if not assigned(funcretnode) then
            begin
-             tg.gettemp(exprasmlist,pointer_size,tt_widestring,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
-           end
-         else if is_ansistring(resulttype.def) then
-           begin
-             tg.GetTemp(exprasmlist,pointer_size,tt_ansistring,refcountedtemp);
-             cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+             { if we allocate the temp. location for ansi- or widestrings }
+             { already here, we avoid later a push/pop                    }
+             if is_widestring(resulttype.def) then
+               begin
+                 tg.gettemp(exprasmlist,pointer_size,tt_widestring,refcountedtemp);
+                 cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+               end
+             else if is_ansistring(resulttype.def) then
+               begin
+                 tg.GetTemp(exprasmlist,pointer_size,tt_ansistring,refcountedtemp);
+                 cg.g_decrrefcount(exprasmlist,resulttype.def,refcountedtemp,false);
+               end;
            end;
+ 
 
          if (procdefinition.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_stdcall]) then
           para_alignment:=4
@@ -1382,7 +1409,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.87  2003-06-08 18:21:47  jonas
+  Revision 1.88  2003-06-08 20:01:53  jonas
+    * optimized assignments with on the right side a function that returns
+      an ansi- or widestring
+
+  Revision 1.87  2003/06/08 18:21:47  jonas
     * fixed weird error in the copyleft statement :)
 
   Revision 1.86  2003/06/07 18:57:04  jonas

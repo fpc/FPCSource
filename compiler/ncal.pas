@@ -977,6 +977,11 @@ type
         { everything                                                   }
         if assigned(resulttype.def) then
           begin
+            { these are returned as values, but we can optimize their loading }
+            { as well                                                         }
+            if is_ansistring(resulttype.def) or
+               is_widestring(resulttype.def) then
+              exit;
             para := tcallparanode(left);
             while assigned(para) do
               begin
@@ -2627,7 +2632,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.167  2003-06-08 18:27:15  jonas
+  Revision 1.168  2003-06-08 20:01:53  jonas
+    * optimized assignments with on the right side a function that returns
+      an ansi- or widestring
+
+  Revision 1.167  2003/06/08 18:27:15  jonas
     + ability to change the location of a ttempref node with changelocation()
       method. Useful to use instead of copying the contents from one temp to
       another
