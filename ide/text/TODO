@@ -3,6 +3,9 @@ Bugs/Problems:
   chars should be ignored in this case.
 - Files without extensions can't be opened using the open dialog (even
   not with a trailing .)
+- fix function locatefile in fputils (always returns '' currently because
+  the result of locatesinglefile is simply discarded). This causes (at least
+  under Dos) an RTE 3 if you try to open several files in different directories
 
 From Marco:
 -----------
