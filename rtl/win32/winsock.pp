@@ -233,17 +233,18 @@ unit winsock;
        PInAddr = ^TInAddr;
 
        sockaddr_in = record
-          sin_family : SmallInt;                        (* 2 byte *)
           case integer of
              0 : ( (* equals to sockaddr_in, size is 16 byte *)
+                  sin_family : SmallInt;                (* 2 byte *)
                   sin_port : u_short;                   (* 2 byte *)
                   sin_addr : TInAddr;                   (* 4 byte *)
                   sin_zero : array[0..8-1] of char;     (* 8 byte *)
                  );
-             1 : ( (* equals to sockaddr, size is 16 byte *)
-                  sin_data : array[0..14-1] of char;    (* 14 byte *)
+             1 : ((* equals to sockaddr, size is 16 byte *)
+                  sa_family : Smallint; (* 2 byte *)
+                  sa_data : array[0..14-1] of char;    (* 14 byte *)
                  );
-         end;
+       end;          
        TSockAddrIn = sockaddr_in;
        PSockAddrIn = ^TSockAddrIn;
        TSockAddr = sockaddr_in;
@@ -885,7 +886,10 @@ unit winsock;
 end.
 {
   $Log$
-  Revision 1.10  2002-09-07 21:28:10  carl
+  Revision 1.11  2002-12-25 01:04:03  peter
+    * sendto overload added
+
+  Revision 1.10  2002/09/07 21:28:10  carl
     - removed os_types
     * fix range check errors
 
