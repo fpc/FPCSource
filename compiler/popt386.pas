@@ -343,7 +343,8 @@ Begin
                             End
                           Else
                    {fst can't store an extended value!}
-                           If (Pai386(p)^.Size <> S_FX) Then
+                           If (Pai386(p)^.Size <> S_FX) And
+                              (Pai386(p)^.Size <> S_IQ) Then
                              Begin
                                If (Pai386(p)^._operator = A_FSTP) Then
                                  Pai386(p)^._operator := A_FST
@@ -1590,7 +1591,10 @@ End.
 
 {
  $Log$
- Revision 1.34  1998-12-29 18:48:17  jonas
+ Revision 1.35  1999-01-04 12:58:55  jonas
+   * no fistp/fild optimization for S_IQ (fistq doesn't exist)
+
+ Revision 1.34  1998/12/29 18:48:17  jonas
    + optimize pascal code surrounding assembler blocks
 
  Revision 1.33  1998/12/23 15:16:21  jonas
