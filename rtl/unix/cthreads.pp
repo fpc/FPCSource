@@ -398,32 +398,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         SetMemoryMutexManager(PThreadMemoryMutexManager);
       end;
 
-Function CInitThreads : Boolean;
-
-begin
-{$ifdef DEBUG_MT}
-  Writeln('Entering InitThreads.');
-{$endif}  
-{$ifndef dynpthreads}
-  Result:=True;
-{$else}
-  Result:=LoadPthreads;
-{$endif}
-  ThreadID := SizeUInt (pthread_self);
-{$ifdef DEBUG_MT}
-  Writeln('InitThreads : ',Result);
-{$endif DEBUG_MT}
-end;
-
-Function CDoneThreads : Boolean;
-
-begin
-{$ifndef dynpthreads}
-  Result:=True;
-{$else}
-  Result:=UnloadPthreads;
-{$endif}
-end;
 
 type
      TPthreadMutex = pthread_mutex_t;
@@ -610,6 +584,43 @@ begin
     raise LocalSyncException;
 end;
 
+Function CInitThreads : Boolean;
+
+begin
+{$ifdef DEBUG_MT}
+  Writeln('Entering InitThreads.');
+{$endif}  
+{$ifndef dynpthreads}
+  Result:=True;
+{$else}
+  Result:=LoadPthreads;
+{$endif}
+  ThreadID := SizeUInt (pthread_self);
+{$ifdef DEBUG_MT}
+  Writeln('InitThreads : ',Result);
+{$endif DEBUG_MT}
+ {$ifndef ver1_0}
+    InitCriticalSection(SynchronizeCritSect);
+    ExecuteEvent := RtlEventCreate;
+    SynchronizeMethod := nil;
+  {$endif}
+end;
+
+Function CDoneThreads : Boolean;
+
+begin
+  {$ifndef ver1_0}
+    DoneCriticalSection(SynchronizeCritSect);  
+    RtlEventDestroy(ExecuteEvent);
+  {$endif}
+{$ifndef dynpthreads}
+  Result:=True;
+{$else}
+  Result:=UnloadPthreads;
+{$endif}
+end;
+
+
 Var
   CThreadManager : TThreadManager;
 
@@ -658,20 +669,14 @@ end;
 
 initialization
   SetCThreadManager;
- {$ifndef ver1_0}
-    InitCriticalSection(SynchronizeCritSect);
-    ExecuteEvent := RtlEventCreate;
-    SynchronizeMethod := nil;
-  {$endif}
 finalization
-  {$ifndef ver1_0}
-    DoneCriticalSection(SynchronizeCritSect);  
-    RtlEventDestroy(ExecuteEvent);
-  {$endif}
 end.
 {
   $Log$
-  Revision 1.16  2004-12-23 15:08:59  marco
+  Revision 1.17  2004-12-23 20:20:30  michael
+  + Fixed tmt1 test bug
+
+  Revision 1.16  2004/12/23 15:08:59  marco
    * 2nd synchronize attempt. cthreads<->systhrds difference was not ok, but
      only showed on make install should be fixed now.
 
