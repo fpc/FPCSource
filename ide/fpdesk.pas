@@ -392,6 +392,15 @@ begin
            end;
          W:=FPUWindow;
        end;
+     hcVectorRegisters:
+       begin
+         if VectorWindow=nil then
+           begin
+             New(VectorWindow,Init);
+             Desktop^.Insert(VectorWindow);
+           end;
+         W:=VectorWindow;
+       end;
      hcRegistersWindow:
        begin
          if RegistersWindow=nil then
@@ -550,6 +559,7 @@ begin
      (P^.HelpCtx=hcStackWindow) or
      (P^.HelpCtx=hcRegistersWindow) or
      (P^.HelpCtx=hcFPURegisters) or
+     (P^.HelpCtx=hcVectorRegisters) or
      (P^.HelpCtx=hcWatchesWindow) or
      (P^.HelpCtx=hcBreakpointListWindow) or
      (P^.HelpCtx=hcASCIITableWindow)
@@ -950,7 +960,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.13  2004-12-29 20:12:25  florian
+  Revision 1.14  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.13  2004/12/29 20:12:25  florian
     * packed removed for sparc and co.
 
   Revision 1.12  2004/12/22 15:24:07  peter

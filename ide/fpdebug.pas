@@ -549,6 +549,8 @@ procedure UpdateDebugViews;
 {$endif NODEBUG}
      If assigned(FPUWindow) then
        FPUWindow^.Update;
+     If assigned(VectorWindow) then
+       VectorWindow^.Update;
      DeskTop^.UnLock;
 {$ifdef SUPPORT_REMOTE}
      PopStatus;
@@ -3665,7 +3667,10 @@ end.
 
 {
   $Log$
-  Revision 1.59  2004-12-22 15:24:06  peter
+  Revision 1.60  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.59  2004/12/22 15:24:06  peter
     * fixed NODEBUG
     * set default target to the default target of the compiler
 

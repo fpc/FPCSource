@@ -67,6 +67,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       StackWindow      : PStackWindow = nil;
       RegistersWindow  : PRegistersWindow = nil;
       FPUWindow        : PFPUWindow = nil;
+      VectorWindow     : PVectorWindow = nil;
 {$endif NODEBUG}
       UserScreenWindow : PScreenWindow = nil;
 
@@ -127,7 +128,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.10  2004-12-22 15:24:07  peter
+  Revision 1.11  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.10  2004/12/22 15:24:07  peter
     * fixed NODEBUG
     * set default target to the default target of the compiler
 

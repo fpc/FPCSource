@@ -188,6 +188,7 @@ const
      cmRegisters         = 242;
      cmFPURegisters      = 243;
      cmDoReload          = 244;
+     cmVectorRegisters   = 245;
 
      cmNotImplemented    = 1000;
      cmNewFromTemplate   = 1001;
@@ -405,6 +406,7 @@ const
      hcBreakPointList    = hcShift+cmBreakpointList;
      hcRegistersWindow   = hcShift+cmRegisters;
      hcFPURegisters      = hcShift+cmFPURegisters;
+     hcVectorRegisters   = hcShift+cmVectorRegisters;
 
      hcOpenAtCursor      = hcShift+cmOpenAtCursor;
      hcBrowseAtCursor    = hcShift+cmBrowseAtCursor;
@@ -472,7 +474,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.18  2004-12-30 16:14:13  florian
+  Revision 1.19  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.18  2004/12/30 16:14:13  florian
     * ide version to 1.0.0 changed
 
   Revision 1.17  2004/11/21 20:53:26  peter

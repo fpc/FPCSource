@@ -675,6 +675,7 @@ begin
      (P^.HelpCtx=hcWatchesWindow) or
      (P^.HelpCtx=hcRegistersWindow) or
      (P^.HelpCtx=hcFPURegisters) or
+     (P^.HelpCtx=hcVectorRegisters) or
      (P^.HelpCtx=hcStackWindow) or
      (P^.HelpCtx=hcBreakpointListWindow) or
      (P^.HelpCtx=hcASCIITableWindow)
@@ -737,6 +738,7 @@ begin
      (P^.HelpCtx <> hcWatchesWindow) and
      (P^.HelpCtx <> hcStackWindow) and
      (P^.HelpCtx <> hcRegistersWindow) and
+     (P^.HelpCtx <> hcVectorRegisters) and
      (P^.HelpCtx <> hcFPURegisters);
 end;
 begin
@@ -1907,6 +1909,7 @@ begin
      (F^.HelpCtx = hcWatchesWindow) or
      (F^.HelpCtx = hcStackWindow) or
      (F^.HelpCtx = hcRegistersWindow) or
+     (F^.HelpCtx = hcVectorRegisters) or
      (F^.HelpCtx = hcFPURegisters)) do
     F:=F^.NextView;
   if F<>@Self then
@@ -4490,7 +4493,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.54  2005-01-07 19:09:28  florian
+  Revision 1.55  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.54  2005/01/07 19:09:28  florian
     * highlight keywords of all language modes
 
   Revision 1.53  2004/12/22 15:24:07  peter

@@ -86,6 +86,7 @@ begin
     hcStackWindow,
     hcRegistersWindow,
     hcFPURegisters,
+    hcVectorRegisters,
     hcClipboardWindow,
     hcASCIITableWindow,
     hcUserScreenWindow,
@@ -258,7 +259,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2004-11-08 20:28:26  peter
+  Revision 1.7  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.6  2004/11/08 20:28:26  peter
     * Breakpoints are now deleted when removed from source, disabling is
       still possible from the breakpoint list
     * COMPILER_1_0, FVISION, GABOR defines removed, only support new

@@ -172,6 +172,19 @@ begin
 {$endif NODEBUG}
 end;
 
+
+procedure TIDEApp.DoShowVector;
+begin
+{$ifdef NODEBUG}
+  NoDebugger;
+{$else}
+  If not assigned(VectorWindow) then
+    InitVectorWindow
+  else
+    VectorWindow^.MakeFirst;
+{$endif NODEBUG}
+end;
+
 procedure TIDEApp.DoShowBreakpointList;
 begin
 {$ifdef NODEBUG}
@@ -245,7 +258,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2005-01-07 21:52:23  florian
+  Revision 1.8  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.7  2005/01/07 21:52:23  florian
     * proper stepping in disassembler window now possible
     + disassembler window to menu added
 

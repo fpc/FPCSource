@@ -129,10 +129,70 @@ uses
       destructor  Done; virtual;
     end;
 
+    tssereg = record
+      case byte of
+        1 : (bytearray : array[0..15] of byte);
+        2 : (wordarray : array[0..7] of word);
+        3 : (dwordarray : array[0..3] of dword);
+        4 : (qwordarray : array[0..1] of qword);
+        5 : (twordfield : array[0..1] of qword);
+        6 : (singlearray : array[0..3] of single);
+        7 : (doublearray : array[0..1] of double);
+    end;
+
+    tmmxreg = record
+      case byte of
+        1 : (bytearray : array[0..7] of byte);
+        2 : (wordarray : array[0..3] of word);
+        3 : (dwordarray : array[0..1] of dword);
+        4 : (qwordfield : qword);
+        6 : (singlearray : array[0..1] of single);
+    end;
+
+    TVectorRegs = record
+{$ifndef test_generic_cpu}
+{$ifdef I386}
+      xmm : array[0..7] of string;
+      mmx : array[0..7] of string;
+      mxcsr : string;
+{$endif I386}
+{$endif not test_generic_cpu}
+{$ifndef cpu_known}
+       vreg : array [0..MaxRegs-1] of string;
+{$endif not cpu_known}
+    end;
+
+
+    PVectorView = ^TVectorView;
+    TVectorView = object(TView)
+      NewReg,OldReg : TVectorRegs;
+      InDraw : boolean;
+      GDBCount : longint;
+{$ifndef cpu_known}
+      UseInfoFloat : boolean;
+{$endif not cpu_known}
+      constructor Init(var Bounds: TRect);
+      procedure   Draw;virtual;
+      destructor  Done; virtual;
+    end;
+
+    PVectorWindow = ^TVectorWindow;
+    TVectorWindow = Object(TFPDlgWindow)
+      RV : PVectorView;
+      Constructor Init;
+      constructor Load(var S: TStream);
+      procedure   Store(var S: TStream);
+      procedure   Update; virtual;
+      destructor  Done; virtual;
+    end;
+
+
   procedure InitRegistersWindow;
   procedure DoneRegistersWindow;
   procedure InitFPUWindow;
   procedure DoneFPUWindow;
+  procedure InitVectorWindow;
+  procedure DoneVectorWindow;
 
   procedure RegisterFPRegsViews;
 
@@ -146,9 +206,7 @@ uses
 {$endif NODEBUG}
   App,Menus,
   WViews,WEditor,
-{$ifdef powerpc}
-  wutils, { for inttostr }
-{$endif powerpc}
+  wutils,
   FPConst,FPVars,
   FPString,
   FPDebug;
@@ -181,6 +239,13 @@ Const
      VmtLink: Ofs(TypeOf(TFPUView)^);
      Load:    @TFPUView.Load;
      Store:   @TFPUView.Store
+  );
+
+  RVectorView: TStreamRec = (
+     ObjType: 1715;
+     VmtLink: Ofs(TypeOf(TVectorView)^);
+     Load:    @TVectorView.Load;
+     Store:   @TVectorView.Store
   );
 
 
@@ -1025,6 +1090,320 @@ Const
     end;
 
 
+{****************************************************************************
+                         TVectorView
+****************************************************************************}
+
+  function GetVectorRegs(var rs : TVectorRegs
+{$ifndef cpu_known}
+             ; UseInfoFloat : boolean
+{$endif not cpu_known}
+             ) : boolean;
+
+    var
+       p,po : pchar;
+       p1 : pchar;
+    {$ifndef NODEBUG}
+       reg,value : string;
+       buffer : array[0..255] of char;
+       v : string;
+       res : cardinal;
+       i : longint;
+       err : word;
+    {$endif}
+
+    begin
+       GetVectorRegs:=false;
+{$ifndef NODEBUG}
+{$ifndef cpu_known}
+       if UseInfoFloat then
+         begin
+           Debugger^.Command('info vector');
+           if Debugger^.Error then
+             begin
+               UseInfofloat:=false;
+               Debugger^.Command('info all');
+             end;
+         end
+       else
+{$endif not cpu_known}
+         Debugger^.Command('info vector');
+       if Debugger^.Error then
+         exit
+       else
+         begin
+            po:=StrNew(Debugger^.GetOutput);
+            p:=po;
+{$ifndef cpu_known}
+            i:=0;
+{$endif not cpu_known}
+            if assigned(p) then
+              begin
+                 fillchar(rs,sizeof(rs),0);
+                 p1:=strscan(p,' ');
+                 while assigned(p1) do
+                   begin
+                      strlcopy(buffer,p,p1-p);
+                      reg:=strpas(buffer);
+{$ifndef cpu_known}
+                      p1:=strscan(p,#10);
+                      if assigned(p1) then
+                        begin
+                          strlcopy(buffer,p,p1-p);
+                          rs.freg[i]:=ExtractTabs(strpas(buffer),8);
+                          if i<MaxRegs-1 then
+                            inc(i);
+                        end;
+{$else  cpu_known}
+                      p:=p1;
+                      while p^=' ' do
+                        inc(p);
+                      if p^='$' then
+                        p1:=strscan(p,#9)
+                      else
+                        p1:=strscan(p,#10);
+                      strlcopy(buffer,p,p1-p);
+                      v:=strpas(buffer);
+                      for i:=1 to length(v) do
+                        if v[i]=#9 then
+                          v[i]:=' ';
+                      val(v,res,err);
+{$ifdef i386}
+                      if reg[1]='x' then
+                        for i:=0 to 7 do
+                          begin
+                            if reg='xmm'+inttostr(i) then
+                              rs.xmm[i]:=v
+                          end
+                      else if reg='mxcsr' then
+                        rs.mxcsr:=v
+                      else if reg[1]='m' then
+                        for i:=0 to 7 do
+                          begin
+                            if reg='mm'+inttostr(i) then
+                              rs.mmx[i]:=v;
+                          end;
+{$endif i386}
+{$ifdef powerpc}
+                      { !!!! fixme }
+                      if reg[1]='v' then
+                        for i:=0 to 31 do
+                          if reg='v'+inttostr(i) then
+                            rs.f[i]:=v;
+{$endif powerpc}
+{$endif cpu_known}
+                      p:=strscan(p1,#10);
+                      if assigned(p) then
+                        begin
+                           p1:=strscan(p,' ');
+                           inc(p);
+                        end
+                      else
+                        break;
+                   end;
+                 { free allocated memory }
+                 strdispose(po);
+              end
+            else
+              exit;
+         end;
+       { do not open a messagebox for such errors }
+       Debugger^.got_error:=false;
+       GetVectorRegs:=true;
+{$endif}
+    end;
+
+  constructor TVectorView.Init(var Bounds: TRect);
+
+    begin
+       inherited init(Bounds);
+       GrowMode:=gfGrowHiX or GfGrowHiY;
+       InDraw:=false;
+       FillChar(OldReg,Sizeof(oldreg),#0);
+       FillChar(NewReg,Sizeof(newreg),#0);
+       GDBCount:=-1;
+{$ifndef cpu_known}
+       UseInfoFloat:=true;
+{$endif not cpu_known}
+    end;
+
+  procedure TVectorView.Draw;
+
+    var
+       rs : tVectorregs;
+       top : byte;
+       color :byte;
+       ok : boolean;
+       i : byte;
+    const
+      TypeStr : Array[0..3] of string[6] =
+      ('Valid ','Zero  ','Spec  ','Empty ');
+
+    procedure SetColor(Const x,y : string);
+    begin
+      if x=y then
+        color:=7
+      else
+        color:=8;
+    end;
+
+    procedure SetIColor(Const x,y : cardinal);
+    begin
+      if x=y then
+        color:=7
+      else
+        color:=8;
+    end;
+
+    begin
+       inherited draw;
+{$ifdef NODEBUG}
+       WriteStr(1,0,'<no values available>',7);
+{$else NODEBUG}
+       If not assigned(Debugger) then
+         begin
+            WriteStr(1,0,'<no values available>',7);
+            exit;
+         end;
+       if InDraw then
+         exit;
+       InDraw:=true;
+       if GDBCount<>Debugger^.RunCount then
+         begin
+           OldReg:=NewReg;
+           OK:=GetVectorRegs(rs
+{$ifndef cpu_known}
+             ,UseInfoFloat
+{$endif not cpu_known}
+             );
+           NewReg:=rs;
+           GDBCount:=Debugger^.RunCount;
+         end
+       else
+         begin
+           rs:=newreg;
+           OK:=true;
+         end;
+       if OK then
+         begin
+{$ifdef cpu_known}
+{$ifdef i386}
+            for i:=0 to 7 do
+              begin
+                SetColor(rs.xmm[i],OldReg.xmm[i]);
+                WriteStr(1,i,'xmm'+IntToStr(i)+'  '+rs.xmm[i],color);
+              end;
+
+            SetColor(rs.mxcsr,OldReg.mxcsr);
+            WriteStr(1,i,'mxcsr'+IntToStr(i)+'  '+rs.mxcsr,color);
+
+            for i:=0 to 7 do
+              begin
+                SetColor(rs.mmx[i],OldReg.mmx[i]);
+                WriteStr(1,i+8,'mmx'+IntToStr(i)+'  '+rs.mmx[i],color);
+              end;
+{$endif i386}
+{$ifdef powerpc}
+            for i:=0 to 31 do
+              begin
+                SetColor(rs.f[i],OldReg.f[i]);
+                if i<10 then
+                  WriteStr(1,i,'f'+IntToStr(i)+'  '+rs.f[i],color)
+                else
+                  WriteStr(1,i,'f'+IntToStr(i)+' '+rs.f[i],color);
+              end;
+{$endif powerpc}
+{$else not cpu_known}
+            for i:=0 to MaxRegs-1 do
+              begin
+                SetColor(rs.freg[i],OldReg.freg[i]);
+                WriteStr(1,i,rs.freg[i],color);
+              end;
+{$endif cpu_known}
+         end
+       else
+         WriteStr(0,0,'<debugger error>',7);
+       InDraw:=false;
+{$endif NODEBUG}
+    end;
+
+  destructor TVectorView.Done;
+
+    begin
+       inherited done;
+    end;
+
+{****************************************************************************
+                         TVectorWindow
+****************************************************************************}
+
+  constructor TVectorWindow.Init;
+
+    var
+       R : TRect;
+
+    begin
+       Desktop^.GetExtent(R);
+{$ifdef i386}
+       R.A.X:=R.B.X-60;
+       R.B.Y:=R.A.Y+19;
+{$endif i386}
+{$ifdef m68k}
+       R.A.X:=R.B.X-60;
+       R.B.Y:=R.A.Y+14;
+{$endif m68k}
+{$ifdef powerpc}
+       R.A.X:=R.B.X-60;
+       R.B.Y:=R.A.Y+33;
+{$endif powerpc}
+{$ifndef cpu_known}
+       R.A.X:=R.B.X-60;
+       R.B.Y:=R.A.Y+33;
+{$endif cpu_known}
+       inherited Init(R,dialog_Vector, wnNoNumber);
+       Flags:=wfClose or wfMove or wfgrow;
+       Palette:=wpCyanWindow;
+       HelpCtx:=hcVectorRegisters;
+       R.Assign(1,1,Size.X-2,Size.Y-2);
+       RV:=new(PVectorView,init(R));
+       Insert(RV);
+       If assigned(VectorWindow) then
+         dispose(VectorWindow,done);
+       VectorWindow:=@Self;
+       Update;
+    end;
+
+  constructor TVectorWindow.Load(var S: TStream);
+
+    begin
+       inherited load(S);
+       GetSubViewPtr(S,RV);
+       If assigned(VectorWindow) then
+         dispose(VectorWindow,done);
+       VectorWindow:=@Self;
+    end;
+
+  procedure TVectorWindow.Store(var S: TStream);
+
+    begin
+       inherited Store(s);
+       PutSubViewPtr(S,RV);
+    end;
+
+  procedure TVectorWindow.Update;
+
+    begin
+       ReDraw;
+    end;
+
+  destructor TVectorWindow.Done;
+
+    begin
+       VectorWindow:=nil;
+       inherited done;
+    end;
+
+
 procedure InitRegistersWindow;
 begin
   if RegistersWindow=nil then
@@ -1033,6 +1412,7 @@ begin
       DeskTop^.Insert(RegistersWindow);
     end;
 end;
+
 
 procedure DoneRegistersWindow;
 begin
@@ -1043,6 +1423,7 @@ begin
     end;
 end;
 
+
 procedure InitFPUWindow;
 begin
   if FPUWindow=nil then
@@ -1051,6 +1432,7 @@ begin
       DeskTop^.Insert(FPUWindow);
     end;
 end;
+
 
 procedure DoneFPUWindow;
 begin
@@ -1062,12 +1444,33 @@ begin
 end;
 
 
+procedure InitVectorWindow;
+begin
+  if VectorWindow=nil then
+    begin
+      new(VectorWindow,init);
+      DeskTop^.Insert(VectorWindow);
+    end;
+end;
+
+
+procedure DoneVectorWindow;
+begin
+  if assigned(VectorWindow) then
+    begin
+      DeskTop^.Delete(VectorWindow);
+      VectorWindow:=nil;
+    end;
+end;
+
+
 procedure RegisterFPRegsViews;
 begin
   RegisterType(RRegistersWindow);
   RegisterType(RRegistersView);
   RegisterType(RFPUWindow);
   RegisterType(RFPUView);
+  RegisterType(RVectorView);
 end;
 
 end.
@@ -1075,7 +1478,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2004-12-22 15:24:07  peter
+  Revision 1.6  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.5  2004/12/22 15:24:07  peter
     * fixed NODEBUG
     * set default target to the default target of the compiler
 

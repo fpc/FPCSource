@@ -109,6 +109,7 @@ const
       menu_debug_remote      = '~S~end to remote';
       menu_debug_registers   = '~R~egisters';
       menu_debug_fpu_registers   = '~F~loating Point Unit';
+      menu_debug_vector_registers   = '~V~ector Unit';
       menu_debug_addwatch    = '~A~dd Watch';
       menu_debug_watches     = '~W~atches';
       menu_debug_breakpointlist = 'Breakpoint ~L~ist';
@@ -327,6 +328,7 @@ const
       dialog_registers = 'Register View';
 
       dialog_fpu = 'FPU View';
+      dialog_vector = 'Vector Unit View';
 
       dialog_callstack = 'Call Stack';
 
@@ -1061,7 +1063,10 @@ const
 
 {
   $Log$
-  Revision 1.26  2005-01-07 21:52:23  florian
+  Revision 1.27  2005-01-08 11:43:18  florian
+    + vector unit window
+
+  Revision 1.26  2005/01/07 21:52:23  florian
     * proper stepping in disassembler window now possible
     + disassembler window to menu added
 
