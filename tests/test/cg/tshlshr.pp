@@ -28,7 +28,7 @@ Program tshlshr;
 {     - LOC_REFERENCE / LOC_MEM                      }
 {     - LOC_REGISTER                                 }
 {----------------------------------------------------}
-procedure test(value, required: longint);
+procedure test(value, required: {$ifndef fpc}longint{$else fpc}int64{$endif fpc});
 begin
   if value <> required then
     begin
@@ -100,11 +100,13 @@ Begin
    { right : LOC_REFERENCE }
    WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REFERENCE');
 
+{
    longres := 1;
    longcnt := -2;
    longres:=longres shl longcnt ;
    Write('(SHL) Value should be 1073741824...');
    test(longres, 1073741824);
+}
 
    longres:=1;
    longcnt:=15;
@@ -118,11 +120,13 @@ Begin
    Write('(SHL) Value should be -32768...');
    test(longres, -32768);
 
+{
    longres := 1;
    longcnt := -2;
    longres:=longres shr longcnt ;
    Write('(SHR) Value should be 0...');
    test(longres, 0);
+}
 
    longres:=32768;
    longcnt:=15;
@@ -138,12 +142,14 @@ Begin
 
    { left : LOC_REFERENCE }
    { right : LOC_REGISRER }
+{
    WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
    longres := 1;
    bytecnt := -2;
    longres:=longres shl bytecnt ;
    Write('(SHL) Value should be 1073741824...');
    test(longres, 1073741824);
+}
 
    longres:=1;
    bytecnt:=15;
@@ -157,11 +163,13 @@ Begin
    Write('(SHL) Value should be -32768...');
    test(longres, -32768);
 
+{
    longres := 1;
    bytecnt := -2;
    longres:=longres shr bytecnt ;
    Write('(SHR) Value should be 0...');
    test(longres, 0);
+}
 
    longres:=32768;
    bytecnt:=15;
@@ -197,50 +205,52 @@ Begin
    int64res:=1;
    int64res := int64res shl 15;
    Write('(SHL) Value should be 32768...');
-   test(int64res and $FFFFFFFF, 32768);
+   test(int64res, 32768);
 
    int64res:=-1;
    int64res := int64res shl 15;
    Write('(SHL) Value should be -32768...');
-   test(int64res and $FFFFFFFF, -32768);
+   test(int64res, -32768);
 
 
    int64res:=1;
    int64res := int64res shl 65;
    Write('(SHL) Value should be 0...');
-   test(int64res and $FFFFFFFF, 0);
+   test(int64res, 0);
 
    int64res:=$8000;
    int64res := int64res shr 15;
    Write('(SHR) Value should be 1...');
-   test(int64res and $FFFFFFFF, 1);
+   test(int64res, 1);
 
    int64res:=$FFFF;
    int64res := int64res shr 65;
    Write('(SHR) Value should be 0...');
-   test(int64res and $FFFFFFFF, 0);
+   test(int64res, 0);
 
    { left : LOC_REFERENCE }
    { right : LOC_REFERENCE }
+{
    WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REFERENCE');
    int64res := 1;
    int64cnt := -2;
    int64res:=int64res shl int64cnt ;
    Write('(SHL) Value should be 1073741824...');
-   test(int64res and $FFFFFFFF, 1073741824);
+   test(int64res, 1073741824);
+}
 
    int64res:=1;
    int64cnt:=15;
    int64res := int64res shl int64cnt;
    Write('(SHL) Value should be 32768...');
-   test(int64res and $FFFFFFFF, 32768);
+   test(int64res, 32768);
 
 
    int64res:=-1;
    int64cnt := 15;
    int64res := int64res shl int64cnt;
    Write('(SHL) Value should be -32768...');
-   test(int64res and $FFFFFFFF, -32768);
+   test(int64res, -32768);
    
    int64res := 1;
    int64cnt := 33;
@@ -251,60 +261,62 @@ Begin
 {   test(int64res, 8589934592);}
 
 
+{
    int64res := 1;
    int64cnt := -2;
    int64res:=int64res shr int64cnt ;
    Write('(SHR) Value should be 0...');
    test(int64res and $FFFFFFFF, 0);
-
+}
    int64res:=32768;
    int64cnt:=15;
    int64res := int64res shr int64cnt;
    Write('(SHR) Value should be 1...');
-   test(int64res and $FFFFFFFF, 1);
+   test(int64res, 1);
 
    int64res:=-1;
    int64cnt := 15;
    int64res := int64res shl int64cnt;
    Write('(SHR) Value should be -32768...');
-   test(int64res and $FFFFFFFF, -32768);
+   test(int64res, -32768);
 
    { left : LOC_REFERENCE }
    { right : LOC_REGISRER }
-   WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
+{ 
+  WriteLn('(left) : LOC_REFERENCE; (right) : LOC_REGISTER');
    int64res := 1;
    bytecnt := -2;
    int64res:=int64res shl bytecnt ;
    Write('(SHL) Value should be 1073741824...');
-   test(int64res and $FFFFFFFF, 1073741824);
-
+   test(int64res, 1073741824);
+}
 
    int64res:=1;
    bytecnt:=15;
    int64res := int64res shl bytecnt;
    Write('(SHL) Value should be 32768...');
-   test(int64res and $FFFFFFFF, 32768);
+   test(int64res, 32768);
 
 
    int64res:=-1;
    bytecnt := 15;
    int64res := int64res shl bytecnt;
    Write('(SHL) Value should be -32768...');
-   test(int64res and $FFFFFFFF, -32768);
+   test(int64res, -32768);
 
-
+{
    int64res := 1;
    bytecnt := -2;
    int64res:=int64res shr bytecnt ;
    Write('(SHR) Value should be 0...');
    test(int64res and $FFFFFFFF, 0);
-
+}
 
    int64res:=32768;
    bytecnt:=15;
    int64res := int64res shr bytecnt;
    Write('(SHR) Value should be 1...');
-   test(int64res and $FFFFFFFF, 1);
+   test(int64res, 1);
    
    int64res := 1;
    bytecnt := 33;
@@ -323,7 +335,11 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-09-29 14:37:22  carl
+  Revision 1.7  2003-12-07 11:59:44  jonas
+    * test procedure uses 64bit arguments under FPC
+    - disabled tests with negative shift counts (illegal)
+
+  Revision 1.6  2002/09/29 14:37:22  carl
     * must more 64-bit testing (to detect endian specific problems)
 
   Revision 1.5  2002/09/07 15:40:56  peter
