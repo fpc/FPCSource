@@ -115,6 +115,8 @@ uses
   catch,
 {$endif}
 {$endif FPC}
+  { added for parser_current_file info }
+  parser,
   globals,compiler
   ;
 
@@ -245,7 +247,10 @@ begin
               Writeln('Error: Out of memory');
             end;
      end;
-     Writeln('Compilation aborted at line ',aktfilepos.line);
+     { we cannot use aktfilepos.file because all memory might have been
+       freed already !
+       But we can use global parser_current_file var }
+     Writeln('Compilation aborted ',parser_current_file,':',aktfilepos.line);
    end;
 end;
 
@@ -260,11 +265,14 @@ begin
 {$endif}
 
 { Call the compiler with empty command, so it will take the parameters }
-  Halt(Compile(''));
+  Halt(compiler.Compile(''));
 end.
 {
   $Log$
-  Revision 1.38  1999-01-19 10:19:03  florian
+  Revision 1.39  1999-01-22 12:19:30  pierre
+   + currently compiled file name added on errors
+
+  Revision 1.38  1999/01/19 10:19:03  florian
     * bug with mul. of dwords fixed, reported by Alexander Stohr
     * some changes to compile with TP
     + small enhancements for the new code generator

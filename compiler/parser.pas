@@ -42,6 +42,9 @@ unit parser;
     procedure initparser;
     procedure doneparser;
 
+    const
+       parser_current_file : string = '';
+       
   implementation
 
     uses
@@ -161,6 +164,7 @@ unit parser;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
          oldaktmodeswitches : tmodeswitches;
+         prev_name          : pstring;
 {$ifdef USEEXCEPT}
          recoverpos    : jmp_buf;
          oldrecoverpos : pjmp_buf;
@@ -168,6 +172,8 @@ unit parser;
 
       begin
          inc(compile_level);
+         prev_name:=stringdup(parser_current_file);
+         parser_current_file:=filename;
        { save symtable state }
          oldsymtablestack:=symtablestack;
          oldrefsymtable:=refsymtable;
@@ -407,6 +413,8 @@ unit parser;
           end;
 
          dec(compile_level);
+         parser_current_file:=prev_name^;
+         stringdispose(prev_name);
 {$ifdef USEEXCEPT}
          if longjump_used then
            longjmp(recoverpospointer^,1);
@@ -416,7 +424,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.64  1999-01-12 14:25:29  peter
+  Revision 1.65  1999-01-22 12:19:31  pierre
+   + currently compiled file name added on errors
+
+  Revision 1.64  1999/01/12 14:25:29  peter
     + BrowserLog for browser.log generation
     + BrowserCol for browser info in TCollections
     * released all other UseBrowser
