@@ -37,8 +37,8 @@ Type
    bestreal = double;
    ts32real = single;
    ts64real = double;
-   ts80real = extended;
-   ts128real = extended;
+   ts80real = type extended;
+   ts128real = type extended;
    ts64comp = comp;
 
    pbestreal=^bestreal;
@@ -112,7 +112,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.4  2003-11-17 23:23:47  florian
+  Revision 1.5  2003-12-01 18:43:32  peter
+    * s128real type is not compatible with s80real
+
+  Revision 1.4  2003/11/17 23:23:47  florian
     + first part of arm assembler reader
 
   Revision 1.3  2003/11/07 15:58:32  florian

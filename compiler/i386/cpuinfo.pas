@@ -45,8 +45,8 @@ Type
    ts32real = single;
    ts64real = double;
    ts80real = extended;
-   ts128real = extended;
-   ts64comp = extended;
+   ts128real = type extended;
+   ts64comp = type extended;
 
    pbestreal=^bestreal;
 
@@ -120,7 +120,10 @@ Implementation
 end.
 {
   $Log$
-  Revision 1.19  2003-11-12 16:05:39  florian
+  Revision 1.20  2003-12-01 18:43:31  peter
+    * s128real type is not compatible with s80real
+
+  Revision 1.19  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it

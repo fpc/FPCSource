@@ -38,8 +38,8 @@ type
   ts32real = single;
   ts64real = double;
   ts80real = extended;
-  ts128real = extended;
-  ts64comp = extended;
+  ts128real = type extended;
+  ts64comp = type extended;
   pbestreal=^bestreal;
 
   { possible supported processors for this target }
@@ -89,7 +89,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2003-11-28 13:09:07  mazen
+  Revision 1.12  2003-12-01 18:43:32  peter
+    * s128real type is not compatible with s80real
+
+  Revision 1.11  2003/11/28 13:09:07  mazen
   + defintion of ts128real
   + globtype is needed in interface uses clause
 

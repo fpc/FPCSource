@@ -381,7 +381,7 @@ interface
        { Generates an extended float (128 bit real) }
        tai_real_128bit = class(tai)
           value : ts128real;
-          constructor Create(_value : ts80real);
+          constructor Create(_value : ts128real);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -2188,7 +2188,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2003-11-12 16:05:39  florian
+  Revision 1.56  2003-12-01 18:43:31  peter
+    * s128real type is not compatible with s80real
+
+  Revision 1.55  2003/11/12 16:05:39  florian
     * assembler readers OOPed
     + typed currency constants
     + typed 128 bit float constants if the CPU supports it
