@@ -85,10 +85,13 @@ Const
 {ait_* types which don't result in executable code or which don't influence
  the way the program runs/behaves}
 
-  SkipInstr = [ait_comment, ait_align, ait_symbol
+  SkipInstr = [ait_comment, ait_symbol
 {$ifdef GDB}
   ,ait_stabs, ait_stabn, ait_stab_function_name
 {$endif GDB}
+{$ifndef alignreg}
+  ,ait_align
+{$endif alignreg}
   ,ait_regalloc, ait_tempalloc
   ];
 
@@ -638,7 +641,7 @@ Begin
     Else
       Begin
         GetNextInstruction := False;
-        Next := Nil;
+        Next := nil;
       End;
 End;
 
@@ -675,7 +678,7 @@ Begin
       (Pai_Marker(Current)^.Kind = AsmBlockEnd))
     Then
       Begin
-        Last := Nil;
+        Last := nil;
         GetLastInstruction := False
       End
     Else
@@ -828,9 +831,13 @@ Begin
   RegInSequence := TmpResult
 End;
 
-Procedure DestroyReg(p1: PPaiProp; Reg: TRegister);
+Procedure DestroyReg(p1: PPaiProp; Reg: TRegister; doIncState:Boolean);
 {Destroys the contents of the register Reg in the PPaiProp p1, as well as the
- contents of registers are loaded with a memory location based on Reg}
+ contents of registers are loaded with a memory location based on Reg.
+ doIncState is false when this register has to be destroyed not because
+ it's contents are directly modified/overwritten, but because of an indirect
+ action (ie. this register holds the contents of a variable and the value
+ of the variable in memory is changed }
 Var TmpWState, TmpRState: Byte;
     Counter: TRegister;
 Begin
@@ -841,7 +848,8 @@ Begin
       Begin
         With p1^.Regs[Reg] Do
           Begin
-            IncState(WState);
+            if doIncState then
+              IncState(WState);
             TmpWState := WState;
             TmpRState := RState;
             FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
@@ -854,7 +862,8 @@ Begin
                RegInSequence(Reg, p1^.Regs[Counter])
               Then
                 Begin
-                  IncState(WState);
+                  if doIncState then
+                    IncState(WState);
                   TmpWState := WState;
                   TmpRState := RState;
                   FillChar(p1^.Regs[Counter], SizeOf(TContent), 0);
@@ -1195,7 +1204,7 @@ Begin
                 )
                )
               Then
-                DestroyReg(PPaiProp(p^.OptInfo), Counter)
+                DestroyReg(PPaiProp(p^.OptInfo), Counter, false)
           End
     End
   Else
@@ -1220,7 +1229,7 @@ Begin
               )
              )
          )
-        Then DestroyReg(PPaiProp(p^.OptInfo), Counter)
+        Then DestroyReg(PPaiProp(p^.OptInfo), Counter, false)
 End;
 
 Procedure DestroyAllRegs(p: PPaiProp);
@@ -1229,7 +1238,7 @@ Begin {initializes/desrtoys all registers}
   For Counter := R_EAX To R_EDI Do
     Begin
       ReadReg(p, Counter);
-      DestroyReg(p, Counter);
+      DestroyReg(p, Counter, true);
     End;
   p^.DirFlag := F_Unknown;
 End;
@@ -1237,7 +1246,7 @@ End;
 Procedure DestroyOp(PaiObj: Pai; const o:Toper);
 Begin
   Case o.typ Of
-    top_reg: DestroyReg(PPaiProp(PaiObj^.OptInfo), o.reg);
+    top_reg: DestroyReg(PPaiProp(PaiObj^.OptInfo), o.reg, true);
     top_ref:
       Begin
         ReadRef(PPaiProp(PaiObj^.OptInfo), o.ref);
@@ -1284,7 +1293,7 @@ Begin
         End
       Else
         Begin
-          DestroyReg(PPaiProp(p^.optinfo), Reg);
+          DestroyReg(PPaiProp(p^.optinfo), Reg, true);
 {$ifdef StateDebug}
           hp := new(pai_asm_comment,init(strpnew(att_reg2str[reg]+': '+tostr(PPaiProp(p^.optinfo)^.Regs[reg].WState))));
           InsertLLItem(AsmL, p, p^.next, hp);
@@ -1397,7 +1406,7 @@ Begin
                               Begin
                                 If (CurProp^.Regs[TmpReg].WState <>
                                     PPaiProp(hp^.OptInfo)^.Regs[TmpReg].WState)
-                                  Then DestroyReg(CurProp, TmpReg)
+                                  Then DestroyReg(CurProp, TmpReg, true)
                               End
                       End
 {$IfDef AnalyzeLoops}
@@ -1462,7 +1471,7 @@ Begin
 {$ifdef GDB}
         ait_stabs, ait_stabn, ait_stab_function_name:;
 {$endif GDB}
-
+        ait_align: ; { may destroy flags !!! }
         ait_instruction:
           Begin
             if paicpu(p)^.is_jmp then
@@ -1488,7 +1497,7 @@ Begin
                         For TmpReg := R_EAX to R_EDI Do
                           If (PaiPropBlock^[InstrNr].Regs[TmpReg].WState <>
                              CurProp^.Regs[TmpReg].WState) Then
-                            DestroyReg(@PaiPropBlock^[InstrNr], TmpReg);
+                            DestroyReg(@PaiPropBlock^[InstrNr], TmpReg, true);
                         Inc(JmpsProcessed);
                       End
 {$ifdef AnalyzeLoops}
@@ -1512,7 +1521,7 @@ Begin
                                   Cnt := InstrNr;
                                   While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
                                     Begin
-                                      DestroyReg(@PaiPropBlock^[Cnt], TmpReg);
+                                      DestroyReg(@PaiPropBlock^[Cnt], TmpReg, true);
                                       Inc(Cnt);
                                     End;
                                   While (Cnt <= InstrCnt) Do
@@ -1539,7 +1548,7 @@ Begin
                               TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].WState;
                               While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
                                 Begin
-                                  DestroyReg(@PaiPropBlock^[Cnt], TmpReg);
+                                  DestroyReg(@PaiPropBlock^[Cnt], TmpReg, true);
                                   Inc(Cnt);
                                 End;
                               While (Cnt <= InstrCnt) Do
@@ -1564,7 +1573,7 @@ Begin
                       Case Paicpu(p)^.oper[1].typ Of
                         Top_Reg:
                           Begin
-                            DestroyReg(CurProp, Paicpu(p)^.oper[1].reg);
+                            DestroyReg(CurProp, Paicpu(p)^.oper[1].reg, true);
                             ReadReg(CurProp, Paicpu(p)^.oper[0].reg);
 {                            CurProp^.Regs[Paicpu(p)^.oper[1].reg] :=
                               CurProp^.Regs[Paicpu(p)^.oper[0].reg];
@@ -1601,7 +1610,7 @@ Begin
                             End
                           Else
                             Begin
-                              DestroyReg(CurProp, TmpReg);
+                              DestroyReg(CurProp, TmpReg, true);
                               If Not(RegInRef(TmpReg, Paicpu(p)^.oper[0].ref^)) Then
                                 With CurProp^.Regs[TmpReg] Do
                                   Begin
@@ -1624,7 +1633,7 @@ Begin
                               TmpReg := Reg32(Paicpu(p)^.oper[1].reg);
                               With CurProp^.Regs[TmpReg] Do
                                 Begin
-                                  DestroyReg(CurProp, TmpReg);
+                                  DestroyReg(CurProp, TmpReg, true);
                                   typ := Con_Const;
                                   StartMod := p;
                                 End
@@ -1645,7 +1654,7 @@ Begin
                   If (Paicpu(p)^.OpCode = A_IDIV) or
                      (Paicpu(p)^.OpCode = A_DIV) Then
                     ReadReg(CurProp,R_EDX);
-                  DestroyReg(CurProp, R_EAX)
+                  DestroyReg(CurProp, R_EAX, true)
                 End;
               A_IMUL:
                 Begin
@@ -1655,8 +1664,8 @@ Begin
                     If (Paicpu(p)^.oper[1].typ = top_none) Then
                       Begin
                         ReadReg(CurProp,R_EAX);
-                        DestroyReg(CurProp, R_EAX);
-                        DestroyReg(CurProp, R_EDX)
+                        DestroyReg(CurProp, R_EAX, true);
+                        DestroyReg(CurProp, R_EDX, true)
                       End
                     Else
             {$ifdef arithopt}
@@ -1680,7 +1689,7 @@ Begin
                      (Paicpu(p)^.oper[0].reg = Paicpu(p)^.oper[1].reg)
                     Then
                       Begin
-                        DestroyReg(CurProp, Paicpu(p)^.oper[0].reg);
+                        DestroyReg(CurProp, Paicpu(p)^.oper[0].reg, true);
                         CurProp^.Regs[Reg32(Paicpu(p)^.oper[0].reg)].typ := Con_Const;
                         CurProp^.Regs[Reg32(Paicpu(p)^.oper[0].reg)].StartMod := Pointer(0)
                       End
@@ -1699,7 +1708,7 @@ Begin
                           Begin
                             If (InstrProp.Ch[Cnt] >= Ch_RWEAX) Then
                               ReadReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
-                            DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
+                            DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]), true);
                           End;
 {$ifdef arithopt}
                         Ch_MEAX..Ch_MEDI:
@@ -1870,7 +1879,11 @@ End.
 
 {
  $Log$
- Revision 1.65  1999-10-27 16:11:28  peter
+ Revision 1.66  1999-11-05 16:01:46  jonas
+   + first implementation of choosing least used register for alignment code
+      (not yet working, between ifdef alignreg)
+
+ Revision 1.65  1999/10/27 16:11:28  peter
    * insns.dat is used to generate all i386*.inc files
 
  Revision 1.64  1999/10/23 14:44:24  jonas

@@ -53,6 +53,15 @@ type
      constructor dealloc(r : tregister);
   end;
 
+{$ifdef alignreg}
+       { alignment for operator }
+       pai_align = ^tai_align;
+       tai_align = object(tai_align_abstract)
+          reg       : tregister;
+          constructor init(b:byte);
+          constructor init_op(b: byte; _op: byte);
+       end;
+{$endif alignreg}
 
   paicpu = ^taicpu;
   taicpu = object(tai)
@@ -153,6 +162,29 @@ uses
         allocation:=false;
         reg:=r;
       end;
+
+
+{$ifdef alignreg}
+{****************************************************************************
+                              TAI_ALIGN
+ ****************************************************************************}
+
+     constructor tai_align.init(b: byte);
+
+       begin
+          inherited init(b);
+          reg := R_ECX;
+       end;
+
+
+     constructor tai_align.init_op(b: byte; _op: byte);
+
+       begin
+          inherited init_op(b,_op);
+          reg := R_ECX;
+       end;
+
+{$endif alignreg}
 
 
 {*****************************************************************************
@@ -1496,7 +1528,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-08-25 11:59:57  jonas
+  Revision 1.4  1999-11-05 16:01:46  jonas
+    + first implementation of choosing least used register for alignment code
+       (not yet working, between ifdef alignreg)
+
+  Revision 1.3  1999/08/25 11:59:57  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
 
   Revision 1.2  1999/08/12 14:36:01  peter

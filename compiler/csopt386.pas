@@ -238,6 +238,153 @@ Begin
   Until p1 = p2;
 End;
 
+{$ifdef alignreg}
+Procedure SetAlignReg(p: Pai);
+var regsUsable: TRegSet;
+    prevInstrCount, nextInstrCount: Longint;
+    prevState, nextWState,nextRState: Array[R_EAX..R_EDI] of byte;
+    regCounter, lastRemoved: TRegister;
+    prev, next: Pai;
+{$ifdef alignregdebug}
+    temp: Pai;
+{$endif alignregdebug}
+begin
+  regsUsable := [R_EAX,R_ECX,R_EDX,R_EBX,{R_ESP,R_EBP,}R_ESI,R_EDI];
+  for regCounter := R_EAX to R_EDI do
+    begin
+      prevState[regCounter] := PPaiProp(p^.optInfo)^.Regs[regCounter].wState;
+      nextWState[regCounter] := PPaiProp(p^.optInfo)^.Regs[regCounter].wState;
+      nextRState[regCounter] := PPaiProp(p^.optInfo)^.Regs[regCounter].rState;
+    end;
+  getLastInstruction(p,prev);
+  getNextInstruction(p,next);
+  lastRemoved := pai_align(p)^.reg;
+  nextInstrCount := 0;
+  prevInstrCount := 0;
+  while ((assigned(prev) and
+          assigned(prev^.optInfo) and
+          (prevInstrCount < 10)) or
+         (assigned(next) and
+          assigned(next^.optInfo) and
+          (nextInstrCount < 10))) And
+        (regsUsable <> []) Do
+    begin
+      if assigned(prev) and assigned(prev^.optinfo) and
+         (prevInstrCount < 10) then
+        begin
+          if (prev^.typ = ait_instruction) And
+             (insProp[PaiCpu(prev)^.opcode].ch[1] <> Ch_ALL) and
+             (PaiCpu(prev)^.opcode <> a_jmp) then
+            begin
+              inc(prevInstrCount);
+              for regCounter := R_EAX to R_EDI do
+                begin
+                  if (regCounter in regsUsable) And
+                     (PPaiProp(prev^.optInfo)^.Regs[regCounter].wState <>
+                       prevState[regCounter]) then
+                    begin
+                      lastRemoved := regCounter;
+                      exclude(regsUsable,regCounter);
+  {$ifdef alignregdebug}
+                      if regsUsable = [] then
+                        begin
+                          temp := new(pai_asm_comment,init(strpnew(
+                                    'regsUsable empty here')));
+                          temp^.next := prev^.next;
+                          temp^.previous := prev;
+                          prev^.next := temp;
+                          if assigned(temp^.next) then
+                            temp^.next^.previous := temp;
+                        end;
+  {$endif alignregdebug}
+                    end;
+                  prevState[regCounter] :=
+                    PPaiProp(prev^.optInfo)^.Regs[regCounter].wState;
+                end
+            end
+          else
+            for regCounter := R_EAX to R_EDI do
+              prevState[regCounter] :=
+                PPaiProp(prev^.optInfo)^.Regs[regCounter].wState;
+          getLastInstruction(prev,prev);
+        end;
+      if assigned(next) and assigned(next^.optInfo) and
+         (nextInstrCount < 10) then
+        begin
+          if (next^.typ = ait_instruction) and
+             (insProp[PaiCpu(next)^.opcode].ch[1] <> Ch_ALL) and
+             (PaiCpu(next)^.opcode <> a_jmp) then
+            begin
+              inc(nextInstrCount);
+              for regCounter := R_EAX to R_EDI do
+                begin
+                  if (regCounter in regsUsable) And
+                     ((PPaiProp(next^.optInfo)^.Regs[regCounter].wState <>
+                       nextWState[regCounter]) or
+                      (PPaiProp(next^.optInfo)^.Regs[regCounter].rState <>
+                       nextRState[regCounter])) Then
+                    begin
+                      lastRemoved := regCounter;
+                      exclude(regsUsable,regCounter);
+{$ifdef alignregdebug}
+                      if regsUsable = [] then
+                        begin
+                          temp := new(pai_asm_comment,init(strpnew(
+                                    'regsUsable empty here')));
+                          temp^.next := next^.next;
+                          temp^.previous := next;
+                          next^.next := temp;
+                          if assigned(temp^.next) then
+                            temp^.next^.previous := temp;
+                        end;
+{$endif alignregdebug}
+                    end;
+                  nextWState[regCounter] :=
+                    PPaiProp(next^.optInfo)^.Regs[regCounter].wState;
+                  nextRState[regCounter] :=
+                    PPaiProp(next^.optInfo)^.Regs[regCounter].rState;
+                end
+            end
+          else
+            for regCounter := R_EAX to R_EDI do
+              begin
+                nextWState[regCounter] :=
+                  PPaiProp(next^.optInfo)^.Regs[regCounter].wState;
+                nextRState[regCounter] :=
+                  PPaiProp(next^.optInfo)^.Regs[regCounter].rState;
+              end;
+          getNextInstruction(next,next);
+        end;
+    end;
+  if regsUsable <> [] then
+    for regCounter := R_EAX to R_EDI do
+      if regCounter in regsUsable then
+        begin
+{$ifdef alignregdebug}
+          next := new(pai_asm_comment,init(strpnew('regsusable not empty')));
+          next^.next := p^.next;
+          next^.previous := p;
+          p^.next := next;
+          if assigned(next^.next) then
+            next^.next^.previous := next;
+{$endif alignregdebug}
+
+          lastRemoved := regCounter;
+          break
+        end;
+{$ifdef alignregdebug}
+  next := new(pai_asm_comment,init(strpnew(att_reg2str[lastRemoved]+
+               ' chosen as alignment register')));
+  next^.next := p^.next;
+  next^.previous := p;
+  p^.next := next;
+  if assigned(next^.next) then
+    next^.next^.previous := next;
+{$endif alignregdebug}
+  pai_align(p)^.reg := lastRemoved;
+End;
+{$endif alignreg}
+
 Procedure DoCSE(AsmL: PAasmOutput; First, Last: Pai);
 {marks the instructions that can be removed by RemoveInstructs. They're not
  removed immediately because sometimes an instruction needs to be checked in
@@ -258,6 +405,10 @@ Begin
   While (p <> Last) Do
     Begin
       Case p^.typ Of
+{$ifdef alignreg}
+        ait_align:
+          SetAlignReg(p);
+{$endif alignreg}
         ait_instruction:
           Begin
             Case Paicpu(p)^.opcode Of
@@ -530,7 +681,11 @@ End.
 
 {
  $Log$
- Revision 1.28  1999-10-11 11:11:31  jonas
+ Revision 1.29  1999-11-05 16:01:46  jonas
+   + first implementation of choosing least used register for alignment code
+      (not yet working, between ifdef alignreg)
+
+ Revision 1.28  1999/10/11 11:11:31  jonas
    * fixed bug which sometimes caused a crash when optimizing blocks of code with
      assembler blocks (didn't notice before because of lack of zero page protection
      under Win9x :( )

@@ -185,8 +185,14 @@ unit aasm;
 
 
        { alignment for operator }
+
+{$ifndef alignreg}
        pai_align = ^tai_align;
        tai_align = object(tai)
+{$else alignreg}
+       pai_align_abstract = ^tai_align_abstract;
+       tai_align_abstract = object(tai)
+{$endif alignreg}
           aligntype : byte;   { 1 = no align, 2 = word align, 4 = dword align }
           fillsize  : byte;   { real size to fill }
           fillop    : byte;   { value to fill with - optional }
@@ -695,7 +701,11 @@ uses
                               TAI_ALIGN
  ****************************************************************************}
 
+{$ifndef alignreg}
      constructor tai_align.init(b: byte);
+{$else alignreg}
+     constructor tai_align_abstract.init(b: byte);
+{$endif alignreg}
 
        begin
           inherited init;
@@ -710,7 +720,11 @@ uses
        end;
 
 
+{$ifndef alignreg}
      constructor tai_align.init_op(b: byte; _op: byte);
+{$else alignreg}
+     constructor tai_align_abstract.init_op(b: byte; _op: byte);
+{$endif alignreg}
 
        begin
           inherited init;
@@ -723,7 +737,6 @@ uses
           fillop:=_op;
           use_op:=true;
        end;
-
 
 {****************************************************************************
                               TAI_CUT
@@ -999,7 +1012,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.66  1999-11-02 15:06:56  peter
+  Revision 1.67  1999-11-05 16:01:45  jonas
+    + first implementation of choosing least used register for alignment code
+       (not yet working, between ifdef alignreg)
+
+  Revision 1.66  1999/11/02 15:06:56  peter
     * import library fixes for win32
     * alignment works again
 
