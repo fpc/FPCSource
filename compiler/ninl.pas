@@ -688,7 +688,7 @@ implementation
                             hpp := cordconstnode.create(1,s32bitdef);
                           { addition/substraction depending on inc/dec }
                           if inlinenumber = in_inc_x then
-                            hp := caddnode.create(addn,tcallparanode(left).left,hpp)
+                            hp := caddnode.create(addn,tcallparanode(left).left.getcopy,hpp)
                           else
                             hp := caddnode.create(subn,tcallparanode(left).left.getcopy,hpp);
                           { assign result of addition }
@@ -1412,7 +1412,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-10-14 18:27:53  jonas
+  Revision 1.9  2000-10-15 08:38:46  jonas
+    * added missing getcopy for previous addition
+
+  Revision 1.8  2000/10/14 18:27:53  jonas
     * merged fix for inc/dec on 64bit types from tcinl
 
   Revision 1.7  2000/10/14 10:14:50  peter
