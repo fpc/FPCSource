@@ -61,7 +61,7 @@ interface
        delphimodeswitches : tmodeswitches=
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
-          m_out,m_default_para,m_duplicate_names,m_hintdirective];
+          m_out,m_default_para,m_duplicate_names,m_hintdirective,m_add_pointer];
        fpcmodeswitches    : tmodeswitches=
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective];
@@ -72,8 +72,8 @@ interface
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
        gpcmodeswitches    : tmodeswitches=
          [m_gpc,m_all];
-        
-          
+
+
        { maximum number of locals in bytes before warning is emitted }
        maxlocalsize = high(smallint);
        { maximum number of paras in bytes before warning is emitted }
@@ -1540,7 +1540,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2002-12-07 14:27:07  carl
+  Revision 1.79  2002-12-25 01:26:17  peter
+    * delphi also has pointer archimetic
+
+  Revision 1.78  2002/12/07 14:27:07  carl
     * 3% memory optimization
     * changed some types
     + added type checking with different size for call node and for
