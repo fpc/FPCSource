@@ -213,9 +213,9 @@ implementation
 
               case tfloatdef(t.def).typ of
                  s32real :
-                   curconstSegment.concat(Tai_real_32bit.Create(value));
+                   curconstSegment.concat(Tai_real_32bit.Create(ts32real(value)));
                  s64real :
-                   curconstSegment.concat(Tai_real_64bit.Create(value));
+                   curconstSegment.concat(Tai_real_64bit.Create(ts64real(value)));
                  s80real :
                    curconstSegment.concat(Tai_real_80bit.Create(value));
                  s64comp :
@@ -985,7 +985,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.61  2002-11-25 18:43:33  carl
+  Revision 1.62  2002-12-07 14:15:33  carl
+    + add some explicit typecasts to remove some warnings
+
+  Revision 1.61  2002/11/25 18:43:33  carl
    - removed the invalid if <> checking (Delphi is strange on this)
    + implemented abstract warning on instance creation of class with
       abstract methods.
