@@ -14,8 +14,6 @@ BUGS & WARNINGS
 
 - Multi-user support
   - not tested well...
-  - ranges are not fully multi-user 'aware' (yet) because range is cached
-    -> race conditions can occur
 - use FIXED LENGTH index expressions: an expression which will always return
   a string which is the same length. When returning a float you don't have to
   worry about this of course (always fixed #bytes). String fields also return
@@ -32,6 +30,61 @@ BUGS & WARNINGS
     - no codepage conversion available other than oem<->ansi
     - storedefs is not updated automatically when fielddefs are changed
 
+
+
+------------------------
+V6.4.0
+
+- fixed: dBase III and IV do not have date+time fields
+- fixed: index search bug, not finding records (rep by peruginia)
+- fixed: expression bracket pair checking; caused strange expression errors
+- fixed: parse filter expression upon opening file (rep by mvc)
+- added: do not resync/reparse filter if not property unchanged
+- fixed: use international string functions in expressions
+- fixed: index deletion and update corruption while range active (rep by ralf)
+
+
+------------------------
+V6.3.9
+
+- fixed: recursive loop in index first/last
+- fixed: index resync current record
+- fixed: resync range at eof
+- fixed: index findkey finds last, deleted key in index page
+- fixed: opening dbf file with numeric integer field misreads numbers
+- fixed: storage of foxpro binary integer field
+- fixed: only support 65535 length character fields for foxpro
+    (otherwise ms excel generated files can not be read)
+- fixed: call CursorPosChanged whenever cursor position possibly changed
+- fixed: keep cursor position when index and range active as much as possible
+
+
+------------------------
+V6.3.8
+
+- fixed: outdated buffer in checking found key
+- fixed: createtable with memorystream; tdbf.userstream (thx andrew)
+- fixed: garbage record when adding a record to empty table
+- fixed: fields settings size for integer fields
+- fixed: underflow buffer in GetStrFromInt when Width=0
+- fixed: IndexFile.PrepareKey numeric index: encode value zero to have no digits
+- added: TDbf.PrepareKey for conversion of key to numeric index key format
+- fixed: set physicalrecno to non-existing recno corrupts table (rep by luchop)
+- fixed: tryexclusive/packtable/endexclusive fail because of memo (rep by sysklop)
+- fixed: crash when calling {un,}locktable on closed dataset (rep by sysklop)
+- fixed: use correct dbf version when creating table to decide field types
+- fixed: kylix compilation
+- added: multi-user and insert aware ranges (req by ralf)
+- chngd: made all filenames lowercase to ease usage on *nix
+- added: partial matching in expressions for filters
+- added: -, *, / operators in expressions
+- fixed: datetime issues with fieldtype '@' and delphi 4 and lower (nobody uses 
+    those fieldtypes? they have been horribly broken, and maybe still are)
+- fixed: getting recno in oncalcfields event (rep by lutz)
+- fixed: AV when checking empty binary fields
+- fixed: better foxpro header writing, fieldoffset, tabletype and headersize
+**Version .1:
+- fixed: recursive loop in setrange
 
 
 ------------------------

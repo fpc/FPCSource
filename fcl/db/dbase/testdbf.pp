@@ -14,7 +14,7 @@ Var
 begin
   Assign(F,FN);
   Rewrite(F);
-  SetTextBuf(F,Buf);
+//  SetTextBuf(F,Buf);
   With TDBF.Create(Nil) do
     begin
     TableName:=TN;

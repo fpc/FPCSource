@@ -8,7 +8,7 @@ interface
 
 uses
   Classes,
-  Db,
+  DB,
   Dbf_Common,
   Dbf_DbfFile,
   Dbf_Parser,
