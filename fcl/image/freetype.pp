@@ -147,7 +147,7 @@ type
 const
   sErrErrorsInCleanup : string = '%d errors detected while freeing a Font Manager object';
   sErrFontFileNotFound : string = 'Font file "%s" not found';
-  sErrFreeType : string = 'Error %d while %s';
+  sErrFreeType : string = 'Error %s while %d';
   sInitializing : string = 'initializing font engine';
   sDestroying : string = 'destroying font engine';
   sErrErrorInCleanup : string = 'freeing Font Manager object';
