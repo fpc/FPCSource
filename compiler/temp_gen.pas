@@ -81,6 +81,7 @@ interface
     procedure gettempofsizereference(l : longint;var ref : treference);
     function istemp(const ref : treference) : boolean;
     procedure ungetiftemp(const ref : treference);
+    function getsizeoftemp(const ref: treference): longint;
 
     function ungetiftempansi(const ref : treference) : boolean;
     procedure gettempansistringreference(var ref : treference);
@@ -508,6 +509,22 @@ const
         ungettemp:=tt_none;
       end;
 
+    function getsizeoftemp(const ref: treference): longint;
+      var
+         hp : ptemprecord;
+      begin
+        hp:=templist;
+        while assigned(hp) do
+          begin
+            if (hp^.pos=ref.offset) then
+              begin
+                getsizeoftemp := hp^.size;
+                exit;
+              end;
+            hp := hp^.next;
+          end;
+        getsizeoftemp := -1;
+      end;
 
     procedure ungetpersistanttemp(pos : longint);
       begin
@@ -556,7 +573,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.9  2000-12-25 00:07:30  peter
+  Revision 1.10  2000-12-31 11:04:43  jonas
+    + sizeoftemp() function
+
+  Revision 1.9  2000/12/25 00:07:30  peter
     + new tlinkedlist class (merge of old tstringqueue,tcontainer and
       tlinkedlist objects)
 
