@@ -106,7 +106,13 @@ begin
  Fpclose:=do_syscall(syscall_nr_close,fd);
 end;
 
-{$if powerpc and NetBSD}
+{$ifdef netbsd}
+  {$ifdef powerpc}
+    {$define netbsdmacppc}
+  {$endif}
+{$endif}
+
+{$ifdef netbsdmacppc}
 {$i sysofft.inc}			// odd ball calling convention.
 {$else}
   // generic versions.
@@ -591,7 +597,10 @@ end;
 
 {
  $Log$
- Revision 1.3  2003-05-29 20:52:55  marco
+ Revision 1.4  2003-05-29 21:45:23  marco
+  * Some other workaround
+
+ Revision 1.3  2003/05/29 20:52:55  marco
   * only moved around the off_t calls, and made an exception (includefile)
  for NetBSD/powerpc
 
