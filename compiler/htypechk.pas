@@ -77,13 +77,11 @@ interface
 
     { is overloading of this operator allowed for this
       binary operator }
-    function isbinaryoperatoroverloadable(ld, rd,dd : tdef;
-             treetyp : tnodetype) : boolean;
+    function isbinaryoperatoroverloadable(ld, rd,dd : tdef; treetyp : tnodetype) : boolean;
 
     { is overloading of this operator allowed for this
       unary operator }
-    function isunaryoperatoroverloadable(rd,dd : tdef;
-             treetyp : tnodetype) : boolean;
+    function isunaryoperatoroverloadable(rd,dd : tdef; treetyp : tnodetype) : boolean;
 
     { check operator args and result type }
     function isoperatoracceptable(pf : tprocdef; optoken : ttoken) : boolean;
@@ -137,131 +135,269 @@ implementation
       TValidAssigns=set of TValidAssign;
 
 
-    { ld is the left type definition
-      rd the right type definition
-      dd the result type definition  or voiddef if unkown }
-    function isbinaryoperatoroverloadable(ld, rd, dd : tdef;
-             treetyp : tnodetype) : boolean;
+    function isbinaryoperatoroverloadable(ld,rd,dd : tdef; treetyp : tnodetype) : boolean;
       begin
-        isbinaryoperatoroverloadable:=
-           (treetyp=starstarn) or
-           (ld.deftype=recorddef) or
-           (rd.deftype=recorddef) or
-           (ld.deftype=variantdef) or
-           (rd.deftype=variantdef) or
-           ((rd.deftype=pointerdef) and
-            not(is_dynamic_array(ld) and
-                is_voidpointer(rd)) and
-            not(is_pchar(rd) and
-                (is_chararray(ld) or
-                 (ld.deftype=stringdef) or
-                 (treetyp=addn))) and
-            (not(ld.deftype in [pointerdef,objectdef,classrefdef,procvardef]) or
-             not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,subn])
-            ) and
-            (not is_integer(ld) or not (treetyp in [addn,subn]))
-           ) or
-           ((ld.deftype=pointerdef) and
-            not(is_dynamic_array(rd) and
-                is_voidpointer(ld)) and
-            not(is_pchar(ld) and
-                (is_chararray(rd) or
-                 (rd.deftype=stringdef) or
-                 (treetyp=addn))) and
-            (not(rd.deftype in [stringdef,pointerdef,objectdef,classrefdef,procvardef]) and
-             ((not is_integer(rd) and (rd.deftype<>objectdef)
-               and (rd.deftype<>classrefdef)) or
-              not (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,addn,subn])
-             )
-            )
-           ) or
-           { array def, but not mmx or chararray+[char,string,chararray] }
-           ((ld.deftype=arraydef) and
-            not((cs_mmx in aktlocalswitches) and
-                is_mmx_able_array(ld)) and
-            not(is_dynamic_array(ld) and
-                is_voidpointer(rd)) and
-            not(is_chararray(ld) and
-                (is_char(rd) or
-                 is_pchar(rd) or
-                 { char array + int = pchar + int, fix for web bug 1377 (JM) }
-                 is_integer(rd) or
-                 (rd.deftype=stringdef) or
-                 is_chararray(rd)))
-           ) or
-           ((rd.deftype=arraydef) and
-            not((cs_mmx in aktlocalswitches) and
-                is_mmx_able_array(rd)) and
-            not(is_dynamic_array(rd) and
-                is_voidpointer(ld)) and
-            not(is_chararray(rd) and
-                (is_char(ld) or
-                 is_pchar(ld) or
-                 (ld.deftype=stringdef) or
-                 is_chararray(ld)))
-           ) or
-           { <> and = are defined for classes }
-           (
-            (ld.deftype=objectdef) and
-            not((treetyp in [equaln,unequaln]) and is_class_or_interface(ld))
-           ) or
-           (
-            (rd.deftype=objectdef) and
-            not((treetyp in [equaln,unequaln]) and is_class_or_interface(rd))
-           )
-           or
-           { allow other operators that + on strings }
-           (
-            (is_char(rd) or
-             is_pchar(rd) or
-             (rd.deftype=stringdef) or
-             is_chararray(rd) or
-             is_char(ld) or
-             is_pchar(ld) or
-             (ld.deftype=stringdef) or
-             is_chararray(ld)
-             ) and
-             not(treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
-             not(is_pchar(ld) and
-                 (is_integer(rd) or (rd.deftype=pointerdef)) and
-                 (treetyp=subn)
-                )
-            );
+        { everything is possible, the exceptions will be
+          handled below }
+        isbinaryoperatoroverloadable:=false;
+        { power ** is always possible }
+        if (treetyp=starstarn) then
+         begin
+           isbinaryoperatoroverloadable:=true;
+           exit;
+         end;
+        case ld.deftype of
+          recorddef,
+          variantdef :
+            begin
+              isbinaryoperatoroverloadable:=true;
+              exit;
+            end;
+          procvardef :
+            begin
+              if (rd.deftype in [pointerdef,procdef,procvardef]) and
+                 (treetyp in [equaln,unequaln]) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+            end;
+          pointerdef :
+            begin
+              if (rd.deftype in [pointerdef,objectdef,classrefdef,procvardef]) and
+                 (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,addn,subn]) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
+              { don't allow operations on pointer/integer }
+              if is_integer(rd) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
+              { don't allow pchar+string }
+              if is_pchar(ld) and
+                 (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
+                 (is_chararray(rd) or
+                  is_char(rd) or
+                  (rd.deftype=stringdef)) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
+              isbinaryoperatoroverloadable:=true;
+            end;
+          arraydef :
+            begin
+              { not mmx }
+              if (cs_mmx in aktlocalswitches) and
+                 is_mmx_able_array(ld) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              { not chararray+[char,string,chararray] }
+              if is_chararray(ld) and
+                 (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
+                 (is_char(rd) or
+                  is_pchar(rd) or
+                  is_integer(rd) or
+                  (rd.deftype=stringdef) or
+                  is_chararray(rd)) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
+              isbinaryoperatoroverloadable:=true;
+            end;
+          objectdef :
+            begin
+              { <> and = are defined for classes }
+              if (treetyp in [equaln,unequaln]) and
+                 is_class_or_interface(ld) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              isbinaryoperatoroverloadable:=true;
+            end;
+          stringdef :
+            begin
+              if ((rd.deftype=stringdef) or
+                  is_char(rd) or
+                  is_pchar(rd) or
+                  is_chararray(rd)) and
+                 (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              isbinaryoperatoroverloadable:=true;
+            end;
+        end;
+
+        { Also check the right def. There can be some duplicated code
+          that is never reached. But to place everything in one big
+          case is unmaintainable }
+        case rd.deftype of
+          recorddef,
+          variantdef :
+            begin
+              isbinaryoperatoroverloadable:=true;
+              exit;
+            end;
+          procvardef :
+            begin
+              if (ld.deftype in [pointerdef,procdef,procvardef]) and
+                 (treetyp in [equaln,unequaln]) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              isbinaryoperatoroverloadable:=true;
+            end;
+          pointerdef :
+            begin
+              if (ld.deftype in [pointerdef,objectdef,classrefdef,procvardef]) and
+                 (treetyp in [equaln,unequaln,gtn,gten,ltn,lten,addn,subn]) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
+              { don't allow operations on pointer/integer }
+              if is_integer(ld) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
+              { don't allow pchar+string }
+              if is_pchar(rd) and
+                 (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
+                 (is_chararray(ld) or
+                  is_char(ld) or
+                  (ld.deftype=stringdef)) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
+              isbinaryoperatoroverloadable:=true;
+            end;
+          arraydef :
+            begin
+              { not mmx }
+              if (cs_mmx in aktlocalswitches) and
+                 is_mmx_able_array(rd) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              { not chararray+[char,string,chararray] }
+              if is_chararray(rd) and
+                 (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) and
+                 (is_char(ld) or
+                  is_pchar(ld) or
+                  is_integer(ld) or
+                  (ld.deftype=stringdef) or
+                  is_chararray(ld)) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              isbinaryoperatoroverloadable:=true;
+            end;
+          objectdef :
+            begin
+              { <> and = are defined for classes }
+              if (treetyp in [equaln,unequaln]) and
+                 is_class_or_interface(rd) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              isbinaryoperatoroverloadable:=true;
+            end;
+          stringdef :
+            begin
+              if ((ld.deftype=stringdef) or
+                  is_char(ld) or
+                  is_pchar(ld) or
+                  is_chararray(ld)) and
+                 (treetyp in [addn,equaln,unequaln,gtn,gten,ltn,lten]) then
+               begin
+                 isbinaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              isbinaryoperatoroverloadable:=true;
+            end;
+        end;
       end;
 
 
-    function isunaryoperatoroverloadable(rd,dd : tdef;
-             treetyp : tnodetype) : boolean;
+    function isunaryoperatoroverloadable(rd,dd : tdef; treetyp : tnodetype) : boolean;
       begin
         isunaryoperatoroverloadable:=false;
-        { what assignment overloading should be allowed ?? }
-        if (treetyp=assignn) then
-          begin
-            isunaryoperatoroverloadable:=true;
-             { this already get tbs0261 to fail
-             isunaryoperatoroverloadable:=not is_equal(rd,dd); PM }
-          end
-        { should we force that rd and dd are equal ?? }
-        else if (treetyp=subn { unaryminusn }) then
-          begin
-            isunaryoperatoroverloadable:=
-              not is_integer(rd) and not (rd.deftype=floatdef)
+        case treetyp of
+          assignn :
+            begin
+              if (rd.deftype=orddef) and
+                 (dd.deftype=orddef) then
+               begin
+                 isunaryoperatoroverloadable:=false;
+                 exit;
+               end;
+              isunaryoperatoroverloadable:=true;
+            end;
+
+          subn :
+            begin
+              if is_integer(rd) or
+                 (rd.deftype=floatdef) then
+               begin
+                 isunaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
 {$ifdef SUPPORT_MMX}
-              and not ((cs_mmx in aktlocalswitches) and
-              is_mmx_able_array(rd))
+              if (cs_mmx in aktlocalswitches) and
+                 is_mmx_able_array(rd) then
+               begin
+                 isunaryoperatoroverloadable:=false;
+                 exit;
+               end;
 {$endif SUPPORT_MMX}
-              ;
-          end
-        else if (treetyp=notn) then
-          begin
-            isunaryoperatoroverloadable:=not is_integer(rd) and not is_boolean(rd)
+              isunaryoperatoroverloadable:=true;
+            end;
+
+          notn :
+            begin
+              if is_integer(rd) or
+                 is_boolean(rd) then
+               begin
+                 isunaryoperatoroverloadable:=false;
+                 exit;
+               end;
+
 {$ifdef SUPPORT_MMX}
-              and not ((cs_mmx in aktlocalswitches) and
-              is_mmx_able_array(rd))
+              if (cs_mmx in aktlocalswitches) and
+                 is_mmx_able_array(rd) then
+               begin
+                 isunaryoperatoroverloadable:=false;
+                 exit;
+               end;
 {$endif SUPPORT_MMX}
-              ;
-          end;
+              isunaryoperatoroverloadable:=true;
+            end;
+        end;
       end;
+
 
     function isoperatoracceptable(pf : tprocdef; optoken : ttoken) : boolean;
       var
@@ -975,7 +1111,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.51  2002-11-25 17:43:17  peter
+  Revision 1.52  2002-11-27 22:11:59  peter
+    * rewrote isbinaryoverloadable to use a case. it's now much easier
+      to understand what is happening
+
+  Revision 1.51  2002/11/25 17:43:17  peter
     * splitted defbase in defutil,symutil,defcmp
     * merged isconvertable and is_equal into compare_defs(_ext)
     * made operator search faster by walking the list only once
