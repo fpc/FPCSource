@@ -105,6 +105,8 @@ function GetFileTime(const FileName: string): longint;
 { copied from compiler global unit }
 function GetShortName(const n:string):string;
 function GetLongName(const n:string):string;
+function TrimEndSlash(const Path: string): string;
+function CompareText(S1, S2: string): integer;
 
 function EatIO: integer;
 
@@ -594,7 +596,6 @@ end;
 function TTextCollection.LookUp(const S: string; var Idx: sw_integer): string;
 var OLI,ORI,Left,Right,Mid: integer;
     LeftP,RightP,MidP: PString;
-    RL: integer;
     LeftS,MidS,RightS: string;
     FoundS: string;
     UpS : string;
@@ -627,6 +628,25 @@ begin
   LookUp:=FoundS;
 end;
 
+function TrimEndSlash(const Path: string): string;
+var S: string;
+begin
+  S:=Path;
+  if (length(S)>0) and (S<>DirSep) and (copy(S,length(S),1)=DirSep) and
+    (S[length(S)-1]<>':') then
+   S:=copy(S,1,length(S)-1);
+  TrimEndSlash:=S;
+end;
+
+function CompareText(S1, S2: string): integer;
+var R: integer;
+begin
+  S1:=UpcaseStr(S1); S2:=UpcaseStr(S2);
+  if S1<S2 then R:=-1 else
+  if S1>S2 then R:= 1 else
+  R:=0;
+  CompareText:=R;
+end;
 
 procedure GiveUpTimeSlice;
 {$ifdef GO32V2}{$define DOS}{$endif}
@@ -659,7 +679,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.17  2000-03-20 19:19:45  pierre
+  Revision 1.18  2000-03-21 23:19:13  pierre
+   + TrimEndSlash and CompareText by Gabor
+
+  Revision 1.17  2000/03/20 19:19:45  pierre
    * LFN support in streams
 
   Revision 1.16  2000/03/14 13:36:12  pierre
