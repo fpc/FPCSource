@@ -1,3 +1,12 @@
+{$ifdef win32}
+ {$define supported}
+{$endif win32}
+{$ifdef linux}
+ {$define supported}
+{$endif linux}
+
+{$ifdef supported}
+
 library bug;
 
 const
@@ -16,3 +25,8 @@ exports
 
 begin
 end.
+{$else supported}
+begin
+  Writeln('No library for that target');
+end.
+{$endif supported}
