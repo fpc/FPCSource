@@ -425,10 +425,124 @@ Function VariantToShortString(Const VargSrc : TVarData) : ShortString;
 begin
 end;
 
+{ ---------------------------------------------------------------------
+    Some debug routines
+  ---------------------------------------------------------------------}
+
+
+Procedure DumpVariant(Const VArgSrc : TVarData);
+
+begin
+  DumpVariant(Output,VArgSrc);
+end;
+
+(*
+   tvardata = packed record
+      vtype : tvartype;
+      case integer of
+         0:(res1 : word;
+            case integer of
+               0:
+                 (res2,res3 : word;
+                  case word of
+                     varsmallint : (vsmallint : smallint);
+                     varinteger : (vinteger : longint);
+                     varsingle : (vsingle : single);
+                     vardouble : (vdouble : double);
+                     varcurrency : (vcurrency : currency);
+                     vardate : (vdate : tdatetime);
+                     varolestr : (volestr : pwidechar);
+                     vardispatch : (vdispatch : pointer);
+                     varerror : (verror : dword);
+                     varboolean : (vboolean : wordbool);
+                     varunknown : (vunknown : pointer);
+                     // vardecimal : ( : );
+                     varshortint : (vshortint : shortint);
+                     varbyte : (vbyte : byte);
+                     varword : (vword : word);
+                     varlongword : (vlongword : dword);
+                     varint64 : (vint64 : int64);
+                     varqword : (vqword : qword);
+                     varword64 : (vword64 : qword);
+                     varstring : (vstring : pointer);
+                     varany :  (vany : pointer);
+                     vararray : (varray : pvararray);
+                     varbyref : (vpointer : pointer);
+                 );
+               1:
+                 (vlongs : array[0..2] of longint);
+           );
+         1:(vwords : array[0..6] of word);
+         2:(vbytes : array[0..13] of byte);
+      end;
+
+*)
+
+Const
+  VarTypeStrings : Array [varEmpty..varqword] of string = (
+    'empty',  'null',  'smallint',  'integer',  'single',  'double',
+    'currency',  'date',  'olestr',  'dispatch',  'error',  'boolean',
+    'variant',  'unknown',  'unknown','decimal',  'shortint',  'byte',  'word',
+    'longword',  'int64',  'qword');
+
+Procedure DumpVariant(Var F : Text; Const VArgSrc : TVarData);
+
+begin
+  If VArgSrc.vType in [varEmpty..varqword] then
+    Writeln(F,'Variant has type : ',VarTypeStrings[VArgSrc.vType])
+  else if (VArgSrc.vType=VarArray) Then
+    begin
+    Write(F,'Variant is array.');
+    exit;
+    end
+  else if (VargSrc.vType=VarByRef) then
+    begin
+    Writeln(F,'Variant is by reference.');
+    exit;
+    end
+  else
+    begin
+    Writeln(F,'Variant has unknown type: ', VargSrc.vType);
+    Exit;
+    end;
+  If VArgSrc.vType<>varEmpty then
+    With VArgSrc do
+      begin
+      Write(F,'Value is: ') ;
+      Case vtype of
+        varnull : Write(F,'Null');
+        varsmallint : Write(F,vsmallint);
+        varinteger : Write(F,vinteger);
+        varsingle : Write(F,vsingle);
+        vardouble : Write(F,vdouble);
+        varcurrency : Write(F,vcurrency) ;
+        vardate : Write(F,vdate) ;
+        varolestr : Write(F,'Not supported') ;
+        vardispatch : Write(F,'Not suppordted') ;
+        varerror : Write(F,'Error') ;
+        varboolean : Write(F,vboolean) ;
+        varvariant : Write(F,'Unsupported') ;
+        varunknown : Write(F,'Unsupported') ;
+        vardecimal : Write(F,'Unsupported') ;
+        varshortint : Write(F,vshortint) ;
+        varbyte : Write(F,vbyte) ;
+        varword : Write(F,vword) ;
+        varlongword : Write(F,vlongword) ;
+        varint64 : Write(F,vint64) ;
+        varqword : Write(F,vqword) ;
+      end;
+      Writeln(f);
+      end;
+end;
+
 {$endif HASVARIANT}
+
 {
   $Log$
-  Revision 1.4  2001-11-15 22:33:14  michael
+  Revision 1.5  2001-11-17 10:29:48  florian
+    * make cycle for win32 fixed
+
+  Revision 1.4  2001/11/15 22:33:14  michael
   + Real/Boolean support added, Start of string support
 
   Revision 1.3  2001/11/14 23:00:17  michael

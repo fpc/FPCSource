@@ -17,90 +17,14 @@
  **********************************************************************}
 
 
+{$ifdef HASVARIANT}
 Type
-
   EVarianterror = Class(Exception)
     ErrCode : longint;
     Constructor CreateCode(Code : Longint);
   end;
 
-{$ifndef HASVARIANT}
-
-  // Types needed to make this work. These should be moved to the system unit.
-
-  currency            = int64;
-  HRESULT             = Longint;
-  PSmallInt           = ^Smallint;
-  PLongint            = ^Longint;
-  PSingle             = ^Single;
-  PDouble             = ^Double;
-  PCurrency           = ^Currency;
-  TDateTime           = Double;
-  PDate               = ^TDateTime;
-  PPWideChar          = ^PWideChar;
-  Error               = Longint;
-  PError              = ^Error;
-  PWordBool           = ^WordBool;
-  PByte               = ^Byte;
-
-
-  TVarArrayBound = packed record
-    ElementCount: Longint;
-    LowBound: Longint;
-  end;
-  TVarArrayBoundArray = Array [0..0] of TVarArrayBound;
-  PVarArrayBoundArray = ^TVarArrayBoundArray;
-  TVarArrayCoorArray  = Array [0..0] of Longint;
-  PVarArrayCoorArray  = ^TVarArrayCoorArray;
-
-  PVarArray = ^TVarArray;
-  TVarArray = packed record
-    DimCount: Word;
-    Flags: Word;
-    ElementSize: Longint;
-  LockCount: Integer;
-    Data: Pointer;
-    Bounds: TVarArrayBoundArray;
-  end;
-
-  TVarType = Word;
-  PVarData = ^TVarData;
-  TVarData = packed record
-    VType: TVarType;
-    case Integer of
-      0: (Reserved1: Word;
-          case Integer of
-            0: (Reserved2, Reserved3: Word;
-                case Integer of
-                  varSmallInt: (VSmallInt: SmallInt);
-                  varInteger:  (VInteger: Longint);
-                  varSingle:   (VSingle: Single);
-                  varDouble:   (VDouble: Double);
-                  varCurrency: (VCurrency: Currency);
-                  varDate:     (VDate: Double);
-                  varOleStr:   (VOleStr: PWideChar);
-                  varDispatch: (VDispatch: Pointer);
-                  varError:    (VError: LongWord);
-                  varBoolean:  (VBoolean: WordBool);
-                  varUnknown:  (VUnknown: Pointer);
-                  varByte:     (VByte: Byte);
-                  varString:   (VString: Pointer);
-                  varAny:      (VAny: Pointer);
-                  varArray:    (VArray: PVarArray);
-                  varByRef:    (VPointer: Pointer);
-         );
-            1: (VLongs: array[0..2] of LongInt);
-         );
-      2: (VWords: array [0..6] of Word);
-      3: (VBytes: array [0..13] of Byte);
-  end;
-  Variant = TVarData;
-  PVariant = ^Variant;
-{$endif}
-
-{$ifdef hasvariant}
 { Variant functions }
-
 function VariantChangeTypeEx(var VargDest: TVarData; const VargSrc: TVarData; LCID: Integer; Flags: Word; VarType: Word): HRESULT; stdcall;
 function VariantClear(var Varg: TVarData): HRESULT; stdcall;
 function VariantCopy(var VargDest: TVarData; const VargSrc: TVarData): HRESULT; stdcall;
@@ -179,14 +103,16 @@ const
 
 {
   $Log$
-  Revision 1.4  2001-11-15 22:33:14  michael
+  Revision 1.5  2001-11-17 10:29:48  florian
+    * make cycle for win32 fixed
+
+  Revision 1.4  2001/11/15 22:33:14  michael
   + Real/Boolean support added, Start of string support
 
   Revision 1.3  2001/11/14 23:00:17  michael
   + First working variant support
 
   Revision 1.2  2001/08/19 21:02:02  florian
-    * fixed and added a lot of stuff to get the Jedi DX( headers
+    * fixed and added a lot of stuff to get the Jedi DX8 headers
       compiled
-
 }

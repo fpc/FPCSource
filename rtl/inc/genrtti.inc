@@ -55,8 +55,10 @@ begin
         With PRecRec(Temp)^.elements[I] do
           int_Initialize (Data+Offset,Info);
       end;
+{$ifdef HASVARIANTS}
     tkVariant:
       variant_init(Variant(PVarData(Data)^))
+{$endif HASVARIANTS}
   end;
 end;
 {$endif}
@@ -100,8 +102,10 @@ begin
         With PRecRec(Temp)^.elements[I] do
           int_Finalize (Data+Offset,Info);
       end;
+{$ifdef HASVARIANTS}
     tkVariant:
       variant_clear(Variant(PVarData(Data)^))
+{$endif HASVARIANTS}
   end;
 end;
 {$endif}
@@ -212,8 +216,11 @@ procedure fpc_FinalizeArray(data,typeinfo : pointer;count,size : longint); [Publ
 
 {
  $Log$
- Revision 1.6  2001-11-14 22:59:11  michael
- + Initial variant support
+ Revision 1.7  2001-11-17 10:29:48  florian
+   * make cycle for win32 fixed
+
+ Revision 1.6  2001/11/14 22:59:11  michael
+   + Initial variant support
 
  Revision 1.5  2001/08/01 15:00:10  jonas
    + "compproc" helpers
