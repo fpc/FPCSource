@@ -8,6 +8,7 @@ main=fcl
 [target]
 dirs=dbase
 dirs_linux=mysql interbase
+dirs_freebsd=mysql interbase
 dirs_win32=mysql interbase
 units=db ddg_ds ddg_rec
 exampledirs=tests
