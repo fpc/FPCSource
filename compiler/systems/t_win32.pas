@@ -166,6 +166,7 @@ const
               hp1:=timportlist.create(hs);
               current_module.imports.concat(hp1);
            end;
+         WriteLn('importing func ',func);
          { search for reuse of old import item }
          hp2:=twin32imported_item(hp1.imported_items.first);
          while assigned(hp2) do
@@ -176,6 +177,7 @@ const
           end;
          if not assigned(hp2) then
           begin
+            WriteLn('Adding new entry...func,name',func,' ',name);
             hp2:=twin32imported_item.create(func,name,index);
             hp2.procdef:=aprocdef;
             hp1.imported_items.concat(hp2);
@@ -260,6 +262,7 @@ const
 
     const
      MainAsmFormats=[as_i386_asw,as_i386_pecoff,as_i386_pecoffwdosx];
+
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : timportlist;
@@ -330,7 +333,7 @@ const
                     importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     importsSection.concat(Tai_align.Create_op(4,$90));
 {$IfDef GDB}
-                    if assigned(hp2.procdef) then
+                    if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
                      begin
                        mangledstring:=hp2.procdef.mangledname;
                        hp2.procdef.setmangledname(hp2.func^);
@@ -489,7 +492,7 @@ const
                       importsSection.concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                       importsSection.concat(Tai_align.Create_op(4,$90));
 {$IfDef GDB}
-                      if assigned(hp2.procdef) then
+                      if (cs_debuginfo in aktmoduleswitches) and assigned(hp2.procdef) then
                        begin
                          mangledstring:=hp2.procdef.mangledname;
                          hp2.procdef.setmangledname(hp2.func^);
@@ -1612,7 +1615,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2002-11-15 01:59:02  peter
+  Revision 1.5  2002-11-16 14:46:50  carl
+    * don't add debug information in not in debug mode
+
+  Revision 1.4  2002/11/15 01:59:02  peter
     * merged changes from 1.0.7 up to 04-11
       - -V option for generating bug report tracing
       - more tracing for option parsing
