@@ -158,12 +158,10 @@ unit go32;
     procedure outportl(port : word;data : longint);
     function get_run_mode : word;
 
-{$ifndef V0_6}
     function transfer_buffer : longint;
     function tb_size : longint;
     procedure copytodos(var addr; len : longint);
     procedure copyfromdos(var addr; len : longint);
-{$endif not VER0_6}
 
     procedure dpmi_dosmemput(seg : word;ofs : word;var data;count : longint);
     procedure dpmi_dosmemget(seg : word;ofs : word;var data;count : longint);
@@ -172,7 +170,7 @@ unit go32;
     procedure dpmi_dosmemfillword(seg,ofs : word;count : longint;w : word);
 
 
-{$IFDEF HAS_PROPERTY}
+{$ifndef VER0_99_5}
 type
    tport = class
       procedure writeport(p : word;data : byte);
@@ -198,7 +196,7 @@ var
    portb : tport;
    portw : tportw;
    portl : tportl;
-{$ENDIF HAS_PROPERTY}
+{$endif VER0_99_5}
 
     const
        { this procedures are assigned to the procedure which are needed }
@@ -511,7 +509,7 @@ var
       end;
 
 
-{$IFDEF HAS_PROPERTY}
+{$ifndef VER0_99_5}
 
 { to give easy port access like tp with port[] }
 
@@ -559,7 +557,7 @@ asm
         inl     %dx,%eax
 end ['EAX','EDX'];
 
-{$ENDIF HAS_PROPERTY}
+{$endif VER0_99_5}
 
 
     function get_cs : word;
@@ -1220,58 +1218,9 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-07-21 12:06:03  carl
+  Revision 1.10  1998-08-11 00:07:17  peter
+    * $ifdef ver0_99_5 instead of has_property
+
+  Revision 1.9  1998/07/21 12:06:03  carl
     * restored working version
-
-  Revision 1.2  1998/03/29 17:26:20  florian
-    * small improvements
-
-  Revision 1.1.1.1  1998/03/25 11:18:41  root
-  * Restored version
-
-  Revision 1.8  1998/03/24 15:54:14  peter
-    - raw_ functions are not necessary for go32v2, $ifdef'd them
-
-  Revision 1.7  1998/03/24 09:33:59  peter
-    + new trealregs from the mailinglist
-    + 2 new functions get_page_size, map_device_in_mem_block
-
-  Revision 1.6  1998/02/01 09:32:21  florian
-    * some clean up
-
-  Revision 1.5  1998/01/26 11:56:27  michael
-  + Added log at the end
-
-  revision 1.4
-  date: 1997/12/12 13:14:37;  author: pierre;  state: Exp;  lines: +2 -1
-     + added handling of swap_vectors if under exceptions
-       i.e. swapvector is not dummy under go32v2
-     * bug in output, exceptions where not allways reset correctly
-       now the code in dpmiexcp is called from v2prt0.as exit routine
-     * in crt.pp corrected init_delay calibration loop
-       and added it for go32v2 also (was disabled before due to crashes !!)
-       the previous code did a wrong assumption on the time need to call
-       get_ticks compared to an internal loop without call
-  ----------------------------
-  revision 1.3
-  date: 1997/12/11 11:50:37;  author: pierre;  state: Exp;  lines: +2 -2
-    *  bug in get_linear_addr corrected
-       thanks to Raul who found this bug.
-  ----------------------------
-  revision 1.2
-  date: 1997/12/01 12:15:46;  author: michael;  state: Exp;  lines: +10 -3
-  + added copyright reference in header.
-  ----------------------------
-  revision 1.1
-  date: 1997/11/27 08:33:50;  author: michael;  state: Exp;
-  Initial revision
-  ----------------------------
-  revision 1.1.1.1
-  date: 1997/11/27 08:33:50;  author: michael;  state: Exp;  lines: +0 -0
-  FPC RTL CVS start
-  =============================================================================
-
-  History:
-       6th november 1996:
-         + dosmem* implemented
 }
