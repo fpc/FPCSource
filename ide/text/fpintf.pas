@@ -13,6 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$i globdir.inc}
+
 unit FPIntf;
 interface
 
@@ -28,11 +30,12 @@ procedure SetPrimaryFile(const fn:string);
 implementation
 
 uses
-  Compiler,
+  Compiler,CompHook,
 {$ifndef NODEBUG}
   FPDebug,
 {$endif NODEBUG}
-  FPVars,FPUtils,FPSwitch;
+  FPCompile,FPRedir,FPVars,
+  FPUtils,FPSwitch;
 
 {****************************************************************************
                                    Run
@@ -63,15 +66,105 @@ end;
 procedure Compile(const FileName: string);
 var
   cmd : string;
+{$ifdef USE_EXTERNAL_COMPILER}
+  CompilerOut : Text;
+  CompilerOutputLine : longint;
+  V,p,p1,p2,lineNb,ColumnNb : longint;
+  error : word;
+  ModuleName,Line : string;
+  error_in_reading : boolean;
+{$endif USE_EXTERNAL_COMPILER}
 begin
+{$ifndef USE_EXTERNAL_COMPILER}
   cmd:='[fp.cfg] -d'+SwitchesModeStr[SwitchesMode];
-  if LinkAfter then
-    cmd:=cmd+' -s';
+{$else USE_EXTERNAL_COMPILER}
+  cmd:='-n @fp.cfg -d'+SwitchesModeStr[SwitchesMode];
+  if not UseExternalCompiler then
+{$endif USE_EXTERNAL_COMPILER}
+    if LinkAfter then
+      cmd:=cmd+' -s';
 { Add the switches from the primary file }
   if PrimaryFileSwitches<>'' then
-   cmd:=cmd+' '+PrimaryFileSwitches;
+    cmd:=cmd+' '+PrimaryFileSwitches;
+  cmd:=cmd+' '+FileName;
 { call the compiler }
-  Compiler.Compile(cmd+' '+FileName);
+{$ifdef USE_EXTERNAL_COMPILER}
+  if UseExternalCompiler then
+    begin
+      If not LocateExeFile(ExternalCompilerExe) then
+        begin
+          CompilerMessageWindow^.AddMessage(
+            0,ExternalCompilerExe+' not found','',0,0);
+          exit;
+        end;
+      CompilerMessageWindow^.AddMessage(
+        0,'Running: '+ExternalCompilerExe+' '+cmd,'',0,0);
+      if not ExecuteRedir(ExternalCompilerExe,cmd,'','ppc___.out','ppc___.err') then
+        begin
+          CompilerMessageWindow^.AddMessage(
+            V_error,'Error in external compilation','',0,0);
+          CompilerMessageWindow^.AddMessage(
+            V_error,'IOStatus = '+IntTostr(IOStatus),'',0,0);
+          CompilerMessageWindow^.AddMessage(
+            V_error,'ExecuteResult = '+IntTostr(ExecuteResult),'',0,0);
+          if IOStatus<>0 then
+            exit;
+        end;
+      Assign(CompilerOut,'ppc___.out');
+      Reset(CompilerOut);
+      error_in_reading:=false;
+      CompilerOutputLine:=0;
+      While not eof(CompilerOut) do
+        begin
+          readln(CompilerOut,Line);
+          Inc(CompilerOutputLine);
+          p:=pos('(',line);
+          if p>0 then
+            begin
+              ModuleName:=copy(Line,1,p-1);
+              Line:=Copy(Line,p+1,255);
+              p1:=pos(',',Line);
+              val(copy(Line,1,p1-1),lineNb,error);
+              Line:=Copy(Line,p1+1,255);
+              p2:=pos(')',Line);
+              if error=0 then
+                val(copy(Line,1,p2-1),ColumnNb,error);
+              Line:=Copy(Line,p2+1,255);
+              V:=0;
+              If Pos(' Error:',line)=1 then
+                begin
+                  V:=V_error;
+                  Line:=Copy(Line,8,Length(Line));
+                end
+              else if Pos(' Fatal:',line)=1 then
+                begin
+                  V:=V_fatal;
+                  Line:=Copy(Line,8,Length(Line));
+                end
+              else if Pos(' Hint:',line)=1 then
+                begin
+                  V:=V_hint;
+                  Line:=Copy(Line,7,Length(Line));
+                end
+              else if Pos(' Note:',line)=1 then
+                begin
+                  V:=V_note;
+                  Line:=Copy(Line,7,Length(Line));
+                end;
+              if error=0 then
+                CompilerMessageWindow^.AddMessage(V,Line,ModuleName,LineNb,ColumnNb)
+              else
+                error_in_reading:=true;
+            end
+          else
+            CompilerMessageWindow^.AddMessage(0,Line,'',0,0);
+          ;
+        end;
+      Close(CompilerOut);
+    end
+  else
+{$endif USE_EXTERNAL_COMPILER}
+    Compiler.Compile(cmd);
 end;
 
 
@@ -113,7 +206,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-01-03 11:38:34  michael
+  Revision 1.9  2000-03-01 22:37:25  pierre
+   + USE_EXTERNAL_COMPILER
+
+  Revision 1.8  2000/01/03 11:38:34  michael
   Changes from Gabor
 
   Revision 1.7  1999/09/16 14:34:59  pierre
