@@ -259,7 +259,13 @@ implementation
           inserttypeconv(left,tsetdef(right.resulttype.def).elementtype);
 
          { empty set then return false }
-         if not assigned(tsetdef(right.resulttype.def).elementtype.def) then
+         if not assigned(tsetdef(right.resulttype.def).elementtype.def) or
+            ((right.nodetype = setconstn) and
+{$ifdef oldset}
+             (byteset(tsetconstnode(right).value_set^) = [])) then
+{$else oldset}
+             (tsetconstnode(right).value_set^ = [])) then
+{$endif oldset}
           begin
             t:=cordconstnode.create(0,booltype);
             resulttypepass(t);
@@ -591,7 +597,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.29  2002-07-23 12:34:30  daniel
+  Revision 1.30  2002-07-23 13:19:40  jonas
+    * fixed evaluation of expressions with empty sets that are calculated
+      at compile time
+
+  Revision 1.29  2002/07/23 12:34:30  daniel
   * Readded old set code. To use it define 'oldset'. Activated by default
     for ppc.
 
