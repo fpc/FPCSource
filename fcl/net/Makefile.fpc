@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for FCL net units
+#
+
+[package]
+main=fcl
+
+[target]
+units=servlets
+units_linux=http httpsvlt xmlrpc
+units_freebsd=http httpsvlt xmlrpc
+units_netbsd=http httpsvlt xmlrpc
+units_openbsd=http httpsvlt xmlrpc
+programs_linux=mkxmlrpc
+programs_freebsd=mkxmlrpc
+programs_netbsd=mkxmlrpc
+programs_openbsd=mkxmlrpc
+rsts_linux=httpsvlt mkxmlrpc
+rsts_freebsd=httpsvlt mkxmlrpc
+rsts_netbsd=httpsvlt mkxmlrpc
+rsts_openbsd=httpsvlt mkxmlrpc
+exampledirs_linux=tests
+exampledirs_freebsd=tests
+exampledirs_netbsd=tests
+exampledirs_openbsd=tests
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y

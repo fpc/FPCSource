@@ -1,0 +1,16 @@
+#
+#   Makefile.fpc for fpWeb tests
+#
+
+[require]
+packages=fcl
+
+[target]
+programs=rpcserv rpccli
+units=svrclass svrclass_xmlrpc
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
