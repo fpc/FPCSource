@@ -677,7 +677,7 @@ type
 
 function  ggiExtensionRegister(name: PChar; size: Integer;
   ParamChange: TGGIParamChangeProc): TGGIExtID; cdecl; external libggi;
-function  ggiExtensionUnregister(id: TGGIExtID)): Integer;  cdecl; external libggi;
+function  ggiExtensionUnregister(id: TGGIExtID): Integer; cdecl; external libggi;
 function  ggiExtensionAttach(Visual: TGGIVisual; id: TGGIExtID): Integer; cdecl; external libggi;
 function  ggiExtensionDetach(Visual: TGGIVisual; id: TGGIExtID): Integer; cdecl; external libggi;
 function  ggiExtensionLoadDL(Visual: TGGIVisual; filename, args: PChar; ArgPtr: Pointer): TGGILibID; cdecl; external libggi;
@@ -788,7 +788,10 @@ end.
 
 {
   $Log$
-  Revision 1.1  1999-11-10 14:14:34  sg
+  Revision 1.2  1999-11-12 18:47:34  sg
+  * Fixed a small typo...
+
+  Revision 1.1  1999/11/10 14:14:34  sg
   * Added to CVS
 
 }
