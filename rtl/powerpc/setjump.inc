@@ -64,54 +64,57 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
 
 procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
   asm
-     lwz     r1,(r3)
+     lwz     r1,0(r3)
      lwz     r2,4(r3)
      lwz     r0,8(r3)
      lwz     r14,12(r3)
-     lfd     fp14,88(r3)
+     lfd     f14,88(r3)
      lwz     r15,16(r3)
-     lfd     fp15,96(r3)
+     lfd     f15,96(r3)
      lwz     r16,20(r3)
-     lfd     fp16,104(r3)
+     lfd     f16,104(r3)
      lwz     r17,24(r3)
-     lfd     fp17,112(r3)
+     lfd     f17,112(r3)
      lwz     r18,28(r3)
-     lfd     fp18,120(r3)
+     lfd     f18,120(r3)
      lwz     r19,32(r3)
-     lfd     fp19,128(r3)
+     lfd     f19,128(r3)
      lwz     r20,36(r3)
-     lfd     fp20,136(r3)
+     lfd     f20,136(r3)
      mtlr    r0
      lwz     r21,40(r3)
-     lfd     fp21,144(r3)
+     lfd     f21,144(r3)
      lwz     r22,44(r3)
-     lfd     fp22,152(r3)
+     lfd     f22,152(r3)
      lwz     r0,84(r3)
      lwz     r23,48(r3)
-     lfd     fp23,160(r3)
+     lfd     f23,160(r3)
      lwz     r24,52(r3)
-     lfd     fp24,168(r3)
+     lfd     f24,168(r3)
      lwz     r25,56(r3)
-     lfd     fp25,176(r3)
+     lfd     f25,176(r3)
      mtcrf   0xff,r0
      lwz     r26,60(r3)
-     lfd     fp26,184(r3)
+     lfd     f26,184(r3)
      lwz     r27,64(r3)
-     lfd     fp27,192(r3)
+     lfd     f27,192(r3)
      lwz     r28,68(r3)
-     lfd     fp28,200(r3)
+     lfd     f28,200(r3)
      lwz     r29,72(r3)
-     lfd     fp29,208(r3)
+     lfd     f29,208(r3)
      lwz     r30,76(r3)
-     lfd     fp30,216(r3)
+     lfd     f30,216(r3)
      lwz     r31,80(r3)
-     lfd     fp31,224(r3)
+     lfd     f31,224(r3)
      mr r3,r4
     end;
 
 {
   $Log$
-  Revision 1.7  2003-04-26 19:52:07  florian
+  Revision 1.8  2003-04-26 20:00:24  florian
+    * fixed previous commit of setjmp
+
+  Revision 1.7  2003/04/26 19:52:07  florian
     + implemented longjmp
 
   Revision 1.6  2003/04/26 18:54:30  florian
