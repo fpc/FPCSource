@@ -1101,7 +1101,7 @@ begin
                       include(initglobalswitches,cs_link_map);
                     's' :
                       include(initglobalswitches,cs_link_strip);
-		    'c' : Cshared:=TRUE;
+                    'c' : Cshared:=TRUE;
                     't' :
                       include(initglobalswitches,cs_link_staticflag);
                     'D' :
@@ -1120,9 +1120,9 @@ begin
                              More:='';
                           End;
                     'r' : Begin
-			     rlinkpath:=Copy(more,2,length(More)-1);
+                             rlinkpath:=Copy(more,2,length(More)-1);
                              More:='';
-			  end;
+                          end;
                     'p' :
                       include(initmoduleswitches,cs_create_pic);
                     'S' :
@@ -1682,6 +1682,8 @@ begin
   def_symbol('HASTHREADVAR');
   def_symbol('HAS_GENERICCONSTRUCTOR');
   def_symbol('NOCLASSHELPERS');
+  if pocall_default = pocall_register then
+    def_symbol('REGCALL');
 
 { using a case is pretty useless here (FK) }
 { some stuff for TP compatibility }
@@ -1983,7 +1985,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.114  2003-11-07 15:58:32  florian
+  Revision 1.115  2003-11-11 21:10:34  peter
+    * define REGCALL when pocall_default=pocall_register
+
+  Revision 1.114  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions
