@@ -134,20 +134,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -172,61 +158,31 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
 
 
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
 
+#####################################################################
+# Default Directories
+#####################################################################
 
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
 else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
+PREFIXINSTALLDIR=/pp
 endif
 endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
+export PREFIXINSTALLDIR
 
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Redirection
@@ -266,20 +222,17 @@ install: $(addsuffix _install,$(OS_TARGET))
 
 sourceinstall: $(addsuffix _sourceinstall,$(OS_TARGET))
 
-zipinstall: $(addsuffix _zipinstall,$(OS_TARGET))
-
-zipinstalladd: $(addsuffix _zipinstalladd,$(OS_TARGET))
-
 clean: $(addsuffix _clean,$(DIROBJECTS))
 
 cleanall: $(addsuffix _cleanall,$(DIROBJECTS))
 
 require: $(addsuffix _require,$(DIROBJECTS))
 
-.PHONY:  all debug test smart shared showinstall install sourceinstall zipinstall zipinstalladd clean cleanall require
+.PHONY:  all debug test smart shared showinstall install sourceinstall clean cleanall require
 
-
-# Target Dirs
+#####################################################################
+# Directories
+#####################################################################
 
 OBJECTDIRLINUX=1
 OBJECTDIREXAMPLES=1
@@ -288,7 +241,7 @@ OBJECTDIRBUILD=1
 # Dir linux
 
 ifdef OBJECTDIRLINUX
-.PHONY:  linux_all linux_debug linux_examples linux_test linux_smart linux_shared linux_showinstall linux_install linux_sourceinstall linux_zipinstall linux_zipinstalladd linux_clean linux_cleanall linux_require linux_info
+.PHONY:  linux_all linux_debug linux_examples linux_test linux_smart linux_shared linux_showinstall linux_install linux_sourceinstall linux_zipinstall linux_zipsourceinstall linux_clean linux_cleanall linux_require linux_info
 
 linux_all:
 	$(MAKE) -C linux all
@@ -320,8 +273,8 @@ linux_sourceinstall:
 linux_zipinstall:
 	$(MAKE) -C linux zipinstall
 
-linux_zipinstalladd:
-	$(MAKE) -C linux zipinstalladd
+linux_zipsourceinstall:
+	$(MAKE) -C linux zipsourceinstall
 
 linux_clean:
 	$(MAKE) -C linux clean
@@ -339,7 +292,7 @@ endif
 # Dir examples
 
 ifdef OBJECTDIREXAMPLES
-.PHONY:  examples_all examples_debug examples_examples examples_test examples_smart examples_shared examples_showinstall examples_install examples_sourceinstall examples_zipinstall examples_zipinstalladd examples_clean examples_cleanall examples_require examples_info
+.PHONY:  examples_all examples_debug examples_examples examples_test examples_smart examples_shared examples_showinstall examples_install examples_sourceinstall examples_zipinstall examples_zipsourceinstall examples_clean examples_cleanall examples_require examples_info
 
 examples_all:
 	$(MAKE) -C examples all
@@ -371,8 +324,8 @@ examples_sourceinstall:
 examples_zipinstall:
 	$(MAKE) -C examples zipinstall
 
-examples_zipinstalladd:
-	$(MAKE) -C examples zipinstalladd
+examples_zipsourceinstall:
+	$(MAKE) -C examples zipsourceinstall
 
 examples_clean:
 	$(MAKE) -C examples clean
@@ -390,7 +343,7 @@ endif
 # Dir build
 
 ifdef OBJECTDIRBUILD
-.PHONY:  build_all build_debug build_examples build_test build_smart build_shared build_showinstall build_install build_sourceinstall build_zipinstall build_zipinstalladd build_clean build_cleanall build_require build_info
+.PHONY:  build_all build_debug build_examples build_test build_smart build_shared build_showinstall build_install build_sourceinstall build_zipinstall build_zipsourceinstall build_clean build_cleanall build_require build_info
 
 build_all:
 	$(MAKE) -C build all
@@ -422,8 +375,8 @@ build_sourceinstall:
 build_zipinstall:
 	$(MAKE) -C build zipinstall
 
-build_zipinstalladd:
-	$(MAKE) -C build zipinstalladd
+build_zipsourceinstall:
+	$(MAKE) -C build zipsourceinstall
 
 build_clean:
 	$(MAKE) -C build clean

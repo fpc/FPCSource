@@ -134,20 +134,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -172,61 +158,31 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
 
 
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
 
+#####################################################################
+# Default Directories
+#####################################################################
 
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
 else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
+PREFIXINSTALLDIR=/pp
 endif
 endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
+export PREFIXINSTALLDIR
 
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Redirection
@@ -270,7 +226,7 @@ sourceinstall: $(addsuffix _sourceinstall,$(OS_TARGET))
 
 zipinstall: $(addsuffix _zipinstall,$(OS_TARGET))
 
-zipinstalladd: $(addsuffix _zipinstalladd,$(OS_TARGET))
+zipsourceinstall: $(addsuffix _zipsourceinstall,$(OS_TARGET))
 
 clean: $(addsuffix _clean,$(OS_TARGET))
 
@@ -280,10 +236,11 @@ require: $(addsuffix _require,$(OS_TARGET))
 
 info: $(addsuffix _info,$(OS_TARGET))
 
-.PHONY:  all debug examples test smart shared showinstall install sourceinstall zipinstall zipinstalladd clean cleanall require info
+.PHONY:  all debug examples test smart shared showinstall install sourceinstall zipinstall zipsourceinstall clean cleanall require info
 
-
-# Target Dirs
+#####################################################################
+# Directories
+#####################################################################
 
 OBJECTDIRGO32V2=1
 OBJECTDIRLINUX=1
@@ -294,7 +251,7 @@ OBJECTDIRTEST=1
 # Dir go32v2
 
 ifdef OBJECTDIRGO32V2
-.PHONY:  go32v2_all go32v2_debug go32v2_examples go32v2_test go32v2_smart go32v2_shared go32v2_showinstall go32v2_install go32v2_sourceinstall go32v2_zipinstall go32v2_zipinstalladd go32v2_clean go32v2_cleanall go32v2_require go32v2_info
+.PHONY:  go32v2_all go32v2_debug go32v2_examples go32v2_test go32v2_smart go32v2_shared go32v2_showinstall go32v2_install go32v2_sourceinstall go32v2_zipinstall go32v2_zipsourceinstall go32v2_clean go32v2_cleanall go32v2_require go32v2_info
 
 go32v2_all:
 	$(MAKE) -C go32v2 all
@@ -326,8 +283,8 @@ go32v2_sourceinstall:
 go32v2_zipinstall:
 	$(MAKE) -C go32v2 zipinstall
 
-go32v2_zipinstalladd:
-	$(MAKE) -C go32v2 zipinstalladd
+go32v2_zipsourceinstall:
+	$(MAKE) -C go32v2 zipsourceinstall
 
 go32v2_clean:
 	$(MAKE) -C go32v2 clean
@@ -345,7 +302,7 @@ endif
 # Dir linux
 
 ifdef OBJECTDIRLINUX
-.PHONY:  linux_all linux_debug linux_examples linux_test linux_smart linux_shared linux_showinstall linux_install linux_sourceinstall linux_zipinstall linux_zipinstalladd linux_clean linux_cleanall linux_require linux_info
+.PHONY:  linux_all linux_debug linux_examples linux_test linux_smart linux_shared linux_showinstall linux_install linux_sourceinstall linux_zipinstall linux_zipsourceinstall linux_clean linux_cleanall linux_require linux_info
 
 linux_all:
 	$(MAKE) -C linux all
@@ -377,8 +334,8 @@ linux_sourceinstall:
 linux_zipinstall:
 	$(MAKE) -C linux zipinstall
 
-linux_zipinstalladd:
-	$(MAKE) -C linux zipinstalladd
+linux_zipsourceinstall:
+	$(MAKE) -C linux zipsourceinstall
 
 linux_clean:
 	$(MAKE) -C linux clean
@@ -396,7 +353,7 @@ endif
 # Dir win32
 
 ifdef OBJECTDIRWIN32
-.PHONY:  win32_all win32_debug win32_examples win32_test win32_smart win32_shared win32_showinstall win32_install win32_sourceinstall win32_zipinstall win32_zipinstalladd win32_clean win32_cleanall win32_require win32_info
+.PHONY:  win32_all win32_debug win32_examples win32_test win32_smart win32_shared win32_showinstall win32_install win32_sourceinstall win32_zipinstall win32_zipsourceinstall win32_clean win32_cleanall win32_require win32_info
 
 win32_all:
 	$(MAKE) -C win32 all
@@ -428,8 +385,8 @@ win32_sourceinstall:
 win32_zipinstall:
 	$(MAKE) -C win32 zipinstall
 
-win32_zipinstalladd:
-	$(MAKE) -C win32 zipinstalladd
+win32_zipsourceinstall:
+	$(MAKE) -C win32 zipsourceinstall
 
 win32_clean:
 	$(MAKE) -C win32 clean
@@ -447,7 +404,7 @@ endif
 # Dir os2
 
 ifdef OBJECTDIROS2
-.PHONY:  os2_all os2_debug os2_examples os2_test os2_smart os2_shared os2_showinstall os2_install os2_sourceinstall os2_zipinstall os2_zipinstalladd os2_clean os2_cleanall os2_require os2_info
+.PHONY:  os2_all os2_debug os2_examples os2_test os2_smart os2_shared os2_showinstall os2_install os2_sourceinstall os2_zipinstall os2_zipsourceinstall os2_clean os2_cleanall os2_require os2_info
 
 os2_all:
 	$(MAKE) -C os2 all
@@ -479,8 +436,8 @@ os2_sourceinstall:
 os2_zipinstall:
 	$(MAKE) -C os2 zipinstall
 
-os2_zipinstalladd:
-	$(MAKE) -C os2 zipinstalladd
+os2_zipsourceinstall:
+	$(MAKE) -C os2 zipsourceinstall
 
 os2_clean:
 	$(MAKE) -C os2 clean
@@ -498,7 +455,7 @@ endif
 # Dir test
 
 ifdef OBJECTDIRTEST
-.PHONY:  test_all test_debug test_examples test_test test_smart test_shared test_showinstall test_install test_sourceinstall test_zipinstall test_zipinstalladd test_clean test_cleanall test_require test_info
+.PHONY:  test_all test_debug test_examples test_test test_smart test_shared test_showinstall test_install test_sourceinstall test_zipinstall test_zipsourceinstall test_clean test_cleanall test_require test_info
 
 test_all:
 	$(MAKE) -C test all
@@ -530,8 +487,8 @@ test_sourceinstall:
 test_zipinstall:
 	$(MAKE) -C test zipinstall
 
-test_zipinstalladd:
-	$(MAKE) -C test zipinstalladd
+test_zipsourceinstall:
+	$(MAKE) -C test zipsourceinstall
 
 test_clean:
 	$(MAKE) -C test clean

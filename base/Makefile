@@ -142,20 +142,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -180,7 +166,6 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
@@ -303,98 +288,6 @@ else
 LDCONFIG=
 endif
 
-# ppdep
-ifndef PPDEP
-PPDEP:=$(strip $(wildcard $(addsuffix /ppdep$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(PPDEP),)
-PPDEP=
-else
-PPDEP:=$(firstword $(PPDEP))
-endif
-endif
-export PPDEP
-
-# ppumove
-ifndef PPUMOVE
-PPUMOVE:=$(strip $(wildcard $(addsuffix /ppumove$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(PPUMOVE),)
-PPUMOVE=
-else
-PPUMOVE:=$(firstword $(PPUMOVE))
-endif
-endif
-export PPUMOVE
-
-# ppufiles
-ifndef PPUFILES
-PPUFILES:=$(strip $(wildcard $(addsuffix /ppufiles$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(PPUFILES),)
-PPUFILES=
-else
-PPUFILES:=$(firstword $(PPUFILES))
-endif
-endif
-export PPUFILES
-
-# Look if UPX is found for go32v2 and win32. We can't use $UPX becuase
-# upx uses that one itself (PFV)
-ifndef UPXPROG
-ifeq ($(OS_TARGET),go32v2)
-UPXPROG:=1
-endif
-ifeq ($(OS_TARGET),win32)
-UPXPROG:=1
-endif
-ifdef UPXPROG
-UPXPROG:=$(strip $(wildcard $(addsuffix /upx$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(UPXPROG),)
-UPXPROG=
-else
-UPXPROG:=$(firstword $(UPXPROG))
-endif
-else
-UPXPROG=
-endif
-endif
-export UPXPROG
-
-# gdate/date
-ifndef DATE
-DATE:=$(strip $(wildcard $(addsuffix /date$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(DATE),)
-DATE:=$(strip $(wildcard $(addsuffix /gdate$(EXEEXT),$(SEACHPATH))))
-ifeq ($(DATE),)
-DATE=
-else
-DATE:=$(firstword $(DATE))
-endif
-else
-DATE:=$(firstword $(DATE))
-endif
-endif
-export DATE
-
-ifdef DATE
-DATESTR:=$(shell $(DATE) +%Y%m%d)
-else
-DATESTR=
-endif
-
-# ZipProg, you can't use Zip as the var name (PFV)
-ifndef ZIPPROG
-ZIPPROG:=$(strip $(wildcard $(addsuffix /zip$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(ZIPPROG),)
-ZIPPROG=
-else
-ZIPPROG:=$(firstword $(ZIPPROG)) -D9 -r
-endif
-endif
-export ZIPPROG
-
-ifndef ZIPEXT
-ZIPEXT=.zip
-endif
-
 #####################################################################
 # Default extensions
 #####################################################################
@@ -409,7 +302,6 @@ SMARTEXT=.sl
 STATICLIBEXT=.a
 SHAREDLIBEXT=.so
 RSTEXT=.rst
-PACKAGESUFFIX=
 FPCMADE=fpcmade
 
 # Go32v1
@@ -420,19 +312,16 @@ ASMEXT=.s1
 SMARTEXT=.sl1
 STATICLIBEXT=.a1
 SHAREDLIBEXT=.so1
-PACKAGESUFFIX=v1
 FPCMADE=fpcmade.v1
 endif
 
 # Go32v2
 ifeq ($(OS_TARGET),go32v2)
-PACKAGESUFFIX=go32
 FPCMADE=fpcmade.dos
 endif
 
 # Linux
 ifeq ($(OS_TARGET),linux)
-PACKAGESUFFIX=linux
 FPCMADE=fpcmade.lnx
 endif
 
@@ -444,7 +333,6 @@ ASMEXT=.sw
 SMARTEXT=.slw
 STATICLIBEXT=.aw
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=w32
 FPCMADE=fpcmade.w32
 endif
 
@@ -456,7 +344,6 @@ OEXT=.oo2
 SMARTEXT=.so
 STATICLIBEXT=.ao2
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=os2
 FPCMADE=fpcmade.os2
 endif
 
@@ -484,55 +371,6 @@ endif
 endif
 
 
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
-
-
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
-else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
-endif
-endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-
 
 #####################################################################
 # Default Directories
@@ -547,6 +385,12 @@ PREFIXINSTALLDIR=/pp
 endif
 endif
 export PREFIXINSTALLDIR
+
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Install Directories
@@ -593,6 +437,9 @@ ifdef inlinux
 SOURCEINSTALLDIR=$(PREFIXINSTALLDIR)/src/fpc-$(FPC_VERSION)
 else
 SOURCEINSTALLDIR=$(BASEINSTALLDIR)/source
+endif
+ifdef SOURCESUBDIR
+SOURCEINSTALLDIR:=$(SOURCEINSTALLDIR)/$(SOURCESUBDIR)
 endif
 endif
 
@@ -658,8 +505,9 @@ require: $(addsuffix _require,$(DIROBJECTS))
 
 .PHONY:  all debug examples test smart shared showinstall install sourceinstall clean cleanall require
 
-
-# Target Dirs
+#####################################################################
+# Directories
+#####################################################################
 
 OBJECTDIRCOMPILER=1
 OBJECTDIRRTL=1
@@ -673,7 +521,7 @@ OBJECTDIRIDE=1
 # Dir compiler
 
 ifdef OBJECTDIRCOMPILER
-.PHONY:  compiler_all compiler_debug compiler_examples compiler_test compiler_smart compiler_shared compiler_showinstall compiler_install compiler_sourceinstall compiler_zipinstall compiler_zipinstalladd compiler_clean compiler_cleanall compiler_require compiler_info
+.PHONY:  compiler_all compiler_debug compiler_examples compiler_test compiler_smart compiler_shared compiler_showinstall compiler_install compiler_sourceinstall compiler_zipinstall compiler_zipsourceinstall compiler_clean compiler_cleanall compiler_require compiler_info
 
 compiler_all:
 	$(MAKE) -C compiler all
@@ -705,8 +553,8 @@ compiler_sourceinstall:
 compiler_zipinstall:
 	$(MAKE) -C compiler zipinstall
 
-compiler_zipinstalladd:
-	$(MAKE) -C compiler zipinstalladd
+compiler_zipsourceinstall:
+	$(MAKE) -C compiler zipsourceinstall
 
 compiler_clean:
 	$(MAKE) -C compiler clean
@@ -724,7 +572,7 @@ endif
 # Dir rtl
 
 ifdef OBJECTDIRRTL
-.PHONY:  rtl_all rtl_debug rtl_examples rtl_test rtl_smart rtl_shared rtl_showinstall rtl_install rtl_sourceinstall rtl_zipinstall rtl_zipinstalladd rtl_clean rtl_cleanall rtl_require rtl_info
+.PHONY:  rtl_all rtl_debug rtl_examples rtl_test rtl_smart rtl_shared rtl_showinstall rtl_install rtl_sourceinstall rtl_zipinstall rtl_zipsourceinstall rtl_clean rtl_cleanall rtl_require rtl_info
 
 rtl_all:
 	$(MAKE) -C rtl all
@@ -756,8 +604,8 @@ rtl_sourceinstall:
 rtl_zipinstall:
 	$(MAKE) -C rtl zipinstall
 
-rtl_zipinstalladd:
-	$(MAKE) -C rtl zipinstalladd
+rtl_zipsourceinstall:
+	$(MAKE) -C rtl zipsourceinstall
 
 rtl_clean:
 	$(MAKE) -C rtl clean
@@ -775,7 +623,7 @@ endif
 # Dir utils
 
 ifdef OBJECTDIRUTILS
-.PHONY:  utils_all utils_debug utils_examples utils_test utils_smart utils_shared utils_showinstall utils_install utils_sourceinstall utils_zipinstall utils_zipinstalladd utils_clean utils_cleanall utils_require utils_info
+.PHONY:  utils_all utils_debug utils_examples utils_test utils_smart utils_shared utils_showinstall utils_install utils_sourceinstall utils_zipinstall utils_zipsourceinstall utils_clean utils_cleanall utils_require utils_info
 
 utils_all:
 	$(MAKE) -C utils all
@@ -807,8 +655,8 @@ utils_sourceinstall:
 utils_zipinstall:
 	$(MAKE) -C utils zipinstall
 
-utils_zipinstalladd:
-	$(MAKE) -C utils zipinstalladd
+utils_zipsourceinstall:
+	$(MAKE) -C utils zipsourceinstall
 
 utils_clean:
 	$(MAKE) -C utils clean
@@ -826,7 +674,7 @@ endif
 # Dir fcl
 
 ifdef OBJECTDIRFCL
-.PHONY:  fcl_all fcl_debug fcl_examples fcl_test fcl_smart fcl_shared fcl_showinstall fcl_install fcl_sourceinstall fcl_zipinstall fcl_zipinstalladd fcl_clean fcl_cleanall fcl_require fcl_info
+.PHONY:  fcl_all fcl_debug fcl_examples fcl_test fcl_smart fcl_shared fcl_showinstall fcl_install fcl_sourceinstall fcl_zipinstall fcl_zipsourceinstall fcl_clean fcl_cleanall fcl_require fcl_info
 
 fcl_all:
 	$(MAKE) -C fcl all
@@ -858,8 +706,8 @@ fcl_sourceinstall:
 fcl_zipinstall:
 	$(MAKE) -C fcl zipinstall
 
-fcl_zipinstalladd:
-	$(MAKE) -C fcl zipinstalladd
+fcl_zipsourceinstall:
+	$(MAKE) -C fcl zipsourceinstall
 
 fcl_clean:
 	$(MAKE) -C fcl clean
@@ -877,7 +725,7 @@ endif
 # Dir api
 
 ifdef OBJECTDIRAPI
-.PHONY:  api_all api_debug api_examples api_test api_smart api_shared api_showinstall api_install api_sourceinstall api_zipinstall api_zipinstalladd api_clean api_cleanall api_require api_info
+.PHONY:  api_all api_debug api_examples api_test api_smart api_shared api_showinstall api_install api_sourceinstall api_zipinstall api_zipsourceinstall api_clean api_cleanall api_require api_info
 
 api_all:
 	$(MAKE) -C api all
@@ -909,8 +757,8 @@ api_sourceinstall:
 api_zipinstall:
 	$(MAKE) -C api zipinstall
 
-api_zipinstalladd:
-	$(MAKE) -C api zipinstalladd
+api_zipsourceinstall:
+	$(MAKE) -C api zipsourceinstall
 
 api_clean:
 	$(MAKE) -C api clean
@@ -928,7 +776,7 @@ endif
 # Dir fv
 
 ifdef OBJECTDIRFV
-.PHONY:  fv_all fv_debug fv_examples fv_test fv_smart fv_shared fv_showinstall fv_install fv_sourceinstall fv_zipinstall fv_zipinstalladd fv_clean fv_cleanall fv_require fv_info
+.PHONY:  fv_all fv_debug fv_examples fv_test fv_smart fv_shared fv_showinstall fv_install fv_sourceinstall fv_zipinstall fv_zipsourceinstall fv_clean fv_cleanall fv_require fv_info
 
 fv_all:
 	$(MAKE) -C fv all
@@ -960,8 +808,8 @@ fv_sourceinstall:
 fv_zipinstall:
 	$(MAKE) -C fv zipinstall
 
-fv_zipinstalladd:
-	$(MAKE) -C fv zipinstalladd
+fv_zipsourceinstall:
+	$(MAKE) -C fv zipsourceinstall
 
 fv_clean:
 	$(MAKE) -C fv clean
@@ -979,7 +827,7 @@ endif
 # Dir packages
 
 ifdef OBJECTDIRPACKAGES
-.PHONY:  packages_all packages_debug packages_examples packages_test packages_smart packages_shared packages_showinstall packages_install packages_sourceinstall packages_zipinstall packages_zipinstalladd packages_clean packages_cleanall packages_require packages_info
+.PHONY:  packages_all packages_debug packages_examples packages_test packages_smart packages_shared packages_showinstall packages_install packages_sourceinstall packages_zipinstall packages_zipsourceinstall packages_clean packages_cleanall packages_require packages_info
 
 packages_all:
 	$(MAKE) -C packages all
@@ -1011,8 +859,8 @@ packages_sourceinstall:
 packages_zipinstall:
 	$(MAKE) -C packages zipinstall
 
-packages_zipinstalladd:
-	$(MAKE) -C packages zipinstalladd
+packages_zipsourceinstall:
+	$(MAKE) -C packages zipsourceinstall
 
 packages_clean:
 	$(MAKE) -C packages clean
@@ -1030,7 +878,7 @@ endif
 # Dir ide
 
 ifdef OBJECTDIRIDE
-.PHONY:  ide_all ide_debug ide_examples ide_test ide_smart ide_shared ide_showinstall ide_install ide_sourceinstall ide_zipinstall ide_zipinstalladd ide_clean ide_cleanall ide_require ide_info
+.PHONY:  ide_all ide_debug ide_examples ide_test ide_smart ide_shared ide_showinstall ide_install ide_sourceinstall ide_zipinstall ide_zipsourceinstall ide_clean ide_cleanall ide_require ide_info
 
 ide_all:
 	$(MAKE) -C ide all
@@ -1062,8 +910,8 @@ ide_sourceinstall:
 ide_zipinstall:
 	$(MAKE) -C ide zipinstall
 
-ide_zipinstalladd:
-	$(MAKE) -C ide zipinstalladd
+ide_zipsourceinstall:
+	$(MAKE) -C ide zipsourceinstall
 
 ide_clean:
 	$(MAKE) -C ide clean

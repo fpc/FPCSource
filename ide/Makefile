@@ -134,20 +134,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -172,61 +158,31 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
 
 
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
 
+#####################################################################
+# Default Directories
+#####################################################################
 
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
 else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
+PREFIXINSTALLDIR=/pp
 endif
 endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
+export PREFIXINSTALLDIR
 
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Redirection
@@ -274,8 +230,9 @@ require: $(addsuffix _require,$(DIROBJECTS))
 
 .PHONY:  debug examples test smart shared showinstall install sourceinstall clean cleanall require
 
-
-# Target Dirs
+#####################################################################
+# Directories
+#####################################################################
 
 OBJECTDIRFAKE=1
 OBJECTDIRTEXT=1
@@ -283,7 +240,7 @@ OBJECTDIRTEXT=1
 # Dir fake
 
 ifdef OBJECTDIRFAKE
-.PHONY:  fake_all fake_debug fake_examples fake_test fake_smart fake_shared fake_showinstall fake_install fake_sourceinstall fake_zipinstall fake_zipinstalladd fake_clean fake_cleanall fake_require fake_info
+.PHONY:  fake_all fake_debug fake_examples fake_test fake_smart fake_shared fake_showinstall fake_install fake_sourceinstall fake_zipinstall fake_zipsourceinstall fake_clean fake_cleanall fake_require fake_info
 
 fake_all:
 	$(MAKE) -C fake all
@@ -315,8 +272,8 @@ fake_sourceinstall:
 fake_zipinstall:
 	$(MAKE) -C fake zipinstall
 
-fake_zipinstalladd:
-	$(MAKE) -C fake zipinstalladd
+fake_zipsourceinstall:
+	$(MAKE) -C fake zipsourceinstall
 
 fake_clean:
 	$(MAKE) -C fake clean
@@ -334,7 +291,7 @@ endif
 # Dir text
 
 ifdef OBJECTDIRTEXT
-.PHONY:  text_all text_debug text_examples text_test text_smart text_shared text_showinstall text_install text_sourceinstall text_zipinstall text_zipinstalladd text_clean text_cleanall text_require text_info
+.PHONY:  text_all text_debug text_examples text_test text_smart text_shared text_showinstall text_install text_sourceinstall text_zipinstall text_zipsourceinstall text_clean text_cleanall text_require text_info
 
 text_all:
 	$(MAKE) -C text all
@@ -366,8 +323,8 @@ text_sourceinstall:
 text_zipinstall:
 	$(MAKE) -C text zipinstall
 
-text_zipinstalladd:
-	$(MAKE) -C text zipinstalladd
+text_zipsourceinstall:
+	$(MAKE) -C text zipsourceinstall
 
 text_clean:
 	$(MAKE) -C text clean

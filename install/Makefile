@@ -119,13 +119,25 @@ OLDFPCDIR:=$(FPCDIR)
 
 checkfpcdir:
 ifdef OLDFPCDIR
+ifneq ($(OLDFPCDIR),)
+FPCDIRSET=fpcdirset
+fpcdirset:
 	@echo You must unset FPCDIR to use this Makefile
 	@exit 1
+endif
 endif
 
 # All target
 ifndef ALLTARGET
+ifdef ($(OS_TARGET),win32)
 ALLTARGET=smart
+else
+ifdef ($(OS_TARGET),go32v2)
+ALLTARGET=smart
+else
+ALLTARGET=all
+endif
+endif
 endif
 
 # Test dir if none specified
@@ -143,8 +155,8 @@ override RELEASE=1
 BASEPACKDIR=$(BASEDIR)/basepack
 
 # Use new ppc386
-PPNEW=$(BASEDIR)/$(CVSBASE)/compiler/ppc386.exe
-PPUFILESNEW=$(BASEDIR)/$(CVSBASE)/utils/ppufiles.exe
+PPNEW=$(BASEDIR)/$(CVSBASE)/compiler/ppc386$(EXEEXT)
+PPUFILESNEW=$(BASEDIR)/$(CVSBASE)/utils/ppufiles$(EXEEXT)
 
 # Build/install options
 BUILDOPTS=FPC=$(PPNEW) RELEASE=1
@@ -172,20 +184,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -209,7 +207,6 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
@@ -326,17 +323,6 @@ else
 LDCONFIG=
 endif
 
-# ppdep
-ifndef PPDEP
-PPDEP:=$(strip $(wildcard $(addsuffix /ppdep$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(PPDEP),)
-PPDEP=
-else
-PPDEP:=$(firstword $(PPDEP))
-endif
-endif
-export PPDEP
-
 # ppumove
 ifndef PPUMOVE
 PPUMOVE:=$(strip $(wildcard $(addsuffix /ppumove$(EXEEXT),$(SEARCHPATH))))
@@ -414,8 +400,26 @@ endif
 endif
 export ZIPPROG
 
-ifndef ZIPEXT
+ZIPOPT=-9
 ZIPEXT=.zip
+
+# Tar
+ifndef TARPROG
+TARPROG:=$(strip $(wildcard $(addsuffix /tar$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(TARPROG),)
+TARPROG=
+else
+TARPROG:=$(firstword $(TARPROG))
+endif
+endif
+export TARPROG
+
+ifeq ($(USETAR),bz2)
+TAROPT=vI
+TAREXT=.tar.bz2
+else
+TAROPT=vz
+TAREXT=.tar.gz
 endif
 
 #####################################################################
@@ -432,7 +436,6 @@ SMARTEXT=.sl
 STATICLIBEXT=.a
 SHAREDLIBEXT=.so
 RSTEXT=.rst
-PACKAGESUFFIX=
 FPCMADE=fpcmade
 
 # Go32v1
@@ -443,19 +446,16 @@ ASMEXT=.s1
 SMARTEXT=.sl1
 STATICLIBEXT=.a1
 SHAREDLIBEXT=.so1
-PACKAGESUFFIX=v1
 FPCMADE=fpcmade.v1
 endif
 
 # Go32v2
 ifeq ($(OS_TARGET),go32v2)
-PACKAGESUFFIX=go32
 FPCMADE=fpcmade.dos
 endif
 
 # Linux
 ifeq ($(OS_TARGET),linux)
-PACKAGESUFFIX=linux
 FPCMADE=fpcmade.lnx
 endif
 
@@ -467,7 +467,6 @@ ASMEXT=.sw
 SMARTEXT=.slw
 STATICLIBEXT=.aw
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=w32
 FPCMADE=fpcmade.w32
 endif
 
@@ -479,7 +478,6 @@ OEXT=.oo2
 SMARTEXT=.so
 STATICLIBEXT=.ao2
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=os2
 FPCMADE=fpcmade.os2
 endif
 
@@ -507,55 +505,6 @@ endif
 endif
 
 
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
-
-
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
-else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
-endif
-endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-
 
 #####################################################################
 # Default Directories
@@ -570,6 +519,12 @@ PREFIXINSTALLDIR=/pp
 endif
 endif
 export PREFIXINSTALLDIR
+
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Install Directories
@@ -617,6 +572,9 @@ SOURCEINSTALLDIR=$(PREFIXINSTALLDIR)/src/fpc-$(FPC_VERSION)
 else
 SOURCEINSTALLDIR=$(BASEINSTALLDIR)/source
 endif
+ifdef SOURCESUBDIR
+SOURCEINSTALLDIR:=$(SOURCEINSTALLDIR)/$(SOURCESUBDIR)
+endif
 endif
 
 # Where the doc files will be stored
@@ -662,10 +620,6 @@ override FPCOPTDEF:=-d$(CPU_TARGET)
 # Load commandline OPT and add target and unit dir to be sure
 ifneq ($(OS_TARGET),$(OS_SOURCE))
 override FPCOPT+=-T$(OS_TARGET)
-endif
-
-ifdef NEEDUNITDIR
-override FPCOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
 endif
 
 ifdef UNITSDIR
@@ -751,17 +705,15 @@ shared: fpc_shared
 
 showinstall: fpc_showinstall
 
-install: fpc_install
-
 sourceinstall: fpc_sourceinstall
 
-zipinstalladd: fpc_zipinstalladd
+zipinstall: fpc_zipinstall
 
-clean: fpc_clean
+zipsourceinstall: fpc_zipsourceinstall
 
 cleanall: fpc_cleanall
 
-.PHONY:  all debug smart shared showinstall install sourceinstall zipinstalladd clean cleanall
+.PHONY:  all debug smart shared showinstall sourceinstall zipinstall zipsourceinstall cleanall
 
 #####################################################################
 # General compile rules
@@ -828,7 +780,7 @@ endif
 # Install rules
 #####################################################################
 
-.PHONY: fpc_showinstall fpc_install
+.PHONY: fpc_showinstall fpc_install fpc_sourceinstall
 
 ifdef EXTRAINSTALLUNITS
 override INSTALLPPUFILES+=$(addsuffix $(PPUEXT),$(EXTRAINSTALLUNITS))
@@ -890,21 +842,31 @@ ifdef EXTRAINSTALLFILES
 	$(INSTALL) $(EXTRAINSTALLFILES) $(DATAINSTALLDIR)
 endif
 
-#####################################################################
-# Source install rules
-#####################################################################
-
-.PHONY: fpc_sourceinstall
+ifndef SOURCETOPDIR
+SOURCETOPDIR=$(BASEDIR)
+endif
 
 fpc_sourceinstall: clean
 	$(MKDIR) $(SOURCEINSTALLDIR)
-	$(COPYTREE) $(BASEDIR) $(SOURCEINSTALLDIR)
+	$(COPYTREE) $(SOURCETOPDIR) $(SOURCEINSTALLDIR)
+
 
 #####################################################################
 # Zip
 #####################################################################
 
-.PHONY: fpc_zipinstall fpc_zipinstalladd
+.PHONY: fpc_zipinstall fpc_zipsourceinstall
+
+# Create suffix to add
+ifndef PACKAGESUFFIX
+PACKAGESUFFIX=$(OS_TARGET)
+ifeq ($(OS_TARGET),go32v2)
+PACKAGESUFFIX=dos
+endif
+ifeq ($(OS_TARGET),win32)
+PACKAGESUFFIX=w32
+endif
+endif
 
 # Temporary path to pack a file
 ifndef PACKDIR
@@ -915,43 +877,20 @@ PACKDIR=/tmp/fpc-pack
 endif
 endif
 
-# Test dir if none specified
-ifndef DESTZIPDIR
-DESTZIPDIR:=$(BASEDIR)
-endif
-
 # Maybe create default zipname from packagename
 ifndef ZIPNAME
 ifdef PACKAGENAME
-ZIPNAME=$(PACKAGENAME)$(PACKAGESUFFIX)
+ZIPNAME=$(PACKAGEPREFIX)$(PACKAGENAME)$(PACKAGESUFFIX)
 endif
 endif
 
-# Add .zip/.tar.gz extension
-ifdef ZIPNAME
-ifndef inlinux
-override ZIPNAME:=$(ZIPNAME)$(ZIPEXT)
-endif
-endif
-
-# Note: This will not remove the zipfile first
-fpc_zipinstalladd:
-ifndef ZIPNAME
-	@$(ECHO) "Please specify ZIPNAME!"
-	@exit 1
-else
-	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
+# Use tar by default under linux
+ifndef USEZIP
 ifdef inlinux
-	gzip -d $(DESTZIPDIR)/$(ZIPNAME).tar.gz
-	cd $(PACKDIR) ; tar rv --file $(DESTZIPDIR)/$(ZIPNAME).tar * ; cd $(BASEDIR)
-	gzip $(DESTZIPDIR)/$(ZIPNAME).tar
-else
-	cd $(PACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+USETAR=1
 endif
-	$(DELTREE) $(PACKDIR)
 endif
 
-# First remove the zip and then install
 fpc_zipinstall:
 ifndef ZIPNAME
 	@$(ECHO) "Please specify ZIPNAME!"
@@ -959,13 +898,16 @@ ifndef ZIPNAME
 else
 	$(DEL) $(DESTZIPDIR)/$(ZIPNAME)
 	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
-ifdef inlinux
-	cd $(PACKDIR) ; tar cvz --file $(DESTZIPDIR)/$(ZIPNAME).tar.gz * ; cd $(BASEDIR)
+ifdef USETAR
+	cd $(PACKDIR) ; $(TARPROG) c$(TAROPT) --file $(DESTZIPDIR)/$(ZIPNAME)$(TAREXT) * ; cd $(BASEDIR)
 else
-	cd $(PACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+	cd $(PACKDIR) ; $(ZIPPROG) -Dr $(ZIPOPT) $(DESTZIPDIR)/$(ZIPNAME)$(ZIPEXT) * ; cd $(BASEDIR)
 endif
 	$(DELTREE) $(PACKDIR)
 endif
+
+fpc_zipsourceinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall PACKAGESUFFIX=src
 
 #####################################################################
 # Clean rules
@@ -1029,10 +971,9 @@ help:
 	@echo
 	@echo Possible targets are:
 	@echo
-	@echo basego32, basego32.zip
-	@echo basew32,  basew32.zip
+	@echo go32v2,win32,linux
 	@echo
-	@exit 1
+	@exit
 
 
 ##########################################################################
@@ -1049,12 +990,16 @@ installer:
 # Basego32.zip
 ##########################################################################
 
-.PHONY: build installbase zipinstall zipinstallbase zipinstallfcl \
+.PHONY: clean build installbase zipinstall zipinstallbase zipinstallfcl \
 	zipinstallpackages
 
 export RELEASE DESTZIPDIR
 
-build: checkfpcdir
+clean:
+	$(DEL) build-stamp
+
+build: build-stamp
+build-stamp: $(FPCDIRSET)
 # create new compiler
 	-$(MAKE) -C $(CVSBASE) compiler_cycle
 # clean
@@ -1070,8 +1015,9 @@ build: checkfpcdir
 	$(MAKE) -C $(CVSBASE) packages_$(ALLTARGET) $(BUILDOPTS)
 	$(MAKE) -C $(CVSBASE) utils_all $(BUILDOPTS)
 
+	touch build-stamp
 
-installbase:
+installbase: build-stamp
 # create dirs
 	$(MKDIR) $(BASEINSTALLDIR)
 	$(MKDIR) $(DOCINSTALLDIR)
@@ -1090,35 +1036,24 @@ endif
 	$(MAKE) -C $(CVSBASE) rtl_install $(INSTALLOPTS)
 	$(MAKE) -C $(CVSBASE) utils_install $(INSTALLOPTS)
 
-zipinstallbase:
-	$(MKDIR) $(BASEPACKDIR)
-	$(MAKE) installbase PREFIXINSTALLDIR=$(BASEPACKDIR)
-	cd $(BASEPACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/basego32.zip * ; cd $(BASEDIR)
-	$(DELTREE) $(BASEPACKDIR)
-
-zipinstallapi:
+install: build-stamp
+	$(MAKE) zipinstall ZIPTARGET=installbase PACKAGENAME=base
 	$(MAKE) -C $(CVSBASE) api_zipinstall $(INSTALLOPTS)
-
-zipinstallfcl:
 	$(MAKE) -C $(CVSBASE) fcl_zipinstall $(INSTALLOPTS)
-
-zipinstallpackages:
-	$(MAKE) -C $(CVSBASE) packages_install $(INSTALLOPTS)
-
-
-zipinstall: build \
-	    zipinstallbase zipinstallapi zipinstallfcl \
-	    zipinstallpackages
+	$(MAKE) -C $(CVSBASE) packages_zipinstall $(INSTALLOPTS)
 
 
 ##########################################################################
 # go32v2,win32 specific targets
 ##########################################################################
 
-.PHONY: go32v2 win32
+.PHONY: go32v2 win32 linux
 
 go32v2:
-	$(MAKE) zipinstall OS_TARGET=go32v2
+	$(MAKE) install OS_TARGET=go32v2
 
 win32:
-	$(MAKE) zipinstall OS_TARGET=win32
+	$(MAKE) install OS_TARGET=win32
+
+linux:
+	$(MAKE) install OS_TARGET=linux

@@ -134,20 +134,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -155,9 +141,8 @@ endif
 
 # Targets
 
-override DIROBJECTS+=$(wildcard paszlib)
 ifeq ($(OS_TARGET),linux)
-override DIROBJECTS+=$(wildcard uncgi gtk opengl gdbint ibase mysql zlib utmp inet postgres ncurses x11 forms svgalib ggi)
+override DIROBJECTS+=$(wildcard zlib ncurses x11 gtk inet uncgi mysql ibase postgres opengl forms svgalib ggi utmp paszlib gdbint)
 endif
 ifeq ($(OS_TARGET),go32v2)
 override DIROBJECTS+=$(wildcard uncgi gdbint)
@@ -182,7 +167,6 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
@@ -299,83 +283,6 @@ else
 LDCONFIG=
 endif
 
-# ppdep
-ifndef PPDEP
-PPDEP:=$(strip $(wildcard $(addsuffix /ppdep$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(PPDEP),)
-PPDEP=
-else
-PPDEP:=$(firstword $(PPDEP))
-endif
-endif
-export PPDEP
-
-# ppumove
-ifndef PPUMOVE
-PPUMOVE:=$(strip $(wildcard $(addsuffix /ppumove$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(PPUMOVE),)
-PPUMOVE=
-else
-PPUMOVE:=$(firstword $(PPUMOVE))
-endif
-endif
-export PPUMOVE
-
-# ppufiles
-ifndef PPUFILES
-PPUFILES:=$(strip $(wildcard $(addsuffix /ppufiles$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(PPUFILES),)
-PPUFILES=
-else
-PPUFILES:=$(firstword $(PPUFILES))
-endif
-endif
-export PPUFILES
-
-# Look if UPX is found for go32v2 and win32. We can't use $UPX becuase
-# upx uses that one itself (PFV)
-ifndef UPXPROG
-ifeq ($(OS_TARGET),go32v2)
-UPXPROG:=1
-endif
-ifeq ($(OS_TARGET),win32)
-UPXPROG:=1
-endif
-ifdef UPXPROG
-UPXPROG:=$(strip $(wildcard $(addsuffix /upx$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(UPXPROG),)
-UPXPROG=
-else
-UPXPROG:=$(firstword $(UPXPROG))
-endif
-else
-UPXPROG=
-endif
-endif
-export UPXPROG
-
-# gdate/date
-ifndef DATE
-DATE:=$(strip $(wildcard $(addsuffix /date$(EXEEXT),$(SEARCHPATH))))
-ifeq ($(DATE),)
-DATE:=$(strip $(wildcard $(addsuffix /gdate$(EXEEXT),$(SEACHPATH))))
-ifeq ($(DATE),)
-DATE=
-else
-DATE:=$(firstword $(DATE))
-endif
-else
-DATE:=$(firstword $(DATE))
-endif
-endif
-export DATE
-
-ifdef DATE
-DATESTR:=$(shell $(DATE) +%Y%m%d)
-else
-DATESTR=
-endif
-
 # ZipProg, you can't use Zip as the var name (PFV)
 ifndef ZIPPROG
 ZIPPROG:=$(strip $(wildcard $(addsuffix /zip$(EXEEXT),$(SEARCHPATH))))
@@ -387,60 +294,407 @@ endif
 endif
 export ZIPPROG
 
-ifndef ZIPEXT
+ZIPOPT=-9
 ZIPEXT=.zip
-endif
 
-
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
-
-
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+# Tar
+ifndef TARPROG
+TARPROG:=$(strip $(wildcard $(addsuffix /tar$(EXEEXT),$(SEARCHPATH))))
+ifeq ($(TARPROG),)
+TARPROG=
 else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
+TARPROG:=$(firstword $(TARPROG))
 endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
 endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
+export TARPROG
+
+ifeq ($(USETAR),bz2)
+TAROPT=vI
+TAREXT=.tar.bz2
 else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
+TAROPT=vz
+TAREXT=.tar.gz
+endif
+
+#####################################################################
+# Default extensions
+#####################################################################
+
+# Default needed extensions (Go32v2,Linux)
+LOADEREXT=.as
+PPLEXT=.ppl
+PPUEXT=.ppu
+OEXT=.o
+ASMEXT=.s
+SMARTEXT=.sl
+STATICLIBEXT=.a
+SHAREDLIBEXT=.so
+RSTEXT=.rst
+FPCMADE=fpcmade
+
+# Go32v1
+ifeq ($(OS_TARGET),go32v1)
+PPUEXT=.pp1
+OEXT=.o1
+ASMEXT=.s1
+SMARTEXT=.sl1
+STATICLIBEXT=.a1
+SHAREDLIBEXT=.so1
+FPCMADE=fpcmade.v1
+endif
+
+# Go32v2
+ifeq ($(OS_TARGET),go32v2)
+FPCMADE=fpcmade.dos
+endif
+
+# Linux
+ifeq ($(OS_TARGET),linux)
+FPCMADE=fpcmade.lnx
+endif
+
+# Win32
+ifeq ($(OS_TARGET),win32)
+PPUEXT=.ppw
+OEXT=.ow
+ASMEXT=.sw
+SMARTEXT=.slw
+STATICLIBEXT=.aw
+SHAREDLIBEXT=.dll
+FPCMADE=fpcmade.w32
+endif
+
+# OS/2
+ifeq ($(OS_TARGET),os2)
+PPUEXT=.ppo
+ASMEXT=.so2
+OEXT=.oo2
+SMARTEXT=.so
+STATICLIBEXT=.ao2
+SHAREDLIBEXT=.dll
+FPCMADE=fpcmade.os2
+endif
+
+# library prefix
+LIBPREFIX=lib
+ifeq ($(OS_TARGET),go32v2)
+LIBPREFIX=
+endif
+ifeq ($(OS_TARGET),go32v1)
+LIBPREFIX=
+endif
+
+# determine which .pas extension is used
+ifndef PASEXT
+ifdef EXEOBJECTS
+override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(EXEOBJECTS)))))
 else
-UNITDIR_RTL=$(UNITSDIR)/rtl
+override TESTPAS:=$(strip $(wildcard $(addsuffix .pas,$(firstword $(UNITOBJECTS)))))
 endif
+ifeq ($(TESTPAS),)
+PASEXT=.pp
 else
-UNITDIR_RTL=
-endif
-endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
+PASEXT=.pas
 endif
 endif
 
+
+
+PKGALL=1
+ifeq ($(OS_TARGET),linux)
+PKGBASE=zlib ncurses x11
+PKGGTK=gtk
+PKGNET=inet uncgi
+PKGDB=mysql ibase postgres
+PKGGFX=opengl forms svgalib ggi
+PKGMISC=utmp gdbint paszlib
+endif
+
+
+# Pkg all
+
+ifdef PKGALL
+.PHONY:  pkgall_all pkgall_debug pkgall_examples pkgall_test pkgall_smart pkgall_shared pkgall_showinstall pkgall_install pkgall_sourceinstall pkgall_zipinstall pkgall_zipsourceinstall pkgall_clean pkgall_cleanall pkgall_require pkgall_info
+
+pkgall_all: $(addsuffix _all,$(DIROBJECTS))
+
+pkgall_debug: $(addsuffix _debug,$(DIROBJECTS))
+
+pkgall_examples: $(addsuffix _examples,$(DIROBJECTS))
+
+pkgall_test: $(addsuffix _test,$(DIROBJECTS))
+
+pkgall_smart: $(addsuffix _smart,$(DIROBJECTS))
+
+pkgall_shared: $(addsuffix _shared,$(DIROBJECTS))
+
+pkgall_showinstall: $(addsuffix _showinstall,$(DIROBJECTS))
+
+pkgall_install: $(addsuffix _install,$(DIROBJECTS))
+
+pkgall_sourceinstall: $(addsuffix _sourceinstall,$(DIROBJECTS))
+
+pkgall_zipinstall:
+	$(MAKE) fpc_zipinstall PACKAGENAME=all ZIPTARGET=pkgall_install
+
+pkgall_zipsourceinstall:
+	$(MAKE) fpc_zipsourceinstall PACKAGENAME=all ZIPTARGET=pkgall_sourceinstall
+
+pkgall_clean: $(addsuffix _clean,$(DIROBJECTS))
+
+pkgall_cleanall: $(addsuffix _cleanall,$(DIROBJECTS))
+
+pkgall_require: $(addsuffix _require,$(DIROBJECTS))
+
+endif
+
+# Pkg base
+
+ifdef PKGBASE
+.PHONY:  pkgbase_all pkgbase_debug pkgbase_examples pkgbase_test pkgbase_smart pkgbase_shared pkgbase_showinstall pkgbase_install pkgbase_sourceinstall pkgbase_zipinstall pkgbase_zipsourceinstall pkgbase_clean pkgbase_cleanall pkgbase_require pkgbase_info
+
+override PKGOBJECTS+=pkgbase
+pkgbase_all: $(addsuffix _all,$(PKGBASE))
+
+pkgbase_debug: $(addsuffix _debug,$(PKGBASE))
+
+pkgbase_examples: $(addsuffix _examples,$(PKGBASE))
+
+pkgbase_test: $(addsuffix _test,$(PKGBASE))
+
+pkgbase_smart: $(addsuffix _smart,$(PKGBASE))
+
+pkgbase_shared: $(addsuffix _shared,$(PKGBASE))
+
+pkgbase_showinstall: $(addsuffix _showinstall,$(PKGBASE))
+
+pkgbase_install: $(addsuffix _install,$(PKGBASE))
+
+pkgbase_sourceinstall: $(addsuffix _sourceinstall,$(PKGBASE))
+
+pkgbase_zipinstall:
+	$(MAKE) fpc_zipinstall PACKAGENAME=base ZIPTARGET=pkgbase_install
+
+pkgbase_zipsourceinstall:
+	$(MAKE) fpc_zipsourceinstall PACKAGENAME=base ZIPTARGET=pkgbase_sourceinstall
+
+pkgbase_clean: $(addsuffix _clean,$(PKGBASE))
+
+pkgbase_cleanall: $(addsuffix _cleanall,$(PKGBASE))
+
+pkgbase_require: $(addsuffix _require,$(PKGBASE))
+
+endif
+
+# Pkg gtk
+
+ifdef PKGGTK
+.PHONY:  pkggtk_all pkggtk_debug pkggtk_examples pkggtk_test pkggtk_smart pkggtk_shared pkggtk_showinstall pkggtk_install pkggtk_sourceinstall pkggtk_zipinstall pkggtk_zipsourceinstall pkggtk_clean pkggtk_cleanall pkggtk_require pkggtk_info
+
+override PKGOBJECTS+=pkggtk
+pkggtk_all: $(addsuffix _all,$(PKGGTK))
+
+pkggtk_debug: $(addsuffix _debug,$(PKGGTK))
+
+pkggtk_examples: $(addsuffix _examples,$(PKGGTK))
+
+pkggtk_test: $(addsuffix _test,$(PKGGTK))
+
+pkggtk_smart: $(addsuffix _smart,$(PKGGTK))
+
+pkggtk_shared: $(addsuffix _shared,$(PKGGTK))
+
+pkggtk_showinstall: $(addsuffix _showinstall,$(PKGGTK))
+
+pkggtk_install: $(addsuffix _install,$(PKGGTK))
+
+pkggtk_sourceinstall: $(addsuffix _sourceinstall,$(PKGGTK))
+
+pkggtk_zipinstall:
+	$(MAKE) fpc_zipinstall PACKAGENAME=gtk ZIPTARGET=pkggtk_install
+
+pkggtk_zipsourceinstall:
+	$(MAKE) fpc_zipsourceinstall PACKAGENAME=gtk ZIPTARGET=pkggtk_sourceinstall
+
+pkggtk_clean: $(addsuffix _clean,$(PKGGTK))
+
+pkggtk_cleanall: $(addsuffix _cleanall,$(PKGGTK))
+
+pkggtk_require: $(addsuffix _require,$(PKGGTK))
+
+endif
+
+# Pkg net
+
+ifdef PKGNET
+.PHONY:  pkgnet_all pkgnet_debug pkgnet_examples pkgnet_test pkgnet_smart pkgnet_shared pkgnet_showinstall pkgnet_install pkgnet_sourceinstall pkgnet_zipinstall pkgnet_zipsourceinstall pkgnet_clean pkgnet_cleanall pkgnet_require pkgnet_info
+
+override PKGOBJECTS+=pkgnet
+pkgnet_all: $(addsuffix _all,$(PKGNET))
+
+pkgnet_debug: $(addsuffix _debug,$(PKGNET))
+
+pkgnet_examples: $(addsuffix _examples,$(PKGNET))
+
+pkgnet_test: $(addsuffix _test,$(PKGNET))
+
+pkgnet_smart: $(addsuffix _smart,$(PKGNET))
+
+pkgnet_shared: $(addsuffix _shared,$(PKGNET))
+
+pkgnet_showinstall: $(addsuffix _showinstall,$(PKGNET))
+
+pkgnet_install: $(addsuffix _install,$(PKGNET))
+
+pkgnet_sourceinstall: $(addsuffix _sourceinstall,$(PKGNET))
+
+pkgnet_zipinstall:
+	$(MAKE) fpc_zipinstall PACKAGENAME=net ZIPTARGET=pkgnet_install
+
+pkgnet_zipsourceinstall:
+	$(MAKE) fpc_zipsourceinstall PACKAGENAME=net ZIPTARGET=pkgnet_sourceinstall
+
+pkgnet_clean: $(addsuffix _clean,$(PKGNET))
+
+pkgnet_cleanall: $(addsuffix _cleanall,$(PKGNET))
+
+pkgnet_require: $(addsuffix _require,$(PKGNET))
+
+endif
+
+# Pkg db
+
+ifdef PKGDB
+.PHONY:  pkgdb_all pkgdb_debug pkgdb_examples pkgdb_test pkgdb_smart pkgdb_shared pkgdb_showinstall pkgdb_install pkgdb_sourceinstall pkgdb_zipinstall pkgdb_zipsourceinstall pkgdb_clean pkgdb_cleanall pkgdb_require pkgdb_info
+
+override PKGOBJECTS+=pkgdb
+pkgdb_all: $(addsuffix _all,$(PKGDB))
+
+pkgdb_debug: $(addsuffix _debug,$(PKGDB))
+
+pkgdb_examples: $(addsuffix _examples,$(PKGDB))
+
+pkgdb_test: $(addsuffix _test,$(PKGDB))
+
+pkgdb_smart: $(addsuffix _smart,$(PKGDB))
+
+pkgdb_shared: $(addsuffix _shared,$(PKGDB))
+
+pkgdb_showinstall: $(addsuffix _showinstall,$(PKGDB))
+
+pkgdb_install: $(addsuffix _install,$(PKGDB))
+
+pkgdb_sourceinstall: $(addsuffix _sourceinstall,$(PKGDB))
+
+pkgdb_zipinstall:
+	$(MAKE) fpc_zipinstall PACKAGENAME=db ZIPTARGET=pkgdb_install
+
+pkgdb_zipsourceinstall:
+	$(MAKE) fpc_zipsourceinstall PACKAGENAME=db ZIPTARGET=pkgdb_sourceinstall
+
+pkgdb_clean: $(addsuffix _clean,$(PKGDB))
+
+pkgdb_cleanall: $(addsuffix _cleanall,$(PKGDB))
+
+pkgdb_require: $(addsuffix _require,$(PKGDB))
+
+endif
+
+# Pkg gfx
+
+ifdef PKGGFX
+.PHONY:  pkggfx_all pkggfx_debug pkggfx_examples pkggfx_test pkggfx_smart pkggfx_shared pkggfx_showinstall pkggfx_install pkggfx_sourceinstall pkggfx_zipinstall pkggfx_zipsourceinstall pkggfx_clean pkggfx_cleanall pkggfx_require pkggfx_info
+
+override PKGOBJECTS+=pkggfx
+pkggfx_all: $(addsuffix _all,$(PKGGFX))
+
+pkggfx_debug: $(addsuffix _debug,$(PKGGFX))
+
+pkggfx_examples: $(addsuffix _examples,$(PKGGFX))
+
+pkggfx_test: $(addsuffix _test,$(PKGGFX))
+
+pkggfx_smart: $(addsuffix _smart,$(PKGGFX))
+
+pkggfx_shared: $(addsuffix _shared,$(PKGGFX))
+
+pkggfx_showinstall: $(addsuffix _showinstall,$(PKGGFX))
+
+pkggfx_install: $(addsuffix _install,$(PKGGFX))
+
+pkggfx_sourceinstall: $(addsuffix _sourceinstall,$(PKGGFX))
+
+pkggfx_zipinstall:
+	$(MAKE) fpc_zipinstall PACKAGENAME=gfx ZIPTARGET=pkggfx_install
+
+pkggfx_zipsourceinstall:
+	$(MAKE) fpc_zipsourceinstall PACKAGENAME=gfx ZIPTARGET=pkggfx_sourceinstall
+
+pkggfx_clean: $(addsuffix _clean,$(PKGGFX))
+
+pkggfx_cleanall: $(addsuffix _cleanall,$(PKGGFX))
+
+pkggfx_require: $(addsuffix _require,$(PKGGFX))
+
+endif
+
+# Pkg misc
+
+ifdef PKGMISC
+.PHONY:  pkgmisc_all pkgmisc_debug pkgmisc_examples pkgmisc_test pkgmisc_smart pkgmisc_shared pkgmisc_showinstall pkgmisc_install pkgmisc_sourceinstall pkgmisc_zipinstall pkgmisc_zipsourceinstall pkgmisc_clean pkgmisc_cleanall pkgmisc_require pkgmisc_info
+
+override PKGOBJECTS+=pkgmisc
+pkgmisc_all: $(addsuffix _all,$(PKGMISC))
+
+pkgmisc_debug: $(addsuffix _debug,$(PKGMISC))
+
+pkgmisc_examples: $(addsuffix _examples,$(PKGMISC))
+
+pkgmisc_test: $(addsuffix _test,$(PKGMISC))
+
+pkgmisc_smart: $(addsuffix _smart,$(PKGMISC))
+
+pkgmisc_shared: $(addsuffix _shared,$(PKGMISC))
+
+pkgmisc_showinstall: $(addsuffix _showinstall,$(PKGMISC))
+
+pkgmisc_install: $(addsuffix _install,$(PKGMISC))
+
+pkgmisc_sourceinstall: $(addsuffix _sourceinstall,$(PKGMISC))
+
+pkgmisc_zipinstall:
+	$(MAKE) fpc_zipinstall PACKAGENAME=misc ZIPTARGET=pkgmisc_install
+
+pkgmisc_zipsourceinstall:
+	$(MAKE) fpc_zipsourceinstall PACKAGENAME=misc ZIPTARGET=pkgmisc_sourceinstall
+
+pkgmisc_clean: $(addsuffix _clean,$(PKGMISC))
+
+pkgmisc_cleanall: $(addsuffix _cleanall,$(PKGMISC))
+
+pkgmisc_require: $(addsuffix _require,$(PKGMISC))
+
+endif
+
+#####################################################################
+# Default Directories
+#####################################################################
+
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
+else
+PREFIXINSTALLDIR=/pp
+endif
+endif
+export PREFIXINSTALLDIR
+
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Redirection
@@ -482,9 +736,9 @@ install: $(addsuffix _install,$(DIROBJECTS))
 
 sourceinstall: $(addsuffix _sourceinstall,$(DIROBJECTS))
 
-zipinstall: fpc_zipinstall
+zipinstall: $(addsuffix _zipinstall,$(PKGOBJECTS))
 
-zipinstalladd: fpc_zipinstalladd
+zipsourceinstall: $(addsuffix _zipsourceinstall,$(PKGOBJECTS))
 
 clean: $(addsuffix _clean,$(DIROBJECTS))
 
@@ -492,13 +746,24 @@ cleanall: $(addsuffix _cleanall,$(DIROBJECTS))
 
 require: $(addsuffix _require,$(DIROBJECTS))
 
-.PHONY:  all debug examples test smart shared showinstall install sourceinstall zipinstall zipinstalladd clean cleanall require
+.PHONY:  all debug examples test smart shared showinstall install sourceinstall zipinstall zipsourceinstall clean cleanall require
 
 #####################################################################
 # Zip
 #####################################################################
 
-.PHONY: fpc_zipinstall fpc_zipinstalladd
+.PHONY: fpc_zipinstall fpc_zipsourceinstall
+
+# Create suffix to add
+ifndef PACKAGESUFFIX
+PACKAGESUFFIX=$(OS_TARGET)
+ifeq ($(OS_TARGET),go32v2)
+PACKAGESUFFIX=dos
+endif
+ifeq ($(OS_TARGET),win32)
+PACKAGESUFFIX=w32
+endif
+endif
 
 # Temporary path to pack a file
 ifndef PACKDIR
@@ -509,43 +774,20 @@ PACKDIR=/tmp/fpc-pack
 endif
 endif
 
-# Test dir if none specified
-ifndef DESTZIPDIR
-DESTZIPDIR:=$(BASEDIR)
-endif
-
 # Maybe create default zipname from packagename
 ifndef ZIPNAME
 ifdef PACKAGENAME
-ZIPNAME=$(PACKAGENAME)$(PACKAGESUFFIX)
+ZIPNAME=$(PACKAGEPREFIX)$(PACKAGENAME)$(PACKAGESUFFIX)
 endif
 endif
 
-# Add .zip/.tar.gz extension
-ifdef ZIPNAME
-ifndef inlinux
-override ZIPNAME:=$(ZIPNAME)$(ZIPEXT)
-endif
-endif
-
-# Note: This will not remove the zipfile first
-fpc_zipinstalladd:
-ifndef ZIPNAME
-	@$(ECHO) "Please specify ZIPNAME!"
-	@exit 1
-else
-	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
+# Use tar by default under linux
+ifndef USEZIP
 ifdef inlinux
-	gzip -d $(DESTZIPDIR)/$(ZIPNAME).tar.gz
-	cd $(PACKDIR) ; tar rv --file $(DESTZIPDIR)/$(ZIPNAME).tar * ; cd $(BASEDIR)
-	gzip $(DESTZIPDIR)/$(ZIPNAME).tar
-else
-	cd $(PACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+USETAR=1
 endif
-	$(DELTREE) $(PACKDIR)
 endif
 
-# First remove the zip and then install
 fpc_zipinstall:
 ifndef ZIPNAME
 	@$(ECHO) "Please specify ZIPNAME!"
@@ -553,34 +795,38 @@ ifndef ZIPNAME
 else
 	$(DEL) $(DESTZIPDIR)/$(ZIPNAME)
 	$(MAKE) $(ZIPTARGET) PREFIXINSTALLDIR=$(PACKDIR)
-ifdef inlinux
-	cd $(PACKDIR) ; tar cvz --file $(DESTZIPDIR)/$(ZIPNAME).tar.gz * ; cd $(BASEDIR)
+ifdef USETAR
+	cd $(PACKDIR) ; $(TARPROG) c$(TAROPT) --file $(DESTZIPDIR)/$(ZIPNAME)$(TAREXT) * ; cd $(BASEDIR)
 else
-	cd $(PACKDIR) ; $(ZIPPROG) $(DESTZIPDIR)/$(ZIPNAME) * ; cd $(BASEDIR)
+	cd $(PACKDIR) ; $(ZIPPROG) -Dr $(ZIPOPT) $(DESTZIPDIR)/$(ZIPNAME)$(ZIPEXT) * ; cd $(BASEDIR)
 endif
 	$(DELTREE) $(PACKDIR)
 endif
 
+fpc_zipsourceinstall:
+	$(MAKE) fpc_zipinstall ZIPTARGET=sourceinstall PACKAGESUFFIX=src
 
-# Target Dirs
+#####################################################################
+# Directories
+#####################################################################
 
-OBJECTDIRPASZLIB=1
 ifeq ($(OS_TARGET),linux)
-OBJECTDIRUNCGI=1
-OBJECTDIRGTK=1
-OBJECTDIROPENGL=1
-OBJECTDIRGDBINT=1
-OBJECTDIRIBASE=1
-OBJECTDIRMYSQL=1
 OBJECTDIRZLIB=1
-OBJECTDIRUTMP=1
-OBJECTDIRINET=1
-OBJECTDIRPOSTGRES=1
 OBJECTDIRNCURSES=1
 OBJECTDIRX11=1
+OBJECTDIRGTK=1
+OBJECTDIRINET=1
+OBJECTDIRUNCGI=1
+OBJECTDIRMYSQL=1
+OBJECTDIRIBASE=1
+OBJECTDIRPOSTGRES=1
+OBJECTDIROPENGL=1
 OBJECTDIRFORMS=1
 OBJECTDIRSVGALIB=1
 OBJECTDIRGGI=1
+OBJECTDIRUTMP=1
+OBJECTDIRPASZLIB=1
+OBJECTDIRGDBINT=1
 endif
 ifeq ($(OS_TARGET),go32v2)
 OBJECTDIRUNCGI=1
@@ -596,367 +842,10 @@ OBJECTDIRMYSQL=1
 OBJECTDIRZLIB=1
 endif
 
-# Dir paszlib
-
-ifdef OBJECTDIRPASZLIB
-.PHONY:  paszlib_all paszlib_debug paszlib_examples paszlib_test paszlib_smart paszlib_shared paszlib_showinstall paszlib_install paszlib_sourceinstall paszlib_zipinstall paszlib_zipinstalladd paszlib_clean paszlib_cleanall paszlib_require paszlib_info
-
-paszlib_all:
-	$(MAKE) -C paszlib all
-
-paszlib_debug:
-	$(MAKE) -C paszlib debug
-
-paszlib_examples:
-	$(MAKE) -C paszlib examples
-
-paszlib_test:
-	$(MAKE) -C paszlib test
-
-paszlib_smart:
-	$(MAKE) -C paszlib smart
-
-paszlib_shared:
-	$(MAKE) -C paszlib shared
-
-paszlib_showinstall:
-	$(MAKE) -C paszlib showinstall
-
-paszlib_install:
-	$(MAKE) -C paszlib install
-
-paszlib_sourceinstall:
-	$(MAKE) -C paszlib sourceinstall
-
-paszlib_zipinstall:
-	$(MAKE) -C paszlib zipinstall
-
-paszlib_zipinstalladd:
-	$(MAKE) -C paszlib zipinstalladd
-
-paszlib_clean:
-	$(MAKE) -C paszlib clean
-
-paszlib_cleanall:
-	$(MAKE) -C paszlib cleanall
-
-paszlib_require:
-	$(MAKE) -C paszlib require
-
-paszlib_info:
-	$(MAKE) -C paszlib info
-endif
-
-# Dir uncgi
-
-ifdef OBJECTDIRUNCGI
-.PHONY:  uncgi_all uncgi_debug uncgi_examples uncgi_test uncgi_smart uncgi_shared uncgi_showinstall uncgi_install uncgi_sourceinstall uncgi_zipinstall uncgi_zipinstalladd uncgi_clean uncgi_cleanall uncgi_require uncgi_info
-
-uncgi_all:
-	$(MAKE) -C uncgi all
-
-uncgi_debug:
-	$(MAKE) -C uncgi debug
-
-uncgi_examples:
-	$(MAKE) -C uncgi examples
-
-uncgi_test:
-	$(MAKE) -C uncgi test
-
-uncgi_smart:
-	$(MAKE) -C uncgi smart
-
-uncgi_shared:
-	$(MAKE) -C uncgi shared
-
-uncgi_showinstall:
-	$(MAKE) -C uncgi showinstall
-
-uncgi_install:
-	$(MAKE) -C uncgi install
-
-uncgi_sourceinstall:
-	$(MAKE) -C uncgi sourceinstall
-
-uncgi_zipinstall:
-	$(MAKE) -C uncgi zipinstall
-
-uncgi_zipinstalladd:
-	$(MAKE) -C uncgi zipinstalladd
-
-uncgi_clean:
-	$(MAKE) -C uncgi clean
-
-uncgi_cleanall:
-	$(MAKE) -C uncgi cleanall
-
-uncgi_require:
-	$(MAKE) -C uncgi require
-
-uncgi_info:
-	$(MAKE) -C uncgi info
-endif
-
-# Dir gtk
-
-ifdef OBJECTDIRGTK
-.PHONY:  gtk_all gtk_debug gtk_examples gtk_test gtk_smart gtk_shared gtk_showinstall gtk_install gtk_sourceinstall gtk_zipinstall gtk_zipinstalladd gtk_clean gtk_cleanall gtk_require gtk_info
-
-gtk_all:
-	$(MAKE) -C gtk all
-
-gtk_debug:
-	$(MAKE) -C gtk debug
-
-gtk_examples:
-	$(MAKE) -C gtk examples
-
-gtk_test:
-	$(MAKE) -C gtk test
-
-gtk_smart:
-	$(MAKE) -C gtk smart
-
-gtk_shared:
-	$(MAKE) -C gtk shared
-
-gtk_showinstall:
-	$(MAKE) -C gtk showinstall
-
-gtk_install:
-	$(MAKE) -C gtk install
-
-gtk_sourceinstall:
-	$(MAKE) -C gtk sourceinstall
-
-gtk_zipinstall:
-	$(MAKE) -C gtk zipinstall
-
-gtk_zipinstalladd:
-	$(MAKE) -C gtk zipinstalladd
-
-gtk_clean:
-	$(MAKE) -C gtk clean
-
-gtk_cleanall:
-	$(MAKE) -C gtk cleanall
-
-gtk_require:
-	$(MAKE) -C gtk require
-
-gtk_info:
-	$(MAKE) -C gtk info
-endif
-
-# Dir opengl
-
-ifdef OBJECTDIROPENGL
-.PHONY:  opengl_all opengl_debug opengl_examples opengl_test opengl_smart opengl_shared opengl_showinstall opengl_install opengl_sourceinstall opengl_zipinstall opengl_zipinstalladd opengl_clean opengl_cleanall opengl_require opengl_info
-
-opengl_all:
-	$(MAKE) -C opengl all
-
-opengl_debug:
-	$(MAKE) -C opengl debug
-
-opengl_examples:
-	$(MAKE) -C opengl examples
-
-opengl_test:
-	$(MAKE) -C opengl test
-
-opengl_smart:
-	$(MAKE) -C opengl smart
-
-opengl_shared:
-	$(MAKE) -C opengl shared
-
-opengl_showinstall:
-	$(MAKE) -C opengl showinstall
-
-opengl_install:
-	$(MAKE) -C opengl install
-
-opengl_sourceinstall:
-	$(MAKE) -C opengl sourceinstall
-
-opengl_zipinstall:
-	$(MAKE) -C opengl zipinstall
-
-opengl_zipinstalladd:
-	$(MAKE) -C opengl zipinstalladd
-
-opengl_clean:
-	$(MAKE) -C opengl clean
-
-opengl_cleanall:
-	$(MAKE) -C opengl cleanall
-
-opengl_require:
-	$(MAKE) -C opengl require
-
-opengl_info:
-	$(MAKE) -C opengl info
-endif
-
-# Dir gdbint
-
-ifdef OBJECTDIRGDBINT
-.PHONY:  gdbint_all gdbint_debug gdbint_examples gdbint_test gdbint_smart gdbint_shared gdbint_showinstall gdbint_install gdbint_sourceinstall gdbint_zipinstall gdbint_zipinstalladd gdbint_clean gdbint_cleanall gdbint_require gdbint_info
-
-gdbint_all:
-	$(MAKE) -C gdbint all
-
-gdbint_debug:
-	$(MAKE) -C gdbint debug
-
-gdbint_examples:
-	$(MAKE) -C gdbint examples
-
-gdbint_test:
-	$(MAKE) -C gdbint test
-
-gdbint_smart:
-	$(MAKE) -C gdbint smart
-
-gdbint_shared:
-	$(MAKE) -C gdbint shared
-
-gdbint_showinstall:
-	$(MAKE) -C gdbint showinstall
-
-gdbint_install:
-	$(MAKE) -C gdbint install
-
-gdbint_sourceinstall:
-	$(MAKE) -C gdbint sourceinstall
-
-gdbint_zipinstall:
-	$(MAKE) -C gdbint zipinstall
-
-gdbint_zipinstalladd:
-	$(MAKE) -C gdbint zipinstalladd
-
-gdbint_clean:
-	$(MAKE) -C gdbint clean
-
-gdbint_cleanall:
-	$(MAKE) -C gdbint cleanall
-
-gdbint_require:
-	$(MAKE) -C gdbint require
-
-gdbint_info:
-	$(MAKE) -C gdbint info
-endif
-
-# Dir ibase
-
-ifdef OBJECTDIRIBASE
-.PHONY:  ibase_all ibase_debug ibase_examples ibase_test ibase_smart ibase_shared ibase_showinstall ibase_install ibase_sourceinstall ibase_zipinstall ibase_zipinstalladd ibase_clean ibase_cleanall ibase_require ibase_info
-
-ibase_all:
-	$(MAKE) -C ibase all
-
-ibase_debug:
-	$(MAKE) -C ibase debug
-
-ibase_examples:
-	$(MAKE) -C ibase examples
-
-ibase_test:
-	$(MAKE) -C ibase test
-
-ibase_smart:
-	$(MAKE) -C ibase smart
-
-ibase_shared:
-	$(MAKE) -C ibase shared
-
-ibase_showinstall:
-	$(MAKE) -C ibase showinstall
-
-ibase_install:
-	$(MAKE) -C ibase install
-
-ibase_sourceinstall:
-	$(MAKE) -C ibase sourceinstall
-
-ibase_zipinstall:
-	$(MAKE) -C ibase zipinstall
-
-ibase_zipinstalladd:
-	$(MAKE) -C ibase zipinstalladd
-
-ibase_clean:
-	$(MAKE) -C ibase clean
-
-ibase_cleanall:
-	$(MAKE) -C ibase cleanall
-
-ibase_require:
-	$(MAKE) -C ibase require
-
-ibase_info:
-	$(MAKE) -C ibase info
-endif
-
-# Dir mysql
-
-ifdef OBJECTDIRMYSQL
-.PHONY:  mysql_all mysql_debug mysql_examples mysql_test mysql_smart mysql_shared mysql_showinstall mysql_install mysql_sourceinstall mysql_zipinstall mysql_zipinstalladd mysql_clean mysql_cleanall mysql_require mysql_info
-
-mysql_all:
-	$(MAKE) -C mysql all
-
-mysql_debug:
-	$(MAKE) -C mysql debug
-
-mysql_examples:
-	$(MAKE) -C mysql examples
-
-mysql_test:
-	$(MAKE) -C mysql test
-
-mysql_smart:
-	$(MAKE) -C mysql smart
-
-mysql_shared:
-	$(MAKE) -C mysql shared
-
-mysql_showinstall:
-	$(MAKE) -C mysql showinstall
-
-mysql_install:
-	$(MAKE) -C mysql install
-
-mysql_sourceinstall:
-	$(MAKE) -C mysql sourceinstall
-
-mysql_zipinstall:
-	$(MAKE) -C mysql zipinstall
-
-mysql_zipinstalladd:
-	$(MAKE) -C mysql zipinstalladd
-
-mysql_clean:
-	$(MAKE) -C mysql clean
-
-mysql_cleanall:
-	$(MAKE) -C mysql cleanall
-
-mysql_require:
-	$(MAKE) -C mysql require
-
-mysql_info:
-	$(MAKE) -C mysql info
-endif
-
 # Dir zlib
 
 ifdef OBJECTDIRZLIB
-.PHONY:  zlib_all zlib_debug zlib_examples zlib_test zlib_smart zlib_shared zlib_showinstall zlib_install zlib_sourceinstall zlib_zipinstall zlib_zipinstalladd zlib_clean zlib_cleanall zlib_require zlib_info
+.PHONY:  zlib_all zlib_debug zlib_examples zlib_test zlib_smart zlib_shared zlib_showinstall zlib_install zlib_sourceinstall zlib_zipinstall zlib_zipsourceinstall zlib_clean zlib_cleanall zlib_require zlib_info
 
 zlib_all:
 	$(MAKE) -C zlib all
@@ -988,8 +877,8 @@ zlib_sourceinstall:
 zlib_zipinstall:
 	$(MAKE) -C zlib zipinstall
 
-zlib_zipinstalladd:
-	$(MAKE) -C zlib zipinstalladd
+zlib_zipsourceinstall:
+	$(MAKE) -C zlib zipsourceinstall
 
 zlib_clean:
 	$(MAKE) -C zlib clean
@@ -1004,163 +893,10 @@ zlib_info:
 	$(MAKE) -C zlib info
 endif
 
-# Dir utmp
-
-ifdef OBJECTDIRUTMP
-.PHONY:  utmp_all utmp_debug utmp_examples utmp_test utmp_smart utmp_shared utmp_showinstall utmp_install utmp_sourceinstall utmp_zipinstall utmp_zipinstalladd utmp_clean utmp_cleanall utmp_require utmp_info
-
-utmp_all:
-	$(MAKE) -C utmp all
-
-utmp_debug:
-	$(MAKE) -C utmp debug
-
-utmp_examples:
-	$(MAKE) -C utmp examples
-
-utmp_test:
-	$(MAKE) -C utmp test
-
-utmp_smart:
-	$(MAKE) -C utmp smart
-
-utmp_shared:
-	$(MAKE) -C utmp shared
-
-utmp_showinstall:
-	$(MAKE) -C utmp showinstall
-
-utmp_install:
-	$(MAKE) -C utmp install
-
-utmp_sourceinstall:
-	$(MAKE) -C utmp sourceinstall
-
-utmp_zipinstall:
-	$(MAKE) -C utmp zipinstall
-
-utmp_zipinstalladd:
-	$(MAKE) -C utmp zipinstalladd
-
-utmp_clean:
-	$(MAKE) -C utmp clean
-
-utmp_cleanall:
-	$(MAKE) -C utmp cleanall
-
-utmp_require:
-	$(MAKE) -C utmp require
-
-utmp_info:
-	$(MAKE) -C utmp info
-endif
-
-# Dir inet
-
-ifdef OBJECTDIRINET
-.PHONY:  inet_all inet_debug inet_examples inet_test inet_smart inet_shared inet_showinstall inet_install inet_sourceinstall inet_zipinstall inet_zipinstalladd inet_clean inet_cleanall inet_require inet_info
-
-inet_all:
-	$(MAKE) -C inet all
-
-inet_debug:
-	$(MAKE) -C inet debug
-
-inet_examples:
-	$(MAKE) -C inet examples
-
-inet_test:
-	$(MAKE) -C inet test
-
-inet_smart:
-	$(MAKE) -C inet smart
-
-inet_shared:
-	$(MAKE) -C inet shared
-
-inet_showinstall:
-	$(MAKE) -C inet showinstall
-
-inet_install:
-	$(MAKE) -C inet install
-
-inet_sourceinstall:
-	$(MAKE) -C inet sourceinstall
-
-inet_zipinstall:
-	$(MAKE) -C inet zipinstall
-
-inet_zipinstalladd:
-	$(MAKE) -C inet zipinstalladd
-
-inet_clean:
-	$(MAKE) -C inet clean
-
-inet_cleanall:
-	$(MAKE) -C inet cleanall
-
-inet_require:
-	$(MAKE) -C inet require
-
-inet_info:
-	$(MAKE) -C inet info
-endif
-
-# Dir postgres
-
-ifdef OBJECTDIRPOSTGRES
-.PHONY:  postgres_all postgres_debug postgres_examples postgres_test postgres_smart postgres_shared postgres_showinstall postgres_install postgres_sourceinstall postgres_zipinstall postgres_zipinstalladd postgres_clean postgres_cleanall postgres_require postgres_info
-
-postgres_all:
-	$(MAKE) -C postgres all
-
-postgres_debug:
-	$(MAKE) -C postgres debug
-
-postgres_examples:
-	$(MAKE) -C postgres examples
-
-postgres_test:
-	$(MAKE) -C postgres test
-
-postgres_smart:
-	$(MAKE) -C postgres smart
-
-postgres_shared:
-	$(MAKE) -C postgres shared
-
-postgres_showinstall:
-	$(MAKE) -C postgres showinstall
-
-postgres_install:
-	$(MAKE) -C postgres install
-
-postgres_sourceinstall:
-	$(MAKE) -C postgres sourceinstall
-
-postgres_zipinstall:
-	$(MAKE) -C postgres zipinstall
-
-postgres_zipinstalladd:
-	$(MAKE) -C postgres zipinstalladd
-
-postgres_clean:
-	$(MAKE) -C postgres clean
-
-postgres_cleanall:
-	$(MAKE) -C postgres cleanall
-
-postgres_require:
-	$(MAKE) -C postgres require
-
-postgres_info:
-	$(MAKE) -C postgres info
-endif
-
 # Dir ncurses
 
 ifdef OBJECTDIRNCURSES
-.PHONY:  ncurses_all ncurses_debug ncurses_examples ncurses_test ncurses_smart ncurses_shared ncurses_showinstall ncurses_install ncurses_sourceinstall ncurses_zipinstall ncurses_zipinstalladd ncurses_clean ncurses_cleanall ncurses_require ncurses_info
+.PHONY:  ncurses_all ncurses_debug ncurses_examples ncurses_test ncurses_smart ncurses_shared ncurses_showinstall ncurses_install ncurses_sourceinstall ncurses_zipinstall ncurses_zipsourceinstall ncurses_clean ncurses_cleanall ncurses_require ncurses_info
 
 ncurses_all:
 	$(MAKE) -C ncurses all
@@ -1192,8 +928,8 @@ ncurses_sourceinstall:
 ncurses_zipinstall:
 	$(MAKE) -C ncurses zipinstall
 
-ncurses_zipinstalladd:
-	$(MAKE) -C ncurses zipinstalladd
+ncurses_zipsourceinstall:
+	$(MAKE) -C ncurses zipsourceinstall
 
 ncurses_clean:
 	$(MAKE) -C ncurses clean
@@ -1211,7 +947,7 @@ endif
 # Dir x11
 
 ifdef OBJECTDIRX11
-.PHONY:  x11_all x11_debug x11_examples x11_test x11_smart x11_shared x11_showinstall x11_install x11_sourceinstall x11_zipinstall x11_zipinstalladd x11_clean x11_cleanall x11_require x11_info
+.PHONY:  x11_all x11_debug x11_examples x11_test x11_smart x11_shared x11_showinstall x11_install x11_sourceinstall x11_zipinstall x11_zipsourceinstall x11_clean x11_cleanall x11_require x11_info
 
 x11_all:
 	$(MAKE) -C x11 all
@@ -1243,8 +979,8 @@ x11_sourceinstall:
 x11_zipinstall:
 	$(MAKE) -C x11 zipinstall
 
-x11_zipinstalladd:
-	$(MAKE) -C x11 zipinstalladd
+x11_zipsourceinstall:
+	$(MAKE) -C x11 zipsourceinstall
 
 x11_clean:
 	$(MAKE) -C x11 clean
@@ -1259,10 +995,367 @@ x11_info:
 	$(MAKE) -C x11 info
 endif
 
+# Dir gtk
+
+ifdef OBJECTDIRGTK
+.PHONY:  gtk_all gtk_debug gtk_examples gtk_test gtk_smart gtk_shared gtk_showinstall gtk_install gtk_sourceinstall gtk_zipinstall gtk_zipsourceinstall gtk_clean gtk_cleanall gtk_require gtk_info
+
+gtk_all:
+	$(MAKE) -C gtk all
+
+gtk_debug:
+	$(MAKE) -C gtk debug
+
+gtk_examples:
+	$(MAKE) -C gtk examples
+
+gtk_test:
+	$(MAKE) -C gtk test
+
+gtk_smart:
+	$(MAKE) -C gtk smart
+
+gtk_shared:
+	$(MAKE) -C gtk shared
+
+gtk_showinstall:
+	$(MAKE) -C gtk showinstall
+
+gtk_install:
+	$(MAKE) -C gtk install
+
+gtk_sourceinstall:
+	$(MAKE) -C gtk sourceinstall
+
+gtk_zipinstall:
+	$(MAKE) -C gtk zipinstall
+
+gtk_zipsourceinstall:
+	$(MAKE) -C gtk zipsourceinstall
+
+gtk_clean:
+	$(MAKE) -C gtk clean
+
+gtk_cleanall:
+	$(MAKE) -C gtk cleanall
+
+gtk_require:
+	$(MAKE) -C gtk require
+
+gtk_info:
+	$(MAKE) -C gtk info
+endif
+
+# Dir inet
+
+ifdef OBJECTDIRINET
+.PHONY:  inet_all inet_debug inet_examples inet_test inet_smart inet_shared inet_showinstall inet_install inet_sourceinstall inet_zipinstall inet_zipsourceinstall inet_clean inet_cleanall inet_require inet_info
+
+inet_all:
+	$(MAKE) -C inet all
+
+inet_debug:
+	$(MAKE) -C inet debug
+
+inet_examples:
+	$(MAKE) -C inet examples
+
+inet_test:
+	$(MAKE) -C inet test
+
+inet_smart:
+	$(MAKE) -C inet smart
+
+inet_shared:
+	$(MAKE) -C inet shared
+
+inet_showinstall:
+	$(MAKE) -C inet showinstall
+
+inet_install:
+	$(MAKE) -C inet install
+
+inet_sourceinstall:
+	$(MAKE) -C inet sourceinstall
+
+inet_zipinstall:
+	$(MAKE) -C inet zipinstall
+
+inet_zipsourceinstall:
+	$(MAKE) -C inet zipsourceinstall
+
+inet_clean:
+	$(MAKE) -C inet clean
+
+inet_cleanall:
+	$(MAKE) -C inet cleanall
+
+inet_require:
+	$(MAKE) -C inet require
+
+inet_info:
+	$(MAKE) -C inet info
+endif
+
+# Dir uncgi
+
+ifdef OBJECTDIRUNCGI
+.PHONY:  uncgi_all uncgi_debug uncgi_examples uncgi_test uncgi_smart uncgi_shared uncgi_showinstall uncgi_install uncgi_sourceinstall uncgi_zipinstall uncgi_zipsourceinstall uncgi_clean uncgi_cleanall uncgi_require uncgi_info
+
+uncgi_all:
+	$(MAKE) -C uncgi all
+
+uncgi_debug:
+	$(MAKE) -C uncgi debug
+
+uncgi_examples:
+	$(MAKE) -C uncgi examples
+
+uncgi_test:
+	$(MAKE) -C uncgi test
+
+uncgi_smart:
+	$(MAKE) -C uncgi smart
+
+uncgi_shared:
+	$(MAKE) -C uncgi shared
+
+uncgi_showinstall:
+	$(MAKE) -C uncgi showinstall
+
+uncgi_install:
+	$(MAKE) -C uncgi install
+
+uncgi_sourceinstall:
+	$(MAKE) -C uncgi sourceinstall
+
+uncgi_zipinstall:
+	$(MAKE) -C uncgi zipinstall
+
+uncgi_zipsourceinstall:
+	$(MAKE) -C uncgi zipsourceinstall
+
+uncgi_clean:
+	$(MAKE) -C uncgi clean
+
+uncgi_cleanall:
+	$(MAKE) -C uncgi cleanall
+
+uncgi_require:
+	$(MAKE) -C uncgi require
+
+uncgi_info:
+	$(MAKE) -C uncgi info
+endif
+
+# Dir mysql
+
+ifdef OBJECTDIRMYSQL
+.PHONY:  mysql_all mysql_debug mysql_examples mysql_test mysql_smart mysql_shared mysql_showinstall mysql_install mysql_sourceinstall mysql_zipinstall mysql_zipsourceinstall mysql_clean mysql_cleanall mysql_require mysql_info
+
+mysql_all:
+	$(MAKE) -C mysql all
+
+mysql_debug:
+	$(MAKE) -C mysql debug
+
+mysql_examples:
+	$(MAKE) -C mysql examples
+
+mysql_test:
+	$(MAKE) -C mysql test
+
+mysql_smart:
+	$(MAKE) -C mysql smart
+
+mysql_shared:
+	$(MAKE) -C mysql shared
+
+mysql_showinstall:
+	$(MAKE) -C mysql showinstall
+
+mysql_install:
+	$(MAKE) -C mysql install
+
+mysql_sourceinstall:
+	$(MAKE) -C mysql sourceinstall
+
+mysql_zipinstall:
+	$(MAKE) -C mysql zipinstall
+
+mysql_zipsourceinstall:
+	$(MAKE) -C mysql zipsourceinstall
+
+mysql_clean:
+	$(MAKE) -C mysql clean
+
+mysql_cleanall:
+	$(MAKE) -C mysql cleanall
+
+mysql_require:
+	$(MAKE) -C mysql require
+
+mysql_info:
+	$(MAKE) -C mysql info
+endif
+
+# Dir ibase
+
+ifdef OBJECTDIRIBASE
+.PHONY:  ibase_all ibase_debug ibase_examples ibase_test ibase_smart ibase_shared ibase_showinstall ibase_install ibase_sourceinstall ibase_zipinstall ibase_zipsourceinstall ibase_clean ibase_cleanall ibase_require ibase_info
+
+ibase_all:
+	$(MAKE) -C ibase all
+
+ibase_debug:
+	$(MAKE) -C ibase debug
+
+ibase_examples:
+	$(MAKE) -C ibase examples
+
+ibase_test:
+	$(MAKE) -C ibase test
+
+ibase_smart:
+	$(MAKE) -C ibase smart
+
+ibase_shared:
+	$(MAKE) -C ibase shared
+
+ibase_showinstall:
+	$(MAKE) -C ibase showinstall
+
+ibase_install:
+	$(MAKE) -C ibase install
+
+ibase_sourceinstall:
+	$(MAKE) -C ibase sourceinstall
+
+ibase_zipinstall:
+	$(MAKE) -C ibase zipinstall
+
+ibase_zipsourceinstall:
+	$(MAKE) -C ibase zipsourceinstall
+
+ibase_clean:
+	$(MAKE) -C ibase clean
+
+ibase_cleanall:
+	$(MAKE) -C ibase cleanall
+
+ibase_require:
+	$(MAKE) -C ibase require
+
+ibase_info:
+	$(MAKE) -C ibase info
+endif
+
+# Dir postgres
+
+ifdef OBJECTDIRPOSTGRES
+.PHONY:  postgres_all postgres_debug postgres_examples postgres_test postgres_smart postgres_shared postgres_showinstall postgres_install postgres_sourceinstall postgres_zipinstall postgres_zipsourceinstall postgres_clean postgres_cleanall postgres_require postgres_info
+
+postgres_all:
+	$(MAKE) -C postgres all
+
+postgres_debug:
+	$(MAKE) -C postgres debug
+
+postgres_examples:
+	$(MAKE) -C postgres examples
+
+postgres_test:
+	$(MAKE) -C postgres test
+
+postgres_smart:
+	$(MAKE) -C postgres smart
+
+postgres_shared:
+	$(MAKE) -C postgres shared
+
+postgres_showinstall:
+	$(MAKE) -C postgres showinstall
+
+postgres_install:
+	$(MAKE) -C postgres install
+
+postgres_sourceinstall:
+	$(MAKE) -C postgres sourceinstall
+
+postgres_zipinstall:
+	$(MAKE) -C postgres zipinstall
+
+postgres_zipsourceinstall:
+	$(MAKE) -C postgres zipsourceinstall
+
+postgres_clean:
+	$(MAKE) -C postgres clean
+
+postgres_cleanall:
+	$(MAKE) -C postgres cleanall
+
+postgres_require:
+	$(MAKE) -C postgres require
+
+postgres_info:
+	$(MAKE) -C postgres info
+endif
+
+# Dir opengl
+
+ifdef OBJECTDIROPENGL
+.PHONY:  opengl_all opengl_debug opengl_examples opengl_test opengl_smart opengl_shared opengl_showinstall opengl_install opengl_sourceinstall opengl_zipinstall opengl_zipsourceinstall opengl_clean opengl_cleanall opengl_require opengl_info
+
+opengl_all:
+	$(MAKE) -C opengl all
+
+opengl_debug:
+	$(MAKE) -C opengl debug
+
+opengl_examples:
+	$(MAKE) -C opengl examples
+
+opengl_test:
+	$(MAKE) -C opengl test
+
+opengl_smart:
+	$(MAKE) -C opengl smart
+
+opengl_shared:
+	$(MAKE) -C opengl shared
+
+opengl_showinstall:
+	$(MAKE) -C opengl showinstall
+
+opengl_install:
+	$(MAKE) -C opengl install
+
+opengl_sourceinstall:
+	$(MAKE) -C opengl sourceinstall
+
+opengl_zipinstall:
+	$(MAKE) -C opengl zipinstall
+
+opengl_zipsourceinstall:
+	$(MAKE) -C opengl zipsourceinstall
+
+opengl_clean:
+	$(MAKE) -C opengl clean
+
+opengl_cleanall:
+	$(MAKE) -C opengl cleanall
+
+opengl_require:
+	$(MAKE) -C opengl require
+
+opengl_info:
+	$(MAKE) -C opengl info
+endif
+
 # Dir forms
 
 ifdef OBJECTDIRFORMS
-.PHONY:  forms_all forms_debug forms_examples forms_test forms_smart forms_shared forms_showinstall forms_install forms_sourceinstall forms_zipinstall forms_zipinstalladd forms_clean forms_cleanall forms_require forms_info
+.PHONY:  forms_all forms_debug forms_examples forms_test forms_smart forms_shared forms_showinstall forms_install forms_sourceinstall forms_zipinstall forms_zipsourceinstall forms_clean forms_cleanall forms_require forms_info
 
 forms_all:
 	$(MAKE) -C forms all
@@ -1294,8 +1387,8 @@ forms_sourceinstall:
 forms_zipinstall:
 	$(MAKE) -C forms zipinstall
 
-forms_zipinstalladd:
-	$(MAKE) -C forms zipinstalladd
+forms_zipsourceinstall:
+	$(MAKE) -C forms zipsourceinstall
 
 forms_clean:
 	$(MAKE) -C forms clean
@@ -1313,7 +1406,7 @@ endif
 # Dir svgalib
 
 ifdef OBJECTDIRSVGALIB
-.PHONY:  svgalib_all svgalib_debug svgalib_examples svgalib_test svgalib_smart svgalib_shared svgalib_showinstall svgalib_install svgalib_sourceinstall svgalib_zipinstall svgalib_zipinstalladd svgalib_clean svgalib_cleanall svgalib_require svgalib_info
+.PHONY:  svgalib_all svgalib_debug svgalib_examples svgalib_test svgalib_smart svgalib_shared svgalib_showinstall svgalib_install svgalib_sourceinstall svgalib_zipinstall svgalib_zipsourceinstall svgalib_clean svgalib_cleanall svgalib_require svgalib_info
 
 svgalib_all:
 	$(MAKE) -C svgalib all
@@ -1345,8 +1438,8 @@ svgalib_sourceinstall:
 svgalib_zipinstall:
 	$(MAKE) -C svgalib zipinstall
 
-svgalib_zipinstalladd:
-	$(MAKE) -C svgalib zipinstalladd
+svgalib_zipsourceinstall:
+	$(MAKE) -C svgalib zipsourceinstall
 
 svgalib_clean:
 	$(MAKE) -C svgalib clean
@@ -1364,7 +1457,7 @@ endif
 # Dir ggi
 
 ifdef OBJECTDIRGGI
-.PHONY:  ggi_all ggi_debug ggi_examples ggi_test ggi_smart ggi_shared ggi_showinstall ggi_install ggi_sourceinstall ggi_zipinstall ggi_zipinstalladd ggi_clean ggi_cleanall ggi_require ggi_info
+.PHONY:  ggi_all ggi_debug ggi_examples ggi_test ggi_smart ggi_shared ggi_showinstall ggi_install ggi_sourceinstall ggi_zipinstall ggi_zipsourceinstall ggi_clean ggi_cleanall ggi_require ggi_info
 
 ggi_all:
 	$(MAKE) -C ggi all
@@ -1396,8 +1489,8 @@ ggi_sourceinstall:
 ggi_zipinstall:
 	$(MAKE) -C ggi zipinstall
 
-ggi_zipinstalladd:
-	$(MAKE) -C ggi zipinstalladd
+ggi_zipsourceinstall:
+	$(MAKE) -C ggi zipsourceinstall
 
 ggi_clean:
 	$(MAKE) -C ggi clean
@@ -1412,55 +1505,157 @@ ggi_info:
 	$(MAKE) -C ggi info
 endif
 
-# Dir zlib
+# Dir utmp
 
-ifdef OBJECTDIRZLIB
-.PHONY:  zlib_all zlib_debug zlib_examples zlib_test zlib_smart zlib_shared zlib_showinstall zlib_install zlib_sourceinstall zlib_zipinstall zlib_zipinstalladd zlib_clean zlib_cleanall zlib_require zlib_info
+ifdef OBJECTDIRUTMP
+.PHONY:  utmp_all utmp_debug utmp_examples utmp_test utmp_smart utmp_shared utmp_showinstall utmp_install utmp_sourceinstall utmp_zipinstall utmp_zipsourceinstall utmp_clean utmp_cleanall utmp_require utmp_info
 
-zlib_all:
-	$(MAKE) -C zlib all
+utmp_all:
+	$(MAKE) -C utmp all
 
-zlib_debug:
-	$(MAKE) -C zlib debug
+utmp_debug:
+	$(MAKE) -C utmp debug
 
-zlib_examples:
-	$(MAKE) -C zlib examples
+utmp_examples:
+	$(MAKE) -C utmp examples
 
-zlib_test:
-	$(MAKE) -C zlib test
+utmp_test:
+	$(MAKE) -C utmp test
 
-zlib_smart:
-	$(MAKE) -C zlib smart
+utmp_smart:
+	$(MAKE) -C utmp smart
 
-zlib_shared:
-	$(MAKE) -C zlib shared
+utmp_shared:
+	$(MAKE) -C utmp shared
 
-zlib_showinstall:
-	$(MAKE) -C zlib showinstall
+utmp_showinstall:
+	$(MAKE) -C utmp showinstall
 
-zlib_install:
-	$(MAKE) -C zlib install
+utmp_install:
+	$(MAKE) -C utmp install
 
-zlib_sourceinstall:
-	$(MAKE) -C zlib sourceinstall
+utmp_sourceinstall:
+	$(MAKE) -C utmp sourceinstall
 
-zlib_zipinstall:
-	$(MAKE) -C zlib zipinstall
+utmp_zipinstall:
+	$(MAKE) -C utmp zipinstall
 
-zlib_zipinstalladd:
-	$(MAKE) -C zlib zipinstalladd
+utmp_zipsourceinstall:
+	$(MAKE) -C utmp zipsourceinstall
 
-zlib_clean:
-	$(MAKE) -C zlib clean
+utmp_clean:
+	$(MAKE) -C utmp clean
 
-zlib_cleanall:
-	$(MAKE) -C zlib cleanall
+utmp_cleanall:
+	$(MAKE) -C utmp cleanall
 
-zlib_require:
-	$(MAKE) -C zlib require
+utmp_require:
+	$(MAKE) -C utmp require
 
-zlib_info:
-	$(MAKE) -C zlib info
+utmp_info:
+	$(MAKE) -C utmp info
+endif
+
+# Dir paszlib
+
+ifdef OBJECTDIRPASZLIB
+.PHONY:  paszlib_all paszlib_debug paszlib_examples paszlib_test paszlib_smart paszlib_shared paszlib_showinstall paszlib_install paszlib_sourceinstall paszlib_zipinstall paszlib_zipsourceinstall paszlib_clean paszlib_cleanall paszlib_require paszlib_info
+
+paszlib_all:
+	$(MAKE) -C paszlib all
+
+paszlib_debug:
+	$(MAKE) -C paszlib debug
+
+paszlib_examples:
+	$(MAKE) -C paszlib examples
+
+paszlib_test:
+	$(MAKE) -C paszlib test
+
+paszlib_smart:
+	$(MAKE) -C paszlib smart
+
+paszlib_shared:
+	$(MAKE) -C paszlib shared
+
+paszlib_showinstall:
+	$(MAKE) -C paszlib showinstall
+
+paszlib_install:
+	$(MAKE) -C paszlib install
+
+paszlib_sourceinstall:
+	$(MAKE) -C paszlib sourceinstall
+
+paszlib_zipinstall:
+	$(MAKE) -C paszlib zipinstall
+
+paszlib_zipsourceinstall:
+	$(MAKE) -C paszlib zipsourceinstall
+
+paszlib_clean:
+	$(MAKE) -C paszlib clean
+
+paszlib_cleanall:
+	$(MAKE) -C paszlib cleanall
+
+paszlib_require:
+	$(MAKE) -C paszlib require
+
+paszlib_info:
+	$(MAKE) -C paszlib info
+endif
+
+# Dir gdbint
+
+ifdef OBJECTDIRGDBINT
+.PHONY:  gdbint_all gdbint_debug gdbint_examples gdbint_test gdbint_smart gdbint_shared gdbint_showinstall gdbint_install gdbint_sourceinstall gdbint_zipinstall gdbint_zipsourceinstall gdbint_clean gdbint_cleanall gdbint_require gdbint_info
+
+gdbint_all:
+	$(MAKE) -C gdbint all
+
+gdbint_debug:
+	$(MAKE) -C gdbint debug
+
+gdbint_examples:
+	$(MAKE) -C gdbint examples
+
+gdbint_test:
+	$(MAKE) -C gdbint test
+
+gdbint_smart:
+	$(MAKE) -C gdbint smart
+
+gdbint_shared:
+	$(MAKE) -C gdbint shared
+
+gdbint_showinstall:
+	$(MAKE) -C gdbint showinstall
+
+gdbint_install:
+	$(MAKE) -C gdbint install
+
+gdbint_sourceinstall:
+	$(MAKE) -C gdbint sourceinstall
+
+gdbint_zipinstall:
+	$(MAKE) -C gdbint zipinstall
+
+gdbint_zipsourceinstall:
+	$(MAKE) -C gdbint zipsourceinstall
+
+gdbint_clean:
+	$(MAKE) -C gdbint clean
+
+gdbint_cleanall:
+	$(MAKE) -C gdbint cleanall
+
+gdbint_require:
+	$(MAKE) -C gdbint require
+
+gdbint_info:
+	$(MAKE) -C gdbint info
 endif
 
 #####################################################################

@@ -134,20 +134,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -172,61 +158,31 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
 
 
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
 
+#####################################################################
+# Default Directories
+#####################################################################
 
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
 else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
+PREFIXINSTALLDIR=/pp
 endif
 endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
+export PREFIXINSTALLDIR
 
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Redirection
@@ -276,8 +232,9 @@ require: $(addsuffix _require,$(DIROBJECTS))
 
 .PHONY:  all debug examples test smart shared showinstall install sourceinstall clean cleanall require
 
-
-# Target Dirs
+#####################################################################
+# Directories
+#####################################################################
 
 OBJECTDIRCOMPILER=1
 OBJECTDIRGDB=1
@@ -285,7 +242,7 @@ OBJECTDIRGDB=1
 # Dir compiler
 
 ifdef OBJECTDIRCOMPILER
-.PHONY:  compiler_all compiler_debug compiler_examples compiler_test compiler_smart compiler_shared compiler_showinstall compiler_install compiler_sourceinstall compiler_zipinstall compiler_zipinstalladd compiler_clean compiler_cleanall compiler_require compiler_info
+.PHONY:  compiler_all compiler_debug compiler_examples compiler_test compiler_smart compiler_shared compiler_showinstall compiler_install compiler_sourceinstall compiler_zipinstall compiler_zipsourceinstall compiler_clean compiler_cleanall compiler_require compiler_info
 
 compiler_all:
 	$(MAKE) -C compiler all
@@ -317,8 +274,8 @@ compiler_sourceinstall:
 compiler_zipinstall:
 	$(MAKE) -C compiler zipinstall
 
-compiler_zipinstalladd:
-	$(MAKE) -C compiler zipinstalladd
+compiler_zipsourceinstall:
+	$(MAKE) -C compiler zipsourceinstall
 
 compiler_clean:
 	$(MAKE) -C compiler clean
@@ -336,7 +293,7 @@ endif
 # Dir gdb
 
 ifdef OBJECTDIRGDB
-.PHONY:  gdb_all gdb_debug gdb_examples gdb_test gdb_smart gdb_shared gdb_showinstall gdb_install gdb_sourceinstall gdb_zipinstall gdb_zipinstalladd gdb_clean gdb_cleanall gdb_require gdb_info
+.PHONY:  gdb_all gdb_debug gdb_examples gdb_test gdb_smart gdb_shared gdb_showinstall gdb_install gdb_sourceinstall gdb_zipinstall gdb_zipsourceinstall gdb_clean gdb_cleanall gdb_require gdb_info
 
 gdb_all:
 	$(MAKE) -C gdb all
@@ -368,8 +325,8 @@ gdb_sourceinstall:
 gdb_zipinstall:
 	$(MAKE) -C gdb zipinstall
 
-gdb_zipinstalladd:
-	$(MAKE) -C gdb zipinstalladd
+gdb_zipsourceinstall:
+	$(MAKE) -C gdb zipsourceinstall
 
 gdb_clean:
 	$(MAKE) -C gdb clean

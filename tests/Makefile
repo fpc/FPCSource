@@ -134,20 +134,6 @@ override FPCDIR:=$(subst /$(FPC)$(EXEEXT),,$(firstword $(strip $(wildcard $(adds
 endif
 endif
 
-ifndef PACKAGESDIR
-PACKAGESDIR=$(FPCDIR)/packages
-endif
-ifndef TOOLKITSDIR
-TOOLKITSDIR=
-endif
-ifndef COMPONENTSDIR
-COMPONENTSDIR=
-endif
-# Create units dir
-ifneq ($(FPCDIR),.)
-UNITSDIR=$(FPCDIR)/units/$(OS_TARGET)
-endif
-
 #####################################################################
 # User Settings
 #####################################################################
@@ -171,7 +157,6 @@ ZIPTARGET=install
 
 # Packages
 
-override PACKAGES+=rtl
 
 # Libraries
 
@@ -190,7 +175,6 @@ SMARTEXT=.sl
 STATICLIBEXT=.a
 SHAREDLIBEXT=.so
 RSTEXT=.rst
-PACKAGESUFFIX=
 FPCMADE=fpcmade
 
 # Go32v1
@@ -201,19 +185,16 @@ ASMEXT=.s1
 SMARTEXT=.sl1
 STATICLIBEXT=.a1
 SHAREDLIBEXT=.so1
-PACKAGESUFFIX=v1
 FPCMADE=fpcmade.v1
 endif
 
 # Go32v2
 ifeq ($(OS_TARGET),go32v2)
-PACKAGESUFFIX=go32
 FPCMADE=fpcmade.dos
 endif
 
 # Linux
 ifeq ($(OS_TARGET),linux)
-PACKAGESUFFIX=linux
 FPCMADE=fpcmade.lnx
 endif
 
@@ -225,7 +206,6 @@ ASMEXT=.sw
 SMARTEXT=.slw
 STATICLIBEXT=.aw
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=w32
 FPCMADE=fpcmade.w32
 endif
 
@@ -237,7 +217,6 @@ OEXT=.oo2
 SMARTEXT=.so
 STATICLIBEXT=.ao2
 SHAREDLIBEXT=.dll
-PACKAGESUFFIX=os2
 FPCMADE=fpcmade.os2
 endif
 
@@ -265,55 +244,26 @@ endif
 endif
 
 
-# Check if the dirs really exists, else turn it off
-ifeq ($(wildcard $(UNITSDIR)),)
-UNITSDIR=
-endif
-ifeq ($(wildcard $(TOOLKITSDIR)),)
-TOOLKITSDIR=
-endif
-ifeq ($(wildcard $(PACKAGESDIR)),)
-PACKAGESDIR=
-endif
-ifeq ($(wildcard $(COMPONENTSDIR)),)
-COMPONENTSDIR=
-endif
 
+#####################################################################
+# Default Directories
+#####################################################################
 
-# PACKAGESDIR packages
-
-PACKAGERTL=1
-
-ifdef PACKAGERTL
-ifneq ($(wildcard $(FPCDIR)/rtl),)
-ifneq ($(wildcard $(FPCDIR)/rtl/$(OS_TARGET)),)
-PACKAGEDIR_RTL=$(FPCDIR)/rtl/$(OS_TARGET)
+# set the prefix directory where to install everything
+ifndef PREFIXINSTALLDIR
+ifdef inlinux
+PREFIXINSTALLDIR=/usr
 else
-PACKAGEDIR_RTL=$(FPCDIR)/rtl
-endif
-ifeq ($(wildcard $(PACKAGEDIR_RTL)/$(FPCMADE)),)
-override COMPILEPACKAGES+=package_rtl
-package_rtl:
-	$(MAKE) -C $(PACKAGEDIR_RTL) all
-endif
-UNITDIR_RTL=$(PACKAGEDIR_RTL)
-else
-PACKAGEDIR_RTL=
-ifneq ($(wildcard $(UNITSDIR)/rtl),)
-ifneq ($(wildcard $(UNITSDIR)/rtl/$(OS_TARGET)),)
-UNITDIR_RTL=$(UNITSDIR)/rtl/$(OS_TARGET)
-else
-UNITDIR_RTL=$(UNITSDIR)/rtl
-endif
-else
-UNITDIR_RTL=
+PREFIXINSTALLDIR=/pp
 endif
 endif
-ifdef UNITDIR_RTL
-override NEEDUNITDIR+=$(UNITDIR_RTL)
-endif
-endif
+export PREFIXINSTALLDIR
 
+# Where to place the resulting zip files
+ifndef DESTZIPDIR
+DESTZIPDIR:=$(BASEDIR)
+endif
+export DESTZIPDIR
 
 #####################################################################
 # Redirection
