@@ -790,43 +790,47 @@ stack as in the Intel architecture,
 standard calling sequence does not define a maximum stack frame size, nor does
 it restrict how a language system uses the "unspecified" areas of the standard
 stack frame.}
-	  Dec(LocalSize,(16+1+5)*4);
+		Dec(LocalSize,(16+1+5)*4);
 {Althogh the SPARC architecture require only word alignment, software
 convention and the operating system require every stack frame to be double word
 aligned}
 		if(LocalSize and $00000003)<>0
 		then
 			LocalSize:=(LocalSize and $FFFFFFFC)+4;
-    with list do
-      concat(Taicpu.Op_reg_const_reg(A_SAVE,S_L,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
-  end;
+{Execute the SAVE instruction to get a new register window and get a new stack
+frame. In the "SAVE %i6,size,%i6" the first %i6 is related to the state before
+execution of the SAVE instrucion so it is the caller %i6, when the %i6 after
+execution of that instrucion is the called function stack pointer}
+		with list do
+			concat(Taicpu.Op_reg_const_reg(A_SAVE,S_L,Stack_Pointer_Reg,localsize,Stack_Pointer_Reg));
+	end;
 procedure tcgSPARC.g_restore_frame_pointer(list:TAasmOutput);
-  begin
+	begin
 {We use trivial restore, as we set result before}
-    with list do
-      concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
-  end;
+		with list do
+			concat(Taicpu.Op_reg_const_reg(A_RESTORE,S_L,R_G0,0,R_G0));
+	end;
 procedure tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
 	var
-	  RetReference:TReference;
-  begin
-    { Routines with the poclearstack flag set use only a ret }
-    { also routines with parasize=0     }
-    with list do
+		RetReference:TReference;
+	begin
+{According to the SPARC ABI, the stack is cleared using the RESTORE instruction
+which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
+RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
+delay slot, so an inversion is possible such as 
+	JMPL	%i6+8,%g0
+	RESTORE	%g0,0,%g0
+If no inversion we can use just
+	RESTORE	%g0,0,%g0
+	JMPL	%i6+8,%g0
+	NOP}
+		with list do
 			begin
 				reference_reset_base(RetReference,R_I7,8);
-	      concat(Taicpu.Op_ref_reg(A_JMPL,S_L,RetReference,R_G0));
-      	if(parasize<>0)
-      	then
-           { parameters are limited to 65535 bytes because }
-           { ret allows only imm16                    }
-          IF(parasize>65535)
-          THEN
-            CGMessage(cg_e_parasize_too_big);
+				concat(Taicpu.Op_ref_reg(A_JMPL,S_L,RetReference,R_G0));
 			end
-  end;
-
-     PROCEDURE tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
+	end;
+PROCEDURE tcgSPARC.a_loadaddr_ref_reg(list:TAasmOutput;CONST ref:TReference;r:tregister);
 
        begin
 //         list.concat(taicpu.op_ref_reg(A_LEA,S_L,ref,r));
@@ -1075,6 +1079,9 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.6  2002-10-01 17:41:50  florian
+  Revision 1.7  2002-10-01 21:06:29  mazen
+  attinst.inc --> strinst.inc
+
+  Revision 1.6  2002/10/01 17:41:50  florian
     * fixed log and id
 }

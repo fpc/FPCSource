@@ -142,7 +142,7 @@ TYPE
 CONST
   FirstOp=Low(TAsmOp);
   LastOp=High(TAsmOp);
-  std_op2str:op2strtable=({$INCLUDE attinstr.inc});
+  std_op2str:op2strtable=({$INCLUDE strinst.inc});
 {*****************************************************************************
                                 Operand Sizes
 *****************************************************************************}
@@ -580,7 +580,10 @@ FUNCTION flags_to_cond(CONST f:TResFlags):TAsmCond;
 END.
 {
   $Log$
-  Revision 1.8  2002-09-30 19:12:14  mazen
+  Revision 1.9  2002-10-01 21:06:29  mazen
+  attinst.inc --> strinst.inc
+
+  Revision 1.8  2002/09/30 19:12:14  mazen
   * function prologue fixed
 
   Revision 1.7  2002/09/27 04:30:53  mazen

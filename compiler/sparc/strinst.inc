@@ -8,7 +8,7 @@
 { Bug report             : mazen.neifer.01@supaero.org                        }
 {*****************************************************************************}
 {
-	Id:
+	$Id$
 }
           'NONE',
           'ABCD',
@@ -74,5 +74,8 @@
           'skipz','skipnz',
           'tst'
 {
-	Log:
+	$Log$
+	Revision 1.2  2002-10-01 21:07:48  mazen
+	attinst.inc --> strinst.inc
+
 }
