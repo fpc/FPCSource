@@ -424,7 +424,7 @@ procedure TSparcAddNode.emit_compare(unsigned:boolean);
     if(right.location.loc=LOC_CONSTANT)
     then
       begin
-{$ifdef dummy}
+{$ifdef ExtDebug}
         if (right.location.size in [OS_64,OS_S64]) and (hi(right.location.valueqword)<>0) and ((hi(right.location.valueqword)<>$ffffffff) or unsigned)
         then
           internalerror(2002080301);
@@ -457,9 +457,7 @@ procedure TSparcAddNode.emit_compare(unsigned:boolean);
         useconst := false;
         location.loc := LOC_FLAGS;
         location.resflags:=getresflags(False);
-        if not unsigned
-        then
-          op:=A_CMP;
+        op:=A_CMP;
         if (right.location.loc = LOC_CONSTANT)
         then
           if useconst
@@ -1131,7 +1129,11 @@ procedures }
         then
           location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],false);
         left_must_be_reg(OpSize,false);
-        emit_generic_code(op,opsize,unsigned,extra_not,mboverflow);
+        if not cmpOp
+        then
+          emit_generic_code(op,opsize,unsigned,extra_not,mboverflow)
+        else
+          emit_compare(unsigned);
         location_freetemp(exprasmlist,right.location);
         location_release(exprasmlist,right.location);
         if cmpop and(left.location.loc<>LOC_CREGISTER)
@@ -1179,7 +1181,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.12  2003-05-06 21:37:58  mazen
+    Revision 1.13  2003-05-07 15:05:37  mazen
+    * fixed generated code for compare instructions
+
+    Revision 1.12  2003/05/06 21:37:58  mazen
     * adding emit_compare trying fixing compare bugs
 
     Revision 1.11  2003/03/10 21:59:54  mazen
