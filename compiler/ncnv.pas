@@ -947,6 +947,7 @@ implementation
         { a dynamic array is a pointer to an array, so to convert it to }
         { an open array, we have to dereference it (JM)                 }
         result := ctypeconvnode.create_explicit(left,voidpointertype);
+        resulttypepass(result);
         { left is reused }
         left := nil;
         result := cderefnode.create(result);
@@ -2119,7 +2120,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.127  2003-10-28 15:36:01  peter
+  Revision 1.128  2003-10-29 22:01:20  florian
+    * fixed passing of dyn. arrays to open array parameters
+
+  Revision 1.127  2003/10/28 15:36:01  peter
     * absolute to object field supported, fixes tb0458
 
   Revision 1.126  2003/10/23 14:44:07  peter

@@ -378,6 +378,13 @@ type
                  (def_from.size=def_to.size) then
                 eq:=te_convert_l1;
             end;
+          arraydef :
+            begin
+              if is_open_array(def_to) and
+                 is_dynamic_array(def_from) and
+                equal_defs(tarraydef(def_from).elementtype.def,tarraydef(def_to).elementtype.def) then
+                eq:=te_convert_l2;
+            end;
           pointerdef :
             begin
               { an implicit pointer conversion is allowed }
@@ -2584,7 +2591,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.200  2003-10-23 14:44:07  peter
+  Revision 1.201  2003-10-29 22:01:20  florian
+    * fixed passing of dyn. arrays to open array parameters
+
+  Revision 1.200  2003/10/23 14:44:07  peter
     * splitted buildderef and buildderefimpl to fix interface crc
       calculation
 
