@@ -8,6 +8,7 @@ var
   cb : word;
 
 procedure A(B: word); assembler; inline;
+{$ifdef CPUI386}
 asm
    MOV  AX,B
    CMP  AX,[CB]
@@ -15,6 +16,16 @@ asm
    MOV  [CB],AX
 @@10:
 end;
+{$endif CPUI386}
+{$ifdef CPU68K}
+asm
+   move.w  b,d0
+   cmp.w   cb,d0
+   beq     @L10
+   move.w  d0,cb
+@L10:
+end;
+{$endif CPU68K}
 
 begin
   a(1);

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Old file: tbs0285.pp }
 { Asm, TYPE not support in intel mode                  OK 0.99.13 (PFV) }
 

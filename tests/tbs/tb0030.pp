@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Old file: tbs0034.pp }
 {  shows wrong line numbering when asmbler is parsed in direct mode. }
 

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Old file: tbs0276.pp }
 { Asm, intel reference parsing incompatibility         OK 0.99.13 (PFV) }
 

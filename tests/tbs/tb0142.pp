@@ -11,6 +11,11 @@ end;
 
 begin
 asm
+{$ifdef CPUI386}
         call {$ifdef dummy}free1{$else}free2{$endif}
+{$endif CPUI386}
+{$ifdef CPU68K}
+        jsr {$ifdef dummy}free1{$else}free2{$endif}
+{$endif CPU68K}
 end;
 end.

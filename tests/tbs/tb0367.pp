@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 {$ifdef fpc}
   {$mode delphi}
   {$asmmode intel}

@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { %OPT= -Rintel }
 
 { Old file: tbs0042.pp }

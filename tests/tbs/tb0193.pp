@@ -4,10 +4,17 @@
 function getheapsize:longint;assembler;
 var
   heapsize : longint;external name 'HEAPSIZE';
-  sbrk : longint;external name '___sbrk';
+//  sbrk : longint;external name '___sbrk';
 asm
+{$ifdef CPUI386}
         movl    HEAPSIZE,%eax
 end ['EAX'];
+{$endif CPUI386}
+{$ifdef CPU68K}
+        move.l    HEAPSIZE,d0
+end ['D0'];
+{$endif CPU68K}
+
 
 begin
   writeln(getheapsize);

@@ -19,9 +19,16 @@ procedure tpo.pi2;
 begin
 end;
 procedure crushesi;assembler;
+{$ifdef CPUI386}
 asm
         movl %eax,%esi
 end ['EAX','ESI'];
+{$endif CPUI386}
+{$ifdef CPU68K}
+asm
+        move.l d0,a5
+end ['d0','a5'];
+{$endif CPU68K}
 var
   p1 : tpt;
 begin

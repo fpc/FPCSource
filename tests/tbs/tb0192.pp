@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Old file: tbs0226.pp }
 { Asm, offset of var is not allowed as constant        OK 0.99.11 (PFV) }
 

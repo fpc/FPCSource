@@ -1,7 +1,8 @@
+{ %CPU=i386 }
 {$IFDEF FPC}
 {$ASMMODE INTEL}
 {$ENDIF}
-{$N+}                                   
+{$N+}
 
 FUNCTION Floor(M2:Comp):LONGINT;assembler;
 

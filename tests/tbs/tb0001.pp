@@ -1,3 +1,5 @@
+{ %CPU=i386 }
+{ %OPT=-O2  }
 { Old file: tbs0002.pp }
 {  tests for the endless bugs in the optimizer          OK 0.9.2 }
 

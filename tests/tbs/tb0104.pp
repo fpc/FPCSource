@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { Old file: tbs0123.pp }
 { Asm, problem with intel assembler (shrd)              OK 0.99.11 (PM) }
 

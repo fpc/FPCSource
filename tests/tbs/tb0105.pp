@@ -1,3 +1,4 @@
+{ %CPU=i386 }
 { %OPT= -Aas }
 
 { Old file: tbs0124.pp }
