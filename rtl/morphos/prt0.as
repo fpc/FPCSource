@@ -19,15 +19,15 @@
 	.globl	_start
 	.align	4
 _start:
-	stwu	1,-12(1)
-	mflr	0
-	stw	13,8(1)
-	stw	0,16(1)
-	mr		13,1
+	stwu 1,-64(1)
+	mflr 0
+	stw 29,52(1)
+	stw 30,56(1)
+	stw 31,60(1)
+	stw 0,68(1)
 
 	/* Get ExecBase */
-	li		3,4
-	lwz	3,0(3)
+	lwz	3,4(0)
 	lis	4,_ExecBase@ha
 	stw	3,_ExecBase@l(4)
 
@@ -39,10 +39,13 @@ _start:
 
 	bl	PASCALMAIN
 
-	lwz	0,16(1)
-   mtlr  0
-   lwz   13,8(1)
-	lwz   1,0(1)
+	lwz 11,0(1)
+	lwz 0,4(11)
+	mtlr 0
+	lwz 29,-12(11)
+	lwz 30,-8(11)
+	lwz 31,-4(11)
+	mr 1,11
 	blr
 
 	.globl	_ExecBase
@@ -61,10 +64,12 @@ _ExecBase:
 __abox__:
 	.long 1
 
-
 /*
   $Log$
-  Revision 1.4  2004-04-09 04:02:43  karoly
+  Revision 1.5  2004-04-21 03:24:55  karoly
+   * rewritten to be similar to GCC startup code
+
+  Revision 1.4  2004/04/09 04:02:43  karoly
    * abox id symbol fixed
 
   Revision 1.3  2004/04/09 02:58:15  karoly
