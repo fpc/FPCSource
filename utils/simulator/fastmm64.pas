@@ -53,6 +53,7 @@ unit fastmm64;
       begin
          writeln;
          writeln('Exception: ',s,' at $',qword2str(addr));
+         runerror(255);
          stopsim;
       end;
 
@@ -73,6 +74,7 @@ unit fastmm64;
            if (tqwordrec(addr).high32 and $fffffff0)<>0 then
              begin
                 writeln('This memory manager supports only 36 bit');
+                writeln('Base address was ',qword2str(addr));
                 halt(1);
              end;
            upperbits:=((tqwordrec(addr).high32 and $f) shl 12) or ((tqwordrec(addr).low32 and $fff) shr 20);
@@ -91,8 +93,10 @@ unit fastmm64;
            begin
               if size>1024*1024 then
                 asize:=1024*1024;
-              size:=size-asize;
               allocateblock(addr);
+              if asize>size then
+                break;
+              size:=size-asize;
               addr:=addr+asize;
            end;
       end;
@@ -200,10 +204,20 @@ unit fastmm64;
 end.
 {
   $Log$
-  Revision 1.3  2000-02-09 16:44:15  peter
+  Revision 1.4  2000-02-19 15:57:25  florian
+    * tried to change everything to use int64/qword, doesn't work yet :(
+
+  Revision 1.3  2000/02/09 16:44:15  peter
     * log truncated
 
   Revision 1.2  2000/01/07 16:46:06  daniel
     * copyright 2000
 
+  Revision 1.1  1999/06/14 11:49:48  florian
+    + initial revision, it runs simple Alpha Linux ELF executables
+       - integer operations are nearly completed (non with overflow checking)
+       - floating point operations aren't implemented (except loading and
+         storing)
+       - only the really necessary system calls are implemented by dummys
+         write syscalls are redirected to the console
 }

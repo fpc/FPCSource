@@ -18,7 +18,12 @@
 program alphaemu;
 
   uses
-     dos,simbase,simlib,
+{$ifdef delphi}
+     dmisc,
+{$else}
+     dos,
+{$endif}
+     simbase,simlib,
 {$ifdef FPC}
 {$ifdef go32v2}
      dpmiexcp,
@@ -34,7 +39,7 @@ program alphaemu;
 
   { elf file types }
   type
-     telf64_hdr = record
+     telf64_hdr = packed record
         e_ident : array[0..15] of char;
         e_type : integer;
         e_machine : word;
@@ -51,7 +56,7 @@ program alphaemu;
         e_shstrndx : integer;
      end;
 
-     telf64_phdr = record
+     telf64_phdr = packed record
         p_type : longint;
         p_flags : longint;
         { Segment file offset }
@@ -72,10 +77,17 @@ program alphaemu;
      pelf64_phdr_array = ^telf64_phdr_array;
 
   const
+{$ifdef fpc}
      { 64kB Stacksize }
-     stacksize = 64.0*1024.0;
+     stacksize = 64*1024;
      { stack start at 4 GB }
-     stackstart = 1024.0*1024.0*1024.0*4.0-stacksize;
+     stackstart : dword = 1024*1024*1024*4-stacksize;
+{$else fpc}
+     { 64kB Stacksize }
+     stacksize = 64*1024.0;
+     { stack start at 4 GB }
+     stackstart = 1024.0*1024.0*1024.0*4-stacksize;
+{$endif fpc}
   { alpha specific types }
   type
      tintreg = record
@@ -171,7 +183,8 @@ program alphaemu;
     begin
 {$ifdef DEBUG}
        elapsedtime:=realtime-sim.starttime;
-       write('Executed ',sim.instrcount:0:0,' instructions in ',
+
+       write('Executed ',sim.instrcount:0,' instructions in ',
          elapsedtime:0:2,' sec');
        if elapsedtime<>0.0 then
          begin
@@ -190,7 +203,7 @@ program alphaemu;
        memory.init;
        { setup dummy registers }
        state.r[31].valueq:=0;
-       state.f[31].valued:=0.0;
+       state.f[31].valued:=0;
        memory.allocate(stackstart,stacksize);
     end;
 
@@ -236,7 +249,7 @@ program alphaemu;
 {$endif DEBUG}
     end;
 
-  procedure talphasim.run(pc : qword);
+  procedure talphasim.run(pc : taddr);
 
     var
        instruction : tinstruction;
@@ -244,7 +257,7 @@ program alphaemu;
        lit : byte;
        va : tintreg;
 
-    function getbranchdisp : qword;
+    function getbranchdisp : int64;
 
       var
          l : longint;
@@ -435,7 +448,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  if rega<>r_zero then
-                   state.r[rega].valueq:=state.r[regb].valueq+integer(instruction and $ffff);
+                   state.r[rega].valueq:=state.r[regb].valueq+int64(integer(instruction and $ffff));
               end;
             { LDAH }
             $9:
@@ -444,7 +457,7 @@ program alphaemu;
                  regb:=(instruction and $1f0000) shr 16;
                  if rega<>r_zero then
                    state.r[rega].valueq:=state.r[regb].valueq+
-                     (longint(integer(instruction and $ffff))*65536);
+                     (int64(integer(instruction and $ffff))*65536);
               end;
             { LDQ_U }
             $B:
@@ -453,7 +466,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  valueqb:=state.r[regb].valueq+
-                     (longint(integer(instruction and $ffff)));
+                     (int64(integer(instruction and $ffff)));
                  tqwordrec(valueqb).low32:=tqwordrec(valueqb).low32 and $fffffff8;
                  if rega<>r_zero then
                    state.r[rega].valueq:=memory.readq(valueqb);
@@ -465,7 +478,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  memory.writeq(va.valueq,state.r[rega].valueq);
               end;
 
@@ -643,10 +656,8 @@ program alphaemu;
                       begin
                          if regc<>r_zero then
                            begin
-                              state.r[regc].low32:=state.r[rega].low32 xor
-                                tqwordrec(valueqb).low32;
-                              state.r[regc].high32:=state.r[rega].high32 xor
-                                tqwordrec(valueqb).high32;
+                              state.r[regc].valueq:=state.r[rega].valueq xor
+                                valueqb;
                            end;
                       end;
                     { CMOVLT }
@@ -666,10 +677,8 @@ program alphaemu;
                       begin
                          if regc<>r_zero then
                            begin
-                              state.r[regc].low32:=tqwordrec(valueqa).low32 xor
-                                not(tqwordrec(valueqb).low32);
-                              state.r[regc].high32:=tqwordrec(valueqa).high32 xor
-                                not(tqwordrec(valueqb).high32);
+                              state.r[regc].valueq:=valueqa xor
+                                not(valueqb);
                            end;
                       end;
                     { CMOVLE }
@@ -782,7 +791,7 @@ program alphaemu;
                     $34:
                       begin
                          if regc<>r_zero then
-                           shift_right_q(valueqa,trunc(valueqb) and $3f,state.r[regc].valueq);
+                           state.r[regc].valueq:=state.r[regc].valueq shr (valueqb and $3f);
                       end;
                     { EXTQL }
                     $36:
@@ -878,7 +887,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  if rega<>f_zero then
                    begin
                       { we need to copy the bit pattern! }
@@ -894,7 +903,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  if rega<>f_zero then
                    state.f[rega].valueq:=memory.readq(va.valueq);
                  { !!!!!! no translation exceptions! }
@@ -907,7 +916,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  fs:=state.f[rega].valued;
                  memory.writed(va.valueq,longint(fs));
                  { !!!!!! no tranlation exceptions! }
@@ -919,7 +928,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  memory.writeq(va.valueq,state.f[rega].valueq);
                  { !!!!!! no translation exceptions! }
               end;
@@ -931,7 +940,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  fs:=state.f[rega].valued;
                  memory.writed(va.valueq,longint(fs));
                  { !!!!!! no tranlation exceptions! }
@@ -943,7 +952,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  memory.writeq(va.valueq,state.f[rega].valueq);
                  { !!!!!! no translation exceptions! }
               end;
@@ -955,7 +964,7 @@ program alphaemu;
                  regb:=(instruction and $1f0000) shr 16;
                  if rega<>r_zero then
                    state.r[rega].low32:=memory.readalignedd(state.r[regb].valueq+
-                     (longint(integer(instruction and $ffff))));
+                     (int64(integer(instruction and $ffff))));
                  { sign extend }
                  if state.r[rega].low32<0 then
                    state.r[rega].high32:=$ffffffff
@@ -970,7 +979,7 @@ program alphaemu;
                  regb:=(instruction and $1f0000) shr 16;
                  if rega<>r_zero then
                    state.r[rega].valueq:=memory.readalignedq(state.r[regb].valueq+
-                     (longint(integer(instruction and $ffff))));
+                     (int64(integer(instruction and $ffff))));
               end;
             { STL }
             $2C:
@@ -979,7 +988,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  memory.writealignedd(va.valueq,state.r[rega].low32);
               end;
             { STQ }
@@ -989,7 +998,7 @@ program alphaemu;
                  rega:=(instruction and $3e00000) shr 21;
                  regb:=(instruction and $1f0000) shr 16;
                  va.valueq:=state.r[regb].valueq+
-                   (longint(integer(instruction and $ffff)));
+                   (int64(integer(instruction and $ffff)));
                  memory.writeq(va.valueq,state.r[rega].valueq);
               end;
             { BR,BSR }
@@ -1267,10 +1276,21 @@ program alphaemu;
   end.
 {
   $Log$
-  Revision 1.3  2000-02-09 16:44:15  peter
+  Revision 1.4  2000-02-19 15:57:25  florian
+    * tried to change everything to use int64/qword, doesn't work yet :(
+
+  Revision 1.3  2000/02/09 16:44:15  peter
     * log truncated
 
   Revision 1.2  2000/01/07 16:46:06  daniel
     * copyright 2000
+
+  Revision 1.1  1999/06/14 11:49:48  florian
+    + initial revision, it runs simple Alpha Linux ELF executables
+       - integer operations are nearly completed (non with overflow checking)
+       - floating point operations aren't implemented (except loading and
+         storing)
+       - only the really necessary system calls are implemented by dummys
+         write syscalls are redirected to the console
 
 }

@@ -14,21 +14,26 @@
 
  **********************************************************************}
 {$N+}
+{$H-}
 unit simbase;
 
   interface
-
+{$ifdef Delphi}
+    uses
+       dmisc;
+{$else Delphi}
     uses
        dos;
+{$endif Delphi}
 
     { global types }
     type
        { tindex must be at least of type integer }
        tindex = integer;
-
+{$ifndef FPC}
        int64 = comp;
        qword = comp;
-
+{$endif FPC}
        dword = longint;
        tdword = array[0..3] of byte;
 
@@ -111,10 +116,21 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-02-09 16:44:15  peter
+  Revision 1.4  2000-02-19 15:57:25  florian
+    * tried to change everything to use int64/qword, doesn't work yet :(
+
+  Revision 1.3  2000/02/09 16:44:15  peter
     * log truncated
 
   Revision 1.2  2000/01/07 16:46:07  daniel
     * copyright 2000
+
+  Revision 1.1  1999/06/14 11:49:48  florian
+    + initial revision, it runs simple Alpha Linux ELF executables
+       - integer operations are nearly completed (non with overflow checking)
+       - floating point operations aren't implemented (except loading and
+         storing)
+       - only the really necessary system calls are implemented by dummys
+         write syscalls are redirected to the console
 
 }
