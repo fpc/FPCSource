@@ -246,7 +246,8 @@ Procedure TextColor(Color: Byte);
   Switch foregroundcolor
 }
 Begin
-  TextAttr:=(Color and $8f) or (TextAttr and $70);
+  TextAttr:=(Color and $f) or (TextAttr and $70);
+  If (Color>15) Then TextAttr:=TextAttr Or Blink;
 End;
 
 
@@ -820,7 +821,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2000-02-09 16:59:28  peter
+  Revision 1.13  2000-04-12 14:10:50  pierre
+   * fix the crt blinking compat problem bug 902
+
+  Revision 1.12  2000/02/09 16:59:28  peter
     * truncated log
 
   Revision 1.11  2000/01/07 16:41:30  daniel
