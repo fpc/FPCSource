@@ -96,12 +96,9 @@ endif
 ifeq ($(GDB),1)
 # The gdbint is already included due the gdbint package dependency
 override LIBDIR+=$(GDBLIBDIR)
-override OBJDIR+=$(GDBOBJDIR)
 else
 override UNITDIR+=fakegdb
 endif
-
-override UNITDIR+=$(PACKAGESDIR)/regexpr
 
 [rules]
 .PHONY: compilerunits compilerclean \
