@@ -232,7 +232,7 @@ begin
   writeln(ptext,'Call trace for block 0x',hexstr(longint(pointer(pp)+sizeof(theap_mem_info)),8),' size ',pp^.size);
   for i:=1 to tracesize do
    if pp^.calls[i]<>0 then
-     writeln(ptext,'  0x',hexstr(pp^.calls[i],8));
+     writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
   for i:=0 to (exact_info_size div 4)-1 do
     writeln(ptext,'info ',i,'=',plongint(pointer(@pp^.extra_info)+4*i)^);
 end;
@@ -245,11 +245,11 @@ begin
   writeln(ptext,'Call trace for block 0x',hexstr(longint(pointer(pp)+sizeof(theap_mem_info)),8),' size ',pp^.size);
   for i:=1 to tracesize div 2 do
    if pp^.calls[i]<>0 then
-     writeln(ptext,'  0x',hexstr(pp^.calls[i],8));
+     writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
   writeln(ptext,' was released at ');
   for i:=(tracesize div 2)+1 to tracesize do
    if pp^.calls[i]<>0 then
-     writeln(ptext,'  0x',hexstr(pp^.calls[i],8));
+     writeln(ptext,BackTraceStrFunc(pp^.calls[i]));
   for i:=0 to (exact_info_size div 4)-1 do
     writeln(ptext,'info ',i,'=',plongint(pointer(@pp^.extra_info)+4*i)^);
 end;
@@ -975,7 +975,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.38  2000-02-02 11:13:15  peter
+  Revision 1.39  2000-02-07 10:42:44  peter
+    * use backtracestrfunc()
+
+  Revision 1.38  2000/02/02 11:13:15  peter
     * fixed tracereallocmem which supplied the wrong size for tryresize
 
   Revision 1.37  2000/01/31 23:41:30  peter
