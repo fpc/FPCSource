@@ -1,8 +1,10 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,98 by Florian Klaempfl
+    Copyright (c) 1993-98 by Florian Klaempfl
     member of the Free Pascal development team
+
+    This is the install program for the DOS version of Free Pascal
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,14 +14,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{ This is the install program for the DOS version of Free Pascal }
 
 {$A+,B-,D+,E+,F-,G-,I-,L+,N-,O-,P-,Q+,R+,S+,T-,V-,X+,Y+}
-{$M 16384,0,16384}
 program install;
 
   uses
-     app,dialogs,views,objects,menus,drivers,strings,msgbox,dos;
+     app,dialogs,views,objects,menus,drivers,strings,msgbox,dos,unzip,ziptypes;
 
   var
      binpath,startpath : string;
@@ -27,13 +27,16 @@ program install;
 
   const
      version = '0';
-     release = '99'
-     patchlevel = '6';
+     release = '99';
+     patchlevel = '8';
 
      filenr = version+release+patchlevel;
 
      doc_version = '101';
 
+{*****************************************************************************
+                                  Helpers
+*****************************************************************************}
 
   procedure uppervar(var s : string);
 
@@ -51,24 +54,20 @@ program install;
        file_exists:=fsearch(f,path)<>'';
     end;
 
-  procedure do_install(const s : string);
 
+  function diskspace(const zipfile : string) : string;
+    var
+      compressed,uncompressed : longint;
+      s : string;
     begin
-       if not(file_exists(s+'.ZIP',startpath)) then
-         begin
-            messagebox('File: '+s+' missed for the selected installation. '+
-                       'Installation doesn''t becomes complete',nil,mferror+mfokbutton);
-            halt(1);
-         end;
-       swapvectors;
-       exec(startpath+'\UNZIP.EXE','-qq -o '+startpath+'\'+s);
-       swapvectors;
-       if doserror<>0 then
-         begin
-            messagebox('Error when extracting. Disk full?',nil,mferror+mfokbutton);
-            halt(1);
-         end;
+      s:=zipfile+#0;
+      uncompressed:=UnzipSize(@s[1],compressed);
+      uncompressed:=uncompressed shr 10;
+      str(uncompressed,s);
+      diskspace:=' ('+s+' Kb)';
     end;
+
+
 
   function createdir(const s : string) : boolean;
 
@@ -79,33 +78,23 @@ program install;
        chdir(s);
        if ioresult=0 then
          begin
-{$ifdef german}
-            result:=messagebox('Das Installationsverzeichnis existiert schon. '+
-              'Soll ein neues Installationsverzeichnis angegeben werden?',nil,
-              mferror+mfyesbutton+mfnobutton);
-{$else}
             result:=messagebox('The installation directory exists already. '+
               'Do want to enter a new installation directory ?',nil,
               mferror+mfyesbutton+mfnobutton);
-{$endif}
             createdir:=result=cmyes;
             exit;
          end;
        mkdir(s);
        if ioresult<>0 then
          begin
-{$ifdef german}
-            messagebox('Das Installationsverzeichnis konnte nicht angelegt werden',
-              @s,mferror+mfokbutton);
-{$else}
             messagebox('The installation directory couldn''t be created',
               @s,mferror+mfokbutton);
-{$endif}
             createdir:=true;
             exit;
          end;
        createdir:=false;
     end;
+
 
   procedure changedir(const s : string);
 
@@ -113,46 +102,75 @@ program install;
        chdir(s);
        if ioresult<>0 then
          begin
-{$ifdef german}
-            messagebox('Fehler beim Wechseln in das Installationsverzeichnis. '+
-              'Installationsprogramm wird beendet',@s,mferror+mfokbutton);
-{$else}
             messagebox('Error when changing directory ',@s,mferror+mfokbutton);
-{$endif}
             halt(1);
          end;
     end;
 
-  const
-     cmstart = 1000;
+
+{*****************************************************************************
+                               TUnZipDialog
+*****************************************************************************}
+
+  type
+     punzipdialog=^tunzipdialog;
+     tunzipdialog=object(tdialog)
+         filetext : pstatictext;
+         constructor Init(var Bounds: TRect; ATitle: TTitleStr);
+         procedure do_unzip(s:string);
+     end;
+
+  constructor tunzipdialog.init;
+    var
+      r : trect;
+    begin
+      inherited init(bounds,atitle);
+      R.Assign(11, 4, 38, 5);
+      filetext:=new(pstatictext,init(r,'File: '));
+      insert(filetext);
+    end;
+
+
+  procedure tunzipdialog.do_unzip(s : string);
+    var
+      fn,dir,wild : string;
+    begin
+       s:=s+'.ZIP';
+       Disposestr(filetext^.text);
+       filetext^.Text:=NewStr('File: '+s);
+       filetext^.drawview;
+       if not(file_exists(s,startpath)) then
+         begin
+            messagebox('File: '+s+' missed for the selected installation. '+
+                       'Installation doesn''t becomes complete',nil,mferror+mfokbutton);
+            halt(1);
+         end;
+       fn:=startpath+'\'+s+#0;
+       dir:='.'#0;
+       wild:='*.*'#0;
+       FileUnzipEx(@fn[1],@dir[1],@wild[1]);
+       if doserror<>0 then
+         begin
+            messagebox('Error when extracting. Disk full?',nil,mferror+mfokbutton);
+            halt(1);
+         end;
+    end;
+
+
+{*****************************************************************************
+                               TInstallDialog
+*****************************************************************************}
 
   type
      pinstalldialog = ^tinstalldialog;
-
      tinstalldialog = object(tdialog)
         constructor init;
      end;
-
-     tapp = object(tapplication)
-         procedure initmenubar;virtual;
-         procedure handleevent(var event : tevent);virtual;
-     end;
-
-  function diskspace(const zipfile : string) : string;
-
-    var
-       clustersize : longint;
-       f : file;
-
-    begin
-       diskspace:='';
-    end;
-
   var
      mask_components : longint;
 
-  constructor tinstalldialog.init;
 
+  constructor tinstalldialog.init;
     var
        r : trect;
        line : integer;
@@ -168,11 +186,7 @@ program install;
 
     begin
        r.assign(x1,y1,x2,y2);
-{$ifdef german}
-       inherited init(r,'Installieren');
-{$else}
        inherited init(r,'Install');
-{$endif}
        line:=2;
        r.assign(3,line+1,28,line+2);
        p:=new(pinputline,init(r,79));
@@ -227,11 +241,26 @@ program install;
        f^.select;
     end;
 
-  procedure tapp.handleevent(var event : tevent);
 
+{*****************************************************************************
+                                TApp
+*****************************************************************************}
+
+  const
+     cmstart = 1000;
+
+  type
+     tapp = object(tapplication)
+         procedure initmenubar;virtual;
+         procedure handleevent(var event : tevent);virtual;
+         procedure do_installdialog;
+     end;
+
+
+  procedure tapp.do_installdialog;
     var
        p : pinstalldialog;
-       p2 : pdialog;
+       p2 : punzipdialog;
        p3 : pstatictext;
        r : trect;
        c : word;
@@ -241,6 +270,119 @@ program install;
                        components : word;
                      end;
        f : file;
+    label
+      newpath;
+    begin
+      installdata.path:='C:\PP';
+      installdata.components:=0;
+
+      mask_components:=$0;
+
+      { searching files }
+      if file_exists('BASEDOS.ZIP',startpath) then
+        inc(mask_components,1);
+
+      if file_exists('GNUASLD.ZIP',startpath) then
+        inc(mask_components,2);
+
+      if file_exists('DEMO.ZIP',startpath) then
+        inc(mask_components,4);
+
+      if file_exists('GDB.ZIP',startpath) then
+        inc(mask_components,8);
+
+      if file_exists('GNUUTILS.ZIP',startpath) then
+        inc(mask_components,16);
+
+      if file_exists('DOCS.ZIP',startpath) then
+        inc(mask_components,32);
+
+      if file_exists('DOC+doc_version+PS.ZIP',startpath) then
+        inc(mask_components,64);
+
+      if file_exists('RL'+filenr+'S.ZIP',startpath) then
+        inc(mask_components,128);
+
+      if file_exists('PP'+filenr+'S.ZIP',startpath) then
+        inc(mask_components,256);
+
+      if file_exists('DOC+doc_version+S.ZIP',startpath) then
+        inc(mask_components,512);
+
+      while true do
+        begin
+      newpath:
+           p:=new(pinstalldialog,init);
+           { default settings }
+           c:=executedialog(p,@installdata);
+           if c=cmok then
+             begin
+                if installdata.path[length(installdata.path)]='\' then
+                  dec(byte(installdata.path[0]));
+                uppervar(installdata.path);
+                binpath:=installdata.path+'\BIN';
+                if createdir(installdata.path) then
+                  goto newpath;
+                changedir(installdata.path);
+
+                r.assign(20,7,60,16);
+                p2:=new(punzipdialog,init(r,'Extracting files'));
+                desktop^.insert(p2);
+
+                if (installdata.components and 1)<>0 then
+                   p2^.do_unzip('BASEDOS');
+
+                if (installdata.components and 2)<>0 then
+                   p2^.do_unzip('GNUASLD');
+
+                if (installdata.components and 4)<>0 then
+                   p2^.do_unzip('DEMO');
+
+                if (installdata.components and 8)<>0 then
+                   p2^.do_unzip('GDB');
+
+                if (installdata.components and 16)<>0 then
+                   p2^.do_unzip('GNUUTILS');
+
+                if (installdata.components and 32)<>0 then
+                   p2^.do_unzip('DOCS');
+
+                if (installdata.components and 64)<>0 then
+                   p2^.do_unzip('DOC+doc_version+PS');
+
+                if (installdata.components and 128)<>0 then
+                   p2^.do_unzip('RL'+filenr+'S');
+
+                if (installdata.components and 256)<>0 then
+                   p2^.do_unzip('PP'+filenr+'S');
+
+                if (installdata.components and 512)<>0 then
+                   p2^.do_unzip('DOC+doc_version+S');
+
+                assign(t,'BIN\PPC386.CFG');
+                rewrite(t);
+                writeln(t,'-l');
+                writeln(t,'#ifdef GO32V1');
+                writeln(t,'-Up',installdata.path+'\RTL\DOS\GO32V1');
+                writeln(t,'#endif GO32V1');
+                writeln(t,'#ifdef GO32V2');
+                writeln(t,'-Up',installdata.path+'\RTL\DOS\GO32V2');
+                writeln(t,'#endif GO32V2');
+                writeln(t,'#ifdef Win32');
+                writeln(t,'-Up',installdata.path+'\RTL\WIN32');
+                writeln(t,'#endif Win32');
+                close(t);
+
+                desktop^.delete(p2);
+                dispose(p2,done);
+                messagebox('Installation successfull',nil,mfinformation+mfokbutton);
+                successfull:=true;
+             end;
+           break;
+        end;
+    end;
+
+  procedure tapp.handleevent(var event : tevent);
 
     label
        insertdisk1,insertdisk2,newpath;
@@ -251,185 +393,22 @@ program install;
          if event.command=cmstart then
            begin
               clearevent(event);
-              installdata.path:='C:\PP';
-              installdata.components:=0;
-
-              mask_components:=$0;
-
-              { searching files }
-              if file_exists('BASEDOS.ZIP',startpath) then
-                inc(mask_components,1);
-
-              if file_exists('GNUASLD.ZIP',startpath) then
-                inc(mask_components,2);
-
-              if file_exists('DEMO.ZIP',startpath) then
-                inc(mask_components,4);
-
-              if file_exists('GDB.ZIP',startpath) then
-                inc(mask_components,8);
-
-              if file_exists('GNUUTILS.ZIP',startpath) then
-                inc(mask_components,16);
-
-              if file_exists('DOCS.ZIP',startpath) then
-                inc(mask_components,32);
-
-              if file_exists('DOC+doc_version+PS.ZIP',startpath) then
-                inc(mask_components,64);
-
-              if file_exists('RL'+filenr+'S.ZIP',startpath) then
-                inc(mask_components,128);
-
-              if file_exists('PP'+filenr+'S.ZIP',startpath) then
-                inc(mask_components,256);
-
-              if file_exists('DOC+doc_version+S.ZIP',startpath) then
-                inc(mask_components,512);
-
-              while true do
-                begin
-              newpath:
-                   p:=new(pinstalldialog,init);
-                   { default settings }
-                   c:=executedialog(p,@installdata);
-                   if c=cmok then
-                     begin
-                        if installdata.path[length(installdata.path)]='\' then
-                          dec(byte(installdata.path[0]));
-                        uppervar(installdata.path);
-                        binpath:=installdata.path+'\BIN';
-                        if createdir(installdata.path) then
-                          goto newpath;
-                        changedir(installdata.path);
-{$ifdef unused_code}
-                        assign(t,'SET_PP.BAT');
-                        rewrite(t);
-                        if ioresult<>0 then
-{$ifdef german}
-                          messagebox('Datei SET_PP.BAT konnte nicht erstellt werden',nil,mfokbutton+mferror)
-{$else}
-                          messagebox('File SET_PP.BAT can''t be created',nil,mfokbutton+mferror)
-{$endif}
-                        else
-                          begin
-                             { never used:
-                             writeln(t,'SET LINUXUNITS='+installdata.path+'\LINUXUNITS');
-                             writeln(t,'SET PPBIN='+installdata.path+'\BIN');
-                             writeln(t,'SET PASLIB='+installdata.path+'\LIB');
-                             writeln(t,'SET OS2UNITS='+installdata.path+'\OS2UNITS');
-                             writeln(t,'SET DOSUNITS='+installdata.path+'\DOSUNITS;'+installdata.path+'\BIN');
-                             }
-                             writeln('REM This file may contain nothing else');
-                             write(t,'SET GO32=');
-{$ifdef german}
-                             if messagebox('Wollen Sie den Coprozessoremulator verwenden?',
-                               nil,mfyesbutton+mfnobutton)=cmyes then
-                               write(t,'emu '+installdata.path+'\DRIVERS\EMU387');
-{$else}
-                             if messagebox('Install math coprocessor emulation?',
-                               nil,mfyesbutton+mfnobutton)=cmyes then
-                               write(t,'emu '+installdata.path+'\DRIVERS\EMU387');
-{$endif}
-                             writeln(t);
-                             close(t);
-                          end;
-{$endif unused_code}
-                        if getenv('UNZIP')<>'' then
-                          begin
-{$ifdef german}
-                             messagebox('Die Umgebungsvariable UNZIP sollte'#13+
-                                         'nicht gesetzt sein',nil,mfokbutton+mfinformation)
-{$else}
-                             messagebox('The enviroment variable UNZIP shouldn''t be set',nil,
-                               mfokbutton+mfinformation)
-{$endif}
-                          end;
-                        r.assign(20,7,60,16);
-                        p2:=new(pdialog,init(r,'Information'));
-                        r.assign(6,4,38,5);
-{$ifdef german}
-                        p3:=new(pstatictext,init(r,'Dateien werden entpackt ...'));
-{$else}
-                        p3:=new(pstatictext,init(r,'Extracting files ...'));
-{$endif}
-                        p2^.insert(p3);
-                        desktop^.insert(p2);
-
-                        if (installdata.components and 1)<>0 then
-                           do_install('BASEDOS');
-
-                        if (installdata.components and 2)<>0 then
-                           do_install('GNUASLD');
-
-                        if (installdata.components and 4)<>0 then
-                           do_install('DEMO');
-
-                        if (installdata.components and 8)<>0 then
-                           do_install('GDB');
-
-                        if (installdata.components and 16)<>0 then
-                           do_install('GNUUTILS');
-
-                        if (installdata.components and 32)<>0 then
-                           do_install('DOCS');
-
-                        if (installdata.components and 64)<>0 then
-                           do_install('DOC+doc_version+PS');
-
-                        if (installdata.components and 128)<>0 then
-                           do_install('RL'+filenr+'S');
-
-                        if (installdata.components and 256)<>0 then
-                           do_install('PP'+filenr+'S');
-
-                        if (installdata.components and 512)<>0 then
-                           do_install('DOC+doc_version+S');
-
-                        assign(t,'BIN\PPC386.CFG');
-                        rewrite(t);
-                        writeln(t,'-l');
-                        writeln(t,'#section GO32V1');
-                        writeln(t,'-Up',installdata.path+'\RTL\DOS\GO32V1');
-                        writeln(t,'#section GO32V2');
-                        writeln(t,'-Up',installdata.path+'\RTL\DOS\GO32V2');
-                        close(t);
-
-                        desktop^.delete(p2);
-                        dispose(p2,done);
-{$ifdef german}
-                        messagebox('Installation erfolgreich abgeschlossen',nil,mfinformation+mfokbutton);
-{$else}
-                        messagebox('Installation successfull',nil,mfinformation+mfokbutton);
-{$endif}
-                        event.what:=evcommand;
-                        event.command:=cmquit;
-                        successfull:=true;
-                        handleevent(event);
-                     end;
-                   break;
-                end;
+              do_installdialog;
+              if successfull then
+               begin
+                 event.what:=evcommand;
+                 event.command:=cmquit;
+                 handleevent(event);
+               end;
            end;
     end;
 
   procedure tapp.initmenubar;
-
     var
        r : trect;
-
     begin
        getextent(r);
        r.b.y:=r.a.y+1;
-{$ifdef german}
-       menubar:=new(pmenubar,init(r,newmenu(
-          newsubmenu('~I~nstallation',hcnocontext,newmenu(
-            newitem('~S~tart','',kbnokey,cmstart,hcnocontext,
-            newline(
-            newitem('~B~eenden','Alt+X',kbaltx,cmquit,hcnocontext,
-            nil)))
-          ),
-       nil))));
-{$else}
        menubar:=new(pmenubar,init(r,newmenu(
           newsubmenu('~I~nstallation',hcnocontext,newmenu(
             newitem('~S~tart','',kbnokey,cmstart,hcnocontext,
@@ -438,38 +417,16 @@ program install;
             nil)))
           ),
        nil))));
-{$endif}
     end;
 
-  var
-     installapp : tapp;
-     oldexitproc : pointer;
 
-  procedure myexitproc;far;
-
-    begin
-       exitproc:=oldexitproc;
-    end;
-
-  var
-     b : byte;
-
+var
+  installapp : tapp;
 begin
    getdir(0,startpath);
-   {
-   startpath:=paramstr(0);
-   for b:=length(startpath) downto 1 do
-     if startpath[b]='\' then
-       begin
-          startpath[0]:=chr(b-1);
-          break;
-       end;
-   }
-   oldexitproc:=exitproc;
-   exitproc:=@myexitproc;
    successfull:=false;
    installapp.init;
-   installapp.run;
+   installapp.do_installdialog;
    installapp.done;
    if successfull then
      begin
@@ -477,11 +434,16 @@ begin
         writeln(binpath);
         writeln;
         writeln('To compile files enter PPC386 [file]');
+        chdir(startpath);
      end;
 end.
 {
   $Log$
-  Revision 1.2  1998-04-07 22:47:57  florian
+  Revision 1.3  1998-09-09 13:39:58  peter
+    + internal unzip
+    * dialog is showed automaticly
+
+  Revision 1.2  1998/04/07 22:47:57  florian
     + version/release/patch numbers as string added
 
 }
