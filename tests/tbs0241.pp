@@ -1,5 +1,4 @@
-{ $OPT= -Twin32}
-
+{$ifdef win32}
 program test_win32_drv;
 
 procedure printer;external 'winspool.drv' name 'AbortPrinter';
@@ -11,4 +10,7 @@ procedure test;
 
 begin
   test;
+{$else}
+begin
+{$endif}
 end.
