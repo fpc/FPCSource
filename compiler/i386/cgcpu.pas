@@ -145,9 +145,7 @@ unit cgcpu;
       offset : longint);
 
       begin
-        { how can we create asmsymbols which contain a name and an offset? }
-        { (JM)                                                             }
-        runerror(211);
+        list.concat(taicpu.op_sym_ofs(A_CALL,S_NO,newasmsymbol(s),offset));
       end;
 
 
@@ -163,12 +161,22 @@ unit cgcpu;
           longint(a),reg))
       end;
 
+
     procedure tcg386.a_load_const_ref(list : taasmoutput; size: tcgsize; a : aword;const ref : treference);
 
       begin
-        list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[size],
-          longint(a),newreference(ref)));
+        { zero is often used several times in succession -> load it in a  }
+        { register and then store it to memory, so the optimizer can then }
+        { remove the unnecessary loads of registers and you get smaller   }
+        { (and faster) code                                               }
+        if (a = 0) and
+           (size in [OS_32,OS_S32]) then
+          inherited a_load_const_ref(list,size,a,ref)
+        else
+          list.concat(taicpu.op_const_ref(A_MOV,TCGSize2OpSize[size],
+            longint(a),newreference(ref)));
       end;
+
 
     procedure tcg386.a_load_reg_ref(list : taasmoutput; size: TCGSize; reg : tregister;const ref : treference);
 
@@ -176,6 +184,7 @@ unit cgcpu;
         list.concat(taicpu.op_reg_ref(A_MOV,TCGSize2OpSize[size],reg,
           newreference(ref)));
       End;
+
 
     procedure tcg386.a_load_ref_reg(list : taasmoutput;size : tcgsize;const ref: treference;reg : tregister);
 
@@ -193,14 +202,16 @@ unit cgcpu;
           end;
       end;
 
+
     procedure tcg386.a_load_reg_reg(list : taasmoutput;size : tcgsize;reg1,reg2 : tregister);
 
       var
         op: tasmop;
         s: topsize;
+
       begin
-        sizes2load(size,regsize(reg1),op,s);
-        if (reg1 = reg2) then
+        sizes2load(size,regsize(reg2),op,s);
+        if (makereg32(reg1) = makereg32(reg2)) then
           { "mov reg1, reg1" doesn't make sense }
           if op = A_MOV then
             exit
@@ -208,17 +219,18 @@ unit cgcpu;
             case size of
               OS_8:
                 begin
-                  list.concat(taicpu.op_const_reg(A_AND,S_L,255,makereg32(reg1)));
+                  list.concat(taicpu.op_const_reg(A_AND,regsize(reg2),255,reg2));
                   exit;
                 end;
               OS_16:
                 begin
-                  list.concat(taicpu.op_const_reg(A_AND,S_L,65535,reg2));
+                  list.concat(taicpu.op_const_reg(A_AND,S_L,65535,reg1));
                   exit;
                 end;
             end;
         list.concat(taicpu.op_reg_reg(op,s,reg1,reg2));
       end;
+
 
     procedure tcg386.a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister);
 
@@ -285,6 +297,7 @@ unit cgcpu;
           else internalerror(68992);
         end;
       end;
+
 
      procedure tcg386.a_op_const_ref(list : taasmoutput; Op: TOpCG; size: TCGSize; a: AWord; const ref: TReference);
 
@@ -380,6 +393,7 @@ unit cgcpu;
               end;
           end;
         end;
+
 
      procedure tcg386.a_op_ref_reg(list : taasmoutput; Op: TOpCG; size: TCGSize; const ref: TReference; reg: TRegister);
 
@@ -670,7 +684,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.1  2001-09-28 20:39:33  jonas
+  Revision 1.2  2001-09-29 21:32:19  jonas
+    * fixed bug in a_load_reg_reg + implemented a_call
+
+  Revision 1.1  2001/09/28 20:39:33  jonas
     * changed all flow control structures (except for exception handling
       related things) to processor independent code (in new ncgflw unit)
     + generic cgobj unit which contains lots of code generator helpers with
