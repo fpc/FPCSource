@@ -109,13 +109,13 @@ procedure int_new_class;assembler;
      movl 8(%ebp),%edi
      orl %edi,%edi
      jz .LNEW_CLASS1
-     { esi contains vmt }
+     { esi contains the vmt }
      pushl %esi
      { call newinstance (class method!) }
      call 16(%esi)
-     { new instance returns a pointer to the new created }
-     { instance in eax                                   }
-     { load esi and insert self                          }
+     { newinstance returns a pointer to the new created }
+     { instance in eax                                  }
+     { load esi and insert self                         }
      movl %eax,8(%ebp)
      movl %eax,%esi
      ret
@@ -799,7 +799,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-04-10 15:25:23  michael
+  Revision 1.4  1998-04-10 15:41:54  florian
+    + some small comments added
+
+  Revision 1.3  1998/04/10 15:25:23  michael
   - Removed so-called better random function
 
   Revision 1.2  1998/04/08 07:53:31  michael
