@@ -1432,7 +1432,7 @@ ifndef DBDIGEST
 DBDIGEST=./dbdigest$(EXEEXT)
 DIGESTDEP+=$(DBDIGEST)
 $(DBDIGEST) : units utils/dbdigest.pp utils/teststr.pp utils/testu.pp utils/dbtests.pp
-	$(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp -al
+	$(FPC) -n -Fuunits -Fu../packages/base/mysql -FE. utils/dbdigest.pp
 endif
 endif
 ifndef DIGEST
