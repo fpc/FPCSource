@@ -442,7 +442,7 @@ implementation
       begin
         clear_location(pto^.location);
         pto^.location.loc:=LOC_REFERENCE;
-        clear_reference(pto^.location.reference);
+        reset_reference(pto^.location.reference);
         case pfrom^.location.loc of
           LOC_REGISTER :
             pto^.location.reference.base:=pfrom^.location.register;
@@ -1202,7 +1202,7 @@ implementation
 {$else}
                           exprasmlist^.concat(new(pai386_labeled,op_lab(A_JE,nillabel)));
 {$endif}
-                          
+
                           { this is one point where we need vmt_offset (PM) }
                           r^.offset:= pobjectdef(ppointerdef(p^.resulttype)^.definition)^.vmt_offset;
                           exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_L,r,R_EDI)));
@@ -1331,7 +1331,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  1999-05-07 00:33:47  pierre
+  Revision 1.71  1999-05-12 00:19:40  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.70  1999/05/07 00:33:47  pierre
    explicit type conv to pobject checked with cond TESTOBJEXT2
 
   Revision 1.69  1999/05/01 13:24:04  peter

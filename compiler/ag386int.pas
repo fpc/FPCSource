@@ -39,13 +39,14 @@ unit ag386int;
   implementation
 
     uses
-      dos,globals,systems,cobjects,
+      dos,strings,
+      globtype,globals,systems,cobjects,
+      files,verbose
 {$ifndef OLDASM}
-      i386base,i386asm,
+      ,i386base,i386asm
 {$else}
-      i386,
+      ,i386
 {$endif}
-      strings,files,verbose
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -58,6 +59,22 @@ unit ag386int;
              ('NEAR','FAR','PROC','BYTE','WORD','DWORD',
               'CODEPTR','DATAPTR','FWORD','PWORD','QWORD','TBYTE','ABS');
 
+
+    function single2str(d : single) : string;
+      var
+         hs : string;
+         p : byte;
+      begin
+         str(d,hs);
+      { nasm expects a lowercase e }
+         p:=pos('E',hs);
+         if p>0 then
+          hs[p]:='e';
+         p:=pos('+',hs);
+         if p>0 then
+          delete(hs,p,1);
+         single2str:=lower(hs);
+      end;
 
     function double2str(d : double) : string;
       var
@@ -122,7 +139,7 @@ unit ag386int;
       with ref do
         begin
           first:=true;
-          if ref.segment<>R_DEFAULT_SEG then
+          if ref.segment<>R_NO then
            s:=int_reg2str[segment]+':['
           else
            s:='[';
@@ -444,10 +461,10 @@ unit ag386int;
      ait_const_rva : begin
                        AsmWriteLn(#9#9'RVA'#9+pai_const_symbol(hp)^.sym^.name);
                      end;
-    ait_real_32bit : AsmWriteLn(#9#9'DD'#9+double2str(pai_single(hp)^.value));
-    ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(pai_double(hp)^.value));
-    ait_real_80bit : AsmWriteLn(#9#9'DT'#9+extended2str(pai_extended(hp)^.value));
-          ait_comp : AsmWriteLn(#9#9'DQ'#9+comp2str(pai_extended(hp)^.value));
+        ait_real_32bit : AsmWriteLn(#9#9'DD'#9+single2str(pai_real_32bit(hp)^.value));
+        ait_real_64bit : AsmWriteLn(#9#9'DQ'#9+double2str(pai_real_64bit(hp)^.value));
+      ait_real_80bit : AsmWriteLn(#9#9'DT'#9+extended2str(pai_real_80bit(hp)^.value));
+          ait_comp_64bit : AsmWriteLn(#9#9'DQ'#9+comp2str(pai_real_80bit(hp)^.value));
         ait_string : begin
                        counter := 0;
                        lines := pai_string(hp)^.len div line_length;
@@ -526,10 +543,10 @@ unit ag386int;
                        if pai_label(hp)^.l^.is_used then
                         begin
                           AsmWrite(lab2str(pai_label(hp)^.l));
-                          if (assigned(hp^.next) and not(pai(hp^.next)^.typ in
+                          if assigned(hp^.next) and not(pai(hp^.next)^.typ in
                              [ait_const_32bit,ait_const_16bit,ait_const_8bit,
                               ait_const_symbol,ait_const_rva,
-                              ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_string])) then
+                              ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                            AsmWriteLn(':');
                         end;
                      end;
@@ -547,7 +564,7 @@ ait_labeled_instruction :
                        if assigned(hp^.next) and not(pai(hp^.next)^.typ in
                           [ait_const_32bit,ait_const_16bit,ait_const_8bit,
                            ait_const_symbol,ait_const_rva,
-                           ait_real_64bit,ait_real_80bit,ait_string]) then
+                           ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_string]) then
                         AsmWriteLn(':')
                      end;
    ait_instruction : begin
@@ -771,7 +788,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.40  1999-05-10 15:18:14  peter
+  Revision 1.41  1999-05-12 00:19:38  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.40  1999/05/10 15:18:14  peter
     * fixed condition writing
 
   Revision 1.39  1999/05/08 19:52:33  peter

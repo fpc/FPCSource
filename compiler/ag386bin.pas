@@ -68,9 +68,9 @@ unit ag386bin;
   implementation
 
     uses
-       strings,verbose,
-       globtype,globals,
-       i386asm,systems,
+       strings,
+       globtype,globals,systems,verbose,
+       i386asm,
 {$ifdef GDB}
        gdb,
 {$endif}
@@ -359,18 +359,14 @@ unit ag386bin;
                objectalloc^.sectionalloc(2);
              ait_const_8bit :
                objectalloc^.sectionalloc(1);
+             ait_real_80bit :
+               objectalloc^.sectionalloc(10);
              ait_real_64bit :
                objectalloc^.sectionalloc(8);
              ait_real_32bit :
                objectalloc^.sectionalloc(4);
-             ait_real_80bit :
-               objectalloc^.sectionalloc(10);
-             ait_comp :
-{$ifdef I386}
+             ait_comp_64bit :
                objectalloc^.sectionalloc(8);
-{$else not I386}
-               Message(asmw_f_comp_not_supported);
-{$endif I386}
              ait_const_rva,
              ait_const_symbol :
                objectalloc^.sectionalloc(4);
@@ -481,18 +477,14 @@ unit ag386bin;
                objectalloc^.sectionalloc(2);
              ait_const_8bit :
                objectalloc^.sectionalloc(1);
+             ait_real_80bit :
+               objectalloc^.sectionalloc(10);
              ait_real_64bit :
                objectalloc^.sectionalloc(8);
              ait_real_32bit :
                objectalloc^.sectionalloc(4);
-             ait_real_80bit :
-               objectalloc^.sectionalloc(10);
-             ait_comp :
-{$ifdef I386}
+             ait_comp_64bit :
                objectalloc^.sectionalloc(8);
-{$else not I386}
-               Message(asmw_f_comp_not_supported);
-{$endif I386}
              ait_const_rva,
              ait_const_symbol :
                objectalloc^.sectionalloc(4);
@@ -642,23 +634,21 @@ unit ag386bin;
                objectoutput^.writebytes(pai_const(hp)^.value,2);
              ait_const_8bit :
                objectoutput^.writebytes(pai_const(hp)^.value,1);
-             ait_real_64bit :
-               objectoutput^.writebytes(pai_double(hp)^.value,8);
-             ait_real_32bit :
-               objectoutput^.writebytes(pai_single(hp)^.value,4);
              ait_real_80bit :
-               objectoutput^.writebytes(pai_extended(hp)^.value,10);
-{$ifdef I386}
-             ait_comp :
+               objectoutput^.writebytes(pai_real_80bit(hp)^.value,10);
+             ait_real_64bit :
+               objectoutput^.writebytes(pai_real_64bit(hp)^.value,8);
+             ait_real_32bit :
+               objectoutput^.writebytes(pai_real_32bit(hp)^.value,4);
+             ait_comp_64bit :
                begin
 {$ifdef FPC}
-                 co:=comp(pai_comp(hp)^.value);
+                 co:=comp(pai_comp_64bit(hp)^.value);
 {$else}
-                 co:=pai_comp(hp)^.value;
+                 co:=pai_comp_64bit(hp)^.value;
 {$endif}
                  objectoutput^.writebytes(co,8);
                end;
-{$endif I386}
              ait_string :
                objectoutput^.writebytes(pai_string(hp)^.str^,pai_string(hp)^.len);
              ait_const_rva :
@@ -830,7 +820,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.8  1999-05-09 11:38:04  peter
+  Revision 1.9  1999-05-12 00:19:37  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.8  1999/05/09 11:38:04  peter
     * don't write .o and link if errors occure during assembling
 
   Revision 1.6  1999/05/07 00:36:58  pierre

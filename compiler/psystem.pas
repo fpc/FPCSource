@@ -131,7 +131,7 @@ begin
   p^.insert(new(ptypesym,init('EXTENDED',s80floatdef)));
   p^.insert(new(ptypesym,init('REAL',s64floatdef)));
 {$ifdef i386}
-  p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s64bitcomp)))));
+  p^.insert(new(ptypesym,init('COMP',new(pfloatdef,init(s64comp)))));
 {$endif}
   p^.insert(new(ptypesym,init('POINTER',voidpointerdef)));
   p^.insert(new(ptypesym,init('FARPOINTER',voidfarpointerdef)));
@@ -248,7 +248,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1999-05-06 09:05:23  peter
+  Revision 1.23  1999-05-12 00:19:53  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.22  1999/05/06 09:05:23  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

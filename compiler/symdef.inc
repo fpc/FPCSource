@@ -1118,7 +1118,7 @@
            s32real : savesize:=4;
            s64real : savesize:=8;
            s80real : savesize:=extended_size;
-           s64bitcomp : savesize:=8;
+           s64comp : savesize:=8;
          else
            savesize:=0;
          end;
@@ -1148,7 +1148,7 @@
               stabstring := strpnew('r'+s32bitdef^.numberstring+';0;'+
                 tostr($ffff)+';');
             { found this solution in stabsread.c from GDB v4.16 }
-            s64bitcomp : stabstring := strpnew('r'+
+            s64comp : stabstring := strpnew('r'+
                s32bitdef^.numberstring+';-'+tostr(savesize)+';0;');
 {$ifdef i386}
             { under dos at least you must give a size of twelve instead of 10 !! }
@@ -3473,7 +3473,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.112  1999-05-08 19:52:35  peter
+  Revision 1.113  1999-05-12 00:19:58  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.112  1999/05/08 19:52:35  peter
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings

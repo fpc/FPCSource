@@ -133,7 +133,7 @@ implementation
          secondpass(p^.left);
          if codegenerror then
            exit;
-         clear_reference(p^.location.reference);
+         reset_reference(p^.location.reference);
          case p^.left^.location.loc of
             LOC_REGISTER,
             LOC_CREGISTER:
@@ -258,7 +258,7 @@ implementation
              newreference(p^.left^.location.reference),
              p^.location.register)));
            { for use of other segments }
-           if p^.left^.location.reference.segment<>R_DEFAULT_SEG then
+           if p^.left^.location.reference.segment<>R_NO then
              p^.location.segment:=p^.left^.location.reference.segment;
       end;
 
@@ -288,7 +288,7 @@ implementation
          hr : tregister;
       begin
          secondpass(p^.left);
-         clear_reference(p^.location.reference);
+         reset_reference(p^.location.reference);
          case p^.left^.location.loc of
             LOC_REGISTER:
               p^.location.reference.base:=p^.left^.location.register;
@@ -332,7 +332,7 @@ implementation
          if (p^.left^.resulttype^.deftype=objectdef) and
            pobjectdef(p^.left^.resulttype)^.isclass then
            begin
-             clear_reference(p^.location.reference);
+             reset_reference(p^.location.reference);
              case p^.left^.location.loc of
                 LOC_REGISTER:
                   p^.location.reference.base:=p^.left^.location.register;
@@ -776,7 +776,7 @@ implementation
                       hr:=reg32toreg8(getregister32);
                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_B,
                         newreference(p^.location.reference),hr)));
-                      clear_reference(p^.location.reference);
+                      reset_reference(p^.location.reference);
                       p^.location.loc:=LOC_REGISTER;
                       p^.location.register:=hr;
                       { we can remove all temps }
@@ -788,7 +788,7 @@ implementation
                       del_reference(p^.location.reference);
                       hr:=reg32toreg16(getregister32);
                       exprasmlist^.concat(new(pai386,op_ref_reg(A_MOV,S_W,
-                        newreference(p^.location.reference),hr)));                      clear_reference(p^.location.reference);
+                        newreference(p^.location.reference),hr)));                      reset_reference(p^.location.reference);
                       p^.location.loc:=LOC_REGISTER;
                       p^.location.register:=hr;
                       { we can remove all temps }
@@ -805,7 +805,7 @@ implementation
 
     procedure secondselfn(var p : ptree);
       begin
-         clear_reference(p^.location.reference);
+         reset_reference(p^.location.reference);
          if (p^.resulttype^.deftype=classrefdef) or
            ((p^.resulttype^.deftype=objectdef)
              and pobjectdef(p^.resulttype)^.isclass
@@ -831,7 +831,7 @@ implementation
             begin
                secondpass(p^.left);
                load:=true;
-               if p^.left^.location.reference.segment<>R_DEFAULT_SEG then
+               if p^.left^.location.reference.segment<>R_NO then
                  message(parser_e_no_with_for_variable_in_other_segments);
                ref.symbol:=nil;
                gettempofsizereference(4,ref);
@@ -882,7 +882,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  1999-05-01 13:24:13  peter
+  Revision 1.36  1999-05-12 00:19:44  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.35  1999/05/01 13:24:13  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

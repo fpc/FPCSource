@@ -149,7 +149,7 @@ Begin
        Message(asmr_e_invalid_operand_type);
      end;
      operands[operandnum].operandtype := OPR_REFERENCE;
-     operands[operandnum].ref.segment := R_DEFAULT_SEG;
+     operands[operandnum].ref.segment := R_NO;
   end;
 end;
 
@@ -393,7 +393,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1999-05-05 22:21:59  peter
+  Revision 1.4  1999-05-12 00:19:55  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.3  1999/05/05 22:21:59  peter
     * updated messages
 
   Revision 1.2  1999/05/02 14:24:26  peter

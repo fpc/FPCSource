@@ -56,11 +56,17 @@ implementation
 *****************************************************************************}
 
     procedure secondrealconst(var p : ptree);
+      const
+        floattype2ait:array[tfloattype] of tait=
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_none,ait_none);
+
       var
          hp1 : pai;
          lastlabel : plabel;
+         realait : tait;
       begin
          lastlabel:=nil;
+         realait:=floattype2ait[pfloatdef(p^.resulttype)^.typ];
          { const already used ? }
          if not assigned(p^.lab_real) then
            begin
@@ -72,11 +78,14 @@ implementation
                      lastlabel:=pai_label(hp1)^.l
                    else
                      begin
-                        if (hp1^.typ=p^.realtyp) and (lastlabel<>nil) then
+                        if (hp1^.typ=realait) and (lastlabel<>nil) then
                           begin
-                             if ((p^.realtyp=ait_real_64bit) and (pai_double(hp1)^.value=p^.value_real)) or
-                               ((p^.realtyp=ait_real_80bit) and (pai_extended(hp1)^.value=p^.value_real)) or
-                               ((p^.realtyp=ait_real_32bit) and (pai_single(hp1)^.value=p^.value_real)) then
+                             if(
+                                ((realait=ait_real_32bit) and (pai_real_32bit(hp1)^.value=p^.value_real)) or
+                                ((realait=ait_real_64bit) and (pai_real_64bit(hp1)^.value=p^.value_real)) or
+                                ((realait=ait_real_80bit) and (pai_real_80bit(hp1)^.value=p^.value_real)) or
+                                ((realait=ait_comp_64bit) and (pai_comp_64bit(hp1)^.value=p^.value_real))
+                               ) then
                                begin
                                   { found! }
                                   p^.lab_real:=lastlabel;
@@ -95,16 +104,21 @@ implementation
                    if (cs_smartlink in aktmoduleswitches) then
                     consts^.concat(new(pai_cut,init));
                    consts^.concat(new(pai_label,init(lastlabel)));
-                   case p^.realtyp of
-                     ait_real_80bit : consts^.concat(new(pai_extended,init(p^.value_real)));
-                     ait_real_64bit : consts^.concat(new(pai_double,init(p^.value_real)));
-                     ait_real_32bit : consts^.concat(new(pai_single,init(p^.value_real)));
+                   case realait of
+                     ait_real_32bit :
+                       consts^.concat(new(pai_real_32bit,init(p^.value_real)));
+                     ait_real_64bit :
+                       consts^.concat(new(pai_real_64bit,init(p^.value_real)));
+                     ait_real_80bit :
+                       consts^.concat(new(pai_real_80bit,init(p^.value_real)));
+                     ait_comp_64bit :
+                       consts^.concat(new(pai_comp_64bit,init(p^.value_real)));
                    else
                      internalerror(10120);
                    end;
                 end;
            end;
-         clear_reference(p^.location.reference);
+         reset_reference(p^.location.reference);
          p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_real));
          p^.location.loc:=LOC_MEM;
       end;
@@ -256,38 +270,24 @@ implementation
                         end;
                       st_shortstring:
                         begin
-                           { empty strings }
-
-                           (* if p^.length=0 then
-                           { consts^.concat(new(pai_const,init_16bit(0)))}
-                           { this was not very good because several occurence
-                             needed several data space ! }
-                             begin
-                               getmem(pc,3);
-                               pc[0]:=#0;pc[1]:=#0;
-                               consts^.concat(new(pai_string,init_length_pchar(pc,2)));
-                             end
-                           else  *)
-                            begin
-                              { truncate strings larger than 255 chars }
-                              if p^.length>255 then
-                               l:=255
-                              else
-                               l:=p^.length;
-                              { also length and terminating zero }
-                              getmem(pc,l+3);
-                              move(p^.value_str^,pc[1],l+1);
-                              pc[0]:=chr(l);
-                              { to overcome this problem we set the length explicitly }
-                              { with the ending null char }
-                              pc[l+1]:=#0;
-                              consts^.concat(new(pai_string,init_length_pchar(pc,l+2)));
-                            end;
+                          { truncate strings larger than 255 chars }
+                          if p^.length>255 then
+                           l:=255
+                          else
+                           l:=p^.length;
+                          { also length and terminating zero }
+                          getmem(pc,l+3);
+                          move(p^.value_str^,pc[1],l+1);
+                          pc[0]:=chr(l);
+                          { to overcome this problem we set the length explicitly }
+                          { with the ending null char }
+                          pc[l+1]:=#0;
+                          consts^.concat(new(pai_string,init_length_pchar(pc,l+2)));
                         end;
                    end;
                 end;
            end;
-         clear_reference(p^.location.reference);
+         reset_reference(p^.location.reference);
          p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_str));
          p^.location.loc:=LOC_MEM;
       end;
@@ -389,7 +389,7 @@ implementation
                   end;
                end;
           end;
-        clear_reference(p^.location.reference);
+        reset_reference(p^.location.reference);
         p^.location.reference.symbol:=newasmsymbol(lab2str(p^.lab_set));
         p^.location.loc:=LOC_MEM;
       end;
@@ -410,7 +410,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  1999-05-06 09:05:12  peter
+  Revision 1.34  1999-05-12 00:19:41  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.33  1999/05/06 09:05:12  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

@@ -316,7 +316,7 @@
        { moment.                                          }
        { s64 bit is considered as a real because all      }
        { calculations are done by the fpu.                }
-       tfloattype = (s32real,s64real,s80real,s64bitcomp,f16bit,f32bit);
+       tfloattype = (s32real,s64real,s80real,s64comp,f16bit,f32bit);
 
        pfloatdef = ^tfloatdef;
        tfloatdef = object(tdef)
@@ -510,7 +510,11 @@
 
 {
   $Log$
-  Revision 1.25  1999-05-08 19:52:37  peter
+  Revision 1.26  1999-05-12 00:19:59  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.25  1999/05/08 19:52:37  peter
     + MessagePos() which is enhanced Message() function but also gets the
       position info
     * Removed comp warnings

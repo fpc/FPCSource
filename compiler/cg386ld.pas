@@ -116,7 +116,7 @@ implementation
                          { any register except EAX                      }
                          emitcall('FPC_RELOCATE_THREADVAR',true);
 
-                         clear_reference(p^.location.reference);
+                         reset_reference(p^.location.reference);
                          p^.location.reference.base:=getregister32;
                          emit_reg_reg(A_MOV,S_L,R_EAX,p^.location.reference.base);
                          if popeax then
@@ -252,7 +252,7 @@ implementation
                                      newreference(p^.location.reference),
                                      hregister)));
                                 end;
-                              clear_reference(p^.location.reference);
+                              reset_reference(p^.location.reference);
                               p^.location.reference.base:=hregister;
                           end;
                       end;
@@ -387,7 +387,7 @@ implementation
                                    exprasmlist^.concat(new(pai386,op_ref_reg(A_LEA,S_L,newreference(
                                      p^.left^.location.reference),
                                      hregister)));
-                                   clear_reference(p^.left^.location.reference);
+                                   reset_reference(p^.left^.location.reference);
                                    p^.left^.location.reference.base:=hregister;
                                    p^.left^.location.reference.index:=R_NO;
                                 end;
@@ -418,19 +418,7 @@ implementation
            end;
 {$endif test_dest_loc}
 
-         if (p^.right^.treetype=realconstn) then
-           begin
-              if p^.left^.resulttype^.deftype=floatdef then
-                begin
-                   case pfloatdef(p^.left^.resulttype)^.typ of
-                     s32real : p^.right^.realtyp:=ait_real_32bit;
-                     s64real : p^.right^.realtyp:=ait_real_64bit;
-                     s80real : p^.right^.realtyp:=ait_real_80bit;
-                   end;
-                end;
-           end;
          secondpass(p^.right);
-
          if codegenerror then
            exit;
 
@@ -705,7 +693,7 @@ implementation
          pp : pprocinfo;
          hr_valid : boolean;
       begin
-         clear_reference(p^.location.reference);
+         reset_reference(p^.location.reference);
          hr_valid:=false;
          if @procinfo<>pprocinfo(p^.funcretprocinfo) then
            begin
@@ -772,7 +760,7 @@ implementation
       begin
         if not p^.cargs then
          begin
-           clear_reference(p^.location.reference);
+           reset_reference(p^.location.reference);
            gettempofsizereference((parraydef(p^.resulttype)^.highrange+1)*8,p^.location.reference);
            href:=p^.location.reference;
          end;
@@ -863,7 +851,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.53  1999-05-06 09:05:16  peter
+  Revision 1.54  1999-05-12 00:19:43  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.53  1999/05/06 09:05:16  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

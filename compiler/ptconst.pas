@@ -178,10 +178,10 @@ unit ptconst;
                 Message(cg_e_illegal_expression);
 
               case pfloatdef(def)^.typ of
-                 s64real : curconstsegment^.concat(new(pai_double,init(value)));
-                 s32real : curconstsegment^.concat(new(pai_single,init(value)));
-                 s80real : curconstsegment^.concat(new(pai_extended,init(value)));
-                 s64bitcomp  : curconstsegment^.concat(new(pai_comp,init(value)));
+                 s32real : curconstsegment^.concat(new(pai_real_32bit,init(value)));
+                 s64real : curconstsegment^.concat(new(pai_real_64bit,init(value)));
+                 s80real : curconstsegment^.concat(new(pai_real_80bit,init(value)));
+                 s64comp  : curconstsegment^.concat(new(pai_comp_64bit,init(value)));
                  f32bit : curconstsegment^.concat(new(pai_const,init_32bit(trunc(value*65536))));
               else internalerror(18);
               end;
@@ -714,7 +714,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.42  1999-05-06 09:05:24  peter
+  Revision 1.43  1999-05-12 00:19:54  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.42  1999/05/06 09:05:24  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

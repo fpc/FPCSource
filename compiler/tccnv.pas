@@ -406,8 +406,8 @@ implementation
            end;
         { comp isn't a floating type }
 {$ifdef i386}
-         if (pfloatdef(p^.resulttype)^.typ=s64bitcomp) and
-            (pfloatdef(p^.left^.resulttype)^.typ<>s64bitcomp) and
+         if (pfloatdef(p^.resulttype)^.typ=s64comp) and
+            (pfloatdef(p^.left^.resulttype)^.typ<>s64comp) and
             not (p^.explizit) then
            CGMessage(type_w_convert_real_2_comp);
 {$endif}
@@ -933,7 +933,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-05-09 11:37:05  peter
+  Revision 1.30  1999-05-12 00:20:00  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.29  1999/05/09 11:37:05  peter
     * fixed order of arguments for incompatible types message
 
   Revision 1.28  1999/05/06 09:05:34  peter

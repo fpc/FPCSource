@@ -225,7 +225,7 @@ unit tree;
                       no_check,unit_specific,
                       return_value_used,static_call : boolean);
              ordconstn : (value : longint);
-             realconstn : (value_real : bestreal;lab_real : plabel;realtyp : tait);
+             realconstn : (value_real : bestreal;lab_real : plabel);
              fixconstn : (value_fix: longint);
              funcretn : (funcretprocinfo : pointer;retdef : pdef);
              subscriptn : (vs : pvarsym);
@@ -788,14 +788,6 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=def;
          p^.value_real:=v;
-         case pfloatdef(def)^.typ of
-           s32real :
-             p^.realtyp:=ait_real_32bit;
-           s64real :
-             p^.realtyp:=ait_real_64bit;
-           s80real :
-             p^.realtyp:=ait_real_80bit;
-         end;
          p^.lab_real:=nil;
          genrealconstnode:=p;
       end;
@@ -1716,7 +1708,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.77  1999-05-06 09:05:39  peter
+  Revision 1.78  1999-05-12 00:20:03  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.77  1999/05/06 09:05:39  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

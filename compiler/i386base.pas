@@ -463,8 +463,7 @@ type
     R_EAX,R_ECX,R_EDX,R_EBX,R_ESP,R_EBP,R_ESI,R_EDI,
     R_AX,R_CX,R_DX,R_BX,R_SP,R_BP,R_SI,R_DI,
     R_AL,R_CL,R_DL,R_BL,R_AH,R_CH,R_BH,R_DH,
-    { for an easier assembler generation }
-    R_DEFAULT_SEG,R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
+    R_CS,R_DS,R_ES,R_SS,R_FS,R_GS,
     R_ST,R_ST0,R_ST1,R_ST2,R_ST3,R_ST4,R_ST5,R_ST6,R_ST7,
     R_DR0,R_DR1,R_DR2,R_DR3,R_DR6,R_DR7,
     R_CR0,R_CR2,R_CR3,R_CR4,
@@ -482,7 +481,7 @@ const
   lastreg  = high(tregister);
 
   firstsreg = R_CS;
-  lastsreg = R_GS;
+  lastsreg  = R_GS;
 
   regset8bit  : tregisterset = [R_AL..R_DH];
   regset16bit : tregisterset = [R_AX..R_DI,R_CS..R_SS];
@@ -493,7 +492,7 @@ const
     S_L,S_L,S_L,S_L,S_L,S_L,S_L,S_L,
     S_W,S_W,S_W,S_W,S_W,S_W,S_W,S_W,
     S_B,S_B,S_B,S_B,S_B,S_B,S_B,S_B,
-    S_NO,S_W,S_W,S_W,S_W,S_W,S_W,
+    S_W,S_W,S_W,S_W,S_W,S_W,
     S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,S_FL,
     S_L,S_L,S_L,S_L,S_L,S_L,
     S_L,S_L,S_L,S_L,
@@ -507,7 +506,7 @@ const
     OT_REG_EAX,OT_REG_ECX,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,OT_REG32,
     OT_REG_AX,OT_REG_CX,OT_REG_DX,OT_REG16,OT_REG16,OT_REG16,OT_REG16,OT_REG16,
     OT_REG_AL,OT_REG_CL,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,OT_REG8,
-    OT_NONE,OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
+    OT_REG_CS,OT_REG_DESS,OT_REG_DESS,OT_REG_DESS,OT_REG_FSGS,OT_REG_FSGS,
     OT_FPU0,OT_FPU0,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,OT_FPUREG,
     OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,OT_REG_DREG,
     OT_REG_CREG,OT_REG_CREG,OT_REG_CREG,OT_REG_CR4,
@@ -521,7 +520,7 @@ const
     'eax','ecx','edx','ebx','esp','ebp','esi','edi',
     'ax','cx','dx','bx','sp','bp','si','di',
     'al','cl','dl','bl','ah','ch','bh','dh',
-    '','cs','ds','es','ss','fs','gs',
+    'cs','ds','es','ss','fs','gs',
     'st','st(0)','st(1)','st(2)','st(3)','st(4)','st(5)','st(6)','st(7)',
     'dr0','dr1','dr2','dr3','dr6','dr7',
     'cr0','cr2','cr3','cr4',
@@ -534,7 +533,7 @@ const
     'eax','ecx','edx','ebx','esp','ebp','esi','edi',
     'ax','cx','dx','bx','sp','bp','si','di',
     'al','cl','dl','bl','ah','ch','bh','dh',
-    '','cs','ds','es','ss','fs','gs',
+    'cs','ds','es','ss','fs','gs',
     'st0','st0','st1','st2','st3','st4','st5','st6','st7',
     'dr0','dr1','dr2','dr3','dr6','dr7',
     'cr0','cr2','cr3','cr4',
@@ -549,7 +548,7 @@ const
     '%eax','%ecx','%edx','%ebx','%esp','%ebp','%esi','%edi',
     '%ax','%cx','%dx','%bx','%sp','%bp','%si','%di',
     '%al','%cl','%dl','%bl','%ah','%ch','%bh','%dh',
-    '','%cs','%ds','%es','%ss','%fs','%gs',
+    '%cs','%ds','%es','%ss','%fs','%gs',
     '%st','%st(0)','%st(1)','%st(2)','%st(3)','%st(4)','%st(5)','%st(6)','%st(7)',
     '%dr0','%dr1','%dr2','%dr3','%dr6','%dr7',
     '%cr0','%cr2','%cr3','%cr4',
@@ -726,9 +725,6 @@ var
     procedure reset_reference(var ref : treference);
     { set mostly used values of a new reference }
     function new_reference(base : tregister;offset : longint) : preference;
-    { same as reset_reference, but symbol is disposed }
-    { use this only for already used references       }
-    procedure clear_reference(var ref : treference);
 
     function newreference(const r : treference) : preference;
     procedure disposereference(var r : preference);
@@ -861,18 +857,7 @@ end;
 
 procedure reset_reference(var ref : treference);
 begin
-  with ref do
-   begin
-     is_immediate:=false;
-     segment:=R_DEFAULT_SEG;
-     base:=R_NO;
-     index:=R_NO;
-     scalefactor:=0;
-     offset:=0;
-     symbol:=nil;
-     offsetfixup:=0;
-     options:=ref_none;
-   end;
+  FillChar(ref,sizeof(treference),0);
 end;
 
 
@@ -881,16 +866,10 @@ var
   r : preference;
 begin
   new(r);
-  reset_reference(r^);
+  FillChar(r^,sizeof(treference),0);
   r^.base:=base;
   r^.offset:=offset;
   new_reference:=r;
-end;
-
-
-procedure clear_reference(var ref : treference);
-begin
-  reset_reference(ref);
 end;
 
 
@@ -937,7 +916,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-05-11 16:30:00  peter
+  Revision 1.3  1999-05-12 00:19:51  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.2  1999/05/11 16:30:00  peter
     * more noag386bin defines, so tp7 can compile at least
 
   Revision 1.1  1999/05/01 13:24:23  peter

@@ -563,7 +563,7 @@ Begin
                 Begin
                 {removes seg register prefixes from LEA operations, as they
                  don't do anything}
-                 Pai386(p)^.oper[0].ref^.Segment := R_DEFAULT_SEG;
+                 Pai386(p)^.oper[0].ref^.Segment := R_NO;
                 {changes "lea (%reg1), %reg2" into "mov %reg1, %reg2"}
                   If (Pai386(p)^.oper[0].ref^.Base In [R_EAX..R_EDI]) And
                      (Pai386(p)^.oper[0].ref^.Index = R_NO) And
@@ -1514,7 +1514,11 @@ End.
 
 {
  $Log$
- Revision 1.52  1999-05-05 16:19:04  jonas
+ Revision 1.53  1999-05-12 00:19:52  peter
+   * removed R_DEFAULT_SEG
+   * uniform float names
+
+ Revision 1.52  1999/05/05 16:19:04  jonas
    + remove the segment prefixes from LEA instructions
 
  Revision 1.51  1999/05/05 10:05:54  florian

@@ -82,7 +82,6 @@ implementation
 {$ifdef SUPPORT_MMX}
          p^.registersmmx:=0;
 {$endif SUPPORT_MMX}
-         clear_reference(p^.location.reference);
          if p^.symtableentry^.typ=funcretsym then
            begin
               p1:=genzeronode(funcretn);
@@ -452,7 +451,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.26  1999-05-06 09:05:36  peter
+  Revision 1.27  1999-05-12 00:20:02  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.26  1999/05/06 09:05:36  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

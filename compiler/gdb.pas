@@ -95,7 +95,7 @@ Const
         GDB_i386index : array[tregister] of shortint =(-1,
           0,1,2,3,4,5,6,7,0,1,2,3,4,5,7,0,1,2,3,0,1,2,3,
           -1,10,12,13,14,15,11,
-          -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+          -1,-1,-1,-1,-1,-1,-1,-1,-1,
 {$ifndef OLDASM}
           -1,-1,-1,-1,-1,-1,
           -1,-1,-1,-1,
@@ -263,7 +263,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  1999-05-01 13:24:20  peter
+  Revision 1.10  1999-05-12 00:19:48  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.9  1999/05/01 13:24:20  peter
     * merged nasm compiler
     * old asm moved to oldasm/
 

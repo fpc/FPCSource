@@ -25,18 +25,11 @@ unit aasm;
   interface
 
     uses
-       systems,cobjects,files,globals;
+       globtype,systems,cobjects,files,globals;
 
     type
-{$ifdef i386}
-       bestreal = extended;
-{$endif}
-{$ifdef m68k}
-       bestreal = real;
-{$endif}
-       pbestreal=^bestreal;
-
        tait = (
+          ait_none,
           ait_string,
           ait_label,
           ait_direct,
@@ -52,7 +45,7 @@ unit aasm;
           ait_real_80bit,
           ait_real_64bit,
           ait_real_32bit,
-          ait_comp,
+          ait_comp_64bit,
           ait_external,
           ait_align,
           ait_section,
@@ -223,42 +216,33 @@ unit aasm;
           constructor init_rva(const name:string);
        end;
 
-       { generates a double (64 bit real) }
-       pai_double = ^tai_double;
-       tai_double = object(tai)
-          value : double;
-          constructor init(_value : double);
-       end;
-
-
-       { generates an comp (integer over 64 bits) }
-       pai_comp = ^tai_comp;
-       tai_comp = object(tai)
-          value : bestreal;
-          constructor init(_value : bestreal);
-{$ifdef i386}
-          { usefull for 64 bits apps, maybe later  }
-          { comp is not defined on m68k processors !! }
-          constructor init_comp(_value : comp);
-{$endif i386}
-       end;
-
-
        { generates a single (32 bit real) }
-       pai_single = ^tai_single;
-       tai_single = object(tai)
-          value : single;
-          constructor init(_value : single);
+       pai_real_32bit = ^tai_real_32bit;
+       tai_real_32bit = object(tai)
+          value : ts32real;
+          constructor init(_value : ts32real);
        end;
 
+       { generates a double (64 bit real) }
+       pai_real_64bit = ^tai_real_64bit;
+       tai_real_64bit = object(tai)
+          value : ts80real;
+          constructor init(_value : ts64real);
+       end;
 
        { generates an extended (80 bit real) }
-       pai_extended = ^tai_extended;
-       tai_extended = object(tai)
-          value : bestreal;
-          constructor init(_value : bestreal);
+       pai_real_80bit = ^tai_real_80bit;
+       tai_real_80bit = object(tai)
+          value : ts80real;
+          constructor init(_value : ts80real);
        end;
 
+       { generates an comp (integer over 64 bits) }
+       pai_comp_64bit = ^tai_comp_64bit;
+       tai_comp_64bit = object(tai)
+          value : ts64comp;
+          constructor init(_value : ts64comp);
+       end;
 
        { insert a cut to split into several smaller files }
        pai_cut = ^tai_cut;
@@ -282,15 +266,15 @@ unit aasm;
 const
        ait_bestreal = ait_real_80bit;
 type
-       pai_bestreal = pai_extended;
-       tai_bestreal = tai_extended;
+       pai_bestreal = pai_real_80bit;
+       tai_bestreal = tai_real_80bit;
 {$endif i386}
 {$ifdef m68k}
 const
        ait_bestreal = ait_real_32bit;
 type
-       pai_bestreal = pai_single;
-       tai_bestreal = tai_single;
+       pai_bestreal = pai_real_32bit;
+       tai_bestreal = tai_real_32bit;
 {$endif m68k}
 
 
@@ -345,7 +329,7 @@ type
 implementation
 
 uses
-  strings,verbose,globtype;
+  strings,verbose;
 
 {****************************************************************************
                              TAI
@@ -494,22 +478,10 @@ uses
 
 
 {****************************************************************************
-                               TAI_DOUBLE
+                               TAI_real_32bit
  ****************************************************************************}
 
-    constructor tai_double.init(_value : double);
-
-      begin
-         inherited init;
-         typ:=ait_real_64bit;
-         value:=_value;
-      end;
-
-{****************************************************************************
-                               TAI_SINGLE
- ****************************************************************************}
-
-    constructor tai_single.init(_value : single);
+    constructor tai_real_32bit.init(_value : ts32real);
 
       begin
          inherited init;
@@ -518,10 +490,22 @@ uses
       end;
 
 {****************************************************************************
-                               TAI_EXTENDED
+                               TAI_real_64bit
  ****************************************************************************}
 
-    constructor tai_extended.init(_value : bestreal);
+    constructor tai_real_64bit.init(_value : ts64real);
+
+      begin
+         inherited init;
+         typ:=ait_real_64bit;
+         value:=_value;
+      end;
+
+{****************************************************************************
+                               TAI_real_80bit
+ ****************************************************************************}
+
+    constructor tai_real_80bit.init(_value : ts80real);
 
       begin
          inherited init;
@@ -530,26 +514,17 @@ uses
       end;
 
 {****************************************************************************
-                               TAI_COMP
+                               Tai_comp_64bit
  ****************************************************************************}
 
-    constructor tai_comp.init(_value : bestreal);
+    constructor tai_comp_64bit.init(_value : ts64comp);
 
       begin
          inherited init;
-         typ:=ait_comp;
+         typ:=ait_comp_64bit;
          value:=_value;
       end;
 
-{$ifdef i386}
-    constructor tai_comp.init_comp(_value : comp);
-
-      begin
-         inherited init;
-         typ:=ait_comp;
-         value:=_value;
-      end;
-{$endif i386}
 
 {****************************************************************************
                                TAI_STRING
@@ -1009,7 +984,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.43  1999-05-08 20:38:02  jonas
+  Revision 1.44  1999-05-12 00:19:34  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.43  1999/05/08 20:38:02  jonas
     * seperate OPTimizer INFO pointer field in tai object
 
   Revision 1.42  1999/05/06 09:05:05  peter

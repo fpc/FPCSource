@@ -26,6 +26,23 @@ interface
        maxidlen = 64;
 
     type
+       { System independent float names }
+{$ifdef i386}
+       bestreal = extended;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       ts64comp = extended;
+{$endif}
+{$ifdef m68k}
+       bestreal = real;
+       ts32real = single;
+       ts64real = double;
+       ts80real = extended;
+       ts64comp = comp;
+{$endif}
+       pbestreal=^bestreal;
+
        { Switches which can be changed locally }
        tlocalswitch = (cs_localnone,
          { codegen }
@@ -112,7 +129,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  1999-04-26 13:31:33  peter
+  Revision 1.9  1999-05-12 00:19:49  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.8  1999/04/26 13:31:33  peter
     * release storenumber,double_checksum
 
   Revision 1.7  1999/04/25 22:34:58  pierre

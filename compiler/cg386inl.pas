@@ -738,7 +738,7 @@ implementation
            exprasmlist^.concat(new(pai386,op_reg(A_POP,S_L,R_EDI)));
 
           {set up hr2 to a refernce with EDI as base register}
-           clear_reference(hr2);
+           reset_reference(hr2);
            hr2.base := R_EDI;
 
           {save the function result in the destination variable}
@@ -1241,7 +1241,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  1999-05-06 09:05:13  peter
+  Revision 1.48  1999-05-12 00:19:42  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.47  1999/05/06 09:05:13  peter
     * generic write_float and str_float
     * fixed constant float conversions
 

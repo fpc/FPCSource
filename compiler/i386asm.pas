@@ -259,7 +259,7 @@ uses
            else
              begin
                ref:=p;
-               if not(ref^.segment in [R_DS,R_NO,R_DEFAULT_SEG]) then
+               if not(ref^.segment in [R_DS,R_NO]) then
                  segprefix:=ref^.segment;
                typ:=top_ref;
              end;
@@ -845,7 +845,7 @@ begin
      if m=100 then
       begin
         InsSize:=calcsize(insentry);
-        if not(segprefix in [R_NO,R_DEFAULT_SEG]) then
+        if (segprefix<>R_NO) then
          inc(InsSize);
         Pass1:=InsSize;
         LastInsOffset:=InsOffset;
@@ -872,7 +872,7 @@ begin
    exit;
   aktfilepos:=fileinfo;
   { Segment override }
-  if not(segprefix in [R_NO,R_DEFAULT_SEG]) then
+  if (segprefix<>R_NO) then
    begin
      case segprefix of
        R_CS : c:=$2e;
@@ -1277,7 +1277,7 @@ begin
                 else
                  bytes[0]:=$e;
               end;
-            R_DEFAULT_SEG,
+            R_NO,
             R_DS :
               begin
                 if c=4 then
@@ -1573,7 +1573,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  1999-05-11 16:29:59  peter
+  Revision 1.6  1999-05-12 00:19:50  peter
+    * removed R_DEFAULT_SEG
+    * uniform float names
+
+  Revision 1.5  1999/05/11 16:29:59  peter
     * more noag386bin defines, so tp7 can compile at least
 
   Revision 1.4  1999/05/05 22:21:51  peter
