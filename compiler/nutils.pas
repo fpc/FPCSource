@@ -43,12 +43,12 @@ interface
     );
 
 
-  foreachnodefunction = function(var n: tnode): foreachnoderesult of object;
-  staticforeachnodefunction = function(var n: tnode): foreachnoderesult;
+  foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
+  staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
 
 
-    function foreachnode(var n: tnode; f: foreachnodefunction): boolean;
-    function foreachnodestatic(var n: tnode; f: staticforeachnodefunction): boolean;
+    function foreachnode(var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
+    function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
 
     procedure load_procvar_from_calln(var p1:tnode);
     function maybe_call_procvar(var p1:tnode;tponly:boolean):boolean;
@@ -74,12 +74,12 @@ implementation
       cgbase,procinfo,
       pass_1;
 
-  function foreachnode(var n: tnode; f: foreachnodefunction): boolean;
+  function foreachnode(var n: tnode; f: foreachnodefunction; arg: pointer): boolean;
     begin
       result := false;
       if not assigned(n) then
         exit;
-      case f(n) of
+      case f(n,arg) of
         fen_norecurse_false:
           exit;
         fen_norecurse_true:
@@ -97,36 +97,36 @@ implementation
         calln:
           begin
             { not in one statement, won't work because of b- }
-            result := foreachnode(tcallnode(n).methodpointer,f) or result;
-            result := foreachnode(tcallnode(n).inlinecode,f) or result;
+            result := foreachnode(tcallnode(n).methodpointer,f,arg) or result;
+            result := foreachnode(tcallnode(n).inlinecode,f,arg) or result;
           end;
         ifn, whilerepeatn, forn:
           begin
             { not in one statement, won't work because of b- }
-            result := foreachnode(tloopnode(n).t1,f) or result;
-            result := foreachnode(tloopnode(n).t2,f) or result;
+            result := foreachnode(tloopnode(n).t1,f,arg) or result;
+            result := foreachnode(tloopnode(n).t2,f,arg) or result;
           end;
         raisen:
-          result := foreachnode(traisenode(n).frametree,f) or result;
+          result := foreachnode(traisenode(n).frametree,f,arg) or result;
         casen:
-          result := foreachnode(tcasenode(n). elseblock,f) or result;
+          result := foreachnode(tcasenode(n). elseblock,f,arg) or result;
       end;
       if n.inheritsfrom(tbinarynode) then
         begin
-          result := foreachnode(tbinarynode(n).right,f) or result;
-          result := foreachnode(tbinarynode(n).left,f) or result;
+          result := foreachnode(tbinarynode(n).right,f,arg) or result;
+          result := foreachnode(tbinarynode(n).left,f,arg) or result;
         end
       else if n.inheritsfrom(tunarynode) then
-        result := foreachnode(tunarynode(n).left,f) or result;
+        result := foreachnode(tunarynode(n).left,f,arg) or result;
     end;
 
 
-  function foreachnodestatic(var n: tnode; f: staticforeachnodefunction): boolean;
+  function foreachnodestatic(var n: tnode; f: staticforeachnodefunction; arg: pointer): boolean;
     begin
       result := false;
       if not assigned(n) then
         exit;
-      case f(n) of
+      case f(n,arg) of
         fen_norecurse_false:
           exit;
         fen_norecurse_true:
@@ -143,27 +143,27 @@ implementation
       case n.nodetype of
         calln:
           begin
-            result := foreachnodestatic(tcallnode(n).methodpointer,f) or result;
-            result := foreachnodestatic(tcallnode(n).inlinecode,f) or result;
+            result := foreachnodestatic(tcallnode(n).methodpointer,f,arg) or result;
+            result := foreachnodestatic(tcallnode(n).inlinecode,f,arg) or result;
           end;
         ifn, whilerepeatn, forn:
           begin
             { not in one statement, won't work because of b- }
-            result := foreachnodestatic(tloopnode(n).t1,f) or result;
-            result := foreachnodestatic(tloopnode(n).t2,f) or result;
+            result := foreachnodestatic(tloopnode(n).t1,f,arg) or result;
+            result := foreachnodestatic(tloopnode(n).t2,f,arg) or result;
           end;
         raisen:
-          result := foreachnodestatic(traisenode(n).frametree,f) or result;
+          result := foreachnodestatic(traisenode(n).frametree,f,arg) or result;
         casen:
-          result := foreachnodestatic(tcasenode(n). elseblock,f) or result;
+          result := foreachnodestatic(tcasenode(n). elseblock,f,arg) or result;
       end;
       if n.inheritsfrom(tbinarynode) then
         begin
-          result := foreachnodestatic(tbinarynode(n).right,f) or result;
-          result := foreachnodestatic(tbinarynode(n).left,f) or result;
+          result := foreachnodestatic(tbinarynode(n).right,f,arg) or result;
+          result := foreachnodestatic(tbinarynode(n).left,f,arg) or result;
         end
       else if n.inheritsfrom(tunarynode) then
-        result := foreachnodestatic(tunarynode(n).left,f) or result;
+        result := foreachnodestatic(tunarynode(n).left,f,arg) or result;
     end;
 
 
@@ -438,7 +438,14 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-06-20 08:55:29  florian
+  Revision 1.15  2004-07-12 09:14:04  jonas
+    * inline procedures at the node tree level, but only under some very
+      limited circumstances for now (only procedures, and only if they have
+      no or only vs_out/vs_var parameters).
+    * fixed ppudump for inline procedures
+    * fixed ppudump for ppc
+
+  Revision 1.14  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.13  2004/06/16 20:07:09  florian

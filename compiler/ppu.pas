@@ -45,9 +45,9 @@ type
 
 const
 {$ifdef ansistring_bits}
-  CurrentPPUVersion=41;
+  CurrentPPUVersion=42;
 {$else}
-  CurrentPPUVersion=41;
+  CurrentPPUVersion=42;
 {$endif}
 
 { buffer sizes }
@@ -1053,7 +1053,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.52  2004-07-09 23:11:05  peter
+  Revision 1.53  2004-07-12 09:14:04  jonas
+    * inline procedures at the node tree level, but only under some very
+      limited circumstances for now (only procedures, and only if they have
+      no or only vs_out/vs_var parameters).
+    * fixed ppudump for inline procedures
+    * fixed ppudump for ppc
+
+  Revision 1.52  2004/07/09 23:11:05  peter
     * new format
 
   Revision 1.51  2004/06/20 08:55:30  florian

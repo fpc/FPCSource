@@ -507,6 +507,7 @@ interface
          { node tree }
           code : tnode;
           flags : tprocinfoflags;
+          inlinenode : boolean;
        end;
        pinlininginfo = ^tinlininginfo;
 
@@ -3688,6 +3689,7 @@ implementation
              ppufile.getderef(funcretsymderef);
              new(inlininginfo);
              ppufile.getsmallset(inlininginfo^.flags);
+             inlininginfo^.inlinenode:=boolean(ppufile.getbyte);
            end
          else
            funcretsym:=nil;
@@ -3818,6 +3820,7 @@ implementation
            begin
              ppufile.putderef(funcretsymderef);
              ppufile.putsmallset(inlininginfo^.flags);
+             ppufile.putbyte(byte(inlininginfo^.inlinenode));
            end;
 
          ppufile.do_crc:=oldintfcrc;
@@ -6129,7 +6132,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.245  2004-07-09 22:17:32  peter
+  Revision 1.246  2004-07-12 09:14:04  jonas
+    * inline procedures at the node tree level, but only under some very
+      limited circumstances for now (only procedures, and only if they have
+      no or only vs_out/vs_var parameters).
+    * fixed ppudump for inline procedures
+    * fixed ppudump for ppc
+
+  Revision 1.245  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 

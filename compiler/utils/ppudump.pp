@@ -1335,10 +1335,19 @@ begin
              readposinfo;
              write  (space,'       SymOptions : ');
              readsymoptions;
+{$ifdef powerpc}
+             { library symbol for AmigaOS/MorphOS }
+             write  (space,'   Library symbol : ');
+             readderef;
+{$endif powerpc}
              if (calloption=pocall_inline) then
               begin
                 write  (space,'       FuncretSym : ');
                 readderef;
+                ppufile.getsmallset(procinfooptions);
+                writeln(space,'  ProcInfoOptions : ',dword(procinfooptions));
+                b := ppufile.getbyte;
+                writeln(space,' Inline node tree : ',b);
               end;
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
@@ -1347,18 +1356,14 @@ begin
              readdefinitions('parast',false);
              readsymbols('parast');
              { localst }
-             if (po_haslocalst in procoptions) then
+             if (po_haslocalst in procoptions) or
+                (calloption = pocall_inline) then
               begin
                 readdefinitions('localst',false);
                 readsymbols('localst');
               end;
-             { code }
              if (calloption=pocall_inline) then
-               begin
-                 readnodetree;
-                 ppufile.getsmallset(procinfooptions);
-                 writeln(space,'  ProcInfoOptions : ',dword(procinfooptions));
-               end;
+               readnodetree;
              delete(space,1,4);
            end;
 
@@ -1981,7 +1986,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.52  2004-07-09 22:17:32  peter
+  Revision 1.53  2004-07-12 09:14:04  jonas
+    * inline procedures at the node tree level, but only under some very
+      limited circumstances for now (only procedures, and only if they have
+      no or only vs_out/vs_var parameters).
+    * fixed ppudump for inline procedures
+    * fixed ppudump for ppc
+
+  Revision 1.52  2004/07/09 22:17:32  peter
     * revert has_localst patch
     * replace aktstaticsymtable/aktglobalsymtable with current_module
 

@@ -954,6 +954,47 @@ implementation
        end;
 
 
+    function containsforbiddennode(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if (n.nodetype <> exitn) then
+          result := fen_false
+        else
+          result := fen_norecurse_true;
+      end;
+
+
+    function checknodeinlining(procdef: tprocdef): boolean;
+      var
+        paraitem: tparaitem;
+      begin
+        result := false;
+        if not assigned(procdef.inlininginfo^.code) or
+           (po_assembler in procdef.procoptions) then
+          exit;
+        paraitem:=tparaitem(procdef.para.first);
+
+        { all call by reference parameters, or parameters which don't }
+        { get a new value? }
+        { also note: in theory, if there are only value parameters and none of those  }
+        {   are changed, we could also inline the paras. However, the compiler does   }
+        {   not distinguish between "used but not changed" and "used and changed"     }
+        {   (both are represented by vs_used), so that this not yet possible to do    }
+        while assigned(paraitem) do
+          begin
+            { we can't handle formaldefs, nor valuepara's which get a new value }
+            if ((paraitem.paratyp in [vs_out,vs_var]) and
+                (paraitem.paratype.def.deftype=formaldef)) or
+              { in this case we may have to create a temp for the para, }
+              { not yet handled                                         }
+               (paraitem.paratyp = vs_value) then 
+              exit;
+            paraitem := tparaitem(paraitem.next);
+          end;
+        { we currently can't handle exit-statements (would exit the caller) }
+        result := not foreachnodestatic(procdef.inlininginfo^.code,{$ifdef FPCPROCVAR}@{$endif}containsforbiddennode,nil);
+      end;
+
+
     procedure tcgprocinfo.parse_body;
       var
          oldprocinfo : tprocinfo;
@@ -1039,6 +1080,7 @@ implementation
            begin
              procdef.inlininginfo^.code:=code.getcopy;
              procdef.inlininginfo^.flags:=current_procinfo.flags;
+             procdef.inlininginfo^.inlinenode:=checknodeinlining(procdef);
            end
          else
            procdef.inlininginfo^.code:=code;
@@ -1384,7 +1426,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.199  2004-07-10 20:24:34  peter
+  Revision 1.200  2004-07-12 09:14:04  jonas
+    * inline procedures at the node tree level, but only under some very
+      limited circumstances for now (only procedures, and only if they have
+      no or only vs_out/vs_var parameters).
+    * fixed ppudump for inline procedures
+    * fixed ppudump for ppc
+
+  Revision 1.199  2004/07/10 20:24:34  peter
     * put every proc in a new object file
 
   Revision 1.198  2004/07/09 22:17:32  peter

@@ -30,7 +30,7 @@ interface
        cutils,cclasses,
        globtype,cpuinfo,
        paramgr,
-       node,nbas,
+       node,nbas,nutils,
        {$ifdef state_tracking}
        nstate,
        {$endif state_tracking}
@@ -63,6 +63,8 @@ interface
           procedure setfuncretnode(const returnnode: tnode);
           procedure convert_carg_array_of_const;
           procedure order_parameters;
+
+          function replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
        protected
           pushedparasize : longint;
        public
@@ -176,7 +178,7 @@ implementation
       verbose,globals,
       symconst,defutil,defcmp,
       htypechk,pass_1,
-      ncnv,nld,ninl,nadd,ncon,nmem,nutils,
+      ncnv,nld,ninl,nadd,ncon,nmem,
       procinfo,
       cgbase
       ;
@@ -1840,6 +1842,28 @@ type
       end;
 
 
+    function tcallnode.replaceparaload(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        paras: tcallparanode;
+      begin
+        result := fen_false;
+        if (n.nodetype = loadn) then
+          begin
+            paras := tcallparanode(left);
+            while assigned(paras) and
+                  (paras.paraitem.parasym <> tloadnode(n).symtableentry) do
+              paras := tcallparanode(paras.right);
+            if assigned(paras) then
+              begin
+                n.free;
+                n := paras.left.getcopy;
+                resulttypepass(n);
+                result := fen_true;
+              end;
+          end;
+      end;
+
+
     function tcallnode.pass_1 : tnode;
 {$ifdef m68k}
       var
@@ -1849,6 +1873,41 @@ type
         errorexit;
       begin
          result:=nil;
+
+         if (procdefinition.proccalloption=pocall_inline) and
+            { can we inline this kind of parameters? }
+            (tprocdef(procdefinition).inlininginfo^.inlinenode) and
+            { no locals }
+            (tprocdef(procdefinition).localst.symsearch.count = 0) and
+            { procedure, not function }
+            is_void(resulttype.def) then
+           begin
+              { inherit flags }
+              current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
+
+              if assigned(methodpointer) then
+                CGMessage(cg_e_unable_inline_object_methods);
+              if assigned(right) then
+                CGMessage(cg_e_unable_inline_procvar);
+              if assigned(inlinecode) then
+                internalerror(2004071110);
+
+              if assigned(tprocdef(procdefinition).inlininginfo^.code) then
+                result:=tprocdef(procdefinition).inlininginfo^.code.getcopy
+              else
+                CGMessage(cg_e_no_code_for_inline_stored);
+              if assigned(result) then
+                begin
+                  { replace the parameter loads with the parameter values }
+                  foreachnode(result,{$ifdef FPCPROCVAR}@{$endif}replaceparaload,nil);
+                  { consider it has not inlined if called
+                    again inside the args }
+                  procdefinition.proccalloption:=pocall_default;
+                  firstpass(result);
+                  procdefinition.proccalloption:=pocall_inline;
+                  exit;
+                end;
+           end;
 
          { calculate the parameter info for the procdef }
          if not procdefinition.has_paraloc_info then
@@ -1900,7 +1959,7 @@ type
               if (procdefinition.proccalloption=pocall_inline) then
                 begin
                    { inherit flags }
-                   current_procinfo.flags:=current_procinfo.flags+((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
+                   current_procinfo.flags := current_procinfo.flags + ((procdefinition as tprocdef).inlininginfo^.flags*inherited_inlining_flags);
 
                    if assigned(methodpointer) then
                      CGMessage(cg_e_unable_inline_object_methods);
@@ -2147,7 +2206,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.239  2004-06-20 08:55:29  florian
+  Revision 1.240  2004-07-12 09:14:04  jonas
+    * inline procedures at the node tree level, but only under some very
+      limited circumstances for now (only procedures, and only if they have
+      no or only vs_out/vs_var parameters).
+    * fixed ppudump for inline procedures
+    * fixed ppudump for ppc
+
+  Revision 1.239  2004/06/20 08:55:29  florian
     * logs truncated
 
   Revision 1.238  2004/06/16 20:07:08  florian
