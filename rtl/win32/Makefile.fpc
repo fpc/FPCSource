@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) objpas strings \
       sysutils typinfo math varutils \
       cpu mmx charset ucomplex getopts heaptrc lineinfo \
       wincrt winmouse winevent sockets printer dynlibs \
-      video mouse keyboard variants types
+      video mouse keyboard variants types comobj
 rsts=math varutils typinfo
 
 [require]
@@ -121,7 +121,7 @@ messages$(PPUEXT): messages.pp $(SYSTEMUNIT)$(PPUEXT)
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
-activex$(PPUEXT) : activex.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+activex$(PPUEXT) : activex.pp $(WININC)/objbase.inc windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 opengl32$(PPUEXT) : opengl32.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
@@ -180,6 +180,9 @@ varutils$(PPUEXT) : varutils.pp $(OBJPASDIR)/cvarutil.inc \
 
 types$(PPUEXT) : $(OBJPASDIR/types.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 	$(COMPILER) $(OBJPASDIR)/types.pp
+
+comobj$(PPUEXT) : comobj.pp activex$(PPUEXT) sysutils$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) $(OBJPASDIR)/comobjh.inc $(OBJPASDIR)/comobj.inc
+	$(COMPILER) -I$(OBJPASDIR) comobj.pp
 
 #
 # Other system-independent RTL Units
