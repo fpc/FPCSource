@@ -214,6 +214,7 @@ implementation
                       if not assigned(hp2.procdef) then
                         internalerror(2004010306);
                       mangledstring := hp2.func^;
+{$ifdef powerpc}
                       if (po_public in hp2.procdef.procoptions) then
                         begin
                           importsSection.concat(Tai_section.Create(sec_code));
@@ -221,7 +222,9 @@ implementation
                           mangledstring := '_$'+mangledstring;
                           importsSection.concat(taicpu.op_sym(A_B,objectlibrary.newasmsymbol(mangledstring)));
                         end;
-                        
+{$else powerpc}
+                      internalerror(2004010501);
+{$endif powerpc}
                       
                       importsSection.concat(Tai_section.Create(sec_data));
                       importsSection.concat(Tai_direct.create(strpnew('.section __TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16')));
@@ -239,7 +242,7 @@ implementation
                          hp2.procdef.setmangledname(mangledstring);
                        end;
 {$EndIf GDB}
-{$ifdef CPUPOWERPC}
+{$ifdef powerpc}
                       href.symaddr := refs_ha;
                       importsSection.concat(taicpu.op_reg_ref(A_LIS,NR_R11,href));
                       href.symaddr := refs_l;
@@ -247,9 +250,9 @@ implementation
                       importsSection.concat(taicpu.op_reg_ref(A_LWZU,NR_R12,href));
                       importsSection.concat(taicpu.op_reg(A_MTCTR,NR_R12));
                       importsSection.concat(taicpu.op_none(A_BCTR));
-{$else CPUPOWERPC}
-{$error fixme for darwin x86}
-{$endif CPUPOWERPC}
+{$else powerpc}
+                      internalerror(2004010502);
+{$endif powerpc}
                       importsSection.concat(Tai_section.Create(sec_data));
                       importsSection.concat(Tai_direct.create(strpnew('.lazy_symbol_pointer')));
                       importsSection.concat(Tai_symbol.Create(l1,0));
@@ -752,7 +755,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.6  2004-01-04 21:26:31  jonas
+  Revision 1.7  2004-01-05 08:13:30  jonas
+    * fixed compilation problems under x86
+
+  Revision 1.6  2004/01/04 21:26:31  jonas
     + Darwin support for routines imported from external libraries (not yet
       ideal, we should generate stubs in all files where the routines are
       used -> these are automatically merged by the linker; now we generate
