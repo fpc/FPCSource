@@ -15,17 +15,22 @@
  ****************************************************************************
 }
 
-Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  external name 'FPC_SYSC_MMAP';
-Function Fpmunmap(adr:pointer;len:size_t):cint; external name 'FPC_SYSC_MUNMAP';
+//Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  external name 'FPC_SYSC_MMAP';
+//Function Fpmunmap(adr:pointer;len:size_t):cint; external name 'FPC_SYSC_MUNMAP';
+//function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
+
 Function FpIOCtl(handle:cint;ndx:culong;Data: Pointer):cint;  external name 'FPC_SYSC_IOCTL';
 Function FpGetPid:pid_t;   external name 'FPC_SYSC_GETPID';
 Function FpReadLink(name,linkname:pchar;maxlen:size_t):cint;  external name 'FPC_SYSC_READLINK';
 Function FpNanoSleep(req : ptimespec;rem : ptimespec):cint; external name 'FPC_SYSC_NANOSLEEP';
-//function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 
 {
  $Log$
- Revision 1.5  2003-09-27 13:45:58  peter
+ Revision 1.6  2003-11-19 11:46:55  marco
+  * changes due to the previous *BSD changes. Mainly moving constants from
+    unix to systypes.inc (which acts as unxtypes.inc)
+
+ Revision 1.5  2003/09/27 13:45:58  peter
    * fpnanosleep exported in baseunix
    * fpnanosleep has pointer arguments to be C compliant
 

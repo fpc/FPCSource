@@ -14,9 +14,9 @@
 **********************************************************************}
 
 
-Function  fdFlush (fd : cint) : cint;
+Function  fsync (fd : cint) : cint;
 begin
-  fdFlush := do_SysCall(syscall_nr_fsync, fd);
+  fsync := do_SysCall(syscall_nr_fsync, fd);
 end;
 
 Function  Flock (fd,mode : cint) : cint;
@@ -110,7 +110,11 @@ end;
 
 {
   $Log$
-  Revision 1.20  2003-11-17 10:21:47  marco
+  Revision 1.21  2003-11-19 11:46:55  marco
+   * changes due to the previous *BSD changes. Mainly moving constants from
+     unix to systypes.inc (which acts as unxtypes.inc)
+
+  Revision 1.20  2003/11/17 10:21:47  marco
    * small fixes for changing unit unix again
 
   Revision 1.19  2003/11/17 10:05:51  marco

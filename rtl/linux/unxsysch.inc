@@ -1,3 +1,21 @@
+{
+    $Id$
+    Copyright (c) 2002 by Marco van de Voort
+
+    deeper calls exported by unit unix    
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ ****************************************************************************
+}
+
+Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer; external name 'FPC_SYSC_MMAP';
+Function Fpmunmap(adr:pointer;len:size_t):cint; external name 'FPC_SYSC_MUNMAP';
 
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint; external name 'FPC_SYSC_GETTIMEOFDAY';
 function fpNice(N:cint):cint;
@@ -9,3 +27,11 @@ Function fpSymlink(oldname,newname:pchar):cint;
 Function fpReadLink(name,linkname:pchar;maxlen:size_t):cint;
 Function fpReadLink(name:PathStr):PathStr;
 
+{
+  $Log$
+  Revision 1.4  2003-11-19 11:46:55  marco
+   * changes due to the previous *BSD changes. Mainly moving constants from
+     unix to systypes.inc (which acts as unxtypes.inc)
+
+
+}
