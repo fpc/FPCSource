@@ -11,8 +11,7 @@ program objtest;
 {$endif}
 
 uses
-// Cmem, // comment out to get the crash
-     SysUtils, Contnrs;
+  SysUtils;
 
 const
 {$ifdef cpusparc}
@@ -76,22 +75,6 @@ begin
   result:=TClassA.Create;
 end;
 
-procedure proca;
-var i: longint;
-    list: TObjectList;
-    time: double;
-begin
-  writeln('List test');
-  time:=now;
-  list:=TObjectList.Create(true);
-  list.add(TClassA.Create);
-  for i:=1 to loopcnt do
-    list.add(TClassRoot(list.last).Make);
-  list.free;
-  time:=now-time;
-  writeln(time);
-end;
-
 procedure procb;
 var i: longint;
     ar: array of TClassRoot;
@@ -102,23 +85,20 @@ begin
   setlength(ar, loopcnt+1);
   ar[0]:=TClassA.Create;
   for i:=1 to loopcnt do
-   begin
-    if i=65535 then
-      time:=time;
     ar[i]:=ar[i-1].Make;
-   end;
   for i:=0 to loopcnt do
-   begin
-    if i=65535 then
-      time:=time;
     ar[i].free;
-    end;
   time:=now-time;
   writeln(time);
 end;
 
+var
+  p : pointer;
 begin
-  proca;
+  { Add a big memory block to the free osblocks list }
+  getmem(p,1024*1024);
+  freemem(p);
+  { The small fixed size blocks shall not reuse the big memory block }
   procb;
 end.
 
