@@ -19,14 +19,27 @@ end;
 
 var
   w : widestring;
+  s : ansistring;
+  i : longint;
 begin
   err:=true;
   { this should choosse the shortstring version }
   lowercase(w);
   if err then
    begin
-     writeln('ERROR!');
+     writeln('Wrong lowercase Error!');
      halt(1);
    end;
+
+   { check if ansistring pos() call is not broken }
+   s:='';
+   for i:=1 to 300 do s:=s+'.';
+   s:=s+'test';
+   if pos('test',s)<>301 then
+    begin
+      writeln('Pos(ansistring) Error!');
+      halt(1);
+    end;
+
 end.
 
