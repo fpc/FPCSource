@@ -22,8 +22,11 @@
 
  ****************************************************************************}
 unit Mouse;
-{$G+}
 interface
+{$ifdef TP}
+  {$G+}
+{$endif}
+
 {$i platform.inc}
 
 uses
@@ -141,7 +144,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-02-29 11:43:16  pierre
+  Revision 1.5  2000-03-12 15:05:14  peter
+    * $G+ is only needed for tp
+
+  Revision 1.4  2000/02/29 11:43:16  pierre
     Common renamed APIComm to avoid problems with free vision
 
   Revision 1.3  2000/02/07 22:54:44  florian
