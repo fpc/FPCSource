@@ -34,13 +34,6 @@ Type
     next      : PExceptAddr;
   end;
 
-  PExceptObject = ^TExceptObject;
-  TExceptObject = record
-    FObject : TObject;
-    Addr,
-    Frame   : pointer;
-    Next    : PExceptObject;
-  end;
 
   TExceptObjectClass = Class of TObject;
 
@@ -51,6 +44,11 @@ Var
   ExceptAddrStack   : PExceptAddr;
   ExceptObjectStack : PExceptObject;
 
+Function RaiseList : PExceptObject;
+
+begin
+  RaiseList:=ExceptObjectStack;
+end;
 
 Function PushExceptAddr (Ft: Longint): PJmp_buf ;
   [Public, Alias : 'FPC_PUSHEXCEPTADDR'];saveregisters;
@@ -246,7 +244,11 @@ begin
 end;
 {
   $Log$
-  Revision 1.19  2000-05-04 12:25:53  pierre
+  Revision 1.20  2000-06-22 18:05:56  michael
+  + Modifications for exception support in sysutils. Mainly added
+     RaiseList function.
+
+  Revision 1.19  2000/05/04 12:25:53  pierre
    * Use saveregisters for PushExcept..
 
   Revision 1.18  2000/04/24 11:11:50  peter

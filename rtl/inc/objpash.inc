@@ -148,8 +148,19 @@
 
        TExceptProc = Procedure (Obj : TObject; Addr,Frame: Pointer);
 
+       { Exception object stack }
+       PExceptObject = ^TExceptObject;
+       TExceptObject = record
+         FObject : TObject;
+         Addr,
+         Frame   : pointer;
+         Next    : PExceptObject;
+       end;
+
        Const
           ExceptProc : TExceptProc = Nil;
+
+       Function RaiseList : PExceptObject;
 
 
 {*****************************************************************************
@@ -222,7 +233,11 @@
        end;
 {
   $Log$
-  Revision 1.10  2000-05-14 18:47:53  florian
+  Revision 1.11  2000-06-22 18:05:56  michael
+  + Modifications for exception support in sysutils. Mainly added
+     RaiseList function.
+
+  Revision 1.10  2000/05/14 18:47:53  florian
     * TVarRec with Int64/QWord stuff extended
 
   Revision 1.9  2000/04/24 11:11:50  peter

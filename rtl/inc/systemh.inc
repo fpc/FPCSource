@@ -418,6 +418,9 @@ Type
   TErrorProc = Procedure (ErrNo : Longint; Address,Frame : Pointer);
   TAbstractErrorProc = Procedure;
   TAssertErrorProc = Procedure(const msg,fname:ShortString;lineno,erroraddr:longint);
+
+
+
 const
   BackTraceStrFunc  : TBackTraceStrFunc = @SysBackTraceStr;
   ErrorProc         : TErrorProc = nil;
@@ -440,7 +443,11 @@ const
 
 {
   $Log$
-  Revision 1.83  2000-06-11 07:02:30  peter
+  Revision 1.84  2000-06-22 18:05:56  michael
+  + Modifications for exception support in sysutils. Mainly added
+     RaiseList function.
+
+  Revision 1.83  2000/06/11 07:02:30  peter
     * UniqueAnsiString -> UniqueString for Delphi compatibility
 
   Revision 1.82  2000/05/14 18:46:54  florian
