@@ -764,7 +764,7 @@ implementation
               end;
              in_low_x,in_high_x:
                begin
-                  if p^.left^.treetype in [typen,loadn] then
+                  if p^.left^.treetype in [typen,loadn,subscriptn] then
                     begin
                        case p^.left^.resulttype^.deftype of
                           orddef,enumdef:
@@ -862,7 +862,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  1998-11-13 10:15:52  peter
+  Revision 1.8  1998-11-14 10:51:33  peter
+    * fixed low/high for record.field
+
+  Revision 1.7  1998/11/13 10:15:52  peter
     * fixed ptr() with constants
 
   Revision 1.6  1998/11/05 12:03:05  peter
