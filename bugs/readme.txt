@@ -295,6 +295,7 @@ Fixed bugs:
   bug0239.pp   No warning for uninitialized class in IS statements  OK 0.99.11 (PM)
   bug0240.pp   Problems with larges value is case statements        OK 0.99.11 (FK)
   bug0241.pp   Problem with importing function from a DLL with .drv suffix ! OK 0.99.11 (PM)
+  bug0242.pp   Crash when passing a procedure to formal parameter   OK 0.99.11 (PM)
 
 Unproducable bugs:
 ------------------
@@ -316,7 +317,7 @@ bug0193.pp   overflow checking for 8 and 16 bit operations wrong
              overflow checking will only trap 32 bit overflow
              you have to use range checks for byte or 16 bit integers
 bug0124.pp   Asm, problem with -Rintel switch and indexing (whatever the order)
-             Partial fix only see before
+             Partial fix only see above
 
 Unfixed bugs:
 -------------
@@ -328,7 +329,7 @@ bug0230.pp   several strange happen on the ln function: ln(0): no
 bug0232.pp   const. procedure variables need a special syntax
              if they use calling specification modifiers
 bug0237.pp   Can't have sub procedures with names defined in interface
-bug0242.pp   Crash when passing a procedure to formal parameter
 bug0243.pp   Arguments of functions are computed from right to left this
              is against pascal convention
 bug0244.pp   nested procedures can't have same name as global ones
+bug0245.pp   assigning pointers to address of consts is allowed (refused by BP !) 
