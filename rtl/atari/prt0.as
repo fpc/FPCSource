@@ -13,7 +13,6 @@
 .globl  _edata                  | end of data segment
 .globl  _end                    | end of BSS segment (end of program)
 .globl  __BREAK                 | location of stack/heap break
-.globl  __exit                  | terminate immediately with exit code
 .globl  __ARGC                  | number of arguments
 .globl  __ARGS                  | argument list pointer
 .globl  __envp                  | environment string pointer
@@ -141,7 +140,11 @@ shrink:
 | call C entry point function _main()
 |
 	jsr     PASCALMAIN               | if _main returns
-	movew   d0,sp@(4)                |   insert return value and fall thru
+
+   movew   #0,sp@-                  | Terminate program normally
+   trap    #1
+
+|	movew   d0,sp@(4)                |   insert return value and fall thru
 
 
 
