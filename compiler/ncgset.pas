@@ -600,8 +600,8 @@ implementation
     procedure tcgcasenode.genlinearcmplist(hp : pcaserecord);
 
       var
-         first : boolean;
          last : TConstExprInt;
+         lastwasrange: boolean;
 
       procedure genitem(t : pcaserecord);
 
@@ -630,14 +630,14 @@ implementation
                   end;
                 { Reset last here, because we've only checked for one value and need to compare
                   for the next range both the lower and upper bound }
-                last:=0;
+                lastwasrange := false;
              end
            else
              begin
                 { it begins with the smallest label, if the value }
                 { is even smaller then jump immediately to the    }
                 { ELSE-label                                }
-                if first or (t^._low-last>1) then
+                if not lastwasrange or (t^._low-last>1) then
                   begin
 {$ifndef cpu64bit}
                      if opsize in [OS_64,OS_S64] then
@@ -676,15 +676,15 @@ implementation
                   end;
 
                 last:=t^._high;
+                lastwasrange := true;
              end;
-           first:=false;
            if assigned(t^.greater) then
              genitem(t^.greater);
         end;
 
       begin
          last:=0;
-         first:=true;
+         lastwasrange:=false;
          genitem(hp);
          cg.a_jmp_always(exprasmlist,elselabel);
       end;
@@ -972,7 +972,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.66  2004-08-16 21:00:15  peter
+  Revision 1.67  2004-08-25 11:51:31  jonas
+    * fixed rare case bug (see tests/test/tb0478.pp)
+
+  Revision 1.66  2004/08/16 21:00:15  peter
     * range checks fixed
 
   Revision 1.65  2004/07/22 10:07:09  jonas
