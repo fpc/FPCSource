@@ -245,63 +245,63 @@ scan_w_illegal_directive=02042_W_הוראת המהדר "$1" אינה חוקית
 scan_t_back_in=02043_TL_חזרה ב$1
 % When you use (\var{-vt}) the compiler tells you when it has finished
 % reading an include file.
-scan_w_unsupported_app_type=02044_W_Unsupported application type: "$1"
+scan_w_unsupported_app_type=02044_W_אין תמיכה לסוג האפליקציה: "$1"
 % You get this warning, ff you specify an unknown application type
 % with the directive \var{\{\$APPTYPE\}}
-scan_w_app_type_not_support=02045_W_APPTYPE is not supported by the target OS
+scan_w_app_type_not_support=02045_W_APPTYPE אינו נתמך ע"י ההמערכת הפעלה המבוקשת
 % The \var{\{\$APPTYPE\}} directive is supported by certain operating systems only.
-scan_w_description_not_support=02046_W_DESCRIPTION is not supported by the target OS
+scan_w_description_not_support=02046_W_DESCRIPTION אינו נתמך ע"י מערכת ההפעלה המבוקשת
 % The \var{\{\$DESCRIPTION\}} directive is not supported on this target OS
-scan_n_version_not_support=02047_N_VERSION is not supported by target OS
+scan_n_version_not_support=02047_N_VERSION אינו נתמך ע"י מערכת הפעלה המבוקשת
 % The \var{\{\$VERSION\}} directive is not supported on this target OS
-scan_n_only_exe_version=02048_N_VERSION only for exes or DLLs
+scan_n_only_exe_version=02048_N_VERSION רק לקבצי exe או DLL
 % The \var{\{\$VERSION\}} directive is only used for executable or DLL sources.
-scan_w_wrong_version_ignored=02049_W_Wrong format for VERSION directive "$1"
+scan_w_wrong_version_ignored=02049_W_פורמט שגוי להוראת VERSION: "$1"
 % The \var{\{\$VERSION\}} directive format is majorversion.minorversion
 % where majorversion and minorversion are words.
-scan_e_illegal_asmmode_specifier=02050_E_Illegal assembler style specified "$1"
+scan_e_illegal_asmmode_specifier=02050_E_סגנון האסמבלר שצויין "$1" אינו חוקי
 % When you specify an assembler mode with the \var{\{\$ASMMODE xxx\}}
 % the compiler didn't recognize the mode you specified.
-scan_w_no_asm_reader_switch_inside_asm=02051_W_ASM reader switch is not possible inside asm statement, "$1" will be effective only for next
+scan_w_no_asm_reader_switch_inside_asm=02051_W_מתג קורא הASM אינו אפשרי בתוך משפט אסמבלי. "$1" יהיה ישפיע רק בהכרזה הבאה/
 % It is not possible to switch from one assembler reader to another
 % inside an assmebler block. The new reader will be used for next
 % assembler statements only.
-scan_e_wrong_switch_toggle=02052_E_Wrong switch toggle, use ON/OFF or +/-
+scan_e_wrong_switch_toggle=02052_E_שימוש שגוי במתג. השתמש בON/OFF או ב +/-
 % You need to use ON or OFF or a + or - to toggle the switch
-scan_e_resourcefiles_not_supported=02053_E_Resource files are not supported for this target
+scan_e_resourcefiles_not_supported=02053_E_קובץ המשאבים אינו נתמך ביעד הנבחר
 % The target you are compiling for doesn't support resource files.
-scan_w_include_env_not_found=02054_W_Include environment "$1" not found in environment
+scan_w_include_env_not_found=02054_W_משתנה הסביבה "$1" לא נמצא בסביבה
 % The included environment variable can't be found in the environment, it will
 % be replaced by an empty string instead.
-scan_e_invalid_maxfpureg_value=02055_E_Illegal value for FPU register limit
+scan_e_invalid_maxfpureg_value=02055_E_ערך לא חוקי להגבלות אוגר הFPC
 % Valid values for this directive are 0..8 and NORMAL/DEFAULT
-scan_w_only_one_resourcefile_supported=02056_W_Only one resource file is supported for this target
+scan_w_only_one_resourcefile_supported=02056_W_רק קובץ משאבים אחד נתמך ביעד זה
 % The target you are compiling for supports only one resource file.
 % The first resource file found is used, the others are discarded.
-scan_w_macro_support_turned_off=02057_W_Macro support has been turned off
+scan_w_macro_support_turned_off=02057_W_התמיכה במקרו כובה
 % A macro declaration has been found, but macro support is currently off,
 % so the declaration will be ignored. To turn macro support on compile with
 % -Sm on the commandline or add {$MACRO ON} in the source
-scan_e_invalid_interface_type=02058_E_Illegal interface type specified. Valids are COM, CORBA or DEFAULT.
+scan_e_invalid_interface_type=02058_E_הוכרז סוג ממשק לא חוקי. הגדרות חוקיות הם COM, CORBA או DEFAULT
 % The interface type that was specified is not supported
-scan_w_appid_not_support=02059_W_APPID is only supported for PalmOS
+scan_w_appid_not_support=02059_W_APPID נתמך רק בPALMOS
 % The \var{\{\$APPID\}} directive is only supported for the PalmOS target.
-scan_w_appname_not_support=02060_W_APPNAME is only supported for PalmOS
+scan_w_appname_not_support=02060_W_APPNAME נתמך רק בPALMOS
 % The \var{\{\$APPNAME\}} directive is only supported for the PalmOS target.
-scan_e_string_exceeds_255_chars=02061_E_Constant strings can't be longer than 255 chars
+scan_e_string_exceeds_255_chars=02061_E_מחרוזת קבועה לא יכולה להיות מעל 255 תווים
 % A single string constant can contain at most 255 chars. Try splitting up the
 % string in multiple smaller parts and concatenate them with a + operator.
-scan_f_include_deep_ten=02062_F_Including include files exceeds a depth of 16.
+scan_f_include_deep_ten=02062_F_הוספת קבצי הinclude גלש מעומק ה16
 % When including include files the files have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
 % recursion is used.
-scan_e_too_many_push=02063_F_Too many levels of PUSH
+scan_e_too_many_push=02063_F_יותר מידי שכבות PUSH
 % A maximum of 20 levels is allowed.  This error occur only in mode MacPas.
-scan_e_too_many_pop=02064_E_A POP without a preceding PUSH
+scan_e_too_many_pop=02064_E_POP ללא שחרור של PUSH
 % This error occur only in mode MacPas.
-scan_e_error_macro_lacks_value=02065_E_Macro "$1" does not have any value
+scan_e_error_macro_lacks_value=02065_E_מקרו "$1" לא מכיל ערכים
 % Thus the conditional compiling expression cannot be evaluated.
-scan_e_wrong_switch_toggle_default=02066_E_Wrong switch toggle, use ON/OFF/DEFAULT or +/-/*
+scan_e_wrong_switch_toggle_default=02066_E_שימוש במתג שגוי, השתמש ב ON/OFF/DEFAULT או ב+/-/*
 % You need to use ON or OFF or DEFAULT or a + or - or * to toggle the switch
 % \end{description}
 #
