@@ -450,7 +450,7 @@ unit tgobj;
            begin
              istemp:=((ref.base.number=procinfo.framepointer.number) and
                      (ref.index.number=NR_NO) and
-                      (ref.offset>firsttemp));
+                      (ref.offset>=firsttemp));
            end
         else
            begin
@@ -544,7 +544,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.28  2003-04-22 09:46:17  peter
+  Revision 1.29  2003-04-23 08:40:39  jonas
+    * fixed istemp() when tg.direction = 1
+
+  Revision 1.28  2003/04/22 09:46:17  peter
     * always allocate 4 bytes when 0 bytes are asked
 
   Revision 1.27  2003/03/11 21:46:24  jonas
