@@ -1185,7 +1185,9 @@ implementation
               if token=_LKLAMMER then
                 begin
                    consume(_LKLAMMER);
-                   consume_idlist;
+                   repeat
+                     consume(_ID);
+                   until not try_to_consume(_COMMA);
                    consume(_RKLAMMER);
                 end;
               consume(_SEMICOLON);
@@ -1386,7 +1388,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2002-09-07 15:25:07  peter
+  Revision 1.79  2002-09-09 17:34:15  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.78  2002/09/07 15:25:07  peter
     * old logs removed and tabs fixed
 
   Revision 1.77  2002/09/03 16:26:27  daniel

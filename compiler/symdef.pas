@@ -208,6 +208,7 @@ interface
 
        trecorddef = class(tabstractrecorddef)
        public
+          isunion       : boolean;
           constructor create(p : tsymtable);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -2904,6 +2905,7 @@ implementation
           symtable.dataalignment:=1
          else
           symtable.dataalignment:=aktalignment.recordalignmax;
+         isunion:=false;
       end;
 
 
@@ -2920,6 +2922,7 @@ implementation
          trecordsymtable(symtable).ppuload(ppufile);
          read_member:=oldread_member;
          symtable.defowner:=self;
+         isunion:=false;
       end;
 
 
@@ -2929,6 +2932,7 @@ implementation
            symtable.free;
          inherited destroy;
       end;
+
 
     function trecorddef.needs_inittable : boolean;
       begin
@@ -5537,7 +5541,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.93  2002-09-07 15:25:07  peter
+  Revision 1.94  2002-09-09 17:34:15  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.93  2002/09/07 15:25:07  peter
     * old logs removed and tabs fixed
 
   Revision 1.92  2002/09/05 19:29:42  peter

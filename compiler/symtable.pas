@@ -1389,14 +1389,15 @@ implementation
          hsym : tsym;
       begin
          { check for duplicate id in para symtable of methods }
-         if assigned(procinfo._class) and
-         { but not in nested procedures !}
+         if assigned(procinfo) and
+            assigned(procinfo._class) and
+            { but not in nested procedures !}
             (not(assigned(procinfo.parent)) or
              (assigned(procinfo.parent) and
               not(assigned(procinfo.parent._class)))
             ) and
-          { funcretsym is allowed !! }
-           (sym.typ<>funcretsym) then
+            { funcretsym is allowed !! }
+            (sym.typ<>funcretsym) then
            begin
               hsym:=search_class_member(procinfo._class,sym.name);
               { private ids can be reused }
@@ -1906,9 +1907,17 @@ implementation
                 findunitsymtable:=st;
                 break;
               end;
-            objectsymtable,
-            recordsymtable :
+            objectsymtable :
               st:=st.defowner.owner;
+            recordsymtable :
+              begin
+                { don't continue when the current
+                  symtable is used for variant records }
+                if trecorddef(st.defowner).isunion then
+                 st:=nil
+                else
+                 st:=st.defowner.owner;
+              end;
             else
               internalerror(5566562);
           end;
@@ -2299,7 +2308,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.70  2002-09-05 19:29:45  peter
+  Revision 1.71  2002-09-09 17:34:16  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.70  2002/09/05 19:29:45  peter
     * memdebug enhancements
 
   Revision 1.69  2002/08/25 19:25:21  peter

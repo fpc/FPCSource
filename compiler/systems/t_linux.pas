@@ -28,13 +28,14 @@ unit t_linux;
 interface
 
   uses
+    symsym,
     import,export,link;
 
   type
     timportliblinux=class(timportlib)
       procedure preparelib(const s:string);override;
       procedure importprocedure(const func,module:string;index:longint;const name:string);override;
-      procedure importvariable(const varname,module:string;const name:string);override;
+      procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
     end;
 
@@ -64,7 +65,7 @@ implementation
     cutils,cclasses,
     verbose,systems,globtype,globals,
     symconst,script,
-    fmodule,symsym
+    fmodule
 {$ifdef i386}
     ,aasmbase,aasmtai,aasmcpu,cpubase
 {$endif i386}
@@ -95,13 +96,13 @@ begin
 end;
 
 
-procedure timportliblinux.importvariable(const varname,module:string;const name:string);
+procedure timportliblinux.importvariable(vs:tvarsym;const name,module:string);
 begin
   { insert sharedlibrary }
   current_module.linkothersharedlibs.add(SplitName(module),link_allways);
   { reset the mangledname and turn off the dll_var option }
-  aktvarsym.set_mangledname(name);
-  exclude(aktvarsym.varoptions,vo_is_dll_var);
+  vs.set_mangledname(name);
+  exclude(vs.varoptions,vo_is_dll_var);
 end;
 
 
@@ -524,7 +525,15 @@ end.
 
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:51  carl
+  Revision 1.2  2002-09-09 17:34:17  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.1  2002/09/06 15:03:51  carl
     * moved files to systems directory
 
   Revision 1.33  2002/09/03 16:26:28  daniel

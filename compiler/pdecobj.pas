@@ -223,7 +223,6 @@ implementation
            overriden : tsym;
            hs : string;
            varspez : tvarspez;
-           sc : tidstringlist;
            s : string;
            tt : ttype;
            declarepos : tfileposinfo;
@@ -231,6 +230,9 @@ implementation
            pd : tprocdef;
            pt : tnode;
            propname : stringid;
+           dummyst : tparasymtable;
+           vs : tvarsym;
+           sc : tsinglelist;
         begin
            { check for a class }
            aktprocsym:=nil;
@@ -253,6 +255,11 @@ implementation
                        Message(parser_e_cant_publish_that_property);
 
                      { create a list of the parameters in propertyparas }
+
+                     dummyst:=tparasymtable.create;
+                     dummyst.next:=symtablestack;
+                     symtablestack:=dummyst;
+                     sc:=tsinglelist.create;
                      consume(_LECKKLAMMER);
                      inc(testcurobject);
                      repeat
@@ -271,24 +278,20 @@ implementation
                             consume(_OUT);
                             varspez:=vs_out;
                          end
-                       else varspez:=vs_value;
-                       sc:=consume_idlist;
-{$ifdef fixLeaksOnError}
-                       strContStack.push(sc);
-{$endif fixLeaksOnError}
+                       else
+                         varspez:=vs_value;
+                       sc.reset;
+                       repeat
+                         vs:=tvarsym.create(orgpattern,generrortype);
+                         dummyst.insert(vs);
+                         sc.insert(vs);
+                         consume(_ID);
+                       until not try_to_consume(_COMMA);
                        if token=_COLON then
                          begin
                             consume(_COLON);
                             if token=_ARRAY then
                               begin
-                                 {
-                                 if (varspez<>vs_const) and
-                                   (varspez<>vs_var) then
-                                   begin
-                                      varspez:=vs_const;
-                                      Message(parser_e_illegal_open_parameter);
-                                   end;
-                                 }
                                  consume(_ARRAY);
                                  consume(_OF);
                                  { define range and type of range }
@@ -301,23 +304,23 @@ implementation
                          end
                        else
                          tt:=cformaltype;
-                       repeat
-                         s:=sc.get(declarepos);
-                         if s='' then
-                          break;
-                         hp2:=TParaItem.create;
-                         hp2.paratyp:=varspez;
-                         hp2.paratype:=tt;
-                         propertyparas.insert(hp2);
-                       until false;
-{$ifdef fixLeaksOnError}
-                       if strContStack.pop <> sc then
-                         writeln('problem with strContStack in ptype');
-{$endif fixLeaksOnError}
-                       sc.free;
+                       vs:=tvarsym(sc.first);
+                       while assigned(vs) do
+                        begin
+                          hp2:=TParaItem.create;
+                          hp2.paratyp:=varspez;
+                          hp2.paratype:=tt;
+                          propertyparas.insert(hp2);
+                          vs:=tvarsym(vs.listnext);
+                        end;
                      until not try_to_consume(_SEMICOLON);
                      dec(testcurobject);
                      consume(_RECKKLAMMER);
+
+                     { remove dummy symtable }
+                     symtablestack:=symtablestack.next;
+                     dummyst.free;
+                     sc.free;
 
                      { the parser need to know if a property has parameters, the
                        index parameter doesn't count (PFV) }
@@ -1147,7 +1150,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  2002-09-03 16:26:26  daniel
+  Revision 1.51  2002-09-09 17:34:15  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.50  2002/09/03 16:26:26  daniel
     * Make Tprocdef.defs protected
 
   Revision 1.49  2002/08/17 09:23:38  florian

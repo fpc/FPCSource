@@ -50,10 +50,13 @@ interface
      pStr4=^tStr4;
 
     timportlibwin32=class(timportlib)
+    private
+      procedure importvariable_str(const s:string;const name,module:string);
+    public
       procedure GetDefExt(var N:longint;var P:pStr4);virtual;
       procedure preparelib(const s:string);override;
       procedure importprocedure(const func,module:string;index:longint;const name:string);override;
-      procedure importvariable(const varname,module:string;const name:string);override;
+      procedure importvariable(vs:tvarsym;const name,module:string);override;
       procedure generatelib;override;
       procedure generatenasmlib;virtual;
       procedure generatesmartlib;override;
@@ -171,7 +174,13 @@ const
       end;
 
 
-    procedure timportlibwin32.importvariable(const varname,module:string;const name:string);
+    procedure timportlibwin32.importvariable(vs:tvarsym;const name,module:string);
+      begin
+        importvariable_str(vs.mangledname,name,module);
+      end;
+
+
+    procedure timportlibwin32.importvariable_str(const s:string;const name,module:string);
       var
          hp1 : timportlist;
          hp2 : timported_item;
@@ -194,7 +203,7 @@ const
               hp1:=timportlist.create(hs);
               current_module.imports.concat(hp1);
            end;
-         hp2:=timported_item.create_var(varname,name);
+         hp2:=timported_item.create_var(s,name);
          hp1.imported_items.concat(hp2);
       end;
 
@@ -1413,7 +1422,7 @@ function tDLLScannerWin32.GetEdata(HeaderEntry:cardinal):longbool;
      importlib.preparelib(current_module.modulename^);
     end;
    if IsData then
-    importlib.importvariable(name,_n,name)
+    timportlibwin32(importlib).importvariable_str(name,_n,name)
    else
     importlib.importprocedure(name,_n,index,name);
   end;
@@ -1553,7 +1562,15 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:50  carl
+  Revision 1.2  2002-09-09 17:34:17  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.1  2002/09/06 15:03:50  carl
     * moved files to systems directory
 
   Revision 1.40  2002/09/03 16:26:29  daniel

@@ -28,7 +28,8 @@ interface
 uses
   cutils,cclasses,
   systems,
-  aasmbase;
+  aasmbase,
+  symsym;
 
 type
    timported_item = class(TLinkedListItem)
@@ -58,7 +59,7 @@ type
       destructor Destroy;override;
       procedure preparelib(const s:string);virtual;
       procedure importprocedure(const func,module:string;index:longint;const name:string);virtual;
-      procedure importvariable(const varname,module:string;const name:string);virtual;
+      procedure importvariable(vs:tvarsym;const name,module:string);virtual;
       procedure generatelib;virtual;
       procedure generatesmartlib;virtual;
    end;
@@ -185,7 +186,7 @@ begin
 end;
 
 
-procedure timportlib.importvariable(const varname,module:string;const name:string);
+procedure timportlib.importvariable(vs:tvarsym;const name,module:string);
 begin
   NotSupported;
 end;
@@ -237,7 +238,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2002-07-26 21:15:38  florian
+  Revision 1.20  2002-09-09 17:34:14  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.19  2002/07/26 21:15:38  florian
     * rewrote the system handling
 
   Revision 1.18  2002/07/01 18:46:22  peter

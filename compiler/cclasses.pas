@@ -196,7 +196,6 @@ interface
          procedure inserttree(currtree,currroot:TNamedIndexItem);
        public
          noclear   : boolean;
-         replace_existing : boolean;
          delete_doubles : boolean;
          constructor Create;
          destructor  Destroy;override;
@@ -207,6 +206,7 @@ interface
          procedure foreach(proc2call:TNamedIndexcallback;arg:pointer);
          procedure foreach_static(proc2call:TNamedIndexStaticCallback;arg:pointer);
          function  insert(obj:TNamedIndexItem):TNamedIndexItem;
+         function  replace(oldobj,newobj:TNamedIndexItem):boolean;
          function  rename(const olds,News : string):TNamedIndexItem;
          function  search(const s:string):TNamedIndexItem;
          function  speedsearch(const s:string;SpeedValue:cardinal):TNamedIndexItem;
@@ -237,6 +237,7 @@ interface
         procedure deleteindex(p:TNamedIndexItem);
         procedure delete(var p:TNamedIndexItem);
         procedure insert(p:TNamedIndexItem);
+        procedure replace(oldp,newp:TNamedIndexItem);
         function  search(nr:integer):TNamedIndexItem;
       private
         growsize,
@@ -844,7 +845,6 @@ end;
         FRoot:=nil;
         FHashArray:=nil;
         noclear:=false;
-        replace_existing:=false;
         delete_doubles:=false;
       end;
 
@@ -1120,6 +1120,78 @@ end;
       end;
 
 
+    function Tdictionary.replace(oldobj,newobj:TNamedIndexItem):boolean;
+      var
+        hp : TNamedIndexItem;
+      begin
+        hp:=nil;
+        Replace:=false;
+        newobj.FSpeedValue:=GetSpeedValue(newobj.FName^);
+        { must be the same name and hash }
+        if (oldobj.FSpeedValue<>newobj.FSpeedValue) or
+           (oldobj.FName^<>newobj.FName^) then
+         exit;
+        { copy tree info }
+        newobj.FLeft:=oldobj.FLeft;
+        newobj.FRight:=oldobj.FRight;
+        { update treeroot }
+        if assigned(FHashArray) then
+         begin
+           hp:=FHashArray^[newobj.FSpeedValue mod hasharraysize];
+           if hp=oldobj then
+            begin
+              FHashArray^[newobj.FSpeedValue mod hasharraysize]:=newobj;
+              hp:=nil;
+            end;
+         end
+        else
+         begin
+           hp:=FRoot;
+           if hp=oldobj then
+            begin
+              FRoot:=newobj;
+              hp:=nil;
+            end;
+         end;
+        { update parent entry }
+        while assigned(hp) do
+         begin
+           { is the node to replace the left or right, then
+             update this node and stop }
+           if hp.FLeft=oldobj then
+            begin
+              hp.FLeft:=newobj;
+              break;
+            end;
+           if hp.FRight=oldobj then
+            begin
+              hp.FRight:=newobj;
+              break;
+            end;
+           { First check SpeedValue, to allow a fast insert }
+           if hp.SpeedValue>oldobj.SpeedValue then
+            hp:=hp.FRight
+           else
+            if hp.SpeedValue<oldobj.SpeedValue then
+             hp:=hp.FLeft
+           else
+            begin
+              if (hp.FName^=oldobj.FName^) then
+               begin
+                 { this can never happend, return error }
+                 exit;
+               end
+              else
+               if oldobj.FName^>hp.FName^ then
+                hp:=hp.FLeft
+              else
+               hp:=hp.FRight;
+            end;
+         end;
+        Replace:=true;
+      end;
+
+
     function Tdictionary.insert(obj:TNamedIndexItem):TNamedIndexItem;
       begin
         obj.FSpeedValue:=GetSpeedValue(obj.FName^);
@@ -1153,7 +1225,7 @@ end;
              insertNode:=insertNode(NewNode,currNode.FLeft)
            else
             begin
-              if (replace_existing or delete_doubles) and
+              if (delete_doubles) and
                  assigned(currNode) then
                 begin
                   NewNode.FLeft:=currNode.FLeft;
@@ -1515,6 +1587,27 @@ end;
       end;
 
 
+    procedure tindexarray.replace(oldp,newp:TNamedIndexItem);
+      var
+        i : integer;
+      begin
+        newp.FIndexnr:=oldp.FIndexnr;
+        newp.FIndexNext:=oldp.FIndexNext;
+        data^[newp.FIndexnr]:=newp;
+        { update Linked List backward }
+        i:=newp.FIndexnr;
+        while (i>0) do
+         begin
+           dec(i);
+           if (i>0) and assigned(data^[i]) then
+            begin
+              data^[i].FIndexNext:=newp;
+              break;
+            end;
+         end;
+      end;
+
+
 {****************************************************************************
                                 tdynamicarray
 ****************************************************************************}
@@ -1751,7 +1844,15 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2002-09-05 19:29:42  peter
+  Revision 1.19  2002-09-09 17:34:14  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.18  2002/09/05 19:29:42  peter
     * memdebug enhancements
 
   Revision 1.17  2002/08/11 13:24:11  peter

@@ -34,7 +34,7 @@ implementation
 
     uses
        { common }
-       cutils,
+       cutils,cclasses,
        { global }
        globtype,globals,tokens,verbose,
        systems,
@@ -62,46 +62,36 @@ implementation
     { => the procedure is also used to read     }
     { a sequence of variable declaration        }
 
-      procedure insert_syms(st : tsymtable;sc : tidstringlist;tt : ttype;is_threadvar : boolean);
+      procedure insert_syms(sc : tsinglelist;tt : ttype;is_threadvar : boolean);
       { inserts the symbols of sc in st with def as definition or sym as ttypesym, sc is disposed }
         var
-           s : string;
-           filepos : tfileposinfo;
-           ss,ss2 : tvarsym;
+          vs,vs2 : tvarsym;
         begin
-           filepos:=akttokenpos;
-           while not sc.empty do
+           vs:=tvarsym(sc.first);
+           while assigned(vs) do
              begin
-                s:=sc.get(akttokenpos);
-                ss:=tvarsym.Create(s,tt);
+                vs.vartype:=tt;
                 if is_threadvar then
-                  include(ss.varoptions,vo_is_thread_var);
-                st.insert(ss);
+                  include(vs.varoptions,vo_is_thread_var);
                 { static data fields are inserted in the globalsymtable }
-                if (st.symtabletype=objectsymtable) and
+                if (symtablestack.symtabletype=objectsymtable) and
                    (sp_static in current_object_option) then
                   begin
-                     ss2:=tvarsym.create('$'+lower(st.name^)+'_'+upper(s),tt);
-                     st.defowner.owner.insert(ss2);
-                     st.defowner.owner.insertvardata(ss2);
+                     vs2:=tvarsym.create('$'+lower(symtablestack.name^)+'_'+vs.name,tt);
+                     symtablestack.defowner.owner.insert(vs2);
+                     symtablestack.defowner.owner.insertvardata(vs2);
                   end
                 else
                   begin
                     { external data is not possible here }
-                    st.insertvardata(ss);
+                    symtablestack.insertvardata(vs);
                   end;
+                vs:=tvarsym(vs.listnext);
              end;
-{$ifdef fixLeaksOnError}
-             if strContStack.pop <> sc then
-               writeln('problem with strContStack in pdecl (2)');
-{$endif fixLeaksOnError}
-           sc.free;
-           akttokenpos:=filepos;
         end;
 
       var
-         sc : tidstringList;
-         s : stringid;
+         sc : tsinglelist;
          old_block_type : tblock_type;
          declarepos,storetokenpos : tfileposinfo;
          oldsymtablestack : tsymtable;
@@ -112,10 +102,9 @@ implementation
          newtype : ttypesym;
          is_dll,
          is_gpc_name,is_cdecl,
-         extern_aktvarsym,export_aktvarsym : boolean;
+         extern_var,export_var : boolean;
          old_current_object_option : tsymoptions;
-         dll_name,
-         C_name : string;
+         hs,sorg,C_name,dll_name : string;
          tt,casetype : ttype;
          { Delphi initialized vars }
          tconstsym : ttypedconstsym;
@@ -124,6 +113,7 @@ implementation
          usedalign,
          maxsize,minalignment,maxalignment,startvarrecalign,startvarrecsize : longint;
          pt : tnode;
+         vs    : tvarsym;
          srsym : tsym;
          srsymtable : tsymtable;
          unionsymtable : tsymtable;
@@ -144,14 +134,18 @@ implementation
          if not (token in [_ID,_CASE,_END]) then
           consume(_ID);
          { read vars }
+         sc:=tsinglelist.create;
          while (token=_ID) and
                not(is_object and (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED])) do
            begin
-             C_name:=orgpattern;
-             sc:=consume_idlist;
-{$ifdef fixLeaksOnError}
-             strContStack.push(sc);
-{$endif fixLeaksOnError}
+             sorg:=orgpattern;
+             sc.reset;
+             repeat
+               vs:=tvarsym.create(orgpattern,generrortype);
+               symtablestack.insert(vs);
+               sc.insert(vs);
+               consume(_ID);
+             until not try_to_consume(_COMMA);
              consume(_COLON);
              if (m_gpc in aktmodeswitches) and
                 not(is_record or is_object or is_threadvar) and
@@ -184,20 +178,13 @@ implementation
              symdone:=false;
              if is_gpc_name then
                begin
-                  storetokenpos:=akttokenpos;
-                  s:=sc.get(akttokenpos);
-                  if not sc.empty then
-                   Message(parser_e_absolute_only_one_var);
-{$ifdef fixLeaksOnError}
-                   if strContStack.pop <> sc then
-                     writeln('problem with strContStack in pdecl (3)');
-{$endif fixLeaksOnError}
-                  sc.free;
-                  aktvarsym:=tvarsym.create_C(s,target_info.Cprefix+C_name,tt);
-                  include(aktvarsym.varoptions,vo_is_external);
-                  symtablestack.insert(aktvarsym);
-                  { external, so no insert in the data }
-                  akttokenpos:=storetokenpos;
+                  vs:=tvarsym(sc.first);
+                  if assigned(vs.listnext) then
+                    Message(parser_e_absolute_only_one_var);
+                  vs.vartype:=tt;
+                  include(vs.varoptions,vo_is_C_var);
+                  vs.set_mangledname(target_info.Cprefix+sorg);
+                  include(vs.varoptions,vo_is_external);
                   symdone:=true;
                end;
              { check for absolute }
@@ -206,106 +193,82 @@ implementation
               begin
                 consume(_ABSOLUTE);
                 { only allowed for one var }
-                s:=sc.get(declarepos);
-                if not sc.empty then
-                 Message(parser_e_absolute_only_one_var);
-{$ifdef fixLeaksOnError}
-                 if strContStack.pop <> sc then
-                   writeln('problem with strContStack in pdecl (4)');
-{$endif fixLeaksOnError}
-                sc.free;
+                vs:=tvarsym(sc.first);
+                if assigned(vs.listnext) then
+                  Message(parser_e_absolute_only_one_var);
                 { parse the rest }
                 pt:=expr;
-                if (pt.nodetype=stringconstn) or (is_constcharnode(pt)) then
+                if (pt.nodetype=stringconstn) or
+                   (is_constcharnode(pt)) then
                  begin
-                   storetokenpos:=akttokenpos;
-                   akttokenpos:=declarepos;
-                   abssym:=tabsolutesym.create(s,tt);
+                   abssym:=tabsolutesym.create(vs.realname,tt);
+                   abssym.fileinfo:=vs.fileinfo;
                    if pt.nodetype=stringconstn then
-                     s:=strpas(tstringconstnode(pt).value_str)
+                     hs:=strpas(tstringconstnode(pt).value_str)
                    else
-                     s:=chr(tordconstnode(pt).value);
+                     hs:=chr(tordconstnode(pt).value);
                    consume(token);
                    abssym.abstyp:=toasm;
-                   abssym.asmname:=stringdup(s);
-                   symtablestack.insert(abssym);
-                   akttokenpos:=storetokenpos;
-                   symdone:=true;
-                 end;
-                if not symdone then
+                   abssym.asmname:=stringdup(hs);
+                   { replace the varsym }
+                   symtablestack.replace(vs,abssym);
+                   vs.free;
+                 end
+                { variable }
+                else if (pt.nodetype=loadn) then
                  begin
-                   { variable }
-                   if (pt.nodetype=loadn) then
+                   { we should check the result type of srsym }
+                   if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym,funcretsym]) then
+                     Message(parser_e_absolute_only_to_var_or_const);
+                   abssym:=tabsolutesym.create(vs.realname,tt);
+                   abssym.fileinfo:=vs.fileinfo;
+                   abssym.abstyp:=tovar;
+                   abssym.ref:=tstoredsym(tloadnode(pt).symtableentry);
+                   symtablestack.replace(vs,abssym);
+                   vs.free;
+                 end
+                { funcret }
+                else if (pt.nodetype=funcretn) then
+                 begin
+                   abssym:=tabsolutesym.create(vs.realname,tt);
+                   abssym.fileinfo:=vs.fileinfo;
+                   abssym.abstyp:=tovar;
+                   abssym.ref:=tstoredsym(tfuncretnode(pt).funcretsym);
+                   symtablestack.replace(vs,abssym);
+                   vs.free;
+                 end
+                { address }
+                else if is_constintnode(pt) and
+                        ((target_info.system=system_i386_go32v2) or
+                         (m_objfpc in aktmodeswitches) or
+                         (m_delphi in aktmodeswitches)) then
+                 begin
+                   abssym:=tabsolutesym.create(vs.realname,tt);
+                   abssym.fileinfo:=vs.fileinfo;
+                   abssym.abstyp:=toaddr;
+                   abssym.absseg:=false;
+                   abssym.address:=tordconstnode(pt).value;
+                   if (token=_COLON) and
+                      (target_info.system=system_i386_go32v2) then
                     begin
-                      { we should check the result type of srsym }
-                      if not (tloadnode(pt).symtableentry.typ in [varsym,typedconstsym,funcretsym]) then
-                        Message(parser_e_absolute_only_to_var_or_const);
-                      storetokenpos:=akttokenpos;
-                      akttokenpos:=declarepos;
-                      abssym:=tabsolutesym.create(s,tt);
-                      abssym.abstyp:=tovar;
-                      abssym.ref:=tstoredsym(tloadnode(pt).symtableentry);
-                      symtablestack.insert(abssym);
-                      akttokenpos:=storetokenpos;
-                      symdone:=true;
-                    end
-                   { funcret }
-                   else if (pt.nodetype=funcretn) then
-                    begin
-                      storetokenpos:=akttokenpos;
-                      akttokenpos:=declarepos;
-                      abssym:=tabsolutesym.create(s,tt);
-                      abssym.abstyp:=tovar;
-                      abssym.ref:=tstoredsym(tfuncretnode(pt).funcretsym);
-                      symtablestack.insert(abssym);
-                      akttokenpos:=storetokenpos;
-                      symdone:=true;
-                    end;
-                   { address }
-                   if (not symdone) then
-                    begin
-                      if is_constintnode(pt) and
-                         ((target_info.system=system_i386_go32v2) or
-                          (m_objfpc in aktmodeswitches) or
-                          (m_delphi in aktmodeswitches)) then
-                       begin
-                         storetokenpos:=akttokenpos;
-                         akttokenpos:=declarepos;
-                         abssym:=tabsolutesym.create(s,tt);
-                         abssym.abstyp:=toaddr;
-                         abssym.absseg:=false;
-                         abssym.address:=tordconstnode(pt).value;
-                         if (token=_COLON) and
-                            (target_info.system=system_i386_go32v2) then
-                          begin
-                            consume(token);
-                            pt.free;
-                            pt:=expr;
-                            if is_constintnode(pt) then
-                              begin
-                                abssym.address:=abssym.address shl 4+tordconstnode(pt).value;
-                                abssym.absseg:=true;
-                              end
-                            else
-                               Message(parser_e_absolute_only_to_var_or_const);
-                          end;
-                         symtablestack.insert(abssym);
-                         akttokenpos:=storetokenpos;
-                         symdone := true;
-                       end
+                      consume(token);
+                      pt.free;
+                      pt:=expr;
+                      if is_constintnode(pt) then
+                        begin
+                          abssym.address:=abssym.address shl 4+tordconstnode(pt).value;
+                          abssym.absseg:=true;
+                        end
                       else
-                       Message(parser_e_absolute_only_to_var_or_const);
-                    end
+                         Message(parser_e_absolute_only_to_var_or_const);
+                    end;
+                   symtablestack.replace(vs,abssym);
+                   vs.free;
                  end
                 else
-                  Message(parser_e_absolute_only_to_var_or_const);
-                if not symdone then
-                  begin
-                    tt := generrortype;
-                    symtablestack.insert(tvarsym.create(s,tt));
-                    symdone:=true;
-                  end;
+                 Message(parser_e_absolute_only_to_var_or_const);
                 pt.free;
+                symdone:=true;
               end;
              { Handling of Delphi typed const = initialized vars ! }
              { When should this be rejected ?
@@ -318,14 +281,14 @@ implementation
                 not is_record and
                 not is_object then
                begin
-                  storetokenpos:=akttokenpos;
-                  s:=sc.get(akttokenpos);
-                  if not sc.empty then
+                  vs:=tvarsym(sc.first);
+                  if assigned(vs.listnext) then
                     Message(parser_e_initialized_only_one_var);
-                  tconstsym:=ttypedconstsym.createtype(s,tt,true);
-                  symtablestack.insert(tconstsym);
+                  tconstsym:=ttypedconstsym.createtype(vs.realname,tt,true);
+                  tconstsym.fileinfo:=vs.fileinfo;
+                  symtablestack.replace(vs,tconstsym);
+                  vs.free;
                   symtablestack.insertconstdata(tconstsym);
-                  akttokenpos:=storetokenpos;
                   consume(_EQUAL);
                   readtypedconst(tt,tconstsym,true);
                   symdone:=true;
@@ -356,48 +319,46 @@ implementation
                    (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
                  begin
                    { only allowed for one var }
-                   s:=sc.get(declarepos);
-                   if not sc.empty then
-                    Message(parser_e_absolute_only_one_var);
-{$ifdef fixLeaksOnError}
-                   if strContStack.pop <> sc then
-                     writeln('problem with strContStack in pdecl (5)');
-{$endif fixLeaksOnError}
-                   sc.free;
+                   vs:=tvarsym(sc.first);
+                   if assigned(vs.listnext) then
+                     Message(parser_e_absolute_only_one_var);
+                   { set type of the var }
+                   vs.vartype:=tt;
                    { defaults }
                    is_dll:=false;
                    is_cdecl:=false;
-                   extern_aktvarsym:=false;
-                   export_aktvarsym:=false;
+                   extern_var:=false;
+                   export_var:=false;
+                   C_name:=sorg;
                    { cdecl }
                    if idtoken=_CVAR then
                     begin
                       consume(_CVAR);
                       consume(_SEMICOLON);
                       is_cdecl:=true;
-                      C_name:=target_info.Cprefix+C_name;
+                      C_name:=target_info.Cprefix+sorg;
                     end;
                    { external }
                    if idtoken=_EXTERNAL then
                     begin
                       consume(_EXTERNAL);
-                      extern_aktvarsym:=true;
+                      extern_var:=true;
                     end;
                    { export }
                    if idtoken in [_EXPORT,_PUBLIC] then
                     begin
                       consume(_ID);
-                      if extern_aktvarsym or
+                      if extern_var or
                          (symtablestack.symtabletype in [parasymtable,localsymtable]) then
                        Message(parser_e_not_external_and_export)
                       else
-                       export_aktvarsym:=true;
+                       export_var:=true;
                     end;
                    { external and export need a name after when no cdecl is used }
                    if not is_cdecl then
                     begin
                       { dll name ? }
-                      if (extern_aktvarsym) and (idtoken<>_NAME) then
+                      if (extern_var) and (idtoken<>_NAME) then
                        begin
                          is_dll:=true;
                          dll_name:=get_stringconst;
@@ -406,32 +367,27 @@ implementation
                       C_name:=get_stringconst;
                     end;
                    { consume the ; when export or external is used }
-                   if extern_aktvarsym or export_aktvarsym then
+                   if extern_var or export_var then
                     consume(_SEMICOLON);
-                   { insert in the symtable }
-                   storetokenpos:=akttokenpos;
-                   akttokenpos:=declarepos;
-                   if is_dll then
-                    aktvarsym:=tvarsym.create_dll(s,tt)
-                   else
-                    aktvarsym:=tvarsym.create_C(s,C_name,tt);
                    { set some vars options }
-                   if export_aktvarsym then
+                   if is_dll then
+                    include(vs.varoptions,vo_is_dll_var)
+                   else
+                    include(vs.varoptions,vo_is_C_var);
+                   vs.set_mangledname(C_Name);
+                   if export_var then
                     begin
-                      inc(aktvarsym.refs);
-                      include(aktvarsym.varoptions,vo_is_exported);
+                      inc(vs.refs);
+                      include(vs.varoptions,vo_is_exported);
                     end;
-                   if extern_aktvarsym then
-                    include(aktvarsym.varoptions,vo_is_external);
-                   { insert in the symtable }
-                   symtablestack.insert(aktvarsym);
+                   if extern_var then
+                    include(vs.varoptions,vo_is_external);
                    { insert in the datasegment when it is not external }
-                   if not extern_aktvarsym then
-                     symtablestack.insertvardata(aktvarsym);
-                   akttokenpos:=storetokenpos;
+                   if not extern_var then
+                     symtablestack.insertvardata(vs);
                    { now we can insert it in the import lib if its a dll, or
                      add it to the externals }
-                   if extern_aktvarsym then
+                   if extern_var then
                     begin
                       if is_dll then
                        begin
@@ -440,11 +396,11 @@ implementation
                             current_module.uses_imports:=true;
                             importlib.preparelib(current_module.modulename^);
                           end;
-                         importlib.importvariable(aktvarsym.mangledname,dll_name,C_name)
+                         importlib.importvariable(vs,C_name,dll_name);
                        end
                       else
                        if target_info.DllScanSupported then
-                        current_module.Externals.insert(tExternalsItem.create(aktvarsym.mangledname));
+                        current_module.Externals.insert(tExternalsItem.create(vs.mangledname));
                     end;
                    symdone:=true;
                  end
@@ -452,7 +408,7 @@ implementation
                  if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     include(current_object_option,sp_static);
-                    insert_syms(symtablestack,sc,tt,false);
+                    insert_syms(sc,tt,false);
                     exclude(current_object_option,sp_static);
                     consume(_STATIC);
                     consume(_SEMICOLON);
@@ -476,7 +432,7 @@ implementation
                       Message(parser_e_only_publishable_classes_can__be_published);
                       exclude(current_object_option,sp_published);
                     end;
-                  insert_syms(symtablestack,sc,tt,is_threadvar);
+                  insert_syms(sc,tt,is_threadvar);
                   current_object_option:=old_current_object_option;
                end;
            end;
@@ -486,8 +442,9 @@ implementation
               maxsize:=0;
               maxalignment:=0;
               consume(_CASE);
-              s:=pattern;
-              searchsym(s,srsym,srsymtable);
+              sorg:=orgpattern;
+              hs:=pattern;
+              searchsym(hs,srsym,srsymtable);
               { may be only a type: }
               if assigned(srsym) and (srsym.typ in [typesym,unitsym]) then
                begin
@@ -508,9 +465,9 @@ implementation
                   symtablestack:=symtablestack.next;
                   read_type(casetype,'');
                   symtablestack:=oldsymtablestack;
-                  aktvarsym:=tvarsym.create(s,casetype);
-                  symtablestack.insert(aktvarsym);
-                  symtablestack.insertvardata(aktvarsym);
+                  vs:=tvarsym.create(sorg,casetype);
+                  symtablestack.insert(vs);
+                  symtablestack.insertvardata(vs);
                 end;
               if not(is_ordinal(casetype.def)) or is_64bitint(casetype.def)  then
                Message(type_e_ordinal_expr_expected);
@@ -519,6 +476,7 @@ implementation
               Unionsymtable.next:=symtablestack;
               registerdef:=false;
               UnionDef:=trecorddef.create(unionsymtable);
+              uniondef.isunion:=true;
               registerdef:=true;
               symtablestack:=UnionSymtable;
               startvarrecsize:=symtablestack.datasize;
@@ -597,7 +555,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2002-08-25 19:25:20  peter
+  Revision 1.32  2002-09-09 17:34:15  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.31  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

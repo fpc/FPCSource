@@ -102,10 +102,7 @@ implementation
       }
       var
         is_procvar : boolean;
-        sc      : tidstringlist;
-        s       : string;
-        hpos,
-        storetokenpos : tfileposinfo;
+        sc      : tsinglelist;
         htype,
         tt      : ttype;
         hvs,
@@ -117,17 +114,37 @@ implementation
         tdefaultvalue : tconstsym;
         defaultrequired : boolean;
         old_object_option : tsymoptions;
+        dummyst : tparasymtable;
+        currparast : tparasymtable;
       begin
-        { reset }
-        defaultrequired:=false;
-        { parsing a proc or procvar ? }
-        is_procvar:=(aktprocdef.deftype=procvardef);
         consume(_LKLAMMER);
         { Delphi/Kylix supports nonsense like }
         { procedure p();                      }
         if try_to_consume(_RKLAMMER) and
           not(m_tp7 in aktmodeswitches) then
           exit;
+        { parsing a proc or procvar ? }
+        is_procvar:=(aktprocdef.deftype=procvardef);
+        { create dummy symtable for procvars }
+        if is_procvar then
+         begin
+           { we can't insert the dummyst in the symtablestack,
+             because definitions will be inserted in the symtablestack. And
+             this symtable is disposed at the end of the parsing, so the
+             definitions are lost }
+           dummyst:=tparasymtable.create;
+           currparast:=dummyst;
+         end
+        else
+         begin
+           { parast is available, we can insert in symtablestack }
+           tprocdef(aktprocdef).parast.next:=symtablestack;
+           symtablestack:=tprocdef(aktprocdef).parast;
+           currparast:=tparasymtable(tprocdef(aktprocdef).parast);
+         end;
+        { reset }
+        sc:=tsinglelist.create;
+        defaultrequired:=false;
         { the variables are always public }
         old_object_option:=current_object_option;
         current_object_option:=[sp_public];
@@ -182,11 +199,14 @@ implementation
             end
           else
             begin
-             { read identifiers }
-               sc:=consume_idlist;
-{$ifdef fixLeaksOnError}
-               strContStack.push(sc);
-{$endif fixLeaksOnError}
+             { read identifiers and insert with error type }
+               sc.reset;
+               repeat
+                 vs:=tvarsym.create(orgpattern,generrortype);
+                 currparast.insert(vs);
+                 sc.insert(vs);
+                 consume(_ID);
+               until not try_to_consume(_COMMA);
              { read type declaration, force reading for value and const paras }
                if (token=_COLON) or (varspez=vs_value) then
                 begin
@@ -237,17 +257,18 @@ implementation
                         { everything else }
                         single_type(tt,hs1,false);
                       end;
+
                      { default parameter }
                      if (m_default_para in aktmodeswitches) then
                       begin
                         if try_to_consume(_EQUAL) then
                          begin
-                           s:=sc.get(hpos);
-                           if not sc.empty then
-                            Comment(V_Error,'default value only allowed for one parameter');
-                           sc.add(s,hpos);
+                           vs:=tvarsym(sc.first);
+                           if assigned(vs) and
+                              assigned(vs.listnext) then
+                             Comment(V_Error,'default value only allowed for one parameter');
                            { prefix 'def' to the parameter name }
-                           tdefaultvalue:=ReadConstant('$def'+Upper(s),hpos);
+                           tdefaultvalue:=ReadConstant('$def'+vs.name,vs.fileinfo);
                            if assigned(tdefaultvalue) then
                             tprocdef(aktprocdef).parast.insert(tdefaultvalue);
                            defaultrequired:=true;
@@ -269,57 +290,59 @@ implementation
 {$endif UseNiceNames}
                   tt:=cformaltype;
                 end;
-               storetokenpos:=akttokenpos;
-               while not sc.empty do
+
+               { For proc vars we only need the definitions }
+               if not is_procvar then
                 begin
-                  s:=sc.get(akttokenpos);
-                  { For proc vars we only need the definitions }
-                  if not is_procvar then
+                  vs:=tvarsym(sc.first);
+                  while assigned(vs) do
                    begin
-                     vs:=tvarsym.create(s,tt);
+                     { update varsym }
+                     vs.vartype:=tt;
                      vs.varspez:=varspez;
-                   { we have to add this to avoid var param to be in registers !!!}
-                   { I don't understand the comment above,                          }
-                   { but I suppose the comment is wrong and                         }
-                   { it means that the address of var parameters can be placed      }
-                   { in a register (FK)                                             }
                      if (varspez in [vs_var,vs_const,vs_out]) and
                         paramanager.push_addr_param(tt.def,false) then
                        include(vs.varoptions,vo_regable);
 
-                   { insert the sym in the parasymtable }
-                     tprocdef(aktprocdef).parast.insert(vs);
-
-                   { do we need a local copy? Then rename the varsym, do this after the
-                     insert so the dup id checking is done correctly }
+                     { do we need a local copy? Then rename the varsym, do this after the
+                       insert so the dup id checking is done correctly }
                      if (varspez=vs_value) and
                         paramanager.push_addr_param(tt.def,aktprocdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
                         not(is_open_array(tt.def) or is_array_of_const(tt.def)) then
-                       tprocdef(aktprocdef).parast.rename(vs.name,'val'+vs.name);
+                       currparast.rename(vs.name,'val'+vs.name);
 
-                   { also need to push a high value? }
+                     { also need to push a high value? }
                      if inserthigh then
                       begin
-                        hvs:=tvarsym.create('$high'+Upper(s),s32bittype);
+                        hvs:=tvarsym.create('$high'+vs.name,s32bittype);
                         hvs.varspez:=vs_const;
-                        tprocdef(aktprocdef).parast.insert(hvs);
+                        currparast.insert(hvs);
                       end;
-
-                   end
-                  else
-                   vs:=nil;
-
-                  aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
+                     aktprocdef.concatpara(tt,vs,varspez,tdefaultvalue);
+                     vs:=tvarsym(vs.listnext);
+                   end;
+                end
+               else
+                begin
+                  vs:=tvarsym(sc.first);
+                  while assigned(vs) do
+                   begin
+                     { don't insert a parasym, the varsyms will be
+                       disposed }
+                     aktprocdef.concatpara(tt,nil,varspez,tdefaultvalue);
+                     vs:=tvarsym(vs.listnext);
+                   end;
                 end;
-{$ifdef fixLeaksOnError}
-               if PStringContainer(strContStack.pop) <> sc then
-                  writeln('problem with strContStack in pdecl (1)');
-{$endif fixLeaksOnError}
-               sc.free;
-               akttokenpos:=storetokenpos;
             end;
           { set the new mangled name }
         until not try_to_consume(_SEMICOLON);
+        { remove parasymtable from stack }
+        if is_procvar then
+          dummyst.free
+        else
+          symtablestack:=symtablestack.next;
+        sc.free;
+        { reset object options }
         dec(testcurobject);
         current_object_option:=old_object_option;
         consume(_RKLAMMER);
@@ -703,19 +726,18 @@ implementation
                             single_type(aktprocdef.rettype,hs,false);
                             aktprocdef.test_if_fpu_result;
                             if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
-                               ((aktprocdef.rettype.def.deftype<>
-                               orddef) or (torddef(aktprocdef.
-                               rettype.def).typ<>bool8bit)) then
-                              Message(parser_e_comparative_operator_return_boolean);
-                             if assigned(otsym) then
-                               otsym.vartype.def:=aktprocdef.rettype.def;
-                             if (optoken=_ASSIGNMENT) and
-                                is_equal(aktprocdef.rettype.def,
-                                   tvarsym(aktprocdef.parast.symindex.first).vartype.def) then
-                               message(parser_e_no_such_assignment)
-                             else if not isoperatoracceptable(aktprocdef,optoken) then
-                               Message(parser_e_overload_impossible);
-                           end;
+                               ((aktprocdef.rettype.def.deftype<>orddef) or
+                                (torddef(aktprocdef.rettype.def).typ<>bool8bit)) then
+                               Message(parser_e_comparative_operator_return_boolean);
+                            if assigned(otsym) then
+                              otsym.vartype.def:=aktprocdef.rettype.def;
+                            if (optoken=_ASSIGNMENT) and
+                               is_equal(aktprocdef.rettype.def,
+                                  tvarsym(aktprocdef.parast.symindex.first).vartype.def) then
+                              message(parser_e_no_such_assignment)
+                            else if not isoperatoracceptable(aktprocdef,optoken) then
+                              Message(parser_e_overload_impossible);
+                          end;
                        end;
         end;
         if isclassmethod and
@@ -1396,16 +1418,17 @@ const
            aktprocdef.proccalloption:=proc_direcdata[p].pocall;
          end;
 
+        { check if method and directive not for object, like public.
+          This needs to be checked also for procvars }
+        if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
+           (aktprocdef.owner.symtabletype=objectsymtable) then
+         exit;
+
         if aktprocdef.deftype=procdef then
          begin
            { Check if the directive is only for objects }
            if ((proc_direcdata[p].pd_flags and pd_object)<>0) and
               not assigned(aktprocdef._class) then
-            exit;
-
-           { check if method and directive not for object public }
-           if ((proc_direcdata[p].pd_flags and pd_notobject)<>0) and
-              assigned(aktprocdef._class) then
             exit;
 
            { check if method and directive not for interface }
@@ -1976,7 +1999,15 @@ const
 end.
 {
   $Log$
-  Revision 1.71  2002-09-07 15:25:06  peter
+  Revision 1.72  2002-09-09 17:34:15  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.71  2002/09/07 15:25:06  peter
     * old logs removed and tabs fixed
 
   Revision 1.70  2002/09/03 16:26:27  daniel

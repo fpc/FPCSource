@@ -116,6 +116,7 @@ interface
           procedure foreach(proc2call : tnamedindexcallback;arg:pointer);
           procedure foreach_static(proc2call : tnamedindexstaticcallback;arg:pointer);
           procedure insert(sym : tsymentry);virtual;
+          procedure replace(oldsym,newsym:tsymentry);
           procedure insertvardata(sym : tsymentry);virtual;abstract;
           procedure insertconstdata(sym : tsymentry);virtual;abstract;
           function  search(const s : stringid) : tsymentry;
@@ -242,6 +243,19 @@ implementation
       end;
 
 
+    procedure tsymtable.replace(oldsym,newsym:tsymentry);
+      begin
+         { Replace the entry in the dictionary, this checks
+           the name }
+         if not symsearch.replace(oldsym,newsym) then
+           internalerror(200209061);
+         { replace in index }
+         symindex.replace(oldsym,newsym);
+         { set owner of new symb }
+         newsym.owner:=self;
+      end;
+
+
     function tsymtable.search(const s : stringid) : tsymentry;
       begin
         search:=speedsearch(s,getspeedvalue(s));
@@ -309,7 +323,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.7  2002-08-25 19:25:20  peter
+  Revision 1.8  2002-09-09 17:34:15  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.7  2002/08/25 19:25:20  peter
     * sym.insert_in_data removed
     * symtable.insertvardata/insertconstdata added
     * removed insert_in_data call from symtable.insert, it needs to be

@@ -30,9 +30,6 @@ interface
        cutils,cclasses,
        tokens,globals,
        symconst,symbase,symtype,symdef,symsym,symtable
-{$ifdef fixLeaksOnError}
-       ,comphook
-{$endif fixLeaksOnError}
        ;
 
     const
@@ -41,21 +38,6 @@ interface
 
        { special for handling procedure vars }
        getprocvardef : tprocvardef = nil;
-
-    type
-       { listitem }
-       tidstringlistitem = class(tlinkedlistitem)
-          data : pstring;
-          file_info : tfileposinfo;
-          constructor Create(const s:string;const pos:tfileposinfo);
-          destructor  Destroy;override;
-       end;
-
-       tidstringlist=class(tlinkedlist)
-          procedure add(const s : string;const file_info : tfileposinfo);
-          function  get(var file_info : tfileposinfo) : string;
-          function  find(const s:string):boolean;
-       end;
 
     var
        { size of data segment, set by proc_unit or proc_program }
@@ -73,12 +55,6 @@ interface
        { true, if we should ignore an equal in const x : 1..2=2 }
        ignore_equal : boolean;
 
-{$ifdef fixLeaksOnError}
-    { not worth it to make a pstack, there's only one data field (a pointer). }
-    { in the interface, because pmodules and psub also use it for their names }
-    var strContStack: TStack;
-        pbase_old_do_stop: tstopprocedure;
-{$endif fixLeaksOnError}
 
     procedure identifier_not_found(const s:string);
 
@@ -99,8 +75,6 @@ interface
     procedure consume_emptystats;
 
     { reads a list of identifiers into a string list }
-    function consume_idlist : tidstringlist;
-
     { consume a symbol, if not found give an error and
       and return an errorsym }
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
@@ -116,73 +90,6 @@ implementation
 
     uses
        globtype,scanner,systems,verbose;
-
-{****************************************************************************
-                           TIdStringlistItem
-****************************************************************************}
-
-    constructor TIDStringlistItem.Create(const s:string;const pos:tfileposinfo);
-      begin
-        data:=stringdup(s);
-        file_info:=pos;
-      end;
-
-
-    destructor  TIDStringlistItem.Destroy;
-      begin
-        stringdispose(data);
-      end;
-
-
-{****************************************************************************
-                             TIdStringlist
-****************************************************************************}
-
-    procedure tidstringlist.add(const s : string; const file_info : tfileposinfo);
-      begin
-         if find(s) then
-          exit;
-         inherited concat(tidstringlistitem.create(s,file_info));
-      end;
-
-
-    function tidstringlist.get(var file_info : tfileposinfo) : string;
-      var
-         p : tidstringlistitem;
-      begin
-         p:=tidstringlistitem(inherited getfirst);
-         if p=nil then
-          begin
-            get:='';
-            file_info.fileindex:=0;
-            file_info.line:=0;
-            file_info.column:=0;
-          end
-         else
-          begin
-            get:=p.data^;
-            file_info:=p.file_info;
-            p.free;
-          end;
-      end;
-
-    function tidstringlist.find(const s:string):boolean;
-      var
-        newnode : tidstringlistitem;
-      begin
-        find:=false;
-        newnode:=tidstringlistitem(First);
-        while assigned(newnode) do
-         begin
-           if newnode.data^=s then
-            begin
-              find:=true;
-              exit;
-            end;
-           newnode:=tidstringlistitem(newnode.next);
-         end;
-      end;
-
 
 {****************************************************************************
                                Token Parsing
@@ -258,20 +165,6 @@ implementation
       end;
 
 
-    { reads a list of identifiers into a string list }
-    function consume_idlist : tidstringlist;
-      var
-        sc : tIdstringlist;
-      begin
-         sc:=TIdStringlist.Create;
-         repeat
-           sc.add(orgpattern,akttokenpos);
-           consume(_ID);
-         until not try_to_consume(_COMMA);
-         consume_idlist:=sc;
-      end;
-
-
     function consume_sym(var srsym:tsym;var srsymtable:tsymtable):boolean;
       begin
         { first check for identifier }
@@ -342,32 +235,18 @@ implementation
         until false;
       end;
 
-
-{$ifdef fixLeaksOnError}
-procedure pbase_do_stop;
-var names: PStringlist;
-begin
-  names := PStringlist(strContStack.pop);
-  while names <> nil do
-    begin
-      dispose(names,done);
-      names := PStringlist(strContStack.pop);
-    end;
-  strContStack.done;
-  do_stop := pbase_old_do_stop;
-  do_stop{$ifdef FPCPROCVAR}(){$endif};
-end;
-
-begin
-  strContStack.init;
-  pbase_old_do_stop := do_stop;
-  do_stop := {$ifdef FPCPROCVAR}(){$endif}pbase_do_stop;
-{$endif fixLeaksOnError}
 end.
-
 {
   $Log$
-  Revision 1.18  2002-08-17 09:23:38  florian
+  Revision 1.19  2002-09-09 17:34:15  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.18  2002/08/17 09:23:38  florian
     * first part of procinfo rewrite
 
   Revision 1.17  2002/05/18 13:34:11  peter

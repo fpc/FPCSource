@@ -355,10 +355,6 @@ interface
                                              currently called procedure,
                                              only set/unset in ncal }
 
-       aktvarsym : tvarsym;     { pointer to the symbol for the
-                                     currently read var, only used
-                                     for variable directives }
-
        generrorsym : tsym;
 
        otsym : tvarsym;
@@ -1102,7 +1098,7 @@ implementation
     function Tprocsym.search_procdef_byretdef_by1paradef(retdef,firstpara:Tdef;
                                                          matchtype:Tdefmatch; var pd : pprocdeflist):Tprocdef;
 
-    var 
+    var
         convtyp:tconverttype;
         a,b:boolean;
         oldpd : pprocdeflist;
@@ -1578,7 +1574,6 @@ implementation
     constructor tvarsym.create_C(const n,mangled : string;const tt : ttype);
       begin
          tvarsym(self).create(n,tt);
-         include(varoptions,vo_is_C_var);
          stringdispose(_mangledname);
          _mangledname:=stringdup(mangled);
       end;
@@ -2500,7 +2495,15 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2002-09-08 11:10:17  carl
+  Revision 1.65  2002-09-09 17:34:16  peter
+    * tdicationary.replace added to replace and item in a dictionary. This
+      is only allowed for the same name
+    * varsyms are inserted in symtable before the types are parsed. This
+      fixes the long standing "var longint : longint" bug
+    - consume_idlist and idstringlist removed. The loops are inserted
+      at the callers place and uses the symtable for duplicate id checking
+
+  Revision 1.64  2002/09/08 11:10:17  carl
     * bugfix 2109 (bad imho, but only way)
 
   Revision 1.63  2002/09/07 18:17:41  florian
