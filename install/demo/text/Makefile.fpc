@@ -1,0 +1,43 @@
+#
+#   Makefile.fpc for FPC text demos (part of FPC demo package)
+#
+
+[targets]
+programs=eratos qsort hello blackbox magic lines
+
+[require]
+# Not always necessary, but saves a lot of trouble
+packages=api
+
+[defaults]
+defaultrule=all
+
+[dirs]
+fpcdir=../..
+targetdir=.
+
+[postsettings]
+
+[rules]
+ifeq ($(OS_TARGET),win32)
+vpath %$(PASEXT) win32
+endif
+
+clean : execlean fpc_cleanall
+
+execlean:
+
+#################################
+# Demo installation for linux
+#
+
+.PHONY: installexamples
+
+ifndef EXAMPLESINSTALLDIR
+EXAMPLESINSTALLDIR=$(DOCINSTALLDIR)/examples
+endif
+
+installexamples:
+        $(MKDIR) $(EXAMPLESINSTALLDIR)
+        $(COPYTREE) * $(EXAMPLESINSTALLDIR)
+
