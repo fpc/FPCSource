@@ -576,6 +576,7 @@ interface
        tprocdeflist = record
          def  : tprocdef;
          defderef : tderef;
+         own  : boolean;
          next : pprocdeflist;
        end;
 
@@ -3345,6 +3346,8 @@ implementation
          { parast }
          tparasymtable(parast).deref;
          { paraitems }
+         minparacount:=0;
+         maxparacount:=0;
          hp:=TParaItem(Para.first);
          while assigned(hp) do
           begin
@@ -6104,7 +6107,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.185  2003-10-29 19:48:51  peter
+  Revision 1.186  2003-10-29 21:56:28  peter
+    * procsym.deref derefs only own procdefs
+    * reset paracount in procdef.deref so a second deref doesn't increase
+      the paracounts to invalid values
+
+  Revision 1.185  2003/10/29 19:48:51  peter
     * renamed mangeldname_prefix to make_mangledname and made it more
       generic
     * make_mangledname is now also used for internal threadvar/resstring

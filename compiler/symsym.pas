@@ -796,7 +796,7 @@ implementation
            begin
              { only write the proc definitions that belong
                to this procsym and are in the global symtable }
-             if (p^.def.procsym=self) and
+             if p^.own and
                 (p^.def.owner.symtabletype in [globalsymtable,objectsymtable]) then
                inc(n);
              p:=p^.next;
@@ -808,7 +808,7 @@ implementation
            begin
              { only write the proc definitions that belong
                to this procsym and are in the global symtable }
-             if (p^.def.procsym=self) and
+             if p^.own and
                 (p^.def.owner.symtabletype in [globalsymtable,objectsymtable]) then
                ppufile.putderef(p^.defderef);
              p:=p^.next;
@@ -838,7 +838,7 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-              if (p^.def.procsym=self) and
+              if p^.own and
                  (p^.def.forwarddef) then
                 begin
                    MessagePos1(p^.def.fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname(false));
@@ -857,7 +857,8 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-             p^.defderef.build(p^.def);
+             if p^.own then
+               p^.defderef.build(p^.def);
              p:=p^.next;
            end;
       end;
@@ -865,12 +866,22 @@ implementation
 
     procedure tprocsym.deref;
       var
-         p : pprocdeflist;
+         prev,hp,p : pprocdeflist;
       begin
+         { We have removed the overloaded entries, because they
+           are not valid anymore and we can't deref them because
+           the unit were they come from is not necessary in
+           our uses clause (PFV) }
+         unchain_overload;
+         { Deref our own procdefs }
          p:=pdlistfirst;
+         prev:=nil;
          while assigned(p) do
            begin
+             if not p^.own then
+               internalerror(200310291);
              p^.def:=tprocdef(p^.defderef.resolve);
+             prev:=p;
              p:=p^.next;
            end;
       end;
@@ -884,6 +895,7 @@ implementation
         pd^.def:=p;
         pd^.defderef.reset;
         pd^.next:=nil;
+        pd^.own:=(pd^.def.procsym=self);
         { Add at end of list to keep always
           a correct order, also after loading from ppu }
         if assigned(pdlistlast) then
@@ -908,6 +920,7 @@ implementation
         pd^.def:=nil;
         pd^.defderef:=d;
         pd^.next:=nil;
+        pd^.own:=true;
         { Add at end of list to keep always
           a correct order, also after loading from ppu }
         if assigned(pdlistlast) then
@@ -1253,7 +1266,7 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-              if (p^.def.procsym=self) then
+              if p^.own then
                 p^.def.write_references(ppufile,locals);
               p:=p^.next;
            end;
@@ -1266,6 +1279,7 @@ implementation
       begin
          { remove all overloaded procdefs from the
            procdeflist that are not in the current symtable }
+         overloadchecked:=false;
          p:=pdlistfirst;
          { reset new lists }
          pdlistfirst:=nil;
@@ -1273,7 +1287,7 @@ implementation
          while assigned(p) do
            begin
               hp:=p^.next;
-              if (p^.def.procsym=self) then
+              if p^.own then
                 begin
                   { keep, add to list }
                   if assigned(pdlistlast) then
@@ -2673,7 +2687,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.132  2003-10-29 19:48:51  peter
+  Revision 1.133  2003-10-29 21:56:28  peter
+    * procsym.deref derefs only own procdefs
+    * reset paracount in procdef.deref so a second deref doesn't increase
+      the paracounts to invalid values
+
+  Revision 1.132  2003/10/29 19:48:51  peter
     * renamed mangeldname_prefix to make_mangledname and made it more
       generic
     * make_mangledname is now also used for internal threadvar/resstring
