@@ -58,6 +58,8 @@ const
                            MorphOS structures
 *****************************************************************************}
 
+{$include execd.inc}
+
 type
   PClockData = ^TClockData;
   TClockData = packed Record
@@ -95,79 +97,6 @@ type
     fib_Reserved     : Array [0..35] of Char;
   end;
 
-  PNode = ^TNode;
-  TNode = packed record
-    ln_Succ,             { Pointer to next (successor) }
-    ln_Pred: pNode;      { Pointer to previous (predecessor) }
-    ln_Type: Byte;
-    ln_Pri : Shortint;   { Priority, for sorting }
-    ln_Name: PChar;      { ID string, null terminated }
-  end;  { Note: Integer aligned }
- 
-  PMinNode = ^TMinNode;
-  tMinNode = packed record
-    mln_Succ,
-    mln_Pred: pMinNode;
-  end;
-
-  PList = ^TList;
-  tList = packed record
-    lh_Head    : pNode;
-    lh_Tail    : pNode;
-    lh_TailPred: pNode;
-    lh_Type    : Byte;
-    l_pad      : Byte;
-  end;
-
-  PMinList = ^TMinList;
-  TMinList = packed record
-    mlh_Head    : PMinNode;
-    mlh_Tail    : PMinNode;
-    mlh_TailPred: PMinNode;
-  end;
-
-  PMsgPort = ^TMsgPort;
-  TMsgPort = packed record
-    mp_Node   : TNode;
-    mp_Flags  : Byte;
-    mp_SigBit : Byte;     { signal bit number    }
-    mp_SigTask: Pointer;  { task to be signalled (TaskPtr) }
-    mp_MsgList: TList;    { message linked list  }
-  end;
-
-  PMessage = ^TMessage;
-  TMessage = packed record
-    mn_Node     : TNode;
-    mn_ReplyPort: PMsgPort;
-    mn_Length   : Word;
-  end;
-
-  PTask = ^TTask;
-  TTask = packed record
-    tc_Node      : TNode;
-    tc_Flags     : Byte;
-    tc_State     : Byte;
-    tc_IDNestCnt : Shortint;  { intr disabled nesting         }
-    tc_TDNestCnt : Shortint;  { task disabled nesting         }
-    tc_SigAlloc  : DWord;     { sigs allocated                }
-    tc_SigWait   : DWord;     { sigs we are waiting for       }
-    tc_SigRecvd  : DWord;     { sigs we have received         }
-    tc_SigExcept : DWord;     { sigs we will take excepts for }
-    tc_TrapAlloc : Word;      { traps allocated               }
-    tc_TrapAble  : Word;      { traps enabled                 }
-    tc_ExceptData: Pointer;   { points to except data         }
-    tc_ExceptCode: Pointer;   { points to except code         }
-    tc_TrapData  : Pointer;   { points to trap data           }
-    tc_TrapCode  : Pointer;   { points to trap code           }
-    tc_SPReg     : Pointer;   { stack pointer                 }
-    tc_SPLower   : Pointer;   { stack lower bound             }
-    tc_SPUpper   : Pointer;   { stack upper bound + 2         }
-    tc_Switch    : Pointer;   { task losing CPU               }
-    tc_Launch    : Pointer;   { task getting CPU              }
-    tc_MemEntry  : TList;     { allocated memory              }
-    tc_UserData  : Pointer;   { per task data                 }
-  end;
-
   PProcess = ^TProcess;
   TProcess = packed record
     pr_Task          : TTask;
@@ -197,44 +126,6 @@ type
     pr_LocalVars     : TMinList;  { Local environment variables              }
     pr_ShellPrivate  : Longint;   { for the use of the current shell         }
     pr_CES           : DWord;     { Error stream - IF NULL, use pr_COS       }
-  end;
-
-  PLibrary = ^TLibrary;
-  TLibrary = packed record
-    lib_Node    : tNode;
-    lib_Flags,
-    lib_pad     : Byte;
-    lib_NegSize,           {  number of bytes before library  }
-    lib_PosSize,           {  number of bytes after library  }
-    lib_Version,           {  major  }
-    lib_Revision: Word;    {  minor  }
-    lib_IdString: PChar;   {  ASCII identification  }
-    lib_Sum     : LongInt; {  the checksum itself  }
-    lib_OpenCnt : Word;    {  number of current opens  }
-  end; { * Warning: size is not a longword multiple ! * }
-
-  PDevice = ^TDevice;
-  tDevice =  packed record
-    dd_Library: TLibrary;
-  end;
-
-  PUnit = ^tUnit;
-  TUnit = packed record
-    unit_MsgPort: TMsgPort;  { queue for unprocessed messages }
-                             { instance of msgport is recommended }
-    unit_flags,
-    unit_pad    : Byte;
-    unit_OpenCnt: Word;      { number of active opens }
-  end;
-
-  PIORequest = ^TIORequest;
-  TIORequest = packed record
-    io_Message: TMessage;
-    io_Device : PDevice;      { device node pointer  }
-    io_Unit   : PUnit;        { unit (driver private)}
-    io_Command: Word;         { device command }
-    io_Flags  : Byte;
-    io_Error  : Shortint;     { error or warning num }
   end;
 
   PInfoData = ^TInfoData;
@@ -303,43 +194,6 @@ var
 {*****************************************************************************
                            MorphOS functions
 *****************************************************************************}
-
-{ exec.library functions }
-
-function exec_OpenLibrary(libname: PChar location 'a1'; 
-                          libver: LongInt location 'd0'): Pointer; SysCall MOS_ExecBase 552;
-procedure exec_CloseLibrary(libhandle: Pointer location 'a1'); SysCall MOS_ExecBase 414;
-
-function exec_CreatePool(memflags: LongInt location 'd0'; 
-                         puddleSize: LongInt location 'd1'; 
-                         threshSize: LongInt location 'd2'): Pointer; SysCall MOS_ExecBase 696;
-procedure exec_DeletePool(poolHeader: Pointer location 'a0'); SysCall MOS_ExecBase 702;
-function exec_AllocPooled(poolHeader: Pointer location 'a0';
-                          memSize: LongInt location 'd0'): Pointer; SysCall MOS_ExecBase 708;
-function exec_SetSignal(newSignals: LongInt location 'd0';
-                        signalMask: LongInt location 'd1'): LongInt; SysCall MOS_ExecBase 306;
-
-function exec_FindTask(tname: PChar location 'a1'): PTask; SysCall MOS_ExecBase 294;
-function exec_GetMsg(port: PMsgPort location 'a0'): PMessage; SysCall MOS_ExecBase 372;
-function exec_WaitPort(port: PMsgPort location 'a0'): PMessage; SysCall MOS_ExecBase 384;
-
-function exec_AllocMem(byteSize: LongInt location 'd0';
-                       requirements: LongInt location 'd1'): Pointer; SysCall MOS_ExecBase 198;
-procedure exec_FreeMem(memoryBlock: Pointer location 'a1';
-                       byteSize: LongInt location 'd0'); SysCall MOS_ExecBase 210;
-function exec_AllocSignal(signalNum: LongInt location 'd0'): ShortInt; SysCall MOS_ExecBase 330;
-procedure exec_FreeSignal(signalNum: LongInt location 'd0'); SysCall MOS_ExecBase 336;
-
-procedure exec_AddPort(port: PMsgPort location 'a1'); SysCall MOS_ExecBase 354;
-procedure exec_RemPort(port: PMsgPort location 'a1'); SysCall MOS_ExecBase 360;
-
-function exec_DoIO(ioRequest: PIORequest location 'a1'): ShortInt; SysCall MOS_ExecBase 456;
-function exec_OpenDevice(const devName: PChar location 'a0';
-                         unite: LongInt location 'd0';
-                         ioRequest: PIORequest location 'a1';
-                         flags: LongInt location 'd1'): ShortInt; SysCall MOS_ExecBase 444;
-procedure exec_CloseDevice(ioRequest: PIORequest location 'a1'); SysCall MOS_ExecBase 450;
-
 
 { dos.library functions }
 
@@ -427,9 +281,20 @@ implementation
 
 {$I system.inc}
 
+
+{*****************************************************************************
+                           MorphOS functions
+*****************************************************************************}
+
+{ exec.library functions }
+
+{$include execf.inc}
+
+
 {*****************************************************************************
                     System Dependent Structures/Consts
 *****************************************************************************}
+
 
 { Errors from dos_IoErr(), etc. }
 const
@@ -492,23 +357,6 @@ const
   ACCESS_READ      = SHARED_LOCK;
   EXCLUSIVE_LOCK   = -1;
   ACCESS_WRITE     = EXCLUSIVE_LOCK;
-
-{ Memory flags }
-const
-  MEMF_ANY      = 0;
-  MEMF_PUBLIC   = 1 Shl 0;
-  MEMF_CHIP     = 1 Shl 1;
-  MEMF_FAST     = 1 Shl 2;
-  MEMF_LOCAL    = 1 Shl 8;
-  MEMF_24BITDMA = 1 Shl 9;
-  MEMF_KICK     = 1 Shl 10;
-  
-  MEMF_CLEAR    = 1 Shl 16;
-  MEMF_LARGEST  = 1 Shl 17;
-  MEMF_REVERSE  = 1 Shl 18;
-  MEMF_TOTAL    = 1 Shl 19;
-
-  MEMF_NO_EXPUNGE = 1 Shl 31;
 
 const
   CTRL_C           = 20;      { Error code on CTRL-C press }
@@ -620,16 +468,16 @@ begin
   { may call I/O routines, which in turn might call  }
   { halt, so a recursive stack crash                 }
   if BreakOn then begin
-    if (exec_SetSignal(0,0) and SIGBREAKF_CTRL_C)<>0 then
-      exec_SetSignal(0,SIGBREAKF_CTRL_C);
+    if (SetSignal(0,0) and SIGBREAKF_CTRL_C)<>0 then
+      SetSignal(0,SIGBREAKF_CTRL_C);
   end;
 
   { Closing opened files }
   CloseList(MOS_fileList);
 
-  if MOS_UtilityBase<>nil then exec_CloseLibrary(MOS_UtilityBase);
-  if MOS_DOSBase<>nil then exec_CloseLibrary(MOS_DOSBase);
-  if MOS_heapPool<>nil then exec_DeletePool(MOS_heapPool);
+  if MOS_UtilityBase<>nil then CloseLibrary(MOS_UtilityBase);
+  if MOS_DOSBase<>nil then CloseLibrary(MOS_DOSBase);
+  if MOS_heapPool<>nil then DeletePool(MOS_heapPool);
   haltproc(ExitCode);
 end;
 
@@ -683,9 +531,9 @@ end;
 procedure checkCTRLC;
 begin
   if BreakOn then begin
-    if (exec_SetSignal(0,0) And SIGBREAKF_CTRL_C)<>0 then begin
+    if (SetSignal(0,0) And SIGBREAKF_CTRL_C)<>0 then begin
       { Clear CTRL-C signal }
-      exec_SetSignal(0,SIGBREAKF_CTRL_C);
+      SetSignal(0,SIGBREAKF_CTRL_C);
       Halt(CTRL_C);
     end;
   end;
@@ -865,7 +713,7 @@ end;
 { must return the first address of new data space or nil if fail }
 function Sbrk(size : longint):pointer;
 begin
-  Sbrk:=exec_AllocPooled(MOS_heapPool,size);
+  Sbrk:=AllocPooled(MOS_heapPool,size);
 end;
 
 {$I heap.inc}
@@ -1240,32 +1088,32 @@ end;
 procedure SysInitMorphOS;
 var self: PProcess;
 begin
- self:=PProcess(exec_FindTask(nil));
+ self:=PProcess(FindTask(nil));
  if self^.pr_CLI=0 then begin
    { if we're running from Ambient/Workbench, we catch its message }
-   exec_WaitPort(@self^.pr_MsgPort);
-   MOS_ambMsg:=exec_GetMsg(@self^.pr_MsgPort);
+   WaitPort(@self^.pr_MsgPort);
+   MOS_ambMsg:=GetMsg(@self^.pr_MsgPort);
  end;
 
- MOS_DOSBase:=exec_OpenLibrary('dos.library',50);
+ MOS_DOSBase:=OpenLibrary('dos.library',50);
  if MOS_DOSBase=nil then Halt(1);
- MOS_UtilityBase:=exec_OpenLibrary('utility.library',50);
+ MOS_UtilityBase:=OpenLibrary('utility.library',50);
  if MOS_UtilityBase=nil then Halt(1);
 
  { Creating the memory pool for growing heap }
- MOS_heapPool:=exec_CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
+ MOS_heapPool:=CreatePool(MEMF_FAST,growheapsize2,growheapsize1);
  if MOS_heapPool=nil then Halt(1);
 
  if MOS_ambMsg=nil then begin
    StdInputHandle:=dos_Input;
    StdOutputHandle:=dos_Output;
  end else begin
-    MOS_ConHandle:=dos_Open(MOS_ConName,1005);
-    if MOS_ConHandle<>0 then begin
-      StdInputHandle:=MOS_ConHandle;
-      StdOutputHandle:=MOS_ConHandle;
-    end else
-      Halt(1);
+   MOS_ConHandle:=dos_Open(MOS_ConName,1005);
+   if MOS_ConHandle<>0 then begin
+     StdInputHandle:=MOS_ConHandle;
+     StdOutputHandle:=MOS_ConHandle;
+   end else
+     Halt(1);
  end;
 end;
 
@@ -1314,7 +1162,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2004-06-06 23:31:13  karoly
+  Revision 1.13  2004-06-13 22:50:47  karoly
+    * cleanup and changes to use new includes
+
+  Revision 1.12  2004/06/06 23:31:13  karoly
     * fixed dos_UnLockDosList from being nonsense, and some cleanup
 
   Revision 1.11  2004/06/06 19:18:05  karoly

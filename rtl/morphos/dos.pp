@@ -1,10 +1,13 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2004 by Karoly Balogh for Genesi Sarl
+    Copyright (c) 2004 by Karoly Balogh for Genesi S.a.r.l.
 
-    Heavily based on the Amiga/m68k RTL by Nils Sjoholm and
+    Heavily based on the Commodore Amiga/m68k RTL by Nils Sjoholm and
     Carl Eric Codere
+
+    MorphOS port was done on a free Pegasos II/G4 machine 
+    provided by Genesi S.a.r.l. <www.genesi.lu>
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -160,6 +163,11 @@ Procedure SetIntVec(intno: byte; vector: pointer);
 Procedure Keep(exitcode: word);
 
 implementation
+
+{ * include MorphOS specific functions & definitions * }
+
+{$include execd.inc}
+{$include execf.inc}
 
 const
   DaysPerMonth :  Array[1..12] of ShortInt =
@@ -399,12 +407,9 @@ Type
 Const
 
 { IO_COMMAND to use for adding a timer }
-    CMD_NONSTD  = 9;
     TR_ADDREQUEST       = CMD_NONSTD;
     TR_GETSYSTIME       = CMD_NONSTD + 1;
     TR_SETSYSTIME       = CMD_NONSTD + 2;
-    MEMF_PUBLIC   = %000000000000000000000001;
-    MEMF_CLEAR    = %000000010000000000000000;
 
 {  To use any of the routines below, TimerBase must be set to point
    to the timer.device, either by calling CreateTimer or by pulling
@@ -436,7 +441,7 @@ begin
     IOReq := NIL;
     if port <> NIL then
     begin
-        IOReq := exec_AllocMem(size, MEMF_CLEAR or MEMF_PUBLIC);
+        IOReq := AllocMem2(size, MEMF_CLEAR or MEMF_PUBLIC);
         if IOReq <> NIL then
         begin
             IOReq^.io_Message.mn_Node.ln_Type   := 7;
@@ -454,7 +459,7 @@ begin
         ioReq^.io_Message.mn_Node.ln_Type := $FF;
         ioReq^.io_Message.mn_ReplyPort    := pMsgPort(-1);
         ioReq^.io_Device                  := pDevice(-1);
-        exec_FreeMem(ioReq, ioReq^.io_Message.mn_Length);
+        FreeMem2(ioReq, ioReq^.io_Message.mn_Length);
     end
 end;
 
@@ -463,11 +468,11 @@ var
    sigbit : ShortInt;
    port    : pMsgPort;
 begin
-   sigbit := exec_AllocSignal(-1);
+   sigbit := AllocSignal(-1);
    if sigbit = -1 then CreatePort := nil;
-   port := exec_Allocmem(sizeof(tMsgPort),MEMF_CLEAR or MEMF_PUBLIC);
+   port := AllocMem2(sizeof(tMsgPort),MEMF_CLEAR or MEMF_PUBLIC);
    if port = nil then begin
-      exec_FreeSignal(sigbit);
+      FreeSignal(sigbit);
       CreatePort := nil;
    end;
    with port^ do begin
@@ -478,9 +483,9 @@ begin
        mp_Node.ln_Type := 4;
        mp_Flags := 0;
        mp_SigBit := sigbit;
-       mp_SigTask := exec_FindTask(nil);
+       mp_SigTask := FindTask(nil);
    end;
-   if assigned(name) then exec_AddPort(port)
+   if assigned(name) then AddPort(port)
    else NewList(addr(port^.mp_MsgList));
    CreatePort := port;
 end;
@@ -490,12 +495,12 @@ begin
     if port <> NIL then
     begin
         if port^.mp_Node.ln_Name <> NIL then
-            exec_RemPort(port);
+            RemPort(port);
 
         port^.mp_Node.ln_Type     := $FF;
         port^.mp_MsgList.lh_Head  := pNode(-1);
-        exec_FreeSignal(port^.mp_SigBit);
-        exec_FreeMem(port, sizeof(tMsgPort));
+        FreeSignal(port^.mp_SigBit);
+        FreeMem2(port, sizeof(tMsgPort));
     end;
 end;
 
@@ -514,7 +519,7 @@ begin
   DeletePort(TimerPort);
   Create_Timer := Nil;
     end; 
-    Error := exec_OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
+    Error := OpenDevice(TIMERNAME, theUnit, pIORequest(TimeReq), 0);
     if Error <> 0 then begin
   DeleteExtIO(pIORequest(TimeReq));
   DeletePort(TimerPort);
@@ -531,7 +536,7 @@ begin
     
     WhichPort := WhichTimer^.tr_Node.io_Message.mn_ReplyPort;
     if assigned(WhichTimer) then begin
-        exec_CloseDevice(pIORequest(WhichTimer));
+        CloseDevice(pIORequest(WhichTimer));
         DeleteExtIO(pIORequest(WhichTimer));
     end;
     if assigned(WhichPort) then
@@ -550,7 +555,7 @@ begin
     tr^.tr_time.tv_secs := secs;
     tr^.tr_time.tv_micro := micro;
     tr^.tr_node.io_Command := TR_SETSYSTIME;
-    exec_DoIO(pIORequest(tr));
+    DoIO(pIORequest(tr));
 
     delete_timer(tr);
     set_new_time := 0;
@@ -566,7 +571,7 @@ begin
     if tr = nil then get_sys_time := -1;
 
     tr^.tr_node.io_Command := TR_GETSYSTIME;
-    exec_DoIO(pIORequest(tr));
+    DoIO(pIORequest(tr));
 
    { structure assignment }
    tv^ := tr^.tr_time;
@@ -766,7 +771,7 @@ Var
 Begin
   Free := -1;
   { Here we stop systemrequesters to appear }
-  myproc := pProcess(exec_FindTask(nil));
+  myproc := pProcess(FindTask(nil));
   OldWinPtr := myproc^.pr_WindowPtr;
   myproc^.pr_WindowPtr := Pointer(-1);
   { End of systemrequesterstop }
@@ -797,7 +802,7 @@ Var
 Begin
   Size := -1;
   { Here we stop systemrequesters to appear }
-  myproc := pProcess(exec_FindTask(nil));
+  myproc := pProcess(FindTask(nil));
   OldWinPtr := myproc^.pr_WindowPtr;
   myproc^.pr_WindowPtr := Pointer(-1);
   { End of systemrequesterstop }
@@ -1369,7 +1374,10 @@ End.
 
 {
   $Log$
-  Revision 1.4  2004-05-16 00:24:19  karoly
+  Revision 1.5  2004-06-13 22:51:08  karoly
+    * cleanup and changes to use new includes
+
+  Revision 1.4  2004/05/16 00:24:19  karoly
     * some cleanup
 
   Revision 1.3  2004/05/13 00:48:52  karoly
