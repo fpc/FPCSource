@@ -210,10 +210,10 @@ Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKi
 Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean;
 
 // subroutines to read/write properties
-Function  GetOrdProp(Instance: TObject; PropInfo : PPropInfo) : Longint;
-Function  GetOrdProp(Instance: TObject; const PropName: string): Longint;
-Procedure SetOrdProp(Instance: TObject; PropInfo : PPropInfo;  Value : Longint);
-Procedure SetOrdProp(Instance: TObject; const PropName: string; Value: Longint);
+Function  GetOrdProp(Instance: TObject; PropInfo : PPropInfo) : Int64;
+Function  GetOrdProp(Instance: TObject; const PropName: string): Int64;
+Procedure SetOrdProp(Instance: TObject; PropInfo : PPropInfo;  Value : Int64);
+Procedure SetOrdProp(Instance: TObject; const PropName: string; Value: Int64);
 
 Function  GetEnumProp(Instance: TObject; const PropName: string): string;
 Function  GetEnumProp(Instance: TObject; const PropInfo: PPropInfo): string;
@@ -669,8 +669,10 @@ Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
   Ordinal properties
   ---------------------------------------------------------------------}
 
-Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Longint;
+Function GetOrdProp(Instance : TObject;PropInfo : PPropInfo) : Int64;
 type
+  TGetInt64ProcIndex=function(index:longint):Int64 of object;
+  TGetInt64Proc=function():Int64 of object;
   TGetIntegerProcIndex=function(index:longint):longint of object;
   TGetIntegerProc=function:longint of object;
   TGetWordProcIndex=function(index:longint):word of object;
@@ -704,21 +706,33 @@ begin
         end;
         Signed := OrdType in [otSByte,otSWord,otSLong];
       end;
+    tkInt64 :
+      begin
+        DataSize:=8;
+        Signed:=true;
+      end;
+    tkQword :
+      begin
+        DataSize:=8;
+        Signed:=false;
+      end;
   end;
 
   case (PropInfo^.PropProcs) and 3 of
     ptfield:
       if Signed then begin
         case DataSize of
-          1: Result:=PShortInt(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-          2: Result:=PSmallInt(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-          4: Result:=PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+          1: Result:=PShortInt(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
+          2: Result:=PSmallInt(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
+          4: Result:=PLongint(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
+          8: Result:=PInt64(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
         end;
       end else begin
         case DataSize of
-          1: Result:=PByte(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-          2: Result:=PWord(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-          4: Result:=PLongint(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+          1: Result:=PByte(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
+          2: Result:=PWord(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
+          4: Result:=PLongint(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
+          8: Result:=PInt64(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
         end;
       end;
     ptstatic,
@@ -727,19 +741,21 @@ begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
+          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then begin
           case DataSize of
             1: Result:=TGetByteProcIndex(AMethod)(PropInfo^.Index);
             2: Result:=TGetWordProcIndex(AMethod)(PropInfo^.Index);
             4: Result:=TGetIntegerProcIndex(AMethod)(PropInfo^.Index);
+            8: result:=TGetInt64ProcIndex(AMethod)(PropInfo^.Index)
           end;
         end else begin
           case DataSize of
             1: Result:=TGetByteProc(AMethod)();
             2: Result:=TGetWordProc(AMethod)();
             4: Result:=TGetIntegerProc(AMethod)();
+            8: result:=TGetInt64Proc(AMethod)();
           end;
         end;
         if Signed then begin
@@ -752,15 +768,20 @@ begin
   end;
 end;
 
-Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;Value : Longint);
+Procedure SetOrdProp(Instance : TObject;PropInfo : PPropInfo;Value : Int64);
 type
+  TSetInt64ProcIndex=procedure(index:longint;i:Int64) of object;
+  TSetInt64Proc=procedure(i:Int64) of object;
   TSetIntegerProcIndex=procedure(index,i:longint) of object;
   TSetIntegerProc=procedure(i:longint) of object;
 var
   DataSize: Integer;
   AMethod : TMethod;
 begin
-  DataSize := 4;
+  if PropInfo^.PropType^.Kind in [tkInt64,tkQword] then
+    DataSize := 8
+  else
+    DataSize := 4;
   if PropInfo^.PropType^.Kind <> tkClass then
     begin
       { cut off unnecessary stuff }
@@ -780,9 +801,10 @@ begin
   case (PropInfo^.PropProcs shr 2) and 3 of
     ptfield:
       case DataSize of
-        1: PByte(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Byte(Value);
-        2: PWord(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Word(Value);
-        4: PLongint(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+        1: PByte(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Byte(Value);
+        2: PWord(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Word(Value);
+        4: PLongint(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Longint(Value);
+        8: PInt64(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Value;
       end;
     ptstatic,
     ptvirtual :
@@ -790,24 +812,34 @@ begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^;
+          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
-        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
-          TSetIntegerProcIndex(AMethod)(PropInfo^.Index,Value)
+        if datasize=8 then
+          begin
+            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+              TSetInt64ProcIndex(AMethod)(PropInfo^.Index,Value)
+            else
+              TSetInt64Proc(AMethod)(Value);
+          end
         else
-          TSetIntegerProc(AMethod)(Value);
+          begin
+            if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+              TSetIntegerProcIndex(AMethod)(PropInfo^.Index,Value)
+            else
+              TSetIntegerProc(AMethod)(Value);
+          end;  
       end;
   end;
 end;
 
 
-Function GetOrdProp(Instance: TObject; const PropName: string): Longint;
+Function GetOrdProp(Instance: TObject; const PropName: string): Int64;
 begin
   Result:=GetOrdProp(Instance,FindPropInfo(Instance,PropName));
 end;
 
 
-Procedure SetOrdProp(Instance: TObject; const PropName: string;  Value: Longint);
+Procedure SetOrdProp(Instance: TObject; const PropName: string;  Value: Int64);
 begin
   SetOrdProp(Instance,FindPropInfo(Instance,PropName),Value);
 end;
@@ -842,6 +874,34 @@ begin
         raise EPropertyError.CreateFmt(SErrUnknownEnumValue, [Value]);
       SetOrdProp(Instance, PropInfo,PV);
     end;
+end;
+
+
+{ ---------------------------------------------------------------------
+  Int64 wrappers
+  ---------------------------------------------------------------------}
+
+Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
+begin
+  Result:=GetOrdProp(Instance,PropInfo);
+end;
+
+
+procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo; const Value: Int64);
+begin
+  SetOrdProp(Instance,PropInfo,Value);
+end;
+
+
+Function GetInt64Prop(Instance: TObject; const PropName: string): Int64;
+begin
+  Result:=GetInt64Prop(Instance,FindPropInfo(Instance,PropName));
+end;
+
+
+Procedure SetInt64Prop(Instance: TObject; const PropName: string; const Value: Int64);
+begin
+  SetInt64Prop(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
@@ -965,7 +1025,7 @@ begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.GetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 Result:=TGetShortStrProcIndex(AMethod)(PropInfo^.Index)
@@ -985,7 +1045,7 @@ begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.GetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.GetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 Result:=TGetAnsiStrProcIndex(AMethod)(PropInfo^.Index)
@@ -1023,7 +1083,7 @@ begin
               if (PropInfo^.PropProcs and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^;
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetShortStrProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1043,7 +1103,7 @@ begin
               if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
-                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^;
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.SetProc))^;
               AMethod.Data:=Instance;
               if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
                 TSetAnsiStrProcIndex(AMethod)(PropInfo^.Index,Value)
@@ -1176,16 +1236,16 @@ begin
     ptField:
       Case GetTypeData(PropInfo^.PropType)^.FloatType of
        ftSingle:
-         Result:=PSingle(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+         Result:=PSingle(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
        ftDouble:
-         Result:=PDouble(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+         Result:=PDouble(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
        ftExtended:
-         Result:=PExtended(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+         Result:=PExtended(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
        ftcomp:
-         Result:=PComp(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+         Result:=PComp(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
 {$ifdef HASCURRENCY}
        ftcurr:
-         Result:=PCurrency(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
+         Result:=PCurrency(Pointer(Instance)+Ptrint(PropInfo^.GetProc))^;
 {$endif HASCURRENCY}
        end;
     ptStatic,
@@ -1194,7 +1254,7 @@ begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
+          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         Case GetTypeData(PropInfo^.PropType)^.FloatType of
           ftSingle:
@@ -1237,11 +1297,11 @@ begin
     ptfield:
       Case GetTypeData(PropInfo^.PropType)^.FloatType of
         ftSingle:
-          PSingle(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+          PSingle(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Value;
         ftDouble:
-          PDouble(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+          PDouble(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Value;
         ftExtended:
-          PExtended(Pointer(Instance)+Longint(PropInfo^.SetProc))^:=Value;
+          PExtended(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^:=Value;
 {$ifdef FPC_COMP_IS_INT64}
         ftComp:
           PComp(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=trunc(Value);
@@ -1256,7 +1316,7 @@ begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^;
+          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
         Case GetTypeData(PropInfo^.PropType)^.FloatType of
           ftSingle:
@@ -1343,7 +1403,7 @@ begin
   case (PropInfo^.PropProcs) and 3 of
     ptfield:
       begin
-        Value:=PMethod(Pointer(Instance)+Longint(PropInfo^.GetProc));
+        Value:=PMethod(Pointer(Instance)+Ptrint(PropInfo^.GetProc));
         if Value<>nil then
           Result:=Value^;
       end;
@@ -1353,7 +1413,7 @@ begin
         if (PropInfo^.PropProcs and 3)=ptStatic then
           AMethod.Code:=PropInfo^.GetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
+          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.GetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
           Result:=TGetMethodProcIndex(AMethod)(PropInfo^.Index)
@@ -1373,14 +1433,14 @@ var
 begin
   case (PropInfo^.PropProcs shr 2) and 3 of
     ptfield:
-      PMethod(Pointer(Instance)+Longint(PropInfo^.SetProc))^ := Value;
+      PMethod(Pointer(Instance)+Ptrint(PropInfo^.SetProc))^ := Value;
     ptstatic,
     ptvirtual :
       begin
         if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
           AMethod.Code:=PropInfo^.SetProc
         else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^;
+          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Ptrint(PropInfo^.SetProc))^;
         AMethod.Data:=Instance;
         if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
           TSetMethodProcIndex(AMethod)(PropInfo^.Index,@Value)
@@ -1400,77 +1460,6 @@ end;
 Procedure SetMethodProp(Instance: TObject; const PropName: string;  const Value: TMethod);
 begin
   SetMethodProp(Instance,FindPropInfo(Instance,PropName),Value);
-end;
-
-
-{ ---------------------------------------------------------------------
-  Int64 properties
-  ---------------------------------------------------------------------}
-
-Function GetInt64Prop(Instance: TObject; PropInfo: PPropInfo): Int64;
-type
-  TGetInt64ProcIndex=function(index:longint):Int64 of object;
-  TGetInt64Proc=function():Int64 of object;
-var
-  AMethod : TMethod;
-begin
-  Result:=0;
-  case (PropInfo^.PropProcs) and 3 of
-    ptfield:
-      Result:=PInt64(Pointer(Instance)+Longint(PropInfo^.GetProc))^;
-    ptstatic,
-    ptvirtual :
-      begin
-        if (PropInfo^.PropProcs and 3)=ptStatic then
-          AMethod.Code:=PropInfo^.GetProc
-        else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.GetProc))^;
-        AMethod.Data:=Instance;
-        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
-          result:=TGetInt64ProcIndex(AMethod)(PropInfo^.Index)
-        else
-          result:=TGetInt64Proc(AMethod)();
-      end;
-  end;
-end;
-
-
-procedure SetInt64Prop(Instance: TObject; PropInfo: PPropInfo; const Value: Int64);
-type
-  TSetInt64ProcIndex=procedure(index:longint;i:Int64) of object;
-  TSetInt64Proc=procedure(i:Int64) of object;
-var
-  AMethod : TMethod;
-begin
-  case (PropInfo^.PropProcs shr 2) and 3 of
-    ptfield:
-      PInt64(Pointer(Instance)+Longint(PropInfo^.SetProc))^ := Value;
-    ptstatic,
-    ptvirtual :
-      begin
-        if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
-          AMethod.Code:=PropInfo^.SetProc
-        else
-          AMethod.Code:=PPointer(Pointer(Instance.ClassType)+Longint(PropInfo^.SetProc))^;
-        AMethod.Data:=Instance;
-        if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
-          TSetInt64ProcIndex(AMethod)(PropInfo^.Index,Value)
-        else
-          TSetInt64Proc(AMethod)(Value);
-      end;
-  end;
-end;
-
-
-Function GetInt64Prop(Instance: TObject; const PropName: string): Int64;
-begin
-  Result:=GetInt64Prop(Instance,FindPropInfo(Instance,PropName));
-end;
-
-
-Procedure SetInt64Prop(Instance: TObject; const PropName: string; const Value: Int64);
-begin
-  SetInt64Prop(Instance,FindPropInfo(Instance,PropName),Value);
 end;
 
 
@@ -1536,7 +1525,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  2005-02-26 20:59:38  florian
+  Revision 1.40  2005-03-14 19:16:06  peter
+    * getordprop supports int64
+
+  Revision 1.39  2005/02/26 20:59:38  florian
     * fixed 1.0.10 issue
 
   Revision 1.38  2005/02/26 11:37:01  florian
