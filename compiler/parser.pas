@@ -273,17 +273,17 @@ unit parser;
            end;
 {$endif Splitheap}
 
-         { restore old state, close trees }
+         { restore old state, close trees, > 0.99.5 has heapblocks, so
+           it's the default to release the trees }
 {$ifdef VER0_99_5}
          if dispose_asm_lists then
-{$else}
-  {$ifndef go32v2}
-    {$ifndef linux}
-         if dispose_asm_lists then
-    {$endif}
-  {$endif}
-{$endif}
            codegen_donemodule;
+{$else}
+  {$ifdef TP}
+         if dispose_asm_lists then
+  {$endif}
+           codegen_donemodule;
+{$endif}
 
 {$ifdef GDB}
          reset_gdb_info;
@@ -370,7 +370,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.38  1998-08-18 20:52:20  peter
+  Revision 1.39  1998-08-26 10:07:09  peter
+    * dispose trees is now default for all > 0.99.5 compiles
+
+  Revision 1.38  1998/08/18 20:52:20  peter
     * renamed in_main to in_global which is more logical
 
   Revision 1.37  1998/08/17 09:17:49  peter
