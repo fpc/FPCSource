@@ -74,10 +74,10 @@ type
             end;}
 
   PDir =^TDir;
-
+ dev_t  = CARDINAL;
 {$packrecords C}
  Stat =record {BSD version}
-        dev,                            { inode's device }
+        dev        :  dev_t;            { inode's device }
         ino        :  cardinal;         { inode's number }
         mode, 				{ inode protection mode }
         nlink	   :  word;             { number of hard links }
@@ -156,7 +156,10 @@ type
 
 {
   $Log$
-  Revision 1.5  2001-01-20 16:52:37  marco
+  Revision 1.6  2001-06-19 08:34:16  marco
+   * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
+
+  Revision 1.5  2001/01/20 16:52:37  marco
    * Grr, timeval and timespec were both wrong, and I fixed only one. Now
   done.
 

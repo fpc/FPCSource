@@ -85,9 +85,20 @@ Const
   fs_proc     = $9fa0;
   fs_xia      = $012FD16D;
 
+  { Constansts for MMAP }
+  MAP_PRIVATE   =2;
+  MAP_ANONYMOUS =$1000;
+
+  {Constansts Termios/Ioctl (used in Do_IsDevice) }
+  IOCtl_TCGETS=$5401; // TCGETS is also in termios.inc, but the sysunix needs only this
+
+
 {
   $Log$
-  Revision 1.3  2001-01-23 20:37:14  marco
+  Revision 1.4  2001-06-19 08:34:16  marco
+   * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
+
+  Revision 1.3  2001/01/23 20:37:14  marco
    * Serial.pp in makefile, Open_Noccty added to sysconst.inc
 
   Revision 1.2  2000/09/18 13:42:35  marco

@@ -454,10 +454,46 @@ begin
  {$endif}
 end;
 
+(*=================== MOVED from syslinux.inc ========================*)
+Function Sys_FTruncate(Handle,Pos:longint):longint;  //moved from sysunix.inc Do_Truncate
+begin
+  Sys_FTruncate:=do_syscall(syscall_nr_ftruncate,handle,pos,0);
+end;
+
+Function Sys_fstat(fd : longint;var Info:stat):Longint; // This was missing here, instead an fstat call was included in Do_FileSize
+begin
+  Sys_FStat:=do_SysCall(syscall_nr_fstat,fd,longint(@info));
+end;
+
+{$ifdef NewReaddir} 
+{$I readdir.inc}
+{$endif}
+
+
+{
+  Interface to Unix ioctl call.
+  Performs various operations on the filedescriptor Handle.
+  Ndx describes the operation to perform.
+  Data points to data needed for the Ndx function. The structure of this
+  data is function-dependent.
+}
+Function Sys_IOCtl(Handle,Ndx: Longint;Data: Pointer):LongInt;  // This was missing here, instead hardcoded in Do_IsDevice
+begin
+  Sys_IOCtl:=do_SysCall(syscall_nr_ioctl,handle,Ndx,longint(data));
+end;
+
+Function Sys_mmap(adr,len,prot,flags,fdes,off:longint):longint; // moved from sysunix.inc, used in sbrk
+begin
+  Sys_mmap:=do_syscall(syscall_nr_mmap,Adr,Len,Prot,Flags,fdes,off,0);
+end;
+
 
 {
   $Log$
-  Revision 1.5  2001-04-23 11:38:30  marco
+  Revision 1.6  2001-06-19 08:34:16  marco
+   * Peter didn't merge the FreeBSD directory when he merged the Unix one. Fixed
+
+  Revision 1.5  2001/04/23 11:38:30  marco
    * Small readdir fix from fixes branch.
 
   Revision 1.4  2000/09/19 09:57:35  marco
