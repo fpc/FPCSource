@@ -80,6 +80,7 @@ implementation
          lt,rt   : ttreetyp;
          rv,lv   : longint;
          rvd,lvd : bestreal;
+         resdef,
          rd,ld   : pdef;
          tempdef : pdef;
          concatstrings : boolean;
@@ -191,18 +192,25 @@ implementation
               rt:=realconstn;
            end;
 
-       { both are int constants ? }
-         if is_constintnode(p^.left) and is_constintnode(p^.right) then
+       { both are int constants, also allow operations on two equal enums
+         in fpc mode (Needed for conversion of C code) }
+         if ((lt=ordconstn) and (rt=ordconstn)) and
+            ((is_constintnode(p^.left) and is_constintnode(p^.right)) or
+             ((ld^.deftype=enumdef) and is_equal(ld,rd) and (m_fpc in aktmodeswitches))) then
            begin
+              if ld^.deftype=enumdef then
+                resdef:=ld
+              else
+                resdef:=s32bitdef;
               lv:=p^.left^.value;
               rv:=p^.right^.value;
               case p^.treetype of
-                addn : t:=genordinalconstnode(lv+rv,s32bitdef);
-                subn : t:=genordinalconstnode(lv-rv,s32bitdef);
-                muln : t:=genordinalconstnode(lv*rv,s32bitdef);
-                xorn : t:=genordinalconstnode(lv xor rv,s32bitdef);
-                 orn : t:=genordinalconstnode(lv or rv,s32bitdef);
-                andn : t:=genordinalconstnode(lv and rv,s32bitdef);
+                addn : t:=genordinalconstnode(lv+rv,resdef);
+                subn : t:=genordinalconstnode(lv-rv,resdef);
+                muln : t:=genordinalconstnode(lv*rv,resdef);
+                xorn : t:=genordinalconstnode(lv xor rv,resdef);
+                 orn : t:=genordinalconstnode(lv or rv,resdef);
+                andn : t:=genordinalconstnode(lv and rv,resdef);
                  ltn : t:=genordinalconstnode(ord(lv<rv),booldef);
                 lten : t:=genordinalconstnode(ord(lv<=rv),booldef);
                  gtn : t:=genordinalconstnode(ord(lv>rv),booldef);
@@ -1074,7 +1082,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  1999-05-06 09:05:32  peter
+  Revision 1.30  1999-05-11 00:47:02  peter
+    + constant operations on enums, only in fpc mode
+
+  Revision 1.29  1999/05/06 09:05:32  peter
     * generic write_float and str_float
     * fixed constant float conversions
 
