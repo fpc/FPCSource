@@ -85,11 +85,12 @@ ldconfig
 /usr/bin/pyacc
 /usr/bin/h2pas
 /usr/bin/fprcp
+/usr/bin/postw32
 %{fpcdir}
-/usr/lib/libfprtl.so.*
-/usr/lib/libfpfcl.so.*
-/usr/lib/libfpgtk.so.*
-/usr/lib/libfpapi.so.*
+/usr/lib/libfprtl.so*
+/usr/lib/libfpfcl.so*
+/usr/lib/libfpgtk.so*
+/usr/lib/libfpapi.so*
 /usr/lib/fpc/lexyacc/yylex.cod 
 /usr/lib/fpc/lexyacc/yyparse.cod
 /usr/man/man1/delp.1

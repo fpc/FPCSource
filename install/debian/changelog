@@ -2,8 +2,8 @@ fpc (0.99.15-0) unstable; urgency=low
 
   * New Upstream
 
- -- Mika Fischer <mf@debian.org>  Sat, 06 Mrt 2000 22:18:11 +0100
- 
+ -- Peter Vreman <peter@freepascal.org>  Sat, 01 Jun 2000 22:18:11 +0200
+
 fpc (0.99.13-19991013-4) unstable; urgency=low
 
   * Fixed bashism in samplecfg (Closes: Bug#50636)

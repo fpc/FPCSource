@@ -18,7 +18,8 @@ unitsubdir=fcl
 packagename=fcl
 
 [libs]
-libname=libfpfcl.so.1.0
+libname=libfpfcl.so
+libversion=1.0
 
 [dirs]
 fpcdir=../..

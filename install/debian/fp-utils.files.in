@@ -10,6 +10,7 @@
 /usr/bin/plex
 /usr/bin/pyacc
 /usr/bin/h2pas
+/usr/bin/postw32
 /usr/lib/fpc/%{fpcversion}/units/linux/lexlib.ppu
 /usr/lib/fpc/%{fpcversion}/units/linux/yacclib.ppu
 /usr/lib/fpc/%{fpcversion}/units/linux/lexlib.o

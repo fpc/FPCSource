@@ -14,7 +14,8 @@ unitsubdir=api
 packagename=api
 
 [libs]
-libname=libfpapi.so.1.0
+libname=libfpapi.so
+libversion=1.0
 
 [dirs]
 fpcdir=../..

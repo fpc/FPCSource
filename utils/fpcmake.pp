@@ -169,6 +169,7 @@ type
     RequirePackages,
     RequireComponents : TTargetsString;
     LibName,
+    LibVersion,
     LibUnits       : string;
     LibGCC,
     LibOther       : boolean;
@@ -426,6 +427,7 @@ begin
      DirInc:=ReadString(ini_dirs,'incdir','');
    { libs }
      LibName:=ReadString(ini_libs,'libname','');
+     LibVersion:=ReadString(ini_libs,'libversion','');
      LibUnits:=ReadString(ini_libs,'libunits','');
      LibGcc:=ReadBool(ini_libs,'libgcc',false);
      LibOther:=ReadBool(ini_libs,'libother',false);
@@ -1079,6 +1081,8 @@ begin
      AddHead('Libraries');
      if userini.libname<>'' then
       Add('LIBNAME='+userini.libname);
+     if userini.libversion<>'' then
+      Add('LIBVERSION='+userini.libversion);
      if userini.libunits<>'' then
       Add('SHAREDLIBUNITOBJECTS='+userini.libunits);
      if userini.libgcc then
@@ -1305,7 +1309,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.35  2000-05-11 17:59:12  peter
+  Revision 1.36  2000-06-01 12:35:04  peter
+    * library support including symlink of .so to .so.1.0
+
+  Revision 1.35  2000/05/11 17:59:12  peter
     * makeini unit added as replacement for old inifiles unit
 
   Revision 1.34  2000/04/11 15:34:58  peter

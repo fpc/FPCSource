@@ -1,2 +1,2 @@
 /usr/lib/fpc/%{fpcversion}/units/linux/api
-/usr/lib/libfpapi.so.*
+/usr/lib/libfpapi.so*

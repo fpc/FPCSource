@@ -11,7 +11,8 @@ sourcesdir=glib gdk gtk
 targetdir=.
 
 [libs]
-libname=libfpgtk.so.1.0
+libname=libfpgtk.so
+libversion=1.0
 
 
 [rules]
