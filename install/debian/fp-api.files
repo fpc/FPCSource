@@ -6,6 +6,7 @@
 /usr/lib/fpc/0.99.12/units/linux/mouse.ppu 
 /usr/lib/fpc/0.99.12/units/linux/filectrl.ppu 
 /usr/lib/fpc/0.99.12/units/linux/filesys.ppu
+/usr/lib/fpc/0.99.12/units/linux/terminfo.ppu
 
 /usr/lib/fpc/0.99.12/units/linux/common.o 
 /usr/lib/fpc/0.99.12/units/linux/callspec.o 
@@ -14,3 +15,4 @@
 /usr/lib/fpc/0.99.12/units/linux/mouse.o 
 /usr/lib/fpc/0.99.12/units/linux/filectrl.o 
 /usr/lib/fpc/0.99.12/units/linux/filesys.o
+/usr/lib/fpc/0.99.12/units/linux/terminfo.o

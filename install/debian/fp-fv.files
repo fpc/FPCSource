@@ -25,6 +25,7 @@
 /usr/lib/fpc/0.99.12/units/linux/calendar.ppu 
 /usr/lib/fpc/0.99.12/units/linux/helpfile.ppu 
 /usr/lib/fpc/0.99.12/units/linux/editors.ppu
+/usr/lib/fpc/0.99.12/units/linux/tabs.ppu
 
 /usr/lib/fpc/0.99.12/units/linux/validate.o 
 /usr/lib/fpc/0.99.12/units/linux/drivers.o 
@@ -50,3 +51,4 @@
 /usr/lib/fpc/0.99.12/units/linux/calendar.o 
 /usr/lib/fpc/0.99.12/units/linux/helpfile.o 
 /usr/lib/fpc/0.99.12/units/linux/editors.o
+/usr/lib/fpc/0.99.12/units/linux/tabs.o

@@ -74,8 +74,6 @@ endif
         
 all: testfpcmake fpc_all
 
-clean: testfpcmake fpc_clean
-
 install: testfpcmake fpc_install
 
 info: testfpcmake fpc_info
@@ -136,6 +134,9 @@ endif
 # Dependencies
 #####################################################################
 
+clean: testfpcmake fpc_clean
+	$(DEL) forms$(PASEXT)
+
 forms$(PPUEXT): forms-$(FORMSVERSION)$(PASEXT) x$(PPUEXT) xresource$(PPUEXT) xlib$(PPUEXT)\
               xutil$(PPUEXT)
 	ln -sf forms-$(FORMSVERSION)$(PASEXT) forms$(PASEXT)
@@ -143,7 +144,11 @@ forms$(PPUEXT): forms-$(FORMSVERSION)$(PASEXT) x$(PPUEXT) xresource$(PPUEXT) xli
 
 #
 # $Log$
-# Revision 1.1  1999-05-12 00:11:25  michael
+# Revision 1.2  1999-07-16 13:45:36  peter
+#   * 0.99.12b updates
+#   * merges
+#
+# Revision 1.1  1999/05/12 00:11:25  michael
 # initial import
 #
 # Revision 1.1  1999/03/16 00:50:29  peter

@@ -8,6 +8,7 @@ export FPCDIR=
 # Get current dir
 PWD=$(shell pwd)
 
+INSTALL_VERSION=0.99.12
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 NEWPP=$(PWD)/compiler/ppc386
@@ -41,7 +42,7 @@ cleanbin:
 	dh_testroot
 
 	rm -f buildbin-stamp installbin-stamp
-	rm -rf ${BUILD_DIR}
+	rm -rf $(BUILD_DIR)
 	
 	$(MAKE) compiler_clean
 	$(MAKE) rtl_clean
@@ -63,19 +64,19 @@ installbin-stamp: buildbin
 	dh_clean
 
 # Specify the compiler to use so installing will do correctly
-	$(MAKE) compiler_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) rtl_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) utils_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) compiler_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) rtl_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) utils_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 
-	$(MAKE) base_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) man_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) demo_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) base_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) man_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) demo_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 
-	$(MAKE) fcl_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) gtk_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) api_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) fv_install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
-	$(MAKE) -C packages install PP=$(NEWPP) PREFIXINSTALLDIR=${INSTALL_DIR}/usr
+	$(MAKE) fcl_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) gtk_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) api_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) fv_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
+	$(MAKE) -C packages install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 	
 	touch installbin-stamp
 
@@ -88,7 +89,7 @@ builddoc-stamp:
 	@echo "--- Building Documentation"
 	dh_testdir
 
-	$(MAKE) -C docs html
+	$(MAKE) -C docs pdf
 
 	touch builddoc-stamp
 
@@ -99,7 +100,7 @@ installdoc-stamp: builddoc
 	dh_testroot
 	dh_clean
 
-	$(MAKE) -C docs install DOCINSTALLDIR=${INSTALL_DIR}/usr/doc/fpc/0.99.12/
+	$(MAKE) -C docs pdfinstall DOCINSTALLDIR=$(INSTALL_DIR)/usr/doc/fpc/$(INSTALL_VERSION)/
 	
 	touch installdoc-stamp
 
@@ -109,7 +110,7 @@ cleandoc:
 	dh_testroot
 
 	rm -f builddoc-stamp installdoc-stamp
-	rm -rf ${BUILD_DIR}
+	rm -rf $(BUILD_DIR)
 
 	$(MAKE) -C docs clean
 
@@ -186,7 +187,7 @@ fp-docs: installdoc
 	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
 	dh_installchangelogs 	-p$@ -P$(BUILD_DIR)/$@
 	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
-	dh_compress		-p$@ -P$(BUILD_DIR)/$@
+#	dh_compress		-p$@ -P$(BUILD_DIR)/$@
 	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
 	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
 	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@

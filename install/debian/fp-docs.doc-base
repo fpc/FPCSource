@@ -5,6 +5,5 @@ Abstract: Documentation for the Free Pascal Compiler.
  .
 Section: Development
 
-Format: HTML
-Index: /usr/doc/fp-docs/fpctoc.html
-Files: /usr/doc/fp-docs/*.html
+Format: PDF
+Files: /usr/doc/fp-docs/*.pdf
