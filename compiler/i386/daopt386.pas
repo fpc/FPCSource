@@ -728,7 +728,7 @@ Begin
                AddReg2RegInfo(OldReg, NewReg, RegInfo);
                RegsEquivalent := True
              End
-           Else RegsEquivalent := False 
+           Else RegsEquivalent := False
     Else RegsEquivalent := False
   Else RegsEquivalent := OldReg = NewReg
 End;
@@ -1593,10 +1593,65 @@ Begin
   ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
                  (R1.Segment = R2.Segment) And
                  (R1.Symbol=R2.Symbol) And
-                 ((Assigned(R1.Symbol)) Or
-                  (R1.Base = R2.Base))
+                 (R1.Base = R2.Base)
 End;
 
+function isSimpleRef(const ref: treference): boolean;
+{ returns true if ref is reference to a local or global variable, to a  }
+{ parameter or to an object field (this includes arrays). Returns false }
+{ otherwise.                                                            }
+begin
+  isSimpleRef :=
+    assigned(ref.symbol) or
+    (ref.base = procinfo^.framepointer) or
+    (assigned(procinfo^._class) and
+     (ref.base = R_ESI));
+end;
+
+function containsPointerRef(p: pai): boolean;
+{ checks if an instruction contains a reference which is a pointer location }
+var
+  hp: paicpu;
+  count: longint;
+begin
+  containsPointerRef := false;
+  if p^.typ <> ait_instruction then
+    exit;
+  hp := paicpu(p);
+  for count := 0 to high(hp^.ops) do
+    begin
+      case hp^.oper[count].typ of
+        top_ref:
+          if not isSimpleRef(hp^.oper[count].ref^) then
+            begin
+              containsPointerRef := true;
+              exit;
+            end;
+        top_none:
+          exit;
+      end;
+    end;
+end;
+
+
+function containsPointerLoad(c: tcontent): boolean;
+{ checks whether the contents of a register contain a pointer reference }
+var
+  p: pai;
+  count: longint;
+begin
+  containsPointerLoad := false;
+  p := c.startmod;
+  for count := c.nrOfMods downto 1 do
+    begin
+      if containsPointerRef(p) then
+        begin
+          containsPointerLoad := true;
+          exit;
+        end;
+      getnextinstruction(p,p);
+    end;
+end;
 
 function writeToMemDestroysContents(regWritten: tregister; const ref: treference;
   reg: tregister; const c: tcontent): boolean;
@@ -1612,8 +1667,7 @@ begin
     end;
   reg := reg32(reg);
   regWritten := reg32(regWritten);
-  if (ref.base = procinfo^.framePointer) or
-      assigned(ref.symbol) Then
+  if isSimpleRef(ref) then
     begin
       if (ref.index <> R_NO) or
          (assigned(ref.symbol) and
@@ -1630,14 +1684,14 @@ begin
      {      "mov?? (Ref), %reg". WhichReg (this is the register whose contents }
      {      are being written to memory) is not destroyed if it's StartMod is  }
      {      of that form and NrOfMods = 1 (so if it holds ref, but is not a    }
-     {      pointer based on Ref)                                              }
+     {      expression based on Ref)                                           }
      {  * with uncertain optimizations off:                                    }
      {    - also destroy registers that contain any pointer                    }
       with c do
         writeToMemDestroysContents :=
           (typ in [con_ref,con_noRemoveRef]) and
           ((not(cs_uncertainOpts in aktglobalswitches) and
-            (nrOfMods <> 1)
+            containsPointerLoad(c)
            ) or
            (refInSequence(ref,c,refsEq) and
             ((reg <> regWritten) or
@@ -1662,15 +1716,10 @@ begin
         (typ in [con_ref,con_noRemoveRef]) and
         (not(cs_UncertainOpts in aktglobalswitches) or
        { for movsl }
-        ((ref.base = R_EDI) and (ref.index = R_EDI)) or
+         ((ref.base = R_EDI) and (ref.index = R_EDI)) or
        { don't destroy if reg contains a parameter, local or global variable }
-        not((nrOfMods = 1) and
-            (paicpu(startMod)^.oper[0].typ = top_ref) and
-            ((paicpu(startMod)^.oper[0].ref^.base = procinfo^.framePointer) or
-              assigned(paicpu(startMod)^.oper[0].ref^.symbol)
-            )
-           )
-       )
+         containsPointerLoad(c)
+        )
 end;
 
 function writeToRegDestroysContents(destReg: tregister; reg: tregister;
@@ -2387,7 +2436,13 @@ End.
 
 {
   $Log$
-  Revision 1.3  2000-10-24 10:40:53  jonas
+  Revision 1.4  2000-11-03 18:06:26  jonas
+    * fixed bug in arrayRefsEq
+    * object/class fields are now handled the same as local/global vars and
+      parameters (ie. a write to a local var can now never destroy a class
+      field)
+
+  Revision 1.3  2000/10/24 10:40:53  jonas
     + register renaming ("fixes" bug1088)
     * changed command line options meanings for optimizer:
         O2 now means peepholopts, CSE and register renaming in 1 pass
