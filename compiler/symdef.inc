@@ -920,6 +920,7 @@
             else
               rttilist^.concat(new(pai_const,init_8bit(tkInteger)));
          end;
+         rttilist^.concat(new(pai_const,init_8bit(byte(trans[typ]))));
          rttilist^.concat(new(pai_const,init_32bit(low)));
          rttilist^.concat(new(pai_const,init_32bit(high)));
       end;
@@ -2964,7 +2965,10 @@
 
 {
   $Log$
-  Revision 1.43  1998-09-18 17:12:40  florian
+  Revision 1.44  1998-09-19 15:23:58  florian
+    * rtti for ordtypes corrected
+
+  Revision 1.43  1998/09/18 17:12:40  florian
     * problem with writing of class references fixed
 
   Revision 1.42  1998/09/17 13:41:20  pierre
