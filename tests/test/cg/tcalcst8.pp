@@ -583,6 +583,7 @@ begin
 
   write('Const parameter test (src : LOC_REFERENCE (arraydef)))...');
 
+ 
   clear_globals;
   clear_values;
   failed:=false;
@@ -598,9 +599,16 @@ begin
   value_smallarray[SMALL_INDEX] := RESULT_U8BIT;
   proc_const_smallarray_open(value_smallarray);
   if global_u8bit <> RESULT_U8BIT then
-    failed := true;
+    failed := true; 
+
+  if failed then
+    fail
+  else
+    WriteLn('Passed!');
 
 {$ifndef tp}
+  write('Const parameter test (src : LOC_REFERENCE (const arraydef)))...');
+
   clear_globals;
   clear_values;
 
@@ -847,7 +855,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2002-09-22 09:08:41  carl
+  Revision 1.5  2002-10-08 07:42:19  pierre
+   * give result for arrays and const arrays separately
+
+  Revision 1.4  2002/09/22 09:08:41  carl
     * gets64bit was not returning an int64!
 
   Revision 1.3  2002/09/07 15:40:50  peter
