@@ -186,6 +186,10 @@ Fixed bugs:
   bug0153.pp   Asm, indexing a local/para var should produce an error like tp7 OK 0.99.9 (PFV)
   bug0154.pp   Subrange types give type mismatch when assigning to   OK 0.99.7 (PFV)
   bug0156.pp   (a,b) forward type def in record crashes when loading ppu OK 0.99.7 (PM/PFV)
+  bug0155.pp   Asm, Missing string return for asm functions
+               (this is a feature rather than a bug :               OK 0.99.11 (FK)
+                complex return values are not allowed for assembler
+                functions (PM) Why not (FK)? )
   bug0157.pp   Invalid compilation and also crashes                  OK 0.99.7 (PFV)
   bug0158.pp   Invalid boolean typecast                              OK 0.99.7 (PFV)
   bug0159.pp   Invalid virtual functions - should compile            OK 0.99.7 (FK)
@@ -261,10 +265,6 @@ Unfixed not important bugs (mostly incompatibilities):
 ------------------------------------------------------
 bug0111.pp   blockread(typedfile,...) is not allowed in TP7
 bug0133.pp   object type declaration not 100% compatibile with TP7
-bug0155.pp   Asm, Missing string return for asm functions
-             (this is a feature rather than a bug :
-              complex return values are not allowed for assembler
-              functions (PM) )
 bug0193.pp   overflow checking for 8 and 16 bit operations wrong
 	     overflow are just special range checks so
              as all operations are done on 32 bit integers in FPC

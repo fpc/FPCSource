@@ -5,6 +5,11 @@ asm
 	stosw
 end;
 
+procedure aasmstr(l : longint);assembler;
+asm
+	movl	l,%edi
+end;
+
 begin
   writeln(asmstr);
-end;
+end.
