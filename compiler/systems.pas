@@ -1473,7 +1473,7 @@ begin
 end.
 {
   $Log$
-  Revision 1.75  1999-05-18 09:25:01  michael
+  Revision 1.76  1999-05-18 09:30:10  michael
   + changes by thomas hajt
 
   Revision 1.74  1999/05/17 13:02:12  pierre
