@@ -401,15 +401,20 @@ ifdef NEEDUNITDIR
 override PPOPT+=$(addprefix -Fu,$(NEEDUNITDIR))
 endif
 
+# Library dirs
+ifdef LIBDIR
+override PPOPT+=$(addprefix -Fl,$(LIBDIR))
+endif
+
 # Add include dirs INC and PROCINC and OSINC
 ifdef INC
-override PPOPT+=-I$(INC)
+override PPOPT+=$(addprefix -Fi,$(INC))
 endif
 ifdef PROCINC
-override PPOPT+=-I$(PROCINC)
+override PPOPT+=$(addprefix -Fi,$(PROCINC))
 endif
 ifdef OSINC
-override PPOPT+=-I$(OSINC)
+override PPOPT+=$(addprefix -Fi,$(OSINC))
 endif
 
 # Target dirs

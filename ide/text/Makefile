@@ -16,13 +16,28 @@
 # Defaults
 #####################################################################
 
-# Add this dir also to the path as first
+# We always need the API and FV
+NEEDUNITDIR=../../api ../../fv
+
+# when making a full version include the compiler
 ifdef FULL
-NEEDUNITDIR=../../compiler ../../api ../../fv ../../gdbpas/gdbint
-NEEDOPT=-dBrowserCol
+override NEEDUNITDIR+=../../compiler
+override NEEDOPT+=-dBrowserCol -Sg
 else
-NEEDUNITDIR=../fake
+override NEEDUNITDIR+=../fake/compiler
 endif
+
+# when including debugger include the gdbinterface
+ifdef GDB
+override NEEDUNITDIR+=../../gdbint
+ifdef inlinux
+LIBDIR=/usr/lib/gcc-lib/i486-linux/2.7.2.3
+endif
+override LIBDIR+=../../gdbint/libgdb
+else
+override NEEDUNITDIR+=../fake/gdb
+endif
+
 
 
 #####################################################################
@@ -67,9 +82,15 @@ fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
 full:
 	make all FULL=1
 
+fullgdb:
+	make all FULL=1 GDB=1
+
 #
 # $Log$
-# Revision 1.4  1999-01-22 18:10:42  pierre
+# Revision 1.5  1999-01-28 19:58:23  peter
+#   * makefile updates
+#
+# Revision 1.4  1999/01/22 18:10:42  pierre
 #  * added missing directories
 #
 # Revision 1.3  1999/01/21 11:54:09  peter

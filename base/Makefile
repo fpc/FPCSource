@@ -16,7 +16,7 @@
 # Config
 #####################################################################
 
-MODULES=compiler rtl api fv ide
+MODULES=compiler rtl api fv gdb ide
 
 ifndef APIDIR
 APIDIR=api
@@ -24,6 +24,10 @@ endif
 
 ifndef FVDIR
 FVDIR=fv
+endif
+
+ifndef GDBDIR
+GDBDIR=gdbint
 endif
 
 ifndef IDEDIR
@@ -110,7 +114,7 @@ compiler_sharedinstall:
 #######################################
 
 rtl_all:
-	$(MAKE) -C rtl/$(OS_TARGET)
+	$(MAKE) -C rtl/$(OS_TARGET) all
 
 rtl_clean:
 	$(MAKE) -C rtl/$(OS_TARGET) clean
@@ -129,7 +133,7 @@ rtl_sharedinstall:
 # API
 #######################################
 
-api_all:
+api_all: rtl_all
 	$(MAKE) -C $(APIDIR) all
 
 api_clean:
@@ -149,7 +153,7 @@ api_sharedinstall:
 # FV
 #######################################
 
-fv_all:
+fv_all: rtl_all api_all
 	$(MAKE) -C $(FVDIR) all
 
 fv_clean:
@@ -166,11 +170,32 @@ fv_sharedinstall:
 
 
 #######################################
+# GDB
+#######################################
+
+gdb_all: rtl_all
+	$(MAKE) -C $(GDBDIR) all
+
+gdb_clean:
+	$(MAKE) -C $(GDBDIR) clean
+
+gdb_install:
+	$(MAKE) -C $(GDBDIR) install
+
+gdb_staticinstall:
+	$(MAKE) -C $(GDBDIR) staticlibinstall
+
+gdb_sharedinstall:
+	$(MAKE) -C $(GDBDIR) sharedlibinstall
+
+
+
+#######################################
 # IDE
 #######################################
 
-ide_all:
-	$(MAKE) -C $(IDEDIR) full
+ide_all: rtl_all api_all fv_all gdb_all
+	$(MAKE) -C $(IDEDIR) fullgdb
 
 ide_clean:
 	$(MAKE) -C $(IDEDIR) clean
@@ -200,9 +225,16 @@ staticinstall: $(addsuffix _staticinstall,$(MODULES))
 sharedinstall: $(addsuffix _sharedinstall,$(MODULES))
 
 
+#######################################
+# Defaults
+#######################################
+
 #
 # $Log$
-# Revision 1.1  1999-01-21 11:48:39  peter
+# Revision 1.2  1999-01-28 19:58:19  peter
+#   * makefile updates
+#
+# Revision 1.1  1999/01/21 11:48:39  peter
 #   * initial version
 #
 #
