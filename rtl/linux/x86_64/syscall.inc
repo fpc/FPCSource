@@ -34,7 +34,7 @@ asm
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  pushq Errno
+  movq  Errno,%rdi
   call  *%rax
   popq  %rdx
   movq  %rdx,(%rax)
@@ -60,7 +60,7 @@ asm
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  pushq Errno
+  movq  Errno,%rdi
   call  *%rax
   popq  %rdx
   movq  %rdx,(%rax)
@@ -87,7 +87,7 @@ asm
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  pushq Errno
+  movq  Errno,%rdi
   call  *%rax
   popq  %rdx
   movq  %rdx,(%rax)
@@ -115,7 +115,7 @@ asm
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  pushq Errno
+  movq  Errno,%rdi
   call  *%rax
   popq  %rdx
   movq  %rdx,(%rax)
@@ -144,7 +144,7 @@ asm
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  pushq Errno
+  movq  Errno,%rdi
   call  *%rax
   popq  %rdx
   movq  %rdx,(%rax)
@@ -174,7 +174,7 @@ asm
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  pushq Errno
+  movq  Errno,%rdi
   call  *%rax
   popq  %rdx
   movq  %rdx,(%rax)
@@ -206,7 +206,7 @@ asm
   jmp   .LNoThread
 .LThread:
   pushq %rdx
-  pushq Errno
+  movq  Errno,%rdi
   call  *%rax
   popq  %rdx
   movq  %rdx,(%rax)
@@ -224,7 +224,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2004-05-18 20:13:12  peter
+  Revision 1.8  2004-05-28 21:37:34  peter
+    * fix errno for multithread
+
+  Revision 1.7  2004/05/18 20:13:12  peter
     * fix offset of errno
 
   Revision 1.6  2004/05/16 11:04:27  marco
