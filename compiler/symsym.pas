@@ -1869,7 +1869,8 @@ implementation
                  exit;
                end;
              if (owner.symtabletype in [parasymtable,inlineparasymtable]) and
-                paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) then
+                paramanager.push_addr_param(varspez,vartype.def,tprocdef(owner.defowner).proccalloption) and
+                not(vo_has_local_copy in varoptions) then
                st := 'v'+st { should be 'i' but 'i' doesn't work }
              else
                st := 'p'+st;
@@ -2676,7 +2677,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.120  2003-09-25 16:18:54  peter
+  Revision 1.121  2003-09-25 21:25:37  peter
+    * has_local_copy gdb fix
+
+  Revision 1.120  2003/09/25 16:18:54  peter
     * fixed stabs for globals,static
 
   Revision 1.119  2003/09/23 17:56:06  peter
