@@ -21,6 +21,8 @@ function strcopy(dest,source : pchar) : pchar;assembler;
 asm
         cld
         movl    source,%edi
+        orl     %edi,%edi
+        jz      .LStrCopyNil
         movl    $0xffffffff,%ecx
         xorb    %al,%al
         repne
@@ -36,6 +38,7 @@ asm
         andl    $3,%ecx
         rep
         movsb
+.LStrCopyNil:        
         movl    dest,%eax
 end;
 
@@ -90,26 +93,33 @@ end ['EAX','ECX','ESI','EDI'];
 function strlen(p : pchar) : longint;assembler;
 asm
         cld
-        movl    p,%edi
-        movl    $0xffffffff,%ecx
         xorl    %eax,%eax
+        movl    p,%edi
+        orl     %edi,%edi
+        jz      .LNil
+        movl    $0xffffffff,%ecx
         repne
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
+.LNil:        
 end ['EDI','ECX','EAX'];
 
 
 function strend(p : pchar) : pchar;assembler;
 asm
         cld
+        xorl    %eax,%eax
         movl    p,%edi
+        orl     %edi,%edi
+        jz      .LStrEndNil
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
         repne
         scasb
         movl    %edi,%eax
         decl    %eax
+.LStrEndNil:
 end ['EDI','ECX','EAX'];
 
 
@@ -231,10 +241,12 @@ end ['EAX','ECX','ESI','EDI'];
 
 function strscan(p : pchar;c : char) : pchar;assembler;
 asm
+	xorl    %eax,%eax
         movl    p,%edi
+        orl     %edi,%edi
+        jz      .LSTRSCAN
         movl    $0xffffffff,%ecx
         cld
-        xorb    %al,%al
         repne
         scasb
         not     %ecx
@@ -252,7 +264,10 @@ end;
 
 function strrscan(p : pchar;c : char) : pchar;assembler;
 asm
+	xorl    %eax,%eax
         movl    p,%edi
+        orl     %edi,%edi
+        jz      .LSTRRSCAN
         movl    $0xffffffff,%ecx
         cld
         xorb    %al,%al
@@ -278,6 +293,8 @@ end;
 function strupper(p : pchar) : pchar;assembler;
 asm
         movl    p,%esi
+	orl     %esi,%esi
+	jz      .LStrUpperNil
         movl    %esi,%edi
 .LSTRUPPER1:
         lodsb
@@ -290,6 +307,7 @@ asm
         stosb
         orb     %al,%al
         jnz     .LSTRUPPER1
+.LStrUpperNil:
         movl    p,%eax
 end;
 
@@ -297,6 +315,8 @@ end;
 function strlower(p : pchar) : pchar;assembler;
 asm
         movl    p,%esi
+        orl     %esi,%esi
+        jz      .LStrLowerNil
         movl    %esi,%edi
 .LSTRLOWER1:
         lodsb
@@ -309,12 +329,16 @@ asm
         stosb
         orb     %al,%al
         jnz     .LSTRLOWER1
+.LStrLowerNil:
         movl    p,%eax
 end;
 
 {
   $Log$
-  Revision 1.3  1999-03-30 16:58:49  peter
+  Revision 1.4  1999-04-09 07:58:41  michael
+  +Added checking for nil on most functions.
+
+  Revision 1.3  1999/03/30 16:58:49  peter
     * use assembler and remove all rets
 
   Revision 1.2  1999/02/25 10:07:01  michael
