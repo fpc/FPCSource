@@ -1293,12 +1293,6 @@ begin
                         the Note about different manglednames (PFV) }
                       aktprocsym^.definition^.setmangledname(hd^.mangledname);
                     end;
-                   { check for overload directive, which is not allowed in implementation
-                     if already declared in forward, D5 compatible (PFV) }
-                   if not(aktprocsym^.definition^.forwarddef) and
-                      (po_overload in aktprocsym^.definition^.procoptions) then
-                     MessagePos1(aktprocsym^.definition^.fileinfo,parser_e_proc_dir_not_allowed_in_implementation,
-                                 'OVERLOAD');
                    { manglednames are equal? }
                    hd^.count:=false;
                    if (m_repeat_forward in aktmodeswitches) or
@@ -2090,7 +2084,10 @@ end.
 
 {
   $Log$
-  Revision 1.11  2000-09-04 20:15:19  peter
+  Revision 1.12  2000-09-10 20:11:07  peter
+    * overload checking in implementation removed (merged)
+
+  Revision 1.11  2000/09/04 20:15:19  peter
     * fixed operator overloading
 
   Revision 1.10  2000/08/27 16:11:52  peter
