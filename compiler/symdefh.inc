@@ -94,7 +94,7 @@
 
        targconvtyp = (act_convertable,act_equal,act_exact);
 
-       tvarspez = (vs_value,vs_const,vs_var);
+       tvarspez = (vs_value,vs_const,vs_var,vs_va_list);
 
        pdefcoll = ^tdefcoll;
        tdefcoll = record
@@ -483,7 +483,10 @@
 
 {
   $Log$
-  Revision 1.7  1998-11-05 12:02:59  peter
+  Revision 1.8  1998-11-09 11:44:37  peter
+    + va_list for printf support
+
+  Revision 1.7  1998/11/05 12:02:59  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

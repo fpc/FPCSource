@@ -97,6 +97,7 @@ begin
   p^.insert(new(ptypesym,init('word',u16bitdef)));
   p^.insert(new(ptypesym,init('boolean',booldef)));
   p^.insert(new(ptypesym,init('void_pointer',voidpointerdef)));
+  p^.insert(new(ptypesym,init('char_pointer',charpointerdef)));
   p^.insert(new(ptypesym,init('file',cfiledef)));
 {$ifdef i386}
   p^.insert(new(ptypesym,init('REAL',new(pfloatdef,init(s64real)))));
@@ -189,6 +190,7 @@ begin
   u16bitdef:=porddef(globaldef('word'));
   booldef:=porddef(globaldef('boolean'));
   voidpointerdef:=ppointerdef(globaldef('void_pointer'));
+  charpointerdef:=ppointerdef(globaldef('char_pointer'));
   cfiledef:=pfiledef(globaldef('file'));
 end;
 
@@ -229,6 +231,7 @@ begin
   s32fixeddef:=new(pfloatdef,init(f32bit));
   { some other definitions }
   voidpointerdef:=new(ppointerdef,init(voiddef));
+  charpointerdef:=new(ppointerdef,init(cchardef));
   cfiledef:=new(pfiledef,init(ft_untyped,nil));
   registerdef:=oldregisterdef;
 end;
@@ -237,7 +240,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  1998-11-05 12:02:54  peter
+  Revision 1.10  1998-11-09 11:44:36  peter
+    + va_list for printf support
+
+  Revision 1.9  1998/11/05 12:02:54  peter
     * released useansistring
     * removed -Sv, its now available in fpc modes
 

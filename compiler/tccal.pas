@@ -66,7 +66,12 @@ implementation
               if defcoll=nil then
                 firstcallparan(p^.right,nil)
               else
-                firstcallparan(p^.right,defcoll^.next);
+                begin
+                  if defcoll^.paratyp=vs_va_list then
+                    firstcallparan(p^.right,defcoll)
+                  else
+                   firstcallparan(p^.right,defcoll^.next);
+                end;
               p^.registers32:=p^.right^.registers32;
               p^.registersfpu:=p^.right^.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -97,7 +102,7 @@ implementation
                     store_valid:=must_be_valid;
                     if (defcoll^.paratyp=vs_var) then
                       test_protected(p^.left);
-                    if (defcoll^.paratyp<>vs_var) then
+                    if not(defcoll^.paratyp in [vs_var,vs_va_list]) then
                       must_be_valid:=true
                     else
                       must_be_valid:=false;
@@ -180,6 +185,13 @@ implementation
                  (defcoll^.paratyp=vs_var) and
                  not(is_equal(p^.left^.resulttype,defcoll^.data)) then
                  CGMessage(type_e_strict_var_string_violation);
+              { va_list always uses pchars }
+              if (defcoll^.paratyp=vs_va_list) and
+                 is_shortstring(p^.left^.resulttype) then
+                begin
+                  p^.left:=gentypeconvnode(p^.left,charpointerdef);
+                  firstpass(p^.left);
+                end;
               { Variablen, die call by reference Åbergeben werden, }
               { kînnen nicht in ein Register kopiert werden       }
               { is this usefull here ? }
@@ -190,7 +202,8 @@ implementation
                    make_not_regable(p^.left);
                 end;
 
-              p^.resulttype:=defcoll^.data;
+              if defcoll^.paratyp<>vs_va_list then
+               p^.resulttype:=defcoll^.data;
            end;
          if p^.left^.registers32>p^.registers32 then
            p^.registers32:=p^.left^.registers32;
@@ -434,7 +447,7 @@ implementation
                                   pdc:=pdc^.next;
                                end;
                              { only when the # of parameter are equal }
-                             if l=paralength then
+                             if (l=paralength) or ((l=1) and (pd^.para1^.paratyp=vs_va_list)) then
                                begin
                                   new(hp);
                                   hp^.data:=pd;
@@ -459,92 +472,97 @@ implementation
                     end;
 
                    { now we can compare parameter after parameter }
-                   pt:=p^.left;
-                   while assigned(pt) do
-                     begin
-                        { matches a parameter of one procedure exact ? }
-                        exactmatch:=false;
-                        hp:=procs;
-                        while assigned(hp) do
-                          begin
-                             if is_equal(hp^.nextpara^.data,pt^.resulttype) then
-                               begin
-                                  if hp^.nextpara^.data=pt^.resulttype then
-                                    begin
-                                       pt^.exact_match_found:=true;
-                                       hp^.nextpara^.argconvtyp:=act_exact;
-                                    end
-                                  else
-                                    hp^.nextpara^.argconvtyp:=act_equal;
-                                  exactmatch:=true;
-                               end
-                             else
-                               hp^.nextpara^.argconvtyp:=act_convertable;
-                             hp:=hp^.next;
-                          end;
+                   if assigned(procs) and 
+		      (not assigned(procs^.nextpara) or
+                       (procs^.nextpara^.paratyp<>vs_va_list)) then
+                    begin
+                      pt:=p^.left;
+                      while assigned(pt) do
+                        begin
+                           { matches a parameter of one procedure exact ? }
+                           exactmatch:=false;
+                           hp:=procs;
+                           while assigned(hp) do
+                             begin
+                                if is_equal(hp^.nextpara^.data,pt^.resulttype) then
+                                  begin
+                                     if hp^.nextpara^.data=pt^.resulttype then
+                                       begin
+                                          pt^.exact_match_found:=true;
+                                          hp^.nextpara^.argconvtyp:=act_exact;
+                                       end
+                                     else
+                                       hp^.nextpara^.argconvtyp:=act_equal;
+                                     exactmatch:=true;
+                                  end
+                                else
+                                  hp^.nextpara^.argconvtyp:=act_convertable;
+                                hp:=hp^.next;
+                             end;
 
-                        { .... if yes, del all the other procedures }
-                        if exactmatch then
-                          begin
-                             { the first .... }
-                             while (assigned(procs)) and not(is_equal(procs^.nextpara^.data,pt^.resulttype)) do
-                               begin
-                                  hp:=procs^.next;
-                                  dispose(procs);
-                                  procs:=hp;
-                               end;
-                             { and the others }
-                             hp:=procs;
-                             while (assigned(hp)) and assigned(hp^.next) do
-                               begin
-                                  if not(is_equal(hp^.next^.nextpara^.data,pt^.resulttype)) then
-                                    begin
-                                       hp2:=hp^.next^.next;
-                                       dispose(hp^.next);
-                                       hp^.next:=hp2;
-                                    end
-                                  else
-                                    hp:=hp^.next;
-                               end;
-                          end
-                        { when a parameter matches exact, remove all procs
-                          which need typeconvs }
-                        else
-                          begin
-                             { the first... }
-                             while (assigned(procs)) and
-                               not(isconvertable(pt^.resulttype,procs^.nextpara^.data,
-                                 hcvt,pt^.left^.treetype,false)) do
-                               begin
-                                  hp:=procs^.next;
-                                  dispose(procs);
-                                  procs:=hp;
-                               end;
-                             { and the others }
-                             hp:=procs;
-                             while (assigned(hp)) and assigned(hp^.next) do
-                               begin
-                                  if not(isconvertable(pt^.resulttype,hp^.next^.nextpara^.data,
-                                    hcvt,pt^.left^.treetype,false)) then
-                                    begin
-                                       hp2:=hp^.next^.next;
-                                       dispose(hp^.next);
-                                       hp^.next:=hp2;
-                                    end
-                                  else
-                                    hp:=hp^.next;
-                               end;
-                          end;
-                        { update nextpara for all procedures }
-                        hp:=procs;
-                        while assigned(hp) do
-                          begin
-                             hp^.nextpara:=hp^.nextpara^.next;
-                             hp:=hp^.next;
-                          end;
-                        { load next parameter }
-                        pt:=pt^.right;
-                     end;
+                           { .... if yes, del all the other procedures }
+                           if exactmatch then
+                             begin
+                                { the first .... }
+                                while (assigned(procs)) and not(is_equal(procs^.nextpara^.data,pt^.resulttype)) do
+                                  begin
+                                     hp:=procs^.next;
+                                     dispose(procs);
+                                     procs:=hp;
+                                  end;
+                                { and the others }
+                                hp:=procs;
+                                while (assigned(hp)) and assigned(hp^.next) do
+                                  begin
+                                     if not(is_equal(hp^.next^.nextpara^.data,pt^.resulttype)) then
+                                       begin
+                                          hp2:=hp^.next^.next;
+                                          dispose(hp^.next);
+                                          hp^.next:=hp2;
+                                       end
+                                     else
+                                       hp:=hp^.next;
+                                  end;
+                             end
+                           { when a parameter matches exact, remove all procs
+                             which need typeconvs }
+                           else
+                             begin
+                                { the first... }
+                                while (assigned(procs)) and
+                                  not(isconvertable(pt^.resulttype,procs^.nextpara^.data,
+                                    hcvt,pt^.left^.treetype,false)) do
+                                  begin
+                                     hp:=procs^.next;
+                                     dispose(procs);
+                                     procs:=hp;
+                                  end;
+                                { and the others }
+                                hp:=procs;
+                                while (assigned(hp)) and assigned(hp^.next) do
+                                  begin
+                                     if not(isconvertable(pt^.resulttype,hp^.next^.nextpara^.data,
+                                       hcvt,pt^.left^.treetype,false)) then
+                                       begin
+                                          hp2:=hp^.next^.next;
+                                          dispose(hp^.next);
+                                          hp^.next:=hp2;
+                                       end
+                                     else
+                                       hp:=hp^.next;
+                                  end;
+                             end;
+                           { update nextpara for all procedures }
+                           hp:=procs;
+                           while assigned(hp) do
+                             begin
+                                hp^.nextpara:=hp^.nextpara^.next;
+                                hp:=hp^.next;
+                             end;
+                           { load next parameter }
+                           pt:=pt^.right;
+                        end;
+                    end;
 
                    if not assigned(procs) then
                     begin
@@ -924,7 +942,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  1998-10-28 18:26:22  pierre
+  Revision 1.10  1998-11-09 11:44:41  peter
+    + va_list for printf support
+
+  Revision 1.9  1998/10/28 18:26:22  pierre
    * removed some erros after other errors (introduced by useexcept)
    * stabs works again correctly (for how long !)
 

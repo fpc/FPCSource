@@ -173,7 +173,8 @@ implementation
                 end
               else
                 begin
-                   if not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
+                   if (defcoll^.paratyp<>vs_va_list) and
+                      not(p^.left^.location.loc in [LOC_MEM,LOC_REFERENCE]) then
                      CGMessage(type_e_mismatch)
                    else
                      begin
@@ -639,7 +640,12 @@ implementation
          falselabel:=oflabel;
          { push from right to left }
          if not push_from_left_to_right and assigned(p^.right) then
-           secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,inlined,para_offset);
+           begin
+             if defcoll^.paratyp=vs_va_list then
+               secondcallparan(p^.right,defcoll,push_from_left_to_right,inlined,para_offset)
+             else
+               secondcallparan(p^.right,defcoll^.next,push_from_left_to_right,inlined,para_offset);
+           end;
       end;
 
 
@@ -1515,7 +1521,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.38  1998-10-21 15:12:49  pierre
+  Revision 1.39  1998-11-09 11:44:33  peter
+    + va_list for printf support
+
+  Revision 1.38  1998/10/21 15:12:49  pierre
     * bug fix for IOCHECK inside a procedure with iocheck modifier
     * removed the GPF for unexistant overloading
       (firstcall was called with procedinition=nil !)
