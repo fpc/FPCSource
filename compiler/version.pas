@@ -28,7 +28,7 @@ interface
 
     const
        { word version for ppu file }
-       wordversion = (1 shl 14)+1;
+       wordversion = (1 shl 14)+(1 shl 7) + 0;
 
        { version string }
        version_nr = '1';
@@ -101,7 +101,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.7  2000-11-29 00:30:43  florian
+  Revision 1.8  2002-03-01 12:47:21  pierre
+   * used shl 7 for release number
+
+  Revision 1.7  2000/11/29 00:30:43  florian
     * unused units removed from uses clause
     * some changes for widestrings
 
