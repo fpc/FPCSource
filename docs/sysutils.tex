@@ -456,69 +456,129 @@ In case one of the parameters is outside of it's valid range, 0 is returned.
 \Declaration
 Function FileDateToDateTime(Filedate : Longint) : TDateTime;
 \Description
+\var{FileDateToDateTime} converts the date/time encoded in \var{filedate}
+to a \var{TDateTime} encoded form. It can be used to convert date/time values 
+returned by the \seef{FileAge} or \seef{FindFirst}/\seef{FindNext} 
+functions to \var{TDateTime} form.
 \Errors
+None.
 \SeeAlso
+\seef{DateTimeToFileDate}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex13.pp}}
+\html{\input{sysutex/ex13.tex}}
  
 \begin{function}{FormatDateTime}
 \Declaration
 Function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
 \Description
+\var{FormatDateTime} formats the date and time encoded in \var{DateTime}
+according to the formatting given in \var{FormatStr}. The complete list 
+of formatting characters can be found in \sees{formatchars}.
 \Errors
+On error (such as an invalid character in the formatting string), and
+\var{EConvertError} exception is raised.
 \SeeAlso
+\seef{DateTimeToStr}, \seef{DateToStr}, \seef{TimeToStr},
+\seef{StrToDateTime}
 \end{function}
+
+\latex{\inputlisting{sysutex/ex14.pp}}
+\html{\input{sysutex/ex14.tex}}
 
  
 \begin{function}{IncMonth}
 \Declaration
 Function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer): TDateTime;
 \Description
+\var{IncMonth} increases the month number in \var{DateTime} with
+\var{NumberOfMonths}. It wraps the result as to get a month between 1 and
+12, and updates the year accordingly. \var{NumberOfMonths} can be negative,
+and can be larger than 12 (in absolute value).
 \Errors
+None.
 \SeeAlso
+\seef{Date}, \seef{Time}, \seef{Now}
 \end{function}
 
+
+\latex{\inputlisting{sysutex/ex15.pp}}
+\html{\input{sysutex/ex15.tex}}
  
 \begin{function}{IsLeapYear}
 \Declaration
 Function IsLeapYear(Year: Word): boolean;
 \Description
+\var{IsLeapYear} returns \var{True} if \var{Year} is a leap year,
+\var{False} otherwise
 \Errors
+None.
 \SeeAlso
+\seef{IncMonth}, \seef{Date}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex16.pp}}
+\html{\input{sysutex/ex16.tex}}
  
 \begin{function}{MSecsToTimeStamp}
 \Declaration
 Function MSecsToTimeStamp(MSecs: Comp): TTimeStamp;
 \Description
+\var{MSecsTiTimeStamp} converts the given number of milliseconds to
+a \var{TTimeStamp} date/time notation.
 \Errors
+None.
 \SeeAlso
+\seef{TimeStampToMSecs}, \seef{DateTimeToTimeStamp}, 
 \end{function}
 
+\latex{\inputlisting{sysutex/ex17.pp}}
+\html{\input{sysutex/ex17.tex}}
  
 \begin{function}{Now}
 \Declaration
 Function Now: TDateTime;
 \Description
+\var{Now} returns the current date and time. It is equivalent to 
+\var{Date+Time}.
 \Errors
+None.
 \SeeAlso
+\seef{Date}, \seef{Time}
 \end{function}
 
+\latex{\inputlisting{sysutex/ex18.pp}}
+\html{\input{sysutex/ex18.tex}}
  
 \begin{function}{StrToDate}
 \Declaration
 Function StrToDate(const S: string): TDateTime;
 \Description
+\var{StrToDate} converts the string \var{S} to a \var{TDateTime} date 
+value. The Date must consist of 1 to three digits, separated by the 
+\var{DateSeparator} character. If two numbers are given, they
+are supposed to form the day and month of the current year. If only 
+one number is given, it is supposed to represent the day of the 
+current month. (This is \em{not} supported in Delphi)
+
+The order of the digits (y/m/d, m/d/y, d/m/y) is determined from the 
+\var{ShortDateFormat} variable.
 \Errors
+On error (e.g. an invalid date or invalid character), 
+a \var{EConvertError} exception is raised.
 \SeeAlso
+\seef{StrToTime}, \seef{DateToStr}n \seef{TimeToStr}.
 \end{function}
 
- 
+ \latex{\inputlisting{sysutex/ex19.pp}}
+\html{\input{sysutex/ex19.tex}}
+
 \begin{function}{StrToDateTime}
 \Declaration
 Function StrToDateTime(const S: string): TDateTime;
 \Description
+
 \Errors
 \SeeAlso
 \end{function}
