@@ -175,7 +175,7 @@ var
 
   procedure SetTo(xpos, ypos : sw_integer);
   var
-    newchar : longint;
+    newchar : ptrint;
   begin
     newchar:=(ypos*size.X+xpos) and $ff;
     DrawCurPos(false);
@@ -323,7 +323,10 @@ end;
 END.
 {
  $Log$
- Revision 1.5  2004-11-06 17:08:48  peter
+ Revision 1.6  2004-12-19 13:05:56  florian
+   * fixed x86_64 compilation
+
+ Revision 1.5  2004/11/06 17:08:48  peter
    * drawing of tview merged from old fv code
 
 }
