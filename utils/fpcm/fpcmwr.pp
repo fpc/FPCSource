@@ -378,10 +378,10 @@ implementation
     function TMakefileWriter.AddTargetDefines(const inivar,prefix:string):string;
 
         procedure addtokens(s:string);
-	var
+        var
           name : string;
           k1,k2 : integer;
-        begin  
+        begin
           repeat
             Name:=GetToken(s,' ');
             if Name='' then
@@ -400,17 +400,17 @@ implementation
             AddTokenNoDup(result,name,' ');
           until false;
         end;
-	
+
       var
         s : string;
         T : TTarget;
-	c : TCpu;
-	firsttarget,
-	firstcpu : boolean;
+        c : TCpu;
+        firsttarget,
+        firstcpu : boolean;
       begin
         result:='';
         s:=FInput.GetVariable(IniVar,false);
-	addtokens(s);
+        addtokens(s);
         for t:=low(TTarget) to high(TTarget) do
          if t in FInput.IncludeTargets then
           begin
@@ -453,14 +453,14 @@ implementation
          for c:=low(TCpu) to high(TCpu) do
           if (c in FInput.IncludeCpus) then
            begin
-             s:=FInput.GetVariable(IniVar+TargetSuffix[t]+CpuSuffix[c],false);
+             s:=FInput.GetVariable(IniVar+CpuSuffix[c],false);
              if s<>'' then
               begin
                 FOutput.Add('ifeq ($(CPU_TARGET),'+CpuStr[c]+')');
                 addtokens(s);
                 FOutput.Add('endif');
               end;
-	   end;   
+           end;
       end;
 
 
@@ -670,7 +670,7 @@ implementation
         i  : integer;
         reqs,req,prefix : string;
         t : Ttarget;
-	c : TCpu;
+        c : TCpu;
         sl : TStringList;
       begin
         prefix:='REQUIRE_PACKAGES_';
@@ -696,7 +696,7 @@ implementation
                     end;
                    FOutput.Add('endif');
                    FOutput.Add('endif');
-		 end;  
+                 end;
                 sl.Free;
               end;
           end;
@@ -955,7 +955,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.31  2004-07-11 18:58:19  peter
+  Revision 1.32  2004-07-12 06:42:52  michael
+  * Patch from peter to fix writing of target dir rules for cpu specific dirs
+
+  Revision 1.31  2004/07/11 18:58:19  peter
     * support varaiable_cpu
 
   Revision 1.30  2004/04/20 22:59:31  olle
