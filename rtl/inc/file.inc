@@ -176,7 +176,7 @@ var
   Result : Longint;
 Begin
   BlockWrite(f,Buf,Count,Result);
-  If (Result=0) and (Count>0) Then
+  If (Result<Count) and (Count>0) Then
    InOutRes:=101;
 End;
 
@@ -237,7 +237,7 @@ var
   Result : Longint;
 Begin
   BlockRead(f,Buf,Count,Result);
-  If (Result=0) and (Count>0) Then
+  If (Result<Count) and (Count>0) Then
    InOutRes:=100;
 End;
 
@@ -415,7 +415,10 @@ End;
 
 {
   $Log$
-  Revision 1.11  1999-09-07 15:54:18  hajny
+  Revision 1.12  1999-09-08 16:12:24  peter
+    * fixed inoutres for diskfull
+
+  Revision 1.11  1999/09/07 15:54:18  hajny
     * fixed problem with Close under OS/2
 
   Revision 1.10  1998/11/29 23:10:12  peter

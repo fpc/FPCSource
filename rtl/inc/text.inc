@@ -41,8 +41,12 @@ End;
 
 
 Procedure FileWriteFunc(var t:TextRec);
+var
+  i : longint;
 Begin
-  Do_Write(t.Handle,Longint(t.Bufptr),t.BufPos);
+  i:=Do_Write(t.Handle,Longint(t.Bufptr),t.BufPos);
+  if i<>t.BufPos then
+   InOutRes:=101;
   t.BufPos:=0;
 End;
 
@@ -69,8 +73,11 @@ Begin
   else
    begin
      t.InOutFunc:=@FileWriteFunc;
-   { Only install flushing if its a NOT a file }
-     if Do_Isdevice(t.Handle) then
+   { Only install flushing if its a NOT a file, and only check if there
+     was no error opening the file, becuase else we always get a bad
+     file handle error 6 (PFV) }
+     if (InOutRes=0) and
+        Do_Isdevice(t.Handle) then
       t.FlushFunc:=@FileWriteFunc;
    end;
 End;
@@ -945,7 +952,10 @@ end;
 
 {
   $Log$
-  Revision 1.54  1999-09-07 07:44:58  peter
+  Revision 1.55  1999-09-08 16:12:24  peter
+    * fixed inoutres for diskfull
+
+  Revision 1.54  1999/09/07 07:44:58  peter
     * fixed array of char writing which didn't write the last char
 
   Revision 1.53  1999/08/19 11:16:14  peter
