@@ -1056,9 +1056,14 @@ implementation
                               genjumptable(nodes,min_label,max_label)
                             else
                               begin
+{
+                                 This one expects that the case labels are a
+                                 perfectly balanced tree, which is not the case
+                                 very often -> generates really bad code (JM)
                                  if labels>16 then
                                    gentreejmp(nodes)
                                  else
+}
                                    genlinearlist(nodes);
                               end;
                           end;
@@ -1122,7 +1127,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2003-06-07 18:57:04  jonas
+  Revision 1.42  2003-06-08 16:03:22  jonas
+    - disabled gentreejmp for now, it expects that the case labels are
+      ordered as a perfectly balanced tree, while they are often a linked
+      list -> generates extremely bad code
+
+  Revision 1.41  2003/06/07 18:57:04  jonas
     + added freeintparaloc
     * ppc get/freeintparaloc now check whether the parameter regs are
       properly allocated/deallocated (and get an extra list para)
