@@ -280,6 +280,9 @@ begin
         if opt='*' then
          opt:=''
         else
+        if opt=' ' then
+         opt:=PadEnd(opt,outline)
+        else
          opt:=PadEnd('-'+opt,outline);
         if (ident=0) and (lastident<>0) then
          begin
@@ -1559,7 +1562,19 @@ finalization
 end.
 {
   $Log$
-  Revision 1.29  2001-02-26 07:49:50  michael
+  Revision 1.30  2001-02-26 08:08:39  michael
+  * option_help_pages:
+     allow to omit an option (use one space char insteed an option)
+     but to indent a continuation line as if option is present. For lines:
+       3*2CX_first line
+       3*2 _second line
+       3*2*_third line
+     we could get:
+       -CX        first line
+                  second line
+       third line
+
+  Revision 1.29  2001/02/26 07:49:50  michael
   Support replacements for all -F<x> options
 
   Revision 1.28  2001/02/05 21:26:36  peter
