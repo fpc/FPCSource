@@ -708,7 +708,7 @@ Return value: \var{True} if successful, \var{False} otherwise.
 
 Notes: After this call this selector is invalid and must not be used for any
 memory operations anymore. Each descriptor allocated with
-\seefl{allocate\_ltd\_descriptor}{allocateltddescriptor} must be freed 
+\seefl{allocate\_ldt\_descriptors}{allocateldtdescriptors} must be freed 
 individually with this function,
 even if it was previously allocated as a part of a contiguous array of
 descriptors.
