@@ -51,7 +51,7 @@ begin
   with ih do
     begin
     FTypeName := ATypeName;
-    FExtention := TheExtentions;
+    FExtention := lowercase(TheExtentions);
     FDefaultExt := CalcDefExt (TheExtentions);
     FReader := AReader;
     FWriter := AWriter;
@@ -77,7 +77,7 @@ begin
     with ih do
       begin
       FTypeName := ATypeName;
-      FExtention := TheExtentions;
+      FExtention := Lowercase(TheExtentions);
       FDefaultExt := CalcDefExt (TheExtentions);
       FReader := AReader;
       FWriter := nil;
@@ -104,7 +104,7 @@ begin
     with ih do
       begin
       FTypeName := ATypeName;
-      FExtention := TheExtentions;
+      FExtention := lowercase(TheExtentions);
       FDefaultExt := CalcDefExt (TheExtentions);
       FReader := nil;
       FWriter := AWriter;
@@ -127,6 +127,14 @@ begin
   until (r < 0) or (compareText (TIHData(FData[r]).FTypeName, ATypeName) = 0);
   if r >= 0 then
     result := TIHData(FData[r])
+  else
+    result := nil;
+end;
+
+function TImageHandlersManager.GetData (index:integer) : TIHData;
+begin
+  if (index >= 0) and (index < FData.count) then
+    result := TIHData (FData[index])
   else
     result := nil;
 end;
@@ -216,6 +224,8 @@ begin
     else
       result := Img;
     FImage := result;
+    if FImage.UsePalette then
+      FImage.Palette.Clear;
     if CheckContents (Str) then
       begin
       InternalRead (Str, result)

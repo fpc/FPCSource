@@ -39,10 +39,8 @@ begin
 end;
 
 procedure TFPCustomImage.LoadFromFile (const filename:String; Handler:TFPCustomImageReader);
-
-var 
+var
   fs : TStream;
-
 begin
   if FileExists (filename) then
     begin
@@ -63,10 +61,8 @@ begin
 end;
 
 procedure TFPCustomImage.SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
-
-var 
+var
   fs : TStream;
-
 begin
   fs := TFileStream.Create (filename, fmCreate);
   try
@@ -74,6 +70,105 @@ begin
   finally
     fs.Free;
   end
+end;
+
+procedure TFPCustomImage.LoadFromStream (Str:TStream);
+var r : integer;
+    h : TFPCustomImageReaderClass;
+    reader : TFPCustomImageReader;
+    msg : string;
+    d : TIHData;
+begin
+  with ImageHandlers do
+    try
+      r := count-1;
+      while (r >= 0) do
+        begin
+        d := GetData(r);
+        if assigned (d) then
+          h := d.FReader;
+        if assigned (h) then
+          begin
+          reader := h.Create;
+          with reader do
+            try
+              if CheckContents (str) then
+                try
+                  FStream := str;
+                  FImage := self;
+                  InternalRead (str, self);
+                  break;
+                except
+                  on e : exception do
+                    msg := e.message;
+                end;
+            finally
+              Free;
+              str.seek (soFromBeginning, 0);
+            end;
+          end;
+        dec (r);
+        end;
+    except
+      on e : exception do
+        FPImgError (StrCantDetermineType, [e.message]);
+    end;
+  if r < 0 then
+    if msg = '' then
+      FPImgError (StrNoCorrectReaderFound)
+    else
+      FPImgError (StrReadWithError, [Msg]);
+end;
+
+procedure TFPCustomImage.LoadFromFile (const filename:String);
+var e,s : string;
+    r : integer;
+    f : TFileStream;
+    h : TFPCustomImageReaderClass;
+    reader : TFPCustomImageReader;
+    d : TIHData;
+    Msg : string;
+begin
+  e := lowercase (ExtractFileExt(filename));
+  if (e <> '') and (e[1] = '.') then
+    delete (e,1,1);
+  with ImageHandlers do
+    begin
+      r := count-1;
+      s := e + ';';
+      while (r >= 0) do
+        begin
+        d := GetData(r);
+        if (pos(s,d.Fextention+';') <> 0) then
+          try
+            h := d.FReader;
+            if assigned (h) then
+              begin
+              reader := h.Create;
+              loadfromfile (filename, reader);
+              break;
+              end;
+          except
+            on e : exception do
+              Msg := e.message;
+          end;
+        dec (r);
+        end
+    end;
+  if Msg = '' then
+    begin
+    if r < 0 then
+      begin
+      f := TFileStream.Create (filename, fmOpenRead);
+      try
+        LoadFromStream (f);
+      finally
+        f.Free;
+      end;
+      end;
+    end
+  else
+    FPImgError (StrReadWithError, [Msg]);
 end;
 
 procedure TFPCustomImage.SetHeight (Value : integer);

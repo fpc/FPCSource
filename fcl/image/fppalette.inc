@@ -145,3 +145,7 @@ begin
     result := Add (AColor);
 end;
 
+procedure TFPPalette.Clear;
+begin
+  SetCount (0);
+end;

@@ -83,6 +83,7 @@ type
       procedure Merge (pal : TFPPalette); virtual;
       function IndexOf (const AColor: TFPColor) : integer; virtual;
       function Add (const Value: TFPColor) : integer; virtual;
+      procedure Clear; virtual;
       property Color [Index : integer] : TFPColor read GetColor write SetColor; default;
       property Count : integer read GetCount write SetCount;
   end;
@@ -124,7 +125,9 @@ type
       procedure Assign(Source: TPersistent); override;
       // Saving and loading
       procedure LoadFromStream (Str:TStream; Handler:TFPCustomImageReader);
+      procedure LoadFromStream (Str:TStream);
       procedure LoadFromFile (const filename:String; Handler:TFPCustomImageReader);
+      procedure LoadFromFile (const filename:String);
       procedure SaveToStream (Str:TStream; Handler:TFPCustomImageWriter);
       procedure SaveToFile (const filename:String; Handler:TFPCustomImageWriter);
       // Size and data
@@ -229,6 +232,7 @@ type
       function GetDefExt (const TypeName:string) : string;
       function GetTypeName (index:integer) : string;
       function GetData (const ATypeName:string) : TIHData;
+      function GetData (index : integer) : TIHData;
       function GetCount : integer;
     public
       constructor Create;
@@ -279,6 +283,9 @@ type
     StrTypeAlreadyExist,
     StrTypeReaderAlreadyExist,
     StrTypeWriterAlreadyExist,
+    StrCantDetermineType,
+    StrNoCorrectReaderFound,
+    StrReadWithError,
     StrNoPaletteAvailable
     );
 
@@ -296,6 +303,9 @@ const
      'Image type "%s" already exists',
      'Image type "%s" already has a reader class',
      'Image type "%s" already has a writer class',
+     'Error while determining image type of stream: %s',
+     'Can''t determine image type of stream',
+     'Error while reading stream: %s',
      'No palette available'
      );
 
@@ -313,9 +323,9 @@ begin
   raise FPImageException.Create (ErrorText[Fmt]);
 end;
 
-{$i FPPalette.inc}
-{$i FPHandler.inc}
 {$i FPImage.inc}
+{$i FPHandler.inc}
+{$i FPPalette.inc}
 {$i FPColCnv.inc}
 
 function FPColor (r,g,b,a:word) : TFPColor;
