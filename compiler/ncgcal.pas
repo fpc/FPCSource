@@ -441,10 +441,13 @@ implementation
               end
             else
               begin
+{$ifndef newra}
                 tg.gettemp(exprasmlist,pointer_size,tt_normal,href);
                 cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,r,href);
-{$ifdef newra}
                 cg.a_reg_dealloc(exprasmlist,r);
+{$else newra}
+                hregister := rg.getaddressregister(exprasmlist);
+                cg.a_load_reg_reg(exprasmlist,OS_ADDR,OS_ADDR,r,hregister);
 {$endif newra}
                 { in case of a regular funcretnode with ret_in_param, the }
                 { original funcretnode isn't touched -> make sure it's    }
@@ -454,11 +457,16 @@ implementation
                 location := tempnode.location;
                 tempnode.free;
                 cg.g_decrrefcount(exprasmlist,resulttype.def,location.reference, false);
+{$ifndef newra}
                 cg.a_load_ref_ref(exprasmlist,OS_ADDR,OS_ADDR,href,location.reference);
                 { since we used a normal temp, it won't be finalized or }
                 { decref'd later -> no need to zero it                  }
                 tg.ungettemp(exprasmlist,href);
-              end;
+{$else newra}
+               cg.a_load_reg_ref(exprasmlist,OS_ADDR,OS_ADDR,hregister,location.reference);
+               rg.ungetregisterint(exprasmlist,hregister);
+{$endif newra}
+             end;
           end
         else
         { we have only to handle the result if it is used }
@@ -647,6 +655,7 @@ implementation
       {$ifdef newra}
          i:Tsuperregister;
          regs_to_alloc,regs_to_free:Tsupregset;
+         funcretloc: tparalocation;
       {$else}
          regs_to_push_int : Tsupregset;
          pushedint : tpushedsavedint;
@@ -712,17 +721,25 @@ implementation
 
 {$ifdef newra}
               regs_to_alloc:=Tprocdef(procdefinition).usedintregisters;
-{$ifndef cpu64bit}
-              if resulttype.def.size>sizeof(aword) then
-                begin
-                  include(regs_to_alloc,RS_FUNCTION_RESULT64_LOW_REG);
-                  include(regs_to_alloc,RS_FUNCTION_RESULT64_HIGH_REG);
-                end
-              else
-{$endif cpu64bit}
               if (not is_void(resulttype.def)) and
-                 (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
-                include(regs_to_alloc,RS_FUNCTION_RESULT_REG);
+                 not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
+                begin
+                  funcretloc := paramanager.getfuncretparaloc(procdefinition);
+                  case funcretloc.loc of
+                    LOC_REGISTER,LOC_CREGISTER:
+                      begin
+{$ifndef cpu64bit}
+                        if funcretloc.size in [OS_S64,OS_64] then
+                          begin
+                            include(regs_to_alloc,funcretloc.registerlow.number shr 8);
+                            include(regs_to_alloc,funcretloc.registerhigh.number shr 8);
+                          end
+                       else
+{$endif cpu64bit}
+                         include(regs_to_alloc,funcretloc.register.number shr 8);
+                     end;
+                  end;
+                end;
 {$else}
               { save all used registers and possible registers
                 used for the return value }
@@ -762,20 +779,28 @@ implementation
            begin
               {No procedure is allowed to destroy ebp.}
 {$ifdef newra}
-              regs_to_alloc:=ALL_INTREGISTERS-[RS_FRAME_POINTER_REG];
-{$ifndef cpu64bit}
-              if resulttype.def.size>sizeof(aword) then
-                begin
-                  include(regs_to_alloc,RS_FUNCTION_RESULT64_LOW_REG);
-                  include(regs_to_alloc,RS_FUNCTION_RESULT64_HIGH_REG);
-                end
-              else
-{$endif cpu64bit}
+              regs_to_alloc:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG];
               if (not is_void(resulttype.def)) and
-                 (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
-                include(regs_to_alloc,RS_FUNCTION_RESULT_REG);
+                 not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
+                begin
+                  funcretloc := paramanager.getfuncretparaloc(procdefinition);
+                  case funcretloc.loc of
+                    LOC_REGISTER,LOC_CREGISTER:
+                      begin
+{$ifndef cpu64bit}
+                        if funcretloc.size in [OS_S64,OS_64] then
+                          begin
+                            include(regs_to_alloc,funcretloc.registerlow.number shr 8);
+                            include(regs_to_alloc,funcretloc.registerhigh.number shr 8);
+                          end
+                       else
+{$endif cpu64bit}
+                         include(regs_to_alloc,funcretloc.register.number shr 8);
+                     end;
+                  end;
+                end;
 {$else}
-              regs_to_push_int := all_intregisters-[RS_FRAME_POINTER_REG];
+              regs_to_push_int := VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG];
               rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
 {$endif}
 {$ifdef i386}
@@ -987,7 +1012,7 @@ implementation
 
             {$ifndef newra}
                helpref:=right.location.reference;
-               rg.saveintregvars(exprasmlist,ALL_INTREGISTERS);
+               rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
             {$endif}
                rg.saveotherregvars(exprasmlist,ALL_REGISTERS);
                if right.location.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
@@ -1032,17 +1057,22 @@ implementation
 {$ifdef newra}
          regs_to_free:=regs_to_alloc;
          if (not is_void(resulttype.def)) and
-            (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
+            not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
            begin
+             case funcretloc.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 begin
 {$ifndef cpu64bit}
-             if resulttype.def.size>sizeof(aword) then
-               begin
-                 exclude(regs_to_free,RS_FUNCTION_RESULT64_HIGH_REG);
-                 exclude(regs_to_free,RS_FUNCTION_RESULT64_LOW_REG);
-               end
-             else
+                   if funcretloc.size in [OS_S64,OS_64] then
+                     begin
+                       exclude(regs_to_free,funcretloc.registerlow.number shr 8);
+                       exclude(regs_to_free,funcretloc.registerhigh.number shr 8);
+                     end
+                   else
 {$endif cpu64bit}
-               exclude(regs_to_free,RS_FUNCTION_RESULT_REG);
+                     exclude(regs_to_free,funcretloc.register.number shr 8);
+                 end;
+             end;
            end;
          r.enum:=R_INTREGISTER;
          for i:=first_supreg to last_supreg do
@@ -1114,6 +1144,7 @@ implementation
          pushedint : tpushedsavedint;
          pushedregs : tmaybesave;
       {$endif}
+         funcretloc: tparalocation;
          oldpushedparasize : longint;
          { adress returned from an I/O-error }
          iolabel : tasmlabel;
@@ -1277,19 +1308,25 @@ implementation
          regs_to_push_int := tprocdef(procdefinition).usedintregisters;
          regs_to_push_other := tprocdef(procdefinition).usedotherregisters;
          if (not is_void(resulttype.def)) and
-            (not paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
-          begin
-            include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
+            not(paramanager.ret_in_param(resulttype.def,procdefinition.proccalloption)) then
+           begin
+             funcretloc := paramanager.getfuncretparaloc(procdefinition);
+             case funcretloc.loc of
+               LOC_REGISTER,LOC_CREGISTER:
+                 begin
 {$ifndef cpu64bit}
-                 if resulttype.def.size>sizeof(aword) then
-                   begin
-                     include(regs_to_push_int,RS_FUNCTION_RESULT64_LOW_REG);
-                     include(regs_to_push_int,RS_FUNCTION_RESULT64_HIGH_REG);
-                   end
-                 else
+                   if funcretloc.size in [OS_S64,OS_64] then
+                     begin
+                       include(regs_to_push_int,funcretloc.registerlow.number shr 8);
+                       include(regs_to_push_int,funcretloc.registerhigh.number shr 8);
+                     end
+                   else
 {$endif cpu64bit}
-                   include(regs_to_push_int,RS_FUNCTION_RESULT_REG);
-          end;
+                    include(regs_to_push_int,funcretloc.register.number shr 8);
+                 end;
+             end;
+           end;
+
       {$ifndef newra}
          rg.saveusedintregisters(exprasmlist,pushedint,regs_to_push_int);
       {$endif}
@@ -1494,7 +1531,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.94  2003-06-15 16:52:02  jonas
+  Revision 1.95  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.94  2003/06/15 16:52:02  jonas
     * release function result registers if the functino result isn't used
     * don't allocate function result register with -dnewra if there is none
     * some optimizations for non-x86 processor (don't save any registers

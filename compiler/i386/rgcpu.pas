@@ -287,15 +287,6 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.ungetreference(list: taasmoutput; const ref : treference);
-
-      begin
-         if (ref.base.number<>NR_NO) and (ref.base.number<>NR_FRAME_POINTER_REG) then
-           ungetregisterint(list,ref.base);
-         if (ref.index.number<>NR_NO) and (ref.index.number<>NR_FRAME_POINTER_REG) then
-           ungetregisterint(list,ref.index);
-      end;
-
 {$ifndef newra}
     procedure trgcpu.pushusedintregisters(list:Taasmoutput;
                                          var pushed:Tpushedsavedint;
@@ -517,7 +508,12 @@ end.
 
 {
   $Log$
-  Revision 1.27  2003-06-13 21:19:31  peter
+  Revision 1.28  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.27  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.26  2003/06/12 21:12:20  peter

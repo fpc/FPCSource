@@ -88,7 +88,6 @@ unit rgobj;
 
 
     const
-      ALL_INTREGISTERS=[first_supreg..last_supreg]-[RS_STACK_POINTER_REG];
       ALL_OTHERREGISTERS=[firstreg..lastreg];
 
     type
@@ -523,7 +522,7 @@ unit rgobj;
        resetusableregisters;
        lastintreg:=0;
        maxintreg:=first_imreg;
-       cpu_registers:=Acpu_registers;
+       cpu_registers:={Acpu_registers}last_supreg-first_supreg+1;
 {$ifdef TEMPREGDEBUG}
        fillchar(reg_user,sizeof(reg_user),0);
        fillchar(reg_releaser,sizeof(reg_releaser),0);
@@ -889,7 +888,11 @@ unit rgobj;
       unusedregsfpu:=usableregsfpu;
       unusedregsmm:=usableregsmm;
    {$ifdef newra}
+{$ifdef powerpc}
+      savedintbyproc:=[RS_R13..RS_R31];
+{$else powerpc}
       savedintbyproc:=[];
+{$endif powerpc}
       for i:=low(Tsuperregister) to high(Tsuperregister) do
         begin
           if igraph.adjlist[i]<>nil then
@@ -909,9 +912,9 @@ unit rgobj;
     procedure trgobj.ungetreference(list : taasmoutput; const ref : treference);
 
       begin
-         if ref.base.number<>NR_NO then
+         if (ref.base.number<>NR_NO) and (ref.base.number<>NR_FRAME_POINTER_REG) then
            ungetregisterint(list,ref.base);
-       if ref.index.number<>NR_NO then
+         if (ref.index.number<>NR_NO) and (ref.index.number<>NR_FRAME_POINTER_REG) then
            ungetregisterint(list,ref.index);
       end;
 
@@ -1941,7 +1944,7 @@ unit rgobj;
           {Assume a spill by default...}
           spillednodes:=spillednodes+char(n);
           {Search for a colour not in this list.}
-          for k:=1 to cpu_registers do
+          for k:=first_supreg to last_supreg do
             if not(k in adj_colours) then
               begin
                 colour[n]:=k;
@@ -2453,7 +2456,12 @@ end.
 
 {
   $Log$
-  Revision 1.55  2003-06-14 14:53:50  jonas
+  Revision 1.56  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.55  2003/06/14 14:53:50  jonas
     * fixed newra cycle for x86
     * added constants for indicating source and destination operands of the
       "move reg,reg" instruction to aasmcpu (and use those in rgobj)

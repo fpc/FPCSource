@@ -2351,7 +2351,7 @@ type
               if not (block_type in [bt_const,bt_type]) then
                 include(current_procinfo.flags,pi_do_call);
             {$ifndef newra}
-              rg.incrementintregisterpushed(all_intregisters);
+              rg.incrementintregisterpushed(VOLATILE_INTREGISTERS);
             {$endif}
               rg.incrementotherregisterpushed(all_registers);
            end
@@ -2635,7 +2635,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.171  2003-06-15 16:47:33  jonas
+  Revision 1.172  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.171  2003/06/15 16:47:33  jonas
     * fixed revious commit
 
   Revision 1.170  2003/06/15 15:10:57  jonas

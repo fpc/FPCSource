@@ -363,16 +363,22 @@ unit cpupara;
             classrefdef,
             recorddef,
             objectdef,
-            stringdef,
             procvardef,
             filedef,
             arraydef,
-            errordef:
+            stringdef:
               begin
-                getfuncretparaloc.loc:=LOC_REGISTER;
-                getfuncretparaloc.register.enum:=R_INTREGISTER;
-                getfuncretparaloc.register.number:=NR_R3;
-                getfuncretparaloc.size:=OS_ADDR;
+                if (p.rettype.def.deftype <> stringdef) or
+                   (is_ansistring(p.rettype.def) or
+                    is_widestring(p.rettype.def)) then
+                  begin
+                    getfuncretparaloc.loc:=LOC_REGISTER;
+                    getfuncretparaloc.register.enum:=R_INTREGISTER;
+                    getfuncretparaloc.register.number:=NR_R3;
+                    getfuncretparaloc.size:=OS_ADDR;
+                  end
+                else
+                  internalerror(2003061601);
               end;
             else
               internalerror(2002090903);
@@ -385,7 +391,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.37  2003-06-09 14:54:26  jonas
+  Revision 1.38  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.37  2003/06/09 14:54:26  jonas
     * (de)allocation of registers for parameters is now performed properly
       (and checked on the ppc)
     - removed obsolete allocation of all parameter registers at the start

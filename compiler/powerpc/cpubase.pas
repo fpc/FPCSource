@@ -234,8 +234,11 @@ uses
       RS_R27 = $1C; RS_R28 = $1D; RS_R29 = $1E;
       RS_R30 = $1F; RS_R31 = $20;
 
-      first_supreg = $00;
-      last_supreg = $20;
+      first_supreg = RS_R3;
+      last_supreg = RS_R31;
+
+      { registers which may be destroyed by calls }
+      VOLATILE_INTREGISTERS = [RS_R13..RS_R31];
       {Number of first and last imaginary register.}
       first_imreg     = $21;
       last_imreg      = $ff;
@@ -877,7 +880,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2003-06-14 22:32:43  jonas
+  Revision 1.59  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.58  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 

@@ -57,7 +57,7 @@ unit rgcpu;
   implementation
 
     uses
-      cgobj, verbose;
+      cgobj, verbose, cutils;
 
     function trgcpu.getexplicitregisterint(list: taasmoutput; reg: Tnewregister): tregister;
 
@@ -66,7 +66,8 @@ unit rgcpu;
            not((reg shr 8) in is_reg_var_int) then
           begin
             if (reg shr 8) in usedpararegs then
-              internalerror(2003060701);
+              internalerror(2003060701); 
+{              comment(v_warning,'Double allocation of register '+tostr((reg shr 8)-1));}
             include(usedpararegs,reg shr 8);
             result.enum:=R_INTREGISTER;
             result.number:=reg;
@@ -83,7 +84,8 @@ unit rgcpu;
             not((reg.number shr 8) in is_reg_var_int) then
           begin
             if not((reg.number shr 8) in usedpararegs) then
-              internalerror(2003060702);
+              internalerror(2003060702); 
+{               comment(v_warning,'Double free of register '+tostr((reg.number shr 8)-1));}
             exclude(usedpararegs,reg.number shr 8);
             cg.a_reg_dealloc(list,reg);
           end
@@ -156,12 +158,17 @@ unit rgcpu;
       end;
 
 initialization
-  rg := trgcpu.create(32);  {PPC has 32 registers.}
+  rg := trgcpu.create(last_supreg-first_supreg+1);
 end.
 
 {
   $Log$
-  Revision 1.11  2003-06-14 22:32:43  jonas
+  Revision 1.12  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.11  2003/06/14 22:32:43  jonas
     * ppc compiles with -dnewra, haven't tried to compile anything with it
       yet though
 

@@ -844,7 +844,7 @@ implementation
            end
          else
            begin
-              rg.used_in_proc_int:=ALL_INTREGISTERS;
+              rg.used_in_proc_int:=VOLATILE_INTREGISTERS;
               rg.used_in_proc_other:=ALL_OTHERREGISTERS;
            end;
 
@@ -1189,7 +1189,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.104  2003-06-13 21:19:31  peter
+  Revision 1.105  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.104  2003/06/13 21:19:31  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.103  2003/06/09 18:27:14  peter

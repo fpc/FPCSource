@@ -164,12 +164,14 @@ type
     fname    : string;
     fsize    : integer;
 {$ifdef Test_Double_checksum}
+  public
     crcindex,
     crc_index,
     crcindex2,
     crc_index2 : cardinal;
     crc_test,
     crc_test2  : pcrc_array;
+  private
 {$endif def Test_Double_checksum}
     change_endian : boolean;
     buf      : pchar;
@@ -983,7 +985,12 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  2003-06-07 20:26:32  peter
+  Revision 1.40  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.39  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 

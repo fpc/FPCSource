@@ -175,6 +175,10 @@ uses
 {$else}
       last_supreg     = $08;
 {$endif}
+
+      { registers which may be destroyed by calls }
+      VOLATILE_INTREGISTERS = [first_supreg..last_supreg];
+
       {Number of first and last imaginary register.}
       first_imreg     = $12;
       last_imreg      = $ff;
@@ -728,7 +732,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2003-06-13 21:19:33  peter
+  Revision 1.10  2003-06-17 16:34:45  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.9  2003/06/13 21:19:33  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.8  2003/06/12 19:11:34  jonas

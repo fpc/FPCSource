@@ -516,7 +516,7 @@ implementation
           if is_dynamic_array(left.resulttype.def) then
             begin
             {$ifndef newra}
-               rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+               rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
             {$endif}
                cg.a_param_loc(exprasmlist,right.location,paramanager.getintparaloc(exprasmlist,2));
                cg.a_param_loc(exprasmlist,left.location,paramanager.getintparaloc(exprasmlist,1));
@@ -529,7 +529,7 @@ implementation
                      rg.getexplicitregisterint(exprasmlist,hreg.number);
                    end;
             {$else}
-               rg.saveintregvars(exprasmlist,all_intregisters);
+               rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
             {$endif}
                cg.a_call_name(exprasmlist,'FPC_DYNARRAY_RANGECHECK');
                paramanager.freeintparaloc(exprasmlist,2);
@@ -577,7 +577,6 @@ implementation
          else
            location_reset(location,LOC_REFERENCE,newsize);
 
-
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resulttype.def) or
             is_widestring(left.resulttype.def) then
@@ -587,7 +586,7 @@ implementation
                    if left.location.loc<>LOC_REFERENCE then
                      internalerror(200304236);
                 {$ifndef newra}
-                   rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                   rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
                 {$endif}
                    cg.a_paramaddr_ref(exprasmlist,left.location.reference,paramanager.getintparaloc(exprasmlist,1));
                 {$ifdef newra}
@@ -599,7 +598,7 @@ implementation
                          rg.getexplicitregisterint(exprasmlist,hreg.number);
                        end;
                 {$else}
-                   rg.saveintregvars(exprasmlist,all_intregisters);
+                   rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
                 {$endif}
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_UNIQUE');
                    paramanager.freeintparaloc(exprasmlist,1);
@@ -635,7 +634,7 @@ implementation
               if (cs_check_range in aktlocalswitches) then
                 begin
                 {$ifndef newra}
-                   rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                   rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
                 {$endif}
                    cg.a_param_reg(exprasmlist,OS_ADDR,location.reference.base,paramanager.getintparaloc(exprasmlist,1));
                 {$ifdef newra}
@@ -647,7 +646,7 @@ implementation
                          rg.getexplicitregisterint(exprasmlist,hreg.number);
                        end;
                 {$else}
-                   rg.saveintregvars(exprasmlist,all_intregisters);
+                   rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
                 {$endif}
                    cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_CHECKZERO');
                    paramanager.freeintparaloc(exprasmlist,1);
@@ -734,7 +733,7 @@ implementation
                          st_ansistring:
                            begin
                             {$ifndef newra}
-                              rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                              rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
                             {$endif}
                               cg.a_param_const(exprasmlist,OS_INT,tordconstnode(right).value,paramanager.getintparaloc(exprasmlist,2));
                               href:=location.reference;
@@ -749,7 +748,7 @@ implementation
                                     rg.getexplicitregisterint(exprasmlist,hreg.number);
                                   end;
                             {$else}
-                              rg.saveintregvars(exprasmlist,all_intregisters);
+                              rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
                             {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               paramanager.freeintparaloc(exprasmlist,2);
@@ -892,7 +891,7 @@ implementation
                          st_ansistring:
                            begin
                             {$ifndef newra}
-                              rg.saveusedintregisters(exprasmlist,pushed,all_intregisters);
+                              rg.saveusedintregisters(exprasmlist,pushed,VOLATILE_INTREGISTERS);
                             {$endif}
                               cg.a_param_reg(exprasmlist,OS_INT,right.location.register,paramanager.getintparaloc(exprasmlist,2));
                               href:=location.reference;
@@ -907,7 +906,7 @@ implementation
                                     rg.getexplicitregisterint(exprasmlist,hreg.number);
                                   end;
                             {$else}
-                              rg.saveintregvars(exprasmlist,all_intregisters);
+                              rg.saveintregvars(exprasmlist,VOLATILE_INTREGISTERS);
                             {$endif}
                               cg.a_call_name(exprasmlist,'FPC_'+upper(tstringdef(left.resulttype.def).stringtypname)+'_RANGECHECK');
                               paramanager.freeintparaloc(exprasmlist,2);
@@ -955,7 +954,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.62  2003-06-13 21:19:30  peter
+  Revision 1.63  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.62  2003/06/13 21:19:30  peter
     * current_procdef removed, use current_procinfo.procdef instead
 
   Revision 1.61  2003/06/09 16:45:41  jonas

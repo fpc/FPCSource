@@ -698,7 +698,15 @@ implementation
          if (nf_callunique in flags) and
             (is_ansistring(left.resulttype.def) or
              is_widestring(left.resulttype.def)) then
-           include(current_procinfo.flags,pi_do_call);
+           begin
+             left := ccallnode.createintern('fpc_'+tstringdef(left.resulttype.def).stringtypname+'_unique',
+               ccallparanode.create(
+                 ctypeconvnode.create_explicit(left,voidpointertype),nil));
+             firstpass(left);
+             { double resulttype passes somwhere else may cause this to be }
+             { reset though :/                                             }
+             exclude(flags,nf_callunique);
+           end;
 
          { the register calculation is easy if a const index is used }
          if right.nodetype=ordconstn then
@@ -904,7 +912,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2003-06-07 20:26:32  peter
+  Revision 1.58  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.57  2003/06/07 20:26:32  peter
     * re-resolving added instead of reloading from ppu
     * tderef object added to store deref info for resolving
 

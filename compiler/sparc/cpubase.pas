@@ -360,6 +360,11 @@ uses
       first_supreg = $01;
       last_supreg = $20;
 
+{$warning FIXME!!}
+      { registers which may be destroyed by calls }
+      VOLATILE_INTREGISTERS = [first_supreg..last_supreg];
+
+
       first_imreg = $21;
       last_imreg = $ff;
 
@@ -1046,7 +1051,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.42  2003-06-13 21:08:30  peter
+  Revision 1.43  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.42  2003/06/13 21:08:30  peter
     * supreg_name added
 
   Revision 1.41  2003/06/12 19:11:34  jonas

@@ -659,7 +659,7 @@ implementation
         { now all the registers used are known }
         { Remove all imaginary registers from the used list.}
 {$ifdef newra}
-        procdef.usedintregisters:=rg.used_in_proc_int*ALL_INTREGISTERS-rg.savedintbyproc;
+        procdef.usedintregisters:=rg.used_in_proc_int*VOLATILE_INTREGISTERS-rg.savedintbyproc;
 {$else}
         procdef.usedintregisters:=rg.used_in_proc_int;
 {$endif}
@@ -1251,7 +1251,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.128  2003-06-14 14:53:50  jonas
+  Revision 1.129  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.128  2003/06/14 14:53:50  jonas
     * fixed newra cycle for x86
     * added constants for indicating source and destination operands of the
       "move reg,reg" instruction to aasmcpu (and use those in rgobj)

@@ -3423,7 +3423,7 @@ implementation
           end;
          lastref:=defref;
        { first, we assume that all registers are used }
-         usedintregisters:=ALL_INTREGISTERS-[RS_FRAME_POINTER_REG];
+         usedintregisters:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG];
          usedotherregisters:=ALL_REGISTERS;
          forwarddef:=true;
          interfacedef:=false;
@@ -3558,7 +3558,7 @@ implementation
          { set all registers to used for simplified compilation PM }
          if simplify_ppu then
            begin
-             usedintregisters:=ALL_INTREGISTERS-[RS_FRAME_POINTER_REG];
+             usedintregisters:=VOLATILE_INTREGISTERS-[RS_FRAME_POINTER_REG];
              usedotherregisters:=ALL_REGISTERS;
            end;
 
@@ -5767,7 +5767,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.151  2003-06-08 11:41:21  peter
+  Revision 1.152  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.151  2003/06/08 11:41:21  peter
     * set parast.next to the owner of the procdef
 
   Revision 1.150  2003/06/07 20:26:32  peter

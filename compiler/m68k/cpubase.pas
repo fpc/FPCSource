@@ -174,6 +174,10 @@ uses
       first_supreg    = $01;
       last_supreg     = $10;
 
+{$warning FIXME!!!}
+      { registers which may be destroyed by calls }
+      VOLATILE_INTREGISTERS = [first_supreg..last_supreg];
+
       first_imreg     = $11;
       last_imreg      = $ff;
 
@@ -705,7 +709,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2003-06-03 13:01:59  daniel
+  Revision 1.22  2003-06-17 16:34:44  jonas
+    * lots of newra fixes (need getfuncretparaloc implementation for i386)!
+    * renamed all_intregisters to volatile_intregisters and made it
+      processor dependent
+
+  Revision 1.21  2003/06/03 13:01:59  daniel
     * Register allocator finished
 
   Revision 1.20  2003/04/23 13:40:33  peter
