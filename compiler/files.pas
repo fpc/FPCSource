@@ -627,7 +627,7 @@ uses
     function tdosinputfile.fileseek(pos: longint): boolean;
       begin
         {$I-}
-         seek(f,BufStart);
+         seek(f,Pos);
         {$I+}
         fileseek:=(ioresult=0);
       end;
@@ -1477,7 +1477,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-12 15:30:44  peter
+  Revision 1.4  2000-08-13 08:59:37  peter
+    * fixed fileseek() typo (merged)
+
+  Revision 1.3  2000/08/12 15:30:44  peter
     * IDE patch for stream reading (merged)
 
   Revision 1.2  2000/07/13 11:32:41  michael
