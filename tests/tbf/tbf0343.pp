@@ -1,3 +1,4 @@
+{$mode delphi}
 type
   TListEntry = record
     Next: ^TListEntry;                      (*<-- Error message here*)
