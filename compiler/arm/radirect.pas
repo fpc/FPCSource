@@ -53,7 +53,7 @@ interface
        { codegen }
        cgbase,
        { constants }
-       agppcgas,
+       agarmgas,
        cpubase
        ;
 
@@ -66,8 +66,8 @@ interface
          is_register:=false;
          if length(s)>5 then
            exit;
-         for r:=low(gas_reg2str) to high(gas_reg2str) do
-           if gas_reg2str[r]=s then
+         for r:=low(std_reg2str) to high(std_reg2str) do
+           if std_reg2str[r]=s then
               begin
                  is_register:=true;
                  exit;
@@ -195,11 +195,11 @@ interface
                                                     if (tvarsym(sym).reg.enum<>R_NO) then
 // until new regallocator stuff settles down
 //                                                      hs:=gas_reg2str[procinfo.framepointer.enum]
-                                                      hs:=gas_reg2str[framereg.enum]
+                                                      hs:=std_reg2str[framereg.enum]
                                                     else
                                                       hs:=tostr(tvarsym(sym).address)+
 //                                                        '('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                        '('+gas_reg2str[framereg.enum]+')';
+                                                        '('+std_reg2str[framereg.enum]+')';
                                                  end;
                                             end
                                           else
@@ -221,7 +221,7 @@ interface
                                                     { set offset }
                                                     inc(l,current_procinfo.procdef.parast.address_fixup);
 //                                                    hs:=tostr(l)+'('+gas_reg2str[procinfo.framepointer.enum]+')';
-                                                    hs:=tostr(l)+'('+gas_reg2str[framereg.enum]+')';
+                                                    hs:=tostr(l)+'('+std_reg2str[framereg.enum]+')';
                                                     if pos(',',s) > 0 then
                                                       tvarsym(sym).varstate:=vs_used;
                                                  end;
@@ -350,6 +350,9 @@ initialization
 end.
 {
   $Log$
-  Revision 1.1  2003-07-21 16:35:30  florian
+  Revision 1.2  2003-08-16 13:23:01  florian
+    * several arm related stuff fixed
+
+  Revision 1.1  2003/07/21 16:35:30  florian
     * very basic stuff for the arm
 }
