@@ -112,7 +112,7 @@ implementation
            LOC_REFERENCE:
              begin
                { currently, we copy the value always to a secure location }
-               if true then
+               if not(assigned(aktcallnode.inlinecode)) then
                  paramanager.alloctempparaloc(exprasmlist,aktcallnode.procdefinition.proccalloption,paraitem,tempparaloc);
              end;
 {$endif cputargethasfixedstack}
@@ -770,7 +770,7 @@ implementation
              end;
          end;
 
-         procedure freeparas;
+       procedure freeparas;
          var
            ppn : tcgcallparanode;
          begin
@@ -1264,7 +1264,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.162  2004-03-09 16:28:31  peter
+  Revision 1.163  2004-03-13 21:23:21  florian
+    * fixed inlining on arm
+
+  Revision 1.162  2004/03/09 16:28:31  peter
     * fix for sparc that pushes floats in int registers
 
   Revision 1.161  2004/03/09 13:04:12  mazen
