@@ -351,9 +351,9 @@ Interface
 
     type
        RGBRec = packed record
-         Red: integer;
-         Green: integer;
-         Blue : integer;
+         Red: smallint;
+         Green: smallint;
+         Blue : smallint;
        end;
 
        PaletteType = record
@@ -383,27 +383,27 @@ Interface
        FillPatternType = array[1..8] of byte;
 
        PointType = record
-             x,y : integer;
+             x,y : smallint;
        end;
 
        ViewPortType = record
-             x1,y1,x2,y2 : integer;
+             x1,y1,x2,y2 : smallint;
              Clip : boolean;
        end;
 
        ArcCoordsType = record
-             x,y : integer;
-             xstart,ystart : integer;
-             xend,yend : integer;
+             x,y : smallint;
+             xstart,ystart : smallint;
+             xend,yend : smallint;
        end;
 
 {$IFDEF FPC}
-        graph_int = longint;      { platform specific integer used for indexes;
+        graph_int = longint;      { platform specific smallint used for indexes;
                                     should be 16 bits on TP/BP and 32 bits on every-
                                     thing else for speed reasons }
         graph_float = single;   { the platform's preferred floating point size }
 {$ELSE}
-        graph_int = integer;    { platform specific integer used for indexes;
+        graph_int = smallint;    { platform specific smallint used for indexes;
                                   should be 16 bits on TP/BP and 32 bits on every-
                                   thing else for speed reasons }
         graph_float = real;     { the platform's preferred floating point size }
@@ -441,19 +441,19 @@ TYPE
        { drawing routines, it will use the viewport settings, as    }
        { well as clip, and use the current foreground color to plot }
        { the desired pixel.                                         }
-       defpixelproc = procedure(X,Y: Integer);
+       defpixelproc = procedure(X,Y: smallint);
 
        { standard plot and get pixel                                }
-       getpixelproc = function(X,Y: Integer): word;
-       putpixelproc = procedure(X,Y: Integer; Color: Word);
+       getpixelproc = function(X,Y: smallint): word;
+       putpixelproc = procedure(X,Y: smallint; Color: Word);
 
        { clears the viewport, also used to clear the device         }
        clrviewproc  = procedure;
 
        { putimage procedure, can be hooked to accomplish transparency }
-       putimageproc = procedure (X,Y: Integer; var Bitmap; BitBlt: Word);
-       getimageproc = procedure(X1,Y1,X2,Y2: Integer; Var Bitmap);
-       imagesizeproc= function (X1,Y1,X2,Y2: Integer): longint;
+       putimageproc = procedure (X,Y: smallint; var Bitmap; BitBlt: Word);
+       getimageproc = procedure(X1,Y1,X2,Y2: smallint; Var Bitmap);
+       imagesizeproc= function (X1,Y1,X2,Y2: smallint): longint;
 
        graphfreememprc = procedure (var P: Pointer; size: word);
        graphgetmemprc  = procedure (var P: pointer; size: word);
@@ -462,29 +462,29 @@ TYPE
 
        { draw filled horizontal lines using current color }
        { on entry coordinates are already clipped.        }
-       hlineproc = procedure (x, x2,y : integer);
+       hlineproc = procedure (x, x2,y : smallint);
        { on entry coordinates are already clipped.        }
        { draw filled vertical line using current color    }
-       vlineproc = procedure (x,y,y2: integer);
+       vlineproc = procedure (x,y,y2: smallint);
 
        { this routine is used to draw filled patterns for all routines }
        { that require it. (FillPoly, FloodFill, Sector, etc...         }
        { clipping is verified, uses current Fill settings for drawing  }
-       patternlineproc = procedure (x1,x2,y: integer);
+       patternlineproc = procedure (x1,x2,y: smallint);
 
        { this routine is used to draw all circles/ellipses/sectors     }
        { more info... on this later...                                 }
-       ellipseproc = procedure (X,Y: Integer;XRadius: word;
+       ellipseproc = procedure (X,Y: smallint;XRadius: word;
          YRadius:word; stAngle,EndAngle: word; fp: PatternLineProc);
 
        { Line routine - draws lines thick/norm widths with current     }
        { color and line style - LINE must be clipped here.             }
-       lineproc = procedure (X1, Y1, X2, Y2 : Integer);
+       lineproc = procedure (X1, Y1, X2, Y2 : smallint);
 
        { this routine is used for FloodFill - it returns an entire      }
        { screen scan line with a word for each pixel in the scanline.   }
        { Also handy for GetImage, so I added x coords as well (JM)      }
-       getscanlineproc = procedure (X1, X2, Y : integer; var data);
+       getscanlineproc = procedure (X1, X2, Y : smallint; var data);
 
        { changes the active display screen where we draw to... }
        setactivepageproc = procedure (page: word);
@@ -502,12 +502,12 @@ TYPE
 
        { This routine is a hook for SetRGBPalette                       }
        setrgbpaletteproc =
-         procedure(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+         procedure(ColorNum, RedValue, GreenValue, BlueValue: smallint);
 
        { This routine is a hook for GetRGBPalette                       }
        getrgbpaletteproc =
-         procedure(ColorNum: integer; var
-            RedValue, GreenValue, BlueValue: Integer);
+         procedure(ColorNum: smallint; var
+            RedValue, GreenValue, BlueValue: smallint);
 
 
 TYPE
@@ -524,14 +524,14 @@ TYPE
     {-----------------------------------}
     PModeInfo = ^TModeInfo;
     TModeInfo = record
-      DriverNumber: Integer;
-      ModeNumber: Integer;
+      DriverNumber: smallint;
+      ModeNumber: smallint;
       MaxColor: Longint;            { Maximum colors on screen        }
       PaletteSize : Longint;        { Maximum palette entry we can change }
-      XAspect : Integer;            { XAspect ratio correction factor }
-      YAspect : Integer;            { YAspect ratio correction factor }
-      MaxX: Integer;                { Max-X row                       }
-      MaxY: Integer;                { Max. column.                    }
+      XAspect : smallint;            { XAspect ratio correction factor }
+      YAspect : smallint;            { YAspect ratio correction factor }
+      MaxX: smallint;                { Max-X row                       }
+      MaxY: smallint;                { Max. column.                    }
       DirectColor: boolean;         { Is this a direct color mode??   }
       Hardwarepages: byte;          { total number of image pages - 1 }
       ModeName: String[18];
@@ -590,35 +590,35 @@ VAR
 
 Procedure Closegraph;
 procedure SetLineStyle(LineStyle: word; Pattern: word; Thickness: word);
-function  GraphErrorMsg(ErrorCode: Integer): string;
-Function  GetMaxX: Integer;
-Function  GetMaxY: Integer;
-Procedure SetViewPort(X1, Y1, X2, Y2: Integer; Clip: Boolean);
-Function  GraphResult: Integer;
-function  GetModeName(ModeNumber: integer): string;
-procedure SetGraphMode(Mode: Integer);
-function GetGraphMode: Integer;
+function  GraphErrorMsg(ErrorCode: smallint): string;
+Function  GetMaxX: smallint;
+Function  GetMaxY: smallint;
+Procedure SetViewPort(X1, Y1, X2, Y2: smallint; Clip: Boolean);
+Function  GraphResult: smallint;
+function  GetModeName(ModeNumber: smallint): string;
+procedure SetGraphMode(Mode: smallint);
+function GetGraphMode: smallint;
 function GetMaxMode: word;
 procedure RestoreCrtMode;
-procedure GetModeRange(GraphDriver: Integer; var LoMode, HiMode: Integer);
-Function  GetX: Integer;
-Function  GetY: Integer;
+procedure GetModeRange(GraphDriver: smallint; var LoMode, HiMode: smallint);
+Function  GetX: smallint;
+Function  GetY: smallint;
 procedure GraphDefaults;
 procedure ClearDevice;
 procedure GetViewSettings(var viewport : ViewPortType);
-procedure SetWriteMode(WriteMode : integer);
+procedure SetWriteMode(WriteMode : smallint);
 procedure GetFillSettings(var Fillinfo:Fillsettingstype);
 procedure GetFillPattern(var FillPattern:FillPatternType);
 procedure GetLineSettings(var ActiveLineInfo : LineSettingsType);
-procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;const PathToDriver:String);
-procedure DetectGraph(var GraphDriver:Integer;var GraphMode:Integer);
-function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): integer;
-function RegisterBGIDriver(driver: pointer): integer;
+procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;const PathToDriver:String);
+procedure DetectGraph(var GraphDriver:smallint;var GraphMode:smallint);
+function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): smallint;
+function RegisterBGIDriver(driver: pointer): smallint;
 procedure SetFillStyle(Pattern : word; Color: word);
 procedure SetFillPattern(Pattern: FillPatternType; Color: word);
 Function GetDriverName: string;
- procedure MoveRel(Dx, Dy: Integer);
- procedure MoveTo(X,Y: Integer);
+ procedure MoveRel(Dx, Dy: smallint);
+ procedure MoveTo(X,Y: smallint);
 
  procedure SetDirectVideo(DirectAccess: boolean);
  function GetDirectVideo: boolean;
@@ -633,19 +633,19 @@ Function GetDriverName: string;
  procedure SetAllPalette(var Palette:PaletteType);
  procedure SetPalette(ColorNum: word; Color: shortint);
  procedure GetPalette(var Palette: PaletteType);
- function GetPaletteSize: integer;
+ function GetPaletteSize: smallint;
  procedure GetDefaultPalette(var Palette: PaletteType);
 
 
  { -------------------- Shapes/Lines -------------------------------- }
- procedure Rectangle(x1,y1,x2,y2:integer);
- procedure Bar(x1,y1,x2,y2:integer);
- procedure Bar3D(x1, y1, x2, y2 : integer;depth : word;top : boolean);
+ procedure Rectangle(x1,y1,x2,y2:smallint);
+ procedure Bar(x1,y1,x2,y2:smallint);
+ procedure Bar3D(x1, y1, x2, y2 : smallint;depth : word;top : boolean);
  procedure FillPoly(NumPoints: word; Var PolyPoints);
  procedure DrawPoly(NumPoints : word;var polypoints);
- procedure LineRel(Dx, Dy: Integer);
- procedure LineTo(X,Y : Integer);
- procedure FloodFill(x : integer; y : integer; Border: word);
+ procedure LineRel(Dx, Dy: smallint);
+ procedure LineTo(X,Y : smallint);
+ procedure FloodFill(x : smallint; y : smallint; Border: word);
 
  { -------------------- Circle related routines --------------------- }
  procedure GetAspectRatio(var Xasp,Yasp : word);
@@ -653,17 +653,17 @@ Function GetDriverName: string;
  procedure GetArcCoords(var ArcCoords: ArcCoordsType);
 
 
- procedure Arc(X,Y : Integer; StAngle,EndAngle,Radius: word);
- procedure PieSlice(X,Y,stangle,endAngle:integer;Radius: Word);
- procedure FillEllipse(X, Y: Integer; XRadius, YRadius: Word);
- procedure Circle(X, Y: Integer; Radius:Word);
- procedure Sector(x, y: Integer; StAngle,EndAngle, XRadius, YRadius: Word);
- procedure Ellipse(X,Y : Integer; stAngle, EndAngle: word; XRadius,
+ procedure Arc(X,Y : smallint; StAngle,EndAngle,Radius: word);
+ procedure PieSlice(X,Y,stangle,endAngle:smallint;Radius: Word);
+ procedure FillEllipse(X, Y: smallint; XRadius, YRadius: Word);
+ procedure Circle(X, Y: smallint; Radius:Word);
+ procedure Sector(x, y: smallint; StAngle,EndAngle, XRadius, YRadius: Word);
+ procedure Ellipse(X,Y : smallint; stAngle, EndAngle: word; XRadius,
    YRadius: word);
 
  { --------------------- Text related routines --------------------- }
- function  InstallUserFont(const FontFileName : string) : integer;
- function  RegisterBGIfont(font : pointer) : integer;
+ function  InstallUserFont(const FontFileName : string) : smallint;
+ function  RegisterBGIfont(font : pointer) : smallint;
  procedure GetTextSettings(var TextInfo : TextSettingsType);
  function  TextHeight(const TextString : string) : word;
  function  TextWidth(const TextString : string) : word;
@@ -671,7 +671,7 @@ Function GetDriverName: string;
  procedure SetTextStyle(font,direction : word;charsize : word);
  procedure SetUserCharSize(Multx,Divx,Multy,Divy : word);
 
- procedure OutTextXY(x,y : integer;const TextString : string);
+ procedure OutTextXY(x,y : smallint;const TextString : string);
  procedure OutText(const TextString : string);
 
 { Load extra graph additions per system like mode constants }
@@ -729,7 +729,7 @@ const
 type
 
 
-  tinttable = array[0..16383] of integer;
+  tinttable = array[0..16383] of smallint;
   pinttable = ^tinttable;
 
   WordArray = Array [0..StdbufferSize] Of word;
@@ -762,16 +762,16 @@ const
 var
   CurrentColor:     Word;
   CurrentBkColor: Word;
-  CurrentX : Integer;   { viewport relative }
-  CurrentY : Integer;   { viewport relative }
+  CurrentX : smallint;   { viewport relative }
+  CurrentY : smallint;   { viewport relative }
 
   ClipPixels: Boolean;  { Should cliiping be enabled }
 
 
-  CurrentWriteMode: Integer;
+  CurrentWriteMode: smallint;
 
 
-  _GraphResult : Integer;
+  _GraphResult : smallint;
 
 
   LineInfo : LineSettingsType;
@@ -783,10 +783,10 @@ var
   installedfonts: longint;  { Number of installed fonts }
 
 
-  StartXViewPort: Integer; { absolute }
-  StartYViewPort: Integer; { absolute }
-  ViewWidth : Integer;
-  ViewHeight: Integer;
+  StartXViewPort: smallint; { absolute }
+  StartYViewPort: smallint; { absolute }
+  ViewWidth : smallint;
+  ViewHeight: smallint;
 
 
   IsGraphMode : Boolean; { Indicates if we are in graph mode or not }
@@ -799,12 +799,12 @@ var
 
   { ******************** HARDWARE INFORMATION ********************* }
   { Should be set in InitGraph once only.                           }
-  IntCurrentMode : Integer;
-  IntCurrentDriver : Integer;       { Currently loaded driver          }
-  XAspect : Integer;
-  YAspect : Integer;
-  MaxX : Integer;       { Maximum resolution - ABSOLUTE }
-  MaxY : Integer;       { Maximum resolution - ABSOLUTE }
+  IntCurrentMode : smallint;
+  IntCurrentDriver : smallint;       { Currently loaded driver          }
+  XAspect : smallint;
+  YAspect : smallint;
+  MaxX : smallint;       { Maximum resolution - ABSOLUTE }
+  MaxY : smallint;       { Maximum resolution - ABSOLUTE }
   MaxColor : Longint;
   PaletteSize : longint; { Maximum palette entry we can set, usually equal}
                          { maxcolor.                                      }
@@ -825,10 +825,10 @@ var
 
   {$i clip.inc}
 
-  procedure HLineDefault(x,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
+  procedure HLineDefault(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
 
    var
-    xtmp: integer;
+    xtmp: smallint;
    Begin
 
     { must we swap the values? }
@@ -853,10 +853,10 @@ var
    end;
 
 
-  procedure VLineDefault(x,y,y2: integer); {$ifndef fpc}far;{$endif fpc}
+  procedure VLineDefault(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
 
    var
-    ytmp: integer;
+    ytmp: smallint;
   Begin
     { must we swap the values? }
     if y >= y2 then
@@ -878,7 +878,7 @@ var
     for y := y to y2 do Directputpixel(x,y)
   End;
 
-  Procedure DirectPutPixelClip(x,y: Integer);
+  Procedure DirectPutPixelClip(x,y: smallint);
   { for thickwidth lines, because they may call DirectPutPixel for coords }
   { outside the current viewport (bug found by CEC)                       }
   Begin
@@ -890,22 +890,22 @@ var
       End
   End;
 
-  procedure LineDefault(X1, Y1, X2, Y2: Integer); {$ifndef fpc}far;{$endif fpc}
+  procedure LineDefault(X1, Y1, X2, Y2: smallint); {$ifndef fpc}far;{$endif fpc}
 
-  var X, Y :           Integer;
-      deltax, deltay : Integer;
-      d, dinc1, dinc2: Integer;
-      xinc1          : Integer;
-      xinc2          : Integer;
-      yinc1          : Integer;
-      yinc2          : Integer;
-      i              : Integer;
+  var X, Y :           smallint;
+      deltax, deltay : smallint;
+      d, dinc1, dinc2: smallint;
+      xinc1          : smallint;
+      xinc2          : smallint;
+      yinc1          : smallint;
+      yinc2          : smallint;
+      i              : smallint;
       Flag           : Boolean; { determines pixel direction in thick lines }
-      NumPixels      : Integer;
-      PixelCount     : Integer;
+      NumPixels      : smallint;
+      PixelCount     : smallint;
       OldCurrentColor: Word;
-      swtmp          : integer;
-      TmpNumPixels   : integer;
+      swtmp          : smallint;
+      TmpNumPixels   : smallint;
  begin
 {******************************************}
 {  SOLID LINES                             }
@@ -1303,7 +1303,7 @@ var
   { can be passed as a patternlineproc for non-filled      }
   { ellipses                                               }
   {********************************************************}
-  Procedure DummyPatternLine(x1, x2, y: integer); {$ifdef tp} far; {$endif tp}
+  Procedure DummyPatternLine(x1, x2, y: smallint); {$ifdef tp} far; {$endif tp}
   begin
   end;
 
@@ -1329,7 +1329,7 @@ var
   {       -                                                }
   {********************************************************}
 
-  Procedure InternalEllipseDefault(X,Y: Integer;XRadius: word;
+  Procedure InternalEllipseDefault(X,Y: smallint;XRadius: word;
     YRadius:word; stAngle,EndAngle: word; pl: PatternLineProc); {$ifndef fpc}far;{$endif fpc}
    Const ConvFac = Pi/180.0;
 
@@ -1338,7 +1338,7 @@ var
     NumOfPixels: longint;
     TempTerm: graph_float;
     xtemp, ytemp, xp, yp, xm, ym, xnext, ynext,
-      plxpyp, plxmyp, plxpym, plxmym: integer;
+      plxpyp, plxmyp, plxpym, plxmym: smallint;
     BackupColor, DeltaAngle, TmpAngle, OldLineWidth: word;
   Begin
    If LineInfo.ThickNess = ThickWidth Then
@@ -1432,10 +1432,10 @@ var
      xm := x - xtemp;
      yp := y + ytemp;
      ym := y - ytemp;
-     plxpyp := maxint;
-     plxmyp := -maxint-1;
-     plxpym := maxint;
-     plxmym := -maxint-1;
+     plxpyp := maxsmallint;
+     plxmyp := -maxsmallint-1;
+     plxpym := maxsmallint;
+     plxmym := -maxsmallint-1;
      If (j >= StAngle) and (j <= EndAngle) then
        begin
          plxpyp := xp;
@@ -1487,14 +1487,14 @@ var
   {       - Angles must both be between 0 and 360          }
   {********************************************************}
 (*
-Procedure InternalEllipseDefault (x, y : integer;
+Procedure InternalEllipseDefault (x, y : smallint;
     xradius, yradius, stAngle, EndAngle : Word; pl: PatternLineProc); {$ifndef fpc} far; {$endif fpc}
 { Draw an ellipse arc. Crude but it works (anyone have a better one?) }
 Var
   aSqr, bSqr, twoaSqr, twobSqr, xa, ya, twoXbSqr, twoYaSqr, error : LongInt;
   Alpha, TempTerm : graph_float;
   BackupColor: Word;
-  plxpyp, plxmyp, plxpym, plxmym: integer;
+  plxpyp, plxmyp, plxpym, plxmym: smallint;
 const
   RadToDeg = 180/Pi;
 
@@ -1502,18 +1502,18 @@ const
 Procedure PlotPoints;
 
 var
- i,j: integer;
- xm, ym: integer;
- xp, yp: integer;
+ i,j: smallint;
+ xm, ym: smallint;
+ xp, yp: smallint;
 Begin
    ym := y-ya;
    yp := y+ya;
    xm := x-xa;
    xp := x+xa;
-   plxpyp := maxint;
-   plxmyp := -maxint-1;
-   plxpym := maxint;
-   plxmym := -maxint-1;
+   plxpyp := maxsmallint;
+   plxmyp := -maxsmallint-1;
+   plxpym := maxsmallint;
+   plxmym := -maxsmallint-1;
    if LineInfo.Thickness = Normwidth then
      Begin
        If (Alpha+270>=StAngle) And (Alpha+270<=EndAngle) then
@@ -1655,7 +1655,7 @@ Begin
   End;
 End;
 *)
-  procedure PatternLineDefault(x1,x2,y: integer); {$ifndef fpc}far;{$endif fpc}
+  procedure PatternLineDefault(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
   {********************************************************}
   { Draws a horizontal patterned line according to the     }
   { current Fill Settings.                                 }
@@ -1665,9 +1665,9 @@ End;
   {    this routine.                                       }
   {********************************************************}
    var
-    NrIterations: Integer;
-    i           : Integer;
-    j           : Integer;
+    NrIterations: smallint;
+    i           : smallint;
+    j           : smallint;
     TmpFillPattern : byte;
     OldWriteMode : word;
     OldCurrentColor : word;
@@ -1741,7 +1741,7 @@ End;
 
 
 
-  procedure LineRel(Dx, Dy: Integer);
+  procedure LineRel(Dx, Dy: smallint);
 
    Begin
      Line(CurrentX, CurrentY, CurrentX + Dx, CurrentY + Dy);
@@ -1750,7 +1750,7 @@ End;
    end;
 
 
-  procedure LineTo(x,y : Integer);
+  procedure LineTo(x,y : smallint);
 
    Begin
      Line(CurrentX, CurrentY, X, Y);
@@ -1761,7 +1761,7 @@ End;
 
 
 
-  procedure Rectangle(x1,y1,x2,y2:integer);
+  procedure Rectangle(x1,y1,x2,y2:smallint);
 
    begin
      { Do not draw the end points }
@@ -1825,7 +1825,7 @@ End;
 
 Procedure ClearViewPortDefault; {$ifndef fpc}far;{$endif fpc}
 var
- j: integer;
+ j: smallint;
  OldWriteMode, OldCurColor: word;
  LineSets : LineSettingsType;
 Begin
@@ -1852,7 +1852,7 @@ Begin
 end;
 
 
-Procedure SetViewPort(X1, Y1, X2, Y2: Integer; Clip: Boolean);
+Procedure SetViewPort(X1, Y1, X2, Y2: smallint; Clip: Boolean);
 Begin
   if (X1 > GetMaxX) or (X2 > GetMaxX) or (X1 > X2) or (X1 < 0) then
   Begin
@@ -1921,7 +1921,7 @@ end;
 {--------------------------------------------------------------------------}
 
 
-  Procedure GetScanlineDefault (X1, X2, Y : Integer; Var Data); {$ifndef fpc}far;{$endif fpc}
+  Procedure GetScanlineDefault (X1, X2, Y : smallint; Var Data); {$ifndef fpc}far;{$endif fpc}
   {**********************************************************}
   { Procedure GetScanLine()                                  }
   {----------------------------------------------------------}
@@ -1935,7 +1935,7 @@ end;
 
 
   Var
-    x : Integer;
+    x : smallint;
   Begin
      For x:=X1 to X2 Do
        WordArray(Data)[x-x1]:=GetPixel(x, y);
@@ -1943,21 +1943,21 @@ end;
 
 
 
-Function DefaultImageSize(X1,Y1,X2,Y2: Integer): longint; {$ifndef fpc}far;{$endif fpc}
+Function DefaultImageSize(X1,Y1,X2,Y2: smallint): longint; {$ifndef fpc}far;{$endif fpc}
 Begin
   { each pixel uses two bytes, to enable modes with colors up to 64K }
   { to work.                                                         }
   DefaultImageSize := 12 + (((X2-X1+1)*(Y2-Y1+1))*2);
 end;
 
-Procedure DefaultPutImage(X,Y: Integer; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
+Procedure DefaultPutImage(X,Y: smallint; var Bitmap; BitBlt: Word); {$ifndef fpc}far;{$endif fpc}
 type
   pt = array[0..$fffffff] of word;
   ptw = array[0..2] of longint;
 var
   k: longint;
   oldCurrentColor, color: word;
-  oldCurrentWriteMode, i, j, y1, x1, deltaX, deltaX1, deltaY: Integer;
+  oldCurrentWriteMode, i, j, y1, x1, deltaX, deltaX1, deltaY: smallint;
 Begin
 {$ifdef logging}
   LogLn('putImage at ('+strf(x)+','+strf(y)+') with width '+strf(ptw(Bitmap)[0])+
@@ -2015,12 +2015,12 @@ Begin
   currentColor := oldCurrentColor;
 end;
 
-Procedure DefaultGetImage(X1,Y1,X2,Y2: Integer; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
+Procedure DefaultGetImage(X1,Y1,X2,Y2: smallint; Var Bitmap); {$ifndef fpc}far;{$endif fpc}
 type
   pt = array[0..$fffffff] of word;
   ptw = array[0..2] of longint;
 var
-  i,j: integer;
+  i,j: smallint;
   k: longint;
 Begin
   k:= 3 * Sizeof(longint) div sizeof(word); { Three reserved longs at start of bitmap }
@@ -2060,29 +2060,29 @@ end;
    begin
    end;
 
-  procedure DirectPutPixelDefault(X,Y: Integer);
+  procedure DirectPutPixelDefault(X,Y: smallint);
    begin
      RunError(218);
    end;
 
-  function GetPixelDefault(X,Y: Integer): word;
+  function GetPixelDefault(X,Y: smallint): word;
    begin
      RunError(218);
      exit(0); { avoid warning }
    end;
 
-  procedure PutPixelDefault(X,Y: Integer; Color: Word);
+  procedure PutPixelDefault(X,Y: smallint; Color: Word);
    begin
      RunError(218);
    end;
 
-  procedure SetRGBPaletteDefault(ColorNum, RedValue, GreenValue, BlueValue: Integer);
+  procedure SetRGBPaletteDefault(ColorNum, RedValue, GreenValue, BlueValue: smallint);
    begin
      RunError(218);
    end;
 
-  procedure GetRGBPaletteDefault(ColorNum: integer; var
-            RedValue, GreenValue, BlueValue: Integer);
+  procedure GetRGBPaletteDefault(ColorNum: smallint; var
+            RedValue, GreenValue, BlueValue: smallint);
    begin
      RunError(218);
    end;
@@ -2183,13 +2183,13 @@ end;
 {$i palette.inc}
 {$i graph.inc}
 
-  function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): integer;
+  function InstallUserDriver(Name: string; AutoDetectPtr: Pointer): smallint;
    begin
      _graphResult := grError;
      InstallUserDriver:=grError;
    end;
 
-  function RegisterBGIDriver(driver: pointer): integer;
+  function RegisterBGIDriver(driver: pointer): smallint;
 
    begin
      _graphResult := grError;
@@ -2201,7 +2201,7 @@ end;
 { ----------------------------------------------------------------- }
 
 
-  Procedure Arc(X,Y : Integer; StAngle,EndAngle,Radius: word);
+  Procedure Arc(X,Y : smallint; StAngle,EndAngle,Radius: word);
 
 {   var
     OldWriteMode: word;}
@@ -2221,7 +2221,7 @@ end;
    end;
 
 
- procedure Ellipse(X,Y : Integer; stAngle, EndAngle: word; XRadius,YRadius: word);
+ procedure Ellipse(X,Y : smallint; stAngle, EndAngle: word; XRadius,YRadius: word);
   Begin
 {$ifdef fpc}
      InternalEllipse(X,Y,XRadius,YRadius,StAngle,Endangle,@DummyPatternLine);
@@ -2231,7 +2231,7 @@ end;
   end;
 
 
- procedure FillEllipse(X, Y: Integer; XRadius, YRadius: Word);
+ procedure FillEllipse(X, Y: smallint; XRadius, YRadius: Word);
   {********************************************************}
   { Procedure FillEllipse()                                }
   {--------------------------------------------------------}
@@ -2246,7 +2246,7 @@ end;
 
 
 
- procedure Circle(X, Y: Integer; Radius:Word);
+ procedure Circle(X, Y: smallint; Radius:Word);
   {********************************************************}
   { Draws a circle centered at X,Y with the given Radius.  }
   {********************************************************}
@@ -2289,8 +2289,8 @@ end;
      move(OriginalArcInfo, ArcCall,sizeof(ArcCall));
  end;
 
- procedure SectorPL(x1,x2,y: Integer); {$ifndef fpc}far;{$endif fpc}
- var plx1, plx2: integer;
+ procedure SectorPL(x1,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+ var plx1, plx2: smallint;
 {$ifdef sectorpldebug}
      t : text;
 {$endif sectorpldebug}
@@ -2301,8 +2301,8 @@ end;
    writeln(t,'Got here for line ',y);
    close(t);
 {$endif sectorpldebug}
-   If (x1 = -maxint) Then
-     If (x2 = maxint-1) Then
+   If (x1 = -maxsmallint) Then
+     If (x2 = maxsmallint-1) Then
        { no ellipse points drawn on this line }
        If (((Y < ArcCall.Y) and (Y > ArcCall.YStart)) or
           ((Y > ArcCall.Y) and (Y < ArcCall.YStart))) Then
@@ -2391,7 +2391,7 @@ end;
 {$endif sectorpldebug}
        End
    Else
-     If (x2 = maxint-1) Then
+     If (x2 = maxsmallint-1) Then
        { the arc is plotted at the left side, but not at the rigth side.   }
        { the right limit can be either the first or second line. Just take }
        { the closest one, but watch out for division by zero!              }
@@ -2454,7 +2454,7 @@ end;
      end;
  end;
 
- procedure Sector(x, y: Integer; StAngle,EndAngle, XRadius, YRadius: Word);
+ procedure Sector(x, y: smallint; StAngle,EndAngle, XRadius, YRadius: Word);
 (*  var angle : graph_float;
       writemode : word; *)
   begin
@@ -2492,7 +2492,7 @@ end;
   { it can still be used with SetFillStyle(UserFill,Color) }
   {********************************************************}
    var
-    i: integer;
+    i: smallint;
 
    begin
      if Color > GetMaxColor then
@@ -2510,16 +2510,16 @@ end;
 
    end;
 
-  procedure Bar(x1,y1,x2,y2:integer);
+  procedure Bar(x1,y1,x2,y2:smallint);
   {********************************************************}
   { Important notes for compatibility with BP:             }
   {     - WriteMode is always CopyPut                      }
   {     - No contour is drawn for the lines                }
   {********************************************************}
-  var y               : Integer;
+  var y               : smallint;
       origcolor       : longint;
       origlinesettings: Linesettingstype;
-      origwritemode   : Integer;
+      origwritemode   : smallint;
    begin
      origlinesettings:=lineinfo;
      origcolor:=CurrentColor;
@@ -2566,10 +2566,10 @@ end;
 
 
 
-procedure bar3D(x1, y1, x2, y2 : integer;depth : word;top : boolean);
+procedure bar3D(x1, y1, x2, y2 : smallint;depth : word;top : boolean);
 var
- origwritemode : integer;
- OldX, OldY : integer;
+ origwritemode : smallint;
+ OldX, OldY : smallint;
 begin
   origwritemode := CurrentWriteMode;
   CurrentWriteMode := CopyPut;
@@ -2661,13 +2661,13 @@ end;
 
 
 
-   Procedure MoveRel(Dx, Dy: Integer);
+   Procedure MoveRel(Dx, Dy: smallint);
     Begin
      CurrentX := CurrentX + Dx;
      CurrentY := CurrentY + Dy;
    end;
 
-   Procedure MoveTo(X,Y: Integer);
+   Procedure MoveTo(X,Y: smallint);
   {********************************************************}
   { Procedure MoveTo()                                     }
   {--------------------------------------------------------}
@@ -2680,7 +2680,7 @@ end;
     end;
 
 
-function GraphErrorMsg(ErrorCode: Integer): string;
+function GraphErrorMsg(ErrorCode: smallint): string;
 Begin
  GraphErrorMsg:='';
  case ErrorCode of
@@ -2701,13 +2701,13 @@ end;
 
 
 
-  Function GetMaxX: Integer;
+  Function GetMaxX: smallint;
   { Routine checked against VGA driver - CEC }
    Begin
      GetMaxX := MaxX;
    end;
 
-  Function GetMaxY: Integer;
+  Function GetMaxY: smallint;
   { Routine checked against VGA driver - CEC }
    Begin
     GetMaxY := MaxY;
@@ -2716,20 +2716,20 @@ end;
 
 
 
-Function GraphResult: Integer;
+Function GraphResult: smallint;
 Begin
   GraphResult := _GraphResult;
   _GraphResult := grOk;
 end;
 
 
-  Function GetX: Integer;
+  Function GetX: smallint;
    Begin
      GetX := CurrentX;
    end;
 
 
-  Function GetY: Integer;
+  Function GetY: smallint;
    Begin
      GetY := CurrentY;
    end;
@@ -2746,7 +2746,7 @@ end;
    { returned values even if GraphDefaults is called in    }
    { between.                                              }
     var
-     i: integer;
+     i: smallint;
    begin
      lineinfo.linestyle:=solidln;
      lineinfo.thickness:=normwidth;
@@ -2806,7 +2806,7 @@ end;
   end;
 
 
-  procedure SetWriteMode(WriteMode : integer);
+  procedure SetWriteMode(WriteMode : smallint);
   { TP sets the writemodes according to the following scheme (JM) }
    begin
      Case writemode of
@@ -2854,7 +2854,7 @@ end;
     end;
 
 
-  procedure PieSlice(X,Y,stangle,endAngle:integer;Radius: Word);
+  procedure PieSlice(X,Y,stangle,endAngle:smallint;Radius: Word);
   begin
     Sector(x,y,stangle,endangle,radius,radius);
   end;
@@ -2863,10 +2863,10 @@ end;
 {$i gtext.inc}
 
 
-  procedure DetectGraph(var GraphDriver:Integer;var GraphMode:Integer);
-  var LoMode, HiMode: Integer;
-      CpyMode: Integer;
-      CpyDriver: Integer;
+  procedure DetectGraph(var GraphDriver:smallint;var GraphMode:smallint);
+  var LoMode, HiMode: smallint;
+      CpyMode: smallint;
+      CpyDriver: smallint;
   begin
     HiMode := -1;
     LoMode := -1;
@@ -2896,7 +2896,7 @@ end;
     GraphMode := CpyMode;
   end;
 
-  procedure InitGraph(var GraphDriver:Integer;var GraphMode:Integer;
+  procedure InitGraph(var GraphDriver:smallint;var GraphMode:smallint;
     const PathToDriver:String);
   begin
     InitVars;
@@ -3034,7 +3034,10 @@ SetGraphBufSize
 
 {
   $Log$
-  Revision 1.47  1999-12-12 13:34:20  jonas
+  Revision 1.48  1999-12-20 11:22:36  peter
+    * integer -> smallint to overcome -S2 switch needed for ggi version
+
+  Revision 1.47  1999/12/12 13:34:20  jonas
     * putimage now performs the lipping itself and uses directputpixel
       (note: this REQUIRES or/and/notput support in directputpixel,
       this is not yet the case in the assembler versions!)
@@ -3043,7 +3046,7 @@ SetGraphBufSize
 
   Revision 1.46  1999/12/11 23:41:38  jonas
     * changed definition of getscanlineproc to "getscanline(x1,x2,y:
-      integer; var data);" so it can be used by getimage too
+      smallint; var data);" so it can be used by getimage too
     * changed getimage so it uses getscanline
     * changed floodfill, getscanline16 and definitions in Linux
       include files so they use this new format
@@ -3071,7 +3074,7 @@ SetGraphBufSize
    * memory corruption within GetImage removed
 
   Revision 1.39  1999/11/24 23:42:31  pierre
-    * PutImage used an integer index that became negative !!!!
+    * PutImage used an smallint index that became negative !!!!
     * Default needed procedure now genrate a RTE 218 instead of a
       GPF by call to nil pointer !
 

@@ -310,7 +310,7 @@ are also possible for those who wish to optimize the speed of the unit.
 -------------------------------------------------------------
 \begin{function}{GetModeName}
 \Declaration
-Function GetModeName (ModeNumber : Integer) : String;
+Function GetModeName (ModeNumber : smallint) : String;
 
 \Description
 
@@ -430,7 +430,7 @@ None.
 ---------------------------
 \begin{procedure}{GetRGBPalette}
 \Declaration
-Procedure GetRGBPalette (ColorNum: intege; var Red,Green,Blue : Integer);
+Procedure GetRGBPalette (ColorNum: intege; var Red,Green,Blue : smallint);
 
 \Description
 \var{GetRGBPalette} gets the \var{ColorNum}-th entry in the palette.
@@ -522,7 +522,7 @@ None.
 \subsection{Types}
 \begin{verbatim}
 ArcCoordsType = record
- X,Y,Xstart,Ystart,Xend,Yend : Integer;
+ X,Y,Xstart,Ystart,Xend,Yend : smallint;
 end;
 FillPatternType = Array [1..8] of Byte;
 FillSettingsType = Record
@@ -535,13 +535,13 @@ end;
 
 
 PointType = Record
-  X,Y : Integer;
+  X,Y : smallint;
 end;
 TextSettingsType = Record
  Font,Direction, CharSize, Horiz, Vert : Word
 end;
 ViewPortType = Record
-  X1,Y1,X2,Y2 : Integer;
+  X1,Y1,X2,Y2 : smallint;
   Clip : Boolean
 end;
 \end{verbatim}
@@ -566,7 +566,7 @@ across different hardware platforms.
 
 \begin{procedure}{Arc}
 \Declaration
-Procedure Arc (X,Y : Integer; stAngle,Endangle, radius : Word);
+Procedure Arc (X,Y : smallint; stAngle,Endangle, radius : Word);
 
 \Description
  \var{Arc} draws part of a circle with center at \var{(X,Y)}, radius
@@ -582,7 +582,7 @@ None.
 
 \begin{procedure}{Bar}
 \Declaration
-Procedure Bar (X1,Y1,X2,Y2 : Integer);
+Procedure Bar (X1,Y1,X2,Y2 : smallint);
 
 \Description
 Draws a rectangle with corners at \var{(X1,Y1)} and \var{(X2,Y2)}
@@ -596,7 +596,7 @@ None.
 
 \begin{procedure}{Bar3D}
 \Declaration
-Procedure Bar3D (X1,Y1,X2,Y2 : Integer; depth : Word; Top : Boolean);
+Procedure Bar3D (X1,Y1,X2,Y2 : smallint; depth : Word; Top : Boolean);
 
 \Description
 Draws a 3-dimensional Bar  with corners at \var{(X1,Y1)} and \var{(X2,Y2)}
@@ -612,7 +612,7 @@ None.
 
 \begin{procedure}{Circle}
 \Declaration
-Procedure Circle (X,Y : Integer; Radius : Word);
+Procedure Circle (X,Y : smallint; Radius : Word);
 
 \Description
  \var{Circle} draws part of a circle with center at \var{(X,Y)}, radius
@@ -667,7 +667,7 @@ None.
 
 \begin{procedure}{DetectGraph}
 \Declaration
-Procedure DetectGraph (Var Driver, Modus : Integer);
+Procedure DetectGraph (Var Driver, Modus : smallint);
 
 \Description
  Checks the hardware in the PC and determines the driver and screen-modus to
@@ -701,7 +701,7 @@ None.
 
 \begin{procedure}{Ellipse}
 \Declaration
-Procedure Ellipse (X,Y : Integer; StAngle,EndAngle,XRadius,YRadius : Word);
+Procedure Ellipse (X,Y : smallint; StAngle,EndAngle,XRadius,YRadius : Word);
 
 \Description
  \var{Ellipse} draws part of an ellipse with center at \var{(X,Y)}.
@@ -719,7 +719,7 @@ None.
 \end{procedure}
 \begin{procedure}{FillEllipse}
 \Declaration
-Procedure FillEllipse (X,Y : Integer; Xradius,YRadius: Word);
+Procedure FillEllipse (X,Y : smallint; Xradius,YRadius: Word);
 
 \Description
  \var{Ellipse} draws an ellipse with center at \var{(X,Y)}.
@@ -750,7 +750,7 @@ None.
 \end{procedure}
 \begin{procedure}{FloodFill}
 \Declaration
-Procedure FloodFill (X,Y : Integer; BorderColor : Word);
+Procedure FloodFill (X,Y : smallint; BorderColor : Word);
 
 \Description
 
@@ -846,7 +846,7 @@ None.
 
 \begin{function}{GetGraphMode}
 \Declaration
-Function GetGraphMode  : Integer;
+Function GetGraphMode  : smallint;
 
 \Description
 \var{GetGraphMode} returns the current graphical mode. This value is
@@ -862,7 +862,7 @@ None.
 
 \begin{procedure}{GetImage}
 \Declaration
-Procedure GetImage (X1,Y1,X2,Y2 : Integer, Var Bitmap);
+Procedure GetImage (X1,Y1,X2,Y2 : smallint, Var Bitmap);
 
 \Description
 \var{GetImage}
@@ -954,7 +954,7 @@ None.
 
 \begin{procedure}{GetModeRange}
 \Declaration
-Procedure GetModeRange (GraphDriver : Integer; var LoMode, HiMode: Integer);
+Procedure GetModeRange (GraphDriver : smallint; var LoMode, HiMode: smallint);
 
 \Description
 \var{GetModeRange} returns the Lowest and Highest mode of the currently
@@ -985,7 +985,7 @@ None.
 \end{function}
 \begin{function}{GetPixel}
 \Declaration
-Function GetPixel (X,Y : Integer) : Word;
+Function GetPixel (X,Y : smallint) : Word;
 
 \Description
 \var{GetPixel} returns the color
@@ -1029,7 +1029,7 @@ None.
 
 \begin{function}{GetX}
 \Declaration
-Function GetX  : Integer;
+Function GetX  : smallint;
 
 \Description
 \var{GetX} returns the X-coordinate of the current pointer. This value is
@@ -1041,7 +1041,7 @@ None.
 \end{function}
 \begin{function}{GetY}
 \Declaration
-Function GetY  : Integer;
+Function GetY  : smallint;
 
 \Description
 \var{GetY} returns the Y-coordinate of the current pointer. This value is
@@ -1084,7 +1084,7 @@ None.
 
 \begin{function}{GraphErrorMsg}
 \Declaration
-Function GraphErrorMsg (ErrorCode : Integer) : String;
+Function GraphErrorMsg (ErrorCode : smallint) : String;
 
 \Description
 \var{GraphErrorMsg}
@@ -1097,7 +1097,7 @@ None.
 \end{function}
 \begin{function}{GraphResult}
 \Declaration
-Function GraphResult  : Integer;
+Function GraphResult  : smallint;
 
 \Description
 \var{GraphResult} returns an error-code for
@@ -1119,7 +1119,7 @@ None.
 
 \begin{function}{ImageSize}
 \Declaration
-Function ImageSize (X1,Y1,X2,Y2 : Integer) : longint;
+Function ImageSize (X1,Y1,X2,Y2 : smallint) : longint;
 
 \Description
 \var{ImageSize} returns the number of bytes needed to store the image
@@ -1141,7 +1141,7 @@ None.
 
 \begin{procedure}{InitGraph}
 \Declaration
-Procedure InitGraph (var GraphDriver,GraphModus : integer;\\
+Procedure InitGraph (var GraphDriver,GraphModus : smallint;\\
 const PathToDriver : string);
 
 \Description
@@ -1183,7 +1183,7 @@ Introduction, (page \pageref{se:Introduction}),
 Example:
 \begin{verbatim}
 var
-   gd,gm : integer;
+   gd,gm : smallint;
    PathToDriver : string;
 begin
    gd:=detect; { highest possible resolution }
@@ -1199,7 +1199,7 @@ end.
 
 \begin{function}{InstallUserDriver}
 \Declaration
-Function InstallUserDriver (DriverPath : String; AutoDetectPtr: Pointer) : Integer;
+Function InstallUserDriver (DriverPath : String; AutoDetectPtr: Pointer) : smallint;
 
 \Description
 This routine is not supported in FPC, it is here only for compatiblity and
@@ -1212,7 +1212,7 @@ None.
 \end{function}
 \begin{function}{InstallUserFont}
 \Declaration
-Function InstallUserFont (FontPath : String) : Integer;
+Function InstallUserFont (FontPath : String) : smallint;
 
 \Description
 \var{InstallUserFont} adds the font in \var{FontPath} to the list of fonts
@@ -1225,7 +1225,7 @@ None.
 \end{function}
 \begin{procedure}{Line}
 \Declaration
-Procedure Line (X1,Y1,X2,Y2 : Integer);
+Procedure Line (X1,Y1,X2,Y2 : smallint);
 
 \Description
 \var{Line} draws a line starting from
@@ -1244,7 +1244,7 @@ None.
 \end{procedure}
 \begin{procedure}{LineRel}
 \Declaration
-Procedure LineRel (DX,DY : Integer);
+Procedure LineRel (DX,DY : smallint);
 
 \Description
 \var{LineRel} draws a line starting from
@@ -1258,7 +1258,7 @@ None.
 \end{procedure}
 \begin{procedure}{LineTo}
 \Declaration
-Procedure LineTo (DX,DY : Integer);
+Procedure LineTo (DX,DY : smallint);
 
 \Description
 \var{LineTo} draws a line starting from
@@ -1272,7 +1272,7 @@ None.
 \end{procedure}
 \begin{procedure}{MoveRel}
 \Declaration
-Procedure MoveRel (DX,DY : Integer;
+Procedure MoveRel (DX,DY : smallint;
 
 \Description
 \var{MoveRel} moves the current pointer to the
@@ -1285,7 +1285,7 @@ None.
 \end{procedure}
 \begin{procedure}{MoveTo}
 \Declaration
-Procedure MoveTo (X,Y : Integer);
+Procedure MoveTo (X,Y : smallint);
 
 \Description
 \var{MoveTo} moves the current pointer to the
@@ -1317,7 +1317,7 @@ None.
 \end{procedure}
 \begin{procedure}{OutTextXY}
 \Declaration
-Procedure OutTextXY (X,Y : Integer; Const TextString : String);
+Procedure OutTextXY (X,Y : smallint; Const TextString : String);
 
 \Description
 \var{OutText} puts \var{TextString} on the screen, at position \var{(X,Y)},
@@ -1335,7 +1335,7 @@ None.
 \end{procedure}
 \begin{procedure}{PieSlice}
 \Declaration
-Procedure PieSlice (X,Y,stangle,endAngle:integer;Radius: Word);
+Procedure PieSlice (X,Y,stangle,endAngle:smallint;Radius: Word);
 
 \Description
 \var{PieSlice}
@@ -1350,7 +1350,7 @@ None.
 \end{procedure}
 \begin{procedure}{PutImage}
 \Declaration
-Procedure PutImage (X,Y: Integer; var Bitmap; BitBlt: Word);
+Procedure PutImage (X,Y: smallint; var Bitmap; BitBlt: Word);
 
 \Description
 \var{PutImage}
@@ -1377,7 +1377,7 @@ None
 \end{procedure}
 \begin{procedure}{PutPixel}
 \Declaration
-Procedure PutPixel (X,Y : Integer; Color : Word);
+Procedure PutPixel (X,Y : smallint; Color : Word);
 
 \Description
 Puts a point at
@@ -1390,7 +1390,7 @@ None.
 \end{procedure}
 \begin{procedure}{Rectangle}
 \Declaration
-Procedure Rectangle (X1,Y1,X2,Y2 : Integer);
+Procedure Rectangle (X1,Y1,X2,Y2 : smallint);
 
 \Description
 Draws a rectangle with
@@ -1403,7 +1403,7 @@ None.
 \end{procedure}
 \begin{function}{RegisterBGIDriver}
 \Declaration
-Function RegisterBGIDriver (Driver : Pointer) : Integer;
+Function RegisterBGIDriver (Driver : Pointer) : smallint;
 
 \Description
 This routine is not supported in FPC. It is here for compatibility and it
@@ -1416,7 +1416,7 @@ None.
 \end{function}
 \begin{function}{RegisterBGIFont}
 \Declaration
-Function RegisterBGIFont (Font : Pointer) : Integer;
+Function RegisterBGIFont (Font : Pointer) : smallint;
 
 \Description
 This routine permits the user to add a font to the list of known fonts
@@ -1460,8 +1460,8 @@ Example:
 uses Graph;
 
 var
- Gd, Gm: Integer;
- Mode: Integer;
+ Gd, Gm: smallint;
+ Mode: smallint;
 begin
  Gd := Detect;
  InitGraph(Gd, Gm, ' ');
@@ -1482,7 +1482,7 @@ end.
 \end{verbatim}
 \begin{procedure}{Sector}
 \Declaration
-Procedure Sector (X,Y : Integer; StAngle,EndAngle,XRadius,YRadius : Word);
+Procedure Sector (X,Y : smallint; StAngle,EndAngle,XRadius,YRadius : Word);
 
 \Description
 \var{Sector}
@@ -1661,7 +1661,7 @@ None.
 \end{procedure}
 \begin{procedure}{SetGraphMode}
 \Declaration
-Procedure SetGraphMode (Mode : Integer);
+Procedure SetGraphMode (Mode : smallint);
 
 \Description
 \var{SetGraphMode} sets the
@@ -1738,7 +1738,7 @@ None.
 \end{procedure}
 \begin{procedure}{SetRGBPalette}
 \Declaration
-Procedure SetRGBPalette (ColorNum,Red,Green,Blue : Integer);
+Procedure SetRGBPalette (ColorNum,Red,Green,Blue : smallint);
 
 \Description
 \var{SetRGBPalette} sets the \var{ColorNum}-th entry in the palette to the
@@ -1838,7 +1838,7 @@ None.
 \end{procedure}
 \begin{procedure}{SetViewPort}
 \Declaration
-Procedure SetViewPort (X1,Y1,X2,Y2 : Integer; Clip : Boolean);
+Procedure SetViewPort (X1,Y1,X2,Y2 : smallint; Clip : Boolean);
 
 \Description
 Sets the current graphical view-port (window) to the rectangle defined by
@@ -1864,7 +1864,7 @@ None
 \end{procedure}
 \begin{procedure}{SetWriteMode}
 \Declaration
-Procedure SetWriteMode (Mode : Integer);
+Procedure SetWriteMode (Mode : smallint);
 
 \Description
 \var{SetWriteMode} controls the drawing of lines on the screen. It controls

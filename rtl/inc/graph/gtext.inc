@@ -43,10 +43,10 @@
       PHeader = ^THeader;
       THeader = packed record
         Signature:  char;     { signature byte                        }
-        Nr_chars:   integer;  { number of characters in file          }
+        Nr_chars:   smallint;  { number of characters in file          }
         Reserved:   byte;
         First_char: byte;     { first character in file               }
-        cdefs :     integer;  { offset to character definitions       }
+        cdefs :     smallint;  { offset to character definitions       }
         scan_flag:  byte;     { TRUE if char is scanable              }
         org_to_cap: shortint;     { Height from origin to top of capitol  }
         org_to_base:shortint;     { Height from origin to baseline        }
@@ -56,7 +56,7 @@
       end;
 
 
-      TOffsetTable =array[0..MaxChars] of Integer;
+      TOffsetTable =array[0..MaxChars] of smallint;
       TWidthTable  =array[0..MaxChars] of byte;
 
       tfontrec = packed record
@@ -74,8 +74,8 @@
       pStroke = ^TStroke;
       TStroke = packed record
         opcode: byte;
-        x: integer;  { relative x offset character }
-        y: integer;  { relative y offset character }
+        x: smallint;  { relative x offset character }
+        y: smallint;  { relative y offset character }
       end;
 
 
@@ -87,7 +87,7 @@
     var
        fonts : array[1..maxfonts] of tfontrec;
        Strokes: TStrokes; {* Stroke Data Base           *}
-       Stroke_count: Array[0..MaxChars] of integer; {* Stroke Count Table *}
+       Stroke_count: Array[0..MaxChars] of smallint; {* Stroke Count Table *}
 
 {***************************************************************************}
 {                         Internal support routines                         }
@@ -103,7 +103,7 @@
       end;
 
 
-    function InstallUserFont(const FontFileName : string) : integer;
+    function InstallUserFont(const FontFileName : string) : smallint;
 
       begin
          _graphresult:=grOk;
@@ -122,7 +122,7 @@
       end;
 
 
-    function Decode(byte1,byte2: char; var x,y: integer): integer;
+    function Decode(byte1,byte2: char; var x,y: smallint): smallint;
     { This routines decoes a signle word in a font opcode section  }
     { to a stroke record.                                          }
       var
@@ -131,7 +131,7 @@
        b1:=shortint(byte1);
        b2:=shortint(byte2);
        { Decode the CHR OPCODE }
-       Decode:=integer(((b1 and $80) shr 6)+((b2 and $80) shr 7));
+       Decode:=smallint(((b1 and $80) shr 6)+((b2 and $80) shr 7));
        { Now get the X,Y coordinates        }
        { bit 0..7 only which are considered }
        { signed values.                     }
@@ -143,23 +143,23 @@
        { sign extend it...                      }
        if (b1 and $40)<>0 then b1:=b1 or $80;
        if (b2 and $40)<>0 then b2:=b2 or $80;
-       x:=integer(b1);
-       y:=integer(b2);
+       x:=smallint(b1);
+       y:=smallint(b2);
 {$ifdef debug}
 {$R+}
 {$endif debug}
      end;
 
 
-    function unpack(buf: pchar; index: integer; var Stroke: TStrokes): integer;
+    function unpack(buf: pchar; index: smallint; var Stroke: TStrokes): smallint;
 
      var
       po: TStrokes;
-      num_ops: integer;
+      num_ops: smallint;
       opcode, i, opc: word;
-      counter: integer;
-      lindex: integer;
-      jx, jy: integer;
+      counter: smallint;
+      lindex: smallint;
+      jx, jy: smallint;
      begin
        num_ops := 0;
        counter := index;
@@ -254,7 +254,7 @@
 {***************************************************************************}
 
 
-    function RegisterBGIfont(font : pointer) : integer;
+    function RegisterBGIfont(font : pointer) : smallint;
 
       var
          hp : pchar;
@@ -283,8 +283,8 @@
                      begin
                         move(FHeader,fonts[b].PHeader,sizeof(FHeader));
                         move(Header,fonts[b].Header,sizeof(Header));
-                        move(hp[i],Fonts[b].Offsets[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(integer));
-                        Inc(i,Fonts[b].Header.Nr_chars*sizeof(integer));
+                        move(hp[i],Fonts[b].Offsets[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(smallint));
+                        Inc(i,Fonts[b].Header.Nr_chars*sizeof(smallint));
                         move(hp[i],Fonts[b].Widths[Fonts[b].Header.First_Char],Fonts[b].Header.Nr_chars*sizeof(byte));
                         Inc(i,Fonts[b].Header.Nr_chars*sizeof(byte));
                         counter:=Fonts[b].PHeader.font_size+PREFIX_SIZE-i;
@@ -330,7 +330,7 @@
       end;
 
     function TextWidth(const TextString : string) : word;
-      var i,x : Integer;
+      var i,x : smallint;
           c   : byte;
       begin
          x := 0;
@@ -353,22 +353,22 @@
       end;
 
 
-    procedure OutTextXY(x,y : integer;const TextString : string);
+    procedure OutTextXY(x,y : smallint;const TextString : string);
 
       type
        Tpoint = record
-         X,Y: Integer;
+         X,Y: smallint;
        end;
       var
          i,j,k,c       : longint;
          xpos,ypos     : longint;
          counter       : longint;
          FontBitmap    : TBitmapChar;
-         cnt1,cnt2     : integer;
-         cnt3,cnt4     : integer;
+         cnt1,cnt2     : smallint;
+         cnt3,cnt4     : smallint;
          charsize      : word;
          WriteMode     : word;
-         CurX, CurY    : integer;
+         CurX, CurY    : smallint;
          oldvalues     : linesettingstype;
          chr           : char;
 
@@ -546,7 +546,7 @@
 
 
     procedure OutText(const TextString : string);
-      var x,y:integer;
+      var x,y:smallint;
       begin
          { Save CP }
          x:=CurrentX;
@@ -681,7 +681,7 @@
               BlockRead(F,fonts[font].Header,Sizeof(THeader));
               Base := FilePos(F);     {* Remember the address of table*}
 
-              BlockRead(F,Fonts[font].Offsets[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(integer));
+              BlockRead(F,Fonts[font].Offsets[Fonts[font].Header.First_Char],Fonts[font].Header.Nr_chars*sizeof(smallint));
 
               {*        Load the character width table into memory.                     *}
 
@@ -731,7 +731,10 @@
 
 {
 $Log$
-Revision 1.8  1999-11-11 22:29:21  florian
+Revision 1.9  1999-12-20 11:22:36  peter
+  * integer -> smallint to overcome -S2 switch needed for ggi version
+
+Revision 1.8  1999/11/11 22:29:21  florian
   * the writing of the default font was wrong when doing scaling:
     the last colunm/row wasn't drawn
 

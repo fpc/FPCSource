@@ -366,7 +366,7 @@ CONST
              Palette.Colors[i].Blue);
       end;
 
-    function GetPaletteSize: integer;
+    function GetPaletteSize: smallint;
      begin
        GetPaletteSize := PaletteSize;
      end;
@@ -382,7 +382,10 @@ CONST
 
 {
 $Log$
-Revision 1.4  1999-07-12 13:27:15  jonas
+Revision 1.5  1999-12-20 11:22:36  peter
+  * integer -> smallint to overcome -S2 switch needed for ggi version
+
+Revision 1.4  1999/07/12 13:27:15  jonas
   + added Log and Id tags
   * added first FPC support, only VGA works to some extend for now
   * use -dasmgraph to use assembler routines, otherwise Pascal

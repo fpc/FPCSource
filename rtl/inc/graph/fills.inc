@@ -50,8 +50,8 @@ type
   too mixed, it is fastest (?). Rather than sorting the active edge table
   this way, it is recommened to implement this using a linked list (not
   nearly as much memory is transfered then) }
-   procedure bsort(p : pointer; number : integer; sizeelem :
-      integer; c : compareproc);
+   procedure bsort(p : pointer; number : smallint; sizeelem :
+      smallint; c : compareproc);
    var    i : graph_int;
            swap : boolean;
        temp : pointer;
@@ -277,9 +277,9 @@ end;
 
 type
   TFloodLine = record
-    x1 : Integer;
-    x2 : Integer;
-    y  : Integer;
+    x1 : smallint;
+    x2 : smallint;
+    y  : smallint;
   end;
 
   TDrawnList  = Array[0..StdBuffersize] of TFloodLine;
@@ -298,7 +298,7 @@ var
   s1, s2, s3 : PWordArray;                { Three buffers for scanlines                 }
 
 
-  Procedure PushPoint (x, y : Integer);
+  Procedure PushPoint (x, y : smallint);
   {********************************************************}
   { Adds a  point to the list of points to check if we     }
   { need to draw. Doesn't add the point if there is a      }
@@ -313,7 +313,7 @@ var
      End
   End;
 
-  Procedure PopPoint (Var x, y : Integer);
+  Procedure PopPoint (Var x, y : smallint);
   {********************************************************}
   { Removes a point from the list of points to check, if   }
   { we try to access an illegal point, then the routine    }
@@ -345,7 +345,7 @@ var
   { drawn to the screen. The line added is on the specified}
   { Y axis, from the x1 to x2 coordinates.                 }
   {********************************************************}
-  Procedure AddLinePoints(x1,x2,y: integer);
+  Procedure AddLinePoints(x1,x2,y: smallint);
    begin
      DrawnList[DrawnIndex].x1 := x1;
      DrawnList[DrawnIndex].x2 := x2;
@@ -365,9 +365,9 @@ var
   { Return TRUE if the point is already in the segment list}
   { to draw, otherwise returns FALSE.                      }
   {********************************************************}
-  Function AlreadyDrawn(x, y: integer): boolean;
+  Function AlreadyDrawn(x, y: smallint): boolean;
    var
-    LocalIndex : integer;
+    LocalIndex : smallint;
    begin
     AlreadyDrawn := FALSE;
     LocalIndex := 0;
@@ -389,7 +389,7 @@ var
    end;
 
 
-  Procedure FloodFill (x, y : Integer; Border: word);
+  Procedure FloodFill (x, y : smallint; Border: word);
   {********************************************************}
   { Procedure FloodFill()                                  }
   {--------------------------------------------------------}
@@ -400,12 +400,12 @@ var
   {********************************************************}
   Var
    stemp: PWordArray;
-   Beginx : Integer;
+   Beginx : smallint;
    d, e : Byte;
    Cont : Boolean;
    BackupColor : Word;
-   x1, x2, prevy: integer;
-   Index : Integer;
+   x1, x2, prevy: smallint;
+   Index : smallint;
   Begin
     { init prevy }
     prevy := 32767;
@@ -509,9 +509,12 @@ var
 
 {
 $Log$
-Revision 1.12  1999-12-11 23:41:38  jonas
+Revision 1.13  1999-12-20 11:22:36  peter
+  * integer -> smallint to overcome -S2 switch needed for ggi version
+
+Revision 1.12  1999/12/11 23:41:38  jonas
   * changed definition of getscanlineproc to "getscanline(x1,x2,y:
-    integer; var data);" so it can be used by getimage too
+    smallint; var data);" so it can be used by getimage too
   * changed getimage so it uses getscanline
   * changed floodfill, getscanline16 and definitions in Linux
     include files so they use this new format

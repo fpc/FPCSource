@@ -59,7 +59,7 @@
    end;
 
 
-   function searchmode(ReqDriver : integer; reqmode: integer): PModeInfo;
+   function searchmode(ReqDriver : smallint; reqmode: smallint): PModeInfo;
   {********************************************************}
   { Procedure SearchMode()                                 }
   {--------------------------------------------------------}
@@ -104,7 +104,7 @@
 {                          External routines                            }
 {-----------------------------------------------------------------------}
 
-   function GetModeName(ModeNumber: integer): string;
+   function GetModeName(ModeNumber: smallint): string;
   {********************************************************}
   { Function GetModeName()                                 }
   {--------------------------------------------------------}
@@ -124,7 +124,7 @@
          _GraphResult := grInvalidMode;
     end;
 
-   function GetGraphMode: Integer;
+   function GetGraphMode: smallint;
      begin
       GetGraphMode := IntCurrentMode;
      end;
@@ -150,10 +150,10 @@
     end;
 
 
-    procedure GetModeRange(GraphDriver: Integer; var LoMode,
-      HiMode: Integer);
+    procedure GetModeRange(GraphDriver: smallint; var LoMode,
+      HiMode: smallint);
       var
-       i : integer;
+       i : smallint;
        mode : PModeInfo;
      begin
        {$ifdef logging}
@@ -187,7 +187,7 @@
      end;
 
 
-  procedure SetGraphMode(mode: Integer);
+  procedure SetGraphMode(mode: smallint);
     var
      modeinfo: PModeInfo;
     begin
@@ -341,7 +341,10 @@
 
 {
 $Log$
-Revision 1.14  1999-12-04 21:20:04  michael
+Revision 1.15  1999-12-20 11:22:36  peter
+  * integer -> smallint to overcome -S2 switch needed for ggi version
+
+Revision 1.14  1999/12/04 21:20:04  michael
 + Additional logging
 
 Revision 1.13  1999/11/28 16:13:55  jonas

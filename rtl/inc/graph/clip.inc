@@ -26,8 +26,8 @@ const
 
 
 
-  function LineClipped(var x1, y1,x2,y2: integer; xmin, ymin,
-      xmax, ymax:integer): boolean;
+  function LineClipped(var x1, y1,x2,y2: smallint; xmin, ymin,
+      xmax, ymax:smallint): boolean;
   {********************************************************}
   { Function LineClipped()                                 }
   {--------------------------------------------------------}
@@ -45,7 +45,7 @@ const
    newx,newy: word;
 
 
-    function outcode(x,y:integer): longint;
+    function outcode(x,y:smallint): longint;
     {********************************************************}
     { Function OutCode()                                     }
     {--------------------------------------------------------}
@@ -142,7 +142,10 @@ end;
 
 {
 $Log$
-Revision 1.6  1999-09-27 12:35:27  jonas
+Revision 1.7  1999-12-20 11:22:35  peter
+  * integer -> smallint to overcome -S2 switch needed for ggi version
+
+Revision 1.6  1999/09/27 12:35:27  jonas
   * execute multiplications before divisions in lineclipped to avoid rounding errors
 
 Revision 1.5  1999/09/18 22:21:09  jonas
