@@ -176,7 +176,7 @@ printer$(PPUEXT) : $(UNIXINC)/printer.pp $(INC)/textrec.inc unix$(PPUEXT) $(SYST
 #
 
 sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.inc) \
-                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) $(OBJPASDIR)/sysconst$(PPUEXT) 
+                    objpas$(PPUEXT) unix$(PPUEXT) errors$(PPUEXT) sysconst$(PPUEXT) 
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 rtlconst$(PPUEXT) : $(OBJPASDIR)/rtlconst.pp
