@@ -22,7 +22,8 @@ procedure fpc_cpuinit;
 begin
   asm
     rfs r0
-    orr r0,r0,#0x1f0000
+    and r0,r0,#0xffe0ffff
+    orr r0,r0,#0x00020000
     wfs r0
   end;
 end;
@@ -122,7 +123,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2004-03-23 21:03:10  florian
+  Revision 1.8  2005-01-04 16:46:38  florian
+    + correct setting of FPU exception mask
+
+  Revision 1.7  2004/03/23 21:03:10  florian
     + assembler implementation of fpc_mul_qword
     * fpu exceptions are now generated
 
