@@ -60,13 +60,11 @@ procedure InitImport;
 implementation
 
 uses
-  systems,verbose
+  systems,verbose,globals
 {$ifdef i386}
-
   ,os2_targ
   ,win_targ
 {$endif}
-
   ;
 
 {****************************************************************************
@@ -96,7 +94,7 @@ end;
 constructor timportlist.init(const n : string);
 begin
   inherited init;
-  dllname:=stringdup(n);
+  dllname:=stringdup(SplitName(n));
   imported_procedures:=new(plinkedlist,init);
 end;
 
@@ -158,7 +156,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  1998-06-04 23:51:43  peter
+  Revision 1.4  1998-09-30 12:16:47  peter
+    * remove extension if one is specified
+
+  Revision 1.3  1998/06/04 23:51:43  peter
     * m68k compiles
     + .def file creation moved to gendef.pas so it could also be used
       for win32
