@@ -1,3 +1,4 @@
+{ %norun }
 { %opt=-Cg }
 
 { Source provided for Free Pascal Bug Report 3402 }
