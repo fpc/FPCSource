@@ -110,8 +110,11 @@ unit pexports;
                         if DefString<>''then
                          DefFile.AddExport(DefString);
 {* End changes}
+                        if srsym^.typ=procsym then
+                          exportlib^.exportprocedure(hp)
+                        else
+                          exportlib^.exportvar(hp);
                      end;
-                   exportlib^.exportprocedure(hp);
                 end
               else
                 consume(ID);
@@ -134,7 +137,13 @@ end.
 
 {
   $Log$
-  Revision 1.4  1998-11-30 09:43:21  pierre
+  Revision 1.5  1998-11-30 13:26:25  pierre
+    * the code for ordering the exported procs/vars was buggy
+    + added -WB to force binding (Ozerski way of creating DLL)
+      this is off by default as direct writing of .edata section seems
+      OK
+
+  Revision 1.4  1998/11/30 09:43:21  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings

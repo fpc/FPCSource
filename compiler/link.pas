@@ -423,7 +423,8 @@ begin
   success:=DoExec(FindLinker,s,true,false);
 {Bind}
 {* Changes made by Ozerski 27.10.1998}
-  if target_link.bindbin[1]<>'' then
+  if (target_link.bindbin[1]<>'') and
+     ((target_info.target<>target_i386_win32) or bind_win32_dll) then
    for ii:=1 to target_link.binders do
    begin
      s:=target_link.bindcmd[ii];
@@ -535,7 +536,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.38  1998-11-30 09:43:13  pierre
+  Revision 1.39  1998-11-30 13:26:23  pierre
+    * the code for ordering the exported procs/vars was buggy
+    + added -WB to force binding (Ozerski way of creating DLL)
+      this is off by default as direct writing of .edata section seems
+      OK
+
+  Revision 1.38  1998/11/30 09:43:13  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
