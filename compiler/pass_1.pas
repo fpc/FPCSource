@@ -3324,7 +3324,7 @@ unit pass_1;
              in_length_string:
                begin
                   p^.resulttype:=u8bitdef;
-                  { String nach Stringkonvertierungen brauchen wir hier nicht }
+                  { wer don't need string conversations here }
                   if (p^.left^.treetype=typeconvn) and
                      (p^.left^.left^.resulttype^.deftype=stringdef) then
                     begin
@@ -3502,7 +3502,7 @@ unit pass_1;
                                  hp:=hp^.right;
                               end;
                          end;
-                       { nochmals alle Parameter bearbeiten }
+                       { pass all parameters again }
                        firstcallparan(p^.left,nil);
                     end;
                end;
@@ -3604,23 +3604,63 @@ unit pass_1;
                   must_be_valid:=true;
                   firstcallparan(p^.left,nil);
                end;
+            in_include_x_y,
+            in_exclude_x_y:
+              begin
+                 p^.resulttype:=voiddef;
+                 if assigned(p^.left) then
+                   begin
+                      firstcallparan(p^.left,nil);
+                      p^.registers32:=p^.left^.registers32;
+                      p^.registersfpu:=p^.left^.registersfpu;
+{$ifdef SUPPORT_MMX}
+                      p^.registersmmx:=p^.left^.registersmmx;
+{$endif SUPPORT_MMX}
+                      { first param must be var }
+                      if (p^.left^.left^.location.loc<>LOC_REFERENCE) and
+                         (p^.left^.left^.location.loc<>LOC_CREGISTER) then
+                        Message(cg_e_illegal_expression);
+                      { check type }
+                      if (p^.left^.resulttype^.deftype=setdef) then
+                        begin
+                           { two paras ? }
+                           if assigned(p^.left^.right) then
+                             begin
+                                { insert a type conversion         }
+                                { to the type of the set elements  }
+                                p^.left^.right^.left:=gentypeconvnode(
+                                  p^.left^.right^.left,
+                                  psetdef(p^.left^.resulttype)^.setof);
+                                { check the type conversion }
+                                firstpass(p^.left^.right^.left);
+                                { only three parameters are allowed }
+                                if assigned(p^.left^.right^.right) then
+                                  Message(cg_e_illegal_expression);
+                             end;
+                        end
+                      else
+                        Message(sym_e_type_mismatch);
+                   end
+                 else
+                   Message(sym_e_type_mismatch);
+              end;
              in_low_x,in_high_x:
                begin
                   if p^.left^.treetype in [typen,loadn] then
                     begin
                        case p^.left^.resulttype^.deftype of
-                  orddef,enumdef:
-                begin
+                          orddef,enumdef:
+                            begin
                                do_lowhigh(p^.left^.resulttype);
                                firstpass(p);
                             end;
-              setdef:
-                        begin
+                          setdef:
+                            begin
                                do_lowhigh(Psetdef(p^.left^.resulttype)^.setof);
                                firstpass(p);
                             end;
                          arraydef:
-                begin
+                            begin
                               if is_open_array(p^.left^.resulttype) then
                                 begin
                                    if p^.inlinenumber=in_low_x then
@@ -4557,7 +4597,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.9  1998-04-13 21:15:42  florian
+  Revision 1.10  1998-04-14 23:27:03  florian
+    + exclude/include with constant second parameter added
+
+  Revision 1.9  1998/04/13 21:15:42  florian
     * error handling of pass_1 and cgi386 fixed
     * the following bugs fixed: 0117, 0118, 0119 and 0129, 0122 was already
       fixed, verified

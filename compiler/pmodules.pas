@@ -78,6 +78,8 @@ unit pmodules;
          p^.insert(new(psyssym,init('ORD',in_ord_x)));
          p^.insert(new(psyssym,init('PRED',in_pred_x)));
          p^.insert(new(psyssym,init('SUCC',in_succ_x)));
+         p^.insert(new(psyssym,init('EXCLUDE',in_exclude_x_y)));
+         p^.insert(new(psyssym,init('INCLUDE',in_include_x_y)));
 
          { for testing purpose }
          p^.insert(new(psyssym,init('DECI',in_dec_x)));
@@ -934,7 +936,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-10 14:41:43  peter
+  Revision 1.5  1998-04-14 23:27:03  florian
+    + exclude/include with constant second parameter added
+
+  Revision 1.4  1998/04/10 14:41:43  peter
     * removed some Hints
     * small speed optimization for AsmLn
 

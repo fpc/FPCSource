@@ -51,10 +51,15 @@ const
    in_settextbuf_file_x = 34;
    in_inc_x = 35;
    in_dec_x = 36;
+   in_include_x_y = 37;
+   in_exclude_x_y = 38;
 
 {
   $Log$
-  Revision 1.2  1998-04-08 16:58:02  pierre
+  Revision 1.3  1998-04-14 23:27:03  florian
+    + exclude/include with constant second parameter added
+
+  Revision 1.2  1998/04/08 16:58:02  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

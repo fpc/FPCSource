@@ -3748,6 +3748,7 @@ implementation
 
       var
          r : preference;
+         l : longint;
 
       begin
          case p^.inlinenumber of
@@ -3978,6 +3979,42 @@ implementation
               begin
                  handle_str;
                  maybe_loadesi;
+              end;
+            in_include_x_y,
+            in_exclude_x_y:
+              begin
+                 secondpass(p^.left^.left);
+                 if p^.left^.right^.left^.treetype=ordconstn then
+                   begin
+                      { calculate bit position }
+                      l:=1 shl (p^.left^.right^.left^.value mod 32);
+
+                      { determine operator }
+                      if p^.inlinenumber=in_include_x_y then
+                        asmop:=A_OR
+                      else
+                        begin
+                           asmop:=A_AND;
+                           l:=not(l);
+                        end;
+                      if (p^.left^.left^.location.loc=LOC_REFERENCE) then
+                        begin
+                           inc(p^.left^.left^.location.reference.offset,(p^.left^.right^.left^.value div 32)*4);
+                           exprasmlist^.concat(new(pai386,op_const_ref(asmop,S_L,
+                             l,newreference(p^.left^.left^.location.reference))));
+                           del_reference(p^.left^.left^.location.reference);
+                        end
+                      else
+                        exprasmlist^.concat(new(pai386,op_const_reg(asmop,S_L,
+                          l,p^.left^.left^.location.register)));
+                   end
+                 else
+                   if psetdef(p^.left^.resulttype)^.settype=smallset then
+                     begin
+                     end
+                   else
+                     begin
+                     end;
               end;
             else internalerror(9);
          end;
@@ -5807,7 +5844,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.12  1998-04-13 21:15:41  florian
+  Revision 1.13  1998-04-14 23:27:02  florian
+    + exclude/include with constant second parameter added
+
+  Revision 1.12  1998/04/13 21:15:41  florian
     * error handling of pass_1 and cgi386 fixed
     * the following bugs fixed: 0117, 0118, 0119 and 0129, 0122 was already
       fixed, verified

@@ -361,6 +361,21 @@ unit pexpr;
                                  statement_syssym := p1;
                                  pd:=voiddef;
                               end;
+            in_include_x_y,
+            in_exclude_x_y:
+              begin
+                 consume(LKLAMMER);
+                 in_args:=true;
+                 p1:=expr;
+                 Must_be_valid:=false;
+                 consume(COMMA);
+                 p2:=expr;
+                 { just a bit lisp feeling }
+                 statement_syssym:=geninlinenode(l,
+                   gencallparanode(p1,gencallparanode(p2,nil)));
+                 consume(RKLAMMER);
+                 pd:=voiddef;
+              end;
             {in_val_x :        begin
                                  consume(LKLAMMER);
                                  paras:=parse_paras(false);
@@ -1625,7 +1640,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.7  1998-04-09 23:02:15  florian
+  Revision 1.8  1998-04-14 23:27:03  florian
+    + exclude/include with constant second parameter added
+
+  Revision 1.7  1998/04/09 23:02:15  florian
     * small problems solved to get remake3 work
 
   Revision 1.6  1998/04/09 22:16:35  florian
