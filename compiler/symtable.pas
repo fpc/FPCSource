@@ -986,8 +986,7 @@ implementation
         if addsym then
           insert(sym);
         { this symbol can't be loaded to a register }
-        exclude(tvarsym(sym).varoptions,vo_regable);
-        exclude(tvarsym(sym).varoptions,vo_fpuregable);
+        tvarsym(sym).varregable:=vr_none;
         { Calculate field offset }
         l:=tvarsym(sym).getvaluesize;
         vardef:=tvarsym(sym).vartype.def;
@@ -2315,7 +2314,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.155  2004-08-17 16:29:21  jonas
+  Revision 1.156  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.155  2004/08/17 16:29:21  jonas
     + padalgingment field for recordsymtables (saved by recorddefs)
     + support for Macintosh PowerPC alignment (if the first field of a record
       or union has an alignment > 4, then the record or union size must be

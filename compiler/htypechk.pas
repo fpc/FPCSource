@@ -636,7 +636,7 @@ implementation
               make_not_regable(ttypeconvnode(p).left);
             loadn :
               if tloadnode(p).symtableentry.typ=varsym then
-                tvarsym(tloadnode(p).symtableentry).varoptions:=tvarsym(tloadnode(p).symtableentry).varoptions-[vo_regable,vo_fpuregable];
+                tvarsym(tloadnode(p).symtableentry).varregable:=vr_none;
          end;
       end;
 
@@ -1922,7 +1922,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2004-09-27 15:15:52  peter
+  Revision 1.99  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.98  2004/09/27 15:15:52  peter
     * register loopvarsym for fields instead of record variable
     * don't allow class fields as loop var
 

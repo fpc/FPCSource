@@ -110,7 +110,6 @@ implementation
            { Generate result variable accessing function result }
            vs:=tvarsym.create('$result',vs_var,pd.rettype);
            include(vs.varoptions,vo_is_funcret);
-           include(vs.varoptions,vo_regable);
            pd.parast.insert(vs);
            { For left to right add it at the end to be delphi compatible }
            if pd.proccalloption in pushleftright_pocalls then
@@ -206,7 +205,6 @@ implementation
                   end;
                 vs:=tvarsym.create('$self',vsp,tt);
                 include(vs.varoptions,vo_is_self);
-                include(vs.varoptions,vo_regable);
                 { Insert as hidden parameter }
                 pd.parast.insert(vs);
                 pd.insertpara(vs.vartype,vs,nil,true);
@@ -240,10 +238,6 @@ implementation
             begin
               vs:=tvarsym.create('$result',vs_value,pd.rettype);
               include(vs.varoptions,vo_is_funcret);
-              if tstoreddef(pd.rettype.def).is_intregable then
-                include(vs.varoptions,vo_regable);
-              if tstoreddef(pd.rettype.def).is_fpuregable then
-                include(vs.varoptions,vo_fpuregable);
               pd.localst.insert(vs);
               pd.funcretsym:=vs;
             end;
@@ -534,7 +528,7 @@ implementation
               begin
                 if (varspez in [vs_var,vs_const,vs_out]) and
                    paramanager.push_addr_param(varspez,tt.def,pd.proccalloption) then
-                  include(vs.varoptions,vo_regable);
+                  vs.varregable:=vr_intreg;
               end;
              pd.concatpara(nil,tt,vs,defaultvalue,false);
 
@@ -2266,7 +2260,10 @@ const
 end.
 {
   $Log$
-  Revision 1.190  2004-08-29 11:28:41  peter
+  Revision 1.191  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.190  2004/08/29 11:28:41  peter
   fixed crash with error in default value
   allow assembler directive in interface
 

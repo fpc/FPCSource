@@ -349,7 +349,7 @@ implementation
                 if (cs_regvars in aktglobalswitches) and
                    (symtable.symtabletype in [localsymtable]) and
                    not(pi_has_assembler_block in current_procinfo.flags) and
-                   (vo_regable in tvarsym(symtableentry).varoptions) then
+                   (tvarsym(symtableentry).varregable<>vr_none) then
                   expectloc:=LOC_CREGISTER
                 else
                   if (tvarsym(symtableentry).varspez=vs_const) then
@@ -1145,7 +1145,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.130  2004-10-06 19:26:50  jonas
+  Revision 1.131  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.130  2004/10/06 19:26:50  jonas
     * regvar fixes from Peter
 
   Revision 1.129  2004/09/26 17:45:30  peter

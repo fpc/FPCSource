@@ -1920,7 +1920,7 @@ type
 {$endif ndef VER1_0}
           begin
             if (cs_regvars in aktglobalswitches) and
-               (([vo_regable{$ifndef x86},vo_fpuregable{$endif}] * tvarsym(p).varoptions) <> []) and
+               (tvarsym(p).varregable<>vr_none) and
                (not tvarsym(p).vartype.def.needs_inittable) then
               tempnode := ctempcreatenode.create_reg(tvarsym(p).vartype,tvarsym(p).vartype.def.size,tt_persistent)
             else
@@ -1974,7 +1974,7 @@ type
                      (node_complexity(para.left) >= NODE_COMPLEXITY_INF))) then
                   begin
                     if (cs_regvars in aktglobalswitches) and
-                       (([vo_regable,vo_fpuregable] * tvarsym(para.paraitem.parasym).varoptions) <> []) and
+                       (tvarsym(para.paraitem.parasym).varregable<>vr_none) and
                        (not tvarsym(para.paraitem.parasym).vartype.def.needs_inittable) then
                       tempnode := ctempcreatenode.create_reg(para.left.resulttype,para.left.resulttype.def.size,tt_persistent)
                     else
@@ -2386,7 +2386,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.248  2004-09-21 17:25:12  peter
+  Revision 1.249  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.248  2004/09/21 17:25:12  peter
     * paraloc branch merged
 
   Revision 1.247  2004/09/13 20:29:00  peter

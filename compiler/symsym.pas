@@ -149,6 +149,7 @@ interface
           defaultconstsym : tsym;
           varoptions    : tvaroptions;
           varspez       : tvarspez;  { sets the type of access }
+          varregable    : tvarregable;
           varstate      : tvarstate;
           localloc      : TLocation; { register/reference for local var }
           fieldoffset   : longint;   { offset in record/object }
@@ -1229,16 +1230,19 @@ implementation
 
     procedure tabsolutesym.ppuwrite(ppufile:tcompilerppufile);
       var
-        hvo : tvaroptions;
+        oldintfcrc : boolean;
       begin
          { Note: This needs to write everything of tvarsym.write }
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
+         oldintfcrc:=ppufile.do_interface_crc;
+         ppufile.do_interface_crc:=false;
+         ppufile.putbyte(byte(varregable));
+         ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putlongint(fieldoffset);
          { write only definition or definitionsym }
          ppufile.puttype(vartype);
-         hvo:=varoptions-[vo_regable,vo_fpuregable];
-         ppufile.putsmallset(hvo);
+         ppufile.putsmallset(varoptions);
          ppufile.putbyte(byte(abstyp));
          case abstyp of
            tovar :
@@ -1345,6 +1349,7 @@ implementation
          refs := 0;
          varstate:=vs_used;
          varspez:=tvarspez(ppufile.getbyte);
+         varregable:=tvarregable(ppufile.getbyte);
          fieldoffset:=ppufile.getlongint;
          defaultconstsym:=nil;
          ppufile.gettype(_vartype);
@@ -1375,9 +1380,15 @@ implementation
 
 
     procedure tvarsym.ppuwrite(ppufile:tcompilerppufile);
+      var
+        oldintfcrc : boolean;
       begin
          inherited writesym(ppufile);
          ppufile.putbyte(byte(varspez));
+         oldintfcrc:=ppufile.do_interface_crc;
+         ppufile.do_interface_crc:=false;
+         ppufile.putbyte(byte(varregable));
+         ppufile.do_interface_crc:=oldintfcrc;
          ppufile.putlongint(fieldoffset);
          ppufile.puttype(vartype);
          ppufile.putsmallset(varoptions);
@@ -1619,14 +1630,10 @@ implementation
            (owner.symtabletype in [localsymtable,parasymtable]) then
           begin
             if tstoreddef(vartype.def).is_intregable then
-              include(varoptions,vo_regable)
+              varregable:=vr_intreg
             else
-              exclude(varoptions,vo_regable);
-
-            if tstoreddef(vartype.def).is_fpuregable then
-              include(varoptions,vo_fpuregable)
-            else
-              exclude(varoptions,vo_fpuregable);
+              if tstoreddef(vartype.def).is_fpuregable then
+                varregable:=vr_fpureg;
           end;
       end;
 
@@ -2211,7 +2218,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.179  2004-10-06 19:26:50  jonas
+  Revision 1.180  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.179  2004/10/06 19:26:50  jonas
     * regvar fixes from Peter
 
   Revision 1.178  2004/10/01 15:22:22  peter

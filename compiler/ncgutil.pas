@@ -1723,7 +1723,7 @@ implementation
                     if (cs_regvars in aktglobalswitches) and
                        not(pi_has_assembler_block in current_procinfo.flags) and
                        not(pi_uses_exceptions in current_procinfo.flags) and
-                       (vo_regable in varoptions) then
+                       (varregable<>vr_none) then
                       begin
                         localloc.loc:=LOC_CREGISTER;
                         localloc.size:=def_cgsize(vartype.def);
@@ -2094,7 +2094,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.219  2004-09-27 15:14:08  peter
+  Revision 1.220  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.219  2004/09/27 15:14:08  peter
     * fix compile for oldregvars
 
   Revision 1.218  2004/09/26 17:45:30  peter

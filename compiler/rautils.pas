@@ -908,8 +908,7 @@ Begin
                      symtable_has_varsyms(current_procinfo.procdef.localst) then
                     message1(asmr_e_local_para_unreachable,s);
                   { variable can't be placed in a register anymore }
-                  exclude(tvarsym(sym).varoptions,vo_regable);
-                  exclude(tvarsym(sym).varoptions,vo_fpuregable);
+                  tvarsym(sym).varregable:=vr_none;
                   opr.localsym:=tvarsym(sym);
                   opr.localsymofs:=0;
                   opr.localindexreg:=indexreg;
@@ -1669,7 +1668,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.89  2004-09-27 15:14:34  peter
+  Revision 1.90  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.89  2004/09/27 15:14:34  peter
     * reference local varsyms can't be regvar
 
   Revision 1.88  2004/06/20 08:55:30  florian

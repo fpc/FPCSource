@@ -277,12 +277,10 @@ type
 
   { options for variables }
   tvaroption=(vo_none,
-    vo_regable,
     vo_is_C_var,
     vo_is_external,
     vo_is_dll_var,
     vo_is_thread_var,
-    vo_fpuregable,
     vo_has_local_copy,
     vo_is_const,  { variable is declared as const (parameter) and can't be written to }
     vo_is_exported,
@@ -291,11 +289,17 @@ type
     vo_is_self,
     vo_is_vmt,
     vo_is_result,  { special result variable }
-    vo_is_reg_para, { register parameter, no space allocation in parast, but in localst }
     vo_is_parentfp,
     vo_is_loop_counter { used to detect assignments to loop counter }
   );
   tvaroptions=set of tvaroption;
+
+  { register variable }
+  tvarregable=(vr_none,
+    vr_intreg,
+    vr_fpureg,
+    vr_mmreg
+  );
 
   { types of the symtables }
   tsymtabletype = (abstractsymtable,
@@ -411,7 +415,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.88  2004-09-13 20:30:22  peter
+  Revision 1.89  2004-10-08 17:09:43  peter
+    * tvarsym.varregable added, split vo_regable from varoptions
+
+  Revision 1.88  2004/09/13 20:30:22  peter
     * vo_is_loop_counter added
 
   Revision 1.87  2004/08/25 15:57:04  peter
