@@ -872,7 +872,7 @@ end ['R3'];
 function get_caller_frame(framebp:pointer):pointer;assembler;
 asm
     {$warning FIX ME!}
-    mr	r3,r1
+    mr  r3,r1
    //     !!!!!!! depends on ABI !!!!!!!!
 end ['R3'];
 
@@ -950,7 +950,10 @@ end ['R3','R10'];
 
 {
   $Log$
-  Revision 1.32  2003-04-23 21:04:48  florian
+  Revision 1.33  2003-04-26 11:55:52  florian
+    * fixed newlines
+
+  Revision 1.32  2003/04/23 21:04:48  florian
     * fixed fpc_shortstr_to_shortstr
 
   Revision 1.31  2003/03/17 14:30:11  peter
