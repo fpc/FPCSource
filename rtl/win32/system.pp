@@ -553,174 +553,175 @@ function is_prefetch(p : pointer) : boolean;
 }
 
 const
-        SEVERITY_SUCCESS                = $00000000;
-        SEVERITY_INFORMATIONAL  = $40000000;
-        SEVERITY_WARNING                = $80000000;
-        SEVERITY_ERROR                  = $C0000000;
+  SEVERITY_SUCCESS                = $00000000;
+  SEVERITY_INFORMATIONAL  = $40000000;
+  SEVERITY_WARNING                = $80000000;
+  SEVERITY_ERROR                  = $C0000000;
 
 const
-        STATUS_SEGMENT_NOTIFICATION             = $40000005;
-        DBG_TERMINATE_THREAD                    = $40010003;
-        DBG_TERMINATE_PROCESS                   = $40010004;
-        DBG_CONTROL_C                                   = $40010005;
-        DBG_CONTROL_BREAK                               = $40010008;
+  STATUS_SEGMENT_NOTIFICATION             = $40000005;
+  DBG_TERMINATE_THREAD                    = $40010003;
+  DBG_TERMINATE_PROCESS                   = $40010004;
+  DBG_CONTROL_C                                   = $40010005;
+  DBG_CONTROL_BREAK                               = $40010008;
 
-        STATUS_GUARD_PAGE_VIOLATION             = $80000001;
-        STATUS_DATATYPE_MISALIGNMENT    = $80000002;
-        STATUS_BREAKPOINT                               = $80000003;
-        STATUS_SINGLE_STEP                              = $80000004;
-        DBG_EXCEPTION_NOT_HANDLED               = $80010001;
+  STATUS_GUARD_PAGE_VIOLATION             = $80000001;
+  STATUS_DATATYPE_MISALIGNMENT    = $80000002;
+  STATUS_BREAKPOINT                               = $80000003;
+  STATUS_SINGLE_STEP                              = $80000004;
+  DBG_EXCEPTION_NOT_HANDLED               = $80010001;
 
-        STATUS_ACCESS_VIOLATION                 = $C0000005;
-        STATUS_IN_PAGE_ERROR                    = $C0000006;
-        STATUS_INVALID_HANDLE                   = $C0000008;
-        STATUS_NO_MEMORY                                = $C0000017;
-        STATUS_ILLEGAL_INSTRUCTION              = $C000001D;
-        STATUS_NONCONTINUABLE_EXCEPTION = $C0000025;
-        STATUS_INVALID_DISPOSITION              = $C0000026;
-        STATUS_ARRAY_BOUNDS_EXCEEDED    = $C000008C;
-        STATUS_FLOAT_DENORMAL_OPERAND   = $C000008D;
-        STATUS_FLOAT_DIVIDE_BY_ZERO             = $C000008E;
-        STATUS_FLOAT_INEXACT_RESULT             = $C000008F;
-        STATUS_FLOAT_INVALID_OPERATION  = $C0000090;
-        STATUS_FLOAT_OVERFLOW                   = $C0000091;
-        STATUS_FLOAT_STACK_CHECK                = $C0000092;
-        STATUS_FLOAT_UNDERFLOW                  = $C0000093;
-        STATUS_INTEGER_DIVIDE_BY_ZERO   = $C0000094;
-        STATUS_INTEGER_OVERFLOW                 = $C0000095;
-        STATUS_PRIVILEGED_INSTRUCTION   = $C0000096;
-        STATUS_STACK_OVERFLOW                   = $C00000FD;
-        STATUS_CONTROL_C_EXIT                   = $C000013A;
-        STATUS_FLOAT_MULTIPLE_FAULTS    = $C00002B4;
-        STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
-        STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
+  STATUS_ACCESS_VIOLATION                 = $C0000005;
+  STATUS_IN_PAGE_ERROR                    = $C0000006;
+  STATUS_INVALID_HANDLE                   = $C0000008;
+  STATUS_NO_MEMORY                                = $C0000017;
+  STATUS_ILLEGAL_INSTRUCTION              = $C000001D;
+  STATUS_NONCONTINUABLE_EXCEPTION = $C0000025;
+  STATUS_INVALID_DISPOSITION              = $C0000026;
+  STATUS_ARRAY_BOUNDS_EXCEEDED    = $C000008C;
+  STATUS_FLOAT_DENORMAL_OPERAND   = $C000008D;
+  STATUS_FLOAT_DIVIDE_BY_ZERO             = $C000008E;
+  STATUS_FLOAT_INEXACT_RESULT             = $C000008F;
+  STATUS_FLOAT_INVALID_OPERATION  = $C0000090;
+  STATUS_FLOAT_OVERFLOW                   = $C0000091;
+  STATUS_FLOAT_STACK_CHECK                = $C0000092;
+  STATUS_FLOAT_UNDERFLOW                  = $C0000093;
+  STATUS_INTEGER_DIVIDE_BY_ZERO   = $C0000094;
+  STATUS_INTEGER_OVERFLOW                 = $C0000095;
+  STATUS_PRIVILEGED_INSTRUCTION   = $C0000096;
+  STATUS_STACK_OVERFLOW                   = $C00000FD;
+  STATUS_CONTROL_C_EXIT                   = $C000013A;
+  STATUS_FLOAT_MULTIPLE_FAULTS    = $C00002B4;
+  STATUS_FLOAT_MULTIPLE_TRAPS             = $C00002B5;
+  STATUS_REG_NAT_CONSUMPTION              = $C00002C9;
 
-        EXCEPTION_EXECUTE_HANDLER               = 1;
-        EXCEPTION_CONTINUE_EXECUTION    = -1;
-        EXCEPTION_CONTINUE_SEARCH               = 0;
+  EXCEPTION_EXECUTE_HANDLER               = 1;
+  EXCEPTION_CONTINUE_EXECUTION    = -1;
+  EXCEPTION_CONTINUE_SEARCH               = 0;
 
-        EXCEPTION_MAXIMUM_PARAMETERS    = 15;
+  EXCEPTION_MAXIMUM_PARAMETERS    = 15;
 
-        CONTEXT_X86                                     = $00010000;
-        CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
-        CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;
-        CONTEXT_SEGMENTS                        = CONTEXT_X86 or $00000004;
-        CONTEXT_FLOATING_POINT          = CONTEXT_X86 or $00000008;
-        CONTEXT_DEBUG_REGISTERS         = CONTEXT_X86 or $00000010;
-        CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
+  CONTEXT_X86                                     = $00010000;
+  CONTEXT_CONTROL                         = CONTEXT_X86 or $00000001;
+  CONTEXT_INTEGER                         = CONTEXT_X86 or $00000002;
+  CONTEXT_SEGMENTS                        = CONTEXT_X86 or $00000004;
+  CONTEXT_FLOATING_POINT          = CONTEXT_X86 or $00000008;
+  CONTEXT_DEBUG_REGISTERS         = CONTEXT_X86 or $00000010;
+  CONTEXT_EXTENDED_REGISTERS      = CONTEXT_X86 or $00000020;
 
-        CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
+  CONTEXT_FULL                            = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_SEGMENTS;
 
-        MAXIMUM_SUPPORTED_EXTENSION     = 512;
-
-type
-        PFloatingSaveArea = ^TFloatingSaveArea;
-        TFloatingSaveArea = packed record
-                ControlWord : Cardinal;
-                StatusWord : Cardinal;
-                TagWord : Cardinal;
-                ErrorOffset : Cardinal;
-                ErrorSelector : Cardinal;
-                DataOffset : Cardinal;
-                DataSelector : Cardinal;
-                RegisterArea : array[0..79] of Byte;
-                Cr0NpxState : Cardinal;
-        end;
-
-        PContext = ^TContext;
-        TContext = packed record
-            //
-            // The flags values within this flag control the contents of
-            // a CONTEXT record.
-            //
-                ContextFlags : Cardinal;
-
-            //
-            // This section is specified/returned if CONTEXT_DEBUG_REGISTERS is
-            // set in ContextFlags.  Note that CONTEXT_DEBUG_REGISTERS is NOT
-            // included in CONTEXT_FULL.
-            //
-                Dr0, Dr1, Dr2,
-                Dr3, Dr6, Dr7 : Cardinal;
-
-            //
-            // This section is specified/returned if the
-            // ContextFlags word contains the flag CONTEXT_FLOATING_POINT.
-            //
-                FloatSave : TFloatingSaveArea;
-
-            //
-            // This section is specified/returned if the
-            // ContextFlags word contains the flag CONTEXT_SEGMENTS.
-            //
-                SegGs, SegFs,
-                SegEs, SegDs : Cardinal;
-
-            //
-            // This section is specified/returned if the
-            // ContextFlags word contains the flag CONTEXT_INTEGER.
-            //
-                Edi, Esi, Ebx,
-                Edx, Ecx, Eax : Cardinal;
-
-            //
-            // This section is specified/returned if the
-            // ContextFlags word contains the flag CONTEXT_CONTROL.
-            //
-                Ebp : Cardinal;
-                Eip : Cardinal;
-                SegCs : Cardinal;
-                EFlags, Esp, SegSs : Cardinal;
-
-            //
-            // This section is specified/returned if the ContextFlags word
-            // contains the flag CONTEXT_EXTENDED_REGISTERS.
-            // The format and contexts are processor specific
-            //
-                ExtendedRegisters : array[0..MAXIMUM_SUPPORTED_EXTENSION-1] of Byte;
-        end;
+  MAXIMUM_SUPPORTED_EXTENSION     = 512;
 
 type
-        PExceptionRecord = ^TExceptionRecord;
-        TExceptionRecord = packed record
-                ExceptionCode   : Longint;
-                ExceptionFlags  : Longint;
-                ExceptionRecord : PExceptionRecord;
-                ExceptionAddress : Pointer;
-                NumberParameters : Longint;
-                ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
-        end;
+  PFloatingSaveArea = ^TFloatingSaveArea;
+  TFloatingSaveArea = packed record
+          ControlWord : Cardinal;
+          StatusWord : Cardinal;
+          TagWord : Cardinal;
+          ErrorOffset : Cardinal;
+          ErrorSelector : Cardinal;
+          DataOffset : Cardinal;
+          DataSelector : Cardinal;
+          RegisterArea : array[0..79] of Byte;
+          Cr0NpxState : Cardinal;
+  end;
 
-        PExceptionPointers = ^TExceptionPointers;
-        TExceptionPointers = packed record
-                ExceptionRecord   : PExceptionRecord;
-                ContextRecord     : PContext;
-        end;
+  PContext = ^TContext;
+  TContext = packed record
+      //
+      // The flags values within this flag control the contents of
+      // a CONTEXT record.
+      //
+          ContextFlags : Cardinal;
 
-     { type of functions that should be used for exception handling }
-        TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
+      //
+      // This section is specified/returned if CONTEXT_DEBUG_REGISTERS is
+      // set in ContextFlags.  Note that CONTEXT_DEBUG_REGISTERS is NOT
+      // included in CONTEXT_FULL.
+      //
+          Dr0, Dr1, Dr2,
+          Dr3, Dr6, Dr7 : Cardinal;
+
+      //
+      // This section is specified/returned if the
+      // ContextFlags word contains the flag CONTEXT_FLOATING_POINT.
+      //
+          FloatSave : TFloatingSaveArea;
+
+      //
+      // This section is specified/returned if the
+      // ContextFlags word contains the flag CONTEXT_SEGMENTS.
+      //
+          SegGs, SegFs,
+          SegEs, SegDs : Cardinal;
+
+      //
+      // This section is specified/returned if the
+      // ContextFlags word contains the flag CONTEXT_INTEGER.
+      //
+          Edi, Esi, Ebx,
+          Edx, Ecx, Eax : Cardinal;
+
+      //
+      // This section is specified/returned if the
+      // ContextFlags word contains the flag CONTEXT_CONTROL.
+      //
+          Ebp : Cardinal;
+          Eip : Cardinal;
+          SegCs : Cardinal;
+          EFlags, Esp, SegSs : Cardinal;
+
+      //
+      // This section is specified/returned if the ContextFlags word
+      // contains the flag CONTEXT_EXTENDED_REGISTERS.
+      // The format and contexts are processor specific
+      //
+          ExtendedRegisters : array[0..MAXIMUM_SUPPORTED_EXTENSION-1] of Byte;
+  end;
+
+type
+  PExceptionRecord = ^TExceptionRecord;
+  TExceptionRecord = packed record
+          ExceptionCode   : Longint;
+          ExceptionFlags  : Longint;
+          ExceptionRecord : PExceptionRecord;
+          ExceptionAddress : Pointer;
+          NumberParameters : Longint;
+          ExceptionInformation : array[0..EXCEPTION_MAXIMUM_PARAMETERS-1] of Pointer;
+  end;
+
+  PExceptionPointers = ^TExceptionPointers;
+  TExceptionPointers = packed record
+          ExceptionRecord   : PExceptionRecord;
+          ContextRecord     : PContext;
+  end;
+
+{ type of functions that should be used for exception handling }
+  TTopLevelExceptionFilter = function (excep : PExceptionPointers) : Longint;stdcall;
 
 function SetUnhandledExceptionFilter(lpTopLevelExceptionFilter : TTopLevelExceptionFilter) : TTopLevelExceptionFilter;
         stdcall;external 'kernel32' name 'SetUnhandledExceptionFilter';
 
 const
-        MaxExceptionLevel = 16;
-        exceptLevel : Byte = 0;
+  MaxExceptionLevel = 16;
+  exceptLevel : Byte = 0;
 
 var
-        exceptEip       : array[0..MaxExceptionLevel-1] of Longint;
-        exceptError     : array[0..MaxExceptionLevel-1] of Byte;
-        resetFPU        : array[0..MaxExceptionLevel-1] of Boolean;
+  exceptEip       : array[0..MaxExceptionLevel-1] of Longint;
+  exceptError     : array[0..MaxExceptionLevel-1] of Byte;
+  resetFPU        : array[0..MaxExceptionLevel-1] of Boolean;
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
 procedure DebugHandleErrorAddrFrame(error, addr, frame : longint);
 begin
-        if IsConsole then begin
-                write(stderr,'HandleErrorAddrFrame(error=',error);
-                write(stderr,',addr=',hexstr(addr,8));
-                writeln(stderr,',frame=',hexstr(frame,8),')');
-        end;
-        HandleErrorAddrFrame(error,addr,frame);
+  if IsConsole then 
+    begin
+      write(stderr,'HandleErrorAddrFrame(error=',error);
+      write(stderr,',addr=',hexstr(addr,8));
+      writeln(stderr,',frame=',hexstr(frame,8),')');
+    end;
+  HandleErrorAddrFrame(error,addr,frame);
 end;
 {$endif SYSTEMEXCEPTIONDEBUG}
 
@@ -915,7 +916,7 @@ end;
 
 function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharUpperBuffW';
 function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD; stdcall; external 'user32' name 'CharLowerBuffW';
-
+  
 
 function Win32WideUpper(const s : WideString) : WideString;
   begin
@@ -933,8 +934,10 @@ function Win32WideLower(const s : WideString) : WideString;
     if length(result)>0 then
       CharLowerBuff(LPWSTR(result),length(result));
   end;
+  
 
-
+{ there is a similiar procedure in sysutils which inits the fields which
+  are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
   begin
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
@@ -1099,7 +1102,10 @@ end.
 
 {
   $Log$
-  Revision 1.69  2005-02-26 10:21:17  florian
+  Revision 1.70  2005-02-26 20:43:52  florian
+    + WideCompareString and WideCompareText for win32 implemented
+
+  Revision 1.69  2005/02/26 10:21:17  florian
     + implemented WideFormat
     + some Widestring stuff implemented
     * some Widestring stuff fixed

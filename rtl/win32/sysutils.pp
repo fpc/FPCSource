@@ -990,13 +990,46 @@ begin
   SetLength(SysConfigDir, GetWindowsDirectory(PChar(SysConfigDir), MAX_PATH));
 end;
 
+{****************************************************************************
+                    Target Dependent WideString stuff
+****************************************************************************}
+
+function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
+  begin
+    SetLastError(0);
+    Result:=CompareStringW(LOCALE_USER_DEFAULT,0,pwidechar(s1),
+      length(s1),pwidechar(s2),length(s2))-2;
+    if GetLastError<>0 then
+      RaiseLastOSError;
+  end;
+  
+  
+function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
+  begin
+    SetLastError(0);
+    Result:=CompareStringW(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pwidechar(s1),
+      length(s1),pwidechar(s2),length(s2))-2;
+    if GetLastError<>0 then
+      RaiseLastOSError;
+  end;
+  
+  
+{ there is a similiar procedure in the system unit which inits the fields which
+  are relevant already for the system unit }
+procedure InitWin32Widestrings;
+  begin
+    widestringmanager.CompareWideStringProc:=@Win32CompareWideString;
+    widestringmanager.CompareTextWideStringProc:=@Win32CompareTextWideString;
+  end;
+
 
 Initialization
+  InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
-  InitInternational;    { Initialize internationalization settings }
+  InitInternational;    { Initialize internationalization settings }  
   LoadVersionInfo;
   InitSysConfigDir;
-
+  
 Finalization
   DoneExceptions;
   if kernel32dll<>0 then
@@ -1006,7 +1039,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.41  2005-02-26 14:38:14  florian
+  Revision 1.42  2005-02-26 20:43:52  florian
+    + WideCompareString and WideCompareText for win32 implemented
+
+  Revision 1.41  2005/02/26 14:38:14  florian
     + SysLocale
 
   Revision 1.40  2005/02/14 17:13:32  peter
