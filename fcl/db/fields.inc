@@ -323,7 +323,7 @@ begin
     begin
     Result:=Assigned(DataSet);
     If Result then
-      Result:=Not(DataSet.CanModify);
+      Result:= DataSet.CanModify;
     end;
 end;
 
@@ -1776,7 +1776,10 @@ end;
 
 {
   $Log$
-  Revision 1.7  2002-09-07 15:15:23  peter
+  Revision 1.8  2003-09-14 13:22:14  michael
+  + Fixed error in TField.GetCanModify reported by Andrew Johnson
+
+  Revision 1.7  2002/09/07 15:15:23  peter
     * old logs removed and tabs fixed
 
 }
