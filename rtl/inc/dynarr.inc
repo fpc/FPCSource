@@ -81,14 +81,26 @@ procedure dynarray_decr_ref(var p : pointer;ti : pdynarraytypeinfo);[Public,Alia
      if realp^.refcount=0 then
        HandleErrorFrame(204,get_frame);
 
-     { this isn't MT safe! }
      { decr. ref. count }
-     declocked(realp^.refcount);
-
      { should we remove the array? }
-     if realp^.refcount=0 then
+     if declocked(realp^.refcount) then
        dynarray_clear(realp,ti);
      p:=nil;
+  end;
+
+
+procedure dynarray_incr_ref(var p : pointer);[Public,Alias:'FPC_DYNARRAY_INCR_REF'];
+  var
+     realp : pdynarray;
+  begin
+     if p=nil then
+       exit;
+
+     realp:=pdynarray(p-sizeof(tdynarray));
+     if realp^.refcount=0 then
+       HandleErrorFrame(204,get_frame);
+
+     inclocked(realp^.refcount);
   end;
 
 
@@ -146,6 +158,9 @@ procedure dynarray_setlength(var p : pointer;pti : pdynarraytypeinfo;
                { it could be that the in MT enviroments  }
                { in the mean time the refcount was       }
                { decremented                             }
+
+               { it is, because it doesn't really matter }
+               { if the array is now removed             }
                dynarray_decr_ref(p,ti);
             end
           else if dims[0]<>realp^.high+1 then
@@ -202,7 +217,10 @@ function dynarray_copy(var p : pointer;ti : pdynarraytypeinfo;
 
 {
   $Log$
-  Revision 1.6  2001-04-13 23:49:48  peter
+  Revision 1.7  2001-05-27 14:28:44  florian
+    + made the ref. couting MT safe
+
+  Revision 1.6  2001/04/13 23:49:48  peter
     * fixes for the stricter compiler
 
   Revision 1.5  2000/12/01 23:30:00  florian

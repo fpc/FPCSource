@@ -636,10 +636,13 @@
     function TInterfacedObject._Release : longint;stdcall;
 
       begin
-         declocked(frefcount);
-         _release:=frefcount;
-         if frefcount=0 then
-           destroy;
+         if declocked(frefcount) then
+           begin
+              destroy;
+              _Release:=0;
+           end
+         else
+           _Release:=frefcount;
       end;
 
     procedure TInterfacedObject.AfterConstruction;
@@ -678,14 +681,17 @@
 
 {
   $Log$
-  Revision 1.14  2001-04-13 22:30:04  peter
+  Revision 1.15  2001-05-27 14:28:44  florian
+    + made the ref. couting MT safe
+
+  Revision 1.14  2001/04/13 22:30:04  peter
     * remove warnings
 
   Revision 1.13  2000/12/20 21:38:23  florian
     * is-operator fixed
 
   Revision 1.12  2000/11/12 23:23:34  florian
-    * interfaces basically running
+    * interfaces are basically running
 
   Revision 1.11  2000/11/09 17:50:12  florian
     * Finalize to int_finalize renamed

@@ -121,8 +121,9 @@ Begin
   { check for constant strings ...}
   l:=@PANSIREC(S-FirstOff)^.Ref;
   If l^<0 then exit;
-  Dec(l^);
-  If l^=0 then
+
+  { declocked does a MT safe dec and returns true, if the counter is 0 }
+  If declocked(l^) then
     { Ref count dropped to zero }
     DisposeAnsiString (S);        { Remove...}
   { this pointer is not valid anymore, so set it to zero }
@@ -136,7 +137,7 @@ Begin
     exit;
   { Let's be paranoid : Constant string ??}
   If PAnsiRec(S-FirstOff)^.Ref<0 then exit;
-  Inc(PAnsiRec(S-FirstOff)^.Ref);
+  inclocked(PAnsiRec(S-FirstOff)^.Ref);
 end;
 
 
@@ -725,7 +726,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2001-04-13 18:06:07  peter
+  Revision 1.11  2001-05-27 14:28:44  florian
+    + made the ref. couting MT safe
+
+  Revision 1.10  2001/04/13 18:06:07  peter
     * upcase, lowercase for ansistring
 
   Revision 1.9  2000/12/10 15:00:14  florian
