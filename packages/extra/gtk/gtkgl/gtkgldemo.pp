@@ -109,10 +109,10 @@ var
 
 begin
   (* OpenGL functions can be called only if make_current returns true *)
-  if not InitGl then begin
+{  if not InitGl then begin
     WriteLn('OpenGL is not supported on this system');
     Halt(2);
-  end;
+  end;}
 
 
   (* initialize gtk *)
