@@ -519,7 +519,10 @@ implementation
                  ResourceStrings:=OldResourceStrings;
                  objectlibrary:=oldobjectlibrary;
                  { restore previous scanner }
-                 current_scanner:=tscannerfile(old_compiled_module.scanner);
+                 if assigned(old_compiled_module) then
+                   current_scanner:=tscannerfile(old_compiled_module.scanner)
+                 else
+                   current_scanner:=nil;
                  if assigned(current_scanner) then
                    parser_current_file:=current_scanner.inputfile.name^;
                  { restore symtable state }
@@ -618,7 +621,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.46  2002-11-20 12:36:24  mazen
+  Revision 1.47  2002-12-24 23:32:19  peter
+    * fixed crash when old_compiled_module was nil
+
+  Revision 1.46  2002/11/20 12:36:24  mazen
   * $UNITPATH directive is now working
 
   Revision 1.45  2002/10/07 19:29:52  peter
