@@ -68,6 +68,7 @@ implementation
       var
         intreg,
         hregister : tregister;
+        freereg   : boolean;
         symtabletype : tsymtabletype;
         i : longint;
         href : treference;
@@ -265,6 +266,7 @@ implementation
                     begin
                        location_reset(location,LOC_CREFERENCE,OS_64);
                        tg.gettempofsizereference(exprasmlist,8,location.reference);
+                       freereg:=false;
 
                        { called as type.method, then we only need to return
                          the address of the function, not the self pointer }
@@ -306,11 +308,14 @@ implementation
                           inc(href.offset,4);
                           cg.a_load_reg_ref(exprasmlist,OS_ADDR,hregister,href);
                           { hregister will be reused when loading a virtual method }
+                          freereg:=true;
                         end;
 
                        { virtual method ? }
                        if (po_virtualmethod in tprocdef(resulttype.def).procoptions) then
                          begin
+                            if not freereg then
+                             internalerror(200205161);
                             { load vmt pointer }
                             reference_reset_base(href,hregister,0);
                             reference_release(exprasmlist,href);
@@ -329,7 +334,8 @@ implementation
                        else
                          begin
                             { we don't use the hregister }
-                            rg.ungetregisterint(exprasmlist,hregister);
+                            if freereg then
+                             rg.ungetregisterint(exprasmlist,hregister);
                             { load address of the function }
                             reference_reset_symbol(href,newasmsymbol(tprocdef(resulttype.def).mangledname),0);
                             hregister:=cg.get_scratch_reg(exprasmlist);
@@ -906,11 +912,17 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2002-05-16 19:46:37  carl
+  Revision 1.7  2002-05-18 11:17:03  peter
+    * fixed internalerror due to releasing an not initialized register
+
+  Revision 1.6  2002/05/16 19:46:37  carl
   + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
   + try to fix temp allocation (still in ifdef)
   + generic constructor calls
   + start of tassembler / tmodulebase class cleanup
+
+  Revision 1.5  2002/05/14 19:34:42  peter
+    * removed old logs and updated copyright year
 
   Revision 1.4  2002/05/13 19:54:37  peter
     * removed n386ld and n386util units
