@@ -1644,27 +1644,35 @@ implementation
          else if (ld.deftype=setdef) then
            begin
              if tsetdef(ld).settype=smallset then
-              begin
+               begin
                  if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
-                  expectloc:=LOC_FLAGS
+                   expectloc:=LOC_FLAGS
                  else
-                  expectloc:=LOC_REGISTER;
+                   expectloc:=LOC_REGISTER;
                  { are we adding set elements ? }
                  if right.nodetype=setelementn then
                    calcregisters(self,2,0,0)
                  else
                    calcregisters(self,1,0,0);
-              end
+               end
              else
-              begin
-                 result := first_addset;
-                 if assigned(result) then
-                   exit;
-                 expectloc:=LOC_CREFERENCE;
-                 calcregisters(self,0,0,0);
-                 { here we call SET... }
-                 include(current_procinfo.flags,pi_do_call);
-              end;
+             {$ifdef i386}
+               if cs_mmx in aktlocalswitches then
+                 begin
+                   expectloc:=LOC_MMXREGISTER;
+                   calcregisters(self,0,0,4);
+                 end
+               else
+             {$endif}
+                 begin
+                   result := first_addset;
+                   if assigned(result) then
+                     exit;
+                   expectloc:=LOC_CREFERENCE;
+                   calcregisters(self,0,0,0);
+                   { here we call SET... }
+                   include(current_procinfo.flags,pi_do_call);
+                 end;
            end
 
          { compare pchar by addresses like BP/Delphi }
@@ -1874,7 +1882,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.100  2003-12-09 21:17:04  jonas
+  Revision 1.101  2003-12-21 11:28:41  daniel
+    * Some work to allow mmx instructions to be used for 32 byte sets
+
+  Revision 1.100  2003/12/09 21:17:04  jonas
     + support for evaluating qword constant expressions (both arguments have
       to be a qword, constants have to be explicitly typecasted to qword)
 

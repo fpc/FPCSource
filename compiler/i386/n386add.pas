@@ -45,6 +45,7 @@ interface
           procedure second_addboolean;
           procedure second_addfloat;
           procedure second_addsmallset;
+          procedure second_addmmxset;
           procedure second_mul;
 {$ifdef SUPPORT_MMX}
           procedure second_addmmx;
@@ -753,10 +754,8 @@ interface
             end;
           lten,gten:
             begin
-              If (not(nf_swaped in flags) and
-                  (nodetype = lten)) or
-                 ((nf_swaped in flags) and
-                  (nodetype = gten)) then
+              if (not(nf_swaped in flags) and (nodetype = lten)) or
+                 ((nf_swaped in flags) and (nodetype = gten)) then
                 swapleftright;
               location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],true);
               emit_op_right_left(A_AND,opsize);
@@ -777,6 +776,87 @@ interface
         { left must be a register }
         left_must_be_reg(opsize,noswap);
         emit_generic_code(op,opsize,true,extra_not,false);
+        location_freetemp(exprasmlist,right.location);
+        location_release(exprasmlist,right.location);
+        if cmpop then
+         begin
+           location_freetemp(exprasmlist,left.location);
+           location_release(exprasmlist,left.location);
+         end;
+        set_result_location(cmpop,true);
+      end;
+
+{*****************************************************************************
+                                   addmmxset
+*****************************************************************************}
+
+    procedure ti386addnode.second_addmmxset;
+
+    var opsize : TOpSize;
+        op     : TAsmOp;
+        cmpop,
+        pushedfpu,
+        noswap : boolean;
+    begin
+      pass_left_and_right(pushedfpu);
+
+      cmpop:=false;
+      noswap:=false;
+      opsize:=S_L;
+      case nodetype of
+        addn:
+          begin
+            { are we adding set elements ? }
+            if right.nodetype=setelementn then
+              begin
+                { adding elements is not commutative }
+{                if nf_swaped in flags then
+                  swapleftright;}
+                { bts requires both elements to be registers }
+{                location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],false);
+                location_force_reg(exprasmlist,right.location,opsize_2_cgsize[opsize],true);
+                op:=A_BTS;
+                noswap:=true;}
+              end
+            else
+              op:=A_POR;
+          end;
+        symdifn :
+          op:=A_PXOR;
+        muln:
+          op:=A_PAND;
+        subn:
+          op:=A_PANDN;
+        equaln,
+        unequaln :
+          begin
+            op:=A_PCMPEQD;
+            cmpop:=true;
+          end;
+        lten,gten:
+          begin
+            if (not(nf_swaped in flags) and (nodetype = lten)) or
+               ((nf_swaped in flags) and (nodetype = gten)) then
+              swapleftright;
+            location_force_reg(exprasmlist,left.location,opsize_2_cgsize[opsize],true);
+            emit_op_right_left(A_AND,opsize);
+            op:=A_PCMPEQD;
+            cmpop:=true;
+            { warning: ugly hack, we need a JE so change the node to equaln }
+            nodetype:=equaln;
+          end;
+          xorn :
+            op:=A_PXOR;
+          orn :
+            op:=A_POR;
+          andn :
+            op:=A_PAND;
+          else
+            internalerror(2003042215);
+        end;
+        { left must be a register }
+        left_must_be_reg(opsize,noswap);
+{        emit_generic_code(op,opsize,true,extra_not,false);}
         location_freetemp(exprasmlist,right.location);
         location_release(exprasmlist,right.location);
         if cmpop then
@@ -1321,8 +1401,7 @@ interface
          extra_not : boolean;
 
       begin
-         { to make it more readable, string and set (not smallset!) have their
-           own procedures }
+         { to make it more readable, string and set have their own procedures }
          case left.resulttype.def.deftype of
            orddef :
              begin
@@ -1347,11 +1426,18 @@ interface
              end;
            setdef :
              begin
-               { normalsets are already handled in pass1 }
-               if (tsetdef(left.resulttype.def).settype<>smallset) then
-                internalerror(200109041);
-               second_addsmallset;
-               exit;
+              {Normalsets are already handled in pass1 if mmx
+               should not be used.}
+              if (tsetdef(left.resulttype.def).settype<>smallset) then
+                begin
+                  if cs_mmx in aktlocalswitches then
+                    second_addmmxset
+                  else
+                    internalerror(200109041);
+                end
+              else
+                second_addsmallset;
+              exit;
              end;
            arraydef :
              begin
@@ -1495,7 +1581,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.88  2003-12-06 01:15:23  florian
+  Revision 1.89  2003-12-21 11:28:41  daniel
+    * Some work to allow mmx instructions to be used for 32 byte sets
+
+  Revision 1.88  2003/12/06 01:15:23  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.87  2003/12/03 23:13:20  peter

@@ -52,6 +52,9 @@ interface
           procedure second_addfloat;virtual;abstract;
           procedure second_addboolean;virtual;
           procedure second_addsmallset;virtual;
+        {$ifdef i386}
+          procedure second_addmmxset;virtual;abstract;
+        {$endif}
           procedure second_add64bit;virtual;
           procedure second_addordinal;virtual;
           procedure second_cmpfloat;virtual;abstract;
@@ -709,10 +712,19 @@ interface
             end;
           setdef :
             begin
-              { normalsets are already handled in pass1 }
+              {Normalsets are already handled in pass1 if mmx
+               should not be used.}
               if (tsetdef(left.resulttype.def).settype<>smallset) then
-                internalerror(200109041);
-              second_opsmallset;
+                begin
+                {$ifdef i386}
+                  if cs_mmx in aktlocalswitches then
+                    second_opmmxset
+                  else
+                {$endif}
+                    internalerror(200109041);
+                end
+              else
+                second_opsmallset;
             end;
           arraydef :
             begin
@@ -735,7 +747,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.22  2003-10-17 01:22:08  florian
+  Revision 1.23  2003-12-21 11:28:41  daniel
+    * Some work to allow mmx instructions to be used for 32 byte sets
+
+  Revision 1.22  2003/10/17 01:22:08  florian
     * compilation of the powerpc compiler fixed
 
   Revision 1.21  2003/10/10 17:48:13  peter
