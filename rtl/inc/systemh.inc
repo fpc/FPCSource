@@ -40,11 +40,13 @@
 ****************************************************************************}
 
 Type
-  Longint  = $80000000..$7fffffff; { $8000000 creates a longint overfow !! }
-  Integer  = -32768..32767;
   shortint = -128..127;
+  SmallInt = -32768..32767;
+  Longint  = $80000000..$7fffffff; { $8000000 creates a longint overfow !! }
   byte     = 0..255;
   Word     = 0..65535;
+  dword    = cardinal;
+  longword = cardinal;
 
 { at least declare Turbo Pascal real types }
 {$ifdef i386}
@@ -74,15 +76,11 @@ Type
   {$define SUPPORT_SINGLE}
 {$endif}
 
-{ some type aliases }
-  dword       = cardinal;
-  longword    = cardinal;
-
 { Zero - terminated strings }
   PChar       = ^Char;
   PPChar      = ^PChar;
 {$ifdef HASWIDECHAR}
-  PWideChar = ^WideChar;
+  PWideChar   = ^WideChar;
 {$endif HASWIDECHAR}
 
 { procedure type }
@@ -94,10 +92,17 @@ const
   MaxUIntValue = High(ValUInt);
 
 { max. values for longint and int}
-  maxLongint = $7fffffff;
-  maxint     = 32767;
+  maxLongint  = $7fffffff;
+  maxSmallint = 32767;
+
+{ Integer type definition }
+type
+  Integer  = smallint;
+const
+  maxint   = maxsmallint;
 
 { Compatibility With  TP }
+const
 {$ifdef i386}
   Test8086 : byte = 2;       { Always i386 or newer }
   Test8087 : byte = 3;       { Always 387 or newer. Emulated if needed. }
@@ -405,7 +410,11 @@ const
 
 {
   $Log$
-  Revision 1.71  1999-12-18 14:55:05  florian
+  Revision 1.72  1999-12-20 11:20:14  peter
+    + smallint, maxsmallint
+    * integer is redefined as smallint
+
+  Revision 1.71  1999/12/18 14:55:05  florian
     * very basic widestring support
 
   Revision 1.70  1999/12/12 13:29:34  jonas
