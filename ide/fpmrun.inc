@@ -444,6 +444,16 @@ begin
     begin
       W:=PSourceWindow(DeskTop^.Current);
       FileName:=W^.Editor^.FileName;
+      If FileName='' then
+        begin
+          W^.Editor^.SaveAs;
+          FileName:=W^.Editor^.FileName;
+          If FileName='' then
+            Begin
+              ErrorBox(msg_impossibletosetbreakpoint,nil);
+              Exit;
+            End;
+        end;
       LineNr:=W^.Editor^.CurPos.Y+1;
       BreakpointsCollection^.ToggleFileLine(FileName,LineNr);
     end
@@ -485,7 +495,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2002-10-12 19:43:07  hajny
+  Revision 1.7  2002-12-16 09:06:08  pierre
+   * don't insert breakpoints in unsaved sources
+
+  Revision 1.6  2002/10/12 19:43:07  hajny
     * missing HasSignal conditionals added (needed for FPC/2)
 
   Revision 1.5  2002/09/07 15:40:44  peter
