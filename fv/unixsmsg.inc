@@ -49,7 +49,11 @@ begin
   PendingSystemEvents:=0;
   FillChar(LastSystemEvent,sizeof(TSystemEvent),0);
   FillChar(WinSize,sizeof(WinSize),0);
+{$ifdef VER1_0}
+  ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+{$else}
   fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+{$endif}
   LastXSize:=WinSize.ws_row;
   LastYSize:=WinSize.ws_col;
   If LastXSize=0 then
@@ -100,7 +104,11 @@ begin
   else
    begin
      FillChar(WinSize,sizeof(WinSize),0);
+{$ifdef VER1_0}
+     ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+{$else}
      fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
+{$endif}
      if (winsize.ws_col<>0) and (winsize.ws_row<>0) and
         ((winsize.ws_row<>lastxsize) or (winsize.ws_col<>lastysize)) then
        begin
@@ -119,7 +127,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2003-11-19 21:58:51  marco
+  Revision 1.7  2004-02-25 01:38:26  pierre
+   * fix compilation error for 1.0 compiler
+
+  Revision 1.6  2003/11/19 21:58:51  marco
    * typo
 
   Revision 1.5  2003/11/19 19:22:14  marco
