@@ -624,7 +624,6 @@ implementation
       begin
         result:=nil;
         resulttypepass(left);
-        set_varstate(left,false);
         resulttype:=vs.vartype;
       end;
 
@@ -976,7 +975,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.17  2001-04-13 01:22:10  peter
+  Revision 1.18  2001-04-13 22:15:21  peter
+    * removed wrongly placed set_varstate in subscriptnode
+
+  Revision 1.17  2001/04/13 01:22:10  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
