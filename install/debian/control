@@ -1,8 +1,8 @@
 Source: fpc
 Section: devel
 Priority: optional
-Maintainer: Peter Vreman <pfv@cooldown.demon.nl>
-Standards-Version: 2.5.1.0
+Maintainer: Joseph Carter <knghtbrd@debian.org>
+Standards-Version: 3.0.1
 
 Package: fp-compiler
 Architecture: i386

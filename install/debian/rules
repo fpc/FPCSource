@@ -1,5 +1,5 @@
 #!/usr/bin/make -f
-# debian/rules for Free Pascal 0.99.12 
+# debian/rules for Free Pascal
 
 # Don't load the system makefile.fpc
 export FPCMAKE=
@@ -8,19 +8,61 @@ export FPCDIR=
 # Get current dir
 PWD=$(shell pwd)
 
-INSTALL_VERSION=0.99.12
+# Documentation type to use pdf/html
+DOCTYPE=pdf
+
+INSTALL_VERSION=$(shell cat base/VERSION)
 BUILD_DIR=$(PWD)/debian/build
 INSTALL_DIR=$(PWD)/debian/tmp
 NEWPP=$(PWD)/compiler/ppc386
 
 #export DH_VERBOSE=1
 
+
 ###################
-# Binary
+# Clean
 #
 
-buildbin: buildbin-stamp
-buildbin-stamp:
+clean:
+	@echo "--- Cleaning"
+	dh_testdir
+	dh_testroot
+	rm -f build-arch-stamp install-arch-stamp
+	rm -f build-indep-stamp install-indep-stamp
+	
+	rm -f debian-files-stamp
+	rm -f debian/*.files debian/*.docs
+	
+	$(MAKE) compiler_clean
+	$(MAKE) rtl_clean
+	$(MAKE) utils_clean
+	$(MAKE) fcl_clean
+	$(MAKE) gtk_clean
+	$(MAKE) api_clean
+	$(MAKE) fv_clean
+	$(MAKE) -C packages clean
+	$(MAKE) -C docs clean
+
+	dh_clean
+
+###################
+# Debian files
+#
+
+debian-files: debian-files-stamp
+debian-files-stamp:    
+	@echo "--- Creating debian files"
+	debian/fixdeb debian $(INSTALL_VERSION)
+
+	touch debian-files-stamp
+
+
+###################
+# Arch packages
+#
+
+build-arch: build-arch-stamp
+build-arch-stamp:
 	@echo "--- Building"
 	dh_testdir
 
@@ -34,30 +76,11 @@ buildbin-stamp:
 	$(MAKE) fv_all PP=$(NEWPP)
 	$(MAKE) -C packages all PP=$(NEWPP) RELEASE=1
 	
-	touch buildbin-stamp
+	touch build-arch-stamp
 
-cleanbin:
-	@echo "--- Cleaning"
-	dh_testdir
-	dh_testroot
 
-	rm -f buildbin-stamp installbin-stamp
-	rm -rf $(BUILD_DIR)
-	
-	$(MAKE) compiler_clean
-	$(MAKE) rtl_clean
-	$(MAKE) utils_clean
-
-	$(MAKE) fcl_clean
-	$(MAKE) gtk_clean
-	$(MAKE) api_clean
-	$(MAKE) fv_clean
-	$(MAKE) -C packages clean
-
-	dh_clean
-
-installbin: installbin-stamp
-installbin-stamp: buildbin
+install-arch: install-arch-stamp
+install-arch-stamp: build-arch
 	@echo "--- Installing"
 	dh_testdir
 	dh_testroot
@@ -78,124 +101,81 @@ installbin-stamp: buildbin
 	$(MAKE) fv_install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 	$(MAKE) -C packages install PP=$(NEWPP) PREFIXINSTALLDIR=$(INSTALL_DIR)/usr
 	
-	touch installbin-stamp
+	touch install-arch-stamp
 
 ###################
 # Documentation
 #
 
-builddoc: builddoc-stamp
-builddoc-stamp:
+build-indep: build-indep-stamp
+build-indep-stamp:
 	@echo "--- Building Documentation"
 	dh_testdir
 
-	$(MAKE) -C docs pdf
+	$(MAKE) -C docs $(DOCTYPE)
 
-	touch builddoc-stamp
+	touch build-indep-stamp
 
-installdoc: installdoc-stamp
-installdoc-stamp: builddoc
+install-indep: install-indep-stamp
+install-indep-stamp: build-indep
 	@echo "--- Installing Documentation"
 	dh_testdir
 	dh_testroot
 	dh_clean
 
-	$(MAKE) -C docs pdfinstall DOCINSTALLDIR=$(INSTALL_DIR)/usr/doc/fpc/$(INSTALL_VERSION)/
+	$(MAKE) -C docs $(DOCTYPE)install DOCINSTALLDIR=$(INSTALL_DIR)/usr/doc/fpc/$(INSTALL_VERSION)/
 	
-	touch installdoc-stamp
+	touch install-indep-stamp
 
-cleandoc:
-	@echo "--- Cleaning Documentation"
-	dh_testdir
-	dh_testroot
-
-	rm -f builddoc-stamp installdoc-stamp
-	rm -rf $(BUILD_DIR)
-
-	$(MAKE) -C docs clean
 
 ###################
 # Generic
 #
 
-build: buildbin builddoc
+build: build-arch build-indep
 
-install: installbin installdoc
+install: install-arch install-indep
 
-clean: cleanbin cleandoc
+binary: binary-indep binary-arch
 
 
 ###################
 # Deb building
 #
 
-binary-indep: fp-docs \
+binary-indep: build-indep install-indep debian-files
+	@echo "--- Building: arch-indep packages"
+	dh_testversion 2
+	dh_testdir
+	dh_testroot
+	dh_installdocs -i
+	dh_installchangelogs -i
+	dh_movefiles -i
+	dh_compress -i -X.pdf
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
 
-binary-arch: fp-compiler \
-	fp-rtl \
-	fp-utils \
-	fp-fcl \
-	fp-gtk \
-	fp-api \
-	fp-fv \
-	fp-extra
+binary-arch: build-arch install-arch debian-files
+	@echo "--- Building: arch packages"
+	dh_testversion 2
+	dh_testdir
+	dh_testroot
+	dh_installdocs -a
+	dh_installchangelogs -a
+	dh_undocumented -a
+	dh_installexamples -a
+	dh_movefiles -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_installdeb -a
+#	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
-fp-compiler: installbin
-	@echo "--- Building: $@"
-	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
-	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
-	dh_installexamples	-p$@ -P$(BUILD_DIR)/$@
-	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
-	dh_compress		-p$@ -P$(BUILD_DIR)/$@
-	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
-	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
-#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
-	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
-
-fp-utils: installbin
-	@echo "--- Building: $@"
-	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
-	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
-	dh_undocumented		-p$@ -P$(BUILD_DIR)/$@ h2pas.1
-	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
-	dh_compress		-p$@ -P$(BUILD_DIR)/$@
-	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
-	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
-#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
-	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
-
-fp-rtl fp-fcl fp-gtk fp-fv fp-api fp-extra: installbin
-	@echo "--- Building: $@"
-	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
-	dh_installchangelogs	-p$@ -P$(BUILD_DIR)/$@
-	dh_installexamples	-p$@ -P$(BUILD_DIR)/$@
-	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
-	dh_compress		-p$@ -P$(BUILD_DIR)/$@
-	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
-	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
-#	dh_shlibdeps	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
-	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
-
-fp-docs: installdoc
-	@echo "--- Building: $@"
-	dh_installdocs		-p$@ -P$(BUILD_DIR)/$@
-	dh_installchangelogs 	-p$@ -P$(BUILD_DIR)/$@
-	dh_movefiles		-p$@ -P$(BUILD_DIR)/$@
-#	dh_compress		-p$@ -P$(BUILD_DIR)/$@
-	dh_fixperms		-p$@ -P$(BUILD_DIR)/$@
-	dh_installdeb	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_gencontrol	 	-p$@ -P$(BUILD_DIR)/$@
-	dh_md5sums		-p$@ -P$(BUILD_DIR)/$@
-	dh_builddeb		-p$@ -P$(BUILD_DIR)/$@
-
-source diff:                                                                  
-	@echo >&2 'source and diff are obsolete - use dpkg-source -b'; false
 
 binary: binary-indep binary-arch  
 .PHONY: build clean binary-indep binary-arch binary

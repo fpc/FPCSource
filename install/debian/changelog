@@ -1,3 +1,10 @@
+fpc (0.99.13.19990730-1) unstable; urgency=low
+
+  * New maintainer
+  * Updated to policy 3.0.1
+
+ -- Joseph Carter <knghtbrd@debian.org>  Tue, 27 Jul 1999 18:05:05 -0700
+
 fpc (0.99.12b-1) unstable; urgency=low
 
   * New Upstream Release

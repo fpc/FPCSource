@@ -1,9 +1,0 @@
-
-/usr/lib/fpc/0.99.12/units/linux/glib.ppu 
-/usr/lib/fpc/0.99.12/units/linux/gmodule.ppu 
-/usr/lib/fpc/0.99.12/units/linux/gdk.ppu 
-/usr/lib/fpc/0.99.12/units/linux/gtk.ppu
-
-/usr/lib/fpc/0.99.12/units/linux/glib.o 
-/usr/lib/fpc/0.99.12/units/linux/gdk.o 
-/usr/lib/fpc/0.99.12/units/linux/gtk.o

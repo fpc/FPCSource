@@ -1,0 +1,9 @@
+gtk/examples/ttt_test.pp
+gtk/examples/notebook.pp
+gtk/examples/entry.pp
+gtk/examples/tictactoe.pp
+gtk/examples/pixmap.pp
+gtk/examples/clist.pp
+gtk/examples/list.pp
+gtk/examples/scribble-simple.pp
+gtk/examples/editform.pp

@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Create debian files from *.in files.
+#
+# Supported are .files.in, .docs.in, control.in
+# 
+# $1 = path
+# $2 = version
+#
+if [ $# != 2 ]; then
+  echo 'Usage : fixdeb path version'
+  exit 1
+fi
+
+#
+# .files.in
+#
+for i in $1/*.files.in
+do
+  j=${i/.files.in/.files}
+  sed -e s/'#FPCVERSION#'/$2/ $i > $j
+done
+
+#
+# .docs.in
+#
+for i in $1/*.docs.in
+do
+  j=${i/.docs.in/.docs}
+  sed -e s/'#FPCVERSION#'/$2/ $i > $j
+done
