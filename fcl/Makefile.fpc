@@ -21,9 +21,9 @@ units=adler gzcrc gzio infblock infcodes inffast inftrees infutil minigzip paszl
 [target]
 dirs=xml db shedit
 units=classes contnrs inifiles ezcgi pipes rtfpars idea base64 gettext iostream zstream cachecls xmlreg registry eventlog
-units_freebsd=process asyncio ssockets http
-units_netbsd=process asyncio ssockets http
-units_openbsd=process asyncio ssockets http
+units_freebsd=process asyncio ssockets http resolve http
+units_netbsd=process asyncio ssockets http resolve http
+units_openbsd=process asyncio ssockets http resolve http
 units_linux=process asyncio resolve ssockets http
 units_win32=process fileinfo resolve ssockets
 rsts=classes ssockets cachecls resolve
