@@ -666,11 +666,11 @@ begin
   {$endif cpualpha}
 {$endif alpha}
 {$ifdef powerpc}
-  {$ifdef cpuppc}
+  {$ifdef cpupowerpc}
     default_target(source_info.system);
-  {$else cpuppc}
+  {$else cpupowerpc}
     default_target(system_powerpc_linux);
-  {$endif cpuppc}
+  {$endif cpupowerpc}
 {$endif powerpc}
 {$IFDEF sparc}
   default_target(system_sparc_linux);
@@ -685,7 +685,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.64  2003-05-28 23:18:31  florian
+  Revision 1.65  2003-05-31 16:17:27  marco
+   * cpuppc -> cpupowerpc. Target compiler was always linux for ppc
+
+  Revision 1.64  2003/05/28 23:18:31  florian
     * started to fix and clean up the sparc port
 
   Revision 1.63  2003/05/25 23:15:04  marco
