@@ -339,6 +339,7 @@ Fixed bugs:
   bug0286.pp   #$08d not allowed as Char constant                   OK 0.99.13 (PFV)
   bug0287.pp   (true > false) not supported                         OK 0.99.13 (PFV)
   bug0288.pp   crash with virtual method in except part             OK 0.99.13 (PFV)
+  bug0291.pp   @procvar in tp mode bugs                             OK 0.99.13 (PFV)
 
 Unproducable bugs:
 ------------------
