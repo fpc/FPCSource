@@ -769,7 +769,10 @@ begin
   if RefChild = FFirstChild then
     FFirstChild := NewChild
   else
+  begin
     RefChild.FPreviousSibling.FNextSibling := NewChild;
+    NewChild.FPreviousSibling := RefChild.FPreviousSibling;
+  end;
 
   RefChild.FPreviousSibling := NewChild;
   NewChild.FParentNode := Self;
@@ -1378,16 +1381,14 @@ begin
 end;
 
 function TDOMText.SplitText(offset: LongWord): TDOMText;
-var
-  nt: TDOMText;
 begin
   if offset > Length then
     raise EDOMIndexSize.Create('Text.SplitText');
 
-  nt := TDOMText.Create(FOwnerDocument);
-  nt.FNodeValue := Copy(FNodeValue, offset + 1, Length);
+  Result := TDOMText.Create(FOwnerDocument);
+  Result.FNodeValue := Copy(FNodeValue, offset + 1, Length);
   FNodeValue := Copy(FNodeValue, 1, offset);
-  FParentNode.InsertBefore(nt, FNextSibling);
+  FParentNode.InsertBefore(Result, FNextSibling);
 end;
 
 
@@ -1499,7 +1500,13 @@ end.
 
 {
   $Log$
-  Revision 1.6  2001-03-08 19:37:12  michael
+  Revision 1.7  2001-05-06 21:37:39  sg
+  * Fixed two bugs reported by Florian:
+    - TDOMText.SplitText didn't set the result value
+    - Fixed TDOMNode_WithChildren.InsertBefore, which didn't link the new
+      node correctly into the node list
+
+  Revision 1.6  2001/03/08 19:37:12  michael
   + Merged changes from fixbranch
 
   Revision 1.5  2000/09/12 14:07:58  sg
