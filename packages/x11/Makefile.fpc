@@ -1,0 +1,9 @@
+#
+#   Makefile.fpc for X11 Bindings
+#
+
+[targets]
+units=x xresource xlib xutil
+
+[dirs]
+fpcdir=../..
