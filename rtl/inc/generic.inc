@@ -802,34 +802,146 @@ end;
 ****************************************************************************}
 {$ifdef FPC_INCLUDE_SOFTWARE_MOD_DIV}
 
+function count_leading_zeros_32bit(l : longint) : longint;
+  var
+    i : longint;
+  begin
+     for i:=0 to 31 do
+       begin
+          if (l and ($80000000 shr i))<>0 then
+            begin
+               result:=i;
+               exit;
+            end;
+       end;
+     result:=i;
+  end;
+
+
 {$ifndef FPC_SYSTEM_HAS_DIV_DWORD}
 function fpc_div_dword(n,z : dword) : dword; [public,alias: 'FPC_DIV_DWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  var
+     shift,lzz,lzn : longint;
   begin
-    {!!!!}
+     result:=0;
+     if n=0 then
+       HandleErrorFrame(200,get_frame);
+     lzz:=count_leading_zeros_32bit(z);
+     lzn:=count_leading_zeros_32bit(n);
+     { if the denominator contains less zeros
+       then the numerator
+       the d is greater than the n }
+     if lzn<lzz then
+       exit;
+     shift:=lzn-lzz;
+     n:=n shl shift;
+     repeat
+       if z>=n then
+         begin
+            z:=z-n;
+            result:=result+(1 shl shift);
+         end;
+       dec(shift);
+       n:=n shr 1;
+     until shift<0;
   end;
 {$endif FPC_SYSTEM_HAS_DIV_DWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_MOD_DWORD}
 function fpc_mod_dword(n,z : dword) : dword; [public,alias: 'FPC_MOD_DWORD']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  var
+     shift,lzz,lzn : longint;
   begin
-    {!!!!}
+    result:=0;
+    if n=0 then
+      HandleErrorFrame(200,get_frame);
+    lzz:=count_leading_zeros_32bit(z);
+    lzn:=count_leading_zeros_32bit(n);
+    { if the denominator contains less zeros
+      then the numerator
+      the d is greater than the n }
+    if lzn<lzz then
+      begin
+         result:=z;
+         exit;
+      end;
+    shift:=lzn-lzz;
+    n:=n shl shift;
+    repeat
+      if z>=n then
+        z:=z-n;
+      dec(shift);
+      n:=n shr 1;
+    until shift<0;
+    result:=z;
   end;
 {$endif FPC_SYSTEM_HAS_MOD_DWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_DIV_LONGINT}
 function fpc_div_longint(n,z : longint) : longint; [public,alias: 'FPC_DIV_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  var
+     sign : boolean;
+     d1,d2 : dword;
   begin
-    {!!!!}
+     if n=0 then
+       HandleErrorFrame(200,get_frame);
+     sign:=false;
+     if z<0 then
+       begin
+          sign:=not(sign);
+          d1:=dword(-z);
+       end
+     else
+       d1:=z;
+     if n<0 then
+       begin
+          sign:=not(sign);
+          d2:=dword(-n);
+       end
+     else
+       d2:=n;
+
+     { the div is coded by the compiler as call to divdword }
+     if sign then
+       result:=-(d1 div d2)
+     else
+       result:=d1 div d2;
   end;
 {$endif FPC_SYSTEM_HAS_DIV_LONGINT}
 
 
 {$ifndef FPC_SYSTEM_HAS_MOD_LONGINT}
 function fpc_mod_longint(n,z : longint) : longint; [public,alias: 'FPC_MOD_LONGINT']; {$ifdef hascompilerproc} compilerproc; {$endif}
+  var
+     signed : boolean;
+     r,nq,zq : dword;
   begin
-    {!!!!}
+     if n=0 then
+       HandleErrorFrame(200,get_frame);
+     if n<0 then
+       begin
+          nq:=-n;
+          signed:=true;
+       end
+     else
+       begin
+          signed:=false;
+          nq:=n;
+       end;
+     if z<0 then
+       begin
+          zq:=dword(-z);
+          signed:=not(signed);
+       end
+     else
+       zq:=z;
+     r:=zq mod nq;
+     if signed then
+       result:=-longint(r)
+     else
+       result:=r;
   end;
 {$endif FPC_SYSTEM_HAS_MOD_LONGINT}
 
@@ -1022,7 +1134,10 @@ end;
 
 {
   $Log$
-  Revision 1.64  2004-01-10 17:01:29  jonas
+  Revision 1.65  2004-01-20 23:16:56  florian
+    + created generic versions of software dword/longint mod/div
+
+  Revision 1.64  2004/01/10 17:01:29  jonas
     * changed index* to conform to the assembler implementations (interpret
       negative upper bound as maximum)
 
