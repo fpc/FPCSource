@@ -502,26 +502,30 @@ begin {CheckSequence}
            if passedFlagsModifyingInstr and flagResultsNeeded then
               found := 0;
         end;
-      if (Found <> OldNrofMods) or
- { the following is to avoid problems with rangecheck code (see testcse2) }
-         (assigned(hp3) and
-          ((supreg in reginfo.regsLoadedforRef) and
-           (supreg in ptaiprop(hp3.optinfo)^.usedRegs) and
-           not regLoadedWithNewValue(supreg,false,hp3))) then
-        begin
-          TmpResult := False;
-          if (found > 0) then
-{this is correct because we only need to turn off the CanBeRemoved flag
- when an instruction has already been processed by CheckSequence
- (otherwise CanBeRemoved can't be true and thus can't have to be turned off).
- if it has already been processed by CheckSequence and flagged to be
- removed, it means that it has been checked against a previous sequence
- and that it was equal (otherwise CheckSequence would have returned false
- and the instruction wouldn't have been removed). if this "if found > 0"
- check is left out, incorrect optimizations are performed.}
-            Found := ptaiprop(tai(p).optinfo)^.Regs[supreg].NrofMods
-        end
-      else TmpResult := True;
+
+      TmpResult := true;
+      if (found <> OldNrofMods) then
+        TmpResult := false
+      else if assigned(hp3) then
+        for regcounter2 := RS_EAX to RS_EDI do
+          if (regcounter2 in reginfo.regsLoadedforRef) and
+             (regcounter2 in ptaiprop(hp3.optinfo)^.usedRegs) and
+             not regLoadedWithNewValue(regcounter2,false,hp3) then
+            begin
+              TmpResult := False;
+              if (found > 0) then
+    {this is correct because we only need to turn off the CanBeRemoved flag
+    when an instruction has already been processed by CheckSequence
+    (otherwise CanBeRemoved can't be true and thus can't have to be turned off).
+    if it has already been processed by CheckSequence and flagged to be
+    removed, it means that it has been checked against a previous sequence
+    and that it was equal (otherwise CheckSequence would have returned false
+    and the instruction wouldn't have been removed). if this "if found > 0"
+    check is left out, incorrect optimizations are performed.}
+                Found := ptaiprop(tai(p).optinfo)^.Regs[supreg].NrofMods;
+              break;
+            end;
+
       if TmpResult and
          (Found > HighFound) then
         begin
@@ -2095,7 +2099,10 @@ end.
 
 {
   $Log$
-  Revision 1.51  2003-11-22 13:10:32  jonas
+  Revision 1.52  2003-11-28 18:49:05  jonas
+    * fixed bug which only showed up in the ppc crosscompiler :)
+
+  Revision 1.51  2003/11/22 13:10:32  jonas
     * fixed double unit usage
 
   Revision 1.50  2003/11/22 00:40:19  jonas
