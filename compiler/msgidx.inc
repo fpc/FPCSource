@@ -203,7 +203,8 @@ parser_e_no_paras_allowed,
 parser_e_no_property_found_to_override,
 parser_e_only_one_default_property,
 parser_e_property_need_paras,
-parser_w_constructor_cannot_be_not_virtual,
+parser_e_constructor_cannot_be_not_virtual,
+parser_e_no_default_property_available,
 {
   Symbol table
 }

@@ -683,9 +683,13 @@ unit types;
                                        { (povirtualmethod is set! }
 
                                        { class ? }
-                                       if ((_c^.options and oois_class)<>0) and
+                                       if _c^.isclass and
                                          ((hp^.options and pooverridingmethod)=0) then
+                                         begin
+                                            { this isn't like handled like delphi !!!!! }
                                             Message1(parser_e_must_use_override,_c^.name^+'.'+_name);
+                                         end;
+
 
                                        { error, if the return types aren't equal }
                                        if not(is_equal(procdefcoll^.data^.retdef,hp^.retdef)) then
@@ -872,7 +876,10 @@ unit types;
 end.
 {
   $Log$
-  Revision 1.4  1998-04-08 16:58:09  pierre
+  Revision 1.5  1998-04-09 23:02:16  florian
+    * small problems solved to get remake3 work
+
+  Revision 1.4  1998/04/08 16:58:09  pierre
     * several bugfixes
       ADD ADC and AND are also sign extended
       nasm output OK (program still crashes at end

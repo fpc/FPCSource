@@ -498,7 +498,6 @@ unit pdecl;
                        Message1(sym_e_unknown_id,pattern)
                      else
                        begin
-                          { !!!! check sym }
                           { varsym aren't allowed for an indexed property
                             or an property with parameters }
                           if ((sym^.typ=varsym) and
@@ -707,7 +706,7 @@ unit pdecl;
                        begin
                           consume(ID);
                           consume(SEMICOLON);
-                          if (aktclass^.options and oois_class=0) then
+                          if not(aktclass^.isclass) then
                             Message(parser_e_constructor_cannot_be_not_virtual)
                           else
                             begin
@@ -1727,7 +1726,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.6  1998-04-09 22:16:35  florian
+  Revision 1.7  1998-04-09 23:02:15  florian
+    * small problems solved to get remake3 work
+
+  Revision 1.6  1998/04/09 22:16:35  florian
     * problem with previous REGALLOC solved
     * improved property support
 

@@ -507,7 +507,6 @@ unit pexpr;
                           message(parser_e_no_paras_allowed);
                         p1:=gensubscriptnode(pvarsym(
                           ppropertysym(sym)^.readaccesssym),p1);
-                        pd:=pvarsym(sym)^.definition;
                      end
                    else if ppropertysym(sym)^.readaccesssym^.typ=procsym then
                      begin
@@ -517,12 +516,12 @@ unit pexpr;
                           ppropertysym(sym)^.readaccesssym^.owner,p1);
                         { we know the procedure to call, so
                           force the usage of that procedure }
-                        p1^.procdefinition:=pprocdef(ppropertysym(sym)^.writeaccessdef);
+                        p1^.procdefinition:=pprocdef(ppropertysym(sym)^.readaccessdef);
                         { insert paras }
                         p1^.left:=paras;
-
                         { if we should be delphi compatible  }
                         { then force type conversion         }
+                        {                                    }
                         { isn't neccessary, the result types }
                         { have to match excatly              }
                         {if cs_delphi2_compatible in aktswitches then
@@ -656,6 +655,7 @@ unit pexpr;
                                   disposetree(p1);
                                   p1:=genzeronode(errorn);
                                   again:=false;
+                                  message(parser_e_no_default_property_available);
                                end
                              else
                                begin
@@ -1625,7 +1625,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.6  1998-04-09 22:16:35  florian
+  Revision 1.7  1998-04-09 23:02:15  florian
+    * small problems solved to get remake3 work
+
+  Revision 1.6  1998/04/09 22:16:35  florian
     * problem with previous REGALLOC solved
     * improved property support
 
