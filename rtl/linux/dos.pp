@@ -711,7 +711,7 @@ Function FSearch(path : pathstr;dirlist : string) : pathstr;
 Var
   info:stat;
 Begin
-  if FStat(path,info) then
+  if (length(Path)>0) and (path[1]='/') and FStat(path,info) then
     FSearch:=path
   else
     FSearch:=Linux.FSearch(path,dirlist);
@@ -914,7 +914,10 @@ End.
 
 {
   $Log$
-  Revision 1.20  2000-04-17 20:43:27  pierre
+  Revision 1.21  2000-04-18 08:03:40  michael
+  Corrected fix for bug 902
+
+  Revision 1.20  2000/04/17 20:43:27  pierre
    fix bug 902 for win32 and linux
 
   Revision 1.19  2000/03/19 18:48:19  peter
