@@ -130,10 +130,21 @@ begin
   if f<0 then
     for i:=1 to currprec do roundcorr:=roundcorr/10
   else
-    for i:=1 to correct+f do roundcorr:=roundcorr/10;
+    begin
+      if correct+f<0 then
+       begin
+         for i:=1 to abs(correct+f) do
+          roundcorr:=roundcorr*10;
+       end
+      else
+       begin
+         for i:=1 to correct+f do
+          roundcorr:=roundcorr/10;
+       end;
+    end;
   d:=d+roundcorr;
-  { 0.99 + 0.05 > 10.0 ! Fix this by dividing the results >=10 first (PV) }
-  if d>=10.0 then
+  { 0.99 + 0.05 > 1.0 ! Fix this by dividing the results >=10 first (PV) }
+  while (d>=10.0) do
    begin
      d:=d/10.0;
      inc(correct);
@@ -201,7 +212,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  1998-08-11 21:39:06  peter
+  Revision 1.11  1999-02-16 00:49:20  peter
+    * fixed rounding when correct+f < 0
+
+  Revision 1.10  1998/08/11 21:39:06  peter
     * splitted default_extended from support_extended
 
   Revision 1.9  1998/08/11 00:05:25  peter
