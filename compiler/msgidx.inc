@@ -500,7 +500,7 @@ const
   asmr_e_no_inc_and_dec_together=07094;
   asmr_e_invalid_reg_list_in_movem=07095;
   asmr_e_invalid_reg_list_for_opcode=07096;
-  asmr_e_68020_mode_required=07097;
+  asmr_e_higher_cpu_mode_required=07097;
   asmw_f_too_many_asm_files=08000;
   asmw_f_assembler_output_not_supported=08001;
   asmw_f_comp_not_supported=08002;
@@ -639,7 +639,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 35608;
+  MsgTxtSize = 35629;
 
   MsgIdxMax : array[1..20] of longint=(
     17,62,190,50,56,41,98,19,35,43,
