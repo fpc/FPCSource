@@ -64,8 +64,8 @@ $(DOTEST) : units utils/dotest.pp utils/redir.pp utils/teststr.pp
 
 DIGEST=./digest$(EXEEXT)
 $(DIGEST) : units utils/digest.pp utils/teststr.pp
-	$(FPC) -n -Fuunits -FE. utils/digest.pp
-	
+        $(FPC) -n -Fuunits -FE. utils/digest.pp
+
 testcheck: units allpreps $(DOTEST)
 
 #
@@ -114,14 +114,14 @@ DIRS=webtbs webtbf tbs tbf test test/cg test/units/system test/units/dos test/un
 
 ifdef CCOMPILER
 test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o : test/cg/obj/ctest.c
-	-$(CCOMPILER) -c -o test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg/obj/ctest.c
+        -$(CCOMPILER) -c -o test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg/obj/ctest.c
 endif
 
 allpreps: allpreps-stamp.$(OS_TARGET)
 allpreps-stamp.$(OS_TARGET):
         $(FPC) -FE. -Fuunits test/cg/ptest.pp
         $(COPY) test/cg/obj/$(OS_TARGET)/$(CPU_TARGET)/ctest.o test/cg
-	$(COPY) test/units/system/test*.txt .
+        $(COPY) test/units/system/test*.txt .
         $(ECHO) $(DATE) > allpreps-stamp.$(OS_TARGET)
 
 #
@@ -174,15 +174,13 @@ ifdef INUNIX
 else
         -rm -f $(addsuffix /*$(EXEEXT),$(DIRS))
 endif
-        -rm -f *.tmp core
+        -rm -f test*.txt *.tmp *$(SHAREDLIBEXT) *$(OEXT) *$(PPUEXT) core
         -rm -f $(LOG) $(LONGLOG) $(FAILLIST)
-        -rm -f ppas.sh ppas.bat gmon.out allpreps-stamp.$(OS_TARGET)
-	-rm -f test*.txt
+        -rm -f ptest.* ppas.sh ppas.bat gmon.out allpreps-stamp.$(OS_TARGET)
         $(MAKE) -C units clean
 
 distclean: clean
-        -rm -f dotest$(EXEEXT) dotest$(OEXT) redir$(PPUEXT) redir$(OEXT)
-	-rm -f teststr$(PPUEXT) teststr$(OEXT) digest$(EXEEXT) digest$(OEXT)
+        -rm -f dotest$(EXEEXT) digest$(EXEEXT) 
 
 #
 # Main rules
@@ -191,20 +189,20 @@ distclean: clean
 .PHONY: all full rundigest dailytest onlyknown onlygraph onlyinteractive
 
 rundigest : $(DIGEST)
-	-$(DIGEST)
+        -$(DIGEST)
 
 all : allexectests
 
 full : clean allexectests rundigest
 
 onlyknown :
-	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
+        $(MAKE) full "DOTESTOPT= $(DOTESTOPT) -k-"
 
 onlygraph :
-	$(MAKE) full "DOTESTOPT= $(DOTESTOPT) -g-"
+        $(MAKE) full "DOTESTOPT= $(DOTESTOPT) -g-"
 
 onlyinteractive :
-	$(MAKE) "DOTESTOPT= $(DOTESTOPT) -i-"
+        $(MAKE) "DOTESTOPT= $(DOTESTOPT) -i-"
 
 info :
         @echo This Makefile allows to test the compiler
@@ -212,12 +210,12 @@ info :
         @echo Targets:
         @echo "  all   - continue all tests"
         @echo "  full  - clean and run all tests"
-	@echo "  dailytest - run full and save results"
-	@echo "              in files having the date as extension"
+        @echo "  dailytest - run full and save results"
+        @echo "              in files having the date as extension"
         @echo "  onlyknown - run only known bugs"
         @echo "  onlygraph - run only graph tests"
         @echo "  onlyinteractive - run only interactive tests"
-	@echo Done using FPC=$(FPC)
+        @echo Done using FPC=$(FPC)
 
 override DATESUFFIX:=$(shell $(DATE) +%Y.%m.%d)
 
@@ -230,14 +228,14 @@ LASTDATESUFFIX:=$(shell cat lastdate.txt)
 endif
 
 dailytest : full
-	$(COPY) faillist faillist.$(DATESUFFIX)
-	$(COPY) log log.$(DATESUFFIX)
-	$(COPY) longlog longlog.$(DATESUFFIX)
-	-$(DIGEST) > digest.$(DATESUFFIX)
+        $(COPY) faillist faillist.$(DATESUFFIX)
+        $(COPY) log log.$(DATESUFFIX)
+        $(COPY) longlog longlog.$(DATESUFFIX)
+        -$(DIGEST) > digest.$(DATESUFFIX)
 ifdef LASTDATESUFFIX
-	-diff -u log.$(LASTDATESUFFIX) log.$(DATESUFFIX) > difflog.$(DATESUFFIX)
-	-diff -u digest.$(LASTDATESUFFIX) digest.$(DATESUFFIX) > diffdigest.$(DATESUFFIX)
-	-diff -u faillist.$(LASTDATESUFFIX) faillist.$(DATESUFFIX) > difflist.$(DATESUFFIX)
+        -diff -u log.$(LASTDATESUFFIX) log.$(DATESUFFIX) > difflog.$(DATESUFFIX)
+        -diff -u digest.$(LASTDATESUFFIX) digest.$(DATESUFFIX) > diffdigest.$(DATESUFFIX)
+        -diff -u faillist.$(LASTDATESUFFIX) faillist.$(DATESUFFIX) > difflist.$(DATESUFFIX)
 endif
-	@echo $(DATESUFFIX) > lastdate.txt
-			
+        @echo $(DATESUFFIX) > lastdate.txt
+
