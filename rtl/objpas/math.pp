@@ -137,9 +137,9 @@ function ldexp(x : float;p : longint) : float;
 { statistical functions }
 
 function mean(const data : array of float) : float;
-function sum(const data : array of float) : float;   
+function sum(const data : array of float) : float;
 function sumofsquares(const data : array of float) : float;
-{ calculates the sum and the sum of squares of data } 
+{ calculates the sum and the sum of squares of data }
 procedure sumsandsquares(const data : array of float;
   var sum,sumofsquares : float);
 function minvalue(const data : array of float) : float;
@@ -224,7 +224,7 @@ function radtocycle(rad : float) : float;
 
   begin
      { avoid division }
-     radtocycle:=rad*(1/(2*pi)); 
+     radtocycle:=rad*(1/(2*pi));
   end;
 
 function tan(x : float) : float;
@@ -253,7 +253,7 @@ procedure sincos(theta : float;var sinus,cosinus : float);
     movl 20(%ebp),%eax
     fstpl (%eax)
     movl 16(%ebp),%eax
-    fstpl (%eax) 
+    fstpl (%eax)
   end;
   {$endif}
   end;
@@ -283,7 +283,7 @@ function arctan2( x,y : float) : float;
     fldt 8(%ebp)
     fldt 18(%ebp)
     fpatan
-    leave 
+    leave
     ret $20
     end;
   {$endif}
@@ -355,9 +355,6 @@ function arsinh(x : float) : float;
   end;
 
 function artanh(x : float) : float;
-
-  var temp : Float;
-
   begin
     If abs(x)>1 then InvalidArgument;
     artanh:=(Ln((1+x)/(1-x)))*0.5;
@@ -452,7 +449,7 @@ function mean(const data : array of float) : float;
 
   begin
      mean:=sum(data);
-     mean:=mean/(high(data)-low(data)+1); 
+     mean:=mean/(high(data)-low(data)+1);
   end;
 
 function sum(const data : array of float) : float;
@@ -531,7 +528,7 @@ procedure meanandstddev(const data : array of float;
   var mean,stddev : float);
 
   begin
-     
+
   end;
 
 function variance(const data : array of float) : float;
@@ -578,9 +575,9 @@ procedure momentskewkurtosis(const data : array of float;
 
   Var S,SS,SC,SQ,invN,Acc,M1S,S2N,S3N,temp : Float;
       I : Longint;
-      
+
   begin
-     invN:=1/(High(Data)-Low(Data)+1);
+     invN:=1.0/(High(Data)-Low(Data)+1);
      s:=0;
      ss:=0;
      sq:=0;
@@ -617,7 +614,10 @@ end.
 
 {
     $Log$
-    Revision 1.2  1998-07-29 15:44:34  michael
+    Revision 1.3  1998-09-09 15:29:05  peter
+      * removed some warnings
+
+    Revision 1.2  1998/07/29 15:44:34  michael
      included sysutils and math.pp as target. They compile now.
 
     Revision 1.1.1.1  1998/03/25 11:18:49  root

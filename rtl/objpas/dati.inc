@@ -32,44 +32,45 @@ function DoEncodeDate(Year, Month, Day: Word):longint;
 var
    I: Longint;
 begin
-DoEncodeDate := 0;
-if (Year >= 1) and (Year <= 9999) and (Month >= 1) and (Month <= 12) and
-   (Day >= 1) and (Day <= 31) then begin
-   Day := Day + DayTable[IsLeapYear(Year), Month] - 1;
-   I := Year - 1;
-   DoEncodeDate := I * 365 + I div 4 - I div 100 + I div 400 + Day;
-   end ;
-end ;
+  DoEncodeDate := 0;
+  if (Year >= 1) and (Year <= 9999) and (Month >= 1) and (Month <= 12) and
+     (Day >= 1) and (Day <= 31) then
+    begin
+      Day := Day + DayTable[IsLeapYear(Year), Month] - 1;
+      I := Year - 1;
+      DoEncodeDate := I * 365 + I div 4 - I div 100 + I div 400 + Day;
+    end;
+end;
 
 function  doEncodeTime(Hour,Minute,Second,MilliSecond:word):longint;
 begin
-doEncodeTime := (Hour * 3600000 + Minute * 60000 + Second * 1000 + MilliSecond) { div MSecsPerDay} ;
-end ;
+  doEncodeTime := (Hour * 3600000 + Minute * 60000 + Second * 1000 + MilliSecond) { div MSecsPerDay} ;
+end;
 
 function  DateToStr(Date:TDateTime):string;
 begin
-DateToStr := FormatDateTime('c', Date);
-end ;
+  DateToStr := FormatDateTime('c', Date);
+end;
 
 function  TimeToStr(Time:TDateTime):string;
 begin
-TimeToStr := FormatDateTime('t', Time);
-end ;
+  TimeToStr := FormatDateTime('t', Time);
+end;
 
 function  DateTimeToStr(DateTime:TDateTime):string;
 begin
-DateTimeToStr := FormatDateTime('c t', DateTime);
-end ;
+  DateTimeToStr := FormatDateTime('c t', DateTime);
+end;
 
 function  EncodeDate(Year, Month, Day :word):TDateTime;
 begin
-EncodeDate := DoEncodeDate(Year, Month, Day);
-end ;
+  EncodeDate := DoEncodeDate(Year, Month, Day);
+end;
 
 function  EncodeTime(Hour, Minute, Second, MilliSecond:word):TDateTime;
 begin
-EncodeTime := doEncodeTime(hour, minute, second, millisecond) / MSecsPerDay;
-end ;
+  EncodeTime := doEncodeTime(hour, minute, second, millisecond) / double(MSecsPerDay);
+end;
 
 procedure DecodeDate(Date:TDateTime;var Year:word;var Month:word;var Day:word);
 const
@@ -78,7 +79,6 @@ const
    D100 = D4 * 25 - 1;  { number of days in 100 years }
    D400 = D100 * 4 + 1; { number of days in 400 years }
 var
-   i:Longint;
    l:longint;
    ly:boolean;
 begin
@@ -92,7 +92,7 @@ ly := IsLeapYear(Year);
 while (month < 12) and (l > DayTable[ly, month + 1]) do
    inc(month);
 day := l - DayTable[ly, month];
-end ;
+end;
 
 procedure DecodeTime(Time:TDateTime;var Hour:word;var Minute:word;var Second:word;var MilliSecond:word);
 var l:longint;
@@ -102,7 +102,7 @@ Hour   := l div 3600000;l := l mod 3600000;
 Minute := l div 60000;l := l mod 60000;
 Second := l div 1000;l := l mod 1000;
 MilliSecond := l;
-end ;
+end;
 
 function  FormatDateTime(formatstr:string;DateTime:TDateTime):string;
 var i:longint;result:string;current:string;e:longint;
@@ -121,19 +121,19 @@ while not(i > length(formatstr)) do begin
    while not(formatstr[i] in [' ','"','/',':','''']) and not(i > length(formatstr)) do begin
       current := current + formatstr[i];
       inc(i);
-      end ;
+      end;
    if ((current = 'a') or (current = 'am')) and (formatstr[i] = '/') then begin
       inc(i);current := current + '/';
       while not(formatstr[i] in [' ','"','/',':','''']) and not(i > length(formatstr)) do begin
          current := current + formatstr[i];
          inc(i);
-         end ;
-      end ;
+         end;
+      end;
    if not(current = '') then begin
       if (current = 'c') then begin
          i := 1; result := ''; current := '';
          formatstr := ' ' + shortdateformat + '" "' + shorttimeformat;
-         end ;
+         end;
       if not(mTime = 0) then begin
          if (current = 't') then begin
             formatstr := ' ' + shorttimeformat + copy(formatstr, i, length(formatstr));
@@ -150,18 +150,18 @@ while not(i > length(formatstr)) do begin
          else if (current = 's') then result := result + inttostr(s)
          else if (current = 'ss') then result := result + right('0'+inttostr(s),2)
          else if (current = 'am/pm') then begin
-      	   if (h < 13) then result := result + 'am'
+           if (h < 13) then result := result + 'am'
             else result := result + 'pm';
-			   end
+                           end
          else if (current = 'a/p') then begin
-      	   if h < 13 then result := result + 'a'
+           if h < 13 then result := result + 'a'
             else result := result + 'p';
-      	   end
+           end
          else if (current = 'ampm') then begin
             if h < 13 then strCat(result, TimeAMString)
             else strCat(result, TimePMString);
-            end ;
-         end ;
+            end;
+         end;
       if not(mDate = 0) then begin
          if (current = 'd') then result := result + inttostr(d)
          else if (current = 'dd') then result := result + right('0' + inttostr(d), 2)
@@ -174,9 +174,9 @@ while not(i > length(formatstr)) do begin
          else if (current = 'y') then result := result + inttostr(y)
          else if (current = 'yy') then result := result + right(inttostr(y), 2)
          else if (current = 'yyyy') or (current = 'yyy') then result := result + inttostr(y);
-         end ;
+         end;
       current := '';
-      end ;
+      end;
    if (formatstr[i] = '/') and not(mDate = 0) then result := result + dateseparator
    else if (formatstr[i] = ':') and not(mTime = 0) then result := result + timeseparator
    else if (formatstr[i] in ['"','''']) then begin
@@ -184,12 +184,12 @@ while not(i > length(formatstr)) do begin
       while not(formatstr[i] in ['"','''']) and not(i > length(formatstr)) do begin
          result := result + formatstr[i];
          inc(i);
-         end ;
-      end ;
+         end;
+      end;
    inc(i);
-   end ;
+   end;
 FormatDateTime := Result;
-end ;
+end;
 
 function  StrToDate(const s:string):TDateTime;
 var
@@ -210,8 +210,8 @@ for i := 1 to length(s) do begin
       val(s1, values[n], c);
       s1 := '';
       inc(n);
-      end ;
-   end ;
+      end;
+   end;
 if (df = 'D/M/Y') then begin
    d := values[0];
    m := values[1];
@@ -229,7 +229,7 @@ else if (df = 'M/D/Y') then begin
 else if (df = 'Y/M/D') then begin
    if (n = 3) then begin
       y := values[0];
-   	m := values[1];
+        m := values[1];
       d := values[2];
       end
    else if (n = 2) then begin
@@ -238,71 +238,78 @@ else if (df = 'Y/M/D') then begin
       end
    else if (n = 1) then
       d := values[0];
-   end ;
+   end;
 if (n < 3) then begin
    getLocalTime(LocalTime);
    y := LocalTime.wYear;
    if (n < 2) then
       m := LocalTime.wMonth;
-   end ;
+   end;
 if (y >= 0) and (y < 100) then y := 1900 + y;
 StrToDate := DoEncodeDate(y, m, d);
-end ;
+end;
+
 
 function  StrToTime(const s:string):TDateTime;
 begin
-end ;
+end;
+
 
 function  StrToDateTime(const s:string):TDateTime;
 begin
-end ;
+end;
+
 
 function  DayOfWeek(DateTime:TDateTime):longint;
 begin
-DayOfWeek := (1 + Trunc(DateTime)) mod 7;
-end ;
+  DayOfWeek := (1 + Trunc(DateTime)) mod 7;
+end;
 
 procedure getlocaltime(var systemtime:tsystemtime);
-var wDayOfWeek:word;
+var
+  wDayOfWeek:word;
 begin
-getdate(systemtime.wYear,
-  		  systemtime.wMonth,
-        systemtime.wDay,
-        wDayOfWeek);
-gettime(systemtime.whour,
-        systemtime.wminute,
-		  systemtime.wsecond,
-		  systemtime.wmillisecond);
-systemtime.wmillisecond := systemtime.wmillisecond * 10;
-end ;
+  getdate(systemtime.wYear,systemtime.wMonth,systemtime.wDay,wDayOfWeek);
+  gettime(systemtime.whour,systemtime.wminute,systemtime.wsecond,systemtime.wmillisecond);
+  systemtime.wmillisecond := systemtime.wmillisecond * 10;
+end;
+
 
 function  Date:TDateTime;
-var systemtime:tsystemtime;
+var
+  systemtime:tsystemtime;
 begin
-getlocaltime(systemtime);
-date := doEncodeDate(systemtime.wYear,systemtime.wMonth,systemtime.wDay);
-end ;
+  getlocaltime(systemtime);
+  date := doEncodeDate(systemtime.wYear,systemtime.wMonth,systemtime.wDay);
+end;
+
 
 function  Time:TDateTime;
-var systemtime:tsystemtime;
+var
+  systemtime:tsystemtime;
 begin
-getlocaltime(systemtime);
-time := doEncodeTime(systemtime.wHour,systemtime.wMinute,
-                   systemtime.wSecond,systemtime.wMillisecond) / MSecsPerDay;
-end ;
+  getlocaltime(systemtime);
+  time := doEncodeTime(systemtime.wHour,systemtime.wMinute,
+            systemtime.wSecond,systemtime.wMillisecond) / double(MSecsPerDay);
+end;
+
 
 function  Now:TDateTime;
-var systemtime:tsystemtime;
+var
+  systemtime:tsystemtime;
 begin
-getlocaltime(systemtime);
-now := doEncodeDate(systemtime.wYear,systemtime.wMonth,systemtime.wDay) +
-       doEncodeTime(systemtime.wHour,systemtime.wMinute,
-                    systemtime.wSecond,systemtime.wMillisecond) / MSecsPerDay;
-end ;
+  getlocaltime(systemtime);
+  now := doEncodeDate(systemtime.wYear,systemtime.wMonth,systemtime.wDay) +
+         doEncodeTime(systemtime.wHour,systemtime.wMinute,
+           systemtime.wSecond,systemtime.wMillisecond) / double(MSecsPerDay);
+end;
 
 {
   $Log$
-  Revision 1.1  1998-04-10 15:17:46  michael
+  Revision 1.2  1998-09-09 15:29:04  peter
+    * removed some warnings
+
+  Revision 1.1  1998/04/10 15:17:46  michael
   + Initial implementation; Donated by Gertjan Schouten
     His file was split into several files, to keep it a little bit structured.
 

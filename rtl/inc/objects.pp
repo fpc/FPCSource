@@ -98,7 +98,9 @@ UNIT Objects;
 {$E+} {  Emulation is on }
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
-{$S-} { Disable Stack Checking }
+{$ifndef Linux}
+  {$S-} { Disable Stack Checking }
+{$endif}
 {$I-} { Disable IO Checking }
 {$Q-} { Disable Overflow Checking }
 {$V-} { Turn off strict VAR strings }
@@ -2732,7 +2734,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.7  1998-07-15 12:08:33  carl
+  Revision 1.8  1998-09-09 15:29:02  peter
+    * removed some warnings
+
+  Revision 1.7  1998/07/15 12:08:33  carl
     + Atari TOS support
 
   Revision 1.6  1998/07/08 12:00:25  carl
