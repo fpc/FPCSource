@@ -338,7 +338,8 @@ implementation
            { we may use ansistrings so no fast exit here }
            begin
              procinfo^.no_fast_exit:=true;
-             inc(p^.registers32);
+             if p^.registers32 < 2 then
+               p^.registers32 := 2;
            end;
          p^.location.loc:=LOC_MEM;
       end;
@@ -1027,7 +1028,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-21 09:23:47  jonas
+  Revision 1.4  2000-08-01 10:41:35  jonas
+    * refined my previous IE(10) fix (in some cases, too many registers could
+      be reserved) (merged from fixes branch)
+
+  Revision 1.3  2000/07/21 09:23:47  jonas
     * merged from fixes branch
 
   Revision 1.2  2000/07/13 11:32:51  michael
