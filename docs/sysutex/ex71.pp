@@ -1,4 +1,6 @@
-Program dof;
+Program example71;
+
+{ This program demonstrates the Format function }
 
 Uses sysutils;
 

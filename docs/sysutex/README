@@ -71,3 +71,6 @@ ex68.pp contains an example of the FloatToStrF function.
 ex69.pp contains an example of the FloatToText function.
 ex70.pp contains an example of the FmtStr function.
 ex71.pp contains an example of the Format function.
+ex71.pp contains an example of the FormatBuf function.
+ex73.pp contains an example of the IntToHex function.
+ex74.pp contains an example of the IntToStr function.
