@@ -16,11 +16,11 @@
 { Run-Time type information routines - processor dependent part }
 {$ASMMODE DIRECT}
 
-Procedure Initialize (Data,TypeInfo : pointer);[Alias : 'INITIALIZE'];assembler;
+Procedure Initialize (Data,TypeInfo : pointer);[Public,Alias : 'INITIALIZE'];assembler;
 
 asm
 # Save registers
-	push   %esp
+	push   %ebp
 	movl   %esp,%ebp
         push    %eax
 	push    %ebx
@@ -97,11 +97,11 @@ asm
 	ret	$8
 end;
 
-Procedure Finalize (Data,TypeInfo: Pointer);[Alias : 'FINALIZE']; assembler;
+Procedure Finalize (Data,TypeInfo: Pointer);[Public, Alias : 'FINALIZE']; assembler;
 
 asm
 # Save registers
-	push    %esp
+	push    %ebp
 	movl    %esp,%ebp
         push    %eax
 	push    %ebx
@@ -179,11 +179,11 @@ asm
 	ret	$8
 end;
 
-Procedure Addref (Data,TypeInfo : Pointer); [alias : 'ADDREF'];Assembler;
+Procedure Addref (Data,TypeInfo : Pointer); [Public, alias : 'ADDREF'];Assembler;
 
 asm
 # Save registers
-	push    %esp
+	push    %ebp
 	movl    %esp,%ebp
         push    %eax
 	push    %ebx
@@ -262,11 +262,11 @@ asm
 	ret	$8
 end;
 
-Procedure DecRef (Data,TypeInfo : Pointer); [alias : 'DECREF'];Assembler;
+Procedure DecRef (Data,TypeInfo : Pointer); [Public, alias : 'DECREF'];Assembler;
 
 asm
 # Save registers
-	push    %esp
+	push    %ebp
 	movl    %esp,%ebp
         push    %eax
 	push    %ebx
@@ -349,7 +349,10 @@ end;
 
 {
   $Log$
-  Revision 1.3  1998-06-10 07:46:49  michael
+  Revision 1.4  1998-06-17 11:50:43  michael
+  + Small patch: forgot to make alias public
+
+  Revision 1.3  1998/06/10 07:46:49  michael
   + Forgot to commit some changes
 
   Revision 1.2  1998/06/08 19:31:03  michael
