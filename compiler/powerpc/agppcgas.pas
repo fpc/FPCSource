@@ -127,6 +127,8 @@ unit agppcgas;
         'XER','LR','CTR','FPSCR'
       );
 
+     symaddr2str: array[trefsymaddr] of string[4] = ('','ha16','lo16');
+
     function getreferencestring(var ref : treference) : string;
     var
       s : string;
@@ -143,9 +145,10 @@ unit agppcgas;
               halt(1);
             end;
 {$endif testing}
-          s:='';
-          if assigned(symbol) then
-           s:=s+symbol.name + symaddr2str[symaddr];
+          if not assigned(symbol) then
+             s:=''
+           else
+             s:=symaddr2str[symaddr]+'('+symbol.name + ')';
           if offset<0 then
            s:=s+tostr(offset)
           else
@@ -337,7 +340,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2002-07-11 14:41:34  florian
+  Revision 1.5  2002-07-12 10:10:01  jonas
+    * changed motorola syntax of references with symbols to GNU syntax
+
+  Revision 1.4  2002/07/11 14:41:34  florian
     * start of the new generic parameter handling
 
   Revision 1.3  2002/07/11 07:34:55  jonas
