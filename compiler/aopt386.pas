@@ -1229,15 +1229,19 @@ End;
                             (Pai386(hp1)^._operator=A_PUSH) and
                             (Pai386(hp1)^.op1t = top_reg) And
                             (Pai386(hp1)^.op1=Pai386(p)^.op1) then
-                              begin
+                           If (Not(cs_maxoptimieren in aktswitches)) Then
+                              Begin
                                 hp2:=pai(hp1^.next);
                                 asml^.remove(p);
                                 asml^.remove(hp1);
                                 dispose(p,done);
                                 dispose(hp1,done);
                                 p:=hp2;
-                                continue;
-{                                Pai386(p)^._operator := A_MOV;
+                                continue
+                              End
+                            Else
+                              Begin
+                                Pai386(p)^._operator := A_MOV;
                                 Pai386(p)^.op2 := Pai386(p)^.op1;
                                 Pai386(p)^.opxt := top_ref + top_reg shl 4;
                                 New(TmpRef);
@@ -1251,8 +1255,8 @@ End;
                                 Pai386(p)^.op1 := Pointer(TmpRef);
                                 hp1 := Pai(p^.next);
                                 AsmL^.Remove(hp1);
-                                Dispose(hp1, Done)}
-                              end;
+                                Dispose(hp1, Done)
+                              End
                        end;
                      A_PUSH:
                        Begin
@@ -1631,7 +1635,10 @@ end;
 End.
 {
   $Log$
-  Revision 1.16  1998-07-14 14:46:42  peter
+  Revision 1.17  1998-07-15 16:06:00  jonas
+    * change "pop reg/push reg to "mov (%esp), reg" with -Ox, remove otherwise
+
+  Revision 1.16  1998/07/14 14:46:42  peter
     * released NEWINPUT
 
   Revision 1.15  1998/06/16 08:56:17  peter
