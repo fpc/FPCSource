@@ -77,7 +77,7 @@ var
                              Executable Loaders
 ****************************************************************************}
 
-{$if netbsd or freebsd or linux or sunos}
+{$if defined(netbsd) or defined(freebsd) or defined(linux) or defined(sunos)}
   {$define ELF32}
 {$endif}
 
@@ -551,136 +551,6 @@ end;
 {$endif beos}
 
 
-{$ifdef netware}
-{the nlm format is not documented but we have the sources for
- binutils ;-) }    
-function LoadNlmNetware:boolean;
-type str255 = string [255];
-Const NLM_FileBegin = 'NetWare Loadable Module'#$1A;
-      NLM_InternalFixedHdrSize = 130;
-      NLM_InternalVersionHdrSize = 32;
-      NLM_InternalExtHdrSize = 124;
-var HdrChk : string[24];
-    name   : string [30];
-    valid  : boolean;
-    dataOffset,align:longint;
-
-  function getByte : byte;
-  var b : byte;
-  begin
-    blockread (f, b, 1);
-    getByte := b;
-  end;
-
-  procedure skip (bytes : integer);
-  begin
-    seek (f, filepos (f)+bytes);
-  end;
-
-  procedure skipLString;
-  begin
-    skip (getByte+1);
-  end;
-
-  function getNullString : str255;
-  var c : char;
-      s : str255;
-  begin
-    s := '';
-    c := char (getbyte);
-    while (c <> #0) do
-    begin
-      s := s + c;
-      c := char (getbyte);
-    end;
-    getNullString := s;
-  end;
-
-  function getFixString (Len : byte) : str255;
-  var i : byte;
-      s : string;
-  begin
-    s := '';
-    for i := 1 to Len do
-      s := s + char (getbyte);
-    getFixString := s;  
-  end;
-
-  procedure getLongint (var l : longint);
-  begin
-    blockread (f, l, 4);
-  end;
-
-begin
-  LoadNlmNetware:=false;
-  stabofs:=-1;
-  stabstrofs:=-1;
-  processaddress := System.NetwareCodeStartAddress;
-  setlength(HdrChk,24);
-  blockread (f,HdrChk[1],24);
-  if HdrChk <> NLM_FileBegin then exit;
-  Seek (f, NLM_InternalFixedHdrSize);
-
-  {Read the Variable header}
-  skipLString;  {Description}
-  skip (4 {Stacksize} + 4{Reserved} +5{oldThreadName});
-
-  skipLString;  {ScreenName}
-  skipLString;  {threadName}
-
-  dataOffset := 0;
-
-  valid := true;
-  repeat
-    name := getFixString (8);
-    if (name = 'VeRsIoN#') then
-      Skip (NLM_InternalVersionHdrSize-8)
-    else
-    if (name = 'CoPyRiGh') then
-    begin
-      skip(2);  // T=
-      skipLString;  {Copyright}
-    end else
-    if (name = 'MeSsAgEs') then
-      skip (NLM_InternalExtHdrSize - 8)
-    else
-    if (name = 'CuStHeAd') then
-    begin
-      Skip(4); {hdrLength}
-      getLongint (dataOffset);
-      Skip(4+8); {dataLength(4), dataStamp(8)  or hdrLength-4 ?}
-      valid := false;
-    end else
-      Valid := false;
-  until not valid;
-
-  if dataOffset = 0 then exit;
-
-  Seek (F, dataOffset);
-  Repeat
-    Name := GetNullString;
-    align := 4 - ((length (Name) + 1) MOD 4);
-    Skip (align);
-    if (Name = '.stab') then
-    begin
-      getLongint (stabofs);
-      getLongint (stabcnt); {stabLength}
-      stabcnt:=stabcnt div sizeof(tstab);
-    end else
-    if (Name = '.stabstr') then
-    begin
-      getLongint (stabStrOfs);
-      Skip (4);  {stabStrLength}
-      if stabofs <> 0 then name := '';  {skip other sections}
-    end else
-      Skip (8);
-  until Name = '';
-  LoadNlmNetware := (stabofs<>-1) and (stabstrofs<>-1);
-end;
-{$endif}
-
-
-
 {****************************************************************************
                           Executable Open/Close
 ****************************************************************************}
@@ -739,13 +609,6 @@ begin
   if LoadElf32Beos then
    begin
      OpenStabs:=true;
-     exit;
-   end;
-{$endif}
-{$ifdef netware}
-  if LoadNlmNetware then
-   begin
-     OpenStabs := true;
      exit;
    end;
 {$endif}
@@ -910,7 +773,6 @@ end;
 
 initialization
   BackTraceStrFunc:=@StabBackTraceStr;
-  opened := false;
 
 finalization
   if opened then
@@ -919,9 +781,8 @@ finalization
 end.
 {
   $Log$
-  Revision 1.17  2003-03-17 15:30:06  armin
-  + netware support
-  + opened was not initialized
+  Revision 1.18  2003-03-25 19:27:45  peter
+    * fix ifdef to define elf32
 
   Revision 1.16  2003/03/17 14:30:11  peter
     * changed address parameter/return values to pointer instead
@@ -950,4 +811,3 @@ end.
    * more Renamefest
 
 }
-
