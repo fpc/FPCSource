@@ -17,7 +17,7 @@ Compiler:
   * $fputype directive
   + properties of type single can have default values
   + support of $IF DECLARED()
-  + support of DQWORT in inline intel assembler code
+  + support of DQWORD in inline intel assembler code
   * lots of bug fixes
 
 RTL:
