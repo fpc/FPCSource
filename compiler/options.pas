@@ -1513,7 +1513,7 @@ begin
              addinfo(source_cpu_string);
 {$endif Delphi}
            else
-             IllegalPara('-iS'+QuickInfo);
+             IllegalPara('-i'+QuickInfo);
           end;
         end;
       'T' :
@@ -1525,7 +1525,7 @@ begin
            'P' :
              AddInfo(target_cpu_string);
            else
-             IllegalPara('-iT'+QuickInfo);
+             IllegalPara('-i'+QuickInfo);
           end;
         end;
       'V' :
@@ -1989,7 +1989,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.117  2003-12-11 18:15:06  florian
+  Revision 1.118  2003-12-17 22:50:42  hajny
+    * fixed incorrect error message
+
+  Revision 1.117  2003/12/11 18:15:06  florian
     * HASGLOBALPROPERTY define introduce
 
   Revision 1.116  2003/12/10 01:54:44  florian
