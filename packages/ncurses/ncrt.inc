@@ -53,6 +53,14 @@
           | 2) Added nInit and moved code from ncrt.pp & ocrt.pp to it.
           | 3) KEY_ALTMINUS & KEYALTEQUAL were reversed, but mapping ended
           | up correct.
+  2.15.00 | 1) Added nMaxRows & nMaxCols constants.
+          | 2) See ocrt.pp
+  2.16.00 | 08/14/2000 | kjw | See ocrt.pp
+          | 08/24/2000 | kjw |
+          | 1) Added nTermName.
+          | 2) Added CursesFailed.
+          | 3) Moved all common initialization code to nInit.
+          | 4) prev_textattr more reliable.
 ------------------------------------------------------------------------------
 }
 
@@ -81,13 +89,14 @@ Procedure nStop;
 Procedure nStart;
  Function nCursor(c : integer) : integer;
  Function nEscDelay(d : longint) : longint;
+ Function nTermName : string;
 
 Const
 
    NCRT_VERSION_MAJOR = 2;
-   NCRT_VERSION_MINOR = 14;
+   NCRT_VERSION_MINOR = 16;
    NCRT_VERSION_PATCH = 0;
-   NCRT_VERSION = '2.14.00';
+   NCRT_VERSION = '2.16.00';
 
  { CRT modes }
    BW40          = 0;            { 40x25 B/W on Color Adapter }
@@ -171,6 +180,10 @@ Const
    cON  = 1; { normal cursor }
    cBIG = 2; { very visible cursor }
 
+   { fullscreen size }
+   nMaxRows : word = 25; { reset at startup to terminal setting }
+   nMaxCols : word = 80; { for columns and rows }
+
  var
    CheckBreak,
    CheckEOF,
@@ -194,6 +207,7 @@ Var
    ps : array [0..255] of char;       { for use with pchars }
    doRefresh : boolean;               { immediate refresh toggle }
    SubWn,                             { window created from window() }
+   PrevWn,                            { previous window when active changes }
    ActiveWn : pwindow;                { current active window for stdout }
    tmp_b : boolean;
    isEcho : boolean;                  { keeps track of echo status }
@@ -230,6 +244,17 @@ type
   End;
 {==========================================================================}
 
+{ set the active window for write(ln), read(ln) }
+Procedure SetActiveWn(win : pwindow);
+Begin
+   If win <> ActiveWn Then PrevWn := ActiveWn;
+   { don't set to a nil window! }
+   If win <> Nil Then
+      ActiveWn := win
+   Else
+      ActiveWn := stdscr;
+End;
+
 {--------------------------------------------
   initialize ncurses screen & keyboard, and
   return a pointer to stdscr.
@@ -244,6 +269,7 @@ Begin
    tcGetAttr(STDIN,tios);
    if initscr=Nil then Begin
       StartCurses := false;
+      win := nil;
       Exit;
    End Else Begin
       StartCurses := true;
@@ -259,6 +285,9 @@ Begin
       isEcho := true;
       doRefresh := true;
       getmaxyx(stdscr,MaxRows,MaxCols);
+      { make these values visible to apps }
+      nMaxRows := MaxRows;
+      nMaxCols := MaxCols;
       { define the the alt'd keysets for ncurses }
       { alt/a .. atl/z }
       for i := ord('a') to ord('z') do Begin
@@ -308,17 +337,15 @@ Begin
 End;
 
 { see if the specified attribute is high intensity }
-Function IsBold(att : integer) : boolean;
+Function nIsBold(att : integer) : boolean;
 Begin
    bg := att div 16;
    fg := att - (bg * 16);
-   isbold := (fg > 7);
+   nisbold := (fg > 7);
 End;
 
-{ initialize a color pair }
-Function SetColorPair(att : integer) : integer;
-var
-   i : integer;
+{ map a curses color to an ibm color }
+Function c2ibm(c : integer) : integer;
 { ncurses constants
    COLOR_BLACK   = 0;
    COLOR_RED     = 1;
@@ -329,35 +356,56 @@ var
    COLOR_CYAN    = 6;
    COLOR_WHITE   = 7;
 }
+Var
+   att : integer;
+Begin
+   Case c of
+      COLOR_BLACK   : att := black;
+      COLOR_RED     : att := red;
+      COLOR_GREEN   : att := green;
+      COLOR_YELLOW  : att := brown;
+      COLOR_BLUE    : att := blue;
+      COLOR_MAGENTA : att := magenta;
+      COLOR_CYAN    : att := cyan;
+      COLOR_WHITE   : att := lightgray;
+      else att := c;
+   End;
+   c2ibm := att;
+End;
+
+{ map an ibm color to a curses color }
+Function ibm2c(c : integer) : integer;
+Var
+   att : integer;
+Begin
+   Case c of
+      black     : att := COLOR_BLACK;
+      red       : att := COLOR_RED;
+      green     : att := COLOR_GREEN;
+      brown     : att := COLOR_YELLOW;
+      blue      : att := COLOR_BLUE;
+      magenta   : att := COLOR_MAGENTA;
+      cyan      : att := COLOR_CYAN;
+      lightgray : att := COLOR_WHITE;
+      else att := c;
+   End;
+   ibm2c := att;
+End;
+
+{ initialize a color pair }
+Function nSetColorPair(att : integer) : integer;
+var
+   i : integer;
 Begin
    bg := att div 16;
-   fg := att - ((att div 16) * 16);
+   fg := att - (bg * 16);
    While bg > 7 Do dec(bg,8);
    While fg > 7 Do dec(fg,8);
-   { map to ncurses color values }
-   case bg of
-      0 : bg := COLOR_BLACK;
-      1 : bg := COLOR_BLUE;
-      2 : bg := COLOR_GREEN;
-      3 : bg := COLOR_CYAN;
-      4 : bg := COLOR_RED;
-      5 : bg := COLOR_MAGENTA;
-      6 : bg := COLOR_YELLOW;
-      7 : bg := COLOR_WHITE;
-   end;
-   case fg of
-      0 : fg := COLOR_BLACK;
-      1 : fg := COLOR_BLUE;
-      2 : fg := COLOR_GREEN;
-      3 : fg := COLOR_CYAN;
-      4 : fg := COLOR_RED;
-      5 : fg := COLOR_MAGENTA;
-      6 : fg := COLOR_YELLOW;
-      7 : fg := COLOR_WHITE;
-   end;
+   bg := ibm2c(bg);
+   fg := ibm2c(fg);
    i := cp[bg,fg];
    init_pair(i,fg,bg);
-   SetColorPair := i;
+   nSetColorPair := i;
 End;
 
 { map a standard color attribute to an ncurses attribute }
@@ -365,8 +413,8 @@ Function CursesAtts(att : byte) : longint;
 Var
    atts : longint;
 Begin
-   atts := COLOR_PAIR(SetColorPair(att));
-   If IsBold(att) Then atts := atts or A_BOLD;
+   atts := COLOR_PAIR(nSetColorPair(att));
+   If nIsBold(att) Then atts := atts or A_BOLD;
    If (att and $80) = $80 Then atts := atts or A_BLINK;
    CursesAtts := atts;
 End;
@@ -380,7 +428,7 @@ Begin
    If (win = stdscr) or (win = curscr) Then Exit;
    If win <> Nil Then delwin(win);
    win := Nil;
-   If ActiveWn = Nil Then ActiveWn := stdscr;
+   If ActiveWn = Nil Then SetActiveWn(stdscr);
 End;
 
 {-----------------------------------------
@@ -389,7 +437,7 @@ End;
  -----------------------------------------}
 Procedure nWinColor(win : pWindow; att : integer);
 Begin
-   wattr_set(win,CursesAtts(att));
+   wattrset(win,CursesAtts(att));
    prev_textattr := att;
 End;
 
@@ -400,6 +448,7 @@ Begin
    TouchWin(win);
    werase(win);
    If doRefresh Then wrefresh(win);
+   prev_textattr := att;
 End;
 
 { clear from the cursor to the end of line in a window }
@@ -784,7 +833,7 @@ Begin
    intrflush(SubWn,bool(false));
    keypad(SubWn,bool(true));
    scrollok(SubWn,bool(true));
-   ActiveWn := SubWn;
+   SetActiveWn(SubWn);
    GotoXY(1,1);
 End;
 
@@ -844,8 +893,7 @@ End;
 Procedure TextMode(mode : word);
 Begin
    nDelWindow(SubWn);
-   ActiveWn := stdscr;
-   NormVideo;
+   SetActiveWn(stdscr);
    LastMode := mode;
    DirectVideo := true;
    CheckSnow := true;
@@ -868,23 +916,18 @@ Begin
    If d >= 0 Then ESCDELAY := d;
 End;
 
-{ unit initialization, following ncurses init }
-Procedure nInit;
+{ return the current terminal name (same as $TERM env variable) }
+Function nTermName : string;
 Begin
-   SubWn := nil;
-   TextMode(LastMode);
+   nTermName := StrPas(termname);
+End;
 
-   { Redirect the standard output }
-   assigncrt(Output);
-   Rewrite(Output);
-   TextRec(Output).Handle:=StdOutputHandle;
-   { Redirect the standard input }
-   assigncrt(Input);
-   Reset(Input);
-   TextRec(Input).Handle:=StdInputHandle;
-
-   nEscDelay(500); { default is 1000 (1 second) }
-   nCursor(cON);   { normal cursor }
+{ could not initialize ncurses }
+Procedure CursesFailed;
+Begin
+   { give 'em a clue! }
+   Writeln('StartCurses() failed');
+   Halt;
 End;
 
 { exit procedure to ensure curses is closed up cleanly }
@@ -894,9 +937,36 @@ Begin
    EndCurses;
 End;
 
+Procedure nInit;
+Begin
+   { set the unit exit procedure }
+   ExitSave := ExitProc;
+   ExitProc := @nExit;
+   { load the color pairs array with color pair indices (0..63 }
+   For bg := 0 to 7 Do For fg := 0 to 7 do cp[bg,fg] := (bg*8)+fg;
+   { initial window pointers }
+   SubWn := nil;
+   PrevWn := ActiveWn;
+   { basic gray on black screen }
+   TextMode(LastMode);
+   { Redirect the standard output }
+   assigncrt(Output);
+   Rewrite(Output);
+   TextRec(Output).Handle:=StdOutputHandle;
+   { Redirect the standard input }
+   assigncrt(Input);
+   Reset(Input);
+   TextRec(Input).Handle:=StdInputHandle;
+   { some defaults }
+   nEscDelay(500); { default is 1000 (1 second) }
+   nCursor(cON);   { normal cursor }
+End;
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:27  michael
+  Revision 1.3  2000-08-29 05:51:09  michael
+  + Merged changes and additions from fixbranch
+
+  Revision 1.2  2000/07/13 11:33:27  michael
   + removed logs
  
 }

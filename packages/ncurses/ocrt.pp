@@ -122,11 +122,33 @@ Unit oCrt;
           | 7) tnWindow.Align was wrong when justify was none.
   2.13.00 | 06/30/00 | kjw | See ncrt.inc
   2.14.00 | 07/05/00 | kjw | See ncrt.inc
+  2.15.00 | 07/12/00 | kjw |
+          | 1) Renamed IsBold to nIsBold. Renamed SetColorPair to nSetColorPair.
+          | 2) Added tnMenu object (not functional);
+          | 07/17/00 | kjw |
+          | 2) Argh!! Align method had another mistake. Changed x/y=1 to =0.
+          | 3) Added nShowMessage() function.
+          | 4) tnMenu is now minimally functional.
+          | 07/25/00 | kjw |
+          | 1) tnMenu fully functional for current level.
+  2.16.00 | 08/14/2000 | kjw |
+          | 1) Added Get/SetMark(), IsActive(), IsValid(), IsAssigned(),
+          | SetIndex() to tnMenu.
+          | 08/18/2000 | kjw |
+          | 1) Added nkXXX constants for all(?) extended keys.
+          | 2) Changed all uses of extended keys to use new nkXXX's.
+          | 3) Edit overloaded to return a nkXXX in ch rather that a char.
+          | 4) Resize method added to tnWindow.
+          | 5) AddChMap overloaded for preferred (easier) use with nkXXX's.
+          | 08/24/2000 | kjw |
+          | 1) Added nReadScr, nReadScrStr, nReadScrColor, nWriteScrStr,
+          | nGrabScreen, nPopScreen, nReleaseScreen.
+          | 2) Fixed some trouble with PrevWn accuracy.
 ------------------------------------------------------------------------------
 }
 Interface
 
-Uses linux,ncurses,panel;
+Uses linux,ncurses,panel,menu;
 
 Const
 
@@ -140,56 +162,155 @@ Const
    btSingle : integer = 1;
    btDouble : integer = 2;
 
-   { ordinal key codes }
-   nKeyEnter     = 13;      { Enter key }
-   nKeyEsc       = 27;      { Home key }
-   nKeyHome      = 71;      { Home key }
-   nKeyUp        = 72;      { Up arrow }
-   nKeyPgUp      = 73;      { PgUp key }
-   nKeyLeft      = 75;      { Left arrow }
-   nKeyRight     = 77;      { Right arrow }
-   nKeyEnd       = 79;      { End key }
-   nKeyDown      = 80;      { Down arrow }
-   nKeyPgDn      = 81;      { PgDn key }
-   nKeyIns       = 82;      { Insert key }
-   nKeyDel       = 83;      { Delete key }
-   nKeyCtrlLeft  = 115;     { Ctrl/left arrow }
-   nKeyCtrlRight = 116;     { Ctrl/right arrow }
-   nKeyF1        = 59;      { f1 key }
-   nKeyF2        = 60;      { f2 key }
-   nKeyF3        = 61;      { f3 key }
-   nKeyF4        = 62;      { f4 key }
-   nKeyF5        = 63;      { f5 key }
-   nKeyF6        = 64;      { f6 key }
-   nKeyF7        = 65;      { f7 key }
-   nKeyF8        = 66;      { f8 key }
-   nKeyF9        = 67;      { f9 key }
-   nKeyF10       = 68;      { f10 key }
-   nKeyF11       = 84;      { shift/f1 key }
-   nKeyF12       = 85;      { shift/f2 key }
-   nKeyF13       = 86;      { shift/f3 key }
-   nKeyF14       = 87;      { shift/f4 key }
-   nKeyF15       = 88;      { shift/f5 key }
-   nKeyF16       = 89;      { shift/f6 key }
-   nKeyF17       = 90;      { shift/f7 key }
-   nKeyF18       = 91;      { shift/f8 key }
-   nKeyF19       = 92;      { shift/f9 key }
-   nKeyF20       = 93;      { shift/f10 key }
+   { ordinal keycodes, new style, preferred }
+   nkEnter     = 13;       { Enter key }
+   nkEsc       = 27;       { Home key }
+   nkHome      = -71;      { Home key }
+   nkUp        = -72;      { Up arrow }
+   nkPgUp      = -73;      { PgUp key }
+   nkLeft      = -75;      { Left arrow }
+   nkRight     = -77;      { Right arrow }
+   nkEnd       = -79;      { End key }
+   nkDown      = -80;      { Down arrow }
+   nkPgDn      = -81;      { PgDn key }
+   nkIns       = -82;      { Insert key }
+   nkDel       = -83;      { Delete key }
+   nkCtrlLeft  = -115;     { Ctrl/left arrow }
+   nkCtrlRight = -116;     { Ctrl/right arrow }
+   nkF1        = -59;      { f1 key }
+   nkF2        = -60;      { f2 key }
+   nkF3        = -61;      { f3 key }
+   nkF4        = -62;      { f4 key }
+   nkF5        = -63;      { f5 key }
+   nkF6        = -64;      { f6 key }
+   nkF7        = -65;      { f7 key }
+   nkF8        = -66;      { f8 key }
+   nkF9        = -67;      { f9 key }
+   nkF10       = -68;      { f10 key }
+   nkF11       = -84;      { shift/f1 key }
+   nkF12       = -85;      { shift/f2 key }
+   nkF13       = -86;      { shift/f3 key }
+   nkF14       = -87;      { shift/f4 key }
+   nkF15       = -88;      { shift/f5 key }
+   nkF16       = -89;      { shift/f6 key }
+   nkF17       = -90;      { shift/f7 key }
+   nkF18       = -91;      { shift/f8 key }
+   nkF19       = -92;      { shift/f9 key }
+   nkF20       = -93;      { shift/f10 key }
+   nkAltA      = -30;      { alt/a }
+   nkAltB      = -48;      { alt/b }
+   nkAltC      = -46;      { alt/c }
+   nkAltD      = -32;      { alt/d }
+   nkAltE      = -18;      { alt/e }
+   nkAltF      = -33;      { alt/f }
+   nkAltG      = -34;      { alt/g }
+   nkAltH      = -35;      { alt/h }
+   nkAltI      = -23;      { alt/i }
+   nkAltJ      = -36;      { alt/j }
+   nkAltK      = -37;      { alt/k }
+   nkAltL      = -38;      { alt/l }
+   nkAltM      = -50;      { alt/m }
+   nkAltN      = -49;      { alt/n }
+   nkAltO      = -24;      { alt/o }
+   nkAltP      = -25;      { alt/p }
+   nkAltQ      = -16;      { alt/q }
+   nkAltR      = -19;      { alt/r }
+   nkAltS      = -31;      { alt/s }
+   nkAltT      = -20;      { alt/t }
+   nkAltU      = -22;      { alt/u }
+   nkAltV      = -47;      { alt/v }
+   nkAltW      = -17;      { alt/w }
+   nkAltX      = -45;      { alt/x }
+   nkAltY      = -21;      { alt/y }
+   nkAltZ      = -44;      { alt/z }
+   nkAlt1      = -120;     { alt/1 }
+   nkAlt2      = -121;     { alt/2 }
+   nkAlt3      = -122;     { alt/3 }
+   nkAlt4      = -123;     { alt/4 }
+   nkAlt5      = -124;     { alt/5 }
+   nkAlt6      = -125;     { alt/6 }
+   nkAlt7      = -126;     { alt/7 }
+   nkAlt8      = -127;     { alt/8 }
+   nkAlt9      = -128;     { alt/9 }
+   nkAlt0      = -129;     { alt/0 }
+   nkAltMinus  = -130;     { alt/- }
+   nkAltEqual  = -131;     { alt/= }
+   nkAltTab    = -15;      { alt/tab }
+
+   { ordinal key codes (old style, don't break any apps!) }
+   nKeyEnter     = nkEnter;
+   nKeyEsc       = nkEsc;
+   nKeyHome      = abs(nkHome);
+   nKeyUp        = abs(nkUp);
+   nKeyPgUp      = abs(nkPgUp);
+   nKeyLeft      = abs(nkLeft);
+   nKeyRight     = abs(nkRight);
+   nKeyEnd       = abs(nkEnd);
+   nKeyDown      = abs(nkDown);
+   nKeyPgDn      = abs(nkPgDn);
+   nKeyIns       = abs(nkIns);
+   nKeyDel       = abs(nkDel);
+   nKeyCtrlLeft  = abs(nkCtrlLeft);
+   nKeyCtrlRight = abs(nkCtrlRight);
+   nKeyF1        = abs(nkF1);
+   nKeyF2        = abs(nkF2);
+   nKeyF3        = abs(nkF3);
+   nKeyF4        = abs(nkF4);
+   nKeyF5        = abs(nkF5);
+   nKeyF6        = abs(nkF6);
+   nKeyF7        = abs(nkF7);
+   nKeyF8        = abs(nkF8);
+   nKeyF9        = abs(nkF9);
+   nKeyF10       = abs(nkF10);
+   nKeyF11       = abs(nkF11);
+   nKeyF12       = abs(nkF12);
+   nKeyF13       = abs(nkF13);
+   nKeyF14       = abs(nkF14);
+   nKeyF15       = abs(nkF15);
+   nKeyF16       = abs(nkF16);
+   nKeyF17       = abs(nkF17);
+   nKeyF18       = abs(nkF18);
+   nKeyF19       = abs(nkF19);
+   nKeyF20       = abs(nkF20);
 
    { character mapping }
    nMaxChMaps    = 255;     { maximun index for character mapping }
 
    { menus }
-   nMAXMENUITEMS = 23;
+   nMAXMENUITEMS = 100;
 
 Type
+   {*** structures to save a screen via nGrabScreen ***}
+   pnOneRow = pchar;
+   { a buffer for a max of 256 chtype items accessed via pchar }
+   tnOneRow = array [0..1023] of char;
+   { a one way linked list of screen rows }
+   pnRowBuf = ^tnRowBuf;
+   tnRowBuf = Record
+      row : pnOneRow;    { one row of a screen }
+      next : pnRowBuf;   { next row in the list }
+   End;
+   { the header record of a saved screen }
+   pnScreenBuf = ^tnScreenBuf;
+   tnScreenBuf = Record
+      x,                 { column origin }
+      y,                 { row origin }
+      n : integer;       { number of columns }
+      first : pnRowBuf;  { pointer to first row in list }
+   End;
+
+   tnS10 = string[10];
+
    { for scrolling a window }
    tnUpDown = (up,down);
    { for window & header positioning }
    tnJustify = (none,left,center,right,top,bottom);
    { used for nEC character mapping }
+   (********* Note : these are obsolete *******)
    nChMapStr = string[4];
-   nChMap = array [1..nMaxChMaps] of nChMapStr;
+   {nChMap = array [1..nMaxChMaps] of nChMapStr;}
+   (*******************************************)
+   nChMap = array [1..nMaxChMaps,1..2] of integer;
 
    { used for nSEdit }
    {------------------------------------------------------------------------
@@ -223,6 +344,7 @@ Type
                                    cc : integer;
                                    mp : nChMap);
       Destructor Done;
+      Function AddChMap(_in,_out : integer) : integer;
       Function AddChMap(mp : nChMapStr) : integer;
       Procedure ClrChMap(idx : integer);
    End;
@@ -242,13 +364,18 @@ Type
          wincolor,            { window color }
          framecolor,          { frame color }
          hdrcolor : integer;  { header color }
+         hdrpos : tnJustify;  { header alignment }
          header : string[80]; { header string }
+         Procedure init_wins(x,y,x1,y1 : integer);
+         Procedure done_wins;
       Public
+         data : pointer;      { a pointer to user defined data }
          ec : tnEC;           { edit control settings }
          Constructor Init(x,y,x1,y1,wcolor : integer;
                                     border : boolean;
                                     fcolor : integer);
          Destructor Done;
+         Procedure Resize(cols_,rows_ : integer);
          Procedure Active;  { make this the current window }
          Procedure Show;    { display the window }
          Procedure Hide;    { hide the window }
@@ -279,12 +406,83 @@ Type
           Function GetX : integer;
           Function GetY : integer;
           Function IsFramed : boolean;
+          Function IsVisible : Boolean;
+          Function Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
+          Function Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
+          Function Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
           Function Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
           Function Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
           Function Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
           Function EditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
           Function EditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : longint;var esc : boolean) : longint;
           Function EditDate(x,y,att : integer;initv : string;var esc : boolean) : string;
+   End;
+
+   pnMenuStr = ^tnMenuStr;
+   tnMenuStr = array [0..79] of char; { storage for menu item text }
+   pnMenu = ^tnMenu;
+   tnMenu = Object
+      Private
+         tc,   { text (item) color }
+         cc,   { cursor (current item) color }
+         fc,   { frame color }
+         hc,   { header Color }
+         gc,   { non-selectable color }
+         x,y,  { top,left corner of window }
+         r,c,  { how many rows & columns of items to display }
+         wid,  { minimum window width }
+         iidx, { item index }
+         merr  { menu error code }
+               : integer;
+         loopon,
+         framed,
+         posted : boolean; { is the menu posted? }
+         mark : tnS10;
+         items : array[1..nMAXMENUITEMS] of pnMenuStr;
+         pi : array[1..nMAXMENUITEMS] of pItem;
+         pm : pMenu;
+         win : pnWindow;
+         Procedure InitWin;
+         Procedure ClearItem(idx : integer);
+         Procedure AddItem(i : integer; s : string);
+         Function Selectable(idx : integer) : boolean;
+         Function IsValid(idx : integer) : boolean;
+      Public
+         Constructor Init(_x,_y,_w,_r,_c,_tc,_cc,_gc : integer;
+                          _fr : boolean; _fc : integer);
+         Destructor Done;
+         Procedure Post;            { create the menu of current items }
+         Procedure UnPost;          { unbind the items and free the menu }
+         Procedure Start;           { start user input, includes show }
+         Procedure Stop;            { a shortcut for hide,unpost }
+         Procedure Show;            { display the menu, includes post }
+         Procedure Hide;            { remove the menu from the display }
+          Function Wind : pnWindow; { pointer to the window object }
+         Procedure Move(_x,_y : integer);       { shortcut window move }
+         Procedure Align(hpos,vpos : tnJustify);{ shortcut window align }
+         Procedure PutHeader(hdr : string; hcolor : integer; hpos : tnJustify);
+         Procedure Clear;           { unpost and clear the menu item list }
+          Function Add(s : string) : integer; { append a menu item }
+         Procedure Insert(idx : integer; s : string); { insert a menu item }
+         Procedure Remove(idx : integer);     { delete a menu item }
+         Procedure Change(idx : integer; s : string); { change an item }
+         Procedure Active(idx : integer; b : boolean); { toggle gray }
+          Function IsActive(idx : integer) : boolean; { item active ? }
+         Procedure Spin(b : boolean);{ toggle item looping }
+          Function Status : integer;{ return the current error/status code }
+          Function Index : integer; { return the current item index }
+         Procedure SetIndex(idx : integer); { set the item index }
+          Function Count : integer; { number of items in the menu }
+          Function Rows(_r : integer) : integer; {get/set menu rows }
+          Function Cols(_c : integer) : integer; {get/set menu columns }
+          Function IsAssigned(idx : integer) : boolean; { valid & assigned }
+          Function GetMark : string; { return the item mark string }
+         Procedure SetMark(ms : string); { set the mark string }
+         Procedure Refresh;
+         Procedure SetColor(att : byte);       { change text color }
+         Procedure SetCursorColor(att : byte); { change cursor color }
+         Procedure SetFrameColor(att : byte);  { change frame color }
+         Procedure SetGrayColor(att : byte);   { change inactive color }
    End;
 
 Var
@@ -307,7 +505,7 @@ Procedure nInsLine(win : pWindow);
 Procedure nDelLine(win : pWindow);
 Procedure nGotoXY(win : pWindow; x,y : integer);
  Function nWhereX(win : pWindow) : integer;
- Function nWhereY(win : pWindow) : integer;
+ Function nWhereY(win :  pWindow) : integer;
  Function nReadkey(win : pWindow) : char;
  Function nReadln(win : pWindow) : string;
 Procedure nWrite(win : pWindow; s : string);
@@ -342,8 +540,8 @@ Procedure nFrame(win : pWindow);
 Procedure nHLine(win : pwindow; col,row,attr,x : integer);
 Procedure nVLine(win : pwindow; col,row,attr,y : integer);
 Procedure nWriteAC(win : pwindow; x,y : integer; att,acs_char : longint);
- Function IsBold(att : integer) : boolean;
- Function SetColorPair(att : integer) : integer;
+ Function nIsBold(att : integer) : boolean;
+ Function nSetColorPair(att : integer) : integer;
 Procedure nFWrite(win : pwindow; col,row,attrib : integer; clear : integer; s : string);
 Procedure nFWrite(col,row,attrib : integer; clear : integer; s : string);
  Function nSEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
@@ -353,6 +551,12 @@ Procedure nFWrite(col,row,attrib : integer; clear : integer; s : string);
  Function nEdit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
  Function nEdit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
  Function nEdit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
+ Function nEdit(win : pwindow; x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
+ Function nEdit(x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
+ Function nEdit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
+ Function nEdit(x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
  Function nEditNumber(win : pwindow; x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
  Function nEditNumber(win : pwindow; x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : longint;var esc : boolean) : longint;
  Function nEditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
@@ -360,6 +564,25 @@ Procedure nFWrite(col,row,attrib : integer; clear : integer; s : string);
  Function nEditDate(win : pwindow; x,y,att : integer;initv : string;var esc : boolean) : string;
  Function nEditDate(x,y,att : integer;initv : string;var esc : boolean) : string;
 Procedure nMakeWindow(var win : tnWindow;x1,y1,x2,y2,ta,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
+Procedure nMakeWindow(var win : pnWindow;x1,y1,x2,y2,ta,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
+Procedure nMakeMenu(var mnu : tnMenu;x,y,_w,_r,_c,ta,ca,ga,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
+Procedure nMakeMenu(var mnu : pnMenu;x,y,_w,_r,_c,ta,ca,ga,ba,ha : integer;hasframe : boolean;hdrpos : tnJustify;hdrtxt : string);
+ Function nShowMessage(msg : string;matt : byte;hdr : string;hatt : byte;ack : boolean) : pnWindow;
+ Function nReadScr(win : pWindow; x,y,n : integer) : string;
+ Function nReadScr(x,y,n : integer) : string;
+ Function nReadScrStr(win : pWindow; x,y,n : integer; buf : pchtype) : pchtype;
+ Function nReadScrStr(x,y,n : integer; buf : pchtype) : pchtype;
+ Function nReadScrColor(win : pWindow; x,y : integer) : integer;
+ Function nReadScrColor(x,y : integer) : integer;
+Procedure nWriteScrStr(win : pWindow; x,y : integer; s : pchtype);
+Procedure nWriteScrStr(x,y : integer; s : pchtype);
+Procedure nGrabScreen(var p : pnScreenBuf; x,y,c,r : integer; win : pWindow);
+Procedure nGrabScreen(var p : pnScreenBuf; x,y,c,r : integer);
+Procedure nGrabScreen(var p : pnScreenBuf);
+Procedure nPopScreen(p : pnScreenBuf; x,y : integer; win : pWindow);
+Procedure nPopScreen(p : pnScreenBuf; x,y : integer);
+Procedure nPopScreen(p : pnScreenBuf);
+Procedure nReleaseScreen(p : pnScreenBuf);
  Function nCheckPxPicture(var s, Pic : string; var CPos : integer) : word;
 
 {$i ncrt.inc}
@@ -386,56 +609,105 @@ Constructor tnWindow.Init(x,y,x1,y1,wcolor : integer;
 Var
    mp : nChMap;
 Begin
-   visible := false;
-   hasframe := false;
+   hasframe := border;
    wincolor := wcolor;
    framecolor := fcolor;
    hdrcolor := wcolor;
    header := '';
-   win := nil;
-   sub := nil;
-   pan := nil;
-   subp := nil;
+   data := nil;
    visible := false;
-   win := newwin(y1-y+1,x1-x+1,y-1,x-1);
-   pan := new_panel(win);
-   hide_panel(pan);
-   If border Then
-      PutFrame(fcolor)
-   Else Begin
-      wn := win;
-      wbkgd(win,COLOR_PAIR(SetColorPair(wcolor)));
-      If isbold(wcolor) then wattr_on(win,A_BOLD);
-      scrollok(win,bool(true));
-      intrflush(win,bool(false));
-      keypad(win,bool(true));
-   End;
+   init_wins(x,y,x1,y1);
    FillChar(mp,SizeOf(mp),#0);
    ec.Init(false,false,false,false,false,'','',15,mp);
-   ActiveWn := wn;
+   ec.ClrChMap(0);
+   SetActiveWn(wn);
 End;
 
 { deallocate the window }
 Destructor tnWindow.Done;
 Begin
+   done_wins;
+   ec.Done;
+   SetActiveWn(nscreen);
+End;
+
+Procedure tnWindow.init_wins(x,y,x1,y1 : integer);
+Begin
+   win := nil;
+   sub := nil;
+   pan := nil;
+   subp := nil;
+   win := newwin(y1-y+1,x1-x+1,y-1,x-1);
+   pan := new_panel(win);
+   hide_panel(pan);
+   If hasframe Then
+      PutFrame(framecolor)
+   Else Begin
+      wn := win;
+      wbkgd(win,COLOR_PAIR(nSetColorPair(wincolor)));
+      If nisbold(wincolor) then wattr_on(win,A_BOLD);
+      scrollok(win,bool(true));
+      intrflush(win,bool(false));
+      keypad(win,bool(true));
+   End;
+End;
+
+Procedure tnWindow.done_wins;
+Begin
    If subp <> nil Then del_panel(subp);
    If pan <> nil Then del_panel(pan);
    If sub <> nil Then delwin(sub);
    If (win <> nil) and (win <> stdscr) Then delwin(win);
-   ec.Done;
-   ActiveWn := nscreen;
+   subp := nil;
+   pan := nil;
+   sub := nil;
+   If win <> stdscr Then win := nil;
+End;
+
+Procedure tnWindow.ReSize(cols_,rows_ : integer);
+Var
+   xx,yy,
+   mx,my : integer;
+   vis : boolean;
+Begin
+   xx := GetX;
+   yy := GetY;
+   { can't be larger than full screen }
+   If cols_ > nMaxCols Then cols_ := nMaxCols;
+   If rows_ > nMaxRows Then rows_ := nMaxRows;
+   { set the bottom, right corner }
+   mx := xx+cols_-1;
+   my := yy+rows_-1;
+   { expand left? }
+   If mx > nMaxCols Then xx := nMaxCols-cols_+1;
+   { expand up? }
+   If my > nMaxRows Then yy := nMaxRows-rows_+1;
+   If xx < 1 Then xx := 1;
+   If yy < 1 Then yy := 1;
+   { reset the bottom, right corner }
+   mx := xx+cols_-1;
+   my := yy+rows_-1;
+   { constrain to full screen }
+   If mx > nMaxCols Then mx := nMaxCols;
+   If my > nMaxRows Then my := nMaxRows;
+   vis := visible;
+   Hide;
+   visible := vis;
+   done_wins;
+   init_wins(xx,yy,mx,my);
+   If visible Then Show;
 End;
 
 { make the window current for all normal crt requests }
 Procedure tnWindow.Active;
 Begin
-   ActiveWn := wn;
+   SetActiveWn(wn);
 End;
 
 { display the window and move to the top }
 Procedure tnWindow.Show;
 Begin
-   ActiveWn := wn;
+   SetActiveWn(wn);
    visible := true;
    show_panel(pan);
    If subp <> nil Then show_panel(subp);
@@ -446,13 +718,17 @@ End;
 { hide the window }
 Procedure tnWindow.Hide;
 Begin
-   ActiveWn := stdscr;
-{   ActiveWn := nStdScr.win;}
+   { don't go back to yourself }
+   If PrevWn <> wn Then
+      SetActiveWn(PrevWn)
+   Else
+      SetActiveWn(stdscr);
    visible := false;
    If subp <> nil Then hide_panel(subp);
    hide_panel(pan);
    update_panels;
    doupdate;
+   GotoXY(WhereX,WhereY);
 End;
 
 Procedure tnWindow.ClrScr;
@@ -520,6 +796,7 @@ Begin
       If hdr <> '' Then Begin
          header := hdr;
          hdrcolor := hcolor;
+         hdrpos := hpos;
          getmaxyx(win,my,mx);
          nHline(win,2,1,framecolor,mx-1);
          len := mx-2;
@@ -531,8 +808,8 @@ Begin
            right  : hx := (mx - len) - 1;
          End;
          mvwaddstr(win,0,hx,StrPCopy(ps,hdr));
-         cp := SetColorPair(hcolor);
-         If IsBold(hcolor) Then
+         cp := nSetColorPair(hcolor);
+         If nIsBold(hcolor) Then
             att := A_BOLD
          Else
             att := A_NORMAL;
@@ -544,8 +821,8 @@ End;
 { set the the color of the writable window }
 Procedure tnWindow.SetColor(att : integer);
 Begin
-   wbkgd(wn,COLOR_PAIR(SetColorPair(att)));
-   If isbold(att) then wattr_set(wn,A_BOLD);
+   wbkgd(wn,COLOR_PAIR(nSetColorPair(att)));
+   If nisbold(att) then wattr_set(wn,A_BOLD);
    wincolor := att;
    If visible Then wrefresh(wn);
 End;
@@ -575,13 +852,14 @@ Var
    mx,my,
    atts : longint;
 Begin
-   wbkgd(win,COLOR_PAIR(SetColorPair(att)));
+   wbkgd(win,COLOR_PAIR(nSetColorPair(att)));
    atts := wattr_get(win);
-   If isbold(att) then wattr_on(win,atts or A_BOLD);
+   If nisbold(att) then wattr_on(win,atts or A_BOLD);
    box(win,ACS_VLINE,ACS_HLINE);
    framecolor := att;
    If framecolor = -1 Then framecolor := wincolor;
    hasframe := true;
+   If header <> '' Then PutHeader(header,hdrcolor,hdrpos);
    If sub = nil Then Begin
       getbegyx(win,y,x);
       getmaxyx(win,my,mx);
@@ -589,8 +867,8 @@ Begin
       If sub <> nil Then Begin
          subp := new_panel(sub);
          hide_panel(subp);
-         wbkgd(sub,COLOR_PAIR(SetColorPair(wincolor)));
-         If isbold(wincolor) then wattr_on(sub,A_BOLD);
+         wbkgd(sub,COLOR_PAIR(nSetColorPair(wincolor)));
+         If nisbold(wincolor) then wattr_on(sub,A_BOLD);
          scrollok(sub,bool(true));
          intrflush(sub,bool(false));
          keypad(sub,bool(true));
@@ -624,13 +902,13 @@ Begin
    getbegyx(win,by,bx);
    Case hpos of
       none   : x := bx;
-      left   : x := 1;
+      left   : x := 0;
       right  : x := MaxCols - x;
       center : x := (MaxCols - x) div 2;
    End;
    Case vpos of
       none   : y := by;
-      top    : y := 1;
+      top    : y := 0;
       bottom : y := MaxRows - y;
       center : y := (MaxRows - y) div 2;
    End;
@@ -720,7 +998,12 @@ Begin
    IsFramed := hasframe;
 End;
 
-Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
+Function tnWindow.IsVisible : boolean;
+Begin
+   IsVisible := visible;
+End;
+
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : integer) : String;
 var
    tmp_ec : tnec;
 Begin
@@ -736,8 +1019,16 @@ Begin
    nEC := tmp_ec;
 End;
 
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:String;Var ch : Char) : String;
+var
+   i : integer;
+Begin
+   Edit := Edit(x,y,att,z,CursPos,es,i);
+   ch := chr(abs(i));
+End;
+
 { overload for longint }
-Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : integer) : LongInt;
 var
    tmp_ec : tnec;
 Begin
@@ -749,8 +1040,16 @@ Begin
    nEC := tmp_ec;
 End;
 
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:LongInt;Var ch : Char) : LongInt;
+var
+   i : integer;
+Begin
+   Edit := Edit(x,y,att,z,CursPos,es,i);
+   ch := chr(abs(i));
+End;
+
 { overload for real }
-Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : integer) : Real;
 var
    tmp_ec : tnec;
 Begin
@@ -760,6 +1059,14 @@ Begin
    ec.ClearMode := nEC.ClearMode;
    ec.InsMode := nEC.InsMode;
    nEC := tmp_ec;
+End;
+
+Function tnWindow.Edit(x,y,att,z,CursPos:Integer;es:Real;Var ch : Char) : Real;
+var
+   i : integer;
+Begin
+   Edit := Edit(x,y,att,z,CursPos,es,i);
+   ch := chr(abs(i));
 End;
 
 Function tnWindow.EditNumber(x,y,att,wid,decm : integer;bgd : string;initv,minv,maxv : real;var esc : boolean) : real;
@@ -821,26 +1128,50 @@ Begin
 End;
 
 { Add or replace a character map }
-Function tnEC.AddChMap(mp : nChMapStr) : integer;
+{ Preferred }
+Function tnEC.AddChMap(_in,_out : integer) : integer;
 Var
    i : integer;
 Begin
    i := 0;
    Repeat
       inc(i);
-   Until (i > nMaxChMaps) or (Copy(ChMap[i],1,2) = Copy(mp,1,2)) or (ChMap[i] = '');
+   Until (i > nMaxChMaps) or (ChMap[i,1] = _in) or (ChMap[i,1] = 0);
    If i <= nMaxChMaps Then Begin
       AddChMap := i;
-      ChMap[i] := mp;
+      ChMap[i,1] := _in;
+      ChMap[i,2] := _out;
    End Else
       AddChMap := 0;
+End;
+
+{ Add or replace a character map }
+{ Obsolete, overloaded }
+Function tnEC.AddChMap(mp : nChMapStr) : integer;
+Var
+   i : integer;
+   _in,_out : integer;
+Begin
+   { convert to new type }
+   If mp[1] = #0 Then
+      _in := ord(mp[2]) * (-1)
+   Else
+      _in := ord(mp[1]);
+   If mp[3] = #0 Then
+      _out := ord(mp[4]) * (-1)
+   Else
+      _out := ord(mp[3]);
+   AddChMap := AddChMap(_in,_out);
 End;
 
 Procedure tnEC.ClrChMap(idx : integer);
 Begin
    Case idx of
-      0 : FillChar(ChMap,SizeOf(ChMap),#0);
-      1..nMaxChMaps : ChMap[idx] := '';
+      0 : FillChar(ChMap,SizeOf(ChMap),0);
+      1..nMaxChMaps : Begin
+         ChMap[idx,1] := 0;
+         ChMap[idx,2] := 0;
+      End;
    End;
 End;
 
@@ -849,7 +1180,7 @@ End;
 { set the active window for write(ln), read(ln) }
 Procedure nSetActiveWin(win : pwindow);
 Begin
-   ActiveWn := win;
+   SetActiveWn(win);
 End;
 
 {----------------------------------------------------------------
@@ -885,7 +1216,7 @@ Begin
    intrflush(win,bool(false));
    keypad(win,bool(true));
    scrollok(win,bool(true));
-   ActiveWn := win;
+   SetActiveWn(win);
 End;
 
 { create a new window }
@@ -897,7 +1228,7 @@ Begin
    intrflush(win,bool(false));
    keypad(win,bool(true));
    scrollok(win,bool(true));
-   ActiveWn := win;
+   SetActiveWn(win);
 End;
 
 { repaint a window }
@@ -939,6 +1270,7 @@ Begin
 End;
 
 { write a string to a window without refreshing screen }
+{ DON'T update PrevWn! }
 Procedure nWriteScr(win : pWindow; x,y,att : integer; s : string);
 Var
    tmp : pwindow;
@@ -1216,11 +1548,11 @@ Begin
    End;
    { save the current cursor position }
    getyx(win,yy,xx);
-   cp := SetColorPair(att);
+   cp := nSetColorPair(att);
    { write character with current attributes }
    mvwaddch(win,y-1,x-1,acs_char);
    { update with new attributes }
-   If IsBold(att) Then
+   If nIsBold(att) Then
       att := A_BOLD or A_ALTCHARSET
    Else
       att := A_NORMAL or A_ALTCHARSET;
@@ -1273,8 +1605,8 @@ Begin
          ctrl := true;
       End;
    End;
-   wbkgd(sub,COLOR_PAIR(SetColorPair(Attrib)));
-   If isbold(Attrib) then
+   wbkgd(sub,COLOR_PAIR(nSetColorPair(Attrib)));
+   If nisbold(Attrib) then
       wattr_on(sub,A_BOLD);
    mvwaddstr(sub,0,0,StrPCopy(ps,s));
    { highlight the embedded control characters substitutes }
@@ -1318,8 +1650,15 @@ End;
 
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {                            String Editor                           }
-Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
-               es:string;var ch : char) : string;
+Function nEdit(win : pwindow;     { window to work in }
+               x,y,               { base x,y coordinates of edit region }
+               att,               { color attribute }
+               z,                 { right-most column of edit region }
+               CursPos:integer;   { place cursor on this column at start }
+               es:string;         { initial value of string }
+               var chv : integer  { ordinal value of character typed, }
+                                  { negative for extended keys }
+               ) : string;
 Var
    ZMode,
    AppendMode,
@@ -1332,6 +1671,7 @@ Var
    ts,
    hes : string;
    isextended : boolean;
+   ch : char;
 
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 Procedure NewString;
@@ -1577,6 +1917,7 @@ End;
 Procedure ProcessSpecialKey;
 begin
    If ch = #129 Then ch := #68; { Linux, map Esc/0 to F10 }
+   chv := ord(ch) * (-1);       { set the return value }
 
    Case ch of
    #16..#25,
@@ -1610,6 +1951,7 @@ Var
    i : integer;
    ctrl : boolean;
 begin
+   chv := ord(ch); { set the return value }
    For i := 1 to Length(nEC.Special) Do Begin
       If ch = nEC.Special[i] Then Begin
          SEditExit:=True;
@@ -1617,6 +1959,7 @@ begin
       End;
    End;
    ctrl := false;
+   { standard control key assignments }
    case ch of
       #0..#15,
       #17..#31 : Begin
@@ -1648,9 +1991,10 @@ begin
                     WriteString;
                     ch := ReadKey;
                     { make it a function key }
-                    If ch in ['1'..'9'] Then
-                       ch := Char(Ord(ch)+10)
-                    Else ch := #27;
+                    If ch in ['1'..'9'] Then Begin
+                       ch := Char(Ord(ch)+10);
+                       chv := ord(ch) * (-1);
+                    End Else ch := #27;
                     SEditExit := true;
                  End;
          End;
@@ -1663,6 +2007,7 @@ begin
                   ctrl := true;
                   If ch = '2' Then ch := '@';
                   ch := Char(Ord(ch)-64);
+                  chv := ord(ch);
                End;
             End;
      #127 : Begin nEC.ClearMode := False;ETurboBackSpace;Exit;End;
@@ -1701,10 +2046,25 @@ end;
 }
 Procedure MapKey(var ch : char;var eflag : boolean);
 Var
-   i : integer;
+   i,
+   cv : integer;
    s2 : string[2];
    s4 : string[4];
 Begin
+   cv := Ord(ch);
+   If eflag Then cv := cv * (-1);
+   i := 0;
+   { look for a character map assignment }
+   Repeat
+      inc(i);
+   Until (i > nMaxChMaps) or (nEC.ChMap[i,1] = cv);
+   { if found, then re-assign ch to the mapped key }
+   If i <= nMaxChMaps Then Begin
+      cv := nEC.ChMap[i,2];
+      eflag := (cv < 0);
+      ch := chr(abs(cv));
+   End;
+(*
    { look for a character map assignment }
    i := 0;
    s4 := #0#0#0#0;
@@ -1726,6 +2086,7 @@ Begin
       End;
       If ch = #0 Then eflag := false;
    End;
+*)
 End;
 
 {============================================================================}
@@ -1758,23 +2119,46 @@ Begin
    NewString;
 End;{ of nEdit }
 
+{ compatibility for old ch type }
+Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
+                es:string;var ch : char) : string;
+Var i : integer;
+Begin
+   nEdit := nEdit(win,x,y,att,z,CursPos,es,i);
+   ch := chr(abs(i));
+End;
+
 { nEdit using currently active window }
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:string;var ch : char) : string;
+               es:string;var ch : integer) : string;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,ch);
 End;
 
+Function nEdit(x,y,att,z,CursPos:integer;
+               es:string;var ch : char) : string;
+Var i : integer;
+Begin
+   nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,i);
+   ch := chr(ord(i));
+End;
+
 { overload for longint type }
+Function nEdit(x,y,att,z,CursPos:integer;
+               es:longint;var ch : integer) : longint;
+Begin
+   nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,ch);
+End;
+
 Function nEdit(x,y,att,z,CursPos:integer;
                es:longint;var ch : char) : longint;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,ch);
 End;
 
-{ with pointer }
+{ longint with pointer }
 Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
-                es:LongInt;var ch : char) : LongInt;
+                es:LongInt;var ch : integer) : LongInt;
 Var
    savpic,
    ess : string;
@@ -1790,16 +2174,32 @@ Begin
    nEdit := esv;
 End;
 
+Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
+               es:longint;var ch : char) : longint;
+Var i : integer;
+Begin
+   nEdit := nEdit(win,x,y,att,z,CursPos,es,i);
+   ch := chr(abs(i));
+End;
+
 { overload for real type }
 Function nEdit(x,y,att,z,CursPos:integer;
-               es:real;var ch : char) : real;
+               es:real;var ch : integer) : real;
 Begin
    nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,ch);
 End;
 
+Function nEdit(x,y,att,z,CursPos:integer;
+               es:real;var ch : char) : real;
+Var i : integer;
+Begin
+   nEdit := nEdit(ActiveWn,x,y,att,z,CursPos,es,i);
+   ch := chr(abs(i));
+End;
+
 { with pointer }
 Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
-                es:Real;var ch : char) : Real;
+                es:Real;var ch : integer) : Real;
 Var
    savpic,
    ess : string;
@@ -1825,6 +2225,14 @@ Begin
    For i := 1 to Length(ess) Do If ess[i] = ',' Then ess[i] := '.';
    val(ess,esv,err);
    nEdit := esv;
+End;
+
+Function nEdit(win : pwindow; x,y,att,z,CursPos:integer;
+               es:real;var ch : char) : real;
+Var i : integer;
+Begin
+   nEdit := nEdit(win,x,y,att,z,CursPos,es,i);
+   ch := chr(abs(i));
 End;
 
 { And now some sugar for Rainer Hantsch! }
@@ -1986,8 +2394,6 @@ Function nEditDate(
    var esc : boolean     { if Esc key pressed = true, else = false }
 ) : string;
 
-Const
-   wid = 10;
 Var
    s : string;
    i : integer;
@@ -2016,7 +2422,7 @@ Begin
    nEC.AddChMap(#8#0#0+Char(nKeyLeft));
    nEC.AddChMap(#0+Char(nKeyDel)+#0+Char(nKeyLeft));
    Repeat
-      s := nEdit(x,y,att,x+9,x,s,ch);
+      s := nEdit(win,x,y,att,x+9,x,s,ch);
       If ch = #13 Then Begin
          For i := 1 to Length(s) Do
             If s[i] in ['m','d','y'] Then ch := #0;
@@ -2047,9 +2453,791 @@ Begin
    If hdrtxt <> '' Then win.PutHeader(hdrtxt,ha,hdrpos);
 End;
 
+{ And with a window pointer }
+Procedure nMakeWindow(
+    var win : pnWindow;
+    x1,y1,
+    x2,y2,
+    ta,ba,ha : integer;
+    hasframe : boolean;
+    hdrpos : tnJustify;
+    hdrtxt : string);
+Begin
+   New(win,init(x1,y1,x2,y2,ta,hasframe,ba));
+   If hdrtxt <> '' Then win^.PutHeader(hdrtxt,ha,hdrpos);
+End;
+
+{--------------------------------------------------------------------
+  Display a message in a centered and framed box. With ack set to
+  false, the window remains active for further use in the program.
+
+  Inputs:
+     msg = message to display
+     matt = message color
+     hdr  = header text at frame top
+     hatt = header/frame color
+     ack  = TRUE : display ftr text and wait for a keypress, then
+                   remove the window.
+            FALSE: don't display ftr, don't wait for a keypress, and
+                   don't remove the window.
+  Output:
+     a nil pointer if ack = true,
+     a pointer to the tnWindow object if ack = false
+ --------------------------------------------------------------------}
+Function nShowMessage(msg : string;
+                     matt : byte;
+                      hdr : string;
+                     hatt : byte;
+                      ack : boolean) : pnWindow;
+const
+   ftr = 'Press Any Key';
+   acklns : shortint = 0;
+var
+   i,j,
+   cr,
+   wid,
+   maxwid,
+   lines : integer;
+   mwin : pnWindow;
+Begin
+   wid := 0;
+   maxwid := Length(hdr);
+   If ack and (Length(ftr) > maxwid) Then
+      maxwid := Length(ftr);
+   lines := 1;
+   { how many rows does this window need ? }
+   For i := 1 to Length(msg) Do Begin
+      inc(wid);
+      { let's be consistant! }
+      If msg[i] = #13 Then msg[i] := #10;
+      { either a forced line break or we need to word-wrap }
+      If (msg[i] = #10) or (wid >= (MaxCols-2)) Then Begin
+         inc(lines);
+         j := 0;
+         If not (msg[i] in [#10,#32]) Then Begin
+            { we're in a word, so find the previous space (if any) }
+            Repeat
+               inc(j);
+            Until (j=wid) or ((i-j) <= 0) or (msg[i-j] = #32);
+            If ((i-j) > 0) and (msg[i-j] = #32) Then Begin
+               wid := wid-j;
+               msg[i-j] := #10  { force a line break }
+            End Else
+               j := 0;
+         End;
+         If wid > maxwid Then maxwid := wid;
+         wid := j; { either 0 or word-wrap remnent }
+      End;
+   End;
+   If wid > maxwid Then maxwid := wid;
+   If ack Then acklns := 1 else acklns := 0;
+   { make the message window }
+   New(mwin,Init(1,1,maxwid+2,lines+acklns+2,matt,true,hatt));
+   With mwin^ Do Begin
+      PutHeader(hdr,hatt,center);
+      Align(center,center);
+      If lines = 1 Then
+         { one-liners get centered }
+         Write(msg:Length(msg)+((maxwid-Length(msg)) div 2))
+      Else
+         Write(msg);
+      Show;
+      If ack Then Begin
+         cr := nCursor(cOff);
+         FWrite(((cols-Length(ftr)) div 2)+1,rows,matt,0,ftr);
+{
+  The following line can be used in place of the line above to place the
+  footer text in the frame instead of with the message body. Make sure to
+  keep acklns=0.
+
+         nFWrite(win,((ncols(win)-Length(ftr)) div 2)+1,nrows(win),hatt,0,ftr);
+}
+         Readkey;
+         While Keypressed Do Readkey;
+         Hide;
+         nCursor(cr);
+      End;
+   End;
+   If ack Then Begin
+      Dispose(mwin,Done);
+      mwin := nil;
+   End;
+   nShowMessage := mwin;
+End;
+
+{---------------------------------------
+  Read a character string from a window
+  win - window to extract info from.
+    x - starting column.
+    y - starting row.
+    n - number of characters to read.
+ ---------------------------------------}
+Function nReadScr(win : pWindow; x,y,n : integer) : string;
+Var
+   i,idx : integer;
+   s : string;
+   c : longint;
+   { array of char/attr values, 4 bytes each, max 256 }
+   buf : array[0..1023] of char;
+   p : pchar;
+Begin
+   s := '';
+   p := nReadScrStr(win,x,y,n,buf);
+   If p <> nil Then Begin
+      idx := 0;
+      For i := 1 to n Do Begin
+         system.move(buf[idx],c,SizeOf(c));
+         s := s + chr(c and A_CHARTEXT);
+         inc(idx,SizeOf(c));
+      End;
+   End;
+   nReadScr := s;
+End;
+
+{ overload for current window }
+Function nReadScr(x,y,n : integer) : string;
+Begin
+   nReadScr := nReadScr(ActiveWn,x,y,n);
+End;
+
+Function nReadScrStr(win : pWindow; x,y,n : integer; buf : pchtype) : pchtype;
+Var
+   cx,cy : integer;
+   mx,my : longint;
+Begin
+   cx := nWhereX(win);
+   cy := nWhereY(win);
+   If win <> nil Then Begin
+      getmaxyx(win,my,mx);
+      If (x in [1..mx]) and (y in [1..my]) Then Begin
+         { n is contrained to the right margin, so no need to range check }
+         mvwinchnstr(win,y-1,x-1,buf,n);
+         nGotoXY(win,cx,cy);
+      End;
+   End;
+   nReadScrStr := buf;
+End;
+
+{ overload for current window }
+Function nReadScrStr(x,y,n : integer; buf : pchtype) : pchtype;
+Begin
+   nReadScrStr := nReadScrStr(ActiveWn,x,y,n,buf);
+End;
+
+Function nReadScrColor(win : pWindow; x,y : integer) : integer;
+Var
+   cl,
+   fg,bg,
+   cx,cy : integer;
+   c,cv,
+   mx,my : longint;
+Begin
+   cl := -1;
+   cx := nWhereX(win);
+   cy := nWhereY(win);
+   If win <> nil Then Begin
+      getmaxyx(win,my,mx);
+      If (x in [1..mx]) and (y in [1..my]) Then Begin
+         c := mvwinch(win,y-1,x-1);
+         nGotoXY(win,cx,cy);
+         cv := PAIR_NUMBER(c and A_COLOR);
+         pair_content(cv,@fg,@bg);
+         fg := c2ibm(fg);
+         bg := c2ibm(bg);
+         cv := (c and A_ATTRIBUTES);
+         If A_BOLD and cv = A_BOLD Then inc(fg,8);
+         cl := (bg*16)+fg;
+      End;
+   End;
+   nReadScrColor := cl;
+End;
+
+{ overload for current window }
+Function nReadScrColor(x,y : integer) : integer;
+Begin
+   nReadScrColor := nReadScrColor(ActiveWn,x,y);
+End;
+
+{ write a string with attributes, previously saved with nReadScrStr }
+Procedure nWriteScrStr(win : pWindow; x,y : integer; s : pchtype);
+Begin
+   mvwaddchstr(win,y-1,x-1,s);
+   If doRefresh Then wrefresh(win);
+End;
+
+{ overload for current window }
+Procedure nWriteScrStr(x,y : integer; s : pchtype);
+Begin
+   mvwaddchstr(ActiveWn,y-1,x-1,s);
+   If doRefresh Then wrefresh(ActiveWn);
+End;
+
+{---------------------------------------
+ save a rectangular portion of a window
+   x = start column
+   y = start row
+   c = number of columns
+   r = number of rows
+ ---------------------------------------}
+Procedure nGrabScreen(var p : pnScreenBuf; x,y,c,r : integer; win : pWindow);
+Var
+   mx,my : longint;
+   i,
+   cx,cy : integer;
+   prb,trb : pnRowBuf;
+Begin
+   nReleaseScreen(p);
+   getmaxyx(win,my,mx);
+   If not (x in [1..mx]) or Not (y in [1..my]) Then Begin
+      p := nil;
+      Exit;
+   End;
+   cx := nWhereX(win);
+   cy := nWhereY(win);
+   New(p);
+   p^.x := x;
+   p^.y := y;
+   p^.n := c;
+   p^.first := nil;
+   trb := nil;
+   For i := 0 to r-1 Do Begin
+      If (y+i in [1..my]) Then Begin
+         New(prb);
+         GetMem(prb^.row,c*SizeOf(chtype));
+         mvwinchnstr(win,y-1+i,x-1,prb^.row,c);
+         If trb <> nil Then trb^.Next := prb;
+         prb^.next := nil;
+         trb := prb;
+         If i = 0 Then p^.First := prb;
+      End;
+   End;
+   nGotoXY(win,cx,cy);
+End;
+
+{ overload for current window }
+Procedure nGrabScreen(var p : pnScreenBuf; x,y,c,r : integer);
+Begin
+   nGrabScreen(p,x,y,c,r,ActiveWn);
+End;
+
+{ overload for current full window }
+Procedure nGrabScreen(var p : pnScreenBuf);
+Var
+   c,r : longint;
+Begin
+   getmaxyx(ActiveWn,r,c);
+   nGrabScreen(p,1,1,c,r,ActiveWn);
+End;
+
+{-----------------------------------------
+ restore a window saved with nGrabScreen
+   p = pointer to the saved buffer
+   x = start restore to this column
+   y = start restore to this row
+   win = restore to this window
+ -----------------------------------------}
+Procedure nPopScreen(p : pnScreenBuf; x,y : integer; win : pWindow);
+Var
+   cx,cy : integer;
+   mx,my : longint;
+   pb : pnRowBuf;
+Begin
+   If p = nil Then Exit;
+   getmaxyx(win,my,mx);
+   If Not (x in [1..mx]) or Not (y in [1..my]) Then Exit;
+   dec(x);
+   cx := nWhereX(win);
+   cy := nWhereY(win);
+   pb := p^.First;
+   While pb <> nil Do Begin
+      If (pb^.row <> nil) and (y in [1..my]) Then
+         mvwaddchnstr(win,y-1,x,pb^.row,p^.n);
+      inc(y);
+      pb := pb^.next;
+   End;
+   nGotoXY(win,cx,cy);
+   If doRefresh Then wrefresh(win);
+End;
+
+{ overload for current window, defined position }
+Procedure nPopScreen(p : pnScreenBuf; x,y : integer);
+Begin
+   nPopScreen(p,x,y,ActiveWn);
+End;
+
+{ overload for current window, saved position }
+Procedure nPopScreen(p : pnScreenBuf);
+Begin
+   If p = nil Then Exit;
+   nPopScreen(p,p^.x,p^.y,ActiveWn);
+End;
+
+{ free up the memory used to store a grabbed screen }
+Procedure nReleaseScreen(p : pnScreenBuf);
+Var
+   cur,tmp : pnRowBuf;
+Begin
+   If p = nil Then Exit;
+   If p^.first <> nil Then Begin
+      cur := p^.first;
+      While cur <> nil Do Begin
+         tmp := cur^.next;
+         If cur^.row <> nil Then FreeMem(cur^.row,p^.n * SizeOf(chtype));
+         Dispose(cur);
+         cur := tmp;
+      End;
+   End;
+   Dispose(p);
+End;
+
+{============================== tnMenu ====================================}
+
+{ A one-line procedural wrapper }
+Procedure nMakeMenu(
+    var mnu : tnMenu;
+    x,y,
+    _w,_r,_c,
+    ta,ca,ga,ba,ha : integer;
+    hasframe : boolean;
+    hdrpos : tnJustify;
+    hdrtxt : string);
+Begin
+   mnu.init(x,y,_w,_r,_c,ta,ca,ga,hasframe,ba);
+   If hdrtxt <> '' Then mnu.PutHeader(hdrtxt,ha,hdrpos);
+End;
+
+{ And with a menu pointer }
+Procedure nMakeMenu(
+    var mnu : pnMenu;
+    x,y,
+    _w,_r,_c,
+    ta,ca,ga,ba,ha : integer;
+    hasframe : boolean;
+    hdrpos : tnJustify;
+    hdrtxt : string);
+Begin
+   New(mnu,init(x,y,_w,_r,_c,ta,ca,ga,hasframe,ba));
+   If hdrtxt <> '' Then mnu^.PutHeader(hdrtxt,ha,hdrpos);
+End;
+
+Constructor tnMenu.Init(_x,_y,_w,_r,_c,_tc,_cc,_gc : integer;
+                         _fr : boolean; _fc : integer);
+Begin
+   x := _x;
+   y := _y;
+   wid := _w;
+   r := _r;
+   c := _c;
+   tc := _tc;
+   cc := _cc;
+   gc := _gc;
+   framed := _fr;
+   fc := _fc;
+   hc := fc;
+   iidx := 0;
+   mark := '';
+   posted := false;
+   If wid > MaxCols Then wid := MaxCols;
+   InitWin;
+   Spin(false);
+End;
+
+Destructor tnMenu.Done;
+Begin
+   UnPost;
+   Clear;
+   Dispose(win,Done);
+End;
+
+Procedure tnMenu.InitWin;
+Const
+   xhgt : shortint = 0;
+Begin
+   If framed Then xhgt := 2 Else xhgt := 0;
+   New(win,Init(x,y,(x+wid-1),(y+r+xhgt-1),tc,framed,fc));
+End;
+
+Procedure tnMenu.Post;
+Var
+   bx,by,
+   mx,my : longint;
+   p : pchar;
+   a : array[0..SizeOf(tnS10)-1] of char;
+Begin
+   { could already be posted }
+   UnPost;
+   { see if the window size has changed (a new longer item added?) }
+   getmaxyx(win^.win,my,mx);
+   If (wid <> mx) Then Begin
+      getbegyx(win^.win,by,bx);
+      Dispose(win,Done);
+      x := bx+1;
+      y := by+1;
+      InitWin;
+   End;
+   { create the new menu }
+   pm := new_menu(@pi);
+   { only show item text }
+   menu_opts_off(pm,O_SHOWDESC);
+   { bind the windows }
+   set_menu_win(pm,win^.win);
+   set_menu_sub(pm,win^.wn);
+   { set the rows and columns }
+   set_menu_format(pm,r,c);
+   { set the colors }
+   set_menu_fore(pm,CursesAtts(cc));
+   set_menu_back(pm,CursesAtts(tc));
+   set_menu_grey(pm,CursesAtts(gc));
+   p := StrPCopy(a,mark);
+   set_menu_mark(pm,p);
+   merr := post_menu(pm);
+   posted := (merr = E_OK);
+   Spin(loopon);
+End;
+
+Procedure tnMenu.UnPost;
+Begin
+   merr := unpost_menu(pm);
+   merr := free_menu(pm);
+   pm := nil;
+   posted := false;
+End;
+
+Procedure tnMenu.Show;
+Begin
+   If not posted Then Post;
+   win^.Show;
+End;
+
+{ Start user interaction loop }
+Procedure tnMenu.Start;
+Const
+   select = #13;
+   cancel = #27;
+Var
+   key : char;
+   i,cnt,
+   prev,
+   savecurs,
+   xkey : integer;
+   direction : longint;
+Begin
+   Show;
+   iidx := 0;
+   savecurs := nCursor(cOFF);
+   Repeat
+      prev := iidx;
+      win^.Show;
+      key := readkey;
+      xkey := 0;
+      case key of
+	 #0 : xkey := ord(readkey);
+         ^F : xkey := nKeyHome;
+         ^L : xkey := nKeyEnd;
+         #9,
+         ^N : xkey := nKeyDown;
+         ^P : xkey := nKeyUp;
+         else menu_driver(pm,ord(key));
+      end;
+      case xkey of
+	 nKeyHome : menu_driver(pm,REQ_FIRST_ITEM);
+         nKeyEnd  : menu_driver(pm,REQ_LAST_ITEM);
+         nKeyRight,
+         nKeyDown : menu_driver(pm,REQ_NEXT_ITEM);
+         nKeyLeft,
+         nKeyUp   : menu_driver(pm,REQ_PREV_ITEM);
+      end;
+      iidx := item_index(current_item(pm)) + 1;
+      If (not Selectable(iidx)) and (key <> cancel) Then Begin
+         cnt := Count;
+         If cnt > 1 Then Begin
+            { temporarily enable spinning }
+            If not loopon Then
+               menu_opts_off(pm,O_NONCYCLIC);
+            { which way to another item? }
+            If iidx > prev Then
+               direction := REQ_NEXT_ITEM
+            Else
+               direction := REQ_PREV_ITEM;
+            Repeat
+               menu_driver(pm,direction);
+               i := item_index(current_item(pm)) + 1;
+            Until Selectable(i) or (i = iidx);
+            { reset spin }
+            Spin(loopon);
+            { keep prev honest }
+            iidx := item_index(current_item(pm)) + 1;
+         End;
+      End;
+   Until key in [select,cancel];
+   menu_driver(pm,REQ_CLEAR_PATTERN);
+   If iidx = ERR Then merr := iidx;
+   If key = cancel Then iidx := 0;
+   nCursor(savecurs);
+End;
+
+Procedure tnMenu.Stop;
+Begin
+   Hide;
+   UnPost;
+End;
+
+Procedure tnMenu.Hide;
+Begin
+   win^.Hide;
+End;
+
+Function tnMenu.Wind : pnWindow;
+Begin
+   Wind := win;
+End;
+
+Procedure tnMenu.Align(hpos,vpos : tnJustify);
+Begin
+   win^.Align(hpos,vpos);
+End;
+
+Procedure tnMenu.Move(_x,_y : integer);
+Begin
+   win^.Move(_x,_y);
+End;
+
+Procedure tnMenu.PutHeader(hdr : string; hcolor : integer; hpos : tnJustify);
+Begin
+   win^.PutHeader(hdr,hcolor,hpos);
+End;
+
+Procedure tnMenu.Clear;
+Var
+   i : integer;
+Begin
+   UnPost;
+   For i := 1 to nMAXMENUITEMS Do ClearItem(i);
+End;
+
+{ is this menu item selectable }
+Function tnMenu.Selectable(idx : integer) : boolean;
+Begin
+   Selectable := IsAssigned(idx) and
+   ((O_SELECTABLE and item_opts(pi[idx])) = O_SELECTABLE);
+End;
+
+Function tnMenu.IsValid(idx : integer) : boolean;
+Begin
+   IsValid := ((idx >= 1) and (idx <= nMAXMENUITEMS));
+End;
+
+Function tnMenu.IsAssigned(idx : integer) : boolean;
+Begin
+   IsAssigned := IsValid(idx) and (pi[idx] <> nil);
+End;
+
+Procedure tnMenu.ClearItem(idx : integer);
+Begin
+   If IsValid(idx) Then Begin
+      If items[idx] <> nil Then Begin
+         merr := free_item(pi[idx]);
+         If merr = E_OK Then Begin
+            FreeMem(items[idx],StrLen(items[idx]^)+1);
+            pi[idx] := nil;
+            items[idx] := nil;
+         End;
+      End;
+   End Else merr := E_BAD_ARGUMENT;
+End;
+
+Procedure tnMenu.AddItem(i : integer; s : string);
+Const
+   fwid : shortint = 0;
+   iwid : shortint = 1;
+Var
+   rl : integer;
+   sp1,sp2,sp3 : plongint;
+Begin
+   If IsValid(i) Then Begin
+      ClearItem(i);
+      GetMem(items[i],Length(s)+1);
+      StrPCopy(items[i]^,s);
+      pi[i] := new_item(pchar(items[i]),nil);
+      If pi[i] <> Nil Then Begin
+         merr := E_OK;
+         { Expand the window width if necessary. Limit to screen width.
+           Add possibly 2 for the frame, the item indicator length, and
+           the item spacing value. }
+         If framed Then fwid := 2;
+         if c > 1 Then Begin
+            If posted Then Begin
+               { need a valid pm }
+               menu_spacing(pm,sp1,sp2,sp3);
+               iwid := Length(GetMark) + sp3^;
+            End Else
+               iwid := Length(GetMark) + 1;
+         End Else
+            iwid := 0;
+         { required length }
+         rl := ((Length(s)+iwid)*c)+fwid;
+         { expand? }
+         If rl > wid Then wid := rl;
+         If wid > MaxCols Then wid := MaxCols;
+      End Else merr := E_REQUEST_DENIED;
+   End Else merr := E_BAD_ARGUMENT;
+End;
+
+Function tnMenu.Add(s : string) : integer;
+Var
+   i : integer;
+Begin
+   i := 0;
+   Add := 0;
+   Repeat
+      inc(i);
+   Until (i > nMAXMENUITEMS) or (items[i] = nil);
+   AddItem(i,s);
+   If merr = E_OK Then Add := i;
+End;
+
+Procedure tnMenu.Insert(idx : integer; s : string);
+Begin
+   If IsValid(idx) Then Begin
+      ClearItem(nMAXMENUITEMS);
+      If idx < nMAXMENUITEMS Then Begin
+         { shift the pointer list up and keep lists syncronized }
+         system.Move(pi[idx],pi[idx+1],SizeOf(pnMenuStr)*(nMAXMENUITEMS-idx));
+         system.Move(items[idx],items[idx+1],SizeOf(pItem)*(nMAXMENUITEMS-idx));
+         pi[idx] := nil;
+         items[idx] := nil;
+      End;
+      AddItem(idx,s);
+   End Else merr := E_BAD_ARGUMENT;
+End;
+
+Procedure tnMenu.Remove(idx : integer);
+Begin
+   If IsValid(idx) Then Begin
+      ClearItem(idx);
+      { shift the pointer list down and keep lists syncronized }
+      system.Move(pi[idx+1],pi[idx],SizeOf(pnMenuStr)*(nMAXMENUITEMS-idx));
+      system.Move(items[idx+1],items[idx],SizeOf(pItem)*(nMAXMENUITEMS-idx));
+      pi[nMAXMENUITEMS] := nil;
+      items[nMAXMENUITEMS] := nil;
+   End Else merr := E_BAD_ARGUMENT;
+End;
+
+Procedure tnMenu.Change(idx : integer; s : string);
+Begin
+   AddItem(idx,s);
+End;
+
+{ toggle a menu item's selectability }
+Procedure tnMenu.Active(idx : integer; b : boolean);
+Begin
+   Case b of
+      true : item_opts_on(pi[idx],O_SELECTABLE);
+      false : item_opts_off(pi[idx],O_SELECTABLE);
+   End;
+End;
+
+{ is the item selectable? }
+Function tnMenu.IsActive(idx : integer) : boolean;
+Begin
+   IsActive := Selectable(idx);
+End;
+
+{ Toggle item looping. Moves to first/last when bottom/top is reached }
+Procedure tnMenu.Spin(b : boolean);
+Begin
+   loopon := b;
+   If posted Then
+    Case b of
+       true : menu_opts_off(pm,O_NONCYCLIC);
+       false : menu_opts_on(pm,O_NONCYCLIC);
+    End;
+End;
+
+{ return most recent error status }
+Function tnMenu.Status : integer;
+Begin
+   Status := merr;
+End;
+
+Function tnMenu.Index : integer;
+Begin
+   Index := iidx;
+End;
+
+Procedure tnMenu.SetIndex(idx : integer);
+Begin
+   If IsValid(idx) and IsAssigned(idx) and Selectable(idx) Then Begin
+      set_current_item(pm,pi[idx]);
+      iidx := idx;
+   End;
+End;
+
+Function tnMenu.Count : integer;
+Begin
+   Count := item_count(pm);
+End;
+
+Function tnMenu.Rows(_r : integer) : integer;
+Begin
+   Rows := r;
+   If _r > 0 Then r := _r;
+End;
+
+Function tnMenu.Cols(_c : integer) : integer;
+Begin
+   Cols := c;
+   If _c > 0 Then c := _c;
+End;
+
+{ get the item indicator prefix string }
+Function tnMenu.GetMark : string;
+Begin
+   If posted Then
+      GetMark := StrPas(menu_mark(pm))
+   Else
+      GetMark := mark;
+End;
+
+{ set the item indicator prefix string }
+Procedure tnMenu.SetMark(ms : string);
+Begin
+   mark := ms;
+End;
+
+Procedure tnMenu.Refresh;
+Begin
+   Post;
+   Show;
+End;
+
+Procedure tnMenu.SetColor(att : byte);
+Begin
+   tc := att;
+   If posted Then set_menu_back(pm,CursesAtts(tc));
+End;
+
+Procedure tnMenu.SetCursorColor(att : byte);
+Begin
+   cc := att;
+   If posted Then set_menu_fore(pm,CursesAtts(cc));
+End;
+
+Procedure tnMenu.SetFrameColor(att : byte);
+Begin
+   fc := att;
+   If posted Then Wind^.PutFrame(att);
+End;
+
+Procedure tnMenu.SetGrayColor(att : byte);
+Begin
+   gc := att;
+   If posted Then set_menu_grey(pm,CursesAtts(gc));
+End;
+
 {----------------------- initialize the unit!------------------------- }
 Begin
-   FillChar(_chmap,SizeOf(_chmap),#0);
+   FillChar(_chmap,SizeOf(_chmap),0);
    nEC.Init(false,false,false,false,false,'','',15,_chmap);
    { load the color pairs array with color pair indices (0..63) }
    For bg := 0 to 7 Do For fg := 0 to 7 do cp[bg,fg] := (bg*8)+fg;
@@ -2057,22 +3245,22 @@ Begin
    If StartCurses(ActiveWn) Then Begin
       { save pointer to ncurses stdscr }
       nscreen := ActiveWn;
-      { create the default full screen window object }
+      { defaults, crtassign, etc. }
+      nInit;
+      { create the default full screen, non-bordered window object }
       nStdScr.Init(1,1,MaxCols,MaxRows,7,false,0);
-   End Else
-      Halt;
+      { default read/write to stdscr }
+      ActiveWn := nscreen;
+   End Else Begin
+      CursesFailed;
+   End;
+End. { of Unit oCrt }
 
-   { crtassign }
-   nInit;
-
-   { set the unit exit procedure }
-   ExitSave := ExitProc;
-   ExitProc := @nExit;
-
-End. { of Unit nCrt }
 {
   $Log$
-  Revision 1.3  2000-08-20 10:11:41  jonas
+  Revision 1.4  2000-08-29 05:51:09  michael
+  + Merged changes and additions from fixbranch
+  Revision 1.3  2000/08/20 10:11:41  jonas
     * added missing open comment at start of log section
 
   Revision 1.2  2000/07/13 11:33:27  michael

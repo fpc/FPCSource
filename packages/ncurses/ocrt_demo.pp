@@ -199,6 +199,7 @@ Begin
    y := 15;
    win33.ClrScr;
    for i := 1 to 11 do Begin
+      TextAttr := win33.GetColor;
       dec(x);
       dec(y);
       str(i:0,s);
@@ -221,11 +222,15 @@ Begin
    Dispose(win22,Done);
    win33.Done;
    msgbox.Done;
+   NormVideo;
    ClrScr;
 End.
 {
   $Log$
-  Revision 1.3  2000-08-20 10:11:41  jonas
+  Revision 1.4  2000-08-29 05:51:09  michael
+  + Merged changes and additions from fixbranch
+
+  Revision 1.3  2000/08/20 10:11:41  jonas
     * added missing open comment at start of log section
 
   Revision 1.2  2000/07/13 11:33:27  michael

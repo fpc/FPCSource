@@ -3,8 +3,8 @@
 #
 
 [targets]
-units=ncurses panel ncrt ocrt
-examples=firework testn ocrt_demo edit_demo db_demo
+units=ncurses panel ncrt ocrt menu
+examples=firework testn ocrt_demo edit_demo db_demo screen_demo
 
 [install]
 examplesubdir=ncurses

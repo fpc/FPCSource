@@ -1,7 +1,6 @@
 unit panel;
 {---------------------------------------------------------------------------
                                  CncWare
-                            (c) Copyright 1999
 ----------------------------------------------------------------------------
   Filename..: panel.pp
   Programmer: Ken J. Wright
@@ -59,7 +58,7 @@ uses ncurses;
 
 implementation
 
-const External_library='';
+{const External_library='';}
 
   function panel_window(_para1:pPANEL):pWINDOW;cdecl;External;
   procedure update_panels;cdecl;External;
@@ -82,7 +81,10 @@ const External_library='';
 end.
 {
   $Log$
-  Revision 1.3  2000-08-20 10:11:41  jonas
+  Revision 1.4  2000-08-29 05:51:10  michael
+  + Merged changes and additions from fixbranch
+
+  Revision 1.3  2000/08/20 10:11:41  jonas
     * added missing open comment at start of log section
 
   Revision 1.2  2000/07/13 11:33:27  michael
