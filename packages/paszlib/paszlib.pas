@@ -11,8 +11,8 @@ const
 type
   { Compatibility types }
   PByte   = ^Byte;
-  Uint    = Longint;
-  Ulong   = Longint;
+  Uint    = Cardinal;
+  Ulong   = Cardinal;
   Ulongf  = ULong;
   Pulongf = ^Ulongf;
   z_off_t = longint;

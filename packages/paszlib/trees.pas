@@ -42,9 +42,6 @@ interface
 {$I zconf.inc}
 
 uses
-  {$ifdef DEBUG}
-  strutils,
-  {$ENDIF}
   zutil, zbase;
 
 { ===========================================================================
@@ -770,6 +767,17 @@ begin
     Inc(s.pending);
 end
 *)
+
+{$ifdef DEBUG}
+Function IntToStr(value : LongInt) : string;
+{ Convert any integer type to a string }
+var
+  s : string[20];
+begin
+  Str(value:0, s);
+  IntToStr := S;
+end;
+{$endif}
 
 { ===========================================================================
   Send a value on a given number of bits.

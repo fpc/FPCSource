@@ -314,7 +314,7 @@ begin
 
   if (s^.stream.avail_in = 0) then begin
     {$I-}
-    blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, s^.stream.avail_in);
+    blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, Int(s^.stream.avail_in));
     {$I+}
     if (s^.stream.avail_in = 0) then begin
       s^.z_eof := true;
@@ -583,7 +583,7 @@ begin
 
     if (s^.stream.avail_in = 0) and (s^.z_eof = false) then begin
       {$I-}
-      blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, s^.stream.avail_in);
+      blockread (s^.gzfile, s^.inbuf^, Z_BUFSIZE, Int(s^.stream.avail_in));
       {$I+}
       if (s^.stream.avail_in = 0) then begin
         s^.z_eof := true;

@@ -198,7 +198,7 @@ begin
       make_crc_table;
 {$ENDIF}
 
-    crc := crc xor Long($ffffffff);
+    crc := crc xor ULong($ffffffff);
     while (len >= 8) do
     begin
       {DO8(buf)}
@@ -229,7 +229,7 @@ begin
 
       Dec(len);
     until (len = 0);
-    crc32 := crc xor Long($ffffffff);
+    crc32 := crc xor ULong($ffffffff);
   end;
 end;
 

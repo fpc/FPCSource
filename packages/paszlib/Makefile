@@ -119,7 +119,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages)
 override PACKAGE_NAME=paszlib
 override PACKAGE_VERSION=1.0.5
-override TARGET_UNITS+=paszlib adler gzcrc gzcrcasm gzio infblock infcodes inffast inftrees infutil strutils trees zcompres zdeflate zinflate zbase zuncompr zutil
+override TARGET_UNITS+=paszlib adler gzcrc gzio infblock infcodes inffast inftrees infutil trees zcompres zdeflate zinflate zbase zuncompr zutil
 override TARGET_EXAMPLES+=example minigzip
 override INSTALL_FPCPACKAGE=y
 ifndef ECHO

@@ -24,8 +24,7 @@ type
 
   intf   = int;
 {$IFDEF FPC}
-  uInt = Longint;     { 16 bits or more }
-  { Should be cardinal, but that crashes }
+  uInt = Cardinal;     { 16 bits or more }
 {$ELSE}
   {$IFDEF MSDOS}
     uInt   = Word;
@@ -35,7 +34,7 @@ type
 
   Long   = longint;
 {$ifdef FPC}
-  uLong  = Longint;
+  uLong  = Cardinal;
 {$else}
   uLong  = LongInt;      { 32 bits or more }
 {$endif}
