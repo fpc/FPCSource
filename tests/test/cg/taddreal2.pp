@@ -23,7 +23,6 @@
 { RIGHT NODE (operand)                                          }
 {  LOC_FPU                                                      }
 {  LOC_REFERENCE / LOC_MEM                                      }
-{$E+}
 procedure fail;
 begin
   WriteLn('Failed!');
@@ -266,7 +265,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-04-13 21:02:38  carl
+  Revision 1.1  2002-08-25 19:26:23  peter
+    * splitted in $E+ file and without emulator
+
+  Revision 1.5  2002/04/13 21:02:38  carl
   * fixed typos
 
   Revision 1.4  2002/03/05 21:55:11  carl
