@@ -1240,43 +1240,48 @@ implementation
                       end;
            '0'..'9' : begin
                         readnumber;
-                        case c of
-                         '.' : begin
-                                 readchar;
-                                 if not(c in ['0'..'9']) then
-                                  begin
-                                    s_point:=true;
-                                    yylex:=INTCONST;
-                                    goto exit_label;
-                                  end;
-                                 pattern:=pattern+'.';
-                                 while c in ['0'..'9'] do
-                                  begin
-                                    pattern:=pattern+c;
-                                    readchar;
-                                  end;
-                                 yylex:=REALNUMBER;
+                        if (c in ['.','e','E']) then
+                         begin
+                         { first check for a . }
+                           if c='.' then
+                            begin
+                              readchar;
+                              if not(c in ['0'..'9']) then
+                               begin
+                                 s_point:=true;
+                                 yylex:=INTCONST;
                                  goto exit_label;
                                end;
-                     'e','E' : begin
-                                 pattern:=pattern+'E';
+                              pattern:=pattern+'.';
+                              while c in ['0'..'9'] do
+                               begin
+                                 pattern:=pattern+c;
                                  readchar;
-                                 if c in ['-','+'] then
-                                  begin
-                                    pattern:=pattern+c;
-                                    readchar;
-                                  end;
-                                 if not(c in ['0'..'9']) then
-                                  Message(scan_f_illegal_char);
-                                 while c in ['0'..'9'] do
-                                  begin
-                                    pattern:=pattern+c;
-                                    readchar;
-                                  end;
-                                 yylex:=REALNUMBER;
-                                 goto exit_label;
                                end;
-                        end;
+                            end;
+                         { E can also follow after a point is scanned }
+
+                           if c in ['e','E'] then
+
+                            begin
+                              pattern:=pattern+'E';
+                              readchar;
+                              if c in ['-','+'] then
+                               begin
+                                 pattern:=pattern+c;
+                                 readchar;
+                               end;
+                              if not(c in ['0'..'9']) then
+                               Message(scan_f_illegal_char);
+                              while c in ['0'..'9'] do
+                               begin
+                                 pattern:=pattern+c;
+                                 readchar;
+                               end;
+                            end;
+                           yylex:=REALNUMBER;
+                           goto exit_label;
+                         end;
                         yylex:=INTCONST;
                         goto exit_label;
                       end;
@@ -1753,9 +1758,9 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.32  1998-07-10 00:00:02  peter
-    * fixed ttypesym bug finally
-    * fileinfo in the symtable and better using for unused vars
+  Revision 1.33  1998-07-10 10:48:40  peter
+    * fixed realnumber scanning
+    * [] after asmblock was not uppercased anymore
 
   Revision 1.31  1998/07/07 17:39:38  peter
     * fixed $I  with following eof

@@ -631,6 +631,8 @@ unit pstatmnt;
               asmstat^.object_preserved:=true;
               if token<>RECKKLAMMER then
                 repeat
+                { uppercase, because it's a CSTRING }
+                  uppervar(pattern);
 {$ifdef i386}
                   if pattern='EAX' then
                     usedinproc:=usedinproc or ($80 shr byte(R_EAX))
@@ -1166,7 +1168,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.23  1998-06-25 08:48:18  florian
+  Revision 1.24  1998-07-10 10:48:42  peter
+    * fixed realnumber scanning
+    * [] after asmblock was not uppercased anymore
+
+  Revision 1.23  1998/06/25 08:48:18  florian
     * first version of rtti support
 
   Revision 1.22  1998/06/24 14:48:36  peter
