@@ -63,17 +63,6 @@
         @(#)signal.h    8.2 (Berkeley) 1/21/94
     }
 
-{$ifdef cpupowerpc}
-{$include powerpc/sig_cpu.inc}    { sigcontext }
-{$else cpupowerpc}
-{$ifdef cpui386}
-{$include i386/sig_cpu.inc}       { sigcontext }
-{$else cpui386}
-{$error Unsupported cpu type!}
-{$endif cpui386}
-{$endif cpupowerpc}
-
-
   const
     SA_NOCLDSTOP = 8;
     SA_ONSTACK   = $001; { take signal on signal stack }
@@ -181,15 +170,28 @@
                 pad             : array[0..6] of cint; { Reserved for Future Use }
                end;
 
+    TSigset=sigset_t;
+    Sigset=sigset_t;
+    PSigSet = ^TSigSet;
+
+{$ifdef cpupowerpc}
+    {$include powerpc/sig_cpu.inc}    { SigContextRec }
+{$else cpupowerpc}
+{$ifdef cpui386}
+    {$include i386/sig_cpu.inc}       { SigContextRec }
+{$else cpui386}
+    {$error Unsupported cpu type!}
+{$endif cpui386}
+{$endif cpupowerpc}
+
+
+
     SignalHandler   = Procedure(Sig : Longint);cdecl;
     PSignalHandler  = ^SignalHandler;
     SignalRestorer  = Procedure;cdecl;
     PSignalRestorer = ^SignalRestorer;
     TSigAction = procedure (Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
 
-    TSigset=sigset_t;
-    Sigset=sigset_t;
-    PSigSet = ^TSigSet;
 
     SigActionRec = packed record
 {
@@ -198,8 +200,8 @@
         1: (sa_handler: TSigAction);
 }
       Sa_Handler: TSigAction;
-      Sa_Flags: longint;
-      Sa_Mask: TSigSet;
+      Sa_Mask: sigset_t;
+      Sa_Flags: cint;
    end;
    PSigActionRec = ^SigActionRec;
 
@@ -217,14 +219,14 @@ const
   {
      Structure used in sigaltstack call.
     }
-  { signal stack base  }
-  { signal stack length  }
-  { SA_DISABLE and/or SA_ONSTACK  }
 
   type
      sigaltstack = record
+  { signal stack base  }
           ss_sp : ^char;
+  { signal stack length  }
           ss_size : longint;
+  { SA_DISABLE and/or SA_ONSTACK  }
           ss_flags : longint;
        end;
 
@@ -266,23 +268,14 @@ const
      FPE_FLTINV    =  5;       { invalid floating point operation }
 
 
-(*
-  {
-     Structure used in sigstack call.
-    }
-  { signal stack pointer  }
-  { current status  }
-
-  type
-     sigstack = record
-          ss_sp : ^char;
-          ss_onstack : longint;
-       end;
-*)
 
 {
   $Log$
-  Revision 1.4  2004-01-04 20:05:38  jonas
+  Revision 1.5  2004-01-08 21:52:34  jonas
+    * fixed signal handling under 10.3.2, still have to verify whether it's
+      backwards compatible
+
+  Revision 1.4  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 

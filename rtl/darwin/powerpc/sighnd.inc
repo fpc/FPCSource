@@ -14,6 +14,13 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
+procedure darwin_signal_trampoline(pc,r1: pointer; res: longint);
+begin
+{ give runtime error at the position where the signal was raised }
+  HandleErrorAddrFrame(res,pc,r1);
+end;
+
+
 procedure SignalToRunerror(Sig: cint; var info : tsiginfo_t;Var SigContext:SigContextRec); cdecl;
 
 var
@@ -21,8 +28,6 @@ var
 
 begin
   res:=0;
-  { have to verify whether this is necessary }
-  fpc_enable_ppc_fpu_exceptions;
   case sig of
     SIGFPE :
       begin
@@ -35,6 +40,12 @@ begin
           Else
               Res:=208; {coprocessor error}
         end;
+        { FPU exceptions are completely disabled by the kernel if one occurred, it  }
+        { seems this is necessary to be able to return to user mode. They can be    }
+        { enabled by executing a sigreturn, however then the exception is triggered }
+        { triggered again immediately if we don't turn off the "exception occurred" }
+        { flags in fpscr                                                            }
+        SigContext.uc_mcontext^.fs.fpscr := SigContext.uc_mcontext^.fs.fpscr and not($fffc0000);
       end;
     SIGILL,
     SIGBUS,
@@ -44,16 +55,24 @@ begin
   {$ifdef FPC_USE_SIGPROCMASK}
    reenable_signal(sig);
   {$endif }
-{ give runtime error at the position where the signal was raised }
-  if res<>0 then
-   begin
-     HandleErrorAddrFrame(res,Pointer(SigContext.sc_ir),pointer(SigContext.sc_sp));
-   end;
+
+  { return to trampoline }
+  if res <> 0 then
+    begin
+      SigContext.uc_mcontext^.ss.r3 := SigContext.uc_mcontext^.ss.srr0;
+      SigContext.uc_mcontext^.ss.r4 := SigContext.uc_mcontext^.ss.r1;
+      SigContext.uc_mcontext^.ss.r5 := res;
+      pointer(SigContext.uc_mcontext^.ss.srr0) := @darwin_signal_trampoline;
+    end;
 end;
 
 {
   $Log$
-  Revision 1.1  2004-01-04 20:05:38  jonas
+  Revision 1.2  2004-01-08 21:52:34  jonas
+    * fixed signal handling under 10.3.2, still have to verify whether it's
+      backwards compatible
+
+  Revision 1.1  2004/01/04 20:05:38  jonas
     * first working version of the Darwin/Mac OS X (for PowerPC) RTL
       Several non-essential units are still missing, but make cycle works
 
