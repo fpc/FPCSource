@@ -27,13 +27,63 @@ unit t_macos;
 
 interface
 
+  uses
+     import,symsym;
+
+  type
+    timportlibmacos=class(timportlib)
+      procedure preparelib(const s:string);override;
+      procedure importprocedure(const func,module:string;index:longint;const name:string);override;
+      procedure importvariable(vs:tvarsym;const name,module:string);override;
+      procedure generatelib;override;
+    end;
 
 implementation
 
     uses
        link,
        cutils,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_macos;
+       globtype,globals,systems,verbose,script,fmodule,i_macos,
+       symconst;
+
+{*****************************************************************************
+                               TIMPORTLIBMACOS
+*****************************************************************************}
+
+procedure timportlibmacos.preparelib(const s : string);
+begin
+end;
+
+
+procedure timportlibmacos.importprocedure(const func,module : string;index : longint;const name : string);
+begin
+  { insert sharedlibrary }
+  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+  { do nothing with the procedure, only set the mangledname }
+  if name<>'' then
+   begin
+     aktprocdef.setmangledname(name);
+     aktprocdef.has_mangledname:=true;
+   end
+  else
+    message(parser_e_empty_import_name);
+end;
+
+
+procedure timportlibmacos.importvariable(vs:tvarsym;const name,module:string);
+begin
+  { insert sharedlibrary }
+  current_module.linkothersharedlibs.add(SplitName(module),link_allways);
+  { reset the mangledname and turn off the dll_var option }
+  vs.set_mangledname(name);
+  exclude(vs.varoptions,vo_is_dll_var);
+end;
+
+
+procedure timportlibmacos.generatelib;
+begin
+end;
+
 
 {*****************************************************************************
                                   Initialize
@@ -42,14 +92,19 @@ implementation
 initialization
 {$ifdef m68k}
   RegisterTarget(system_m68k_macos_info);
+  RegisterImport(system_m68k_macos,timportlibmacos);
 {$endif m68k}
 {$ifdef powerpc}
   RegisterTarget(system_powerpc_macos_info);
+  RegisterImport(system_powerpc_macos,timportlibmacos);
 {$endif powerpc}
 end.
 {
   $Log$
-  Revision 1.1  2002-09-06 15:03:50  carl
+  Revision 1.2  2002-10-02 21:50:19  florian
+    * importing via external is now possible for macos
+
+  Revision 1.1  2002/09/06 15:03:50  carl
     * moved files to systems directory
 
   Revision 1.13  2002/08/20 21:40:44  florian
@@ -58,25 +113,4 @@ end.
 
   Revision 1.12  2002/07/26 21:15:46  florian
     * rewrote the system handling
-
-  Revision 1.11  2002/05/18 13:34:27  peter
-    * readded missing revisions
-
-  Revision 1.10  2002/05/16 19:46:53  carl
-  + defines.inc -> fpcdefs.inc to avoid conflicts if compiling by hand
-  + try to fix temp allocation (still in ifdef)
-  + generic constructor calls
-  + start of tassembler / tmodulebase class cleanup
-
-  Revision 1.8  2002/04/22 18:19:22  carl
-  - remove use_bound_instruction field
-
-  Revision 1.7  2002/04/20 21:43:18  carl
-  * fix stack size for some targets
-  + add offset to parameters from frame pointer info.
-  - remove some unused stuff
-
-  Revision 1.6  2002/04/15 19:16:57  carl
-  - remove size_of_pointer field
-
 }

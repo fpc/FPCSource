@@ -87,7 +87,7 @@ unit i_macos;
             first_parm_offset : 8;
             heapsize     : 256*1024;
             stacksize    : 262144;
-            DllScanSupported:true;
+            DllScanSupported:false;
             use_function_relative_addresses : true
           );
 
@@ -102,7 +102,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.3  2002-10-02 21:29:34  florian
+  Revision 1.4  2002-10-02 21:50:19  florian
+    * importing via external is now possible for macos
+
+  Revision 1.3  2002/10/02 21:29:34  florian
     * ppus have the extension ppu on macos as well now
 
   Revision 1.2  2002/09/11 19:59:14  florian
