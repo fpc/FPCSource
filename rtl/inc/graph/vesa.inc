@@ -1,4 +1,5 @@
 {
+
     $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993,99 by Carl Eric Codere
@@ -1026,13 +1027,13 @@ end;
        end
      else
        begin
-         SetVESAmode := TRUE;
+         SetVESAmode := FALSE;
          _GraphResult := grError;
          exit;
        end;
 
      BankShift := 0;
-     while (64 shl BankShift) <> ModeInfo.WinGranularity do
+     while (64 shr BankShift) <> ModeInfo.WinGranularity do
         Inc(BankShift);
      CurrentWriteBank := -1;
      CurrentReadBank := -1;
@@ -1410,7 +1411,10 @@ end;
 
 {
 $Log$
-Revision 1.6  1999-07-14 13:17:29  jonas
+Revision 1.7  1999-07-14 15:21:49  jonas
+  * fixed initialization of bankshift var ('64 shr banshift' instead of shl)
+
+Revision 1.6  1999/07/14 13:17:29  jonas
   * bugfix in getmodeinfo (SizeOf(TModeInfo) -> SizeOf(TVESAModeInfo))
   * as the result of the above bugfix, the graph unit doesn't crash
     anymore under FPC if compiler with -dsupportVESA, but it doesn't
