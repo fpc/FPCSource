@@ -666,11 +666,20 @@ implementation
                           last:=tonnode(last).left;
                        end;
                      { set the informations }
-                     tonnode(last).excepttype:=ot;
-                     tonnode(last).exceptsymtable:=exceptsymtable;
+                     { only if the creation of the onnode was succesful, it's possible }
+                     { that last and hp are errornodes (JM)                            }
+                     if last.nodetype = onn then
+                       begin
+                         tonnode(last).excepttype:=ot;
+                         tonnode(last).exceptsymtable:=exceptsymtable;
+                       end;
                      { remove exception symtable }
                      if assigned(exceptsymtable) then
-                       dellexlevel;
+                       begin
+                         dellexlevel;
+                         if last.nodetype <> onn then
+                           dispose(exceptsymtable,done);
+                       end;
                      if not try_to_consume(_SEMICOLON) then
                         break;
                      emptystats;
@@ -1257,7 +1266,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-11-22 22:43:34  peter
+  Revision 1.15  2000-11-27 15:47:19  jonas
+    * fix for web bug 1251 (example 1)
+
+  Revision 1.14  2000/11/22 22:43:34  peter
     * fixed crash with exception without sysutils (merged)
 
   Revision 1.13  2000/11/04 14:25:21  florian
