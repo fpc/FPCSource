@@ -451,6 +451,12 @@ type
     procedure WriteDescendent(Instance, Ancestor: TComponent);
     procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
     procedure ReadResHeader;
+    function ReadByte : Byte;
+    function ReadWord : Word;
+    function ReadDWord : Cardinal;
+    procedure WriteByte(b : Byte);
+    procedure WriteWord(w : Word);
+    procedure WriteDWord(d : Cardinal);
     property Position: Longint read GetPosition write SetPosition;
     property Size: Longint read GetSize write SetSize;
   end;
@@ -1050,7 +1056,7 @@ function LineStart(Buffer, BufPos: PChar): PChar;
 implementation
 
 {****************************************************************************}
-{*                               TBITS                                      *}
+{*                               TBits                                      *}
 {****************************************************************************}
 
   procedure TBits.Error;
@@ -1167,7 +1173,7 @@ implementation
     end;
 
 {****************************************************************************}
-{*                             TSTREAM                                      *}
+{*                             TStream                                      *}
 {****************************************************************************}
 
   function TStream.GetPosition: Longint;
@@ -1196,7 +1202,7 @@ implementation
   procedure TStream.SetSize(NewSize: Longint);
 
     begin
-       // SetPosition(Pos);
+       SetPosition(NewSize);
     end;
 
   procedure TStream.ReadBuffer(var Buffer; Count: Longint);
@@ -1303,7 +1309,7 @@ implementation
        { back patch size }
        SetPosition(startpos-4);
        WriteDWord(s);
-{$endif}
+{$endif Win16Res}
 *)
     end;
 
@@ -1313,18 +1319,88 @@ implementation
        {!!!!!}
     end;
 
-  procedure WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
+  procedure TStream.WriteDescendentRes(const ResName: string; Instance, Ancestor: TComponent);
 
     begin
        {!!!!!}
     end;
 
-  procedure ReadResHeader;
+  procedure TStream.ReadResHeader;
 
     begin
-       {!!!!!}
+{$ifdef Win16Res}
+       try
+         { application specific resource ? }
+         if ReadByte<>$ff then
+           raise EInvalidImage;
+         if ReadWord<>$000a then
+           raise EInvalidImage;
+         { read name }
+         while ReadByte<>0 do
+           ;
+         { check the access specifier }
+         if ReadWord<>$1030 then
+           raise EInvalidImage;
+         { ignore the size }
+         ReadDWord;
+       except
+{/////
+         on EInvalidImage do
+           raise;
+         else
+           raise(EInvalidImage);
+}
+       end;
+{$endif Win16Res}
     end;
 
+  function TStream.ReadByte : Byte;
+
+    var
+       b : Byte;
+
+    begin
+       ReadBuffer(b,1);
+       ReadByte:=b;
+    end;
+
+  function TStream.ReadWord : Word;
+
+    var
+       w : Word;
+
+    begin
+       ReadBuffer(w,2);
+       ReadWord:=w;
+    end;
+
+  function TStream.ReadDWord : Cardinal;
+
+    var
+       d : Cardinal;
+
+    begin
+       ReadBuffer(d,4);
+       ReadDWord:=d;
+    end;
+
+  procedure TStream.WriteByte(b : Byte);
+
+    begin
+       WriteBuffer(b,1);
+    end;
+
+  procedure TStream.WriteWord(w : Word);
+
+    begin
+       WriteBuffer(w,2);
+    end;
+
+  procedure TStream.WriteDWord(d : Cardinal);
+
+    begin
+       WriteBuffer(d,4);
+    end;
 
 {****************************************************************************}
 {*                             TList                                        *}
@@ -1375,15 +1451,15 @@ end;
 destructor TList.Destroy;
 
 begin
-  CLear;
+  Clear;
   inherited Destroy;
 end;
 
 
-piFunction TList.Add(Item: Pointer): Integer;
+Function TList.Add(Item: Pointer): Integer;
 
 begin
-//  Self.Insert (Count,Item);
+  Self.Insert (Count,Item);
 end;
 
 
@@ -1403,7 +1479,11 @@ begin
 end;
 
 
-//    class procedure Error(const Msg: string; Data: Integer); virtual;
+class procedure Error(const Msg: string; Data: Integer);
+
+begin
+end;
+
 procedure TList.Exchange(Index1, Index2: Integer);
 
 
@@ -1470,12 +1550,14 @@ procedure TList.Sort(Compare: TListSortCompare);
 begin
 end;
 
-
-
 end.
 {
   $Log$
-  Revision 1.7  1998-05-04 09:39:51  michael
+  Revision 1.8  1998-05-04 11:20:13  florian
+    + Write* and Read* methods to TStream added
+    * small problems solved
+
+  Revision 1.7  1998/05/04 09:39:51  michael
   + Started implementation of TList
 
   Revision 1.6  1998/05/01 22:17:19  florian
