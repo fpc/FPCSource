@@ -82,7 +82,7 @@ interface
        tgotonode = class(tnode)
           labelnr : tasmlabel;
           labsym : tlabelsym;
-          constructor create(p : tasmlabel);virtual;
+          constructor create(p : tlabelsym);virtual;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -93,7 +93,8 @@ interface
           labelnr : tasmlabel;
           exceptionblock : tnode;
           labsym : tlabelsym;
-          constructor create(p : tasmlabel;l:tnode);virtual;
+          constructor createcase(p : tasmlabel;l:tnode);virtual;
+          constructor create(p : tlabelsym;l:tnode);virtual;
           function getcopy : tnode;override;
           function det_resulttype:tnode;override;
           function pass_1 : tnode;override;
@@ -260,13 +261,25 @@ implementation
 
     function twhilerepeatnode.det_resulttype:tnode;
       begin
-        result:=nil;
-        resulttype:=voidtype;
+         result:=nil;
+         resulttype:=voidtype;
+
+         resulttypepass(left);
+         { loop instruction }
+         if assigned(right) then
+           resulttypepass(right);
+         set_varstate(left,true);
+         if codegenerror then
+           exit;
+         if not is_boolean(left.resulttype.def) then
+           begin
+             CGMessage(type_e_mismatch);
+             exit;
+           end;
       end;
 
 
     function twhilerepeatnode.pass_1 : tnode;
-
       var
          old_t_times : longint;
       begin
@@ -283,15 +296,8 @@ implementation
 {$endif newcg}
 
          firstpass(left);
-         set_varstate(left,true);
          if codegenerror then
            exit;
-         if not is_boolean(left.resulttype.def) then
-           begin
-             CGMessage(type_e_mismatch);
-             exit;
-           end;
-
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -329,7 +335,6 @@ implementation
 *****************************************************************************}
 
     constructor tifnode.create(l,r,_t1 : tnode);
-
       begin
          inherited create(ifn,l,r,_t1,nil);
       end;
@@ -337,8 +342,22 @@ implementation
 
     function tifnode.det_resulttype:tnode;
       begin
-        result:=nil;
-        resulttype:=voidtype;
+         result:=nil;
+         resulttype:=voidtype;
+
+         resulttypepass(left);
+         { if path }
+         if assigned(right) then
+           resulttypepass(right);
+         { else path }
+         if assigned(t1) then
+           resulttypepass(t1);
+         set_varstate(left,true);
+         if codegenerror then
+           exit;
+
+         if not is_boolean(left.resulttype.def) then
+           Message1(type_e_boolean_expr_expected,left.resulttype.def.typename);
       end;
 
 
@@ -355,16 +374,6 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(left);
-         set_varstate(left,true);
-
-         { Only check type if no error, we can't leave here because
-           the right also needs to be firstpassed }
-         if not codegenerror then
-          begin
-            if not is_boolean(left.resulttype.def) then
-              Message1(type_e_boolean_expr_expected,left.resulttype.def.typename);
-          end;
-
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -465,23 +474,11 @@ implementation
 
 
     function tfornode.det_resulttype:tnode;
-      begin
-        result:=nil;
-        resulttype:=voidtype;
-      end;
-
-
-    function tfornode.pass_1 : tnode;
-
       var
-         old_t_times : longint;
-         hp : tnode;
+        hp : tnode;
       begin
          result:=nil;
-         { Calc register weight }
-         old_t_times:=t_times;
-         if not(cs_littlesize in aktglobalswitches) then
-           t_times:=t_times*8;
+         resulttype:=voidtype;
 
          if left.nodetype<>assignn then
            begin
@@ -491,47 +488,18 @@ implementation
          { save counter var }
          t2:=tassignmentnode(left).left.getcopy;
 
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
-         firstpass(left);
+         resulttypepass(left);
          set_varstate(left,false);
 
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
          if assigned(t1) then
           begin
-            firstpass(t1);
+            resulttypepass(t1);
             if codegenerror then
              exit;
           end;
 
-         registers32:=t1.registers32;
-         registersfpu:=t1.registersfpu;
-{$ifdef SUPPORT_MMX}
-         registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-         if left.registers32>registers32 then
-           registers32:=left.registers32;
-         if left.registersfpu>registersfpu then
-           registersfpu:=left.registersfpu;
-{$ifdef SUPPORT_MMX}
-         if left.registersmmx>registersmmx then
-           registersmmx:=left.registersmmx;
-{$endif SUPPORT_MMX}
-
          { process count var }
-{$ifdef newcg}
-         tg.cleartempgen;
-{$else newcg}
-         cleartempgen;
-{$endif newcg}
-         firstpass(t2);
+         resulttypepass(t2);
          set_varstate(t2,true);
          if codegenerror then
           exit;
@@ -557,6 +525,64 @@ implementation
          else
           CGMessagePos(hp.fileinfo,cg_e_illegal_count_var);
 
+         resulttypepass(right);
+         set_varstate(right,true);
+         if right.nodetype<>ordconstn then
+           inserttypeconv(right,t2.resulttype);
+      end;
+
+
+    function tfornode.pass_1 : tnode;
+      var
+         old_t_times : longint;
+     begin
+         result:=nil;
+         { Calc register weight }
+         old_t_times:=t_times;
+         if not(cs_littlesize in aktglobalswitches) then
+           t_times:=t_times*8;
+
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
+         cleartempgen;
+{$endif newcg}
+         firstpass(left);
+
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
+         cleartempgen;
+{$endif newcg}
+         if assigned(t1) then
+          begin
+            firstpass(t1);
+            if codegenerror then
+             exit;
+          end;
+         registers32:=t1.registers32;
+         registersfpu:=t1.registersfpu;
+{$ifdef SUPPORT_MMX}
+         registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+         if left.registers32>registers32 then
+           registers32:=left.registers32;
+         if left.registersfpu>registersfpu then
+           registersfpu:=left.registersfpu;
+{$ifdef SUPPORT_MMX}
+         if left.registersmmx>registersmmx then
+           registersmmx:=left.registersmmx;
+{$endif SUPPORT_MMX}
+
+         { process count var }
+{$ifdef newcg}
+         tg.cleartempgen;
+{$else newcg}
+         cleartempgen;
+{$endif newcg}
+         firstpass(t2);
+         if codegenerror then
+          exit;
          if t2.registers32>registers32 then
            registers32:=t2.registers32;
          if t2.registersfpu>registersfpu then
@@ -572,18 +598,6 @@ implementation
          cleartempgen;
 {$endif newcg}
          firstpass(right);
-         set_varstate(right,true);
-         if right.nodetype<>ordconstn then
-           begin
-              inserttypeconv(right,t2.resulttype);
-{$ifdef newcg}
-              tg.cleartempgen;
-{$else newcg}
-              cleartempgen;
-{$endif newcg}
-              firstpass(right);
-           end;
-
          if right.registers32>registers32 then
            registers32:=right.registers32;
          if right.registersfpu>registersfpu then
@@ -625,6 +639,12 @@ implementation
     function texitnode.det_resulttype:tnode;
       begin
         result:=nil;
+         if assigned(left) then
+           begin
+              resulttypepass(left);
+              set_varstate(left,true);
+              procinfo^.funcret_state:=vs_assigned;
+           end;
         resulttype:=voidtype;
       end;
 
@@ -635,10 +655,8 @@ implementation
          if assigned(left) then
            begin
               firstpass(left);
-              set_varstate(left,true);
               if codegenerror then
                exit;
-              procinfo^.funcret_state:=vs_assigned;
               registers32:=left.registers32;
               registersfpu:=left.registersfpu;
 {$ifdef SUPPORT_MMX}
@@ -677,7 +695,6 @@ implementation
 *****************************************************************************}
 
     constructor tcontinuenode.create;
-
       begin
         inherited create(continuen);
       end;
@@ -700,11 +717,11 @@ implementation
                              TGOTONODE
 *****************************************************************************}
 
-    constructor tgotonode.create(p : tasmlabel);
-
+    constructor tgotonode.create(p : tlabelsym);
       begin
         inherited create(goton);
-        labelnr:=p;
+        labsym:=p;
+        labelnr:=p.lab;
       end;
 
 
@@ -718,13 +735,17 @@ implementation
     function tgotonode.pass_1 : tnode;
       begin
          result:=nil;
+         { check if }
+         if assigned(labsym) and
+            assigned(labsym.code) and
+            (aktexceptblock<>tlabelnode(labsym.code).exceptionblock) then
+           CGMessage(cg_e_goto_inout_of_exception_block);
       end;
 
-   function tgotonode.getcopy : tnode;
 
+   function tgotonode.getcopy : tnode;
      var
         p : tgotonode;
-
      begin
         p:=tgotonode(inherited getcopy);
         p.labelnr:=labelnr;
@@ -732,34 +753,47 @@ implementation
         result:=p;
      end;
 
+
     function tgotonode.docompare(p: tnode): boolean;
       begin
         docompare := false;
       end;
 
+
 {*****************************************************************************
                              TLABELNODE
 *****************************************************************************}
 
-    constructor tlabelnode.create(p : tasmlabel;l:tnode);
-
+    constructor tlabelnode.createcase(p : tasmlabel;l:tnode);
       begin
         inherited create(labeln,l);
-        labelnr:=p;
         exceptionblock:=nil;
         labsym:=nil;
+        labelnr:=p;
+      end;
+
+
+    constructor tlabelnode.create(p : tlabelsym;l:tnode);
+      begin
+        inherited create(labeln,l);
+        exceptionblock:=nil;
+        labsym:=p;
+        labelnr:=p.lab;
+        { save the current labelnode in the labelsym }
+        p.code:=self;
       end;
 
 
     function tlabelnode.det_resulttype:tnode;
       begin
         result:=nil;
+        exceptionblock:=aktexceptblock;
+        resulttypepass(left);
         resulttype:=voidtype;
       end;
 
 
     function tlabelnode.pass_1 : tnode;
-
       begin
          result:=nil;
 {$ifdef newcg}
@@ -767,7 +801,6 @@ implementation
 {$else newcg}
          cleartempgen;
 {$endif newcg}
-         exceptionblock:=aktexceptblock;
          firstpass(left);
          registers32:=left.registers32;
          registersfpu:=left.registersfpu;
@@ -778,10 +811,8 @@ implementation
 
 
    function tlabelnode.getcopy : tnode;
-
      var
         p : tlabelnode;
-
      begin
         p:=tlabelnode(inherited getcopy);
         p.labelnr:=labelnr;
@@ -802,7 +833,6 @@ implementation
 *****************************************************************************}
 
     constructor traisenode.create(l,taddr,tframe:tnode);
-
       begin
          inherited create(raisen,l,taddr);
          frametree:=tframe;
@@ -810,10 +840,8 @@ implementation
 
 
     function traisenode.getcopy : tnode;
-
       var
          n : traisenode;
-
       begin
          n:=traisenode(inherited getcopy);
          if assigned(frametree) then
@@ -831,8 +859,31 @@ implementation
 
     function traisenode.det_resulttype:tnode;
       begin
-        result:=nil;
-        resulttype:=voidtype;
+         result:=nil;
+         resulttype:=voidtype;
+         if assigned(left) then
+           begin
+              { first para must be a _class_ }
+              resulttypepass(left);
+              set_varstate(left,true);
+              if codegenerror then
+               exit;
+              if not(is_class(left.resulttype.def)) then
+                CGMessage(type_e_mismatch);
+              { insert needed typeconvs for addr,frame }
+              if assigned(right) then
+               begin
+                 { addr }
+                 resulttypepass(right);
+                 inserttypeconv(right,s32bittype);
+                 { frame }
+                 if assigned(frametree) then
+                  begin
+                    resulttypepass(frametree);
+                    inserttypeconv(frametree,s32bittype);
+                  end;
+               end;
+           end;
       end;
 
 
@@ -843,30 +894,14 @@ implementation
            begin
               { first para must be a _class_ }
               firstpass(left);
-              if assigned(left.resulttype.def) and
-                 not(is_class(left.resulttype.def)) then
-                CGMessage(type_e_mismatch);
-              set_varstate(left,true);
-              if codegenerror then
-               exit;
               { insert needed typeconvs for addr,frame }
               if assigned(right) then
                begin
                  { addr }
                  firstpass(right);
-                 inserttypeconv(right,s32bittype);
-                 firstpass(right);
-                 if codegenerror then
-                  exit;
                  { frame }
                  if assigned(frametree) then
-                  begin
-                    firstpass(frametree);
-                    inserttypeconv(frametree,s32bittype);
-                    firstpass(frametree);
-                    if codegenerror then
-                     exit;
-                  end;
+                  firstpass(frametree);
                end;
               left_right_max;
            end;
@@ -890,17 +925,37 @@ implementation
 
 
     function ttryexceptnode.det_resulttype:tnode;
+      var
+        oldexceptblock : tnode;
       begin
-        result:=nil;
+         result:=nil;
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=left;
+         resulttypepass(left);
+         aktexceptblock:=oldexceptblock;
+         { on statements }
+         if assigned(right) then
+           begin
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=right;
+              resulttypepass(right);
+              aktexceptblock:=oldexceptblock;
+           end;
+         { else block }
+         if assigned(t1) then
+           begin
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=t1;
+              resulttypepass(t1);
+              aktexceptblock:=oldexceptblock;
+           end;
         resulttype:=voidtype;
       end;
 
 
     function ttryexceptnode.pass_1 : tnode;
-
       var
-         oldexceptblock : tnode;
-
+        oldexceptblock : tnode;
       begin
          result:=nil;
 {$ifdef newcg}
@@ -951,24 +1006,35 @@ implementation
 *****************************************************************************}
 
     constructor ttryfinallynode.create(l,r:tnode);
-
       begin
         inherited create(tryfinallyn,l,r);
       end;
 
 
     function ttryfinallynode.det_resulttype:tnode;
+      var
+         oldexceptblock : tnode;
       begin
-        result:=nil;
-        resulttype:=voidtype;
+         result:=nil;
+         resulttype:=voidtype;
+
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=left;
+         resulttypepass(left);
+         aktexceptblock:=oldexceptblock;
+         set_varstate(left,true);
+
+         oldexceptblock:=aktexceptblock;
+         aktexceptblock:=right;
+         resulttypepass(right);
+         aktexceptblock:=oldexceptblock;
+         set_varstate(right,true);
       end;
 
 
     function ttryfinallynode.pass_1 : tnode;
-
       var
          oldexceptblock : tnode;
-
       begin
          result:=nil;
 {$ifdef newcg}
@@ -980,7 +1046,7 @@ implementation
          aktexceptblock:=left;
          firstpass(left);
          aktexceptblock:=oldexceptblock;
-         set_varstate(left,true);
+
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -990,7 +1056,6 @@ implementation
          aktexceptblock:=right;
          firstpass(right);
          aktexceptblock:=oldexceptblock;
-         set_varstate(right,true);
          if codegenerror then
            exit;
          left_right_max;
@@ -1002,12 +1067,12 @@ implementation
 *****************************************************************************}
 
     constructor tonnode.create(l,r:tnode);
-
       begin
          inherited create(onn,l,r);
          exceptsymtable:=nil;
          excepttype:=nil;
       end;
+
 
     destructor tonnode.destroy;
       begin
@@ -1016,11 +1081,10 @@ implementation
         inherited destroy;
       end;
 
-    function tonnode.getcopy : tnode;
 
+    function tonnode.getcopy : tnode;
       var
          n : tonnode;
-
       begin
          n:=tonnode(inherited getcopy);
          n.exceptsymtable:=exceptsymtable;
@@ -1028,23 +1092,32 @@ implementation
          result:=n;
       end;
 
+
     function tonnode.det_resulttype:tnode;
+      var
+         oldexceptblock : tnode;
       begin
-        result:=nil;
-        resulttype:=voidtype;
+         result:=nil;
+         resulttype:=voidtype;
+         if not(is_class(excepttype)) then
+           CGMessage(type_e_mismatch);
+         if assigned(left) then
+           resulttypepass(left);
+         if assigned(right) then
+           begin
+              oldexceptblock:=aktexceptblock;
+              aktexceptblock:=right;
+              resulttypepass(right);
+              aktexceptblock:=oldexceptblock;
+           end;
       end;
 
 
     function tonnode.pass_1 : tnode;
-
       var
          oldexceptblock : tnode;
-
       begin
          result:=nil;
-         { that's really an example procedure for a firstpass :) }
-         if not(is_class(excepttype)) then
-           CGMessage(type_e_mismatch);
 {$ifdef newcg}
          tg.cleartempgen;
 {$else newcg}
@@ -1083,6 +1156,7 @@ implementation
 {$endif SUPPORT_MMX}
            end;
       end;
+
 
     function tonnode.docompare(p: tnode): boolean;
       begin
@@ -1136,7 +1210,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.16  2001-04-13 01:22:09  peter
+  Revision 1.17  2001-04-14 14:07:10  peter
+    * moved more code from pass_1 to det_resulttype
+
+  Revision 1.16  2001/04/13 01:22:09  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

@@ -1249,7 +1249,7 @@ implementation
                     if tlabelsym(srsym).defined then
                      Message(sym_e_label_already_defined);
                     tlabelsym(srsym).defined:=true;
-                    p1:=clabelnode.create(tlabelsym(srsym).lab,nil);
+                    p1:=clabelnode.create(tlabelsym(srsym),nil);
                   end;
 
                 errorsym :
@@ -2320,7 +2320,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.29  2001-04-13 23:50:24  peter
+  Revision 1.30  2001-04-14 14:07:10  peter
+    * moved more code from pass_1 to det_resulttype
+
+  Revision 1.29  2001/04/13 23:50:24  peter
     * fpc mode now requires @ also when left of assignment is an procvardef
 
   Revision 1.28  2001/04/13 01:22:12  peter

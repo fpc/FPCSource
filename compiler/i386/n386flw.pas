@@ -655,11 +655,6 @@ do_jmp:
        begin
          load_all_regvars(exprasmlist);
          emitjmp(C_None,labelnr);
-         { the assigned avoids only crashes if the label isn't defined }
-         if assigned(labsym) and
-           assigned(labsym.code) and
-            (aktexceptblock<>tlabelnode(labsym.code).exceptionblock) then
-           CGMessage(cg_e_goto_inout_of_exception_block);
        end;
 
 
@@ -1385,7 +1380,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2001-04-13 01:22:19  peter
+  Revision 1.11  2001-04-14 14:07:11  peter
+    * moved more code from pass_1 to det_resulttype
+
+  Revision 1.10  2001/04/13 01:22:19  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed

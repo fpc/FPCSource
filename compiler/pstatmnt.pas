@@ -265,7 +265,7 @@ implementation
            consume(_COLON);
 
            { handles instruction block }
-           p:=clabelnode.create(aktcaselabel,statement);
+           p:=clabelnode.createcase(aktcaselabel,statement);
 
            { concats instruction }
            instruc:=cstatementnode.create(instruc,p);
@@ -1020,7 +1020,7 @@ implementation
                        end
                      else
                        begin
-                         code:=cgotonode.create(tlabelsym(srsym).lab);
+                         code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labsym:=tlabelsym(srsym);
                          { set flag that this label is used }
                          tlabelsym(srsym).used:=true;
@@ -1215,7 +1215,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2001-04-13 01:22:13  peter
+  Revision 1.25  2001-04-14 14:07:11  peter
+    * moved more code from pass_1 to det_resulttype
+
+  Revision 1.24  2001/04/13 01:22:13  peter
     * symtable change to classes
     * range check generation and errors fixed, make cycle DEBUG=1 works
     * memory leaks fixed
