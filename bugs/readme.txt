@@ -205,4 +205,5 @@ bug0152.pp   End value of loop variable must be calculated before loop
 bug0153.pp   indexing a local/para var should produce an error like tp7 because
              it's doomed to crash
 bug0154.pp   Subrange types give type mismatch when assigning to base type
+bug0155.pp   Missing string return for asm functions
 
