@@ -118,6 +118,8 @@ pmbitmap$(PPUEXT) : pmbitmap.pas $(SYSTEMUNIT)$(PPUEXT)
 
 pmgpi$(PPUEXT) : pmgpi.pas pmbitmap$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
+pmstddlg$(PPUEXT) : pmstddlg.pas os2def$(PPUEXT) doscalls$(PPUEXT) pmwin$(PPUEXT) pmgpi$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
+
 dive$(PPUEXT) : dive.pas os2def$(PPUEXT) pmwin$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 dynlibs$(PPUEXT) : $(INC)/dynlibs.pp doscalls$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
