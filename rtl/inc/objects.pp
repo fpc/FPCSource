@@ -720,7 +720,7 @@ end ['D0'];
 {$define FPC_PreviousFramePointer_Implemented}
     { we have first our own frame }
     ld [%fp],%i0
-    ld [%io],%i0
+    ld [%i0],%i0
 end;
 {$endif}
 {$ifdef cpupowerpc}
@@ -753,7 +753,7 @@ begin
 {$else}
 { 1.1 does not esi to be loaded }
 {$define FPC_CallPointerConstructor_Implemented}
-{$endif}  
+{$endif}
   CallPointerConstructor := PointerConstructor(Ctor)(VMT, Obj, Param1)
 end;
 {$ifdef cpupowerpc}
@@ -785,10 +785,10 @@ begin
   so self should be in a register anyways }
 {$endif}
   end;
-{$else}  
+{$else}
 { 1.1 does not esi to be loaded }
 {$define FPC_CallPointerMethod_Implemented}
-{$endif}  
+{$endif}
   CallPointerMethod := PointerMethod(Method)(Obj, Param1)
 end;
 {$ifndef FPC_CallPointerMethod_Implemented}
@@ -1243,10 +1243,10 @@ END;
 {                         TDosStream OBJECT METHODS                         }
 {+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++}
 
-{$IFOPT I+}   
+{$IFOPT I+}
 {$DEFINE IO_CHECK_ON}
 {$I-}
-{$ENDIF}     
+{$ENDIF}
 
 {--TDosStream---------------------------------------------------------------}
 {  Init -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
@@ -1262,8 +1262,8 @@ BEGIN
    Assign(FileInfo,FileName);
    { Handle the mode }
    if Mode =stCreate then
-     Begin        
-       Rewrite(FileInfo,1); 
+     Begin
+       Rewrite(FileInfo,1);
      end
    else
      Begin
@@ -1271,8 +1271,8 @@ BEGIN
        FileMode := Mode and 3;
        System.Reset(FileInfo,1);
        FileMode := OldFileMode;
-       { To use the correct mode we must reclose the file 
-         and open it again 
+       { To use the correct mode we must reclose the file
+         and open it again
        }
      end;
    Handle := FileRec(FileInfo).Handle;                { Set handle value   }
@@ -1283,10 +1283,10 @@ BEGIN
      end;
    If DosStreamError = 0 then
        DosStreamError := IOResult;
-   If (DosStreamError <> 0) Then 
+   If (DosStreamError <> 0) Then
      Error(stInitError, DosStreamError)              { Call stream error }
-   else  
-     Status := StOK;  
+   else
+     Status := StOK;
 END;
 
 {--TDosStream---------------------------------------------------------------}
@@ -1306,7 +1306,7 @@ BEGIN
           Error(stError, DosStreamError);
      end;
    Position := 0;                                     { Zero the position }
-   Handle := InvalidHandle;   
+   Handle := InvalidHandle;
    Inherited Done;                                    { Call ancestor }
 END;
 
@@ -1356,11 +1356,11 @@ PROCEDURE TDosStream.Seek (Pos: Longint);
 var
  DosStreamError : Word;
 BEGIN
-   If (Status=stOk) Then 
+   If (Status=stOk) Then
      Begin                                  { Check status okay }
-       If (Pos < 0) Then 
+       If (Pos < 0) Then
              Pos := 0;                      { Negatives removed }
-       System.Seek(FileInfo, Pos);      
+       System.Seek(FileInfo, Pos);
        DosStreamError := IOResult;
        if DosStreamError <> 0 then
           Error(stSeekError, DosStreamError){ Specific seek error }
@@ -1376,15 +1376,15 @@ PROCEDURE TDosStream.Open (OpenMode: Word);
 VAR OldFileMode : Byte;
     DosStreamError : Word;
 BEGIN
-   If (Status=stOk) Then 
+   If (Status=stOk) Then
      Begin                        { Check status okay }
-     If (Handle = InvalidHandle) Then 
+     If (Handle = InvalidHandle) Then
         Begin                      { File not open }
           Assign(FileInfo,FName);
           { Handle the mode }
           if OpenMode =stCreate then
-            Begin        
-              System.Rewrite(FileInfo,1); 
+            Begin
+              System.Rewrite(FileInfo,1);
             end
            else
              Begin
@@ -1392,8 +1392,8 @@ BEGIN
                FileMode := OpenMode and 3;
                System.Reset(FileInfo,1);
                FileMode := OldFileMode;
-               { To use the correct mode we must reclose the file 
-                 and open it again 
+               { To use the correct mode we must reclose the file
+                 and open it again
                }
            end;
            Handle := FileRec(FileInfo).Handle;                { Set handle value   }
@@ -1402,13 +1402,13 @@ BEGIN
               StreamSize := System.FileSize(FileInfo);
            If DosStreamError = 0 then
               DosStreamError := IOResult;
-           If (DosStreamError <> 0) Then 
+           If (DosStreamError <> 0) Then
               Error(stOpenError, DosStreamError)              { Call stream error }
-           else   
-              Status := StOK;  
+           else
+              Status := StOK;
            Position := 0;
-         end  
-      Else 
+         end
+      Else
           Error(stOpenError, 104);                { File already open }
    End;
 END;
@@ -1417,28 +1417,28 @@ END;
 {  Read -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                 }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Read (Var Buf; Count: Sw_Word);
-VAR BytesMoved: Sw_Word; 
+VAR BytesMoved: Sw_Word;
     DosStreamError : Word;
 BEGIN
    If Status = StOK then
      Begin
         If (Position + Count > StreamSize) Then            { Insufficient data }
           Error(stReadError, 0);                           { Read beyond end!!! }
-        If (Handle = InvalidHandle) Then 
+        If (Handle = InvalidHandle) Then
           Error(stReadError, 103);                         { File not open }
         BlockRead(FileInfo, Buf, Count, BytesMoved);       { Read from file }
         DosStreamError := IOResult;
-        If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then 
+        If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then
            Begin  { Error was detected }
              BytesMoved := 0;                              { Clear bytes moved }
              If (DosStreamError <> 0) Then
                 Error(stReadError, DosStreamError)         { Specific read error }
-             Else 
+             Else
                 Error(stReadError, 0);                     { Non specific error }
            End;
         Inc(Position, BytesMoved);                         { Adjust position }
      End;
-   { If there was already an error, or an error was just 
+   { If there was already an error, or an error was just
      generated, fill the vuffer with NULL
    }
    If Status <> StOK then
@@ -1449,22 +1449,22 @@ END;
 {  Write -> Platforms DOS/DPMI/WIN/OS2 - Checked 16May96 LdB                }
 {---------------------------------------------------------------------------}
 PROCEDURE TDosStream.Write (Var Buf; Count: Sw_Word);
-VAR BytesMoved: Sw_Word; 
+VAR BytesMoved: Sw_Word;
     DosStreamError : Word;
 BEGIN
    { If status is not OK, simply exit }
    if Status <> StOK then
      exit;
-   If (Handle = InvalidHandle) Then 
+   If (Handle = InvalidHandle) Then
     Error(stWriteError, 103);                    { File not open }
    BlockWrite(FileInfo, Buf, Count, BytesMoved); { Write to file }
    DosStreamError := IOResult;
-   If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then 
+   If ((DosStreamError<>0) OR (BytesMoved<>Count)) Then
       Begin  { Error was detected }
           BytesMoved := 0;                               { Clear bytes moved }
           If (DosStreamError<>0) Then
              Error(stWriteError, DOSStreamError)     { Specific write error }
-          Else 
+          Else
              Error(stWriteError, 0);                 { Non specific error }
       End;
    Inc(Position, BytesMoved);                       { Adjust position }
@@ -1519,11 +1519,11 @@ BEGIN
       exit;
    If (LastMode=2) AND (BufPtr<>0) Then Begin         { Must update file }
      If (Handle = InvalidHandle) Then DosStreamError := 103  { File is not open }
-       Else 
+       Else
          Begin
            BlockWrite(FileInfo, Buffer^,BufPtr, W);     { Write to file }
            DosStreamError := IOResult;
-         End;   
+         End;
      If (DosStreamError<>0) OR (W<>BufPtr) Then       { We have an error }
        If (DosStreamError=0) Then Error(stWriteError, 0){ Unknown write error }
          Else Error(stError, DosStreamError);         { Specific write error }
@@ -2927,7 +2927,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.21  2003-08-21 22:17:13  olle
+  Revision 1.22  2003-09-16 15:57:33  peter
+    * sparc register typo
+
+  Revision 1.21  2003/08/21 22:17:13  olle
     - removed parameter from fpc_iocheck
 
   Revision 1.20  2003/07/08 21:21:33  peter
