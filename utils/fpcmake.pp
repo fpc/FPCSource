@@ -150,6 +150,7 @@ type
     DefaultCPU     : string;
     DirFpc,
     DirPackage,
+    DirToolkit,
     DirComponent,
     DirUnit,
     DirLib,
@@ -160,6 +161,7 @@ type
     DirInc         : string;
     RequireRTL      : boolean;
     RequireOptions  : string;
+    RequireToolkits,
     RequirePackages,
     RequireComponents : TTargetsString;
     LibName,
@@ -330,8 +332,9 @@ begin
    { require }
      RequireRTL:=ReadBool(ini_require,'rtl',true);
      RequireOptions:=ReadString(ini_require,'options','');
-     ReadTargetsString(requireComponents,ini_require,'components','');
+     ReadTargetsString(requireToolkits,ini_require,'toolkit','');
      ReadTargetsString(requirePackages,ini_require,'packages','');
+     ReadTargetsString(requireComponents,ini_require,'components','');
      if userini.RequireRTL then
       begin
         if userini.Requirepackages[0]<>'' then
@@ -342,7 +345,8 @@ begin
    { dirs }
      DirFpc:=ReadString(ini_dirs,'fpcdir','');
      DirPackage:=ReadString(ini_dirs,'packagedir','$(FPCDIR)/packages');
-     DirComponent:=ReadString(ini_dirs,'componentdir','$(FPCDIR)/components');
+     DirToolkit:=ReadString(ini_dirs,'toolkitdir','');
+     DirComponent:=ReadString(ini_dirs,'componentdir','');
      DirUnit:=ReadString(ini_dirs,'unitdir','');
      DirLib:=ReadString(ini_dirs,'libdir','');
      DirObj:=ReadString(ini_dirs,'objdir','');
@@ -449,6 +453,27 @@ end;
 {*****************************************************************************
                                Makefile writing
 *****************************************************************************}
+
+function VarName(const s:string):string;
+var
+  i : longint;
+begin
+  i:=0;
+  result:=s;
+  while i<length(result) do
+   begin
+     inc(i);
+     case result[i] of
+       '$','(',')' :
+         begin
+           Delete(result,i,1);
+           dec(i);
+         end;
+       'a'..'z' :
+         result[i]:=chr(ord(result[i])-32);
+     end;
+   end;
+end;
 
 function WriteMakefile(const fn:string):boolean;
 var
@@ -596,8 +621,8 @@ var
           if j=0 then
            j:=length(hs)+1;
           pack:=Copy(hs,1,j-1);
-          packdirvar:='PACKAGEDIR_'+Uppercase(pack);
-          unitdirvar:='UNITDIR_'+Uppercase(pack);
+          packdirvar:='PACKAGEDIR_'+VarName(pack);
+          unitdirvar:='UNITDIR_'+VarName(pack);
           packdir:=packpre+'/'+pack;
           unitdir:='$(UNITSDIR)/'+pack;
           for k:=1to specialdirs do
@@ -642,7 +667,7 @@ var
     hs : string;
   begin
     AddHead('Dir '+s);
-    mf.Add('ifdef OBJECTDIR'+Uppercase(s));
+    mf.Add('ifdef OBJECTDIR'+VarName(s));
     hs:='.PHONY: ';
     for j:=1to rules do
      hs:=hs+' '+s+'_'+rulestr[j];
@@ -662,8 +687,8 @@ var
   var
     packagedir : string;
   begin
-    packagedir:='$(PACKAGEDIR_'+Uppercase(s)+')';
-    mf.Add('ifdef PACKAGE'+Uppercase(s));
+    packagedir:='$(PACKAGEDIR_'+VarName(s)+')';
+    mf.Add('ifdef PACKAGE'+VarName(s));
     mf.Add('ifneq ($(wildcard '+packagedir+'),)');
     mf.Add('ifeq ($(wildcard '+packagedir+'/$(FPCMADE)),)');
     mf.Add('override COMPILEPACKAGES+='+s);
@@ -691,7 +716,7 @@ var
           i:=pos(' ',hs);
           if i=0 then
            i:=length(hs)+1;
-          mf.Add(prefix+Uppercase(Copy(hs,1,i-1))+'=1');
+          mf.Add(prefix+VarName(Copy(hs,1,i-1))+'=1');
           { add to the list of dirs without duplicates }
           AddStrNoDup(hs2,Copy(hs,1,i-1));
           system.delete(hs,1,i);
@@ -700,6 +725,32 @@ var
          mf.Add('endif');
       end;
      AddTargetDefines:=hs2;
+  end;
+
+  procedure AddTargetsPackageDep(const ts:TTargetsString);
+  var
+    Phony,hs : string;
+    i  : integer;
+  begin
+   { Components }
+     Phony:='';
+     if not TargetStringEmpty(ts) then
+      begin
+        hs:=AddTargetDefines(ts,'PACKAGE');
+        repeat
+          i:=pos(' ',hs);
+          if i=0 then
+           i:=length(hs)+1;
+          AddPackageDep(Copy(hs,1,i-1));
+          system.delete(hs,1,i);
+        until hs='';
+        mf.Add('');
+      end;
+     if Phony<>'' then
+      begin
+        mf.Add('.PHONY: '+Phony);
+        mf.Add('');
+      end;
   end;
 
 var
@@ -736,6 +787,13 @@ begin
    { fpc detection }
      AddSection(true,'fpcdetect');
 
+   { Pre Settings }
+     if userini.PreSettings.count>0 then
+      begin
+        AddSection(true,'presettings');
+        AddStrings(userini.PreSettings);
+      end;
+
    { fpc dir }
      AddSection(true,'fpcdircheckenv');
      if userini.dirfpc<>'' then
@@ -755,21 +813,16 @@ begin
      Add('ifndef PACKAGEDIR');
      Add('PACKAGEDIR='+userini.dirpackage);
      Add('endif');
+     Add('ifndef TOOLKITDIR');
+     Add('TOOLKITDIR='+userini.dirtoolkit);
+     Add('endif');
      Add('ifndef COMPONENTDIR');
      Add('COMPONENTDIR='+userini.dircomponent);
      Add('endif');
      AddSection(userini.requirertl,'fpcdirsubs');
 
    { write the default & user settings }
-     AddSection(true,'defaultsettings');
      AddSection(true,'usersettings');
-
-   { Pre Settings }
-     if userini.PreSettings.count>0 then
-      begin
-        AddHead('Pre Settings');
-        AddStrings(userini.PreSettings);
-      end;
 
    { Targets }
      AddHead('Targets');
@@ -837,9 +890,8 @@ begin
    { Packages }
      AddHead('Packages');
      AddTargets('PACKAGES',userini.Requirepackages,false);
+     AddTargets('TOOLKITS',userini.Requiretoolkits,false);
      AddTargets('COMPONENTS',userini.Requirecomponents,false);
-     AddTargetsUnitDir('$(PACKAGEDIR)',userini.Requirepackages);
-     AddTargetsUnitDir('$(COMPONENTDIR)',userini.Requirecomponents);
 
    { Libs }
      AddHead('Libraries');
@@ -869,13 +921,22 @@ begin
          hs:=hs+'fpc_infoinstall ';
         Add('INFOTARGET='+hs);
       end;
+     Add('');
 
    { Post Settings }
      if userini.PostSettings.count>0 then
       begin
-        AddHead('Post Settings');
+        AddSection(true,'postsettings');
         AddStrings(userini.PostSettings);
+        Add('');
       end;
+
+   { package/component dirs }
+     AddHead('Package/component dirs');
+     AddSection(userini.requirertl,'checkfpcdirsubs');
+     AddTargetsUnitDir('$(TOOLKITDIR)',userini.Requiretoolkits);
+     AddTargetsUnitDir('$(PACKAGEDIR)',userini.Requirepackages);
+     AddTargetsUnitDir('$(COMPONENTDIR)',userini.Requirecomponents);
      Add('');
 
    { write dirs }
@@ -887,6 +948,9 @@ begin
         AddSection(true,'dir_install');
       end;
 
+   { redirection }
+     AddSection(true,'redir');
+
    { commandline }
      if userini.section[sec_command] then
       begin
@@ -894,6 +958,7 @@ begin
         AddSection(true,'command_begin');
         AddSection((userini.Requireoptions<>''),'command_needopt');
         AddSection((userini.dirunit<>'') or
+                   (not TargetStringEmpty(userini.Requiretoolkits)) or
                    (not TargetStringEmpty(userini.Requirepackages)) or
                    (not TargetStringEmpty(userini.Requirecomponents))
                    ,'command_needunit');
@@ -944,41 +1009,9 @@ begin
    { Package requirements, must be before the other rules so it's done first }
      AddSection(true,'packagerequirerules');
      Phony:='';
-     if userini.RequireRTL then
-      AddPackageDep('rtl');
-     Add('');
-     if not TargetStringEmpty(userini.RequirePackages) then
-      begin
-        hs:=AddTargetDefines(userini.RequirePackages,'PACKAGE');
-        repeat
-          i:=pos(' ',hs);
-          if i=0 then
-           i:=length(hs)+1;
-          AddPackageDep(Copy(hs,1,i-1));
-          system.delete(hs,1,i);
-        until hs='';
-        Add('');
-      end;
-     if Phony<>'' then
-      begin
-        Add('.PHONY: '+Phony);
-        Add('');
-      end;
-
-   { Components }
-     Phony:='';
-     if not TargetStringEmpty(userini.RequireComponents) then
-      begin
-        hs:=AddTargetDefines(userini.RequireComponents,'COMPONENT');
-        repeat
-          i:=pos(' ',hs);
-          if i=0 then
-           i:=length(hs)+1;
-          AddPackageDep(Copy(hs,1,i-1));
-          system.delete(hs,1,i);
-        until hs='';
-        Add('');
-      end;
+     AddTargetsPackageDep(userini.RequireToolkits);
+     AddTargetsPackageDep(userini.RequirePackages);
+     AddTargetsPackageDep(userini.RequireComponents);
      if Phony<>'' then
       begin
         Add('.PHONY: '+Phony);
@@ -1024,6 +1057,9 @@ begin
         until hs='';
         Add('');
       end;
+
+   { local makefile }
+     AddSection(true,'localmakefile');
 
    { insert users rules }
      if userini.rules.count>0 then
@@ -1093,7 +1129,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.20  2000-01-07 16:46:02  daniel
+  Revision 1.21  2000-01-08 16:31:04  peter
+    * support variable in packagenames
+    * fpcmake.loc support
+    * fixed place of presettings which must be before FPCDIR is set
+
+  Revision 1.20  2000/01/07 16:46:02  daniel
     * copyright 2000
 
   Revision 1.19  2000/01/06 15:49:23  peter
