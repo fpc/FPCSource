@@ -166,9 +166,6 @@ function AllocateAndInitializeSid(const pIdentifierAuthority: TSIDIdentifierAuth
   nSubAuthority5, nSubAuthority6, nSubAuthority7:DWORD; var pSid: Pointer): BOOL; external 'advapi32' name 'AllocateAndInitializeSid';
 function AllocateLocallyUniqueId(var Luid: TLargeInteger): BOOL; external 'advapi32' name 'AllocateLocallyUniqueId';
 //function AlphaDIBBlend(DC: HDC; p2, p3, p4, p5: Integer; const p6: Pointer; const p7: PBitmapInfo; p8: UINT; p9, p10, p11, p12: Integer; p13: TBlendFunction): BOOL;external 'gdi32' name 'AlphaDIBBlend';
-//function AnsiNext(const lpsz: LPCSTR): LPSTR;external 'user32' name 'AnsiNext';
-//function AnsiPrev(const lpszStart: LPCSTR; const lpszCurrent: LPCSTR): LPSTR;external 'user32' name 'AnsiPrev';
-//function AnsiToOem(const lpszSrc: LPCSTR; lpszDst: LPSTR): BOOL;external 'user32' name 'AnsiToOem';
 function BackupRead(hFile: THandle; lpBuffer: PByte; nNumberOfBytesToRead: DWORD; var lpNumberOfBytesRead: DWORD; bAbort: BOOL; bProcessSecurity: BOOL; var lpContext: Pointer): BOOL; external 'kernel32' name 'BackupRead';
 function BackupSeek(hFile: THandle; dwLowBytesToSeek, dwHighBytesToSeek: DWORD; var lpdwLowByteSeeked, lpdwHighByteSeeked: DWORD; lpContext: Pointer): BOOL; external 'kernel32' name 'BackupSeek';
 function BackupWrite(hFile: THandle; lpBuffer: PByte; nNumberOfBytesToWrite: DWORD; var lpNumberOfBytesWritten: DWORD; bAbort, bProcessSecurity: BOOL; var lpContext: Pointer): BOOL; external 'kernel32' name 'BackupWrite';
@@ -591,7 +588,7 @@ function ObjectOpenAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ObjectT
 function ObjectPrivilegeAuditAlarm(SubsystemName: PChar; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL;external 'advapi32' name 'ObjectPrivilegeAuditAlarmA';
 function ObjectPrivilegeAuditAlarmA(SubsystemName: LPCSTR; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmA';
 function ObjectPrivilegeAuditAlarmW(SubsystemName: LPWSTR; HandleId: Pointer; ClientToken: THandle; DesiredAccess: DWORD; var Privileges: TPrivilegeSet; AccessGranted: BOOL): BOOL; external 'advapi32' name 'ObjectPrivilegeAuditAlarmW';
-//function OemToAnsi(const lpszSrc: LPCSTR; lpszDst: LPSTR): BOOL;external 'user32' name 'OemToAnsi';
+
 function OffsetRect(var lprc: TRect; dx, dy: Integer): BOOL; external 'user32' name 'OffsetRect';
 function OffsetViewportOrgEx(DC: HDC; X, Y: Integer; var Points): BOOL; external 'gdi32' name 'OffsetViewportOrgEx';
 function OffsetWindowOrgEx(DC: HDC; X, Y: Integer; var Points): BOOL; external 'gdi32' name 'OffsetWindowOrgEx';
@@ -845,6 +842,19 @@ function WriteFile(hFile: THandle; const Buffer; nNumberOfBytesToWrite: DWORD; v
 function WriteFileEx(hFile: THandle; lpBuffer: Pointer; nNumberOfBytesToWrite: DWORD; const lpOverlapped: TOverlapped; lpCompletionRoutine: FARPROC): BOOL; external 'kernel32' name 'WriteFileEx';
 function WriteProcessMemory(hProcess: THandle; const lpBaseAddress: Pointer; lpBuffer: Pointer; nSize: DWORD; var lpNumberOfBytesWritten: DWORD): BOOL; external 'kernel32' name 'WriteProcessMemory';
 
+// these are old Win16 funcs that under win32 are aliases for several char* funcs.
+// exist under Win32 (even in SDK's from 2002), but are officially "depreciated"
+function AnsiNext(const lpsz: LPCSTR): LPSTR;external 'user32' name 'CharNextA';
+function AnsiPrev(const lpszStart: LPCSTR; const lpszCurrent: LPCSTR): LPSTR;external 'user32' name 'CharPrevA';
+function AnsiToOem(const lpszSrc: LPCSTR; lpszDst: LPSTR): BOOL;external 'user32' name 'CharToOemA';
+function OemToAnsi(const lpszSrc: LPCSTR; lpszDst: LPSTR): BOOL;external 'user32' name 'OemToCharA';
+function AnsiToOemBuff(lpszSrc:LPCSTR; lpszDst:LPSTR; cchDstLength:DWORD):WINBOOL; external 'user32' name 'CharToOemBuffA';
+function OemToAnsiBuff(lpszSrc:LPCSTR; lpszDst:LPSTR; cchDstLength:DWORD):WINBOOL; external 'user32' name 'OemToCharBuffA';
+function AnsiUpper(lpsz:LPSTR):LPSTR; external 'user32' name 'CharUpperA';
+function AnsiUpperBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharUpperBuffA';
+function AnsiLower(lpsz:LPSTR):LPSTR; external 'user32' name 'CharLowerA';
+function AnsiLowerBuff(lpsz:LPSTR; cchLength:DWORD):DWORD; external 'user32' name 'CharLowerBuffA';
+
 {$endif read_interface}
 
 
@@ -902,7 +912,11 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.6  2001-12-10 12:31:15  jonas
+  Revision 1.7  2002-03-23 20:13:53  marco
+   * Some macro functions fixed. Didn't commit win32platform first because
+      of mandatory init.
+
+  Revision 1.6  2001/12/10 12:31:15  jonas
     * fixed GetDiskFreeSpaceEx* declarations (merged)
 
   Revision 1.5  2001/08/19 09:27:52  florian
