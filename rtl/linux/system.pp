@@ -91,6 +91,26 @@ begin
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
 end;
 
+
+procedure SysInitExecPath;
+var
+  hs   : string[16];
+  link : string;
+  i    : longint;
+begin
+  str(Fpgetpid,hs);
+  hs:='/proc/'+hs+'/exe'#0;
+  i:=Fpreadlink(@hs[1],@link[1],high(link));
+  { it must also be an absolute filename, linux 2.0 points to a memory
+    location so this will skip that }
+  if (i>0) and (link[1]='/') then
+   begin
+     link[0]:=chr(i);
+     ExecPathStr:=link;
+   end;
+end;
+
+
 Begin
   IsConsole := TRUE;
   IsLibrary := FALSE;
@@ -103,6 +123,7 @@ Begin
   SysInitExceptions;
 { Arguments }
   SetupCmdLine;
+  SysInitExecPath;
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
@@ -114,7 +135,10 @@ End.
 
 {
   $Log$
-  Revision 1.5  2002-12-18 20:42:29  peter
+  Revision 1.6  2002-12-27 18:36:16  peter
+    * Setup ExecPathStr for ParamStr(0)
+
+  Revision 1.5  2002/12/18 20:42:29  peter
     * initial stacklen setup
 
   Revision 1.3  2002/12/18 16:44:09  marco
