@@ -330,6 +330,8 @@ implementation
                if assigned(left) then
                  resulttypepass(left);
              end;
+           labelsym:
+             resulttype:=voidtype;
            else
              internalerror(200104141);
          end;
@@ -414,6 +416,8 @@ implementation
  {$endif SUPPORT_MMX}
                      end;
                 end;
+           labelsym :
+             ;
            else
              internalerror(200104143);
          end;
@@ -1164,7 +1168,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.136  2004-10-31 21:45:03  peter
+  Revision 1.137  2004-11-01 15:32:12  peter
+    * support @labelsym
+
+  Revision 1.136  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 

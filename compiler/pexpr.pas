@@ -1443,11 +1443,17 @@ implementation
 
                 labelsym :
                   begin
-                    consume(_COLON);
-                    if tlabelsym(srsym).defined then
-                     Message(sym_e_label_already_defined);
-                    tlabelsym(srsym).defined:=true;
-                    p1:=clabelnode.create(tlabelsym(srsym),nil);
+                    { Support @label }
+                    if getaddr then
+                      p1:=cloadnode.create(srsym,srsym.owner)
+                    else
+                      begin
+                        consume(_COLON);
+                        if tlabelsym(srsym).defined then
+                          Message(sym_e_label_already_defined);
+                        tlabelsym(srsym).defined:=true;
+                        p1:=clabelnode.create(tlabelsym(srsym),nil);
+                      end;
                   end;
 
                 errorsym :
@@ -2486,7 +2492,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.168  2004-11-01 10:33:01  peter
+  Revision 1.169  2004-11-01 15:32:12  peter
+    * support @labelsym
+
+  Revision 1.168  2004/11/01 10:33:01  peter
     * symlist typeconv for absolute fixed
 
   Revision 1.167  2004/10/25 15:38:41  peter

@@ -444,6 +444,8 @@ implementation
                             curconstSegment.concat(Tai_const.Createname(tvarsym(srsym).mangledname,AT_DATA,offset));
                           typedconstsym :
                             curconstSegment.concat(Tai_const.Createname(ttypedconstsym(srsym).mangledname,AT_DATA,offset));
+                          labelsym :
+                            curconstSegment.concat(Tai_const.Createname(tlabelsym(srsym).mangledname,AT_FUNCTION,offset));
                           else
                             Message(type_e_variable_id_expected);
                         end;
@@ -1087,7 +1089,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2004-10-15 09:14:17  mazen
+  Revision 1.93  2004-11-01 15:32:12  peter
+    * support @labelsym
+
+  Revision 1.92  2004/10/15 09:14:17  mazen
   - remove $IFDEF DELPHI and related code
   - remove $IFDEF FPCPROCVAR and related code
 

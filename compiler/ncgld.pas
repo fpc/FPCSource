@@ -360,6 +360,10 @@ implementation
                begin
                   location.reference.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(symtableentry).mangledname,AB_EXTERNAL,AT_DATA);
                end;
+            labelsym :
+               begin
+                  location.reference.symbol:=objectlibrary.newasmsymbol(ttypedconstsym(symtableentry).mangledname,AB_EXTERNAL,AT_FUNCTION);
+               end;
             else internalerror(4);
          end;
       end;
@@ -951,7 +955,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.129  2004-10-31 21:45:03  peter
+  Revision 1.130  2004-11-01 15:32:12  peter
+    * support @labelsym
+
+  Revision 1.129  2004/10/31 21:45:03  peter
     * generic tlocation
     * move tlocation to cgutils
 
