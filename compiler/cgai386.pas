@@ -962,6 +962,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          { if we load a 64 bit reference, we must be careful because }
          { we could overwrite the registers of the reference by      }
          { accident                                                  }
+         getexplicitregister32(R_EDI);
          if r.base=rl then
            begin
               emit_reg_reg(A_MOV,S_L,r.base,
@@ -980,6 +981,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
          inc(hr^.offset,4);
          emit_ref_reg(A_MOV,S_L,
            hr,rh);
+         ungetregister32(R_EDI);
       end;
 
 {*****************************************************************************
@@ -3889,7 +3891,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.17  2000-10-01 19:48:23  peter
+  Revision 1.18  2000-10-10 14:55:28  jonas
+    * added missing regallocs for edi in emit_mov_ref_reg64 (merged)
+
+  Revision 1.17  2000/10/01 19:48:23  peter
     * lot of compile updates for cg11
 
   Revision 1.16  2000/09/30 16:08:45  peter
