@@ -293,11 +293,69 @@ asm
   xor %o0,%g1,%o0
 end;
 
+var
+  fpc_system_lock : byte;export name 'fpc_system_lock';
+
+
+{$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
+function declocked(var l : longint) : boolean;assembler;nostackframe;
+asm
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.Ldeclocked1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .Ldeclocked1
+  nop
+
+  ld [%o0],%g1
+  sub %g1,1,%g1
+  st %g1,[%o0]
+
+  subcc %g1,1,%g0
+  addx %g0,%g0,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
+end;
+
+
+{$define FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
+procedure inclocked(var l : longint);assembler;nostackframe;
+asm
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.Linclocked1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .Linclocked1
+  nop
+
+  ld [%o0],%g1
+  add %g1,1,%g1
+  st %g1,[%o0]
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
+end;
 
 
 {
   $Log$
-  Revision 1.12  2004-10-03 12:41:30  florian
+  Revision 1.13  2004-10-14 19:45:39  florian
+    + added and implemented functions for locked operations
+
+  Revision 1.12  2004/10/03 12:41:30  florian
     * made sqrt, sqr and abs internal for the sparc
 
   Revision 1.11  2004/10/02 20:46:20  florian

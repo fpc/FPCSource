@@ -18,85 +18,119 @@
   This include contains cpu-specific routines
   ---------------------------------------------------------------------}
 
+var
+  fpc_system_lock : byte;external name 'fpc_system_lock';
+
 function InterLockedDecrement (var Target: longint) : longint; assembler;
 asm
-{$warning FIXME}
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedDecrement1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedDecrement1
+  nop
+
+  ld [%o0],%g1
+  sub %g1,1,%g1
+  st %g1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
 end;
-(*
-{ input:  address of target in r3 }
-{ output: target-1 in r3          }
-{ side-effect: target := target-1 }
+
+function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
-InterLockedDecLoop:
-        lwarx   r0,r0,r3
-        subi    r0,r0,1
-        stwcx.  r0,r0,r3
-        bne     InterLockedDecLoop
-        mr      r3,r0
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedIncrement1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedIncrement1
+  nop
+
+  ld [%o0],%g1
+  add %g1,1,%g1
+  st %g1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
 end;
-*)
 
 
-function InterLockedIncrement (var Target: longint) : longint; assembler;
+function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-{$warning FIXME}
-end;
-(*
-{ input:  address of target in r3 }
-{ output: target+1 in r3          }
-{ side-effect: target := target+1 }
-asm
-InterLockedIncLoop:
-        lwarx   r0,r0,r3
-        addi    r0,r0,1
-        stwcx.  r0,r0,r3
-        bne     InterLockedIncLoop
-        mr      r3,r0
-end;
-*)
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedExchange1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedExchange1
+  nop
 
-function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler;
-asm
-{$warning FIXME}
+  ld [%o0],%g1
+  st %o1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
 end;
-(*
-{ input:  address of target in r3, source in r4 }
-{ output: target in r3                          }
-{ side-effect: target := source                 }
-asm
-InterLockedXchgLoop:
-        lwarx   r0,r0,r3
-        stwcx.  r4,r0,r3
-        bne     InterLockedXchgLoop
-        mr      r3,r0
-end;
-*)
 
 
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler;
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
-{$warning FIXME}
+  { usually, we shouldn't lock here so saving the stack frame for these extra intructions is
+    worse the effort, especially while waiting :)
+  }
+.LInterLockedExchangeAdd1:
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  ldstub [%g1],%g1
+  cmp %g1,0
+  bne .LInterLockedExchangeAdd1
+  nop
+
+  ld [%o0],%g1
+  add %g1,%o1,%o1
+  st %o1,[%o0]
+
+  mov %g1,%o0
+
+  { unlock }
+  sethi %hi(fpc_system_lock), %g1
+  or %g1,%lo(fpc_system_lock), %g1
+  stb %g0,[%g1]
 end;
-(*
-{ input:  address of target in r3, source in r4 }
-{ output: target in r3                          }
-{ side-effect: target := target+source          }
-asm
-InterLockedXchgAddLoop:
-        lwarx   r0,r0,r3
-        add     r0,r0,r4
-        stwcx.  r0,r0,r3
-        bne     InterLockedXchgAddLoop
-        sub     r3,r0,r4
-end;
-*)
+
 
 {
   $Log$
-  Revision 1.2  2004-03-05 12:17:50  marco
+  Revision 1.3  2004-10-14 19:45:39  florian
+    + added and implemented functions for locked operations
+
+  Revision 1.2  2004/03/05 12:17:50  marco
    * interlocked* changed to longints, including winapi. (which was a bug)
 
   Revision 1.1  2003/09/01 20:46:32  peter
     * new dummies
-
 }
