@@ -1,10 +1,9 @@
-{$DEFINE SUPMONO}       {  SUPMONO highlights the support of Monochrome }
 {
     $Id$
     This file is part of the Free Pascal run time library.
     Copyright (c) 1993-98 by the Free Pascal development team.
 
-    Borland Pascal 7 Compatible CRT Unit for Go32V1 and Go32V2
+    Borland Pascal 7 Compatible CRT Unit for Go32V2
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -102,13 +101,10 @@ uses
 {$ASMMODE ATT}
 
 var
-  DelayCnt,  { don't modify this var name, as it is hard coded }
+  DelayCnt,
   ScreenWidth,
   ScreenHeight : longint;
-{$IFDEF SUPMONO}
   VidSeg : Word;
-{$ENDIF}
-
 
 {
   definition of textrec is in textrec.inc
@@ -132,9 +128,8 @@ end;
 function GetScreenHeight : longint;
 begin
   getscreenheight:=mem[$40:$84]+1;
-{$IFDEF SUPMONO}
-  If mem[$40:$84]=0 then getscreenheight := 25;
-{$ENDIF}
+  If mem[$40:$84]=0 then
+    getscreenheight := 25;
 end;
 
 
@@ -334,19 +329,11 @@ var
 begin
   fil:=32 or (textattr shl 8);
   if FullWin then
-{$IFDEF SUPMONO}
    DosmemFillWord(VidSeg,0,ScreenHeight*ScreenWidth,fil)
-{$ELSE}
-   DosmemFillWord($b800,0,ScreenHeight*ScreenWidth,fil)
-{$ENDIF}
   else
    begin
      for y:=WinMinY to WinMaxY do
-{$IFDEF SUPMONO}
       DosmemFillWord(VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,WinMaxX-WinMinX+1,fil);
-{$ELSE}
-      DosmemFillWord($b800,((y-1)*ScreenWidth+(WinMinX-1))*2,WinMaxX-WinMinX+1,fil);
-{$ENDIF}
    end;
   Gotoxy(1,1);
 end;
@@ -363,11 +350,7 @@ Begin
   GetScreenCursor(x,y);
   fil:=32 or (textattr shl 8);
   if x<WinMaxX then
-{$IFDEF SUPMONO}
    DosmemFillword(VidSeg,((y-1)*ScreenWidth+(x-1))*2,WinMaxX-x+1,fil);
-{$ELSE}
-   DosmemFillword($b800,((y-1)*ScreenWidth+(x-1))*2,WinMaxX-x+1,fil);
-{$ENDIF}
 End;
 
 
@@ -549,20 +532,11 @@ begin
   y:=WinMinY+y-1;
   While (y<WinMaxY) do
    begin
-{$IFDEF SUPMONO}
      dosmemmove(VidSeg,(y*ScreenWidth+(WinMinX-1))*2,
                 VidSeg,((y-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
-{$ELSE}
-     dosmemmove($b800,(y*ScreenWidth+(WinMinX-1))*2,
-                $b800,((y-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
-{$ENDIF}
      inc(y);
    end;
-{$IFDEF SUPMONO}
   dosmemfillword(VidSeg,((WinMaxY-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
-{$ELSE}
-  dosmemfillword($b800,((WinMaxY-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
-{$ENDIF}
 end;
 
 
@@ -582,20 +556,11 @@ begin
   my:=WinMaxY-WinMinY;
   while (my>=y) do
    begin
-{$IFDEF SUPMONO}
      dosmemmove(VidSeg,(((WinMinY+my-1)-1)*ScreenWidth+(WinMinX-1))*2,
                 VidSeg,(((WinMinY+my)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
-{$ELSE}
-     dosmemmove($b800,(((WinMinY+my-1)-1)*ScreenWidth+(WinMinX-1))*2,
-                $b800,(((WinMinY+my)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1)*2);
-{$ENDIF}
      dec(my);
    end;
-{$IFDEF SUPMONO}
   dosmemfillword(VidSeg,(((WinMinY+y-1)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
-{$ELSE}
-  dosmemfillword($b800,(((WinMinY+y-1)-1)*ScreenWidth+(WinMinX-1))*2,(WinMaxX-WinMinX+1),fil);
-{$ENDIF}
 end;
 
 
@@ -611,10 +576,10 @@ var
 begin
   regs.realeax:=$0100;
   regs.realecx:=$90A;
-{$IFDEF SUPMONO}
-  If VidSeg=$b800 then  regs.realecx:=$90A
-                  else  regs.realecx:=$b0d;
-{$ENDIF}
+  If VidSeg=$b800 then
+    regs.realecx:=$90A
+  else
+    regs.realecx:=$b0d;
   realintr($10,regs);
 end;
 
@@ -664,11 +629,7 @@ begin
          end;
   else
    begin
-{$IFDEF SUPMONO}
      memw[VidSeg:((CurrY-1)*ScreenWidth+(CurrX-1))*2]:=(textattr shl 8) or byte(c);
-{$ELSE}
-     memw[$b800:((CurrY-1)*ScreenWidth+(CurrX-1))*2]:=(textattr shl 8) or byte(c);
-{$ENDIF}
      inc(CurrX);
    end;
   end;
@@ -829,20 +790,17 @@ begin
 { Load startup values }
   ScreenWidth:=GetScreenWidth;
   ScreenHeight:=GetScreenHeight;
-{$IFDEF SUPMONO}
-  If ScreenHeight=0 then ScreenHeight:=24;  { bug in my NEC BIOS }
-{$ENDIF}
   WindMax:=(ScreenWidth-1) or ((ScreenHeight-1) shl 8);
 { Load TextAttr }
   GetScreenCursor(x,y);
   lastmode := mem[$40:$49];
-{$IFDEF SUPMONO}
-  If not(lastmode=Mono) then VidSeg := $b800
-                     else VidSeg := $b000;
+  if screenheight>25 then
+    lastmode:=lastmode or $100;
+  If not(lastmode=Mono) then
+    VidSeg := $b800
+  else
+    VidSeg := $b000;
   TextAttr:=mem[VidSeg:((y-1)*ScreenWidth+(x-1))*2+1];
-{$ELSE}
-  TextAttr:=mem[$b800:((y-1)*ScreenWidth+(x-1))*2+1];
-{$ENDIF}
 { Redirect the standard output }
   assigncrt(Output);
   Rewrite(Output);
@@ -856,12 +814,13 @@ end.
 
 {
   $Log$
-  Revision 1.3  1999-02-03 09:56:17  florian
+  Revision 1.4  1999-03-26 00:00:17  peter
+    * fixed lastmode at startup for > 25 lines
+
+  Revision 1.3  1999/02/03 09:56:17  florian
     + added simple support for monochrome video cards (not cursors yet),
       thanks to Jeff Patterson
 
-                Tue  02-02-99 08:36 am   jeff
-    + added simple support for monochrome video cards (not cursors yet)
   Revision 1.2  1999/01/22 11:12:09  florian
     + support of font8x8 added
 
