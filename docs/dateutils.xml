@@ -1992,6 +1992,27 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="WeekOfTheMonth">
 <short>Extract the week of the month (and optionally month and year) from a DateTime value</short>
+<descr>
+<p>
+<var>WeekOfTheMonth</var> extracts the week of the month from <var>Avalue</var> and
+returns it, and optionally returns the year and month as well (in
+<var>AYear</var>, <var>AMonth</var> respectively). 
+</p>
+<remark>
+Note that weeks are numbered from 1 using the ISO 8601 standard, and the day of the week as well. 
+This means that the year and month may not be the same as the year part of the date, since the week may
+start in the previous year as the first week of the year is the week with at least 4 days in it.
+</remark>
+</descr>
+<seealso>
+<link id="WeekOfTheYear"/>
+<link id="DayOfTheMonth"/>
+<link id="HourOfTheMonth"/>
+<link id="MinuteOfTheMonth"/>
+<link id="SecondOfTheMonth"/>
+<link id="MilliSecondOfTheMonth"/>
+</seealso>
+<example file="datutex/ex41"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2017,6 +2038,25 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="DayOfTheMonth">
 <short>Extract the day (of month) part of a DateTime value</short>
+<descr>
+<p>
+<var>DayOfTheMonth</var> returns the number of days that have passed since
+the start of the month till the moment indicated by
+<var>AValue</var>. This is a one-based number, i.e. the first day of the
+month will return 1.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheMonth"/> function.
+</p>
+</descr>
+<seealso>
+<link id="DayOfTheYear"/>
+<link id="WeekOfTheMonth"/>
+<link id="HourOfTheMonth"/>
+<link id="MinuteOfTheMonth"/>
+<link id="SecondOfTheMonth"/>
+<link id="MilliSecondOfTheMonth"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2032,6 +2072,24 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="HourOfTheMonth">
 <short>Calculate the number of hours passed since the start of the month.</short>
+<descr>
+<p>
+<var>HourOfTheMonth</var> returns the number of hours that have passed since
+the start of the month till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:59:59 on the first day of the month will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheMonth"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheMonth"/>
+<link id="DayOfTheMonth"/>
+<link id="MinuteOfTheMonth"/>
+<link id="SecondOfTheMonth"/>
+<link id="MilliSecondOfTheMonth"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2047,6 +2105,25 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MinuteOfTheMonth">
 <short>Calculate number of minutes elapsed since the start of the month.</short>
+<descr>
+<p>
+<var>MinuteOfTheMonth</var> returns the number of minutes that have passed since
+the start of the Month (00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:59 on the first day of the month will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheMonth"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheMonth"/>
+<link id="DayOfTheMonth"/>
+<link id="HourOfTheMonth"/>
+<link id="MinuteOfTheMonth"/>
+<link id="SecondOfTheMonth"/>
+<link id="MilliSecondOfTheMonth"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2062,6 +2139,24 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="SecondOfTheMonth">
 <short>Calculate number of seconds elapsed since the start of the month.</short>
+<descr>
+<p>
+<var>SecondOfTheMonth</var> returns the number of seconds that have passed since
+the start of the month (00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:00.999 on the first day of the month will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheMonth"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheMonth"/>
+<link id="DayOfTheMonth"/>
+<link id="HourOfTheMonth"/>
+<link id="MinuteOfTheMonth"/>
+<link id="MilliSecondOfTheMonth"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2077,6 +2172,25 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MilliSecondOfTheMonth">
 <short>Calculate number of milliseconds elapsed since the start of the month.</short>
+<descr>
+<p>
+<var>MilliSecondOfTheMonth</var> returns the number of milliseconds that have passed since
+the start of the month (00:00:00.000) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:00.000  on the first of the month will return 0.
+</p>
+<p>
+For an example, see the <link id="WeekOfTheMonth"/> function.
+</p>
+</descr>
+<seealso>
+<link id="WeekOfTheMonth"/>
+<link id="DayOfTheMonth"/>
+<link id="HourOfTheMonth"/>
+<link id="MinuteOfTheMonth"/>
+<link id="SecondOfTheMonth"/>
+<link id="MilliSecondOfTheMonth"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2092,6 +2206,23 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="DayOfTheWeek">
 <short>Extracts the day of the week from a DateTime value</short>
+<descr>
+<p>
+<var>DayOfTheWeek</var> returns the number of days that have passed since
+the start of the week till the moment indicated by
+<var>AValue</var>. This is a one-based number, i.e. the first day of the
+week will return 1.
+</p>
+</descr>
+<seealso>
+<link id="DayOfTheYear"/>
+<link id="DayOfTheMonth"/>
+<link id="HourOfTheWeek"/>
+<link id="MinuteOfTheWeek"/>
+<link id="SecondOfTheWeek"/>
+<link id="MilliSecondOfTheWeek"/>
+</seealso>
+<example file="datutex/ex42"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2107,6 +2238,26 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="HourOfTheWeek">
 <short>Calculate the number of hours elapsed since the start of the week.</short>
+<descr>
+<p>
+<var>HourOfTheWeek</var> returns the number of hours that have passed since
+the start of the Week till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:59:59 on the first day of the week will return 0.
+</p>
+<p>
+For an example, see the <link id="DayOfTheWeek"/> function.
+</p>
+</descr>
+<seealso>
+<link id="HourOfTheYear"/>
+<link id="HourOfTheMonth"/>
+<link id="HourOfTheDay"/>
+<link id="DayOfTheWeek"/>
+<link id="MinuteOfTheWeek"/>
+<link id="SecondOfTheWeek"/>
+<link id="MilliSecondOfTheWeek"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2121,7 +2272,28 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 
 <!-- function Visibility: default -->
 <element name="MinuteOfTheWeek">
-<short>Calculate the number of seconds elapsed since the start of the week</short>
+<short>Calculate the number of minutes elapsed since the start of the week</short>
+<descr>
+<p>
+<var>MinuteOfTheWeek</var> returns the number of minutes that have passed since
+the start of the week (00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:59 on the first day of the week will return 0.
+</p>
+<p>
+For an example, see the <link id="DayOfTheWeek"/> function.
+</p>
+</descr>
+<seealso>
+<link id="MinuteOfTheYear"/>
+<link id="MinuteOfTheMonth"/>
+<link id="MinuteOfTheDay"/>
+<link id="MinuteOfTheHour"/>
+<link id="DayOfTheWeek"/>
+<link id="HourOfTheWeek"/>
+<link id="SecondOfTheWeek"/>
+<link id="MilliSecondOfTheWeek"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2137,7 +2309,30 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 
 <element name="SecondOfTheWeek">
 <short>Calculate the number of seconds elapsed since the start of the week</short>
+<descr>
+<p>
+<var>SecondOfTheWeek</var> returns the number of seconds that have passed since
+the start of the week (00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:00.999 on the first day of the week will return 0.
+</p>
+<p>
+For an example, see the <link id="DayOfTheWeek"/> function.
+</p>
+</descr>
+<seealso>
+<link id="SecondOfTheYear"/>
+<link id="SecondOfTheMonth"/>
+<link id="SecondOfTheDay"/>
+<link id="SecondOfTheHour"/>
+<link id="SecondOfTheMinute"/>
+<link id="DayOfTheWeek"/>
+<link id="HourOfTheWeek"/>
+<link id="MinuteOfTheWeek"/>
+<link id="MilliSecondOfTheWeek"/>
+</seealso>
 </element>
+
 <!-- function result Visibility: default -->
 <element name="SecondOfTheWeek.Result">
 <short>Number of seconds elapsed since the start of the week</short>
@@ -2151,21 +2346,61 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MilliSecondOfTheWeek">
 <short>Calculate the number of milliseconds elapsed since the start of the week</short>
+<descr>
+<p>
+<var>MilliSecondOfTheWeek</var> returns the number of milliseconds that have passed since
+the start of the Week (00:00:00.000) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:00.000  on the first of the Week will return 0.
+</p>
+<p>
+For an example, see the <link id="DayOfTheWeek"/> function.
+</p>
+</descr>
+<seealso>
+<link id="MilliSecondOfTheYear"/>
+<link id="MilliSecondOfTheMonth"/>
+<link id="MilliSecondOfTheDay"/>
+<link id="MilliSecondOfTheHour"/>
+<link id="MilliSecondOfTheMinute"/>
+<link id="MilliSecondOfTheSecond"/>
+<link id="DayOfTheWeek"/>
+<link id="HourOfTheWeek"/>
+<link id="MinuteOfTheWeek"/>
+<link id="SecondOfTheWeek"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
 <element name="MilliSecondOfTheWeek.Result">
-<short></short>
+<short>Number of milliseconds passed since the start of the week.</short>
 </element>
 
 <!-- argument Visibility: default -->
 <element name="MilliSecondOfTheWeek.AValue">
-<short></short>
+<short>Moment in the week to calculate milliseconds from.</short>
 </element>
 
 <!-- function Visibility: default -->
 <element name="HourOfTheDay">
 <short>Calculate the hour of a given DateTime value</short>
+<descr>
+<p>
+<var>HourOfTheDay</var> returns the number of hours that have passed since
+the start of the day till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:59:59 will return 0.
+</p>
+</descr>
+<seealso>
+<link id="HourOfTheYear"/>
+<link id="HourOfTheMonth"/>
+<link id="HourOfTheWeek"/>
+<link id="MinuteOfTheDay"/>
+<link id="SecondOfTheDay"/>
+<link id="MilliSecondOfTheDay"/>
+</seealso>
+<example file="datutex/ex43"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2181,6 +2416,26 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MinuteOfTheDay">
 <short>Calculate the number of minutes elapsed since the start of the day</short>
+<descr>
+<p>
+<var>MinuteOfTheDay</var> returns the number of minutes that have passed since
+the start of the Day (00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:59 will return 0.
+</p>
+<p>
+For an example, see the <link id="HourOfTheDay"/> function.
+</p>
+</descr>
+<seealso>
+<link id="MinuteOfTheYear"/>
+<link id="MinuteOfTheMonth"/>
+<link id="MinuteOfTheWeek"/>
+<link id="MinuteOfTheHour"/>
+<link id="HourOfTheDay"/>
+<link id="SecondOfTheDay"/>
+<link id="MilliSecondOfTheDay"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2196,6 +2451,27 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="SecondOfTheDay">
 <short>Calculate the number of seconds elapsed since the start of the day</short>
+<descr>
+<p>
+<var>SecondOfTheDay</var> returns the number of seconds that have passed since
+the start of the Day (00:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:00.999 return 0.
+</p>
+<p>
+For an example, see the <link id="HourOfTheDay"/> function.
+</p>
+</descr>
+<seealso>
+<link id="SecondOfTheYear"/>
+<link id="SecondOfTheMonth"/>
+<link id="SecondOfTheWeek"/>
+<link id="SecondOfTheHour"/>
+<link id="SecondOfTheMinute"/>
+<link id="HourOfTheDay"/>
+<link id="MinuteOfTheDay"/>
+<link id="MilliSecondOfTheDay"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2211,6 +2487,28 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MilliSecondOfTheDay">
 <short>Calculate the number of milliseconds elapsed since the start of the day</short>
+<descr>
+<p>
+<var>MilliSecondOfTheDay</var> returns the number of milliseconds that have passed since
+the start of the Day (00:00:00.000) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+00:00:00.000 will return 0.
+</p>
+<p>
+For an example, see the <link id="HourOfTheDay"/> function.
+</p>
+</descr>
+<seealso>
+<link id="MilliSecondOfTheYear"/>
+<link id="MilliSecondOfTheMonth"/>
+<link id="MilliSecondOfTheWeek"/>
+<link id="MilliSecondOfTheHour"/>
+<link id="MilliSecondOfTheMinute"/>
+<link id="MilliSecondOfTheSecond"/>
+<link id="HourOfTheDay"/>
+<link id="MinuteOfTheDay"/>
+<link id="SecondOfTheDay"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2226,6 +2524,23 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MinuteOfTheHour">
 <short>Calculate the number of minutes elapsed since the start of the hour</short>
+<descr>
+<p>
+<var>MinuteOfTheHour</var> returns the number of minutes that have passed since
+the start of the Hour (HH:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+HH:00:59 will return 0.
+</p>
+</descr>
+<seealso>
+<link id="MinuteOfTheYear"/>
+<link id="MinuteOfTheMonth"/>
+<link id="MinuteOfTheWeek"/>
+<link id="MinuteOfTheDay"/>
+<link id="SecondOfTheHour"/>
+<link id="MilliSecondOfTheHour"/>
+</seealso>
+<example file="datutex/ex44"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2241,6 +2556,26 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="SecondOfTheHour">
 <short>Calculate the number of seconds elapsed since the start of the hour</short>
+<descr>
+<p>
+<var>SecondOfTheHour</var> returns the number of seconds that have passed since
+the start of the Hour (HH:00:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+HH:00:00.999 return 0.
+</p>
+<p>
+For an example, see the <link id="MinuteOfTheHour"/> function.
+</p>
+</descr>
+<seealso>
+<link id="SecondOfTheYear"/>
+<link id="SecondOfTheMonth"/>
+<link id="SecondOfTheWeek"/>
+<link id="SecondOfTheDay"/>
+<link id="SecondOfTheMinute"/>
+<link id="MinuteOfTheHour"/>
+<link id="MilliSecondOfTheHour"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2256,6 +2591,27 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MilliSecondOfTheHour">
 <short>Calculate the number of milliseconds elapsed since the start of the hour</short>
+<descr>
+<p>
+<var>MilliSecondOfTheHour</var> returns the number of milliseconds that have passed since
+the start of the Hour (HH:00:00.000) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+HH:00:00.000 will return 0.
+</p>
+<p>
+For an example, see the <link id="MinuteOfTheHour"/> function.
+</p>
+</descr>
+<seealso>
+<link id="MilliSecondOfTheYear"/>
+<link id="MilliSecondOfTheMonth"/>
+<link id="MilliSecondOfTheWeek"/>
+<link id="MilliSecondOfTheDay"/>
+<link id="MilliSecondOfTheMinute"/>
+<link id="MilliSecondOfTheSecond"/>
+<link id="MinuteOfTheHour"/>
+<link id="SecondOfTheHour"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2271,6 +2627,23 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="SecondOfTheMinute">
 <short>Calculate the number of seconds elapsed since the start of the minute</short>
+<descr>
+<p>
+<var>SecondOfTheMinute</var> returns the number of seconds that have passed since
+the start of the minute (HH:MM:00) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+HH:MM:00.999 return 0.
+</p>
+</descr>
+<seealso>
+<link id="SecondOfTheYear"/>
+<link id="SecondOfTheMonth"/>
+<link id="SecondOfTheWeek"/>
+<link id="SecondOfTheDay"/>
+<link id="SecondOfTheHour"/>
+<link id="MilliSecondOfTheMinute"/>
+</seealso>
+<example file="datutex/ex45"/>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2286,6 +2659,27 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MilliSecondOfTheMinute">
 <short>Calculate the number of milliseconds elapsed since the start of the minute</short>
+<descr>
+<p>
+<var>MilliSecondOfTheMinute</var> returns the number of milliseconds that have passed since
+the start of the Minute (HH:MM:00.000) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+HH:MM:00.000 will return 0.
+</p>
+<p>
+For an example, see the <link id="SecondOfTheMinute"/> function.
+</p>
+</descr>
+<seealso>
+<link id="MilliSecondOfTheYear"/>
+<link id="MilliSecondOfTheMonth"/>
+<link id="MilliSecondOfTheWeek"/>
+<link id="MilliSecondOfTheDay"/>
+<link id="MilliSecondOfTheHour"/>
+<link id="MilliSecondOfTheMinute"/>
+<link id="MilliSecondOfTheSecond"/>
+<link id="SecondOfTheMinute"/>
+</seealso>
 </element>
 
 <!-- function result Visibility: default -->
@@ -2301,6 +2695,24 @@ For an example, see the <link id="WeekOfTheYear"/> function.
 <!-- function Visibility: default -->
 <element name="MilliSecondOfTheSecond">
 <short>Calculate the number of milliseconds elapsed since the start of the second</short>
+<descr>
+<p>
+<var>MilliSecondOfTheSecond</var> returns the number of milliseconds that have passed since
+the start of the second (HH:MM:SS.000) till the moment indicated by
+<var>AValue</var>. This is a zero-based number, i.e. 
+HH:MM:SS.000 will return 0.
+</p>
+</descr>
+<seealso>
+<link id="MilliSecondOfTheYear"/>
+<link id="MilliSecondOfTheMonth"/>
+<link id="MilliSecondOfTheWeek"/>
+<link id="MilliSecondOfTheDay"/>
+<link id="MilliSecondOfTheHour"/>
+<link id="MilliSecondOfTheMinute"/>
+<link id="SecondOfTheMinute"/>
+</seealso>
+<example file="datutex/ex46"/>
 </element>
 
 <!-- function result Visibility: default -->

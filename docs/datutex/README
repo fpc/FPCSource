@@ -36,4 +36,10 @@ ex36.pp contains an example of the StartOfTheDay function.
 ex37.pp contains an example of the EndOfTheDay function.
 ex38.pp contains an example of the StartOfADay function.
 ex34.pp contains an example of the EndOfADay function.
-ex40.pp contains an example of the WeekOfTheYear function.
+ex40.pp contains examples of the PartOfTheYear functions.
+ex41.pp contains examples of the PartOfTheMonth functions.
+ex42.pp contains examples of the PartOfTheWeek functions.
+ex43.pp contains examples of the PartOfTheDay functions.
+ex44.pp contains examples of the PartOfTheHour functions.
+ex45.pp contains examples of the PartOfTheMinute functions.
+ex46.pp contains an example of the MilliSecondOfTheSecond functions.
