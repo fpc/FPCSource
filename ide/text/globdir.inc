@@ -54,6 +54,9 @@
   {$ifndef debug}
     {$define redircompiler}
   {$endif}
+  {$ifdef GDB_V418}
+    {$define redircompiler} 
+  {$endif GDB_V418}
 {$endif}
 
 {$ifdef GABOR}
