@@ -1240,6 +1240,8 @@ begin
     if Editor^.LoadFile=false then
        ErrorBox(#3'Error reading file.',nil);
   Insert(Editor);
+  If assigned(BreakpointsCollection) then
+    BreakpointsCollection^.ShowBreakpoints(@Self);
   UpdateTitle;
 end;
 
@@ -1294,7 +1296,7 @@ var OldState: word;
 begin
   OldState:=State;
   inherited SetState(AState,Enable);
-  if ((AState and sfActive)<>0) and ((OldState and sfActive)=0) then
+  if ((AState and sfActive)<>0) and (((OldState xor State) and sfActive)<>0) then
     UpdateCommands;
 end;
 
@@ -1353,6 +1355,8 @@ begin
   inherited Load(S);
   GetSubViewPtr(S,Indicator);
   GetSubViewPtr(S,Editor);
+  If assigned(BreakpointsCollection) then
+    BreakpointsCollection^.ShowBreakpoints(@Self);
   PopStatus;
 end;
 
@@ -1373,9 +1377,9 @@ begin
   if not IDEApp.IsClosing then
     Message(Application,evBroadcast,cmSourceWndClosing,@Self);
   inherited Done;
+{  if not IDEApp.IsClosing then
+    Message(Application,evBroadcast,cmUpdate,@Self);}
   PopStatus;
-  if not IDEApp.IsClosing then
-    Message(Application,evBroadcast,cmUpdate,@Self);
 end;
 
 function TGDBSourceEditor.Valid(Command: Word): Boolean;
@@ -2582,8 +2586,6 @@ begin
        end;
     W^.HelpCtx:=hcSourceWindow;
     Desktop^.Insert(W);
-    If assigned(BreakpointsCollection) then
-      BreakpointsCollection^.ShowBreakpoints(W);
     Message(Application,evBroadcast,cmUpdate,nil);
   end;
   PopStatus;
@@ -3216,7 +3218,11 @@ end;
 END.
 {
   $Log$
-  Revision 1.62  2000-03-07 21:50:38  pierre
+  Revision 1.63  2000-03-13 20:39:25  pierre
+    * one more try to get the menu update to work correctly
+    * breakpoint in red at loading
+
+  Revision 1.62  2000/03/07 21:50:38  pierre
    * UpdateCommands changed again, still not correct :(
 
   Revision 1.61  2000/03/01 22:32:48  pierre
