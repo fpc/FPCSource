@@ -51,7 +51,8 @@ unit cpupi;
     uses
        globtype,globals,
        aasmtai,
-       tgobj;
+       tgobj,
+       symsym;
 
     constructor tppcprocinfo.create;
 
@@ -65,16 +66,24 @@ unit cpupi;
       begin
          { this value is necessary for nested procedures }
          procdef.localst.address_fixup:=align(procdef.parast.datasize,16);
-      end;
+         if assigned(aktprocdef.funcretsym) then
+           procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address;
+     end;
 
     procedure tppcprocinfo.after_pass1;
       begin
          procdef.parast.address_fixup:=align(maxpushedparasize,16);
          if cs_asm_source in aktglobalswitches then
            aktproccode.insert(Tai_comment.Create(strpnew('Parameter copies start at: r1+'+tostr(procdef.parast.address_fixup))));
+
          procdef.localst.address_fixup:=align(procdef.parast.address_fixup+procdef.parast.datasize,16);
+
+         if assigned(aktprocdef.funcretsym) then
+           procinfo.return_offset:=tg.direction*tfuncretsym(aktprocdef.funcretsym).address+procdef.localst.address_fixup;
+
          if cs_asm_source in aktglobalswitches then
            aktproccode.insert(Tai_comment.Create(strpnew('Locals start at: r1+'+tostr(procdef.localst.address_fixup))));
+
          procinfo.firsttemp_offset:=align(procdef.localst.address_fixup+procdef.localst.datasize,16);
          if cs_asm_source in aktglobalswitches then
            aktproccode.insert(Tai_comment.Create(strpnew('Temp. space start: r1+'+tostr(procinfo.firsttemp_offset))));
@@ -89,7 +98,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2002-08-18 20:06:30  peter
+  Revision 1.3  2002-09-07 17:54:59  florian
+    * first part of PowerPC fixes
+
+  Revision 1.2  2002/08/18 20:06:30  peter
     * inlining is now also allowed in interface
     * renamed write/load to ppuwrite/ppuload
     * tnode storing in ppu

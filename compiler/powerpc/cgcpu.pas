@@ -248,13 +248,16 @@ const
       var
         href : treference;
       begin
-         { save our RTOC register value. Only necessary when doing pointer based    }
-         { calls or cross TOC calls, but currently done always                      }
-         reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
-         list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+         if target_info.system=system_powerpc_macos then
+           begin
+              { save our RTOC register value. Only necessary when doing pointer based    }
+              { calls or cross TOC calls, but currently done always                      }
+              reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
+              list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+           end;
          list.concat(taicpu.op_sym(A_BL,objectlibrary.newasmsymbol(s)));
-         reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
-         list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
+         if target_info.system=system_powerpc_macos then
+           list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
          procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
@@ -263,13 +266,17 @@ const
       var
         href : treference;
       begin
-        { save our RTOC register value. Only necessary when doing pointer based    }
-        { calls or cross TOC calls, but currently done always                      }
-        reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
-        list.concat(taicpu.op_reg(A_MTCTR,reg));
-        list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+         list.concat(taicpu.op_reg(A_MTCTR,reg));
+         if target_info.system=system_powerpc_macos then
+           begin
+              { save our RTOC register value. Only necessary when doing pointer based    }
+              { calls or cross TOC calls, but currently done always                      }
+              reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
+              list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+           end;
         list.concat(taicpu.op_none(A_BCCTRL));
-        list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
+        if target_info.system=system_powerpc_macos then
+          list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
         procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
@@ -280,16 +287,20 @@ const
         href : treference;
         tmpreg : tregister;
       begin
-        { save our RTOC register value. Only necessary when doing pointer based    }
-        { calls or cross TOC calls, but currently done always                      }
-        reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
-        list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+        if target_info.system=system_powerpc_macos then
+          begin
+             { save our RTOC register value. Only necessary when doing pointer based    }
+             { calls or cross TOC calls, but currently done always                      }
+             reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
+             list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+          end;
         tmpreg := get_scratch_reg_int(list);
         a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
         list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
         free_scratch_reg(list,tmpreg);
         list.concat(taicpu.op_none(A_BCCTRL));
-        list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
+        if target_info.system=system_powerpc_macos then
+          list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
         procinfo.flags:=procinfo.flags or pi_do_call;
       end;
 
@@ -1703,7 +1714,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2002-09-07 15:25:14  peter
+  Revision 1.54  2002-09-07 17:54:58  florian
+    * first part of PowerPC fixes
+
+  Revision 1.53  2002/09/07 15:25:14  peter
     * old logs removed and tabs fixed
 
   Revision 1.52  2002/09/02 10:14:51  jonas

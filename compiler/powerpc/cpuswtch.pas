@@ -119,7 +119,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.7  2002-09-04 16:03:53  jonas
+  Revision 1.8  2002-09-07 17:54:59  florian
+    * first part of PowerPC fixes
+
+  Revision 1.7  2002/09/04 16:03:53  jonas
     + parse basic optimization parameters
 
   Revision 1.6  2002/08/10 14:52:52  carl

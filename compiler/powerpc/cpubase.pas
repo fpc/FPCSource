@@ -461,9 +461,9 @@ uses
       firstsavemmreg  = R_NO;
       lastsavemmreg   = R_NO;
 
-      maxvarregs = 18;
+      maxvarregs = 17;
       varregs : Array [1..maxvarregs] of Tregister =
-                (R_13,R_14,R_15,R_16,R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,
+                (R_14,R_15,R_16,R_17,R_18,R_19,R_20,R_21,R_22,R_23,R_24,R_25,
                  R_26,R_27,R_28,R_29,R_30);
 
       maxfpuvarregs = 31-14+1;
@@ -710,7 +710,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.32  2002-09-07 15:25:14  peter
+  Revision 1.33  2002-09-07 17:54:59  florian
+    * first part of PowerPC fixes
+
+  Revision 1.32  2002/09/07 15:25:14  peter
     * old logs removed and tabs fixed
 
   Revision 1.31  2002/09/01 21:04:49  florian

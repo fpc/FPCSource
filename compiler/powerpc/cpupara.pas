@@ -36,6 +36,7 @@ unit cpupara;
           function getintparaloc(nr : longint) : tparalocation;override;
           procedure create_param_loc_info(p : tabstractprocdef);override;
           function getfuncretparaloc(p : tabstractprocdef) : tparalocation;override;
+          function passes_parameters_in_reg(p : tabstractprocdef) : boolean;override;
        end;
 
   implementation
@@ -127,7 +128,11 @@ unit cpupara;
          nextmmreg:=R_M1;
          stack_offset:=0;
          { pointer for structured results ? }
-         { !!!nextintreg:=R_4;              }
+         if not is_void(p.rettype.def) then
+           begin
+              if not(ret_in_reg(p)) then
+                inc(nextintreg);
+           end;
 
          { frame pointer for nested procedures? }
          { inc(nextintreg);                     }
@@ -220,10 +225,15 @@ unit cpupara;
       end;
 
     function tppcparamanager.getfuncretparaloc(p : tabstractprocdef) : tparalocation;
-
       begin
          getfuncretparaloc.loc:=LOC_REGISTER;
          getfuncretparaloc.register:=R_3;
+         getfuncretparaloc.size:=OS_ADDR;
+      end;
+
+    function tppcparamanager.passes_parameters_in_reg(p : tabstractprocdef) : boolean;
+      begin
+         passes_parameters_in_reg:=true;
       end;
 
 begin
@@ -231,7 +241,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.10  2002-09-01 21:04:49  florian
+  Revision 1.11  2002-09-07 17:54:59  florian
+    * first part of PowerPC fixes
+
+  Revision 1.10  2002/09/01 21:04:49  florian
     * several powerpc related stuff fixed
 
   Revision 1.9  2002/08/31 12:43:31  florian
