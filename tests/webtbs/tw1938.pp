@@ -1,4 +1,6 @@
 
+{$inline on }
+
 var A: array [0..1] of Integer;
 
 function F: Integer; inline;
