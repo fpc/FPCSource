@@ -25,15 +25,14 @@ interface
 
 uses
   strings,
-  sysutils;
+  sysutils,
+  typinfo;
 
 {$i classesh.inc}
 
 
 implementation
 
-uses
-  typinfo;
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
@@ -48,7 +47,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2002-09-07 15:15:27  peter
+  Revision 1.7  2003-09-02 19:49:16  hajny
+    * compilation fix (typinfo needed already in interface now)
+
+  Revision 1.6  2002/09/07 15:15:27  peter
     * old logs removed and tabs fixed
 
   Revision 1.5  2002/02/10 13:38:14  hajny
