@@ -937,7 +937,7 @@ implementation
                      end
                     else
                      begin
-                       location_release(exprasmlist,left.location);
+                       location_release(exprasmlist,hp.left.location);
                        cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
                      end;
                     { update href to the vtype field and write it }
@@ -950,25 +950,25 @@ implementation
               else
               { normal array constructor of the same type }
                begin
-                 case elesize of
-                   1,2,4 :
+                 location_release(exprasmlist,hp.left.location);
+                 case hp.left.location.loc of
+                   LOC_FPUREGISTER,
+                   LOC_CFPUREGISTER :
                      begin
-                       location_release(exprasmlist,left.location);
-                       cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
+                       location_release(exprasmlist,hp.left.location);
+                       cg.a_loadfpu_reg_ref(exprasmlist,hp.left.location.size,hp.left.location.register,href);
                      end;
-                   8 :
+                   LOC_REFERENCE,
+                   LOC_CREFERENCE :
                      begin
-                       if hp.left.location.loc in [LOC_REGISTER,LOC_CREGISTER] then
-                        cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href)
-                       else
-                        cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
+                       cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
                      end;
                    else
                      begin
-                       { concatcopy only supports reference }
-                       if not(hp.left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
-                        internalerror(200108012);
-                       cg.g_concatcopy(exprasmlist,hp.left.location.reference,href,elesize,freetemp,false);
+                       if hp.left.location.size in [OS_64,OS_S64] then
+                         cg64.a_load64_loc_ref(exprasmlist,hp.left.location,href)
+                       else
+                         cg.a_load_loc_ref(exprasmlist,hp.left.location,href);
                      end;
                  end;
                  inc(href.offset,elesize);
@@ -987,7 +987,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2002-11-27 20:04:39  peter
+  Revision 1.42  2002-12-20 18:13:46  peter
+    * fixes for fpu values in arrayconstructor
+
+  Revision 1.41  2002/11/27 20:04:39  peter
     * cdecl array of const fixes
 
   Revision 1.40  2002/11/25 17:43:18  peter
