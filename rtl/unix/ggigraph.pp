@@ -88,7 +88,7 @@ Const
 implementation
 
 uses
-  Unix;
+  termio;
 
 var
   OldIO : TermIos;
@@ -537,7 +537,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.6  2002-09-07 16:01:27  peter
+  Revision 1.7  2003-11-19 17:35:36  marco
+   * Linux part of termio unit
+
+  Revision 1.6  2002/09/07 16:01:27  peter
     * old logs removed and tabs fixed
 
 }

@@ -81,7 +81,7 @@ Type
     ws_ypixel : word;
   end;
   TWinSize=winsize;
-
+{
   Termio = packed record
     c_iflag,                             { input mode flags }
     c_oflag,                             { output mode flags }
@@ -91,7 +91,7 @@ Type
     c_cc     : array [0..NCC-1] of char;{ control characters }
   end;
   TTermio=Termio;
-
+}
 {$PACKRECORDS C}
   Termios = record
     c_iflag,
