@@ -56,7 +56,6 @@ interface
        tcallnode = class(tbinarynode)
        private
           paravisible  : boolean;
-          paralength   : smallint;
           function  candidates_find:pcandidate;
           procedure candidates_free(procs:pcandidate);
           procedure candidates_list(procs:pcandidate;all:boolean);
@@ -88,6 +87,8 @@ interface
           procdefinitionderef : tderef;
           { tree that contains the pointer to the object for this method }
           methodpointer  : tnode;
+          { number of parameters passed from the source, this does not include the hidden parameters }
+          paralength   : smallint;
           { inline function body }
           inlinecode : tnode;
           { varargs tparaitems }
@@ -2001,7 +2002,9 @@ type
                   pt:=tcallparanode(pt.right);
                   dec(lastpara);
                 end;
-              if assigned(pt) or assigned(currpara) then
+              if assigned(pt) or
+                 (assigned(currpara) and
+                  not assigned(currpara.defaultvalue)) then
                 begin
                    if assigned(pt) then
                      aktfilepos:=pt.fileinfo;
@@ -2130,34 +2133,34 @@ type
 
                    candidates_free(procs);
                end; { end of procedure to call determination }
-
-              { add needed default parameters }
-              if assigned(procdefinition) and
-                 (paralength<procdefinition.maxparacount) then
-               begin
-                 currpara:=tparaitem(procdefinition.Para.first);
-                 i:=0;
-                 while (i<paralength) do
-                  begin
-                    if not assigned(currpara) then
-                      internalerror(200306181);
-                    if not currpara.is_hidden then
-                      inc(i);
-                    currpara:=tparaitem(currpara.next);
-                  end;
-                 while assigned(currpara) and
-                       currpara.is_hidden do
-                   currpara:=tparaitem(currpara.next);
-                 while assigned(currpara) do
-                  begin
-                    if not assigned(currpara.defaultvalue) then
-                     internalerror(200212142);
-                    left:=ccallparanode.create(genconstsymtree(tconstsym(currpara.defaultvalue)),left);
-                    currpara:=tparaitem(currpara.next);
-                  end;
-               end;
            end;
 
+          { add needed default parameters }
+          if assigned(procdefinition) and
+             (paralength<procdefinition.maxparacount) then
+           begin
+             currpara:=tparaitem(procdefinition.Para.first);
+             i:=0;
+             while (i<paralength) do
+              begin
+                if not assigned(currpara) then
+                  internalerror(200306181);
+                if not currpara.is_hidden then
+                  inc(i);
+                currpara:=tparaitem(currpara.next);
+              end;
+             while assigned(currpara) and
+                   currpara.is_hidden do
+               currpara:=tparaitem(currpara.next);
+             while assigned(currpara) do
+              begin
+                if not assigned(currpara.defaultvalue) then
+                 internalerror(200212142);
+                left:=ccallparanode.create(genconstsymtree(tconstsym(currpara.defaultvalue)),left);
+                currpara:=tparaitem(currpara.next);
+              end;
+           end;
+           
           { handle predefined procedures }
           is_const:=(po_internconst in procdefinition.procoptions) and
                     ((block_type in [bt_const,bt_type]) or
@@ -2586,7 +2589,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.205  2003-11-06 15:54:32  peter
+  Revision 1.206  2003-11-10 19:09:29  peter
+    * procvar default value support
+
+  Revision 1.205  2003/11/06 15:54:32  peter
     * fixed calling classmethod for other object from classmethod
 
   Revision 1.204  2003/11/01 16:17:48  peter

@@ -36,7 +36,7 @@ interface
      type
        { if acp is cp_all the var const or nothing are considered equal }
        tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
-       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert);
+       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue);
        tcompare_paras_options = set of tcompare_paras_option;
 
        tconverttype = (
@@ -1184,7 +1184,8 @@ implementation
               if eq<lowesteq then
                 lowesteq:=eq;
               { also check default value if both have it declared }
-              if assigned(currpara1.defaultvalue) and
+              if (cpo_comparedefaultvalue in cpoptions) and
+                 assigned(currpara1.defaultvalue) and
                  assigned(currpara2.defaultvalue) then
                begin
                  if not equal_constsym(tconstsym(currpara1.defaultvalue),tconstsym(currpara2.defaultvalue)) then
@@ -1248,7 +1249,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.36  2003-11-04 22:30:15  florian
+  Revision 1.37  2003-11-10 19:09:29  peter
+    * procvar default value support
+
+  Revision 1.36  2003/11/04 22:30:15  florian
     + type cast variant<->enum
     * cnv. node second pass uses now as well helper wrappers
 

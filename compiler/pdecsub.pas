@@ -1911,7 +1911,7 @@ const
               ) or
               { check arguments }
               (
-               (compare_paras(pd.para,hd.para,cp_none,[])>=te_equal) and
+               (compare_paras(pd.para,hd.para,cp_none,[cpo_comparedefaultvalue])>=te_equal) and
                { for operators equal_paras is not enough !! }
                ((pd.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
                 equal_defs(hd.rettype.def,pd.rettype.def))
@@ -1930,7 +1930,7 @@ const
                       (
                        (m_repeat_forward in aktmodeswitches) and
                        (not((pd.maxparacount=0) or
-                            (compare_paras(pd.para,hd.para,cp_all,[])>=te_equal)))
+                            (compare_paras(pd.para,hd.para,cp_all,[cpo_comparedefaultvalue])>=te_equal)))
                       ) or
                       (
                        ((m_repeat_forward in aktmodeswitches) or
@@ -2151,7 +2151,10 @@ const
 end.
 {
   $Log$
-  Revision 1.152  2003-11-07 15:58:32  florian
+  Revision 1.153  2003-11-10 19:09:29  peter
+    * procvar default value support
+
+  Revision 1.152  2003/11/07 15:58:32  florian
     * Florian's culmutative nr. 1; contains:
       - invalid calling conventions for a certain cpu are rejected
       - arm softfloat calling conventions
