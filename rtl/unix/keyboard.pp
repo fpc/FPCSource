@@ -1232,11 +1232,14 @@ End;
 
 function ShiftState:byte;
 var
-  arg,shift : longint;
+{$ifndef BSD}
+  arg,
+{$endif BSD}
+  shift : longint;
 begin
-  arg:=6;
   shift:=0;
   {$Ifndef BSD}
+  arg:=6;
   if fpioctl(StdInputHandle,TIOCLINUX,@arg)=0 then
    begin
      if (arg and 8)<>0 then
@@ -1530,7 +1533,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.21  2005-02-14 17:13:31  peter
+  Revision 1.22  2005-03-25 23:01:50  jonas
+    * removed unused variable
+
+  Revision 1.21  2005/02/14 17:13:31  peter
     * truncate log
 
 }
