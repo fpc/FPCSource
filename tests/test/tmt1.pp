@@ -3,7 +3,12 @@
 {$mode objfpc}
 {$threading on}
 
-uses sysutils;
+uses
+  sysutils
+{$ifdef unix}  
+  ,cthreads  
+{$endif}  
+  ;
 
 const
    threadcount = 100;
