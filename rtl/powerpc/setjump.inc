@@ -16,19 +16,22 @@
  **********************************************************************}
 
 { the necessary code can be copied from the linux kernel sources }
-function setjmp(var S : jmp_buf) : longint;assembler;
+function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
   asm
     {$warning FIXME!!!!}
   end;
 
-procedure longjmp(var S : jmp_buf;value : longint);assembler;
+procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
   asm
     {$warning FIXME!!!!}
   end;
 
 {
   $Log$
-  Revision 1.3  2002-08-10 17:14:36  jonas
+  Revision 1.4  2002-08-31 14:27:40  florian
+    + public and alias directive added to *jmp
+
+  Revision 1.3  2002/08/10 17:14:36  jonas
     * various fixes, mostly changing the names of the modifies registers to
       upper case since that seems to be required by the compiler
 
