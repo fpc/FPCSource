@@ -64,7 +64,7 @@ procedure TLinkerGo32v2.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE';
+     ExeCmd[1]:='ld $SCRIPT $OPT $STRIP -o $EXE @$RES';
    end;
 end;
 
@@ -73,7 +73,6 @@ Function TLinkerGo32v2.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
   i        : longint;
-  HPath    : TStringListItem;
   s        : string;
   linklibc : boolean;
 begin
@@ -81,29 +80,6 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
-
-  { Write path to search libraries }
-  HPath:=TStringListItem(current_module.locallibrarysearchpath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('-L'+GetShortName(HPath.Str));
-     HPath:=TStringListItem(HPath.Next);
-   end;
-  HPath:=TStringListItem(LibrarySearchPath.First);
-  while assigned(HPath) do
-   begin
-     LinkRes.Add('-L'+GetShortName(HPath.Str));
-     HPath:=TStringListItem(HPath.Next);
-   end;
-
-  { add objectfiles, start with prt0 always }
-  LinkRes.AddFileName(GetShortName(FindObjectFile('prt0','')));
-  while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.GetFirst;
-     if s<>'' then
-      LinkRes.AddFileName(GetShortName(s));
-   end;
 
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
@@ -154,15 +130,13 @@ end;
 Function TLinkerGo32v2.WriteScript(isdll:boolean) : Boolean;
 Var
   scriptres  : TLinkRes;
-  i        : longint;
   HPath    : TStringListItem;
   s        : string;
-  linklibc : boolean;
 begin
   WriteScript:=False;
 
   { Open link.res file }
-  ScriptRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  ScriptRes:=TLinkRes.Create(outputexedir+Info.ScriptName);
   ScriptRes.Add('OUTPUT_FORMAT("coff-go32-exe")');
   ScriptRes.Add('ENTRY(start)');
 
@@ -226,50 +200,14 @@ begin
      HPath:=TStringListItem(HPath.Next);
    end;
 
-  { Write staticlibraries }
-  if not StaticLibFiles.Empty then
-   begin
-     ScriptRes.Add('-(');
-     While not StaticLibFiles.Empty do
-      begin
-        S:=StaticLibFiles.GetFirst;
-        ScriptRes.AddFileName(GetShortName(s))
-      end;
-     ScriptRes.Add('-)');
-   end;
-
-  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
-    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
-  linklibc:=false;
-  While not SharedLibFiles.Empty do
-   begin
-     S:=SharedLibFiles.GetFirst;
-     if s<>'c' then
-      begin
-        i:=Pos(target_info.sharedlibext,S);
-        if i>0 then
-         Delete(S,i,255);
-        ScriptRes.Add('-l'+s);
-      end
-     else
-      begin
-        ScriptRes.Add('-l'+s);
-        linklibc:=true;
-      end;
-   end;
-  { be sure that libc&libgcc is the last lib }
-  if linklibc then
-   begin
-     ScriptRes.Add('-lc');
-     ScriptRes.Add('-lgcc');
-   end;
-
 { Write and Close response }
   ScriptRes.WriteToDisk;
   ScriptRes.Free;
 
   WriteScript:=True;
 end;
+
+
 
 function TLinkerGo32v2.MakeExecutable:boolean;
 var
@@ -288,6 +226,7 @@ begin
 
   { Write used files and libraries and our own ld script }
   WriteScript(false);
+  WriteResponsefile(false);
 
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
@@ -295,12 +234,15 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ResName));
+  Replace(cmdstr,'$SCRIPT','--script='+maybequoted(outputexedir+Info.ScriptName));
   success:=DoExec(FindUtil(BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
-   RemoveFile(outputexedir+Info.ResName);
+   begin
+     RemoveFile(outputexedir+Info.ResName);
+     RemoveFile(outputexedir+Info.ScriptName);
+   end;
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
@@ -482,7 +424,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.11  2001-08-19 11:22:24  peter
+  Revision 1.12  2001-08-30 20:08:23  peter
+    * create script.res and use link.res for commandline
+
+  Revision 1.11  2001/08/19 11:22:24  peter
     * palmos support from v10 merged
 
   Revision 1.10  2001/08/07 18:47:15  peter
