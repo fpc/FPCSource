@@ -47,10 +47,6 @@ program install;
  {$UNDEF DOSSTUB}
 {$ENDIF}
 
-{$ifdef win32}
-{$define USE_FPUSRSCR}
-{$endif}
-
 {$ifdef go32v2}
 {$define MAYBE_LFN}
 {$endif}
@@ -94,14 +90,12 @@ program install;
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
-{$ifdef USE_FPUSRSCR}
-     FPUsrScr,
-{$endif USE_FPUSRSCR}
      app,dialogs,views,menus,msgbox,colortxt,tabs,scroll,
      WHTMLScn;
 
   const
-     installerversion='1.0.4';
+     installerversion='1.0.8';
+     installercopyright='Copyright (c) 1993-2004 Florian Klaempfl';
 
 
      maxpacks=10;
@@ -129,7 +123,7 @@ program install;
        name      : string[60];
        zip       : string[40];  { default zipname }
        zipshort  : string[12];  { 8.3 zipname }
-       diskspace : longint;     { diskspace required }
+       diskspace : int64;     { diskspace required }
      end;
 
      tpack=record
@@ -767,11 +761,14 @@ program install;
 
   procedure tunzipdialog.do_unzip(s,topath : string);
     var
-      again,islfn : boolean;
-      st2,fn,dir,wild : string;
+{$ifdef MAYBE_LFN}
       p : pathstr;
       n : namestr;
       e : extstr;
+      islfn : boolean;
+{$endif MAYBE_LFN}
+      again : boolean;
+      st2,fn,dir,wild : string;
 
     begin
        Disposestr(filetext^.text);
@@ -793,6 +790,7 @@ program install;
        SetUnzipReportProc (UnzipCheckFn);
  {$ENDIF FPC}
 {$ENDIF DLL}
+
        if CreateLog then
          WriteLn (Log, 'Unpacking ' + AllFiles + ' from '
                                    + StartPath + DirSep + S + ' to ' + ToPath);
@@ -842,10 +840,10 @@ program install;
               if CreateLog then
                 WriteLn (Log, 'Error (' + S + ') while extracting.' + ST2);
               if messagebox('Error (' + S + ') while extracting.'+st2+#13+
-                            #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmNo then
-               errorhalt
+                            #13#3'Try again?',nil,mferror+mfyesbutton+mfnobutton)=cmYes then
+               again:=true
               else
-               again:=true;
+               errorhalt;
            end;
        until not again;
     end;
@@ -1308,7 +1306,7 @@ end;
        i,j  : longint;
        found : boolean;
 {$ifndef Unix}
-       DSize,Space,ASpace : longint;
+       DSize,Space,ASpace : int64;
        S: DirStr;
 {$endif}
 
@@ -1379,6 +1377,9 @@ end;
                          end;
                        end;
                     end;
+                  if CreateLog then
+                    WriteLn (Log, 'Diskspace needed: ',DotStr(DSize),' Kb');
+
                   S := FExpand (Data.BasePath);
                   if S [Length (S)] = DirSep then
                    Dec (S [0]);
@@ -1386,6 +1387,8 @@ end;
                   { -1 means that the drive is invalid }
                   if Space=-1 then
                     begin
+                     if CreateLog then
+                       WriteLn (Log, 'The drive '+S[1]+': is not valid');
                      if messagebox('The drive '+S[1]+': is not valid. Do you ' +
                                    'want to change the installation path?',nil,
                                    mferror+mfyesbutton+mfnobutton) = cmYes then
@@ -1393,6 +1396,8 @@ end;
                       Space:=0;
                     end;
                   Space := Space shr 10;
+                  if CreateLog then
+                    WriteLn (Log, 'Free space on drive '+S[1]+': ',DotStr(Space),' Kb');
 
                   if Space < DSize then
                    S := 'is not'
@@ -1525,7 +1530,7 @@ end;
             params[0]:=@fn;
             messagebox('File %s not found!',@params,mferror+mfokbutton);
             if CreateLog then
-                WriteLn (Log, 'File "' + S + '" not found!');
+                WriteLn (Log, 'File "' + fn + '" not found!');
             errorhalt;
           end;
        end;
@@ -1760,9 +1765,7 @@ end;
   procedure tapp.checkavailpack;
     var
       i, j : longint;
-      dir : searchrec;
       one_found : boolean;
-      filename : string;
     begin
     { check the packages }
       j:=0;
@@ -1897,24 +1900,28 @@ begin
 end;
 {$ENDIF}
 
+
+procedure usagescreen;
+begin
+  writeln('FPC Installer ',installerversion,' ',installercopyright);
+  writeln('Command line options:');
+  writeln('  -l   create log file');
+{$ifdef MAYBE_LFN}
+  writeln('  --nolfn   force installation with short file names');
+{$endif MAYBE_LFN}
+  writeln;
+  writeln('  -h   displays this help');
+end;
+
+
 var
    i : longint;
 
 begin
-{$ifdef USE_FPUSRSCR}
-   InitUserScreen;
-   if Assigned(UserScreen) then
-     UserScreen^.SwitchBackToIDEScreen;
-{$endif USE_FPUSRSCR}
    { register objects for help streaming }
    RegisterWHTMLScan;
-{$ifdef FPC}
-{$ifdef win32}
-  Dos.Exec(GetEnv('COMSPEC'),'/C echo This dummy call gets the mouse to become visible');
-{$endif win32}
-{$endif FPC}
-(* TH - no error boxes if checking an inaccessible disk etc. *)
 {$IFDEF OS2}
+ { TH - no error boxes if checking an inaccessible disk etc. }
  {$IFDEF FPC}
    DosCalls.DosError (0);
  {$ELSE FPC}
@@ -1948,28 +1955,12 @@ begin
 {$endif MAYBE_LFN}
         else if paramstr(i)='-h' then
           begin
-             writeln('FPC Installer Copyright (c) 1993-2002 Florian Klaempfl');
-             writeln('Command line options:');
-             writeln('  -l   create log file');
-{$ifdef MAYBE_LFN}
-             writeln('  --nolfn   force installation with short file names');
-{$endif MAYBE_LFN}
-             writeln;
-             writeln('  -h   displays this help');
+             usagescreen;
              halt(0);
           end
         else
           begin
-             writeln('Illegal command line parameter: ',paramstr(i));
-             WriteLn;
-             writeln('FPC Installer Copyright (c) 1993-2002 Florian Klaempfl');
-             writeln('Command line options:');
-             writeln('  -l   create log file');
-{$ifdef MAYBE_LFN}
-             writeln('  --nolfn   force installation with short file names');
-{$endif MAYBE_LFN}
-             writeln;
-             writeln('  -h   displays this help');
+             usagescreen;
              halt(1);
           end;
      end;
@@ -2002,17 +1993,15 @@ begin
 {$endif}
    installapp.do_installdialog;
    installapp.done;
-{$ifdef USE_FPUSRSCR}
-   if Assigned(UserScreen) then
-     UserScreen^.SwitchToConsoleScreen;
-   DoneUserScreen;
-{$endif USE_FPUSRSCR}
    if createlog then
      close(log);
 end.
 {
   $Log$
-  Revision 1.19  2003-04-06 15:56:25  carl
+  Revision 1.20  2004-12-18 16:19:57  peter
+  win32 fixes
+
+  Revision 1.19  2003/04/06 15:56:25  carl
     * Use FPC user screen for Win32 target
 
   Revision 1.18  2003/03/05 21:12:32  hajny

@@ -986,7 +986,7 @@ BEGIN
    DoneResource;
    Drivers.DoneSysError;                                      { Close system error }
    Drivers.DoneEvents;                                        { Close event drive }
-   Drivers.DoneVideo;                                         { Close video }
+   DoneScreen;
    DoneMemory;                                        { Close memory }
 END;
 
@@ -1153,7 +1153,10 @@ END;
 END.
 {
  $Log$
- Revision 1.26  2004-11-06 22:03:06  peter
+ Revision 1.27  2004-12-18 16:18:47  peter
+ win32 fixes
+
+ Revision 1.26  2004/11/06 22:03:06  peter
    * fixed mouse
 
  Revision 1.25  2004/11/06 17:08:48  peter

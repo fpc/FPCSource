@@ -686,7 +686,7 @@ VAR
    EventQTail : Pointer;                              { Tail of queue }
    EventQueue : Array [0..EventQSize - 1] Of TEvent;  { Event queue }
    EventQLast : RECORD END;                           { Simple end marker }
-
+   StartupScreenMode : TVideoMode;
 
 {---------------------------------------------------------------------------}
 {  GetDosTicks (18.2 Hz)                                                    }
@@ -1222,7 +1222,12 @@ BEGIN
     StoreScreenMode.Col:=0;
 
   Video.InitVideo;
+  GetVideoMode(StartupScreenMode);
   GetVideoMode(ScreenMode);
+{$ifdef win32}
+  { Force the console to the current screen mode }
+  Video.SetVideoMode(ScreenMode);
+{$endif win32}
 
   If (StoreScreenMode.Col<>0) and
      ((StoreScreenMode.color<>ScreenMode.color) or
@@ -1247,6 +1252,9 @@ PROCEDURE DoneVideo;
 BEGIN
   if not VideoInitialized then
     exit;
+  Video.SetVideoMode(StartupScreenMode);
+  Video.ClearScreen;
+  Video.SetCursorPos(0,0);
   Video.DoneVideo;
   VideoInitialized:=false;
 END;
@@ -1470,7 +1478,10 @@ BEGIN
 END.
 {
  $Log$
- Revision 1.48  2004-12-06 19:23:55  peter
+ Revision 1.49  2004-12-18 16:18:47  peter
+ win32 fixes
+
+ Revision 1.48  2004/12/06 19:23:55  peter
  don't set CP 437
 
  Revision 1.47  2004/12/04 23:06:52  peter
