@@ -82,8 +82,8 @@ type
       constructor CreateResFmtHelp(ResString: PString; const Args: array of const;
         AHelpContext: Integer);
       { !!!! }
-      property helpcontext : longint read fhelpcontext write fhelpcontext;
-      property message : string read fmessage write fmessage;
+      property HelpContext : longint read fhelpcontext write fhelpcontext;
+      property Message : string read fmessage write fmessage;
    end;
 
    ExceptClass = class of Exception;
@@ -231,7 +231,10 @@ Type
 
 {
   $Log$
-  Revision 1.8  2004-08-31 10:34:11  michael
+  Revision 1.9  2004-08-31 11:03:35  michael
+  + Some capitalization added for documentation purposes
+
+  Revision 1.8  2004/08/31 10:34:11  michael
   + Some capitalization added for documentation purposes
 
   Revision 1.7  2004/01/28 22:09:52  peter
