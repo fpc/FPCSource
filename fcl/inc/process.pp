@@ -249,7 +249,7 @@ begin
   If assigned (FThreadAttributes) then Dispose (FThreadAttributes);
   FEnvironment.Free;
   FreeStreams;
-  Inherited;
+  Inherited Destroy;
 end;
 
 Procedure TProcess.FreeStreams;
@@ -919,7 +919,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2003-09-20 12:38:29  marco
+  Revision 1.18  2003-10-30 20:34:47  florian
+    * fixed inherited destroy; call of tprocess
+
+  Revision 1.17  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.16  2003/08/12 13:49:42  michael
