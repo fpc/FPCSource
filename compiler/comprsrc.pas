@@ -68,7 +68,8 @@ end;
 
 procedure tresourcefile.compile;
 var
-  respath : dirstr;
+  respath,
+  srcfilepath : dirstr;
   n       : namestr;
   e       : extstr;
   s,
@@ -89,12 +90,18 @@ begin
      Message(exec_e_res_not_found);
      aktglobalswitches:=aktglobalswitches+[cs_link_extern];
    end;
-  resobj:=ForceExtension(current_module.objfilename^,target_info.resobjext);
+  fsplit(current_module.mainsource^,srcfilepath,n,e);
+  if not path_absolute(fname) then
+    fname:=srcfilepath+fname;
+  resobj:=ForceExtension(fname,target_info.resobjext);
   s:=target_res.rescmd;
   ObjUsed:=(pos('$OBJ',s)>0);
   Replace(s,'$OBJ',resobj);
   Replace(s,'$RES',fname);
   Replace(s,'$INC',respath);
+  if (target_info.system = system_i386_win32) and
+     (srcfilepath<>'') then
+    s:=s+' --include '+srcfilepath;
 { Exec the command }
   if not (cs_link_extern in aktglobalswitches) then
    begin
@@ -147,7 +154,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.16  2003-01-12 15:42:23  peter
+  Revision 1.17  2003-01-30 21:45:40  peter
+    * path fix (merged)
+
+  Revision 1.16  2003/01/12 15:42:23  peter
     * m68k pathexist update from 1.0.x
     * palmos res update from 1.0.x
 
