@@ -22,7 +22,7 @@ Var
  Sel: Word;
  v: longint;
 Begin
- Signal(SIGSEGV,signalhandler(our_sig));
+ Signal(SIGSEGV,signalhandler(@our_sig));
  v:=$00ffffff;
  Sel:=word(v);
  writeln(sel);

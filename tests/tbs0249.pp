@@ -55,6 +55,6 @@ begin
   Dummy := TDummy.Create;
   Host := THost.Create;
   with Host,Dummy do
-    OnEvent := HandleEvent; // this is 57, 27 is ";"
+    OnEvent := @HandleEvent; // this is 57, 27 is ";"
   Host.Trigger;
 end.
