@@ -468,7 +468,7 @@ implementation
 		      begin
                         if explicit_paraloc then
                           Message(parser_e_paraloc_all_paras);
-      			        locationstr:='';
+      			locationstr:='';
        		      end;
                   end
                 else
@@ -1158,6 +1158,8 @@ begin
 {$ifdef powerpc}
   if target_info.system=system_powerpc_morphos then
     begin
+     pd.has_paraloc_info:=true;
+     include(pd.procoptions,po_explicitparaloc);
       if consume_sym(sym,symtable) then
         begin
           if (sym.typ=varsym) and
@@ -2215,7 +2217,10 @@ const
 end.
 {
   $Log$
-  Revision 1.170  2004-05-01 22:05:01  florian
+  Revision 1.171  2004-05-01 22:38:13  florian
+    * fixed MorphOS syscall without parameters
+
+  Revision 1.170  2004/05/01 22:05:01  florian
     + added lib support for Amiga/MorphOS syscalls
 
   Revision 1.169  2004/04/29 21:10:13  florian
