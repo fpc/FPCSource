@@ -199,6 +199,37 @@ begin
     end;
 end;
 
+function  BasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+
+begin
+  result:=currenttm.BasicEventCreate(EventAttributes,AManualReset,InitialState, Name);
+end;
+
+procedure basiceventdestroy(state:peventstate);
+
+begin
+  currenttm.basiceventdestroy(state);
+end;
+
+procedure basiceventResetEvent(state:peventstate);
+
+begin
+  currenttm.basiceventResetEvent(state);
+end;
+
+procedure basiceventSetEvent(state:peventstate);
+
+begin
+  currenttm.basiceventSetEvent(state);
+end;
+
+function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+
+begin
+ result:=currenttm.basiceventWaitFor(Timeout,state);
+end;
+
+
 { ---------------------------------------------------------------------
     ThreadManager which gives run-time error. Use if no thread support.
   ---------------------------------------------------------------------}
@@ -292,6 +323,36 @@ begin
   NoThreadError;
 end;
 
+function  noBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+
+begin
+  NoThreadError;
+end;
+
+procedure nobasiceventdestroy(state:peventstate);
+
+begin
+  NoThreadError;
+end;
+
+procedure nobasiceventResetEvent(state:peventstate);
+
+begin
+  NoThreadError;
+end;
+
+procedure nobasiceventSetEvent(state:peventstate);
+
+begin
+  NoThreadError;
+end;
+
+function  nobasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+
+begin
+  NoThreadError;
+end;
+
 Var
   NoThreadManager : TThreadManager;
 
@@ -320,6 +381,12 @@ begin
     RelocateThreadVar      :=@NoRelocateThreadVar;
     AllocateThreadVars     :=@NoAllocateThreadVars;
     ReleaseThreadVars      :=@NoReleaseThreadVars;
+    BasicEventCreate       :=@NoBasicEventCreate;
+    basiceventdestroy      :=@Nobasiceventdestroy;
+    basiceventResetEvent   :=@NobasiceventResetEvent;
+    basiceventSetEvent     :=@NobasiceventSetEvent;
+    basiceventWaitFor      :=@NobasiceventWaitFor;
+
     end;
   SetThreadManager(NoThreadManager);
 end;
@@ -327,7 +394,10 @@ end;
 
 {
   $Log$
-  Revision 1.10  2004-02-22 23:22:49  florian
+  Revision 1.11  2004-05-23 20:26:20  marco
+   * wrappers and nothread prototypes for the basic* functions
+
+  Revision 1.10  2004/02/22 23:22:49  florian
     * fixed BeginThread on unix
 
   Revision 1.9  2004/02/22 16:48:39  florian

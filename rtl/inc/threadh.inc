@@ -135,9 +135,18 @@ procedure DoneCriticalsection(var cs : TRTLCriticalSection);
 procedure EnterCriticalsection(var cs : TRTLCriticalSection);
 procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
+function  BasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+procedure basiceventdestroy(state:peventstate);
+procedure basiceventResetEvent(state:peventstate);
+procedure basiceventSetEvent(state:peventstate);
+function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
+
 {
   $Log$
-  Revision 1.17  2004-05-23 15:30:29  marco
+  Revision 1.18  2004-05-23 20:26:20  marco
+   * wrappers and nothread prototypes for the basic* functions
+
+  Revision 1.17  2004/05/23 15:30:29  marco
    * first try basicevent
 
   Revision 1.16  2004/02/22 23:22:49  florian
@@ -173,5 +182,4 @@ procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
   Revision 1.6  2002/07/28 20:43:48  florian
     * several fixes for linux/powerpc
     * several fixes to MT
-
 }
