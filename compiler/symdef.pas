@@ -3955,13 +3955,15 @@ implementation
       if not isstabwritten then
         asmList.concat(Tai_stabs.Create(stabstring));
       isstabwritten := true;
-      if assigned(parast) then
-        tstoredsymtable(parast).concatstabto(asmlist);
-      { local type defs and vars should not be written
-        inside the main proc stab }
-      if assigned(localst) and
-         (localst.symtablelevel>main_program_level) then
-        tstoredsymtable(localst).concatstabto(asmlist);
+      if not(po_external in procoptions) then
+        begin
+          tstoredsymtable(parast).concatstabto(asmlist);
+          { local type defs and vars should not be written
+            inside the main proc stab }
+          if assigned(localst) and
+             (localst.symtablelevel>main_program_level) then
+            tstoredsymtable(localst).concatstabto(asmlist);
+        end;
       is_def_stab_written := written;
     end;
 {$endif GDB}
@@ -5856,7 +5858,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.164  2003-09-23 21:03:35  peter
+  Revision 1.165  2003-10-01 15:00:02  peter
+    * don't write parast,localst debug info for externals
+
+  Revision 1.164  2003/09/23 21:03:35  peter
     * connect parasym to paraitem
 
   Revision 1.163  2003/09/23 17:56:06  peter
