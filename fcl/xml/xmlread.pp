@@ -188,10 +188,13 @@ begin
   ExpectElement(doc);
   ParseMisc(doc);
 
-  doc.SetDocumentElement(LastNodeBeforeDoc.NextSibling as TDOMElement);
+  if Assigned(LastNodeBeforeDoc) then
+    doc.SetDocumentElement(LastNodeBeforeDoc.NextSibling as TDOMElement)
+  else
+    doc.SetDocumentElement(doc.FirstChild as TDOMElement);
 
   if buf[0] <> #0 then
-    RaiseExc('Data after end of document element');
+    RaiseExc('Text after end of document element found');
 
   {
   if buf[0] <> #0 then begin
@@ -982,7 +985,13 @@ end.
 
 {
   $Log$
-  Revision 1.9  1999-12-05 22:02:11  sg
+  Revision 1.10  1999-12-22 13:39:55  sg
+  * Fixed parser bug: SetDocumentElement failed if the XML document contains
+    only a single element at the top hierarchy level
+  * Changed the error message if there is text after the end of the main
+    XML element
+
+  Revision 1.9  1999/12/05 22:02:11  sg
   * The reader now sets the DocumentElement for a DOM document
   * The XML parser raises an exception if there is additional data after
     the end of the XML document element
