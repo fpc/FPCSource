@@ -44,6 +44,7 @@ unit cgcpu;
 
 
         procedure a_call_name(list : taasmoutput;const s : string);override;
+        procedure a_call_reg(list : taasmoutput;reg: tregister); override;
         procedure a_call_ref(list : taasmoutput;const ref : treference);override;
 
         procedure a_op_const_reg(list : taasmoutput; Op: TOpCG; a: AWord; reg: TRegister); override;
@@ -258,6 +259,21 @@ const
       end;
 
 
+    procedure tcgppc.a_call_reg(list : taasmoutput;reg: tregister);
+      var
+        href : treference;
+      begin
+        { save our RTOC register value. Only necessary when doing pointer based    }
+        { calls or cross TOC calls, but currently done always                      }
+        reference_reset_base(href,STACK_POINTER_REG,LA_RTOC);
+        list.concat(taicpu.op_reg(A_MTCTR,reg));
+        list.concat(taicpu.op_reg_ref(A_STW,R_TOC,href));
+        list.concat(taicpu.op_none(A_BCCTRL));
+        list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
+        procinfo.flags:=procinfo.flags or pi_do_call;        
+      end;
+
+
     { calling a code fragment through a reference }
     procedure tcgppc.a_call_ref(list : taasmoutput;const ref : treference);
       var
@@ -272,7 +288,6 @@ const
         a_load_ref_reg(list,OS_ADDR,ref,tmpreg);
         list.concat(taicpu.op_reg(A_MTCTR,tmpreg));
         free_scratch_reg(list,tmpreg);
-        a_reg_dealloc(list,R_0);
         list.concat(taicpu.op_none(A_BCCTRL));
         list.concat(taicpu.op_reg_ref(A_LWZ,R_TOC,href));
         procinfo.flags:=procinfo.flags or pi_do_call;
@@ -1688,7 +1703,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2002-09-02 06:09:02  jonas
+  Revision 1.52  2002-09-02 10:14:51  jonas
+    + a_call_reg()
+    * small fix in a_call_ref()
+
+  Revision 1.51  2002/09/02 06:09:02  jonas
     * fixed range error
 
   Revision 1.50  2002/09/01 21:04:49  florian
