@@ -34,5 +34,4 @@ begin
   tp1x:=dummyx;
   move(@tp1x,@tp2x,sizeof(tproc));
   tp2x(2);
-
 end.

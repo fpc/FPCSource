@@ -10,6 +10,7 @@ procedure case_bug;
 var uninitialized : integer;
 
 begin
+    writeln(uninitialized);
     case (uninitialized) of
        1 :   writeln('it''s a one!');
        else  writeln('it''s something else...');

@@ -196,7 +196,10 @@ TConfigOpt = (
   coOS,
   coCPU,
   coVersion,
-  coDate
+  coDate,
+  coSubmitter,
+  coMachine,
+  coComment
  );
 
 Const
@@ -210,11 +213,14 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'os',
   'cpu',
   'version',
-  'date'
+  'date',
+  'submitter',
+  'machine',
+  'comment'
 );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','v','t');
+           = ('d','h','u','p','l','o','c','v','t','s','m','C');
 
 Var
   TestOS,
@@ -224,7 +230,10 @@ Var
   HostName,
   UserName,
   Password,
-  LogFileName  : String;
+  LogFileName,
+  Submitter,
+  Machine,
+  Comment : String;
   TestDate : TDateTime;
 
 Procedure SetOpt (O : TConfigOpt; Value : string);
@@ -240,6 +249,9 @@ begin
     coCPU          : TestCPU:=Value;
     coVersion      : TestVersion:=Value;
     coDate         : TestDate:=StrToDate(Value);
+    coSubmitter    : Submitter:=Value;
+    coMachine      : Machine:=Value;
+    coComment      : Comment:=Value;
   end;
 end;
 
@@ -259,7 +271,7 @@ begin
     begin
     N:=Copy(S,1,I-1);
     Delete(S,1,I);
-    For co:=coDatabaseName to coDate do
+    For co:=low(TConfigOpt) to high(TConfigOpt) do
       begin
       Result:=CompareText(ConfigStrings[co],N)=0;
       If Result then
@@ -272,7 +284,7 @@ begin
  If Result then
    SetOpt(co,S)
  else
-   Verbose(V_ERROR,'Unknown option : '+S);
+   Verbose(V_ERROR,'Unknown option : '+n+S);
 end;
 
 Procedure ProcessConfigfile(FN : String);
@@ -320,7 +332,7 @@ begin
     O:=Paramstr(I);
     Found:=Length(O)=2;
     If Found then
-      For co:=coDatabaseName to coDate do
+      For co:=low(TConfigOpt) to high(TConfigOpt) do
         begin
         Found:=(O[2]=ConfigOpts[co]);
         If Found then
@@ -440,11 +452,8 @@ procedure UpdateTestRun;
   begin
     qry:='UPDATE TESTRUN SET ';
     for i:=low(TTestStatus) to high(TTestStatus) do
-      begin
-        qry:=qry+format('%s=%d',[SQLField[i],StatusCount[i]]);
-        if i<>high(TTestStatus) then
-          qry:=qry+', '
-      end;
+      qry:=qry+format('%s=%d, ',[SQLField[i],StatusCount[i]]);
+    qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s"',[Submitter,Machine,Comment]);
     qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
     RunQuery(Qry,res)
   end;
@@ -466,7 +475,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  2003-10-15 19:39:42  florian
+  Revision 1.10  2003-10-15 21:45:50  florian
+    + added submitter, machine and comment field to sql version
+
+  Revision 1.9  2003/10/15 19:39:42  florian
     * exact result counts are inserted into the table
 
   Revision 1.8  2003/10/13 14:19:02  peter

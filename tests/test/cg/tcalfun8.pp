@@ -1402,7 +1402,10 @@ end.
 
 {
   $Log$
-  Revision 1.4  2003-04-22 10:24:29  florian
+  Revision 1.5  2003-10-15 21:45:50  florian
+    + added submitter, machine and comment field to sql version
+
+  Revision 1.4  2003/04/22 10:24:29  florian
     * fixed defines for powerpc
 
   Revision 1.3  2002/09/07 15:40:51  peter
