@@ -2466,6 +2466,10 @@ Call trace for block 0x0040FA50 size 128
 \end{verbatim}
 The output of the heaptrc unit is customizable by setting some variables.
 
+\begin{ver2}
+Output can also be customized using environment variables.
+\end{ver2}
+
 You can find more information about the usage of the \file{heaptrc} unit
 in the \unitsref.
 
@@ -3304,9 +3308,9 @@ Permission accessing the file is denied. This error might
 be caused by several reasons:
     \begin{itemize}
        \item   Trying to open for writing a file which is
-           read only, or which is actually a directory.
-       \item   File is currently locked byanother process.
-       \item   Trying to create a new file, or directlry while a 
+               read only, or which is actually a directory.
+       \item   File is currently locked or used by another process.
+       \item   Trying to create a new file, or directory while a 
                file or directory of the same name already exists.
        \item   Trying to read from a file which was opened
                in write only mode.
@@ -3345,47 +3349,47 @@ Reported when the disk is full, and you're trying to write to it.
 
 \item [102  File not assigned]
 This is reported by \var{Reset}, \var{Rewrite}, \var{Append}, 
-\var{Rename} and var{Erase}, if you call
+\var{Rename} and \var{Erase}, if you call
 them with an unassigned file as a parameter.
 
 \item [103  File not open]
-Reported by the following functions : Close , Read, Write, Seek,
-EOf, FilePos, FileSize, Flush, BlockRead, and BlockWrite if the file is not
-open.
+Reported by the following functions : \var{Close, Read, Write, Seek,
+EOf, FilePos, FileSize, Flush, BlockRead,} and \var{BlockWrite} if the 
+file is not open.
 
 \item [104  File not open for input]
-Reported by Read, BlockRead, Eof, Eoln, SeekEof or SeekEoln if the file
-is not opened with Reset.
+Reported by \var{Read, BlockRead, Eof, Eoln, SeekEof} or \var{SeekEoln} if 
+the file is not opened with \var{Reset}.
 
 \item [105  File not open for output]
-Reported by write if a text file isn't opened with Rewrite.
+Reported by write if a text file isn't opened with \var{Rewrite}.
 
 \item [106  Invalid numeric format]
 Reported when a non-numeric value is read from a text file, when a numeric
 value was expected.
 
 \item [150  Disk is write-protected]
-(Critical error, \dos only.)
+(Critical error)
 \item [151  Bad drive request struct length]
-(Critical error, \dos only.)
+(Critical error)
 \item [152  Drive not ready]
-(Critical error, \dos only.)
+(Critical error)
 \item [154  CRC error in data]
-(Critical error, \dos only.)
+(Critical error)
 \item [156  Disk seek error]
-(Critical error, \dos only.)
+(Critical error)
 \item [157  Unknown media type]
-(Critical error, \dos only.)
+(Critical error)
 \item [158  Sector Not Found]
-(Critical error, \dos only.)
+(Critical error)
 \item [159  Printer out of paper]
-(Critical error, \dos only.)
+(Critical error)
 \item [160  Device write fault]
-(Critical error, \dos only.)
+(Critical error)
 \item [161  Device read fault]
-(Critical error, \dos only.)
+(Critical error)
 \item [162  Hardware failure]
-(Critical error, \dos only.)
+(Critical error)
 \item [200  Division by zero]
 The application attempted to divide a number by zero.
 \item [201  Range check error]
@@ -3394,7 +3398,7 @@ error in the following cases:
 \begin{enumerate}
 \item An array was accessed with an index outside its declared range.
 \item Trying to assign a value to a variable outside its range (for
-instance a enumerated type).
+instance an enumerated type).
 \end{enumerate}
 \item [202  Stack overflow error]
 The stack has grown beyond its maximum size (in which case the size of 
@@ -3402,15 +3406,15 @@ local variables should be reduced to avoid this error), or the stack has
 become corrupt. This error is only reported when stack checking is enabled.
 \item [203  Heap overflow error]
 The heap has grown beyond its boundaries. This is caused when trying to allocate
-memory exlicitly with \var{new}, \var{getmem} or \var{reallocmem}, or when
+memory exlicitly with \var{New}, \var{GetMem} or \var{ReallocMem}, or when
 a class or object instance is created and no memory is left. Please note 
 that, by default, \fpc provides a growing heap, i.e. the heap will
 try to allocate more memory if needed. However, if the heap has reached the
 maximum size allowed by the operating system or hardware, then you will get
 this error.
 \item [204  Invalid pointer operation]
-This you will get if you call dispose or Freemem with an invalid pointer
-(notably, \var{Nil})
+This you will get if you call \var{Dispose} or \var{Freemem} with an invalid 
+pointer (notably, \var{Nil})
 \item [205  Floating point overflow]
 You are trying to use or produce too large real numbers.
 \item [206  Floating point underflow]
@@ -3420,7 +3424,7 @@ Can occur if you try to calculate the square root or logarithm of a negative
 number.
 \item [210  Object not initialized]
 When compiled with range checking on, a program will report this error if
-you call a virtal method without having initialized the VMT.
+you call a virtual method without having called istr constructor.
 \item [211  Call to abstract method]
 Your program tried to execute an abstract virtual method. Abstract methods
 should be overridden, and the overriding method should be called.
@@ -3449,16 +3453,20 @@ be caused by several problems:
 
 \item [217 Unhandled exception occurred]
 An exception occurred, and there was no exception handler present.
-The \file{sysutils} unit installs a default exception handler which catches
+The \var{sysutils} unit installs a default exception handler which catches
 all excpetions and exits gracefully.
 
 \item [219 Invalid typecast]
 
 Thrown when an invalid typecast is attempted on a class using the \var{as}
-operator.
+operator. This error is also thrown when an object or class is
+typecast to an invalid class or object and a virtual method of
+that class or object is called. This last error is only detected
+if the \var{-CR} compiler option is used.
 
 \item [227 Assertion failed error]
-An assertion failed, and no AssertErrorProc procedural variable was installed.
+An assertion failed, and no \var{AssertErrorProc} procedural variable was 
+installed.
 \end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
