@@ -185,6 +185,7 @@ type
 
     PEditorActionCollection = ^TEditorActionCollection;
     TEditorActionCollection = object(TCollection)
+      function At(Idx : sw_integer) : PEditorAction;
     end;
 {$else}
     PEditorAction = ^TEditorAction;
@@ -227,6 +228,8 @@ type
       TabSize    : integer;
       HighlightRow: sw_integer;
       DebuggerRow: sw_integer;
+      UndoList    : PEditorActionCollection;
+      RedoList    : PEditorActionCollection;
       constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
           PScrollBar; AIndicator: PIndicator; AbufSize:Sw_Word);
       procedure   SetFlags(AFlags: longint); virtual;
@@ -291,8 +294,6 @@ type
       LastLocalCmd: word;
       KeyState    : Integer;
       ErrorMessage: PString;
-      UndoList    : PEditorActionCollection;
-      RedoList    : PEditorActionCollection;
       Bookmarks   : array[0..9] of TEditorBookmark;
       LockFlag    : integer;
       DrawCalled  : boolean;
@@ -1747,7 +1748,7 @@ begin
   else
     begin
      CP:=0; RX:=0;
-     while (RX<=X) and (CP<length(S)) do
+     while (RX<=X) and (CP<=length(S)) do
       begin
         Inc(CP);
         if S[CP]=TAB then
@@ -2230,6 +2231,7 @@ begin
   Lock;
   SCP:=CurPos;
   HoldUndo:=StoreUndo;
+  StoreUndo:=false;
   if CurPos.Y<GetLineCount then S:=GetLineText(CurPos.Y) else S:='';
   if Overwrite=false then
   begin
@@ -2250,7 +2252,7 @@ begin
     SetCurPtr(Ind,CurPos.Y+1);
 {$ifdef Undo}
      StoreUndo:=HoldUndo;
-     Addaction(eaInsertLine,SCP,CurPos,'');
+     Addaction(eaInsertLine,SCP,CurPos,IndentStr);
      StoreUndo:=false;
 {$endif Undo}
     AdjustSelection(CurPos.X-SCP.X,CurPos.Y-SCP.Y);
@@ -2262,9 +2264,21 @@ begin
       Lines^.Insert(NewLine(IndentStr));
       AdjustSelection(0,1);
       LimitsChanged;
+{$ifdef Undo}
+      StoreUndo:=HoldUndo;
+      UpdateAttrs(CurPos.Y,attrAll);
+      SetCurPtr(Ind,CurPos.Y+1);
+      Addaction(eaInsertLine,SCP,CurPos,IndentStr);
+      StoreUndo:=false;
+{$endif Undo}
+    end
+    else
+    begin
+      UpdateAttrs(CurPos.Y,attrAll);
+      StoreUndo:=HoldUndo;
+      SetCurPtr(Ind,CurPos.Y+1);
+      StoreUndo:=false;
     end;
-    UpdateAttrs(CurPos.Y,attrAll);
-    SetCurPtr(Ind,CurPos.Y+1);
   end;
   DrawLines(CurPos.Y);
   StoreUndo:=HoldUndo;
@@ -2280,7 +2294,7 @@ end;
 procedure TCodeEditor.BackSpace;
 var S,PreS: string;
     OI,CI,CP,Y,TX: Sw_integer;
-    SCP: TPoint;
+    SCP,SC1 : TPoint;
     HoldUndo : Boolean;
 begin
   if IsReadOnly then Exit;
@@ -2294,7 +2308,11 @@ begin
       begin
         S:=GetLineText(CurPos.Y-1);
         SetLineText(CurPos.Y-1,S+GetLineText(CurPos.Y));
+        StoreUndo:=HoldUndo;
+        SC1.X:=Length(S);SC1.Y:=CurPOS.Y-1;
+        AddAction(eaInsertText,SC1,SC1,GetLineText(CurPos.Y));
         DeleteLine(CurPos.Y);
+        StoreUndo:=false;
         LimitsChanged;
         SetCurPtr(length(S),CurPos.Y-1);
       end;
@@ -2330,7 +2348,7 @@ begin
      SetCurPtr(CP,CurPos.Y);
 {$ifdef Undo}
      StoreUndo:=HoldUndo;
-     Addaction(eaDeleteText,SCP,CurPos,' ');
+     Addaction(eaDeleteText,SCP,CurPos,Copy(S,CI,OI-CI));
      StoreUndo:=false;
 {$endif Undo}
    end;
@@ -2357,7 +2375,10 @@ begin
      if CurPos.Y<GetLineCount-1 then
       begin
         SetLineText(CurPos.Y,S+GetLineText(CurPos.Y+1));
+        StoreUndo:=HoldUndo;
+        AddAction(eaInsertText,CurPos,CurPos,GetLineText(CurPos.Y+1));
         DeleteLine(CurPos.Y+1);
+        StoreUndo:=false;
         LimitsChanged;
         SDX:=0; SDY:=-1;
       end;
@@ -2449,17 +2470,30 @@ begin
 end;
 
 procedure TCodeEditor.DelLine;
+var
+  HoldUndo : boolean;
+  SP : TPoint;
 begin
   if IsReadOnly then Exit;
   Lock;
   if GetLineCount>0 then
   begin
+    SP:=CurPos;
     DeleteLine(CurPos.Y);
+    HoldUndo:=StoreUndo;
+    StoreUndo:=false;
     LimitsChanged;
     AdjustSelection(0,-1);
     SetCurPtr(0,CurPos.Y);
     UpdateAttrs(Max(0,CurPos.Y-1),attrAll);
     DrawLines(CurPos.Y);
+    If HoldUndo then
+      with UndoList^.At(UndoList^.count-1)^ do
+        begin
+          EndPos:=CurPos;
+          StartPos:=SP;
+        end;
+    StoreUndo:=HoldUndo;
     SetModified(true);
   end;
   Unlock;
@@ -2804,7 +2838,7 @@ begin
     end
   else
     begin
-      if Overwrite and (CI<length(S)) then
+      if Overwrite and (CI<=length(S)) then
         SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI+1,255))
       else
         SetLineText(CurPos.Y,copy(S,1,CI-1)+SC+copy(S,CI,255));
@@ -3002,15 +3036,15 @@ procedure TCodeEditor.Undo;
 {$ifdef Undo}
 var
   Temp,Idx : Longint;
-  SCP : Tpoint;
 {$endif Undo}
 begin
 {$ifdef Undo}
   StoreUndo := False;
+  Lock;
   if UndoList^.count > 0 then
   begin
     Idx:=UndoList^.count-1;
-    with PEditorAction(UndoList^.At(Idx))^ do
+    with UndoList^.At(Idx)^ do
     begin
       case action of
         eaMoveCursor :
@@ -3018,39 +3052,33 @@ begin
             { move cursor back to original position }
             SetCurPtr(startpos.x,startpos.y);
           end;
-        eaInsertLine :
-          begin
-            { move cursor to inserted line, already done by other undo action?}
-            { delete inserted line}
-            { move cursor to end of line above }
-            { insert text that had been moved to line below }
-            SetCurPtr(EndPos.X,EndPos.Y);
-            SetDisplayText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
-            BackSpace;
-          end;
         eaInsertText :
           begin
-            SetCurPtr(startpos.x,startpos.y);
+            SetCurPtr(StartPos.X,StartPos.Y);
             for Temp := 1 to length(Text^) do
               DelChar;
-            { remove text }
-          end;
-        eaDeleteLine :
-          begin
-            { reinsert deleted line }
-            SCP:=CurPos;
-            SetCurPtr(StartPos.X,StartPos.Y);
-            InsertLine;
-            SetCurPtr(StartPos.X,StartPos.Y);
-            SetLineText(StartPos.Y,GetStr(Text));
-            SetCurPtr(SCP.X,SCP.Y);
           end;
         eaDeleteText :
           begin
             { reinsert deleted text }
-            SetCurPtr(startpos.x,startpos.y);
+            SetCurPtr(EndPos.X,EndPos.Y);
             for Temp := 1 to length(Text^) do
               AddChar(Text^[Temp]);
+            SetCurPtr(StartPos.X,StartPos.Y);
+          end;
+        eaInsertLine :
+          begin
+            SetCurPtr(EndPos.X,EndPos.Y);
+            SetDisplayText(EndPos.Y,Copy(GetDisplayText(EndPos.Y),EndPos.X+1,255));
+            BackSpace;
+            SetCurPtr(StartPos.X,StartPos.Y);
+          end;
+        eaDeleteLine :
+          begin
+            SetCurPtr(EndPos.X,EndPos.Y);
+            InsertLine;
+            SetCurPtr(StartPos.X,StartPos.Y);
+            SetLineText(StartPos.Y,GetStr(Text));
           end;
         eaSelectionChanged :
           begin
@@ -3061,18 +3089,20 @@ begin
       end; { once this lot is done paste into redo and modify to suit needs }
       { move item to redo stack }
       RedoList^.Insert(UndoList^.At(Idx));
-      UpdateUndoRedo(cmRedo,PEditorAction(UndoList^.At(Idx))^.Action);
+      UpdateUndoRedo(cmRedo,UndoList^.At(Idx)^.Action);
       UndoList^.atDelete(Idx);
       If Idx>0 then
-        UpdateUndoRedo(cmUndo,PEditorAction(UndoList^.At(Idx-1))^.Action)
+        UpdateUndoRedo(cmUndo,UndoList^.At(Idx-1)^.Action)
       else
         UpdateUndoRedo(cmUndo,0);
       if UndoList^.count=0 then
         SetCmdState(UndoCmd,false);
       SetCmdState(RedoCmd,true);
+      Message(Application,evBroadcast,cmCommandSetChanged,nil);
     end;
   end;
   StoreUndo := True;
+  Unlock;
 {$else}
   NotImplemented; Exit;
 {$endif Undo}
@@ -3082,11 +3112,11 @@ procedure TCodeEditor.Redo;
 {$ifdef Undo}
 var
   Idx,Temp : Longint;
-  SCP : Tpoint;
 {$endif Undo}
 begin
 {$ifdef Undo}
   StoreUndo := False;
+  Lock;
   if RedoList^.count <> 0 then
   begin
     Idx:=RedoList^.count-1;
@@ -3096,34 +3126,28 @@ begin
         eaMoveCursor :
           begin
             { move cursor back to original position }
-            SetCurPtr(endpos.x,endpos.y);
-          end;
-        eaInsertLine :
-          begin
-            SetCurPtr(StartPos.X,StartPos.Y);
-            InsertLine;
-            { move cursor to inserted line, already done by other undo action?}
-            { delete inserted line}
-            { move cursor to end of line above }
-            { insert text that had been moved to line below }
+            SetCurPtr(EndPos.X,EndPos.Y);
           end;
         eaInsertText :
           begin
             SetCurPtr(startpos.x,startpos.y);
             InsertText(GetStr(Text));
           end;
+        eaDeleteText :
+          begin
+            SetCurPtr(EndPos.X,EndPos.Y);
+            for Temp := 1 to length(GetStr(Text)) do
+              DelChar;
+          end;
+        eaInsertLine :
+          begin
+            SetCurPtr(StartPos.X,StartPos.Y);
+            InsertLine;
+          end;
         eaDeleteLine :
           begin
             SetCurPtr(StartPos.X,StartPos.Y);
             DeleteLine(EndPos.Y);
-            { insert line deleted }
-          end;
-        eaDeleteText :
-          begin
-            SetCurPtr(startpos.x,startpos.y);
-            for Temp := 1 to length(GetStr(Text)) do
-              DelChar;
-            { insert deleted text }
           end;
         eaSelectionChanged :
           begin
@@ -3143,9 +3167,11 @@ begin
       if RedoList^.count=0 then
         SetCmdState(RedoCmd,false);
       SetCmdState(UndoCmd,true);
+      Message(Application,evBroadcast,cmCommandSetChanged,nil);
     end;
   end;
   StoreUndo := True;
+  Unlock;
 {$else}
   NotImplemented; Exit;
 {$endif Undo}
@@ -3915,7 +3941,7 @@ var OK: boolean;
     StartPos,DestPos: TPoint;
     LineStartX,LineEndX: Sw_integer;
     S,OrigS,AfterS: string;
-    OneLineOnly,VerticalBlock: boolean;
+    VerticalBlock: boolean;
     SEnd: TPoint;
 begin
   Lock;
@@ -4012,11 +4038,13 @@ procedure TCodeEditor.AddAction(AAction: byte; AStartPos, AEndPos: TPoint; AText
 var
   ActionIntegrated : boolean;
   pa : PEditorAction;
+  S : String;
 begin
   if (UndoList=nil) or (not StoreUndo) then Exit;
+  ActionIntegrated:=false;
   if UndoList^.count>0 then
     begin
-      pa:=PEditorAction(UndoList^.At(UndoList^.count-1));
+      pa:=UndoList^.At(UndoList^.count-1);
       if (pa^.action=AAction) and
          (pa^.EndPos.X=AStartPos.X) and
          (pa^.EndPos.Y=AStartPos.Y) {and
@@ -4024,21 +4052,23 @@ begin
          then
         begin
           pa^.EndPos:=AEndPos;
-          pa^.text:=NewStr(GetStr(pa^.text)+AText);
+          S:=GetStr(pa^.text);
+          if S<>'' then
+           DisposeStr(pa^.text);
+          pa^.text:=NewStr(S+AText);
           ActionIntegrated:=true;
         end;
-    end
-  else
-    ActionIntegrated:=false;
+    end;
   if not ActionIntegrated then
     begin
       UndoList^.Insert(New(PEditorAction,Init(AAction,AStartPos,AEndPos,AText)));
       UpdateUndoRedo(cmUndo,AAction);
     end;
-  if UndoList^.count <> 0 then
+  if UndoList^.count>0 then
   begin
     SetCmdState(UndoCmd,true);
     SetCmdState(RedoCmd,false);
+    Message(Application,evBroadcast,cmCommandSetChanged,nil);
     UpdateUndoRedo(cmRedo,0);
     RedoList^.FreeAll;
   end;
@@ -4117,8 +4147,8 @@ begin
   CanPaste:=(Clipboard<>nil) and ((Clipboard^.SelStart.X<>Clipboard^.SelEnd.X) or
        (Clipboard^.SelStart.Y<>Clipboard^.SelEnd.Y));
   SetCmdState(FromClipCmds,CanPaste  and (Clipboard<>@Self));
-  SetCmdState(UndoCmd,StoreUndo and (UndoList^.count>0));
-  SetCmdState(RedoCmd,StoreUndo and (RedoList^.count>0));
+  SetCmdState(UndoCmd,(UndoList^.count>0));
+  SetCmdState(RedoCmd,(RedoList^.count>0));
   Message(Application,evBroadcast,cmCommandSetChanged,nil);
   DrawView;
 end;
@@ -4317,6 +4347,12 @@ destructor TEditorAction.done;
 begin
   DisposeStr(Text);
 end;
+
+function TEditorActionCollection.At(Idx : sw_integer) : PEditorAction;
+begin
+  At:=PEditorAction(Inherited At(Idx));
+end;
+
 {$else}
 procedure TEditorActionCollection.FreeItem(Item: Pointer);
 begin
@@ -4857,7 +4893,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.54  1999-10-25 16:49:05  pierre
+  Revision 1.55  1999-10-27 10:46:19  pierre
+   * More Undo/Redo stuff
+
+  Revision 1.54  1999/10/25 16:49:05  pierre
     + Undo/Redo by Visa Harvey (great thanks) inserted
       (with some modifications)
       Moves work correctly
