@@ -539,6 +539,7 @@ PROCEDURE UpdateCRC ( VAR s : iobuf;len : word );
 VAR i : word;
 BEGIN
 {$ifndef assembler}
+ If len = 0 then exit;
  FOR i := 0 TO Pred ( len ) DO BEGIN
     { update running CRC calculation with contents of a buffer }
     crc32val := crc_32_tab [  ( byte ( crc32val ) XOR s [ i ] ) AND $ff ] XOR ( crc32val SHR 8 );
@@ -3331,7 +3332,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.1  2002-01-29 17:55:23  peter
+  Revision 1.2  2002-03-13 17:29:50  carl
+  * arithmetic overflow bugfix
+
+  Revision 1.1  2002/01/29 17:55:23  peter
     * splitted to base and extra
 
   Revision 1.2  2001/05/18 23:24:42  peter
