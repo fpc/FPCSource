@@ -1,4 +1,4 @@
-{ $Id$						   }
+{ $Id$  }
 {********[ SOURCE FILE OF GRAPHICAL FREE VISION ]**********}
 {                                                          }
 {   System independent GRAPHICAL clone of DIALOGS.PAS      }
@@ -1286,21 +1286,25 @@ END;
 {  DrawFocus -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 30Apr98 LdB         }
 {---------------------------------------------------------------------------}
 PROCEDURE TButton.DrawFocus;
-VAR B: Byte; I: Integer; Bc: Word; Db: TDrawBuffer;
+VAR B: Byte; I: Integer;
+    Bc: Word; Db: TDrawBuffer;
+    C : char;
 BEGIN
-   If DownFlag Then B := 7 Else B := 0;               { Shadow colour }
-   GraphRectangle(0, 0, RawSize.X, RawSize.Y, B);     { Draw backing shadow }
-   GraphRectangle(1, 1, RawSize.X-1, RawSize.Y-1, B); { Draw backing shadow }
-   If DownFlag Then B := 0 Else B := 15;              { Highlight colour }
-   GraphLine(0, RawSize.Y, 0, 0, B);
-   GraphLine(1, RawSize.Y-1, 1, 1, B);                { Left highlights }
-   GraphLine(0, 0, RawSize.X, 0, B);
-   GraphLine(1, 1, RawSize.X-1, 1, B);                { Top highlights }
-   If DownFlag Then B := 8 Else B := 7;               { Select backing }
-   If (State AND sfFocused <> 0) AND
-     (DownFlag = False) Then B := 14;                 { Show as focused }
-   GraphRectangle(2, 2, RawSize.X-2, RawSize.Y-2, B); { Draw first border }
-   GraphRectangle(3, 3, RawSize.X-3, RawSize.Y-3, B); { Draw next border }
+   If not TextModeGFV then Begin
+     If DownFlag Then B := 7 Else B := 0;               { Shadow colour }
+     GraphRectangle(0, 0, RawSize.X, RawSize.Y, B);     { Draw backing shadow }
+     GraphRectangle(1, 1, RawSize.X-1, RawSize.Y-1, B); { Draw backing shadow }
+     If DownFlag Then B := 0 Else B := 15;              { Highlight colour }
+     GraphLine(0, RawSize.Y, 0, 0, B);
+     GraphLine(1, RawSize.Y-1, 1, 1, B);                { Left highlights }
+     GraphLine(0, 0, RawSize.X, 0, B);
+     GraphLine(1, 1, RawSize.X-1, 1, B);                { Top highlights }
+     If DownFlag Then B := 8 Else B := 7;               { Select backing }
+     If (State AND sfFocused <> 0) AND
+       (DownFlag = False) Then B := 14;                 { Show as focused }
+     GraphRectangle(2, 2, RawSize.X-2, RawSize.Y-2, B); { Draw first border }
+     GraphRectangle(3, 3, RawSize.X-3, RawSize.Y-3, B); { Draw next border }
+   End;
    If (State AND sfDisabled <> 0) Then                { Button disabled }
      Bc := GetColor($0404) Else Begin                 { Disabled colour }
        Bc := GetColor($0501);                         { Set normal colour }
@@ -1322,7 +1326,19 @@ BEGIN
        GOptions := GOptions AND NOT goGraphView;        { Return to normal mode }
      End Else Begin
        WriteLine(I div SysFontWidth, 0, CStrLen(Title^),
-         1, Db);                                        { Write the title }
+         1, Db);                  { Write the title }
+       If Size.Y>1 then Begin
+         Bc:={GetColor($0707)}$70;
+         if DownFlag then c:=' '
+         else c:='Ü';
+         MoveChar(Db,c,Bc,1);
+         WriteLine(Size.X-1, 0, 1, 1, Db);                                        { Write the title }
+         MoveChar(Db,' ',Bc,1);
+         if DownFlag then c:=' '
+         else c:='ß';
+         MoveChar(Db[1],c,Bc,Size.X-1);
+         WriteLine(0, 1, Size.X, 1, Db);
+       End;
      End;
    End;
 END;
@@ -2710,7 +2726,10 @@ END;
 END.
 {
  $Log$
- Revision 1.8  2001-05-10 16:46:27  pierre
+ Revision 1.9  2001-05-31 12:14:50  pierre
+  Better button draw
+
+ Revision 1.8  2001/05/10 16:46:27  pierre
   + some improovements made
 
  Revision 1.7  2001/05/07 22:22:03  pierre
