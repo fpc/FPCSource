@@ -898,7 +898,7 @@
          while assigned(hp) do
            begin
               rttilist^.concat(new(pai_const,init_8bit(length(hp^.name))));
-              rttilist^.concat(new(pai_string,init(globals.lower(hp^.name))));
+              rttilist^.concat(new(pai_string,init(lower(hp^.name))));
               hp:=hp^.nextenum;
            end;
          rttilist^.concat(new(pai_const,init_8bit(0)));
@@ -4257,7 +4257,11 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.12  2000-08-21 11:27:44  pierre
+  Revision 1.13  2000-08-27 16:11:53  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.12  2000/08/21 11:27:44  pierre
    * fix the stabs problems
 
   Revision 1.11  2000/08/16 18:33:54  peter

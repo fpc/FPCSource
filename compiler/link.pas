@@ -30,7 +30,7 @@ Interface
   {$define ALWAYSSHELL}
 {$endif}
 
-uses cobjects,files;
+uses cobjects,fmodule;
 
 Type
     TLinkerInfo=record
@@ -81,7 +81,7 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-  globtype,systems,
+  cutils,globtype,systems,
   script,globals,verbose,ppu
 {$ifdef i386}
   {$ifndef NOTARGETLINUX}
@@ -525,7 +525,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-26 13:08:19  jonas
+  Revision 1.4  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/26 13:08:19  jonas
     * merged from fixes branch (v_hint to v_tried changed when attempting
       to smart/static/shared link)
 

@@ -42,7 +42,7 @@ interface
 implementation
 
     uses
-      globtype,systems,
+      cutils,globtype,systems,
       cobjects,verbose,globals,
       symconst,aasm,types,
       htypechk,pass_1,cpubase
@@ -1333,7 +1333,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-08-15 03:43:24  peter
+  Revision 1.9  2000-08-27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.8  2000/08/15 03:43:24  peter
     * integer constant -> integer para enhanced to search the best matching
       procedure, just like delphi does (merged)
 

@@ -61,9 +61,9 @@ interface
 implementation
 
   uses
-    verbose,strings,cobjects,systems,globtype,globals,
+    cutils,verbose,strings,cobjects,systems,globtype,globals,
     symconst,script,
-    files,aasm,cpuasm,cpubase,symtable{$IFDEF NEWST},symbols{$ENDIF NEWST};
+    fmodule,aasm,cpuasm,cpubase,symtable{$IFDEF NEWST},symbols{$ENDIF NEWST};
 
 {*****************************************************************************
                                TIMPORTLIBLINUX
@@ -473,7 +473,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:28  michael
+  Revision 1.4  2000-08-27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/13 12:08:28  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:50  michael

@@ -49,8 +49,8 @@ unit parser;
 
     uses
       globtype,version,tokens,systems,
-      cobjects,globals,verbose,
-      symtable,files,aasm,
+      cutils,cobjects,globals,verbose,
+      symtable,fmodule,aasm,
 {$ifndef newcg}
       hcodegen,
 {$endif newcg}
@@ -607,7 +607,11 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-12 15:34:22  peter
+  Revision 1.4  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/08/12 15:34:22  peter
     + usedasmsymbollist to check and reset only the used symbols (merged)
 
   Revision 1.2  2000/07/13 11:32:44  michael

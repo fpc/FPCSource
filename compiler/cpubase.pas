@@ -39,7 +39,7 @@ interface
 {$endif}
 
 uses
-  globals,strings,cobjects,aasm;
+  globals,strings,cutils,cobjects,aasm;
 
 const
 { Size of the instruction table converted by nasmconv.pas }
@@ -902,7 +902,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-05 13:25:06  peter
+  Revision 1.5  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/05 13:25:06  peter
     * packenum 1 fixes (merged)
 
   Revision 1.3  2000/07/14 05:11:48  michael

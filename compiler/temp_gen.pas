@@ -25,7 +25,7 @@ unit temp_gen;
   interface
 
     uses
-      cpubase,cpuinfo,cobjects,globals,tree,hcodegen,verbose,files,aasm;
+      cpubase,cpuinfo,cobjects,globals,tree,hcodegen,verbose,fmodule,aasm;
 
     type
       ttemptype = (tt_none,tt_free,tt_normal,tt_persistant,tt_ansistring,tt_freeansistring,tt_widestring,tt_freewidestring);
@@ -76,7 +76,7 @@ unit temp_gen;
   implementation
 
     uses
-       scanner,systems
+       cutils,scanner,systems
 {$ifdef i386}
        ,cgai386
 {$endif i386}
@@ -539,7 +539,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:52  michael
+  Revision 1.3  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:52  michael
   + removed logs
 
 }

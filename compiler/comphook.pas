@@ -23,7 +23,8 @@
 unit comphook;
 interface
 
-uses files;
+uses
+  finput;
 
 Const
 { <$10000 will show file and line }
@@ -370,7 +371,11 @@ Function def_GetNamedFileTime (Const F : String) : Longint;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-13 13:04:15  peter
+  Revision 1.5  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/13 13:04:15  peter
     * -vb update
 
   Revision 1.3  2000/08/12 15:30:45  peter

@@ -43,8 +43,8 @@ unit pdecl;
 
     uses
        cobjects,scanner,
-       symconst,aasm,tree,pass_1,strings,
-       files,types,verbose,systems,import,
+       cutils,symconst,aasm,tree,pass_1,strings,
+       fmodule,types,verbose,systems,import,
        cpubase
 {$ifndef newcg}
        ,tccnv
@@ -1299,7 +1299,11 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.11  2000-08-20 15:01:17  peter
+  Revision 1.12  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.11  2000/08/20 15:01:17  peter
     * don't allow forward class in separate type blocks for delphi (merged)
 
   Revision 1.10  2000/08/17 09:17:19  pierre

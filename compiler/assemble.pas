@@ -90,7 +90,7 @@ Procedure OnlyAsm;
 Implementation
 
 uses
-  script,files,systems,verbose
+  cutils,script,fmodule,systems,verbose
 {$ifdef linux}
   ,linux
 {$endif}
@@ -606,7 +606,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:24  michael
+  Revision 1.4  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/13 12:08:24  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:32  michael

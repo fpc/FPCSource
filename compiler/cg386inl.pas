@@ -33,7 +33,7 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,files,
+      cutils,cobjects,verbose,globals,fmodule,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_1,pass_2,
       cpubase,cpuasm,
@@ -1537,7 +1537,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-16 13:06:06  florian
+  Revision 1.7  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/16 13:06:06  florian
     + support of 64 bit integer constants
 
   Revision 1.5  2000/08/04 22:00:50  peter

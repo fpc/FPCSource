@@ -25,7 +25,7 @@ unit tgeni386;
   interface
 
     uses
-       cobjects,globals,tree,hcodegen,verbose,files,aasm,
+       cobjects,globals,tree,hcodegen,verbose,aasm,
        cpubase,cpuasm
        ;
 
@@ -653,7 +653,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-08-05 13:32:39  peter
+  Revision 1.5  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/05 13:32:39  peter
     * fixed build prob without support_mmx
 
   Revision 1.3  2000/08/04 05:09:49  jonas

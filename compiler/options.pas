@@ -66,7 +66,7 @@ uses
   dos,
 {$endif Delphi}
   version,systems,
-  cobjects,
+  cutils,cobjects,
   symtable,scanner,link,messages
 {$ifdef BrowserLog}
   ,browlog
@@ -1481,7 +1481,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-07 11:31:04  jonas
+  Revision 1.6  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/07 11:31:04  jonas
     * fixed bug in type conversions between enum subranges (it didn't take
       the packenum directive into account)
     + define PACKENUMFIXED symbol in options.pas

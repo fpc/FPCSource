@@ -27,7 +27,7 @@ unit browlog;
 
 interface
 uses
-  cobjects,globtype,files,symconst,symtable;
+  cobjects,globtype,fmodule,finput,symconst,symtable;
 
 const
 {$ifdef TP}
@@ -74,7 +74,7 @@ var
 implementation
 
   uses
-    comphook,globals,systems,verbose;
+    cutils,comphook,globals,systems,verbose;
 
     function get_file_line(ref:pref): string;
       var
@@ -448,7 +448,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:32  michael
+  Revision 1.3  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:32  michael
   + removed logs
 
 }

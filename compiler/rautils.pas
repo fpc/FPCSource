@@ -24,16 +24,8 @@ Unit RAUtils;
 Interface
 
 Uses
-  strings,
-  cobjects,
-  globtype,types,systems,verbose,globals,files,
-  symconst,symtable,aasm,cpubase,cpuasm
-{$ifdef NEWCG}
-  ,cgbase
-{$else}
-  ,hcodegen
-{$endif}
-  ;
+  cutils,cobjects,
+  globtype,aasm,cpubase,symconst;
 
 Const
   RPNMax = 10;             { I think you only need 4, but just to be safe }
@@ -210,6 +202,15 @@ Function SearchIConstant(const s:string; var l:longint): boolean;
 
 Implementation
 
+uses
+  strings,
+  types,systems,verbose,globals,fmodule,
+  symtable,cpuasm
+{$ifdef NEWCG}
+  ,cgbase;
+{$else}
+  ,hcodegen;
+{$endif}
 
 {*************************************************************************
                               TExprParse
@@ -1565,7 +1566,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-06 10:42:29  peter
+  Revision 1.4  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/08/06 10:42:29  peter
     * merged patches name generation in lib and asm constant eval
 
   Revision 1.2  2000/07/13 11:32:48  michael

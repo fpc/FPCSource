@@ -35,7 +35,7 @@ unit scanner;
        dmisc,
 {$endif Delphi}
        globtype,version,tokens,
-       cobjects,globals,verbose,comphook,files;
+       cobjects,globals,verbose,comphook,finput;
 
     const
 {$ifdef TP}
@@ -158,10 +158,8 @@ implementation
 {$ifndef delphi}
       dos,
 {$endif delphi}
-      systems,symtable,switches
-{$IFDEF NEWST}
-      ,symbols
-{$ENDIF NEWST};
+      cutils,systems,symtable,switches,
+      fmodule;
 
 {*****************************************************************************
                               Helper routines
@@ -1837,7 +1835,11 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.4  2000-08-12 15:30:44  peter
+  Revision 1.5  2000-08-27 16:11:53  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/12 15:30:44  peter
     * IDE patch for stream reading (merged)
 
   Revision 1.3  2000/08/08 19:28:57  peter

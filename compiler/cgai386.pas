@@ -115,7 +115,7 @@ unit cgai386;
                               para_offset:longint;alignment : longint);
 
 {$ifdef TEMPS_NOT_PUSH}
-    { does the same as restore/, but uses temp. space instead of pushing }
+    { does the same as restore, but uses temp. space instead of pushing }
     function maybe_push(needed : byte;p : ptree;isint64 : boolean) : boolean;
     procedure restorefromtemp(p : ptree;isint64 : boolean);
 {$endif TEMPS_NOT_PUSH}
@@ -164,7 +164,7 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
   implementation
 
     uses
-       strings,globtype,systems,globals,verbose,files,types,pbase,
+       strings,cutils,globtype,systems,globals,verbose,fmodule,types,pbase,
        tgeni386,temp_gen,hcodegen,ppu,regvars
 {$ifdef GDB}
        ,gdb
@@ -4072,7 +4072,11 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.12  2000-08-24 19:07:54  peter
+  Revision 1.13  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.12  2000/08/24 19:07:54  peter
     * don't initialize if localvarsym is set because that varsym will
       already be initialized
     * first initialize local data before copy of value para's (merged)

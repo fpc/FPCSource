@@ -40,7 +40,7 @@ unit ptconst;
        strings,
 {$endif Delphi}
        globtype,systems,tokens,cpuinfo,
-       cobjects,globals,scanner,
+       cutils,cobjects,globals,scanner,
        symconst,aasm,types,verbose,
        tree,pass_1,
        { parser specific stuff }
@@ -809,7 +809,11 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-24 19:13:18  peter
+  Revision 1.6  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/24 19:13:18  peter
     * allow nil for class typed consts (merged)
 
   Revision 1.4  2000/08/16 13:06:06  florian

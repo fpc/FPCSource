@@ -37,23 +37,10 @@
 
 unit cobjects;
 
-{ define OLDSPEEDVALUE}
-
   interface
 
     uses
-{$ifdef DELPHI4}
-       dmisc,
-       sysutils
-{$else DELPHI4}
-       strings
-{$ifndef linux}
-       ,dos
-{$else}
-       ,linux
-{$endif}
-{$endif DELPHI4}
-      ;
+      cutils;
 
     const
        { the real size will be [-hasharray..hasharray] ! }
@@ -64,15 +51,6 @@ unit cobjects;
 {$endif}
 
     type
-       pstring = ^string;
-
-{$ifdef TP}
-       { redeclare dword only in case of emergency, some small things
-         of the compiler won't work then correctly (FK)
-       }
-       dword = longint;
-{$endif TP}
-
        pfileposinfo = ^tfileposinfo;
        tfileposinfo = record
          line      : longint;
@@ -225,6 +203,7 @@ unit cobjects;
          indexnext  : Pnamedindexobject;
        { dictionary }
          _name      : Pstring;
+         _valuename : Pstring; { uppercase name }
          left,right : Pnamedindexobject;
          speedvalue : longint;
        { singlelist }
@@ -329,99 +308,6 @@ unit cobjects;
         procedure grow(gsize:longint);
       end;
 
-{$ifdef BUFFEREDFILE}
-       { this is implemented to allow buffered binary I/O }
-       pbufferedfile = ^tbufferedfile;
-       tbufferedfile = object
-           f : file;
-           buf : pchar;
-           bufsize,buflast,bufpos : longint;
-
-           { 0 closed, 1 input, 2 output }
-           iomode : byte;
-
-           { true, if the compile should change the endian of the output }
-           change_endian : boolean;
-
-           { calcules a crc for the file,                                    }
-           { but it's assumed, that there no seek while do_crc is true       }
-           do_crc : boolean;
-           crc : longint;
-           { temporary closing feature }
-           tempclosed : boolean;
-           tempmode : byte;
-           temppos : longint;
-
-           { inits a buffer with the size bufsize which is assigned to }
-           { the file  filename                                        }
-           constructor init(const filename : string;_bufsize : longint);
-
-           { closes the file, if needed, and releases the memory }
-           destructor done;virtual;
-
-           { opens the file for input, other accesses are rejected }
-           function  reset:boolean;
-
-           { opens the file for output, other accesses are rejected }
-           procedure rewrite;
-
-           { reads or writes the buffer from or to disk }
-           procedure flush;
-
-           { writes a string to the file }
-           { the string is written without a length byte }
-           procedure write_string(const s : string);
-
-           { writes a zero terminated string }
-           procedure write_pchar(p : pchar);
-
-           { write specific data types, takes care of }
-           { byte order                               }
-           procedure write_byte(b : byte);
-           procedure write_word(w : word);
-           procedure write_long(l : longint);
-           procedure write_double(d : double);
-
-           { writes any data }
-           procedure write_data(var data;count : longint);
-
-           { reads any data }
-           procedure read_data(var data;bytes : longint;var count : longint);
-
-           { closes the file and releases the buffer }
-           procedure close;
-
-           { temporary closing }
-           procedure tempclose;
-           procedure tempreopen;
-
-           { goto the given position }
-           procedure seek(l : longint);
-
-           { installes an user defined buffer      }
-           { and releases the old one, but be      }
-           { careful, if the old buffer contains   }
-           { data, this data is lost               }
-           procedure setbuf(p : pchar;s : longint);
-
-           { reads the file time stamp of the file, }
-           { the file must be opened                }
-           function getftime : longint;
-
-           { returns filesize }
-           function getsize : longint;
-
-           { returns the path }
-           function getpath : string;
-
-           { resets the crc }
-           procedure clear_crc;
-
-           { returns the crc }
-           function getcrc : longint;
-       end;
-{$endif BUFFEREDFILE}
-
 {$ifdef fixLeaksOnError}
     PStackItem = ^TStackItem;
     TStackItem = record
@@ -442,38 +328,8 @@ unit cobjects;
     end;
 {$endif fixLeaksOnError}
 
-    function getspeedvalue(const s : string) : longint;
 
-    { releases the string p and assignes nil to p }
-    { if p=nil then freemem isn't called          }
-    procedure stringdispose(var p : pstring);
-
-    { idem for ansistrings }
-    procedure ansistringdispose(var p : pchar;length : longint);
-
-    { allocates mem for a copy of s, copies s to this mem and returns }
-    { a pointer to this mem                                           }
-    function stringdup(const s : string) : pstring;
-
-    { allocates memory for s and copies s as zero terminated string
-      to that mem and returns a pointer to that mem }
-    function  strpnew(const s : string) : pchar;
-    procedure strdispose(var p : pchar);
-
-    { makes a char lowercase, with spanish, french and german char set }
-    function lowercase(c : char) : char;
-
-    { makes zero terminated string to a pascal string }
-    { the data in p is modified and p is returned     }
-    function pchar2pstring(p : pchar) : pstring;
-
-    { ambivalent to pchar2pstring }
-    function pstring2pchar(p : pstring) : pchar;
-
-  implementation
-
-    uses
-      comphook;
+implementation
 
 {*****************************************************************************
                                     Memory debug
@@ -508,11 +364,10 @@ unit cobjects;
         show;
       end;
 
+
 {*****************************************************************************
                                  Stack
 *****************************************************************************}
-
-
 
 {$ifdef fixLeaksOnError}
 constructor TStack.init;
@@ -564,192 +419,6 @@ begin
     end;
 end;
 {$endif fixLeaksOnError}
-
-
-{$ifndef OLDSPEEDVALUE}
-
-{*****************************************************************************
-                                   Crc 32
-*****************************************************************************}
-
-var
-  Crc32Tbl : array[0..255] of longint;
-
-procedure MakeCRC32Tbl;
-var
-  crc : longint;
-  i,n : byte;
-begin
-  for i:=0 to 255 do
-   begin
-     crc:=i;
-     for n:=1 to 8 do
-      if odd(crc) then
-       crc:=(crc shr 1) xor longint($edb88320)
-      else
-       crc:=crc shr 1;
-     Crc32Tbl[i]:=crc;
-   end;
-end;
-
-
-{$ifopt R+}
-  {$define Range_check_on}
-{$endif opt R+}
-
-{$R- needed here }
-{CRC 32}
-Function GetSpeedValue(Const s:String):longint;
-var
-  i,InitCrc : longint;
-begin
-  if Crc32Tbl[1]=0 then
-   MakeCrc32Tbl;
-  InitCrc:=$ffffffff;
-  for i:=1 to Length(s) do
-   InitCrc:=Crc32Tbl[byte(InitCrc) xor ord(s[i])] xor (InitCrc shr 8);
-  GetSpeedValue:=InitCrc;
-end;
-
-{$ifdef Range_check_on}
-  {$R+}
-  {$undef Range_check_on}
-{$endif Range_check_on}
-
-{$else}
-
-{$ifndef TP}
-    function getspeedvalue(const s : string) : longint;
-      var
-        p1,p2:^byte;
-        i : longint;
-
-      begin
-        p1:=@s;
-        longint(p2):=longint(p1)+p1^+1;
-        inc(longint(p1));
-        i:=0;
-        while p1<>p2 do
-         begin
-           i:=i + ord(p1^);
-           inc(longint(p1));
-         end;
-        getspeedvalue:=i;
-      end;
-{$else}
-    function getspeedvalue(const s : string) : longint;
-      type
-        ptrrec=record
-          ofs,seg:word;
-        end;
-      var
-        l,w   : longint;
-        p1,p2 : ^byte;
-      begin
-        p1:=@s;
-        ptrrec(p2).seg:=ptrrec(p1).seg;
-        ptrrec(p2).ofs:=ptrrec(p1).ofs+p1^+1;
-        inc(p1);
-        l:=0;
-        while p1<>p2 do
-         begin
-           l:=l + ord(p1^);
-           inc(p1);
-         end;
-        getspeedvalue:=l;
-      end;
-{$endif}
-
-{$endif OLDSPEEDVALUE}
-
-
-    function pchar2pstring(p : pchar) : pstring;
-      var
-         w,i : longint;
-      begin
-         w:=strlen(p);
-         for i:=w-1 downto 0 do
-           p[i+1]:=p[i];
-         p[0]:=chr(w);
-         pchar2pstring:=pstring(p);
-      end;
-
-
-    function pstring2pchar(p : pstring) : pchar;
-      var
-         w,i : longint;
-      begin
-         w:=length(p^);
-         for i:=1 to w do
-           p^[i-1]:=p^[i];
-         p^[w]:=#0;
-         pstring2pchar:=pchar(p);
-      end;
-
-
-    function lowercase(c : char) : char;
-       begin
-          case c of
-             #65..#90 : c := chr(ord (c) + 32);
-             #154 : c:=#129;  { german }
-             #142 : c:=#132;  { german }
-             #153 : c:=#148;  { german }
-             #144 : c:=#130;  { french }
-             #128 : c:=#135;  { french }
-             #143 : c:=#134;  { swedish/norge (?) }
-             #165 : c:=#164;  { spanish }
-             #228 : c:=#229;  { greek }
-             #226 : c:=#231;  { greek }
-             #232 : c:=#227;  { greek }
-          end;
-          lowercase := c;
-       end;
-
-
-    function strpnew(const s : string) : pchar;
-      var
-         p : pchar;
-      begin
-         getmem(p,length(s)+1);
-         strpcopy(p,s);
-         strpnew:=p;
-      end;
-
-
-    procedure strdispose(var p : pchar);
-      begin
-        if assigned(p) then
-         begin
-           freemem(p,strlen(p)+1);
-           p:=nil;
-         end;
-      end;
-
-
-    procedure stringdispose(var p : pstring);
-      begin
-         if assigned(p) then
-           freemem(p,length(p^)+1);
-         p:=nil;
-      end;
-
-
-    procedure ansistringdispose(var p : pchar;length : longint);
-      begin
-         if assigned(p) then
-           freemem(p,length+1);
-         p:=nil;
-      end;
-
-
-    function stringdup(const s : string) : pstring;
-      var
-         p : pstring;
-      begin
-         getmem(p,length(s)+1);
-         p^:=s;
-         stringdup:=p;
-      end;
 
 
 {****************************************************************************
@@ -1150,10 +819,10 @@ end;
 
 
     destructor tlinkedlist.done;
-
       begin
          clear;
       end;
+
 
     procedure tlinkedlist.clear;
       var
@@ -1493,8 +1162,6 @@ end;
                             lr:=left;
                         end;
                 end;
-            if (oldroot=nil) or (root=nil) then
-                do_internalerror(218); {Internalerror is not available...}
             if root^.left<>nil then
                 begin
                     {Now the node pointing to root must point to the left
@@ -2198,392 +1865,14 @@ end;
          p^.indexnext:=nil;
       end;
 
-
-{$ifdef BUFFEREDFILE}
-
-{****************************************************************************
-                               TBUFFEREDFILE
- ****************************************************************************}
-
-    Const
-       crcseed = $ffffffff;
-
-       crctable : array[0..255] of longint = (
-          $00000000,$77073096,$ee0e612c,$990951ba,$076dc419,$706af48f,
-          $e963a535,$9e6495a3,$0edb8832,$79dcb8a4,$e0d5e91e,$97d2d988,
-          $09b64c2b,$7eb17cbd,$e7b82d07,$90bf1d91,$1db71064,$6ab020f2,
-          $f3b97148,$84be41de,$1adad47d,$6ddde4eb,$f4d4b551,$83d385c7,
-          $136c9856,$646ba8c0,$fd62f97a,$8a65c9ec,$14015c4f,$63066cd9,
-          $fa0f3d63,$8d080df5,$3b6e20c8,$4c69105e,$d56041e4,$a2677172,
-          $3c03e4d1,$4b04d447,$d20d85fd,$a50ab56b,$35b5a8fa,$42b2986c,
-          $dbbbc9d6,$acbcf940,$32d86ce3,$45df5c75,$dcd60dcf,$abd13d59,
-          $26d930ac,$51de003a,$c8d75180,$bfd06116,$21b4f4b5,$56b3c423,
-          $cfba9599,$b8bda50f,$2802b89e,$5f058808,$c60cd9b2,$b10be924,
-          $2f6f7c87,$58684c11,$c1611dab,$b6662d3d,$76dc4190,$01db7106,
-          $98d220bc,$efd5102a,$71b18589,$06b6b51f,$9fbfe4a5,$e8b8d433,
-          $7807c9a2,$0f00f934,$9609a88e,$e10e9818,$7f6a0dbb,$086d3d2d,
-          $91646c97,$e6635c01,$6b6b51f4,$1c6c6162,$856530d8,$f262004e,
-          $6c0695ed,$1b01a57b,$8208f4c1,$f50fc457,$65b0d9c6,$12b7e950,
-          $8bbeb8ea,$fcb9887c,$62dd1ddf,$15da2d49,$8cd37cf3,$fbd44c65,
-          $4db26158,$3ab551ce,$a3bc0074,$d4bb30e2,$4adfa541,$3dd895d7,
-          $a4d1c46d,$d3d6f4fb,$4369e96a,$346ed9fc,$ad678846,$da60b8d0,
-          $44042d73,$33031de5,$aa0a4c5f,$dd0d7cc9,$5005713c,$270241aa,
-          $be0b1010,$c90c2086,$5768b525,$206f85b3,$b966d409,$ce61e49f,
-          $5edef90e,$29d9c998,$b0d09822,$c7d7a8b4,$59b33d17,$2eb40d81,
-          $b7bd5c3b,$c0ba6cad,$edb88320,$9abfb3b6,$03b6e20c,$74b1d29a,
-          $ead54739,$9dd277af,$04db2615,$73dc1683,$e3630b12,$94643b84,
-          $0d6d6a3e,$7a6a5aa8,$e40ecf0b,$9309ff9d,$0a00ae27,$7d079eb1,
-          $f00f9344,$8708a3d2,$1e01f268,$6906c2fe,$f762575d,$806567cb,
-          $196c3671,$6e6b06e7,$fed41b76,$89d32be0,$10da7a5a,$67dd4acc,
-          $f9b9df6f,$8ebeeff9,$17b7be43,$60b08ed5,$d6d6a3e8,$a1d1937e,
-          $38d8c2c4,$4fdff252,$d1bb67f1,$a6bc5767,$3fb506dd,$48b2364b,
-          $d80d2bda,$af0a1b4c,$36034af6,$41047a60,$df60efc3,$a867df55,
-          $316e8eef,$4669be79,$cb61b38c,$bc66831a,$256fd2a0,$5268e236,
-          $cc0c7795,$bb0b4703,$220216b9,$5505262f,$c5ba3bbe,$b2bd0b28,
-          $2bb45a92,$5cb36a04,$c2d7ffa7,$b5d0cf31,$2cd99e8b,$5bdeae1d,
-          $9b64c2b0,$ec63f226,$756aa39c,$026d930a,$9c0906a9,$eb0e363f,
-          $72076785,$05005713,$95bf4a82,$e2b87a14,$7bb12bae,$0cb61b38,
-          $92d28e9b,$e5d5be0d,$7cdcefb7,$0bdbdf21,$86d3d2d4,$f1d4e242,
-          $68ddb3f8,$1fda836e,$81be16cd,$f6b9265b,$6fb077e1,$18b74777,
-          $88085ae6,$ff0f6a70,$66063bca,$11010b5c,$8f659eff,$f862ae69,
-          $616bffd3,$166ccf45,$a00ae278,$d70dd2ee,$4e048354,$3903b3c2,
-          $a7672661,$d06016f7,$4969474d,$3e6e77db,$aed16a4a,$d9d65adc,
-          $40df0b66,$37d83bf0,$a9bcae53,$debb9ec5,$47b2cf7f,$30b5ffe9,
-          $bdbdf21c,$cabac28a,$53b39330,$24b4a3a6,$bad03605,$cdd70693,
-          $54de5729,$23d967bf,$b3667a2e,$c4614ab8,$5d681b02,$2a6f2b94,
-          $b40bbe37,$c30c8ea1,$5a05df1b,$2d02ef8d);
-
-    constructor tbufferedfile.init(const filename : string;_bufsize : longint);
-
-      begin
-         assign(f,filename);
-         bufsize:=_bufsize;
-         bufpos:=0;
-         buflast:=0;
-         do_crc:=false;
-         iomode:=0;
-         tempclosed:=false;
-         change_endian:=false;
-         clear_crc;
-      end;
-
-    destructor tbufferedfile.done;
-
-      begin
-         close;
-      end;
-
-    procedure tbufferedfile.clear_crc;
-
-      begin
-         crc:=crcseed;
-      end;
-
-    procedure tbufferedfile.setbuf(p : pchar;s : longint);
-
-      begin
-         flush;
-         freemem(buf,bufsize);
-         bufsize:=s;
-         buf:=p;
-      end;
-
-    function tbufferedfile.reset:boolean;
-
-      var
-         ofm : byte;
-      begin
-         ofm:=filemode;
-         iomode:=1;
-         getmem(buf,bufsize);
-         filemode:=0;
-         {$I-}
-          system.reset(f,1);
-         {$I+}
-         reset:=(ioresult=0);
-         filemode:=ofm;
-      end;
-
-    procedure tbufferedfile.rewrite;
-
-      begin
-         iomode:=2;
-         getmem(buf,bufsize);
-         system.rewrite(f,1);
-      end;
-
-    procedure tbufferedfile.flush;
-
-      var
-{$ifdef FPC}
-         count : longint;
-{$else}
-         count : integer;
-{$endif}
-
-      begin
-         if iomode=2 then
-           begin
-              if bufpos=0 then
-                exit;
-              blockwrite(f,buf^,bufpos)
-           end
-         else if iomode=1 then
-            if buflast=bufpos then
-              begin
-                 blockread(f,buf^,bufsize,count);
-                 buflast:=count;
-              end;
-         bufpos:=0;
-      end;
-
-    function tbufferedfile.getftime : longint;
-
-      var
-         l : longint;
-{$ifdef linux}
-         Info : Stat;
-{$endif}
-      begin
-{$ifndef linux}
-         { this only works if the file is open !! }
-         dos.getftime(f,l);
-{$else}
-         Fstat(f,Info);
-         l:=info.mtime;
-{$endif}
-         getftime:=l;
-      end;
-
-    function tbufferedfile.getsize : longint;
-
-      begin
-        getsize:=filesize(f);
-      end;
-
-    procedure tbufferedfile.seek(l : longint);
-
-      begin
-         if iomode=2 then
-           begin
-              flush;
-              system.seek(f,l);
-           end
-         else if iomode=1 then
-           begin
-              { forces a reload }
-              bufpos:=buflast;
-              system.seek(f,l);
-              flush;
-           end;
-      end;
-
-    type
-{$ifdef tp}
-       bytearray1 = array [1..65535] of byte;
-{$else}
-       bytearray1 = array [1..10000000] of byte;
-{$endif}
-
-    procedure tbufferedfile.read_data(var data;bytes : longint;var count : longint);
-
-      var
-         p : pchar;
-         c,i : longint;
-
-      begin
-         p:=pchar(@data);
-         count:=0;
-         while bytes-count>0 do
-           begin
-              if bytes-count>buflast-bufpos then
-                begin
-                   move((buf+bufpos)^,(p+count)^,buflast-bufpos);
-                   inc(count,buflast-bufpos);
-                   bufpos:=buflast;
-                   flush;
-                   { can't we read anything ? }
-                   if bufpos=buflast then
-                     break;
-                end
-              else
-                begin
-                   move((buf+bufpos)^,(p+count)^,bytes-count);
-                   inc(bufpos,bytes-count);
-                   count:=bytes;
-                   break;
-                end;
-           end;
-         if do_crc then
-           begin
-              c:=crc;
-              for i:=1 to bytes do
-              c:=(c shr 8) xor crctable[byte(c) xor (bytearray1(data)[i])];
-              crc:=c;
-           end;
-      end;
-
-    procedure tbufferedfile.write_data(var data;count : longint);
-
-      var
-         c,i : longint;
-
-      begin
-         if bufpos+count>bufsize then
-           flush;
-         move(data,(buf+bufpos)^,count);
-         inc(bufpos,count);
-         if do_crc then
-           begin
-              c:=crc;
-              for i:=1 to count do
-                c:=(c shr 8) xor crctable[byte(c) xor (bytearray1(data)[i])];
-              crc:=c;
-           end;
-      end;
-
-    function tbufferedfile.getcrc : longint;
-
-      begin
-         getcrc:=crc xor crcseed;
-      end;
-
-    procedure tbufferedfile.write_string(const s : string);
-
-      begin
-        if bufpos+length(s)>bufsize then
-          flush;
-        { why is there not CRC here ??? }
-        move(s[1],(buf+bufpos)^,length(s));
-        inc(bufpos,length(s));
-         { should be
-        write_data(s[1],length(s)); }
-      end;
-
-    procedure tbufferedfile.write_pchar(p : pchar);
-
-      var
-         l : longint;
-
-      begin
-        l:=strlen(p);
-        if l>=bufsize then
-          do_internalerror(222);
-        { why is there not CRC here ???}
-        if bufpos+l>bufsize then
-          flush;
-        move(p^,(buf+bufpos)^,l);
-        inc(bufpos,l);
-         { should be
-        write_data(p^,l); }
-      end;
-
-    procedure tbufferedfile.write_byte(b : byte);
-
-      begin
-         write_data(b,sizeof(byte));
-      end;
-
-    procedure tbufferedfile.write_long(l : longint);
-
-      var
-         w1,w2 : word;
-
-      begin
-         if change_endian then
-           begin
-              w1:=l and $ffff;
-              w2:=l shr 16;
-              l:=swap(w2)+(longint(swap(w1)) shl 16);
-           end;
-         write_data(l,sizeof(longint));
-      end;
-
-    procedure tbufferedfile.write_word(w : word);
-
-      begin
-         if change_endian then
-           begin
-              w:=swap(w);
-           end;
-         write_data(w,sizeof(word));
-      end;
-
-    procedure tbufferedfile.write_double(d : double);
-
-      begin
-         write_data(d,sizeof(double));
-      end;
-
-    function tbufferedfile.getpath : string;
-
-      begin
-{$ifdef dummy}
-         getpath:=strpas(filerec(f).name);
-{$endif}
-         getpath:='';
-      end;
-
-    procedure tbufferedfile.close;
-
-      begin
-         if iomode<>0 then
-           begin
-              flush;
-              system.close(f);
-              freemem(buf,bufsize);
-              buf:=nil;
-              iomode:=0;
-           end;
-      end;
-
-    procedure tbufferedfile.tempclose;
-
-      begin
-        if iomode<>0 then
-         begin
-           temppos:=system.filepos(f);
-           tempmode:=iomode;
-           tempclosed:=true;
-           system.close(f);
-           iomode:=0;
-         end
-        else
-         tempclosed:=false;
-      end;
-
-    procedure tbufferedfile.tempreopen;
-
-      var
-         ofm : byte;
-
-      begin
-         if tempclosed then
-           begin
-              case tempmode of
-               1 : begin
-                     ofm:=filemode;
-                     iomode:=1;
-                     filemode:=0;
-                     system.reset(f,1);
-                     filemode:=ofm;
-                   end;
-               2 : begin
-                     iomode:=2;
-                     system.rewrite(f,1);
-                   end;
-              end;
-              system.seek(f,temppos);
-              tempclosed:=false;
-           end;
-      end;
-
-{$endif BUFFEREDFILE}
-
 end.
 {
   $Log$
-  Revision 1.10  2000-08-19 18:44:27  peter
+  Revision 1.11  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.10  2000/08/19 18:44:27  peter
     * new tdynamicarray implementation using blocks instead of
       reallocmem (merged)
 

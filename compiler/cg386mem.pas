@@ -47,7 +47,7 @@ implementation
       strings,gdb,
 {$endif GDB}
       globtype,systems,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,pass_1,
       cpubase,cpuasm,
@@ -958,7 +958,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-07-28 07:38:13  jonas
+  Revision 1.6  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/07/28 07:38:13  jonas
     * refined previous fix (sometimes the number of necessary registers was
       overestimated) (merged from fixes branch)
 

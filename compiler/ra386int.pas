@@ -37,8 +37,8 @@ Implementation
 
 Uses
   globtype,
-  strings,cobjects,systems,verbose,globals,
-  files,aasm,types,scanner,symconst,symtable,cpubase,
+  strings,cutils,cobjects,systems,verbose,globals,
+  fmodule,aasm,types,scanner,symconst,symtable,cpubase,
 {$ifdef NEWCG}
   cgbase,
 {$else}
@@ -1906,7 +1906,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-08-12 15:32:02  peter
+  Revision 1.5  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/12 15:32:02  peter
     * reference reading fix from Jonas (merged)
 
   Revision 1.3  2000/07/30 17:04:43  peter

@@ -91,7 +91,7 @@ unit og386;
 
     uses
       strings,comphook,
-      globtype,globals,verbose,files,
+      cutils,globtype,globals,verbose,fmodule,
       assemble;
 
 
@@ -279,7 +279,11 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-06 10:42:29  peter
+  Revision 1.5  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/06 10:42:29  peter
     * merged patches name generation in lib and asm constant eval
 
   Revision 1.3  2000/07/13 12:08:26  michael

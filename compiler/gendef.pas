@@ -47,7 +47,7 @@ var
 implementation
 
 uses
-  systems,globtype,globals;
+  systems,cutils,globtype,globals;
 
 {******************************************************************************
                                TDefFile
@@ -164,7 +164,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

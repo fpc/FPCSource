@@ -46,7 +46,7 @@ uses
 {$else Delphi}
   dos,
 {$endif Delphi}
-  Systems,Globtype,Globals,Verbose,Files,
+  Systems,cutils,Globtype,Globals,Verbose,Fmodule,
   Script;
 
 {****************************************************************************
@@ -140,7 +140,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-04 22:00:51  peter
+  Revision 1.4  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/08/04 22:00:51  peter
     * merges from fixes
 
   Revision 1.2  2000/07/13 11:32:38  michael

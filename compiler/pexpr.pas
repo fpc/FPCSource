@@ -47,7 +47,7 @@ unit pexpr;
 
     uses
        globtype,systems,tokens,
-       cobjects,globals,scanner,
+       cutils,cobjects,globals,scanner,
        symconst,aasm,htypechk,
 {$ifdef newcg}
        cgbase,
@@ -2214,7 +2214,11 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.6  2000-08-20 15:12:49  peter
+  Revision 1.7  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/20 15:12:49  peter
     * auto derefence mode for array pointer (merged)
 
   Revision 1.5  2000/08/16 18:33:53  peter

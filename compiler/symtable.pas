@@ -32,12 +32,10 @@ unit symtable;
        objects,
 {$endif Delphi}
 {$endif}
-       strings,cobjects,
+       strings,cutils,cobjects,
        globtype,globals,tokens,systems,
        symconst,
-       aasm
-       ,cpubase
-       ,cpuinfo
+       aasm,cpubase,cpuinfo
 {$ifdef GDB}
        ,gdb
 {$endif}
@@ -480,7 +478,7 @@ implementation
   uses
      version,verbose,
      types,ppu,
-     gendef,files
+     gendef,fmodule,finput
      ,tree
      ,cresstr
 {$ifdef newcg}
@@ -2993,7 +2991,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-21 11:27:45  pierre
+  Revision 1.7  2000-08-27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/21 11:27:45  pierre
    * fix the stabs problems
 
   Revision 1.5  2000/08/20 14:58:41  peter

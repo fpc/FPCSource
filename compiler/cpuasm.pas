@@ -141,8 +141,9 @@ type
 
 
 implementation
+
 uses
-  og386;
+  cutils,og386;
 
 {*****************************************************************************
                                  TaiRegAlloc
@@ -1673,7 +1674,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:25  michael
+  Revision 1.4  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/13 12:08:25  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:38  michael

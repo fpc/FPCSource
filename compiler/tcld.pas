@@ -37,7 +37,7 @@ interface
 implementation
 
     uses
-      cobjects,verbose,globtype,globals,systems,
+      cutils,cobjects,verbose,globtype,globals,systems,
       symconst,symtable,aasm,types,
       htypechk,pass_1,
       tccnv,cpubase
@@ -515,7 +515,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-15 03:41:27  peter
+  Revision 1.7  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/15 03:41:27  peter
     * previous commit was wrong file :(
 
   Revision 1.5  2000/08/13 19:21:13  peter

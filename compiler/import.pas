@@ -23,7 +23,7 @@ unit import;
 interface
 
 uses
-  cobjects{$IFDEF NEWST},objects{$ENDIF NEWST};
+  cutils,cobjects;
 
 type
    pimported_item = ^timported_item;
@@ -250,7 +250,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:43  michael
+  Revision 1.3  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:43  michael
   + removed logs
 
 }

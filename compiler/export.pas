@@ -25,7 +25,8 @@ unit export;
 interface
 
 uses
-  cobjects{$IFDEF NEWST},objects{$ENDIF NEWST},symtable;
+  cutils,cobjects,
+  symtable;
 
 const
    { export options }
@@ -68,7 +69,7 @@ procedure DoneExport;
 implementation
 
 uses
-  systems,verbose,globals,files
+  systems,verbose,globals,fmodule
 {$ifdef i386}
   {$ifndef NOTARGETLINUX}
     ,t_linux
@@ -213,7 +214,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:41  michael
+  Revision 1.3  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:41  michael
   + removed logs
 
 }

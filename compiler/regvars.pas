@@ -38,7 +38,7 @@ implementation
 
    uses
      globtype,systems,comphook,
-     cobjects,verbose,globals,
+     cutils,cobjects,verbose,globals,
      symconst,symtable,types,
      hcodegen,temp_gen,cpubase,cpuasm
 {$ifndef newcg}
@@ -196,7 +196,7 @@ implementation
               { now assign register }
               for i:=1 to maxvarregs-p^.registers32 do
                 begin
-                  if assigned(regvarinfo^.regvars[i]) and 
+                  if assigned(regvarinfo^.regvars[i]) and
                     (reg_pushes[varregs[i]] < regvarinfo^.regvars[i]^.refs) then
                     begin
                       { register is no longer available for }
@@ -441,7 +441,11 @@ end.
 
 {
   $Log$
-  Revision 1.4  2000-08-17 11:07:51  jonas
+  Revision 1.5  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/17 11:07:51  jonas
     * fixed crash when inlining assembler procedures with -Or
 
   Revision 1.3  2000/08/04 05:52:00  jonas

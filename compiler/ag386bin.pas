@@ -31,7 +31,7 @@ unit ag386bin;
   interface
 
     uses
-       cpubase,cobjects,aasm,files,assemble;
+       cpubase,cobjects,aasm,fmodule,finput,assemble;
 
     type
       togtype=(og_none,og_dbg,og_coff,og_pecoff,og_elf);
@@ -78,7 +78,7 @@ unit ag386bin;
 
     uses
        strings,
-       globtype,globals,systems,verbose,
+       cutils,globtype,globals,systems,verbose,
        cpuasm,
 {$ifdef GDB}
        gdb,
@@ -1039,7 +1039,11 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.6  2000-08-12 15:34:22  peter
+  Revision 1.7  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/12 15:34:22  peter
     + usedasmsymbollist to check and reset only the used symbols (merged)
 
   Revision 1.5  2000/08/08 19:28:57  peter

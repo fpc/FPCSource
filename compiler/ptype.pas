@@ -63,7 +63,7 @@ uses
 implementation
 
 uses
-  cobjects,globals,verbose,systems,tokens,
+  cutils,cobjects,globals,verbose,systems,tokens,
   aasm,symconst,types,
 {$ifdef GDB}
   gdb,
@@ -1606,7 +1606,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.6  2000-08-16 18:33:54  peter
+  Revision 1.7  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/16 18:33:54  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)

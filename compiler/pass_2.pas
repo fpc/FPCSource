@@ -45,7 +45,7 @@ implementation
 
    uses
      globtype,systems,
-     cobjects,comphook,verbose,globals,files,
+     cobjects,comphook,verbose,globals,fmodule,
      symconst,symtable,types,aasm,scanner,
      pass_1,hcodegen,temp_gen,cpubase,cpuasm,regvars
 {$ifndef newcg}
@@ -558,7 +558,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-12 15:34:22  peter
+  Revision 1.7  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/12 15:34:22  peter
     + usedasmsymbollist to check and reset only the used symbols (merged)
 
   Revision 1.5  2000/08/03 13:17:25  jonas

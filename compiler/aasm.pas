@@ -31,10 +31,10 @@ unit aasm;
   interface
 
     uses
-       globtype,systems,cobjects,globals;
+       cutils,cobjects,
+       globtype,globals,systems;
 
     type
-
        tait = (
           ait_none,
           ait_direct,
@@ -425,7 +425,8 @@ type
 implementation
 
 uses
-  strings,files,verbose;
+  strings,
+  fmodule,verbose;
 
 {****************************************************************************
                              TAI
@@ -1180,7 +1181,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.10  2000-08-20 17:38:21  peter
+  Revision 1.11  2000-08-27 16:11:48  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.10  2000/08/20 17:38:21  peter
     * smartlinking fixed for linux (merged)
 
   Revision 1.9  2000/08/16 18:33:53  peter

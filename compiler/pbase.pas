@@ -94,7 +94,7 @@ unit pbase;
   implementation
 
     uses
-       files,scanner,systems,verbose;
+       scanner,systems,verbose;
 
     function tokenstring(i : ttoken):string;
       begin
@@ -197,7 +197,11 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:44  michael
+  Revision 1.3  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:44  michael
   + removed logs
 
 }

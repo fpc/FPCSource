@@ -59,7 +59,7 @@ var
 implementation
 
 uses
-   globals,aasm,verbose,files;
+   cutils,globals,aasm,verbose,fmodule;
 
 
 { ---------------------------------------------------------------------
@@ -284,7 +284,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-15 09:45:29  michael
+  Revision 1.5  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/15 09:45:29  michael
   + Merged changes in fixbranch
 
   Revision 1.1.2.1  2000/08/15 09:41:56  michael

@@ -43,7 +43,7 @@ unit t_go32v2;
   implementation
 
     uses
-       strings,globtype,globals,cobjects,systems,verbose,script,files;
+       cutils,strings,globtype,globals,cobjects,systems,verbose,script,fmodule;
 
 
 {****************************************************************************
@@ -435,7 +435,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-08-16 13:06:07  florian
+  Revision 1.4  2000-08-27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/08/16 13:06:07  florian
     + support of 64 bit integer constants
 
   Revision 1.2  2000/07/13 11:32:50  michael

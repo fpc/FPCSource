@@ -117,7 +117,7 @@ uses
   dos,
 {$endif Delphi}
   verbose,comphook,systems,
-  cobjects,globals,options,parser,symtable,link,import,export,tokens;
+  cutils,cobjects,globals,options,parser,symtable,link,import,export,tokens;
 
 function Compile(const cmd:string):longint;
 
@@ -355,7 +355,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-21 09:14:40  jonas
+  Revision 1.5  2000-08-27 16:11:50  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/21 09:14:40  jonas
     - removed catch unit from uses clause for Linux (clashed with fpcatch
      from IDE and is already in pp.pas for command line compiler) (merged
      from fixes branch)

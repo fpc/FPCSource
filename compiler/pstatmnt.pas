@@ -40,7 +40,7 @@ unit pstatmnt;
 
     uses
        globtype,systems,tokens,
-       strings,cobjects,globals,files,verbose,cpuinfo,
+       strings,cutils,cobjects,globals,fmodule,verbose,cpuinfo,
        symconst,symtable,aasm,pass_1,types,scanner,
 {$ifdef newcg}
        cgbase,
@@ -1382,7 +1382,11 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-12 15:41:15  peter
+  Revision 1.6  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/12 15:41:15  peter
     * fixed bug 1096 (merged)
 
   Revision 1.4  2000/08/12 06:46:06  florian

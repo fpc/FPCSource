@@ -109,7 +109,7 @@ implementation
 
     uses
        globtype,systems,
-       cobjects,verbose,globals,
+       cutils,cobjects,verbose,globals,
        symconst,
        types,pass_1,cpubase,
 {$ifdef newcg}
@@ -1132,7 +1132,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-16 18:33:53  peter
+  Revision 1.5  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/16 18:33:53  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)

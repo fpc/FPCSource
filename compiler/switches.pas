@@ -30,7 +30,7 @@ function CheckSwitch(switch,state:char):boolean;
 implementation
 uses
   globtype,systems,
-  globals,verbose,files;
+  globals,verbose,fmodule;
 
 {****************************************************************************
                           Main Switches Parsing
@@ -174,7 +174,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:49  michael
+  Revision 1.3  2000-08-27 16:11:53  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:49  michael
   + removed logs
 
 }

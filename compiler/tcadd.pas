@@ -34,7 +34,7 @@ implementation
 
     uses
       globtype,systems,tokens,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       symconst,symtable,aasm,types,
 {$ifdef newcg}
       cgbase,
@@ -1289,7 +1289,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-08-17 12:03:48  florian
+  Revision 1.6  2000-08-27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/17 12:03:48  florian
     * fixed several problems with the int64 constants
 
   Revision 1.4  2000/07/27 09:19:37  jonas

@@ -32,8 +32,8 @@ unit Ra386dir;
   implementation
 
      uses
-        files,globals,scanner,aasm,cpubase,cpuasm,
-        cobjects,symconst,symtable,types,verbose,
+        fmodule,globals,scanner,aasm,cpubase,cpuasm,
+        cutils,cobjects,symconst,symtable,types,verbose,
 {$ifdef NEWCG}
         cgbase,
 {$else}
@@ -297,7 +297,11 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:48  michael
+  Revision 1.3  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:48  michael
   + removed logs
 
 }

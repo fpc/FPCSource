@@ -47,7 +47,7 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       symconst,symtable,aasm,types,htypechk,pass_1,cpubase
 {$ifdef newcg}
       ,tgobj
@@ -635,7 +635,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-12 15:41:15  peter
+  Revision 1.5  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/12 15:41:15  peter
     * fixed bug 1096 (merged)
 
   Revision 1.3  2000/08/02 07:04:56  jonas

@@ -42,8 +42,8 @@ unit pmodules;
 
     uses
        globtype,version,systems,tokens,
-       cobjects,comphook,compiler,
-       globals,verbose,files,
+       cutils,cobjects,comphook,compiler,
+       globals,verbose,fmodule,finput,
        symconst,symtable,aasm,types,
 {$ifdef newcg}
        cgbase,
@@ -998,9 +998,9 @@ unit pmodules;
              main_file := current_scanner^.inputfile;
              while assigned(main_file^.next) do
                main_file := main_file^.next;
- 
+
              current_module^.SetFileName(main_file^.path^+main_file^.name^,true);
- 
+
              stringdispose(current_module^.modulename);
              current_module^.modulename:=stringdup(upper(pattern));
           { check for system unit }
@@ -1466,7 +1466,7 @@ unit pmodules;
          main_file := current_scanner^.inputfile;
          while assigned(main_file^.next) do
            main_file := main_file^.next;
- 
+
          current_module^.SetFileName(main_file^.path^+main_file^.name^,true);
 
          if islibrary then
@@ -1713,7 +1713,11 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-25 08:48:22  jonas
+  Revision 1.6  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/25 08:48:22  jonas
     * fixed bug with include files at the very beginning of .pp/.pas files
       (wrong name used for generating exe/checking unit name) (merged from
       fixes branch)

@@ -50,10 +50,10 @@ interface
 implementation
 
     uses
-       strings,cobjects,
+       strings,cutils,cobjects,
        globtype,globals,verbose,
        symconst,types,
-       hcodegen, systems, files
+       hcodegen, systems,fmodule
 {$ifdef INTERFACE_SUPPORT}
 {$ifdef i386}
        ,cg386ic
@@ -743,7 +743,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.3  2000-07-13 12:08:26  michael
+  Revision 1.4  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/07/13 12:08:26  michael
   + patched to 1.1.0 with former 1.09patch from peter
 
   Revision 1.2  2000/07/13 11:32:41  michael

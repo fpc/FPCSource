@@ -44,7 +44,7 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       symconst,symtable,aasm,types,
       htypechk,pass_1,cpubase
 {$ifdef newcg}
@@ -643,7 +643,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-20 15:05:45  peter
+  Revision 1.7  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/20 15:05:45  peter
     * don't allow pointer indexing in non-fpc modes
     * array type required message instead of type mismatch (merged)
 

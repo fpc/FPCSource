@@ -36,7 +36,7 @@ implementation
 
     uses
       globtype,systems,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       symconst,symtable,aasm,types,
       hcodegen,temp_gen,pass_2,
       cpubase,cpuasm,
@@ -988,7 +988,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-07-28 13:28:25  jonas
+  Revision 1.5  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/07/28 13:28:25  jonas
     * fixed bug in secondshlshr where ecx was released too soon in some
       cases causing a combination of -Or and -dnewoptimizations to generate
       wrong code

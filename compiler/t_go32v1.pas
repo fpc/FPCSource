@@ -42,7 +42,7 @@ unit t_go32v1;
   implementation
 
     uses
-       globtype,globals,cobjects,systems,verbose,script,files;
+       cutils,globtype,globals,cobjects,systems,verbose,script,fmodule;
 
 
 {****************************************************************************
@@ -190,7 +190,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-08-27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }

@@ -388,7 +388,7 @@ unit tree;
 
     uses
        systems,
-       globals,verbose,files,types,
+       cutils,globals,verbose,fmodule,types,
 {$ifdef newcg}
        cgbase
 {$else newcg}
@@ -2150,7 +2150,11 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.7  2000-08-17 12:03:48  florian
+  Revision 1.8  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.7  2000/08/17 12:03:48  florian
     * fixed several problems with the int64 constants
 
   Revision 1.6  2000/08/16 13:06:07  florian

@@ -50,7 +50,7 @@ implementation
 
 uses
   globtype,systems,
-  strings,globals,verbose,files,
+  cutils,strings,globals,verbose,fmodule,
   scanner,aasm,tree,types,
   import,gendef,htypechk,
 {$ifdef newcg}
@@ -2087,7 +2087,11 @@ end.
 
 {
   $Log$
-  Revision 1.9  2000-08-16 18:33:54  peter
+  Revision 1.10  2000-08-27 16:11:52  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.9  2000/08/16 18:33:54  peter
     * splitted namedobjectitem.next into indexnext and listnext so it
       can be used in both lists
     * don't allow "word = word" type definitions (merged)

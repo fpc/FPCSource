@@ -24,7 +24,8 @@ unit verbose;
 interface
 
 uses
-  messages,cobjects;
+  cutils,cobjects,
+  messages;
 
 {$ifdef TP}
   {$define EXTERN_MSG}
@@ -91,7 +92,7 @@ procedure DoneVerbose;
 
 implementation
 uses
-  files,comphook,
+  fmodule,comphook,
   version,globals;
 
 var
@@ -283,24 +284,15 @@ end;
 
 procedure stop;
 begin
-{$ifndef TP}
-  do_stop();
-{$else}
-  do_stop;
-{$endif}
+  do_stop{$ifdef FPC}(){$endif};
 end;
 
 
 procedure ShowStatus;
 begin
   UpdateStatus;
-{$ifndef TP}
-  if do_status() then
+  if do_status{$ifdef FPC}(){$endif} then
    stop;
-{$else}
-  if do_status then
-   stop;
-{$endif}
 end;
 
 
@@ -590,7 +582,11 @@ end.
 
 {
   $Log$
-  Revision 1.3  2000-08-13 12:54:55  peter
+  Revision 1.4  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.3  2000/08/13 12:54:55  peter
     * class member decl wrong then no other error after it
     * -vb has now also line numbering
     * -vb is also used for interface/implementation different decls and

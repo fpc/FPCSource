@@ -41,8 +41,8 @@ unit ag386int;
 
     uses
       strings,
-      globtype,globals,systems,cobjects,
-      files,verbose,cpubase,cpuasm
+      cutils,globtype,globals,systems,cobjects,
+      fmodule,finput,verbose,cpubase,cpuasm
 {$ifdef GDB}
       ,gdb
 {$endif GDB}
@@ -645,7 +645,11 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.4  2000-08-20 17:38:21  peter
+  Revision 1.5  2000-08-27 16:11:49  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.4  2000/08/20 17:38:21  peter
     * smartlinking fixed for linux (merged)
 
   Revision 1.3  2000/07/13 12:08:24  michael

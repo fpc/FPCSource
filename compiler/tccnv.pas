@@ -40,7 +40,7 @@ implementation
 
    uses
       globtype,systems,tokens,
-      cobjects,verbose,globals,
+      cutils,cobjects,verbose,globals,
       symconst,symtable,aasm,types,
 {$ifdef newcg}
       cgbase,
@@ -1042,7 +1042,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.6  2000-08-26 19:40:19  peter
+  Revision 1.7  2000-08-27 16:11:55  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.6  2000/08/26 19:40:19  peter
     * integer(char) explicit typecast support (tp7,delphi compatible)
 
   Revision 1.5  2000/08/02 07:20:32  jonas

@@ -131,7 +131,7 @@ unit og386elf;
 
       uses
         strings,verbose,
-        globtype,globals,files;
+        globtype,cutils,globals,fmodule;
 
     const
 {$ifdef TP}
@@ -1049,7 +1049,11 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.5  2000-08-19 18:44:27  peter
+  Revision 1.6  2000-08-27 16:11:51  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.5  2000/08/19 18:44:27  peter
     * new tdynamicarray implementation using blocks instead of
       reallocmem (merged)
 

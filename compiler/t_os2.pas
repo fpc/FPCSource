@@ -65,8 +65,8 @@ implementation
 {$else Delphi}
      dos,
 {$endif Delphi}
-     globtype,strings,cobjects,comphook,systems,
-     globals,verbose,files,script;
+     cutils,globtype,strings,cobjects,comphook,systems,
+     globals,verbose,fmodule,script;
 
 const   profile_flag:boolean=false;
 
@@ -507,7 +507,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:32:50  michael
+  Revision 1.3  2000-08-27 16:11:54  peter
+    * moved some util functions from globals,cobjects to cutils
+    * splitted files into finput,fmodule
+
+  Revision 1.2  2000/07/13 11:32:50  michael
   + removed logs
 
 }
