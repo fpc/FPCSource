@@ -64,10 +64,11 @@ const
   ieCtrlClickAction  = 'CtrlClickAction';
 
 procedure InitINIFile;
+var S: string;
 begin
-  INIPath:=LocateFile(ININame);
-  if INIPath='' then
-    INIPath:=ININame;
+  S:=LocateFile(ININame);
+  if S<>'' then
+    INIPath:=S;
   INIPath:=FExpand(INIPath);
 end;
 
@@ -223,7 +224,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  1998-12-30 10:25:01  peter
+  Revision 1.3  1998-12-30 13:38:40  peter
+    * patches from Gabor
+
+  Revision 1.2  1998/12/30 10:25:01  peter
     * fixed readinifile
 
   Revision 1.1  1998/12/28 15:47:45  peter

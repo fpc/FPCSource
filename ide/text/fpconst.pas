@@ -46,6 +46,9 @@ const
      acFirstAction        = acTopicSearch;
      acLastAction         = acBrowseSymbol;
 
+     { Startup Option constants }
+     soReturnToLastDir    = $00000001;
+
      { Command constants }
      cmShowClipboard     = 201;
      cmFindProcedure     = 206;
@@ -241,7 +244,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:43  peter
+  Revision 1.3  1998-12-30 13:38:39  peter
+    * patches from Gabor
+
+  Revision 1.2  1998/12/28 15:47:43  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

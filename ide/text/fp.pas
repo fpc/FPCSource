@@ -164,7 +164,7 @@ begin
       NewItem('~C~alculator', '', kbNoKey, cmCalculator, hcCalculator,
       nil)))),
     NewSubMenu('~O~ptions', hcOptionsMenu, NewMenu(
-      NewItem('Mode...','', kbNoKey, cmSetSwitchesMode, hcSetSwitchesMode,
+      NewItem('Mode~.~..','', kbNoKey, cmSetSwitchesMode, hcSetSwitchesMode,
       NewItem('~C~ompiler...','', kbNoKey, cmCompiler, hcCompiler,
       NewItem('~M~emory sizes...','', kbNoKey, cmMemorySizes, hcMemorySizes,
       NewItem('~L~inker...','', kbNoKey, cmLinker, hcLinker,
@@ -498,23 +498,51 @@ begin
   DoneTemplates;
 end;
 
+function IsSwitch(Param: string): boolean;
+begin
+  IsSwitch:=(Param<>'') and (Param[1]<>DirSep) { <- allow UNIX root-relative paths            }
+        and (Param[1] in ['-','/']);           { <- but still accept dos switch char, eg. '/' }
+end;
+
 var MyApp: TIDEApp;
 
-procedure InitApp;
-var S: string;
-    I: integer;
+procedure ProcessParams(BeforeINI: boolean);
+var I: integer;
+    Param: string;
 begin
   for I:=1 to ParamCount do
   begin
-    S:=ParamStr(I);
-    if not(S[1] in['-','/']) then
-      MyApp.Open(S);
+    Param:=ParamStr(I);
+    if IsSwitch(Param) then
+      begin
+        Param:=copy(Param,2,255);
+        if Param<>'' then
+        case Upcase(Param[1]) of
+          'C' : { custom config file (BP compatiblity) }
+           if BeforeINI then
+            INIPath:=copy(Param,2,255);
+          'R' : { enter the directory last exited from (BP comp.) }
+            begin
+              Param:=copy(Param,2,255);
+              if (Param='') or (Param='+') then
+                StartupOptions:=StartupOptions or soReturnToLastDir
+              else
+              if (Param='-') then
+                StartupOptions:=StartupOptions and (not soReturnToLastDir);
+            end;
+        end;
+      end
+    else
+      if BeforeINI=false then
+        MyApp.Open(Param);
   end;
 end;
 
 BEGIN
   writeln('þ Free Pascal IDE  Version '+VersionStr);
   StartupDir:=CompleteDir(FExpand('.'));
+
+  ProcessParams(true);
 
   InitReservedWords;
   InitHelpFiles;
@@ -527,7 +555,9 @@ BEGIN
   ReadSwitches(SwitchesPath);
 
   MyApp.Init;
-  InitApp;
+
+  ProcessParams(false);
+
   MyApp.Run;
   MyApp.Done;
 
@@ -540,7 +570,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:40  peter
+  Revision 1.3  1998-12-30 13:38:38  peter
+    * patches from Gabor
+
+  Revision 1.2  1998/12/28 15:47:40  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

@@ -45,6 +45,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       SwitchesPath     : string = SwitchesName;
       CtrlMouseAction  : integer = acTopicSearch;
       AltMouseAction   : integer = acBrowseSymbol;
+      StartupOptions   : longint = 0;
 
       ActionCommands   : array[acFirstAction..acLastAction] of word =
         (cmHelpTopicSearch,cmGotoCursor,cmToggleBreakpoint,
@@ -59,7 +60,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.1  1998-12-28 15:47:54  peter
+  Revision 1.2  1998-12-30 13:38:42  peter
+    * patches from Gabor
+
+  Revision 1.1  1998/12/28 15:47:54  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file

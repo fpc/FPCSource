@@ -38,7 +38,13 @@ begin
     for I:=high(TSwitchMode) downto low(TSwitchMode) do
       LastItem:=NewSItem(SwitchesModeName[I], LastItem);
     New(RB, Init(R2, LastItem));
-    RB^.SetData(SwitchesMode);
+    L:=ord(SwitchesMode);
+    { ^^^ this is necessary, since TRadioButtons.GetData() reads a full
+      longint and by just specifying the SwitchesMode var (only 1 bytes),
+      the three bytes located next to it in the memory will determine the
+      three most significant bytes of the longint. And if they aren't all
+      zero, then we will select some items outside the actual ones... }
+    RB^.SetData(L);
     Insert(RB);
     R2.Copy(R);
     R2.B.Y:=R2.A.Y+1;
@@ -645,7 +651,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-12-28 15:47:49  peter
+  Revision 1.3  1998-12-30 13:38:41  peter
+    * patches from Gabor
+
+  Revision 1.2  1998/12/28 15:47:49  peter
     + Added user screen support, display & window
     + Implemented Editor,Mouse Options dialog
     + Added location of .INI and .CFG file
