@@ -136,7 +136,7 @@ implementation
     procedure secondstringconst(var p : ptree);
       var
          hp1 : pai;
-         lastlabel : plabel;
+         lastlabel,l1 : plabel;
          pc : pchar;
          same_string : boolean;
          i : word;
@@ -161,8 +161,14 @@ implementation
                         { currently, this is no problem, because   }
                         { typed consts have no leading length or   }
                         { they have no trailing zero               }
+{$ifdef UseAnsiString}
+                        if (hp1^.typ=ait_string) and (lastlabel<>nil) and
+                          (pai_string(hp1)^.len=p^.length+2) then
+{$else UseAnsiString}
                         if (hp1^.typ=ait_string) and (lastlabel<>nil) and
                           (pai_string(hp1)^.len=length(p^.values^)+2) then
+{$endif UseAnsiString}
+
                           begin
                              same_string:=true;
 {$ifndef UseAnsiString}
@@ -205,15 +211,25 @@ implementation
                    case p^.stringtype of
                       st_ansistring:
                         begin
+                           { an empty ansi string is nil! }
                            concat_constlabel(lastlabel,conststring);
-                           consts^.concat(new(pai_const,init_32bit(p^.length)));
-                           consts^.concat(new(pai_const,init_32bit(p^.length)));
-                           consts^.concat(new(pai_const,init_32bit(-1)));
-                           getmem(pc,p^.length+1);
-                           move(p^.values^,pc^,p^.length+1);
-                           { to overcome this problem we set the length explicitly }
-                           { with the ending null char }
-                           consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                           if p^.length=0 then
+                             consts^.concat(new(pai_const,init_32bit(0)))
+                           else
+                             begin
+                                getlabel(l1);
+                                consts^.concat(new(pai_const,init_symbol(strpnew(lab2str(l1)))));
+
+                                consts^.concat(new(pai_const,init_32bit(p^.length)));
+                                consts^.concat(new(pai_const,init_32bit(p^.length)));
+                                consts^.concat(new(pai_const,init_32bit(-1)));
+                                consts^.concat(new(pai_label,init(l1)));
+                                getmem(pc,p^.length+1);
+                                move(p^.values^,pc^,p^.length+1);
+                                { to overcome this problem we set the length explicitly }
+                                { with the ending null char }
+                                consts^.concat(new(pai_string,init_length_pchar(pc,p^.length+1)));
+                             end;
                         end;
                       st_shortstring:
                         begin
@@ -346,7 +362,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  1998-07-20 10:23:00  florian
+  Revision 1.9  1998-07-20 18:40:10  florian
+    * handling of ansi string constants should now work
+
+  Revision 1.8  1998/07/20 10:23:00  florian
     * better ansi string assignement
 
   Revision 1.7  1998/07/18 22:54:25  florian

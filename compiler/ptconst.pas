@@ -246,67 +246,96 @@ unit ptconst;
               p:=comp_expr(true);
               do_firstpass(p);
               { first take care of prefixes for long and ansi strings }
+              case pstringdef(def)^.string_typ of
+                 st_shortstring:
+                   begin
+                      if p^.treetype=stringconstn then
+                        begin
+{$ifdef UseAnsiString}
+                           if p^.length>=def^.size then
+                             strlength:=def^.size-1
+                           else
+                             strlength:=p^.length;
+                           datasegment^.concat(new(pai_const,init_8bit(strlength)));
+                           { this can also handle longer strings }
+                           generate_pascii(datasegment,p^.values,strlength);
+{$else UseAnsiString}
+                           if length(p^.values^)>=def^.size then
+                             strlength:=def^.size-1
+                           else
+                             strlength:=length(p^.values^);
+                           generate_ascii(char(strlength)+p^.values^);
+{$endif UseAnsiString}
+                        end
+                      else if is_constcharnode(p) then
+                        begin
+                           datasegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
+                           strlength:=1;
+                        end
+                      else Message(cg_e_illegal_expression);
+
+                      if def^.size>strlength then
+                        begin
+                           getmem(ca,def^.size-strlength);
+                           fillchar(ca[0],def^.size-strlength-1,' ');
+                           ca[def^.size-strlength-1]:=#0;
+{$ifdef UseAnsiString}
+                           { this can also handle longer strings }
+                           { def^.size contains also the leading length, so we }
+                           { we have to subtract one                           }
+                           generate_pascii(datasegment,ca,def^.size-strlength-1);
+{$else UseAnsiString}
+                           datasegment^.concat(new(pai_string,init_pchar(ca)));
+{$endif UseAnsiString}
+                        end;
+                    end;
 {$ifdef UseLongString}
-              if pstringdef(def)^.string_typ=longstring then
-                begin
-                  { first write the maximum size }
-                  datasegment^.concat(new(pai_const,init_32bit(p^.length)))));
-                end else
+                 st_longstring:
+                   begin
+                     { first write the maximum size }
+                     datasegment^.concat(new(pai_const,init_32bit(p^.length)))));
+                     writestringdata(datasegment);
+                   end;
 {$endif UseLongString}
 {$ifdef UseAnsiString}
-              if pstringdef(def)^.string_typ=st_ansistring then
-                begin
-{$ifdef debug}
-                  datasegment^.concat(new(pai_asm_comment,init('Header of ansistring')));
-{$endif debug}
-                  { first write the maximum size }
-                  datasegment^.concat(new(pai_const,init_32bit(pstringdef(def)^.len)));
-                  { second write the real length }
-                  datasegment^.concat(new(pai_const,init_32bit(p^.length)));
-                  { redondent with maxlength but who knows ... (PM) }
-                  { third write use count (set to -1 for safety ) }
-                  datasegment^.concat(new(pai_const,init_32bit(-1)));
-                  if assigned(sym) then
-                    sym^.really_insert_in_data;
-                end;
+                 st_ansistring:
+                   begin
+                      { an empty ansi string is nil! }
+                      if (p^.treetype=stringconstn) and (p^.length=0) then
+                        datasegment^.concat(new(pai_const,init_32bit(0)))
+                      else
+                        begin
+                           getlabel(ll);
+                           datasegment^.concat(new(pai_const,init_symbol(strpnew(lab2str(ll)))));
+                           { first write the maximum size }
+                           consts^.concat(new(pai_const,init_32bit(p^.length)));
+                           { second write the real length }
+                           consts^.concat(new(pai_const,init_32bit(p^.length)));
+                           { redondent with maxlength but who knows ... (PM) }
+                           { third write use count (set to -1 for safety ) }
+                           consts^.concat(new(pai_const,init_32bit(-1)));
+                           { not longer necessary, because it insert_indata
+                           if assigned(sym) then
+                             sym^.really_insert_in_data;
+                           }
+                           consts^.concat(new(pai_label,init(ll)));
+                           if p^.treetype=stringconstn then
+                             begin
+                                { this can also handle longer strings }
+                                generate_pascii(consts,p^.values,p^.length);
+                             end
+                           else if is_constcharnode(p) then
+                             begin
+                                consts^.concat(new(pai_const,init_8bit(p^.value)));
+                                strlength:=1;
+                             end
+                           else Message(cg_e_illegal_expression);
+                           consts^.concat(new(pai_const,init_8bit(0)));
+                        end;
+                    end;
 {$endif UseAnsiString}
-              { the actual write is independent of the string_typ }
-              if p^.treetype=stringconstn then
-                begin
-{$ifdef UseAnsiString}
-                   if p^.length>=def^.size then
-                     strlength:=def^.size-1
-                   else
-                     strlength:=p^.length;
-                   { this can also handle longer strings }
-                   generate_pascii(p^.values,strlength);
-{$else UseAnsiString}
-                   if length(p^.values^)>=def^.size then
-                     strlength:=def^.size-1
-                   else
-                     strlength:=length(p^.values^);
-                   generate_ascii(char(strlength)+p^.values^);
-{$endif UseAnsiString}
-                end
-              else if is_constcharnode(p) then
-                begin
-                   datasegment^.concat(new(pai_string,init(#1+char(byte(p^.value)))));
-                   strlength:=1;
-                end
-              else Message(cg_e_illegal_expression);
-              if def^.size>strlength then
-                begin
-                   getmem(ca,def^.size-strlength);
-                   fillchar(ca[0],def^.size-strlength-1,' ');
-                   ca[def^.size-strlength-1]:=#0;
-{$ifdef UseAnsiString}
-                   { this can also handle longer strings }
-                   generate_pascii(ca,def^.size-strlength);
-{$else UseAnsiString}
-                   datasegment^.concat(new(pai_string,init_pchar(ca)));
-{$endif UseAnsiString}
-                   disposetree(p);
-                end;
+              end;
+              disposetree(p);
            end;
          arraydef:
            begin
@@ -450,7 +479,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.7  1998-07-18 22:54:29  florian
+  Revision 1.8  1998-07-20 18:40:15  florian
+    * handling of ansi string constants should now work
+
+  Revision 1.7  1998/07/18 22:54:29  florian
     * some ansi/wide/longstring support fixed:
        o parameter passing
        o returning as result from functions

@@ -1245,8 +1245,10 @@
 
         begin
            { here there is a problem for ansistrings !!                 }
-           { we must write the label only after the 12 header bytes (PM) }
+           { we must write the label only after the 12 header bytes (PM)
            if not is_ansistring(definition) then
+           }
+           { solved, the ansis string is moved to consts (FK) }
              really_insert_in_data;
         end;
 
@@ -1644,7 +1646,10 @@
 
 {
   $Log$
-  Revision 1.23  1998-07-14 21:37:24  peter
+  Revision 1.24  1998-07-20 18:40:16  florian
+    * handling of ansi string constants should now work
+
+  Revision 1.23  1998/07/14 21:37:24  peter
     * fixed packrecords as discussed at the alias
 
   Revision 1.22  1998/07/14 14:47:08  peter

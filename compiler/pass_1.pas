@@ -3664,7 +3664,11 @@ unit pass_1;
                   { evalutes length of constant strings direct }
                   if (p^.left^.treetype=stringconstn) then
                     begin
+{$ifdef UseAnsiString}
+                       hp:=genordinalconstnode(p^.left^.length,s32bitdef);
+{$else UseAnsiString}
                        hp:=genordinalconstnode(length(p^.left^.values^),s32bitdef);
+{$endif UseAnsiString}
                        disposetree(p);
                        firstpass(hp);
                        p:=hp;
@@ -5044,7 +5048,10 @@ unit pass_1;
 end.
 {
   $Log$
-  Revision 1.42  1998-07-20 10:23:01  florian
+  Revision 1.43  1998-07-20 18:40:14  florian
+    * handling of ansi string constants should now work
+
+  Revision 1.42  1998/07/20 10:23:01  florian
     * better ansi string assignement
 
   Revision 1.41  1998/07/18 22:54:27  florian

@@ -137,7 +137,7 @@ unit hcodegen;
     { concates/inserts the ASCII string from pchar to the data  segment }
     { WARNING : if hs has no #0 and strlen(hs)=length           }
     { the terminal zero is not written                          }
-    procedure generate_pascii(hs : pchar;length : longint);
+    procedure generate_pascii(a : paasmoutput;hs : pchar;length : longint);
     procedure generate_pascii_insert(hs : pchar;length : longint);
 
     { convert/concats a label for constants in the consts section }
@@ -294,8 +294,8 @@ implementation
       end;
 
 
-    { concates the ASCII string from pchar to the const segment }
-    procedure generate_pascii(hs : pchar;length : longint);
+    { concates the ASCII string from pchar to the asmslist a }
+    procedure generate_pascii(a : paasmoutput;hs : pchar;length : longint);
       var
          real_end,current_begin,current_end : pchar;
          c :char;
@@ -313,10 +313,12 @@ implementation
                    { store the char for next loop }
                    c:=current_end[0];
                    current_end[0]:=#0;
-                   datasegment^.concat(new(pai_string,init_length_pchar(strnew(current_begin,32),32)));
+                   a^.concat(new(pai_string,init_length_pchar(strnew(current_begin,32),32)));
+                   current_begin:=current_end;
                    length:=length-32;
                 end;
-              datasegment^.concat(new(pai_string,init_length_pchar(strnew(current_begin,length),length)));
+              current_begin[0]:=c;
+              a^.concat(new(pai_string,init_length_pchar(strnew(current_begin,length),length)));
            end;
       end;
 
@@ -401,7 +403,10 @@ end.
 
 {
   $Log$
-  Revision 1.9  1998-06-05 16:13:34  pierre
+  Revision 1.10  1998-07-20 18:40:13  florian
+    * handling of ansi string constants should now work
+
+  Revision 1.9  1998/06/05 16:13:34  pierre
     * fix for real and string consts inside inlined procs
 
   Revision 1.8  1998/06/04 23:51:40  peter
