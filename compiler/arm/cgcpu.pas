@@ -37,6 +37,9 @@ unit cgcpu;
 
     type
       tcgarm = class(tcg)
+        procedure init_register_allocators;override;
+        procedure done_register_allocators;override;
+
         procedure a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);override;
         procedure a_param_ref(list : taasmoutput;size : tcgsize;const r : treference;const locpara : tparalocation);override;
         procedure a_paramaddr_ref(list : taasmoutput;const r : treference;const locpara : tparalocation);override;
@@ -112,7 +115,19 @@ unit cgcpu;
 
 
     uses
-       globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,tgobj,cpupi;
+       globtype,globals,verbose,systems,cutils,symconst,symdef,symsym,rgobj,rgcpu,tgobj,cpupi;
+
+
+    procedure tcgarm.init_register_allocators;
+      begin
+        rg:=trgcpu.create(11,#0#1#2#3#4#5#6#7#8#9#10);
+      end;
+
+
+    procedure tcgarm.done_register_allocators;
+      begin
+        rg.free;
+      end;
 
 
     procedure tcgarm.a_param_const(list : taasmoutput;size : tcgsize;a : aword;const locpara : tparalocation);
@@ -254,7 +269,7 @@ unit cgcpu;
          tmpreg : tregister;
          so : tshifterop;
        begin
-          if is_shifter_const(a,shift) and (not(op in [OP_IMUL,OP_MUL])) then
+          if is_shifter_const(a,shift) and not(op in [OP_IMUL,OP_MUL]) then
             case op of
               OP_NEG,OP_NOT,
               OP_DIV,OP_IDIV:
@@ -300,7 +315,7 @@ unit cgcpu;
                 a_op_reg_reg(list,OP_NEG,size,src,dst)
               else
                 begin
-                  tmpreg := rg.getregisterint(list,size);
+                  tmpreg:=rg.getregisterint(list,size);
                   a_load_const_reg(list,size,a,tmpreg);
                   a_op_reg_reg_reg(list,op,size,tmpreg,src,dst);
                   rg.ungetregisterint(list,tmpreg);
@@ -344,18 +359,8 @@ unit cgcpu;
            OP_MUL:
              begin
                { the arm doesn't allow that rd and rm are the same }
-               if dst=src2 then
-                 begin
-                   if src1<>src2 then
-                     list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src1,src2))
-                   else
-                     begin
-                       writeln('Warning: Fix MUL');
-                       list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
-                     end;
-                 end
-               else
-                 list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
+               rg.add_edge(dst,src2);
+               list.concat(taicpu.op_reg_reg_reg(A_MUL,dst,src2,src1));
              end;
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
@@ -785,6 +790,7 @@ unit cgcpu;
                 list.concat(instr);
               end;
           end;
+        reference_release(list,tmpref);
       end;
 
 
@@ -817,8 +823,8 @@ unit cgcpu;
           current_procinfo.aktlocaldata.concat(tai_const.Create_32bit(ref.offset));
 
         { load consts entry }
-        tmpreg:=rg.getregisterint(list,OS_INT);
         reference_reset(tmpref);
+        tmpreg:=rg.getregisterint(list,OS_INT);
         tmpref.symbol:=l;
         tmpref.base:=NR_PC;
         list.concat(taicpu.op_reg_ref(A_LDR,tmpreg,tmpref));
@@ -828,7 +834,6 @@ unit cgcpu;
             if ref.index<>NR_NO then
               begin
                 list.concat(taicpu.op_reg_reg_reg(A_ADD,tmpreg,ref.base,tmpreg));
-                rg.ungetregisterint(list,ref.base);
                 ref.base:=tmpreg;
               end
             else
@@ -841,6 +846,7 @@ unit cgcpu;
           end
         else
           ref.base:=tmpreg;
+
         ref.offset:=0;
         ref.symbol:=nil;
       end;
@@ -1112,7 +1118,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.18  2003-09-09 12:53:40  florian
+  Revision 1.19  2003-09-11 11:55:00  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.18  2003/09/09 12:53:40  florian
     * some assembling problems fixed
     * improved loadaddr_ref_reg
 

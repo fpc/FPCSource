@@ -93,13 +93,18 @@ unit rgcpu;
 
     }
 
-initialization
-  rg := trgcpu.create(last_int_supreg-first_int_supreg+1);
 end.
 
 {
   $Log$
-  Revision 1.3  2003-09-04 00:15:29  florian
+  Revision 1.4  2003-09-11 11:55:00  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.3  2003/09/04 00:15:29  florian
     * first bunch of adaptions of arm compiler for new register type
 
   Revision 1.2  2003/08/25 23:20:38  florian

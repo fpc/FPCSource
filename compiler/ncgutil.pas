@@ -1824,7 +1824,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.141  2003-09-10 08:31:47  marco
+  Revision 1.142  2003-09-11 11:54:59  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.141  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.140  2003/09/07 22:09:35  peter
@@ -1853,7 +1860,6 @@ end.
   Revision 1.137.2.1  2003/08/27 19:55:54  peter
     * first tregister patch
 
->>>>>>> 1.137.2.4
   Revision 1.137  2003/08/20 20:29:06  daniel
     * Some more R_NO changes
     * Preventive code to loadref added

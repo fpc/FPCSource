@@ -36,8 +36,8 @@ unit cpupara;
     type
        tarmparamanager = class(tparamanager)
           function push_addr_param(def : tdef;calloption : tproccalloption) : boolean;override;
-          function getintparaloc(list: taasmoutput; nr : longint) : tparalocation;override;
-          procedure freeintparaloc(list: taasmoutput; nr : longint); override;
+          function getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;override;
+          // procedure freeintparaloc(list: taasmoutput; nr : longint); override;
           procedure create_paraloc_info(p : tabstractprocdef; side: tcallercallee);override;
        end;
 
@@ -49,8 +49,7 @@ unit cpupara;
        rgobj,
        defutil,symsym;
 
-    function tarmparamanager.getintparaloc(list: taasmoutput; nr : longint) : tparalocation;
-
+    function tarmparamanager.getintparaloc(calloption : tproccalloption; nr : longint) : tparalocation;
       begin
          fillchar(result,sizeof(tparalocation),0);
          if nr<1 then
@@ -59,7 +58,6 @@ unit cpupara;
            begin
               result.loc:=LOC_REGISTER;
               result.register:=newreg(R_INTREGISTER,RS_R0+nr,R_SUBWHOLE);
-              rg.getexplicitregisterint(list,result.register);
            end
          else
            begin
@@ -70,7 +68,7 @@ unit cpupara;
          result.size := OS_INT;
       end;
 
-
+{
     procedure tarmparamanager.freeintparaloc(list: taasmoutput; nr : longint);
 
       var
@@ -85,10 +83,9 @@ unit cpupara;
              rg.ungetregisterint(list,r);
            end;
       end;
-
+}
 
     function getparaloc(p : tdef) : tcgloc;
-
       begin
          { Later, the LOC_REFERENCE is in most cases changed into LOC_REGISTER
            if push_addr_param for the def is true
@@ -328,7 +325,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2003-09-09 12:53:40  florian
+  Revision 1.7  2003-09-11 11:55:00  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.6  2003/09/09 12:53:40  florian
     * some assembling problems fixed
     * improved loadaddr_ref_reg
 

@@ -239,13 +239,17 @@ unit rgcpu;
         add_constraints(result);
       end;
 
-
-initialization
 end.
-
 {
   $Log$
-  Revision 1.34  2003-09-09 20:59:27  daniel
+  Revision 1.35  2003-09-11 11:55:00  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.34  2003/09/09 20:59:27  daniel
     * Adding register allocation order
 
   Revision 1.33  2003/09/07 22:09:35  peter

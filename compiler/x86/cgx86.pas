@@ -36,7 +36,6 @@ unit cgx86;
 
     type
       tcgx86 = class(tcg)
-
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
@@ -162,10 +161,6 @@ unit cgx86;
           C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
 
 
-{****************************************************************************
-                       This is private property, keep out! :)
-****************************************************************************}
-
     procedure Tcgx86.init_register_allocators;
 
     begin
@@ -177,6 +172,10 @@ unit cgx86;
     begin
       rg.free;
     end;
+
+{****************************************************************************
+                       This is private property, keep out! :)
+****************************************************************************}
 
     procedure tcgx86.sizes2load(s1,s2 : tcgsize; var op: tasmop; var s3: topsize);
 
@@ -1623,7 +1622,14 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.63  2003-09-09 21:03:17  peter
+  Revision 1.64  2003-09-11 11:55:00  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.63  2003/09/09 21:03:17  peter
     * basics for x86 register calling
 
   Revision 1.62  2003/09/09 20:59:27  daniel

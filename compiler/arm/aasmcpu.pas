@@ -293,7 +293,7 @@ implementation
 
     function taicpu.is_move:boolean;
       begin
-        is_move := opcode = A_MOV;
+        is_move := opcode=A_MOV;
       end;
 
 
@@ -366,7 +366,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2003-09-06 11:21:49  florian
+  Revision 1.12  2003-09-11 11:54:59  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.11  2003/09/06 11:21:49  florian
     * fixed stm and ldm to be usable with preindex operand
 
   Revision 1.10  2003/09/04 21:07:03  florian

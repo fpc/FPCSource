@@ -339,6 +339,7 @@ unit rgobj;
           procedure epilogue_colouring;
           procedure colour_registers;
           function spill_registers(list:Taasmoutput;const regs_to_spill:string):boolean;
+          procedure add_edge(u,v:Tsuperregister);
        protected
           cpu_registers:byte;
           igraph:Tinterferencegraph;
@@ -366,7 +367,6 @@ unit rgobj;
           procedure getregisterintinline(list:Taasmoutput;position:Tai;subreg:Tsubregister;var result:Tregister);
           procedure ungetregisterintinline(list:Taasmoutput;position:Tai;r:Tregister);
 
-         procedure add_edge(u,v:Tsuperregister);
          procedure add_edges_used(u:Tsuperregister);
          procedure add_to_movelist(u:Tsuperregister;data:Tlinkedlistitem);
          function move_related(n:Tsuperregister):boolean;
@@ -2221,7 +2221,14 @@ end.
 
 {
   $Log$
-  Revision 1.73  2003-09-09 20:59:27  daniel
+  Revision 1.74  2003-09-11 11:54:59  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.73  2003/09/09 20:59:27  daniel
     * Adding register allocation order
 
   Revision 1.72  2003/09/09 15:55:44  peter

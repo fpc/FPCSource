@@ -36,15 +36,28 @@ interface
 
 implementation
 
+  uses
+    paramgr;
+
+
   procedure tarmcallnode.push_framepointer;
     begin
+      framepointer_paraloc:=paramanager.getintparaloc(procdefinition.proccalloption,1);
     end;
+
 
 begin
    ccallnode:=tarmcallnode;
 end.
 {
   $Log$
-  Revision 1.1  2003-08-27 00:27:56  florian
+  Revision 1.2  2003-09-11 11:55:00  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.1  2003/08/27 00:27:56  florian
     + same procedure as very day: today's work on arm
 }

@@ -42,11 +42,11 @@ interface
 
        tcgcallnode = class(tcallnode)
        private
-          framepointer_paraloc : tparalocation;
           procedure release_para_temps;
           procedure normal_pass_2;
           procedure inlined_pass_2;
        protected
+          framepointer_paraloc : tparalocation;
           refcountedtemp : treference;
           procedure handle_return_value;
           {# This routine is used to push the current frame pointer
@@ -566,6 +566,7 @@ implementation
              begin
                if ppn.tempparaloc.loc=LOC_REGISTER then
                  begin
+                   paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
                    paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
 {$ifdef sparc}
                    case ppn.tempparaloc.size of
@@ -1334,7 +1335,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.112  2003-09-10 08:31:47  marco
+  Revision 1.113  2003-09-11 11:54:59  florian
+    * improved arm code generation
+    * move some protected and private field around
+    * the temp. register for register parameters/arguments are now released
+      before the move to the parameter register is done. This improves
+      the code in a lot of cases.
+
+  Revision 1.112  2003/09/10 08:31:47  marco
    * Patch from Peter for paraloc
 
   Revision 1.111  2003/09/07 22:09:35  peter
