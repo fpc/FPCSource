@@ -131,9 +131,9 @@ type
     property Pattern : longword read FPattern write SetPattern;
   end;
   TFPCustomPenClass = class of TFPCustomPen;
-
-  TFPBrushStyle = (bsClear, bsSolid, bsBDiagonal, bsFDiagonal, bsCross, bsDiagCross,
-                   bsHorizontal, bsVertical, bsImage, bsPattern);
+  
+  TFPBrushStyle = (bsSolid, bsClear, bsHorizontal, bsVertical, bsFDiagonal,
+                   bsBDiagonal, bsCross, bsDiagCross, bsImage, bsPattern);
   TBrushPattern = array[0..PatternBitCount-1] of TPenPattern;
   PBrushPattern = ^TBrushPattern;
 
