@@ -181,30 +181,30 @@
 	  end;
 
 	function is_in_getmem_list (p : pointer) : boolean;
-		var pp : pheap_mem_info;
-			i : longint;
+             var pp : pheap_mem_info;
+		 i : longint;
 	  begin
 		is_in_getmem_list:=false;
 		pp:=last_assigned;
 		i:=0;
 		while pp<>nil do
 		  begin
-			 if (pp^.sig<>$DEADBEEF) and (pp^.sig <> $AAAAAAAA) then
-			   begin
-				  writeln('error in linked list of heap_mem_info');
-				  runerror(204);
-			   end;
+       		      if (pp^.sig<>$DEADBEEF) and (pp^.sig <> $AAAAAAAA) then
+			  begin
+			      writeln('error in linked list of heap_mem_info');
+			       runerror(204);
+			  end
 
-			 if pp=p then
-               begin
-				  is_in_getmem_list:=true;
-               end;
-             pp:=pp^.previous;
-             inc(i);
-			 if i > getmem_nb - freemem_nb then
-               writeln('error in linked list of heap_mem_info');
-          end;
-      end;
+		      if pp=p then
+                          begin
+			      is_in_getmem_list:=true;
+                          end;
+                      pp:=pp^.previous;
+                      inc(i);
+		      if i > getmem_nb - freemem_nb then
+                          writeln('error in linked list of heap_mem_info');
+                  end;
+        end;
 
     function is_in_free(p : pointer) : boolean;
 
@@ -237,32 +237,32 @@
     function cal_memavail : longint;
 
       var
-		 hp : pfreerecord;
+	 hp : pfreerecord;
          ma : longint;
-		 i  : longint;
+	 i  : longint;
 
-	  begin
-		 ma:=heapend-heapptr;
-		 if heapblocks then
-		 for i:=1 to maxblock do
+	begin
+	    ma:=heapend-heapptr;
+	    if heapblocks then
+		for i:=1 to maxblock do
 		   ma:=ma+i*8*nblocks^[i];
-		 hp:=freelist;
-		 while assigned(hp) do
-		   begin
-			  ma:=ma+hp^.size;
+	    hp:=freelist;
+	    while assigned(hp) do
+		begin
+		    ma:=ma+hp^.size;
 {$IfDef CHECKHEAP}
-			  if (longint(hp^.next)=0) then
-				begin
-				   if ((longint(hp)+hp^.size)>longint(heapptr)) then
-					 writeln('freerecordlist bad at end ')
-				end
-			  else
-			  if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
-                             ((hp^.size and 7) <> 0)) then
-                  writeln('error in freerecord list ');
+		    if (longint(hp^.next)=0) then
+			begin
+		            if ((longint(hp)+hp^.size)>longint(heapptr)) then
+				writeln('freerecordlist bad at end ')
+			end
+		    else
+			if ((longint(hp^.next)<=(longint(hp)+hp^.size)) or
+                         ((hp^.size and 7) <> 0)) then
+                             writeln('error in freerecord list ');
 {$EndIf CHECKHEAP}
-              hp:=hp^.next;
-		   end;
+                    hp:=hp^.next;
+		 end;
          cal_memavail:=ma;
       end;
 
@@ -289,8 +289,8 @@
       tempheap.heapend:=heapend;
       tempheap.memavail:=longint(tempheap.heapend) - longint(tempheap.heaporg);
       tempheap.heapsize:=tempheap.memavail;
-	  getmem(tempheap.block,sizeof(tblocks));
-	  getmem(tempheap.nblock,sizeof(tnblocks));
+      getmem(tempheap.block,sizeof(tblocks));
+      getmem(tempheap.nblock,sizeof(tnblocks));
       for i:=1 to maxblock do
         begin
         tempheap.block^[i]:=nil;
@@ -1062,7 +1062,10 @@ end;
 
 {
   $Log$
-  Revision 1.9  1998-06-16 14:55:49  daniel
+  Revision 1.10  1998-06-24 11:53:26  daniel
+  * Removed some tabs.
+
+  Revision 1.9  1998/06/16 14:55:49  daniel
   * Optimizations
 
   Revision 1.8  1998/06/15 15:15:13  daniel
