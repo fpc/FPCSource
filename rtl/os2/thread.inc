@@ -90,6 +90,42 @@ begin
  Inc (ThreadVarBlockSize, Size);
 end;
 
+type ltvInitEntry = 
+  record
+    varaddr : pdword;
+    size    : longint;
+  end;
+  pltvInitEntry = ^ltvInitEntry;
+
+procedure init_unit_threadvars (tableEntry : pltvInitEntry);
+begin
+  while tableEntry^.varaddr <> nil do
+  begin
+    init_threadvar (tableEntry^.varaddr^, tableEntry^.size);
+    inc (pchar (tableEntry), sizeof (tableEntry^));
+  end;
+end;
+
+type TltvInitTablesTable =
+  record
+    count : dword;
+    tables: array [1..32767] of pltvInitEntry;
+  end;
+  
+var
+  ThreadvarTablesTable : TltvInitTablesTable; external name 'FPC_LOCALTHREADVARTABLES';
+  
+procedure init_all_unit_threadvars; [public,alias: 'FPC_INITIALIZELOCALTHREADVARS'];
+var i : integer;
+begin
+  {$ifdef DEBUG_MT}
+  WriteLn ('init_all_unit_threadvars (%d) units',ThreadvarTablesTable.count);
+  {$endif}
+  for i := 1 to ThreadvarTablesTable.count do
+    init_unit_threadvars (ThreadvarTablesTable.tables[i]);
+end;
+
+
 function Relocate_ThreadVar (TVOffset: dword): pointer;
                                       [public,alias: 'FPC_RELOCATE_THREADVAR'];
 begin
@@ -325,7 +361,10 @@ end;
 
 {
   $Log$
-  Revision 1.6  2001-10-23 21:51:03  peter
+  Revision 1.7  2002-03-28 16:34:29  armin
+  + initialize threadvars defined local in units
+
+  Revision 1.6  2001/10/23 21:51:03  peter
     * criticalsection renamed to rtlcriticalsection for kylix compatibility
 
   Revision 1.5  2001/10/09 02:42:05  carl
