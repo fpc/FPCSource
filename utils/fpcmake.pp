@@ -33,7 +33,7 @@ const
 type
   tsections=(sec_none,
     sec_units,sec_exes,sec_loaders,sec_examples,sec_package,
-    sec_compile,sec_require,sec_install,sec_sourceinstall,sec_zipinstall,
+    sec_compile,sec_require,sec_install,sec_sourceinstall,sec_zipinstall,sec_zipsourceinstall,
     sec_clean,sec_libs,sec_command,sec_exts,sec_dirs,sec_tools,sec_info
   );
 
@@ -49,13 +49,13 @@ const
 
   sectionstr : array[tsections] of string=('none',
     'units','exes','loaders','examples','package',
-    'compile','require','install','sourceinstall','zipinstall',
+    'compile','require','install','sourceinstall','zipinstall','zipsourceinstall',
     'clean','libs','command','exts','dirs','tools','info'
   );
 
   sectiondef : array[tsections] of boolean=(false,
     true,true,false,false,false,
-    true,false,true,true,true,
+    true,false,true,true,true,true,
     true,true,true,true,true,true,true
   );
 
@@ -132,12 +132,11 @@ type
     TargetExamples,
     TargetPkgs,
     TargetRST      : TTargetsString;
+    InstallSourceSubdirs : boolean;
     InstallPackageName,
     InstallUnitSubDir,
     InstallPrefixDir,
     InstallDataDir,
-    InstallSourceSubDir,
-    InstallSourceTopDir,
     InstallBaseDir : string;
     InstallUnits,
     InstallFiles   : TTargetsString;
@@ -355,8 +354,7 @@ begin
      InstallBaseDir:=ReadString(ini_install,'basedir','');
      InstallDataDir:=ReadString(ini_install,'datadir','');
      InstallUnitSubDir:=ReadString(ini_install,'unitsubdir','');
-     InstallSourceSubDir:=ReadString(ini_install,'sourcesubdir','');
-     InstallSourceTopDir:=ReadString(ini_install,'sourcetopdir','');
+     InstallSourceSubdirs:=ReadBool(ini_install,'sourcesubdirs',true);
      ReadTargetsString(InstallUnits,ini_install,'units','');
      ReadTargetsString(InstallFiles,ini_install,'files','');
    { zip }
@@ -402,6 +400,17 @@ begin
       section[sec_exes]:=true;
      if not TargetStringEmpty(TargetExamples) then
       section[sec_examples]:=true;
+     { dependencies }
+     if section[sec_zipsourceinstall] then
+      begin
+        section[sec_zipinstall]:=true;
+        section[sec_sourceinstall]:=true;
+      end;
+     if section[sec_sourceinstall] then
+      begin
+        section[sec_tools]:=true;
+        section[sec_dirs]:=true;
+      end;
    { dirs }
      DirFpc:=ReadString(ini_dirs,'fpcdir','');
      DirPackage:=ReadString(ini_dirs,'packagedir','$(FPCDIR)/packages');
@@ -617,10 +626,17 @@ var
      end;
     hs:='';
     { zipinstall is special, it allows packages }
-    if ((rulestr[rule]='zipinstall') or
-        (rulestr[rule]='zipsourceinstall')) and
-       (not TargetStringEmpty(userini.targetpkgs)) then
-     hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(PKGOBJECTS))'
+    if (not userini.installsourcesubdirs) and
+       ((rulestr[rule]='zipsourceinstall') or (rulestr[rule]='sourceinstall')) then
+     begin
+       if userini.section[rule2sec[rule]] then
+        hs:=hs+' fpc_'+rulestr[rule];
+     end
+    else
+     if ((rulestr[rule]='zipinstall') or
+         (rulestr[rule]='zipsourceinstall')) and
+        (not TargetStringEmpty(userini.targetpkgs)) then
+      hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(PKGOBJECTS))'
     else
      begin
        if userini.section[rule2sec[rule]] then
@@ -696,7 +712,7 @@ var
 
   function AddTargetDefines(const ts:TTargetsString;const prefix:string):string;
   var
-    k1,k2,j,i : integer;
+    k1,k2,k3,j,i : integer;
     name,hs,hs2,hs3 : string;
   begin
     hs2:='';
@@ -721,9 +737,9 @@ var
                 k2:=length(name)+1;
               end;
              hs3:=Copy(name,k1+1,k2-k1-1);
-             for j:=1to length(hs3) do
-              if hs3[j]=',' then
-               hs3[j]:=' ';
+             for k3:=1to length(hs3) do
+              if hs3[k3]=',' then
+               hs3[k3]:=' ';
              name:=Copy(name,1,k1-1);
              mf.Add(prefix+VarName(name)+'='+hs3);
            end
@@ -852,13 +868,23 @@ var
      else
       begin
         { zipinstall is special for pkgs }
-        if (rulestr[j]='zipinstall') or (rulestr[j]='zipsourceinstall') then
+        if (rulestr[j]='zipinstall') then
          begin
            mf.Add('pkg'+packname+'_'+rulestr[j]+':');
-           mf.Add(#9'$(MAKE) fpc_'+rulestr[j]+' PACKAGENAME='+packname+' ZIPTARGET=pkg'+packname+'_'+Copy(rulestr[j],4,length(rulestr[j])-3));
+           mf.Add(#9'$(MAKE) fpc_zipinstall PACKAGENAME='+packname+
+                  ' ZIPTARGET=pkg'+packname+'_install');
            if j<rules then
             mf.Add('');
-         end;
+         end
+        else
+         if (rulestr[j]='zipsourceinstall') then
+          begin
+            mf.Add('pkg'+packname+'_'+rulestr[j]+':');
+            mf.Add(#9'$(MAKE) fpc_zipinstall PACKAGENAME='+packname+
+                   ' PACKAGESUFFIX=src ZIPTARGET=pkg'+packname+'_sourceinstall');
+            if j<rules then
+             mf.Add('');
+          end;
       end;
     mf.Add('endif');
   end;
@@ -991,10 +1017,6 @@ begin
       Add('DATAINSTALLDIR='+userini.installdatadir);
      if userini.InstallUnitSubDir<>'' then
       Add('UNITSUBDIR='+userini.InstallUnitSubDir);
-     if userini.InstallSourceSubDir<>'' then
-      Add('SOURCESUBDIR='+userini.InstallSourceSubDir);
-     if userini.InstallSourceTopDir<>'' then
-      Add('SOURCETOPDIR='+userini.InstallSourceTopDir);
      if userini.installpackagename<>'' then
       Add('PACKAGENAME='+userini.installpackagename);
 
@@ -1175,6 +1197,7 @@ begin
      AddSection(userini.Section[sec_Install],'installrules');
      AddSection(userini.Section[sec_SourceInstall],'sourceinstallrules');
      AddSection(userini.Section[sec_ZipInstall],'zipinstallrules');
+     AddSection(userini.Section[sec_ZipSourceInstall],'zipsourceinstallrules');
      AddSection(userini.Section[sec_Clean],'cleanrules');
      AddSection(userini.Section[sec_require],'requirerules');
      if userini.Section[sec_Info] then
@@ -1273,7 +1296,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.25  2000-01-13 21:08:46  peter
+  Revision 1.26  2000-01-14 12:14:41  peter
+    * sourceinstall updates
+
+  Revision 1.25  2000/01/13 21:08:46  peter
     * zipsourcesinstall
     * zip fixes, bzip2 support with USETAR=bz2
     * multi pkg's support to include several dirs
