@@ -234,6 +234,7 @@ end;
     ThreadManager which gives run-time error. Use if no thread support.
   ---------------------------------------------------------------------}
 
+{$ifndef DISABLE_NO_THREAD_MANAGER}
 
 Resourcestring
   SNoThreads = 'This binary has no thread support compiled in.';
@@ -390,11 +391,14 @@ begin
     end;
   SetThreadManager(NoThreadManager);
 end;
-
+{$endif DISABLE_NO_THREAD_MANAGER}
 
 {
   $Log$
-  Revision 1.11  2004-05-23 20:26:20  marco
+  Revision 1.12  2004-09-19 18:55:30  armin
+  * added define DISABLE_NO_THREAD_MANAGER to avoid warnings if thread manager is always present
+
+  Revision 1.11  2004/05/23 20:26:20  marco
    * wrappers and nothread prototypes for the basic* functions
 
   Revision 1.10  2004/02/22 23:22:49  florian

@@ -65,9 +65,9 @@ type
     AllocateThreadVars     : TAllocateThreadVarsHandler;
     ReleaseThreadVars      : TReleaseThreadVarsHandler;
     BasicEventCreate	   : TBasicEventCreateHandler;
-    BasicEventDestroy	   : TBasicEventHandler; 
-    BasicEventResetEvent   : TBasicEventHandler; 
-    BasicEventSetEvent     : TBasicEventHandler; 
+    BasicEventDestroy	   : TBasicEventHandler;
+    BasicEventResetEvent   : TBasicEventHandler;
+    BasicEventSetEvent     : TBasicEventHandler;
     BasiceventWaitFOr	   : TBasicEventWaitForHandler;
   end;
 
@@ -79,7 +79,9 @@ type
 Function GetThreadManager(Var TM : TThreadManager) : Boolean;
 Function SetThreadManager(Const NewTM : TThreadManager; Var OldTM : TThreadManager) : Boolean;
 Function SetThreadManager(Const NewTM : TThreadManager) : Boolean;
+{$ifndef DISABLE_NO_THREAD_MANAGER}
 Procedure SetNoThreadManager;
+{$endif DISABLE_NO_THREAD_MANAGER}
 // Needs to be exported, so the manager can call it.
 {$ifdef HASTHREADVAR}
 procedure InitThreadVars(RelocProc : Pointer);
@@ -143,7 +145,10 @@ function  basiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
 {
   $Log$
-  Revision 1.18  2004-05-23 20:26:20  marco
+  Revision 1.19  2004-09-19 18:55:30  armin
+  * added define DISABLE_NO_THREAD_MANAGER to avoid warnings if thread manager is always present
+
+  Revision 1.18  2004/05/23 20:26:20  marco
    * wrappers and nothread prototypes for the basic* functions
 
   Revision 1.17  2004/05/23 15:30:29  marco
