@@ -144,7 +144,7 @@ type
   TSpecialCharCallback = procedure(c: Char);
 
 const
-  AttrSpecialChars = ['"', '&'];
+  AttrSpecialChars = ['<', '>', '"', '&'];
   TextSpecialChars = ['<', '>', '&'];
 
 
@@ -171,7 +171,11 @@ end;
 
 procedure AttrSpecialCharCallback(c: Char);
 begin
-  if c = '"' then
+  if c = '<' then
+    wrt('&lt;')
+  else if c = '>' then
+    wrt('&gt;')
+  else if c = '"' then
     wrt('&quot;')
   else if c = '&' then
     wrt('&amp;')
@@ -546,7 +550,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-12-01 23:59:12  sg
+  Revision 1.13  2004-01-20 12:27:19  sg
+  * "<" and ">" are now written as "&lt;" and "&gt;"
+
+  Revision 1.12  2003/12/01 23:59:12  sg
   * Added support for main branch to be able to read and write at least
     ISO8859-1 encoded files correctly. A much improved solution will be
     provided when the mainbranch RTL fully supports Unicode/WideStrings.
