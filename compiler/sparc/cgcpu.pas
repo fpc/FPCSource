@@ -843,11 +843,11 @@ procedure tcgSPARC.g_return_from_proc(list:TAasmOutput;parasize:aword);
 which is genereted in the g_restore_frame_pointer. Notice that SPARC has no
 RETURN instruction and that JMPL is used instead. The JMPL instrucion have one
 delay slot, so an inversion is possible such as 
-  JMPL  %i6+8,%g0
+  JMPL  %i7+8,%g0
   RESTORE  %g0,0,%g0
 If no inversion we can use just
   RESTORE  %g0,0,%g0
-  JMPL  %i6+8,%g0
+  JMPL  %i7+8,%g0
   NOP}
     with list do
       begin
@@ -1264,7 +1264,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.15  2002-10-11 13:35:14  mazen
+  Revision 1.16  2002-10-13 21:46:07  mazen
+  * assembler output format fixed
+
+  Revision 1.15  2002/10/11 13:35:14  mazen
   *** empty log message ***
 
   Revision 1.14  2002/10/10 19:57:51  mazen

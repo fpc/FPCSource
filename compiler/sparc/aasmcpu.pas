@@ -1,17 +1,6 @@
-{*****************************************************************************}
-{ File                   : aasmcpu.pas                                        }
-{ Author                 : Mazen NEIFER                                       }
-{ Project                : Free Pascal Compiler (FPC)                         }
-{ Creation date          : 2002\05\01                                         }
-{ Last modification date : 2002\08\20                                         }
-{ Licence                : GPL                                                }
-{ Bug report             : mazen.neifer.01@supaero.org                        }
-{*****************************************************************************}
-{
+{******************************************************************************
     $Id$
     Copyright (c) 1998-2000 by Florian Klaempfl and Peter Vreman
-
-    Contains the assembler object for the i386
 
     * This code was inspired by the NASM sources
       The Netwide Assembler is copyright (C) 1996 Simon Tatham and
@@ -30,71 +19,59 @@
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
- ****************************************************************************
-}
-UNIT aasmcpu;
+ ****************************************************************************}
+unit aasmcpu;
 {$INCLUDE fpcdefs.inc}
-INTERFACE
-USES
+interface
+uses
   cclasses,globals,verbose,
   cpuinfo,cpubase,
   symppu,
   aasmbase,aasmtai;
-CONST
+const
   MaxPrefixes=4;
 type
-  TOperandOrder = (op_intel,op_att);
-
+  TOperandOrder=(op_intel,op_att);
   { alignment for operator }
-  tai_align = class(tai_align_abstract)
-     reg       : tregister;
+  tai_align=class(tai_align_abstract)
+     reg:tregister;
      constructor create(b:byte);
-     constructor create_op(b: byte; _op: byte);
+     constructor create_op(b:byte; _op:byte);
      function getfillbuf:pchar;override;
   end;
-
   taicpu = class(taicpu_abstract)
-     opsize    : topsize;
-     constructor op_none(op : tasmop;_size : topsize);
-
-     constructor op_reg(op : tasmop;_size : topsize;_op1 : tregister);
-     constructor op_const(op : tasmop;_size : topsize;_op1 : aword);
-     constructor op_ref(op : tasmop;_size : topsize;const _op1 : treference);
-
-     constructor op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
-     constructor op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;const _op2 : treference);
-     constructor op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aword);
-
-     constructor op_const_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister);
-     constructor op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aword);
-     constructor op_const_ref(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference);
-
-     constructor op_ref_reg(op : tasmop;_size : topsize;const _op1 : treference;_op2 : tregister);
+     opsize:topsize;
+     constructor op_none(op:tasmop;_size:topsize);
+     constructor op_reg(op:tasmop;_size:topsize;_op1:tregister);
+     constructor op_const(op:tasmop;_size:topsize;_op1:aword);
+     constructor op_ref(op:tasmop;_size:topsize;const _op1:treference);
+     constructor op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
+     constructor op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
+     constructor op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
+     constructor op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
+     constructor op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
+     constructor op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
+     constructor op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2:tregister);
      { this is only allowed if _op1 is an int value (_op1^.isintvalue=true) }
-     constructor op_ref_ref(op : tasmop;_size : topsize;const _op1,_op2 : treference);
-
-     constructor op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
+     constructor op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
+     constructor op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
      constructor op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:aWord;_op3:tregister);
-     constructor op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference;_op3 : tregister);
-     constructor op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister; const _op3 : treference);
-     constructor op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;const _op3 : treference);
+     constructor op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
+     constructor op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister; const _op3:treference);
+     constructor op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
 
      { this is for Jmp instructions }
-     constructor op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
-
-     constructor op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
-     constructor op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
-     constructor op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
-     constructor op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
-
+     constructor op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
+     constructor op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
+     constructor op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
+     constructor op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
+     constructor op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
      procedure changeopsize(siz:topsize);
-
      function  GetString:string;
      procedure CheckNonCommutativeOpcodes;
   private
-     FOperandOrder : TOperandOrder;
-     procedure init(_size : topsize); { this need to be called by all constructor }
+     FOperandOrder:TOperandOrder;
+     procedure init(_size:topsize);{this need to be called by all constructor}
 {$ifndef NOAG386BIN}
   public
      { the next will reset all instructions that can change in pass 2 }
@@ -105,10 +82,10 @@ type
      procedure SetOperandOrder(order:TOperandOrder);
   private
      { next fields are filled in pass1, so pass2 is faster }
-     insentry  : PInsEntry;
+     insentry:PInsEntry;
      insoffset,
-     inssize   : longint;
-     LastInsOffset : longint; { need to be public to be reset }
+     inssize:longint;
+     LastInsOffset:longint; { need to be public to be reset }
      function  InsEnd:longint;
      procedure create_ot;
      function  Matches(p:PInsEntry):longint;
@@ -120,28 +97,22 @@ type
 PROCEDURE DoneAsm;
 PROCEDURE InitAsm;
 implementation
-
 uses
   cutils,
   CpuGas;
 {****************************************************************************
                               TAI_ALIGN
  ****************************************************************************}
-
-    constructor tai_align.create(b: byte);
+    constructor tai_align.create(b:byte);
       begin
         inherited create(b);
-        reg := R_NONE;
+        reg:= R_NONE;
       end;
-
-
-    constructor tai_align.create_op(b: byte; _op: byte);
+    constructor tai_align.create_op(b:byte; _op:byte);
       begin
         inherited create_op(b,_op);
-        reg := R_NONE;
+        reg:= R_NONE;
       end;
-
-
     function tai_align.getfillbuf:pchar;
       const
         alignarray:array[0..5] of string[8]=(
@@ -153,8 +124,8 @@ uses
           #$90
         );
       var
-        bufptr : pchar;
-        j : longint;
+        bufptr:pchar;
+        j:longint;
       begin
         if not use_op then
          begin
@@ -171,19 +142,16 @@ uses
          end;
         getfillbuf:=pchar(@buf);
       end;
-
-
 {*****************************************************************************
                                  Taicpu Constructors
 *****************************************************************************}
-
     procedure taicpu.changeopsize(siz:topsize);
       begin
         opsize:=siz;
       end;
 
 
-    procedure taicpu.init(_size : topsize);
+    procedure taicpu.init(_size:topsize);
       begin
          { default order is att }
          FOperandOrder:=op_att;
@@ -198,14 +166,14 @@ uses
       end;
 
 
-    constructor taicpu.op_none(op : tasmop;_size : topsize);
+    constructor taicpu.op_none(op:tasmop;_size:topsize);
       begin
          inherited create(op);
          init(_size);
       end;
 
 
-    constructor taicpu.op_reg(op : tasmop;_size : topsize;_op1 : tregister);
+    constructor taicpu.op_reg(op:tasmop;_size:topsize;_op1:tregister);
       begin
          inherited create(op);
          init(_size);
@@ -214,7 +182,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const(op : tasmop;_size : topsize;_op1 : aword);
+    constructor taicpu.op_const(op:tasmop;_size:topsize;_op1:aword);
       begin
          inherited create(op);
          init(_size);
@@ -223,7 +191,7 @@ uses
       end;
 
 
-    constructor taicpu.op_ref(op : tasmop;_size : topsize;const _op1 : treference);
+    constructor taicpu.op_ref(op:tasmop;_size:topsize;const _op1:treference);
       begin
          inherited create(op);
          init(_size);
@@ -232,7 +200,7 @@ uses
       end;
 
 
-    constructor taicpu.op_reg_reg(op : tasmop;_size : topsize;_op1,_op2 : tregister);
+    constructor taicpu.op_reg_reg(op:tasmop;_size:topsize;_op1,_op2:tregister);
       begin
          inherited create(op);
          init(_size);
@@ -242,7 +210,7 @@ uses
       end;
 
 
-    constructor taicpu.op_reg_const(op:tasmop; _size: topsize; _op1: tregister; _op2: aword);
+    constructor taicpu.op_reg_const(op:tasmop; _size:topsize; _op1:tregister; _op2:aword);
       begin
          inherited create(op);
          init(_size);
@@ -252,7 +220,7 @@ uses
       end;
 
 
-    constructor taicpu.op_reg_ref(op : tasmop;_size : topsize;_op1 : tregister;const _op2 : treference);
+    constructor taicpu.op_reg_ref(op:tasmop;_size:topsize;_op1:tregister;const _op2:treference);
       begin
          inherited create(op);
          init(_size);
@@ -262,7 +230,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_reg(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister);
+    constructor taicpu.op_const_reg(op:tasmop;_size:topsize;_op1:aword;_op2:tregister);
       begin
          inherited create(op);
          init(_size);
@@ -272,7 +240,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_const(op : tasmop;_size : topsize;_op1,_op2 : aword);
+    constructor taicpu.op_const_const(op:tasmop;_size:topsize;_op1,_op2:aword);
       begin
          inherited create(op);
          init(_size);
@@ -282,7 +250,7 @@ uses
       end;
 
 
-    constructor taicpu.op_const_ref(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference);
+    constructor taicpu.op_const_ref(op:tasmop;_size:topsize;_op1:aword;const _op2:treference);
       begin
          inherited create(op);
          init(_size);
@@ -302,7 +270,7 @@ constructor taicpu.op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2
 	end;
 
 
-    constructor taicpu.op_ref_ref(op : tasmop;_size : topsize;const _op1,_op2 : treference);
+    constructor taicpu.op_ref_ref(op:tasmop;_size:topsize;const _op1,_op2:treference);
       begin
          inherited create(op);
          init(_size);
@@ -312,7 +280,7 @@ constructor taicpu.op_ref_reg(op:tasmop;_size:topsize;const _op1:treference;_op2
       end;
 
 
-    constructor taicpu.op_reg_reg_reg(op : tasmop;_size : topsize;_op1,_op2,_op3 : tregister);
+    constructor taicpu.op_reg_reg_reg(op:tasmop;_size:topsize;_op1,_op2,_op3:tregister);
       begin
          inherited create(op);
          init(_size);
@@ -331,7 +299,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
     LoadReg(2,_op3);
   END;
 
-    constructor taicpu.op_reg_reg_ref(op : tasmop;_size : topsize;_op1,_op2 : tregister;const _op3 : treference);
+    constructor taicpu.op_reg_reg_ref(op:tasmop;_size:topsize;_op1,_op2:tregister;const _op3:treference);
       begin
          inherited create(op);
          init(_size);
@@ -342,7 +310,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
       end;
 
 
-    constructor taicpu.op_const_ref_reg(op : tasmop;_size : topsize;_op1 : aword;const _op2 : treference;_op3 : tregister);
+    constructor taicpu.op_const_ref_reg(op:tasmop;_size:topsize;_op1:aword;const _op2:treference;_op3:tregister);
       begin
          inherited create(op);
          init(_size);
@@ -353,7 +321,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
       end;
 
 
-    constructor taicpu.op_const_reg_ref(op : tasmop;_size : topsize;_op1 : aword;_op2 : tregister;const _op3 : treference);
+    constructor taicpu.op_const_reg_ref(op:tasmop;_size:topsize;_op1:aword;_op2:tregister;const _op3:treference);
       begin
          inherited create(op);
          init(_size);
@@ -364,7 +332,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
       end;
 
 
-    constructor taicpu.op_cond_sym(op : tasmop;cond:TAsmCond;_size : topsize;_op1 : tasmsymbol);
+    constructor taicpu.op_cond_sym(op:tasmop;cond:TAsmCond;_size:topsize;_op1:tasmsymbol);
       begin
          inherited create(op);
          init(_size);
@@ -374,7 +342,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
       end;
 
 
-    constructor taicpu.op_sym(op : tasmop;_size : topsize;_op1 : tasmsymbol);
+    constructor taicpu.op_sym(op:tasmop;_size:topsize;_op1:tasmsymbol);
       begin
          inherited create(op);
          init(_size);
@@ -383,7 +351,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
       end;
 
 
-    constructor taicpu.op_sym_ofs(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint);
+    constructor taicpu.op_sym_ofs(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint);
       begin
          inherited create(op);
          init(_size);
@@ -392,7 +360,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
       end;
 
 
-    constructor taicpu.op_sym_ofs_reg(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;_op2 : tregister);
+    constructor taicpu.op_sym_ofs_reg(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;_op2:tregister);
       begin
          inherited create(op);
          init(_size);
@@ -402,7 +370,7 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
       end;
 
 
-    constructor taicpu.op_sym_ofs_ref(op : tasmop;_size : topsize;_op1 : tasmsymbol;_op1ofs:longint;const _op2 : treference);
+    constructor taicpu.op_sym_ofs_ref(op:tasmop;_size:topsize;_op1:tasmsymbol;_op1ofs:longint;const _op2:treference);
       begin
          inherited create(op);
          init(_size);
@@ -413,9 +381,9 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
 
     function taicpu.GetString:string;
       var
-        i : longint;
-        s : string;
-        addsize : boolean;
+        i:longint;
+        s:string;
+        addsize:boolean;
       begin
         s:='['+std_op2str[opcode];
         for i:=1to ops do
@@ -478,17 +446,17 @@ CONSTRUCTOR taicpu.op_reg_const_reg(op:tasmop;_size:topsize;_op1:TRegister;_op2:
 
     procedure taicpu.Swatoperands;
       var
-        p : TOper;
+        p:TOper;
       begin
         { Fix the operands which are in AT&T style and we need them in Intel style }
         case ops of
-          2 : begin
+          2:begin
                 { 0,1 -> 1,0 }
                 p:=oper[0];
                 oper[0]:=oper[1];
                 oper[1]:=p;
               end;
-          3 : begin
+          3:begin
                 { 0,1,2 -> 2,1,0 }
                 p:=oper[0];
                 oper[0]:=oper[2];
@@ -556,11 +524,11 @@ end;
 
 type
   ea=packed record
-    sib_present : boolean;
-    bytes : byte;
-    size  : byte;
-    modrm : byte;
-    sib   : byte;
+    sib_present:boolean;
+    bytes:byte;
+    size:byte;
+    modrm:byte;
+    sib:byte;
   end;
 
 procedure taicpu.create_ot;
@@ -568,7 +536,7 @@ procedure taicpu.create_ot;
   this function will also fix some other fields which only needs to be once
 }
 var
-  i,l,relsize : longint;
+  i,l,relsize:longint;
 begin
   if ops=0 then
    exit;
@@ -577,9 +545,9 @@ begin
    with oper[i] do
     begin
       case typ of
-        top_reg :
+        top_reg:
           {ot:=reg2type[reg]};
-        top_ref :
+        top_ref:
           begin
           { create ot field }
             if (ot and OT_SIZE_MASK)=0 then
@@ -595,14 +563,14 @@ begin
              if (ref^.scalefactor=0) then
               ref^.scalefactor:=1;
           end;
-        top_const :
+        top_const:
           begin
             if (opsize<>S_W) and (longint(val)>=-128) and (val<=127) then
               ot:=OT_IMM8 or OT_SIGNED
             else
               ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
           end;
-        top_symbol :
+        top_symbol:
           begin
             if LastInsOffset=-1 then
              l:=0
@@ -632,18 +600,18 @@ end;
 
 
 function taicpu.Matches(p:PInsEntry):longint;
-{ * IF_SM stands for Size Match: any operand whose size is not
+{ * IF_SM stands for Size Match:any operand whose size is not
  * explicitly specified by the template is `really' intended to be
  * the same size as the first size-specified operand.
  * Non-specification is tolerated in the input instruction, but
  * _wrong_ specification is not.
  *
  * IF_SM2 invokes Size Match on only the first _two_ operands, for
- * three-operand instructions such as SHLD: it implies that the
+ * three-operand instructions such as SHLD:it implies that the
  * first two operands must match in size, but that the third is
  * required to be _unspecified_.
  *
- * IF_SB invokes Size Byte: operands with unspecified size in the
+ * IF_SB invokes Size Byte:operands with unspecified size in the
  * template are really bytes, and so no non-byte specification in
  * the input instruction will be tolerated. IF_SW similarly invokes
  * Size Word, and IF_SD invokes Size Doubleword.
@@ -653,8 +621,8 @@ function taicpu.Matches(p:PInsEntry):longint;
  * required to have unspecified size in the instruction too...)
 }
 var
-  i,j,asize,oprs : longint;
-  siz : array[0..2] of longint;
+  i,j,asize,oprs:longint;
+  siz:array[0..2] of longint;
 begin
   Matches:=100;
 
@@ -782,7 +750,7 @@ end;
 
 function taicpu.CheckIfValid:boolean;
 var
-  m,i : longint;
+  m,i:longint;
 begin
   CheckIfValid:=false;
 { Things which may only be done once, not when a second pass is done to
@@ -899,7 +867,7 @@ begin
 end;
 function taicpu.NeedAddrPrefix(opidx:byte):boolean;
 var
-  i,b : tregister;
+  i,b:tregister;
 begin
 {  if (OT_MEMORY and (not oper[opidx].ot))=0 then
    begin
@@ -919,21 +887,21 @@ end;
 function regval(r:tregister):byte;
 begin
   {case r of
-    R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0 :
+    R_EAX,R_AX,R_AL,R_ES,R_CR0,R_DR0,R_ST,R_ST0,R_MM0,R_XMM0:
       regval:=0;
-    R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1 :
+    R_ECX,R_CX,R_CL,R_CS,R_DR1,R_ST1,R_MM1,R_XMM1:
       regval:=1;
-    R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2,R_XMM2 :
+    R_EDX,R_DX,R_DL,R_SS,R_CR2,R_DR2,R_ST2,R_MM2,R_XMM2:
       regval:=2;
-    R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3,R_XMM3 :
+    R_EBX,R_BX,R_BL,R_DS,R_CR3,R_DR3,R_TR3,R_ST3,R_MM3,R_XMM3:
       regval:=3;
-    R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4,R_XMM4 :
+    R_ESP,R_SP,R_AH,R_FS,R_CR4,R_TR4,R_ST4,R_MM4,R_XMM4:
       regval:=4;
-    R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5,R_XMM5 :
+    R_EBP,R_BP,R_CH,R_GS,R_TR5,R_ST5,R_MM5,R_XMM5:
       regval:=5;
-    R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6,R_XMM6 :
+    R_ESI,R_SI,R_DH,R_DR6,R_TR6,R_ST6,R_MM6,R_XMM6:
       regval:=6;
-    R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7,R_XMM7 :
+    R_EDI,R_DI,R_BH,R_DR7,R_TR7,R_ST7,R_MM7,R_XMM7:
       regval:=7;
     else}
       begin
@@ -946,7 +914,7 @@ end;
 
 function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
 {const
-  regs : array[0..63] of tregister=(
+  regs:array[0..63] of tregister=(
     R_MM0, R_EAX, R_AX, R_AL, R_XMM0, R_NONE, R_NONE, R_NONE,
     R_MM1, R_ECX, R_CX, R_CL, R_XMM1, R_NONE, R_NONE, R_NONE,
     R_MM2, R_EDX, R_DX, R_DL, R_XMM2, R_NONE, R_NONE, R_NONE,
@@ -957,12 +925,12 @@ function process_ea(const input:toper;var output:ea;rfield:longint):boolean;
     R_MM7, R_EDI, R_DI, R_BH, R_XMM7, R_NONE, R_NONE, R_NONE
   );}
 var
-  j     : longint;
-  i,b   : tregister;
-  sym   : tasmsymbol;
-  md,s  : byte;
+  j:longint;
+  i,b:tregister;
+  sym:tasmsymbol;
+  md,s:byte;
   base,index,scalefactor,
-  o     : longint;
+  o:longint;
 begin
   process_ea:=false;
 { register ? }
@@ -1033,37 +1001,37 @@ begin
       exit;}
      { base }
 {     case b of
-       R_EAX : base:=0;
-       R_ECX : base:=1;
-       R_EDX : base:=2;
-       R_EBX : base:=3;
-       R_ESP : base:=4;
+       R_EAX:base:=0;
+       R_ECX:base:=1;
+       R_EDX:base:=2;
+       R_EBX:base:=3;
+       R_ESP:base:=4;
        R_NONE,
-       R_EBP : base:=5;
-       R_ESI : base:=6;
-       R_EDI : base:=7;
+       R_EBP:base:=5;
+       R_ESI:base:=6;
+       R_EDI:base:=7;
      else
        exit;
      end;}
      { index }
 {     case i of
-       R_EAX : index:=0;
-       R_ECX : index:=1;
-       R_EDX : index:=2;
-       R_EBX : index:=3;
-       R_NONE  : index:=4;
-       R_EBP : index:=5;
-       R_ESI : index:=6;
-       R_EDI : index:=7;
+       R_EAX:index:=0;
+       R_ECX:index:=1;
+       R_EDX:index:=2;
+       R_EBX:index:=3;
+       R_NONE:index:=4;
+       R_EBP:index:=5;
+       R_ESI:index:=6;
+       R_EDI:index:=7;
      else
        exit;
      end;
      case s of
       0,
-      1 : scalefactor:=0;
-      2 : scalefactor:=1;
-      4 : scalefactor:=2;
-      8 : scalefactor:=3;
+      1:scalefactor:=0;
+      2:scalefactor:=1;
+      4:scalefactor:=2;
+      8:scalefactor:=3;
      else
       exit;
      end;
@@ -1102,10 +1070,10 @@ end;
 
 function taicpu.calcsize(p:PInsEntry):longint;
 var
-  codes : pchar;
-  c     : byte;
-  len     : longint;
-  ea_data : ea;
+  codes:pchar;
+  c:byte;
+  len:longint;
+  ea_data:ea;
 begin
   len:=0;
   codes:=@p^.code;
@@ -1113,19 +1081,19 @@ begin
     c:=ord(codes^);
     inc(codes);
     case c of
-      0 :
+      0:
         break;
-      1,2,3 :
+      1,2,3:
         begin
           inc(codes,c);
           inc(len,c);
         end;
-      8,9,10 :
+      8,9,10:
         begin
           inc(codes);
           inc(len);
         end;
-      4,5,6,7 :
+      4,5,6,7:
         begin
           if opsize=S_W then
             inc(len,2)
@@ -1136,34 +1104,34 @@ begin
       12,13,14,
       16,17,18,
       20,21,22,
-      40,41,42 :
+      40,41,42:
         inc(len);
       24,25,26,
       31,
-      48,49,50 :
+      48,49,50:
         inc(len,2);
       28,29,30, { we don't have 16 bit immediates code }
       32,33,34,
       52,53,54,
-      56,57,58 :
+      56,57,58:
         inc(len,4);
-      192,193,194 :
+      192,193,194:
         if NeedAddrPrefix(c-192) then
          inc(len);
-      208 :
+      208:
         inc(len);
       200,
       201,
       202,
       209,
       210,
-      217,218,219 : ;
-      216 :
+      217,218,219:;
+      216:
         begin
           inc(codes);
           inc(len);
         end;
-      224,225,226 :
+      224,225,226:
         begin
           InternalError(777002);
         end;
@@ -1183,8 +1151,6 @@ begin
   until false;
   calcsize:=len;
 end;
-
-
 {$endif NOAG386BIN}
 PROCEDURE DoneAsm;
   BEGIN
@@ -1193,3 +1159,9 @@ PROCEDURE InitAsm;
   BEGIN
   END;
 end.
+{
+    $Log$
+    Revision 1.4  2002-10-13 21:46:07  mazen
+    * assembler output format fixed
+
+}

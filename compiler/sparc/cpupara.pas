@@ -27,8 +27,13 @@ uses
   symconst,symbase,symtype,symdef,paramgr;
 type
   TSparcParaManager=class(TParaManager)
+    {Returns a structure giving the information on the storage of the parameter
+    (which must be an integer parameter)
+    @param(nr Parameter number of routine, starting from 1)}
     function GetIntParaLoc(nr:longint):TParaLocation;override;
     procedure create_param_loc_info(p:TAbstractProcDef);override;
+    {Returns the location where the invisible parameter for structured function
+    results will be passed.}
     function GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;override;
   end;
 implementation
@@ -232,50 +237,55 @@ WriteLn('***********************************************');
   end;
 function tSparcParaManager.GetFuncRetParaLoc(p:TAbstractProcDef):TParaLocation;
   begin
-    case p.rettype.def.deftype of
-      orddef,enumdef:
-        begin
-          WriteLn('Allocating i0 as return register');
-          GetFuncRetParaLoc.loc:=LOC_REGISTER;
-          GetFuncRetParaLoc.register:=R_I0;
-          GetFuncRetParaLoc.size:=def_cgsize(p.rettype.def);
-          if GetFuncRetParaLoc.size in [OS_S64,OS_64]
-          then
-            GetFuncRetParaLoc.RegisterHigh:=R_I1;
-        end;
-      floatdef:
-        begin
-          GetFuncRetParaLoc.loc:=LOC_FPUREGISTER;
-          GetFuncRetParaLoc.register:=R_F1;
-          GetFuncRetParaLoc.size:=def_cgsize(p.rettype.def);
-        end;
-      setdef,
-      variantdef,
-      pointerdef,
-      formaldef,
-      classrefdef,
-      recorddef,
-      objectdef,
-      stringdef,
-      procvardef,
-      filedef,
-      arraydef,
-      errordef:
-        begin
-          GetFuncRetParaLoc.loc:=LOC_REGISTER;
-          GetFuncRetParaLoc.register:=R_I0;
-          GetFuncRetParaLoc.size:=OS_ADDR;
-        end;
-      else
-        internalerror(2002090903);
-    end;
+    with GetFuncRetParaLoc do
+      case p.rettype.def.deftype of
+        orddef,enumdef:
+          begin
+            WriteLn('Allocating i0 as return register');
+            loc:=LOC_REGISTER;
+            register:=R_I0;
+            size:=def_cgsize(p.rettype.def);
+            if size in [OS_S64,OS_64]
+            then
+              RegisterHigh:=R_I1;
+          end;
+        floatdef:
+          begin
+            loc:=LOC_FPUREGISTER;
+            register:=R_F1;
+            size:=def_cgsize(p.rettype.def);
+          end;
+        setdef,
+        variantdef,
+        pointerdef,
+        formaldef,
+        classrefdef,
+        recorddef,
+        objectdef,
+        stringdef,
+        procvardef,
+        filedef,
+        arraydef,
+        errordef:
+          begin
+            loc:=LOC_REFERENCE;
+            reference.index:=frame_pointer_reg;
+            reference.offset:=64;
+            size:=OS_ADDR;
+          end;
+        else
+          internalerror(2002090903);
+      end;
   end;
 begin
    ParaManager:=TSparcParaManager.create;
 end.
 {
   $Log$
-  Revision 1.7  2002-10-10 19:57:51  mazen
+  Revision 1.8  2002-10-13 21:46:07  mazen
+  * assembler output format fixed
+
+  Revision 1.7  2002/10/10 19:57:51  mazen
   * Just to update repsitory
 
   Revision 1.6  2002/10/10 15:10:39  mazen
