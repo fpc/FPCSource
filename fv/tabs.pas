@@ -42,6 +42,8 @@ type
       destructor  Done; virtual;
     private
       InDraw: boolean;
+      function FirstSelectable: PView;
+      function LastSelectable: PView;
     end;
 
 function  NewTabItem(AView: PView; ANext: PTabItem): PTabItem;
@@ -164,17 +166,8 @@ begin
     end;
 end;
 
-procedure TTab.HandleEvent(var Event: TEvent);
-var Index : integer;
-    I     : integer;
-    X     : integer;
-    Len   : byte;
-    P     : TPoint;
-    V     : PView;
-    CallOrig: boolean;
-    LastV : PView;
-    FirstV: PView;
-function FirstSelectable: PView;
+
+function TTab.FirstSelectable: PView;
 var
     FV : PView;
 begin
@@ -185,7 +178,9 @@ begin
     if (FV^.Options and ofSelectable)=0 then FV:=nil;
   FirstSelectable:=FV;
 end;
-function LastSelectable: PView;
+
+
+function TTab.LastSelectable: PView;
 var
     LV : PView;
 begin
@@ -196,6 +191,17 @@ begin
     if (LV^.Options and ofSelectable)=0 then LV:=nil;
   LastSelectable:=LV;
 end;
+
+procedure TTab.HandleEvent(var Event: TEvent);
+var Index : integer;
+    I     : integer;
+    X     : integer;
+    Len   : byte;
+    P     : TPoint;
+    V     : PView;
+    CallOrig: boolean;
+    LastV : PView;
+    FirstV: PView;
 begin
   if (Event.What and evMouseDown)<>0 then
      begin
@@ -487,9 +493,17 @@ end;
 
 
 procedure TTab.SetState(AState: Word; Enable: Boolean);
+var
+  LastV : PView;
 begin
   inherited SetState(AState,Enable);
-  if (AState and sfFocused)<>0 then DrawView;
+  { Select first item }
+  if (AState and sfSelected)<>0 then
+    begin
+      LastV:=LastSelectable;
+      if LastV<>nil then
+        LastV^.Select;
+    end;
 end;
 
 destructor TTab.Done;
