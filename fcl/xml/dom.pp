@@ -700,7 +700,7 @@ end;
 
 function TDOMNode.CloneNode(deep: Boolean): TDOMNode;
 begin
-  CloneNode(deep, FOwnerDocument);
+  Result:=CloneNode(deep, FOwnerDocument);
 end;
 
 function TDOMNode.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
@@ -1510,7 +1510,10 @@ end.
 
 {
   $Log$
-  Revision 1.12  2003-01-15 21:59:55  sg
+  Revision 1.13  2003-11-15 10:31:50  michael
+  + Fixed CloneNode overloaded call (from Andreas Hausladen)
+
+  Revision 1.12  2003/01/15 21:59:55  sg
   * the units DOM, XMLRead and XMLWrite now compile with Delphi without
     modifications as well
 
