@@ -15,23 +15,25 @@
 
 {$define uselibc:=cdecl; external;}
 
-function cfpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; cdecl; external name 'accept';
-function cfpbind 	(s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  cdecl; external name 'bind';
-function cfpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  cdecl; external name 'connect';
-function cfpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external name 'getpeername';
-function cfpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external name 'getsockname';
-function cfpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; cdecl; external name 'getsockopt';
-function cfplisten      (s:cint; backlog : cint):cint;                          cdecl; external name 'listen';
-function cfprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; cdecl; external name 'recv';
-function cfprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; cdecl; external name 'recvfrom';
-//function cfprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t; cdecl; external name '';
-function cfpsend 	(s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; cdecl; external name 'send';
-function cfpsendto 	(s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; cdecl; external name 'sendto';
-//function cfpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize; cdecl; external name '';
-function cfpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint; cdecl; external name 'setsockopt';
-function cfpshutdown 	(s:cint; how:cint):cint; cdecl; external name 'shutdown';
-function cfpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; cdecl; external name 'socket';
-function cfpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; cdecl; external name 'socketpair';
+const libname='c';
+
+function cfpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; cdecl; external libname name 'accept';
+function cfpbind 	(s:cint; addrx : psockaddr; addrlen : tsocklen):cint;  cdecl; external libname name 'bind';
+function cfpconnect     (s:cint; name  : psockaddr; namelen : tsocklen):cint;  cdecl; external libname name 'connect';
+function cfpgetpeername (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external libname name 'getpeername';
+function cfpgetsockname (s:cint; name  : psockaddr; namelen : psocklen):cint; cdecl; external libname name 'getsockname';
+function cfpgetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen : psocklen):cint; cdecl; external libname name 'getsockopt';
+function cfplisten      (s:cint; backlog : cint):cint;                          cdecl; external libname name 'listen';
+function cfprecv 	(s:cint; buf: pointer; len: size_t; flags: cint):ssize_t; cdecl; external libname name 'recv';
+function cfprecvfrom    (s:cint; buf: pointer; len: size_t; flags: cint; from : psockaddr; fromlen : psocklen):ssize_t; cdecl; external libname name 'recvfrom';
+//function cfprecvmsg     (s:cint; msg: pmsghdr; flags:cint):ssize_t; cdecl; external libname name '';
+function cfpsend 	(s:cint; msg:pointer; len:size_t; flags:cint):ssize_t; cdecl; external libname name 'send';
+function cfpsendto 	(s:cint; msg:pointer; len:size_t; flags:cint; tox :psockaddr; tolen: tsocklen):ssize_t; cdecl; external libname name 'sendto';
+//function cfpsendmsg 	(s:cint; hdr: pmsghdr; flags:cint):ssize; cdecl; external libname name '';
+function cfpsetsockopt  (s:cint; level:cint; optname:cint; optval:pointer; optlen :tsocklen):cint; cdecl; external libname name 'setsockopt';
+function cfpshutdown 	(s:cint; how:cint):cint; cdecl; external libname name 'shutdown';
+function cfpsocket 	(domain:cint; xtype:cint; protocol: cint):cint; cdecl; external libname name 'socket';
+function cfpsocketpair  (d:cint; xtype:cint; protocol:cint; sv:pcint):cint; cdecl; external libname name 'socketpair';
 
 
 function fpaccept      (s:cint; addrx : psockaddr; addrlen : psocklen):cint; 
@@ -112,7 +114,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2004-03-16 22:56:53  marco
+  Revision 1.3  2004-03-18 16:12:14  marco
+   * Now working under Darwin
+
+  Revision 1.2  2004/03/16 22:56:53  marco
    * stupid mistake fixed
 
   Revision 1.1  2004/03/16 18:04:27  marco
