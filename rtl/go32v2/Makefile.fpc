@@ -14,7 +14,7 @@ units=system objpas strings \
       cpu mmx ucomplex getopts heaptrc lineinfo \
       msmouse charset varutils \
       video mouse keyboard variants vesamode types \
-      sysconst rtlconst dateutil
+      sysconst rtlconst dateutil convutil strutils
 rsts=math varutils typinfo classes variants dateutil sysconst
 
 [require]
@@ -178,7 +178,13 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/sysconst.pp
 
 dateutil$(PPUEXT) : $(OBJPASDIR)/dateutil.pp
-        $(COMPILER) $(OBJPASDIR)/dateutil.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/dateutil.pp
+
+convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
+
+strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
+        $(COMPILER) $(OBJPASDIR)/strutils.pp
 
 #
 # Other system-independent RTL Units
