@@ -74,6 +74,10 @@ implementation
 *****************************************************************************}
 
     procedure firstin(var p : ptree);
+      type
+        byteset = set of byte;
+      var
+        t : ptree;
       begin
          p^.location.loc:=LOC_FLAGS;
          p^.resulttype:=booldef;
@@ -94,6 +98,16 @@ implementation
          firstpass(p^.left);
          if codegenerror then
            exit;
+
+         { constant evaulation }
+         if (p^.left^.treetype=ordconstn) and (p^.right^.treetype=setconstn) then
+          begin
+            t:=genordinalconstnode(byte(p^.left^.value in byteset(p^.right^.value_set^)),booldef);
+            disposetree(p);
+            firstpass(t);
+            p:=t;
+            exit;
+          end;
 
          left_right_max(p);
          { this is not allways true due to optimization }
@@ -219,7 +233,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.2  1998-10-06 20:49:13  peter
+  Revision 1.3  1998-11-13 10:17:06  peter
+    + constant eval for in
+
+  Revision 1.2  1998/10/06 20:49:13  peter
     * m68k compiler compiles again
 
   Revision 1.1  1998/09/23 20:42:24  peter
