@@ -1218,7 +1218,8 @@ begin
       { walk the procdef list }
         while (assigned(pd)) and (assigned(pd^.nextoverloaded)) do
          begin
-           if not(m_repeat_forward in aktmodeswitches) or
+           if (not(m_repeat_forward in aktmodeswitches) and
+               (aktprocsym^.definition^.para^.count=0)) or
               (equal_paras(aktprocsym^.definition^.para,pd^.nextoverloaded^.para,false) and
               { for operators equal_paras is not enough !! }
               ((aktprocsym^.definition^.proctypeoption<>potype_operator) or (optoken<>_ASSIGNMENT) or
@@ -1998,7 +1999,10 @@ end.
 
 {
   $Log$
-  Revision 1.54  2000-03-23 22:17:51  pierre
+  Revision 1.55  2000-03-27 11:57:22  pierre
+   * fix for bug 890
+
+  Revision 1.54  2000/03/23 22:17:51  pierre
    * fix tf000008 bug
 
   Revision 1.53  2000/03/16 16:41:13  pierre
