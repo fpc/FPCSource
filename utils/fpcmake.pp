@@ -76,6 +76,15 @@ const
     sec_depend,sec_info
   );
 
+  rulediralso : array[1..rules] of boolean=(
+    true,true,
+    true,true,
+    true,true,
+    true,true,true,false,false,
+    true,true,
+    true,false
+  );
+
 { Sections in Makefile.fpc }
   ini_sections='sections';
   ini_install='install';
@@ -488,7 +497,7 @@ var
     if userini.DefaultDir<>'' then
      hs:=hs+' '+userini.defaultdir+'_'+rulestr[rule]
     else
-     if not TargetStringEmpty(userini.targetdirs) then
+     if rulediralso[rule] and (not TargetStringEmpty(userini.targetdirs)) then
       hs:=hs+' $(addsuffix _'+rulestr[rule]+',$(DIROBJECTS))';
     if hs<>'' then
      begin
@@ -994,7 +1003,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.12  1999-12-19 15:15:04  peter
+  Revision 1.13  1999-12-21 16:06:47  peter
+    * don't call dirobjects for zipisntall,info
+
+  Revision 1.12  1999/12/19 15:15:04  peter
     * fpcmade.<TARGET> added
     * parameter support. So it can be using with "find -name 'Makefile.fpc'"
 
