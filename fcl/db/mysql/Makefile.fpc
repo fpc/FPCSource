@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-units=mysqldb
+units=mysqldb4 mysqldb3
 rsts=mysqldb
 examples=mtest
 

@@ -17,7 +17,7 @@
 {$H+}
 program mtest;
 
-uses db,sysutils,mysqldb;
+uses db,sysutils, mysqldb4; // change to mysqldb3 if you are using version 3.
 
 Procedure Log(Const Msg : String);
 begin
@@ -200,7 +200,10 @@ end.
 
 {
    $Log$
-   Revision 1.3  2003-08-16 16:42:21  michael
+   Revision 1.4  2004-09-30 19:36:00  michael
+   + Split out in version 3 and 4
+
+   Revision 1.3  2003/08/16 16:42:21  michael
    + Fixes in TDBDataset etc. Changed MySQLDb to use database as well
 
    Revision 1.2  2002/09/07 15:15:23  peter
