@@ -54,7 +54,7 @@ UNIT Objects;
 {$E+} { Emulation is on }
 {$X+} { Extended syntax is ok }
 {$R-} { Disable range checking }
-{$ifndef Linux}
+{$ifndef Unix}
   {$S-} { Disable Stack Checking }
 {$endif}
 {$I-} { Disable IO Checking }
@@ -181,7 +181,7 @@ const
    MaxReadBytes = $7fffffff;
    invalidhandle = $ffff;
 {$ENDIF}
-{$IFDEF LINUX}
+{$IFDEF UNIX}
 type
    FNameStr = String;
    { values are words, though the OS calls return 32-bit values }
@@ -2800,7 +2800,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:44  michael
+  Revision 1.3  2000-11-13 13:40:04  marco
+   * Renamefest
+
+  Revision 1.2  2000/07/13 11:33:44  michael
   + removed logs
  
 }

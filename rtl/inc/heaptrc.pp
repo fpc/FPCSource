@@ -636,7 +636,7 @@ end;
                               Check pointer
 *****************************************************************************}
 
-{$ifndef linux}
+{$ifndef Unix}
   {$S-}
 {$endif}
 
@@ -992,7 +992,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.3  2000-08-24 09:01:07  jonas
+  Revision 1.4  2000-11-13 13:40:03  marco
+   * Renamefest
+
+  Revision 1.3  2000/08/24 09:01:07  jonas
     * clear inoutres in traceexit before writing anything (to avoid an RTE
       when writing the heaptrc output when a program didn't handle ioresult)
       (merged from fixes branch)

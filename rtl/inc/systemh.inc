@@ -36,7 +36,7 @@
 {$P+}
 
 { Stack check gives a note under linux }
-{$ifndef linux}
+{$ifndef unix}
   {$S-}
 {$endif}
 
@@ -484,7 +484,10 @@ const
 
 {
   $Log$
-  Revision 1.11  2000-11-11 16:12:01  peter
+  Revision 1.12  2000-11-13 13:40:04  marco
+   * Renamefest
+
+  Revision 1.11  2000/11/11 16:12:01  peter
     * ptr returns farpointer
 
   Revision 1.10  2000/11/06 21:35:59  peter

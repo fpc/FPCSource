@@ -38,7 +38,7 @@ TYPE
   tOS_UINT = QWord; { 8 byte unsigned ordinal }{ possibly still needs to be defined }
 {$define OS_TYPES}
 {$endif}
-{$ifdef LINUX}
+{$ifdef Unix}
 { TODO - how can we decide if we run on a 32 or a 64 bit linux platform ??? }
   tOS_INT  = LongInt;
   tOS_UINT = DWord;
@@ -65,7 +65,10 @@ IMPLEMENTATION
 end.
 
   $Log$
-  Revision 1.2  2000-07-13 11:33:45  michael
+  Revision 1.3  2000-11-13 13:40:04  marco
+   * Renamefest
+
+  Revision 1.2  2000/07/13 11:33:45  michael
   + removed logs
  
 }

@@ -28,7 +28,7 @@ Const
   PF_UNIX         = AF_UNIX;
   PF_INET         = AF_INET;
 
-{$Ifdef Linux}
+{$Ifdef Unix}
 {$ifndef BSD}
 { For setsockoptions(2) }
          SOL_SOCKET  =   1;
@@ -159,7 +159,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.3  2000-09-11 14:53:14  marco
+  Revision 1.4  2000-11-13 13:40:04  marco
+   * Renamefest
+
+  Revision 1.3  2000/09/11 14:53:14  marco
    * FreeBSD adjustments patched in from fixes branch
 
   Revision 1.1.2.1  2000/09/10 16:12:05  marco
