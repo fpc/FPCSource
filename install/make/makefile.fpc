@@ -59,7 +59,7 @@ ifndef OS_TARGET
 ifdef inlinux
 OS_TARGET=linux
 else
-ifndef inWinNT
+ifdef inWinNT
 OS_TARGET=win32
 else
 OS_TARGET=go32v2
@@ -650,7 +650,10 @@ endif
 
 #
 # $Log$
-# Revision 1.1  1998-10-27 14:20:12  peter
-#   + initial versions
+# Revision 1.2  1998-10-28 00:14:13  peter
+#   * argh.. ifndef winnt -> ifdef winnt  :(
+#
+# Revision 1.1  1998/10/27 14:23:59  peter
+#   + makefiles
 #
 #
