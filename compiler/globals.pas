@@ -243,7 +243,7 @@ unit globals;
     function filetimestring( t : longint) : string;
 
     procedure DefaultReplacements(var s:string);
-
+    function  GetCurrentDir:string;
     function  path_absolute(const s : string) : boolean;
     Function  PathExists ( F : String) : Boolean;
     Function  FileExists ( Const F : String) : Boolean;
@@ -756,6 +756,7 @@ implementation
        filetimestring:=L0(Year)+'/'+L0(Month)+'/'+L0(Day)+' '+L0(Hour)+':'+L0(min)+':'+L0(sec);
      end;
 
+
 {****************************************************************************
                           Default Macro Handling
 ****************************************************************************}
@@ -776,6 +777,15 @@ implementation
 {****************************************************************************
                                File Handling
 ****************************************************************************}
+
+   function GetCurrentDir:string;
+     var
+       CurrentDir : string;
+     begin
+       GetDir(0,CurrentDir);
+       GetCurrentDir:=FixPath(CurrentDir,false);
+     end;
+
 
    function path_absolute(const s : string) : boolean;
    {
@@ -803,30 +813,23 @@ implementation
       Begin
       End;
 {$endif not FPC}
-{$ifdef delphi}
-    Function FileExists ( Const F : String) : Boolean;
 
-      begin
-         FileExists:=sysutils.FileExists(f);
-      end;
 
-{$else}
     Function FileExists ( Const F : String) : Boolean;
+{$ifndef delphi}
       Var
-      {$ifdef linux}
-         Info : Stat;
-      {$else}
          Info : SearchRec;
-      {$endif}
+{$endif}
       begin
-      {$ifdef linux}
-        FileExists:=FStat(F,info);
-      {$else}
+{$ifdef delphi}
+         FileExists:=sysutils.FileExists(f);
+{$else}
         findfirst(F,readonly+archive+hidden,info);
         FileExists:=(doserror=0);
         findclose(Info);
-      {$endif}
+{$endif delphi}
       end;
+
 
     Function PathExists ( F : String) : Boolean;
       Var
@@ -838,7 +841,6 @@ implementation
         PathExists:=(doserror=0) and ((info.attr and directory)=directory);
         findclose(Info);
       end;
-{$endif}
 
 
     Function RemoveFile(const f:string):boolean;
@@ -1003,6 +1005,7 @@ implementation
        {$endif}
      end;
 
+
    procedure SplitBinCmd(const s:string;var bstr,cstr:string);
      var
        i : longint;
@@ -1053,14 +1056,29 @@ implementation
      { Support default macro's }
        DefaultReplacements(s);
      { get current dir }
-       GetDir(0,CurrentDir);
-       CurrentDir:=FixPath(CurrentDir,false);
+       CurrentDir:=GetCurrentDir;
        repeat
-         j:=Pos(';',s);
-         if j=0 then
-          j:=255;
-       {Get Pathname}
-         CurrPath:=FixPath(Copy(s,1,j-1),false);
+         { get currpath }
+         if addfirst then
+          begin
+            j:=length(s);
+            while (j>0) and (s[j]<>';') do
+             dec(j);
+            CurrPath:=FixPath(Copy(s,j+1,length(s)-j),false);
+            if j=0 then
+             s:=''
+            else
+             System.Delete(s,j,length(s)-j+1);
+          end
+         else
+          begin
+            j:=Pos(';',s);
+            if j=0 then
+             j:=255;
+            CurrPath:=FixPath(Copy(s,1,j-1),false);
+            System.Delete(s,1,j);
+          end;
+         { fix pathname }
          if CurrPath='' then
           CurrPath:='.'+DirSep
          else
@@ -1069,7 +1087,7 @@ implementation
             if (Copy(CurrPath,1,length(CurrentDir))=CurrentDir) then
              CurrPath:='.'+DirSep+Copy(CurrPath,length(CurrentDir)+1,255);
           end;
-         System.Delete(s,1,j);
+         { wildcard adding ? }
          if pos('*',currpath)>0 then
           begin
             if currpath[length(currpath)]=dirsep then
@@ -1091,15 +1109,13 @@ implementation
                 end;
                findnext(dir);
              end;
-{$ifdef Linux}
             FindClose(dir);
-{$endif}
-{$ifdef Win32}
-            FindClose(dir);
-{$endif}
           end
          else
-          addcurrpath;
+          begin
+            if PathExists(currpath) then
+             addcurrpath;
+          end;
        until (s='');
      end;
 
@@ -1240,6 +1256,7 @@ implementation
       end;
    end;
 
+
    function FindFile(const f : string;path : string;var b : boolean) : string;
       Var
         singlepathstring : string;
@@ -1352,6 +1369,7 @@ implementation
       {$endif}
       end;
 
+
     procedure FreeEnvPChar(p:pchar);
       begin
       {$ifndef linux}
@@ -1375,9 +1393,10 @@ implementation
       end;
       {$endif}
 
- {****************************************************************************
+
+{****************************************************************************
                                     Init
- ****************************************************************************}
+****************************************************************************}
 
    procedure get_exepath;
      var
@@ -1391,10 +1410,12 @@ implementation
 {$endif delphi}
        if exepath='' then
         fsplit(FixFileName(paramstr(0)),exepath,hs1,hs2);
+{$ifndef VER0_99_15}
      {$ifdef linux}
        if exepath='' then
         fsearch(hs1,dos.getenv('PATH'));
      {$endif}
+{$endif}
        exepath:=FixPath(exepath,false);
      end;
 
@@ -1492,7 +1513,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2000-02-09 13:22:53  peter
+  Revision 1.52  2000-02-10 11:45:48  peter
+    * addpath fixed with list of paths when inserting at the beginning
+    * if exepath=currentdir then it's not inserted in path list
+    * searchpaths in ppc386.cfg are now added at the beginning of the
+      list instead of at the end. (commandline is not changed)
+    * check paths before inserting in list
+
+  Revision 1.51  2000/02/09 13:22:53  peter
     * log truncated
 
   Revision 1.50  2000/01/26 14:31:03  marco

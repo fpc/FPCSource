@@ -553,12 +553,12 @@ begin
                        'i' : if ispara then
                               ParaIncludePath.AddPath(More,false)
                              else
-                              includesearchpath.AddPath(More,false);
+                              includesearchpath.AddPath(More,true);
                        'g' : Message2(option_obsolete_switch_use_new,'-Fg','-Fl');
                        'l' : if ispara then
                               ParaLibraryPath.AddPath(More,false)
                              else
-                              LibrarySearchPath.AddPath(More,false);
+                              LibrarySearchPath.AddPath(More,true);
                        'L' : if More<>'' then
                               ParaDynamicLinker:=More
                              else
@@ -566,12 +566,12 @@ begin
                        'o' : if ispara then
                               ParaObjectPath.AddPath(More,false)
                              else
-                              ObjectSearchPath.AddPath(More,false);
+                              ObjectSearchPath.AddPath(More,true);
                        'r' : Msgfilename:=More;
                        'u' : if ispara then
                               ParaUnitPath.AddPath(More,false)
                              else
-                              unitsearchpath.AddPath(More,false);
+                              unitsearchpath.AddPath(More,true);
                        'U' : OutputUnitDir:=FixPath(More,true);
                       else
                         IllegalPara(opt);
@@ -1396,7 +1396,9 @@ begin
      UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name),false);
      UnitSearchPath.AddPath(FpcDir+'units/'+lower(target_info.short_name)+'/rtl',false);
    end;
-  UnitSearchPath.AddPath(ExePath,false);
+  { Add exepath if the exe is not in the current dir, because that is always searched already }
+  if ExePath<>GetCurrentDir then
+   UnitSearchPath.AddPath(ExePath,false);
   { Add unit dir to the object and library path }
   objectsearchpath.AddList(unitsearchpath,false);
   librarysearchpath.AddList(unitsearchpath,false);
@@ -1429,7 +1431,14 @@ end;
 end.
 {
   $Log$
-  Revision 1.59  2000-02-09 13:22:54  peter
+  Revision 1.60  2000-02-10 11:45:48  peter
+    * addpath fixed with list of paths when inserting at the beginning
+    * if exepath=currentdir then it's not inserted in path list
+    * searchpaths in ppc386.cfg are now added at the beginning of the
+      list instead of at the end. (commandline is not changed)
+    * check paths before inserting in list
+
+  Revision 1.59  2000/02/09 13:22:54  peter
     * log truncated
 
   Revision 1.58  2000/02/09 10:35:48  peter
