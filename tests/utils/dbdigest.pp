@@ -125,6 +125,26 @@ Const
     skipping_run_test
   );
 
+  SQLField : Array[TTestStatus] of String = (
+    'TU_FAILEDTOCOMPILE',
+    'TU_SUCCESSFULLYFAILED',
+    'TU_FAILEDTOFAIL',
+    'TU_SUCCESFULLYCOMPILED',
+    'TU_FAILEDTORUN',
+    'TU_KNOWNPROBLEM',
+    'TU_SUCCESSFULLYRUN',
+    'TU_SKIPPEDGRAPHTEST',
+    'TU_SKIPPEDINTERACTIVETEST',
+    'TU_KNOWNBUG',
+    'TU_COMPILERVERIONTOOLOW',
+    'TU_COMPILERVERIONTOOHIGH',
+    'TU_OTHERCPU',
+    'TU_OTHERTARGET',
+    'TU_UNIT',
+    'TU_SKIPPINGRUNTEST'
+  );
+
+
 Var
   StatusCount : Array[TTestStatus] of Integer;
   UnknownLines,
@@ -332,7 +352,7 @@ Var
   TestOSID  : Integer;
   TestVersionID  : Integer;
   TestRunID : Integer;
-  
+
 Procedure GetIDs;
 
 begin
@@ -353,7 +373,7 @@ begin
     TestRunID:=AddRun(TestOSID,TestCPUID,TestVersionID,TestDate);
     If TestRUnID=-1 then
       Verbose(V_Error,'Could not insert new testrun record!');
-    end            
+    end
   else
     CleanTestRun(TestRunID);
 end;
@@ -410,16 +430,35 @@ begin
   close(logfile);
 end;
 
+procedure UpdateTestRun;
+
+  var
+     i : TTestStatus;
+     qry : string;
+     res : TQueryResult;
+
+  begin
+    qry:='UPDATE TESTRUN SET ';
+    for i:=low(TTestStatus) to high(TTestStatus) do
+      begin
+        qry:=qry+format('%s=%d',[SQLField[i],StatusCount[i]]);
+        if i<>high(TTestStatus) then
+          qry:=qry+', '
+      end;
+    qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
+    RunQuery(Qry,res)
+  end;
+
 
 begin
-  Doverbose:=True;
   ProcessConfigFile('dbdigest.cfg');
   ProcessCommandLine;
   If LogFileName<>'' then
     begin
     ConnectToDatabase(DatabaseName,HostName,UserName,Password);
     GetIDs;
-    ProcessFile(LogFileName)
+    ProcessFile(LogFileName);
+    UpdateTestRun;
     end
   else
     Verbose(V_ERROR,'Missing log file name');
@@ -427,7 +466,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2003-10-13 14:19:02  peter
+  Revision 1.9  2003-10-15 19:39:42  florian
+    * exact result counts are inserted into the table
+
+  Revision 1.8  2003/10/13 14:19:02  peter
     * digest updated for max version limit
 
   Revision 1.7  2003/10/06 16:53:04  fpc
