@@ -35,6 +35,9 @@ unit win_targ;
       procedure generatelib;virtual;
     end;
 
+    { sets some flags of the executable }
+    procedure postprocessexecutable;
+
   implementation
 
     uses
@@ -176,10 +179,19 @@ unit win_targ;
            end;
       end;
 
+    procedure postprocessexecutable;
+
+      begin
+
+      end;
+
 end.
 {
   $Log$
-  Revision 1.6  1998-08-10 14:50:38  peter
+  Revision 1.7  1998-09-03 17:39:06  florian
+    + better code for type conversation longint/dword to real type
+
+  Revision 1.6  1998/08/10 14:50:38  peter
     + localswitches, moduleswitches, globalswitches splitting
 
   Revision 1.5  1998/06/10 10:43:18  peter

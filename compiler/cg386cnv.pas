@@ -647,10 +647,12 @@ implementation
 
       var
          r : preference;
+         hregister : tregister;
 
       begin
          { for u32bit a solution is to push $0 and to load a comp }
          { does this first, it destroys maybe EDI }
+         hregister:=R_EDI;
          if porddef(p^.left^.resulttype)^.typ=u32bit then
             push_int(0);
          if (p^.left^.location.loc=LOC_REGISTER) or
@@ -661,7 +663,8 @@ implementation
                  u8bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_BL,p^.left^.location.register,R_EDI)));
                  s16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVSX,S_WL,p^.left^.location.register,R_EDI)));
                  u16bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOVZX,S_WL,p^.left^.location.register,R_EDI)));
-                 u32bit,s32bit : exprasmlist^.concat(new(pai386,op_reg_reg(A_MOV,S_L,p^.left^.location.register,R_EDI)));
+                 u32bit,s32bit:
+                   hregister:=p^.left^.location.register
               end;
               ungetregister(p^.left^.location.register);
            end
@@ -678,7 +681,7 @@ implementation
               del_reference(p^.left^.location.reference);
               ungetiftemp(p^.left^.location.reference);
          end;
-          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,R_EDI)));
+          exprasmlist^.concat(new(pai386,op_reg(A_PUSH,S_L,hregister)));
           r:=new_reference(R_ESP,0);
           if porddef(p^.left^.resulttype)^.typ=u32bit then
             exprasmlist^.concat(new(pai386,op_ref(A_FILD,S_IQ,r)))
@@ -1249,7 +1252,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.15  1998-09-03 16:24:50  florian
+  Revision 1.16  1998-09-03 17:39:03  florian
+    + better code for type conversation longint/dword to real type
+
+  Revision 1.15  1998/09/03 16:24:50  florian
     * bug of type conversation from dword to real fixed
     * bug fix of Jonas applied
 

@@ -68,7 +68,8 @@ uses
 {$ifdef linux}
   ,linux
 {$endif}
-  ,dos;
+  ,dos
+  ,win_targ;
 
 {$ifndef linux}
 Procedure Shell(command:string);
@@ -424,6 +425,8 @@ begin
       end;
      DoExec(bindbin,s,false,false);
    end;
+  if target_info.target=target_Win32 then
+    win_targ.postprocessexecutable;
 {Remove ReponseFile}
   if (success) and not(cs_link_extern in aktglobalswitches) then
    RemoveFile(LinkResName);
@@ -488,7 +491,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.22  1998-09-01 09:01:00  peter
+  Revision 1.23  1998-09-03 17:39:04  florian
+    + better code for type conversation longint/dword to real type
+
+  Revision 1.22  1998/09/01 09:01:00  peter
     + glibc2 support
 
   Revision 1.21  1998/08/31 12:26:26  peter

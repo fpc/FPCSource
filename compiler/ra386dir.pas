@@ -183,7 +183,8 @@ unit Ra386dir;
 {$ifdef TESTGLOBALVAR}
                                            getsym(upper(hs),false);
                                            sym:=srsym;
-                                           if assigned(sym) and (sym^.owner^.symtabletype in [unitsymtable,globalsymtable,staticsymtable]) then
+                                           if assigned(sym) and (sym^.owner^.symtabletype in [unitsymtable,
+                                             globalsymtable,staticsymtable]) then
                                              begin
                                                 if (sym^.typ = varsym) or (sym^.typ = typedconstsym) then
                                                   begin
@@ -261,7 +262,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.6  1998-09-03 17:08:47  pierre
+  Revision 1.7  1998-09-03 17:39:05  florian
+    + better code for type conversation longint/dword to real type
+
+  Revision 1.6  1998/09/03 17:08:47  pierre
     * better lines for stabs
       (no scroll back to if before else part
       no return to case line at jump outside case)
