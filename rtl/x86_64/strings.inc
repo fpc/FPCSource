@@ -16,11 +16,6 @@
 
  **********************************************************************}
 
-{$define FPC_UNIT_HAS_STRLEN}
-function strlen(p : pchar) : SizeInt;assembler;
-{$i strlen.inc}
-
-
 {$define FPC_UNIT_HAS_STRCOPY}
 { Created from glibc: libc/sysdeps/x86_64/strcpy.S Version 1.2 }
 function strcopy(dest,source : pchar) : pchar;assembler;
@@ -173,7 +168,10 @@ end;
 
 {
   $Log$
-  Revision 1.5  2004-11-02 15:34:10  florian
+  Revision 1.6  2004-12-12 12:41:46  peter
+    * updated for latest rtl changes
+
+  Revision 1.5  2004/11/02 15:34:10  florian
     * fixed strcomp
 
   Revision 1.4  2004/05/01 23:55:18  peter
