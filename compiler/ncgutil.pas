@@ -1796,7 +1796,8 @@ implementation
         maybe_new_object_file(curconstSegment);
         new_section(curconstSegment,sec_rodata,lower(sym.mangledname),const_align(l));
 {$ifdef GDB}
-        sym.concatstabto(curconstSegment);
+        if (cs_debuginfo in aktmoduleswitches) then
+          sym.concatstabto(curconstSegment);
 {$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
@@ -1824,7 +1825,8 @@ implementation
         maybe_new_object_file(bssSegment);
         new_section(bssSegment,sec_bss,lower(sym.mangledname),varalign);
 {$ifdef GDB}
-        sym.concatstabto(bssSegment);
+        if (cs_debuginfo in aktmoduleswitches) then
+          sym.concatstabto(bssSegment);
 {$endif GDB}
         if (sym.owner.symtabletype=globalsymtable) or
            maybe_smartlink_symbol or
@@ -2209,7 +2211,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.235  2004-11-04 17:09:54  peter
+  Revision 1.236  2004-11-04 17:12:24  peter
+  forgot if cs_debuginfo
+
+  Revision 1.235  2004/11/04 17:09:54  peter
   fixed debuginfo for variables in staticsymtable
 
   Revision 1.234  2004/10/31 21:45:03  peter
