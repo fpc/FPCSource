@@ -897,8 +897,10 @@ implementation
                     end;
 
                  { When there is a signed type we convert to signed int.
-                   Otherwise (both are unsigned) we keep the result also unsigned }
-                 if is_signed(ld) or is_signed(rd) then
+                   Otherwise (both are unsigned) we keep the result also unsigned.
+		   Exception is substraction, that also gives an signed result }
+                 if (nodetype=subn) or
+		    (is_signed(ld) or is_signed(rd)) then
                    begin
                      inserttypeconv(right,sinttype);
                      inserttypeconv(left,sinttype);
@@ -2069,7 +2071,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.134  2005-01-10 22:10:26  peter
+  Revision 1.135  2005-01-16 11:13:40  peter
+    * ord-ord always gives a signed result
+
+  Revision 1.134  2005/01/10 22:10:26  peter
     * widestring patches from Alexey Barkovoy
 
   Revision 1.133  2005/01/02 17:31:07  peter
