@@ -10,10 +10,14 @@ uses
 {$linklib msvcrt}
 procedure printf(const formatstr : pchar; const args : array of const);cdecl; external name 'printf';
 procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external name 'sprintf';
+const
+  int64prefix='q';
 {$else}
 {$linklib c}
 procedure printf(const formatstr : pchar; const args : array of const);cdecl; external;
 procedure sprintf(p : pchar;const formatstr : pchar; const args : array of const);cdecl; external;
+const
+  int64prefix='ll';
 {$endif}
 
 
@@ -55,8 +59,8 @@ begin
     end;
 
   Writeln('Testing with single int64 argument');
-  printf('Text containing int64: %lld'#10,[ll]);
-  sprintf(p,'Text containing int64: %lld'#10,[ll]);
+  printf('Text containing int64: %'+int64prefix+'d'#10,[ll]);
+  sprintf(p,'Text containing int64: %'+int64prefix+'d'#10,[ll]);
   if strpos(p,'int64: 345')=nil then
     begin
       writeln('The output of sprintf for int64 is wrong: ',p);
@@ -108,8 +112,8 @@ begin
     end;
 
   Writeln('Testing with single int64 argument and pchar');
-  printf('Text containing int64: %lld"%s"'#10,[ll,s2]);
-  sprintf(p,'Text containing int64: %lld"%s"'#10,[ll,s2]);
+  printf('Text containing int64: %'+int64prefix+'d"%s"'#10,[ll,s2]);
+  sprintf(p,'Text containing int64: %'+int64prefix+'d"%s"'#10,[ll,s2]);
   if strpos(p,'int64: 345"next"')=nil then
     begin
       writeln('The output of sprintf for int64 is wrong: ',p);
