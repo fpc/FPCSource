@@ -166,7 +166,6 @@ const
               hp1:=timportlist.create(hs);
               current_module.imports.concat(hp1);
            end;
-         WriteLn('importing func ',func);
          { search for reuse of old import item }
          hp2:=twin32imported_item(hp1.imported_items.first);
          while assigned(hp2) do
@@ -177,7 +176,6 @@ const
           end;
          if not assigned(hp2) then
           begin
-            WriteLn('Adding new entry...func,name',func,' ',name);
             hp2:=twin32imported_item.create(func,name,index);
             hp2.procdef:=aprocdef;
             hp1.imported_items.concat(hp2);
@@ -1615,7 +1613,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.5  2002-11-16 14:46:50  carl
+  Revision 1.6  2002-11-16 18:40:38  carl
+    - remove my last stupid commit (Thanks, Peter!)
+
+  Revision 1.5  2002/11/16 14:46:50  carl
     * don't add debug information in not in debug mode
 
   Revision 1.4  2002/11/15 01:59:02  peter
