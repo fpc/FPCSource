@@ -146,8 +146,13 @@ BEGIN
    Bar(300,440,450,458);
    OutTextXY(300,440,'Score :'+S);
 END;
+
+{
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2001-11-11 21:09:49  marco
+   * Gameunit, Fpctris and samegame  fixed for win32 GUI
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:08  michael

@@ -21,7 +21,18 @@ ORIGINAL Header:
      Turbo Pascal 4.0 source code.  Requires VGA 640x480x16 display.
      Note: pix=pixels in the comments}
 
-Uses Crt,Graph;
+{$ifdef Win32}
+ {$apptype GUI}
+{$endif}
+
+Uses
+ {$ifdef Win32}
+  Windows,
+  WinCrt,
+ {$else}
+  Crt,
+ {$endif}
+ Graph;
 
 Type
     spacecraft=Record                       {used for ships and pointer}
@@ -58,6 +69,10 @@ begin
   //SetGraphBufSize(10);
   GraphDriver:=VGA;
   GraphMode:=VGAHi;
+  {$ifdef Win32}
+   ShowWindow(GetActiveWindow,0);
+  {$endif}
+
   InitGraph(GraphDriver,GraphMode,'');
   setbkcolor(black);
   setviewport(0,0,getmaxx,getmaxy,clipoff);
@@ -909,7 +924,10 @@ BEGIN
   Finish;
 END.
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2001-11-11 21:09:49  marco
+   * Gameunit, Fpctris and samegame  fixed for win32 GUI
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:08  michael

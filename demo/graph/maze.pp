@@ -27,8 +27,15 @@ Don't forget the BGIPATH of InitGraph.
 
 program makemaze;
 
+{$apptype GUI}
+
 uses
-  crt, graph;
+ {$ifdef Win32}
+  WinCrt,Windows,
+ {$else}
+  crt,
+ {$endif}
+  graph;
 
 const
   screenwidth   = 640;
@@ -425,7 +432,9 @@ procedure getsize;
 var
   j, k : real;
 begin
+ {$ifndef win32}
   clrscr;
+ {$endif}
   writeln('       Mind');
   writeln('       Over');
   writeln('       Maze');
@@ -446,9 +455,9 @@ begin
     maxrun := 65535;  { infinite }
   j := Real(screenwidth) / blockwidth;
   k := Real(screenheight) / blockwidth;
-  if j = int(j) then
+  if j = system.int(j) then
     j := j - 1;
-  if k = int(k) then
+  if k= system.int(k) then
     k := k - 1;
   width  := trunc(j);
   height := trunc(k);
@@ -461,23 +470,37 @@ begin
 end;
 
 begin
+ {$ifdef Win32}
+  ShowWindow(GetActiveWindow,0);
+  Initbgi;
+ {$endif}
   repeat
     getsize;
-    initbgi;
+    {$ifndef Win32}
+     initbgi;
+    {$endif}
     new(cell);    { allocate this large array on heap }
     drawmaze;
     solvemaze;
     dispose(cell);
-    closegraph;
+    {$ifndef Win32}
+     closegraph;
+    {$endif}
     while keypressed do
       ch := readkey;
     write ('another one? ');
     ch := upcase (readkey);
   until (ch = 'N') or (ch = #27);
+  {$ifdef Win32}
+   CloseGraph;
+  {$endif}
 end.
-
+{
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2001-11-11 21:09:49  marco
+   * Gameunit, Fpctris and samegame  fixed for win32 GUI
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:08  michael

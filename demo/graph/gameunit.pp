@@ -44,6 +44,12 @@ INTERFACE
   {$define MouseAPI}
   {$G+}
 {$endif}
+{$ifdef UseGraphics}
+ {$ifdef Win32}
+   {$define Win32Graph}
+ {$endif}
+{$endif}
+
 CONST  LineDistY=13;
 
 
@@ -136,19 +142,28 @@ PROCEDURE outportl(portx : word;data : longint);
 
 IMPLEMENTATION
 
-{$IFDEF MouseAPI}
- {$IFDEF UseGraphics}
-  Uses Mouse,Dos,Crt,Graph;
+Uses
+
+{$ifdef Win32Graph}
+   WinMouse,
+   {$undef MouseApi}
+{$else}
+ {$IFDEF MouseAPI}
+   Mouse,
  {$ELSE}
-  Uses Mouse,Dos,Crt;
+   MSMouse,
  {$ENDIF}
-{$ELSE}
-  {$IFDEF UseGraphics}
-  Uses MsMouse,Dos,Crt,Graph;
- {$ELSE}
-  Uses MsMouse,Dos,Crt;
- {$ENDIF}
-{$ENDIF}
+{$endif}
+
+{$ifdef UseGraphics}
+  Graph,
+{$endif}
+{$ifdef Win32Graph}
+  WinCrt,
+{$else}
+  Crt,
+{$endif}
+  Dos;
 
 VAR  DefColor    : BYTE;                         {Backup of startup colors}
 
@@ -172,39 +187,54 @@ END;
 PROCEDURE ShowMouse;
 
 BEGIN
+ {$ifdef Win32Graph}
+  WinMouse.ShowMouse;
+ {$else}
   {$IFDEF MouseAPI}
-  Mouse.ShowMouse;
- {$ELSE}
-  MsMouse.ShowMouse;
- {$ENDIF}
+   Mouse.ShowMouse;
+  {$ELSE}
+   MsMouse.ShowMouse;
+  {$ENDIF}
+ {$endif}
 END;
 
 PROCEDURE HideMouse;
 
 BEGIN
- {$IFDEF MouseAPI}
-  Mouse.HideMouse;
- {$ELSE}
-  MsMouse.HideMouse;
- {$ENDIF}
+ {$ifdef Win32Graph}
+  WinMouse.HideMouse;
+ {$else}
+  {$IFDEF MouseAPI}
+   Mouse.HideMouse;
+  {$ELSE}
+   MsMouse.HideMouse;
+  {$ENDIF}
+ {$endif}
 END;
 
 PROCEDURE InitMouse;
 
 BEGIN
- {$IFDEF MouseAPI}
-  Mouse.InitMouse;
- {$ELSE}
-  MsMouse.InitMouse;
- {$ENDIF}
+ {$ifdef Win32Graph}
+  WinMouse.InitMouse;
+ {$else}
+  {$IFDEF MouseAPI}
+   Mouse.InitMouse;
+  {$ELSE}
+   MsMouse.InitMouse;
+  {$ENDIF}
+ {$endif}
 END;
 
 PROCEDURE DoneMouse;
 
 BEGIN
- {$IFDEF MouseAPI}
-  Mouse.DoneMouse;
- {$ENDIF}
+ {$ifdef Win32Graph}
+ {$else}
+  {$IFDEF MouseAPI}
+   Mouse.DoneMouse;
+  {$ENDIF}
+ {$endif}
 END;
 
 PROCEDURE GetMouseState(VAR MX,MY,MState : LONGINT);
@@ -220,17 +250,23 @@ BEGIN
    MY:=MouseEvent.Y SHL 3;
    MState:=MouseEvent.Buttons;
  {$ELSE}
-  MsMouse.GetMouseState(MX,MY,MState);
+  {$ifdef Win32Graph}
+   WinMouse.GetMouseState(MX,MY,MState);
+  {$else}
+   MsMouse.GetMouseState(MX,MY,MState);
+  {$endif}
  {$ENDIF}
 END;
 
 PROCEDURE SetMousePosition(X,Y:LONGINT);
 
 BEGIN
+ {$ifndef Win32Graph}
  {$IFDEF MouseAPI}
   SetMouseXY(x,y);
  {$ELSE}
   SetMousePos(X,Y);
+  {$endif}
  {$ENDIF}
 END;
 
@@ -409,7 +445,7 @@ END;
 PROCEDURE DoCursor; { Put Cursor in/out insert-mode }
 
 BEGIN
- {$IFNDEF Linux}
+ {$IFNDEF Unix}
 { IF Ins THEN
   SetCursorSize($11E)
  ELSE
@@ -454,16 +490,20 @@ BEGIN
       Posi:=Len;
      END;
     GotoXY(X+Posi-1,Y);
-    {$IFNDEF Linux}
+    {$IFNDEF Unix}
      {$IFDEF FPC}
-      CursorOn;
+       {$ifndef Win32Graph}
+        CursorOn;
+       {$endif}
      {$ENDIF}
     DoCursor;
     {$ENDIF}
     Key:=GetKey;
-   {$IFNDEF Linux}
+   {$IFNDEF Unix}
     {$IFDEF FPC}
-    CursorOff;
+     {$ifndef Win32Graph}
+      CursorOff;
+     {$endif}
     {$ENDIF}
    {$ENDIF}
     CASE Key OF
@@ -623,16 +663,20 @@ BEGIN
       Full:=TRUE;
       Posi:=Len;
      END;
-    {$IFNDEF Linux}
+    {$IFNDEF Unix}
      {$IFDEF FPC}
-      CursorOn;
+      {$ifndef Win32Graph}
+       CursorOn;
+      {$endif}
      {$ENDIF}
     DoCursor;
     {$ENDIF}
     Key:=GetKey;
    {$IFNDEF Linux}
     {$IFDEF FPC}
-    CursorOff;
+     {$ifndef Win32Graph}
+      CursorOff;
+     {$endif}
     {$ENDIF}
    {$ENDIF}
     CASE Key OF
@@ -703,8 +747,10 @@ END;
 PROCEDURE SetDefaultColor;
 
 BEGIN
- TextColor(DefColor AND 15);
- TextBackground(DefColor SHR 4);
+ {$ifndef UseGraphics}
+  TextColor(DefColor AND 15);
+  TextBackground(DefColor SHR 4);
+ {$endif}
 END;
 
 
@@ -853,12 +899,17 @@ END;
 {$ENDIF}
 
 BEGIN
+ {$ifndef Win32Graph}
   DefColor:=TextAttr;                { Save the current attributes, to restore}
+ {$endif}
   Negative:=FALSE;                    { Negative=true-> better scores are lower}
 END.
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2001-11-11 21:09:49  marco
+   * Gameunit, Fpctris and samegame  fixed for win32 GUI
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:08  michael

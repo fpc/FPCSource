@@ -44,7 +44,20 @@ TheHeight-1
 
 }
 
-Uses Crt,Dos,
+{$ifdef UseGraphics}
+ {$ifdef Win32}
+   {$define Win32Graph}
+   {$APPTYPE GUI}
+ {$endif}
+{$endif}
+
+Uses
+{$ifdef Win32Graph}
+ WinCrt, Windows,
+{$else}
+ Crt,
+{$endif}
+ Dos,
 {$IFDEF UseGraphics}
  Graph,
 {$ENDIF}
@@ -577,6 +590,9 @@ VAR
 
 BEGIN
 {$IFDEF UseGraphics}
+  {$ifdef Win32}
+   ShowWindow(GetActiveWindow,0);
+  {$endif}
   gm:=vgahi;
   gd:=vga;
   InitGraph(gd,gm,'');
@@ -600,8 +616,10 @@ BEGIN
  {$ELSE}
   UseColor:=TRUE;
  {$ENDIF}
+ {$ifndef Win32Graph}
  ClrScr;
  CursorOff;
+ {$endif}
  RANDOMIZE;
  HighX:=BaseX;
  HighY:=BaseY;
@@ -695,7 +713,9 @@ BEGIN
 ORD('q'),
    ESC     : BEGIN
              SetDefaultColor;
+             {$ifndef Win32Graph}
              GotoXY(1,25);
+             {$endif}
              EndGame:=TRUE;
             END;
 
@@ -807,11 +827,15 @@ ORD('p') : BEGIN                             {"p" : Pause}
  DisplMainField;
  UNTIL EndGame;
  FixHighScores;
+ {$ifndef Win32Graph}
  CursorOn;
  SetDefaultColor;
  GotoXY(1,25);
+ {$endif}
  {$IFDEF UseGraphics}
+  {$ifndef Win32}
   TextMode(CO80);
+  {$endif}
  {$ENDIF}
 END;
 
@@ -829,7 +853,10 @@ END.
 
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2001-11-11 21:09:49  marco
+   * Gameunit, Fpctris and samegame  fixed for win32 GUI
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:08  michael

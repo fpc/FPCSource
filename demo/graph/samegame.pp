@@ -23,11 +23,30 @@
  **********************************************************************}
 PROGRAM SameGame;
 
-Uses Crt,Dos,
+
+{$ifdef UseGraphics}
+ {$ifdef Win32}
+   {$define Win32Graph}
+    {$apptype GUI}
+ {$endif}
+{$endif}
+
+
+Uses
+{$ifdef Win32}
+  Windows,
+{$endif}
+{$ifdef Win32Graph}
+  WinCrt,
+ {$else}
+  Crt,
+{$endif}
+  Dos,
 {$IFDEF UseGraphics}
- Graph,
+  Graph,
+  {$INFO GRAPH}
 {$ENDIF}
- GameUnit;
+  GameUnit;
 
 CONST
    {$IFDEF UseGraphics}
@@ -335,6 +354,8 @@ END;
 PROCEDURE BuildScreen;
 {Some procedures that build the screen}
 
+var s : String;
+
 BEGIN
   {$IFDEF UseGraphics}
    setbkcolor(black);
@@ -349,7 +370,6 @@ BEGIN
   ShowHighScore;
   ShowMouse;
   {$IFDEF UseGraphics}
-
    SetTextStyle(0,Horizdir,2);
    OuttextXY(10,10,'SameGame v0.03, (C) by Marco v/d Voort. ');
    SetTextStyle(0,Horizdir,1);
@@ -366,8 +386,14 @@ BEGIN
   {$ENDIF}
   IF LastScore<>0 THEN
    BEGIN
-    GotoXY(10,20);
-    Write('The score in the last game was :',LastScore);
+    {$Ifdef UseGraphics}
+     SetTextStyle(0,Horizdir,1);
+     Str(LastScore,S);
+     OuttextXY(50,40,'The Score in the last game was :'+S);
+    {$else}
+     GotoXY(10,20);
+     Write('The score in the last game was :',LastScore);
+    {$endif}
    END;
   DisplayPlayField(PlayField);
  MarkField:=PlayField;
@@ -451,11 +477,19 @@ BEGIN
           MarkField:=PlayField;
           MarkAfield(X,Y);
           DisplayPlayField(MarkField);
-          TextColor(White);
-          GotoXY(20,22);
-          Write(' ':20);
-          GotoXY(20,22);
-          Write('Marked :',CubesToScore);
+          {$ifdef UseGraphics}
+           SetFillStyle(SolidFill,black);
+           Bar(420,440,540,460);
+           SetTextStyle(0,Horizdir,1);
+           Str(CubesToScore,S);
+           OuttextXY(420,440,'Marked : '+S);
+          {$else}
+           TextColor(White);
+           GotoXY(20,22);
+           Write(' ':20);
+           GotoXY(20,22);
+           Write('Marked :',CubesToScore);
+          {$endif}
          END;
         IF (MarkField[X,Y]=4) AND ((MState AND LButton) <>0) THEN
                                    {If leftbutton pressed,}
@@ -508,6 +542,9 @@ VAR I : LONGINT;
 
 BEGIN
  {$IFDEF UseGraphics}
+  {$ifdef Win32}
+   ShowWindow(GetActiveWindow,0);
+  {$endif}
   gm:=vgahi;
   gd:=vga;
   InitGraph(gd,gm,'');
@@ -529,7 +566,9 @@ BEGIN
    HighScore[I].Score:=I*1500;
   LoadHighScore(FileName);
   InitMouse;
-  CursorOff;
+  {$ifndef Win32Graph}
+   CursorOff;
+  {$endif}
  {$IFDEF UseGraphics}
     HighX:=450;   HighY:=220; {the position of the highscore table}
  {$else}
@@ -540,18 +579,25 @@ BEGIN
 
   HideMouse;
   DoneMouse;
-  CursorOn;
+  {$ifndef Win32Graph}
+   CursorOn;
+  {$endif}
   SaveHighScore;
   {$IFDEF UseGraphics}
    CloseGraph;
   {$ENDIF}
-  ClrScr;
+  {$ifndef Win32Graph}
+   ClrScr;
   Writeln;
   Writeln('Last games'#39' score was : ',Score);
+  {$endif}
 END.
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2001-11-11 21:09:50  marco
+   * Gameunit, Fpctris and samegame  fixed for win32 GUI
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.2  2000/07/13 11:33:09  michael

@@ -21,7 +21,14 @@ program mandel;
   Note: For linux you need to run this program as root !!
 }
 
+{$ifdef Win32}
+ {$apptype GUI}
+{$endif}
+
 uses
+{$ifdef Win32}
+ Windows,
+{$endif}
   dos,Graph;
 
 {
@@ -288,6 +295,9 @@ begin
     GetModeRange(gd,dummy,gm);
   GetTime(hour, minute, second, sec100);
   starttime:=((hour*60+minute)*60+second)*100+sec100;
+  {$ifdef Win32}
+   ShowWindow(GetActiveWindow,0);
+  {$endif}
   InitGraph(gd,gm,'');
   if GraphResult <> grOk then
     begin
@@ -331,12 +341,17 @@ begin
   readln;
 {$endif fpc_profile}
   CloseGraph;
-  Writeln('Mandel took ',Real(neededtime)/100/count:0:3,' secs to generate mandel graph');
-  Writeln('With graph driver ',gd,' and graph mode ',gm);
+  {$ifndef Win32}
+   Writeln('Mandel took ',Real(neededtime)/100/count:0:3,' secs to generate mandel graph');
+   Writeln('With graph driver ',gd,' and graph mode ',gm);
+  {$endif}
 end.
 {
   $Log$
-  Revision 1.1  2001-05-03 21:39:33  peter
+  Revision 1.2  2001-11-11 21:09:49  marco
+   * Gameunit, Fpctris and samegame  fixed for win32 GUI
+
+  Revision 1.1  2001/05/03 21:39:33  peter
     * moved to own module
 
   Revision 1.3  2001/04/25 22:45:41  peter
