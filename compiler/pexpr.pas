@@ -47,7 +47,7 @@ unit pexpr;
 
     uses
        cobjects,globals,scanner,aasm,pass_1,systems,
-       hcodegen,types,verbose
+       hcodegen,types,verbose,strings
        { parser specific stuff }
        ,pbase,pdecl
        { processor specific stuff }
@@ -1754,14 +1754,21 @@ unit pexpr;
             Message(cg_e_illegal_expression);
         end
       else
+{$ifdef UseAnsiString}
+        get_stringconst:=strpas(p^.value_str);
+{$else UseAnsiString}
         get_stringconst:=p^.value_str^;
+{$endif UseAnsiString}
       disposetree(p);
     end;
 
 end.
 {
   $Log$
-  Revision 1.56  1998-09-26 17:45:36  peter
+  Revision 1.57  1998-09-28 16:18:16  florian
+    * two fixes to get ansi strings work
+
+  Revision 1.56  1998/09/26 17:45:36  peter
     + idtoken and only one token table
 
   Revision 1.55  1998/09/24 23:49:10  peter
