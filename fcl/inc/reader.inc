@@ -171,6 +171,7 @@ var
   Value: Integer;
 begin
   try
+    Result := 0;
     while True do
     begin
       Name := ReadStr;
@@ -179,7 +180,7 @@ begin
       Value := GetEnumValue(PTypeInfo(EnumType), Name);
       if Value = -1 then
         raise EReadError.Create(SInvalidPropertyValue);
-      Result := Result or Value;
+      Result := Result or (1 shl Value);
     end;
   except
     SkipSetBody;
@@ -1057,7 +1058,7 @@ function TReader.ReadRootComponent(ARoot: TComponent): TComponent;
 var
   Dummy, i: Integer;
   Flags: TFilerFlags;
-  CompClassName, CompName: String;
+  CompClassName, CompName, ResultName: String;
 begin
   FDriver.BeginRootComponent;
   Result := nil;
@@ -1083,12 +1084,15 @@ begin
           begin
 	    { We need an unique name }
             i := 0;
-            Result.Name := CompName;
-            while Assigned(FindGlobalComponent(Result.Name)) do
+	    { Don't use Result.Name directly, as this would influence
+	      FindGlobalComponent in successive loop runs }
+            ResultName := CompName;
+            while Assigned(FindGlobalComponent(ResultName)) do
             begin
               Inc(i);
-              Result.Name := CompName + '_' + IntToStr(i);
+              ResultName := CompName + '_' + IntToStr(i);
             end;
+	    ResultName := Result.Name;
           end else
             Result.Name := '';
         end;
@@ -1259,7 +1263,18 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:00  michael
-  + removed logs
- 
+  Revision 1.1.2.1  2000-12-20 23:11:25  sg
+  * Applied bugfixes by Mattias Gaertner for TBinaryObjectReader.ReadSet
+    (uninitialized result and missing bit shifting) and
+    TReader.ReadRootComponent (finding an unique component name)
+
+  Revision 1.1  2000/07/13 06:31:31  michael
+  + Initial import
+
+  Revision 1.7  2000/06/29 16:29:23  sg
+  * Implemented streaming. Note: The writer driver interface is stable, but
+    the reader interface is not final yet!
+
+  Revision 1.6  2000/01/07 01:24:33  peter
+    * updated copyright to 2000
 }
