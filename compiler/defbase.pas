@@ -214,15 +214,15 @@ interface
              var doconv : tconverttype;
              fromtreetype : tnodetype;
              explicit : boolean) : byte;
-             
+
     { this routine is recusrive safe, and is used by the
       checking of overloaded assignment operators ONLY!
-    }  
+    }
     function overloaded_assignment_isconvertable(def_from,def_to : tdef;
              var doconv : tconverttype;
              fromtreetype : tnodetype;
              explicit : boolean; var overload_procs : pprocdeflist) : byte;
-             
+
 
     { Same as is_equal, but with error message if failed }
     function CheckTypes(def1,def2 : tdef) : boolean;
@@ -386,7 +386,11 @@ implementation
               def1:=TParaItem(def1.next);
               def2:=TParaItem(def2.next);
            end;
-         if (def1=nil) and (def2=nil) then
+         { when both lists are empty then the parameters are equal. Also
+           when one list is empty and the other has a parameter with default
+           value assigned then the parameters are also equal }
+         if ((def1=nil) and ((def2=nil) or assigned(def2.defaultvalue))) or
+            ((def2=nil) and ((def1=nil) or assigned(def1.defaultvalue))) then
            equal_paras:=true
          else
            equal_paras:=false;
@@ -1277,7 +1281,7 @@ implementation
        end;
 *)
     { this is an internal routine to take care of recursivity }
-    function internal_assignment_overloaded(from_def,to_def : tdef; 
+    function internal_assignment_overloaded(from_def,to_def : tdef;
         var overload_procs : pprocdeflist) : tprocdef;
      var
        p :pprocdeflist;
@@ -1323,8 +1327,8 @@ implementation
     { Returns:
        0 - Not convertable
        1 - Convertable
-       2 - Convertable, but not first choice 
-    }   
+       2 - Convertable, but not first choice
+    }
     function isconvertable(def_from,def_to : tdef;
              var doconv : tconverttype;
              fromtreetype : tnodetype;
@@ -1336,7 +1340,7 @@ implementation
         isconvertable:=overloaded_assignment_isconvertable(def_from,def_to,
           doconv, fromtreetype, explicit,p);
       end;
-      
+
     function overloaded_assignment_isconvertable(def_from,def_to : tdef;
              var doconv : tconverttype;
              fromtreetype : tnodetype;
@@ -1949,7 +1953,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2002-09-08 11:10:17  carl
+  Revision 1.11  2002-09-15 17:54:46  peter
+    * allow default parameters in equal_paras
+
+  Revision 1.10  2002/09/08 11:10:17  carl
     * bugfix 2109 (bad imho, but only way)
 
   Revision 1.9  2002/09/07 15:25:02  peter
