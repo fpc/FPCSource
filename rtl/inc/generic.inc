@@ -742,8 +742,6 @@ begin
        s:=char(ord('0')+(l mod 10))+s;
        l:=l div 10;
     end;
-  if sign then
-    s:='-'+s;
 end;
 
 {$endif ndef FPC_SYSTEM_HAS_INT_STR_CARDINAL}
@@ -773,7 +771,10 @@ end;
 
 {
   $Log$
-  Revision 1.8  2001-04-13 18:06:28  peter
+  Revision 1.9  2001-04-21 12:16:28  peter
+    * int_str cardinal fix (merged)
+
+  Revision 1.8  2001/04/13 18:06:28  peter
     * removed rtllite define
 
   Revision 1.7  2001/03/05 17:10:40  jonas
