@@ -33,7 +33,7 @@ unit pexports;
       globtype,systems,tokens,
       strings,cobjects,globals,verbose,
       scanner,symconst,symtable,pbase,
-      export,GenDef;
+      export,GenDef,tree,pass_1,pexpr;
 
     procedure read_exports;
 
@@ -43,6 +43,8 @@ unit pexports;
          DefString:string;
          ProcName:string;
          InternalProcName:string;
+         pt : ptree;
+
       begin
          DefString:='';
          InternalProcName:='';
@@ -90,9 +92,17 @@ unit pexports;
                         if (idtoken=_INDEX) then
                           begin
                              consume(_INDEX);
+                             pt:=comp_expr(true);
+                             do_firstpass(pt);
+                             if pt^.treetype=ordconstn then
+                               hp^.index:=pt^.value
+                             else
+                                begin
+                                   hp^.index:=0;
+                                   consume(_INTCONST);
+                                end;
                              hp^.options:=hp^.options or eo_index;
-                             val(pattern,hp^.index,code);
-                             consume(_INTCONST);
+                             disposetree(pt);
                              if target_os.id=os_i386_win32 then
                                DefString:=ProcName+'='+InternalProcName+' @ '+tostr(hp^.index)
                              else
@@ -101,12 +111,17 @@ unit pexports;
                         if (idtoken=_NAME) then
                           begin
                              consume(_NAME);
-                             hp^.name:=stringdup(pattern);
-                             hp^.options:=hp^.options or eo_name;
-                             if token=_CCHAR then
-                              consume(_CCHAR)
+                             pt:=comp_expr(true);
+                             do_firstpass(pt);
+                             if pt^.treetype=stringconstn then
+                               hp^.name:=stringdup(strpas(pt^.value_str))
                              else
-                              consume(_CSTRING);
+                                begin
+                                   hp^.name:=stringdup('');
+                                   consume(_CSTRING);
+                                end;
+                             hp^.options:=hp^.options or eo_name;
+                             disposetree(pt);
                              DefString:=hp^.name^+'='+InternalProcName;
                           end;
                         if (idtoken=_RESIDENT) then
@@ -141,7 +156,11 @@ end.
 
 {
   $Log$
-  Revision 1.19  2000-02-09 13:22:56  peter
+  Revision 1.20  2000-02-23 23:06:39  florian
+    + the expr for names and indizies of exports sections support now
+      every type of expressions which evalute to a constant
+
+  Revision 1.19  2000/02/09 13:22:56  peter
     * log truncated
 
   Revision 1.18  2000/01/07 01:14:28  peter
