@@ -124,7 +124,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
 windows$(PPUEXT) : windows.pp $(WINDOWS_SOURCE_FILES) $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) windows.pp
 
-messages$(PPUEXT): messages.pp $(SYSTEMUNIT)$(PPUEXT)
+messages$(PPUEXT): messages.pp $(WININC)/messages.inc $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -I$(WININC) messages.pp
 
 ole2$(PPUEXT) : ole2.pp windows$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

@@ -241,6 +241,7 @@ Type
   PError              = ^Error;
 {$ifdef HASVARIANT}
   PVariant            = ^Variant;
+  POleVariant         = ^OleVariant;
 {$endif HASVARIANT}
 
 {$ifdef HASWIDECHAR}
@@ -698,8 +699,9 @@ const
 
 {
   $Log$
-  Revision 1.73  2003-10-06 23:52:53  florian
-    * some data types cleaned up
+  Revision 1.74  2003-10-08 16:24:47  florian
+    * fixed some variant issues
+    * improved type declarations
 
   Revision 1.72  2003/09/04 16:07:31  florian
     * fixed qword_to_double conversion on powerpc

@@ -1190,17 +1190,88 @@ Type
 
     TWMSize = packed record
       Msg: Cardinal;
-      SizeType: LongInt;
+      SizeType : LongInt;
       Width : Word;
       Height : Word;
       Result : LongInt;
     End;
 
+    TWMNoParams = packed record
+      Msg : Cardinal;
+      Unused : array[0..3] of Word;
+      Result : Longint;
+    end;
+
+    TWMGetDlgCode = TWMNoParams;
+    TWMFontChange = TWMNoParams;
+    TWMGetFont = TWMNoParams;
+
+    TWMScroll = record
+      Msg : Cardinal;
+      ScrollCode : SmallInt;
+      Pos : SmallInt;
+      ScrollBar : HWND;
+      Result : LongInt;
+    end;
+
+    TWMHScroll = TWMScroll;
+    TWMVScroll = TWMScroll;
+
+    TWMGetText = packed record
+      Msg : Cardinal;
+      TextMax : LongInt;
+      Text : PChar;
+      Result : LongInt;
+    end;
+
+    TWMGetTextLength = TWMNoParams;
+
+    TWMKillFocus = packed record
+       Msg : Cardinal;
+       FocusedWnd : HWND;
+       UnUsed : LongInt;
+       Result : LongInt;
+    End;
+
+    TWMSetCursor = packed record
+      Msg : Cardinal;
+      CursorWnd : HWND;
+      HitTest : Word;
+      MouseMsg : Word;
+      Result : LongInt;
+    end;
+
+    TWMSetFocus = packed record
+      Msg : Cardinal;
+      FocusedWnd : HWND;
+      Unused : LongInt;
+      Result : LongInt;
+    end;
+
+    TWMSetFont = packed record
+      Msg : Cardinal;
+      Font : HFONT;
+      Redraw : WordBool;
+      Unused : Word;
+      Result : LongInt;
+    end;
+
+    TWMShowWindow = packed record
+      Msg : Cardinal;
+      Show : BOOL;
+      Status : LongInt;
+      Result : LongInt;
+    end;
+
 {$endif read_interface}
 
 {
   $Log$
-  Revision 1.6  2003-10-06 23:52:53  florian
+  Revision 1.7  2003-10-08 16:24:47  florian
+    * fixed some variant issues
+    * improved type declarations
+
+  Revision 1.6  2003/10/06 23:52:53  florian
     * some data types cleaned up
 
   Revision 1.5  2003/01/02 22:07:00  peter

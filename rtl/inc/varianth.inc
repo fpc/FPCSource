@@ -145,11 +145,16 @@ type
       varfromint64 : procedure(var dest : variant;const source : int64);
       varfromword64 : procedure(var dest : variant;const source : qword);
       varfromreal : procedure(var dest : variant;const source : extended);
-      varfrompstr: procedure(var dest: variant; const source: ShortString);
-      varfromlstr: procedure(var dest: variant; const source: ansistring);
-      varfromwstr: procedure(var dest: variant; const source: WideString);
-
-      {!!!!!!!}
+      varfrompstr: procedure(var dest : variant; const source : ShortString);
+      varfromlstr: procedure(var dest : variant; const source : ansistring);
+      varfromwstr: procedure(var dest : variant; const source : WideString);
+      varfromintf: procedure(var dest : variant;const source : iinterface);
+      varfromdisp: procedure(var dest : variant;const source : idispatch);
+      varfromdynarray: procedure(var dest : variant;const source : pointer; typeinfo: pointer);
+      olevarfrompstr: procedure(var dest : olevariant; const source : shortstring);
+      olevarfromlstr: procedure(var dest : olevariant; const source : ansistring);
+      olevarfromvar: procedure(var dest : olevariant; const source : variant);
+      olevarfromint: procedure(var dest : olevariant; const source : longint;const range : shortint);
 
       { operators }
       varop : procedure(var left : variant;const right : variant;opcode : tvarop);
@@ -163,9 +168,17 @@ type
       varaddref : procedure(var v : variant);
       varcopy : procedure(var dest : variant;const source : variant);
       varcast : procedure(var dest : variant;const source : variant;vartype : longint);
+      varcastole : procedure(var dest : variant; const source : variant;vartype : longint);
 
+      dispinvoke: procedure(dest : pvardata;const source : tvardata;
+        calldesc : pcalldesc;params : pointer);cdecl;
+
+      vararrayredim : procedure(var a : variant;highbound : SizeInt);
+      vararrayget : function(var a : variant;indexcount : SizeInt;indices : SizeInt) : variant;cdecl;
+      vararrayput: procedure(var a : variant; const value : variant;
+        indexcount : SizeInt;indices : SizeInt);cdecl;
       writevariant : function(var t : text;const v : variant;width : longint) : Pointer;
-      write0Variant : function(var t : text;const v : Variant): Pointer;
+      write0Variant : function(var t : text;const v : Variant) : Pointer;
    end;
    pvariantmanager = ^tvariantmanager;
 
@@ -282,7 +295,11 @@ operator <=(const op1,op2 : variant) dest : boolean;
 
 {
   $Log$
-  Revision 1.12  2003-10-04 23:40:42  florian
+  Revision 1.13  2003-10-08 16:24:47  florian
+    * fixed some variant issues
+    * improved type declarations
+
+  Revision 1.12  2003/10/04 23:40:42  florian
     * write helper comproc for variants fixed
 
   Revision 1.11  2002/10/10 19:24:28  florian
