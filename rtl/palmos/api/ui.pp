@@ -14,26 +14,23 @@
 
  **********************************************************************}
 
-unit sysall;
+unit ui;
 
   interface
 
-  { include common definitions } 
-  {$I common.inc}
+    {$I init.inc}
+    {$I rect.inc}
+    {$I font.inc}
+    {$I fontsel.inc}
 
-  { include trap number definitions }
-  {$I systraps.inc}
-
-  {$I sysmgr.inc}
-  
   implementation
+
+    {$I font.imn}
 
 end.
 {
   $Log$
-  Revision 1.2  1998-08-05 21:47:22  florian
+  Revision 1.1  1998-08-05 21:47:23  florian
     + some new converted header files added
 
-  Revision 1.1  1998/08/05 17:19:07  florian
-    + first few things for PalmOS support
 }
