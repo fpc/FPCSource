@@ -47,7 +47,7 @@ int i386_set_watch __P((int watchnum, unsigned int watchaddr, int size,
 int i386_clr_watch __P((int watchnum, struct dbreg * d));
 }
 
-Function IOPerm(From,Num:CARDINAL;Value:Longint):boolean;
+Function IOPerm(From,Num:CARDINAL;Value:Longint):cint;
 
 var sg : i386_ioperm_args;
     sa : sysarch_args;
@@ -58,6 +58,5 @@ begin
   sg.enable:=value;
   sa.op:=i386_SET_IOPERM;
   sa.parms:=@sg;
-  IOPerm:=do_syscall(syscall_nr_sysarch,longint(@sa))=0;
-  LinuxError:=ErrNo;
+  IOPerm:=do_syscall(syscall_nr_sysarch,longint(@sa));
 end;
