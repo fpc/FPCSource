@@ -402,8 +402,8 @@ asm
         cmpwi     cr6,r4,0
         { less than 15 bytes? }
         cmpwi     cr7,r4,15
-        { less than 63 bytes? }
-        cmpwi     cr1,r4,63
+        { less than 64 bytes? }
+        cmpwi     cr1,r4,64
         { fill r5 with ValueValueValueValue }
         rlwimi    r5,r5,8,16,23
         { setup for aligning x to multiple of 4}
@@ -1004,7 +1004,10 @@ end;
 
 {
   $Log$
-  Revision 1.57  2003-12-07 13:29:02  jonas
+  Revision 1.58  2003-12-07 14:27:45  jonas
+    * fixed buffer overrun error in fillchar
+
+  Revision 1.57  2003/12/07 13:29:02  jonas
     + added FPC_MOVE alias to move for open array support
 
   Revision 1.56  2003/11/23 17:34:27  jonas
