@@ -287,7 +287,7 @@ var
 
     procedure TGNUAssembler.WriteTree(p:TAAsmoutput);
     const
-      regallocstr : array[tregalloctype] of string[10]=(' released',' allocated','resized');
+      regallocstr : array[tregalloctype] of string[10]=(' allocated',' released','resized');
       tempallocstr : array[boolean] of string[10]=(' released',' allocated');
     var
       ch       : char;
@@ -879,7 +879,10 @@ var
 end.
 {
   $Log$
-  Revision 1.52  2004-05-22 23:34:27  peter
+  Revision 1.53  2004-05-28 21:13:08  peter
+    * fix wrong regalloc comments
+
+  Revision 1.52  2004/05/22 23:34:27  peter
   tai_regalloc.allocation changed to ratype to notify rgobj of register size changes
 
   Revision 1.51  2004/04/27 13:38:24  florian
