@@ -154,13 +154,13 @@ begin
   AtInsert(Count,Item);
 end;
 
-function TTopicLinkCollection.At(Index: Integer): PString;
+function TTopicLinkCollection.At(Index: sw_Integer): PString;
 begin
   At:=inherited At(Index);
 end;
 
 function TTopicLinkCollection.AddItem(Item: string): integer;
-var Idx: integer;
+var Idx: sw_integer;
 begin
   if Item='' then Idx:=-1 else
   if Search(@Item,Idx)=false then
