@@ -39,6 +39,9 @@ PROGRAM TestApp;
      {$ifdef TEST}
      AsciiTab,
      {$endif TEST}
+     {$ifdef DEBUG}
+     Gfvgraph,
+     {$endif DEBUG}
      Gadgets;
 
 
@@ -105,10 +108,28 @@ begin
     (P^.State and sfVisible <> 0);
 end;
 
+{$ifdef DEBUG}
+Var
+   WasSet : boolean;
+{$endif DEBUG}
 begin
   inherited Idle;
+{$ifdef DEBUG}
+   if WriteDebugInfo then
+     begin
+      WasSet:=true;
+      WriteDebugInfo:=false;
+     end
+   else
+      WasSet:=false;
+{$endif DEBUG}
+   if WriteDebugInfo then
   Clock^.Update;
   Heap^.Update;
+{$ifdef DEBUG}
+   if WasSet then
+     WriteDebugInfo:=true;
+{$endif DEBUG}
   if Desktop^.FirstThat(@IsTileable) <> nil then
     EnableCommands([cmTile, cmCascade])
   else
@@ -332,7 +353,10 @@ END.
 
 {
  $Log$
- Revision 1.5  2001-05-04 15:43:46  pierre
+ Revision 1.6  2001-05-31 21:40:10  pierre
+  * some debug stuff changed
+
+ Revision 1.5  2001/05/04 15:43:46  pierre
   * several more fixes
 
  Revision 1.4  2001/05/04 10:46:02  pierre

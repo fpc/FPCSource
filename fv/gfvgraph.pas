@@ -219,6 +219,11 @@ CONST
    SysScreenWidth : Integer = 640;                    { Default screen width }
    SysScreenHeight: Integer = 480;                    { Default screen height}
 
+{$ifdef DEBUG}
+const
+  WriteDebugInfo : boolean = false;
+{$endif DEBUG}
+
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
                                IMPLEMENTATION
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
@@ -313,7 +318,8 @@ BEGIN
      ViewPort.Y2 := Y2;                               { Set Y2 port value }
      ViewPort.Clip := Clip;                           { Set port clip value }
 {$ifdef DEBUG}
-     Writeln(stderr,'New ViewPort(',X1,',',Y1,',',X2,',',Y2,')');
+     If WriteDebugInfo then
+       Writeln(stderr,'New ViewPort(',X1,',',Y1,',',X2,',',Y2,')');
 {$endif DEBUG}
      Cxp := X1;                                       { Set current x pos }
      Cyp := Y1;                                       { Set current y pos }
@@ -401,7 +407,10 @@ END;
 END.
 {
  $Log$
- Revision 1.8  2001-05-10 16:46:28  pierre
+ Revision 1.9  2001-05-31 21:40:10  pierre
+  * some debug stuff changed
+
+ Revision 1.8  2001/05/10 16:46:28  pierre
   + some improovements made
 
  Revision 1.7  2001/05/07 23:36:35  pierre
