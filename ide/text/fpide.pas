@@ -752,6 +752,7 @@ end;
 
 function TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile: string; ExecType: TExecType): boolean;
 var CanRun: boolean;
+    posexe : longint;
 begin
   SaveCancelled:=false;
   CanRun:=AutoSave;
@@ -776,7 +777,10 @@ begin
   {$else}
     { DO NOT use COMSPEC for exe files as the
       ExitCode is lost in those cases PM }
-    if Pos('.EXE',UpCaseStr(ProgramPath))=Length(ProgramPath)-3 then
+
+    posexe:=Pos('.EXE',UpCaseStr(ProgramPath));
+    { if programpath was three char long => bug }
+    if (posexe>0) and (posexe=Length(ProgramPath)-3) then
       begin
         if (InFile='') and (OutFile='') then
           DosExecute(ProgramPath,Params)
@@ -992,7 +996,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.59  2000-05-02 08:42:27  pierre
+  Revision 1.60  2000-05-02 10:20:40  pierre
+   * fix a small problem when deciding to call DosExecute directly
+
+  Revision 1.59  2000/05/02 08:42:27  pierre
    * new set of Gabor changes: see fixes.txt
 
   Revision 1.58  2000/04/25 08:42:33  pierre
