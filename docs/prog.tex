@@ -679,13 +679,13 @@ When \textbf{MMX} support is on, you aren't allowed to do floating point
 arithmetic. You are allowed to move floating point data, but no arithmetic
 can be done. If you wish to do floating point math anyway, you must first
 switch \textbf{MMX} support off and clear the FPU using the \var{emms}
-function of the \file{cpu} unit.
+function of the \file{mmx} unit.
 
 The following example will make this more clear:
 \begin{verbatim}
 Program MMXDemo;
 
-uses cpu;
+uses mmx;
 
 var
    d1 : double;
