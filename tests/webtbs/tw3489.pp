@@ -3,7 +3,7 @@
 { e-mail: danny_milo@yahoo.com }
 program itest;
 
-{$mode delphi}
+{$ifdef fpc}{$mode delphi}{$endif}
 
 var
   err : boolean;
