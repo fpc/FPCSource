@@ -203,6 +203,7 @@ implementation
     procedure timportlibwin32.generatesmartlib;
       var
          hp1 : timportlist;
+         importname : string;
          hp2 : timported_item;
          lhead,lname,lcode,
          lidata4,lidata5 : tasmlabel;
@@ -281,10 +282,25 @@ implementation
                   importsSection.concat(Tai_symbol.Createname_global(hp2.func^,0))
                  else
                   importsSection.concat(Tai_label.Create(lcode));
-                  if hp2.name^<>'' then
-                    importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
-                  else
-                    importsSection.concat(Tai_const.Create_32bit($80000000 or hp2.ordnr));
+{$ifdef GDB}
+                 if (cs_debuginfo in aktmoduleswitches) then
+                  begin
+                    if assigned(hp2.name) then
+                      begin
+                        importname:='__imp_'+hp2.name^;
+                        importssection.concat(tai_symbol.createname(importname,4));
+                      end
+                    else
+                      begin
+                        importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
+                        importssection.concat(tai_symbol.createname(importname,4));
+                      end;
+                  end;
+{$endif GDB}
+                 if hp2.name^<>'' then
+                  importsSection.concat(Tai_const_symbol.Create_rva(hp2.lab))
+                 else
+                  importsSection.concat(Tai_const.Create_32bit($80000000 or hp2.ordnr));
                  { finally the import information }
                  importsSection.concat(Tai_section.Create(sec_idata6));
                  importsSection.concat(Tai_label.Create(hp2.lab));
@@ -317,6 +333,7 @@ implementation
          hp1 : timportlist;
          hp2 : timported_item;
          l1,l2,l3,l4 : tasmlabel;
+         importname : string;
          r : preference;
       begin
          if (aktoutputformat<>as_i386_asw) and
@@ -386,6 +403,21 @@ implementation
                       importsSection.concat(Tai_align.Create_op(4,$90));
                       { add jump field to importsection }
                       importsSection.concat(Tai_section.Create(sec_idata5));
+{$ifdef GDB}
+                      if (cs_debuginfo in aktmoduleswitches) then
+                       begin
+                         if assigned(hp2.name) then
+                          begin
+                            importname:='__imp_'+hp2.name^;
+                            importssection.concat(tai_symbol.createname(importname,4));
+                          end
+                         else
+                          begin
+                            importname:='__imp_by_ordinal'+tostr(hp2.ordnr);
+                            importssection.concat(tai_symbol.createname(importname,4));
+                          end;
+                       end;
+{$endif GDB}
                       importsSection.concat(Tai_label.Create(l4));
                     end
                    else
@@ -1527,7 +1559,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.18  2001-09-18 11:32:00  michael
+  Revision 1.19  2001-09-30 21:29:47  peter
+    * gdb fixes merged
+
+  Revision 1.18  2001/09/18 11:32:00  michael
   * Fixes win32 linking problems with import libraries
   * LINKLIB Libraries are now looked for using C file extensions
   * get_exepath fix

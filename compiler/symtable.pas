@@ -1526,10 +1526,10 @@ implementation
              dbx_count := 0;
              unittypecount:=1;
              pglobaltypecount := @unittypecount;
-             unitid:=current_module.unitcount;
+             {unitid:=current_module.unitcount;}
              debugList.concat(Tai_asm_comment.Create(strpnew('Global '+name^+' has index '+tostr(unitid))));
              debugList.concat(Tai_stabs.Create(strpnew('"'+name^+'",'+tostr(N_BINCL)+',0,0,0')));
-             inc(current_module.unitcount);
+             {inc(current_module.unitcount);}
              dbx_count_ok:=false;
              dbx_counter:=@dbx_count;
              do_count_dbx:=true;
@@ -2103,7 +2103,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.45  2001-09-19 11:06:03  michael
+  Revision 1.46  2001-09-30 21:29:47  peter
+    * gdb fixes merged
+
+  Revision 1.45  2001/09/19 11:06:03  michael
   * realname updated for some hints
   * realname used for consts,labels
 
