@@ -81,16 +81,23 @@ Type
 
   TIn_addr = in_addr;
   pin_addr = ^in_addr;
+  TInAddr       =  in_addr;
 
   in_addrbytes = packed array [1..4] of byte;
 
-  TSockAddr = packed Record
+  TSockAddr = packed Record // if sa_len is defined, sa_family_t is smaller
   {$ifdef SOCK_HAS_SINLEN}
      sa_len     : cuchar;
   {$endif}
-     sa_family  : sa_family_t;
-     sa_data    : array [0..13] of char;
-    end;
+    case integer of
+      0: (sa_family: sa_family_t;
+          sa_data: packed array[0..13] of Byte);
+      1: (sin_family: sa_family_t;
+          sin_port: cushort;
+          sin_addr: in_addr;
+          sin_zero: packed array[0..7] of Byte);
+      end; 
+
   PSockAddr = ^TSockAddr;
   Sockaddr  = TSockAddr;                // Kylix compat
 
@@ -116,7 +123,6 @@ Type
       );
     end;
   pInetSockAddr = ^TInetSockAddr;
-  TInAddr       =  TInetSockAddr;
 
   Tin6_addr = packed record
   case byte of
@@ -142,6 +148,7 @@ Type
   end;
 
   sockaddr_in6 = TInetSockAddr6;
+  
   psockaddr_in6 = ^sockaddr_in6;
 
   TSockPairArray = Array[0..1] of Longint;
@@ -231,7 +238,11 @@ CONST
 
 {
   $Log$
-  Revision 1.26  2005-02-18 13:10:10  marco
+  Revision 1.27  2005-03-28 11:10:51  marco
+   * more netdb and Kylix related minor fixes. At the last minute, commented
+      out TSockAddrIn since I found that relied on TScokAddrIn=TSockAddr
+
+  Revision 1.26  2005/02/18 13:10:10  marco
    * noadress and friend, ipv4 changed to an enum.
 
   Revision 1.25  2005/02/14 17:13:26  peter
