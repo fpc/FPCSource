@@ -228,7 +228,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-12-19 00:51:10  hajny
+  Revision 1.1  2001-01-30 19:26:18  peter
+    * renamed zip to unzip
+
+  Revision 1.2  2000/12/19 00:51:10  hajny
     * modifications from /install/fpinst merged in
 
   Revision 1.1  2000/07/13 06:34:24  michael
