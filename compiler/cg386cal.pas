@@ -925,6 +925,11 @@ implementation
            { now procedure variable case }
            begin
               secondpass(p^.right);
+              if (po_interrupt in p^.procdefinition^.procoptions) then
+                begin
+                    emit_none(A_PUSHF,S_L);
+                    emit_reg(A_PUSH,S_L,R_CS);
+                end;
               { procedure of object? }
               if (po_methodpointer in p^.procdefinition^.procoptions) then
                 begin
@@ -1422,7 +1427,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.131  2000-05-09 10:54:03  pierre
+  Revision 1.132  2000-05-09 14:15:03  pierre
+   * also allow interrupt procvars
+
+  Revision 1.131  2000/05/09 10:54:03  pierre
    add code to allow calling interrupt routines
 
   Revision 1.130  2000/03/31 22:56:45  pierre
