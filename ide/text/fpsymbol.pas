@@ -659,6 +659,10 @@ begin
   if P=nil then Exit;
 
   S:=PObjectSymbol(P)^.Symbol;
+  
+  { this happens for the top objects view (PM) }
+  if S=nil then exit;
+  
   if S^.Ancestor=nil then Anc:=nil else
     Anc:=SearchObjectForSymbol(S^.Ancestor);
   OpenSymbolBrowser(Origin.X-1,FOC-Delta.Y+1,
@@ -1078,7 +1082,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.15  1999-04-15 08:58:06  peter
+  Revision 1.16  1999-06-17 23:44:01  pierre
+   * problem with Inheritance list
+
+  Revision 1.15  1999/04/15 08:58:06  peter
     * syntax highlight fixes
     * browser updates
 
