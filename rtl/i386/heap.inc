@@ -557,8 +557,7 @@
            end;
 {$endif TEMPHEAP}
          { calc to multiply of 8 }
-         if (size and 7)<>0 then
-           size:=size+(8-(size and 7));
+         size:=(size+7) and not 7;
          dec(_memavail,size);
 {$ifdef UseBlocks}
          { search cache }
@@ -776,8 +775,7 @@ check_new:
        end;
 {$endif CHECKHEAP}
          { calc to multiple of 8 }
-         if (size and 7)<>0 then
-           size:=size+(8-(size and 7));
+         size:=(size+7) and not 7;
          inc(_memavail,size);
          if p+size>=heapptr then
            heapptr:=p
@@ -1080,7 +1078,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-03-31 19:01:41  daniel
+  Revision 1.3  1998-04-09 08:32:14  daniel
+  * Optimized some code.
+
+  Revision 1.2  1998/03/31 19:01:41  daniel
   * Replaced 'mod 8' with 'and 7'. Generates more efficient code.
 
   Revision 1.1.1.1  1998/03/25 11:18:43  root
