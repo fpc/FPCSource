@@ -27,7 +27,8 @@ type
       LastPos   : TPoint;
     end;
 
-    TCompPhase = (cpNothing,cpCompiling,cpLinking,cpFailed,cpDone);
+    TCompPhase = (cpNothing,cpCompiling,cpLinking,
+                  cpAborted,cpFailed,cpDone);
 
 const ClipboardWindow  : PClipboardWindow = nil;
       CalcWindow       : PCalculator = nil;
@@ -42,6 +43,7 @@ const ClipboardWindow  : PClipboardWindow = nil;
       PrimaryFilePara  : string = '';
       GDBOutputFile    : string = 'gdb$$$.txt';
       IsEXECompiled    : boolean = false;
+      LinkAfter        : boolean = true; 
       MainFile         : string = '';
       EXEFile          : string = '';
       CompilationPhase : TCompPhase = cpNothing;
@@ -79,7 +81,10 @@ implementation
 END.
 {
   $Log$
-  Revision 1.15  1999-03-23 15:11:36  peter
+  Revision 1.16  1999-06-21 23:37:58  pierre
+   + added LinkAfter var for post linking with -s option
+
+  Revision 1.15  1999/03/23 15:11:36  peter
     * desktop saving things
     * vesa mode
     * preferences dialog
