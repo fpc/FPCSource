@@ -30,7 +30,8 @@ unit agppcmpw;
 interface
 
     uses
-       globals,aasmbase,aasmtai,aasmcpu,assemble,
+       aasmtai,
+       globals,aasmbase,aasmcpu,assemble,
        cpubase;
 
     const
@@ -163,10 +164,27 @@ var
          'crnot', 'mt', 'mf','nop', 'li', 'lis', 'la', 'mr','mr.','not', 'mtcr', 'mtlr', 'mflr',
          'mtctr', 'mfctr');
 
+    function mpw_regname(r:Tnewregister):string;
 
-function getreferencestring(var ref : treference) : string;
+    var s:Tsuperregister;
+
+    begin
+      s:=r shr 8;
+      if s in [RS_R0..RS_R31] then
+        mpw_regname:='r'+tostr(s-RS_R0)
+      else
+        begin
+          {Generate a systematic name.}
+          mpw_regname:='reg'+tostr(s)+'d';
+        end;
+    end;
+
+
+    function getreferencestring(var ref : treference) : string;
+
     var
       s : string;
+      i,b:boolean;
     begin
        with ref do
         begin
@@ -202,16 +220,24 @@ function getreferencestring(var ref : treference) : string;
                s:=s+tostr(offset);
             end;
 
-          if (index.enum=R_NO) and (base.enum<>R_NO) then
+          b:=(base.enum=R_NO) or ((base.enum=R_INTREGISTER) and (base.number=NR_NO));
+          i:=(index.enum=R_NO) or ((index.enum=R_INTREGISTER) and (index.number=NR_NO));
+          if i and not b then
             begin
               if offset=0 then
                 if not assigned(symbol) then
                   s:=s+'0';
-              s:=s+'('+mpw_reg2str[base.enum]+')'
+              if base.enum=R_INTREGISTER then
+                s:=s+'('+mpw_regname(base.number)+')'
+              else
+                s:=s+'('+mpw_reg2str[base.enum]+')';
             end
-          else if (index.enum<>R_NO) and (base.enum<>R_NO) and (offset=0) then
-            s:=s+mpw_reg2str[base.enum]+','+mpw_reg2str[index.enum]
-          else if ((index.enum<>R_NO) or (base.enum<>R_NO)) then
+          else if (not i) and (not b) and (offset=0) then
+            if base.enum=R_INTREGISTER then
+              s:=s+mpw_regname(base.number)+','+mpw_regname(index.number)
+            else
+              s:=s+mpw_reg2str[base.enum]+','+mpw_reg2str[index.enum]
+          else if (not i) or (not b) then
             internalerror(19992);
         end;
       getreferencestring:=s;
@@ -223,7 +249,12 @@ function getreferencestring(var ref : treference) : string;
     begin
       case o.typ of
         top_reg :
-          getopstr_jmp:=mpw_reg2str[o.reg.enum];
+          begin
+            if o.reg.enum=R_INTREGISTER then
+              getopstr_jmp:=mpw_regname(o.reg.number)
+            else
+              getopstr_jmp:=mpw_reg2str[o.reg.enum];
+          end;
         { no top_ref jumping for powerpc }
         top_const :
           getopstr_jmp:=tostr(o.val);
@@ -241,14 +272,7 @@ function getreferencestring(var ref : treference) : string;
         top_none:
           getopstr_jmp:='';
         else
-{$ifndef testing}
           internalerror(2002070603);
-{$else testing}
-          begin
-            writeln('internalerror 10001');
-            halt(1);
-          end;
-{$endif testing}
       end;
     end;
 
@@ -258,8 +282,12 @@ function getreferencestring(var ref : treference) : string;
     begin
       case o.typ of
         top_reg:
-          getopstr:=mpw_reg2str[o.reg.enum];
-        { no top_ref jumping for powerpc }
+          begin
+            if  o.reg.enum=R_INTREGISTER then
+              getopstr:=mpw_regname(o.reg.number)
+            else
+              getopstr:=mpw_reg2str[o.reg.enum];
+          end;
         top_const:
           getopstr:=tostr(longint(o.val));
         top_ref:
@@ -276,14 +304,7 @@ function getreferencestring(var ref : treference) : string;
             getopstr:=hs;
           end;
         else
-{$ifndef testing}
           internalerror(2002070604);
-{$else testing}
-          begin
-            writeln('internalerror 10001');
-            halt(1);
-          end;
-{$endif testing}
       end;
     end;
 
@@ -1330,7 +1351,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.21  2003-08-18 11:47:15  olle
+  Revision 1.22  2003-08-22 12:30:43  olle
+    + added xxx_regname stuff
+    * made the mpw asm writer work again
+
+  Revision 1.21  2003/08/18 11:47:15  olle
     + added asm directive ALIGNING OFF to avoid unexpected aligning by the assembler
 
   Revision 1.20  2002/10/01 05:17:27  olle
