@@ -108,11 +108,11 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: In_Rewrite_TypedFile];
 {$else}
 
 { Provide dummy procedures needed for rtti}
-Procedure decr_ansi_ref (P : pointer);
+Procedure decr_ansi_ref (P : pointer);[Alias : 'DECR_ANSI_REF'];
   begin
   end; 
 
-Procedure incr_ansi_ref (P : pointer);
+Procedure incr_ansi_ref (P : pointer);[Alias : 'INCR_ANSI_REF'];
   begin
   end; 
 
@@ -416,7 +416,10 @@ End;
 
 {
   $Log$
-  Revision 1.8  1998-06-08 12:38:24  michael
+  Revision 1.9  1998-06-10 07:46:45  michael
+  + Forgot to commit some changes
+
+  Revision 1.8  1998/06/08 12:38:24  michael
   Implemented rtti, inserted ansistrings again
 
   Revision 1.7  1998/06/04 23:46:01  peter

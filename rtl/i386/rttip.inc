@@ -306,7 +306,7 @@ asm
 	addl     $4,%ebx
 # push data
 	pushl    %eax
-	call	DecRef
+	call	DECREF
 	jmp     .MyRecordDecRefLoop
 # Array handling
 .DoArrayDecRef:
@@ -329,7 +329,7 @@ asm
 	addl    8(%ebp),%eax
 # push data
 	pushl   %eax 
-	call	DecRef
+	call	DECREF
 	jmp	.MyArrayDecRefLoop
 # AnsiString handling : 
 .DoAnsiStringDecRef:
@@ -349,7 +349,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  1998-06-08 19:31:03  michael
+  Revision 1.3  1998-06-10 07:46:49  michael
+  + Forgot to commit some changes
+
+  Revision 1.2  1998/06/08 19:31:03  michael
   + Implemented DecRef
 
   Revision 1.1  1998/06/08 15:32:12  michael
