@@ -28,13 +28,13 @@ Begin
  LinuxError:=ErrNo;
 End;
 
-
+{
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint;
 {NOT IMPLEMENTED YET UNDER BSD}
 begin
  HALT;
 END;
-{
+
   if (pointer(func)=nil) or (sp=nil) then
    begin
      LinuxError:=Sys_EInval;
@@ -89,6 +89,28 @@ Begin
   do_syscall(syscall_nr_Execve,longint(@path[1]),longint(Args),longint(ep));
  LinuxError:=ErrNo;
 End;
+
+Function Umask(Mask:Integer):integer;
+{
+  Sets file creation mask to (Mask and 0777 (octal) ), and returns the
+  previous value.
+}
+begin
+ UMask:=Do_syscall(syscall_nr_umask,mask);
+ LinuxError:=0;
+end;
+
+Procedure Nice(N:integer);
+{
+  Set process priority. A positive N means a lower priority.
+  A negative N decreases priority.
+
+Doesn't exist in BSD. Linux emu uses setpriority in a construct as below:
+}
+
+begin
+  SetPriority(Prio_Process,0,N);
+end;
 
 Procedure Execve(path:pchar;args:ppchar;ep:ppchar);
 {
@@ -260,6 +282,16 @@ begin
  LinuxError:=Errno;
 end;
 
+Function GetTimeOfDay: longint;
+{
+  Get the number of seconds since 00:00, January 1 1970, GMT
+  the time NOT corrected any way
+}
+begin
+  GetTimeOfDay:=Sys_time;
+  LinuxError:=Errno;
+end;
+
 Function fdTruncate(fd,size:longint):boolean;
 
 begin
@@ -379,6 +411,7 @@ begin
  LinuxError:=Errno;
 end;
 
+{
 Function SymLink(OldPath,newPath:pathstr):boolean;
 {
   Proceduces a soft link from new to old.
@@ -390,6 +423,7 @@ begin
   SymLink:=Do_Syscall(syscall_nr_symlink,longint(@oldpath[1]),longint(@newpath[1]))=0;
   LinuxError:=Errno;
 end;
+}
 
 Function Access(Path:Pathstr ;mode:longint):boolean;
 {
@@ -409,6 +443,17 @@ begin
   path:=path+#0;
  Access:=do_syscall(syscall_nr_access,mode,longint(@path[1]))=0;
  LinuxError:=Errno;
+end;
+
+Function  Dup(oldfile:longint;var newfile:longint):Boolean;
+{
+  Copies the filedescriptor oldfile to newfile
+}
+
+begin
+ newfile:=Do_syscall(syscall_nr_dup,oldfile);
+ LinuxError:=Errno;
+ Dup:=(LinuxError=0);
 end;
 
 
@@ -555,7 +600,7 @@ Procedure SigSuspend(Mask:Sigset);
 }
 
 begin
-  do_syscall(syscall_nr_sigsuspend,mask);
+  do_syscall(syscall_nr_sigsuspend,longint(@mask));
   LinuxError:=Errno;
 end;
 
@@ -583,4 +628,9 @@ begin
  LinuxError:=Errno;
 end;
 
-
+{
+  $Log$
+  Revision 1.2  2000-04-16 16:10:01  marco
+   * Some procedure were forgotten. FIxed
+
+}
