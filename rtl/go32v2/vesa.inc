@@ -195,6 +195,9 @@ end;
     new(VESAInfo.ModeList);
     while ModeList^[i]<> $ffff do
      begin
+{$ifdef logging}
+      LogLn('Found mode $'+hexstr(ModeList^[i],4));
+{$endif loggin}
       VESAInfo.ModeList^[i] := ModeList^[i];
       Inc(i);
      end;
@@ -1944,7 +1947,11 @@ end;
 
 {
 $Log$
-Revision 1.2  1999-11-27 21:48:01  jonas
+Revision 1.3  1999-11-28 12:18:39  jonas
+   + all available mode numbers are logged if you compile the unit with
+     -dlogging
+
+Revision 1.2  1999/11/27 21:48:01  jonas
   * fixed VlineVESA256 and re-enabled it in graph.inc
   * added procedure detectgraph to interface of graph unit
 
