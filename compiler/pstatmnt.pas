@@ -1183,8 +1183,6 @@ implementation
           if not is_void(aktprocsym.definition.rettype.def) then
            begin
               aktprocsym.definition.funcretsym:=tfuncretsym.create(aktprocsym.name,aktprocsym.definition.rettype);
-              { insert in local symtable }
-              symtablestack.insert(aktprocsym.definition.funcretsym);
               if ret_in_acc(aktprocsym.definition.rettype.def) then
                 begin
                    { in assembler code the result should be directly in %eax
@@ -1227,6 +1225,14 @@ implementation
                dec(aktprocsym.definition.parast.address_fixup,target_info.size_of_pointer);
                dec(procinfo^.para_offset,target_info.size_of_pointer);
              end;
+          { only insert now in the symtable, otherwise the              }
+          { "aktprocsym.definition.localst.datasize=0" check above will }
+          { always fail (JM)                                            }
+          if not is_void(aktprocsym.definition.rettype.def) then
+            begin
+              { insert in local symtable }
+              symtablestack.insert(aktprocsym.definition.funcretsym);
+            end;
           { force the asm statement }
             if token<>_ASM then
              consume(_ASM);
@@ -1240,7 +1246,12 @@ implementation
 end.
 {
   $Log$
-  Revision 1.35  2001-09-03 13:19:12  jonas
+  Revision 1.36  2001-09-06 10:21:50  jonas
+    * fixed superfluous generation of stackframes for assembler procedures
+      with no local vars or para's (this broke the backtrace printing in case
+      of an rte)
+
+  Revision 1.35  2001/09/03 13:19:12  jonas
     * set funcretsym for assembler procedures too (otherwise using __RESULT
       in assembler procedures causes a crash)
 
