@@ -1360,6 +1360,10 @@ unit_f_cant_compile_unit=F_Can't compile unit $1, no sources available
 unit_f_cant_find_ppu=F_Can't find unit $1
 % You tried to use a unit of which the PPU file isn't found by the
 % compiler. Check your config files for the unit pathes
+unit_w_unit_name_error=W_Unit $1 was not found but $2 exists
+unit_f_unit_name_error=F_Unit $1 searched but $2 found
+% Dos truncation of 8 letters for unit PPU files
+% may lead to problems when unit name is longer than 8 letters.
 unit_w_switch_us_missed=W_Compiling the system unit requires the -Us switch
 % When recompiling the system unit (it needs special treatment), the
 % \var{-Us} must be specified.
