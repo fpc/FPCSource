@@ -2176,6 +2176,69 @@ begin
   Result:=FindCmdLineSwitch(Switch,SwitchChars,False);
 end;
 
+function WrapText(const Line, BreakStr: string; const BreakChars: TSysCharSet;  MaxCol: Integer): string;
+
+const
+  Quotes = ['''', '"'];
+
+Var
+  L : String;
+  C,LQ,BC : Char;
+  P,BLen,Len : Integer;
+  HB,IBC : Boolean;
+  
+begin 
+  Result:='';
+  L:=Line;
+  Blen:=Length(BreakStr);
+  If (BLen>0) then
+    BC:=BreakStr[1]
+  else
+    BC:=#0;
+  Len:=Length(L);
+  While (Len>0) do
+    begin
+    P:=1;
+    LQ:=#0;
+    HB:=False;
+    IBC:=False;
+    While ((P<=Len) and ((P<=MaxCol) or not IBC)) and ((LQ<>#0) or Not HB) do
+      begin
+      C:=L[P];
+      If (C=LQ) then
+        LQ:=#0
+      else If (C in Quotes) then
+        LQ:=C;
+      If (LQ<>#0) then
+        Inc(P)
+      else  
+        begin
+        HB:=((C=BC) and (BreakStr=Copy(L,P,BLen)));
+        If HB then
+          Inc(P,Blen-1)
+        else 
+          begin
+          If (P>MaxCol) then
+            IBC:=C in BreakChars;
+          Inc(P);
+          end;
+        end;
+//      Writeln('"',C,'" : IBC : ',IBC,' HB  : ',HB,' LQ  : ',LQ,' P>MaxCol : ',P>MaxCol);
+      end;
+    Result:=Result+Copy(L,1,P-1);
+    If Not HB then
+      Result:=Result+BreakStr;
+    Delete(L,1,P-1);
+    Len:=Length(L);
+    end;
+end;
+
+function WrapText(const Line: string; MaxCol: Integer): string;
+begin
+  Result:=WrapText(Line,sLineBreak, [' ', '-', #9], MaxCol);
+end;
+  
+
 {
    Case Translation Tables
    Can be used in internationalization support.
@@ -2236,7 +2299,10 @@ const
 
 {
   $Log$
-  Revision 1.22  2004-12-01 10:34:46  michael
+  Revision 1.23  2004-12-19 17:55:38  michael
+  + Implemented wraptext
+
+  Revision 1.22  2004/12/01 10:34:46  michael
   + Patch from Pete: Dont support widestrings when compiled with 1.0.x and  Add additional typecasts to Widestring for widechar/pwidechar
 
   Revision 1.21  2004/11/30 20:56:27  michael

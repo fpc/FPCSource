@@ -181,6 +181,8 @@ Function FindCmdLineSwitch(const Switch: string; const Chars: TSysCharSet;Ignore
 Function FindCmdLineSwitch(const Switch: string; IgnoreCase: Boolean): Boolean;
 Function FindCmdLineSwitch(const Switch: string): Boolean;
 
+function WrapText(const Line, BreakStr: string; const BreakChars: TSysCharSet;  MaxCol: Integer): string;
+function WrapText(const Line: string; MaxCol: Integer): string;
 
 
 {==============================================================================}
@@ -193,7 +195,10 @@ function BCDToInt(Value: integer): integer;
 
 {
   $Log$
-  Revision 1.10  2004-11-16 18:30:36  marco
+  Revision 1.11  2004-12-19 17:55:38  michael
+  + Implemented wraptext
+
+  Revision 1.10  2004/11/16 18:30:36  marco
    * updated ansiexctractquotedstring (more delphi compat, both interface and code)
 
   Revision 1.9  2004/08/30 13:07:03  michael
