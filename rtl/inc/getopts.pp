@@ -312,14 +312,16 @@ begin
       end;
    { At this point we're at an option ...}
      nextchar:=2;
-     if (longopts<>nil) and (currentarg[2]='-') then
+     if (longopts<>nil) and ((currentarg[2]='-') and 
+                             (currentArg[1]='-')) then
       inc(nextchar);
    { So, now nextchar points at the first character of an option }
    end;
 { Check if we have a long option }
   if longopts<>nil then
    if length(currentarg)>1 then
-    if (currentarg[2]='-') or
+    if ((currentarg[2]='-') and (currentArg[1]='-'))
+       or
        ((not long_only) and (pos(currentarg[2],optstring)<>0)) then
      begin
      { Get option name }
@@ -508,7 +510,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  1998-10-29 23:06:55  peter
+  Revision 1.5  1998-10-30 09:18:22  michael
+  Long options NEED -- as starting char
+
+  Revision 1.4  1998/10/29 23:06:55  peter
     + OptSpecifier
 
   Revision 1.3  1998/06/18 10:49:04  peter
