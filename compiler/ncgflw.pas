@@ -104,8 +104,10 @@ implementation
          if testatbegin then
            cg.a_jmp_always(exprasmlist,lcont);
 
-         { align loop target }
-         exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
+	 if not(cs_littlesize in aktglobalswitches) then
+            { align loop target }
+            exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
+	    
          cg.a_label(exprasmlist,lloop);
 
          aktcontinuelabel:=lcont;
@@ -364,8 +366,9 @@ implementation
                end;
            end;
 
-         { align loop target }
-         exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
+	 if not(cs_littlesize in aktglobalswitches) then
+            { align loop target }
+            exprasmList.concat(Tai_align.Create(aktalignment.loopalign));
          cg.a_label(exprasmlist,l3);
 
          { help register must not be in instruction block }
@@ -628,7 +631,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.23  2002-07-19 11:41:35  daniel
+  Revision 1.24  2002-07-20 08:14:24  daniel
+  * Loops should not be aligned when optimizing for size
+
+  Revision 1.23  2002/07/19 11:41:35  daniel
   * State tracker work
   * The whilen and repeatn are now completely unified into whilerepeatn. This
     allows the state tracker to change while nodes automatically into
