@@ -1,11 +1,11 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt, member of 
+    Copyright (c) 1999-2000 by Michael Van Canneyt, member of
     the Free Pascal development team
 
     This file implements an interface to the gd library.
-    
+
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -17,7 +17,7 @@
 unit gd;
 
   interface
-  
+
 {$linklib c}
 {$linklib m}
 {$linklib png}
@@ -32,7 +32,7 @@ const
 
   libgd = 'gd';
   libc = 'c';
-  
+
   GD_H = 1;
   DEFAULT_FONTPATH = '/usr/share/fonts/truetype';
   PATHSEPARATOR = ':';
@@ -40,10 +40,10 @@ const
 
 type
   PByte = ^Byte;
-  PPByte = ^PByte; 
+  PPByte = ^PByte;
   PVoid = Pointer;
   PFile = Pointer;
-  
+
   PGDIMAGESTRUCT = ^gdImage;
   gdImage = record
     pixels : PPbyte;
@@ -130,7 +130,7 @@ type
     free : procedure (_para1:PgdIOCtx);
   end;
   GDIOCTXPTR = pgdIOCtx;
-  
+
 { Translated from gd_io.h}
 function fopen(a,b:pchar):pFile; cdecl;external libc;
 procedure fclose(a:pFile); cdecl;external libc;
@@ -191,18 +191,18 @@ function gdImageColorResolve(im:gdImagePtr; r:longint; g:longint; b:longint):lon
 procedure gdImageColorDeallocate(im:gdImagePtr; color:longint); cdecl; external libgd;
 procedure gdImageColorTransparent(im:gdImagePtr; color:longint); cdecl; external libgd;
 procedure gdImagePaletteCopy(dst:gdImagePtr; src:gdImagePtr); cdecl; external libgd;
-procedure gdImagePng(im:gdImagePtr; out:PFILE); cdecl; external libgd;
-procedure gdImagePngCtx(im:gdImagePtr; out:PgdIOCtx); cdecl; external libgd;
-procedure gdImageWBMP(image:gdImagePtr; fg:longint; out:PFILE); cdecl; external libgd;
-procedure gdImageWBMPCtx(image:gdImagePtr; fg:longint; out:PgdIOCtx); cdecl; external libgd;
+procedure gdImagePng(im:gdImagePtr; _out:PFILE); cdecl; external libgd;
+procedure gdImagePngCtx(im:gdImagePtr; _out:PgdIOCtx); cdecl; external libgd;
+procedure gdImageWBMP(image:gdImagePtr; fg:longint; _out:PFILE); cdecl; external libgd;
+procedure gdImageWBMPCtx(image:gdImagePtr; fg:longint; _out:PgdIOCtx); cdecl; external libgd;
 procedure gdFree(m:Pvoid); cdecl; external libgd;
 function gdImageWBMPPtr(im:gdImagePtr; size:Plongint; fg:longint):pointer; cdecl; external libgd;
-procedure gdImageJpeg(im:gdImagePtr; out:PFILE; quality:longint); cdecl; external libgd;
-procedure gdImageJpegCtx(im:gdImagePtr; out:PgdIOCtx; quality:longint); cdecl; external libgd;
+procedure gdImageJpeg(im:gdImagePtr; _out:PFILE; quality:longint); cdecl; external libgd;
+procedure gdImageJpegCtx(im:gdImagePtr; _out:PgdIOCtx; quality:longint); cdecl; external libgd;
 function gdImageJpegPtr(im:gdImagePtr; size:Plongint; quality:longint):pointer; cdecl; external libgd;
-procedure gdImagePngToSink(im:gdImagePtr; out:gdSinkPtr); cdecl; external libgd;
-procedure gdImageGd(im:gdImagePtr; out:PFILE); cdecl; external libgd;
-procedure gdImageGd2(im:gdImagePtr; out:PFILE; cs:longint; fmt:longint); cdecl; external libgd;
+procedure gdImagePngToSink(im:gdImagePtr; _out:gdSinkPtr); cdecl; external libgd;
+procedure gdImageGd(im:gdImagePtr; _out:PFILE); cdecl; external libgd;
+procedure gdImageGd2(im:gdImagePtr; _out:PFILE; cs:longint; fmt:longint); cdecl; external libgd;
 function gdImagePngPtr(im:gdImagePtr; size:Plongint):pointer; cdecl; external libgd;
 function gdImageGdPtr(im:gdImagePtr; size:Plongint):pointer; cdecl; external libgd;
 function gdImageGd2Ptr(im:gdImagePtr; cs:longint; fmt:longint; size:Plongint):pointer; cdecl; external libgd;
@@ -217,7 +217,7 @@ procedure gdImageSetBrush(im:gdImagePtr; brush:gdImagePtr); cdecl; external libg
 procedure gdImageSetTile(im:gdImagePtr; tile:gdImagePtr); cdecl; external libgd;
 procedure gdImageSetStyle(im:gdImagePtr; style:Plongint; noOfPixels:longint); cdecl; external libgd;
 procedure gdImageInterlace(im:gdImagePtr; interlaceArg:longint); cdecl; external libgd;
-  
+
 { Translated macros }
 function gdImageSX(im : pgdimage) : longint;
 function gdImageSY(im : pgdimage) : longint;
@@ -230,17 +230,17 @@ function gdImageGetInterlaced(im : pgdimage) : longint;
 
 function gdNewFileCtx(_para1:PFILE):PgdIOCtx; cdecl; external libgd;
 function gdNewDynamicCtx(_para1:longint; _para2:pointer):PgdIOCtx; cdecl; external libgd;
-function gdNewSSCtx(infile:gdSourcePtr; out:gdSinkPtr):PgdIOCtx; cdecl; external libgd;
+function gdNewSSCtx(infile:gdSourcePtr; _out:gdSinkPtr):PgdIOCtx; cdecl; external libgd;
 function gdDPExtractData(ctx:pointer; size:Plongint):pointer; cdecl; external libgd;
 
 {overloaded pascal functions}
 function fopen(a,b:string):pFile;
 procedure gdImageChar(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; c:char; color:longint);
-procedure gdImageCharUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; c:char; color:longint); 
-procedure gdImageString(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string;  color:longint); 
-procedure gdImageStringUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint); 
-procedure gdImageString16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint); 
-procedure gdImageStringUp16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint); 
+procedure gdImageCharUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; c:char; color:longint);
+procedure gdImageString(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string;  color:longint);
+procedure gdImageStringUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint);
+procedure gdImageString16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint);
+procedure gdImageStringUp16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint);
 {$ifdef hasttf}
 function  gdImageStringTTF(im:PgdImage; brect:Plongint; fg:longint; fontlist:string; ptsize:double; angle:double; x:longint; y:longint; astring:string): string;
 function  gdImageStringFT(im:PgdImage; brect:Plongint; fg:longint; fontlist:string; ptsize:double; angle:double; x:longint; y:longint; astring:string):string;
@@ -257,7 +257,7 @@ const
   GD2_FMT_COMPRESSED = 2;
 
 function gdImageCompare(im1:gdImagePtr; im2:gdImagePtr):longint;cdecl; external libgd;
-  
+
 const
   GD_CMP_IMAGE = 1;
   GD_CMP_NUM_COLORS = 2;
@@ -291,19 +291,19 @@ implementation
     begin
        gdImageGetInterlaced:=im^.interlace;
     end;
-    
+
   function gdImageRed(im : pgdimage; c : longint): longint;
-  
+
   begin
     gdImageRed:=im^.red[c];
   end;
 
   function gdImageGreen(im : pgdimage; c : longint): longint;
-  
+
   begin
     gdImageGreen := im^.green[c];
   end;
-  
+
   function gdImageBlue(im : pgdimage; c : longint): longint;
 
   begin
@@ -316,7 +316,7 @@ begin
 {$ifopt h+}
   fopen:=fopen(pchar(a),pchar(b));
 {$else}
-  a:=a+#0;  
+  a:=a+#0;
   b:=b+#0;
   fopen:=fopen(@a[1],@b[1]);
 {$endif}
@@ -342,18 +342,18 @@ begin
 {$else}
   s:=s+#0;
   gdImageString(im,f,x,y,@s[1],color);
-{$endif}  
+{$endif}
 end;
 
 procedure gdImageStringUp(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint);
 
 begin
-{$ifopt h+} 
+{$ifopt h+}
   gdImageStringUp(im,f,x,y,pbyte(pchar(s)),color);
 {$else}
   s:=s+#0;
   gdImageStringUp(im,f,x,y,pbyte(@s[1]),color);
-{$endif}  
+{$endif}
 end;
 
 procedure gdImageString16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint);
@@ -364,7 +364,7 @@ begin
 {$else}
   s:=s+#0;
   gdImageString16(im,f,x,y,pword(@s[1]),color);
-{$endif}  
+{$endif}
 end;
 
 procedure gdImageStringUp16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:string; color:longint);
@@ -372,10 +372,10 @@ procedure gdImageStringUp16(im:gdImagePtr; f:gdFontPtr; x:longint; y:longint; s:
 begin
 {$ifopt h+}
   gdImageStringUp16(im,f,x,y,pword(pchar(s)),color);
-{$else}  
+{$else}
   s:=s+#0;
   gdImageStringUp16(im,f,x,y,pword(@s[1]),color);
-{$endif}  
+{$endif}
 end;
 
 {$ifdef hasttf}
@@ -383,9 +383,9 @@ end;
 function gdImageStringTTF(im:PgdImage; brect:Plongint; fg:longint; fontlist:string; ptsize:double; angle:double; x:longint; y:longint; astring:string): string;
 
 begin
-{$ifopt h+}  
+{$ifopt h+}
   gdImageStringTTF:=strpas(gdImageStringTTF(im,brect,fg,pchar(fontlist),ptsize,angle,x,y,pchar(astring)));
-{$else}  
+{$else}
   fontlist:=fornlist+#0;
   astring:=astring+#0;
   gdImageStringTTF:=strpas(gdImageStringTTF(im,brect,fg,@fontlist[1],ptsize,angle,x,y,@astring[1]));
@@ -401,8 +401,8 @@ begin
   fontlist:=fornlist+#0;
   astring:=astring+#0;
   gdImageStringFT:=strpas(gdImageStringFT(im,brect,fg,@fontlist[1],ptsize,angle,x,y,@astring[1]));
-    
-{$endif}  
+
+{$endif}
 end;
 {$endif}
 
