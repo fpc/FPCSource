@@ -499,7 +499,7 @@ Begin
   else
    if pid=-1 then         {Fork failed}
     begin
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,-1]);
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[ComLine,-1]);
       e.ErrorCode:=-1;
       raise e;
     end;
@@ -511,7 +511,7 @@ Begin
     result:=0
   else
     begin
-      e:=EOSError.CreateFmt('Failed to execute %s : %d',[CommandLine,result]);
+      e:=EOSError.CreateFmt('Failed to execute %s : %d',[ComLine,result]);
       e.ErrorCode:=result;
       raise e;
     end;
@@ -531,7 +531,10 @@ end.
 {
 
   $Log$
-  Revision 1.28  2004-01-05 22:37:15  florian
+  Revision 1.29  2004-01-05 22:42:35  florian
+    * compilation error fixed
+
+  Revision 1.28  2004/01/05 22:37:15  florian
     * changed sysutils.exec to ExecuteProcess
 
   Revision 1.27  2004/01/03 09:09:11  marco
