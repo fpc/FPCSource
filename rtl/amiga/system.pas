@@ -89,7 +89,80 @@ const
     (0,0,0,0,0,0,0,0);
 
 
-    {$I exec.inc}
+  TYPE
+   { from exec.inc}
+    BPTR     = Longint;
+    ULONG    = Longint;
+
+
+  pNode = ^tNode;
+  tNode =  packed Record
+      ln_Succ,                { * Pointer to next (successor) * }
+      ln_Pred  : pNode;       { * Pointer to previous (predecessor) * }
+      ln_Type  : Byte;
+      ln_Pri   : Shortint;        { * Priority, for sorting * }
+      ln_Name  : PChar;      { * ID string, null terminated * }
+      End;  { * Note: Integer aligned * }
+
+  pMinNode = ^tMinNode;
+  tMinNode =  packed Record
+    mln_Succ,
+    mln_Pred  : pMinNode;
+  End;
+
+ pList = ^tList;
+    tList =  packed record
+    lh_Head     : pNode;
+    lh_Tail     : pNode;
+    lh_TailPred : pNode;
+    lh_Type     : Byte;
+    l_pad       : Byte;
+    end;
+
+{ minimum list -- no type checking possible }
+
+    pMinList = ^tMinList;
+    tMinList =  packed record
+    mlh_Head        : pMinNode;
+    mlh_Tail        : pMinNode;
+    mlh_TailPred    : pMinNode;
+    end;
+
+   pMsgPort = ^tMsgPort;
+    tMsgPort = packed record
+    mp_Node     : tNode;
+    mp_Flags    : Byte;
+    mp_SigBit   : Byte;     { signal bit number    }
+    mp_SigTask  : Pointer;   { task to be signalled (TaskPtr) }
+    mp_MsgList  : tList;     { message linked list  }
+    end;
+
+    pTask = ^tTask;
+    tTask =  packed record
+        tc_Node         : tNode;
+        tc_Flags        : Byte;
+        tc_State        : Byte;
+        tc_IDNestCnt    : Shortint;         { intr disabled nesting         }
+        tc_TDNestCnt    : Shortint;         { task disabled nesting         }
+        tc_SigAlloc     : ULONG;        { sigs allocated                }
+        tc_SigWait      : ULONG;        { sigs we are waiting for       }
+        tc_SigRecvd     : ULONG;        { sigs we have received         }
+        tc_SigExcept    : ULONG;        { sigs we will take excepts for }
+        tc_TrapAlloc    : Word;        { traps allocated               }
+        tc_TrapAble     : Word;        { traps enabled                 }
+        tc_ExceptData   : Pointer;      { points to except data         }
+        tc_ExceptCode   : Pointer;      { points to except code         }
+        tc_TrapData     : Pointer;      { points to trap data           }
+        tc_TrapCode     : Pointer;      { points to trap code           }
+        tc_SPReg        : Pointer;      { stack pointer                 }
+        tc_SPLower      : Pointer;      { stack lower bound             }
+        tc_SPUpper      : Pointer;      { stack upper bound + 2         }
+        tc_Switch       : Pointer;      { task losing CPU               }
+        tc_Launch       : Pointer;      { task getting CPU              }
+        tc_MemEntry     : tList;        { allocated memory              }
+        tc_UserData     : Pointer;      { per task data                 }
+    end;
+    { end exec.inc}
 
   TYPE
     TDateStamp = packed record
@@ -1833,7 +1906,10 @@ end.
 
 {
   $Log$
-  Revision 1.10  2004-01-20 23:05:31  hajny
+  Revision 1.11  2004-05-05 21:26:34  florian
+    * some m68k and amiga related stuff fixed
+
+  Revision 1.10  2004/01/20 23:05:31  hajny
     * ExecuteProcess fixes, ProcessID and ThreadID added
 
   Revision 1.9  2003/10/25 23:42:35  hajny

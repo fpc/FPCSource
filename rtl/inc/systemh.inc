@@ -62,7 +62,7 @@
 Type
 {$Ifdef HAS_INTERNAL_INTTYPES}
   { The compiler has all integer types defined internally. Here
-    we define only aliases }  
+    we define only aliases }
   DWord    = LongWord;
   Cardinal = LongWord;
   Integer  = SmallInt;
@@ -111,8 +111,6 @@ Type
 {$ifdef CPUM68K}
   ValReal = Real;
 
-  { Comp type does not exist on fpu }
-  Comp    = int64;
   {$define SUPPORT_SINGLE}
   {$IFDEF Unix}
     { Linux FPU emulator will be used }
@@ -123,6 +121,9 @@ Type
     { then support double type.       }
     {$define SUPPORT_DOUBLE}
   {$ENDIF}
+  { Comp type does not exist on fpu }
+  Comp    = int64;
+  PComp = ^Comp;
 {$endif CPUM68K}
 
 {$ifdef CPUPOWERPC}
@@ -239,7 +240,7 @@ Type
   PInt64              = ^Int64;
   PPtrInt             = ^PtrInt;
   PSizeInt            = ^SizeInt;
-  
+
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
@@ -729,7 +730,10 @@ const
 
 {
   $Log$
-  Revision 1.91  2004-05-01 23:55:18  peter
+  Revision 1.92  2004-05-05 21:26:34  florian
+    * some m68k and amiga related stuff fixed
+
+  Revision 1.91  2004/05/01 23:55:18  peter
     * replace strlenint with sizeint
 
   Revision 1.90  2004/05/01 20:52:50  peter

@@ -18,20 +18,25 @@
  **********************************************************************}
 
 Type
-  // CARL, CHANGE THESE TO THE NEEDED VALUES !  (MVC)
   jmp_buf = packed record
-    ebx,esi,edi : Longint;
-    bp,sp,pc : Pointer;
-    end;
+    fp : longint;                    { frame pointer     }
+    sp : longint;                    { stack pointer     }
+    pc : longint;                    { program counter   }
+    aregs : array[0..3] of dword;    { address registers (a2,a3,a4,a5) }
+  end;
   PJmp_buf = ^jmp_buf;
 
 Function Setjmp (Var S : Jmp_buf) : longint;
 Procedure longjmp (Var S : Jmp_buf; value : longint);
+
+{
   $Log$
-  Revision 1.4  2002-10-20 11:53:14  carl
+  Revision 1.5  2004-05-05 21:26:34  florian
+    * some m68k and amiga related stuff fixed
+
+  Revision 1.4  2002/10/20 11:53:14  carl
     * make the jmp_buf record packed, just in case
 
   Revision 1.3  2002/09/07 16:01:20  peter
     * old logs removed and tabs fixed
-
 }
