@@ -80,9 +80,155 @@ var
 {$if defined(netbsd) or defined(freebsd) or defined(linux) or defined(sunos)}
   {$ifdef cpu64}
     {$define ELF64}
-  {$else}  
+  {$else}
     {$define ELF32}
-  {$endif}  
+  {$endif}
+{$endif}
+
+{$ifdef netwlibc}
+{$define netware}
+{$endif}
+{$ifdef netware}
+
+const SIZE_OF_NLM_INTERNAL_FIXED_HEADER = 130;
+      SIZE_OF_NLM_INTERNAL_VERSION_HEADER = 32;
+      SIZE_OF_NLM_INTERNAL_EXTENDED_HEADER = 124;
+
+function loadNetwareNLM:boolean;
+var valid : boolean;
+    name  : string;
+    StabLength,
+    StabStrLength,
+    alignAmount,
+    hdrLength,
+    dataOffset,
+    dataLength : longint;
+
+  function getByte:byte;
+  begin
+    BlockRead (f,getByte,1);
+  end;
+
+  procedure Skip (bytes : longint);
+  var i : longint;
+  begin
+    for i := 1 to bytes do getbyte;
+  end;
+
+  function getLString : String;
+  var Res:string;
+  begin
+    blockread (F, res, 1);
+    if length (res) > 0 THEN
+      blockread (F, res[1], length (res));
+    getbyte;
+    getLString := res;
+  end;
+
+  function getFixString (Len : byte) : string;
+  var i : byte;
+  begin
+    getFixString := '';
+    for I := 1 to Len do
+      getFixString := getFixString + char (getbyte);
+  end;
+
+  function get0String : string;
+  var c : char;
+  begin
+    get0String := '';
+    c := char (getbyte);
+    while (c <> #0) do
+    begin
+      get0String := get0String + c;
+      c := char (getbyte);
+    end;
+  end;
+
+  function getword : word;
+  begin
+    blockread (F, getword, 2);
+  end;
+
+  function getint32 : longint;
+  begin
+    blockread (F, getint32, 4);
+  end;
+
+begin
+  processaddress := 0;
+  LoadNetwareNLM:=false;
+  stabofs:=-1;
+  stabstrofs:=-1;
+  { read and check header }
+  Skip (SIZE_OF_NLM_INTERNAL_FIXED_HEADER);
+  getLString;  // NLM Description
+  getInt32;    // Stacksize
+  getInt32;    // Reserved
+  skip(5);     // old Thread Name
+  getLString;  // Screen Name
+  getLString;  // Thread Name
+  hdrLength := -1;
+  dataOffset := -1;
+  dataLength := -1;
+  valid := true;
+  repeat
+    name := getFixString (8);
+    if (name = 'VeRsIoN#') then
+    begin
+      Skip (SIZE_OF_NLM_INTERNAL_VERSION_HEADER-8);
+    end else
+    if (name = 'CoPyRiGh') then
+    begin
+      getword;     // T=
+      getLString;  // Copyright String
+    end else
+    if (name = 'MeSsAgEs') then
+    begin
+      skip (SIZE_OF_NLM_INTERNAL_EXTENDED_HEADER - 8);
+    end else
+    if (name = 'CuStHeAd') then
+    begin
+      hdrLength := getInt32;
+      dataOffset := getInt32;
+      dataLength := getInt32;
+      Skip (8); // dataStamp
+      Valid := false;
+    end else
+      Valid := false;
+  until not valid;
+  if (hdrLength = -1) or (dataOffset = -1) or (dataLength = -1) then
+    exit;
+  (* The format of the section information is:
+       null terminated section name
+       zeroes to adjust to 4 byte boundary
+       4 byte section data file pointer
+       4 byte section size *)
+  Seek (F, dataOffset);
+  stabOfs := 0;
+  stabStrOfs := 0;
+  Repeat
+    Name := Get0String;
+    alignAmount := 4 - ((length (Name) + 1) MOD 4);
+    Skip (alignAmount);
+    if (Name = '.stab') then
+    begin
+      stabOfs := getInt32;
+      stabLength := getInt32;
+      stabcnt:=stabLength div sizeof(tstab);
+    end else
+    if (Name = '.stabstr') then
+    begin
+      stabStrOfs := getInt32;
+      stabStrLength := getInt32;
+    end else
+      Skip (8);
+  until (Name = '') or ((StabOfs <> 0) and (stabStrOfs <> 0));
+  Seek (F,stabOfs);
+  //if (StabOfs = 0) then __ConsolePrintf ('StabOfs = 0');
+  //if (StabStrOfs = 0) then __ConsolePrintf ('StabStrOfs = 0');
+  LoadNetwareNLM := ((stabOfs > 0) and (stabStrOfs > 0));
+end;
 {$endif}
 
 {$ifdef go32v2}
@@ -714,6 +860,13 @@ begin
      exit;
    end;
 {$endif}
+{$ifdef netware}
+  if LoadNetwareNLM then
+   begin
+     OpenStabs:=true;
+     exit;
+   end;
+{$endif}
   CloseStabs;
 end;
 
@@ -740,6 +893,7 @@ begin
   { correct the value to the correct address in the file }
   { processaddress is set in OpenStabs                   }
   addr := addr - processaddress;
+  //ScreenPrintfL1 (NWLoggerScreen,'addr: %x\n',addr);
 
   fillchar(funcstab,sizeof(tstab),0);
   fillchar(filestab,sizeof(tstab),0);
@@ -812,6 +966,7 @@ begin
      end;
     dec(stabsleft,stabscnt);
   until found or (stabsleft=0);
+
 { get the line,source,function info }
   line:=linestab.ndesc;
   if dirstab.ntype<>0 then
@@ -850,11 +1005,18 @@ var
   Store  : TBackTraceStrFunc;
 begin
   { reset to prevent infinite recursion if problems inside the code PM }
+  {$ifdef netware}
+  dec(addr,system.NWGetCodeStart);  {we need addr relative to code start on netware}
+  {$endif}
   Store:=BackTraceStrFunc;
   BackTraceStrFunc:=@SysBackTraceStr;
   GetLineInfo(ptruint(addr),func,source,line);
 { create string }
+  {$ifdef netware}
+  StabBackTraceStr:='  CodeStart + $'+HexStr(ptrint(addr),sizeof(ptrint)*2);
+  {$else}
   StabBackTraceStr:='  $'+HexStr(ptrint(addr),sizeof(ptrint)*2);
+  {$endif}
   if func<>'' then
    StabBackTraceStr:=StabBackTraceStr+'  '+func;
   if source<>'' then
@@ -883,7 +1045,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.23  2004-04-28 20:48:20  peter
+  Revision 1.24  2004-09-18 11:06:52  armin
+  * added support for netware nlm (netware and netwlibc)
+
+  Revision 1.23  2004/04/28 20:48:20  peter
     * ordinal-pointer conversions fixed
 
   Revision 1.22  2004/04/22 21:10:35  peter
