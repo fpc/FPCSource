@@ -543,7 +543,9 @@ function SetWindowRgn(hWnd:HWND; hRgn:HRGN; bRedraw:WINBOOL):longint; external '
 function GetWindowRgn(hWnd:HWND; hRgn:HRGN):longint; external 'user32' name 'GetWindowRgn';
 function ExcludeUpdateRgn(hDC:HDC; hWnd:HWND):longint; external 'user32' name 'ExcludeUpdateRgn';
 function InvalidateRect(hWnd:HWND; var lpRect:RECT; bErase:WINBOOL):WINBOOL; external 'user32' name 'InvalidateRect';
+function InvalidateRect(hWnd:HWND;lpRect:LPRECT; bErase:WINBOOL):WINBOOL; external 'user32' name 'InvalidateRect';
 function ValidateRect(hWnd:HWND; var lpRect:RECT):WINBOOL; external 'user32' name 'ValidateRect';
+function ValidateRect(hWnd:HWND;lpRect:LPRECT):WINBOOL; external 'user32' name 'ValidateRect';
 function InvalidateRgn(hWnd:HWND; hRgn:HRGN; bErase:WINBOOL):WINBOOL; external 'user32' name 'InvalidateRgn';
 function ValidateRgn(hWnd:HWND; hRgn:HRGN):WINBOOL; external 'user32' name 'ValidateRgn';
 function RedrawWindow(hWnd:HWND; var lprcUpdate:RECT; hrgnUpdate:HRGN; flags:UINT):WINBOOL; external 'user32' name 'RedrawWindow';
@@ -2179,7 +2181,10 @@ end;
 
 {
   $Log$
-  Revision 1.2  2000-07-13 11:33:59  michael
+  Revision 1.3  2001-02-02 20:53:18  peter
+    * merged fix for bug 1375
+
+  Revision 1.2  2000/07/13 11:33:59  michael
   + removed logs
  
 }
