@@ -1074,9 +1074,16 @@ implementation
          p:=_asm_statement;
 
          { assembler routines use stdcall instead of register }
+{$warning Temporary hack for force stdcall for assembler}
          if (po_assembler in current_procinfo.procdef.procoptions) and
             (current_procinfo.procdef.proccalloption=pocall_register) then
            current_procinfo.procdef.proccalloption:=pocall_stdcall;
+
+         { delphi uses register calling for assembler methods }
+         if (m_delphi in aktmodeswitches) and
+            (po_assembler in current_procinfo.procdef.procoptions) and
+            not(po_hascallingconvention in current_procinfo.procdef.procoptions) then
+           current_procinfo.procdef.proccalloption:=pocall_register;
 
 {$ifndef sparc}
          if (po_assembler in current_procinfo.procdef.procoptions) then
@@ -1122,7 +1129,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.111  2003-10-01 20:34:49  peter
+  Revision 1.112  2003-10-02 21:15:59  peter
+    * delphi mode uses register calling by default for assembler
+
+  Revision 1.111  2003/10/01 20:34:49  peter
     * procinfo unit contains tprocinfo
     * cginfo renamed to cgbase
     * moved cgmessage to verbose
