@@ -19,8 +19,6 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    First Implementation 10 Sept 2000 Armin Diehl
-
     Currently generating NetWare-NLM's only work under Linux and win32.
     (see http://home.arcor.de/armin.diehl/fpcnw for binutils working
     with win32) while not included in fpc-releases.
@@ -28,12 +26,13 @@
     The following compiler-swiches are supported for NetWare:
     $DESCRIPTION    : NLM-Description, will be displayed at load-time
     $M              : For Stack-Size, Heap-Size will be ignored
+                      32K is the accepted minimum
     $VERSION x.x.x  : Sets Major, Minor and Revision
     $SCREENNAME     : Sets the ScreenName
-    $THREADNAME     : Sets cirrent threadname
+    $THREADNAME     : Sets current threadname
 
-    Sorry, Displaying copyright does not work with nlmconv from gnu bunutils
-    but there is a patch available.
+    Displaying copyright does not work with nlmconv from gnu bunutils
+    version less that 2.13
 
     Exports will be handled like in win32:
     procedure bla;
@@ -42,20 +41,23 @@
 
     exports foo name 'Bar';
 
-    The path to the import-Files (from netware-sdk, see developer.novell.com)
-    must be specified by the library-path. All external modules are defined
-    as autoload. (Note: the import-files have to be in unix-format for exe2nlm)
+    The path to the import-Files must be specified by the library-path.
+    All external modules are defined as autoload. (Note: the import-files have
+    to be in unix-format for exe2nlm)
     By default, the most import files are included in freepascal.
 
     i.e. Procedure ConsolePrintf (p:pchar); cdecl; external 'clib.nlm';
     sets IMPORT @clib.imp and MODULE clib.
 
+    Function simply defined as external work without generating autoload but
+    you will get a warnung from nlmconv.
+
     If you dont have nlmconv, compile gnu-binutils with
        ./configure --enable-targets=i386-linux,i386-netware
        make all
 
-    Debugging is possible with gdb and a converter from gdb to ndi available 
-    at http://home.arcor.de/armin.diehl/gdbnw (you have to compile with -gg)
+    Debugging is possible with gdb and a converter from gdb to ndi available
+    at http://home.arcor.de/armin.diehl/gdbnw
 
     A sample program:
 
@@ -73,9 +75,7 @@
 
     ToDo:
       - No duplicate imports and autoloads
-      - No debug symbols
       - libc support (needs new target)
-      - prelude support (needs new compiler switch)
 
 ****************************************************************************
 }
@@ -112,6 +112,7 @@ implementation
 
     tlinkernetware=class(texternallinker)
     private
+      NLMConvLinkFile: TLinkRes;  {for second pass, fist pass is ld}
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
       constructor Create;override;
@@ -119,6 +120,8 @@ implementation
       function  MakeExecutable:boolean;override;
     end;
 
+Const tmpLinkFileName = 'link~tmp._o_';
+      minStackSize = 32768;
 
 {*****************************************************************************
                                TIMPORTLIBNETWARE
@@ -262,7 +265,8 @@ procedure TLinkerNetware.SetDefaultInfo;
 begin
   with Info do
    begin
-     ExeCmd[1]:='nlmconv -T$RES';
+     ExeCmd[1]:= 'ld -Ur -T $RES $STRIP -o $TMPOBJ';
+     ExeCmd[2]:='nlmconv -T$RES';
    end;
 end;
 
@@ -286,7 +290,8 @@ begin
   NlmNam := ProgNam + target_info.exeext;
 
   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);         {for ld}
+  NLMConvLinkFile:=TLinkRes.Create(outputexedir+Info.ResName); {for nlmconv, written in CreateExeFile}
 
   p := Pos ('"', Description);
   while (p > 0) do
@@ -295,8 +300,8 @@ begin
     p := Pos ('"', Description);
   end;
   if Description <> '' then
-    LinkRes.Add('DESCRIPTION "' + Description + '"');
-  LinkRes.Add('VERSION '+tostr(dllmajor)+','+tostr(dllminor)+','+tostr(dllrevision));
+    NLMConvLinkFile.Add('DESCRIPTION "' + Description + '"');
+  NLMConvLinkFile.Add('VERSION '+tostr(dllmajor)+','+tostr(dllminor)+','+tostr(dllrevision));
 
   p := Pos ('"', nwscreenname);
   while (p > 0) do
@@ -318,39 +323,40 @@ begin
   end;
 
   if nwscreenname <> '' then
-    LinkRes.Add('SCREENNAME "' + nwscreenname + '"');
+    NLMConvLinkFile.Add('SCREENNAME "' + nwscreenname + '"');
   if nwthreadname <> '' then
-    LinkRes.Add('THREADNAME "' + nwthreadname + '"');
+    NLMConvLinkFile.Add('THREADNAME "' + nwthreadname + '"');
   if nwcopyright <> '' then
-    LinkRes.Add('COPYRIGHT "' + nwcopyright + '"');
+    NLMConvLinkFile.Add('COPYRIGHT "' + nwcopyright + '"');
 
-  if stacksize < 32768 then stacksize := 32768;
+  if stacksize < minStackSize then stacksize := minStackSize;
   str (stacksize, s);
-  LinkRes.Add ('STACKSIZE '+s);
+  NLMConvLinkFile.Add ('STACKSIZE '+s);
+  NLMConvLinkFile.Add ('INPUT '+tmpLinkFileName);
 
   { add objectfiles, start with nwpre always }
-  LinkRes.Add ('INPUT '+FindObjectFile('nwpre',''));
+  LinkRes.Add ('INPUT (');
+  LinkRes.Add (FindObjectFile('nwpre',''));
 
-  { main objectfiles }
+  { main objectfiles, add to linker input }
   while not ObjectFiles.Empty do
-   begin
-     s:=ObjectFiles.GetFirst;
-     if s<>'' then
-      LinkRes.Add ('INPUT ' + FindObjectFile (s,''));
-   end;
+  begin
+    s:=ObjectFiles.GetFirst;
+    if s<>'' then
+      LinkRes.Add (FindObjectFile (s,''));
+  end;
 
-  { output file (nlm) }
-  LinkRes.Add ('OUTPUT ' + NlmNam);
+  { output file (nlm), add to nlmconv }
+  NLMConvLinkFile.Add ('OUTPUT ' + NlmNam);
 
   { start and stop-procedures }
-  LinkRes.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
-  LinkRes.Add ('EXIT _Stop');
-  LinkRes.Add ('CHECK FPC_NW_CHECKFUNCTION');
+  NLMConvLinkFile.Add ('START _Prelude');  { defined in rtl/netware/nwpre.as }
+  NLMConvLinkFile.Add ('EXIT _Stop');                             { nwpre.as }
+  NLMConvLinkFile.Add ('CHECK FPC_NW_CHECKFUNCTION');            { system.pp }
 
-  if (cs_gdb_dbx in aktglobalswitches) or 
-     (cs_gdb_gsym in aktglobalswitches) then
+  if not (cs_link_strip in aktglobalswitches) then
   begin
-    LinkRes.Add ('DEBUG');
+    NLMConvLinkFile.Add ('DEBUG');
     Comment(V_Debug,'DEBUG');
   end;
 
@@ -368,7 +374,7 @@ begin
          if (pos ('.a',s) <> 0) OR (pos ('.A', s) <> 0) then
          begin
 	   S2 := FindObjectFile(s,'');
-           LinkRes.Add ('INPUT '+S2);
+           LinkRes.Add (S2);
 	   Comment(V_Debug,'INPUT '+S2);
          end else
          begin
@@ -377,7 +383,7 @@ begin
              Delete(S,i,255);
            S := S + '.imp'; S2 := '';
            librarysearchpath.FindFile(S,S2);
-           LinkRes.Add('IMPORT @'+S2);
+           NLMConvLinkFile.Add('IMPORT @'+S2);
 	   Comment(V_Debug,'IMPORT @'+s2);
          end;
         end
@@ -403,8 +409,8 @@ begin
              Delete(S,i,255);
            S := S + '.imp';
            librarysearchpath.FindFile(S,S3);
-           LinkRes.Add('IMPORT @'+S3);
-           LinkRes.Add('MODULE '+s2);
+           NLMConvLinkFile.Add('IMPORT @'+S3);
+           NLMConvLinkFile.Add('MODULE '+s2);
 	   Comment(V_Debug,'MODULE '+S2);
 	   Comment(V_Debug,'IMPORT @'+S3);
          end
@@ -419,7 +425,7 @@ begin
       begin
         { Export the Symbol }
         Comment(V_Debug,'EXPORT '+hp2.name^);
-        LinkRes.Add ('EXPORT '+hp2.name^);
+        NLMConvLinkFile.Add ('EXPORT '+hp2.name^);
       end
      else
       { really, i think it is possible }
@@ -427,7 +433,8 @@ begin
      hp2:=texported_item(hp2.next);
    end;
 
-{ Write and Close response }
+{ Write and Close response for ld, response for nlmconv is in NLMConvLinkFile(not written) }
+  linkres.Add (')');
   linkres.writetodisk;
   LinkRes.Free;
 
@@ -438,37 +445,52 @@ end;
 function TLinkerNetware.MakeExecutable:boolean;
 var
   binstr,
-  cmdstr  : string;
-  success : boolean;
-  DynLinkStr : string[60];
-  StaticStr,
-  StripStr   : string[40];
+  cmdstr   : string;
+  success  : boolean;
+  StripStr : string[2];
 begin
   if not(cs_link_extern in aktglobalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
 
 { Create some replacements }
-  StaticStr:='';
   StripStr:='';
-  DynLinkStr:='';
 
-{ Write used files and libraries }
+  if (cs_link_strip in aktglobalswitches) then
+   StripStr:='-s';
+
+{ Write used files and libraries and create Headerfile for
+  nlmconv in NLMConvLinkFile }
   WriteResponseFile(false);
 
-{ Call linker }
+{ Call linker, this will generate a new object file that will be passed
+  to nlmconv. Otherwise we could not create nlms without debug info }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$EXE',current_module.exefilename^);
-  Replace(cmdstr,'$OPT',Info.ExtraOptions);
   Replace(cmdstr,'$RES',outputexedir+Info.ResName);
-  Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
-  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+  Replace(cmdstr,'$TMPOBJ',outputexedir+tmpLinkFileName);
+  Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
   success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 
   { Remove ReponseFile }
   if (success) and not(cs_link_extern in aktglobalswitches) then
     RemoveFile(outputexedir+Info.ResName);
-    
+
+{ Call nlmconv }
+  if success then
+  begin
+    NLMConvLinkFile.writetodisk;
+    NLMConvLinkFile.Free;
+    SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
+    Replace(cmdstr,'$RES',outputexedir+Info.ResName);
+    Comment (v_debug,'Executing '+BinStr+' '+cmdstr);
+    success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+    if success then
+      RemoveFile(outputexedir+Info.ResName);
+    {always remove the temp object file}
+    RemoveFile(outputexedir+tmpLinkFileName);
+  end;
+
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;
 
@@ -486,7 +508,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.4  2003-03-21 19:19:51  armin
+  Revision 1.5  2003-03-21 22:36:42  armin
+  * changed linking: now we will link all objects to a single one and call nlmconv with that one object file. This makes it possible to create nlms without debug info.
+
+  Revision 1.4  2003/03/21 19:19:51  armin
   * search of .imp files was broken, debug only if -gg was specified
 
   Revision 1.3  2002/11/17 16:32:04  carl
