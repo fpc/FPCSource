@@ -16,29 +16,17 @@
 
       m68k.inc : Processor dependent implementation of system unit
                  For Motorola 680x0 Processor.
- 
+
 *****************************************************************************}
 
 {****************************************************************************}
-{     This include file contains as little assembler as possible, to make    }
-{     porting to other systems easier.                                       }
-{   Port to the Motorola 680x0 compiler by:                                  }
-{                                                                            }
-{     Carl-Eric Codere - port of non-system specific stuff.                  }
-{                                                                            }
-{  Some routines taken from the Atari freeware dlib source code, created by: }
-{     Dale Schumacher                         399 Beacon Ave.                }
-{     (alias: Dalnefre')                      St. Paul, MN  55104            }
-{     dal@syntel.UUCP                         United States of America       }
-{  Some routines taken from the freeware Atari Sozobon C compiler, created by:}
-{      1988 by Sozobon, Limited.  Author: Johann Ruegg (freeware)             }
+{   Credit where credit is due:                                              }
+{   -Some of the copy routines taken from the Atari dlib source code:        }
+{     Dale Schumacher (alias: Dalnefre')  dal@syntel.uucp                    }
+{     399 Beacon Ave. St. Paul, MN 55104,USA                                 }
+{   -Some of the routines taken from the freeware ATARI Sozobon C compiler   }
+{      1988 by Sozobon, Limited.  Author: Johann Ruegg (freeware)            }
 {  Thanks to all these people wherever they maybe today!                     }
-{      BUGS in sqr and abs for return values. Only longint seems supported.  }
-{                                                                            }
-{  Still left to do:                                                         }
-{     mod_rr routine to convert to pascal format.                            }
-{                                                                            }
-{   ALL routines in set.inc, system.inc and real2str.inc are system independant.}
 {****************************************************************************}
 
 
@@ -786,7 +774,10 @@ XDEF RE_BOUNDS_CHECK
 
 {
   $Log$
-  Revision 1.9  1998-07-30 13:26:14  michael
+  Revision 1.10  1998-08-17 12:26:04  carl
+    + simple cleanup of comments
+
+  Revision 1.9  1998/07/30 13:26:14  michael
   + Added support for ErrorProc variable. All internal functions are required
     to call HandleError instead of runerror from now on.
     This is necessary for exception support.
