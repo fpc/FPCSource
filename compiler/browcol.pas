@@ -111,6 +111,41 @@ type
       procedure   Store(var S: TStream);
     end;
 
+    PExport = ^TExport;
+    TExport = object(TObject)
+      constructor Init(const AName: string; AIndex: longint; ASymbol: PSymbol);
+      function    GetDisplayText: string;
+      destructor  Done; virtual;
+    private
+      Name: PString;
+      Index: longint;
+      Symbol: PSymbol;
+    end;
+
+    PExportCollection = ^TExportCollection;
+    TExportCollection = object(TSortedCollection)
+      function At(Index: sw_Integer): PExport;
+      function Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+    end;
+
+    PImport = ^TImport;
+    TImport = object(TObject)
+      constructor Init(const ALibName, AFuncName,ARealName: string; AIndex: longint);
+      function    GetDisplayText: string;
+      destructor  Done; virtual;
+    private
+      LibName: PString;
+      FuncName: PString;
+      RealName: PString;
+      Index: longint;
+    end;
+
+    PImportCollection = ^TImportCollection;
+    TImportCollection = object(TSortedCollection)
+      function At(Index: sw_Integer): PImport;
+      function Compare(Key1, Key2: Pointer): sw_Integer; virtual;
+    end;
+
     PObjectSymbolCollection = ^TObjectSymbolCollection;
 
     PObjectSymbol = ^TObjectSymbol;
@@ -180,6 +215,23 @@ type
       function At(Index: sw_Integer): PSourceFile;
     end;
 
+    PModuleSymbol = ^TModuleSymbol;
+    TModuleSymbol = object(TSymbol)
+      Exports_   : PExportCollection;
+      Imports    : PImportCollection;
+      LoadedFrom : PString;
+      UsedUnits  : PSymbolCollection;
+      DependentUnits: PSymbolCollection;
+      MainSource: PString;
+      SourceFiles: PStringCollection;
+      constructor Init(const AName, AMainSource: string);
+      procedure   SetLoadedFrom(const AModuleName: string);
+      procedure   AddUsedUnit(P: PSymbol);
+      procedure   AddDependentUnit(P: PSymbol);
+      procedure   AddSourceFile(const Path: string);
+      destructor  Done; virtual;
+    end;
+
 const
   Modules     : PSymbolCollection = nil;
   ModuleNames : PModuleNameCollection = nil;
@@ -207,7 +259,8 @@ procedure RegisterSymbols;
 implementation
 
 uses
-  Dos,Drivers,{Views,App,}
+  Dos,Drivers,{Views,App,}{$ifndef FPC}strings,{$endif}
+  WUtils,
   aasm,globtype,globals,files,comphook;
 
 const
@@ -521,8 +574,8 @@ begin
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
   { make sure that we distinguish between different objects with the same name }
-  if K1^.Symbol<K2^.Symbol then R:=-1 else
-  if K1^.Symbol>K2^.Symbol then R:= 1 else
+  if longint(K1^.Symbol)<longint(K2^.Symbol) then R:=-1 else
+  if longint(K1^.Symbol)>longint(K2^.Symbol) then R:= 1 else
   R:=0;
   Compare:=R;
 end;
@@ -799,6 +852,159 @@ begin
   S.Write(DType, SizeOf(DType));
   S.Write(VType, SizeOf(VType));
   {S.Write(Ancestor, SizeOf(Ancestor));}
+end;
+
+constructor TExport.Init(const AName: string; AIndex: longint; ASymbol: PSymbol);
+begin
+  inherited Init;
+  Name:=NewStr(AName); Index:=AIndex;
+  Symbol:=ASymbol;
+end;
+
+function TExport.GetDisplayText: string;
+var S: string;
+begin
+  S:=GetStr(Name)+' '+IntToStr(Index);
+  if Assigned(Symbol) and (UpcaseStr(Symbol^.GetName)<>UpcaseStr(GetStr(Name))) then
+    S:=S+' ('+Symbol^.GetName+')';
+end;
+
+destructor TExport.Done;
+begin
+  if Assigned(Name) then DisposeStr(Name);
+  inherited Done;
+end;
+
+constructor TImport.Init(const ALibName, AFuncName,ARealName: string; AIndex: longint);
+begin
+  inherited Init;
+  LibName:=NewStr(ALibName);
+  FuncName:=NewStr(AFuncName); RealName:=NewStr(ARealName);
+  Index:=AIndex;
+end;
+
+function TImport.GetDisplayText: string;
+var S: string;
+begin
+  S:=GetStr(RealName);
+  if Assigned(FuncName) then S:=GetStr(FuncName)+' ('+S+')';
+  if S='' then S:=IntToStr(Index);
+  S:=GetStr(LibName)+' '+S;
+  GetDisplayText:=S;
+end;
+
+destructor TImport.Done;
+begin
+  if Assigned(LibName) then DisposeStr(LibName);
+  if Assigned(FuncName) then DisposeStr(FuncName);
+  if Assigned(RealName) then DisposeStr(RealName);
+  inherited Done;
+end;
+
+function TImportCollection.At(Index: sw_Integer): PImport;
+begin
+  At:=inherited At(Index);
+end;
+
+function TImportCollection.Compare(Key1, Key2: Pointer): sw_Integer;
+var K1: PImport absolute Key1;
+    K2: PImport absolute Key2;
+    S1: string;
+    S2: string;
+    R: sw_integer;
+begin
+  if (K1^.RealName=nil) and (K2^.RealName<>nil) then R:= 1 else
+  if (K1^.RealName<>nil) and (K2^.RealName=nil) then R:=-1 else
+  if (K1^.RealName=nil) and (K2^.RealName=nil) then
+    begin
+      if K1^.Index<K2^.Index then R:=-1 else
+      if K1^.Index>K2^.Index then R:= 1 else
+      R:=0;
+    end
+  else
+    begin
+      if K1^.FuncName=nil then S1:=GetStr(K1^.RealName) else S1:=GetStr(K1^.FuncName);
+      if K2^.FuncName=nil then S2:=GetStr(K2^.RealName) else S2:=GetStr(K2^.FuncName);
+      S1:=UpcaseStr(S1); S2:=UpcaseStr(S2);
+      if S1<S2 then R:=-1 else
+      if S1>S2 then R:= 1 else
+      R:=0;
+    end;
+  Compare:=R;
+end;
+
+function TExportCollection.At(Index: sw_Integer): PExport;
+begin
+  At:=inherited At(Index);
+end;
+
+function TExportCollection.Compare(Key1, Key2: Pointer): sw_Integer;
+var K1: PExport absolute Key1;
+    K2: PExport absolute Key2;
+    S1: string;
+    S2: string;
+    R: sw_integer;
+begin
+  S1:=UpcaseStr(GetStr(K1^.Name)); S2:=UpcaseStr(GetStr(K2^.Name));
+  if S1<S2 then R:=-1 else
+  if S1>S2 then R:= 1 else
+  R:=0;
+  Compare:=R;
+end;
+
+constructor TModuleSymbol.Init(const AName, AMainSource: string);
+begin
+  inherited Init(AName,unitsym,'',nil);
+  MainSource:=NewStr(AMainSource);
+end;
+
+procedure TModuleSymbol.SetLoadedFrom(const AModuleName: string);
+begin
+  SetStr(LoadedFrom,AModuleName);
+end;
+
+procedure TModuleSymbol.AddUsedUnit(P: PSymbol);
+begin
+  if Assigned(UsedUnits)=false then
+    New(UsedUnits, Init(10,10));
+  UsedUnits^.Insert(P);
+end;
+
+procedure TModuleSymbol.AddDependentUnit(P: PSymbol);
+begin
+  if Assigned(DependentUnits)=false then
+    New(DependentUnits, Init(10,10));
+  DependentUnits^.Insert(P);
+end;
+
+procedure TModuleSymbol.AddSourceFile(const Path: string);
+begin
+  if Assigned(SourceFiles)=false then
+    New(SourceFiles, Init(10,10));
+  SourceFiles^.Insert(NewStr(Path));
+end;
+
+destructor TModuleSymbol.Done;
+begin
+  inherited Done;
+  if Assigned(MainSource) then DisposeStr(MainSource);
+  if assigned(Exports_) then
+    Dispose(Exports_, Done);
+  if Assigned(Imports) then
+    Dispose(Imports, Done);
+  if Assigned(LoadedFrom) then
+    DisposeStr(LoadedFrom);
+  if Assigned(UsedUnits) then
+  begin
+    UsedUnits^.DeleteAll;
+    Dispose(UsedUnits, Done);
+  end;
+  if Assigned(DependentUnits) then
+  begin
+    DependentUnits^.DeleteAll;
+    Dispose(DependentUnits, Done);
+  end;
+  if Assigned(SourceFiles) then Dispose(SourceFiles, Done);
 end;
 
 
@@ -1353,11 +1559,27 @@ end;
       end;
   end;
 
+function SearchModule(const Name: string): PModuleSymbol;
+function Match(P: PModuleSymbol): boolean; {$ifndef FPC}far;{$endif}
+begin
+  Match:=CompareText(P^.GetName,Name)=0;
+end;
+var P: PModuleSymbol;
+begin
+  P:=nil;
+  if Assigned(Modules) then
+    P:=Modules^.FirstThat(@Match);
+  SearchModule:=P;
+end;
+
 procedure CreateBrowserCol;
 var
   T: PSymTable;
-  UnitS: PSymbol;
+  UnitS,PM: PModuleSymbol;
   hp : pmodule;
+  puu: pused_unit;
+  pdu: pdependent_unit;
+  pif: pinputfile;
 begin
   DisposeBrowserCol;
   if (cs_browser in aktmoduleswitches) then
@@ -1369,7 +1591,22 @@ begin
        t:=psymtable(hp^.globalsymtable);
        if assigned(t) then
          begin
-           New(UnitS, Init(T^.Name^,unitsym,'',nil));
+           New(UnitS, Init(T^.Name^,hp^.mainsource^));
+           if Assigned(hp^.loaded_from) then
+             if assigned(hp^.loaded_from^.globalsymtable) then
+               UnitS^.SetLoadedFrom(psymtable(hp^.loaded_from^.globalsymtable)^.name^);
+{           pimportlist(current_module^.imports^.first);}
+
+           if assigned(hp^.sourcefiles) then
+           begin
+             pif:=hp^.sourcefiles^.files;
+             while (pif<>nil) do
+             begin
+               UnitS^.AddSourceFile(pif^.path^+pif^.name^);
+               pif:=pif^.next;
+             end;
+           end;
+
            Modules^.Insert(UnitS);
            ProcessSymTable(UnitS,UnitS^.Items,T);
            if cs_local_browser in aktmoduleswitches then
@@ -1381,6 +1618,35 @@ begin
          end;
        hp:=pmodule(hp^.next);
     end;
+
+  hp:=pmodule(loaded_units.first);
+  if (cs_browser in aktmoduleswitches) then
+   while assigned(hp) do
+    begin
+       t:=psymtable(hp^.globalsymtable);
+       if assigned(t) then
+         begin
+           UnitS:=SearchModule(T^.Name^);
+           puu:=pused_unit(hp^.used_units.first);
+           while (puu<>nil) do
+           begin
+             PM:=SearchModule(puu^.name^);
+             if Assigned(PM) then
+               UnitS^.AddUsedUnit(PM);
+             puu:=pused_unit(puu^.next);
+           end;
+           pdu:=pdependent_unit(hp^.dependent_units.first);
+           while (pdu<>nil) do
+           begin
+             PM:=SearchModule(psymtable(pdu^.u^.globalsymtable)^.name^);
+             if Assigned(PM) then
+               UnitS^.AddDependentUnit(PM);
+             pdu:=pdependent_unit(pdu^.next);
+           end;
+         end;
+       hp:=pmodule(hp^.next);
+    end;
+
   if (cs_browser in aktmoduleswitches) then
     BuildObjectInfo;
   { can allways be done
@@ -1811,7 +2077,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2000-05-29 10:04:40  pierre
+  Revision 1.40  2000-06-16 06:08:44  pierre
+   *Gabor's changes
+
+  Revision 1.39  2000/05/29 10:04:40  pierre
     * New bunch of Gabor changes
 
   Revision 1.38  2000/04/20 08:52:01  pierre
