@@ -562,5 +562,6 @@
 'lddqu',
 'movddup',
 'movshdup',
-'movsldup'
+'movsldup',
+'movabs'
 );

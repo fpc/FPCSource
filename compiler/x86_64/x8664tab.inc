@@ -11563,5 +11563,12 @@
     optypes : (ot_xmmreg,ot_xmmreg,ot_none);
     code    : #3#243#15#18#72;
     flags   : if_prescott or if_sse3
+  ),
+  (
+    opcode  : A_MOVABS;
+    ops     : 2;
+    optypes : (ot_reg32,ot_immediate,ot_none);
+    code    : #209#8#184#33;
+    flags   : if_x86_64
   )
 );

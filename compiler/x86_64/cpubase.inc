@@ -44,7 +44,7 @@ const
     opcode strings should conform to the names as defined by the
     processor manufacturer.
   }
-  std_op2str:op2strtable={$i x86_64in.inc}
+  std_op2str:op2strtable={$i x8664int.inc}
 
 {*****************************************************************************
                                  Constants
@@ -135,7 +135,10 @@ const
 
 {
   $Log$
-  Revision 1.10  2004-01-14 23:39:05  florian
+  Revision 1.11  2004-01-15 13:57:58  florian
+    * renamed instruction tables
+
+  Revision 1.10  2004/01/14 23:39:05  florian
     * another bunch of x86-64 fixes mainly calling convention and
       assembler reader related
 
