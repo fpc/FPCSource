@@ -1,8 +1,8 @@
 {
     $Id$
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1993,97 by Michael Van Canneyt,
-    member of the Free Pascal development team.
+    Copyright (c) 1993-98 by Michael Van Canneyt and Peter Vreman,
+    members of the Free Pascal development team.
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -17,9 +17,7 @@ Interface
 
 Const
 { Controlling consts }
-  Flushing=false;                       {if true then don't buffer output}
-  ScreenWidth  = 80;
-  ScreenHeight = 25;
+  Flushing=false;               {if true then don't buffer output}
 
 { CRT modes }
   BW40          = 0;            { 40x25 B/W on Color Adapter }
@@ -57,7 +55,6 @@ Const
   Blink         = 128;
 
 {Other Defaults}
-
   TextAttr   : Byte = $07;
   LastMode   : Word = 3;
   WindMin    : Word = $0;
@@ -67,6 +64,23 @@ var
   CheckEOF,
   CheckSnow,
   DirectVideo: Boolean;
+
+Const
+  ScreenHeight : longint=25;
+  ScreenWidth  : longint=80;
+
+  ConsoleMaxX=1024;
+  ConsoleMaxY=1024;
+Type
+  TCharAttr=packed record
+    ch   : char;
+    attr : byte;
+  end;
+  TConsoleBuf=Array[0..ConsoleMaxX*ConsoleMaxY-1] of TCharAttr;
+  PConsoleBuf=^TConsoleBuf;
+var
+  ConsoleBuf : PConsoleBuf;
+
 
 Procedure AssignCrt(Var F: Text);
 Function  KeyPressed: Boolean;
@@ -98,18 +112,10 @@ uses Linux;
   The definitions of TextRec and FileRec are in separate files.
 }
 {$i textrec.inc}
-{$i filerec.inc}
 
 Const
   OldTextAttr : byte = $07;
-
-Type
-  TScreen=Array[1..ScreenHeight,1..ScreenWidth] of char;
-  TScreenColors=Array[1..ScreenHeight,1..ScreenWidth] of byte;
-
 Var
-  Scrn        : TScreen;
-  ScrnCol     : TScreenColors;
   CurrX,CurrY : Byte;
   ExitSave    : Pointer;
   Redir       : boolean; { is the output being redirected (not a TTY) }
@@ -468,14 +474,15 @@ procedure ttyWrite(const s:string);
   Write a string to the output, memory copy and Current X&Y are also updated
 }
 var
-  i : longint;
+  idx,i : longint;
 begin
   ttySendStr(s);
 {Update MemCopy}
+  idx:=(CurrY-1)*ScreenWidth-1;
   for i:=1to length(s) do
    begin
-     Scrn[CurrY,CurrX]:=s[i];
-     ScrnCol[CurrY,CurrX]:=TextAttr;
+     ConsoleBuf^[idx+CurrX].ch:=s[i];
+     ConsoleBuf^[idx+CurrX].attr:=TextAttr;
      inc(CurrX);
      if CurrX>ScreenWidth then
       CurrX:=ScreenWidth;
@@ -484,7 +491,7 @@ end;
 
 
 
-Function WinMinX: Byte;
+Function WinMinX: Longint;
 {
   Current Minimum X coordinate
 }
@@ -494,7 +501,7 @@ End;
 
 
 
-Function WinMinY: Byte;
+Function WinMinY: Longint;
 {
   Current Minimum Y Coordinate
 }
@@ -504,7 +511,7 @@ End;
 
 
 
-Function WinMaxX: Byte;
+Function WinMaxX: Longint;
 {
   Current Maximum X coordinate
 }
@@ -514,7 +521,7 @@ End;
 
 
 
-Function WinMaxY: Byte;
+Function WinMaxY: Longint;
 {
   Current Maximum Y coordinate;
 }
@@ -529,7 +536,7 @@ Function FullWin:boolean;
   Full Screen 80x25? Window(1,1,80,25) is used, allows faster routines
 }
 begin
-  FullWin:=(WindMax-WindMin=$184f);
+  FullWin:=(WinMaxX=ScreenWidth) and (WinMaxY=ScreenHeight);
 end;
 
 
@@ -557,8 +564,7 @@ begin
   ttyGotoXY(xl,y);
   len:=xh-xl+1;
   LineWrite(Space(len));
-  FillChar(Scrn[y,xl],len,' ');
-  FillChar(ScrnCol[y,xl],len,TextAttr);
+  FillWord(ConsoleBuf^[(y-1)*ScreenWidth+xl-1],len,(TextAttr shl 8)+ord(' '));
 end;
 
 
@@ -569,22 +575,25 @@ procedure DoScrollLine(y1,y2,xl,xh:longint);
 }
 var
   Temp    : string;
-  len,
+  idx,
   OldAttr,
   x,attr  : longint;
 begin
   ttyGotoXY(xl,y2);
+{ precalc ConsoleBuf[] y-offset }
+  idx:=(y1-1)*ScreenWidth-1;
+{ update screen }
   OldAttr:=$ff;
   Temp:='';
   For x:=xl To xh Do
    Begin
-     attr:=ScrnCol[y1,x];
-     if attr<>OldAttr then
+     attr:=ConsoleBuf^[idx+x].attr;
+     if (attr<>OldAttr) and (not Redir) then
       begin
         temp:=temp+Attr2Ansi(Attr,OldAttr);
         OldAttr:=Attr;
       end;
-     Temp:=Temp+Scrn[y1,x];
+     Temp:=Temp+ConsoleBuf^[idx+x].ch;
      if (x=xh) or (length(Temp)>240) then
       begin
         LineWrite(Temp);
@@ -592,9 +601,7 @@ begin
       end;
    End;
 {Update memory copy}
-  len:=xh-xl+1;
-  Move(Scrn[y1,xl],Scrn[y2,xl],len);
-  Move(ScrnCol[y1,xl],ScrnCol[y2,xl],len);
+  Move(ConsoleBuf^[(y1-1)*ScreenWidth+xl-1],ConsoleBuf^[(y2-1)*ScreenWidth+xl-1],(xh-xl+1)*2);
 end;
 
 
@@ -686,10 +693,8 @@ Procedure ClrScr;
   Clear the current window, and set the cursor on x1,y1
 }
 Var
-  CY        : Integer;
+  CY,i      : Longint;
   oldflush  : boolean;
-  I : Integer;
-
 Begin
   { See if color has changed }
   if OldTextAttr<>TextAttr then
@@ -705,8 +710,7 @@ Begin
       ttySendStr(#27'[H'#27'[2J');
      CurrX:=1;
      CurrY:=1;
-     FillChar(Scrn,sizeof(Scrn),' ');
-     FillChar(ScrnCol,sizeof(ScrnCol),TextAttr);
+     FillWord(ConsoleBuf^,ScreenWidth*ScreenHeight,(TextAttr shl 8)+ord(' '));
    end
   else
    begin
@@ -847,7 +851,7 @@ var
 
 Procedure PushKey(Ch:char);
 Var
-  Tmp : Word;
+  Tmp : Longint;
 Begin
   Tmp:=KeyPut;
   Inc(KeyPut);
@@ -1407,6 +1411,26 @@ begin
 end;
 
 
+Procedure GetConsoleBuf;
+var
+  WinInfo : TWinSize;
+begin
+  if Assigned(ConsoleBuf) then
+   FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
+  if (not Redir) and IOCtl(TextRec(Output).Handle,TIOCGWINSZ,@Wininfo) then
+   begin
+     ScreenWidth:=Wininfo.ws_col;
+     ScreenHeight:=Wininfo.ws_row;
+   end
+  else
+   begin
+     ScreenWidth:=80;
+     ScreenHeight:=25;
+   end;
+  GetMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
+  FillChar(ConsoleBuf^,ScreenHeight*ScreenWidth*2,0);
+end;
+
 
 Procedure CrtExit;
 {
@@ -1415,6 +1439,9 @@ Procedure CrtExit;
 Begin
   ttyFlushOutput;
   SetRawMode(False);
+{ remove console buf }
+  if Assigned(ConsoleBuf) then
+   FreeMem(ConsoleBuf,ScreenHeight*ScreenWidth*2);
   ExitProc:=ExitSave;
 End;
 
@@ -1433,8 +1460,8 @@ Begin
   TextRec(Input).Handle:=StdInputHandle;
 { Are we redirected to a file ? }
   Redir:=not IsAtty(TextRec(Output).Handle);
-{Set default Terminal Settings}
-  SetRawMode(True);
+{ Get Size of terminal }
+  GetConsoleBuf;
 {Get Current X&Y or Reset to Home}
   if Redir then
    begin
@@ -1443,6 +1470,9 @@ Begin
    end
   else
    begin
+   { Set default Terminal Settings }
+     SetRawMode(True);
+   { Get current X,Y if not set already }
      GetXY(CurrX,CurrY);
      if (CurrX=0) then
       begin
@@ -1456,7 +1486,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.8  1998-08-28 11:00:20  peter
+  Revision 1.9  1998-10-15 08:31:53  peter
+    + get winsize at startup
+    + ConsoleBuf to interface
+
+  Revision 1.8  1998/08/28 11:00:20  peter
     * fixed #8 writing
 
   Revision 1.7  1998/07/04 11:17:18  peter
@@ -1477,7 +1511,4 @@ End.
   Revision 1.2  1998/04/05 13:56:54  peter
     - fixed mouse to compile with $i386_att
     + linux crt supports redirecting (not Esc-codes anymore)
-
-  Revision 1.1.1.1  1998/03/25 11:18:43  root
-  * Restored version
 }
