@@ -235,9 +235,7 @@ type
       conventions like that one of MorphOS }
     po_explicitparaloc,
     { no stackframe will be generated, used by lowlevel assembler like get_frame }
-    po_nostackframe,
-    { localst is valid }
-    po_haslocalst
+    po_nostackframe
   );
   tprocoptions=set of tprocoption;
 
@@ -411,7 +409,11 @@ initialization
 end.
 {
   $Log$
-  Revision 1.85  2004-07-06 19:52:04  peter
+  Revision 1.86  2004-07-09 22:17:32  peter
+    * revert has_localst patch
+    * replace aktstaticsymtable/aktglobalsymtable with current_module
+
+  Revision 1.85  2004/07/06 19:52:04  peter
     * fix storing of localst in ppu
 
   Revision 1.84  2004/06/20 08:55:30  florian

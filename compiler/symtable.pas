@@ -1414,8 +1414,6 @@ implementation
 
     procedure tstaticsymtable.ppuload(ppufile:tcompilerppufile);
       begin
-        aktstaticsymtable:=self;
-
         next:=symtablestack;
         symtablestack:=self;
 
@@ -1431,24 +1429,18 @@ implementation
 
     procedure tstaticsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
-        aktstaticsymtable:=self;
-
         inherited ppuwrite(ppufile);
       end;
 
 
     procedure tstaticsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
       begin
-        aktstaticsymtable:=self;
-
         inherited load_references(ppufile,locals);
       end;
 
 
     procedure tstaticsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
       begin
-        aktstaticsymtable:=self;
-
         inherited write_references(ppufile,locals);
       end;
 
@@ -1526,8 +1518,6 @@ implementation
            end;
 {$endif GDB}
 
-         aktglobalsymtable:=self;
-
          next:=symtablestack;
          symtablestack:=self;
 
@@ -1566,8 +1556,6 @@ implementation
 
     procedure tglobalsymtable.ppuwrite(ppufile:tcompilerppufile);
       begin
-        aktglobalsymtable:=self;
-
         { write the symtable entries }
         inherited ppuwrite(ppufile);
 
@@ -1589,16 +1577,12 @@ implementation
 
     procedure tglobalsymtable.load_references(ppufile:tcompilerppufile;locals:boolean);
       begin
-        aktglobalsymtable:=self;
-
         inherited load_references(ppufile,locals);
       end;
 
 
     procedure tglobalsymtable.write_references(ppufile:tcompilerppufile;locals:boolean);
       begin
-        aktglobalsymtable:=self;
-
         inherited write_references(ppufile,locals);
       end;
 
@@ -2332,7 +2316,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.151  2004-06-23 16:22:45  peter
+  Revision 1.152  2004-07-09 22:17:32  peter
+    * revert has_localst patch
+    * replace aktstaticsymtable/aktglobalsymtable with current_module
+
+  Revision 1.151  2004/06/23 16:22:45  peter
     * include unit name in error messages when types are the same
 
   Revision 1.150  2004/06/20 08:55:30  florian

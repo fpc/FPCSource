@@ -1851,6 +1851,26 @@ begin
         readsymbols('implementation');
       end;
    end;
+{read the definitions}
+  if (verbose and v_defs)<>0 then
+   begin
+     Writeln;
+     Writeln('Implementation definitions');
+     Writeln('----------------------');
+     readdefinitions('implementation',false);
+   end
+  else
+   ppufile.skipuntilentry(ibenddefs);
+{read the symbols}
+  if (verbose and v_syms)<>0 then
+   begin
+     Writeln;
+     Writeln('Implementation Symbols');
+     Writeln('------------------');
+     readsymbols('implementation');
+   end
+  else
+   ppufile.skipuntilentry(ibendsyms);
 {read the browser units stuff}
   if (ppufile.header.flags and uf_has_browser)<>0 then
    begin
@@ -1961,7 +1981,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.51  2004-07-06 19:52:04  peter
+  Revision 1.52  2004-07-09 22:17:32  peter
+    * revert has_localst patch
+    * replace aktstaticsymtable/aktglobalsymtable with current_module
+
+  Revision 1.51  2004/07/06 19:52:04  peter
     * fix storing of localst in ppu
 
   Revision 1.50  2003/12/16 21:29:25  florian

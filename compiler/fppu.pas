@@ -911,11 +911,11 @@ uses
          i : longint;
       begin
         { load local symtable first }
-        if ((flags and uf_local_browser)<>0) then
+        {if ((flags and uf_local_browser)<>0) then
           begin
              localsymtable:=tstaticsymtable.create(modulename^);
              tstaticsymtable(localsymtable).ppuload(ppufile);
-          end;
+          end;}
 
         { load browser }
         if (flags and uf_has_browser)<>0 then
@@ -988,15 +988,13 @@ uses
 
          { generate implementation deref data, the interface deref data is
            already generated when calculating the interface crc }
-         aktglobalsymtable:=tstoredsymtable(globalsymtable);
-         aktstaticsymtable:=tstoredsymtable(localsymtable);
          if (cs_compilesystem in aktmoduleswitches) then
            begin
              tstoredsymtable(globalsymtable).buildderef;
              derefdataintflen:=derefdata.size;
            end;
          tstoredsymtable(globalsymtable).buildderefimpl;
-         if ((flags and uf_local_browser)<>0) and
+         if {((flags and uf_local_browser)<>0) and}
             assigned(localsymtable) then
            begin
              tstoredsymtable(localsymtable).buildderef;
@@ -1023,7 +1021,7 @@ uses
 
          { write static symtable
            needed for local debugging of unit functions }
-         if ((flags and uf_local_browser)<>0) and
+         if {((flags and uf_local_browser)<>0) and}
             assigned(localsymtable) then
            tstoredsymtable(localsymtable).ppuwrite(ppufile);
 
@@ -1093,7 +1091,6 @@ uses
 
          { deref data of interface that affect the crc }
          derefdata.reset;
-         aktglobalsymtable:=tstoredsymtable(globalsymtable);
          tstoredsymtable(globalsymtable).buildderef;
          derefdataintflen:=derefdata.size;
          writederefdata;
@@ -1220,11 +1217,13 @@ uses
          end;
         numberunits;
 
+        { load implementation symtable }
+        localsymtable:=tstaticsymtable.create(modulename^);
+        tstaticsymtable(localsymtable).ppuload(ppufile);
+
         { we can now derefence all pointers to the implementation parts }
         oldobjectlibrary:=objectlibrary;
         objectlibrary:=librarydata;
-        aktglobalsymtable:=tstoredsymtable(globalsymtable);
-        aktstaticsymtable:=tstoredsymtable(localsymtable);
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then
           tstoredsymtable(localsymtable).derefimpl;
@@ -1309,12 +1308,10 @@ uses
                if interface_compiled then
                  begin
                    Message1(unit_u_reresolving_unit,modulename^);
-                   aktglobalsymtable:=tstoredsymtable(globalsymtable);
                    tstoredsymtable(globalsymtable).deref;
                    tstoredsymtable(globalsymtable).derefimpl;
                    if assigned(localsymtable) then
                     begin
-                      aktstaticsymtable:=tstoredsymtable(localsymtable);
                       tstoredsymtable(localsymtable).deref;
                       tstoredsymtable(localsymtable).derefimpl;
                     end;
@@ -1524,7 +1521,11 @@ uses
 end.
 {
   $Log$
-  Revision 1.58  2004-07-06 20:23:25  peter
+  Revision 1.59  2004-07-09 22:17:31  peter
+    * revert has_localst patch
+    * replace aktstaticsymtable/aktglobalsymtable with current_module
+
+  Revision 1.58  2004/07/06 20:23:25  peter
     * remove unused and not loaded units before linking
 
   Revision 1.57  2004/07/06 19:52:04  peter

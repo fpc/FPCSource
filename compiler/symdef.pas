@@ -3697,7 +3697,8 @@ implementation
          tparasymtable(parast).ppuload(ppufile);
          parast.defowner:=self;
          { load local symtable }
-         if (po_haslocalst in procoptions) then
+         if ((proccalloption=pocall_inline) or
+             ((current_module.flags and uf_local_browser)<>0)) then
           begin
             localst:=tlocalsymtable.create(level);
             tlocalsymtable(localst).ppuload(ppufile);
@@ -3829,7 +3830,9 @@ implementation
 
          { save localsymtable for inline procedures or when local
            browser info is requested, this has no influence on the crc }
-         if (po_haslocalst in procoptions) then
+         if assigned(localst) and
+            ((proccalloption=pocall_inline) or
+             ((current_module.flags and uf_local_browser)<>0)) then
           begin
             oldintfcrc:=ppufile.do_crc;
             ppufile.do_crc:=false;
@@ -3851,14 +3854,13 @@ implementation
 
 
     procedure tprocdef.insert_localst;
-     begin
+      begin
          localst:=tlocalsymtable.create(parast.symtablelevel);
          localst.defowner:=self;
          { this is used by insert
            to check same names in parast and localst }
          localst.next:=parast;
-         include(procoptions,po_haslocalst);
-     end;
+      end;
 
 
     function tprocdef.fullprocname(showhidden:boolean):string;
@@ -3987,7 +3989,7 @@ implementation
         if move_last then
           lastwritten:=lastref;
         if ((current_module.flags and uf_local_browser)<>0) and
-           (po_haslocalst in procoptions) and
+           assigned(localst) and
            locals then
           begin
              tparasymtable(parast).load_references(ppufile,locals);
@@ -4047,7 +4049,7 @@ implementation
         ppufile.writeentry(ibdefref);
         write_references:=true;
         if ((current_module.flags and uf_local_browser)<>0) and
-           (po_haslocalst in procoptions) and
+           assigned(localst) and
            locals then
           begin
              pdo:=_class;
@@ -4195,7 +4197,9 @@ implementation
          inherited buildderefimpl;
 
          { Locals }
-         if (po_haslocalst in procoptions) then
+         if assigned(localst) and
+            ((proccalloption=pocall_inline) or
+             ((current_module.flags and uf_local_browser)<>0)) then
            begin
              tlocalsymtable(localst).buildderef;
              tlocalsymtable(localst).buildderefimpl;
@@ -4253,7 +4257,7 @@ implementation
          aktlocalsymtable:=localst;
 
          { Locals }
-         if (po_haslocalst in procoptions) then
+         if assigned(localst) then
           begin
             tlocalsymtable(localst).deref;
             tlocalsymtable(localst).derefimpl;
@@ -6125,7 +6129,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.244  2004-07-06 19:52:04  peter
+  Revision 1.245  2004-07-09 22:17:32  peter
+    * revert has_localst patch
+    * replace aktstaticsymtable/aktglobalsymtable with current_module
+
+  Revision 1.244  2004/07/06 19:52:04  peter
     * fix storing of localst in ppu
 
   Revision 1.243  2004/06/20 08:55:30  florian

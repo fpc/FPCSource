@@ -138,8 +138,6 @@ interface
        symtablestack     : tsymtable;     { linked list of symtables }
 
        aktrecordsymtable : tsymtable;     { current record symtable }
-       aktstaticsymtable : tsymtable;     { current static symtable }
-       aktglobalsymtable : tsymtable;     { current global symtable }
        aktparasymtable   : tsymtable;     { current proc para symtable }
        aktlocalsymtable  : tsymtable;     { current proc local symtable }
 
@@ -333,7 +331,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2004-06-20 08:55:30  florian
+  Revision 1.22  2004-07-09 22:17:32  peter
+    * revert has_localst patch
+    * replace aktstaticsymtable/aktglobalsymtable with current_module
+
+  Revision 1.21  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.20  2004/03/02 17:32:12  florian

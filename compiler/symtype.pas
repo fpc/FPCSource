@@ -867,7 +867,7 @@ implementation
             staticsymtable :
               begin
                 { only references to the current static symtable are allowed }
-                if s.owner<>aktstaticsymtable then
+                if s.owner<>current_module.localsymtable then
                   internalerror(200306233);
                 data[len]:=ord(deref_aktstatic);
                 inc(len);
@@ -1094,9 +1094,9 @@ implementation
               deref_aktrecord :
                 st:=aktrecordsymtable;
               deref_aktstatic :
-                st:=aktstaticsymtable;
+                st:=current_module.localsymtable;
               deref_aktglobal :
-                st:=aktglobalsymtable;
+                st:=current_module.globalsymtable;
               deref_aktlocal :
                 st:=aktlocalsymtable;
               deref_aktpara :
@@ -1487,7 +1487,11 @@ finalization
 end.
 {
   $Log$
-  Revision 1.43  2004-06-20 08:55:30  florian
+  Revision 1.44  2004-07-09 22:17:32  peter
+    * revert has_localst patch
+    * replace aktstaticsymtable/aktglobalsymtable with current_module
+
+  Revision 1.43  2004/06/20 08:55:30  florian
     * logs truncated
 
   Revision 1.42  2004/06/16 20:07:10  florian
