@@ -30,8 +30,10 @@ begin
 end;
 
 procedure P3(var t);export;
+var
+  p : pointer;
 begin
-  Addr(T);
+  p:=Addr(T);
 end;
 
 procedure P4(x1:pointer);export;
@@ -59,7 +61,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  1999-06-30 22:04:56  michael
+  Revision 1.3  1999-10-26 12:33:53  peter
+    * fixed illegal expr
+
+  Revision 1.2  1999/06/30 22:04:56  michael
   * Added code to remove warnings
 
   Revision 1.1  1999/01/12 14:20:36  peter
