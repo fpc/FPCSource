@@ -1603,14 +1603,26 @@ implementation
 
               in_assigned_x:
                 begin
-                   result := caddnode.create(unequaln,tcallparanode(left).left,cnilnode.create);
-                   tcallparanode(left).left := nil;
-                   { free left, because otherwise some code at 'myexit' tries  }
-                   { to run get_paratype for it, which crashes since left.left }
-                   { is now nil                                                }
-                   left.free;
-                   left := nil;
-                   goto myexit;
+                  { the parser has already made sure the expression is valid }
+
+                  { handle constant expressions }
+                  if is_constnode(tcallparanode(left).left) or
+                     (tcallparanode(left).left.nodetype = pointerconstn) then
+                    begin
+                      { let an add node figure it out }
+                      result := caddnode.create(unequaln,tcallparanode(left).left,cnilnode.create);
+                      tcallparanode(left).left := nil;
+                      { free left, because otherwise some code at 'myexit' tries  }
+                      { to run get_paratype for it, which crashes since left.left }
+                      { is now nil                                                }
+                      left.free;
+                      left := nil;
+                      goto myexit;
+                    end;
+                  { otherwise handle separately, because there could be a procvar, which }
+                  { is 2*sizeof(pointer), while we must only check the first pointer     }
+                  set_varstate(tcallparanode(left).left,vs_used,true);
+                  resulttype:=booltype;
                 end;
 
               in_ofs_x :
@@ -2076,8 +2088,8 @@ implementation
 
           in_assigned_x:
             begin
-               { should be removed in resulttype pass }
-               internalerror(2002080201);
+              expectloc := LOC_JUMP;
+              registers32:=1;
             end;
 
           in_pred_x,
@@ -2354,7 +2366,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.125  2003-12-27 22:27:55  peter
+  Revision 1.126  2003-12-31 20:47:02  jonas
+    * properly fixed assigned() mess (by handling it separately in ncginl)
+      -> all assigned()-related tests in the test suite work again
+
+  Revision 1.125  2003/12/27 22:27:55  peter
     * support type convs for write typed
 
   Revision 1.124  2003/12/08 21:17:12  jonas

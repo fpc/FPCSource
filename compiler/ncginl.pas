@@ -47,6 +47,7 @@ interface
           procedure second_ln_real; virtual;
           procedure second_cos_real; virtual;
           procedure second_sin_real; virtual;
+          procedure second_assigned; virtual;
        end;
 
 implementation
@@ -139,6 +140,10 @@ implementation
             in_cos_extended:
               begin
                  second_cos_real;
+              end;
+            in_assigned_x:
+              begin
+                second_assigned;
               end;
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
@@ -650,13 +655,32 @@ implementation
         internalerror(20020718);
       end;
 
+{*****************************************************************************
+                         ASSIGNED GENERIC HANDLING
+*****************************************************************************}
+
+    procedure tcginlinenode.second_assigned;
+      begin
+        secondpass(tcallparanode(left).left);
+        { force left to be an OS_ADDR, since in case of method procvars }
+        { the size is 2*OS_ADDR (JM)                                    }
+        cg.a_cmp_const_loc_label(exprasmlist,OS_ADDR,OC_NE,0,tcallparanode(left).left.location,truelabel);
+        cg.a_jmp_always(exprasmlist,falselabel);
+        location_reset(location,LOC_JUMP,OS_NO);
+      end;
+
+
 begin
    cinlinenode:=tcginlinenode;
 end.
 
 {
   $Log$
-  Revision 1.49  2003-12-06 01:15:22  florian
+  Revision 1.50  2003-12-31 20:47:02  jonas
+    * properly fixed assigned() mess (by handling it separately in ncginl)
+      -> all assigned()-related tests in the test suite work again
+
+  Revision 1.49  2003/12/06 01:15:22  florian
     * reverted Peter's alloctemp patch; hopefully properly
 
   Revision 1.48  2003/12/03 23:13:20  peter

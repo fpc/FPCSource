@@ -1055,23 +1055,6 @@ implementation
           begin
             if not(nodetype in [equaln,unequaln]) then
              CGMessage(type_e_mismatch);
-            { convert both to voidpointer, because methodpointers are 8 bytes }
-            { even though only the first 4 bytes must be compared (JM)        }
-            if ([m_delphi,m_tp7] * aktmodeswitches <> []) then
-              begin
-                if (lt = loadn) then
-                  begin
-                    left := caddrnode.create(left);
-                    resulttypepass(left);
-                  end;
-                if (rt = loadn) then
-                  begin
-                    right := caddrnode.create(right);
-                    resulttypepass(right);
-                  end;
-              end;
-            inserttypeconv_explicit(left,voidpointertype);
-            inserttypeconv_explicit(right,voidpointertype);
           end
 
        { support dynamicarray=nil,dynamicarray<>nil }
@@ -1903,7 +1886,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.103  2003-12-30 16:30:50  jonas
+  Revision 1.104  2003-12-31 20:47:02  jonas
+    * properly fixed assigned() mess (by handling it separately in ncginl)
+      -> all assigned()-related tests in the test suite work again
+
+  Revision 1.103  2003/12/30 16:30:50  jonas
     * fixed previous commit for tp and delphi modes
 
   Revision 1.102  2003/12/29 22:33:08  jonas
