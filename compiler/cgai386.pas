@@ -3650,6 +3650,13 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
                    '"$t:r*'+procinfo^._class^.numberstring+'",'+
                    tostr(N_RSYM)+',0,0,'+tostr(GDB_i386index[R_ESI])))));
 
+              { define calling EBP as pseudo local var PM }
+              { this enables test if the function is a local one !! }
+              if  assigned(procinfo^.parent) then
+                exprasmlist^.concat(new(pai_stabs,init(strpnew(
+                 '"parent_ebp:'+voidpointerdef^.numberstring+'",'+
+                 tostr(N_LSYM)+',0,0,'+tostr(procinfo^.framepointer_offset)))));
+
               if (pdef(aktprocsym^.definition^.rettype.def) <> pdef(voiddef)) then
                 begin
                   if ret_in_param(aktprocsym^.definition^.rettype.def) then
@@ -3717,7 +3724,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.75  2000-01-25 08:46:03  pierre
+  Revision 1.76  2000-02-04 14:29:57  pierre
+   + add pseudo local var parent_ebp for local procs
+
+  Revision 1.75  2000/01/25 08:46:03  pierre
    * Range check for int64 produces a warning only
 
   Revision 1.74  2000/01/24 12:17:22  florian
