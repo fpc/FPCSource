@@ -32,7 +32,12 @@
 { DEBUG: Dump info when the heap needs to grow }
 { define DUMPGROW}
 
-{ Default heap settings }
+{$ifdef SYSTEMDEBUG}
+{$define TestFreeLists}
+{ define withbug this leads to crashes below }
+{$endif SYSTEMDEBUG}
+
+
 const
   blocksize    = 16;  { at least size of freerecord }
   blockshr     = 4;   { shr value for blocksize=2^blockshr}
@@ -80,12 +85,23 @@ type
   end; { 4 bytes }
 
   tfreelists   = array[0..maxblock] of pfreerecord;
+{$ifdef SYSTEMDEBUG}
+  tfreecount   = array[0..maxblock] of dword;
+{$endif SYSTEMDEBUG}
   pfreelists   = ^tfreelists;
 
 var
   internal_memavail  : longint;
   internal_heapsize  : longint;
   freelists          : tfreelists;
+{$ifdef SYSTEMDEBUG}
+  freecount : tfreecount;
+{$endif SYSTEMDEBUG}
+{$ifdef TestFreeLists}
+{ this can be turned on by debugger }
+const
+  test_each : boolean = false;
+{$endif TestFreeLists}
 
 {*****************************************************************************
                              Memory Manager
@@ -253,6 +269,28 @@ begin
 end;
 {$endif}
 
+{$ifdef TestFreeLists}
+  procedure TestFreeLists;
+var
+  i,j : longint;
+  hp  : pfreerecord;
+begin
+  for i:=0 to maxblock do
+   begin
+     j:=0;
+     hp:=freelists[i];
+     while assigned(hp) do
+      begin
+        inc(j);
+        if (i>0) and ((hp^.size and sizemask) <> i * blocksize) then
+          RunError(204);
+        hp:=hp^.next;
+      end;
+      if j<>freecount[i] then
+        RunError(204);
+    end;
+end;
+{$endif TestFreeLists}
 
 {*****************************************************************************
                                  SysGetMem
@@ -298,20 +336,33 @@ begin
         pcurr^.size:=pcurr^.size or usedmask;
         { update freelist }
         freelists[s]:=pcurr^.next;
+{$ifdef SYSTEMDEBUG}
+        dec(freecount[s]);
+{$endif SYSTEMDEBUG}
         if assigned(freelists[s]) then
          freelists[s]^.prev:=nil;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
         exit;
       end;
 {$ifdef SMALLATHEAPPTR}
-     if heapend-heapptr>size then
+     if heapend-heapptr>=size then
       begin
         sysgetmem:=heapptr;
-        if (heapptr+size=heapend) then
+        { set end flag if we do not have enough room to add
+          another tfreerecord behind }
+        if (heapptr+size+sizeof(tfreerecord)>=heapend) then
          pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
         else
          pheaprecord(sysgetmem)^.size:=size or usedmask;
         inc(sysgetmem,sizeof(theaprecord));
         inc(heapptr,size);
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
         exit;
       end;
 {$endif}
@@ -380,9 +431,12 @@ begin
       pcurr^.prev^.next:=pcurr^.next
      else
       freelists[s]:=pcurr^.next;
+{$ifdef SYSTEMDEBUG}
+     dec(freecount[s]);
+{$endif SYSTEMDEBUG}
      { create the left over freelist block, if at least 16 bytes are free }
      sizeleft:=pcurr^.size-size;
-     if sizeleft>sizeof(tfreerecord) then
+     if sizeleft>=sizeof(tfreerecord) then
       begin
         pcurr:=pfreerecord(pointer(pcurr)+size);
         { inherit the beforeheapendmask }
@@ -396,6 +450,9 @@ begin
         if assigned(freelists[s1]) then
          freelists[s1]^.prev:=pcurr;
         freelists[s1]:=pcurr;
+{$ifdef SYSTEMDEBUG}
+        inc(freecount[s1]);
+{$endif SYSTEMDEBUG}
         { create the block we need to return }
         pheaprecord(sysgetmem)^.size:=size or usedmask;
       end
@@ -406,21 +463,29 @@ begin
       end;
 
      inc(sysgetmem,sizeof(theaprecord));
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
      exit;
    end;
   { Lastly, the top of the heap is checked, to see if there is }
   { still memory available.                                   }
   repeat
     again:=false;
-    if heapend-heapptr>size then
+    if heapend-heapptr>=size then
      begin
        sysgetmem:=heapptr;
-       if (heapptr+size=heapend) then
+       if (heapptr+size+sizeof(tfreerecord)>=heapend) then
         pheaprecord(sysgetmem)^.size:=size or (usedmask or beforeheapendmask)
        else
         pheaprecord(sysgetmem)^.size:=size or usedmask;
        inc(sysgetmem,sizeof(theaprecord));
        inc(heapptr,size);
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
        exit;
      end;
     { Call the heaperror proc }
@@ -436,9 +501,14 @@ begin
     else
      HandleError(203);
   until not again;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
 end;
 
 
+{$ifdef CONCATFREE}
 {*****************************************************************************
                          Try concat freerecords
 *****************************************************************************}
@@ -451,14 +521,18 @@ begin
   pcurrsize:=pcurr^.size and sizemask;
   hp:=pcurr;
   repeat
-    { block used or before a heapptr ? }
+    { block used or before a heapend ? }
     if (hp^.size and beforeheapendmask)<>0 then
      begin
+       { Peter, why can't we add this one if free ?? }
        pcurr^.size:=pcurrsize or beforeheapendmask;
        pcurr^.next:=freelists[0];
        if assigned(pcurr^.next) then
         pcurr^.next^.prev:=pcurr;
        freelists[0]:=pcurr;
+{$ifdef SYSTEMDEBUG}
+       inc(freecount[0]);
+{$endif SYSTEMDEBUG}
        break;
      end;
     { get next block }
@@ -477,6 +551,9 @@ begin
        if assigned(pcurr^.next) then
         pcurr^.next^.prev:=pcurr;
        freelists[0]:=pcurr;
+{$ifdef SYSTEMDEBUG}
+       inc(freecount[0]);
+{$endif SYSTEMDEBUG}
        break;
      end;
     { remove block from freelist and increase the size }
@@ -491,9 +568,12 @@ begin
      hp^.prev^.next:=hp^.next
     else
      freelists[s1]:=hp^.next;
+{$ifdef SYSTEMDEBUG}
+    dec(freecount[s1]);
+{$endif SYSTEMDEBUG}
   until false;
 end;
-
+{$endif CONCATFREE}
 
 {*****************************************************************************
                                SysFreeMem
@@ -526,9 +606,16 @@ begin
      if assigned(pcurr^.next) then
      pcurr^.next^.prev:=pcurr;
      freelists[s]:=pcurr;
+{$ifdef SYSTEMDEBUG}
+     inc(freecount[s]);
+{$endif SYSTEMDEBUG}
    end;
   p:=nil;
   SysFreeMem:=pcurrsize;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
 end;
 
 
@@ -576,9 +663,16 @@ begin
      if assigned(pcurr^.next) then
      pcurr^.next^.prev:=pcurr;
      freelists[s]:=pcurr;
+{$ifdef SYSTEMDEBUG}
+     inc(freecount[s]);
+{$endif SYSTEMDEBUG}
    end;
   p:=nil;
   SysFreeMemSize:=pcurrsize;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
 end;
 
 
@@ -631,6 +725,10 @@ begin
   if currsize=size then
    begin
      SysTryResizeMem:=true;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
      exit;
    end;
 { do we need to allocate more memory ? }
@@ -689,6 +787,9 @@ begin
            hp^.prev^.next:=hp^.next
           else
            freelists[s]:=hp^.next;
+{$ifdef SYSTEMDEBUG}
+          dec(freecount[s]);
+{$endif SYSTEMDEBUG}
         until (foundsize>=size);
         if wasbeforeheapend then
          pcurr^.size:=foundsize or usedmask or beforeheapendmask
@@ -699,6 +800,10 @@ begin
       begin
         { we need to call getmem/move/freemem }
         SysTryResizeMem:=false;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
         exit;
       end;
      currsize:=pcurr^.size and sizemask;
@@ -722,6 +827,9 @@ begin
         if assigned(freelists[s]) then
          freelists[s]^.prev:=pnew;
         freelists[s]:=pnew;
+{$ifdef SYSTEMDEBUG}
+        inc(freecount[s]);
+{$endif SYSTEMDEBUG}
         { fix the size of the current block and leave }
         pcurr^.size:=size or usedmask;
       end
@@ -733,6 +841,10 @@ begin
    end;
   dec(internal_memavail,size-oldsize);
   SysTryResizeMem:=true;
+{$ifdef TestFreeLists}
+  if test_each then
+    TestFreeLists;
+{$endif TestFreeLists}
 end;
 
 
@@ -792,7 +904,7 @@ end;
 
 function growheap(size :longint) : integer;
 var
-  sizeleft,
+  sizeleft,s1,
   NewPos    : longint;
   pcurr     : pfreerecord;
 begin
@@ -842,16 +954,35 @@ begin
    begin
      { create freelist entry for old heapptr-heapend }
      sizeleft:=heapend-heapptr;
-     if sizeleft>sizeof(tfreerecord) then
+     if sizeleft>=sizeof(tfreerecord) then
       begin
         pcurr:=pfreerecord(heapptr);
         pcurr^.size:=sizeleft or beforeheapendmask;
-        { insert the block in the freelist }
+{$ifdef Withbug}
+      { this code was wrong because
+        in TryConcat an freerecord sets freelists[s] where s is size shr blockshr PM }
         pcurr^.next:=freelists[0];
         pcurr^.prev:=nil;
         if assigned(freelists[0]) then
          freelists[0]^.prev:=pcurr;
         freelists[0]:=pcurr;
+{$ifdef SYSTEMDEBUG}
+        inc(freecount[0]);
+{$endif SYSTEMDEBUG}
+{$else not Withbug}
+        { insert the block in the freelist }
+        s1:=sizeleft shr blockshr;
+        if s1>maxblock then
+         s1:=0;
+        pcurr^.next:=freelists[s1];
+        pcurr^.prev:=nil;
+        if assigned(freelists[s1]) then
+         freelists[s1]^.prev:=pcurr;
+        freelists[s1]:=pcurr;
+{$ifdef SYSTEMDEBUG}
+        inc(freecount[s1]);
+{$endif SYSTEMDEBUG}
+{$endif Withbug}
       end;
      { now set the new heapptr,heapend to the new block }
      heapptr:=pointer(newpos);
@@ -862,6 +993,9 @@ begin
   inc(internal_heapsize,size);
 { try again }
   GrowHeap:=2;
+{$ifdef TestFreeLists}
+  TestFreeLists;
+{$endif TestFreeLists}
 end;
 
 
@@ -874,6 +1008,9 @@ end;
 procedure InitHeap;
 begin
   FillChar(FreeLists,sizeof(TFreeLists),0);
+{$ifdef SYSTEMDEBUG}
+  FillChar(FreeCount,sizeof(TFreeCount),0);
+{$endif SYSTEMDEBUG}
   internal_heapsize:=GetHeapSize;
   internal_memavail:=internal_heapsize;
   HeapOrg:=GetHeapStart;
@@ -884,7 +1021,10 @@ end;
 
 {
   $Log$
-  Revision 1.37  2000-04-07 21:10:35  pierre
+  Revision 1.38  2000-04-20 15:29:15  pierre
+  fix for heap problem
+
+  Revision 1.37  2000/04/07 21:10:35  pierre
     + ReturnNilIfGrowHeapFails used in objects unit
       to handle TMemoryStream out of memory properly
       as MaxAvail is not a good test anymore.
