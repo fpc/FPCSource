@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for InterBase bindings
+#
+
+[targets]
+units=gdbm
+examples=testgdbm testgdbm2
+
+[install]
+examplesubdir=gdbm
+
+[dirs]
+fpcdir=../..
+
+[rules]
+testgdbm$(EXEEXT): testgdbm.pp gdbm$(PPUEXT)
+
+testgdbm2$(EXEEXT): testgdbm2.pp gdbm$(PPUEXT)
