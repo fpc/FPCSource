@@ -377,17 +377,30 @@ implementation
 
     procedure tparamanager.alloctempregs(list: taasmoutput;var locpara:tparalocation);
       begin
-        if locpara.loc<>LOC_REGISTER then
-          internalerror(200308123);
+        case locpara.loc of
+          LOC_REGISTER:
+            begin
 {$ifndef cpu64bit}
-        if locpara.size in [OS_64,OS_S64] then
-          begin
-            locpara.registerlow:=cg.getintregister(list,OS_32);
-            locpara.registerhigh:=cg.getintregister(list,OS_32);
-          end
-        else
+              if locpara.size in [OS_64,OS_S64] then
+                begin
+                  locpara.registerlow:=cg.getintregister(list,OS_32);
+                  locpara.registerhigh:=cg.getintregister(list,OS_32);
+                end
+              else
 {$endif cpu64bit}
-          locpara.register:=cg.getintregister(list,locpara.size);
+                locpara.register:=cg.getintregister(list,locpara.size);
+            end;
+          LOC_FPUREGISTER:
+            begin
+              locpara.register:=cg.getfpuregister(list,locpara.size);
+            end;
+          LOC_MMREGISTER:
+            begin
+              locpara.register:=cg.getfpuregister(list,locpara.size);
+            end;
+          else
+            internalerror(200308123);
+        end;
       end;
 
 
@@ -437,7 +450,11 @@ end.
 
 {
    $Log$
-   Revision 1.64  2003-10-17 14:38:32  peter
+   Revision 1.65  2003-10-29 21:24:14  jonas
+     + support for fpu temp parameters
+     + saving/restoring of fpu register before/after a procedure call
+
+   Revision 1.64  2003/10/17 14:38:32  peter
      * 64k registers supported
      * fixed some memory leaks
 

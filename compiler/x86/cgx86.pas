@@ -254,6 +254,7 @@ unit cgx86;
             rgint.allocexplicitregisters(list,r);
           R_SSEREGISTER :
             rgmm.allocexplicitregisters(list,r);
+          R_FPUREGISTER :
           else
             internalerror(200310092);
         end;
@@ -267,6 +268,7 @@ unit cgx86;
             rgint.deallocexplicitregisters(list,r);
           R_SSEREGISTER :
             rgmm.deallocexplicitregisters(list,r);
+          R_FPUREGISTER :
           else
             internalerror(200310093);
         end;
@@ -1733,7 +1735,11 @@ unit cgx86;
 end.
 {
   $Log$
-  Revision 1.83  2003-10-20 19:30:08  peter
+  Revision 1.84  2003-10-29 21:24:14  jonas
+    + support for fpu temp parameters
+    + saving/restoring of fpu register before/after a procedure call
+
+  Revision 1.83  2003/10/20 19:30:08  peter
     * remove memdebug code for rg
 
   Revision 1.82  2003/10/18 15:41:26  peter

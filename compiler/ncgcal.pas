@@ -103,10 +103,8 @@ implementation
       begin
          { Allocate (temporary) paralocation }
          tempparaloc:=paraitem.paraloc[callerside];
-         if tempparaloc.loc=LOC_REGISTER then
+         if (tempparaloc.loc in [LOC_REGISTER,LOC_FPUREGISTER,LOC_MMREGISTER]) then
            paramanager.alloctempregs(exprasmlist,tempparaloc)
-         else
-           paramanager.allocparaloc(exprasmlist,tempparaloc);
       end;
 
 
@@ -480,7 +478,8 @@ implementation
                   location.register:=NR_FPU_RESULT_REG;
 {$ifdef x86}
                 tcgx86(cg).inc_fpu_stack;
-{$else x86}
+{$else x86} 
+                cg.ungetregister(exprasmlist,location.register);
                 hregister := cg.getfpuregister(exprasmlist,location.size);
                 cg.a_loadfpu_reg_reg(exprasmlist,location.size,location.register,hregister);
                 location.register := hregister;
@@ -605,31 +604,52 @@ implementation
            ppn:=tcgcallparanode(left);
            while assigned(ppn) do
              begin
-               if ppn.tempparaloc.loc=LOC_REGISTER then
-                 begin
-                   paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
-                   paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+               case ppn.tempparaloc.loc of
+                 LOC_REGISTER:
+                   begin
+                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
 {$ifdef sparc}
-                   case ppn.tempparaloc.size of
-                     OS_F32 :
-                       ppn.tempparaloc.size:=OS_32;
-                     OS_F64 :
-                       ppn.tempparaloc.size:=OS_64;
-                   end;
+                     case ppn.tempparaloc.size of
+                       OS_F32 :
+                         ppn.tempparaloc.size:=OS_32;
+                       OS_F64 :
+                         ppn.tempparaloc.size:=OS_64;
+                     end;
 {$endif sparc}
 {$ifndef cpu64bit}
-                   if ppn.tempparaloc.size in [OS_64,OS_S64] then
-                     begin
-                       cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
-                          ppn.paraitem.paraloc[callerside].registerlow);
-                       cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
-                          ppn.paraitem.paraloc[callerside].registerhigh);
-                     end
-                   else
+                     if ppn.tempparaloc.size in [OS_64,OS_S64] then
+                       begin
+                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerlow,
+                            ppn.paraitem.paraloc[callerside].registerlow);
+                         cg.a_load_reg_reg(exprasmlist,OS_32,OS_32,ppn.tempparaloc.registerhigh,
+                            ppn.paraitem.paraloc[callerside].registerhigh);
+                       end
+                     else
 {$endif cpu64bit}
-                     cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.tempparaloc.size,
-                         ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
-                 end;
+                       cg.a_load_reg_reg(exprasmlist,ppn.tempparaloc.size,ppn.tempparaloc.size,
+                           ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
+                   end;
+                 LOC_FPUREGISTER:
+                   begin
+                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                     cg.a_loadfpu_reg_reg(exprasmlist,ppn.tempparaloc.size,
+                       ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register);
+                   end;
+                 LOC_MMREGISTER:
+                   begin
+{
+                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                     paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
+                     paramanager.allocparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
+                     cg.a_loadmm_reg_reg(exprasmlist,ppn.tempparaloc.size,
+                       ppn.tempparaloc.size,ppn.tempparaloc.register,ppn.paraitem.paraloc[callerside].register, shuffle???);
+}
+                     internalerror(2003102910);
+                   end;
+               end;
                ppn:=tcgcallparanode(ppn.right);
              end;
          end;
@@ -642,8 +662,6 @@ implementation
            ppn:=tcgcallparanode(left);
            while assigned(ppn) do
              begin
-               if ppn.tempparaloc.loc=LOC_REGISTER then
-                 paramanager.freeparaloc(exprasmlist,ppn.tempparaloc);
                paramanager.freeparaloc(exprasmlist,ppn.paraitem.paraloc[callerside]);
                ppn:=tcgcallparanode(ppn.right);
              end;
@@ -698,6 +716,14 @@ implementation
                  else
 {$endif cpu64bit}
                    include(regs_to_alloc,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+                end;
+              LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                begin
+                  include(regs_to_push_fpu,procdefinition.funcret_paraloc[callerside].register);
+                end;
+              LOC_MMREGISTER,LOC_CMMREGISTER:
+                begin
+                  internalerror(2003102911);
                 end;
             end;
           end;
@@ -770,6 +796,7 @@ implementation
                    cg.ungetregister(exprasmlist,pvreg);
 
                    cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+                   cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
                    cg.allocexplicitregisters(exprasmlist,R_SSEREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
                    { call method }
@@ -786,6 +813,7 @@ implementation
                   freeparas;
 
                   cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+                  cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
                   cg.allocexplicitregisters(exprasmlist,R_SSEREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
                   { Calling interrupt from the same code requires some
@@ -821,6 +849,7 @@ implementation
               cg.ungetregister(exprasmlist,pvreg);
 
               cg.allocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_alloc);
+              cg.allocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
               cg.allocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
 
               { Calling interrupt from the same code requires some
@@ -871,9 +900,14 @@ implementation
 {$endif cpu64bit}
                      exclude(regs_to_free,getsupreg(procdefinition.funcret_paraloc[callerside].register));
                  end;
+               LOC_FPUREGISTER,LOC_CFPUREGISTER:
+                 begin
+                   exclude(regs_to_push_fpu,getsupreg(procdefinition.funcret_paraloc[callerside].register));
+                 end;
              end;
            end;
          cg.deallocexplicitregisters(exprasmlist,R_MMREGISTER,paramanager.get_volatile_registers_mm(procdefinition.proccalloption));
+         cg.deallocexplicitregisters(exprasmlist,R_FPUREGISTER,regs_to_push_fpu);
          cg.deallocexplicitregisters(exprasmlist,R_INTREGISTER,regs_to_free);
 
          { handle function results }
@@ -1120,7 +1154,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.133  2003-10-20 19:28:17  peter
+  Revision 1.134  2003-10-29 21:24:14  jonas
+    + support for fpu temp parameters
+    + saving/restoring of fpu register before/after a procedure call
+
+  Revision 1.133  2003/10/20 19:28:17  peter
     * fixed inlining float parameters for i386
 
   Revision 1.132  2003/10/17 14:38:32  peter
