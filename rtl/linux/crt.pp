@@ -1347,6 +1347,7 @@ var
 Begin
   if isATTY(F.Handle) then
     begin
+      F.BufPos := 0;
       i := 0;
       repeat
         c := readkey;
@@ -1380,7 +1381,7 @@ Begin
               inc(i);
             end;
         end;
-      until c in [#10,#13];
+      until (c in [#10,#13]) or (i >= F.BufSize);
       F.BufEnd := i;
       CrtRead := 0;
       exit;
@@ -1662,7 +1663,13 @@ Begin
 End.
 {
   $Log$
-  Revision 1.29  2000-06-06 13:51:18  jonas
+  Revision 1.30  2000-06-20 08:52:16  jonas
+    * crtread didn't set f.bufpos back to 0, so it failed if that wasn't
+      already the case on entry
+    * crtread now makes sure it doesn't try to read mode characters than
+      what fits in the read buffer
+
+  Revision 1.29  2000/06/06 13:51:18  jonas
     * fixed linefeed problem with new crtread (I wrote #13 instead of #10 to
       the screen, causing the cursor to jump to the start of the current
       line instead of to the next line)
