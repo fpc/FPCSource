@@ -153,7 +153,7 @@ CONST
 
 {The initial names. If people feel they are missing, I first checked the Alias,
   and then filled with names of the FPC-Devel list, and arranged them alfabetically}
-  InitNames : ARRAY[0..9] OF String[12] = ('Carl','Daniel','Florian','Jonas','Lee','Marco','Michael (3x)',
+  InitNames : ARRAY[0..9] OF String[12] = ('Carl','Daniel','Florian','Jonas','John','Marco','Michael (3x)',
                                            'Peter','Pierre','Thomas' );
 
 {$IFDEF MouseAPI}
@@ -598,7 +598,8 @@ BEGIN
   Ins   :=TRUE;            { Insert according to parameters }
   DoCursor;        { Set cursor accordingly }
   Key   :=0;
-
+//  SetFillStyle(SolidFill,0);
+//  Bar(X,Y,X+Len*Dx+5,Y+Dy+1);
        { put ±±± padded field on screen }
 
   FillChar(Uitg,Len+1,FieldSpace);
@@ -862,7 +863,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.4  2000-01-01 14:54:16  marco
+  Revision 1.5  2000-01-14 22:03:43  marco
+   * Change Lee's first name to John :-)
+
+  Revision 1.4  2000/01/01 14:54:16  marco
    * Added bp comtibility
   :wq
    * bp compat routines
