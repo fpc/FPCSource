@@ -1,4 +1,3 @@
-{ %OPT=-Fl. }
 { %NEEDLIBRARY }
 
 { Test program to test linking to fpc library }
