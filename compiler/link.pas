@@ -29,7 +29,8 @@ interface
 uses
   cclasses,
   systems,
-  fmodule;
+  fmodule,
+  globtype;
 
 Type
     TLinkerInfo=record
@@ -65,7 +66,7 @@ Type
        Constructor Create;override;
        Destructor Destroy;override;
        Function  FindUtil(const s:string):String;
-       Function  DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
+       Function  DoExec(const command:string; para:TCmdStr;showinfo,useshell:boolean):boolean;
        procedure SetDefaultInfo;virtual;
        Function  MakeStaticLibrary:boolean;override;
      end;
@@ -93,12 +94,12 @@ procedure DoneLinker;
 Implementation
 
 uses
-{$ifdef Delphi}
-  dmisc,
-{$else Delphi}
+{$IFDEF USE_SYSUTILS}
+  SysUtils,
+{$ELSE USE_SYSUTILS}
   dos,
-{$endif Delphi}
-  cutils,globtype,
+{$ENDIF USE_SYSUTILS}
+  cutils,
   script,globals,verbose,ppu,
   aasmbase,aasmtai,aasmcpu,
   ogbase,ogmap;
@@ -479,7 +480,7 @@ begin
 end;
 
 
-Function TExternalLinker.DoExec(const command,para:string;showinfo,useshell:boolean):boolean;
+Function TExternalLinker.DoExec(const command:string; para:TCmdStr;showinfo,useshell:boolean):boolean;
 var
   exitcode: longint;
 begin
@@ -489,6 +490,23 @@ begin
      if useshell then
        exitcode := shell(maybequoted(command)+' '+para)
      else
+{$IFDEF USE_SYSUTILS}
+     try
+       if ExecuteProcess(command,para) <> 0
+       then begin
+         Message(exec_e_error_while_linking);
+         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         DoExec:=false;
+       end;
+     except on E:EOSError do
+       begin
+         Message(exec_e_cant_call_linker);
+         aktglobalswitches:=aktglobalswitches+[cs_link_extern];
+         DoExec:=false;
+       end;
+     end
+   end;
+{$ELSE USE_SYSUTILS}
        begin
          swapvectors;
          exec(command,para);
@@ -509,6 +527,7 @@ begin
         DoExec:=false;
        end;
    end;
+{$ENDIF USE_SYSUTILS}
 { Update asmres when externmode is set }
   if cs_link_extern in aktglobalswitches then
    begin
@@ -528,7 +547,7 @@ end;
 Function TExternalLinker.MakeStaticLibrary:boolean;
 var
   smartpath,
-  cmdstr,
+  cmdstr : TCmdStr;
   binstr  : string;
   success : boolean;
 begin
@@ -680,7 +699,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.44  2004-10-09 11:37:09  olle
+  Revision 1.45  2004-10-14 16:25:39  mazen
+  * Merge is complete for this file, cycles !
+
+  Revision 1.44  2004/10/09 11:37:09  olle
     * Exchanged hardcoded "./" to CurDirRelPath
     * In FindObjectFile, when link on target, special handling is now
       only done for units.
