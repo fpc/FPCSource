@@ -153,7 +153,10 @@ implementation
              repeat
                vs:=tvarsym.create(orgpattern,generrortype);
                symtablestack.insert(vs);
-               sc.insert(vs);
+               if assigned(vs.owner) then
+                sc.insert(vs)
+               else
+                vs.free;
                consume(_ID);
              until not try_to_consume(_COMMA);
              consume(_COLON);
@@ -336,7 +339,7 @@ implementation
                      consume(_EQUAL);
                      readtypedconst(tt,tconstsym,true);
                      symdone:=true;
-                   end; 
+                   end;
                end;
              { if the symbol is not completely handled, then try to parse the
                hint directives }
@@ -609,7 +612,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2003-01-02 11:14:02  michael
+  Revision 1.45  2003-03-17 18:56:02  peter
+    * fix crash with duplicate id
+
+  Revision 1.44  2003/01/02 11:14:02  michael
   + Patch from peter to support initial values for local variables
 
   Revision 1.43  2002/12/27 15:22:20  peter

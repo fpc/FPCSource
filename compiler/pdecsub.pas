@@ -251,7 +251,10 @@ implementation
                repeat
                  vs:=tvarsym.create(orgpattern,generrortype);
                  currparast.insert(vs);
-                 sc.insert(vs);
+                 if assigned(vs.owner) then
+                  sc.insert(vs)
+                 else
+                  vs.free;
                  consume(_ID);
                until not try_to_consume(_COMMA);
              { read type declaration, force reading for value and const paras }
@@ -2117,7 +2120,10 @@ const
 end.
 {
   $Log$
-  Revision 1.106  2003-03-17 15:54:22  peter
+  Revision 1.107  2003-03-17 18:56:02  peter
+    * fix crash with duplicate id
+
+  Revision 1.106  2003/03/17 15:54:22  peter
     * store symoptions also for procdef
     * check symoptions (private,public) when calculating possible
       overload candidates
