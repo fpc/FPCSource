@@ -325,7 +325,8 @@ implementation
        fmodule,
        { codegen }
        paramgr,cresstr,
-       procinfo
+       procinfo,
+       pdecsub
        ;
 
 {****************************************************************************
@@ -629,12 +630,16 @@ implementation
          p:=pdlistfirst;
          while assigned(p) do
            begin
-              if p^.own and
-                 (p^.def.forwarddef) then
+              if p^.own and (p^.def.forwarddef) then
                 begin
-                   MessagePos1(p^.def.fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname(false));
-                   { Turn futher error messages off }
-                   p^.def.forwarddef:=false;
+                   if (m_mac in aktmodeswitches) and (p^.def.interfacedef) then
+                     import_implict_external(p^.def)
+                   else
+                     begin
+                       MessagePos1(p^.def.fileinfo,sym_e_forward_not_resolved,p^.def.fullprocname(false));
+                       { Turn further error messages off }
+                       p^.def.forwarddef:=false;
+                     end
                 end;
               p:=p^.next;
            end;
@@ -2203,7 +2208,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.169  2004-03-29 19:19:35  florian
+  Revision 1.170  2004-05-11 18:29:41  olle
+    + mode macpas: support for implicit external
+
+  Revision 1.169  2004/03/29 19:19:35  florian
     + arm floating point register saving implemented
     * hopefully stabs generation for MacOSX fixed
     + some defines for arm added
