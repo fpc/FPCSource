@@ -278,6 +278,7 @@ TYPE
 {---------------------------------------------------------------------------}
 {                      TRect OBJECT - RECTANGLE OBJECT                      }
 {---------------------------------------------------------------------------}
+   PRect = ^TRect;
    TRect = OBJECT
       A, B: TPoint;                                { Corner points }
       FUNCTION Empty: Boolean;
@@ -2692,7 +2693,10 @@ END;
 END.
 {
   $Log$
-  Revision 1.24  1999-01-12 14:21:50  peter
+  Revision 1.25  1999-01-22 10:21:55  peter
+    + prect=^trect
+
+  Revision 1.24  1999/01/12 14:21:50  peter
     * fixed TColletcion.AtInsert
 
   Revision 1.23  1999/01/06 10:11:06  daniel
