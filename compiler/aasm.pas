@@ -161,8 +161,9 @@ unit aasm;
        tai_align = object(tai)
           aligntype: byte;   { 1 = no align, 2 = word align, 4 = dword align }
           op: byte;          { value to fill with - optional                 }
+          use_op : boolean;
           constructor init(b:byte);
-          constructor init_op(b: byte; use_op: byte);
+          constructor init_op(b: byte; _op: byte);
           destructor done;virtual;
        end;
 
@@ -693,23 +694,25 @@ uses
           inherited init;
           typ:=ait_align;
           if b in [1,2,4,8,16] then
-           aligntype := b
+            aligntype := b
           else
-           aligntype := 1;
+            aligntype := 1;
           op:=0;
+          use_op:=false;
        end;
 
 
-     constructor tai_align.init_op(b: byte; use_op: byte);
+     constructor tai_align.init_op(b: byte; _op: byte);
 
        begin
           inherited init;
           typ:=ait_align;
           if b in [1,2,4,8,16] then
-           aligntype := b
+            aligntype := b
           else
-           aligntype := 1;
-           op:=use_op;
+            aligntype := 1;
+          op:=_op;
+          use_op:=true;
        end;
 
     destructor tai_align.done;
@@ -913,7 +916,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.25  1998-11-30 09:42:52  pierre
+  Revision 1.26  1998-12-01 23:36:31  pierre
+   * zero padded alignment was buggy
+
+  Revision 1.25  1998/11/30 09:42:52  pierre
     * some range check bugs fixed (still not working !)
     + added DLL writing support for win32 (also accepts variables)
     + TempAnsi for code that could be used for Temporary ansi strings
