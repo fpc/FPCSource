@@ -1,0 +1,22 @@
+#
+#   Makefile.fpc for GL Units
+#
+
+[targets]
+units= zlib
+programs=
+
+[dirs]
+fpcdir=../..
+
+[defaults]
+defaultunits=1
+defaultoptions=-Sm
+
+
+[rules]
+.PHONY: test examples
+
+test: fpc_exes
+
+examples: fpc_exes
