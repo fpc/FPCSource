@@ -26,7 +26,8 @@ unit ssockets;
 
 interface
 
-uses SysUtils, Classes, sockets;
+uses
+ SysUtils, Classes, sockets;
 
 type
 
@@ -53,6 +54,8 @@ type
     FSocketOptions : TSocketOptions;
     Procedure GetSockOptions;
     Procedure SetSocketOptions(Value : TSocketOptions);
+    function GetLocalAddress: TSockAddr;
+    function GetRemoteAddress: TSockAddr;
   Public
     Constructor Create (AHandle : Longint);virtual;
     destructor Destroy; override;
@@ -61,6 +64,8 @@ type
     Function Write (Const Buffer; Count : Longint) :Longint; Override;
     Property SocketOptions : TSocketOptions Read FSocketOptions
                                             Write SetSocketOptions;
+    property LocalAddress: TSockAddr read GetLocalAddress;
+    property RemoteAddress: TSockAddr read GetRemoteAddress;
   end;
 
   TConnectEvent = Procedure (Sender : TObject; Data : TSocketStream) Of Object;
@@ -170,8 +175,7 @@ uses
     BaseUnix, Unix,
   {$endif}
  {$endif}
-  resolve
-  ;
+  resolve;
 
 Const
   SocketWouldBlock = -2;
@@ -262,6 +266,25 @@ begin
   Flags:=0;
   Result:=send(handle,Buffer,count,flags);
 end;
+
+function TSocketStream.GetLocalAddress: TSockAddr;
+var
+  len: LongInt;
+begin
+  len := SizeOf(TSockAddr);
+  if GetSocketName(Handle, Result, len) <> 0 then
+    FillChar(Result, SizeOf(Result), 0);
+end;
+
+function TSocketStream.GetRemoteAddress: TSockAddr;
+var
+  len: LongInt;
+begin
+  len := SizeOf(TSockAddr);
+  if GetPeerName(Handle, Result, len) <> 0 then
+    FillChar(Result, SizeOf(Result), 0);
+end;
+
 
 { ---------------------------------------------------------------------
     TSocketServer
@@ -516,17 +539,19 @@ Var
   addr: TInetSockAddr;
 
 begin
-  With THostResolver.Create(Nil) do
-    try
-      If Not NameLookup(FHost) then
-        raise ESocketError.Create(seHostNotFound, [FHost]);
-      A:=HostAddress;  
-    finally
-      free;
-    end;    
+  A := StrToHostAddr(FHost);
+  if A[1] = 0 then
+    With THostResolver.Create(Nil) do
+      try
+        If Not NameLookup(FHost) then
+          raise ESocketError.Create(seHostNotFound, [FHost]);
+        A:=HostAddress;  
+      finally
+        free;
+      end;    
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
-  addr.addr := Longint(A);
+  addr.addr := Cardinal(A);
 
   If not Sockets.Connect(ASocket, addr, sizeof(addr)) then
     raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);
@@ -568,7 +593,11 @@ end.
 
 {
   $Log$
-  Revision 1.20  2003-09-20 12:38:29  marco
+  Revision 1.21  2003-11-22 11:51:28  sg
+  * Added TSocketStream.LocalAddress and .RemoteAddress
+  * TInetSocket now also accepts IP addresses as host parameter
+
+  Revision 1.20  2003/09/20 12:38:29  marco
    * FCL now compiles for FreeBSD with new 1.1. Now Linux.
 
   Revision 1.19  2003/03/25 17:47:06  armin
