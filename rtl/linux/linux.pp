@@ -697,12 +697,18 @@ Function  IOperm (From,Num : Cardinal; Value : Longint) : boolean;
 Procedure WritePort (Port : Longint; Value : Byte);
 Procedure WritePort (Port : Longint; Value : Word);
 Procedure WritePort (Port : Longint; Value : Longint);
-Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
+Procedure WritePortB (Port : Longint; Value : Byte);
+Procedure WritePortW (Port : Longint; Value : Word);
+Procedure WritePortL (Port : Longint; Value : Longint);
+Procedure WritePortL (Port : Longint; Var Buf; Count: longint);
 Procedure WritePortW (Port : Longint; Var Buf; Count: longint);
 Procedure WritePortB (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPort (Port : Longint; Var Value : Byte);
 Procedure ReadPort (Port : Longint; Var Value : Word);
 Procedure ReadPort (Port : Longint; Var Value : Longint);
+function  ReadPortB (Port : Longint): Byte;
+function  ReadPortW (Port : Longint): Word;
+function  ReadPortL (Port : Longint): LongInt;
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortW (Port : Longint; Var Buf; Count: longint);
 Procedure ReadPortB (Port : Longint; Var Buf; Count: longint);
@@ -3686,6 +3692,47 @@ begin
 end;
 
 
+Procedure WritePortB (Port : Longint; Value : Byte);
+{
+  Writes 'Value' to port 'Port'
+}
+begin
+        asm
+        movl 8(%ebp),%edx
+        movb 12(%ebp),%al
+        outb %al,%dx
+        end ['EAX','EDX'];
+end;
+
+Procedure WritePortW (Port : Longint; Value : Word);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+        asm
+        movl 8(%ebp),%edx
+        movw 12(%ebp),%ax
+        outw %ax,%dx
+        end ['EAX','EDX'];
+end;
+
+
+
+Procedure WritePortL (Port : Longint; Value : Longint);
+{
+  Writes 'Value' to port 'Port'
+}
+
+begin
+        asm
+        movl 8(%ebp),%edx
+        movl 12(%ebp),%eax
+        outl %eax,%dx
+        end ['EAX','EDX'];
+end;
+
+
 
 Procedure WritePortl (Port : Longint; Var Buf; Count: longint);
 {
@@ -3781,6 +3828,48 @@ begin
 end;
 
 
+
+function ReadPortB (Port : Longint): Byte;
+{
+  Reads a byte from port 'Port'
+}
+begin
+        asm
+        movl 8(%ebp),%edx
+        inb %dx,%al
+        andl $255,%eax
+        end ['EAX','EDX'];
+end;
+
+
+
+function ReadPortW (Port : Longint): Word;
+{
+  Reads a word from port 'Port'
+}
+begin
+        asm
+        movl 8(%ebp),%edx
+        inw %dx,%ax
+        andl $65535,%eax
+        end ['EAX','EDX'];
+end;
+
+
+
+function ReadPortL (Port : Longint): LongInt;
+{
+  Reads a LongInt from port 'Port'
+}
+begin
+        asm
+        movl 8(%ebp),%edx
+        inl %dx,%eax
+        end ['EAX','EDX'];
+end;
+
+
+
 Procedure ReadPortL (Port : Longint; Var Buf; Count: longint);
 {
   Reads 'Count' longints from port 'Port' to 'Buf'.
@@ -3842,7 +3931,11 @@ End.
 
 {
   $Log$
-  Revision 1.63  2000-02-23 17:19:06  peter
+  Revision 1.64  2000-03-17 13:27:00  sg
+  * Added WritePort[B|W|L] for single data access
+  * Added ReadPort[B|W|L] functions
+
+  Revision 1.63  2000/02/23 17:19:06  peter
     + readded getepochtime which simply calls gettimeofday
 
   Revision 1.62  2000/02/09 23:09:13  peter
