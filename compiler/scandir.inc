@@ -473,12 +473,12 @@ const
       var
         sw : tlocalswitch;
       begin
-        case t of
 {$ifdef SUPPORT_MMX}
+        case t of
           _DIR_MMX : sw:=cs_mmx;
           _DIR_SATURATION : sw:=cs_mmx_saturation;
-{$endif}
         end;
+{$endif}
         current_scanner^.skipspace;
         if c='-' then
          aktlocalswitches:=aktlocalswitches-[sw]
@@ -720,7 +720,10 @@ const
 
 {
   $Log$
-  Revision 1.19  1998-08-18 09:24:44  pierre
+  Revision 1.20  1998-08-18 15:11:52  peter
+    * recompiles again
+
+  Revision 1.19  1998/08/18 09:24:44  pierre
     * small warning position bug fixed
     * support_mmx switches splitting was missing
     * rhide error and warning output corrected

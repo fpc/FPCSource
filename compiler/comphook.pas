@@ -201,8 +201,8 @@ begin
         else
           hs:=status.currentsource+'('+tostr(status.currentline)
               +','+tostr(status.currentcolumn)+') '+hs;
-      end
 {$ifdef Debug}
+      end
      else
       begin
          if (Level<=V_ShowFile) then
@@ -241,7 +241,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.4  1998-08-18 14:17:08  pierre
+  Revision 1.5  1998-08-18 15:11:51  peter
+    * recompiles again
+
+  Revision 1.4  1998/08/18 14:17:08  pierre
     * bug about assigning the return value of a function to
       a procvar fixed : warning
       assigning a proc to a procvar need @ in FPC mode !!
