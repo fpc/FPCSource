@@ -31,6 +31,7 @@ unit pdecl;
        { pointer to the last read type symbol, (for "forward" }
        { types)                                        }
        lasttypesym : ptypesym;
+       readtypesym : ptypesym; { ttypesym read by read_type }
 
        { hack, which allows to use the current parsed }
        { object type as function argument type  }
@@ -190,10 +191,20 @@ unit pdecl;
                    tokenpos:=filepos;
 {$ifdef DELPHI_CONST_IN_RODATA}
                    if m_delphi in aktmodeswitches then
-                     sym:=new(ptypedconstsym,init(name,def,true))
+                     begin
+                       if assigned(readtypesym) then
+                        sym:=new(ptypedconstsym,initsym(name,readtypesym,true))
+                       else
+                        sym:=new(ptypedconstsym,init(name,def,true))
+                     end
                    else
 {$endif DELPHI_CONST_IN_RODATA}
-                     sym:=new(ptypedconstsym,init(name,def,false));
+                     begin
+                       if assigned(readtypesym) then
+                        sym:=new(ptypedconstsym,initsym(name,readtypesym,false))
+                       else
+                        sym:=new(ptypedconstsym,init(name,def,false))
+                     end;
                    tokenpos:=storetokenpos;
                    symtablestack^.insert(sym);
                    consume(EQUAL);
@@ -247,6 +258,40 @@ unit pdecl;
     { types are allowed                  }
     { => the procedure is also used to read     }
     { a sequence of variable declaration        }
+
+      procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef;sym:ptypesym;is_threadvar : boolean);
+      { inserts the symbols of sc in st with def as definition or sym as ptypesym, sc is disposed }
+        var
+           s : string;
+           filepos : tfileposinfo;
+           ss : pvarsym;
+        begin
+           { can't have a definition and ttypesym }
+           if assigned(def) and assigned(sym) then
+            internalerror(5438257);
+           filepos:=tokenpos;
+           while not sc^.empty do
+             begin
+                s:=sc^.get_with_tokeninfo(tokenpos);
+                if assigned(sym) then
+                 ss:=new(pvarsym,initsym(s,sym))
+                else
+                 ss:=new(pvarsym,init(s,def));
+                if is_threadvar then
+                  ss^.var_options:=ss^.var_options or vo_is_thread_var;
+                st^.insert(ss);
+                { static data fields are inserted in the globalsymtable }
+                if (st^.symtabletype=objectsymtable) and
+                   ((current_object_option and sp_static)<>0) then
+                  begin
+                     s:=lower(st^.name^)+'_'+s;
+                     st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
+                  end;
+             end;
+           dispose(sc,done);
+           tokenpos:=filepos;
+        end;
+
       var
          sc : pstringcontainer;
          s : stringid;
@@ -403,7 +448,10 @@ unit pdecl;
                   s:=sc^.get_with_tokeninfo(tokenpos);
                   if not sc^.empty then
                     Message(parser_e_initialized_only_one_var);
-                  pconstsym:=new(ptypedconstsym,init(s,p,false));
+                  if assigned(readtypesym) then
+                   pconstsym:=new(ptypedconstsym,initsym(s,readtypesym,false))
+                  else
+                   pconstsym:=new(ptypedconstsym,init(s,p,false));
                   symtablestack^.insert(pconstsym);
                   tokenpos:=storetokenpos;
                   consume(EQUAL);
@@ -482,14 +530,24 @@ unit pdecl;
                    storetokenpos:=tokenpos;
                    tokenpos:=declarepos;
                    if is_dll then
-                    aktvarsym:=new(pvarsym,init_dll(s,p))
+                    begin
+                      if assigned(readtypesym) then
+                       aktvarsym:=new(pvarsym,initsym_dll(s,readtypesym))
+                      else
+                       aktvarsym:=new(pvarsym,init_dll(s,p))
+                    end
                    else
-                    aktvarsym:=new(pvarsym,init_C(s,C_name,p));
+                    begin
+                      if assigned(readtypesym) then
+                       aktvarsym:=new(pvarsym,initsym_C(s,C_name,readtypesym))
+                      else
+                       aktvarsym:=new(pvarsym,init_C(s,C_name,p));
+                    end;
                    { set some vars options }
                    if export_aktvarsym then
                     inc(aktvarsym^.refs);
                    if extern_aktvarsym then
-                      aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
+                    aktvarsym^.var_options:=aktvarsym^.var_options or vo_is_external;
                    { insert in the stack/datasegment }
                    symtablestack^.insert(aktvarsym);
                    tokenpos:=storetokenpos;
@@ -513,7 +571,10 @@ unit pdecl;
                  if (is_object) and (cs_static_keyword in aktmoduleswitches) and (idtoken=_STATIC) then
                   begin
                     current_object_option:=current_object_option or sp_static;
-                    insert_syms(symtablestack,sc,p,false);
+                    if assigned(readtypesym) then
+                     insert_syms(symtablestack,sc,nil,readtypesym,false)
+                    else
+                     insert_syms(symtablestack,sc,p,nil,false);
                     current_object_option:=current_object_option - sp_static;
                     consume(_STATIC);
                     consume(SEMICOLON);
@@ -526,7 +587,10 @@ unit pdecl;
                   if (current_object_option=sp_published) and
                     (not((p^.deftype=objectdef) and (pobjectdef(p)^.isclass))) then
                     Message(parser_e_cant_publish_that);
-                  insert_syms(symtablestack,sc,p,is_threadvar);
+                  if assigned(readtypesym) then
+                   insert_syms(symtablestack,sc,nil,readtypesym,is_threadvar)
+                  else
+                   insert_syms(symtablestack,sc,p,nil,is_threadvar);
                end;
            end;
          { Check for Case }
@@ -669,6 +733,11 @@ unit pdecl;
                 testforward_type(srsym);
            end;
          lasttypesym:=ptypesym(srsym);
+         if (ptypesym(srsym)^.owner^.unitid=0) or
+            (ptypesym(srsym)^.owner^.unitid=1) then
+          readtypesym:=nil
+         else
+          readtypesym:=ptypesym(srsym);
          id_type:=ptypesym(srsym)^.definition;
       end;
 
@@ -679,12 +748,14 @@ unit pdecl;
        var
           hs : string;
        begin
+          readtypesym:=nil;
           case token of
             _STRING:
                 begin
                    single_type:=stringtype;
                    s:='STRING';
                    lasttypesym:=nil;
+                   readtypesym:=nil;
                 end;
             _FILE:
                 begin
@@ -702,8 +773,12 @@ unit pdecl;
                         s:='FILE';
                      end;
                    lasttypesym:=nil;
+                   readtypesym:=nil;
                 end;
-            else single_type:=id_type(s);
+            else
+              begin
+                single_type:=id_type(s);
+              end;
          end;
       end;
 
@@ -1557,102 +1632,99 @@ unit pdecl;
     { reads a type definition and returns a pointer to it }
     function read_type(const name : stringid) : pdef;
 
-    function handle_procvar:Pprocvardef;
-
-    var
-       sc : pstringcontainer;
-       hs1,s : string;
-       p : pdef;
-       varspez : tvarspez;
-       procvardef : pprocvardef;
-
-    begin
-       procvardef:=new(pprocvardef,init);
-       if token=LKLAMMER then
-         begin
-            consume(LKLAMMER);
-            inc(testcurobject);
-            repeat
-              if try_to_consume(_VAR) then
-               varspez:=vs_var
-              else
-               if try_to_consume(_CONST) then
-                 varspez:=vs_const
-               else
-                 varspez:=vs_value;
-              { self method ? }
-              if idtoken=_SELF then
-               begin
-                 procvardef^.options:=procvardef^.options or pocontainsself;
-                 consume(idtoken);
-                 consume(COLON);
-                 p:=single_type(hs1);
-                 procvardef^.concatdef(p,vs_value);
-               end
-              else
-               begin
-                 sc:=idlist;
-                 if (token=COLON) or (varspez=vs_value) then
+        function handle_procvar:Pprocvardef;
+        var
+           sc : pstringcontainer;
+           hs1,s : string;
+           p : pdef;
+           varspez : tvarspez;
+           procvardef : pprocvardef;
+        begin
+           procvardef:=new(pprocvardef,init);
+           if token=LKLAMMER then
+             begin
+                consume(LKLAMMER);
+                inc(testcurobject);
+                repeat
+                  if try_to_consume(_VAR) then
+                   varspez:=vs_var
+                  else
+                   if try_to_consume(_CONST) then
+                     varspez:=vs_const
+                   else
+                     varspez:=vs_value;
+                  { self method ? }
+                  if idtoken=_SELF then
                    begin
-                      consume(COLON);
-                      if token=_ARRAY then
-                        begin
-                          consume(_ARRAY);
-                          consume(_OF);
-                        { define range and type of range }
-                          p:=new(Parraydef,init(0,-1,s32bitdef));
-                        { array of const ? }
-                          if (token=_CONST) and (m_objpas in aktmodeswitches) then
-                           begin
-                             consume(_CONST);
-                             srsym:=nil;
-                             if assigned(objpasunit) then
-                              getsymonlyin(objpasunit,'TVARREC');
-                             if not assigned(srsym) then
-                              InternalError(1234124);
-                             Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
-                             Parraydef(p)^.IsArrayOfConst:=true;
-                           end
-                          else
-                           begin
-                           { define field type }
-                             Parraydef(p)^.definition:=single_type(s);
-                           end;
-                        end
-                      else
-                        p:=single_type(s);
+                     procvardef^.options:=procvardef^.options or pocontainsself;
+                     consume(idtoken);
+                     consume(COLON);
+                     p:=single_type(hs1);
+                     procvardef^.concatdef(p,vs_value);
                    end
-                 else
-                   p:=cformaldef;
-                 while not sc^.empty do
+                  else
                    begin
-                      s:=sc^.get;
-                      procvardef^.concatdef(p,varspez);
+                     sc:=idlist;
+                     if (token=COLON) or (varspez=vs_value) then
+                       begin
+                          consume(COLON);
+                          if token=_ARRAY then
+                            begin
+                              consume(_ARRAY);
+                              consume(_OF);
+                            { define range and type of range }
+                              p:=new(Parraydef,init(0,-1,s32bitdef));
+                            { array of const ? }
+                              if (token=_CONST) and (m_objpas in aktmodeswitches) then
+                               begin
+                                 consume(_CONST);
+                                 srsym:=nil;
+                                 if assigned(objpasunit) then
+                                  getsymonlyin(objpasunit,'TVARREC');
+                                 if not assigned(srsym) then
+                                  InternalError(1234124);
+                                 Parraydef(p)^.definition:=ptypesym(srsym)^.definition;
+                                 Parraydef(p)^.IsArrayOfConst:=true;
+                               end
+                              else
+                               begin
+                               { define field type }
+                                 Parraydef(p)^.definition:=single_type(s);
+                               end;
+                            end
+                          else
+                            p:=single_type(s);
+                       end
+                     else
+                       p:=cformaldef;
+                     while not sc^.empty do
+                       begin
+                          s:=sc^.get;
+                          procvardef^.concatdef(p,varspez);
+                       end;
+                     dispose(sc,done);
                    end;
-                 dispose(sc,done);
-               end;
-            until not try_to_consume(SEMICOLON);
-            dec(testcurobject);
-            consume(RKLAMMER);
-         end;
-       handle_procvar:=procvardef;
-    end;
+                until not try_to_consume(SEMICOLON);
+                dec(testcurobject);
+                consume(RKLAMMER);
+             end;
+           handle_procvar:=procvardef;
+        end;
 
       var
-         hp1,p : pdef;
-         aufdef : penumdef;
-         aufsym : penumsym;
-         ap : parraydef;
-         s : stringid;
-         l,v : longint;
-         oldaktpackrecords : tpackrecords;
-         hs : string;
+        pt : ptree;
+        hp1,p : pdef;
+        aufdef : penumdef;
+        aufsym : penumsym;
+        ap : parraydef;
+        s : stringid;
+        l,v : longint;
+        oldaktpackrecords : tpackrecords;
+        hs : string;
 
-      procedure expr_type;
-
+        procedure expr_type;
         var
            pt1,pt2 : ptree;
-
         begin
            { use of current parsed object ? }
            if (token=ID) and (testcurobject=2) and (curobjectname=pattern) then
@@ -1705,17 +1777,17 @@ unit pdecl;
              begin
                { a simple type renaming }
                if (pt1^.treetype=typen) then
-                 p:=pt1^.resulttype
+                 begin
+                   p:=pt1^.resulttype;
+                   readtypesym:=pt1^.typenodesym;
+                 end
                else
                  Message(sym_e_error_in_type_def);
              end;
            disposetree(pt1);
         end;
 
-      var
-         pt : ptree;
-
-      procedure array_dec;
+        procedure array_dec;
         var
           lowval,
           highval   : longint;
@@ -1801,10 +1873,14 @@ unit pdecl;
         end;
 
       begin
+         readtypesym:=nil;
          p:=nil;
          case token of
             _STRING,_FILE:
-              p:=single_type(hs);
+              begin
+                p:=single_type(hs);
+                readtypesym:=nil;
+              end;
             LKLAMMER:
               begin
                  consume(LKLAMMER);
@@ -1839,96 +1915,118 @@ unit pdecl;
                  min and max are now set in tenumsym.init PM }
                  p:=aufdef;
                  consume(RKLAMMER);
+                readtypesym:=nil;
               end;
             _ARRAY:
-              array_dec;
+              begin
+                array_dec;
+                readtypesym:=nil;
+              end;
             _SET:
               begin
-                 consume(_SET);
-                 consume(_OF);
-                 hp1:=read_type('');
-                 if assigned(hp1) then
-                  begin
-                    case hp1^.deftype of
+                consume(_SET);
+                consume(_OF);
+                hp1:=read_type('');
+                if assigned(hp1) then
+                 begin
+                   case hp1^.deftype of
                      { don't forget that min can be negativ  PM }
-                     enumdef : if penumdef(hp1)^.min>=0 then
-                                p:=new(psetdef,init(hp1,penumdef(hp1)^.max))
+                     enumdef :
+                       if penumdef(hp1)^.min>=0 then
+                        p:=new(psetdef,init(hp1,penumdef(hp1)^.max))
+                       else
+                        Message(sym_e_ill_type_decl_set);
+                     orddef :
+                       begin
+                         case porddef(hp1)^.typ of
+                           uchar :
+                             p:=new(psetdef,init(hp1,255));
+                           u8bit,u16bit,u32bit,
+                           s8bit,s16bit,s32bit :
+                             begin
+                               if (porddef(hp1)^.low>=0) then
+                                p:=new(psetdef,init(hp1,porddef(hp1)^.high))
                                else
                                 Message(sym_e_ill_type_decl_set);
-                      orddef : begin
-                                 case porddef(hp1)^.typ of
-                                     uchar : p:=new(psetdef,init(hp1,255));
-                                     u8bit,s8bit,u16bit,s16bit,s32bit :
-                                       begin
-                                          if (porddef(hp1)^.low>=0) then
-                                            p:=new(psetdef,init(hp1,porddef(hp1)^.high))
-                                          else Message(sym_e_ill_type_decl_set);
-                                       end;
-                                  else Message(sym_e_ill_type_decl_set);
-                                  end;
-                               end;
-                    else Message(sym_e_ill_type_decl_set);
-                    end;
-                  end
-                 else
-                  p:=generrordef;
+                             end;
+                           else
+                             Message(sym_e_ill_type_decl_set);
+                         end;
+                       end;
+                     else
+                       Message(sym_e_ill_type_decl_set);
+                   end;
+                 end
+                else
+                 p:=generrordef;
+                readtypesym:=nil;
               end;
             CARET:
               begin
-                 consume(CARET);
-                 { forwards allowed only inside TYPE statements }
-                 if typecanbeforward then
-                    forwardsallowed:=true;
-                 hp1:=single_type(hs);
-                 p:=new(ppointerdef,init(hp1));
-                 if (lasttypesym<>nil) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
-                   lasttypesym^.addforwardpointer(ppointerdef(p));
-                 forwardsallowed:=false;
+                consume(CARET);
+                { forwards allowed only inside TYPE statements }
+                if typecanbeforward then
+                  forwardsallowed:=true;
+                hp1:=single_type(hs);
+                p:=new(ppointerdef,init(hp1));
+                if (lasttypesym<>nil) and ((lasttypesym^.properties and sp_forwarddef)<>0) then
+                  lasttypesym^.addforwardpointer(ppointerdef(p));
+                forwardsallowed:=false;
+                readtypesym:=nil;
               end;
             _RECORD:
-              p:=record_dec;
+              begin
+                p:=record_dec;
+                readtypesym:=nil;
+              end;
             _PACKED:
               begin
-                 consume(_PACKED);
-                 if token=_ARRAY then
-                   array_dec
-                 else
-                   begin
-                      oldaktpackrecords:=aktpackrecords;
-                      aktpackrecords:=packrecord_1;
-                      if token in [_CLASS,_OBJECT] then
-                        p:=object_dec(name,nil)
-                      else
-                        p:=record_dec;
-                      aktpackrecords:=oldaktpackrecords;
-                   end;
+                consume(_PACKED);
+                if token=_ARRAY then
+                  array_dec
+                else
+                  begin
+                    oldaktpackrecords:=aktpackrecords;
+                    aktpackrecords:=packrecord_1;
+                    if token in [_CLASS,_OBJECT] then
+                      p:=object_dec(name,nil)
+                    else
+                      p:=record_dec;
+                    aktpackrecords:=oldaktpackrecords;
+                  end;
+                readtypesym:=nil;
               end;
             _CLASS,
             _OBJECT:
-              p:=object_dec(name,nil);
+              begin
+                p:=object_dec(name,nil);
+                readtypesym:=nil;
+              end;
             _PROCEDURE:
               begin
-                 consume(_PROCEDURE);
-                 p:=handle_procvar;
-                 if token=_OF then
-                   begin
-                      consume(_OF);
-                      consume(_OBJECT);
-                      pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
-                   end;
+                consume(_PROCEDURE);
+                p:=handle_procvar;
+                if token=_OF then
+                  begin
+                    consume(_OF);
+                    consume(_OBJECT);
+                    pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
+                  end;
+                readtypesym:=nil;
               end;
             _FUNCTION:
               begin
-                 consume(_FUNCTION);
-                 p:=handle_procvar;
-                 consume(COLON);
-                 pprocvardef(p)^.retdef:=single_type(hs);
-                 if token=_OF then
-                   begin
-                      consume(_OF);
-                      consume(_OBJECT);
-                      pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
-                   end;
+                consume(_FUNCTION);
+                p:=handle_procvar;
+                consume(COLON);
+                pprocvardef(p)^.retdef:=single_type(hs);
+                if token=_OF then
+                  begin
+                     consume(_OF);
+                     consume(_OBJECT);
+                     pprocvardef(p)^.options:=pprocvardef(p)^.options or pomethodpointer;
+                  end;
+                readtypesym:=nil;
               end;
             else
               expr_type;
@@ -2188,7 +2286,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.135  1999-07-23 16:05:23  peter
+  Revision 1.136  1999-07-27 23:42:11  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.135  1999/07/23 16:05:23  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs

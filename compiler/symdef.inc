@@ -2108,7 +2108,6 @@
 ***************************************************************************}
 
     constructor tabstractprocdef.init;
-
       begin
          inherited init;
          para1:=nil;
@@ -2117,7 +2116,6 @@
          retdef:=voiddef;
          savesize:=target_os.size_of_pointer;
       end;
-
 
 
     procedure disposepdefcoll(var para1 : pdefcoll);
@@ -2146,7 +2144,21 @@
       begin
          new(hp);
          hp^.paratyp:=vsp;
+         hp^.datasym:=nil;
          hp^.data:=p;
+         hp^.next:=para1;
+         hp^.register:=R_NO;
+         para1:=hp;
+      end;
+
+    procedure tabstractprocdef.concattypesym(p : ptypesym;vsp : tvarspez);
+      var
+         hp : pdefcoll;
+      begin
+         new(hp);
+         hp^.paratyp:=vsp;
+         hp^.datasym:=p;
+         hp^.data:=p^.definition;
          hp^.next:=para1;
          hp^.register:=R_NO;
          para1:=hp;
@@ -2162,6 +2174,7 @@
            fpu_used:=2;
       end;
 
+
     procedure tabstractprocdef.deref;
       var
          hp : pdefcoll;
@@ -2171,7 +2184,13 @@
          hp:=para1;
          while assigned(hp) do
            begin
-              resolvedef(hp^.data);
+              if assigned(hp^.datasym) then
+               begin
+                 resolvesym(psym(hp^.datasym));
+                 hp^.data:=hp^.datasym^.definition;
+               end
+              else
+               resolvedef(hp^.data);
               hp:=hp^.next;
            end;
       end;
@@ -2196,6 +2215,7 @@
               { hp^.register:=tregister(readbyte); }
               hp^.register:=R_NO;
               hp^.data:=readdefref;
+              hp^.datasym:=ptypesym(readsymref);
               hp^.next:=nil;
               if para1=nil then
                 para1:=hp
@@ -2252,7 +2272,16 @@
            begin
               writebyte(byte(hp^.paratyp));
               { writebyte(byte(hp^.register)); }
-              writedefref(hp^.data);
+              if assigned(hp^.datasym) then
+               begin
+                 writedefref(nil);
+                 writesymref(psym(hp^.datasym));
+               end
+              else
+               begin
+                 writedefref(hp^.data);
+                 writesymref(nil);
+               end;
               hp:=hp^.next;
            end;
       end;
@@ -3493,7 +3522,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.134  1999-07-23 23:07:03  peter
+  Revision 1.135  1999-07-27 23:42:18  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.134  1999/07/23 23:07:03  peter
     * fixed stabs for record which still used savesize
 
   Revision 1.133  1999/07/23 16:05:28  peter

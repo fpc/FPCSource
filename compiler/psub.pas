@@ -105,6 +105,7 @@ begin
       else
         varspez:=vs_value;
     inserthigh:=false;
+    readtypesym:=nil;
     if idtoken=_SELF then
       begin
          { we parse the defintion in the class definition }
@@ -125,7 +126,10 @@ begin
             consume(idtoken);
             consume(COLON);
             p:=single_type(hs1);
-            aktprocsym^.definition^.concatdef(p,vs_value);
+            if assigned(readtypesym) then
+             aktprocsym^.definition^.concattypesym(readtypesym,vs_value)
+            else
+             aktprocsym^.definition^.concatdef(p,vs_value);
             CheckTypes(p,procinfo._class);
            end
          else
@@ -135,7 +139,6 @@ begin
       begin
        { read identifiers }
          sc:=idlist;
-
        { read type declaration, force reading for value and const paras }
          if (token=COLON) or (varspez=vs_value) then
           begin
@@ -165,6 +168,8 @@ begin
                 { define field type }
                   Parraydef(p)^.definition:=single_type(hs1);
                   hs1:='array_of_'+hs1;
+                  { we don't need the typesym anymore }
+                  readtypesym:=nil;
                 end;
                inserthigh:=true;
              end
@@ -201,14 +206,22 @@ begin
          storetokenpos:=tokenpos;
          while not sc^.empty do
           begin
-            s:=sc^.get_with_tokeninfo(tokenpos);
-            aktprocsym^.definition^.concatdef(p,varspez);
-     {$ifndef UseNiceNames}
+{$ifndef UseNiceNames}
             hs2:=hs2+'$'+hs1;
-     {$else UseNiceNames}
+{$else UseNiceNames}
             hs2:=hs2+tostr(length(hs1))+hs1;
-     {$endif UseNiceNames}
-            vs:=new(Pvarsym,init(s,p));
+{$endif UseNiceNames}
+            s:=sc^.get_with_tokeninfo(tokenpos);
+            if assigned(readtypesym) then
+             begin
+               aktprocsym^.definition^.concattypesym(readtypesym,varspez);
+               vs:=new(Pvarsym,initsym(s,readtypesym))
+             end
+            else
+             begin
+               aktprocsym^.definition^.concatdef(p,varspez);
+               vs:=new(Pvarsym,init(s,p));
+             end;
             vs^.varspez:=varspez;
           { we have to add this to avoid var param to be in registers !!!}
             if (varspez in [vs_var,vs_const]) and push_addr_param(p) then
@@ -1841,7 +1854,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  1999-07-26 09:42:15  florian
+  Revision 1.6  1999-07-27 23:42:16  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.5  1999/07/26 09:42:15  florian
     * bugs 494-496 fixed
 
   Revision 1.4  1999/07/11 20:10:24  peter

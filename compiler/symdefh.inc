@@ -102,6 +102,7 @@
        pdefcoll = ^tdefcoll;
        tdefcoll = record
           data    : pdef;
+          datasym : ptypesym;
           next    : pdefcoll;
           paratyp : tvarspez;
           argconvtyp : targconvtyp;
@@ -351,6 +352,7 @@
           constructor load;
           destructor done;virtual;
           procedure concatdef(p : pdef;vsp : tvarspez);
+          procedure concattypesym(p : ptypesym;vsp : tvarspez);
           procedure deref;virtual;
           function para_size : longint;
           function demangled_paras : string;
@@ -525,7 +527,10 @@
 
 {
   $Log$
-  Revision 1.34  1999-07-23 16:05:30  peter
+  Revision 1.35  1999-07-27 23:42:20  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.34  1999/07/23 16:05:30  peter
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs

@@ -773,11 +773,22 @@
 
     procedure tabsolutesym.write;
       begin
+         { Note: This needs to write everything of tvarsym.write }
          tsym.write;
          writebyte(byte(varspez));
          if read_member then
            writelong(address);
-         writedefref(definition);
+         { write only definition or definitionsym }
+         if assigned(definitionsym) then
+          begin
+            writedefref(nil);
+            writesymref(definitionsym);
+          end
+         else
+          begin
+            writedefref(definition);
+            writesymref(nil);
+          end;
          writebyte(var_options and (not vo_regable));
          writebyte(byte(abstyp));
          case abstyp of
@@ -797,7 +808,7 @@
 
     procedure tabsolutesym.deref;
       begin
-         resolvedef(definition);
+         tvarsym.deref;
          if (abstyp=tovar) and (asmname<>nil) then
            begin
               { search previous loaded symtables }
@@ -849,6 +860,7 @@
          tsym.init(n);
          typ:=varsym;
          definition:=p;
+         definitionsym:=nil;
          _mangledname:=nil;
          varspez:=vs_value;
          address:=0;
@@ -899,6 +911,27 @@
       end;
 
 
+    constructor tvarsym.initsym(const n : string;p : ptypesym);
+      begin
+        tvarsym.init(n,p^.definition);
+        definitionsym:=p;
+      end;
+
+
+    constructor tvarsym.initsym_dll(const n : string;p : ptypesym);
+      begin
+        tvarsym.init_dll(n,p^.definition);
+        definitionsym:=p;
+      end;
+
+
+    constructor tvarsym.initsym_C(const n,mangled : string;p : ptypesym);
+      begin
+        tvarsym.init_C(n,mangled,p^.definition);
+        definitionsym:=p;
+      end;
+
+
     constructor tvarsym.load;
       begin
          tsym.load;
@@ -915,15 +948,29 @@
          islocalcopy:=false;
          localvarsym:=nil;
          definition:=readdefref;
+         definitionsym:=ptypesym(readsymref);
          var_options:=readbyte;
          if (var_options and vo_is_C_var)<>0 then
            setmangledname(readstring);
       end;
 
 
+    destructor tvarsym.done;
+      begin
+         strdispose(_mangledname);
+         inherited done;
+      end;
+
+
     procedure tvarsym.deref;
       begin
-         resolvedef(definition);
+         if assigned(definitionsym) then
+          begin
+            resolvesym(psym(definitionsym));
+            definition:=definitionsym^.definition;
+          end
+         else
+          resolvedef(definition);
       end;
 
 
@@ -933,7 +980,17 @@
          writebyte(byte(varspez));
          if read_member then
           writelong(address);
-         writedefref(definition);
+         { write only definition or definitionsym }
+         if assigned(definitionsym) then
+          begin
+            writedefref(nil);
+            writesymref(definitionsym);
+          end
+         else
+          begin
+            writedefref(definition);
+            writesymref(nil);
+          end;
          { symbols which are load are never candidates for a register,
            turn off the regable }
          writebyte(var_options and (not vo_regable));
@@ -993,16 +1050,6 @@
                 vs_value,
                 vs_const :
                   begin
-                    (*case definition^.deftype of
-                      arraydef,
-                      setdef,
-                      stringdef,
-                      recorddef,
-                      objectdef :
-                        getpushsize:=target_os.size_of_pointer;
-                      else
-                        getpushsize:=definition^.size;
-                        this is obsolete use push_param instead (PM) *)
                       if push_addr_param(definition) then
                         getpushsize:=target_os.size_of_pointer
                       else
@@ -1026,7 +1073,8 @@
          else *)
          if length>2 then
            data_align:=4
-         else if length>1 then
+         else
+          if length>1 then
            data_align:=2
          else
            data_align:=1;
@@ -1127,9 +1175,6 @@
                    ali:=data_align(l);
                    if ali>1 then
                      begin
-                        (* this is done
-                           either by the assembler or in ag386bin
-                        bsssegment^.concat(new(pai_align,init(ali))); *)
                         modulo:=owner^.datasize mod ali;
                         if modulo>0 then
                           inc(owner^.datasize,ali-modulo);
@@ -1234,9 +1279,9 @@
 
 {$ifdef GDB}
     function tvarsym.stabstring : pchar;
-    var
-      st : char;
-    begin
+     var
+       st : char;
+     begin
        if (owner^.symtabletype = objectsymtable) and
           ((properties and sp_static)<>0) then
          begin
@@ -1330,44 +1375,41 @@
       end;
 {$endif GDB}
 
-    destructor tvarsym.done;
-
-      begin
-         strdispose(_mangledname);
-         inherited done;
-      end;
-
 
 {****************************************************************************
                              TTYPEDCONSTSYM
 *****************************************************************************}
 
     constructor ttypedconstsym.init(const n : string;p : pdef;really_const : boolean);
-
       begin
          tsym.init(n);
          typ:=typedconstsym;
          definition:=p;
+         definitionsym:=nil;
          is_really_const:=really_const;
          prefix:=stringdup(procprefix);
       end;
 
-    constructor ttypedconstsym.load;
 
+    constructor ttypedconstsym.initsym(const n : string;p : ptypesym;really_const : boolean);
+      begin
+         ttypedconstsym.init(n,p^.definition,really_const);
+         definitionsym:=p;
+      end;
+
+
+    constructor ttypedconstsym.load;
       begin
          tsym.load;
          typ:=typedconstsym;
          definition:=readdefref;
-{$ifdef DELPHI_CONST_IN_RODATA}
-         is_really_const:=boolean(readbyte);
-{$else DELPHI_CONST_IN_RODATA}
-         is_really_const:=false;
-{$endif DELPHI_CONST_IN_RODATA}
+         definitionsym:=ptypesym(readsymref);
          prefix:=stringdup(readstring);
+         is_really_const:=boolean(readbyte);
       end;
 
-    destructor ttypedconstsym.done;
 
+    destructor ttypedconstsym.done;
       begin
          stringdispose(prefix);
          tsym.done;
@@ -1390,77 +1432,80 @@
 
 
     procedure ttypedconstsym.deref;
-
       begin
-         resolvedef(definition);
+         if assigned(definitionsym) then
+          begin
+            resolvesym(psym(definitionsym));
+            definition:=definitionsym^.definition;
+          end
+         else
+          resolvedef(definition);
       end;
 
-    procedure ttypedconstsym.write;
 
+    procedure ttypedconstsym.write;
       begin
          tsym.write;
-         writedefref(definition);
+         { write only definition or definitionsym }
+         if assigned(definitionsym) then
+          begin
+            writedefref(nil);
+            writesymref(definitionsym);
+          end
+         else
+          begin
+            writedefref(definition);
+            writesymref(nil);
+          end;
          writestring(prefix^);
-{$ifdef DELPHI_CONST_IN_RODATA}
          writebyte(byte(is_really_const));
-{$endif DELPHI_CONST_IN_RODATA}
          current_ppu^.writeentry(ibtypedconstsym);
       end;
 
-      { for most symbol types ther is nothing to do at all }
-      procedure ttypedconstsym.insert_in_data;
 
-        begin
-           { here there is a problem for ansistrings !!                 }
-           { we must write the label only after the 12 header bytes (PM)
-           if not is_ansistring(definition) then
-           }
-           { solved, the ansis string is moved to consts (FK) }
-             really_insert_in_data;
-        end;
-
-      procedure ttypedconstsym.really_insert_in_data;
-        var curconstsegment : paasmoutput;
-            l,ali,modulo : longint;
-            storefilepos : tfileposinfo;
-        begin
-           storefilepos:=aktfilepos;
-           aktfilepos:=tokenpos;
-           if is_really_const then
-             curconstsegment:=consts
-           else
-             curconstsegment:=datasegment;
-           if (cs_smartlink in aktmoduleswitches) then
-             curconstsegment^.concat(new(pai_cut,init));
-           l:=getsize;
-           ali:=data_align(l);
-           if ali>1 then
-             begin
-                curconstsegment^.concat(new(pai_align,init(ali)));
-                modulo:=owner^.datasize mod ali;
-                if modulo>0 then
-                  inc(owner^.datasize,ali-modulo);
-             end;
-           {  Why was there no owner size update here ??? }
-           inc(owner^.datasize,l);
+    procedure ttypedconstsym.insert_in_data;
+      var
+        curconstsegment : paasmoutput;
+        l,ali,modulo : longint;
+        storefilepos : tfileposinfo;
+      begin
+        storefilepos:=aktfilepos;
+        aktfilepos:=tokenpos;
+        if is_really_const then
+          curconstsegment:=consts
+        else
+          curconstsegment:=datasegment;
+        if (cs_smartlink in aktmoduleswitches) then
+          curconstsegment^.concat(new(pai_cut,init));
+        l:=getsize;
+        ali:=data_align(l);
+        if ali>1 then
+          begin
+             curconstsegment^.concat(new(pai_align,init(ali)));
+             modulo:=owner^.datasize mod ali;
+             if modulo>0 then
+               inc(owner^.datasize,ali-modulo);
+          end;
+        {  Why was there no owner size update here ??? }
+        inc(owner^.datasize,l);
 {$ifdef GDB}
-                 if cs_debuginfo in aktmoduleswitches then
-                   concatstabto(curconstsegment);
+              if cs_debuginfo in aktmoduleswitches then
+                concatstabto(curconstsegment);
 {$endif GDB}
-           if owner^.symtabletype=globalsymtable then
-             begin
-                curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)));
-             end
-           else
-             if owner^.symtabletype<>unitsymtable then
-               begin
-                 if (cs_smartlink in aktmoduleswitches) then
-                   curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)))
-                 else
-                   curconstsegment^.concat(new(pai_symbol,initname(mangledname)));
-               end;
-             aktfilepos:=storefilepos;
-           end;
+        if owner^.symtabletype=globalsymtable then
+          begin
+             curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)));
+          end
+        else
+          if owner^.symtabletype<>unitsymtable then
+            begin
+              if (cs_smartlink in aktmoduleswitches) then
+                curconstsegment^.concat(new(pai_symbol,initname_global(mangledname)))
+              else
+                curconstsegment^.concat(new(pai_symbol,initname(mangledname)));
+            end;
+        aktfilepos:=storefilepos;
+      end;
 
 {$ifdef GDB}
     function ttypedconstsym.stabstring : pchar;
@@ -2011,7 +2056,10 @@
 
 {
   $Log$
-  Revision 1.103  1999-07-24 15:12:59  michael
+  Revision 1.104  1999-07-27 23:42:21  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.103  1999/07/24 15:12:59  michael
   changes for resourcestrings
 
   Revision 1.102  1999/07/24 13:36:23  michael

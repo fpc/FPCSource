@@ -230,7 +230,7 @@ unit tree;
              vecn : (memindex,memseg:boolean;callunique : boolean);
              stringconstn : (value_str : pchar;length : longint; lab_str : pasmlabel;stringtype : tstringtype);
              typeconvn : (convtyp : tconverttype;explizit : boolean);
-             typen : (typenodetype : pdef);
+             typen : (typenodetype : pdef;typenodesym:ptypesym);
              inlinen : (inlinenumber : byte;inlineconst:boolean);
              procinlinen : (inlinetree:ptree;inlineprocsym:pprocsym;retoffset,para_offset,para_size : longint);
              setconstn : (value_set : pconstset;lab_set:pasmlabel);
@@ -253,7 +253,7 @@ unit tree;
     function genordinalconstnode(v : longint;def : pdef) : ptree;
     function genfixconstnode(v : longint;def : pdef) : ptree;
     function gentypeconvnode(node : ptree;t : pdef) : ptree;
-    function gentypenode(t : pdef) : ptree;
+    function gentypenode(t : pdef;sym:ptypesym) : ptree;
     function gencallparanode(expr,next : ptree) : ptree;
     function genrealconstnode(v : bestreal;def : pdef) : ptree;
     function gencallnode(v : pprocsym;st : psymtable) : ptree;
@@ -1036,11 +1036,9 @@ unit tree;
          gentypeconvnode:=p;
       end;
 
-    function gentypenode(t : pdef) : ptree;
-
+    function gentypenode(t : pdef;sym:ptypesym) : ptree;
       var
          p : ptree;
-
       begin
          p:=getnode;
          p^.disposetyp:=dt_nothing;
@@ -1054,6 +1052,7 @@ unit tree;
 {$endif SUPPORT_MMX}
          p^.resulttype:=generrordef;
          p^.typenodetype:=t;
+         p^.typenodesym:=sym;
          gentypenode:=p;
       end;
 
@@ -1731,7 +1730,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.83  1999-05-27 19:45:29  peter
+  Revision 1.84  1999-07-27 23:42:24  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.83  1999/05/27 19:45:29  peter
     * removed oldasm
     * plabel -> pasmlabel
     * -a switches to source writing automaticly

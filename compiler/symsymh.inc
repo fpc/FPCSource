@@ -173,6 +173,7 @@
           localvarsym  : pvarsym;
           islocalcopy  : boolean;
           definition   : pdef;
+          definitionsym : ptypesym;
           refs         : longint;
           var_options  : byte;
           _mangledname : pchar;
@@ -182,6 +183,9 @@
           constructor init(const n : string;p : pdef);
           constructor init_dll(const n : string;p : pdef);
           constructor init_C(const n,mangled : string;p : pdef);
+          constructor initsym(const n : string;p : ptypesym);
+          constructor initsym_dll(const n : string;p : ptypesym);
+          constructor initsym_C(const n,mangled : string;p : ptypesym);
           constructor load;
           destructor done;virtual;
           procedure write;virtual;
@@ -260,8 +264,10 @@
        ttypedconstsym = object(tsym)
           prefix : pstring;
           definition : pdef;
+          definitionsym : ptypesym;
           is_really_const : boolean;
           constructor init(const n : string;p : pdef;really_const : boolean);
+          constructor initsym(const n : string;p : ptypesym;really_const : boolean);
           constructor load;
           destructor done;virtual;
           function  mangledname : string;virtual;
@@ -269,7 +275,6 @@
           procedure deref;virtual;
           function  getsize:longint;
           procedure insert_in_data;virtual;
-          procedure really_insert_in_data;
 {$ifdef GDB}
           function stabstring : pchar;virtual;
 {$endif GDB}
@@ -333,7 +338,10 @@
 
 {
   $Log$
-  Revision 1.28  1999-07-24 15:13:01  michael
+  Revision 1.29  1999-07-27 23:42:23  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.28  1999/07/24 15:13:01  michael
   changes for resourcestrings
 
   Revision 1.27  1999/07/22 09:37:57  florian

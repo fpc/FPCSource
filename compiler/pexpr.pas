@@ -978,15 +978,19 @@ unit pexpr;
                                end
                               else
                                begin
-                                 { illegal reference ? }
-                                 if pd^.owner^.unitid=-1 then
-                                  Comment(V_Error,'illegal type reference, unit '+pd^.owner^.name^+' is not in uses');
                                  { if we read a type declaration  }
                                  { we have to return the type and }
                                  { nothing else               }
                                   if block_type=bt_type then
                                    begin
-                                     p1:=gentypenode(pd);
+                                     { we don't need sym reference when it's in the
+                                       current unit or system unit, because those
+                                       units are always loaded (PFV) }
+                                     if (pd^.owner^.unitid=0) or
+                                        (pd^.owner^.unitid=1) then
+                                      p1:=gentypenode(pd,nil)
+                                     else
+                                      p1:=gentypenode(pd,ptypesym(srsym));
                                      { here we can also set resulttype !! }
                                      p1^.resulttype:=pd;
                                      pd:=voiddef;
@@ -1011,7 +1015,7 @@ unit pexpr;
                                           begin
                                             if procinfo._class^.isrelated(pobjectdef(pd)) then
                                              begin
-                                               p1:=gentypenode(pd);
+                                               p1:=gentypenode(pd,ptypesym(srsym));
                                                p1^.resulttype:=pd;
                                                srsymtable:=pobjectdef(pd)^.publicsyms;
                                                sym:=pvarsym(srsymtable^.search(pattern));
@@ -1061,7 +1065,7 @@ unit pexpr;
                                           if (pd^.deftype=objectdef)
                                             and pobjectdef(pd)^.isclass then
                                             begin
-                                               p1:=gentypenode(pd);
+                                               p1:=gentypenode(pd,nil);
                                                p1^.resulttype:=pd;
                                                pd:=new(pclassrefdef,init(pd));
                                                p1:=gensinglenode(loadvmtn,p1);
@@ -1073,7 +1077,7 @@ unit pexpr;
                                                { (for typeof etc)     }
                                                if allow_type then
                                                  begin
-                                                    p1:=gentypenode(pd);
+                                                    p1:=gentypenode(pd,nil);
                                                     { here we must use typenodetype explicitly !! PM
                                                     p1^.resulttype:=pd; }
                                                     pd:=voiddef;
@@ -1723,7 +1727,7 @@ unit pexpr;
                     postfixoperators;
                   end
                  else
-                  p1:=gentypenode(pd);
+                  p1:=gentypenode(pd,nil);
                end;
        _FILE : begin
                  pd:=cfiledef;
@@ -1741,7 +1745,7 @@ unit pexpr;
                     postfixoperators;
                   end
                  else
-                  p1:=gentypenode(pd);
+                  p1:=gentypenode(pd,nil);
                end;
      CSTRING : begin
                  p1:=genstringconstnode(pattern);
@@ -2056,7 +2060,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.124  1999-07-23 21:31:42  peter
+  Revision 1.125  1999-07-27 23:42:14  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.124  1999/07/23 21:31:42  peter
     * fixed crash with resourcestring
 
   Revision 1.123  1999/07/23 11:37:46  peter

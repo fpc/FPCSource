@@ -78,10 +78,6 @@ unit pbase;
     { reads a list of identifiers into a string container }
     function idlist : pstringcontainer;
 
-    { inserts the symbols of sc in st with def as definition }
-    { sc is disposed                                         }
-    procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef;is_threadvar : boolean);
-
     { just for an accurate position of the end of a procedure (PM) }
     var
        last_endtoken_filepos: tfileposinfo;
@@ -165,41 +161,14 @@ unit pbase;
          idlist:=sc;
       end;
 
-
-    { inserts the symbols of sc in st with def as definition }
-    { sc is disposed                                         }
-    procedure insert_syms(st : psymtable;sc : pstringcontainer;def : pdef;is_threadvar : boolean);
-      var
-         s : string;
-         filepos : tfileposinfo;
-         ss : pvarsym;
-      begin
-         filepos:=tokenpos;
-         while not sc^.empty do
-           begin
-              s:=sc^.get_with_tokeninfo(tokenpos);
-              ss:=new(pvarsym,init(s,def));
-              if is_threadvar then
-                ss^.var_options:=ss^.var_options or vo_is_thread_var;
-              st^.insert(ss);
-              { static data fields are inserted in the globalsymtable }
-              if (st^.symtabletype=objectsymtable) and
-                 ((current_object_option and sp_static)<>0) then
-                begin
-                   s:=lower(st^.name^)+'_'+s;
-                   st^.defowner^.owner^.insert(new(pvarsym,init(s,def)));
-                end;
-
-           end;
-         dispose(sc,done);
-         tokenpos:=filepos;
-      end;
-
 end.
 
 {
   $Log$
-  Revision 1.22  1999-07-26 09:42:10  florian
+  Revision 1.23  1999-07-27 23:42:10  peter
+    * indirect type referencing is now allowed
+
+  Revision 1.22  1999/07/26 09:42:10  florian
     * bugs 494-496 fixed
 
   Revision 1.21  1999/04/28 06:02:05  florian
