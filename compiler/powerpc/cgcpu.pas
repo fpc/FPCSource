@@ -1169,8 +1169,11 @@ const
 
 { see "!!! always allocate space for all registers for now !!!" above }
 
+{        done in ncgutil because it may only be released after the parameters }
+{        have been moved to their final resting place                         }
 {        if usesfpr or usesgpr then }
-          a_reg_dealloc(list,NR_R12);
+{          a_reg_dealloc(list,NR_R12); }
+
 
         { if we didn't get the GOT pointer till now, we've to calculate it now }
         if not(gotgot) and (pi_needs_got in current_procinfo.flags) then
@@ -2293,7 +2296,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.187  2004-12-04 21:47:46  jonas
+  Revision 1.188  2004-12-11 12:42:28  jonas
+    * fixed synchronising 64bit regvars on 32bit systems at the start and
+      end of procedures
+    * hack for ppc for loading of paras from their callee location to local
+      temps
+
+  Revision 1.187  2004/12/04 21:47:46  jonas
     * modifications to work with the generic code to copy LOC_REFERENCE
       parameters to local temps (fixes tests/test/cg/tmanypara)
 

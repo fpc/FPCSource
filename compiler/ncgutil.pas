@@ -138,10 +138,6 @@ implementation
 *****************************************************************************}
 
     procedure location_free(list: taasmoutput; const location : TLocation);
-{$ifdef cputargethasfixedstack}
-      var
-        href : treference;
-{$endif cputargethasfixedstack}
       begin
         case location.loc of
           LOC_VOID:
@@ -1455,6 +1451,11 @@ implementation
           the initialization and body is parsed because the refcounts are
           incremented using the local copies }
         current_procinfo.procdef.parast.foreach_static({$ifndef TP}@{$endif}copyvalueparas,list);
+{$ifdef powerpc}
+        { unget the register that contains the stack pointer before the procedure entry, }
+        { which is used to access the parameters in their original callee-side location  }
+        cg.a_reg_dealloc(list,NR_R12);
+{$endif powerpc}
       end;
 
 
@@ -1978,7 +1979,15 @@ implementation
                             end;
                             { Allocate register already, to prevent first allocation to be
                               inside a loop }
-                            cg.a_reg_sync(list,localloc.register);
+{$ifndef cpu64bit}
+                            if cgsize in [OS_64,OS_S64] then
+                              begin
+                                cg.a_reg_sync(list,localloc.register64.reglo);
+                                cg.a_reg_sync(list,localloc.register64.reghi);
+                              end
+                            else
+{$endif cpu64bit}
+                              cg.a_reg_sync(list,localloc.register);
                           end
                         else
 {$endif NOT OLDREGVARS}
@@ -2063,7 +2072,15 @@ implementation
                       in the parent procedures }
                     case localloc.loc of
                       LOC_CREGISTER :
-                        cg.a_reg_sync(list,localloc.register);
+{$ifndef cpu64bit}
+                        if def_cgsize(vartype.def) in [OS_64,OS_S64] then
+                          begin
+                            cg.a_reg_sync(list,localloc.register64.reglo);
+                            cg.a_reg_sync(list,localloc.register64.reghi);
+                          end
+                        else
+{$endif cpu64bit}
+                          cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         begin
                           case st.symtabletype of
@@ -2290,7 +2307,13 @@ implementation
 end.
 {
   $Log$
-  Revision 1.248  2004-12-11 01:03:01  jonas
+  Revision 1.249  2004-12-11 12:42:28  jonas
+    * fixed synchronising 64bit regvars on 32bit systems at the start and
+      end of procedures
+    * hack for ppc for loading of paras from their callee location to local
+      temps
+
+  Revision 1.248  2004/12/11 01:03:01  jonas
     * fixed int64 regvar bug in location_force_register
 
   Revision 1.247  2004/12/05 12:28:11  peter
