@@ -1,6 +1,6 @@
 {
     $Id$
-    Copyright (c) 1997-98 by Jonas Maebe
+    Copyright (c) 1997-98 by the Free Pascal Development Team
 
     This unit contains the data flow analyzer and several helper procedures
     and functions.
@@ -110,7 +110,7 @@ Type
              {read and write from/to a register}
              C_RWEAX, C_RWECX, C_RWEDX, C_RWEBX, C_RWESP, C_RWEBP, C_RWESI, C_RWEDI,
              C_CDirFlag {clear direction flag}, C_SDirFlag {set dir flag},
-             C_Flags, C_FPU,
+             C_RFlags, C_WFlags, C_RWFlags, C_FPU,
              C_ROp1, C_WOp1, C_RWOp1,
              C_ROp2, C_WOp2, C_RWOp2,
              C_ROp3, C_WOp3, C_RWOp3,
@@ -132,8 +132,10 @@ Type
        content of this register. If Typ = con_const, then
        Longint(StartMod) = value of the constant)}
                StartMod: Pointer;
-      {starts at 1, gets increased everytime the register is modified}
-               State: Word;
+      {starts at 0, gets increased everytime the register is modified}
+               WState: Byte;
+      {starts at 0, gets increased everytime the register is read from}
+               RState: Byte;
       {how many instructions starting with StarMod does the block consist of}
                NrOfMods: Byte;
       {if one register gets a block assigned from an other register,
@@ -166,22 +168,21 @@ Type
              End;
 
   PPaiProp = ^TPaiProp;
-{$IfDef TP}
-  TPaiPropBlock = Array[1..(65520 div (((SizeOf(TPaiProp)+1)div 2)*2))] Of TPaiProp;
-{$else}
+
+{$IfNDef TP}
   TPaiPropBlock = Array[1..250000] Of TPaiProp;
-{$EndIf TP}
   PPaiPropBlock = ^TPaiPropBlock;
+{$EndIf TP}
 
   TInstrSinceLastMod = Array[R_EAX..R_EDI] Of Byte;
 
   TLabelTableItem = Record
                       PaiObj: Pai;
-{$IfNDef TP}
+{$IfDef JumpAnal}
                       InstrNr: Longint;
                       RefsFound: Word;
                       JmpsProcessed: Word
-{$EndIf TP}
+{$EndIf JumpAnal}
                     End;
 {$IfDef tp}
   TLabelTable = Array[0..10000] Of TLabelTableItem;
@@ -198,8 +199,11 @@ Type
 Var
 {the amount of PaiObjects in the current assembler list}
   NrOfPaiObjs: Longint;
-{Array which holds all (FPC) or as much as possible (TP) PPaiProps}
+
+{$IfNDef TP}
+{Array which holds all TPaiProps}
   PaiPropBlock: PPaiPropBlock;
+{$EndIf TP}
 
   LoLab, HiLab, LabDif: Longint;
 
@@ -216,45 +220,45 @@ Uses globals, systems, strings, verbose, hcodegen,
    {$endif i386}
 
 Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
-   {MOV} (Ch: (C_WOp2, C_None, C_None)),
- {MOVZX} (Ch: (C_WOp2, C_None, C_None)),
- {MOVSX} (Ch: (C_WOp2, C_None, C_None)),
+   {MOV} (Ch: (C_WOp2, C_ROp1, C_None)),
+ {MOVZX} (Ch: (C_WOp2, C_ROp1, C_None)),
+ {MOVSX} (Ch: (C_WOp2, C_ROp1, C_None)),
  {LABEL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-   {ADD} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {ADD} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
   {CALL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {IDIV} (Ch: (C_RWEAX, C_WEDX, C_Flags)),
-  {IMUL} (Ch: (C_WEAX, C_WEDX, C_Flags)), {handled separately, because several forms exist}
+  {IDIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
+  {IMUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)), {handled separately, because several forms exist}
    {JMP} (Ch: (C_None, C_None, C_None)),
-   {LEA} (Ch: (C_WOp2, C_None, C_None)),
-   {MUL} (Ch: (C_RWEAX, C_WEDX, C_Flags)),
-   {NEG} (Ch: (C_WOp1, C_None, C_None)),
-   {NOT} (Ch: (C_WOp1, C_Flags, C_None)),
+   {LEA} (Ch: (C_WOp2, C_ROp1, C_None)),
+   {MUL} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
+   {NEG} (Ch: (C_RWOp1, C_None, C_None)),
+   {NOT} (Ch: (C_RWOp1, C_WFlags, C_None)),
    {POP} (Ch: (C_WOp1, C_RWESP, C_None)),
- {POPAD} (Ch: (C_None, C_None, C_None)), {don't know value of any register}
+ {POPAD} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {PUSH} (Ch: (C_RWESP, C_None, C_None)),
 {PUSHAD} (Ch: (C_RWESP, C_None, C_None)),
-   {RET} (Ch: (C_None, C_None, C_None)), {don't know value of any register}
-   {SUB} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {RET} (Ch: (C_None, C_None, C_None)),
+   {SUB} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
   {XCHG} (Ch: (C_RWOp1, C_RWOp2, C_None)), {(will be) handled seperately}
-   {XOR} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {XOR} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
   {FILD} (Ch: (C_FPU, C_None, C_None)),
-   {CMP} (Ch: (C_Flags, C_None, C_None)),
+   {CMP} (Ch: (C_RFlags, C_None, C_None)),
     {JZ} (Ch: (C_None, C_None, C_None)),
-   {INC} (Ch: (C_RWOp1, C_Flags, C_None)),
-   {DEC} (Ch: (C_RWOp1, C_Flags, C_None)),
-  {SETE} (Ch: (C_WOp1, C_None, C_None)),
- {SETNE} (Ch: (C_WOp1, C_None, C_None)),
-  {SETL} (Ch: (C_WOp1, C_None, C_None)),
-  {SETG} (Ch: (C_WOp1, C_None, C_None)),
- {SETLE} (Ch: (C_WOp1, C_None, C_None)),
- {SETGE} (Ch: (C_WOp1, C_None, C_None)),
-    {JE} (Ch: (C_None, C_None, C_None)),
-   {JNE} (Ch: (C_None, C_None, C_None)),
-    {JL} (Ch: (C_None, C_None, C_None)),
-    {JG} (Ch: (C_None, C_None, C_None)),
-   {JLE} (Ch: (C_None, C_None, C_None)),
-   {JGE} (Ch: (C_None, C_None, C_None)),
-    {OR} (Ch: (C_RWOp2, C_Flags, C_None)),
+   {INC} (Ch: (C_RWOp1, C_RFlags, C_None)),
+   {DEC} (Ch: (C_RWOp1, C_WFlags, C_None)),
+  {SETE} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNE} (Ch: (C_WOp1, C_RFlags, C_None)),
+  {SETL} (Ch: (C_WOp1, C_RFlags, C_None)),
+  {SETG} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETLE} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETGE} (Ch: (C_WOp1, C_RFlags, C_None)),
+    {JE} (Ch: (C_RFlags, C_None, C_None)),
+   {JNE} (Ch: (C_RFlags, C_None, C_None)),
+    {JL} (Ch: (C_RFlags, C_None, C_None)),
+    {JG} (Ch: (C_RFlags, C_None, C_None)),
+   {JLE} (Ch: (C_RFlags, C_None, C_None)),
+   {JGE} (Ch: (C_RFlags, C_None, C_None)),
+    {OR} (Ch: (C_RWOp2, C_WFlags, C_None)),
    {FLD} (Ch: (C_FPU, C_None, C_None)),
   {FADD} (Ch: (C_FPU, C_None, C_None)),
   {FMUL} (Ch: (C_FPU, C_None, C_None)),
@@ -263,26 +267,26 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
   {FCHS} (Ch: (C_FPU, C_None, C_None)),
   {FLD1} (Ch: (C_FPU, C_None, C_None)),
  {FIDIV} (Ch: (C_FPU, C_None, C_None)),
-  {CLTD} (Ch: (C_WEDX, C_None, C_None)),
-   {JNZ} (Ch: (C_None, C_None, C_None)),
+  {CLTD} (Ch: (C_WEDX, C_REAX, C_None)),
+   {JNZ} (Ch: (C_RFlags, C_None, C_None)),
   {FSTP} (Ch: (C_WOp1, C_None, C_None)),
-   {AND} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {JNO} (Ch: (C_None, C_None, C_None)),
+   {AND} (Ch: (C_RWOp2, C_WFlags, C_None)),
+   {JNO} (Ch: (C_RFlags, C_None, C_None)),
   {NOTH} (Ch: (C_None, C_None, C_None)), {***???***}
   {NONE} (Ch: (C_None, C_None, C_None)),
  {ENTER} (Ch: (C_RWESP, C_None, C_None)),
  {LEAVE} (Ch: (C_RWESP, C_None, C_None)),
    {CLD} (Ch: (C_CDirFlag, C_None, C_None)),
   {MOVS} (Ch: (C_RWESI, C_RWEDI, C_MemEDI)),
-   {REP} (Ch: (C_RWECX, C_None, C_None)),
-   {SHL} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {SHR} (Ch: (C_RWOp2, C_Flags, C_None)),
- {BOUND} (Ch: (C_None, C_None, C_None)),
-   {JNS} (Ch: (C_None, C_None, C_None)),
-    {JS} (Ch: (C_None, C_None, C_None)),
-    {JO} (Ch: (C_None, C_None, C_None)),
-   {SAR} (Ch: (C_RWOp2, C_Flags, C_None)),
-  {TEST} (Ch: (C_Flags, C_None, C_None)),
+   {REP} (Ch: (C_RWECX, C_RFlags, C_None)),
+   {SHL} (Ch: (C_RWOp2, C_WFlags, C_None)),
+   {SHR} (Ch: (C_RWOp2, C_WFlags, C_None)),
+ {BOUND} (Ch: (C_ROp1, C_None, C_None)),
+   {JNS} (Ch: (C_RFlags, C_None, C_None)),
+    {JS} (Ch: (C_RFlags, C_None, C_None)),
+    {JO} (Ch: (C_RFlags, C_None, C_None)),
+   {SAR} (Ch: (C_RWOp2, C_WFlags, C_None)),
+  {TEST} (Ch: (C_WFlags, C_ROp1, C_ROp2)),
   {FCOM} (Ch: (C_FPU, C_None, C_None)),
  {FCOMP} (Ch: (C_FPU, C_None, C_None)),
 {FCOMPP} (Ch: (C_FPU, C_None, C_None)),
@@ -292,31 +296,31 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {FSUBP} (Ch: (C_FPU, C_None, C_None)),
  {FDIVP} (Ch: (C_FPU, C_None, C_None)),
  {FNSTS} (Ch: (C_WOp1, C_None, C_None)),
-  {SAHF} (Ch: (C_Flags, C_None, C_None)),
+  {SAHF} (Ch: (C_WFlags, C_REAX, C_None)),
 {FDIVRP} (Ch: (C_FPU, C_None, C_None)),
 {FSUBRP} (Ch: (C_FPU, C_None, C_None)),
-  {SETC} (Ch: (C_WOp1, C_None, C_None)),
- {SETNC} (Ch: (C_WOp1, C_None, C_None)),
-    {JC} (Ch: (C_None, C_None, C_None)),
-   {JNC} (Ch: (C_None, C_None, C_None)),
-    {JA} (Ch: (C_None, C_None, C_None)),
-   {JAE} (Ch: (C_None, C_None, C_None)),
-    {JB} (Ch: (C_None, C_None, C_None)),
-   {JBE} (Ch: (C_None, C_None, C_None)),
-  {SETA} (Ch: (C_WOp1, C_None, C_None)),
- {SETAE} (Ch: (C_WOp1, C_None, C_None)),
-  {SETB} (Ch: (C_WOp1, C_None, C_None)),
- {SETBE} (Ch: (C_WOp1, C_None, C_None)),
-   {AAA} (Ch: (C_RWEAX, C_Flags, C_None)),
-   {AAD} (Ch: (C_RWEAX, C_Flags, C_None)),
-   {AAM} (Ch: (C_RWEAX, C_Flags, C_None)),
-   {AAS} (Ch: (C_RWEAX, C_Flags, C_None)),
+  {SETC} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNC} (Ch: (C_WOp1, C_RFlags, C_None)),
+    {JC} (Ch: (C_None, C_RFlags, C_None)),
+   {JNC} (Ch: (C_None, C_RFlags, C_None)),
+    {JA} (Ch: (C_None, C_RFlags, C_None)),
+   {JAE} (Ch: (C_None, C_RFlags, C_None)),
+    {JB} (Ch: (C_None, C_RFlags, C_None)),
+   {JBE} (Ch: (C_None, C_RFlags, C_None)),
+  {SETA} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETAE} (Ch: (C_WOp1, C_RFlags, C_None)),
+  {SETB} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETBE} (Ch: (C_WOp1, C_RFlags, C_None)),
+   {AAA} (Ch: (C_RWEAX, C_WFlags, C_None)),
+   {AAD} (Ch: (C_RWEAX, C_WFlags, C_None)),
+   {AAM} (Ch: (C_RWEAX, C_WFlags, C_None)),
+   {AAS} (Ch: (C_RWEAX, C_WFlags, C_None)),
    {CBW} (Ch: (C_RWEAX, C_None, C_None)),
    {CDQ} (Ch: (C_RWEAX, C_WEDX, C_None)),
-   {CLC} (Ch: (C_Flags, C_None, C_None)),
-   {CLI} (Ch: (C_Flags, C_None, C_None)),
+   {CLC} (Ch: (C_WFlags, C_None, C_None)),
+   {CLI} (Ch: (C_WFlags, C_None, C_None)),
   {CLTS} (Ch: (C_None, C_None, C_None)),
-   {CMC} (Ch: (C_Flags, C_None, C_None)),
+   {CMC} (Ch: (C_WFlags, C_None, C_None)),
    {CWD} (Ch: (C_RWEAX, C_WEDX, C_None)),
   {CWDE} (Ch: (C_RWEAX, C_None, C_None)),
    {DAA} (Ch: (C_RWEAX, C_None, C_None)),
@@ -330,109 +334,109 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
  {PUSHA} (Ch: (C_RWESP, C_None, C_None)),
  {PUSHF} (Ch: (C_RWESP, C_None, C_None)),
 {PUSHFD} (Ch: (C_RWESP, C_None, C_None)),
-   {STC} (Ch: (C_Flags, C_None, C_None)),
+   {STC} (Ch: (C_WFlags, C_None, C_None)),
    {STD} (Ch: (C_SDirFlag, C_None, C_None)),
-   {STI} (Ch: (C_Flags, C_None, C_None)),
+   {STI} (Ch: (C_WFlags, C_None, C_None)),
   {STOS} (Ch: (C_MemEDI, C_RWEDI, C_None)),
   {WAIT} (Ch: (C_None, C_None, C_None)),
   {XLAT} (Ch: (C_WEAX, C_None, C_None)),
  {XLATB} (Ch: (C_WEAX, C_None, C_None)),
- {MOVSB} (Ch: (C_WOp2, C_None, C_None)),
-{MOVSBL} (Ch: (C_WOp2, C_None, C_None)),
-{MOVSBW} (Ch: (C_WOp2, C_None, C_None)),
-{MOVSWL} (Ch: (C_WOp2, C_None, C_None)),
- {MOVZB} (Ch: (C_WOp2, C_None, C_None)),
-{MOVZWL} (Ch: (C_WOp2, C_None, C_None)),
-  {POPA} (Ch: (C_None, C_None, C_None)), {don't know value of any register}
-    {IN} (Ch: (C_WOp2, C_None, C_None)),
-   {OUT} (Ch: (C_None, C_None, C_None)),
+ {MOVSB} (Ch: (C_WOp2, C_ROp1, C_None)),
+{MOVSBL} (Ch: (C_WOp2, C_ROp1, C_None)),
+{MOVSBW} (Ch: (C_WOp2, C_ROp1, C_None)),
+{MOVSWL} (Ch: (C_WOp2, C_ROp1, C_None)),
+ {MOVZB} (Ch: (C_WOp2, C_ROp1, C_None)),
+{MOVZWL} (Ch: (C_WOp2, C_ROp1, C_None)),
+  {POPA} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
+    {IN} (Ch: (C_WOp2, C_ROp1, C_None)),
+   {OUT} (Ch: (C_ROp1, C_ROp2, C_None)),
    {LDS} (Ch: (C_WOp2, C_None, C_None)),
    {LCS} (Ch: (C_WOp2, C_None, C_None)),
    {LES} (Ch: (C_WOp2, C_None, C_None)),
    {LFS} (Ch: (C_WOp2, C_None, C_None)),
    {LGS} (Ch: (C_WOp2, C_None, C_None)),
    {LSS} (Ch: (C_WOp2, C_None, C_None)),
-  {POPF} (Ch: (C_RWESP, C_Flags, C_None)),
-   {SBB} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {ADC} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {DIV} (Ch: (C_RWEAX, C_WEDX, C_Flags)),
-   {ROR} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {ROL} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {RCL} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {RCR} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {SAL} (Ch: (C_RWOp2, C_Flags, C_None)),
-  {SHLD} (Ch: (C_RWOp3, C_Flags, C_None)),
-  {SHRD} (Ch: (C_RWOp3, C_Flags, C_None)),
+  {POPF} (Ch: (C_RWESP, C_WFlags, C_None)),
+   {SBB} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
+   {ADC} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
+   {DIV} (Ch: (C_RWEAX, C_WEDX, C_WFlags)),
+   {ROR} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
+   {ROL} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
+   {RCL} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
+   {RCR} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
+   {SAL} (Ch: (C_RWOp2, C_ROp1, C_RWFlags)),
+  {SHLD} (Ch: (C_RWOp3, C_RWFlags, C_ROp2)),
+  {SHRD} (Ch: (C_RWOp3, C_RWFlags, C_ROp1)),
  {LCALL} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {LJMP} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {LRET} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-  {JNAE} (Ch: (C_None, C_None, C_None)),
-   {JNB} (Ch: (C_None, C_None, C_None)),
-   {JNA} (Ch: (C_None, C_None, C_None)),
-  {JNBE} (Ch: (C_None, C_None, C_None)),
-    {JP} (Ch: (C_None, C_None, C_None)),
-   {JNP} (Ch: (C_None, C_None, C_None)),
-   {JPE} (Ch: (C_None, C_None, C_None)),
-   {JPO} (Ch: (C_None, C_None, C_None)),
-  {JNGE} (Ch: (C_None, C_None, C_None)),
-   {JNG} (Ch: (C_None, C_None, C_None)),
-   {JNL} (Ch: (C_None, C_None, C_None)),
-  {JNLE} (Ch: (C_None, C_None, C_None)),
-  {JCXZ} (Ch: (C_None, C_None, C_None)),
- {JECXZ} (Ch: (C_None, C_None, C_None)),
+  {JNAE} (Ch: (C_RFlags, C_None, C_None)),
+   {JNB} (Ch: (C_RFlags, C_None, C_None)),
+   {JNA} (Ch: (C_RFlags, C_None, C_None)),
+  {JNBE} (Ch: (C_RFlags, C_None, C_None)),
+    {JP} (Ch: (C_RFlags, C_None, C_None)),
+   {JNP} (Ch: (C_RFlags, C_None, C_None)),
+   {JPE} (Ch: (C_RFlags, C_None, C_None)),
+   {JPO} (Ch: (C_RFlags, C_None, C_None)),
+  {JNGE} (Ch: (C_RFlags, C_None, C_None)),
+   {JNG} (Ch: (C_RFlags, C_None, C_None)),
+   {JNL} (Ch: (C_RFlags, C_None, C_None)),
+  {JNLE} (Ch: (C_RFlags, C_None, C_None)),
+  {JCXZ} (Ch: (C_RECX, C_None, C_None)),
+ {JECXZ} (Ch: (C_RECX, C_None, C_None)),
   {LOOP} (Ch: (C_RWECX, C_None, C_None)),
-  {CMPS} (Ch: (C_RWESI, C_RWEDI, C_Flags)),
+  {CMPS} (Ch: (C_RWESI, C_RWEDI, C_WFlags)),
    {INS} (Ch: (C_RWEDI, C_MemEDI, C_None)),
   {OUTS} (Ch: (C_RWESI, C_None, C_None)),
-  {SCAS} (Ch: (C_RWEDI, C_Flags, C_None)),
-   {BSF} (Ch: (C_WOp2, C_Flags, C_None)),
-   {BSR} (Ch: (C_WOp2, C_Flags, C_None)),
-    {BT} (Ch: (C_Flags, C_None, C_None)),
-   {BTC} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {BTR} (Ch: (C_RWOp2, C_Flags, C_None)),
-   {BTS} (Ch: (C_RWOp2, C_Flags, C_None)),
+  {SCAS} (Ch: (C_RWEDI, C_WFlags, C_None)),
+   {BSF} (Ch: (C_WOp2, C_WFlags, C_ROp1)),
+   {BSR} (Ch: (C_WOp2, C_WFlags, C_ROp1)),
+    {BT} (Ch: (C_WFlags, C_ROp1, C_None)),
+   {BTC} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
+   {BTR} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
+   {BTS} (Ch: (C_RWOp2, C_ROp1, C_WFlags)),
    {INT} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
   {INT3} (Ch: (C_None, C_None, C_None)),
   {INTO} (Ch: (C_All, C_None, C_None)), {don't know value of any register}
-{BOUNDL} (Ch: (C_None, C_None, C_None)),
-{BOUNDW} (Ch: (C_None, C_None, C_None)),
- {LOOPZ} (Ch: (C_RWECX, C_None, C_None)),
- {LOOPE} (Ch: (C_RWECX, C_None, C_None)),
-{LOOPNZ} (Ch: (C_RWECX, C_None, C_None)),
-{LOOPNE} (Ch: (C_RWECX, C_None, C_None)),
-  {SETO} (Ch: (C_WOp1, C_None, C_None)),
- {SETNO} (Ch: (C_WOp1, C_None, C_None)),
-{SETNAE} (Ch: (C_WOp1, C_None, C_None)),
- {SETNB} (Ch: (C_WOp1, C_None, C_None)),
-  {SETZ} (Ch: (C_WOp1, C_None, C_None)),
- {SETNZ} (Ch: (C_WOp1, C_None, C_None)),
- {SETNA} (Ch: (C_WOp1, C_None, C_None)),
-{SETNBE} (Ch: (C_WOp1, C_None, C_None)),
-  {SETS} (Ch: (C_WOp1, C_None, C_None)),
- {SETNS} (Ch: (C_WOp1, C_None, C_None)),
-  {SETP} (Ch: (C_WOp1, C_None, C_None)),
- {SETPE} (Ch: (C_WOp1, C_None, C_None)),
- {SETNP} (Ch: (C_WOp1, C_None, C_None)),
- {SETPO} (Ch: (C_WOp1, C_None, C_None)),
-{SETNGE} (Ch: (C_WOp1, C_None, C_None)),
- {SETNL} (Ch: (C_WOp1, C_None, C_None)),
- {SETNG} (Ch: (C_WOp1, C_None, C_None)),
-{SETNLE} (Ch: (C_WOp1, C_None, C_None)),
-  {ARPL} (Ch: (C_Flags, C_None, C_None)),
+{BOUNDL} (Ch: (C_ROp1, C_None, C_None)),
+{BOUNDW} (Ch: (C_ROp1, C_None, C_None)),
+ {LOOPZ} (Ch: (C_RWECX, C_RFlags, C_None)),
+ {LOOPE} (Ch: (C_RWECX, C_RFlags, C_None)),
+{LOOPNZ} (Ch: (C_RWECX, C_RFlags, C_None)),
+{LOOPNE} (Ch: (C_RWECX, C_RFlags, C_None)),
+  {SETO} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNO} (Ch: (C_WOp1, C_RFlags, C_None)),
+{SETNAE} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNB} (Ch: (C_WOp1, C_RFlags, C_None)),
+  {SETZ} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNZ} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNA} (Ch: (C_WOp1, C_RFlags, C_None)),
+{SETNBE} (Ch: (C_WOp1, C_RFlags, C_None)),
+  {SETS} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNS} (Ch: (C_WOp1, C_RFlags, C_None)),
+  {SETP} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETPE} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNP} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETPO} (Ch: (C_WOp1, C_RFlags, C_None)),
+{SETNGE} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNL} (Ch: (C_WOp1, C_RFlags, C_None)),
+ {SETNG} (Ch: (C_WOp1, C_RFlags, C_None)),
+{SETNLE} (Ch: (C_WOp1, C_RFlags, C_None)),
+  {ARPL} (Ch: (C_WFlags, C_None, C_None)),
    {LAR} (Ch: (C_WOp2, C_None, C_None)),
   {LGDT} (Ch: (C_None, C_None, C_None)),
   {LIDT} (Ch: (C_None, C_None, C_None)),
   {LLDT} (Ch: (C_None, C_None, C_None)),
   {LMSW} (Ch: (C_None, C_None, C_None)),
-   {LSL} (Ch: (C_WOp2, C_Flags, C_None)),
+   {LSL} (Ch: (C_WOp2, C_WFlags, C_None)),
    {LTR} (Ch: (C_None, C_None, C_None)),
   {SGDT} (Ch: (C_WOp1, C_None, C_None)),
   {SIDT} (Ch: (C_WOp1, C_None, C_None)),
   {SLDT} (Ch: (C_WOp1, C_None, C_None)),
   {SMSW} (Ch: (C_WOp1, C_None, C_None)),
   {STR}  (Ch: (C_WOp1, C_None, C_None)),
-  {VERR} (Ch: (C_Flags, C_None, C_None)),
-  {VERW} (Ch: (C_Flags, C_None, C_None)),
+  {VERR} (Ch: (C_WFlags, C_None, C_None)),
+  {VERW} (Ch: (C_WFlags, C_None, C_None)),
   {FABS} (Ch: (C_FPU, C_None, C_None)),
   {FBLD} (Ch: (C_FPU, C_None, C_None)),
  {FBSTP} (Ch: (C_WOp1, C_None, C_None)),
@@ -546,10 +550,10 @@ Const AsmInstr: Array[tasmop] Of TAsmInstrucProp = (
 {FIDIVRL}(Ch: (C_FPU, C_None, C_None)),
 {FDIVRL} (Ch: (C_FPU, C_None, C_None)),
 {FIDIVRS}(Ch: (C_FPU, C_None, C_None)),
-  {REPE} (Ch: (C_RWECX, C_None, C_None)),
- {REPNE} (Ch: (C_RWECX, C_None, C_None)),
+  {REPE} (Ch: (C_RWECX, C_RFlags, C_None)),
+ {REPNE} (Ch: (C_RWECX, C_RFlags, C_None)),
  {FADDS} (Ch: (C_FPU, C_None, C_None)),
- {POPFD} (Ch: (C_RWESP, C_Flags, C_None)),
+ {POPFD} (Ch: (C_RWESP, C_WFlags, C_None)),
 {below are the MMX instructions}
 {A_EMMS} (Ch: (C_FPU, C_None, C_None)),
 {A_MOVD} (Ch: (C_WOp2, C_None, C_None)),
@@ -672,7 +676,9 @@ Procedure BuildLabelTableAndFixRegAlloc(AsmL: PAasmOutput; Var LabelTable: PLabe
 {Builds a table with the locations of the labels in the paasmoutput.
  Also fixes some RegDeallocs like "# %eax released; push (%eax)"}
 Var p, hp1, hp2: Pai;
+    UsedRegs: TRegSet;
 Begin
+  UsedRegs := [];
   If (LabelDif <> 0) Then
     Begin
 {$IfDef TP}
@@ -685,23 +691,49 @@ Begin
             p := pai(AsmL^.first);
             While Assigned(p) Do
               Begin
-                If (p^.typ = ait_label) And
-                   (Pai_Label(p)^.l^.is_used) Then
-                  LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p
-                Else
-                  If (p^.typ = ait_regdealloc) And
-                     Not(FindRegAlloc(PaiRegAlloc(p)^.Reg, Pai(p^.Next))) And
-                     GetNextInstruction(p, hp1) And
-                     (RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Then
+                Case p^.typ Of
+                  ait_Label:
+                    If Pai_Label(p)^.l^.is_used Then
+                      LabelTable^[Pai_Label(p)^.l^.nb-LowLabel].PaiObj := p;
+                  ait_RegAlloc:
                     Begin
-                      hp2 := Pai(p^.previous);
-                      AsmL^.Remove(p);
-                      InsertLLItem(AsmL, hp1, Pai(hp1^.Next), p);
-                      p := hp2;
+                      If Not(PaiRegAlloc(p)^.Reg in UsedRegs) Then
+                        UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg]
+                      Else
+                        Begin
+                          hp1 := p;
+                          hp2 := nil;
+                          While GetLastInstruction(hp1, hp1) And
+                                Not(RegInInstruction(PaiRegAlloc(p)^.Reg, hp1)) Do
+                            hp2 := hp1;
+                         If hp2 <> nil Then
+                           Begin
+                             hp1 := New(PaiRegDeAlloc, Init(PaiRegAlloc(p)^.Reg));
+                             InsertLLItem(AsmL, Pai(hp2^.previous), hp2, hp1);
+                           End;
+                        End;
                     End;
+                  ait_RegDeAlloc:
+                    Begin
+                      UsedRegs := UsedRegs - [PaiRegDeAlloc(p)^.Reg];
+                      hp1 := p;
+                      hp2 := nil;
+                      While Not(FindRegAlloc(PaiRegDeAlloc(p)^.Reg, Pai(hp1^.Next))) And
+                            GetNextInstruction(hp1, hp1) And
+                            RegInInstruction(PaiRegDeAlloc(p)^.Reg, hp1) Do
+                        hp2 := hp1;
+                      If hp2 <> nil Then
+                        Begin
+                          hp1 := Pai(p^.previous);
+                          AsmL^.Remove(p);
+                          InsertLLItem(AsmL, hp2, Pai(hp2^.Next), p);
+                          p := hp1;
+                        End;
+                    End;
+                End;
                 P := Pai(p^.Next);
                 While Assigned(p) And
-                      (p^.typ in (SkipInstr - [ait_regdealloc])) Do
+                      (p^.typ in (SkipInstr - [ait_regdealloc,ait_regalloc])) Do
                   P := Pai(P^.Next);
               End;
 {$IfDef TP}
@@ -967,8 +999,8 @@ Begin
   If GetLastInstruction(p1, hp)
     Then
       RegModifiedByInstruction :=
-        PPAiProp(p1^.fileinfo.line)^.Regs[Reg].State <>
-          PPAiProp(hp^.fileinfo.line)^.Regs[Reg].State
+        PPAiProp(p1^.fileinfo.line)^.Regs[Reg].WState <>
+          PPAiProp(hp^.fileinfo.line)^.Regs[Reg].WState
     Else RegModifiedByInstruction := True;
 End;
 
@@ -1047,8 +1079,8 @@ End;
 
 Procedure UpdateUsedRegs(Var UsedRegs: TRegSet; p: Pai);
 {updates UsedRegs with the RegAlloc Information coming after P}
+Var hp: Pai;
 Begin
-{  p := Pai(p^.next);}
   Repeat
     While Assigned(p) And
           ((p^.typ in (SkipInstr - [ait_RegAlloc, ait_RegDealloc])) or
@@ -1060,7 +1092,7 @@ Begin
       Begin
         Case p^.typ Of
           ait_RegAlloc: UsedRegs := UsedRegs + [PaiRegAlloc(p)^.Reg];
-          ait_regdealloc: UsedRegs := UsedRegs - [PaiRegAlloc(p)^.Reg];
+          ait_regdealloc: UsedRegs := UsedRegs - [PaiRegDeAlloc(p)^.Reg];
         End;
         p := pai(p^.next);
       End;
@@ -1101,11 +1133,11 @@ Begin
       Else InternalError($db)
 End;
 
-Procedure IncState(Var S: Word);
+Procedure IncState(Var S: Byte);
 {Increases S by 1, wraps around at $ffff to 0 (so we won't get overflow
  errors}
 Begin
-  If (s <> $ffff)
+  If (s <> $ff)
     Then Inc(s)
     Else s := 0
 End;
@@ -1154,7 +1186,7 @@ End;
 Procedure DestroyReg(p1: PPaiProp; Reg: TRegister);
 {Destroys the contents of the register Reg in the PPaiProp p1, as well as the
  contents of registers are loaded with a memory location based on Reg}
-Var TmpState: Longint;
+Var TmpState: Byte;
     Counter: TRegister;
 Begin
   Reg := Reg32(Reg);
@@ -1164,10 +1196,10 @@ Begin
       Begin
         With p1^.Regs[Reg] Do
           Begin
-            IncState(State);
-            TmpState := State;
+            IncState(WState);
+            TmpState := WState;
             FillChar(p1^.Regs[Reg], SizeOf(TContent), 0);
-            State := TmpState;
+            WState := TmpState;
           End;
         For Counter := R_EAX to R_EDI Do
           With p1^.Regs[Counter] Do
@@ -1175,10 +1207,10 @@ Begin
                RegInSequence(Reg, p1^.Regs[Counter])
               Then
                 Begin
-                  IncState(State);
-                  TmpState := State;
+                  IncState(WState);
+                  TmpState := WState;
                   FillChar(p1^.Regs[Counter], SizeOf(TContent), 0);
-                  State := TmpState;
+                  WState := TmpState;
                 End;
        End;
 End;
@@ -1236,15 +1268,6 @@ Begin {checks whether the two ops are equal}
     Top_None: OpsEqual := True
     Else OpsEqual := False
   End;
-End; *)
-
-(* Function RegsSameContent(p1, p2: Pai; Reg: TRegister): Boolean;
-{checks whether Reg has the same content in the PPaiProp of p1 and p2}
-Begin
-  Reg := Reg32(Reg);
-  RegsSameContent :=
-    PPaiProp(p1^.fileinfo.line)^.Regs[Reg].State =
-    PPaiProp(p2^.fileinfo.line)^.Regs[Reg].State;
 End; *)
 
 Function InstructionsEquivalent(p1, p2: Pai; Var RegInfo: TRegInfo): Boolean;
@@ -1498,7 +1521,7 @@ First: Pai): Pai;
 Var
     CurProp: PPaiProp;
 {$ifdef AnalyzeLoops}
-    TmpState,
+    TmpState: Byte;
 {$endif AnalyzeLoops}
     Cnt, InstrCnt : Longint;
     InstrProp: TAsmInstrucProp;
@@ -1539,18 +1562,11 @@ Begin
           Begin
             FillChar(CurProp^, SizeOf(CurProp^), 0);
 {            For TmpReg := R_EAX to R_EDI Do
-              CurProp^.Regs[TmpReg].State := 1;}
+              CurProp^.Regs[TmpReg].WState := 1;}
           End;
       CurProp^.UsedRegs := UsedRegs;
       CurProp^.CanBeRemoved := False;
       UpdateUsedRegs(UsedRegs, Pai(p^.Next));
-{$ifdef csdebug}
-      If R_EAX in usedregs then
-        begin
-          hp := new(pai_asm_comment,init(strpnew('eax in set')));
-          InsertLLItem(AsmL, p, p^.next, hp);
-        end;
-{$endif csdebug}
 {$ifdef TP}
       CurProp^.linesave := p^.fileinfo.line;
       PPaiProp(p^.fileinfo.line) := CurProp;
@@ -1588,8 +1604,8 @@ Begin
    previous intruction has been executed have to be taken into account as well}
                             For TmpReg := R_EAX to R_EDI Do
                               Begin
-                                If (CurProp^.Regs[TmpReg].State <>
-                                    PPaiProp(hp^.FileInfo.Line)^.Regs[TmpReg].State)
+                                If (CurProp^.Regs[TmpReg].WState <>
+                                    PPaiProp(hp^.FileInfo.Line)^.Regs[TmpReg].WState)
                                   Then DestroyReg(CurProp, TmpReg)
                               End
                       End
@@ -1670,8 +1686,8 @@ Begin
                     Else
                       Begin
                         For TmpReg := R_EAX to R_EDI Do
-                          If (PaiPropBlock^[InstrNr].Regs[TmpReg].State <>
-                             CurProp^.Regs[TmpReg].State) Then
+                          If (PaiPropBlock^[InstrNr].Regs[TmpReg].WState <>
+                             CurProp^.Regs[TmpReg].WState) Then
                             DestroyReg(@PaiPropBlock^[InstrNr], TmpReg);
                         Inc(JmpsProcessed);
                       End
@@ -1688,20 +1704,20 @@ Begin
                         Begin
                           Inc(JmpsProcessed);
                           For TmpReg := R_EAX to R_EDI Do
-                            If (PaiPropBlock^[InstrNr].Regs[TmpReg].State <>
-                                CurProp^.Regs[TmpReg].State)
+                            If (PaiPropBlock^[InstrNr].Regs[TmpReg].WState <>
+                                CurProp^.Regs[TmpReg].WState)
                               Then
                                 Begin
-                                  TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].State;
+                                  TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].WState;
                                   Cnt := InstrNr;
-                                  While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].State) Do
+                                  While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
                                     Begin
                                       DestroyReg(@PaiPropBlock^[Cnt], TmpReg);
                                       Inc(Cnt);
                                     End;
                                   While (Cnt <= InstrCnt) Do
                                     Begin
-                                      Inc(PaiPropBlock^[Cnt].Regs[TmpReg].State);
+                                      Inc(PaiPropBlock^[Cnt].Regs[TmpReg].WState);
                                       Inc(Cnt)
                                     End
                                 End;
@@ -1713,22 +1729,22 @@ Begin
                           Inc(JmpsProcessed);
                           For TmpReg := R_EAX to R_EDI Do
                             Begin
-                              TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].State;
+                              TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].WState;
                               Cnt := InstrNr;
-                              While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].State) Do
+                              While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
                                 Begin
                                   PaiPropBlock^[Cnt].Regs[TmpReg] := CurProp^.Regs[TmpReg];
                                   Inc(Cnt);
                                 End;
-                              TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].State;
-                              While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].State) Do
+                              TmpState := PaiPropBlock^[InstrNr].Regs[TmpReg].WState;
+                              While (TmpState = PaiPropBlock^[Cnt].Regs[TmpReg].WState) Do
                                 Begin
                                   DestroyReg(@PaiPropBlock^[Cnt], TmpReg);
                                   Inc(Cnt);
                                 End;
                               While (Cnt <= InstrCnt) Do
                                 Begin
-                                  Inc(PaiPropBlock^[Cnt].Regs[TmpReg].State);
+                                  Inc(PaiPropBlock^[Cnt].Regs[TmpReg].WState);
                                   Inc(Cnt)
                                 End
                             End
@@ -1768,7 +1784,7 @@ Begin
                             Begin
                               With CurProp^.Regs[TmpReg] Do
                                 Begin
-                                  IncState(State);
+                                  IncState(WState);
  {also store how many instructions are part of the sequence in the first
   instructions PPaiProp, so it can be easily accessed from within
   CheckSequence}
@@ -1788,7 +1804,7 @@ Begin
                                 End;
                             End;
 {$ifdef StateDebug}
-                  hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].State))));
+                  hp := new(pai_asm_comment,init(strpnew(att_reg2str[TmpReg]+': '+tostr(CurProp^.Regs[TmpReg].WState))));
                   InsertLLItem(AsmL, p, p^.next, hp);
 {$endif StateDebug}
 
@@ -1801,8 +1817,6 @@ Begin
                               TmpReg := Reg32(TRegister(Pai386(p)^.op2));
                               With CurProp^.Regs[TmpReg] Do
                                 Begin
-                                {it doesn't matter that the state is changed,
-                                 it isn't looked at when removing constant reloads}
                                   DestroyReg(CurProp, TmpReg);
                                   typ := Con_Const;
                                   StartMod := Pai386(p)^.op1;
@@ -1851,9 +1865,13 @@ Begin
                         (InstrProp.Ch[Cnt] <> C_None) Do
                     Begin
                       Case InstrProp.Ch[Cnt] Of
+                        C_REAX..C_REDI: ;
                         C_WEAX..C_RWEDI: DestroyReg(CurProp, TCh2Reg(InstrProp.Ch[Cnt]));
                         C_CDirFlag: CurProp^.DirFlag := F_NotSet;
                         C_SDirFlag: CurProp^.DirFlag := F_Set;
+                        C_ROp1:;
+                        C_ROp2:;
+                        C_ROp3:;
                         C_WOp1..C_RWOp1: Destroy(p, Pai386(p)^.op1t, Pai386(p)^.op1);
                         C_WOp2..C_RWOp2: Destroy(p, Pai386(p)^.op2t, Pai386(p)^.op2);
                         C_WOp3..C_RWOp3: Destroy(p, Pai386(p)^.op3t, Pointer(Longint(TwoWords(Pai386(p)^.op2).word2)));
@@ -1863,7 +1881,7 @@ Begin
                             TmpRef.Base := R_EDI;
                             DestroyRefs(p, TmpRef, R_NO)
                           End;
-                        C_Flags, C_FPU:
+                        C_RFlags, C_WFlags, C_RWFlags, C_FPU:
                         Else
                           Begin
                             DestroyAllRegs(CurProp);
@@ -1898,7 +1916,7 @@ Begin
   NrOfPaiObjs := 0;
   While Assigned(P) Do
     Begin
-{$IfNDef TP}
+{$IfDef JumpAnal}
       Case P^.Typ Of
         ait_labeled_instruction:
           begin
@@ -1920,7 +1938,7 @@ Begin
                TmpStr := StrPas(PCSymbol(Pai386(p)^.op1)^.symbol);
                If}
       End;
-{$EndIf TP}
+{$EndIf JumpAnal}
       Inc(NrOfPaiObjs);
       GetNextInstruction(p, p);
     End;
@@ -1973,7 +1991,13 @@ End.
 
 {
  $Log$
- Revision 1.17  1998-10-02 17:30:20  jonas
+ Revision 1.18  1998-10-07 16:27:02  jonas
+   * changed state to WState (WriteState), added RState for future use in
+      instruction scheduling
+   * RegAlloc data from the CG is now completely being patched and corrected (I
+      think)
+
+ Revision 1.17  1998/10/02 17:30:20  jonas
    * small patches to regdealloc data
 
  Revision 1.16  1998/10/01 20:21:47  jonas
@@ -1983,7 +2007,7 @@ End.
    * small compiling problems fixed
 
  Revision 1.14  1998/09/20 17:12:36  jonas
- * small fix for uncertain optimizations & more cleaning up
+   * small fix for uncertain optimizations & more cleaning up
 
  Revision 1.12  1998/09/16 18:00:01  jonas
    * optimizer now completely dependant on GetNext/GetLast instruction, works again with -dRegAlloc
