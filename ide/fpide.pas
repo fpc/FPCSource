@@ -759,7 +759,7 @@ begin
              cmShowReadme    : ShowReadme;
 {$ifdef FVISION}
              cmResizeApp     : ResizeApplication(Event.Id, Event.InfoWord);
-             cmQuitApp       : Message(@Self, evCommand, cmQuitApp, nil);
+             cmQuitApp       : Message(@Self, evCommand, cmQuit, nil);
 {$endif FVISION}
            else DontClear:=true;
            end;
@@ -1254,7 +1254,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.24  2002-12-12 00:06:41  pierre
+  Revision 1.25  2003-01-31 11:01:00  pierre
+   * fix a bug in cmQuitApp handling
+
+  Revision 1.24  2002/12/12 00:06:41  pierre
    Use fpregs unit
 
   Revision 1.23  2002/11/28 12:58:15  pierre
