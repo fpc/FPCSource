@@ -342,8 +342,8 @@ function PageSetupDlgW(_para1:LPPAGESETUPDLG):WINBOOL; external 'comdlg32' name 
 function CreateProcessW(lpApplicationName:LPCWSTR; lpCommandLine:LPWSTR; lpProcessAttributes:LPSECURITY_ATTRIBUTES; lpThreadAttributes:LPSECURITY_ATTRIBUTES; bInheritHandles:WINBOOL;dwCreationFlags:DWORD; lpEnvironment:LPVOID;
   lpCurrentDirectory:LPCWSTR; lpStartupInfo:LPSTARTUPINFO; lpProcessInformation:LPPROCESS_INFORMATION):WINBOOL; external 'kernel32' name 'CreateProcessW';
 procedure GetStartupInfoW(lpStartupInfo:LPSTARTUPINFO); external 'kernel32' name 'GetStartupInfoW';
-function FindFirstFileW(lpFileName:LPCWSTR; lpFindFileData:LPWIN32_FIND_DATA):HANDLE; external 'kernel32' name 'FindFirstFileW';
-function FindNextFileW(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATA):WINBOOL; external 'kernel32' name 'FindNextFileW';
+function FindFirstFileW(lpFileName:LPCWSTR; lpFindFileData:LPWIN32_FIND_DATAW):HANDLE; external 'kernel32' name 'FindFirstFileW';
+function FindNextFileW(hFindFile:HANDLE; lpFindFileData:LPWIN32_FIND_DATAW):WINBOOL; external 'kernel32' name 'FindNextFileW';
 function GetVersionExW(VersionInformation:LPOSVERSIONINFOW):WINBOOL; external 'kernel32' name 'GetVersionExW';
 function CreateWindowW(lpClassName:LPCWSTR; lpWindowName:LPCWSTR; dwStyle:DWORD; X:longint;Y:longint; nWidth:longint; nHeight:longint; hWndParent:HWND; hMenu:HMENU;hInstance:HINST; lpParam:LPVOID):HWND;
 function CreateDialogW(hInstance:HINST; lpName:LPCWSTR; hWndParent:HWND; lpDialogFunc:DLGPROC):HWND;
@@ -492,7 +492,10 @@ end;
 
 {
   $Log$
-  Revision 1.13  2005-02-14 17:13:32  peter
+  Revision 1.14  2005-04-03 15:17:50  marco
+   * fix from bug 3861
+
+  Revision 1.13  2005/02/14 17:13:32  peter
     * truncate log
 
 }
