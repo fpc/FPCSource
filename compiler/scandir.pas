@@ -340,9 +340,11 @@ implementation
     procedure dir_fputype;
       begin
         current_scanner.skipspace;
+        { current_scanner.undef_macro('FPU'+fputypestr[aktfputype]); }
         if not(SetFPUType(upper(current_scanner.readcomment),false)) then
           comment(V_Error,'Illegal FPU type');
-      end;
+        { current_scanner.def_macro('FPU'+fputypestr[aktfputype]); }
+     end;
 
     procedure dir_goto;
       begin
@@ -1147,7 +1149,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.47  2004-11-06 17:58:10  peter
+  Revision 1.48  2005-01-04 16:18:57  florian
+    * prepared for fpu mode depended define
+
+  Revision 1.47  2004/11/06 17:58:10  peter
     * check extension of library if it needs to be linked static
 
   Revision 1.46  2004/10/26 15:11:01  peter
