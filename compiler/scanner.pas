@@ -1700,6 +1700,9 @@ exit_label:
                      preprocpat:=readid;
                      readpreproc:=_ID;
                    end;
+             '}' : begin
+                     readpreproc:=_END;
+                   end;
              '(' : begin
                      readchar;
                      readpreproc:=_LKLAMMER;
@@ -1816,7 +1819,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.111  2000-05-03 14:36:58  pierre
+  Revision 1.112  2000-06-09 21:35:37  peter
+    * fixed parsing of $if preproc function
+
+  Revision 1.111  2000/05/03 14:36:58  pierre
    * fix for tests/test/testrang.pp bug
 
   Revision 1.110  2000/04/08 20:18:53  michael
