@@ -456,11 +456,6 @@ procedure do_open(var f;p : pchar;flags:longint);
 Const
   file_Share_Read  = $00000001;
   file_Share_Write = $00000002;
-  fmShareCompat    = $00000000;
-  fmShareExclusive = $10;
-  fmShareDenyWrite = $20;
-  fmShareDenyRead  = $30;
-  fmShareDenyNone  = $40;
 Var
   shflags,
   oflags,cd : longint;
@@ -1330,7 +1325,10 @@ end.
 
 {
   $Log$
-  Revision 1.63  2000-03-31 23:21:19  pierre
+  Revision 1.64  2000-05-08 13:25:34  peter
+    * defined filemode constants in windows unit
+
+  Revision 1.63  2000/03/31 23:21:19  pierre
     * multiple exception handling works
       (for linux only if syslinux is compiled with -dnewsignal)
 

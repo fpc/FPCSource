@@ -36,6 +36,13 @@ type
 
 
   const
+   { Openfile Share modes normally declared in sysutils }
+   fmShareCompat    = $00000000;
+   fmShareExclusive = $10;
+   fmShareDenyWrite = $20;
+   fmShareDenyRead  = $30;
+   fmShareDenyNone  = $40;
+
      { HRESULT codes, delphilike }
      S_OK    = $00000000;
      S_FALSE = $00000001;
@@ -115,7 +122,10 @@ function SetScrollInfo(_para1:HWND; _para2:longint;const _para3:TSCROLLINFO; _pa
 
 {
   $Log$
-  Revision 1.6  2000-04-22 19:51:08  marco
+  Revision 1.7  2000-05-08 13:25:34  peter
+    * defined filemode constants in windows unit
+
+  Revision 1.6  2000/04/22 19:51:08  marco
    * Forgot to remove the tpoint stuff.
 
   Revision 1.5  2000/04/22 17:46:05  marco

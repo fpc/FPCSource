@@ -42,6 +42,13 @@ const
    FILE_ATTRIBUTE_SYSTEM = 4;
    FILE_ATTRIBUTE_TEMPORARY = 256;
 
+   { Share mode open }
+   fmShareCompat    = $00000000;
+   fmShareExclusive = $10;
+   fmShareDenyWrite = $20;
+   fmShareDenyRead  = $30;
+   fmShareDenyNone  = $40;
+
    { flags for SetFilePos }
    FILE_BEGIN = 0;
    FILE_CURRENT = 1;
@@ -109,7 +116,10 @@ type
 
 {
   $Log$
-  Revision 1.11  2000-02-09 16:59:34  peter
+  Revision 1.12  2000-05-08 13:25:34  peter
+    * defined filemode constants in windows unit
+
+  Revision 1.11  2000/02/09 16:59:34  peter
     * truncated log
 
   Revision 1.10  2000/01/25 13:15:35  florian
