@@ -194,6 +194,7 @@ function ChangeDisplaySettingsExA(lpszDeviceName: LPCSTR; var lpDevMode: TDevice
 {$endif support_smartlink}
 //function ChangeDisplaySettingsW(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsW';
 //function CheckColorsInGamut(DC: HDC; var RGBQuads, Results; Count: DWORD): BOOL; external 'gdi32' name 'CheckColorsInGamut';
+function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
 function ClearCommError(hFile: THandle; var lpErrors: DWORD; lpStat: PComStat): BOOL; external 'kernel32' name 'ClearCommError';
 function ClientToScreen(hWnd: HWND; var lpPoint: TPoint): BOOL; external 'user32' name 'ClientToScreen';
 //function CombineTransform(var p1: TXForm; const p2, p3: TXForm): BOOL; external 'gdi32' name 'CombineTransform';
@@ -925,7 +926,10 @@ function HResultFromNT(x : Longint) : HRESULT;
 
 {
   $Log$
-  Revision 1.10  2002-12-15 20:24:17  peter
+  Revision 1.11  2002-12-27 18:13:38  peter
+    * fix ChoosePixelFormat
+
+  Revision 1.10  2002/12/15 20:24:17  peter
     * some more C style functions
 
   Revision 1.9  2002/10/14 17:18:44  florian

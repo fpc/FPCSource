@@ -980,7 +980,7 @@ function QueryServiceStatus(hService:SC_HANDLE; lpServiceStatus:LPSERVICE_STATUS
 function SetServiceObjectSecurity(hService:SC_HANDLE; dwSecurityInformation:SECURITY_INFORMATION; lpSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL;external 'advapi32' name 'SetServiceObjectSecurity';
 function SetServiceStatus(hServiceStatus:SERVICE_STATUS_HANDLE; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external 'advapi32' name 'SetServiceStatus';
 function UnlockServiceDatabase(ScLock:SC_LOCK):WINBOOL; external 'advapi32' name 'UnlockServiceDatabase';
-function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
+function ChoosePixelFormat(_para1:HDC; _para2:PPIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
 function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'DescribePixelFormat';
 {$ifdef Unknown_functions}{ WARNING: function is not in my gdi32.dll !! PM}function GetEnhMetaFilePixelFormat(_para1:HENHMETAFILE; _para2:DWORD; var _para3:PIXELFORMATDESCRIPTOR):UINT; external 'gdi32' name 'GetEnhMetaFilePixelFormat';
 {$endif Unknown_functions}{    function GetPixelFormat(_para1:HDC):longint; external 'gdi32' name 'GetPixelFormat'; }
@@ -2331,7 +2331,10 @@ end;
 
 {
   $Log$
-  Revision 1.16  2002-12-15 20:24:17  peter
+  Revision 1.17  2002-12-27 18:13:38  peter
+    * fix ChoosePixelFormat
+
+  Revision 1.16  2002/12/15 20:24:17  peter
     * some more C style functions
 
   Revision 1.15  2002/11/29 16:40:49  sg
