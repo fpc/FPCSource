@@ -184,7 +184,7 @@ help:
 	@echo ' pdfdist       : pdf, and archive result.'
 
 clean:
-	-rm -f preamble.inc date.inc
+	-rm -f preamble.inc date.inc htex.sed
 	-rm -f *.htex *.hind *.haux *.htoc $(addsuffix .html,$(HTML))
 	-rm -rf $(HTML) onechap
 	-rm -f $(TOC) $(LOG) $(DVI) $(PDF) $(AUX) $(OUT) $(PS) *.i* $(LOT) $(TXT) $(CHK)
@@ -623,7 +623,10 @@ execute:
 
 #
 # $Log$
-# Revision 1.17  2003-03-16 15:22:18  peter
+# Revision 1.18  2003-03-16 15:24:58  peter
+#   * also remove htex.sed
+#
+# Revision 1.17  2003/03/16 15:22:18  peter
 #   * support for hevea
 #   * provided local copies or required styles since debian does not
 #     supply the listings.sty anymore
