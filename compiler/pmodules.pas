@@ -108,7 +108,7 @@ unit pmodules;
         end;
 
       begin
-      {Insert Ident of the compiler}
+      { Insert Ident of the compiler }
         if (not (cs_create_smart in aktmoduleswitches))
 {$ifndef EXTDEBUG}
            and (not current_module^.is_unit)
@@ -116,9 +116,11 @@ unit pmodules;
            then
          begin
            datasegment^.insert(new(pai_align,init(4)));
-           datasegment^.insert(new(pai_string,init('FPC '+full_version_string+' ['+
-             date_string+'] for '+target_cpu_string+' - '+target_info.short_name)));
+           datasegment^.insert(new(pai_string,init('FPC '+full_version_string+
+             ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.short_name)));
          end;
+      { finish codesegment }
+        codesegment^.concat(new(pai_align,init(16)));
       { Insert start and end of sections }
         fixseg(codesegment,sec_code);
         fixseg(datasegment,sec_data);
@@ -138,8 +140,8 @@ unit pmodules;
 {$endif GDB}
       end;
 
-    Procedure InsertResourceTablesTable;
 
+    Procedure InsertResourceTablesTable;
       var
         hp : pused_unit;
         ResourceStringTables : taasmoutput;
@@ -176,7 +178,6 @@ unit pmodules;
         datasegment^.concatlist(@ResourceStringTables);
         ResourceStringTables.done;
       end;
-
 
 
     procedure InsertInitFinalTable;
@@ -1617,7 +1618,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.180  2000-01-11 17:16:05  jonas
+  Revision 1.181  2000-01-12 10:30:15  peter
+    * align codesegment at the end after main proc
+
+  Revision 1.180  2000/01/11 17:16:05  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 
