@@ -1,23 +1,29 @@
-# makes the SYSTEM-Unit for OS2
 #
-# Copyright (c) 1996 by Michael Van Canneyt
+#   $Id$
+#   This file is part of the Free Pascal run time library.
+#   Copyright (c) 1996-98 by Michael van Canneyt
+#
+#   Makefile for the Free Pascal OS/2 Runtime Library
+#
+#   See the file COPYING.FPC, included in this distribution,
+#   for details about the copyright.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
 
 #####################################################################
-# Start of configurable section. 
-# Please note that all these must be set in the main makefile, and 
+# Start of configurable section.
+# Please note that all these must be set in the main makefile, and
 # should be set there.
 # Don't remove the indef statements. They serve to avoid conflicts
 # with the main makefile.
 #####################################################################
 
-# set the directory where to install the units.
-ifndef LIBINSTALLDIR
-LIBINSTALLDIR=c:/pp/bin
-endif 
-
-# What is the Operating System
-ifndef OS_SRC
-OS_SRC=os2
+# What is the Operating System ?
+ifndef OS_SOURCE
+OS_SOURCE=go32v2
 endif
 
 # What is the target operating system ?
@@ -25,9 +31,15 @@ ifndef OS_TARGET
 OS_TARGET=os2
 endif
 
+# What is the target processor :
+ifndef CPU
+CPU=i386
+#CPU=m68k
+endif
+
 # What compiler to use ?
 ifndef PP
-PP=../../ppc386
+PP=ppc386
 endif
 
 # What options to pass to the compiler ?
@@ -36,19 +48,38 @@ ifndef OPT
 OPT=
 endif
 
-ifndef CPU
-CPU=i386
-endif 
+# Where is the PPUMOVE program ?
+ifndef PPUMOVE
+PPUMOVE=ppumove
+endif
+
+# Set this to 'shared' or 'static'
+LIBTYPE=shared
+
+# AOUT should be defined in main makefile.
+# But you can set it here too.
+# AOUT = -DAOUT
+
+# Do you want to link to the C library ?
+# Standard it is NO. You can set it to YES to link in th C library.
+ifndef LINK_TO_C
+LINK_TO_C=NO
+endif
 
 #####################################################################
-# End of configurable section. 
+# End of configurable section.
 # Do not edit after this line.
 #####################################################################
 
-# Where are the include files
+#####################################################################
+# System independent
+#####################################################################
+
+# Where are the include files ?
 INC=../inc
 PROCINC=../$(CPU)
 CFG=../cfg
+OBJPASDIR=../objpas
 
 # Get some defaults for Programs and OSes.
 # This will set the following variables :
@@ -59,13 +90,13 @@ CFG=../cfg
 include $(CFG)/makefile.cfg
 
 # Get the system independent include file names.
-# This will set the following variables : 
+# This will set the following variables :
 # SYSINCNAMES
 include $(INC)/makefile.inc
 SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
 
 # Get the processor dependent include file names.
-# This will set the following variables : 
+# This will set the following variables :
 # CPUINCNAMES
 include $(PROCINC)/makefile.cpu
 SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
@@ -77,69 +108,118 @@ SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 # System dependent
 #####################################################################
 
+PPUEXT=.ppo
+ASMEXT=.so2
+OEXT=.o2
 
-PPUEXT = .ppu
+# Define Linux Units
+SYSTEMPPU=sysos2$(PPUEXT)
+OBJECTS=strings objpas \
+        dos crt
 
-OEXT = .obj
+LOADERS=prt0 prt1
 
+#####################################################################
+# System independent Makefile
+#####################################################################
 
-.PHONY: all clean install diffs diffclean
+# Add Prefix and Suffixes
+OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
+PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
 
-all : sysos2$(PPUEXT) prt0$(OEXT) prt1$(OEXT) dosinit$(OEXT) \
-        strings$(PPUEXT) dos$(PPUEXT) getopts$(PPUEXT)
+.PHONY : all install clean \
+	 libs libsclean \
+	 diffs diffclean \
 
+all : $(OBJLOADERS) $(PPUOBJECTS)
 
-getopts$(PPUEXT) : $(PROCINC)/getopts.pp sysos2$(PPUEXT)
-	$(COPY) $(PROCINC)/getopts.pp .
-	$(PP) $(OPT) getopts.pp $(REDIR)
-	$(DEL) getopts.pp
+install : all
+	$(MKDIR) $(UNITINSTALLDIR)
+	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
 
-strings$(PPUEXT) : $(PROCINC)/strings.pp sysos2$(PPUEXT)
-	$(COPY) $(PROCINC)/strings.pp .
-	$(PP) $(OPT) strings.pp $(REDIR)
-	$(DEL) strings.pp
+clean :
+	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) log
 
-dos$(PPUEXT) : dos.pas strings$(PPUEXT) sysos2$(PPUEXT)
-	$(PP) $(OPT) dos.pas $(REDIR)
+#####################################################################
+# Files
+#####################################################################
 
-sysos2$(PPUEXT) : sysos2.pas $(SYSDEPS)
-	$(PP) $(OPT) -Us sysos2.pas $(REDIR)
+#
+# Loaders
+#
 
-prt0$(OEXT) : prt0.so2
+prt0$(OEXT) : prt0.as
 	as -D -o prt0$(OEXT) prt0.as
 
-prt1$(OEXT) : prt1.so2
+prt1$(OEXT) : prt1.as
 	as -D -o prt1$(OEXT) prt1.as
 
-dosinit$(OEXT) : dosinit.as
-	as -D -o dosinit$(OEXT) dosinit.as
+#
+# Base Units (System, strings, os-dependent-base-unit)
+#
 
-clean:
-	-$(DEL) *$(OEXT)
-	-$(DEL) *$(PPUEXT)
-	-$(DEL) *.dif
-	-$(DEL) *.s
-	-$(DEL) log
+$(SYSTEMPPU) : sysos2.pas $(SYSDEPS)
+	$(PP) $(OPT) -Us -Sg sysos2.pas $(REDIR)
 
-diffclean:
-	-$(DEL) *.dif
+strings$(PPUEXT) : $(PROCINC)/strings.pp $(SYSTEMPPU)
+	$(COPY) $(PROCINC)/strings.pp .
+	$(PP) $(OPT) strings $(REDIR)
+	$(DEL) strings.pp
 
-install: all
-	$(MKDIR) $(LIBINSTALLDIR)/os2units
-	$(INSTALL) *$(OEXT) *$(PPUEXT) $(LIBINSTALLDIR)/os2units
+#
+# Delphi Object Model
+#
 
-%.dif : %.pas
-	-$(DIFF) $(DIFOPTS) $*.pas $(REFPATH)/os2/$*.pas > $*.dif
+objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(SYSTEMPPU)
+	$(COPY) $(OBJPASDIR)/objpas.pp .
+	$(PP) $(OPT) objpas $(REDIR)
+	$(DEL) objpas.pp
 
-%.dif : %.inc
-	-$(DIFF) $(DIFOPTS) $*.inc $(REFPATH)/os2/$*.inc > $*.dif
+#
+# System Dependent Units
+#
 
-%.dif : %.as
-	-$(DIFF) $(DIFOPTS) $*.as $(REFPATH)/os2/$*.as > $*.dif
+#
+# TP7 Compatible RTL Units
+#
 
-makefile.dif : makefile
-	-$(DIFF) $(DIFFOPTS) makefile $(REFPATH)/os2/makefile > makefile.dif
-	
+dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMPPU)
+	$(PP) $(OPT) dos.pas $(REDIR)
 
-diffs: sysos2.dif dos.dif doscalls.dif os.dif prt0.dif prt1.dif dosinit.dif \
-       makefile.dif
+crt$(PPUEXT) : crt.pas dos$(PPUEXT)
+	$(PP) $(OPT) crt.pas $(REDIR)
+
+#objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+#	 $(COPY) $(INC)/objects.pp .
+#	 $(PP) $(OPT) objects $(REDIR)
+#	 $(DEL) objects.pp
+
+#
+# Other RTL Units
+#
+
+#####################################################################
+# Libs
+#####################################################################
+
+libs	: all libfpc$(LIBEXT)
+
+libfpc.so:
+	$(PPUMOVE) -o fpc *.ppu
+
+libfpc.a:
+	$(PPUMOVE) -s -o fpc *.ppu
+
+libinstall : libs
+	$(INSTALLEXE) libfpc$(LIBEXT) $(LIBINSTALLDIR)
+	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
+	ldconfig
+
+libsclean : clean
+	-$(DEL) *.a *.so *$(PPLEXT)
+
+#####################################################################
+# Default targets
+#####################################################################
+
+include $(CFG)/makefile.def
