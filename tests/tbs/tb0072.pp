@@ -40,6 +40,12 @@ asm
   movl y,%ecx
 end;
 {$endif CPUX86_64}
+{$ifdef CPUSPARC}
+asm
+  mov x,%i0
+  mov y,%i1
+end;
+{$endif CPUSPARC}
 
 {procedure nothing(x,y: longint);
 begin
