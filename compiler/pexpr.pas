@@ -36,7 +36,7 @@ unit pexpr;
     function factor(getaddr : boolean) : ptree;
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(const sym : psym;var p1 : ptree;
+    procedure do_member_read(getaddr : boolean;const sym : psym;var p1 : ptree;
       var pd : pdef;var again : boolean);
 
     function get_intconst:longint;
@@ -414,7 +414,7 @@ unit pexpr;
          prevafterassn:=afterassignment;
          afterassignment:=false;
          { want we only determine the address of }
-         { a subroutine                          }
+         { a subroutine ?                        }
          if not(getaddr) then
            begin
               if token=LKLAMMER then
@@ -576,7 +576,7 @@ unit pexpr;
 
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(const sym : psym;var p1 : ptree;
+    procedure do_member_read(getaddr : boolean;const sym : psym;var p1 : ptree;
       var pd : pdef;var again : boolean);
 
       var
@@ -613,7 +613,7 @@ unit pexpr;
                  procsym:
                    begin
                       p1:=genmethodcallnode(pprocsym(sym),srsymtable,p1);
-                      do_proc_call(false,again,p1,pd);
+                      do_proc_call(getaddr,again,p1,pd);
                       { now we know the real method e.g. we can check for }
                       { a class method                                    }
                       if isclassref and ((p1^.procdefinition^.options and (poclassmethod or poconstructor))=0) then
@@ -822,7 +822,7 @@ unit pexpr;
                                      classh:=classh^.childof;
                                   end;
                                 consume(ID);
-                                do_member_read(sym,p1,pd,again);
+                                do_member_read(false,sym,p1,pd,again);
                              end;
                            objectdef:
                                  begin
@@ -837,7 +837,7 @@ unit pexpr;
                                          classh:=classh^.childof;
                                       end;
                                     consume(ID);
-                                    do_member_read(sym,p1,pd,again);
+                                    do_member_read(false,sym,p1,pd,again);
                                  end;
                            pointerdef:
                               begin
@@ -948,8 +948,6 @@ unit pexpr;
            end;
       end;
 {$endif TEST_FUNCRET}
-
-
 
       var
          possible_error : boolean;
@@ -1112,7 +1110,7 @@ unit pexpr;
                                                              sym:=pvarsym(srsymtable^.search(pattern));
                                                           end;
                                                         consume(ID);
-                                                        do_member_read(sym,p1,pd,again);
+                                                        do_member_read(false,sym,p1,pd,again);
                                                      end
                                                   else
                                                     begin
@@ -1128,15 +1126,20 @@ unit pexpr;
 
                                                    p1:=genzeronode(typen);
                                                    p1^.resulttype:=pd;
+                                                   {
                                                    srsymtable:=pobjectdef(pd)^.publicsyms;
                                                    sym:=pvarsym(srsymtable^.search(pattern));
+                                                   }
+                                                   { TP allows also @TMenu.Load if Load is only }
+                                                   { defined in an anchestor class              }
+                                                   sym:=pvarsym(search_class_member(pobjectdef(pd),pattern));
                                                    if not(getaddr) and
                                                      ((sym^.properties and sp_static)=0) then
                                                      Message(sym_e_only_static_in_static)
                                                    else
                                                      begin
                                                         consume(ID);
-                                                        do_member_read(sym,p1,pd,again);
+                                                        do_member_read(getaddr,sym,p1,pd,again);
                                                      end;
                                                end
                                           end
@@ -1298,7 +1301,7 @@ unit pexpr;
                              end;
 
                            consume(ID);
-                           do_member_read(sym,p1,pd,again);
+                           do_member_read(false,sym,p1,pd,again);
                            if (p1^.treetype<>calln) or
                               (assigned(p1^.procdefinition) and
                                ((p1^.procdefinition^.options and poconstructor)=0)) then
@@ -1355,7 +1358,7 @@ unit pexpr;
                                            p1^.resulttype:=classh;
                                            pd:=p1^.resulttype;
                                            consume(ID);
-                                           do_member_read(sym,p1,pd,again);
+                                           do_member_read(false,sym,p1,pd,again);
                                            break;
                                         end;
                                       classh:=classh^.childof;
@@ -1785,7 +1788,12 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.28  1998-07-14 21:46:51  peter
+  Revision 1.29  1998-07-27 21:57:13  florian
+    * fix to allow tv like stream registration:
+        @tmenu.load doesn't work if load had parameters or if load was only
+        declared in an anchestor class of tmenu
+
+  Revision 1.28  1998/07/14 21:46:51  peter
     * updated messages file
 
   Revision 1.27  1998/06/25 14:04:23  peter

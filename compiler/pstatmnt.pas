@@ -772,7 +772,7 @@ unit pstatmnt;
                                  begin
                                     { Constructors can take parameters.}
                                     p2^.resulttype:=ppointerdef(pd)^.definition;
-                                    do_member_read(sym,p2,pd,again);
+                                    do_member_read(false,sym,p2,pd,again);
                                  end
                            else
                              { destructors can't.}
@@ -1168,7 +1168,12 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.25  1998-07-14 21:46:53  peter
+  Revision 1.26  1998-07-27 21:57:14  florian
+    * fix to allow tv like stream registration:
+        @tmenu.load doesn't work if load had parameters or if load was only
+        declared in an anchestor class of tmenu
+
+  Revision 1.25  1998/07/14 21:46:53  peter
     * updated messages file
 
   Revision 1.24  1998/07/10 10:48:42  peter
