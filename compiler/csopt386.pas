@@ -845,6 +845,7 @@ Begin
      inc(counter);
      tmpresult := (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) and
        (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.opsize = size) and
+       (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.oper[0].typ = top_const);
        (paicpu(PPaiProp(p^.OptInfo)^.Regs[Counter].StartMod)^.oper[0].val = l);
 {$ifdef testing}
      if (PPaiProp(p^.OptInfo)^.Regs[Counter].Typ = Con_Const) then
@@ -1191,7 +1192,10 @@ End.
 
 {
  $Log$
- Revision 1.45  2000-02-10 14:57:13  jonas
+ Revision 1.46  2000-02-10 15:07:41  jonas
+   * fixed small bug introduced with my previous fix
+
+ Revision 1.45  2000/02/10 14:57:13  jonas
    * fixed bug due to lack of support for top_symbol operands
 
  Revision 1.44  2000/02/09 13:22:51  peter
