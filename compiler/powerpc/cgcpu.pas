@@ -2191,7 +2191,10 @@ const
        begin
          result := false;
          if (ref.base.number = NR_NO) then
-           ref.base := ref.index;
+           begin
+             ref.base := ref.index;
+             ref.base.number := NR_NO;
+           end;
          if (ref.base.number <> NR_NO) then
            begin
              if (ref.index.number <> NR_NO) and
@@ -2540,7 +2543,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.101  2003-05-30 18:52:10  jonas
+  Revision 1.102  2003-06-01 13:42:18  jonas
+    * fix for bug in fixref that Peter found during the Sparc conversion
+
+  Revision 1.101  2003/05/30 18:52:10  jonas
     * fixed bug with intregvars
     * locapara.loc can also be LOC_CFPUREGISTER -> also fixed
       rcgppc.a_param_ref, which previously got bogus size values
