@@ -291,7 +291,7 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
           begin
             if extra_not
             then
-              emit_reg(A_NOT,S_L,left.location.register);
+              exprasmList.concat(Taicpu.Op_reg(A_NOT,left.location.register));
             exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,right.location.register,left.location.register,right.location.register));
             { newly swapped also set swapped flag }
             location_swap(left.location,right.location);
@@ -301,7 +301,7 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
           begin
             if extra_not
             then
-              emit_reg(A_NOT,S_L,right.location.register);
+              exprasmList.concat(Taicpu.Op_reg(A_NOT,right.location.register));
            // emit_reg_reg(op,opsize,right.location.register,left.location.register);
             exprasmList.concat(Taicpu.Op_reg_reg_reg(Op,right.location.register,left.location.register,right.location.register));
           end;
@@ -314,7 +314,7 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
           begin
             IF extra_not
             THEN
-              emit_reg(A_NOT,opsize,left.location.register);
+              exprasmList.concat(Taicpu.Op_reg(A_NOT,left.location.register));
 //          rg.getexplicitregisterint(exprasmlist,R_EDI);
 //          cg.a_load_loc_reg(exprasmlist,right.location,R_EDI);
 //          emit_reg_reg(op,opsize,left.location.register,R_EDI);
@@ -338,12 +338,12 @@ procedure TSparcAddNode.emit_generic_code(op:TAsmOp;OpSize:TOpSize;unsigned,extr
             ELSE IF(op=A_SUB)AND(right.location.loc=LOC_CONSTANT)AND(right.location.value=1)AND NOT(cs_check_overflow in aktlocalswitches)
             THEN
               begin
-                emit_reg(A_DEC,opsize,left.location.register);
+                exprasmList.concat(Taicpu.Op_reg(A_DEC,left.location.register));
               end
             ELSE IF(op=A_SMUL)AND(right.location.loc=LOC_CONSTANT)AND(ispowerof2(right.location.value,power))AND NOT(cs_check_overflow in aktlocalswitches)
             THEN
               begin
-                emit_const_reg(A_SLL,opsize,power,left.location.register);
+                exprasmList.concat(Taicpu.Op_const_reg(A_SLL,power,left.location.register));
               end
             ELSE
               begin
@@ -558,7 +558,10 @@ begin
 end.
 {
     $Log$
-    Revision 1.2  2002-12-22 19:26:32  mazen
+    Revision 1.3  2002-12-25 20:59:49  mazen
+    - many emitXXX removed from cga.pas in order to remove that file.
+
+    Revision 1.2  2002/12/22 19:26:32  mazen
     * many internal errors related to unimplemented nodes are fixed
 
     Revision 1.1  2002/12/21 23:21:47  mazen

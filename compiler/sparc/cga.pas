@@ -23,22 +23,9 @@ interface
 uses
   cpuinfo,cpubase,cginfo,
   symconst,symtype,symdef,aasmbase,aasmtai,aasmcpu;
-{$define TESTGETTEMP to store const that are written into temps for later release PM }
 function def_opsize(p1:tdef):topsize;
 function def_getreg(p1:tdef):tregister;
 procedure emitjmp(c:tasmcond;var l:tasmlabel);
-procedure emit_none(i:tasmop;s:topsize);
-procedure emit_const(i:tasmop;s:topsize;c:longint);
-procedure emit_reg(i:tasmop;s:topsize;reg:tregister);
-procedure emit_ref(i:tasmop;s:topsize;const ref:treference);
-procedure emit_const_reg(i:tasmop;s:topsize;c:longint;reg:tregister);
-procedure emit_const_ref(i:tasmop;s:topsize;c:longint;const ref:treference);
-procedure emit_ref_reg(i:tasmop;s:topsize;const ref:treference;reg:tregister);
-procedure emit_reg_ref(i:tasmop;s:topsize;reg:tregister;const ref:treference);
-procedure emit_reg_reg(i:tasmop;s:topsize;reg1,reg2:tregister);
-procedure emit_const_reg_reg(i:tasmop;s:topsize;c:longint;reg1,reg2:tregister);
-procedure emit_reg_reg_reg(i:tasmop;s:topsize;reg1,reg2,reg3:tregister);
-procedure emit_sym(i:tasmop;s:topsize;op:tasmsymbol);
 implementation
 uses
   cutils,
@@ -81,61 +68,13 @@ procedure emitjmp(c:tasmcond;var l:tasmlabel);
     ai.is_jmp:=true;
     exprasmList.concat(ai);
   end;
-procedure emit_none(i:tasmop;s:topsize);
-  begin
-    exprasmList.concat(Taicpu.Op_none(i));
-  end;
-procedure emit_reg(i:tasmop;s:topsize;reg:tregister);
-  begin
-    exprasmList.concat(Taicpu.Op_reg(i,reg));
-  end;
-procedure emit_ref(i:tasmop;s:topsize;const ref:treference);
-  begin
-    exprasmList.concat(Taicpu.Op_ref(i,ref));
-  end;
-procedure emit_const(i:tasmop;s:topsize;c:longint);
-  begin
-    exprasmList.concat(Taicpu.Op_const(i,aword(c)));
-  end;
-procedure emit_const_reg(i:tasmop;s:topsize;c:longint;reg:tregister);
-  begin
-    exprasmList.concat(Taicpu.Op_const_reg(i,aword(c),reg));
-  end;
-procedure emit_const_ref(i:tasmop;s:topsize;c:longint;const ref:treference);
-  begin
-    //exprasmList.concat(Taicpu.Op_const_ref(i,s,aword(c),ref));
-		InternalError(2002102102);
-  end;
-procedure emit_ref_reg(i:tasmop;s:topsize;const ref:treference;reg:tregister);
-  begin
-    exprasmList.concat(Taicpu.Op_ref_reg(i,ref,reg));
-  end;
-procedure emit_reg_ref(i:tasmop;s:topsize;reg:tregister;const ref:treference);
-  begin
-    exprasmList.concat(Taicpu.Op_reg_ref(i,reg,ref));
-  end;
-procedure emit_reg_reg(i:tasmop;s:topsize;reg1,reg2:tregister);
-  begin
-    if reg1<>reg2
-    then
-      exprasmList.concat(Taicpu.Op_reg_reg(i,reg1,reg2));
-  end;
-procedure emit_const_reg_reg(i:tasmop;s:topsize;c:longint;reg1,reg2:tregister);
-  begin
-    exprasmList.concat(Taicpu.Op_reg_const_reg(i,reg1,c,reg2));
-  end;
-procedure emit_reg_reg_reg(i:tasmop;s:topsize;reg1,reg2,reg3:tregister);
-  begin
-    exprasmList.concat(Taicpu.Op_reg_reg_reg(i,reg1,reg2,reg3));
-  end;
-procedure emit_sym(i:tasmop;s:topsize;op:tasmsymbol);
-  begin
-    exprasmList.concat(Taicpu.Op_sym(i,s,op));
-  end;
 end.
 {
   $Log$
-  Revision 1.5  2002-11-10 19:07:46  mazen
+  Revision 1.6  2002-12-25 20:59:49  mazen
+  - many emitXXX removed from cga.pas in order to remove that file.
+
+  Revision 1.5  2002/11/10 19:07:46  mazen
   * SPARC calling mechanism almost OK (as in GCC./mppcsparc )
 
   Revision 1.4  2002/11/06 11:31:24  mazen

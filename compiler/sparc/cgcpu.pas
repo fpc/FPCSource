@@ -108,20 +108,20 @@ USES
   rgobj,tgobj,rgcpu,cpupi;
     { we implement the following routines because otherwise we can't }
     { instantiate the class since it's abstract                      }
-procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;CONST LocPara:TParaLocation);
-  BEGIN
-    IF(Size<>OS_32)AND(Size<>OS_S32)
-    THEN
+procedure tcgSPARC.a_param_reg(list:TAasmOutput;size:tcgsize;r:tregister;const LocPara:TParaLocation);
+  begin
+    if(Size<>OS_32)and(Size<>OS_S32)
+    then
       InternalError(2002032212);
-                with list,LocPara do
-                  case Loc of
-                          LOC_REGISTER:
-                        if r<>Register
-                                        then
-                                                Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,R_G0,Register));
-                                else
-                                  InternalError(2002101002);
-                        end;
+    with list,LocPara do
+      case Loc of
+        LOC_REGISTER:
+          if r<>Register
+          then
+            Concat(taicpu.op_Reg_Reg_Reg(A_OR,r,R_G0,Register));
+        else
+          InternalError(2002101002);
+      end;
   end;
 procedure tcgSPARC.a_param_const(list:TAasmOutput;size:tcgsize;a:aword;CONST LocPara:TParaLocation);
   var
@@ -1334,7 +1334,10 @@ BEGIN
 END.
 {
   $Log$
-  Revision 1.28  2002-12-22 19:26:31  mazen
+  Revision 1.29  2002-12-25 20:59:49  mazen
+  - many emitXXX removed from cga.pas in order to remove that file.
+
+  Revision 1.28  2002/12/22 19:26:31  mazen
   * many internal errors related to unimplemented nodes are fixed
 
   Revision 1.27  2002/12/21 23:21:47  mazen
