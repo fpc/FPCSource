@@ -794,7 +794,7 @@ begin
    if add_tail then
      inc(bp,sizeof(longint));
   { the internal ReAllocMem is not allowed to move any data }
-  if not SysTryResizeMem(p,size) then
+  if not SysTryResizeMem(p,bp) then
    begin
      { restore p }
      inc(p,sizeof(theap_mem_info)+extra_info_size);
@@ -802,7 +802,7 @@ begin
      newP := TraceGetMem(size);
      { move the data }
      if newP <> nil then
-       move(p^,newP^,pp^.size);
+       move(p^,newP^,size);
      { release p }
      traceFreeMem(p);
      p := newP;
@@ -975,7 +975,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.37  2000-01-31 23:41:30  peter
+  Revision 1.38  2000-02-02 11:13:15  peter
+    * fixed tracereallocmem which supplied the wrong size for tryresize
+
+  Revision 1.37  2000/01/31 23:41:30  peter
     * reallocmem fixed for freemem() call when size=0
 
   Revision 1.36  2000/01/20 14:25:51  jonas
