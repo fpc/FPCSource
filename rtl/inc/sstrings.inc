@@ -396,7 +396,7 @@ begin
      Temp := Temp*ValUInt(base);
      If (u >= base) or
         ((base = 10) and
-         (MaxSIntValue-temp+ord(negative) < u)) or
+         (ValUInt(MaxSIntValue-u+ord(negative)) < Temp)) or
         ((base <> 10) and
          (ValUInt(MaxUIntValue-Temp) < u)) or
         (prev > maxValue) Then
@@ -573,7 +573,11 @@ end;
 
 {
   $Log$
-  Revision 1.12  2001-06-04 11:43:51  peter
+  Revision 1.13  2001-07-04 12:02:14  jonas
+    * fixed bug in ValSignedInt (it accepted some values slightly larger than
+      high(cardinal) such as 4294967297) (merged)
+
+  Revision 1.12  2001/06/04 11:43:51  peter
     * Formal const to var fixes
     * Hexstr(int64) added
 
