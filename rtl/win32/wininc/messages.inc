@@ -1149,11 +1149,50 @@
      WM_MOUSEFIRST = 512;
      WM_MOUSELAST = 521;
 
+Type
+
+     MSG = record
+          hwnd : HWND;
+          message : UINT;
+          wParam : WPARAM;
+          lParam : LPARAM;
+          time : DWORD;
+          pt : POINT;
+       end;
+
+     LPMSG = ^MSG;
+     tagMSG = MSG;
+     TMSG = MSG;
+     PMSG = ^MSG;
+
+
+     PMessage = ^TMessage;
+     TMessage = packed record       {fields according to ICS}
+                    msg      : UINT;
+                    case longint of
+                      0: (
+                          wParam : WPARAM;
+                          lParam : LPARAM;
+                          Result : DWORD;
+                         );
+                      1: (
+                          wParamlo,
+                          wParamhi : WORD;  // Is there Windows type for half an wparam?
+                          lParamlo,
+                          lParamhi : WORD;
+                          Resultlo,
+                          Resulthi : WORD;
+                         );
+                   end;
+
 {$endif read_interface}
 
 {
   $Log$
-  Revision 1.3  2002-09-07 16:01:31  peter
+  Revision 1.4  2002-11-04 12:17:42  marco
+   * Added some of the tmsg/tmessage records.
+
+  Revision 1.3  2002/09/07 16:01:31  peter
     * old logs removed and tabs fixed
 
 }
