@@ -101,7 +101,21 @@ procedure RegisterFPCalc;
 
 implementation
 
-uses FPString,FPUtils,FPConst,WUtils;
+uses
+{$ifdef Unix}
+  {$ifdef VER1_0}
+    linux,
+  {$else}
+    unix,
+  {$endif}
+{$endif}
+{$ifdef go32v2}
+  dpmiexcp,
+{$endif}
+{$ifdef win32}
+  signals,
+{$endif}
+  FPString,FPUtils,FPConst,WUtils;
 
 const
   cmCalcButton  = 100;
@@ -204,6 +218,32 @@ begin
   DrawView;
 end;
 
+{$ifdef HasSignal}
+var
+{$ifndef go32v2}
+  CalcSigJmp : Jmp_Buf;
+{$else : go32v2}
+  CalcSigJmp : dpmi_jmp_buf;
+{$endif go32v2}
+{$ifdef Unix}
+Procedure CalcSigFPE(sig : longint);cdecl;
+{$else}
+function CalcSigFPE(sig : longint) : longint;
+{$endif}
+begin
+  ErrorBox('Error while computing math expression',nil);
+{$ifdef go32v2}
+  Dpmi_LongJmp(CalcSigJmp,1);
+{$else : not go32v2}
+  LongJmp(CalcSigJmp,1);
+{$endif go32v2}
+{$ifndef Unix}
+  { Just here to avoid compiler warnings PM }
+  CalcSigFPE:=0;
+{$endif}
+end;
+{$endif HasSignal}
+
 function TCalcDisplay.CalcKey(Key: string): boolean;
 var
   R,D: extended;
@@ -215,78 +255,104 @@ begin
     SetDisplay(0,false);
   end;
 end;
+{$ifdef HasSignal}
+var
+  StoreSigFPE : SignalHandler;
+{$endif HasSignal}
 begin
   CalcKey:=true;
   Key := UpCaseStr(Key);
-  if (Status = csError) and (Key <> 'C') then Key := ' ';
-  if Key='X^Y' then Key:='^';
-  if length(Key)>1 then
-     begin
-{        if Status = csFirst then}
-        begin
-{          Status := csValid;}
-          GetDisplay(R);
-          if Key='1/X' then begin if R=0 then Error else SetDisplay(1/R,false) end else
-          if Key='SQR' then begin if R<0 then Error else SetDisplay(sqrt(R),false) end else
-          if Key='LOG' then begin if R<=0 then Error else SetDisplay(ln(R),false) end else
-          if Key='X^2' then SetDisplay(R*R,false) else
-          if Key='M+' then Memory:=Memory+R else
-          if Key='M-' then Memory:=Memory-R else
-          if Key='M'#26 then SetDisplay(Memory,false) else
-          if Key='M'#27 then Memory:=R else
-          if Key='M'#29 then begin D:=Memory; Memory:=R; SetDisplay(D,false); end;
-        end;
-     end
-  else
-  case Key[1] of
-    '0'..'9':
-    if Length(Number)<MaxDigits then
-      begin
-        CheckFirst;
-        if Number = '0' then Number := '';
-        Number := Number + Key;
-        SetDisplay(StrToExtended(Number),true);
-      end;
-    '.':
-      begin
-        CheckFirst;
-        if Pos('.', Number) = 0 then Number := Number + '.';
-      end;
-    #8, #27:
-      begin
-        CheckFirst;
-        if Length(Number) = 1 then Number := '0' else Dec(Number[0]);
-        SetDisplay(StrToExtended(Number),true); { !!! }
-      end;
-    '_', #241:
-      if Sign = ' ' then Sign := '-' else Sign := ' ';
-    '+', '-', '*', '/', '=', '%', #13, '^':
-      begin
-        if Status = csValid then
-        begin
-          Status := csFirst;
-          GetDisplay(R);
-          if Key = '%' then
-            case _Operator of
-              '+', '-': R := Operand * R / 100;
-              '*', '/': R := R / 100;
+{$ifdef HasSignal}
+{$ifdef go32v2}
+  if Dpmi_SetJmp(CalcSigJmp)=0 then
+{$else : not go32v2}
+  if SetJmp(CalcSigJmp)=0 then
+{$endif go32v2}
+{$endif HasSignal}
+    begin
+{$ifdef HasSignal}
+      StoreSigFPE:=Signal(SIGFPE,@CalcSigFPE);
+{$endif HasSignal}
+      if (Status = csError) and (Key <> 'C') then Key := ' ';
+      if Key='X^Y' then Key:='^';
+      if length(Key)>1 then
+         begin
+    {        if Status = csFirst then}
+            begin
+    {          Status := csValid;}
+              GetDisplay(R);
+              if Key='1/X' then begin if R=0 then Error else SetDisplay(1/R,false) end else
+              if Key='SQR' then begin if R<0 then Error else SetDisplay(sqrt(R),false) end else
+              if Key='LOG' then begin if R<=0 then Error else SetDisplay(ln(R),false) end else
+              if Key='X^2' then SetDisplay(R*R,false) else
+              if Key='M+' then Memory:=Memory+R else
+              if Key='M-' then Memory:=Memory-R else
+              if Key='M'#26 then SetDisplay(Memory,false) else
+              if Key='M'#27 then Memory:=R else
+              if Key='M'#29 then begin D:=Memory; Memory:=R; SetDisplay(D,false); end;
             end;
-          case _Operator of
-            '^': SetDisplay(Power(Operand,R),false);
-            '+': SetDisplay(Operand + R,false);
-            '-': SetDisplay(Operand - R,false);
-            '*': SetDisplay(Operand * R,false);
-            '/': if R = 0 then Error else SetDisplay(Operand / R,false);
+         end
+      else
+      case Key[1] of
+        '0'..'9':
+        if Length(Number)<MaxDigits then
+          begin
+            CheckFirst;
+            if Number = '0' then Number := '';
+            Number := Number + Key;
+            SetDisplay(StrToExtended(Number),true);
           end;
-        end;
-        _Operator := Key[1];
-        GetDisplay(Operand);
+        '.':
+          begin
+            CheckFirst;
+            if Pos('.', Number) = 0 then Number := Number + '.';
+          end;
+        #8, #27:
+          begin
+            CheckFirst;
+            if Length(Number) = 1 then Number := '0' else Dec(Number[0]);
+            SetDisplay(StrToExtended(Number),true); { !!! }
+          end;
+        '_', #241:
+          if Sign = ' ' then Sign := '-' else Sign := ' ';
+        '+', '-', '*', '/', '=', '%', #13, '^':
+          begin
+            if Status = csValid then
+            begin
+              Status := csFirst;
+              GetDisplay(R);
+              if Key = '%' then
+                case _Operator of
+                  '+', '-': R := Operand * R / 100;
+                  '*', '/': R := R / 100;
+                end;
+              case _Operator of
+                '^': SetDisplay(Power(Operand,R),false);
+                '+': SetDisplay(Operand + R,false);
+                '-': SetDisplay(Operand - R,false);
+                '*': SetDisplay(Operand * R,false);
+                '/': if R = 0 then Error else SetDisplay(Operand / R,false);
+              end;
+            end;
+            _Operator := Key[1];
+            GetDisplay(Operand);
+          end;
+        'C':
+          Clear;
+        else CalcKey:=false;
       end;
-    'C':
-      Clear;
-    else CalcKey:=false;
-  end;
-  DrawView;
+{$ifdef HasSignal}
+      Signal(SIGFPE,StoreSigFPE);
+{$endif HasSignal}
+      DrawView;
+{$ifdef HasSignal}
+    end
+  else { LongJmp called }
+    begin
+      ErrorBox('Error while computing '+Key,nil);
+      CalcKey:=true;
+{$endif HasSignal}
+    end;
 end;
 
 procedure TCalcDisplay.Clear;
@@ -468,7 +534,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.2  2001-08-05 02:01:47  peter
+  Revision 1.3  2001-11-14 23:55:38  pierre
+   * fix bug 1680 for go32v2 and hopefully for linux
+
+  Revision 1.2  2001/08/05 02:01:47  peter
     * FVISION define to compile with fvision units
 
   Revision 1.1  2001/08/04 11:30:22  peter
