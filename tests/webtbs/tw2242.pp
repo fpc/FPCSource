@@ -1,4 +1,4 @@
-{ %skiptarget=go32v2,win32 }
+{ %skiptarget=go32v2 }
 { %opt=-Sc }
 VAR s : ansistring;
 BEGIN
