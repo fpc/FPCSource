@@ -65,7 +65,6 @@ implementation
          end;
       end;
 
-
     function getresflags(p : ptree;unsigned : boolean) : tresflags;
 
       begin
@@ -589,7 +588,7 @@ implementation
          pushed,mboverflow,cmpop : boolean;
          op,op2 : tasmop;
          flags : tresflags;
-         otl,ofl : plabel;
+         otl,ofl,hl : plabel;
          power : longint;
          opsize : topsize;
          hl4: plabel;
@@ -688,15 +687,78 @@ implementation
        equaln,xorn : begin
                        if p^.left^.treetype=ordconstn then
                         swaptree(p);
+                       if p^.left^.location.loc=LOC_JUMP then
+                         begin
+                            otl:=truelabel;
+                            getlabel(truelabel);
+                            ofl:=falselabel;
+                            getlabel(falselabel);
+                         end;
+
                        secondpass(p^.left);
                        { if in flags then copy first to register, because the
                          flags can be destroyed }
-                       if (p^.left^.location.loc=LOC_FLAGS) then
-                        locflags2reg(p^.left^.location,opsize);
+                       case p^.left^.location.loc of
+                          LOC_FLAGS:
+                            locflags2reg(p^.left^.location,opsize);
+                          LOC_JUMP:
+                            begin
+                               case opsize of
+                                  S_L : hregister:=getregister32;
+                                  S_W : hregister:=reg32toreg16(getregister32);
+                                  S_B : hregister:=reg32toreg8(getregister32);
+                               end;
+                               p^.left^.location.loc:=LOC_REGISTER;
+                               p^.left^.location.register:=hregister;
+                               emitlab(truelabel);
+                               truelabel:=otl;
+                               exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,opsize,1,
+                                 hregister)));
+                               getlabel(hl);
+                               emitjmp(C_None,hl);
+                               emitlab(falselabel);
+                               falselabel:=ofl;
+                               exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,makereg32(hregister),
+                                 makereg32(hregister))));
+                               emitlab(hl);
+                            end;
+                       end;
                        set_location(p^.location,p^.left^.location);
                        pushed:=maybe_push(p^.right^.registers32,p);
+                       if p^.right^.location.loc=LOC_JUMP then
+                         begin
+                            otl:=truelabel;
+                            getlabel(truelabel);
+                            ofl:=falselabel;
+                            getlabel(falselabel);
+                         end;
                        secondpass(p^.right);
                        if pushed then restore(p);
+                       case p^.right^.location.loc of
+                          LOC_FLAGS:
+                            locflags2reg(p^.right^.location,opsize);
+                          LOC_JUMP:
+                            begin
+                               case opsize of
+                                  S_L : hregister:=getregister32;
+                                  S_W : hregister:=reg32toreg16(getregister32);
+                                  S_B : hregister:=reg32toreg8(getregister32);
+                               end;
+                               p^.right^.location.loc:=LOC_REGISTER;
+                               p^.right^.location.register:=hregister;
+                               emitlab(truelabel);
+                               truelabel:=otl;
+                               exprasmlist^.concat(new(pai386,op_const_reg(A_MOV,opsize,1,
+                                 hregister)));
+                               getlabel(hl);
+                               emitjmp(C_None,hl);
+                               emitlab(falselabel);
+                               falselabel:=ofl;
+                               exprasmlist^.concat(new(pai386,op_reg_reg(A_XOR,S_L,makereg32(hregister),
+                                 makereg32(hregister))));
+                               emitlab(hl);
+                            end;
+                       end;
                        goto do_normal;
                     end
              else
@@ -1970,7 +2032,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.50  1999-04-16 13:42:35  jonas
+  Revision 1.51  1999-04-16 20:44:34  florian
+    * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
+      operands fixed, small things for new ansistring management
+
+  Revision 1.50  1999/04/16 13:42:35  jonas
     * more regalloc fixes (still not complete)
 
   Revision 1.49  1999/04/16 11:44:24  peter

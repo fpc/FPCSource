@@ -635,10 +635,16 @@ begin
    tmpfreelist:=nil;
    templist:=nil;
    reftempslots:=nil;
+   { just to be sure }
+   tempansilist:=nil;
 end.
 {
   $Log$
-  Revision 1.18  1999-04-16 14:03:39  pierre
+  Revision 1.19  1999-04-16 20:44:38  florian
+    * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
+      operands fixed, small things for new ansistring management
+
+  Revision 1.18  1999/04/16 14:03:39  pierre
    * added paitempalloc for tempansi
 
   Revision 1.17  1999/04/16 11:49:45  peter

@@ -347,7 +347,11 @@ implementation
                   xorn:
                     begin
                       make_bool_equal_size(p);
-                      calcregisters(p,1,0,0);
+                      if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                        (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                        calcregisters(p,2,0,0)
+                      else
+                        calcregisters(p,1,0,0);
                     end;
                   unequaln,
                   equaln:
@@ -388,11 +392,36 @@ implementation
                           end;
                          exit;
                        end;
-                      calcregisters(p,1,0,0);
+                      if (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) and
+                        (p^.left^.location.loc in [LOC_JUMP,LOC_FLAGS]) then
+                        calcregisters(p,2,0,0)
+                      else
+                        calcregisters(p,1,0,0);
                     end;
                 else
                   CGMessage(type_e_mismatch);
                 end;
+
+                { these one can't be in flags! }
+                if p^.treetype in [xorn,unequaln,equaln] then
+                  begin
+                     if p^.left^.location.loc=LOC_FLAGS then
+                       begin
+                          p^.left:=gentypeconvnode(p^.left,porddef(p^.left^.resulttype));
+                          p^.left^.convtyp:=tc_bool_2_int;
+                          p^.left^.explizit:=true;
+                          firstpass(p^.left);
+                       end;
+                     if p^.right^.location.loc=LOC_FLAGS then
+                       begin
+                          p^.right:=gentypeconvnode(p^.right,porddef(p^.right^.resulttype));
+                          p^.right^.convtyp:=tc_bool_2_int;
+                          p^.right^.explizit:=true;
+                          firstpass(p^.right);
+                       end;
+                     { readjust registers }
+                     calcregisters(p,1,0,0);
+                  end;
                 convdone:=true;
               end
              else
@@ -1017,7 +1046,11 @@ implementation
 end.
 {
   $Log$
-  Revision 1.25  1999-04-15 09:01:34  peter
+  Revision 1.26  1999-04-16 20:44:37  florian
+    * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
+      operands fixed, small things for new ansistring management
+
+  Revision 1.25  1999/04/15 09:01:34  peter
     * fixed set loading
     * object inheritance support for browser
 
