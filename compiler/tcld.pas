@@ -509,7 +509,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.4  2000-08-13 08:42:59  peter
+  Revision 1.5  2000-08-13 19:21:13  peter
+    * fix for absolute to mem address (merged)
+
+  Revision 1.4  2000/08/13 08:42:59  peter
     * support absolute refering to funcret (merged)
 
   Revision 1.3  2000/07/13 12:08:28  michael
