@@ -66,8 +66,16 @@ Const
 
          SO_ATTACH_FILTER=  26;
          SO_DETACH_FILTER=  27;
-
          SO_PEERNAME     =  28;
+         SO_TIMESTAMP    = 29;
+         SCM_TIMESTAMP   = SO_TIMESTAMP;
+         SO_ACCEPTCONN   = 30;
+         
+                  
+        SHUT_RD         =0;             { shut down the reading side }
+        SHUT_WR         =1;             { shut down the writing side }
+        SHUT_RDWR       =2;             { shut down both sides }
+         
 {$ELSE}
         SOL_SOCKET = $FFFF;
         SO_DEBUG         =$0001;        { turn on debugging info recording }
@@ -162,7 +170,10 @@ Function Connect(Sock:longint;const addr:TInetSockAddr;var SockIn,SockOut:file):
 
 {
   $Log$
-  Revision 1.9  2003-03-23 17:47:15  armin
+  Revision 1.10  2003-11-09 21:43:15  michael
+  + Added some missing socket options and the shut_* constants
+
+  Revision 1.9  2003/03/23 17:47:15  armin
   * CloseSocket added
 
   Revision 1.8  2002/09/07 15:07:46  peter
