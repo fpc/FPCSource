@@ -288,7 +288,7 @@ function power(base,exponent : float) : float;
 function intpower(base : float;const exponent : Integer) : float;
 
 operator ** (bas,expo : float) e: float;
-operator ** (bas,expo : int64) i: float;
+operator ** (bas,expo : int64) i: int64;
 
 { number converting }
 
@@ -683,9 +683,9 @@ operator ** (bas,expo : float) e: float;
   end;
 
 
-operator ** (bas,expo : int64) i: float;
+operator ** (bas,expo : int64) i: int64;
   begin
-    i:=intpower(bas,expo);
+    i:=round(intpower(bas,expo));
   end;
 
 
@@ -1393,7 +1393,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.30  2005-02-08 20:25:28  florian
+  Revision 1.31  2005-02-08 20:49:16  florian
+    * operator **(int64,int64) returns int64 now
+
+  Revision 1.30  2005/02/08 20:25:28  florian
     - killed power from system unit
     * move operator ** to math unit
 
