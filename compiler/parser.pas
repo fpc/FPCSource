@@ -81,6 +81,7 @@ unit parser;
          aktprocsym:=nil;
 
          current_module:=nil;
+         compiled_module:=nil;
 
          loaded_units.init;
 
@@ -184,6 +185,7 @@ unit parser;
          oldaktoptprocessor : tprocessors;
          oldaktasmmode      : tasmmode;
          oldaktmodeswitches : tmodeswitches;
+         old_compiled_module : pmodule;
          prev_name          : pstring;
 {$ifdef USEEXCEPT}
          recoverpos    : jmp_buf;
@@ -197,6 +199,7 @@ unit parser;
          inc(compile_level);
          prev_name:=stringdup(parser_current_file);
          parser_current_file:=filename;
+         old_compiled_module:=compiled_module;
        { save symtable state }
          oldsymtablestack:=symtablestack;
          oldrefsymtable:=refsymtable;
@@ -271,6 +274,7 @@ unit parser;
             main_module:=current_module;
           end;
 
+         compiled_module:=current_module;
          current_module^.in_compile:=true;
        { Load current state from the init values }
          aktlocalswitches:=initlocalswitches;
@@ -444,8 +448,7 @@ unit parser;
 
 {$ifdef BrowserCol}
               { Write Browser Collections }
-              if (cs_browser in aktmoduleswitches) then
-                CreateBrowserCol;
+              CreateBrowserCol;
 {$endif}
               end;
 
@@ -472,6 +475,7 @@ unit parser;
          dec(compile_level);
          parser_current_file:=prev_name^;
          stringdispose(prev_name);
+         compiled_module:=old_compiled_module;
 {$ifdef USEEXCEPT}
          if longjump_used then
            longjmp(recoverpospointer^,1);
@@ -481,7 +485,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.84  1999-09-15 22:09:23  florian
+  Revision 1.85  1999-09-16 08:02:39  pierre
+   + old_compiled_module to avoid wrong file info when load PPU files
+
+  Revision 1.84  1999/09/15 22:09:23  florian
     + rtti is now automatically generated for published classes, i.e.
       they are handled like an implicit property
 
