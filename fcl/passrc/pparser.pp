@@ -116,6 +116,7 @@ type
     procedure ExpectToken(tk: TToken);
     function ExpectIdentifier: String;
 
+    function ParseType(Parent: TPasElement; Prefix : String): TPasType;
     function ParseType(Parent: TPasElement): TPasType;
     function ParseComplexType: TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
@@ -288,6 +289,12 @@ end;
 
 function TPasParser.ParseType(Parent: TPasElement): TPasType;
 
+begin
+  Result:=ParseType(Parent,'');
+end;
+
+function TPasParser.ParseType(Parent: TPasElement; Prefix : String): TPasType;
+
   procedure ParseRange;
   begin
     Result := TPasRangeType(CreateElement(TPasRangeType, '', Parent));
@@ -314,11 +321,13 @@ begin
       begin
         TypeToken := CurToken;
         Name := CurTokenString;
+        If (Prefix<>'') then
+          Name:=Prefix+'.'+Name;
         NextToken;
         if CurToken = tkDot then
         begin
           ExpectIdentifier;
-          Name := CurTokenString;
+          Name := Name+'.'+CurTokenString;
         end else
           UngetToken;
         Ref := nil;
@@ -848,6 +857,8 @@ var
 
 var
   EnumValue: TPasEnumValue;
+  Prefix : String;
+   
 begin
   TypeName := CurTokenString;
   ExpectToken(tkEqual);
@@ -897,14 +908,15 @@ begin
       end;
     tkIdentifier:
       begin
+        Prefix:=CurTokenString;
         NextToken;
         if CurToken = tkDot then
-        begin
-          // !!!: Store the full identifier
+          begin
           ExpectIdentifier;
           NextToken;
-        end;
-
+          end
+        else
+          Prefix:='';  
         if CurToken = tkSemicolon then
         begin
           UngetToken;
@@ -912,7 +924,7 @@ begin
           Result := TPasAliasType(CreateElement(TPasAliasType, TypeName,
 	    Parent));
           try
-            TPasAliasType(Result).DestType := ParseType(nil);
+            TPasAliasType(Result).DestType := ParseType(nil,Prefix);
             ExpectToken(tkSemicolon);
           except
             Result.Free;
@@ -1822,7 +1834,10 @@ end.
 
 {
   $Log$
-  Revision 1.8  2004-09-13 16:02:36  peter
+  Revision 1.9  2004-10-16 18:55:31  michael
+  + Support for cross-unit aliases
+
+  Revision 1.8  2004/09/13 16:02:36  peter
     * fix nested for-loop with same index
 
   Revision 1.7  2004/07/23 23:40:35  michael
