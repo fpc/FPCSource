@@ -16,12 +16,11 @@
 
 {$ASMMODE ATT}
 
-procedure do_load_small(p : pointer;l:longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_LOAD_SMALL'];
+procedure do_load_small(p : pointer;l:longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_LOAD_SMALL'];
 {
-  load a set from an
+  load a normal set p from a smallset l
 }
-begin
-  asm
+asm
         movl    p,%edi
         movl    l,%eax
         movl    %eax,(%edi)
@@ -30,16 +29,14 @@ begin
         xorl    %eax,%eax
         rep
         stosl
-  end;
 end;
 
 
-procedure do_set_byte(p : pointer;b : byte); [public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_BYTE'];
+procedure do_set_byte(p : pointer;b : byte);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_BYTE'];
 {
   add the element b to the set pointed by p
 }
-begin
-    asm
+asm
        pushl %eax
        movl p,%edi
        movb b,%al
@@ -50,19 +47,14 @@ begin
        andl $7,%eax
        btsl %eax,(%edi)
        popl %eax
-       { own exit, the compiler generates a ret $8, IMHO }
-       leave
-       ret $6
-    end;
 end;
 
 
-procedure do_set_range(p : pointer;l,h : byte);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_RANGE'];
+procedure do_set_range(p : pointer;l,h : byte);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_RANGE'];
 {
   bad implementation, but it's very seldom used
 }
-begin
-  asm
+asm
         pushl   %eax
         movl    p,%edi
         xorl    %eax,%eax
@@ -82,16 +74,14 @@ begin
         jmp     .LSET_SET_RANGE_LOOP
 .LSET_SET_RANGE_EXIT:
         popl %eax
-  end;
 end;
 
 
-procedure do_in_byte(p : pointer;b : byte);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_BYTE'];
+procedure do_in_byte(p : pointer;b : byte);assembler;[public,alias:{$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_BYTE'];
 {
   tests if the element b is in the set p the carryflag is set if it present
 }
-begin
-    asm
+asm
        pushl %eax
        movl p,%edi
        movb b,%al
@@ -102,23 +92,18 @@ begin
        andl $7,%eax
        btl %eax,(%edi)
        popl %eax
-       { own exit, the compiler generates a ret $8, IMHO }
-       leave
-       ret $6
-    end;
 end;
 
 
 
-procedure do_add_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS'];
+procedure do_add_sets(set1,set2,dest : pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS'];
 {
   adds set1 and set2 into set dest
 }
-begin
-   asm
-      movl 8(%ebp),%esi
-      movl 12(%ebp),%ebx
-      movl 16(%ebp),%edi
+asm
+      movl set1,%esi
+      movl set2,%ebx
+      movl dest,%edi
       movl $8,%ecx
    .LMADDSETS1:
       lodsl
@@ -127,19 +112,18 @@ begin
       addl $4,%ebx
       decl %ecx
       jnz .LMADDSETS1
-   end;
 end;
 
 
-{ multiplies (i.E. takes common elements of) set1 and set2 }
-{ result put in dest                                       }
 
-procedure do_mul_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS'];
-begin
-   asm
-      movl 8(%ebp),%esi
-      movl 12(%ebp),%ebx
-      movl 16(%ebp),%edi
+procedure do_mul_sets(set1,set2,dest:pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS'];
+{
+  multiplies (takes common elements of) set1 and set2 result put in dest
+}
+asm
+      movl set1,%esi
+      movl set2,%ebx
+      movl dest,%edi
       movl $8,%ecx
   .LMMULSETS1:
       lodsl
@@ -148,19 +132,17 @@ begin
       addl $4,%ebx
       decl %ecx
       jnz .LMMULSETS1
-   end;
 end;
 
 
-procedure do_sub_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS'];
+procedure do_sub_sets(set1,set2,dest:pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS'];
 {
   computes the diff from set1 to set2 result in dest
 }
-begin
-     asm
-        movl 8(%ebp),%esi
-        movl 12(%ebp),%ebx
-        movl 16(%ebp),%edi
+asm
+        movl set1,%esi
+        movl set2,%ebx
+        movl dest,%edi
         movl $8,%ecx
     .LMSUBSETS1:
         lodsl
@@ -171,19 +153,17 @@ begin
         addl $4,%ebx
         decl %ecx
         jnz .LMSUBSETS1
-     end;
 end;
 
 
-procedure do_symdif_sets(set1,set2,dest : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS'];
+procedure do_symdif_sets(set1,set2,dest:pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS'];
 {
    computes the symetric diff from set1 to set2 result in dest
 }
-begin
-     asm
-        movl 8(%ebp),%esi
-        movl 12(%ebp),%ebx
-        movl 16(%ebp),%edi
+asm
+        movl set1,%esi
+        movl set2,%ebx
+        movl dest,%edi
         movl $8,%ecx
     .LMSYMDIFSETS1:
         lodsl
@@ -193,17 +173,16 @@ begin
         addl $4,%ebx
         decl %ecx
         jnz .LMSYMDIFSETS1
-     end;
 end;
 
-procedure do_comp_sets(set1,set2 : pointer);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS'];
+
+procedure do_comp_sets(set1,set2 : pointer);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS'];
 {
   compares set1 and set2 zeroflag is set if they are equal
 }
-begin
-     asm
-        movl 8(%ebp),%esi
-        movl 12(%ebp),%edi
+asm
+        movl set1,%esi
+        movl set2,%edi
         movl $8,%ecx
     .LMCOMPSETS1:
         lodsl
@@ -217,22 +196,20 @@ begin
           we have zero flag set, and that what is expected }
         cmpl %eax,%eax
     .LMCOMPSETEND:
-     end;
 end;
 
 
 {$ifdef LARGESETS}
 
-procedure do_set(p : pointer;b : word);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_WORD'];
+procedure do_set(p : pointer;b : word);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SET_WORD'];
 {
   sets the element b in set p works for sets larger than 256 elements
   not yet use by the compiler so
 }
-begin
-    asm
+asm
        pushl %eax
-       movl 8(%ebp),%edi
-       movw 12(%ebp),%ax
+       movl p,%edi
+       movw b,%ax
        andl $0xfff8,%eax
        shrl $3,%eax
        addl %eax,%edi
@@ -240,20 +217,18 @@ begin
        andl $7,%eax
        btsl %eax,(%edi)
        popl %eax
-    end;
 end;
 
 
-procedure do_in(p : pointer;b : word);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_WORD'];
+procedure do_in(p : pointer;b : word);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_IN_WORD'];
 {
   tests if the element b is in the set p the carryflag is set if it present
   works for sets larger than 256 elements
 }
-begin
-     asm
+asm
         pushl %eax
-        movl 8(%ebp),%edi
-        movw 12(%ebp),%ax
+        movl p,%edi
+        movw b,%ax
         andl $0xfff8,%eax
         shrl $3,%eax
         addl %eax,%edi
@@ -261,21 +236,18 @@ begin
         andl $7,%eax
         btl %eax,(%edi)
         popl %eax
-     end;
 end;
 
 
-procedure add_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS_SIZE'];
+procedure add_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_ADD_SETS_SIZE'];
 {
   adds set1 and set2 into set dest size is the number of bytes in the set
 }
-
-begin
-   asm
-      movl 8(%ebp),%esi
-      movl 12(%ebp),%ebx
-      movl 16(%ebp),%edi
-      movl 20(%ebp),%ecx
+asm
+      movl set1,%esi
+      movl set2,%ebx
+      movl dest,%edi
+      movl size,%ecx
   .LMADDSETSIZES1:
       lodsl
       orl (%ebx),%eax
@@ -283,21 +255,19 @@ begin
       addl $4,%ebx
       decl %ecx
       jnz .LMADDSETSIZES1
-   end;
 end;
 
 
-procedure mul_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS_SIZE'];
+procedure mul_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_MUL_SETS_SIZE'];
 {
   multiplies (i.E. takes common elements of) set1 and set2 result put in
   dest size is the number of bytes in the set
 }
-begin
-      asm
-         movl 8(%ebp),%esi
-         movl 12(%ebp),%ebx
-         movl 16(%ebp),%edi
-         movl 20(%ebp),%ecx
+asm
+         movl set1,%esi
+         movl set2,%ebx
+         movl dest,%edi
+         movl size,%ecx
      .LMMULSETSIZES1:
          lodsl
          andl (%ebx),%eax
@@ -305,17 +275,15 @@ begin
          addl $4,%ebx
          decl %ecx
          jnz .LMMULSETSIZES1
-      end;
 end;
 
 
-procedure sub_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS_SIZE'];
-begin
-      asm
-         movl 8(%ebp),%esi
-         movl 12(%ebp),%ebx
-         movl 16(%ebp),%edi
-         movl 20(%ebp),%ecx
+procedure sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SUB_SETS_SIZE'];
+asm
+         movl set1,%esi
+         movl set2,%ebx
+         movl dest,%edi
+         movl size,%ecx
      .LMSUBSETSIZES1:
          lodsl
          movl (%ebx),%edx
@@ -325,20 +293,18 @@ begin
          addl $4,%ebx
          decl %ecx
          jnz .LMSUBSETSIZES1
-      end;
 end;
 
 
-procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS_SIZE'];
+procedure sym_sub_sets(set1,set2,dest : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_SYMDIF_SETS_SIZE'];
 {
    computes the symetric diff from set1 to set2 result in dest
 }
-begin
-   asm
-      movl 8(%ebp),%esi
-      movl 12(%ebp),%ebx
-      movl 16(%ebp),%edi
-      movl 20(%ebp),%ecx
+asm
+      movl set1,%esi
+      movl set2,%ebx
+      movl dest,%edi
+      movl size,%ecx
   .LMSYMDIFSETSIZE1:
       lodsl
       movl (%ebx),%edx
@@ -347,16 +313,14 @@ begin
       addl $4,%ebx
       decl %ecx
       jnz .LMSYMDIFSETSIZE1
-   end;
 end;
 
 
-procedure comp_sets(set1,set2 : pointer;size : longint);[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS_SIZE'];
-begin
-   asm
-      movl 8(%ebp),%esi
-      movl 12(%ebp),%edi
-      movl 16(%ebp),%ecx
+procedure comp_sets(set1,set2 : pointer;size : longint);assembler;[public,alias: {$ifdef FPCNAMES}'FPC_'+{$endif}'SET_COMP_SETS_SIZE'];
+asm
+      movl set1,%esi
+      movl set2,%edi
+      movl size,%ecx
   .LMCOMPSETSIZES1:
       lodsl
       movl (%edi),%edx
@@ -369,14 +333,16 @@ begin
         we have zero flag set, and that what is expected }
       cmpl %eax,%eax
   .LMCOMPSETSIZEEND:
-   end;
 end;
 
 {$endif LARGESET}
 
 {
   $Log$
-  Revision 1.4  1998-09-14 10:48:12  peter
+  Revision 1.5  1998-10-22 12:48:29  peter
+    * fixed for stackaligment also on 4 bytes, never use 'ret $..' direct
+
+  Revision 1.4  1998/09/14 10:48:12  peter
     * FPC_ names
     * Heap manager is now system independent
 
