@@ -1,7 +1,7 @@
 Name: fpc
 Version: 1.9.6
 Release: 0
-ExclusiveArch: i386 i586 i686 ppc amd64
+ExclusiveArch: i386 i586 i686 ppc amd64 x86_64
 Copyright: GPL
 Group: Development/Languages
 Source: %{name}-%{version}-src.tar.gz
@@ -18,7 +18,15 @@ BuildRequires: fpc
 %ifarch ppc
 %define ppcname ppcppc
 %else
+%ifarch x86_64
+%define ppcname ppcx64
+%else
+%ifarch amd64
+%define ppcname amd64
+%else
 %define ppcname ppc386
+%endif
+%endif
 %endif
 
 %define builddocdir %{buildroot}%{docdir}
