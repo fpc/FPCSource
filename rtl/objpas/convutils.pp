@@ -10,7 +10,7 @@
    Based on a guessed interface derived from some programs on the web. (Like
    Marco Cantu's EuroConv example), so things can be a bit Delphi
    incompatible. Also part on Delphibasics.co.uk.
- 
+
    Quantities are mostly taken from my HP48g/gx or the unix units program
 
    This program is distributed in the hope that it will be useful,
@@ -22,18 +22,21 @@
 unit convutils;
 
 interface
-{$mode objfpc}{$H+}
- 
+
+{$ifndef VER1_0}
+{$mode objfpc}
+{$H+}
+
 Type TConvType   = type Integer;
      TConvFamily = type Integer;
 
-var 
+var
 
 {cbArea family}
 
-  auSquareMillimeters, 
-  auSquareCentimeters, 
-  auSquareDecimeters, 
+  auSquareMillimeters,
+  auSquareCentimeters,
+  auSquareDecimeters,
   auSquareMeters,
   auSquareDecameters,
   auSquareHectometers,
@@ -48,7 +51,7 @@ var
   auHectares	,
   auSquareRods 	,
 
-{cbDistance family}   
+{cbDistance family}
 
   duMicromicrons,
   duAngstroms 	,
@@ -82,8 +85,8 @@ var
   duPicas,
   duPoints,
 
-{cbMass family}       
- 
+{cbMass family}
+
   muNanograms,
   muMicrograms,
   muMilligrams,
@@ -95,7 +98,7 @@ var
   muKilograms,
   muMetricTons,
   muDrams,
-  muGrains,            
+  muGrains,
   muLongTons,
   muTons,
   muOunces,
@@ -103,7 +106,7 @@ var
   muStones,
 
 {cbTemperature family}
-  
+
   tuCelsius,
   tuKelvin,
   tuFahrenheit,
@@ -111,13 +114,13 @@ var
   tuReamur,
 
 {
-cbTime family 
+cbTime family
 }
 
   tuMilliSeconds,
   tuSeconds,
   tuMinutes,
-  tuHours,    
+  tuHours,
   tuDays,
   tuWeeks,
   tuFortnights,
@@ -129,11 +132,11 @@ cbTime family
   tuDateTime,
   tuJulianDate,
   tuModifiedJulianDate,
- 
-{                     
-cbVolume family       
-}                     
-  
+
+{
+cbVolume family
+}
+
   vuCubicMillimeters,
   vuCubicCentimeters,
   vuCubicDecimeters,
@@ -144,22 +147,22 @@ cbVolume family
   vuCubicInches,
   vuCubicFeet,
   vuCubicYards,
-  vuCubicMiles, 
-  vuMilliLiters, 
-  vuCentiLiters, 
-  vuDeciLiters, 
-  vuLiters, 
-  vuDecaLiters, 
-  vuHectoLiters,  
-  vuKiloLiters,  
-  vuAcreFeet,  
-  vuAcreInches,  
-  vuCords,  
-  vuCordFeet,  
-  vuDecisteres,  
-  vuSteres,  
-  vuDecasteres,   
-  vuFluidGallons,   
+  vuCubicMiles,
+  vuMilliLiters,
+  vuCentiLiters,
+  vuDeciLiters,
+  vuLiters,
+  vuDecaLiters,
+  vuHectoLiters,
+  vuKiloLiters,
+  vuAcreFeet,
+  vuAcreInches,
+  vuCords,
+  vuCordFeet,
+  vuDecisteres,
+  vuSteres,
+  vuDecasteres,
+  vuFluidGallons,
   vuFluidQuarts,
   vuFluidPints,
   vuFluidCups,
@@ -175,19 +178,19 @@ cbVolume family
   vuDryBushels,
   vuUKGallons,
   vuUKPottles,
-  vuUKQuarts, 
+  vuUKQuarts,
   vuUKPints,
   vuUKGills,
   vuUKOunces,
   vuUKPecks,
   vuUKBuckets,
   vuUKBushels     : TConvType;
-                        
-var                     
+
+var
     cbArea        : TConvFamily;
-    cbDistance    : TConvFamily; 
-    cbMass        : TConvFamily; 
-    cbTemperature : TConvFamily; 
+    cbDistance    : TConvFamily;
+    cbMass        : TConvFamily;
+    cbTemperature : TConvFamily;
     cbTime        : TConvFamily;
     cbVolume      : TConvFamily;
 
@@ -199,8 +202,12 @@ Function RegisterConversionType(Fam:TConvFamily;Const S:String;Value:TConvUtilFl
 function Convert ( const Measurement  : Double; const FromType, ToType  : TConvType ) :TConvUtilFloat;
 function Convert ( const Measurement  : Double; const FromType1, FromType2, ToType1, ToType2  : TConvType ) :TConvUtilFloat;
 
+
+{$endif VER1_0}
+
 Implementation
 
+{$ifndef VER1_0}
 ResourceString  // Note, designations for FFU's are guesses.
 
   txtauSquareMillimeters   = 'Square millimeters (mm^2)';
@@ -315,7 +322,7 @@ ResourceString  // Note, designations for FFU's are guesses.
   txtvuDecasteres          = 'decasteres (??)';
   txtvuFluidGallons        = 'US fluid gallons (fl gal)';
   txtvuFluidQuarts         = 'US fluid Quarts (fl Quart)';
-  txtvuFluidPints          = 'US fluid Pints (fl pints)'; 
+  txtvuFluidPints          = 'US fluid Pints (fl pints)';
   txtvuFluidCups           = 'US fluid Cups (fl Cups)';
   txtvuFluidGills          = 'US fluid Gills (fl Quart)';
   txtvuFluidOunces         = 'US fluid Ounces (fl Ounces)';
@@ -336,21 +343,21 @@ ResourceString  // Note, designations for FFU's are guesses.
   txtvuUKPecks             = 'UK pecks (dr pecks)';
   txtvuUKBuckets           = 'UK buckets (dr buckets)';
   txtvuUKBushels           = 'UK bushels (dr bushels)';
-                           
-Type ResourceData = record 
+
+Type ResourceData = record
 		      Description : String;
 		      Value       : TConvUtilFloat;
 	              Fam	  : TConvFamily;
-		     end;  	
-		           
-                           
+		     end;
+
+
 var TheUnits    : array of ResourceData =nil;
     TheFamilies : array of string =nil;
-                           
+
 Function RegisterConversionFamily(Const S:String):TConvFamily;
-                           
-var i,l : Longint;         
-                           
+
+var i,l : Longint;
+
 begin
   l:=Length(TheFamilies);
   If l=0 Then
@@ -361,7 +368,7 @@ begin
     end
   else
     begin
-      i:=0; 
+      i:=0;
       while (i<l) and (s<>TheFamilies[i]) do inc(i);
       if i=l Then
          begin
@@ -369,7 +376,7 @@ begin
            TheFamilies[l]:=s;
          end;
        Result:=i;
-    end;    
+    end;
 end;
 
 Function CheckFamily(i:TConvFamily):Boolean;
@@ -410,7 +417,7 @@ end;
 
 function Convert ( const Measurement  : Double; const FromType, ToType  : TConvType ) :TConvUtilFloat;
 
-var 
+var
   fromrec,torec :   resourcedata;
 
 begin
@@ -420,11 +427,11 @@ begin
    exit(-1.0);					// raise except?
   if fromrec.fam<>torec.fam then
    exit(-1.0);
-  result:=Measurement*fromrec.value/torec.value;  
+  result:=Measurement*fromrec.value/torec.value;
 end;
 
 function Convert ( const Measurement  : Double; const FromType1, FromType2, ToType1, ToType2  : TConvType ) :TConvUtilFloat;
-var 
+var
   fromrec1,fromrec2,torec1 ,
   torec2 :   resourcedata;
 
@@ -465,7 +472,7 @@ begin
   auCentares	      := RegisterConversionType(cbArea,txtauCentares,-1);
   auAres	      := RegisterConversionType(cbArea,txtauAres,100);
   auHectares	      := RegisterConversionType(cbArea,txtauHectares,10000);
-  auSquareRods 	      := RegisterConversionType(cbArea,txtauSquareRods,25.2929538117);                    
+  auSquareRods 	      := RegisterConversionType(cbArea,txtauSquareRods,25.2929538117);
 end;
 
 procedure RegisterLengths;
@@ -502,7 +509,7 @@ begin
   duLinks             := RegisterConversionType(cbDistance,txtduLinks,0.201168);
   duPicas             := RegisterConversionType(cbDistance,txtduPicas,0.0042333333);
   duPoints            := RegisterConversionType(cbDistance,txtduPoints,0.00035277778);
-end;                                                       
+end;
 
 procedure Registermass;  // weight? :)
 
@@ -524,14 +531,14 @@ begin
   muOunces            := RegisterConversionType(cbMass,txtmuOunces,0.028349523);
   muPounds            := RegisterConversionType(cbMass,txtmuPounds,0.45359237);
   muStones            := RegisterConversionType(cbMass,txtmuStones,6.3502932);
-end;                                                      
+end;
 
 procedure RegisterTemperature;
 begin
- tuCelsius    := RegisterConversionType(cbTemperature,txttuCelsius,1);             
- tuKelvin     := RegisterConversionType(cbTemperature,txttuKelvin,1);		   
- tuFahrenheit := RegisterConversionType(cbTemperature,txttuFahrenheit,5/9);	   
- tuRankine    := RegisterConversionType(cbTemperature,txttuRankine,0.5555556);             
+ tuCelsius    := RegisterConversionType(cbTemperature,txttuCelsius,1);
+ tuKelvin     := RegisterConversionType(cbTemperature,txttuKelvin,1);		
+ tuFahrenheit := RegisterConversionType(cbTemperature,txttuFahrenheit,5/9);	
+ tuRankine    := RegisterConversionType(cbTemperature,txttuRankine,0.5555556);
  tuReamur     := RegisterConversionType(cbTemperature,txttuReamur,10/8);   // Reaumur?
 end;
 
@@ -541,19 +548,19 @@ procedure RegisterTimes;
 
 begin
   tuMilliSeconds           := RegisterConversionType(cbTime,txttuMilliSeconds,1E-3);
-  tuSeconds                := RegisterConversionType(cbTime,txttuSeconds,1);            
-  tuMinutes                := RegisterConversionType(cbTime,txttuMinutes,60.0);            
-  tuHours                  := RegisterConversionType(cbTime,txttuHours,3600.0);              
-  tuDays                   := RegisterConversionType(cbTime,txttuDays,24*3600.0);               
-  tuWeeks                  := RegisterConversionType(cbTime,txttuWeeks,7*24*3600.0);              
+  tuSeconds                := RegisterConversionType(cbTime,txttuSeconds,1);
+  tuMinutes                := RegisterConversionType(cbTime,txttuMinutes,60.0);
+  tuHours                  := RegisterConversionType(cbTime,txttuHours,3600.0);
+  tuDays                   := RegisterConversionType(cbTime,txttuDays,24*3600.0);
+  tuWeeks                  := RegisterConversionType(cbTime,txttuWeeks,7*24*3600.0);
   tuFortnights             := RegisterConversionType(cbTime,txttuFortnights,14*24*3600.0);
-  tuMonths                 := RegisterConversionType(cbTime,txttuMonths,1/12*YearSec);             
+  tuMonths                 := RegisterConversionType(cbTime,txttuMonths,1/12*YearSec);
   tuYears                  := RegisterConversionType(cbTime,txttuYears,YearSec);
-  tuDecades                := RegisterConversionType(cbTime,txttuDecades,10*YearSec);            
-  tuCenturies              := RegisterConversionType(cbTime,txttuCenturies,100*yearsec);          
-  tuMillennia              := RegisterConversionType(cbTime,txttuMillennia,1000*yearsec);          
-  tuDateTime               := RegisterConversionType(cbTime,txttuDateTime,-1);           
-  tuJulianDate             := RegisterConversionType(cbTime,txttuJulianDate,-1);         
+  tuDecades                := RegisterConversionType(cbTime,txttuDecades,10*YearSec);
+  tuCenturies              := RegisterConversionType(cbTime,txttuCenturies,100*yearsec);
+  tuMillennia              := RegisterConversionType(cbTime,txttuMillennia,1000*yearsec);
+  tuDateTime               := RegisterConversionType(cbTime,txttuDateTime,-1);
+  tuJulianDate             := RegisterConversionType(cbTime,txttuJulianDate,-1);
   tuModifiedJulianDate     := RegisterConversionType(cbTime,txttuModifiedJulianDate,-1);
 end;
 
@@ -582,7 +589,7 @@ begin
   vuKiloLiters            := RegisterConversionType(cbVolume,txtvuKiloLiters,1);
   vuAcreFeet              := RegisterConversionType(cbVolume,txtvuAcreFeet,          -1);
   vuAcreInches            := RegisterConversionType(cbVolume,txtvuAcreInches,	     -1);
-  vuCords                 := RegisterConversionType(cbVolume,txtvuCords,128*0.028316847);	  
+  vuCords                 := RegisterConversionType(cbVolume,txtvuCords,128*0.028316847);	
   vuCordFeet              := RegisterConversionType(cbVolume,txtvuCordFeet,128*0.028316847);
   vuDecisteres            := RegisterConversionType(cbVolume,txtvuDecisteres,0.1);
   vuSteres                := RegisterConversionType(cbVolume,txtvuSteres,1);
@@ -610,17 +617,17 @@ begin
   vuUKPecks               := RegisterConversionType(cbVolume,txtvuUKPecks,0.0090921986);
   vuUKBuckets             := RegisterConversionType(cbVolume,txtvuUKBuckets,-1);
   vuUKBushels             := RegisterConversionType(cbVolume,txtvuUKBushels,0.036368794);
-end;                    
+end;
 
-Procedure RegisterFamilies;                            
-Begin                                                  
-    cbArea        := RegisterConversionFamily('Area'); 
-    cbDistance    := RegisterConversionFamily('Distance'); 
-    cbMass        := RegisterConversionFamily('Mass'); 
-    cbTemperature := RegisterConversionFamily('Temperature'); 
-    cbTime        := RegisterConversionFamily('Time'); 
-    cbVolume      := RegisterConversionFamily('Volume'); 
-End;                                                   
+Procedure RegisterFamilies;
+Begin
+    cbArea        := RegisterConversionFamily('Area');
+    cbDistance    := RegisterConversionFamily('Distance');
+    cbMass        := RegisterConversionFamily('Mass');
+    cbTemperature := RegisterConversionFamily('Temperature');
+    cbTime        := RegisterConversionFamily('Time');
+    cbVolume      := RegisterConversionFamily('Volume');
+End;
 
 
 Procedure RegisterAll;
@@ -640,11 +647,15 @@ initialization
 finalization
   setlength(theunits,0);
   setlength(thefamilies,0);
+{$endif VER1_0}
 end.
 
 {
   $Log$
-  Revision 1.1  2004-03-20 23:41:34  marco
+  Revision 1.2  2004-04-27 17:29:04  florian
+    * compilation with 1.0.10 fixed
+
+  Revision 1.1  2004/03/20 23:41:34  marco
    * Initial version
 
 }
