@@ -1,47 +1,72 @@
+{
+    $Id$
+
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2002-2004 by the Free Pascal development team.
+
+    Processor dependent implementation for the system unit for
+    Sparc
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+
+{****************************************************************************
+                           PowerPC specific stuff
+****************************************************************************}
 procedure fpc_cpuinit;
-begin
-end;
+  begin
+  end;
 
 
 {$define FPC_SYSTEM_HAS_GET_FRAME}
 function get_frame:pointer;assembler;nostackframe;
-asm
+  asm
 	mov %sp,%o0
-end;
+  end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_ADDR}
 function get_caller_addr(framebp:pointer):pointer;assembler;nostackframe;
-asm
+  asm
 	{ framebp = %o0 }
 	{ flush register windows, so they are stored in the stack }
         ta      3
 	ld [%o0+60],%o0
 	{ add 8 to skip jmpl and delay slot }
 	add %o0,8,%o0
-end;
+  end;
 
 
 {$define FPC_SYSTEM_HAS_GET_CALLER_FRAME}
 function get_caller_frame(framebp:pointer):pointer;assembler;nostackframe;
-asm
+  asm
 	{ flush register windows, so they are stored in the stack }
         ta      3
 	{ framebp = %o0 }
 	ld [%o0+56],%o0
-end;
+  end;
 
 
 {$define FPC_SYSTEM_HAS_SPTR}
 function Sptr:Pointer;assembler;nostackframe;
-asm
+  asm
 	mov %sp,%o0
-end;
+  end;
 
 
 {
   $Log$
-  Revision 1.6  2004-05-27 23:34:37  peter
+  Revision 1.7  2004-05-30 20:03:05  florian
+    * ?
+
+  Revision 1.6  2004/05/27 23:34:37  peter
     * backtrace support
 
   Revision 1.5  2004/01/02 17:22:14  jonas
