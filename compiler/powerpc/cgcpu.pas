@@ -1000,7 +1000,11 @@ const
      { generated the entry code of a procedure/function. Note: localsize is the }
      { sum of the size necessary for local variables and the maximum possible   }
      { combined size of ALL the parameters of a procedure called by the current }
-     { one                                                                      }
+     { one.                                                                      }
+     { This procedure may be called before, as well as after
+       g_return_from_proc is called.}
+
+
      var regcounter,firstregfpu,firstreggpr: TRegister;
          href,href2 : treference;
          usesfpr,usesgpr,gotgot : boolean;
@@ -1011,8 +1015,6 @@ const
          hp: tparaitem;
 
       begin
-        { we do our own localsize calculation }
-        localsize:=0;
         { CR and LR only have to be saved in case they are modified by the current }
         { procedure, but currently this isn't checked, so save them always         }
         { following is the entry code as described in "Altivec Programming }
@@ -1102,25 +1104,6 @@ const
              list.concat(taicpu.op_reg_reg(A_MR,r,rsp));
           end;
 
-        { calculate the size of the locals }
-{
-        if usesgpr then
-          inc(localsize,((NR_R31-firstreggpr.number) shr 8+1)*4);
-        if usesfpr then
-          inc(localsize,(ord(R_F31)-ord(firstregfpu.enum)+1)*8);
-}
-        { !!! always allocate space for all registers for now !!! }
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-          inc(localsize,(31-13+1)*4+(31-14+1)*8);
-
-        { align to 16 bytes }
-        localsize:=align(localsize,16);
-
-        inc(localsize,tg.lasttemp);
-
-        localsize:=align(localsize,16);
-
-        tppcprocinfo(current_procinfo).localsize:=localsize;
 
         if (localsize <> 0) then
           begin
@@ -1269,9 +1252,12 @@ const
              reference_reset_base(href,rsp,PARENT_FRAMEPOINTER_OFFSET);
              list.concat(taicpu.op_reg_ref(A_STW,r,href));
           end;
+
       end;
 
     procedure tcgppc.g_return_from_proc(list : taasmoutput;parasize : aword);
+     { This procedure may be called before, as well as after
+       g_stackframe_entry is called.}
 
       var
          regcounter,firstregfpu,firstreggpr: TRegister;
@@ -1282,7 +1268,6 @@ const
          localsize: aword;
 
       begin
-        localsize := 0;
         { AltiVec context restore, not yet implemented !!! }
 
         usesfpr:=false;
@@ -1308,18 +1293,7 @@ const
                 end;
             end;
 
-        if not (po_assembler in current_procinfo.procdef.procoptions) then
-          inc(localsize,(31-13+1)*4+(31-14+1)*8);
-
-        { align to 16 bytes }
-        localsize:=align(localsize,16);
-
-        inc(localsize,tg.lasttemp);
-
-        localsize:=align(localsize,16);
-
-        tppcprocinfo(current_procinfo).localsize:=localsize;
-
+        localsize:= tppcprocinfo(current_procinfo).calc_stackframe_size;
 
         { no return (blr) generated yet }
         genret:=true;
@@ -1330,7 +1304,7 @@ const
              r.number:=NR_STACK_POINTER_REG;
              r2.enum:=R_INTREGISTER;
              r2.number:=NR_R12;
-             a_op_const_reg_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r,r2);
+             a_op_const_reg_reg(list,OP_ADD,OS_ADDR,localsize,r,r2);
              if usesfpr then
                begin
                  reference_reset_base(href,r2,-8);
@@ -1391,7 +1365,7 @@ const
              { adjust r1 }
              r.enum:=R_INTREGISTER;
              r.number:=NR_R1;
-             a_op_const_reg(list,OP_ADD,OS_ADDR,tppcprocinfo(current_procinfo).localsize,r);
+             a_op_const_reg(list,OP_ADD,OS_ADDR,localsize,r);
              { load link register? }
              if not (po_assembler in current_procinfo.procdef.procoptions) then
                begin
@@ -1663,7 +1637,7 @@ const
         localsize:= align(localsize + macosLinkageAreaSize + registerSaveAreaSize, 16);
         inc(localsize,tg.lasttemp);
         localsize:=align(localsize,16);
-        tppcprocinfo(current_procinfo).localsize:=localsize;
+        //tppcprocinfo(current_procinfo).localsize:=localsize;
 
         if (localsize <> 0) then
           begin
@@ -2681,7 +2655,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.120  2003-08-17 16:59:20  jonas
+  Revision 1.121  2003-08-18 11:50:55  olle
+    + cleaning up in proc entry and exit, now calc_stack_frame always is used.
+
+  Revision 1.120  2003/08/17 16:59:20  jonas
     * fixed regvars so they work with newra (at least for ppc)
     * fixed some volatile register bugs
     + -dnotranslation option for -dnewra, which causes the registers not to

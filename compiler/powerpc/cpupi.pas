@@ -34,11 +34,8 @@ unit cpupi;
 
     type
        tppcprocinfo = class(tcgprocinfo)
-          { overall size of allocated stack space, currently this is used for the PowerPC only }
-          localsize : aword;
           { max. of space need for parameters, currently used by the PowerPC port only }
           maxpushedparasize : aword;
-
           constructor create(aparent:tprocinfo);override;
           procedure handle_body_start;override;
           procedure after_pass1;override;
@@ -54,14 +51,13 @@ unit cpupi;
        cpubase,
        aasmtai,
        tgobj,
-       symconst, symsym,paramgr;
+       symconst,symsym,paramgr;
 
     constructor tppcprocinfo.create(aparent:tprocinfo);
 
       begin
          inherited create(aparent);
          maxpushedparasize:=0;
-         localsize:=0;
       end;
 
 
@@ -114,11 +110,12 @@ unit cpupi;
 
 
     function tppcprocinfo.calc_stackframe_size:longint;
-      var
-        savearea : longint;
       begin
         { more or less copied from cgcpu.pas/g_stackframe_entry }
-        result := align(align((31-13+1)*4+(31-14+1)*8,16)+tg.lasttemp,16);
+        if not (po_assembler in procdef.procoptions) then
+          result := align(align((31-13+1)*4+(31-14+1)*8,16)+tg.lasttemp,16)
+        else
+          result := align(tg.lasttemp,16);
       end;
 
 
@@ -127,7 +124,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.26  2003-08-16 14:26:44  jonas
+  Revision 1.27  2003-08-18 11:51:19  olle
+    + cleaning up in proc entry and exit, now calc_stack_frame always is used.
+
+  Revision 1.26  2003/08/16 14:26:44  jonas
     * set correct localsymtable fixup already in handle_body_start instead
       of in after_pass1, as it's necessary to get the correct offsets for
       the calleeside paralocs (and those are now setup in the generic
