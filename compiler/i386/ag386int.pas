@@ -503,7 +503,7 @@ implementation
                            begin
                              AsmWrite(#9#9'DB'#9);
                              quoted:=false;
-                             for i:=counter to counter+line_length do
+                             for i:=counter to counter+line_length-1 do
                                 begin
                                   { it is an ascii character. }
                                   if (ord(tai_string(hp).str[i])>31) and
@@ -534,7 +534,8 @@ implementation
                              counter := counter+line_length;
                           end; { end for j:=0 ... }
                         { do last line of lines }
-                        AsmWrite(#9#9'DB'#9);
+                        if counter<tai_string(hp).len then
+                          AsmWrite(#9#9'DB'#9);
                         quoted:=false;
                         for i:=counter to tai_string(hp).len-1 do
                           begin
@@ -882,7 +883,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.46  2004-02-27 10:21:05  florian
+  Revision 1.47  2004-03-17 12:03:00  olle
+    * bugfix for multiline string constants
+
+  Revision 1.46  2004/02/27 10:21:05  florian
     * top_symbol killed
     + refaddr to treference added
     + refsymbol to treference added

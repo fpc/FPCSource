@@ -933,84 +933,87 @@ var
               AsmWriteLn(#9'dc.d'#9'"'+double2str(tai_real_64bit(hp).value)+'"');
             ait_string:
               begin
-                 {NOTE When a single quote char is encountered, it is
-                 replaced with a numeric ascii value. It could also
-                 have been replaced with the escape seq of double quotes.
-                 Backslash seems to be used as an escape char, although
-                 this is not mentioned in the PPCAsm documentation.}
-                 counter := 0;
-                 lines := tai_string(hp).len div line_length;
-                 { separate lines in different parts }
-                 if tai_string(hp).len > 0 then
-                  Begin
+                {NOTE When a single quote char is encountered, it is
+                replaced with a numeric ascii value. It could also
+                have been replaced with the escape seq of double quotes.
+                Backslash seems to be used as an escape char, although
+                this is not mentioned in the PPCAsm documentation.}
+                counter := 0;
+                lines := tai_string(hp).len div line_length;
+                { separate lines in different parts }
+                if tai_string(hp).len > 0 then
+                  begin
                     for j := 0 to lines-1 do
-                     begin
-                       AsmWrite(#9'dc.b'#9);
-                       quoted:=false;
-                       for i:=counter to counter+line_length do
+                      begin
+                        AsmWrite(#9'dc.b'#9);
+                        quoted:=false;
+                        for i:=counter to counter+line_length-1 do
                           begin
                             { it is an ascii character. }
                             if (ord(tai_string(hp).str[i])>31) and
                                (ord(tai_string(hp).str[i])<128) and
                                (tai_string(hp).str[i]<>'''') and
                                (tai_string(hp).str[i]<>'\') then
-                                begin
-                                  if not(quoted) then
-                                      begin
-                                        if i>counter then
-                                          AsmWrite(',');
-                                        AsmWrite('''');
-                                      end;
-                                  AsmWrite(tai_string(hp).str[i]);
-                                  quoted:=true;
-                                end { if > 31 and < 128 and ord('"') }
-                            else
-                                begin
-                                    if quoted then
-                                        AsmWrite('''');
-                                    if i>counter then
+                              begin
+                                if not(quoted) then
+                                    begin
+                                      if i>counter then
                                         AsmWrite(',');
-                                    quoted:=false;
-                                    AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                                end;
-                         end; { end for i:=0 to... }
-                       if quoted then AsmWrite('''');
-                       AsmWrite(target_info.newline);
-                       counter := counter+line_length;
-                    end; { end for j:=0 ... }
-                  { do last line of lines }
-                  AsmWrite(#9'dc.b'#9);
-                  quoted:=false;
-                  for i:=counter to tai_string(hp).len-1 do
-                    begin
-                      { it is an ascii character. }
-                      if (ord(tai_string(hp).str[i])>31) and
-                         (ord(tai_string(hp).str[i])<128) and
-                         (tai_string(hp).str[i]<>'''') and
-                         (tai_string(hp).str[i]<>'\') then                          begin
-                            if not(quoted) then
-                                begin
+                                      AsmWrite('''');
+                                    end;
+                                AsmWrite(tai_string(hp).str[i]);
+                                quoted:=true;
+                              end { if > 31 and < 128 and ord('"') }
+                            else
+                              begin
+                                  if quoted then
+                                      AsmWrite('''');
                                   if i>counter then
-                                    AsmWrite(',');
-                                  AsmWrite('''');
-                                end;
-                            AsmWrite(tai_string(hp).str[i]);
-                            quoted:=true;
-                          end { if > 31 and < 128 and " }
-                      else
-                          begin
-                            if quoted then
-                              AsmWrite('''');
-                            if i>counter then
-                                AsmWrite(',');
-                            quoted:=false;
-                            AsmWrite(tostr(ord(tai_string(hp).str[i])));
-                          end;
-                    end; { end for i:=0 to... }
-                  if quoted then
-                    AsmWrite('''');
-                  end;
-                 AsmLn;
+                                      AsmWrite(',');
+                                  quoted:=false;
+                                  AsmWrite(tostr(ord(tai_string(hp).str[i])));
+                              end;
+                          end; { end for i:=0 to... }
+                        if quoted then AsmWrite('''');
+                        AsmLn;
+                        counter := counter+line_length;
+                      end; { end for j:=0 ... }
+
+                  { do last line of lines }
+									if counter < tai_string(hp).len then
+										AsmWrite(#9'dc.b'#9);
+									quoted:=false;
+									for i:=counter to tai_string(hp).len-1 do
+										begin
+											{ it is an ascii character. }
+											if (ord(tai_string(hp).str[i])>31) and
+												 (ord(tai_string(hp).str[i])<128) and
+												 (tai_string(hp).str[i]<>'''') and
+												 (tai_string(hp).str[i]<>'\') then
+												begin
+													if not(quoted) then
+														begin
+															if i>counter then
+																AsmWrite(',');
+															AsmWrite('''');
+														end;
+													AsmWrite(tai_string(hp).str[i]);
+													quoted:=true;
+												end { if > 31 and < 128 and " }
+											else
+												begin
+													if quoted then
+														AsmWrite('''');
+													if i>counter then
+														AsmWrite(',');
+													quoted:=false;
+													AsmWrite(tostr(ord(tai_string(hp).str[i])));
+												end;
+										end; { end for i:=0 to... }
+									if quoted then
+										AsmWrite('''');
+                end;
+								AsmLn;
               end;
             ait_label:
               begin
@@ -1359,7 +1362,10 @@ initialization
 end.
 {
   $Log$
-  Revision 1.33  2004-03-02 00:57:01  olle
+  Revision 1.34  2004-03-17 12:03:31  olle
+    * bugfix for multiline string constants
+
+  Revision 1.33  2004/03/02 00:57:01  olle
     + adding missing log msg: misc fixes
 
   Revision 1.32  2004/03/02 00:36:33  olle
