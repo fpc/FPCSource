@@ -742,7 +742,11 @@ ___prt1_startup:
         call _setup_screens
         call _setup_go32_info_block
         incl ___environ_changed
-
+        /* call set_processor emulation */
+        /* neede to avoid FPU exception if calling from anothe DPMI program */
+        movl    $0xe01,%eax
+        movl    $1,%ebx
+        int     $0x31
         fninit             /* initialize fpu */
         push    %eax       /* Dummy for status store check */
         movl    %esp,%esi
@@ -913,7 +917,10 @@ ___PROXY_LEN:
 
 /*
   $Log$
-  Revision 1.13  2000-04-06 13:05:15  pierre
+  Revision 1.14  2000-05-18 06:40:52  pierre
+   * avoid FPU exception on startup if no coprocessor and loaded from another DPMI program
+
+  Revision 1.13  2000/04/06 13:05:15  pierre
    * bug fix for 915, hopefully
 
   Revision 1.12  2000/02/28 11:17:48  pierre
