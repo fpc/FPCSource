@@ -43,3 +43,4 @@ dsocksvr.pp   Unix socket server application. Tests ssockets.
 sockcli.pp   Unix socket client application. Tests TUnixStream in ssockets.
 isockcli.pp   Inet socket server application. Tests TInetStream in ssockets.
 dsockcli.pp   Dual socket server application. Tests ssockets.
+sstream.pp    Tests TStringStream object.
