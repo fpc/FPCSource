@@ -652,27 +652,27 @@ unit pexpr;
          else
            begin
               isclassref:=pd^.deftype=classrefdef;
-              { check protected and private members }
-              { protected field can be changed inside
-                child object methods at least in BP (PM) }
+
+              { check protected and private members        }
+              { please leave this code as it is,           }
+              { it has now the same behaviaor as TP/Delphi }
               if ((sym^.properties and sp_private)<>0) and
-                 (pobjectdef(sym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
+                (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
+               Message(parser_e_cant_access_private_member);
+
+              if ((sym^.properties and sp_protected)<>0) and
+                 (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
                 begin
                   if assigned(aktprocsym^.definition^._class) then
                     begin
                        if not aktprocsym^.definition^._class^.isrelated(
                           pobjectdef(sym^.owner^.defowner)) then
-                         Message(parser_e_cant_access_private_member);
+                         Message(parser_e_cant_access_protected_member);
                     end
                   else
-                    Message(parser_e_cant_access_private_member);
+                    Message(parser_e_cant_access_protected_member);
                 end;
 
-              { this is wrong protected should not be overwritten but
-              can be called !! PM
-              if ((sym^.properties and sp_protected)<>0) and
-                (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) then
-               Message(parser_e_cant_access_protected_member); }
               { we assume, that only procsyms and varsyms are in an object }
               { symbol table, for classes, properties are allowed          }
               case sym^.typ of
@@ -690,11 +690,6 @@ unit pexpr;
                    end;
                  varsym:
                    begin
-                      if ((sym^.properties and sp_protected)<>0) and
-                         (pobjectdef(pd)^.owner^.symtabletype=unitsymtable) and
-                         not(afterassignment) and
-                         not(in_args) then
-                         Message(parser_e_cant_access_protected_member);
                       if isclassref then
                         Message(parser_e_only_class_methods_via_class_ref);
                       if (sym^.properties and sp_static)<>0 then
@@ -847,14 +842,7 @@ unit pexpr;
                       begin
                          if ((srsym^.properties and sp_private)<>0) and
                             (pobjectdef(srsym^.owner^.defowner)^.owner^.symtabletype=unitsymtable) then
-                             if assigned(aktprocsym^.definition^._class) then
-                               begin
-                                  if not aktprocsym^.definition^._class^.isrelated(
-                                     pobjectdef(srsym^.owner^.defowner)) then
-                                    Message(parser_e_cant_access_private_member);
-                               end
-                             else
-                               Message(parser_e_cant_access_private_member);
+                            Message(parser_e_cant_access_private_member);
                       end;
                      case srsym^.typ of
               absolutesym : begin
@@ -1944,7 +1932,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.84  1999-02-22 02:15:26  peter
+  Revision 1.85  1999-02-22 15:09:39  florian
+    * behaviaor of PROTECTED and PRIVATE fixed, works now like TP/Delphi
+
+  Revision 1.84  1999/02/22 02:15:26  peter
     * updates for ag386bin
 
   Revision 1.83  1999/02/11 09:46:25  pierre

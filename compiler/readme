@@ -21,3 +21,6 @@ Changes in the syntax or semantic of FPC:
   02/02/99:  class destructors take now two parameters: flag
              if the helper routine should free the instance and
              self pointer (FK)
+  22/02/99:  PROTECTED and PRIVATE have now the same behavior
+             as in TP
+

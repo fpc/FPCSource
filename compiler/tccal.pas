@@ -169,8 +169,10 @@ implementation
                    procinfo.funcret_is_valid:=true;
 
                  store_valid:=must_be_valid;
+                 { protected has nothing to do with read/write
                  if (defcoll^.paratyp=vs_var) then
                    test_protected(p^.left);
+                 }
                  must_be_valid:=(defcoll^.paratyp<>vs_var);
                  { only process typeconvn, else it will break other trees }
                  old_array_constructor:=allow_array_constructor;
@@ -1076,7 +1078,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  1999-02-22 02:15:45  peter
+  Revision 1.25  1999-02-22 15:09:44  florian
+    * behaviaor of PROTECTED and PRIVATE fixed, works now like TP/Delphi
+
+  Revision 1.24  1999/02/22 02:15:45  peter
     * updates for ag386bin
 
   Revision 1.23  1999/02/09 17:15:52  florian
