@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=numlib
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 override TARGET_UNITS+=typ omv dsl mdt det eig eigh1 eigh2 int inv iom ipf ode roo sle spe spl numlib tpnumlib
 override INSTALL_FPCPACKAGE=y
 ifdef REQUIRE_UNITSDIR

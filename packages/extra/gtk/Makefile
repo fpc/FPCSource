@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=gtk
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 override TARGET_DIRS+=gtkgl
 override TARGET_UNITS+=glib gmodule gdk gtk gdkpixbuf
 override TARGET_EXAMPLEDIRS+=examples

@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=regexpr
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 override TARGET_UNITS+=regexpr
 override TARGET_EXAMPLES+=testreg1
 override INSTALL_FPCPACKAGE=y

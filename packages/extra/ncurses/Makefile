@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=ncurses
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 override TARGET_UNITS+=ncurses panel ncrt ocrt menu
 override TARGET_EXAMPLES+=firework testn ocrt_demo edit_demo db_demo screen_demo
 override INSTALL_FPCPACKAGE=y

@@ -220,7 +220,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=mysql
-override PACKAGE_VERSION=1.9.4
+override PACKAGE_VERSION=1.9.6
 override TARGET_UNITS+=mysql4_com mysql4_version mysql4 mysql3_com mysql3_version mysql3
 override TARGET_EXAMPLES+=testdb4 testdb3
 override INSTALL_FPCPACKAGE=y
