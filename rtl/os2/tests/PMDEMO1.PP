@@ -9,7 +9,9 @@
 { Sample program for FPC under OS/2 }
 { Classic Hello world in PM version }
 
-{ $R pmdemo1.res}   (* Not supported under OS/2 yet. *)
+{$R pmdemo1.res}
+
+(* PMDEMO1.RES has to be compiled from PMDEMO1.RC using "rc -r PMDEMO1.RC". *)
 
 program pmdemo1;
 
@@ -73,7 +75,10 @@ program pmdemo1;
  end.
 {
   $Log$
-  Revision 1.5  2000-06-18 18:37:17  hajny
+  Revision 1.6  2000-07-09 07:49:34  hajny
+    * $R used now
+
+  Revision 1.5  2000/06/18 18:37:17  hajny
    * cdecl added
 
   Revision 1.4  2000/01/07 16:41:50  daniel
