@@ -1985,7 +1985,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.70  2000-01-28 09:41:39  peter
+  Revision 1.71  2000-02-09 13:23:01  peter
+    * log truncated
+
+  Revision 1.70  2000/01/28 09:41:39  peter
     * fixed fpu suffix parsing for att reader
 
   Revision 1.69  2000/01/21 10:10:25  daniel
@@ -2045,57 +2048,6 @@ end.
     * suffix parsing for at&t fixed for things like movsbl
     * string constants are now handle correctly and also allowed in
       constant expressions
-
-  Revision 1.53  1999/06/21 16:45:01  peter
-    * merged
-
-  Revision 1.52  1999/06/14 17:48:03  peter
-    * merged
-
-  Revision 1.50.2.2  1999/06/21 16:42:57  peter
-    * fixed label and opcode on the same line
-
-  Revision 1.50.2.1  1999/06/14 17:30:44  peter
-    * align fixes from pierre
-
-  Revision 1.51  1999/06/11 22:54:12  pierre
-    * .align problem treated :
-      .align is considered as .p2align on go32v1 and go32v2
-      and as .balign on other targets
-    + ra386att supports also .balign and .p2align
-    * ag386att uses .balign allways
-
-  Revision 1.50  1999/06/08 11:51:58  peter
-    * fixed some intel bugs with scale parsing
-    * end is now also a separator in many more cases
-
-  Revision 1.49  1999/06/03 16:28:03  pierre
-   * typo corrected
-
-  Revision 1.48  1999/05/27 19:44:56  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.47  1999/05/21 13:55:13  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.46  1999/05/12 00:19:56  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.45  1999/05/06 09:05:25  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.44  1999/05/05 22:22:00  peter
-    * updated messages
-
-  Revision 1.43  1999/05/04 21:45:01  florian
-    * changes to compile it with Delphi 4.0
 
 }
 

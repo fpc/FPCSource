@@ -1541,7 +1541,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.17  2000-02-05 14:33:32  florian
+  Revision 1.18  2000-02-09 13:23:01  peter
+    * log truncated
+
+  Revision 1.17  2000/02/05 14:33:32  florian
     * fixed init table generation for classes and arrays
 
   Revision 1.16  2000/01/28 23:17:53  florian

@@ -522,7 +522,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.82  2000-01-14 14:40:37  pierre
+  Revision 1.83  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.82  2000/01/14 14:40:37  pierre
    * use ./ instead of . to look into startup dir
 
   Revision 1.81  2000/01/12 10:38:18  peter
@@ -597,28 +600,5 @@ end.
 
   Revision 1.62  1999/07/27 11:05:51  peter
     * glibc 2.1.2 support
-
-  Revision 1.61  1999/07/18 10:19:53  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.60  1999/07/07 20:33:53  peter
-    * warning instead of error when switching to static linking
-
-  Revision 1.59  1999/07/05 16:21:26  peter
-    * fixed linking for units without linking necessary
-
-  Revision 1.58  1999/07/03 00:29:51  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.57  1999/06/28 16:02:31  peter
-    * merged
-
-  Revision 1.54.2.3  1999/06/28 15:55:40  peter
-    * also search path if not found in utilsdirectory
-
-  Revision 1.54.2.2  1999/06/18 09:51:55  peter
-    * always use shell() for go32v2 to support LFN
 
 }

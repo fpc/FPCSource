@@ -2178,7 +2178,10 @@ Begin
 end.
 {
   $Log$
-  Revision 1.12  2000-01-07 01:14:37  peter
+  Revision 1.13  2000-02-09 13:23:02  peter
+    * log truncated
+
+  Revision 1.12  2000/01/07 01:14:37  peter
     * updated copyright to 2000
 
   Revision 1.11  1999/11/10 00:06:08  pierre
@@ -2190,92 +2193,6 @@ end.
 
   Revision 1.9  1999/09/16 23:05:56  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.8  1999/01/10 15:37:59  peter
-    * moved some tables from ra386*.pas -> i386.pas
-    + start of coff writer
-    * renamed asmutils unit to rautils
-
-  Revision 1.7  1998/12/11 00:03:45  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.6  1998/10/13 16:50:19  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.5  1998/08/10 14:50:23  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.4  1998/07/14 14:47:02  peter
-    * released NEWINPUT
-
-  Revision 1.3  1998/07/10 10:51:02  peter
-    * m68k updates
-
-  Revision 1.2  1998/06/24 14:06:39  peter
-    * fixed the name changes
-
-  Revision 1.1  1998/06/23 14:00:20  peter
-    * renamed RA* units
-
-  Revision 1.5  1998/06/12 10:32:31  pierre
-    * column problem hopefully solved
-    + C vars declaration changed
-
-  Revision 1.4  1998/06/04 23:51:56  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.3  1998/05/20 09:42:36  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
-
-  Revision 1.2  1998/04/29 10:34:01  pierre
-    + added some code for ansistring (not complete nor working yet)
-    * corrected operator overloading
-    * corrected nasm output
-    + started inline procedures
-    + added starstarn : use ** for exponentiation (^ gave problems)
-    + started UseTokenInfo cond to get accurate positions
-
-  Revision 1.1.1.1  1998/03/25 11:18:15  root
-  * Restored version
-
-  Revision 1.14  1998/03/22 12:45:38  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.13  1998/03/10 16:27:43  pierre
-    * better line info in stabs debug
-    * symtabletype and lexlevel separated into two fields of tsymtable
-    + ifdef MAKELIB for direct library output, not complete
-    + ifdef CHAINPROCSYMS for overloaded seach across units, not fully
-      working
-    + ifdef TESTFUNCRET for setting func result in underfunction, not
-      working
-
-  Revision 1.12  1998/03/10 01:17:25  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
 
 }
 

@@ -1351,7 +1351,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.124  2000-02-04 20:00:21  florian
+  Revision 1.125  2000-02-09 13:22:45  peter
+    * log truncated
+
+  Revision 1.124  2000/02/04 20:00:21  florian
     * an exception in a construcor calls now the destructor (this applies only
       to classes)
 
@@ -1432,60 +1435,5 @@ end.
     * exception patch of Romio nevertheless the excpetion handling
       needs some corections regarding register saving
     * gettempansistring is again a procedure
-
-  Revision 1.104  1999/09/16 11:34:46  pierre
-   * typo correction
-
-  Revision 1.103  1999/09/07 07:54:23  peter
-    * small array push to open array fixed, open array always needs addr
-      pushing
-
-  Revision 1.102  1999/08/25 11:59:39  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.101  1999/08/23 23:38:18  pierre
-   + TEMPREGDEBUG code added
-
-  Revision 1.100  1999/08/19 13:08:45  pierre
-   * emit_??? used
-
-  Revision 1.99  1999/08/09 22:19:47  peter
-    * classes vmt changed to only positive addresses
-    * sharedlib creation is working
-
-  Revision 1.98  1999/08/09 10:37:55  peter
-    * fixed pushing of self with methodpointer
-
-  Revision 1.97  1999/08/04 13:45:18  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
-
-  Revision 1.96  1999/08/04 00:22:41  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.95  1999/08/03 22:02:34  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.94  1999/07/06 21:48:09  florian
-    * a lot bug fixes:
-       - po_external isn't any longer necessary for procedure compatibility
-       - m_tp_procvar is in -Sd now available
-       - error messages of procedure variables improved
-       - return values with init./finalization fixed
-       - data types with init./finalization aren't any longer allowed in variant
-         record
-
-  Revision 1.93  1999/06/22 13:31:24  peter
-    * merged
-
-  Revision 1.92  1999/06/16 09:32:45  peter
-    * merged
-
-  Revision 1.91  1999/06/14 17:47:47  peter
-    * merged
-
-  Revision 1.90.2.3  1999/06/22 13:30:08  peter
-    * fixed return with packenum
 
 }

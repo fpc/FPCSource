@@ -274,36 +274,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-01-23 16:32:08  peter
+  Revision 1.11  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.10  2000/01/23 16:32:08  peter
     * fixed wrong freemem size when loading message file
 
   Revision 1.9  2000/01/07 01:14:27  peter
     * updated copyright to 2000
-
-  Revision 1.8  1999/07/18 10:19:55  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.7  1999/05/01 12:27:51  peter
-    * fixed endless loop with replace $1 with $1
-
-  Revision 1.6  1998/12/11 00:03:20  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.5  1998/09/16 16:41:42  peter
-    * merged fixes
-
-  Revision 1.3.2.1  1998/09/16 16:11:04  peter
-    * unix lf support for messagefile for not FPC compiled compiler
-
-  Revision 1.4  1998/09/14 10:44:08  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.3  1998/08/29 13:52:31  peter
-    + new messagefile
-    * merged optione.msg into errore.msg
-
-  Revision 1.2  1998/08/18 09:05:00  peter
-    * fixed range errror
 
 }

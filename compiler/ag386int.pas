@@ -631,7 +631,10 @@ ait_stab_function_name : ;
 end.
 {
   $Log$
-  Revision 1.58  2000-01-07 01:14:18  peter
+  Revision 1.59  2000-02-09 13:22:43  peter
+    * log truncated
+
+  Revision 1.58  2000/01/07 01:14:18  peter
     * updated copyright to 2000
 
   Revision 1.57  1999/12/19 17:36:25  florian
@@ -661,66 +664,5 @@ end.
   Revision 1.50  1999/07/22 09:37:31  florian
     + resourcestring implemented
     + start of longstring support
-
-  Revision 1.49  1999/07/18 14:47:19  florian
-    * bug 487 fixed, (inc(<property>) isn't allowed)
-    * more fixes to compile with Delphi
-
-  Revision 1.48  1999/07/18 10:19:39  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.47  1999/06/02 22:44:01  pierre
-   * previous wrong log corrected
-
-  Revision 1.46  1999/06/02 22:25:26  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.45  1999/06/01 14:45:43  peter
-    * @procvar is now always needed for FPC
-
-  Revision 1.44  1999/05/27 19:44:00  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.43  1999/05/23 18:41:55  florian
-    * better error recovering in typed constants
-    * some problems with arrays of const fixed, some problems
-      due my previous
-       - the location type of array constructor is now LOC_MEM
-       - the pushing of high fixed
-       - parameter copying fixed
-       - zero temp. allocation removed
-    * small problem in the assembler writers fixed:
-      ref to nil wasn't written correctly
-
-  Revision 1.42  1999/05/21 13:54:42  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.41  1999/05/12 00:19:38  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.40  1999/05/10 15:18:14  peter
-    * fixed condition writing
-
-  Revision 1.39  1999/05/08 19:52:33  peter
-    + MessagePos() which is enhanced Message() function but also gets the
-      position info
-    * Removed comp warnings
-
-  Revision 1.38  1999/05/07 00:08:49  pierre
-   * AG386BIN cond -> OLDASM, only cosmetic
-
-  Revision 1.37  1999/05/06 09:05:09  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.36  1999/05/04 21:44:31  florian
-    * changes to compile it with Delphi 4.0
 
 }

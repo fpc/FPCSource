@@ -725,7 +725,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.14  2000-01-07 01:14:22  peter
+  Revision 1.15  2000-02-09 13:22:49  peter
+    * log truncated
+
+  Revision 1.14  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.13  1999/09/16 23:05:51  florian
@@ -733,47 +736,5 @@ end.
 
   Revision 1.12  1999/08/25 11:59:52  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.11  1998/12/11 10:48:11  pierre
-   * #0 char removed
-
-  Revision 1.10  1998/12/11 00:03:06  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.9  1998/11/25 19:12:55  pierre
-    * var:=new(pointer_type) support added
-
-  Revision 1.8  1998/10/14 11:28:21  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.7  1998/10/14 08:08:54  pierre
-    * following Peters remark, removed all ifdef in
-      the systems unit enums
-    * last bugs of cg68k removed for sysamiga
-      (sysamiga assembles with as68k !!)
-
-  Revision 1.6  1998/10/06 20:49:00  peter
-    * m68k compiler compiles again
-
-  Revision 1.5  1998/09/17 09:42:28  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.4  1998/09/14 10:44:02  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.3  1998/09/11 12:29:44  pierre
-    * removed explicit range_checking as it is buggy
-
-  Revision 1.2.2.1  1998/09/11 12:08:59  pierre
-    * removed explicit range_check was buggy
-
-  Revision 1.2  1998/09/07 18:45:57  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.1  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }

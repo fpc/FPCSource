@@ -148,20 +148,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 01:14:28  peter
+  Revision 1.4  2000-02-09 13:22:55  peter
+    * log truncated
+
+  Revision 1.3  2000/01/07 01:14:28  peter
     * updated copyright to 2000
-
-  Revision 1.2  1999/05/09 11:38:07  peter
-    * don't write .o and link if errors occure during assembling
-
-  Revision 1.1  1999/05/01 13:24:26  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.2  1999/03/18 20:30:51  peter
-    + .a writer
-
-  Revision 1.1  1999/03/08 14:51:11  peter
-    + smartlinking for ag386bin
 
 }

@@ -351,37 +351,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:48  peter
+  Revision 1.10  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.9  2000/01/07 01:14:48  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/08/18 11:35:59  pierre
    * esp loading corrected
-
-  Revision 1.7  1999/07/18 14:47:36  florian
-    * bug 487 fixed, (inc(<property>) isn't allowed)
-    * more fixes to compile with Delphi
-
-  Revision 1.6  1999/05/04 21:45:08  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.5  1998/10/28 18:26:23  pierre
-   * removed some erros after other errors (introduced by useexcept)
-   * stabs works again correctly (for how long !)
-
-  Revision 1.4  1998/10/26 22:58:24  florian
-    * new introduded problem with classes fix, the parent class wasn't set
-      correct, if the class was defined forward before
-
-  Revision 1.3  1998/10/26 17:15:19  pierre
-    + added two level of longjump to
-      allow clean freeing of used memory on errors
-
-  Revision 1.2  1998/08/28 10:57:03  peter
-    * removed warnings
-
-  Revision 1.1  1998/08/10 10:18:36  peter
-    + Compiler,Comphook unit which are the new interface units to the
-      compiler
 
 }
 

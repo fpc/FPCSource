@@ -2124,7 +2124,10 @@ _LECKKLAMMER : begin
 end.
 {
   $Log$
-  Revision 1.167  2000-01-19 22:41:58  florian
+  Revision 1.168  2000-02-09 13:22:56  peter
+    * log truncated
+
+  Revision 1.167  2000/01/19 22:41:58  florian
     * corrected wrong error message of a member of a class/object/classref wasn't found
 
   Revision 1.166  2000/01/09 23:16:05  peter
@@ -2199,60 +2202,5 @@ end.
 
   Revision 1.148  1999/10/14 14:57:52  florian
     - removed the hcodegen use in the new cg, use cgbase instead
-
-  Revision 1.147  1999/09/28 11:03:54  peter
-    * fixed result access in 'if result = XXX then'
-    * fixed const cr=chr(13)
-
-  Revision 1.146  1999/09/27 23:44:54  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.145  1999/09/27 11:59:42  peter
-    * fix for pointer reading in const with @type.method
-
-  Revision 1.144  1999/09/26 21:30:19  peter
-    + constant pointer support which can happend with typecasting like
-      const p=pointer(1)
-    * better procvar parsing in typed consts
-
-  Revision 1.143  1999/09/15 20:35:41  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.142  1999/09/13 16:26:32  peter
-    * fix crash with empty object as childs
-
-  Revision 1.141  1999/09/11 19:47:26  florian
-    * bug fix for @tobject.method, fixes bug 557, 605 and 606
-
-  Revision 1.140  1999/09/11 09:08:33  florian
-    * fixed bug 596
-    * fixed some problems with procedure variables and procedures of object,
-      especially in TP mode. Procedure of object doesn't apply only to classes,
-      it is also allowed for objects !!
-
-  Revision 1.139  1999/09/10 18:48:07  florian
-    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.138  1999/09/07 08:01:20  peter
-    * @(<x>) support
-
-  Revision 1.137  1999/09/01 22:08:58  peter
-    * fixed crash with assigned()
-
-  Revision 1.136  1999/08/15 22:47:45  peter
-    * fixed property writeaccess which was buggy after my previous
-      subscribed property access
-
-  Revision 1.135  1999/08/14 00:38:56  peter
-    * hack to support property with record fields
-
-  Revision 1.134  1999/08/09 22:16:29  peter
-    * fixed crash after wrong para's with class contrustor
 
 }

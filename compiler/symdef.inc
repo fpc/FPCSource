@@ -3921,7 +3921,10 @@ Const local_symtable_index : longint = $8001;
 
 {
   $Log$
-  Revision 1.193  2000-02-05 14:33:32  florian
+  Revision 1.194  2000-02-09 13:23:04  peter
+    * log truncated
+
+  Revision 1.193  2000/02/05 14:33:32  florian
     * fixed init table generation for classes and arrays
 
   Revision 1.192  2000/02/04 20:00:22  florian
@@ -3989,88 +3992,5 @@ Const local_symtable_index : longint = $8001;
 
   Revision 1.174  1999/11/06 14:34:26  peter
     * truncated log to 20 revs
-
-  Revision 1.173  1999/11/05 17:18:02  pierre
-    * local browsing works at first level
-      ie for function defined in interface or implementation
-      not yet for functions inside other functions
-
-  Revision 1.172  1999/10/26 12:30:45  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.171  1999/10/06 17:39:15  peter
-    * fixed stabs writting for forward types
-
-  Revision 1.170  1999/10/04 13:46:04  michael
-  * patch from peter for classes
-
-  Revision 1.169  1999/10/03 19:41:38  peter
-    * inittable for record fixed (it was only checking for classes)
-
-  Revision 1.168  1999/10/01 10:05:44  peter
-    + procedure directive support in const declarations, fixes bug 232
-
-  Revision 1.167  1999/10/01 08:02:48  peter
-    * forward type declaration rewritten
-
-  Revision 1.166  1999/09/26 21:30:21  peter
-    + constant pointer support which can happend with typecasting like
-      const p=pointer(1)
-    * better procvar parsing in typed consts
-
-  Revision 1.165  1999/09/20 16:39:02  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.164  1999/09/15 22:09:26  florian
-    + rtti is now automatically generated for published classes, i.e.
-      they are handled like an implicit property
-
-  Revision 1.163  1999/09/15 20:35:44  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.162  1999/09/12 08:48:09  florian
-    * bugs 593 and 607 fixed
-    * some other potential bugs with array constructors fixed
-    * for classes compiled in $M+ and it's childs, the default access method
-      is now published
-    * fixed copyright message (it is now 1998-2000)
-
-  Revision 1.161  1999/09/10 18:48:09  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.160  1999/09/02 17:07:40  florian
-    * problems with -Or fixed: tdef.isfpuregable was wrong!
-
-  Revision 1.159  1999/08/27 10:52:19  pierre
-    + simplify_ppu code added :
-      sets all registers used at PPU writing
-    * tprocdef mangledname writing is CRC relevant
-
-  Revision 1.158  1999/08/27 10:24:34  michael
-  + Inittables should not contain fields which are classes
-
-  Revision 1.157  1999/08/26 21:13:58  peter
-    * array elementsize of 0 doesn't crash anymore
-
-  Revision 1.156  1999/08/17 13:58:56  michael
-  RTTI writing patch
-
-  Revision 1.155  1999/08/16 16:26:04  pierre
-   * error in stabs for tclassrefdef corrected
-
-  Revision 1.154  1999/08/14 00:38:58  peter
-    * hack to support property with record fields
 
 }

@@ -1005,7 +1005,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.54  2000-01-07 01:14:30  peter
+  Revision 1.55  2000-02-09 13:22:59  peter
+    * log truncated
+
+  Revision 1.54  2000/01/07 01:14:30  peter
     * updated copyright to 2000
 
   Revision 1.53  1999/12/02 11:29:07  peter
@@ -1070,35 +1073,5 @@ end.
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.35  1999/07/05 16:21:30  peter
-    * fixed linking for units without linking necessary
-
-  Revision 1.34  1999/07/03 00:29:57  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.33  1999/05/13 21:59:36  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.32  1999/05/05 09:19:15  florian
-    * more fixes to get it with delphi running
-
-  Revision 1.31  1999/05/04 21:44:59  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.30  1999/04/26 18:30:00  peter
-    * farpointerdef moved into pointerdef.is_far
-
-  Revision 1.29  1999/04/26 13:31:41  peter
-    * release storenumber,double_checksum
-
-  Revision 1.28  1999/04/26 09:33:07  peter
-    * header extended to 40 bytes so there is room for future
-
-  Revision 1.27  1999/04/17 13:16:20  peter
-    * fixes for storenumber
 
 }

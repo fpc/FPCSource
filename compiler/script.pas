@@ -234,7 +234,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-02-07 11:52:26  michael
+  Revision 1.6  2000-02-09 13:23:04  peter
+    * log truncated
+
+  Revision 1.5  2000/02/07 11:52:26  michael
   + Changed bash to sh
 
   Revision 1.4  2000/01/07 01:14:39  peter
@@ -243,10 +246,5 @@ end.
   Revision 1.3  1999/10/21 14:29:37  peter
     * redesigned linker object
     + library support for linux (only procedures can be exported)
-
-  Revision 1.2  1998/05/04 17:54:29  peter
-    + smartlinking works (only case jumptable left todo)
-    * redesign of systems.pas to support assemblers and linkers
-    + Unitname is now also in the PPU-file, increased version to 14
 
 }

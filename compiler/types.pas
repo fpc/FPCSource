@@ -1011,7 +1011,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.96  2000-02-01 09:44:03  peter
+  Revision 1.97  2000-02-09 13:23:09  peter
+    * log truncated
+
+  Revision 1.96  2000/02/01 09:44:03  peter
     * is_voidpointer
 
   Revision 1.95  2000/01/07 01:14:49  peter
@@ -1086,33 +1089,5 @@ end.
   Revision 1.76  1999/07/27 23:39:15  peter
     * open array checks also for s32bitdef, because u32bit also has a
       high range of -1
-
-  Revision 1.75  1999/07/06 21:48:29  florian
-    * a lot bug fixes:
-       - po_external isn't any longer necessary for procedure compatibility
-       - m_tp_procvar is in -Sd now available
-       - error messages of procedure variables improved
-       - return values with init./finalization fixed
-       - data types with init./finalization aren't any longer allowed in variant
-         record
-
-  Revision 1.74  1999/07/01 15:49:24  florian
-    * int64/qword type release
-    + lo/hi for int64/qword
-
-  Revision 1.73  1999/06/28 22:29:22  florian
-    * qword division fixed
-    + code for qword/int64 type casting added:
-      range checking isn't implemented yet
-
-  Revision 1.72  1999/06/13 22:41:08  peter
-    * merged from fixes
-
-  Revision 1.71.2.1  1999/06/13 22:37:17  peter
-    * convertable para's doesn't check for equal, added equal para's to
-      proc2procvar check
-
-  Revision 1.71  1999/06/03 09:34:13  peter
-    * better methodpointer check for proc->procvar
 
 }

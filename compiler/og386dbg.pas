@@ -180,7 +180,10 @@ unit og386dbg;
 end.
 {
   $Log$
-  Revision 1.7  2000-01-07 01:14:27  peter
+  Revision 1.8  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.7  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.6  1999/11/02 15:06:57  peter
@@ -189,42 +192,5 @@ end.
 
   Revision 1.5  1999/08/04 00:23:06  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.4  1999/07/03 00:29:53  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.3  1999/05/05 17:34:32  peter
-    * output is more like as 2.9.1
-    * stabs really working for go32v2
-
-  Revision 1.2  1999/05/02 22:41:55  peter
-    * moved section names to systems
-    * fixed nasm,intel writer
-
-  Revision 1.1  1999/05/01 13:24:24  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.6  1999/03/10 13:41:11  pierre
-   + partial implementation for win32 !
-     winhello works but pp still does not !
-
-  Revision 1.5  1999/03/08 14:51:10  peter
-    + smartlinking for ag386bin
-
-  Revision 1.4  1999/03/05 13:09:53  peter
-    * first things for tai_cut support for ag386bin
-
-  Revision 1.3  1999/03/02 02:56:28  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.2  1999/02/25 21:03:11  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.1  1999/02/16 17:59:39  peter
-    + initial files
 
 }

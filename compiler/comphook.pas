@@ -295,7 +295,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.20  2000-01-07 01:14:23  peter
+  Revision 1.21  2000-02-09 13:22:50  peter
+    * log truncated
+
+  Revision 1.20  2000/01/07 01:14:23  peter
     * updated copyright to 2000
 
   Revision 1.19  1999/11/18 15:34:45  pierre
@@ -311,18 +314,5 @@ end.
     * fixed comment parsing because directives
     * oldtp mode directives better supported
     * added some messages to errore.msg
-
-  Revision 1.16  1999/05/04 21:44:38  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.15  1999/01/15 12:27:23  peter
-    * removed path from output, was there only for debugging
-
-  Revision 1.14  1999/01/14 21:47:09  peter
-    * status.currentmodule is now also updated
-    + status.currentsourcepath
-
-  Revision 1.13  1998/12/11 00:03:12  peter
-    + globtype,tokens,version unit splitted from globals
 
 }

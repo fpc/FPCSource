@@ -1280,7 +1280,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2000-01-07 01:14:45  peter
+  Revision 1.65  2000-02-09 13:23:07  peter
+    * log truncated
+
+  Revision 1.64  2000/01/07 01:14:45  peter
     * updated copyright to 2000
 
   Revision 1.63  1999/12/30 15:02:10  peter
@@ -1360,30 +1363,5 @@ end.
 
   Revision 1.45  1999/08/04 00:23:40  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.44  1999/08/03 22:03:32  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.43  1999/07/30 12:28:43  peter
-    * fixed crash with unknown id and colon parameter in write
-
-  Revision 1.42  1999/07/18 14:47:35  florian
-    * bug 487 fixed, (inc(<property>) isn't allowed)
-    * more fixes to compile with Delphi
-
-  Revision 1.41  1999/07/05 20:25:40  peter
-    * merged
-
-  Revision 1.40  1999/07/05 20:13:18  peter
-    * removed temp defines
-
-  Revision 1.39  1999/07/03 14:14:31  florian
-    + start of val(int64/qword)
-    * longbool, wordbool constants weren't written, fixed
-
-  Revision 1.38  1999/07/01 15:49:22  florian
-    * int64/qword type release
-    + lo/hi for int64/qword
 
 }

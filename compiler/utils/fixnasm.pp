@@ -100,7 +100,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 01:15:00  peter
+  Revision 1.4  2000-02-09 13:23:11  peter
+    * log truncated
+
+  Revision 1.3  2000/01/07 01:15:00  peter
     * updated copyright to 2000
 
   Revision 1.2  1999/10/28 09:47:45  peter

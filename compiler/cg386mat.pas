@@ -1001,7 +1001,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.41  2000-01-27 15:46:00  florian
+  Revision 1.42  2000-02-09 13:22:47  peter
+    * log truncated
+
+  Revision 1.41  2000/01/27 15:46:00  florian
     * slighly improved code for -<qword> and -<int64>
 
   Revision 1.40  2000/01/09 12:35:01  jonas
@@ -1052,60 +1055,5 @@ end.
   Revision 1.28  1999/08/03 22:02:45  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.27  1999/06/28 22:29:14  florian
-    * qword division fixed
-    + code for qword/int64 type casting added:
-      range checking isn't implemented yet
-
-  Revision 1.26  1999/06/02 10:11:44  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
-
-  Revision 1.25  1999/05/27 19:44:16  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.24  1999/05/25 20:36:13  florian
-    * some bugs in the qword code generation fixed
-
-  Revision 1.23  1999/05/08 20:41:08  jonas
-    + positive number MOD power of 2 now done with AND instruction
-    * fix to division of positive numbers by power of 2
-    * the result of a MOD is left in EDX if possible
-
-  Revision 1.22  1999/05/01 13:24:11  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.21  1999/04/16 13:42:27  jonas
-    * more regalloc fixes (still not complete)
-
-  Revision 1.20  1999/02/22 02:15:13  peter
-    * updates for ag386bin
-
-  Revision 1.19  1999/02/04 10:49:40  florian
-    + range checking for ansi- and widestrings
-    * made it compilable with TP
-
-  Revision 1.18  1999/02/03 10:11:12  pierre
-   * fix for bug0211 for i386
-
-  Revision 1.17  1999/01/21 22:10:41  peter
-    * fixed array of const
-    * generic platform independent high() support
-
-  Revision 1.16  1999/01/19 10:51:32  pierre
-   * fix to bug0183 in secondnot
-
-  Revision 1.15  1998/12/11 16:50:22  florian
-    + typed const int64 and qword
-    + unary minus-operator  q1:=-q2;
-    + not-operator
 
 }

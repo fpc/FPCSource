@@ -431,7 +431,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.44  2000-01-07 01:14:20  peter
+  Revision 1.45  2000-02-09 13:22:46  peter
+    * log truncated
+
+  Revision 1.44  2000/01/07 01:14:20  peter
     * updated copyright to 2000
 
   Revision 1.43  1999/11/06 14:34:17  peter
@@ -456,62 +459,5 @@ end.
   Revision 1.38  1999/08/03 22:02:38  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.37  1999/07/05 20:13:08  peter
-    * removed temp defines
-
-  Revision 1.36  1999/05/27 19:44:10  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.35  1999/05/21 13:54:47  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.34  1999/05/12 00:19:41  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.33  1999/05/06 09:05:12  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.32  1999/05/01 13:24:06  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.31  1999/04/07 15:16:43  pierre
-   * zero length string were generated multiple times
-
-  Revision 1.30  1999/03/31 13:51:49  peter
-    * shortstring reuse fixed
-
-  Revision 1.29  1999/02/25 21:02:25  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.28  1999/02/22 02:15:08  peter
-    * updates for ag386bin
-
-  Revision 1.27  1999/01/19 14:21:59  peter
-    * shortstring truncated after 255 chars
-
-  Revision 1.26  1998/12/11 00:02:49  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.25  1998/12/10 14:39:30  florian
-    * bug with p(const a : ansistring) fixed
-    * duplicate constant ansistrings were handled wrong, fixed
-
-  Revision 1.24  1998/11/28 15:36:02  michael
-  Fixed generation of constant ansistrings
-
-  Revision 1.23  1998/11/26 14:39:12  peter
-    * ansistring -> pchar fixed
-    * ansistring constants fixed
-    * ansistring constants are now written once
 
 }

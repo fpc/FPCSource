@@ -769,7 +769,10 @@ unit ptconst;
 end.
 {
   $Log$
-  Revision 1.61  2000-01-07 01:14:33  peter
+  Revision 1.62  2000-02-09 13:23:01  peter
+    * log truncated
+
+  Revision 1.61  2000/01/07 01:14:33  peter
     * updated copyright to 2000
 
   Revision 1.60  1999/12/18 14:55:21  florian
@@ -817,62 +820,5 @@ end.
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.47  1999/07/03 14:14:28  florian
-    + start of val(int64/qword)
-    * longbool, wordbool constants weren't written, fixed
-
-  Revision 1.46  1999/05/27 19:44:54  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.45  1999/05/23 18:42:13  florian
-    * better error recovering in typed constants
-    * some problems with arrays of const fixed, some problems
-      due my previous
-       - the location type of array constructor is now LOC_MEM
-       - the pushing of high fixed
-       - parameter copying fixed
-       - zero temp. allocation removed
-    * small problem in the assembler writers fixed:
-      ref to nil wasn't written correctly
-
-  Revision 1.44  1999/05/21 13:55:11  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.43  1999/05/12 00:19:54  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.42  1999/05/06 09:05:24  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.41  1999/05/01 13:24:39  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.40  1999/04/25 22:42:17  pierre
-   + code for initialized vars in Delphi mode
-
-  Revision 1.39  1999/03/24 23:17:21  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.38  1999/02/25 21:02:45  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.37  1999/02/22 02:44:13  peter
-    * ag386bin doesn't use i386.pas anymore
-
-  Revision 1.36  1999/02/17 10:15:26  peter
-    * fixed error messages when parsing typed const array
-
-  Revision 1.35  1999/01/20 14:09:28  pierre
-   * fix to bug0191
 
 }

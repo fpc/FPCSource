@@ -2122,7 +2122,10 @@
 
 {
   $Log$
-  Revision 1.137  2000-02-04 08:47:10  florian
+  Revision 1.138  2000-02-09 13:23:05  peter
+    * log truncated
+
+  Revision 1.137  2000/02/04 08:47:10  florian
     * better register variable allocation in -Or mode
 
   Revision 1.136  2000/01/07 01:14:40  peter
@@ -2201,57 +2204,5 @@
     * cs_create_smart instead of cs_smartlink
     * -CX is create smartlink
     * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.117  1999/08/31 15:42:24  pierre
-   + tmacrosym is_used and defined_at_startup boolean fields added
-
-  Revision 1.116  1999/08/24 22:38:55  michael
-  * more resourcestring changes
-
-  Revision 1.115  1999/08/23 11:45:42  michael
-  * Hopefully final attempt at resourcestrings
-
-  Revision 1.114  1999/08/15 21:57:58  michael
-  Changes for resource strings
-
-  Revision 1.113  1999/08/14 00:39:00  peter
-    * hack to support property with record fields
-
-  Revision 1.112  1999/08/13 14:24:20  pierre
-    + stabs for classes and classref working,
-      a class still needs an ^ to get that content of it,
-      but the class fields inside a class don't result into an
-      infinite loop anymore!
-
-  Revision 1.111  1999/08/10 12:36:31  pierre
-   * use of procsym field for correct gdb info in local procedures
-   * exported DLL vars made global to be able to use DLLTOOL with themz
-
-  Revision 1.110  1999/08/07 14:21:03  florian
-    * some small problems fixed
-
-  Revision 1.109  1999/08/07 13:24:34  daniel
-  * Fixed open arrays
-
-  Revision 1.108  1999/08/05 16:53:17  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
-
-  Revision 1.107  1999/08/04 13:45:30  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
-
-  Revision 1.106  1999/08/03 22:03:19  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.105  1999/07/29 20:54:10  peter
-    * write .size also
-
-  Revision 1.104  1999/07/27 23:42:21  peter
-    * indirect type referencing is now allowed
 
 }

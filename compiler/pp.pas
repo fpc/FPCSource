@@ -273,7 +273,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.53  2000-01-07 01:14:30  peter
+  Revision 1.54  2000-02-09 13:22:59  peter
+    * log truncated
+
+  Revision 1.53  2000/01/07 01:14:30  peter
     * updated copyright to 2000
 
   Revision 1.52  1999/11/06 14:34:23  peter
@@ -303,55 +306,5 @@ end.
 
   Revision 1.45  1999/08/04 00:23:18  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.44  1999/06/02 22:44:13  pierre
-   * previous wrong log corrected
-
-  Revision 1.43  1999/06/02 22:25:44  pierre
-  * catch is used for go32v2 also
-
-  Revision 1.42  1999/05/12 22:36:11  florian
-    * override isn't allowed in objects!
-
-  Revision 1.41  1999/05/02 09:35:45  florian
-    + method message handlers which contain an explicit self can't be called
-      directly anymore
-    + self is now loaded at the start of the an message handler with an explicit
-      self
-    + $useoverlay fixed: i386 was renamed to i386base
-
-  Revision 1.40  1999/01/27 13:05:41  pierre
-   * give include file name on error
-
-  Revision 1.39  1999/01/22 12:19:30  pierre
-   + currently compiled file name added on errors
-
-  Revision 1.38  1999/01/19 10:19:03  florian
-    * bug with mul. of dwords fixed, reported by Alexander Stohr
-    * some changes to compile with TP
-    + small enhancements for the new code generator
-
-  Revision 1.37  1998/12/16 00:27:21  peter
-    * removed some obsolete version checks
-
-  Revision 1.36  1998/11/27 22:54:52  michael
-  + Added catch unit again
-
-  Revision 1.35  1998/11/05 12:02:53  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.34  1998/10/14 11:28:24  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.33  1998/10/08 17:17:26  pierre
-    * current_module old scanner tagged as invalid if unit is recompiled
-    + added ppheap for better info on tracegetmem of heaptrc
-      (adds line column and file index)
-    * several memory leaks removed ith help of heaptrc !!
-
-  Revision 1.32  1998/10/02 17:03:51  peter
-    * ifdef heaptrc for heaptrc
 
 }

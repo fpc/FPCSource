@@ -507,7 +507,10 @@ end.
 
 {
   $Log$
-  Revision 1.44  2000-01-07 01:14:49  peter
+  Revision 1.45  2000-02-09 13:23:09  peter
+    * log truncated
+
+  Revision 1.44  2000/01/07 01:14:49  peter
     * updated copyright to 2000
 
   Revision 1.43  1999/11/06 14:34:32  peter
@@ -519,72 +522,5 @@ end.
     * fixed comment parsing because directives
     * oldtp mode directives better supported
     * added some messages to errore.msg
-
-  Revision 1.41  1999/07/10 10:26:22  peter
-    * merged
-
-  Revision 1.40  1999/06/18 11:03:09  peter
-    * merged
-
-  Revision 1.39.2.2  1999/07/10 10:03:19  peter
-    * fixed initialization/finalization in fpc mode
-    * allow $TARGET also in search paths
-
-  Revision 1.39.2.1  1999/06/18 10:55:32  peter
-    * version fixes
-    * EXTRAUNITS to set extra units that are build and needs to be cleaned
-
-  Revision 1.39  1999/05/08 19:52:42  peter
-    + MessagePos() which is enhanced Message() function but also gets the
-      position info
-    * Removed comp warnings
-
-  Revision 1.38  1999/05/04 21:45:09  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.37  1999/04/21 07:41:06  pierre
-   + added -vz for assembler specifc comments
-
-  Revision 1.36  1999/03/24 23:17:44  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.35  1999/02/09 17:15:53  florian
-    * some false warnings "function result doesn't seems to be set" are
-      avoided
-
-  Revision 1.34  1999/01/15 16:08:21  peter
-    * doneverbose sets msg to nil
-
-  Revision 1.33  1999/01/14 21:47:10  peter
-    * status.currentmodule is now also updated
-    + status.currentsourcepath
-
-  Revision 1.32  1998/12/15 10:23:33  peter
-    + -iSO, -iSP, -iTO, -iTP
-
-  Revision 1.31  1998/12/11 00:04:04  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.30  1998/12/02 16:23:38  jonas
-    * changed "if longintvar in set" to case or "if () or () .." statements
-    * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
-
-  Revision 1.29  1998/11/26 13:08:19  peter
-    * update status also for internalerrors
-
-  Revision 1.28  1998/11/06 09:45:41  pierre
-    * bug on errors (file used after dispose !) fixed
-
-  Revision 1.27  1998/10/28 18:26:24  pierre
-   * removed some erros after other errors (introduced by useexcept)
-   * stabs works again correctly (for how long !)
-
-  Revision 1.26  1998/10/27 13:45:38  pierre
-    * classes get a vmt allways
-    * better error info (tried to remove
-      several error strings introduced by the tpexcept handling)
-
-  Revision 1.25  1998/10/22 15:18:49  florian
-    + switch -vx for win32 added
 
 }

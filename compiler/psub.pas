@@ -1970,7 +1970,10 @@ end.
 
 {
   $Log$
-  Revision 1.47  2000-02-08 13:55:13  peter
+  Revision 1.48  2000-02-09 13:23:00  peter
+    * log truncated
+
+  Revision 1.47  2000/02/08 13:55:13  peter
     * reset section back to code after localdata
 
   Revision 1.46  2000/02/04 20:00:22  florian
@@ -2047,76 +2050,5 @@ end.
   Revision 1.28  1999/10/13 10:37:36  peter
     * moved mangledname creation of normal proc so it also handles a wrong
       method proc
-
-  Revision 1.27  1999/10/12 21:20:46  florian
-    * new codegenerator compiles again
-
-  Revision 1.26  1999/10/03 19:38:39  peter
-    * fixed forward decl check for tp7/delphi
-
-  Revision 1.25  1999/10/01 10:05:44  peter
-    + procedure directive support in const declarations, fixes bug 232
-
-  Revision 1.24  1999/10/01 08:02:47  peter
-    * forward type declaration rewritten
-
-  Revision 1.23  1999/09/27 23:44:56  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.22  1999/09/20 16:39:00  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.21  1999/09/15 20:35:42  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.20  1999/09/10 18:48:09  florian
-    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.19  1999/09/07 14:59:40  pierre
-   * bugfix for 237 and 244
-
-  Revision 1.18  1999/09/02 18:47:45  daniel
-    * Could not compile with TP, some arrays moved to heap
-    * NOAG386BIN default for TP
-    * AG386* files were not compatible with TP, fixed.
-
-  Revision 1.17  1999/08/30 10:17:57  peter
-    * fixed crash in psub
-    * ansistringcompare fixed
-    * support for #$0b8
-
-  Revision 1.16  1999/08/27 10:41:46  pierre
-    * pi_is_global was missing for global methods
-    + code to restore overloaded list order
-      (necessary to get same CRC values after interface and after
-      implementation)
-
-  Revision 1.15  1999/08/19 13:02:11  pierre
-    + label faillabel added for _FAIL support
-
-  Revision 1.14  1999/08/10 16:24:44  pierre
-   * linking to C code with cdecl;external; was broken
-
-  Revision 1.13  1999/08/10 12:37:44  pierre
-   + procsym field of tprocdef set
-
-  Revision 1.12  1999/08/05 16:53:06  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
-
-  Revision 1.11  1999/08/04 13:03:01  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
 
 }

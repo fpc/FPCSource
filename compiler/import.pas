@@ -250,7 +250,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.17  2000-01-12 10:34:29  peter
+  Revision 1.18  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.17  2000/01/12 10:34:29  peter
     * only give unsupported error once
 
   Revision 1.16  2000/01/07 01:14:27  peter
@@ -273,50 +276,5 @@ end.
 
   Revision 1.11  1999/08/03 13:50:16  michael
   + Changes for alpha
-
-  Revision 1.10  1999/05/17 14:33:01  pierre
-   * func was not disposed in timported_item
-
-  Revision 1.9  1998/11/28 16:20:50  peter
-    + support for dll variables
-
-  Revision 1.8  1998/10/19 18:07:12  peter
-    + external dll_name name func support for linux
-
-  Revision 1.7  1998/10/19 15:41:02  peter
-    * better splitname to support glib-1.1.dll alike names
-
-  Revision 1.6  1998/10/13 13:10:17  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.5  1998/10/06 17:16:51  pierre
-    * some memory leaks fixed (thanks to Peter for heaptrc !)
-
-  Revision 1.4  1998/09/30 12:16:47  peter
-    * remove extension if one is specified
-
-  Revision 1.3  1998/06/04 23:51:43  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.2  1998/04/27 23:10:28  peter
-    + new scanner
-    * $makelib -> if smartlink
-    * small filename fixes pmodule.setfilename
-    * moved import from files.pas -> import.pas
-
-  Revision 1.1.1.1  1998/03/25 11:18:12  root
-  * Restored version
-
-  Revision 1.3  1998/03/10 01:17:19  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.2  1998/03/06 00:52:21  peter
-    * replaced all old messages from errore.msg, only ExtDebug and some
-      Comment() calls are left
-    * fixed options.pas
 
 }

@@ -165,25 +165,13 @@ end;
 end.
 {
   $Log$
-  Revision 1.5  2000-01-07 01:14:27  peter
+  Revision 1.6  2000-02-09 13:22:53  peter
+    * log truncated
+
+  Revision 1.5  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.4  1999/12/20 23:23:28  pierre
    + $description $version
-
-  Revision 1.3  1999/03/26 00:05:29  peter
-    * released valintern
-    + deffile is now removed when compiling is finished
-    * ^( compiles now correct
-    + static directive
-    * shrd fixed
-
-  Revision 1.2  1998/10/13 13:10:14  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.1  1998/06/04 23:51:39  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
 
 }

@@ -511,7 +511,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  2000-01-07 01:14:48  peter
+  Revision 1.20  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.19  2000/01/07 01:14:48  peter
     * updated copyright to 2000
 
   Revision 1.18  1999/11/15 17:53:00  pierre
@@ -554,44 +557,5 @@ end.
   Revision 1.9  1999/07/22 09:38:01  florian
     + resourcestring implemented
     + start of longstring support
-
-  Revision 1.8  1999/07/10 10:26:21  peter
-    * merged
-
-  Revision 1.7.2.1  1999/07/10 10:03:18  peter
-    * fixed initialization/finalization in fpc mode
-    * allow $TARGET also in search paths
-
-  Revision 1.7  1999/05/24 08:55:30  florian
-    * non working safecall directiv implemented, I don't know if we
-      need it
-
-  Revision 1.6  1999/04/28 06:02:19  florian
-    * changes of Bruessel:
-       + message handler can now take an explicit self
-       * typinfo fixed: sometimes the type names weren't written
-       * the type checking for pointer comparisations and subtraction
-         and are now more strict (was also buggy)
-       * small bug fix to link.pas to support compiling on another
-         drive
-       * probable bug in popt386 fixed: call/jmp => push/jmp
-         transformation didn't count correctly the jmp references
-       + threadvar support
-       * warning if ln/sqrt gets an invalid constant argument
-
-  Revision 1.5  1999/04/06 11:22:01  peter
-    * more use of ttoken
-
-  Revision 1.4  1999/04/01 22:07:53  peter
-    * universal string names (ansistr instead of stransi) for val/str
-
-  Revision 1.3  1999/02/22 20:13:41  florian
-    + first implementation of message keyword
-
-  Revision 1.2  1999/02/05 12:51:21  florian
-    + openstring id is now supported
-
-  Revision 1.1  1998/12/11 00:04:02  peter
-    + globtype,tokens,version unit splitted from globals
 
 }

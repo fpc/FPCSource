@@ -591,7 +591,10 @@ unit parser;
 end.
 {
   $Log$
-  Revision 1.98  2000-01-23 21:29:17  florian
+  Revision 1.99  2000-02-09 13:22:55  peter
+    * log truncated
+
+  Revision 1.98  2000/01/23 21:29:17  florian
     * CMOV support in optimizer (in define USECMOV)
     + start of support of exceptions in constructors
 
@@ -659,44 +662,5 @@ end.
 
   Revision 1.79  1999/08/01 23:36:40  florian
     * some changes to compile the new code generator
-
-  Revision 1.78  1999/07/24 16:22:18  michael
-  + Improved resourcestring handling
-
-  Revision 1.77  1999/07/23 16:05:22  peter
-    * alignment is now saved in the symtable
-    * C alignment added for records
-    * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.76  1999/07/22 09:37:49  florian
-    + resourcestring implemented
-    + start of longstring support
-
-  Revision 1.75  1999/06/15 13:23:48  pierre
-   * don't generate browser if errors during compilation
-
-  Revision 1.74  1999/05/27 19:44:41  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.73  1999/05/18 22:35:52  pierre
-   * double dispose of aktprocsym removed
-
-  Revision 1.72  1999/04/26 13:31:36  peter
-    * release storenumber,double_checksum
-
-  Revision 1.71  1999/03/26 00:05:33  peter
-    * released valintern
-    + deffile is now removed when compiling is finished
-    * ^( compiles now correct
-    + static directive
-    * shrd fixed
-
-  Revision 1.70  1999/03/24 23:17:10  peter
-    * fixed bugs 212,222,225,227,229,231,233
 
 }

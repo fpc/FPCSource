@@ -136,7 +136,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.11  2000-01-07 01:14:45  peter
+  Revision 1.12  2000-02-09 13:23:07  peter
+    * log truncated
+
+  Revision 1.11  2000/01/07 01:14:45  peter
     * updated copyright to 2000
 
   Revision 1.10  1999/09/26 21:30:22  peter
@@ -153,30 +156,5 @@ end.
   Revision 1.7  1999/08/03 22:03:29  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.6  1999/05/27 19:45:16  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.5  1999/05/01 13:24:50  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.4  1999/02/22 02:15:47  peter
-    * updates for ag386bin
-
-  Revision 1.3  1998/11/17 00:36:48  peter
-    * more ansistring fixes
-
-  Revision 1.2  1998/11/05 12:03:04  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }

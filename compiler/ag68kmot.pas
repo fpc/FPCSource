@@ -542,62 +542,13 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.19  2000-01-07 01:14:18  peter
+  Revision 1.20  2000-02-09 13:22:44  peter
+    * log truncated
+
+  Revision 1.19  2000/01/07 01:14:18  peter
     * updated copyright to 2000
 
   Revision 1.18  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.17  1999/03/04 13:55:41  pierre
-    * some m68k fixes (still not compilable !)
-    * new(tobj) does not give warning if tobj has no VMT !
-
-  Revision 1.16  1998/12/11 00:02:41  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.15  1998/11/30 09:42:58  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.14  1998/11/12 11:19:38  pierre
-   * fix for first line of function break
-
-  Revision 1.13  1998/10/29 11:35:38  florian
-    * some dll support for win32
-    * fixed assembler writing for PalmOS
-
-  Revision 1.12  1998/10/14 15:56:41  pierre
-    * all references to comp suppressed for m68k
-
-  Revision 1.11  1998/10/12 12:20:45  pierre
-    + added tai_const_symbol_offset
-      for r : pointer = @var.field;
-    * better message for different arg names on implementation
-      of function
-
-  Revision 1.10  1998/10/06 17:16:38  pierre
-    * some memory leaks fixed (thanks to Peter for heaptrc !)
-
-  Revision 1.9  1998/10/01 20:19:10  jonas
-    + ait_marker support
-
-  Revision 1.8  1998/09/16 01:08:08  carl
-    * alignment of byte bugfix
-
-  Revision 1.7  1998/08/10 14:49:38  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.6  1998/07/10 10:50:56  peter
-    * m68k updates
-
-  Revision 1.5  1998/06/05 17:46:06  peter
-    * tp doesn't like comp() typecast
-
-  Revision 1.4  1998/06/04 23:51:30  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
 
 }

@@ -1507,7 +1507,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2000-01-26 12:02:29  peter
+  Revision 1.93  2000-02-09 13:22:47  peter
+    * log truncated
+
+  Revision 1.92  2000/01/26 12:02:29  peter
     * abstractprocdef.para_size needs alignment parameter
     * secondcallparan gets para_alignment size instead of dword_align
 
@@ -1595,66 +1598,5 @@ end.
     * fixed bug 610
     + added $D- for TP in symtable.pas else it can't be compiled anymore
       (too much symbols :()
-
-  Revision 1.72  1999/09/26 13:26:05  florian
-    * exception patch of Romio nevertheless the excpetion handling
-      needs some corections regarding register saving
-    * gettempansistring is again a procedure
-
-  Revision 1.71  1999/09/16 07:52:37  pierre
-    * FLDPI must increment fpuvaroffset
-
-  Revision 1.70  1999/09/15 20:35:38  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.69  1999/08/28 15:34:16  florian
-    * bug 519 fixed
-
-  Revision 1.68  1999/08/19 13:08:47  pierre
-   * emit_??? used
-
-  Revision 1.67  1999/08/10 13:21:08  pierre
-   * fpuvaroffset not increased for f32bit float type
-
-  Revision 1.66  1999/08/10 12:47:53  pierre
-   * fpuvaroffset problems solved
-
-  Revision 1.65  1999/08/04 00:22:47  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.64  1999/08/03 22:02:42  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.63  1999/07/23 16:05:18  peter
-    * alignment is now saved in the symtable
-    * C alignment added for records
-    * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.62  1999/07/05 20:13:10  peter
-    * removed temp defines
-
-  Revision 1.61  1999/07/03 14:14:27  florian
-    + start of val(int64/qword)
-    * longbool, wordbool constants weren't written, fixed
-
-  Revision 1.60  1999/07/01 15:49:09  florian
-    * int64/qword type release
-    + lo/hi for int64/qword
-
-  Revision 1.59  1999/06/21 16:33:27  jonas
-    * fixed include() with smallsets
-
-  Revision 1.58  1999/06/11 11:44:56  peter
-  *** empty log message ***
-
-  Revision 1.57  1999/06/02 10:11:43  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
 
 }

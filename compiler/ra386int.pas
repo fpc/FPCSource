@@ -1774,7 +1774,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.57  2000-01-07 01:14:36  peter
+  Revision 1.58  2000-02-09 13:23:02  peter
+    * log truncated
+
+  Revision 1.57  2000/01/07 01:14:36  peter
     * updated copyright to 2000
 
   Revision 1.56  1999/12/18 20:00:33  florian
@@ -1838,41 +1841,5 @@ end.
     * suffix parsing for at&t fixed for things like movsbl
     * string constants are now handle correctly and also allowed in
       constant expressions
-
-  Revision 1.40  1999/07/12 15:03:04  peter
-    * merged
-
-  Revision 1.39  1999/06/28 16:02:32  peter
-    * merged
-
-  Revision 1.37.2.4  1999/07/12 15:01:19  peter
-    * fixed @result parsing
-
-  Revision 1.37.2.3  1999/06/28 15:52:36  peter
-    * better recovery in main loop
-
-  Revision 1.37.2.2  1999/06/22 14:20:22  peter
-    * fixed parsing and writing of fpureg
-
-  Revision 1.37.2.1  1999/06/21 16:43:00  peter
-    * fixed label and opcode on the same line
-
-  Revision 1.37  1999/06/08 11:52:00  peter
-    * fixed some intel bugs with scale parsing
-    * end is now also a separator in many more cases
-
-  Revision 1.36  1999/06/01 19:56:37  peter
-    * fixed llabel with delete the first @
-
-  Revision 1.35  1999/05/27 19:44:59  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.34  1999/05/21 13:55:16  peter
-    * NEWLAB for label as symbol
 
 }

@@ -471,7 +471,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.12  2000-01-07 01:14:22  peter
+  Revision 1.13  2000-02-09 13:22:49  peter
+    * log truncated
+
+  Revision 1.12  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.11  1999/12/22 01:01:47  peter
@@ -489,40 +492,5 @@ end.
 
   Revision 1.8  1999/09/16 11:34:54  pierre
    * typo correction
-
-  Revision 1.7  1998/10/19 08:54:55  pierre
-    * wrong stabs info corrected once again !!
-    + variable vmt offset with vmt field only if required
-      implemented now !!!
-
-  Revision 1.6  1998/10/14 08:47:16  pierre
-    * bugs in secondfuncret for result in subprocedures removed
-
-  Revision 1.5  1998/10/14 08:08:53  pierre
-    * following Peters remark, removed all ifdef in
-      the systems unit enums
-    * last bugs of cg68k removed for sysamiga
-      (sysamiga assembles with as68k !!)
-
-  Revision 1.4  1998/10/13 08:19:28  pierre
-    + source_os is now set correctly for cross-processor compilers
-      (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionals to
-       get the source operating system
-       this only works if you do not undefine
-       the source target  !!)
-    * several cg68k memory leaks fixed
-    + started to change the code so that it should be possible to have
-      a complete compiler (both for m68k and i386 !!)
-
-  Revision 1.3  1998/10/06 20:48:59  peter
-    * m68k compiler compiles again
-
-  Revision 1.2  1998/09/17 09:42:27  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.1  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }

@@ -111,7 +111,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.18  2000-01-23 21:29:17  florian
+  Revision 1.19  2000-02-09 13:22:55  peter
+    * log truncated
+
+  Revision 1.18  2000/01/23 21:29:17  florian
     * CMOV support in optimizer (in define USECMOV)
     + start of support of exceptions in constructors
 
@@ -121,21 +124,5 @@ end.
   Revision 1.16  1999/08/04 13:02:47  jonas
     * all tokens now start with an underscore
     * PowerPC compiles!!
-
-  Revision 1.15  1998/12/11 00:03:22  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.14  1998/11/12 09:00:26  michael
-  * Fixed syntax error
-
-  Revision 1.13  1998/11/11 20:11:39  jonas
-    * lower optimization levels disable higher optimization level features
-    * check if there actually is a character after -Op before comparing it with a number
-
-  Revision 1.12  1998/10/13 13:10:20  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.11  1998/09/25 09:57:08  peter
-    * moved -A to options.pas, becuase the code is the same
 
 }

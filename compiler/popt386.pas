@@ -1865,7 +1865,10 @@ End.
 
 {
  $Log$
- Revision 1.83  2000-02-04 13:53:04  jonas
+ Revision 1.84  2000-02-09 13:22:58  peter
+   * log truncated
+
+ Revision 1.83  2000/02/04 13:53:04  jonas
    * fpuloadstore optimizations are now done before and after the CSE
 
  Revision 1.82  2000/01/24 12:17:24  florian
@@ -1942,63 +1945,5 @@ End.
 
  Revision 1.64  1999/08/25 12:00:02  jonas
    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
- Revision 1.63  1999/08/23 10:20:46  jonas
-   * fixed pop/push optmization
-
- Revision 1.62  1999/08/10 12:30:00  pierre
-  * avoid unused locals
-
- Revision 1.61  1999/08/05 15:02:48  jonas
-   * "add/sub const,%esp;sub $2,%esp" wasn't always optimized
-
- Revision 1.60  1999/08/04 00:23:16  florian
-   * renamed i386asm and i386base to cpuasm and cpubase
-
- Revision 1.59  1999/08/03 17:13:28  jonas
-   * fix for sar/shr-shl optimization
-
- Revision 1.58  1999/07/30 18:17:55  jonas
-   * fix so (,reg) gets optimized to (reg)
-
- Revision 1.57  1999/07/01 18:12:16  jonas
-   * enabled "mov reg1,reg2;mov (reg2,..), reg2" also if the second mov is
-     a movzx or movsx
-
- Revision 1.56  1999/06/23 12:33:52  jonas
-   * merged
-
- Revision 1.54.2.2  1999/06/23 11:55:08  jonas
-   * fixed bug in "mov mem1,reg1;mov reg1,mem2;mov mem2,reg2" optimization
-
- Revision 1.55  1999/06/18 09:55:31  peter
-   * merged
-
- Revision 1.54.2.1  1999/06/18 09:52:40  peter
-   * pop;push -> mov (esp),reg always instead of being removed
-
- Revision 1.54  1999/05/27 19:44:49  peter
-   * removed oldasm
-   * plabel -> pasmlabel
-   * -a switches to source writing automaticly
-   * assembler readers OOPed
-   * asmsymbol automaticly external
-   * jumptables and other label fixes for asm readers
-
- Revision 1.53  1999/05/12 00:19:52  peter
-   * removed R_DEFAULT_SEG
-   * uniform float names
-
- Revision 1.52  1999/05/05 16:19:04  jonas
-   + remove the segment prefixes from LEA instructions
-
- Revision 1.51  1999/05/05 10:05:54  florian
-   * a delphi compiled compiler recompiles ppc
-
- Revision 1.50  1999/05/02 21:33:55  florian
-   * several bugs regarding -Or fixed
-
- Revision 1.49  1999/05/02 14:26:31  peter
-   * fixed dec -> sub $1 opt which didn't set ops=2
 
 }

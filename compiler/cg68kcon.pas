@@ -372,7 +372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 01:14:22  peter
+  Revision 1.9  2000-02-09 13:22:49  peter
+    * log truncated
+
+  Revision 1.8  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.7  1999/09/20 16:38:52  peter
@@ -382,19 +385,5 @@ end.
 
   Revision 1.6  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.5  1998/12/11 00:03:01  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.4  1998/11/06 09:47:29  pierre
-   * problem of const with ansi fixed
-
-  Revision 1.3  1998/11/05 12:02:37  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.2  1998/09/07 18:45:56  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
 
 }

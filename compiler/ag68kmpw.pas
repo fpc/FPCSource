@@ -581,7 +581,10 @@ ait_labeled_instruction :
 end.
 {
   $Log$
-  Revision 1.11  2000-01-07 01:14:18  peter
+  Revision 1.12  2000-02-09 13:22:44  peter
+    * log truncated
+
+  Revision 1.11  2000/01/07 01:14:18  peter
     * updated copyright to 2000
 
   Revision 1.10  1999/11/06 14:34:16  peter
@@ -589,65 +592,5 @@ end.
 
   Revision 1.9  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.8  1998/12/11 00:02:42  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.7  1998/11/12 11:19:39  pierre
-   * fix for first line of function break
-
-  Revision 1.6  1998/10/29 11:35:39  florian
-    * some dll support for win32
-    * fixed assembler writing for PalmOS
-
-  Revision 1.5  1998/10/20 08:06:37  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.4  1998/10/14 15:56:42  pierre
-    * all references to comp suppressed for m68k
-
-  Revision 1.3  1998/10/12 12:20:47  pierre
-    + added tai_const_symbol_offset
-      for r : pointer = @var.field;
-    * better message for different arg names on implementation
-      of function
-
-  Revision 1.2  1998/10/07 04:26:31  carl
-    + initial rev of MPW asm writer
-
-  Revision 1.1.2.1  1998/10/07 01:48:59  carl
-    * initial revision of MPW asm writer
-
-  Revision 1.1.1.1.2.3  1998/09/14 18:56:26  carl
-    * alignment bugfix for bytes
-
-  Revision 1.1.1.1.2.2  1998/07/01 13:58:25  carl
-   ?
-
-  Revision 1.1.1.1  1998/03/25 11:18:16  root
-  * Restored version
-
-  Revision 1.3  1998/03/22 12:45:37  florian
-    * changes of Carl-Eric to m68k target commit:
-      - wrong nodes because of the new string cg in intel, I had to create
-        this under m68k also ... had to work it out to fix potential alignment
-        problems --> this removes the crash of the m68k compiler.
-      - added absolute addressing in m68k assembler (required for Amiga startup)
-      - fixed alignment problems (because of byte return values, alignment
-        would not be always valid) -- is this ok if i change the offset if odd in
-        setfirsttemp ?? -- it seems ok...
-
-  Revision 1.2  1998/03/10 04:23:33  carl
-    - removed in because can cause range check errors under BP
-
-  Revision 1.1  1998/03/10 01:26:10  peter
-    + new uniform names
 
 }

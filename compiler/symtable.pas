@@ -2769,7 +2769,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.75  2000-01-12 10:38:18  peter
+  Revision 1.76  2000-02-09 13:23:05  peter
+    * log truncated
+
+  Revision 1.75  2000/01/12 10:38:18  peter
     * smartlinking fixes for binary writer
     * release alignreg code and moved instruction writing align to cpuasm,
       but it doesn't use the specified register yet
@@ -2841,82 +2844,5 @@ end.
 
   Revision 1.56  1999/11/04 23:13:25  peter
     * moved unit alias support into ifdef
-
-  Revision 1.55  1999/11/04 10:54:02  peter
-    + -Ua<oldname>=<newname> unit alias support
-
-  Revision 1.54  1999/10/26 12:30:46  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.53  1999/10/06 17:39:15  peter
-    * fixed stabs writting for forward types
-
-  Revision 1.52  1999/10/03 19:44:42  peter
-    * removed objpasunit reference, tvarrec is now searched in systemunit
-      where it already was located
-
-  Revision 1.51  1999/10/01 08:02:49  peter
-    * forward type declaration rewritten
-
-  Revision 1.50  1999/09/28 20:48:25  florian
-    * fixed bug 610
-    + added $D- for TP in symtable.pas else it can't be compiled anymore
-      (too much symbols :()
-
-  Revision 1.49  1999/09/27 23:44:59  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.48  1999/09/12 21:35:38  florian
-    * fixed a crash under Linux. Why doesn't have the damned Windows DPMI nil pointer
-      protection???
-
-  Revision 1.47  1999/09/12 08:48:09  florian
-    * bugs 593 and 607 fixed
-    * some other potential bugs with array constructors fixed
-    * for classes compiled in $M+ and it's childs, the default access method
-      is now published
-    * fixed copyright message (it is now 1998-2000)
-
-  Revision 1.46  1999/09/10 18:48:10  florian
-    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.45  1999/09/08 08:05:44  peter
-    * fixed bug 248
-
-  Revision 1.44  1999/08/31 15:46:21  pierre
-    * do_crc must be false for all browser stuff
-    + tmacrosym defined_at_startup set in def_macro and set_macro
-
-  Revision 1.43  1999/08/27 10:39:24  pierre
-   * uf_local_browser made problem when computing interface CRC
-
-  Revision 1.42  1999/08/13 21:33:13  peter
-    * support for array constructors extended and more error checking
-
-  Revision 1.41  1999/08/13 14:24:22  pierre
-    + stabs for classes and classref working,
-      a class still needs an ^ to get that content of it,
-      but the class fields inside a class don't result into an
-      infinite loop anymore!
-
-  Revision 1.40  1999/08/10 16:25:42  pierre
-   * unitid changed to word
-
-  Revision 1.39  1999/08/10 12:33:36  pierre
-   * pprocsym defined earlier for use in tprocdef
-
-  Revision 1.38  1999/08/05 16:53:18  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
 
 }

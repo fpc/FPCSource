@@ -872,7 +872,10 @@ unit ag386att;
 end.
 {
   $Log$
-  Revision 1.25  2000-02-07 17:51:20  peter
+  Revision 1.26  2000-02-09 13:22:42  peter
+    * log truncated
+
+  Revision 1.25  2000/02/07 17:51:20  peter
     * quick hack for fnstsww which is not supported under linux as
 
   Revision 1.24  2000/01/28 09:41:39  peter
@@ -940,25 +943,5 @@ end.
 
   Revision 1.6  1999/07/29 20:53:56  peter
     * write .size also
-
-  Revision 1.5  1999/07/22 09:37:29  florian
-    + resourcestring implemented
-    + start of longstring support
-
-  Revision 1.4  1999/07/18 10:19:38  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.3  1999/07/03 00:27:04  peter
-    * better smartlinking support
-
-  Revision 1.2  1999/06/22 15:25:14  peter
-    * merged
-
-  Revision 1.1.2.1  1999/06/22 15:23:08  peter
-    * reinserted
-
-  Revision 1.100  1999/06/22 14:41:20  peter
-    * merged
 
 }

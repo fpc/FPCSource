@@ -328,21 +328,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.6  2000-01-07 01:14:47  peter
+  Revision 1.7  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.6  2000/01/07 01:14:47  peter
     * updated copyright to 2000
 
   Revision 1.5  1999/09/16 23:05:57  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
 
-  Revision 1.4  1998/09/01 09:03:48  peter
-    + resetregistercount, resetusableregisters
-
-  Revision 1.3  1998/08/31 12:26:35  peter
-    * m68k and palmos updates from surebugfixes
-
-  Revision 1.2  1998/06/08 13:13:46  pierre
-    + temporary variables now in temp_gen.pas unit
-      because it is processor independent
-    * mppc68k.bat modified to undefine i386 and support_mmx
-      (which are defaults for i386)
 }

@@ -696,7 +696,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.24  2000-01-28 23:17:53  florian
+  Revision 1.25  2000-02-09 13:22:53  peter
+    * log truncated
+
+  Revision 1.24  2000/01/28 23:17:53  florian
     * virtual XXXX; support for objects, only if -dWITHDMT is defined
 
   Revision 1.23  2000/01/07 01:14:27  peter
@@ -735,60 +738,5 @@ end.
   Revision 1.14  1999/08/03 22:02:52  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.13  1999/07/11 20:10:23  peter
-    * merged
-
-  Revision 1.12  1999/07/08 10:40:37  peter
-    * merged
-
-  Revision 1.11  1999/06/15 13:27:06  pierre
-   * bug0260 fixed
-
-  Revision 1.10.2.2  1999/07/11 20:07:38  peter
-    * message crash fixed
-    * no error if self is used with non-string message
-
-  Revision 1.10.2.1  1999/07/08 10:38:32  peter
-    * fixed insertint
-
-  Revision 1.10  1999/06/02 22:44:07  pierre
-   * previous wrong log corrected
-
-  Revision 1.9  1999/06/02 22:25:33  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.8  1999/06/01 14:45:49  peter
-    * @procvar is now always needed for FPC
-
-  Revision 1.7  1999/05/27 19:44:30  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.6  1999/05/21 13:55:00  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.5  1999/05/17 21:57:07  florian
-    * new temporary ansistring handling
-
-  Revision 1.4  1999/05/13 21:59:27  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.3  1999/04/26 13:31:34  peter
-    * release storenumber,double_checksum
-
-  Revision 1.2  1999/04/21 09:43:37  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.1  1999/03/24 23:17:00  peter
-    * fixed bugs 212,222,225,227,229,231,233
 
 }

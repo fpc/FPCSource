@@ -1632,7 +1632,10 @@ unit pmodules;
 end.
 {
   $Log$
-  Revision 1.184  2000-02-06 17:20:53  peter
+  Revision 1.185  2000-02-09 13:22:57  peter
+    * log truncated
+
+  Revision 1.184  2000/02/06 17:20:53  peter
     * -gl switch for auto lineinfo including
 
   Revision 1.183  2000/01/16 22:17:12  peter
@@ -1698,92 +1701,5 @@ end.
   Revision 1.165  1999/11/15 15:03:47  pierre
     * Pavel's changes for reloc section in executable
     + warning that -g needs -WN under win32
-
-  Revision 1.164  1999/11/09 23:46:00  pierre
-    * power search for ** operator not in browser
-    * DBX support work, still does not work !
-
-  Revision 1.163  1999/11/09 13:00:37  peter
-    * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
-    * initial support for ansistring default with modes
-
-  Revision 1.162  1999/11/06 14:34:22  peter
-    * truncated log to 20 revs
-
-  Revision 1.161  1999/11/02 15:06:57  peter
-    * import library fixes for win32
-    * alignment works again
-
-  Revision 1.160  1999/10/21 14:29:37  peter
-    * redesigned linker object
-    + library support for linux (only procedures can be exported)
-
-  Revision 1.159  1999/10/12 21:20:45  florian
-    * new codegenerator compiles again
-
-  Revision 1.158  1999/10/03 19:44:42  peter
-    * removed objpasunit reference, tvarrec is now searched in systemunit
-      where it already was located
-
-  Revision 1.157  1999/09/27 23:44:54  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.156  1999/09/20 16:39:00  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.155  1999/09/16 23:05:54  florian
-    * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.154  1999/09/16 14:18:12  pierre
-   + warning if truncate unit name found
-
-  Revision 1.153  1999/09/13 22:56:17  peter
-    * fixed crashes under plain dos
-
-  Revision 1.152  1999/09/01 22:18:42  peter
-    * moved parsing interface/implementation to -vu
-
-  Revision 1.151  1999/08/31 15:51:10  pierre
-   * in_second_compile cleaned up, in_compile and in_second_load added
-
-  Revision 1.150  1999/08/30 16:21:40  pierre
-   * tempclosing of ppufiles under dos was wrong
-
-  Revision 1.149  1999/08/28 15:34:19  florian
-    * bug 519 fixed
-
-  Revision 1.148  1999/08/27 14:53:00  pierre
-   * double checksum problem solved
-
-  Revision 1.147  1999/08/27 10:57:56  pierre
-    + define SHORT_ON_FILE_HANDLES for DOS targets
-      causes tempclose of ppufiles
-    + double_checksum code released
-      (you can try with -dDONT_USE_DOUBLE_CHECKSUM to see the difference)
-      this allow second compilation of compiler without any
-      unit recompilation !!!!
-
-  Revision 1.146  1999/08/26 21:16:21  peter
-    * write date of the compiler into the executable
-
-  Revision 1.145  1999/08/26 20:24:44  michael
-  + Hopefuly last fixes for resourcestrings
-
-  Revision 1.144  1999/08/24 22:38:53  michael
-  * more resourcestring changes
-
-  Revision 1.143  1999/08/24 12:01:34  michael
-  + changes for resourcestrings
-
-  Revision 1.142  1999/08/16 15:35:27  pierre
-    * fix for DLL relocation problems
-    * external bss vars had wrong stabs for pecoff
-    + -WB11000000 to specify default image base, allows to
-      load several DLLs with debugging info included
-      (relocatable DLL are stripped because the relocation
-       of the .Stab section is misplaced by ldw)
 
 }

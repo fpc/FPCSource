@@ -478,7 +478,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2000-01-21 22:06:16  florian
+  Revision 1.59  2000-02-09 13:23:07  peter
+    * log truncated
+
+  Revision 1.58  2000/01/21 22:06:16  florian
     * fixed for the fix of bug 793
     * fpu variables modified by nested subroutines aren't regable anymore
     * $maxfpuregisters doesn't modify anymore the behavior of a procedure before
@@ -556,53 +559,5 @@ end.
     * fixed comment parsing because directives
     * oldtp mode directives better supported
     * added some messages to errore.msg
-
-  Revision 1.38  1999/08/04 00:23:41  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.37  1999/08/03 22:03:33  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.36  1999/07/22 09:38:00  florian
-    + resourcestring implemented
-    + start of longstring support
-
-  Revision 1.35  1999/06/17 13:19:59  pierre
-   * merged from 0_99_12 branch
-
-  Revision 1.34.2.1  1999/06/17 12:33:39  pierre
-   * avoid warning with extdebug for arrayconstruct
-
-  Revision 1.34  1999/06/01 19:26:39  peter
-    * fixed bug 249
-
-  Revision 1.33  1999/05/27 19:45:21  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.32  1999/05/23 18:42:22  florian
-    * better error recovering in typed constants
-    * some problems with arrays of const fixed, some problems
-      due my previous
-       - the location type of array constructor is now LOC_MEM
-       - the pushing of high fixed
-       - parameter copying fixed
-       - zero temp. allocation removed
-    * small problem in the assembler writers fixed:
-      ref to nil wasn't written correctly
-
-  Revision 1.31  1999/05/19 15:26:41  florian
-    * if a non local variables isn't initialized the compiler doesn't write
-      any longer "local var. seems not to be ..."
-
-  Revision 1.30  1999/05/19 10:31:55  florian
-    * two bugs reported by Romio (bugs 13) are fixed:
-        - empty array constructors are now handled correctly (e.g. for sysutils.format)
-        - comparsion of ansistrings was sometimes coded wrong
 
 }

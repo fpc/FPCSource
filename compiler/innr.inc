@@ -99,7 +99,10 @@ const
 
 {
   $Log$
-  Revision 1.15  2000-01-07 01:14:27  peter
+  Revision 1.16  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.15  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.14  1999/09/15 20:35:40  florian
@@ -111,26 +114,6 @@ const
 
   Revision 1.13  1999/08/28 15:34:19  florian
     * bug 519 fixed
-
-  Revision 1.12  1999/07/01 15:49:14  florian
-    * int64/qword type release
-    + lo/hi for int64/qword
-
-  Revision 1.11  1999/04/17 13:12:19  peter
-    * addr() internal
-
-  Revision 1.10  1998/10/05 12:32:45  peter
-    + assert() support
-
-  Revision 1.9  1998/10/02 09:24:20  peter
-    * more constant expression evaluators
-
-  Revision 1.4  1998/09/14 10:48:17  peter
-    * FPC_ names
-    * Heap manager is now system independent
-
-  Revision 1.3  1998/09/01 17:36:19  peter
-    + internconst
 
 }
 

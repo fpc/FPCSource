@@ -530,7 +530,10 @@
 
 {
   $Log$
-  Revision 1.52  2000-02-04 20:00:22  florian
+  Revision 1.53  2000-02-09 13:23:04  peter
+    * log truncated
+
+  Revision 1.52  2000/02/04 20:00:22  florian
     * an exception in a construcor calls now the destructor (this applies only
       to classes)
 
@@ -603,53 +606,5 @@
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.33  1999/06/22 16:24:45  pierre
-   * local browser stuff corrected
-
-  Revision 1.32  1999/06/02 10:11:51  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
-
-  Revision 1.31  1999/05/31 16:42:35  peter
-    * interfacedef flag for procdef if it's defined in the interface, to
-      make a difference with 'forward;' directive forwarddef. Fixes 253
-
-  Revision 1.30  1999/05/27 19:45:04  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.29  1999/05/23 18:42:15  florian
-    * better error recovering in typed constants
-    * some problems with arrays of const fixed, some problems
-      due my previous
-       - the location type of array constructor is now LOC_MEM
-       - the pushing of high fixed
-       - parameter copying fixed
-       - zero temp. allocation removed
-    * small problem in the assembler writers fixed:
-      ref to nil wasn't written correctly
-
-  Revision 1.28  1999/05/19 16:48:28  florian
-    * tdef.typename: returns a now a proper type name for the most types
-
-  Revision 1.27  1999/05/13 21:59:42  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.26  1999/05/12 00:19:59  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.25  1999/05/08 19:52:37  peter
-    + MessagePos() which is enhanced Message() function but also gets the
-      position info
-    * Removed comp warnings
 
 }

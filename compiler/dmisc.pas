@@ -854,23 +854,10 @@ End;
 end.
 {
   $Log$
-  Revision 1.6  2000-01-07 01:14:23  peter
+  Revision 1.7  2000-02-09 13:22:52  peter
+    * log truncated
+
+  Revision 1.6  2000/01/07 01:14:23  peter
     * updated copyright to 2000
-
-  Revision 1.5  1999/07/18 10:19:50  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.4  1999/05/05 09:19:05  florian
-    * more fixes to get it with delphi running
-
-  Revision 1.3  1999/05/05 08:20:12  michael
-  * kernel32 changed to kernel32.dll
-
-  Revision 1.2  1999/05/04 21:44:41  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.1  1998/09/18 16:03:38  florian
-    * some changes to compile with Delphi
 
 }

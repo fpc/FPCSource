@@ -418,7 +418,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.7  2000-01-28 09:41:39  peter
+  Revision 1.8  2000-02-09 13:23:11  peter
+    * log truncated
+
+  Revision 1.7  2000/01/28 09:41:39  peter
     * fixed fpu suffix parsing for att reader
 
   Revision 1.6  2000/01/07 01:15:01  peter
@@ -432,22 +435,5 @@ end.
 
   Revision 1.3  1999/08/12 14:36:09  peter
     + KNI instructions
-
-  Revision 1.2  1999/05/23 18:42:24  florian
-    * better error recovering in typed constants
-    * some problems with arrays of const fixed, some problems
-      due my previous
-       - the location type of array constructor is now LOC_MEM
-       - the pushing of high fixed
-       - parameter copying fixed
-       - zero temp. allocation removed
-    * small problem in the assembler writers fixed:
-      ref to nil wasn't written correctly
-
-  Revision 1.1  1999/05/12 16:17:10  peter
-    * init
-
-  Revision 1.1  1999/05/12 16:08:27  peter
-    + moved compiler utils
 
 }

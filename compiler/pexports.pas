@@ -141,7 +141,10 @@ end.
 
 {
   $Log$
-  Revision 1.18  2000-01-07 01:14:28  peter
+  Revision 1.19  2000-02-09 13:22:56  peter
+    * log truncated
+
+  Revision 1.18  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.17  1999/12/20 23:23:30  pierre
@@ -184,40 +187,5 @@ end.
   Revision 1.10  1999/08/03 22:02:58  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.9  1999/05/04 21:44:56  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.8  1999/03/26 00:05:35  peter
-    * released valintern
-    + deffile is now removed when compiling is finished
-    * ^( compiles now correct
-    + static directive
-    * shrd fixed
-
-  Revision 1.7  1999/02/22 02:44:12  peter
-    * ag386bin doesn't use i386.pas anymore
-
-  Revision 1.6  1998/12/11 00:03:31  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.5  1998/11/30 13:26:25  pierre
-    * the code for ordering the exported procs/vars was buggy
-    + added -WB to force binding (Ozerski way of creating DLL)
-      this is off by default as direct writing of .edata section seems
-      OK
-
-  Revision 1.4  1998/11/30 09:43:21  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.3  1998/10/29 11:35:51  florian
-    * some dll support for win32
-    * fixed assembler writing for PalmOS
-
-  Revision 1.2  1998/09/26 17:45:35  peter
-    + idtoken and only one token table
 
 }

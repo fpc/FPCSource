@@ -706,75 +706,13 @@ ait_stab_function_name : funcname:=pai_stab_function_name(hp)^.str;
 end.
 {
   $Log$
-  Revision 1.24  2000-01-07 01:14:18  peter
+  Revision 1.25  2000-02-09 13:22:44  peter
+    * log truncated
+
+  Revision 1.24  2000/01/07 01:14:18  peter
     * updated copyright to 2000
 
   Revision 1.23  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.22  1998/12/23 22:53:44  peter
-    * don't count ait_marker for lineinfo
-
-  Revision 1.21  1998/12/11 00:02:39  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.20  1998/11/12 11:19:35  pierre
-   * fix for first line of function break
-
-  Revision 1.19  1998/10/29 11:35:36  florian
-    * some dll support for win32
-    * fixed assembler writing for PalmOS
-
-  Revision 1.18  1998/10/14 15:56:39  pierre
-    * all references to comp suppressed for m68k
-
-  Revision 1.17  1998/10/13 13:10:08  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.16  1998/10/12 12:27:44  pierre
-   * typo error for tai_const_symbol_offset corrected
-
-  Revision 1.15  1998/10/12 12:20:43  pierre
-    + added tai_const_symbol_offset
-      for r : pointer = @var.field;
-    * better message for different arg names on implementation
-      of function
-
-  Revision 1.14  1998/10/06 17:16:36  pierre
-    * some memory leaks fixed (thanks to Peter for heaptrc !)
-
-  Revision 1.13  1998/10/01 20:19:08  jonas
-    + ait_marker support
-
-  Revision 1.12  1998/09/28 16:57:09  pierre
-    * changed all length(p^.value_str^) into str_length(p)
-      to get it work with and without ansistrings
-    * changed sourcefiles field of tmodule to a pointer
-
-  Revision 1.11  1998/09/16 01:07:13  carl
-    * alignment fix for bytes
-
-  Revision 1.10  1998/09/01 09:07:08  peter
-    * m68k fixes, splitted cg68k like cgi386
-
-  Revision 1.9  1998/08/31 12:26:20  peter
-    * m68k and palmos updates from surebugfixes
-
-  Revision 1.8  1998/08/10 14:49:36  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.7  1998/07/14 14:46:38  peter
-    * released NEWINPUT
-
-  Revision 1.6  1998/07/10 10:50:54  peter
-    * m68k updates
-
-  Revision 1.5  1998/06/05 17:46:04  peter
-    * tp doesn't like comp() typecast
-
-  Revision 1.4  1998/06/04 23:51:28  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
 
 }

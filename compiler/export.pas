@@ -213,7 +213,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.10  2000-01-12 10:34:29  peter
+  Revision 1.11  2000-02-09 13:22:52  peter
+    * log truncated
+
+  Revision 1.10  2000/01/12 10:34:29  peter
     * only give unsupported error once
 
   Revision 1.9  2000/01/07 01:14:27  peter
@@ -232,23 +235,5 @@ end.
 
   Revision 1.5  1999/08/03 17:09:34  florian
     * the alpha compiler can be compiled now
-
-  Revision 1.4  1998/11/30 09:43:09  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.3  1998/11/16 11:28:57  pierre
-    * stackcheck removed for i386_win32
-    * exportlist does not crash at least !!
-      (was need for tests dir !)z
-
-  Revision 1.2  1998/10/29 11:35:43  florian
-    * some dll support for win32
-    * fixed assembler writing for PalmOS
-
-  Revision 1.1  1998/10/27 10:22:34  florian
-    + First things for win32 export sections
 
 }

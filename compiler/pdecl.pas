@@ -1210,7 +1210,10 @@ unit pdecl;
 end.
 {
   $Log$
-  Revision 1.179  2000-01-20 12:29:02  pierre
+  Revision 1.180  2000-02-09 13:22:56  peter
+    * log truncated
+
+  Revision 1.179  2000/01/20 12:29:02  pierre
    * bug 801 fixed
 
   Revision 1.178  2000/01/11 17:16:05  jonas
@@ -1284,52 +1287,5 @@ end.
 
   Revision 1.159  1999/10/01 10:05:42  peter
     + procedure directive support in const declarations, fixes bug 232
-
-  Revision 1.158  1999/10/01 08:02:46  peter
-    * forward type declaration rewritten
-
-  Revision 1.157  1999/09/27 23:44:53  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.156  1999/09/26 21:30:19  peter
-    + constant pointer support which can happend with typecasting like
-      const p=pointer(1)
-    * better procvar parsing in typed consts
-
-  Revision 1.155  1999/09/20 16:38:59  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.154  1999/09/15 22:09:24  florian
-    + rtti is now automatically generated for published classes, i.e.
-      they are handled like an implicit property
-
-  Revision 1.153  1999/09/14 11:09:08  florian
-    * per default a property is stored, fixed
-
-  Revision 1.152  1999/09/12 14:50:50  florian
-    + implemented creation of methodname/address tables
-
-  Revision 1.151  1999/09/12 08:48:09  florian
-    * bugs 593 and 607 fixed
-    * some other potential bugs with array constructors fixed
-    * for classes compiled in $M+ and it's childs, the default access method
-      is now published
-    * fixed copyright message (it is now 1998-2000)
-
-  Revision 1.150  1999/09/10 20:57:33  florian
-    * some more fixes for stored properties
-
-  Revision 1.149  1999/09/10 18:48:07  florian
-    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.148  1999/09/08 21:06:06  michael
-  * Stored specifier for properties is now correctly parsed
-
-  Revision 1.147  1999/09/02 09:23:51  peter
-    * fixed double dispose of propsymlist
 
 }

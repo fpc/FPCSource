@@ -448,7 +448,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.5  2000-01-07 01:14:20  peter
+  Revision 1.6  2000-02-09 13:22:45  peter
+    * log truncated
+
+  Revision 1.5  2000/01/07 01:14:20  peter
     * updated copyright to 2000
 
   Revision 1.4  1999/11/30 10:40:42  peter
@@ -460,11 +463,6 @@ end.
   Revision 1.2  1999/08/03 22:02:30  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.1  1999/01/12 14:25:24  peter
-    + BrowserLog for browser.log generation
-    + BrowserCol for browser info in TCollections
-    * released all other UseBrowser
 
 }
 

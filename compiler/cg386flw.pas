@@ -927,7 +927,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.67  2000-01-21 12:17:42  jonas
+  Revision 1.68  2000-02-09 13:22:47  peter
+    * log truncated
+
+  Revision 1.67  2000/01/21 12:17:42  jonas
     * regallocation fixes
 
   Revision 1.66  2000/01/07 01:14:20  peter
@@ -1001,52 +1004,5 @@ end.
 
   Revision 1.48  1999/09/07 07:56:37  peter
     * reload esi in except block to allow virtual methods
-
-  Revision 1.47  1999/08/25 11:59:42  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.46  1999/08/19 13:06:47  pierre
-    * _FAIL will now free memory correctly
-      and reset VMT field on static instances
-      (not yet tested for classes, is it allowed ?)
-    + emit_.... all variant defined here to avoid tons of
-      exprasmlist^.concat(new(paicpu,...) in cg386***
-
-  Revision 1.45  1999/08/04 00:22:46  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.44  1999/08/03 22:02:39  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.43  1999/07/26 12:13:45  florian
-    * exit in try..finally blocks needed a second fix
-    * a raise in a try..finally lead into a endless loop, fixed
-
-  Revision 1.42  1999/07/26 09:41:59  florian
-    * bugs 494-496 fixed
-
-  Revision 1.41  1999/07/05 20:13:09  peter
-    * removed temp defines
-
-  Revision 1.40  1999/06/14 00:43:35  peter
-    * merged
-
-  Revision 1.39.2.1  1999/06/14 00:39:29  peter
-    * don't pop object stack in catches, because it's needed for reraise
-
-  Revision 1.39  1999/05/27 19:44:12  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.38  1999/05/21 13:54:48  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.37  1999/05/17 21:57:01  florian
-    * new temporary ansistring handling
 
 }

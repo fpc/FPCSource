@@ -901,7 +901,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.21  2000-01-28 09:41:39  peter
+  Revision 1.22  2000-02-09 13:22:51  peter
+    * log truncated
+
+  Revision 1.21  2000/01/28 09:41:39  peter
     * fixed fpu suffix parsing for att reader
 
   Revision 1.20  2000/01/07 01:14:23  peter
@@ -969,24 +972,5 @@ end.
   Revision 1.2  1999/08/04 13:45:25  florian
     + floating point register variables !!
     * pairegalloc is now generated for register variables
-
-  Revision 1.1  1999/08/04 00:22:58  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.10  1999/08/02 21:28:58  florian
-    * the main branch psub.pas is now used for
-      newcg compiler
-
-  Revision 1.9  1999/08/02 21:01:45  michael
-  * Moved toperand type back =(
-
-  Revision 1.8  1999/08/02 20:45:49  michael
-  * Moved toperand type to aasm
-
-  Revision 1.7  1999/08/02 17:17:09  florian
-    * small changes for the new code generator
-
-  Revision 1.6  1999/06/06 15:53:15  peter
-    * suffix adding can be turned of for some tasmops in att_nosuffix array
 
 }

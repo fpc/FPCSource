@@ -486,7 +486,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-01-09 00:55:51  pierre
+  Revision 1.9  2000-02-09 13:23:06  peter
+    * log truncated
+
+  Revision 1.8  2000/01/09 00:55:51  pierre
     * GROUP of smartlink units put before the C libraries
       to allow for smartlinking code that uses C code.
 

@@ -900,7 +900,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.21  2000-01-07 01:14:22  peter
+  Revision 1.22  2000-02-09 13:22:49  peter
+    * log truncated
+
+  Revision 1.21  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.20  1999/12/20 21:42:35  pierre
@@ -918,78 +921,6 @@ end.
 
   Revision 1.17  1999/08/25 11:59:50  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.16  1999/04/07 15:31:18  pierre
-    * all formaldefs are now a sinlge definition
-      cformaldef (this was necessary for double_checksum)
-    + small part of double_checksum code
-
-  Revision 1.15  1998/12/11 00:03:03  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.14  1998/11/05 12:02:38  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
-
-  Revision 1.13  1998/10/22 17:11:14  pierre
-    + terminated the include exclude implementation for i386
-    * enums inside records fixed
-
-  Revision 1.12  1998/10/21 15:12:53  pierre
-    * bug fix for IOCHECK inside a procedure with iocheck modifier
-    * removed the GPF for unexistant overloading
-      (firstcall was called with procedinition=nil !)
-    * changed typen to what Florian proposed
-      gentypenode(p : pdef) sets the typenodetype field
-      and resulttype is only set if inside bt_type block !
-
-  Revision 1.11  1998/10/16 13:12:47  pierre
-    * added vmt_offsets in destructors code also !!!
-    * vmt_offset code for m68k
-
-  Revision 1.10  1998/10/14 16:53:04  pierre
-   * bug in in_inc_x for constants out of range for A_ADDQ fixed
-
-  Revision 1.9  1998/10/14 11:28:20  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.8  1998/10/14 08:08:52  pierre
-    * following Peters remark, removed all ifdef in
-      the systems unit enums
-    * last bugs of cg68k removed for sysamiga
-      (sysamiga assembles with as68k !!)
-
-  Revision 1.7  1998/10/13 16:50:08  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.6  1998/10/06 20:48:58  peter
-    * m68k compiler compiles again
-
-  Revision 1.5  1998/09/20 12:26:39  peter
-    * merged fixes
-
-  Revision 1.4  1998/09/17 09:42:26  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.3  1998/09/14 10:43:59  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.2.2.1  1998/09/20 12:20:10  peter
-    * Fixed stack not on 4 byte boundary when doing a call
-
-  Revision 1.2  1998/09/04 08:41:48  peter
-    * updated some error CGMessages
-
-  Revision 1.1  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }
 

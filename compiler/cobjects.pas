@@ -2395,7 +2395,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.51  2000-01-11 17:16:04  jonas
+  Revision 1.52  2000-02-09 13:22:50  peter
+    * log truncated
+
+  Revision 1.51  2000/01/11 17:16:04  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 
@@ -2446,60 +2449,5 @@ end.
   Revision 1.39  1999/08/05 14:58:07  florian
     * some fixes for the floating point registers
     * more things for the new code generator
-
-  Revision 1.38  1999/07/18 10:19:46  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.37  1999/07/03 00:29:45  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.36  1999/06/23 11:13:20  peter
-    * fixed linebreak
-
-  Revision 1.35  1999/06/23 11:07:23  daniel
-  * Tdictionary.delete
-
-  Revision 1.33.2.1  1999/06/15 10:12:22  peter
-    * fixed inserttree which didn't reset left,right
-
-  Revision 1.33  1999/05/31 23:33:21  peter
-    * fixed tdictionary rename which didn't reset left,right when
-      reinserting
-
-  Revision 1.32  1999/05/27 19:44:23  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.31  1999/05/21 13:54:59  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.30  1999/05/21 10:38:59  peter
-    * fixed deleteindex which didn't reset indexnr and set first wrong
-
-  Revision 1.29  1999/05/08 19:47:27  peter
-    * indexarray.delete resets pointer after dispose
-
-  Revision 1.28  1999/05/05 10:05:48  florian
-    * a delphi compiled compiler recompiles ppc
-
-  Revision 1.27  1999/05/05 09:19:03  florian
-    * more fixes to get it with delphi running
-
-  Revision 1.26  1999/04/21 09:43:31  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.25  1999/04/15 10:01:44  peter
-    * small update for storenumber
-
-  Revision 1.24  1999/04/14 09:14:47  peter
-    * first things to store the symbol/def number in the ppu
 
 }

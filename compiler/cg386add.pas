@@ -2236,7 +2236,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.92  2000-01-23 13:57:52  jonas
+  Revision 1.93  2000-02-09 13:22:45  peter
+    * log truncated
+
+  Revision 1.92  2000/01/23 13:57:52  jonas
     * fixed bug introduced by my regalloc fixed :(
 
   Revision 1.91  2000/01/23 11:11:36  michael
@@ -2309,45 +2312,5 @@ end.
 
   Revision 1.73  1999/08/07 11:29:26  peter
     * better fix for muln register allocation
-
-  Revision 1.72  1999/08/04 13:45:17  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
-
-  Revision 1.71  1999/08/04 00:22:40  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.70  1999/08/03 22:02:31  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.69  1999/07/05 20:13:06  peter
-    * removed temp defines
-
-  Revision 1.68  1999/07/02 12:18:46  jonas
-    * released setconstnot (changed to $ifndef nosetconstnot)
-    * released shlmul (changed to $ifndef no shlmul)
-
-  Revision 1.67  1999/06/14 17:47:45  peter
-    * merged
-
-  Revision 1.66.2.1  1999/06/14 17:24:40  peter
-    * fixed saving of registers with decr_ansistr
-
-  Revision 1.66  1999/06/09 23:22:37  peter
-    + del_location
-
-  Revision 1.65  1999/06/09 23:00:11  peter
-    * small ansistring fixes
-    * val_ansistr_sint destsize changed to longint
-    * don't write low/hi ascii with -al
-
-  Revision 1.64  1999/06/02 10:11:39  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
-
-  Revision 1.63  1999/05/31 20:35:45  peter
-    * ansistring fixes, decr_ansistr called after all temp ansi reuses
 
 }

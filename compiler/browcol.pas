@@ -1707,7 +1707,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.32  2000-01-20 00:24:06  pierre
+  Revision 1.33  2000-02-09 13:22:45  peter
+    * log truncated
+
+  Revision 1.32  2000/01/20 00:24:06  pierre
    * StoreBrowserCol changed to boolean function
 
   Revision 1.31  2000/01/07 01:14:19  peter
@@ -1752,55 +1755,5 @@ end.
   Revision 1.20  1999/08/03 22:02:29  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.17  1999/06/22 16:24:39  pierre
-   * local browser stuff corrected
-
-  Revision 1.16  1999/05/13 21:59:20  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.15  1999/04/29 09:36:55  peter
-    * fixed crash
-    * check if localbrowser is set
-
-  Revision 1.14  1999/04/15 09:01:32  peter
-    * fixed set loading
-    * object inheritance support for browser
-
-  Revision 1.13  1999/04/14 18:59:52  peter
-    * fixed wrong variable names
-
-  Revision 1.12  1999/04/10 16:15:00  peter
-    * fixed browcol
-    + -ar to show regalloc info in .s file
-
-  Revision 1.11  1999/04/08 10:17:42  peter
-    + objects support
-
-  Revision 1.8  1999/03/03 01:38:11  pierre
-   * avoid infinite recursion in ProcessDefIfStruct
-
-  Revision 1.7  1999/02/22 11:51:32  peter
-    * browser updates from gabor
-
-  Revision 1.6  1999/02/04 09:31:59  pierre
-   + added objects and records symbol tables
-
-  Revision 1.5  1999/02/03 09:44:32  pierre
-    * symbol nubering begins with 1 in number_symbols
-    * program tmodule has globalsymtable for its staticsymtable
-      (to get it displayed in IDE globals list)
-    + list of symbol (browcol) greatly improved for IDE
-
-  Revision 1.4  1999/02/02 16:38:38  peter
-    * no endless loop with localst=staticsymtable
-
-  Revision 1.3  1999/01/22 10:19:43  peter
-    * fixed typo
-
-  Revision 1.2  1999/01/21 11:49:14  peter
-    * updates from gabor
 
 }

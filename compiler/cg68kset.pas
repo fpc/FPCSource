@@ -813,44 +813,14 @@ implementation
 end.
 {
   $Log$
-  Revision 1.10  2000-01-07 01:14:22  peter
+  Revision 1.11  2000-02-09 13:22:49  peter
+    * log truncated
+
+  Revision 1.10  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.9  1999/09/16 23:05:51  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.8  1998/12/11 00:03:08  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.7  1998/10/15 12:41:19  pierre
-    * last memory leaks found when compiler
-      a native atari compiler fixed
-
-  Revision 1.6  1998/10/13 16:50:11  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.5  1998/09/17 09:42:29  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.4  1998/09/14 10:44:03  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.3  1998/09/07 18:45:59  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.2  1998/09/04 08:41:49  peter
-    * updated some error CGMessages
-
-  Revision 1.1  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }
 

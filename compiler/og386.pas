@@ -275,7 +275,10 @@ unit og386;
 end.
 {
   $Log$
-  Revision 1.16  2000-01-07 01:14:27  peter
+  Revision 1.17  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.16  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.15  1999/11/08 10:37:12  peter
@@ -293,68 +296,5 @@ end.
 
   Revision 1.11  1999/08/04 00:23:04  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.10  1999/07/18 10:19:56  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.9  1999/07/03 00:27:03  peter
-    * better smartlinking support
-
-  Revision 1.8  1999/05/19 12:41:48  florian
-    * made source compilable with TP (too long line)
-    * default values for set properties fixed
-
-  Revision 1.7  1999/05/19 11:54:18  pierre
-   + experimental code for externalbss and stabs problem
-
-  Revision 1.6  1999/05/07 00:36:56  pierre
-    * added alignment code for .bss
-    * stabs correct but externalbss disabled
-      would need a special treatment in writestabs
-
-  Revision 1.5  1999/05/05 22:21:57  peter
-    * updated messages
-
-  Revision 1.4  1999/05/05 17:34:30  peter
-    * output is more like as 2.9.1
-    * stabs really working for go32v2
-
-  Revision 1.3  1999/05/04 21:44:50  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.2  1999/05/02 22:41:54  peter
-    * moved section names to systems
-    * fixed nasm,intel writer
-
-  Revision 1.1  1999/05/01 13:24:23  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.8  1999/03/18 20:30:48  peter
-    + .a writer
-
-  Revision 1.7  1999/03/10 13:41:09  pierre
-   + partial implementation for win32 !
-     winhello works but pp still does not !
-
-  Revision 1.6  1999/03/08 14:51:08  peter
-    + smartlinking for ag386bin
-
-  Revision 1.5  1999/03/05 13:09:51  peter
-    * first things for tai_cut support for ag386bin
-
-  Revision 1.4  1999/03/03 01:36:45  pierre
-    + stabs output working (though not really tested)
-      for a simple file the only difference to GAS output is due
-      to the VMA of the different sections
-
-  Revision 1.3  1999/03/02 02:56:26  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.2  1999/02/25 21:03:09  peter
-    * ag386bin updates
-    + coff writer
 
 }

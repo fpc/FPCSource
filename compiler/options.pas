@@ -1429,7 +1429,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.58  2000-02-09 10:35:48  peter
+  Revision 1.59  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.58  2000/02/09 10:35:48  peter
     * -Xt option to link staticly against c libs
 
   Revision 1.57  2000/02/06 17:20:52  peter
@@ -1501,99 +1504,5 @@ end.
     * support !ENVVAR for long commandlines
     * win32/go32v2 write short pathnames to link.res so c:\Program Files\ is
       finally supported as installdir.
-
-  Revision 1.38  1999/12/02 17:34:34  peter
-    * preprocessor support. But it fails on the caret in type blocks
-
-  Revision 1.37  1999/11/20 01:22:19  pierre
-    + cond FPC_USE_CPREFIX (needs also some RTL changes)
-      this allows to use unit global vars as DLL exports
-      (the underline prefix seems needed by dlltool)
-
-  Revision 1.36  1999/11/15 17:42:40  pierre
-   * -g disables reloc section for win32
-
-  Revision 1.35  1999/11/12 11:03:50  peter
-    * searchpaths changed to stringqueue object
-
-  Revision 1.34  1999/11/09 23:06:45  peter
-    * esi_offset -> selfpointer_offset to be newcg compatible
-    * hcogegen -> cgbase fixes for newcg
-
-  Revision 1.33  1999/11/06 14:34:21  peter
-    * truncated log to 20 revs
-
-  Revision 1.32  1999/11/04 23:13:25  peter
-    * moved unit alias support into ifdef
-
-  Revision 1.31  1999/11/04 10:54:03  peter
-    + -Ua<oldname>=<newname> unit alias support
-
-  Revision 1.30  1999/11/03 23:43:09  peter
-    * default units/rtl paths
-
-  Revision 1.29  1999/10/30 17:35:26  peter
-    * fpc_freemem fpc_getmem new callings updated
-
-  Revision 1.28  1999/10/28 11:13:36  pierre
-   * fix for cygwin make problem with -iTP
-
-  Revision 1.27  1999/10/26 13:13:47  peter
-    * define INCLUDEOK, which seems to work correct
-
-  Revision 1.26  1999/10/14 14:57:52  florian
-    - removed the hcodegen use in the new cg, use cgbase instead
-
-  Revision 1.25  1999/10/13 10:24:49  peter
-    * dpmi can only be set after reading the options
-
-  Revision 1.24  1999/10/03 19:44:41  peter
-    * removed objpasunit reference, tvarrec is now searched in systemunit
-      where it already was located
-
-  Revision 1.23  1999/09/20 16:38:59  peter
-    * cs_create_smart instead of cs_smartlink
-    * -CX is create smartlink
-    * -CD is create dynamic, but does nothing atm.
-
-  Revision 1.22  1999/09/16 11:34:56  pierre
-   * typo correction
-
-  Revision 1.21  1999/09/15 20:35:40  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.20  1999/09/03 09:31:22  peter
-    * reading of search paths fixed to work as expected
-
-  Revision 1.19  1999/09/01 22:07:20  peter
-    * turn off stripping if profiling or debugging
-
-  Revision 1.18  1999/08/28 17:46:10  peter
-    * resources are working correct
-
-  Revision 1.17  1999/08/28 15:34:19  florian
-    * bug 519 fixed
-
-  Revision 1.16  1999/08/27 10:45:03  pierre
-   options -Ca sets simply_ppu to true
-
-  Revision 1.15  1999/08/25 22:51:00  pierre
-   * remove trailing space in cfg files
-
-  Revision 1.14  1999/08/16 15:35:26  pierre
-    * fix for DLL relocation problems
-    * external bss vars had wrong stabs for pecoff
-    + -WB11000000 to specify default image base, allows to
-      load several DLLs with debugging info included
-      (relocatable DLL are stripped because the relocation
-       of the .Stab section is misplaced by ldw)
-
-  Revision 1.13  1999/08/11 17:26:35  peter
-    * tlinker object is now inherited for win32 and dos
-    * postprocessexecutable is now a method of tlinker
 
 }

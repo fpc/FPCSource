@@ -241,7 +241,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.32  2000-01-07 01:14:33  peter
+  Revision 1.33  2000-02-09 13:23:00  peter
+    * log truncated
+
+  Revision 1.32  2000/01/07 01:14:33  peter
     * updated copyright to 2000
 
   Revision 1.31  1999/12/18 14:55:21  florian
@@ -265,71 +268,5 @@ end.
   Revision 1.26  1999/08/03 22:03:07  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.25  1999/07/05 20:13:17  peter
-    * removed temp defines
-
-  Revision 1.24  1999/07/01 15:49:20  florian
-    * int64/qword type release
-    + lo/hi for int64/qword
-
-  Revision 1.23  1999/05/12 00:19:53  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.22  1999/05/06 09:05:23  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.21  1999/04/26 18:28:15  peter
-    * better read/write array
-
-  Revision 1.20  1999/04/17 13:12:20  peter
-    * addr() internal
-
-  Revision 1.19  1999/04/07 15:31:12  pierre
-    * all formaldefs are now a sinlge definition
-      cformaldef (this was necessary for double_checksum)
-    + small part of double_checksum code
-
-  Revision 1.18  1999/03/26 00:05:40  peter
-    * released valintern
-    + deffile is now removed when compiling is finished
-    * ^( compiles now correct
-    + static directive
-    * shrd fixed
-
-  Revision 1.17  1999/03/16 17:52:54  jonas
-    * changes for internal Val code (do a "make cycle OPT=-dvalintern" to test)
-    * in cgi386inl: also range checking for subrange types (compile with "-dreadrangecheck")
-    * in cgai386: also small fixes to emitrangecheck
-
-  Revision 1.16  1999/03/02 02:56:17  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.15  1998/12/30 22:15:51  peter
-    + farpointer type
-    * absolutesym now also stores if its far
-
-  Revision 1.14  1998/12/11 00:03:40  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.13  1998/12/10 09:47:25  florian
-    + basic operations with int64/qord (compiler with -dint64)
-    + rtti of enumerations extended: names are now written
-
-  Revision 1.12  1998/11/27 14:50:45  peter
-    + open strings, $P switch support
-
-  Revision 1.11  1998/11/16 10:18:09  peter
-    * fixes for ansistrings
-
-  Revision 1.10  1998/11/09 11:44:36  peter
-    + va_list for printf support
-
-  Revision 1.9  1998/11/05 12:02:54  peter
-    * released useansistring
-    * removed -Sv, its now available in fpc modes
 
 }

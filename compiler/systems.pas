@@ -1509,7 +1509,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.98  2000-01-07 01:14:42  peter
+  Revision 1.99  2000-02-09 13:23:06  peter
+    * log truncated
+
+  Revision 1.98  2000/01/07 01:14:42  peter
     * updated copyright to 2000
 
   Revision 1.97  1999/11/06 14:34:28  peter
@@ -1562,27 +1565,5 @@ end.
 
   Revision 1.84  1999/08/02 23:56:51  michael
   + Added alpha cpu and linux for alpha os
-
-  Revision 1.83  1999/07/10 10:26:20  peter
-    * merged
-
-  Revision 1.82.2.2  1999/07/10 10:03:16  peter
-    * fixed initialization/finalization in fpc mode
-    * allow $TARGET also in search paths
-
-  Revision 1.82.2.1  1999/07/02 12:52:58  pierre
-   * pecoff still buggy, as_I386_asw again default
-
-  Revision 1.82  1999/06/08 11:50:28  peter
-    * 2mb again for go32v2/v1
-
-  Revision 1.81  1999/06/02 20:46:39  peter
-    * fixed os2 bindcmd which was double
-
-  Revision 1.80  1999/06/02 14:20:31  hajny
-    * fixed my mistake from previously commited version
-
-  Revision 1.79  1999/06/02 13:25:34  hajny
-    * fixed stripping symbols for OS/2
 
 }

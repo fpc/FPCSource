@@ -372,7 +372,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.112  2000-01-07 01:14:28  peter
+  Revision 1.113  2000-02-09 13:22:55  peter
+    * log truncated
+
+  Revision 1.112  2000/01/07 01:14:28  peter
     * updated copyright to 2000
 
   Revision 1.111  1999/12/14 09:58:42  florian
@@ -413,38 +416,5 @@ end.
 
   Revision 1.103  1999/08/04 00:23:09  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.102  1999/05/27 19:44:42  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.101  1999/05/01 13:24:26  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.100  1999/02/22 02:44:07  peter
-    * ag386bin doesn't use i386.pas anymore
-
-  Revision 1.99  1998/12/11 00:03:27  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.98  1998/11/23 17:49:03  pierre
-   * ansistring support in extdebug code
-
-  Revision 1.97  1998/11/05 14:26:47  peter
-    * fixed variant warning with was sometimes said with sets
-
-  Revision 1.96  1998/10/06 20:49:07  peter
-    * m68k compiler compiles again
-
-  Revision 1.95  1998/09/24 15:13:44  peter
-    * fixed type node which was always set to void :(
-
-  Revision 1.94  1998/09/23 20:42:22  peter
-    * splitted pass_1
 
 }

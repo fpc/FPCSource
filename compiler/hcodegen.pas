@@ -447,7 +447,10 @@ end.
 
 {
   $Log$
-  Revision 1.55  2000-01-16 22:17:11  peter
+  Revision 1.56  2000-02-09 13:22:53  peter
+    * log truncated
+
+  Revision 1.55  2000/01/16 22:17:11  peter
     * renamed call_offset to para_offset
 
   Revision 1.54  2000/01/11 17:16:04  jonas
@@ -510,42 +513,5 @@ end.
 
   Revision 1.36  1999/08/01 23:09:26  michael
   * procbase -> cpubase
-
-  Revision 1.35  1999/08/01 23:04:49  michael
-  + Changes for Alpha
-
-  Revision 1.34  1999/07/22 09:37:42  florian
-    + resourcestring implemented
-    + start of longstring support
-
-  Revision 1.33  1999/05/27 19:44:31  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.32  1999/05/21 13:55:01  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.31  1999/05/17 21:57:08  florian
-    * new temporary ansistring handling
-
-  Revision 1.30  1999/05/01 13:24:22  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.29  1999/04/21 09:43:38  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.28  1999/03/24 23:17:00  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.27  1999/02/25 21:02:37  peter
-    * ag386bin updates
-    + coff writer
 
 }

@@ -1355,7 +1355,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.113  2000-01-11 09:52:06  peter
+  Revision 1.114  2000-02-09 13:22:52  peter
+    * log truncated
+
+  Revision 1.113  2000/01/11 09:52:06  peter
     * fixed placing of .sl directories
     * use -b again for base-file selection
     * fixed group writing for linux with smartlinking
@@ -1399,49 +1402,5 @@ end.
 
   Revision 1.100  1999/08/24 13:14:01  peter
     * MEMDEBUG to see the sizes of asmlist,asmsymbols,symtables
-
-  Revision 1.99  1999/07/18 14:47:26  florian
-    * bug 487 fixed, (inc(<property>) isn't allowed)
-    * more fixes to compile with Delphi
-
-  Revision 1.98  1999/07/18 10:19:51  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.97  1999/07/14 21:19:03  florian
-    + implemented a better error message if a PPU file isn't found as suggested
-      by Lee John
-
-  Revision 1.96  1999/07/03 00:29:47  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.95  1999/05/13 21:59:25  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.94  1999/05/04 21:44:42  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.93  1999/04/26 13:31:29  peter
-    * release storenumber,double_checksum
-
-  Revision 1.92  1999/04/25 15:08:36  peter
-    * small fixes for double_checksum
-
-  Revision 1.91  1999/04/21 09:43:36  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.90  1999/04/14 09:14:48  peter
-    * first things to store the symbol/def number in the ppu
-
-  Revision 1.89  1999/04/07 15:39:29  pierre
-    + double_checksum code added
-
-  Revision 1.88  1999/03/25 16:55:29  peter
-    + unitpath,librarypath,includepath,objectpath directives
 
 }

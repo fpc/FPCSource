@@ -194,7 +194,10 @@ end.
 
 {
   $Log$
-  Revision 1.29  2000-01-11 17:16:04  jonas
+  Revision 1.30  2000-02-09 13:22:56  peter
+    * log truncated
+
+  Revision 1.29  2000/01/11 17:16:04  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 
@@ -221,81 +224,5 @@ end.
 
   Revision 1.22  1999/07/26 09:42:10  florian
     * bugs 494-496 fixed
-
-  Revision 1.21  1999/04/28 06:02:05  florian
-    * changes of Bruessel:
-       + message handler can now take an explicit self
-       * typinfo fixed: sometimes the type names weren't written
-       * the type checking for pointer comparisations and subtraction
-         and are now more strict (was also buggy)
-       * small bug fix to link.pas to support compiling on another
-         drive
-       * probable bug in popt386 fixed: call/jmp => push/jmp
-         transformation didn't count correctly the jmp references
-       + threadvar support
-       * warning if ln/sqrt gets an invalid constant argument
-
-  Revision 1.20  1999/04/14 18:41:24  daniel
-  * Better use of routines in pbase and symtable. 4k code removed.
-
-  Revision 1.19  1999/04/08 20:59:42  florian
-    * fixed problem with default properties which are a class
-    * case bug (from the mailing list with -O2) fixed, the
-      distance of the case labels can be greater than the positive
-      range of a longint => it is now a dword for fpc
-
-  Revision 1.18  1998/12/11 00:03:29  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.17  1998/09/26 17:45:31  peter
-    + idtoken and only one token table
-
-  Revision 1.16  1998/09/23 15:39:08  pierre
-    * browser bugfixes
-      was adding a reference when looking for the symbol
-      if -bSYM_NAME was used
-
-  Revision 1.15  1998/09/07 23:10:21  florian
-    * a lot of stuff fixed regarding rtti and publishing of properties,
-      basics should now work
-
-  Revision 1.14  1998/07/14 21:46:49  peter
-    * updated messages file
-
-  Revision 1.13  1998/07/14 14:46:52  peter
-    * released NEWINPUT
-
-  Revision 1.12  1998/07/09 23:59:59  peter
-    * fixed ttypesym bug finally
-    * fileinfo in the symtable and better using for unused vars
-
-  Revision 1.11  1998/07/07 11:20:02  peter
-    + NEWINPUT for a better inputfile and scanner object
-
-  Revision 1.10  1998/06/05 14:37:31  pierre
-    * fixes for inline for operators
-    * inline procedure more correctly restricted
-
-  Revision 1.9  1998/06/03 22:48:58  peter
-    + wordbool,longbool
-    * rename bis,von -> high,low
-    * moved some systemunit loading/creating to psystem.pas
-
-  Revision 1.8  1998/05/23 01:21:18  peter
-    + aktasmmode, aktoptprocessor, aktoutputformat
-    + smartlink per module $SMARTLINK-/+ (like MMX) and moved to aktswitches
-    + $LIBNAME to set the library name where the unit will be put in
-    * splitted cgi386 a bit (codeseg to large for bp7)
-    * nasm, tasm works again. nasm moved to ag386nsm.pas
-
-  Revision 1.7  1998/05/20 09:42:35  pierre
-    + UseTokenInfo now default
-    * unit in interface uses and implementation uses gives error now
-    * only one error for unknown symbol (uses lastsymknown boolean)
-      the problem came from the label code !
-    + first inlined procedures and function work
-      (warning there might be allowed cases were the result is still wrong !!)
-    * UseBrower updated gives a global list of all position of all used symbols
-      with switch -gb
 
 }

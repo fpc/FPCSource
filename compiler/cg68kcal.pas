@@ -1067,7 +1067,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.23  2000-01-07 01:14:21  peter
+  Revision 1.24  2000-02-09 13:22:48  peter
+    * log truncated
+
+  Revision 1.23  2000/01/07 01:14:21  peter
     * updated copyright to 2000
 
   Revision 1.22  1999/12/22 01:01:47  peter
@@ -1089,96 +1092,6 @@ end.
 
   Revision 1.18  1999/09/16 11:34:52  pierre
    * typo correction
-
-  Revision 1.17  1998/12/11 00:02:58  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.16  1998/11/13 15:40:15  pierre
-    + added -Se in Makefile cvstest target
-    + lexlevel cleanup
-      normal_function_level main_program_level and unit_init_level defined
-    * tins_cache grown to A_EMMS (gave range check error in asm readers)
-      (test added in code !)
-    * -Un option was wrong
-    * _FAIL and _SELF only keyword inside
-      constructors and methods respectively
-
-  Revision 1.15  1998/11/12 11:19:41  pierre
-   * fix for first line of function break
-
-  Revision 1.14  1998/10/21 15:12:51  pierre
-    * bug fix for IOCHECK inside a procedure with iocheck modifier
-    * removed the GPF for unexistant overloading
-      (firstcall was called with procedinition=nil !)
-    * changed typen to what Florian proposed
-      gentypenode(p : pdef) sets the typenodetype field
-      and resulttype is only set if inside bt_type block !
-
-  Revision 1.13  1998/10/20 08:06:45  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.12  1998/10/19 08:54:53  pierre
-    * wrong stabs info corrected once again !!
-    + variable vmt offset with vmt field only if required
-      implemented now !!!
-
-  Revision 1.11  1998/10/16 13:12:46  pierre
-    * added vmt_offsets in destructors code also !!!
-    * vmt_offset code for m68k
-
-  Revision 1.10  1998/10/15 12:41:16  pierre
-    * last memory leaks found when compiler
-      a native atari compiler fixed
-
-  Revision 1.9  1998/10/14 11:28:16  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.8  1998/10/13 16:50:04  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.7  1998/10/13 08:19:27  pierre
-    + source_os is now set correctly for cross-processor compilers
-      (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionals to
-       get the source operating system
-       this only works if you do not undefine
-       the source target  !!)
-    * several cg68k memory leaks fixed
-    + started to change the code so that it should be possible to have
-      a complete compiler (both for m68k and i386 !!)
-
-  Revision 1.6  1998/09/20 12:26:38  peter
-    * merged fixes
-
-  Revision 1.5  1998/09/17 09:42:22  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.4  1998/09/14 10:43:55  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.3.2.1  1998/09/20 12:20:09  peter
-    * Fixed stack not on 4 byte boundary when doing a call
-
-  Revision 1.3  1998/09/04 08:41:43  peter
-    * updated some error CGMessages
-
-  Revision 1.2  1998/09/01 12:47:59  peter
-    * use pdef^.size instead of orddef^.typ
 
 }
 

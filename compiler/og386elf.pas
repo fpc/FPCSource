@@ -838,55 +838,13 @@ unit og386elf;
 end.
 {
   $Log$
-  Revision 1.3  2000-01-07 01:14:27  peter
+  Revision 1.4  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.3  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.2  1999/08/04 00:23:07  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.1  1999/05/01 13:24:24  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.12  1999/03/12 00:20:06  pierre
-   + win32 output working !
-
-  Revision 1.11  1999/03/11 13:43:08  pierre
-   * more fixes for win32
-
-  Revision 1.10  1999/03/10 13:41:10  pierre
-   + partial implementation for win32 !
-     winhello works but pp still does not !
-
-  Revision 1.9  1999/03/08 14:51:09  peter
-    + smartlinking for ag386bin
-
-  Revision 1.8  1999/03/05 13:09:52  peter
-    * first things for tai_cut support for ag386bin
-
-  Revision 1.7  1999/03/04 13:44:58  pierre
-   * win32 pecoff sections datapos allways zero
-
-  Revision 1.6  1999/03/03 11:41:54  pierre
-    + stabs info corrected to give results near to GAS output
-    * local labels (with .L are not stored in object anymore)
-      so we get the same number of symbols as from GAS !
-
-  Revision 1.5  1999/03/03 01:36:46  pierre
-    + stabs output working (though not really tested)
-      for a simple file the only difference to GAS output is due
-      to the VMA of the different sections
-
-  Revision 1.4  1999/03/02 02:56:27  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.3  1999/03/01 15:46:25  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
-
-  Revision 1.2  1999/02/25 21:03:10  peter
-    * ag386bin updates
-    + coff writer
 
 }

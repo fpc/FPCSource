@@ -2129,7 +2129,10 @@ End.
 
 {
  $Log$
- Revision 1.81  2000-02-04 13:52:17  jonas
+ Revision 1.82  2000-02-09 13:22:51  peter
+   * log truncated
+
+ Revision 1.81  2000/02/04 13:52:17  jonas
    * better support for regvars (still needs a move of the call to the optimize
    procedure to a place where resetusableregisters is not yet called to work)
    * small regallocation fixes for -dnewoptimizations
@@ -2203,62 +2206,5 @@ End.
 
  Revision 1.62  1999/10/07 16:07:35  jonas
    * small bugfix in ArrayRefsEq
-
- Revision 1.61  1999/09/29 13:49:53  jonas
-   * writing to a position in an array now only destroys registers
-     containing a reference pointing somewhere in that array (since my last
-     fix, it behaved like a write to a pointer location)
-
- Revision 1.60  1999/09/27 23:44:50  peter
-   * procinfo is now a pointer
-   * support for result setting in sub procedure
-
- Revision 1.59  1999/09/21 15:46:58  jonas
-   * fixed bug in destroyrefs (indexes are now handled as pointers)
-
- Revision 1.58  1999/09/05 12:37:50  jonas
-   * fixed typo's in -darithopt
-
- Revision 1.57  1999/08/25 12:00:00  jonas
-   * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
- Revision 1.56  1999/08/18 13:25:54  jonas
-   * minor fixes regarding the reading of operands
-
- Revision 1.55  1999/08/12 14:36:03  peter
-   + KNI instructions
-
- Revision 1.54  1999/08/05 15:01:52  jonas
-   * fix in -darithopt code (sometimes crashed on 8/16bit regs)
-
- Revision 1.53  1999/08/04 00:22:59  florian
-   * renamed i386asm and i386base to cpuasm and cpubase
-
- Revision 1.52  1999/08/02 14:35:21  jonas
-   * bugfix in DestroyRefs
-
- Revision 1.51  1999/08/02 12:12:53  jonas
-   * also add arithmetic operations to instruction sequences contained in registers
-     (compile with -darithopt, very nice!)
-
- Revision 1.50  1999/07/30 18:18:51  jonas
-   * small bugfix in instructionsequal
-   * small bugfix in reginsequence
-   * made regininstruction a bit more logical
-
- Revision 1.48  1999/07/01 18:21:21  jonas
-   * removed unused AsmL parameter from FindLoHiLabels
-
- Revision 1.47  1999/05/27 19:44:24  peter
-   * removed oldasm
-   * plabel -> pasmlabel
-   * -a switches to source writing automaticly
-   * assembler readers OOPed
-   * asmsymbol automaticly external
-   * jumptables and other label fixes for asm readers
-
- Revision 1.46  1999/05/08 20:40:02  jonas
-   * seperate OPTimizer INFO pointer field in tai object
-   * fix to GetLastInstruction that sometimes caused a crash
 
 }

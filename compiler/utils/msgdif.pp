@@ -295,32 +295,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 01:15:01  peter
+  Revision 1.9  2000-02-09 13:23:11  peter
+    * log truncated
+
+  Revision 1.8  2000/01/07 01:15:01  peter
     * updated copyright to 2000
-
-  Revision 1.7  1999/06/22 16:32:43  pierre
-   * wrong change 1.6 removed
-
-  Revision 1.5  1999/06/11 13:06:45  peter
-    * fixed crash with errorn.msg
-
-  Revision 1.4  1999/06/09 12:17:34  pierre
-   * bugfix from fixes-0_99_12 merged
-
-
-  Revision 1.2.2.2  1999/06/09 12:12:19  pierre
-   * small bug fixed
-
-  Revision 1.3  1999/06/09 11:57:29  pierre
-   * fix branch changes merged
-
-  Revision 1.2.2.1  1999/06/09 11:48:18  pierre
-   * msgdif enhanced: see readme
-
-  Revision 1.2  1999/05/17 15:13:43  michael
-  + Fixed a bug that caused messages inserted at root not to appear...
-
-  Revision 1.1  1999/05/12 16:17:09  peter
-    * init
 
 }

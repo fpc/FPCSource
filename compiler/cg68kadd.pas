@@ -1281,7 +1281,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.18  2000-01-07 01:14:21  peter
+  Revision 1.19  2000-02-09 13:22:48  peter
+    * log truncated
+
+  Revision 1.18  2000/01/07 01:14:21  peter
     * updated copyright to 2000
 
   Revision 1.17  1999/09/16 23:05:51  florian
@@ -1289,79 +1292,5 @@ end.
 
   Revision 1.16  1999/09/16 11:34:52  pierre
    * typo correction
-
-  Revision 1.15  1998/12/11 00:02:57  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.14  1998/10/20 15:09:23  florian
-    + binary operators for ansi strings
-
-  Revision 1.13  1998/10/20 08:06:43  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.12  1998/10/17 02:53:48  carl
-    * bugfix of FPU deallocation in $E- mode
-
-  Revision 1.11  1998/10/14 11:28:15  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.10  1998/10/13 16:50:03  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.9  1998/10/13 08:19:25  pierre
-    + source_os is now set correctly for cross-processor compilers
-      (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionals to
-       get the source operating system
-       this only works if you do not undefine
-       the source target  !!)
-    * several cg68k memory leaks fixed
-    + started to change the code so that it should be possible to have
-      a complete compiler (both for m68k and i386 !!)
-
-  Revision 1.8  1998/10/09 11:47:47  pierre
-    * still more memory leaks fixes !!
-
-  Revision 1.7  1998/10/08 17:17:15  pierre
-    * current_module old scanner tagged as invalid if unit is recompiled
-    + added ppheap for better info on tracegetmem of heaptrc
-      (adds line column and file index)
-    * several memory leaks removed ith help of heaptrc !!
-
-  Revision 1.6  1998/09/28 16:57:16  pierre
-    * changed all length(p^.value_str^) into str_length(p)
-      to get it work with and without ansistrings
-    * changed sourcefiles field of tmodule to a pointer
-
-  Revision 1.5  1998/09/17 09:42:21  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.4  1998/09/14 10:43:54  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.3  1998/09/07 18:45:55  peter
-    * update smartlinking, uses getdatalabel
-    * renamed ptree.value vars to value_str,value_real,value_set
-
-  Revision 1.2  1998/09/04 08:41:42  peter
-    * updated some error CGMessages
-
-  Revision 1.1  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }

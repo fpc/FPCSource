@@ -297,7 +297,10 @@ unit Ra386dir;
 end.
 {
   $Log$
-  Revision 1.29  2000-01-07 01:14:36  peter
+  Revision 1.30  2000-02-09 13:23:02  peter
+    * log truncated
+
+  Revision 1.29  2000/01/07 01:14:36  peter
     * updated copyright to 2000
 
   Revision 1.28  1999/11/30 10:40:53  peter
@@ -323,81 +326,5 @@ end.
   Revision 1.22  1999/08/03 22:03:11  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.21  1999/05/27 19:44:57  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.20  1999/05/21 13:55:15  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.19  1999/05/05 22:22:02  peter
-    * updated messages
-
-  Revision 1.18  1999/05/01 13:24:40  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.17  1999/03/31 13:55:18  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.16  1999/03/24 23:17:22  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.15  1999/03/01 13:22:26  pierre
-   * varsym refs incremented
-
-  Revision 1.14  1999/02/22 02:15:36  peter
-    * updates for ag386bin
-
-  Revision 1.13  1999/01/27 13:04:12  pierre
-   * bug with static vars in assembler readers
-
-  Revision 1.12  1999/01/10 15:37:57  peter
-    * moved some tables from ra386*.pas -> i386.pas
-    + start of coff writer
-    * renamed asmutils unit to rautils
-
-  Revision 1.11  1998/11/17 00:26:12  peter
-    * fixed for $H+
-
-  Revision 1.10  1998/11/13 15:40:28  pierre
-    + added -Se in Makefile cvstest target
-    + lexlevel cleanup
-      normal_function_level main_program_level and unit_init_level defined
-    * tins_cache grown to A_EMMS (gave range check error in asm readers)
-      (test added in code !)
-    * -Un option was wrong
-    * _FAIL and _SELF only keyword inside
-      constructors and methods respectively
-
-  Revision 1.9  1998/10/20 08:06:57  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.8  1998/09/04 08:42:08  peter
-    * updated some error messages
-
-  Revision 1.7  1998/09/03 17:39:05  florian
-    + better code for type conversation longint/dword to real type
-
-  Revision 1.6  1998/09/03 17:08:47  pierre
-    * better lines for stabs
-      (no scroll back to if before else part
-      no return to case line at jump outside case)
-    + source lines also if not in order
-
-  Revision 1.5  1998/08/21 08:45:51  pierre
-    * better line info for asm statements
 
 }

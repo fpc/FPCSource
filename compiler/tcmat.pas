@@ -447,7 +447,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.27  2000-01-07 01:14:46  peter
+  Revision 1.28  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.27  2000/01/07 01:14:46  peter
     * updated copyright to 2000
 
   Revision 1.26  1999/12/11 18:53:31  jonas
@@ -488,68 +491,5 @@ end.
   Revision 1.17  1999/08/03 22:03:34  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.16  1999/06/02 10:11:54  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
-
-  Revision 1.15  1999/05/27 19:45:22  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.14  1999/05/06 09:05:38  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.13  1999/05/01 13:24:55  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.12  1999/02/22 02:15:53  peter
-    * updates for ag386bin
-
-  Revision 1.11  1999/02/03 10:11:11  pierre
-   * fix for bug0211 for i386
-
-  Revision 1.10  1998/12/11 16:50:24  florian
-    + typed const int64 and qword
-    + unary minus-operator  q1:=-q2;
-    + not-operator
-
-  Revision 1.9  1998/12/11 16:10:12  florian
-    + shifting for 64 bit ints added
-    * bug in getexplicitregister32 fixed: usableregs wasn't decremented !!
-
-  Revision 1.8  1998/12/11 00:03:56  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.7  1998/11/13 10:16:38  peter
-    * fixed constant not(boolean)
-
-  Revision 1.6  1998/11/05 14:26:01  peter
-    * fixed shlshr which would push ecx when not needed
-
-  Revision 1.5  1998/10/20 13:12:39  peter
-    * fixed 'not not boolean', the location was not set to register
-
-  Revision 1.4  1998/10/13 16:50:25  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.3  1998/10/13 13:10:33  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.2  1998/10/11 14:31:20  peter
-    + checks for division by zero
 
 }

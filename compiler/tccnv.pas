@@ -975,7 +975,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.58  2000-01-09 23:16:07  peter
+  Revision 1.59  2000-02-09 13:23:07  peter
+    * log truncated
+
+  Revision 1.58  2000/01/09 23:16:07  peter
     * added st_default stringtype
     * genstringconstnode extended with stringtype parameter using st_default
       will do the old behaviour
@@ -1039,41 +1042,5 @@ end.
   Revision 1.42  1999/08/03 22:03:28  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.41  1999/06/30 22:16:23  florian
-    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
-    * small qword problems fixed
-
-  Revision 1.40  1999/06/28 22:29:21  florian
-    * qword division fixed
-    + code for qword/int64 type casting added:
-      range checking isn't implemented yet
-
-  Revision 1.39  1999/06/28 19:30:07  peter
-    * merged
-
-  Revision 1.35.2.5  1999/06/28 19:07:47  peter
-    * remove cstring->string typeconvs after updating cstringn
-
-  Revision 1.35.2.4  1999/06/28 00:33:50  pierre
-   * better error position bug0269
-
-  Revision 1.35.2.3  1999/06/17 12:51:48  pierre
-   * changed is_assignment_overloaded into
-      function assignment_overloaded : pprocdef
-      to allow overloading of assignment with only different result type
-
-  Revision 1.35.2.2  1999/06/15 18:54:53  peter
-    * more procvar fixes
-
-  Revision 1.35.2.1  1999/06/13 22:39:19  peter
-    * use proc_to_procvar_equal
-
-  Revision 1.35  1999/06/02 22:44:24  pierre
-   * previous wrong log corrected
-
-  Revision 1.34  1999/06/02 22:25:54  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-  + debug note about longint to pointer conversion
 
 }

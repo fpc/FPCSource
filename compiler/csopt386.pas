@@ -1190,7 +1190,10 @@ End.
 
 {
  $Log$
- Revision 1.43  2000-02-04 13:52:17  jonas
+ Revision 1.44  2000-02-09 13:22:51  peter
+   * log truncated
+
+ Revision 1.43  2000/02/04 13:52:17  jonas
    * better support for regvars (still needs a move of the call to the optimize
    procedure to a place where resetusableregisters is not yet called to work)
    * small regallocation fixes for -dnewoptimizations
@@ -1269,59 +1272,5 @@ End.
 
  Revision 1.24  1999/08/25 11:59:58  jonas
    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
- Revision 1.23  1999/08/04 00:22:58  florian
-   * renamed i386asm and i386base to cpuasm and cpubase
-
- Revision 1.22  1999/06/03 15:45:08  jonas
-   * sequences are now checked only once (previously, some long ones were
-     checked once completely and then several times partially)
-
- Revision 1.21  1999/05/08 20:38:03  jonas
-   * seperate OPTimizer INFO pointer field in tai object
-
- Revision 1.20  1999/05/01 13:24:19  peter
-   * merged nasm compiler
-   * old asm moved to oldasm/
-
- Revision 1.2  1999/03/29 16:05:45  peter
-   * optimizer working for ag386bin
-
- Revision 1.1  1999/03/26 00:01:09  peter
-   * first things for optimizer (compiles but cycle crashes)
-
- Revision 1.19  1999/02/26 00:48:17  peter
-   * assembler writers fixed for ag386bin
-
- Revision 1.18  1998/12/29 18:48:22  jonas
-   + optimize pascal code surrounding assembler blocks
-
- Revision 1.17  1998/12/17 16:37:39  jonas
-   + extra checks in RegsEquivalent so some more optimizations can be done (which
-     where disabled by the second fix from revision 1.22)
-
- Revision 1.16  1998/12/02 16:23:31  jonas
-   * changed "if longintvar in set" to case or "if () or () .." statements
-   * tree.pas: changed inlinenumber (and associated constructor/vars) to a byte
-
- Revision 1.15  1998/11/24 19:47:24  jonas
-   * fixed problems posiible with 3 operand instructions
-
- Revision 1.14  1998/11/09 19:40:48  jonas
-   * fixed comments from last commit (apparently there's still a 255 char limit :( )
-
- Revision 1.13  1998/11/09 19:33:39  jonas
-   * changed specific bugfix (which was actually wrong implemented, but
-     did the right thing in most cases nevertheless) to general bugfix
-   * fixed bug that caused
-     mov (ebp), edx                                    mov (ebp), edx
-     mov (edx), edx                                    mov (edx), edx
-     ...                   being changed to            ...
-     mov (ebp), edx                                    mov edx, eax
-     mov (eax), eax
-     but this disabled another small correct optimization...
-
- Revision 1.12  1998/10/20 09:32:54  peter
-   * removed some unused vars
 
 }

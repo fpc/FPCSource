@@ -891,7 +891,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.69  2000-01-09 15:19:23  peter
+  Revision 1.70  2000-02-09 13:22:47  peter
+    * log truncated
+
+  Revision 1.69  2000/01/09 15:19:23  peter
     * fixed misplaced getexplicitreg(r_edi) which broke make cycle
 
   Revision 1.68  2000/01/09 12:35:02  jonas
@@ -962,54 +965,6 @@ end.
 
   Revision 1.50  1999/08/14 00:36:05  peter
     * array constructor support
-
-  Revision 1.49  1999/08/04 00:22:53  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.48  1999/08/03 22:02:47  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.47  1999/06/02 10:11:45  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
-
-  Revision 1.46  1999/05/27 19:44:17  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.45  1999/05/23 18:42:04  florian
-    * better error recovering in typed constants
-    * some problems with arrays of const fixed, some problems
-      due my previous
-       - the location type of array constructor is now LOC_MEM
-       - the pushing of high fixed
-       - parameter copying fixed
-       - zero temp. allocation removed
-    * small problem in the assembler writers fixed:
-      ref to nil wasn't written correctly
-
-  Revision 1.44  1999/05/21 13:54:53  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.43  1999/05/19 16:48:21  florian
-    * tdef.typename: returns a now a proper type name for the most types
-
-  Revision 1.42  1999/05/18 22:11:52  pierre
-   * checkpointer code was wrong!
-
-  Revision 1.41  1999/05/18 21:58:29  florian
-    * fixed some bugs related to temp. ansistrings and functions results
-      which return records/objects/arrays which need init/final.
-
-  Revision 1.40  1999/05/18 14:15:26  peter
-    * containsself fixes
-    * checktypes()
 
 }
 

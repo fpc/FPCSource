@@ -770,7 +770,10 @@ do_jmp:
 end.
 {
   $Log$
-  Revision 1.14  2000-01-07 01:14:22  peter
+  Revision 1.15  2000-02-09 13:22:49  peter
+    * log truncated
+
+  Revision 1.14  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.13  1999/12/22 01:01:47  peter
@@ -793,38 +796,6 @@ end.
 
   Revision 1.9  1999/08/25 11:59:49  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.8  1998/12/11 00:03:02  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.7  1998/10/14 11:28:19  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.6  1998/10/13 16:50:07  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.5  1998/09/17 09:42:24  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.4  1998/09/14 10:43:58  peter
-    * all internal RTL functions start with FPC_
-
-  Revision 1.3  1998/09/04 08:41:47  peter
-    * updated some error messages
-
-  Revision 1.2  1998/09/01 12:48:01  peter
-    * use pdef^.size instead of orddef^.typ
-
-  Revision 1.1  1998/09/01 09:07:09  peter
-    * m68k fixes, splitted cg68k like cgi386
 
 }
 

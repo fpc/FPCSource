@@ -1254,7 +1254,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.64  2000-02-04 08:47:10  florian
+  Revision 1.65  2000-02-09 13:23:06  peter
+    * log truncated
+
+  Revision 1.64  2000/02/04 08:47:10  florian
     * better register variable allocation in -Or mode
 
   Revision 1.63  2000/01/07 01:14:43  peter
@@ -1326,52 +1329,5 @@ end.
 
   Revision 1.45  1999/09/08 16:05:29  peter
     * pointer add/sub is now as expected and the same results as inc/dec
-
-  Revision 1.44  1999/09/07 07:52:19  peter
-    * > < >= <= support for boolean
-    * boolean constants are now calculated like integer constants
-
-  Revision 1.43  1999/08/23 23:44:05  pierre
-   * setelementn registers32 corrected
-
-  Revision 1.42  1999/08/07 11:29:27  peter
-    * better fix for muln register allocation
-
-  Revision 1.41  1999/08/05 21:58:57  peter
-    * fixed register count ord*ord
-
-  Revision 1.40  1999/08/04 13:03:13  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.39  1999/08/04 00:23:33  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.38  1999/08/03 22:03:24  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.37  1999/07/16 10:04:37  peter
-    * merged
-
-  Revision 1.36  1999/06/17 15:32:48  pierre
-   * merged from 0-99-12 branch
-
-  Revision 1.34.2.3  1999/07/16 09:54:58  peter
-    * @procvar support in tp7 mode works again
-
-  Revision 1.34.2.2  1999/06/17 15:25:07  pierre
-   * for arrays of char operators can not be overloaded
-
-  Revision 1.35  1999/06/17 13:19:57  pierre
-   * merged from 0_99_12 branch
-
-  Revision 1.34.2.1  1999/06/17 12:35:23  pierre
-   * allow array binary operator overloading if not with orddef
-
-  Revision 1.34  1999/06/02 10:11:52  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
 
 }

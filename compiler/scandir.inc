@@ -1252,7 +1252,10 @@ const
 
 {
   $Log$
-  Revision 1.73  2000-01-14 14:28:40  pierre
+  Revision 1.74  2000-02-09 13:23:03  peter
+    * log truncated
+
+  Revision 1.73  2000/01/14 14:28:40  pierre
    * avoid searching of include file in start dir first
 
   Revision 1.72  2000/01/07 01:14:37  peter
@@ -1318,43 +1321,5 @@ const
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.55  1999/07/16 10:04:36  peter
-    * merged
-
-  Revision 1.54  1999/07/03 00:29:58  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.53.2.1  1999/07/16 09:53:06  peter
-    * ignore maxheapsize
-
-  Revision 1.53  1999/06/02 22:44:18  pierre
-   * previous wrong log corrected
-
-  Revision 1.52  1999/06/02 22:25:48  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.51  1999/04/07 14:36:45  pierre
-   + better preproc stack checking and report
-
-  Revision 1.50  1999/03/31 13:55:20  peter
-    * assembler inlining working for ag386bin
-
-  Revision 1.49  1999/03/26 00:05:44  peter
-    * released valintern
-    + deffile is now removed when compiling is finished
-    * ^( compiles now correct
-    + static directive
-    * shrd fixed
-
-  Revision 1.48  1999/03/25 16:55:34  peter
-    + unitpath,librarypath,includepath,objectpath directives
-
-  Revision 1.47  1999/02/22 13:07:05  pierre
-    + -b and -bl options work !
-    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
-      is not enabled when quitting global section
-    * local vars and procedures are not yet stored into PPU
 
 }

@@ -1782,7 +1782,10 @@ exit_label:
 end.
 {
   $Log$
-  Revision 1.104  2000-01-30 19:28:25  peter
+  Revision 1.105  2000-02-09 13:23:03  peter
+    * log truncated
+
+  Revision 1.104  2000/01/30 19:28:25  peter
     * fixed filepos when eof is read, it'll now stay on the eof position
 
   Revision 1.103  2000/01/07 01:14:38  peter
@@ -1848,30 +1851,5 @@ end.
   Revision 1.88  1999/07/24 11:20:59  peter
     * directives are allowed in (* *)
     * fixed parsing of (* between conditional code
-
-  Revision 1.87  1999/07/18 10:20:02  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.86  1999/06/02 22:44:19  pierre
-   * previous wrong log corrected
-
-  Revision 1.85  1999/06/02 22:25:49  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.84  1999/05/31 23:28:42  pierre
-   * problem with main file end without newline
-
-  Revision 1.83  1999/05/20 14:57:29  peter
-    * fixed line counting with macro's
-
-  Revision 1.82  1999/05/04 21:45:04  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.81  1999/04/07 14:36:44  pierre
-   + better preproc stack checking and report
-
-  Revision 1.80  1999/04/06 11:20:59  peter
-    * more hashing for keyword table
 
 }

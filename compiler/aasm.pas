@@ -1044,7 +1044,10 @@ uses
 end.
 {
   $Log$
-  Revision 1.76  2000-02-03 23:01:45  peter
+  Revision 1.77  2000-02-09 13:22:42  peter
+    * log truncated
+
+  Revision 1.76  2000/02/03 23:01:45  peter
     * fixed smartlinking
 
   Revision 1.75  2000/01/28 15:15:31  jonas
@@ -1120,33 +1123,5 @@ end.
 
   Revision 1.57  1999/08/02 21:01:41  michael
   * Moved toperand type back =(
-
-  Revision 1.56  1999/08/02 20:45:47  michael
-  * Moved toperand type to aasm
-
-  Revision 1.55  1999/08/01 23:55:55  michael
-  * Moved taitempalloc
-
-  Revision 1.54  1999/07/29 20:53:55  peter
-    * write .size also
-
-  Revision 1.53  1999/07/22 09:37:28  florian
-    + resourcestring implemented
-    + start of longstring support
-
-  Revision 1.52  1999/07/03 00:26:01  peter
-    * ag386bin doesn't destroy the aasmoutput lists anymore
-
-  Revision 1.51  1999/06/02 22:43:57  pierre
-   * previous wrong log corrected
-
-  Revision 1.50  1999/06/02 22:25:24  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.49  1999/06/01 14:45:41  peter
-    * @procvar is now always needed for FPC
-
-  Revision 1.48  1999/05/28 09:11:39  peter
-    * also count ref when asmlabel^.name is used
 
 }

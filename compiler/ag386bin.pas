@@ -931,7 +931,10 @@ unit ag386bin;
 end.
 {
   $Log$
-  Revision 1.35  2000-01-20 00:21:49  pierre
+  Revision 1.36  2000-02-09 13:22:43  peter
+    * log truncated
+
+  Revision 1.35  2000/01/20 00:21:49  pierre
    * avoid startsec=sec_none
 
   Revision 1.34  2000/01/12 10:38:17  peter
@@ -994,47 +997,5 @@ end.
   Revision 1.19  1999/07/22 09:37:30  florian
     + resourcestring implemented
     + start of longstring support
-
-  Revision 1.18  1999/07/03 00:26:02  peter
-    * ag386bin doesn't destroy the aasmoutput lists anymore
-
-  Revision 1.17  1999/06/10 23:52:34  pierre
-   * merged from fixes branch
-
-  Revision 1.16.2.1  1999/06/10 23:33:35  pierre
-   * pchar memory loss and .bss size problem solved
-
-  Revision 1.16  1999/06/03 16:39:10  pierre
-   * EXTERNALBSS fixed for stabs and default again
-
-  Revision 1.15  1999/06/02 22:43:59  pierre
-   * previous wrong log corrected
-
-  Revision 1.14  1999/06/02 22:25:25  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.13  1999/06/01 10:24:09  pierre
-   * ts010021.pp problem solved for ag386bin !
-
-  Revision 1.12  1999/05/27 19:43:59  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.11  1999/05/21 13:54:41  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.10  1999/05/19 11:54:17  pierre
-   + experimental code for externalbss and stabs problem
-
-  Revision 1.9  1999/05/12 00:19:37  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.8  1999/05/09 11:38:04  peter
-    * don't write .o and link if errors occure during assembling
 
 }

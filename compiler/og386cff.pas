@@ -984,7 +984,10 @@ unit og386cff;
 end.
 {
   $Log$
-  Revision 1.18  2000-01-12 10:38:18  peter
+  Revision 1.19  2000-02-09 13:22:54  peter
+    * log truncated
+
+  Revision 1.18  2000/01/12 10:38:18  peter
     * smartlinking fixes for binary writer
     * release alignreg code and moved instruction writing align to cpuasm,
       but it doesn't use the specified register yet
@@ -1019,58 +1022,5 @@ end.
 
   Revision 1.10  1999/08/04 00:23:05  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.9  1999/07/03 00:27:02  peter
-    * better smartlinking support
-
-  Revision 1.8  1999/06/03 16:39:09  pierre
-   * EXTERNALBSS fixed for stabs and default again
-
-  Revision 1.7  1999/05/21 13:55:03  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.6  1999/05/19 11:54:19  pierre
-   + experimental code for externalbss and stabs problem
-
-  Revision 1.5  1999/05/09 11:38:05  peter
-    * don't write .o and link if errors occure during assembling
-
-  Revision 1.4  1999/05/07 00:36:57  pierre
-    * added alignment code for .bss
-    * stabs correct but externalbss disabled
-      would need a special treatment in writestabs
-
-  Revision 1.3  1999/05/05 17:34:31  peter
-    * output is more like as 2.9.1
-    * stabs really working for go32v2
-
-  Revision 1.2  1999/05/02 22:36:35  peter
-    * fixed section index when not all sections are used
-
-  Revision 1.1  1999/05/01 13:24:24  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.13  1999/03/18 20:30:49  peter
-    + .a writer
-
-  Revision 1.12  1999/03/12 00:20:06  pierre
-   + win32 output working !
-
-  Revision 1.11  1999/03/11 13:43:08  pierre
-   * more fixes for win32
-
-  Revision 1.10  1999/03/10 13:41:10  pierre
-   + partial implementation for win32 !
-     winhello works but pp still does not !
-
-  Revision 1.9  1999/03/08 14:51:09  peter
-    + smartlinking for ag386bin
-
-  Revision 1.8  1999/03/05 13:09:52  peter
-    * first things for tai_cut support for ag386bin
-
-  Revision 1.7  1999/03/04 13:44:58  pierre
-   * win32 pecoff sections datapos allways zero
 
 }

@@ -1391,7 +1391,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.39  2000-01-07 01:14:22  peter
+  Revision 1.40  2000-02-09 13:22:49  peter
+    * log truncated
+
+  Revision 1.39  2000/01/07 01:14:22  peter
     * updated copyright to 2000
 
   Revision 1.38  1999/11/17 17:04:58  pierre
@@ -1416,92 +1419,5 @@ end.
 
   Revision 1.32  1999/08/25 11:59:54  jonas
     * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.31  1998/12/11 00:03:09  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.30  1998/11/30 09:43:05  pierre
-    * some range check bugs fixed (still not working !)
-    + added DLL writing support for win32 (also accepts variables)
-    + TempAnsi for code that could be used for Temporary ansi strings
-      handling
-
-  Revision 1.29  1998/11/13 15:40:16  pierre
-    + added -Se in Makefile cvstest target
-    + lexlevel cleanup
-      normal_function_level main_program_level and unit_init_level defined
-    * tins_cache grown to A_EMMS (gave range check error in asm readers)
-      (test added in code !)
-    * -Un option was wrong
-    * _FAIL and _SELF only keyword inside
-      constructors and methods respectively
-
-  Revision 1.28  1998/11/12 11:19:42  pierre
-   * fix for first line of function break
-
-  Revision 1.27  1998/11/12 09:46:17  pierre
-    + break main stops before calls to unit inits
-    + break at constructors stops before call to FPC_NEW_CLASS
-      or FPC_HELP_CONSTRUCTOR
-
-  Revision 1.26  1998/10/20 08:06:46  pierre
-    * several memory corruptions due to double freemem solved
-      => never use p^.loc.location:=p^.left^.loc.location;
-    + finally I added now by default
-      that ra386dir translates global and unit symbols
-    + added a first field in tsymtable and
-      a nextsym field in tsym
-      (this allows to obtain ordered type info for
-      records and objects in gdb !)
-
-  Revision 1.25  1998/10/16 13:12:48  pierre
-    * added vmt_offsets in destructors code also !!!
-    * vmt_offset code for m68k
-
-  Revision 1.24  1998/10/15 12:37:42  pierre
-    + passes vmt offset to HELP_CONSTRUCTOR for objects
-
-  Revision 1.23  1998/10/14 11:28:22  florian
-    * emitpushreferenceaddress gets now the asmlist as parameter
-    * m68k version compiles with -duseansistrings
-
-  Revision 1.22  1998/10/13 16:50:12  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.21  1998/10/13 13:10:12  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.20  1998/10/13 08:19:29  pierre
-    + source_os is now set correctly for cross-processor compilers
-      (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionals to
-       get the source operating system
-       this only works if you do not undefine
-       the source target  !!)
-    * several cg68k memory leaks fixed
-    + started to change the code so that it should be possible to have
-      a complete compiler (both for m68k and i386 !!)
-
-  Revision 1.19  1998/10/08 13:48:40  peter
-    * fixed memory leaks for do nothing source
-    * fixed unit interdependency
-
-  Revision 1.18  1998/09/28 16:57:17  pierre
-    * changed all length(p^.value_str^) into str_length(p)
-      to get it work with and without ansistrings
-    * changed sourcefiles field of tmodule to a pointer
-
-  Revision 1.17  1998/09/17 09:42:30  peter
-    + pass_2 for cg386
-    * Message() -> CGMessage() for pass_1/pass_2
-
-  Revision 1.16  1998/09/14 10:44:04  peter
-    * all internal RTL functions start with FPC_
 
 }

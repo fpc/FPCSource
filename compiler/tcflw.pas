@@ -551,7 +551,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.33  2000-02-01 09:43:22  peter
+  Revision 1.34  2000-02-09 13:23:07  peter
+    * log truncated
+
+  Revision 1.33  2000/02/01 09:43:22  peter
     * allow funcret also as counter variable
 
   Revision 1.32  2000/01/07 01:14:45  peter
@@ -617,42 +620,5 @@ end.
 
   Revision 1.13  1999/08/01 18:28:15  florian
     * modifications for the new code generator
-
-  Revision 1.12  1999/06/30 22:16:25  florian
-    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
-    * small qword problems fixed
-
-  Revision 1.11  1999/06/13 22:41:07  peter
-    * merged from fixes
-
-  Revision 1.10.2.1  1999/06/13 22:38:54  peter
-    * better error message when type is wrong with if statement
-
-  Revision 1.10  1999/05/27 19:45:18  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.9  1999/05/01 13:24:52  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.8  1999/03/24 23:17:36  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.7  1999/03/09 19:24:42  peter
-    * type check the exit()
-
-  Revision 1.6  1999/02/22 02:15:48  peter
-    * updates for ag386bin
-
-  Revision 1.5  1999/01/13 12:01:43  peter
-    * fixed crash with counter var
-
-  Revision 1.4  1998/12/11 00:03:55  peter
-    + globtype,tokens,version unit splitted from globals
 
 }

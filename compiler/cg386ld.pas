@@ -1004,7 +1004,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.98  2000-02-01 12:54:20  peter
+  Revision 1.99  2000-02-09 13:22:47  peter
+    * log truncated
+
+  Revision 1.98  2000/02/01 12:54:20  peter
     * cargs must also increase pushedparasize else it won't be 'popped'
 
   Revision 1.97  2000/01/21 12:17:42  jonas
@@ -1084,36 +1087,6 @@ end.
 
   Revision 1.79  1999/08/25 16:41:05  peter
     * resources are working again
-
-  Revision 1.78  1999/08/25 11:59:43  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.77  1999/08/24 22:38:51  michael
-  * more resourcestring changes
-
-  Revision 1.76  1999/08/23 11:45:39  michael
-  * Hopefully final attempt at resourcestrings
-
-  Revision 1.75  1999/08/19 13:08:49  pierre
-   * emit_??? used
-
-  Revision 1.74  1999/08/17 13:26:06  peter
-    * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
-      variant.
-
-  Revision 1.73  1999/08/13 21:33:09  peter
-    * support for array constructors extended and more error checking
-
-  Revision 1.72  1999/08/09 22:19:50  peter
-    * classes vmt changed to only positive addresses
-    * sharedlib creation is working
-
-  Revision 1.71  1999/08/07 14:20:55  florian
-    * some small problems fixed
-
-  Revision 1.70  1999/08/04 13:45:22  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
 
 }
 

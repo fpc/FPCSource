@@ -834,7 +834,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.55  2000-02-05 15:57:58  florian
+  Revision 1.56  2000-02-09 13:22:55  peter
+    * log truncated
+
+  Revision 1.55  2000/02/05 15:57:58  florian
     * for some strange reasons my fix regarding register variable
       allocation was lost
 
@@ -911,61 +914,5 @@ end.
 
   Revision 1.35  1999/08/27 10:46:26  pierre
    + some EXTTEMPREGDEBUG code added
-
-  Revision 1.34  1999/08/25 12:00:01  jonas
-    * changed pai386, paippc and paiapha (same for tai*) to paicpu (taicpu)
-
-  Revision 1.33  1999/08/24 09:07:04  pierre
-   * wrong testregisters32 placement corrected
-
-  Revision 1.32  1999/08/23 23:25:59  pierre
-    + TEMPREGDEBUG code, test of register allocation
-      if a tree uses more than registers32 regs then
-      internalerror(10) is issued
-    + EXTTEMPREGDEBUG will also give internalerror(10) if
-      a same register is freed twice (happens in several part
-      of current compiler like addn for strings and sets)
-
-  Revision 1.31  1999/08/07 14:20:59  florian
-    * some small problems fixed
-
-  Revision 1.30  1999/08/04 14:21:07  florian
-    * now every available fpu register is used for
-      fpu register variables
-
-  Revision 1.29  1999/08/04 13:45:28  florian
-    + floating point register variables !!
-    * pairegalloc is now generated for register variables
-
-  Revision 1.28  1999/08/04 00:23:10  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.27  1999/08/03 22:02:55  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.26  1999/06/02 22:44:08  pierre
-   * previous wrong log corrected
-
-  Revision 1.25  1999/06/02 22:25:41  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.24  1999/06/01 14:45:50  peter
-    * @procvar is now always needed for FPC
-
-  Revision 1.23  1999/05/27 19:44:43  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.22  1999/05/18 14:15:50  peter
-    * containsself fixes
-    * checktypes()
-
-  Revision 1.21  1999/05/17 21:57:11  florian
-    * new temporary ansistring handling
 
 }

@@ -317,7 +317,10 @@
 
 {
   $Log$
-  Revision 1.45  2000-01-07 01:14:41  peter
+  Revision 1.46  2000-02-09 13:23:05  peter
+    * log truncated
+
+  Revision 1.45  2000/01/07 01:14:41  peter
     * updated copyright to 2000
 
   Revision 1.44  2000/01/03 19:26:04  peter
@@ -382,46 +385,5 @@
   Revision 1.27  1999/07/22 09:37:57  florian
     + resourcestring implemented
     + start of longstring support
-
-  Revision 1.26  1999/05/27 19:45:07  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.25  1999/05/21 13:55:23  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.24  1999/05/20 22:22:45  pierre
-    + added synonym filed for ptypesym
-      allows a clean disposal of tdefs and related ptypesyms
-
-  Revision 1.23  1999/05/13 21:59:47  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.22  1999/04/26 13:31:53  peter
-    * release storenumber,double_checksum
-
-  Revision 1.21  1999/04/25 22:38:40  pierre
-    + added is_really_const booleanfield for typedconstsym
-      for Delphi in $J- mode (not yet implemented !)
-
-  Revision 1.20  1999/04/21 09:43:56  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.19  1999/04/17 13:16:23  peter
-    * fixes for storenumber
-
-  Revision 1.18  1999/04/14 09:15:03  peter
-    * first things to store the symbol/def number in the ppu
-
-  Revision 1.17  1999/03/31 13:55:23  peter
-    * assembler inlining working for ag386bin
 
 }

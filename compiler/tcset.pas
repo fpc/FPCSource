@@ -306,7 +306,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.17  2000-01-07 01:14:47  peter
+  Revision 1.18  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.17  2000/01/07 01:14:47  peter
     * updated copyright to 2000
 
   Revision 1.16  1999/11/30 10:40:59  peter
@@ -329,42 +332,6 @@ end.
   Revision 1.11  1999/08/03 22:03:38  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.10  1999/05/27 19:45:25  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.9  1999/05/01 13:24:58  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.8  1999/04/14 15:00:13  peter
-    * forgot firstpass after array->set conversion
-
-  Revision 1.7  1999/03/02 18:22:36  peter
-    * arrayconstructor convert for in
-
-  Revision 1.6  1999/02/22 02:15:55  peter
-    * updates for ag386bin
-
-  Revision 1.5  1998/12/18 17:15:40  peter
-    * added 'in []' support
-
-  Revision 1.4  1998/12/11 00:03:58  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.3  1998/11/13 10:17:06  peter
-    + constant eval for in
-
-  Revision 1.2  1998/10/06 20:49:13  peter
-    * m68k compiler compiles again
-
-  Revision 1.1  1998/09/23 20:42:24  peter
-    * splitted pass_1
 
 }
 

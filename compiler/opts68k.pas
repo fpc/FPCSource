@@ -71,28 +71,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.8  2000-01-07 01:14:28  peter
+  Revision 1.9  2000-02-09 13:22:55  peter
+    * log truncated
+
+  Revision 1.8  2000/01/07 01:14:28  peter
     * updated copyright to 2000
-
-  Revision 1.7  1998/12/11 00:03:23  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.6  1998/10/13 13:10:21  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.5  1998/09/25 09:57:09  peter
-    * moved -A to options.pas, becuase the code is the same
-
-  Revision 1.4  1998/08/19 16:07:50  jonas
-    * changed optimizer switches + cleanup of DestroyRefs in daopt386.pas
-
-  Revision 1.3  1998/08/10 14:50:06  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.2  1998/06/04 23:51:47  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
 
 }
 

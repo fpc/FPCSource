@@ -335,7 +335,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.45  2000-01-11 17:16:04  jonas
+  Revision 1.46  2000-02-09 13:22:50  peter
+    * log truncated
+
+  Revision 1.45  2000/01/11 17:16:04  jonas
     * removed a lot of memory leaks when an error is encountered (caused by
       procinfo and pstringcontainers). There are still plenty left though :)
 
@@ -401,38 +404,5 @@ end.
 
   Revision 1.26  1999/08/02 20:46:57  michael
   * Alpha aware switch detection
-
-  Revision 1.25  1999/07/18 14:47:22  florian
-    * bug 487 fixed, (inc(<property>) isn't allowed)
-    * more fixes to compile with Delphi
-
-  Revision 1.24  1999/07/18 10:19:48  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.23  1999/06/22 16:24:41  pierre
-   * local browser stuff corrected
-
-  Revision 1.22  1999/05/17 14:24:32  pierre
-   * DoneCompiler called later to prevent accessing invalid data
-
-  Revision 1.21  1999/05/04 21:44:39  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.20  1999/04/21 09:43:33  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.19  1999/03/09 11:52:06  pierre
-   * compilation after a failure longjumped directly to end
-
-  Revision 1.18  1999/02/26 00:48:16  peter
-    * assembler writers fixed for ag386bin
-
-  Revision 1.17  1999/01/12 14:25:25  peter
-    + BrowserLog for browser.log generation
-    + BrowserCol for browser info in TCollections
-    * released all other UseBrowser
 
 }

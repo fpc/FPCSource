@@ -171,7 +171,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.25  2000-01-07 01:14:39  peter
+  Revision 1.26  2000-02-09 13:23:04  peter
+    * log truncated
+
+  Revision 1.25  2000/01/07 01:14:39  peter
     * updated copyright to 2000
 
   Revision 1.24  1999/11/06 14:34:26  peter
@@ -182,81 +185,5 @@ end.
 
   Revision 1.22  1999/08/01 23:35:06  michael
   * Alpha changes
-
-  Revision 1.21  1999/04/25 22:34:59  pierre
-   + cs_typed_const_not_changeable added but not implemented yet !
-
-  Revision 1.20  1999/02/22 13:07:06  pierre
-    + -b and -bl options work !
-    + cs_local_browser ($L+) is disabled if cs_browser ($Y+)
-      is not enabled when quitting global section
-    * local vars and procedures are not yet stored into PPU
-
-  Revision 1.19  1999/02/18 13:43:20  peter
-    * no localbrowser when browser is turned off
-
-  Revision 1.18  1998/12/11 00:03:47  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.17  1998/11/27 14:50:46  peter
-    + open strings, $P switch support
-
-  Revision 1.16  1998/10/13 16:50:22  pierre
-    * undid some changes of Peter that made the compiler wrong
-      for m68k (I had to reinsert some ifdefs)
-    * removed several memory leaks under m68k
-    * removed the meory leaks for assembler readers
-    * cross compiling shoud work again better
-      ( crosscompiling sysamiga works
-       but as68k still complain about some code !)
-
-  Revision 1.15  1998/10/13 13:10:29  peter
-    * new style for m68k/i386 infos and enums
-
-  Revision 1.14  1998/10/13 08:19:41  pierre
-    + source_os is now set correctly for cross-processor compilers
-      (tos contains all target_infos and
-       we use CPU86 and CPU68 conditionals to
-       get the source operating system
-       this only works if you do not undefine
-       the source target  !!)
-    * several cg68k memory leaks fixed
-    + started to change the code so that it should be possible to have
-      a complete compiler (both for m68k and i386 !!)
-
-  Revision 1.13  1998/09/22 17:13:52  pierre
-    + browsing updated and developed
-      records and objects fields are also stored
-
-  Revision 1.12  1998/09/01 12:52:05  peter
-    + a lot of delphi switches
-
-  Revision 1.11  1998/08/18 20:52:21  peter
-    * renamed in_main to in_global which is more logical
-
-  Revision 1.10  1998/08/14 18:14:57  peter
-    * forgot to check the target for linux for $S switch message
-
-  Revision 1.9  1998/08/10 15:47:08  peter
-    * reinstantited stackcheck note for linux
-
-  Revision 1.8  1998/08/10 14:50:27  peter
-    + localswitches, moduleswitches, globalswitches splitting
-
-  Revision 1.7  1998/07/24 22:17:00  florian
-    * internal error 10 together with array access fixed. I hope
-      that's the final fix.
-
-  Revision 1.6  1998/07/18 17:11:13  florian
-    + ansi string constants fixed
-    + switch $H partial implemented
-
-  Revision 1.5  1998/06/04 23:52:00  peter
-    * m68k compiles
-    + .def file creation moved to gendef.pas so it could also be used
-      for win32
-
-  Revision 1.4  1998/05/21 19:33:36  peter
-    + better procedure directive handling and only one table
 
 }

@@ -339,7 +339,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-01-07 01:14:34  peter
+  Revision 1.12  2000-02-09 13:23:01  peter
+    * log truncated
+
+  Revision 1.11  2000/01/07 01:14:34  peter
     * updated copyright to 2000
 
   Revision 1.10  1999/12/12 12:59:34  peter
@@ -350,60 +353,5 @@ end.
 
   Revision 1.8  1999/08/04 00:23:23  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.7  1999/05/27 19:44:55  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.6  1999/05/21 13:55:12  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.5  1999/05/13 21:59:40  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.4  1999/05/12 00:19:55  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.3  1999/05/05 22:21:59  peter
-    * updated messages
-
-  Revision 1.2  1999/05/02 14:24:26  peter
-    * translate opr_symbol to reference for lea
-
-  Revision 1.1  1999/05/01 13:24:40  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.7  1999/04/26 23:26:16  peter
-    * redesigned record offset parsing to support nested records
-    * normal compiler uses the redesigned createvarinstr()
-
-  Revision 1.6  1999/04/14 09:07:44  peter
-    * asm reader improvements
-
-  Revision 1.5  1999/03/29 16:05:52  peter
-    * optimizer working for ag386bin
-
-  Revision 1.4  1999/03/26 00:01:16  peter
-    * first things for optimizer (compiles but cycle crashes)
-
-  Revision 1.3  1999/03/06 17:24:25  peter
-    * rewritten intel parser a lot, especially reference reading
-    * size checking added for asm parsers
-
-  Revision 1.2  1999/03/02 02:56:29  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.1  1999/03/01 15:46:26  peter
-    * ag386bin finally make cycles correct
-    * prefixes are now also normal opcodes
 
 }

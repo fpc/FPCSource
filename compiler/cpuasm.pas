@@ -1600,7 +1600,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.11  2000-01-23 21:29:14  florian
+  Revision 1.12  2000-02-09 13:22:51  peter
+    * log truncated
+
+  Revision 1.11  2000/01/23 21:29:14  florian
     * CMOV support in optimizer (in define USECMOV)
     + start of support of exceptions in constructors
 
@@ -1640,60 +1643,5 @@ end.
 
   Revision 1.17  1999/08/01 23:55:53  michael
   * Moved taitempalloc
-
-  Revision 1.16  1999/07/05 20:25:32  peter
-    * merged
-
-  Revision 1.15  1999/07/05 11:56:55  jonas
-    * merged
-
-  Revision 1.12.2.4  1999/07/05 20:03:30  peter
-    * removed warning/notes
-
-  Revision 1.12.2.3  1999/07/04 23:55:50  jonas
-    * changed $ifdef jmpfix to $ifndef nojmpfix
-
-  Revision 1.14  1999/07/04 21:59:31  jonas
-    * merged
-
-  Revision 1.12.2.2  1999/07/04 21:50:16  jonas
-    * everything between $ifdef jmpfix:
-      * when a jxx instruction is disposed, decrease the refcount of the label
-        it referenced
-      * for jmp instructions to a label, set is_jmp also to true (was only done
-        for Jcc instructions)
-
-  Revision 1.13  1999/06/28 19:30:06  peter
-    * merged
-
-  Revision 1.12.2.1  1999/06/28 19:18:53  peter
-    * fixed loadsym with sym=nil
-
-  Revision 1.12  1999/06/14 11:15:01  pierre
-   * -O2 real multiplication bug correction
-
-  Revision 1.11  1999/05/30 11:57:43  peter
-    * moved swapoperands out of the define
-
-  Revision 1.10  1999/05/27 19:44:33  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.9  1999/05/21 13:55:02  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.8  1999/05/17 21:57:09  florian
-    * new temporary ansistring handling
-
-  Revision 1.7  1999/05/16 17:00:45  peter
-    * fixed sym_ofs_ref op loading
-
-  Revision 1.6  1999/05/12 00:19:50  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
 
 }

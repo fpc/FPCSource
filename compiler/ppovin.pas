@@ -87,22 +87,14 @@ begin
 end.
 {
   $Log$
-  Revision 1.5  2000-01-07 01:14:30  peter
+  Revision 1.6  2000-02-09 13:22:59  peter
+    * log truncated
+
+  Revision 1.5  2000/01/07 01:14:30  peter
     * updated copyright to 2000
 
   Revision 1.4  1999/09/16 11:34:58  pierre
    * typo correction
-
-  Revision 1.3  1999/03/17 22:23:19  florian
-    * a FPC compiled compiler checks now also in debug mode in assigned
-      if a pointer points to the heap
-    * when a symtable is loaded, there is no need to check for duplicate
-      symbols. This leads to crashes because defowner isn't assigned
-      in this case
-
-  Revision 1.2  1998/08/10 10:18:33  peter
-    + Compiler,Comphook unit which are the new interface units to the
-      compiler
 
 }
 

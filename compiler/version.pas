@@ -76,7 +76,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  2000-01-28 20:47:26  michael
+  Revision 1.16  2000-02-09 13:23:09  peter
+    * log truncated
+
+  Revision 1.15  2000/01/28 20:47:26  michael
   + Changed patch number to 15
 
   Revision 1.14  2000/01/14 13:05:54  peter
@@ -94,36 +97,6 @@ end.
 
   Revision 1.10  1999/08/01 23:36:42  florian
     * some changes to compile the new code generator
-
-  Revision 1.9  1999/07/01 21:35:02  peter
-    * 0.99.13 instead of 0.99.13a
-
-  Revision 1.8  1999/06/27 15:49:19  michael
-  Updated patchnumber
-
-  Revision 1.7  1999/06/18 11:03:11  peter
-    * merged
-
-  Revision 1.6.2.2  1999/06/18 10:55:34  peter
-    * version fixes
-    * EXTRAUNITS to set extra units that are build and needs to be cleaned
-
-  Revision 1.6.2.1  1999/06/18 09:54:48  peter
-    + minorpatch which is 'a' for 0.99.12a
-
-  Revision 1.6  1999/06/08 12:52:38  peter
-    * 0.99.12
-
-  Revision 1.5  1998/12/23 14:02:01  peter
-    * daniels patches against the latest versions
-
-  Revision 1.3  1998/12/15 10:23:34  peter
-    + -iSO, -iSP, -iTO, -iTP
-
-  Revision 1.2  1998/12/14 12:58:45  peter
-    * version 0.99.11
-
-    + globtype,tokens,version unit splitted from globals
 
 }
 

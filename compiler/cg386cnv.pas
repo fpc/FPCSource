@@ -1533,7 +1533,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.101  2000-01-13 16:52:48  jonas
+  Revision 1.102  2000-02-09 13:22:46  peter
+    * log truncated
+
+  Revision 1.101  2000/01/13 16:52:48  jonas
     * moved deallocation of registers used in reference that points to string after
       copyshortstring (this routine doesn't require extra regs)
 
@@ -1611,42 +1614,5 @@ end.
 
   Revision 1.82  1999/08/04 00:22:43  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.81  1999/08/03 22:02:36  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.80  1999/08/01 23:36:38  florian
-    * some changes to compile the new code generator
-
-  Revision 1.79  1999/07/22 09:37:34  florian
-    + resourcestring implemented
-    + start of longstring support
-
-  Revision 1.78  1999/07/05 20:13:07  peter
-    * removed temp defines
-
-  Revision 1.77  1999/07/04 16:37:08  florian
-    + qword/int64 -> floating point type cast
-
-  Revision 1.76  1999/06/28 22:29:10  florian
-    * qword division fixed
-    + code for qword/int64 type casting added:
-      range checking isn't implemented yet
-
-  Revision 1.75  1999/05/31 20:35:46  peter
-    * ansistring fixes, decr_ansistr called after all temp ansi reuses
-
-  Revision 1.74  1999/05/27 19:44:09  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.73  1999/05/18 21:58:26  florian
-    * fixed some bugs related to temp. ansistrings and functions results
-      which return records/objects/arrays which need init/final.
 
 }

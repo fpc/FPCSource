@@ -532,7 +532,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.41  2000-01-07 01:14:47  peter
+  Revision 1.42  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.41  2000/01/07 01:14:47  peter
     * updated copyright to 2000
 
   Revision 1.40  1999/12/19 23:53:14  pierre
@@ -562,62 +565,6 @@ end.
 
   Revision 1.33  1999/08/02 00:34:06  michael
   * alpha has no index
-
-  Revision 1.32  1999/06/09 23:00:13  peter
-    * small ansistring fixes
-    * val_ansistr_sint destsize changed to longint
-    * don't write low/hi ascii with -al
-
-  Revision 1.31  1999/06/01 22:46:26  pierre
-   * extdebug wrong warning removed
-
-  Revision 1.30  1999/05/31 20:35:47  peter
-    * ansistring fixes, decr_ansistr called after all temp ansi reuses
-
-  Revision 1.29  1999/05/27 19:45:26  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.28  1999/05/21 17:23:47  peter
-    * align tempsize also on stackalignment
-
-  Revision 1.27  1999/05/21 11:46:28  pierre
-   * bestsize bug fixed
-
-  Revision 1.26  1999/05/19 11:51:00  pierre
-   * posinfo was not set for ansitemps !
-
-  Revision 1.25  1999/05/17 23:51:47  peter
-    * with temp vars now use a reference with a persistant temp instead
-      of setting datasize
-
-  Revision 1.24  1999/05/17 21:57:17  florian
-    * new temporary ansistring handling
-
-  Revision 1.23  1999/05/17 12:49:16  pierre
-    * several problems with EXTDEBUG fixed
-
-  Revision 1.22  1999/05/15 21:33:21  peter
-    * redesigned temp_gen temp allocation so temp allocation for
-      ansistring works correct. It also does a best fit instead of first fit
-
-  Revision 1.21  1999/05/01 13:24:59  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.20  1999/04/19 09:30:48  pierre
-   + added warning for unreleased ANSI temp
-
-  Revision 1.19  1999/04/16 20:44:38  florian
-    * the boolean operators =;<>;xor with LOC_JUMP and LOC_FLAGS
-      operands fixed, small things for new ansistring management
-
-  Revision 1.18  1999/04/16 14:03:39  pierre
-   * added paitempalloc for tempansi
 
 }
 

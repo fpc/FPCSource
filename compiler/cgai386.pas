@@ -3738,7 +3738,10 @@ procedure mov_reg_to_dest(p : ptree; s : topsize; reg : tregister);
 end.
 {
   $Log$
-  Revision 1.78  2000-02-04 21:00:31  florian
+  Revision 1.79  2000-02-09 13:22:50  peter
+    * log truncated
+
+  Revision 1.78  2000/02/04 21:00:31  florian
     * some (small) problems with register saving fixed
 
   Revision 1.77  2000/02/04 20:00:21  florian
@@ -3817,91 +3820,5 @@ end.
 
   Revision 1.59  1999/11/15 14:04:00  pierre
    * self pointer stabs for local function was wrong
-
-  Revision 1.58  1999/11/09 23:06:44  peter
-    * esi_offset -> selfpointer_offset to be newcg compatible
-    * hcogegen -> cgbase fixes for newcg
-
-  Revision 1.57  1999/11/06 14:34:19  peter
-    * truncated log to 20 revs
-
-  Revision 1.56  1999/10/25 12:18:11  peter
-    * fixed bug 301
-
-  Revision 1.55  1999/10/21 16:41:38  florian
-    * problems with readln fixed: esi wasn't restored correctly when
-      reading ordinal fields of objects futher the register allocation
-      didn't take care of the extra register when reading ordinal values
-    * enumerations can now be used in constant indexes of properties
-
-  Revision 1.54  1999/10/21 14:29:32  peter
-    * redesigned linker object
-    + library support for linux (only procedures can be exported)
-
-  Revision 1.53  1999/10/13 22:09:29  pierre
-   * fix for uggly bug of Marco
-
-  Revision 1.52  1999/10/08 15:40:47  pierre
-   * use and remember that C functions with complex data results use ret $4
-
-  Revision 1.51  1999/10/05 22:01:52  pierre
-   * bug exit('test') + fail for classes
-
-  Revision 1.50  1999/09/29 11:46:18  florian
-    * fixed bug 292 from bugs directory
-
-  Revision 1.49  1999/09/28 21:07:53  florian
-    * fixed bug 608
-
-  Revision 1.48  1999/09/28 19:43:47  florian
-    * the maybe_push fix of Pierre wasn't 100%, the tree parameter
-      must contain a valid location (which is saved if necessary)
-
-  Revision 1.47  1999/09/27 23:44:50  peter
-    * procinfo is now a pointer
-    * support for result setting in sub procedure
-
-  Revision 1.46  1999/09/26 13:26:07  florian
-    * exception patch of Romio nevertheless the excpetion handling
-      needs some corections regarding register saving
-    * gettempansistring is again a procedure
-
-  Revision 1.45  1999/09/20 16:35:43  peter
-    * restored old alignment, saves 40k on ppc386
-
-  Revision 1.44  1999/09/16 07:58:14  pierre
-   + RESULT pseudo var added in GDB debug info
-
-  Revision 1.43  1999/09/15 20:35:38  florian
-    * small fix to operator overloading when in MMX mode
-    + the compiler uses now fldz and fld1 if possible
-    + some fixes to floating point registers
-    + some math. functions (arctan, ln, sin, cos, sqrt, sqr, pi) are now inlined
-    * .... ???
-
-  Revision 1.42  1999/09/14 07:59:47  florian
-    * finally!? fixed
-         with <function with result in temp> do
-      My last and also Peter's fix before were wrong :(
-
-  Revision 1.41  1999/09/12 08:48:04  florian
-    * bugs 593 and 607 fixed
-    * some other potential bugs with array constructors fixed
-    * for classes compiled in $M+ and it's childs, the default access method
-      is now published
-    * fixed copyright message (it is now 1998-2000)
-
-  Revision 1.40  1999/09/11 11:23:58  florian
-    * bug 603 fixed
-
-  Revision 1.39  1999/09/10 15:42:51  peter
-    * fixed with <calln> do
-    * fixed finalize/initialize call for new/dispose
-
-  Revision 1.38  1999/09/04 20:50:08  florian
-    * bug 580 fixed
-
-  Revision 1.37  1999/09/02 17:07:38  florian
-    * problems with -Or fixed: tdef.isfpuregable was wrong!
 
 }

@@ -641,7 +641,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.40  2000-01-10 16:38:43  pierre
+  Revision 1.41  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.40  2000/01/10 16:38:43  pierre
    * suppress wrong warning for with vars
 
   Revision 1.39  2000/01/10 00:42:44  pierre
@@ -713,40 +716,5 @@ end.
   Revision 1.22  1999/08/03 22:03:35  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.21  1999/07/16 10:04:39  peter
-    * merged
-
-  Revision 1.20  1999/07/05 20:25:41  peter
-    * merged
-
-  Revision 1.19  1999/07/05 16:24:17  peter
-    * merged
-
-  Revision 1.18.2.4  1999/07/16 09:54:59  peter
-    * @procvar support in tp7 mode works again
-
-  Revision 1.18.2.3  1999/07/05 20:06:47  peter
-    * give error instead of warning for ln(0) and sqrt(0)
-
-  Revision 1.18.2.2  1999/07/05 16:22:56  peter
-    * error if @constant
-
-  Revision 1.18.2.1  1999/06/28 00:33:53  pierre
-   * better error position bug0269
-
-  Revision 1.18  1999/06/03 09:34:12  peter
-    * better methodpointer check for proc->procvar
-
-  Revision 1.17  1999/05/27 19:45:24  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.16  1999/05/18 09:52:21  peter
-    * procedure of object and addrn fixes
 
 }

@@ -1224,7 +1224,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.78  2000-01-07 09:35:12  pierre
+  Revision 1.79  2000-02-09 13:23:07  peter
+    * log truncated
+
+  Revision 1.78  2000/01/07 09:35:12  pierre
    * set_varstate must be called after typeconv insertions
 
   Revision 1.77  2000/01/07 01:14:44  peter
@@ -1295,34 +1298,5 @@ end.
 
   Revision 1.59  1999/08/13 21:33:16  peter
     * support for array constructors extended and more error checking
-
-  Revision 1.58  1999/08/12 14:34:28  peter
-    * tp_procvar mode call->loadn fixed
-
-  Revision 1.57  1999/08/05 16:53:19  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
-
-  Revision 1.56  1999/08/04 00:23:34  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.55  1999/08/03 22:03:27  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.54  1999/07/01 21:33:58  peter
-    * merged
-
-  Revision 1.53  1999/06/29 14:02:33  peter
-    * merged file pos fixes
-
-  Revision 1.52  1999/06/29 12:16:22  pierre
-   * mereg from fixes-0_99_12
-
-  Revision 1.51.2.3  1999/07/01 21:32:01  peter
-    * procvar fixes again
 
 }

@@ -249,7 +249,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2000-01-07 01:14:27  peter
+  Revision 1.15  2000-02-09 13:22:52  peter
+    * log truncated
+
+  Revision 1.14  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.13  1999/11/09 23:51:25  pierre
@@ -257,73 +260,5 @@ end.
 
   Revision 1.12  1999/08/04 00:23:01  florian
     * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.11  1999/05/27 19:44:27  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.10  1999/05/12 00:19:48  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.9  1999/05/01 13:24:20  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.8  1999/03/17 10:52:38  peter
-    * fixed comment in directive
-
-  Revision 1.7  1999/03/02 02:56:12  peter
-    + stabs support for binary writers
-    * more fixes and missing updates from the previous commit :(
-
-  Revision 1.6  1999/01/08 12:39:23  florian
-    Changes of Alexander Stohr integrated:
-      + added KNI opcodes
-      + added KNI registers
-      + added 3DNow! opcodes
-      + added 64 bit and 128 bit register flags
-      * translated a few comments into english
-
-  Revision 1.5  1998/12/11 00:03:16  peter
-    + globtype,tokens,version unit splitted from globals
-
-  Revision 1.4  1998/11/12 11:19:45  pierre
-   * fix for first line of function break
-
-  Revision 1.3  1998/09/22 17:13:45  pierre
-    + browsing updated and developed
-      records and objects fields are also stored
-
-  Revision 1.2  1998/07/10 08:31:38  pierre
-    *  Just the N_FNAME to N_FUN substitution for stabs of functions
-      thanks again Daniel !!
-
-  Revision 1.1.1.1  1998/03/25 11:18:13  root
-  * Restored version
-
-  Revision 1.5  1998/03/10 01:17:18  peter
-    * all files have the same header
-    * messages are fully implemented, EXTDEBUG uses Comment()
-    + AG... files for the Assembler generation
-
-  Revision 1.4  1998/03/02 01:48:33  peter
-    * renamed target_DOS to target_GO32V1
-    + new verbose system, merged old errors and verbose units into one new
-      verbose.pas, so errors.pas is obsolete
-
-  Revision 1.3  1998/02/13 10:35:01  daniel
-  * Made Motorola version compilable.
-  * Fixed optimizer
-
-  Revision 1.2  1997/11/28 18:14:32  pierre
-   working version with several bug fixes
-
-  Revision 1.1.1.1  1997/11/27 08:32:56  michael
-  FPC Compiler CVS start
 
 }

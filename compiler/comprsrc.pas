@@ -109,7 +109,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:23  peter
+  Revision 1.10  2000-02-09 13:22:50  peter
+    * log truncated
+
+  Revision 1.9  2000/01/07 01:14:23  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/12/01 12:42:32  peter
@@ -118,28 +121,5 @@ end.
 
   Revision 1.7  1999/11/12 11:03:50  peter
     * searchpaths changed to stringqueue object
-
-  Revision 1.6  1999/07/18 10:19:49  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.5  1999/07/03 00:29:46  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.4  1999/05/04 21:44:40  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.3  1999/01/06 14:38:09  michael
-  + Fixed wrong unit name.
-
-  Revision 1.2  1999/01/06 12:56:01  peter
-    * fixed typo :(
-
-  Revision 1.1  1999/01/06 12:39:46  peter
-    * renamed resource -> comprsrc (conflicted with FV)
-
-  Revision 1.1  1998/12/28 23:26:25  peter
-    + resource file handling ($R directive) for Win32
 
 }

@@ -1492,7 +1492,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.50  2000-01-26 14:31:03  marco
+  Revision 1.51  2000-02-09 13:22:53  peter
+    * log truncated
+
+  Revision 1.50  2000/01/26 14:31:03  marco
    * $VERSION is now also substituted in -F paths (that have subst active)
 
   Revision 1.49  2000/01/23 21:29:14  florian
@@ -1568,93 +1571,5 @@ end.
   Revision 1.31  1999/11/09 13:00:38  peter
     * define FPC_DELPHI,FPC_OBJFPC,FPC_TP,FPC_GPC
     * initial support for ansistring default with modes
-
-  Revision 1.30  1999/11/08 16:27:20  pierre
-   + Reset AnsiStrings to clean up memory
-
-  Revision 1.29  1999/11/06 14:34:20  peter
-    * truncated log to 20 revs
-
-  Revision 1.28  1999/11/04 10:55:31  peter
-    * TSearchPathList for the string type of the searchpaths, which is
-      ansistring under FPC/Delphi
-
-  Revision 1.27  1999/10/26 12:30:41  peter
-    * const parameter is now checked
-    * better and generic check if a node can be used for assigning
-    * export fixes
-    * procvar equal works now (it never had worked at least from 0.99.8)
-    * defcoll changed to linkedlist with pparaitem so it can easily be
-      walked both directions
-
-  Revision 1.26  1999/10/21 14:29:34  peter
-    * redesigned linker object
-    + library support for linux (only procedures can be exported)
-
-  Revision 1.25  1999/09/10 18:48:02  florian
-    * some bug fixes (e.g. must_be_valid and procinfo.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.24  1999/09/08 16:05:31  peter
-    * pointer add/sub is now as expected and the same results as inc/dec
-
-  Revision 1.23  1999/09/07 15:11:00  pierre
-   * use do_internalerror insetead of runerror
-
-  Revision 1.22  1999/08/30 10:17:56  peter
-    * fixed crash in psub
-    * ansistringcompare fixed
-    * support for #$0b8
-
-  Revision 1.21  1999/08/27 10:45:00  pierre
-   options -Ca sets simply_ppu to true
-
-  Revision 1.20  1999/08/19 13:02:12  pierre
-    + label faillabel added for _FAIL support
-
-  Revision 1.19  1999/08/16 15:35:21  pierre
-    * fix for DLL relocation problems
-    * external bss vars had wrong stabs for pecoff
-    + -WB11000000 to specify default image base, allows to
-      load several DLLs with debugging info included
-      (relocatable DLL are stripped because the relocation
-       of the .Stab section is misplaced by ldw)
-
-  Revision 1.18  1999/08/11 17:26:32  peter
-    * tlinker object is now inherited for win32 and dos
-    * postprocessexecutable is now a method of tlinker
-
-  Revision 1.17  1999/08/10 12:51:14  pierre
-    * bind_win32_dll removed (Relocsection used instead)
-    * now relocsection is true by default ! (needs dlltool
-      for DLL generation)
-
-  Revision 1.16  1999/08/05 20:54:19  daniel
-  * Changes for new symtable.
-
-  Revision 1.15  1999/08/03 17:09:35  florian
-    * the alpha compiler can be compiled now
-
-  Revision 1.14  1999/07/23 16:05:19  peter
-    * alignment is now saved in the symtable
-    * C alignment added for records
-    * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.13  1999/07/18 10:19:52  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.12  1999/07/13 19:14:44  michael
-  + Defaultreplacemens now more logical
-
-  Revision 1.11  1999/07/10 10:26:18  peter
-    * merged
-
-  Revision 1.8.2.2  1999/07/10 10:03:04  peter
-    * fixed initialization/finalization in fpc mode
-    * allow $TARGET also in search paths
-
-  Revision 1.8.2.1  1999/07/07 07:53:21  michael
-  + Merged patches from florian
 
 }

@@ -630,7 +630,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.39  2000-01-21 12:17:42  jonas
+  Revision 1.40  2000-02-09 13:23:08  peter
+    * log truncated
+
+  Revision 1.39  2000/01/21 12:17:42  jonas
     * regallocation fixes
 
   Revision 1.38  2000/01/09 12:35:02  jonas
@@ -676,56 +679,6 @@ end.
 
   Revision 1.28  1999/08/02 17:17:11  florian
     * small changes for the new code generator
-
-  Revision 1.27  1999/06/09 23:22:39  peter
-    + del_location
-
-  Revision 1.26  1999/05/27 19:45:27  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.25  1999/05/19 22:00:48  florian
-    * some new routines for register management:
-       maybe_savetotemp,restorefromtemp, saveusedregisters,
-       restoreusedregisters
-
-  Revision 1.24  1999/05/18 21:58:34  florian
-    * fixed some bugs related to temp. ansistrings and functions results
-      which return records/objects/arrays which need init/final.
-
-  Revision 1.23  1999/05/01 13:25:01  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.22  1999/04/21 16:31:48  pierre
-  ra386att.pas
-
-  Revision 1.21  1999/04/16 11:49:47  peter
-    + tempalloc
-    + -at to show temp alloc info in .s file
-
-  Revision 1.20  1999/02/25 21:02:55  peter
-    * ag386bin updates
-    + coff writer
-
-  Revision 1.19  1999/02/22 02:15:58  peter
-    * updates for ag386bin
-
-  Revision 1.18  1999/01/18 16:02:20  pierre
-   * better error info with -Co
-
-  Revision 1.17  1998/12/11 23:36:09  florian
-    + again more stuff for int64/qword:
-         - comparision operators
-         - code generation for: str, read(ln), write(ln)
-
-  Revision 1.16  1998/12/11 17:22:40  florian
-    * fixed previous commit bug fix of getexplicitregister32
-      (usableregs32 was decremented twice, thnaks Pierre for that hint)
 
 }
 

@@ -1918,7 +1918,10 @@ unit tree;
 end.
 {
   $Log$
-  Revision 1.110  2000-01-26 12:02:30  peter
+  Revision 1.111  2000-02-09 13:23:09  peter
+    * log truncated
+
+  Revision 1.110  2000/01/26 12:02:30  peter
     * abstractprocdef.para_size needs alignment parameter
     * secondcallparan gets para_alignment size instead of dword_align
 
@@ -1996,43 +1999,5 @@ end.
     + EXTTEMPREGDEBUG will also give internalerror(10) if
       a same register is freed twice (happens in several part
       of current compiler like addn for strings and sets)
-
-  Revision 1.90  1999/08/17 13:26:09  peter
-    * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
-      variant.
-
-  Revision 1.89  1999/08/16 23:23:42  peter
-    * arrayconstructor -> openarray type conversions for element types
-
-  Revision 1.88  1999/08/13 21:33:18  peter
-    * support for array constructors extended and more error checking
-
-  Revision 1.87  1999/08/09 22:14:46  peter
-    * fixed disposing of tree node
-
-  Revision 1.86  1999/08/04 00:23:49  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.85  1999/08/03 22:03:40  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.84  1999/07/27 23:42:24  peter
-    * indirect type referencing is now allowed
-
-  Revision 1.83  1999/05/27 19:45:29  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.82  1999/05/18 14:15:59  peter
-    * containsself fixes
-    * checktypes()
-
-  Revision 1.81  1999/05/18 09:52:22  peter
-    * procedure of object and addrn fixes
 
 }

@@ -906,7 +906,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.47  2000-01-09 12:35:02  jonas
+  Revision 1.48  2000-02-09 13:22:48  peter
+    * log truncated
+
+  Revision 1.47  2000/01/09 12:35:02  jonas
     * changed edi allocation to use getexplicitregister32/ungetregister
       (adapted tgeni386 a bit for this) and enabled it by default
     * fixed very big and stupid bug of mine in cg386mat that broke the
@@ -951,58 +954,6 @@ end.
   Revision 1.36  1999/08/03 22:02:48  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.35  1999/07/18 14:01:16  florian
-    * handling of integer and shortint in case was wrong, if a case
-      label was negative and a jump table was generated
-
-  Revision 1.34  1999/06/08 15:27:24  pierre
-   * fix for bug0258
-
-  Revision 1.33  1999/06/02 10:11:48  florian
-    * make cycle fixed i.e. compilation with 0.99.10
-    * some fixes for qword
-    * start of register calling conventions
-
-  Revision 1.32  1999/05/27 19:44:19  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.31  1999/05/21 13:54:54  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.30  1999/05/05 08:09:24  michael
-  * Changed longword to cardinal
-
-  Revision 1.29  1999/05/04 21:44:34  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.28  1999/05/01 13:24:15  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.27  1999/04/16 13:42:30  jonas
-    * more regalloc fixes (still not complete)
-
-  Revision 1.26  1999/04/09 08:36:36  peter
-    * fix also for -Og
-
-  Revision 1.25  1999/04/08 20:59:37  florian
-    * fixed problem with default properties which are a class
-    * case bug (from the mailing list with -O2) fixed, the
-      distance of the case labels can be greater than the positive
-      range of a longint => it is now a dword for fpc
-
-  Revision 1.24  1999/03/02 18:21:35  peter
-    + flags support for add and case
-
-  Revision 1.23  1999/02/25 21:02:31  peter
-    * ag386bin updates
-    + coff writer
 
 }
 

@@ -752,68 +752,13 @@ begin
 end.
 {
   $Log$
-  Revision 1.4  2000-01-27 11:29:15  peter
+  Revision 1.5  2000-02-09 13:23:11  peter
+    * log truncated
+
+  Revision 1.4  2000/01/27 11:29:15  peter
     * version 0.99.14
 
   Revision 1.3  2000/01/07 01:15:00  peter
     * updated copyright to 2000
 
-  Revision 1.2  1999/07/13 12:25:07  michael
-  Changed fpcman to fpc
-
-  Revision 1.1  1999/05/12 16:08:27  peter
-    + moved compiler utils
-
-  Revision 1.18  1999/05/06 09:06:27  peter
-    * eollen constant
-
-  Revision 1.17  1999/05/06 00:08:20  pierre
-   two character newline problem fixed
-
-  Revision 1.16  1999/05/05 22:37:52  peter
-    * fixed offset patching
-
-  Revision 1.15  1999/05/05 09:20:09  florian
-    * another fix for delphi: it doesn't like the array [...,...] of char
-      threaded as strings
-
-  Revision 1.14  1998/10/29 23:07:46  peter
-    + \xxx support
-
-  Revision 1.13  1998/10/21 14:09:05  florian
-    * the leading + in the message array isn't longer generated
-
-  Revision 1.12  1998/09/24 23:22:51  peter
-    * compiles with tp
-
-  Revision 1.11  1998/09/13 12:36:36  michael
-  + Corrected TeX output
-
-  Revision 1.10  1998/09/12 15:20:56  peter
-    * TeX writing fixed
-
-  Revision 1.9  1998/09/11 15:55:29  michael
-  first fix for TeX output
-
-  Revision 1.8  1998/09/09 20:21:52  peter
-    * updated to support <lf> for empty lines
-
-  Revision 1.7  1998/08/29 13:46:53  peter
-    + new messagefile format
-    + renumbering of enums (-r)
-
-  Revision 1.6  1998/08/18 13:58:33  carl
-    * Arglu... i forgot a line when changing to bugfix!
-
-  Revision 1.5  1998/08/18 13:34:30  carl
-    * forgot to fix one bugcrash with string output
-
-  Revision 1.4  1998/08/17 12:22:19  carl
-    * crash bugfix (was reading one char too much)
-
-  Revision 1.3  1998/08/11 14:00:42  peter
-    + string and intel db output
-
-  Revision 1.2  1998/03/30 12:06:17  peter
-    + support for tex output for the lazy docwriter ;)
 }

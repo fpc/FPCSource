@@ -889,7 +889,10 @@ implementation
 end.
 {
   $Log$
-  Revision 1.57  2000-02-05 12:11:50  peter
+  Revision 1.58  2000-02-09 13:22:53  peter
+    * log truncated
+
+  Revision 1.57  2000/02/05 12:11:50  peter
     * property check for assigning fixed for calln
 
   Revision 1.56  2000/02/01 09:41:27  peter
@@ -959,52 +962,5 @@ end.
   Revision 1.38  1999/08/17 13:26:07  peter
     * arrayconstructor -> arrayofconst fixed when arraycosntructor was not
       variant.
-
-  Revision 1.37  1999/08/16 23:23:38  peter
-    * arrayconstructor -> openarray type conversions for element types
-
-  Revision 1.36  1999/08/06 12:49:36  jonas
-    * vo_fpuregable is now also removed in make_not_regable
-
-  Revision 1.35  1999/08/05 21:50:35  peter
-    * removed warning
-
-  Revision 1.34  1999/08/05 16:52:55  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
-
-  Revision 1.33  1999/08/04 13:02:43  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.32  1999/08/03 22:02:53  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.31  1999/07/16 10:04:32  peter
-    * merged
-
-  Revision 1.30  1999/06/28 16:02:30  peter
-    * merged
-
-  Revision 1.27.2.4  1999/07/16 09:52:18  peter
-    * allow char(enum)
-
-  Revision 1.27.2.3  1999/06/28 15:51:27  peter
-    * tp7 fix
-
-  Revision 1.27.2.2  1999/06/18 10:56:58  daniel
-  - Enumerations no longer compatible with integer types
-
-  Revision 1.27.2.1  1999/06/17 12:51:42  pierre
-   * changed is_assignment_overloaded into
-      function assignment_overloaded : pprocdef
-      to allow overloading of assignment with only different result type
-
-  Revision 1.27  1999/06/01 19:27:47  peter
-    * better checks for procvar and methodpointer
 
 }

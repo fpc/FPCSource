@@ -734,7 +734,10 @@
 
 {
   $Log$
-  Revision 1.58  2000-01-07 01:14:40  peter
+  Revision 1.59  2000-02-09 13:23:05  peter
+    * log truncated
+
+  Revision 1.58  2000/01/07 01:14:40  peter
     * updated copyright to 2000
 
   Revision 1.57  1999/11/30 10:40:55  peter
@@ -786,48 +789,5 @@
   Revision 1.45  1999/08/03 22:03:17  peter
     * moved bitmask constants to sets
     * some other type/const renamings
-
-  Revision 1.44  1999/07/14 21:19:12  florian
-    + implemented a better error message if a PPU file isn't found as suggested
-      by Lee John
-
-  Revision 1.43  1999/07/03 00:30:00  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.42  1999/06/22 16:24:47  pierre
-   * local browser stuff corrected
-
-  Revision 1.41  1999/05/14 17:52:28  peter
-    * new deref code
-
-  Revision 1.40  1999/05/13 21:59:44  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.39  1999/05/04 21:45:06  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.38  1999/04/26 13:31:51  peter
-    * release storenumber,double_checksum
-
-  Revision 1.37  1999/04/21 09:43:53  peter
-    * storenumber works
-    * fixed some typos in double_checksum
-    + incompatible types type1 and type2 message (with storenumber)
-
-  Revision 1.36  1999/04/14 09:15:01  peter
-    * first things to store the symbol/def number in the ppu
-
-  Revision 1.35  1999/04/07 15:39:35  pierre
-    + double_checksum code added
-
-  Revision 1.34  1999/03/02 13:49:19  peter
-    * renamed loadunit_int -> loadunit
-
-  Revision 1.33  1999/02/23 18:29:25  pierre
-    * win32 compilation error fix
-    + some work for local browser (not cl=omplete yet)
 
 }

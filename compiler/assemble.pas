@@ -567,7 +567,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.60  2000-01-11 09:52:06  peter
+  Revision 1.61  2000-02-09 13:22:45  peter
+    * log truncated
+
+  Revision 1.60  2000/01/11 09:52:06  peter
     * fixed placing of .sl directories
     * use -b again for base-file selection
     * fixed group writing for linux with smartlinking
@@ -595,66 +598,5 @@ end.
     * Could not compile with TP, some arrays moved to heap
     * NOAG386BIN default for TP
     * AG386* files were not compatible with TP, fixed.
-
-  Revision 1.52  1999/07/18 10:19:42  florian
-    * made it compilable with Dlephi 4 again
-    + fixed problem with large stack allocations on win32
-
-  Revision 1.51  1999/07/10 10:12:03  peter
-    * assembler smartlink message
-
-  Revision 1.50  1999/07/03 00:27:05  peter
-    * better smartlinking support
-
-  Revision 1.49  1999/06/28 16:02:29  peter
-    * merged
-
-  Revision 1.48.2.1  1999/06/28 15:55:39  peter
-    * also search path if not found in utilsdirectory
-
-  Revision 1.48  1999/05/27 19:44:03  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.47  1999/05/13 21:59:19  peter
-    * removed oldppu code
-    * warning if objpas is loaded from uses
-    * first things for new deref writing
-
-  Revision 1.46  1999/05/05 22:21:48  peter
-    * updated messages
-
-  Revision 1.45  1999/05/04 21:44:33  florian
-    * changes to compile it with Delphi 4.0
-
-  Revision 1.44  1999/05/02 23:28:42  peter
-    * don't include ag386bin for oldasm
-
-  Revision 1.43  1999/05/02 22:41:51  peter
-    * moved section names to systems
-    * fixed nasm,intel writer
-
-  Revision 1.42  1999/05/01 13:24:00  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.41  1999/03/24 23:16:42  peter
-    * fixed bugs 212,222,225,227,229,231,233
-
-  Revision 1.40  1999/03/18 20:30:44  peter
-    + .a writer
-
-  Revision 1.39  1999/03/01 15:43:48  peter
-    * synchronize also the objfile for ag386bin
-
-  Revision 1.38  1999/02/26 00:48:15  peter
-    * assembler writers fixed for ag386bin
-
-  Revision 1.37  1999/02/24 00:59:11  peter
-    * small updates for ag386bin
 
 }

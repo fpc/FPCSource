@@ -72,20 +72,14 @@ unit ppheap;
 
 {
   $Log$
-  Revision 1.9  2000-01-07 01:14:30  peter
+  Revision 1.10  2000-02-09 13:22:59  peter
+    * log truncated
+
+  Revision 1.9  2000/01/07 01:14:30  peter
     * updated copyright to 2000
 
   Revision 1.8  1999/11/17 17:05:02  pierre
    * Notes/hints changes
-
-  Revision 1.7  1999/06/08 15:26:49  pierre
-   * fix to get it self compiled
-
-  Revision 1.6  1999/05/17 15:09:28  pierre
-   * heaptrc output to heap.log file
-
-  Revision 1.5  1999/01/26 11:32:13  pierre
-   * ppheap init code can be called before any getmem
 
 }
 

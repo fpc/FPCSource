@@ -180,7 +180,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.27  2000-02-09 10:35:48  peter
+  Revision 1.28  2000-02-09 13:22:53  peter
+    * log truncated
+
+  Revision 1.27  2000/02/09 10:35:48  peter
     * -Xt option to link staticly against c libs
 
   Revision 1.26  2000/02/06 17:20:52  peter
@@ -233,48 +236,6 @@ end.
     * alignment is now saved in the symtable
     * C alignment added for records
     * PPU version increased to solve .12 <-> .13 probs
-
-  Revision 1.12  1999/07/10 10:26:19  peter
-    * merged
-
-  Revision 1.11  1999/07/03 00:29:49  peter
-    * new link writing to the ppu, one .ppu is needed for all link types,
-      static (.o) is now always created also when smartlinking is used
-
-  Revision 1.10.2.1  1999/07/10 10:03:06  peter
-    * fixed initialization/finalization in fpc mode
-    * allow $TARGET also in search paths
-
-  Revision 1.10  1999/05/17 14:30:39  pierre
-   + cs_checkpointer
-
-  Revision 1.9  1999/05/12 00:19:49  peter
-    * removed R_DEFAULT_SEG
-    * uniform float names
-
-  Revision 1.8  1999/04/26 13:31:33  peter
-    * release storenumber,double_checksum
-
-  Revision 1.7  1999/04/25 22:34:58  pierre
-   + cs_typed_const_not_changeable added but not implemented yet !
-
-  Revision 1.6  1999/04/16 11:49:42  peter
-    + tempalloc
-    + -at to show temp alloc info in .s file
-
-  Revision 1.5  1999/04/10 16:15:01  peter
-    * fixed browcol
-    + -ar to show regalloc info in .s file
-
-  Revision 1.4  1999/03/26 00:05:30  peter
-    * released valintern
-    + deffile is now removed when compiling is finished
-    * ^( compiles now correct
-    + static directive
-    * shrd fixed
-
-  Revision 1.3  1999/01/27 13:51:44  pierre
-   * dos end of line problem
 
 }
 

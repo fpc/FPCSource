@@ -1345,7 +1345,10 @@ unit pstatmnt;
 end.
 {
   $Log$
-  Revision 1.121  2000-01-23 16:33:49  peter
+  Revision 1.122  2000-02-09 13:22:59  peter
+    * log truncated
+
+  Revision 1.121  2000/01/23 16:33:49  peter
     * fixed destructor parsing with preprocessor things
     * support dipsoe(p,done())
     * fixed constructor message with dispose(p,<nonexist>)
@@ -1416,70 +1419,6 @@ end.
 
   Revision 1.102  1999/09/16 23:05:54  florian
     * m68k compiler is again compilable (only gas writer, no assembler reader)
-
-  Revision 1.101  1999/09/10 18:48:09  florian
-    * some bug fixes (e.g. must_be_valid and procinfo^.funcret_is_valid)
-    * most things for stored properties fixed
-
-  Revision 1.100  1999/09/07 14:12:36  jonas
-    * framepointer cannot be changed to esp for methods
-
-  Revision 1.99  1999/08/26 21:10:08  peter
-    * better error recovery for case
-
-  Revision 1.98  1999/08/05 16:53:05  peter
-    * V_Fatal=1, all other V_ are also increased
-    * Check for local procedure when assigning procvar
-    * fixed comment parsing because directives
-    * oldtp mode directives better supported
-    * added some messages to errore.msg
-
-  Revision 1.97  1999/08/04 13:02:59  jonas
-    * all tokens now start with an underscore
-    * PowerPC compiles!!
-
-  Revision 1.96  1999/08/04 00:23:19  florian
-    * renamed i386asm and i386base to cpuasm and cpubase
-
-  Revision 1.95  1999/08/03 22:03:03  peter
-    * moved bitmask constants to sets
-    * some other type/const renamings
-
-  Revision 1.94  1999/08/03 17:09:39  florian
-    * the alpha compiler can be compiled now
-
-  Revision 1.93  1999/08/02 21:28:59  florian
-    * the main branch psub.pas is now used for
-      newcg compiler
-
-  Revision 1.92  1999/07/26 09:42:14  florian
-    * bugs 494-496 fixed
-
-  Revision 1.91  1999/06/30 22:16:22  florian
-    * use of is_ordinal checked: often a qword/int64 isn't allowed (case/for ...)
-    * small qword problems fixed
-
-  Revision 1.90  1999/06/22 16:24:43  pierre
-   * local browser stuff corrected
-
-  Revision 1.89  1999/06/17 13:19:54  pierre
-   * merged from 0_99_12 branch
-
-  Revision 1.88.2.1  1999/06/17 12:51:46  pierre
-   * changed is_assignment_overloaded into
-      function assignment_overloaded : pprocdef
-      to allow overloading of assignment with only different result type
-
-  Revision 1.88  1999/06/15 13:19:46  pierre
-   * better uninitialized var tests for TP mode
-
-  Revision 1.87  1999/05/27 19:44:50  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
 
 }
 

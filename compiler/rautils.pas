@@ -1443,7 +1443,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.34  2000-01-07 01:14:37  peter
+  Revision 1.35  2000-02-09 13:23:03  peter
+    * log truncated
+
+  Revision 1.34  2000/01/07 01:14:37  peter
     * updated copyright to 2000
 
   Revision 1.33  1999/12/22 00:57:30  peter
@@ -1492,50 +1495,5 @@ end.
 
   Revision 1.20  1999/07/29 20:54:06  peter
     * write .size also
-
-  Revision 1.19  1999/06/02 22:44:17  pierre
-   * previous wrong log corrected
-
-  Revision 1.18  1999/06/02 22:25:47  pierre
-  * changed $ifdef FPC @ into $ifndef TP
-
-  Revision 1.17  1999/05/27 19:45:01  peter
-    * removed oldasm
-    * plabel -> pasmlabel
-    * -a switches to source writing automaticly
-    * assembler readers OOPed
-    * asmsymbol automaticly external
-    * jumptables and other label fixes for asm readers
-
-  Revision 1.16  1999/05/21 13:55:18  peter
-    * NEWLAB for label as symbol
-
-  Revision 1.15  1999/05/12 00:17:11  peter
-    * fixed error which was shown for all 32bit consts
-
-  Revision 1.14  1999/05/11 16:27:23  peter
-    * support for pointerdef
-
-  Revision 1.13  1999/05/06 09:05:27  peter
-    * generic write_float and str_float
-    * fixed constant float conversions
-
-  Revision 1.12  1999/05/05 22:22:04  peter
-    * updated messages
-
-  Revision 1.11  1999/05/02 22:41:57  peter
-    * moved section names to systems
-    * fixed nasm,intel writer
-
-  Revision 1.10  1999/05/01 13:24:41  peter
-    * merged nasm compiler
-    * old asm moved to oldasm/
-
-  Revision 1.8  1999/04/26 23:26:19  peter
-    * redesigned record offset parsing to support nested records
-    * normal compiler uses the redesigned SetupVar()
-
-  Revision 1.7  1999/04/14 09:07:48  peter
-    * asm reader improvements
 
 }
