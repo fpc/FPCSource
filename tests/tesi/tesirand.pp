@@ -137,7 +137,10 @@ end.
 
 {
   $Log$
-  Revision 1.2  2000-03-25 13:45:35  jonas
+  Revision 1.1  2000-07-13 09:22:04  michael
+  + Initial import
+
+  Revision 1.2  2000/03/25 13:45:35  jonas
     * works with new graph unit
 
   Revision 1.1  1999/12/02 17:37:44  peter

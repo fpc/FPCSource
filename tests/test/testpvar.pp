@@ -146,7 +146,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.2  2000-04-02 09:06:55  florian
+  Revision 1.1  2000-07-13 09:22:06  michael
+  + Initial import
+
+  Revision 1.2  2000/04/02 09:06:55  florian
   *** empty log message ***
 
   Revision 1.1  1999/12/02 17:37:45  peter

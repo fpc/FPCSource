@@ -72,7 +72,10 @@ END.
 
 {
   $Log$
-  Revision 1.2  2000-04-14 05:44:22  pierre
+  Revision 1.1  2000-07-13 09:21:54  michael
+  + Initial import
+
+  Revision 1.2  2000/04/14 05:44:22  pierre
    * adapted to new graph unit
 
   Revision 1.1  1999/12/02 17:37:38  peter
