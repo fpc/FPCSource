@@ -84,11 +84,11 @@ function  WaitForSingleObject (hHandle,Milliseconds: dword): dword; stdcall;exte
 function  WinThreadSetPriority (threadHandle : dword; Prio: longint): boolean; stdcall;external 'kernel32' name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : dword): Integer; stdcall;external 'kernel32' name 'GetThreadPriority';
 function  WinGetCurrentThreadId : dword; stdcall;external 'kernel32' name 'GetCurrentThread';
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar):CARDINAL; external 'kernel32' name 'CreateEventA';
-function  CloseHandle(hObject:CARDINAL):LONGBOOL; external 'kernel32' name 'CloseHandle';
-function  ResetEvent(hEvent:CARDINAL):LONGBOOL; external 'kernel32' name 'ResetEvent';
-function  SetEvent(hEvent:CARDINAL):LONGBOOL; external 'kernel32' name 'SetEvent';
-function PulseEvent(hEvent:THANDLE):CARDINAL {WINBOOL}; external 'kernel32' name 'PulseEvent';
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar):CARDINAL; stdcall; external 'kernel32' name 'CreateEventA';
+function  CloseHandle(hObject:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'CloseHandle';
+function  ResetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'ResetEvent';
+function  SetEvent(hEvent:CARDINAL):LONGBOOL; stdcall; external 'kernel32' name 'SetEvent';
+function PulseEvent(hEvent:THANDLE):CARDINAL {WINBOOL}; stdcall; external 'kernel32' name 'PulseEvent';
 
 CONST
    WAIT_OBJECT_0 = 0;
@@ -500,7 +500,10 @@ end.
 
 {
   $Log$
-  Revision 1.14  2004-12-28 14:20:03  marco
+  Revision 1.15  2005-01-30 21:48:14  marco
+   * stdcall added to few calls
+
+  Revision 1.14  2004/12/28 14:20:03  marco
    * tthread patch from neli
 
   Revision 1.13  2004/12/26 13:46:45  peter
