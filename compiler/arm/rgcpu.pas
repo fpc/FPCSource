@@ -37,11 +37,11 @@ unit rgcpu;
      type
        trgcpu = class(trgobj)
          procedure add_cpu_interferences(p : tai);override;
-         procedure DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+         procedure do_spill_read(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-         procedure DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+         procedure do_spill_written(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
-         procedure DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+         procedure do_spill_readwritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
           const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);override;
        end;
 
@@ -63,8 +63,8 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.DoSpillRead(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
-      const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
+    procedure trgcpu.do_spill_read(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
+     const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
         tmpref,ref : treference;
@@ -122,7 +122,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.DoSpillWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+    procedure trgcpu.do_spill_written(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins: tai;
@@ -171,7 +171,7 @@ unit rgcpu;
       end;
 
 
-    procedure trgcpu.DoSpillReadWritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: longint;
+    procedure trgcpu.do_spill_readwritten(list : taasmoutput;instr : taicpu_abstract;pos: tai; regidx: word;
       const spilltemplist:Tspill_temp_list;const regs : tspillregsinfo);
       var
         helpins1, helpins2: tai;
@@ -220,7 +220,10 @@ end.
 
 {
   $Log$
-  Revision 1.7  2004-01-28 15:36:47  florian
+  Revision 1.8  2004-02-08 23:06:59  florian
+    * fixed compilation problem
+
+  Revision 1.7  2004/01/28 15:36:47  florian
     * fixed another couple of arm bugs
 
   Revision 1.6  2004/01/26 19:05:56  florian
