@@ -504,7 +504,7 @@ const
       label_remote_machine = 'Remote ~m~achine name';
       label_remote_port = 'Remote ~p~ort number';
       label_remote_config = 'Remote con~f~ig file';
-      label_remote_ident = '~emote ~i~dent file';
+      label_remote_ident = 'Remote ~i~dent file';
       label_remote_dir = 'Remote ~d~irectory';
       label_remote_command = 'Remote ~c~ommand';
 
@@ -1052,7 +1052,10 @@ const
 
 {
   $Log$
-  Revision 1.16  2002-11-28 12:55:47  pierre
+  Revision 1.17  2002-11-30 01:55:33  pierre
+   * fix a wrongly highlighted string
+
+  Revision 1.16  2002/11/28 12:55:47  pierre
    + added strings for remote support
 
   Revision 1.15  2002/11/21 17:52:28  pierre
