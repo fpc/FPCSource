@@ -231,6 +231,7 @@ asm
         orl     %eax,%eax
 .LHC_5:
 end;
+{$define FPC_SYSTEM_HAS_FPC_HELP_FAIL}
 
 procedure int_help_fail;assembler;[public,alias:'FPC_HELP_FAIL'];
 { should be called with a object that needs to be
@@ -372,8 +373,22 @@ asm
         popl    %edi
 end;
 
+{$define FPC_SYSTEM_HAS_FPC_HELP_FAIL_CLASS}
 
-{ checks for a correct vmt pointer }
+procedure int_help_fail_class;assembler;[public,alias:'FPC_HELP_FAIL_CLASS'];
+{ a non zero class must allways be disposed
+  VMT is allways at pos 0 }
+asm
+        orl    %esi,%esi
+        je     .LHFC_1
+        call   FPC_DISPOSE_CLASS
+        { set both object places to zero }
+        xorl    %esi,%esi
+        movl    %esi,8(%ebp)
+.LHFC_1:
+end;
+
+
 
 {$define FPC_SYSTEM_HAS_FPC_CHECK_OBJECT}
 
@@ -818,8 +833,8 @@ procedure int_boundcheck;[public,alias: 'FPC_BOUNDCHECK'];
 begin
 {$else not SYSTEMDEBUG}
 procedure int_boundcheck;assembler;[public,alias: 'FPC_BOUNDCHECK'];
-{$endif not SYSTEMDEBUG}
 var dummy_to_force_stackframe_generation_for_trace: Longint;
+{$endif not SYSTEMDEBUG}
 {
   called with:
     %ecx - value
@@ -869,7 +884,10 @@ end;
 
 {
   $Log$
-  Revision 1.55  1999-09-17 17:14:11  peter
+  Revision 1.56  1999-10-05 20:50:06  pierre
+   + code for fail for class
+
+  Revision 1.55  1999/09/17 17:14:11  peter
     + new heap manager supporting delphi freemem(pointer)
 
   Revision 1.54  1999/09/15 13:04:04  jonas
