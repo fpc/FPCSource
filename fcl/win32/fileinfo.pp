@@ -50,9 +50,9 @@ type
     procedure SetFileName (inp : string);
     procedure readVersionFromFile;
   protected
-    { Protected-Deklarationen}
   public
      constructor Create(AOwner: TComponent);  override;
+     destructor Destroy; override;
      function getVersionSetting(inp : string): String;
   published
     property fileName : string  read FFileName write SetFileName;
@@ -66,10 +66,17 @@ implementation
 { initialize everything }
 constructor TFileVersionInfo.Create(AOwner: TComponent);
 begin
-    FmyVersionStrings := TStringList.Create;
-    FmyVersionCategories  := TStringList.Create;
-    FFileName := '';
-    inherited create(Aowner);
+  inherited Create(AOwner);
+  FmyVersionStrings := TStringList.Create;
+  FmyVersionCategories  := TStringList.Create;
+  FFileName := '';
+end;
+
+destructor TFileVersionInfo.Destroy;
+begin
+  FmyVersionCategories.Free;
+  FmyVersionStrings.Free;
+  inherited;
 end;
 
 { Get filename, check if file exists and read info from file }
@@ -102,73 +109,99 @@ var struSize : Dword;
     s : string;
     ts  : TStringList;
 begin
-     ts := TStringList.Create;
-     ts.add('CompanyName');
-     ts.add('FileDescription');
-     ts.add('FileVersion');
-     ts.add('InternalName');
-     ts.add('LegalCopyright');
-     ts.add('OriginalFilename');
-     ts.add('ProductName');
-     ts.add('ProductVersion');
-
-     strPCopy(a,FFileName);
-     { get size of data }
-     struSize := GetFileVersionInfoSize(a,@someDummy);
-     if struSize=0 then exit;
-     p := NIL;
-     try
-       { get memory }
-       GetMem(p,struSize+10);
-       { get data }
-       if not GetFileVersionInfo(a,0,struSize,p) then exit;
-       { get root info }
-       if not VerQueryValue(p,'\',pp,@dwBytes) then exit;
-       move(pp^,theFixedInfo,dwBytes);
-
-       { get translation info }
-       if not VerQueryValue(p,'\VarFileInfo\Translation',pp,@dwBytes) then
-         exit;
-       move(pp^,theTrans,dwBytes);
-
-       { iterate over defined items }
-       for i:=0 to ts.count-1 do
-       begin
-         s := '\StringFileInfo\'+inttohex(theTrans.langID,4)+inttohex(theTrans.charset,4)+'\'+ts[i];
-         StrPCopy(a,s);
-         if not VerQueryValue(p,a,pp,@dwBytes) then exit;
-         if dwBytes>0 then
-         begin
-          move(pp^,txt,dwBytes);
-          FmyVersionCategories.add(ts[i]);
-          FmyVersionStrings.add(StrPas(txt));
-         end
-       end;
-     finally
-       { release memory }
-       FreeMem(p);
-     end;
+  ts := TStringList.Create;
+  try
+    ts.add('CompanyName');
+    ts.add('FileDescription');
+    ts.add('FileVersion');
+    ts.add('InternalName');
+    ts.add('LegalCopyright');
+    ts.add('OriginalFilename');
+    ts.add('ProductName');
+    ts.add('ProductVersion');
+ 
+    strPCopy(a,FFileName);
+    { get size of data }
+    struSize := GetFileVersionInfoSize(a,@someDummy);
+    if struSize=0 then exit;
+    p := NIL;
+    try
+      { get memory }
+      GetMem(p,struSize+10);
+      { get data }
+      if not GetFileVersionInfo(a,0,struSize,p) then exit;
+      { get root info }
+      if not VerQueryValue(p,'\',pp,dwBytes) then exit;
+      move(pp^,theFixedInfo,dwBytes);
+ 
+      { get translation info }
+      if not VerQueryValue(p,'\VarFileInfo\Translation',pp,dwBytes) then
+        exit;
+      move(pp^,theTrans,dwBytes);
+ 
+      { iterate over defined items }
+      for i:=0 to ts.count-1 do
+      begin
+        s := '\StringFileInfo\'+inttohex(theTrans.langID,4)+inttohex(theTrans.charset,4)+'\'+ts[i];
+        StrPCopy(a,s);
+        if not VerQueryValue(p,a,pp,dwBytes) then Continue;
+        if dwBytes>0 then
+        begin
+         move(pp^,txt,dwBytes);
+         FmyVersionCategories.add(ts[i]);
+         FmyVersionStrings.add(StrPas(txt));
+        end
+      end;
+    finally
+      { release memory }
+      FreeMem(p);
+    end;
+  finally ts.Free end;
 end;
 
 { get single version string }
 function TFileVersionInfo.getVersionSetting(inp : string): String;
 var i : integer;
 begin
-     result := '';
-     for i:= 0 to FmyVersionCategories.Count -1 do
-     begin
-          if lowercase(FmyVersionCategories[i])=lowercase(inp) then
-          begin
-               result := FmyVersionStrings[i];
-               break;
-          end;
-     end;
+  inp:=LowerCase(inp);
+  for i:= 0 to FmyVersionCategories.Count -1 do
+    if LowerCase(FmyVersionCategories[i])=inp then
+    begin
+      result := FmyVersionStrings[i];
+      Exit;
+    end;
+  result := '';
 end;
 
 end.
 {
   $Log$
-  Revision 1.4  2002-09-07 15:15:29  peter
+  Revision 1.5  2003-07-26 16:23:05  michael
+   corrected by Michalis:
+    * VerQueryValue parameters (last parameter should be dwBytes instead of
+      @dwBytes; you can call
+        VerQueryValue(...,pp,dwBytes) or
+        VerQueryValue(...,@pp,@dwBytes) but NOT
+        VerQueryValue(...,pp,@dwBytes) (and that was the case) )
+    * corrected
+        if not VerQueryValue(p,a,pp,dwBytes) then Exit;
+      to
+        if not VerQueryValue(p,a,pp,dwBytes) then Continue;
+      (when some info is missing the code should skip to the next info,
+      not exit)
+    + added destructor to Free FmyVersionStrings and FmyVersionCategories objects
+      to avoid memory leaks
+    + added ts.Free (and embedded some code in try..finally..end clause)
+      to avoid memory leaks
+    * inherited Create should be called at the beginning of constructor
+      (it's just a good coding practice)
+    * getVersionSetting re-written, optimised a little (LowerCase(inp) only once;
+      this function is not supposed to be really "optimised" but this little
+      improvement was so simple...) (note: when TStringList.CaseSensitive will
+      be implemented in FPC, this function can be implemented even simpler,
+      just by calling FmyVersionCategories.IndexOf)
+
+  Revision 1.4  2002/09/07 15:15:29  peter
     * old logs removed and tabs fixed
 
 }
