@@ -593,7 +593,7 @@ begin
   SystemTime.Hour := Regs.Ch;
   SystemTime.Minute := Regs.Cl;
   SystemTime.Second := Regs.Dh;
-  SystemTime.MilliSecond := Regs.Dl;
+  SystemTime.MilliSecond := Regs.Dl*10;
   Regs.ah := $2A;
   RealIntr($21, Regs);
   SystemTime.Year := Regs.Cx;
@@ -754,7 +754,10 @@ Finalization
 end.
 {
   $Log$
-  Revision 1.15  2003-04-02 15:18:28  peter
+  Revision 1.16  2003-06-03 07:54:27  michael
+  + Patch from Peter for millisecond timing
+
+  Revision 1.15  2003/04/02 15:18:28  peter
     * fix argument names
 
   Revision 1.14  2003/04/01 15:57:41  peter
