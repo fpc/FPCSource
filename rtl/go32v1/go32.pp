@@ -15,7 +15,9 @@
 
 unit go32;
 
+{$mode objfpc}
 {$S-}{no stack check, used by DPMIEXCP !! }
+
   interface
 
     const
@@ -574,16 +576,16 @@ end ['EAX','EDX'];
       begin
          asm
             pushl %ebx
-            movw  $0,U_GO32_INT31ERROR
+            movw  $0,INT31ERROR
             movl  flag,%ebx
             testb $1,%bl
-            jz    1f
-            movw  %ax,U_GO32_INT31ERROR
+            jz    .L1
+            movw  %ax,INT31ERROR
             xorl  %eax,%eax
-            jmp   2f
-            1:
+            jmp   .L2
+            .L1:
             movl  $1,%eax
-            2:
+            .L2:
             popl  %ebx
          end;
       end;
@@ -1104,6 +1106,9 @@ end ['EAX','EDX'];
          sti
       end;
 
+    var
+      _run_mode : word;external name '_run_mode';
+
     function get_run_mode : word;
 
       begin
@@ -1128,6 +1133,9 @@ end ['EAX','EDX'];
            call test_int31
          end;
       end;
+
+    var
+      _core_selector : word;external name '_core_selector';
 
     function get_core_selector : word;
 
@@ -1203,7 +1211,11 @@ end.
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1999-06-01 13:23:09  peter
+    * fixes to work with the new makefile
+    * os2 compiles now correct under linux
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.12  1998/08/27 10:30:50  pierre

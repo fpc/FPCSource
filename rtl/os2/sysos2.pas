@@ -100,6 +100,13 @@ const   UnusedHandle=$ffff;
         StdOutputHandle=1;
         StdErrorHandle=2;
 
+var
+{ C-compatible arguments and environment }
+  argc  : longint;external name '_argc';
+  argv  : ppchar;external name '_argv';
+  envp  : ppchar;external name '_environ';
+
+
 implementation
 
 {$I SYSTEM.INC}
@@ -669,10 +676,11 @@ var pib:Pprocessinfoblock;
 begin
     {Determine the operating system we are running on.}
     asm
+        movl $0,os_mode
         movw $0x7f0a,%ax
         call syscall
-        testw $512,%bx         {Bit 9 is OS/2 flag.}
-        setnzl os_mode
+        testw$512,%bx         {Bit 9 is OS/2 flag.}
+        setnzb os_mode
         testw $4096,%bx
         jz .LnoRSX
         movl $2,os_mode
@@ -742,7 +750,11 @@ begin
 end.
 {
   $Log$
-  Revision 1.15  1999-05-17 21:52:44  florian
+  Revision 1.16  1999-06-01 13:23:16  peter
+    * fixes to work with the new makefile
+    * os2 compiles now correct under linux
+
+  Revision 1.15  1999/05/17 21:52:44  florian
     * most of the Object Pascal stuff moved to the system unit
 
 }

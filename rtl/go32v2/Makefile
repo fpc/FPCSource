@@ -63,10 +63,10 @@ LOADEROBJECTS=prt0 exceptn fpu
 
 # Unit Objects
 UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
-	  go32 initc dpmiexcp profile dxeload emu387 \
+          go32 initc dpmiexcp profile dxeload emu387 \
           dos crt objects printer graph \
-	  sysutils math typinfo \
-	  cpu mmx getopts heaptrc \
+          sysutils math typinfo \
+          cpu mmx getopts heaptrc \
           msmouse
 
 
@@ -189,7 +189,7 @@ strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 # System Dependent Units
 #
 
-go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
+go32$(PPUEXT) : go32.pp objpas$(PPUEXT) $(SYSTEMPPU)
 
 dpmiexcp$(PPUEXT) : dpmiexcp.pp exceptn$(OEXT) $(SYSTEMPPU)
 	$(COMPILER) -Sg dpmiexcp.pp $(REDIR)
@@ -255,7 +255,11 @@ msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.15  1999-05-13 22:38:02  peter
+# Revision 1.16  1999-06-01 13:23:13  peter
+#   * fixes to work with the new makefile
+#   * os2 compiles now correct under linux
+#
+# Revision 1.15  1999/05/13 22:38:02  peter
 #   * -Sg for heaptrc
 #
 # Revision 1.14  1999/05/04 23:23:53  pierre

@@ -18,75 +18,121 @@
 # spaces, or the makefile won't work anymore after you save.
 
 #####################################################################
-# Start of configurable section.
-# Please note that all these must be set in the main makefile, and
-# should be set there.
-# Don't remove the indef statements. They serve to avoid conflicts
-# with the main makefile.
+# Makefile Defaults
 #####################################################################
 
-# What is the target operating system ?
-ifndef OS_TARGET
-OS_TARGET=os2
-endif
+# Default place of the makefile.fpc
+DEFAULTFPCDIR=../..
 
-# What is the target processor :
-ifndef CPU
-CPU=i386
-#CPU=m68k
-endif
+# set target and cpu which are required
+override OS_TARGET=os2
+override CPU=i386
 
-# What compiler to use ?
-ifndef PP
-PP=ppc386
-endif
+# Where are the include files
+RTL=..
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU)
 
-# What options to pass to the compiler ?
-# You may want to specify a config file or error definitions file here.
-ifndef OPT
-OPT=
-endif
+# Where to place the result files
+TARGETDIR=.
 
-# Where is the PPUMOVE program ?
-ifndef PPUMOVE
-PPUMOVE=ppumove
-endif
+# These units belong to the RTL
+UNITPREFIX=rtl
 
-# Set this to 'shared' or 'static'
-# LIBTYPE=shared
-
-# AOUT should be defined in main makefile.
-# But you can set it here too.
-# AOUT = -DAOUT
-
-# Do you want to link to the C library ?
-# Standard it is NO. You can set it to YES to link in th C library.
-ifndef LINK_TO_C
-LINK_TO_C=NO
-endif
 
 #####################################################################
-# End of configurable section.
-# Do not edit after this line.
+# Own defaults
 #####################################################################
 
+# Paths
+OBJPASDIR=$(RTL)/objpas
+
+# Define os2 system Unit name
+SYSTEMUNIT=sysos2
+
+# Loaders
+LOADEROBJECTS=prt0 prt1 code2 code3
+
+# Unit Objects
+UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
+	  os2def doscalls moncalls kbdcalls viocalls \
+	  dos crt objects printer \
+	  objpas sysutils math typinfo \
+	  cpu mmx getopts heaptrc \
+
+
 #####################################################################
-# System independent
+# Common targets
 #####################################################################
 
-# Where are the include files ?
-INC=../inc
-PROCINC=../$(CPU)
-CFG=../cfg
-OBJPASDIR=../objpas
+.PHONY: all clean install info \
+	staticlib sharedlib libsclean \
+	staticinstall sharedinstall libinstall \
 
-# Get some defaults for Programs and OSes.
-# This will set the following variables :
-# inlinux indos COPY REPLACE DEL INSTALL INSTALLEXE MKDIR
-# It will also set OPT for cross-compilation, and add required options.
-# also checks for config file.
-# it expects INC PROCINC to be set !!
-include $(CFG)/makefile.cfg
+all: testfpcmake fpc_all
+
+clean: testfpcmake fpc_clean
+
+install: testfpcmake fpc_install
+
+info: testfpcmake fpc_info
+
+staticlib: testfpcmake fpc_staticlib
+
+sharedlib: testfpcmake fpc_sharedlib
+
+libsclean: testfpcmake fpc_libsclean
+
+staticinstall: testfpcmake fpc_staticinstall
+
+sharedinstall: testfpcmake fpc_sharedinstall
+
+libinstall: testfpcmake fpc_libinstall
+
+
+#####################################################################
+# Include default makef
+#####################################################################
+
+# test if FPCMAKE is still valid
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifeq ($(FPCMAKE),)
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@exit
+else
+include $(FPCMAKE)
+testfpcmake:
+endif
+
+
+#####################################################################
+# Include system unit dependencies
+#####################################################################
+
+SYSTEMPPU=$(addsuffix $(PPUEXT),$(SYSTEMUNIT))
 
 # Get the system independent include file names.
 # This will set the following variables :
@@ -103,45 +149,13 @@ SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
 # Put system unit dependencies together.
 SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
 
-#####################################################################
-# System dependent
-#####################################################################
-
-PPUEXT=.ppo
-ASMEXT=.so2
-OEXT=.oo2
-
-# Define Linux Units
-SYSTEMPPU=sysos2$(PPUEXT)
-OBJECTS=strings dos crt objpas sysutils
-# objects still not implemented !!
-
-LOADERS=prt0 prt1 code2 code3
 
 #####################################################################
-# System independent Makefile
+# Dependencies
 #####################################################################
 
-# Add Prefix and Suffixes
-OBJLOADERS=$(addsuffix $(OEXT), $(LOADERS))
-PPUOBJECTS=$(addsuffix $(PPUEXT), $(OBJECTS))
-
-.PHONY : all install clean \
-	 libs libsclean \
-	 diffs diffclean \
-
-all : $(OBJLOADERS) $(PPUOBJECTS)
-
-install : all
-	$(MKDIR) $(UNITINSTALLDIR)
-	$(INSTALL) *$(PPUEXT) *$(OEXT) $(UNITINSTALLDIR)
-
-clean :
-	-$(DEL) *$(OEXT) *$(ASMEXT) *$(PPUEXT) log
-
-#####################################################################
-# Files
-#####################################################################
+vpath %.pas $(INC) $(PROCINC)
+vpath %.pp $(INC) $(PROCINC)
 
 #
 # Loaders
@@ -150,6 +164,7 @@ clean :
 %$(OEXT) : %.as
 	as -o $*$(OEXT) $*.as
 
+
 #
 # Base Units (System, strings, os-dependent-base-unit)
 #
@@ -157,99 +172,73 @@ clean :
 $(SYSTEMPPU) : sysos2.pas $(SYSDEPS)
 	$(COMPILER) -Us -Sg sysos2.pas $(REDIR)
 
-strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
-                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
                    $(SYSTEMPPU)
-	$(COMPILER) $(INC)/strings.pp $(REDIR)
-
-#
-# Delphi Object Model
-#
-
-objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp $(INC)/except.inc
-	$(COPY) $(OBJPASDIR)/objpas.pp .
-	$(COMPILER) -S2 -I$(OBJPASDIR) objpas $(REDIR)
-	$(DEL) objpas.pp
-
-SYSUTILINC = $(wildcard $(OBJPASDIR)/*.inc)
-
-sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(SYSUTILINC) filutil.inc disk.inc
-	$(COPY) $(OBJPASDIR)/sysutils.pp .
-	$(COMPILER) -S2 -I$(OBJPASDIR) sysutils $(REDIR)
-	$(DEL) sysutils.pp
-
 
 #
 # System Dependent Units
 #
 
+doscalls$(PPUEXT) : doscalls.pas strings$(PPUEXT) objects$(PPUEXT) $(SYSTEMPPU)
+
+kbdcalls$(PPUEXT) : kbdcalls.pas $(SYSTEMPPU)
+
+moncalls$(PPUEXT) : moncalls.pas strings$(PPUEXT) $(SYSTEMPPU)
+
 #
 # TP7 Compatible RTL Units
 #
 
-dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) $(SYSTEMPPU)
-	$(COMPILER) dos.pas $(REDIR)
+dos$(PPUEXT) : dos.pas $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+	       $(SYSTEMPPU)
 
-crt$(PPUEXT) : crt.pas dos$(PPUEXT)
-	$(COMPILER) crt.pas $(REDIR)
+crt$(PPUEXT) : crt.pas $(INC)/textrec.inc $(SYSTEMPPU)
 
-#objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
-#	 $(COPY) $(INC)/objects.pp .
-#	 $(COMPILER) $(OPT) objects $(REDIR)
-#	 $(DEL) objects.pp
+objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
+
+printer$(PPUEXT) : printer.pas $(INC)/textrec.inc $(SYSTEMPPU)
+
+#graph$(PPUEXT) : graph.pp
 
 #
-# Other RTL Units
+# Delphi Compatible Units
 #
 
-#####################################################################
-# Libs
-#####################################################################
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+                    filutil.inc disk.inc objpas$(PPUEXT)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
 
-libs	: all libfpc$(LIBEXT)
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
 
-libfpc.so:
-	$(PPUMOVE) -o fpc *.ppu
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
 
-libfpc.a:
-	$(PPUMOVE) -s -o fpc *.ppu
+#
+# Other system-independent RTL Units
+#
 
-libinstall : libs
-	$(INSTALLEXE) libfpc$(LIBEXT) $(LIBINSTALLDIR)
-	$(INSTALL) *$(PPLEXT) $(UNITINSTALLDIR)
-	ldconfig
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
 
-libsclean : clean
-	-$(DEL) *.a *.so *$(PPLEXT)
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 
-#####################################################################
-# Default targets
-#####################################################################
+getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
-include $(CFG)/makefile.def
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+
+#
+# Other system-dependent RTL Units
+#
 
 #
 # $Log$
-# Revision 1.6  1999-02-25 10:01:25  michael
-# + Fixed type in strings target
-#
-# Revision 1.5  1999/02/25 07:39:22  michael
-# * Joined strings and sysutils
-#
-# Revision 1.4  1998/11/24 19:51:21  jonas
-#   + added warning about TABs
-#
-# Revision 1.3  1998/10/27 15:14:03  pierre
-#   * update sys_os2 so that it compiles with current RTL
-#     (do_isdevice might be wrong !! Daniel could you check this !!)
-#   * fixed makefile (works from go32v2 compiler)
-#     I had to remove library=shared !!
-#     (it tried to use ld with -CD !!)
-#
-# Revision 1.2  1998/10/11 13:46:31  michael
-# Sysutils changes
-#
-# Revision 1.1  1998/09/10 14:17:51  peter
-#   -renamed
+# Revision 1.7  1999-06-01 13:23:14  peter
+#   * fixes to work with the new makefile
+#   * os2 compiles now correct under linux
 #
 #

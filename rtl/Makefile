@@ -17,6 +17,9 @@
 # Start of configurable section
 #####################################################################
 
+# Default place of makefile.fpc
+DEFAULTFPCDIR=..
+
 # Set redir to YES if you want a log file to be kept.
 ifndef REDIR
 REDIR=NO
@@ -38,17 +41,6 @@ endif
 ifndef ERRORFILE
 ERRORFILE=
 endif
-
-# Everything else has been moved to rtl/cfg/makefile.cfg
-
-
-#####################################################################
-# Include default makefile
-#####################################################################
-
-CFG=cfg
-
-include $(CFG)/makefile.cfg
 
 
 #######################################################################
@@ -78,7 +70,7 @@ else
 override REDIR:= >> log
 endif
 else
-override REDIR:= >> con
+override REDIR:=
 endif
 
 # Variables to export
@@ -95,16 +87,63 @@ export PP OPT REDIR REDIRFILE ERRORFILE
 	clean install native diffs diffclean \
 	libs libinstall \
 
-all: rtls
+all: native
 
 clean:
-	make -C template clean
-	make -C go32v1 clean
-	make -C go32v2 clean
-	make -C linux clean
-	make -C win32 clean
-	make -C os2 clean
+	$(MAKE) -C go32v1 clean
+	$(MAKE) -C go32v2 clean
+	$(MAKE) -C linux clean
+	$(MAKE) -C win32 clean
+	$(MAKE) -C os2 clean
 	-$(DEL) *.dif
+
+
+#####################################################################
+# Include default makefile
+#####################################################################
+
+# test if FPCMAKE is still valid
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+endif
+endif
+ifdef FPCMAKE
+ifeq ($(strip $(wildcard $(FPCMAKE))),)
+FPCDIR=
+FPCMAKE=
+endif
+endif
+
+ifndef FPCDIR
+ifdef DEFAULTFPCDIR
+FPCDIR=$(DEFAULTFPCDIR)
+endif
+endif
+
+ifndef FPCMAKE
+ifdef FPCDIR
+FPCMAKE=$(FPCDIR)/makefile.fpc
+else
+FPCMAKE=makefile.fpc
+endif
+endif
+
+override FPCMAKE:=$(strip $(wildcard $(FPCMAKE)))
+ifndef FPCMAKE
+testfpcmake:
+	@echo makefile.fpc not found!
+	@echo Check the FPCMAKE and FPCDIR environment variables.
+	@stopnow
+ifndef NODEFAULTALL
+all: testfpcmake
+endif
+install: testfpcmake
+clean: testfpcmake
+else
+include $(FPCMAKE)
+testfpcmake:
+endif
 
 
 ############################################################################
@@ -116,22 +155,23 @@ native: rtl$(OS_SOURCE)
 rtls: rtlgo32v1 rtlgo32v2 rtllinux rtlos2 rtlwin32
 
 rtlgo32v1:
-	make -C go32v1
+	$(MAKE) -C go32v1
 
 rtlgo32v2:
-	make -C go32v2
+	$(MAKE) -C go32v2
 
 rtllinux:
-	make -C linux
+	$(MAKE) -C linux
 
 rtlos2:
-	make -C os2
+	$(MAKE) -C os2
 
 rtlwin32:
-	make -C win32
+	$(MAKE) -C win32
 
 rtlamiga:
-	make -C amiga
+	$(MAKE) -C amiga
+
 
 ############################################################################
 # Libs
@@ -142,19 +182,19 @@ nativelibs : $(OS_SOURCE)libs
 libs: go32v1libs go32v2libs linuxlibs os2libs win32libs
 
 go32v1libs:
-	make -C go32v1 libs
+	$(MAKE) -C go32v1 libs
 
 go32v2libs:
-	make -C go32v2 libs
+	$(MAKE) -C go32v2 libs
 
 linuxlibs:
-	make -C linux libs
+	$(MAKE) -C linux libs
 
 os2libs:
-	make -C os2 libs
+	$(MAKE) -C os2 libs
 
 win32libs:
-	make -C win32 libs
+	$(MAKE) -C win32 libs
 
 
 ############################################################################
@@ -166,15 +206,15 @@ install: install_linux install_go32v1 install_go32v2 install_os2 install_win32
 native_install: install_$(OS_SRC)
 
 install_go32v1:
-	make -C go32v1 install
+	$(MAKE) -C go32v1 install
 install_go32v2:
-	make -C go32v2 install
+	$(MAKE) -C go32v2 install
 install_linux:
-	make -C linux install
+	$(MAKE) -C linux install
 install_os2:
-	make -C os2 install
+	$(MAKE) -C os2 install
 install_win32:
-	make -C win32 install
+	$(MAKE) -C win32 install
 
 
 ############################################################################
@@ -187,15 +227,15 @@ libinstall: libinstall_linux libinstall_go32v1 libinstall_go32v2 \
 native_libinstall: libinstall_$(OS_SOURCE)
 
 libinstall_go32v1:
-	make -C go32v1 libinstall
+	$(MAKE) -C go32v1 libinstall
 libinstall_go32v2:
-	make -C go32v2 libinstall
+	$(MAKE) -C go32v2 libinstall
 libinstall_linux:
-	make -C linux libinstall
+	$(MAKE) -C linux libinstall
 libinstall_os2:
-	make -C os2 libinstall
+	$(MAKE) -C os2 libinstall
 libinstall_win32:
-	make -C win32 libinstall
+	$(MAKE) -C win32 libinstall
 
 
 ############################################################################
@@ -212,59 +252,40 @@ makefile.dif : makefile
 diffs_rtl: makefile.dif
 
 diffs_inc:
-	make -C inc diffs
+	$(MAKE) -C inc diffs
 diffs_i386:
-	make -C i386 diffs
+	$(MAKE) -C i386 diffs
 diffs_m68k:
-	make -C m68k diffs
+	$(MAKE) -C m68k diffs
 diffs_cfg:
-	make -C cfg diffs
+	$(MAKE) -C cfg diffs
 diffs_template:
-	make -C template diffs
+	$(MAKE) -C template diffs
 diffs_go32v1:
-	make -C go32v1 diffs
+	$(MAKE) -C go32v1 diffs
 diffs_go32v2:
-	make -C go32v2 diffs
+	$(MAKE) -C go32v2 diffs
 diffs_linux:
-	make -C linux diffs
+	$(MAKE) -C linux diffs
 diffs_os2:
-	make -C os2 diffs
+	$(MAKE) -C os2 diffs
 diffs_win32:
-	make -C win32 diffs
+	$(MAKE) -C win32 diffs
 
 diffclean:
-	make -C template diffclean
-	make -C dos diffclean
-	make -C go32v1 diffclean
-	make -C go32v2 diffclean
-	make -C linux diffclean
-	make -C os2 diffclean
-	make -C win32 diffclean
+	$(MAKE) -C template diffclean
+	$(MAKE) -C dos diffclean
+	$(MAKE) -C go32v1 diffclean
+	$(MAKE) -C go32v2 diffclean
+	$(MAKE) -C linux diffclean
+	$(MAKE) -C os2 diffclean
+	$(MAKE) -C win32 diffclean
 	-$(DEL) *.dif
 
 #
 # $Log$
-# Revision 1.6  1999-05-19 10:59:48  peter
-#   * remove utils
+# Revision 1.7  1999-06-01 13:23:07  peter
+#   * fixes to work with the new makefile
+#   * os2 compiles now correct under linux
 #
-# Revision 1.5  1999/02/24 15:59:04  michael
-# * fixed clean target
-#
-# Revision 1.4  1998/12/21 14:26:52  pierre
-#  * go32v? directory change reflected
-#
-# Revision 1.3  1998/10/22 16:45:23  pierre
-#  + added rtlamiga target
-#
-# Revision 1.2  1998/09/16 16:47:20  peter
-#   * merged fixes
-#
-# Revision 1.1.2.1  1998/09/16 16:17:46  peter
-#   * updates to install with go32,win32
-#
-# Revision 1.1	1998/09/10 14:19:02  peter
-#   - renamed
-#
-# Revision 1.10  1998/09/04 17:32:36  pierre
-#   * REDIR handling corrected
 #

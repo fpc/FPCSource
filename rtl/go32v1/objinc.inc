@@ -26,7 +26,7 @@ begin
       movw handle,%bx
       movb $0x3e,%ah
       pushl %ebp
-      intl $0x21
+      int $0x21
       popl %ebp
    end;
    FileClose := 0;
@@ -173,7 +173,11 @@ END;
 
 {
   $Log$
-  Revision 1.1  1998-12-21 13:07:02  peter
+  Revision 1.2  1999-06-01 13:23:10  peter
+    * fixes to work with the new makefile
+    * os2 compiles now correct under linux
+
+  Revision 1.1  1998/12/21 13:07:02  peter
     * use -FE
 
   Revision 1.4  1998/07/06 12:26:19  carl

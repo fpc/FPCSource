@@ -157,7 +157,7 @@ on return number of bytes of data moved.}
 * For a detailed description of this call see the chapter "Character Device
   Monitors" in the IBM Operating System/2 Version 1.2 I/O Subsystems And
   Device Support Volume 1.}
-function DosMonRead(var InBuf;WaitFlag:byte;var DataBuf;
+function DosMonRead(var InBuf;WaitFlag:word;var DataBuf;
                                                       var ByteCount:word):word;
 
 {Establish an input and output buffers to monitor an I/O stream for a character
@@ -239,6 +239,8 @@ external 'EMXWRAP' index 404;
 {external 'MONCALLS' index 4;}
 
 function DosMonOpen(DevName:string;var MonHandle:word):word;
+var
+  i : byte;
 begin
     if DevName[0]=#255 then
     begin

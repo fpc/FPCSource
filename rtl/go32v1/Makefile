@@ -55,11 +55,12 @@ SYSTEMUNIT=system
 LOADEROBJECTS=prt0
 
 # Unit Objects
-UNITOBJECTS=$(SYSTEMUNIT) strings go32 \
-	  dos crt objects printer \
-	  objpas sysutils math typinfo \
+UNITOBJECTS=$(SYSTEMUNIT) objpas strings \
+	  go32 \
+          dos crt objects printer \
+	  sysutils math typinfo \
 	  cpu mmx getopts heaptrc \
-	  msmouse
+          msmouse
 
 #####################################################################
 # Common targets
@@ -170,29 +171,25 @@ prt0$(OEXT) : prt0.as
 $(SYSTEMPPU) : system.pp $(SYSDEPS)
 	$(COMPILER) -Us -Sg system.pp $(REDIR)
 
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc $(SYSTEMPPU)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp $(REDIR)
+
 strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc \
 		   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc \
 		   $(SYSTEMPPU)
 
-go32$(PPUEXT) : go32.pp $(SYSTEMPPU)
-
-#
-# Delphi Object Model
-#
-
-include $(OBJPASDIR)/makefile.op
-
-
 #
 # System Dependent Units
 #
+
+go32$(PPUEXT) : go32.pp objpas$(PPUEXT) $(SYSTEMPPU)
 
 #
 # TP7 Compatible RTL Units
 #
 
 dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc \
-	       go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
+               go32$(PPUEXT) strings$(PPUEXT) $(SYSTEMPPU)
 
 crt$(PPUEXT) : crt.pp $(INC)/textrec.inc go32$(PPUEXT) $(SYSTEMPPU)
 
@@ -201,7 +198,21 @@ objects$(PPUEXT) : $(INC)/objects.pp objinc.inc $(SYSTEMPPU)
 printer$(PPUEXT) : printer.pp $(SYSTEMPPU)
 
 #
-# Other RTL Units
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+		    filutil.inc disk.inc objpas$(PPUEXT) dos$(PPUEXT) go32$(PPUEXT)
+	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/sysutils.pp $(REDIR)
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+	$(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp $(REDIR)
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+	$(COMPILER) $(OBJPASDIR)/math.pp $(REDIR)
+
+#
+# Other system-independent RTL Units
 #
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMPPU)
@@ -211,12 +222,21 @@ mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMPPU)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMPPU)
 
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMPPU)
+	$(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
+
+#
+# Other system-dependent RTL Units
+#
 
 msmouse$(PPUEXT) : msmouse.pp $(SYSTEMPPU)
 
 #
 # $Log$
-# Revision 1.6  1999-04-08 12:22:52  peter
+# Revision 1.7  1999-06-01 13:23:08  peter
+#   * fixes to work with the new makefile
+#   * os2 compiles now correct under linux
+#
+# Revision 1.6  1999/04/08 12:22:52  peter
 #   * removed os.inc
 #
 #

@@ -220,7 +220,7 @@ asm
         movl    h,%ebx
         movb    $0x3e,%ah
         pushl   %ebp
-        intl    $0x21
+        int     $0x21
         popl    %ebp
         jnc     .LCLOSE1
         movw    %ax,inoutres
@@ -614,7 +614,11 @@ Begin
 End.
 {
   $Log$
-  Revision 1.4  1999-04-08 12:22:57  peter
+  Revision 1.5  1999-06-01 13:23:11  peter
+    * fixes to work with the new makefile
+    * os2 compiles now correct under linux
+
+  Revision 1.4  1999/04/08 12:22:57  peter
     * removed os.inc
 
   Revision 1.3  1999/01/18 10:05:49  pierre
