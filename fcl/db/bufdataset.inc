@@ -41,8 +41,7 @@ end;
 function TBufDataset.AllocRecordBuffer: PChar;
 
 begin
-  result := AllocRecord;
-  ReAllocMem(result,RecordSize+sizeof(TBufBookmark));
+  result := AllocRecord(sizeof(TBufBookmark));
 end;
 
 procedure TBufDataset.FreeRecordBuffer(var Buffer: PChar);
@@ -193,7 +192,7 @@ begin
     ReAllocMem(FBBuffers,FBBuffercount*SizeOf(PChar));
 
     repeat
-    FBBuffers[FBRecordCount+i] := AllocRecord;
+    FBBuffers[FBRecordCount+i] := AllocRecord(0);
     b := (getnextrecord(FBBuffers[FBRecordCount+i])<>grOk);
     inc(i);
     until (i = FPacketRecords) or b;
