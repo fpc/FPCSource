@@ -1046,11 +1046,13 @@ interface
                                   op:=A_AND;
                                   mboverflow:=false;
                                   unsigned:=false;
-{$IfNDef NoSetConstNot}
-                                  If (right.nodetype = setconstn) then
+                                  If (not (nf_swaped in flags)) and
+                                     (right.nodetype = setconstn) then
                                     right.location.reference.offset := not(right.location.reference.offset)
+                                  Else If (nf_swaped in flags) and
+                                     (left.nodetype = setconstn) then
+                                    left.location.reference.offset := not(left.location.reference.offset)
                                   Else
-{$EndIf NoNosetConstNot}
                                     extra_not:=true;
                                 end
                                else
@@ -2283,7 +2285,10 @@ begin
 end.
 {
   $Log$
-  Revision 1.14  2001-06-18 20:36:25  peter
+  Revision 1.15  2001-06-25 14:11:37  jonas
+    * fixed set bug discovered by Carl (merged)
+
+  Revision 1.14  2001/06/18 20:36:25  peter
     * -Ur switch (merged)
     * masm fixes (merged)
     * quoted filenames for go32v2 and win32
