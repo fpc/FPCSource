@@ -271,6 +271,19 @@ unit pexpr;
               statement_syssym:=p1;
             end;
 
+          in_addr_x :
+            begin
+              consume(LKLAMMER);
+              in_args:=true;
+              p1:=comp_expr(true);
+              p1:=gensinglenode(addrn,p1);
+              Must_be_valid:=false;
+              do_firstpass(p1);
+              pd:=p1^.resulttype;
+              consume(RKLAMMER);
+              statement_syssym:=p1;
+            end;
+
           in_seg_x :
             begin
               consume(LKLAMMER);
@@ -1965,7 +1978,10 @@ unit pexpr;
 end.
 {
   $Log$
-  Revision 1.93  1999-04-15 09:00:08  peter
+  Revision 1.94  1999-04-17 13:12:17  peter
+    * addr() internal
+
+  Revision 1.93  1999/04/15 09:00:08  peter
     * fixed property write
 
   Revision 1.92  1999/04/08 20:59:43  florian

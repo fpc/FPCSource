@@ -187,7 +187,9 @@ Function odd(l:Longint):Boolean;
 
 {$ifndef RTLLITE}
 Function  ptr(sel,off:Longint):pointer;
-Function  Addr (Var X):pointer;
+{$ifndef INTERNALADDR}
+Function Addr(var x):pointer;
+{$endif}
 Function  Cseg:Word;
 Function  Dseg:Word;
 Function  Sseg:Word;
@@ -452,7 +454,10 @@ const
 
 {
   $Log$
-  Revision 1.54  1999-04-08 15:57:56  peter
+  Revision 1.55  1999-04-17 13:10:26  peter
+    * addr() internal
+
+  Revision 1.54  1999/04/08 15:57:56  peter
     + subrange checking for readln()
 
   Revision 1.53  1999/03/16 17:49:37  jonas

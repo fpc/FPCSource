@@ -66,6 +66,7 @@ begin
 {$IfnDef OLDVAL}
   p^.insert(new(psyssym,init('VAL',in_val_x)));
 {$EndIf OLDVAL}
+  p^.insert(new(psyssym,init('ADDR',in_addr_x)));
 end;
 
 
@@ -259,7 +260,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.19  1999-04-07 15:31:12  pierre
+  Revision 1.20  1999-04-17 13:12:20  peter
+    * addr() internal
+
+  Revision 1.19  1999/04/07 15:31:12  pierre
     * all formaldefs are now a sinlge definition
       cformaldef (this was necessary for double_checksum)
     + small part of double_checksum code

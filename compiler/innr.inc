@@ -51,6 +51,7 @@ const
    in_break             = 39;
    in_continue          = 40;
    in_assert_x_y        = 41;
+   in_addr_x            = 42;
 
 { Internal constant functions }
    in_const_trunc      = 100;
@@ -72,7 +73,10 @@ const
    in_const_sin        = 116;
 {
   $Log$
-  Revision 1.10  1998-10-05 12:32:45  peter
+  Revision 1.11  1999-04-17 13:12:19  peter
+    * addr() internal
+
+  Revision 1.10  1998/10/05 12:32:45  peter
     + assert() support
 
   Revision 1.9  1998/10/02 09:24:20  peter

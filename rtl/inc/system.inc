@@ -240,10 +240,12 @@ Begin
   ptr:=pointer(off);
 End;
 
-Function Addr (Var X) : Pointer;
-Begin
-  Addr:=@(X);
-End;
+{$ifndef INTERNALADDR}
+Function Addr(var x):pointer;
+begin
+  Addr:=@x;
+end;
+{$endif}
 
 Function CSeg : Word;
 Begin
@@ -540,7 +542,10 @@ end;
 
 {
   $Log$
-  Revision 1.56  1999-04-15 12:20:01  peter
+  Revision 1.57  1999-04-17 13:10:25  peter
+    * addr() internal
+
+  Revision 1.56  1999/04/15 12:20:01  peter
     + finalization support
 
   Revision 1.55  1999/03/01 15:41:03  peter
