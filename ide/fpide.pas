@@ -169,7 +169,7 @@ uses
   ColorSel,
 {$endif FVISION}
   Systems,
-  WUtils,WHlpView,WViews,WHTMLHlp,WHelp,
+  WUtils,WHlpView,WViews,WHTMLHlp,WHelp,WConsole,
   FPConst,FPVars,FPUtils,FPSwitch,FPIni,FPIntf,FPCompil,FPHelp,
   FPTemplt,FPCalc,FPUsrScr,FPTools,{$ifndef NODEBUG}FPDebug,{$endif}FPRedir,
   FPDesk,FPCodCmp,FPCodTmp;
@@ -836,6 +836,7 @@ end;
 
 function TIDEApp.DoExecute(ProgramPath, Params, InFile,OutFile,ErrFile: string; ExecType: TExecType): boolean;
 var CanRun: boolean;
+    ConsoleMode : TConsoleMode;
 {$ifndef Unix}
     PosExe: sw_integer;
 {$endif Unix}
@@ -854,6 +855,7 @@ begin
 
     if ExecType<>exNoSwap then
       ShowUserScreen;
+    SaveConsoleMode(ConsoleMode);
 
     if ExecType=exDosShell then
       WriteShellMsg;
@@ -899,6 +901,7 @@ begin
         DoneKeyboard;
       end;
 {$endif}
+    RestoreConsoleMode(ConsoleMode);
     if ExecType<>exNoSwap then
       ShowIDEScreen;
   end;
@@ -1164,7 +1167,10 @@ end;
 END.
 {
   $Log$
-  Revision 1.4  2001-10-01 00:24:09  pierre
+  Revision 1.5  2001-10-02 23:56:30  pierre
+   * fix bug 1619 by using wconsole unit
+
+  Revision 1.4  2001/10/01 00:24:09  pierre
    * fix several help problems
 
   Revision 1.3  2001/08/05 12:23:00  peter
