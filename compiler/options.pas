@@ -529,7 +529,11 @@ begin
                       c:=more[1];
                       Delete(more,1,1);
                       case c of
-                       'D' : utilsdirectory:=FixPath(More,true);
+                       'D' : begin
+       			      if not ispara then
+			       DefaultReplacements(More);
+			      utilsdirectory:=FixPath(More,true);
+			     end;
                        'e' : SetRedirectFile(More);
                        'E' : OutputExeDir:=FixPath(More,true);
                        'i' : if ispara then
@@ -1360,7 +1364,10 @@ end;
 end.
 {
   $Log$
-  Revision 1.47  2000-01-07 01:14:27  peter
+  Revision 1.48  2000-01-07 22:22:02  marco
+   * Added $target support for -FD
+
+  Revision 1.47  2000/01/07 01:14:27  peter
     * updated copyright to 2000
 
   Revision 1.46  2000/01/06 15:48:59  peter
