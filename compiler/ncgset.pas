@@ -596,6 +596,9 @@ implementation
                 begin
                   { use location.register as scratch register here }
                   inc(right.location.reference.offset,tordconstnode(left).value shr 3);
+                  { adjust for endianess differences }
+                  if (source_info.endian <> target_info.endian) then
+                    right.location.reference.offset := right.location.reference.offset xor 3;
                   cg.a_load_ref_reg(exprasmlist, OS_8, right.location.reference, location.register);
                   location_release(exprasmlist,right.location);
                   cg.a_op_const_reg(exprasmlist,OP_SHR, tordconstnode(left).value and 7,
@@ -612,7 +615,7 @@ implementation
                   location_freetemp(exprasmlist,left.location);
                   location_release(exprasmlist,left.location);
                   cg.a_param_reg(exprasmlist,OS_8,pleftreg,paramanager.getintparaloc(2));
-                  cg.a_param_ref(exprasmlist,OS_ADDR,right.location.reference,paramanager.getintparaloc(1));
+                  cg.a_paramaddr_ref(exprasmlist,right.location.reference,paramanager.getintparaloc(1));
                   cg.a_call_name(exprasmlist,'FPC_SET_IN_BYTE');
                   { result of value is always one full register }
                   r.enum:=R_INTREGISTER;
@@ -1121,7 +1124,12 @@ begin
 end.
 {
   $Log$
-  Revision 1.31  2003-04-25 08:25:26  daniel
+  Revision 1.32  2003-05-01 12:26:50  jonas
+    * fixed endian issue in inlined in-test for smallsets
+    * pass the address of normalsets to fpc_set_in_set_byte instead of the
+      contents of the first 4 bytes
+
+  Revision 1.31  2003/04/25 08:25:26  daniel
     * Ifdefs around a lot of calls to cleartempgen
     * Fixed registers that are allocated but not freed in several nodes
     * Tweak to register allocator to cause less spills
