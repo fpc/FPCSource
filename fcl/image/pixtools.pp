@@ -14,7 +14,6 @@
 
  **********************************************************************}
 {$mode objfpc}{$h+}
-{$mode objfpc}{$h+}
 unit PixTools;
 
 interface
@@ -29,6 +28,14 @@ procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; w
 procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
 procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
 procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer; const c:TFPColor);
+procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
+procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern; const color:TFPColor);
+procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+procedure FillFloodHashVertical (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+procedure FillFloodHashDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+procedure FillFloodHashBackDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+procedure FillFloodHashDiagCross (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+procedure FillFloodHashCross (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
 
 procedure DrawSolidLine (Canv : TFPCustomCanvas; x1,y1, x2,y2:integer);
 procedure DrawPatternLine (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; Pattern:TPenPattern);
@@ -38,9 +45,19 @@ procedure FillRectangleHashHorizontal (Canv:TFPCustomCanvas; const rect:TRect; w
 procedure FillRectangleHashVertical (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
 procedure FillRectangleHashDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
 procedure FillRectangleHashBackDiagonal (Canv:TFPCustomCanvas; const rect:TRect; width:integer);
+procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer);
+procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern);
+procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+procedure FillFloodHashVertical (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+procedure FillFloodHashDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+procedure FillFloodHashBackDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+procedure FillFloodHashDiagCross (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+procedure FillFloodHashCross (Canv:TFPCustomCanvas; x,y:integer; width:integer);
 
 procedure FillRectangleImage (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
 procedure FillRectangleImageRel (Canv:TFPCustomCanvas; x1,y1, x2,y2:integer; const Image:TFPCustomImage);
+procedure FillFloodImage (Canv:TFPCustomCanvas; x,y :integer; const Image:TFPCustomImage);
+procedure FillFloodImageRel (Canv:TFPCustomCanvas; x,y :integer; const Image:TFPCustomImage);
 
 implementation
 
@@ -213,7 +230,7 @@ begin
 end;
 
 type
-  TLinePoints = array[0..PatternBitCount] of boolean;
+  TLinePoints = array[0..PatternBitCount-1] of boolean;
   PLinePoints = ^TLinePoints;
 
 procedure PatternToPoints (const APattern:TPenPattern; LinePoints:PLinePoints);
@@ -315,7 +332,6 @@ var LinePoints : TLinePoints;
         end;
       end;
     end;
-var r : integer;
 begin
   PatternToPoints (pattern, @LinePoints);
   with canv.pen do
@@ -552,6 +568,602 @@ begin
     for x := x1 to x2 do
       for y := y1 to y2 do
         Canv.colors[x,y] := colors[(x-x1) mod width, (y-y1) mod height];
+end;
+
+type
+  TFuncSetColor = procedure (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+
+  PDoneRec = ^TDoneRec;
+  TDoneRec = record
+    x, min, max : integer;
+    next : PDoneRec;
+  end;
+
+  PFloodFillData = ^TFloodFillData;
+  TFloodFillData = record
+    Canv : TFPCustomCanvas;
+    ReplColor : TFPColor;
+    SetColor : TFuncSetColor;
+    ExtraData : pointer;
+    DoneList : TList;
+  end;
+
+function FindDoneIndex (const data:PFloodFillData; x:integer; var index:integer):boolean;
+begin
+  with data^.DoneList do
+    begin
+    index := 0;
+    while (index < count) and (PDoneRec(items[index])^.x <> x) do
+      inc (index);
+    result := (index < count) and (PDoneRec(items[index])^.x = x);
+    end;
+end;
+
+procedure FreeDoneList (const data:TFloodFillData);
+  procedure FreeList (p:PDoneRec);
+  var n : PDoneRec;
+  begin
+    while assigned(p) do
+      begin
+      n := p^.Next;
+      dispose (p);
+      p := n;
+      end;
+  end;
+var r : integer;
+begin
+  with data do
+  for r := 0 to DoneList.Count-1 do
+    FreeList (PDoneRec(DoneList[r]));
+end;
+
+procedure CheckFloodFillColor (x,top,bottom,Direction:integer; data:PFloodFillData);
+
+  procedure CheckRange;
+  var r,t,b : integer;
+  begin
+    t := top;
+    b := top -1;
+    for r := top to bottom do
+      with data^ do
+        begin
+        if canv.colors[x,r] = ReplColor then
+          begin
+          b := r;
+          SetColor(Canv,x,r,ExtraData);
+          end
+        else
+          begin
+          if t < r then
+            CheckFloodFillColor (x+Direction, t, r-1, Direction, data);
+          t := r + 1;
+          end;
+        end;
+    if t <= b then
+      CheckFloodFillColor (x+Direction, t, b, Direction, data);
+  end;
+
+  procedure CheckAboveRange;
+  var t,b : integer;
+  begin
+    with data^ do
+      begin
+      t := top - 1;
+      while (t >= 0) and (Canv.colors[x,t]=ReplColor) do
+        begin
+        SetColor(Canv, x,t, ExtraData);
+        dec (t);
+        end;
+      t := t + 1;
+      b := top - 1;
+      if t <= b then
+        begin
+        CheckFloodFillColor (x-1, t, b, -1, data);
+        CheckFloodFillColor (x+1, t, b, 1, data);
+        end;
+      end;
+  end;
+
+  procedure CheckBelowRange;
+  var r,t,b : integer;
+  begin
+    with data^ do
+      begin
+      r := Canv.Height;
+      b := bottom + 1;
+      t := b;
+      while (b < r) and (Canv.colors[x,b]=ReplColor) do
+        begin
+        SetColor (Canv,x,b,ExtraData);
+        inc (b);
+        end;
+      b := b - 1;
+      if t <= b then
+        begin
+        CheckFloodFillColor (x-1, t, b, -1, data);
+        CheckFloodFillColor (x+1, t, b, 1, data);
+        end;
+      end;
+  end;
+
+var DoAbove, DoBelow : boolean;
+
+begin
+  with data^ do
+    begin
+    if (x >= Canv.width) or (x < 0) then
+      Exit;
+    if top < 0 then
+      top := 0;
+    if bottom >= Canv.Height then
+      bottom := Canv.Height-1;
+    DoAbove := (Canv.colors[x,top] = ReplColor);
+    DoBelow := (Canv.colors[x,bottom] = ReplColor);
+    end;
+  CheckRange;
+  if DoAbove then
+    CheckAboveRange;
+  if DoBelow then
+    CheckBelowRange;
+end;
+
+procedure CheckFloodFill (x,top,bottom,Direction:integer; data:PFloodFillData);
+var beforetop, ontop, chain, myrec : PDoneRec;
+    doneindex : integer;
+
+  procedure CheckRange;
+  var r,t,b : integer;
+      n : PDoneRec;
+  begin
+    ontop := nil;
+    beforetop := nil;
+    n := chain;
+    while (n <> nil) and (n^.min <= top) do
+      begin
+      beforetop := ontop;
+      ontop := n;
+      n := n^.next;
+      end;
+    if assigned(ontop) and (ontop^.max < top) then
+      begin
+      beforetop := ontop;
+      ontop := nil;
+      end;
+    // ontop is: nil OR rec before top OR rec containing top
+    if assigned(ontop) then
+      begin
+      t := ontop^.max + 1;
+      myrec := ontop;
+      end
+    else
+      begin
+      t := top;
+      new(myrec);
+      myrec^.x := x;
+      myrec^.min := top;
+      myrec^.max := top;
+      myrec^.Next := n;
+      if assigned(beforetop) then
+        beforetop^.next := myrec
+      else
+        begin
+        with data^.DoneList do
+          if DoneIndex < Count then
+            Items[DoneIndex] := myrec
+          else
+            Add (myrec);
+        chain := myrec;
+        end;
+      end;
+    ontop := myrec;
+    // ontop is rec containing the top
+    b := t-1;
+    r := t;
+    while (r <= bottom) do
+      begin
+      with data^ do
+        begin
+        if canv.colors[x,r] = ReplColor then
+          begin
+          b := r;
+          SetColor(Canv,x,r,ExtraData);
+          end
+        else
+          begin
+          if t < r then
+            begin
+            myrec^.max := r;
+            CheckFloodFill (x+Direction, t, r-1, Direction, data);
+            end;
+          t := r + 1;
+          end;
+        inc (r);
+        end;
+      if assigned(n) and (r >= n^.min) then
+        begin
+        if t < r then
+          begin
+          myrec^.max := n^.min-1;
+          CheckFloodFill (x+Direction, t, r-1, Direction, data);
+          end;
+        while assigned(n) and (r >= n^.min) do
+          begin
+          myrec := n;
+          r := myrec^.max + 1;
+          n := n^.next;
+          end;
+        t := r;
+        end;
+      end;
+    myrec^.max := r - 1;
+    if t <= b then
+      CheckFloodFill (x+Direction, t, b, Direction, data);
+  end;
+
+  procedure CheckAboveRange (highest:integer);
+  var t,b : integer;
+  begin
+    with data^ do
+      begin
+      t := top - 1;
+      while (t >= highest) and (Canv.colors[x,t]=ReplColor) do
+        begin
+        SetColor(Canv, x,t, ExtraData);
+        dec (t);
+        end;
+      t := t + 1;
+      b := top - 1;
+      if t <= b then
+        begin
+        ontop^.min := t - 1;
+        CheckFloodFill (x-1, t, b, -1, data);
+        CheckFloodFill (x+1, t, b, 1, data);
+        end;
+      end;
+  end;
+
+  procedure CheckBelowRange (lowest : integer);
+  var t,b : integer;
+  begin
+    with data^ do
+      begin
+      b := bottom + 1;
+      t := b;
+      while (b <= lowest) and (Canv.colors[x,b]=ReplColor) do
+        begin
+        SetColor (Canv,x,b,ExtraData);
+        inc (b);
+        end;
+      b := b - 1;
+      if t <= b then
+        begin
+        myrec^.max := b+1;
+        CheckFloodFill (x-1, t, b, -1, data);
+        CheckFloodFill (x+1, t, b, 1, data);
+        end;
+      end;
+  end;
+
+var DoAbove, DoBelow : boolean;
+    m : integer;
+begin
+  with data^ do
+    begin
+    if (x >= Canv.width) or (x < 0) then
+      Exit;
+    if top < 0 then
+      top := 0;
+    if bottom >= Canv.Height then
+      bottom := Canv.Height-1;
+    DoAbove := (Canv.colors[x,top] = ReplColor);
+    DoBelow := (Canv.colors[x,bottom] = ReplColor);
+    end;
+  if FindDoneIndex (data, x, DoneIndex) then
+    begin
+    chain := PDoneRec(data^.DoneList[DoneIndex]);
+    myrec := chain;
+    while assigned(myrec) do
+      with myrec^ do
+        myrec := next;
+    end
+  else
+    chain := nil;
+  CheckRange;
+  // ontop: rec containing top
+  // myrec: rec containing bottom
+  if DoAbove and (ontop^.min = top) then
+    begin
+    if assigned (beforetop) then
+      m := beforetop^.max + 1
+    else
+      m := 0;
+    CheckAboveRange (m);
+    end;
+  if DoBelow and (myrec^.max = bottom) then
+    begin
+    if assigned (myrec^.next) then
+      m := myrec^.next^.min - 1
+    else
+      m := data^.Canv.Height - 1;
+    CheckBelowRange (m);
+    end;
+end;
+
+procedure SetFloodColor (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+begin
+  Canv.colors[x,y] := PFPColor(data)^;
+end;
+
+procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer; const color:TFPColor);
+var d : TFloodFillData;
+begin
+  d.Canv := canv;
+  d.ReplColor := Canv.colors[x,y];
+  d.SetColor := @SetFloodColor;
+  d.ExtraData := @color;
+  CheckFloodFillColor (x, y, y, 1, @d);
+end;
+
+procedure FillFloodColor (Canv:TFPCustomCanvas; x,y:integer);
+begin
+  FillFloodColor (Canv, x, y, canv.brush.color);
+end;
+
+type
+  TBoolPlane = array[0..PatternBitCount-1] of TLinePoints;
+  TFloodPatternRec = record
+    plane : TBoolPlane;
+    color : TFPColor;
+  end;
+  PFloodPatternRec = ^TFloodPatternRec;
+
+procedure SetFloodPattern (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var p : PFloodPatternRec;
+begin
+  p := PFloodPatternRec(data);
+  if p^.plane[x mod PatternBitCount, y mod PatternBitCount] then
+    Canv.colors[x,y] := p^.color;
+end;
+
+procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern; const color:TFPColor);
+var rec : TFloodPatternRec;
+    d : TFloodFillData;
+
+  procedure FillPattern;
+  var r : integer;
+  begin
+    for r := 0 to PatternBitCount-1 do
+      PatternToPoints (pattern[r], @rec.plane[r]);
+  end;
+
+begin
+  d.Canv := canv;
+  d.ReplColor := Canv.colors[x,y];
+  d.SetColor := @SetFloodPattern;
+  d.ExtraData := @rec;
+  d.DoneList := TList.Create;
+  try
+    FillPattern;
+    rec.color := Color;
+    CheckFloodFill (x, y, y, 1, @d);
+  finally
+    FreeDoneList (d);
+  end;
+end;
+
+procedure FillFloodPattern (Canv:TFPCustomCanvas; x,y:integer; const pattern:TBrushPattern);
+begin
+  FillFloodPattern (Canv, x, y, pattern, Canv.Brush.color);
+end;
+
+type
+  TFloodHashRec = record
+    color : TFPColor;
+    width : integer;
+  end;
+  PFloodHashRec = ^TFloodHashRec;
+
+procedure SetFloodHashHor(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodHashRec;
+begin
+  r := PFloodHashRec(data);
+  if (y mod r^.width) = 0 then
+    Canv.colors[x,y] := r^.color;
+end;
+
+procedure SetFloodHashVer(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodHashRec;
+begin
+  r := PFloodHashRec(data);
+  if (x mod r^.width) = 0 then
+    Canv.colors[x,y] := r^.color;
+end;
+
+procedure SetFloodHashDiag(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodHashRec;
+    w : 0..PatternBitCount-1;
+begin
+  r := PFloodHashRec(data);
+  w := r^.width;
+  if ((x mod w) + (y mod w)) = (w - 1) then
+    Canv.colors[x,y] := r^.color;
+end;
+
+procedure SetFloodHashBDiag(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodHashRec;
+    w : 0..PatternBitCount-1;
+begin
+  r := PFloodHashRec(data);
+  w := r^.width;
+  if (x mod w) = (y mod w) then
+    Canv.colors[x,y] := r^.color;
+end;
+
+procedure SetFloodHashCross(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodHashRec;
+    w : 0..PatternBitCount-1;
+begin
+  r := PFloodHashRec(data);
+  w := r^.width;
+  if ((x mod w) = 0) or ((y mod w) = 0) then
+    Canv.colors[x,y] := r^.color;
+end;
+
+procedure SetFloodHashDiagCross(Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodHashRec;
+    w : 0..PatternBitCount-1;
+begin
+  r := PFloodHashRec(data);
+  w := r^.width;
+  if ( (x mod w) = (y mod w) ) or
+     ( ((x mod w) + (y mod w)) = (w - 1) ) then
+    Canv.colors[x,y] := r^.color;
+end;
+
+procedure FillFloodHash (Canv:TFPCustomCanvas; x,y:integer; width:integer; SetHashColor:TFuncSetColor; const c:TFPColor);
+var rec : TFloodHashRec;
+    d : TFloodFillData;
+begin
+  d.Canv := canv;
+  d.ReplColor := Canv.colors[x,y];
+  d.SetColor := SetHashColor;
+  d.ExtraData := @rec;
+  d.DoneList := TList.Create;
+  rec.color := c;
+  rec.width := Width;
+  try
+    CheckFloodFill (x, y, y, 1, @d);
+  finally
+    FreeDoneList (d);
+  end;
+end;
+
+procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+begin
+  FillFloodHash (canv, x, y, width, @SetFloodHashHor, c);
+end;
+
+procedure FillFloodHashHorizontal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+begin
+  FillFloodHashHorizontal (Canv, x, y, width, Canv.Brush.color);
+end;
+
+procedure FillFloodHashVertical (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+begin
+  FillFloodHash (canv, x, y, width, @SetFloodHashVer, c);
+end;
+
+procedure FillFloodHashVertical (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+begin
+  FillFloodHashVertical (Canv, x, y, width, Canv.Brush.color);
+end;
+
+procedure FillFloodHashDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+begin
+  FillFloodHash (canv, x, y, width, @SetFloodHashDiag, c);
+end;
+
+procedure FillFloodHashDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+begin
+  FillFloodHashDiagonal (Canv, x, y, width, Canv.Brush.color);
+end;
+
+procedure FillFloodHashBackDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+begin
+  FillFloodHash (canv, x, y, width, @SetFloodHashBDiag, c);
+end;
+
+procedure FillFloodHashBackDiagonal (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+begin
+  FillFloodHashBackDiagonal (Canv, x, y, width, Canv.Brush.color);
+end;
+
+procedure FillFloodHashDiagCross (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+begin
+  FillFloodHash (canv, x, y, width, @SetFloodHashDiagCross, c);
+end;
+
+procedure FillFloodHashDiagCross (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+begin
+  FillFloodHashDiagCross (Canv, x, y, width, Canv.Brush.color);
+end;
+
+procedure FillFloodHashCross (Canv:TFPCustomCanvas; x,y:integer; width:integer; const c:TFPColor);
+begin
+  FillFloodHash (canv, x, y, width, @SetFloodHashCross, c);
+end;
+
+procedure FillFloodHashCross (Canv:TFPCustomCanvas; x,y:integer; width:integer);
+begin
+  FillFloodHashCross (Canv, x, y, width, Canv.Brush.color);
+end;
+
+type
+  TFloodImageRec = record
+    xo,yo : integer;
+    image : TFPCustomImage;
+  end;
+  PFloodImageRec = ^TFloodImageRec;
+
+procedure SetFloodImage (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodImageRec;
+begin
+  r := PFloodImageRec(data);
+  with r^.image do
+    Canv.colors[x,y] := colors[x mod width, y mod height];
+end;
+
+procedure FillFloodImage (Canv:TFPCustomCanvas; x,y :integer; const Image:TFPCustomImage);
+var rec : TFloodImageRec;
+    d : TFloodFillData;
+begin
+  d.Canv := canv;
+  d.ReplColor := Canv.colors[x,y];
+  d.SetColor := @SetFloodImage;
+  d.ExtraData := @rec;
+  d.DoneList := Tlist.Create;
+  rec.image := image;
+  try
+    CheckFloodFill (x, y, y, 1, @d);
+  finally
+    FreeDoneList (d);
+  end;
+end;
+
+procedure SetFloodImageRel (Canv:TFPCustomCanvas; x,y:integer; data:pointer);
+var r : PFloodImageRec;
+    xi, yi : integer;
+begin
+  r := PFloodImageRec(data);
+  with r^, image do
+    begin
+    xi := (x - xo) mod width;
+    if xi < 0 then
+      xi := width - xi;
+    yi := (y - yo) mod height;
+    if yi < 0 then
+      yi := height - yi;
+    Canv.colors[x,y] := colors[xi,yi];
+    end;
+end;
+
+procedure FillFloodImageRel (Canv:TFPCustomCanvas; x,y :integer; const Image:TFPCustomImage);
+var rec : TFloodImageRec;
+    d : TFloodFillData;
+begin
+  d.Canv := canv;
+  d.ReplColor := Canv.colors[x,y];
+  d.SetColor := @SetFloodImageRel;
+  d.ExtraData := @rec;
+  d.DoneList := TList.Create;
+  rec.image := image;
+  rec.xo := x;
+  rec.yo := y;
+  try
+    CheckFloodFill (x, y, y, 1, @d);
+  finally
+    FreeDoneList (d);
+  end;
 end;
 
 end.

@@ -247,7 +247,25 @@ begin  //TODO: how to find a point inside the polygon ?
 end;
 
 procedure TFPPixelCanvas.DoFloodFill (x,y:integer);
-begin    //TODO
+begin
+  case Brush.style of
+    bsSolid : FillFloodColor (self, x,y);
+    bsPattern : FillFloodPattern (self, x,y, brush.pattern);
+    bsImage :
+      if assigned (brush.image) then
+        if FRelativeBI then
+          FillFloodImageRel (self, x,y, brush.image)
+        else
+          FillFloodImage (self, x,y, brush.image)
+      else
+        raise PixelCanvasException.Create (sErrNoImage);
+    bsDiagonal : FillFloodHashDiagonal (self, x,y, FHashWidth);
+    bsFDiagonal : FillFloodHashBackDiagonal (self, x,y, FHashWidth);
+    bsCross : FillFloodHashCross (self, x,y, FHashWidth);
+    bsDiagCross : FillFloodHashDiagCross (self, x,y, FHashWidth);
+    bsHorizontal : FillFloodHashHorizontal (self, x,y, FHashWidth);
+    bsVertical : FillFloodHashVertical (self, x,y, FHashWidth);
+  end;
 end;
 
 procedure TFPPixelCanvas.DoPolygon (const points:array of TPoint);
