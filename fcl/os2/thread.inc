@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2000 by the Free Pascal development team
+    Copyright (c) 1999-2002 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -15,11 +15,80 @@
 {*                             TThread                                      *}
 {****************************************************************************}
 
+(* OS/2 specific declarations - see unit DosCalls for descriptions *)
+
+type
+ TByteArray = array [0..$fff0] of byte;
+ PByteArray = ^TByteArray;
+
+ TThreadEntry = function (Param: pointer): longint; cdecl;
+
+ TSysThreadIB = record
+                 TID, Priority, Version: longint;
+                 MCCount, MCForceFlag: word;
+                end;
+ PSysThreadIB = ^TSysThreadIB;
+
+ TThreadInfoBlock = record
+                     Exh_Chain, Stack, StackLimit: pointer;
+                     TIB2: PSysThreadIB;
+                     Version, Ordinal: longint;
+                    end;
+ PThreadInfoBlock = ^TThreadInfoBlock;
+ PPThreadInfoBlock = ^PThreadInfoBlock;
+
+ TProcessInfoBlock = record
+                      PID, ParentPID, HMTE: longint;
+                      Cmd, Env: PByteArray;
+                      flStatus, tType: longint;
+                     end;
+ PProcessInfoBlock = ^TProcessInfoBlock;
+ PPProcessInfoBlock = ^PProcessInfoBlock;
+
+
+const
+ deThread = 0;
+ deProcess = 1;
+
+ dtSuspended = 1;
+ dtStack_Commited = 2;
+
+ dtWait = 0;
+ dtNoWait = 1;
+
+
+procedure DosGetInfoBlocks (PATIB: PPThreadInfoBlock; 
+              PAPIB: PPProcessInfoBlock); cdecl; external 'DOSCALLS' index 312;
+
+function DosSetPriority (Scope, TrClass, Delta, PortID: longint): longint;
+                                          cdecl; external 'DOSCALLS' index 236;
+
+procedure DosExit (Action, Result: longint); cdecl;
+                                                 external 'DOSCALLS' index 233;
+
+function DosCreateThread (var TID: longint; Address: TThreadEntry;
+         aParam: pointer; Flags: longint; StackSize: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 311;
+
+function DosKillThread (TID: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 111;
+
+function DosResumeThread (TID: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 237;
+
+function DosSuspendThread (TID: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 238;
+
+function DosWaitThread (var TID: longint; Option: longint): longint; cdecl;
+                                                 external 'DOSCALLS' index 349;
+
+
 const
  Priorities: array [TThreadPriority] of word = ($100, $200, $207, $20F, $217,
   $21F, $300);
  ThreadCount: longint = 0;
 
+(* Implementation of exported functions *)
 
 procedure AddThread (T: TThread);
 begin
@@ -162,7 +231,10 @@ end;
 
 {
   $Log$
-  Revision 1.4  2001-10-09 02:21:00  carl
+  Revision 1.5  2002-02-10 13:38:14  hajny
+    * DosCalls dependency removed to avoid type redefinitions
+
+  Revision 1.4  2001/10/09 02:21:00  carl
   * bugfix #1639 (IsMultiThread varialbe setting)
 
   Revision 1.3  2000/12/19 00:43:07  hajny

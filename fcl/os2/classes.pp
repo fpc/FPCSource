@@ -1,7 +1,7 @@
 {
     $Id$
     This file is part of the Free Component Library (FCL)
-    Copyright (c) 1999-2000 by Michael Van Canneyt and Florian Klaempfl
+    Copyright (c) 1999-2002 by the Free Pascal development team
 
     Classes unit for OS/2
 
@@ -24,11 +24,11 @@ unit Classes;
 interface
 
 uses
-  DosCalls, (* Needed here (i.e. before SysUtils) to avoid type clashes. *)
   strings,
   sysutils;
 
 {$i classesh.inc}
+
 
 implementation
 
@@ -37,6 +37,7 @@ uses
 
 { OS - independent class implementations are in /inc directory. }
 {$i classes.inc}
+
 
 initialization
   CommonInit;
@@ -47,7 +48,10 @@ finalization
 end.
 {
   $Log$
-  Revision 1.4  2000-12-19 00:43:07  hajny
+  Revision 1.5  2002-02-10 13:38:14  hajny
+    * DosCalls dependency removed to avoid type redefinitions
+
+  Revision 1.4  2000/12/19 00:43:07  hajny
     + FCL made compilable under OS/2
 
   Revision 1.3  2000/08/25 17:32:16  hajny
