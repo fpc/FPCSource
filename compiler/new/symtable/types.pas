@@ -237,7 +237,7 @@ end;
 { true if a function can be assigned to a procvar }
 function proc_to_procvar_equal(def1:pprocdef;def2:pprocvardef):boolean;
 
-const   po_comp=po_compatibility_options-[pomethodpointer];
+const   po_comp=po_compatibility_options-[po_methodpointer];
 
 var ismethod:boolean;
 
@@ -250,8 +250,8 @@ begin
     {Check for method pointer.}
     ismethod:=(def1^.owner<>nil) and
      (typeof(def1^.owner^)=typeof(Tobjectsymtable));
-    if (ismethod and not (pomethodpointer in def2^.options)) or
-     (not(ismethod) and (pomethodpointer in def2^.options)) then
+    if (ismethod and not (po_methodpointer in def2^.options)) or
+     (not(ismethod) and (po_methodpointer in def2^.options)) then
         begin
             message(type_e_no_method_and_procedure_not_compatible);
             exit;
@@ -535,7 +535,7 @@ begin
         else if typeof(def^)=typeof(Tstringdef) then
            push_addr_param:=pstringdef(def)^.string_typ in [st_shortstring,st_longstring]
         else if typeof(def^)=typeof(Tprocvardef) then
-           push_addr_param:=(pomethodpointer in pprocvardef(def)^.options)
+           push_addr_param:=(po_methodpointer in pprocvardef(def)^.options)
         else if typeof(def^)=typeof(Tsetdef) then
            push_addr_param:=(psetdef(def)^.settype<>smallset);
      end;
@@ -949,7 +949,11 @@ end;
 end.
 {
   $Log$
-  Revision 1.1  2000-02-28 17:23:58  daniel
+  Revision 1.2  2000-03-16 12:52:48  daniel
+    *  Changed names of procedures flags
+    *  Changed VMT generation
+
+  Revision 1.1  2000/02/28 17:23:58  daniel
   * Current work of symtable integration committed. The symtable can be
     activated by defining 'newst', but doesn't compile yet. Changes in type
     checking and oop are completed. What is left is to write a new

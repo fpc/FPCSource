@@ -1,4 +1,4 @@
- {
+{
     $Id$
 
     Copyright (C) 1998-2000 by Daniel Mantione
@@ -40,8 +40,11 @@ uses    symtable,aasm,objects,cobjects,defs,cpubase,tokens;
 type    Ttypeprop=(sp_primary_typesym);
         Ttypepropset=set of Ttypeprop;
 
+        Tobjprop=(sp_public,sp_private,sp_protected,sp_published,sp_static);
+        Tobjpropset=set of Tobjprop;
+
         Tpropprop=(ppo_indexed,ppo_defaultproperty,
-                   ppo_stored,ppo_published);
+                   ppo_stored,ppo_published,ppo_hasparameters);
         Tproppropset=set of Tpropprop;
 
         Tvarprop=(vo_regable,vo_fpuregable,vo_is_C_var,vo_is_external,
@@ -86,6 +89,10 @@ type    Ttypeprop=(sp_primary_typesym);
                                      Since most procedures are not
                                      overloaded, this saves a lot of
                                      memory.}
+            objprop:Tobjpropset;    {All overloaded procedures should
+                                     have the same scope, so the object
+                                     scope information is put in the
+                                     symbol.}
             sub_of:Pprocsym;
             _class:Pobjectdef;
             constructor init(const n:string;Asub_of:Pprocsym);
@@ -93,7 +100,7 @@ type    Ttypeprop=(sp_primary_typesym);
             function count:word;
             function firstthat(action:pointer):Pprocdef;
             procedure foreach(action:pointer);
-            procedure insert(def:Pdef);
+            procedure insert(def:Pprocdef);
             function mangledname:string;virtual; {Causes internalerror.}
             {Writes all declarations.}
             procedure write_parameter_lists;
@@ -246,7 +253,7 @@ type    Ttypeprop=(sp_primary_typesym);
         Pfuncretsym=^Tfuncretsym;
         Tfuncretsym=object(tsym)
             funcretprocinfo:pointer{Pprocinfo};
-            funcretdef:Pdef;
+            definition:Pdef;
             address:longint;
             constructor init(const n:string;approcinfo:pointer{pprocinfo});
             constructor load(var s:Tstream);
@@ -260,8 +267,13 @@ type    Ttypeprop=(sp_primary_typesym);
             properties:Tproppropset;
             definition:Pdef;
             objprop:Tobjpropset;
-            readaccesssym,writeaccesssym,storedsym:Psym;
-            readaccessdef,writeaccessdef,storeddef:Pdef;
+            rangedef:Pdef;  {Type of the range for array properties.}
+            {For record property's like property x read a.b.c, the
+             collection contains a as first element, b as second element,
+             and c as the third element.}
+            readaccess,
+            writeaccess,
+            storedaccess:Pcollection;
             index,default:longint;
             constructor load(var s:Tstream);
             function getsize:longint;virtual;
@@ -298,7 +310,7 @@ var current_object_option:Tobjprop;
 
 implementation
 
-uses    callspec,verbose,globals,systems,globtype;
+uses    callspec,verbose,globals,systems,globtype,types;
 
 {****************************************************************************
                                  Tlabelsym
@@ -395,11 +407,95 @@ begin
         end;
 end;
 
-procedure Tprocsym.insert(def:Pdef);
+procedure Tprocsym.insert(def:Pprocdef);
+
+    function matchparas(item:pointer):boolean;{$IFDEF TP}far;{$ENDIF}
+
+    begin
+        matchparas:=equal_paras(Pprocdef(item)^.parameters,
+         Pprocdef(def)^.parameters,false);
+    end;
 
 var c:Pcollection;
+    ovs:Pprocsym;
+    ovd:Pprocdef;
+    ve:Pvmtentry;
+    errparam:string;
 
 begin
+    if _class<>nil then
+        begin
+            {Update object information.}
+            if po_virtualmethod in def^.options then
+                include(_class^.options,oo_has_virtual);
+            if po_abstractmethod in def^.options then
+                include(_class^.options,oo_has_abstract);
+            if def^.proctype=po_type_constructor then
+                include(_class^.options,oo_has_constructor);
+            if def^.proctype=po_type_destructor then
+                include(_class^.options,oo_has_destructor);
+            {Check if we are overriding an existing method.}
+            ovs:=Pprocsym(_class^.childof^.search(name,true));
+            ovd:=ovs^.firstthat(@matchparas);
+            if ovd<>nil then
+                begin
+                    errparam:=_class^.objname^+'.'+name;
+                    {If the old method is virtual and we are not, we
+                     refuse this for objects, and warn for classes.}
+                    if (po_virtualmethod in ovd^.options) then
+                        if  (po_virtualmethod in Pprocdef(def)^.options) then
+                            if oo_is_class in _class^.options then
+                                message1(parser_w_should_use_override,errparam)
+                            else
+                                message1(parser_w_overloaded_are_not_both_virtual,errparam)
+                        else
+                            {Both are virtual.
+                             The flags have to match except abstract,
+                             assembler and override.}
+                            if (def^.calloptions<>ovd^.calloptions) or
+                             (def^.proctype<>ovd^.proctype) or
+                             ((def^.options-[po_abstractmethod,po_overridingmethod,po_assembler])<>
+                             (ovd^.options-[po_abstractmethod,po_overridingmethod,po_assembler])) then
+                                message1(parser_e_header_dont_match_forward,errparam);
+                    {Error if the return types aren't equal.}
+                    if not(is_equal(def^.retdef,ovd^.retdef)) and
+                     not(def^.retdef^.is_object(typeof(Tobjectdef)) and
+                      Pprocdef(ovd)^.retdef^.is_object(typeof(Tobjectdef)) and
+                      (oo_is_class in Pobjectdef(def^.retdef)^.options) and
+                      (oo_is_class in Pobjectdef(ovd^.retdef)^.options) and
+                      (pobjectdef(def^.retdef)^.is_related(pobjectdef(ovd^.retdef)))) then
+                        message1(parser_e_overloaded_methodes_not_same_ret,errparam);
+                    if po_virtualmethod in def^.options then
+                        begin
+                            if not(oo_has_constructor in _class^.options) then
+                                message1(parser_w_virtual_without_constructor,_class^.objname^);
+                            {We change the the vmt layout so we are called instead
+                             of our ancestor.}
+                            if sp_private in objprop then
+                                ve:=new(Plocalvmtentry,init(_class,def))
+                            else
+                                ve:=new(Pglobalvmtentry,init(_class,def));
+                            _class^.vmt_layout^.atput(ovd^.vmt_index,ve);
+                            def^.vmt_index:=ovd^.vmt_index;
+                        end;
+                end
+            else
+                begin
+                    if not(oo_has_constructor in _class^.options) then
+                        message1(parser_w_virtual_without_constructor,_class^.objname^);
+                    {The method is not overridden; if it is virtual we should
+                     generate a vmt entry.}
+                    if po_virtualmethod in def^.options then
+                        begin
+                            if sp_private in objprop then
+                                ve:=new(Plocalvmtentry,init(_class,def))
+                            else
+                                ve:=new(Pglobalvmtentry,init(_class,def));
+                            _class^.vmt_layout^.insert(ve);
+                            def^.vmt_index:=_class^.vmt_layout^.count-1;
+                        end;
+                end;
+        end;
     if definitions=nil then
         definitions:=def
     else
@@ -1473,7 +1569,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-03-11 21:11:25  daniel
+  Revision 1.6  2000-03-16 12:52:48  daniel
+    *  Changed names of procedures flags
+    *  Changed VMT generation
+
+  Revision 1.5  2000/03/11 21:11:25  daniel
     * Ported hcgdata to new symtable.
     * Alignment code changed as suggested by Peter
     + Usage of my is operator replacement, is_object

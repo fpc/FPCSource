@@ -105,7 +105,7 @@ implementation
         var pt:Pprocdeftree;
 
         begin
-            if pomsgstr in Pprocdef(p)^.options then
+            if po_msgstr in Pprocdef(p)^.options then
                 begin
                     new(pt);
                     pt^.p:=p;
@@ -146,7 +146,7 @@ implementation
         var pt:Pprocdeftree;
 
         begin
-            if pomsgint in Pprocdef(p)^.options then
+            if po_msgint in Pprocdef(p)^.options then
                 begin
                     new(pt);
                     pt^.p:=p;
@@ -349,7 +349,7 @@ implementation
         var l:Pasmlabel;
 
         begin
-            if (sp_published in Pprocdef(q)^.objprop) then
+            if (sp_published in Pprocsym(p)^.objprop) then
                 begin
                    getlabel(l);
 
@@ -372,7 +372,7 @@ implementation
         procedure def_do_count(p:pointer);{$ifndef FPC}far;{$endif}
 
         begin
-            if (sp_published in Pprocdef(p)^.objprop) then
+            if (sp_published in Pprocsym(p)^.objprop) then
              inc(count);
         end;
 
@@ -414,236 +414,26 @@ implementation
                                     VMT
 *****************************************************************************}
 
-var wurzel:Pcollection;
-    nextvirtnumber : longint;
-    _c : pobjectdef;
-    has_constructor,has_virtual_method : boolean;
-
-procedure eachsym(sym:Pnamedindexobject);{$ifndef FPC}far;{$endif FPC}
-
-var symcoll:Pcollection;
-    _name:string;
-    stored:boolean;
-
-    {Creates a new entry in the procsym list.}
-    procedure newentry;
-
-        procedure numbervirtual(p:pointer);{$IFDEF TP}far;{$ENDIF TP}
-
-        begin
-            { if it's a virtual method }
-            if (povirtualmethod in Pprocdef(p)^.options) then
-                begin
-                    {Then it gets a number ...}
-                    Pprocdef(p)^.extnumber:=nextvirtnumber;
-                    {And we inc the number }
-                    inc(nextvirtnumber);
-                    has_virtual_method:=true;
-                end;
-
-            if (Pprocdef(p)^.proctype=potype_constructor) then
-                has_constructor:=true;
-
-            { check, if a method should be overridden }
-            if (pooverridingmethod in Pprocdef(p)^.options) then
-                messagepos1(Pprocdef(p)^.fileinfo,parser_e_nothing_to_be_overridden,
-                 _c^.objname^+'.'+_name+Pprocdef(p)^.demangled_paras);
-        end;
-
-    begin
-        symcoll^.insert(sym);
-        Pprocsym(sym)^.foreach(@numbervirtual);
-    end;
-
-    function match(p:pointer):boolean;{$IFDEF TP}far;{$ENDIF}
-
-    begin
-        {Does the symbol already exist in the list ?}
-        match:=_name=Psym(p)^.name;
-    end;
-
-    procedure eachdef(p:pointer);{$IFDEF TP}far;{$ENDIF}
-
-        function check_override(q:pointer):boolean;{$IFDEF TP}far;{$ENDIF}
-
-        begin
-            check_override:=false;
-            {Check if the parameters are equal and if one of the methods
-             is virtual.}
-            if equal_paras(Pprocdef(p)^.parameters,
-             Pprocdef(q)^.parameters,false) and
-             ((povirtualmethod in Pprocdef(p)^.options) or
-              (povirtualmethod in Pprocdef(q)^.options)) then
-                begin
-                    {Wenn sie gleich sind
-                     und eine davon virtual deklariert ist
-                     Fehler falls nur eine VIRTUAL }
-                    if (povirtualmethod in Pprocdef(p)^.options)<>
-                     (povirtualmethod in Pprocdef(q)^.options) then
-                        begin
-                            { in classes, we hide the old method }
-                            if oo_is_class in _c^.options then
-                                begin
-                                    {Warn only if it is the first time,
-                                     we hide the method.}
-                                    if _c=Pprocsym(Pprocdef(p)^.sym)^._class then
-                                        message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
-                                    newentry;
-                                    check_override:=true;
-                                    exit;
-                                end
-                            else
-                                if _c=Pprocsym(Pprocdef(p)^.sym)^._class then
-                                    begin
-                                        if (povirtualmethod in Pprocdef(q)^.options) then
-                                            message1(parser_w_overloaded_are_not_both_virtual,_c^.objname^+'.'+_name)
-                                        else
-                                            message1(parser_w_overloaded_are_not_both_non_virtual,
-                                             _c^.objname^+'.'+_name);
-                                        newentry;
-                                        check_override:=true;
-                                        exit;
-                                    end;
-                        end
-                    else
-                        {The flags have to match except abstract
-                         and override, but only if both are virtual!!}
-                        if (Pprocdef(q)^.calloptions<>Pprocdef(p)^.calloptions) or
-                         (Pprocdef(q)^.proctype<>Pprocdef(p)^.proctype) or
-                         ((Pprocdef(q)^.options-[poabstractmethod,pooverridingmethod,poassembler])<>
-                         (Pprocdef(p)^.options-[poabstractmethod,pooverridingmethod,poassembler])) then
-                            message1(parser_e_header_dont_match_forward,_c^.objname^+'.'+_name);
-
-                    {Check, if the override directive is set
-                     (povirtualmethod is set!}
-
-                    {Class ?}
-                    if (oo_is_class in _c^.options) and
-                     not(pooverridingmethod in Pprocdef(p)^.options) then
-                        begin
-                            {Warn only if it is the first time,
-                             we hide the method.}
-                            if _c=Pprocsym(Pprocdef(p)^.sym)^._class then
-                                message1(parser_w_should_use_override,_c^.objname^+'.'+_name);
-                            newentry;
-                            check_override:=true;
-                            exit;
-                        end;
-
-                    { error, if the return types aren't equal }
-                    if not(is_equal(Pprocdef(q)^.retdef,Pprocdef(p)^.retdef)) and
-                     not(Pprocdef(q)^.retdef^.is_object(typeof(Tobjectdef)) and
-                      Pprocdef(p)^.retdef^.is_object(typeof(Tobjectdef)) and
-                      (oo_is_class in Pobjectdef(Pprocdef(q)^.retdef)^.options) and
-                      (oo_is_class in Pobjectdef(Pprocdef(p)^.retdef)^.options) and
-                      (pobjectdef(Pprocdef(p)^.retdef)^.is_related(
-                       pobjectdef(Pprocdef(q)^.retdef)))) then
-                        message1(parser_e_overloaded_methodes_not_same_ret,_c^.objname^+'.'+_name);
-
-
-                    {now set the number }
-                    Pprocdef(p)^.extnumber:=Pprocdef(q)^.extnumber;
-                end;  { same parameters }
-        end;
-
-    begin
-        if Pprocsym(sym)^.firstthat(@check_override)=nil then
-            newentry;
-    end;
-
-
-begin
-    {Put only subroutines into the VMT.}
-    if sym^.is_object(typeof(Tprocsym)) then
-        begin
-            symcoll:=wurzel;
-            Pprocsym(symcoll^.firstthat(@match))^.foreach(@eachdef);
-            newentry;
-        end;
-end;
 
 procedure genvmt(list:Paasmoutput;_class:Pobjectdef);
 
-var symcoll:Pcollection;
-    i:longint;
-
-    procedure do_genvmt(p:Pobjectdef);
-
-    begin
-        {Start with the base class.}
-        if assigned(p^.childof) then
-            do_genvmt(p^.childof);
-
-        { walk through all public syms }
-        { I had to change that to solve bug0260 (PM)}
-        _c:=p;
-        { Florian, please check if you agree (PM) }
-        p^.privatesyms^.foreach({$ifndef TP}@{$endif}eachsym);
-        p^.protectedsyms^.foreach({$ifndef TP}@{$endif}eachsym);
-        p^.publicsyms^.foreach({$ifndef TP}@{$endif}eachsym);
-    end;
-
- procedure symwritevmt(p:pointer);{$IFDEF TP}far;{$ENDIF}
-
-     procedure defwritevmt(q:pointer);{$IFDEF TP}far;{$ENDIF}
-
-     begin
-         { writes the addresses to the VMT }
-         { but only this which are declared as virtual }
-         if (Pprocdef(q)^.extnumber=i) and
-          (povirtualmethod in Pprocdef(q)^.options) then
-             begin
-                 { if a method is abstract, then is also the }
-                 { class abstract and it's not allow to      }
-                 { generates an instance                     }
-                 if (poabstractmethod in Pprocdef(q)^.options) then
-                     begin
-                         include(_class^.options,oo_has_abstract);
-                         list^.concat(new(pai_const_symbol,initname('FPC_ABSTRACTERROR')));
-                     end
-                 else
-                     begin
-                         list^.concat(new(pai_const_symbol,
-                          initname(Pprocdef(q)^.mangledname)));
-                     end;
-             end;
-     end;
-
- begin
-     Pprocsym(p)^.foreach(@defwritevmt);
- end;
+var i:longint;
 
 begin
-    new(wurzel,init(64,16));
-    nextvirtnumber:=0;
-
-    has_constructor:=false;
-    has_virtual_method:=false;
-
-    { generates a tree of all used methods }
-    do_genvmt(_class);
-
-    if has_virtual_method and not(has_constructor) then
-        message1(parser_w_virtual_without_constructor,_class^.objname^);
-
-
-    { generates the VMT }
-
-    { walk trough all numbers for virtual methods and search }
-    { the method                                             }
-    for i:=0 to nextvirtnumber-1 do
-        begin
-            symcoll:=wurzel;
-            symcoll^.foreach(@symwritevmt);
-        end;
-    dispose(symcoll,done);
+    for i:=0 to _class^.vmt_layout^.count-1 do
+        list^.concat(new(pai_const_symbol,
+         initname(Pvmtentry(_class^.vmt_layout^.at(i))^.mangledname)));
 end;
 
 
 end.
 {
   $Log$
-  Revision 1.1  2000-03-11 21:11:25  daniel
+  Revision 1.2  2000-03-16 12:52:48  daniel
+    *  Changed names of procedures flags
+    *  Changed VMT generation
+
+  Revision 1.1  2000/03/11 21:11:25  daniel
     * Ported hcgdata to new symtable.
     * Alignment code changed as suggested by Peter
     + Usage of my is operator replacement, is_object

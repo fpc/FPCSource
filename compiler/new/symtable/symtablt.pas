@@ -309,7 +309,8 @@ end;
 function Tprocsymtable.insert(sym:Psym):boolean;
 
 begin
-    if (method<>nil) and (Pobjectdef(method)^.search(sym^.name)<>nil) then
+    if (method<>nil) and
+     (Pobjectdef(method)^.search(sym^.name,true)<>nil) then
         insert:=inherited insert(sym)
     else
         duplicatesym(sym);

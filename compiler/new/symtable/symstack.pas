@@ -182,20 +182,24 @@ begin
                 duplicatesym(s);
         end;
     {Check for duplicate field id in inherited classes.}
-    if (typeof(sttop^)=typeof(Tobjectsymtable)) and
+    if sttop^.is_object(typeof(Tobjectsymtable)) and
      (Pobjectsymtable(sttop)^.defowner<>nil) then
         begin
-            {Don't worry about private syms, the private symtable is disposed
-             and set to nil after the unit has been compiled.}
+            {Even though the private symtable is disposed and set to nil
+             after the unit has been compiled, we will still have to check
+             for a private sym, because of interdependend units.}
             hsym:=Pobjectdef(Pobjectsymtable(sttop)^.defowner)^.
              speedsearch(s^.name,s^.speedvalue);
-            if hsym<>nil then
-                duplicateSym(hsym);
+            if (hsym<>nil) and
+             (hsym^.is_object(typeof(Tprocsym))
+              and (sp_private in Pprocsym(hsym)^.objprop)) and
+             (hsym^.is_object(typeof(Tvarsym))
+              and (sp_private in Pvarsym(hsym)^.objprop)) then
+                duplicatesym(hsym);
         end;
     entry:=(s^.speedvalue and cachesize-1)+1;
-    if (typeof(s^)=typeof(Tenumsym)) and
-     ((typeof(sttop^)=typeof(Trecordsymtable)) or
-      (typeof(sttop^)=typeof(Tobjectsymtable))) then
+    if s^.is_object(typeof(Tenumsym)) and
+     sttop^.is_object(Tabstractrecordsymtable)) then
         begin
             if pretop^.insert(s) and addtocache then
                 begin

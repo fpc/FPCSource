@@ -45,18 +45,12 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
 
         Tvarspez=(vs_value,vs_const,vs_var);
 
-        Tobjprop=(sp_public,sp_private,sp_protected,sp_published,sp_static);
-        Tobjpropset=set of Tobjprop;
-
         Tobjoption=(oo_has_abstract,         {The object/class has
                                              an abstract method => no
                                              instances can be created.}
                     oo_is_class,            {The object is a class.}
                     oo_has_virtual,         {The object/class has
                                              virtual methods.}
-                    oo_has_private,         {The object has private members.}
-                    oo_has_protected,       {The obejct has protected
-                                             members.}
                     oo_isforward,           {The class is only a forward
                                              declared yet.}
                     oo_can_have_published,  {True, if the class has rtti, i.e.
@@ -66,7 +60,8 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
                     oo_has_destructor,      {The object/class has a
                                              destructor.}
 
-                    oo_has_vmt,             {The object/class has a vmt.}
+                    {When has_virtual is set, has_vmt is also set....
+                    oo_has_vmt,             The object/class has a vmt.}
                     oo_has_msgstr,
                     oo_has_msgint,
                     oo_cppvmt);             {The object/class uses an C++
@@ -76,58 +71,64 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
         Tobjoptionset=set of Tobjoption;
 
         {Calling convention for tprocdef and Tprocvardef.}
-        Tproccalloption=(pocall_none,
-                         pocall_clearstack,     {Use IBM flat calling
+        Tproccalloption=(po_call_none,
+                         po_call_clearstack,    {Use IBM flat calling
                                                  convention. (Used by GCC.)}
-                         pocall_leftright,      {Push parameters from left to
+                         po_call_leftright,     {Push parameters from left to
                                                  right.}
-                         pocall_cdecl,          {Procedure uses C styled
+                         po_call_cdecl,         {Procedure uses C styled
                                                  calling.}
-                         pocall_register,       {Procedure uses register
+                         po_call_register,      {Procedure uses register
                                                  (fastcall) calling.}
-                         pocall_stdcall,        {Procedure uses stdcall
+                         po_call_stdcall,       {Procedure uses stdcall
                                                  call.}
-                         pocall_safecall,       {Safe call calling
+                         po_call_safecall,      {Safe call calling
                                                  conventions.}
-                         pocall_palmossyscall,  {Procedure is a PalmOS
+                         po_call_palmossyscall, {Procedure is a PalmOS
                                                  system call.}
-                         pocall_system,
-                         pocall_inline,         {Procedure is an assembler
+                         po_call_system,
+                         po_call_inline,        {Procedure is an assembler
                                                  macro.}
-                         pocall_internproc,     {Procedure has compiler
+                         po_call_internproc,    {Procedure has compiler
                                                  magic.}
-                         pocall_internconst);   {Procedure has constant
+                         po_call_internconst);  {Procedure has constant
                                                  evaluator intern.}
         Tproccalloptionset=set of Tproccalloption;
 
         {Basic type for tprocdef and tprocvardef }
-        Tproctypeoption=(potype_none,
-                         potype_proginit,       {Program initialization.}
-                         potype_unitinit,       {Unit initialization.}
-                         potype_unitfinalize,   {Unit finalization.}
-                         potype_constructor,    {Procedure is a constructor.}
-                         potype_destructor,     {Procedure is a destructor.}
-                         potype_operator);      {Procedure defines an
+        Tproctypeoption=(po_type_none,
+                         po_type_proginit,      {Program initialization.}
+                         po_type_unitinit,      {Unit initialization.}
+                         po_type_unitfinalize,  {Unit finalization.}
+                         po_type_constructor,   {Procedure is a constructor.}
+                         po_type_destructor,    {Procedure is a destructor.}
+                         po_type_operator);     {Procedure defines an
                                                  operator.}
 
         {Other options for Tprocdef and Tprocvardef.}
         Tprocoption=(po_none,
-            poclassmethod,          {Class method.}
-            povirtualmethod,        {Procedure is a virtual method.}
-            poabstractmethod,       {Procedure is an abstract method.}
-            postaticmethod,         {Static method.}
-            pooverridingmethod,     {Method with override directive.}
-            pomethodpointer,        {Method pointer, only in procvardef, also used for 'with object do'.}
-            pocontainsself,         {Self is passed explicit to the compiler.}
-            pointerrupt,            {Procedure is an interrupt handler.}
-            poiocheck,              {IO checking should be done after a call to the procedure.}
-            poassembler,            {Procedure is written in assembler.}
-            pomsgstr,               {Method for string message handling.}
-            pomsgint,               {Method for int message handling.}
-            poexports,              {Procedure has export directive (needed for OS/2).}
-            poexternal,             {Procedure is external (in other object or lib).}
-            posavestdregs,          {Save std regs cdecl and stdcall need that !}
-            posaveregisters);       {Save all registers }
+            po_classmethod,         {Class method.}
+            po_virtualmethod,       {Procedure is a virtual method.}
+            po_abstractmethod,      {Procedure is an abstract method.}
+            po_staticmethod,        {Static method.}
+            po_overridingmethod,    {Method with override directive.}
+            po_methodpointer,       {Method pointer, only in procvardef, also
+                                     used for 'with object do'.}
+            po_containsself,        {Self is passed explicit to the
+                                     compiler.}
+            po_interrupt,           {Procedure is an interrupt handler.}
+            po_iocheck,             {IO checking should be done after a call
+                                     to the procedure.}
+            po_assembler,           {Procedure is written in assembler.}
+            po_msgstr,              {Method for string message handling.}
+            po_msgint,              {Method for int message handling.}
+            po_exports,             {Procedure has export directive (needed
+                                     for OS/2).}
+            po_external,            {Procedure is external (in other object
+                                     or lib).}
+            po_savestdregs,         {Save std regs cdecl and stdcall need
+                                     that!}
+            po_saveregisters);      {Save all registers }
         Tprocoptionset=set of Tprocoption;
 
         Tarrayoption=(ap_variant,ap_constructor,ap_arrayofconst);
@@ -219,7 +220,34 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
             function gettypename:string;virtual;
         end;
 
+        Pvmtentry=^Tvmtentry;
+        Pglobalvmtentry=^Tglobalvmtentry;
+        Plocalvmtentry=^Tlocalvmtentry;
         Pobjectdef=^Tobjectdef;
+        Pabstractprocdef=^Pabstractprocdef;
+        Pprocvardef=^Tprocvardef;
+        Pprocdef = ^Tprocdef;
+
+        Tvmtentry=object(Tobject)
+            owner:Pobjectdef;
+            constructor init(Aowner:Pobjectdef);
+            function mangledname:string;virtual;
+        end;
+
+        Tglobalvmtentry=object(Tvmtentry)
+            constructor init(Aowner:Pobjectdef;proc:Pprocdef);
+            function mangledname:string;virtual;
+        private
+            def:Pprocdef;
+        end;
+
+        Tlocalvmtentry=object(Tvmtentry)
+            constructor init(Aowner:Pobjectdef;proc:Pprocdef);
+            function mangledname:string;virtual;
+        private
+            name:Pstring;
+        end;
+
         Tobjectdef=object(Tdef)
             childof:Pobjectdef;
             objname:Pstring;
@@ -228,17 +256,20 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
             publicsyms:Pobjectsymtable;
             options:Tobjoptionset;
             {To be able to have a variable vmt position
-             and no vmt field for objects without virtuals }
+             and no vmt field for objects without virtuals.}
             vmt_offset:longint;
+            {Contains Tvmtentry objects to describe the layout of the vmt.}
+            vmt_layout:Pcollection;
             constructor init(const n:string;Aowner:Pcontainingsymtable;
                              parent:Pobjectdef;isclass:boolean);
             constructor load(var s:Tstream);
             procedure check_forwards;
+            function insert(Asym:Psym):boolean;
             procedure insertvmt;
             function is_related(d:Pobjectdef):boolean;
-            function search(const s:string):Psym;
-            function speedsearch(const s:string;
-                                 speedvalue:longint):Psym;virtual;
+            function search(const s:string;search_protected:boolean):Psym;
+            function speedsearch(const s:string;speedvalue:longint;
+                                 search_protected:boolean):Psym;virtual;
             function size:longint;virtual;
             procedure store(var s:Tstream);virtual;
             function vmt_mangledname : string;
@@ -456,7 +487,6 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
             procedure write_rtti_data;virtual;
         end;
 
-        Pabstractprocdef=^Pabstractprocdef;
         Tabstractprocdef=object(Tdef)
             {Saves a definition to the return type }
             retdef:Pdef;
@@ -479,7 +509,6 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
 {$endif GDB}
         end;
 
-        Pprocvardef=^Tprocvardef;
         Tprocvardef=object(Tabstractprocdef)
 {$IFDEF TP}
             constructor init(Aowner:Pcontainingsymtable);
@@ -510,10 +539,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
         {This object can be splitted into a Tprocdef, for normal procedures,
          a Tmethoddef for methods, and a Tinlinedprocdef and a
          Tinlinedmethoddef for inlined procedures.}
-        Pprocdef = ^Tprocdef;
         Tprocdef = object(tabstractprocdef)
-           objprop:Tobjpropset;
-           extnumber:longint;
            messageinf:Tmessageinf;
            { where is this function defined, needed here because there
              is only one symbol for all overloaded functions }
@@ -524,6 +550,7 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
            { it's a tree, but this not easy to handle }
            { used for inlined procs                   }
            code : pointer;
+           vmt_index:longint;
            { true, if the procedure is only declared }
            { (forward procedure) }
            references:Pcollection;
@@ -562,13 +589,13 @@ type    Targconvtyp=(act_convertable,act_equal,act_exact);
 
         {Relevant options for assigning a proc or a procvar to a procvar.}
 const   po_compatibility_options=[
-          poclassmethod,
-          postaticmethod,
-          pomethodpointer,
-          pocontainsself,
-          pointerrupt,
-          poiocheck,
-          poexports
+          po_classmethod,
+          po_staticmethod,
+          po_methodpointer,
+          po_containsself,
+          po_interrupt,
+          po_iocheck,
+          po_exports
         ];
 
 var     cformaldef:Pformaldef;      {Unique formal definition.}
@@ -865,7 +892,64 @@ begin
 end;
 
 {***************************************************************************
-                              TOBJECTDEF
+                                TVMTENTRY
+***************************************************************************}
+
+constructor Tvmtentry.init(Aowner:Pobjectdef);
+
+begin
+    inherited init;
+    {$IFDEF TP}setparent(typeof(Tobject));{$ENDIF}
+    owner:=Aowner;
+end;
+
+function Tvmtentry.mangledname:string;
+
+begin
+    abstract;
+end;
+
+{***************************************************************************
+                             TGLOBALVMTENTRY
+***************************************************************************}
+
+constructor Tglobalvmtentry.init(Aowner:Pobjectdef;proc:Pprocdef);
+
+begin
+    inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tvmtentry));{$ENDIF TP}
+    def:=proc;
+end;
+
+function Tglobalvmtentry.mangledname:string;
+
+begin
+    mangledname:=def^.mangledname;
+end;
+
+{***************************************************************************
+                              TLOCALVMTENTRY
+***************************************************************************}
+
+constructor Tlocalvmtentry.init(Aowner:Pobjectdef;proc:Pprocdef);
+
+begin
+    inherited init(Aowner);
+    {$IFDEF TP}setparent(typeof(Tvmtentry));{$ENDIF TP}
+    if po_abstractmethod in proc^.options then
+        name:=stringdup('FPC_ABSTRACTERROR')
+    else
+        name:=stringdup(proc^.mangledname);
+end;
+
+function Tlocalvmtentry.mangledname:string;
+
+begin
+    mangledname:=name^;
+end;
+
+{***************************************************************************
+                                TOBJECTDEF
 ***************************************************************************}
 
 constructor Tobjectdef.init(const n:string;Aowner:Pcontainingsymtable;
@@ -889,7 +973,7 @@ end;
 
 procedure tobjectdef.set_parent(parent:Pobjectdef);
 
-const   inherited_options=[oo_has_virtual,oo_has_private,oo_has_protected,
+const   inherited_options=[oo_has_virtual,
                            oo_has_constructor,oo_has_destructor];
 
 begin
@@ -917,15 +1001,15 @@ begin
                             inc(protectedsyms^.datasize,
                              parent^.protectedsyms^.datasize);
                         end;
-                    if oo_has_vmt in (options*parent^.options) then
+                    if oo_has_virtual in (options*parent^.options) then
                         publicsyms^.datasize:=publicsyms^.datasize-
                          target_os.size_of_pointer;
                     {If parent has a vmt field then
                      the offset is the same for the child PM }
-                     if [oo_has_vmt,oo_is_class]*parent^.options<>[] then
+                     if [oo_has_virtual,oo_is_class]*parent^.options<>[] then
                         begin
                             vmt_offset:=parent^.vmt_offset;
-                            include(options,oo_has_vmt);
+                            include(options,oo_has_virtual);
                         end;
                 end;
             savesize:=publicsyms^.datasize;
@@ -963,18 +1047,43 @@ end;
 
 procedure Tobjectdef.insertvmt;
 
+var o:Pobjectdef;
+    c:Pcollection;
+    i:word;
+
 begin
-    if oo_has_vmt in options then
-        internalerror($990803)
+    if vmt_layout<>nil then
+        internalerror($990803);
+    {Make room for a vmtlink in the object.
+     First round up to aktpakrecords.}
+    publicsyms^.datasize:=align(publicsyms^.datasize,
+     packrecordalignment[aktpackrecords]);
+    vmt_offset:=publicsyms^.datasize;
+    publicsyms^.datasize:=publicsyms^.datasize+
+     target_os.size_of_pointer;
+    {Set up the vmt layout collection.
+     First search for a vmt in a parent object.}
+    o:=childof;
+    c:=nil;
+    while o<>nil do
+        begin
+            if o^.vmt_layout<>nil then
+                begin
+                    c:=vmt_layout;
+                    break;
+                end;
+            o:=o^.childof;
+        end;
+    if c=nil then
+        new(vmt_layout,init(8,8))
     else
         begin
-            {First round up to aktpakrecords.}
-            publicsyms^.datasize:=align(publicsyms^.datasize,
-             packrecordalignment[aktpackrecords]);
-            vmt_offset:=publicsyms^.datasize;
-            publicsyms^.datasize:=publicsyms^.datasize+
-             target_os.size_of_pointer;
-            include(options,oo_has_vmt);
+            {We should copy the vmt layout of our parent object. Our vmt
+             layout will change as soon as methods are overridden or when
+             new virtual methods are added.}
+            new(vmt_layout,init(c^.limit,8));
+            for i:=0 to c^.count-1 do
+                vmt_layout^.insert(c^.at(i));
         end;
 end;
 
@@ -1009,13 +1118,47 @@ begin
         end;
 end;
 
-function Tobjectdef.search(const s:string):Psym;
+function Tobjectdef.insert(Asym:Psym):boolean;
+
+var speedvalue:longint;
+    s:Psym;
+    op:Tobjpropset;
 
 begin
-    search:=speedsearch(s,getspeedvalue(s));
+    {First check if the symbol already exists.}
+    s:=privatesyms^.speedsearch(Asym^.name,Asym^.speedvalue);
+    if s=nil then
+        protectedsyms^.speedsearch(Asym^.name,Asym^.speedvalue);
+    if s=nil then
+        publicsyms^.speedsearch(Asym^.name,Asym^.speedvalue);
+    if s<>nil then
+        duplicatesym(sym)
+    else
+        begin
+            {Asym is a Tprocsym, Tvarsym or Tpropertysym.}
+            if Asym^.is_object(typeof(Tprocsym)) then
+                op:=Pprocsym(Asym)^.objprop
+            else if Asym^.is_object(typeof(Tvarsym)) then
+                op:=Pvarsym(Asym)^.objprop
+            else if Asym^.is_object(typeof(Tpropertysym)) then
+                op:=Ppropertysym(Asym)^.objprop;
+            if sp_private in op then
+               insert:=privatesyms^.insert(Asym)
+            else if sp_protected in op then
+               insert:=protectedsyms^.insert(Asym)
+            else if sp_public in op then
+               insert:=publicsyms^.insert(Asym);
+        end;
 end;
 
-function Tobjectdef.speedsearch(const s:string;speedvalue:longint):Psym;
+function Tobjectdef.search(const s:string;search_protected:boolean):Psym;
+
+begin
+    search:=speedsearch(s,getspeedvalue(s),search_protected);
+end;
+
+function Tobjectdef.speedsearch(const s:string;speedvalue:longint;
+                                search_protected:boolean):Psym;
 
 var r:Psym;
 
@@ -1025,7 +1168,7 @@ begin
      This way, private syms are not found by objects in other units.}
     if (r=nil) and (privatesyms<>nil) then
         r:=privatesyms^.speedsearch(s,speedvalue);
-    if (r=nil) and (protectedsyms<>nil) then
+    if (r=nil) and search_protected and (protectedsyms<>nil) then
         r:=protectedsyms^.speedsearch(s,speedvalue);
 end;
 
@@ -1055,9 +1198,9 @@ end;
 function Tobjectdef.vmt_mangledname:string;
 
 begin
-    if oo_has_vmt in options then
+    if not(oo_has_virtual in options) then
         message1(parser_object_has_no_vmt,objname^);
-        vmt_mangledname:='VMT_'+owner^.name^+'$_'+objname^;
+    vmt_mangledname:='VMT_'+owner^.name^+'$_'+objname^;
 end;
 
 function Tobjectdef.rtti_name:string;
@@ -1131,7 +1274,18 @@ end;
 
 destructor Tobjectdef.done;
 
+var i:longint;
+    ve:Pvmtentry;
+
 begin
+    {We should be carefull when disposing the vmt_layout; there are
+     vmt entries in it which are from methods of our ancestor, we
+     should not dispose these. So first set them to nil.}
+    for i:=0 to vmt_layout^.count do
+        if Pvmtentry(vmt_layout^.at(i))^.owner<>@self then
+            vmt_layout^.atput(i,nil);
+    dispose(vmt_layout,done);
+
     if publicsyms<>nil then
         dispose(publicsyms,done);
     if privatesyms<>nil then
@@ -1150,7 +1304,7 @@ procedure count_published_properties(sym:Pnamedindexobject);
                                     {$ifndef fpc}far;{$endif}
 
 begin
-    if (typeof(sym^)=typeof(Tpropertysym)) and
+    if sym^.is_object(typeof(Tpropertysym)) and
      (ppo_published in Ppropertysym(sym)^.properties) then
         inc(count);
 end;
@@ -1158,41 +1312,41 @@ end;
 
 procedure write_property_info(sym:Pnamedindexobject);{$ifndef fpc}far;{$endif}
 
-var proctypesinfo : byte;
+var proctypesinfo:byte;
 
-procedure writeproc(sym:Psym;def:Pdef;shiftvalue:byte);
+    procedure writeproc(proc:Pcollection;shiftvalue:byte);
 
-var typvalue:byte;
+    var typvalue:byte;
 
-begin
-    if not(assigned(sym)) then
-        begin
-            rttilist^.concat(new(pai_const,init_32bit(1)));
-            typvalue:=3;
-        end
-    else if typeof(sym^)=typeof(Tvarsym) then
-        begin
-            rttilist^.concat(new(pai_const,init_32bit(
-             Pvarsym(sym)^.address)));
-            typvalue:=0;
-        end
-    else
-        begin
-(*          if (pprocdef(def)^.options and povirtualmethod)=0 then
-                begin
-                    rttilist^.concat(new(pai_const_symbol,initname(pprocdef(def)^.mangledname)));
-                    typvalue:=1;
-                end
-            else
-                begin
-                    {Virtual method, write vmt offset.}
-                    rttilist^.concat(new(pai_const,
-                     init_32bit(Pprocdef(def)^.extnumber*4+12)));
-                    typvalue:=2;
-                end;*)
-        end;
-    proctypesinfo:=proctypesinfo or (typvalue shl shiftvalue);
-end;
+    begin
+        if proc=nil then
+            begin
+                rttilist^.concat(new(pai_const,init_32bit(1)));
+                typvalue:=3;
+            end
+        else if Psym(proc^.at(0))^.is_object(typeof(Tvarsym)) then
+            begin
+                rttilist^.concat(new(pai_const,init_32bit(
+                 Pvarsym(sym)^.address)));
+                typvalue:=0;
+            end
+        else
+            begin
+    (*          if (pprocdef(def)^.options and povirtualmethod)=0 then
+                    begin
+                        rttilist^.concat(new(pai_const_symbol,initname(pprocdef(def)^.mangledname)));
+                        typvalue:=1;
+                    end
+                else
+                    begin
+                        {Virtual method, write vmt offset.}
+                        rttilist^.concat(new(pai_const,
+                         init_32bit(Pprocdef(def)^.extnumber*4+12)));
+                        typvalue:=2;
+                    end;*)
+            end;
+        proctypesinfo:=proctypesinfo or (typvalue shl shiftvalue);
+    end;
 
 begin
     if (typeof(sym^)=typeof(Tpropertysym)) and
@@ -1205,8 +1359,8 @@ begin
         begin
             rttilist^.concat(new(pai_const_symbol,initname(
              Ppropertysym(sym)^.definition^.get_rtti_label)));
-            writeproc(Ppropertysym(sym)^.readaccesssym,ppropertysym(sym)^.readaccessdef,0);
-            writeproc(Ppropertysym(sym)^.writeaccesssym,ppropertysym(sym)^.writeaccessdef,2);
+            writeproc(Ppropertysym(sym)^.readaccess,0);
+            writeproc(Ppropertysym(sym)^.writeaccess,2);
             { isn't it stored ? }
             if (ppo_stored in Ppropertysym(sym)^.properties) then
                 begin
@@ -1214,7 +1368,7 @@ begin
                     proctypesinfo:=proctypesinfo or (3 shl 4);
                 end
             else
-                writeproc(ppropertysym(sym)^.storedsym,ppropertysym(sym)^.storeddef,4);
+                writeproc(ppropertysym(sym)^.storedaccess,4);
             rttilist^.concat(new(pai_const,
              init_32bit(ppropertysym(sym)^.index)));
             rttilist^.concat(new(pai_const,
@@ -2585,7 +2739,7 @@ begin
     inherited init(Aowner);
     {$IFDEF TP}setparent(typeof(Tabstractprocdef));{$ENDIF}
     fileinfo:=aktfilepos;
-    extnumber:=-1;
+    vmt_index:=-1;
     new(localst,init);
     if (cs_browser in aktmoduleswitches) and make_ref then
         begin
@@ -2736,7 +2890,7 @@ end;
 destructor Tprocdef.done;
 
 begin
-    if pomsgstr in options then
+    if po_msgstr in options then
         strdispose(messageinf.str);
     if references<>nil then
         dispose(references,done);
@@ -2862,7 +3016,7 @@ end;
 function Tprocvardef.size:longint;
 
 begin
-    if pomethodpointer in options then
+    if po_methodpointer in options then
         size:=2*target_os.size_of_pointer
     else
         size:=target_os.size_of_pointer;
@@ -2937,7 +3091,7 @@ end;
 function Tprocvardef.is_publishable:boolean;
 
 begin
-    is_publishable:=pomethodpointer in options;
+    is_publishable:=po_methodpointer in options;
 end;
 
 function Tprocvardef.gettypename:string;
@@ -2978,7 +3132,11 @@ end.
 
 {
   $Log$
-  Revision 1.5  2000-03-11 21:11:24  daniel
+  Revision 1.6  2000-03-16 12:52:47  daniel
+    *  Changed names of procedures flags
+    *  Changed VMT generation
+
+  Revision 1.5  2000/03/11 21:11:24  daniel
     * Ported hcgdata to new symtable.
     * Alignment code changed as suggested by Peter
     + Usage of my is operator replacement, is_object
