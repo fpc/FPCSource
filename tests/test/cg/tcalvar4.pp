@@ -286,11 +286,6 @@ var
     arr[1] := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_open(var arr : array of byte);cdecl;
-  begin
-    arr[high(arr)] := RESULT_U8BIT;
-    arr[low(arr)] := RESULT_U8BIT;
-  end;
 
 
 
@@ -396,12 +391,6 @@ procedure proc_var_formaldef_string(var buf);cdecl;
     value_u8bit := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_open_mixed(b1 : byte; var arr : array of byte; b2: byte);cdecl;
-  begin
-    arr[high(arr)] := RESULT_U8BIT;
-    arr[low(arr)] := RESULT_U8BIT;
-    value_u8bit := RESULT_U8BIT;
-  end;
 
 
   procedure proc_var_formaldef_array_mixed(b1 : byte; var buf; b2: byte);cdecl;
@@ -554,14 +543,6 @@ begin
   if (value_smallarray[SMALL_INDEX] <> RESULT_U8BIT) or (value_smallarray[1] <> RESULT_U8BIT) then
     failed := true;
 
-
-
-  clear_globals;
-  clear_values;
-
-  proc_var_smallarray_open(value_smallarray);
-  if (value_smallarray[SMALL_INDEX] <> RESULT_U8BIT) or (value_smallarray[1] <> RESULT_U8BIT) then
-    failed := true;
 
 
   if failed then
@@ -718,15 +699,6 @@ begin
 
 
 
-  clear_globals;
-  clear_values;
-
-  proc_var_smallarray_open_mixed(RESULT_U8BIT, value_smallarray, RESULT_U8BIT);
-  if (value_smallarray[SMALL_INDEX] <> RESULT_U8BIT) or (value_smallarray[1] <> RESULT_U8BIT) then
-    failed := true;
-  if value_u8bit <> RESULT_U8BIT then
-    failed := true;
-
   if failed then
     fail
   else
@@ -737,7 +709,10 @@ end.
 
 {
   $Log$
-  Revision 1.5  2002-11-09 21:47:37  carl
+  Revision 1.6  2002-11-20 19:39:21  carl
+  - high() cannot be used in cdecle'd routines
+
+  Revision 1.5  2002/11/09 21:47:37  carl
     + updated tests for correct parsing (array of const now allowed with high!)
 
   Revision 1.4  2002/09/22 09:08:41  carl

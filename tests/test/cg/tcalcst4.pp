@@ -375,13 +375,6 @@ var
      value_u8bit := b2;
   end;
 
-  procedure proc_const_smallarray_open_mixed(b1: byte; const arr : array of byte; b2: byte);cdecl;
-  begin
-    { form 0 to N-1 indexes in open arrays }
-    if arr[high(arr)] = RESULT_U8BIT then
-      global_u8bit := RESULT_U8BIT;
-     value_u8bit := b2;
-  end;
 
 
 
@@ -676,16 +669,6 @@ begin
   if value_u8bit <> RESULT_U8BIT then
     failed := true;
 
-  clear_globals;
-  clear_values;
-
-  value_smallarray[SMALL_INDEX] := RESULT_U8BIT;
-  proc_const_smallarray_open_mixed(RESULT_U8BIT,value_smallarray,RESULT_U8BIT);
-  if global_u8bit <> RESULT_U8BIT then
-    failed := true;
-  if value_u8bit <> RESULT_U8BIT then
-    failed := true;
-
 
   if failed then
     fail
@@ -695,7 +678,10 @@ end.
 
 {
   $Log$
-  Revision 1.6  2002-11-09 21:47:36  carl
+  Revision 1.7  2002-11-20 19:39:21  carl
+  - high() cannot be used in cdecle'd routines
+
+  Revision 1.6  2002/11/09 21:47:36  carl
     + updated tests for correct parsing (array of const now allowed with high!)
 
   Revision 1.5  2002/09/22 14:16:12  carl
